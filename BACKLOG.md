@@ -11,35 +11,68 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 ## P1 — quick wins, next up
 
-### Fix low-happiness lock-in (needs RCA, 2026-07-18)
-Kitties get stuck in low-happiness episodes (observed: 200–500 ticks below
-happiness 45; all three cats touched the floor of 5 in a 6,000-tick window).
-Root cause, confirmed against a live state file and reproduction run: when
-play becomes unattainable, `needs_driven`'s hard safeguard lock ("pursue only
-the most pressing need") starves every other need — including bath and sleep,
-which are satisfiable on the spot — and the fixed tie-break order at the
-100-clamp turns into a starvation queue (bath, last in the order, can never
-win a tie). Play is the trigger because its relief throughput is too low for
-an isolated cat: critters always exist, so the friend-play fallback is dead
-code; greebles outrun cats; bug chases die to TTL. Improvements, in impact
-order:
+### A legal config can still strand a cat (`tile_cost = 0`)
+The lock-in fix (spec 004) is safe under the shipped defaults, but its
+scoring can be switched off by configuration. `[behavior] tile_cost = 0`
+passes validation (which only requires finite and ≥ 0) and zeroes the travel
+term entirely — which also cancels the large sentinel distance that stands in
+for "there is no way to relieve this at all". A need with no relief anywhere
+then wins on pressure alone, and `pursue` has nothing to do about it: in a
+world momentarily without chow, a hungry cat idles at high pressure while
+bath and sleep sit free. That is the shape of the original lock-in, reachable
+through a config an operator might reasonably try.
 
-1. Replace the hard safeguard lock with proportional urgency — always weigh
-   distance, with pressure counting more above the safeguard threshold.
-2. Raise play throughput: opportunistic play in `take_what_is_here`, play
-   targets chosen by distance across critters *and* friends, give up on
-   futile chases (especially greebles).
-3. Solo play as a backstop (pouncing on nothing), so every need is
-   self-satisfiable in the limit — restoring the Article I assumption that
-   play is always satisfiable.
-4. Break pressure ties by longest-since-relief instead of `NeedKind::ALL`
-   order.
-5. Observability: per-kitty time-in-distress (the unresolved play distress
-   sat visible-but-unwatched for 216 ticks).
+Two candidate fixes, the second preferred: require `tile_cost > 0`, or stop
+encoding unreachability as a distance at all — skip needs with no relief path
+during selection, so no weight can cancel the fact. The sentinel
+(`UNREACHABLE = u32::MAX / 2` in `behavior/selection.rs`) is the smell.
+
+P1 because it is the only open review finding that can actually leave a kitty
+stranded, and because the fix is small and well understood.
 
 <!-- shipped P1 items are removed once merged; see git history -->
 
 ## P2 — the bigger pieces, for a proper sitting
+
+### Harden the whole proposal boundary (do this *with* the plugin work)
+The strict play-target parsing that shipped in PR #5 fixed one instance of a
+general problem: a malformed proposal was silently reshaped into a legal,
+*rewarded* action instead of reaching the engine as something to reject.
+`chase`, `move`, `meow`, `rest`, `sleep` and `groom` have never had the same
+scrutiny — nobody has asked what each does with a missing field, a wrong
+type, an unknown enum value, or an extra key, because until now every
+proposal was constructed in-process by a built-in.
+
+That stops being true the moment an out-of-process brain can propose. This
+belongs in the same sitting as **External behavior plugins** below — writing
+the plugin transport without first pinning down what the wire accepts is how
+you end up with the flatten bug in five more places. Deliverable: a
+round-trip and rejection test per action shape (the play tests are the
+template), plus a documented rule that malformed proposals resolve to the
+fallback, never to a legal action. `Action`'s serde surface is the contract;
+treat it like one.
+
+### Loose ends from the 004 review
+Three low-severity findings from the post-merge review, none of which can
+harm a kitty — grouped because they are all one sitting's work:
+
+1. **Sleep is scored as free but may cost a walk.** `travel_distance` reports
+   Sleep as distance 0, while `pursue(Sleep)` will walk up to 8 tiles to a
+   sunbeam, so selection can pick sleep as "free" and then commit the cat to
+   an 8-tick trek past food it nearly chose. That radius is also a hardcoded
+   `<= 8` in `needs_driven.rs` — an Article VI magic number that survived the
+   sweep which promoted `WORTH_A_DETOUR` and `TILE_COST` out of the same
+   file, and a silent duplicate of the new `behavior.solo_play_reach`.
+2. **A stale exclusion hard-fails a resume.** An expired `abandoned_chases`
+   entry is a load-time constitutional violation, so a snapshot carrying one
+   is refused outright ("start a new one with `--fresh`") over bookkeeping the
+   next tick would prune harmlessly. Its sibling `distress_since` was
+   deliberately given a self-heal path; this asymmetry is accidental. Prune
+   on load, or make the invariant self-healing.
+3. **The playmate scan runs twice per decision.** `choose_need` computes
+   `nearest_viable_playmate` while scoring Play, then `play_action`
+   immediately recomputes the identical result. Hand the target down instead
+   of discarding it.
 
 ### Graphics refresh: Make even cuter!
 All in `client/` — no engine changes. Candidate directions: real sprites (or
@@ -55,8 +88,10 @@ budget, validation, and `NeedsDriven` fallback all exist so an out-of-process
 brain can drop in with zero engine changes. Ship one reference implementation
 (local script or HTTP endpoint) plus docs. This is the door to "an LLM decides
 what the kitty does." Test scaffolding (`sleepy_slow`, `panicky`,
-`always_invalid`) already covers the hostile cases. Deliberately P2: the
-highest-value non-cosmetic item, held for a proper sitting rather than a
+`always_invalid`) already covers the hostile cases — but only *behavioural*
+hostility, not malformed input: pair this with **Harden the whole proposal
+boundary** above, which is the same sitting's prerequisite. Deliberately P2:
+the highest-value non-cosmetic item, held for a proper sitting rather than a
 squeezed-in version.
 
 ### Friendship / relationship tracking (+ friend-proximity preference)
