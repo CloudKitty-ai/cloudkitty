@@ -14,7 +14,7 @@
 use async_trait::async_trait;
 
 use super::needs_driven::{pursue, take_what_is_here};
-use super::{Behavior, DecisionContext};
+use super::{selection, Behavior, DecisionContext};
 use crate::action::{Action, TargetRef};
 use crate::meow::MessageKind;
 
@@ -29,14 +29,16 @@ impl Behavior for Playful {
             return action;
         }
 
-        let (need, pressure) = ctx.me.needs.highest_pressure();
+        let (_, pressure) = ctx.me.needs.highest_pressure();
 
         // Some things cannot wait, even for a good game. The comfort line is
         // configurable ([behavior] playful_comfort, default 55): well below the
         // safeguard threshold, so a playful cat keeps itself in reasonable shape
-        // instead of skirting the edge of distress between games.
+        // instead of skirting the edge of distress between games. Getting serious
+        // means the same scored selection the sensible cat uses -- a playful
+        // personality is a different life, never a different immune system.
         if pressure >= ctx.config.behavior.playful_comfort {
-            return pursue(ctx, need);
+            return pursue(ctx, selection::choose_need(ctx));
         }
 
         // A cat this happy should say so now and then.
@@ -47,35 +49,21 @@ impl Behavior for Playful {
             return Action::Purr;
         }
 
-        let me = &ctx.me;
-        let world = &ctx.world;
+        // The game is wherever the nearest playmate worth having is -- critter
+        // or friend, minus anything already written off as uncatchable. Shared
+        // rules (viability, give-up, the solo backstop) live in `selection`.
+        let play = selection::play_action(ctx);
 
-        // Bugs and greebles first -- and greebles count, even though no human
-        // watching will ever see what this cat is so excited about.
-        if let Some(critter) = world.nearest_critter(me.pos) {
-            return if me.pos.is_adjacent(&critter.pos) {
-                Action::Play(TargetRef::Element { id: critter.id })
-            } else {
-                Action::Chase(TargetRef::Element { id: critter.id })
-            };
-        }
-
-        // No critters? Rope a friend into it.
-        if let Some(friend) = world.nearest_friend(me.id, me.pos) {
-            if me.pos.is_adjacent(&friend.pos) {
-                return Action::Play(TargetRef::Kitty { id: friend.id });
-            }
-            // Announce the plan occasionally, then go and find them.
-            if ctx.me.can_meow(MessageKind::WantPlay, world.tick) && ctx.rng.gen_bool(0.15) {
+        // Announce the plan occasionally before setting off after a friend.
+        if let Action::Chase(TargetRef::Kitty { .. }) = play {
+            if ctx.me.can_meow(MessageKind::WantPlay, ctx.world.tick) && ctx.rng.gen_bool(0.15) {
                 return Action::Meow {
                     message: MessageKind::WantPlay,
                 };
             }
-            return Action::Chase(TargetRef::Kitty { id: friend.id });
         }
 
-        // An empty world: fall back to being sensible.
-        pursue(ctx, need)
+        play
     }
 
     fn is_builtin(&self) -> bool {
@@ -195,8 +183,26 @@ mod tests {
 
         assert_eq!(
             Playful.decide(&ctx).await,
-            Action::Play(TargetRef::Element { id: 602 })
+            Action::play_with(TargetRef::Element { id: 602 })
         );
+    }
+
+    #[tokio::test]
+    async fn a_playful_cat_alone_pounces_at_nothing() {
+        // Urgent play, every playmate far beyond reach: a playful cat
+        // entertains itself sooner than pacing after the horizon.
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(2, 2);
+            world.kitties[idx].needs.add(NeedKind::Play, 80.0);
+            let friend = world.kitty_index(2).unwrap();
+            world.kitties[friend].pos = Position::new(15, 15);
+        });
+        ctx.me
+            .set_meow_cooldown(crate::meow::MessageKind::WantPlay, u64::MAX);
+
+        assert_eq!(Playful.decide(&ctx).await, Action::play_solo());
     }
 
     #[tokio::test]

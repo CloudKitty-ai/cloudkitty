@@ -25,6 +25,14 @@ const NEED_LABELS = {
 
 const RECONNECT_DELAY_MS = 1000;
 
+/**
+ * How long a distress may go unresolved before a kitty's card shows its gentle
+ * cue. The real value comes from the server's /config ([viewer]
+ * distress_patience_ticks) so it is never hard-coded here; this stand-in only
+ * covers the moments before that fetch lands (or a server too old to serve it).
+ */
+let distressPatienceTicks = 60;
+
 let latestWorld = null;
 
 function setStatus(text, connected) {
@@ -57,6 +65,7 @@ function renderPanel(world) {
     card.querySelector('.name').textContent = `${faceFor(kitty)} ${kitty.name}`;
     card.querySelector('.mood').textContent = moodFor(kitty);
     card.querySelector('.doing').textContent = doingFor(kitty, world);
+    card.querySelector('.patience').textContent = patienceFor(kitty, world);
 
     const happinessBar = card.querySelector('.happiness > span');
     happinessBar.style.width = `${clampPercent(kitty.happiness)}%`;
@@ -87,6 +96,10 @@ function buildKittyCard(kitty) {
   const doing = document.createElement('div');
   doing.className = 'doing';
   card.appendChild(doing);
+
+  const patience = document.createElement('div');
+  patience.className = 'patience';
+  card.appendChild(patience);
 
   const happiness = document.createElement('div');
   happiness.className = 'bar happiness';
@@ -157,7 +170,10 @@ function doingFor(kitty, world) {
     case 'chase':
       return `chasing ${targetText(action, world, friendName)}`;
     case 'play':
-      return `playing with ${targetText(action, world, friendName)}`;
+      // No target means solo play: a kitty entertaining itself.
+      return action.target != null
+        ? `playing with ${targetText(action, world, friendName)}`
+        : 'pouncing at nothing 🎈';
     case 'purr':
       return 'purring 💕';
     case 'meow':
@@ -192,6 +208,28 @@ function targetText(action, world, friendName) {
   return `the ${element.kind}`;
 }
 
+/**
+ * The gentle long-distress cue (US5). When any need has been in distress past
+ * the configured patience, say so -- caring, not alarming, and only the
+ * longest-running one, never a stack of alarms. Pure arithmetic on served
+ * state: age = world.tick - distress_since[need].
+ */
+function patienceFor(kitty, world) {
+  const since = kitty.distress_since;
+  if (!since) return '';
+
+  let oldest = null;
+  for (const [need, startTick] of Object.entries(since)) {
+    const age = world.tick - startTick;
+    if (age >= distressPatienceTicks && (oldest === null || age > oldest.age)) {
+      oldest = { need, age };
+    }
+  }
+  if (!oldest) return '';
+  const label = NEED_LABELS[oldest.need] ?? oldest.need;
+  return `has been wanting ${label} for a while 💭`;
+}
+
 function clampPercent(value) {
   return Math.max(0, Math.min(100, value));
 }
@@ -206,6 +244,21 @@ async function fetchSnapshot() {
   const response = await fetch('/world');
   if (!response.ok) throw new Error(`GET /world returned ${response.status}`);
   return response.json();
+}
+
+/** Pick up viewer tunables from the server; keep the stand-ins if unavailable. */
+async function fetchViewerConfig() {
+  try {
+    const response = await fetch('/config');
+    if (!response.ok) return;
+    const config = await response.json();
+    const patience = config?.viewer?.distress_patience_ticks;
+    if (Number.isFinite(patience) && patience >= 1) {
+      distressPatienceTicks = patience;
+    }
+  } catch {
+    // The cue still works on its stand-in threshold.
+  }
 }
 
 function subscribe() {
@@ -233,6 +286,7 @@ function subscribe() {
 async function start() {
   try {
     setStatus('connecting…', false);
+    fetchViewerConfig(); // fire-and-forget: the cue threshold tightens when it lands
     render(await fetchSnapshot());
     subscribe();
   } catch (err) {

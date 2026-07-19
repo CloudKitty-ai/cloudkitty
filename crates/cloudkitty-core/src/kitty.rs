@@ -9,12 +9,33 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use serde::{Deserialize, Serialize};
 
-use crate::action::Action;
+use crate::action::{Action, TargetRef};
 use crate::grid::Position;
 use crate::meow::MessageKind;
 use crate::needs::{NeedKind, Needs};
 
 pub type KittyId = u32;
+
+/// Engine bookkeeping of the current chase: which target, since when, and the
+/// best distance achieved. Written only by the engine from *applied* actions, so
+/// no behavior can forge a chase it never ran. Patience is measured in elapsed
+/// ticks (`tick - started`) -- a one-tick detour does not reset the clock.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Pursuit {
+    pub target: TargetRef,
+    pub started: u64,
+    pub closest: u32,
+}
+
+/// A chase target given up on: excluded from re-selection until `until`.
+/// The exclusion is what makes give-up real with several hopeless targets --
+/// without it, abandoning one greeble for another makes the first instantly
+/// tempting again (FR-006).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AbandonedChase {
+    pub target: TargetRef,
+    pub until: u64,
+}
 
 /// What a kitty is currently doing. Multi-tick activities carry their context so
 /// the engine can keep applying their effects (and drop the partner bonus if the
@@ -80,6 +101,24 @@ pub struct Kitty {
     /// line; defaulted so pre-existing saves still load.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub last_action: Option<Action>,
+    /// The chase in progress, if any. Engine-maintained (see `World::tick`);
+    /// behaviors read it to judge when a chase has become hopeless.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pursuit: Option<Pursuit>,
+    /// Targets recently given up on, each excluded until its `until` tick.
+    /// Engine-maintained and engine-pruned, so it stays tiny.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub abandoned_chases: Vec<AbandonedChase>,
+    /// The tick each need last received relief, whatever delivered it. Missing
+    /// means never -- which deliberately wins selection ties, so a
+    /// long-neglected need gets its turn first.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub last_relief: BTreeMap<NeedKind, u64>,
+    /// The tick each currently-active distress began. Keys match `in_distress`
+    /// after every needs phase; viewers derive "how long has this been going
+    /// on" as `world.tick - distress_since[need]`.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub distress_since: BTreeMap<NeedKind, u64>,
 }
 
 impl Kitty {
@@ -101,6 +140,10 @@ impl Kitty {
             in_distress: BTreeSet::new(),
             happiness_rose: false,
             last_action: None,
+            pursuit: None,
+            abandoned_chases: Vec::new(),
+            last_relief: BTreeMap::new(),
+            distress_since: BTreeMap::new(),
         }
     }
 
@@ -110,6 +153,19 @@ impl Kitty {
             Some(&ready_at) => tick >= ready_at,
             None => true,
         }
+    }
+
+    /// When `kind` last got relief; 0 ("the dawn of time") when it never has,
+    /// so an untouched need wins selection ties.
+    pub fn last_relief_tick(&self, kind: NeedKind) -> u64 {
+        self.last_relief.get(&kind).copied().unwrap_or(0)
+    }
+
+    /// Whether `target` is currently excluded after an abandoned chase.
+    pub fn is_chase_excluded(&self, target: TargetRef, tick: u64) -> bool {
+        self.abandoned_chases
+            .iter()
+            .any(|a| a.target == target && a.until > tick)
     }
 
     pub fn set_meow_cooldown(&mut self, kind: MessageKind, ready_at_tick: u64) {
@@ -159,6 +215,72 @@ mod tests {
         k.prune_meow_cooldowns(10);
         assert!(!k.meow_cooldowns.contains_key(&MessageKind::WantEat));
         assert!(k.meow_cooldowns.contains_key(&MessageKind::WantPlay));
+    }
+
+    #[test]
+    fn pursuit_and_bookkeeping_fields_round_trip() {
+        let mut k = kitty();
+        k.pursuit = Some(Pursuit {
+            target: TargetRef::Element { id: 102 },
+            started: 1461,
+            closest: 3,
+        });
+        k.abandoned_chases.push(AbandonedChase {
+            target: TargetRef::Element { id: 105 },
+            until: 1520,
+        });
+        k.last_relief.insert(NeedKind::Eat, 1396);
+        k.distress_since.insert(NeedKind::Play, 1249);
+
+        let json = serde_json::to_string(&k).unwrap();
+        let back: Kitty = serde_json::from_str(&json).unwrap();
+        assert_eq!(back, k);
+    }
+
+    #[test]
+    fn a_pre_004_kitty_json_deserializes_with_empty_bookkeeping() {
+        // The exact field set a 003-era snapshot carries -- none of the new ones.
+        let json = r#"{
+            "id": 1, "name": "Miso", "pos": {"x": 21, "y": 30},
+            "needs": {"eat": 34.5, "drink": 30.5, "sleep": 98.9,
+                      "play": 100.0, "cuddle": 45.75, "bath": 100.0},
+            "happiness": 39.3,
+            "activity": {"state": "idle"},
+            "behavior": "needs_driven",
+            "meow_cooldowns": {},
+            "in_distress": ["sleep", "play", "bath"],
+            "happiness_rose": false
+        }"#;
+        let k: Kitty = serde_json::from_str(json).unwrap();
+        assert!(k.pursuit.is_none());
+        assert!(k.abandoned_chases.is_empty());
+        assert!(k.last_relief.is_empty());
+        assert!(k.distress_since.is_empty());
+        assert_eq!(
+            k.last_relief_tick(NeedKind::Bath),
+            0,
+            "never = dawn of time"
+        );
+    }
+
+    #[test]
+    fn empty_bookkeeping_stays_off_the_wire() {
+        let json = serde_json::to_value(kitty()).unwrap();
+        assert!(json.get("pursuit").is_none());
+        assert!(json.get("abandoned_chases").is_none());
+        assert!(json.get("last_relief").is_none());
+        assert!(json.get("distress_since").is_none());
+    }
+
+    #[test]
+    fn chase_exclusion_expires() {
+        let mut k = kitty();
+        let target = TargetRef::Element { id: 7 };
+        k.abandoned_chases
+            .push(AbandonedChase { target, until: 100 });
+        assert!(k.is_chase_excluded(target, 99));
+        assert!(!k.is_chase_excluded(target, 100), "until is exclusive");
+        assert!(!k.is_chase_excluded(TargetRef::Kitty { id: 2 }, 50));
     }
 
     #[test]

@@ -10,20 +10,12 @@
 
 use async_trait::async_trait;
 
-use super::{Behavior, DecisionContext};
-use crate::action::{Action, TargetRef};
+use super::{selection, Behavior, DecisionContext};
+use crate::action::Action;
 use crate::element::ElementType;
 use crate::grid::Direction;
 use crate::meow::MessageKind;
 use crate::needs::NeedKind;
-
-/// Worth topping up a need that is already within reach, rather than walking off
-/// and having to come back for it.
-const WORTH_A_DETOUR: f32 = 30.0;
-
-/// Below the safeguard threshold a cat weighs convenience against pressure; each
-/// tile of travel is worth this much need.
-const TILE_COST: f32 = 1.0;
 
 pub struct NeedsDriven;
 
@@ -60,16 +52,9 @@ impl Behavior for NeedsDriven {
             return wander(ctx);
         }
 
-        // Once a need is urgent enough that the world owes relief, deal with that
-        // one and nothing else. Below that, prefer whatever is convenient, so a cat
-        // does not trek across the world for a need it could meet on the way.
-        let need = if pressure >= ctx.config.thresholds.safeguard {
-            most_pressing
-        } else {
-            most_convenient(ctx, pressure)
-        };
-
-        pursue(ctx, need)
+        // One scored pass over every need: urgency weighs in, travel counts
+        // against, and nothing gets locked out (see `selection`).
+        pursue(ctx, selection::choose_need(ctx))
     }
 
     fn is_builtin(&self) -> bool {
@@ -77,12 +62,15 @@ impl Behavior for NeedsDriven {
     }
 }
 
-/// Eat, drink or nap when the means are already underfoot and the need is real.
-/// Shared with `Playful`: opportunism is good sense, not a personality trait.
+/// Eat, drink, nap or play when the means are already underfoot and the need is
+/// real. Shared with `Playful`: opportunism is good sense, not a personality
+/// trait. The order is the emergency ladder: food and water first, the sunbeam
+/// you are standing in, and only then a passing playmate.
 pub(crate) fn take_what_is_here(ctx: &DecisionContext) -> Option<Action> {
     let me = &ctx.me;
+    let detour = ctx.config.behavior.worth_a_detour;
 
-    if me.needs.get(NeedKind::Eat) >= WORTH_A_DETOUR
+    if me.needs.get(NeedKind::Eat) >= detour
         && ctx
             .world
             .elements_of(ElementType::Chow)
@@ -91,7 +79,7 @@ pub(crate) fn take_what_is_here(ctx: &DecisionContext) -> Option<Action> {
         return Some(Action::Eat);
     }
 
-    if me.needs.get(NeedKind::Drink) >= WORTH_A_DETOUR
+    if me.needs.get(NeedKind::Drink) >= detour
         && ctx
             .world
             .elements_of(ElementType::Water)
@@ -101,67 +89,20 @@ pub(crate) fn take_what_is_here(ctx: &DecisionContext) -> Option<Action> {
     }
 
     // A sunbeam you are already sitting in is too good to waste.
-    if me.needs.get(NeedKind::Sleep) >= WORTH_A_DETOUR
+    if me.needs.get(NeedKind::Sleep) >= detour
         && ctx.world.element_at(me.pos).map(|e| e.element_type()) == Some(ElementType::Sunbeam)
     {
         return Some(Action::Sleep { with: None });
     }
 
+    // A bug within paw's reach gets batted at, whatever the errand was.
+    if me.needs.get(NeedKind::Play) >= detour {
+        if let Some(target) = selection::adjacent_playmate(ctx) {
+            return Some(Action::play_with(target));
+        }
+    }
+
     None
-}
-
-/// Among the needs that are nearly as pressing as the worst one, pick whichever is
-/// cheapest to actually do something about.
-fn most_convenient(ctx: &DecisionContext, top_pressure: f32) -> NeedKind {
-    let mut best = NeedKind::ALL[0];
-    let mut best_score = f32::NEG_INFINITY;
-
-    for kind in NeedKind::ALL {
-        let pressure = ctx.me.needs.get(kind);
-        // Only consider needs in the same league as the most pressing one.
-        if pressure + 20.0 < top_pressure {
-            continue;
-        }
-        let score = pressure - TILE_COST * travel_distance(ctx, kind) as f32;
-        if score > best_score {
-            best_score = score;
-            best = kind;
-        }
-    }
-
-    best
-}
-
-/// How far this cat would have to walk to do something about `need`.
-fn travel_distance(ctx: &DecisionContext, need: NeedKind) -> u32 {
-    let me = &ctx.me;
-    let nearest = |kind: ElementType| {
-        ctx.world
-            .nearest_element(me.pos, kind)
-            .map(|e| me.pos.chebyshev_distance(&e.pos))
-    };
-
-    match need {
-        // Grooming and sleeping can happen anywhere at all.
-        NeedKind::Bath | NeedKind::Sleep => 0,
-        NeedKind::Eat => nearest(ElementType::Chow).unwrap_or(u32::MAX / 2),
-        NeedKind::Drink => nearest(ElementType::Water).unwrap_or(u32::MAX / 2),
-        NeedKind::Play => ctx
-            .world
-            .nearest_critter(me.pos)
-            .map(|e| me.pos.chebyshev_distance(&e.pos))
-            .or_else(|| {
-                ctx.world
-                    .nearest_friend(me.id, me.pos)
-                    .map(|k| me.pos.chebyshev_distance(&k.pos))
-            })
-            .unwrap_or(u32::MAX / 2),
-        NeedKind::Cuddle => ctx
-            .world
-            .nearest_friend(me.id, me.pos)
-            .map(|k| me.pos.chebyshev_distance(&k.pos))
-            .unwrap_or(u32::MAX / 2),
-    }
 }
 
 /// Take one step toward relieving `need`.
@@ -192,23 +133,9 @@ pub(crate) fn pursue(ctx: &DecisionContext, need: NeedKind) -> Action {
             }
         }
 
-        NeedKind::Play => {
-            if let Some(critter) = world.nearest_critter(me.pos) {
-                return if me.pos.is_adjacent(&critter.pos) {
-                    Action::Play(TargetRef::Element { id: critter.id })
-                } else {
-                    Action::Chase(TargetRef::Element { id: critter.id })
-                };
-            }
-            // No bugs about? Friends are just as fun.
-            match world.nearest_friend(me.id, me.pos) {
-                Some(friend) if me.pos.is_adjacent(&friend.pos) => {
-                    Action::Play(TargetRef::Kitty { id: friend.id })
-                }
-                Some(friend) => Action::Chase(TargetRef::Kitty { id: friend.id }),
-                None => Action::Idle,
-            }
-        }
+        // Play targeting, give-up and the solo backstop live in `selection` so
+        // both built-in profiles pursue fun by exactly the same rules.
+        NeedKind::Play => selection::play_action(ctx),
 
         NeedKind::Cuddle => match world.nearest_friend(me.id, me.pos) {
             Some(friend) if me.pos.is_adjacent(&friend.pos) => Action::Rest {
@@ -242,11 +169,57 @@ fn seek_element(ctx: &DecisionContext, kind: ElementType, use_it: Action) -> Act
     }
 }
 
-/// One step in the general direction of somewhere.
+/// One step in the general direction of somewhere -- routing around other
+/// kitties rather than freezing against them.
+///
+/// The naive version proposed the single straight-line direction; when a friend
+/// happened to be standing on that tile, the Move validated to Idle and the cat
+/// simply froze -- three cats in a row could deadlock for hundreds of ticks
+/// with food two tiles away (found by the 004 welfare long-run). Instead: take
+/// the best legal step that closes distance, and when fully walled in, sidestep
+/// rather than stand still -- a shuffling cat finds the way around.
 fn step_toward(ctx: &DecisionContext, target: crate::grid::Position) -> Action {
-    match Direction::toward(ctx.me.pos, target) {
-        Some(direction) => Action::move_to(direction),
-        None => Action::Idle,
+    let me = ctx.me.pos;
+    let occupied = |dest: &crate::grid::Position| {
+        ctx.world
+            .kitties
+            .iter()
+            .any(|k| k.id != ctx.me.id && k.pos == *dest)
+    };
+    // Chebyshev alone cannot see progress on a diagonal (a cardinal step keeps
+    // it equal when |dx| == |dy|), so manhattan breaks the tie: a step is
+    // progress when it improves the pair lexicographically.
+    let progress_score = |pos: &crate::grid::Position| {
+        let dx = (target.x as i64 - pos.x as i64).unsigned_abs() as u32;
+        let dy = (target.y as i64 - pos.y as i64).unsigned_abs() as u32;
+        (dx.max(dy), dx + dy)
+    };
+
+    let current = progress_score(&me);
+    let mut best: Option<((u32, u32), Direction)> = None;
+    let mut fallback: Option<Direction> = None;
+    for direction in Direction::ALL {
+        let Some(dest) = me.step(direction, ctx.world.width, ctx.world.height) else {
+            continue;
+        };
+        if occupied(&dest) {
+            continue;
+        }
+        if fallback.is_none() {
+            fallback = Some(direction);
+        }
+        let score = progress_score(&dest);
+        if score < current && best.map(|(b, _)| score < b).unwrap_or(true) {
+            best = Some((score, direction));
+        }
+    }
+
+    match (best, fallback) {
+        (Some((_, direction)), _) => Action::move_to(direction),
+        // Nothing brings the cat closer: sidestep rather than freeze, unless
+        // it is already beside the target or has nowhere legal to stand.
+        (None, Some(direction)) if current.0 > 1 => Action::move_to(direction),
+        _ => Action::Idle,
     }
 }
 
@@ -359,6 +332,145 @@ mod tests {
             // Any action is fine; not returning one is not an option.
             let _ = action;
         }
+    }
+
+    #[tokio::test]
+    async fn a_cat_with_pinned_bath_and_unreachable_play_grooms_within_the_tick() {
+        // US1 acceptance 1: the old lock chased play forever; the scored pass
+        // takes the zero-distance relief first.
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(2, 2);
+            world.kitties[idx].needs.add(NeedKind::Bath, 100.0);
+            world.kitties[idx].needs.add(NeedKind::Play, 100.0);
+            // Exclude the only playmate so play cannot resolve socially...
+            let friend = world.kitty_index(2).unwrap();
+            world.kitties[friend].pos = Position::new(15, 15);
+        });
+        ctx.me.set_meow_cooldown(MessageKind::WantPlay, u64::MAX);
+        ctx.me.set_meow_cooldown(MessageKind::WantCuddle, u64::MAX);
+
+        // Bath (100, d0, never relieved) vs play (100, d0 via solo): the tie
+        // goes to whichever waited longer -- both never, so eat..ALL order says
+        // bath sits behind play. Stamp play as recently relieved to pin it.
+        ctx.me.last_relief.insert(NeedKind::Play, 5);
+        assert_eq!(
+            NeedsDriven.decide(&ctx).await,
+            Action::Groom { target: None }
+        );
+    }
+
+    #[tokio::test]
+    async fn a_bug_underfoot_gets_batted_at_even_mid_errand() {
+        // US2 acceptance 1: walking to water, passing a bug -- pounce first.
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx].needs.add(NeedKind::Drink, 60.0);
+            world.kitties[idx].needs.add(NeedKind::Play, 40.0);
+            world.push_element(Element {
+                id: 510,
+                kind: ElementKind::Water,
+                pos: Position::new(12, 5),
+                ttl: None,
+            });
+            world.push_element(Element {
+                id: 511,
+                kind: ElementKind::Bug,
+                pos: Position::new(5, 6), // right there
+                ttl: Some(50),
+            });
+        });
+        ctx.me.set_meow_cooldown(MessageKind::WantDrink, u64::MAX);
+
+        assert_eq!(
+            NeedsDriven.decide(&ctx).await,
+            Action::play_with(crate::action::TargetRef::Element { id: 511 })
+        );
+    }
+
+    #[tokio::test]
+    async fn opportunistic_play_yields_to_adjacent_food() {
+        // US2 edge case: the emergency ladder holds -- a hungry cat beside its
+        // chow eats before it bats at the bug beside it.
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx].needs.add(NeedKind::Eat, 80.0);
+            world.kitties[idx].needs.add(NeedKind::Play, 90.0);
+            world.push_element(Element {
+                id: 512,
+                kind: ElementKind::Chow { servings: 2 },
+                pos: Position::new(5, 4),
+                ttl: None,
+            });
+            world.push_element(Element {
+                id: 513,
+                kind: ElementKind::Bug,
+                pos: Position::new(5, 6),
+                ttl: Some(50),
+            });
+        });
+        ctx.me.set_meow_cooldown(MessageKind::WantEat, u64::MAX);
+        ctx.me.set_meow_cooldown(MessageKind::WantPlay, u64::MAX);
+
+        assert_eq!(NeedsDriven.decide(&ctx).await, Action::Eat);
+    }
+
+    #[tokio::test]
+    async fn a_sleeping_friend_still_counts_as_company_for_play() {
+        // US3 edge case: solo play must not fire past a partner who is merely
+        // asleep beside you.
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx].needs.add(NeedKind::Play, 90.0);
+            let friend = world.kitty_index(2).unwrap();
+            world.kitties[friend].pos = Position::new(5, 6);
+            world.kitties[friend].activity = crate::kitty::Activity::Sleeping {
+                in_sunbeam: false,
+                with_friend: None,
+            };
+        });
+        ctx.me.set_meow_cooldown(MessageKind::WantPlay, u64::MAX);
+
+        assert_eq!(
+            NeedsDriven.decide(&ctx).await,
+            Action::play_with(crate::action::TargetRef::Kitty { id: 2 })
+        );
+    }
+
+    #[tokio::test]
+    async fn a_blocked_cat_routes_around_a_friend_instead_of_freezing() {
+        // The gridlock found by the welfare long-run: a friend standing on the
+        // straight-line tile used to freeze the walk entirely (blocked Move ->
+        // Idle, forever). The cat must take the free diagonal instead.
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(14, 14);
+            world.kitties[idx].needs.add(NeedKind::Drink, 95.0);
+            let blocker = world.kitty_index(2).unwrap();
+            world.kitties[blocker].pos = Position::new(13, 14); // on the direct path
+            world.push_element(Element {
+                id: 520,
+                kind: ElementKind::Water,
+                pos: Position::new(12, 15),
+                ttl: None,
+            });
+        });
+        ctx.me.set_meow_cooldown(MessageKind::WantDrink, u64::MAX);
+
+        let action = NeedsDriven.decide(&ctx).await;
+        assert_eq!(
+            action,
+            Action::move_to(Direction::South),
+            "the free southern tile makes progress; freezing against the friend does not"
+        );
     }
 
     #[tokio::test]

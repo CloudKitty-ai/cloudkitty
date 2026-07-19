@@ -21,7 +21,7 @@ impl Behavior for AlwaysInvalid {
     async fn decide(&self, ctx: &DecisionContext) -> Action {
         // Target an element id that cannot exist, and a kitty that is itself.
         if ctx.rng.gen_bool(0.5) {
-            Action::Play(TargetRef::Element { id: u32::MAX })
+            Action::play_with(TargetRef::Element { id: u32::MAX })
         } else {
             Action::Chase(TargetRef::Kitty { id: ctx.me.id })
         }
@@ -67,7 +67,7 @@ impl Behavior for Chaos {
             4 => Action::Eat,
             5 => Action::Drink,
             6 => Action::Chase(TargetRef::Element { id: random_element }),
-            7 => Action::Play(TargetRef::Element { id: random_element }),
+            7 => Action::play_with(TargetRef::Element { id: random_element }),
             8 => Action::Purr,
             9 => Action::Meow {
                 message: MessageKind::FollowMe,

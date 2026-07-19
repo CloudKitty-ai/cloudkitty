@@ -270,6 +270,109 @@ async fn config_and_distress_endpoints_are_served() {
 }
 
 #[tokio::test]
+async fn distress_ages_appear_in_the_payload_once_a_distress_exists() {
+    // Drive a need into distress fast: a kitty whose play need rockets.
+    let mut config = test_config();
+    config.kitties[0].needs = Some(cloudkitty_core::config::NeedRateOverrides {
+        play: Some(50.0), // crosses the 90 threshold on the second tick
+        ..Default::default()
+    });
+    config.validate().expect("valid");
+    let config = Arc::new(config);
+
+    let world = World::generate(&config);
+    let sim = sim_task::spawn(
+        world,
+        config.clone(),
+        BehaviorRegistry::with_builtins(),
+        None,
+    );
+    let state = AppState {
+        published: sim.receiver.clone(),
+        config: config.clone(),
+    };
+    let app = build_router(state, std::path::Path::new("../../client"));
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = listener.local_addr().unwrap();
+    tokio::spawn(async move {
+        let _ = axum::serve(listener, app).await;
+    });
+    let server = TestServer {
+        addr,
+        sim: Some(sim),
+    };
+
+    // Wait until the distress registers, then check the payload shape.
+    let mut since = None;
+    for _ in 0..100 {
+        let body: Value = reqwest::get(server.url("/kitties/1"))
+            .await
+            .unwrap()
+            .json()
+            .await
+            .unwrap();
+        if let Some(tick) = body["distress_since"]["play"].as_u64() {
+            since = Some(tick);
+            break;
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(30)).await;
+    }
+    let since = since.expect("distress_since.play appeared in the kitty payload");
+
+    let world: Value = reqwest::get(server.url("/world"))
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    let tick = world["tick"].as_u64().unwrap();
+    assert!(
+        since <= tick,
+        "the start tick is a real tick from the past ({since} <= {tick})"
+    );
+
+    // The other kitty has no distress, so the field stays off its wire entirely.
+    let calm: Value = reqwest::get(server.url("/kitties/2"))
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    if calm["in_distress"]
+        .as_array()
+        .map(|a| a.is_empty())
+        .unwrap_or(true)
+    {
+        assert!(
+            calm.get("distress_since").is_none(),
+            "empty bookkeeping is omitted, not serialized as {{}}"
+        );
+    }
+
+    server.shutdown().await;
+}
+
+#[tokio::test]
+async fn the_viewer_config_travels_through_the_config_endpoint() {
+    let server = start_server().await;
+
+    let config: Value = reqwest::get(server.url("/config"))
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    assert_eq!(
+        config["viewer"]["distress_patience_ticks"], 60,
+        "the client reads its cue threshold from here, never a hard-coded number"
+    );
+    assert_eq!(config["behavior"]["chase_patience_ticks"], 12);
+    assert_eq!(config["actions"]["solo_play_relief"], 10.0);
+
+    server.shutdown().await;
+}
+
+#[tokio::test]
 async fn the_viewer_is_served_at_the_root() {
     let server = start_server().await;
 

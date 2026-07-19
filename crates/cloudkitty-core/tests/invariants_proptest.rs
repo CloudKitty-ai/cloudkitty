@@ -227,3 +227,55 @@ fn a_world_of_liars_still_keeps_its_kitties_safe() {
     config.world.seed = 555;
     run_and_check(config, 2_000).expect("hostile advisors cannot harm a kitty");
 }
+
+/// A pre-004 snapshot has none of the bookkeeping fields (pursuit,
+/// abandoned_chases, last_relief, distress_since). Stripping them from a live
+/// world must leave something that loads lawfully and ticks on -- this is the
+/// promise that upgrading never orphans a saved world.
+#[test]
+fn a_pre_004_snapshot_shape_resumes_and_ticks_lawfully() {
+    let config = Arc::new(build_config(14, 14, 20_260_718, vec![0, 1, 0], 2));
+    let registry = registry();
+    let mut world = World::generate(&config);
+
+    let runtime = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .unwrap();
+
+    // Live long enough for every field to have real content...
+    for _ in 0..200 {
+        runtime.block_on(world.tick(&registry, &config));
+    }
+
+    // ...then serialize and strip the world back to the 003-era kitty shape.
+    let mut json = serde_json::to_value(&world).expect("worlds serialize");
+    for kitty in json["kitties"].as_array_mut().expect("kitties array") {
+        let fields = kitty.as_object_mut().expect("kitty object");
+        for gone in [
+            "pursuit",
+            "abandoned_chases",
+            "last_relief",
+            "distress_since",
+        ] {
+            fields.remove(gone);
+        }
+    }
+
+    let mut resumed: World = serde_json::from_value(json).expect("the stripped shape deserializes");
+    invariants::check(&resumed, &config).expect("the stripped shape is lawful at load");
+
+    for kitty in &resumed.kitties {
+        assert!(kitty.pursuit.is_none());
+        assert!(kitty.abandoned_chases.is_empty());
+        assert!(kitty.last_relief.is_empty());
+        assert!(kitty.distress_since.is_empty());
+    }
+
+    // And the world carries on: the self-heal stamps distress ages, relief
+    // stamps rebuild, and the constitution holds throughout.
+    for _ in 0..200 {
+        runtime.block_on(resumed.tick(&registry, &config));
+        invariants::check(&resumed, &config).expect("lawful after resuming the old shape");
+    }
+}

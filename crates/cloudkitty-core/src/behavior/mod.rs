@@ -28,6 +28,7 @@ use crate::world::{World, WorldSnapshot};
 
 pub mod needs_driven;
 pub mod playful;
+pub mod selection;
 pub mod test_behaviors;
 
 pub use needs_driven::NeedsDriven;
