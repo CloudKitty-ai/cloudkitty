@@ -73,6 +73,53 @@ pub fn check(world: &World, config: &Config) -> Result<(), Violation> {
                 ),
             });
         }
+
+        // Distress bookkeeping: no start tick may outlive its distress. (The
+        // other direction -- distress without a start tick -- is legal
+        // transiently: a pre-004 snapshot arrives that way and the next needs
+        // phase self-heals it, so equality would wrongly refuse old saves.)
+        for kind in kitty.distress_since.keys() {
+            if !kitty.in_distress.contains(kind) {
+                return Err(Violation {
+                    article: "Bookkeeping integrity",
+                    detail: format!(
+                        "{} has a distress_since entry for {} but is not in distress about it",
+                        kitty.name,
+                        kind.as_str()
+                    ),
+                });
+            }
+        }
+
+        // Pursuit bookkeeping: a recorded chase started in the past and its
+        // best distance fits on the grid.
+        if let Some(p) = &kitty.pursuit {
+            let max_distance = world.width.max(world.height);
+            if p.started > world.tick || p.closest > max_distance {
+                return Err(Violation {
+                    article: "Bookkeeping integrity",
+                    detail: format!(
+                        "{}'s pursuit is implausible: started {} (tick {}), closest {}",
+                        kitty.name, p.started, world.tick, p.closest
+                    ),
+                });
+            }
+        }
+
+        // Exclusions are pruned as they expire; none may linger.
+        if let Some(stale) = kitty
+            .abandoned_chases
+            .iter()
+            .find(|a| a.until <= world.tick.saturating_sub(1))
+        {
+            return Err(Violation {
+                article: "Bookkeeping integrity",
+                detail: format!(
+                    "{} still lists an exclusion that expired at {} (tick {})",
+                    kitty.name, stale.until, world.tick
+                ),
+            });
+        }
     }
 
     // One kitty per tile.

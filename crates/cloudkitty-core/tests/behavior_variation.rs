@@ -191,9 +191,38 @@ async fn both_behaviors_keep_their_kitties_out_of_trouble() {
     let _ = config;
 
     let mut world = World::generate(&config_alt);
+
+    // Lock-in immunity (spec 004, FR-014): whatever the personality, no need
+    // may sit within a point of its cap for long while relief costs nothing.
+    // Bath and sleep are always zero-distance (and play is, via solo play), so
+    // a streak here means a profile has re-grown the fixation the 004 fix
+    // removed.
+    let mut pinned_streaks = std::collections::BTreeMap::new();
+    let mut worst: u64 = 0;
     for _ in 0..2_000 {
         world.tick(&registry, &config_alt).await;
+        for kitty in &world.kitties {
+            for kind in [
+                cloudkitty_core::NeedKind::Bath,
+                cloudkitty_core::NeedKind::Sleep,
+                cloudkitty_core::NeedKind::Play,
+            ] {
+                let streak: &mut u64 = pinned_streaks.entry((kitty.id, kind)).or_insert(0);
+                if kitty.needs.get(kind) >= 99.0 {
+                    *streak += 1;
+                    worst = worst.max(*streak);
+                } else {
+                    *streak = 0;
+                }
+            }
+        }
     }
+
+    assert!(
+        worst <= 25,
+        "a self-satisfiable need sat at its cap for {worst} consecutive ticks; \
+         some profile is fixating again"
+    );
 
     cloudkitty_core::invariants::check(&world, &config_alt).expect("both cats are fine");
 }

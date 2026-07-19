@@ -132,6 +132,7 @@ impl World {
                 self.kitties[idx].last_action = Some(validated);
             }
             action::apply(self, kitty_id, validated, config);
+            self.update_pursuit(kitty_id, validated, config);
         }
 
         // Phase 3: the environment resolves.
@@ -147,6 +148,120 @@ impl World {
 
         // Phase 5: publish.
         Arc::new(self.snapshot())
+    }
+
+    /// Chase bookkeeping, run after each kitty's action is applied. The engine
+    /// records only facts -- which target, since when, how close it got -- and
+    /// moves a pursuit that ran out its patience without closing into the
+    /// abandoned list, where it stays excluded from re-selection until its
+    /// window expires. Behaviors read these facts; none of them can write them.
+    fn update_pursuit(
+        &mut self,
+        kitty_id: KittyId,
+        applied: crate::action::Action,
+        config: &Config,
+    ) {
+        use crate::action::Action;
+        use crate::kitty::{AbandonedChase, Pursuit};
+
+        let tick = self.tick;
+        let Some(idx) = self.kitty_index(kitty_id) else {
+            return;
+        };
+
+        // Expired exclusions leave the books here, so the list stays tiny.
+        self.kitties[idx]
+            .abandoned_chases
+            .retain(|a| a.until > tick);
+
+        // A pursuit whose target no longer exists is over, not abandoned --
+        // there is nothing left to avoid.
+        if let Some(p) = self.kitties[idx].pursuit {
+            if self.target_pos(p.target).is_none() {
+                self.kitties[idx].pursuit = None;
+            }
+        }
+
+        let kitty_pos = self.kitties[idx].pos;
+        let pursuit = self.kitties[idx].pursuit;
+
+        // Whether the standing pursuit has run out its patience without ever
+        // closing -- the definition of a chase not working. Computed up front,
+        // before any of the arms mutate the kitty.
+        let pursuit_is_stale = pursuit
+            .map(|p| {
+                let patience_spent =
+                    tick.saturating_sub(p.started) >= config.behavior.chase_patience_ticks;
+                let not_closing = self
+                    .target_pos(p.target)
+                    .map(|pos| kitty_pos.chebyshev_distance(&pos) >= p.closest)
+                    .unwrap_or(false);
+                patience_spent && not_closing
+            })
+            .unwrap_or(false);
+
+        match applied {
+            Action::Chase(target) => {
+                // Switching away from a stale chase is an abandonment too --
+                // without this, hopping between two uncatchable greebles would
+                // launder each one's staleness away (analyze finding I1).
+                if let Some(p) = pursuit {
+                    if p.target != target && pursuit_is_stale {
+                        self.kitties[idx].abandoned_chases.push(AbandonedChase {
+                            target: p.target,
+                            until: tick + config.behavior.chase_exclusion_ticks,
+                        });
+                    }
+                }
+                let Some(target_pos) = self.target_pos(target) else {
+                    self.kitties[idx].pursuit = None;
+                    return;
+                };
+                let distance = kitty_pos.chebyshev_distance(&target_pos);
+                self.kitties[idx].pursuit = Some(match pursuit {
+                    Some(p) if p.target == target => Pursuit {
+                        target,
+                        started: p.started,
+                        closest: p.closest.min(distance),
+                    },
+                    _ => Pursuit {
+                        target,
+                        started: tick,
+                        closest: distance,
+                    },
+                });
+            }
+
+            // Catching the thing you were chasing ends the pursuit happily.
+            Action::Play {
+                target: Some(target),
+            } if pursuit.map(|p| p.target == target).unwrap_or(false) => {
+                self.kitties[idx].pursuit = None;
+            }
+
+            // Any other action: the pursuit survives a mere detour (an
+            // opportunistic drink must not reset the patience clock), but one
+            // that has run out its patience without ever closing is written
+            // off, and its target excluded for a while.
+            _ => {
+                if let Some(p) = pursuit {
+                    if pursuit_is_stale {
+                        self.kitties[idx].abandoned_chases.push(AbandonedChase {
+                            target: p.target,
+                            until: tick + config.behavior.chase_exclusion_ticks,
+                        });
+                        self.kitties[idx].pursuit = None;
+                    }
+                }
+            }
+        }
+    }
+
+    fn target_pos(&self, target: crate::action::TargetRef) -> Option<Position> {
+        match target {
+            crate::action::TargetRef::Element { id } => self.element(id).map(|e| e.pos),
+            crate::action::TargetRef::Kitty { id } => self.kitty(id).map(|k| k.pos),
+        }
     }
 
     fn environment_phase(&mut self, config: &Config) {
@@ -257,14 +372,21 @@ impl World {
                 let value = kitty.needs.get(kind);
                 if value >= threshold {
                     if kitty.in_distress.insert(kind) {
+                        kitty.distress_since.insert(kind, tick);
                         new_events.push(DistressEvent {
                             kitty_id: kitty.id,
                             need: kind,
                             tick,
                         });
+                    } else {
+                        // Self-heal: a world resumed from a pre-004 snapshot
+                        // arrives with distress but no start ticks; ages count
+                        // from the resume rather than being invented.
+                        kitty.distress_since.entry(kind).or_insert(tick);
                     }
                 } else {
                     kitty.in_distress.remove(&kind);
+                    kitty.distress_since.remove(&kind);
                 }
             }
         }
@@ -588,5 +710,236 @@ mod tests {
         for el in &world.elements {
             assert!(seen.insert(el.pos), "two elements share {:?}", el.pos);
         }
+    }
+
+    // ---- pursuit bookkeeping (US2) ---------------------------------------
+
+    use crate::action::{Action, TargetRef};
+    use crate::element::ElementKind;
+
+    /// A world with one kitty at (2,2) and one greeble parked far away at
+    /// (14,14): a chase that can be made to never close.
+    fn chase_world() -> (World, Config) {
+        let (mut world, config) = test_world();
+        world.elements.clear();
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].pos = Position::new(2, 2);
+        let other = world.kitty_index(2).unwrap();
+        world.kitties[other].pos = Position::new(0, 15);
+        world.push_element(Element {
+            id: 900,
+            kind: ElementKind::Greeble {
+                heading: Direction::North,
+            },
+            pos: Position::new(14, 14),
+            ttl: Some(500),
+        });
+        (world, config)
+    }
+
+    #[test]
+    fn an_applied_chase_starts_a_pursuit_and_a_detour_does_not_reset_it() {
+        let (mut world, config) = chase_world();
+        let target = TargetRef::Element { id: 900 };
+
+        world.tick = 10;
+        world.update_pursuit(1, Action::Chase(target), &config);
+        let p = world.kitty(1).unwrap().pursuit.expect("pursuit recorded");
+        assert_eq!(p.started, 10);
+        assert_eq!(p.closest, 12);
+
+        // Two ticks later, an opportunistic drink: the pursuit must survive
+        // with its original start tick (patience is elapsed, not consecutive).
+        world.tick = 12;
+        world.update_pursuit(1, Action::Drink, &config);
+        let p = world
+            .kitty(1)
+            .unwrap()
+            .pursuit
+            .expect("survives the detour");
+        assert_eq!(p.started, 10, "the clock did not reset");
+    }
+
+    #[test]
+    fn closing_in_updates_closest_and_keeps_the_chase_alive_past_patience() {
+        let (mut world, config) = chase_world();
+        let target = TargetRef::Element { id: 900 };
+
+        world.tick = 10;
+        world.update_pursuit(1, Action::Chase(target), &config);
+        // The cat gains ground; closest improves.
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].pos = Position::new(6, 6);
+        world.tick = 11;
+        world.update_pursuit(1, Action::Chase(target), &config);
+        assert_eq!(world.kitty(1).unwrap().pursuit.unwrap().closest, 8);
+    }
+
+    #[test]
+    fn a_futile_chase_is_abandoned_and_its_target_excluded() {
+        let (mut world, config) = chase_world();
+        let target = TargetRef::Element { id: 900 };
+
+        world.tick = 10;
+        world.update_pursuit(1, Action::Chase(target), &config);
+
+        // Patience runs out with no ground gained; the next non-chase action
+        // converts the pursuit into an exclusion.
+        world.tick = 10 + config.behavior.chase_patience_ticks;
+        world.update_pursuit(1, Action::Idle, &config);
+
+        let kitty = world.kitty(1).unwrap();
+        assert!(kitty.pursuit.is_none(), "the chase is over");
+        assert!(
+            kitty.is_chase_excluded(target, world.tick),
+            "the target is written off"
+        );
+        assert!(
+            !kitty.is_chase_excluded(target, world.tick + config.behavior.chase_exclusion_ticks),
+            "the exclusion expires on schedule"
+        );
+    }
+
+    #[test]
+    fn catching_the_target_ends_the_pursuit_without_an_exclusion() {
+        let (mut world, config) = chase_world();
+        let target = TargetRef::Element { id: 900 };
+
+        world.tick = 10;
+        world.update_pursuit(1, Action::Chase(target), &config);
+        // Even well past patience: a catch is a catch.
+        world.tick = 40;
+        world.update_pursuit(
+            1,
+            Action::Play {
+                target: Some(target),
+            },
+            &config,
+        );
+
+        let kitty = world.kitty(1).unwrap();
+        assert!(kitty.pursuit.is_none());
+        assert!(kitty.abandoned_chases.is_empty(), "no grudge held");
+    }
+
+    #[test]
+    fn a_dead_target_clears_the_pursuit_without_an_exclusion() {
+        let (mut world, config) = chase_world();
+        let target = TargetRef::Element { id: 900 };
+
+        world.tick = 10;
+        world.update_pursuit(1, Action::Chase(target), &config);
+        world.elements.retain(|e| e.id != 900);
+        world.tick = 30; // patience long gone -- but the target died first
+        world.update_pursuit(1, Action::Idle, &config);
+
+        let kitty = world.kitty(1).unwrap();
+        assert!(kitty.pursuit.is_none());
+        assert!(kitty.abandoned_chases.is_empty());
+    }
+
+    #[test]
+    fn expired_exclusions_are_pruned_on_the_next_update() {
+        let (mut world, config) = chase_world();
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx]
+            .abandoned_chases
+            .push(crate::kitty::AbandonedChase {
+                target: TargetRef::Element { id: 900 },
+                until: 20,
+            });
+
+        world.tick = 25;
+        world.update_pursuit(1, Action::Idle, &config);
+        assert!(world.kitty(1).unwrap().abandoned_chases.is_empty());
+    }
+
+    #[test]
+    fn two_uncatchable_targets_both_end_up_excluded_so_solo_play_unlocks() {
+        // The I1 regression: give up on A, switch to B, give up on B -- both
+        // must be excluded at once, so the reach test finds nobody viable and
+        // solo play fires. Hopping between them must not launder staleness.
+        let (mut world, config) = chase_world();
+        world.push_element(Element {
+            id: 901,
+            kind: ElementKind::Greeble {
+                heading: Direction::South,
+            },
+            pos: Position::new(15, 2),
+            ttl: Some(500),
+        });
+        let a = TargetRef::Element { id: 900 };
+        let b = TargetRef::Element { id: 901 };
+        let patience = config.behavior.chase_patience_ticks;
+
+        // Chase A until patience runs out, gaining nothing...
+        world.tick = 10;
+        world.update_pursuit(1, Action::Chase(a), &config);
+        // ...then switch to B: the stale A-chase is abandoned in the same move.
+        world.tick = 10 + patience;
+        world.update_pursuit(1, Action::Chase(b), &config);
+        assert!(
+            world.kitty(1).unwrap().is_chase_excluded(a, world.tick),
+            "switching away from a stale chase writes the old target off"
+        );
+
+        // B fares no better; the next non-chase action writes it off too.
+        world.tick = 10 + 2 * patience;
+        world.update_pursuit(1, Action::play_solo(), &config);
+
+        let kitty = world.kitty(1).unwrap();
+        assert!(kitty.is_chase_excluded(a, world.tick), "A still excluded");
+        assert!(kitty.is_chase_excluded(b, world.tick), "B excluded too");
+        assert!(kitty.pursuit.is_none());
+    }
+
+    // ---- distress ages (US5) ---------------------------------------------
+
+    #[test]
+    fn distress_since_is_stamped_on_crossing_and_cleared_on_recovery() {
+        let (mut world, config) = test_world();
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].needs.add(NeedKind::Play, 95.0);
+        world.tick = 100;
+        world.record_distress(&config);
+        assert_eq!(
+            world.kitty(1).unwrap().distress_since.get(&NeedKind::Play),
+            Some(&100)
+        );
+
+        // Still distressed later: the original stamp is preserved.
+        world.tick = 150;
+        world.record_distress(&config);
+        assert_eq!(
+            world.kitty(1).unwrap().distress_since.get(&NeedKind::Play),
+            Some(&100),
+            "the age keeps counting from the crossing"
+        );
+
+        // Recovery clears both the distress and its age.
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].needs.add(NeedKind::Play, -60.0);
+        world.record_distress(&config);
+        let kitty = world.kitty(1).unwrap();
+        assert!(!kitty.in_distress.contains(&NeedKind::Play));
+        assert!(!kitty.distress_since.contains_key(&NeedKind::Play));
+    }
+
+    #[test]
+    fn a_pre_004_resume_self_heals_its_distress_ages() {
+        let (mut world, config) = test_world();
+        // Simulate the pre-004 shape: in distress, but no start tick recorded.
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].needs.add(NeedKind::Bath, 95.0);
+        world.kitties[idx].in_distress.insert(NeedKind::Bath);
+        world.kitties[idx].distress_since.clear();
+
+        world.tick = 500;
+        world.record_distress(&config);
+        assert_eq!(
+            world.kitty(1).unwrap().distress_since.get(&NeedKind::Bath),
+            Some(&500),
+            "the age starts counting from the resume, not from a guess"
+        );
     }
 }

@@ -36,6 +36,11 @@ pub trait Behavior: Send + Sync {
 All kitties in a tick receive contexts built from the **same** snapshot; decisions
 cannot observe each other's outcomes within the tick.
 
+Feature 004 additions: `me` now also carries engine-authored `pursuit`,
+`abandoned_chases`, `last_relief` and `distress_since`, and `Play`'s target is
+optional (no target = solo play, always legal). See the
+[004 behavior delta](../../004-fix-happiness-lockin/contracts/behavior-delta.md).
+
 ## Engine obligations (the law)
 
 1. **Concurrent gather**: all `decide` futures run concurrently against the same

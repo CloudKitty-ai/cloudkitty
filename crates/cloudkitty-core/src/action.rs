@@ -45,7 +45,13 @@ pub enum Action {
     Eat,
     Drink,
     Chase(TargetRef),
-    Play(TargetRef),
+    /// Play with a partner, or -- with no target -- pounce at nothing (solo
+    /// play, for a kitty with nobody in reach). The wire shape is unchanged for
+    /// social play; solo play simply omits the target.
+    Play {
+        #[serde(flatten, default, skip_serializing_if = "Option::is_none")]
+        target: Option<TargetRef>,
+    },
     Purr,
     Meow {
         message: MessageKind,
@@ -58,10 +64,20 @@ impl Action {
         Action::Move { direction }
     }
 
+    pub fn play_with(target: TargetRef) -> Self {
+        Action::Play {
+            target: Some(target),
+        }
+    }
+
+    pub fn play_solo() -> Self {
+        Action::Play { target: None }
+    }
+
     /// Play and chase -- the actions a cat takes purely for fun. Used to tell
     /// personalities apart.
     pub fn is_playful(&self) -> bool {
-        matches!(self, Action::Play(_) | Action::Chase(_))
+        matches!(self, Action::Play { .. } | Action::Chase(_))
     }
 }
 
@@ -113,12 +129,14 @@ pub fn validate(world: &World, kitty_id: KittyId, proposal: Action, config: &Con
             TargetRef::Kitty { id } => id != kitty_id && world.kitty(id).is_some(),
         },
 
-        Action::Play(target) => match target {
-            TargetRef::Element { id } => world
+        Action::Play { target } => match target {
+            // Pouncing at nothing is always legal, like grooming oneself.
+            None => true,
+            Some(TargetRef::Element { id }) => world
                 .element(id)
                 .map(|e| e.element_type().is_critter() && kitty.pos.is_adjacent(&e.pos))
                 .unwrap_or(false),
-            TargetRef::Kitty { id } => world.is_available_friend(kitty_id, id),
+            Some(TargetRef::Kitty { id }) => world.is_available_friend(kitty_id, id),
         },
     };
 
@@ -238,11 +256,17 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
             set_idle(world, kitty_id);
         }
 
-        Action::Play(target) => {
-            lower_need(world, kitty_id, NeedKind::Play, effects.play_relief);
-            if let TargetRef::Kitty { id } = target {
-                // Play is shared: both cats get the fun.
-                lower_need(world, id, NeedKind::Play, effects.play_relief);
+        Action::Play { target } => {
+            match target {
+                // Solo play is real play, just a smaller helping of it.
+                None => lower_need(world, kitty_id, NeedKind::Play, effects.solo_play_relief),
+                Some(target) => {
+                    lower_need(world, kitty_id, NeedKind::Play, effects.play_relief);
+                    if let TargetRef::Kitty { id } = target {
+                        // Play is shared: both cats get the fun.
+                        lower_need(world, id, NeedKind::Play, effects.play_relief);
+                    }
+                }
             }
             set_idle(world, kitty_id);
         }
@@ -367,9 +391,14 @@ fn emit_meow(
     });
 }
 
+/// Every relief in the engine flows through here, which is what makes the
+/// `last_relief` stamp complete: actions, passive sleep ticks, and partner
+/// effects all land in one place.
 fn lower_need(world: &mut World, kitty_id: KittyId, need: NeedKind, amount: f32) {
+    let tick = world.tick;
     if let Some(idx) = world.kitty_index(kitty_id) {
         world.kitties[idx].needs.add(need, -amount.abs());
+        world.kitties[idx].last_relief.insert(need, tick);
     }
 }
 
@@ -480,7 +509,7 @@ mod tests {
         apply(
             &mut world,
             1,
-            Action::Play(TargetRef::Kitty { id: 2 }),
+            Action::play_with(TargetRef::Kitty { id: 2 }),
             &config,
         );
 
@@ -499,7 +528,12 @@ mod tests {
         let b = world.kitty_index(2).unwrap();
         world.kitties[b].pos = Position::new(9, 9);
 
-        let validated = validate(&world, 1, Action::Play(TargetRef::Kitty { id: 2 }), &config);
+        let validated = validate(
+            &world,
+            1,
+            Action::play_with(TargetRef::Kitty { id: 2 }),
+            &config,
+        );
         assert_eq!(validated, Action::Idle);
     }
 
@@ -679,6 +713,61 @@ mod tests {
     }
 
     #[test]
+    fn social_play_keeps_its_pre_004_wire_shape() {
+        let action = Action::play_with(TargetRef::Element { id: 103 });
+        let json = serde_json::to_value(action).unwrap();
+        assert_eq!(
+            json,
+            serde_json::json!({"action": "play", "target": "element", "id": 103}),
+            "old consumers must see the exact old shape"
+        );
+        // And the old shape parses back.
+        let parsed: Action =
+            serde_json::from_value(serde_json::json!({"action":"play","target":"kitty","id":2}))
+                .unwrap();
+        assert_eq!(parsed, Action::play_with(TargetRef::Kitty { id: 2 }));
+    }
+
+    #[test]
+    fn solo_play_serializes_without_a_target_and_round_trips() {
+        let json = serde_json::to_value(Action::play_solo()).unwrap();
+        assert_eq!(json, serde_json::json!({"action": "play"}));
+        let parsed: Action = serde_json::from_value(json).unwrap();
+        assert_eq!(parsed, Action::play_solo());
+    }
+
+    #[test]
+    fn solo_play_is_always_legal() {
+        let (world, config) = test_world();
+        assert_eq!(
+            validate(&world, 1, Action::play_solo(), &config),
+            Action::play_solo(),
+            "pouncing at nothing needs no permission, like self-grooming"
+        );
+    }
+
+    #[test]
+    fn solo_play_relieves_less_than_the_real_thing() {
+        let (mut world, config) = test_world();
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].needs.add(NeedKind::Play, 80.0);
+
+        apply(&mut world, 1, Action::play_solo(), &config);
+
+        let after = world.kitty(1).unwrap().needs.get(NeedKind::Play);
+        let expected = 80.0 - config.actions.solo_play_relief;
+        assert!(
+            (after - expected).abs() < 0.01,
+            "solo relief is solo_play_relief ({}), got {after}",
+            config.actions.solo_play_relief
+        );
+        assert!(
+            config.actions.solo_play_relief < config.actions.play_relief,
+            "config validation keeps social play the better deal"
+        );
+    }
+
+    #[test]
     fn a_kitty_cannot_target_itself() {
         let (world, config) = test_world();
         assert_eq!(
@@ -691,7 +780,12 @@ mod tests {
             Action::Idle
         );
         assert_eq!(
-            validate(&world, 1, Action::Play(TargetRef::Kitty { id: 1 }), &config),
+            validate(
+                &world,
+                1,
+                Action::play_with(TargetRef::Kitty { id: 1 }),
+                &config
+            ),
             Action::Idle
         );
     }

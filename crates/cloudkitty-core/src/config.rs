@@ -68,6 +68,8 @@ pub struct Config {
     pub behavior: BehaviorConfig,
     #[serde(default)]
     pub events: EventsConfig,
+    #[serde(default)]
+    pub viewer: ViewerConfig,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -345,6 +347,14 @@ pub struct ActionEffects {
     pub play_relief: f32,
     /// Cuddle relief from resting/sleeping/grooming alongside a friend.
     pub cuddle_relief: f32,
+    /// Play relief for pouncing at nothing. Smaller than `play_relief` so a
+    /// kitty with company always prefers the real thing.
+    #[serde(default = "default_solo_play_relief")]
+    pub solo_play_relief: f32,
+}
+
+fn default_solo_play_relief() -> f32 {
+    10.0
 }
 
 impl Default for ActionEffects {
@@ -357,6 +367,7 @@ impl Default for ActionEffects {
             groom_relief: 30.0,
             play_relief: 25.0,
             cuddle_relief: 20.0,
+            solo_play_relief: default_solo_play_relief(),
         }
     }
 }
@@ -390,10 +401,58 @@ pub struct BehaviorConfig {
     /// need. Lower means a better-kept cat; higher means more single-minded fun.
     #[serde(default = "default_playful_comfort")]
     pub playful_comfort: f32,
+    /// Extra selection weight per point of pressure above the safeguard
+    /// threshold. Urgent needs dominate similarly-distant alternatives without
+    /// ever locking out zero-distance relief.
+    #[serde(default = "default_urgency_weight")]
+    pub urgency_weight: f32,
+    /// How many need-points one tile of travel is worth when choosing what to
+    /// attend to.
+    #[serde(default = "default_tile_cost")]
+    pub tile_cost: f32,
+    /// A need at or above this is worth topping up when the means are already
+    /// underfoot, whatever else the kitty was doing.
+    #[serde(default = "default_worth_a_detour")]
+    pub worth_a_detour: f32,
+    /// Elapsed ticks a chase may run without closing distance before its target
+    /// stops counting as catchable.
+    #[serde(default = "default_chase_patience_ticks")]
+    pub chase_patience_ticks: u64,
+    /// How long an abandoned chase target stays excluded from re-selection.
+    #[serde(default = "default_chase_exclusion_ticks")]
+    pub chase_exclusion_ticks: u64,
+    /// A viable playmate within this distance suppresses solo play; beyond it,
+    /// a kitty entertains itself.
+    #[serde(default = "default_solo_play_reach")]
+    pub solo_play_reach: u32,
 }
 
 fn default_playful_comfort() -> f32 {
     55.0
+}
+
+fn default_urgency_weight() -> f32 {
+    2.0
+}
+
+fn default_tile_cost() -> f32 {
+    1.0
+}
+
+fn default_worth_a_detour() -> f32 {
+    30.0
+}
+
+fn default_chase_patience_ticks() -> u64 {
+    12
+}
+
+fn default_chase_exclusion_ticks() -> u64 {
+    60
+}
+
+fn default_solo_play_reach() -> u32 {
+    8
 }
 
 impl Default for BehaviorConfig {
@@ -401,6 +460,12 @@ impl Default for BehaviorConfig {
         Self {
             budget_fraction_of_tick: 0.5,
             playful_comfort: default_playful_comfort(),
+            urgency_weight: default_urgency_weight(),
+            tile_cost: default_tile_cost(),
+            worth_a_detour: default_worth_a_detour(),
+            chase_patience_ticks: default_chase_patience_ticks(),
+            chase_exclusion_ticks: default_chase_exclusion_ticks(),
+            solo_play_reach: default_solo_play_reach(),
         }
     }
 }
@@ -421,6 +486,24 @@ impl Default for EventsConfig {
     fn default() -> Self {
         Self {
             distress_retention: 1000,
+        }
+    }
+}
+
+/// Constants the *viewer* reads via `/config`. The simulation never consults
+/// this section — it exists so client tunables are still real configuration
+/// (Article VI) without the client computing anything (Article V).
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct ViewerConfig {
+    /// Unresolved-distress age, in ticks, before a kitty's card shows its
+    /// gentle "has wanted this for a while" cue.
+    pub distress_patience_ticks: u64,
+}
+
+impl Default for ViewerConfig {
+    fn default() -> Self {
+        Self {
+            distress_patience_ticks: 60,
         }
     }
 }
@@ -464,6 +547,7 @@ impl Default for Config {
             meow: MeowConfig::default(),
             behavior: BehaviorConfig::default(),
             events: EventsConfig::default(),
+            viewer: ViewerConfig::default(),
         }
     }
 }
@@ -736,6 +820,76 @@ impl Config {
                 "[behavior] playful_comfort",
                 comfort.to_string(),
                 "must be greater than 0 and at most 100",
+            ));
+        }
+        for (field, value) in [
+            ("[behavior] urgency_weight", self.behavior.urgency_weight),
+            ("[behavior] tile_cost", self.behavior.tile_cost),
+        ] {
+            if !value.is_finite() || value < 0.0 {
+                return Err(ConfigError::invalid(
+                    field,
+                    value.to_string(),
+                    "must be a finite number of at least 0",
+                ));
+            }
+        }
+        let detour = self.behavior.worth_a_detour;
+        if !(0.0..=100.0).contains(&detour) || detour.is_nan() {
+            return Err(ConfigError::invalid(
+                "[behavior] worth_a_detour",
+                detour.to_string(),
+                "must be between 0 and 100",
+            ));
+        }
+        for (field, value) in [
+            (
+                "[behavior] chase_patience_ticks",
+                self.behavior.chase_patience_ticks,
+            ),
+            (
+                "[behavior] chase_exclusion_ticks",
+                self.behavior.chase_exclusion_ticks,
+            ),
+        ] {
+            if value == 0 {
+                return Err(ConfigError::invalid(
+                    field,
+                    "0".to_string(),
+                    "must be at least 1 tick",
+                ));
+            }
+        }
+        if self.behavior.solo_play_reach == 0 {
+            return Err(ConfigError::invalid(
+                "[behavior] solo_play_reach",
+                "0".to_string(),
+                "must be at least 1 tile",
+            ));
+        }
+        let solo = self.actions.solo_play_relief;
+        if !solo.is_finite() || solo < 0.0 {
+            return Err(ConfigError::invalid(
+                "[actions] solo_play_relief",
+                solo.to_string(),
+                "must be a finite number of at least 0",
+            ));
+        }
+        if solo > self.actions.play_relief {
+            return Err(ConfigError::invalid(
+                "[actions] solo_play_relief",
+                solo.to_string(),
+                format!(
+                    "must not exceed play_relief ({}) -- playing together must stay the better deal",
+                    self.actions.play_relief
+                ),
+            ));
+        }
+        if self.viewer.distress_patience_ticks == 0 {
+            return Err(ConfigError::invalid(
+                "[viewer] distress_patience_ticks",
+                "0".to_string(),
+                "must be at least 1 tick",
             ));
         }
         if self.events.distress_retention == 0 {
@@ -1021,6 +1175,136 @@ mod tests {
         assert_eq!(c.kitties[0].needs.unwrap().eat, Some(1.5));
         assert_eq!(c.kitties[0].needs.unwrap().drink, None);
         assert!(c.kitties[1].needs.is_none());
+    }
+
+    #[test]
+    fn negative_urgency_weight_is_rejected() {
+        let mut c = cfg();
+        c.behavior.urgency_weight = -0.5;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[behavior] urgency_weight"), "{msg}");
+        assert!(msg.contains("-0.5"), "names the value: {msg}");
+    }
+
+    #[test]
+    fn negative_tile_cost_is_rejected() {
+        let mut c = cfg();
+        c.behavior.tile_cost = f32::NAN;
+        assert!(c.validate().is_err());
+        c.behavior.tile_cost = -1.0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[behavior] tile_cost"), "{msg}");
+    }
+
+    #[test]
+    fn worth_a_detour_outside_need_range_is_rejected() {
+        let mut c = cfg();
+        c.behavior.worth_a_detour = 101.0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("worth_a_detour"), "{msg}");
+        assert!(msg.contains("between 0 and 100"), "{msg}");
+    }
+
+    #[test]
+    fn zero_chase_windows_are_rejected() {
+        let mut c = cfg();
+        c.behavior.chase_patience_ticks = 0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("chase_patience_ticks"), "{msg}");
+
+        let mut c = cfg();
+        c.behavior.chase_exclusion_ticks = 0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("chase_exclusion_ticks"), "{msg}");
+    }
+
+    #[test]
+    fn zero_solo_play_reach_is_rejected() {
+        let mut c = cfg();
+        c.behavior.solo_play_reach = 0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("solo_play_reach"), "{msg}");
+    }
+
+    #[test]
+    fn solo_play_relief_may_not_beat_social_play() {
+        let mut c = cfg();
+        c.actions.solo_play_relief = c.actions.play_relief + 1.0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("solo_play_relief"), "{msg}");
+        assert!(msg.contains("play_relief"), "names the bound: {msg}");
+
+        let mut c = cfg();
+        c.actions.solo_play_relief = -1.0;
+        assert!(c.validate().is_err());
+    }
+
+    #[test]
+    fn zero_viewer_patience_is_rejected() {
+        let mut c = cfg();
+        c.viewer.distress_patience_ticks = 0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[viewer] distress_patience_ticks"), "{msg}");
+    }
+
+    #[test]
+    fn a_pre_004_toml_without_the_new_keys_parses_with_defaults() {
+        let toml_src = r#"
+            [world]
+            width = 32
+            height = 32
+            tick_ms = 800
+            seed = 1
+
+            [[kitty]]
+            id = 1
+            name = "A"
+            x = 1
+            y = 1
+            behavior = "needs_driven"
+
+            [[kitty]]
+            id = 2
+            name = "B"
+            x = 2
+            y = 2
+            behavior = "playful"
+
+            [behavior]
+            budget_fraction_of_tick = 0.5
+
+            [actions]
+            eat_relief = 40.0
+            drink_relief = 40.0
+            sleep_relief = 5.0
+            sleep_relief_sunbeam = 8.0
+            groom_relief = 30.0
+            play_relief = 25.0
+            cuddle_relief = 20.0
+        "#;
+        let c: Config = toml::from_str(toml_src).expect("old-shape config parses");
+        assert_eq!(c.behavior.urgency_weight, default_urgency_weight());
+        assert_eq!(
+            c.behavior.chase_exclusion_ticks,
+            default_chase_exclusion_ticks()
+        );
+        assert_eq!(c.actions.solo_play_relief, default_solo_play_relief());
+        assert_eq!(c.viewer.distress_patience_ticks, 60);
+        c.validate().expect("defaults are valid");
+    }
+
+    #[test]
+    fn fingerprint_ignores_the_new_behavior_tunables() {
+        let a = cfg();
+        let mut b = cfg();
+        b.behavior.urgency_weight = 9.0;
+        b.actions.solo_play_relief = 1.0;
+        b.viewer.distress_patience_ticks = 999;
+        assert_eq!(
+            a.fingerprint(),
+            b.fingerprint(),
+            "tuning selection must never orphan a saved world"
+        );
     }
 
     #[test]

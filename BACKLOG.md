@@ -11,8 +11,31 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 ## P1 — quick wins, next up
 
-*(Empty — the quick wins have shipped. The next pick comes from P2, for a
-proper sitting.)*
+### Fix low-happiness lock-in (needs RCA, 2026-07-18)
+Kitties get stuck in low-happiness episodes (observed: 200–500 ticks below
+happiness 45; all three cats touched the floor of 5 in a 6,000-tick window).
+Root cause, confirmed against a live state file and reproduction run: when
+play becomes unattainable, `needs_driven`'s hard safeguard lock ("pursue only
+the most pressing need") starves every other need — including bath and sleep,
+which are satisfiable on the spot — and the fixed tie-break order at the
+100-clamp turns into a starvation queue (bath, last in the order, can never
+win a tie). Play is the trigger because its relief throughput is too low for
+an isolated cat: critters always exist, so the friend-play fallback is dead
+code; greebles outrun cats; bug chases die to TTL. Improvements, in impact
+order:
+
+1. Replace the hard safeguard lock with proportional urgency — always weigh
+   distance, with pressure counting more above the safeguard threshold.
+2. Raise play throughput: opportunistic play in `take_what_is_here`, play
+   targets chosen by distance across critters *and* friends, give up on
+   futile chases (especially greebles).
+3. Solo play as a backstop (pouncing on nothing), so every need is
+   self-satisfiable in the limit — restoring the Article I assumption that
+   play is always satisfiable.
+4. Break pressure ties by longest-since-relief instead of `NeedKind::ALL`
+   order.
+5. Observability: per-kitty time-in-distress (the unresolved play distress
+   sat visible-but-unwatched for 216 ticks).
 
 <!-- shipped P1 items are removed once merged; see git history -->
 

@@ -55,6 +55,7 @@ element max per tile; a kitty and an element may share a tile.
 | `in_distress` | BTreeSet\<NeedKind\> | needs currently ≥ distress threshold; drives edge-triggering |
 | `happiness_rose` | bool | whether happiness went up last tick; one of the two ways to earn a purr |
 | `last_action` | Option\<Action\> | the action actually applied last tick (post-validation, so an illegal proposal reads as Idle); `None` before the first tick; feeds the viewer's "doing" line |
+| `pursuit`, `abandoned_chases`, `last_relief`, `distress_since` | see 004 | engine-maintained bookkeeping added by feature 004 (chase give-up, relief recency, distress ages); all serde-defaulted — see [004 data-model.md](../004-fix-happiness-lockin/data-model.md) |
 
 **Lifecycle**: none. Kitties are created at world generation and exist forever
 (Article II — the type exposes no despawn/health/damage concept).
@@ -65,7 +66,11 @@ element max per tile; a kitty and an element may share a tile.
 `add` both clamp, and a NaN delta is ignored rather than allowed to poison the value.
 Six kinds: `eat`, `drink`, `sleep`, `play`, `cuddle`, `bath`. `highest_pressure()`
 breaks ties in `NeedKind::ALL` order so behavior is never at the mercy of iteration
-order.
+order. *(Since feature 004, built-in need **selection** no longer uses
+`highest_pressure` — it scores all six needs with urgency and travel weights and
+breaks ties by longest-since-relief; see
+[004 data-model.md](../004-fix-happiness-lockin/data-model.md). `highest_pressure`
+remains the raw-pressure question, e.g. for meow urgency.)*
 
 - Rise: per-need global per-tick rate (config; defaults 0.5/0.7/0.3/0.4/0.25/0.2).
 - Fall: only via validated action effects (config; defaults eat −40, drink −40,
@@ -131,7 +136,7 @@ Enum (proposal from behavior; engine validates then applies):
 Move { direction: Direction }      Rest { with: Option<KittyId> }
 Sleep { with: Option<KittyId> }    Groom { target: Option<KittyId> }
 Eat                                Drink
-Chase(TargetRef)                   Play(TargetRef)
+Chase(TargetRef)                   Play { target: Option<TargetRef> }
 Purr                               Meow { message: MessageKind }
 Idle
 ```
@@ -143,7 +148,8 @@ error. Notable rules:
 - **Move**: blocked by the grid edge or a kitty-occupied destination → `Idle`.
 - **Chase**: legal only against things that flee — a bug, a greeble, or another
   kitty. Approaching chow, water or a sunbeam is a `Move` (FR-019/FR-020).
-- **Play**: requires adjacency, and an element target must be a critter.
+- **Play**: with a target — requires adjacency, and an element target must be a
+  critter. Without one (feature 004) — solo play, always legal, smaller relief.
 - **Rest / Sleep / Groom with a partner**: the partner must exist and be adjacent.
 - **Eat**: requires adjacent chow with `servings > 0`; **Drink**: adjacent water.
 - **Purr**: happiness > threshold (default 70) *or* happiness rose last tick.

@@ -54,6 +54,11 @@ tick (post-validation — an illegal proposal reads as `{"action":"idle"}`); abs
 only before the world's first tick. Action shapes are internally tagged on
 `action`, e.g. `{"action":"chase","target":"element","id":12}`,
 `{"action":"meow","message":"want_play"}`, `{"action":"move","direction":"north"}`.
+`{"action":"play"}` with no target is solo play (feature 004).
+
+Feature 004 adds three optional kitty fields — `distress_since`, `pursuit`,
+`abandoned_chases` — each omitted when empty; see the
+[004 API delta](../../004-fix-happiness-lockin/contracts/http-api-delta.md).
 
 - `200 OK`; `404 Not Found` with `{ "error": "no kitty with id 99" }` for unknown ids.
 
