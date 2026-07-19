@@ -120,6 +120,74 @@ pub fn check(world: &World, config: &Config) -> Result<(), Violation> {
                 ),
             });
         }
+
+        // Activity bookkeeping (spec 006): the clock exists exactly when an
+        // activity is in progress. Strict in both directions -- pre-006
+        // snapshots carrying an unclocked activity are refused, not healed.
+        match (kitty.activity.is_in_progress(), &kitty.activity_clock) {
+            (true, None) => {
+                return Err(Violation {
+                    article: "Bookkeeping integrity",
+                    detail: format!(
+                        "{} has an activity in progress but no activity clock \
+                         (pre-006 snapshots are not supported)",
+                        kitty.name
+                    ),
+                });
+            }
+            (false, Some(_)) => {
+                return Err(Violation {
+                    article: "Bookkeeping integrity",
+                    detail: format!("{} is idle but still carries an activity clock", kitty.name),
+                });
+            }
+            (true, Some(clock)) => {
+                // The clock runs forward and never claims an unfinished tick.
+                if clock.started > clock.applied || clock.applied >= world.tick {
+                    return Err(Violation {
+                        article: "Bookkeeping integrity",
+                        detail: format!(
+                            "{}'s activity clock is implausible: started {}, applied {} (tick {})",
+                            kitty.name, clock.started, clock.applied, world.tick
+                        ),
+                    });
+                }
+                // No activity outlives its configured maximum.
+                if let Some(bounds) = kitty.activity.bounds(&config.actions.durations) {
+                    let elapsed = clock.elapsed(world.tick.saturating_sub(1));
+                    if elapsed > bounds.max {
+                        return Err(Violation {
+                            article: "Bookkeeping integrity",
+                            detail: format!(
+                                "{}'s activity has run {elapsed} ticks, past its maximum of {}",
+                                kitty.name, bounds.max
+                            ),
+                        });
+                    }
+                }
+            }
+            (false, None) => {}
+        }
+
+        // Duets are never one-sided: a cuddle or social play binds both
+        // partners with identical clocks (spec 006 FR-009).
+        if let Some(partner_id) = kitty.activity.duet_partner() {
+            let reciprocal = world.kitty(partner_id).and_then(|p| {
+                (p.activity.duet_partner() == Some(kitty.id)).then_some(p.activity_clock)
+            });
+            match reciprocal {
+                Some(partner_clock) if partner_clock == kitty.activity_clock => {}
+                _ => {
+                    return Err(Violation {
+                        article: "Bookkeeping integrity",
+                        detail: format!(
+                            "{}'s duet with kitty {partner_id} is one-sided or out of step",
+                            kitty.name
+                        ),
+                    });
+                }
+            }
+        }
     }
 
     // One kitty per tile.
@@ -244,5 +312,81 @@ mod tests {
         let (mut world, config) = test_world();
         world.kitties[0].pos = Position::new(world.width + 5, 0);
         assert!(check(&world, &config).is_err());
+    }
+
+    // ---- action durations (spec 006) ----------------------------------
+
+    use crate::action::TargetRef;
+    use crate::kitty::{Activity, ActivityClock};
+
+    #[test]
+    fn an_unclocked_activity_is_refused_not_healed() {
+        let (mut world, config) = test_world();
+        world.tick = 10;
+        world.kitties[0].activity = Activity::Sleeping {
+            in_sunbeam: false,
+            with_friend: None,
+        };
+        let err = check(&world, &config).unwrap_err();
+        assert!(err.detail.contains("pre-006"), "{err}");
+    }
+
+    #[test]
+    fn an_orphaned_clock_is_a_violation() {
+        let (mut world, config) = test_world();
+        world.tick = 10;
+        world.kitties[0].activity_clock = Some(ActivityClock::start(5));
+        let err = check(&world, &config).unwrap_err();
+        assert!(err.detail.contains("idle"), "{err}");
+    }
+
+    #[test]
+    fn a_clock_may_not_claim_an_unfinished_tick() {
+        let (mut world, config) = test_world();
+        world.tick = 10;
+        world.kitties[0].activity = Activity::Eating;
+        world.kitties[0].activity_clock = Some(ActivityClock::start(10));
+        let err = check(&world, &config).unwrap_err();
+        assert!(err.detail.contains("implausible"), "{err}");
+
+        // The lawful shape: serviced last on the tick that just finished.
+        world.kitties[0].activity_clock = Some(ActivityClock::start(9));
+        check(&world, &config).expect("a fresh meal is lawful");
+    }
+
+    #[test]
+    fn an_activity_past_its_maximum_is_a_violation() {
+        let (mut world, config) = test_world();
+        world.tick = 100;
+        world.kitties[0].activity = Activity::Eating;
+        // Eat max is 5; this meal claims 7 ticks by the time tick 99 closed.
+        world.kitties[0].activity_clock = Some(ActivityClock {
+            started: 93,
+            applied: 99,
+        });
+        let err = check(&world, &config).unwrap_err();
+        assert!(err.detail.contains("maximum"), "{err}");
+    }
+
+    #[test]
+    fn a_one_sided_duet_is_a_violation() {
+        let (mut world, config) = test_world();
+        world.tick = 10;
+        world.kitties[0].activity = Activity::Playing {
+            target: Some(TargetRef::Kitty {
+                id: world.kitties[1].id,
+            }),
+        };
+        world.kitties[0].activity_clock = Some(ActivityClock::start(9));
+        let err = check(&world, &config).unwrap_err();
+        assert!(err.detail.contains("one-sided"), "{err}");
+
+        // Reciprocity with an identical clock is lawful.
+        let me = world.kitties[0].id;
+        world.kitties[1].activity = Activity::Playing {
+            target: Some(TargetRef::Kitty { id: me }),
+        };
+        world.kitties[1].activity_clock = Some(ActivityClock::start(9));
+        check(&world, &config).expect("a proper duet is lawful");
     }
 }

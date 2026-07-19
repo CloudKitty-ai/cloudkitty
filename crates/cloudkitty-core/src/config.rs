@@ -351,6 +351,10 @@ pub struct ActionEffects {
     /// kitty with company always prefers the real thing.
     #[serde(default = "default_solo_play_relief")]
     pub solo_play_relief: f32,
+    /// How long each activity runs, in ticks (spec 006): the engine holds an
+    /// activity at least `min` ticks and never lets it pass `max`.
+    #[serde(default)]
+    pub durations: DurationsConfig,
 }
 
 fn default_solo_play_relief() -> f32 {
@@ -368,7 +372,76 @@ impl Default for ActionEffects {
             play_relief: 25.0,
             cuddle_relief: 20.0,
             solo_play_relief: default_solo_play_relief(),
+            durations: DurationsConfig::default(),
         }
+    }
+}
+
+/// Bounds on how long one activity may run, in ticks, inclusive of the tick
+/// it starts on. Relief applies on every tick, so `min` also sets the least
+/// relief an undertaking delivers.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DurationBounds {
+    pub min: u64,
+    pub max: u64,
+}
+
+impl DurationBounds {
+    pub const fn new(min: u64, max: u64) -> Self {
+        Self { min, max }
+    }
+}
+
+/// Per-activity duration bounds (`[actions.durations]`). Keys are named for
+/// the need-facing activity: `bath` governs grooming and `cuddle` governs
+/// resting, solo or duet.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DurationsConfig {
+    #[serde(default = "default_short_activity")]
+    pub eat: DurationBounds,
+    #[serde(default = "default_short_activity")]
+    pub drink: DurationBounds,
+    #[serde(default = "default_short_activity")]
+    pub play: DurationBounds,
+    #[serde(default = "default_short_activity")]
+    pub bath: DurationBounds,
+    #[serde(default = "default_long_activity")]
+    pub sleep: DurationBounds,
+    #[serde(default = "default_long_activity")]
+    pub cuddle: DurationBounds,
+}
+
+fn default_short_activity() -> DurationBounds {
+    DurationBounds::new(2, 5)
+}
+
+fn default_long_activity() -> DurationBounds {
+    DurationBounds::new(2, 8)
+}
+
+impl Default for DurationsConfig {
+    fn default() -> Self {
+        Self {
+            eat: default_short_activity(),
+            drink: default_short_activity(),
+            play: default_short_activity(),
+            bath: default_short_activity(),
+            sleep: default_long_activity(),
+            cuddle: default_long_activity(),
+        }
+    }
+}
+
+impl DurationsConfig {
+    pub fn all(&self) -> [(&'static str, DurationBounds); 6] {
+        [
+            ("eat", self.eat),
+            ("drink", self.drink),
+            ("play", self.play),
+            ("bath", self.bath),
+            ("sleep", self.sleep),
+            ("cuddle", self.cuddle),
+        ]
     }
 }
 
@@ -565,7 +638,29 @@ impl Config {
         self.validate_needs()?;
         self.validate_elements()?;
         self.validate_behavior()?;
+        self.validate_durations()?;
         self.validate_capacity()?;
+        Ok(())
+    }
+
+    /// Spec 006: every activity's duration bounds must satisfy 1 <= min <= max.
+    fn validate_durations(&self) -> Result<(), ConfigError> {
+        for (name, bounds) in self.actions.durations.all() {
+            if bounds.min < 1 {
+                return Err(ConfigError::invalid(
+                    format!("[actions.durations] {name}.min"),
+                    bounds.min.to_string(),
+                    "an activity runs at least 1 tick (1 <= min <= max)",
+                ));
+            }
+            if bounds.max < bounds.min {
+                return Err(ConfigError::invalid(
+                    format!("[actions.durations] {name}.max"),
+                    bounds.max.to_string(),
+                    format!("must be at least {name}.min ({})", bounds.min),
+                ));
+            }
+        }
         Ok(())
     }
 
@@ -1325,5 +1420,82 @@ mod tests {
         let mut b = cfg();
         b.world.width = 40;
         assert_ne!(a.fingerprint(), b.fingerprint());
+    }
+
+    // ---- action durations (spec 006) ----------------------------------
+
+    #[test]
+    fn a_toml_without_durations_gets_the_documented_defaults() {
+        let toml_src = r#"
+            [world]
+            width = 32
+            height = 32
+            tick_ms = 800
+            seed = 1
+
+            [actions]
+            eat_relief = 40.0
+            drink_relief = 40.0
+            sleep_relief = 5.0
+            sleep_relief_sunbeam = 8.0
+            groom_relief = 30.0
+            play_relief = 25.0
+            cuddle_relief = 20.0
+        "#;
+        let c: Config = toml::from_str(toml_src).expect("durationless [actions] parses");
+        assert_eq!(c.actions.durations.eat, DurationBounds::new(2, 5));
+        assert_eq!(c.actions.durations.drink, DurationBounds::new(2, 5));
+        assert_eq!(c.actions.durations.play, DurationBounds::new(2, 5));
+        assert_eq!(c.actions.durations.bath, DurationBounds::new(2, 5));
+        assert_eq!(c.actions.durations.sleep, DurationBounds::new(2, 8));
+        assert_eq!(c.actions.durations.cuddle, DurationBounds::new(2, 8));
+    }
+
+    #[test]
+    fn a_zero_minimum_duration_is_rejected_by_name() {
+        let mut c = cfg();
+        c.actions.durations.eat = DurationBounds::new(0, 5);
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[actions.durations] eat.min"), "{msg}");
+        assert!(msg.contains('0'), "{msg}");
+    }
+
+    #[test]
+    fn a_maximum_below_the_minimum_is_rejected_by_name() {
+        let mut c = cfg();
+        c.actions.durations.sleep = DurationBounds::new(4, 3);
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[actions.durations] sleep.max"), "{msg}");
+        assert!(msg.contains("sleep.min (4)"), "{msg}");
+    }
+
+    #[test]
+    fn instant_actions_are_a_lawful_configuration() {
+        // min = max = 1 everywhere reproduces the pre-006 pacing.
+        let mut c = cfg();
+        for bounds in [
+            &mut c.actions.durations.eat,
+            &mut c.actions.durations.drink,
+            &mut c.actions.durations.play,
+            &mut c.actions.durations.bath,
+            &mut c.actions.durations.sleep,
+            &mut c.actions.durations.cuddle,
+        ] {
+            *bounds = DurationBounds::new(1, 1);
+        }
+        c.validate().expect("instant actions are legal");
+    }
+
+    #[test]
+    fn fingerprint_ignores_duration_tunables() {
+        let a = cfg();
+        let mut b = cfg();
+        b.actions.durations.eat = DurationBounds::new(1, 9);
+        b.actions.durations.sleep = DurationBounds::new(3, 20);
+        assert_eq!(
+            a.fingerprint(),
+            b.fingerprint(),
+            "duration tuning must never orphan a saved world"
+        );
     }
 }

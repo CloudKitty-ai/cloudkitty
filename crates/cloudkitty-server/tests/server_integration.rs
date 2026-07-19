@@ -373,6 +373,75 @@ async fn the_viewer_config_travels_through_the_config_endpoint() {
 }
 
 #[tokio::test]
+async fn activity_durations_travel_through_the_config_endpoint() {
+    // Spec 006: viewers wanting a progress bar read the bounds here, and
+    // plugin behaviors read them rather than hard-coding (Article VI).
+    let server = start_server().await;
+
+    let config: Value = reqwest::get(server.url("/config"))
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    let durations = &config["actions"]["durations"];
+    assert_eq!(durations["eat"]["min"], 2);
+    assert_eq!(durations["eat"]["max"], 5);
+    assert_eq!(durations["sleep"]["max"], 8);
+    assert_eq!(durations["cuddle"]["max"], 8);
+    assert_eq!(durations["bath"]["min"], 2);
+
+    server.shutdown().await;
+}
+
+#[tokio::test]
+async fn the_activity_clock_appears_mid_scene_and_never_otherwise() {
+    // Spec 006: `activity_clock` is served exactly while a scene runs --
+    // omitted when idle, present (with started <= applied < tick) during an
+    // activity, and always beside an in-progress activity state.
+    let server = start_server().await;
+
+    let mut observed_clock = None;
+    for _ in 0..200 {
+        let world: Value = reqwest::get(server.url("/world"))
+            .await
+            .unwrap()
+            .json()
+            .await
+            .unwrap();
+        let tick = world["tick"].as_u64().unwrap();
+        for kitty in world["kitties"].as_array().unwrap() {
+            let idle = kitty["activity"]["state"] == "idle";
+            match kitty.get("activity_clock") {
+                None => assert!(
+                    idle,
+                    "an in-progress activity must carry its clock (kitty {})",
+                    kitty["id"]
+                ),
+                Some(clock) => {
+                    assert!(!idle, "an idle kitty must not carry a clock");
+                    let started = clock["started"].as_u64().unwrap();
+                    let applied = clock["applied"].as_u64().unwrap();
+                    assert!(started <= applied && applied < tick.max(1));
+                    observed_clock = Some((kitty["activity"]["state"].clone(), started));
+                }
+            }
+        }
+        if observed_clock.is_some() {
+            break;
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(30)).await;
+    }
+    let (state, _) = observed_clock.expect("some kitty started a scene within 200 polls");
+    assert!(
+        state.is_string(),
+        "the ongoing activity is served with a state tag"
+    );
+
+    server.shutdown().await;
+}
+
+#[tokio::test]
 async fn the_viewer_is_served_at_the_root() {
     let server = start_server().await;
 

@@ -75,12 +75,48 @@ harm a kitty — grouped because they are all one sitting's work:
    of discarding it.
 
 ### Graphics refresh: Make even cuter!
-All in `client/` — no engine changes. Candidate directions: real sprites (or
-better emoji composition) instead of single glyphs, smooth movement tweening
-between ticks, idle animations (tail flicks, ear twitches), softer
-grass/water/sunbeam textures, more expressive sleeping and cuddling poses.
-The viewer stays a pure view (Article V): cuteness only, no simulation logic.
-Deliberately P2: worth unhurried design time rather than a quick pass.
+All in `client/` — no engine changes. Ideation done (2026-07-18); direction
+chosen: **procedural vector cats** over pixel sprite sheets. The deciding
+arguments: fur patterns, eye color, and ear/tail affect all want *parameters*,
+not frames (a sprite sheet multiplies facings × poses × moods × patterns until
+it dies); continuous parameter easing composes with the interpolation clock
+below, while frame-swapping fights it; and at 22px tiles the sprite quality
+advantage mostly evaporates. Known risk: the aesthetic floor — a procedural
+cat that reads as clip-art would be a step *down* from the emoji. De-risk
+first: a static cat-portrait gallery page (all fur variants, all poses, no
+animation) as the opening task, judged before anything builds on it; fallback
+is sprites or emoji-faces-on-vector-bodies.
+
+Scope, in build order (each phase ships a visibly cuter viewer on its own):
+
+1. **Interpolation clock** — a `requestAnimationFrame` loop easing between
+   the last two server frames, replacing draw-once-per-WS-frame. Position
+   tweening plus a local clock for idle cycles. Still a pure view (Article
+   V): the client never predicts, only eases between states the server sent.
+   Tween duration from the tick interval via `/config`, not hard-coded.
+2. **Vector cats** — `drawCat(params)`: bezier body/ears/tail, per-kitty
+   deterministic palette (fur + eye color from kitty id, stable identity),
+   left/right or 4-way facing derived from the last move.
+3. **Action + idle animations** — pounce arc with squash-and-stretch for
+   play/chase, eat chomp, drink ripples, groom licks, slow curl into sleep;
+   idle tail flicks, ear twitches, blinks on the local clock.
+4. **Dramatize data the viewer already receives** — solo play gets an
+   imaginary sparkle to bat at (no greeble-secrecy issue: there is genuinely
+   no target); chase abandonment gets its sad beat (sit, ear droop);
+   `pursuit` gets determined eyes; sharp need drops get a brief relief
+   sparkle; the distress cue gets an in-world thought-bubble twin using the
+   same `viewer.distress_patience_ticks`.
+5. **Ambient life** — water shimmer, sunbeam glow pulse + dust motes, grass
+   sway, drifting cloud shadows; plus juice on existing elements (bubble
+   pop-in, kibble level in the bowl, tweened canvas happiness bars).
+
+Hygiene, same spec: respect `prefers-reduced-motion` (fall back to per-tick
+snapping) and pause the rAF loop when the tab is hidden.
+
+Explicitly deferred: day–night lighting (own entry below, lands on the new
+look), ear/tail affect as mood display (P3, though vector cats make it nearly
+free), zoom/camera work (unless worlds grow). Deliberately P2: worth
+unhurried design time rather than a quick pass.
 
 ### External behavior plugins (ScriptBehavior / HttpBehavior)
 The payoff of Article IV's design: the async `Behavior` trait, wall-clock
@@ -104,7 +140,9 @@ deterministic.
 
 ### Age / fur / eye stats
 Cosmetic identity: fur colors and patterns, eye color, age. Sequenced with the
-graphics refresh — fur is worth modeling when the renderer can show it. Age
+graphics refresh — fur is worth modeling when the renderer can show it, and
+the vector-cat renderer shows it as parameters (fill colors, clipped pattern
+overlays) rather than per-variant art. Age
 must never become a health mechanic (Article II: no decline, no death; cats
 may age into *distinguished*, never into frail).
 
@@ -123,7 +161,13 @@ desirability — a picky cat still gets fed.
 
 ### Ear / tail affect
 Ears and tail express mood in the viewer (content, curious, grumpy). Pure
-rendering on top of existing state; depends on the graphics refresh.
+rendering on top of existing state; depends on the graphics refresh — which
+chose vector cats partly for this: ears and tail are already animatable
+parameters there, so this item shrinks to mood-to-parameter mapping.
+Deliberately kept out of the 005 refresh (2026-07-18): the bar here is
+*true-to-life* — real feline ear/tail vocabulary (tail-up greeting, airplane
+ears, slow flicks of irritation), worth its own unhurried design pass with
+reference study, not a quick mapping bolted onto the refresh.
 
 ### Dynamic in-game speed changes
 ⚠️ Architectural string attached: the MVP API is read-only and the spec fixes

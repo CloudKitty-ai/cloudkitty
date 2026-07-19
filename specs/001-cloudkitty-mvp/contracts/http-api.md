@@ -48,17 +48,23 @@ Full world snapshot (wire form of `World`, RNG state omitted).
 }
 ```
 
-`activity.state` ∈ `idle | resting | sleeping`; `with_friend`/`in_sunbeam` present
-only when applicable. `last_action` is the action the engine actually applied last
-tick (post-validation — an illegal proposal reads as `{"action":"idle"}`); absent
-only before the world's first tick. Action shapes are internally tagged on
-`action`, e.g. `{"action":"chase","target":"element","id":12}`,
+`activity.state` ∈ `idle | resting | sleeping | eating | drinking | playing |
+grooming` (the last four since feature 006); `with_friend`/`in_sunbeam`/`target`
+present only when applicable. `last_action` is the action the engine actually
+applied last tick (post-validation — an illegal proposal reads as
+`{"action":"idle"}`); absent only before the world's first tick, and repeating
+the activity's action on every tick of a multi-tick scene (feature 006). Action
+shapes are internally tagged on `action`, e.g.
+`{"action":"chase","target":"element","id":12}`,
 `{"action":"meow","message":"want_play"}`, `{"action":"move","direction":"north"}`.
 `{"action":"play"}` with no target is solo play (feature 004).
 
 Feature 004 adds three optional kitty fields — `distress_since`, `pursuit`,
 `abandoned_chases` — each omitted when empty; see the
 [004 API delta](../../004-fix-happiness-lockin/contracts/http-api-delta.md).
+Feature 006 adds `activity_clock` (present only mid-activity) and echoes
+`actions.durations` in `GET /config`; see the
+[006 API delta](../../006-action-durations/contracts/http-api-delta.md).
 
 - `200 OK`; `404 Not Found` with `{ "error": "no kitty with id 99" }` for unknown ids.
 

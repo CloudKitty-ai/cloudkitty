@@ -1,11 +1,19 @@
-//! The welfare bounds of spec 004, as permanent regression guards.
+//! The welfare bounds of specs 004 and 006, as permanent regression guards.
 //!
 //! The 2026-07-18 RCA measured the broken world: low-happiness episodes of
 //! 200-500 ticks, every kitty touching the happiness floor, 14-22% of time
 //! below happiness 45, needs pinned at the cap for 90+ ticks beside free
-//! relief. This test runs the default-shaped world for 20,000 ticks and holds
-//! the fixed behavior to the spec's success criteria (SC-001..004), then runs
-//! it again from the same seed to prove determinism survived (SC-006).
+//! relief. Spec 004 fixed selection; spec 006 (action durations, full relief
+//! every tick of an activity) lifted welfare further, and the bounds below
+//! were re-baselined against its measured envelope (2026-07-19: means
+//! 88.9 / 73.4 / 85.9, zero ticks below 45, zero floor touches). The 004
+//! guarantees remain as hard floors beside each bound: tightening is the only
+//! direction these constants may move.
+//!
+//! This test runs the default-shaped world for 20,000 ticks and holds the
+//! engine to those bounds, then runs it again from the same seed to prove
+//! determinism survived (004 SC-006 / 006 SC-005 -- the comparison includes
+//! the activity timelines, which ride in the serialized kitties).
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -17,17 +25,31 @@ use cloudkitty_core::{BehaviorRegistry, World};
 
 const TICKS: u64 = 20_000;
 const LOW_HAPPINESS: f32 = 45.0;
-/// SC-001: no low-happiness stretch may exceed this many consecutive ticks.
-const MAX_LOW_STREAK: u64 = 100;
-/// SC-002: at most this share of ticks below LOW_HAPPINESS, per kitty.
-const MAX_LOW_SHARE: f64 = 0.05;
-/// SC-003: no need this close to its cap for more than 25 consecutive ticks
+/// No low-happiness stretch may exceed this many consecutive ticks.
+const MAX_LOW_STREAK: u64 = 20;
+/// At most this share of ticks below LOW_HAPPINESS, per kitty.
+const MAX_LOW_SHARE: f64 = 0.01;
+/// No need this close to its cap for more than 25 consecutive ticks
 /// while zero-distance relief for it exists.
 const NEAR_CAP: f32 = 99.0;
 const MAX_PINNED_STREAK: u64 = 25;
-/// SC-004: no distress older than this, and mean happiness at least 65.
+/// No distress older than this, and mean happiness at least 70.
 const MAX_DISTRESS_AGE: u64 = 150;
-const MIN_MEAN_HAPPINESS: f32 = 65.0;
+const MIN_MEAN_HAPPINESS: f32 = 70.0;
+
+/// The 004 baselines, never to be loosened past (006 SC-003). A future change
+/// that needs a bound above one of these floors is a welfare regression.
+const SPEC_004_MAX_LOW_STREAK: u64 = 100;
+const SPEC_004_MAX_LOW_SHARE: f64 = 0.05;
+const SPEC_004_MAX_PINNED_STREAK: u64 = 25;
+const SPEC_004_MAX_DISTRESS_AGE: u64 = 150;
+const SPEC_004_MIN_MEAN_HAPPINESS: f32 = 65.0;
+
+const _: () = assert!(MAX_LOW_STREAK <= SPEC_004_MAX_LOW_STREAK);
+const _: () = assert!(MAX_LOW_SHARE <= SPEC_004_MAX_LOW_SHARE);
+const _: () = assert!(MAX_PINNED_STREAK <= SPEC_004_MAX_PINNED_STREAK);
+const _: () = assert!(MAX_DISTRESS_AGE <= SPEC_004_MAX_DISTRESS_AGE);
+const _: () = assert!(MIN_MEAN_HAPPINESS >= SPEC_004_MIN_MEAN_HAPPINESS);
 
 /// SC-003's definition of "relief at zero travel distance" for `kind`.
 fn zero_distance_relief_exists(world: &World, kitty_idx: usize, kind: NeedKind) -> bool {

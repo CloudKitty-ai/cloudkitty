@@ -130,6 +130,19 @@ cuddle_relief = 20.0
 # play_relief -- playing together stays the better deal.
 solo_play_relief = 10.0
 
+# How long each activity runs, in ticks (1 <= min <= max). The engine holds an
+# activity at least `min` ticks -- long enough to watch -- and never lets it
+# pass `max`. Relief applies on every tick, and a finished need (or an empty
+# bowl) ends the activity early once `min` is met. `bath` governs grooming;
+# `cuddle` governs resting, alone or together.
+[actions.durations]
+eat = { min = 2, max = 5 }
+drink = { min = 2, max = 5 }
+play = { min = 2, max = 5 }
+bath = { min = 2, max = 5 }
+sleep = { min = 2, max = 8 }
+cuddle = { min = 2, max = 8 }
+
 [meow]
 # Ticks before a kitty may repeat the same message...
 cooldown_ticks = 15

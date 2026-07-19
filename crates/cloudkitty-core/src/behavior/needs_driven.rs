@@ -137,14 +137,26 @@ pub(crate) fn pursue(ctx: &DecisionContext, need: NeedKind) -> Action {
         // both built-in profiles pursue fun by exactly the same rules.
         NeedKind::Play => selection::play_action(ctx),
 
-        NeedKind::Cuddle => match world.nearest_friend(me.id, me.pos) {
-            Some(friend) if me.pos.is_adjacent(&friend.pos) => Action::Rest {
-                with: Some(friend.id),
-            },
-            // Walking over for a cuddle is not a chase; this cat is not playing.
-            Some(friend) => step_toward(ctx, friend.pos),
-            None => Action::Rest { with: None },
-        },
+        NeedKind::Cuddle => {
+            // Only an idle friend can be drawn into a cuddle (spec 006
+            // conscription) -- proposing at a busy one would just bounce to
+            // Idle. Seek the nearest *free* friend instead.
+            let free = world
+                .others(me.id)
+                .filter(|k| !k.activity.is_in_progress())
+                .min_by_key(|k| (me.pos.chebyshev_distance(&k.pos), k.id));
+            match free {
+                Some(friend) if me.pos.is_adjacent(&friend.pos) => Action::Rest {
+                    with: Some(friend.id),
+                },
+                // Walking over for a cuddle is not a chase; this cat is not playing.
+                Some(friend) => step_toward(ctx, friend.pos),
+                // Everyone is mid-scene; scenes are short (bounded by their
+                // maximums), so wait rather than lock into a relief-less
+                // solo rest.
+                None => Action::Idle,
+            }
+        }
     }
 }
 
@@ -421,11 +433,15 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn a_sleeping_friend_still_counts_as_company_for_play() {
-        // US3 edge case: solo play must not fire past a partner who is merely
-        // asleep beside you.
+    async fn a_sleeping_friend_is_company_you_let_sleep() {
+        // Superseded 004 edge case: back then a kitty could bat a sleeping
+        // friend awake into play, so solo play had to defer to them. Spec
+        // 006's conscription rule ends that (a sleeping cat is never yanked
+        // awake), so the urgent player pounces at nothing instead of
+        // proposing a play the engine would refuse.
         let mut ctx = decision_context(|world| {
             world.elements.clear();
+            world.tick = 10;
             let idx = world.kitty_index(1).unwrap();
             world.kitties[idx].pos = Position::new(5, 5);
             world.kitties[idx].needs.add(NeedKind::Play, 90.0);
@@ -435,12 +451,14 @@ mod tests {
                 in_sunbeam: false,
                 with_friend: None,
             };
+            world.kitties[friend].activity_clock = Some(crate::kitty::ActivityClock::start(9));
         });
         ctx.me.set_meow_cooldown(MessageKind::WantPlay, u64::MAX);
 
         assert_eq!(
             NeedsDriven.decide(&ctx).await,
-            Action::play_with(crate::action::TargetRef::Kitty { id: 2 })
+            Action::play_solo(),
+            "the nap is respected; play happens solo beside it"
         );
     }
 

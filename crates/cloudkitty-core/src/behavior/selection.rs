@@ -138,6 +138,20 @@ fn is_viable(ctx: &DecisionContext, target: TargetRef) -> bool {
     if ctx.me.is_chase_excluded(target, tick) {
         return false;
     }
+    // A kitty mid-activity cannot be conscripted into play (spec 006):
+    // proposing it would only validate to Idle, and counting it viable at
+    // distance 0 would suppress the solo-play backstop for as long as its
+    // scene runs. Busy friends become playmates again when their scene ends.
+    if let TargetRef::Kitty { id } = target {
+        let busy = ctx
+            .world
+            .kitty(id)
+            .map(|k| k.activity.is_in_progress())
+            .unwrap_or(true);
+        if busy {
+            return false;
+        }
+    }
     if let Some(pursuit) = &ctx.me.pursuit {
         let patience = ctx.config.behavior.chase_patience_ticks;
         let stalled = tick.saturating_sub(pursuit.last_progress()) >= patience;
@@ -186,7 +200,9 @@ pub fn adjacent_playmate(ctx: &DecisionContext) -> Option<TargetRef> {
     critter.or_else(|| {
         ctx.world
             .others(me.id)
-            .filter(|k| me.pos.is_adjacent(&k.pos))
+            // A friend mid-meal or asleep cannot be batted into a game
+            // (spec 006 conscription); only an idle neighbour counts.
+            .filter(|k| me.pos.is_adjacent(&k.pos) && !k.activity.is_in_progress())
             .min_by_key(|k| (me.pos.chebyshev_distance(&k.pos), k.id))
             .map(|k| TargetRef::Kitty { id: k.id })
     })
@@ -246,6 +262,38 @@ mod tests {
         assert_eq!(score(&ctx, NeedKind::Play), 147.0);
         assert!((score(&ctx, NeedKind::Sleep) - 146.7).abs() < 0.1);
         assert_eq!(choose_need(&ctx), NeedKind::Bath);
+    }
+
+    #[test]
+    fn a_busy_friend_is_not_a_viable_playmate_and_solo_play_steps_in() {
+        use crate::kitty::{Activity, ActivityClock};
+
+        // An urgent player beside a friend who is mid-meal: proposing at the
+        // friend would only bounce off validation (spec 006 conscription), so
+        // the friend must not count as viable -- the solo backstop fires.
+        let ctx = decision_context(|world| {
+            world.elements.clear();
+            world.tick = 10;
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx].needs.add(NeedKind::Play, 90.0);
+            let friend = world.kitty_index(2).unwrap();
+            world.kitties[friend].pos = Position::new(5, 6);
+            world.kitties[friend].activity = Activity::Eating;
+            world.kitties[friend].activity_clock = Some(ActivityClock::start(9));
+        });
+
+        assert_eq!(
+            nearest_viable_playmate(&ctx),
+            None,
+            "a cat mid-meal is not on the menu"
+        );
+        assert_eq!(adjacent_playmate(&ctx), None);
+        assert_eq!(
+            play_action(&ctx),
+            Action::play_solo(),
+            "the solo backstop fires instead of a doomed proposal"
+        );
     }
 
     #[test]

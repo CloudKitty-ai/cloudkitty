@@ -279,3 +279,68 @@ fn a_pre_004_snapshot_shape_resumes_and_ticks_lawfully() {
         invariants::check(&resumed, &config).expect("lawful after resuming the old shape");
     }
 }
+
+#[test]
+fn a_pre_006_shape_with_an_in_progress_activity_is_refused() {
+    // Spec 006 FR-013: no heal paths. A snapshot carrying an activity without
+    // its clock -- the pre-006 shape -- fails strict validation at load,
+    // which is exactly the check the server runs before resuming a world.
+    use cloudkitty_core::kitty::{Activity, ActivityClock};
+
+    let config = Arc::new(build_config(14, 14, 20_260_719, vec![0, 1, 0], 2));
+    let mut world = World::generate(&config);
+    world.tick = 10;
+    world.kitties[0].activity = Activity::Sleeping {
+        in_sunbeam: false,
+        with_friend: None,
+    };
+    world.kitties[0].activity_clock = Some(ActivityClock {
+        started: 9,
+        applied: 9,
+    });
+    invariants::check(&world, &config).expect("clocked, the sleeper is lawful");
+
+    let mut json = serde_json::to_value(&world).expect("worlds serialize");
+    json["kitties"][0]
+        .as_object_mut()
+        .expect("kitty object")
+        .remove("activity_clock");
+
+    let stripped: World = serde_json::from_value(json).expect("the old shape still parses");
+    let err = invariants::check(&stripped, &config).expect_err("but it is refused, not healed");
+    assert!(err.detail.contains("pre-006"), "{err}");
+}
+
+#[test]
+fn a_mid_activity_snapshot_reloads_lawfully_and_keeps_ticking() {
+    // Spec 006 FR-012: duration bookkeeping is part of the serialized world.
+    // A 006 world saved mid-run -- scenes in progress and all -- passes load
+    // validation and remains lawful for hundreds more ticks. (Bit-exact
+    // future equivalence is guarded in tests/activity_durations.rs.)
+    let config = Arc::new(build_config(14, 14, 20_260_720, vec![0, 1, 0], 2));
+    let registry = registry();
+    let mut world = World::generate(&config);
+
+    let runtime = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .unwrap();
+
+    for _ in 0..150 {
+        runtime.block_on(world.tick(&registry, &config));
+    }
+
+    let json = serde_json::to_value(&world).expect("worlds serialize");
+    let mut reloaded: World = serde_json::from_value(json).expect("snapshots load");
+    invariants::check(&reloaded, &config).expect("lawful at load, clocks included");
+    assert_eq!(
+        serde_json::to_value(&world).unwrap(),
+        serde_json::to_value(&reloaded).unwrap(),
+        "nothing was lost or invented in the round trip"
+    );
+
+    for _ in 0..200 {
+        runtime.block_on(reloaded.tick(&registry, &config));
+        invariants::check(&reloaded, &config).expect("lawful after a mid-activity reload");
+    }
+}

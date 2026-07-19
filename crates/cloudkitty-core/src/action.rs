@@ -11,7 +11,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 use crate::config::Config;
 use crate::element::{ElementId, ElementKind, ElementType};
 use crate::grid::Direction;
-use crate::kitty::{Activity, KittyId};
+use crate::kitty::{Activity, ActivityClock, KittyId};
 use crate::meow::{cooldown_for, Meow, MessageKind};
 use crate::needs::NeedKind;
 use crate::world::World;
@@ -140,7 +140,14 @@ pub fn validate(world: &World, kitty_id: KittyId, proposal: Action, config: &Con
             None => false,
         },
 
-        Action::Rest { with } | Action::Sleep { with } => match with {
+        // Cuddling conscripts the partner into a shared activity, so the
+        // partner must be free (spec 006). Sleeping *beside* a friend binds
+        // nobody and keeps the plain availability rule.
+        Action::Rest { with } => match with {
+            None => true,
+            Some(friend_id) => world.is_conscriptable_friend(kitty_id, friend_id),
+        },
+        Action::Sleep { with } => match with {
             None => true,
             Some(friend_id) => world.is_available_friend(kitty_id, friend_id),
         },
@@ -176,7 +183,9 @@ pub fn validate(world: &World, kitty_id: KittyId, proposal: Action, config: &Con
                 .element(id)
                 .map(|e| e.element_type().is_critter() && kitty.pos.is_adjacent(&e.pos))
                 .unwrap_or(false),
-            Some(TargetRef::Kitty { id }) => world.is_available_friend(kitty_id, id),
+            // Social play is a duet: the partner is conscripted, so the
+            // partner must be free (spec 006).
+            Some(TargetRef::Kitty { id }) => world.is_conscriptable_friend(kitty_id, id),
         },
     };
 
@@ -193,6 +202,18 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
     let effects = config.actions;
     let tick = world.tick;
 
+    // A continuation of the ongoing activity services it rather than starting
+    // over: the duration clock never resets mid-scene (spec 006), however the
+    // continuation was phrased (same action re-proposed, or Idle).
+    if world
+        .kitty(kitty_id)
+        .map(|k| k.activity_clock.is_some() && k.activity.is_continued_by(&action))
+        .unwrap_or(false)
+    {
+        continue_current_activity(world, kitty_id, config);
+        return;
+    }
+
     match action {
         Action::Idle => continue_current_activity(world, kitty_id, config),
 
@@ -203,19 +224,30 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
             if let Some(dest) = kitty.pos.step(direction, world.width, world.height) {
                 if let Some(idx) = world.kitty_index(kitty_id) {
                     world.kitties[idx].pos = dest;
-                    world.kitties[idx].activity = Activity::Idle;
                 }
+                set_idle(world, kitty_id);
             }
         }
 
         Action::Rest { with } => {
-            let partner = with.filter(|f| world.is_available_friend(kitty_id, *f));
-            if let Some(idx) = world.kitty_index(kitty_id) {
-                world.kitties[idx].activity = Activity::Resting {
+            let partner = with.filter(|f| world.is_conscriptable_friend(kitty_id, *f));
+            begin_activity(
+                world,
+                kitty_id,
+                Activity::Resting {
                     with_friend: partner,
-                };
-            }
+                },
+            );
             if let Some(friend) = partner {
+                // A cuddle is a duet: the partner is bound in with the same
+                // clock, and both get the closeness.
+                begin_activity(
+                    world,
+                    friend,
+                    Activity::Resting {
+                        with_friend: Some(kitty_id),
+                    },
+                );
                 lower_need(world, kitty_id, NeedKind::Cuddle, effects.cuddle_relief);
                 lower_need(world, friend, NeedKind::Cuddle, effects.cuddle_relief);
             }
@@ -229,26 +261,35 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
                     world.element_at(k.pos).map(|e| e.element_type()) == Some(ElementType::Sunbeam)
                 })
                 .unwrap_or(false);
-            if let Some(idx) = world.kitty_index(kitty_id) {
-                world.kitties[idx].activity = Activity::Sleeping {
+            begin_activity(
+                world,
+                kitty_id,
+                Activity::Sleeping {
                     in_sunbeam,
                     with_friend: partner,
-                };
-            }
+                },
+            );
             apply_sleep_relief(world, kitty_id, in_sunbeam, partner, config);
         }
 
         Action::Groom { target } => match target {
             None => {
+                begin_activity(world, kitty_id, Activity::Grooming { target: None });
                 lower_need(world, kitty_id, NeedKind::Bath, effects.groom_relief);
-                set_idle(world, kitty_id);
             }
             Some(friend) => {
                 // Grooming a friend cleans them and satisfies the groomer's own
-                // need for closeness.
+                // need for closeness. Only the groomer is in an activity; the
+                // friend stays free and may wander off, ending it.
+                begin_activity(
+                    world,
+                    kitty_id,
+                    Activity::Grooming {
+                        target: Some(friend),
+                    },
+                );
                 lower_need(world, friend, NeedKind::Bath, effects.groom_relief);
                 lower_need(world, kitty_id, NeedKind::Cuddle, effects.cuddle_relief);
-                set_idle(world, kitty_id);
             }
         },
 
@@ -256,6 +297,7 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
             let Some(pos) = world.kitty(kitty_id).map(|k| k.pos) else {
                 return;
             };
+            begin_activity(world, kitty_id, Activity::Eating);
             if let Some(id) = world.adjacent_element(pos, ElementType::Chow).map(|e| e.id) {
                 if let Some(el) = world.element_mut(id) {
                     if let ElementKind::Chow { servings } = &mut el.kind {
@@ -264,12 +306,11 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
                 }
                 lower_need(world, kitty_id, NeedKind::Eat, effects.eat_relief);
             }
-            set_idle(world, kitty_id);
         }
 
         Action::Drink => {
+            begin_activity(world, kitty_id, Activity::Drinking);
             lower_need(world, kitty_id, NeedKind::Drink, effects.drink_relief);
-            set_idle(world, kitty_id);
         }
 
         Action::Chase(target) => {
@@ -297,18 +338,34 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
         }
 
         Action::Play { target } => {
+            // Defensive mirror of validate, like the Rest arm's partner
+            // filter: a kitty partner who cannot be conscripted (already
+            // mid-activity) downgrades the proposal to solo play rather than
+            // minting a one-sided duet that the invariants would refuse.
+            let target = target.filter(|t| match t {
+                TargetRef::Kitty { id } => world.is_conscriptable_friend(kitty_id, *id),
+                TargetRef::Element { .. } => true,
+            });
+            begin_activity(world, kitty_id, Activity::Playing { target });
             match target {
                 // Solo play is real play, just a smaller helping of it.
                 None => lower_need(world, kitty_id, NeedKind::Play, effects.solo_play_relief),
                 Some(target) => {
                     lower_need(world, kitty_id, NeedKind::Play, effects.play_relief);
                     if let TargetRef::Kitty { id } = target {
-                        // Play is shared: both cats get the fun.
+                        // Social play is a duet: the partner is bound in with
+                        // the same clock, and both cats get the fun.
+                        begin_activity(
+                            world,
+                            id,
+                            Activity::Playing {
+                                target: Some(TargetRef::Kitty { id: kitty_id }),
+                            },
+                        );
                         lower_need(world, id, NeedKind::Play, effects.play_relief);
                     }
                 }
             }
-            set_idle(world, kitty_id);
         }
 
         Action::Purr => {
@@ -321,41 +378,91 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
     }
 }
 
-/// Sleeping and resting persist across ticks: a kitty that proposes nothing keeps
-/// doing what it was doing (and keeps getting the benefit). A partner who wandered
-/// off is quietly dropped rather than continuing to grant cuddles from afar.
+/// Services the ongoing activity for one more tick (spec 006). Every activity
+/// persists across ticks this way: the clock is stamped *unconditionally* --
+/// even a tick that delivers no effects (a paused meal at an empty bowl, a
+/// duet partner whose effects already landed this tick) must stay visible to
+/// the end rules -- and per-tick effects land only when they have not already
+/// been applied this tick.
 fn continue_current_activity(world: &mut World, kitty_id: KittyId, config: &Config) {
+    let tick = world.tick;
     let Some(kitty) = world.kitty(kitty_id) else {
         return;
     };
-    match kitty.activity {
+    let activity = kitty.activity;
+    let pos = kitty.pos;
+    let Some(clock) = kitty.activity_clock else {
+        // Idle has nothing to continue; a clockless in-progress activity
+        // cannot exist in a lawful world (strict invariant, no legacy heals).
+        return;
+    };
+    let effects_due = clock.applied < tick;
+    stamp_serviced(world, kitty_id, tick);
+    if !effects_due {
+        return;
+    }
+
+    let effects = config.actions;
+    match activity {
         Activity::Idle => {}
-        Activity::Resting { with_friend } => {
-            let partner = with_friend.filter(|f| world.is_available_friend(kitty_id, *f));
-            if let Some(idx) = world.kitty_index(kitty_id) {
-                world.kitties[idx].activity = Activity::Resting {
-                    with_friend: partner,
-                };
+
+        Activity::Eating => {
+            if let Some(id) = world
+                .adjacent_element(pos, ElementType::Chow)
+                .filter(|e| matches!(e.kind, ElementKind::Chow { servings } if servings > 0))
+                .map(|e| e.id)
+            {
+                if let Some(el) = world.element_mut(id) {
+                    if let ElementKind::Chow { servings } = &mut el.kind {
+                        *servings = servings.saturating_sub(1);
+                    }
+                }
+                lower_need(world, kitty_id, NeedKind::Eat, effects.eat_relief);
             }
-            if let Some(friend) = partner {
-                lower_need(
-                    world,
-                    kitty_id,
-                    NeedKind::Cuddle,
-                    config.actions.cuddle_relief,
-                );
-                lower_need(
-                    world,
-                    friend,
-                    NeedKind::Cuddle,
-                    config.actions.cuddle_relief,
-                );
-            }
+            // Empty bowl below the minimum: the cat licks the bowl clean -- no
+            // relief, no consumption; the stamp above keeps the end rules in
+            // reach so the meal ends the moment its minimum is met.
         }
+
+        Activity::Drinking => {
+            lower_need(world, kitty_id, NeedKind::Drink, effects.drink_relief);
+        }
+
+        Activity::Grooming { target } => match target {
+            None => lower_need(world, kitty_id, NeedKind::Bath, effects.groom_relief),
+            Some(friend) => {
+                lower_need(world, friend, NeedKind::Bath, effects.groom_relief);
+                lower_need(world, kitty_id, NeedKind::Cuddle, effects.cuddle_relief);
+            }
+        },
+
+        Activity::Playing { target } => match target {
+            None => lower_need(world, kitty_id, NeedKind::Play, effects.solo_play_relief),
+            Some(TargetRef::Element { .. }) => {
+                lower_need(world, kitty_id, NeedKind::Play, effects.play_relief);
+            }
+            Some(TargetRef::Kitty { id }) => {
+                // The duet's effects land once per tick, from whichever
+                // partner's slot runs first; the partner's stamp closes the
+                // door on a second helping.
+                lower_need(world, kitty_id, NeedKind::Play, effects.play_relief);
+                lower_need(world, id, NeedKind::Play, effects.play_relief);
+                stamp_serviced(world, id, tick);
+            }
+        },
+
+        Activity::Resting { with_friend } => {
+            if let Some(friend) = with_friend {
+                lower_need(world, kitty_id, NeedKind::Cuddle, effects.cuddle_relief);
+                lower_need(world, friend, NeedKind::Cuddle, effects.cuddle_relief);
+                stamp_serviced(world, friend, tick);
+            }
+            // Solo rest is posture, not relief -- it ends by interrupt or cap.
+        }
+
         Activity::Sleeping { with_friend, .. } => {
             let partner = with_friend.filter(|f| world.is_available_friend(kitty_id, *f));
             // Re-check the sunbeam: it may have drifted away while the cat slept.
-            let pos = kitty.pos;
             let in_sunbeam =
                 world.element_at(pos).map(|e| e.element_type()) == Some(ElementType::Sunbeam);
             if let Some(idx) = world.kitty_index(kitty_id) {
@@ -445,6 +552,26 @@ fn lower_need(world: &mut World, kitty_id: KittyId, need: NeedKind, amount: f32)
 fn set_idle(world: &mut World, kitty_id: KittyId) {
     if let Some(idx) = world.kitty_index(kitty_id) {
         world.kitties[idx].activity = Activity::Idle;
+        world.kitties[idx].activity_clock = None;
+    }
+}
+
+/// Starts an activity with a fresh clock (spec 006). Every activity write and
+/// its clock move together, keeping the strict pairing the invariants demand.
+fn begin_activity(world: &mut World, kitty_id: KittyId, activity: Activity) {
+    let tick = world.tick;
+    if let Some(idx) = world.kitty_index(kitty_id) {
+        world.kitties[idx].activity = activity;
+        world.kitties[idx].activity_clock = Some(ActivityClock::start(tick));
+    }
+}
+
+/// Marks the ongoing activity as serviced this tick without touching `started`.
+fn stamp_serviced(world: &mut World, kitty_id: KittyId, tick: u64) {
+    if let Some(idx) = world.kitty_index(kitty_id) {
+        if let Some(clock) = &mut world.kitties[idx].activity_clock {
+            clock.applied = tick;
+        }
     }
 }
 
@@ -670,16 +797,98 @@ mod tests {
         apply(&mut world, 1, Action::Sleep { with: None }, &config);
         assert!(world.kitty(1).unwrap().activity.is_sleeping());
 
+        // Effects land once per tick (spec 006), so the continuation is
+        // serviced on the next tick, as it would be in the real loop.
+        world.tick += 1;
         let before = world.kitty(1).unwrap().needs.get(NeedKind::Sleep);
         apply(&mut world, 1, Action::Idle, &config);
         let after = world.kitty(1).unwrap().needs.get(NeedKind::Sleep);
 
         assert!(world.kitty(1).unwrap().activity.is_sleeping());
         assert!(after < before, "sleep continues to restore");
+        let clock = world.kitty(1).unwrap().activity_clock.expect("clocked");
+        assert_eq!(
+            clock.applied, world.tick,
+            "the continuation stamped the clock"
+        );
     }
 
     #[test]
-    fn a_departed_partner_stops_granting_cuddles() {
+    fn a_departed_cosleeping_partner_stops_granting_cuddles() {
+        // A cuddle partner is conscripted and cannot wander (spec 006); a
+        // co-sleeping partner is a companion, not a conscript, and can.
+        let (mut world, config) = test_world();
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(3, 3);
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(3, 4);
+
+        apply(&mut world, 1, Action::Sleep { with: Some(2) }, &config);
+        assert_eq!(world.kitty(1).unwrap().activity.partner(), Some(2));
+        assert!(
+            world.kitty(2).unwrap().activity_clock.is_none(),
+            "a co-sleeping reference binds nobody"
+        );
+
+        // The friend wanders off.
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(9, 9);
+        world.tick += 1;
+        apply(&mut world, 1, Action::Idle, &config);
+
+        assert_eq!(
+            world.kitty(1).unwrap().activity.partner(),
+            None,
+            "sleeping continues, but alone"
+        );
+        assert!(world.kitty(1).unwrap().activity.is_sleeping());
+    }
+
+    #[test]
+    fn a_play_proposal_at_a_busy_partner_downgrades_to_solo_play() {
+        // Direct apply() callers bypass validate; the arm's defensive filter
+        // must not mint a one-sided duet or yank the partner out of its meal.
+        let (mut world, config) = test_world();
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(3, 3);
+        world.kitties[a].needs.add(NeedKind::Play, 50.0);
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(3, 4);
+        world.kitties[b].activity = Activity::Eating;
+        world.kitties[b].activity_clock = Some(ActivityClock::start(world.tick));
+        let partner_clock = world.kitty(2).unwrap().activity_clock;
+
+        apply(
+            &mut world,
+            1,
+            Action::play_with(TargetRef::Kitty { id: 2 }),
+            &config,
+        );
+
+        assert_eq!(
+            world.kitty(1).unwrap().activity,
+            Activity::Playing { target: None },
+            "the proposal downgrades to solo play"
+        );
+        assert_eq!(
+            world.kitty(2).unwrap().activity,
+            Activity::Eating,
+            "the busy partner keeps its meal"
+        );
+        assert_eq!(
+            world.kitty(2).unwrap().activity_clock,
+            partner_clock,
+            "and its clock is untouched"
+        );
+        assert_eq!(
+            world.kitty(2).unwrap().needs.get(NeedKind::Play),
+            0.0,
+            "no play relief is invented for the absent partner"
+        );
+    }
+
+    #[test]
+    fn a_cuddle_is_a_duet_with_one_shared_clock() {
         let (mut world, config) = test_world();
         let a = world.kitty_index(1).unwrap();
         world.kitties[a].pos = Position::new(3, 3);
@@ -687,17 +896,17 @@ mod tests {
         world.kitties[b].pos = Position::new(3, 4);
 
         apply(&mut world, 1, Action::Rest { with: Some(2) }, &config);
+
         assert_eq!(world.kitty(1).unwrap().activity.partner(), Some(2));
-
-        // The friend wanders off.
-        let b = world.kitty_index(2).unwrap();
-        world.kitties[b].pos = Position::new(9, 9);
-        apply(&mut world, 1, Action::Idle, &config);
-
         assert_eq!(
-            world.kitty(1).unwrap().activity.partner(),
-            None,
-            "resting continues, but alone"
+            world.kitty(2).unwrap().activity.partner(),
+            Some(1),
+            "the partner is bound into the duet"
+        );
+        assert_eq!(
+            world.kitty(1).unwrap().activity_clock,
+            world.kitty(2).unwrap().activity_clock,
+            "one shared clock"
         );
     }
 

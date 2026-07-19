@@ -10,6 +10,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use serde::{Deserialize, Serialize};
 
 use crate::action::{Action, TargetRef};
+use crate::config::{DurationBounds, DurationsConfig};
 use crate::grid::Position;
 use crate::meow::MessageKind;
 use crate::needs::{NeedKind, Needs};
@@ -59,7 +60,8 @@ pub struct AbandonedChase {
 
 /// What a kitty is currently doing. Multi-tick activities carry their context so
 /// the engine can keep applying their effects (and drop the partner bonus if the
-/// friend wanders off).
+/// friend wanders off). Since spec 006 every need-relieving action is an
+/// activity, paced by an [`ActivityClock`] and the configured duration bounds.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(tag = "state", rename_all = "snake_case")]
 pub enum Activity {
@@ -74,6 +76,16 @@ pub enum Activity {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         with_friend: Option<KittyId>,
     },
+    Eating,
+    Drinking,
+    Playing {
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        target: Option<TargetRef>,
+    },
+    Grooming {
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        target: Option<KittyId>,
+    },
 }
 
 impl Activity {
@@ -85,12 +97,116 @@ impl Activity {
         matches!(self, Activity::Resting { .. })
     }
 
+    pub fn is_in_progress(&self) -> bool {
+        !matches!(self, Activity::Idle)
+    }
+
     pub fn partner(&self) -> Option<KittyId> {
         match self {
-            Activity::Idle => None,
+            Activity::Idle | Activity::Eating | Activity::Drinking => None,
             Activity::Resting { with_friend } => *with_friend,
             Activity::Sleeping { with_friend, .. } => *with_friend,
+            Activity::Playing { target } => match target {
+                Some(TargetRef::Kitty { id }) => Some(*id),
+                _ => None,
+            },
+            Activity::Grooming { target } => *target,
         }
+    }
+
+    /// The kitty bound into this activity with a shared clock (cuddle and
+    /// social play). Co-sleeping and grooming reference a friend without
+    /// binding them -- those partners keep their own clocks, or none.
+    pub fn duet_partner(&self) -> Option<KittyId> {
+        match self {
+            Activity::Resting {
+                with_friend: Some(id),
+            } => Some(*id),
+            Activity::Playing {
+                target: Some(TargetRef::Kitty { id }),
+            } => Some(*id),
+            _ => None,
+        }
+    }
+
+    /// Which configured duration bounds govern this activity.
+    pub fn bounds(&self, durations: &DurationsConfig) -> Option<DurationBounds> {
+        match self {
+            Activity::Idle => None,
+            Activity::Eating => Some(durations.eat),
+            Activity::Drinking => Some(durations.drink),
+            Activity::Playing { .. } => Some(durations.play),
+            Activity::Grooming { .. } => Some(durations.bath),
+            Activity::Sleeping { .. } => Some(durations.sleep),
+            Activity::Resting { .. } => Some(durations.cuddle),
+        }
+    }
+
+    /// The action that carries this activity for another tick. `None` only
+    /// for `Idle`, which has nothing to continue.
+    pub fn continuation(&self) -> Option<Action> {
+        match *self {
+            Activity::Idle => None,
+            Activity::Eating => Some(Action::Eat),
+            Activity::Drinking => Some(Action::Drink),
+            Activity::Playing { target } => Some(Action::Play { target }),
+            Activity::Grooming { target } => Some(Action::Groom { target }),
+            Activity::Sleeping { with_friend, .. } => Some(Action::Sleep { with: with_friend }),
+            Activity::Resting { with_friend } => Some(Action::Rest { with: with_friend }),
+        }
+    }
+
+    /// Whether `action` continues this activity rather than switching away.
+    /// `Idle` always continues (the built-ins' way of saying "carry on");
+    /// targeted activities only continue under the *same* target -- playing
+    /// with a different friend is a switch, not a continuation.
+    pub fn is_continued_by(&self, action: &Action) -> bool {
+        match (self, action) {
+            (Activity::Idle, _) => false,
+            (_, Action::Idle) => true,
+            (Activity::Eating, Action::Eat) => true,
+            (Activity::Drinking, Action::Drink) => true,
+            (Activity::Playing { target }, Action::Play { target: proposed }) => target == proposed,
+            (Activity::Grooming { target }, Action::Groom { target: proposed }) => {
+                target == proposed
+            }
+            (Activity::Sleeping { .. }, Action::Sleep { .. }) => true,
+            (Activity::Resting { .. }, Action::Rest { .. }) => true,
+            _ => false,
+        }
+    }
+}
+
+/// Engine bookkeeping pacing the ongoing activity (spec 006).
+///
+/// `started` is the first tick the activity was applied. `applied` is the last
+/// tick it was *serviced* -- stamped on every tick the activity survives,
+/// whether or not effects landed that tick. The stamp is load-bearing: the end
+/// rules key off the clock, so a tick that skipped it (a paused meal, a duet's
+/// second slot) would leave the activity unreachable by every way out.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ActivityClock {
+    pub started: u64,
+    pub applied: u64,
+}
+
+impl ActivityClock {
+    pub fn start(tick: u64) -> Self {
+        Self {
+            started: tick,
+            applied: tick,
+        }
+    }
+
+    /// Inclusive tick count, counting `tick` itself as serviced.
+    pub fn elapsed(&self, tick: u64) -> u64 {
+        tick.saturating_sub(self.started) + 1
+    }
+
+    /// Ticks already serviced before `tick` -- the "minimum met?" measure at
+    /// enforcement time, before the current tick is counted.
+    pub fn serviced_before(&self, tick: u64) -> u64 {
+        tick.saturating_sub(self.started)
     }
 }
 
@@ -139,6 +255,11 @@ pub struct Kitty {
     /// on" as `world.tick - distress_since[need]`.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub distress_since: BTreeMap<NeedKind, u64>,
+    /// Duration bookkeeping for the ongoing activity (spec 006). Present
+    /// exactly when `activity` is in progress -- a strict pairing enforced by
+    /// the invariants, with no legacy tolerance.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub activity_clock: Option<ActivityClock>,
 }
 
 impl Kitty {
@@ -164,6 +285,7 @@ impl Kitty {
             abandoned_chases: Vec::new(),
             last_relief: BTreeMap::new(),
             distress_since: BTreeMap::new(),
+            activity_clock: None,
         }
     }
 
@@ -339,5 +461,144 @@ mod tests {
         let solo = serde_json::to_value(Activity::Resting { with_friend: None }).unwrap();
         assert_eq!(solo["state"], "resting");
         assert!(solo.get("with_friend").is_none());
+    }
+
+    #[test]
+    fn the_006_activity_variants_have_tidy_wire_shapes() {
+        let eating = serde_json::to_value(Activity::Eating).unwrap();
+        assert_eq!(eating["state"], "eating");
+
+        let drinking = serde_json::to_value(Activity::Drinking).unwrap();
+        assert_eq!(drinking["state"], "drinking");
+
+        let social = serde_json::to_value(Activity::Playing {
+            target: Some(TargetRef::Kitty { id: 2 }),
+        })
+        .unwrap();
+        assert_eq!(social["state"], "playing");
+        assert_eq!(social["target"]["target"], "kitty");
+        assert_eq!(social["target"]["id"], 2);
+
+        let solo_play = serde_json::to_value(Activity::Playing { target: None }).unwrap();
+        assert_eq!(solo_play["state"], "playing");
+        assert!(solo_play.get("target").is_none(), "solo play omits target");
+
+        let groom = serde_json::to_value(Activity::Grooming { target: Some(3) }).unwrap();
+        assert_eq!(groom["state"], "grooming");
+        assert_eq!(groom["target"], 3);
+
+        let self_groom = serde_json::to_value(Activity::Grooming { target: None }).unwrap();
+        assert_eq!(self_groom["state"], "grooming");
+        assert!(self_groom.get("target").is_none());
+    }
+
+    #[test]
+    fn the_activity_clock_round_trips_and_is_omitted_when_absent() {
+        let mut k = kitty();
+        assert!(
+            !serde_json::to_string(&k)
+                .unwrap()
+                .contains("activity_clock"),
+            "no clock, no wire noise"
+        );
+
+        k.activity = Activity::Eating;
+        k.activity_clock = Some(ActivityClock {
+            started: 41,
+            applied: 43,
+        });
+        let json = serde_json::to_value(&k).unwrap();
+        assert_eq!(json["activity_clock"]["started"], 41);
+        assert_eq!(json["activity_clock"]["applied"], 43);
+
+        let back: Kitty = serde_json::from_value(json).unwrap();
+        assert_eq!(back.activity_clock, k.activity_clock);
+        assert_eq!(back.activity, Activity::Eating);
+    }
+
+    #[test]
+    fn a_pre_006_kitty_json_deserializes_with_no_clock() {
+        // The field defaults to None; whether such a kitty is *lawful* is the
+        // invariants' strict business (an in-progress activity without a
+        // clock is refused there), not serde's.
+        let json = serde_json::json!({
+            "id": 1,
+            "name": "Miso",
+            "pos": {"x": 1, "y": 1},
+            "needs": {"eat": 0.0, "drink": 0.0, "sleep": 0.0, "play": 0.0, "cuddle": 0.0, "bath": 0.0},
+            "happiness": 100.0,
+            "activity": {"state": "sleeping", "in_sunbeam": false},
+            "behavior": "needs_driven",
+        });
+        let k: Kitty = serde_json::from_value(json).unwrap();
+        assert_eq!(k.activity_clock, None);
+        assert!(k.activity.is_sleeping());
+    }
+
+    #[test]
+    fn the_elapsed_convention_is_inclusive() {
+        let clock = ActivityClock::start(10);
+        assert_eq!(clock.elapsed(10), 1, "the starting tick counts");
+        assert_eq!(clock.elapsed(14), 5);
+        assert_eq!(clock.serviced_before(10), 0);
+        assert_eq!(clock.serviced_before(12), 2, "min 2 is met from tick 12");
+    }
+
+    #[test]
+    fn continuation_actions_mirror_their_activities() {
+        assert_eq!(Activity::Eating.continuation(), Some(Action::Eat));
+        assert_eq!(
+            Activity::Playing {
+                target: Some(TargetRef::Element { id: 7 })
+            }
+            .continuation(),
+            Some(Action::Play {
+                target: Some(TargetRef::Element { id: 7 })
+            })
+        );
+        assert_eq!(Activity::Idle.continuation(), None);
+
+        // Idle continues anything in progress; a different play target is a
+        // switch, not a continuation.
+        let playing = Activity::Playing {
+            target: Some(TargetRef::Element { id: 7 }),
+        };
+        assert!(playing.is_continued_by(&Action::Idle));
+        assert!(playing.is_continued_by(&Action::Play {
+            target: Some(TargetRef::Element { id: 7 })
+        }));
+        assert!(!playing.is_continued_by(&Action::Play {
+            target: Some(TargetRef::Element { id: 8 })
+        }));
+        assert!(!playing.is_continued_by(&Action::Eat));
+        assert!(!Activity::Idle.is_continued_by(&Action::Idle));
+    }
+
+    #[test]
+    fn duet_partners_are_only_the_bound_kind() {
+        assert_eq!(
+            Activity::Resting {
+                with_friend: Some(2)
+            }
+            .duet_partner(),
+            Some(2)
+        );
+        assert_eq!(
+            Activity::Playing {
+                target: Some(TargetRef::Kitty { id: 2 })
+            }
+            .duet_partner(),
+            Some(2)
+        );
+        // Co-sleeping and grooming reference without binding.
+        assert_eq!(
+            Activity::Sleeping {
+                in_sunbeam: false,
+                with_friend: Some(2)
+            }
+            .duet_partner(),
+            None
+        );
+        assert_eq!(Activity::Grooming { target: Some(2) }.duet_partner(), None);
     }
 }
