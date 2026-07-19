@@ -20,17 +20,21 @@ wall-clock budget (spec clarification, 2026-07-18).
 
 **Language/Version**: Rust, stable toolchain (2021+ edition)
 
-**Primary Dependencies**: `axum` (HTTP + WebSocket), `tokio` (runtime, timers,
-signals, watch channel), `tower-http` (static files + CORS), `serde`/`serde_json`
-(state + wire format), `toml` (config), `rand` + `rand_chacha` (seeded ChaCha8Rng
-with serde), `async-trait` (behavior trait), `thiserror` (core errors), `anyhow`
-(server edge), `tracing` + `tracing-subscriber` (logs); `proptest` (dev-only)
+**Primary Dependencies**: `axum` (HTTP + WebSocket), `tokio` (server: runtime,
+tick timer, signals, watch channel; core: `time` only, for the decision budget),
+`tower-http` (static files + CORS), `serde`/`serde_json` (state + wire format;
+`rc` feature so published `Arc<WorldSnapshot>`s serialize without cloning), `toml`
+(config), `rand` + `rand_chacha` (seeded ChaCha8Rng with serde), `async-trait`
+(behavior trait), `futures` (concurrent decision gather + panic capture),
+`thiserror` (core + persistence errors), `anyhow` (server edge), `tracing` +
+`tracing-subscriber` (logs); `proptest`, `reqwest`, `tokio-tungstenite` (dev-only)
 
 **Storage**: single JSON snapshot file (`snapshot.json`, path configurable), written
 atomically (temp file + rename); no database
 
 **Testing**: `cargo test` — unit tests in core, `proptest` invariant suite (≥10,000
-ticks headless), one server integration test on an ephemeral port
+ticks headless), determinism and behavior-variation suites, and server integration
+tests on an ephemeral port covering REST, WebSocket, and static file serving
 
 **Target Platform**: any platform with stable Rust + a modern browser (developed on
 macOS; server is a single local process)
@@ -56,12 +60,12 @@ kitties; local/trusted-network viewers only, unauthenticated read-only API
 
 | Article | Gate | Plan compliance |
 |---------|------|-----------------|
-| I — Kitties Cannot Suffer | Needs bounded 0–100; distress events (edge-triggered) as signal only; safeguard spawning; happiness floor | `Need` type clamps on every mutation; `check_invariants()` asserts bounds each tick; safeguard resolution in environment phase ignores maximums; distress events recorded on threshold crossing only. Covered by unit + proptest suites. **PASS** |
+| I — Kitties Cannot Suffer | Needs bounded 0–100; distress events (edge-triggered) as signal only; safeguard spawning; happiness floor | `Need` type clamps on every mutation; `invariants::check()` asserts bounds each tick; safeguard resolution in environment phase ignores maximums; distress events recorded on threshold crossing only. Covered by unit + proptest suites. **PASS** |
 | II — Kitties Cannot Die | No removal code path; expiry only for elements | `World::kitties` exposes no removal API; expiry logic lives on `Element` only; population asserted every tick. Structural + property tests. **PASS** |
-| III — Kitties Cannot Be Alone | ≥2 kitties always; config rejection + per-tick assertion | Config validation rejects rosters < 2 at startup with a clear error; `check_invariants()` re-asserts every tick. **PASS** |
-| IV — Engine Is the Law | Behaviors propose; engine validates; invalid/late/absent → idle; time budget + fallback | `Behavior` trait returns proposals only; `validate_action()` gates every proposal (invalid → `Idle`); `tokio::time::timeout` wraps external decisions with `NeedsDriven` fallback; built-ins exempt per spec clarification. **PASS** |
+| III — Kitties Cannot Be Alone | ≥2 kitties always; config rejection + per-tick assertion | Config validation rejects rosters < 2 at startup with a clear error; `invariants::check()` re-asserts every tick. **PASS** |
+| IV — Engine Is the Law | Behaviors propose; engine validates; invalid/late/absent → idle; time budget + fallback | `Behavior` trait returns proposals only; `action::validate()` gates every proposal (invalid → `Idle`); `tokio::time::timeout` wraps external decisions with `NeedsDriven` fallback; built-ins exempt per spec clarification. **PASS** |
 | V — Server-Authoritative, Deterministic | All logic server-side; client pure view; same seed → same world; fixed tick order | Client renders pushed snapshots only; one `ChaCha8Rng` (serialized into snapshots); per-kitty decision randomness handed via `DecisionContext` (order-independent); tick phases fixed in `World::tick()`. **PASS** |
-| VI — Spec-First, Test-Guarded | Property tests over Articles I–III as CI gate; constants in config with documented defaults | proptest suite (randomized configs + adversarial behaviors, ≥10,000 ticks) wired as required CI gate; every constant lives in `SimConstants` config structs with commented defaults in `cloudkitty.toml`. **PASS** |
+| VI — Spec-First, Test-Guarded | Property tests over Articles I–III as CI gate; constants in config with documented defaults | proptest suite (randomized configs + adversarial behaviors, ≥10,000 ticks) wired as required CI gate; every constant lives in the `Config` structs (`[needs]`, `[actions]`, `[thresholds]`, `[meow]`, `[elements.*]`, `[behavior]`) with commented defaults in `cloudkitty.toml`. **PASS** |
 
 **Initial gate result: PASS (no violations, Complexity Tracking not required).**
 
@@ -105,19 +109,24 @@ crates/
 │   │   ├── action.rs          # Action enum, validation, application effects
 │   │   ├── meow.rs            # messages, per-kitty per-type cooldowns
 │   │   ├── behavior/
-│   │   │   ├── mod.rs         # Behavior trait, DecisionContext, registry, fallback
+│   │   │   ├── mod.rs         # Behavior trait, DecisionContext, registry, gather+fallback
 │   │   │   ├── needs_driven.rs
-│   │   │   └── playful.rs
+│   │   │   ├── playful.rs
+│   │   │   └── test_behaviors.rs    # adversarial/slow/panicking behaviors for tests
 │   │   ├── events.rs          # distress events (edge-triggered), bounded retention
 │   │   ├── spawn.rs           # spawn-to-minimum, safeguard spawning
 │   │   ├── invariants.rs      # per-tick constitution assertions
-│   │   └── rng.rs             # seeded ChaCha8Rng wrapper, per-kitty decision streams
+│   │   ├── rng.rs             # seeded ChaCha8Rng wrapper, per-kitty decision streams
+│   │   └── test_support.rs    # shared fixtures (test config/world, decision context)
 │   └── tests/
-│       └── invariants_proptest.rs   # Articles I–III property suite (≥10,000 ticks)
+│       ├── invariants_proptest.rs   # Articles I–III property suite (≥10,000 ticks)
+│       ├── determinism.rs           # same seed, save/restore, concurrency-independence
+│       └── behavior_variation.rs    # playful vs needs_driven action distributions
 ├── cloudkitty-server/
 │   ├── Cargo.toml
 │   ├── src/
-│   │   ├── main.rs            # CLI (--fresh, --config), boot, shutdown handling
+│   │   ├── lib.rs             # router assembly; re-exports for integration tests
+│   │   ├── main.rs            # CLI (--fresh, --config, --snapshot), boot, shutdown
 │   │   ├── sim_task.rs        # owns World; interval loop; watch publisher; snapshots
 │   │   ├── api.rs             # GET /world /kitties /kitties/{id} /events/distress /config
 │   │   ├── ws.rs              # /ws upgrade; forwards each watch update
@@ -131,10 +140,15 @@ client/
 ```
 
 **Structure Decision**: Cargo workspace with two crates plus a static client
-directory. `cloudkitty-core` is pure simulation with no HTTP/async-runtime
-dependencies beyond `async-trait` for the behavior trait and serde derives — the
-proptest suite drives it headless at zero tick delay. `cloudkitty-server` is the only
-binary; it owns I/O concerns (config file, HTTP, WS, static files, snapshots,
+directory. `cloudkitty-core` holds the simulation and nothing else: no HTTP, no
+filesystem, no wall-clock dependence in its logic, so the proptest suite drives it
+headless at zero tick delay. It does depend on `async-trait` for the behavior trait
+and on `tokio` (`time`, plus `rt`/`macros` for tests) for the Article IV decision
+budget — the timeout and fallback are engine obligations, so they live with the
+engine rather than in the server. `cloudkitty-server` is the only binary, and is
+split into a small lib (router, sim task, API, WebSocket, persistence) plus a thin
+`main.rs`, so integration tests can stand up a real server on an ephemeral port. It
+owns all remaining I/O concerns (config file, HTTP, WS, static files, snapshots,
 signals). `client/` has no build step and is served by `tower-http`'s static-file
 service.
 
