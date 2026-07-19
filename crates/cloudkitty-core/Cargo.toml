@@ -1,0 +1,23 @@
+[package]
+name = "cloudkitty-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "CloudKitty simulation engine: the law of the kitty world"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+rand = { workspace = true }
+rand_chacha = { workspace = true }
+async-trait = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+futures = { workspace = true }
+# `time` powers the Article IV decision budget; `rt`/`macros` are test-only conveniences
+# but must be declared here since features are additive across the workspace.
+tokio = { workspace = true, features = ["time", "rt", "macros"] }
+
+[dev-dependencies]
+proptest = "1"
+tokio = { workspace = true, features = ["time", "rt", "rt-multi-thread", "macros", "test-util"] }

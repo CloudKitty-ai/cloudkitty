@@ -313,7 +313,13 @@ works.
 - **FR-012**: Safeguard (constitution): whenever any kitty's need exceeds the
   safeguard threshold (default 75) and no reachable resource satisfying that need
   exists, the environment MUST spawn one on the next environment phase, regardless
-  of configured maximums.
+  of configured maximums. Only two needs depend on a scarce resource and can
+  therefore trigger this: **Eat → chow** and **Drink → water**. The rest are
+  satisfiable without any element being spawned — Play by any bug, greeble, or
+  other kitty; Cuddle by any other kitty (of which there are always at least two);
+  Bath by self-grooming; and Sleep anywhere at all, a sunbeam only making it
+  faster. The safeguard obligation therefore applies to chow and water, and the
+  per-tick invariant check asserts exactly that.
 
 #### Kitties, Needs & Happiness
 
@@ -358,7 +364,10 @@ works.
   - eat: requires being on or adjacent to chow; consumes one serving; lowers Eat
     ~40.
   - drink: requires being on or adjacent to water; lowers Drink ~40.
-  - chase: moves one step toward the target.
+  - chase: moves one step toward the target. Chasing is only legal against
+    things that flee — a bug, a greeble, or another kitty (per FR-019); walking
+    to a stationary resource such as chow, water, or a sunbeam is a `move`, not
+    a chase.
   - play: requires adjacency/co-location with the target; lowers Play ~25 (both
     kitties when the target is a friend).
   - purr: allowed only when Happiness exceeds the purr threshold (default 70) or
