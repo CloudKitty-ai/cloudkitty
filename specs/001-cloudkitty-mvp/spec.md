@@ -309,7 +309,12 @@ works.
   time-to-live in ticks.
 - **FR-011**: When an element type falls below its configured minimum (through
   expiry or consumption), a new element of that type MUST spawn during the
-  environment phase at a randomly chosen unoccupied tile.
+  environment phase at a randomly chosen unoccupied tile. Placement SHOULD
+  prefer tiles distant from existing elements of the same type, so resources
+  spread across the map rather than clustering; this preference is best-effort
+  and MUST NOT prevent a spawn (in particular a safeguard spawn under FR-012)
+  when no well-spread tile is available. All placement randomness flows through
+  the seeded RNG (FR-004).
 - **FR-012**: Safeguard (constitution): whenever any kitty's need exceeds the
   safeguard threshold (default 75) and no reachable resource satisfying that need
   exists, the environment MUST spawn one on the next environment phase, regardless

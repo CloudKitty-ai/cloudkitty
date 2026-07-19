@@ -350,12 +350,21 @@ pub struct BehaviorConfig {
     /// Share of a tick an *external* behavior may spend deciding. Built-in
     /// behaviors are exempt (see `behavior::gather_decisions`).
     pub budget_fraction_of_tick: f32,
+    /// The pressure at which a `playful` kitty stops playing and attends to a
+    /// need. Lower means a better-kept cat; higher means more single-minded fun.
+    #[serde(default = "default_playful_comfort")]
+    pub playful_comfort: f32,
+}
+
+fn default_playful_comfort() -> f32 {
+    55.0
 }
 
 impl Default for BehaviorConfig {
     fn default() -> Self {
         Self {
             budget_fraction_of_tick: 0.5,
+            playful_comfort: default_playful_comfort(),
         }
     }
 }
@@ -653,6 +662,14 @@ impl Config {
                 "must be greater than 0 and less than 1 (the decision budget must be shorter than a tick)",
             ));
         }
+        let comfort = self.behavior.playful_comfort;
+        if !(comfort > 0.0 && comfort <= 100.0) || comfort.is_nan() {
+            return Err(ConfigError::invalid(
+                "[behavior] playful_comfort",
+                comfort.to_string(),
+                "must be greater than 0 and at most 100",
+            ));
+        }
         if self.events.distress_retention == 0 {
             return Err(ConfigError::invalid(
                 "[events] distress_retention",
@@ -878,6 +895,7 @@ mod tests {
     fn budget_ms_scales_with_the_tick() {
         let b = BehaviorConfig {
             budget_fraction_of_tick: 0.5,
+            ..BehaviorConfig::default()
         };
         assert_eq!(b.budget_ms(800), 400);
         assert_eq!(b.budget_ms(100), 50);

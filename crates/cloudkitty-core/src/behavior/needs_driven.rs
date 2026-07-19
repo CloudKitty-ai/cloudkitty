@@ -78,7 +78,8 @@ impl Behavior for NeedsDriven {
 }
 
 /// Eat, drink or nap when the means are already underfoot and the need is real.
-fn take_what_is_here(ctx: &DecisionContext) -> Option<Action> {
+/// Shared with `Playful`: opportunism is good sense, not a personality trait.
+pub(crate) fn take_what_is_here(ctx: &DecisionContext) -> Option<Action> {
     let me = &ctx.me;
 
     if me.needs.get(NeedKind::Eat) >= WORTH_A_DETOUR
