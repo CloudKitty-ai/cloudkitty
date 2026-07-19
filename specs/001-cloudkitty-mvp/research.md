@@ -9,8 +9,10 @@ decision and settles the plan-level constants the clarification session deferred
 
 ## R1. Language & runtime: Rust (stable) + tokio
 
-- **Decision**: Rust stable toolchain, Cargo workspace, `tokio` multi-threaded
-  runtime in the server crate only.
+- **Decision**: Rust stable toolchain, Cargo workspace. The `tokio` *runtime* lives
+  in the server crate; core takes only tokio's `time` (plus `rt`/`macros` for its
+  own tests), because the Article IV decision budget is an engine obligation and
+  belongs with the engine rather than the transport.
 - **Rationale**: The constitution demands structural guarantees (no code path
   removes a kitty; needs always bounded) — Rust's type system enforces these at
   compile time (no removal API, clamped newtype). Determinism benefits from no GC
@@ -100,8 +102,14 @@ decision and settles the plan-level constants the clarification session deferred
 
 - **Decision**: `proptest` (dev-dependency of core) generating random valid
   configs and behavior assignments — including an adversarial always-invalid-action
-  behavior and a chaos behavior proposing random (often illegal) actions — driving
-  ≥10,000 headless ticks with per-tick invariant assertions.
+  behavior and a chaos behavior proposing random (often illegal) actions — with
+  per-tick invariant assertions. The suite pairs breadth with depth rather than
+  running every generated case to 10,000 ticks: a proptest of 12 randomized worlds
+  at 900 ticks each covers configuration space, and a dedicated case drives a single
+  world to the spec's full 10,000 ticks with one of every behavior (sensible,
+  playful, liar, flailer, well-behaved external). Two focused cases cover a barren
+  world and a world where *every* cat has a hostile advisor. Total well past 10,000
+  ticks, in under a second.
 - **Rationale**: proptest's integrated shrinking + persisted failure seeds
   (`proptest-regressions/`) pairs with the determinism guarantee to make any CI
   failure locally reproducible — exactly the property Article VI's gate needs.
@@ -125,7 +133,11 @@ decision and settles the plan-level constants the clarification session deferred
   &DecisionContext) -> Action; }` — built-ins return immediately (no awaiting, no
   wall-clock dependence, exempt from timeout per spec clarification); the engine
   applies `tokio::time::timeout` only to non-built-in implementations and falls
-  back to `NeedsDriven` on timeout/panic/invalid proposal.
+  back to `NeedsDriven` on timeout/panic/invalid proposal. The distinction is
+  carried by a defaulted `fn is_builtin(&self) -> bool { false }` on the trait, so
+  an external implementation is exempt from nothing simply by not mentioning it,
+  and panics are contained with `catch_unwind` rather than allowed to unwind into
+  the tick loop.
 - **Rationale**: The async signature is the extension point Article IV requires
   (script/HTTP/local-service behaviors drop in without engine changes); exempting
   built-ins keeps Article V's determinism unconditional. The timeout path is
@@ -162,3 +174,34 @@ These were flagged as plan-level in the clarification session. Defaults below go
   one workspace test command keeps the gate simple and unskippable.
 - **Alternatives considered**: separate nightly long-run fuzz job (nice-to-have
   later; the 10k-tick suite must stay in the merge gate regardless).
+
+## R13. World generosity and behavior heuristics (settled by observation)
+
+Unlike R1–R12 these were not decided up front; they were settled by watching the
+running simulation, and are recorded here because the numbers are not obvious from
+the spec.
+
+- **Decision**: default element populations are generous — water and chow `min 5,
+  max 10`; bug `min 3, max 8`; sunbeam `min 3, max 6`; greeble `min 1, max 3` (all
+  well inside the hard bound of 32 for a 32×32 world). `needs_driven` also takes an
+  easy win when one is underfoot (eat/drink/nap if the need is ≥ 30 and the means
+  are adjacent), and weighs travel distance against pressure until a need passes the
+  safeguard threshold, at which point it attends to that need single-mindedly.
+  `Playful` defers to sensible behavior at the *configured* safeguard threshold
+  rather than a hard-coded one.
+- **Rationale**: the first draft used 2 water and 2 chow on 1024 tiles with a
+  strictly-highest-need strategy. Observed over ~1,500 ticks that produced
+  happiness of 15–55, needs pinned at 100, and 38 distress events per 1,000 ticks:
+  cats spent their lives commuting between two distant resources and walking past
+  food they would want minutes later. Nothing was *unlawful* — Article I held
+  throughout, and distress is explicitly a signal rather than harm — but "a cute,
+  safe sandbox" should not read as a commute. With the generous defaults and the
+  two heuristics, the same measurement gives happiness 93.6 / 92.3 / 50.4 and 9.2
+  distress events per 1,000 ticks, a 4× reduction. The playful cat stays lower by
+  design; that is its personality, not a defect.
+- **Alternatives considered**: raising relief magnitudes or lowering need rise rates
+  (hides the dynamics rather than fixing the world); giving behaviors persistent
+  target memory (more state, and the distance-weighted choice achieves the same
+  stability statelessly); leaving it sparse and treating distress as the intended
+  difficulty (defensible, and still available to any operator — the sparse world is
+  a config edit away, and the constitution guarantees relief either way).
