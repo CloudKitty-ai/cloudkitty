@@ -124,11 +124,47 @@ pub struct KittyConfig {
     pub x: u32,
     pub y: u32,
     pub behavior: String,
+    /// Optional per-kitty overrides for need rise rates. Unset needs fall back
+    /// to the global `[needs]` rates, so a config can say "Pumpkin is always
+    /// hungry" without restating the other five.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub needs: Option<NeedRateOverrides>,
 }
 
 impl KittyConfig {
     pub fn position(&self) -> Position {
         Position::new(self.x, self.y)
+    }
+}
+
+/// Per-kitty need-rate overrides; every field optional.
+#[derive(Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize)]
+pub struct NeedRateOverrides {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub eat: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub drink: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sleep: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub play: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cuddle: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bath: Option<f32>,
+}
+
+impl NeedRateOverrides {
+    pub fn get(&self, kind: crate::needs::NeedKind) -> Option<f32> {
+        use crate::needs::NeedKind::*;
+        match kind {
+            Eat => self.eat,
+            Drink => self.drink,
+            Sleep => self.sleep,
+            Play => self.play,
+            Cuddle => self.cuddle,
+            Bath => self.bath,
+        }
     }
 }
 
@@ -401,6 +437,7 @@ impl Default for Config {
                     x: 10,
                     y: 12,
                     behavior: "needs_driven".into(),
+                    needs: None,
                 },
                 KittyConfig {
                     id: 2,
@@ -408,6 +445,7 @@ impl Default for Config {
                     x: 20,
                     y: 18,
                     behavior: "playful".into(),
+                    needs: None,
                 },
                 KittyConfig {
                     id: 3,
@@ -415,6 +453,7 @@ impl Default for Config {
                     x: 16,
                     y: 8,
                     behavior: "needs_driven".into(),
+                    needs: None,
                 },
             ],
             needs: NeedsConfig::default(),
@@ -596,7 +635,36 @@ impl Config {
                 ));
             }
         }
+        // Per-kitty overrides obey the same rule as the globals they replace.
+        for kitty in &self.kitties {
+            let Some(overrides) = &kitty.needs else {
+                continue;
+            };
+            for kind in crate::needs::NeedKind::ALL {
+                if let Some(rate) = overrides.get(kind) {
+                    if rate < 0.0 || rate.is_nan() {
+                        return Err(ConfigError::invalid(
+                            format!("[kitty.needs] {} for '{}'", kind.as_str(), kitty.name),
+                            rate.to_string(),
+                            "must not be negative (needs rise, they do not fall on their own)",
+                        ));
+                    }
+                }
+            }
+        }
         Ok(())
+    }
+
+    /// The effective rise rate for one kitty's need: its own override when set,
+    /// the global `[needs]` rate otherwise. Unknown ids get the global rate, so
+    /// this can never make a kitty's needs behave differently than configured.
+    pub fn need_rate_for(&self, kitty_id: KittyId, kind: crate::needs::NeedKind) -> f32 {
+        self.kitties
+            .iter()
+            .find(|k| k.id == kitty_id)
+            .and_then(|k| k.needs.as_ref())
+            .and_then(|o| o.get(kind))
+            .unwrap_or_else(|| self.needs.rate(kind))
     }
 
     fn validate_elements(&self) -> Result<(), ConfigError> {
@@ -889,6 +957,70 @@ mod tests {
         let msg = c.validate_behavior_names(&known).unwrap_err().to_string();
         assert!(msg.contains("telepathic"), "{msg}");
         assert!(msg.contains("needs_driven"), "lists valid names: {msg}");
+    }
+
+    #[test]
+    fn per_kitty_overrides_take_precedence_over_globals() {
+        let mut c = cfg();
+        c.kitties[0].needs = Some(NeedRateOverrides {
+            eat: Some(2.0),
+            ..Default::default()
+        });
+        c.validate().expect("overrides are valid config");
+
+        use crate::needs::NeedKind;
+        let overridden = c.kitties[0].id;
+        let plain = c.kitties[1].id;
+        assert_eq!(c.need_rate_for(overridden, NeedKind::Eat), 2.0);
+        // Unset needs on the same kitty fall back to the global rate.
+        assert_eq!(c.need_rate_for(overridden, NeedKind::Drink), c.needs.drink);
+        // Other kitties are untouched.
+        assert_eq!(c.need_rate_for(plain, NeedKind::Eat), c.needs.eat);
+        // Unknown ids get globals, never a panic.
+        assert_eq!(c.need_rate_for(9_999, NeedKind::Eat), c.needs.eat);
+    }
+
+    #[test]
+    fn negative_per_kitty_overrides_are_rejected() {
+        let mut c = cfg();
+        c.kitties[1].needs = Some(NeedRateOverrides {
+            sleep: Some(-0.1),
+            ..Default::default()
+        });
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[kitty.needs] sleep"), "{msg}");
+        assert!(msg.contains(&c.kitties[1].name), "names the kitty: {msg}");
+    }
+
+    #[test]
+    fn per_kitty_overrides_parse_from_toml() {
+        let toml_src = r#"
+            [world]
+            width = 16
+            height = 16
+            tick_ms = 800
+            seed = 1
+
+            [[kitty]]
+            id = 1
+            name = "Hungry"
+            x = 1
+            y = 1
+            behavior = "needs_driven"
+            [kitty.needs]
+            eat = 1.5
+
+            [[kitty]]
+            id = 2
+            name = "Plain"
+            x = 2
+            y = 2
+            behavior = "playful"
+        "#;
+        let c: Config = toml::from_str(toml_src).expect("parses");
+        assert_eq!(c.kitties[0].needs.unwrap().eat, Some(1.5));
+        assert_eq!(c.kitties[0].needs.unwrap().drink, None);
+        assert!(c.kitties[1].needs.is_none());
     }
 
     #[test]

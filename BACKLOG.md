@@ -11,10 +11,10 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 ## P1 — quick wins, next up
 
-### Per-kitty need rates
-Small, high-personality win: per-kitty overrides for need rise rates on top of
-the global defaults (a perpetually hungry cat, a sleepy one). Config schema
-addition + one lookup change; per-kitty values validated like the globals.
+*(Empty — the quick wins have shipped. The next pick comes from P2, for a
+proper sitting.)*
+
+<!-- shipped P1 items are removed once merged; see git history -->
 
 ## P2 — the bigger pieces, for a proper sitting
 

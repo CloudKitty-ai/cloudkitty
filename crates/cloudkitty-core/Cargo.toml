@@ -21,3 +21,6 @@ tokio = { workspace = true, features = ["time", "rt", "macros"] }
 [dev-dependencies]
 proptest = "1"
 tokio = { workspace = true, features = ["time", "rt", "rt-multi-thread", "macros", "test-util"] }
+# Core itself is format-agnostic; tests parse TOML to prove the config schema
+# round-trips the way cloudkitty.toml is written.
+toml = "0.8"

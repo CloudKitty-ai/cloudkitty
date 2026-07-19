@@ -43,12 +43,17 @@ Full world snapshot (wire form of `World`, RNG state omitted).
              "play": 30.0, "cuddle": 55.0, "bath": 12.0 },
   "happiness": 61.4,
   "activity": { "state": "sleeping", "in_sunbeam": true, "with_friend": 2 },
-  "behavior": "needs_driven"
+  "behavior": "needs_driven",
+  "last_action": { "action": "sleep", "with": 2 }
 }
 ```
 
 `activity.state` ∈ `idle | resting | sleeping`; `with_friend`/`in_sunbeam` present
-only when applicable.
+only when applicable. `last_action` is the action the engine actually applied last
+tick (post-validation — an illegal proposal reads as `{"action":"idle"}`); absent
+only before the world's first tick. Action shapes are internally tagged on
+`action`, e.g. `{"action":"chase","target":"element","id":12}`,
+`{"action":"meow","message":"want_play"}`, `{"action":"move","direction":"north"}`.
 
 - `200 OK`; `404 Not Found` with `{ "error": "no kitty with id 99" }` for unknown ids.
 

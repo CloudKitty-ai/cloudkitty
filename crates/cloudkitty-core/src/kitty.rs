@@ -9,6 +9,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use serde::{Deserialize, Serialize};
 
+use crate::action::Action;
 use crate::grid::Position;
 use crate::meow::MessageKind;
 use crate::needs::{NeedKind, Needs};
@@ -73,6 +74,12 @@ pub struct Kitty {
     /// earns the right to purr.
     #[serde(default)]
     pub happiness_rose: bool,
+    /// The action the engine actually applied for this kitty last tick -- the
+    /// post-validation one, so an illegal proposal honestly reads as `Idle`.
+    /// `None` only before the world's first tick. Feeds the viewer's "doing"
+    /// line; defaulted so pre-existing saves still load.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_action: Option<Action>,
 }
 
 impl Kitty {
@@ -93,6 +100,7 @@ impl Kitty {
             meow_cooldowns: BTreeMap::new(),
             in_distress: BTreeSet::new(),
             happiness_rose: false,
+            last_action: None,
         }
     }
 

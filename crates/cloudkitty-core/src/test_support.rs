@@ -29,6 +29,7 @@ pub fn test_config() -> Config {
                 x: 3,
                 y: 3,
                 behavior: "needs_driven".into(),
+                needs: None,
             },
             KittyConfig {
                 id: 2,
@@ -36,6 +37,7 @@ pub fn test_config() -> Config {
                 x: 12,
                 y: 12,
                 behavior: "playful".into(),
+                needs: None,
             },
         ],
         elements: ElementsConfig {
