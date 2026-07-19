@@ -16,15 +16,35 @@ use crate::needs::{NeedKind, Needs};
 
 pub type KittyId = u32;
 
-/// Engine bookkeeping of the current chase: which target, since when, and the
-/// best distance achieved. Written only by the engine from *applied* actions, so
-/// no behavior can forge a chase it never ran. Patience is measured in elapsed
-/// ticks (`tick - started`) -- a one-tick detour does not reset the clock.
+/// Engine bookkeeping of the current chase: which target, since when, the best
+/// distance achieved, and when that best was last bettered. Written only by the
+/// engine from *applied* actions, so no behavior can forge a chase it never ran.
+///
+/// Patience is measured against `last_progress()` -- ticks since the chase last
+/// gained ground -- not against `started`. A one-tick detour does not reset the
+/// clock, and a chase that is still closing is never called hopeless, however
+/// long it has been running.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Pursuit {
     pub target: TargetRef,
     pub started: u64,
     pub closest: u32,
+    /// Tick at which `closest` last improved. Defaulted for snapshots written
+    /// before this field existed; `last_progress` treats 0 as "unknown" and
+    /// falls back to `started`.
+    #[serde(default)]
+    pub improved_at: u64,
+}
+
+impl Pursuit {
+    /// The last tick this chase gained ground -- the clock patience runs
+    /// against. Comparing *current* distance to the best-ever distance would
+    /// call a chase hopeless at the very moment it arrives (best-ever equals
+    /// current exactly when the cat is doing as well as it ever has), so
+    /// progress is a timestamp, never a distance comparison.
+    pub fn last_progress(&self) -> u64 {
+        self.improved_at.max(self.started)
+    }
 }
 
 /// A chase target given up on: excluded from re-selection until `until`.
@@ -224,6 +244,7 @@ mod tests {
             target: TargetRef::Element { id: 102 },
             started: 1461,
             closest: 3,
+            improved_at: 1464,
         });
         k.abandoned_chases.push(AbandonedChase {
             target: TargetRef::Element { id: 105 },
@@ -270,6 +291,27 @@ mod tests {
         assert!(json.get("abandoned_chases").is_none());
         assert!(json.get("last_relief").is_none());
         assert!(json.get("distress_since").is_none());
+    }
+
+    #[test]
+    fn a_pursuit_saved_before_improved_at_existed_falls_back_to_started() {
+        // The field is serde-defaulted, so a snapshot written between the 004
+        // merge and this fix arrives with improved_at = 0. Treating that as
+        // "improved at the dawn of time" would condemn the chase instantly;
+        // last_progress falls back to `started` instead.
+        let json = r#"{"target":{"target":"element","id":9},"started":500,"closest":4}"#;
+        let p: Pursuit = serde_json::from_str(json).unwrap();
+        assert_eq!(p.improved_at, 0);
+        assert_eq!(p.last_progress(), 500, "falls back to the start tick");
+
+        // And a normal pursuit reports its actual last improvement.
+        let fresh = Pursuit {
+            target: TargetRef::Element { id: 9 },
+            started: 500,
+            closest: 4,
+            improved_at: 512,
+        };
+        assert_eq!(fresh.last_progress(), 512);
     }
 
     #[test]

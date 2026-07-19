@@ -185,19 +185,13 @@ impl World {
         let kitty_pos = self.kitties[idx].pos;
         let pursuit = self.kitties[idx].pursuit;
 
-        // Whether the standing pursuit has run out its patience without ever
-        // closing -- the definition of a chase not working. Computed up front,
-        // before any of the arms mutate the kitty.
+        // Whether the standing pursuit has gone `chase_patience_ticks` without
+        // gaining ground -- the definition of a chase not working. Measured
+        // from the last improvement, never by comparing current distance to the
+        // best-ever: those are equal exactly when the cat is doing as well as it
+        // ever has, which would condemn a chase at the moment it arrives.
         let pursuit_is_stale = pursuit
-            .map(|p| {
-                let patience_spent =
-                    tick.saturating_sub(p.started) >= config.behavior.chase_patience_ticks;
-                let not_closing = self
-                    .target_pos(p.target)
-                    .map(|pos| kitty_pos.chebyshev_distance(&pos) >= p.closest)
-                    .unwrap_or(false);
-                patience_spent && not_closing
-            })
+            .map(|p| tick.saturating_sub(p.last_progress()) >= config.behavior.chase_patience_ticks)
             .unwrap_or(false);
 
         match applied {
@@ -223,11 +217,19 @@ impl World {
                         target,
                         started: p.started,
                         closest: p.closest.min(distance),
+                        // Gaining ground resets the patience clock: a long
+                        // chase that is still working is not a hopeless one.
+                        improved_at: if distance < p.closest {
+                            tick
+                        } else {
+                            p.improved_at
+                        },
                     },
                     _ => Pursuit {
                         target,
                         started: tick,
                         closest: distance,
+                        improved_at: tick,
                     },
                 });
             }
@@ -772,7 +774,92 @@ mod tests {
         world.kitties[idx].pos = Position::new(6, 6);
         world.tick = 11;
         world.update_pursuit(1, Action::Chase(target), &config);
-        assert_eq!(world.kitty(1).unwrap().pursuit.unwrap().closest, 8);
+        let p = world.kitty(1).unwrap().pursuit.unwrap();
+        assert_eq!(p.closest, 8);
+        assert_eq!(
+            p.improved_at, 11,
+            "gaining ground resets the patience clock"
+        );
+    }
+
+    #[test]
+    fn a_chase_that_keeps_closing_is_never_called_hopeless() {
+        // Regression: patience used to be measured from `started` with a
+        // "current >= best-ever" distance test, so a chase running longer than
+        // the patience window was condemned the moment it stopped improving --
+        // including on arrival, when current *equals* best-ever. A cat that
+        // closes one tile per tick for far longer than the window must keep
+        // its target, and must not be left blacklisting it.
+        let (mut world, config) = chase_world();
+        let target = TargetRef::Element { id: 900 };
+        let steps = config.behavior.chase_patience_ticks * 2;
+
+        world.tick = 10;
+        world.update_pursuit(1, Action::Chase(target), &config);
+
+        // Walk in diagonally, one tile closer every tick.
+        for step in 1..=steps {
+            let idx = world.kitty_index(1).unwrap();
+            let pos = world.kitties[idx].pos;
+            world.kitties[idx].pos = Position::new(pos.x + 1, pos.y + 1);
+            world.tick = 10 + step;
+            world.update_pursuit(1, Action::Chase(target), &config);
+
+            let kitty = world.kitty(1).unwrap();
+            assert!(
+                kitty.pursuit.is_some(),
+                "the chase was dropped at step {step} while still gaining ground"
+            );
+            assert!(
+                kitty.abandoned_chases.is_empty(),
+                "a productive chase must not blacklist its target (step {step})"
+            );
+        }
+
+        // And having arrived, the catch clears the pursuit with no grudge.
+        world.update_pursuit(
+            1,
+            Action::Play {
+                target: Some(target),
+            },
+            &config,
+        );
+        let kitty = world.kitty(1).unwrap();
+        assert!(kitty.pursuit.is_none());
+        assert!(kitty.abandoned_chases.is_empty());
+    }
+
+    #[test]
+    fn a_chase_stuck_at_a_fixed_distance_is_still_given_up_on() {
+        // The other half of the fix: a chase that never worsens but never
+        // improves (a greeble matching the cat's speed) must still expire --
+        // a plain `>` on distance would have made it immortal.
+        let (mut world, config) = chase_world();
+        let target = TargetRef::Element { id: 900 };
+
+        world.tick = 10;
+        world.update_pursuit(1, Action::Chase(target), &config);
+        let start_distance = world.kitty(1).unwrap().pursuit.unwrap().closest;
+
+        // Keep chasing without ever closing: the target keeps its distance.
+        for step in 1..=config.behavior.chase_patience_ticks {
+            world.tick = 10 + step;
+            world.update_pursuit(1, Action::Chase(target), &config);
+            assert_eq!(
+                world.kitty(1).unwrap().pursuit.unwrap().closest,
+                start_distance,
+                "no ground gained"
+            );
+        }
+
+        // The next non-chase action writes it off.
+        world.update_pursuit(1, Action::Idle, &config);
+        let kitty = world.kitty(1).unwrap();
+        assert!(kitty.pursuit.is_none());
+        assert!(
+            kitty.is_chase_excluded(target, world.tick),
+            "a chase that never gains ground is still hopeless"
+        );
     }
 
     #[test]

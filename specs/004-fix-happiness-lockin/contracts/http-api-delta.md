@@ -21,9 +21,13 @@ Three additive fields:
   "distress_since": { "play": 1249, "sleep": 1279, "bath": 1375 },
 
   // NEW — engine bookkeeping of the current chase, if any. Omitted when
-  // absent. started = tick the pursuit began (patience is elapsed ticks);
-  // closest = best distance achieved during this pursuit.
-  "pursuit": { "target": { "target": "element", "id": 102 }, "started": 1461, "closest": 3 },
+  // absent. started = tick the pursuit began; closest = best distance
+  // achieved; improved_at = tick that best was last bettered (patience runs
+  // from there, so a chase that is still closing never expires).
+  "pursuit": {
+    "target": { "target": "element", "id": 102 },
+    "started": 1461, "closest": 3, "improved_at": 1466
+  },
 
   // NEW — targets excluded after a futile chase, until the given tick.
   // Engine-pruned; omitted when empty.
@@ -48,6 +52,10 @@ Three additive fields:
 Viewers should render targetless play as solo play (e.g. "pouncing at
 nothing 🎈"); the greeble-secrecy rule (FR-033/FR-037) is unaffected because
 solo play has no target to conceal.
+
+A target must be complete or absent: `{"action":"play","target":"element"}`
+with no `id`, or an unrecognized kind, is rejected rather than read as solo
+play. Producers must not emit half a target.
 
 ## `GET /config`
 
