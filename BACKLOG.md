@@ -11,31 +11,6 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 ## P1 — quick wins, next up
 
-### Distributed element spawning
-Spawning currently picks a uniformly random free tile, so the RNG can cluster
-elements — all the water in one corner, both chow bowls adjacent — leaving the
-rest of the map barren and forcing long treks. Ensure new elements (especially
-chow and water) spawn reasonably spread out: e.g. prefer tiles far from
-existing elements of the same type (best-of-N candidate sampling or a
-minimum-distance preference with graceful fallback). Constraints: all
-randomness stays on `SimRng` (Article V — determinism), and distribution is a
-*preference*, never a blocker — a safeguard spawn (Article I) must still
-succeed on any free tile when no well-spread one exists.
-
-### Rebalance `playful`: keep the play, lower the happiness tax
-Observed in the running world: Biscuit (`playful`) sits around happiness ~50
-while the `needs_driven` cats sit in the 90s — a steeper trade-off than
-"playful personality" needs. Two likely mechanisms: `playful` skips the
-opportunistic take-what's-underfoot wins `needs_driven` gets (eat/drink/nap
-when adjacent and the need is real), and it ignores every need until one
-crosses the safeguard threshold (75) — so needs ride high constantly. Dial
-back: give playful cats the same opportunism, and/or a lower "get serious"
-line, and/or blend play as a strong priority bonus rather than an absolute
-override. Success criteria: the SC-005 variation test still passes (≥1.5×
-play/chase actions vs `needs_driven`) while steady-state happiness lands
-meaningfully higher (target: ~70+, clearly below the sensible cats but no
-longer half).
-
 ### Per-kitty need rates
 Small, high-personality win: per-kitty overrides for need rise rates on top of
 the global defaults (a perpetually hungry cat, a sleepy one). Config schema

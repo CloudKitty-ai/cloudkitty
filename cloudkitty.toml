@@ -137,6 +137,9 @@ recent_window_ticks = 10
 # steps in with the default behavior. Built-in behaviors are exempt: they run
 # in-process, so determinism never depends on how fast this machine is.
 budget_fraction_of_tick = 0.5
+# The pressure at which a "playful" kitty stops playing and attends to a need.
+# Lower means a better-kept cat; higher means more single-minded fun.
+playful_comfort = 55.0
 
 [events]
 # How many distress events to keep.

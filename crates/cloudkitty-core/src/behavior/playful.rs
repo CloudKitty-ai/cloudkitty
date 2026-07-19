@@ -6,12 +6,14 @@
 //! particular reason to chase, pesters its friends for a game, and only attends to
 //! its needs when one becomes genuinely pressing.
 //!
-//! It is still a good cat: past the urgency threshold it defers to the sensible
-//! behavior, so being playful never means being neglected.
+//! It is still a good cat: it takes easy wins when they are underfoot, keeps its
+//! needs below the configured comfort line, and purrs about the result — it just
+//! spends every spare moment playing. Being playful means a different life, not a
+//! worse one.
 
 use async_trait::async_trait;
 
-use super::needs_driven::pursue;
+use super::needs_driven::{pursue, take_what_is_here};
 use super::{Behavior, DecisionContext};
 use crate::action::{Action, TargetRef};
 use crate::meow::MessageKind;
@@ -21,14 +23,28 @@ pub struct Playful;
 #[async_trait]
 impl Behavior for Playful {
     async fn decide(&self, ctx: &DecisionContext) -> Action {
+        // Opportunism is good sense, not a personality trait: a playful cat still
+        // eats the food it is standing next to before running off after a bug.
+        if let Some(action) = take_what_is_here(ctx) {
+            return action;
+        }
+
         let (need, pressure) = ctx.me.needs.highest_pressure();
 
-        // Some things cannot wait, even for a good game. The line is the world's
-        // own safeguard threshold rather than a number invented here: past it the
-        // world is already obliged to provide relief, so a cat that keeps playing
-        // is a cat heading for distress.
-        if pressure >= ctx.config.thresholds.safeguard {
+        // Some things cannot wait, even for a good game. The comfort line is
+        // configurable ([behavior] playful_comfort, default 55): well below the
+        // safeguard threshold, so a playful cat keeps itself in reasonable shape
+        // instead of skirting the edge of distress between games.
+        if pressure >= ctx.config.behavior.playful_comfort {
             return pursue(ctx, need);
+        }
+
+        // A cat this happy should say so now and then.
+        if ctx.me.happiness > ctx.config.thresholds.purr
+            && ctx.me.can_meow(MessageKind::Purr, ctx.world.tick)
+            && ctx.rng.gen_bool(0.06)
+        {
+            return Action::Purr;
         }
 
         let me = &ctx.me;
@@ -81,12 +97,13 @@ mod tests {
             world.elements.clear();
             let idx = world.kitty_index(1).unwrap();
             world.kitties[idx].pos = Position::new(2, 2);
-            // Mildly hungry -- a sensible cat would go and eat.
-            world.kitties[idx].needs.add(NeedKind::Eat, 60.0);
+            // Mildly hungry, below the comfort line (55) -- a sensible cat would
+            // already be walking to the food; a playful one has better things to do.
+            world.kitties[idx].needs.add(NeedKind::Eat, 40.0);
             world.push_element(Element {
                 id: 600,
                 kind: ElementKind::Chow { servings: 5 },
-                pos: Position::new(2, 3),
+                pos: Position::new(12, 2), // present, but not underfoot
                 ttl: None,
             });
             world.push_element(Element {
@@ -100,7 +117,63 @@ mod tests {
         assert_eq!(
             Playful.decide(&ctx).await,
             Action::Chase(TargetRef::Element { id: 601 }),
-            "the bug wins over the food"
+            "the bug wins over distant food"
+        );
+    }
+
+    #[tokio::test]
+    async fn a_playful_cat_still_eats_the_food_it_is_standing_beside() {
+        // Opportunism: adjacent food + real hunger beats the game, even below the
+        // comfort line. This is the fix for the happiness tax.
+        let ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(2, 2);
+            world.kitties[idx].needs.add(NeedKind::Eat, 40.0);
+            world.push_element(Element {
+                id: 600,
+                kind: ElementKind::Chow { servings: 5 },
+                pos: Position::new(2, 3), // right there
+                ttl: None,
+            });
+            world.push_element(Element {
+                id: 601,
+                kind: ElementKind::Bug,
+                pos: Position::new(9, 9),
+                ttl: Some(100),
+            });
+        });
+
+        assert_eq!(Playful.decide(&ctx).await, Action::Eat);
+    }
+
+    #[tokio::test]
+    async fn a_need_past_the_comfort_line_beats_the_game() {
+        // Above playful_comfort (default 55) but far below the safeguard: the old
+        // behavior would have kept playing; the rebalanced one gets serious early.
+        let ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(2, 2);
+            world.kitties[idx].needs.add(NeedKind::Drink, 60.0);
+            world.push_element(Element {
+                id: 602,
+                kind: ElementKind::Water,
+                pos: Position::new(12, 2),
+                ttl: None,
+            });
+            world.push_element(Element {
+                id: 603,
+                kind: ElementKind::Bug,
+                pos: Position::new(3, 3),
+                ttl: Some(100),
+            });
+        });
+
+        let action = Playful.decide(&ctx).await;
+        assert!(
+            matches!(action, Action::Move { .. } | Action::Meow { .. }),
+            "expected a step toward water (or a meow about it), got {action:?}"
         );
     }
 

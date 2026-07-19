@@ -112,8 +112,10 @@ rendering rule (FR-033, FR-037).
 
 **Spawn rules** (`spawn.rs`): per-type configured `min`/`max` within hard bounds
 (hard min 1, greebles 0; hard max `floor(area/32)`); below-min types respawn during
-the environment phase at a random unoccupied tile (element-unoccupied); safeguard
-spawning (need > safeguard threshold, no satisfying resource) ignores `max`.
+the environment phase at a random element-unoccupied tile, chosen by best-of-N
+sampling (N=8) preferring the candidate farthest from the nearest same-type element
+— a spread *preference* that never blocks a spawn; safeguard spawning (need >
+safeguard threshold, no satisfying resource) ignores `max`.
 Need→resource mapping: eat→chow, drink→water, sleep→(sunbeam counts as enhancer,
 not required), play→bug/greeble/other kitty (always present ⇒ safeguard never
 triggers for play/cuddle/bath — satisfied by other kitties/self-grooming).
@@ -181,8 +183,8 @@ Sections: `[world]` (width, height, tick_ms, seed, bind), `[persistence]`
 `[elements.<kind>]` (min, max, ttl, servings), `[needs]` (rise rates),
 `[happiness]` (floor + `[happiness.weights]`), `[thresholds]` (distress=90,
 safeguard=75, purr=70), `[actions]` (effect magnitudes), `[meow]` (cooldowns +
-recent_window_ticks), `[behavior]` (budget_fraction_of_tick=0.5), `[events]`
-(distress_retention=1000).
+recent_window_ticks), `[behavior]` (budget_fraction_of_tick=0.5,
+playful_comfort=55), `[events]` (distress_retention=1000).
 
 **Validation rules** (FR-007, every error naming field, value and allowed range):
 

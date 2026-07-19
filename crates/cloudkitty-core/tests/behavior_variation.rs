@@ -130,9 +130,18 @@ async fn a_playful_kitty_plays_far_more_than_a_sensible_one() {
     let config = Arc::new(config);
     let mut world = World::generate(&config);
 
-    for _ in 0..1_000 {
+    // Track steady-state happiness over the back half of the run, once both cats
+    // have settled into their routines.
+    let mut playful_happiness_sum = 0.0f64;
+    let mut samples = 0u32;
+    for tick in 0..1_000 {
         world.tick(&registry, &config).await;
+        if tick >= 500 {
+            playful_happiness_sum += world.kitty(2).unwrap().happiness as f64;
+            samples += 1;
+        }
     }
+    let playful_happiness = playful_happiness_sum / samples as f64;
 
     let sensible = sensible_playful.load(Ordering::Relaxed);
     let playful = playful_playful.load(Ordering::Relaxed);
@@ -140,7 +149,10 @@ async fn a_playful_kitty_plays_far_more_than_a_sensible_one() {
     assert_eq!(sensible_total.load(Ordering::Relaxed), 1_000);
     assert_eq!(playful_total.load(Ordering::Relaxed), 1_000);
 
-    println!("play/chase over 1000 ticks -- playful: {playful}, sensible: {sensible}");
+    println!(
+        "play/chase over 1000 ticks -- playful: {playful}, sensible: {sensible}; \
+         playful steady-state happiness: {playful_happiness:.1}"
+    );
 
     // The spec asks for a measurable difference; the bar is 50% more (SC-005).
     assert!(
@@ -153,6 +165,14 @@ async fn a_playful_kitty_plays_far_more_than_a_sensible_one() {
     assert!(
         playful >= 300,
         "a playful cat should spend a real share of its time playing; got {playful}/1000"
+    );
+    // The rebalance bar (backlog P1): playful is a personality, not a happiness
+    // tax. Steady-state happiness must stay respectable while the cat still plays
+    // far more than the sensible one.
+    assert!(
+        playful_happiness >= 65.0,
+        "the playful kitty's steady-state happiness is {playful_happiness:.1}; \
+         the fun is costing too much"
     );
 }
 
