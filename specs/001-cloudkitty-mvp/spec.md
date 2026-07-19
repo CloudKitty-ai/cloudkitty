@@ -449,7 +449,11 @@ works.
 - **FR-035**: The system MUST serve a single-page web viewer that renders the tile
   grid, elements, and kitties in a simple, cute style (basic shapes or emoji
   suffice), including meow speech bubbles, a per-kitty happiness indicator, and
-  visible sleeping/resting poses.
+  visible sleeping/resting poses. Each kitty's panel card MUST present its mood
+  (happiness-derived) and its current action as two separate, always-present
+  fields — neither may mask the other. The action shown is the one the engine
+  actually applied (from the kitty's `last_action`), never an unvalidated
+  proposal.
 - **FR-036**: The viewer MUST be strictly read-only: it renders received state and
   never computes, predicts, or mutates simulation outcomes. All game logic lives on
   the server.

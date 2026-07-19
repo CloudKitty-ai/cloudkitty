@@ -55,6 +55,7 @@ fn build_config(
             x: (i as u32) % width,
             y: (i as u32) / width,
             behavior: names[pick % names.len()].to_string(),
+            needs: None,
         })
         .collect();
 

@@ -131,6 +131,52 @@ fn temp_path(path: &Path) -> PathBuf {
     PathBuf::from(tmp)
 }
 
+/// Moves an existing snapshot aside before a fresh world claims its path.
+///
+/// `--fresh` ignores the old world at startup, but without this the new world
+/// would overwrite it at its first save -- and a sandbox whose whole ethos is
+/// that worlds are never lost by accident should not lose one to a flag. The
+/// old file is renamed (atomically, same directory) to
+/// `<name>.<unix-seconds>.bak` and the caller logs where it went.
+///
+/// Returns `Ok(None)` when there was nothing to back up.
+pub fn backup_aside(path: &Path) -> Result<Option<PathBuf>, PersistError> {
+    if !path.exists() {
+        return Ok(None);
+    }
+
+    let stamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+
+    // A same-second collision (test suites, rapid restarts) must not clobber an
+    // earlier backup: probe for a free name.
+    let mut backup = backup_path(path, stamp, 0);
+    let mut attempt = 1u32;
+    while backup.exists() {
+        backup = backup_path(path, stamp, attempt);
+        attempt += 1;
+    }
+
+    std::fs::rename(path, &backup).map_err(|source| PersistError::Write {
+        path: backup.clone(),
+        source,
+    })?;
+
+    Ok(Some(backup))
+}
+
+fn backup_path(path: &Path, stamp: u64, attempt: u32) -> PathBuf {
+    let mut name = path.as_os_str().to_os_string();
+    if attempt == 0 {
+        name.push(format!(".{stamp}.bak"));
+    } else {
+        name.push(format!(".{stamp}-{attempt}.bak"));
+    }
+    PathBuf::from(name)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -232,6 +278,61 @@ mod tests {
 
         let err = load_and_validate(&path, &test_config()).unwrap_err();
         assert!(err.to_string().contains("not valid CloudKitty JSON"));
+    }
+
+    #[test]
+    fn backup_aside_preserves_the_old_world() {
+        let dir = temp_dir("backup");
+        let path = dir.join("snapshot.json");
+        let config = test_config();
+        let world = World::generate(&config);
+        save(&world, &path).expect("save");
+        let original = std::fs::read(&path).unwrap();
+
+        let backup = backup_aside(&path)
+            .expect("backup")
+            .expect("there was a file");
+
+        assert!(
+            !path.exists(),
+            "the original path is free for the fresh world"
+        );
+        assert!(backup.exists());
+        assert_eq!(
+            std::fs::read(&backup).unwrap(),
+            original,
+            "the backup is byte-identical to the old world"
+        );
+        let name = backup.file_name().unwrap().to_string_lossy().into_owned();
+        assert!(name.starts_with("snapshot.json."), "{name}");
+        assert!(name.ends_with(".bak"), "{name}");
+    }
+
+    #[test]
+    fn backup_aside_with_nothing_to_back_up_is_a_quiet_no_op() {
+        let dir = temp_dir("backup-noop");
+        let path = dir.join("snapshot.json");
+        assert!(backup_aside(&path).expect("ok").is_none());
+    }
+
+    #[test]
+    fn rapid_backups_never_clobber_each_other() {
+        let dir = temp_dir("backup-rapid");
+        let path = dir.join("snapshot.json");
+        let config = test_config();
+        let world = World::generate(&config);
+
+        // Three fresh starts within the same second: three distinct backups.
+        let mut backups = Vec::new();
+        for _ in 0..3 {
+            save(&world, &path).expect("save");
+            backups.push(backup_aside(&path).unwrap().unwrap());
+        }
+        let unique: std::collections::BTreeSet<_> = backups.iter().collect();
+        assert_eq!(unique.len(), 3, "backups: {backups:?}");
+        for b in &backups {
+            assert!(b.exists());
+        }
     }
 
     #[test]

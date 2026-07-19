@@ -126,6 +126,11 @@ impl World {
         // the last serving gets it and the second one simply idles.
         for (kitty_id, proposal) in decisions {
             let validated = action::validate(self, kitty_id, proposal, config);
+            // Record what actually happened, not what was proposed: the viewer's
+            // "doing" line must never claim an action the engine refused.
+            if let Some(idx) = self.kitty_index(kitty_id) {
+                self.kitties[idx].last_action = Some(validated);
+            }
             action::apply(self, kitty_id, validated, config);
         }
 
@@ -226,7 +231,8 @@ impl World {
     fn advance_needs(&mut self, config: &Config) {
         for kitty in &mut self.kitties {
             for kind in NeedKind::ALL {
-                kitty.needs.add(kind, config.needs.rate(kind));
+                // Per-kitty override when configured, global rate otherwise.
+                kitty.needs.add(kind, config.need_rate_for(kitty.id, kind));
             }
             let previous = kitty.happiness;
             let current = happiness(
@@ -448,6 +454,39 @@ mod tests {
         assert!(after > before, "{after} should exceed {before}");
     }
 
+    #[tokio::test]
+    async fn per_kitty_need_rates_change_how_fast_a_need_rises() {
+        use crate::config::NeedRateOverrides;
+
+        let mut config = test_config();
+        // Kitty 1 gets triple the global eat rate; kitty 2 stays on defaults.
+        config.kitties[0].needs = Some(NeedRateOverrides {
+            eat: Some(config.needs.eat * 3.0),
+            ..Default::default()
+        });
+        config.validate().expect("valid");
+        let config = Arc::new(config);
+
+        let mut world = World::generate(&config);
+        // Park both cats' behaviors out of the picture by measuring pure rise:
+        // apply the needs phase directly a few times.
+        for _ in 0..10 {
+            world.advance_needs(&config);
+        }
+
+        let hungry = world.kitty(1).unwrap().needs.get(NeedKind::Eat);
+        let plain = world.kitty(2).unwrap().needs.get(NeedKind::Eat);
+        assert!(
+            (hungry - plain * 3.0).abs() < 0.01,
+            "override kitty at {hungry}, plain at {plain}"
+        );
+        // And their other needs rise identically.
+        assert_eq!(
+            world.kitty(1).unwrap().needs.get(NeedKind::Drink),
+            world.kitty(2).unwrap().needs.get(NeedKind::Drink)
+        );
+    }
+
     #[test]
     fn generated_worlds_meet_element_minimums() {
         let config = test_config();
@@ -462,6 +501,35 @@ mod tests {
                 rule.min
             );
         }
+    }
+
+    #[tokio::test]
+    async fn last_action_records_what_actually_happened() {
+        use crate::behavior::test_behaviors::AlwaysInvalid;
+
+        let mut config = test_config();
+        config.kitties[0].behavior = "always_invalid".into();
+        let config = Arc::new(config);
+
+        let mut registry = BehaviorRegistry::with_builtins();
+        registry.register("always_invalid", Arc::new(AlwaysInvalid));
+
+        let mut world = World::generate(&config);
+        assert!(
+            world.kitties.iter().all(|k| k.last_action.is_none()),
+            "no actions before the first tick"
+        );
+
+        world.tick(&registry, &config).await;
+
+        // The liar's proposals are always illegal, so the record must honestly
+        // say it idled -- never the fiction it proposed.
+        assert_eq!(
+            world.kitty(1).unwrap().last_action,
+            Some(crate::action::Action::Idle)
+        );
+        // And every kitty has a recorded action after a tick.
+        assert!(world.kitties.iter().all(|k| k.last_action.is_some()));
     }
 
     #[test]

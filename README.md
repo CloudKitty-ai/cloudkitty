@@ -23,7 +23,7 @@ open http://127.0.0.1:8090      # watch the world
 Other options:
 
 ```bash
-cargo run -- --fresh            # ignore any saved world and start over
+cargo run -- --fresh            # start a new world (the old one is backed up)
 cargo run -- --config my.toml   # a different world
 cargo run -- --snapshot w.json  # a different save file
 cargo run -- --help
@@ -31,6 +31,11 @@ cargo run -- --help
 
 The world saves itself to `snapshot.json` every 100 ticks and on `Ctrl-C`, including
 its random state — so a restart continues the same world, not merely a similar one.
+
+Worlds are never lost by accident: `--fresh` first moves the old save aside to
+`snapshot.json.<timestamp>.bak` (restore it by renaming the file back; pass
+`--no-backup` if you truly want it gone). To keep several worlds deliberately,
+give each its own file with `--snapshot`.
 
 **In the viewer:** press <kbd>g</kbd> to reveal greebles. Greebles are fast, erratic
 critters that are always in the world and always in the API, but are never drawn.

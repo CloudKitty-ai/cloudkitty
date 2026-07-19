@@ -19,6 +19,8 @@ struct Args {
     config_explicit: bool,
     snapshot_path: Option<PathBuf>,
     fresh: bool,
+    /// With --fresh: overwrite the old world without moving it aside first.
+    no_backup: bool,
     client_dir: PathBuf,
 }
 
@@ -29,6 +31,7 @@ impl Default for Args {
             config_explicit: false,
             snapshot_path: None,
             fresh: false,
+            no_backup: false,
             client_dir: PathBuf::from(DEFAULT_CLIENT_DIR),
         }
     }
@@ -43,7 +46,9 @@ USAGE:
 OPTIONS:
     -c, --config <PATH>      Config file (default: cloudkitty.toml)
     -s, --snapshot <PATH>    Saved world file (default: from config)
-        --fresh              Ignore any saved world and generate a new one
+        --fresh              Start a new world; the old one is moved aside to
+                             <snapshot>.<timestamp>.bak first
+        --no-backup          With --fresh: overwrite the old world in place
         --client <PATH>      Directory of static client files (default: client)
     -h, --help               Print this help
 ";
@@ -59,6 +64,7 @@ fn parse_args() -> Result<Option<Args>> {
                 return Ok(None);
             }
             "--fresh" => args.fresh = true,
+            "--no-backup" => args.no_backup = true,
             "-c" | "--config" => {
                 let value = argv.next().context("--config needs a path")?;
                 args.config_path = PathBuf::from(value);
@@ -179,6 +185,16 @@ fn load_or_generate_world(
     snapshot_path: &std::path::Path,
 ) -> Result<World> {
     if args.fresh {
+        // Move the old world aside before the new one claims its save path --
+        // otherwise the next periodic save would quietly overwrite it.
+        if args.no_backup {
+            tracing::info!("--fresh --no-backup: the old world will be overwritten");
+        } else if let Some(backup) = persist::backup_aside(snapshot_path)? {
+            tracing::info!(
+                backup = %backup.display(),
+                "--fresh: moved the old world aside; restore it by renaming the file back"
+            );
+        }
         tracing::info!("--fresh: generating a new world");
         return Ok(World::generate(config));
     }

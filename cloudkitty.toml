@@ -43,6 +43,10 @@ name = "Pumpkin"
 x = 16
 y = 8
 behavior = "needs_driven"
+# Any kitty may override the global [needs] rise rates; unset needs keep the
+# defaults. Pumpkin is a snacky little cat.
+[kitty.needs]
+eat = 0.8
 
 # How fast each need rises, per tick. Higher means more pressing, more often.
 [needs]

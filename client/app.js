@@ -56,6 +56,7 @@ function renderPanel(world) {
     if (!card) return;
     card.querySelector('.name').textContent = `${faceFor(kitty)} ${kitty.name}`;
     card.querySelector('.mood').textContent = moodFor(kitty);
+    card.querySelector('.doing').textContent = doingFor(kitty, world);
 
     const happinessBar = card.querySelector('.happiness > span');
     happinessBar.style.width = `${clampPercent(kitty.happiness)}%`;
@@ -82,6 +83,10 @@ function buildKittyCard(kitty) {
   const mood = document.createElement('div');
   mood.className = 'mood';
   card.appendChild(mood);
+
+  const doing = document.createElement('div');
+  doing.className = 'doing';
+  card.appendChild(doing);
 
   const happiness = document.createElement('div');
   happiness.className = 'bar happiness';
@@ -112,15 +117,79 @@ function faceFor(kitty) {
   return '🐱';
 }
 
+/** Mood is happiness, and only happiness -- a napping cat can still be delighted. */
 function moodFor(kitty) {
-  const state = kitty.activity?.state ?? 'idle';
-  const friend = kitty.activity?.with_friend;
-  if (state === 'sleeping') return friend != null ? 'napping together' : 'fast asleep';
-  if (state === 'resting') return friend != null ? 'cuddling' : 'having a lie down';
   if (kitty.happiness >= 80) return 'delighted';
   if (kitty.happiness >= 55) return 'content';
   if (kitty.happiness >= 30) return 'wants something';
   return 'needs a bit of help';
+}
+
+/**
+ * What the cat is doing right now, from the engine's post-validation record --
+ * this line never claims an action the engine refused. Pure formatting of
+ * server state (Article V): names are looked up, nothing is simulated.
+ */
+function doingFor(kitty, world) {
+  const action = kitty.last_action;
+  if (!action) return 'settling in';
+
+  const friendName = (id) =>
+    world.kitties.find((k) => k.id === id)?.name ?? 'a friend';
+  const partner = kitty.activity?.with_friend;
+
+  switch (action.action) {
+    case 'idle':
+      // Idle continues whatever the cat was doing (multi-tick activities).
+      return activityText(kitty, partner, friendName);
+    case 'move':
+      return `trotting ${action.direction}`;
+    case 'rest':
+      return action.with != null ? `cuddling with ${friendName(action.with)}` : 'settling down for a rest';
+    case 'sleep':
+      return activityText(kitty, action.with ?? partner, friendName) || 'falling asleep';
+    case 'groom':
+      return action.target != null ? `grooming ${friendName(action.target)}` : 'grooming';
+    case 'eat':
+      return 'eating 🍥';
+    case 'drink':
+      return 'drinking 💧';
+    case 'chase':
+      return `chasing ${targetText(action, world, friendName)}`;
+    case 'play':
+      return `playing with ${targetText(action, world, friendName)}`;
+    case 'purr':
+      return 'purring 💕';
+    case 'meow':
+      return `meowing: “${MEOW_TEXT[action.message] ?? '…'}”`;
+    default:
+      return '…';
+  }
+}
+
+function activityText(kitty, partner, friendName) {
+  const state = kitty.activity?.state ?? 'idle';
+  if (state === 'sleeping') {
+    const where = kitty.activity?.in_sunbeam ? ' in a sunbeam' : '';
+    return partner != null ? `napping${where} with ${friendName(partner)}` : `fast asleep${where}`;
+  }
+  if (state === 'resting') {
+    return partner != null ? `cuddling with ${friendName(partner)}` : 'having a lie down';
+  }
+  return 'lounging about';
+}
+
+/**
+ * Friendly words for a chase/play target. Greebles stay mysterious: the data
+ * says what it is, but this viewer keeps the secret.
+ */
+function targetText(action, world, friendName) {
+  if (action.target === 'kitty') return friendName(action.id);
+  const element = world.elements.find((e) => e.id === action.id);
+  if (!element) return 'something';
+  if (element.kind === 'greeble') return '… nothing? 👻';
+  if (element.kind === 'bug') return 'a bug 🐛';
+  return `the ${element.kind}`;
 }
 
 function clampPercent(value) {
