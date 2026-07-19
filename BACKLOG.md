@@ -16,6 +16,44 @@ Small, high-personality win: per-kitty overrides for need rise rates on top of
 the global defaults (a perpetually hungry cat, a sleepy one). Config schema
 addition + one lookup change; per-kitty values validated like the globals.
 
+### Auto-backup the old world on `--fresh`
+Today `--fresh` ignores the existing snapshot at startup, but the new world
+overwrites it at the next save — the old world quietly dies unless the
+operator remembered to copy the file first. That is the wrong default for a
+sandbox whose whole ethos is that worlds are never lost by accident. Before a
+fresh world takes over an existing snapshot path, move the old file aside
+(e.g. `snapshot.json` → `snapshot-<tick>-<timestamp>.json.bak`, or a
+`worlds/` archive directory) and log where it went. Considerations: the
+rename must be atomic like every other snapshot operation; a `--fresh
+--no-backup` escape hatch for operators who truly mean it; and a note in
+`--help` and the README so the behavior is discoverable. Pairs with the
+existing `--snapshot <path>` flag, which already allows keeping many worlds
+deliberately.
+
+### Display each cat's current action in its panel card
+The kitty card currently has a single "mood" line doing two jobs: `moodFor()`
+in `client/app.js` returns *activity* text when the cat is sleeping or
+resting ("fast asleep", "cuddling") and only otherwise falls through to
+*happiness* text ("delighted", "content", "wants something"). The two
+overwrite each other — a napping cat's happiness description disappears, and
+an awake cat shows no activity at all. Fix by splitting the card into two
+separate, always-present fields:
+
+- **Mood** — happiness-derived only ("delighted" … "needs a bit of help"),
+  never masked by what the cat happens to be doing.
+- **Doing** — the cat's current action ("eating 🍥", "chasing a bug",
+  "grooming Biscuit", "meowing: I want to play!", "fast asleep",
+  "cuddling with Miso"), covering every action, not just the two multi-tick
+  activities visible today.
+
+Small engine component required: applied actions are discarded after the
+apply phase, so the engine must record each kitty's last applied action (the
+post-validation one, so the panel shows what actually happened — an illegal
+proposal reads honestly as idle) and expose it on the kitty in the wire
+snapshot, e.g. `last_action`. Rendering stays a pure view (Article V): the
+client formats what the server states, computes nothing. Friendly names for
+targets (kitty names, element kinds) rather than raw ids.
+
 ## P2 — the bigger pieces, for a proper sitting
 
 ### Graphics refresh: Make even cuter!
