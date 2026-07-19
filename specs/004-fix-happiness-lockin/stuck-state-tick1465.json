@@ -1,0 +1,408 @@
+{
+  "width": 32,
+  "height": 32,
+  "tick": 1465,
+  "kitties": [
+    {
+      "id": 1,
+      "name": "Miso",
+      "pos": {
+        "x": 21,
+        "y": 30
+      },
+      "needs": {
+        "eat": 34.5,
+        "drink": 30.500011,
+        "sleep": 98.90004,
+        "play": 100.0,
+        "cuddle": 45.75,
+        "bath": 100.0
+      },
+      "happiness": 39.33999,
+      "activity": {
+        "state": "idle"
+      },
+      "behavior": "needs_driven",
+      "meow_cooldowns": {
+        "want_play": 1467
+      },
+      "in_distress": [
+        "sleep",
+        "play",
+        "bath"
+      ],
+      "happiness_rose": false
+    },
+    {
+      "id": 2,
+      "name": "Biscuit",
+      "pos": {
+        "x": 5,
+        "y": 10
+      },
+      "needs": {
+        "eat": 28.0,
+        "drink": 42.800156,
+        "sleep": 50.499943,
+        "play": 0.8,
+        "cuddle": 46.25,
+        "bath": 53.00077
+      },
+      "happiness": 64.67989,
+      "activity": {
+        "state": "sleeping",
+        "in_sunbeam": false
+      },
+      "behavior": "playful",
+      "meow_cooldowns": {},
+      "in_distress": [],
+      "happiness_rose": true
+    },
+    {
+      "id": 3,
+      "name": "Pumpkin",
+      "pos": {
+        "x": 6,
+        "y": 13
+      },
+      "needs": {
+        "eat": 18.5,
+        "drink": 41.700024,
+        "sleep": 65.49984,
+        "play": 78.60025,
+        "cuddle": 43.25,
+        "bath": 51.600124
+      },
+      "happiness": 53.849968,
+      "activity": {
+        "state": "idle"
+      },
+      "behavior": "needs_driven",
+      "meow_cooldowns": {
+        "want_play": 1469
+      },
+      "in_distress": [],
+      "happiness_rose": false
+    }
+  ],
+  "elements": [
+    {
+      "id": 1,
+      "kind": "water",
+      "pos": {
+        "x": 19,
+        "y": 0
+      }
+    },
+    {
+      "id": 2,
+      "kind": "water",
+      "pos": {
+        "x": 12,
+        "y": 31
+      }
+    },
+    {
+      "id": 3,
+      "kind": "water",
+      "pos": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "id": 4,
+      "kind": "water",
+      "pos": {
+        "x": 17,
+        "y": 13
+      }
+    },
+    {
+      "id": 5,
+      "kind": "water",
+      "pos": {
+        "x": 27,
+        "y": 29
+      }
+    },
+    {
+      "id": 10,
+      "kind": "chow",
+      "servings": 1,
+      "pos": {
+        "x": 29,
+        "y": 31
+      }
+    },
+    {
+      "id": 47,
+      "kind": "chow",
+      "servings": 4,
+      "pos": {
+        "x": 30,
+        "y": 16
+      }
+    },
+    {
+      "id": 68,
+      "kind": "chow",
+      "servings": 1,
+      "pos": {
+        "x": 4,
+        "y": 9
+      }
+    },
+    {
+      "id": 80,
+      "kind": "chow",
+      "servings": 5,
+      "pos": {
+        "x": 30,
+        "y": 3
+      }
+    },
+    {
+      "id": 98,
+      "kind": "sunbeam",
+      "pos": {
+        "x": 15,
+        "y": 19
+      },
+      "ttl": 35
+    },
+    {
+      "id": 99,
+      "kind": "sunbeam",
+      "pos": {
+        "x": 11,
+        "y": 0
+      },
+      "ttl": 35
+    },
+    {
+      "id": 100,
+      "kind": "sunbeam",
+      "pos": {
+        "x": 25,
+        "y": 4
+      },
+      "ttl": 35
+    },
+    {
+      "id": 101,
+      "kind": "chow",
+      "servings": 3,
+      "pos": {
+        "x": 3,
+        "y": 29
+      }
+    },
+    {
+      "id": 102,
+      "kind": "bug",
+      "pos": {
+        "x": 22,
+        "y": 27
+      },
+      "ttl": 95
+    },
+    {
+      "id": 103,
+      "kind": "bug",
+      "pos": {
+        "x": 1,
+        "y": 2
+      },
+      "ttl": 95
+    },
+    {
+      "id": 104,
+      "kind": "bug",
+      "pos": {
+        "x": 29,
+        "y": 17
+      },
+      "ttl": 95
+    },
+    {
+      "id": 105,
+      "kind": "greeble",
+      "heading": "east",
+      "pos": {
+        "x": 5,
+        "y": 11
+      },
+      "ttl": 65
+    }
+  ],
+  "recent_meows": [
+    {
+      "kitty_id": 1,
+      "kind": "want_play",
+      "tick": 1455
+    },
+    {
+      "kitty_id": 3,
+      "kind": "want_play",
+      "tick": 1456
+    },
+    {
+      "kitty_id": 1,
+      "kind": "want_play",
+      "tick": 1462
+    },
+    {
+      "kitty_id": 3,
+      "kind": "want_play",
+      "tick": 1464
+    }
+  ],
+  "distress": {
+    "events": [
+      {
+        "kitty_id": 3,
+        "need": "drink",
+        "tick": 278
+      },
+      {
+        "kitty_id": 1,
+        "need": "eat",
+        "tick": 329
+      },
+      {
+        "kitty_id": 3,
+        "need": "eat",
+        "tick": 349
+      },
+      {
+        "kitty_id": 2,
+        "need": "drink",
+        "tick": 357
+      },
+      {
+        "kitty_id": 3,
+        "need": "play",
+        "tick": 395
+      },
+      {
+        "kitty_id": 3,
+        "need": "drink",
+        "tick": 642
+      },
+      {
+        "kitty_id": 1,
+        "need": "eat",
+        "tick": 668
+      },
+      {
+        "kitty_id": 3,
+        "need": "eat",
+        "tick": 677
+      },
+      {
+        "kitty_id": 2,
+        "need": "drink",
+        "tick": 812
+      },
+      {
+        "kitty_id": 2,
+        "need": "drink",
+        "tick": 1159
+      },
+      {
+        "kitty_id": 1,
+        "need": "eat",
+        "tick": 1169
+      },
+      {
+        "kitty_id": 1,
+        "need": "drink",
+        "tick": 1173
+      },
+      {
+        "kitty_id": 2,
+        "need": "eat",
+        "tick": 1201
+      },
+      {
+        "kitty_id": 1,
+        "need": "play",
+        "tick": 1249
+      },
+      {
+        "kitty_id": 2,
+        "need": "sleep",
+        "tick": 1256
+      },
+      {
+        "kitty_id": 2,
+        "need": "play",
+        "tick": 1275
+      },
+      {
+        "kitty_id": 1,
+        "need": "sleep",
+        "tick": 1279
+      },
+      {
+        "kitty_id": 3,
+        "need": "drink",
+        "tick": 1339
+      },
+      {
+        "kitty_id": 1,
+        "need": "bath",
+        "tick": 1375
+      },
+      {
+        "kitty_id": 3,
+        "need": "play",
+        "tick": 1430
+      }
+    ],
+    "capacity": 1000
+  },
+  "rng": {
+    "inner": {
+      "seed": [
+        184,
+        191,
+        89,
+        218,
+        100,
+        176,
+        5,
+        139,
+        93,
+        79,
+        250,
+        30,
+        90,
+        137,
+        39,
+        252,
+        147,
+        33,
+        0,
+        44,
+        113,
+        216,
+        6,
+        74,
+        208,
+        172,
+        184,
+        47,
+        102,
+        112,
+        64,
+        11
+      ],
+      "stream": 0,
+      "word_pos": 27707
+    }
+  },
+  "config_fingerprint": "w32h32s20260718k1.2.3",
+  "next_element_id": 106
+}
