@@ -281,6 +281,12 @@ language or imagery (distress is a signal for watchers, never a punishment).
 
 ### Measurable Outcomes
 
+> **Superseded as floors by feature 006** (action durations, 2026-07-19): the
+> criteria below remain guaranteed — the welfare suite asserts its re-baselined
+> 006 bounds may never loosen past them — but the *current* guarded envelope is
+> tighter; see [006 spec.md](../006-action-durations/spec.md) SC-003 and
+> `crates/cloudkitty-core/tests/welfare_longrun.rs`.
+
 Baseline (measured 2026-07-18, default configuration, ~6,000-tick run):
 happiness episodes below 45 lasting 200–500 ticks; every kitty touching the
 floor of 5; 14–22% of time below happiness 45; one need pinned at exactly 100

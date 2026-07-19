@@ -41,6 +41,13 @@ Feature 004 additions: `me` now also carries engine-authored `pursuit`,
 optional (no target = solo play, always legal). See the
 [004 behavior delta](../../004-fix-happiness-lockin/contracts/behavior-delta.md).
 
+Feature 006 additions: every need-relieving action is a multi-tick activity
+with engine-enforced min/max durations — proposals during the minimum are
+superseded by continuation, and `me.activity_clock` tells a behavior where in
+a scene its kitty is. Cuddle and social play conscript the partner (who must
+be idle). See the
+[006 behavior delta](../../006-action-durations/contracts/behavior-delta.md).
+
 ## Engine obligations (the law)
 
 1. **Concurrent gather**: all `decide` futures run concurrently against the same

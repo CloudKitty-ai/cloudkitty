@@ -53,6 +53,10 @@
         "state": "sleeping",
         "in_sunbeam": false
       },
+      "activity_clock": {
+        "started": 1464,
+        "applied": 1464
+      },
       "behavior": "playful",
       "meow_cooldowns": {},
       "in_distress": [],

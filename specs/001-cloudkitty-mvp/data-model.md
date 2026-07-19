@@ -49,13 +49,14 @@ element max per tile; a kitty and an element may share a tile.
 | `pos` | Position | |
 | `needs` | Needs | six clamped values, see below |
 | `happiness` | f32 | derived each tick: `100 − weighted_avg(needs)`, clamped to ≥ floor (default 5) |
-| `activity` | Activity | see state transitions |
+| `activity` | Activity | see state transitions *(feature 006 extends the states to `eating`/`drinking`/`playing`/`grooming` and paces them all with configured durations; see [006 data-model.md](../006-action-durations/data-model.md))* |
 | `behavior` | String | behavior name from config (e.g. `needs_driven`, `playful`) |
 | `meow_cooldowns` | BTreeMap\<MessageKind, u64\> | tick at which each kind is next allowed; elapsed entries pruned each tick |
 | `in_distress` | BTreeSet\<NeedKind\> | needs currently ≥ distress threshold; drives edge-triggering |
 | `happiness_rose` | bool | whether happiness went up last tick; one of the two ways to earn a purr |
 | `last_action` | Option\<Action\> | the action actually applied last tick (post-validation, so an illegal proposal reads as Idle); `None` before the first tick; feeds the viewer's "doing" line |
 | `pursuit`, `abandoned_chases`, `last_relief`, `distress_since` | see 004 | engine-maintained bookkeeping added by feature 004 (chase give-up, relief recency, distress ages); all serde-defaulted — see [004 data-model.md](../004-fix-happiness-lockin/data-model.md) |
+| `activity_clock` | see 006 | duration bookkeeping for the ongoing activity (feature 006: every need-relieving action is a multi-tick activity with configured min/max); present iff `activity` is in progress — see [006 data-model.md](../006-action-durations/data-model.md) |
 
 **Lifecycle**: none. Kitties are created at world generation and exist forever
 (Article II — the type exposes no despawn/health/damage concept).
