@@ -93,6 +93,8 @@ client/                     the viewer: one HTML file, vanilla JS, a canvas. No 
 specs/001-cloudkitty-mvp/   spec, plan, data model, contracts, quickstart
 ```
 
+What's next lives in [BACKLOG.md](BACKLOG.md).
+
 `cloudkitty-core` has no HTTP and no filesystem: tests drive thousands of ticks
 headlessly, which is how the constitution is actually enforced.
 
