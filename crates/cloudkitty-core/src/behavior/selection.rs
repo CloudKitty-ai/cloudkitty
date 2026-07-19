@@ -107,8 +107,9 @@ fn play_travel_distance(ctx: &DecisionContext) -> u32 {
 /// ordered by (distance, critters-before-kitties, id) so the choice is stable.
 ///
 /// A candidate stops being viable while it sits in `abandoned_chases`, or while
-/// it is the current pursuit target with the patience window elapsed and no
-/// improvement on the closest distance achieved (a chase that is not working).
+/// it is the current pursuit target that has gained no ground in
+/// `chase_patience_ticks` (a chase that is not working -- as opposed to one
+/// that is merely long).
 pub fn nearest_viable_playmate(ctx: &DecisionContext) -> Option<(TargetRef, Position)> {
     let me = &ctx.me;
 
@@ -127,20 +128,19 @@ pub fn nearest_viable_playmate(ctx: &DecisionContext) -> Option<(TargetRef, Posi
 
     critters
         .chain(friends)
-        .filter(|(target, pos, _, _)| is_viable(ctx, *target, *pos))
+        .filter(|(target, _, _, _)| is_viable(ctx, *target))
         .min_by_key(|(_, pos, tag, id)| (me.pos.chebyshev_distance(pos), *tag, *id))
         .map(|(target, pos, _, _)| (target, pos))
 }
 
-fn is_viable(ctx: &DecisionContext, target: TargetRef, pos: Position) -> bool {
+fn is_viable(ctx: &DecisionContext, target: TargetRef) -> bool {
     let tick = ctx.world.tick;
     if ctx.me.is_chase_excluded(target, tick) {
         return false;
     }
     if let Some(pursuit) = &ctx.me.pursuit {
         let patience = ctx.config.behavior.chase_patience_ticks;
-        let stalled = tick.saturating_sub(pursuit.started) >= patience
-            && ctx.me.pos.chebyshev_distance(&pos) >= pursuit.closest;
+        let stalled = tick.saturating_sub(pursuit.last_progress()) >= patience;
         if pursuit.target == target && stalled {
             return false;
         }
@@ -380,41 +380,69 @@ mod tests {
         );
     }
 
-    #[test]
-    fn a_stalled_pursuit_target_is_not_viable_but_an_improving_one_is() {
-        let make = |closest: u32| {
-            decision_context(move |world| {
-                world.elements.clear();
-                world.tick = 100;
-                let idx = world.kitty_index(1).unwrap();
-                world.kitties[idx].pos = Position::new(5, 5);
-                world.kitties[idx].pursuit = Some(Pursuit {
-                    target: TargetRef::Element { id: 802 },
-                    started: 80, // 20 ticks ago > patience 12
-                    closest,
-                });
-                let friend = world.kitty_index(2).unwrap();
-                world.kitties[friend].pos = Position::new(20, 20);
-                world.push_element(Element {
-                    id: 802,
-                    kind: ElementKind::Bug,
-                    pos: Position::new(5, 9), // currently 4 away
-                    ttl: Some(50),
-                });
-            })
-        };
+    /// A pursuit of bug 802 that began at tick 80 and last gained ground at
+    /// `improved_at`, seen at tick 100 with the bug `distance` tiles away.
+    fn pursuing_ctx(improved_at: u64, distance: u32) -> crate::behavior::DecisionContext {
+        decision_context(move |world| {
+            world.elements.clear();
+            world.tick = 100;
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx].needs.add(NeedKind::Play, 80.0);
+            world.kitties[idx].pursuit = Some(Pursuit {
+                target: TargetRef::Element { id: 802 },
+                started: 80,
+                closest: distance,
+                improved_at,
+            });
+            let friend = world.kitty_index(2).unwrap();
+            world.kitties[friend].pos = Position::new(20, 20);
+            world.push_element(Element {
+                id: 802,
+                kind: ElementKind::Bug,
+                pos: Position::new(5, 5 + distance),
+                ttl: Some(50),
+            });
+        })
+    }
 
-        // Best-ever was 4 and it is still 4: stalled, skip it.
-        let stalled = make(4);
+    #[test]
+    fn a_pursuit_that_has_gained_no_ground_for_a_whole_patience_window_is_dropped() {
+        // Last improvement 20 ticks ago, patience 12: this chase is not working.
+        let stalled = pursuing_ctx(80, 4);
         assert_ne!(
             nearest_viable_playmate(&stalled).map(|(t, _)| t),
             Some(TargetRef::Element { id: 802 })
         );
-        // Best-ever was 6 and it is 4 now: closing in, keep going.
-        let improving = make(6);
+    }
+
+    #[test]
+    fn a_chase_that_is_still_closing_survives_however_long_it_has_run() {
+        // Started 20 ticks ago but gained ground 2 ticks ago: keep going.
+        let improving = pursuing_ctx(98, 4);
         assert_eq!(
             nearest_viable_playmate(&improving).map(|(t, _)| t),
             Some(TargetRef::Element { id: 802 })
+        );
+    }
+
+    #[test]
+    fn a_long_chase_is_not_abandoned_at_the_moment_it_arrives() {
+        // Regression: viability used to compare current distance against the
+        // best-ever distance, which are equal exactly when the cat is doing as
+        // well as it ever has -- so a 20-tick chase was condemned at the very
+        // tick it caught up. Arriving adjacent (distance 1, just improved) must
+        // leave the target viable and get pounced on.
+        let arrived = pursuing_ctx(100, 1);
+        assert_eq!(
+            nearest_viable_playmate(&arrived).map(|(t, _)| t),
+            Some(TargetRef::Element { id: 802 }),
+            "the bug it just spent 20 ticks reaching is still worth playing with"
+        );
+        assert_eq!(
+            play_action(&arrived),
+            Action::play_with(TargetRef::Element { id: 802 }),
+            "and the cat pounces rather than wandering off"
         );
     }
 

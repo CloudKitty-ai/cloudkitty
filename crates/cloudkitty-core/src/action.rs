@@ -6,7 +6,7 @@
 //! Nothing here can return an error, because an advisor's mistake must never
 //! become a kitty's problem.
 
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::config::Config;
 use crate::element::{ElementId, ElementKind, ElementType};
@@ -22,6 +22,41 @@ use crate::world::World;
 pub enum TargetRef {
     Element { id: ElementId },
     Kitty { id: KittyId },
+}
+
+/// The raw fields a flattened play target may carry, before we decide whether
+/// they form a well-shaped target at all.
+#[derive(Deserialize)]
+struct RawPlayTarget {
+    #[serde(default)]
+    target: Option<String>,
+    #[serde(default)]
+    id: Option<u32>,
+}
+
+/// Deserializes `Play`'s optional target *strictly*.
+///
+/// `#[serde(flatten)]` over an `Option` silently yields `None` for anything it
+/// cannot parse, which would turn a malformed proposal -- `{"action":"play",
+/// "target":"element"}` with no id -- into solo play. Solo play is always legal
+/// and carries relief, so a garbled proposal would become a *reward* instead of
+/// the safe no-op Article IV promises. An absent target is solo play; a partial
+/// or unrecognized one is an error, so it reaches the engine as a failed
+/// proposal and falls back like any other misbehaving advisor.
+fn strict_play_target<'de, D>(deserializer: D) -> Result<Option<TargetRef>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let raw = RawPlayTarget::deserialize(deserializer)?;
+    match (raw.target.as_deref(), raw.id) {
+        (None, None) => Ok(None),
+        (Some("element"), Some(id)) => Ok(Some(TargetRef::Element { id })),
+        (Some("kitty"), Some(id)) => Ok(Some(TargetRef::Kitty { id })),
+        (target, id) => Err(serde::de::Error::custom(format!(
+            "a play target must be a complete {{\"target\": \"element\"|\"kitty\", \"id\": N}} \
+             or omitted entirely for solo play; got target={target:?}, id={id:?}"
+        ))),
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -49,7 +84,12 @@ pub enum Action {
     /// play, for a kitty with nobody in reach). The wire shape is unchanged for
     /// social play; solo play simply omits the target.
     Play {
-        #[serde(flatten, default, skip_serializing_if = "Option::is_none")]
+        #[serde(
+            flatten,
+            default,
+            deserialize_with = "strict_play_target",
+            skip_serializing_if = "Option::is_none"
+        )]
         target: Option<TargetRef>,
     },
     Purr,
@@ -734,6 +774,57 @@ mod tests {
         assert_eq!(json, serde_json::json!({"action": "play"}));
         let parsed: Action = serde_json::from_value(json).unwrap();
         assert_eq!(parsed, Action::play_solo());
+    }
+
+    #[test]
+    fn a_malformed_play_target_is_an_error_not_a_free_helping_of_solo_play() {
+        // Regression: `#[serde(flatten)]` over an Option swallows anything it
+        // cannot parse, which turned a garbled proposal into solo play --
+        // always legal, and rewarded. A broken advisor must get the safe no-op
+        // path, never relief it did not earn (Article IV).
+        for malformed in [
+            r#"{"action":"play","target":"element"}"#,      // no id
+            r#"{"action":"play","target":"kitty"}"#,        // no id
+            r#"{"action":"play","id":7}"#,                  // no target kind
+            r#"{"action":"play","target":"bogus","id":1}"#, // unknown kind
+            r#"{"action":"play","target":"element","id":"three"}"#, // wrong id type
+        ] {
+            let parsed: Result<Action, _> = serde_json::from_str(malformed);
+            assert!(
+                parsed.is_err(),
+                "{malformed} parsed as {:?} instead of failing",
+                parsed.unwrap()
+            );
+        }
+
+        // ...while both legitimate shapes still parse exactly as before.
+        assert_eq!(
+            serde_json::from_str::<Action>(r#"{"action":"play","target":"element","id":103}"#)
+                .unwrap(),
+            Action::play_with(TargetRef::Element { id: 103 })
+        );
+        assert_eq!(
+            serde_json::from_str::<Action>(r#"{"action":"play","target":"kitty","id":2}"#).unwrap(),
+            Action::play_with(TargetRef::Kitty { id: 2 })
+        );
+        assert_eq!(
+            serde_json::from_str::<Action>(r#"{"action":"play"}"#).unwrap(),
+            Action::play_solo()
+        );
+    }
+
+    #[test]
+    fn every_target_kind_survives_the_strict_play_parser() {
+        // The strict parser spells out the target kinds, so a new TargetRef
+        // variant must be added there too. This test is what catches it.
+        for target in [TargetRef::Element { id: 11 }, TargetRef::Kitty { id: 2 }] {
+            let json = serde_json::to_string(&Action::play_with(target)).unwrap();
+            assert_eq!(
+                serde_json::from_str::<Action>(&json).unwrap(),
+                Action::play_with(target),
+                "{json} did not survive a round trip -- is strict_play_target missing a kind?"
+            );
+        }
     }
 
     #[test]

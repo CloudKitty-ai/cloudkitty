@@ -25,13 +25,22 @@ forge them (Article IV).
 ## Pursuit and AbandonedChase (new)
 
 ```
-Pursuit        { target: TargetRef, started: u64, closest: u32 }
+Pursuit        { target: TargetRef, started: u64, closest: u32, improved_at: u64 }
 AbandonedChase { target: TargetRef, until: u64 }
 ```
 
-Patience is **elapsed** ticks (`tick − started`), not consecutive applied
-chases — a one-tick opportunistic detour or meow does not reset a chase's
-clock (analyze finding I2).
+Patience is **elapsed ticks since the chase last gained ground**
+(`tick − last_progress()`, where `last_progress()` is `improved_at` falling
+back to `started`), not consecutive applied chases — a one-tick opportunistic
+detour or meow does not reset a chase's clock (analyze finding I2).
+
+Progress is a **timestamp, never a distance comparison**. Testing "current
+distance ≥ best-ever distance" looks like a staleness check but is true
+exactly when the cat is doing as well as it ever has — including on arrival —
+so it condemned successful chases at the moment they succeeded (post-merge
+review finding). `improved_at` is stamped whenever `closest` improves, and is
+serde-defaulted so a pursuit saved before the field existed falls back to
+`started`.
 
 - Updated in the apply phase, immediately after `last_action` is recorded,
   from the **validated** action, in this order:
@@ -40,10 +49,13 @@ clock (analyze finding I2).
   2. applied `Play` whose target equals `pursuit.target` → pursuit cleared
      (a catch, not an abandonment);
   3. applied `Chase(t)`: `t == pursuit.target` →
-     `closest = min(closest, distance)`; different/new target → replaced by
-     `Pursuit { target: t, started: tick, closest: distance }`;
-  4. otherwise, if `tick − started ≥ behavior.chase_patience_ticks` and
-     `distance(kitty, target) ≥ closest` → push
+     `closest = min(closest, distance)`, and `improved_at = tick` when the
+     distance actually improved; different/new target → replaced by
+     `Pursuit { target: t, started: tick, closest: distance, improved_at: tick }`
+     (abandoning the previous pursuit first if it was stale, so hopping
+     between hopeless targets cannot launder staleness);
+  4. otherwise, if `tick − last_progress() ≥ behavior.chase_patience_ticks`
+     → push
      `AbandonedChase { target, until: tick + behavior.chase_exclusion_ticks }`
      and clear pursuit. (A pursuit the kitty merely lost interest in also
      expires through this arm — briefly excluding a target it already walked
@@ -54,10 +66,12 @@ clock (analyze finding I2).
 
 **Viability rule (behavior-side, shared)**: play candidate `c` is
 *non-viable* iff `abandoned_chases` holds `c` with `until > tick`, **or**
-`pursuit.target == c` with `tick − started ≥ behavior.chase_patience_ticks`
-and `distance(kitty, c) ≥ pursuit.closest`. Non-viable candidates are
-skipped in target selection and excluded from the solo-play reach test —
-with every nearby target excluded, solo play (R5) unlocks.
+`pursuit.target == c` with `tick − last_progress() ≥
+behavior.chase_patience_ticks`. Non-viable candidates are skipped in target
+selection and excluded from the solo-play reach test — with every nearby
+target excluded, solo play (R5) unlocks. A chase that is still closing stays
+viable however long it has been running; only one that has stopped gaining
+ground expires.
 
 ## Need selection score (behavior-shared, `behavior/selection.rs`)
 
@@ -86,6 +100,12 @@ Play { target: Option<TargetRef> }     // was Play(TargetRef)
   (social) still parses; solo play serializes as `{"action":"play"}`.
 - **Validation**: `Some(target)` — unchanged rules (critter adjacency /
   available friend). `None` — always legal (mirrors self-groom).
+- **Deserialization is strict**: an absent target is solo play, but a
+  *partial* or unrecognized one (`{"action":"play","target":"element"}` with
+  no id) is a parse **error**, not silently `None`. Serde's `flatten` over an
+  `Option` swallows unparseable content, which would have turned a malformed
+  proposal into always-legal, relief-carrying solo play — a reward where
+  Article IV promises a safe no-op (post-merge review finding).
 - **Application**: `Some` — unchanged (`play_relief` to actor, and to
   partner if kitty). `None` — `solo_play_relief` to actor only.
 - `Chase` is unchanged; chase legality (critters and kitties only) is
