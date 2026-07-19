@@ -1,0 +1,28 @@
+[package]
+name = "cloudkitty-server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "CloudKitty server: runs the world, serves the API and the viewer"
+
+[[bin]]
+name = "cloudkitty-server"
+path = "src/main.rs"
+
+[dependencies]
+cloudkitty-core = { path = "../cloudkitty-core" }
+axum = { version = "0.7", features = ["ws"] }
+tokio = { workspace = true, features = ["full"] }
+tower-http = { version = "0.5", features = ["fs", "cors", "trace"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+toml = "0.8"
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[dev-dependencies]
+reqwest = { version = "0.12", features = ["json"] }
+tokio-tungstenite = "0.21"
+futures = { workspace = true }

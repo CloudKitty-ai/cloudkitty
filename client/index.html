@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CloudKitty</title>
+<style>
+  :root {
+    --cream: #fdf6ec;
+    --cream-deep: #f5e8d8;
+    --grass: #e7f2df;
+    --grass-line: #d8e8cd;
+    --ink: #6b5a4e;
+    --ink-soft: #9c8a7c;
+    --card: #fffdfa;
+    --shadow: rgba(150, 125, 105, 0.18);
+    --happy: #8fce8f;
+    --okay: #f3cf7a;
+    --meh: #efa98b;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 24px 16px 40px;
+    font-family: ui-rounded, "SF Pro Rounded", "Nunito", "Quicksand",
+                 system-ui, -apple-system, sans-serif;
+    background: radial-gradient(circle at 50% 0%, #fffaf2 0%, var(--cream) 60%);
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    min-height: 100vh;
+  }
+
+  header { text-align: center; }
+
+  h1 {
+    margin: 0;
+    font-size: 1.9rem;
+    letter-spacing: 0.4px;
+    font-weight: 700;
+  }
+
+  .subtitle {
+    margin: 4px 0 0;
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+  }
+
+  .stage {
+    background: var(--card);
+    border-radius: 28px;
+    padding: 16px;
+    box-shadow: 0 12px 30px var(--shadow);
+    line-height: 0;
+  }
+
+  canvas { border-radius: 18px; }
+
+  .panel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    max-width: 780px;
+  }
+
+  .kitty-card {
+    background: var(--card);
+    border-radius: 18px;
+    padding: 10px 14px;
+    box-shadow: 0 6px 16px var(--shadow);
+    min-width: 148px;
+  }
+
+  .kitty-card .name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .kitty-card .mood {
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+    margin: 2px 0 6px;
+  }
+
+  .bar {
+    height: 8px;
+    border-radius: 99px;
+    background: var(--cream-deep);
+    overflow: hidden;
+  }
+
+  .bar > span {
+    display: block;
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.4s ease, background-color 0.4s ease;
+  }
+
+  .needs {
+    margin-top: 8px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 3px 8px;
+    font-size: 0.68rem;
+    color: var(--ink-soft);
+    align-items: center;
+  }
+
+  .needs .bar { height: 5px; }
+
+  footer {
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    text-align: center;
+  }
+
+  kbd {
+    background: var(--cream-deep);
+    border-radius: 6px;
+    padding: 1px 6px;
+    font-family: inherit;
+    font-size: 0.75rem;
+  }
+
+  #status.disconnected { color: var(--meh); font-weight: 700; }
+  #debug-note { color: var(--meh); font-weight: 700; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>☁️ CloudKitty 🐾</h1>
+    <p class="subtitle">a small, safe world where kitties frolic and play</p>
+  </header>
+
+  <div class="stage">
+    <canvas id="world" width="720" height="720"></canvas>
+  </div>
+
+  <section class="panel" id="panel"></section>
+
+  <footer>
+    <span id="status">connecting…</span> ·
+    tick <span id="tick">0</span> ·
+    press <kbd>g</kbd> to reveal greebles
+    <span id="debug-note" hidden>· 👻 greebles visible</span>
+  </footer>
+
+  <script src="render.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
