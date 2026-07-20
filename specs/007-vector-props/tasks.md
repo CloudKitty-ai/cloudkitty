@@ -99,7 +99,7 @@ greeble shows both candidate faces.
       all six thought icons at bubble scale — each at 22px and 88px,
       placed within visual reach of the cat portraits (FR-002,
       data-model gallery matrix).
-- [ ] T006 [US1] **CHECKPOINT — the props gate.** Present the gallery to
+- [X] T006 [US1] **CHECKPOINT — the props gate.** Present the gallery to
       the owner; iterate `client/props.js` until judged; record the
       outcome including the greeble face decision in
       `specs/007-vector-props/gallery-approval.md` (FR-003, SC-001).

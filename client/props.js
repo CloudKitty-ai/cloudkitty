@@ -30,6 +30,7 @@ const PROPS = {
   wisp: '#eef0f6', // the greeble's not-quite-there pale
   wispShade: '#b9bfce',
   yarn: '#c98da4', // a dusty rose no other prop uses
+  fishDecal: '#3385ff', // the bowl's fish, a proper glaze blue (owner's pick)
   shadow: 'rgba(120, 110, 95, 0.25)', // the butterfly's ground shadow
 };
 
@@ -118,18 +119,19 @@ function drawBowl(ctx, opts) {
     ctx.stroke();
 
     if (fine) {
-      // The little fish decal every cat bowl is legally required to have.
+      // The little fish decal every cat bowl is legally required to have --
+      // filled glaze-blue and low on the belly, where it reads against the
+      // clay (gallery revisions 1-2, 2026-07-20).
       ctx.save();
-      ctx.globalAlpha = 0.35;
-      ctx.strokeStyle = PROPS.ink;
-      ctx.lineWidth = OUTLINE_W * 0.7;
+      ctx.globalAlpha = 0.8;
+      ctx.fillStyle = PROPS.fishDecal;
       ctx.beginPath();
-      ctx.ellipse(0.48, 0.73, 0.07, 0.035, 0, 0, TAU);
-      ctx.moveTo(0.55, 0.73);
-      ctx.lineTo(0.60, 0.70);
-      ctx.lineTo(0.60, 0.76);
+      ctx.ellipse(0.48, 0.765, 0.07, 0.035, 0, 0, TAU);
+      ctx.moveTo(0.55, 0.765);
+      ctx.lineTo(0.60, 0.735);
+      ctx.lineTo(0.60, 0.795);
       ctx.closePath();
-      ctx.stroke();
+      ctx.fill();
       ctx.restore();
     }
 
@@ -383,11 +385,15 @@ function drawNeedIcon(ctx, opts) {
 
   propBox(ctx, size, x, y, () => {
     if (need === 'drink') {
-      // One plump water drop with a glint.
+      // One plump water drop: pointed at the top where it fell from, a
+      // proper round bulb at the bottom (gallery revision 3, 2026-07-20).
+      const bulbR = 0.2;
+      const bulbY = 0.56;
       ctx.beginPath();
-      ctx.moveTo(0.5, 0.18);
-      ctx.bezierCurveTo(0.74, 0.46, 0.74, 0.62, 0.5, 0.78);
-      ctx.bezierCurveTo(0.26, 0.62, 0.26, 0.46, 0.5, 0.18);
+      ctx.moveTo(0.5, 0.16);
+      ctx.quadraticCurveTo(0.5 + bulbR, 0.34, 0.5 + bulbR, bulbY);
+      ctx.arc(0.5, bulbY, bulbR, 0, Math.PI);
+      ctx.quadraticCurveTo(0.5 - bulbR, 0.34, 0.5, 0.16);
       ctx.closePath();
       ctx.fillStyle = PROPS.soap;
       ctx.fill();
@@ -396,10 +402,12 @@ function drawNeedIcon(ctx, opts) {
       ctx.stroke();
       ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
       ctx.beginPath();
-      ctx.ellipse(0.42, 0.52, 0.04, 0.06, 0.3, 0, TAU);
+      ctx.ellipse(0.43, 0.52, 0.04, 0.06, 0.3, 0, TAU);
       ctx.fill();
     } else if (need === 'play') {
-      // A yarn ball: two wrap arcs and the trailing thread cats live for.
+      // A yarn ball: crossing wraps so it reads as wound thread, and the
+      // trailing strand cats live for -- now longer, with a curl at the
+      // end (gallery revision 4, 2026-07-20).
       ctx.beginPath();
       ctx.arc(0.48, 0.52, 0.26, 0, TAU);
       ctx.fillStyle = PROPS.yarn;
@@ -407,15 +415,25 @@ function drawNeedIcon(ctx, opts) {
       ctx.strokeStyle = PROPS.ink;
       ctx.lineWidth = OUTLINE_W * 0.8;
       ctx.stroke();
+      // Two sets of two parallel wraps, angled against each other -- wound
+      // yarn, not basketball seams (gallery revision 5, 2026-07-20).
+      for (const [x0, y0, cx, cy2, x1, y1] of [
+        [0.26, 0.65, 0.36, 0.38, 0.61, 0.30], // pair 1: lower-left -> upper-right
+        [0.35, 0.72, 0.46, 0.48, 0.70, 0.40],
+        [0.30, 0.36, 0.52, 0.44, 0.66, 0.68], // pair 2: upper-left -> lower-right
+        [0.26, 0.46, 0.47, 0.53, 0.58, 0.74],
+      ]) {
+        ctx.beginPath();
+        ctx.moveTo(x0, y0);
+        ctx.quadraticCurveTo(cx, cy2, x1, y1);
+        ctx.stroke();
+      }
+      // The strand: a longer fall, hooking into a little curl.
       ctx.beginPath();
-      ctx.arc(0.40, 0.42, 0.30, 0.25 * Math.PI, 0.62 * Math.PI);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(0.62, 0.68, 0.30, 1.05 * Math.PI, 1.45 * Math.PI);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(0.70, 0.62);
-      ctx.quadraticCurveTo(0.86, 0.70, 0.82, 0.84);
+      ctx.moveTo(0.7, 0.62);
+      ctx.quadraticCurveTo(0.88, 0.7, 0.86, 0.86);
+      ctx.quadraticCurveTo(0.845, 0.945, 0.775, 0.925);
+      ctx.quadraticCurveTo(0.73, 0.91, 0.755, 0.865);
       ctx.stroke();
     } else if (need === 'bath') {
       // Three soap bubbles, each with its glint.
