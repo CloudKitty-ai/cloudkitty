@@ -26,6 +26,16 @@ const MEOW_TEXT = {
   purr: 'purrrr',
 };
 
+/** The icon a thought bubble shows for a long-wanted need (US5, FR-012). */
+const NEED_ICONS = {
+  eat: '🍥',
+  drink: '💧',
+  sleep: '💤',
+  play: '🧶',
+  cuddle: '💕',
+  bath: '🛁',
+};
+
 /** How many ticks a speech bubble lingers on screen. */
 const BUBBLE_TICKS = 3;
 
@@ -108,6 +118,12 @@ class WorldRenderer {
       this.drawKitty(kitty, world, view);
     }
     this.drawBubbles(world, view);
+    // Thought bubbles sit above speech in the stack (the documented
+    // two-beats rule): at most one per kitty, only while the wait is long.
+    for (const kitty of world.kitties) {
+      const need = view.thoughtFor(kitty);
+      if (need) this.drawThought(kitty, need, view);
+    }
   }
 
   /**
@@ -221,22 +237,35 @@ class WorldRenderer {
     ctx.ellipse(cx, cy + this.tile * 0.32, this.tile * 0.3, this.tile * 0.12, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // The approved vector cat (spec 005 US2/US4): identity from the kitty's
-    // id, pose from served state (with the fall-asleep settle), facing from
-    // its last horizontal movement, motion from the animation layer.
+    // The approved vector cat (spec 005 US2/US4/US5): identity from the
+    // kitty's id, pose from served state (with the fall-asleep settle),
+    // facing from its last horizontal movement, motion from the animation
+    // layer -- and the drama layered by the documented rule: pose, then
+    // action animation, then expression, then the single one-shot beat.
     const pose = view.adjustPose(kitty.id, poseFor(kitty, view.movedFor(kitty.id)));
     const motion = view.motionFor(kitty.id, pose);
+    const beat = view.oneShotFor(kitty.id);
+    let eyes = motion.eyesOverride;
+    let ears = motion.earsBack;
+    const expression = view.expressionFor(kitty);
+    if (expression && !eyes) eyes = expression; // focused, unless mid-blink
+    if (beat?.kind === 'sad') {
+      // The give-up droop wears on the cat itself: ears back, eyes low.
+      ears = true;
+      eyes = 'half';
+    }
     drawCat(ctx, {
       pose,
       appearance: appearanceFor(kitty.id),
       facing: view.facingFor(kitty.id),
       size: this.tile,
       phase: motion.phase,
-      eyesOverride: motion.eyesOverride,
-      earsBack: motion.earsBack,
+      eyesOverride: eyes,
+      earsBack: ears,
       x,
       y,
     });
+    if (beat) this.drawBeat(beat, cx, cy, view.facingFor(kitty.id));
 
     if (state === 'sleeping') {
       ctx.save();
@@ -259,6 +288,87 @@ class WorldRenderer {
     }
 
     this.drawHappinessBar(kitty, x, y);
+  }
+
+  /**
+   * One-shot beats (US5): short presentational sequences beside the cat.
+   * The plaything is deliberately unlike every real element (FR-009) --
+   * a twinkling star, where the world's things are emoji and tiles.
+   */
+  drawBeat(beat, cx, cy, facing) {
+    const ctx = this.ctx;
+    const dir = facing === 'right' ? 1 : -1;
+    if (beat.kind === 'sparkle') {
+      // Relief: little golden twinkles rising beside the kitty (FR-011).
+      ctx.save();
+      ctx.globalAlpha = 1 - beat.t;
+      const rise = beat.t * this.tile * 0.5;
+      this.star(cx + dir * this.tile * 0.35, cy - this.tile * 0.35 - rise, this.tile * 0.1, '#f4c95d');
+      this.star(cx - dir * this.tile * 0.18, cy - this.tile * 0.55 - rise * 0.7, this.tile * 0.065, '#f8dc9a');
+      ctx.restore();
+    } else if (beat.kind === 'plaything') {
+      // Solo play: the imaginary quarry hops with the pounce and twinkles
+      // out of existence when the game ends.
+      ctx.save();
+      const hop = Math.sin(beat.t * Math.PI) * this.tile * 0.35;
+      const px = cx + dir * this.tile * 0.55;
+      const py = cy - this.tile * 0.08 - hop;
+      ctx.globalAlpha = 0.9;
+      const twinkle = 0.8 + 0.2 * Math.sin(beat.t * 6 * Math.PI);
+      this.star(px, py, this.tile * 0.13 * twinkle, '#ffd97a');
+      ctx.globalAlpha = 0.5;
+      this.star(px + dir * this.tile * 0.14, py + this.tile * 0.12, this.tile * 0.06, '#ffe9b5');
+      ctx.restore();
+    }
+    // 'sad' draws nothing extra: the droop is worn on the cat itself.
+  }
+
+  /** A little four-point star -- the beat vocabulary's one glyph. */
+  star(cx, cy, r, color) {
+    const ctx = this.ctx;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - r);
+    ctx.quadraticCurveTo(cx, cy, cx + r, cy);
+    ctx.quadraticCurveTo(cx, cy, cx, cy + r);
+    ctx.quadraticCurveTo(cx, cy, cx - r, cy);
+    ctx.quadraticCurveTo(cx, cy, cx, cy - r);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  /**
+   * The in-world twin of the panel's gentle cue (US5, FR-012): one soft
+   * thought bubble with the long-wanted need's icon, above the kitty and
+   * clear of its speech bubble.
+   */
+  drawThought(kitty, need, view) {
+    const ctx = this.ctx;
+    const { x, y } = this.tileOrigin(view.posFor(kitty));
+    const r = this.tile * 0.34;
+    let bx = x + this.tile * 1.05;
+    bx = Math.min(bx, this.canvas.clientWidth - r - 2);
+    const by = Math.max(r + 2, y - this.tile * 0.55);
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(255, 253, 250, 0.92)';
+    ctx.strokeStyle = 'rgba(150, 125, 105, 0.28)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(bx, by, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // The trail of little thought-dots down toward the kitty's head.
+    const headX = x + this.tile * 0.6;
+    const headY = y + this.tile * 0.2;
+    for (const [k, dr] of [[0.55, 0.12], [0.8, 0.07]]) {
+      ctx.beginPath();
+      ctx.arc(bx + (headX - bx) * k, by + (headY - by) * k, this.tile * dr, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    }
+    this.emoji(NEED_ICONS[need] ?? '💭', bx, by + 0.5, 0.4);
+    ctx.restore();
   }
 
   drawHappinessBar(kitty, x, y) {

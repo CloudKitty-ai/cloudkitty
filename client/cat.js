@@ -177,7 +177,7 @@ function catLayout(pose, phase) {
       { x: 0.3, top: 0.74, bottom: 0.88, w: 0.1 },
       { x: 0.6, top: 0.74, bottom: 0.88, w: 0.1 },
     ],
-    eyes: 'open', // 'open' | 'closed' | 'half'
+    eyes: 'open', // 'open' | 'closed' | 'half' | 'focused'
     droplet: false,
     pawUp: false,
   };
@@ -552,6 +552,21 @@ function drawFace(ctx, head, eyes, a, fine) {
       ctx.beginPath();
       ctx.moveTo(ex - er * 0.8, ey);
       ctx.lineTo(ex + er * 0.8, ey);
+      ctx.stroke();
+    }
+  } else if (eyes === 'focused') {
+    // The hunter's face (spec 005 US5): narrowed eyes under a level brow,
+    // worn for as long as a pursuit is served.
+    for (const ex of [ex1, ex2]) {
+      ctx.fillStyle = eyeInk;
+      ctx.beginPath();
+      ctx.ellipse(ex, ey + er * 0.15, er, er * 0.55, 0, 0, TAU);
+      ctx.fill();
+      ctx.strokeStyle = eyeInk;
+      ctx.lineWidth = OUTLINE_W * 0.9;
+      ctx.beginPath();
+      ctx.moveTo(ex - er, ey - er * 0.75);
+      ctx.lineTo(ex + er, ey - er * 0.45);
       ctx.stroke();
     }
   } else {

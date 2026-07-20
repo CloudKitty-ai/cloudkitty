@@ -76,6 +76,7 @@ class Presentation {
     this.facings = new Map(); // id -> 'left' | 'right'
     this.movedNow = new Map(); // id -> bool, for this pair
     this.sleepingSince = new Map(); // id -> tick its current sleep began
+    this.oneShots = new Map(); // id -> { kind, t0, duration }, one slot each
     this.newElementIds = new Set();
     this.expiredElements = [];
   }
@@ -121,6 +122,7 @@ class Presentation {
       this.facings.clear();
       this.movedNow.clear();
       this.sleepingSince.clear();
+      this.oneShots.clear();
       this.newElementIds = new Set();
       this.expiredElements = [];
       return;
@@ -143,6 +145,44 @@ class Presentation {
         this.sleepingSince.set(kitty.id, world.tick);
       } else if (!sleepingNow) {
         this.sleepingSince.delete(kitty.id);
+      }
+
+      // Beats (US5, research R5): derived here, once per served pair, from
+      // served fields and their differences -- never invented, never
+      // re-derived per frame. One slot per kitty; the newest wins.
+      // (Speech-bubble pop-in is deliberately not a beat -- analyze I2.)
+      const relieved = Object.entries(kitty.needs ?? {}).some(
+        ([need, value]) =>
+          (was.needs?.[need] ?? 0) - value >= VIEW.reliefSparkleDrop,
+      );
+      if (relieved) {
+        this.oneShots.set(kitty.id, {
+          kind: 'sparkle',
+          t0: now,
+          duration: VIEW.sparkleMs,
+        });
+      }
+      const chaseKey = (a) => `${JSON.stringify(a.target)}@${a.until}`;
+      const knownChases = new Set((was.abandoned_chases ?? []).map(chaseKey));
+      const gaveUp = (kitty.abandoned_chases ?? []).some(
+        (a) => !knownChases.has(chaseKey(a)),
+      );
+      if (gaveUp) {
+        this.oneShots.set(kitty.id, {
+          kind: 'sad',
+          t0: now,
+          duration: VIEW.sadBeatMs,
+        });
+      }
+      const action = kitty.last_action;
+      if (action?.action === 'play' && action.target == null) {
+        // Solo play: the imaginary plaything appears for exactly the tick
+        // the pounce animation plays (FR-009).
+        this.oneShots.set(kitty.id, {
+          kind: 'plaything',
+          t0: now,
+          duration: this.tickMs,
+        });
       }
     }
 
@@ -232,6 +272,43 @@ class Presentation {
     return motion;
   }
 
+  /** The active one-shot beat for a kitty, with its own 0..1 progress. */
+  oneShotFor(id, now) {
+    const beat = this.oneShots.get(id);
+    if (!beat) return null;
+    const t = (now - beat.t0) / beat.duration;
+    if (t >= 1) {
+      this.oneShots.delete(id);
+      return null;
+    }
+    return { kind: beat.kind, t };
+  }
+
+  /** Sustained expression, a pure function of the newest state (FR-010):
+   * a cat mid-pursuit wears determined eyes for as long as it hunts. */
+  expressionFor(kitty) {
+    return kitty.pursuit ? 'focused' : undefined;
+  }
+
+  /**
+   * The long-wanted need, if any (FR-012): the longest-running served
+   * distress at or past the served patience threshold -- the panel cue's
+   * exact comparison (>=, analyze A1) and the same threshold value. At
+   * most one; null when nothing has waited that long.
+   */
+  thoughtFor(kitty) {
+    const since = kitty.distress_since;
+    if (!since || !this.curr) return null;
+    let oldest = null;
+    for (const [need, startTick] of Object.entries(since)) {
+      const age = this.curr.tick - startTick;
+      if (age >= this.distressPatienceTicks && (!oldest || age > oldest.age)) {
+        oldest = { need, age };
+      }
+    }
+    return oldest?.need ?? null;
+  }
+
   elementAlphaFor(el, now) {
     if (!this.newElementIds.has(el.id)) return 1;
     return Math.min(1, this.progress(now) / VIEW.elementFadeShare);
@@ -259,6 +336,12 @@ class Presentation {
       // Still frames get the static pose for the state, nothing more
       // (FR-015): phase 0, no blinks, no flicks.
       motionFor: (id, pose) => (still ? { phase: 0 } : this.motionFor(id, pose, now)),
+      // One-shot particles rest under reduced motion; the sustained
+      // *informational* cues (focused eyes, the thought bubble) do not --
+      // they carry state, not motion (R6).
+      oneShotFor: (id) => (still ? null : this.oneShotFor(id, now)),
+      expressionFor: (kitty) => this.expressionFor(kitty),
+      thoughtFor: (kitty) => this.thoughtFor(kitty),
       elementAlphaFor: (el) => (still ? 1 : this.elementAlphaFor(el, now)),
       expired: still ? [] : this.expiredElements,
       expiredAlpha: still ? 0 : this.expiredAlpha(now),
