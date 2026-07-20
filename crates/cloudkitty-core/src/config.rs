@@ -416,7 +416,10 @@ fn default_short_activity() -> DurationBounds {
 }
 
 fn default_long_activity() -> DurationBounds {
-    DurationBounds::new(2, 8)
+    // Min raised 2 -> 3 once the 005 animations made durations visible:
+    // a nap or cuddle worth watching holds for at least three ticks
+    // (owner tuning, 2026-07-20; spec 006 defaults amended in step).
+    DurationBounds::new(3, 8)
 }
 
 impl Default for DurationsConfig {
@@ -1495,8 +1498,10 @@ mod tests {
         assert_eq!(c.actions.durations.drink, DurationBounds::new(2, 5));
         assert_eq!(c.actions.durations.play, DurationBounds::new(2, 5));
         assert_eq!(c.actions.durations.bath, DurationBounds::new(2, 5));
-        assert_eq!(c.actions.durations.sleep, DurationBounds::new(2, 8));
-        assert_eq!(c.actions.durations.cuddle, DurationBounds::new(2, 8));
+        // Sleep and cuddle minimums raised 2 -> 3 by owner tuning
+        // (2026-07-20), once the 005 animations made durations visible.
+        assert_eq!(c.actions.durations.sleep, DurationBounds::new(3, 8));
+        assert_eq!(c.actions.durations.cuddle, DurationBounds::new(3, 8));
     }
 
     #[test]

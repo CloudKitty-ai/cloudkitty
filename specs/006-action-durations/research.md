@@ -175,7 +175,7 @@ second proposal normalizes to continuation).
 ## R6 — Sleep and rest join the framework; gates in behaviors become redundant, not wrong
 
 **Decision**: `Sleeping`/`Resting` get clocks like everything else:
-min 2 / max 8 (cuddle bounds cover solo rest too — same `Resting` state).
+min 3 / max 8 (cuddle bounds cover solo rest too — same `Resting` state; min raised 2 → 3 by owner tuning, 2026-07-20).
 The engine's need-zero rule (sleep need 0 after min) and cap-8 replace
 "sleep until the behavior decides to wake" as the *guarantee*; the
 built-ins' existing wake logic (propose something else when sleep pressure
@@ -198,8 +198,8 @@ eat    = { min = 2, max = 5 }
 drink  = { min = 2, max = 5 }
 play   = { min = 2, max = 5 }
 bath   = { min = 2, max = 5 }
-sleep  = { min = 2, max = 8 }
-cuddle = { min = 2, max = 8 }   # also governs solo rest (same Resting state)
+sleep  = { min = 3, max = 8 }   # min raised 2 -> 3, owner tuning 2026-07-20
+cuddle = { min = 3, max = 8 }   # also governs solo rest; min raised with sleep
 ```
 
 Rust-side: `DurationsConfig { eat, drink, play, bath, sleep, cuddle:

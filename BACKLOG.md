@@ -11,9 +11,58 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 ## P1 — quick wins, next up
 
-<!-- shipped P1 items are removed once merged; see git history -->
+### Beautification II, step 1: vector props (retire the remaining emoji)
+The 005 refresh gave the cats a parametric look; the world's furniture is
+still platform emoji: chow `🍥`, bug `🐛`, greeble `👻`, the `💤` wisp and
+`💗` heart, and the thought-bubble need icons. Draw them the way the cats
+are drawn (direction chosen 2026-07-20): parametric canvas in the same
+chibi/outline vocabulary, living beside `drawCat` so the gallery grows a
+props section judged under the same approval gate that vetted the cats.
+Why procedural over image assets: emoji render differently per platform,
+sourced art fights the crisp-at-22px problem and licensing, and drawn
+props inherit everything 005 built — retina-crisp, palette-consistent,
+animatable (a bug that wiggles, a bowl whose kibble level is drawn rather
+than metered). Greeble secrecy is untouched: the ghost only ever appears
+under the `g` toggle, whatever it looks like.
+
+P1 because it is one drawing file, a gallery section, and render swaps —
+a contained sitting sequenced ahead of the map work below.
 
 ## P2 — the bigger pieces, for a proper sitting
+
+### Beautification II, step 2: the meadow itself
+Make the map as lovely as its residents (ideation 2026-07-20; direction
+agreed). The scaling principle that anchors every piece: all decoration
+derives from a per-tile hash of (x, y) — pure presentation, deterministic
+across reloads like cat identity, density naturally proportional to area,
+so any world size gets a stable non-repeating meadow and nothing needs new
+served data (Article V untouched). Build order, each piece independently
+shippable:
+
+1. **Organic grass** — retire the checkerboard: 3–4 close grass tones by
+   tile hash plus sparse hash-placed tufts, clover, tiny flowers; the grid
+   line becomes debug-only (joins the `g` family). Plus barely-visible
+   per-tile brightness jitter — the cheap fix for flat-color fields.
+2. **Ponds** — merge contiguous water tiles into one smooth-shored blob
+   (marching squares over the water tiles); lily pad on larger ponds.
+3. **A world edge** — taller grass fringe or a low hedge/picket frame in
+   the outline style, so any size world reads as a garden instead of
+   stopping mid-lawn.
+4. **Sunbeams as light** — a radial warm gradient bleeding softly past the
+   tile bounds under the existing pulse and motes.
+5. **Worn paths** — a client-side presentational heat-map of where cats
+   have walked this session, fading slowly, so trails emerge where the
+   cats actually live. **Decided 2026-07-20: a keyboard toggle in the `g`
+   mold** — off by default, one key reveals it, footer hint alongside the
+   greeble note. Pure view: local accumulation, cleared on reload and on
+   discontinuity, never served.
+
+Hygiene as in 005: ambient rules apply (subtle, individually toggleable
+`VIEW` flags, absent under reduced motion where motion is involved; static
+decoration stays). Day–night lighting remains its own entry below and
+lands on top of this look.
+
+### Harden the whole proposal boundary (do this *with* the plugin work)
 
 ### Harden the whole proposal boundary (do this *with* the plugin work)
 The strict play-target parsing that shipped in PR #5 fixed one instance of a
