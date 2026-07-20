@@ -13,7 +13,7 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use cloudkitty_core::{BehaviorRegistry, Config, DistressEvent, World, WorldSnapshot};
+use cloudkitty_core::{ActivityEnd, BehaviorRegistry, Config, DistressEvent, World, WorldSnapshot};
 use tokio::sync::{oneshot, watch};
 use tokio::time::{interval, Duration, MissedTickBehavior};
 
@@ -24,6 +24,7 @@ use crate::persist;
 pub struct Published {
     pub snapshot: Arc<WorldSnapshot>,
     pub distress: Arc<Vec<DistressEvent>>,
+    pub activity_ends: Arc<Vec<ActivityEnd>>,
 }
 
 impl Published {
@@ -31,6 +32,7 @@ impl Published {
         Self {
             snapshot: Arc::new(world.snapshot()),
             distress: Arc::new(world.distress.to_vec()),
+            activity_ends: Arc::new(world.activity_log.to_vec()),
         }
     }
 }

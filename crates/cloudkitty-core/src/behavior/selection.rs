@@ -26,42 +26,88 @@ use crate::element::ElementType;
 use crate::grid::Position;
 use crate::needs::NeedKind;
 
-/// A distance standing in for "no way to relieve this at all". Large enough to
-/// lose every comparison, small enough to never overflow the score arithmetic.
-const UNREACHABLE: u32 = u32::MAX / 2;
+/// The outcome of one scored pass: the need most worth acting on, plus the
+/// playmate scan that pass already paid for, so pursuing play never scans the
+/// world a second time in the same decision.
+pub struct Choice {
+    pub need: NeedKind,
+    /// The nearest viable playmate at decision time. Meaningful to pursuit
+    /// only when `need` is play; carried whole so the caller need not guess.
+    pub playmate: Option<(TargetRef, Position)>,
+}
 
 /// Picks the need most worth acting on: highest score, ties to the need
 /// longest without relief, then `NeedKind::ALL` order as the final
-/// deterministic word.
-pub fn choose_need(ctx: &DecisionContext) -> NeedKind {
-    let mut best = NeedKind::ALL[0];
-    let mut best_score = score(ctx, best);
+/// deterministic word. Needs with no relief path at all are skipped outright
+/// (see [`travel_distance`]).
+pub fn choose(ctx: &DecisionContext) -> Choice {
+    let playmate = nearest_viable_playmate(ctx);
+    let mut best: Option<(NeedKind, f32)> = None;
 
-    for kind in NeedKind::ALL.into_iter().skip(1) {
-        let s = score(ctx, kind);
-        let wins = s > best_score
-            || (s == best_score && ctx.me.last_relief_tick(kind) < ctx.me.last_relief_tick(best));
+    for kind in NeedKind::ALL {
+        let Some(s) = scored(ctx, kind, playmate) else {
+            continue;
+        };
+        let wins = match best {
+            None => true,
+            Some((held, held_score)) => {
+                s > held_score
+                    || (s == held_score
+                        && ctx.me.last_relief_tick(kind) < ctx.me.last_relief_tick(held))
+            }
+        };
         if wins {
-            best = kind;
-            best_score = s;
+            best = Some((kind, s));
         }
     }
 
-    best
+    // Bath and play are relievable wherever the cat stands, so a best always
+    // exists; the fallback is belt and braces, not a reachable path.
+    let need = best.map(|(kind, _)| kind).unwrap_or(NeedKind::ALL[0]);
+    Choice { need, playmate }
 }
 
-/// The selection score for one need. Public so tests (and curious plugin
+/// [`choose`], for callers (and tests) that only want the winning need.
+pub fn choose_need(ctx: &DecisionContext) -> NeedKind {
+    choose(ctx).need
+}
+
+/// The selection score for one need, or `None` when the need has no relief
+/// path (see [`travel_distance`]). Public so tests (and curious plugin
 /// authors) can check the arithmetic directly.
-pub fn score(ctx: &DecisionContext, kind: NeedKind) -> f32 {
+pub fn score(ctx: &DecisionContext, kind: NeedKind) -> Option<f32> {
+    scored(ctx, kind, nearest_viable_playmate(ctx))
+}
+
+fn scored(
+    ctx: &DecisionContext,
+    kind: NeedKind,
+    playmate: Option<(TargetRef, Position)>,
+) -> Option<f32> {
     let behavior = &ctx.config.behavior;
+    let distance = distance_given(ctx, kind, playmate)?;
     let pressure = ctx.me.needs.get(kind);
     let urgency = (pressure - ctx.config.thresholds.safeguard).max(0.0);
-    pressure + behavior.urgency_weight * urgency
-        - behavior.tile_cost * travel_distance(ctx, kind) as f32
+    Some(pressure + behavior.urgency_weight * urgency - behavior.tile_cost * distance as f32)
 }
 
-/// How far this cat would have to walk to do something about `need`.
-pub fn travel_distance(ctx: &DecisionContext, need: NeedKind) -> u32 {
+/// How far this cat would have to walk to do something about `need`, or
+/// `None` when the world currently offers no way to relieve it at all.
+///
+/// "No way" is deliberately not encoded as a huge distance: a sentinel is
+/// only as strong as the weight multiplying it, so a legal `tile_cost = 0`
+/// would cancel it and let an unrelievable need win selection -- the exact
+/// shape of the lock-in spec 004 removed. A skipped need is skipped under
+/// every configuration.
+pub fn travel_distance(ctx: &DecisionContext, need: NeedKind) -> Option<u32> {
+    distance_given(ctx, need, nearest_viable_playmate(ctx))
+}
+
+fn distance_given(
+    ctx: &DecisionContext,
+    need: NeedKind,
+    playmate: Option<(TargetRef, Position)>,
+) -> Option<u32> {
     let me = &ctx.me;
     let nearest = |kind: ElementType| {
         ctx.world
@@ -70,26 +116,44 @@ pub fn travel_distance(ctx: &DecisionContext, need: NeedKind) -> u32 {
     };
 
     match need {
-        // Grooming and sleeping can happen anywhere at all.
-        NeedKind::Bath | NeedKind::Sleep => 0,
-        NeedKind::Eat => nearest(ElementType::Chow).unwrap_or(UNREACHABLE),
-        NeedKind::Drink => nearest(ElementType::Water).unwrap_or(UNREACHABLE),
-        NeedKind::Play => play_travel_distance(ctx),
+        // Grooming happens wherever the cat is standing.
+        NeedKind::Bath => Some(0),
+        NeedKind::Sleep => Some(sleep_travel_distance(ctx)),
+        NeedKind::Eat => nearest(ElementType::Chow),
+        NeedKind::Drink => nearest(ElementType::Water),
+        NeedKind::Play => Some(play_travel_distance(ctx, playmate)),
         NeedKind::Cuddle => ctx
             .world
             .nearest_friend(me.id, me.pos)
-            .map(|k| me.pos.chebyshev_distance(&k.pos))
-            .unwrap_or(UNREACHABLE),
+            .map(|k| me.pos.chebyshev_distance(&k.pos)),
+    }
+}
+
+/// The distance sleep pursuit would actually cover: a sunbeam within
+/// `sunbeam_reach` is worth walking to, anything farther (or no sunbeam at
+/// all) means a nap on the spot. Mirrors `pursue`'s sleep arm exactly -- the
+/// score must never call sleep free and then commit the cat to a trek.
+fn sleep_travel_distance(ctx: &DecisionContext) -> u32 {
+    match ctx.world.nearest_element(ctx.me.pos, ElementType::Sunbeam) {
+        Some(sunbeam) => {
+            let d = ctx.me.pos.chebyshev_distance(&sunbeam.pos);
+            if d <= ctx.config.behavior.sunbeam_reach {
+                d
+            } else {
+                0
+            }
+        }
+        None => 0,
     }
 }
 
 /// The distance the play [`play_action`] would actually cover -- a viable
 /// playmate's distance when one is worth walking to, zero when solo play is
 /// what would happen.
-fn play_travel_distance(ctx: &DecisionContext) -> u32 {
+fn play_travel_distance(ctx: &DecisionContext, playmate: Option<(TargetRef, Position)>) -> u32 {
     let reach = ctx.config.behavior.solo_play_reach;
     let urgent = ctx.me.needs.get(NeedKind::Play) >= ctx.config.thresholds.safeguard;
-    match nearest_viable_playmate(ctx) {
+    match playmate {
         Some((_, pos)) => {
             let d = ctx.me.pos.chebyshev_distance(&pos);
             if d > reach && urgent {
@@ -166,11 +230,17 @@ fn is_viable(ctx: &DecisionContext, target: TargetRef) -> bool {
 /// viable one worth reaching, and otherwise pounce at nothing -- solo play, the
 /// backstop that makes play (like bath and sleep) satisfiable anywhere.
 pub fn play_action(ctx: &DecisionContext) -> Action {
+    play_action_with(ctx, nearest_viable_playmate(ctx))
+}
+
+/// [`play_action`] against a playmate scan the caller already ran -- how
+/// [`choose`]'s result is pursued without scanning the world twice.
+pub fn play_action_with(ctx: &DecisionContext, playmate: Option<(TargetRef, Position)>) -> Action {
     let me = &ctx.me;
     let reach = ctx.config.behavior.solo_play_reach;
     let urgent = me.needs.get(NeedKind::Play) >= ctx.config.thresholds.safeguard;
 
-    match nearest_viable_playmate(ctx) {
+    match playmate {
         Some((target, pos)) => {
             if me.pos.is_adjacent(&pos) {
                 Action::play_with(target)
@@ -258,10 +328,96 @@ mod tests {
     fn the_stuck_kitty_grooms_instead_of_fixating_on_play() {
         let ctx = miso_ctx();
         // The R1 worked example, verbatim: bath 150 > play 147 > sleep 146.7.
-        assert_eq!(score(&ctx, NeedKind::Bath), 150.0);
-        assert_eq!(score(&ctx, NeedKind::Play), 147.0);
-        assert!((score(&ctx, NeedKind::Sleep) - 146.7).abs() < 0.1);
+        assert_eq!(score(&ctx, NeedKind::Bath), Some(150.0));
+        assert_eq!(score(&ctx, NeedKind::Play), Some(147.0));
+        assert!((score(&ctx, NeedKind::Sleep).unwrap() - 146.7).abs() < 0.1);
         assert_eq!(choose_need(&ctx), NeedKind::Bath);
+    }
+
+    #[test]
+    fn an_unrelievable_need_is_skipped_not_priced() {
+        // The 004-review P1 hole: with a legal `tile_cost = 0`, a sentinel
+        // distance is multiplied away and a need with no relief path anywhere
+        // wins on pressure alone -- the cat idles at high pressure while bath
+        // and sleep sit free. Unreachability must survive every config.
+        let mut ctx = decision_context(|world| {
+            world.elements.clear(); // no chow anywhere
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].needs.add(NeedKind::Eat, 100.0);
+            world.kitties[idx].needs.add(NeedKind::Bath, 50.0);
+        });
+        std::sync::Arc::get_mut(&mut ctx.config)
+            .unwrap()
+            .behavior
+            .tile_cost = 0.0;
+
+        assert_eq!(
+            score(&ctx, NeedKind::Eat),
+            None,
+            "no chow in the world means no eat score at all"
+        );
+        assert_eq!(
+            choose_need(&ctx),
+            NeedKind::Bath,
+            "a need nothing can relieve must not outrank relief underfoot"
+        );
+    }
+
+    #[test]
+    fn sleep_is_priced_at_the_walk_its_pursuit_would_take() {
+        // The 004-review scoring hole: sleep scored as distance 0 while its
+        // pursuit walks up to `sunbeam_reach` tiles to a sunbeam, letting
+        // "free" sleep beat food one step away and then trek right past it.
+        let ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx].needs.add(NeedKind::Sleep, 60.0);
+            world.kitties[idx].needs.add(NeedKind::Eat, 58.0);
+            world.push_element(Element {
+                id: 700,
+                kind: ElementKind::Chow { servings: 3 },
+                pos: Position::new(5, 6), // one step away
+                ttl: None,
+            });
+            world.push_element(Element {
+                id: 701,
+                kind: ElementKind::Sunbeam,
+                pos: Position::new(13, 5), // 8 tiles: within reach, and priced
+                ttl: Some(100),
+            });
+        });
+
+        assert_eq!(
+            travel_distance(&ctx, NeedKind::Sleep),
+            Some(8),
+            "the sunbeam walk is a real cost"
+        );
+        assert_eq!(
+            choose_need(&ctx),
+            NeedKind::Eat,
+            "eat 58 - 1 beats sleep 60 - 8; the score and the walk agree"
+        );
+    }
+
+    #[test]
+    fn a_sunbeam_past_reach_means_a_nap_on_the_spot_priced_at_zero() {
+        let ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(2, 2);
+            world.push_element(Element {
+                id: 702,
+                kind: ElementKind::Sunbeam,
+                pos: Position::new(13, 13), // 11 tiles, past reach 8
+                ttl: Some(100),
+            });
+        });
+        assert_eq!(
+            travel_distance(&ctx, NeedKind::Sleep),
+            Some(0),
+            "pursuit would nap right here, so the score says so too"
+        );
     }
 
     #[test]
@@ -507,7 +663,7 @@ mod tests {
         assert_eq!(play_action(&ctx), Action::play_solo());
         assert_eq!(
             travel_distance(&ctx, NeedKind::Play),
-            0,
+            Some(0),
             "the score must agree that relief is on the spot"
         );
     }

@@ -83,9 +83,15 @@ score(kind)   = pressure(kind)
 ```
 
 - `travel_distance` keeps its existing per-need semantics (Chebyshev; bath
-  and sleep are 0; play now measures nearest **viable** critter-or-kitty).
-- Winner: highest score; ties broken by smallest `last_relief[kind]`
-  (missing = 0), then `NeedKind::ALL` order (final deterministic fallback).
+  is 0; play now measures nearest **viable** critter-or-kitty). *Amended
+  post-merge (2026-07-19):* sleep is priced at the sunbeam walk its pursuit
+  would take (`≤ behavior.sunbeam_reach` → that distance, else 0 for a nap
+  on the spot), and a need with **no relief path** yields no score at all —
+  the scored pass skips it, rather than pricing it with a sentinel distance
+  that a legal `tile_cost = 0` could cancel.
+- Winner: highest score among scoreable needs; ties broken by smallest
+  `last_relief[kind]` (missing = 0), then `NeedKind::ALL` order (final
+  deterministic fallback).
 - The old two-mode selection (`safeguard` lock / `most_convenient` with its
   ±20 band) is removed. `highest_pressure()` remains only where raw pressure
   is the question (meow urgency), not selection.
@@ -121,6 +127,7 @@ Play { target: Option<TargetRef> }     // was Play(TargetRef)
 | `behavior.chase_patience_ticks` | 12 | ≥ 1 |
 | `behavior.chase_exclusion_ticks` | 60 | ≥ 1 |
 | `behavior.solo_play_reach` | 8 | ≥ 1 |
+| `behavior.sunbeam_reach` | 8 | ≥ 1 |
 | `actions.solo_play_relief` | 10.0 | ≥ 0 and ≤ `actions.play_relief` |
 | `viewer.distress_patience_ticks` | 60 | ≥ 1 |
 

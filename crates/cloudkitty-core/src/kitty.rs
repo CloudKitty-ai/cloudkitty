@@ -142,6 +142,28 @@ impl Activity {
         }
     }
 
+    /// The need whose reaching 0 ends this activity (spec 006 FR-006), or
+    /// `None` for an activity with no governing need (solo rest is posture,
+    /// not relief -- it ends by interrupt or by running its cap).
+    ///
+    /// This is the one place the activity-to-need mapping lives; the engine's
+    /// end rules and any test asserting them must both derive from it.
+    /// *Whose* need is checked stays the engine's business: the groomed
+    /// friend's bath, either partner's play or cuddle in a duet.
+    pub fn governing_need(&self) -> Option<NeedKind> {
+        match self {
+            Activity::Idle | Activity::Resting { with_friend: None } => None,
+            Activity::Eating => Some(NeedKind::Eat),
+            Activity::Drinking => Some(NeedKind::Drink),
+            Activity::Playing { .. } => Some(NeedKind::Play),
+            Activity::Grooming { .. } => Some(NeedKind::Bath),
+            Activity::Sleeping { .. } => Some(NeedKind::Sleep),
+            Activity::Resting {
+                with_friend: Some(_),
+            } => Some(NeedKind::Cuddle),
+        }
+    }
+
     /// The action that carries this activity for another tick. `None` only
     /// for `Idle`, which has nothing to continue.
     pub fn continuation(&self) -> Option<Action> {
@@ -287,6 +309,15 @@ impl Kitty {
             distress_since: BTreeMap::new(),
             activity_clock: None,
         }
+    }
+
+    /// Ends whatever this kitty is doing: activity and clock are cleared
+    /// together, the strict pairing the invariants demand. Every site that
+    /// ends an activity must come through here, so a future field joining
+    /// the pairing has exactly one place to join it.
+    pub(crate) fn clear_activity(&mut self) {
+        self.activity = Activity::Idle;
+        self.activity_clock = None;
     }
 
     /// Whether `kind` may be meowed at `tick`.
@@ -572,6 +603,44 @@ mod tests {
         }));
         assert!(!playing.is_continued_by(&Action::Eat));
         assert!(!Activity::Idle.is_continued_by(&Action::Idle));
+    }
+
+    #[test]
+    fn every_activity_names_its_governing_need_or_lawfully_has_none() {
+        use crate::needs::NeedKind;
+        assert_eq!(Activity::Eating.governing_need(), Some(NeedKind::Eat));
+        assert_eq!(Activity::Drinking.governing_need(), Some(NeedKind::Drink));
+        assert_eq!(
+            Activity::Playing { target: None }.governing_need(),
+            Some(NeedKind::Play)
+        );
+        assert_eq!(
+            Activity::Grooming { target: Some(2) }.governing_need(),
+            Some(NeedKind::Bath),
+            "friend-grooming is governed by bath (the *friend's* -- whose is the engine's business)"
+        );
+        assert_eq!(
+            Activity::Sleeping {
+                in_sunbeam: true,
+                with_friend: None
+            }
+            .governing_need(),
+            Some(NeedKind::Sleep)
+        );
+        assert_eq!(
+            Activity::Resting {
+                with_friend: Some(2)
+            }
+            .governing_need(),
+            Some(NeedKind::Cuddle)
+        );
+        // Solo rest is posture, not relief: no governing need, ends by
+        // interrupt or cap. Idle is not an activity at all.
+        assert_eq!(
+            Activity::Resting { with_friend: None }.governing_need(),
+            None
+        );
+        assert_eq!(Activity::Idle.governing_need(), None);
     }
 
     #[test]

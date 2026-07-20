@@ -106,20 +106,11 @@ pub fn check(world: &World, config: &Config) -> Result<(), Violation> {
             }
         }
 
-        // Exclusions are pruned as they expire; none may linger.
-        if let Some(stale) = kitty
-            .abandoned_chases
-            .iter()
-            .find(|a| a.until <= world.tick.saturating_sub(1))
-        {
-            return Err(Violation {
-                article: "Bookkeeping integrity",
-                detail: format!(
-                    "{} still lists an exclusion that expired at {} (tick {})",
-                    kitty.name, stale.until, world.tick
-                ),
-            });
-        }
+        // (An expired abandoned_chases entry is deliberately *not* a
+        // violation: it is inert -- is_chase_excluded ignores it -- and the
+        // next update_pursuit prunes it, the same self-heal courtesy
+        // distress_since gets above. Refusing a whole snapshot over prunable
+        // bookkeeping would cost an operator a world for nothing.)
 
         // Activity bookkeeping (spec 006): the clock exists exactly when an
         // activity is in progress. Strict in both directions -- pre-006
@@ -312,6 +303,24 @@ mod tests {
         let (mut world, config) = test_world();
         world.kitties[0].pos = Position::new(world.width + 5, 0);
         assert!(check(&world, &config).is_err());
+    }
+
+    #[test]
+    fn an_expired_exclusion_is_prunable_bookkeeping_not_a_violation() {
+        // 004-review loose end: a stale abandoned_chases entry used to refuse
+        // the whole snapshot ("start a new one with --fresh") over bookkeeping
+        // the next update_pursuit prunes harmlessly -- while its sibling
+        // distress_since was deliberately given a self-heal path. Same
+        // courtesy for both.
+        let (mut world, config) = test_world();
+        world.tick = 100;
+        world.kitties[0]
+            .abandoned_chases
+            .push(crate::kitty::AbandonedChase {
+                target: TargetRef::Element { id: 7 },
+                until: 40, // expired 60 ticks ago
+            });
+        check(&world, &config).expect("an inert, prunable entry is lawful");
     }
 
     // ---- action durations (spec 006) ----------------------------------

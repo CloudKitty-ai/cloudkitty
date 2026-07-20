@@ -63,7 +63,8 @@ The echoed config gains the new keys (see
 [data-model.md](../data-model.md#config-extended)):
 `behavior.urgency_weight`, `behavior.tile_cost`, `behavior.worth_a_detour`,
 `behavior.chase_patience_ticks`, `behavior.chase_exclusion_ticks`,
-`behavior.solo_play_reach`, `actions.solo_play_relief`, and the new
+`behavior.solo_play_reach`, `behavior.sunbeam_reach` (post-merge review
+amendment, 2026-07-19), `actions.solo_play_relief`, and the new
 `viewer.distress_patience_ticks`.
 
 The client reads `viewer.distress_patience_ticks` to decide when a kitty's

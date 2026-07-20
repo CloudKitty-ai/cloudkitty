@@ -395,6 +395,48 @@ async fn activity_durations_travel_through_the_config_endpoint() {
 }
 
 #[tokio::test]
+async fn finished_scenes_appear_on_the_activity_events_endpoint_with_true_spans() {
+    // Spec 006 review remediation: the final tick of a scene clears the
+    // clock it stamped, so snapshots alone cannot say how long a scene ran.
+    // /events/activity serves the engine's own record.
+    let server = start_server().await;
+
+    let mut ends: Option<Value> = None;
+    for _ in 0..200 {
+        let events: Value = reqwest::get(server.url("/events/activity"))
+            .await
+            .unwrap()
+            .json()
+            .await
+            .unwrap();
+        assert!(events.is_array(), "always a list, never an error");
+        if events.as_array().map(|a| !a.is_empty()).unwrap_or(false) {
+            ends = Some(events);
+            break;
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(30)).await;
+    }
+
+    let ends = ends.expect("some scene finished within 200 polls");
+    for ev in ends.as_array().unwrap() {
+        assert!(ev["kitty_id"].is_u64());
+        assert!(
+            ev["activity"]["state"].is_string(),
+            "the ended activity keeps its wire shape: {ev}"
+        );
+        assert_ne!(ev["activity"]["state"], "idle", "idle never ends a scene");
+        let started = ev["started"].as_u64().unwrap();
+        let ended = ev["ended"].as_u64().unwrap();
+        assert!(
+            started <= ended,
+            "a span runs forward: started {started}, ended {ended}"
+        );
+    }
+
+    server.shutdown().await;
+}
+
+#[tokio::test]
 async fn the_activity_clock_appears_mid_scene_and_never_otherwise() {
     // Spec 006: `activity_clock` is served exactly while a scene runs --
     // omitted when idle, present (with started <= applied < tick) during an

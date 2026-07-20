@@ -11,25 +11,6 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 ## P1 — quick wins, next up
 
-### A legal config can still strand a cat (`tile_cost = 0`)
-The lock-in fix (spec 004) is safe under the shipped defaults, but its
-scoring can be switched off by configuration. `[behavior] tile_cost = 0`
-passes validation (which only requires finite and ≥ 0) and zeroes the travel
-term entirely — which also cancels the large sentinel distance that stands in
-for "there is no way to relieve this at all". A need with no relief anywhere
-then wins on pressure alone, and `pursue` has nothing to do about it: in a
-world momentarily without chow, a hungry cat idles at high pressure while
-bath and sleep sit free. That is the shape of the original lock-in, reachable
-through a config an operator might reasonably try.
-
-Two candidate fixes, the second preferred: require `tile_cost > 0`, or stop
-encoding unreachability as a distance at all — skip needs with no relief path
-during selection, so no weight can cancel the fact. The sentinel
-(`UNREACHABLE = u32::MAX / 2` in `behavior/selection.rs`) is the smell.
-
-P1 because it is the only open review finding that can actually leave a kitty
-stranded, and because the fix is small and well understood.
-
 <!-- shipped P1 items are removed once merged; see git history -->
 
 ## P2 — the bigger pieces, for a proper sitting
@@ -51,28 +32,6 @@ round-trip and rejection test per action shape (the play tests are the
 template), plus a documented rule that malformed proposals resolve to the
 fallback, never to a legal action. `Action`'s serde surface is the contract;
 treat it like one.
-
-### Loose ends from the 004 review
-Three low-severity findings from the post-merge review, none of which can
-harm a kitty — grouped because they are all one sitting's work:
-
-1. **Sleep is scored as free but may cost a walk.** `travel_distance` reports
-   Sleep as distance 0, while `pursue(Sleep)` will walk up to 8 tiles to a
-   sunbeam, so selection can pick sleep as "free" and then commit the cat to
-   an 8-tick trek past food it nearly chose. That radius is also a hardcoded
-   `<= 8` in `needs_driven.rs` — an Article VI magic number that survived the
-   sweep which promoted `WORTH_A_DETOUR` and `TILE_COST` out of the same
-   file, and a silent duplicate of the new `behavior.solo_play_reach`.
-2. **A stale exclusion hard-fails a resume.** An expired `abandoned_chases`
-   entry is a load-time constitutional violation, so a snapshot carrying one
-   is refused outright ("start a new one with `--fresh`") over bookkeeping the
-   next tick would prune harmlessly. Its sibling `distress_since` was
-   deliberately given a self-heal path; this asymmetry is accidental. Prune
-   on load, or make the invariant self-healing.
-3. **The playmate scan runs twice per decision.** `choose_need` computes
-   `nearest_viable_playmate` while scoring Play, then `play_action`
-   immediately recomputes the identical result. Hand the target down instead
-   of discarding it.
 
 ### Graphics refresh: Make even cuter!
 All in `client/` — no engine changes. Ideation done (2026-07-18); direction

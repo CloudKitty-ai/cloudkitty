@@ -38,7 +38,7 @@ impl Behavior for Playful {
         // means the same scored selection the sensible cat uses -- a playful
         // personality is a different life, never a different immune system.
         if pressure >= ctx.config.behavior.playful_comfort {
-            return pursue(ctx, selection::choose_need(ctx));
+            return pursue(ctx, selection::choose(ctx));
         }
 
         // A cat this happy should say so now and then.

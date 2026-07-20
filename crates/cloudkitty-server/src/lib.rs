@@ -24,6 +24,7 @@ pub fn build_router(state: AppState, client_dir: &Path) -> Router {
         .route("/kitties", get(api::get_kitties))
         .route("/kitties/:id", get(api::get_kitty))
         .route("/events/distress", get(api::get_distress))
+        .route("/events/activity", get(api::get_activity_ends))
         .route("/config", get(api::get_config))
         .route("/ws", get(ws::ws_handler))
         // Anything else is a static file: index.html, app.js, render.js.

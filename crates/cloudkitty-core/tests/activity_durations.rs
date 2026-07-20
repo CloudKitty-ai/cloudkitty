@@ -1,13 +1,17 @@
 //! Spec 006 (action durations): the success criteria as permanent guards.
 //!
-//! A 20,000-tick default-config run is instrumented from served state alone
-//! (kitty `activity` + `activity_clock`), reconstructing every activity
-//! instance and holding it to the configured bounds:
+//! A 20,000-tick default-config run is held to the configured bounds using
+//! the engine's own record: every activity that ends emits an
+//! [`ActivityEnd`] event carrying the exact tick span it ran (the served
+//! snapshots alone cannot show a scene's final tick, which clears the clock
+//! it stamped). Bounds come from `Activity::bounds` -- the same mapping the
+//! engine enforces -- so the test cannot drift against a re-governed kind.
 //!
 //! - SC-001: no instance shorter than its minimum (except the documented
 //!   counterpart-loss ends: a critter that vanished or scurried off, a
 //!   groomed friend who walked away, a water source that dried up) and none
-//!   longer than its maximum -- checked both while running and at the end.
+//!   longer than its maximum -- checked on every ended event, and against
+//!   still-running clocks each tick.
 //! - SC-002 (sampled): eat and drink instances end promptly -- never past the
 //!   ticks their starting pressure could possibly justify.
 //! - SC-004: every activity kind is observed lasting at least 2 ticks.
@@ -20,36 +24,25 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
-use cloudkitty_core::config::{Config, DurationBounds};
-use cloudkitty_core::kitty::{Activity, Kitty};
+use cloudkitty_core::config::Config;
+use cloudkitty_core::kitty::Activity;
 use cloudkitty_core::needs::NeedKind;
-use cloudkitty_core::{BehaviorRegistry, World};
+use cloudkitty_core::{ActivityEnd, BehaviorRegistry, World};
 
 const TICKS: u64 = 20_000;
 
-/// The `[actions.durations]` key an activity is governed by.
-fn kind_key(activity: &Activity) -> Option<&'static str> {
+/// The `[actions.durations]` key an activity is governed by -- labels for
+/// assertion messages and the SC-004 coverage set. (Bounds themselves come
+/// from `Activity::bounds`, never from this label.)
+fn kind_key(activity: &Activity) -> &'static str {
     match activity {
-        Activity::Idle => None,
-        Activity::Eating => Some("eat"),
-        Activity::Drinking => Some("drink"),
-        Activity::Playing { .. } => Some("play"),
-        Activity::Grooming { .. } => Some("bath"),
-        Activity::Sleeping { .. } => Some("sleep"),
-        Activity::Resting { .. } => Some("cuddle"),
-    }
-}
-
-fn bounds_for(config: &Config, key: &str) -> DurationBounds {
-    let d = &config.actions.durations;
-    match key {
-        "eat" => d.eat,
-        "drink" => d.drink,
-        "play" => d.play,
-        "bath" => d.bath,
-        "sleep" => d.sleep,
-        "cuddle" => d.cuddle,
-        other => unreachable!("unknown duration key {other}"),
+        Activity::Idle => "idle",
+        Activity::Eating => "eat",
+        Activity::Drinking => "drink",
+        Activity::Playing { .. } => "play",
+        Activity::Grooming { .. } => "bath",
+        Activity::Sleeping { .. } => "sleep",
+        Activity::Resting { .. } => "cuddle",
     }
 }
 
@@ -68,21 +61,6 @@ fn counterpart_can_leave(activity: &Activity) -> bool {
     )
 }
 
-#[derive(Debug, Clone)]
-struct OpenInstance {
-    kind: &'static str,
-    short_end_allowed: bool,
-    /// The action that continues this activity. The tick an activity ends on
-    /// clears its clock *after* servicing it, so that final tick is invisible
-    /// in the clock -- but `last_action` truthfully records the continuation,
-    /// and the tracker credits it from there.
-    continuation: cloudkitty_core::action::Action,
-    /// Pressure of the governed need just before the first bite/sip -- the
-    /// promptness budget for SC-002.
-    starting_pressure: Option<f32>,
-    last_elapsed: u64,
-}
-
 #[tokio::test]
 async fn twenty_thousand_ticks_of_activities_respect_their_bounds() {
     let config = Arc::new(Config::default());
@@ -90,131 +68,117 @@ async fn twenty_thousand_ticks_of_activities_respect_their_bounds() {
     let registry = BehaviorRegistry::with_builtins();
     let mut world = World::generate(&config);
 
-    // (kitty id, clock.started) uniquely names an instance.
-    let mut open: BTreeMap<(u32, u64), OpenInstance> = BTreeMap::new();
+    // (kitty id, started tick) uniquely names an instance across its life.
+    let mut seen: BTreeSet<(u32, u64)> = BTreeSet::new();
+    let mut starting_pressure: BTreeMap<(u32, u64), f32> = BTreeMap::new();
     let mut observed_two_plus: BTreeSet<&'static str> = BTreeSet::new();
     let mut completed = 0u64;
     let mut prev_needs: BTreeMap<u32, (f32, f32)> = BTreeMap::new(); // (eat, drink)
 
-    let finalize = |inst: OpenInstance,
-                    config: &Config,
-                    completed: &mut u64,
-                    observed_two_plus: &mut BTreeSet<&'static str>| {
-        if inst.last_elapsed >= 2 {
-            observed_two_plus.insert(inst.kind);
+    let check_ended = |ev: &ActivityEnd,
+                       starting_pressure: &BTreeMap<(u32, u64), f32>,
+                       observed_two_plus: &mut BTreeSet<&'static str>| {
+        let kind = kind_key(&ev.activity);
+        let span = ev.span();
+        if span >= 2 {
+            observed_two_plus.insert(kind);
         }
-        let bounds = bounds_for(config, inst.kind);
+        let bounds = ev
+            .activity
+            .bounds(&config.actions.durations)
+            .expect("an ended activity was in progress, so it has bounds");
         assert!(
-            inst.last_elapsed <= bounds.max,
-            "SC-001: a {} ran {} ticks, past its maximum {}",
-            inst.kind,
-            inst.last_elapsed,
+            span <= bounds.max,
+            "SC-001: a {kind} ran {span} ticks, past its maximum {}",
             bounds.max
         );
-        if !inst.short_end_allowed {
+        if !counterpart_can_leave(&ev.activity) {
             assert!(
-                inst.last_elapsed >= bounds.min,
-                "SC-001: a {} ended after {} ticks, below its minimum {} \
+                span >= bounds.min,
+                "SC-001: a {kind} ended after {span} ticks, below its minimum {} \
                  (and its counterpart could not have left)",
-                inst.kind,
-                inst.last_elapsed,
                 bounds.min
             );
         }
         // SC-002 (sampled on eat/drink): the scene never outlives what its
         // starting pressure could justify. Relief is full per tick; growth
         // (< 1/tick) is absorbed by the -1.0 margin.
-        if let Some(pressure) = inst.starting_pressure {
-            let relief = match inst.kind {
-                "eat" => config.actions.eat_relief,
-                "drink" => config.actions.drink_relief,
-                _ => unreachable!(),
+        if let Some(pressure) = starting_pressure.get(&(ev.kitty_id, ev.started)) {
+            let relief = match ev.activity {
+                Activity::Eating => config.actions.eat_relief,
+                Activity::Drinking => config.actions.drink_relief,
+                _ => unreachable!("starting pressure is only recorded for meals and drinks"),
             };
             let justified = (pressure / (relief - 1.0)).ceil() as u64;
             let budget = justified.max(bounds.min);
             assert!(
-                inst.last_elapsed <= budget,
-                "SC-002: a {} with starting pressure {:.1} ran {} ticks \
-                 (budget {budget})",
-                inst.kind,
-                pressure,
-                inst.last_elapsed
+                span <= budget,
+                "SC-002: a {kind} with starting pressure {pressure:.1} ran {span} ticks \
+                 (budget {budget})"
             );
         }
-        *completed += 1;
     };
 
     for _ in 0..TICKS {
         world.tick(&registry, &config).await;
         let closed_tick = world.tick - 1; // the tick that just resolved
 
+        // Every scene survives at least the tick it started (minimums are >=
+        // 2 and counterpart pruning runs in the owner's next slot), so each
+        // instance is observed open here at least once -- the moment its
+        // starting pressure is on the books and its running age checkable.
         for kitty in &world.kitties {
-            let current_key = kitty.activity_clock.map(|clock| (kitty.id, clock.started));
-
-            // Any open instance for this kitty that is not the current one
-            // has ended (clock cleared, or a new scene began).
-            let stale: Vec<(u32, u64)> = open
-                .keys()
-                .filter(|(id, started)| *id == kitty.id && current_key != Some((*id, *started)))
-                .copied()
-                .collect();
-            for key in stale {
-                let mut inst = open.remove(&key).expect("key just listed");
-                // Credit the invisible final tick: if this kitty's recorded
-                // action this tick was the scene's continuation, the scene
-                // was serviced once more before its clock cleared.
-                if kitty.last_action == Some(inst.continuation) {
-                    inst.last_elapsed += 1;
-                }
-                finalize(inst, &config, &mut completed, &mut observed_two_plus);
-            }
-
             let Some(clock) = kitty.activity_clock else {
                 continue;
             };
             let elapsed = clock.elapsed(closed_tick);
-            let key = (kitty.id, clock.started);
-            let entry = open.entry(key).or_insert_with(|| OpenInstance {
-                kind: kind_key(&kitty.activity).expect("clocked activity is in progress"),
-                short_end_allowed: counterpart_can_leave(&kitty.activity),
-                continuation: kitty
-                    .activity
-                    .continuation()
-                    .expect("an in-progress activity has a continuation"),
-                starting_pressure: match kitty.activity {
-                    Activity::Eating => prev_needs.get(&kitty.id).map(|(eat, _)| *eat),
-                    Activity::Drinking => prev_needs.get(&kitty.id).map(|(_, drink)| *drink),
-                    _ => None,
-                },
-                last_elapsed: 0,
-            });
-            entry.last_elapsed = elapsed;
-            let bounds = bounds_for(&config, entry.kind);
+            if elapsed == 1 {
+                if let Some(&(eat, drink)) = prev_needs.get(&kitty.id) {
+                    match kitty.activity {
+                        Activity::Eating => {
+                            starting_pressure.insert((kitty.id, clock.started), eat);
+                        }
+                        Activity::Drinking => {
+                            starting_pressure.insert((kitty.id, clock.started), drink);
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            let bounds = kitty
+                .activity
+                .bounds(&config.actions.durations)
+                .expect("a clocked activity is in progress");
             assert!(
                 elapsed <= bounds.max,
                 "SC-001: a {} is {elapsed} ticks old, past its maximum {} while still running",
-                entry.kind,
+                kind_key(&kitty.activity),
                 bounds.max
             );
+        }
+
+        // The engine's own record of everything that ended: exact spans, no
+        // reconstruction. The log holds far more than one tick's worth of
+        // events, so reading it every tick misses nothing.
+        for ev in world.activity_log.events() {
+            if !seen.insert((ev.kitty_id, ev.started)) {
+                continue;
+            }
+            check_ended(ev, &starting_pressure, &mut observed_two_plus);
+            starting_pressure.remove(&(ev.kitty_id, ev.started));
+            completed += 1;
         }
 
         prev_needs = world
             .kitties
             .iter()
-            .map(|k: &Kitty| {
+            .map(|k| {
                 (
                     k.id,
                     (k.needs.get(NeedKind::Eat), k.needs.get(NeedKind::Drink)),
                 )
             })
             .collect();
-    }
-    for (_, mut inst) in std::mem::take(&mut open) {
-        // Scenes still running when the curtain falls haven't ended short --
-        // only their maximum is checkable.
-        inst.short_end_allowed = true;
-        inst.starting_pressure = None;
-        finalize(inst, &config, &mut completed, &mut observed_two_plus);
     }
 
     println!("completed activity instances: {completed}");

@@ -176,10 +176,17 @@ chase_exclusion_ticks = 60
 # A viable playmate within this distance suppresses solo play; beyond it, a
 # kitty pounces at nothing sooner than sulking.
 solo_play_reach = 8
+# A sunbeam within this distance is worth walking to for a nap; farther than
+# that, a kitty sleeps where it is. Prices the sleep score and bounds the
+# sleep walk with the same number, so they can never disagree.
+sunbeam_reach = 8
 
 [events]
 # How many distress events to keep.
 distress_retention = 1000
+# How many finished-activity events to keep. Each records the true tick span
+# a scene ran (started..=ended), which snapshots alone cannot show.
+activity_retention = 1000
 
 [viewer]
 # Read by the web client via /config; the simulation ignores it. A distress

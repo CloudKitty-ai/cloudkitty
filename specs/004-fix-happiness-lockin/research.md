@@ -244,6 +244,7 @@ validation naming field, value and allowed range (FR-011):
 | `[behavior] chase_patience_ticks` | 12 | ≥ 1 | non-closing chase ticks before a target is non-viable (R2) |
 | `[behavior] chase_exclusion_ticks` | 60 | ≥ 1 | ticks an abandoned chase target stays excluded from re-selection (R2) |
 | `[behavior] solo_play_reach` | 8 | ≥ 1 | distance within which a viable partner suppresses solo play (R5) |
+| `[behavior] sunbeam_reach` | 8 | ≥ 1 | sunbeam distance worth walking to for a nap; prices the sleep score and bounds the sleep walk (post-merge review amendment, 2026-07-19; was hard-coded) |
 | `[actions] solo_play_relief` | 10.0 | ≥ 0, ≤ `play_relief` | play relief for pouncing at nothing (R5) |
 | `[viewer] distress_patience_ticks` | 60 | ≥ 1 | unresolved-distress age before the panel shows its gentle cue (R6) |
 

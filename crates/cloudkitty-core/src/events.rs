@@ -1,19 +1,23 @@
-//! Distress events.
+//! Engine events: things that happened, kept in bounded rings for whoever is
+//! watching.
 //!
-//! Article I: distress is a *signal*, never a punishment. A need crossing the
-//! threshold records one event; nothing else in the engine reads it to make a
-//! kitty's life worse. The world and future cooperative gameplay use it to know
-//! where help is wanted.
+//! Distress (Article I): distress is a *signal*, never a punishment. A need
+//! crossing the threshold records one event; nothing else in the engine reads
+//! it to make a kitty's life worse. Recording is edge-triggered: one event per
+//! crossing, re-armed only once the need drops back below the threshold. A
+//! kitty sitting at 95 for a thousand ticks produces one event, not a thousand.
 //!
-//! Recording is edge-triggered: one event per crossing, re-armed only once the need
-//! drops back below the threshold. A kitty sitting at 95 for a thousand ticks
-//! produces one event, not a thousand.
+//! Activity ends (spec 006): every activity that ends records exactly one
+//! event carrying its true span. The engine clears an activity's clock on the
+//! same tick it last services it, so that final tick is invisible in served
+//! snapshots -- the event log is the honest record, for tests and for viewers
+//! that want to say "ate for 4 ticks".
 
 use std::collections::VecDeque;
 
 use serde::{Deserialize, Serialize};
 
-use crate::kitty::KittyId;
+use crate::kitty::{Activity, KittyId};
 use crate::needs::NeedKind;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -23,14 +27,49 @@ pub struct DistressEvent {
     pub tick: u64,
 }
 
-/// A bounded ring of the most recent distress events.
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct DistressLog {
-    events: VecDeque<DistressEvent>,
+/// An activity that ran its course (spec 006): who, what, and the inclusive
+/// tick span it actually covered. `ended` is the last tick the activity was
+/// serviced, so its length is `ended - started + 1`.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct ActivityEnd {
+    pub kitty_id: KittyId,
+    pub activity: Activity,
+    pub started: u64,
+    pub ended: u64,
+}
+
+impl ActivityEnd {
+    /// How many ticks the activity was serviced, inclusive of both ends.
+    pub fn span(&self) -> u64 {
+        self.ended.saturating_sub(self.started) + 1
+    }
+}
+
+/// A bounded ring of the most recent events, oldest first.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventLog<T> {
+    events: VecDeque<T>,
     capacity: usize,
 }
 
-impl DistressLog {
+// Manual so the events themselves need no Default (the derive would demand
+// one). A defaulted log has capacity 0, which `record` treats as 1.
+impl<T> Default for EventLog<T> {
+    fn default() -> Self {
+        Self {
+            events: VecDeque::new(),
+            capacity: 0,
+        }
+    }
+}
+
+/// The distress ring (Article I signal).
+pub type DistressLog = EventLog<DistressEvent>;
+
+/// The activity-end ring (spec 006 span record).
+pub type ActivityLog = EventLog<ActivityEnd>;
+
+impl<T> EventLog<T> {
     pub fn new(capacity: usize) -> Self {
         Self {
             events: VecDeque::new(),
@@ -38,20 +77,16 @@ impl DistressLog {
         }
     }
 
-    pub fn record(&mut self, event: DistressEvent) {
-        if self.events.len() >= self.capacity {
+    pub fn record(&mut self, event: T) {
+        while self.events.len() >= self.capacity.max(1) {
             self.events.pop_front();
         }
         self.events.push_back(event);
     }
 
     /// Oldest first, newest last.
-    pub fn events(&self) -> impl Iterator<Item = &DistressEvent> {
+    pub fn events(&self) -> impl Iterator<Item = &T> {
         self.events.iter()
-    }
-
-    pub fn to_vec(&self) -> Vec<DistressEvent> {
-        self.events.iter().cloned().collect()
     }
 
     pub fn len(&self) -> usize {
@@ -64,6 +99,12 @@ impl DistressLog {
 
     pub fn capacity(&self) -> usize {
         self.capacity
+    }
+}
+
+impl<T: Clone> EventLog<T> {
+    pub fn to_vec(&self) -> Vec<T> {
+        self.events.iter().cloned().collect()
     }
 }
 
@@ -95,5 +136,29 @@ mod tests {
         let mut log = DistressLog::new(0);
         log.record(event(1));
         assert_eq!(log.len(), 1);
+
+        // A serde-defaulted log (capacity 0, e.g. a field added to an older
+        // snapshot) degrades to a ring of one rather than growing unbounded.
+        let mut defaulted = ActivityLog::default();
+        for started in 0..5 {
+            defaulted.record(ActivityEnd {
+                kitty_id: 1,
+                activity: Activity::Eating,
+                started,
+                ended: started + 1,
+            });
+        }
+        assert_eq!(defaulted.len(), 1);
+    }
+
+    #[test]
+    fn an_activity_end_knows_its_inclusive_span() {
+        let end = ActivityEnd {
+            kitty_id: 1,
+            activity: Activity::Eating,
+            started: 10,
+            ended: 12,
+        };
+        assert_eq!(end.span(), 3, "ticks 10, 11 and 12 were all serviced");
     }
 }

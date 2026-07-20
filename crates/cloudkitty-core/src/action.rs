@@ -157,10 +157,7 @@ pub fn validate(world: &World, kitty_id: KittyId, proposal: Action, config: &Con
             Some(friend_id) => world.is_available_friend(kitty_id, friend_id),
         },
 
-        Action::Eat => world
-            .adjacent_element(kitty.pos, ElementType::Chow)
-            .map(|e| matches!(e.kind, ElementKind::Chow { servings } if servings > 0))
-            .unwrap_or(false),
+        Action::Eat => world.adjacent_stocked_chow(kitty.pos).is_some(),
 
         Action::Drink => world
             .adjacent_element(kitty.pos, ElementType::Water)
@@ -199,7 +196,6 @@ pub fn validate(world: &World, kitty_id: KittyId, proposal: Action, config: &Con
 /// Applies an already-validated action. Every need change goes through the clamped
 /// `Need` type, so Article I holds no matter what magnitudes the config carries.
 pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Config) {
-    let effects = config.actions;
     let tick = world.tick;
 
     // A continuation of the ongoing activity services it rather than starting
@@ -215,7 +211,10 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
     }
 
     match action {
-        Action::Idle => continue_current_activity(world, kitty_id, config),
+        // A genuine do-nothing: an Idle proposal from a kitty with an
+        // activity in progress never reaches this arm (the continuation
+        // check above intercepts every clocked kitty).
+        Action::Idle => {}
 
         Action::Move { direction } => {
             let Some(kitty) = world.kitty(kitty_id) else {
@@ -248,9 +247,8 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
                         with_friend: Some(kitty_id),
                     },
                 );
-                lower_need(world, kitty_id, NeedKind::Cuddle, effects.cuddle_relief);
-                lower_need(world, friend, NeedKind::Cuddle, effects.cuddle_relief);
             }
+            apply_activity_effects(world, kitty_id, config);
         }
 
         Action::Sleep { with } => {
@@ -269,48 +267,22 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
                     with_friend: partner,
                 },
             );
-            apply_sleep_relief(world, kitty_id, in_sunbeam, partner, config);
+            apply_activity_effects(world, kitty_id, config);
         }
 
-        Action::Groom { target } => match target {
-            None => {
-                begin_activity(world, kitty_id, Activity::Grooming { target: None });
-                lower_need(world, kitty_id, NeedKind::Bath, effects.groom_relief);
-            }
-            Some(friend) => {
-                // Grooming a friend cleans them and satisfies the groomer's own
-                // need for closeness. Only the groomer is in an activity; the
-                // friend stays free and may wander off, ending it.
-                begin_activity(
-                    world,
-                    kitty_id,
-                    Activity::Grooming {
-                        target: Some(friend),
-                    },
-                );
-                lower_need(world, friend, NeedKind::Bath, effects.groom_relief);
-                lower_need(world, kitty_id, NeedKind::Cuddle, effects.cuddle_relief);
-            }
-        },
+        Action::Groom { target } => {
+            begin_activity(world, kitty_id, Activity::Grooming { target });
+            apply_activity_effects(world, kitty_id, config);
+        }
 
         Action::Eat => {
-            let Some(pos) = world.kitty(kitty_id).map(|k| k.pos) else {
-                return;
-            };
             begin_activity(world, kitty_id, Activity::Eating);
-            if let Some(id) = world.adjacent_element(pos, ElementType::Chow).map(|e| e.id) {
-                if let Some(el) = world.element_mut(id) {
-                    if let ElementKind::Chow { servings } = &mut el.kind {
-                        *servings = servings.saturating_sub(1);
-                    }
-                }
-                lower_need(world, kitty_id, NeedKind::Eat, effects.eat_relief);
-            }
+            apply_activity_effects(world, kitty_id, config);
         }
 
         Action::Drink => {
             begin_activity(world, kitty_id, Activity::Drinking);
-            lower_need(world, kitty_id, NeedKind::Drink, effects.drink_relief);
+            apply_activity_effects(world, kitty_id, config);
         }
 
         Action::Chase(target) => {
@@ -347,25 +319,18 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
                 TargetRef::Element { .. } => true,
             });
             begin_activity(world, kitty_id, Activity::Playing { target });
-            match target {
-                // Solo play is real play, just a smaller helping of it.
-                None => lower_need(world, kitty_id, NeedKind::Play, effects.solo_play_relief),
-                Some(target) => {
-                    lower_need(world, kitty_id, NeedKind::Play, effects.play_relief);
-                    if let TargetRef::Kitty { id } = target {
-                        // Social play is a duet: the partner is bound in with
-                        // the same clock, and both cats get the fun.
-                        begin_activity(
-                            world,
-                            id,
-                            Activity::Playing {
-                                target: Some(TargetRef::Kitty { id: kitty_id }),
-                            },
-                        );
-                        lower_need(world, id, NeedKind::Play, effects.play_relief);
-                    }
-                }
+            if let Some(TargetRef::Kitty { id }) = target {
+                // Social play is a duet: the partner is bound in with the
+                // same clock, and both cats get the fun.
+                begin_activity(
+                    world,
+                    id,
+                    Activity::Playing {
+                        target: Some(TargetRef::Kitty { id: kitty_id }),
+                    },
+                );
             }
+            apply_activity_effects(world, kitty_id, config);
         }
 
         Action::Purr => {
@@ -389,29 +354,39 @@ fn continue_current_activity(world: &mut World, kitty_id: KittyId, config: &Conf
     let Some(kitty) = world.kitty(kitty_id) else {
         return;
     };
-    let activity = kitty.activity;
-    let pos = kitty.pos;
     let Some(clock) = kitty.activity_clock else {
-        // Idle has nothing to continue; a clockless in-progress activity
-        // cannot exist in a lawful world (strict invariant, no legacy heals).
+        // Nothing to continue. (A clockless in-progress activity cannot
+        // exist in a lawful world -- strict invariant, no legacy heals.)
         return;
     };
     let effects_due = clock.applied < tick;
     stamp_serviced(world, kitty_id, tick);
-    if !effects_due {
-        return;
+    if effects_due {
+        apply_activity_effects(world, kitty_id, config);
     }
+}
 
+/// One tick's worth of the ongoing activity's effects. The *only* effect
+/// body: the starting tick and every continuation both land here, so what a
+/// scene does per tick can never quietly differ between tick 1 and ticks
+/// 2..n (the drift the 006 review caught brewing between the twin eat paths).
+fn apply_activity_effects(world: &mut World, kitty_id: KittyId, config: &Config) {
     let effects = config.actions;
+    let tick = world.tick;
+    let Some(kitty) = world.kitty(kitty_id) else {
+        return;
+    };
+    let activity = kitty.activity;
+    let pos = kitty.pos;
+
     match activity {
+        // Unreachable for a lawful kitty (effects run only on activities in
+        // progress); a harmless no-op rather than a panic, matching the
+        // invariants' release policy.
         Activity::Idle => {}
 
         Activity::Eating => {
-            if let Some(id) = world
-                .adjacent_element(pos, ElementType::Chow)
-                .filter(|e| matches!(e.kind, ElementKind::Chow { servings } if servings > 0))
-                .map(|e| e.id)
-            {
+            if let Some(id) = world.adjacent_stocked_chow(pos).map(|e| e.id) {
                 if let Some(el) = world.element_mut(id) {
                     if let ElementKind::Chow { servings } = &mut el.kind {
                         *servings = servings.saturating_sub(1);
@@ -419,9 +394,9 @@ fn continue_current_activity(world: &mut World, kitty_id: KittyId, config: &Conf
                 }
                 lower_need(world, kitty_id, NeedKind::Eat, effects.eat_relief);
             }
-            // Empty bowl below the minimum: the cat licks the bowl clean -- no
-            // relief, no consumption; the stamp above keeps the end rules in
-            // reach so the meal ends the moment its minimum is met.
+            // An empty bowl is a paused meal: the cat licks the bowl clean --
+            // no relief, no consumption; the caller's serviced stamp keeps
+            // the end rules in reach so the meal ends once its minimum is met.
         }
 
         Activity::Drinking => {
@@ -431,12 +406,16 @@ fn continue_current_activity(world: &mut World, kitty_id: KittyId, config: &Conf
         Activity::Grooming { target } => match target {
             None => lower_need(world, kitty_id, NeedKind::Bath, effects.groom_relief),
             Some(friend) => {
+                // Grooming a friend cleans them and satisfies the groomer's
+                // own need for closeness. Only the groomer is in an activity;
+                // the friend stays free and may wander off, ending it.
                 lower_need(world, friend, NeedKind::Bath, effects.groom_relief);
                 lower_need(world, kitty_id, NeedKind::Cuddle, effects.cuddle_relief);
             }
         },
 
         Activity::Playing { target } => match target {
+            // Solo play is real play, just a smaller helping of it.
             None => lower_need(world, kitty_id, NeedKind::Play, effects.solo_play_relief),
             Some(TargetRef::Element { .. }) => {
                 lower_need(world, kitty_id, NeedKind::Play, effects.play_relief);
@@ -461,8 +440,10 @@ fn continue_current_activity(world: &mut World, kitty_id: KittyId, config: &Conf
         }
 
         Activity::Sleeping { with_friend, .. } => {
+            // Re-check the nap's companions every serviced tick: the sunbeam
+            // may have drifted away, and a co-sleeping friend (a companion,
+            // never a conscript) may have wandered off.
             let partner = with_friend.filter(|f| world.is_available_friend(kitty_id, *f));
-            // Re-check the sunbeam: it may have drifted away while the cat slept.
             let in_sunbeam =
                 world.element_at(pos).map(|e| e.element_type()) == Some(ElementType::Sunbeam);
             if let Some(idx) = world.kitty_index(kitty_id) {
@@ -551,8 +532,7 @@ fn lower_need(world: &mut World, kitty_id: KittyId, need: NeedKind, amount: f32)
 
 fn set_idle(world: &mut World, kitty_id: KittyId) {
     if let Some(idx) = world.kitty_index(kitty_id) {
-        world.kitties[idx].activity = Activity::Idle;
-        world.kitties[idx].activity_clock = None;
+        world.kitties[idx].clear_activity();
     }
 }
 
