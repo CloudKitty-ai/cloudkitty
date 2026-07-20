@@ -68,8 +68,8 @@ The echoed config gains `actions.durations` (see
     "drink":  { "min": 2, "max": 5 },
     "play":   { "min": 2, "max": 5 },
     "bath":   { "min": 2, "max": 5 },
-    "sleep":  { "min": 2, "max": 8 },
-    "cuddle": { "min": 2, "max": 8 }
+    "sleep":  { "min": 3, "max": 8 },
+    "cuddle": { "min": 3, "max": 8 }
   }
 }
 ```

@@ -35,8 +35,8 @@ Activity = Idle
 | `Drinking` | `drink` (2/5) | `drink` | `drink_relief` to actor |
 | `Playing` | `play` (2/5) | `play` (either partner if duet) | `play_relief` each partner / `solo_play_relief` solo |
 | `Grooming` | `bath` (2/5) | actor's `bath` (self) / target's `bath` (friend) | self: `groom_relief` bath; friend: target `groom_relief` bath + actor `cuddle_relief` |
-| `Sleeping` | `sleep` (2/8) | `sleep` | `sleep_relief` / `sleep_relief_sunbeam`; `cuddle_relief` both when co-sleeping |
-| `Resting` | `cuddle` (2/8) | `cuddle` (either partner; solo rest: actor's `cuddle`) | duet: `cuddle_relief` both; solo: none (posture only) |
+| `Sleeping` | `sleep` (3/8) | `sleep` | `sleep_relief` / `sleep_relief_sunbeam`; `cuddle_relief` both when co-sleeping |
+| `Resting` | `cuddle` (3/8) | `cuddle` (either partner; solo rest: actor's `cuddle`) | duet: `cuddle_relief` both; solo: none (posture only) |
 
 Solo rest relieves nothing today and continues to relieve nothing; its
 need-zero rule therefore never fires and it ends by interrupt (FR-004) or
@@ -135,8 +135,8 @@ Phases 3 (environment) and 4 (needs/invariants) are untouched.
 | `actions.durations.drink` | { min 2, max 5 } | 1 ≤ min ≤ max |
 | `actions.durations.play` | { min 2, max 5 } | 1 ≤ min ≤ max |
 | `actions.durations.bath` | { min 2, max 5 } | 1 ≤ min ≤ max |
-| `actions.durations.sleep` | { min 2, max 8 } | 1 ≤ min ≤ max |
-| `actions.durations.cuddle` | { min 2, max 8 } | 1 ≤ min ≤ max |
+| `actions.durations.sleep` | { min 3, max 8 } | 1 ≤ min ≤ max |
+| `actions.durations.cuddle` | { min 3, max 8 } | 1 ≤ min ≤ max |
 
 - Violations report field, value, allowed range (established style).
 - `min = max = 1` everywhere lawfully restores pre-006 instant actions.

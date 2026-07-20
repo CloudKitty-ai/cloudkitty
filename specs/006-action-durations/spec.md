@@ -10,6 +10,14 @@
 
 ## Clarifications
 
+### Session 2026-07-20
+
+- Q: Are the shipped duration defaults right once the animations exist? →
+  A: Sleep and cuddle minimums raised 2 → 3 ticks (owner decision): with
+  the 005 graphics live, a nap or cuddle worth watching should hold on
+  screen for at least three ticks. All other defaults unchanged; the
+  configurable bounds and validation rules are untouched.
+
 ### Session 2026-07-19
 
 - Q: When an activity runs for multiple ticks, how much relief should each
@@ -238,7 +246,9 @@ other's minimum beyond their shared start.
   MUST each be an ongoing multi-tick activity with a configured minimum and
   maximum duration in ticks.
 - **FR-002**: Duration bounds MUST be configurable per activity with these
-  defaults: minimum 2 for all six; maximum 5 for eat, drink, play, and
+  defaults: minimum 2 for eat, drink, play, and bath; minimum 3 for sleep
+  and cuddle (raised from 2 by owner tuning on 2026-07-20, once the 005
+  animations made durations visible); maximum 5 for eat, drink, play, and
   bath; maximum 8 for sleep and cuddle. Startup validation MUST enforce
   1 ≤ minimum ≤ maximum per activity, rejecting violations with an error
   naming the field, the offending value, and the allowed range (no magic
@@ -365,7 +375,7 @@ other's minimum beyond their shared start.
   cuddle need — these per-application effects become per-tick effects,
   otherwise unchanged).
 - Solo rest (resting without a partner) is the same activity family as
-  cuddle and inherits the cuddle bounds (min 2, max 8); it remains
+  cuddle and inherits the cuddle bounds (min 3, max 8); it remains
   otherwise unchanged.
 - Chase and movement are not need-relieving activities and are untouched:
   chase keeps its 004 pursuit/patience mechanics; a chase that catches its
