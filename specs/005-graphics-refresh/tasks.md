@@ -108,19 +108,19 @@ alone; reload and restart the server — appearances identical; a kitty that
 moved west faces left and keeps facing left when it stops; `g` toggle
 unchanged.
 
-- [ ] T007 [US2] Rework `drawKitty` in `client/render.js`: replace the emoji
+- [X] T007 [US2] Rework `drawKitty` in `client/render.js`: replace the emoji
       glyph with `drawCat` using `appearanceFor(kitty.id)` and the pose
       selection table from data-model.md (`activity.state` →
       `last_action` → position delta → idle); keep the ground shadow,
       happiness bar, 💤 wisp, cuddle heart, and the greeble rule exactly as
       they are (FR-003, SC-003, US2 acceptance 4).
-- [ ] T008 [US2] Track facing in `client/app.js`: a per-kitty presentational
+- [X] T008 [US2] Track facing in `client/app.js`: a per-kitty presentational
       map updated from consecutive frames' position deltas (horizontal
       component only; unchanged on vertical/no movement; default `"left"`;
       rebuilt when the roster changes), passed into the renderer (FR-004).
       Note: this store moves into `anim.js` in T010 — keep it self-contained
       and closure-free so the move is a cut-paste (analyze D1).
-- [ ] T009 [US2] Verify quickstart §2 end to end: identify each kitty by fur
+- [X] T009 [US2] Verify quickstart §2 end to end: identify each kitty by fur
       alone with the panel covered; reload and server-restart appearance
       stability; facing kept while stationary; `g` toggle unchanged — fix
       until all pass (SC-003, analyze C1).
@@ -140,7 +140,7 @@ motion, and hidden-tab hygiene. This is the Article V heart of the feature.
 snaps; hidden-tab return snaps within a tick; reduced-motion emulation
 restores per-tick snapping.
 
-- [ ] T010 [US3] Create `client/anim.js`: frozen `VIEW` tunables object
+- [X] T010 [US3] Create `client/anim.js`: frozen `VIEW` tunables object
       (every new duration/easing/frequency/amplitude/threshold named here —
       FR-017); `StatePair` store (`prev`, `curr`, `currArrivedAt`,
       `generation`); discontinuity detection (first paint, generation bump,
@@ -150,20 +150,20 @@ restores per-tick snapping.
       `prefers-reduced-motion` live media query and `visibilitychange`
       handling (rAF cancelled while hidden, generation bump + snap on
       return — R6, FR-015/016); and the rAF loop that drives the renderer.
-- [ ] T011 [US3] Wire `client/app.js` and `client/index.html`: WS frames and
+- [X] T011 [US3] Wire `client/app.js` and `client/index.html`: WS frames and
       first snapshots feed `anim.js` instead of drawing directly; reconnect
       bumps `generation`; `fetchViewerConfig` also reads
       `config.world.tick_ms` into the easing duration with named stand-in
       `VIEW.tickMsFallback = 800` (R3, FR-005); add the `anim.js` script
       tag; toggle the `reduced-motion` body class from the media query.
-- [ ] T012 [US3] Rework `client/render.js` to draw an interpolated frame:
+- [X] T012 [US3] Rework `client/render.js` to draw an interpolated frame:
       kitty positions lerped with the eased progress; elements always at
       `curr` positions with brief spawn/expiry fades (never gliding from
       nowhere); the static ground checkerboard + grid cached to an offscreen
       canvas per resize and blitted per frame (R7, SC-006); one draw path
       where reduced/static mode is simply progress = 1, phase = 0, beats
       off.
-- [ ] T013 [US3] Verify quickstart §3 end to end: glide at default tick
+- [X] T013 [US3] Verify quickstart §3 end to end: glide at default tick
       rate, reconnect snap, hidden-tab return, reduced-motion equivalence —
       fix until all four pass.
 
@@ -180,7 +180,7 @@ no work.
 the panel within a tick; fall-asleep transition plays once; idle motion
 present but never action-like; reduced motion shows static poses.
 
-- [ ] T014 [US4] Add action animation curves to `client/cat.js`: pounce with
+- [X] T014 [US4] Add action animation curves to `client/cat.js`: pounce with
       anticipation and squash-and-stretch, eating chomp, drinking lap,
       grooming licks, fall-asleep curl transition, held-sleep breathing —
       all as `phase`-driven parameter modulation on the existing poses, no
@@ -188,16 +188,16 @@ present but never action-like; reduced motion shows static poses.
       (analyze U1): a drink-triggered ripple on the adjacent water tile
       (lands in `client/render.js` if taken — distinguishability is the
       requirement, the lap alone satisfies it).
-- [ ] T015 [US4] Extend `client/anim.js`: per-kitty animation phase derived
+- [X] T015 [US4] Extend `client/anim.js`: per-kitty animation phase derived
       from the interpolation clock; `fellAsleepAt` tracking so the curl
       transition plays only on the tick sleeping begins (US4 acceptance 3);
       an idle-motion scheduler (tail flick, ear twitch, blink) firing at
       `VIEW.idleMotionFrequency` from the local clock only, suppressed
       whenever a non-idle pose is active (FR-008).
-- [ ] T016 [US4] Wire `client/render.js`: pass animation phase and idle
+- [X] T016 [US4] Wire `client/render.js`: pass animation phase and idle
       motions into `drawCat`; under reduced motion render the static pose
       for the state with no transitions (FR-015).
-- [ ] T017 [US4] Verify quickstart §4: all listed actions distinguishable,
+- [X] T017 [US4] Verify quickstart §4: all listed actions distinguishable,
       sleep transition vs held curl, one-minute idle watch, reduced-motion
       static poses — fix until all pass (SC-004).
 
@@ -213,7 +213,7 @@ served fields and state diffs, never invented.
 **Independent Test**: quickstart §5 — each beat appears when its served
 condition holds (panel as ground truth) and never otherwise.
 
-- [ ] T018 [US5] Implement beat derivation in `client/anim.js`, run once per
+- [X] T018 [US5] Implement beat derivation in `client/anim.js`, run once per
       frame arrival by diffing `prev → curr` (R5): sad-beat on a new
       `abandoned_chases` entry; relief-sparkle on any need drop ≥
       `VIEW.reliefSparkleDrop` (default 15); plaything on targetless play
@@ -225,14 +225,14 @@ condition holds (panel as ground truth) and never otherwise.
       served patience threshold — the panel cue's exact comparison, analyze
       A1 — at most one) — layering rule exactly as documented in
       contracts/viewer-contract.md (FR-010/011/012).
-- [ ] T019 [US5] Draw the beats in `client/render.js` + `client/cat.js`:
+- [X] T019 [US5] Draw the beats in `client/render.js` + `client/cat.js`:
       imaginary plaything (sparkle/butterfly visually unlike every real
       element kind — FR-009), sit + ear-droop sad beat, focused-eye variant
       in `drawCat`, relief sparkle particle, and the in-world thought bubble
       with the wanted need's icon (sharing the panel's threshold value;
       speech bubble stacking rule); sustained informational cues still
       render under reduced motion (R6).
-- [ ] T020 [US5] Verify quickstart §5: all five beats appear on their
+- [X] T020 [US5] Verify quickstart §5: all five beats appear on their
       conditions and never otherwise; a kitty with no drama shows no beats
       (SC-005) — fix until all pass.
 
@@ -249,19 +249,19 @@ individually droppable.
 level tracks servings; bubbles pop in; bars ease; reduced motion removes all
 of it.
 
-- [ ] T021 [P] [US6] Ambient effects in `client/render.js`: water shimmer,
+- [X] T021 [P] [US6] Ambient effects in `client/render.js`: water shimmer,
       sunbeam warm pulse + drifting dust motes, occasional grass sway, soft
       drifting cloud shadows — drawn above the cached ground layer, each
       behind its own named `VIEW` flag, amplitudes tuned subtle, absent
       under reduced motion (FR-013).
-- [ ] T022 [P] [US6] Element juice in `client/render.js`: chow bowl kibble
+- [X] T022 [P] [US6] Element juice in `client/render.js`: chow bowl kibble
       fill level scaled by `servings` (extending today's pip row), speech
       bubble pop-in ease derived self-contained from `meow.tick ==
       curr.tick` on the progress clock (no beat store — US6 depends only on
       US3, analyze I2), over-cat happiness bar easing on the same clock
       (never CSS timers — FR-019 applies), instant under reduced motion
       (FR-014).
-- [ ] T023 [US6] Verify quickstart §6: subtlety, kibble tracking, pop-in,
+- [X] T023 [US6] Verify quickstart §6: subtlety, kibble tracking, pop-in,
       bar easing, reduced-motion absence — fix until all pass.
 
 **Checkpoint**: all six stories delivered.
@@ -270,18 +270,18 @@ of it.
 
 ## Phase 9: Polish & Cross-Cutting Concerns
 
-- [ ] T024 [P] Optional (droppable) panel unification in `client/app.js`:
+- [X] T024 [P] Optional (droppable) panel unification in `client/app.js`:
       replace the card's emoji face with a small `drawCat` portrait canvas
       using the kitty's palette — the spec-assumption nice-to-have; skip
       without ceremony if it fights the card layout.
-- [ ] T025 Performance and hygiene pass per quickstart §7: one-minute FPS
+- [X] T025 Performance and hygiene pass per quickstart §7: one-minute FPS
       observation at default world size (<1% dropped frames, SC-006),
       profiler confirmation of zero rAF work while hidden, offscreen ground
       cache confirmed effective; tune `VIEW` values if needed.
-- [ ] T026 [P] Update `BACKLOG.md`: trim the shipped "Graphics refresh"
+- [X] T026 [P] Update `BACKLOG.md`: trim the shipped "Graphics refresh"
       P2 entry per the shipped-items convention (leave the deferred items —
       day–night, ear/tail affect — pointing at their own entries).
-- [ ] T027 Final validation: quickstart §8 (blocked `/config` → named
+- [X] T027 Final validation: quickstart §8 (blocked `/config` → named
       stand-ins, no console errors — SC-008) and §9 (fmt + clippy + full
       workspace suite green, `git diff --stat crates/ cloudkitty.toml`
       empty); confirm every task above is checked off.

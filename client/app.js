@@ -66,7 +66,7 @@ function renderPanel(world) {
   world.kitties.forEach((kitty, index) => {
     const card = panelEl.children[index];
     if (!card) return;
-    card.querySelector('.name').textContent = `${faceFor(kitty)} ${kitty.name}`;
+    card.querySelector('.name > span').textContent = kitty.name;
     card.querySelector('.mood').textContent = moodFor(kitty);
     card.querySelector('.doing').textContent = doingFor(kitty, world);
     card.querySelector('.patience').textContent = patienceFor(kitty, world);
@@ -91,6 +91,26 @@ function buildKittyCard(kitty) {
 
   const name = document.createElement('div');
   name.className = 'name';
+  // The card wears the kitty's own portrait (spec 005 polish): the same
+  // drawCat the world uses, drawn once -- appearance never changes.
+  const portrait = document.createElement('canvas');
+  const portraitSize = 22;
+  const dpr = window.devicePixelRatio || 1;
+  portrait.width = portraitSize * dpr;
+  portrait.height = portraitSize * dpr;
+  portrait.style.width = `${portraitSize}px`;
+  portrait.style.height = `${portraitSize}px`;
+  const portraitCtx = portrait.getContext('2d');
+  portraitCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  drawCat(portraitCtx, {
+    pose: 'idle',
+    appearance: appearanceFor(kitty.id),
+    facing: 'right', // toward its own name
+    size: portraitSize,
+    phase: 0,
+  });
+  name.appendChild(portrait);
+  name.appendChild(document.createElement('span'));
   card.appendChild(name);
 
   const mood = document.createElement('div');
@@ -125,13 +145,6 @@ function buildKittyCard(kitty) {
   card.appendChild(needs);
 
   return card;
-}
-
-function faceFor(kitty) {
-  const state = kitty.activity?.state;
-  if (state === 'sleeping') return '😴';
-  if (state === 'resting') return '😌';
-  return '🐱';
 }
 
 /** Mood is happiness, and only happiness -- a napping cat can still be delighted. */
