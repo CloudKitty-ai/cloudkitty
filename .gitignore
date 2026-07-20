@@ -6,6 +6,8 @@
 # CloudKitty runtime state
 snapshot.json
 snapshot.json.tmp
+snapshot.json.*.bak
+/worlds/
 
 # Editors / OS
 .idea/
@@ -19,3 +21,6 @@ Thumbs.db
 *.log
 .env
 .env.*
+
+# Saved worlds (runtime state, like snapshot.json)
+worlds/
