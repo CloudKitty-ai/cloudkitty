@@ -7,15 +7,8 @@
  * chase nothing at all. Press `g` to see what they can see.
  */
 
-const TILE_COLORS = {
-  grass: '#e7f2df',
-  grassAlt: '#e1eed8',
-  gridLine: 'rgba(140, 170, 130, 0.16)',
-  water: '#bfe3f2',
-  waterRim: '#9ccfe6',
-  sunbeam: 'rgba(255, 226, 138, 0.55)',
-  sunbeamRim: 'rgba(255, 206, 92, 0.75)',
-};
+// (TILE_COLORS is gone -- spec 008: every ground hue now lives in the named
+// MEADOW palette in meadow.js, beside the drawings that use it.)
 
 const MEOW_TEXT = {
   want_eat: 'I want to eat!',
@@ -56,10 +49,13 @@ class WorldRenderer {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.showGreebles = false;
+    this.showGrid = false; // spec 008 FR-004: the demoted debug lattice
+    this.showPaths = false; // spec 008 FR-009: worn trails, off by default
     this.tile = 22;
     this.cssWidth = 0;
     this.cssHeight = 0;
     this.groundCache = null;
+    this.pondCache = null; // { signature, ponds } -- rebuilt on water change
   }
 
   /** Fits the canvas to the world, accounting for retina displays. */
@@ -77,6 +73,7 @@ class WorldRenderer {
       this.canvas.height = Math.floor(cssHeight * dpr);
       this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       this.groundCache = null; // new size, new ground
+      this.pondCache = null; // and shorelines rebuilt at the new tile size
     }
     this.cssWidth = cssWidth;
     this.cssHeight = cssHeight;
@@ -103,11 +100,22 @@ class WorldRenderer {
     }
 
     this.blitGround(world);
+    // Worn paths sit directly on the grass, under everything that lives
+    // (spec 008 US5); the grid overlay is debug chrome above them.
+    if (this.showPaths && VIEW.meadow.paths) {
+      drawWornPaths(ctx, { entries: view.wornPaths(), tile: this.tile });
+    }
+    if (this.showGrid && VIEW.meadow.gridOverlay) {
+      drawGridOverlay(ctx, { width: world.width, height: world.height, tile: this.tile });
+    }
     this.drawGroundAmbient(world, view);
     // Sunbeams are warmth on the ground, so they go under everything else.
     for (const el of world.elements) {
       if (el.kind === 'sunbeam') this.drawSunbeam(el, view.elementAlphaFor(el), view);
     }
+    // Ponds: the merged, smooth-shored redrawing of exactly the served
+    // water tiles (spec 008 US2). Mid-fade tiles stay individual pools.
+    if (VIEW.meadow.ponds) this.drawPondLayer(world, view);
     // Expired elements take a brief bow instead of vanishing mid-glance.
     if (view.expired.length && view.expiredAlpha > 0) {
       for (const el of view.expired) {
@@ -116,7 +124,13 @@ class WorldRenderer {
       }
     }
     for (const el of world.elements) {
-      if (el.kind !== 'sunbeam') this.drawElement(el, view.elementAlphaFor(el), view);
+      if (el.kind === 'sunbeam') continue;
+      if (el.kind === 'water' && VIEW.meadow.ponds && view.elementAlphaFor(el) >= 1) {
+        // Drawn by the pond body already; only its shimmer remains here.
+        this.drawWaterShimmer(el, view);
+        continue;
+      }
+      this.drawElement(el, view.elementAlphaFor(el), view);
     }
     for (const kitty of world.kitties) {
       this.drawKitty(kitty, world, view);
@@ -131,9 +145,11 @@ class WorldRenderer {
   }
 
   /**
-   * The checkerboard and grid never change between resizes, so they are
-   * rendered once to an offscreen layer and blitted per frame (research
-   * R7) -- the difference between ~1k fills and one drawImage each frame.
+   * The meadow never changes between resizes, so it is rendered once to
+   * an offscreen layer and blitted per frame (005 research R7) -- the
+   * difference between thousands of fills and one drawImage each frame.
+   * The grid lines that used to live here are now the debug-only overlay
+   * behind `l` (spec 008 FR-004).
    */
   blitGround(world) {
     if (!this.groundCache) {
@@ -143,27 +159,60 @@ class WorldRenderer {
       const g = off.getContext('2d');
       const dpr = window.devicePixelRatio || 1;
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
-      for (let y = 0; y < world.height; y++) {
-        for (let x = 0; x < world.width; x++) {
-          g.fillStyle = (x + y) % 2 === 0 ? TILE_COLORS.grass : TILE_COLORS.grassAlt;
-          g.fillRect(x * this.tile, y * this.tile, this.tile, this.tile);
-        }
-      }
-      g.strokeStyle = TILE_COLORS.gridLine;
-      g.lineWidth = 1;
-      g.beginPath();
-      for (let x = 0; x <= world.width; x++) {
-        g.moveTo(x * this.tile + 0.5, 0);
-        g.lineTo(x * this.tile + 0.5, world.height * this.tile);
-      }
-      for (let y = 0; y <= world.height; y++) {
-        g.moveTo(0, y * this.tile + 0.5);
-        g.lineTo(world.width * this.tile, y * this.tile + 0.5);
-      }
-      g.stroke();
+      drawMeadowGround(g, { width: world.width, height: world.height, tile: this.tile });
       this.groundCache = off;
     }
     this.ctx.drawImage(this.groundCache, 0, 0, this.cssWidth, this.cssHeight);
+  }
+
+  /**
+   * The pond layer (spec 008 US2): group the fully-present served water
+   * tiles, cache their smooth shorelines under the position signature,
+   * and redraw the cached paths -- rebuild only when water actually
+   * spawns or expires. Mid-fade tiles are excluded here and drawn as
+   * their own small pools by drawElement, at the element alpha.
+   */
+  drawPondLayer(world, view) {
+    const stable = [];
+    for (const el of world.elements) {
+      if (el.kind === 'water' && view.elementAlphaFor(el) >= 1) stable.push(el.pos);
+    }
+    if (!stable.length) {
+      this.pondCache = null;
+      return;
+    }
+    const signature = stable.map((p) => `${p.x},${p.y}`).sort().join(';');
+    if (!this.pondCache || this.pondCache.signature !== signature) {
+      const groups = groupWaterTiles(stable);
+      this.pondCache = {
+        signature,
+        ponds: groups.map((tiles) => ({ tiles, path: buildPondPath(tiles, this.tile) })),
+      };
+    }
+    drawPonds(this.ctx, { ponds: this.pondCache.ponds, tile: this.tile });
+  }
+
+  /** The shimmer sliding across a water surface (005 US6), shared by the
+   * pond body and the standalone pools. */
+  drawWaterShimmer(el, view) {
+    const t = view?.ambient?.now;
+    if (t === undefined || !VIEW.ambient.waterShimmer) return;
+    const ctx = this.ctx;
+    const { x, y } = this.tileOrigin(el.pos);
+    const cx = x + this.tile / 2;
+    const cy = y + this.tile / 2;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+    ctx.lineWidth = 1.2;
+    ctx.lineCap = 'round';
+    const drift = Math.sin(t / 1600 + el.id) * this.tile * 0.14;
+    for (const [dx, dy, len] of [[-0.18, -0.12, 0.24], [0.06, 0.14, 0.18]]) {
+      ctx.beginPath();
+      ctx.moveTo(cx + dx * this.tile + drift, cy + dy * this.tile);
+      ctx.lineTo(cx + (dx + len) * this.tile + drift, cy + dy * this.tile);
+      ctx.stroke();
+    }
+    ctx.restore();
   }
 
   /**
@@ -222,13 +271,23 @@ class WorldRenderer {
         ? 0.92 + 0.08 * Math.sin(t / 1900 + el.id)
         : 1;
     ctx.save();
-    ctx.globalAlpha = alpha * pulse;
-    ctx.fillStyle = TILE_COLORS.sunbeam;
-    this.roundRect(x + 1, y + 1, this.tile - 2, this.tile - 2, 6);
-    ctx.fill();
-    ctx.strokeStyle = TILE_COLORS.sunbeamRim;
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
+    if (VIEW.meadow.glow) {
+      // Light, not a tile (spec 008 US4): the warm radial pool bleeding
+      // softly past the tile bounds, breathing on the same pulse.
+      drawSunbeamGlow(ctx, {
+        cx: x + this.tile / 2,
+        cy: y + this.tile / 2,
+        tile: this.tile,
+        alpha: alpha * pulse,
+      });
+    } else {
+      // The glow layer disabled: a plain warm tile keeps the beam readable.
+      ctx.globalAlpha = alpha * pulse;
+      ctx.fillStyle = MEADOW.glowMid;
+      this.roundRect(x + 1, y + 1, this.tile - 2, this.tile - 2, 6);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
 
     if (t !== undefined && VIEW.ambient.dustMotes) {
       // Two lazy dust motes circling in the warmth.
@@ -258,31 +317,20 @@ class WorldRenderer {
     const isCritter = el.kind === 'bug' || el.kind === 'greeble';
     const pos = isCritter && view ? view.elementPosFor(el) : el.pos;
     const { x, y } = this.tileOrigin(pos);
-    const cx = x + this.tile / 2;
-    const cy = y + this.tile / 2;
 
     switch (el.kind) {
       case 'water': {
-        ctx.fillStyle = TILE_COLORS.water;
+        // The standalone pool: mid-fade (spawning/expiring) water, and
+        // every water tile when the pond layer is disabled (spec 008
+        // US2). Fully-present water otherwise draws as the merged pond
+        // body in drawPondLayer.
+        ctx.fillStyle = MEADOW.pondWater;
         this.roundRect(x + 2, y + 2, this.tile - 4, this.tile - 4, 8);
         ctx.fill();
-        ctx.strokeStyle = TILE_COLORS.waterRim;
+        ctx.strokeStyle = MEADOW.pondRim;
         ctx.lineWidth = 1.5;
         ctx.stroke();
-        const t = view?.ambient?.now;
-        if (t !== undefined && VIEW.ambient.waterShimmer) {
-          // A shimmer sliding gently across the surface (US6).
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
-          ctx.lineWidth = 1.2;
-          ctx.lineCap = 'round';
-          const drift = Math.sin(t / 1600 + el.id) * this.tile * 0.14;
-          for (const [dx, dy, len] of [[-0.18, -0.12, 0.24], [0.06, 0.14, 0.18]]) {
-            ctx.beginPath();
-            ctx.moveTo(cx + dx * this.tile + drift, cy + dy * this.tile);
-            ctx.lineTo(cx + (dx + len) * this.tile + drift, cy + dy * this.tile);
-            ctx.stroke();
-          }
-        }
+        this.drawWaterShimmer(el, view);
         break;
       }
       case 'chow': {
