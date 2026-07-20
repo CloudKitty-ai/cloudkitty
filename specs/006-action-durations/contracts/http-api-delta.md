@@ -78,6 +78,33 @@ Viewers wanting a progress bar for an activity read the bounds here and the
 clock from the kitty — never hard-coded (same rule as
 `viewer.distress_patience_ticks`).
 
+*Post-merge review amendment (2026-07-19):* the echoed config also gains
+`events.activity_retention` (default 1000, ≥ 1) — how many finished-activity
+events the world remembers.
+
+## `GET /events/activity` (post-merge review amendment, 2026-07-19)
+
+New endpoint, purely additive, mirroring `/events/distress`: a bounded ring
+(capacity `events.activity_retention`) of finished activities, oldest first.
+The final tick of a scene clears the clock it just stamped, so snapshots
+alone can never show how long a scene actually ran — these events are the
+engine's own record, and what a future viewer reads to say "ate for 4
+ticks":
+
+```jsonc
+[
+  {
+    "kitty_id": 1,
+    "activity": { "state": "eating" },   // same wire shape as the live field
+    "started": 2041,                      // first tick serviced
+    "ended": 2043                         // last tick serviced (inclusive):
+  }                                       // this scene ran 3 ticks
+]
+```
+
+Every engine-side end emits exactly one event per participant (a duet ends
+as two events, one per kitty, identical spans).
+
 ## Unchanged
 
 `GET /events/distress`, meow frames, greeble secrecy (FR-033/FR-037 of 001):

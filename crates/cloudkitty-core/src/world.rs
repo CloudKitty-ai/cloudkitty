@@ -21,7 +21,7 @@ use crate::action::TargetRef;
 use crate::behavior::{gather_decisions, BehaviorRegistry};
 use crate::config::Config;
 use crate::element::{Element, ElementId, ElementKind, ElementType};
-use crate::events::{DistressEvent, DistressLog};
+use crate::events::{ActivityEnd, ActivityLog, DistressEvent, DistressLog};
 use crate::grid::{Direction, Position};
 use crate::invariants;
 use crate::kitty::{Activity, Kitty, KittyId};
@@ -42,6 +42,10 @@ pub struct World {
     pub elements: Vec<Element>,
     pub recent_meows: Vec<Meow>,
     pub distress: DistressLog,
+    /// Finished activities with the true spans they ran (spec 006). Serde
+    /// defaulted so snapshots written before the log existed still load.
+    #[serde(default)]
+    pub activity_log: ActivityLog,
     pub rng: SimRng,
     pub config_fingerprint: String,
     next_element_id: ElementId,
@@ -73,6 +77,7 @@ impl World {
             elements: Vec::new(),
             recent_meows: Vec::new(),
             distress: DistressLog::new(config.events.distress_retention),
+            activity_log: ActivityLog::new(config.events.activity_retention),
             rng: SimRng::from_seed(config.world.seed),
             config_fingerprint: config.fingerprint(),
             next_element_id: 1,
@@ -166,12 +171,24 @@ impl World {
 
     /// Ends the kitty's activity, and its duet partner's with it -- a duet
     /// never survives one-sided, whichever way it ends (spec 006 FR-009).
+    ///
+    /// Every engine-side activity end flows through here, which is what makes
+    /// the activity log complete: each cleared scene records one event with
+    /// the true span its clock witnessed, readable long after served
+    /// snapshots have forgotten the final tick.
     fn end_activity(&mut self, kitty_id: KittyId) {
         let partner = self.kitty(kitty_id).and_then(|k| k.activity.duet_partner());
         for id in std::iter::once(kitty_id).chain(partner) {
             if let Some(idx) = self.kitty_index(id) {
-                self.kitties[idx].activity = Activity::Idle;
-                self.kitties[idx].activity_clock = None;
+                if let Some(clock) = self.kitties[idx].activity_clock {
+                    self.activity_log.record(ActivityEnd {
+                        kitty_id: id,
+                        activity: self.kitties[idx].activity,
+                        started: clock.started,
+                        ended: clock.applied,
+                    });
+                }
+                self.kitties[idx].clear_activity();
             }
         }
     }
@@ -243,17 +260,20 @@ impl World {
             return validated;
         };
         let activity = kitty.activity;
-        let Some(continuation) = activity.continuation() else {
+        // Both are `None` exactly for Idle, and an Idle kitty carries no
+        // clock (strict invariant) -- destructured together so a future
+        // unbounded activity fails to compile here instead of silently
+        // borrowing a phantom minimum.
+        let (Some(continuation), Some(bounds)) = (
+            activity.continuation(),
+            activity.bounds(&config.actions.durations),
+        ) else {
             return validated;
         };
         if activity.is_continued_by(&validated) {
             return continuation;
         }
-        let min = activity
-            .bounds(&config.actions.durations)
-            .map(|b| b.min)
-            .unwrap_or(1);
-        if clock.serviced_before(self.tick) < min {
+        if clock.serviced_before(self.tick) < bounds.min {
             return continuation;
         }
         self.end_activity(kitty_id);
@@ -267,16 +287,13 @@ impl World {
     /// need at 0 (either partner's, for a duet) or its bowl empty.
     fn resolve_activity_ends(&mut self, config: &Config) {
         let tick = self.tick;
-        let ids: Vec<KittyId> = self.kitties.iter().map(|k| k.id).collect();
-        let mut resolved: std::collections::BTreeSet<KittyId> = std::collections::BTreeSet::new();
 
-        for id in ids {
-            if resolved.contains(&id) {
-                continue;
-            }
-            let Some(kitty) = self.kitty(id) else {
-                continue;
-            };
+        // Index iteration is safe and sufficient: kitties never leave the vec
+        // (Article II), and ending a duet clears the partner's clock, so the
+        // clock guard below already skips a resolved partner on its own turn.
+        for i in 0..self.kitties.len() {
+            let kitty = &self.kitties[i];
+            let id = kitty.id;
             let Some(clock) = kitty.activity_clock else {
                 continue;
             };
@@ -285,49 +302,35 @@ impl World {
                 continue;
             };
             let elapsed = clock.elapsed(tick);
-            let partner = activity.duet_partner();
 
             let need_zero = |kind: NeedKind, of: &Kitty| of.needs.get(kind) <= 0.0;
-            let done_naturally = elapsed >= bounds.min && match activity {
-                Activity::Idle => false,
-                Activity::Eating => need_zero(NeedKind::Eat, kitty)
-                    || self
-                        .adjacent_element(kitty.pos, ElementType::Chow)
-                        .map(|e| !matches!(e.kind, ElementKind::Chow { servings } if servings > 0))
-                        .unwrap_or(true),
-                Activity::Drinking => need_zero(NeedKind::Drink, kitty),
-                Activity::Sleeping { .. } => need_zero(NeedKind::Sleep, kitty),
-                Activity::Playing { .. } => {
-                    need_zero(NeedKind::Play, kitty)
-                        || partner
+            // The governing need (one mapping, on Activity) ends the scene at
+            // 0 -- read off the friend being groomed (a missing friend also
+            // ends it), and off *either* side of a duet. An eating kitty's
+            // emptied or vanished bowl is the meal's own extra way out.
+            let governed_done = match activity.governing_need() {
+                None => false,
+                Some(need) => {
+                    let subject_done = match activity {
+                        Activity::Grooming { target: Some(f) } => self
+                            .kitty(f)
+                            .map(|friend| need_zero(need, friend))
+                            .unwrap_or(true),
+                        _ => need_zero(need, kitty),
+                    };
+                    subject_done
+                        || activity
+                            .duet_partner()
                             .and_then(|p| self.kitty(p))
-                            .map(|p| need_zero(NeedKind::Play, p))
+                            .map(|partner| need_zero(need, partner))
                             .unwrap_or(false)
                 }
-                Activity::Grooming { target: None } => need_zero(NeedKind::Bath, kitty),
-                Activity::Grooming { target: Some(f) } => self
-                    .kitty(f)
-                    .map(|k| need_zero(NeedKind::Bath, k))
-                    .unwrap_or(true),
-                Activity::Resting {
-                    with_friend: Some(f),
-                } => {
-                    need_zero(NeedKind::Cuddle, kitty)
-                        || self
-                            .kitty(f)
-                            .map(|k| need_zero(NeedKind::Cuddle, k))
-                            .unwrap_or(true)
-                }
-                // Solo rest relieves nothing, so it has no governing need:
-                // it ends by interrupt or by running its cap.
-                Activity::Resting { with_friend: None } => false,
             };
+            let out_of_chow = matches!(activity, Activity::Eating)
+                && self.adjacent_stocked_chow(kitty.pos).is_none();
+            let done_naturally = elapsed >= bounds.min && (governed_done || out_of_chow);
 
             if elapsed >= bounds.max || done_naturally {
-                resolved.insert(id);
-                if let Some(p) = partner {
-                    resolved.insert(p);
-                }
                 self.end_activity(id);
             }
         }
@@ -626,6 +629,19 @@ impl World {
             .min_by_key(|e| (pos.chebyshev_distance(&e.pos), e.id))
     }
 
+    /// The bowl a kitty at `pos` would eat from, if it still holds a serving.
+    ///
+    /// One predicate, three consumers -- validation of an `Eat` proposal, the
+    /// per-tick meal continuation, and the end-of-meal rule -- so "which bowl,
+    /// and is it usable" can never quietly mean three different things.
+    /// Deliberately the *nearest* adjacent bowl filtered for servings, not
+    /// the nearest stocked one: a cat at an empty bowl beside a fuller one
+    /// pauses (and then ends) rather than stretching across.
+    pub fn adjacent_stocked_chow(&self, pos: Position) -> Option<&Element> {
+        self.adjacent_element(pos, ElementType::Chow)
+            .filter(|e| matches!(e.kind, ElementKind::Chow { servings } if servings > 0))
+    }
+
     pub fn nearest_element(&self, pos: Position, kind: ElementType) -> Option<&Element> {
         self.elements
             .iter()
@@ -640,16 +656,21 @@ impl World {
             .count() as u32
     }
 
+    /// Both sides of a prospective interaction, resolved once. `None` when
+    /// either kitty is missing or the "friend" is the kitty itself.
+    fn friend_pair(&self, me: KittyId, friend: KittyId) -> Option<(&Kitty, &Kitty)> {
+        if me == friend {
+            return None;
+        }
+        Some((self.kitty(me)?, self.kitty(friend)?))
+    }
+
     /// A friend is any other kitty; "available" adds the adjacency an interaction
     /// needs.
     pub fn is_available_friend(&self, me: KittyId, friend: KittyId) -> bool {
-        if me == friend {
-            return false;
-        }
-        match (self.kitty(me), self.kitty(friend)) {
-            (Some(a), Some(b)) => a.pos.is_adjacent(&b.pos),
-            _ => false,
-        }
+        self.friend_pair(me, friend)
+            .map(|(a, b)| a.pos.is_adjacent(&b.pos))
+            .unwrap_or(false)
     }
 
     /// A friend who can be drawn into a duet right now: available *and* doing
@@ -658,11 +679,12 @@ impl World {
     /// cuddle. Governs cuddle and social play; co-sleeping and grooming keep
     /// the plain availability rule because they bind nobody.
     pub fn is_conscriptable_friend(&self, me: KittyId, friend: KittyId) -> bool {
-        self.is_available_friend(me, friend)
-            && self
-                .kitty(friend)
-                .map(|k| !k.activity.is_in_progress() && k.activity_clock.is_none())
-                .unwrap_or(false)
+        // "Doing nothing" is one check, not two: the strict pairing invariant
+        // (clock present exactly when an activity is in progress) makes the
+        // clock alone authoritative.
+        self.friend_pair(me, friend)
+            .map(|(a, b)| a.pos.is_adjacent(&b.pos) && b.activity_clock.is_none())
+            .unwrap_or(false)
     }
 
     pub fn push_element(&mut self, element: Element) {
@@ -1264,6 +1286,41 @@ mod tests {
         });
         world.tick = 100;
         (world, config)
+    }
+
+    #[test]
+    fn an_ended_scene_records_its_true_span_in_the_activity_log() {
+        // The final tick of a scene clears the clock it just stamped, so
+        // snapshots alone cannot show how long a scene ran -- the log is the
+        // honest record (spec 006 review remediation). A meal eaten at
+        // pressure 100 relieves 40/tick: ticks 100, 101, 102 -> need zero,
+        // ended at the first lawful moment with an exact 3-tick span.
+        let (mut world, config) = dinner_table(5);
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].needs.add(NeedKind::Eat, 100.0);
+
+        run_slot(&mut world, &config, 1, Action::Eat);
+        close_tick(&mut world, &config);
+        for _ in 0..2 {
+            run_slot(&mut world, &config, 1, Action::Idle);
+            close_tick(&mut world, &config);
+        }
+
+        assert_eq!(
+            world.kitty(1).unwrap().activity_clock,
+            None,
+            "the meal is over"
+        );
+        let ends: Vec<_> = world.activity_log.to_vec();
+        assert_eq!(ends.len(), 1, "one scene, one event: {ends:?}");
+        assert_eq!(ends[0].kitty_id, 1);
+        assert_eq!(ends[0].activity, Activity::Eating);
+        assert_eq!(ends[0].started, 100);
+        assert_eq!(
+            ends[0].ended, 102,
+            "the invisible final tick is on the books"
+        );
+        assert_eq!(ends[0].span(), 3);
     }
 
     #[test]

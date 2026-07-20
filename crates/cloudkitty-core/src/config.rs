@@ -563,12 +563,22 @@ impl BehaviorConfig {
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct EventsConfig {
     pub distress_retention: usize,
+    /// How many finished-activity events the world remembers (spec 006):
+    /// each carries the true tick span a scene ran, which served snapshots
+    /// alone cannot show (the final tick clears the clock it stamped).
+    #[serde(default = "default_activity_retention")]
+    pub activity_retention: usize,
+}
+
+fn default_activity_retention() -> usize {
+    1000
 }
 
 impl Default for EventsConfig {
     fn default() -> Self {
         Self {
             distress_retention: 1000,
+            activity_retention: default_activity_retention(),
         }
     }
 }
@@ -1007,6 +1017,13 @@ impl Config {
         if self.events.distress_retention == 0 {
             return Err(ConfigError::invalid(
                 "[events] distress_retention",
+                "0".to_string(),
+                "must be at least 1",
+            ));
+        }
+        if self.events.activity_retention == 0 {
+            return Err(ConfigError::invalid(
+                "[events] activity_retention",
                 "0".to_string(),
                 "must be at least 1",
             ));

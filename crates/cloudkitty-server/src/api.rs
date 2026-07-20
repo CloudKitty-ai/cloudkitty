@@ -14,7 +14,7 @@ use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use axum::Json;
-use cloudkitty_core::{Config, DistressEvent, Kitty, KittyId, WorldSnapshot};
+use cloudkitty_core::{ActivityEnd, Config, DistressEvent, Kitty, KittyId, WorldSnapshot};
 use serde_json::json;
 use tokio::sync::watch;
 
@@ -79,6 +79,13 @@ pub async fn get_kitty(
 /// kitty (Article I). Edge-triggered, oldest first.
 pub async fn get_distress(State(state): State<AppState>) -> Json<Arc<Vec<DistressEvent>>> {
     Json(state.current().distress.clone())
+}
+
+/// Finished activities with the true tick spans they ran (spec 006): the
+/// final tick of a scene clears the clock it stamped, so snapshots alone
+/// cannot show how long a scene lasted -- these events can. Oldest first.
+pub async fn get_activity_ends(State(state): State<AppState>) -> Json<Arc<Vec<ActivityEnd>>> {
+    Json(state.current().activity_ends.clone())
 }
 
 pub async fn get_config(State(state): State<AppState>) -> Json<Arc<Config>> {

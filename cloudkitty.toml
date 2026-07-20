@@ -184,6 +184,9 @@ sunbeam_reach = 8
 [events]
 # How many distress events to keep.
 distress_retention = 1000
+# How many finished-activity events to keep. Each records the true tick span
+# a scene ran (started..=ended), which snapshots alone cannot show.
+activity_retention = 1000
 
 [viewer]
 # Read by the web client via /config; the simulation ignores it. A distress

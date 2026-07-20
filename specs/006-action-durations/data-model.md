@@ -42,6 +42,15 @@ Solo rest relieves nothing today and continues to relieve nothing; its
 need-zero rule therefore never fires and it ends by interrupt (FR-004) or
 the `cuddle` max — documented, not accidental.
 
+*Post-merge review amendment (2026-07-19):* this table is code, not just
+documentation — the need column lives on the activity itself
+(`Activity::governing_need()`, beside `bounds()`), the engine's end rules
+and the guarantee suite both derive from it, and the per-tick effects
+column has exactly one body (`apply_activity_effects`) serving the starting
+tick and every continuation alike. *Whose* need is checked (the groomed
+friend's bath; either side of a duet) stays an engine rule layered on the
+mapping.
+
 ## Kitty (extended)
 
 | Field | Type | New/Changed | Notes |
@@ -165,3 +174,11 @@ Phases 3 (environment) and 4 (needs/invariants) are untouched.
 - **DecisionContext**: behaviors read `ctx.me.activity` +
   `ctx.me.activity_clock` (no new writes; Article IV). See
   [contracts/behavior-delta.md](./contracts/behavior-delta.md).
+- **ActivityEnd events** (post-merge review amendment, 2026-07-19): every
+  engine-side activity end records `{kitty_id, activity, started, ended}`
+  into a bounded `World.activity_log` ring (capacity
+  `events.activity_retention`, default 1000; serde-defaulted so earlier 006
+  snapshots still load). `ended` is the last tick serviced, so
+  `ended − started + 1` is the exact span — the record of the "invisible
+  final tick" that snapshots cannot show, consumed by the guarantee suite
+  and served at `GET /events/activity`.
