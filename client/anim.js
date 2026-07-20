@@ -53,6 +53,24 @@ const VIEW = Object.freeze({
   ambientPeriodMs: 5200,
   cloudPeriodMs: 60000,
   bubblePopShare: 0.35, // share of a tick a speech bubble spends popping in
+
+  // Props (spec 007, FR-012): timing periods plus the drawing-side values
+  // props.js's PROP_DEFAULTS carries when this layer is absent (the
+  // standalone gallery). This is the full set propTunables() serves, so it
+  // must stay a superset of PROP_DEFAULTS.
+  props: Object.freeze({
+    flapPeriodMs: 900, // one leisurely wingbeat cycle
+    panicMultiplier: 2.2, // flap-rate multiplier while hunted
+    bobPeriodMs: 2600, // the hover's slow breathe
+    bobAmplitude: 0.035,
+    hoverLift: 0.06,
+    wispBobMs: 3800, // the greeble wisp drifts slowest of all
+    wispBobAmplitude: 0.02,
+    heartPulseMs: 1400,
+    heartPulseScale: 0.08,
+    zDriftMs: 2800,
+    zRise: 0.08,
+  }),
 });
 
 function easeInOutCubic(t) {
@@ -347,6 +365,11 @@ class Presentation {
       // *informational* cues (focused eyes, the thought bubble) do not --
       // they carry state, not motion (R6).
       oneShotFor: (id) => (still ? null : this.oneShotFor(id, now)),
+      // Prop motion (spec 007): one wall-clock phase source over a named
+      // period, seeded by an element *or* kitty id -- 0 when still, so
+      // reduced motion gets static props with full state (FR-013).
+      propPhaseFor: (id, periodMs) =>
+        still ? 0 : ((now + id * 4241) % periodMs) / periodMs,
       expressionFor: (kitty) => this.expressionFor(kitty),
       thoughtFor: (kitty) => this.thoughtFor(kitty),
       elementAlphaFor: (el) => (still ? 1 : this.elementAlphaFor(el, now)),

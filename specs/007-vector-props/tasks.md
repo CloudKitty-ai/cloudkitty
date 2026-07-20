@@ -120,14 +120,14 @@ pursuit.
 gone; butterflies distinguishable and reload-stable; panic flap tracks
 served pursuit; reduced motion static with state intact.
 
-- [ ] T007 [US2] Extend `client/anim.js`: add the frozen `VIEW.props`
+- [X] T007 [US2] Extend `client/anim.js`: add the frozen `VIEW.props`
       tunables (`flapPeriodMs`, `panicMultiplier`, `bobPeriodMs`,
       `bobAmplitude`, `wispBobMs`, `heartPulseMs`, `zDriftMs` — analyze
       U2) and give `viewAt` a `propPhaseFor(id, periodMs)` — wall-clock
       phase over the named period, seeded by an element *or* kitty id
       (analyze U1), returning 0 when `still` so reduced motion gets
       static props through the one draw path (R3, R7, FR-012/013).
-- [ ] T008 [US2] Swap the ground props in `client/render.js`: the chow
+- [X] T008 [US2] Swap the ground props in `client/render.js`: the chow
       arm calls `drawBowl` with served `servings` and deletes the meter
       bars; the bug arm calls `drawButterfly` with
       `butterflyColorwayFor(el.id)`, `view.propPhaseFor(el.id,
@@ -136,7 +136,7 @@ served pursuit; reduced motion static with state intact.
       from every `kitty.pursuit.target` naming an element — preserving
       the existing spawn/expiry alpha handling around both
       (FR-004/005/006, contract mapping).
-- [ ] T009 [US2] Verify quickstart §2 end to end (bowl ordering and
+- [X] T009 [US2] Verify quickstart §2 end to end (bowl ordering and
       shrinking mound, butterfly distinguishability and reload/restart
       stability, hover/shadow read, panic-flap onset and calm within a
       tick, reduced-motion staticness) — fix until all pass
@@ -156,7 +156,7 @@ canvas.
 behavior; Zs drift; heart pulses; six drawn thought icons; the star stays
 imaginary; no emoji glyph anywhere on the canvas.
 
-- [ ] T010 [US3] Swap the overlay props in `client/render.js`: the
+- [X] T010 [US3] Swap the overlay props in `client/render.js`: the
       greeble arm calls `drawGreebleWisp` with the gate-chosen face —
       same `showGreebles` gate, same 0.55 alpha, nothing about *when*
       changes (FR-007), bobbing on `propPhaseFor(el.id,
@@ -165,12 +165,12 @@ imaginary; no emoji glyph anywhere on the canvas.
       the same anchor; the cuddle 💗 becomes `drawHeart` on
       `propPhaseFor(kitty.id, VIEW.props.heartPulseMs)` at the eased
       midpoint (FR-008, analyze U1).
-- [ ] T011 [US3] Swap the thought icons and close the emoji path in
+- [X] T011 [US3] Swap the thought icons and close the emoji path in
       `client/render.js`: `drawThought` renders `drawNeedIcon(need)` in
       place of the emoji glyph; delete the `NEED_ICONS` map and the
       `emoji()` helper entirely so no canvas call site can draw a glyph
       (FR-009/010, data-model "Deleted" list).
-- [ ] T012 [US3] Verify quickstart §3 end to end (wisp
+- [X] T012 [US3] Verify quickstart §3 end to end (wisp
       behavior-identical, Zs/heart under motion and reduced motion, all
       six icons legible, solo-play star never mistakable for a
       butterfly, the zero-emoji sweep both visual and structural) — fix
