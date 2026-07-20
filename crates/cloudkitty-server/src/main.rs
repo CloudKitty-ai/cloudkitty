@@ -22,6 +22,9 @@ struct Args {
     /// With --fresh: overwrite the old world without moving it aside first.
     no_backup: bool,
     client_dir: PathBuf,
+    /// True when the operator named the client directory explicitly; a missing
+    /// explicit path is an error, mirroring `config_explicit`.
+    client_explicit: bool,
 }
 
 impl Default for Args {
@@ -33,6 +36,7 @@ impl Default for Args {
             fresh: false,
             no_backup: false,
             client_dir: PathBuf::from(DEFAULT_CLIENT_DIR),
+            client_explicit: false,
         }
     }
 }
@@ -49,7 +53,8 @@ OPTIONS:
         --fresh              Start a new world; the old one is moved aside to
                              <snapshot>.<timestamp>.bak first
         --no-backup          With --fresh: overwrite the old world in place
-        --client <PATH>      Directory of static client files (default: client)
+        --client <PATH>      Directory of static client files (default: client,
+                             falling back to the workspace copy when absent)
     -h, --help               Print this help
 ";
 
@@ -77,12 +82,52 @@ fn parse_args() -> Result<Option<Args>> {
             "--client" => {
                 let value = argv.next().context("--client needs a path")?;
                 args.client_dir = PathBuf::from(value);
+                args.client_explicit = true;
             }
             other => anyhow::bail!("unrecognised argument '{other}'\n\n{HELP}"),
         }
     }
 
     Ok(Some(args))
+}
+
+/// Where the workspace keeps the viewer, resolvable no matter which
+/// directory `cargo run` was invoked from.
+const WORKSPACE_CLIENT_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../client");
+
+/// Resolves the directory the viewer is served from -- loudly.
+///
+/// The default `client` is relative to the working directory, which is a
+/// foot-gun: started from anywhere but the repo root, every static route
+/// 404s with an empty body and the browser shows a bare white page (which
+/// cost an operator a debugging session on 2026-07-19). So: an explicitly
+/// named directory must exist or startup fails; the default falls back to
+/// the workspace copy next to this crate; and when nothing is found the
+/// server says plainly that it is serving the API only.
+fn resolve_client_dir(args: &Args) -> Result<PathBuf> {
+    if args.client_dir.is_dir() {
+        return Ok(args.client_dir.clone());
+    }
+    if args.client_explicit {
+        anyhow::bail!(
+            "client directory {} does not exist",
+            args.client_dir.display()
+        );
+    }
+    let workspace = PathBuf::from(WORKSPACE_CLIENT_DIR);
+    if workspace.is_dir() {
+        tracing::info!(
+            path = %workspace.display(),
+            "no ./client here; serving the viewer from the workspace copy"
+        );
+        return Ok(workspace);
+    }
+    tracing::warn!(
+        tried = %args.client_dir.display(),
+        "viewer files not found -- serving the API only (no page at /); \
+         run from the repository root or pass --client <path>"
+    );
+    Ok(args.client_dir.clone())
 }
 
 fn load_config(args: &Args) -> Result<Config> {
@@ -155,7 +200,8 @@ async fn run() -> Result<()> {
         published: sim.receiver.clone(),
         config: config.clone(),
     };
-    let app = build_router(state, &args.client_dir);
+    let client_dir = resolve_client_dir(&args)?;
+    let app = build_router(state, &client_dir);
 
     let listener = tokio::net::TcpListener::bind(&config.world.bind)
         .await
@@ -213,4 +259,51 @@ fn load_or_generate_world(
         "resumed the saved world"
     );
     Ok(world)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn an_existing_client_dir_is_used_as_given() {
+        let args = Args {
+            client_dir: PathBuf::from(env!("CARGO_MANIFEST_DIR")),
+            client_explicit: true,
+            ..Args::default()
+        };
+        assert_eq!(
+            resolve_client_dir(&args).unwrap(),
+            PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        );
+    }
+
+    #[test]
+    fn a_missing_explicit_client_dir_stops_startup() {
+        let args = Args {
+            client_dir: PathBuf::from("/definitely/not/a/real/client/dir"),
+            client_explicit: true,
+            ..Args::default()
+        };
+        let err = resolve_client_dir(&args).unwrap_err().to_string();
+        assert!(err.contains("does not exist"), "{err}");
+    }
+
+    #[test]
+    fn the_missing_default_falls_back_to_the_workspace_viewer() {
+        // The foot-gun of 2026-07-19: started outside the repo root, the
+        // relative default finds nothing. The workspace copy must step in
+        // so `cargo run` works from any directory.
+        let args = Args {
+            client_dir: PathBuf::from("client-that-does-not-exist-here"),
+            client_explicit: false,
+            ..Args::default()
+        };
+        let resolved = resolve_client_dir(&args).unwrap();
+        assert_eq!(resolved, PathBuf::from(WORKSPACE_CLIENT_DIR));
+        assert!(
+            resolved.join("index.html").is_file(),
+            "the fallback really serves the viewer"
+        );
+    }
 }

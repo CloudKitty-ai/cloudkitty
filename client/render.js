@@ -26,11 +26,36 @@ const MEOW_TEXT = {
   purr: 'purrrr',
 };
 
-// Cats come in assorted colours.
-const KITTY_FACES = ['🐱', '🐈', '😺', '😸', '🐈‍⬛', '😻'];
+/** The icon a thought bubble shows for a long-wanted need (US5, FR-012). */
+const NEED_ICONS = {
+  eat: '🍥',
+  drink: '💧',
+  sleep: '💤',
+  play: '🧶',
+  cuddle: '💕',
+  bath: '🛁',
+};
 
 /** How many ticks a speech bubble lingers on screen. */
 const BUBBLE_TICKS = 3;
+
+/**
+ * Which pose a served kitty is in (spec 005, data-model table): the activity
+ * state speaks first, then the applied action, then movement, then idle.
+ * Pure function of served data -- nothing here predicts (Article V).
+ */
+function poseFor(kitty, moved) {
+  const state = kitty.activity?.state;
+  if (state === 'sleeping') return 'sleep-curl';
+  if (state === 'resting') return 'loaf';
+  if (state === 'eating') return 'eating';
+  if (state === 'drinking') return 'drinking';
+  if (state === 'grooming') return 'grooming';
+  const action = kitty.last_action?.action;
+  if (action === 'play' || action === 'chase') return 'pouncing';
+  if (moved) return 'walking';
+  return 'idle';
+}
 
 class WorldRenderer {
   constructor(canvas) {
@@ -38,6 +63,9 @@ class WorldRenderer {
     this.ctx = canvas.getContext('2d');
     this.showGreebles = false;
     this.tile = 22;
+    this.cssWidth = 0;
+    this.cssHeight = 0;
+    this.groundCache = null;
   }
 
   /** Fits the canvas to the world, accounting for retina displays. */
@@ -54,66 +82,174 @@ class WorldRenderer {
       this.canvas.width = Math.floor(cssWidth * dpr);
       this.canvas.height = Math.floor(cssHeight * dpr);
       this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      this.groundCache = null; // new size, new ground
     }
+    this.cssWidth = cssWidth;
+    this.cssHeight = cssHeight;
   }
 
-  draw(world) {
+  /**
+   * Draws one frame: `world` is the newest served state, `view` the
+   * presentational lens from anim.js (eased positions, fades, phases).
+   * The same path serves animated and still frames -- a still frame is
+   * simply progress 1 with fades off.
+   */
+  draw(world, view) {
     this.resizeFor(world);
     const ctx = this.ctx;
-    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    ctx.clearRect(0, 0, this.cssWidth, this.cssHeight);
 
-    this.drawGround(world);
+    this.blitGround(world);
+    this.drawGroundAmbient(world, view);
     // Sunbeams are warmth on the ground, so they go under everything else.
     for (const el of world.elements) {
-      if (el.kind === 'sunbeam') this.drawSunbeam(el);
+      if (el.kind === 'sunbeam') this.drawSunbeam(el, view.elementAlphaFor(el), view);
     }
-    for (const el of world.elements) {
-      if (el.kind !== 'sunbeam') this.drawElement(el);
-    }
-    for (const kitty of world.kitties) {
-      this.drawKitty(kitty, world);
-    }
-    this.drawBubbles(world);
-  }
-
-  drawGround(world) {
-    const ctx = this.ctx;
-    for (let y = 0; y < world.height; y++) {
-      for (let x = 0; x < world.width; x++) {
-        ctx.fillStyle = (x + y) % 2 === 0 ? TILE_COLORS.grass : TILE_COLORS.grassAlt;
-        ctx.fillRect(x * this.tile, y * this.tile, this.tile, this.tile);
+    // Expired elements take a brief bow instead of vanishing mid-glance.
+    if (view.expired.length && view.expiredAlpha > 0) {
+      for (const el of view.expired) {
+        if (el.kind === 'sunbeam') this.drawSunbeam(el, view.expiredAlpha, view);
+        else this.drawElement(el, view.expiredAlpha, view);
       }
     }
-    ctx.strokeStyle = TILE_COLORS.gridLine;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    for (let x = 0; x <= world.width; x++) {
-      ctx.moveTo(x * this.tile + 0.5, 0);
-      ctx.lineTo(x * this.tile + 0.5, world.height * this.tile);
+    for (const el of world.elements) {
+      if (el.kind !== 'sunbeam') this.drawElement(el, view.elementAlphaFor(el), view);
     }
-    for (let y = 0; y <= world.height; y++) {
-      ctx.moveTo(0, y * this.tile + 0.5);
-      ctx.lineTo(world.width * this.tile, y * this.tile + 0.5);
+    for (const kitty of world.kitties) {
+      this.drawKitty(kitty, world, view);
     }
-    ctx.stroke();
+    this.drawBubbles(world, view);
+    // Thought bubbles sit above speech in the stack (the documented
+    // two-beats rule): at most one per kitty, only while the wait is long.
+    for (const kitty of world.kitties) {
+      const need = view.thoughtFor(kitty);
+      if (need) this.drawThought(kitty, need, view);
+    }
   }
 
-  drawSunbeam(el) {
+  /**
+   * The checkerboard and grid never change between resizes, so they are
+   * rendered once to an offscreen layer and blitted per frame (research
+   * R7) -- the difference between ~1k fills and one drawImage each frame.
+   */
+  blitGround(world) {
+    if (!this.groundCache) {
+      const off = document.createElement('canvas');
+      off.width = this.canvas.width;
+      off.height = this.canvas.height;
+      const g = off.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      for (let y = 0; y < world.height; y++) {
+        for (let x = 0; x < world.width; x++) {
+          g.fillStyle = (x + y) % 2 === 0 ? TILE_COLORS.grass : TILE_COLORS.grassAlt;
+          g.fillRect(x * this.tile, y * this.tile, this.tile, this.tile);
+        }
+      }
+      g.strokeStyle = TILE_COLORS.gridLine;
+      g.lineWidth = 1;
+      g.beginPath();
+      for (let x = 0; x <= world.width; x++) {
+        g.moveTo(x * this.tile + 0.5, 0);
+        g.lineTo(x * this.tile + 0.5, world.height * this.tile);
+      }
+      for (let y = 0; y <= world.height; y++) {
+        g.moveTo(0, y * this.tile + 0.5);
+        g.lineTo(world.width * this.tile, y * this.tile + 0.5);
+      }
+      g.stroke();
+      this.groundCache = off;
+    }
+    this.ctx.drawImage(this.groundCache, 0, 0, this.cssWidth, this.cssHeight);
+  }
+
+  /**
+   * Ambient life on the ground layer (US6, FR-013): each effect sits behind
+   * its own named VIEW flag, stays subtle, and is absent entirely when the
+   * view carries no ambient clock (reduced motion).
+   */
+  drawGroundAmbient(world, view) {
+    if (!view.ambient) return;
+    const ctx = this.ctx;
+    const t = view.ambient.now;
+
+    if (VIEW.ambient.cloudShadows) {
+      // Two soft shadows drifting slowly across the meadow.
+      ctx.save();
+      ctx.fillStyle = 'rgba(120, 140, 110, 0.05)';
+      for (const [speed, cy, ry] of [[1, 0.28, 3.2], [1.35, 0.72, 2.4]]) {
+        const span = this.cssWidth + this.tile * 12;
+        const cx = ((t * speed) / VIEW.cloudPeriodMs) * span % span - this.tile * 6;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy * this.cssHeight, this.tile * 5, this.tile * ry, 0.3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    if (VIEW.ambient.grassSway) {
+      // A scattering of grass blades leaning with a slow breeze.
+      ctx.save();
+      ctx.strokeStyle = 'rgba(140, 170, 130, 0.5)';
+      ctx.lineWidth = 1;
+      ctx.lineCap = 'round';
+      for (let y = 0; y < world.height; y++) {
+        for (let x = 0; x < world.width; x++) {
+          if ((x * 31 + y * 17) % 41 !== 0) continue;
+          const sway = Math.sin(t / 1400 + x * 1.7 + y) * 2.2;
+          const bx = x * this.tile + this.tile * 0.5;
+          const by = y * this.tile + this.tile * 0.78;
+          ctx.beginPath();
+          ctx.moveTo(bx, by);
+          ctx.quadraticCurveTo(bx + sway * 0.4, by - 3, bx + sway, by - 5.5);
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+    }
+  }
+
+  drawSunbeam(el, alpha = 1, view) {
     const ctx = this.ctx;
     const { x, y } = this.tileOrigin(el.pos);
+    const t = view?.ambient?.now;
+    // The warm pulse: a slow breathing of the beam's glow (US6).
+    const pulse =
+      t !== undefined && VIEW.ambient.sunbeamPulse
+        ? 0.92 + 0.08 * Math.sin(t / 1900 + el.id)
+        : 1;
+    ctx.save();
+    ctx.globalAlpha = alpha * pulse;
     ctx.fillStyle = TILE_COLORS.sunbeam;
     this.roundRect(x + 1, y + 1, this.tile - 2, this.tile - 2, 6);
     ctx.fill();
     ctx.strokeStyle = TILE_COLORS.sunbeamRim;
     ctx.lineWidth = 1.5;
     ctx.stroke();
+
+    if (t !== undefined && VIEW.ambient.dustMotes) {
+      // Two lazy dust motes circling in the warmth.
+      ctx.fillStyle = 'rgba(255, 236, 170, 0.75)';
+      for (const i of [0, 1]) {
+        const angle = t / (2600 + i * 700) + el.id * 2.1 + i * Math.PI;
+        const mx = x + this.tile / 2 + Math.cos(angle) * this.tile * 0.28;
+        const my = y + this.tile / 2 + Math.sin(angle * 1.3) * this.tile * 0.24;
+        ctx.globalAlpha = alpha * (0.4 + 0.3 * Math.sin(angle * 2));
+        ctx.beginPath();
+        ctx.arc(mx, my, 1.1, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
   }
 
-  drawElement(el) {
+  drawElement(el, alpha = 1, view) {
     // The greeble rule: present in the data, absent from the picture.
     if (el.kind === 'greeble' && !this.showGreebles) return;
 
     const ctx = this.ctx;
+    ctx.save();
+    ctx.globalAlpha = alpha;
     const { x, y } = this.tileOrigin(el.pos);
     const cx = x + this.tile / 2;
     const cy = y + this.tile / 2;
@@ -126,18 +262,32 @@ class WorldRenderer {
         ctx.strokeStyle = TILE_COLORS.waterRim;
         ctx.lineWidth = 1.5;
         ctx.stroke();
+        const t = view?.ambient?.now;
+        if (t !== undefined && VIEW.ambient.waterShimmer) {
+          // A shimmer sliding gently across the surface (US6).
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+          ctx.lineWidth = 1.2;
+          ctx.lineCap = 'round';
+          const drift = Math.sin(t / 1600 + el.id) * this.tile * 0.14;
+          for (const [dx, dy, len] of [[-0.18, -0.12, 0.24], [0.06, 0.14, 0.18]]) {
+            ctx.beginPath();
+            ctx.moveTo(cx + dx * this.tile + drift, cy + dy * this.tile);
+            ctx.lineTo(cx + (dx + len) * this.tile + drift, cy + dy * this.tile);
+            ctx.stroke();
+          }
+        }
         break;
       }
       case 'chow': {
         this.emoji('🍥', cx, cy);
-        // A little pip per remaining serving, so you can watch a bowl run down.
+        // The bowl's visible kibble level falls as servings are eaten
+        // (US6, FR-014): a little meter where the pip row used to be.
         const servings = Math.min(el.servings ?? 0, 5);
+        const track = this.tile - 8;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.fillRect(x + 4, y + this.tile - 4.5, track, 2.5);
         ctx.fillStyle = '#c98b6b';
-        for (let i = 0; i < servings; i++) {
-          ctx.beginPath();
-          ctx.arc(x + 4 + i * 3.2, y + this.tile - 3, 1.2, 0, Math.PI * 2);
-          ctx.fill();
-        }
+        ctx.fillRect(x + 4, y + this.tile - 4.5, track * (servings / 5), 2.5);
         break;
       }
       case 'bug':
@@ -145,18 +295,19 @@ class WorldRenderer {
         break;
       case 'greeble':
         // Only ever reached with the debug toggle on.
-        ctx.globalAlpha = 0.55;
+        ctx.globalAlpha = 0.55 * alpha;
         this.emoji('👻', cx, cy);
-        ctx.globalAlpha = 1;
         break;
       default:
         break;
     }
+    ctx.restore();
   }
 
-  drawKitty(kitty, world) {
+  drawKitty(kitty, world, view) {
     const ctx = this.ctx;
-    const { x, y } = this.tileOrigin(kitty.pos);
+    const pos = view.posFor(kitty);
+    const { x, y } = this.tileOrigin(pos);
     const cx = x + this.tile / 2;
     const cy = y + this.tile / 2;
     const state = kitty.activity?.state ?? 'idle';
@@ -167,12 +318,35 @@ class WorldRenderer {
     ctx.ellipse(cx, cy + this.tile * 0.32, this.tile * 0.3, this.tile * 0.12, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Pose: asleep, dozing, or up and about.
-    let face;
-    if (state === 'sleeping') face = '😴';
-    else if (state === 'resting') face = '😌';
-    else face = KITTY_FACES[kitty.id % KITTY_FACES.length];
-    this.emoji(face, cx, cy, 0.86);
+    // The approved vector cat (spec 005 US2/US4/US5): identity from the
+    // kitty's id, pose from served state (with the fall-asleep settle),
+    // facing from its last horizontal movement, motion from the animation
+    // layer -- and the drama layered by the documented rule: pose, then
+    // action animation, then expression, then the single one-shot beat.
+    const pose = view.adjustPose(kitty.id, poseFor(kitty, view.movedFor(kitty.id)));
+    const motion = view.motionFor(kitty.id, pose);
+    const beat = view.oneShotFor(kitty.id);
+    let eyes = motion.eyesOverride;
+    let ears = motion.earsBack;
+    const expression = view.expressionFor(kitty);
+    if (expression && !eyes) eyes = expression; // focused, unless mid-blink
+    if (beat?.kind === 'sad') {
+      // The give-up droop wears on the cat itself: ears back, eyes low.
+      ears = true;
+      eyes = 'half';
+    }
+    drawCat(ctx, {
+      pose,
+      appearance: appearanceFor(kitty.id),
+      facing: view.facingFor(kitty.id),
+      size: this.tile,
+      phase: motion.phase,
+      eyesOverride: eyes,
+      earsBack: ears,
+      x,
+      y,
+    });
+    if (beat) this.drawBeat(beat, cx, cy, view.facingFor(kitty.id));
 
     if (state === 'sleeping') {
       ctx.save();
@@ -181,34 +355,120 @@ class WorldRenderer {
       ctx.restore();
     }
 
-    // Cuddling cats get a little heart between them.
+    // Cuddling cats get a little heart between them -- at their eased
+    // positions, so it floats where the cats visibly are.
     const partner = kitty.activity?.with_friend;
     if (partner !== undefined && partner !== null) {
       const friend = world.kitties.find((k) => k.id === partner);
       if (friend) {
-        const fx = (friend.pos.x + 0.5) * this.tile;
-        const fy = (friend.pos.y + 0.5) * this.tile;
+        const fpos = view.posFor(friend);
+        const fx = (fpos.x + 0.5) * this.tile;
+        const fy = (fpos.y + 0.5) * this.tile;
         this.emoji('💗', (cx + fx) / 2, (cy + fy) / 2 - this.tile * 0.15, 0.42);
       }
     }
 
-    this.drawHappinessBar(kitty, x, y);
+    this.drawHappinessBar(kitty, x, y, view);
   }
 
-  drawHappinessBar(kitty, x, y) {
+  /**
+   * One-shot beats (US5): short presentational sequences beside the cat.
+   * The plaything is deliberately unlike every real element (FR-009) --
+   * a twinkling star, where the world's things are emoji and tiles.
+   */
+  drawBeat(beat, cx, cy, facing) {
+    const ctx = this.ctx;
+    const dir = facing === 'right' ? 1 : -1;
+    if (beat.kind === 'sparkle') {
+      // Relief: little golden twinkles rising beside the kitty (FR-011).
+      ctx.save();
+      ctx.globalAlpha = 1 - beat.t;
+      const rise = beat.t * this.tile * 0.5;
+      this.star(cx + dir * this.tile * 0.35, cy - this.tile * 0.35 - rise, this.tile * 0.1, '#f4c95d');
+      this.star(cx - dir * this.tile * 0.18, cy - this.tile * 0.55 - rise * 0.7, this.tile * 0.065, '#f8dc9a');
+      ctx.restore();
+    } else if (beat.kind === 'plaything') {
+      // Solo play: the imaginary quarry hops with the pounce and twinkles
+      // out of existence when the game ends.
+      ctx.save();
+      const hop = Math.sin(beat.t * Math.PI) * this.tile * 0.35;
+      const px = cx + dir * this.tile * 0.55;
+      const py = cy - this.tile * 0.08 - hop;
+      ctx.globalAlpha = 0.9;
+      const twinkle = 0.8 + 0.2 * Math.sin(beat.t * 6 * Math.PI);
+      this.star(px, py, this.tile * 0.13 * twinkle, '#ffd97a');
+      ctx.globalAlpha = 0.5;
+      this.star(px + dir * this.tile * 0.14, py + this.tile * 0.12, this.tile * 0.06, '#ffe9b5');
+      ctx.restore();
+    }
+    // 'sad' draws nothing extra: the droop is worn on the cat itself.
+  }
+
+  /** A little four-point star -- the beat vocabulary's one glyph. */
+  star(cx, cy, r, color) {
+    const ctx = this.ctx;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - r);
+    ctx.quadraticCurveTo(cx, cy, cx + r, cy);
+    ctx.quadraticCurveTo(cx, cy, cx, cy + r);
+    ctx.quadraticCurveTo(cx, cy, cx - r, cy);
+    ctx.quadraticCurveTo(cx, cy, cx, cy - r);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  /**
+   * The in-world twin of the panel's gentle cue (US5, FR-012): one soft
+   * thought bubble with the long-wanted need's icon, above the kitty and
+   * clear of its speech bubble.
+   */
+  drawThought(kitty, need, view) {
+    const ctx = this.ctx;
+    const { x, y } = this.tileOrigin(view.posFor(kitty));
+    const r = this.tile * 0.34;
+    let bx = x + this.tile * 1.05;
+    bx = Math.min(bx, this.canvas.clientWidth - r - 2);
+    const by = Math.max(r + 2, y - this.tile * 0.55);
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(255, 253, 250, 0.92)';
+    ctx.strokeStyle = 'rgba(150, 125, 105, 0.28)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(bx, by, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // The trail of little thought-dots down toward the kitty's head.
+    const headX = x + this.tile * 0.6;
+    const headY = y + this.tile * 0.2;
+    for (const [k, dr] of [[0.55, 0.12], [0.8, 0.07]]) {
+      ctx.beginPath();
+      ctx.arc(bx + (headX - bx) * k, by + (headY - by) * k, this.tile * dr, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    }
+    this.emoji(NEED_ICONS[need] ?? '💭', bx, by + 0.5, 0.4);
+    ctx.restore();
+  }
+
+  drawHappinessBar(kitty, x, y, view) {
     const ctx = this.ctx;
     const width = this.tile - 6;
     const height = 3;
     const bx = x + 3;
     const by = y + this.tile - 3.5;
+    // Eased toward the served value on the shared progress clock (US6) --
+    // the color reads the true value, never the blend.
+    const value = view.barValueFor(kitty);
 
     ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
     ctx.fillRect(bx, by, width, height);
     ctx.fillStyle = happinessColor(kitty.happiness);
-    ctx.fillRect(bx, by, (width * clamp01(kitty.happiness / 100)), height);
+    ctx.fillRect(bx, by, width * clamp01(value / 100), height);
   }
 
-  drawBubbles(world) {
+  drawBubbles(world, view) {
     const recent = (world.recent_meows || []).filter(
       (m) => m.tick > world.tick - BUBBLE_TICKS,
     );
@@ -219,13 +479,13 @@ class WorldRenderer {
     for (const meow of newest.values()) {
       const kitty = world.kitties.find((k) => k.id === meow.kitty_id);
       if (!kitty) continue;
-      this.drawBubble(kitty, MEOW_TEXT[meow.kind] || '…');
+      this.drawBubble(kitty, MEOW_TEXT[meow.kind] || '…', view, meow);
     }
   }
 
-  drawBubble(kitty, text) {
+  drawBubble(kitty, text, view, meow) {
     const ctx = this.ctx;
-    const { x, y } = this.tileOrigin(kitty.pos);
+    const { x, y } = this.tileOrigin(view.posFor(kitty));
     ctx.font = '600 11px ui-rounded, system-ui, sans-serif';
     const padding = 6;
     const width = ctx.measureText(text).width + padding * 2;
@@ -235,6 +495,18 @@ class WorldRenderer {
     let bx = x + this.tile / 2 - width / 2;
     bx = Math.max(2, Math.min(bx, this.canvas.clientWidth - width - 2));
     const by = Math.max(2, y - height - 4);
+
+    // A fresh meow pops in with a small settle (US6); older bubbles and
+    // reduced motion render at full size instantly.
+    const scale = view.bubbleScaleFor(meow);
+    ctx.save();
+    if (scale !== 1) {
+      const ax = x + this.tile / 2;
+      const ay = by + height;
+      ctx.translate(ax, ay);
+      ctx.scale(scale, scale);
+      ctx.translate(-ax, -ay);
+    }
 
     ctx.fillStyle = 'rgba(255, 253, 250, 0.96)';
     ctx.strokeStyle = 'rgba(150, 125, 105, 0.28)';
@@ -256,6 +528,7 @@ class WorldRenderer {
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     ctx.fillText(text, bx + padding, by + height / 2);
+    ctx.restore();
   }
 
   // ---- small helpers ----

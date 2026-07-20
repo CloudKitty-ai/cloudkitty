@@ -8,6 +8,16 @@
 
 **Input**: User description: "Graphics refresh: make the CloudKitty viewer even cuter with procedural vector cats and animation. All work is in client/ — no engine changes; the viewer remains a pure view (Article V): it never simulates or predicts, only renders and eases between states the server already sent. Direction was decided during ideation (2026-07-18, recorded in BACKLOG.md): procedural vector cats over pixel sprite sheets. De-risk the aesthetic floor first with a static cat-portrait gallery. Scope in build order: interpolation clock, vector cats with per-kitty identity and facing, action and idle animations, dramatizing served data (solo play, chase abandonment, pursuit, relief, long-distress thought bubble), ambient life and element juice. Hygiene: prefers-reduced-motion fallback and pausing when the tab is hidden. All tunables named per Article VI; server-owned ones in [viewer] via /config."
 
+## Clarifications
+
+### Session 2026-07-19
+
+- Q: Are "idle" and "sitting" two poses or one? → A: One — the idle pose is
+  a *standing* cat; a distinct sitting pose is skipped for now (owner
+  decision at /speckit-analyze remediation). The pose vocabulary is eight:
+  idle standing, walking, sleeping curl, resting loaf, pouncing, eating,
+  drinking, grooming.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - The Portrait Gallery (Priority: P1)
@@ -37,7 +47,7 @@ reads as cute at actual world tile size — not just when enlarged.
 **Acceptance Scenarios**:
 
 1. **Given** the gallery page, **When** it loads, **Then** it shows every fur
-   variant and every pose used by the live viewer (idle, sitting, walking,
+   variant and every pose used by the live viewer (idle standing, walking,
    sleeping curl, resting loaf, pouncing, eating, drinking, grooming), each
    rendered at world tile size and at an enlarged inspection size.
 2. **Given** the gallery page, **When** viewed with no name labels, **Then**
@@ -339,7 +349,7 @@ described; with reduced motion set, ambient effects are absent entirely.
 - **Cat appearance**: the per-kitty visual identity — fur base color, fur
   pattern, eye color — derived stably from kitty identity; the unit the
   gallery displays and the live world reuses.
-- **Pose**: a named static body configuration (idle, sitting, walking,
+- **Pose**: a named static body configuration (idle standing, walking,
   sleeping curl, resting loaf, pounce, eating, drinking, grooming) defined by
   drawing parameters; the vocabulary both gallery and animations share.
 - **Animation beat**: a short, named presentational sequence (pounce, chomp,

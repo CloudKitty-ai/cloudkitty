@@ -84,6 +84,11 @@
     gap: 6px;
   }
 
+  .kitty-card .name canvas {
+    border-radius: 6px;
+    background: var(--grass);
+  }
+
   .kitty-card .mood {
     font-size: 0.75rem;
     color: var(--ink-soft);
@@ -149,6 +154,10 @@
   #status.disconnected { color: var(--meh); font-weight: 700; }
   #debug-note { color: var(--meh); font-weight: 700; }
   [hidden] { display: none !important; }
+
+  /* Reduced motion (spec 005 FR-015): the panel's bar transitions join the
+     canvas in going still. Toggled on <body> from the media query. */
+  body.reduced-motion .bar > span { transition: none; }
 </style>
 </head>
 <body>
@@ -170,7 +179,9 @@
     <span id="debug-note" hidden>· 👻 greebles visible</span>
   </footer>
 
+  <script src="cat.js"></script>
   <script src="render.js"></script>
+  <script src="anim.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

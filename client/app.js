@@ -35,6 +35,10 @@ let distressPatienceTicks = 60;
 
 let latestWorld = null;
 
+// The animation layer owns every drawing decision from here on (spec 005
+// US3): app.js feeds it served states and keeps running the panel.
+anim.init(renderer);
+
 function setStatus(text, connected) {
   statusEl.textContent = text;
   statusEl.classList.toggle('disconnected', !connected);
@@ -42,7 +46,7 @@ function setStatus(text, connected) {
 
 function render(world) {
   latestWorld = world;
-  renderer.draw(world);
+  anim.push(world);
   tickEl.textContent = world.tick;
   renderPanel(world);
 }
@@ -62,7 +66,7 @@ function renderPanel(world) {
   world.kitties.forEach((kitty, index) => {
     const card = panelEl.children[index];
     if (!card) return;
-    card.querySelector('.name').textContent = `${faceFor(kitty)} ${kitty.name}`;
+    card.querySelector('.name > span').textContent = kitty.name;
     card.querySelector('.mood').textContent = moodFor(kitty);
     card.querySelector('.doing').textContent = doingFor(kitty, world);
     card.querySelector('.patience').textContent = patienceFor(kitty, world);
@@ -87,6 +91,26 @@ function buildKittyCard(kitty) {
 
   const name = document.createElement('div');
   name.className = 'name';
+  // The card wears the kitty's own portrait (spec 005 polish): the same
+  // drawCat the world uses, drawn once -- appearance never changes.
+  const portrait = document.createElement('canvas');
+  const portraitSize = 22;
+  const dpr = window.devicePixelRatio || 1;
+  portrait.width = portraitSize * dpr;
+  portrait.height = portraitSize * dpr;
+  portrait.style.width = `${portraitSize}px`;
+  portrait.style.height = `${portraitSize}px`;
+  const portraitCtx = portrait.getContext('2d');
+  portraitCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  drawCat(portraitCtx, {
+    pose: 'idle',
+    appearance: appearanceFor(kitty.id),
+    facing: 'right', // toward its own name
+    size: portraitSize,
+    phase: 0,
+  });
+  name.appendChild(portrait);
+  name.appendChild(document.createElement('span'));
   card.appendChild(name);
 
   const mood = document.createElement('div');
@@ -121,13 +145,6 @@ function buildKittyCard(kitty) {
   card.appendChild(needs);
 
   return card;
-}
-
-function faceFor(kitty) {
-  const state = kitty.activity?.state;
-  if (state === 'sleeping') return '😴';
-  if (state === 'resting') return '😌';
-  return '🐱';
 }
 
 /** Mood is happiness, and only happiness -- a napping cat can still be delighted. */
@@ -255,9 +272,13 @@ async function fetchViewerConfig() {
     const patience = config?.viewer?.distress_patience_ticks;
     if (Number.isFinite(patience) && patience >= 1) {
       distressPatienceTicks = patience;
+      anim.setDistressPatience(patience);
     }
+    // The easing duration is the served tick interval (FR-005) -- already
+    // in /config as world.tick_ms, so no server change was ever needed.
+    anim.setTickMs(config?.world?.tick_ms);
   } catch {
-    // The cue still works on its stand-in threshold.
+    // The stand-ins in VIEW carry an older or unreachable server (FR-018).
   }
 }
 
@@ -265,7 +286,12 @@ function subscribe() {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   const socket = new WebSocket(`${protocol}//${window.location.host}/ws`);
 
-  socket.addEventListener('open', () => setStatus('watching live', true));
+  socket.addEventListener('open', () => {
+    // Whatever arrives after a (re)connect is a fresh moment of the world:
+    // snap to it, never ease across the gap (US3 edge case).
+    anim.bumpGeneration();
+    setStatus('watching live', true);
+  });
 
   socket.addEventListener('message', (event) => {
     try {
@@ -301,7 +327,7 @@ window.addEventListener('keydown', (event) => {
   if (event.key !== 'g' && event.key !== 'G') return;
   renderer.showGreebles = !renderer.showGreebles;
   debugNoteEl.hidden = !renderer.showGreebles;
-  if (latestWorld) renderer.draw(latestWorld);
+  anim.redraw();
 });
 
 start();
