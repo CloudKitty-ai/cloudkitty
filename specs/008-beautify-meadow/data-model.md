@@ -72,11 +72,15 @@ redraw immediately (the `g` pattern: flip flag, sync note, `anim.redraw()`).
 ## Named homes (Article VI)
 
 - **`MEADOW` palette** (`client/meadow.js`): `grassTones[]`, `jitterTint`,
-  `floraTuft`, `floraClover`, `floraPetal`, `floraCenter`, `pondWater`,
-  `pondRim`, `lilyPad`, `edgeFringe`, `glowWarm`, `pathTint`, `gridLine`.
+  `jitterShade`, `floraTuft`, `floraClover`, `floraPetal`, `floraCenter`,
+  `pondWater`, `pondShallow`, `pondRim`, `lilyPad`, `lilyPadRim`,
+  `edgeFringe`, `edgeFringeDeep`, `glowCore`/`glowMid`/`glowFade`,
+  `pathTint`, `gridLine`.
 - **`VIEW.meadow` tunables** (`client/anim.js`): layer flags (`scatter`,
   `ponds`, `edge`, `glow`, `paths`, `gridOverlay`) + `toneCount`,
-  `jitterAlpha`, `floraDensity`, `shoreRounding`, `lilyPadMinTiles`,
-  `glowRadiusTiles`, `glowAlpha`, `edgeDepth`, `pathHeatCap`,
-  `pathHalfLifeMs`, `pathVisibilityFloor`.
+  `jitterAlpha`, `floraDensity`, `shoreRounding`, `shoreWobble`,
+  `lilyPadMinTiles`, `glowRadiusTiles`, `glowAlpha`, `edgeDepth`,
+  `pathHeatCap`, `pathFullHeat`, `pathHalfLifeMs`, `pathVisibilityFloor`,
+  `pathTintAlpha`. Display saturation (`pathFullHeat`) is deliberately
+  separate from the memory cap (`pathHeatCap`) — gate revision 1.
 - `TILE_COLORS` in `render.js` shrinks to surviving entries or retires.

@@ -90,16 +90,18 @@ const VIEW = Object.freeze({
     gridOverlay: true, // whether the grid debug overlay is available at all
     toneCount: 4, // how many close grass tones the meadow mixes
     jitterAlpha: 0.05, // peak alpha of the per-tile brightness jitter
-    floraDensity: 0.06, // share of tiles carrying a tuft/clover/flower
+    floraDensity: 0.13, // share of tiles carrying a tuft/clover/flower
     shoreRounding: 0.45, // pond corner rounding, in tiles
+    shoreWobble: 0.07, // organic shoreline waviness, in tiles
     lilyPadMinTiles: 4, // ponds at least this big carry a lily pad
     glowRadiusTiles: 1.4, // sunbeam glow radius, in tiles
     glowAlpha: 0.6, // overall glow strength
-    edgeDepth: 0.3, // fringe depth, in tiles (inside the boundary tiles)
-    pathHeatCap: 12, // worn-path heat ceiling per tile
-    pathHalfLifeMs: 45000, // trail fading half-life
-    pathVisibilityFloor: 0.5, // decayed heat below this draws nothing
-    pathTintAlpha: 0.35, // trail opacity at full heat
+    edgeDepth: 0.38, // fringe depth, in tiles (inside the boundary tiles)
+    pathHeatCap: 12, // worn-path heat ceiling per tile (memory, not display)
+    pathFullHeat: 3, // passes at which a trail draws at full tint
+    pathHalfLifeMs: 60000, // trail fading half-life
+    pathVisibilityFloor: 0.4, // decayed heat below this draws nothing
+    pathTintAlpha: 0.5, // trail opacity at full heat
   }),
 });
 
@@ -428,7 +430,10 @@ class Presentation {
       const heat = decayedPathHeat(entry, now);
       if (heat < VIEW.meadow.pathVisibilityFloor) continue;
       const [x, y] = key.split(',').map(Number);
-      entries.push({ x, y, heat01: Math.min(1, heat / VIEW.meadow.pathHeatCap) });
+      // Display saturates at pathFullHeat, not the memory cap (revision 1:
+      // normalizing by the cap left a once-walked tile at 3% alpha --
+      // arithmetically invisible). A few passes now read plainly.
+      entries.push({ x, y, heat01: Math.min(1, heat / VIEW.meadow.pathFullHeat) });
     }
     return entries;
   }

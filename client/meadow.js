@@ -25,11 +25,14 @@ const MEADOW = Object.freeze({
   floraCenter: '#f4c95d', // the same gold the beat stars wear
   // Water, matching the shipped pool hues so ponds read as the same water.
   pondWater: '#bfe3f2',
+  pondShallow: '#daf1fb', // the pale band hugging the inside of the shore
   pondRim: '#9ccfe6',
   lilyPad: '#9fcf8e',
   lilyPadRim: '#84b877',
-  // The world edge fringe: a deeper grass than any ground tone.
+  // The world edge fringe: two grass tones deeper than any ground tone,
+  // one per fringe row.
   edgeFringe: '#b3cf9e',
+  edgeFringeDeep: '#9dbf87',
   // Sunbeam glow stops (radial: core -> mid -> transparent).
   glowCore: 'rgba(255, 231, 150, 0.85)',
   glowMid: 'rgba(255, 226, 138, 0.4)',
@@ -50,6 +53,7 @@ const MEADOW_SALTS = Object.freeze({
   floraOffsetY: 6,
   lily: 7,
   edge: 8,
+  shore: 9,
 });
 
 /**
@@ -66,16 +70,18 @@ const MEADOW_DEFAULTS = Object.freeze({
   gridOverlay: true, // whether the grid debug overlay is available at all
   toneCount: 4, // how many close grass tones the meadow mixes
   jitterAlpha: 0.05, // peak alpha of the per-tile brightness jitter
-  floraDensity: 0.06, // share of tiles carrying a tuft/clover/flower
+  floraDensity: 0.13, // share of tiles carrying a tuft/clover/flower
   shoreRounding: 0.45, // pond corner rounding, in tiles
+  shoreWobble: 0.07, // organic shoreline waviness, in tiles
   lilyPadMinTiles: 4, // ponds at least this big carry a lily pad
   glowRadiusTiles: 1.4, // sunbeam glow radius, in tiles
   glowAlpha: 0.6, // overall glow strength
-  edgeDepth: 0.3, // fringe depth, in tiles (stays inside boundary tiles)
-  pathHeatCap: 12, // worn-path heat ceiling per tile
-  pathHalfLifeMs: 45000, // trail fading half-life
-  pathVisibilityFloor: 0.5, // decayed heat below this draws nothing
-  pathTintAlpha: 0.35, // trail opacity at full heat
+  edgeDepth: 0.38, // fringe depth, in tiles (stays inside boundary tiles)
+  pathHeatCap: 12, // worn-path heat ceiling per tile (memory, not display)
+  pathFullHeat: 3, // passes at which a trail draws at full tint
+  pathHalfLifeMs: 60000, // trail fading half-life
+  pathVisibilityFloor: 0.4, // decayed heat below this draws nothing
+  pathTintAlpha: 0.5, // trail opacity at full heat
 });
 
 /** VIEW.meadow when the animation layer is loaded; the stand-ins otherwise. */
@@ -125,7 +131,9 @@ function drawMeadowGround(ctx, { width, height, tile }) {
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       if (tileHash(x, y, MEADOW_SALTS.flora) >= t.floraDensity) continue;
-      const kind = Math.floor(tileHash(x, y, MEADOW_SALTS.floraKind) * 3);
+      // Tufts are common, clover occasional, flowers a treat.
+      const kh = tileHash(x, y, MEADOW_SALTS.floraKind);
+      const kind = kh < 0.5 ? 0 : kh < 0.82 ? 1 : 2;
       const ox = 0.25 + tileHash(x, y, MEADOW_SALTS.floraOffsetX) * 0.5;
       const oy = 0.25 + tileHash(x, y, MEADOW_SALTS.floraOffsetY) * 0.5;
       drawFlora(ctx, kind, (x + ox) * tile, (y + oy) * tile, tile);
@@ -133,46 +141,54 @@ function drawMeadowGround(ctx, { width, height, tile }) {
   }
 }
 
-/** One flora accent: 0 a grass tuft, 1 a clover, 2 a tiny flower. */
+/** One flora accent: 0 a grass tuft, 1 a clover, 2 a little flower. */
 function drawFlora(ctx, kind, cx, cy, tile) {
   ctx.save();
   if (kind === 0) {
-    // A tuft: three short blades leaning apart.
+    // A tuft: four blades fanning from one root.
     ctx.strokeStyle = MEADOW.floraTuft;
-    ctx.lineWidth = Math.max(0.7, tile * 0.045);
+    ctx.lineWidth = Math.max(0.9, tile * 0.06);
     ctx.lineCap = 'round';
-    for (const lean of [-0.14, 0, 0.16]) {
+    for (const lean of [-0.22, -0.07, 0.09, 0.24]) {
       ctx.beginPath();
-      ctx.moveTo(cx, cy);
+      ctx.moveTo(cx, cy + tile * 0.04);
       ctx.quadraticCurveTo(
         cx + lean * tile * 0.5,
-        cy - tile * 0.12,
+        cy - tile * 0.16,
         cx + lean * tile,
-        cy - tile * 0.22,
+        cy - tile * 0.3,
       );
       ctx.stroke();
     }
   } else if (kind === 1) {
-    // A clover: three leaflets in a tight cluster.
+    // A clover: three plump leaflets on a short stem.
+    ctx.strokeStyle = MEADOW.floraClover;
+    ctx.lineWidth = Math.max(0.8, tile * 0.045);
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(cx, cy + tile * 0.16);
+    ctx.lineTo(cx, cy);
+    ctx.stroke();
     ctx.fillStyle = MEADOW.floraClover;
-    const r = tile * 0.055;
-    for (const [dx, dy] of [[0, -1.1], [-1, 0.7], [1, 0.7]]) {
+    const r = tile * 0.085;
+    for (const [dx, dy] of [[0, -1.05], [-0.95, 0.6], [0.95, 0.6]]) {
       ctx.beginPath();
-      ctx.arc(cx + dx * r, cy + dy * r, r, 0, TAU);
+      ctx.arc(cx + dx * r, cy - tile * 0.02 + dy * r, r, 0, TAU);
       ctx.fill();
     }
   } else {
-    // A tiny flower: four petals around a gold center.
-    const r = tile * 0.05;
+    // A little flower: five petals around a gold center.
+    const r = tile * 0.075;
     ctx.fillStyle = MEADOW.floraPetal;
-    for (const [dx, dy] of [[0, -1.4], [0, 1.4], [-1.4, 0], [1.4, 0]]) {
+    for (let i = 0; i < 5; i++) {
+      const angle = (i / 5) * TAU - TAU / 4;
       ctx.beginPath();
-      ctx.arc(cx + dx * r, cy + dy * r, r, 0, TAU);
+      ctx.arc(cx + Math.cos(angle) * r * 1.5, cy + Math.sin(angle) * r * 1.5, r, 0, TAU);
       ctx.fill();
     }
     ctx.fillStyle = MEADOW.floraCenter;
     ctx.beginPath();
-    ctx.arc(cx, cy, r * 0.9, 0, TAU);
+    ctx.arc(cx, cy, r * 0.85, 0, TAU);
     ctx.fill();
   }
   ctx.restore();
@@ -298,9 +314,39 @@ function buildPondPath(tiles, tile) {
 
   const path = new Path2D();
   for (const loop of loops) {
-    roundedLoop(path, loop, t.shoreRounding, tile);
+    roundedLoop(path, wobbleLoop(loop, t.shoreWobble), t.shoreRounding, tile);
   }
   return path;
+}
+
+/**
+ * Organic shorelines: subdivide each straight run and push the new points
+ * a hash-chosen whisker sideways (revision 1 -- straight-sided ponds read
+ * exactly like the old squares, especially the common single-tile pool).
+ * The wobble is small enough that tile membership stays unambiguous, and
+ * hashing the quantized point keeps it deterministic (FR-002).
+ */
+function wobbleLoop(points, wobble) {
+  const out = [];
+  const n = points.length;
+  for (let i = 0; i < n; i++) {
+    const [ax, ay] = points[i];
+    const [bx, by] = points[(i + 1) % n];
+    out.push([ax, ay]);
+    const len = Math.hypot(bx - ax, by - ay);
+    const ux = (bx - ax) / len;
+    const uy = (by - ay) / len;
+    const segments = Math.max(2, Math.round(len * 2));
+    for (let j = 1; j < segments; j++) {
+      const px = ax + (bx - ax) * (j / segments);
+      const py = ay + (by - ay) * (j / segments);
+      const h = tileHash(Math.round(px * 4), Math.round(py * 4), MEADOW_SALTS.shore);
+      const off = (h - 0.5) * 2 * wobble;
+      // Perpendicular to the direction of travel.
+      out.push([px - uy * off, py + ux * off]);
+    }
+  }
+  return out;
 }
 
 /** Merge collinear runs so rounding only happens at true corners. */
@@ -356,6 +402,14 @@ function drawPonds(ctx, { ponds, tile }) {
   for (const pond of ponds) {
     ctx.fillStyle = MEADOW.pondWater;
     ctx.fill(pond.path);
+    // Shallows: a pale band hugging the inside of the shore (a wide
+    // stroke clipped to the pond, so only its inner half shows).
+    ctx.save();
+    ctx.clip(pond.path);
+    ctx.strokeStyle = MEADOW.pondShallow;
+    ctx.lineWidth = tile * 0.24;
+    ctx.stroke(pond.path);
+    ctx.restore();
     ctx.strokeStyle = MEADOW.pondRim;
     ctx.lineWidth = 1.5;
     ctx.stroke(pond.path);
@@ -413,52 +467,61 @@ function drawWorldEdge(ctx, { width, height, tile }) {
   const h = height * tile;
   ctx.save();
 
-  // The baseline: a whisper of deeper green along every border.
-  ctx.globalAlpha = 0.22;
+  // The baseline: a soft band of deeper green along every border, so the
+  // fringe reads as a continuous hem rather than scattered whiskers.
+  ctx.globalAlpha = 0.25;
   ctx.fillStyle = MEADOW.edgeFringe;
-  ctx.fillRect(0, 0, w, depth * 0.5);
-  ctx.fillRect(0, h - depth * 0.5, w, depth * 0.5);
-  ctx.fillRect(0, 0, depth * 0.5, h);
-  ctx.fillRect(w - depth * 0.5, 0, depth * 0.5, h);
+  ctx.fillRect(0, 0, w, depth * 0.4);
+  ctx.fillRect(0, h - depth * 0.4, w, depth * 0.4);
+  ctx.fillRect(0, 0, depth * 0.4, h);
+  ctx.fillRect(w - depth * 0.4, 0, depth * 0.4, h);
   ctx.globalAlpha = 1;
 
-  // The blades: hash-varied spacing, height, and lean per side.
-  ctx.strokeStyle = MEADOW.edgeFringe;
-  ctx.lineWidth = Math.max(0.9, tile * 0.055);
+  // Two dense rows of blades per side: a taller back row in the lighter
+  // fringe green, a shorter front row in the deeper one -- hash-varied
+  // spacing, height, and lean throughout.
   ctx.lineCap = 'round';
-  const step = tile * 0.3;
-  // side: 0 top, 1 bottom, 2 left, 3 right. Each blade roots on the
-  // border and leans inward.
+  // side: 0 top, 1 bottom, 2 left, 3 right. Blades root on the border
+  // and lean inward.
   const sides = [
     { len: w, root: (s) => [s, 0], dir: [0, 1] },
     { len: w, root: (s) => [s, h], dir: [0, -1] },
     { len: h, root: (s) => [0, s], dir: [1, 0] },
     { len: h, root: (s) => [w, s], dir: [-1, 0] },
   ];
-  sides.forEach((side, si) => {
-    const count = Math.max(2, Math.floor(side.len / step));
-    for (let i = 0; i < count; i++) {
-      const hJit = tileHash(i, si, MEADOW_SALTS.edge);
-      const hLen = tileHash(i + 1000, si, MEADOW_SALTS.edge);
-      const hLean = tileHash(i + 2000, si, MEADOW_SALTS.edge);
-      const s = (i + 0.2 + hJit * 0.6) * step;
-      if (s > side.len) continue;
-      const [rx, ry] = side.root(s);
-      const reach = depth * (0.55 + hLen * 0.45);
-      const lean = (hLean - 0.5) * tile * 0.24;
-      const tipX = rx + side.dir[0] * reach + (side.dir[0] === 0 ? lean : 0);
-      const tipY = ry + side.dir[1] * reach + (side.dir[1] === 0 ? lean : 0);
-      ctx.beginPath();
-      ctx.moveTo(rx, ry);
-      ctx.quadraticCurveTo(
-        rx + side.dir[0] * reach * 0.5,
-        ry + side.dir[1] * reach * 0.5,
-        tipX,
-        tipY,
-      );
-      ctx.stroke();
-    }
-  });
+  const rows = [
+    { color: MEADOW.edgeFringe, width: 0.05, step: 0.16, lo: 0.6, hi: 1.0, salt: 0 },
+    { color: MEADOW.edgeFringeDeep, width: 0.06, step: 0.19, lo: 0.35, hi: 0.7, salt: 5000 },
+  ];
+  for (const row of rows) {
+    ctx.strokeStyle = row.color;
+    ctx.lineWidth = Math.max(0.9, tile * row.width);
+    const step = tile * row.step;
+    sides.forEach((side, si) => {
+      const count = Math.max(2, Math.floor(side.len / step));
+      for (let i = 0; i < count; i++) {
+        const hJit = tileHash(i + row.salt, si, MEADOW_SALTS.edge);
+        const hLen = tileHash(i + row.salt + 1000, si, MEADOW_SALTS.edge);
+        const hLean = tileHash(i + row.salt + 2000, si, MEADOW_SALTS.edge);
+        const s = (i + 0.2 + hJit * 0.6) * step;
+        if (s > side.len) continue;
+        const [rx, ry] = side.root(s);
+        const reach = depth * (row.lo + hLen * (row.hi - row.lo));
+        const lean = (hLean - 0.5) * tile * 0.22;
+        const tipX = rx + side.dir[0] * reach + (side.dir[0] === 0 ? lean : 0);
+        const tipY = ry + side.dir[1] * reach + (side.dir[1] === 0 ? lean : 0);
+        ctx.beginPath();
+        ctx.moveTo(rx, ry);
+        ctx.quadraticCurveTo(
+          rx + side.dir[0] * reach * 0.5,
+          ry + side.dir[1] * reach * 0.5,
+          tipX,
+          tipY,
+        );
+        ctx.stroke();
+      }
+    });
+  }
   ctx.restore();
 }
 
@@ -495,8 +558,8 @@ function drawWornPaths(ctx, { entries, tile }) {
   const t = meadowTunables();
   ctx.save();
   ctx.fillStyle = MEADOW.pathTint;
-  const inset = tile * 0.12;
-  const r = tile * 0.3;
+  const inset = tile * 0.08;
+  const r = tile * 0.34;
   for (const e of entries) {
     ctx.globalAlpha = t.pathTintAlpha * e.heat01;
     const x = e.x * tile + inset;
