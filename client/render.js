@@ -221,15 +221,19 @@ class WorldRenderer {
     ctx.ellipse(cx, cy + this.tile * 0.32, this.tile * 0.3, this.tile * 0.12, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // The approved vector cat (spec 005 US2): identity from the kitty's id,
-    // pose from served state, facing from its last horizontal movement.
-    const pose = poseFor(kitty, view.movedFor(kitty.id));
+    // The approved vector cat (spec 005 US2/US4): identity from the kitty's
+    // id, pose from served state (with the fall-asleep settle), facing from
+    // its last horizontal movement, motion from the animation layer.
+    const pose = view.adjustPose(kitty.id, poseFor(kitty, view.movedFor(kitty.id)));
+    const motion = view.motionFor(kitty.id, pose);
     drawCat(ctx, {
       pose,
       appearance: appearanceFor(kitty.id),
       facing: view.facingFor(kitty.id),
       size: this.tile,
-      phase: view.phaseFor(kitty.id, pose),
+      phase: motion.phase,
+      eyesOverride: motion.eyesOverride,
+      earsBack: motion.earsBack,
       x,
       y,
     });

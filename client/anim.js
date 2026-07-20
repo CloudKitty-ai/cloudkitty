@@ -75,6 +75,7 @@ class Presentation {
     this.distressPatienceTicks = VIEW.distressPatienceFallback;
     this.facings = new Map(); // id -> 'left' | 'right'
     this.movedNow = new Map(); // id -> bool, for this pair
+    this.sleepingSince = new Map(); // id -> tick its current sleep began
     this.newElementIds = new Set();
     this.expiredElements = [];
   }
@@ -115,16 +116,20 @@ class Presentation {
 
     if (this.discontinuous) {
       // An unrelated pair must never blend: snap, and start memory afresh.
+      // (A mid-sleep snapshot shows the held curl, not a replayed settle.)
       this.prev = null;
       this.facings.clear();
       this.movedNow.clear();
+      this.sleepingSince.clear();
       this.newElementIds = new Set();
       this.expiredElements = [];
       return;
     }
 
     // Facing memory (FR-004): the horizontal component of the last move,
-    // kept while standing still, derived only from served positions.
+    // kept while standing still, derived only from served positions. The
+    // same pass notes falling-asleep edges, so the curl transition plays
+    // once and only once (US4 acceptance 3).
     this.movedNow.clear();
     for (const kitty of world.kitties) {
       const was = prev.kitties.find((p) => p.id === kitty.id);
@@ -132,6 +137,13 @@ class Presentation {
       if (dx > 0) this.facings.set(kitty.id, 'right');
       else if (dx < 0) this.facings.set(kitty.id, 'left');
       this.movedNow.set(kitty.id, dx !== 0 || kitty.pos.y !== was.pos.y);
+
+      const sleepingNow = kitty.activity?.state === 'sleeping';
+      if (sleepingNow && was.activity?.state !== 'sleeping') {
+        this.sleepingSince.set(kitty.id, world.tick);
+      } else if (!sleepingNow) {
+        this.sleepingSince.delete(kitty.id);
+      }
     }
 
     // Elements fade in and out; they never glide from nowhere.
@@ -168,6 +180,58 @@ class Presentation {
     };
   }
 
+  /**
+   * The fall-asleep settle (US4): on the very tick sleep begins, the first
+   * half of the tick still shows the loaf, so the curl reads as a
+   * transition -- and later sleeping ticks hold the curl without replaying.
+   */
+  adjustPose(id, pose, now) {
+    if (
+      pose === 'sleep-curl' &&
+      this.sleepingSince.get(id) === this.curr?.tick &&
+      this.progress(now) < 0.5
+    ) {
+      return 'loaf';
+    }
+    return pose;
+  }
+
+  /**
+   * Phase and micro-motion for one kitty (US4). Action poses run on the
+   * tick clock (their whole animation fits the tick that served them);
+   * resting poses breathe on a slow local cycle; idle cats get their
+   * scheduled blink, tail flick, or ear twitch -- gentle, occasional, and
+   * never during an action, so idle motion can never imply one (FR-008).
+   */
+  motionFor(id, pose, now) {
+    const isAction =
+      pose === 'pouncing' ||
+      pose === 'eating' ||
+      pose === 'drinking' ||
+      pose === 'grooming' ||
+      pose === 'walking';
+    if (isAction) return { phase: this.progress(now) };
+
+    const seed = id * 997;
+    const motion = {
+      phase: ((now + seed) % VIEW.breathePeriodMs) / VIEW.breathePeriodMs,
+    };
+    if (pose === 'sleep-curl') return motion; // sleepers just breathe
+
+    // Idle and loafing cats are never statues: one small motion per period,
+    // cycling blink -> tail flick -> ear twitch, offset per kitty.
+    const wobble = now + id * 1337;
+    const at = wobble % VIEW.idleMotionPeriodMs;
+    if (at < VIEW.idleMotionWindowMs) {
+      const kind = Math.floor(wobble / VIEW.idleMotionPeriodMs) % 3;
+      const w = at / VIEW.idleMotionWindowMs;
+      if (kind === 0) motion.eyesOverride = 'closed'; // a blink
+      else if (kind === 1) motion.phase = w; // one quick tail flick
+      else motion.earsBack = w < 0.5; // an ear twitch
+    }
+    return motion;
+  }
+
   elementAlphaFor(el, now) {
     if (!this.newElementIds.has(el.id)) return 1;
     return Math.min(1, this.progress(now) / VIEW.elementFadeShare);
@@ -191,7 +255,10 @@ class Presentation {
         still ? { x: kitty.pos.x, y: kitty.pos.y } : this.posFor(kitty, now),
       facingFor: (id) => this.facingFor(id),
       movedFor: (id) => this.movedFor(id),
-      phaseFor: () => 0, // action/idle animation arrives with US4
+      adjustPose: (id, pose) => (still ? pose : this.adjustPose(id, pose, now)),
+      // Still frames get the static pose for the state, nothing more
+      // (FR-015): phase 0, no blinks, no flicks.
+      motionFor: (id, pose) => (still ? { phase: 0 } : this.motionFor(id, pose, now)),
       elementAlphaFor: (el) => (still ? 1 : this.elementAlphaFor(el, now)),
       expired: still ? [] : this.expiredElements,
       expiredAlpha: still ? 0 : this.expiredAlpha(now),

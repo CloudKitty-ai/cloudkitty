@@ -118,6 +118,9 @@ function appearanceFor(kittyId) {
  *   size:       box edge in px                   (required)
  *   phase:      0..1 local animation phase       (default 0; poses may ignore)
  *   x, y:       top-left of the box in ctx space (default 0, 0)
+ *   eyesOverride: force an eye state ('open'|'closed'|'half'|'focused') --
+ *                 blinks (US4) and expressions (US5) land through here
+ *   earsBack:   force the ears back briefly (ear twitch, sad beat)
  * }
  */
 function drawCat(ctx, opts) {
@@ -129,9 +132,13 @@ function drawCat(ctx, opts) {
     phase = 0,
     x = 0,
     y = 0,
+    eyesOverride,
+    earsBack,
   } = opts;
 
   const L = catLayout(pose, phase);
+  if (eyesOverride) L.eyes = eyesOverride;
+  if (earsBack) L.earsUpright = false;
   const fine = size >= 44; // whiskers, mouth, glints only when they can read
 
   ctx.save();
@@ -163,7 +170,7 @@ function catLayout(pose, phase) {
   const L = {
     body: { cx: 0.44, cy: 0.64, rx: 0.3, ry: 0.21, rot: 0 },
     head: { cx: 0.7, cy: 0.4, r: 0.215 },
-    earBack: true, // ears upright (false = flattened back a touch)
+    earsUpright: true, // false = flattened back a touch (naps, meals)
     // Tail as a cubic bezier from rump to tip, drawn as an outlined stroke.
     tail: { x0: 0.16, y0: 0.62, c1x: 0.02, c1y: 0.62, c2x: 0.0, c2y: 0.42, x1: 0.05, y1: 0.3 },
     legs: [
@@ -226,7 +233,7 @@ function catLayout(pose, phase) {
     case 'eating': {
       L.body.rot = 0.07; // leaning into the bowl
       L.head = { cx: 0.71, cy: 0.6 + 0.012 * Math.sin(phase * 2 * TAU), r: 0.2 };
-      L.earBack = false;
+      L.earsUpright = false;
       L.eyes = 'closed'; // happy chomping
       L.tail = { x0: 0.15, y0: 0.66, c1x: 0.05, c1y: 0.68, c2x: 0.02, c2y: 0.6, x1: 0.03, y1: 0.55 };
       L.legs = [
@@ -239,7 +246,7 @@ function catLayout(pose, phase) {
     case 'drinking': {
       L.body.rot = 0.05;
       L.head = { cx: 0.72, cy: 0.57 + 0.008 * Math.sin(phase * 3 * TAU), r: 0.2 };
-      L.earBack = false;
+      L.earsUpright = false;
       L.eyes = 'half';
       L.droplet = true; // the little lap of water that says "drinking"
       L.tail = { x0: 0.15, y0: 0.66, c1x: 0.05, c1y: 0.68, c2x: 0.02, c2y: 0.6, x1: 0.03, y1: 0.55 };
@@ -251,9 +258,10 @@ function catLayout(pose, phase) {
     }
 
     case 'grooming': {
-      // Head swung back toward the flank, one paw raised mid-lick.
+      // Head swung back toward the flank, one paw raised mid-lick; the
+      // head nods with each lick.
       L.body = { cx: 0.48, cy: 0.64, rx: 0.3, ry: 0.21, rot: 0 };
-      L.head = { cx: 0.54, cy: 0.42, r: 0.205 };
+      L.head = { cx: 0.54, cy: 0.42 + 0.012 * Math.sin(phase * 3 * TAU), r: 0.205 };
       L.eyes = 'closed';
       L.pawUp = true;
       L.legs = [{ x: 0.32, top: 0.76, bottom: 0.88, w: 0.1 }];
@@ -275,7 +283,7 @@ function catLayout(pose, phase) {
       const slow = Math.sin(phase * TAU * 0.5); // slower breath in sleep
       L.body = { cx: 0.5, cy: 0.64, rx: 0.3, ry: 0.25 + 0.008 * slow, rot: 0 };
       L.head = { cx: 0.62, cy: 0.68, r: 0.165 };
-      L.earBack = false;
+      L.earsUpright = false;
       L.eyes = 'closed';
       L.legs = [];
       // Tail curled right around to the nose.
@@ -304,9 +312,9 @@ function paintCat(ctx, L, a, fine) {
   drawTail(ctx, L.tail, a, p);
   drawBody(ctx, L.body, a, p);
   drawLegs(ctx, L.legs, a, p);
-  drawEars(ctx, L.head, a, p, L.earBack);
+  drawEars(ctx, L.head, a, p, L.earsUpright);
   drawHead(ctx, L.head, a, p, fine);
-  if (fine) drawInnerEars(ctx, L.head, a, L.earBack);
+  if (fine) drawInnerEars(ctx, L.head, a, L.earsUpright);
   drawFace(ctx, L.head, L.eyes, a, fine);
   if (L.pawUp) drawRaisedPaw(ctx, L.head, a);
   if (L.droplet) drawDroplet(ctx, L.head);
