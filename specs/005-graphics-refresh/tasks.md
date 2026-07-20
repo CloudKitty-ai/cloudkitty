@@ -85,7 +85,7 @@ distinguishable unlabeled; the design reads as cute at 22px.
       inspection size (88px); an unlabeled side-by-side row of the three
       default kitties; works from `file://` and via the server's static
       fallback with zero server changes (R8, FR-001).
-- [ ] T006 [US1] **CHECKPOINT — the gallery gate.** Present the gallery to
+- [X] T006 [US1] **CHECKPOINT — the gallery gate.** Present the gallery to
       the owner; iterate `client/cat.js` (palettes/geometry only) until
       judged; record the outcome — approved, or fallback chosen (pixel
       sprites / emoji-faces-on-vector-bodies) — with date and revision notes
