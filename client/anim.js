@@ -82,21 +82,17 @@ const VIEW = Object.freeze({
   // this is the authoritative set, so it must stay a superset of
   // MEADOW_DEFAULTS.
   meadow: Object.freeze({
-    scatter: true, // flora + brightness jitter (base tones always draw)
     ponds: true, // merged smooth-shored water (off: per-tile pools)
-    edge: true, // the world fringe frame
     glow: true, // sunbeams as radial light (off: plain warm tile)
     paths: true, // whether the worn-paths overlay is available at all
     gridOverlay: true, // whether the grid debug overlay is available at all
     toneCount: 4, // how many close grass tones the meadow mixes
     jitterAlpha: 0.05, // peak alpha of the per-tile brightness jitter
-    floraDensity: 0.13, // share of tiles carrying a tuft/clover/flower
     shoreRounding: 0.45, // pond corner rounding, in tiles
     shoreWobble: 0.07, // organic shoreline waviness, in tiles
     lilyPadMinTiles: 4, // ponds at least this big carry a lily pad
     glowRadiusTiles: 1.4, // sunbeam glow radius, in tiles
     glowAlpha: 0.6, // overall glow strength
-    edgeDepth: 0.38, // fringe depth, in tiles (inside the boundary tiles)
     pathHeatCap: 12, // worn-path heat ceiling per tile (memory, not display)
     pathFullHeat: 3, // passes at which a trail draws at full tint
     pathHalfLifeMs: 60000, // trail fading half-life

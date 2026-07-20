@@ -19,20 +19,14 @@ const MEADOW = Object.freeze({
   grassTones: Object.freeze(['#e9f3e1', '#e4efd9', '#dfecd4', '#e6f1dc']),
   jitterTint: '#ffffff', // the brighter half of the per-tile jitter
   jitterShade: '#7f9a72', // and the darker half
-  floraTuft: '#a9c99a',
-  floraClover: '#8fbd85',
-  floraPetal: '#f7eef5',
-  floraCenter: '#f4c95d', // the same gold the beat stars wear
+  // (Flora accents and the edge fringe were scrapped at the gate,
+  // 2026-07-20 round 2 -- back on the backlog for a proper art pass.)
   // Water, matching the shipped pool hues so ponds read as the same water.
   pondWater: '#bfe3f2',
   pondShallow: '#daf1fb', // the pale band hugging the inside of the shore
   pondRim: '#9ccfe6',
   lilyPad: '#9fcf8e',
   lilyPadRim: '#84b877',
-  // The world edge fringe: two grass tones deeper than any ground tone,
-  // one per fringe row.
-  edgeFringe: '#b3cf9e',
-  edgeFringeDeep: '#9dbf87',
   // Sunbeam glow stops (radial: core -> mid -> transparent).
   glowCore: 'rgba(255, 231, 150, 0.85)',
   glowMid: 'rgba(255, 226, 138, 0.4)',
@@ -47,12 +41,7 @@ const MEADOW = Object.freeze({
 const MEADOW_SALTS = Object.freeze({
   tone: 1,
   jitter: 2,
-  flora: 3,
-  floraKind: 4,
-  floraOffsetX: 5,
-  floraOffsetY: 6,
   lily: 7,
-  edge: 8,
   shore: 9,
 });
 
@@ -62,21 +51,17 @@ const MEADOW_SALTS = Object.freeze({
  * authoritative superset -- the harness asserts it stays one.
  */
 const MEADOW_DEFAULTS = Object.freeze({
-  scatter: true, // flora + brightness jitter (base tones always draw)
   ponds: true, // merged smooth-shored water (off: per-tile pools)
-  edge: true, // the world fringe frame
   glow: true, // sunbeams as radial light (off: plain warm tile)
   paths: true, // whether the worn-paths overlay is available at all
   gridOverlay: true, // whether the grid debug overlay is available at all
   toneCount: 4, // how many close grass tones the meadow mixes
   jitterAlpha: 0.05, // peak alpha of the per-tile brightness jitter
-  floraDensity: 0.13, // share of tiles carrying a tuft/clover/flower
   shoreRounding: 0.45, // pond corner rounding, in tiles
   shoreWobble: 0.07, // organic shoreline waviness, in tiles
   lilyPadMinTiles: 4, // ponds at least this big carry a lily pad
   glowRadiusTiles: 1.4, // sunbeam glow radius, in tiles
   glowAlpha: 0.6, // overall glow strength
-  edgeDepth: 0.38, // fringe depth, in tiles (stays inside boundary tiles)
   pathHeatCap: 12, // worn-path heat ceiling per tile (memory, not display)
   pathFullHeat: 3, // passes at which a trail draws at full tint
   pathHalfLifeMs: 60000, // trail fading half-life
@@ -105,9 +90,10 @@ function tileHash(x, y, salt = 0) {
 }
 
 /**
- * The organic meadow (US1, FR-001): per-tile base tone, a barely-there
- * brightness jitter, and sparse flora -- all from tileHash. Drawn once
- * into the ground cache; the per-frame cost stays one blit.
+ * The organic meadow (US1, FR-001): per-tile base tone and a barely-there
+ * brightness jitter, both from tileHash. Drawn once into the ground
+ * cache; the per-frame cost stays one blit. (Flora accents were scrapped
+ * at the gate, 2026-07-20 round 2 -- deferred to the backlog.)
  */
 function drawMeadowGround(ctx, { width, height, tile }) {
   const t = meadowTunables();
@@ -119,7 +105,6 @@ function drawMeadowGround(ctx, { width, height, tile }) {
         tones.length;
       ctx.fillStyle = tones[tone];
       ctx.fillRect(x * tile, y * tile, tile, tile);
-      if (!t.scatter) continue;
       const j = tileHash(x, y, MEADOW_SALTS.jitter);
       ctx.globalAlpha = t.jitterAlpha * Math.abs(j * 2 - 1);
       ctx.fillStyle = j < 0.5 ? MEADOW.jitterShade : MEADOW.jitterTint;
@@ -127,71 +112,6 @@ function drawMeadowGround(ctx, { width, height, tile }) {
       ctx.globalAlpha = 1;
     }
   }
-  if (!t.scatter) return;
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      if (tileHash(x, y, MEADOW_SALTS.flora) >= t.floraDensity) continue;
-      // Tufts are common, clover occasional, flowers a treat.
-      const kh = tileHash(x, y, MEADOW_SALTS.floraKind);
-      const kind = kh < 0.5 ? 0 : kh < 0.82 ? 1 : 2;
-      const ox = 0.25 + tileHash(x, y, MEADOW_SALTS.floraOffsetX) * 0.5;
-      const oy = 0.25 + tileHash(x, y, MEADOW_SALTS.floraOffsetY) * 0.5;
-      drawFlora(ctx, kind, (x + ox) * tile, (y + oy) * tile, tile);
-    }
-  }
-}
-
-/** One flora accent: 0 a grass tuft, 1 a clover, 2 a little flower. */
-function drawFlora(ctx, kind, cx, cy, tile) {
-  ctx.save();
-  if (kind === 0) {
-    // A tuft: four blades fanning from one root.
-    ctx.strokeStyle = MEADOW.floraTuft;
-    ctx.lineWidth = Math.max(0.9, tile * 0.06);
-    ctx.lineCap = 'round';
-    for (const lean of [-0.22, -0.07, 0.09, 0.24]) {
-      ctx.beginPath();
-      ctx.moveTo(cx, cy + tile * 0.04);
-      ctx.quadraticCurveTo(
-        cx + lean * tile * 0.5,
-        cy - tile * 0.16,
-        cx + lean * tile,
-        cy - tile * 0.3,
-      );
-      ctx.stroke();
-    }
-  } else if (kind === 1) {
-    // A clover: three plump leaflets on a short stem.
-    ctx.strokeStyle = MEADOW.floraClover;
-    ctx.lineWidth = Math.max(0.8, tile * 0.045);
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(cx, cy + tile * 0.16);
-    ctx.lineTo(cx, cy);
-    ctx.stroke();
-    ctx.fillStyle = MEADOW.floraClover;
-    const r = tile * 0.085;
-    for (const [dx, dy] of [[0, -1.05], [-0.95, 0.6], [0.95, 0.6]]) {
-      ctx.beginPath();
-      ctx.arc(cx + dx * r, cy - tile * 0.02 + dy * r, r, 0, TAU);
-      ctx.fill();
-    }
-  } else {
-    // A little flower: five petals around a gold center.
-    const r = tile * 0.075;
-    ctx.fillStyle = MEADOW.floraPetal;
-    for (let i = 0; i < 5; i++) {
-      const angle = (i / 5) * TAU - TAU / 4;
-      ctx.beginPath();
-      ctx.arc(cx + Math.cos(angle) * r * 1.5, cy + Math.sin(angle) * r * 1.5, r, 0, TAU);
-      ctx.fill();
-    }
-    ctx.fillStyle = MEADOW.floraCenter;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r * 0.85, 0, TAU);
-    ctx.fill();
-  }
-  ctx.restore();
 }
 
 /**
@@ -451,77 +371,6 @@ function drawLilyPad(ctx, cx, cy, tile) {
   ctx.lineTo(cx + rx * 1.1, cy + ry * 0.1);
   ctx.closePath();
   ctx.fill();
-  ctx.restore();
-}
-
-/**
- * The world edge (US3, FR-007): a taller-grass fringe hugging the outer
- * margin of the boundary tiles -- blades plus a soft baseline strip --
- * so any size world reads as a garden with an edge. Depth stays within
- * the boundary tiles, so the frame can never cover a resident.
- */
-function drawWorldEdge(ctx, { width, height, tile }) {
-  const t = meadowTunables();
-  const depth = t.edgeDepth * tile;
-  const w = width * tile;
-  const h = height * tile;
-  ctx.save();
-
-  // The baseline: a soft band of deeper green along every border, so the
-  // fringe reads as a continuous hem rather than scattered whiskers.
-  ctx.globalAlpha = 0.25;
-  ctx.fillStyle = MEADOW.edgeFringe;
-  ctx.fillRect(0, 0, w, depth * 0.4);
-  ctx.fillRect(0, h - depth * 0.4, w, depth * 0.4);
-  ctx.fillRect(0, 0, depth * 0.4, h);
-  ctx.fillRect(w - depth * 0.4, 0, depth * 0.4, h);
-  ctx.globalAlpha = 1;
-
-  // Two dense rows of blades per side: a taller back row in the lighter
-  // fringe green, a shorter front row in the deeper one -- hash-varied
-  // spacing, height, and lean throughout.
-  ctx.lineCap = 'round';
-  // side: 0 top, 1 bottom, 2 left, 3 right. Blades root on the border
-  // and lean inward.
-  const sides = [
-    { len: w, root: (s) => [s, 0], dir: [0, 1] },
-    { len: w, root: (s) => [s, h], dir: [0, -1] },
-    { len: h, root: (s) => [0, s], dir: [1, 0] },
-    { len: h, root: (s) => [w, s], dir: [-1, 0] },
-  ];
-  const rows = [
-    { color: MEADOW.edgeFringe, width: 0.05, step: 0.16, lo: 0.6, hi: 1.0, salt: 0 },
-    { color: MEADOW.edgeFringeDeep, width: 0.06, step: 0.19, lo: 0.35, hi: 0.7, salt: 5000 },
-  ];
-  for (const row of rows) {
-    ctx.strokeStyle = row.color;
-    ctx.lineWidth = Math.max(0.9, tile * row.width);
-    const step = tile * row.step;
-    sides.forEach((side, si) => {
-      const count = Math.max(2, Math.floor(side.len / step));
-      for (let i = 0; i < count; i++) {
-        const hJit = tileHash(i + row.salt, si, MEADOW_SALTS.edge);
-        const hLen = tileHash(i + row.salt + 1000, si, MEADOW_SALTS.edge);
-        const hLean = tileHash(i + row.salt + 2000, si, MEADOW_SALTS.edge);
-        const s = (i + 0.2 + hJit * 0.6) * step;
-        if (s > side.len) continue;
-        const [rx, ry] = side.root(s);
-        const reach = depth * (row.lo + hLen * (row.hi - row.lo));
-        const lean = (hLean - 0.5) * tile * 0.22;
-        const tipX = rx + side.dir[0] * reach + (side.dir[0] === 0 ? lean : 0);
-        const tipY = ry + side.dir[1] * reach + (side.dir[1] === 0 ? lean : 0);
-        ctx.beginPath();
-        ctx.moveTo(rx, ry);
-        ctx.quadraticCurveTo(
-          rx + side.dir[0] * reach * 0.5,
-          ry + side.dir[1] * reach * 0.5,
-          tipX,
-          tipY,
-        );
-        ctx.stroke();
-      }
-    });
-  }
   ctx.restore();
 }
 

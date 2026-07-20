@@ -137,12 +137,12 @@ shape, single-tile pool, lily pad stability, drink positions unchanged.
 
 ---
 
-## Phase 5: User Story 3 — The world has an edge (Priority: P3)
+## Phase 5: User Story 3 — The world has an edge (Priority: P3) — SCRAPPED AT THE GATE
 
-**Goal**: a grass-fringe frame wraps any world size; never covers residents.
-
-**Independent Test**: quickstart §3 — frame + corners at 32×32 and 64×64,
-outermost-tile kitties fully legible.
+**Descoped 2026-07-20 (gate round 2)**: T016–T017 were implemented, judged
+at the gate across two revision rounds, and removed at the owner's call —
+the fringe treatments didn't land. The edge idea returns to BACKLOG.md for
+a proper art pass; T018 is obsolete. See meadow-approval.md.
 
 - [X] T016 [US3] Implement `drawWorldEdge(ctx, {width, height, tile})` in
       `client/meadow.js` — fringe strokes in MEADOW.edgeFringe along all

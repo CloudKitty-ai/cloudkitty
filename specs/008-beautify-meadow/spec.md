@@ -18,8 +18,8 @@ in the greeble mold."
 The residents got their glow-up in 005 and their props in 007; the ground they
 live on is still a flat checkerboard with square blue puddles. This feature
 makes the world worthy of its kitties: a meadow that reads as a real garden —
-varied grass, soft-shored ponds, warm pools of light, a framed edge — at any
-world size, without the simulation learning a single new fact. Everything here
+varied grass, soft-shored ponds, warm pools of light — at any world size,
+without the simulation learning a single new fact. Everything here
 is decoration in the viewer's eye only: deterministic, repeatable, and derived
 purely from where things already are.
 
@@ -35,9 +35,11 @@ both read as complete places, never as a repeated wallpaper swatch.
 
 Elizabeth opens the viewer and the ground is no longer an alternating grid of
 two green squares: it is a meadow — several close shades of grass blended
-tile by tile, with sparse tufts, clover, and tiny flowers scattered where they
-happen to grow. The tile grid itself is no longer drawn; a debug keystroke can
-bring the grid lines back when she wants to see the underlying lattice.
+tile by tile with a barely-visible brightness variation. The tile grid itself
+is no longer drawn; a debug keystroke can bring the grid lines back when she
+wants to see the underlying lattice. *(Amended at the gate, 2026-07-20 round
+2: the scattered flora accents — tufts, clover, flowers — were scrapped and
+returned to the backlog for a later art pass.)*
 
 **Why this priority**: the ground is most of the pixels on screen. Every other
 piece of this feature (ponds, edge, light, paths) sits on top of this canvas —
@@ -52,17 +54,16 @@ with its debug key.
 **Acceptance Scenarios**:
 
 1. **Given** a running world at default size, **When** the viewer loads,
-   **Then** the ground shows at least three distinguishable close grass tones
-   and scattered small flora, with no alternating-square pattern visible.
+   **Then** the ground shows at least three distinguishable close grass
+   tones, with no alternating-square pattern visible.
 2. **Given** the same world, **When** the page is reloaded or the server is
-   restarted with the same world, **Then** every grass tone and every tuft,
-   clover, and flower is in exactly the same place.
+   restarted with the same world, **Then** every grass tone is in exactly
+   the same place.
 3. **Given** the viewer showing the meadow, **When** the grid debug key is
    pressed, **Then** the tile grid lines appear over the meadow; pressing it
    again hides them; a fresh load starts with the grid hidden.
 4. **Given** a much larger world, **When** viewed, **Then** the meadow shows
-   no visible repetition or banding, and decoration density per screen area
-   looks the same as the default world.
+   no visible repetition or banding.
 
 ---
 
@@ -96,27 +97,14 @@ seams, stable across reloads.
 
 ---
 
-### User Story 3 - The world has an edge (Priority: P3)
+### User Story 3 - The world has an edge (Priority: P3) — SCRAPPED AT THE GATE
 
-The world no longer stops mid-lawn at a hard rectangle: a soft frame — taller
-grass fringe in the same hand as the meadow — wraps the boundary so any size
-world reads as a garden with an edge rather than a screenshot of infinity.
-
-**Why this priority**: it is the piece that makes *different world sizes* each
-feel intentional and complete, but it decorates the border rather than the
-majority of pixels — after grass and water.
-
-**Independent Test**: view worlds at several sizes; each shows the frame
-hugging its own bounds, with corners handled, and no kitty or prop is ever
-obscured by it.
-
-**Acceptance Scenarios**:
-
-1. **Given** a world of any size, **When** viewed, **Then** a decorative edge
-   frames the full boundary, including corners, scaled to that world's bounds.
-2. **Given** a kitty walking along the outermost tiles, **When** viewed,
-   **Then** the kitty remains fully legible — the frame never covers a
-   resident or a prop.
+**Deferred 2026-07-20 (gate round 2)**: the grass-fringe frame was built,
+judged, and scrapped — the whisker/hem treatments didn't land. The idea
+returns to BACKLOG.md for a proper art pass later; no edge decoration ships
+in 008. (Original intent: a soft frame wrapping the boundary so any size
+world reads as a garden rather than a screenshot of infinity, never
+covering a resident.)
 
 ---
 
@@ -188,10 +176,10 @@ instantly; a reload starts clean.
 
 - A world with no water tiles at all: no pond layer renders; nothing errors,
   nothing looks missing.
-- A pond touching the world boundary: the shoreline meets the world edge
-  cleanly, without spilling past the frame.
-- Very small worlds (a few tiles across): the edge frame does not swallow the
-  playfield; decoration density stays sensible rather than crowding.
+- A pond touching the world boundary: the shoreline meets the canvas edge
+  cleanly, without spilling past it.
+- Very small worlds (a few tiles across): decoration stays sensible rather
+  than crowding.
 - Very large worlds: decoration and trails must not degrade smoothness —
   drawing cost stays proportional to what is on screen.
 - Two sunbeams adjacent or overlapping: glows blend softly instead of banding.
@@ -206,9 +194,10 @@ instantly; a reload starts clean.
 ### Functional Requirements
 
 - **FR-001**: The ground MUST render as an organic meadow — several close
-  grass tones varying tile by tile plus sparse scattered flora (tufts, clover,
-  tiny flowers) and a barely-visible per-tile brightness variation — replacing
-  the alternating checkerboard entirely.
+  grass tones varying tile by tile plus a barely-visible per-tile brightness
+  variation — replacing the alternating checkerboard entirely. *(Amended at
+  the gate, 2026-07-20 round 2: flora accents scrapped, deferred to the
+  backlog.)*
 - **FR-002**: All meadow decoration MUST be a deterministic function of
   position within the world: identical on every reload and server restart of
   the same world, with no randomness that shifts between sessions and no new
@@ -225,9 +214,9 @@ instantly; a reload starts clean.
   accent.
 - **FR-006**: All water rendering MUST be purely visual: which tiles are
   water, kitty pathing, drink interactions, and all served data are unchanged.
-- **FR-007**: The world boundary MUST carry a decorative edge (grass fringe
-  frame in the meadow's own style) that scales to any world size, handles
-  corners, and never obscures a kitty or prop.
+- **FR-007**: *Scrapped at the gate (2026-07-20 round 2)* — the decorative
+  world edge was built and rejected; deferred to BACKLOG.md. No edge
+  decoration ships in 008.
 - **FR-008**: Sunbeam tiles MUST render as a soft radial warm glow bleeding
   slightly past tile bounds, replacing the hard-edged tinted square; the
   existing sunbeam ambience (pulse, motes) plays over it unchanged, and
@@ -258,14 +247,12 @@ instantly; a reload starts clean.
 
 ### Key Entities
 
-- **Meadow decoration**: the per-position ground treatment — grass tone,
-  brightness variation, and optional flora accent for each tile; derived
-  entirely from world position, never stored or served.
+- **Meadow decoration**: the per-position ground treatment — grass tone and
+  brightness variation for each tile; derived entirely from world position,
+  never stored or served. *(Flora accents deferred at the gate.)*
 - **Pond**: a visual grouping of contiguous water tiles with one continuous
   shoreline; size determines lily pad presence; membership is exactly the
   served water tiles.
-- **World edge**: the decorative frame at the world boundary; a function of
-  world dimensions only.
 - **Sunbeam glow**: the light-pool treatment of a served sunbeam location.
 - **Worn-path trace**: session-local, viewer-only memory of recent kitty
   movement per location — intensity rises with passage, decays with time,

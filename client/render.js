@@ -145,11 +145,11 @@ class WorldRenderer {
   }
 
   /**
-   * The meadow and its edge never change between resizes, so they are
-   * rendered once to an offscreen layer and blitted per frame (005
-   * research R7) -- the difference between thousands of fills and one
-   * drawImage each frame. The grid lines that used to live here are now
-   * the debug-only overlay behind `l` (spec 008 FR-004).
+   * The meadow never changes between resizes, so it is rendered once to
+   * an offscreen layer and blitted per frame (005 research R7) -- the
+   * difference between thousands of fills and one drawImage each frame.
+   * The grid lines that used to live here are now the debug-only overlay
+   * behind `l` (spec 008 FR-004).
    */
   blitGround(world) {
     if (!this.groundCache) {
@@ -160,9 +160,6 @@ class WorldRenderer {
       const dpr = window.devicePixelRatio || 1;
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
       drawMeadowGround(g, { width: world.width, height: world.height, tile: this.tile });
-      if (VIEW.meadow.edge) {
-        drawWorldEdge(g, { width: world.width, height: world.height, tile: this.tile });
-      }
       this.groundCache = off;
     }
     this.ctx.drawImage(this.groundCache, 0, 0, this.cssWidth, this.cssHeight);

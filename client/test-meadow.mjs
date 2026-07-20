@@ -91,7 +91,7 @@ function guardCtx(log = []) {
 }
 
 const EXPORTS =
-  ';({ MEADOW, MEADOW_SALTS, MEADOW_DEFAULTS, tileHash, drawMeadowGround, drawGridOverlay, groupWaterTiles, buildPondPath, drawPonds, drawWorldEdge, drawSunbeamGlow, drawWornPaths, VIEW, Presentation })';
+  ';({ MEADOW, MEADOW_SALTS, MEADOW_DEFAULTS, tileHash, drawMeadowGround, drawGridOverlay, groupWaterTiles, buildPondPath, drawPonds, drawSunbeamGlow, drawWornPaths, VIEW, Presentation })';
 const api = eval(src + EXPORTS);
 
 let passed = 0;
@@ -203,13 +203,12 @@ const DIMS = [
 ];
 const TILES = [8, 22];
 
-check('drawMeadowGround / drawGridOverlay / drawWorldEdge sweep clean', () => {
+check('drawMeadowGround / drawGridOverlay sweep clean', () => {
   for (const [width, height] of DIMS) {
     for (const tile of TILES) {
       const ctx = guardCtx();
       api.drawMeadowGround(ctx, { width, height, tile });
       api.drawGridOverlay(ctx, { width, height, tile });
-      api.drawWorldEdge(ctx, { width, height, tile });
     }
   }
 });
@@ -223,31 +222,9 @@ check('ground drawing is deterministic (identical command streams)', () => {
   assert(JSON.stringify(logA) === JSON.stringify(logB), 'streams differ');
 });
 
-check('world edge stays within the boundary-tile margin (FR-007)', () => {
-  for (const [width, height] of DIMS) {
-    const tile = 22;
-    const log = [];
-    api.drawWorldEdge(guardCtx(log), { width, height, tile });
-    const depth = api.MEADOW_DEFAULTS.edgeDepth * tile;
-    const w = width * tile;
-    const h = height * tile;
-    // Every drawn coordinate must hug a border to within the fringe reach
-    // (plus the small lean allowance).
-    const slack = depth + tile * 0.3;
-    for (const [name, ...args] of log) {
-      if (name !== 'moveTo' && name !== 'quadraticCurveTo' && name !== 'fillRect') continue;
-      const points =
-        name === 'fillRect'
-          ? [[args[0], args[1]], [args[0] + args[2], args[1] + args[3]]]
-          : [[args[args.length - 2], args[args.length - 1]]];
-      for (const [x, y] of points) {
-        const nearBorder =
-          x <= slack || y <= slack || x >= w - slack || y >= h - slack;
-        assert(nearBorder, `${name} at (${x},${y}) strays from the border`);
-      }
-    }
-  }
-});
+// (The world-edge margin test left with drawWorldEdge -- the edge frame
+// was scrapped at the gate, 2026-07-20 round 2, and returned to the
+// backlog.)
 
 // ---- pond geometry (T014) ----
 

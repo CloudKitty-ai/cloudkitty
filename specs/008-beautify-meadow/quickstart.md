@@ -30,9 +30,10 @@ cargo run -p cloudkitty-server -- --config /tmp/meadow-big.toml \
 
 ## 1. US1 — the organic meadow (SC-001/SC-002, FR-001/002/003/004)
 
-- [ ] The ground reads as meadow: ≥3 close grass tones, sparse tufts/clover/
-      flowers, no alternating-square pattern anywhere
-- [ ] Reload twice: every tone and every scatter mark in identical places
+- [ ] The ground reads as meadow: ≥3 close grass tones, no
+      alternating-square pattern anywhere *(flora accents scrapped at gate
+      round 2)*
+- [ ] Reload twice: every tone in identical places
 - [ ] Restart the server (same world): still identical
 - [ ] Press `l`: grid lines appear over the meadow; press again: gone;
       fresh load starts hidden; footer hints the key
@@ -49,14 +50,12 @@ cargo run -p cloudkitty-server -- --config /tmp/meadow-big.toml \
       still fades in/bows out
 - [ ] Watch a drink: the kitty stops on the same tile as before — shoreline
       is visual only
-- [ ] A pond touching the world boundary meets the edge frame cleanly
+- [ ] A pond touching the world boundary meets the canvas edge cleanly
 
-## 3. US3 — the world edge (FR-007)
+## 3. US3 — the world edge — SCRAPPED AT THE GATE
 
-- [ ] Default world: fringe frames all four sides and corners
-- [ ] Larger world: same, scaled to its bounds
-- [ ] A kitty walking the outermost tiles stays fully legible — the frame
-      never covers a resident or prop
+*(2026-07-20 round 2: built, judged, removed; deferred to BACKLOG.md.
+Nothing to validate.)*
 
 ## 4. US4 — sunbeams as light (FR-008)
 

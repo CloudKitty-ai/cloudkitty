@@ -15,37 +15,29 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 ## P2 — the bigger pieces, for a proper sitting
 
-### Beautification II, step 2: the meadow itself
-Make the map as lovely as its residents (ideation 2026-07-20; direction
-agreed). The scaling principle that anchors every piece: all decoration
-derives from a per-tile hash of (x, y) — pure presentation, deterministic
-across reloads like cat identity, density naturally proportional to area,
-so any world size gets a stable non-repeating meadow and nothing needs new
-served data (Article V untouched). Build order, each piece independently
-shippable:
+### Meadow finishing touches: grass detail + world edge (deferred from 008)
+Spec 008 shipped the meadow (tone-varied grass + jitter, smooth-shored
+ponds with lily pads, sunbeams as radial light, worn-paths toggle, grid
+demoted to debug) — but two pieces were built, judged at the gate
+(2026-07-20), and scrapped at the owner's call for a proper art pass
+later:
 
-1. **Organic grass** — retire the checkerboard: 3–4 close grass tones by
-   tile hash plus sparse hash-placed tufts, clover, tiny flowers; the grid
-   line becomes debug-only (joins the `g` family). Plus barely-visible
-   per-tile brightness jitter — the cheap fix for flat-color fields.
-2. **Ponds** — merge contiguous water tiles into one smooth-shored blob
-   (marching squares over the water tiles); lily pad on larger ponds.
-3. **A world edge** — taller grass fringe or a low hedge/picket frame in
-   the outline style, so any size world reads as a garden instead of
-   stopping mid-lawn.
-4. **Sunbeams as light** — a radial warm gradient bleeding softly past the
-   tile bounds under the existing pulse and motes.
-5. **Worn paths** — a client-side presentational heat-map of where cats
-   have walked this session, fading slowly, so trails emerge where the
-   cats actually live. **Decided 2026-07-20: a keyboard toggle in the `g`
-   mold** — off by default, one key reveals it, footer hint alongside the
-   greeble note. Pure view: local accumulation, cleared on reload and on
-   discontinuity, never served.
+1. **Grass detail** — scattered flora accents. Two attempts (tiny
+   accents, then bigger/denser weighted tufts/clover/flowers) both read
+   as sparse/odd noise rather than a living meadow. Next attempt should
+   explore a different vocabulary: denser micro-texture (blade clusters,
+   mottling) rather than discrete per-tile accents, judged at multiple
+   tile sizes (16×16 renders at 45px, 64×64 at 11px).
+2. **A world edge** — the grass-fringe frame (single row, then two-row
+   hem) never landed. Consider the other 2026-07-20 ideation option: a
+   low hedge or picket frame in the cats' outline style instead of
+   blades.
 
-Hygiene as in 005: ambient rules apply (subtle, individually toggleable
-`VIEW` flags, absent under reduced motion where motion is involved; static
-decoration stays). Day–night lighting remains its own entry below and
-lands on top of this look.
+The 008 scaffolding stands ready: `tileHash` in `client/meadow.js` is the
+deterministic scatter source (per-tile hash of (x, y) — stable across
+reloads, density proportional to area, no new served data), palette and
+tunables homes established, harness in `client/test-meadow.mjs`. Day–night
+lighting remains its own entry below and lands on top of this look.
 
 ### Harden the whole proposal boundary (do this *with* the plugin work)
 The strict play-target parsing that shipped in PR #5 fixed one instance of a

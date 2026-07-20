@@ -38,6 +38,16 @@ only)*
   - *Edge*: one sparse blade row → continuous hem (baseline band + two
     dense staggered rows in two greens, `edgeFringeDeep`), depth 0.38.
 
+- **Round 2 (2026-07-20)** — owner verdicts on revision 1: **worn paths
+  and water approved**. Grass detail (flora) and the edge still not
+  landing → **scrapped at the owner's call** and returned to BACKLOG.md
+  for a proper art pass later. Code, tunables, palette entries, spec
+  language, and tests for flora + edge all removed in the same change
+  (Article VI: spec, code, and tests move together). What ships as the
+  ground: tone-varied grass + brightness jitter (approved as "new
+  tiles"), ponds, glow, paths, grid toggle. A 16×16 demo world (45px
+  tiles) was added on port 8092 for the small-world look.
+
 ---
 
 Nothing past this gate ships as the default view until this file says

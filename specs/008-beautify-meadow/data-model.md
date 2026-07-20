@@ -14,7 +14,9 @@ served elements, or served kitty movement (research R2/R4/R6).
 |---|---|---|---|
 | `tone` | index into `MEADOW.grassTones` | `tileHash(x, y)` remixed with the tone salt | 3–4 close greens (`VIEW.meadow.toneCount`); adjacent equal tones are fine — variety comes from the mix, not alternation |
 | `jitter` | small alpha tint | hash remixed with the jitter salt | amplitude `VIEW.meadow.jitterAlpha`, barely visible (FR-001) |
-| `flora` | none \| tuft \| clover \| flower | hash remixed with the flora salt vs `VIEW.meadow.floraDensity`; kind + sub-tile offset from further remixes | sparse; drawn into the ground cache; never on a tile currently under a pond body (checked at cache build against nothing — flora is static, ponds are elements — so flora simply draws first and ponds paint over it) |
+
+*(A third `flora` field — tuft/clover/flower accents — was built and
+scrapped at the gate, 2026-07-20 round 2; deferred to the backlog.)*
 
 Stateless and identical on every reload/restart of any world (FR-002); no
 storage anywhere (SC-001).
@@ -32,11 +34,9 @@ Water spawn/expiry fades: a fading element renders as its own small rounded
 pool at the element alpha (the pre-008 visual); the pond body always renders
 the stable set (research R4).
 
-### WorldEdge (derived, per world size, cached)
+### WorldEdge — scrapped at the gate (2026-07-20 round 2)
 
-| Field | Type | Derivation | Rule |
-|---|---|---|---|
-| `frame` | fringe drawing | world width/height + `VIEW.meadow.edgeDepth` | wraps all four sides + corners; drawn into the ground cache; must never cover a kitty or prop — it decorates the outer margin of boundary tiles only (FR-007) |
+The fringe frame was built, judged, and removed; deferred to BACKLOG.md.
 
 ### SunbeamGlow (derived, per served sunbeam element, per frame)
 
@@ -72,15 +72,14 @@ redraw immediately (the `g` pattern: flip flag, sync note, `anim.redraw()`).
 ## Named homes (Article VI)
 
 - **`MEADOW` palette** (`client/meadow.js`): `grassTones[]`, `jitterTint`,
-  `jitterShade`, `floraTuft`, `floraClover`, `floraPetal`, `floraCenter`,
-  `pondWater`, `pondShallow`, `pondRim`, `lilyPad`, `lilyPadRim`,
-  `edgeFringe`, `edgeFringeDeep`, `glowCore`/`glowMid`/`glowFade`,
-  `pathTint`, `gridLine`.
-- **`VIEW.meadow` tunables** (`client/anim.js`): layer flags (`scatter`,
-  `ponds`, `edge`, `glow`, `paths`, `gridOverlay`) + `toneCount`,
-  `jitterAlpha`, `floraDensity`, `shoreRounding`, `shoreWobble`,
-  `lilyPadMinTiles`, `glowRadiusTiles`, `glowAlpha`, `edgeDepth`,
-  `pathHeatCap`, `pathFullHeat`, `pathHalfLifeMs`, `pathVisibilityFloor`,
-  `pathTintAlpha`. Display saturation (`pathFullHeat`) is deliberately
-  separate from the memory cap (`pathHeatCap`) — gate revision 1.
+  `jitterShade`, `pondWater`, `pondShallow`, `pondRim`, `lilyPad`,
+  `lilyPadRim`, `glowCore`/`glowMid`/`glowFade`, `pathTint`, `gridLine`.
+- **`VIEW.meadow` tunables** (`client/anim.js`): layer flags (`ponds`,
+  `glow`, `paths`, `gridOverlay`) + `toneCount`, `jitterAlpha`,
+  `shoreRounding`, `shoreWobble`, `lilyPadMinTiles`, `glowRadiusTiles`,
+  `glowAlpha`, `pathHeatCap`, `pathFullHeat`, `pathHalfLifeMs`,
+  `pathVisibilityFloor`, `pathTintAlpha`. Display saturation
+  (`pathFullHeat`) is deliberately separate from the memory cap
+  (`pathHeatCap`) — gate revision 1. Flora/edge palette entries and
+  tunables left with their features at gate round 2.
 - `TILE_COLORS` in `render.js` shrinks to surviving entries or retires.
