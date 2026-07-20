@@ -253,7 +253,11 @@ class WorldRenderer {
     const ctx = this.ctx;
     ctx.save();
     ctx.globalAlpha = alpha;
-    const { x, y } = this.tileOrigin(el.pos);
+    // Critters glide between served states (007 refinement); furniture
+    // stands still, as furniture does.
+    const isCritter = el.kind === 'bug' || el.kind === 'greeble';
+    const pos = isCritter && view ? view.elementPosFor(el) : el.pos;
+    const { x, y } = this.tileOrigin(pos);
     const cx = x + this.tile / 2;
     const cy = y + this.tile / 2;
 

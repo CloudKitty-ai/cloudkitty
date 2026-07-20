@@ -28,3 +28,8 @@ tiny grin of a creature that knows exactly what it's doing."
 **Decision**: the props proceed; US2–US3 are unblocked. The revision path
 stays open as always — edit `client/props.js`, re-judge the gallery, and
 append to this record.
+
+**Post-approval refinement (2026-07-20, live-world judgement)**: critter
+movement eases between served states (≤ 2 tiles; spawns and larger jumps
+snap) — the hover-bob alone left butterfly hops jerky. Motion, not look;
+no re-gate needed.

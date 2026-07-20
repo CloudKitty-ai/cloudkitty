@@ -31,6 +31,10 @@ const VIEW = Object.freeze({
 
   // Interpolation & element comings-and-goings (US3).
   elementFadeShare: 0.4, // share of a tick over which spawns/expiries fade
+  // Critters (bug/greeble) glide between served states like kitties do
+  // (007 refinement, 2026-07-20 -- the hover-bob alone left the hops
+  // jerky). Anything farther than a skitter is a different moment: snap.
+  critterGlideMaxTiles: 2,
 
   // Idle life (US4).
   idleMotionPeriodMs: 4600, // one flick/blink about this often
@@ -334,6 +338,28 @@ class Presentation {
     return oldest?.need ?? null;
   }
 
+  /**
+   * Float tile position for a moving element (007 refinement, 2026-07-20):
+   * critters glide on the same eased clock as kitties. Spawns and
+   * anything farther than `critterGlideMaxTiles` snap -- that is not
+   * motion, it is a different moment of the world.
+   */
+  elementPosFor(el, now) {
+    const was = this.prev?.elements.find((p) => p.id === el.id);
+    if (
+      !was ||
+      Math.abs(el.pos.x - was.pos.x) > VIEW.critterGlideMaxTiles ||
+      Math.abs(el.pos.y - was.pos.y) > VIEW.critterGlideMaxTiles
+    ) {
+      return { x: el.pos.x, y: el.pos.y };
+    }
+    const t = easeInOutCubic(this.progress(now));
+    return {
+      x: was.pos.x + (el.pos.x - was.pos.x) * t,
+      y: was.pos.y + (el.pos.y - was.pos.y) * t,
+    };
+  }
+
   elementAlphaFor(el, now) {
     if (!this.newElementIds.has(el.id)) return 1;
     return Math.min(1, this.progress(now) / VIEW.elementFadeShare);
@@ -373,6 +399,8 @@ class Presentation {
       expressionFor: (kitty) => this.expressionFor(kitty),
       thoughtFor: (kitty) => this.thoughtFor(kitty),
       elementAlphaFor: (el) => (still ? 1 : this.elementAlphaFor(el, now)),
+      elementPosFor: (el) =>
+        still ? { x: el.pos.x, y: el.pos.y } : this.elementPosFor(el, now),
       expired: still ? [] : this.expiredElements,
       expiredAlpha: still ? 0 : this.expiredAlpha(now),
       // Ambient life (US6): absent entirely under reduced motion (FR-013).

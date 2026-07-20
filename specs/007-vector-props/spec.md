@@ -108,8 +108,10 @@ butterfly kept its color.
    butterfly keeps its colorway across frames and reloads.
 3. **Given** a butterfly, **When** idle in the world, **Then** it hovers
    with a gentle bob above a small detached shadow, wings flapping on the
-   animation phase — and its tile-to-tile hops read as flight, not
-   teleporting.
+   animation phase — and it *glides* between its served positions rather
+   than teleporting (post-approval refinement, 2026-07-20: eased motion
+   for moves within a skitter, snapping otherwise; the hover-bob alone
+   proved insufficient).
 4. **Given** a butterfly that is the target of a kitty's served pursuit,
    **When** rendered, **Then** its flap visibly quickens for the duration
    of the pursuit — derived from served data only.

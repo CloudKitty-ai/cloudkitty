@@ -21,6 +21,7 @@ served data — plus the specific continuity promises this feature makes.
 | Sleep Zs | `kitty.activity.state == "sleeping"` | same anchor as the emoji it replaces (FR-008) |
 | Heart | the existing cuddle-partner rule | same eased midpoint (FR-008) |
 | Thought icons | the 005 thought-bubble machinery (`distress_since` + served patience) | icon becomes a drawn mini-prop; threshold logic untouched (FR-009) |
+| Critter glide | `element.pos` in the two newest states | eased like kitty motion for moves ≤ 2 tiles; spawns and larger jumps snap (post-approval refinement, 2026-07-20 — the hover-bob alone left hops jerky) |
 | Hover/flap/pulse/drift phases | local animation clock via the view layer | `propPhaseFor(id, periodMs)` over element *or* kitty ids — 0 under reduced motion / still frames (FR-013) |
 
 Absence of any optional field renders normally with no effect — unchanged
