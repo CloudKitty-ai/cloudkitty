@@ -74,6 +74,66 @@ harm a kitty — grouped because they are all one sitting's work:
    immediately recomputes the identical result. Hand the target down instead
    of discarding it.
 
+### Loose ends from the 006 review
+Eight low-severity findings from the post-merge review of the action-durations
+work (PR #7). None can harm a kitty — the duration guarantees all hold — but
+together they are the drift risks and dead weight the feature left behind, and
+one sitting clears them. Roughly in order of value:
+
+1. **Every activity's effects are written twice.** `apply()`'s start arms and
+   `continue_current_activity` each carry their own relief block per activity,
+   and drift is already visible between the two eat paths (the start arm
+   trusts validate; the continuation filters `servings > 0`). Any future
+   effect change landed in one copy makes tick 1 of a scene silently behave
+   differently from ticks 2..n, and no duration test catches it because the
+   bounds stay legal. Extract one `apply_activity_effects` called from both.
+2. **The governing-need mapping lives only in one inline match.** `Activity`
+   carries `bounds()` / `continuation()` / `duet_partner()` as methods, but
+   the need that *ends* each activity exists only inside
+   `resolve_activity_ends` — and the test suite re-derives the
+   activity→bounds table by hand with an `unreachable!` arm. Re-governing a
+   kind would compile cleanly in three places while tests assert stale
+   limits. Add `Activity::governing_need()` beside `bounds()` and derive both
+   the engine match and the tests from it.
+3. **"Usable adjacent bowl" is hand-rolled three ways.** Validate's Eat rule,
+   the Eating continuation's `Option::filter`, and the end rule's inverted
+   `matches!` agree today (all nearest-bowl semantics, verified in review)
+   but are free to desynchronize the moment chow semantics change — a
+   mid-minimum cat licking a bowl the end rule considers stocked, neither
+   relieving nor ending until max, with no test tripping. One
+   `World::adjacent_chow_with_servings` helper should serve all three sites.
+4. **`end_activity` duplicates `set_idle`'s clear pairing.** The
+   invariant-mandated "clear activity and clock together" is written in two
+   places; a future field joining the pairing (a posture flag, say) fixed in
+   one site leaves the other producing invariant violations at runtime. Make
+   one `pub(crate)` clear helper and call it from both.
+5. **Dead `resolved` set in `resolve_activity_ends`.** Ending a duet clears
+   the partner's clock, so the loop's own clock guard already skips it — the
+   set can never change behavior, implies a re-entry hazard that doesn't
+   exist, and costs two heap allocations per tick (run 20k+ times in the
+   suites). Delete it and iterate by index.
+6. **Phantom fallbacks blur the strict invariant.** `enforce_durations`'
+   `.unwrap_or(1)` invents a minimum no configuration can produce
+   (`bounds()` is `None` only for Idle, which already exited via
+   `continuation()`), and `apply()`'s Idle arm is dead for every clocked
+   kitty. A future deliberately-unbounded activity would silently read three
+   divergent ways (min=1 here, skipped in resolve, unchecked in invariants).
+   Destructure bounds beside continuation and mark the unreachable arms as
+   such.
+7. **`is_conscriptable_friend` re-states the invariant.** It tests both
+   `!activity.is_in_progress()` and `activity_clock.is_none()` — states the
+   invariants refuse to let disagree — with a doubled O(K) find-by-id scan.
+   One condition, one lookup, and a comment naming the invariant.
+8. **The duration test reconstructs spans by heuristic.** The engine clears a
+   clock on the same tick it ends the activity, so the 20k-tick tracker must
+   credit an "invisible final tick" by correlating `last_action` with the
+   continuation. If `last_action` recording ever changes, every span
+   under-counts by one — min checks fail spuriously while a real max overrun
+   of one tick passes silently. Exposing spans directly (an activity-ended
+   event beside the distress log, or clearing clocks at the start of the next
+   tick) removes the reconstruction — and a future viewer feature like "ate
+   for 4 ticks" needs it anyway.
+
 ### Graphics refresh: Make even cuter!
 All in `client/` — no engine changes. Ideation done (2026-07-18); direction
 chosen: **procedural vector cats** over pixel sprite sheets. The deciding
