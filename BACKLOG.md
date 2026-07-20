@@ -11,54 +11,7 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 ## P1 — quick wins, next up
 
-### Beautification II, step 1: vector props (retire the remaining emoji)
-The 005 refresh gave the cats a parametric look; the world's furniture is
-still platform emoji: chow `🍥`, bug `🐛`, greeble `👻`, the `💤` wisp and
-`💗` heart, and the thought-bubble need icons. Draw them the way the cats
-are drawn (direction chosen 2026-07-20): parametric canvas in the same
-chibi/outline vocabulary, living beside `drawCat` so the gallery grows a
-props section judged under the same approval gate that vetted the cats.
-Why procedural over image assets: emoji render differently per platform,
-sourced art fights the crisp-at-22px problem and licensing, and drawn
-props inherit everything 005 built — retina-crisp, palette-consistent,
-animatable. Greeble secrecy is untouched: the ghost only ever appears
-under the `g` toggle, whatever it looks like.
-
-Style direction (agreed 2026-07-20, judged at the gallery gate like all
-looks):
-
-- **Chow bowl** — squat terracotta cat bowl (the existing kibble-brown
-  family), darker rim band; the kibble is a drawn mound that shrinks with
-  servings, so the food level *is* the data display, replacing the meter.
-- **The bug becomes a butterfly** (owner decision): two chubby upper
-  wings, small lower lobes, dash body, thread antennae; wings flap on
-  phase. Airborne read comes from a gentle hover-bob plus a small
-  *detached* shadow beneath — which also masks the engine's one-tile hops
-  far better than a crawler would. **Per-individual colorways** from the
-  stable element id (soft lavender / pale lemon / peachy-white — hues the
-  meadow doesn't use), so each butterfly is *that* butterfly; a butterfly
-  that is the target of a served pursuit flaps faster (no new data).
-  FR-009 note: with real butterflies in the world, the solo-play
-  *imaginary* plaything firmly stays the golden twinkling star.
-- **Greeble** — a drawn wisp: teardrop blob, wavy skirt, hollow eyes, the
-  existing 55% alpha, slow bob; softer, slightly dashed outline — the one
-  thing drawn as not-quite-there. (Open at the gallery: blank ghost vs. a
-  tiny mischievous grin.)
-- **Sleep wisp** — three hand-drawn rounded Zs, staggered, drifting up
-  and fading on phase; static ladder under reduced motion.
-- **Cuddle heart** — plump drawn heart, blush pink, dark outline, one
-  highlight, soft heartbeat pulse on phase.
-- **Thought-bubble icons** — mini-props in one ink weight: the bowl
-  (reused), a water drop, the Zs, a yarn ball for play, the heart, and
-  three glinting soap bubbles for bath (a tub is mud at 15px).
-
-Props get a small curated palette block of world-adjacent hues so one
-hand appears to have drawn everything; the gallery's props section shows
-states (bowl at 5/3/1/0 servings, flap phases, greeble alpha). Panel
-prose emoji ("eating 🍥") are text in sentences and stay for now.
-
-P1 because it is one drawing file, a gallery section, and render swaps —
-a contained sitting sequenced ahead of the map work below.
+<!-- shipped P1 items are removed once merged; see git history -->
 
 ## P2 — the bigger pieces, for a proper sitting
 
@@ -93,8 +46,6 @@ Hygiene as in 005: ambient rules apply (subtle, individually toggleable
 `VIEW` flags, absent under reduced motion where motion is involved; static
 decoration stays). Day–night lighting remains its own entry below and
 lands on top of this look.
-
-### Harden the whole proposal boundary (do this *with* the plugin work)
 
 ### Harden the whole proposal boundary (do this *with* the plugin work)
 The strict play-target parsing that shipped in PR #5 fixed one instance of a

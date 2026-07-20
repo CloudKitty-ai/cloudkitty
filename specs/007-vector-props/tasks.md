@@ -183,18 +183,18 @@ emoji-free.
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T013 [P] Headless validation sweep (node, mock-ctx harness as in
+- [X] T013 [P] Headless validation sweep (node, mock-ctx harness as in
       005): every prop × meaningful state × {22, 88} × several phases ×
       agitated/still draws without exceptions or non-finite coordinates;
       `butterflyColorwayFor` is deterministic, total, and pairwise
       distinct over the three colorways; `grep` confirms `client/render.js`
       has no `emoji(` call sites and no emoji glyphs in canvas draw code
       (R8).
-- [ ] T014 Final validation per quickstart §4: one-minute smoothness
+- [X] T014 Final validation per quickstart §4: one-minute smoothness
       spot-check, `git diff --stat crates/ cloudkitty.toml` empty, `cargo
       fmt --check` + `clippy -D warnings` + full workspace suite green;
       confirm every task above is checked off (SC-006/007).
-- [ ] T015 [P] Update `BACKLOG.md`: retire the shipped "Beautification II,
+- [X] T015 [P] Update `BACKLOG.md`: retire the shipped "Beautification II,
       step 1" entry per the shipped-items convention, leaving step 2 (the
       meadow) pointing at its own entry.
 
