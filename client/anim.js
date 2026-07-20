@@ -75,7 +75,41 @@ const VIEW = Object.freeze({
     zDriftMs: 2800,
     zRise: 0.08,
   }),
+
+  // The meadow (spec 008, FR-010): per-layer availability flags plus every
+  // ground number, named. meadow.js's MEADOW_DEFAULTS carries the
+  // drawing-side values when this layer is absent (the headless harness);
+  // this is the authoritative set, so it must stay a superset of
+  // MEADOW_DEFAULTS.
+  meadow: Object.freeze({
+    scatter: true, // flora + brightness jitter (base tones always draw)
+    ponds: true, // merged smooth-shored water (off: per-tile pools)
+    edge: true, // the world fringe frame
+    glow: true, // sunbeams as radial light (off: plain warm tile)
+    paths: true, // whether the worn-paths overlay is available at all
+    gridOverlay: true, // whether the grid debug overlay is available at all
+    toneCount: 4, // how many close grass tones the meadow mixes
+    jitterAlpha: 0.05, // peak alpha of the per-tile brightness jitter
+    floraDensity: 0.06, // share of tiles carrying a tuft/clover/flower
+    shoreRounding: 0.45, // pond corner rounding, in tiles
+    lilyPadMinTiles: 4, // ponds at least this big carry a lily pad
+    glowRadiusTiles: 1.4, // sunbeam glow radius, in tiles
+    glowAlpha: 0.6, // overall glow strength
+    edgeDepth: 0.3, // fringe depth, in tiles (inside the boundary tiles)
+    pathHeatCap: 12, // worn-path heat ceiling per tile
+    pathHalfLifeMs: 45000, // trail fading half-life
+    pathVisibilityFloor: 0.5, // decayed heat below this draws nothing
+    pathTintAlpha: 0.35, // trail opacity at full heat
+  }),
 });
+
+/** Worn-path heat after read-time decay (spec 008 research R6): a pure
+ * half-life curve, so fading needs no timers and no per-frame writes. */
+function decayedPathHeat(entry, now) {
+  return (
+    entry.heat * 0.5 ** ((now - entry.stampedAt) / VIEW.meadow.pathHalfLifeMs)
+  );
+}
 
 function easeInOutCubic(t) {
   return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
@@ -108,6 +142,7 @@ class Presentation {
     this.oneShots = new Map(); // id -> { kind, t0, duration }, one slot each
     this.newElementIds = new Set();
     this.expiredElements = [];
+    this.pathHeat = new Map(); // "x,y" -> { heat, stampedAt } (spec 008 US5)
   }
 
   /** Reconnects and hidden-tab returns break continuity by definition. */
@@ -154,6 +189,9 @@ class Presentation {
       this.oneShots.clear();
       this.newElementIds = new Set();
       this.expiredElements = [];
+      // Worn paths are the session's own memory (spec 008 FR-009): a
+      // different moment of the world starts with clean grass.
+      this.pathHeat.clear();
       return;
     }
 
@@ -212,6 +250,25 @@ class Presentation {
           t0: now,
           duration: this.tickMs,
         });
+      }
+    }
+
+    // Worn paths (spec 008 US5): every kitty's served tile warms its heat
+    // entry on each *continuous* tick -- accumulation is independent of any
+    // toggle (visibility is not memory). Cold entries are pruned here so a
+    // long session never grows past the tiles actually walked.
+    for (const kitty of world.kitties) {
+      const key = `${kitty.pos.x},${kitty.pos.y}`;
+      const entry = this.pathHeat.get(key);
+      const carried = entry ? decayedPathHeat(entry, now) : 0;
+      this.pathHeat.set(key, {
+        heat: Math.min(VIEW.meadow.pathHeatCap, carried + 1),
+        stampedAt: now,
+      });
+    }
+    for (const [key, entry] of this.pathHeat) {
+      if (decayedPathHeat(entry, now) < VIEW.meadow.pathVisibilityFloor) {
+        this.pathHeat.delete(key);
       }
     }
 
@@ -360,6 +417,22 @@ class Presentation {
     };
   }
 
+  /**
+   * The worn-path snapshot (spec 008 US5): decayed heat per walked tile,
+   * filtered to what is visible, normalized to 0..1. Available in still
+   * frames too -- revealed trails are state, not motion (FR-012).
+   */
+  wornPaths(now) {
+    const entries = [];
+    for (const [key, entry] of this.pathHeat) {
+      const heat = decayedPathHeat(entry, now);
+      if (heat < VIEW.meadow.pathVisibilityFloor) continue;
+      const [x, y] = key.split(',').map(Number);
+      entries.push({ x, y, heat01: Math.min(1, heat / VIEW.meadow.pathHeatCap) });
+    }
+    return entries;
+  }
+
   elementAlphaFor(el, now) {
     if (!this.newElementIds.has(el.id)) return 1;
     return Math.min(1, this.progress(now) / VIEW.elementFadeShare);
@@ -403,6 +476,9 @@ class Presentation {
         still ? { x: el.pos.x, y: el.pos.y } : this.elementPosFor(el, now),
       expired: still ? [] : this.expiredElements,
       expiredAlpha: still ? 0 : this.expiredAlpha(now),
+      // Worn paths draw in still frames too: the overlay carries state
+      // (where cats have walked), not motion (spec 008 FR-012).
+      wornPaths: () => this.wornPaths(now),
       // Ambient life (US6): absent entirely under reduced motion (FR-013).
       ambient: still ? null : { now },
       // Juice (US6): a fresh meow pops in with a small settle; the over-cat

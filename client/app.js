@@ -13,6 +13,8 @@ const statusEl = document.getElementById('status');
 const tickEl = document.getElementById('tick');
 const panelEl = document.getElementById('panel');
 const debugNoteEl = document.getElementById('debug-note');
+const gridNoteEl = document.getElementById('grid-note');
+const pathsNoteEl = document.getElementById('paths-note');
 
 const NEED_LABELS = {
   eat: 'eat',
@@ -322,11 +324,24 @@ async function start() {
   }
 }
 
-// The debug toggle: greebles are always in the data, never on screen, until now.
+// The debug toggles, all in one mold (spec 008 FR-004/FR-009): `g` reveals
+// greebles, `l` the demoted grid lines, `p` the session's worn paths. Each
+// flips a renderer flag, syncs its footer note, and redraws -- and every
+// fresh load starts with all three off.
 window.addEventListener('keydown', (event) => {
-  if (event.key !== 'g' && event.key !== 'G') return;
-  renderer.showGreebles = !renderer.showGreebles;
-  debugNoteEl.hidden = !renderer.showGreebles;
+  const key = event.key.toLowerCase();
+  if (key === 'g') {
+    renderer.showGreebles = !renderer.showGreebles;
+    debugNoteEl.hidden = !renderer.showGreebles;
+  } else if (key === 'l' && VIEW.meadow.gridOverlay) {
+    renderer.showGrid = !renderer.showGrid;
+    gridNoteEl.hidden = !renderer.showGrid;
+  } else if (key === 'p' && VIEW.meadow.paths) {
+    renderer.showPaths = !renderer.showPaths;
+    pathsNoteEl.hidden = !renderer.showPaths;
+  } else {
+    return;
+  }
   anim.redraw();
 });
 
