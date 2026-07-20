@@ -4,16 +4,16 @@
 live by the owner, all layers on and off, at two world sizes, before the
 feature ships as the default view.
 
-## Status: ⏳ PENDING
+## Status: ✅ APPROVED — "Let's ship it!" (2026-07-20)
 
 | Field | Value |
 |---|---|
 | Judged by | Elizabeth Kelly |
-| Date | — |
-| Demo worlds | 32×32 at http://127.0.0.1:8090 (`/tmp/meadow-demo.json`) · 64×64 run on request (port 8091) |
-| Layers judged | meadow scatter · ponds/lily · world edge · sunbeam glow · worn paths (`p`) · grid overlay (`l`) |
-| Revision rounds | — |
-| Decisions | — |
+| Date | 2026-07-20 |
+| Demo worlds | 32×32 (port 8090) · 64×64 (port 8091) · 16×16 at 45px tiles (port 8092) — all fresh snapshots, never the real save |
+| Layers shipped | tone-varied grass + jitter · ponds/shallows/lily · sunbeam glow · worn paths (`p`) · grid overlay (`l`) |
+| Revision rounds | 2 |
+| Decisions | worn-path display saturates at `pathFullHeat`, separate from the memory cap · shorelines get deterministic wobble + inner shallows band · flora accents and the world edge scrapped and deferred to BACKLOG.md ("Meadow finishing touches") |
 
 ## Revision log
 
@@ -50,5 +50,4 @@ only)*
 
 ---
 
-Nothing past this gate ships as the default view until this file says
-**APPROVED**.
+This file says **APPROVED**: the meadow ships as the default view.

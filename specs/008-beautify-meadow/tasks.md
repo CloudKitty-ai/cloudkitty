@@ -90,7 +90,7 @@ identity, grid toggle defaults, no banding at 64×64.
       drawMeadowGround + drawGridOverlay across world dims (2×2, 32×32,
       64×64, 1×8) and tile sizes (8, 22); determinism check — two runs
       capture identical draw-command streams
-- [ ] T010 [US1] Visual validation per quickstart §1 on the live demo world
+- [X] T010 [US1] Visual validation per quickstart §1 on the live demo world
       (never the owner's save): variety, reload/restart identity, toggle
       defaults + footer, 64×64 banding sweep
 
@@ -130,7 +130,7 @@ shape, single-tile pool, lily pad stability, drink positions unchanged.
       — single tile, 2×2, L-shape, U-shape, ring (hole), border-touching
       set; assertions: one group per blob, path command stream closed and
       finite, signature stability across element order permutations
-- [ ] T015 [US2] Visual validation per quickstart §2 (seams, pool, lily
+- [X] T015 [US2] Visual validation per quickstart §2 (seams, pool, lily
       pad, shimmer, fades, drink positions, boundary pond)
 
 **Checkpoint**: US1 + US2 ship together or separately.
@@ -151,7 +151,7 @@ a proper art pass; T018 is obsolete. See meadow-approval.md.
 - [X] T017 [US3] Call `drawWorldEdge` at the end of the ground-cache build
       in `client/render.js` `blitGround` (drawn over meadow, under
       everything dynamic)
-- [ ] T018 [US3] Validate: extend the T009 sweep to assert edge drawing
+- [X] T018 [US3] (obsolete — edge descoped at gate round 2) Validate: extend the T009 sweep to assert edge drawing
       stays within the boundary-tile margin for 2×2 / 1×8 / 64×64 worlds;
       visual validation per quickstart §3
 
@@ -175,7 +175,7 @@ intact, adjacent beams blend, reduced-motion static glow reads clearly.
       replaces the roundRect + rim; the pulse multiplier, element alpha,
       and dust motes keep their exact existing code paths and flags; retire
       `TILE_COLORS.sunbeam/sunbeamRim` once unused
-- [ ] T021 [US4] Validate: mock-ctx sweep of drawSunbeamGlow (gradient args
+- [X] T021 [US4] Validate: mock-ctx sweep of drawSunbeamGlow (gradient args
       finite at tile 8/22, alphas clamped); visual validation per
       quickstart §4 including reduced-motion emulation and two adjacent
       beams
@@ -215,7 +215,7 @@ visibility only, reload/discontinuity clears, footer hint.
       times, clear on every discontinuity flavor (first paint, generation
       bump, tick gap, roster change, teleport), accumulation independent of
       any toggle
-- [ ] T027 [US5] Visual validation per quickstart §5 (accumulate, fade,
+- [X] T027 [US5] Visual validation per quickstart §5 (accumulate, fade,
       toggle on/off/on, reload clear, restart clear, footer)
 
 **Checkpoint**: all five stories live.
@@ -224,7 +224,7 @@ visibility only, reload/discontinuity clears, footer hint.
 
 ## Phase 8: Polish, hygiene & the FR-014 checkpoint
 
-- [ ] T028 Legibility + toggle sweep per quickstart §6: every kitty/prop
+- [X] T028 Legibility + toggle sweep per quickstart §6: every kitty/prop
       locatable in two seconds against the new ground; `g`/`l`/`p`
       independent with correct fresh-load defaults and footer hints; one
       minute at default size with all layers on, no perceptible stutter
@@ -232,13 +232,13 @@ visibility only, reload/discontinuity clears, footer hint.
       --all-targets -- -D warnings`, `cargo test --workspace` all green;
       `git diff --stat crates/ cloudkitty.toml` empty (SC-007); full
       `node client/test-meadow.mjs` run green
-- [ ] T030 **The FR-014 checkpoint (SC-008)**: run the two demo worlds
+- [X] T030 **The FR-014 checkpoint (SC-008)**: run the two demo worlds
       (32×32 and 64×64 per quickstart), present the full look to Elizabeth
       live with layers on and off; loop revisions through
       `client/meadow.js` (palette/tunables) until approved; record the
       outcome, revision rounds, and any layer decisions in
       `specs/008-beautify-meadow/meadow-approval.md`. **Blocks shipping.**
-- [ ] T031 Update `BACKLOG.md`: remove the shipped "Beautification II,
+- [X] T031 Update `BACKLOG.md`: remove the shipped "Beautification II,
       step 2: the meadow itself" entry (shipped P2 items follow the P1
       convention — removed once merged, per the file's own note), leaving
       day–night and the other entries untouched
