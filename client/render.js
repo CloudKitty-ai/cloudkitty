@@ -100,19 +100,20 @@ class WorldRenderer {
     ctx.clearRect(0, 0, this.cssWidth, this.cssHeight);
 
     this.blitGround(world);
+    this.drawGroundAmbient(world, view);
     // Sunbeams are warmth on the ground, so they go under everything else.
     for (const el of world.elements) {
-      if (el.kind === 'sunbeam') this.drawSunbeam(el, view.elementAlphaFor(el));
+      if (el.kind === 'sunbeam') this.drawSunbeam(el, view.elementAlphaFor(el), view);
     }
     // Expired elements take a brief bow instead of vanishing mid-glance.
     if (view.expired.length && view.expiredAlpha > 0) {
       for (const el of view.expired) {
-        if (el.kind === 'sunbeam') this.drawSunbeam(el, view.expiredAlpha);
-        else this.drawElement(el, view.expiredAlpha);
+        if (el.kind === 'sunbeam') this.drawSunbeam(el, view.expiredAlpha, view);
+        else this.drawElement(el, view.expiredAlpha, view);
       }
     }
     for (const el of world.elements) {
-      if (el.kind !== 'sunbeam') this.drawElement(el, view.elementAlphaFor(el));
+      if (el.kind !== 'sunbeam') this.drawElement(el, view.elementAlphaFor(el), view);
     }
     for (const kitty of world.kitties) {
       this.drawKitty(kitty, world, view);
@@ -162,21 +163,87 @@ class WorldRenderer {
     this.ctx.drawImage(this.groundCache, 0, 0, this.cssWidth, this.cssHeight);
   }
 
-  drawSunbeam(el, alpha = 1) {
+  /**
+   * Ambient life on the ground layer (US6, FR-013): each effect sits behind
+   * its own named VIEW flag, stays subtle, and is absent entirely when the
+   * view carries no ambient clock (reduced motion).
+   */
+  drawGroundAmbient(world, view) {
+    if (!view.ambient) return;
+    const ctx = this.ctx;
+    const t = view.ambient.now;
+
+    if (VIEW.ambient.cloudShadows) {
+      // Two soft shadows drifting slowly across the meadow.
+      ctx.save();
+      ctx.fillStyle = 'rgba(120, 140, 110, 0.05)';
+      for (const [speed, cy, ry] of [[1, 0.28, 3.2], [1.35, 0.72, 2.4]]) {
+        const span = this.cssWidth + this.tile * 12;
+        const cx = ((t * speed) / VIEW.cloudPeriodMs) * span % span - this.tile * 6;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy * this.cssHeight, this.tile * 5, this.tile * ry, 0.3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    if (VIEW.ambient.grassSway) {
+      // A scattering of grass blades leaning with a slow breeze.
+      ctx.save();
+      ctx.strokeStyle = 'rgba(140, 170, 130, 0.5)';
+      ctx.lineWidth = 1;
+      ctx.lineCap = 'round';
+      for (let y = 0; y < world.height; y++) {
+        for (let x = 0; x < world.width; x++) {
+          if ((x * 31 + y * 17) % 41 !== 0) continue;
+          const sway = Math.sin(t / 1400 + x * 1.7 + y) * 2.2;
+          const bx = x * this.tile + this.tile * 0.5;
+          const by = y * this.tile + this.tile * 0.78;
+          ctx.beginPath();
+          ctx.moveTo(bx, by);
+          ctx.quadraticCurveTo(bx + sway * 0.4, by - 3, bx + sway, by - 5.5);
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+    }
+  }
+
+  drawSunbeam(el, alpha = 1, view) {
     const ctx = this.ctx;
     const { x, y } = this.tileOrigin(el.pos);
+    const t = view?.ambient?.now;
+    // The warm pulse: a slow breathing of the beam's glow (US6).
+    const pulse =
+      t !== undefined && VIEW.ambient.sunbeamPulse
+        ? 0.92 + 0.08 * Math.sin(t / 1900 + el.id)
+        : 1;
     ctx.save();
-    ctx.globalAlpha = alpha;
+    ctx.globalAlpha = alpha * pulse;
     ctx.fillStyle = TILE_COLORS.sunbeam;
     this.roundRect(x + 1, y + 1, this.tile - 2, this.tile - 2, 6);
     ctx.fill();
     ctx.strokeStyle = TILE_COLORS.sunbeamRim;
     ctx.lineWidth = 1.5;
     ctx.stroke();
+
+    if (t !== undefined && VIEW.ambient.dustMotes) {
+      // Two lazy dust motes circling in the warmth.
+      ctx.fillStyle = 'rgba(255, 236, 170, 0.75)';
+      for (const i of [0, 1]) {
+        const angle = t / (2600 + i * 700) + el.id * 2.1 + i * Math.PI;
+        const mx = x + this.tile / 2 + Math.cos(angle) * this.tile * 0.28;
+        const my = y + this.tile / 2 + Math.sin(angle * 1.3) * this.tile * 0.24;
+        ctx.globalAlpha = alpha * (0.4 + 0.3 * Math.sin(angle * 2));
+        ctx.beginPath();
+        ctx.arc(mx, my, 1.1, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
     ctx.restore();
   }
 
-  drawElement(el, alpha = 1) {
+  drawElement(el, alpha = 1, view) {
     // The greeble rule: present in the data, absent from the picture.
     if (el.kind === 'greeble' && !this.showGreebles) return;
 
@@ -195,18 +262,32 @@ class WorldRenderer {
         ctx.strokeStyle = TILE_COLORS.waterRim;
         ctx.lineWidth = 1.5;
         ctx.stroke();
+        const t = view?.ambient?.now;
+        if (t !== undefined && VIEW.ambient.waterShimmer) {
+          // A shimmer sliding gently across the surface (US6).
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+          ctx.lineWidth = 1.2;
+          ctx.lineCap = 'round';
+          const drift = Math.sin(t / 1600 + el.id) * this.tile * 0.14;
+          for (const [dx, dy, len] of [[-0.18, -0.12, 0.24], [0.06, 0.14, 0.18]]) {
+            ctx.beginPath();
+            ctx.moveTo(cx + dx * this.tile + drift, cy + dy * this.tile);
+            ctx.lineTo(cx + (dx + len) * this.tile + drift, cy + dy * this.tile);
+            ctx.stroke();
+          }
+        }
         break;
       }
       case 'chow': {
         this.emoji('🍥', cx, cy);
-        // A little pip per remaining serving, so you can watch a bowl run down.
+        // The bowl's visible kibble level falls as servings are eaten
+        // (US6, FR-014): a little meter where the pip row used to be.
         const servings = Math.min(el.servings ?? 0, 5);
+        const track = this.tile - 8;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.fillRect(x + 4, y + this.tile - 4.5, track, 2.5);
         ctx.fillStyle = '#c98b6b';
-        for (let i = 0; i < servings; i++) {
-          ctx.beginPath();
-          ctx.arc(x + 4 + i * 3.2, y + this.tile - 3, 1.2, 0, Math.PI * 2);
-          ctx.fill();
-        }
+        ctx.fillRect(x + 4, y + this.tile - 4.5, track * (servings / 5), 2.5);
         break;
       }
       case 'bug':
@@ -287,7 +368,7 @@ class WorldRenderer {
       }
     }
 
-    this.drawHappinessBar(kitty, x, y);
+    this.drawHappinessBar(kitty, x, y, view);
   }
 
   /**
@@ -371,17 +452,20 @@ class WorldRenderer {
     ctx.restore();
   }
 
-  drawHappinessBar(kitty, x, y) {
+  drawHappinessBar(kitty, x, y, view) {
     const ctx = this.ctx;
     const width = this.tile - 6;
     const height = 3;
     const bx = x + 3;
     const by = y + this.tile - 3.5;
+    // Eased toward the served value on the shared progress clock (US6) --
+    // the color reads the true value, never the blend.
+    const value = view.barValueFor(kitty);
 
     ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
     ctx.fillRect(bx, by, width, height);
     ctx.fillStyle = happinessColor(kitty.happiness);
-    ctx.fillRect(bx, by, (width * clamp01(kitty.happiness / 100)), height);
+    ctx.fillRect(bx, by, width * clamp01(value / 100), height);
   }
 
   drawBubbles(world, view) {
@@ -395,11 +479,11 @@ class WorldRenderer {
     for (const meow of newest.values()) {
       const kitty = world.kitties.find((k) => k.id === meow.kitty_id);
       if (!kitty) continue;
-      this.drawBubble(kitty, MEOW_TEXT[meow.kind] || '…', view);
+      this.drawBubble(kitty, MEOW_TEXT[meow.kind] || '…', view, meow);
     }
   }
 
-  drawBubble(kitty, text, view) {
+  drawBubble(kitty, text, view, meow) {
     const ctx = this.ctx;
     const { x, y } = this.tileOrigin(view.posFor(kitty));
     ctx.font = '600 11px ui-rounded, system-ui, sans-serif';
@@ -411,6 +495,18 @@ class WorldRenderer {
     let bx = x + this.tile / 2 - width / 2;
     bx = Math.max(2, Math.min(bx, this.canvas.clientWidth - width - 2));
     const by = Math.max(2, y - height - 4);
+
+    // A fresh meow pops in with a small settle (US6); older bubbles and
+    // reduced motion render at full size instantly.
+    const scale = view.bubbleScaleFor(meow);
+    ctx.save();
+    if (scale !== 1) {
+      const ax = x + this.tile / 2;
+      const ay = by + height;
+      ctx.translate(ax, ay);
+      ctx.scale(scale, scale);
+      ctx.translate(-ax, -ay);
+    }
 
     ctx.fillStyle = 'rgba(255, 253, 250, 0.96)';
     ctx.strokeStyle = 'rgba(150, 125, 105, 0.28)';
@@ -432,6 +528,7 @@ class WorldRenderer {
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     ctx.fillText(text, bx + padding, by + height / 2);
+    ctx.restore();
   }
 
   // ---- small helpers ----

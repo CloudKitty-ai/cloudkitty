@@ -59,6 +59,13 @@ function easeInOutCubic(t) {
   return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
 }
 
+/** A little overshoot-and-settle, for things that pop in (US6 juice). */
+function easeOutBack(t) {
+  const c1 = 1.70158;
+  const c3 = c1 + 1;
+  return 1 + c3 * (t - 1) ** 3 + c1 * (t - 1) ** 2;
+}
+
 /**
  * The state-pair store plus per-kitty presentational memory. Consumes
  * served worlds; produces the view the renderer draws. No DOM, no fetches.
@@ -345,6 +352,24 @@ class Presentation {
       elementAlphaFor: (el) => (still ? 1 : this.elementAlphaFor(el, now)),
       expired: still ? [] : this.expiredElements,
       expiredAlpha: still ? 0 : this.expiredAlpha(now),
+      // Ambient life (US6): absent entirely under reduced motion (FR-013).
+      ambient: still ? null : { now },
+      // Juice (US6): a fresh meow pops in with a small settle; the over-cat
+      // happiness bar eases between the two served values on the same
+      // progress clock as everything else (FR-014, FR-019).
+      bubbleScaleFor: (meow) => {
+        if (still || !this.curr || meow.tick !== this.curr.tick) return 1;
+        return easeOutBack(Math.min(1, this.progress(now) / VIEW.bubblePopShare));
+      },
+      barValueFor: (kitty) => {
+        if (still) return kitty.happiness;
+        const was = this.prev?.kitties.find((p) => p.id === kitty.id);
+        if (!was) return kitty.happiness;
+        return (
+          was.happiness +
+          (kitty.happiness - was.happiness) * easeInOutCubic(this.progress(now))
+        );
+      },
     };
   }
 }
