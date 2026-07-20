@@ -50,6 +50,21 @@ non-viable while it sits in `abandoned_chases` or while `pursuit` shows
 partner is within `solo_play_reach` and play ≥ safeguard, the built-ins
 propose solo play.
 
+Two post-merge review amendments (2026-07-19) sharpen `travel_distance`:
+
+- **A need with no relief path is skipped, not priced.** Unreachability used
+  to be a large sentinel distance, which any weight can cancel — a legal
+  `tile_cost = 0` config let an unrelievable need win selection on pressure
+  alone, the exact lock-in shape this feature removed. `travel_distance` now
+  returns "no path" and the scored pass skips that need entirely; no
+  configuration can undo a skip. (Bath, sleep, and play are relievable on
+  the spot, so a choice always exists.)
+- **Sleep is priced at the walk its pursuit would take.** A sunbeam within
+  `behavior.sunbeam_reach` (default 8, previously a hard-coded radius —
+  Article VI remediation) prices sleep at that distance; anything farther
+  means a nap on the spot at distance 0. The score and the walk share one
+  number and can no longer disagree.
+
 External behaviors are free to ignore all of this — the engine validates
 proposals, not philosophies — but the built-ins' rule is the recommended
 starting point, and it is what the fallback does to your kitty when your

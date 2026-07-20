@@ -498,6 +498,11 @@ pub struct BehaviorConfig {
     /// a kitty entertains itself.
     #[serde(default = "default_solo_play_reach")]
     pub solo_play_reach: u32,
+    /// A sunbeam within this distance is worth walking to for a nap; farther
+    /// than this (or with no sunbeam at all), a kitty sleeps where it is.
+    /// Prices the sleep score and bounds the sleep walk in the same breath.
+    #[serde(default = "default_sunbeam_reach")]
+    pub sunbeam_reach: u32,
 }
 
 fn default_playful_comfort() -> f32 {
@@ -528,6 +533,10 @@ fn default_solo_play_reach() -> u32 {
     8
 }
 
+fn default_sunbeam_reach() -> u32 {
+    8
+}
+
 impl Default for BehaviorConfig {
     fn default() -> Self {
         Self {
@@ -539,6 +548,7 @@ impl Default for BehaviorConfig {
             chase_patience_ticks: default_chase_patience_ticks(),
             chase_exclusion_ticks: default_chase_exclusion_ticks(),
             solo_play_reach: default_solo_play_reach(),
+            sunbeam_reach: default_sunbeam_reach(),
         }
     }
 }
@@ -962,6 +972,13 @@ impl Config {
                 "must be at least 1 tile",
             ));
         }
+        if self.behavior.sunbeam_reach == 0 {
+            return Err(ConfigError::invalid(
+                "[behavior] sunbeam_reach",
+                "0".to_string(),
+                "must be at least 1 tile",
+            ));
+        }
         let solo = self.actions.solo_play_relief;
         if !solo.is_finite() || solo < 0.0 {
             return Err(ConfigError::invalid(
@@ -1322,6 +1339,19 @@ mod tests {
     }
 
     #[test]
+    fn zero_sunbeam_reach_is_rejected_and_the_default_stands_in() {
+        let mut c = cfg();
+        c.behavior.sunbeam_reach = 0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("sunbeam_reach"), "{msg}");
+
+        // A config written before the field existed gets the default.
+        let old: BehaviorConfig =
+            toml::from_str("budget_fraction_of_tick = 0.5").expect("old shape parses");
+        assert_eq!(old.sunbeam_reach, default_sunbeam_reach());
+    }
+
+    #[test]
     fn solo_play_relief_may_not_beat_social_play() {
         let mut c = cfg();
         c.actions.solo_play_relief = c.actions.play_relief + 1.0;
@@ -1393,6 +1423,7 @@ mod tests {
         let a = cfg();
         let mut b = cfg();
         b.behavior.urgency_weight = 9.0;
+        b.behavior.sunbeam_reach = 3;
         b.actions.solo_play_relief = 1.0;
         b.viewer.distress_patience_ticks = 999;
         assert_eq!(

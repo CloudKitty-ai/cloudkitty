@@ -54,7 +54,7 @@ impl Behavior for NeedsDriven {
 
         // One scored pass over every need: urgency weighs in, travel counts
         // against, and nothing gets locked out (see `selection`).
-        pursue(ctx, selection::choose_need(ctx))
+        pursue(ctx, selection::choose(ctx))
     }
 
     fn is_builtin(&self) -> bool {
@@ -105,12 +105,14 @@ pub(crate) fn take_what_is_here(ctx: &DecisionContext) -> Option<Action> {
     None
 }
 
-/// Take one step toward relieving `need`.
-pub(crate) fn pursue(ctx: &DecisionContext, need: NeedKind) -> Action {
+/// Take one step toward relieving the chosen need. Takes the whole
+/// [`selection::Choice`] so the playmate the scored pass already found is
+/// pursued directly instead of being scanned for a second time.
+pub(crate) fn pursue(ctx: &DecisionContext, choice: selection::Choice) -> Action {
     let me = &ctx.me;
     let world = &ctx.world;
 
-    match need {
+    match choice.need {
         NeedKind::Eat => seek_element(ctx, ElementType::Chow, Action::Eat),
         NeedKind::Drink => seek_element(ctx, ElementType::Water, Action::Drink),
 
@@ -122,8 +124,13 @@ pub(crate) fn pursue(ctx: &DecisionContext, need: NeedKind) -> Action {
                 return Action::Sleep { with: None };
             }
             match world.nearest_element(me.pos, ElementType::Sunbeam) {
-                // Worth walking to, if it is not an expedition.
-                Some(sunbeam) if me.pos.chebyshev_distance(&sunbeam.pos) <= 8 => {
+                // Worth walking to, if it is not an expedition. The same
+                // reach prices the sleep score in `selection`, so what gets
+                // chosen and what gets walked can never disagree.
+                Some(sunbeam)
+                    if me.pos.chebyshev_distance(&sunbeam.pos)
+                        <= ctx.config.behavior.sunbeam_reach =>
+                {
                     step_toward(ctx, sunbeam.pos)
                 }
                 // Otherwise a nap right here will do; a friend nearby makes it cosier.
@@ -134,8 +141,9 @@ pub(crate) fn pursue(ctx: &DecisionContext, need: NeedKind) -> Action {
         }
 
         // Play targeting, give-up and the solo backstop live in `selection` so
-        // both built-in profiles pursue fun by exactly the same rules.
-        NeedKind::Play => selection::play_action(ctx),
+        // both built-in profiles pursue fun by exactly the same rules -- against
+        // the playmate the scored pass already found.
+        NeedKind::Play => selection::play_action_with(ctx, choice.playmate),
 
         NeedKind::Cuddle => {
             // Only an idle friend can be drawn into a cuddle (spec 006
