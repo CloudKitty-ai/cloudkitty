@@ -48,13 +48,20 @@ behavior = "needs_driven"
 [kitty.needs]
 eat = 0.8
 
+[[kitty]]
+id = 4
+name = "Kittybear"
+x = 5
+y = 5
+behavior = "needs_driven"
+
 # How fast each need rises, per tick. Higher means more pressing, more often.
 [needs]
-eat = 0.5
-drink = 0.7
+eat = 0.4
+drink = 0.4
 sleep = 0.3
 play = 0.4
-cuddle = 0.25
+cuddle = 0.4
 bath = 0.2
 
 [happiness]
@@ -88,18 +95,18 @@ purr = 70.0
 # Generous on purpose: a kitty should never have to cross the whole world for a
 # drink. Lower these for a sparser, more demanding world -- the constitution still
 # guarantees relief, but the cats will work harder for it.
-min = 5
+min = 6
 max = 10
 # No ttl: puddles are permanent.
 
 [elements.chow]
-min = 5
+min = 6
 max = 10
 # Each bowl feeds this many meals before it is empty and vanishes.
 servings = 5
 
 [elements.bug]
-min = 3
+min = 4
 max = 8
 ttl = 120
 
@@ -111,18 +118,18 @@ max = 3
 ttl = 90
 
 [elements.sunbeam]
-min = 3
+min = 4
 max = 6
 ttl = 150
 
 # How much each action relieves the need it addresses.
 [actions]
-eat_relief = 40.0
-drink_relief = 40.0
+eat_relief = 35.0
+drink_relief = 35.0
 sleep_relief = 5.0
 # Sleeping in a sunbeam is properly restorative.
 sleep_relief_sunbeam = 8.0
-groom_relief = 30.0
+groom_relief = 25.0
 play_relief = 25.0
 # Resting, sleeping or grooming alongside a friend.
 cuddle_relief = 20.0
@@ -136,8 +143,8 @@ solo_play_relief = 10.0
 # bowl) ends the activity early once `min` is met. `bath` governs grooming;
 # `cuddle` governs resting, alone or together.
 [actions.durations]
-eat = { min = 2, max = 5 }
-drink = { min = 2, max = 5 }
+eat = { min = 2, max = 3 }
+drink = { min = 2, max = 3 }
 play = { min = 2, max = 5 }
 bath = { min = 2, max = 5 }
 sleep = { min = 3, max = 8 }
@@ -171,7 +178,7 @@ tile_cost = 1.0
 worth_a_detour = 30.0
 # A chase that hasn't closed distance in this many ticks is hopeless; the
 # target is then avoided for chase_exclusion_ticks. Greebles, mostly.
-chase_patience_ticks = 12
+chase_patience_ticks = 10
 chase_exclusion_ticks = 60
 # A viable playmate within this distance suppresses solo play; beyond it, a
 # kitty pounces at nothing sooner than sulking.

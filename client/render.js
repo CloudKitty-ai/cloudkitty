@@ -26,15 +26,9 @@ const MEOW_TEXT = {
   purr: 'purrrr',
 };
 
-/** The icon a thought bubble shows for a long-wanted need (US5, FR-012). */
-const NEED_ICONS = {
-  eat: '🍥',
-  drink: '💧',
-  sleep: '💤',
-  play: '🧶',
-  cuddle: '💕',
-  bath: '🛁',
-};
+/** The greeble wisp's face -- decided at the 007 gallery gate (2026-07-20):
+ * the tiny grin of a creature that knows exactly what it's doing. */
+const GREEBLE_FACE = 'grin';
 
 /** How many ticks a speech bubble lingers on screen. */
 const BUBBLE_TICKS = 3;
@@ -98,6 +92,15 @@ class WorldRenderer {
     this.resizeFor(world);
     const ctx = this.ctx;
     ctx.clearRect(0, 0, this.cssWidth, this.cssHeight);
+
+    // Which elements are being hunted right now (spec 007 FR-006): a pure
+    // per-frame read of served pursuits, consumed by the butterfly's
+    // panic flap. No store, no memory -- newest state wins.
+    this.agitatedIds = new Set();
+    for (const kitty of world.kitties) {
+      const target = kitty.pursuit?.target;
+      if (target && target.target === 'element') this.agitatedIds.add(target.id);
+    }
 
     this.blitGround(world);
     this.drawGroundAmbient(world, view);
@@ -250,7 +253,11 @@ class WorldRenderer {
     const ctx = this.ctx;
     ctx.save();
     ctx.globalAlpha = alpha;
-    const { x, y } = this.tileOrigin(el.pos);
+    // Critters glide between served states (007 refinement); furniture
+    // stands still, as furniture does.
+    const isCritter = el.kind === 'bug' || el.kind === 'greeble';
+    const pos = isCritter && view ? view.elementPosFor(el) : el.pos;
+    const { x, y } = this.tileOrigin(pos);
     const cx = x + this.tile / 2;
     const cy = y + this.tile / 2;
 
@@ -279,24 +286,36 @@ class WorldRenderer {
         break;
       }
       case 'chow': {
-        this.emoji('🍥', cx, cy);
-        // The bowl's visible kibble level falls as servings are eaten
-        // (US6, FR-014): a little meter where the pip row used to be.
-        const servings = Math.min(el.servings ?? 0, 5);
-        const track = this.tile - 8;
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-        ctx.fillRect(x + 4, y + this.tile - 4.5, track, 2.5);
-        ctx.fillStyle = '#c98b6b';
-        ctx.fillRect(x + 4, y + this.tile - 4.5, track * (servings / 5), 2.5);
+        // The terracotta bowl whose kibble mound IS the servings display
+        // (spec 007 FR-004) -- the old meter bar is gone with the emoji.
+        drawBowl(ctx, { servings: el.servings ?? 0, size: this.tile, x, y });
         break;
       }
       case 'bug':
-        this.emoji('🐛', cx, cy);
+        // Drawn as a butterfly (spec 007): its own stable colorway, wings
+        // on the flap clock, hover above a grounded shadow, and a panicked
+        // beat while any kitty's served pursuit names it (FR-005/006).
+        drawButterfly(ctx, {
+          colorway: butterflyColorwayFor(el.id),
+          phase: view.propPhaseFor(el.id, VIEW.props.flapPeriodMs),
+          bobPhase: view.propPhaseFor(el.id, VIEW.props.bobPeriodMs),
+          agitated: this.agitatedIds?.has(el.id) ?? false,
+          size: this.tile,
+          x,
+          y,
+        });
         break;
       case 'greeble':
-        // Only ever reached with the debug toggle on.
+        // Only ever reached with the debug toggle on: the wisp, wearing
+        // the gate-chosen grin, at the translucency it always had (FR-007).
         ctx.globalAlpha = 0.55 * alpha;
-        this.emoji('👻', cx, cy);
+        drawGreebleWisp(ctx, {
+          face: GREEBLE_FACE,
+          phase: view.propPhaseFor(el.id, VIEW.props.wispBobMs),
+          size: this.tile,
+          x,
+          y,
+        });
         break;
       default:
         break;
@@ -349,14 +368,22 @@ class WorldRenderer {
     if (beat) this.drawBeat(beat, cx, cy, view.facingFor(kitty.id));
 
     if (state === 'sleeping') {
+      // Drawn Zs drift up from the sleeper (spec 007 FR-008), replacing
+      // the emoji wisp at the same corner.
       ctx.save();
       ctx.globalAlpha = 0.75;
-      this.emoji('💤', cx + this.tile * 0.42, cy - this.tile * 0.42, 0.45);
+      drawSleepZs(ctx, {
+        phase: view.propPhaseFor(kitty.id, VIEW.props.zDriftMs),
+        size: this.tile * 0.8,
+        x: x + this.tile * 0.35,
+        y: y - this.tile * 0.5,
+      });
       ctx.restore();
     }
 
     // Cuddling cats get a little heart between them -- at their eased
-    // positions, so it floats where the cats visibly are.
+    // positions, so it floats where the cats visibly are; it beats on the
+    // drawn kitty's own clock (spec 007 FR-008).
     const partner = kitty.activity?.with_friend;
     if (partner !== undefined && partner !== null) {
       const friend = world.kitties.find((k) => k.id === partner);
@@ -364,7 +391,13 @@ class WorldRenderer {
         const fpos = view.posFor(friend);
         const fx = (fpos.x + 0.5) * this.tile;
         const fy = (fpos.y + 0.5) * this.tile;
-        this.emoji('💗', (cx + fx) / 2, (cy + fy) / 2 - this.tile * 0.15, 0.42);
+        const heartSize = this.tile * 0.5;
+        drawHeart(ctx, {
+          phase: view.propPhaseFor(kitty.id, VIEW.props.heartPulseMs),
+          size: heartSize,
+          x: (cx + fx) / 2 - heartSize / 2,
+          y: (cy + fy) / 2 - this.tile * 0.15 - heartSize / 2,
+        });
       }
     }
 
@@ -448,7 +481,10 @@ class WorldRenderer {
       ctx.fill();
       ctx.stroke();
     }
-    this.emoji(NEED_ICONS[need] ?? '💭', bx, by + 0.5, 0.4);
+    // The wanted need as its drawn mini-prop (spec 007 FR-009) -- the same
+    // vocabulary the world uses, at bubble scale.
+    const iconSize = r * 1.5;
+    drawNeedIcon(ctx, { need, size: iconSize, x: bx - iconSize / 2, y: by - iconSize / 2 });
     ctx.restore();
   }
 
@@ -537,13 +573,9 @@ class WorldRenderer {
     return { x: pos.x * this.tile, y: pos.y * this.tile };
   }
 
-  emoji(glyph, cx, cy, scale = 0.72) {
-    const ctx = this.ctx;
-    ctx.font = `${Math.floor(this.tile * scale)}px "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(glyph, cx, cy);
-  }
+  // (The emoji() helper is gone -- spec 007 FR-010: with every world glyph
+  // drawn parametrically, deleting it makes "zero emoji on the canvas"
+  // structural rather than aspirational.)
 
   roundRect(x, y, w, h, r) {
     const ctx = this.ctx;

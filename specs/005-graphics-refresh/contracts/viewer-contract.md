@@ -36,7 +36,7 @@ error").
 |--------|-----------------|-------|
 | Cat appearance | `kitty.id` | `PALETTES[id % len]`; stable across sessions (FR-003) |
 | Facing | `kitty.pos` deltas between consecutive states | horizontal component only; kept while stationary (FR-004) |
-| Glide | `kitty.pos` in `prev` + `curr`, `config.world.tick_ms` | eased ≤1-tile moves only (FR-005) |
+| Glide | `kitty.pos` in `prev` + `curr`, `config.world.tick_ms` | eased ≤1-tile moves only (FR-005); since 007 (2026-07-20) critters glide too, ≤2 tiles |
 | Pose | `kitty.activity.state`, `kitty.last_action`, pos delta | table in [data-model.md](../data-model.md#pose-catjs) (FR-007) |
 | Idle motion | local clock only | never implies an action (FR-008) |
 | Imaginary plaything | `last_action == {"action":"play"}` (no target) | visually unlike every real element kind; greeble rule untouched (FR-009) |

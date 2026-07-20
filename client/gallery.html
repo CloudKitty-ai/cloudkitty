@@ -77,6 +77,8 @@
 
   .defaults-row { display: flex; gap: 26px; justify-content: center; align-items: flex-end; }
 
+  .caption { font-size: 0.68rem; color: var(--ink-soft); }
+
   footer { font-size: 0.78rem; color: var(--ink-soft); text-align: center; max-width: 640px; }
 </style>
 </head>
@@ -98,6 +100,17 @@
     <table id="grid"></table>
   </section>
 
+  <section>
+    <h2>The props (spec 007)</h2>
+    <p class="note">
+      The world's furniture in the same hand: bowl by fullness, the three
+      butterflies, <strong>both greeble faces — pick one</strong>, the Zs,
+      the heart, and the six thought icons. Judged at 22px like everything
+      else.
+    </p>
+    <table id="props"></table>
+  </section>
+
   <footer>
     Revision loop: edit <code>PALETTES</code> / pose parameters in
     <code>client/cat.js</code> and reload — nothing else moves. The verdict is
@@ -105,6 +118,7 @@
   </footer>
 
   <script src="cat.js"></script>
+  <script src="props.js"></script>
   <script>
     const TILE = 22;   // the live world's default tile
     const BIG = 88;    // inspection size
@@ -163,6 +177,107 @@
       }
       grid.appendChild(row);
     });
+
+    // --- The props section (spec 007 US1): every prop with its states,
+    // --- drawn by the same props.js the live renderer will use.
+    /** A crisp canvas with one prop on it, drawn by `draw(ctx, size)`. */
+    function propCanvas(size, alpha, draw) {
+      const canvas = document.createElement('canvas');
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = size * dpr;
+      canvas.height = size * dpr;
+      canvas.style.width = `${size}px`;
+      canvas.style.height = `${size}px`;
+      canvas.className = size >= BIG ? 'big' : 'tiny';
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (alpha !== 1) ctx.globalAlpha = alpha;
+      draw(ctx, size);
+      return canvas;
+    }
+
+    const propRows = [
+      {
+        label: 'bowl · 5/3/1/0',
+        cells: [5, 3, 1, 0].map((servings) => ({
+          caption: `${servings}`,
+          draw: (ctx, size) => drawBowl(ctx, { servings, size }),
+        })),
+      },
+      {
+        label: 'butterflies · folded/spread',
+        cells: BUTTERFLY_COLORWAYS.flatMap((colorway) => [
+          {
+            caption: colorway.name,
+            draw: (ctx, size) => drawButterfly(ctx, { colorway, phase: 0.06, size }),
+          },
+          {
+            caption: 'spread',
+            draw: (ctx, size) => drawButterfly(ctx, { colorway, phase: 0.25, size }),
+          },
+        ]).concat([{
+          caption: 'hunted (fast flap)',
+          bigOnly: true,
+          draw: (ctx, size) => drawButterfly(ctx, {
+            colorway: BUTTERFLY_COLORWAYS[0], phase: 0.11, agitated: true, size,
+          }),
+        }]),
+      },
+      {
+        label: 'greeble wisp · pick a face',
+        cells: [
+          {
+            caption: 'blank',
+            draw: (ctx, size) => drawGreebleWisp(ctx, { face: 'blank', size }),
+            alpha: 0.55,
+          },
+          {
+            caption: 'grin',
+            draw: (ctx, size) => drawGreebleWisp(ctx, { face: 'grin', size }),
+            alpha: 0.55,
+          },
+        ],
+      },
+      {
+        label: 'overlays',
+        cells: [
+          { caption: 'Zs', draw: (ctx, size) => drawSleepZs(ctx, { phase: 0, size }) },
+          { caption: 'heart', draw: (ctx, size) => drawHeart(ctx, { phase: 0, size }) },
+        ],
+      },
+      {
+        label: 'thought icons',
+        cells: ['eat', 'drink', 'sleep', 'play', 'cuddle', 'bath'].map((need) => ({
+          caption: need,
+          draw: (ctx, size) => drawNeedIcon(ctx, { need, size }),
+        })),
+      },
+    ];
+
+    const propsTable = document.getElementById('props');
+    for (const rowSpec of propRows) {
+      const row = document.createElement('tr');
+      const name = document.createElement('th');
+      name.className = 'rowname';
+      name.textContent = rowSpec.label;
+      row.appendChild(name);
+      for (const cellSpec of rowSpec.cells) {
+        const td = document.createElement('td');
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.appendChild(propCanvas(BIG, cellSpec.alpha ?? 1, cellSpec.draw));
+        if (!cellSpec.bigOnly) {
+          cell.appendChild(propCanvas(TILE, cellSpec.alpha ?? 1, cellSpec.draw));
+        }
+        const caption = document.createElement('span');
+        caption.className = 'caption';
+        caption.textContent = cellSpec.caption;
+        cell.appendChild(caption);
+        td.appendChild(cell);
+        row.appendChild(td);
+      }
+      propsTable.appendChild(row);
+    }
   </script>
 </body>
 </html>

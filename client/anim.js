@@ -31,6 +31,10 @@ const VIEW = Object.freeze({
 
   // Interpolation & element comings-and-goings (US3).
   elementFadeShare: 0.4, // share of a tick over which spawns/expiries fade
+  // Critters (bug/greeble) glide between served states like kitties do
+  // (007 refinement, 2026-07-20 -- the hover-bob alone left the hops
+  // jerky). Anything farther than a skitter is a different moment: snap.
+  critterGlideMaxTiles: 2,
 
   // Idle life (US4).
   idleMotionPeriodMs: 4600, // one flick/blink about this often
@@ -53,6 +57,24 @@ const VIEW = Object.freeze({
   ambientPeriodMs: 5200,
   cloudPeriodMs: 60000,
   bubblePopShare: 0.35, // share of a tick a speech bubble spends popping in
+
+  // Props (spec 007, FR-012): timing periods plus the drawing-side values
+  // props.js's PROP_DEFAULTS carries when this layer is absent (the
+  // standalone gallery). This is the full set propTunables() serves, so it
+  // must stay a superset of PROP_DEFAULTS.
+  props: Object.freeze({
+    flapPeriodMs: 900, // one leisurely wingbeat cycle
+    panicMultiplier: 2.2, // flap-rate multiplier while hunted
+    bobPeriodMs: 2600, // the hover's slow breathe
+    bobAmplitude: 0.035,
+    hoverLift: 0.06,
+    wispBobMs: 3800, // the greeble wisp drifts slowest of all
+    wispBobAmplitude: 0.02,
+    heartPulseMs: 1400,
+    heartPulseScale: 0.08,
+    zDriftMs: 2800,
+    zRise: 0.08,
+  }),
 });
 
 function easeInOutCubic(t) {
@@ -316,6 +338,28 @@ class Presentation {
     return oldest?.need ?? null;
   }
 
+  /**
+   * Float tile position for a moving element (007 refinement, 2026-07-20):
+   * critters glide on the same eased clock as kitties. Spawns and
+   * anything farther than `critterGlideMaxTiles` snap -- that is not
+   * motion, it is a different moment of the world.
+   */
+  elementPosFor(el, now) {
+    const was = this.prev?.elements.find((p) => p.id === el.id);
+    if (
+      !was ||
+      Math.abs(el.pos.x - was.pos.x) > VIEW.critterGlideMaxTiles ||
+      Math.abs(el.pos.y - was.pos.y) > VIEW.critterGlideMaxTiles
+    ) {
+      return { x: el.pos.x, y: el.pos.y };
+    }
+    const t = easeInOutCubic(this.progress(now));
+    return {
+      x: was.pos.x + (el.pos.x - was.pos.x) * t,
+      y: was.pos.y + (el.pos.y - was.pos.y) * t,
+    };
+  }
+
   elementAlphaFor(el, now) {
     if (!this.newElementIds.has(el.id)) return 1;
     return Math.min(1, this.progress(now) / VIEW.elementFadeShare);
@@ -347,9 +391,16 @@ class Presentation {
       // *informational* cues (focused eyes, the thought bubble) do not --
       // they carry state, not motion (R6).
       oneShotFor: (id) => (still ? null : this.oneShotFor(id, now)),
+      // Prop motion (spec 007): one wall-clock phase source over a named
+      // period, seeded by an element *or* kitty id -- 0 when still, so
+      // reduced motion gets static props with full state (FR-013).
+      propPhaseFor: (id, periodMs) =>
+        still ? 0 : ((now + id * 4241) % periodMs) / periodMs,
       expressionFor: (kitty) => this.expressionFor(kitty),
       thoughtFor: (kitty) => this.thoughtFor(kitty),
       elementAlphaFor: (el) => (still ? 1 : this.elementAlphaFor(el, now)),
+      elementPosFor: (el) =>
+        still ? { x: el.pos.x, y: el.pos.y } : this.elementPosFor(el, now),
       expired: still ? [] : this.expiredElements,
       expiredAlpha: still ? 0 : this.expiredAlpha(now),
       // Ambient life (US6): absent entirely under reduced motion (FR-013).

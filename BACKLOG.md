@@ -11,22 +11,7 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 ## P1 — quick wins, next up
 
-### Beautification II, step 1: vector props (retire the remaining emoji)
-The 005 refresh gave the cats a parametric look; the world's furniture is
-still platform emoji: chow `🍥`, bug `🐛`, greeble `👻`, the `💤` wisp and
-`💗` heart, and the thought-bubble need icons. Draw them the way the cats
-are drawn (direction chosen 2026-07-20): parametric canvas in the same
-chibi/outline vocabulary, living beside `drawCat` so the gallery grows a
-props section judged under the same approval gate that vetted the cats.
-Why procedural over image assets: emoji render differently per platform,
-sourced art fights the crisp-at-22px problem and licensing, and drawn
-props inherit everything 005 built — retina-crisp, palette-consistent,
-animatable (a bug that wiggles, a bowl whose kibble level is drawn rather
-than metered). Greeble secrecy is untouched: the ghost only ever appears
-under the `g` toggle, whatever it looks like.
-
-P1 because it is one drawing file, a gallery section, and render swaps —
-a contained sitting sequenced ahead of the map work below.
+<!-- shipped P1 items are removed once merged; see git history -->
 
 ## P2 — the bigger pieces, for a proper sitting
 
@@ -61,8 +46,6 @@ Hygiene as in 005: ambient rules apply (subtle, individually toggleable
 `VIEW` flags, absent under reduced motion where motion is involved; static
 decoration stays). Day–night lighting remains its own entry below and
 lands on top of this look.
-
-### Harden the whole proposal boundary (do this *with* the plugin work)
 
 ### Harden the whole proposal boundary (do this *with* the plugin work)
 The strict play-target parsing that shipped in PR #5 fixed one instance of a
