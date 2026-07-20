@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CloudKitty — Cat Portrait Gallery</title>
+<!--
+  The US1 gallery (spec 005, FR-001): every colorway in every pose, at world
+  tile size and at inspection size, drawn by the very same cat.js the live
+  viewer uses. Standalone on purpose -- open this file straight from disk,
+  no server required. Judging happens here; revision means editing cat.js
+  and reloading.
+-->
+<style>
+  :root {
+    --cream: #fdf6ec;
+    --grass: #e7f2df;
+    --grass-alt: #e1eed8;
+    --ink: #6b5a4e;
+    --ink-soft: #9c8a7c;
+    --card: #fffdfa;
+    --shadow: rgba(150, 125, 105, 0.18);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 24px 16px 48px;
+    font-family: ui-rounded, "SF Pro Rounded", "Nunito", "Quicksand",
+                 system-ui, -apple-system, sans-serif;
+    background: radial-gradient(circle at 50% 0%, #fffaf2 0%, var(--cream) 60%);
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  header { text-align: center; }
+  h1 { margin: 0; font-size: 1.7rem; font-weight: 700; }
+  .subtitle { margin: 4px 0 0; color: var(--ink-soft); font-size: 0.88rem; }
+
+  section {
+    background: var(--card);
+    border-radius: 22px;
+    padding: 18px 20px;
+    box-shadow: 0 10px 26px var(--shadow);
+    max-width: 1080px;
+  }
+
+  h2 { margin: 0 0 4px; font-size: 1.05rem; }
+  .note { margin: 0 0 12px; color: var(--ink-soft); font-size: 0.8rem; }
+
+  table { border-collapse: collapse; }
+  th, td { padding: 6px 8px; text-align: center; vertical-align: bottom; }
+  th {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    text-transform: none;
+  }
+  th.rowname { text-align: right; padding-right: 14px; font-size: 0.78rem; color: var(--ink); }
+
+  .cell { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+
+  /* Portraits sit on real grass colors, because that is where they'll live. */
+  canvas.big {
+    background: var(--grass);
+    border-radius: 10px;
+  }
+  canvas.tiny {
+    background: var(--grass-alt);
+    border-radius: 4px;
+    image-rendering: auto;
+  }
+
+  .defaults-row { display: flex; gap: 26px; justify-content: center; align-items: flex-end; }
+
+  footer { font-size: 0.78rem; color: var(--ink-soft); text-align: center; max-width: 640px; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>🐾 Cat Portrait Gallery</h1>
+    <p class="subtitle">every colorway, every pose — judged at the size the world actually draws</p>
+  </header>
+
+  <section>
+    <h2>The three residents, unlabeled</h2>
+    <p class="note">Can you tell them apart by fur alone? (US1 acceptance 2 — no peeking at the config.)</p>
+    <div class="defaults-row" id="defaults"></div>
+  </section>
+
+  <section>
+    <h2>Every colorway × every pose</h2>
+    <p class="note">Big portrait for inspection (88px), small one at true world tile size (22px) beneath it.</p>
+    <table id="grid"></table>
+  </section>
+
+  <footer>
+    Revision loop: edit <code>PALETTES</code> / pose parameters in
+    <code>client/cat.js</code> and reload — nothing else moves. The verdict is
+    recorded in <code>specs/005-graphics-refresh/gallery-approval.md</code>.
+  </footer>
+
+  <script src="cat.js"></script>
+  <script>
+    const TILE = 22;   // the live world's default tile
+    const BIG = 88;    // inspection size
+
+    /** A crisp, retina-aware canvas with a cat on it. */
+    function catCanvas(size, appearance, pose, facing) {
+      const canvas = document.createElement('canvas');
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = size * dpr;
+      canvas.height = size * dpr;
+      canvas.style.width = `${size}px`;
+      canvas.style.height = `${size}px`;
+      canvas.className = size >= BIG ? 'big' : 'tiny';
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      drawCat(ctx, { pose, appearance, facing, size, phase: 0 });
+      return canvas;
+    }
+
+    // --- The unlabeled residents (kitty ids 1, 2, 3, exactly as the live
+    // --- viewer derives them: appearanceFor(id), no names shown).
+    const defaults = document.getElementById('defaults');
+    for (const id of [1, 2, 3]) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.appendChild(catCanvas(BIG, appearanceFor(id), 'idle', 'left'));
+      cell.appendChild(catCanvas(TILE, appearanceFor(id), 'idle', 'left'));
+      defaults.appendChild(cell);
+    }
+
+    // --- The full grid: rows are colorways, columns are poses.
+    const grid = document.getElementById('grid');
+    const headRow = document.createElement('tr');
+    headRow.appendChild(document.createElement('th')); // corner
+    for (const pose of POSES) {
+      const th = document.createElement('th');
+      th.textContent = pose;
+      headRow.appendChild(th);
+    }
+    grid.appendChild(headRow);
+
+    PALETTES.forEach((appearance, index) => {
+      const row = document.createElement('tr');
+      const name = document.createElement('th');
+      name.className = 'rowname';
+      name.textContent = `${index} · ${appearance.name}`;
+      row.appendChild(name);
+      for (const pose of POSES) {
+        const td = document.createElement('td');
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.appendChild(catCanvas(BIG, appearance, pose, 'left'));
+        cell.appendChild(catCanvas(TILE, appearance, pose, 'left'));
+        td.appendChild(cell);
+        row.appendChild(td);
+      }
+      grid.appendChild(row);
+    });
+  </script>
+</body>
+</html>
