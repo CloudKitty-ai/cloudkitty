@@ -53,6 +53,9 @@ class WorldRenderer {
     this.ctx = canvas.getContext('2d');
     this.showGreebles = false;
     this.tile = 22;
+    this.cssWidth = 0;
+    this.cssHeight = 0;
+    this.groundCache = null;
   }
 
   /** Fits the canvas to the world, accounting for retina displays. */
@@ -69,66 +72,101 @@ class WorldRenderer {
       this.canvas.width = Math.floor(cssWidth * dpr);
       this.canvas.height = Math.floor(cssHeight * dpr);
       this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      this.groundCache = null; // new size, new ground
     }
+    this.cssWidth = cssWidth;
+    this.cssHeight = cssHeight;
   }
 
-  draw(world, presentation) {
+  /**
+   * Draws one frame: `world` is the newest served state, `view` the
+   * presentational lens from anim.js (eased positions, fades, phases).
+   * The same path serves animated and still frames -- a still frame is
+   * simply progress 1 with fades off.
+   */
+  draw(world, view) {
     this.resizeFor(world);
     const ctx = this.ctx;
-    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    ctx.clearRect(0, 0, this.cssWidth, this.cssHeight);
 
-    this.drawGround(world);
+    this.blitGround(world);
     // Sunbeams are warmth on the ground, so they go under everything else.
     for (const el of world.elements) {
-      if (el.kind === 'sunbeam') this.drawSunbeam(el);
+      if (el.kind === 'sunbeam') this.drawSunbeam(el, view.elementAlphaFor(el));
     }
-    for (const el of world.elements) {
-      if (el.kind !== 'sunbeam') this.drawElement(el);
-    }
-    for (const kitty of world.kitties) {
-      this.drawKitty(kitty, world, presentation);
-    }
-    this.drawBubbles(world);
-  }
-
-  drawGround(world) {
-    const ctx = this.ctx;
-    for (let y = 0; y < world.height; y++) {
-      for (let x = 0; x < world.width; x++) {
-        ctx.fillStyle = (x + y) % 2 === 0 ? TILE_COLORS.grass : TILE_COLORS.grassAlt;
-        ctx.fillRect(x * this.tile, y * this.tile, this.tile, this.tile);
+    // Expired elements take a brief bow instead of vanishing mid-glance.
+    if (view.expired.length && view.expiredAlpha > 0) {
+      for (const el of view.expired) {
+        if (el.kind === 'sunbeam') this.drawSunbeam(el, view.expiredAlpha);
+        else this.drawElement(el, view.expiredAlpha);
       }
     }
-    ctx.strokeStyle = TILE_COLORS.gridLine;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    for (let x = 0; x <= world.width; x++) {
-      ctx.moveTo(x * this.tile + 0.5, 0);
-      ctx.lineTo(x * this.tile + 0.5, world.height * this.tile);
+    for (const el of world.elements) {
+      if (el.kind !== 'sunbeam') this.drawElement(el, view.elementAlphaFor(el));
     }
-    for (let y = 0; y <= world.height; y++) {
-      ctx.moveTo(0, y * this.tile + 0.5);
-      ctx.lineTo(world.width * this.tile, y * this.tile + 0.5);
+    for (const kitty of world.kitties) {
+      this.drawKitty(kitty, world, view);
     }
-    ctx.stroke();
+    this.drawBubbles(world, view);
   }
 
-  drawSunbeam(el) {
+  /**
+   * The checkerboard and grid never change between resizes, so they are
+   * rendered once to an offscreen layer and blitted per frame (research
+   * R7) -- the difference between ~1k fills and one drawImage each frame.
+   */
+  blitGround(world) {
+    if (!this.groundCache) {
+      const off = document.createElement('canvas');
+      off.width = this.canvas.width;
+      off.height = this.canvas.height;
+      const g = off.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      for (let y = 0; y < world.height; y++) {
+        for (let x = 0; x < world.width; x++) {
+          g.fillStyle = (x + y) % 2 === 0 ? TILE_COLORS.grass : TILE_COLORS.grassAlt;
+          g.fillRect(x * this.tile, y * this.tile, this.tile, this.tile);
+        }
+      }
+      g.strokeStyle = TILE_COLORS.gridLine;
+      g.lineWidth = 1;
+      g.beginPath();
+      for (let x = 0; x <= world.width; x++) {
+        g.moveTo(x * this.tile + 0.5, 0);
+        g.lineTo(x * this.tile + 0.5, world.height * this.tile);
+      }
+      for (let y = 0; y <= world.height; y++) {
+        g.moveTo(0, y * this.tile + 0.5);
+        g.lineTo(world.width * this.tile, y * this.tile + 0.5);
+      }
+      g.stroke();
+      this.groundCache = off;
+    }
+    this.ctx.drawImage(this.groundCache, 0, 0, this.cssWidth, this.cssHeight);
+  }
+
+  drawSunbeam(el, alpha = 1) {
     const ctx = this.ctx;
     const { x, y } = this.tileOrigin(el.pos);
+    ctx.save();
+    ctx.globalAlpha = alpha;
     ctx.fillStyle = TILE_COLORS.sunbeam;
     this.roundRect(x + 1, y + 1, this.tile - 2, this.tile - 2, 6);
     ctx.fill();
     ctx.strokeStyle = TILE_COLORS.sunbeamRim;
     ctx.lineWidth = 1.5;
     ctx.stroke();
+    ctx.restore();
   }
 
-  drawElement(el) {
+  drawElement(el, alpha = 1) {
     // The greeble rule: present in the data, absent from the picture.
     if (el.kind === 'greeble' && !this.showGreebles) return;
 
     const ctx = this.ctx;
+    ctx.save();
+    ctx.globalAlpha = alpha;
     const { x, y } = this.tileOrigin(el.pos);
     const cx = x + this.tile / 2;
     const cy = y + this.tile / 2;
@@ -160,18 +198,19 @@ class WorldRenderer {
         break;
       case 'greeble':
         // Only ever reached with the debug toggle on.
-        ctx.globalAlpha = 0.55;
+        ctx.globalAlpha = 0.55 * alpha;
         this.emoji('👻', cx, cy);
-        ctx.globalAlpha = 1;
         break;
       default:
         break;
     }
+    ctx.restore();
   }
 
-  drawKitty(kitty, world, presentation) {
+  drawKitty(kitty, world, view) {
     const ctx = this.ctx;
-    const { x, y } = this.tileOrigin(kitty.pos);
+    const pos = view.posFor(kitty);
+    const { x, y } = this.tileOrigin(pos);
     const cx = x + this.tile / 2;
     const cy = y + this.tile / 2;
     const state = kitty.activity?.state ?? 'idle';
@@ -184,12 +223,13 @@ class WorldRenderer {
 
     // The approved vector cat (spec 005 US2): identity from the kitty's id,
     // pose from served state, facing from its last horizontal movement.
+    const pose = poseFor(kitty, view.movedFor(kitty.id));
     drawCat(ctx, {
-      pose: poseFor(kitty, presentation?.movedFor(kitty.id) ?? false),
+      pose,
       appearance: appearanceFor(kitty.id),
-      facing: presentation?.facingFor(kitty.id) ?? 'left',
+      facing: view.facingFor(kitty.id),
       size: this.tile,
-      phase: 0,
+      phase: view.phaseFor(kitty.id, pose),
       x,
       y,
     });
@@ -201,13 +241,15 @@ class WorldRenderer {
       ctx.restore();
     }
 
-    // Cuddling cats get a little heart between them.
+    // Cuddling cats get a little heart between them -- at their eased
+    // positions, so it floats where the cats visibly are.
     const partner = kitty.activity?.with_friend;
     if (partner !== undefined && partner !== null) {
       const friend = world.kitties.find((k) => k.id === partner);
       if (friend) {
-        const fx = (friend.pos.x + 0.5) * this.tile;
-        const fy = (friend.pos.y + 0.5) * this.tile;
+        const fpos = view.posFor(friend);
+        const fx = (fpos.x + 0.5) * this.tile;
+        const fy = (fpos.y + 0.5) * this.tile;
         this.emoji('💗', (cx + fx) / 2, (cy + fy) / 2 - this.tile * 0.15, 0.42);
       }
     }
@@ -228,7 +270,7 @@ class WorldRenderer {
     ctx.fillRect(bx, by, (width * clamp01(kitty.happiness / 100)), height);
   }
 
-  drawBubbles(world) {
+  drawBubbles(world, view) {
     const recent = (world.recent_meows || []).filter(
       (m) => m.tick > world.tick - BUBBLE_TICKS,
     );
@@ -239,13 +281,13 @@ class WorldRenderer {
     for (const meow of newest.values()) {
       const kitty = world.kitties.find((k) => k.id === meow.kitty_id);
       if (!kitty) continue;
-      this.drawBubble(kitty, MEOW_TEXT[meow.kind] || '…');
+      this.drawBubble(kitty, MEOW_TEXT[meow.kind] || '…', view);
     }
   }
 
-  drawBubble(kitty, text) {
+  drawBubble(kitty, text, view) {
     const ctx = this.ctx;
-    const { x, y } = this.tileOrigin(kitty.pos);
+    const { x, y } = this.tileOrigin(view.posFor(kitty));
     ctx.font = '600 11px ui-rounded, system-ui, sans-serif';
     const padding = 6;
     const width = ctx.measureText(text).width + padding * 2;

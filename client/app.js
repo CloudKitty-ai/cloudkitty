@@ -35,48 +35,9 @@ let distressPatienceTicks = 60;
 
 let latestWorld = null;
 
-/**
- * Per-kitty presentational memory (spec 005 US2): which way each cat last
- * moved, so it keeps facing that way while standing still (FR-004). Derived
- * only from consecutive served positions -- never predicted (Article V).
- * Moves into anim.js with US3; kept flat and closure-free so that move is a
- * cut-paste.
- */
-const presentation = {
-  facings: new Map(),
-  movedNow: new Map(),
-  prevPositions: null,
-  prevRoster: '',
-
-  facingFor(id) {
-    return this.facings.get(id) ?? 'left';
-  },
-  movedFor(id) {
-    return this.movedNow.get(id) ?? false;
-  },
-  observe(world) {
-    const roster = world.kitties.map((k) => k.id).join(',');
-    if (roster !== this.prevRoster) {
-      // A different cast of cats is a different scene: rebuild, never blend.
-      this.facings.clear();
-      this.prevPositions = null;
-      this.prevRoster = roster;
-    }
-    this.movedNow.clear();
-    for (const kitty of world.kitties) {
-      const prev = this.prevPositions?.get(kitty.id);
-      if (prev) {
-        const dx = kitty.pos.x - prev.x;
-        if (dx > 0) this.facings.set(kitty.id, 'right');
-        else if (dx < 0) this.facings.set(kitty.id, 'left');
-        this.movedNow.set(kitty.id, dx !== 0 || kitty.pos.y !== prev.y);
-      }
-    }
-    this.prevPositions = new Map(
-      world.kitties.map((k) => [k.id, { x: k.pos.x, y: k.pos.y }]),
-    );
-  },
-};
+// The animation layer owns every drawing decision from here on (spec 005
+// US3): app.js feeds it served states and keeps running the panel.
+anim.init(renderer);
 
 function setStatus(text, connected) {
   statusEl.textContent = text;
@@ -85,8 +46,7 @@ function setStatus(text, connected) {
 
 function render(world) {
   latestWorld = world;
-  presentation.observe(world);
-  renderer.draw(world, presentation);
+  anim.push(world);
   tickEl.textContent = world.tick;
   renderPanel(world);
 }
@@ -299,9 +259,13 @@ async function fetchViewerConfig() {
     const patience = config?.viewer?.distress_patience_ticks;
     if (Number.isFinite(patience) && patience >= 1) {
       distressPatienceTicks = patience;
+      anim.setDistressPatience(patience);
     }
+    // The easing duration is the served tick interval (FR-005) -- already
+    // in /config as world.tick_ms, so no server change was ever needed.
+    anim.setTickMs(config?.world?.tick_ms);
   } catch {
-    // The cue still works on its stand-in threshold.
+    // The stand-ins in VIEW carry an older or unreachable server (FR-018).
   }
 }
 
@@ -309,7 +273,12 @@ function subscribe() {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   const socket = new WebSocket(`${protocol}//${window.location.host}/ws`);
 
-  socket.addEventListener('open', () => setStatus('watching live', true));
+  socket.addEventListener('open', () => {
+    // Whatever arrives after a (re)connect is a fresh moment of the world:
+    // snap to it, never ease across the gap (US3 edge case).
+    anim.bumpGeneration();
+    setStatus('watching live', true);
+  });
 
   socket.addEventListener('message', (event) => {
     try {
@@ -345,7 +314,7 @@ window.addEventListener('keydown', (event) => {
   if (event.key !== 'g' && event.key !== 'G') return;
   renderer.showGreebles = !renderer.showGreebles;
   debugNoteEl.hidden = !renderer.showGreebles;
-  if (latestWorld) renderer.draw(latestWorld, presentation);
+  anim.redraw();
 });
 
 start();
