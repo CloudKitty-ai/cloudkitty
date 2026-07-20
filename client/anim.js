@@ -356,9 +356,14 @@ class Presentation {
       ambient: still ? null : { now },
       // Juice (US6): a fresh meow pops in with a small settle; the over-cat
       // happiness bar eases between the two served values on the same
-      // progress clock as everything else (FR-014, FR-019).
+      // progress clock as everything else (FR-014, FR-019). The engine
+      // stamps a meow during the apply phase and advances the tick counter
+      // before publishing, so the freshest served meow always reads
+      // curr.tick - 1 -- a meow from the tick that just closed is the new
+      // one (review fix: comparing against curr.tick matched nothing, and
+      // the pop-in never played).
       bubbleScaleFor: (meow) => {
-        if (still || !this.curr || meow.tick !== this.curr.tick) return 1;
+        if (still || !this.curr || meow.tick !== this.curr.tick - 1) return 1;
         return easeOutBack(Math.min(1, this.progress(now) / VIEW.bubblePopShare));
       },
       barValueFor: (kitty) => {

@@ -257,8 +257,10 @@ of it.
 - [X] T022 [P] [US6] Element juice in `client/render.js`: chow bowl kibble
       fill level scaled by `servings` (extending today's pip row), speech
       bubble pop-in ease derived self-contained from `meow.tick ==
-      curr.tick` on the progress clock (no beat store — US6 depends only on
-      US3, analyze I2), over-cat happiness bar easing on the same clock
+      curr.tick - 1` on the progress clock (meow stamps trail the published
+      tick by one — post-implementation review fix; no beat store — US6
+      depends only on US3, analyze I2), over-cat happiness bar easing on
+      the same clock
       (never CSS timers — FR-019 applies), instant under reduced motion
       (FR-014).
 - [X] T023 [US6] Verify quickstart §6: subtlety, kibble tracking, pop-in,

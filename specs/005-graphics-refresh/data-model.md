@@ -72,9 +72,11 @@ diffing `prev → curr` (R5), cleared wholesale on discontinuity.
 | `fellAsleepAt` | tick \| null | `activity.state` became `"sleeping"` | until state leaves sleeping (gates the fall-asleep transition vs held curl) |
 
 Speech-bubble pop-in is deliberately **not** a beat: it is derived in the
-juice layer (US6) from `meow.tick == curr.tick` (a meow stamped with the
-newest closed tick is new) eased on the progress clock — self-contained, so
-US6 truly depends only on US3 (analyze remediation I2).
+juice layer (US6) from `meow.tick == curr.tick − 1` — the engine stamps a
+meow during the apply phase and advances the tick before publishing, so a
+meow from the tick that just closed is the fresh one (post-implementation
+review fix: `== curr.tick` matched nothing) — eased on the progress clock,
+self-contained, so US6 truly depends only on US3 (analyze remediation I2).
 
 Sustained overlays are *not* stored — they are pure functions of `curr`:
 
