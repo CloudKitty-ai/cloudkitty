@@ -26,11 +26,26 @@ const MEOW_TEXT = {
   purr: 'purrrr',
 };
 
-// Cats come in assorted colours.
-const KITTY_FACES = ['🐱', '🐈', '😺', '😸', '🐈‍⬛', '😻'];
-
 /** How many ticks a speech bubble lingers on screen. */
 const BUBBLE_TICKS = 3;
+
+/**
+ * Which pose a served kitty is in (spec 005, data-model table): the activity
+ * state speaks first, then the applied action, then movement, then idle.
+ * Pure function of served data -- nothing here predicts (Article V).
+ */
+function poseFor(kitty, moved) {
+  const state = kitty.activity?.state;
+  if (state === 'sleeping') return 'sleep-curl';
+  if (state === 'resting') return 'loaf';
+  if (state === 'eating') return 'eating';
+  if (state === 'drinking') return 'drinking';
+  if (state === 'grooming') return 'grooming';
+  const action = kitty.last_action?.action;
+  if (action === 'play' || action === 'chase') return 'pouncing';
+  if (moved) return 'walking';
+  return 'idle';
+}
 
 class WorldRenderer {
   constructor(canvas) {
@@ -57,7 +72,7 @@ class WorldRenderer {
     }
   }
 
-  draw(world) {
+  draw(world, presentation) {
     this.resizeFor(world);
     const ctx = this.ctx;
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -71,7 +86,7 @@ class WorldRenderer {
       if (el.kind !== 'sunbeam') this.drawElement(el);
     }
     for (const kitty of world.kitties) {
-      this.drawKitty(kitty, world);
+      this.drawKitty(kitty, world, presentation);
     }
     this.drawBubbles(world);
   }
@@ -154,7 +169,7 @@ class WorldRenderer {
     }
   }
 
-  drawKitty(kitty, world) {
+  drawKitty(kitty, world, presentation) {
     const ctx = this.ctx;
     const { x, y } = this.tileOrigin(kitty.pos);
     const cx = x + this.tile / 2;
@@ -167,12 +182,17 @@ class WorldRenderer {
     ctx.ellipse(cx, cy + this.tile * 0.32, this.tile * 0.3, this.tile * 0.12, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Pose: asleep, dozing, or up and about.
-    let face;
-    if (state === 'sleeping') face = '😴';
-    else if (state === 'resting') face = '😌';
-    else face = KITTY_FACES[kitty.id % KITTY_FACES.length];
-    this.emoji(face, cx, cy, 0.86);
+    // The approved vector cat (spec 005 US2): identity from the kitty's id,
+    // pose from served state, facing from its last horizontal movement.
+    drawCat(ctx, {
+      pose: poseFor(kitty, presentation?.movedFor(kitty.id) ?? false),
+      appearance: appearanceFor(kitty.id),
+      facing: presentation?.facingFor(kitty.id) ?? 'left',
+      size: this.tile,
+      phase: 0,
+      x,
+      y,
+    });
 
     if (state === 'sleeping') {
       ctx.save();
