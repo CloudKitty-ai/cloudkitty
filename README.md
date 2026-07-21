@@ -20,12 +20,18 @@ cargo run                       # starts the server with cloudkitty.toml
 open http://127.0.0.1:8090      # watch the world
 ```
 
+The address (and port) comes from `bind` under `[world]` in the config file —
+`bind = "127.0.0.1:8090"` by default. There is no CLI flag for it, so running
+several worlds side by side means one config file per world, each with its own
+`bind` and its own `--snapshot`.
+
 Other options:
 
 ```bash
 cargo run -- --fresh            # start a new world (the old one is backed up)
-cargo run -- --config my.toml   # a different world
+cargo run -- --config my.toml   # a different world (its own size, port, roster…)
 cargo run -- --snapshot w.json  # a different save file
+cargo run -- --client path/     # serve the viewer from a different directory
 cargo run -- --help
 ```
 
@@ -37,9 +43,12 @@ Worlds are never lost by accident: `--fresh` first moves the old save aside to
 `--no-backup` if you truly want it gone). To keep several worlds deliberately,
 give each its own file with `--snapshot`.
 
-**In the viewer:** press <kbd>g</kbd> to reveal greebles. Greebles are fast, erratic
-critters that are always in the world and always in the API, but are never drawn.
-That is why you will sometimes see a kitty pounce on absolutely nothing.
+**In the viewer:** press <kbd>g</kbd> to reveal greebles — fast, erratic critters
+that are always in the world and always in the API, but are never drawn. That is
+why you will sometimes see a kitty pounce on absolutely nothing. Press
+<kbd>l</kbd> for the tile grid lines (debug), and <kbd>p</kbd> for worn paths —
+faint trails where the kitties have walked this session, fading with time and
+kept entirely in the browser. All three start hidden on every load.
 
 ## The constitution
 
@@ -69,6 +78,7 @@ All read-only — the viewer is a window, not a control surface.
 | `GET /kitties` | Every kitty |
 | `GET /kitties/{id}` | One kitty (404 with `{"error": "..."}` if unknown) |
 | `GET /events/distress` | Recent distress events, oldest first |
+| `GET /events/activity` | Recently finished activities with their true tick spans |
 | `GET /config` | The active, validated configuration |
 | `WS /ws` | The full world, pushed after every tick |
 
@@ -78,8 +88,9 @@ never a filter in the API.
 ## Configuration
 
 Everything the simulation uses lives in [`cloudkitty.toml`](cloudkitty.toml) — world
-size, tick rate, seed, the kitty roster, element populations, need rates, action
-effects, thresholds, cooldowns. It is commented throughout.
+size, tick rate, seed, the server's bind address, the kitty roster, element
+populations, need rates, action effects, thresholds, cooldowns. It is commented
+throughout.
 
 Anything that would break the constitution is rejected at startup with a message naming
 the field, its value, and the allowed range:
@@ -94,8 +105,11 @@ config error: [[kitty]] roster is 1 kitties; the constitution requires at least
 ```
 crates/cloudkitty-core/     the simulation: world, kitties, actions, behaviors, tick loop
 crates/cloudkitty-server/   axum server: REST, WebSocket, persistence, static files
-client/                     the viewer: one HTML file, vanilla JS, a canvas. No build step.
-specs/001-cloudkitty-mvp/   spec, plan, data model, contracts, quickstart
+client/                     the viewer: vanilla JS on a canvas, no build step — hand-drawn
+                            vector cats, props, and meadow; gallery.html is the standalone
+                            art-approval page (opens from file://, no server needed)
+specs/                      one directory per shipped feature: spec, plan, research,
+                            data model, contracts, tasks, quickstart
 ```
 
 What's next lives in [BACKLOG.md](BACKLOG.md).
@@ -109,6 +123,7 @@ headlessly, which is how the constitution is actually enforced.
 cargo test --workspace       # everything, including the invariant gate
 cargo clippy --workspace --all-targets -- -D warnings
 cargo fmt --all -- --check
+node client/test-meadow.mjs  # headless checks for the viewer's meadow drawing
 ```
 
 The suite covers need arithmetic, action legality, meow cooldowns, spawning, config

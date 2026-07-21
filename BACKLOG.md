@@ -13,6 +13,43 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 <!-- shipped P1 items are removed once merged; see git history -->
 
+### Orthogonal-only interactions (added 2026-07-20 — up next)
+Kitties currently interact diagonally: `is_adjacent` (`grid.rs`) is
+Chebyshev distance ≤ 1, so all eight surrounding tiles count for eating,
+drinking, playing, cuddling, grooming, and catching a chase. Movement,
+though, is strictly 4-way (`Direction` is N/E/S/W) — so a kitty can eat
+from a bowl on a tile it could not even step toward directly. Owner
+decision: **interactions become orthogonal-only** (the four von Neumann
+neighbors, plus the kitty's own tile), aligning interaction range with
+movement. Ripples to handle in the same change: behavior travel scoring
+uses `chebyshev_distance` throughout (`selection.rs`, `needs_driven.rs`)
+and should become Manhattan — with 4-way movement Manhattan *is* the true
+walk cost, so today's estimates undercount diagonals; the Article I
+safeguard's "reachable" guarantee and the property suite's adjacency
+assumptions must be re-verified; behaviors must path to an orthogonal
+neighbor rather than stopping diagonal to the target. Expect kitties to
+take one extra step sometimes — that is the point.
+
+### Water-averse pathing (added 2026-07-20)
+Movement is terrain-blind today: `Move` validation checks only bounds and
+other kitties, and the greedy `step_toward` walk (`needs_driven.rs`)
+routes around friends but strolls straight across ponds. Owner intent:
+**kitties prefer not to cross water** — stepping onto a water tile gains
+a named extra cost in behavior pathing, so cats walk around ponds when a
+dry route is reasonable. The anti-stuck guarantee comes from the split:
+crossing stays *legal* (engine validation unchanged — a kitty can always
+wade, so no layout can ever trap one, and Article I reachability is
+untouched); only the *preference* changes (Article IV: behaviors propose,
+the engine never forbids). Tunables named in config (e.g.
+`water_step_cost`, in the `tile_cost` family); the greedy stepper weighs
+it when choosing among candidate steps, and need-selection's travel
+estimates may count it so a bowl across a pond scores like the detour it
+really is. Kitties visibly skirting their ponds is the charm; a paddling
+kitty is the fallback, never the trap. **Later, low priority**: a `swim`
+pose in the viewer for a kitty on a water tile (pure view — `poseFor` in
+`render.js` plus one new `cat.js` pose, with its own mini gallery gate) —
+recorded here so it isn't lost, but not part of the pathing change.
+
 ### Sustained purring (added 2026-07-20)
 Today `Action::Purr` is a single-tick action: it must be earned
 (`happiness > thresholds.purr` or a happiness rise, `action.rs`), it emits
