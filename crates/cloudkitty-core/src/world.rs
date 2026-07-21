@@ -4,7 +4,9 @@
 //! order is expressed:
 //!
 //! 1. snapshot the world; every behavior decides against that same snapshot
-//! 2. apply actions in stable kitty-id order ("cats act first")
+//! 2. apply actions in a fair per-tick order ("cats act first"): a fresh
+//!    permutation drawn from the world RNG each tick, so no kitty is ever
+//!    systematically first (Article V as amended, spec 013)
 //! 3. environment phase: critters move, things expire, the world restocks
 //! 4. needs rise, happiness is recomputed, distress is recorded, invariants assert
 //! 5. publish the new state
@@ -127,10 +129,20 @@ impl World {
         // Phase 1: everyone decides against the same start-of-tick snapshot.
         let decisions = gather_decisions(self, registry, config).await;
 
-        // Phase 2: apply in stable kitty-id order. Validation happens here, against
-        // the world as it stands when the action lands -- so the first cat to reach
-        // the last serving gets it and the second one simply idles.
-        for (kitty_id, proposal) in decisions {
+        // Phase 2: apply in this tick's fair turn order (Article V as amended,
+        // spec 013). Validation happens here, against the world as it stands
+        // when the action lands -- so the first cat to reach the last serving
+        // gets it and the second one simply idles; *which* cat is first is a
+        // fresh draw every tick, never a standing privilege of a low id.
+        let order = self.draw_turn_order();
+        for kitty_id in order {
+            let Some(proposal) = decisions
+                .iter()
+                .find(|(id, _)| *id == kitty_id)
+                .map(|&(_, action)| action)
+            else {
+                continue;
+            };
             // An activity whose counterpart is gone ends before anything else
             // happens (spec 006 FR-010): the world moved on, and the kitty's
             // proposal gets its normal hearing.
@@ -169,6 +181,24 @@ impl World {
 
         // Phase 5: publish.
         Arc::new(self.snapshot())
+    }
+
+    /// This tick's turn order (Article V as amended, spec 013): a uniform
+    /// permutation of the roster, Fisher-Yates-drawn from the world RNG --
+    /// fair over time, identical on every replay of the same seed. Exactly
+    /// `kitties.len() - 1` draws, a count that depends only on the roster
+    /// size -- itself deterministic in a seeded world -- so the RNG stream
+    /// keeps its reproducible shape even in a future where kittens grow the
+    /// roster (a newcomer joins the draw, fairly, from its first full tick).
+    /// Public so the Article VI guarding test exercises the very permutation
+    /// the tick applies.
+    pub fn draw_turn_order(&mut self) -> Vec<KittyId> {
+        let mut order: Vec<KittyId> = self.kitties.iter().map(|k| k.id).collect();
+        for i in (1..order.len()).rev() {
+            let j = self.rng.gen_range_u32(0, i as u32 + 1) as usize;
+            order.swap(i, j);
+        }
+        order
     }
 
     /// Ends the kitty's activity, and its duet partner's with it -- a duet

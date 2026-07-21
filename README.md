@@ -61,7 +61,7 @@ merge:
 | II | **Kitties cannot die.** There is no health, damage, or despawn concept, and no code path removes a kitty. Only environment elements expire. |
 | III | **Kitties cannot be alone.** Always at least two, rejected at startup and re-asserted every tick. |
 | IV | **The engine is the law.** Behaviors only *propose*; the engine validates every action and anything illegal becomes an idle turn. |
-| V | **Server-authoritative and deterministic.** All logic server-side, one seeded RNG, fixed tick order. Same seed → same world, always. |
+| V | **Server-authoritative and deterministic.** All logic server-side, one seeded RNG, fixed tick order — with a fair turn order: every kitty gets an equal, reproducible chance to act first. Same seed → same world, always. |
 | VI | **Spec-first, test-guarded.** Every constant lives in config; the invariant suite is a required CI gate. |
 
 Distress is a *signal*, never a punishment: when a need crosses the distress threshold
