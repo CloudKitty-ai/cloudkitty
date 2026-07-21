@@ -240,8 +240,8 @@ offending config field.
   one turn of cleverness (Article IV's standing bargain) and is lawful
   degradation of an external advisor — the served world's correctness and
   the engine's determinism guarantees are never conditioned on inference
-  speed. Reproducible evaluation uses the headless path, where no wall
-  clock exists.
+  speed. Reproducible evaluation uses the headless path, which dispatches
+  without the wall-clock budget (FR-017).
 
 ## Requirements *(mandatory)*
 
@@ -357,9 +357,20 @@ offending config field.
   error naming the config field), and content-hashed, with the hash logged
   and exposed for reproducibility.
 
+**Headless determinism (US2, US3, US4)**
+
+- **FR-017**: Headless drives of the engine — training rollouts, the
+  evaluation harness, and the CI parity and determinism suites — MUST
+  dispatch decisions without the wall-clock budget, so reproducibility
+  never depends on host speed. The budget and its fallback apply in the
+  served world, where a slow advisor may cost a kitty a turn of
+  cleverness but never the world its correctness; the bit-exactness
+  guarantees (SC-002) and suite passes with a policy kitty (SC-005) are
+  claims about this budgetless path.
+
 **Scope guard**
 
-- **FR-017**: This feature MUST NOT change the served world's semantics,
+- **FR-018**: This feature MUST NOT change the served world's semantics,
   the client, persistence formats, existing behaviors, or the constitution;
   MUST NOT introduce any reward concept into the engine; and every new
   constant it adds MUST live in configuration with documented defaults
@@ -439,13 +450,14 @@ offending config field.
   produce bit-identical observation and reward streams across two runs in
   separate processes.
 - **SC-003**: Throughput — ≥ 5,000 environment steps per second
-  single-threaded on the default 32×32, 3-kitty world (measurement method
+  single-threaded on the default 32×32, 4-kitty world (measurement method
   documented alongside the number), with near-linear scaling to 8
   vectorized workers.
 - **SC-004**: A policy trained with a standard cooperative algorithm meets
   **every** existing long-run welfare bound over 20,000 ticks — mean
   happiness ≥ 70, low streaks ≤ 20 ticks, low share ≤ 1%, zero floor
-  touches, distress age ≤ 150 — **and** achieves collective happiness (the
+  touches, pinned streaks ≤ 25 ticks, distress age ≤ 150 — **and**
+  achieves collective happiness (the
   configured welfare aggregate, Nash by default) at least equal to the
   `needs_driven` baseline on ≥ 10 paired seeds, with its least-happy
   kitty's mean happiness no lower than the baseline's least-happy kitty.
@@ -469,14 +481,28 @@ offending config field.
   beside it, and the Python surface in a bindings crate beside that. The
   server is untouched.
 - **Observation defaults**: 3 kitty slots, 4 critter slots, 2 chow, 2
-  water, 1 sunbeam — sized to the default world's element minimums and
-  roster; roughly a 160–200-value vector. An egocentric map patch is a
+  water, 2 sunbeam — sized to what a kitty can act on, not to the world's
+  element populations: full visibility of the default roster (3 = roster
+  − 1), and for anything contended — chow with its finite servings,
+  sunbeams whose single tile one napping kitty occupies entirely — the
+  nearest plus an alternative, which is what lets a policy learn to yield
+  a contested resource and take the next one. Kitty slots need not equal
+  roster − 1: larger rosters are partially observed by design (the
+  nearest fill the slots, meows carry need signals world-wide, and the
+  reward always counts the full roster), so one schema can serve worlds
+  of any roster size — including a future where kittens grow it
+  mid-world. Roughly a 160–200-value vector. An egocentric map patch is a
   config-off extension, not v1.
 - **Action menu defaults**: with those slot counts the flat menu has 40
   entries (movement, solo and social rest/sleep/groom, eat, drink, chase
-  and play by slot, six meow kinds, idle). The "wait for me" meow stays
-  reserved for the engine's approach etiquette (spec 012) and is not in the
-  learned vocabulary.
+  and play by slot, six meow kinds, idle) — element slots are
+  observation-only, so the menu size depends only on the kitty and
+  critter slot counts. The "wait for me" meow stays reserved for the
+  engine's approach etiquette (spec 012) and is not in the learned
+  vocabulary. The menu grows only by codec version bump: indices are
+  never repurposed and no reserved indices are held — artifacts are
+  pinned to the schema versions they were trained against (FR-016), and a
+  mismatch fails loudly at startup rather than quietly misbehaving.
 - **Reward default**: level form of Nash welfare — the geometric mean of
   the roster's unclamped happiness, normalized to 0–1 with offset ε = 0.01
   (one happiness point) — not delta. The power-mean exponent defaults to

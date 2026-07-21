@@ -25,7 +25,7 @@
       documented alongside)
 - [x] All acceptance scenarios are defined
 - [x] Edge cases are identified
-- [x] Scope is clearly bounded (FR-017 scope guard; "Not in this feature"
+- [x] Scope is clearly bounded (FR-018 scope guard; "Not in this feature"
       assumptions)
 - [x] Dependencies and assumptions identified
 
@@ -54,3 +54,13 @@
   "all game logic lives on the server" — is resolved in the spec's opening
   and compliance sections: training embeds the engine headlessly per the
   CI precedent; the served world is never touched by a non-server process.
+- Spec-review revisions (2026-07-21, PR #19 review): budgetless headless
+  dispatch made an explicit requirement (FR-017 — the wall-clock budget
+  applies only in the served world, so SC-002/SC-005 are achievable as
+  written; scope guard renumbered to FR-018); SC-003 corrected to the
+  4-kitty default roster; SC-004's bound list completed with pinned
+  streaks ≤ 25; observation slot rationale restated (sized to what a
+  kitty can act on — nearest-plus-alternative for contended elements,
+  partial observability by design for larger rosters and future kittens)
+  with sunbeam slots 1 → 2; action-menu extensibility doctrine recorded
+  (growth only by codec version bump, no repurposed or reserved indices).
