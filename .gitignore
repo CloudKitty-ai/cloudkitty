@@ -4,7 +4,7 @@
 *.pdb
 
 # CloudKitty runtime state
-snapshot.json
+snapshot*.json
 snapshot.json.tmp
 snapshot.json.*.bak
 /worlds/

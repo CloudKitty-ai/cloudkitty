@@ -5,18 +5,18 @@
 # is rejected at startup with a message naming the field and its allowed range.
 
 [world]
-width = 32
-height = 32
+width = 16
+height = 16
 # Milliseconds per tick. 800ms is a comfortable watching pace.
 tick_ms = 800
 # The same seed replays the same world, exactly.
 seed = 20260718
-bind = "127.0.0.1:8090"
+bind = "127.0.0.1:8091"
 
 [persistence]
 # The world is saved here on shutdown and every `save_every_ticks` ticks. Delete it
 # (or pass --fresh) to start over.
-snapshot_path = "snapshot.json"
+snapshot_path = "snapshot16.json"
 save_every_ticks = 100
 
 # The roster. At least two kitties, always (Article III: kitties cannot be alone).
@@ -32,15 +32,15 @@ behavior = "needs_driven"
 [[kitty]]
 id = 2
 name = "Biscuit"
-x = 20
-y = 18
+x = 4
+y = 13
 # Biscuit would rather chase a bug than eat a proper meal.
 behavior = "playful"
 
 [[kitty]]
 id = 3
 name = "Pumpkin"
-x = 16
+x = 15
 y = 8
 behavior = "needs_driven"
 # Any kitty may override the global [needs] rise rates; unset needs keep the
@@ -48,12 +48,6 @@ behavior = "needs_driven"
 [kitty.needs]
 eat = 0.8
 
-[[kitty]]
-id = 4
-name = "Kittybear"
-x = 5
-y = 5
-behavior = "needs_driven"
 
 # How fast each need rises, per tick. Higher means more pressing, more often.
 [needs]
@@ -95,18 +89,18 @@ purr = 70.0
 # Generous on purpose: a kitty should never have to cross the whole world for a
 # drink. Lower these for a sparser, more demanding world -- the constitution still
 # guarantees relief, but the cats will work harder for it.
-min = 8
-max = 10
+min = 5
+max = 8
 # No ttl: puddles are permanent.
 
 [elements.chow]
-min = 8
-max = 10
+min = 5
+max = 8
 # Each bowl feeds this many meals before it is empty and vanishes.
 servings = 5
 
 [elements.bug]
-min = 4
+min = 3
 max = 8
 ttl = 120
 
@@ -118,7 +112,7 @@ max = 3
 ttl = 90
 
 [elements.sunbeam]
-min = 5
+min = 3
 max = 6
 ttl = 150
 
