@@ -65,7 +65,7 @@
     flex-wrap: wrap;
     gap: 12px;
     justify-content: center;
-    max-width: 780px;
+    max-width: 940px;
   }
 
   .kitty-card {
@@ -73,7 +73,11 @@
     border-radius: 18px;
     padding: 10px 14px;
     box-shadow: 0 6px 16px var(--shadow);
-    min-width: 148px;
+    /* Fixed width, sized for the longest lines a card can carry (the
+       patience cue and a full meow quote), so text changes -- purring on
+       and off, meows, activities -- never resize the portrait. */
+    box-sizing: border-box;
+    width: 226px;
   }
 
   .kitty-card .name {
@@ -87,6 +91,16 @@
   .kitty-card .name canvas {
     border-radius: 6px;
     background: var(--grass);
+  }
+
+  /* One-line text rows: with the card width fixed, a rare over-long line
+     trims to an ellipsis rather than ever stretching the card. */
+  .kitty-card .mood,
+  .kitty-card .doing,
+  .kitty-card .patience {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .kitty-card .mood {
