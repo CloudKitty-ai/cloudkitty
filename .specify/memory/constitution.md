@@ -1,29 +1,27 @@
 <!--
 Sync Impact Report
 ==================
-Version change: (auto-generated placeholder, discarded) → 1.0.0
-Rationale: Initial ratification. The user-authored document supersedes the generic
-placeholder constitution auto-generated earlier the same day, which was never adopted
-and does not count toward version history.
+Version change: 1.0.0 → 1.1.0
+Rationale: Amendment ratified by the owner (2026-07-20, spec 013): Article V's
+tick-order clause (2) restated as a principle rather than an implementation.
+"Actions are applied in stable kitty-id order" named a mechanism that silently
+favored lower-id kitties in every within-tick contest; the clause now guarantees
+*fairness* — an equal, reproducible chance to act first — and leaves the
+mechanism to the engine. Determinism (the article's core) is unchanged and the
+clause is guarded by a fairness property test per Article VI.
 
-Modified principles: n/a (initial adoption — Articles I–VI newly defined)
-Added sections:
-  - Preamble (project identity statement)
-  - Articles I–VI
-  - Governance
-Removed sections: none (placeholder content fully replaced)
+Modified principles: Article V, clause (2) of the tick order (fair turn order)
+Added sections: none
+Removed sections: none
 
-Templates requiring updates:
-  - .specify/templates/plan-template.md — ✅ compatible (Constitution Check gate is
-    derived from this file at plan time; plans must gate on Articles I–VI)
-  - .specify/templates/spec-template.md — ✅ compatible (no constitution references)
-  - .specify/templates/tasks-template.md — ✅ compatible (no constitution references;
-    task generation should include property-based test tasks per Article VI)
-  - .specify/templates/checklist-template.md — ✅ compatible (no constitution references)
-  - .claude/skills/speckit-* — ✅ compatible (agent-generic guidance, no outdated refs)
-  - README.md — ✅ compatible (no principle references)
+Templates requiring updates: none (the amendment touches one clause; plan-time
+Constitution Check gates derive from this file automatically)
 
 Follow-up TODOs: none.
+
+Previous report (1.0.0, initial ratification): the user-authored document
+superseded a generic placeholder constitution that was never adopted and does
+not count toward version history.
 -->
 
 # CloudKitty Constitution
@@ -77,9 +75,10 @@ violate them, and each must be guarded by automated tests that run in CI.
   behaviors): same seed + config + tick count → same world state. All randomness flows
   through a single seeded RNG.
 - Tick order is fixed: (1) all kitties decide against the same start-of-tick snapshot,
-  (2) actions are applied in stable kitty-id order, (3) the environment resolves
-  (movement of bugs/greebles, expiry, spawning, safeguard checks), (4) invariants are
-  asserted.
+  (2) actions are applied in a per-tick order that is **fair**: every kitty has an
+  equal, reproducible chance to act first, and no kitty is ever systematically
+  favored, (3) the environment resolves (movement of bugs/greebles, expiry, spawning,
+  safeguard checks), (4) invariants are asserted.
 
 ## Article VI — Spec-First, Test-Guarded
 
@@ -97,4 +96,4 @@ violate them, and each must be guarded by automated tests that run in CI.
 - The "Later features" list in the spec is explicitly out of scope for the MVP; MVP
   design decisions should avoid *blocking* them but must not implement them.
 
-**Version**: 1.0.0 | **Ratified**: 2026-07-18 | **Last Amended**: 2026-07-18
+**Version**: 1.1.0 | **Ratified**: 2026-07-18 | **Last Amended**: 2026-07-20
