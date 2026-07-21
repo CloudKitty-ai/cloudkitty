@@ -390,6 +390,101 @@ async fn a_pre_009_scene_stranded_on_a_diagonal_ends_gracefully() {
     );
 }
 
+/// Shared scaffolding for the spec 010 crafted-geometry runs: a 16x16 world
+/// with kitty 1 hungry at `start`, kitty 2 parked in a far corner, one bowl,
+/// a hand-placed pond, and every element type at its minimum so the
+/// environment spawns nothing mid-run (bug/greeble ttls exceed the bound).
+/// Returns each tick's position of kitty 1 up to `bound`, stopping once it
+/// eats; panics if it never does.
+async fn drive_hungry_kitty_around(
+    start: (u32, u32),
+    bowl: (u32, u32),
+    pond: &[(u32, u32)],
+    bound: u64,
+) -> Vec<(u32, u32)> {
+    use cloudkitty_core::element::Element;
+    use cloudkitty_core::grid::Position;
+    use cloudkitty_core::test_support::test_config;
+
+    let config = Arc::new(test_config());
+    let registry = BehaviorRegistry::with_builtins();
+    let mut world = World::generate(&config);
+    world.elements.clear();
+
+    let idx = world.kitties.iter().position(|k| k.id == 1).unwrap();
+    world.kitties[idx].pos = Position::new(start.0, start.1);
+    world.kitties[idx].needs.add(NeedKind::Eat, 95.0);
+    let other = world.kitties.iter().position(|k| k.id == 2).unwrap();
+    world.kitties[other].pos = Position::new(15, 0);
+
+    let mut next_id = 9200u32;
+    let mut place = |world: &mut World, kind: ElementKind, pos: (u32, u32), ttl: Option<u64>| {
+        world.push_element(Element {
+            id: next_id,
+            kind,
+            pos: Position::new(pos.0, pos.1),
+            ttl,
+        });
+        next_id += 1;
+    };
+    place(&mut world, ElementKind::Chow { servings: 5 }, bowl, None);
+    for &tile in pond {
+        place(&mut world, ElementKind::Water, tile, None);
+    }
+    // The rest of the census, far from the action, so minimums stay met and
+    // nothing new spawns before the bound.
+    place(&mut world, ElementKind::Bug, (15, 14), Some(bound + 100));
+    place(
+        &mut world,
+        ElementKind::Greeble {
+            heading: cloudkitty_core::grid::Direction::North,
+        },
+        (14, 15),
+        Some(bound + 100),
+    );
+    place(&mut world, ElementKind::Sunbeam, (0, 15), Some(bound + 100));
+
+    let mut trail = Vec::new();
+    for _ in 0..bound {
+        world.tick(&registry, &config).await;
+        let kitty = world.kitties.iter().find(|k| k.id == 1).unwrap();
+        trail.push((kitty.pos.x, kitty.pos.y));
+        if matches!(kitty.activity, Activity::Eating) {
+            return trail;
+        }
+    }
+    panic!("the hungry kitty was not fed within {bound} ticks; trail: {trail:?}");
+}
+
+#[tokio::test]
+async fn a_kitty_skirts_the_pond_when_dry_progress_exists() {
+    // Spec 010 US1/SC-001: the pond sits squarely on the pre-010 walking
+    // line from (4,4) to the bowl at (8,8) (east-first staircase through
+    // (6,4)/(7,4)). With both axes open, every step has a dry alternative
+    // that still closes distance -- the kitty must arrive with dry paws.
+    let pond = [(6, 4), (7, 4), (6, 5)];
+    let trail = drive_hungry_kitty_around((4, 4), (8, 8), &pond, 60).await;
+    for pos in &trail {
+        assert!(
+            !pond.contains(pos),
+            "the kitty stepped in the pond at {pos:?}; trail: {trail:?}"
+        );
+    }
+}
+
+#[tokio::test]
+async fn a_kitty_wades_when_the_bowl_is_dead_across_the_water() {
+    // Spec 010 US1 acceptance 2 / FR-002: a three-tile water band lies
+    // straight across the only distance-closing direction. The preference
+    // yields: the kitty paddles through and is fed -- never stuck.
+    let pond = [(4, 6), (5, 6), (6, 6)];
+    let trail = drive_hungry_kitty_around((5, 3), (5, 9), &pond, 60).await;
+    assert!(
+        trail.iter().any(|pos| pond.contains(pos)),
+        "expected a wade through the band; trail: {trail:?}"
+    );
+}
+
 #[tokio::test]
 async fn the_same_seed_replays_the_same_five_thousand_ticks_exactly() {
     // SC-006. 5,000 ticks is plenty to catch a stray source of nondeterminism

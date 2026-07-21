@@ -88,18 +88,19 @@ fn scored(
     let distance = distance_given(ctx, kind, playmate)?;
     let pressure = ctx.me.needs.get(kind);
     let urgency = (pressure - ctx.config.thresholds.safeguard).max(0.0);
-    Some(pressure + behavior.urgency_weight * urgency - behavior.tile_cost * distance as f32)
+    Some(pressure + behavior.urgency_weight * urgency - behavior.tile_cost * distance)
 }
 
-/// How far this cat would have to walk to do something about `need`, or
-/// `None` when the world currently offers no way to relieve it at all.
+/// How far this cat would have to walk to do something about `need` -- in
+/// priced tiles, water surcharge included (spec 010) -- or `None` when the
+/// world currently offers no way to relieve it at all.
 ///
 /// "No way" is deliberately not encoded as a huge distance: a sentinel is
 /// only as strong as the weight multiplying it, so a legal `tile_cost = 0`
 /// would cancel it and let an unrelievable need win selection -- the exact
 /// shape of the lock-in spec 004 removed. A skipped need is skipped under
 /// every configuration.
-pub fn travel_distance(ctx: &DecisionContext, need: NeedKind) -> Option<u32> {
+pub fn travel_distance(ctx: &DecisionContext, need: NeedKind) -> Option<f32> {
     distance_given(ctx, need, nearest_viable_playmate(ctx))
 }
 
@@ -107,43 +108,88 @@ fn distance_given(
     ctx: &DecisionContext,
     need: NeedKind,
     playmate: Option<(TargetRef, Position)>,
-) -> Option<u32> {
+) -> Option<f32> {
     let me = &ctx.me;
-    let nearest = |kind: ElementType| {
-        ctx.world
-            .nearest_element(me.pos, kind)
-            .map(|e| me.pos.manhattan_distance(&e.pos))
-    };
 
     match need {
         // Grooming happens wherever the cat is standing.
-        NeedKind::Bath => Some(0),
+        NeedKind::Bath => Some(0.0),
         NeedKind::Sleep => Some(sleep_travel_distance(ctx)),
-        NeedKind::Eat => nearest(ElementType::Chow),
-        NeedKind::Drink => nearest(ElementType::Water),
-        NeedKind::Play => Some(play_travel_distance(ctx, playmate)),
+        NeedKind::Eat => priced_nearest_element(ctx, ElementType::Chow).map(|(_, cost)| cost),
+        NeedKind::Drink => priced_nearest_element(ctx, ElementType::Water).map(|(_, cost)| cost),
+        // Playmates are deliberately unpriced (spec 010 scope decision): they
+        // move every tick, chases re-aim continuously, and pricing a fleeing
+        // target's momentary path would add noise, not honesty.
+        NeedKind::Play => Some(play_travel_distance(ctx, playmate) as f32),
         NeedKind::Cuddle => ctx
             .world
             .nearest_friend(me.id, me.pos)
-            .map(|k| me.pos.manhattan_distance(&k.pos)),
+            .map(|k| priced_travel(ctx, me.pos, k.pos)),
     }
 }
 
-/// The distance sleep pursuit would actually cover: a sunbeam within
-/// `sunbeam_reach` is worth walking to, anything farther (or no sunbeam at
-/// all) means a nap on the spot. Mirrors `pursue`'s sleep arm exactly -- the
-/// score must never call sleep free and then commit the cat to a trek.
-fn sleep_travel_distance(ctx: &DecisionContext) -> u32 {
-    match ctx.world.nearest_element(ctx.me.pos, ElementType::Sunbeam) {
-        Some(sunbeam) => {
-            let d = ctx.me.pos.manhattan_distance(&sunbeam.pos);
-            if d <= ctx.config.behavior.sunbeam_reach {
-                d
-            } else {
-                0
+/// The walking distance from `from` to `to` plus the `water_step_cost`
+/// surcharge for each wet tile on the deterministic dominant-axis staircase
+/// between them (the same path [`crate::grid::Direction::toward`] walks),
+/// endpoint excluded -- a kitty finishes *beside* its target, never on it
+/// (spec 009). This is spec 010's one pricing rule, shared by scores and
+/// walks: an approximation of the greedy walk, deterministic and finite --
+/// it can reorder choices but never remove one.
+pub fn priced_travel(ctx: &DecisionContext, from: Position, to: Position) -> f32 {
+    let mut cost = from.manhattan_distance(&to) as f32;
+    let surcharge = ctx.config.behavior.water_step_cost;
+    if surcharge > 0.0 {
+        let mut pos = from;
+        while let Some(dir) = crate::grid::Direction::toward(pos, to) {
+            let Some(next) = pos.step(dir, ctx.world.width, ctx.world.height) else {
+                break;
+            };
+            pos = next;
+            if pos == to {
+                break;
+            }
+            if ctx
+                .world
+                .elements_of(ElementType::Water)
+                .any(|e| e.pos == pos)
+            {
+                cost += surcharge;
             }
         }
-        None => 0,
+    }
+    cost
+}
+
+/// The element of `kind` cheapest to actually walk to, by
+/// `(priced_travel, id)` -- the choice both the score and the pursuit use,
+/// so the bowl a kitty picks and the bowl it walks to can never differ
+/// (the 004 agreement rule, extended to pricing).
+pub fn priced_nearest_element(ctx: &DecisionContext, kind: ElementType) -> Option<(Position, f32)> {
+    ctx.world
+        .elements_of(kind)
+        .map(|e| (e.id, e.pos, priced_travel(ctx, ctx.me.pos, e.pos)))
+        .min_by(|a, b| a.2.total_cmp(&b.2).then(a.0.cmp(&b.0)))
+        .map(|(_, pos, cost)| (pos, cost))
+}
+
+/// The sunbeam worth walking to for a nap, if any: the priced-cheapest one,
+/// provided its priced cost fits within `sunbeam_reach`. One helper for both
+/// the sleep score and `pursue`'s sleep arm -- the mirror the 004 review
+/// demanded, now priced.
+pub fn sunbeam_worth_walking(ctx: &DecisionContext) -> Option<(Position, f32)> {
+    let (pos, cost) = priced_nearest_element(ctx, ElementType::Sunbeam)?;
+    (cost <= ctx.config.behavior.sunbeam_reach as f32).then_some((pos, cost))
+}
+
+/// The distance sleep pursuit would actually cover: a sunbeam within
+/// `sunbeam_reach` (priced) is worth walking to, anything farther (or no
+/// sunbeam at all) means a nap on the spot. Mirrors `pursue`'s sleep arm
+/// exactly -- the score must never call sleep free and then commit the cat
+/// to a trek.
+fn sleep_travel_distance(ctx: &DecisionContext) -> f32 {
+    match sunbeam_worth_walking(ctx) {
+        Some((_, cost)) => cost,
+        None => 0.0,
     }
 }
 
@@ -394,7 +440,7 @@ mod tests {
 
         assert_eq!(
             travel_distance(&ctx, NeedKind::Sleep),
-            Some(8),
+            Some(8.0),
             "the sunbeam walk is a real cost"
         );
         assert_eq!(
@@ -419,7 +465,7 @@ mod tests {
         });
         assert_eq!(
             travel_distance(&ctx, NeedKind::Sleep),
-            Some(0),
+            Some(0.0),
             "pursuit would nap right here, so the score says so too"
         );
     }
@@ -537,6 +583,135 @@ mod tests {
         let a = choose_need(&miso_ctx());
         let b = choose_need(&miso_ctx());
         assert_eq!(a, b);
+    }
+
+    #[test]
+    fn priced_travel_charges_wet_tiles_on_the_staircase_and_never_the_endpoint() {
+        let ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(2, 2);
+            world.push_element(Element {
+                id: 850,
+                kind: ElementKind::Water,
+                pos: Position::new(5, 2), // squarely on the straight east path
+                ttl: None,
+            });
+        });
+        // Straight line east through the puddle: 6 steps + one surcharge.
+        assert_eq!(
+            priced_travel(&ctx, Position::new(2, 2), Position::new(8, 2)),
+            10.0
+        );
+        // The puddle as *destination* costs nothing extra: a kitty drinks
+        // from beside its water, never from on top of it (endpoint excluded).
+        assert_eq!(
+            priced_travel(&ctx, Position::new(2, 2), Position::new(5, 2)),
+            3.0
+        );
+        // No water in play: pricing is plain Manhattan.
+        assert_eq!(
+            priced_travel(&ctx, Position::new(2, 2), Position::new(2, 8)),
+            6.0
+        );
+    }
+
+    #[test]
+    fn priced_travel_follows_the_dominant_axis_staircase_through_a_dogleg() {
+        // From (2,2) to (6,5) the staircase runs E,E,S,E,S,E,S -- water at
+        // (4,3), its third tile, is crossed; water off the staircase is not.
+        let ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(2, 2);
+            world.push_element(Element {
+                id: 851,
+                kind: ElementKind::Water,
+                pos: Position::new(4, 3), // on the staircase
+                ttl: None,
+            });
+            world.push_element(Element {
+                id: 852,
+                kind: ElementKind::Water,
+                pos: Position::new(2, 5), // well off it
+                ttl: None,
+            });
+        });
+        assert_eq!(
+            priced_travel(&ctx, Position::new(2, 2), Position::new(6, 5)),
+            11.0,
+            "7 steps + one wet tile at the default 4.0"
+        );
+    }
+
+    #[test]
+    fn a_bowl_across_a_pond_loses_to_a_farther_dry_bowl_but_wins_alone() {
+        // Spec 010 US2 acceptance: 4 raw steps across two water tiles prices
+        // at 12; 6 dry steps price at 6. The dry bowl is chosen -- and when it
+        // is gone, the wet bowl is still selected and still pursued (pricing
+        // reorders, never removes).
+        let with_both = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx].needs.add(NeedKind::Eat, 95.0);
+            for (id, pos, kind) in [
+                (
+                    860u32,
+                    Position::new(5, 9),
+                    ElementKind::Chow { servings: 3 },
+                ),
+                (861, Position::new(11, 5), ElementKind::Chow { servings: 3 }),
+                (862, Position::new(5, 7), ElementKind::Water),
+                (863, Position::new(5, 8), ElementKind::Water),
+            ] {
+                world.push_element(Element {
+                    id,
+                    kind,
+                    pos,
+                    ttl: None,
+                });
+            }
+        });
+        assert_eq!(
+            priced_nearest_element(&with_both, ElementType::Chow),
+            Some((Position::new(11, 5), 6.0)),
+            "the dry bowl is the cheaper walk"
+        );
+        assert_eq!(travel_distance(&with_both, NeedKind::Eat), Some(6.0));
+
+        let only_wet = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx].needs.add(NeedKind::Eat, 95.0);
+            for (id, pos, kind) in [
+                (
+                    864u32,
+                    Position::new(5, 9),
+                    ElementKind::Chow { servings: 3 },
+                ),
+                (865, Position::new(5, 7), ElementKind::Water),
+                (866, Position::new(5, 8), ElementKind::Water),
+            ] {
+                world.push_element(Element {
+                    id,
+                    kind,
+                    pos,
+                    ttl: None,
+                });
+            }
+        });
+        assert_eq!(
+            priced_nearest_element(&only_wet, ElementType::Chow),
+            Some((Position::new(5, 9), 12.0)),
+            "an only option is priced, never removed"
+        );
+        assert_eq!(
+            choose_need(&only_wet),
+            NeedKind::Eat,
+            "a hungry cat still goes to dinner across the pond"
+        );
     }
 
     #[test]
@@ -667,7 +842,7 @@ mod tests {
         assert_eq!(play_action(&ctx), Action::play_solo());
         assert_eq!(
             travel_distance(&ctx, NeedKind::Play),
-            Some(0),
+            Some(0.0),
             "the score must agree that relief is on the spot"
         );
     }

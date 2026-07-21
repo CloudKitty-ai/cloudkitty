@@ -486,6 +486,12 @@ pub struct BehaviorConfig {
     /// attend to.
     #[serde(default = "default_tile_cost")]
     pub tile_cost: f32,
+    /// Extra tiles of effort a kitty ascribes to stepping onto a water tile
+    /// (spec 010). Dry routes win when they cost less than the splash; a kitty
+    /// still wades when water is the only way forward -- this is preference in
+    /// the behaviors, never a rule in the engine (Article IV). 0 disables it.
+    #[serde(default = "default_water_step_cost")]
+    pub water_step_cost: f32,
     /// A need at or above this is worth topping up when the means are already
     /// underfoot, whatever else the kitty was doing.
     #[serde(default = "default_worth_a_detour")]
@@ -520,6 +526,10 @@ fn default_tile_cost() -> f32 {
     1.0
 }
 
+fn default_water_step_cost() -> f32 {
+    4.0
+}
+
 fn default_worth_a_detour() -> f32 {
     30.0
 }
@@ -547,6 +557,7 @@ impl Default for BehaviorConfig {
             playful_comfort: default_playful_comfort(),
             urgency_weight: default_urgency_weight(),
             tile_cost: default_tile_cost(),
+            water_step_cost: default_water_step_cost(),
             worth_a_detour: default_worth_a_detour(),
             chase_patience_ticks: default_chase_patience_ticks(),
             chase_exclusion_ticks: default_chase_exclusion_ticks(),
@@ -943,6 +954,7 @@ impl Config {
         for (field, value) in [
             ("[behavior] urgency_weight", self.behavior.urgency_weight),
             ("[behavior] tile_cost", self.behavior.tile_cost),
+            ("[behavior] water_step_cost", self.behavior.water_step_cost),
         ] {
             if !value.is_finite() || value < 0.0 {
                 return Err(ConfigError::invalid(
@@ -1326,6 +1338,25 @@ mod tests {
         c.behavior.tile_cost = -1.0;
         let msg = c.validate().unwrap_err().to_string();
         assert!(msg.contains("[behavior] tile_cost"), "{msg}");
+    }
+
+    #[test]
+    fn water_step_cost_defaults_when_absent_and_rejects_nonsense() {
+        // A pre-010 [behavior] table has no water_step_cost: the serde
+        // default must land, so every existing config file keeps working
+        // unedited (spec 010 SC-005).
+        let parsed: BehaviorConfig =
+            toml::from_str("budget_fraction_of_tick = 0.5").expect("pre-010 table parses");
+        assert_eq!(parsed.water_step_cost, 4.0);
+
+        let mut c = cfg();
+        c.behavior.water_step_cost = f32::NAN;
+        assert!(c.validate().is_err());
+        c.behavior.water_step_cost = -1.0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[behavior] water_step_cost"), "{msg}");
+        c.behavior.water_step_cost = 0.0; // legal: disables the preference
+        assert!(c.validate().is_ok());
     }
 
     #[test]

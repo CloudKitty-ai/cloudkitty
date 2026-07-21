@@ -167,6 +167,10 @@ playful_comfort = 55.0
 urgency_weight = 2.0
 # How many need-points one tile of travel is worth.
 tile_cost = 1.0
+# Extra tiles of effort a kitty ascribes to stepping onto water. Dry routes
+# win when they cost less than the splash; a kitty still wades when water is
+# the only way forward -- preference, never prohibition.
+water_step_cost = 4.0
 # A need at or above this is worth topping up when the means are already
 # underfoot (adjacent chow, water, a sunbeam, or a playmate).
 worth_a_detour = 30.0
