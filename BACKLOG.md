@@ -13,6 +13,23 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 <!-- shipped P1 items are removed once merged; see git history -->
 
+### Orthogonal-only interactions (added 2026-07-20 — up next)
+Kitties currently interact diagonally: `is_adjacent` (`grid.rs`) is
+Chebyshev distance ≤ 1, so all eight surrounding tiles count for eating,
+drinking, playing, cuddling, grooming, and catching a chase. Movement,
+though, is strictly 4-way (`Direction` is N/E/S/W) — so a kitty can eat
+from a bowl on a tile it could not even step toward directly. Owner
+decision: **interactions become orthogonal-only** (the four von Neumann
+neighbors, plus the kitty's own tile), aligning interaction range with
+movement. Ripples to handle in the same change: behavior travel scoring
+uses `chebyshev_distance` throughout (`selection.rs`, `needs_driven.rs`)
+and should become Manhattan — with 4-way movement Manhattan *is* the true
+walk cost, so today's estimates undercount diagonals; the Article I
+safeguard's "reachable" guarantee and the property suite's adjacency
+assumptions must be re-verified; behaviors must path to an orthogonal
+neighbor rather than stopping diagonal to the target. Expect kitties to
+take one extra step sometimes — that is the point.
+
 ### Sustained purring (added 2026-07-20)
 Today `Action::Purr` is a single-tick action: it must be earned
 (`happiness > thresholds.purr` or a happiness rise, `action.rs`), it emits
