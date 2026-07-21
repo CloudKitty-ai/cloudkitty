@@ -282,6 +282,16 @@ pub struct Kitty {
     /// the invariants, with no legacy tolerance.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub activity_clock: Option<ActivityClock>,
+    /// `Some(t)` while the kitty is purring; the purr ends at tick `t`
+    /// (spec 011). Purring is background state -- it never occupies the
+    /// action slot -- and its presence in the payload is the viewer's
+    /// "rumbling now" signal. Absent in pre-011 snapshots: quiet.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub purring_until: Option<u64>,
+    /// No new purr may begin before this tick (spec 011). 0 in pre-011
+    /// snapshots: immediately eligible.
+    #[serde(default)]
+    pub purr_cooldown_until: u64,
 }
 
 impl Kitty {
@@ -308,6 +318,8 @@ impl Kitty {
             last_relief: BTreeMap::new(),
             distress_since: BTreeMap::new(),
             activity_clock: None,
+            purring_until: None,
+            purr_cooldown_until: 0,
         }
     }
 

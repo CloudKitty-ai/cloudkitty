@@ -1,8 +1,11 @@
 //! Tiles, positions and directions.
 //!
 //! The grid uses screen coordinates: `x` grows east, `y` grows south, so North is
-//! `y - 1`. Adjacency is Chebyshev distance <= 1 (the eight surrounding tiles plus
-//! the tile itself), matching the spec's definition of "friend nearby".
+//! `y - 1`. Adjacency is Manhattan distance <= 1 (the four compass neighbours plus
+//! the tile itself — spec 009): interaction range matches the strictly 4-way
+//! movement, so what a kitty can *do* is exactly what it can *walk*. Manhattan is
+//! likewise the metric for every decision distance; Chebyshev remains only for
+//! spawn spreading, where king-move spacing is an aesthetic, not a walk.
 
 use serde::{Deserialize, Serialize};
 
@@ -17,16 +20,27 @@ impl Position {
         Self { x, y }
     }
 
-    /// Chebyshev distance: the number of king-moves between two tiles.
+    /// Chebyshev distance: the number of king-moves between two tiles. Kitties
+    /// cannot king-move, so this is *not* a walk cost — its one remaining
+    /// consumer is spawn spreading (`spawn.rs`), where it spaces same-type
+    /// elements apart for looks. Decisions use [`Self::manhattan_distance`].
     pub fn chebyshev_distance(&self, other: &Position) -> u32 {
         let dx = self.x.abs_diff(other.x);
         let dy = self.y.abs_diff(other.y);
         dx.max(dy)
     }
 
-    /// Adjacent means "close enough to interact with", which includes sharing a tile.
+    /// Manhattan distance: the number of 4-way steps between two tiles — the
+    /// true walking distance, since `Direction` is strictly N/E/S/W.
+    pub fn manhattan_distance(&self, other: &Position) -> u32 {
+        self.x.abs_diff(other.x) + self.y.abs_diff(other.y)
+    }
+
+    /// Adjacent means "close enough to interact with": the same tile or one of
+    /// the four compass neighbours (spec 009). Diagonal tiles are out of range —
+    /// a kitty cannot step diagonally, so it cannot reach diagonally either.
     pub fn is_adjacent(&self, other: &Position) -> bool {
-        self.chebyshev_distance(other) <= 1
+        self.manhattan_distance(other) <= 1
     }
 
     /// The neighbouring tile in `dir`, or `None` when that would leave the grid.
@@ -97,6 +111,7 @@ mod tests {
 
     #[test]
     fn chebyshev_treats_diagonals_as_one_step() {
+        // Still shipped: spawn spreading spaces elements by king-moves.
         let a = Position::new(5, 5);
         assert_eq!(a.chebyshev_distance(&Position::new(6, 6)), 1);
         assert_eq!(a.chebyshev_distance(&Position::new(5, 5)), 0);
@@ -104,12 +119,31 @@ mod tests {
     }
 
     #[test]
-    fn adjacency_includes_same_tile_and_diagonals() {
+    fn manhattan_counts_the_actual_walk() {
+        let a = Position::new(5, 5);
+        assert_eq!(a.manhattan_distance(&Position::new(5, 5)), 0);
+        assert_eq!(a.manhattan_distance(&Position::new(6, 5)), 1);
+        assert_eq!(a.manhattan_distance(&Position::new(6, 6)), 2); // the diagonal is two steps
+        assert_eq!(a.manhattan_distance(&Position::new(8, 6)), 4);
+        assert_eq!(a.manhattan_distance(&Position::new(2, 1)), 7); // symmetric under order
+        assert_eq!(Position::new(2, 1).manhattan_distance(&a), 7);
+    }
+
+    #[test]
+    fn adjacency_is_the_own_tile_plus_the_four_compass_neighbours() {
+        // The spec 009 truth table, verbatim.
         let a = Position::new(2, 2);
-        assert!(a.is_adjacent(&Position::new(2, 2)));
-        assert!(a.is_adjacent(&Position::new(3, 3)));
-        assert!(a.is_adjacent(&Position::new(1, 2)));
-        assert!(!a.is_adjacent(&Position::new(4, 2)));
+        assert!(a.is_adjacent(&Position::new(2, 2)), "own tile is in range");
+        assert!(a.is_adjacent(&Position::new(1, 2)), "west");
+        assert!(a.is_adjacent(&Position::new(3, 2)), "east");
+        assert!(a.is_adjacent(&Position::new(2, 1)), "north");
+        assert!(a.is_adjacent(&Position::new(2, 3)), "south");
+        assert!(
+            !a.is_adjacent(&Position::new(3, 3)),
+            "diagonal is out of range (was in range before 009)"
+        );
+        assert!(!a.is_adjacent(&Position::new(1, 1)));
+        assert!(!a.is_adjacent(&Position::new(4, 2)), "two steps away");
     }
 
     #[test]

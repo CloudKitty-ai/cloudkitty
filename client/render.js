@@ -17,6 +17,7 @@ const MEOW_TEXT = {
   want_play: 'I want to play!',
   want_cuddle: 'I want to cuddle!',
   purr: 'purrrr',
+  wait_for_me: 'Wait for me!',
 };
 
 /** The greeble wisp's face -- decided at the 007 gallery gate (2026-07-20):

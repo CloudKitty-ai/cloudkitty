@@ -24,6 +24,8 @@ use super::DecisionContext;
 use crate::action::{Action, TargetRef};
 use crate::element::ElementType;
 use crate::grid::Position;
+use crate::kitty::KittyId;
+use crate::meow::MessageKind;
 use crate::needs::NeedKind;
 
 /// The outcome of one scored pass: the need most worth acting on, plus the
@@ -88,18 +90,19 @@ fn scored(
     let distance = distance_given(ctx, kind, playmate)?;
     let pressure = ctx.me.needs.get(kind);
     let urgency = (pressure - ctx.config.thresholds.safeguard).max(0.0);
-    Some(pressure + behavior.urgency_weight * urgency - behavior.tile_cost * distance as f32)
+    Some(pressure + behavior.urgency_weight * urgency - behavior.tile_cost * distance)
 }
 
-/// How far this cat would have to walk to do something about `need`, or
-/// `None` when the world currently offers no way to relieve it at all.
+/// How far this cat would have to walk to do something about `need` -- in
+/// priced tiles, water surcharge included (spec 010) -- or `None` when the
+/// world currently offers no way to relieve it at all.
 ///
 /// "No way" is deliberately not encoded as a huge distance: a sentinel is
 /// only as strong as the weight multiplying it, so a legal `tile_cost = 0`
 /// would cancel it and let an unrelievable need win selection -- the exact
 /// shape of the lock-in spec 004 removed. A skipped need is skipped under
 /// every configuration.
-pub fn travel_distance(ctx: &DecisionContext, need: NeedKind) -> Option<u32> {
+pub fn travel_distance(ctx: &DecisionContext, need: NeedKind) -> Option<f32> {
     distance_given(ctx, need, nearest_viable_playmate(ctx))
 }
 
@@ -107,43 +110,88 @@ fn distance_given(
     ctx: &DecisionContext,
     need: NeedKind,
     playmate: Option<(TargetRef, Position)>,
-) -> Option<u32> {
+) -> Option<f32> {
     let me = &ctx.me;
-    let nearest = |kind: ElementType| {
-        ctx.world
-            .nearest_element(me.pos, kind)
-            .map(|e| me.pos.chebyshev_distance(&e.pos))
-    };
 
     match need {
         // Grooming happens wherever the cat is standing.
-        NeedKind::Bath => Some(0),
+        NeedKind::Bath => Some(0.0),
         NeedKind::Sleep => Some(sleep_travel_distance(ctx)),
-        NeedKind::Eat => nearest(ElementType::Chow),
-        NeedKind::Drink => nearest(ElementType::Water),
-        NeedKind::Play => Some(play_travel_distance(ctx, playmate)),
+        NeedKind::Eat => priced_nearest_element(ctx, ElementType::Chow).map(|(_, cost)| cost),
+        NeedKind::Drink => priced_nearest_element(ctx, ElementType::Water).map(|(_, cost)| cost),
+        // Playmates are deliberately unpriced (spec 010 scope decision): they
+        // move every tick, chases re-aim continuously, and pricing a fleeing
+        // target's momentary path would add noise, not honesty.
+        NeedKind::Play => Some(play_travel_distance(ctx, playmate) as f32),
         NeedKind::Cuddle => ctx
             .world
             .nearest_friend(me.id, me.pos)
-            .map(|k| me.pos.chebyshev_distance(&k.pos)),
+            .map(|k| priced_travel(ctx, me.pos, k.pos)),
     }
 }
 
-/// The distance sleep pursuit would actually cover: a sunbeam within
-/// `sunbeam_reach` is worth walking to, anything farther (or no sunbeam at
-/// all) means a nap on the spot. Mirrors `pursue`'s sleep arm exactly -- the
-/// score must never call sleep free and then commit the cat to a trek.
-fn sleep_travel_distance(ctx: &DecisionContext) -> u32 {
-    match ctx.world.nearest_element(ctx.me.pos, ElementType::Sunbeam) {
-        Some(sunbeam) => {
-            let d = ctx.me.pos.chebyshev_distance(&sunbeam.pos);
-            if d <= ctx.config.behavior.sunbeam_reach {
-                d
-            } else {
-                0
+/// The walking distance from `from` to `to` plus the `water_step_cost`
+/// surcharge for each wet tile on the deterministic dominant-axis staircase
+/// between them (the same path [`crate::grid::Direction::toward`] walks),
+/// endpoint excluded -- a kitty finishes *beside* its target, never on it
+/// (spec 009). This is spec 010's one pricing rule, shared by scores and
+/// walks: an approximation of the greedy walk, deterministic and finite --
+/// it can reorder choices but never remove one.
+pub fn priced_travel(ctx: &DecisionContext, from: Position, to: Position) -> f32 {
+    let mut cost = from.manhattan_distance(&to) as f32;
+    let surcharge = ctx.config.behavior.water_step_cost;
+    if surcharge > 0.0 {
+        let mut pos = from;
+        while let Some(dir) = crate::grid::Direction::toward(pos, to) {
+            let Some(next) = pos.step(dir, ctx.world.width, ctx.world.height) else {
+                break;
+            };
+            pos = next;
+            if pos == to {
+                break;
+            }
+            if ctx
+                .world
+                .elements_of(ElementType::Water)
+                .any(|e| e.pos == pos)
+            {
+                cost += surcharge;
             }
         }
-        None => 0,
+    }
+    cost
+}
+
+/// The element of `kind` cheapest to actually walk to, by
+/// `(priced_travel, id)` -- the choice both the score and the pursuit use,
+/// so the bowl a kitty picks and the bowl it walks to can never differ
+/// (the 004 agreement rule, extended to pricing).
+pub fn priced_nearest_element(ctx: &DecisionContext, kind: ElementType) -> Option<(Position, f32)> {
+    ctx.world
+        .elements_of(kind)
+        .map(|e| (e.id, e.pos, priced_travel(ctx, ctx.me.pos, e.pos)))
+        .min_by(|a, b| a.2.total_cmp(&b.2).then(a.0.cmp(&b.0)))
+        .map(|(_, pos, cost)| (pos, cost))
+}
+
+/// The sunbeam worth walking to for a nap, if any: the priced-cheapest one,
+/// provided its priced cost fits within `sunbeam_reach`. One helper for both
+/// the sleep score and `pursue`'s sleep arm -- the mirror the 004 review
+/// demanded, now priced.
+pub fn sunbeam_worth_walking(ctx: &DecisionContext) -> Option<(Position, f32)> {
+    let (pos, cost) = priced_nearest_element(ctx, ElementType::Sunbeam)?;
+    (cost <= ctx.config.behavior.sunbeam_reach as f32).then_some((pos, cost))
+}
+
+/// The distance sleep pursuit would actually cover: a sunbeam within
+/// `sunbeam_reach` (priced) is worth walking to, anything farther (or no
+/// sunbeam at all) means a nap on the spot. Mirrors `pursue`'s sleep arm
+/// exactly -- the score must never call sleep free and then commit the cat
+/// to a trek.
+fn sleep_travel_distance(ctx: &DecisionContext) -> f32 {
+    match sunbeam_worth_walking(ctx) {
+        Some((_, cost)) => cost,
+        None => 0.0,
     }
 }
 
@@ -155,7 +203,7 @@ fn play_travel_distance(ctx: &DecisionContext, playmate: Option<(TargetRef, Posi
     let urgent = ctx.me.needs.get(NeedKind::Play) >= ctx.config.thresholds.safeguard;
     match playmate {
         Some((_, pos)) => {
-            let d = ctx.me.pos.chebyshev_distance(&pos);
+            let d = ctx.me.pos.manhattan_distance(&pos);
             if d > reach && urgent {
                 0 // solo play right here beats the trek
             } else {
@@ -193,7 +241,7 @@ pub fn nearest_viable_playmate(ctx: &DecisionContext) -> Option<(TargetRef, Posi
     critters
         .chain(friends)
         .filter(|(target, _, _, _)| is_viable(ctx, *target))
-        .min_by_key(|(_, pos, tag, id)| (me.pos.chebyshev_distance(pos), *tag, *id))
+        .min_by_key(|(_, pos, tag, id)| (me.pos.manhattan_distance(pos), *tag, *id))
         .map(|(target, pos, _, _)| (target, pos))
 }
 
@@ -226,6 +274,31 @@ fn is_viable(ctx: &DecisionContext, target: TargetRef) -> bool {
     true
 }
 
+/// Approach etiquette (spec 012): when two kitties walk at each other, each
+/// steps toward where the other just was, and under 009's orthogonal range a
+/// pair can orbit a corner forever (verified 2026-07-20: 145 ticks with the
+/// urgent-meow lottery silenced). At exactly two walking steps, the
+/// higher-id kitty of the pair yields on even world ticks -- holding its
+/// corner behind a "Wait for me!" -- and the lower id closes. Tick parity is
+/// the progress guarantee: a yield never repeats two ticks running, so a
+/// partner who is *not* approaching costs the walker at most one tick.
+/// Consulted by both kitty-approach paths (the cuddle walk and kitty-target
+/// chases); nothing else may emit the word.
+pub fn should_wait_for(ctx: &DecisionContext, friend: KittyId, friend_pos: Position) -> bool {
+    ctx.me.pos.manhattan_distance(&friend_pos) == 2
+        && ctx.me.id > friend
+        && ctx.world.tick.is_multiple_of(2)
+}
+
+/// The yield itself: the held turn is spent asking, not pacing. If the word
+/// is on its base cooldown the meow is lawfully silent -- the turn is still
+/// spent standing, which is what breaks the dance (spec 012 FR-003).
+pub fn wait_for_them() -> Action {
+    Action::Meow {
+        message: MessageKind::WaitForMe,
+    }
+}
+
 /// One step toward relieving play: pounce on an adjacent playmate, walk after a
 /// viable one worth reaching, and otherwise pounce at nothing -- solo play, the
 /// backstop that makes play (like bath and sleep) satisfiable anywhere.
@@ -244,11 +317,18 @@ pub fn play_action_with(ctx: &DecisionContext, playmate: Option<(TargetRef, Posi
         Some((target, pos)) => {
             if me.pos.is_adjacent(&pos) {
                 Action::play_with(target)
-            } else if me.pos.chebyshev_distance(&pos) > reach && urgent {
+            } else if me.pos.manhattan_distance(&pos) > reach && urgent {
                 // Everyone worth playing with is far away and the need is real:
                 // a kitty does not sulk, it pounces at nothing.
                 Action::play_solo()
             } else {
+                // Approach etiquette applies only to fellow kitties -- a bug
+                // does not take turns.
+                if let TargetRef::Kitty { id } = target {
+                    if should_wait_for(ctx, id, pos) {
+                        return wait_for_them();
+                    }
+                }
                 Action::Chase(target)
             }
         }
@@ -265,7 +345,7 @@ pub fn adjacent_playmate(ctx: &DecisionContext) -> Option<TargetRef> {
         .world
         .critters()
         .filter(|e| me.pos.is_adjacent(&e.pos))
-        .min_by_key(|e| (me.pos.chebyshev_distance(&e.pos), e.id))
+        .min_by_key(|e| (me.pos.manhattan_distance(&e.pos), e.id))
         .map(|e| TargetRef::Element { id: e.id });
     critter.or_else(|| {
         ctx.world
@@ -273,7 +353,7 @@ pub fn adjacent_playmate(ctx: &DecisionContext) -> Option<TargetRef> {
             // A friend mid-meal or asleep cannot be batted into a game
             // (spec 006 conscription); only an idle neighbour counts.
             .filter(|k| me.pos.is_adjacent(&k.pos) && !k.activity.is_in_progress())
-            .min_by_key(|k| (me.pos.chebyshev_distance(&k.pos), k.id))
+            .min_by_key(|k| (me.pos.manhattan_distance(&k.pos), k.id))
             .map(|k| TargetRef::Kitty { id: k.id })
     })
 }
@@ -327,9 +407,13 @@ mod tests {
     #[test]
     fn the_stuck_kitty_grooms_instead_of_fixating_on_play() {
         let ctx = miso_ctx();
-        // The R1 worked example, verbatim: bath 150 > play 147 > sleep 146.7.
+        // The 004 R1 worked example, re-derived for spec 009's Manhattan
+        // distances: the bug at (22,27) is now honestly 4 walking steps (was
+        // Chebyshev 3), so play = 100 + 50 - 4 = 146 and the runner-up order
+        // flips (sleep 146.7 above play 146) -- but bath, relief on the spot,
+        // still wins at 150, which is the property this test guards.
         assert_eq!(score(&ctx, NeedKind::Bath), Some(150.0));
-        assert_eq!(score(&ctx, NeedKind::Play), Some(147.0));
+        assert_eq!(score(&ctx, NeedKind::Play), Some(146.0));
         assert!((score(&ctx, NeedKind::Sleep).unwrap() - 146.7).abs() < 0.1);
         assert_eq!(choose_need(&ctx), NeedKind::Bath);
     }
@@ -390,7 +474,7 @@ mod tests {
 
         assert_eq!(
             travel_distance(&ctx, NeedKind::Sleep),
-            Some(8),
+            Some(8.0),
             "the sunbeam walk is a real cost"
         );
         assert_eq!(
@@ -415,7 +499,7 @@ mod tests {
         });
         assert_eq!(
             travel_distance(&ctx, NeedKind::Sleep),
-            Some(0),
+            Some(0.0),
             "pursuit would nap right here, so the score says so too"
         );
     }
@@ -533,6 +617,207 @@ mod tests {
         let a = choose_need(&miso_ctx());
         let b = choose_need(&miso_ctx());
         assert_eq!(a, b);
+    }
+
+    #[test]
+    fn priced_travel_charges_wet_tiles_on_the_staircase_and_never_the_endpoint() {
+        let ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(2, 2);
+            world.push_element(Element {
+                id: 850,
+                kind: ElementKind::Water,
+                pos: Position::new(5, 2), // squarely on the straight east path
+                ttl: None,
+            });
+        });
+        // Straight line east through the puddle: 6 steps + one surcharge.
+        assert_eq!(
+            priced_travel(&ctx, Position::new(2, 2), Position::new(8, 2)),
+            10.0
+        );
+        // The puddle as *destination* costs nothing extra: a kitty drinks
+        // from beside its water, never from on top of it (endpoint excluded).
+        assert_eq!(
+            priced_travel(&ctx, Position::new(2, 2), Position::new(5, 2)),
+            3.0
+        );
+        // No water in play: pricing is plain Manhattan.
+        assert_eq!(
+            priced_travel(&ctx, Position::new(2, 2), Position::new(2, 8)),
+            6.0
+        );
+    }
+
+    #[test]
+    fn priced_travel_follows_the_dominant_axis_staircase_through_a_dogleg() {
+        // From (2,2) to (6,5) the staircase runs E,E,S,E,S,E,S -- water at
+        // (4,3), its third tile, is crossed; water off the staircase is not.
+        let ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(2, 2);
+            world.push_element(Element {
+                id: 851,
+                kind: ElementKind::Water,
+                pos: Position::new(4, 3), // on the staircase
+                ttl: None,
+            });
+            world.push_element(Element {
+                id: 852,
+                kind: ElementKind::Water,
+                pos: Position::new(2, 5), // well off it
+                ttl: None,
+            });
+        });
+        assert_eq!(
+            priced_travel(&ctx, Position::new(2, 2), Position::new(6, 5)),
+            11.0,
+            "7 steps + one wet tile at the default 4.0"
+        );
+    }
+
+    #[test]
+    fn a_bowl_across_a_pond_loses_to_a_farther_dry_bowl_but_wins_alone() {
+        // Spec 010 US2 acceptance: 4 raw steps across two water tiles prices
+        // at 12; 6 dry steps price at 6. The dry bowl is chosen -- and when it
+        // is gone, the wet bowl is still selected and still pursued (pricing
+        // reorders, never removes).
+        let with_both = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx].needs.add(NeedKind::Eat, 95.0);
+            for (id, pos, kind) in [
+                (
+                    860u32,
+                    Position::new(5, 9),
+                    ElementKind::Chow { servings: 3 },
+                ),
+                (861, Position::new(11, 5), ElementKind::Chow { servings: 3 }),
+                (862, Position::new(5, 7), ElementKind::Water),
+                (863, Position::new(5, 8), ElementKind::Water),
+            ] {
+                world.push_element(Element {
+                    id,
+                    kind,
+                    pos,
+                    ttl: None,
+                });
+            }
+        });
+        assert_eq!(
+            priced_nearest_element(&with_both, ElementType::Chow),
+            Some((Position::new(11, 5), 6.0)),
+            "the dry bowl is the cheaper walk"
+        );
+        assert_eq!(travel_distance(&with_both, NeedKind::Eat), Some(6.0));
+
+        let only_wet = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx].needs.add(NeedKind::Eat, 95.0);
+            for (id, pos, kind) in [
+                (
+                    864u32,
+                    Position::new(5, 9),
+                    ElementKind::Chow { servings: 3 },
+                ),
+                (865, Position::new(5, 7), ElementKind::Water),
+                (866, Position::new(5, 8), ElementKind::Water),
+            ] {
+                world.push_element(Element {
+                    id,
+                    kind,
+                    pos,
+                    ttl: None,
+                });
+            }
+        });
+        assert_eq!(
+            priced_nearest_element(&only_wet, ElementType::Chow),
+            Some((Position::new(5, 9), 12.0)),
+            "an only option is priced, never removed"
+        );
+        assert_eq!(
+            choose_need(&only_wet),
+            NeedKind::Eat,
+            "a hungry cat still goes to dinner across the pond"
+        );
+    }
+
+    #[test]
+    fn the_higher_id_kitty_waits_at_the_corner_on_even_ticks_only() {
+        // Spec 012: kitty 2 pursuing kitty 1, one corner apart. Even tick:
+        // yield ("Wait for me!"); odd tick: walk. The lower id never yields.
+        use crate::test_support::decision_context_for;
+        let make = |me: crate::kitty::KittyId, tick: u64| {
+            decision_context_for(me, move |world| {
+                world.elements.clear();
+                world.tick = tick;
+                let a = world.kitty_index(1).unwrap();
+                world.kitties[a].pos = Position::new(5, 5);
+                world.kitties[a].needs.add(NeedKind::Play, 50.0);
+                let b = world.kitty_index(2).unwrap();
+                world.kitties[b].pos = Position::new(6, 6); // Manhattan 2
+                world.kitties[b].needs.add(NeedKind::Play, 50.0);
+            })
+        };
+
+        assert_eq!(
+            play_action(&make(2, 100)),
+            wait_for_them(),
+            "higher id, even tick: hold the corner and ask"
+        );
+        assert_eq!(
+            play_action(&make(2, 101)),
+            Action::Chase(TargetRef::Kitty { id: 1 }),
+            "higher id, odd tick: walk -- parity guarantees progress"
+        );
+        assert_eq!(
+            play_action(&make(1, 100)),
+            Action::Chase(TargetRef::Kitty { id: 2 }),
+            "the lower id always closes"
+        );
+
+        // Out of the corner zone, nobody stands on ceremony.
+        let far = decision_context_for(2, |world| {
+            world.elements.clear();
+            world.tick = 100;
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(5, 5);
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(5, 9); // Manhattan 4
+            world.kitties[b].needs.add(NeedKind::Play, 50.0);
+        });
+        assert_eq!(play_action(&far), Action::Chase(TargetRef::Kitty { id: 1 }));
+    }
+
+    #[test]
+    fn bugs_do_not_take_turns() {
+        // Etiquette is for fellow kitties: a critter at Manhattan 2 is
+        // chased regardless of parity or id.
+        let ctx = decision_context(|world| {
+            world.elements.clear();
+            world.tick = 100; // even
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx].needs.add(NeedKind::Play, 50.0);
+            let friend = world.kitty_index(2).unwrap();
+            world.kitties[friend].pos = Position::new(15, 15);
+            world.push_element(Element {
+                id: 870,
+                kind: ElementKind::Bug,
+                pos: Position::new(6, 6),
+                ttl: Some(50),
+            });
+        });
+        assert_eq!(
+            play_action(&ctx),
+            Action::Chase(TargetRef::Element { id: 870 })
+        );
     }
 
     #[test]
@@ -663,7 +948,7 @@ mod tests {
         assert_eq!(play_action(&ctx), Action::play_solo());
         assert_eq!(
             travel_distance(&ctx, NeedKind::Play),
-            Some(0),
+            Some(0.0),
             "the score must agree that relief is on the spot"
         );
     }

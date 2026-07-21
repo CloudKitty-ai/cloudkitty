@@ -13,58 +13,10 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 <!-- shipped P1 items are removed once merged; see git history -->
 
-### Orthogonal-only interactions (added 2026-07-20 — up next)
-Kitties currently interact diagonally: `is_adjacent` (`grid.rs`) is
-Chebyshev distance ≤ 1, so all eight surrounding tiles count for eating,
-drinking, playing, cuddling, grooming, and catching a chase. Movement,
-though, is strictly 4-way (`Direction` is N/E/S/W) — so a kitty can eat
-from a bowl on a tile it could not even step toward directly. Owner
-decision: **interactions become orthogonal-only** (the four von Neumann
-neighbors, plus the kitty's own tile), aligning interaction range with
-movement. Ripples to handle in the same change: behavior travel scoring
-uses `chebyshev_distance` throughout (`selection.rs`, `needs_driven.rs`)
-and should become Manhattan — with 4-way movement Manhattan *is* the true
-walk cost, so today's estimates undercount diagonals; the Article I
-safeguard's "reachable" guarantee and the property suite's adjacency
-assumptions must be re-verified; behaviors must path to an orthogonal
-neighbor rather than stopping diagonal to the target. Expect kitties to
-take one extra step sometimes — that is the point.
-
-### Water-averse pathing (added 2026-07-20)
-Movement is terrain-blind today: `Move` validation checks only bounds and
-other kitties, and the greedy `step_toward` walk (`needs_driven.rs`)
-routes around friends but strolls straight across ponds. Owner intent:
-**kitties prefer not to cross water** — stepping onto a water tile gains
-a named extra cost in behavior pathing, so cats walk around ponds when a
-dry route is reasonable. The anti-stuck guarantee comes from the split:
-crossing stays *legal* (engine validation unchanged — a kitty can always
-wade, so no layout can ever trap one, and Article I reachability is
-untouched); only the *preference* changes (Article IV: behaviors propose,
-the engine never forbids). Tunables named in config (e.g.
-`water_step_cost`, in the `tile_cost` family); the greedy stepper weighs
-it when choosing among candidate steps, and need-selection's travel
-estimates may count it so a bowl across a pond scores like the detour it
-really is. Kitties visibly skirting their ponds is the charm; a paddling
-kitty is the fallback, never the trap. **Later, low priority**: a `swim`
-pose in the viewer for a kitty on a water tile (pure view — `poseFor` in
-`render.js` plus one new `cat.js` pose, with its own mini gallery gate) —
-recorded here so it isn't lost, but not part of the pathing change.
-
-### Sustained purring (added 2026-07-20)
-Today `Action::Purr` is a single-tick action: it must be earned
-(`happiness > thresholds.purr` or a happiness rise, `action.rs`), it emits
-one purr meow, and it spends the kitty's whole turn — so a purring cat is
-a cat doing nothing else, for exactly one tick. Owner intent: purring
-should be a *sustained background state*, not an action. A purr runs for
-a configured **min/max duration**, then a **cooldown** before the next
-one, and never occupies the action slot — a kitty can purr while
-cuddling, loafing, or being adored. Design points for spec time: named
-config tunables (`purr_min_ticks` / `purr_max_ticks` / `purr_cooldown_ticks`,
-Article VI); what starts and ends a purr (keep the earned rule); the purr
-meow fires once at purr start rather than every tick (bubble spam);
-purr state serialized in snapshots and served so the viewer can show a
-rumbling kitty. Deterministic like everything else (seeded RNG for the
-duration draw).
+*Empty — the 2026-07-20 QoL batch (PR #16, specs 009–012) shipped all
+three queued items: orthogonal-only interactions, water-averse pathing,
+and sustained purring, plus the approach-etiquette / livelock fixes the
+batch surfaced. The swim pose parked inside the water entry moved to P3.*
 
 ## P2 — the bigger pieces, for a proper sitting
 
@@ -146,7 +98,12 @@ brain can drop in with zero engine changes. Ship one reference implementation
 what the kitty does." Test scaffolding (`sleepy_slow`, `panicky`,
 `always_invalid`) already covers the hostile cases — but only *behavioural*
 hostility, not malformed input: pair this with **Harden the whole proposal
-boundary** above, which is the same sitting's prerequisite. Deliberately P2:
+boundary** above, which is the same sitting's prerequisite. Plugin docs must
+also carry the multi-agent livelock warning (`behavior/mod.rs`): all kitties
+decide against the same snapshot, so a deterministic external brain that
+mirrors another kitty's moves can dance forever — advise symmetry-breaking
+via the per-kitty seeded rng or id-based right-of-way, as the built-ins do
+since 010/012. Deliberately P2:
 the highest-value non-cosmetic item, held for a proper sitting rather than a
 squeezed-in version.
 
@@ -174,6 +131,21 @@ The 005 refresh has shipped, so lighting lands on the vector look.
 
 ## P3 — simulation depth
 
+### Chases route around friends (added 2026-07-20)
+The one walk with no route-around: a chase step is applied engine-side via
+the straight `Direction::toward`, and a friend standing in the lane stalls
+the chase in place (`action.rs`, the Chase apply arm). Bounded, not a
+livelock — the patience clock abandons a chase that stops closing — but a
+kitty visibly frozen mid-pounce for up to `chase_patience_ticks` behind a
+bystander is the same *flavor* of jank as the 2026-07-20 dance family.
+Candidate fix: give blocked chase steps the seeded-shuffle sidestep the
+behavior stepper got in 012 FR-008 (deterministic per Article V, never
+synchronized). Design care: stalls currently *feed* the abandon/exclusion
+tuning — more persistent chases shift how often greebles get written off,
+so re-baseline `chase_patience_ticks` expectations in the same change.
+Polish, not urgent; see `behavior/mod.rs`'s multi-agent livelock note for
+the family history.
+
 ### Food types and desirability (+ water-near-food rules)
 Different chow kinds with desirability modifiers; cats prefer better food and
 dislike water adjacent to their bowl. One food-system design covering both
@@ -190,6 +162,14 @@ Deliberately kept out of the 005 refresh (2026-07-18): the bar here is
 *true-to-life* — real feline ear/tail vocabulary (tail-up greeting, airplane
 ears, slow flicks of irritation), worth its own unhurried design pass with
 reference study, not a quick mapping bolted onto the refresh.
+
+### Swim pose for wading kitties (parked 2026-07-20, from the 010 spec)
+A kitty standing on a water tile shows a `swim` pose — pure view
+(`poseFor` in `client/render.js` plus one new `cat.js` pose), with its own
+mini gallery gate like the other cat art. Wading is deliberately rare
+since 010 (kitties skirt ponds and paddle only when water is the only way
+forward), which is exactly why this is low priority — but the paddling
+fallback deserves its art when we are next in the cat-pose neighborhood.
 
 ### Dynamic in-game speed changes
 ⚠️ Architectural string attached: the MVP API is read-only and the spec fixes

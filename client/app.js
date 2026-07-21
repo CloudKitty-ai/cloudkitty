@@ -69,7 +69,11 @@ function renderPanel(world) {
     const card = panelEl.children[index];
     if (!card) return;
     card.querySelector('.name > span').textContent = kitty.name;
-    card.querySelector('.mood').textContent = moodFor(kitty);
+    // The sustained purr (spec 011) is a contentment signal, so it rides the
+    // mood line -- and the card is fixed-width (index.html), so no line ever
+    // resizes the portrait. `purring_until` in the payload means rumbling now.
+    const purring = kitty.purring_until != null ? ' · purring 💕' : '';
+    card.querySelector('.mood').textContent = moodFor(kitty) + purring;
     card.querySelector('.doing').textContent = doingFor(kitty, world);
     card.querySelector('.patience').textContent = patienceFor(kitty, world);
 

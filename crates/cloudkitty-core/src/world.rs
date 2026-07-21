@@ -160,6 +160,8 @@ impl World {
         // Phase 4: needs rise, happiness follows, distress is noted, invariants hold.
         self.advance_needs(config);
         self.record_distress(config);
+        // Spec 011: purrs start and stop here, with happiness at its freshest.
+        self.purr_phase(config);
         self.tick += 1;
         self.prune_transient(config);
 
@@ -397,7 +399,13 @@ impl World {
                     self.kitties[idx].pursuit = None;
                     return;
                 };
-                let distance = kitty_pos.chebyshev_distance(&target_pos);
+                // Manhattan, like every decision distance (spec 009): with a
+                // 4-way walk and an orthogonal catch, converting a diagonal
+                // offset into a straight one is real, catch-enabling progress
+                // -- measured in Chebyshev it looked like a stall, and the
+                // patience clock condemned chases at the moment they became
+                // winnable.
+                let distance = kitty_pos.manhattan_distance(&target_pos);
                 self.kitties[idx].pursuit = Some(match pursuit {
                     Some(p) if p.target == target => Pursuit {
                         target,
@@ -584,6 +592,64 @@ impl World {
         }
     }
 
+    /// Spec 011: purring is engine-owned background state, never an action.
+    /// Runs right after needs and happiness settle, so a purr can begin the
+    /// very tick contentment crosses the line; stable kitty-id order keeps
+    /// the RNG draws deterministic (Article V). A purr that ends this tick
+    /// starts its cooldown and cannot restart until the cooldown passes --
+    /// with a zero cooldown, back-to-back rumbles begin the very next tick,
+    /// each its own purr with its own start meow.
+    fn purr_phase(&mut self, config: &Config) {
+        let tick = self.tick;
+        for idx in 0..self.kitties.len() {
+            let (purring_until, cooldown_until, happiness, rose) = {
+                let k = &self.kitties[idx];
+                (
+                    k.purring_until,
+                    k.purr_cooldown_until,
+                    k.happiness,
+                    k.happiness_rose,
+                )
+            };
+            match purring_until {
+                Some(until) if tick >= until => {
+                    self.kitties[idx].purring_until = None;
+                    self.kitties[idx].purr_cooldown_until = tick + config.purr.cooldown_ticks;
+                }
+                Some(_) => {}
+                None => {
+                    // The earned rule, verbatim from the retired Purr action.
+                    let earned = happiness > config.thresholds.purr || rose;
+                    if earned && tick >= cooldown_until {
+                        // One draw even when min == max, so config can never
+                        // change the draw *count* (the fixed-shape rule).
+                        let span = (config.purr.max_ticks - config.purr.min_ticks + 1)
+                            .min(u32::MAX as u64) as u32;
+                        let duration =
+                            config.purr.min_ticks + self.rng.gen_range_u32(0, span) as u64;
+                        self.kitties[idx].purring_until = Some(tick + duration);
+                        // The start meow is a state announcement, not a
+                        // proposal: recorded directly so it fires exactly
+                        // once per purr (FR-005) -- the proposal cooldown
+                        // gate would swallow it under a short purr cooldown.
+                        // Stamping the cooldown keeps every other meow rule
+                        // exactly as it was.
+                        let id = self.kitties[idx].id;
+                        self.kitties[idx].set_meow_cooldown(
+                            crate::meow::MessageKind::Purr,
+                            tick + config.meow.cooldown_ticks,
+                        );
+                        self.recent_meows.push(Meow {
+                            kitty_id: id,
+                            kind: crate::meow::MessageKind::Purr,
+                            tick,
+                        });
+                    }
+                }
+            }
+        }
+    }
+
     /// Keeps the transient parts of the world bounded so a long-running sandbox
     /// does not grow without limit.
     fn prune_transient(&mut self, config: &Config) {
@@ -626,7 +692,7 @@ impl World {
         self.elements
             .iter()
             .filter(|e| e.element_type() == kind && pos.is_adjacent(&e.pos))
-            .min_by_key(|e| (pos.chebyshev_distance(&e.pos), e.id))
+            .min_by_key(|e| (pos.manhattan_distance(&e.pos), e.id))
     }
 
     /// The bowl a kitty at `pos` would eat from, if it still holds a serving.
@@ -646,7 +712,7 @@ impl World {
         self.elements
             .iter()
             .filter(|e| e.element_type() == kind)
-            .min_by_key(|e| (pos.chebyshev_distance(&e.pos), e.id))
+            .min_by_key(|e| (pos.manhattan_distance(&e.pos), e.id))
     }
 
     pub fn count_of(&self, kind: ElementType) -> u32 {
@@ -745,19 +811,19 @@ impl WorldSnapshot {
         self.elements
             .iter()
             .filter(|e| e.element_type() == kind)
-            .min_by_key(|e| (pos.chebyshev_distance(&e.pos), e.id))
+            .min_by_key(|e| (pos.manhattan_distance(&e.pos), e.id))
     }
 
     /// Nearest bug or greeble. Kitties perceive greebles perfectly well, even
     /// though nobody watching can see them.
     pub fn nearest_critter(&self, pos: Position) -> Option<&Element> {
         self.critters()
-            .min_by_key(|e| (pos.chebyshev_distance(&e.pos), e.id))
+            .min_by_key(|e| (pos.manhattan_distance(&e.pos), e.id))
     }
 
     pub fn nearest_friend(&self, me: KittyId, pos: Position) -> Option<&Kitty> {
         self.others(me)
-            .min_by_key(|k| (pos.chebyshev_distance(&k.pos), k.id))
+            .min_by_key(|k| (pos.manhattan_distance(&k.pos), k.id))
     }
 }
 
@@ -843,6 +909,123 @@ mod tests {
                 rule.min
             );
         }
+    }
+
+    // ---- sustained purring (spec 011) ------------------------------------
+
+    #[test]
+    fn an_earned_kitty_starts_purring_with_a_bounded_draw_and_one_meow() {
+        let (mut world, config) = test_world();
+        world.tick = 50;
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].happiness = 90.0; // past the purr threshold
+        world.kitties[idx].happiness_rose = false;
+
+        world.purr_phase(&config);
+
+        let kitty = world.kitty(1).unwrap();
+        let until = kitty.purring_until.expect("an earned kitty rumbles");
+        let duration = until - 50;
+        assert!(
+            (config.purr.min_ticks..=config.purr.max_ticks).contains(&duration),
+            "duration {duration} outside [{}, {}]",
+            config.purr.min_ticks,
+            config.purr.max_ticks
+        );
+        let purr_meows = |world: &World| {
+            world
+                .recent_meows
+                .iter()
+                .filter(|m| m.kitty_id == 1 && m.kind == crate::meow::MessageKind::Purr)
+                .count()
+        };
+        assert_eq!(purr_meows(&world), 1, "exactly one meow, at purr start");
+
+        // Further purring ticks announce nothing.
+        world.tick = 51;
+        world.purr_phase(&config);
+        assert_eq!(world.kitty(1).unwrap().purring_until, Some(until));
+        assert_eq!(purr_meows(&world), 1);
+    }
+
+    #[test]
+    fn the_cooldown_holds_an_earned_purr_back() {
+        let (mut world, config) = test_world();
+        world.tick = 60;
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].happiness = 90.0;
+        world.kitties[idx].purr_cooldown_until = 100;
+
+        world.purr_phase(&config);
+        assert_eq!(
+            world.kitty(1).unwrap().purring_until,
+            None,
+            "still resting its motor"
+        );
+
+        world.tick = 100;
+        world.purr_phase(&config);
+        assert!(
+            world.kitty(1).unwrap().purring_until.is_some(),
+            "the cooldown expiring reopens the rumble"
+        );
+    }
+
+    #[test]
+    fn a_purr_ends_on_schedule_and_stamps_the_cooldown() {
+        let (mut world, config) = test_world();
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].happiness = 90.0; // earned throughout -- gates nothing mid-purr
+        world.kitties[idx].purring_until = Some(80);
+
+        world.tick = 79;
+        world.purr_phase(&config);
+        assert_eq!(world.kitty(1).unwrap().purring_until, Some(80));
+
+        world.tick = 80;
+        world.purr_phase(&config);
+        let kitty = world.kitty(1).unwrap();
+        assert_eq!(kitty.purring_until, None, "the rumble winds down on time");
+        assert_eq!(
+            kitty.purr_cooldown_until,
+            80 + config.purr.cooldown_ticks,
+            "and the motor rests before the next one"
+        );
+    }
+
+    #[tokio::test]
+    async fn a_purring_kitty_still_takes_its_turn() {
+        // Spec 011 SC-001: the action slot is provably free -- a rumbling
+        // kitty beside its bowl begins eating while the purr carries on.
+        let config = Arc::new(test_config());
+        let registry = BehaviorRegistry::with_builtins();
+        let mut world = World::generate(&config);
+        world.elements.clear();
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].pos = Position::new(5, 5);
+        world.kitties[idx].needs.add(NeedKind::Eat, 95.0);
+        world.kitties[idx].purring_until = Some(1_000);
+        world.kitties[idx].set_meow_cooldown(crate::meow::MessageKind::WantEat, u64::MAX);
+        world.push_element(Element {
+            id: 970,
+            kind: ElementKind::Chow { servings: 5 },
+            pos: Position::new(5, 6),
+            ttl: None,
+        });
+
+        world.tick(&registry, &config).await;
+
+        let kitty = world.kitty(1).unwrap();
+        assert!(
+            matches!(kitty.activity, Activity::Eating),
+            "dinner proceeds, purr or no purr (got {:?})",
+            kitty.activity
+        );
+        assert_eq!(
+            kitty.purring_until,
+            Some(1_000),
+            "and the rumble never paused"
+        );
     }
 
     #[tokio::test]
@@ -966,7 +1149,10 @@ mod tests {
         world.update_pursuit(1, Action::Chase(target), &config);
         let p = world.kitty(1).unwrap().pursuit.expect("pursuit recorded");
         assert_eq!(p.started, 10);
-        assert_eq!(p.closest, 12);
+        assert_eq!(
+            p.closest, 24,
+            "(2,2) to (14,14) is 24 walking steps (spec 009: Manhattan)"
+        );
 
         // Two ticks later, an opportunistic drink: the pursuit must survive
         // with its original start tick (patience is elapsed, not consecutive).
@@ -993,10 +1179,49 @@ mod tests {
         world.tick = 11;
         world.update_pursuit(1, Action::Chase(target), &config);
         let p = world.kitty(1).unwrap().pursuit.unwrap();
-        assert_eq!(p.closest, 8);
+        assert_eq!(p.closest, 16, "(6,6) to (14,14) is 16 walking steps");
         assert_eq!(
             p.improved_at, 11,
             "gaining ground resets the patience clock"
+        );
+    }
+
+    #[test]
+    fn converting_a_diagonal_offset_into_a_straight_one_counts_as_progress() {
+        // Spec 009 US2: a kitty one diagonal step from its quarry cannot catch
+        // it (orthogonal-only interactions) -- stepping to a compass neighbour
+        // is the move that makes the catch possible. In Chebyshev both
+        // positions measured 1 and the patience clock saw a stall; Manhattan
+        // sees 2 become 1 and resets it.
+        let (mut world, config) = test_world();
+        world.elements.clear();
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].pos = Position::new(5, 5);
+        let other = world.kitty_index(2).unwrap();
+        world.kitties[other].pos = Position::new(0, 15);
+        world.push_element(Element {
+            id: 910,
+            kind: ElementKind::Greeble {
+                heading: Direction::North,
+            },
+            pos: Position::new(6, 6), // one diagonal step away
+            ttl: Some(500),
+        });
+        let target = TargetRef::Element { id: 910 };
+
+        world.tick = 10;
+        world.update_pursuit(1, Action::Chase(target), &config);
+        assert_eq!(world.kitty(1).unwrap().pursuit.unwrap().closest, 2);
+
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].pos = Position::new(6, 5); // now beside it
+        world.tick = 11;
+        world.update_pursuit(1, Action::Chase(target), &config);
+        let p = world.kitty(1).unwrap().pursuit.unwrap();
+        assert_eq!(p.closest, 1);
+        assert_eq!(
+            p.improved_at, 11,
+            "closing the corner is real, catch-enabling progress"
         );
     }
 
@@ -1015,7 +1240,7 @@ mod tests {
         world.tick = 10;
         world.update_pursuit(1, Action::Chase(target), &config);
 
-        // Walk in diagonally, one tile closer every tick.
+        // Reposition +1/+1 each iteration: two walking steps closer per tick.
         for step in 1..=steps {
             let idx = world.kitty_index(1).unwrap();
             let pos = world.kitties[idx].pos;

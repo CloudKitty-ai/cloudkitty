@@ -11,6 +11,19 @@
 //! no engine changes. Built-in behaviors resolve immediately and are exempt from
 //! the wall-clock budget -- that exemption is what keeps Article V's determinism
 //! unconditional, since a slow machine can never change what a built-in decides.
+//!
+//! **Multi-agent livelock warning for behavior authors.** All kitties decide
+//! against the same start-of-tick snapshot, so two deterministic behaviors
+//! reacting to each other can mirror one another indefinitely: each steps
+//! toward where the other *was*, forever. Three such dances were found and
+//! fixed in one day (2026-07-20): a head-on corridor mirror (spec 010), a
+//! corner orbit between mutual approachers (spec 012's "Wait for me!"
+//! etiquette), and a lockstep convoy sidestep (spec 012 FR-008). The pattern
+//! to copy: when your behavior has no progressing move, break symmetry with
+//! `ctx.rng` (seeded and per-kitty -- deterministic to the world, never
+//! synchronized between kitties) or with an asymmetric rule such as
+//! kitty-id right-of-way. A fixed fallback that two kitties can compute
+//! identically will eventually dance.
 
 use std::collections::BTreeMap;
 use std::sync::Arc;

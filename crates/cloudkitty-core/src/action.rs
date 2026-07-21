@@ -123,7 +123,10 @@ impl Action {
 
 /// Returns the action the engine will actually apply: the proposal if it is legal,
 /// otherwise `Idle`. This is the whole of Article IV's enforcement surface.
-pub fn validate(world: &World, kitty_id: KittyId, proposal: Action, config: &Config) -> Action {
+// `_config`: no current rule consults configuration (the retired Purr arm
+// was the last), but the parameter stays -- validation is Article IV's whole
+// enforcement surface and its shape should not churn with individual rules.
+pub fn validate(world: &World, kitty_id: KittyId, proposal: Action, _config: &Config) -> Action {
     let Some(kitty) = world.kitty(kitty_id) else {
         return Action::Idle;
     };
@@ -132,8 +135,12 @@ pub fn validate(world: &World, kitty_id: KittyId, proposal: Action, config: &Con
         Action::Idle | Action::Meow { .. } => true,
 
         // A meow that is on cooldown is still a legal action -- it just produces
-        // silence. Purring, however, has to be earned.
-        Action::Purr => kitty.happiness > config.thresholds.purr || kitty.happiness_rose,
+        // silence. Purring retired as an action in spec 011: it is engine-owned
+        // background state now (see `World::purr_phase`), so a purr proposal --
+        // stale snapshot replay, future external behavior -- resolves to Idle
+        // like any other illegal proposal. The variant survives only because
+        // pre-011 snapshots may carry `"last_action": "purr"`.
+        Action::Purr => false,
 
         Action::Move { direction } => match kitty.pos.step(direction, world.width, world.height) {
             Some(dest) => world.kitty_at(dest).is_none(),
@@ -298,6 +305,12 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
                     if let Some(dest) = kitty_pos.step(dir, world.width, world.height) {
                         // A chase that runs into another kitty simply stalls; the
                         // spec turns blocked movement into idling, never an error.
+                        // Stalls are bounded (the patience clock abandons a chase
+                        // that stops closing), so this is not a livelock -- but it
+                        // is the one walk with no route-around, and a candidate
+                        // for the seeded-shuffle treatment if frozen mid-chase
+                        // cats ever grate (BACKLOG P3 "Chases route around
+                        // friends"; see behavior/mod.rs's livelock note).
                         if world.kitty_at(dest).is_none() {
                             if let Some(idx) = world.kitty_index(kitty_id) {
                                 world.kitties[idx].pos = dest;
@@ -333,9 +346,10 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
             apply_activity_effects(world, kitty_id, config);
         }
 
-        Action::Purr => {
-            emit_meow(world, kitty_id, MessageKind::Purr, config, tick);
-        }
+        // Unreachable through validation since spec 011 (a purr proposal is
+        // always Idle); kept as a harmless no-op because `apply` stays total
+        // over the wire-compatible Action surface.
+        Action::Purr => {}
 
         Action::Meow { message } => {
             emit_meow(world, kitty_id, message, config, tick);
@@ -604,6 +618,98 @@ mod tests {
     }
 
     #[test]
+    fn diagonal_interactions_are_out_of_range() {
+        // Spec 009 FR-002: a target on a diagonal tile is out of range for
+        // every interaction — the proposal resolves to Idle, never fires.
+        // The same layouts shifted one tile to orthogonal validate through.
+        let (mut world, config) = test_world();
+        world.elements.clear();
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(5, 5);
+        world.push_element(Element {
+            id: 903,
+            kind: ElementKind::Chow { servings: 2 },
+            pos: Position::new(6, 6), // corner-to-corner
+            ttl: None,
+        });
+        world.push_element(Element {
+            id: 904,
+            kind: ElementKind::Water,
+            pos: Position::new(4, 6),
+            ttl: None,
+        });
+        world.push_element(Element {
+            id: 905,
+            kind: ElementKind::Bug,
+            pos: Position::new(4, 4),
+            ttl: Some(50),
+        });
+
+        assert_eq!(validate(&world, 1, Action::Eat, &config), Action::Idle);
+        assert_eq!(validate(&world, 1, Action::Drink, &config), Action::Idle);
+        assert_eq!(
+            validate(
+                &world,
+                1,
+                Action::play_with(TargetRef::Element { id: 905 }),
+                &config
+            ),
+            Action::Idle,
+            "batting across a corner is no longer a thing"
+        );
+
+        // Step each element to an orthogonal neighbour: all three legal again.
+        world.element_mut(903).unwrap().pos = Position::new(6, 5);
+        world.element_mut(904).unwrap().pos = Position::new(4, 5);
+        world.element_mut(905).unwrap().pos = Position::new(5, 4);
+        assert_eq!(validate(&world, 1, Action::Eat, &config), Action::Eat);
+        assert_eq!(validate(&world, 1, Action::Drink, &config), Action::Drink);
+        assert_eq!(
+            validate(
+                &world,
+                1,
+                Action::play_with(TargetRef::Element { id: 905 }),
+                &config
+            ),
+            Action::play_with(TargetRef::Element { id: 905 })
+        );
+    }
+
+    #[test]
+    fn a_diagonal_friend_is_out_of_reach_for_duets_and_grooming() {
+        // Spec 009: cuddling, social play, co-sleeping and grooming all take
+        // the orthogonal range through the friend-availability helpers.
+        let (mut world, config) = test_world();
+        let a = world.kitty_index(1).unwrap();
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[a].pos = Position::new(5, 5);
+        world.kitties[b].pos = Position::new(6, 6); // corner-to-corner
+
+        for proposal in [
+            Action::Rest { with: Some(2) },
+            Action::Sleep { with: Some(2) },
+            Action::Groom { target: Some(2) },
+            Action::play_with(TargetRef::Kitty { id: 2 }),
+        ] {
+            assert_eq!(
+                validate(&world, 1, proposal, &config),
+                Action::Idle,
+                "diagonal partner must be out of range for {proposal:?}"
+            );
+        }
+
+        world.kitties[b].pos = Position::new(6, 5); // beside
+        assert_eq!(
+            validate(&world, 1, Action::Rest { with: Some(2) }, &config),
+            Action::Rest { with: Some(2) }
+        );
+        assert_eq!(
+            validate(&world, 1, Action::Groom { target: Some(2) }, &config),
+            Action::Groom { target: Some(2) }
+        );
+    }
+
+    #[test]
     fn empty_chow_cannot_be_eaten() {
         let (mut world, config) = test_world();
         world.elements.clear();
@@ -685,21 +791,24 @@ mod tests {
     }
 
     #[test]
-    fn purring_must_be_earned() {
+    fn purring_is_no_longer_an_action() {
+        // Spec 011: purring is engine-owned background state; the proposal
+        // shape survives for pre-011 snapshots' last_action, but validation
+        // refuses it regardless of how earned the purr would have been.
         let (mut world, config) = test_world();
         let idx = world.kitty_index(1).unwrap();
         world.kitties[idx].happiness = 50.0;
         world.kitties[idx].happiness_rose = false;
         assert_eq!(validate(&world, 1, Action::Purr, &config), Action::Idle);
 
-        // Either a high happiness...
+        // Even a delighted kitty spends no turn on it...
         world.kitties[idx].happiness = 80.0;
-        assert_eq!(validate(&world, 1, Action::Purr, &config), Action::Purr);
+        assert_eq!(validate(&world, 1, Action::Purr, &config), Action::Idle);
 
-        // ...or an improving one.
+        // ...and neither does a brightening one.
         world.kitties[idx].happiness = 50.0;
         world.kitties[idx].happiness_rose = true;
-        assert_eq!(validate(&world, 1, Action::Purr, &config), Action::Purr);
+        assert_eq!(validate(&world, 1, Action::Purr, &config), Action::Idle);
     }
 
     #[test]

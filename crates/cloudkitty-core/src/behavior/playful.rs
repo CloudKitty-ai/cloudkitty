@@ -41,13 +41,8 @@ impl Behavior for Playful {
             return pursue(ctx, selection::choose(ctx));
         }
 
-        // A cat this happy should say so now and then.
-        if ctx.me.happiness > ctx.config.thresholds.purr
-            && ctx.me.can_meow(MessageKind::Purr, ctx.world.tick)
-            && ctx.rng.gen_bool(0.06)
-        {
-            return Action::Purr;
-        }
+        // (Purring left the proposal surface in spec 011: the engine rumbles
+        // a contented cat in the background, no turn required.)
 
         // The game is wherever the nearest playmate worth having is -- critter
         // or friend, minus anything already written off as uncatchable. Shared

@@ -39,13 +39,8 @@ impl Behavior for NeedsDriven {
             }
         }
 
-        // A contented cat purrs now and then.
-        if ctx.me.happiness > ctx.config.thresholds.purr
-            && ctx.me.can_meow(MessageKind::Purr, ctx.world.tick)
-            && ctx.rng.gen_bool(0.06)
-        {
-            return Action::Purr;
-        }
+        // (Purring left the proposal surface in spec 011: the engine rumbles
+        // a contented cat in the background, no turn required.)
 
         // Nothing pressing: potter about.
         if pressure < 20.0 && ctx.rng.gen_bool(0.4) {
@@ -123,18 +118,13 @@ pub(crate) fn pursue(ctx: &DecisionContext, choice: selection::Choice) -> Action
             if world.element_at(me.pos).map(|e| e.element_type()) == Some(ElementType::Sunbeam) {
                 return Action::Sleep { with: None };
             }
-            match world.nearest_element(me.pos, ElementType::Sunbeam) {
+            match selection::sunbeam_worth_walking(ctx) {
                 // Worth walking to, if it is not an expedition. The same
-                // reach prices the sleep score in `selection`, so what gets
-                // chosen and what gets walked can never disagree.
-                Some(sunbeam)
-                    if me.pos.chebyshev_distance(&sunbeam.pos)
-                        <= ctx.config.behavior.sunbeam_reach =>
-                {
-                    step_toward(ctx, sunbeam.pos)
-                }
+                // priced helper feeds the sleep score in `selection`, so what
+                // gets chosen and what gets walked can never disagree.
+                Some((pos, _)) => step_toward(ctx, pos),
                 // Otherwise a nap right here will do; a friend nearby makes it cosier.
-                _ => Action::Sleep {
+                None => Action::Sleep {
                     with: adjacent_friend(ctx),
                 },
             }
@@ -152,11 +142,16 @@ pub(crate) fn pursue(ctx: &DecisionContext, choice: selection::Choice) -> Action
             let free = world
                 .others(me.id)
                 .filter(|k| !k.activity.is_in_progress())
-                .min_by_key(|k| (me.pos.chebyshev_distance(&k.pos), k.id));
+                .min_by_key(|k| (me.pos.manhattan_distance(&k.pos), k.id));
             match free {
                 Some(friend) if me.pos.is_adjacent(&friend.pos) => Action::Rest {
                     with: Some(friend.id),
                 },
+                // Approach etiquette (spec 012): at the corner, the higher-id
+                // kitty asks and holds; the lower one closes the last step.
+                Some(friend) if selection::should_wait_for(ctx, friend.id, friend.pos) => {
+                    selection::wait_for_them()
+                }
                 // Walking over for a cuddle is not a chase; this cat is not playing.
                 Some(friend) => step_toward(ctx, friend.pos),
                 // Everyone is mid-scene; scenes are short (bounded by their
@@ -175,14 +170,17 @@ fn seek_element(ctx: &DecisionContext, kind: ElementType, use_it: Action) -> Act
         .world
         .elements_of(kind)
         .filter(|e| me.pos.is_adjacent(&e.pos))
-        .min_by_key(|e| (me.pos.chebyshev_distance(&e.pos), e.id));
+        .min_by_key(|e| (me.pos.manhattan_distance(&e.pos), e.id));
 
     if usable.is_some() {
         return use_it;
     }
 
-    match ctx.world.nearest_element(me.pos, kind) {
-        Some(target) => step_toward(ctx, target.pos),
+    // Walk toward the element the priced score chose -- the same
+    // `(priced_travel, id)` choice `selection` makes, so a bowl across a
+    // pond is pursued only when it truly is the cheapest walk (spec 010).
+    match selection::priced_nearest_element(ctx, kind) {
+        Some((pos, _)) => step_toward(ctx, pos),
         // The safeguard will have provided something by the next environment
         // phase; until then, there is nothing useful to do about it.
         None => Action::Idle,
@@ -190,7 +188,8 @@ fn seek_element(ctx: &DecisionContext, kind: ElementType, use_it: Action) -> Act
 }
 
 /// One step in the general direction of somewhere -- routing around other
-/// kitties rather than freezing against them.
+/// kitties rather than freezing against them, and preferring dry paws while
+/// it is at it.
 ///
 /// The naive version proposed the single straight-line direction; when a friend
 /// happened to be standing on that tile, the Move validated to Idle and the cat
@@ -198,6 +197,16 @@ fn seek_element(ctx: &DecisionContext, kind: ElementType, use_it: Action) -> Act
 /// with food two tiles away (found by the 004 welfare long-run). Instead: take
 /// the best legal step that closes distance, and when fully walled in, sidestep
 /// rather than stand still -- a shuffling cat finds the way around.
+///
+/// Water aversion (spec 010) changes only the *ordering*, never the options:
+/// among distance-closing steps, a wet destination carries a
+/// `water_step_cost` surcharge, so dry progress beats wet progress -- but
+/// when the only step that closes distance is wet, the kitty wades. The set
+/// of steps it is willing to take is exactly the pre-010 set, which is the
+/// whole anti-stuck argument: no layout can trap a cat that will always
+/// paddle when paddling is the only way forward. The sidestep fallback
+/// prefers dry tiles for the same reason a cat standing in a puddle gets out
+/// of it.
 fn step_toward(ctx: &DecisionContext, target: crate::grid::Position) -> Action {
     let me = ctx.me.pos;
     let occupied = |dest: &crate::grid::Position| {
@@ -206,39 +215,106 @@ fn step_toward(ctx: &DecisionContext, target: crate::grid::Position) -> Action {
             .iter()
             .any(|k| k.id != ctx.me.id && k.pos == *dest)
     };
-    // Chebyshev alone cannot see progress on a diagonal (a cardinal step keeps
-    // it equal when |dx| == |dy|), so manhattan breaks the tie: a step is
-    // progress when it improves the pair lexicographically.
-    let progress_score = |pos: &crate::grid::Position| {
-        let dx = (target.x as i64 - pos.x as i64).unsigned_abs() as u32;
-        let dy = (target.y as i64 - pos.y as i64).unsigned_abs() as u32;
-        (dx.max(dy), dx + dy)
+    let is_water = |pos: &crate::grid::Position| {
+        ctx.world
+            .elements_of(ElementType::Water)
+            .any(|e| e.pos == *pos)
+    };
+    // Manhattan is the walk (4-way steps), so progress is simply a lower
+    // step count. This also keeps a kitty maneuvering when it stands
+    // diagonal to its target: Manhattan 2 is *not* arrived under the 009
+    // orthogonal-interaction rule, where Chebyshev used to call it done.
+    let progress_score = |pos: &crate::grid::Position| target.manhattan_distance(pos);
+
+    // Directions are tried dominant-axis first (the `Direction::toward`
+    // rule), so equal-cost ties prefer closing the larger gap. Found by the
+    // welfare long-run during 010: with a fixed N/E/S/W order, two kitties
+    // meeting head-on in a corridor could lock into a mirrored period-2
+    // shuffle for dozens of ticks -- the fixed tie kept steering the cat
+    // back into the contested lane when an equally-good open lane existed.
+    // Closing the dominant axis also keeps both axes improvable longer,
+    // which is what gives the water surcharge dry alternatives to pick.
+    let order = {
+        let dx = target.x as i64 - me.x as i64;
+        let dy = target.y as i64 - me.y as i64;
+        let horiz = if dx > 0 {
+            Direction::East
+        } else {
+            Direction::West
+        };
+        let vert = if dy > 0 {
+            Direction::South
+        } else {
+            Direction::North
+        };
+        let (first, second) = if dx.abs() >= dy.abs() {
+            (horiz, vert)
+        } else {
+            (vert, horiz)
+        };
+        let mut order = [first, second, first, second];
+        let mut n = 2;
+        for d in Direction::ALL {
+            if d != first && d != second {
+                order[n] = d;
+                n += 1;
+            }
+        }
+        order
     };
 
     let current = progress_score(&me);
-    let mut best: Option<((u32, u32), Direction)> = None;
-    let mut fallback: Option<Direction> = None;
-    for direction in Direction::ALL {
+    let mut best: Option<(f32, Direction)> = None;
+    let mut dry_sidesteps: Vec<Direction> = Vec::new();
+    let mut wet_sidesteps: Vec<Direction> = Vec::new();
+    for direction in order {
         let Some(dest) = me.step(direction, ctx.world.width, ctx.world.height) else {
             continue;
         };
         if occupied(&dest) {
             continue;
         }
-        if fallback.is_none() {
-            fallback = Some(direction);
+        if is_water(&dest) {
+            wet_sidesteps.push(direction);
+        } else {
+            dry_sidesteps.push(direction);
         }
         let score = progress_score(&dest);
-        if score < current && best.map(|(b, _)| score < b).unwrap_or(true) {
-            best = Some((score, direction));
+        if score < current {
+            let cost = score as f32
+                + if is_water(&dest) {
+                    ctx.config.behavior.water_step_cost
+                } else {
+                    0.0
+                };
+            if best.map(|(b, _)| cost < b).unwrap_or(true) {
+                best = Some((cost, direction));
+            }
         }
     }
 
-    match (best, fallback) {
-        (Some((_, direction)), _) => Action::move_to(direction),
+    match best {
+        Some((_, direction)) => Action::move_to(direction),
         // Nothing brings the cat closer: sidestep rather than freeze, unless
         // it is already beside the target or has nowhere legal to stand.
-        (None, Some(direction)) if current.0 > 1 => Action::move_to(direction),
+        // The sidestep is a genuine shuffle -- drawn from this kitty's own
+        // seeded decision randomness among free tiles (dry preferred, spec
+        // 010) -- because a *fixed* pick lets two blocked kitties sidestep
+        // in lockstep indefinitely: the head-on transit dance the welfare
+        // gate caught during 012 (ticks 1329-1365, three cats bouncing in
+        // formation). Seeded means deterministic (Article V); per-kitty
+        // means never synchronized for long (spec 012 FR-008).
+        None if current > 1 => {
+            let pool = if dry_sidesteps.is_empty() {
+                &wet_sidesteps
+            } else {
+                &dry_sidesteps
+            };
+            match ctx.rng.choose(pool) {
+                Some(direction) => Action::move_to(*direction),
+                None => Action::Idle,
+            }
+        }
         _ => Action::Idle,
     }
 }
@@ -307,6 +383,316 @@ mod tests {
         assert_eq!(
             NeedsDriven.decide(&ctx).await,
             Action::move_to(crate::grid::Direction::East)
+        );
+    }
+
+    #[tokio::test]
+    async fn a_cat_diagonal_to_chow_steps_beside_it_then_eats() {
+        // Spec 009 FR-004: diagonal is not arrived. The kitty must convert the
+        // corner into a compass neighbourhood -- one step east or south -- and
+        // only then eat. Under the old Chebyshev rules this was an instant Eat.
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx].needs.add(NeedKind::Eat, 95.0);
+            world.push_element(Element {
+                id: 530,
+                kind: ElementKind::Chow { servings: 3 },
+                pos: Position::new(6, 6), // corner-to-corner
+                ttl: None,
+            });
+        });
+        ctx.me.set_meow_cooldown(MessageKind::WantEat, u64::MAX);
+        assert_eq!(
+            NeedsDriven.decide(&ctx).await,
+            // East and south both close the corner; direction order breaks
+            // the tie deterministically in favour of east.
+            Action::move_to(Direction::East),
+            "a diagonal bowl is walked to, not eaten across"
+        );
+
+        // One step later, beside the bowl: now it is dinner time.
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(6, 5);
+            world.kitties[idx].needs.add(NeedKind::Eat, 95.0);
+            world.push_element(Element {
+                id: 531,
+                kind: ElementKind::Chow { servings: 3 },
+                pos: Position::new(6, 6),
+                ttl: None,
+            });
+        });
+        ctx.me.set_meow_cooldown(MessageKind::WantEat, u64::MAX);
+        assert_eq!(NeedsDriven.decide(&ctx).await, Action::Eat);
+    }
+
+    /// A bowl with every compass seat taken, for the crowded-target edge case
+    /// (spec 009 "Crowded targets", analyze M1). Kitty 1 is the waiter, two
+    /// steps north of the bowl; kitties 2-5 occupy all four seats.
+    fn crowded_bowl_ctx() -> crate::behavior::DecisionContext {
+        use crate::config::KittyConfig;
+        use crate::rng::DecisionRng;
+        use std::sync::Arc;
+
+        let mut config = crate::test_support::test_config();
+        config.kitties = vec![
+            ("Waiter", 8, 6),
+            ("North", 8, 7),
+            ("South", 8, 9),
+            ("West", 7, 8),
+            ("East", 9, 8),
+        ]
+        .into_iter()
+        .enumerate()
+        .map(|(i, (name, x, y))| KittyConfig {
+            id: (i + 1) as u32,
+            name: name.into(),
+            x,
+            y,
+            behavior: "needs_driven".into(),
+            needs: None,
+        })
+        .collect();
+        let config = Arc::new(config);
+        let mut world = crate::world::World::generate(&config);
+        world.elements.clear();
+        world.push_element(Element {
+            id: 540,
+            kind: ElementKind::Chow { servings: 5 },
+            pos: Position::new(8, 8),
+            ttl: None,
+        });
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].needs.add(NeedKind::Eat, 95.0);
+
+        let mut me = world.kitty(1).unwrap().clone();
+        me.set_meow_cooldown(MessageKind::WantEat, u64::MAX);
+        crate::behavior::DecisionContext {
+            me,
+            world: Arc::new(world.snapshot()),
+            rng: DecisionRng::from_seed(9876),
+            config,
+        }
+    }
+
+    #[tokio::test]
+    async fn a_cat_crowded_away_from_its_bowl_shuffles_legally_instead_of_reaching_across() {
+        // The waiter cannot improve its distance (the only closer tile is a
+        // taken seat), must not eat from out of range, and must not freeze:
+        // the sidestep fallback keeps it milling about until the world moves
+        // on. The bowl itself will usually be licked clean by the seated four
+        // before a seat frees -- retarget-and-respawn is the designed relief
+        // path (owner decision 2026-07-20), driven end-to-end in the welfare
+        // suite's crowded-bowl run.
+        let ctx = crowded_bowl_ctx();
+        let action = NeedsDriven.decide(&ctx).await;
+        assert_eq!(
+            action,
+            Action::move_to(Direction::West),
+            "the first free direction in preference order (dominant axis first) is a \
+             lawful shuffle, not Idle and never a diagonal Eat"
+        );
+    }
+
+    #[tokio::test]
+    async fn a_dry_step_beats_a_wet_step_when_both_close_distance() {
+        // Spec 010 US1: south and east both close on the bowl; east is a
+        // puddle. Direction order would say east -- the surcharge says south.
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx].needs.add(NeedKind::Eat, 95.0);
+            world.push_element(Element {
+                id: 550,
+                kind: ElementKind::Chow { servings: 3 },
+                pos: Position::new(7, 7),
+                ttl: None,
+            });
+            world.push_element(Element {
+                id: 551,
+                kind: ElementKind::Water,
+                pos: Position::new(6, 5), // the wet eastern step
+                ttl: None,
+            });
+        });
+        ctx.me.set_meow_cooldown(MessageKind::WantEat, u64::MAX);
+        assert_eq!(
+            NeedsDriven.decide(&ctx).await,
+            Action::move_to(Direction::South),
+            "dry progress beats wet progress"
+        );
+    }
+
+    #[tokio::test]
+    async fn a_kitty_wades_when_water_is_the_only_way_forward() {
+        // Spec 010 FR-002: the bowl is dead ahead across a puddle and no dry
+        // step closes distance -- preference yields, the kitty paddles.
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx].needs.add(NeedKind::Eat, 95.0);
+            world.push_element(Element {
+                id: 552,
+                kind: ElementKind::Chow { servings: 3 },
+                pos: Position::new(5, 8),
+                ttl: None,
+            });
+            world.push_element(Element {
+                id: 553,
+                kind: ElementKind::Water,
+                pos: Position::new(5, 6), // squarely on the only closing step
+                ttl: None,
+            });
+        });
+        ctx.me.set_meow_cooldown(MessageKind::WantEat, u64::MAX);
+        assert_eq!(
+            NeedsDriven.decide(&ctx).await,
+            Action::move_to(Direction::South),
+            "crossing is never refused -- a wet improving step beats no step"
+        );
+    }
+
+    #[tokio::test]
+    async fn the_sidestep_fallback_prefers_a_dry_tile() {
+        // Nothing closes distance (the only improving tile holds a friend).
+        // Fallback preference order from (5,5) toward (5,8) is S, W, N, E;
+        // west is a puddle, so the dry-preferring shuffle picks north --
+        // without the dry rule, plain order would say the wet west tile.
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx].needs.add(NeedKind::Eat, 95.0);
+            let blocker = world.kitty_index(2).unwrap();
+            world.kitties[blocker].pos = Position::new(5, 6); // on the sole improving step
+            world.push_element(Element {
+                id: 554,
+                kind: ElementKind::Chow { servings: 3 },
+                pos: Position::new(5, 8),
+                ttl: None,
+            });
+            world.push_element(Element {
+                id: 555,
+                kind: ElementKind::Water,
+                pos: Position::new(4, 5), // the wet western sidestep, first in fallback order
+                ttl: None,
+            });
+        });
+        ctx.me.set_meow_cooldown(MessageKind::WantEat, u64::MAX);
+        // The sidestep is a seeded shuffle (spec 012 FR-008), so the exact
+        // direction is the rng's business -- the *property* is that it moves,
+        // and only onto a dry free tile (north or east here; west is wet,
+        // south is a friend).
+        let action = NeedsDriven.decide(&ctx).await;
+        assert!(
+            action == Action::move_to(Direction::North)
+                || action == Action::move_to(Direction::East),
+            "a shuffling cat shuffles dry when it can (got {action:?})"
+        );
+    }
+
+    #[tokio::test]
+    async fn a_kitty_standing_in_a_puddle_steps_out_dry_side_first() {
+        // Spec 010 FR-005: the kitty starts *on* water with two equal-progress
+        // exits, one dry (east) and one wet (south). It leaves dry-side.
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx].needs.add(NeedKind::Eat, 95.0);
+            world.push_element(Element {
+                id: 556,
+                kind: ElementKind::Water,
+                pos: Position::new(5, 5), // under its paws
+                ttl: None,
+            });
+            world.push_element(Element {
+                id: 557,
+                kind: ElementKind::Water,
+                pos: Position::new(5, 6), // the wet southern exit
+                ttl: None,
+            });
+            world.push_element(Element {
+                id: 558,
+                kind: ElementKind::Chow { servings: 3 },
+                pos: Position::new(7, 7),
+                ttl: None,
+            });
+        });
+        ctx.me.set_meow_cooldown(MessageKind::WantEat, u64::MAX);
+        // Standing on water means water is "adjacent" -- keep drink below the
+        // opportunism line so the errand stays the errand.
+        assert_eq!(
+            NeedsDriven.decide(&ctx).await,
+            Action::move_to(Direction::East),
+            "out of the puddle, dry paws first"
+        );
+    }
+
+    #[tokio::test]
+    async fn the_bowl_walked_toward_is_the_bowl_the_priced_score_chose() {
+        // Spec 010 US2 / the 004 agreement rule: the nearer bowl sits across
+        // two water tiles (priced 4 + 2x4 = 12); the farther bowl is 6 dry
+        // steps east. Selection prices the detour, and the walk goes east --
+        // pre-010 the kitty marched south at the raw-nearest bowl.
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx].needs.add(NeedKind::Eat, 95.0);
+            world.push_element(Element {
+                id: 560,
+                kind: ElementKind::Chow { servings: 3 },
+                pos: Position::new(5, 9), // 4 steps, but wet ones
+                ttl: None,
+            });
+            world.push_element(Element {
+                id: 561,
+                kind: ElementKind::Chow { servings: 3 },
+                pos: Position::new(11, 5), // 6 dry steps
+                ttl: None,
+            });
+            for (id, y) in [(562u32, 7u32), (563, 8)] {
+                world.push_element(Element {
+                    id,
+                    kind: ElementKind::Water,
+                    pos: Position::new(5, y),
+                    ttl: None,
+                });
+            }
+        });
+        ctx.me.set_meow_cooldown(MessageKind::WantEat, u64::MAX);
+        assert_eq!(
+            NeedsDriven.decide(&ctx).await,
+            Action::move_to(Direction::East),
+            "the priced choice and the walk agree on the dry bowl"
+        );
+    }
+
+    #[tokio::test]
+    async fn a_cuddle_seeker_asks_and_waits_at_the_corner() {
+        // Spec 012: the higher-id kitty one corner from its cuddle target
+        // spends the even tick on "Wait for me!" instead of dancing.
+        let mut ctx = crate::test_support::decision_context_for(2, |world| {
+            world.elements.clear();
+            world.tick = 100; // even
+            let friend = world.kitty_index(1).unwrap();
+            world.kitties[friend].pos = Position::new(5, 5);
+            let me = world.kitty_index(2).unwrap();
+            world.kitties[me].pos = Position::new(6, 6); // Manhattan 2
+            world.kitties[me].needs.add(NeedKind::Cuddle, 90.0);
+        });
+        ctx.me.set_meow_cooldown(MessageKind::WantCuddle, u64::MAX);
+        assert_eq!(
+            NeedsDriven.decide(&ctx).await,
+            Action::Meow {
+                message: MessageKind::WaitForMe
+            }
         );
     }
 
@@ -474,7 +860,8 @@ mod tests {
     async fn a_blocked_cat_routes_around_a_friend_instead_of_freezing() {
         // The gridlock found by the welfare long-run: a friend standing on the
         // straight-line tile used to freeze the walk entirely (blocked Move ->
-        // Idle, forever). The cat must take the free diagonal instead.
+        // Idle, forever). The cat must route around via the free southern
+        // tile instead -- still a step that closes walking distance.
         let mut ctx = decision_context(|world| {
             world.elements.clear();
             let idx = world.kitty_index(1).unwrap();

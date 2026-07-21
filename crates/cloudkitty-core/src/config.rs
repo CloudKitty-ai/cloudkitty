@@ -67,9 +67,50 @@ pub struct Config {
     #[serde(default)]
     pub behavior: BehaviorConfig,
     #[serde(default)]
+    pub purr: PurrConfig,
+    #[serde(default)]
     pub events: EventsConfig,
     #[serde(default)]
     pub viewer: ViewerConfig,
+}
+
+/// The rhythm of a sustained purr (spec 011). Purring is engine-owned kitty
+/// state -- earned by happiness, never proposed, never a spent turn -- and
+/// these three numbers give the rumble its wave shape: a seeded draw between
+/// `min_ticks` and `max_ticks`, then `cooldown_ticks` of rest.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PurrConfig {
+    /// Shortest purr, in ticks. Must be at least 1 and at most `max_ticks`.
+    #[serde(default = "default_purr_min_ticks")]
+    pub min_ticks: u64,
+    /// Longest purr, in ticks.
+    #[serde(default = "default_purr_max_ticks")]
+    pub max_ticks: u64,
+    /// Rest between purrs, in ticks. 0 is legal: back-to-back rumbles.
+    #[serde(default = "default_purr_cooldown_ticks")]
+    pub cooldown_ticks: u64,
+}
+
+fn default_purr_min_ticks() -> u64 {
+    6
+}
+
+fn default_purr_max_ticks() -> u64 {
+    15
+}
+
+fn default_purr_cooldown_ticks() -> u64 {
+    30
+}
+
+impl Default for PurrConfig {
+    fn default() -> Self {
+        Self {
+            min_ticks: default_purr_min_ticks(),
+            max_ticks: default_purr_max_ticks(),
+            cooldown_ticks: default_purr_cooldown_ticks(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -486,6 +527,12 @@ pub struct BehaviorConfig {
     /// attend to.
     #[serde(default = "default_tile_cost")]
     pub tile_cost: f32,
+    /// Extra tiles of effort a kitty ascribes to stepping onto a water tile
+    /// (spec 010). Dry routes win when they cost less than the splash; a kitty
+    /// still wades when water is the only way forward -- this is preference in
+    /// the behaviors, never a rule in the engine (Article IV). 0 disables it.
+    #[serde(default = "default_water_step_cost")]
+    pub water_step_cost: f32,
     /// A need at or above this is worth topping up when the means are already
     /// underfoot, whatever else the kitty was doing.
     #[serde(default = "default_worth_a_detour")]
@@ -520,6 +567,10 @@ fn default_tile_cost() -> f32 {
     1.0
 }
 
+fn default_water_step_cost() -> f32 {
+    4.0
+}
+
 fn default_worth_a_detour() -> f32 {
     30.0
 }
@@ -547,6 +598,7 @@ impl Default for BehaviorConfig {
             playful_comfort: default_playful_comfort(),
             urgency_weight: default_urgency_weight(),
             tile_cost: default_tile_cost(),
+            water_step_cost: default_water_step_cost(),
             worth_a_detour: default_worth_a_detour(),
             chase_patience_ticks: default_chase_patience_ticks(),
             chase_exclusion_ticks: default_chase_exclusion_ticks(),
@@ -642,6 +694,7 @@ impl Default for Config {
             actions: ActionEffects::default(),
             meow: MeowConfig::default(),
             behavior: BehaviorConfig::default(),
+            purr: PurrConfig::default(),
             events: EventsConfig::default(),
             viewer: ViewerConfig::default(),
         }
@@ -940,9 +993,27 @@ impl Config {
                 "must be greater than 0 and at most 100",
             ));
         }
+        if self.purr.min_ticks < 1 {
+            return Err(ConfigError::invalid(
+                "[purr] min_ticks",
+                self.purr.min_ticks.to_string(),
+                "must be at least 1",
+            ));
+        }
+        if self.purr.min_ticks > self.purr.max_ticks {
+            return Err(ConfigError::invalid(
+                "[purr] min_ticks",
+                format!(
+                    "{} (max_ticks is {})",
+                    self.purr.min_ticks, self.purr.max_ticks
+                ),
+                "must be at most max_ticks",
+            ));
+        }
         for (field, value) in [
             ("[behavior] urgency_weight", self.behavior.urgency_weight),
             ("[behavior] tile_cost", self.behavior.tile_cost),
+            ("[behavior] water_step_cost", self.behavior.water_step_cost),
         ] {
             if !value.is_finite() || value < 0.0 {
                 return Err(ConfigError::invalid(
@@ -1326,6 +1397,48 @@ mod tests {
         c.behavior.tile_cost = -1.0;
         let msg = c.validate().unwrap_err().to_string();
         assert!(msg.contains("[behavior] tile_cost"), "{msg}");
+    }
+
+    #[test]
+    fn purr_table_defaults_when_absent_and_rejects_bad_bounds() {
+        // A pre-011 config has no [purr] section at all: the whole-table
+        // default must land (spec 011 SC-005).
+        let parsed: PurrConfig = toml::from_str("").expect("an empty purr table parses");
+        assert_eq!(
+            (parsed.min_ticks, parsed.max_ticks, parsed.cooldown_ticks),
+            (6, 15, 30)
+        );
+
+        let mut c = cfg();
+        c.purr.min_ticks = 0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[purr] min_ticks"), "{msg}");
+        c.purr.min_ticks = 20; // > max_ticks 15
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[purr] min_ticks"), "{msg}");
+        assert!(msg.contains("max_ticks"), "{msg}");
+        c.purr.min_ticks = c.purr.max_ticks; // fixed-length purrs are legal
+        c.purr.cooldown_ticks = 0; // as are back-to-back rumbles
+        assert!(c.validate().is_ok());
+    }
+
+    #[test]
+    fn water_step_cost_defaults_when_absent_and_rejects_nonsense() {
+        // A pre-010 [behavior] table has no water_step_cost: the serde
+        // default must land, so every existing config file keeps working
+        // unedited (spec 010 SC-005).
+        let parsed: BehaviorConfig =
+            toml::from_str("budget_fraction_of_tick = 0.5").expect("pre-010 table parses");
+        assert_eq!(parsed.water_step_cost, 4.0);
+
+        let mut c = cfg();
+        c.behavior.water_step_cost = f32::NAN;
+        assert!(c.validate().is_err());
+        c.behavior.water_step_cost = -1.0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[behavior] water_step_cost"), "{msg}");
+        c.behavior.water_step_cost = 0.0; // legal: disables the preference
+        assert!(c.validate().is_ok());
     }
 
     #[test]
