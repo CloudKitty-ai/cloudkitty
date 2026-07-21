@@ -397,7 +397,13 @@ impl World {
                     self.kitties[idx].pursuit = None;
                     return;
                 };
-                let distance = kitty_pos.chebyshev_distance(&target_pos);
+                // Manhattan, like every decision distance (spec 009): with a
+                // 4-way walk and an orthogonal catch, converting a diagonal
+                // offset into a straight one is real, catch-enabling progress
+                // -- measured in Chebyshev it looked like a stall, and the
+                // patience clock condemned chases at the moment they became
+                // winnable.
+                let distance = kitty_pos.manhattan_distance(&target_pos);
                 self.kitties[idx].pursuit = Some(match pursuit {
                     Some(p) if p.target == target => Pursuit {
                         target,
@@ -626,7 +632,7 @@ impl World {
         self.elements
             .iter()
             .filter(|e| e.element_type() == kind && pos.is_adjacent(&e.pos))
-            .min_by_key(|e| (pos.chebyshev_distance(&e.pos), e.id))
+            .min_by_key(|e| (pos.manhattan_distance(&e.pos), e.id))
     }
 
     /// The bowl a kitty at `pos` would eat from, if it still holds a serving.
@@ -646,7 +652,7 @@ impl World {
         self.elements
             .iter()
             .filter(|e| e.element_type() == kind)
-            .min_by_key(|e| (pos.chebyshev_distance(&e.pos), e.id))
+            .min_by_key(|e| (pos.manhattan_distance(&e.pos), e.id))
     }
 
     pub fn count_of(&self, kind: ElementType) -> u32 {
@@ -745,19 +751,19 @@ impl WorldSnapshot {
         self.elements
             .iter()
             .filter(|e| e.element_type() == kind)
-            .min_by_key(|e| (pos.chebyshev_distance(&e.pos), e.id))
+            .min_by_key(|e| (pos.manhattan_distance(&e.pos), e.id))
     }
 
     /// Nearest bug or greeble. Kitties perceive greebles perfectly well, even
     /// though nobody watching can see them.
     pub fn nearest_critter(&self, pos: Position) -> Option<&Element> {
         self.critters()
-            .min_by_key(|e| (pos.chebyshev_distance(&e.pos), e.id))
+            .min_by_key(|e| (pos.manhattan_distance(&e.pos), e.id))
     }
 
     pub fn nearest_friend(&self, me: KittyId, pos: Position) -> Option<&Kitty> {
         self.others(me)
-            .min_by_key(|k| (pos.chebyshev_distance(&k.pos), k.id))
+            .min_by_key(|k| (pos.manhattan_distance(&k.pos), k.id))
     }
 }
 
@@ -966,7 +972,10 @@ mod tests {
         world.update_pursuit(1, Action::Chase(target), &config);
         let p = world.kitty(1).unwrap().pursuit.expect("pursuit recorded");
         assert_eq!(p.started, 10);
-        assert_eq!(p.closest, 12);
+        assert_eq!(
+            p.closest, 24,
+            "(2,2) to (14,14) is 24 walking steps (spec 009: Manhattan)"
+        );
 
         // Two ticks later, an opportunistic drink: the pursuit must survive
         // with its original start tick (patience is elapsed, not consecutive).
@@ -993,10 +1002,49 @@ mod tests {
         world.tick = 11;
         world.update_pursuit(1, Action::Chase(target), &config);
         let p = world.kitty(1).unwrap().pursuit.unwrap();
-        assert_eq!(p.closest, 8);
+        assert_eq!(p.closest, 16, "(6,6) to (14,14) is 16 walking steps");
         assert_eq!(
             p.improved_at, 11,
             "gaining ground resets the patience clock"
+        );
+    }
+
+    #[test]
+    fn converting_a_diagonal_offset_into_a_straight_one_counts_as_progress() {
+        // Spec 009 US2: a kitty one diagonal step from its quarry cannot catch
+        // it (orthogonal-only interactions) -- stepping to a compass neighbour
+        // is the move that makes the catch possible. In Chebyshev both
+        // positions measured 1 and the patience clock saw a stall; Manhattan
+        // sees 2 become 1 and resets it.
+        let (mut world, config) = test_world();
+        world.elements.clear();
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].pos = Position::new(5, 5);
+        let other = world.kitty_index(2).unwrap();
+        world.kitties[other].pos = Position::new(0, 15);
+        world.push_element(Element {
+            id: 910,
+            kind: ElementKind::Greeble {
+                heading: Direction::North,
+            },
+            pos: Position::new(6, 6), // one diagonal step away
+            ttl: Some(500),
+        });
+        let target = TargetRef::Element { id: 910 };
+
+        world.tick = 10;
+        world.update_pursuit(1, Action::Chase(target), &config);
+        assert_eq!(world.kitty(1).unwrap().pursuit.unwrap().closest, 2);
+
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].pos = Position::new(6, 5); // now beside it
+        world.tick = 11;
+        world.update_pursuit(1, Action::Chase(target), &config);
+        let p = world.kitty(1).unwrap().pursuit.unwrap();
+        assert_eq!(p.closest, 1);
+        assert_eq!(
+            p.improved_at, 11,
+            "closing the corner is real, catch-enabling progress"
         );
     }
 
@@ -1015,7 +1063,7 @@ mod tests {
         world.tick = 10;
         world.update_pursuit(1, Action::Chase(target), &config);
 
-        // Walk in diagonally, one tile closer every tick.
+        // Reposition +1/+1 each iteration: two walking steps closer per tick.
         for step in 1..=steps {
             let idx = world.kitty_index(1).unwrap();
             let pos = world.kitties[idx].pos;

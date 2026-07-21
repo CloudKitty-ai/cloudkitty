@@ -92,9 +92,10 @@ pub fn check(world: &World, config: &Config) -> Result<(), Violation> {
         }
 
         // Pursuit bookkeeping: a recorded chase started in the past and its
-        // best distance fits on the grid.
+        // best distance fits on the grid. Distances are Manhattan (spec 009),
+        // so the grid's far corner is width + height steps away.
         if let Some(p) = &kitty.pursuit {
-            let max_distance = world.width.max(world.height);
+            let max_distance = world.width + world.height;
             if p.started > world.tick || p.closest > max_distance {
                 return Err(Violation {
                     article: "Bookkeeping integrity",

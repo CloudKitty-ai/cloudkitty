@@ -112,7 +112,7 @@ fn distance_given(
     let nearest = |kind: ElementType| {
         ctx.world
             .nearest_element(me.pos, kind)
-            .map(|e| me.pos.chebyshev_distance(&e.pos))
+            .map(|e| me.pos.manhattan_distance(&e.pos))
     };
 
     match need {
@@ -125,7 +125,7 @@ fn distance_given(
         NeedKind::Cuddle => ctx
             .world
             .nearest_friend(me.id, me.pos)
-            .map(|k| me.pos.chebyshev_distance(&k.pos)),
+            .map(|k| me.pos.manhattan_distance(&k.pos)),
     }
 }
 
@@ -136,7 +136,7 @@ fn distance_given(
 fn sleep_travel_distance(ctx: &DecisionContext) -> u32 {
     match ctx.world.nearest_element(ctx.me.pos, ElementType::Sunbeam) {
         Some(sunbeam) => {
-            let d = ctx.me.pos.chebyshev_distance(&sunbeam.pos);
+            let d = ctx.me.pos.manhattan_distance(&sunbeam.pos);
             if d <= ctx.config.behavior.sunbeam_reach {
                 d
             } else {
@@ -155,7 +155,7 @@ fn play_travel_distance(ctx: &DecisionContext, playmate: Option<(TargetRef, Posi
     let urgent = ctx.me.needs.get(NeedKind::Play) >= ctx.config.thresholds.safeguard;
     match playmate {
         Some((_, pos)) => {
-            let d = ctx.me.pos.chebyshev_distance(&pos);
+            let d = ctx.me.pos.manhattan_distance(&pos);
             if d > reach && urgent {
                 0 // solo play right here beats the trek
             } else {
@@ -193,7 +193,7 @@ pub fn nearest_viable_playmate(ctx: &DecisionContext) -> Option<(TargetRef, Posi
     critters
         .chain(friends)
         .filter(|(target, _, _, _)| is_viable(ctx, *target))
-        .min_by_key(|(_, pos, tag, id)| (me.pos.chebyshev_distance(pos), *tag, *id))
+        .min_by_key(|(_, pos, tag, id)| (me.pos.manhattan_distance(pos), *tag, *id))
         .map(|(target, pos, _, _)| (target, pos))
 }
 
@@ -244,7 +244,7 @@ pub fn play_action_with(ctx: &DecisionContext, playmate: Option<(TargetRef, Posi
         Some((target, pos)) => {
             if me.pos.is_adjacent(&pos) {
                 Action::play_with(target)
-            } else if me.pos.chebyshev_distance(&pos) > reach && urgent {
+            } else if me.pos.manhattan_distance(&pos) > reach && urgent {
                 // Everyone worth playing with is far away and the need is real:
                 // a kitty does not sulk, it pounces at nothing.
                 Action::play_solo()
@@ -265,7 +265,7 @@ pub fn adjacent_playmate(ctx: &DecisionContext) -> Option<TargetRef> {
         .world
         .critters()
         .filter(|e| me.pos.is_adjacent(&e.pos))
-        .min_by_key(|e| (me.pos.chebyshev_distance(&e.pos), e.id))
+        .min_by_key(|e| (me.pos.manhattan_distance(&e.pos), e.id))
         .map(|e| TargetRef::Element { id: e.id });
     critter.or_else(|| {
         ctx.world
@@ -273,7 +273,7 @@ pub fn adjacent_playmate(ctx: &DecisionContext) -> Option<TargetRef> {
             // A friend mid-meal or asleep cannot be batted into a game
             // (spec 006 conscription); only an idle neighbour counts.
             .filter(|k| me.pos.is_adjacent(&k.pos) && !k.activity.is_in_progress())
-            .min_by_key(|k| (me.pos.chebyshev_distance(&k.pos), k.id))
+            .min_by_key(|k| (me.pos.manhattan_distance(&k.pos), k.id))
             .map(|k| TargetRef::Kitty { id: k.id })
     })
 }
@@ -327,9 +327,13 @@ mod tests {
     #[test]
     fn the_stuck_kitty_grooms_instead_of_fixating_on_play() {
         let ctx = miso_ctx();
-        // The R1 worked example, verbatim: bath 150 > play 147 > sleep 146.7.
+        // The 004 R1 worked example, re-derived for spec 009's Manhattan
+        // distances: the bug at (22,27) is now honestly 4 walking steps (was
+        // Chebyshev 3), so play = 100 + 50 - 4 = 146 and the runner-up order
+        // flips (sleep 146.7 above play 146) -- but bath, relief on the spot,
+        // still wins at 150, which is the property this test guards.
         assert_eq!(score(&ctx, NeedKind::Bath), Some(150.0));
-        assert_eq!(score(&ctx, NeedKind::Play), Some(147.0));
+        assert_eq!(score(&ctx, NeedKind::Play), Some(146.0));
         assert!((score(&ctx, NeedKind::Sleep).unwrap() - 146.7).abs() < 0.1);
         assert_eq!(choose_need(&ctx), NeedKind::Bath);
     }

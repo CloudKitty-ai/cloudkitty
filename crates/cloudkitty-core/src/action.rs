@@ -604,6 +604,98 @@ mod tests {
     }
 
     #[test]
+    fn diagonal_interactions_are_out_of_range() {
+        // Spec 009 FR-002: a target on a diagonal tile is out of range for
+        // every interaction — the proposal resolves to Idle, never fires.
+        // The same layouts shifted one tile to orthogonal validate through.
+        let (mut world, config) = test_world();
+        world.elements.clear();
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(5, 5);
+        world.push_element(Element {
+            id: 903,
+            kind: ElementKind::Chow { servings: 2 },
+            pos: Position::new(6, 6), // corner-to-corner
+            ttl: None,
+        });
+        world.push_element(Element {
+            id: 904,
+            kind: ElementKind::Water,
+            pos: Position::new(4, 6),
+            ttl: None,
+        });
+        world.push_element(Element {
+            id: 905,
+            kind: ElementKind::Bug,
+            pos: Position::new(4, 4),
+            ttl: Some(50),
+        });
+
+        assert_eq!(validate(&world, 1, Action::Eat, &config), Action::Idle);
+        assert_eq!(validate(&world, 1, Action::Drink, &config), Action::Idle);
+        assert_eq!(
+            validate(
+                &world,
+                1,
+                Action::play_with(TargetRef::Element { id: 905 }),
+                &config
+            ),
+            Action::Idle,
+            "batting across a corner is no longer a thing"
+        );
+
+        // Step each element to an orthogonal neighbour: all three legal again.
+        world.element_mut(903).unwrap().pos = Position::new(6, 5);
+        world.element_mut(904).unwrap().pos = Position::new(4, 5);
+        world.element_mut(905).unwrap().pos = Position::new(5, 4);
+        assert_eq!(validate(&world, 1, Action::Eat, &config), Action::Eat);
+        assert_eq!(validate(&world, 1, Action::Drink, &config), Action::Drink);
+        assert_eq!(
+            validate(
+                &world,
+                1,
+                Action::play_with(TargetRef::Element { id: 905 }),
+                &config
+            ),
+            Action::play_with(TargetRef::Element { id: 905 })
+        );
+    }
+
+    #[test]
+    fn a_diagonal_friend_is_out_of_reach_for_duets_and_grooming() {
+        // Spec 009: cuddling, social play, co-sleeping and grooming all take
+        // the orthogonal range through the friend-availability helpers.
+        let (mut world, config) = test_world();
+        let a = world.kitty_index(1).unwrap();
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[a].pos = Position::new(5, 5);
+        world.kitties[b].pos = Position::new(6, 6); // corner-to-corner
+
+        for proposal in [
+            Action::Rest { with: Some(2) },
+            Action::Sleep { with: Some(2) },
+            Action::Groom { target: Some(2) },
+            Action::play_with(TargetRef::Kitty { id: 2 }),
+        ] {
+            assert_eq!(
+                validate(&world, 1, proposal, &config),
+                Action::Idle,
+                "diagonal partner must be out of range for {proposal:?}"
+            );
+        }
+
+        world.kitties[b].pos = Position::new(6, 5); // beside
+        assert_eq!(
+            validate(&world, 1, Action::Rest { with: Some(2) }, &config),
+            Action::Rest { with: Some(2) }
+        );
+        assert_eq!(
+            validate(&world, 1, Action::Groom { target: Some(2) }, &config),
+            Action::Groom { target: Some(2) }
+        );
+    }
+
+    #[test]
     fn empty_chow_cannot_be_eaten() {
         let (mut world, config) = test_world();
         world.elements.clear();
