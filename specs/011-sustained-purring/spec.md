@@ -145,11 +145,13 @@ feature) load cleanly with all kitties quiet and eligible to purr.
   world's seeded randomness, between a configured minimum and maximum
   (inclusive); the purr ends when the duration elapses, and a configured
   cooldown MUST pass before that kitty may purr again.
-- **FR-004**: The three quantities MUST be named configuration values
-  (`purr_min_ticks`, `purr_max_ticks`, `purr_cooldown_ticks` — Article VI),
-  validated at startup (1 ≤ min ≤ max, cooldown ≥ 0) with the standard
-  naming-the-field error, documented in the shipped world files, and
-  defaulted sensibly when absent so existing configs keep working unedited.
+- **FR-004**: The three quantities MUST be named configuration values —
+  spelled as a `[purr]` table: `min_ticks`, `max_ticks`, `cooldown_ticks`
+  (Article VI; reconciled at implementation from this spec's draft
+  `purr_*_ticks` spelling — same names, table form) — validated at startup
+  (1 ≤ min ≤ max, cooldown ≥ 0) with the standard naming-the-field error,
+  documented in the shipped world files, and defaulted sensibly when absent
+  so existing configs keep working unedited.
 - **FR-005**: The purr meow MUST fire exactly once, at purr start, and never
   on subsequent purring ticks; all other meow rules are untouched.
 - **FR-006**: The single-tick purr action MUST be retired: no built-in

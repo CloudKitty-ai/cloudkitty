@@ -159,6 +159,14 @@ urgent_need_threshold = 75.0
 # How long a meow stays visible to other kitties and to viewers.
 recent_window_ticks = 10
 
+[purr]
+# A contented kitty rumbles for a while (a seeded draw between min and max
+# ticks), then rests its motor for the cooldown before the next rumble.
+# Purring is pure charm: it never costs a turn and never changes a need.
+min_ticks = 6
+max_ticks = 15
+cooldown_ticks = 30
+
 [behavior]
 # Share of a tick an *external* behavior may spend deciding before the engine
 # steps in with the default behavior. Built-in behaviors are exempt: they run

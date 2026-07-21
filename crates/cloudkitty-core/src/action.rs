@@ -123,7 +123,10 @@ impl Action {
 
 /// Returns the action the engine will actually apply: the proposal if it is legal,
 /// otherwise `Idle`. This is the whole of Article IV's enforcement surface.
-pub fn validate(world: &World, kitty_id: KittyId, proposal: Action, config: &Config) -> Action {
+// `_config`: no current rule consults configuration (the retired Purr arm
+// was the last), but the parameter stays -- validation is Article IV's whole
+// enforcement surface and its shape should not churn with individual rules.
+pub fn validate(world: &World, kitty_id: KittyId, proposal: Action, _config: &Config) -> Action {
     let Some(kitty) = world.kitty(kitty_id) else {
         return Action::Idle;
     };
@@ -132,8 +135,12 @@ pub fn validate(world: &World, kitty_id: KittyId, proposal: Action, config: &Con
         Action::Idle | Action::Meow { .. } => true,
 
         // A meow that is on cooldown is still a legal action -- it just produces
-        // silence. Purring, however, has to be earned.
-        Action::Purr => kitty.happiness > config.thresholds.purr || kitty.happiness_rose,
+        // silence. Purring retired as an action in spec 011: it is engine-owned
+        // background state now (see `World::purr_phase`), so a purr proposal --
+        // stale snapshot replay, future external behavior -- resolves to Idle
+        // like any other illegal proposal. The variant survives only because
+        // pre-011 snapshots may carry `"last_action": "purr"`.
+        Action::Purr => false,
 
         Action::Move { direction } => match kitty.pos.step(direction, world.width, world.height) {
             Some(dest) => world.kitty_at(dest).is_none(),
@@ -333,9 +340,10 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
             apply_activity_effects(world, kitty_id, config);
         }
 
-        Action::Purr => {
-            emit_meow(world, kitty_id, MessageKind::Purr, config, tick);
-        }
+        // Unreachable through validation since spec 011 (a purr proposal is
+        // always Idle); kept as a harmless no-op because `apply` stays total
+        // over the wire-compatible Action surface.
+        Action::Purr => {}
 
         Action::Meow { message } => {
             emit_meow(world, kitty_id, message, config, tick);
@@ -777,21 +785,24 @@ mod tests {
     }
 
     #[test]
-    fn purring_must_be_earned() {
+    fn purring_is_no_longer_an_action() {
+        // Spec 011: purring is engine-owned background state; the proposal
+        // shape survives for pre-011 snapshots' last_action, but validation
+        // refuses it regardless of how earned the purr would have been.
         let (mut world, config) = test_world();
         let idx = world.kitty_index(1).unwrap();
         world.kitties[idx].happiness = 50.0;
         world.kitties[idx].happiness_rose = false;
         assert_eq!(validate(&world, 1, Action::Purr, &config), Action::Idle);
 
-        // Either a high happiness...
+        // Even a delighted kitty spends no turn on it...
         world.kitties[idx].happiness = 80.0;
-        assert_eq!(validate(&world, 1, Action::Purr, &config), Action::Purr);
+        assert_eq!(validate(&world, 1, Action::Purr, &config), Action::Idle);
 
-        // ...or an improving one.
+        // ...and neither does a brightening one.
         world.kitties[idx].happiness = 50.0;
         world.kitties[idx].happiness_rose = true;
-        assert_eq!(validate(&world, 1, Action::Purr, &config), Action::Purr);
+        assert_eq!(validate(&world, 1, Action::Purr, &config), Action::Idle);
     }
 
     #[test]

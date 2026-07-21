@@ -486,6 +486,101 @@ async fn a_kitty_wades_when_the_bowl_is_dead_across_the_water() {
 }
 
 #[tokio::test]
+async fn purrs_come_in_waves_with_bounded_durations_and_one_meow_each() {
+    // Spec 011 SC-002, as a property over the default world: every purr's
+    // duration sits within [min_ticks, max_ticks]; consecutive purrs by one
+    // kitty are separated by at least cooldown_ticks; every purr begins with
+    // exactly one purr meow stamped at its start tick, and no purr meow is
+    // ever stamped mid-purr; and the default world -- a happy one -- rumbles.
+    use cloudkitty_core::meow::MessageKind;
+    use std::collections::BTreeSet;
+
+    let config = Arc::new(Config::default());
+    config.validate().expect("valid");
+    let registry = BehaviorRegistry::with_builtins();
+    let mut world = World::generate(&config);
+
+    let n = world.kitties.len();
+    let mut prev_purr: Vec<Option<u64>> = vec![None; n];
+    let mut last_end: Vec<Option<u64>> = vec![None; n];
+    let mut starts_per_kitty = vec![0u64; n];
+    let mut start_set: BTreeSet<(u32, u64)> = BTreeSet::new();
+    let mut seen_meows: BTreeSet<(u32, u64)> = BTreeSet::new();
+
+    for _ in 0..2_000 {
+        world.tick(&registry, &config).await;
+        let just = world.tick - 1; // the tick the purr phase ran in
+
+        for (idx, kitty) in world.kitties.iter().enumerate() {
+            match (prev_purr[idx], kitty.purring_until) {
+                (None, Some(until)) => {
+                    let duration = until - just;
+                    assert!(
+                        (config.purr.min_ticks..=config.purr.max_ticks).contains(&duration),
+                        "{}: purr duration {duration} outside bounds at tick {just}",
+                        kitty.name
+                    );
+                    if let Some(end) = last_end[idx] {
+                        assert!(
+                            just >= end + config.purr.cooldown_ticks,
+                            "{}: purr at {just} inside the cooldown after {end}",
+                            kitty.name
+                        );
+                    }
+                    starts_per_kitty[idx] += 1;
+                    start_set.insert((kitty.id, just));
+                }
+                (Some(until), None) => {
+                    assert!(
+                        just >= until,
+                        "{}: purr ended early at {just} (scheduled {until})",
+                        kitty.name
+                    );
+                    last_end[idx] = Some(until);
+                }
+                (Some(a), Some(b)) => {
+                    assert_eq!(a, b, "{}: a purr may not be rescheduled", kitty.name);
+                }
+                (None, None) => {}
+            }
+            prev_purr[idx] = kitty.purring_until;
+        }
+
+        // Every purr meow in the window belongs to exactly one recorded start.
+        for meow in world
+            .recent_meows
+            .iter()
+            .filter(|m| m.kind == MessageKind::Purr)
+        {
+            let key = (meow.kitty_id, meow.tick);
+            if seen_meows.insert(key) {
+                assert!(
+                    start_set.contains(&key),
+                    "purr meow at tick {} from kitty {} matches no purr start",
+                    meow.tick,
+                    meow.kitty_id
+                );
+            }
+        }
+    }
+
+    // One meow per start (the retention window is 10 ticks, far wider than
+    // the 1-tick observation gap, so no start's meow can be missed).
+    assert_eq!(
+        seen_meows.len(),
+        start_set.len(),
+        "every purr announces itself exactly once"
+    );
+    for (idx, starts) in starts_per_kitty.iter().enumerate() {
+        assert!(
+            *starts > 0,
+            "{} never purred in 2000 ticks of the default happy world",
+            world.kitties[idx].name
+        );
+    }
+}
+
+#[tokio::test]
 async fn the_same_seed_replays_the_same_five_thousand_ticks_exactly() {
     // SC-006. 5,000 ticks is plenty to catch a stray source of nondeterminism
     // without doubling the suite's runtime.

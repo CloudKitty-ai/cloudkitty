@@ -70,7 +70,11 @@ function renderPanel(world) {
     if (!card) return;
     card.querySelector('.name > span').textContent = kitty.name;
     card.querySelector('.mood').textContent = moodFor(kitty);
-    card.querySelector('.doing').textContent = doingFor(kitty, world);
+    // The sustained purr (spec 011) rides alongside whatever the kitty is
+    // doing -- that is the whole point -- so it joins the line, never
+    // replaces it. `purring_until` present in the payload means rumbling now.
+    const purring = kitty.purring_until != null ? ' · purring 💕' : '';
+    card.querySelector('.doing').textContent = doingFor(kitty, world) + purring;
     card.querySelector('.patience').textContent = patienceFor(kitty, world);
 
     const happinessBar = card.querySelector('.happiness > span');

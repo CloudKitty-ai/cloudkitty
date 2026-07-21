@@ -67,9 +67,50 @@ pub struct Config {
     #[serde(default)]
     pub behavior: BehaviorConfig,
     #[serde(default)]
+    pub purr: PurrConfig,
+    #[serde(default)]
     pub events: EventsConfig,
     #[serde(default)]
     pub viewer: ViewerConfig,
+}
+
+/// The rhythm of a sustained purr (spec 011). Purring is engine-owned kitty
+/// state -- earned by happiness, never proposed, never a spent turn -- and
+/// these three numbers give the rumble its wave shape: a seeded draw between
+/// `min_ticks` and `max_ticks`, then `cooldown_ticks` of rest.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PurrConfig {
+    /// Shortest purr, in ticks. Must be at least 1 and at most `max_ticks`.
+    #[serde(default = "default_purr_min_ticks")]
+    pub min_ticks: u64,
+    /// Longest purr, in ticks.
+    #[serde(default = "default_purr_max_ticks")]
+    pub max_ticks: u64,
+    /// Rest between purrs, in ticks. 0 is legal: back-to-back rumbles.
+    #[serde(default = "default_purr_cooldown_ticks")]
+    pub cooldown_ticks: u64,
+}
+
+fn default_purr_min_ticks() -> u64 {
+    6
+}
+
+fn default_purr_max_ticks() -> u64 {
+    15
+}
+
+fn default_purr_cooldown_ticks() -> u64 {
+    30
+}
+
+impl Default for PurrConfig {
+    fn default() -> Self {
+        Self {
+            min_ticks: default_purr_min_ticks(),
+            max_ticks: default_purr_max_ticks(),
+            cooldown_ticks: default_purr_cooldown_ticks(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -653,6 +694,7 @@ impl Default for Config {
             actions: ActionEffects::default(),
             meow: MeowConfig::default(),
             behavior: BehaviorConfig::default(),
+            purr: PurrConfig::default(),
             events: EventsConfig::default(),
             viewer: ViewerConfig::default(),
         }
@@ -949,6 +991,23 @@ impl Config {
                 "[behavior] playful_comfort",
                 comfort.to_string(),
                 "must be greater than 0 and at most 100",
+            ));
+        }
+        if self.purr.min_ticks < 1 {
+            return Err(ConfigError::invalid(
+                "[purr] min_ticks",
+                self.purr.min_ticks.to_string(),
+                "must be at least 1",
+            ));
+        }
+        if self.purr.min_ticks > self.purr.max_ticks {
+            return Err(ConfigError::invalid(
+                "[purr] min_ticks",
+                format!(
+                    "{} (max_ticks is {})",
+                    self.purr.min_ticks, self.purr.max_ticks
+                ),
+                "must be at most max_ticks",
             ));
         }
         for (field, value) in [
@@ -1338,6 +1397,29 @@ mod tests {
         c.behavior.tile_cost = -1.0;
         let msg = c.validate().unwrap_err().to_string();
         assert!(msg.contains("[behavior] tile_cost"), "{msg}");
+    }
+
+    #[test]
+    fn purr_table_defaults_when_absent_and_rejects_bad_bounds() {
+        // A pre-011 config has no [purr] section at all: the whole-table
+        // default must land (spec 011 SC-005).
+        let parsed: PurrConfig = toml::from_str("").expect("an empty purr table parses");
+        assert_eq!(
+            (parsed.min_ticks, parsed.max_ticks, parsed.cooldown_ticks),
+            (6, 15, 30)
+        );
+
+        let mut c = cfg();
+        c.purr.min_ticks = 0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[purr] min_ticks"), "{msg}");
+        c.purr.min_ticks = 20; // > max_ticks 15
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[purr] min_ticks"), "{msg}");
+        assert!(msg.contains("max_ticks"), "{msg}");
+        c.purr.min_ticks = c.purr.max_ticks; // fixed-length purrs are legal
+        c.purr.cooldown_ticks = 0; // as are back-to-back rumbles
+        assert!(c.validate().is_ok());
     }
 
     #[test]
