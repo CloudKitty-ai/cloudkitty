@@ -30,6 +30,26 @@ assumptions must be re-verified; behaviors must path to an orthogonal
 neighbor rather than stopping diagonal to the target. Expect kitties to
 take one extra step sometimes — that is the point.
 
+### Water-averse pathing (added 2026-07-20)
+Movement is terrain-blind today: `Move` validation checks only bounds and
+other kitties, and the greedy `step_toward` walk (`needs_driven.rs`)
+routes around friends but strolls straight across ponds. Owner intent:
+**kitties prefer not to cross water** — stepping onto a water tile gains
+a named extra cost in behavior pathing, so cats walk around ponds when a
+dry route is reasonable. The anti-stuck guarantee comes from the split:
+crossing stays *legal* (engine validation unchanged — a kitty can always
+wade, so no layout can ever trap one, and Article I reachability is
+untouched); only the *preference* changes (Article IV: behaviors propose,
+the engine never forbids). Tunables named in config (e.g.
+`water_step_cost`, in the `tile_cost` family); the greedy stepper weighs
+it when choosing among candidate steps, and need-selection's travel
+estimates may count it so a bowl across a pond scores like the detour it
+really is. Kitties visibly skirting their ponds is the charm; a paddling
+kitty is the fallback, never the trap. **Later, low priority**: a `swim`
+pose in the viewer for a kitty on a water tile (pure view — `poseFor` in
+`render.js` plus one new `cat.js` pose, with its own mini gallery gate) —
+recorded here so it isn't lost, but not part of the pathing change.
+
 ### Sustained purring (added 2026-07-20)
 Today `Action::Purr` is a single-tick action: it must be earned
 (`happiness > thresholds.purr` or a happiness rise, `action.rs`), it emits
