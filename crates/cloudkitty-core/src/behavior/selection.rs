@@ -24,6 +24,8 @@ use super::DecisionContext;
 use crate::action::{Action, TargetRef};
 use crate::element::ElementType;
 use crate::grid::Position;
+use crate::kitty::KittyId;
+use crate::meow::MessageKind;
 use crate::needs::NeedKind;
 
 /// The outcome of one scored pass: the need most worth acting on, plus the
@@ -272,6 +274,29 @@ fn is_viable(ctx: &DecisionContext, target: TargetRef) -> bool {
     true
 }
 
+/// Approach etiquette (spec 012): when two kitties walk at each other, each
+/// steps toward where the other just was, and under 009's orthogonal range a
+/// pair can orbit a corner forever (verified 2026-07-20: 145 ticks with the
+/// urgent-meow lottery silenced). At exactly two walking steps, the
+/// higher-id kitty of the pair yields on even world ticks -- holding its
+/// corner behind a "Wait for me!" -- and the lower id closes. Tick parity is
+/// the progress guarantee: a yield never repeats two ticks running, so a
+/// partner who is *not* approaching costs the walker at most one tick.
+/// Consulted by both kitty-approach paths (the cuddle walk and kitty-target
+/// chases); nothing else may emit the word.
+pub fn should_wait_for(ctx: &DecisionContext, friend: KittyId, friend_pos: Position) -> bool {
+    ctx.me.pos.manhattan_distance(&friend_pos) == 2 && ctx.me.id > friend && ctx.world.tick % 2 == 0
+}
+
+/// The yield itself: the held turn is spent asking, not pacing. If the word
+/// is on its base cooldown the meow is lawfully silent -- the turn is still
+/// spent standing, which is what breaks the dance (spec 012 FR-003).
+pub fn wait_for_them() -> Action {
+    Action::Meow {
+        message: MessageKind::WaitForMe,
+    }
+}
+
 /// One step toward relieving play: pounce on an adjacent playmate, walk after a
 /// viable one worth reaching, and otherwise pounce at nothing -- solo play, the
 /// backstop that makes play (like bath and sleep) satisfiable anywhere.
@@ -295,6 +320,13 @@ pub fn play_action_with(ctx: &DecisionContext, playmate: Option<(TargetRef, Posi
                 // a kitty does not sulk, it pounces at nothing.
                 Action::play_solo()
             } else {
+                // Approach etiquette applies only to fellow kitties -- a bug
+                // does not take turns.
+                if let TargetRef::Kitty { id } = target {
+                    if should_wait_for(ctx, id, pos) {
+                        return wait_for_them();
+                    }
+                }
                 Action::Chase(target)
             }
         }
@@ -711,6 +743,78 @@ mod tests {
             choose_need(&only_wet),
             NeedKind::Eat,
             "a hungry cat still goes to dinner across the pond"
+        );
+    }
+
+    #[test]
+    fn the_higher_id_kitty_waits_at_the_corner_on_even_ticks_only() {
+        // Spec 012: kitty 2 pursuing kitty 1, one corner apart. Even tick:
+        // yield ("Wait for me!"); odd tick: walk. The lower id never yields.
+        use crate::test_support::decision_context_for;
+        let make = |me: crate::kitty::KittyId, tick: u64| {
+            decision_context_for(me, move |world| {
+                world.elements.clear();
+                world.tick = tick;
+                let a = world.kitty_index(1).unwrap();
+                world.kitties[a].pos = Position::new(5, 5);
+                world.kitties[a].needs.add(NeedKind::Play, 50.0);
+                let b = world.kitty_index(2).unwrap();
+                world.kitties[b].pos = Position::new(6, 6); // Manhattan 2
+                world.kitties[b].needs.add(NeedKind::Play, 50.0);
+            })
+        };
+
+        assert_eq!(
+            play_action(&make(2, 100)),
+            wait_for_them(),
+            "higher id, even tick: hold the corner and ask"
+        );
+        assert_eq!(
+            play_action(&make(2, 101)),
+            Action::Chase(TargetRef::Kitty { id: 1 }),
+            "higher id, odd tick: walk -- parity guarantees progress"
+        );
+        assert_eq!(
+            play_action(&make(1, 100)),
+            Action::Chase(TargetRef::Kitty { id: 2 }),
+            "the lower id always closes"
+        );
+
+        // Out of the corner zone, nobody stands on ceremony.
+        let far = decision_context_for(2, |world| {
+            world.elements.clear();
+            world.tick = 100;
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(5, 5);
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(5, 9); // Manhattan 4
+            world.kitties[b].needs.add(NeedKind::Play, 50.0);
+        });
+        assert_eq!(play_action(&far), Action::Chase(TargetRef::Kitty { id: 1 }));
+    }
+
+    #[test]
+    fn bugs_do_not_take_turns() {
+        // Etiquette is for fellow kitties: a critter at Manhattan 2 is
+        // chased regardless of parity or id.
+        let ctx = decision_context(|world| {
+            world.elements.clear();
+            world.tick = 100; // even
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx].needs.add(NeedKind::Play, 50.0);
+            let friend = world.kitty_index(2).unwrap();
+            world.kitties[friend].pos = Position::new(15, 15);
+            world.push_element(Element {
+                id: 870,
+                kind: ElementKind::Bug,
+                pos: Position::new(6, 6),
+                ttl: Some(50),
+            });
+        });
+        assert_eq!(
+            play_action(&ctx),
+            Action::Chase(TargetRef::Element { id: 870 })
         );
     }
 

@@ -19,27 +19,33 @@ pub enum MessageKind {
     WantPlay,
     WantCuddle,
     Purr,
+    /// Approach etiquette (spec 012): the yielding kitty of a mutual
+    /// approach holds its corner and asks its partner to close the gap.
+    /// Emitted by the yield rule only -- nothing else may spend it.
+    WaitForMe,
 }
 
 impl MessageKind {
-    pub const ALL: [MessageKind; 6] = [
+    pub const ALL: [MessageKind; 7] = [
         MessageKind::WantEat,
         MessageKind::WantDrink,
         MessageKind::FollowMe,
         MessageKind::WantPlay,
         MessageKind::WantCuddle,
         MessageKind::Purr,
+        MessageKind::WaitForMe,
     ];
 
-    /// The need whose urgency shortens this message's cooldown. `FollowMe` and
-    /// `Purr` have none, so they always use the base cooldown.
+    /// The need whose urgency shortens this message's cooldown. `FollowMe`,
+    /// `Purr` and `WaitForMe` have none, so they always use the base cooldown
+    /// -- urgency should not shorten a word whose meaning is patience.
     pub fn related_need(&self) -> Option<NeedKind> {
         match self {
             MessageKind::WantEat => Some(NeedKind::Eat),
             MessageKind::WantDrink => Some(NeedKind::Drink),
             MessageKind::WantPlay => Some(NeedKind::Play),
             MessageKind::WantCuddle => Some(NeedKind::Cuddle),
-            MessageKind::FollowMe | MessageKind::Purr => None,
+            MessageKind::FollowMe | MessageKind::Purr | MessageKind::WaitForMe => None,
         }
     }
 
@@ -63,6 +69,7 @@ impl MessageKind {
             MessageKind::WantPlay => "I want to play!",
             MessageKind::WantCuddle => "I want to cuddle!",
             MessageKind::Purr => "I am happy",
+            MessageKind::WaitForMe => "Wait for me!",
         }
     }
 }
@@ -122,6 +129,24 @@ mod tests {
             15
         );
         assert_eq!(MessageKind::Purr.related_need(), None);
+    }
+
+    #[test]
+    fn wait_for_me_is_a_patience_word() {
+        // Spec 012: in the vocabulary, base cooldown class (urgency never
+        // shortens a word whose meaning is patience), wire name stable.
+        assert!(MessageKind::ALL.contains(&MessageKind::WaitForMe));
+        assert_eq!(MessageKind::WaitForMe.related_need(), None);
+        assert_eq!(MessageKind::WaitForMe.text(), "Wait for me!");
+        assert_eq!(
+            serde_json::to_string(&MessageKind::WaitForMe).unwrap(),
+            "\"wait_for_me\""
+        );
+        assert_eq!(
+            cooldown_for(MessageKind::WaitForMe, None, 15, 5, 75.0),
+            15,
+            "always the base cooldown"
+        );
     }
 
     #[test]

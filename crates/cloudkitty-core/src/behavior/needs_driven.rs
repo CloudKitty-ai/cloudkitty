@@ -147,6 +147,11 @@ pub(crate) fn pursue(ctx: &DecisionContext, choice: selection::Choice) -> Action
                 Some(friend) if me.pos.is_adjacent(&friend.pos) => Action::Rest {
                     with: Some(friend.id),
                 },
+                // Approach etiquette (spec 012): at the corner, the higher-id
+                // kitty asks and holds; the lower one closes the last step.
+                Some(friend) if selection::should_wait_for(ctx, friend.id, friend.pos) => {
+                    selection::wait_for_them()
+                }
                 // Walking over for a cuddle is not a chase; this cat is not playing.
                 Some(friend) => step_toward(ctx, friend.pos),
                 // Everyone is mid-scene; scenes are short (bounded by their
@@ -260,8 +265,8 @@ fn step_toward(ctx: &DecisionContext, target: crate::grid::Position) -> Action {
 
     let current = progress_score(&me);
     let mut best: Option<(f32, Direction)> = None;
-    let mut dry_fallback: Option<Direction> = None;
-    let mut any_fallback: Option<Direction> = None;
+    let mut dry_sidesteps: Vec<Direction> = Vec::new();
+    let mut wet_sidesteps: Vec<Direction> = Vec::new();
     for direction in order {
         let Some(dest) = me.step(direction, ctx.world.width, ctx.world.height) else {
             continue;
@@ -269,11 +274,10 @@ fn step_toward(ctx: &DecisionContext, target: crate::grid::Position) -> Action {
         if occupied(&dest) {
             continue;
         }
-        if any_fallback.is_none() {
-            any_fallback = Some(direction);
-        }
-        if dry_fallback.is_none() && !is_water(&dest) {
-            dry_fallback = Some(direction);
+        if is_water(&dest) {
+            wet_sidesteps.push(direction);
+        } else {
+            dry_sidesteps.push(direction);
         }
         let score = progress_score(&dest);
         if score < current {
@@ -289,11 +293,28 @@ fn step_toward(ctx: &DecisionContext, target: crate::grid::Position) -> Action {
         }
     }
 
-    match (best, dry_fallback.or(any_fallback)) {
-        (Some((_, direction)), _) => Action::move_to(direction),
+    match best {
+        Some((_, direction)) => Action::move_to(direction),
         // Nothing brings the cat closer: sidestep rather than freeze, unless
         // it is already beside the target or has nowhere legal to stand.
-        (None, Some(direction)) if current > 1 => Action::move_to(direction),
+        // The sidestep is a genuine shuffle -- drawn from this kitty's own
+        // seeded decision randomness among free tiles (dry preferred, spec
+        // 010) -- because a *fixed* pick lets two blocked kitties sidestep
+        // in lockstep indefinitely: the head-on transit dance the welfare
+        // gate caught during 012 (ticks 1329-1365, three cats bouncing in
+        // formation). Seeded means deterministic (Article V); per-kitty
+        // means never synchronized for long (spec 012 FR-008).
+        None if current > 1 => {
+            let pool = if dry_sidesteps.is_empty() {
+                &wet_sidesteps
+            } else {
+                &dry_sidesteps
+            };
+            match ctx.rng.choose(pool) {
+                Some(direction) => Action::move_to(*direction),
+                None => Action::Idle,
+            }
+        }
         _ => Action::Idle,
     }
 }
@@ -563,10 +584,15 @@ mod tests {
             });
         });
         ctx.me.set_meow_cooldown(MessageKind::WantEat, u64::MAX);
-        assert_eq!(
-            NeedsDriven.decide(&ctx).await,
-            Action::move_to(Direction::North),
-            "a shuffling cat shuffles dry when it can"
+        // The sidestep is a seeded shuffle (spec 012 FR-008), so the exact
+        // direction is the rng's business -- the *property* is that it moves,
+        // and only onto a dry free tile (north or east here; west is wet,
+        // south is a friend).
+        let action = NeedsDriven.decide(&ctx).await;
+        assert!(
+            action == Action::move_to(Direction::North)
+                || action == Action::move_to(Direction::East),
+            "a shuffling cat shuffles dry when it can (got {action:?})"
         );
     }
 
@@ -645,6 +671,28 @@ mod tests {
             NeedsDriven.decide(&ctx).await,
             Action::move_to(Direction::East),
             "the priced choice and the walk agree on the dry bowl"
+        );
+    }
+
+    #[tokio::test]
+    async fn a_cuddle_seeker_asks_and_waits_at_the_corner() {
+        // Spec 012: the higher-id kitty one corner from its cuddle target
+        // spends the even tick on "Wait for me!" instead of dancing.
+        let mut ctx = crate::test_support::decision_context_for(2, |world| {
+            world.elements.clear();
+            world.tick = 100; // even
+            let friend = world.kitty_index(1).unwrap();
+            world.kitties[friend].pos = Position::new(5, 5);
+            let me = world.kitty_index(2).unwrap();
+            world.kitties[me].pos = Position::new(6, 6); // Manhattan 2
+            world.kitties[me].needs.add(NeedKind::Cuddle, 90.0);
+        });
+        ctx.me.set_meow_cooldown(MessageKind::WantCuddle, u64::MAX);
+        assert_eq!(
+            NeedsDriven.decide(&ctx).await,
+            Action::Meow {
+                message: MessageKind::WaitForMe
+            }
         );
     }
 
