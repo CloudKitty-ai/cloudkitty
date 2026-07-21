@@ -75,9 +75,13 @@
     box-shadow: 0 6px 16px var(--shadow);
     /* Fixed width, sized for the longest lines a card can carry (the
        patience cue and a full meow quote), so text changes -- purring on
-       and off, meows, activities -- never resize the portrait. */
+       and off, meows, activities -- never resize the portrait. `flex` with
+       zero shrink matters as much as the width: four cards fill the panel
+       row exactly, and shrinkable flex items would quietly compress by a
+       few pixels whenever a scrollbar appears. */
     box-sizing: border-box;
     width: 226px;
+    flex: 0 0 auto;
   }
 
   .kitty-card .name {
@@ -117,12 +121,16 @@
   }
 
   /* The gentle long-distress cue: soft, caring, never an alarm. Empty (and
-     therefore invisible) whenever nothing has been wanted for too long. */
+     therefore invisible) whenever nothing has been wanted for too long --
+     but always one line tall, so its coming and going never changes the
+     card's height (which would ripple into page scrollbar toggles and
+     subtle card wobble). */
   .kitty-card .patience {
     font-size: 0.72rem;
     font-style: italic;
     color: #b0876a;
     margin: 0 0 4px;
+    min-height: 1em;
   }
 
   .bar {
