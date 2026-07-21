@@ -146,7 +146,12 @@ brain can drop in with zero engine changes. Ship one reference implementation
 what the kitty does." Test scaffolding (`sleepy_slow`, `panicky`,
 `always_invalid`) already covers the hostile cases — but only *behavioural*
 hostility, not malformed input: pair this with **Harden the whole proposal
-boundary** above, which is the same sitting's prerequisite. Deliberately P2:
+boundary** above, which is the same sitting's prerequisite. Plugin docs must
+also carry the multi-agent livelock warning (`behavior/mod.rs`): all kitties
+decide against the same snapshot, so a deterministic external brain that
+mirrors another kitty's moves can dance forever — advise symmetry-breaking
+via the per-kitty seeded rng or id-based right-of-way, as the built-ins do
+since 010/012. Deliberately P2:
 the highest-value non-cosmetic item, held for a proper sitting rather than a
 squeezed-in version.
 
@@ -173,6 +178,21 @@ sunbeam. Kitties are crepuscular — behaviors could weight sleep by hour.
 The 005 refresh has shipped, so lighting lands on the vector look.
 
 ## P3 — simulation depth
+
+### Chases route around friends (added 2026-07-20)
+The one walk with no route-around: a chase step is applied engine-side via
+the straight `Direction::toward`, and a friend standing in the lane stalls
+the chase in place (`action.rs`, the Chase apply arm). Bounded, not a
+livelock — the patience clock abandons a chase that stops closing — but a
+kitty visibly frozen mid-pounce for up to `chase_patience_ticks` behind a
+bystander is the same *flavor* of jank as the 2026-07-20 dance family.
+Candidate fix: give blocked chase steps the seeded-shuffle sidestep the
+behavior stepper got in 012 FR-008 (deterministic per Article V, never
+synchronized). Design care: stalls currently *feed* the abandon/exclusion
+tuning — more persistent chases shift how often greebles get written off,
+so re-baseline `chase_patience_ticks` expectations in the same change.
+Polish, not urgent; see `behavior/mod.rs`'s multi-agent livelock note for
+the family history.
 
 ### Food types and desirability (+ water-near-food rules)
 Different chow kinds with desirability modifiers; cats prefer better food and

@@ -14,6 +14,17 @@
 //! engine to those bounds, then runs it again from the same seed to prove
 //! determinism survived (004 SC-006 / 006 SC-005 -- the comparison includes
 //! the activity timelines, which ride in the serialized kitties).
+//!
+//! **When a low-happiness streak trips here, suspect a multi-agent livelock
+//! first.** Every streak failure to date (2026-07-20, three in one day) was
+//! kitties moving in synchronized loops, not a welfare-arithmetic bug: a
+//! head-on corridor mirror (fixed in 010, dominant-axis tie-break), a
+//! mutual-approach corner orbit (fixed in 012, "Wait for me!" etiquette),
+//! and a lockstep convoy sidestep (fixed in 012 FR-008, seeded shuffle).
+//! The diagnostic that works: a throwaway probe test printing the stuck
+//! kitty's needs, `last_action`, and *every* kitty's position per tick over
+//! the failing window -- period-2 position cycles are the signature. See
+//! `behavior/mod.rs`'s livelock note for the symmetry-breaking patterns.
 
 use std::collections::BTreeMap;
 use std::sync::Arc;

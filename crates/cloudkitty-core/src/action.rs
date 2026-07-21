@@ -305,6 +305,12 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
                     if let Some(dest) = kitty_pos.step(dir, world.width, world.height) {
                         // A chase that runs into another kitty simply stalls; the
                         // spec turns blocked movement into idling, never an error.
+                        // Stalls are bounded (the patience clock abandons a chase
+                        // that stops closing), so this is not a livelock -- but it
+                        // is the one walk with no route-around, and a candidate
+                        // for the seeded-shuffle treatment if frozen mid-chase
+                        // cats ever grate (BACKLOG P3 "Chases route around
+                        // friends"; see behavior/mod.rs's livelock note).
                         if world.kitty_at(dest).is_none() {
                             if let Some(idx) = world.kitty_index(kitty_id) {
                                 world.kitties[idx].pos = dest;
