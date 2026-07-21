@@ -13,14 +13,58 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 <!-- shipped P1 items are removed once merged; see git history -->
 
+### Sustained purring (added 2026-07-20)
+Today `Action::Purr` is a single-tick action: it must be earned
+(`happiness > thresholds.purr` or a happiness rise, `action.rs`), it emits
+one purr meow, and it spends the kitty's whole turn — so a purring cat is
+a cat doing nothing else, for exactly one tick. Owner intent: purring
+should be a *sustained background state*, not an action. A purr runs for
+a configured **min/max duration**, then a **cooldown** before the next
+one, and never occupies the action slot — a kitty can purr while
+cuddling, loafing, or being adored. Design points for spec time: named
+config tunables (`purr_min_ticks` / `purr_max_ticks` / `purr_cooldown_ticks`,
+Article VI); what starts and ends a purr (keep the earned rule); the purr
+meow fires once at purr start rather than every tick (bubble spam);
+purr state serialized in snapshots and served so the viewer can show a
+rumbling kitty. Deterministic like everything else (seeded RNG for the
+duration draw).
+
 ## P2 — the bigger pieces, for a proper sitting
 
+### Dynamic element populations (added 2026-07-20 — ideate with the owner first)
+Environmental elements are effectively static: `ensure_minimums`
+(`spawn.rs`) tops every type back to its configured min on the very next
+environment phase, only Article I safeguard spawns ever exceed it, and
+the configured max is nearly dead config — so worlds sit pinned at min
+counts forever. **That was never the intended behavior.** Goal: organic
+ebb and flow that a viewer can feel — populations wandering between min
+and max, expiry gaps that linger a little instead of refilling the same
+tick, maybe time-varying spawn pressure (bug flushes, chow deliveries)
+or spatial character (water spawning adjacent to water, which the 008
+pond renderer would immediately reward with real merged ponds). Hard
+constraints: never frustrating for the kitties — the Article I
+safeguard's instant relief spawn is untouchable, and min still means
+min; fully deterministic through the seeded RNG; tunables named in
+config (Article VI). **Design not settled — this entry records intent
+only; start with an ideation conversation, as the 008 direction was.**
+
 ### Meadow finishing touches: grass detail + world edge (deferred from 008)
-Spec 008 shipped the meadow (tone-varied grass + jitter, smooth-shored
-ponds with lily pads, sunbeams as radial light, worn-paths toggle, grid
-demoted to debug) — but two pieces were built, judged at the gate
-(2026-07-20), and scrapped at the owner's call for a proper art pass
-later:
+**Shipped in 008** (PR #13, merged 2026-07-20 — "Beautification II, step 2:
+the meadow itself", gate approved after two revision rounds):
+
+- **Organic ground** — the checkerboard retired for four close grass tones
+  plus barely-visible brightness jitter, all from a pure per-tile hash
+  (identical across reloads, any world size, zero served data).
+- **Ponds** — contiguous water merged into smooth wavy-shored blobs with an
+  inner shallows band; lily pads on larger ponds; purely visual.
+- **Sunbeams as light** — radial warm glow bleeding past tile bounds, under
+  the unchanged 005 pulse and motes.
+- **Worn paths** — session-local trail memory (`p` toggle, off by default),
+  fading on a half-life, cleared on reload/discontinuity, never served.
+- **Grid demoted** — the tile lattice is now a debug overlay (`l` toggle).
+
+Two pieces were built, judged at the gate, and scrapped at the owner's
+call for a proper art pass later:
 
 1. **Grass detail** — scattered flora accents. Two attempts (tiny
    accents, then bigger/denser weighted tufts/clover/flowers) both read
