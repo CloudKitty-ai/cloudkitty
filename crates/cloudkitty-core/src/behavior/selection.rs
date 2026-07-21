@@ -285,7 +285,9 @@ fn is_viable(ctx: &DecisionContext, target: TargetRef) -> bool {
 /// Consulted by both kitty-approach paths (the cuddle walk and kitty-target
 /// chases); nothing else may emit the word.
 pub fn should_wait_for(ctx: &DecisionContext, friend: KittyId, friend_pos: Position) -> bool {
-    ctx.me.pos.manhattan_distance(&friend_pos) == 2 && ctx.me.id > friend && ctx.world.tick % 2 == 0
+    ctx.me.pos.manhattan_distance(&friend_pos) == 2
+        && ctx.me.id > friend
+        && ctx.world.tick.is_multiple_of(2)
 }
 
 /// The yield itself: the held turn is spent asking, not pacing. If the word
