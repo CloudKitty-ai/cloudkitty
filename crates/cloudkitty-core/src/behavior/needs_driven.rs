@@ -22,6 +22,11 @@ pub struct NeedsDriven;
 #[async_trait]
 impl Behavior for NeedsDriven {
     async fn decide(&self, ctx: &DecisionContext) -> Action {
+        // A scene in progress that is still doing its job gets finished first.
+        if let Some(action) = finish_what_you_started(ctx) {
+            return action;
+        }
+
         // Never walk away from something you were going to want anyway.
         if let Some(action) = take_what_is_here(ctx) {
             return action;
@@ -55,6 +60,30 @@ impl Behavior for NeedsDriven {
     fn is_builtin(&self) -> bool {
         true
     }
+}
+
+/// Keep at what you are doing until it has done its job. The engine holds a
+/// scene through its configured minimum; this is the behavior-side commitment
+/// past it: an activity whose governing need is still above zero is continued
+/// rather than re-litigated every tick, so a nap runs until the kitty is
+/// rested (or the engine's maximum calls time). Grooming reads the need off
+/// the friend being groomed, matching the engine's own end rule. Solo rest is
+/// posture, not relief -- it carries no governing need and is re-decided
+/// freely. Shared with `Playful`: finishing what you started is good sense,
+/// not a personality trait.
+pub(crate) fn finish_what_you_started(ctx: &DecisionContext) -> Option<Action> {
+    let activity = ctx.me.activity;
+    let need = activity.governing_need()?;
+    let remaining = match activity {
+        crate::kitty::Activity::Grooming {
+            target: Some(friend),
+        } => ctx.world.kitty(friend)?.needs.get(need),
+        _ => ctx.me.needs.get(need),
+    };
+    if remaining <= 0.0 {
+        return None;
+    }
+    activity.continuation()
 }
 
 /// Eat, drink, nap or play when the means are already underfoot and the need is
@@ -342,6 +371,99 @@ mod tests {
     use crate::element::{Element, ElementKind};
     use crate::grid::Position;
     use crate::test_support::decision_context;
+
+    #[tokio::test]
+    async fn a_napping_cat_stays_asleep_until_rested() {
+        // The commitment rule: mid-nap with sleep need remaining, the cat
+        // keeps sleeping -- even beside a bowl its hunger would otherwise
+        // send it to (the opportunism ladder yields to the scene in
+        // progress).
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            world.tick = 20;
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx].needs.add(NeedKind::Sleep, 40.0);
+            world.kitties[idx].needs.add(NeedKind::Eat, 90.0);
+            world.kitties[idx].activity = crate::kitty::Activity::Sleeping {
+                in_sunbeam: false,
+                with_friend: None,
+            };
+            world.kitties[idx].activity_clock = Some(crate::kitty::ActivityClock::start(15));
+            world.push_element(Element {
+                id: 570,
+                kind: ElementKind::Chow { servings: 3 },
+                pos: Position::new(5, 6),
+                ttl: None,
+            });
+        });
+        ctx.me.set_meow_cooldown(MessageKind::WantEat, u64::MAX);
+        assert_eq!(
+            NeedsDriven.decide(&ctx).await,
+            Action::Sleep { with: None },
+            "a nap still doing its job is finished, not re-litigated"
+        );
+    }
+
+    #[tokio::test]
+    async fn a_rested_cat_moves_on_from_its_nap() {
+        // The boundary: governing need at zero releases the commitment, and
+        // the ordinary scored pass takes over (here: the adjacent chow).
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            world.tick = 20;
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            // sleep need stays at its spawn value of zero: the nap is done
+            world.kitties[idx].needs.add(NeedKind::Eat, 90.0);
+            world.kitties[idx].activity = crate::kitty::Activity::Sleeping {
+                in_sunbeam: false,
+                with_friend: None,
+            };
+            world.kitties[idx].activity_clock = Some(crate::kitty::ActivityClock::start(15));
+            world.push_element(Element {
+                id: 571,
+                kind: ElementKind::Chow { servings: 3 },
+                pos: Position::new(5, 6),
+                ttl: None,
+            });
+        });
+        ctx.me.set_meow_cooldown(MessageKind::WantEat, u64::MAX);
+        assert_eq!(NeedsDriven.decide(&ctx).await, Action::Eat);
+    }
+
+    #[tokio::test]
+    async fn a_groomer_finishes_the_friend_not_itself() {
+        // Grooming commitment reads the groomed friend's bath need -- the
+        // engine's own end rule -- so a clean groomer keeps washing a still-
+        // dirty friend, and a still-dirty groomer releases a clean one.
+        let dirty_friend = decision_context(|world| {
+            world.tick = 20;
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].activity = crate::kitty::Activity::Grooming { target: Some(2) };
+            world.kitties[idx].activity_clock = Some(crate::kitty::ActivityClock::start(15));
+            let friend = world.kitty_index(2).unwrap();
+            world.kitties[friend].needs.add(NeedKind::Bath, 60.0);
+        });
+        assert_eq!(
+            NeedsDriven.decide(&dirty_friend).await,
+            Action::Groom { target: Some(2) },
+        );
+
+        let clean_friend = decision_context(|world| {
+            world.tick = 20;
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].needs.add(NeedKind::Bath, 60.0); // its own dirt is not the question
+            world.kitties[idx].activity = crate::kitty::Activity::Grooming { target: Some(2) };
+            world.kitties[idx].activity_clock = Some(crate::kitty::ActivityClock::start(15));
+            // the friend's bath need stays at its spawn value of zero: clean
+        });
+        assert_ne!(
+            NeedsDriven.decide(&clean_friend).await,
+            Action::Groom { target: Some(2) },
+            "a clean friend releases the groomer whatever its own coat looks like"
+        );
+    }
 
     #[tokio::test]
     async fn a_hungry_cat_beside_chow_eats() {
