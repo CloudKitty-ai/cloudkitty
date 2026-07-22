@@ -46,6 +46,11 @@ Worlds are never lost by accident: `--fresh` first moves the old save aside to
 `--no-backup` if you truly want it gone). To keep several worlds deliberately,
 give each its own file with `--snapshot`.
 
+Putting a world on the public internet? See
+[docs/deployment.md](docs/deployment.md) — the recommended shape (Caddy +
+systemd), the config that goes with it, and what the API deliberately makes
+public.
+
 **In the viewer:** press <kbd>g</kbd> to reveal greebles — fast, erratic critters
 that are always in the world and always in the API, but are never drawn. That is
 why you will sometimes see a kitty pounce on absolutely nothing. Press
@@ -113,8 +118,9 @@ crates/cloudkitty-rl/       the training layer: observations, action codec + leg
                             the kitty-eval harness, policy artifacts — the engine knows
                             nothing of any of it
 crates/cloudkitty-py/       PyO3 bindings: ParallelEnv / VectorEnv, PettingZoo-style
-docs/                       guides: the RL HOWTO (howto-rl.md) and the training
-                            reference (rl-training.md)
+docs/                       guides: the RL HOWTO (howto-rl.md), the training
+                            reference (rl-training.md), and the deployment
+                            guide (deployment.md)
 client/                     the viewer: vanilla JS on a canvas, no build step — hand-drawn
                             vector cats, props, and meadow; gallery.html is the standalone
                             art-approval page (opens from file://, no server needed)
