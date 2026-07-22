@@ -172,15 +172,22 @@ impl Default for NeedWeights {
     }
 }
 
-/// Happiness = 100 - weighted average of needs, clamped to `floor` (Article I: it
-/// can never reach zero).
-pub fn happiness(needs: &Needs, weights: &NeedWeights, floor: f32) -> f32 {
+/// The weighted-need happiness before any floor: `100 - Σ need × weight`.
+/// The one implementation of the formula (spec 014 review): the engine's
+/// displayed happiness clamps it (Article I's floor); downstream consumers
+/// that need the unclamped value read it raw.
+pub fn raw_happiness(needs: &Needs, weights: &NeedWeights) -> f32 {
     let weighted: f32 = NeedKind::ALL
         .iter()
         .map(|k| needs.get(*k) * weights.get(*k))
         .sum();
-    let raw = 100.0 - weighted;
-    raw.clamp(floor, 100.0)
+    100.0 - weighted
+}
+
+/// Happiness = 100 - weighted average of needs, clamped to `floor` (Article I: it
+/// can never reach zero).
+pub fn happiness(needs: &Needs, weights: &NeedWeights, floor: f32) -> f32 {
+    raw_happiness(needs, weights).clamp(floor, 100.0)
 }
 
 #[cfg(test)]

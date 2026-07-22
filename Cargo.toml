@@ -1,6 +1,11 @@
 [workspace]
 resolver = "2"
-members = ["crates/cloudkitty-core", "crates/cloudkitty-server"]
+members = [
+    "crates/cloudkitty-core",
+    "crates/cloudkitty-server",
+    "crates/cloudkitty-rl",
+    "crates/cloudkitty-py",
+]
 
 [workspace.package]
 version = "0.1.0"

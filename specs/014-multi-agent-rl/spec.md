@@ -118,7 +118,8 @@ processes; a vectorized batch of worlds steps in parallel.
    of the documented fixed size and bounds, one identical team-reward
    scalar per kitty, terminations all false, truncations all false until
    the horizon tick, and per-kitty info including the applied action,
-   whether the proposal survived validation, and the legal-action mask
+   whether the proposal survived validation (absent when no proposal was
+   made and idle was substituted), and the legal-action mask
    for the next decision.
 2. **Given** the same seed, config, and action sequence in two separate
    processes, **When** both rollouts complete, **Then** observations,

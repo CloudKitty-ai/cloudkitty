@@ -34,3 +34,45 @@ jobs:
 
       - name: Tests (includes the Articles I-III invariant suite)
         run: cargo test --workspace
+
+  # Spec 014 T003: the Python surface is a required gate — SC-002's two-process
+  # reproducibility test lives here. Only the optional PettingZoo conformance
+  # step may fail without failing the merge.
+  python:
+    name: python surface (maturin + pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install stable toolchain
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Create virtualenv
+        run: |
+          python -m venv .venv
+          echo "VIRTUAL_ENV=$PWD/.venv" >> "$GITHUB_ENV"
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+
+      - name: Install build and test tooling
+        run: pip install maturin pytest numpy
+
+      - name: Build and install the extension module
+        run: maturin develop --release
+        working-directory: crates/cloudkitty-py
+
+      - name: pytest (smoke + SC-002 two-process reproducibility)
+        run: pytest crates/cloudkitty-py/tests -v
+
+      - name: PettingZoo conformance (optional)
+        continue-on-error: true
+        run: |
+          pip install pettingzoo
+          pytest crates/cloudkitty-py/tests/test_pettingzoo_conformance.py -v

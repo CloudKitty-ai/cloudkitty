@@ -1,0 +1,17 @@
+[build-system]
+requires = ["maturin>=1.5,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "cloudkitty"
+description = "CloudKitty multi-agent RL environment (PettingZoo parallel convention)"
+requires-python = ">=3.9"
+dependencies = ["numpy"]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+test = ["pytest"]
+conformance = ["pettingzoo"]
+
+[tool.maturin]
+features = ["pyo3/extension-module"]

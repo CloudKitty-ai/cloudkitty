@@ -158,15 +158,19 @@ world center, K in config), and the episode clock.
   own decision streams, one joint-action tick, returns per-agent
   observations, the broadcast team reward, terminations (all false,
   always), truncations (all false until tick = horizon), infos (applied
-  action, survived-validation flag, next mask, decision seed, provenance).
+  action, survival verdict — absent when no proposal was made and idle
+  was substituted — next mask, decision seed, provenance).
 - **Validation**: never persisted; agent set constant for the episode's
   life; stepping after truncation is an error.
 
 ### TeamReward (config `[rl.reward]`)
 
 - **Fields**: `p` (power-mean exponent, default 0 = Nash), `epsilon`
-  (default 0.01), `mode` (level default | delta), optional potential-based
-  shaping table (default off, coefficients in config).
+  (default 0.01, validated > 0.001 — it must dominate the most negative
+  normalized happiness the engine's ±0.001 weights-sum tolerance can
+  lawfully produce, or `ln`/`powf` would NaN the team reward), `mode`
+  (level default | delta), optional potential-based shaping table
+  (default off, coefficients in config).
 - **Computation**: unclamped happiness per kitty recomputed from needs ×
   configured weights, normalized to [0,1], power mean over the **full
   roster** (scripted kitties included). One scalar, broadcast to every

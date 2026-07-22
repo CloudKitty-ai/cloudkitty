@@ -1,0 +1,9 @@
+# Python build/test residue for the bindings crate. Kept crate-local so the
+# repository root .gitignore stays untouched.
+__pycache__/
+*.pyc
+.venv/
+venv/
+dist/
+*.egg-info/
+.pytest_cache/

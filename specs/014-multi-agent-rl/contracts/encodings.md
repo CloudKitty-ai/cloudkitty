@@ -12,7 +12,9 @@ Layout and slot-fill rule as specified in
 
 - Derived from the frozen start-of-tick snapshot alone; deterministic
   (same snapshot → identical vector, guarded by test).
-- All values normalized to documented bounds; slot counts and
+- All values normalized to documented bounds; trait features are each
+  kitty's configured need rate over `reference_need_rate`, clamped to
+  **[0, 4]** (a schema-versioned bound, not a tunable). Slot counts and
   normalization constants live in config (`[rl.observation]`), defaults:
   3 kitty, 4 critter, 2 chow, 2 water, 2 sunbeam slots.
 - **Slot fill (normative)**: nearest, distance-ordered, ties by id —

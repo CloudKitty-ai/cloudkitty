@@ -85,6 +85,15 @@ impl DecisionRng {
         f(&mut guard)
     }
 
+    /// Restarts this stream from `seed`. Dispatch uses it before running
+    /// the fallback (spec 014 review): a failed advisor's partial draws must
+    /// never shift the fallback's stream, and the rule must hold identically
+    /// on the served and budgetless paths — both restart from the dealt
+    /// seed.
+    pub fn reseed(&self, seed: u64) {
+        self.with(|r| *r = ChaCha8Rng::seed_from_u64(seed));
+    }
+
     pub fn gen_range_usize(&self, low: usize, high: usize) -> usize {
         if low >= high {
             return low;

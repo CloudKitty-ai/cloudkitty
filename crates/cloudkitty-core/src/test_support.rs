@@ -5,11 +5,65 @@
 
 use std::sync::Arc;
 
+use crate::action::TargetRef;
 use crate::behavior::DecisionContext;
 use crate::config::{Config, ElementRule, ElementsConfig, KittyConfig, WorldConfig};
-use crate::kitty::KittyId;
+use crate::element::ElementType;
+use crate::kitty::{Activity, KittyId};
 use crate::rng::DecisionRng;
 use crate::world::World;
+
+/// Spec 009 SC-001: interactions happen only in orthogonal range (own tile +
+/// four compass neighbours). Asserted on the scenes whose counterparts
+/// cannot move mid-scene and so are soundly observable *after* the
+/// environment phase: a Drinking kitty's water (permanent, stationary) and
+/// a conscripted duet's partner (both clocked, both stationary).
+///
+/// Meals are deliberately *not* asserted here: a lawful meal can begin on a
+/// bowl's last serving — the bowl is orthogonal at apply time, gets
+/// consumed, expires in the same tick's environment phase, and
+/// `ensure_minimums` may even drop a fresh bowl diagonal to the eater
+/// before this observation runs. The meal-range rule is enforced at its
+/// true seam — `validate` and `adjacent_stocked_chow` — and unit-tested
+/// there.
+///
+/// Shared here (spec 014 review) so both long-run suites — the engine's
+/// scenario tests and the welfare gate in `cloudkitty-rl` — assert the
+/// same spatial law every tick.
+pub fn assert_orthogonal_scenes(world: &World) {
+    for kitty in world.kitties.iter() {
+        match kitty.activity {
+            Activity::Drinking => {
+                let water_in_range = world.elements.iter().any(|e| {
+                    e.element_type() == ElementType::Water
+                        && kitty.pos.manhattan_distance(&e.pos) <= 1
+                });
+                assert!(
+                    water_in_range,
+                    "009 SC-001: {} is drinking with no water in orthogonal range at tick {}",
+                    kitty.name, world.tick
+                );
+            }
+            Activity::Resting {
+                with_friend: Some(friend),
+            }
+            | Activity::Playing {
+                target: Some(TargetRef::Kitty { id: friend }),
+            } => {
+                let partner_in_range = world
+                    .kitties
+                    .iter()
+                    .any(|k| k.id == friend && kitty.pos.manhattan_distance(&k.pos) <= 1);
+                assert!(
+                    partner_in_range,
+                    "009 SC-001: {}'s duet partner is out of orthogonal range at tick {}",
+                    kitty.name, world.tick
+                );
+            }
+            _ => {}
+        }
+    }
+}
 
 /// A compact 16x16 world with two contrasting cats. Small enough to reason about,
 /// large enough to be legal (>= 32 tiles).

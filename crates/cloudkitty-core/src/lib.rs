@@ -30,6 +30,7 @@ pub mod kitty;
 pub mod meow;
 pub mod needs;
 pub mod rng;
+pub mod seam;
 pub mod spawn;
 pub mod test_support;
 pub mod world;
@@ -44,4 +45,8 @@ pub use invariants::Violation;
 pub use kitty::{Activity, Kitty, KittyId};
 pub use meow::{Meow, MessageKind};
 pub use needs::{Need, NeedKind, Needs};
+pub use seam::{
+    drive_tick, DrivenTick, JointProposal, KittyTickRecord, Provenance, ResolvedDecision,
+    TickReport,
+};
 pub use world::{World, WorldSnapshot};

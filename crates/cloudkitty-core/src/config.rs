@@ -553,6 +553,20 @@ pub struct BehaviorConfig {
     /// Prices the sleep score and bounds the sleep walk in the same breath.
     #[serde(default = "default_sunbeam_reach")]
     pub sunbeam_reach: u32,
+    /// Consecutive budget timeouts (counted per kitty) after which that
+    /// kitty's external advisor dispatch is benched — the kitty uses the
+    /// fallback and no further work is spawned for it until the bench
+    /// expires (spec 014 review: bounds the threads a wedged advisor can
+    /// strand at `budget_strikes` per bench window, instead of one per
+    /// tick forever).
+    #[serde(default = "default_budget_strikes")]
+    pub budget_strikes: u32,
+    /// How many ticks a bench lasts. On expiry the streak resets and
+    /// dispatch is tried again — an advisor that recovered comes back on
+    /// its own, one that is still wedged re-benches after another
+    /// `budget_strikes` timeouts.
+    #[serde(default = "default_bench_ticks")]
+    pub bench_ticks: u64,
 }
 
 fn default_playful_comfort() -> f32 {
@@ -591,6 +605,14 @@ fn default_sunbeam_reach() -> u32 {
     8
 }
 
+fn default_budget_strikes() -> u32 {
+    5
+}
+
+fn default_bench_ticks() -> u64 {
+    300
+}
+
 impl Default for BehaviorConfig {
     fn default() -> Self {
         Self {
@@ -604,6 +626,8 @@ impl Default for BehaviorConfig {
             chase_exclusion_ticks: default_chase_exclusion_ticks(),
             solo_play_reach: default_solo_play_reach(),
             sunbeam_reach: default_sunbeam_reach(),
+            budget_strikes: default_budget_strikes(),
+            bench_ticks: default_bench_ticks(),
         }
     }
 }
@@ -788,6 +812,14 @@ impl Config {
                     "[[kitty]] id",
                     k.id.to_string(),
                     "kitty ids must be unique",
+                ));
+            }
+            if k.id == crate::kitty::RESERVED_KITTY_ID {
+                return Err(ConfigError::invalid(
+                    "[[kitty]] id",
+                    k.id.to_string(),
+                    "this id is reserved (spec 014: downstream encodings use it to \
+                     mean \"no kitty\", so no live kitty may ever carry it)",
                 ));
             }
             if !k.position().in_bounds(self.world.width, self.world.height) {
@@ -1063,6 +1095,20 @@ impl Config {
                 "must be at least 1 tile",
             ));
         }
+        if self.behavior.budget_strikes == 0 {
+            return Err(ConfigError::invalid(
+                "[behavior] budget_strikes",
+                "0".to_string(),
+                "must be at least 1 (an advisor gets at least one timed slot)",
+            ));
+        }
+        if self.behavior.bench_ticks == 0 {
+            return Err(ConfigError::invalid(
+                "[behavior] bench_ticks",
+                "0".to_string(),
+                "must be at least 1 tick (a bench must last long enough to exist)",
+            ));
+        }
         let solo = self.actions.solo_play_relief;
         if !solo.is_finite() || solo < 0.0 {
             return Err(ConfigError::invalid(
@@ -1195,6 +1241,17 @@ mod tests {
         let mut c = cfg();
         c.kitties.clear();
         assert!(c.validate().is_err());
+    }
+
+    #[test]
+    fn the_reserved_kitty_id_is_rejected() {
+        // Spec 014 review: u32::MAX is the action codec's vacant-slot
+        // sentinel; a live kitty carrying it would turn every vacant menu
+        // entry into a real proposal against that kitty.
+        let mut c = cfg();
+        c.kitties[0].id = u32::MAX;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("reserved"), "{msg}");
     }
 
     #[test]
