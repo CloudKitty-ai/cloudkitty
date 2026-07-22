@@ -13,10 +13,15 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 <!-- shipped P1 items are removed once merged; see git history -->
 
-*Empty — the 2026-07-20 QoL batch (PR #16, specs 009–012) shipped all
-three queued items: orthogonal-only interactions, water-averse pathing,
-and sustained purring, plus the approach-etiquette / livelock fixes the
-batch surfaced. The swim pose parked inside the water entry moved to P3.*
+### Upgrade pyo3 past its advisories (added 2026-07-22 — do before any more RL work)
+`cargo audit` flags pyo3 0.21.2, used only by `cloudkitty-py` (the training
+bindings — never linked into the server binary): RUSTSEC-2025-0020 (buffer
+overflow risk in `PyString::from_object`, fixed in 0.24.1) and
+RUSTSEC-2026-0177 (missing `Sync` bound on `PyCFunction::new_closure`
+closures, fixed in 0.29.0). Not network-facing, so no urgency for the
+running meadow — but it is a real API migration (the `numpy` crate moves in
+lockstep with pyo3), so it's a sitting, not a patch. Owner call 2026-07-22:
+knock this out before starting any further RL work.
 
 ## P2 — the bigger pieces, for a proper sitting
 
