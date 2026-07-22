@@ -38,8 +38,8 @@ testable increments.
 
 **⚠️ CRITICAL**: no user story work can begin until this phase is complete
 
-- [ ] T004 Split dispatch in `crates/cloudkitty-core/src/behavior/mod.rs`: extract a pure budgetless decision resolver (panic isolation + `needs_driven` fallback + per-decision provenance mark `PolicyMade`/`FallbackTaken`, no wall clock) and re-express today's served-world path as that resolver wrapped in the existing `tokio::time::timeout` — behavior byte-for-byte unchanged; the entire existing test suite must pass untouched
-- [ ] T005 Expose the parity-capture seam from the resolver in `crates/cloudkitty-core/src/behavior/mod.rs`: the per-kitty decision seeds (drawn in stable id order, as today) and the dispatched proposals are returned to the caller — never stored in world state (research.md R4)
+- [X] T004 Split dispatch in `crates/cloudkitty-core/src/behavior/mod.rs`: extract a pure budgetless decision resolver (panic isolation + `needs_driven` fallback + per-decision provenance mark `PolicyMade`/`FallbackTaken`, no wall clock) and re-express today's served-world path as that resolver wrapped in the existing `tokio::time::timeout` — behavior byte-for-byte unchanged; the entire existing test suite must pass untouched
+- [X] T005 Expose the parity-capture seam from the resolver in `crates/cloudkitty-core/src/behavior/mod.rs`: the per-kitty decision seeds (drawn in stable id order, as today) and the dispatched proposals are returned to the caller — never stored in world state (research.md R4)
 
 **Checkpoint**: foundation ready — US1 can begin
 
