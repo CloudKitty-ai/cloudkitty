@@ -120,6 +120,36 @@ impl World {
         }
     }
 
+    /// Reconstructs a rule-evaluation view of a frozen snapshot: a `World`
+    /// whose kitties, elements, clock, and dimensions are the snapshot's,
+    /// with fresh bookkeeping (empty logs, zero-seeded RNG). Exists so a
+    /// snapshot consumer can ask the law questions -- validation, duration
+    /// enforcement -- through the engine's own code (spec 014 FR-018's mask
+    /// derives from this). Not for resuming a simulation: the RNG is not the
+    /// live world's.
+    pub fn from_snapshot(snapshot: &WorldSnapshot) -> Self {
+        let next_element_id = snapshot
+            .elements
+            .iter()
+            .map(|e| e.id)
+            .max()
+            .map(|id| id.wrapping_add(1).max(1))
+            .unwrap_or(1);
+        World {
+            width: snapshot.width,
+            height: snapshot.height,
+            tick: snapshot.tick,
+            kitties: snapshot.kitties.clone(),
+            elements: snapshot.elements.clone(),
+            recent_meows: snapshot.recent_meows.clone(),
+            distress: DistressLog::default(),
+            activity_log: ActivityLog::default(),
+            rng: SimRng::from_seed(0),
+            config_fingerprint: String::new(),
+            next_element_id,
+        }
+    }
+
     /// Advances the world one tick and returns the newly published state.
     pub async fn tick(
         &mut self,
@@ -366,8 +396,10 @@ impl World {
     /// expired or scurried out of reach, a groomed friend who walked away, a
     /// water source that dried up -- ends immediately, minimum notwithstanding.
     /// Run at the top of the kitty's apply slot so its proposal, made against
-    /// the start-of-tick snapshot, still gets a normal hearing.
-    fn prune_dead_activity(&mut self, kitty_id: KittyId) {
+    /// the start-of-tick snapshot, still gets a normal hearing. Public since
+    /// spec 014: the legal-action mask replays the apply slot's exact
+    /// sequence (prune, validate, enforcement verdict) on a probe world.
+    pub fn prune_dead_activity(&mut self, kitty_id: KittyId) {
         let Some(kitty) = self.kitty(kitty_id) else {
             return;
         };
@@ -440,6 +472,56 @@ impl World {
         }
         self.end_activity(kitty_id);
         validated
+    }
+
+    /// The apply slot's gauntlet, run for real (spec 014): counterpart
+    /// pruning, validation, then duration enforcement — mutations included.
+    /// Returns the action that would be applied. Exists for the mask's
+    /// pure-oracle property test, which checks the read-only
+    /// [`World::enforcement_verdict`] path against this genuine one on a
+    /// probe world; the served tick never calls it.
+    pub fn apply_slot_verdict(
+        &mut self,
+        kitty_id: KittyId,
+        proposal: crate::action::Action,
+        config: &Config,
+    ) -> crate::action::Action {
+        self.prune_dead_activity(kitty_id);
+        let validated = action::validate(self, kitty_id, proposal, config);
+        self.enforce_durations(kitty_id, validated, config)
+    }
+
+    /// The read-only twin of `enforce_durations` (spec 014): what duration
+    /// enforcement *would* return for `validated` this tick, without ending
+    /// anything. The logic must mirror `enforce_durations` line for line
+    /// minus the `end_activity` side effect; the mask's pure-oracle property
+    /// test (amended FR-018) guards the pair against drift.
+    pub fn enforcement_verdict(
+        &self,
+        kitty_id: KittyId,
+        validated: &crate::action::Action,
+        config: &Config,
+    ) -> crate::action::Action {
+        let Some(kitty) = self.kitty(kitty_id) else {
+            return *validated;
+        };
+        let Some(clock) = kitty.activity_clock else {
+            return *validated;
+        };
+        let activity = kitty.activity;
+        let (Some(continuation), Some(bounds)) = (
+            activity.continuation(),
+            activity.bounds(&config.actions.durations),
+        ) else {
+            return *validated;
+        };
+        if activity.is_continued_by(validated) {
+            return continuation;
+        }
+        if clock.serviced_before(self.tick) < bounds.min {
+            return continuation;
+        }
+        *validated
     }
 
     /// Spec 006 FR-005/006/008: the closing step of the apply phase. Every

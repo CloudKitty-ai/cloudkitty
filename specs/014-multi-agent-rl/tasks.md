@@ -85,19 +85,19 @@ sequence produce bit-identical observation/mask/global-state/reward streams
 
 ### Encodings (Rust, `cloudkitty-rl`)
 
-- [ ] T013 [P] [US2] `RlConfig` types parsing the `[rl.*]` TOML blocks with documented defaults (slot counts 3/4/2/2/2, normalization constants, reward `p`/`epsilon`/`mode`/shaping-off, horizons 2000/20000) in `crates/cloudkitty-rl/src/config.rs` (Article VI: every constant configured)
-- [ ] T014 [US2] Observation encoder + `TargetTable` in `crates/cloudkitty-rl/src/observe.rs`: schema v1 per data-model.md — self block with static traits, kitty and critter slots with **target-priority fill** (nearest, ties by id, the ongoing activity's referenced kitty or played-with critter always granted a slot — keyed on `Activity::partner()` plus the `Playing` element target, not `duet_partner()` — `is-activity-target` bit), chow/water/sunbeam slots nearest-K, meow digest, episode clock; version and exact-size constants exported
-- [ ] T015 [US2] Action codec v1 in `crates/cloudkitty-rl/src/codec.rs`: the normative 40-entry table from contracts/encodings.md, total both directions (vacant/stale slots decode to engine-rejectable proposals, never errors)
-- [ ] T016 [US2] Legal-action mask v1 in `crates/cloudkitty-rl/src/mask.rs`: one bit per entry, "applies as proposed" against the frozen snapshot (validation passes + duration enforcement would not rewrite), versioned with the codec
-- [ ] T017 [P] [US2] Global state v1 in `crates/cloudkitty-rl/src/global_state.rs`: full roster untruncated, bounded configured element summary, episode clock; versioned
-- [ ] T018 [P] [US2] Team reward in `crates/cloudkitty-rl/src/reward.rs`: unclamped happiness recomputed from needs × configured weights, normalized, power mean over the full roster with `ε`; level default, delta option; shaping hook potential-based and off by default
+- [X] T013 [P] [US2] `RlConfig` types parsing the `[rl.*]` TOML blocks with documented defaults (slot counts 3/4/2/2/2, normalization constants, reward `p`/`epsilon`/`mode`/shaping-off, horizons 2000/20000) in `crates/cloudkitty-rl/src/config.rs` (Article VI: every constant configured)
+- [X] T014 [US2] Observation encoder + `TargetTable` in `crates/cloudkitty-rl/src/observe.rs`: schema v1 per data-model.md — self block with static traits, kitty and critter slots with **target-priority fill** (nearest, ties by id, the ongoing activity's referenced kitty or played-with critter always granted a slot — keyed on `Activity::partner()` plus the `Playing` element target, not `duet_partner()` — `is-activity-target` bit), chow/water/sunbeam slots nearest-K, meow digest, episode clock; version and exact-size constants exported
+- [X] T015 [US2] Action codec v1 in `crates/cloudkitty-rl/src/codec.rs`: the normative 40-entry table from contracts/encodings.md, total both directions (vacant/stale slots decode to engine-rejectable proposals, never errors)
+- [X] T016 [US2] Legal-action mask v1 in `crates/cloudkitty-rl/src/mask.rs`: one bit per entry, "applies as proposed" against the frozen snapshot (validation passes + duration enforcement would not rewrite), versioned with the codec
+- [X] T017 [P] [US2] Global state v1 in `crates/cloudkitty-rl/src/global_state.rs`: full roster untruncated, bounded configured element summary, episode clock; versioned
+- [X] T018 [P] [US2] Team reward in `crates/cloudkitty-rl/src/reward.rs`: unclamped happiness recomputed from needs × configured weights, normalized, power mean over the full roster with `ε`; level default, delta option; shaping hook potential-based and off by default
 
 ### Encoding tests
 
-- [ ] T019 [P] [US2] Codec-totality proptest (every index ↔ proposal, both directions, random worlds and vacant slots) in `crates/cloudkitty-rl/tests/codec_totality.rs`
-- [ ] T020 [P] [US2] Mask pure-oracle proptest — for every menu entry, mask verdict == engine validate-plus-enforcement verdict, **no carve-outs** — plus the never-all-zero property across randomized rosters/activities including named crowded-continuation constructions exercising target-priority: a ≥ 5-kitty crowded duet, a crowded co-sleep, a crowded groom, and a default-population critter cluster around an ongoing element play, in `crates/cloudkitty-rl/tests/mask_oracle.rs`
-- [ ] T021 [P] [US2] Encoder determinism + bounds tests (same snapshot → identical observation and global-state vectors; all values in documented bounds) in `crates/cloudkitty-rl/tests/encoding_determinism.rs`
-- [ ] T022 [P] [US2] Reward property tests (strictly increasing; concave; finite value/gradient at zero via ε; p ∈ {1, 0, −8} behaviors) in `crates/cloudkitty-rl/tests/reward_properties.rs`
+- [X] T019 [P] [US2] Codec-totality proptest (every index ↔ proposal, both directions, random worlds and vacant slots) in `crates/cloudkitty-rl/tests/codec_totality.rs`
+- [X] T020 [P] [US2] Mask pure-oracle proptest — for every menu entry, mask verdict == engine validate-plus-enforcement verdict, **no carve-outs** — plus the never-all-zero property across randomized rosters/activities including named crowded-continuation constructions exercising target-priority: a ≥ 5-kitty crowded duet, a crowded co-sleep, a crowded groom, and a default-population critter cluster around an ongoing element play, in `crates/cloudkitty-rl/tests/mask_oracle.rs`
+- [X] T021 [P] [US2] Encoder determinism + bounds tests (same snapshot → identical observation and global-state vectors; all values in documented bounds) in `crates/cloudkitty-rl/tests/encoding_determinism.rs`
+- [X] T022 [P] [US2] Reward property tests (strictly increasing; concave; finite value/gradient at zero via ε; p ∈ {1, 0, −8} behaviors) in `crates/cloudkitty-rl/tests/reward_properties.rs`
 
 ### Episodes and vectorization
 
