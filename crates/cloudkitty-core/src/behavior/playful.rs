@@ -13,7 +13,7 @@
 
 use async_trait::async_trait;
 
-use super::needs_driven::{pursue, take_what_is_here};
+use super::needs_driven::{finish_what_you_started, pursue, take_what_is_here};
 use super::{selection, Behavior, DecisionContext};
 use crate::action::{Action, TargetRef};
 use crate::meow::MessageKind;
@@ -23,6 +23,11 @@ pub struct Playful;
 #[async_trait]
 impl Behavior for Playful {
     async fn decide(&self, ctx: &DecisionContext) -> Action {
+        // Even a playful cat finishes the nap it is in the middle of.
+        if let Some(action) = finish_what_you_started(ctx) {
+            return action;
+        }
+
         // Opportunism is good sense, not a personality trait: a playful cat still
         // eats the food it is standing next to before running off after a bug.
         if let Some(action) = take_what_is_here(ctx) {

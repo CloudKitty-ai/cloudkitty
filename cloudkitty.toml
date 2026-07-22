@@ -146,9 +146,9 @@ solo_play_relief = 10.0
 eat = { min = 2, max = 3 }
 drink = { min = 2, max = 3 }
 play = { min = 2, max = 5 }
-bath = { min = 2, max = 5 }
-sleep = { min = 3, max = 8 }
-cuddle = { min = 3, max = 8 }
+bath = { min = 4, max = 8 }
+sleep = { min = 6, max = 12 }
+cuddle = { min = 6, max = 12 }
 
 [meow]
 # Ticks before a kitty may repeat the same message...
