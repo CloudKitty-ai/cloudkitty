@@ -24,22 +24,24 @@ async fn push_world_updates(mut socket: WebSocket, state: AppState) {
     tracing::debug!("a viewer is watching");
 
     loop {
-        // Serialize inside a block so the channel borrow is released before the
-        // await -- holding it across one would stall the simulation's publisher.
+        // The world is serialized once per tick by the publisher; every viewer
+        // shares that string. Clone it inside a block so the channel borrow is
+        // released before the await -- holding it across one would stall the
+        // simulation's publisher.
         let payload = {
             let published = receiver.borrow_and_update();
-            serde_json::to_string(&published.snapshot)
+            published.snapshot_json.clone()
         };
 
         match payload {
-            Ok(text) => {
-                if socket.send(Message::Text(text)).await.is_err() {
+            Some(json) => {
+                if socket.send(Message::Text(json.to_string())).await.is_err() {
                     // The viewer closed the tab; nothing to clean up.
                     break;
                 }
             }
-            Err(err) => {
-                tracing::error!(%err, "could not serialize the world for a viewer");
+            None => {
+                // The publisher already logged why; there is nothing to send.
                 break;
             }
         }
