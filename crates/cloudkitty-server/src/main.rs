@@ -130,7 +130,9 @@ fn resolve_client_dir(args: &Args) -> Result<PathBuf> {
     Ok(args.client_dir.clone())
 }
 
-fn load_config(args: &Args) -> Result<Config> {
+/// Loads the config plus its raw text (the `[rl.*]` blocks live in the
+/// same file but belong to cloudkitty-rl, which parses them itself).
+fn load_config(args: &Args) -> Result<(Config, String)> {
     if !args.config_path.exists() {
         if args.config_explicit {
             anyhow::bail!("config file {} does not exist", args.config_path.display());
@@ -139,12 +141,14 @@ fn load_config(args: &Args) -> Result<Config> {
             path = %args.config_path.display(),
             "no config file found; using built-in defaults"
         );
-        return Ok(Config::default());
+        return Ok((Config::default(), String::new()));
     }
 
     let text = std::fs::read_to_string(&args.config_path)
         .with_context(|| format!("could not read {}", args.config_path.display()))?;
-    toml::from_str(&text).with_context(|| format!("could not parse {}", args.config_path.display()))
+    let config = toml::from_str(&text)
+        .with_context(|| format!("could not parse {}", args.config_path.display()))?;
+    Ok((config, text))
 }
 
 #[tokio::main]
@@ -172,11 +176,15 @@ async fn run() -> Result<()> {
         return Ok(());
     };
 
-    let config = load_config(&args)?;
+    let (config, config_text) = load_config(&args)?;
     // The constitution is enforced here, before a single kitty exists.
     config.validate()?;
 
-    let registry = BehaviorRegistry::with_builtins();
+    let mut registry = BehaviorRegistry::with_builtins();
+    // Policy behaviors register before name validation, exactly like
+    // built-ins: an invalid artifact fails startup before any tick
+    // (spec 014 FR-016).
+    cloudkitty_server::register_policy_behaviors(&mut registry, &config, &config_text)?;
     config.validate_behavior_names(&registry.names())?;
 
     let config = Arc::new(config);

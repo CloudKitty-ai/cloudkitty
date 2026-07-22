@@ -271,6 +271,10 @@ impl Default for EvalConfig {
 pub struct PolicyConfig {
     /// Path to the policy artifact file.
     pub artifact: String,
+    /// Sample from the masked softmax using the kitty's own decision
+    /// stream instead of greedy argmax (FR-015). Default false.
+    #[serde(default)]
+    pub sample: bool,
 }
 
 /// The wrapper shape of a full config file: everything except `[rl]` is

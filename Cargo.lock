@@ -220,6 +220,7 @@ dependencies = [
  "anyhow",
  "axum",
  "cloudkitty-core",
+ "cloudkitty-rl",
  "futures",
  "reqwest",
  "serde",

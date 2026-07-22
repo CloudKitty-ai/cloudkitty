@@ -11,6 +11,7 @@ path = "src/main.rs"
 
 [dependencies]
 cloudkitty-core = { path = "../cloudkitty-core" }
+cloudkitty-rl = { path = "../cloudkitty-rl" }
 axum = { version = "0.7", features = ["ws"] }
 tokio = { workspace = true, features = ["full"] }
 tower = "0.4"
@@ -24,6 +25,7 @@ tracing = { workspace = true }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [dev-dependencies]
+cloudkitty-rl = { path = "../cloudkitty-rl" }
 reqwest = { version = "0.12", features = ["json"] }
 tokio-tungstenite = "0.21"
 futures = { workspace = true }

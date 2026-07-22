@@ -1,0 +1,101 @@
+//! Policy selection (spec 014 FR-015, T042): same artifact + same
+//! observation + same decision seed → the same action, however many times
+//! the artifact is re-loaded (the decision is a pure function of the file
+//! bytes, the snapshot, and the seed — process boundaries hold nothing);
+//! and garbage logits (NaN, ±inf, all-equal) still select a masked-in
+//! action.
+
+use std::path::PathBuf;
+use std::sync::Arc;
+
+use cloudkitty_core::behavior::DecisionContext;
+use cloudkitty_core::rng::DecisionRng;
+use cloudkitty_core::Config;
+use cloudkitty_rl::behavior::PolicyBehavior;
+use cloudkitty_rl::codec::ActionCodec;
+use cloudkitty_rl::config::RlConfig;
+use cloudkitty_rl::mask::legal_action_mask;
+use cloudkitty_rl::observe::{observation_len, TargetTable};
+use cloudkitty_rl::policy::{write_artifact, ArtifactHeader, ARTIFACT_VERSION};
+
+fn artifact_path(name: &str, fill: f32) -> PathBuf {
+    let dir = std::env::temp_dir().join("ck-policy-selection");
+    std::fs::create_dir_all(&dir).unwrap();
+    let path = dir.join(format!("{name}.ckpolicy"));
+    let rl = RlConfig::default();
+    let input = observation_len(&rl.observation);
+    let header = ArtifactHeader {
+        artifact_version: ARTIFACT_VERSION,
+        observation_schema: 1,
+        action_schema: 1,
+        mask_schema: 1,
+        layers: vec![[input, 8], [8, 40]],
+        activation: "relu".into(),
+    };
+    let w1: Vec<f32> = (0..input * 8)
+        .map(|i| ((i % 11) as f32 - 5.0) * 0.03)
+        .collect();
+    let w2: Vec<f32> = (0..8 * 40).map(|_| fill).collect();
+    let b2: Vec<f32> = (0..40).map(|i| fill * i as f32 * 0.01).collect();
+    write_artifact(&path, &header, &[(w1, vec![0.1; 8]), (w2, b2)]).unwrap();
+    path
+}
+
+fn context(seed: u64) -> DecisionContext {
+    let config = Arc::new(Config::default());
+    let world = cloudkitty_core::World::generate(&config);
+    let snapshot = Arc::new(world.snapshot());
+    DecisionContext {
+        me: snapshot.kitties[0].clone(),
+        world: snapshot,
+        rng: DecisionRng::from_seed(seed),
+        config,
+    }
+}
+
+#[test]
+fn the_same_artifact_observation_and_seed_select_the_same_action() {
+    let path = artifact_path("deterministic", 0.2);
+    let rl = RlConfig::default();
+
+    // Greedy: two independent loads decide identically (seed-independent).
+    let a = PolicyBehavior::from_artifact_path(path.to_str().unwrap(), &rl).unwrap();
+    let b = PolicyBehavior::from_artifact_path(path.to_str().unwrap(), &rl).unwrap();
+    assert_eq!(a.decide_sync(&context(1)), b.decide_sync(&context(2)));
+
+    // Sampling: deterministic given the kitty's decision seed, and only
+    // that seed (FR-015 — one stochasticity mechanism).
+    let sampling = PolicyBehavior::new(a.artifact().clone(), rl.clone(), true);
+    let first = sampling.decide_sync(&context(7));
+    let second = sampling.decide_sync(&context(7));
+    assert_eq!(first, second, "same stream, same draw");
+}
+
+#[test]
+fn garbage_logits_still_select_a_masked_in_action() {
+    let rl = RlConfig::default();
+    let config = Arc::new(Config::default());
+    let world = cloudkitty_core::World::generate(&config);
+    let snapshot = world.snapshot();
+    let codec = ActionCodec::v1(&rl.observation);
+
+    for (name, fill) in [
+        ("nan", f32::NAN),
+        ("plus-inf", f32::INFINITY),
+        ("minus-inf", f32::NEG_INFINITY),
+        ("all-equal", 0.0),
+    ] {
+        let path = artifact_path(name, fill);
+        let behavior = PolicyBehavior::from_artifact_path(path.to_str().unwrap(), &rl).unwrap();
+        let action = behavior.decide_sync(&context(3));
+
+        // The selected action decodes from a masked-in entry: encode it
+        // back through the kitty's table and check the mask bit.
+        let table = TargetTable::build(&snapshot, snapshot.kitties[0].id, &rl.observation);
+        let mask = legal_action_mask(&snapshot, snapshot.kitties[0].id, &table, &codec, &config);
+        let index = codec
+            .encode(&action, &table)
+            .unwrap_or_else(|| panic!("{name}: {action:?} is not expressible"));
+        assert!(mask[index], "{name}: selected an illegal entry {index}");
+    }
+}
