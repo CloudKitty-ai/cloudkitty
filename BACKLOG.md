@@ -159,6 +159,21 @@ so re-baseline `chase_patience_ticks` expectations in the same change.
 Polish, not urgent; see `behavior/mod.rs`'s multi-agent livelock note for
 the family history.
 
+### Cuddle puddles (added 2026-07-22)
+More than two kitties cuddling or sleeping together in one pile. Low
+priority, but touches real machinery when it comes: today's duets are
+strictly pairwise (`Activity` carries one `duet_partner`, spec 006's
+conscription and one-sided-end rules assume two), so puddles need a group
+activity concept — join/leave semantics (a puddle of three survives one
+kitty leaving; the last pair falls back to a duet), conscription that
+doesn't let one kitty chain-conscript the meadow, and adjacency geometry
+(tiles are exclusive, so a puddle is a connected blob of neighbors).
+Naturally rewards warmth: cuddle relief might scale gently with puddle
+size. Interplay to watch: 012's approach etiquette around a growing pile,
+and 014's action menu — a join-puddle proposal is a codec version bump
+under the extensibility doctrine. Viewer gets the fun part: a pile of
+cats drawn as a pile.
+
 ### Food types and desirability (+ water-near-food rules)
 Different chow kinds with desirability modifiers; cats prefer better food and
 dislike water adjacent to their bowl. One food-system design covering both
