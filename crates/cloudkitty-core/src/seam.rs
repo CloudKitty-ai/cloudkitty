@@ -1,7 +1,7 @@
 //! The joint-action seam (spec 014): drive the world from outside, honestly.
 //!
 //! This module is the engine-side surface external drivers build on. It knows
-//! nothing about observations, rewards, or policies — it speaks proposals,
+//! nothing of the training vocabulary next door — it speaks proposals,
 //! the same language behaviors do (Article IV). Two things live here:
 //!
 //! - the types the seam trades in ([`Provenance`], [`ResolvedDecision`], and —

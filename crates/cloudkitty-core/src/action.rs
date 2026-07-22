@@ -39,7 +39,7 @@ struct RawPlayTarget {
 /// `#[serde(flatten)]` over an `Option` silently yields `None` for anything it
 /// cannot parse, which would turn a malformed proposal -- `{"action":"play",
 /// "target":"element"}` with no id -- into solo play. Solo play is always legal
-/// and carries relief, so a garbled proposal would become a *reward* instead of
+/// and carries relief, so a garbled proposal would become a *free treat* instead of
 /// the safe no-op Article IV promises. An absent target is solo play; a partial
 /// or unrecognized one is an error, so it reaches the engine as a failed
 /// proposal and falls back like any other misbehaving advisor.
@@ -1078,7 +1078,7 @@ mod tests {
     fn a_malformed_play_target_is_an_error_not_a_free_helping_of_solo_play() {
         // Regression: `#[serde(flatten)]` over an Option swallows anything it
         // cannot parse, which turned a garbled proposal into solo play --
-        // always legal, and rewarded. A broken advisor must get the safe no-op
+        // always legal, and relieving. A broken advisor must get the safe no-op
         // path, never relief it did not earn (Article IV).
         for malformed in [
             r#"{"action":"play","target":"element"}"#,      // no id
