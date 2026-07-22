@@ -166,8 +166,11 @@ world center, K in config), and the episode clock.
 ### TeamReward (config `[rl.reward]`)
 
 - **Fields**: `p` (power-mean exponent, default 0 = Nash), `epsilon`
-  (default 0.01), `mode` (level default | delta), optional potential-based
-  shaping table (default off, coefficients in config).
+  (default 0.01, validated > 0.001 — it must dominate the most negative
+  normalized happiness the engine's ±0.001 weights-sum tolerance can
+  lawfully produce, or `ln`/`powf` would NaN the team reward), `mode`
+  (level default | delta), optional potential-based shaping table
+  (default off, coefficients in config).
 - **Computation**: unclamped happiness per kitty recomputed from needs ×
   configured weights, normalized to [0,1], power mean over the **full
   roster** (scripted kitties included). One scalar, broadcast to every

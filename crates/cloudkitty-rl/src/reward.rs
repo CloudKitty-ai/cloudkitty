@@ -34,6 +34,13 @@ pub fn welfare_aggregate(normalized: &[f64], p: f64, epsilon: f64) -> f64 {
     if normalized.is_empty() {
         return 0.0;
     }
+    // Guaranteed by config validation: ε > MIN_EPSILON dominates the most
+    // negative normalized happiness any lawful core config can produce, so
+    // ln/powf below never see a non-positive term (third review).
+    debug_assert!(
+        normalized.iter().all(|h| h + epsilon > 0.0),
+        "epsilon must dominate negative normalized happiness"
+    );
     let n = normalized.len() as f64;
     let shifted = normalized.iter().map(|h| h + epsilon);
     let mean = if p == 0.0 {

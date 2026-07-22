@@ -97,7 +97,7 @@ impl Behavior for SleepySlow {
 }
 
 /// Burns CPU synchronously without ever yielding — the shape of a slow
-/// policy inference or a hot loop. Exists to prove the budget preempts
+/// synchronous advisor or a hot loop. Exists to prove the budget preempts
 /// advisors that never hit an await point (spec 014 review): a timeout
 /// wrapped directly around such a future could never fire.
 pub struct BusySpin {

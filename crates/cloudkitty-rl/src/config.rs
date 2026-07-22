@@ -152,7 +152,8 @@ pub struct RewardConfig {
     #[serde(default = "default_p")]
     pub p: f64,
     /// Offset keeping the aggregate and its gradient finite at zero
-    /// happiness. Default 0.01; must be > 0.
+    /// happiness. Default 0.01; must exceed [`MIN_EPSILON`] so the shifted
+    /// welfare terms stay strictly positive for every lawful core config.
     #[serde(default = "default_epsilon")]
     pub epsilon: f64,
     /// `level` (default): the welfare aggregate each step. `delta`: its
@@ -170,6 +171,13 @@ fn default_p() -> f64 {
 fn default_epsilon() -> f64 {
     0.01
 }
+
+/// The exclusive lower bound on `[rl.reward] epsilon` (spec 014 third
+/// review). Core accepts happiness weights whose sum is within 1e-3 of
+/// 1.0, so unclamped normalized happiness can lawfully reach −0.001; an
+/// ε at or below that would let `h + ε` hit zero or go negative, and
+/// `ln`/`powf` would turn the team reward into a silent NaN.
+pub const MIN_EPSILON: f64 = 1e-3;
 
 impl Default for RewardConfig {
     fn default() -> Self {
@@ -348,11 +356,13 @@ impl RlConfig {
                 "must be a finite exponent at most 1 (inequality-averse aggregation)",
             ));
         }
-        if self.reward.epsilon <= 0.0 || !self.reward.epsilon.is_finite() {
+        if self.reward.epsilon <= MIN_EPSILON || !self.reward.epsilon.is_finite() {
             return Err(RlConfigError::invalid(
                 "[rl.reward] epsilon",
                 self.reward.epsilon.to_string(),
-                "must be a finite number greater than 0",
+                "must be a finite number greater than 0.001: core tolerates happiness \
+                 weights summing to 1 ± 0.001, so normalized happiness can lawfully \
+                 reach −0.001, and ε must dominate it to keep the welfare terms positive",
             ));
         }
         if self.reward.shaping.enabled {
@@ -487,6 +497,14 @@ mod tests {
 
         let err = RlConfig::from_toml_str("[rl.reward]\nepsilon = 0.0\n").unwrap_err();
         assert!(err.to_string().contains("epsilon"), "{err}");
+
+        // Third review: an ε at or below core's happiness-weights sum
+        // tolerance (1e-3) would let a lawful config drive the welfare
+        // terms non-positive and NaN the team reward.
+        let err = RlConfig::from_toml_str("[rl.reward]\nepsilon = 0.0005\n").unwrap_err();
+        assert!(err.to_string().contains("epsilon"), "{err}");
+        RlConfig::from_toml_str("[rl.reward]\nepsilon = 0.002\n")
+            .expect("an epsilon above the tolerance is lawful");
 
         let err = RlConfig::from_toml_str("[rl.episode]\nhorizon = 0\n").unwrap_err();
         assert!(err.to_string().contains("[rl.episode] horizon"), "{err}");

@@ -185,6 +185,23 @@ struct ParallelEnv {
     live: bool,
 }
 
+/// The (core, rl) config pair with the horizon override applied — parsed
+/// once, however many episodes are built from it (third review: VectorEnv
+/// used to re-read the config file once per world).
+fn prepare_configs(
+    config_path: Option<&str>,
+    config_toml: Option<&str>,
+    horizon: Option<u64>,
+) -> PyResult<(Config, RlConfig)> {
+    let (core, mut rl) = load_configs(config_path, config_toml)?;
+    if let Some(h) = horizon {
+        rl.episode.horizon = h;
+        rl.validate()
+            .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    }
+    Ok((core, rl))
+}
+
 impl ParallelEnv {
     fn build(
         config_path: Option<&str>,
@@ -192,12 +209,7 @@ impl ParallelEnv {
         horizon: Option<u64>,
         control: Option<&Bound<'_, PyDict>>,
     ) -> PyResult<Episode> {
-        let (core, mut rl) = load_configs(config_path, config_toml)?;
-        if let Some(h) = horizon {
-            rl.episode.horizon = h;
-            rl.validate()
-                .map_err(|e| PyValueError::new_err(e.to_string()))?;
-        }
+        let (core, rl) = prepare_configs(config_path, config_toml, horizon)?;
         let control = parse_control(control)?;
         Episode::new(core, rl, control).map_err(episode_err)
     }
@@ -337,22 +349,10 @@ impl ParallelEnv {
     }
 
     /// The privileged global state (FR-019): training and evaluation only —
-    /// the deployed behavior API cannot receive it.
+    /// the deployed behavior API cannot receive it. Served by the episode's
+    /// own encoder, never a re-implementation (third review).
     fn state<'py>(&self, py: Python<'py>) -> Bound<'py, PyArray1<f32>> {
-        let snapshot = self.episode.world().snapshot();
-        let clock = if self.episode.horizon() > 0 {
-            self.episode.tick_in_episode() as f32 / self.episode.horizon() as f32
-        } else {
-            0.0
-        };
-        cloudkitty_rl::global_state::encode_global_state(
-            &snapshot,
-            self.episode.core_config(),
-            &self.episode.rl_config().global_state,
-            &self.episode.rl_config().observation,
-            clock,
-        )
-        .into_pyarray_bound(py)
+        self.episode.current_global_state().into_pyarray_bound(py)
     }
 
     fn close(&self) {}
@@ -374,13 +374,14 @@ struct VectorEnv {
     state_len: usize,
     /// Seeds waiting to be applied verbatim by the next unseeded reset —
     /// the constructor's (or the last explicit reset's) seeds, consumed
-    /// exactly once. After that, unseeded resets advance each episode's own
-    /// fresh-seed chain (the chain has one owner: the episode).
+    /// exactly once **by a fully successful reset** (a failed reset keeps
+    /// them, so the documented replay survives a retry — third review).
+    /// After that, unseeded resets advance each episode's own fresh-seed
+    /// chain (the chain has one owner: the episode). Batch coherence
+    /// itself — refuse step before the first reset or after a partial
+    /// failure — is enforced by the Rust `VectorizedEnvironment`, the
+    /// layer that owns the batch; this wrapper only translates its errors.
     pending_seeds: Option<Vec<u64>>,
-    /// Set when a step failed partway (a world panicked): the surviving
-    /// worlds advanced but their step was discarded, so the batch is
-    /// desynchronized until the next reset.
-    needs_reset: bool,
     /// The latest global state per world, refreshed by reset/step.
     last_states: Vec<Vec<f32>>,
 }
@@ -401,14 +402,12 @@ impl VectorEnv {
         if n_worlds == 0 {
             return Err(PyValueError::new_err("n_worlds must be at least 1"));
         }
+        let (core, rl) = prepare_configs(config_path, config_toml, horizon)?;
+        let control = parse_control(control)?;
         let mut episodes = Vec::with_capacity(n_worlds);
         for _ in 0..n_worlds {
-            episodes.push(ParallelEnv::build(
-                config_path,
-                config_toml,
-                horizon,
-                control,
-            )?);
+            episodes
+                .push(Episode::new(core.clone(), rl.clone(), control.clone()).map_err(episode_err)?);
         }
         let external = episodes[0].external_agents();
         let obs_len = observation_len(&episodes[0].rl_config().observation);
@@ -431,7 +430,6 @@ impl VectorEnv {
             menu_len,
             state_len,
             pending_seeds: Some(seeds),
-            needs_reset: false,
             last_states: vec![vec![0.0; state_len]; n],
         })
     }
@@ -464,8 +462,10 @@ impl VectorEnv {
             // verbatim exactly once; after that, every world advances its
             // own deterministic fresh-seed chain (Episode::reset_fresh) —
             // new episodes each call, the sequence reproducible, and the
-            // documented `seeds=` argument always means what it says.
-            None => self.pending_seeds.take(),
+            // documented `seeds=` argument always means what it says. The
+            // one-shot is only spent below, once every world reset — a
+            // failed reset keeps the seeds so a retry still replays them.
+            None => self.pending_seeds.clone(),
         };
         let vector = &mut self.vector;
         let results = py.allow_threads(|| match &explicit {
@@ -476,7 +476,7 @@ impl VectorEnv {
         for result in results {
             steps.push(result.map_err(episode_err)?);
         }
-        self.needs_reset = false;
+        self.pending_seeds = None;
         self.last_states = steps.iter().map(|s| s.global_state.clone()).collect();
         let obs = self.stack_observations(py, &steps)?;
         let infos = self.stack_infos(py, &steps)?;
@@ -489,18 +489,21 @@ impl VectorEnv {
         actions: &Bound<'py, PyDict>,
     ) -> PyResult<StepTuple<'py>> {
         let n = self.vector.len();
-        if self.needs_reset {
-            return Err(PyRuntimeError::new_err(
-                "the batch is desynchronized by an earlier world failure; call reset() \
-                 (it also revives the failed world) before stepping again",
-            ));
-        }
         // {agent: sequence[n]} → per-world action maps.
         let mut per_world: Vec<BTreeMap<KittyId, usize>> = vec![BTreeMap::new(); n];
         for (key, value) in actions.iter() {
             let name: String = key.extract()?;
             let id = parse_agent(&name)
                 .ok_or_else(|| PyValueError::new_err(format!("unknown agent '{name}'")))?;
+            // The same guard ParallelEnv applies (third review): an entry
+            // for a scripted or out-of-roster kitty would otherwise be
+            // silently dropped by the episode, corrupting training with no
+            // error.
+            if !self.external.contains(&id) {
+                return Err(PyValueError::new_err(format!(
+                    "agent '{name}' is not externally controlled"
+                )));
+            }
             let indices: Vec<i64> = value.extract()?;
             if indices.len() != n {
                 return Err(PyValueError::new_err(format!(
@@ -524,6 +527,14 @@ impl VectorEnv {
 
         let vector = &mut self.vector;
         let results = py.allow_threads(|| vector.step(&per_world));
+        // Batch coherence is the Rust layer's law: before the first reset,
+        // or after an earlier partial failure, every world comes back
+        // `ResetRequired` — translate it to one clean error.
+        if let Some(Err(EpisodeError::ResetRequired { reason })) = results.first() {
+            return Err(PyRuntimeError::new_err(format!(
+                "reset() required first: {reason}"
+            )));
+        }
         // A per-world failure (only a panicking world, after pre-validation)
         // means the survivors advanced but this batch's results cannot be
         // surfaced coherently: keep the pre-step states untouched, name
@@ -535,7 +546,6 @@ impl VectorEnv {
             .filter_map(|(world, r)| r.as_ref().err().map(|e| format!("world {world}: {e}")))
             .collect();
         if !failures.is_empty() {
-            self.needs_reset = true;
             return Err(PyRuntimeError::new_err(format!(
                 "{}; the batch is desynchronized — reset() before stepping again \
                  (this step's transitions are discarded)",

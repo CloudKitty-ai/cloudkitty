@@ -56,16 +56,18 @@ bit-identical. Throughput: `python examples/bench.py` reports ≥ 5,000
 steps/s single-threaded on the default world, with the measurement method
 printed alongside.
 
-**Measured (implementation reference machine, Apple Silicon, 2026-07-21,
-release build; method printed by the bench)**: ~100,000–106,000 env
-steps/s single-threaded on the default world — 20× the SC-003 floor —
-and ~125,000–135,000 steps/s vectorized over 8 worlds with the
-persistent worker pool (post-review: per-step encoding trimmed to
-external agents and one post-tick snapshot, which *raised* the
-single-threaded rate and so compresses the ratio). The floor pinned from
-measurement: **vectorized ×8 ≥ 1.15× the single-threaded rate on the
-default world** (observed 1.2–1.6× across runs after the review-fix
-passes). "Near-linear"
+**Measured (implementation reference machine, Apple Silicon, 2026-07-22,
+release build; method printed by the bench)**: ~110,000–118,000 env
+steps/s single-threaded on the default world — 22× the SC-003 floor —
+and ~130,000–132,000 steps/s vectorized over 8 worlds with the
+persistent worker pool. Each review pass has trimmed the single-world
+hot path (encoding only external agents, one post-tick snapshot, no
+per-step table clones), and every such gain *raises the denominator* of
+the scaling ratio while the vectorized rate stays GIL-bound — so the
+ratio honestly shrinks as the engine gets faster. The floor pinned from
+measurement: **vectorized ×8 ≥ 1.05× the single-threaded rate on the
+default world** (observed 1.10–1.21× across runs after the third-review
+pass; 1.2–1.6× before it, at the then-slower single rate). "Near-linear"
 scaling is physically out of reach at this step cost, and honestly so:
 a default world step is ~10µs, so the per-batch serial term (per-step
 Python call and result marshaling under the GIL, ~50µs) dominates. The

@@ -58,16 +58,29 @@ VectorEnv(config, n_worlds, seeds=[...], horizon=2000, workers=None)
 - Per-world results are positionally deterministic — parallel scheduling
   can never reorder or alter outputs.
 - Constructor (or last explicit) `seeds=` run **verbatim** on the next
-  unseeded `reset()`, exactly once; after that each world advances its own
-  fresh-seed chain. Infos stack per agent on the world axis: `mask`
+  unseeded `reset()`, exactly once — spent only by a *fully successful*
+  reset, so a failed reset can be retried with the documented seeds still
+  in force. After that each world advances its own fresh-seed chain.
+  Infos stack per agent on the world axis: `mask`
   uint8[n, 40], `decision_seed` uint64[n], `survived` **int8[n]** (1
   passed validation, 0 rewritten, −1 no proposal), `applied_action`
   int64[n] (−1 when inexpressible), `applied_action_name` and
   `provenance` (lists of str/None).
+- `step` before the first `reset()` raises: until reset deals each world
+  its seed, the batch is N config-seed clones of one world, and stepping
+  them as "independent" worlds would be a silent lie. (Batch coherence is
+  enforced by the Rust vectorized layer itself, so Rust consumers get the
+  same guarantee.)
+- Action keys naming scripted or out-of-roster agents raise `ValueError`,
+  exactly as on `ParallelEnv` — a typo'd agent name must never be
+  silently dropped.
 - A world that panics mid-step poisons only itself: the step raises with
   the world named, further steps are refused, and the next `reset()`
   revives it (a fresh world re-establishes every invariant) — the failed
-  batch's transitions are discarded by design.
+  batch's transitions are discarded by design. The poison/refuse/revive
+  state machine lives in the episode itself, so `ParallelEnv` shares it:
+  after an engine panic, retrying `step` raises with the *original*
+  message until `reset()` heals.
 
 ## Reproducibility guarantee (SC-002)
 

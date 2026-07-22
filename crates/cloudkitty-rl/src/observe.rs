@@ -187,10 +187,7 @@ pub fn encode_observation(
     let mut v = Vec::with_capacity(observation_len(cfg));
 
     // 1. Self block.
-    for kind in NeedKind::ALL {
-        v.push(me.needs.get(kind) / 100.0);
-    }
-    v.push(me.happiness / 100.0);
+    push_needs_and_happiness(&mut v, me);
     v.push(me.pos.x as f32 / width);
     v.push(me.pos.y as f32 / height);
     push_activity(&mut v, &me.activity);
@@ -204,13 +201,7 @@ pub fn encode_observation(
         _ => 0.0,
     });
     v.push(activity_progress(me, snapshot.tick, core));
-    for kind in NeedKind::ALL {
-        v.push(if me.in_distress.contains(&kind) {
-            1.0
-        } else {
-            0.0
-        });
-    }
+    push_distress_flags(&mut v, me);
     match me.pursuit {
         Some(p) => {
             v.push(1.0);
@@ -223,10 +214,7 @@ pub fn encode_observation(
             v.push(0.0);
         }
     }
-    for kind in NeedKind::ALL {
-        let trait_value = core.need_rate_for(kitty_id, kind) / cfg.reference_need_rate;
-        v.push(trait_value.clamp(0.0, 4.0));
-    }
+    push_traits(&mut v, kitty_id, core, cfg);
 
     // 2. Kitty slots.
     for slot in &table.kitties {
@@ -236,10 +224,7 @@ pub fn encode_observation(
                 v.push((other.pos.x as f32 - me.pos.x as f32) / width);
                 v.push((other.pos.y as f32 - me.pos.y as f32) / height);
                 v.push(me.pos.manhattan_distance(&other.pos) as f32 / max_distance);
-                for kind in NeedKind::ALL {
-                    v.push(other.needs.get(kind) / 100.0);
-                }
-                v.push(other.happiness / 100.0);
+                push_needs_and_happiness(&mut v, other);
                 push_activity(&mut v, &other.activity);
                 v.push(if other.activity.partner().is_some() {
                     1.0
@@ -375,6 +360,45 @@ pub(crate) fn push_activity(v: &mut Vec<f32>, activity: &Activity) {
     };
     for i in 0..7 {
         v.push(if i == index { 1.0 } else { 0.0 });
+    }
+}
+
+/// Needs (each /100) then happiness (/100), in normative order. Shared by
+/// the self block, the kitty slots, and the global-state encoder: actor
+/// and critic must scale a kitty's condition identically, so the scaling
+/// exists exactly once (spec 014 third review).
+pub(crate) fn push_needs_and_happiness(v: &mut Vec<f32>, kitty: &Kitty) {
+    for kind in NeedKind::ALL {
+        v.push(kitty.needs.get(kind) / 100.0);
+    }
+    v.push(kitty.happiness / 100.0);
+}
+
+/// One flag per need kind, 1.0 while that need is in distress. Shared with
+/// the global-state encoder.
+pub(crate) fn push_distress_flags(v: &mut Vec<f32>, kitty: &Kitty) {
+    for kind in NeedKind::ALL {
+        v.push(if kitty.in_distress.contains(&kind) {
+            1.0
+        } else {
+            0.0
+        });
+    }
+}
+
+/// Trait features: each configured need rate over the reference rate,
+/// clamped to [0, 4] (the schema's documented bound). Shared with the
+/// global-state encoder — the critic's view of a trait must scale exactly
+/// as the actors' do.
+pub(crate) fn push_traits(
+    v: &mut Vec<f32>,
+    kitty_id: cloudkitty_core::kitty::KittyId,
+    core: &Config,
+    cfg: &ObservationConfig,
+) {
+    for kind in NeedKind::ALL {
+        let trait_value = core.need_rate_for(kitty_id, kind) / cfg.reference_need_rate;
+        v.push(trait_value.clamp(0.0, 4.0));
     }
 }
 

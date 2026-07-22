@@ -174,8 +174,8 @@ impl Default for NeedWeights {
 
 /// The weighted-need happiness before any floor: `100 - Σ need × weight`.
 /// The one implementation of the formula (spec 014 review): the engine's
-/// displayed happiness clamps it (Article I's floor), and the RL reward
-/// reads it raw so the training signal keeps its gradient below the floor.
+/// displayed happiness clamps it (Article I's floor); downstream consumers
+/// that need the unclamped value read it raw.
 pub fn raw_happiness(needs: &Needs, weights: &NeedWeights) -> f32 {
     let weighted: f32 = NeedKind::ALL
         .iter()

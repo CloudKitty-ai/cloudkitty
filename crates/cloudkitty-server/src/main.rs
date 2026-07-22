@@ -148,8 +148,12 @@ fn load_config(args: &Args) -> Result<(Config, RlConfig)> {
 
     let text = std::fs::read_to_string(&args.config_path)
         .with_context(|| format!("could not read {}", args.config_path.display()))?;
+    // "load", not "parse": the error may be a TOML syntax problem or a
+    // semantic validation failure (an out-of-bounds kitty, a bad [rl.*]
+    // value) — the nested message names the field either way, and the
+    // context must not point a well-formed-but-invalid file at its syntax.
     cloudkitty_rl::config::load_configs_from_str(&text)
-        .with_context(|| format!("could not parse {}", args.config_path.display()))
+        .with_context(|| format!("could not load {}", args.config_path.display()))
 }
 
 #[tokio::main]

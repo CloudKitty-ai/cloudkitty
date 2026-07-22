@@ -214,25 +214,14 @@ pub fn drive_tick(
     let decisions: Vec<(KittyId, Action)> =
         resolved.iter().map(|r| (r.kitty_id, r.action)).collect();
     let outcome = world.run_applied_phases(&decisions, config);
-    let applied_by_id = outcome.applied_by_id();
 
     // `resolved` is already in stable id order (the resolver iterates the
     // roster), so the records need no re-sort.
-    let mut records = Vec::with_capacity(resolved.len());
-    for r in &resolved {
-        let (validated, applied) = applied_by_id
-            .get(&r.kitty_id)
-            .copied()
-            .expect("the phase pipeline hears every kitty that has a decision");
-        records.push(KittyTickRecord {
-            kitty_id: r.kitty_id,
-            proposed: r.action,
-            validated,
-            applied,
-            provenance: r.provenance,
-            decision_seed: r.seed,
-        });
-    }
+    let records = outcome.records(
+        resolved
+            .iter()
+            .map(|r| (r.kitty_id, r.action, r.provenance, r.seed)),
+    );
 
     DrivenTick {
         report: TickReport {

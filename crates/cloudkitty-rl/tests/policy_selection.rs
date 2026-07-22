@@ -15,29 +15,14 @@ use cloudkitty_rl::behavior::PolicyBehavior;
 use cloudkitty_rl::codec::ActionCodec;
 use cloudkitty_rl::config::RlConfig;
 use cloudkitty_rl::mask::legal_action_mask;
-use cloudkitty_rl::observe::{observation_len, TargetTable};
-use cloudkitty_rl::policy::{write_artifact, ArtifactHeader, ARTIFACT_VERSION};
+use cloudkitty_rl::observe::TargetTable;
+use cloudkitty_rl::test_support::write_fixture_artifact_with_output;
 
 fn artifact_path(name: &str, fill: f32) -> PathBuf {
     let dir = std::env::temp_dir().join("ck-policy-selection");
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join(format!("{name}.ckpolicy"));
-    let rl = RlConfig::default();
-    let input = observation_len(&rl.observation);
-    let header = ArtifactHeader {
-        artifact_version: ARTIFACT_VERSION,
-        observation_schema: 1,
-        action_schema: 1,
-        mask_schema: 1,
-        layers: vec![[input, 8], [8, 40]],
-        activation: "relu".into(),
-    };
-    let w1: Vec<f32> = (0..input * 8)
-        .map(|i| ((i % 11) as f32 - 5.0) * 0.03)
-        .collect();
-    let w2: Vec<f32> = (0..8 * 40).map(|_| fill).collect();
-    let b2: Vec<f32> = (0..40).map(|i| fill * i as f32 * 0.01).collect();
-    write_artifact(&path, &header, &[(w1, vec![0.1; 8]), (w2, b2)]).unwrap();
+    write_fixture_artifact_with_output(&path, 8, 0, Some(fill));
     path
 }
 

@@ -16,12 +16,14 @@
 
 use cloudkitty_core::element::ElementType;
 use cloudkitty_core::grid::Position;
-use cloudkitty_core::needs::NeedKind;
 use cloudkitty_core::world::WorldSnapshot;
 use cloudkitty_core::Config;
 
 use crate::config::{GlobalStateConfig, ObservationConfig};
-use crate::observe::{activity_progress, push_activity, sort_by_proximity};
+use crate::observe::{
+    activity_progress, push_activity, push_distress_flags, push_needs_and_happiness, push_traits,
+    sort_by_proximity,
+};
 
 /// Versioned like the observation schema (FR-019).
 pub const GLOBAL_STATE_SCHEMA_VERSION: u32 = 1;
@@ -53,12 +55,12 @@ pub fn encode_global_state(
     let roster = snapshot.kitties.len();
     let mut v = Vec::with_capacity(global_state_len(roster, cfg));
 
-    // Kitties, stable id order (the snapshot's order).
+    // Kitties, stable id order (the snapshot's order). The per-kitty
+    // fragments shared with the actors' encoder (needs, happiness,
+    // activity, distress, traits) come from observe.rs's helpers — one
+    // scaling, two consumers (spec 014 third review).
     for kitty in &snapshot.kitties {
-        for kind in NeedKind::ALL {
-            v.push(kitty.needs.get(kind) / 100.0);
-        }
-        v.push(kitty.happiness / 100.0);
+        push_needs_and_happiness(&mut v, kitty);
         v.push(kitty.pos.x as f32 / width);
         v.push(kitty.pos.y as f32 / height);
         push_activity(&mut v, &kitty.activity);
@@ -75,17 +77,8 @@ pub fn encode_global_state(
             }
         }
         v.push(activity_progress(kitty, snapshot.tick, core));
-        for kind in NeedKind::ALL {
-            v.push(if kitty.in_distress.contains(&kind) {
-                1.0
-            } else {
-                0.0
-            });
-        }
-        for kind in NeedKind::ALL {
-            let trait_value = core.need_rate_for(kitty.id, kind) / observation.reference_need_rate;
-            v.push(trait_value.clamp(0.0, 4.0));
-        }
+        push_distress_flags(&mut v, kitty);
+        push_traits(&mut v, kitty.id, core, observation);
     }
 
     // Element summary, bounded by configuration.

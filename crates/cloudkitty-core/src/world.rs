@@ -231,7 +231,7 @@ impl World {
         seeds: crate::seam::DealtSeeds,
         config: &Config,
     ) -> crate::seam::TickReport {
-        use crate::seam::{KittyTickRecord, ProposalEntry, Provenance, TickReport};
+        use crate::seam::{ProposalEntry, Provenance, TickReport};
 
         assert_eq!(
             seeds.tick, self.tick,
@@ -260,28 +260,13 @@ impl World {
         let unconsumed: Vec<KittyId> = proposals.ids().filter(|id| !roster.contains(id)).collect();
 
         let outcome = self.run_applied_phases(&decisions, config);
-        let applied_by_id = outcome.applied_by_id();
-
-        let mut records = Vec::with_capacity(roster.len());
-        for (index, &id) in roster.iter().enumerate() {
+        let records = outcome.records(roster.iter().enumerate().map(|(index, &id)| {
             let (_, proposed) = decisions[index];
-            let provenance = marks[index];
-            let (validated, applied) = applied_by_id
-                .get(&id)
-                .copied()
-                .expect("the phase pipeline hears every kitty that has a decision");
             let decision_seed = seeds.seed_for(id).expect(
                 "the deal covers every roster kitty: both come from this world at this tick",
             );
-            records.push(KittyTickRecord {
-                kitty_id: id,
-                proposed,
-                validated,
-                applied,
-                provenance,
-                decision_seed,
-            });
-        }
+            (id, proposed, marks[index], decision_seed)
+        }));
 
         TickReport {
             records,
@@ -1086,15 +1071,42 @@ pub(crate) struct PhaseOutcome {
 }
 
 impl PhaseOutcome {
-    /// The (validated, applied) pair per kitty, keyed for record building —
-    /// one implementation shared by both tick drivers (the seam's and the
-    /// joint-action path's records must be assembled identically).
-    pub fn applied_by_id(
+    /// The (validated, applied) pair per kitty, keyed for record building.
+    fn applied_by_id(
         &self,
     ) -> std::collections::BTreeMap<KittyId, (crate::action::Action, crate::action::Action)> {
         self.per_kitty
             .iter()
             .map(|&(id, validated, applied)| (id, (validated, applied)))
+            .collect()
+    }
+
+    /// Builds the per-kitty tick records for the decisions this outcome
+    /// applied — the one record assembler shared by both tick drivers
+    /// (spec 014 third review), so the behavior-driven report and the
+    /// joint-action report can never drift. `decisions` supplies each
+    /// kitty's (id, proposed, provenance, decision seed) in report order.
+    pub fn records(
+        &self,
+        decisions: impl IntoIterator<Item = (KittyId, crate::action::Action, crate::seam::Provenance, u64)>,
+    ) -> Vec<crate::seam::KittyTickRecord> {
+        let applied_by_id = self.applied_by_id();
+        decisions
+            .into_iter()
+            .map(|(kitty_id, proposed, provenance, decision_seed)| {
+                let (validated, applied) = applied_by_id
+                    .get(&kitty_id)
+                    .copied()
+                    .expect("the phase pipeline hears every kitty that has a decision");
+                crate::seam::KittyTickRecord {
+                    kitty_id,
+                    proposed,
+                    validated,
+                    applied,
+                    provenance,
+                    decision_seed,
+                }
+            })
             .collect()
     }
 }

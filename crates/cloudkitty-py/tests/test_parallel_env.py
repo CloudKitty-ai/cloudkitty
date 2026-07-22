@@ -237,6 +237,42 @@ def test_vector_env_constructor_seeds_run_verbatim():
     assert agent_bytes(obs_a2, agents) == agent_bytes(obs_b2, agents)
 
 
+def test_vector_env_refuses_step_before_reset():
+    # Spec 014 third review: a fresh VectorEnv holds N config-seed clones
+    # of one world — stepping them as "independent" worlds would silently
+    # violate the contract, so step refuses until reset deals real seeds.
+    env = cloudkitty.VectorEnv(2, seeds=[5, 6], horizon=10, workers=2)
+    agents = env.possible_agents
+    with pytest.raises(RuntimeError, match="reset"):
+        env.step({a: [39, 39] for a in agents})
+
+    # The refused step did not consume the constructor seeds: the first
+    # unseeded reset still runs them verbatim.
+    obs_a, _ = env.reset()
+    b = cloudkitty.VectorEnv(2, horizon=10, workers=2)
+    obs_b, _ = b.reset(seeds=[5, 6])
+    assert all(obs_a[a].tobytes() == obs_b[a].tobytes() for a in agents)
+    env.step({a: [39, 39] for a in agents})
+
+
+def test_vector_env_rejects_unknown_and_scripted_agent_actions():
+    # Spec 014 third review: VectorEnv applies the same guard ParallelEnv
+    # does — an action for a scripted or out-of-roster agent raises rather
+    # than being silently dropped (a typo must never corrupt training).
+    env = cloudkitty.VectorEnv(2, horizon=10, workers=2)
+    env.reset(seeds=[1, 2])
+    agents = env.possible_agents
+    scripted = cloudkitty.VectorEnv(
+        2, horizon=10, workers=2, control={agents[0]: "needs_driven"}
+    )
+    scripted.reset(seeds=[1, 2])
+
+    with pytest.raises(ValueError, match="not externally controlled"):
+        env.step({**{a: [39, 39] for a in agents}, "kitty_999": [0, 0]})
+    with pytest.raises(ValueError, match="not externally controlled"):
+        scripted.step({a: [39, 39] for a in agents})
+
+
 def test_omitted_action_reports_survived_none():
     # Spec 014 second review (contract: tri-state survived): an agent whose
     # action is lawfully omitted gets idle substituted and survived=None —

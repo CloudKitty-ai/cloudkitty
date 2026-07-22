@@ -18,10 +18,9 @@ use crate::needs::{NeedKind, Needs};
 pub type KittyId = u32;
 
 /// Reserved: no live kitty may ever carry this id (config validation
-/// rejects it, spec 014). Downstream encodings use it to mean "no kitty" —
-/// a vacant observation slot decodes to a proposal naming it, which
-/// validation lawfully resolves to idle. One definition; the RL codec
-/// aliases it.
+/// rejects it, spec 014). Downstream encodings use it to mean "no kitty";
+/// a proposal naming it lawfully resolves to idle. See
+/// [`crate::element::RESERVED_ELEMENT_ID`].
 pub const RESERVED_KITTY_ID: KittyId = KittyId::MAX;
 
 /// Engine bookkeeping of the current chase: which target, since when, the best

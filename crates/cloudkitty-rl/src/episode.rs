@@ -48,8 +48,10 @@ pub enum EpisodeError {
     },
     #[error("step after truncation: reset the episode first")]
     SteppedAfterTruncation,
-    #[error("world panicked and is poisoned until reset elsewhere: {message}")]
+    #[error("world panicked and is poisoned until reset: {message}")]
     Panicked { message: String },
+    #[error("reset() required first: {reason}")]
+    ResetRequired { reason: &'static str },
 }
 
 /// Who decides for one kitty.
@@ -111,6 +113,11 @@ pub struct Episode {
     world: World,
     tick_in_episode: u64,
     truncated: bool,
+    /// The original panic message after an engine panic mid-step left the
+    /// world possibly inconsistent; further steps are refused with it, and
+    /// reset heals (third review: the episode owns its own recovery, so
+    /// the single-world and batched surfaces share one state machine).
+    poisoned: Option<String>,
     /// Seeds dealt for the *next* tick's decisions. Always `Some` between
     /// calls; taken by value when the tick consumes it (the engine's
     /// DealtSeeds contract — a deal can never be skipped or reused).
@@ -151,23 +158,24 @@ impl Episode {
         }
         let codec = ActionCodec::v1(&rl.observation);
         let horizon = rl.episode.horizon;
-        let seed = core.world.seed;
+        let core = Arc::new(core);
         let mut episode = Episode {
-            core: Arc::new(core),
+            world: World::generate(&core),
+            core,
             rl,
             codec,
             registry,
             control,
             horizon,
-            world: World::generate(&Config::default()), // replaced by reset
             tick_in_episode: 0,
             truncated: false,
+            poisoned: None,
             pending_seeds: None,
             last_tables: BTreeMap::new(),
             prev_level: 0.0,
             prev_potential: 0.0,
         };
-        episode.reset(seed);
+        episode.arm();
         Ok(episode)
     }
 
@@ -211,14 +219,23 @@ impl Episode {
 
     /// Fresh world from `seed`; returns the initial observations, masks,
     /// seeds, and global state. Reward is 0 and the report empty — nothing
-    /// has happened yet.
+    /// has happened yet. Also heals a poisoned episode: the fresh world
+    /// re-establishes every invariant a mid-tick panic may have broken.
     pub fn reset(&mut self, seed: u64) -> EpisodeStep {
         let mut config = (*self.core).clone();
         config.world.seed = seed;
-        self.world = World::generate(&config);
         self.core = Arc::new(config);
+        self.world = World::generate(&self.core);
+        self.arm()
+    }
+
+    /// Post-generation bookkeeping shared by construction and reset: deal
+    /// the first seeds, prime the reward baselines, clear any poison, and
+    /// encode the initial step.
+    fn arm(&mut self) -> EpisodeStep {
         self.tick_in_episode = 0;
         self.truncated = false;
+        self.poisoned = None;
         self.pending_seeds = Some(self.world.deal_decision_seeds());
         let snapshot = self.world.snapshot();
         self.prev_level = team_reward(&snapshot, &self.core, &self.rl.reward);
@@ -248,48 +265,80 @@ impl Episode {
     /// One joint-action step. `actions` maps every external agent to a menu
     /// index; a missing entry lawfully substitutes idle (Article IV), an
     /// out-of-range index is a caller error.
+    ///
+    /// An engine panic mid-step (an invariant assertion, an internal
+    /// expect) leaves the world possibly inconsistent: it poisons the
+    /// episode, so further steps are refused with the original message
+    /// and any reset heals.
     pub fn step(
         &mut self,
         actions: &BTreeMap<KittyId, usize>,
     ) -> Result<EpisodeStep, EpisodeError> {
+        if let Some(message) = &self.poisoned {
+            return Err(EpisodeError::Panicked {
+                message: message.clone(),
+            });
+        }
         if self.truncated {
             return Err(EpisodeError::SteppedAfterTruncation);
         }
-        let snapshot = Arc::new(self.world.snapshot());
+        match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| self.step_inner(actions))) {
+            Ok(result) => result,
+            Err(payload) => {
+                let message = panic_message(payload);
+                self.poisoned = Some(message.clone());
+                Err(EpisodeError::Panicked { message })
+            }
+        }
+    }
+
+    fn step_inner(
+        &mut self,
+        actions: &BTreeMap<KittyId, usize>,
+    ) -> Result<EpisodeStep, EpisodeError> {
+        // Scripted kitties decide against the frozen start-of-tick world;
+        // in the common all-external case nobody reads it, so don't take it.
+        let scripted = self
+            .control
+            .values()
+            .any(|c| matches!(c, Control::Builtin(_)));
+        let snapshot = scripted.then(|| Arc::new(self.world.snapshot()));
         let mut proposals = JointProposal::new();
         let mut scripted_marks: BTreeMap<KittyId, Provenance> = BTreeMap::new();
 
-        for kitty in snapshot.kitties.iter() {
-            match self.control.get(&kitty.id) {
+        for id in self.roster() {
+            match self.control.get(&id) {
                 Some(Control::Builtin(name)) => {
+                    let snapshot = snapshot.as_ref().expect("taken when anyone is scripted");
                     let seed = self
                         .pending_seeds
                         .as_ref()
-                        .and_then(|dealt| dealt.seed_for(kitty.id))
+                        .and_then(|dealt| dealt.seed_for(id))
                         .expect("seeds are dealt for every roster kitty");
                     let ctx = DecisionContext {
-                        me: kitty.clone(),
+                        me: snapshot.kitty(id).cloned().expect("roster kitty"),
                         world: snapshot.clone(),
                         rng: DecisionRng::from_seed(seed),
                         config: self.core.clone(),
                     };
                     let (action, provenance) = resolve_one(self.registry.get(name), &ctx, seed);
-                    proposals.propose(kitty.id, action);
-                    scripted_marks.insert(kitty.id, provenance);
+                    proposals.propose(id, action);
+                    scripted_marks.insert(id, provenance);
                 }
                 _ => {
-                    if let Some(&index) = actions.get(&kitty.id) {
-                        let table = self.last_tables.get(&kitty.id).cloned().unwrap_or_else(|| {
-                            TargetTable::build(&snapshot, kitty.id, &self.rl.observation)
-                        });
-                        let action = self.codec.decode(index, &table).map_err(|_| {
+                    if let Some(&index) = actions.get(&id) {
+                        let table = self
+                            .last_tables
+                            .get(&id)
+                            .expect("collect_step keeps a table for every external agent");
+                        let action = self.codec.decode(index, table).map_err(|_| {
                             EpisodeError::ActionOutOfRange {
-                                kitty: kitty.id,
+                                kitty: id,
                                 index,
                                 len: self.codec.len(),
                             }
                         })?;
-                        proposals.propose(kitty.id, action);
+                        proposals.propose(id, action);
                     }
                     // A missing entry stays absent: the tick substitutes
                     // idle and marks it honestly.
@@ -348,11 +397,7 @@ impl Episode {
         report: TickReport,
         snapshot: cloudkitty_core::world::WorldSnapshot,
     ) -> EpisodeStep {
-        let clock = if self.horizon > 0 {
-            self.tick_in_episode as f32 / self.horizon as f32
-        } else {
-            0.0
-        };
+        let clock = self.episode_clock();
         let externals = self.external_agents();
         let mut observations = BTreeMap::new();
         let mut infos = BTreeMap::new();
@@ -414,6 +459,49 @@ impl Episode {
             global_state,
             report,
         }
+    }
+
+    /// The episode clock in [0, 1]: ticks into the episode over horizon.
+    fn episode_clock(&self) -> f32 {
+        if self.horizon > 0 {
+            self.tick_in_episode as f32 / self.horizon as f32
+        } else {
+            0.0
+        }
+    }
+
+    /// The privileged critic view of the world as it stands (FR-019) — the
+    /// identical encoding every step carries in
+    /// [`EpisodeStep::global_state`], re-derivable on demand. Surfaces
+    /// that expose a `state()` accessor read it from here, never from a
+    /// re-implementation (third review).
+    pub fn current_global_state(&self) -> Vec<f32> {
+        encode_global_state(
+            &self.world.snapshot(),
+            &self.core,
+            &self.rl.global_state,
+            &self.rl.observation,
+            self.episode_clock(),
+        )
+    }
+
+    /// Marks the episode poisoned (crate-internal: the batched reset path
+    /// catches world-generation panics outside `step` and records them
+    /// here). Any successful reset heals.
+    pub(crate) fn poison(&mut self, message: String) {
+        self.poisoned = Some(message);
+    }
+}
+
+/// The panic payload's message, kept verbatim for poison bookkeeping so
+/// callers see the original failure, not a generic wrapper.
+pub(crate) fn panic_message(payload: Box<dyn std::any::Any + Send>) -> String {
+    if let Some(text) = payload.downcast_ref::<&str>() {
+        (*text).to_string()
+    } else if let Some(text) = payload.downcast_ref::<String>() {
+        text.clone()
+    } else {
+        "non-string panic payload".to_string()
     }
 }
 
@@ -561,6 +649,57 @@ mod tests {
             Some(false),
             "the vacant target failed validation"
         );
+    }
+
+    #[test]
+    fn a_poisoned_episode_refuses_steps_and_reset_revives_it() {
+        // Third review: the poison/refuse/reset-revives state machine lives
+        // in the episode itself, so the single-world Python surface and the
+        // batched worker pool share the one recovery contract.
+        let mut episode = episode_all_external();
+        episode.reset(3);
+        episode.poison("simulated engine panic".into());
+
+        let refused = episode.step(&BTreeMap::new());
+        assert!(
+            matches!(refused, Err(EpisodeError::Panicked { ref message })
+                if message == "simulated engine panic"),
+            "a poisoned episode refuses to step, naming the original panic"
+        );
+
+        let revived = episode.reset(4);
+        assert!(!revived.truncated);
+        episode.step(&BTreeMap::new()).expect("stepping works again");
+    }
+
+    #[test]
+    fn an_engine_panic_mid_step_poisons_instead_of_unwinding() {
+        // A real invariant panic (not a simulated one): corrupt the world
+        // so the tick's constitutional check fires. The step must come back
+        // as Err(Panicked) with the engine's message, the next step must be
+        // refused with the same message (not a second, misleading panic
+        // about seeds), and reset must heal.
+        let mut episode = episode_all_external();
+        episode.reset(9);
+        let (w, h) = (episode.world.width, episode.world.height);
+        episode.world.kitties[0].pos = cloudkitty_core::grid::Position::new(w + 10, h + 10);
+
+        let previous = std::panic::take_hook();
+        std::panic::set_hook(Box::new(|_| {}));
+        let first = episode.step(&BTreeMap::new());
+        let second = episode.step(&BTreeMap::new());
+        std::panic::set_hook(previous);
+
+        let Err(EpisodeError::Panicked { message }) = first else {
+            panic!("the corrupted world should have panicked the tick: {first:?}");
+        };
+        assert!(
+            matches!(second, Err(EpisodeError::Panicked { message: ref again }) if *again == message),
+            "the second step is refused with the original message"
+        );
+        let revived = episode.reset(10);
+        assert!(!revived.truncated, "reset heals the poisoned episode");
+        episode.step(&BTreeMap::new()).expect("stepping works again");
     }
 
     #[test]

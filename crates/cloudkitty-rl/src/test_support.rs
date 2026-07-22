@@ -6,37 +6,58 @@
 
 use std::path::{Path, PathBuf};
 
+use crate::codec::ActionCodec;
 use crate::config::RlConfig;
 use crate::observe::observation_len;
 use crate::policy::{write_artifact, ArtifactHeader, ARTIFACT_VERSION};
 
 /// Writes a valid fixture policy artifact shaped for the default schemas
-/// (observation → `hidden` ReLU units → 40 logits) with deterministic
-/// pseudo-weights derived from `pattern` (no RNG: reproducible bytes).
+/// (observation → `hidden` ReLU units → menu logits, both lengths derived
+/// from the schemas' own single sources) with deterministic pseudo-weights
+/// derived from `pattern` (no RNG: reproducible bytes).
 pub fn write_fixture_artifact(path: &Path, hidden: usize, pattern: u32) {
+    write_fixture_artifact_with_output(path, hidden, pattern, None);
+}
+
+/// [`write_fixture_artifact`], with the output layer optionally flooded by
+/// one constant (its bias scaled per index) — the shape the garbage-logits
+/// tests need (NaN, ±inf, all-equal logits still select a masked-in
+/// action).
+pub fn write_fixture_artifact_with_output(
+    path: &Path,
+    hidden: usize,
+    pattern: u32,
+    output_fill: Option<f32>,
+) {
     let rl = RlConfig::default();
     let input = observation_len(&rl.observation);
+    let menu = ActionCodec::v1(&rl.observation).len();
     let header = ArtifactHeader {
         artifact_version: ARTIFACT_VERSION,
         observation_schema: 1,
         action_schema: 1,
         mask_schema: 1,
-        layers: vec![[input, hidden], [hidden, 40]],
+        layers: vec![[input, hidden], [hidden, menu]],
         activation: "relu".into(),
     };
     let modulus = (pattern % 13 + 5) as usize;
     let w1: Vec<f32> = (0..input * hidden)
         .map(|i| ((i % modulus) as f32 - (modulus as f32 / 2.0)) * 0.03)
         .collect();
-    let w2: Vec<f32> = (0..hidden * 40)
-        .map(|i| ((i % (modulus + 2)) as f32 - 2.0) * 0.05)
-        .collect();
-    write_artifact(
-        path,
-        &header,
-        &[(w1, vec![0.02; hidden]), (w2, vec![0.0; 40])],
-    )
-    .expect("fixture artifacts write");
+    let (w2, b2): (Vec<f32>, Vec<f32>) = match output_fill {
+        Some(fill) => (
+            vec![fill; hidden * menu],
+            (0..menu).map(|i| fill * i as f32 * 0.01).collect(),
+        ),
+        None => (
+            (0..hidden * menu)
+                .map(|i| ((i % (modulus + 2)) as f32 - 2.0) * 0.05)
+                .collect(),
+            vec![0.0; menu],
+        ),
+    };
+    write_artifact(path, &header, &[(w1, vec![0.02; hidden]), (w2, b2)])
+        .expect("fixture artifacts write");
 }
 
 /// [`write_fixture_artifact`] into a namespaced temp directory; returns the

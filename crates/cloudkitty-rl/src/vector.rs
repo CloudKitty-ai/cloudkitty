@@ -21,82 +21,24 @@ use cloudkitty_core::kitty::KittyId;
 
 use crate::episode::{Episode, EpisodeError, EpisodeStep};
 
-/// One world as its worker owns it. A panic mid-operation (an engine
-/// invariant assertion, an internal expect) poisons the world — its state
-/// may be mid-tick inconsistent, so stepping it again is refused — while
-/// the sibling worlds and the environment stay usable, and the original
-/// panic message is what callers see (spec 014 review: the old
-/// scoped-spawn design killed the whole environment with a generic
-/// message).
-///
-/// **Reset revives** (second review pass): `Episode::reset` regenerates the
-/// world, the seed deal, the tables, and every counter from the immutable
-/// config, so a reset re-establishes every invariant a mid-tick panic may
-/// have broken — the episode is retained while poisoned precisely so the
-/// trainer's natural recovery (`env.reset()`) heals the slot instead of
-/// panicking the environment.
-struct WorldSlot {
-    episode: Box<Episode>,
-    /// The original panic message while poisoned; `None` when live.
-    poisoned: Option<String>,
-}
-
-fn panic_message(payload: Box<dyn std::any::Any + Send>) -> String {
-    if let Some(text) = payload.downcast_ref::<&str>() {
-        (*text).to_string()
-    } else if let Some(text) = payload.downcast_ref::<String>() {
-        text.clone()
-    } else {
-        "non-string panic payload".to_string()
-    }
-}
-
-impl WorldSlot {
-    fn live(episode: Episode) -> Self {
-        WorldSlot {
-            episode: Box::new(episode),
-            poisoned: None,
+/// Resets one worker-owned world. `Episode` owns the poison/refuse/
+/// reset-revives state machine itself (third review), so a panic mid-step
+/// is already caught and recorded there; the one panic the episode cannot
+/// catch is a world-generation panic during its own reset, caught here and
+/// recorded so the next step is refused with the original message while
+/// the sibling worlds and the environment stay usable. Any later
+/// successful reset heals.
+fn reset_slot(episode: &mut Episode, seed: Option<u64>) -> Result<EpisodeStep, EpisodeError> {
+    match std::panic::catch_unwind(AssertUnwindSafe(|| match seed {
+        Some(seed) => episode.reset(seed),
+        None => episode.reset_fresh(),
+    })) {
+        Ok(step) => Ok(step),
+        Err(payload) => {
+            let message = crate::episode::panic_message(payload);
+            episode.poison(message.clone());
+            Err(EpisodeError::Panicked { message })
         }
-    }
-
-    /// Runs a mutation with panic isolation; a panic poisons the slot.
-    fn guarded(
-        &mut self,
-        op: impl FnOnce(&mut Episode) -> Result<EpisodeStep, EpisodeError>,
-    ) -> Result<EpisodeStep, EpisodeError> {
-        let episode = &mut self.episode;
-        match std::panic::catch_unwind(AssertUnwindSafe(|| op(episode))) {
-            Ok(result) => result,
-            Err(payload) => {
-                let message = panic_message(payload);
-                self.poisoned = Some(message.clone());
-                Err(EpisodeError::Panicked { message })
-            }
-        }
-    }
-
-    fn step(&mut self, actions: &BTreeMap<KittyId, usize>) -> Result<EpisodeStep, EpisodeError> {
-        if let Some(message) = &self.poisoned {
-            return Err(EpisodeError::Panicked {
-                message: message.clone(),
-            });
-        }
-        self.guarded(|episode| episode.step(actions))
-    }
-
-    /// Reset heals: a fresh world re-establishes every invariant, so a
-    /// successful reset clears the poison.
-    fn reset(&mut self, seed: Option<u64>) -> Result<EpisodeStep, EpisodeError> {
-        let result = self.guarded(|episode| {
-            Ok(match seed {
-                Some(seed) => episode.reset(seed),
-                None => episode.reset_fresh(),
-            })
-        });
-        if result.is_ok() {
-            self.poisoned = None;
-        }
-        result
     }
 }
 
@@ -125,6 +67,13 @@ pub struct VectorizedEnvironment {
     external: Vec<KittyId>,
     roster: Vec<KittyId>,
     menu_len: usize,
+    /// Batch coherence (third review), owned by the layer that owns the
+    /// batch: `Some(why)` while stepping would be wrong — from construction
+    /// (every world starts from the same config seed; reset gives each its
+    /// own) and after any partial failure (survivors advanced while their
+    /// transitions were discarded, skewing the batch a tick). `step`
+    /// refuses with the reason until a fully successful reset clears it.
+    needs_reset: Option<&'static str>,
 }
 
 impl VectorizedEnvironment {
@@ -145,9 +94,9 @@ impl VectorizedEnvironment {
         let mut start = 0usize;
         while start < n {
             let take = chunk.min(n - start);
-            let mut owned: Vec<WorldSlot> = Vec::with_capacity(take);
+            let mut owned: Vec<Box<Episode>> = Vec::with_capacity(take);
             for _ in 0..take {
-                owned.push(WorldSlot::live(episodes.next().expect("counted")));
+                owned.push(Box::new(episodes.next().expect("counted")));
             }
             let (cmd_tx, cmd_rx) = mpsc::channel::<Command>();
             let (result_tx, result_rx) = mpsc::channel();
@@ -157,12 +106,12 @@ impl VectorizedEnvironment {
                         Command::Reset(seeds) => owned
                             .iter_mut()
                             .zip(seeds)
-                            .map(|(slot, seed)| slot.reset(seed))
+                            .map(|(episode, seed)| reset_slot(episode, seed))
                             .collect(),
                         Command::Step(actions) => owned
                             .iter_mut()
                             .zip(actions)
-                            .map(|(slot, map)| slot.step(&map))
+                            .map(|(episode, map)| episode.step(&map))
                             .collect(),
                     };
                     if result_tx.send(results).is_err() {
@@ -185,6 +134,7 @@ impl VectorizedEnvironment {
             external,
             roster,
             menu_len,
+            needs_reset: Some("the worlds are unseeded until the first reset()"),
         }
     }
 
@@ -214,10 +164,14 @@ impl VectorizedEnvironment {
     /// Resets world i from seeds[i]. A successful reset also revives a
     /// world poisoned by an earlier panic (the fresh world re-establishes
     /// every invariant); an error is only possible if world generation
-    /// itself panics. Panics if the lengths disagree.
+    /// itself panics. A fully successful reset restores batch coherence.
+    /// Panics if the lengths disagree.
     pub fn reset(&mut self, seeds: &[u64]) -> Vec<Result<EpisodeStep, EpisodeError>> {
         assert_eq!(seeds.len(), self.n_worlds, "one seed per world");
-        self.dispatch(|range| Command::Reset(seeds[range].iter().map(|&s| Some(s)).collect()))
+        let results =
+            self.dispatch(|range| Command::Reset(seeds[range].iter().map(|&s| Some(s)).collect()));
+        self.settle_after_reset(&results);
+        results
     }
 
     /// Resets every world along its own deterministic fresh-seed chain
@@ -225,21 +179,46 @@ impl VectorizedEnvironment {
     /// reproducible, the chain owned by each episode — no shadow seed
     /// state anywhere else. Revives poisoned worlds like [`Self::reset`].
     pub fn reset_fresh(&mut self) -> Vec<Result<EpisodeStep, EpisodeError>> {
-        self.dispatch(|range| Command::Reset(vec![None; range.len()]))
+        let results = self.dispatch(|range| Command::Reset(vec![None; range.len()]));
+        self.settle_after_reset(&results);
+        results
     }
 
     /// Steps every world with its own action map, in parallel, gathered
-    /// positionally.
+    /// positionally. Refuses (every world `ResetRequired`) while the batch
+    /// needs a reset — before the first reset, and after any partial
+    /// failure left the batch desynchronized.
     pub fn step(
         &mut self,
         actions: &[BTreeMap<KittyId, usize>],
     ) -> Vec<Result<EpisodeStep, EpisodeError>> {
         assert_eq!(actions.len(), self.n_worlds, "one action map per world");
-        self.dispatch(|range| Command::Step(actions[range].to_vec()))
+        if let Some(reason) = self.needs_reset {
+            return (0..self.n_worlds)
+                .map(|_| Err(EpisodeError::ResetRequired { reason }))
+                .collect();
+        }
+        let results = self.dispatch(|range| Command::Step(actions[range].to_vec()));
+        if results.iter().any(|r| r.is_err()) {
+            self.needs_reset = Some(
+                "a partial step failure desynchronized the batch; reset() revives \
+                 the failed worlds and resynchronizes",
+            );
+        }
+        results
     }
 
-    /// Broadcasts one command per worker, then gathers each worker's results
-    /// into their worlds' global positions.
+    fn settle_after_reset(&mut self, results: &[Result<EpisodeStep, EpisodeError>]) {
+        self.needs_reset = if results.iter().all(|r| r.is_ok()) {
+            None
+        } else {
+            Some("a failed world reset left the batch incoherent; reset() again")
+        };
+    }
+
+    /// Broadcasts one command per worker, then gathers the results in
+    /// worker order — worker ranges are contiguous and ascending by
+    /// construction, so concatenation is global order.
     fn dispatch(
         &mut self,
         command_for: impl Fn(Range<usize>) -> Command,
@@ -252,18 +231,12 @@ impl VectorizedEnvironment {
                 .send(command_for(worker.range.clone()))
                 .expect("worker thread alive");
         }
-        let mut slots: Vec<Option<Result<EpisodeStep, EpisodeError>>> =
-            (0..self.n_worlds).map(|_| None).collect();
+        let mut results = Vec::with_capacity(self.n_worlds);
         for worker in &self.workers {
-            let results = worker.rx.recv().expect("worker thread alive");
-            for (offset, result) in results.into_iter().enumerate() {
-                slots[worker.range.start + offset] = Some(result);
-            }
+            results.extend(worker.rx.recv().expect("worker thread alive"));
         }
-        slots
-            .into_iter()
-            .map(|slot| slot.expect("every world was processed"))
-            .collect()
+        assert_eq!(results.len(), self.n_worlds, "every world was processed");
+        results
     }
 }
 
@@ -321,46 +294,50 @@ mod tests {
     use super::*;
     use cloudkitty_core::Config;
 
-    fn slot() -> WorldSlot {
-        let episode = crate::episode::Episode::new(
+    fn episode() -> Episode {
+        crate::episode::Episode::new(
             Config::default(),
             crate::config::RlConfig::default(),
             BTreeMap::new(),
         )
-        .unwrap();
-        WorldSlot::live(episode)
+        .unwrap()
     }
 
     #[test]
-    fn a_poisoned_slot_refuses_steps_and_reset_revives_it() {
-        // Spec 014 second review: the trainer's natural recovery is
-        // reset(), so reset must heal a poisoned world — a fresh world
-        // re-establishes every invariant a mid-tick panic may have broken.
-        let mut slot = slot();
-        slot.reset(Some(3)).unwrap();
-        slot.poisoned = Some("simulated engine panic".into());
+    fn a_poisoned_world_refuses_steps_and_reset_slot_revives_it() {
+        // The poison state machine itself lives in Episode (see its own
+        // tests); this covers the slot-level reset path that heals it.
+        let mut episode = Box::new(episode());
+        episode.poison("simulated engine panic".into());
+        assert!(matches!(
+            episode.step(&BTreeMap::new()),
+            Err(EpisodeError::Panicked { .. })
+        ));
+        let revived = reset_slot(&mut episode, Some(4)).expect("reset revives");
+        assert!(!revived.truncated);
+        episode.step(&BTreeMap::new()).expect("stepping works again");
+    }
 
-        let refused = slot.step(&BTreeMap::new());
+    #[test]
+    fn a_fresh_batch_refuses_to_step_until_reset() {
+        // Third review: batch coherence is enforced by the layer that owns
+        // the batch. A freshly built environment holds N config-seed clones
+        // of one world — stepping them as "independent" worlds would be a
+        // silent lie, so step refuses until reset deals real seeds.
+        let mut env = VectorizedEnvironment::new(vec![episode(), episode()], Some(2));
+        let refused = env.step(&[BTreeMap::new(), BTreeMap::new()]);
         assert!(
-            matches!(refused, Err(EpisodeError::Panicked { ref message })
-                if message == "simulated engine panic"),
-            "a poisoned world refuses to step, naming the original panic"
+            refused
+                .iter()
+                .all(|r| matches!(r, Err(EpisodeError::ResetRequired { .. }))),
+            "an unseeded batch must not step"
         );
 
-        let revived = slot.reset(Some(4)).expect("reset revives");
-        assert!(slot.poisoned.is_none(), "the poison is cleared");
-        assert!(!revived.truncated);
-        slot.step(&BTreeMap::new()).expect("stepping works again");
-    }
-
-    #[test]
-    fn a_panicking_operation_poisons_with_the_original_message() {
-        let mut slot = slot();
-        slot.reset(Some(5)).unwrap();
-        let result = slot.guarded(|_| panic!("deliberate test panic"));
-        assert!(matches!(result, Err(EpisodeError::Panicked { ref message })
-                if message == "deliberate test panic"));
-        assert_eq!(slot.poisoned.as_deref(), Some("deliberate test panic"));
+        for result in env.reset(&[1, 2]) {
+            result.expect("reset succeeds");
+        }
+        let stepped = env.step(&[BTreeMap::new(), BTreeMap::new()]);
+        assert!(stepped.iter().all(|r| r.is_ok()), "reset arms the batch");
     }
 
     #[test]

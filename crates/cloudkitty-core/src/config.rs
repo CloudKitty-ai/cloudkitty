@@ -553,13 +553,20 @@ pub struct BehaviorConfig {
     /// Prices the sleep score and bounds the sleep walk in the same breath.
     #[serde(default = "default_sunbeam_reach")]
     pub sunbeam_reach: u32,
-    /// Consecutive budget timeouts after which an external advisor is
-    /// benched for the rest of the run — its kitty uses the fallback and no
-    /// further work is spawned for it (spec 014 review: bounds the threads
-    /// a wedged advisor can strand at one per strike, instead of one per
+    /// Consecutive budget timeouts (counted per kitty) after which that
+    /// kitty's external advisor dispatch is benched — the kitty uses the
+    /// fallback and no further work is spawned for it until the bench
+    /// expires (spec 014 review: bounds the threads a wedged advisor can
+    /// strand at `budget_strikes` per bench window, instead of one per
     /// tick forever).
     #[serde(default = "default_budget_strikes")]
     pub budget_strikes: u32,
+    /// How many ticks a bench lasts. On expiry the streak resets and
+    /// dispatch is tried again — an advisor that recovered comes back on
+    /// its own, one that is still wedged re-benches after another
+    /// `budget_strikes` timeouts.
+    #[serde(default = "default_bench_ticks")]
+    pub bench_ticks: u64,
 }
 
 fn default_playful_comfort() -> f32 {
@@ -602,6 +609,10 @@ fn default_budget_strikes() -> u32 {
     5
 }
 
+fn default_bench_ticks() -> u64 {
+    300
+}
+
 impl Default for BehaviorConfig {
     fn default() -> Self {
         Self {
@@ -616,6 +627,7 @@ impl Default for BehaviorConfig {
             solo_play_reach: default_solo_play_reach(),
             sunbeam_reach: default_sunbeam_reach(),
             budget_strikes: default_budget_strikes(),
+            bench_ticks: default_bench_ticks(),
         }
     }
 }
@@ -1088,6 +1100,13 @@ impl Config {
                 "[behavior] budget_strikes",
                 "0".to_string(),
                 "must be at least 1 (an advisor gets at least one timed slot)",
+            ));
+        }
+        if self.behavior.bench_ticks == 0 {
+            return Err(ConfigError::invalid(
+                "[behavior] bench_ticks",
+                "0".to_string(),
+                "must be at least 1 tick (a bench must last long enough to exist)",
             ));
         }
         let solo = self.actions.solo_play_relief;
