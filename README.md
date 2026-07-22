@@ -7,6 +7,9 @@ Kitties wander, eat, drink, nap in sunbeams, groom each other, chase bugs, and m
 about it. Each kitty is driven by a pluggable *behavior*, so different cats can live
 visibly different lives — and the interface is designed so a future behavior can be an
 external script, an HTTP service, or a language model, with no changes to the engine.
+As of 2.0 that future is here for the most interesting case: a kitty's mind can be a
+**trained neural policy**. The world doubles as a multi-agent RL environment, and a
+policy trained in it deploys back into the living world as just another behavior.
 
 Nothing bad ever happens to a kitty. That is not a design goal, it is a
 [constitution](.specify/memory/constitution.md).
@@ -105,6 +108,12 @@ config error: [[kitty]] roster is 1 kitties; the constitution requires at least
 ```
 crates/cloudkitty-core/     the simulation: world, kitties, actions, behaviors, tick loop
 crates/cloudkitty-server/   axum server: REST, WebSocket, persistence, static files
+crates/cloudkitty-rl/       the training layer: observations, action codec + legal-action
+                            mask, Nash-welfare team reward, episodes, vectorized batches,
+                            the kitty-eval harness, policy artifacts — the engine knows
+                            nothing of any of it
+crates/cloudkitty-py/       PyO3 bindings: ParallelEnv / VectorEnv, PettingZoo-style
+docs/                       the training guide (rl-training.md)
 client/                     the viewer: vanilla JS on a canvas, no build step — hand-drawn
                             vector cats, props, and meadow; gallery.html is the standalone
                             art-approval page (opens from file://, no server needed)
@@ -124,13 +133,18 @@ cargo test --workspace       # everything, including the invariant gate
 cargo clippy --workspace --all-targets -- -D warnings
 cargo fmt --all -- --check
 node client/test-meadow.mjs  # headless checks for the viewer's meadow drawing
+cd crates/cloudkitty-py && maturin develop --release && python -m pytest tests/
 ```
 
 The suite covers need arithmetic, action legality, meow cooldowns, spawning, config
 rejection, persistence, determinism (including across a save/restore), behavior
 timeouts and panics, the HTTP and WebSocket contracts — and the property suite, which
 drives randomized worlds with deliberately hostile behaviors for tens of thousands of
-ticks and asserts every constitutional guarantee after every tick.
+ticks and asserts every constitutional guarantee after every tick. Since 2.0 it also
+guards the training layer: golden parity (a behavior-driven world and a joint-action
+world fed the same decisions stay byte-identical over 5,000 ticks), a legal-action
+mask proven against the engine as its oracle, and two-process bit-reproducibility of
+Python rollouts.
 
 ## Writing a behavior
 
@@ -147,4 +161,36 @@ impl Behavior for MyCat {
 Register it, name it in a kitty's config, and that is the whole integration. The engine
 validates whatever you return, budgets your time, and falls back to the default
 behavior if you are slow or broken — so a misbehaving advisor can cost a cat a moment
-of cleverness, but never anything more.
+of cleverness, but never anything more. Or skip the writing entirely and train one —
+see *Training a mind* below.
+
+## Training a mind
+
+Since 2.0 the same world that runs the sanctuary can train one. The Python surface
+speaks the PettingZoo parallel convention — cooperative, one team reward (Nash
+welfare over *every* kitty, so a policy can't win by favoring its own cat):
+
+```bash
+cd crates/cloudkitty-py && maturin develop --release
+python examples/random_rollout.py --seed 7    # shapes, masks, rewards — no trainer needed
+```
+
+Rollouts are bit-reproducible across processes from the same seed, and a policy is
+evaluated before it is trusted: `kitty-eval` scores it against the built-in
+`needs_driven` baseline on paired seeds, and every constitutional welfare bound must
+hold — a trained mind that makes any kitty's life worse does not ship. Deployment is
+one config block:
+
+```toml
+[kitties.pumpkin]
+behavior = "policy:trained"
+
+[rl.policy.trained]
+artifact = "policies/trained.ckpolicy"
+```
+
+The server validates and hash-logs the artifact before the first tick, and the engine
+treats the policy exactly like any other behavior — proposals only, validated,
+budgeted, benched if it misbehaves. The full walkthrough is in
+[docs/rl-training.md](docs/rl-training.md); the contracts live in
+[specs/014-multi-agent-rl/](specs/014-multi-agent-rl/).
