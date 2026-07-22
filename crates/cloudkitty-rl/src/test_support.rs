@@ -5,6 +5,7 @@
 //! made here once, and every suite follows.
 
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use crate::codec::ActionCodec;
 use crate::config::RlConfig;
@@ -62,10 +63,23 @@ pub fn write_fixture_artifact_with_output(
 
 /// [`write_fixture_artifact`] into a namespaced temp directory; returns the
 /// artifact path.
+///
+/// Parallel tests may share a `(dir_name, file_name)` pair, so the artifact
+/// is written to a private scratch name and renamed into place: rename is
+/// atomic, and the bytes are deterministic for the same parameters, so a
+/// concurrent reader always sees a complete, correct artifact — never a
+/// half-written one (the `BadMagic` flake this replaces).
 pub fn fixture_artifact(dir_name: &str, file_name: &str, hidden: usize, pattern: u32) -> PathBuf {
+    static SCRATCH: AtomicU64 = AtomicU64::new(0);
     let dir = std::env::temp_dir().join(dir_name);
     std::fs::create_dir_all(&dir).expect("temp dir");
     let path = dir.join(format!("{file_name}.ckpolicy"));
-    write_fixture_artifact(&path, hidden, pattern);
+    let scratch = dir.join(format!(
+        "{file_name}.{}.{}.scratch",
+        std::process::id(),
+        SCRATCH.fetch_add(1, Ordering::Relaxed)
+    ));
+    write_fixture_artifact(&scratch, hidden, pattern);
+    std::fs::rename(&scratch, &path).expect("fixture artifacts land");
     path
 }
