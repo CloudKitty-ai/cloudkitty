@@ -28,7 +28,7 @@ const PROPS = {
   soap: '#bfe3f2', // water-kin blues for drop and bubbles
   soapRim: '#9ccfe6',
   wisp: '#eef0f6', // the greeble's not-quite-there pale
-  wispShade: '#b9bfce',
+  wispShade: '#8d96ad', // dark enough to hold the outline against grass
   yarn: '#c98da4', // a dusty rose no other prop uses
   fishDecal: '#3385ff', // the bowl's fish, a proper glaze blue (owner's pick)
   shadow: 'rgba(120, 110, 95, 0.25)', // the butterfly's ground shadow
@@ -244,8 +244,8 @@ function drawButterfly(ctx, opts) {
 
 // ---------------------------------------------------------------------------
 // The greeble wisp (R6, FR-007): the one thing drawn as not-quite-there.
-// The caller keeps the toggle and the 0.55 alpha -- looks changed, secrecy
-// didn't.
+// The caller keeps the toggle and the translucency -- looks changed,
+// secrecy didn't.
 // ---------------------------------------------------------------------------
 
 function drawGreebleWisp(ctx, opts) {

@@ -51,7 +51,6 @@ const VIEW = Object.freeze({
     waterShimmer: true,
     sunbeamPulse: true,
     dustMotes: true,
-    grassSway: true,
     cloudShadows: true,
   }),
   ambientPeriodMs: 5200,
