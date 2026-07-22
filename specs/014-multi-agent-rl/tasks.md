@@ -108,12 +108,12 @@ sequence produce bit-identical observation/mask/global-state/reward streams
 
 ### Python surface (`cloudkitty-py`)
 
-- [ ] T027 [US2] `ParallelEnv` PyO3 wrapper in `crates/cloudkitty-py/src/lib.rs`: reset/step/state()/agents/possible_agents/observation_space/action_space per contracts/python-env.md; NumPy arrays out; out-of-range action raises, in-range vacant-slot actions never do; GIL released around engine work
-- [ ] T028 [US2] `VectorEnv` wrapper in `crates/cloudkitty-py/src/lib.rs` (same file — sequential after T027): batched reset/step, leading world axis, GIL released across the fan-out
-- [ ] T029 [P] [US2] pytest smoke in `crates/cloudkitty-py/tests/test_parallel_env.py`: shapes, bounds, terminations always false, truncation exactly at horizon, one broadcast team scalar, info keys
-- [ ] T030 [P] [US2] Two-process bit-reproducibility test (SC-002: observation, mask, global-state, and reward streams) in `crates/cloudkitty-py/tests/test_reproducibility.py`
-- [ ] T031 [P] [US2] `crates/cloudkitty-py/examples/random_rollout.py` and `crates/cloudkitty-py/examples/bench.py` (bench prints steps/s single-threaded and vectorized-scaling, with the measurement method printed alongside — SC-003)
-- [ ] T032 [US2] Optional PettingZoo conformance test (skipped cleanly when the package is absent) in `crates/cloudkitty-py/tests/test_pettingzoo_conformance.py`
+- [X] T027 [US2] `ParallelEnv` PyO3 wrapper in `crates/cloudkitty-py/src/lib.rs`: reset/step/state()/agents/possible_agents/observation_space/action_space per contracts/python-env.md; NumPy arrays out; out-of-range action raises, in-range vacant-slot actions never do; GIL released around engine work
+- [X] T028 [US2] `VectorEnv` wrapper in `crates/cloudkitty-py/src/lib.rs` (same file — sequential after T027): batched reset/step, leading world axis, GIL released across the fan-out
+- [X] T029 [P] [US2] pytest smoke in `crates/cloudkitty-py/tests/test_parallel_env.py`: shapes, bounds, terminations always false, truncation exactly at horizon, one broadcast team scalar, info keys
+- [X] T030 [P] [US2] Two-process bit-reproducibility test (SC-002: observation, mask, global-state, and reward streams) in `crates/cloudkitty-py/tests/test_reproducibility.py`
+- [X] T031 [P] [US2] `crates/cloudkitty-py/examples/random_rollout.py` and `crates/cloudkitty-py/examples/bench.py` (bench prints steps/s single-threaded and vectorized-scaling, with the measurement method printed alongside — SC-003)
+- [X] T032 [US2] Optional PettingZoo conformance test (skipped cleanly when the package is absent) in `crates/cloudkitty-py/tests/test_pettingzoo_conformance.py`
 
 **Checkpoint**: trainers can produce cooperative rollouts; US2 independently done
 

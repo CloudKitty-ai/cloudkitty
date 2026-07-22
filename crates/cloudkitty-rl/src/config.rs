@@ -403,6 +403,29 @@ impl RlConfig {
     }
 }
 
+/// Loads the engine `Config` and the `[rl]` blocks from one TOML text —
+/// the shape of `cloudkitty.toml`. The engine config is validated; behavior
+/// names are the caller's business (the registry decides what exists).
+pub fn load_configs_from_str(
+    text: &str,
+) -> Result<(cloudkitty_core::Config, RlConfig), RlConfigError> {
+    let core: cloudkitty_core::Config =
+        toml::from_str(text).map_err(|e| RlConfigError::Message(e.to_string()))?;
+    core.validate()
+        .map_err(|e| RlConfigError::Message(e.to_string()))?;
+    let rl = RlConfig::from_toml_str(text)?;
+    Ok((core, rl))
+}
+
+/// [`load_configs_from_str`] for a file path.
+pub fn load_configs_from_path(
+    path: &str,
+) -> Result<(cloudkitty_core::Config, RlConfig), RlConfigError> {
+    let text = std::fs::read_to_string(path)
+        .map_err(|e| RlConfigError::Message(format!("cannot read {path}: {e}")))?;
+    load_configs_from_str(&text)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

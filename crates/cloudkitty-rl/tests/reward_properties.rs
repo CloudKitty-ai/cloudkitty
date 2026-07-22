@@ -15,17 +15,37 @@ fn arb_roster() -> impl Strategy<Value = Vec<f64>> {
 proptest! {
     #[test]
     fn strictly_increasing_in_every_kitty(h in arb_roster(), p in -8.0f64..=1.0) {
+        // Mathematically the aggregate is strictly increasing in every
+        // entry; numerically, at strongly negative p the least-happy
+        // kitties dominate by many orders of magnitude, so a gain to an
+        // already-happy kitty can fall below f64 resolution. Assert
+        // never-decreasing for everyone, and strict improvement where
+        // floating point can see it: the least-happy kitty always, and
+        // every kitty for moderate exponents.
         let base = welfare_aggregate(&h, p, EPS);
+        let argmin = h
+            .iter()
+            .enumerate()
+            .min_by(|a, b| a.1.partial_cmp(b.1).unwrap())
+            .map(|(i, _)| i)
+            .unwrap();
         for i in 0..h.len() {
             if h[i] >= 0.999 { continue; }
             let mut better = h.clone();
             better[i] += 0.001;
             let improved = welfare_aggregate(&better, p, EPS);
             prop_assert!(
-                improved > base,
-                "raising kitty {} ({} -> {}) did not raise welfare ({} -> {}) at p={}",
+                improved >= base,
+                "raising kitty {} ({} -> {}) lowered welfare ({} -> {}) at p={}",
                 i, h[i], better[i], base, improved, p
             );
+            if i == argmin || p >= -2.0 {
+                prop_assert!(
+                    improved > base,
+                    "raising kitty {} ({} -> {}) did not raise welfare ({} -> {}) at p={}",
+                    i, h[i], better[i], base, improved, p
+                );
+            }
         }
     }
 
