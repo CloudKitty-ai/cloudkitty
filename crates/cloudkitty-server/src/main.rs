@@ -6,6 +6,7 @@ use std::sync::Arc;
 
 use anyhow::{Context, Result};
 use cloudkitty_core::{BehaviorRegistry, Config, World};
+use cloudkitty_rl::config::RlConfig;
 use cloudkitty_server::api::AppState;
 use cloudkitty_server::{build_router, persist, sim_task};
 
@@ -130,9 +131,10 @@ fn resolve_client_dir(args: &Args) -> Result<PathBuf> {
     Ok(args.client_dir.clone())
 }
 
-/// Loads the config plus its raw text (the `[rl.*]` blocks live in the
-/// same file but belong to cloudkitty-rl, which parses them itself).
-fn load_config(args: &Args) -> Result<(Config, String)> {
+/// Loads the engine config and the `[rl.*]` blocks from the same file in
+/// one parse (spec 014 review: the pair cannot diverge). A missing default
+/// file yields both sets of documented defaults.
+fn load_config(args: &Args) -> Result<(Config, RlConfig)> {
     if !args.config_path.exists() {
         if args.config_explicit {
             anyhow::bail!("config file {} does not exist", args.config_path.display());
@@ -141,14 +143,13 @@ fn load_config(args: &Args) -> Result<(Config, String)> {
             path = %args.config_path.display(),
             "no config file found; using built-in defaults"
         );
-        return Ok((Config::default(), String::new()));
+        return Ok((Config::default(), RlConfig::default()));
     }
 
     let text = std::fs::read_to_string(&args.config_path)
         .with_context(|| format!("could not read {}", args.config_path.display()))?;
-    let config = toml::from_str(&text)
-        .with_context(|| format!("could not parse {}", args.config_path.display()))?;
-    Ok((config, text))
+    cloudkitty_rl::config::load_configs_from_str(&text)
+        .with_context(|| format!("could not parse {}", args.config_path.display()))
 }
 
 #[tokio::main]
@@ -176,7 +177,7 @@ async fn run() -> Result<()> {
         return Ok(());
     };
 
-    let (config, config_text) = load_config(&args)?;
+    let (config, rl_config) = load_config(&args)?;
     // The constitution is enforced here, before a single kitty exists.
     config.validate()?;
 
@@ -184,7 +185,7 @@ async fn run() -> Result<()> {
     // Policy behaviors register before name validation, exactly like
     // built-ins: an invalid artifact fails startup before any tick
     // (spec 014 FR-016).
-    cloudkitty_server::register_policy_behaviors(&mut registry, &config, &config_text)?;
+    cloudkitty_server::register_policy_behaviors(&mut registry, &config, &rl_config)?;
     config.validate_behavior_names(&registry.names())?;
 
     let config = Arc::new(config);

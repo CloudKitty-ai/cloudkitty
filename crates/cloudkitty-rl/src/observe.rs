@@ -360,8 +360,10 @@ pub fn encode_observation(
 }
 
 /// Activity one-hot in normative order: idle, resting, sleeping, eating,
-/// drinking, playing, grooming.
-fn push_activity(v: &mut Vec<f32>, activity: &Activity) {
+/// drinking, playing, grooming. Shared with the global-state encoder
+/// (spec 014 review): actor and critic must agree on what an activity
+/// looks like, so the mapping exists exactly once.
+pub(crate) fn push_activity(v: &mut Vec<f32>, activity: &Activity) {
     let index = match activity {
         Activity::Idle => 0,
         Activity::Resting { .. } => 1,
@@ -377,7 +379,8 @@ fn push_activity(v: &mut Vec<f32>, activity: &Activity) {
 }
 
 /// Elapsed / configured minimum, clamped to [0, 1]; 0 outside an activity.
-fn activity_progress(me: &Kitty, tick: u64, core: &Config) -> f32 {
+/// Shared with the global-state encoder — one formula, two consumers.
+pub(crate) fn activity_progress(me: &Kitty, tick: u64, core: &Config) -> f32 {
     let Some(clock) = me.activity_clock else {
         return 0.0;
     };
@@ -401,6 +404,17 @@ fn push_element_common(
     v.push(me.pos.manhattan_distance(&e.pos) as f32 / max_distance);
 }
 
+/// The one proximity ordering (spec 014 review): Manhattan distance from
+/// `anchor`, ties by id — the normative slot-fill key (FR-005), shared by
+/// the observation's element slots and the global state's center summary
+/// so the convention can never fork.
+pub(crate) fn sort_by_proximity(
+    elements: &mut [&cloudkitty_core::element::Element],
+    anchor: cloudkitty_core::grid::Position,
+) {
+    elements.sort_unstable_by_key(|e| (anchor.manhattan_distance(&e.pos), e.id));
+}
+
 /// Nearest-K elements of one type, distance-ordered, ties by id, padded
 /// with None.
 fn nearest_elements<'a>(
@@ -411,7 +425,7 @@ fn nearest_elements<'a>(
 ) -> Vec<Option<&'a cloudkitty_core::element::Element>> {
     let mut candidates: Vec<&cloudkitty_core::element::Element> =
         snapshot.elements_of(kind).collect();
-    candidates.sort_unstable_by_key(|e| (me.pos.manhattan_distance(&e.pos), e.id));
+    sort_by_proximity(&mut candidates, me.pos);
     let mut out: Vec<Option<&cloudkitty_core::element::Element>> =
         candidates.into_iter().take(slots).map(Some).collect();
     out.resize(slots, None);

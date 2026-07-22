@@ -135,8 +135,8 @@ fn decision_jobs(
 ) -> Vec<DecisionJob> {
     let snapshot = Arc::new(world.snapshot());
     let seeds = world.deal_decision_seeds();
-    let mut jobs = Vec::with_capacity(seeds.len());
-    for (id, seed) in seeds {
+    let mut jobs = Vec::with_capacity(world.kitties.len());
+    for (id, seed) in seeds.iter() {
         let Some(kitty) = world.kitty(id).cloned() else {
             continue;
         };
@@ -171,7 +171,7 @@ pub async fn gather_decisions(
 
     let decisions = jobs
         .into_iter()
-        .map(|job| async move { (job.id, decide_one(job.behavior, &job.ctx, budget).await) });
+        .map(|job| async move { (job.id, decide_one(job, budget).await) });
 
     join_all(decisions).await
 }
@@ -230,27 +230,52 @@ pub fn resolve_one(
     }
 }
 
-async fn decide_one(
-    behavior: Option<Arc<dyn Behavior>>,
-    ctx: &DecisionContext,
-    budget: Duration,
-) -> Action {
-    match behavior {
+async fn decide_one(job: DecisionJob, budget: Duration) -> Action {
+    match job.behavior {
         // A name that resolves to nothing is a config error caught at startup; if
         // one somehow reaches here, the kitty still gets a sensible turn.
-        None => NeedsDriven.decide(ctx).await,
+        None => NeedsDriven.decide(&job.ctx).await,
 
-        Some(b) if b.is_builtin() => match run_catching(b.as_ref(), ctx).await {
+        Some(b) if b.is_builtin() => match run_catching(b.as_ref(), &job.ctx).await {
             Some(action) => action,
-            None => fallback(ctx).await,
+            None => fallback(&job.ctx).await,
         },
 
-        Some(b) => match tokio::time::timeout(budget, run_catching(b.as_ref(), ctx)).await {
-            Ok(Some(action)) => action,
-            // Timed out, panicked, or otherwise failed: the default behavior takes
-            // this kitty's turn.
-            _ => fallback(ctx).await,
-        },
+        // Non-built-ins run on the blocking pool. This is what makes the
+        // budget real (spec 014 review): `tokio::time::timeout` only fires
+        // at await points, and an advisor that computes synchronously (a
+        // policy's MLP pass, a hot loop) never yields -- wrapped directly,
+        // the timer could never preempt it and a slow advisor would stall
+        // the tick loop. On the blocking pool the tick loop keeps its
+        // budget: on timeout the JoinHandle is dropped, the stray
+        // computation finishes harmlessly on its detached thread, and the
+        // fallback (rebuilt from the same decision seed, since the context
+        // moved into the task) takes the turn.
+        Some(b) => {
+            let me = job.ctx.me.clone();
+            let world = job.ctx.world.clone();
+            let config = job.ctx.config.clone();
+            let seed = job.seed;
+            let ctx = job.ctx;
+            let handle = tokio::task::spawn_blocking(move || {
+                futures::executor::block_on(run_catching(b.as_ref(), &ctx))
+            });
+            match tokio::time::timeout(budget, handle).await {
+                Ok(Ok(Some(action))) => action,
+                // Timed out, panicked, or otherwise failed: the default
+                // behavior takes this kitty's turn, on the very decision
+                // stream the advisor was dealt.
+                _ => {
+                    let ctx = DecisionContext {
+                        me,
+                        world,
+                        rng: DecisionRng::from_seed(seed),
+                        config,
+                    };
+                    fallback(&ctx).await
+                }
+            }
+        }
     }
 }
 
@@ -271,7 +296,7 @@ async fn fallback(ctx: &DecisionContext) -> Action {
 
 #[cfg(test)]
 mod tests {
-    use super::test_behaviors::{AlwaysInvalid, Panicky, SleepySlow};
+    use super::test_behaviors::{AlwaysInvalid, BusySpin, Panicky, SleepySlow};
     use super::*;
     use crate::test_support::test_config;
     use crate::world::World;
@@ -369,6 +394,33 @@ mod tests {
         let mut sorted = ids.clone();
         sorted.sort();
         assert_eq!(ids, sorted, "stable kitty-id order");
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn the_budget_preempts_a_synchronous_never_yielding_advisor() {
+        // Spec 014 review: tokio's timeout only fires at await points, so a
+        // synchronously-computing advisor (a policy MLP, a hot loop) wrapped
+        // directly could stall the tick loop for its full run time. Dispatch
+        // runs non-built-ins on the blocking pool, so the budget is real:
+        // the tick proceeds with the fallback while the stray computation
+        // finishes harmlessly on its detached thread.
+        let mut config = test_config();
+        config.world.tick_ms = 20; // a 10ms budget
+        config.kitties[0].behavior = "busy_spin".into();
+        let config = Arc::new(config);
+
+        let registry = registry_with("busy_spin", Arc::new(BusySpin::new(500)));
+        let mut world = World::generate(&config);
+
+        let started = std::time::Instant::now();
+        let decisions = gather_decisions(&mut world, &registry, &config).await;
+        let elapsed = started.elapsed();
+
+        assert_eq!(decisions.len(), world.kitties.len(), "nobody lost a turn");
+        assert!(
+            elapsed < Duration::from_millis(400),
+            "the tick was held hostage by synchronous compute: {elapsed:?}"
+        );
     }
 
     // ---- the budgetless resolver (spec 014 T004/T005) ---------------------

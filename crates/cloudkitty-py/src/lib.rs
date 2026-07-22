@@ -19,7 +19,9 @@ use cloudkitty_core::kitty::KittyId;
 use cloudkitty_core::seam::Provenance;
 use cloudkitty_core::Config;
 use cloudkitty_rl::config::{load_configs_from_path, load_configs_from_str, RlConfig};
-use cloudkitty_rl::episode::{AgentInfo, Control, Episode, EpisodeError, EpisodeStep};
+use cloudkitty_rl::episode::{
+    advance_seed, AgentInfo, Control, Episode, EpisodeError, EpisodeStep,
+};
 use cloudkitty_rl::global_state::global_state_len;
 use cloudkitty_rl::observe::observation_len;
 use cloudkitty_rl::vector::VectorizedEnvironment;
@@ -43,7 +45,11 @@ fn agent_name(id: KittyId) -> String {
 }
 
 fn parse_agent(name: &str) -> Option<KittyId> {
-    name.strip_prefix("kitty_")?.parse().ok()
+    let id: KittyId = name.strip_prefix("kitty_")?.parse().ok()?;
+    // Strict round trip (spec 014 review): "kitty_01" and "kitty_+1" must
+    // not silently alias onto "kitty_1" — non-canonical spellings are
+    // unknown agents, reported as such.
+    (agent_name(id) == name).then_some(id)
 }
 
 fn provenance_str(p: Provenance) -> &'static str {
@@ -57,7 +63,9 @@ fn provenance_str(p: Provenance) -> &'static str {
 fn episode_err(e: EpisodeError) -> PyErr {
     match e {
         EpisodeError::ActionOutOfRange { .. } => PyIndexError::new_err(e.to_string()),
-        EpisodeError::SteppedAfterTruncation => PyRuntimeError::new_err(e.to_string()),
+        EpisodeError::SteppedAfterTruncation | EpisodeError::Panicked { .. } => {
+            PyRuntimeError::new_err(e.to_string())
+        }
         other => PyValueError::new_err(other.to_string()),
     }
 }
@@ -213,7 +221,11 @@ impl ParallelEnv {
                     "action index {index} for '{name}' is negative"
                 )));
             }
-            map.insert(id, index as usize);
+            if map.insert(id, index as usize).is_some() {
+                return Err(PyValueError::new_err(format!(
+                    "duplicate action entry for '{name}'"
+                )));
+            }
         }
         Ok(map)
     }
@@ -294,7 +306,11 @@ impl ParallelEnv {
         options: Option<&Bound<'py, PyDict>>,
     ) -> PyResult<(Bound<'py, PyDict>, Bound<'py, PyDict>)> {
         let _ = options;
-        let seed = seed.unwrap_or(self.episode.core_config().world.seed);
+        // An unseeded reset advances a deterministic fresh-seed chain
+        // (spec 014 review): the standard trainer loop — seed once, then
+        // bare reset() per episode — gets a genuinely new episode every
+        // time, while the whole sequence replays from the first seed.
+        let seed = seed.unwrap_or_else(|| advance_seed(self.episode.current_seed()));
         let episode = &mut self.episode;
         let step = py.allow_threads(|| episode.reset(seed));
         self.live = true;
@@ -332,6 +348,7 @@ impl ParallelEnv {
             &snapshot,
             self.episode.core_config(),
             &self.episode.rl_config().global_state,
+            &self.episode.rl_config().observation,
             clock,
         )
         .into_pyarray_bound(py)
@@ -392,7 +409,8 @@ impl VectorEnv {
             &episodes[0].rl_config().global_state,
         );
         let base = episodes[0].core_config().world.seed;
-        let seeds = seeds.unwrap_or_else(|| (0..n_worlds as u64).map(|i| base + i).collect());
+        let seeds =
+            seeds.unwrap_or_else(|| (0..n_worlds as u64).map(|i| base.wrapping_add(i)).collect());
         if seeds.len() != n_worlds {
             return Err(PyValueError::new_err("seeds must have one entry per world"));
         }
@@ -424,11 +442,21 @@ impl VectorEnv {
         py: Python<'py>,
         seeds: Option<Vec<u64>>,
     ) -> PyResult<(Bound<'py, PyDict>, Bound<'py, PyDict>)> {
-        if let Some(seeds) = seeds {
-            if seeds.len() != self.vector.len() {
-                return Err(PyValueError::new_err("seeds must have one entry per world"));
+        match seeds {
+            Some(seeds) => {
+                if seeds.len() != self.vector.len() {
+                    return Err(PyValueError::new_err("seeds must have one entry per world"));
+                }
+                self.seeds = seeds;
             }
-            self.seeds = seeds;
+            None => {
+                // Unseeded reset: every world advances its own deterministic
+                // fresh-seed chain (spec 014 review) — new episodes each
+                // call, the whole sequence reproducible, worlds distinct.
+                for seed in &mut self.seeds {
+                    *seed = advance_seed(*seed);
+                }
+            }
         }
         let vector = &mut self.vector;
         let seeds = self.seeds.clone();
@@ -458,9 +486,14 @@ impl VectorEnv {
                 )));
             }
             for (world, &index) in indices.iter().enumerate() {
-                if index < 0 {
+                // Validate the whole batch BEFORE any world steps: a bad
+                // index must not leave some worlds a tick ahead of others
+                // (spec 014 review — silent batch desync).
+                if index < 0 || index as usize >= self.menu_len {
                     return Err(PyIndexError::new_err(format!(
-                        "action index {index} for '{name}' is negative"
+                        "action index {index} for '{name}' in world {world} is out of \
+                         range (menu has {} entries); no world was stepped",
+                        self.menu_len
                     )));
                 }
                 per_world[world].insert(id, index as usize);
@@ -469,11 +502,24 @@ impl VectorEnv {
 
         let vector = &mut self.vector;
         let results = py.allow_threads(|| vector.step(&per_world));
+        // Keep last_states coherent for whatever succeeded before surfacing
+        // any per-world failure (a poisoned world after an engine panic).
         let mut steps = Vec::with_capacity(n);
-        for result in results {
-            steps.push(result.map_err(episode_err)?);
+        let mut failure: Option<EpisodeError> = None;
+        for (world, result) in results.into_iter().enumerate() {
+            match result {
+                Ok(step) => {
+                    self.last_states[world] = step.global_state.clone();
+                    steps.push(step);
+                }
+                Err(e) => {
+                    failure.get_or_insert(e);
+                }
+            }
         }
-        self.last_states = steps.iter().map(|s| s.global_state.clone()).collect();
+        if let Some(e) = failure {
+            return Err(episode_err(e));
+        }
 
         let obs = self.stack_observations(py, &steps)?;
         let rewards = PyDict::new_bound(py);
@@ -514,10 +560,14 @@ impl VectorEnv {
 
 impl VectorEnv {
     /// Infos stacked on the leading world axis, one entry per agent:
-    /// mask [n, menu], decision_seed [n], survived [n], applied_action [n]
-    /// (−1 when inexpressible or at reset), provenance (list of str/None).
-    /// Stacked rather than per-world dicts so a vector step marshals a
-    /// handful of arrays, not hundreds of small objects.
+    /// mask [n, menu] (uint8), decision_seed [n] (uint64), survived [n]
+    /// (int8: 1 passed validation, 0 rewritten, −1 no proposal — reset or
+    /// substituted idle), applied_action [n] (int64, −1 when inexpressible
+    /// or at reset), applied_action_name (list of str/None), provenance
+    /// (list of str/None). Stacked rather than per-world dicts so a vector
+    /// step marshals a handful of arrays, not hundreds of small objects —
+    /// and carrying the same fields as ParallelEnv's infos (spec 014
+    /// review: the schema must not narrow between the two surfaces).
     fn stack_infos<'py>(
         &self,
         py: Python<'py>,
@@ -528,8 +578,9 @@ impl VectorEnv {
         for id in &self.external {
             let mut mask = Vec::with_capacity(n * self.menu_len);
             let mut seeds = Vec::with_capacity(n);
-            let mut survived = Vec::with_capacity(n);
+            let mut survived: Vec<i8> = Vec::with_capacity(n);
             let mut applied = Vec::with_capacity(n);
+            let mut applied_names: Vec<Option<String>> = Vec::with_capacity(n);
             let mut provenance: Vec<Option<&'static str>> = Vec::with_capacity(n);
             for step in steps {
                 let info = step
@@ -538,8 +589,13 @@ impl VectorEnv {
                     .ok_or_else(|| PyRuntimeError::new_err("missing info"))?;
                 mask.extend_from_slice(&info.mask);
                 seeds.push(info.decision_seed);
-                survived.push(info.survived.unwrap_or(true));
+                survived.push(match info.survived {
+                    Some(true) => 1,
+                    Some(false) => 0,
+                    None => -1,
+                });
                 applied.push(info.applied_action.map(|a| a as i64).unwrap_or(-1));
+                applied_names.push(info.applied_action_name.clone());
                 provenance.push(info.provenance.map(provenance_str));
             }
             let agent = PyDict::new_bound(py);
@@ -552,6 +608,7 @@ impl VectorEnv {
             agent.set_item("decision_seed", seeds.into_pyarray_bound(py))?;
             agent.set_item("survived", survived.into_pyarray_bound(py))?;
             agent.set_item("applied_action", applied.into_pyarray_bound(py))?;
+            agent.set_item("applied_action_name", applied_names)?;
             agent.set_item("provenance", provenance)?;
             infos.set_item(agent_name(*id), agent)?;
         }

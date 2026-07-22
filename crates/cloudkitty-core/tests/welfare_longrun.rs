@@ -31,60 +31,11 @@
 use std::sync::Arc;
 
 use cloudkitty_core::config::Config;
-use cloudkitty_core::element::{ElementKind, ElementType};
+use cloudkitty_core::element::ElementKind;
 use cloudkitty_core::kitty::Activity;
 use cloudkitty_core::needs::NeedKind;
+use cloudkitty_core::test_support::assert_orthogonal_scenes;
 use cloudkitty_core::{BehaviorRegistry, World};
-
-/// Spec 009 SC-001: interactions happen only in orthogonal range (own tile +
-/// four compass neighbours). Asserted per tick on the scenes whose
-/// counterparts cannot move mid-scene and so are soundly observable *after*
-/// the environment phase: a Drinking kitty's water (permanent, stationary)
-/// and a conscripted duet's partner (both clocked, both stationary).
-///
-/// Meals are deliberately *not* asserted here: a lawful meal can begin on a
-/// bowl's last serving — the bowl is orthogonal at apply time, gets consumed,
-/// expires in the same tick's environment phase, and `ensure_minimums` may
-/// even drop a fresh bowl diagonal to the eater before this observation runs
-/// (both cases found by this suite's own determinism, ticks 134 and 2343).
-/// Post-tick element positions cannot identify a meal's bowl; the meal-range
-/// rule is enforced at its true seam instead — `validate` and
-/// `adjacent_stocked_chow` gate both entry and every serving through
-/// orthogonal `is_adjacent`, unit-tested in `action.rs` and `world.rs`.
-fn assert_orthogonal_scenes(world: &World) {
-    for kitty in world.kitties.iter() {
-        match kitty.activity {
-            Activity::Drinking => {
-                let water_in_range = world.elements.iter().any(|e| {
-                    e.element_type() == ElementType::Water
-                        && kitty.pos.manhattan_distance(&e.pos) <= 1
-                });
-                assert!(
-                    water_in_range,
-                    "009 SC-001: {} is drinking with no water in orthogonal range at tick {}",
-                    kitty.name, world.tick
-                );
-            }
-            Activity::Resting {
-                with_friend: Some(friend),
-            }
-            | Activity::Playing {
-                target: Some(cloudkitty_core::action::TargetRef::Kitty { id: friend }),
-            } => {
-                let partner_in_range = world
-                    .kitties
-                    .iter()
-                    .any(|k| k.id == friend && kitty.pos.manhattan_distance(&k.pos) <= 1);
-                assert!(
-                    partner_in_range,
-                    "009 SC-001: {}'s duet partner is out of orthogonal range at tick {}",
-                    kitty.name, world.tick
-                );
-            }
-            _ => {}
-        }
-    }
-}
 
 #[tokio::test]
 async fn a_crowded_out_kitty_is_fed_by_retarget_and_respawn_not_by_reaching_across() {

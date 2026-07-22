@@ -51,6 +51,13 @@ pub struct World {
     pub rng: SimRng,
     pub config_fingerprint: String,
     next_element_id: ElementId,
+    /// The activities that ended during the tick in progress — drained by
+    /// the phase pipeline into the tick report (spec 014 FR-003). Captured
+    /// directly at `end_activity` rather than read back through the bounded
+    /// ring, so the report stays honest at any configured retention.
+    /// Transient: never serialized.
+    #[serde(skip)]
+    pending_endings: Vec<ActivityEnd>,
 }
 
 /// The read-only view handed to behaviors and pushed to viewers.
@@ -83,6 +90,7 @@ impl World {
             rng: SimRng::from_seed(config.world.seed),
             config_fingerprint: config.fingerprint(),
             next_element_id: 1,
+            pending_endings: Vec::new(),
         };
 
         for kc in &config.kitties {
@@ -147,6 +155,7 @@ impl World {
             rng: SimRng::from_seed(0),
             config_fingerprint: String::new(),
             next_element_id,
+            pending_endings: Vec::new(),
         }
     }
 
@@ -171,11 +180,15 @@ impl World {
     /// stable id order (Article V discipline; spec 014 FR-003 exposes them).
     /// Exactly one `u64` draw per kitty -- the same shape every dispatch path
     /// consumes, which is what keeps same-seed futures coincident.
-    pub fn deal_decision_seeds(&mut self) -> Vec<(KittyId, u64)> {
+    pub fn deal_decision_seeds(&mut self) -> crate::seam::DealtSeeds {
         let ids: Vec<KittyId> = self.kitties.iter().map(|k| k.id).collect();
-        ids.into_iter()
-            .map(|id| (id, self.rng.next_u64()))
-            .collect()
+        crate::seam::DealtSeeds {
+            tick: self.tick,
+            seeds: ids
+                .into_iter()
+                .map(|id| (id, self.rng.next_u64()))
+                .collect(),
+        }
     }
 
     /// Advances the world exactly one tick from externally supplied proposals
@@ -189,24 +202,36 @@ impl World {
         config: &Config,
     ) -> crate::seam::TickReport {
         let seeds = self.deal_decision_seeds();
-        self.tick_with_proposals_seeded(proposals, &seeds, config)
+        self.tick_with_proposals_seeded(proposals, seeds, config)
     }
 
     /// The seeded form of [`World::tick_with_proposals`], for drivers that
     /// dealt this tick's decision seeds themselves (mixed control needs the
     /// seeds *before* the tick, to run scripted behaviors and to surface
-    /// them to trainers -- spec 014 FR-015/FR-020). The seeds must be the
-    /// ones [`World::deal_decision_seeds`] returned for this tick; dealing
-    /// them early and applying here draws the identical master-RNG stream a
-    /// behavior-driven tick would.
+    /// them to trainers -- spec 014 FR-015/FR-020). Dealing early and
+    /// applying here draws the identical master-RNG stream a
+    /// behavior-driven tick would; the deal's tick stamp is asserted, and
+    /// the value is consumed, so it cannot be reused.
+    ///
+    /// # Panics
+    ///
+    /// If `seeds` was dealt for a different tick -- a driver bug that would
+    /// otherwise silently break same-seed reproducibility (Article V).
     pub fn tick_with_proposals_seeded(
         &mut self,
         proposals: &crate::seam::JointProposal,
-        seeds: &[(KittyId, u64)],
+        seeds: crate::seam::DealtSeeds,
         config: &Config,
     ) -> crate::seam::TickReport {
         use crate::seam::{KittyTickRecord, ProposalEntry, Provenance, TickReport};
 
+        assert_eq!(
+            seeds.tick, self.tick,
+            "decision seeds were dealt for tick {} but applied at tick {}; \
+             deal_decision_seeds must be called exactly once per tick, on the \
+             tick it is applied to",
+            seeds.tick, self.tick
+        );
         let roster: Vec<KittyId> = self.kitties.iter().map(|k| k.id).collect();
         let mut decisions = Vec::with_capacity(roster.len());
         let mut marks = Vec::with_capacity(roster.len());
@@ -225,25 +250,28 @@ impl World {
         let unconsumed: Vec<KittyId> = proposals.ids().filter(|id| !roster.contains(id)).collect();
 
         let outcome = self.run_applied_phases(&decisions, config);
+        let applied_by_id: std::collections::BTreeMap<
+            KittyId,
+            (crate::action::Action, crate::action::Action),
+        > = outcome
+            .per_kitty
+            .iter()
+            .map(|&(id, validated, applied)| (id, (validated, applied)))
+            .collect();
 
+        // `roster`, `decisions`, and `marks` are index-aligned by
+        // construction (one entry per roster kitty, same loop).
         let mut records = Vec::with_capacity(roster.len());
-        for (&id, &(_, provenance)) in roster.iter().zip(marks.iter()) {
-            let proposed = decisions
-                .iter()
-                .find(|(d, _)| *d == id)
-                .map(|&(_, a)| a)
-                .unwrap_or(crate::action::Action::Idle);
-            let (validated, applied) = outcome
-                .per_kitty
-                .iter()
-                .find(|(k, _, _)| *k == id)
-                .map(|&(_, v, a)| (v, a))
-                .unwrap_or((crate::action::Action::Idle, crate::action::Action::Idle));
-            let decision_seed = seeds
-                .iter()
-                .find(|(k, _)| *k == id)
-                .map(|&(_, s)| s)
-                .unwrap_or(0);
+        for (index, &id) in roster.iter().enumerate() {
+            let (_, proposed) = decisions[index];
+            let (_, provenance) = marks[index];
+            let (validated, applied) = applied_by_id
+                .get(&id)
+                .copied()
+                .expect("the phase pipeline hears every kitty that has a decision");
+            let decision_seed = seeds.seed_for(id).expect(
+                "the deal covers every roster kitty: both come from this world at this tick",
+            );
             records.push(KittyTickRecord {
                 kitty_id: id,
                 proposed,
@@ -275,8 +303,7 @@ impl World {
         decisions: &[(KittyId, crate::action::Action)],
         config: &Config,
     ) -> PhaseOutcome {
-        let tick_at_start = self.tick;
-        let endings_before = self.activity_log.total_recorded();
+        self.pending_endings.clear();
         let mut per_kitty = Vec::with_capacity(self.kitties.len());
 
         let order = self.draw_turn_order();
@@ -317,7 +344,10 @@ impl World {
 
         // Phase 4: needs rise, happiness follows, distress is noted, invariants hold.
         self.advance_needs(config);
-        self.record_distress(config);
+        // The honest per-tick capture (spec 014 FR-003): both event kinds are
+        // taken at their source, so the report cannot under-report however
+        // small the configured retention rings are.
+        let distress_events = self.record_distress(config);
         // Spec 011: purrs start and stop here, with happiness at its freshest.
         self.purr_phase(config);
         self.tick += 1;
@@ -325,16 +355,7 @@ impl World {
 
         invariants::assert_or_report(self, config);
 
-        // The honest per-tick event capture for the report (spec 014 FR-003).
-        let distress_events = self
-            .distress
-            .events()
-            .filter(|e| e.tick == tick_at_start)
-            .cloned()
-            .collect();
-        let new_endings = (self.activity_log.total_recorded() - endings_before) as usize;
-        let endings = self.activity_log.to_vec();
-        let activity_endings = endings[endings.len().saturating_sub(new_endings)..].to_vec();
+        let activity_endings = std::mem::take(&mut self.pending_endings);
 
         PhaseOutcome {
             per_kitty,
@@ -373,12 +394,14 @@ impl World {
         for id in std::iter::once(kitty_id).chain(partner) {
             if let Some(idx) = self.kitty_index(id) {
                 if let Some(clock) = self.kitties[idx].activity_clock {
-                    self.activity_log.record(ActivityEnd {
+                    let end = ActivityEnd {
                         kitty_id: id,
                         activity: self.kitties[idx].activity,
                         started: clock.started,
                         ended: clock.applied,
-                    });
+                    };
+                    self.activity_log.record(end);
+                    self.pending_endings.push(end);
                 }
                 self.kitties[idx].clear_activity();
             }
@@ -447,11 +470,35 @@ impl World {
         validated: crate::action::Action,
         config: &Config,
     ) -> crate::action::Action {
+        match self.duration_ruling(kitty_id, &validated, config) {
+            DurationRuling::NotGoverned => validated,
+            DurationRuling::Continue(continuation) => continuation,
+            DurationRuling::Interrupt => {
+                // A different action applying past the minimum lawfully
+                // interrupts: the activity ends in this very slot (for both
+                // duet partners).
+                self.end_activity(kitty_id);
+                validated
+            }
+        }
+    }
+
+    /// The one implementation of the duration-enforcement law, read-only:
+    /// what this tick's enforcement rules for `validated`. Both
+    /// [`World::enforce_durations`] (the tick's mutating arm) and
+    /// [`World::enforcement_verdict`] (the mask's read-only probe) are thin
+    /// matches over this ruling, so the law cannot drift between them.
+    fn duration_ruling(
+        &self,
+        kitty_id: KittyId,
+        validated: &crate::action::Action,
+        config: &Config,
+    ) -> DurationRuling {
         let Some(kitty) = self.kitty(kitty_id) else {
-            return validated;
+            return DurationRuling::NotGoverned;
         };
         let Some(clock) = kitty.activity_clock else {
-            return validated;
+            return DurationRuling::NotGoverned;
         };
         let activity = kitty.activity;
         // Both are `None` exactly for Idle, and an Idle kitty carries no
@@ -462,16 +509,15 @@ impl World {
             activity.continuation(),
             activity.bounds(&config.actions.durations),
         ) else {
-            return validated;
+            return DurationRuling::NotGoverned;
         };
-        if activity.is_continued_by(&validated) {
-            return continuation;
+        if activity.is_continued_by(validated) {
+            return DurationRuling::Continue(continuation);
         }
         if clock.serviced_before(self.tick) < bounds.min {
-            return continuation;
+            return DurationRuling::Continue(continuation);
         }
-        self.end_activity(kitty_id);
-        validated
+        DurationRuling::Interrupt
     }
 
     /// The apply slot's gauntlet, run for real (spec 014): counterpart
@@ -493,35 +539,19 @@ impl World {
 
     /// The read-only twin of `enforce_durations` (spec 014): what duration
     /// enforcement *would* return for `validated` this tick, without ending
-    /// anything. The logic must mirror `enforce_durations` line for line
-    /// minus the `end_activity` side effect; the mask's pure-oracle property
-    /// test (amended FR-018) guards the pair against drift.
+    /// anything. Both arms share [`World::duration_ruling`] -- one law, two
+    /// consumers -- and the mask's pure-oracle property test (amended
+    /// FR-018) still checks them against each other end to end.
     pub fn enforcement_verdict(
         &self,
         kitty_id: KittyId,
         validated: &crate::action::Action,
         config: &Config,
     ) -> crate::action::Action {
-        let Some(kitty) = self.kitty(kitty_id) else {
-            return *validated;
-        };
-        let Some(clock) = kitty.activity_clock else {
-            return *validated;
-        };
-        let activity = kitty.activity;
-        let (Some(continuation), Some(bounds)) = (
-            activity.continuation(),
-            activity.bounds(&config.actions.durations),
-        ) else {
-            return *validated;
-        };
-        if activity.is_continued_by(validated) {
-            return continuation;
+        match self.duration_ruling(kitty_id, validated, config) {
+            DurationRuling::NotGoverned | DurationRuling::Interrupt => *validated,
+            DurationRuling::Continue(continuation) => continuation,
         }
-        if clock.serviced_before(self.tick) < bounds.min {
-            return continuation;
-        }
-        *validated
     }
 
     /// Spec 006 FR-005/006/008: the closing step of the apply phase. Every
@@ -799,8 +829,10 @@ impl World {
     }
 
     /// Edge-triggered: a need records one event when it crosses the threshold and
-    /// stays quiet until it drops back below and crosses again.
-    fn record_distress(&mut self, config: &Config) {
+    /// stays quiet until it drops back below and crosses again. Returns the
+    /// events this call produced — the tick report's capture (spec 014
+    /// FR-003), taken at the source rather than read back through the ring.
+    fn record_distress(&mut self, config: &Config) -> Vec<DistressEvent> {
         let threshold = config.thresholds.distress;
         let tick = self.tick;
         let mut new_events = Vec::new();
@@ -829,9 +861,10 @@ impl World {
             }
         }
 
-        for event in new_events {
-            self.distress.record(event);
+        for event in &new_events {
+            self.distress.record(event.clone());
         }
+        new_events
     }
 
     /// Spec 011: purring is engine-owned background state, never an action.
@@ -1001,8 +1034,14 @@ impl World {
     }
 
     pub(crate) fn allocate_element_id(&mut self) -> ElementId {
+        // 0 is skipped by long precedent; u32::MAX is reserved (spec 014:
+        // the action codec's vacant-slot sentinel must never name a live
+        // element).
+        if self.next_element_id == 0 || self.next_element_id == ElementId::MAX {
+            self.next_element_id = 1;
+        }
         let id = self.next_element_id;
-        self.next_element_id = self.next_element_id.wrapping_add(1).max(1);
+        self.next_element_id = self.next_element_id.wrapping_add(1);
         id
     }
 
@@ -1022,6 +1061,18 @@ impl World {
         }
         free
     }
+}
+
+/// The duration-enforcement law's ruling for one validated action
+/// (spec 006 FR-003/004, one implementation since the spec 014 review).
+enum DurationRuling {
+    /// No activity in progress (or an unbounded one): the action stands.
+    NotGoverned,
+    /// The scene continues: the action is rewritten to the continuation.
+    Continue(crate::action::Action),
+    /// Past the minimum, not a continuation: the activity ends and the
+    /// action applies as validated.
+    Interrupt,
 }
 
 /// What the shared phase pipeline hands back to whichever tick drove it:

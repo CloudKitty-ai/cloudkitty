@@ -9,32 +9,11 @@ use std::sync::Arc;
 
 use cloudkitty_core::{BehaviorRegistry, Config, World};
 use cloudkitty_rl::config::RlConfig;
-use cloudkitty_rl::observe::observation_len;
-use cloudkitty_rl::policy::{write_artifact, ArtifactHeader, ARTIFACT_VERSION};
+use cloudkitty_rl::test_support;
 use cloudkitty_server::register_policy_behaviors;
 
 fn fixture_artifact(name: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join("ck-server-policy");
-    std::fs::create_dir_all(&dir).unwrap();
-    let path = dir.join(format!("{name}.ckpolicy"));
-    let rl = RlConfig::default();
-    let input = observation_len(&rl.observation);
-    let header = ArtifactHeader {
-        artifact_version: ARTIFACT_VERSION,
-        observation_schema: 1,
-        action_schema: 1,
-        mask_schema: 1,
-        layers: vec![[input, 8], [8, 40]],
-        activation: "relu".into(),
-    };
-    let w1: Vec<f32> = (0..input * 8)
-        .map(|i| ((i % 19) as f32 - 9.0) * 0.01)
-        .collect();
-    let w2: Vec<f32> = (0..8 * 40)
-        .map(|i| ((i % 11) as f32 - 5.0) * 0.02)
-        .collect();
-    write_artifact(&path, &header, &[(w1, vec![0.0; 8]), (w2, vec![0.0; 40])]).unwrap();
-    path
+    test_support::fixture_artifact("ck-server-policy", name, 8, 11)
 }
 
 fn policy_config_text(artifact: &std::path::Path) -> String {
@@ -80,9 +59,10 @@ fn startup_validates_and_registers_the_policy_before_any_tick() {
     let text = policy_config_text(&artifact);
     let config: Config = toml::from_str(&text).unwrap();
     config.validate().unwrap();
+    let rl = RlConfig::from_toml_str(&text).unwrap();
 
     let mut registry = BehaviorRegistry::with_builtins();
-    register_policy_behaviors(&mut registry, &config, &text).expect("a valid artifact registers");
+    register_policy_behaviors(&mut registry, &config, &rl).expect("a valid artifact registers");
     // The registered name validates like any built-in.
     config.validate_behavior_names(&registry.names()).unwrap();
     assert!(registry.get("policy:trained").is_some());
@@ -97,8 +77,9 @@ fn a_corrupted_artifact_fails_startup_naming_the_config_field() {
 
     let text = policy_config_text(&corrupt);
     let config: Config = toml::from_str(&text).unwrap();
+    let rl = RlConfig::from_toml_str(&text).unwrap();
     let mut registry = BehaviorRegistry::with_builtins();
-    let err = register_policy_behaviors(&mut registry, &config, &text).unwrap_err();
+    let err = register_policy_behaviors(&mut registry, &config, &rl).unwrap_err();
     let message = format!("{err:#}");
     assert!(
         message.contains("[rl.policy.trained].artifact"),
@@ -108,7 +89,8 @@ fn a_corrupted_artifact_fails_startup_naming_the_config_field() {
     // A missing [rl.policy] block is equally fatal, equally named.
     let mut no_block: Config = toml::from_str(&text).unwrap();
     no_block.kitties[2].behavior = "policy:unconfigured".into();
-    let err = register_policy_behaviors(&mut registry, &no_block, "").unwrap_err();
+    let err =
+        register_policy_behaviors(&mut registry, &no_block, &RlConfig::default()).unwrap_err();
     assert!(
         format!("{err:#}").contains("[rl.policy.unconfigured]"),
         "{err:#}"
@@ -121,8 +103,9 @@ async fn a_policy_kitty_is_viewer_indistinguishable_from_a_built_in() {
     let text = policy_config_text(&artifact);
     let config: Config = toml::from_str(&text).unwrap();
     config.validate().unwrap();
+    let rl = RlConfig::from_toml_str(&text).unwrap();
     let mut registry = BehaviorRegistry::with_builtins();
-    register_policy_behaviors(&mut registry, &config, &text).unwrap();
+    register_policy_behaviors(&mut registry, &config, &rl).unwrap();
     let config = Arc::new(config);
 
     // Drive the served tick (budgeted path) with the policy kitty rostered.

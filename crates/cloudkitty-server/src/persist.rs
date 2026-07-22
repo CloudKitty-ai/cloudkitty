@@ -115,6 +115,19 @@ pub fn load_and_validate(path: &Path, config: &Config) -> Result<World, PersistE
     // trusting the file.
     world.kitties.sort_by_key(|k| k.id);
 
+    // Behaviors are configuration, not world state (spec 014 review): the
+    // config named them at generate time and stays their source of truth on
+    // resume. Without this re-stamp, an operator's behavior edit — most
+    // pointedly seating a policy (`behavior = "policy:<name>"`) — would be
+    // validated and logged at startup yet silently lose to the string
+    // persisted in the snapshot, and a snapshot naming a behavior the
+    // config no longer registers would quietly run the fallback forever.
+    for kitty in &mut world.kitties {
+        if let Some(configured) = config.kitties.iter().find(|kc| kc.id == kitty.id) {
+            kitty.behavior = configured.behavior.clone();
+        }
+    }
+
     if let Err(violation) = invariants::check(&world, config) {
         return Err(PersistError::Unlawful {
             path: path.to_path_buf(),
@@ -232,6 +245,29 @@ mod tests {
         save(&world, &path).expect("first save");
         save(&world, &path).expect("second save must not trip over the first");
         assert!(load_and_validate(&path, &config).is_ok());
+    }
+
+    #[test]
+    fn a_resumed_world_takes_its_behaviors_from_the_config() {
+        // Spec 014 review: editing a kitty's behavior (e.g. seating a
+        // policy) must take effect on restart — the persisted string loses.
+        let dir = temp_dir("restamp");
+        let path = dir.join("snapshot.json");
+        let config = test_config();
+        save(&World::generate(&config), &path).expect("save");
+
+        let mut edited = test_config();
+        edited.kitties[0].behavior = "policy:trained".into();
+
+        let world = load_and_validate(&path, &edited).expect("load");
+        let kitty = world
+            .kitties
+            .iter()
+            .find(|k| k.id == edited.kitties[0].id)
+            .unwrap();
+        assert_eq!(kitty.behavior, "policy:trained");
+        // Untouched kitties keep their configured behavior too.
+        assert_eq!(world.kitties[1].behavior, edited.kitties[1].behavior);
     }
 
     #[test]

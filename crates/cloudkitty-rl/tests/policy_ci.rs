@@ -20,32 +20,11 @@ use cloudkitty_core::world::World;
 use cloudkitty_core::Config;
 use cloudkitty_rl::behavior::PolicyBehavior;
 use cloudkitty_rl::config::RlConfig;
-use cloudkitty_rl::observe::observation_len;
-use cloudkitty_rl::policy::{write_artifact, ArtifactHeader, ARTIFACT_VERSION};
+use cloudkitty_rl::test_support;
 use cloudkitty_rl::welfare::WelfareAccumulator;
 
 fn fixture_artifact() -> PathBuf {
-    let dir = std::env::temp_dir().join("ck-policy-ci");
-    std::fs::create_dir_all(&dir).unwrap();
-    let path = dir.join("fixture.ckpolicy");
-    let rl = RlConfig::default();
-    let input = observation_len(&rl.observation);
-    let header = ArtifactHeader {
-        artifact_version: ARTIFACT_VERSION,
-        observation_schema: 1,
-        action_schema: 1,
-        mask_schema: 1,
-        layers: vec![[input, 12], [12, 40]],
-        activation: "relu".into(),
-    };
-    let w1: Vec<f32> = (0..input * 12)
-        .map(|i| ((i % 17) as f32 - 8.0) * 0.015)
-        .collect();
-    let w2: Vec<f32> = (0..12 * 40)
-        .map(|i| ((i % 7) as f32 - 3.0) * 0.04)
-        .collect();
-    write_artifact(&path, &header, &[(w1, vec![0.05; 12]), (w2, vec![0.0; 40])]).unwrap();
-    path
+    test_support::fixture_artifact("ck-policy-ci", "fixture", 12, 7)
 }
 
 fn policy_registry(rl: &RlConfig) -> BehaviorRegistry {

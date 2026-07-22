@@ -790,6 +790,14 @@ impl Config {
                     "kitty ids must be unique",
                 ));
             }
+            if k.id == KittyId::MAX {
+                return Err(ConfigError::invalid(
+                    "[[kitty]] id",
+                    k.id.to_string(),
+                    "this id is reserved by the engine (spec 014: it marks a vacant \
+                     observation slot, so no live kitty may ever carry it)",
+                ));
+            }
             if !k.position().in_bounds(self.world.width, self.world.height) {
                 return Err(ConfigError::invalid(
                     format!("[[kitty]] '{}' position", k.name),
@@ -1195,6 +1203,17 @@ mod tests {
         let mut c = cfg();
         c.kitties.clear();
         assert!(c.validate().is_err());
+    }
+
+    #[test]
+    fn the_reserved_kitty_id_is_rejected() {
+        // Spec 014 review: u32::MAX is the action codec's vacant-slot
+        // sentinel; a live kitty carrying it would turn every vacant menu
+        // entry into a real proposal against that kitty.
+        let mut c = cfg();
+        c.kitties[0].id = u32::MAX;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("reserved"), "{msg}");
     }
 
     #[test]

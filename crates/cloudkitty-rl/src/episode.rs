@@ -18,7 +18,7 @@ use cloudkitty_core::action::Action;
 use cloudkitty_core::behavior::{resolve_one, BehaviorRegistry, DecisionContext};
 use cloudkitty_core::kitty::KittyId;
 use cloudkitty_core::rng::DecisionRng;
-use cloudkitty_core::seam::{JointProposal, Provenance, TickReport};
+use cloudkitty_core::seam::{DealtSeeds, JointProposal, Provenance, TickReport};
 use cloudkitty_core::world::World;
 use cloudkitty_core::Config;
 use thiserror::Error;
@@ -48,6 +48,8 @@ pub enum EpisodeError {
     },
     #[error("step after truncation: reset the episode first")]
     SteppedAfterTruncation,
+    #[error("world panicked and is poisoned until reset elsewhere: {message}")]
+    Panicked { message: String },
 }
 
 /// Who decides for one kitty.
@@ -109,8 +111,13 @@ pub struct Episode {
     world: World,
     tick_in_episode: u64,
     truncated: bool,
-    /// Seeds dealt for the *next* tick's decisions.
-    pending_seeds: Vec<(KittyId, u64)>,
+    /// Seeds dealt for the *next* tick's decisions. Always `Some` between
+    /// calls; taken by value when the tick consumes it (the engine's
+    /// DealtSeeds contract — a deal can never be skipped or reused).
+    pending_seeds: Option<DealtSeeds>,
+    /// The seed the current world was generated from — the base
+    /// [`advance_seed`] steps from for an unseeded reset.
+    current_seed: u64,
     /// Start-of-tick target tables from the last observation encoding, used
     /// to express applied actions back as menu indices.
     last_tables: BTreeMap<KittyId, TargetTable>,
@@ -158,7 +165,8 @@ impl Episode {
             world: World::generate(&Config::default()), // replaced by reset
             tick_in_episode: 0,
             truncated: false,
-            pending_seeds: Vec::new(),
+            pending_seeds: None,
+            current_seed: seed,
             last_tables: BTreeMap::new(),
             prev_level: 0.0,
             prev_potential: 0.0,
@@ -213,14 +221,31 @@ impl Episode {
         config.world.seed = seed;
         self.world = World::generate(&config);
         self.core = Arc::new(config);
+        self.current_seed = seed;
         self.tick_in_episode = 0;
         self.truncated = false;
-        self.pending_seeds = self.world.deal_decision_seeds();
+        self.pending_seeds = Some(self.world.deal_decision_seeds());
         let snapshot = self.world.snapshot();
         self.prev_level = team_reward(&snapshot, &self.core, &self.rl.reward);
         self.prev_potential =
             shaping_potential(&snapshot, self.rl.reward.shaping.distress_coefficient);
-        self.collect_step(0.0, TickReport::default(), BTreeMap::new())
+        self.collect_step(0.0, TickReport::default(), BTreeMap::new(), snapshot)
+    }
+
+    /// The seed the current world was generated from.
+    pub fn current_seed(&self) -> u64 {
+        self.current_seed
+    }
+
+    /// Resets to the next seed in the deterministic reset chain
+    /// ([`advance_seed`] of the current seed): a fresh episode every call,
+    /// reproducible as a *sequence* — the same initial seed and reset
+    /// pattern replay the same run of episodes. This is what an unseeded
+    /// PettingZoo `reset()` should do; replaying one fixed seed forever
+    /// silently collapses training-data diversity.
+    pub fn reset_fresh(&mut self) -> EpisodeStep {
+        let next = advance_seed(self.current_seed);
+        self.reset(next)
     }
 
     /// One joint-action step. `actions` maps every external agent to a menu
@@ -242,10 +267,9 @@ impl Episode {
                 Some(Control::Builtin(name)) => {
                     let seed = self
                         .pending_seeds
-                        .iter()
-                        .find(|(id, _)| *id == kitty.id)
-                        .map(|&(_, s)| s)
-                        .unwrap_or(0);
+                        .as_ref()
+                        .and_then(|dealt| dealt.seed_for(kitty.id))
+                        .expect("seeds are dealt for every roster kitty");
                     let ctx = DecisionContext {
                         me: kitty.clone(),
                         world: snapshot.clone(),
@@ -276,15 +300,28 @@ impl Episode {
             }
         }
 
-        let seeds = std::mem::take(&mut self.pending_seeds);
-        let report = self
+        let seeds = self
+            .pending_seeds
+            .take()
+            .expect("seeds are dealt at reset and after every step");
+        let mut report = self
             .world
-            .tick_with_proposals_seeded(&proposals, &seeds, &self.core);
+            .tick_with_proposals_seeded(&proposals, seeds, &self.core);
+        // The tick marks every present proposal PolicyMade — it cannot know
+        // a scripted proposal came from the fallback. Restore the honest
+        // dispatch provenance (FR-017: a broken advisor must never ride the
+        // fallback unnoticed, mixed control included).
+        for record in &mut report.records {
+            if let Some(mark) = scripted_marks.get(&record.kitty_id) {
+                record.provenance = *mark;
+            }
+        }
         self.tick_in_episode += 1;
         self.truncated = self.tick_in_episode >= self.horizon;
-        self.pending_seeds = self.world.deal_decision_seeds();
+        self.pending_seeds = Some(self.world.deal_decision_seeds());
 
-        // Reward from the post-tick snapshot, full roster (FR-008/FR-020).
+        // Reward from the post-tick snapshot, full roster (FR-008/FR-020);
+        // the same snapshot feeds the observation encoding below.
         let snapshot = self.world.snapshot();
         let level = team_reward(&snapshot, &self.core, &self.rl.reward);
         let mut reward = match self.rl.reward.mode {
@@ -299,17 +336,20 @@ impl Episode {
         }
         self.prev_level = level;
 
-        Ok(self.collect_step(reward, report, scripted_marks))
+        Ok(self.collect_step(reward, report, scripted_marks, snapshot))
     }
 
-    /// Encodes the post-tick views and assembles the step result.
+    /// Encodes the post-tick views (from the snapshot the caller already
+    /// took) and assembles the step result. Only external agents are
+    /// encoded: scripted kitties consume no observation, mask, or table —
+    /// their decisions come from the engine-dealt streams in `step`.
     fn collect_step(
         &mut self,
         reward: f64,
         report: TickReport,
         scripted_marks: BTreeMap<KittyId, Provenance>,
+        snapshot: cloudkitty_core::world::WorldSnapshot,
     ) -> EpisodeStep {
-        let snapshot = self.world.snapshot();
         let clock = if self.horizon > 0 {
             self.tick_in_episode as f32 / self.horizon as f32
         } else {
@@ -320,47 +360,54 @@ impl Episode {
         let mut infos = BTreeMap::new();
         let mut new_tables = BTreeMap::new();
 
-        for kitty in &snapshot.kitties {
+        for &id in &externals {
             let observation =
-                encode_observation(&snapshot, kitty.id, &self.core, &self.rl.observation, clock);
-            let mask = legal_action_mask(
-                &snapshot,
-                kitty.id,
-                &observation.table,
-                &self.codec,
-                &self.core,
-            );
-            let record = report.record(kitty.id);
+                encode_observation(&snapshot, id, &self.core, &self.rl.observation, clock);
+            let mask =
+                legal_action_mask(&snapshot, id, &observation.table, &self.codec, &self.core);
+            let record = report.record(id);
             let applied_action = record.and_then(|r| {
                 self.last_tables
-                    .get(&kitty.id)
+                    .get(&id)
                     .and_then(|table| self.codec.encode(&r.applied, table))
             });
             let info = AgentInfo {
                 applied_action,
                 applied_action_name: record.map(|r| action_name(&r.applied)),
-                survived: record.map(|r| r.validated == r.proposed),
+                // Honest bookkeeping: a substituted idle never *proposed*
+                // anything, so it has no survival verdict — None, not a
+                // fabricated true (spec 014 review).
+                survived: record.and_then(|r| {
+                    if r.provenance == Provenance::SubstitutedIdle {
+                        None
+                    } else {
+                        Some(r.validated == r.proposed)
+                    }
+                }),
                 mask: mask_bytes(&mask),
                 decision_seed: self
                     .pending_seeds
-                    .iter()
-                    .find(|(id, _)| *id == kitty.id)
-                    .map(|&(_, s)| s)
-                    .unwrap_or(0),
+                    .as_ref()
+                    .and_then(|dealt| dealt.seed_for(id))
+                    .expect("seeds are dealt for every roster kitty"),
                 provenance: scripted_marks
-                    .get(&kitty.id)
+                    .get(&id)
                     .copied()
                     .or(record.map(|r| r.provenance)),
             };
-            new_tables.insert(kitty.id, observation.table.clone());
-            if externals.contains(&kitty.id) {
-                observations.insert(kitty.id, observation);
-                infos.insert(kitty.id, info);
-            }
+            new_tables.insert(id, observation.table.clone());
+            observations.insert(id, observation);
+            infos.insert(id, info);
         }
         self.last_tables = new_tables;
 
-        let global_state = encode_global_state(&snapshot, &self.core, &self.rl.global_state, clock);
+        let global_state = encode_global_state(
+            &snapshot,
+            &self.core,
+            &self.rl.global_state,
+            &self.rl.observation,
+            clock,
+        );
 
         EpisodeStep {
             observations,
@@ -371,6 +418,15 @@ impl Episode {
             report,
         }
     }
+}
+
+/// One deterministic step of the unseeded-reset chain (splitmix64): fresh,
+/// well-scattered seeds whose *sequence* is reproducible from the first.
+pub fn advance_seed(seed: u64) -> u64 {
+    let mut z = seed.wrapping_add(0x9E37_79B9_7F4A_7C15);
+    z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
+    z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
+    z ^ (z >> 31)
 }
 
 /// The engine action's wire name (its serde tag).

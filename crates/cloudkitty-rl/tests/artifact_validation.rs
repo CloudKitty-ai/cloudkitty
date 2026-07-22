@@ -7,10 +7,7 @@ use std::path::PathBuf;
 
 use cloudkitty_rl::behavior::PolicyBehavior;
 use cloudkitty_rl::config::RlConfig;
-use cloudkitty_rl::observe::observation_len;
-use cloudkitty_rl::policy::{
-    write_artifact, ArtifactError, ArtifactHeader, PolicyArtifact, ARTIFACT_VERSION,
-};
+use cloudkitty_rl::policy::{ArtifactError, PolicyArtifact};
 
 fn scratch_dir(name: &str) -> PathBuf {
     let dir = std::env::temp_dir()
@@ -22,22 +19,7 @@ fn scratch_dir(name: &str) -> PathBuf {
 
 /// A valid artifact shaped for the default schemas: obs → 16 → 40.
 fn valid_artifact(path: &std::path::Path) {
-    let rl = RlConfig::default();
-    let input = observation_len(&rl.observation);
-    let header = ArtifactHeader {
-        artifact_version: ARTIFACT_VERSION,
-        observation_schema: 1,
-        action_schema: 1,
-        mask_schema: 1,
-        layers: vec![[input, 16], [16, 40]],
-        activation: "relu".into(),
-    };
-    // Deterministic pseudo-weights (no RNG: reproducible fixture bytes).
-    let w1: Vec<f32> = (0..input * 16)
-        .map(|i| ((i % 7) as f32 - 3.0) * 0.05)
-        .collect();
-    let w2: Vec<f32> = (0..16 * 40).map(|i| ((i % 5) as f32 - 2.0) * 0.1).collect();
-    write_artifact(path, &header, &[(w1, vec![0.0; 16]), (w2, vec![0.0; 40])]).unwrap();
+    cloudkitty_rl::test_support::write_fixture_artifact(path, 16, 5);
 }
 
 #[test]

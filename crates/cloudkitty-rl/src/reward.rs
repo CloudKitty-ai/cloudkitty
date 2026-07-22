@@ -18,15 +18,13 @@ use cloudkitty_core::Config;
 
 use crate::config::RewardConfig;
 
-/// A kitty's happiness with no floor: `100 − Σ need × weight`, in [0, 100]
-/// arithmetically (needs and weights are bounded) but never clamped by a
-/// display floor.
+/// A kitty's happiness with no floor: the engine's own
+/// [`cloudkitty_core::needs::raw_happiness`] formula, widened to f64 — one
+/// implementation of the formula across both crates (spec 014 review), so
+/// the training signal can never silently diverge from what the engine
+/// displays.
 pub fn unclamped_happiness(needs: &Needs, weights: &NeedWeights) -> f64 {
-    let weighted: f64 = cloudkitty_core::needs::NeedKind::ALL
-        .iter()
-        .map(|k| needs.get(*k) as f64 * weights.get(*k) as f64)
-        .sum();
-    100.0 - weighted
+    cloudkitty_core::needs::raw_happiness(needs, weights) as f64
 }
 
 /// The inequality-averse welfare aggregate of normalized happiness values
@@ -47,17 +45,30 @@ pub fn welfare_aggregate(normalized: &[f64], p: f64, epsilon: f64) -> f64 {
     mean - epsilon
 }
 
-/// The team welfare of a roster: one scalar over every kitty (FR-020).
+/// The team welfare of a roster (one scalar over every kitty, FR-020)
+/// together with the plain mean of the same normalized values — computed in
+/// one roster pass, since the harness reports both every tick.
+pub fn roster_welfare(
+    kitties: &[cloudkitty_core::kitty::Kitty],
+    core: &Config,
+    cfg: &RewardConfig,
+) -> (f64, f64) {
+    let normalized: Vec<f64> = kitties
+        .iter()
+        .map(|k| unclamped_happiness(&k.needs, &core.happiness.weights) / 100.0)
+        .collect();
+    let aggregate = welfare_aggregate(&normalized, cfg.p, cfg.epsilon);
+    let plain = normalized.iter().sum::<f64>() / normalized.len().max(1) as f64;
+    (aggregate, plain)
+}
+
+/// The team welfare alone (FR-020).
 pub fn team_welfare_of(
     kitties: &[cloudkitty_core::kitty::Kitty],
     core: &Config,
     cfg: &RewardConfig,
 ) -> f64 {
-    let normalized: Vec<f64> = kitties
-        .iter()
-        .map(|k| unclamped_happiness(&k.needs, &core.happiness.weights) / 100.0)
-        .collect();
-    welfare_aggregate(&normalized, cfg.p, cfg.epsilon)
+    roster_welfare(kitties, core, cfg).0
 }
 
 /// The team reward for a frozen snapshot: one scalar, broadcast to every

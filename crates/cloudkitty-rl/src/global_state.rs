@@ -16,12 +16,12 @@
 
 use cloudkitty_core::element::ElementType;
 use cloudkitty_core::grid::Position;
-use cloudkitty_core::kitty::Activity;
 use cloudkitty_core::needs::NeedKind;
 use cloudkitty_core::world::WorldSnapshot;
 use cloudkitty_core::Config;
 
-use crate::config::GlobalStateConfig;
+use crate::config::{GlobalStateConfig, ObservationConfig};
+use crate::observe::{activity_progress, push_activity, sort_by_proximity};
 
 /// Versioned like the observation schema (FR-019).
 pub const GLOBAL_STATE_SCHEMA_VERSION: u32 = 1;
@@ -38,11 +38,14 @@ pub fn global_state_len(roster: usize, cfg: &GlobalStateConfig) -> usize {
         + 1 // episode clock
 }
 
-/// Encodes the privileged global state. `episode_clock` is tick/horizon.
+/// Encodes the privileged global state. `observation` supplies the shared
+/// normalization constants (the critic's view of a trait must scale exactly
+/// as the actors' — spec 014 review); `episode_clock` is tick/horizon.
 pub fn encode_global_state(
     snapshot: &WorldSnapshot,
     core: &Config,
     cfg: &GlobalStateConfig,
+    observation: &ObservationConfig,
     episode_clock: f32,
 ) -> Vec<f32> {
     let width = snapshot.width as f32;
@@ -58,18 +61,7 @@ pub fn encode_global_state(
         v.push(kitty.happiness / 100.0);
         v.push(kitty.pos.x as f32 / width);
         v.push(kitty.pos.y as f32 / height);
-        let index = match kitty.activity {
-            Activity::Idle => 0,
-            Activity::Resting { .. } => 1,
-            Activity::Sleeping { .. } => 2,
-            Activity::Eating => 3,
-            Activity::Drinking => 4,
-            Activity::Playing { .. } => 5,
-            Activity::Grooming { .. } => 6,
-        };
-        for i in 0..7 {
-            v.push(if i == index { 1.0 } else { 0.0 });
-        }
+        push_activity(&mut v, &kitty.activity);
         let partner = kitty.activity.partner();
         v.push(if partner.is_some() { 1.0 } else { 0.0 });
         match partner.and_then(|p| snapshot.kitties.iter().position(|k| k.id == p)) {
@@ -82,16 +74,7 @@ pub fn encode_global_state(
                 v.push(0.0);
             }
         }
-        let progress = match (
-            kitty.activity_clock,
-            kitty.activity.bounds(&core.actions.durations),
-        ) {
-            (Some(clock), Some(bounds)) => {
-                (clock.elapsed(snapshot.tick) as f32 / bounds.min.max(1) as f32).clamp(0.0, 1.0)
-            }
-            _ => 0.0,
-        };
-        v.push(progress);
+        v.push(activity_progress(kitty, snapshot.tick, core));
         for kind in NeedKind::ALL {
             v.push(if kitty.in_distress.contains(&kind) {
                 1.0
@@ -100,7 +83,8 @@ pub fn encode_global_state(
             });
         }
         for kind in NeedKind::ALL {
-            v.push((core.need_rate_for(kitty.id, kind) / 1.0).clamp(0.0, 4.0));
+            let trait_value = core.need_rate_for(kitty.id, kind) / observation.reference_need_rate;
+            v.push(trait_value.clamp(0.0, 4.0));
         }
     }
 
@@ -111,7 +95,7 @@ pub fn encode_global_state(
     for kind in ElementType::ALL {
         let mut of_kind: Vec<_> = snapshot.elements_of(kind).collect();
         v.push(of_kind.len() as f32 / hard_max);
-        of_kind.sort_unstable_by_key(|e| (center.manhattan_distance(&e.pos), e.id));
+        sort_by_proximity(&mut of_kind, center);
         for slot in 0..cfg.elements_per_type {
             match of_kind.get(slot) {
                 Some(e) => {
@@ -155,7 +139,8 @@ mod tests {
         let snapshot = world.snapshot();
         let cfg = GlobalStateConfig::default();
 
-        let v = encode_global_state(&snapshot, &config, &cfg, 0.5);
+        let obs_cfg = ObservationConfig::default();
+        let v = encode_global_state(&snapshot, &config, &cfg, &obs_cfg, 0.5);
         assert_eq!(v.len(), global_state_len(snapshot.kitties.len(), &cfg));
         for (i, value) in v.iter().enumerate() {
             assert!(
@@ -164,7 +149,14 @@ mod tests {
             );
         }
 
-        let again = encode_global_state(&snapshot, &config, &cfg, 0.5);
+        let again = encode_global_state(&snapshot, &config, &cfg, &obs_cfg, 0.5);
         assert_eq!(v, again, "deterministic");
+
+        // The critic's trait scaling follows the configured reference rate
+        // exactly as the actors' observations do (spec 014 review).
+        let mut scaled = obs_cfg;
+        scaled.reference_need_rate = 2.0;
+        let halved = encode_global_state(&snapshot, &config, &cfg, &scaled, 0.5);
+        assert_ne!(v, halved, "a non-default reference rate rescales traits");
     }
 }

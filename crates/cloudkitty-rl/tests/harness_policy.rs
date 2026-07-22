@@ -13,29 +13,10 @@ use cloudkitty_core::Config;
 use cloudkitty_rl::behavior::PolicyBehavior;
 use cloudkitty_rl::config::RlConfig;
 use cloudkitty_rl::harness::{run_one, EvalRequest, RosterMode};
-use cloudkitty_rl::observe::observation_len;
-use cloudkitty_rl::policy::{write_artifact, ArtifactHeader, ARTIFACT_VERSION};
+use cloudkitty_rl::test_support;
 
 fn fixture_artifact() -> PathBuf {
-    let dir = std::env::temp_dir().join("ck-harness-policy");
-    std::fs::create_dir_all(&dir).unwrap();
-    let path = dir.join("fixture.ckpolicy");
-    let rl = RlConfig::default();
-    let input = observation_len(&rl.observation);
-    let header = ArtifactHeader {
-        artifact_version: ARTIFACT_VERSION,
-        observation_schema: 1,
-        action_schema: 1,
-        mask_schema: 1,
-        layers: vec![[input, 8], [8, 40]],
-        activation: "relu".into(),
-    };
-    let w1: Vec<f32> = (0..input * 8)
-        .map(|i| ((i % 13) as f32 - 6.0) * 0.02)
-        .collect();
-    let w2: Vec<f32> = (0..8 * 40).map(|i| ((i % 9) as f32 - 4.0) * 0.05).collect();
-    write_artifact(&path, &header, &[(w1, vec![0.0; 8]), (w2, vec![0.0; 40])]).unwrap();
-    path
+    test_support::fixture_artifact("ck-harness-policy", "fixture", 8, 3)
 }
 
 #[test]

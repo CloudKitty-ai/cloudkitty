@@ -10,6 +10,7 @@ use std::sync::Arc;
 
 use cloudkitty_core::behavior::BehaviorRegistry;
 use cloudkitty_core::seam::drive_tick;
+use cloudkitty_core::test_support::assert_orthogonal_scenes;
 use cloudkitty_core::world::World;
 use cloudkitty_core::Config;
 use cloudkitty_rl::welfare::WelfareAccumulator;
@@ -26,6 +27,11 @@ fn twenty_thousand_ticks_stay_within_the_welfare_bounds() {
 
     for _ in 0..TICKS {
         drive_tick(&mut world, &registry, &config);
+        // Spec 009 SC-001 rides the long run, exactly as it did before the
+        // gate moved here (spec 014 review): the spatial scene assertions
+        // historically caught edge cases that only long default-world
+        // dynamics surface.
+        assert_orthogonal_scenes(&world);
         accumulator.observe(&world);
     }
 

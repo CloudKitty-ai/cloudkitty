@@ -96,6 +96,31 @@ impl Behavior for SleepySlow {
     }
 }
 
+/// Burns CPU synchronously without ever yielding — the shape of a slow
+/// policy inference or a hot loop. Exists to prove the budget preempts
+/// advisors that never hit an await point (spec 014 review): a timeout
+/// wrapped directly around such a future could never fire.
+pub struct BusySpin {
+    delay_ms: u64,
+}
+
+impl BusySpin {
+    pub fn new(delay_ms: u64) -> Self {
+        Self { delay_ms }
+    }
+}
+
+#[async_trait]
+impl Behavior for BusySpin {
+    async fn decide(&self, _ctx: &DecisionContext) -> Action {
+        let start = std::time::Instant::now();
+        while start.elapsed() < std::time::Duration::from_millis(self.delay_ms) {
+            std::hint::spin_loop();
+        }
+        Action::Purr
+    }
+}
+
 /// Panics instead of deciding.
 pub struct Panicky;
 

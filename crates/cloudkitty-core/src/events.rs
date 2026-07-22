@@ -50,12 +50,6 @@ impl ActivityEnd {
 pub struct EventLog<T> {
     events: VecDeque<T>,
     capacity: usize,
-    /// Every event ever recorded, monotone -- unlike `len`, never reduced by
-    /// the ring dropping old events. Lets a caller ask "how many landed since
-    /// I last looked" (the tick report needs exactly this). Serde-defaulted
-    /// so pre-014 snapshots load with the count starting from the resume.
-    #[serde(default)]
-    total_recorded: u64,
 }
 
 // Manual so the events themselves need no Default (the derive would demand
@@ -65,7 +59,6 @@ impl<T> Default for EventLog<T> {
         Self {
             events: VecDeque::new(),
             capacity: 0,
-            total_recorded: 0,
         }
     }
 }
@@ -81,7 +74,6 @@ impl<T> EventLog<T> {
         Self {
             events: VecDeque::new(),
             capacity: capacity.max(1),
-            total_recorded: 0,
         }
     }
 
@@ -90,12 +82,6 @@ impl<T> EventLog<T> {
             self.events.pop_front();
         }
         self.events.push_back(event);
-        self.total_recorded += 1;
-    }
-
-    /// Every event ever recorded, including any the ring has since dropped.
-    pub fn total_recorded(&self) -> u64 {
-        self.total_recorded
     }
 
     /// Oldest first, newest last.

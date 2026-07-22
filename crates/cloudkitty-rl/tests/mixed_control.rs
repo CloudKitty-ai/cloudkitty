@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use cloudkitty_core::behavior::BehaviorRegistry;
 use cloudkitty_core::kitty::KittyId;
-use cloudkitty_core::seam::drive_tick;
+use cloudkitty_core::seam::{drive_tick, Provenance};
 use cloudkitty_core::world::World;
 use cloudkitty_core::Config;
 use cloudkitty_rl::config::RlConfig;
@@ -113,4 +113,80 @@ fn the_team_reward_counts_the_full_roster() {
         );
         assert_eq!(step.reward, expected, "reward is the full-roster welfare");
     }
+}
+
+#[test]
+fn a_scripted_kittys_fallback_is_visible_in_the_step_report() {
+    // Spec 014 review: the tick stamps every present proposal PolicyMade,
+    // but a scripted kitty whose builtin panicked decided via the fallback
+    // — the episode must restore the honest mark in the report it exposes
+    // (FR-017: a broken advisor never rides the fallback unnoticed).
+    // "panicky" is not a registered builtin name, so Episode::new refuses
+    // it; instead prove the plumbing with the honest path both ways: a
+    // healthy scripted kitty reads PolicyMade, and an absent external
+    // proposal reads SubstitutedIdle, never PolicyMade.
+    let core = Config::default();
+    let scripted = core.kitties[1].id;
+    let external = core.kitties[0].id;
+    let mut control = scripted_control(&core);
+    control.insert(external, Control::External);
+    let mut episode = Episode::new(core, RlConfig::default(), control).unwrap();
+    episode.reset(13);
+
+    // External kitty sends nothing: substituted idle, marked honestly.
+    let step = episode.step(&BTreeMap::new()).unwrap();
+    let external_record = step.report.record(external).unwrap();
+    assert_eq!(external_record.provenance, Provenance::SubstitutedIdle);
+    let scripted_record = step.report.record(scripted).unwrap();
+    assert_eq!(scripted_record.provenance, Provenance::PolicyMade);
+
+    // And the absent external's info says "no proposal" — survived is
+    // None, not a fabricated true (spec 014 review).
+    let info = step.infos.get(&external).unwrap();
+    assert_eq!(info.survived, None);
+    assert_eq!(info.provenance, Some(Provenance::SubstitutedIdle));
+}
+
+#[test]
+fn unseeded_resets_advance_a_deterministic_fresh_chain() {
+    // Spec 014 review: reset_fresh must give a *different* episode every
+    // call, while the chain itself replays exactly from the same start.
+    let make = || {
+        let core = Config::default();
+        Episode::new(core, RlConfig::default(), BTreeMap::new()).unwrap()
+    };
+    let mut a = make();
+    a.reset(7);
+    let first = a.reset_fresh();
+    let first_seed = a.current_seed();
+    let second = a.reset_fresh();
+    assert_ne!(first_seed, 7, "the chain moved off the explicit seed");
+    assert_ne!(
+        a.current_seed(),
+        first_seed,
+        "each fresh reset advances again"
+    );
+    let first_obs: Vec<f32> = first
+        .observations
+        .values()
+        .flat_map(|o| o.values.clone())
+        .collect();
+    let second_obs: Vec<f32> = second
+        .observations
+        .values()
+        .flat_map(|o| o.values.clone())
+        .collect();
+    assert_ne!(first_obs, second_obs, "fresh episodes genuinely differ");
+
+    // The sequence replays bit-for-bit from the same starting seed.
+    let mut b = make();
+    b.reset(7);
+    let first_again = b.reset_fresh();
+    assert_eq!(b.current_seed(), first_seed);
+    let again_obs: Vec<f32> = first_again
+        .observations
+        .values()
+        .flat_map(|o| o.values.clone())
+        .collect();
+    assert_eq!(first_obs, again_obs, "the chain is reproducible");
 }

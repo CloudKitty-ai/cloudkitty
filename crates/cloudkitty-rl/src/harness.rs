@@ -12,7 +12,7 @@ use cloudkitty_core::Config;
 use serde::Serialize;
 
 use crate::config::RlConfig;
-use crate::reward::team_welfare_of;
+use crate::reward::roster_welfare;
 use crate::welfare::{WelfareAccumulator, WelfareReport};
 
 /// Which kitties the scored subject drives.
@@ -113,16 +113,9 @@ pub fn run_one(request: &EvalRequest<'_>) -> RunOutcome {
             }
         }
         accumulator.observe(&world);
-        welfare_sum += team_welfare_of(&world.kitties, &config, &request.rl.reward);
-        let roster_mean: f64 = world
-            .kitties
-            .iter()
-            .map(|k| {
-                crate::reward::unclamped_happiness(&k.needs, &config.happiness.weights) / 100.0
-            })
-            .sum::<f64>()
-            / world.kitties.len().max(1) as f64;
-        plain_sum += roster_mean;
+        let (welfare, plain) = roster_welfare(&world.kitties, &config, &request.rl.reward);
+        welfare_sum += welfare;
+        plain_sum += plain;
     }
 
     let report = accumulator.report();
@@ -156,9 +149,43 @@ pub fn run_one(request: &EvalRequest<'_>) -> RunOutcome {
 #[derive(Debug, Clone, Serialize, PartialEq)]
 pub struct PairedDelta {
     pub seed: u64,
+    /// Which roster mode the subject ran (the baseline is always the
+    /// all-`needs_driven` roster).
+    pub roster: RosterMode,
     pub subject_welfare: f64,
     pub baseline_welfare: f64,
     pub delta: f64,
+}
+
+/// Evaluates the subject over the seed set (one run per seed).
+pub fn run_many(request: &EvalRequest<'_>, seeds: &[u64]) -> Vec<RunOutcome> {
+    seeds
+        .iter()
+        .map(|&seed| {
+            run_one(&EvalRequest {
+                seed,
+                ..request.clone()
+            })
+        })
+        .collect()
+}
+
+/// Pairs subject runs against baseline runs seed by seed.
+pub fn pair_runs(subjects: &[RunOutcome], baselines: &[RunOutcome]) -> Vec<PairedDelta> {
+    subjects
+        .iter()
+        .zip(baselines)
+        .map(|(subject, baseline)| {
+            debug_assert_eq!(subject.seed, baseline.seed, "pairing is per seed");
+            PairedDelta {
+                seed: subject.seed,
+                roster: subject.roster,
+                subject_welfare: subject.aggregates.team_welfare,
+                baseline_welfare: baseline.aggregates.team_welfare,
+                delta: subject.aggregates.team_welfare - baseline.aggregates.team_welfare,
+            }
+        })
+        .collect()
 }
 
 /// Evaluates `subject` and the `needs_driven` baseline over the seed set,
@@ -167,28 +194,15 @@ pub fn paired_against_baseline(
     request: &EvalRequest<'_>,
     seeds: &[u64],
 ) -> (Vec<RunOutcome>, Vec<RunOutcome>, Vec<PairedDelta>) {
-    let mut subject_runs = Vec::with_capacity(seeds.len());
-    let mut baseline_runs = Vec::with_capacity(seeds.len());
-    let mut deltas = Vec::with_capacity(seeds.len());
-    for &seed in seeds {
-        let subject = run_one(&EvalRequest {
-            seed,
-            ..request.clone()
-        });
-        let baseline = run_one(&EvalRequest {
-            seed,
+    let subject_runs = run_many(request, seeds);
+    let baseline_runs = run_many(
+        &EvalRequest {
             subject: Some("needs_driven"),
             roster: RosterMode::AllSubject,
             ..request.clone()
-        });
-        deltas.push(PairedDelta {
-            seed,
-            subject_welfare: subject.aggregates.team_welfare,
-            baseline_welfare: baseline.aggregates.team_welfare,
-            delta: subject.aggregates.team_welfare - baseline.aggregates.team_welfare,
-        });
-        subject_runs.push(subject);
-        baseline_runs.push(baseline);
-    }
+        },
+        seeds,
+    );
+    let deltas = pair_runs(&subject_runs, &baseline_runs);
     (subject_runs, baseline_runs, deltas)
 }

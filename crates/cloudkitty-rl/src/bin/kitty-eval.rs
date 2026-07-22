@@ -19,7 +19,7 @@ use std::sync::Arc;
 use cloudkitty_core::behavior::BehaviorRegistry;
 use cloudkitty_core::Config;
 use cloudkitty_rl::config::{load_configs_from_path, RlConfig};
-use cloudkitty_rl::harness::{paired_against_baseline, EvalRequest, RosterMode, RunOutcome};
+use cloudkitty_rl::harness::{pair_runs, run_many, run_one, EvalRequest, RosterMode, RunOutcome};
 use serde::Serialize;
 
 #[derive(Debug)]
@@ -135,16 +135,28 @@ fn human_report(output: &EvalOutput) {
     println!("-- paired vs needs_driven baseline --");
     for pair in &output.paired {
         println!(
-            "seed {}: subject {:.4} vs baseline {:.4} (delta {:+.4})",
-            pair.seed, pair.subject_welfare, pair.baseline_welfare, pair.delta
+            "seed {} [{:?}]: subject {:.4} vs baseline {:.4} (delta {:+.4})",
+            pair.seed, pair.roster, pair.subject_welfare, pair.baseline_welfare, pair.delta
         );
     }
-    let mean_delta: f64 =
-        output.paired.iter().map(|p| p.delta).sum::<f64>() / output.paired.len().max(1) as f64;
-    println!(
-        "aggregate delta {mean_delta:+.4} over {} seeds",
-        output.paired.len()
-    );
+    // One aggregate per roster mode: an all-policy score and the mixed
+    // deployment reality are different claims and never blend (spec 014
+    // review).
+    for mode in [RosterMode::AllSubject, RosterMode::Mixed] {
+        let deltas: Vec<f64> = output
+            .paired
+            .iter()
+            .filter(|p| p.roster == mode)
+            .map(|p| p.delta)
+            .collect();
+        if !deltas.is_empty() {
+            let mean: f64 = deltas.iter().sum::<f64>() / deltas.len() as f64;
+            println!(
+                "aggregate delta [{mode:?}] {mean:+.4} over {} seeds",
+                deltas.len()
+            );
+        }
+    }
 }
 
 fn main() -> ExitCode {
@@ -217,10 +229,25 @@ fn main() -> ExitCode {
         }
     };
 
+    // The baseline is mode-independent (always the all-needs_driven
+    // roster): computed once over the seed set and paired against every
+    // mode's subject runs (spec 014 review: no duplicated simulation, no
+    // duplicate JSON entries).
+    let baseline_runs = run_many(
+        &EvalRequest {
+            core: &core,
+            rl: &rl,
+            registry: &registry,
+            subject: Some("needs_driven"),
+            roster: RosterMode::AllSubject,
+            seed: 0,
+            ticks,
+        },
+        &seeds,
+    );
     let mut runs = Vec::new();
-    let mut baseline_runs = Vec::new();
     let mut paired = Vec::new();
-    for mode in &modes {
+    for (mode_index, mode) in modes.iter().enumerate() {
         let request = EvalRequest {
             core: &core,
             rl: &rl,
@@ -230,22 +257,23 @@ fn main() -> ExitCode {
             seed: 0,
             ticks,
         };
-        let (mut s, mut b, mut d) = paired_against_baseline(&request, &seeds);
-        // Determinism self-check: the first seed, repeated, must agree with
-        // itself exactly.
-        if let Some(first) = seeds.first() {
-            let again = cloudkitty_rl::harness::run_one(&EvalRequest {
-                seed: *first,
-                ..request.clone()
-            });
-            if again != s[0] {
-                eprintln!("kitty-eval: determinism self-check failed on seed {first}");
-                return ExitCode::from(3);
+        let subject_runs = run_many(&request, &seeds);
+        // Determinism self-check (once): the first seed, repeated, must
+        // agree with itself exactly.
+        if mode_index == 0 {
+            if let Some(first) = seeds.first() {
+                let again = run_one(&EvalRequest {
+                    seed: *first,
+                    ..request.clone()
+                });
+                if again != subject_runs[0] {
+                    eprintln!("kitty-eval: determinism self-check failed on seed {first}");
+                    return ExitCode::from(3);
+                }
             }
         }
-        runs.append(&mut s);
-        baseline_runs.append(&mut b);
-        paired.append(&mut d);
+        paired.extend(pair_runs(&subject_runs, &baseline_runs));
+        runs.extend(subject_runs);
     }
 
     let output = EvalOutput {

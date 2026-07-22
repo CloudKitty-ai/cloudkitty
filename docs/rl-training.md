@@ -116,6 +116,22 @@ selection is always well-defined. Mixed control (`control=` on the
 constructor) lets you train one seat among `needs_driven` friends — the
 team reward always counts the full roster either way.
 
+Unseeded `reset()` advances a deterministic fresh-seed chain: every call
+is a genuinely new episode, and the whole sequence replays exactly from
+the first seed — pass an explicit seed only when you want a specific
+episode back.
+
+**The episode clock is a training-only signal.** The last observation
+input is tick/horizon, which varies 0→1 during training but is pinned to
+0 at deployment (the served world has no episodes) — and `kitty-eval`
+scores with the same pin, so evaluation matches deployment. A policy that
+learns strongly clock-conditional behavior (late-episode urgency,
+end-of-episode hoarding) will behave like perpetual tick 0 when deployed.
+If your training curves depend on the clock, either mask it out of your
+network's input, randomize episode phase at reset, or verify with
+`kitty-eval` that the pinned-clock variant still clears the bar — the
+eval score, not the training return, is the deployment claim.
+
 ## Exporting a `.ckpolicy` artifact
 
 v1 policies are plain MLPs: observation → hidden ReLU layers → 40 logits.

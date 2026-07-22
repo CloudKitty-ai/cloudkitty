@@ -39,8 +39,8 @@ fn observations_and_global_state_are_deterministic_and_bounded_across_a_run() {
             }
         }
 
-        let g1 = encode_global_state(&snapshot, &config, &gs_cfg, clock);
-        let g2 = encode_global_state(&snapshot, &config, &gs_cfg, clock);
+        let g1 = encode_global_state(&snapshot, &config, &gs_cfg, &obs_cfg, clock);
+        let g2 = encode_global_state(&snapshot, &config, &gs_cfg, &obs_cfg, clock);
         assert_eq!(g1, g2);
         assert_eq!(g1.len(), global_state_len(snapshot.kitties.len(), &gs_cfg));
         for (i, v) in g1.iter().enumerate() {

@@ -133,3 +133,82 @@ def test_spaces_are_described():
     except ImportError:
         assert act_space["n"] == 40
         assert obs_space["shape"][0] > 100
+
+
+def test_unseeded_reset_gives_fresh_reproducible_episodes():
+    # Spec 014 review: reset(seed=s) then bare reset() must give a NEW
+    # episode (not replay s forever), and the whole sequence must replay
+    # from the same starting seed.
+    def rollout(env):
+        obs, infos = env.reset()
+        return {a: obs[a].tobytes() for a in env.possible_agents}
+
+    a = cloudkitty.ParallelEnv(horizon=20)
+    first_obs, _ = a.reset(seed=7)
+    first = {k: v.tobytes() for k, v in first_obs.items()}
+    second = rollout(a)
+    third = rollout(a)
+    assert second != first, "bare reset() must not replay the seeded episode"
+    assert third != second, "each bare reset() advances again"
+
+    b = cloudkitty.ParallelEnv(horizon=20)
+    b.reset(seed=7)
+    second_again = rollout(b)
+    assert second_again == second, "the fresh-seed chain replays exactly"
+
+    # Explicit seeds still reproduce exactly.
+    c = cloudkitty.ParallelEnv(horizon=20)
+    c_obs, _ = c.reset(seed=7)
+    assert {k: v.tobytes() for k, v in c_obs.items()} == first
+
+
+def test_non_canonical_agent_names_are_rejected():
+    # Spec 014 review: "kitty_01" must not silently alias "kitty_1".
+    env = make_env()
+    env.reset(seed=2)
+    agents = env.possible_agents
+    actions = {a: 39 for a in agents[1:]}
+    actions["kitty_01"] = 39
+    with pytest.raises(ValueError):
+        env.step(actions)
+
+
+def test_vector_env_bad_index_leaves_the_batch_in_sync():
+    # Spec 014 review: an out-of-range index raises BEFORE any world steps,
+    # so a caught exception cannot desynchronize the batch.
+    env = cloudkitty.VectorEnv(2, horizon=10, workers=2)
+    env.reset(seeds=[1, 2])
+    agents = env.possible_agents
+
+    bad = {a: [39, 39] for a in agents}
+    bad[agents[0]] = [40, 39]
+    with pytest.raises(IndexError):
+        env.step(bad)
+
+    # All worlds still in lockstep: truncations flip together at horizon.
+    good = {a: [39, 39] for a in agents}
+    for step_index in range(10):
+        obs, rewards, terminations, truncations, infos = env.step(good)
+        flags = set(truncations[a].tolist()[i] for a in agents for i in range(2))
+        assert flags == ({True} if step_index == 9 else {False}), (
+            f"batch desynced at step {step_index}: {truncations}"
+        )
+
+
+def test_vector_env_unseeded_reset_advances_every_world():
+    env = cloudkitty.VectorEnv(2, horizon=10, workers=2)
+    obs1, infos1 = env.reset(seeds=[5, 6])
+    obs2, infos2 = env.reset()
+    agent = env.possible_agents[0]
+    assert obs1[agent].tobytes() != obs2[agent].tobytes()
+    # And the stacked info schema carries the full field set.
+    info = infos2[agent]
+    assert set(info) == {
+        "mask",
+        "decision_seed",
+        "survived",
+        "applied_action",
+        "applied_action_name",
+        "provenance",
+    }
+    assert info["survived"].tolist() == [-1, -1], "no proposal at reset"

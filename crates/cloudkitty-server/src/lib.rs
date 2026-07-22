@@ -38,7 +38,7 @@ use crate::api::AppState;
 pub fn register_policy_behaviors(
     registry: &mut BehaviorRegistry,
     config: &Config,
-    config_text: &str,
+    rl: &RlConfig,
 ) -> anyhow::Result<()> {
     let policy_names: std::collections::BTreeSet<&str> = config
         .kitties
@@ -48,15 +48,13 @@ pub fn register_policy_behaviors(
     if policy_names.is_empty() {
         return Ok(());
     }
-    let rl = RlConfig::from_toml_str(config_text)
-        .with_context(|| "the [rl] configuration does not parse")?;
     for name in policy_names {
         let policy = rl.policy.get(name).ok_or_else(|| {
             anyhow::anyhow!(
                 "a kitty names behavior 'policy:{name}' but there is no                  [rl.policy.{name}] block with an artifact path"
             )
         })?;
-        let expectations = PolicyBehavior::expectations(&rl);
+        let expectations = PolicyBehavior::expectations(rl);
         let artifact = PolicyArtifact::load(Path::new(&policy.artifact), &expectations)
             .with_context(|| format!("[rl.policy.{name}].artifact ({})", policy.artifact))?;
         tracing::info!(

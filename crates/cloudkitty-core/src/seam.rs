@@ -41,6 +41,41 @@ pub enum Provenance {
     SubstitutedIdle,
 }
 
+/// One tick's dealt per-kitty decision seeds (spec 014 FR-002/FR-003).
+///
+/// Deliberately opaque and consumed **by value**: only
+/// [`World::deal_decision_seeds`] can mint one (stamping the tick it was
+/// dealt for), and applying it to a tick moves it. A driver therefore
+/// cannot skip the deal, reuse a stale deal, or apply one twice — the
+/// master RNG's draw shape is checked by construction, not promised by a
+/// doc comment. [`World::tick_with_proposals_seeded`] asserts the stamp
+/// matches the tick it is applied to.
+#[derive(Debug)]
+pub struct DealtSeeds {
+    pub(crate) tick: u64,
+    pub(crate) seeds: Vec<(KittyId, u64)>,
+}
+
+impl DealtSeeds {
+    /// The tick these seeds were dealt for.
+    pub fn tick(&self) -> u64 {
+        self.tick
+    }
+
+    /// The seed dealt to `kitty_id`, if it was in the roster at deal time.
+    pub fn seed_for(&self, kitty_id: KittyId) -> Option<u64> {
+        self.seeds
+            .iter()
+            .find(|(id, _)| *id == kitty_id)
+            .map(|&(_, seed)| seed)
+    }
+
+    /// Every (kitty, seed) pair, stable id order.
+    pub fn iter(&self) -> impl Iterator<Item = (KittyId, u64)> + '_ {
+        self.seeds.iter().copied()
+    }
+}
+
 /// One kitty's decision as the budgetless resolver produced it: the proposal,
 /// the decision seed it was dealt (drawn from the master RNG in stable id
 /// order, as always), and how the decision came to be. Returned to the
@@ -176,15 +211,20 @@ pub fn drive_tick(
     let decisions: Vec<(KittyId, Action)> =
         resolved.iter().map(|r| (r.kitty_id, r.action)).collect();
     let outcome = world.run_applied_phases(&decisions, config);
+    let applied_by_id: BTreeMap<KittyId, (Action, Action)> = outcome
+        .per_kitty
+        .iter()
+        .map(|&(id, validated, applied)| (id, (validated, applied)))
+        .collect();
 
+    // `resolved` is already in stable id order (the resolver iterates the
+    // roster), so the records need no re-sort.
     let mut records = Vec::with_capacity(resolved.len());
     for r in &resolved {
-        let (validated, applied) = outcome
-            .per_kitty
-            .iter()
-            .find(|(id, _, _)| *id == r.kitty_id)
-            .map(|&(_, v, a)| (v, a))
-            .unwrap_or((Action::Idle, Action::Idle));
+        let (validated, applied) = applied_by_id
+            .get(&r.kitty_id)
+            .copied()
+            .expect("the phase pipeline hears every kitty that has a decision");
         records.push(KittyTickRecord {
             kitty_id: r.kitty_id,
             proposed: r.action,
@@ -194,7 +234,6 @@ pub fn drive_tick(
             decision_seed: r.seed,
         });
     }
-    records.sort_by_key(|r| r.kitty_id);
 
     DrivenTick {
         report: TickReport {

@@ -57,18 +57,22 @@ steps/s single-threaded on the default world, with the measurement method
 printed alongside.
 
 **Measured (implementation reference machine, Apple Silicon, 2026-07-21,
-release build; method printed by the bench)**: ~100,000 env steps/s
-single-threaded on the default world — 20× the SC-003 floor — and
-~130,000 steps/s vectorized over 8 worlds with the persistent worker
-pool. The floor pinned from measurement: **vectorized ×8 ≥ 1.2× the
-single-threaded rate on the default world**. "Near-linear" scaling is
-physically out of reach at this step cost, and honestly so: a default
-world step is ~10µs, so the per-batch serial term (per-step Python call
-and result marshaling under the GIL, ~50µs) dominates. The engine work
-itself parallelizes — a 30µs-step world measures ~1.9× — and at the step
-cost SC-003's 5,000-steps/s floor implies (200µs), the same serial term
-would be ~4% and scaling near-linear. Scaling improves as world cost
-grows; single-world throughput is the binding measure at default cost.
+release build; method printed by the bench)**: ~100,000–106,000 env
+steps/s single-threaded on the default world — 20× the SC-003 floor —
+and ~125,000–135,000 steps/s vectorized over 8 worlds with the
+persistent worker pool (post-review: per-step encoding trimmed to
+external agents and one post-tick snapshot, which *raised* the
+single-threaded rate and so compresses the ratio). The floor pinned from
+measurement: **vectorized ×8 ≥ 1.15× the single-threaded rate on the
+default world** (observed 1.17–1.33× across runs). "Near-linear"
+scaling is physically out of reach at this step cost, and honestly so:
+a default world step is ~10µs, so the per-batch serial term (per-step
+Python call and result marshaling under the GIL, ~50µs) dominates. The
+engine work itself parallelizes — a 30µs-step world measures ~1.9× —
+and at the step cost SC-003's 5,000-steps/s floor implies (200µs), the
+same serial term would be ~4% and scaling near-linear. Scaling improves
+as world cost grows; single-world throughput is the binding measure at
+default cost.
 
 ## 4. Evaluation harness: baseline the built-ins (US3)
 
