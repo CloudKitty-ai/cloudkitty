@@ -553,6 +553,13 @@ pub struct BehaviorConfig {
     /// Prices the sleep score and bounds the sleep walk in the same breath.
     #[serde(default = "default_sunbeam_reach")]
     pub sunbeam_reach: u32,
+    /// Consecutive budget timeouts after which an external advisor is
+    /// benched for the rest of the run — its kitty uses the fallback and no
+    /// further work is spawned for it (spec 014 review: bounds the threads
+    /// a wedged advisor can strand at one per strike, instead of one per
+    /// tick forever).
+    #[serde(default = "default_budget_strikes")]
+    pub budget_strikes: u32,
 }
 
 fn default_playful_comfort() -> f32 {
@@ -591,6 +598,10 @@ fn default_sunbeam_reach() -> u32 {
     8
 }
 
+fn default_budget_strikes() -> u32 {
+    5
+}
+
 impl Default for BehaviorConfig {
     fn default() -> Self {
         Self {
@@ -604,6 +615,7 @@ impl Default for BehaviorConfig {
             chase_exclusion_ticks: default_chase_exclusion_ticks(),
             solo_play_reach: default_solo_play_reach(),
             sunbeam_reach: default_sunbeam_reach(),
+            budget_strikes: default_budget_strikes(),
         }
     }
 }
@@ -790,12 +802,12 @@ impl Config {
                     "kitty ids must be unique",
                 ));
             }
-            if k.id == KittyId::MAX {
+            if k.id == crate::kitty::RESERVED_KITTY_ID {
                 return Err(ConfigError::invalid(
                     "[[kitty]] id",
                     k.id.to_string(),
-                    "this id is reserved by the engine (spec 014: it marks a vacant \
-                     observation slot, so no live kitty may ever carry it)",
+                    "this id is reserved (spec 014: downstream encodings use it to \
+                     mean \"no kitty\", so no live kitty may ever carry it)",
                 ));
             }
             if !k.position().in_bounds(self.world.width, self.world.height) {
@@ -1069,6 +1081,13 @@ impl Config {
                 "[behavior] sunbeam_reach",
                 "0".to_string(),
                 "must be at least 1 tile",
+            ));
+        }
+        if self.behavior.budget_strikes == 0 {
+            return Err(ConfigError::invalid(
+                "[behavior] budget_strikes",
+                "0".to_string(),
+                "must be at least 1 (an advisor gets at least one timed slot)",
             ));
         }
         let solo = self.actions.solo_play_relief;

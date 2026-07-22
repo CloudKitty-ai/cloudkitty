@@ -67,8 +67,8 @@ pub struct AgentInfo {
     /// Menu index of the action that actually applied, when the start-of-
     /// tick table can express it; None at reset or when inexpressible.
     pub applied_action: Option<usize>,
-    /// The engine name of the applied action (serde tag), e.g. "sleep".
-    pub applied_action_name: Option<String>,
+    /// The engine name of the applied action (its wire tag), e.g. "sleep".
+    pub applied_action_name: Option<&'static str>,
     /// Whether the proposal survived validation unchanged.
     pub survived: Option<bool>,
     /// The legal-action mask for the *next* decision (0/1 per menu entry).
@@ -115,9 +115,6 @@ pub struct Episode {
     /// calls; taken by value when the tick consumes it (the engine's
     /// DealtSeeds contract — a deal can never be skipped or reused).
     pending_seeds: Option<DealtSeeds>,
-    /// The seed the current world was generated from — the base
-    /// [`advance_seed`] steps from for an unseeded reset.
-    current_seed: u64,
     /// Start-of-tick target tables from the last observation encoding, used
     /// to express applied actions back as menu indices.
     last_tables: BTreeMap<KittyId, TargetTable>,
@@ -166,7 +163,6 @@ impl Episode {
             tick_in_episode: 0,
             truncated: false,
             pending_seeds: None,
-            current_seed: seed,
             last_tables: BTreeMap::new(),
             prev_level: 0.0,
             prev_potential: 0.0,
@@ -221,7 +217,6 @@ impl Episode {
         config.world.seed = seed;
         self.world = World::generate(&config);
         self.core = Arc::new(config);
-        self.current_seed = seed;
         self.tick_in_episode = 0;
         self.truncated = false;
         self.pending_seeds = Some(self.world.deal_decision_seeds());
@@ -229,12 +224,14 @@ impl Episode {
         self.prev_level = team_reward(&snapshot, &self.core, &self.rl.reward);
         self.prev_potential =
             shaping_potential(&snapshot, self.rl.reward.shaping.distress_coefficient);
-        self.collect_step(0.0, TickReport::default(), BTreeMap::new(), snapshot)
+        self.collect_step(0.0, TickReport::default(), snapshot)
     }
 
-    /// The seed the current world was generated from.
+    /// The seed the current world was generated from. Derived from the
+    /// stored config (reset writes the seed there), so it can never drift
+    /// from the world it describes.
     pub fn current_seed(&self) -> u64 {
-        self.current_seed
+        self.core.world.seed
     }
 
     /// Resets to the next seed in the deterministic reset chain
@@ -244,7 +241,7 @@ impl Episode {
     /// PettingZoo `reset()` should do; replaying one fixed seed forever
     /// silently collapses training-data diversity.
     pub fn reset_fresh(&mut self) -> EpisodeStep {
-        let next = advance_seed(self.current_seed);
+        let next = advance_seed(self.current_seed());
         self.reset(next)
     }
 
@@ -276,7 +273,7 @@ impl Episode {
                         rng: DecisionRng::from_seed(seed),
                         config: self.core.clone(),
                     };
-                    let (action, provenance) = resolve_one(self.registry.get(name), &ctx);
+                    let (action, provenance) = resolve_one(self.registry.get(name), &ctx, seed);
                     proposals.propose(kitty.id, action);
                     scripted_marks.insert(kitty.id, provenance);
                 }
@@ -311,9 +308,11 @@ impl Episode {
         // a scripted proposal came from the fallback. Restore the honest
         // dispatch provenance (FR-017: a broken advisor must never ride the
         // fallback unnoticed, mixed control included).
-        for record in &mut report.records {
-            if let Some(mark) = scripted_marks.get(&record.kitty_id) {
-                record.provenance = *mark;
+        if !scripted_marks.is_empty() {
+            for record in &mut report.records {
+                if let Some(mark) = scripted_marks.get(&record.kitty_id) {
+                    record.provenance = *mark;
+                }
             }
         }
         self.tick_in_episode += 1;
@@ -336,7 +335,7 @@ impl Episode {
         }
         self.prev_level = level;
 
-        Ok(self.collect_step(reward, report, scripted_marks, snapshot))
+        Ok(self.collect_step(reward, report, snapshot))
     }
 
     /// Encodes the post-tick views (from the snapshot the caller already
@@ -347,7 +346,6 @@ impl Episode {
         &mut self,
         reward: f64,
         report: TickReport,
-        scripted_marks: BTreeMap<KittyId, Provenance>,
         snapshot: cloudkitty_core::world::WorldSnapshot,
     ) -> EpisodeStep {
         let clock = if self.horizon > 0 {
@@ -373,7 +371,7 @@ impl Episode {
             });
             let info = AgentInfo {
                 applied_action,
-                applied_action_name: record.map(|r| action_name(&r.applied)),
+                applied_action_name: record.map(|r| action_wire_name(&r.applied)),
                 // Honest bookkeeping: a substituted idle never *proposed*
                 // anything, so it has no survival verdict — None, not a
                 // fabricated true (spec 014 review).
@@ -390,10 +388,9 @@ impl Episode {
                     .as_ref()
                     .and_then(|dealt| dealt.seed_for(id))
                     .expect("seeds are dealt for every roster kitty"),
-                provenance: scripted_marks
-                    .get(&id)
-                    .copied()
-                    .or(record.map(|r| r.provenance)),
+                // step() already restored honest scripted provenance into
+                // the report, so the record is the single source here.
+                provenance: record.map(|r| r.provenance),
             };
             new_tables.insert(id, observation.table.clone());
             observations.insert(id, observation);
@@ -429,17 +426,72 @@ pub fn advance_seed(seed: u64) -> u64 {
     z ^ (z >> 31)
 }
 
-/// The engine action's wire name (its serde tag).
-fn action_name(action: &Action) -> String {
-    serde_json::to_value(action)
-        .ok()
-        .and_then(|v| v.get("action").and_then(|a| a.as_str()).map(String::from))
-        .unwrap_or_else(|| "unknown".to_string())
+/// The engine action's wire name — a static match over the enum, pinned to
+/// the serde tags by a unit test so it can never drift from the wire shape.
+pub fn action_wire_name(action: &Action) -> &'static str {
+    match action {
+        Action::Move { .. } => "move",
+        Action::Rest { .. } => "rest",
+        Action::Sleep { .. } => "sleep",
+        Action::Groom { .. } => "groom",
+        Action::Eat => "eat",
+        Action::Drink => "drink",
+        Action::Chase(_) => "chase",
+        Action::Play { .. } => "play",
+        Action::Purr => "purr",
+        Action::Meow { .. } => "meow",
+        Action::Idle => "idle",
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn action_wire_names_match_the_serde_tags_for_every_variant() {
+        use cloudkitty_core::action::TargetRef;
+        use cloudkitty_core::grid::Direction;
+        use cloudkitty_core::meow::MessageKind;
+        let samples = [
+            Action::Move {
+                direction: Direction::North,
+            },
+            Action::Rest { with: Some(2) },
+            Action::Sleep { with: None },
+            Action::Groom { target: Some(2) },
+            Action::Eat,
+            Action::Drink,
+            Action::Chase(TargetRef::Kitty { id: 2 }),
+            Action::Play {
+                target: Some(TargetRef::Element { id: 7 }),
+            },
+            Action::Purr,
+            Action::Meow {
+                message: MessageKind::WantEat,
+            },
+            Action::Idle,
+        ];
+        for action in samples {
+            let tag = serde_json::to_value(action).unwrap()["action"]
+                .as_str()
+                .unwrap()
+                .to_string();
+            assert_eq!(action_wire_name(&action), tag, "{action:?}");
+        }
+    }
+
+    #[test]
+    fn advance_seed_outputs_are_pinned() {
+        // The unseeded-reset chain must mean the same thing in every build:
+        // a typo'd constant would silently change every chain. These values
+        // are the function's actual splitmix64 outputs, pinned.
+        assert_eq!(advance_seed(0), 16294208416658607535);
+        assert_eq!(advance_seed(1), 10451216379200822465);
+        assert_eq!(advance_seed(20260718), 17473423497659790644);
+        // Distinct starts stay distinct down the chain (no early merge).
+        assert_ne!(advance_seed(advance_seed(1)), advance_seed(advance_seed(2)));
+    }
 
     fn episode_all_external() -> Episode {
         Episode::new(Config::default(), RlConfig::default(), BTreeMap::new()).unwrap()

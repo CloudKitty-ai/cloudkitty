@@ -10,6 +10,11 @@ use crate::needs::NeedKind;
 
 pub type ElementId = u32;
 
+/// Reserved: the element allocator never issues this id (spec 014).
+/// Downstream encodings use it to mean "no element"; see
+/// [`crate::kitty::RESERVED_KITTY_ID`].
+pub const RESERVED_ELEMENT_ID: ElementId = ElementId::MAX;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ElementType {

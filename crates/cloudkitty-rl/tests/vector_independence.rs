@@ -37,7 +37,9 @@ fn each_world_in_a_batch_matches_the_same_world_stepped_alone() {
     // The batch, fanned out across threads.
     let mut batch =
         VectorizedEnvironment::new((0..WORLDS).map(|_| fresh_episode()).collect(), Some(WORLDS));
-    batch.reset(&seeds);
+    for result in batch.reset(&seeds) {
+        result.expect("reset succeeds");
+    }
     let agents: Vec<KittyId> = batch.external_agents();
 
     let mut batch_traces: Vec<Vec<String>> = vec![Vec::new(); WORLDS];
@@ -86,7 +88,9 @@ fn worker_count_never_changes_outputs() {
             (0..WORLDS).map(|_| fresh_episode()).collect(),
             Some(workers),
         );
-        batch.reset(&seeds);
+        for result in batch.reset(&seeds) {
+            result.expect("reset succeeds");
+        }
         let agents = batch.external_agents();
         let mut traces = Vec::new();
         for step_index in 0..30 {

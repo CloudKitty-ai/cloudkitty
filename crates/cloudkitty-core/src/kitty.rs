@@ -17,6 +17,13 @@ use crate::needs::{NeedKind, Needs};
 
 pub type KittyId = u32;
 
+/// Reserved: no live kitty may ever carry this id (config validation
+/// rejects it, spec 014). Downstream encodings use it to mean "no kitty" —
+/// a vacant observation slot decodes to a proposal naming it, which
+/// validation lawfully resolves to idle. One definition; the RL codec
+/// aliases it.
+pub const RESERVED_KITTY_ID: KittyId = KittyId::MAX;
+
 /// Engine bookkeeping of the current chase: which target, since when, the best
 /// distance achieved, and when that best was last bettered. Written only by the
 /// engine from *applied* actions, so no behavior can forge a chase it never ran.
@@ -241,6 +248,11 @@ pub struct Kitty {
     pub happiness: f32,
     pub activity: Activity,
     /// Name of the behavior strategy deciding for this kitty.
+    ///
+    /// Configuration owns this on resume (spec 014): the value persisted in
+    /// a snapshot is informational as of save time, and the loader
+    /// re-stamps it from the config's roster — never trust a snapshot's
+    /// behavior string over the config.
     pub behavior: String,
     /// Earliest tick at which each message kind may be used again.
     #[serde(default)]

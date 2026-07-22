@@ -37,9 +37,14 @@ def main():
         assert not any(terminations.values()), "terminations are always False"
         total_reward += rewards[agents[0]]
         for agent in agents:
-            decisions += 1
-            if infos[agent]["survived"]:
-                survived += 1
+            # survived is tri-state: True/False is a validation verdict on a
+            # real proposal; None means no proposal was made (the engine
+            # substituted idle for an omitted action) and counts as neither.
+            verdict = infos[agent]["survived"]
+            if verdict is not None:
+                decisions += 1
+                if verdict:
+                    survived += 1
         if all(truncations.values()):
             break
 

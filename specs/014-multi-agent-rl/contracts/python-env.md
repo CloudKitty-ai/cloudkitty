@@ -20,6 +20,10 @@ full roster.
 - `reset(seed) -> (observations, infos)` — fresh world from seed;
   observations: `{agent: float32 ndarray}` for external agents; infos
   carry the initial legal-action mask and decision seed per agent.
+  **Unseeded** `reset()` advances a deterministic fresh-seed chain
+  (splitmix64 of the current seed, owned by the episode): a genuinely new
+  episode every call, with the whole sequence reproducible from the first
+  seed — pass an explicit seed only to get a specific episode back.
 - `step(actions: {agent: int}) -> (observations, rewards, terminations,
   truncations, infos)` —
   - `rewards`: the one team scalar broadcast to every external agent.
@@ -27,9 +31,11 @@ full roster.
   - `truncations`: all `False` until tick == horizon, then all `True`.
   - `infos` per agent: `applied_action` (menu index of what actually
     applied, when expressible, plus the engine action name), `survived`
-    (proposal survived validation), `mask` (next decision's legal-action
-    mask, uint8[40]), `decision_seed`, `provenance`
-    (`policy`/`fallback` marking for scripted kitties).
+    (**tri-state**: True/False is the validation verdict on a real
+    proposal; None when no proposal was made — the engine substituted
+    idle for an omitted action, and at reset), `mask` (next decision's
+    legal-action mask, uint8[40]), `decision_seed`, `provenance`
+    (`policy`/`fallback`/`substituted_idle`).
   - Out-of-range action indices are a caller error (raise); in-range
     indices naming vacant slots decode and lawfully resolve to idle
     (never raise) — the codec-totality boundary.
@@ -48,9 +54,20 @@ VectorEnv(config, n_worlds, seeds=[...], horizon=2000, workers=None)
 
 - Batched `reset`/`step` over N fully independent worlds (separate seeds,
   RNGs, no shared state); arrays stacked on a leading world axis; fan-out
-  across a scoped thread pool with the GIL released (research.md R6).
+  across a persistent worker pool with the GIL released (research.md R6).
 - Per-world results are positionally deterministic — parallel scheduling
   can never reorder or alter outputs.
+- Constructor (or last explicit) `seeds=` run **verbatim** on the next
+  unseeded `reset()`, exactly once; after that each world advances its own
+  fresh-seed chain. Infos stack per agent on the world axis: `mask`
+  uint8[n, 40], `decision_seed` uint64[n], `survived` **int8[n]** (1
+  passed validation, 0 rewritten, −1 no proposal), `applied_action`
+  int64[n] (−1 when inexpressible), `applied_action_name` and
+  `provenance` (lists of str/None).
+- A world that panics mid-step poisons only itself: the step raises with
+  the world named, further steps are refused, and the next `reset()`
+  revives it (a fresh world re-establishes every invariant) — the failed
+  batch's transitions are discarded by design.
 
 ## Reproducibility guarantee (SC-002)
 

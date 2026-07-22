@@ -47,10 +47,12 @@ use crate::observe::{TargetTable, LEARNED_MEOWS};
 /// versioned with the codec.
 pub const ACTION_SCHEMA_VERSION: u32 = 1;
 
-/// The id a vacant slot decodes to: no kitty or element ever carries it, so
-/// the resulting proposal fails validation and lawfully resolves to idle.
-pub const VACANT_KITTY: KittyId = KittyId::MAX;
-pub const VACANT_ELEMENT: ElementId = ElementId::MAX;
+/// The id a vacant slot decodes to. Aliased to the engine's reserved ids
+/// (one definition, owned by core): config validation rejects a kitty with
+/// this id and the element allocator never issues it, so the resulting
+/// proposal always fails validation and lawfully resolves to idle.
+pub const VACANT_KITTY: KittyId = cloudkitty_core::kitty::RESERVED_KITTY_ID;
+pub const VACANT_ELEMENT: ElementId = cloudkitty_core::element::RESERVED_ELEMENT_ID;
 
 #[derive(Debug, Error, Clone, Copy, PartialEq, Eq)]
 pub enum CodecError {

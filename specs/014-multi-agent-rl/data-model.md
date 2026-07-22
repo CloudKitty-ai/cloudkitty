@@ -158,7 +158,8 @@ world center, K in config), and the episode clock.
   own decision streams, one joint-action tick, returns per-agent
   observations, the broadcast team reward, terminations (all false,
   always), truncations (all false until tick = horizon), infos (applied
-  action, survived-validation flag, next mask, decision seed, provenance).
+  action, survival verdict — absent when no proposal was made and idle
+  was substituted — next mask, decision seed, provenance).
 - **Validation**: never persisted; agent set constant for the episode's
   life; stepping after truncation is an error.
 

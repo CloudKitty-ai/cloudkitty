@@ -51,6 +51,9 @@ pub enum Provenance {
 /// doc comment. [`World::tick_with_proposals_seeded`] asserts the stamp
 /// matches the tick it is applied to.
 #[derive(Debug)]
+#[must_use = "dropping a deal silently desyncs the master RNG; apply it to the tick \
+              it was dealt for, or use World::advance_past_decision_draws to advance \
+              deliberately"]
 pub struct DealtSeeds {
     pub(crate) tick: u64,
     pub(crate) seeds: Vec<(KittyId, u64)>,
@@ -211,11 +214,7 @@ pub fn drive_tick(
     let decisions: Vec<(KittyId, Action)> =
         resolved.iter().map(|r| (r.kitty_id, r.action)).collect();
     let outcome = world.run_applied_phases(&decisions, config);
-    let applied_by_id: BTreeMap<KittyId, (Action, Action)> = outcome
-        .per_kitty
-        .iter()
-        .map(|&(id, validated, applied)| (id, (validated, applied)))
-        .collect();
+    let applied_by_id = outcome.applied_by_id();
 
     // `resolved` is already in stable id order (the resolver iterates the
     // roster), so the records need no re-sort.

@@ -47,7 +47,7 @@ fn an_all_scripted_episode_replays_the_behavior_driven_world_exactly() {
             // (mixed control needs them before the tick); give the
             // reference view the same deal before comparing bytes.
             let mut reference_view = reference.clone();
-            reference_view.deal_decision_seeds();
+            reference_view.advance_past_decision_draws();
             assert_eq!(
                 serde_json::to_string(episode.world()).unwrap(),
                 serde_json::to_string(&reference_view).unwrap(),

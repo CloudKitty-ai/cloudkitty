@@ -41,6 +41,18 @@ pub struct EvalRequest<'a> {
     pub ticks: u64,
 }
 
+impl<'a> EvalRequest<'a> {
+    /// The one definition of the comparison baseline (FR-013): the same
+    /// evaluation with the all-`needs_driven` roster.
+    pub fn baseline(&self) -> EvalRequest<'a> {
+        EvalRequest {
+            subject: Some("needs_driven"),
+            roster: RosterMode::AllSubject,
+            ..self.clone()
+        }
+    }
+}
+
 /// Aggregates reported beside the scorecard (FR-013): the configured
 /// team-welfare aggregate with the plain mean and the least-happy kitty's
 /// mean beside it — fairness visible, not just scored.
@@ -195,14 +207,7 @@ pub fn paired_against_baseline(
     seeds: &[u64],
 ) -> (Vec<RunOutcome>, Vec<RunOutcome>, Vec<PairedDelta>) {
     let subject_runs = run_many(request, seeds);
-    let baseline_runs = run_many(
-        &EvalRequest {
-            subject: Some("needs_driven"),
-            roster: RosterMode::AllSubject,
-            ..request.clone()
-        },
-        seeds,
-    );
+    let baseline_runs = run_many(&request.baseline(), seeds);
     let deltas = pair_runs(&subject_runs, &baseline_runs);
     (subject_runs, baseline_runs, deltas)
 }

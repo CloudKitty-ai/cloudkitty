@@ -19,9 +19,7 @@ use cloudkitty_core::kitty::KittyId;
 use cloudkitty_core::seam::Provenance;
 use cloudkitty_core::Config;
 use cloudkitty_rl::config::{load_configs_from_path, load_configs_from_str, RlConfig};
-use cloudkitty_rl::episode::{
-    advance_seed, AgentInfo, Control, Episode, EpisodeError, EpisodeStep,
-};
+use cloudkitty_rl::episode::{AgentInfo, Control, Episode, EpisodeError, EpisodeStep};
 use cloudkitty_rl::global_state::global_state_len;
 use cloudkitty_rl::observe::observation_len;
 use cloudkitty_rl::vector::VectorizedEnvironment;
@@ -115,7 +113,7 @@ fn parse_control(control: Option<&Bound<'_, PyDict>>) -> PyResult<BTreeMap<Kitty
 fn info_to_py<'py>(py: Python<'py>, info: &AgentInfo) -> PyResult<Bound<'py, PyDict>> {
     let dict = PyDict::new_bound(py);
     dict.set_item("applied_action", info.applied_action)?;
-    dict.set_item("applied_action_name", info.applied_action_name.clone())?;
+    dict.set_item("applied_action_name", info.applied_action_name)?;
     dict.set_item("survived", info.survived)?;
     dict.set_item("mask", info.mask.clone().into_pyarray_bound(py))?;
     dict.set_item("decision_seed", info.decision_seed)?;
@@ -306,13 +304,16 @@ impl ParallelEnv {
         options: Option<&Bound<'py, PyDict>>,
     ) -> PyResult<(Bound<'py, PyDict>, Bound<'py, PyDict>)> {
         let _ = options;
-        // An unseeded reset advances a deterministic fresh-seed chain
-        // (spec 014 review): the standard trainer loop — seed once, then
-        // bare reset() per episode — gets a genuinely new episode every
-        // time, while the whole sequence replays from the first seed.
-        let seed = seed.unwrap_or_else(|| advance_seed(self.episode.current_seed()));
+        // An unseeded reset advances the episode's own deterministic
+        // fresh-seed chain (Episode::reset_fresh — the chain has exactly
+        // one owner): the standard trainer loop — seed once, then bare
+        // reset() per episode — gets a genuinely new episode every time,
+        // while the whole sequence replays from the first seed.
         let episode = &mut self.episode;
-        let step = py.allow_threads(|| episode.reset(seed));
+        let step = py.allow_threads(|| match seed {
+            Some(seed) => episode.reset(seed),
+            None => episode.reset_fresh(),
+        });
         self.live = true;
         let obs = observations_to_py(py, &step)?;
         let infos = infos_to_py(py, &step)?;
@@ -371,7 +372,15 @@ struct VectorEnv {
     obs_len: usize,
     menu_len: usize,
     state_len: usize,
-    seeds: Vec<u64>,
+    /// Seeds waiting to be applied verbatim by the next unseeded reset —
+    /// the constructor's (or the last explicit reset's) seeds, consumed
+    /// exactly once. After that, unseeded resets advance each episode's own
+    /// fresh-seed chain (the chain has one owner: the episode).
+    pending_seeds: Option<Vec<u64>>,
+    /// Set when a step failed partway (a world panicked): the surviving
+    /// worlds advanced but their step was discarded, so the batch is
+    /// desynchronized until the next reset.
+    needs_reset: bool,
     /// The latest global state per world, refreshed by reset/step.
     last_states: Vec<Vec<f32>>,
 }
@@ -421,7 +430,8 @@ impl VectorEnv {
             obs_len,
             menu_len,
             state_len,
-            seeds,
+            pending_seeds: Some(seeds),
+            needs_reset: false,
             last_states: vec![vec![0.0; state_len]; n],
         })
     }
@@ -442,25 +452,31 @@ impl VectorEnv {
         py: Python<'py>,
         seeds: Option<Vec<u64>>,
     ) -> PyResult<(Bound<'py, PyDict>, Bound<'py, PyDict>)> {
-        match seeds {
+        let explicit = match seeds {
             Some(seeds) => {
                 if seeds.len() != self.vector.len() {
                     return Err(PyValueError::new_err("seeds must have one entry per world"));
                 }
-                self.seeds = seeds;
+                self.pending_seeds = None;
+                Some(seeds)
             }
-            None => {
-                // Unseeded reset: every world advances its own deterministic
-                // fresh-seed chain (spec 014 review) — new episodes each
-                // call, the whole sequence reproducible, worlds distinct.
-                for seed in &mut self.seeds {
-                    *seed = advance_seed(*seed);
-                }
-            }
-        }
+            // Unseeded: the constructor's (or last explicit) seeds run
+            // verbatim exactly once; after that, every world advances its
+            // own deterministic fresh-seed chain (Episode::reset_fresh) —
+            // new episodes each call, the sequence reproducible, and the
+            // documented `seeds=` argument always means what it says.
+            None => self.pending_seeds.take(),
+        };
         let vector = &mut self.vector;
-        let seeds = self.seeds.clone();
-        let steps = py.allow_threads(|| vector.reset(&seeds));
+        let results = py.allow_threads(|| match &explicit {
+            Some(seeds) => vector.reset(seeds),
+            None => vector.reset_fresh(),
+        });
+        let mut steps = Vec::with_capacity(results.len());
+        for result in results {
+            steps.push(result.map_err(episode_err)?);
+        }
+        self.needs_reset = false;
         self.last_states = steps.iter().map(|s| s.global_state.clone()).collect();
         let obs = self.stack_observations(py, &steps)?;
         let infos = self.stack_infos(py, &steps)?;
@@ -473,6 +489,12 @@ impl VectorEnv {
         actions: &Bound<'py, PyDict>,
     ) -> PyResult<StepTuple<'py>> {
         let n = self.vector.len();
+        if self.needs_reset {
+            return Err(PyRuntimeError::new_err(
+                "the batch is desynchronized by an earlier world failure; call reset() \
+                 (it also revives the failed world) before stepping again",
+            ));
+        }
         // {agent: sequence[n]} → per-world action maps.
         let mut per_world: Vec<BTreeMap<KittyId, usize>> = vec![BTreeMap::new(); n];
         for (key, value) in actions.iter() {
@@ -502,23 +524,30 @@ impl VectorEnv {
 
         let vector = &mut self.vector;
         let results = py.allow_threads(|| vector.step(&per_world));
-        // Keep last_states coherent for whatever succeeded before surfacing
-        // any per-world failure (a poisoned world after an engine panic).
-        let mut steps = Vec::with_capacity(n);
-        let mut failure: Option<EpisodeError> = None;
-        for (world, result) in results.into_iter().enumerate() {
-            match result {
-                Ok(step) => {
-                    self.last_states[world] = step.global_state.clone();
-                    steps.push(step);
-                }
-                Err(e) => {
-                    failure.get_or_insert(e);
-                }
-            }
+        // A per-world failure (only a panicking world, after pre-validation)
+        // means the survivors advanced but this batch's results cannot be
+        // surfaced coherently: keep the pre-step states untouched, name
+        // every failed world, and require a reset (which also revives the
+        // poisoned world) before stepping again.
+        let failures: Vec<String> = results
+            .iter()
+            .enumerate()
+            .filter_map(|(world, r)| r.as_ref().err().map(|e| format!("world {world}: {e}")))
+            .collect();
+        if !failures.is_empty() {
+            self.needs_reset = true;
+            return Err(PyRuntimeError::new_err(format!(
+                "{}; the batch is desynchronized — reset() before stepping again \
+                 (this step's transitions are discarded)",
+                failures.join("; ")
+            )));
         }
-        if let Some(e) = failure {
-            return Err(episode_err(e));
+        let steps: Vec<EpisodeStep> = results
+            .into_iter()
+            .map(|r| r.expect("failures handled above"))
+            .collect();
+        for (world, step) in steps.iter().enumerate() {
+            self.last_states[world] = step.global_state.clone();
         }
 
         let obs = self.stack_observations(py, &steps)?;
@@ -580,7 +609,7 @@ impl VectorEnv {
             let mut seeds = Vec::with_capacity(n);
             let mut survived: Vec<i8> = Vec::with_capacity(n);
             let mut applied = Vec::with_capacity(n);
-            let mut applied_names: Vec<Option<String>> = Vec::with_capacity(n);
+            let mut applied_names: Vec<Option<&'static str>> = Vec::with_capacity(n);
             let mut provenance: Vec<Option<&'static str>> = Vec::with_capacity(n);
             for step in steps {
                 let info = step
@@ -595,7 +624,7 @@ impl VectorEnv {
                     None => -1,
                 });
                 applied.push(info.applied_action.map(|a| a as i64).unwrap_or(-1));
-                applied_names.push(info.applied_action_name.clone());
+                applied_names.push(info.applied_action_name);
                 provenance.push(info.provenance.map(provenance_str));
             }
             let agent = PyDict::new_bound(py);

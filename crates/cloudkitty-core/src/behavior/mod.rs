@@ -74,9 +74,18 @@ pub trait Behavior: Send + Sync {
 }
 
 /// Maps configured behavior names to implementations.
+///
+/// Also carries the served world's circuit breaker (spec 014 review): an
+/// external advisor that times out `budget_strikes` times in a row is
+/// benched for the rest of the run — its kitty uses the fallback and no
+/// further blocking work is spawned for it, bounding the threads a wedged
+/// advisor can strand at one per strike instead of one per tick forever.
+/// Shared across clones (one breaker per process, like the advisors
+/// themselves); the budgetless paths never time out and never consult it.
 #[derive(Clone, Default)]
 pub struct BehaviorRegistry {
     map: BTreeMap<String, Arc<dyn Behavior>>,
+    timeout_strikes: Arc<std::sync::Mutex<BTreeMap<String, u32>>>,
 }
 
 impl BehaviorRegistry {
@@ -102,6 +111,35 @@ impl BehaviorRegistry {
 
     pub fn names(&self) -> Vec<String> {
         self.map.keys().cloned().collect()
+    }
+
+    fn strikes(&self) -> std::sync::MutexGuard<'_, BTreeMap<String, u32>> {
+        match self.timeout_strikes.lock() {
+            Ok(guard) => guard,
+            Err(poisoned) => poisoned.into_inner(),
+        }
+    }
+
+    /// Records a budget timeout for `name`; returns the consecutive count.
+    fn record_timeout(&self, name: &str) -> u32 {
+        let mut strikes = self.strikes();
+        let count = strikes.entry(name.to_string()).or_insert(0);
+        *count = count.saturating_add(1);
+        *count
+    }
+
+    /// An in-budget answer clears the streak: a slow-but-recovering advisor
+    /// is never benched.
+    fn clear_timeouts(&self, name: &str) {
+        self.strikes().remove(name);
+    }
+
+    /// Whether `name` has been benched by consecutive budget timeouts
+    /// (spec 014 review). Public so operators and tests can observe it.
+    pub fn is_benched(&self, name: &str, budget_strikes: u32) -> bool {
+        self.strikes()
+            .get(name)
+            .is_some_and(|&count| count >= budget_strikes)
     }
 }
 
@@ -167,11 +205,15 @@ pub async fn gather_decisions(
     config: &Arc<Config>,
 ) -> Vec<(KittyId, Action)> {
     let budget = Duration::from_millis(config.behavior.budget_ms(config.world.tick_ms));
+    let budget_strikes = config.behavior.budget_strikes;
     let jobs = decision_jobs(world, registry, config);
 
-    let decisions = jobs
-        .into_iter()
-        .map(|job| async move { (job.id, decide_one(job, budget).await) });
+    let decisions = jobs.into_iter().map(|job| async move {
+        (
+            job.id,
+            decide_one(job, budget, registry, budget_strikes).await,
+        )
+    });
 
     join_all(decisions).await
 }
@@ -193,7 +235,7 @@ pub fn resolve_decisions(
     decision_jobs(world, registry, config)
         .into_iter()
         .map(|job| {
-            let (action, provenance) = resolve_one(job.behavior, &job.ctx);
+            let (action, provenance) = resolve_one(job.behavior, &job.ctx, job.seed);
             ResolvedDecision {
                 kitty_id: job.id,
                 action,
@@ -208,29 +250,49 @@ pub fn resolve_decisions(
 /// stay in force, the wall clock does not exist. Public so mixed-control
 /// drivers (spec 014 FR-020) can deal a scripted kitty its decision from the
 /// stream the engine dealt it.
+///
+/// `seed` is the decision seed the context's stream was built from. The
+/// fallback rule is uniform across every dispatch path (spec 014 review):
+/// **the fallback always decides on a stream restarted from the dealt
+/// seed**, never on whatever remains after a failed advisor's partial
+/// draws — otherwise the served path (which must rebuild the context after
+/// moving it to the blocking pool) and this budgetless path would diverge
+/// on the very tick a broken advisor is survived.
 pub fn resolve_one(
     behavior: Option<Arc<dyn Behavior>>,
     ctx: &DecisionContext,
+    seed: u64,
 ) -> (Action, Provenance) {
     match behavior {
         // A name that resolves to nothing is a config error caught at startup;
         // if one somehow reaches here, the kitty still gets a sensible turn --
         // marked honestly as the fallback's, not the named advisor's.
-        None => (
-            futures::executor::block_on(fallback(ctx)),
-            Provenance::FallbackTaken,
-        ),
-        Some(b) => match futures::executor::block_on(run_catching(b.as_ref(), ctx)) {
-            Some(action) => (action, Provenance::PolicyMade),
-            None => (
+        None => {
+            ctx.rng.reseed(seed);
+            (
                 futures::executor::block_on(fallback(ctx)),
                 Provenance::FallbackTaken,
-            ),
+            )
+        }
+        Some(b) => match futures::executor::block_on(run_catching(b.as_ref(), ctx)) {
+            Some(action) => (action, Provenance::PolicyMade),
+            None => {
+                ctx.rng.reseed(seed);
+                (
+                    futures::executor::block_on(fallback(ctx)),
+                    Provenance::FallbackTaken,
+                )
+            }
         },
     }
 }
 
-async fn decide_one(job: DecisionJob, budget: Duration) -> Action {
+async fn decide_one(
+    job: DecisionJob,
+    budget: Duration,
+    registry: &BehaviorRegistry,
+    budget_strikes: u32,
+) -> Action {
     match job.behavior {
         // A name that resolves to nothing is a config error caught at startup; if
         // one somehow reaches here, the kitty still gets a sensible turn.
@@ -238,7 +300,12 @@ async fn decide_one(job: DecisionJob, budget: Duration) -> Action {
 
         Some(b) if b.is_builtin() => match run_catching(b.as_ref(), &job.ctx).await {
             Some(action) => action,
-            None => fallback(&job.ctx).await,
+            None => {
+                // The uniform fallback rule (see resolve_one): restart from
+                // the dealt seed, identically on every dispatch path.
+                job.ctx.rng.reseed(job.seed);
+                fallback(&job.ctx).await
+            }
         },
 
         // Non-built-ins run on the blocking pool. This is what makes the
@@ -247,36 +314,77 @@ async fn decide_one(job: DecisionJob, budget: Duration) -> Action {
         // policy's MLP pass, a hot loop) never yields -- wrapped directly,
         // the timer could never preempt it and a slow advisor would stall
         // the tick loop. On the blocking pool the tick loop keeps its
-        // budget: on timeout the JoinHandle is dropped, the stray
-        // computation finishes harmlessly on its detached thread, and the
-        // fallback (rebuilt from the same decision seed, since the context
-        // moved into the task) takes the turn.
+        // budget; on timeout the JoinHandle is dropped and the stray
+        // computation finishes on its detached thread. Because a wedged
+        // advisor might *never* finish, consecutive timeouts bench it
+        // (the registry's circuit breaker): the leak is bounded at
+        // budget_strikes threads, not one per tick forever.
         Some(b) => {
-            let me = job.ctx.me.clone();
+            let name = job.ctx.me.behavior.clone();
+            if registry.is_benched(&name, budget_strikes) {
+                job.ctx.rng.reseed(job.seed);
+                return fallback(&job.ctx).await;
+            }
+
+            let id = job.id;
+            let seed = job.seed;
             let world = job.ctx.world.clone();
             let config = job.ctx.config.clone();
-            let seed = job.seed;
             let ctx = job.ctx;
             let handle = tokio::task::spawn_blocking(move || {
                 futures::executor::block_on(run_catching(b.as_ref(), &ctx))
             });
             match tokio::time::timeout(budget, handle).await {
-                Ok(Ok(Some(action))) => action,
-                // Timed out, panicked, or otherwise failed: the default
-                // behavior takes this kitty's turn, on the very decision
-                // stream the advisor was dealt.
-                _ => {
-                    let ctx = DecisionContext {
-                        me,
-                        world,
-                        rng: DecisionRng::from_seed(seed),
-                        config,
-                    };
-                    fallback(&ctx).await
+                Ok(Ok(Some(action))) => {
+                    registry.clear_timeouts(&name);
+                    action
+                }
+                Ok(joined) => {
+                    // The advisor panicked (or the task was cancelled) but
+                    // the thread came back: not a wedge, so the streak
+                    // clears; the fallback takes the turn from the dealt
+                    // seed (the uniform rule).
+                    let _ = joined;
+                    registry.clear_timeouts(&name);
+                    fallback_from_seed(id, seed, world, config).await
+                }
+                Err(_elapsed) => {
+                    let strikes = registry.record_timeout(&name);
+                    if strikes == budget_strikes {
+                        tracing::warn!(
+                            behavior = %name,
+                            strikes,
+                            "advisor benched after consecutive budget timeouts; \
+                             its kitties use the fallback from now on"
+                        );
+                    }
+                    fallback_from_seed(id, seed, world, config).await
                 }
             }
         }
     }
+}
+
+/// The fallback for a context that moved to the blocking pool: rebuilt from
+/// the snapshot and the dealt seed — the same stream restart every other
+/// fallback arm applies.
+async fn fallback_from_seed(
+    id: KittyId,
+    seed: u64,
+    world: Arc<WorldSnapshot>,
+    config: Arc<Config>,
+) -> Action {
+    let me = world
+        .kitty(id)
+        .cloned()
+        .expect("the deciding kitty is in its own snapshot");
+    let ctx = DecisionContext {
+        me,
+        world,
+        rng: DecisionRng::from_seed(seed),
+        config,
+    };
+    fallback(&ctx).await
 }
 
 /// Runs a behavior, converting a panic into `None` rather than unwinding into the
@@ -397,6 +505,61 @@ mod tests {
     }
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn consecutive_timeouts_bench_a_wedged_advisor() {
+        // Spec 014 second review: a wedged advisor may never return its
+        // blocking thread, so the leak must be bounded — after
+        // budget_strikes consecutive timeouts the advisor is benched and
+        // no further work is spawned for it.
+        let mut config = test_config();
+        config.world.tick_ms = 20; // a 10ms budget
+        config.behavior.budget_strikes = 2;
+        config.kitties[0].behavior = "busy_spin".into();
+        let config = Arc::new(config);
+
+        let registry = registry_with("busy_spin", Arc::new(BusySpin::new(200)));
+        let mut world = World::generate(&config);
+
+        assert!(!registry.is_benched("busy_spin", config.behavior.budget_strikes));
+        gather_decisions(&mut world, &registry, &config).await;
+        assert!(!registry.is_benched("busy_spin", config.behavior.budget_strikes));
+        gather_decisions(&mut world, &registry, &config).await;
+        assert!(
+            registry.is_benched("busy_spin", config.behavior.budget_strikes),
+            "two strikes bench the advisor"
+        );
+
+        // Benched: the next gather goes straight to the fallback — no
+        // budget wait, no new blocking work.
+        let started = std::time::Instant::now();
+        gather_decisions(&mut world, &registry, &config).await;
+        assert!(
+            started.elapsed() < Duration::from_millis(8),
+            "a benched advisor must not spend the budget: {:?}",
+            started.elapsed()
+        );
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn an_in_budget_answer_clears_the_timeout_streak() {
+        let mut config = test_config();
+        config.world.tick_ms = 20;
+        config.behavior.budget_strikes = 2;
+        config.kitties[0].behavior = "quiet".into();
+        let config = Arc::new(config);
+        let registry = registry_with("quiet", Arc::new(super::test_behaviors::QuietExternal));
+        let mut world = World::generate(&config);
+
+        // Manufacture one strike, then let the healthy advisor answer.
+        registry.record_timeout("quiet");
+        gather_decisions(&mut world, &registry, &config).await;
+        registry.record_timeout("quiet");
+        assert!(
+            !registry.is_benched("quiet", config.behavior.budget_strikes),
+            "the in-budget answer between strikes reset the streak"
+        );
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
     async fn the_budget_preempts_a_synchronous_never_yielding_advisor() {
         // Spec 014 review: tokio's timeout only fires at await points, so a
         // synchronously-computing advisor (a policy MLP, a hot loop) wrapped
@@ -500,7 +663,7 @@ mod tests {
                 rng: DecisionRng::from_seed(r.seed),
                 config: config.clone(),
             };
-            let (action, _) = resolve_one(behavior, &ctx);
+            let (action, _) = resolve_one(behavior, &ctx, r.seed);
             assert_eq!(
                 action, r.action,
                 "kitty {} replays its decision",

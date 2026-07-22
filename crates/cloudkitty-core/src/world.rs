@@ -205,6 +205,14 @@ impl World {
         self.tick_with_proposals_seeded(proposals, seeds, config)
     }
 
+    /// Advances the master RNG past this tick's per-kitty decision-seed
+    /// draws without keeping the seeds — for reference-stream comparisons
+    /// that must match a driver which dealt eagerly (the honest name for
+    /// what was previously spelled as a deal nobody applied).
+    pub fn advance_past_decision_draws(&mut self) {
+        let _ = self.deal_decision_seeds();
+    }
+
     /// The seeded form of [`World::tick_with_proposals`], for drivers that
     /// dealt this tick's decision seeds themselves (mixed control needs the
     /// seeds *before* the tick, to run scripted behaviors and to surface
@@ -234,37 +242,30 @@ impl World {
         );
         let roster: Vec<KittyId> = self.kitties.iter().map(|k| k.id).collect();
         let mut decisions = Vec::with_capacity(roster.len());
-        let mut marks = Vec::with_capacity(roster.len());
+        // Index-aligned with `roster` and `decisions` (one entry per roster
+        // kitty, same loop).
+        let mut marks: Vec<Provenance> = Vec::with_capacity(roster.len());
         for &id in &roster {
             match proposals.get(id) {
                 Some(ProposalEntry::Action(action)) => {
                     decisions.push((id, *action));
-                    marks.push((id, Provenance::PolicyMade));
+                    marks.push(Provenance::PolicyMade);
                 }
                 Some(ProposalEntry::Malformed) | None => {
                     decisions.push((id, crate::action::Action::Idle));
-                    marks.push((id, Provenance::SubstitutedIdle));
+                    marks.push(Provenance::SubstitutedIdle);
                 }
             }
         }
         let unconsumed: Vec<KittyId> = proposals.ids().filter(|id| !roster.contains(id)).collect();
 
         let outcome = self.run_applied_phases(&decisions, config);
-        let applied_by_id: std::collections::BTreeMap<
-            KittyId,
-            (crate::action::Action, crate::action::Action),
-        > = outcome
-            .per_kitty
-            .iter()
-            .map(|&(id, validated, applied)| (id, (validated, applied)))
-            .collect();
+        let applied_by_id = outcome.applied_by_id();
 
-        // `roster`, `decisions`, and `marks` are index-aligned by
-        // construction (one entry per roster kitty, same loop).
         let mut records = Vec::with_capacity(roster.len());
         for (index, &id) in roster.iter().enumerate() {
             let (_, proposed) = decisions[index];
-            let (_, provenance) = marks[index];
+            let provenance = marks[index];
             let (validated, applied) = applied_by_id
                 .get(&id)
                 .copied()
@@ -1034,10 +1035,10 @@ impl World {
     }
 
     pub(crate) fn allocate_element_id(&mut self) -> ElementId {
-        // 0 is skipped by long precedent; u32::MAX is reserved (spec 014:
-        // the action codec's vacant-slot sentinel must never name a live
-        // element).
-        if self.next_element_id == 0 || self.next_element_id == ElementId::MAX {
+        // 0 is skipped by long precedent; the reserved id is never issued
+        // (spec 014: downstream encodings use it to mean "no element").
+        if self.next_element_id == 0 || self.next_element_id == crate::element::RESERVED_ELEMENT_ID
+        {
             self.next_element_id = 1;
         }
         let id = self.next_element_id;
@@ -1082,6 +1083,20 @@ pub(crate) struct PhaseOutcome {
     pub per_kitty: Vec<(KittyId, crate::action::Action, crate::action::Action)>,
     pub distress_events: Vec<DistressEvent>,
     pub activity_endings: Vec<ActivityEnd>,
+}
+
+impl PhaseOutcome {
+    /// The (validated, applied) pair per kitty, keyed for record building —
+    /// one implementation shared by both tick drivers (the seam's and the
+    /// joint-action path's records must be assembled identically).
+    pub fn applied_by_id(
+        &self,
+    ) -> std::collections::BTreeMap<KittyId, (crate::action::Action, crate::action::Action)> {
+        self.per_kitty
+            .iter()
+            .map(|&(id, validated, applied)| (id, (validated, applied)))
+            .collect()
+    }
 }
 
 impl WorldSnapshot {

@@ -123,17 +123,18 @@ fn p99_decision_latency_is_under_a_tenth_of_the_budget() {
     for _ in 0..2_000 {
         drive_tick(&mut world, &registry, &config);
         let snapshot = Arc::new(world.snapshot());
-        let seed = world.deal_decision_seeds();
+        let dealt = world.deal_decision_seeds();
+        let kitty_seed = dealt
+            .seed_for(policy_kitty)
+            .expect("the policy kitty is rostered");
         let ctx = cloudkitty_core::behavior::DecisionContext {
             me: snapshot.kitty(policy_kitty).unwrap().clone(),
             world: snapshot.clone(),
-            rng: cloudkitty_core::rng::DecisionRng::from_seed(
-                seed.iter().find(|(id, _)| *id == policy_kitty).unwrap().1,
-            ),
+            rng: cloudkitty_core::rng::DecisionRng::from_seed(kitty_seed),
             config: config.clone(),
         };
         let start = std::time::Instant::now();
-        let _ = cloudkitty_core::behavior::resolve_one(Some(policy.clone()), &ctx);
+        let _ = cloudkitty_core::behavior::resolve_one(Some(policy.clone()), &ctx, kitty_seed);
         samples.push(start.elapsed());
     }
     samples.sort();

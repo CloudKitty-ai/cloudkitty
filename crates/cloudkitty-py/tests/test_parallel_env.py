@@ -212,3 +212,41 @@ def test_vector_env_unseeded_reset_advances_every_world():
         "provenance",
     }
     assert info["survived"].tolist() == [-1, -1], "no proposal at reset"
+
+
+def test_vector_env_constructor_seeds_run_verbatim():
+    # Spec 014 second review: VectorEnv(n, seeds=[...]) + bare reset() must
+    # run exactly those seeds (once), matching an explicit reset(seeds=...);
+    # only subsequent unseeded resets advance the fresh-seed chains.
+    agent_bytes = lambda obs, agents: {a: obs[a].tobytes() for a in agents}
+
+    a = cloudkitty.VectorEnv(2, seeds=[5, 6], horizon=10, workers=2)
+    obs_a, _ = a.reset()
+    b = cloudkitty.VectorEnv(2, horizon=10, workers=2)
+    obs_b, _ = b.reset(seeds=[5, 6])
+    agents = a.possible_agents
+    assert agent_bytes(obs_a, agents) == agent_bytes(obs_b, agents), (
+        "constructor seeds must run verbatim on the first unseeded reset"
+    )
+
+    # The second unseeded reset advances the chains — and identically on
+    # both environments (the chain is owned by each episode).
+    obs_a2, _ = a.reset()
+    obs_b2, _ = b.reset()
+    assert agent_bytes(obs_a2, agents) != agent_bytes(obs_a, agents)
+    assert agent_bytes(obs_a2, agents) == agent_bytes(obs_b2, agents)
+
+
+def test_omitted_action_reports_survived_none():
+    # Spec 014 second review (contract: tri-state survived): an agent whose
+    # action is lawfully omitted gets idle substituted and survived=None —
+    # neither a pass nor a failure verdict.
+    env = make_env()
+    env.reset(seed=8)
+    agents = env.possible_agents
+    actions = {a: 39 for a in agents[1:]}  # agents[0] omitted
+    obs, rewards, terminations, truncations, infos = env.step(actions)
+    assert infos[agents[0]]["survived"] is None
+    assert infos[agents[0]]["provenance"] == "substituted_idle"
+    for agent in agents[1:]:
+        assert infos[agent]["survived"] in (True, False)

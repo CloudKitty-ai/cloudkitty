@@ -121,6 +121,24 @@ impl Behavior for BusySpin {
     }
 }
 
+/// Draws from its decision stream, then panics. Exists to prove the
+/// fallback rule (spec 014 second review): the fallback restarts from the
+/// dealt seed on every dispatch path, so a failed advisor's partial draws
+/// never shift the fallback's stream — served and budgetless worlds stay
+/// byte-identical even while surviving a broken advisor.
+pub struct DrawsThenPanics;
+
+#[async_trait]
+impl Behavior for DrawsThenPanics {
+    async fn decide(&self, ctx: &DecisionContext) -> Action {
+        // Consume a few draws so a fallback on the *consumed* stream would
+        // visibly diverge from one restarted at the seed.
+        let _ = ctx.rng.gen_bool(0.5);
+        let _ = ctx.rng.gen_f32();
+        panic!("drew twice, then broke");
+    }
+}
+
 /// Panics instead of deciding.
 pub struct Panicky;
 

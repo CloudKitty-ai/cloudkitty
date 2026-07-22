@@ -72,6 +72,44 @@ fn the_budgetless_driver_matches_the_served_tick() {
 }
 
 #[test]
+fn a_draw_then_panic_advisor_keeps_served_and_budgetless_worlds_identical() {
+    // Spec 014 second review: the fallback restarts from the dealt seed on
+    // every dispatch path. An advisor that consumes decision draws and then
+    // panics must therefore leave the served (budgeted) and budgetless
+    // worlds byte-identical — the fallback never sees the partial draws.
+    use cloudkitty_core::behavior::test_behaviors::DrawsThenPanics;
+    use std::sync::Arc as StdArc;
+
+    let mut config = Config::default();
+    config.kitties[0].behavior = "draws_then_panics".into();
+    let config = Arc::new(config);
+    let mut registry = BehaviorRegistry::with_builtins();
+    registry.register("draws_then_panics", StdArc::new(DrawsThenPanics));
+
+    let mut served = World::generate(&config);
+    let mut headless = World::generate(&config);
+
+    let previous = std::panic::take_hook();
+    std::panic::set_hook(Box::new(|_| {}));
+    let runtime = tokio::runtime::Builder::new_multi_thread()
+        .worker_threads(2)
+        .enable_time()
+        .build()
+        .unwrap();
+    for _ in 0..100 {
+        runtime.block_on(served.tick(&registry, &config));
+        drive_tick(&mut headless, &registry, &config);
+    }
+    std::panic::set_hook(previous);
+
+    assert_eq!(
+        serialize(&served),
+        serialize(&headless),
+        "the fallback's stream position diverged between dispatch paths"
+    );
+}
+
+#[test]
 fn the_joint_tick_consumes_the_identical_rng_draw_shape() {
     // T012: RNG state after a joint-action tick equals RNG state after the
     // equivalent behavior-driven tick — the draw-shape assertion (FR-002).

@@ -238,16 +238,17 @@ fn main() -> ExitCode {
             core: &core,
             rl: &rl,
             registry: &registry,
-            subject: Some("needs_driven"),
+            subject: Some(&subject_name),
             roster: RosterMode::AllSubject,
             seed: 0,
             ticks,
-        },
+        }
+        .baseline(),
         &seeds,
     );
     let mut runs = Vec::new();
     let mut paired = Vec::new();
-    for (mode_index, mode) in modes.iter().enumerate() {
+    for mode in &modes {
         let request = EvalRequest {
             core: &core,
             rl: &rl,
@@ -258,18 +259,21 @@ fn main() -> ExitCode {
             ticks,
         };
         let subject_runs = run_many(&request, &seeds);
-        // Determinism self-check (once): the first seed, repeated, must
-        // agree with itself exactly.
-        if mode_index == 0 {
-            if let Some(first) = seeds.first() {
-                let again = run_one(&EvalRequest {
-                    seed: *first,
-                    ..request.clone()
-                });
-                if again != subject_runs[0] {
-                    eprintln!("kitty-eval: determinism self-check failed on seed {first}");
-                    return ExitCode::from(3);
-                }
+        // Determinism self-check, per roster mode: mixed dispatch is a
+        // different code path and deserves its own re-run (spec 014 second
+        // review) — the first seed, repeated, must agree with itself
+        // exactly.
+        if let Some(first) = seeds.first() {
+            let again = run_one(&EvalRequest {
+                seed: *first,
+                ..request.clone()
+            });
+            if again != subject_runs[0] {
+                eprintln!(
+                    "kitty-eval: determinism self-check failed on seed {first} ({:?})",
+                    mode
+                );
+                return ExitCode::from(3);
             }
         }
         paired.extend(pair_runs(&subject_runs, &baseline_runs));

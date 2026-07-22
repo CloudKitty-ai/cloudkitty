@@ -64,7 +64,8 @@ persistent worker pool (post-review: per-step encoding trimmed to
 external agents and one post-tick snapshot, which *raised* the
 single-threaded rate and so compresses the ratio). The floor pinned from
 measurement: **vectorized ×8 ≥ 1.15× the single-threaded rate on the
-default world** (observed 1.17–1.33× across runs). "Near-linear"
+default world** (observed 1.2–1.6× across runs after the review-fix
+passes). "Near-linear"
 scaling is physically out of reach at this step cost, and honestly so:
 a default world step is ~10µs, so the per-batch serial term (per-step
 Python call and result marshaling under the GIL, ~50µs) dominates. The
