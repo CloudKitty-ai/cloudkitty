@@ -165,7 +165,7 @@ policy kitty rostered
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T046 [P] `docs/rl-training.md`: reference training script (any PettingZoo-compatible cooperative trainer) + artifact exporter walkthrough — documentation, not a supported surface (spec Assumptions)
+- [ ] T046 [P] `docs/rl-training.md`: reference training script (any PettingZoo-compatible cooperative trainer) + artifact exporter walkthrough, using the recommended training world from research.md R11 (5 kitties on 24×24, roster-randomized vectorized batches) — documentation, not a supported surface (spec Assumptions)
 - [ ] T047 [P] Record measured SC-003 throughput and its measurement method in `specs/014-multi-agent-rl/quickstart.md` beside the ≥ 5,000 steps/s target, pinning a numeric floor for "near-linear" scaling (e.g. ≥ 6× at 8 workers) from the measured result
 - [ ] T048 Run the full `specs/014-multi-agent-rl/quickstart.md` validation end-to-end; SC-006 cleanliness checks (no reward vocabulary in `crates/cloudkitty-core/src/`; every new constant reachable from `cloudkitty.toml` `[rl.*]`; constitution untouched at v1.1.0)
 

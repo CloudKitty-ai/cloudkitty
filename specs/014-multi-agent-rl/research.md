@@ -288,3 +288,57 @@ without the package ever becoming a runtime requirement.
 **Alternatives considered**: hard dependency on pettingzoo (needless
 coupling for a convention); Gymnasium single-agent flattening (loses the
 per-agent structure cooperative trainers consume).
+
+## R11 — Recommended training world: 5 kitties on 24×24, roster-randomized batches
+
+**Decision**: The served/default world stays **32×32, 4 kitties** —
+untouched, as the spec requires. The *recommended training configuration*
+(a documented default for the reference training script and `[rl]`
+examples, not a spec commitment — training configs remain the trainer's)
+is **5 kitties on a 24×24 world**, with the vectorized batch optionally
+mixing rosters (4/5/6 across independent worlds) as cheap domain
+randomization. Evaluation (FR-013, SC-004) always runs on the default
+world in both roster modes, unchanged.
+
+**Rationale**:
+
+- *Five is the smallest roster that turns the machinery on.* At the
+  4-kitty default the 3 kitty slots give full visibility: partial
+  observability never occurs, the id tie-break never displaces anyone,
+  and every kitty-side crowded-continuation corner is unreachable — the
+  kitty half of target-priority ordering (R1) is dead code in the
+  training distribution. At 5, nearest-3 selection genuinely selects,
+  `is-activity-target` displacement happens organically, and the policy
+  must learn meows as the global channel for the kitty it cannot see —
+  the exact regime future kittens bring.
+- *An odd roster makes inclusion a learned behavior.* Cuddling is
+  strictly pairwise (puddles are backlog), so with 5 kitties someone is
+  always left out of any duet pairing — and under Nash welfare, where
+  the least-happy kitty dominates, turn-taking becomes a necessity the
+  reward genuinely teaches, rather than two stable pairs forming by
+  accident as they can at 4.
+- *24×24 doubles signal density.* On 32×32, sparse kitties spend much of
+  a 2,000-tick episode traveling; 576 tiles roughly doubles encounter
+  and contention frequency (the yield-a-bowl, take-the-next-sunbeam
+  moments cooperation training needs) and cheapens ticks toward SC-003.
+  Floor of ~20×20: the element minimums plus 5 kitties want room, the
+  safeguard spawner needs somewhere to put relief, and the 010/012
+  pathing and etiquette behaviors assume routing is meaningful.
+- *The default world must not move.* The long-run welfare bounds and
+  SC-001/SC-003/SC-004 are calibrated against 32×32/4; re-baselining
+  mid-feature churns constants for no gain, and full mutual visibility
+  is the right *served* meadow anyway.
+- *Roster randomization is free robustness.* The schema is
+  roster-independent by design and vectorized worlds are fully
+  independent (R6), so mixing 4/5/6-kitty worlds in one batch trains a
+  single policy already comfortable at the default roster it deploys
+  to — and pre-adapted to the roster growth kittens will bring.
+
+**Alternatives considered**: train on the served default (32×32/4) —
+simplest story, but the partial-observability machinery and the
+inclusion pressure are never exercised, so the trained policy meets
+them for the first time at deploy or roster growth; 6–7 kitties — more
+than half the roster invisible at any moment hardens the learning
+problem without teaching anything 5 doesn't; smaller than 20×20 —
+element density starts distorting pathing/etiquette behavior and
+crowding the safeguard spawner.
