@@ -25,7 +25,7 @@
       documented alongside)
 - [x] All acceptance scenarios are defined
 - [x] Edge cases are identified
-- [x] Scope is clearly bounded (FR-018 scope guard; "Not in this feature"
+- [x] Scope is clearly bounded (FR-021 scope guard; "Not in this feature"
       assumptions)
 - [x] Dependencies and assumptions identified
 
@@ -64,3 +64,18 @@
   partial observability by design for larger rosters and future kittens)
   with sunbeam slots 1 → 2; action-menu extensibility doctrine recorded
   (growth only by codec version bump, no repurposed or reserved indices).
+- Cooperative-training amendment (2026-07-21, PR #19 review discussion):
+  four training-fidelity gaps closed — legal-action masks exposed to
+  trainers (advisory against the frozen snapshot; within-tick contention
+  stays the engine's, FR-018); a privileged global state for centralized
+  critics, never given to deployed behaviors (FR-019); per-kitty static
+  trait features in the observation so a parameter-shared policy serves
+  heterogeneous kitties (FR-005); and mixed-control training/evaluation —
+  policy kitties among built-in kitties, reward always counting the full
+  roster (FR-020, FR-013, SC-004). Two review findings folded in:
+  headless dispatch marks every decision policy-made or fallback-taken
+  and the harness fails scoring runs with a nonzero fallback count, so a
+  broken artifact can never ride the fallback through SC-004 (FR-017,
+  FR-013); and the Article IV compliance argument now covers the
+  time-budget clause's purpose reading explicitly. Scope guard
+  renumbered FR-018 → FR-021.

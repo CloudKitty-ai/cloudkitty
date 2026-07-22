@@ -94,8 +94,8 @@ every serialized byte.
 
 A trainer imports the environment in Python, resets it with a seed, and
 steps it with a dictionary of per-kitty actions, receiving per-kitty
-observations, one shared team reward, and episode bookkeeping — the
-PettingZoo parallel-environment convention. Observations are fixed-size
+observations and legal-action masks, one shared team reward, and episode
+bookkeeping — the PettingZoo parallel-environment convention. Observations are fixed-size
 vectors derived from exactly what a behavior is allowed to know (the frozen
 start-of-tick snapshot). Actions are a small flat menu covering everything a
 kitty can propose. Episodes end only by running out the clock: kitties
@@ -116,8 +116,9 @@ processes; a vectorized batch of worlds steps in parallel.
    in-range action per kitty, **Then** it receives per-kitty observations
    of the documented fixed size and bounds, one identical team-reward
    scalar per kitty, terminations all false, truncations all false until
-   the horizon tick, and per-kitty info including the applied action and
-   whether the proposal survived validation.
+   the horizon tick, and per-kitty info including the applied action,
+   whether the proposal survived validation, and the legal-action mask
+   for the next decision.
 2. **Given** the same seed, config, and action sequence in two separate
    processes, **When** both rollouts complete, **Then** observations and
    rewards are bit-identical.
@@ -129,6 +130,10 @@ processes; a vectorized batch of worlds steps in parallel.
    chase or cuddle), **When** the tick runs, **Then** the proposal reaches
    the engine and lawfully resolves to idle — never a crash, never a
    skipped tick.
+5. **Given** an environment where some kitties are driven by built-in
+   behaviors, **When** the trainer steps only the remaining kitties,
+   **Then** the scripted kitties act deterministically from their own
+   decision streams and the team reward still counts the full roster.
 
 ---
 
@@ -158,6 +163,13 @@ seeds, and the paired-seed comparison must be stable across repeat runs.
 2. **Given** two brains evaluated on the same seeds, **When** results are
    compared, **Then** the comparison is paired per seed and reproducible
    run to run.
+3. **Given** a policy artifact whose inference panics, **When** a scoring
+   run is attempted, **Then** the harness reports the fallback count and
+   fails the run — the fallback's welfare is never mistaken for the
+   policy's.
+4. **Given** a policy kitty evaluated among `needs_driven` kitties,
+   **Then** the same welfare scorecard and paired-seed comparison are
+   produced for the mixed roster.
 
 ---
 
@@ -229,6 +241,10 @@ offending config field.
 - **Persistence never meets training**: episodes are ephemeral; the training
   environment neither reads nor writes world snapshots. The served world's
   save/restore is untouched.
+- **A masked-in action can still idle**: the mask speaks to the
+  start-of-tick snapshot; within-tick contention — two kitties reaching
+  one last serving — is resolved by the engine's fair turn order.
+  Trainers treat the mask as necessary, not sufficient.
 - **A kitty at zero unclamped happiness**: the reward's configured offset
   ε keeps the fairness aggregate finite and its gradient defined; the
   score stays dominated by the least happy kitty without becoming
@@ -273,22 +289,27 @@ offending config field.
   frozen start-of-tick snapshot alone — the same information a behavior's
   decision context exposes, nothing more — covering the kitty's own state
   (needs, happiness, position, activity and its progress, distress,
-  pursuit), the nearest other kitties and relevant elements in a fixed
-  number of distance-ordered slots, recent meows, and episode progress. All
-  values normalized; slot counts and normalization constants in
-  configuration; encoding deterministic (same snapshot → identical vector).
+  pursuit) **and its static traits** (the configured per-need rise rates,
+  normalized — so one parameter-shared policy can serve heterogeneous
+  kitties, and a fast-metabolism eater is never failed by a brain tuned to
+  the average cat), the nearest other kitties and relevant elements in a
+  fixed number of distance-ordered slots, recent meows, and episode
+  progress. All values normalized; slot counts and normalization constants
+  in configuration; encoding deterministic (same snapshot → identical
+  vector).
 - **FR-006**: A flat, finite action menu MUST cover every proposable kitty
   action, with targeted actions (chasing, playing with, grooming, cuddling
   a specific other) expressed by reference to the observation's own slots;
   decoding MUST be total — every menu index decodes to a proposal, vacant
   or stale slots decoding to proposals the engine resolves to idle.
-- **FR-007**: Exactly one implementation of the observation encoding and
-  action codec MUST exist, in the engine's language, and MUST be shared
-  verbatim by the training environment and the deployed policy behavior. A
-  parallel reimplementation in Python is expressly forbidden — encoder
-  drift between training and deployment is the failure mode this
-  requirement exists to prevent. Both carry schema versions; artifacts
-  record the versions they were trained against.
+- **FR-007**: Exactly one implementation of the observation encoding, the
+  action codec, the legal-action mask, and the global-state encoding MUST
+  exist, in the engine's language, and MUST be shared verbatim by the
+  training environment and the deployed policy behavior. A parallel
+  reimplementation in Python is expressly forbidden — encoder drift
+  between training and deployment is the failure mode this requirement
+  exists to prevent. All carry schema versions; artifacts record the
+  versions they were trained against.
 
 **Reward and episodes (US2)**
 
@@ -337,7 +358,11 @@ offending config field.
   team-welfare aggregate with the plain mean and the least-happy kitty's
   mean reported beside it (fairness visible, not just scored), and a
   paired same-seed comparison against the `needs_driven` baseline over
-  ≥ 10 seeds.
+  ≥ 10 seeds. The harness MUST evaluate both roster modes — every kitty
+  policy-driven, and the deployment reality of a policy kitty among
+  `needs_driven` kitties — and MUST count decisions taken by the
+  fallback: a scoring run with a nonzero fallback count fails rather than
+  silently reporting the fallback's welfare as the policy's.
 
 **Deployment (US4)**
 
@@ -366,11 +391,42 @@ offending config field.
   served world, where a slow advisor may cost a kitty a turn of
   cleverness but never the world its correctness; the bit-exactness
   guarantees (SC-002) and suite passes with a policy kitty (SC-005) are
-  claims about this budgetless path.
+  claims about this budgetless path. Panic isolation and the fallback
+  remain in force headlessly — but never silently: every headlessly
+  dispatched decision MUST be marked as policy-made or fallback-taken, so
+  a broken artifact cannot ride the fallback through an evaluation
+  (FR-013).
+
+**Cooperative training fidelity (US2, US3)**
+
+- **FR-018**: Alongside each per-kitty observation, a legal-action mask
+  MUST be derivable from the same frozen snapshot, marking which menu
+  entries would pass validation as the world stood at the start of the
+  tick (and which would be rewritten by duration enforcement into the
+  activity's continuation), and MUST be exposed to trainers with every
+  reset and step. The mask is advisory by design: legality speaks to the
+  frozen snapshot, and within-tick contention is still resolved by the
+  engine's fair order — the mask is necessary, never sufficient, and a
+  masked-in action that loses a contest lawfully idles.
+- **FR-019**: For centralized training, a fixed-size privileged global
+  state MUST be derivable from the same frozen snapshot — every kitty's
+  full state without slot truncation, a bounded configured summary of the
+  element population, and the episode clock — and exposed through the
+  Python surface alongside per-agent observations (the parallel-
+  environment state convention). It exists for critics, not actors:
+  deployed behaviors never receive it (decentralized execution), and its
+  layout is versioned like the observation schema.
+- **FR-020**: The training environment MUST support mixed control: any
+  subset of kitties driven by named built-in behaviors while the rest
+  take external actions. Scripted kitties decide from the same per-kitty
+  decision streams the engine would deal them, so mixed rollouts remain
+  bit-reproducible; and the team reward always counts the full roster,
+  scripted kitties included — a policy is trained to raise everyone's
+  happiness, not just its own faction's.
 
 **Scope guard**
 
-- **FR-018**: This feature MUST NOT change the served world's semantics,
+- **FR-021**: This feature MUST NOT change the served world's semantics,
   the client, persistence formats, existing behaviors, or the constitution;
   MUST NOT introduce any reward concept into the engine; and every new
   constant it adds MUST live in configuration with documented defaults
@@ -404,6 +460,13 @@ offending config field.
   non-built-in behavior wrapping encode → infer → select → decode.
 - **Vectorized Environment**: N independent worlds stepped as a batch for
   training throughput.
+- **Legal-Action Mask**: the per-observation marking of which menu entries
+  would pass validation against the frozen snapshot — advisory (within-
+  tick contention stays the engine's to resolve), versioned with the
+  codec.
+- **Global State**: the fixed-size privileged view for centralized
+  critics — full roster, bounded element summary, episode clock; never
+  given to a deployed behavior.
 
 ## Constitutional compliance *(Articles I–VI)*
 
@@ -425,6 +488,13 @@ offending config field.
   the same validate → enforce → apply gauntlet in the same fair order. At
   deploy, the policy is a non-built-in advisor under budget, panic
   isolation, and fallback. The learned brain is untrusted twice over.
+  Article IV's time-budget clause reads on what it protects — the paced
+  tick loop: that purpose reading is already the law's practice (built-ins
+  are exempt precisely so determinism is unconditional), and headless
+  drives have no tick loop to protect and no wall clock to race (FR-017).
+  Validation, panic isolation, and the fallback hold everywhere a
+  behavior is dispatched — and headless fallbacks are counted, never
+  silent.
 - **Article V (server-authoritative, deterministic)**: the served world and
   its server are untouched; training embeds the engine headlessly exactly
   as the CI suites always have, and no non-server process mutates the
@@ -457,10 +527,13 @@ offending config field.
   **every** existing long-run welfare bound over 20,000 ticks — mean
   happiness ≥ 70, low streaks ≤ 20 ticks, low share ≤ 1%, zero floor
   touches, pinned streaks ≤ 25 ticks, distress age ≤ 150 — **and**
-  achieves collective happiness (the
-  configured welfare aggregate, Nash by default) at least equal to the
-  `needs_driven` baseline on ≥ 10 paired seeds, with its least-happy
-  kitty's mean happiness no lower than the baseline's least-happy kitty.
+  achieves collective happiness (the configured welfare aggregate, Nash
+  by default) at least equal to the `needs_driven` baseline on ≥ 10
+  paired seeds, with its least-happy kitty's mean happiness no lower than
+  the baseline's least-happy kitty. The criterion applies in both roster
+  modes — all kitties policy-driven, and the policy kitty deployed among
+  `needs_driven` kitties — and scoring runs record zero fallback-taken
+  decisions.
 - **SC-005**: Deployment safety — the policy behavior's 99th-percentile
   decision latency is under 10% of the default decision budget on the
   reference machine, and the entire existing CI suite (welfare,
