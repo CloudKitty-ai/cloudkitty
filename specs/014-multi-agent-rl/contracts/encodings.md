@@ -15,10 +15,12 @@ Layout and slot-fill rule as specified in
 - All values normalized to documented bounds; slot counts and
   normalization constants live in config (`[rl.observation]`), defaults:
   3 kitty, 4 critter, 2 chow, 2 water, 2 sunbeam slots.
-- **Slot fill (normative)**: kitty slots — nearest, distance-ordered,
-  ties by id, **duet partner always granted a slot** (displacing the
-  farthest otherwise-eligible; `is-my-partner` bit set on that slot).
-  Element slots — pure nearest-K, ties by id.
+- **Slot fill (normative)**: nearest, distance-ordered, ties by id —
+  **the ongoing activity's referenced entity always granted a slot in
+  its table** (referenced kitty of a cuddle/co-sleep/groom/social play
+  in a kitty slot; played-with critter in a critter slot; displacing the
+  farthest otherwise-eligible; `is-activity-target` bit set on that
+  slot). Chow/water/sunbeam slots — pure nearest-K, ties by id.
 
 ## Action menu v1 — normative index table (40 entries)
 
@@ -58,11 +60,12 @@ TargetTable. Direction order is the engine's: North, East, South, West.
   at the start of the tick, would be applied **as proposed** (passes
   validation; duration enforcement would not rewrite it). Inside an
   activity's minimum the mask reduces to that activity's continuations.
-- **Never all-zero — structural** (amended FR-018): partner-priority slot
-  ordering keeps a duet's continuation expressible in the menu at any
-  roster size; solo and element-targeted continuations are untargeted or
-  element-slot entries and always expressible; outside activities the
-  idle bit is genuinely legal.
+- **Never all-zero — structural** (amended FR-018): target-priority slot
+  ordering keeps every activity's exact continuation expressible in the
+  menu at any roster or population size — the referenced kitty or
+  critter always holds a slot; untargeted continuations (eat, drink,
+  solo rest/sleep/play, self-groom) are untargeted entries; outside
+  activities the idle bit is genuinely legal.
 - **Advisory**: legality speaks to the frozen snapshot; within-tick
   contention is resolved by the engine's fair order. Necessary, never
   sufficient.

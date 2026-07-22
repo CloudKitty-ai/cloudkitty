@@ -5,64 +5,92 @@ was chosen, why, and what else was weighed. R1 is the owner-requested
 decision carried from spec review (2026-07-22): partner-priority slot
 ordering versus FR-018's idle-bit mask exception.
 
-## R1 — Never-all-zero mask: partner-priority slot ordering (spec amendment)
+## R1 — Never-all-zero mask: target-priority slot ordering (spec amendment)
 
-**Decision**: Adopt **partner-priority slot ordering**. The kitty-slot fill
-rule becomes: slots are filled by the nearest other kitties,
-distance-ordered, ties broken by id — **except that a kitty's current duet
-partner is always guaranteed a slot**, displacing the farthest
-otherwise-eligible kitty if it would not have qualified. Each kitty slot
-carries an `is-my-partner` feature bit. FR-018's idle-bit exception is
-thereby vacuous and is removed: the mask's never-all-zero guarantee becomes
-**structural** — inside a duet's minimum the continuation (the duet action
-targeting the partner's slot) is always expressible in the menu, so the
-strict "applies as proposed" bit for it is always set. FR-018, the
-crowded-duet edge case, and the property-test carve-out language are
-amended in this same change (Article VI: spec and design must agree).
+**Decision**: Adopt **target-priority slot ordering**. The slot fill rule
+becomes: slots are filled by the nearest eligible entities,
+distance-ordered, ties broken by id — **except that the entity a kitty's
+ongoing activity references is always guaranteed a slot in its table**
+(the referenced kitty of a cuddle, co-sleep, groom, or social play in a
+kitty slot; a played-with critter in a critter slot), displacing the
+farthest otherwise-eligible occupant. The slot carries an
+`is-activity-target` feature bit. FR-018's idle-bit exception is thereby
+vacuous and is removed: the mask's never-all-zero guarantee becomes
+**structural** — inside any activity's minimum the exact continuation is
+always expressible in the menu, so the strict "applies as proposed" bit
+for it is always set (untargeted continuations — eat, drink, solo
+rest/sleep/play, self-groom — are untargeted menu entries and need no
+guarantee). FR-018, the crowded-continuation edge case, and the
+property-test carve-out language are amended in this same change
+(Article VI: spec and design must agree).
+
+**Post-plan verification (analysis finding I1, 2026-07-22)**: reading the
+engine settled why the guarantee must be wider than duets. Inside the
+minimum, `enforce_durations` (`world.rs`) rewrites *every* validated
+proposal — including same-kind proposals with a different partner, which
+`is_continued_by` accepts but normalization rewrites — to the exact
+`Activity::continuation()`, and continuations carry their references
+verbatim (`kitty.rs`): `Sleep{with: Some(X)}` for a co-sleep,
+`Groom{target: Some(X)}`, `Play{target: Element{id}}` for critter play.
+So the mid-minimum mask is exactly one entry, and the inexpressible
+corner exists for co-sleeping and grooming friends (same
+crowded-adjacency geometry as duets, roster ≥ 5) **and for a played-with
+critter crowded off the four critter slots — reachable at the default
+element population (5 critters, 4 slots)**. Keying the guarantee on the
+engine's `duet_partner()` (cuddle and social play only) would have left
+those corners open; `partner()`-plus-play-target is the correct key.
 
 **Rationale**:
 
 - *Structural beats exceptional.* The merged spec's idle-bit exception
-  handled the one corner (≥ 5-kitty roster, all four neighbor tiles
-  occupied, partner losing the id tie-break off the 3-slot table) by
-  special-casing mask semantics. Partner-priority removes the corner
-  instead of documenting it: the guarantee holds by construction at any
-  roster size, including future kittens.
+  handled the crowded-out corner by special-casing mask semantics.
+  Target-priority removes the corner instead of documenting it: the
+  guarantee holds by construction at any roster or population size,
+  including future kittens.
 - *The property test becomes a pure oracle.* FR-018's guard — mask verdict
   equals the engine's validate-plus-enforcement verdict for every menu
   entry — no longer needs a carved, asserted exception. A test with no
   carve-outs is strictly stronger and simpler to trust.
-- *The partner stays observable exactly when it matters.* The
-  continue-or-end decision mid-duet needs the partner's state (their
-  needs, their happiness); the idle-bit design could crowd the partner out
-  of view at precisely that moment. Partner-priority keeps the policy's
-  input aligned with its most consequential in-activity choice, and the
-  `is-my-partner` bit lets a parameter-shared policy identify which slot
-  the continuation targets.
+- *The target stays observable exactly when it matters.* The
+  continue-or-end decision mid-activity needs the referenced entity's
+  state (a friend's needs, a critter's position); the idle-bit design
+  could crowd it out of view at precisely that moment. Target-priority
+  keeps the policy's input aligned with its most consequential
+  in-activity choice, and the `is-activity-target` bit lets a
+  parameter-shared policy identify which slot the continuation targets.
 - *Training labels stay consistent.* Under the exception, idle sometimes
-  meant "continue the duet" — an aliased label a policy must disentangle.
-  Under partner-priority, continue is always the duet action itself.
-- *The choice is free right now.* The corner is unreachable at the 4-kitty
-  default and nothing is trained yet; changing the slot rule later would
-  be an observation-schema version bump invalidating artifacts.
+  meant "continue the activity" — an aliased label a policy must
+  disentangle. Under target-priority, continue is always the activity's
+  own entry.
+- *The choice is free right now.* Nothing is trained yet; changing the
+  slot rule later would be an observation-schema version bump
+  invalidating artifacts. (The kitty-side corners need a ≥ 5 roster, but
+  the critter-side corner is reachable at the default config — the
+  verification note above — so the guarantee is not merely
+  future-proofing.)
 
 **Costs accepted**: the slot rule loses its "nearest K, ties by id"
 one-liner (the exception moves from mask semantics into the slot rule —
 but the slot rule is the right home: it is encoding policy, not a
-falsified engine verdict); one extra feature bit per kitty slot; slot
-contents may reshuffle at duet start when a distant partner is promoted
-(acceptable — slots are distance-ordered and already reshuffle on every
-movement tick).
+falsified engine verdict); one extra feature bit per kitty and critter
+slot; slot contents may reshuffle at activity start when a distant
+target is promoted (acceptable — slots are distance-ordered and already
+reshuffle on every movement tick).
 
 **Alternatives considered**: (a) *Idle-bit exception* (the merged spec's
 answer) — works, and is honest about being an exception, but bakes a
 special case into mask semantics, the property test, and the training
-labels, and can hide the partner from observation mid-duet. Rejected as
-the weaker of two correct designs. (b) *Pin the partner to slot 0* —
-stronger guarantee than needed; makes slot 0's meaning mode-dependent and
-reshuffles all other slots on every duet transition. Rejected.
-(c) *Grow the kitty-slot count with roster* — abandons the fixed-size
-schema and the partial-observability-by-design doctrine. Rejected.
+labels, and can hide the activity's target from observation exactly
+mid-activity; the verification note shows the exception would also have
+had to widen beyond duets to stay sound. Rejected as the weaker of two
+correct designs. (b) *Duet-only partner-priority* (this decision's first
+draft) — leaves the co-sleep, groom, and played-with-critter corners
+open; falsified by the engine reading above. Superseded. (c) *Pin the
+target to slot 0* — stronger than needed; makes slot 0's meaning
+mode-dependent and reshuffles all other slots on every transition.
+Rejected. (d) *Grow slot counts with roster/population* — abandons the
+fixed-size schema and the partial-observability-by-design doctrine.
+Rejected.
 
 ## R2 — Python bindings: PyO3 + maturin, abi3, GIL released in step
 

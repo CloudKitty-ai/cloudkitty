@@ -28,7 +28,7 @@ testable increments.
 
 - [ ] T001 Add `cloudkitty-rl` workspace member: create `crates/cloudkitty-rl/Cargo.toml` (deps: cloudkitty-core, serde, serde_json, rand, rand_chacha, thiserror, tracing; dev-deps: proptest, toml) and `crates/cloudkitty-rl/src/lib.rs` declaring empty modules `config`, `observe`, `codec`, `mask`, `global_state`, `reward`, `episode`, `vector`, `welfare`, `policy`, `behavior`; add the member to the root `Cargo.toml`
 - [ ] T002 [P] Add `cloudkitty-py` crate: `crates/cloudkitty-py/Cargo.toml` (cdylib, pyo3 with `abi3-py39` + `extension-module`, numpy, cloudkitty-rl), `crates/cloudkitty-py/pyproject.toml` (maturin build backend), stub `crates/cloudkitty-py/src/lib.rs` with an empty `#[pymodule]`; add the member to the root `Cargo.toml` (gate `extension-module` behind a feature so plain `cargo test` still links)
-- [ ] T003 [P] Extend `.github/workflows/ci.yml`: run `cargo test -p cloudkitty-rl` in the standard job; add a Python job (maturin develop + pytest in `crates/cloudkitty-py`, with a `pettingzoo` extra step marked continue-on-error while optional)
+- [ ] T003 [P] Extend `.github/workflows/ci.yml`: run `cargo test -p cloudkitty-rl` in the standard job; add a **required** Python job (maturin develop + pytest in `crates/cloudkitty-py` — SC-002's two-process reproducibility gate lives here, so the job must gate the merge once T030 lands); only the optional `pettingzoo` conformance step is continue-on-error
 
 ---
 
@@ -62,7 +62,7 @@ included) is byte-identical to the behavior-driven run
 
 ### Implementation for User Story 1
 
-- [ ] T008 [US1] Define `JointProposal`, `TickReport` (per-kitty proposed/validated/applied triple + provenance + decision seed; tick-level distress events and activity endings), and `Provenance` in a new `crates/cloudkitty-core/src/seam.rs`, exported from `lib.rs`
+- [ ] T008 [US1] Define `JointProposal`, `TickReport` (per-kitty proposed/validated/applied triple + provenance + decision seed; tick-level distress events and activity endings), and `Provenance` in a new `crates/cloudkitty-core/src/seam.rs`, exported from `lib.rs` — the joint-action absent/malformed substitution gets its own provenance variant (e.g. `SubstitutedIdle`), never reusing `FallbackTaken` (FR-017's mark is for dispatched decisions)
 - [ ] T009 [US1] Refactor `World::tick` internals in `crates/cloudkitty-core/src/world.rs` into one shared phase pipeline (fair order → validate → durations → apply → activity ends → environment → needs → distress → purr → invariants) consumed by the existing tick — no observable change; full suite still green
 - [ ] T010 [US1] Implement `World::tick_with_proposals` in `crates/cloudkitty-core/src/world.rs`: identical master-RNG draw shape (per-kitty decision seeds in stable id order, fair-order draws), behavior dispatch as the only bypassed step, returns the `TickReport`
 - [ ] T011 [US1] Implement the budgetless behavior-driven driver `drive_tick` in `crates/cloudkitty-core/src/seam.rs` (uses the T004 resolver; returns `TickReport` plus the dispatched proposals — the parity capture)
@@ -86,7 +86,7 @@ sequence produce bit-identical observation/mask/global-state/reward streams
 ### Encodings (Rust, `cloudkitty-rl`)
 
 - [ ] T013 [P] [US2] `RlConfig` types parsing the `[rl.*]` TOML blocks with documented defaults (slot counts 3/4/2/2/2, normalization constants, reward `p`/`epsilon`/`mode`/shaping-off, horizons 2000/20000) in `crates/cloudkitty-rl/src/config.rs` (Article VI: every constant configured)
-- [ ] T014 [US2] Observation encoder + `TargetTable` in `crates/cloudkitty-rl/src/observe.rs`: schema v1 per data-model.md — self block with static traits, kitty slots with **partner-priority fill** (nearest, ties by id, duet partner always granted a slot, `is-my-partner` bit), element slots nearest-K, meow digest, episode clock; version and exact-size constants exported
+- [ ] T014 [US2] Observation encoder + `TargetTable` in `crates/cloudkitty-rl/src/observe.rs`: schema v1 per data-model.md — self block with static traits, kitty and critter slots with **target-priority fill** (nearest, ties by id, the ongoing activity's referenced kitty or played-with critter always granted a slot — keyed on `Activity::partner()` plus the `Playing` element target, not `duet_partner()` — `is-activity-target` bit), chow/water/sunbeam slots nearest-K, meow digest, episode clock; version and exact-size constants exported
 - [ ] T015 [US2] Action codec v1 in `crates/cloudkitty-rl/src/codec.rs`: the normative 40-entry table from contracts/encodings.md, total both directions (vacant/stale slots decode to engine-rejectable proposals, never errors)
 - [ ] T016 [US2] Legal-action mask v1 in `crates/cloudkitty-rl/src/mask.rs`: one bit per entry, "applies as proposed" against the frozen snapshot (validation passes + duration enforcement would not rewrite), versioned with the codec
 - [ ] T017 [P] [US2] Global state v1 in `crates/cloudkitty-rl/src/global_state.rs`: full roster untruncated, bounded configured element summary, episode clock; versioned
@@ -95,7 +95,7 @@ sequence produce bit-identical observation/mask/global-state/reward streams
 ### Encoding tests
 
 - [ ] T019 [P] [US2] Codec-totality proptest (every index ↔ proposal, both directions, random worlds and vacant slots) in `crates/cloudkitty-rl/tests/codec_totality.rs`
-- [ ] T020 [P] [US2] Mask pure-oracle proptest — for every menu entry, mask verdict == engine validate-plus-enforcement verdict, **no carve-outs** — plus the never-all-zero property across randomized rosters/activities including a ≥ 5-kitty crowded-duet construction exercising partner-priority, in `crates/cloudkitty-rl/tests/mask_oracle.rs`
+- [ ] T020 [P] [US2] Mask pure-oracle proptest — for every menu entry, mask verdict == engine validate-plus-enforcement verdict, **no carve-outs** — plus the never-all-zero property across randomized rosters/activities including named crowded-continuation constructions exercising target-priority: a ≥ 5-kitty crowded duet, a crowded co-sleep, a crowded groom, and a default-population critter cluster around an ongoing element play, in `crates/cloudkitty-rl/tests/mask_oracle.rs`
 - [ ] T021 [P] [US2] Encoder determinism + bounds tests (same snapshot → identical observation and global-state vectors; all values in documented bounds) in `crates/cloudkitty-rl/tests/encoding_determinism.rs`
 - [ ] T022 [P] [US2] Reward property tests (strictly increasing; concave; finite value/gradient at zero via ε; p ∈ {1, 0, −8} behaviors) in `crates/cloudkitty-rl/tests/reward_properties.rs`
 
@@ -157,7 +157,7 @@ policy kitty rostered
 - [ ] T042 [P] [US4] Selection tests (same artifact + observation + decision seed → same action across processes; garbage logits — NaN, ±inf, all-equal — still select a masked-in action) in `crates/cloudkitty-rl/tests/policy_selection.rs`
 - [ ] T043 [US4] `kitty-eval` artifact scoring integration in `crates/cloudkitty-rl/tests/harness_policy.rs`: both roster modes scored (all-policy and one-among-`needs_driven`); a deliberately panicking artifact → nonzero exit with fallback counts reported (FR-013; US3 scenarios 3–4)
 - [ ] T044 [US4] Server integration test in `crates/cloudkitty-server/tests/policy_kitty.rs`: boot with a fixture policy config (hash logged before tick 1), corrupted-artifact startup failure naming `[rl.policy.<name>].artifact`, viewer-visible state indistinguishable from a built-in kitty
-- [ ] T045 [US4] Full-suite-with-policy-kitty guard in `crates/cloudkitty-rl/tests/policy_ci.rs`: determinism and welfare suites run with a fixture policy kitty rostered (SC-005's suite clause), plus a p99 decision-latency measurement asserted < 10% of the default budget on the reference machine, method documented in the test
+- [ ] T045 [US4] Full-suite-with-policy-kitty guard in `crates/cloudkitty-rl/tests/policy_ci.rs`: determinism and welfare suites run with a fixture policy kitty rostered (SC-005's suite clause) as normal CI gates; the p99 decision-latency check (< 10% of the default budget) is an `#[ignore]`-by-default test run explicitly on the reference machine, method documented in the test
 
 **Checkpoint**: all four stories independently functional
 
@@ -166,7 +166,7 @@ policy kitty rostered
 ## Phase 7: Polish & Cross-Cutting Concerns
 
 - [ ] T046 [P] `docs/rl-training.md`: reference training script (any PettingZoo-compatible cooperative trainer) + artifact exporter walkthrough — documentation, not a supported surface (spec Assumptions)
-- [ ] T047 [P] Record measured SC-003 throughput and its measurement method in `specs/014-multi-agent-rl/quickstart.md` beside the ≥ 5,000 steps/s target
+- [ ] T047 [P] Record measured SC-003 throughput and its measurement method in `specs/014-multi-agent-rl/quickstart.md` beside the ≥ 5,000 steps/s target, pinning a numeric floor for "near-linear" scaling (e.g. ≥ 6× at 8 workers) from the measured result
 - [ ] T048 Run the full `specs/014-multi-agent-rl/quickstart.md` validation end-to-end; SC-006 cleanliness checks (no reward vocabulary in `crates/cloudkitty-core/src/`; every new constant reachable from `cloudkitty.toml` `[rl.*]`; constitution untouched at v1.1.0)
 
 ---

@@ -111,3 +111,16 @@
   more-kitties-than-slots edge cases, FR-005's slot description, and the
   Assumptions slot rationale amended in the same change (Article VI);
   full weighing in plan-phase research.md R1.
+- Analysis-phase widening (2026-07-22, /speckit-analyze finding I1,
+  verified against the engine): partner-priority generalized to
+  **target-priority slot ordering**. `enforce_durations` rewrites every
+  mid-minimum proposal to the exact `Activity::continuation()`, which
+  carries its reference verbatim — so the inexpressible-continuation
+  corner also exists for co-sleep and groom friends (roster ≥ 5) and
+  for a played-with critter crowded off the four critter slots, the
+  latter reachable at the default element population (5 critters, 4
+  slots). The guarantee now keys on `Activity::partner()` plus the
+  `Playing` element target, in whichever slot table the entity lives,
+  flagged `is-activity-target`. FR-018, both edge cases, FR-005, the
+  Assumptions, and all plan artifacts updated together; the T020
+  property test names all four crowded-continuation constructions.

@@ -220,7 +220,8 @@ offending config field.
   to a proposal the engine lawfully rejects to idle — validation absorbs the
   whole failure surface; decoding itself never errors.
 - **More kitties than observation slots**: the nearest fill the slots
-  (ties broken by id; a duet partner is always granted a slot — FR-018);
+  (ties broken by id; an activity's referenced kitty is always granted a
+  slot — FR-018);
   farther kitties are unobserved but fully simulated —
   the engine acts for every kitty regardless of who fits in whose view.
 - **Config immutability per episode**: the environment's config is fixed at
@@ -247,12 +248,15 @@ offending config field.
   start-of-tick snapshot; within-tick contention — two kitties reaching
   one last serving — is resolved by the engine's fair turn order.
   Trainers treat the mask as necessary, not sufficient.
-- **A crowded duet's continuation**: with every neighbor tile occupied in
-  a large roster, a duet partner could fall off a pure nearest-K slot
-  table and leave the continuation inexpressible in the menu — which is
-  why kitty slots use partner-priority ordering (FR-018): the partner is
-  always granted a slot, the continuation stays expressible, and the
-  mask is never all-zero, at any roster size.
+- **A crowded continuation**: under pure nearest-K slot filling, the
+  entity an ongoing activity references could be crowded off its slot
+  table — a duet partner or a co-sleep/groom friend by adjacent kitties
+  in a large roster, a played-with critter by a cluster of nearer
+  critters even at the default population — leaving the continuation
+  inexpressible in the menu. Slot filling is therefore target-priority
+  ordered (FR-018): the activity's referenced entity is always granted
+  a slot, the continuation stays expressible, and the mask is never
+  all-zero.
 - **A kitty at zero unclamped happiness**: the reward's configured offset
   ε keeps the fairness aggregate finite and its gradient defined; the
   score stays dominated by the least happy kitty without becoming
@@ -301,8 +305,8 @@ offending config field.
   normalized — so one parameter-shared policy can serve heterogeneous
   kitties, and a fast-metabolism eater is never failed by a brain tuned to
   the average cat), the nearest other kitties and relevant elements in a
-  fixed number of distance-ordered slots (kitty slots partner-priority
-  ordered, per FR-018), recent meows, and episode progress. All values normalized; slot counts and normalization constants
+  fixed number of distance-ordered slots (target-priority ordered, per
+  FR-018), recent meows, and episode progress. All values normalized; slot counts and normalization constants
   in configuration; encoding deterministic (same snapshot → identical
   vector).
 - **FR-006**: A flat, finite action menu MUST cover every proposable kitty
@@ -421,12 +425,16 @@ offending config field.
   duration enforcement would not rewrite it. Inside an activity's
   minimum the mask therefore reduces to the activity's continuations.
   The mask MUST never be all-zero — and the guarantee is structural,
-  not exceptional: the observation's kitty slots are filled by
-  **partner-priority ordering** (nearest first, ties by id, except that
-  a kitty's current duet partner is always granted a slot — displacing
-  the farthest otherwise-eligible kitty — and flagged with an
-  is-my-partner feature bit), so a duet's continuation is always
-  expressible in the menu at any roster size. An all-zero mask would
+  not exceptional: slots are filled by **target-priority ordering** —
+  nearest first, ties by id, except that the entity a kitty's ongoing
+  activity references is always granted a slot in its table (the
+  referenced kitty of a cuddle, co-sleep, groom, or social play in a
+  kitty slot; a played-with critter in a critter slot), displacing the
+  farthest otherwise-eligible occupant and flagged with an
+  is-activity-target feature bit — so every activity's continuation is
+  always expressible in the menu at any roster or population size
+  (untargeted continuations are untargeted menu entries and need no
+  guarantee). An all-zero mask would
   poison masked softmax in training and empty the deployed selection's
   support (FR-015); this guarantee is what makes masked selection
   total. The mask is advisory by design: legality speaks to
@@ -591,7 +599,8 @@ offending config field.
   nearest plus an alternative, which is what lets a policy learn to yield
   a contested resource and take the next one. Kitty slots need not equal
   roster − 1: larger rosters are partially observed by design (the
-  nearest fill the slots — a duet partner always among them, FR-018 —
+  nearest fill the slots — an activity's referenced kitty always among
+  them, FR-018 —
   meows carry need signals world-wide, and the
   reward always counts the full roster), so one schema can serve worlds
   of any roster size — including a future where kittens grow it

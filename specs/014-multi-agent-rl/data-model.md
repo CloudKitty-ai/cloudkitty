@@ -65,20 +65,27 @@ Blocks, in order:
    normalized by the configured reference rate (FR-005).
 2. **Kitty slots × 3** (config): present flag; relative position (dx, dy
    normalized); distance (normalized); needs (/100); happiness; activity
-   one-hot + social flag; **`is-my-partner` bit** (research.md R1).
+   one-hot + social flag; **`is-activity-target` bit** (research.md R1).
 3. **Element slots** (config: 2 chow, 2 water, 2 sunbeam, 4 critter):
    present flag; relative position + distance; per-kind extras — chow:
    servings (normalized by configured max); sunbeam: remaining-ttl
-   fraction and occupied flag; critter: kind bit (bug/greeble) and
-   heading one-hot for greebles.
+   fraction and occupied flag; critter: kind bit (bug/greeble), heading
+   one-hot for greebles, and **`is-activity-target` bit** (research.md
+   R1).
 4. **Meow digest**: per learned meow kind (6), recency-weighted presence
    from `recent_meows` plus nearest-emitter direction.
 5. **Episode clock**: tick/horizon.
 
 - **Slot fill rule (normative)**: distance-ordered nearest, ties broken by
-  id — **except the observing kitty's current duet partner is always
-  granted a kitty slot**, displacing the farthest otherwise-eligible kitty
-  (partner-priority, research.md R1). Element slots are pure nearest-K.
+  id — **except the entity the observing kitty's ongoing activity
+  references is always granted a slot in its table** (the referenced
+  kitty of a cuddle, co-sleep, groom, or social play in a kitty slot; a
+  played-with critter in a critter slot), displacing the farthest
+  otherwise-eligible occupant (target-priority, research.md R1). The
+  engine-side key is `Activity::partner()` plus the `Playing` element
+  target — not `duet_partner()`, which omits co-sleep and groom. Chow,
+  water, and sunbeam slots are pure nearest-K (no activity references
+  them by identity).
 - **Validation**: same snapshot → identical vector (encoder determinism
   test); all values in documented bounds; total size ~160–200 values,
   exact size a constant of the schema version.
@@ -115,11 +122,13 @@ stood at the start of the tick, would be applied **as proposed** —
 validation passes and duration enforcement would not rewrite it.
 
 - **Invariants**: inside an activity's minimum the mask reduces to the
-  activity's continuations; **never all-zero** — structural under
-  partner-priority (the duet continuation is always expressible; solo and
-  element-targeted continuations are untargeted or element-slot entries,
-  always expressible). Advisory: within-tick contention stays the
-  engine's (a masked-in action that loses a contest lawfully idles).
+  exact continuation (`enforce_durations` rewrites everything else,
+  including same-kind proposals it normalizes); **never all-zero** —
+  structural under target-priority (every targeted continuation's entity
+  — cuddle/co-sleep/groom/social-play kitty, played-with critter — holds
+  a slot; untargeted continuations are untargeted entries). Advisory:
+  within-tick contention stays the engine's (a masked-in action that
+  loses a contest lawfully idles).
 - **Validation**: pure-oracle proptest — for every menu entry, mask
   verdict equals the engine's validate-plus-enforcement verdict, no
   carve-outs (amended FR-018).

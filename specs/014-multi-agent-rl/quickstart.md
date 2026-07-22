@@ -35,8 +35,10 @@ cargo test -p cloudkitty-rl
 totality both directions (proptest), the mask's pure-oracle property test
 (mask verdict == engine verdict for every menu entry, no carve-outs), and
 the never-all-zero property across randomized rosters and activities —
-including a ≥ 5-kitty crowded-duet construction that exercises
-partner-priority slot ordering ([contracts/encodings.md](contracts/encodings.md)).
+including the named crowded-continuation constructions (crowded duet,
+co-sleep, groom, and a default-population critter cluster around an
+ongoing play) that exercise target-priority slot ordering
+([contracts/encodings.md](contracts/encodings.md)).
 
 ## 3. The Python surface: rollouts reproduce (US2 / SC-002, SC-003)
 

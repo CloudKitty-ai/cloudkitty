@@ -21,10 +21,13 @@ artifact in the existing `Behavior` seam for deployment.
 
 The load-bearing research decision (owner-requested, carried from spec
 review): the never-all-zero mask guarantee moves from FR-018's idle-bit
-exception to **partner-priority slot ordering** — the duet partner is
-guaranteed a kitty slot, making the guarantee structural. FR-018 and its
-property-test language are amended in this same change (Article VI); see
-[research.md](research.md) R1.
+exception to **target-priority slot ordering** — the entity an ongoing
+activity references (cuddle/co-sleep/groom/social-play kitty, or
+played-with critter) is guaranteed a slot in its table, making the
+guarantee structural. Post-plan engine verification widened this from
+duets to all targeted continuations (research.md R1's verification
+note). FR-018 and its property-test language are amended in this same
+change (Article VI); see [research.md](research.md) R1.
 
 ## Technical Context
 
@@ -102,7 +105,7 @@ observation vector; global state ~ full roster + bounded element summary;
   determinism strengthens rather than bends.
 - **Article VI (spec-first, test-guarded, no magic numbers)** — PASS. This
   plan follows the merged spec; the one design decision that changes spec
-  text (partner-priority slot ordering, research.md R1) amends FR-018 and
+  text (target-priority slot ordering, research.md R1) amends FR-018 and
   its property-test language **in this same change**, keeping spec and
   design agreed. Every guard named in the spec (parity, codec totality,
   encoder determinism, mask oracle, reproducibility, welfare with a policy
@@ -142,7 +145,7 @@ crates/
 │   └── src/
 │       ├── observe.rs         # observation encoder + target table (v1 schema)
 │       ├── codec.rs           # 40-entry action codec, total both directions
-│       ├── mask.rs            # legal-action mask (partner-priority guarantee)
+│       ├── mask.rs            # legal-action mask (target-priority guarantee)
 │       ├── global_state.rs    # privileged critic view (v1 schema)
 │       ├── reward.rs          # unclamped happiness → power-mean welfare
 │       ├── episode.rs         # reset/step/truncation, mixed control
