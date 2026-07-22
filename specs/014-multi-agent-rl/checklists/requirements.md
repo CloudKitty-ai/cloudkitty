@@ -79,3 +79,16 @@
   FR-013); and the Article IV compliance argument now covers the
   time-budget clause's purpose reading explicitly. Scope guard
   renumbered FR-018 → FR-021.
+- Amendment review fixes (2026-07-21, second review round): deployed
+  selection operates over the masked menu — the same mask implementation
+  training used — closing the train/deploy action-distribution skew
+  (FR-015); mask semantics pinned to one bit per entry, "would apply as
+  proposed" (validation passes, no duration rewrite), with a guarding
+  property test against the engine's own validate-plus-enforcement
+  verdict (FR-018, Article VI list); SC-002 and US2 reproducibility
+  widened to mask and global-state streams; FR-007's consumers clause
+  rephrased so the global state's training/evaluation-only life (FR-019)
+  no longer contradicts it; FR-013's dual-roster duty scoped to policy
+  scoring. Owner decision: neighbors' trait features in the kitty slots
+  are out of scope until the trained meadow is proven — recorded in "Not
+  in this feature" and on the backlog (anticipatory cooperation).

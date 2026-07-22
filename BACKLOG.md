@@ -131,6 +131,19 @@ The 005 refresh has shipped, so lighting lands on the vector look.
 
 ## P3 — simulation depth
 
+### Kitties learn each other's traits — anticipatory cooperation (added 2026-07-21)
+A 014 follow-on, deliberately out of scope until the trained meadow is
+proven working well (owner decision, 2026-07-21; recorded in 014's "Not in
+this feature"). Today a policy kitty's observation carries its *own* static
+traits (per-need rise rates, 014 FR-005) but neighbors appear in the kitty
+slots with only their live state. Adding neighbors' traits to the slots
+would let a policy anticipate — "Biscuit's metabolism runs hot, leave them
+the bowl" — before the need is even high, instead of reacting to the
+slots' current needs (the live form of the same signal, and v1's answer).
+When it comes: an observation-schema version bump per 014's extensibility
+doctrine, slot width paid per kitty slot, and worth pairing with a
+training-ablation check that the traits actually earn their vector space.
+
 ### Chases route around friends (added 2026-07-20)
 The one walk with no route-around: a chase step is applied engine-side via
 the straight `Direction::toward`, and a friend standing in the lane stalls

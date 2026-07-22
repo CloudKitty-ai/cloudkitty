@@ -95,11 +95,12 @@ every serialized byte.
 A trainer imports the environment in Python, resets it with a seed, and
 steps it with a dictionary of per-kitty actions, receiving per-kitty
 observations and legal-action masks, one shared team reward, and episode
-bookkeeping — the PettingZoo parallel-environment convention. Observations are fixed-size
-vectors derived from exactly what a behavior is allowed to know (the frozen
-start-of-tick snapshot). Actions are a small flat menu covering everything a
-kitty can propose. Episodes end only by running out the clock: kitties
-cannot die, so termination is constitutionally always false.
+bookkeeping — the PettingZoo parallel-environment convention. Observations
+are fixed-size vectors derived from exactly what a behavior is allowed to
+know (the frozen start-of-tick snapshot). Actions are a small flat menu
+covering everything a kitty can propose. Episodes end only by running out
+the clock: kitties cannot die, so termination is constitutionally always
+false.
 
 **Why this priority**: this is the training loop itself — the reason the
 door exists. It depends on the P1 seam plus the observation/action encodings
@@ -120,8 +121,8 @@ processes; a vectorized batch of worlds steps in parallel.
    whether the proposal survived validation, and the legal-action mask
    for the next decision.
 2. **Given** the same seed, config, and action sequence in two separate
-   processes, **When** both rollouts complete, **Then** observations and
-   rewards are bit-identical.
+   processes, **When** both rollouts complete, **Then** observations,
+   masks, global states, and rewards are bit-identical.
 3. **Given** a vectorized environment of N independent worlds, **When**
    stepped with a batch of joint actions, **Then** each world advances
    independently and the batch step releases Python's interpreter lock
@@ -304,12 +305,13 @@ offending config field.
   or stale slots decoding to proposals the engine resolves to idle.
 - **FR-007**: Exactly one implementation of the observation encoding, the
   action codec, the legal-action mask, and the global-state encoding MUST
-  exist, in the engine's language, and MUST be shared verbatim by the
-  training environment and the deployed policy behavior. A parallel
-  reimplementation in Python is expressly forbidden — encoder drift
-  between training and deployment is the failure mode this requirement
-  exists to prevent. All carry schema versions; artifacts record the
-  versions they were trained against.
+  exist, in the engine's language, and MUST be shared verbatim by every
+  surface that consumes them — training, evaluation, and deployment (the
+  global state, per FR-019, is consumed by training and evaluation
+  only). A parallel reimplementation in Python is expressly forbidden —
+  encoder drift between training and deployment is the failure mode this
+  requirement exists to prevent. All carry schema versions; artifacts
+  record the versions they were trained against.
 
 **Reward and episodes (US2)**
 
@@ -358,11 +360,12 @@ offending config field.
   team-welfare aggregate with the plain mean and the least-happy kitty's
   mean reported beside it (fairness visible, not just scored), and a
   paired same-seed comparison against the `needs_driven` baseline over
-  ≥ 10 seeds. The harness MUST evaluate both roster modes — every kitty
-  policy-driven, and the deployment reality of a policy kitty among
-  `needs_driven` kitties — and MUST count decisions taken by the
-  fallback: a scoring run with a nonzero fallback count fails rather than
-  silently reporting the fallback's welfare as the policy's.
+  ≥ 10 seeds. When scoring a policy, the harness MUST evaluate both
+  roster modes — every kitty policy-driven, and the deployment reality
+  of a policy kitty among `needs_driven` kitties — and MUST count
+  decisions taken by the fallback: a scoring run with a nonzero fallback
+  count fails rather than silently reporting the fallback's welfare as
+  the policy's.
 
 **Deployment (US4)**
 
@@ -375,7 +378,11 @@ offending config field.
   kitty's per-tick decision randomness: greedy selection by default, with
   optional sampling drawn only from the kitty's own decision stream — the
   same stream the training environment surfaces, making train-time and
-  deploy-time stochasticity one mechanism.
+  deploy-time stochasticity one mechanism. Selection MUST operate over
+  the masked menu, using the same legal-action mask implementation
+  training used (FR-018), applied between inference and selection — so
+  the deployed action distribution is the trained one, never a skewed
+  cousin free to land on entries training never allowed.
 - **FR-016**: Policy artifacts MUST be referenced from configuration
   (per-kitty behavior naming a configured policy), validated at startup
   (missing, corrupt, or schema-mismatched artifacts fail startup with an
@@ -400,20 +407,26 @@ offending config field.
 **Cooperative training fidelity (US2, US3)**
 
 - **FR-018**: Alongside each per-kitty observation, a legal-action mask
-  MUST be derivable from the same frozen snapshot, marking which menu
-  entries would pass validation as the world stood at the start of the
-  tick (and which would be rewritten by duration enforcement into the
-  activity's continuation), and MUST be exposed to trainers with every
-  reset and step. The mask is advisory by design: legality speaks to the
-  frozen snapshot, and within-tick contention is still resolved by the
-  engine's fair order — the mask is necessary, never sufficient, and a
-  masked-in action that loses a contest lawfully idles.
+  MUST be derivable from the same frozen snapshot and exposed to
+  trainers with every reset and step. The mask carries one bit per menu
+  entry: whether that entry, proposed as the world stood at the start of
+  the tick, would be applied *as proposed* — it passes validation and
+  duration enforcement would not rewrite it. Inside an activity's
+  minimum the mask therefore reduces to the activity's continuations.
+  The mask is advisory by design: legality speaks to the frozen
+  snapshot, and within-tick contention is still resolved by the engine's
+  fair order — the mask is necessary, never sufficient, and a masked-in
+  action that loses a contest lawfully idles. A property test MUST guard
+  the mask against the engine's own judgment (Article VI): for every
+  menu entry, the mask's verdict equals the verdict of validation plus
+  duration enforcement run against a world in the snapshot's state.
 - **FR-019**: For centralized training, a fixed-size privileged global
   state MUST be derivable from the same frozen snapshot — every kitty's
   full state without slot truncation, a bounded configured summary of the
   element population, and the episode clock — and exposed through the
-  Python surface alongside per-agent observations (the parallel-
-  environment state convention). It exists for critics, not actors:
+  Python surface alongside per-agent observations (the
+  parallel-environment state convention). It exists for critics, not
+  actors:
   deployed behaviors never receive it (decentralized execution), and its
   layout is versioned like the observation schema.
 - **FR-020**: The training environment MUST support mixed control: any
@@ -461,9 +474,9 @@ offending config field.
 - **Vectorized Environment**: N independent worlds stepped as a batch for
   training throughput.
 - **Legal-Action Mask**: the per-observation marking of which menu entries
-  would pass validation against the frozen snapshot — advisory (within-
-  tick contention stays the engine's to resolve), versioned with the
-  codec.
+  would apply as proposed against the frozen snapshot — advisory
+  (within-tick contention stays the engine's to resolve), versioned with
+  the codec.
 - **Global State**: the fixed-size privileged view for centralized
   critics — full roster, bounded element summary, episode clock; never
   given to a deployed behavior.
@@ -504,7 +517,8 @@ offending config field.
   same world.
 - **Article VI (spec-first, test-guarded, no magic numbers)**: this spec
   precedes all code; the parity, codec-totality, encoder-determinism,
-  reproducibility, and welfare guards named in Success Criteria join CI;
+  mask-soundness, reproducibility, and welfare guards named in the
+  requirements and Success Criteria join CI;
   every new constant lives in configuration with documented defaults.
 
 **Amendment required: none.** The constitution stays at v1.1.0.
@@ -517,8 +531,8 @@ offending config field.
   fed the same decisions serialize byte-identically over ≥ 5,000 ticks on
   the default world, as a CI guard.
 - **SC-002**: Reproducibility — identical seed, config, and action sequence
-  produce bit-identical observation and reward streams across two runs in
-  separate processes.
+  produce bit-identical observation, legal-action-mask, global-state, and
+  reward streams across two runs in separate processes.
 - **SC-003**: Throughput — ≥ 5,000 environment steps per second
   single-threaded on the default 32×32, 4-kitty world (measurement method
   documented alongside the number), with near-linear scaling to 8
@@ -591,9 +605,14 @@ offending config field.
   (e.g., parameter-shared PPO variants) should work; one reference training
   script ships as documentation, not as a supported surface.
 - **Not in this feature**: learned communication (meows keep their fixed
-  meanings), self-play population dynamics, reward of any kind inside the
-  engine, changes to the viewer, and the backlog's script/HTTP plugin
-  transports (this feature's encoder and seam are deliberately reusable for
-  them, but they remain their own backlog items).
+  meanings), neighbors' trait features in the kitty slots (anticipatory
+  cooperation from a friend's metabolism is a backlog item, deferred
+  until the trained meadow is proven — the slots' current needs carry
+  the live form of the same signal, and adding traits later is an
+  observation-schema version bump under this spec's own doctrine),
+  self-play population dynamics, reward of any kind inside the engine,
+  changes to the viewer, and the backlog's script/HTTP plugin transports
+  (this feature's encoder and seam are deliberately reusable for them,
+  but they remain their own backlog items).
 - **Spec-only pass**: this document is the deliverable of the current pass;
   planning and task breakdown follow the standard spec-kit flow.
