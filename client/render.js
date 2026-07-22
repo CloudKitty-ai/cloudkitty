@@ -255,26 +255,9 @@ class WorldRenderer {
       ctx.restore();
     }
 
-    if (VIEW.ambient.grassSway) {
-      // A scattering of grass blades leaning with a slow breeze.
-      ctx.save();
-      ctx.strokeStyle = 'rgba(140, 170, 130, 0.5)';
-      ctx.lineWidth = 1;
-      ctx.lineCap = 'round';
-      for (let y = 0; y < world.height; y++) {
-        for (let x = 0; x < world.width; x++) {
-          if ((x * 31 + y * 17) % 41 !== 0) continue;
-          const sway = Math.sin(t / 1400 + x * 1.7 + y) * 2.2;
-          const bx = x * this.tile + this.tile * 0.5;
-          const by = y * this.tile + this.tile * 0.78;
-          ctx.beginPath();
-          ctx.moveTo(bx, by);
-          ctx.quadraticCurveTo(bx + sway * 0.4, by - 3, bx + sway, by - 5.5);
-          ctx.stroke();
-        }
-      }
-      ctx.restore();
-    }
+    // (Grass sway retired 2026-07-22: its fixed-pixel blades read as stray
+    // diagonal lines at small tile sizes. A tile-proportional return is
+    // queued with the meadow finishing touches in BACKLOG.md.)
   }
 
   drawSunbeam(el, alpha = 1, view) {
@@ -371,8 +354,10 @@ class WorldRenderer {
         break;
       case 'greeble':
         // Only ever reached with the debug toggle on: the wisp, wearing
-        // the gate-chosen grin, at the translucency it always had (FR-007).
-        ctx.globalAlpha = 0.55 * alpha;
+        // the gate-chosen grin. Still translucent -- it is a ghost -- but
+        // legible: at the original 0.55 the pale body vanished into the
+        // grass and the toggle looked broken (owner call, 2026-07-22).
+        ctx.globalAlpha = 0.8 * alpha;
         drawGreebleWisp(ctx, {
           face: GREEBLE_FACE,
           phase: view.propPhaseFor(el.id, VIEW.props.wispBobMs),

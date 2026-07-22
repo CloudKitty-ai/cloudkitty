@@ -65,6 +65,11 @@ call for a proper art pass later:
    hem) never landed. Consider the other 2026-07-20 ideation option: a
    low hedge or picket frame in the cats' outline style instead of
    blades.
+3. **Grass sway** — the 005-era ambient blades were removed 2026-07-22:
+   their geometry was fixed-pixel (5.5px blades, 2.2px sway), which read
+   as subtle grass at desktop's 22px tiles but as stray diagonal lines
+   at mobile's ~10px tiles. Any return should be tile-proportional and,
+   like the rest of this entry, judged at multiple tile sizes.
 
 The 008 scaffolding stands ready: `tileHash` in `client/meadow.js` is the
 deterministic scatter source (per-tile hash of (x, y) — stable across
