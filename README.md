@@ -113,7 +113,8 @@ crates/cloudkitty-rl/       the training layer: observations, action codec + leg
                             the kitty-eval harness, policy artifacts — the engine knows
                             nothing of any of it
 crates/cloudkitty-py/       PyO3 bindings: ParallelEnv / VectorEnv, PettingZoo-style
-docs/                       the training guide (rl-training.md)
+docs/                       guides: the RL HOWTO (howto-rl.md) and the training
+                            reference (rl-training.md)
 client/                     the viewer: vanilla JS on a canvas, no build step — hand-drawn
                             vector cats, props, and meadow; gallery.html is the standalone
                             art-approval page (opens from file://, no server needed)
@@ -191,6 +192,8 @@ artifact = "policies/trained.ckpolicy"
 
 The server validates and hash-logs the artifact before the first tick, and the engine
 treats the policy exactly like any other behavior — proposals only, validated,
-budgeted, benched if it misbehaves. The full walkthrough is in
+budgeted, benched if it misbehaves. Start with the HOWTO —
+[docs/howto-rl.md](docs/howto-rl.md), a verified start-to-finish walkthrough with a
+minimal runnable example — then the training reference in
 [docs/rl-training.md](docs/rl-training.md); the contracts live in
 [specs/014-multi-agent-rl/](specs/014-multi-agent-rl/).
