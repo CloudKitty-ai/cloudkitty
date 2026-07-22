@@ -1088,7 +1088,9 @@ impl PhaseOutcome {
     /// kitty's (id, proposed, provenance, decision seed) in report order.
     pub fn records(
         &self,
-        decisions: impl IntoIterator<Item = (KittyId, crate::action::Action, crate::seam::Provenance, u64)>,
+        decisions: impl IntoIterator<
+            Item = (KittyId, crate::action::Action, crate::seam::Provenance, u64),
+        >,
     ) -> Vec<crate::seam::KittyTickRecord> {
         let applied_by_id = self.applied_by_id();
         decisions

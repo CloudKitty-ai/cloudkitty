@@ -133,7 +133,13 @@ impl BehaviorRegistry {
 
     /// Records a budget timeout for `kitty`'s dispatch at `now`; returns
     /// whether this strike tripped the bench.
-    fn record_timeout(&self, kitty: KittyId, now: u64, budget_strikes: u32, bench_ticks: u64) -> bool {
+    fn record_timeout(
+        &self,
+        kitty: KittyId,
+        now: u64,
+        budget_strikes: u32,
+        bench_ticks: u64,
+    ) -> bool {
         let mut breaker = self.breaker();
         let entry = breaker.entry(kitty).or_default();
         entry.strikes = entry.strikes.saturating_add(1);
@@ -369,8 +375,12 @@ async fn decide_one(job: DecisionJob, budget: Duration, registry: &BehaviorRegis
                 }
                 Err(_elapsed) => {
                     let behavior = &config.behavior;
-                    if registry.record_timeout(id, now, behavior.budget_strikes, behavior.bench_ticks)
-                    {
+                    if registry.record_timeout(
+                        id,
+                        now,
+                        behavior.budget_strikes,
+                        behavior.bench_ticks,
+                    ) {
                         tracing::warn!(
                             kitty = id,
                             advisor = %name,

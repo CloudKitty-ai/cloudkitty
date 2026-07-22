@@ -669,7 +669,9 @@ mod tests {
 
         let revived = episode.reset(4);
         assert!(!revived.truncated);
-        episode.step(&BTreeMap::new()).expect("stepping works again");
+        episode
+            .step(&BTreeMap::new())
+            .expect("stepping works again");
     }
 
     #[test]
@@ -699,7 +701,9 @@ mod tests {
         );
         let revived = episode.reset(10);
         assert!(!revived.truncated, "reset heals the poisoned episode");
-        episode.step(&BTreeMap::new()).expect("stepping works again");
+        episode
+            .step(&BTreeMap::new())
+            .expect("stepping works again");
     }
 
     #[test]

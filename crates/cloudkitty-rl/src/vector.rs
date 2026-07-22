@@ -315,7 +315,9 @@ mod tests {
         ));
         let revived = reset_slot(&mut episode, Some(4)).expect("reset revives");
         assert!(!revived.truncated);
-        episode.step(&BTreeMap::new()).expect("stepping works again");
+        episode
+            .step(&BTreeMap::new())
+            .expect("stepping works again");
     }
 
     #[test]

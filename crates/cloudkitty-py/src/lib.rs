@@ -406,8 +406,9 @@ impl VectorEnv {
         let control = parse_control(control)?;
         let mut episodes = Vec::with_capacity(n_worlds);
         for _ in 0..n_worlds {
-            episodes
-                .push(Episode::new(core.clone(), rl.clone(), control.clone()).map_err(episode_err)?);
+            episodes.push(
+                Episode::new(core.clone(), rl.clone(), control.clone()).map_err(episode_err)?,
+            );
         }
         let external = episodes[0].external_agents();
         let obs_len = observation_len(&episodes[0].rl_config().observation);
