@@ -59,17 +59,32 @@ class WorldRenderer {
     this.pondCache = null; // { signature, ponds } -- rebuilt on water change
   }
 
-  /** Fits the canvas to the world, accounting for retina displays. */
+  /**
+   * Fits the canvas to the world and the screen, accounting for retina
+   * displays. Runs every frame, so the fit is a pure function of the
+   * world's dimensions and the viewport: a rotated phone -- or a world
+   * that someday grows mid-session -- re-fits on the next frame, no
+   * resize listener required.
+   */
   resizeFor(world) {
-    const maxPixels = 720;
+    // The desktop cap, shrunk to the viewport on small screens (the body
+    // and stage padding around the canvas total at most 64px).
+    const viewport = document.documentElement.clientWidth || 720;
+    const maxPixels = Math.max(160, Math.min(720, viewport - 64));
     this.tile = Math.max(8, Math.floor(maxPixels / Math.max(world.width, world.height)));
     const cssWidth = this.tile * world.width;
     const cssHeight = this.tile * world.height;
+    // Integer tiles keep the art crisp, but the 8px floor means a wide
+    // enough world (45+ tiles) is irreducibly wider than a phone. The
+    // display scale absorbs the difference: the canvas still renders at
+    // the floor and the browser shrinks the result to fit.
+    const scale = Math.min(1, maxPixels / cssWidth);
+    const displayWidth = `${cssWidth * scale}px`;
     const dpr = window.devicePixelRatio || 1;
 
-    if (this.canvas.style.width !== `${cssWidth}px`) {
-      this.canvas.style.width = `${cssWidth}px`;
-      this.canvas.style.height = `${cssHeight}px`;
+    if (this.canvas.style.width !== displayWidth) {
+      this.canvas.style.width = displayWidth;
+      this.canvas.style.height = `${cssHeight * scale}px`;
       this.canvas.width = Math.floor(cssWidth * dpr);
       this.canvas.height = Math.floor(cssHeight * dpr);
       this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
