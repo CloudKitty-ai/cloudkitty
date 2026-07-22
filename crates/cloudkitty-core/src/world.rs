@@ -129,11 +129,126 @@ impl World {
         // Phase 1: everyone decides against the same start-of-tick snapshot.
         let decisions = gather_decisions(self, registry, config).await;
 
-        // Phase 2: apply in this tick's fair turn order (Article V as amended,
-        // spec 013). Validation happens here, against the world as it stands
-        // when the action lands -- so the first cat to reach the last serving
-        // gets it and the second one simply idles; *which* cat is first is a
-        // fresh draw every tick, never a standing privilege of a low id.
+        // Phases 2-4: one shared pipeline (spec 014 FR-002) -- the seam is a
+        // different *source* of proposals, never a different law.
+        self.run_applied_phases(&decisions, config);
+
+        // Phase 5: publish.
+        Arc::new(self.snapshot())
+    }
+
+    /// Deals this tick's per-kitty decision seeds from the master RNG, in
+    /// stable id order (Article V discipline; spec 014 FR-003 exposes them).
+    /// Exactly one `u64` draw per kitty -- the same shape every dispatch path
+    /// consumes, which is what keeps same-seed futures coincident.
+    pub fn deal_decision_seeds(&mut self) -> Vec<(KittyId, u64)> {
+        let ids: Vec<KittyId> = self.kitties.iter().map(|k| k.id).collect();
+        ids.into_iter()
+            .map(|id| (id, self.rng.next_u64()))
+            .collect()
+    }
+
+    /// Advances the world exactly one tick from externally supplied proposals
+    /// (spec 014 FR-001): the same constitutional tick order as
+    /// [`World::tick`], with behavior dispatch as the only step bypassed.
+    /// Absent or malformed entries resolve to idle (Article IV), marked
+    /// `SubstitutedIdle`; entries for unknown ids are reported unconsumed.
+    pub fn tick_with_proposals(
+        &mut self,
+        proposals: &crate::seam::JointProposal,
+        config: &Config,
+    ) -> crate::seam::TickReport {
+        let seeds = self.deal_decision_seeds();
+        self.tick_with_proposals_seeded(proposals, &seeds, config)
+    }
+
+    /// The seeded form of [`World::tick_with_proposals`], for drivers that
+    /// dealt this tick's decision seeds themselves (mixed control needs the
+    /// seeds *before* the tick, to run scripted behaviors and to surface
+    /// them to trainers -- spec 014 FR-015/FR-020). The seeds must be the
+    /// ones [`World::deal_decision_seeds`] returned for this tick; dealing
+    /// them early and applying here draws the identical master-RNG stream a
+    /// behavior-driven tick would.
+    pub fn tick_with_proposals_seeded(
+        &mut self,
+        proposals: &crate::seam::JointProposal,
+        seeds: &[(KittyId, u64)],
+        config: &Config,
+    ) -> crate::seam::TickReport {
+        use crate::seam::{KittyTickRecord, ProposalEntry, Provenance, TickReport};
+
+        let roster: Vec<KittyId> = self.kitties.iter().map(|k| k.id).collect();
+        let mut decisions = Vec::with_capacity(roster.len());
+        let mut marks = Vec::with_capacity(roster.len());
+        for &id in &roster {
+            match proposals.get(id) {
+                Some(ProposalEntry::Action(action)) => {
+                    decisions.push((id, *action));
+                    marks.push((id, Provenance::PolicyMade));
+                }
+                Some(ProposalEntry::Malformed) | None => {
+                    decisions.push((id, crate::action::Action::Idle));
+                    marks.push((id, Provenance::SubstitutedIdle));
+                }
+            }
+        }
+        let unconsumed: Vec<KittyId> = proposals.ids().filter(|id| !roster.contains(id)).collect();
+
+        let outcome = self.run_applied_phases(&decisions, config);
+
+        let mut records = Vec::with_capacity(roster.len());
+        for (&id, &(_, provenance)) in roster.iter().zip(marks.iter()) {
+            let proposed = decisions
+                .iter()
+                .find(|(d, _)| *d == id)
+                .map(|&(_, a)| a)
+                .unwrap_or(crate::action::Action::Idle);
+            let (validated, applied) = outcome
+                .per_kitty
+                .iter()
+                .find(|(k, _, _)| *k == id)
+                .map(|&(_, v, a)| (v, a))
+                .unwrap_or((crate::action::Action::Idle, crate::action::Action::Idle));
+            let decision_seed = seeds
+                .iter()
+                .find(|(k, _)| *k == id)
+                .map(|&(_, s)| s)
+                .unwrap_or(0);
+            records.push(KittyTickRecord {
+                kitty_id: id,
+                proposed,
+                validated,
+                applied,
+                provenance,
+                decision_seed,
+            });
+        }
+
+        TickReport {
+            records,
+            distress_events: outcome.distress_events,
+            activity_endings: outcome.activity_endings,
+            unconsumed,
+        }
+    }
+
+    /// Phases 2-4 of the constitutional tick, shared verbatim by the
+    /// behavior-driven tick and the joint-action seam (spec 014 FR-002).
+    ///
+    /// Phase 2 applies in this tick's fair turn order (Article V as amended,
+    /// spec 013). Validation happens here, against the world as it stands
+    /// when the action lands -- so the first cat to reach the last serving
+    /// gets it and the second one simply idles; *which* cat is first is a
+    /// fresh draw every tick, never a standing privilege of a low id.
+    pub(crate) fn run_applied_phases(
+        &mut self,
+        decisions: &[(KittyId, crate::action::Action)],
+        config: &Config,
+    ) -> PhaseOutcome {
+        let tick_at_start = self.tick;
+        let endings_before = self.activity_log.total_recorded();
+        let mut per_kitty = Vec::with_capacity(self.kitties.len());
+
         let order = self.draw_turn_order();
         for kitty_id in order {
             let Some(proposal) = decisions
@@ -160,6 +275,7 @@ impl World {
             }
             action::apply(self, kitty_id, enforced, config);
             self.update_pursuit(kitty_id, enforced, config);
+            per_kitty.push((kitty_id, validated, enforced));
         }
 
         // Phase 2, closing step: activities that finished their job this tick
@@ -179,8 +295,22 @@ impl World {
 
         invariants::assert_or_report(self, config);
 
-        // Phase 5: publish.
-        Arc::new(self.snapshot())
+        // The honest per-tick event capture for the report (spec 014 FR-003).
+        let distress_events = self
+            .distress
+            .events()
+            .filter(|e| e.tick == tick_at_start)
+            .cloned()
+            .collect();
+        let new_endings = (self.activity_log.total_recorded() - endings_before) as usize;
+        let endings = self.activity_log.to_vec();
+        let activity_endings = endings[endings.len().saturating_sub(new_endings)..].to_vec();
+
+        PhaseOutcome {
+            per_kitty,
+            distress_events,
+            activity_endings,
+        }
     }
 
     /// This tick's turn order (Article V as amended, spec 013): a uniform
@@ -810,6 +940,15 @@ impl World {
         }
         free
     }
+}
+
+/// What the shared phase pipeline hands back to whichever tick drove it:
+/// the per-kitty (validated, applied) pairs in this tick's turn order, and
+/// the events the tick produced (spec 014 FR-003).
+pub(crate) struct PhaseOutcome {
+    pub per_kitty: Vec<(KittyId, crate::action::Action, crate::action::Action)>,
+    pub distress_events: Vec<DistressEvent>,
+    pub activity_endings: Vec<ActivityEnd>,
 }
 
 impl WorldSnapshot {

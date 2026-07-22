@@ -45,5 +45,8 @@ pub use invariants::Violation;
 pub use kitty::{Activity, Kitty, KittyId};
 pub use meow::{Meow, MessageKind};
 pub use needs::{Need, NeedKind, Needs};
-pub use seam::{Provenance, ResolvedDecision};
+pub use seam::{
+    drive_tick, DrivenTick, JointProposal, KittyTickRecord, Provenance, ResolvedDecision,
+    TickReport,
+};
 pub use world::{World, WorldSnapshot};

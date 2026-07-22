@@ -57,16 +57,16 @@ included) is byte-identical to the behavior-driven run
 
 ### Tests for User Story 1 (write first, must fail)
 
-- [ ] T006 [P] [US1] Golden-parity test (SC-001): behavior-driven run collecting dispatched proposals vs joint-action run fed those proposals, same seed, default world, ≥ 5,000 ticks, byte-identical serialization including RNG state, in `crates/cloudkitty-core/tests/joint_action_parity.rs`
-- [ ] T007 [P] [US1] Degradation test: joint proposals with one absent entry, one malformed substitution, and one unknown-id entry → those kitties idle / entry reported unconsumed, all others act, invariants hold, in `crates/cloudkitty-core/tests/joint_action_degradation.rs`
+- [X] T006 [P] [US1] Golden-parity test (SC-001): behavior-driven run collecting dispatched proposals vs joint-action run fed those proposals, same seed, default world, ≥ 5,000 ticks, byte-identical serialization including RNG state, in `crates/cloudkitty-core/tests/joint_action_parity.rs`
+- [X] T007 [P] [US1] Degradation test: joint proposals with one absent entry, one malformed substitution, and one unknown-id entry → those kitties idle / entry reported unconsumed, all others act, invariants hold, in `crates/cloudkitty-core/tests/joint_action_degradation.rs`
 
 ### Implementation for User Story 1
 
-- [ ] T008 [US1] Define `JointProposal`, `TickReport` (per-kitty proposed/validated/applied triple + provenance + decision seed; tick-level distress events and activity endings), and `Provenance` in a new `crates/cloudkitty-core/src/seam.rs`, exported from `lib.rs` — the joint-action absent/malformed substitution gets its own provenance variant (e.g. `SubstitutedIdle`), never reusing `FallbackTaken` (FR-017's mark is for dispatched decisions)
-- [ ] T009 [US1] Refactor `World::tick` internals in `crates/cloudkitty-core/src/world.rs` into one shared phase pipeline (fair order → validate → durations → apply → activity ends → environment → needs → distress → purr → invariants) consumed by the existing tick — no observable change; full suite still green
-- [ ] T010 [US1] Implement `World::tick_with_proposals` in `crates/cloudkitty-core/src/world.rs`: identical master-RNG draw shape (per-kitty decision seeds in stable id order, fair-order draws), behavior dispatch as the only bypassed step, returns the `TickReport`
-- [ ] T011 [US1] Implement the budgetless behavior-driven driver `drive_tick` in `crates/cloudkitty-core/src/seam.rs` (uses the T004 resolver; returns `TickReport` plus the dispatched proposals — the parity capture)
-- [ ] T012 [US1] Draw-shape assertion: RNG state after a joint-action tick equals RNG state after the equivalent behavior-driven tick, added to `crates/cloudkitty-core/tests/joint_action_parity.rs`; make T006/T007 pass; run the full workspace suite
+- [X] T008 [US1] Define `JointProposal`, `TickReport` (per-kitty proposed/validated/applied triple + provenance + decision seed; tick-level distress events and activity endings), and `Provenance` in a new `crates/cloudkitty-core/src/seam.rs`, exported from `lib.rs` — the joint-action absent/malformed substitution gets its own provenance variant (e.g. `SubstitutedIdle`), never reusing `FallbackTaken` (FR-017's mark is for dispatched decisions)
+- [X] T009 [US1] Refactor `World::tick` internals in `crates/cloudkitty-core/src/world.rs` into one shared phase pipeline (fair order → validate → durations → apply → activity ends → environment → needs → distress → purr → invariants) consumed by the existing tick — no observable change; full suite still green
+- [X] T010 [US1] Implement `World::tick_with_proposals` in `crates/cloudkitty-core/src/world.rs`: identical master-RNG draw shape (per-kitty decision seeds in stable id order, fair-order draws), behavior dispatch as the only bypassed step, returns the `TickReport`
+- [X] T011 [US1] Implement the budgetless behavior-driven driver `drive_tick` in `crates/cloudkitty-core/src/seam.rs` (uses the T004 resolver; returns `TickReport` plus the dispatched proposals — the parity capture)
+- [X] T012 [US1] Draw-shape assertion: RNG state after a joint-action tick equals RNG state after the equivalent behavior-driven tick, added to `crates/cloudkitty-core/tests/joint_action_parity.rs`; make T006/T007 pass; run the full workspace suite
 
 **Checkpoint**: the seam ships — independently valuable (scripted scenarios,
 replay harnesses, the backlog's plugin door)

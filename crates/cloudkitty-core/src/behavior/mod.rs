@@ -134,14 +134,13 @@ fn decision_jobs(
     config: &Arc<Config>,
 ) -> Vec<DecisionJob> {
     let snapshot = Arc::new(world.snapshot());
-    let ids: Vec<KittyId> = world.kitties.iter().map(|k| k.id).collect();
-    let mut jobs = Vec::with_capacity(ids.len());
-    for id in ids {
+    let seeds = world.deal_decision_seeds();
+    let mut jobs = Vec::with_capacity(seeds.len());
+    for (id, seed) in seeds {
         let Some(kitty) = world.kitty(id).cloned() else {
             continue;
         };
         let behavior = registry.get(&kitty.behavior);
-        let seed = world.rng.next_u64();
         let ctx = DecisionContext {
             me: kitty,
             world: snapshot.clone(),
