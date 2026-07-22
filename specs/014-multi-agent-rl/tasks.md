@@ -26,9 +26,9 @@ testable increments.
 
 **Purpose**: the two new crates exist, compile empty, and CI knows about them
 
-- [ ] T001 Add `cloudkitty-rl` workspace member: create `crates/cloudkitty-rl/Cargo.toml` (deps: cloudkitty-core, serde, serde_json, rand, rand_chacha, thiserror, tracing; dev-deps: proptest, toml) and `crates/cloudkitty-rl/src/lib.rs` declaring empty modules `config`, `observe`, `codec`, `mask`, `global_state`, `reward`, `episode`, `vector`, `welfare`, `policy`, `behavior`; add the member to the root `Cargo.toml`
-- [ ] T002 [P] Add `cloudkitty-py` crate: `crates/cloudkitty-py/Cargo.toml` (cdylib, pyo3 with `abi3-py39` + `extension-module`, numpy, cloudkitty-rl), `crates/cloudkitty-py/pyproject.toml` (maturin build backend), stub `crates/cloudkitty-py/src/lib.rs` with an empty `#[pymodule]`; add the member to the root `Cargo.toml` (gate `extension-module` behind a feature so plain `cargo test` still links)
-- [ ] T003 [P] Extend `.github/workflows/ci.yml`: run `cargo test -p cloudkitty-rl` in the standard job; add a **required** Python job (maturin develop + pytest in `crates/cloudkitty-py` — SC-002's two-process reproducibility gate lives here, so the job must gate the merge once T030 lands); only the optional `pettingzoo` conformance step is continue-on-error
+- [X] T001 Add `cloudkitty-rl` workspace member: create `crates/cloudkitty-rl/Cargo.toml` (deps: cloudkitty-core, serde, serde_json, rand, rand_chacha, thiserror, tracing; dev-deps: proptest, toml) and `crates/cloudkitty-rl/src/lib.rs` declaring empty modules `config`, `observe`, `codec`, `mask`, `global_state`, `reward`, `episode`, `vector`, `welfare`, `policy`, `behavior`; add the member to the root `Cargo.toml`
+- [X] T002 [P] Add `cloudkitty-py` crate: `crates/cloudkitty-py/Cargo.toml` (cdylib, pyo3 with `abi3-py39` + `extension-module`, numpy, cloudkitty-rl), `crates/cloudkitty-py/pyproject.toml` (maturin build backend), stub `crates/cloudkitty-py/src/lib.rs` with an empty `#[pymodule]`; add the member to the root `Cargo.toml` (gate `extension-module` behind a feature so plain `cargo test` still links)
+- [X] T003 [P] Extend `.github/workflows/ci.yml`: run `cargo test -p cloudkitty-rl` in the standard job; add a **required** Python job (maturin develop + pytest in `crates/cloudkitty-py` — SC-002's two-process reproducibility gate lives here, so the job must gate the merge once T030 lands); only the optional `pettingzoo` conformance step is continue-on-error
 
 ---
 

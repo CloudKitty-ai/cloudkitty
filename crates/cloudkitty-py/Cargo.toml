@@ -1,0 +1,22 @@
+[package]
+name = "cloudkitty-py"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "CloudKitty Python surface: logic-free PyO3 bindings over cloudkitty-rl"
+
+[lib]
+name = "cloudkitty"
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = []
+# maturin enables this when building the wheel; plain `cargo test` leaves it
+# off so the workspace still links against a normal libpython.
+extension-module = ["pyo3/extension-module"]
+
+[dependencies]
+cloudkitty-core = { path = "../cloudkitty-core" }
+cloudkitty-rl = { path = "../cloudkitty-rl" }
+pyo3 = { version = "0.21", features = ["abi3-py39"] }
+numpy = "0.21"
