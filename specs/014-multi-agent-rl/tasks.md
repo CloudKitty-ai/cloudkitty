@@ -101,10 +101,10 @@ sequence produce bit-identical observation/mask/global-state/reward streams
 
 ### Episodes and vectorization
 
-- [ ] T023 [US2] `Episode` in `crates/cloudkitty-rl/src/episode.rs`: reset(seed)/step per data-model.md — decode via codec + target table, **mixed control** (scripted kitties resolved from their own engine-dealt decision streams via the T004 resolver), truncation-only at horizon (≥ 1 enforced at construction), infos with applied action/survived/mask/decision seed/provenance
-- [ ] T024 [US2] `VectorizedEnvironment` in `crates/cloudkitty-rl/src/vector.rs`: N independent worlds, `std::thread::scope` fan-out, positionally gathered results
-- [ ] T025 [P] [US2] Mixed-control test (scripted kitties bit-deterministic; team reward counts the full roster) in `crates/cloudkitty-rl/tests/mixed_control.rs`
-- [ ] T026 [P] [US2] Vectorized-independence test (world i in a batch == the same world stepped alone) in `crates/cloudkitty-rl/tests/vector_independence.rs`
+- [X] T023 [US2] `Episode` in `crates/cloudkitty-rl/src/episode.rs`: reset(seed)/step per data-model.md — decode via codec + target table, **mixed control** (scripted kitties resolved from their own engine-dealt decision streams via the T004 resolver), truncation-only at horizon (≥ 1 enforced at construction), infos with applied action/survived/mask/decision seed/provenance
+- [X] T024 [US2] `VectorizedEnvironment` in `crates/cloudkitty-rl/src/vector.rs`: N independent worlds, `std::thread::scope` fan-out, positionally gathered results
+- [X] T025 [P] [US2] Mixed-control test (scripted kitties bit-deterministic; team reward counts the full roster) in `crates/cloudkitty-rl/tests/mixed_control.rs`
+- [X] T026 [P] [US2] Vectorized-independence test (world i in a batch == the same world stepped alone) in `crates/cloudkitty-rl/tests/vector_independence.rs`
 
 ### Python surface (`cloudkitty-py`)
 
