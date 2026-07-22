@@ -129,10 +129,10 @@ artifact scoring joins in US4
 the welfare suite's numbers for the same seeds; the paired comparison is
 stable across repeat runs
 
-- [ ] T033 [US3] Lift the long-run welfare metric computation from `crates/cloudkitty-core/tests/welfare_longrun.rs` into `crates/cloudkitty-rl/src/welfare.rs` (mean happiness, low streaks and share, floor touches, pinned streaks, distress age) and rewire the CI test to consume the shared module — same numbers, one implementation (research.md R7)
-- [ ] T034 [US3] `kitty-eval` binary in `crates/cloudkitty-rl/src/bin/kitty-eval.rs`: CLI per the contract (`--brain`/`--artifact`, `--config`, `--seeds`, `--ticks`, `--roster`, `--json`); budgetless headless runs; JSON + human table per seed and aggregated; welfare aggregate with plain mean and least-happy mean beside it; paired `needs_driven` baseline deltas; fallback counting with nonzero → nonzero exit
-- [ ] T035 [P] [US3] Baseline-reproduction test (harness numbers == welfare suite's for the same seeds, `needs_driven` and `playful`) in `crates/cloudkitty-rl/tests/harness_baseline.rs`
-- [ ] T036 [P] [US3] Paired-comparison stability test (repeat runs identical) in `crates/cloudkitty-rl/tests/harness_stability.rs`
+- [X] T033 [US3] Lift the long-run welfare metric computation from `crates/cloudkitty-core/tests/welfare_longrun.rs` into `crates/cloudkitty-rl/src/welfare.rs` (mean happiness, low streaks and share, floor touches, pinned streaks, distress age) and rewire the CI test to consume the shared module — same numbers, one implementation (research.md R7)
+- [X] T034 [US3] `kitty-eval` binary in `crates/cloudkitty-rl/src/bin/kitty-eval.rs`: CLI per the contract (`--brain`/`--artifact`, `--config`, `--seeds`, `--ticks`, `--roster`, `--json`); budgetless headless runs; JSON + human table per seed and aggregated; welfare aggregate with plain mean and least-happy mean beside it; paired `needs_driven` baseline deltas; fallback counting with nonzero → nonzero exit
+- [X] T035 [P] [US3] Baseline-reproduction test (harness numbers == welfare suite's for the same seeds, `needs_driven` and `playful`) in `crates/cloudkitty-rl/tests/harness_baseline.rs`
+- [X] T036 [P] [US3] Paired-comparison stability test (repeat runs identical) in `crates/cloudkitty-rl/tests/harness_stability.rs`
 
 **Checkpoint**: the bar exists and baselines the built-ins before any training
 
@@ -149,9 +149,9 @@ artifact validated and hash-logged before any tick; a corrupted artifact
 fails startup naming the config field; the full suite passes with the
 policy kitty rostered
 
-- [ ] T037 [P] [US4] Artifact format v1 in `crates/cloudkitty-rl/src/policy.rs`: length-prefixed JSON header (versions, layer shapes, activation) + little-endian f32 blob; loader with full startup validation chain and SHA-256 content hash (logged + exposed); include a writer helper for test fixtures
-- [ ] T038 [US4] MLP forward pass in `crates/cloudkitty-rl/src/policy.rs`: hand-rolled f32, fixed accumulation order, reused buffers, no I/O (research.md R3)
-- [ ] T039 [US4] `PolicyBehavior` in `crates/cloudkitty-rl/src/behavior.rs`: encode → infer → mask → select → decode; greedy default with lowest-index ties; optional sampling from the kitty's decision stream; non-finite-logit totality (never NaN into a proposal); implements the existing `Behavior` trait as a non-built-in
+- [X] T037 [P] [US4] Artifact format v1 in `crates/cloudkitty-rl/src/policy.rs`: length-prefixed JSON header (versions, layer shapes, activation) + little-endian f32 blob; loader with full startup validation chain and SHA-256 content hash (logged + exposed); include a writer helper for test fixtures
+- [X] T038 [US4] MLP forward pass in `crates/cloudkitty-rl/src/policy.rs`: hand-rolled f32, fixed accumulation order, reused buffers, no I/O (research.md R3)
+- [X] T039 [US4] `PolicyBehavior` in `crates/cloudkitty-rl/src/behavior.rs`: encode → infer → mask → select → decode; greedy default with lowest-index ties; optional sampling from the kitty's decision stream; non-finite-logit totality (never NaN into a proposal); implements the existing `Behavior` trait as a non-built-in
 - [ ] T040 [US4] Server wiring in `crates/cloudkitty-server/src`: `behavior = "policy:<name>"` resolved through `[rl.policy.<name>].artifact`, constructed at startup via cloudkitty-rl, validation failure exits with an error naming the config field (add the cloudkitty-rl dependency to `crates/cloudkitty-server/Cargo.toml`)
 - [ ] T041 [P] [US4] Artifact validation tests (missing / truncated / corrupt / schema-mismatched → error naming the field; hash stability across loads) in `crates/cloudkitty-rl/tests/artifact_validation.rs`
 - [ ] T042 [P] [US4] Selection tests (same artifact + observation + decision seed → same action across processes; garbage logits — NaN, ±inf, all-equal — still select a masked-in action) in `crates/cloudkitty-rl/tests/policy_selection.rs`

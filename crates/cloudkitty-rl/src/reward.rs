@@ -47,15 +47,23 @@ pub fn welfare_aggregate(normalized: &[f64], p: f64, epsilon: f64) -> f64 {
     mean - epsilon
 }
 
-/// The team reward for a frozen snapshot: one scalar, broadcast to every
-/// agent. Level mode; delta and shaping are the episode's bookkeeping.
-pub fn team_reward(snapshot: &WorldSnapshot, core: &Config, cfg: &RewardConfig) -> f64 {
-    let normalized: Vec<f64> = snapshot
-        .kitties
+/// The team welfare of a roster: one scalar over every kitty (FR-020).
+pub fn team_welfare_of(
+    kitties: &[cloudkitty_core::kitty::Kitty],
+    core: &Config,
+    cfg: &RewardConfig,
+) -> f64 {
+    let normalized: Vec<f64> = kitties
         .iter()
         .map(|k| unclamped_happiness(&k.needs, &core.happiness.weights) / 100.0)
         .collect();
     welfare_aggregate(&normalized, cfg.p, cfg.epsilon)
+}
+
+/// The team reward for a frozen snapshot: one scalar, broadcast to every
+/// agent. Level mode; delta and shaping are the episode's bookkeeping.
+pub fn team_reward(snapshot: &WorldSnapshot, core: &Config, cfg: &RewardConfig) -> f64 {
+    team_welfare_of(&snapshot.kitties, core, cfg)
 }
 
 /// The shaping potential Φ(s) (FR-009): −coefficient × (active distress

@@ -14,6 +14,7 @@ pub mod codec;
 pub mod config;
 pub mod episode;
 pub mod global_state;
+pub mod harness;
 pub mod mask;
 pub mod observe;
 pub mod policy;
