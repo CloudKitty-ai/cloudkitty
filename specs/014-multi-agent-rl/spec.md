@@ -246,6 +246,11 @@ offending config field.
   start-of-tick snapshot; within-tick contention — two kitties reaching
   one last serving — is resolved by the engine's fair turn order.
   Trainers treat the mask as necessary, not sufficient.
+- **A crowded duet's continuation**: with every neighbor tile occupied in
+  a large roster, a duet partner can fall off the slot table and the
+  continuation becomes inexpressible in the menu — the one case where
+  the mask's idle bit is set by exception rather than by "applies as
+  proposed" (FR-018). The mask is never all-zero.
 - **A kitty at zero unclamped happiness**: the reward's configured offset
   ε keeps the fairness aggregate finite and its gradient defined; the
   score stays dominated by the least happy kitty without becoming
@@ -413,22 +418,31 @@ offending config field.
   the tick, would be applied *as proposed* — it passes validation and
   duration enforcement would not rewrite it. Inside an activity's
   minimum the mask therefore reduces to the activity's continuations.
-  The mask is advisory by design: legality speaks to the frozen
-  snapshot, and within-tick contention is still resolved by the engine's
-  fair order — the mask is necessary, never sufficient, and a masked-in
+  The mask MUST never be all-zero: in the one corner where the
+  continuation is inexpressible in the menu — a duet partner crowded off
+  the slot table by adjacent kitties in a large roster — the idle bit is
+  set as the documented exception, since proposing idle mid-activity is
+  harmless (the engine continues the scene regardless). An all-zero mask
+  would poison masked softmax in training and empty the deployed
+  selection's support (FR-015); this guarantee is what makes masked
+  selection total. The mask is advisory by design: legality speaks to
+  the frozen snapshot, and within-tick contention is still resolved by
+  the engine's fair order — the mask is necessary, never sufficient, and
+  a masked-in
   action that loses a contest lawfully idles. A property test MUST guard
   the mask against the engine's own judgment (Article VI): for every
   menu entry, the mask's verdict equals the verdict of validation plus
-  duration enforcement run against a world in the snapshot's state.
+  duration enforcement run against a world in the snapshot's state —
+  with the inexpressible-continuation idle bit as the test's one carved
+  and asserted exception.
 - **FR-019**: For centralized training, a fixed-size privileged global
   state MUST be derivable from the same frozen snapshot — every kitty's
   full state without slot truncation, a bounded configured summary of the
   element population, and the episode clock — and exposed through the
   Python surface alongside per-agent observations (the
   parallel-environment state convention). It exists for critics, not
-  actors:
-  deployed behaviors never receive it (decentralized execution), and its
-  layout is versioned like the observation schema.
+  actors: deployed behaviors never receive it (decentralized execution),
+  and its layout is versioned like the observation schema.
 - **FR-020**: The training environment MUST support mixed control: any
   subset of kitties driven by named built-in behaviors while the rest
   take external actions. Scripted kitties decide from the same per-kitty

@@ -92,3 +92,12 @@
   scoring. Owner decision: neighbors' trait features in the kitty slots
   are out of scope until the trained meadow is proven — recorded in "Not
   in this feature" and on the backlog (anticipatory cooperation).
+- Never-all-zero mask guarantee (2026-07-21, second-round follow-up): the
+  strict "applies as proposed" bit could go all-zero in one corner — a
+  duet partner crowded off the slot table in a ≥ 5-kitty roster leaves
+  the continuation inexpressible — which would NaN masked softmax in
+  training and empty FR-015's masked selection at deploy. FR-018 now
+  sets the idle bit as the documented exception (harmless: mid-activity
+  the engine continues the scene whatever is proposed), the guarding
+  property test asserts that carve-out explicitly, and a matching edge
+  case names the corner.
