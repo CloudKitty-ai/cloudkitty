@@ -23,14 +23,29 @@ use crate::persist;
 #[derive(Debug, Clone)]
 pub struct Published {
     pub snapshot: Arc<WorldSnapshot>,
+    /// The snapshot as JSON, serialized here exactly once per tick. Every
+    /// WebSocket viewer shares this string; without it, N viewers meant N
+    /// identical serializations of the full world per tick, which made open
+    /// sockets the cheapest way to burn the host's CPU (2026-07-22 security
+    /// assessment). `None` only if serialization failed, which is logged.
+    pub snapshot_json: Option<Arc<str>>,
     pub distress: Arc<Vec<DistressEvent>>,
     pub activity_ends: Arc<Vec<ActivityEnd>>,
 }
 
 impl Published {
     fn from_world(world: &World) -> Self {
+        let snapshot = Arc::new(world.snapshot());
+        let snapshot_json = match serde_json::to_string(&*snapshot) {
+            Ok(json) => Some(Arc::from(json)),
+            Err(err) => {
+                tracing::error!(%err, "could not serialize the world snapshot");
+                None
+            }
+        };
         Self {
-            snapshot: Arc::new(world.snapshot()),
+            snapshot,
+            snapshot_json,
             distress: Arc::new(world.distress.to_vec()),
             activity_ends: Arc::new(world.activity_log.to_vec()),
         }
@@ -131,6 +146,32 @@ mod tests {
         let second = rx.borrow_and_update().snapshot.tick;
 
         assert!(second > first, "the clock moves forward");
+        sim.shutdown().await;
+    }
+
+    #[tokio::test]
+    async fn the_published_json_is_the_snapshot_serialized() {
+        // Every WebSocket viewer shares this one string, so it must be exactly
+        // what serializing the snapshot per viewer used to produce.
+        let mut config = test_config();
+        config.world.tick_ms = 5;
+        let config = Arc::new(config);
+        let world = World::generate(&config);
+
+        let sim = spawn(world, config, BehaviorRegistry::with_builtins(), None);
+        let mut rx = sim.receiver.clone();
+        rx.changed().await.expect("a tick was published");
+
+        let published = rx.borrow_and_update().clone();
+        let json = published
+            .snapshot_json
+            .as_deref()
+            .expect("a serialized world");
+        assert_eq!(
+            json,
+            serde_json::to_string(&*published.snapshot).unwrap(),
+            "the shared string and a fresh serialization must not diverge"
+        );
         sim.shutdown().await;
     }
 
