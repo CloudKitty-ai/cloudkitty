@@ -252,9 +252,9 @@ const SKY_DIAL = Object.freeze({
 function drawSkyDial(tick) {
   const el = document.getElementById('sky-dial');
   if (!el) return;
-  const W = 90; // one tile wider than the first cut (owner call), same 2:1
-  const H = 45;
-  const r = 40;
+  const W = 78; // ~3.5 tiles: the owner-tuned middle of 68 and 90, same 2:1
+  const H = 39;
+  const r = 35;
   const dpr = window.devicePixelRatio || 1;
   if (el.width !== W * dpr) {
     el.width = W * dpr;
