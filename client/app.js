@@ -86,6 +86,35 @@ function hourForTick(tick) {
   return 'day';
 }
 
+/** The night's position inside the cycle, derived from the phase table so
+ * a retuned day stays consistent everywhere. */
+const NIGHT_WINDOW = (() => {
+  let at = 0;
+  for (const [theme, span] of WORLD_DAY_PHASES) {
+    if (theme === 'night') return { start: at, end: at + span };
+    at += span;
+  }
+  return null; // a world with no night keeps the sun up forever
+})();
+
+/**
+ * Where the sky's traveler sits: { body: 'sun' | 'moon', t: 0..1 } across
+ * its horizon-to-horizon arc. The sun's arc spans dawn + day + sunset --
+ * rising as dawn begins, peaking mid-day, gone when sunset ends -- and
+ * the moon owns the night. Pure function of the served tick, like
+ * hourForTick above; the sky dial (render.js) reads it per frame.
+ */
+function skyForTick(tick) {
+  const t = (Math.max(0, tick | 0)) % WORLD_DAY_TICKS;
+  if (!NIGHT_WINDOW) return { body: 'sun', t: t / WORLD_DAY_TICKS };
+  const nightSpan = NIGHT_WINDOW.end - NIGHT_WINDOW.start;
+  if (t >= NIGHT_WINDOW.start && t < NIGHT_WINDOW.end) {
+    return { body: 'moon', t: (t - NIGHT_WINDOW.start) / nightSpan };
+  }
+  const sinceDawn = (t - NIGHT_WINDOW.end + WORLD_DAY_TICKS) % WORLD_DAY_TICKS;
+  return { body: 'sun', t: sinceDawn / (WORLD_DAY_TICKS - nightSpan) };
+}
+
 let themeMode = 'auto'; // 'auto' | 'day' | 'dusk' | 'night'
 let currentTheme = null; // the visual theme actually applied
 

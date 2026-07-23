@@ -24,6 +24,20 @@ const MEOW_TEXT = {
  * the tiny grin of a creature that knows exactly what it's doing. */
 const GREEBLE_FACE = 'grin';
 
+/** The sky dial's colors, named (Article VI). The dome tint follows the
+ * world's own hour, never the viewer's theme override -- the dial is a
+ * fact about the world. Sun gold is kin to the sparkle stars. */
+const SKY_DIAL = Object.freeze({
+  domeDay: 'rgba(255, 250, 240, 0.55)',
+  domeDusk: 'rgba(255, 196, 130, 0.5)',
+  domeNight: 'rgba(43, 39, 51, 0.55)',
+  rim: 'rgba(150, 125, 105, 0.4)',
+  sun: '#f4c95d',
+  sunRay: 'rgba(244, 201, 93, 0.85)',
+  moon: '#eae6f2',
+  moonCrater: '#c9c2d8',
+});
+
 /** How many ticks a speech bubble lingers on screen. */
 const BUBBLE_TICKS = 3;
 
@@ -161,6 +175,88 @@ class WorldRenderer {
       const need = view.thoughtFor(kitty);
       if (need) this.drawThought(kitty, need, view);
     }
+    this.drawSkyDial(world);
+  }
+
+  /**
+   * The sky dial (owner request, 2026-07-22): the world's clock made
+   * visible. A small dome in the top-right corner of the map; the sun
+   * crosses it through dawn, day and sunset, and the moon owns the night
+   * (skyForTick, app.js). It always shows the world's own hour -- under a
+   * manual theme override, the dial is what tells you what you're
+   * overriding. Drawn parametrically, like everything on this canvas
+   * (spec 007 FR-010: no emoji).
+   */
+  drawSkyDial(world) {
+    // app.js owns the world clock; without it (headless harness contexts)
+    // there is no dial to draw.
+    if (typeof skyForTick !== 'function') return;
+    const ctx = this.ctx;
+    const r = Math.max(20, Math.min(36, this.tile * 1.5));
+    const margin = 8;
+    const cx = this.cssWidth - margin - r;
+    const cy = margin + r;
+    const sky = skyForTick(world.tick);
+    const hour = hourForTick(world.tick);
+
+    ctx.save();
+
+    // The dome: a translucent slice of the world's actual sky, sitting on
+    // its little horizon line.
+    ctx.beginPath();
+    ctx.moveTo(cx - r, cy);
+    ctx.arc(cx, cy, r, Math.PI, TAU);
+    ctx.closePath();
+    ctx.fillStyle =
+      hour === 'night' ? SKY_DIAL.domeNight
+      : hour === 'dusk' ? SKY_DIAL.domeDusk
+      : SKY_DIAL.domeDay;
+    ctx.fill();
+    ctx.strokeStyle = SKY_DIAL.rim;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Only the sky above the horizon shows: a rising sun peeks over the
+    // line as a half-disc instead of hanging below it.
+    ctx.beginPath();
+    ctx.rect(cx - r - 2, cy - r - 2, r * 2 + 4, r + 2);
+    ctx.clip();
+
+    // Left horizon -> zenith -> right horizon as t runs 0 -> 1.
+    const angle = Math.PI + sky.t * Math.PI;
+    const bx = cx + Math.cos(angle) * r * 0.72;
+    const by = cy + Math.sin(angle) * r * 0.72;
+    const br = Math.max(3.5, r * 0.16);
+
+    if (sky.body === 'sun') {
+      ctx.strokeStyle = SKY_DIAL.sunRay;
+      ctx.lineWidth = 1.2;
+      ctx.lineCap = 'round';
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * TAU;
+        ctx.beginPath();
+        ctx.moveTo(bx + Math.cos(a) * br * 1.35, by + Math.sin(a) * br * 1.35);
+        ctx.lineTo(bx + Math.cos(a) * br * 1.8, by + Math.sin(a) * br * 1.8);
+        ctx.stroke();
+      }
+      ctx.fillStyle = SKY_DIAL.sun;
+      ctx.beginPath();
+      ctx.arc(bx, by, br, 0, TAU);
+      ctx.fill();
+    } else {
+      ctx.fillStyle = SKY_DIAL.moon;
+      ctx.beginPath();
+      ctx.arc(bx, by, br, 0, TAU);
+      ctx.fill();
+      // Three craters make it a moon and not a pale sun.
+      ctx.fillStyle = SKY_DIAL.moonCrater;
+      for (const [dx, dy, cr] of [[-0.3, -0.15, 0.22], [0.25, 0.2, 0.16], [0.05, -0.4, 0.12]]) {
+        ctx.beginPath();
+        ctx.arc(bx + dx * br, by + dy * br, cr * br, 0, TAU);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
   }
 
   /**
