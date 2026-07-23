@@ -18,5 +18,5 @@ extension-module = ["pyo3/extension-module"]
 [dependencies]
 cloudkitty-core = { path = "../cloudkitty-core" }
 cloudkitty-rl = { path = "../cloudkitty-rl" }
-pyo3 = { version = "0.21", features = ["abi3-py39"] }
-numpy = "0.21"
+pyo3 = { version = "0.29", features = ["abi3-py39"] }
+numpy = "0.29"

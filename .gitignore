@@ -21,5 +21,9 @@ Thumbs.db
 .env
 .env.*
 
+# Python (training-surface dev: venv + bytecode)
+.venv/
+__pycache__/
+
 # Saved worlds (runtime state, like snapshot.json)
 worlds.backup/
