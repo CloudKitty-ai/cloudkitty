@@ -79,8 +79,10 @@ call for a proper art pass later:
 The 008 scaffolding stands ready: `tileHash` in `client/meadow.js` is the
 deterministic scatter source (per-tile hash of (x, y) — stable across
 reloads, density proportional to area, no new served data), palette and
-tunables homes established, harness in `client/test-meadow.mjs`. Day–night
-lighting remains its own entry below and lands on top of this look.
+tunables homes established, harness in `client/test-meadow.mjs`. Note
+since 2026-07-22: the meadow renders under three palettes (day / golden
+hour / night, PRs #37–#39), so new grass work must be judged in all
+three, and any new color belongs in every `MEADOW_*` set.
 
 ### Harden the whole proposal boundary (do this *with* the plugin work)
 The strict play-target parsing that shipped in PR #5 fixed one instance of a
@@ -133,11 +135,6 @@ appearance data arrives, so this item is engine modeling plus palette
 wiring, not new art. Age
 must never become a health mechanic (Article II: no decline, no death; cats
 may age into *distinguished*, never into frail).
-
-### Day–night cycle and moonbeams
-A world clock, dawn/dusk lighting in the viewer, moonbeams as the nighttime
-sunbeam. Kitties are crepuscular — behaviors could weight sleep by hour.
-The 005 refresh has shipped, so lighting lands on the vector look.
 
 ## P3 — simulation depth
 
@@ -223,6 +220,25 @@ More meow vocabulary. Most valuable once relationships exist to talk about;
 each new message needs a cooldown severity mapping like the existing six.
 
 ## P4 — world-scale ambitions
+
+### Crepuscular rewards — time-of-day enters the engine (added 2026-07-22)
+The engine half of the world's sky. The viewer's full day–night cycle
+shipped cosmetic-only (PRs #37–#39, owner call 2026-07-22): the hour is
+a pure client function of the served tick (`hourForTick`, app.js) and
+the engine knows nothing. When the trained meadow wants more challenge,
+promote the hour into the engine and vary RL rewards by it — kitties
+are crepuscular, so dawn and dusk could pay a premium for activity
+while deep night favors sleep, teaching policies a daily rhythm instead
+of a flat routine. Design cares when picked up: the hour must derive
+from tick arithmetic in the engine so rollouts stay deterministic and
+bit-reproducible; adding it to observations is a schema version bump
+under 014's extensibility doctrine; the long-run welfare bounds must
+hold at every hour — variable rewards may never starve a need (Article
+I outranks the reward function); and the client's `hourForTick` retires
+in favor of a served hour, keeping viewer and engine on one clock.
+Sequencing: this is RL work, so the pyo3 advisory upgrade (P1) fires
+first. (Replaces the old P2 "Day–night cycle and moonbeams" entry,
+whose viewer half is fully shipped.)
 
 ### Kittens
 ⚠️ Constitution note: adding kitties is lawful — Article II forbids removal,
