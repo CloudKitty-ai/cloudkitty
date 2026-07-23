@@ -247,7 +247,10 @@ class WorldRenderer {
     const ctx = this.ctx;
     const t = view.ambient.now;
 
-    if (VIEW.ambient.cloudShadows) {
+    // Cloud shadows are sunlight's doing, so the night sky has none
+    // (owner call, 2026-07-23) -- and their greenish daytime tint read
+    // wrong on moonlit grass anyway.
+    if (VIEW.ambient.cloudShadows && this.theme !== 'night') {
       // Two soft shadows drifting slowly across the meadow.
       ctx.save();
       ctx.fillStyle = 'rgba(120, 140, 110, 0.05)';
