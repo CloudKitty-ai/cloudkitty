@@ -41,6 +41,32 @@ let latestWorld = null;
 // US3): app.js feeds it served states and keeps running the panel.
 anim.init(renderer);
 
+/**
+ * The header's loafing kitties: the one place the world's art steps outside
+ * the canvas. Both wear Biscuit's colorway, picked by name so a palette
+ * reshuffle can never silently change who greets you; each canvas says
+ * which way it faces (data-facing), so the pair bookends the wordmark.
+ */
+function drawHeaderKitties() {
+  const size = 32;
+  const dpr = window.devicePixelRatio || 1;
+  for (const el of document.querySelectorAll('.header-kitty')) {
+    el.width = size * dpr;
+    el.height = size * dpr;
+    el.style.width = `${size}px`;
+    el.style.height = `${size}px`;
+    const ctx = el.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    drawCat(ctx, {
+      pose: 'loaf',
+      appearance: PALETTES.find((p) => p.name === 'biscuit tabby') ?? appearanceFor(0),
+      facing: el.dataset.facing === 'left' ? 'left' : 'right',
+      size,
+      phase: 0,
+    });
+  }
+}
+
 function setStatus(text, connected) {
   statusEl.textContent = text;
   statusEl.classList.toggle('disconnected', !connected);
@@ -354,4 +380,5 @@ window.addEventListener('keydown', (event) => {
   anim.redraw();
 });
 
+drawHeaderKitties();
 start();
