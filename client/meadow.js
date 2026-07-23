@@ -76,9 +76,9 @@ const MEADOW_DUSK = Object.freeze({
   grassTones: Object.freeze(['#e6e8c2', '#e0e2bb', '#dadcb3', '#e3e5be']),
   jitterTint: '#fff0d8', // golden light where day jitter is white
   jitterShade: '#8a8a60',
-  pondWater: '#7797a7', // the midpoint of day #bfe3f2 and night #2f4a5c
-  pondShallow: '#8ba6b4',
-  pondRim: '#77a2b8',
+  pondWater: '#9bbdcd', // 75% of the way from night #2f4a5c to day #bfe3f2
+  pondShallow: '#b3cbd8', // (owner-tuned, 2026-07-22: evening light lingers
+  pondRim: '#8ab8cf', // on the water)
   lilyPad: '#93b183',
   lilyPadRim: '#79996d',
   // Low-sun beams: the same radial pool, deeper amber.
