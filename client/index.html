@@ -139,6 +139,16 @@
     min-height: 1em;
   }
 
+  /* Section labels over the happiness bar and the needs grid. The 8px top
+     margin is what used to live on .needs, so the section rhythm is
+     unchanged; the labels just name what the bars mean. */
+  .kitty-card .section-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    margin: 8px 0 2px;
+  }
+
   .bar {
     height: 8px;
     border-radius: 99px;
@@ -154,7 +164,6 @@
   }
 
   .needs {
-    margin-top: 8px;
     display: grid;
     grid-template-columns: auto 1fr;
     gap: 3px 8px;

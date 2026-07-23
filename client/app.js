@@ -131,10 +131,20 @@ function buildKittyCard(kitty) {
   patience.className = 'patience';
   card.appendChild(patience);
 
+  const happyLabel = document.createElement('div');
+  happyLabel.className = 'section-label';
+  happyLabel.textContent = 'Happy';
+  card.appendChild(happyLabel);
+
   const happiness = document.createElement('div');
   happiness.className = 'bar happiness';
   happiness.appendChild(document.createElement('span'));
   card.appendChild(happiness);
+
+  const needsLabel = document.createElement('div');
+  needsLabel.className = 'section-label';
+  needsLabel.textContent = 'Needs';
+  card.appendChild(needsLabel);
 
   const needs = document.createElement('div');
   needs.className = 'needs';
