@@ -138,6 +138,9 @@
     top: -18px;
     right: 38px;
     pointer-events: none;
+    /* Opt out of the global canvas rounding: 18px radius on a 34px-tall
+       canvas clips the dome's lower corners clean off. */
+    border-radius: 0;
   }
 
   canvas { border-radius: 18px; }

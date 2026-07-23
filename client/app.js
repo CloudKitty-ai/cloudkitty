@@ -216,9 +216,11 @@ function drawHeaderKitties() {
  * world's own hour, never the viewer's theme override -- the dial is a
  * fact about the world. Sun gold is kin to the sparkle stars. */
 const SKY_DIAL = Object.freeze({
-  domeDay: 'rgba(255, 250, 240, 0.55)',
-  domeDusk: 'rgba(255, 196, 130, 0.5)',
-  domeNight: 'rgba(43, 39, 51, 0.55)',
+  // Dome transparency halved from the first cut (owner call, 2026-07-23:
+  // the map's border read through it).
+  domeDay: 'rgba(255, 250, 240, 0.78)',
+  domeDusk: 'rgba(255, 196, 130, 0.75)',
+  domeNight: 'rgba(43, 39, 51, 0.78)',
   rim: 'rgba(150, 125, 105, 0.4)',
   sun: '#f4c95d',
   sunRay: 'rgba(244, 201, 93, 0.85)',
