@@ -23,9 +23,9 @@ Single Rust workspace at repo root; the feature touches only `crates/cloudkitty-
 
 **Purpose**: Record the pre-upgrade truth the success criteria are measured against.
 
-- [ ] T001 Verify tooling: `cargo audit` installed (`cargo install cargo-audit` if missing) and a Python ≥3.9 virtualenv with floating `maturin pytest numpy` (mirroring CI), per quickstart.md Prerequisites
-- [ ] T002 Capture the pre-upgrade baseline: run `cargo audit` at repo root and save its output (expect exactly 2 advisories: RUSTSEC-2025-0020, RUSTSEC-2026-0177 against pyo3 0.21.2) to `specs/015-pyo3-upgrade/baseline-audit.txt`
-- [ ] T003 Capture the pre-upgrade Python gate: `cd crates/cloudkitty-py && maturin develop --release && pytest tests -v` — record pass/fail status (including the PettingZoo conformance result if installed) as the parity reference for US2/US3
+- [X] T001 Verify tooling: `cargo audit` installed (`cargo install cargo-audit` if missing) and a Python ≥3.9 virtualenv with floating `maturin pytest numpy` (mirroring CI), per quickstart.md Prerequisites
+- [X] T002 Capture the pre-upgrade baseline: run `cargo audit` at repo root and save its output (expect exactly 2 advisories: RUSTSEC-2025-0020, RUSTSEC-2026-0177 against pyo3 0.21.2) to `specs/015-pyo3-upgrade/baseline-audit.txt`
+- [X] T003 Capture the pre-upgrade Python gate: `cd crates/cloudkitty-py && maturin develop --release && pytest tests -v` — record pass/fail status (including the PettingZoo conformance result if installed) as the parity reference for US2/US3
 
 **Checkpoint**: Baseline recorded — every later "unchanged" claim now has a referent.
 
@@ -37,11 +37,11 @@ Single Rust workspace at repo root; the feature touches only `crates/cloudkitty-
 
 **⚠️ CRITICAL**: No user story verification is meaningful until this phase compiles clean.
 
-- [ ] T004 Bump `pyo3 = { version = "0.29", features = ["abi3-py39"] }` and `numpy = "0.29"` in `crates/cloudkitty-py/Cargo.toml` (targets verified available: research.md §1)
-- [ ] T005 Fix compile errors in `crates/cloudkitty-py/src/lib.rs` until `cargo build -p cloudkitty-py` succeeds — expected: `into_pyarray_bound` → `into_pyarray` (9 sites), `PyArray1::from_vec_bound` → `from_vec` (1 site), possible `IntoPyObject`/`Py<PyAny>` adjustments in `box_space`/`discrete_space`/`observation_space`/`action_space`; consult pyo3 0.22–0.29 migration guides for anything unexpected (research.md §2)
-- [ ] T006 Regenerate `Cargo.lock` (falls out of the build) and confirm no other workspace member's dependencies changed: `git diff Cargo.lock` shows only pyo3/numpy-family churn
-- [ ] T007 Run `cargo test` (full workspace) at repo root — all Rust tests pass, including cloudkitty-py's non-extension-module link path
-- [ ] T008 Deprecation sweep per spec edge case: note any deprecation warnings from `cargo build -p cloudkitty-py 2>&1`; fix only mechanical ones in `crates/cloudkitty-py/src/lib.rs`, and list any deliberately left in the PR description for the next maintenance pass
+- [X] T004 Bump `pyo3 = { version = "0.29", features = ["abi3-py39"] }` and `numpy = "0.29"` in `crates/cloudkitty-py/Cargo.toml` (targets verified available: research.md §1)
+- [X] T005 Fix compile errors in `crates/cloudkitty-py/src/lib.rs` until `cargo build -p cloudkitty-py` succeeds — expected: `into_pyarray_bound` → `into_pyarray` (9 sites), `PyArray1::from_vec_bound` → `from_vec` (1 site), possible `IntoPyObject`/`Py<PyAny>` adjustments in `box_space`/`discrete_space`/`observation_space`/`action_space`; consult pyo3 0.22–0.29 migration guides for anything unexpected (research.md §2)
+- [X] T006 Regenerate `Cargo.lock` (falls out of the build) and confirm no other workspace member's dependencies changed: `git diff Cargo.lock` shows only pyo3/numpy-family churn
+- [X] T007 Run `cargo test` (full workspace) at repo root — all Rust tests pass, including cloudkitty-py's non-extension-module link path
+- [X] T008 Deprecation sweep per spec edge case: note any deprecation warnings from `cargo build -p cloudkitty-py 2>&1`; fix only mechanical ones in `crates/cloudkitty-py/src/lib.rs`, and list any deliberately left in the PR description for the next maintenance pass
 
 **Checkpoint**: Workspace compiles and passes Rust tests at pyo3/numpy 0.29 — user story gates can now run (in any order, or in parallel).
 
@@ -53,8 +53,8 @@ Single Rust workspace at repo root; the feature touches only `crates/cloudkitty-
 
 **Independent Test**: One command at repo root; compare against T002's baseline.
 
-- [ ] T009 [US1] Run `cargo audit` at repo root — expect **0 advisories** (baseline was 2); save output beside the baseline as `specs/015-pyo3-upgrade/post-audit.txt`
-- [ ] T010 [P] [US1] Confirm the vulnerable versions are gone from the dependency graph: `grep -A2 'name = "pyo3"' Cargo.lock` shows only 0.29.x, no 0.21.x remnant anywhere in `Cargo.lock`
+- [X] T009 [US1] Run `cargo audit` at repo root — expect **0 advisories** (baseline was 2); save output beside the baseline as `specs/015-pyo3-upgrade/post-audit.txt`
+- [X] T010 [P] [US1] Confirm the vulnerable versions are gone from the dependency graph: `grep -A2 'name = "pyo3"' Cargo.lock` shows only 0.29.x, no 0.21.x remnant anywhere in `Cargo.lock`
 
 **Checkpoint**: SC-001 met — the audit is clean.
 
@@ -66,9 +66,9 @@ Single Rust workspace at repo root; the feature touches only `crates/cloudkitty-
 
 **Independent Test**: Build the extension, run the untouched pytest suite, diff the surface against the contract.
 
-- [ ] T011 [US2] Build and test: `cd crates/cloudkitty-py && maturin develop --release && pytest tests -v` — 100% pass with `git status` confirming **zero modified files under `crates/cloudkitty-py/tests/`** (SC-002); the two-process reproducibility test passing IS the bit-identical gate (SC-003)
-- [ ] T012 [P] [US2] Optional-dependency scenario: with `pettingzoo` installed, run `pytest crates/cloudkitty-py/tests/test_pettingzoo_conformance.py -v` — result no worse than T003's baseline (spec US2 scenario 3)
-- [ ] T013 [P] [US2] Contract check per quickstart.md §6: introspect the built module (`dir(cloudkitty)`, `dir(cloudkitty.ParallelEnv)`, `dir(cloudkitty.VectorEnv)`) and verify every name, constant, and signature matches `specs/015-pyo3-upgrade/contracts/python-surface.md` exactly — nothing added, renamed, or missing
+- [X] T011 [US2] Build and test: `cd crates/cloudkitty-py && maturin develop --release && pytest tests -v` — 100% pass with `git status` confirming **zero modified files under `crates/cloudkitty-py/tests/`** (SC-002); the two-process reproducibility test passing IS the bit-identical gate (SC-003)
+- [X] T012 [P] [US2] Optional-dependency scenario: with `pettingzoo` installed, run `pytest crates/cloudkitty-py/tests/test_pettingzoo_conformance.py -v` — result no worse than T003's baseline (spec US2 scenario 3)
+- [X] T013 [P] [US2] Contract check per quickstart.md §6: introspect the built module (`dir(cloudkitty)`, `dir(cloudkitty.ParallelEnv)`, `dir(cloudkitty.VectorEnv)`) and verify every name, constant, and signature matches `specs/015-pyo3-upgrade/contracts/python-surface.md` exactly — nothing added, renamed, or missing
 
 **Checkpoint**: SC-002/SC-003 met — the surface didn't move.
 
@@ -80,8 +80,8 @@ Single Rust workspace at repo root; the feature touches only `crates/cloudkitty-
 
 **Independent Test**: Confinement spot-checks locally; CI's unchanged job goes green on the PR.
 
-- [ ] T014 [P] [US3] Confinement checks per quickstart.md §5: `cargo tree -p cloudkitty-server | grep pyo3` finds nothing (server stays pyo3-free, FR-007) and `grep abi3-py39 crates/cloudkitty-py/Cargo.toml` confirms the CPython ≥3.9 floor survived the bump (FR-006)
-- [ ] T015 [US3] Verify zero CI changes: `git diff --stat` for the whole branch shows nothing under `.github/` (FR-008); final confirmation is the unchanged `python surface (maturin + pytest)` job passing on the PR (SC-004)
+- [X] T014 [P] [US3] Confinement checks per quickstart.md §5: `cargo tree -p cloudkitty-server | grep pyo3` finds nothing (server stays pyo3-free, FR-007) and `grep abi3-py39 crates/cloudkitty-py/Cargo.toml` confirms the CPython ≥3.9 floor survived the bump (FR-006)
+- [X] T015 [US3] Verify zero CI changes: `git diff --stat` for the whole branch shows nothing under `.github/` (FR-008); final confirmation is the unchanged `python surface (maturin + pytest)` job passing on the PR (SC-004)
 
 **Checkpoint**: All three stories verified independently.
 
@@ -91,9 +91,9 @@ Single Rust workspace at repo root; the feature touches only `crates/cloudkitty-
 
 **Purpose**: Retire the gate this feature exists to clear.
 
-- [ ] T016 Remove the "Upgrade pyo3 past its advisories" entry from `BACKLOG.md` P1 (SC-005), noting in the PR that the RL-work gate is retired (unblocks P4 crepuscular rewards)
-- [ ] T017 Run the full quickstart.md runbook top-to-bottom once, in order, as the final end-to-end validation; then delete the scratch capture files `specs/015-pyo3-upgrade/baseline-audit.txt` and `post-audit.txt` if the owner prefers the PR description to carry the before/after instead (owner's call at review)
-- [ ] T018 Mark completed tasks `[X]` in `specs/015-pyo3-upgrade/tasks.md` and prepare the PR (branch `015-pyo3-upgrade`, merge-commit convention, CI green before merge)
+- [X] T016 Remove the "Upgrade pyo3 past its advisories" entry from `BACKLOG.md` P1 (SC-005), noting in the PR that the RL-work gate is retired (unblocks P4 crepuscular rewards)
+- [X] T017 Run the full quickstart.md runbook top-to-bottom once, in order, as the final end-to-end validation; then delete the scratch capture files `specs/015-pyo3-upgrade/baseline-audit.txt` and `post-audit.txt` if the owner prefers the PR description to carry the before/after instead (owner's call at review)
+- [X] T018 Mark completed tasks `[X]` in `specs/015-pyo3-upgrade/tasks.md` and prepare the PR (branch `015-pyo3-upgrade`, merge-commit convention, CI green before merge)
 
 ---
 

@@ -12,16 +12,8 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 ## P1 — quick wins, next up
 
 <!-- shipped P1 items are removed once merged; see git history -->
-
-### Upgrade pyo3 past its advisories (added 2026-07-22 — do before any more RL work)
-`cargo audit` flags pyo3 0.21.2, used only by `cloudkitty-py` (the training
-bindings — never linked into the server binary): RUSTSEC-2025-0020 (buffer
-overflow risk in `PyString::from_object`, fixed in 0.24.1) and
-RUSTSEC-2026-0177 (missing `Sync` bound on `PyCFunction::new_closure`
-closures, fixed in 0.29.0). Not network-facing, so no urgency for the
-running meadow — but it is a real API migration (the `numpy` crate moves in
-lockstep with pyo3), so it's a sitting, not a patch. Owner call 2026-07-22:
-knock this out before starting any further RL work.
+<!-- (pyo3 advisory upgrade shipped 2026-07-23, spec 015 — the
+     do-before-more-RL-work gate is retired) -->
 
 ## P2 — the bigger pieces, for a proper sitting
 
@@ -236,9 +228,10 @@ under 014's extensibility doctrine; the long-run welfare bounds must
 hold at every hour — variable rewards may never starve a need (Article
 I outranks the reward function); and the client's `hourForTick` retires
 in favor of a served hour, keeping viewer and engine on one clock.
-Sequencing: this is RL work, so the pyo3 advisory upgrade (P1) fires
-first. (Replaces the old P2 "Day–night cycle and moonbeams" entry,
-whose viewer half is fully shipped.)
+Sequencing: the pyo3 advisory upgrade that once gated RL work shipped
+2026-07-23 (spec 015) — nothing blocks this but priority. (Replaces
+the old P2 "Day–night cycle and moonbeams" entry, whose viewer half
+is fully shipped.)
 
 ### Kittens
 ⚠️ Constitution note: adding kitties is lawful — Article II forbids removal,
