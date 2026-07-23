@@ -253,15 +253,18 @@ const SKY_DIAL = Object.freeze({
 function drawSkyDial(tick) {
   const el = document.getElementById('sky-dial');
   if (!el) return;
-  const W = 78; // ~3.5 tiles: the owner-tuned middle of 68 and 90, same 2:1
+  // The bitmap is drawn at the full-size dimensions (owner-tuned 78x39,
+  // ~3.5 tiles at the 720px map) and the browser scales it: CSS owns the
+  // displayed size (a fraction of the stage, index.html), so the dial
+  // shrinks with the map on mobile and under window resizing. No inline
+  // style sizes here -- they would override that CSS.
+  const W = 78;
   const H = 39;
   const r = 35;
   const dpr = window.devicePixelRatio || 1;
   if (el.width !== W * dpr) {
     el.width = W * dpr;
     el.height = H * dpr;
-    el.style.width = `${W}px`;
-    el.style.height = `${H}px`;
   }
   const ctx = el.getContext('2d');
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);

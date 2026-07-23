@@ -130,16 +130,22 @@
   }
 
   /* The sky dial perches on the map's top edge (owner call, 2026-07-23):
-     the dial canvas's bottom edge IS the horizon, aligned to the world
-     canvas's top border (stage padding 16px minus the dial's 39px
-     height), one tile in from the right corner. */
+     the dial canvas's bottom edge IS the horizon, pinned to the world
+     canvas's top border by anchoring from the stage's BOTTOM (100% minus
+     the stage padding) -- height-independent, so it holds at any size.
+     Width is a fraction of the stage, so the dial scales with the
+     displayed map (owner fix, 2026-07-23: fixed pixels loomed huge on
+     mobile and under desktop window resizing); at the full 720px map it
+     comes out at the tuned ~78px. Height follows the canvas's intrinsic
+     2:1 ratio. */
   #sky-dial {
     position: absolute;
-    top: -23px;
-    right: 38px;
+    bottom: calc(100% - 16px);
+    right: 5%;
+    width: 10.5%;
     pointer-events: none;
-    /* Opt out of the global canvas rounding: 18px radius on a 34px-tall
-       canvas clips the dome's lower corners clean off. */
+    /* Opt out of the global canvas rounding: 18px radius on a canvas
+       this small clips the dome's lower corners clean off. */
     border-radius: 0;
   }
 
@@ -311,7 +317,7 @@
     body { padding: 16px 10px 28px; }
     .stage { padding: 10px; border-radius: 20px; }
     /* Thinner stage padding moves the map's top edge; the horizon follows. */
-    #sky-dial { top: -29px; right: 28px; }
+    #sky-dial { bottom: calc(100% - 10px); }
     canvas { border-radius: 12px; }
     .panel {
       display: grid;
