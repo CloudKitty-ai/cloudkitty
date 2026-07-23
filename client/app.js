@@ -41,6 +41,32 @@ let latestWorld = null;
 // US3): app.js feeds it served states and keeps running the panel.
 anim.init(renderer);
 
+/**
+ * The header's loafing kitty: the one place the world's art steps outside
+ * the canvas. Decorative, not roster-driven -- it wears the "cloud" colorway
+ * by name (a white kitty, for a site called CloudKitty), so it never
+ * collides with looking like any particular resident.
+ */
+function drawHeaderKitty() {
+  const el = document.getElementById('header-kitty');
+  if (!el) return;
+  const size = 48;
+  const dpr = window.devicePixelRatio || 1;
+  el.width = size * dpr;
+  el.height = size * dpr;
+  el.style.width = `${size}px`;
+  el.style.height = `${size}px`;
+  const ctx = el.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  drawCat(ctx, {
+    pose: 'loaf',
+    appearance: PALETTES.find((p) => p.name === 'cloud') ?? appearanceFor(0),
+    facing: 'right', // toward its own name, like the card portraits
+    size,
+    phase: 0,
+  });
+}
+
 function setStatus(text, connected) {
   statusEl.textContent = text;
   statusEl.classList.toggle('disconnected', !connected);
@@ -354,4 +380,5 @@ window.addEventListener('keydown', (event) => {
   anim.redraw();
 });
 
+drawHeaderKitty();
 start();

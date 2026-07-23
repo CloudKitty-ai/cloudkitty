@@ -11,6 +11,26 @@
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
+  /* Self-hosted faces: the rounded look the old font stack could only wish
+     for on Apple devices now reaches everyone. Variable-weight woff2, latin
+     subset, OFL-licensed (fonts/OFL-*.txt). Nunito is the body voice;
+     Baloo 2 appears only in the wordmark. */
+  @font-face {
+    font-family: "Nunito";
+    font-style: normal;
+    font-weight: 200 1000;
+    font-display: swap;
+    src: url("fonts/nunito-latin.woff2") format("woff2");
+  }
+
+  @font-face {
+    font-family: "Baloo 2";
+    font-style: normal;
+    font-weight: 400 800;
+    font-display: swap;
+    src: url("fonts/baloo2-latin.woff2") format("woff2");
+  }
+
   :root {
     --cream: #fdf6ec;
     --cream-deep: #f5e8d8;
@@ -30,7 +50,7 @@
   body {
     margin: 0;
     padding: 24px 16px 40px;
-    font-family: ui-rounded, "SF Pro Rounded", "Nunito", "Quicksand",
+    font-family: "Nunito", ui-rounded, "SF Pro Rounded",
                  system-ui, -apple-system, sans-serif;
     background: radial-gradient(circle at 50% 0%, #fffaf2 0%, var(--cream) 60%);
     color: var(--ink);
@@ -43,11 +63,21 @@
 
   header { text-align: center; }
 
+  /* The wordmark: the one place the display face appears, with the world's
+     own art loafing beside it. The canvas rides the text baseline -- the
+     cat's ground line sits at 88% of its box (cat.js), so the -6px shift
+     (0.12 * 48px) puts its feet exactly on the baseline. */
   h1 {
     margin: 0;
-    font-size: 1.9rem;
-    letter-spacing: 0.4px;
-    font-weight: 700;
+    font-family: "Baloo 2", "Nunito", ui-rounded, system-ui, sans-serif;
+    font-size: 2rem;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+
+  h1 canvas {
+    vertical-align: -6px;
+    margin-right: 4px;
   }
 
   .subtitle {
@@ -189,6 +219,10 @@
     font-size: 0.75rem;
   }
 
+  /* The tick counter's digits change every second; tabular figures keep the
+     footer from jittering as they do. */
+  #tick { font-variant-numeric: tabular-nums; }
+
   #status.disconnected { color: var(--meh); font-weight: 700; }
   #debug-note { color: var(--meh); font-weight: 700; }
   [hidden] { display: none !important; }
@@ -225,7 +259,7 @@
 </head>
 <body>
   <header>
-    <h1>☁️ CloudKitty 🐾</h1>
+    <h1><canvas id="header-kitty" width="48" height="48" aria-hidden="true"></canvas>CloudKitty</h1>
     <p class="subtitle">a small, safe world where kitties frolic and play</p>
   </header>
 
