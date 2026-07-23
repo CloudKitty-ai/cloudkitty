@@ -43,9 +43,8 @@ anim.init(renderer);
 
 /**
  * The header's loafing kitty: the one place the world's art steps outside
- * the canvas. Decorative, not roster-driven -- it wears the "cloud" colorway
- * by name (a white kitty, for a site called CloudKitty), so it never
- * collides with looking like any particular resident.
+ * the canvas. It wears Biscuit's colorway, picked by name so a palette
+ * reshuffle can never silently change who greets you.
  */
 function drawHeaderKitty() {
   const el = document.getElementById('header-kitty');
@@ -60,7 +59,7 @@ function drawHeaderKitty() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   drawCat(ctx, {
     pose: 'loaf',
-    appearance: PALETTES.find((p) => p.name === 'cloud') ?? appearanceFor(0),
+    appearance: PALETTES.find((p) => p.name === 'biscuit tabby') ?? appearanceFor(0),
     facing: 'right', // toward its own name, like the card portraits
     size,
     phase: 0,
