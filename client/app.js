@@ -223,11 +223,16 @@ const SKY_DIAL = Object.freeze({
   domeDay: 'rgba(240, 228, 205, 0.8)',
   domeDusk: 'rgba(255, 196, 130, 0.75)',
   domeNight: 'rgba(43, 39, 51, 0.78)',
-  sun: '#f4c95d',
-  sunRay: 'rgba(244, 201, 93, 0.85)',
+  // A richer gold than the sparkle stars: on the tan dome the soft
+  // #f4c95d read dim (owner call, 2026-07-23), so the disc deepens and
+  // takes a crisp rim, outline-first like the cats.
+  sun: '#f5ad2e',
+  sunRim: '#cf8a1f',
+  sunRay: 'rgba(245, 173, 46, 0.9)',
   // The low sun burns red-orange (owner call, 2026-07-23: gold vanished
   // into the amber twilight dome).
   duskSun: '#e2603c',
+  duskSunRim: '#b64526',
   duskSunRay: 'rgba(226, 96, 60, 0.85)',
   moon: '#eae6f2',
   moonCrater: '#c9c2d8',
@@ -298,9 +303,12 @@ function drawSkyDial(tick) {
       ctx.stroke();
     }
     ctx.fillStyle = low ? SKY_DIAL.duskSun : SKY_DIAL.sun;
+    ctx.strokeStyle = low ? SKY_DIAL.duskSunRim : SKY_DIAL.sunRim;
+    ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.arc(bx, by, br, 0, TAU);
     ctx.fill();
+    ctx.stroke();
   } else {
     ctx.fillStyle = SKY_DIAL.moon;
     ctx.beginPath();
