@@ -14,6 +14,7 @@
 //! truncations flip together exactly at the horizon.
 
 use std::collections::BTreeMap;
+use std::sync::Mutex;
 
 use cloudkitty_core::kitty::KittyId;
 use cloudkitty_core::seam::Provenance;
@@ -111,29 +112,29 @@ fn parse_control(control: Option<&Bound<'_, PyDict>>) -> PyResult<BTreeMap<Kitty
 }
 
 fn info_to_py<'py>(py: Python<'py>, info: &AgentInfo) -> PyResult<Bound<'py, PyDict>> {
-    let dict = PyDict::new_bound(py);
+    let dict = PyDict::new(py);
     dict.set_item("applied_action", info.applied_action)?;
     dict.set_item("applied_action_name", info.applied_action_name)?;
     dict.set_item("survived", info.survived)?;
-    dict.set_item("mask", info.mask.clone().into_pyarray_bound(py))?;
+    dict.set_item("mask", info.mask.clone().into_pyarray(py))?;
     dict.set_item("decision_seed", info.decision_seed)?;
     dict.set_item("provenance", info.provenance.map(provenance_str))?;
     Ok(dict)
 }
 
 fn observations_to_py<'py>(py: Python<'py>, step: &EpisodeStep) -> PyResult<Bound<'py, PyDict>> {
-    let obs = PyDict::new_bound(py);
+    let obs = PyDict::new(py);
     for (id, observation) in &step.observations {
         obs.set_item(
             agent_name(*id),
-            observation.values.clone().into_pyarray_bound(py),
+            observation.values.clone().into_pyarray(py),
         )?;
     }
     Ok(obs)
 }
 
 fn infos_to_py<'py>(py: Python<'py>, step: &EpisodeStep) -> PyResult<Bound<'py, PyDict>> {
-    let infos = PyDict::new_bound(py);
+    let infos = PyDict::new(py);
     for (id, info) in &step.infos {
         infos.set_item(agent_name(*id), info_to_py(py, info)?)?;
     }
@@ -142,11 +143,11 @@ fn infos_to_py<'py>(py: Python<'py>, step: &EpisodeStep) -> PyResult<Bound<'py, 
 
 /// A space description: `gymnasium.spaces` objects when gymnasium is
 /// importable, plain dicts otherwise (duck-typed convention, FR-011).
-fn box_space(py: Python<'_>, len: usize) -> PyResult<PyObject> {
-    match py.import_bound("gymnasium.spaces") {
+fn box_space(py: Python<'_>, len: usize) -> PyResult<Py<PyAny>> {
+    match py.import("gymnasium.spaces") {
         Ok(spaces) => {
-            let numpy = py.import_bound("numpy")?;
-            let kwargs = PyDict::new_bound(py);
+            let numpy = py.import("numpy")?;
+            let kwargs = PyDict::new(py);
             kwargs.set_item("low", -1.0)?;
             kwargs.set_item("high", 4.0)?;
             kwargs.set_item("shape", (len,))?;
@@ -154,7 +155,7 @@ fn box_space(py: Python<'_>, len: usize) -> PyResult<PyObject> {
             Ok(spaces.getattr("Box")?.call((), Some(&kwargs))?.unbind())
         }
         Err(_) => {
-            let dict = PyDict::new_bound(py);
+            let dict = PyDict::new(py);
             dict.set_item("type", "box")?;
             dict.set_item("low", -1.0)?;
             dict.set_item("high", 4.0)?;
@@ -165,11 +166,11 @@ fn box_space(py: Python<'_>, len: usize) -> PyResult<PyObject> {
     }
 }
 
-fn discrete_space(py: Python<'_>, n: usize) -> PyResult<PyObject> {
-    match py.import_bound("gymnasium.spaces") {
+fn discrete_space(py: Python<'_>, n: usize) -> PyResult<Py<PyAny>> {
+    match py.import("gymnasium.spaces") {
         Ok(spaces) => Ok(spaces.getattr("Discrete")?.call1((n,))?.unbind()),
         Err(_) => {
-            let dict = PyDict::new_bound(py);
+            let dict = PyDict::new(py);
             dict.set_item("type", "discrete")?;
             dict.set_item("n", n)?;
             Ok(dict.unbind().into())
@@ -242,9 +243,9 @@ impl ParallelEnv {
 
     fn step_result<'py>(&self, py: Python<'py>, step: &EpisodeStep) -> PyResult<StepTuple<'py>> {
         let obs = observations_to_py(py, step)?;
-        let rewards = PyDict::new_bound(py);
-        let terminations = PyDict::new_bound(py);
-        let truncations = PyDict::new_bound(py);
+        let rewards = PyDict::new(py);
+        let terminations = PyDict::new(py);
+        let truncations = PyDict::new(py);
         for id in &self.external {
             let name = agent_name(*id);
             rewards.set_item(&name, step.reward)?;
@@ -294,17 +295,17 @@ impl ParallelEnv {
 
     #[getter]
     fn metadata<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
-        let dict = PyDict::new_bound(py);
+        let dict = PyDict::new(py);
         dict.set_item("name", "cloudkitty_v1")?;
         dict.set_item("is_parallelizable", true)?;
         Ok(dict)
     }
 
-    fn observation_space(&self, py: Python<'_>, _agent: &str) -> PyResult<PyObject> {
+    fn observation_space(&self, py: Python<'_>, _agent: &str) -> PyResult<Py<PyAny>> {
         box_space(py, observation_len(&self.episode.rl_config().observation))
     }
 
-    fn action_space(&self, py: Python<'_>, _agent: &str) -> PyResult<PyObject> {
+    fn action_space(&self, py: Python<'_>, _agent: &str) -> PyResult<Py<PyAny>> {
         discrete_space(py, self.episode.codec().len())
     }
 
@@ -322,7 +323,7 @@ impl ParallelEnv {
         // reset() per episode — gets a genuinely new episode every time,
         // while the whole sequence replays from the first seed.
         let episode = &mut self.episode;
-        let step = py.allow_threads(|| match seed {
+        let step = py.detach(|| match seed {
             Some(seed) => episode.reset(seed),
             None => episode.reset_fresh(),
         });
@@ -340,7 +341,7 @@ impl ParallelEnv {
         let map = self.actions_from_py(actions)?;
         let episode = &mut self.episode;
         let step = py
-            .allow_threads(|| episode.step(&map))
+            .detach(|| episode.step(&map))
             .map_err(episode_err)?;
         if step.truncated {
             self.live = false;
@@ -352,7 +353,7 @@ impl ParallelEnv {
     /// the deployed behavior API cannot receive it. Served by the episode's
     /// own encoder, never a re-implementation (third review).
     fn state<'py>(&self, py: Python<'py>) -> Bound<'py, PyArray1<f32>> {
-        self.episode.current_global_state().into_pyarray_bound(py)
+        self.episode.current_global_state().into_pyarray(py)
     }
 
     fn close(&self) {}
@@ -367,7 +368,15 @@ impl ParallelEnv {
 /// fan-out across a scoped thread pool with the GIL released.
 #[pyclass]
 struct VectorEnv {
-    vector: VectorizedEnvironment,
+    /// The batch runner, wrapped for `Sync`: pyo3 0.29 requires pyclass
+    /// data to be shareable across threads (free-threaded Python), and
+    /// the runner holds a channel receiver that is not. The lock is
+    /// uncontended in practice -- the `&mut self` methods already
+    /// serialize callers; it satisfies the type system, not contention.
+    vector: Mutex<VectorizedEnvironment>,
+    /// World count, mirrored out of the runner so read-only paths never
+    /// need the lock (it is fixed at construction).
+    n_worlds: usize,
     external: Vec<KittyId>,
     obs_len: usize,
     menu_len: usize,
@@ -425,7 +434,8 @@ impl VectorEnv {
         }
         let n = episodes.len();
         Ok(VectorEnv {
-            vector: VectorizedEnvironment::new(episodes, workers),
+            vector: Mutex::new(VectorizedEnvironment::new(episodes, workers)),
+            n_worlds: n,
             external,
             obs_len,
             menu_len,
@@ -437,7 +447,7 @@ impl VectorEnv {
 
     #[getter]
     fn num_worlds(&self) -> usize {
-        self.vector.len()
+        self.n_worlds
     }
 
     #[getter]
@@ -453,7 +463,7 @@ impl VectorEnv {
     ) -> PyResult<(Bound<'py, PyDict>, Bound<'py, PyDict>)> {
         let explicit = match seeds {
             Some(seeds) => {
-                if seeds.len() != self.vector.len() {
+                if seeds.len() != self.n_worlds {
                     return Err(PyValueError::new_err("seeds must have one entry per world"));
                 }
                 self.pending_seeds = None;
@@ -468,10 +478,13 @@ impl VectorEnv {
             // failed reset keeps the seeds so a retry still replays them.
             None => self.pending_seeds.clone(),
         };
-        let vector = &mut self.vector;
-        let results = py.allow_threads(|| match &explicit {
-            Some(seeds) => vector.reset(seeds),
-            None => vector.reset_fresh(),
+        let vector = &self.vector;
+        let results = py.detach(|| {
+            let mut vector = vector.lock().expect("vector runner mutex poisoned");
+            match &explicit {
+                Some(seeds) => vector.reset(seeds),
+                None => vector.reset_fresh(),
+            }
         });
         let mut steps = Vec::with_capacity(results.len());
         for result in results {
@@ -489,7 +502,7 @@ impl VectorEnv {
         py: Python<'py>,
         actions: &Bound<'py, PyDict>,
     ) -> PyResult<StepTuple<'py>> {
-        let n = self.vector.len();
+        let n = self.n_worlds;
         // {agent: sequence[n]} → per-world action maps.
         let mut per_world: Vec<BTreeMap<KittyId, usize>> = vec![BTreeMap::new(); n];
         for (key, value) in actions.iter() {
@@ -526,8 +539,13 @@ impl VectorEnv {
             }
         }
 
-        let vector = &mut self.vector;
-        let results = py.allow_threads(|| vector.step(&per_world));
+        let vector = &self.vector;
+        let results = py.detach(|| {
+            vector
+                .lock()
+                .expect("vector runner mutex poisoned")
+                .step(&per_world)
+        });
         // Batch coherence is the Rust layer's law: before the first reset,
         // or after an earlier partial failure, every world comes back
         // `ResetRequired` — translate it to one clean error.
@@ -562,17 +580,17 @@ impl VectorEnv {
         }
 
         let obs = self.stack_observations(py, &steps)?;
-        let rewards = PyDict::new_bound(py);
-        let terminations = PyDict::new_bound(py);
-        let truncations = PyDict::new_bound(py);
+        let rewards = PyDict::new(py);
+        let terminations = PyDict::new(py);
+        let truncations = PyDict::new(py);
         for id in &self.external {
             let name = agent_name(*id);
             let r: Vec<f64> = steps.iter().map(|s| s.reward).collect();
-            rewards.set_item(&name, r.into_pyarray_bound(py))?;
+            rewards.set_item(&name, r.into_pyarray(py))?;
             let f: Vec<bool> = steps.iter().map(|_| false).collect();
-            terminations.set_item(&name, f.into_pyarray_bound(py))?;
+            terminations.set_item(&name, f.into_pyarray(py))?;
             let t: Vec<bool> = steps.iter().map(|s| s.truncated).collect();
-            truncations.set_item(&name, t.into_pyarray_bound(py))?;
+            truncations.set_item(&name, t.into_pyarray(py))?;
         }
         let infos = self.stack_infos(py, &steps)?;
         Ok((obs, rewards, terminations, truncations, infos))
@@ -581,12 +599,12 @@ impl VectorEnv {
     /// The batched global state, [n_worlds, state_len] — the view the last
     /// reset/step produced (worlds live on their worker threads).
     fn state<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyArray2<f32>>> {
-        let mut flat = Vec::with_capacity(self.vector.len() * self.state_len);
+        let mut flat = Vec::with_capacity(self.n_worlds * self.state_len);
         for state in &self.last_states {
             flat.extend_from_slice(state);
         }
-        numpy::PyArray1::from_vec_bound(py, flat)
-            .reshape([self.vector.len(), self.state_len])
+        numpy::PyArray1::from_vec(py, flat)
+            .reshape([self.n_worlds, self.state_len])
             .map_err(|e| PyRuntimeError::new_err(e.to_string()))
     }
 
@@ -614,7 +632,7 @@ impl VectorEnv {
         steps: &[EpisodeStep],
     ) -> PyResult<Bound<'py, PyDict>> {
         let n = steps.len();
-        let infos = PyDict::new_bound(py);
+        let infos = PyDict::new(py);
         for id in &self.external {
             let mut mask = Vec::with_capacity(n * self.menu_len);
             let mut seeds = Vec::with_capacity(n);
@@ -638,16 +656,16 @@ impl VectorEnv {
                 applied_names.push(info.applied_action_name);
                 provenance.push(info.provenance.map(provenance_str));
             }
-            let agent = PyDict::new_bound(py);
+            let agent = PyDict::new(py);
             agent.set_item(
                 "mask",
-                numpy::PyArray1::from_vec_bound(py, mask)
+                numpy::PyArray1::from_vec(py, mask)
                     .reshape([n, self.menu_len])
                     .map_err(|e| PyRuntimeError::new_err(e.to_string()))?,
             )?;
-            agent.set_item("decision_seed", seeds.into_pyarray_bound(py))?;
-            agent.set_item("survived", survived.into_pyarray_bound(py))?;
-            agent.set_item("applied_action", applied.into_pyarray_bound(py))?;
+            agent.set_item("decision_seed", seeds.into_pyarray(py))?;
+            agent.set_item("survived", survived.into_pyarray(py))?;
+            agent.set_item("applied_action", applied.into_pyarray(py))?;
             agent.set_item("applied_action_name", applied_names)?;
             agent.set_item("provenance", provenance)?;
             infos.set_item(agent_name(*id), agent)?;
@@ -660,7 +678,7 @@ impl VectorEnv {
         py: Python<'py>,
         steps: &[EpisodeStep],
     ) -> PyResult<Bound<'py, PyDict>> {
-        let obs = PyDict::new_bound(py);
+        let obs = PyDict::new(py);
         for id in &self.external {
             let mut flat = Vec::with_capacity(steps.len() * self.obs_len);
             for step in steps {
@@ -670,7 +688,7 @@ impl VectorEnv {
                     .ok_or_else(|| PyRuntimeError::new_err("missing observation"))?;
                 flat.extend_from_slice(&o.values);
             }
-            let arr = numpy::PyArray1::from_vec_bound(py, flat)
+            let arr = numpy::PyArray1::from_vec(py, flat)
                 .reshape([steps.len(), self.obs_len])
                 .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
             obs.set_item(agent_name(*id), arr)?;
