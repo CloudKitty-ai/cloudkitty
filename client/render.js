@@ -24,6 +24,9 @@ const MEOW_TEXT = {
  * the tiny grin of a creature that knows exactly what it's doing. */
 const GREEBLE_FACE = 'grin';
 
+// (The sky dial moved to app.js, 2026-07-23: it perches on the map's top
+// edge as its own overlay canvas -- page chrome, not world drawing.)
+
 /** How many ticks a speech bubble lingers on screen. */
 const BUBBLE_TICKS = 3;
 
@@ -244,7 +247,10 @@ class WorldRenderer {
     const ctx = this.ctx;
     const t = view.ambient.now;
 
-    if (VIEW.ambient.cloudShadows) {
+    // Cloud shadows are sunlight's doing, so the night sky has none
+    // (owner call, 2026-07-23) -- and their greenish daytime tint read
+    // wrong on moonlit grass anyway.
+    if (VIEW.ambient.cloudShadows && this.theme !== 'night') {
       // Two soft shadows drifting slowly across the meadow.
       ctx.save();
       ctx.fillStyle = 'rgba(120, 140, 110, 0.05)';
