@@ -79,10 +79,10 @@ const MODE_NAMES = {
  * only the direction differs, and ticks have no compass.
  */
 const WORLD_DAY_PHASES = Object.freeze([
-  ['day', 240],
-  ['dusk', 60], // sunset
-  ['night', 240],
-  ['dusk', 60], // dawn
+  ['day', 300],
+  ['dusk', 50], // sunset
+  ['night', 200],
+  ['dusk', 50], // dawn
 ]);
 const WORLD_DAY_TICKS = WORLD_DAY_PHASES.reduce((sum, [, span]) => sum + span, 0);
 
