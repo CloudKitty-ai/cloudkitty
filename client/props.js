@@ -17,7 +17,7 @@
 /* eslint-disable no-unused-vars */
 
 /** The curated prop palette (FR-012): world-adjacent hues, named once. */
-const PROPS = {
+const PROPS_DAY = Object.freeze({
   bowlClay: '#cf8a5e', // terracotta, kin to the old kibble-brown pips
   bowlRim: '#a96a42',
   bowlInside: '#8f5a38',
@@ -32,7 +32,30 @@ const PROPS = {
   yarn: '#c98da4', // a dusty rose no other prop uses
   fishDecal: '#3385ff', // the bowl's fish, a proper glaze blue (owner's pick)
   shadow: 'rgba(120, 110, 95, 0.25)', // the butterfly's ground shadow
-};
+  // Firefly glow stops -- only drawn at night (drawButterfly's night opt),
+  // but named in both palettes so the lookup never branches.
+  fireflyCore: 'rgba(255, 236, 160, 0.8)',
+  fireflyFade: 'rgba(255, 236, 160, 0)',
+});
+
+/**
+ * The props after sundown. Only what must change changes: the drawn ink
+ * (Zs, yarn wraps) flips pale so it holds against dark grass, and shadows
+ * deepen to moonlight. The furniture keeps its daytime colors -- a
+ * terracotta bowl at night is still a terracotta bowl.
+ */
+const PROPS_NIGHT = Object.freeze({
+  ...PROPS_DAY,
+  ink: '#e6dccb',
+  shadow: 'rgba(8, 10, 20, 0.4)',
+});
+
+/** The active palette; the theme switch (app.js setTheme) swaps it. */
+let PROPS = PROPS_DAY;
+
+function setPropPalette(night) {
+  PROPS = night ? PROPS_NIGHT : PROPS_DAY;
+}
 
 /**
  * Three butterfly colorways (R2, FR-005) -- hues the meadow doesn't use,
@@ -168,6 +191,7 @@ function drawButterfly(ctx, opts) {
     phase = 0,
     bobPhase = 0,
     agitated = false,
+    night = false,
     size,
     x = 0,
     y = 0,
@@ -190,6 +214,18 @@ function drawButterfly(ctx, opts) {
 
     ctx.save();
     ctx.translate(0, -hover);
+
+    if (night) {
+      // The night signature: a soft firefly glow carried behind the body,
+      // riding the same hover so it never detaches from the flier.
+      const glow = ctx.createRadialGradient(0.5, 0.53, 0.02, 0.5, 0.53, 0.4);
+      glow.addColorStop(0, PROPS.fireflyCore);
+      glow.addColorStop(1, PROPS.fireflyFade);
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(0.5, 0.53, 0.4, 0, TAU);
+      ctx.fill();
+    }
 
     // Wings: two chubby uppers, two small lower lobes, squashing toward
     // the body as they beat.
