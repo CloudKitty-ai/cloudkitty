@@ -119,31 +119,26 @@ function buildKittyCard(kitty) {
   name.appendChild(document.createElement('span'));
   card.appendChild(name);
 
-  const mood = document.createElement('div');
-  mood.className = 'mood';
-  card.appendChild(mood);
-
   const doing = document.createElement('div');
   doing.className = 'doing';
   card.appendChild(doing);
 
-  const patience = document.createElement('div');
-  patience.className = 'patience';
-  card.appendChild(patience);
-
-  const happyLabel = document.createElement('div');
-  happyLabel.className = 'section-label';
-  happyLabel.textContent = 'Happy';
-  card.appendChild(happyLabel);
+  const mood = document.createElement('div');
+  mood.className = 'mood';
+  card.appendChild(mood);
 
   const happiness = document.createElement('div');
   happiness.className = 'bar happiness';
   happiness.appendChild(document.createElement('span'));
   card.appendChild(happiness);
 
+  const patience = document.createElement('div');
+  patience.className = 'patience';
+  card.appendChild(patience);
+
   const needsLabel = document.createElement('div');
   needsLabel.className = 'section-label';
-  needsLabel.textContent = 'Needs';
+  needsLabel.textContent = 'needs';
   card.appendChild(needsLabel);
 
   const needs = document.createElement('div');
