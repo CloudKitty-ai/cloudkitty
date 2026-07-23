@@ -27,9 +27,16 @@ bind = "127.0.0.1:8090"   # the default; the proxy is the public face
 ## Build and run
 
 ```bash
-cargo build --release
+cargo build --release -p cloudkitty-server
 ./target/release/cloudkitty-server
 ```
+
+The `-p cloudkitty-server` matters on a lean serving box: a bare
+`cargo build` compiles every workspace member, and `cloudkitty-py`
+(the RL training bindings — never part of the server) links against
+the Python development libraries, which a viewer-only machine has no
+reason to carry. Scoped to the server package, nothing Python-related
+is ever compiled.
 
 Run it from the repository root: the viewer is served from `./client`,
 and the world saves to `snapshot.json` in the working directory (both
@@ -103,7 +110,7 @@ only.
 
 ```bash
 git pull
-cargo build --release
+cargo build --release -p cloudkitty-server
 sudo systemctl restart cloudkitty
 ```
 
