@@ -109,6 +109,46 @@ function appearanceFor(kittyId) {
 }
 
 /**
+ * Moonlit fur (night theme): the same appearance, every fur color dimmed
+ * by one named factor -- which also cures the "white outline" a pale
+ * colorway like the seal point grows against dark grass, since that ring
+ * is simply near-white furBase at full daylight brightness. Eyes are the
+ * deliberate exception: night is when a cat's eyes shine.
+ */
+const NIGHT_FUR_SHADE = 0.85;
+
+function shadeHex(hex, factor) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.round(((n >> 16) & 255) * factor);
+  const g = Math.round(((n >> 8) & 255) * factor);
+  const b = Math.round((n & 255) * factor);
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+}
+
+/** Memoized per palette entry -- appearances are stable frozen objects. */
+const NIGHT_APPEARANCES = new Map();
+
+function nightAppearanceOf(appearance) {
+  let night = NIGHT_APPEARANCES.get(appearance);
+  if (!night) {
+    const p = appearance.pattern;
+    night = {
+      ...appearance,
+      furBase: shadeHex(appearance.furBase, NIGHT_FUR_SHADE),
+      furShade: shadeHex(appearance.furShade, NIGHT_FUR_SHADE),
+      noseColor: shadeHex(appearance.noseColor, NIGHT_FUR_SHADE),
+      pattern: p && {
+        ...p,
+        ...(p.color ? { color: shadeHex(p.color, NIGHT_FUR_SHADE) } : {}),
+        ...(p.color2 ? { color2: shadeHex(p.color2, NIGHT_FUR_SHADE) } : {}),
+      },
+    };
+    NIGHT_APPEARANCES.set(appearance, night);
+  }
+  return night;
+}
+
+/**
  * Draws one cat.
  *
  * opts: {

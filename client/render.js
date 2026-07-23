@@ -408,7 +408,9 @@ class WorldRenderer {
     }
     drawCat(ctx, {
       pose,
-      appearance: appearanceFor(kitty.id),
+      appearance: this.night
+        ? nightAppearanceOf(appearanceFor(kitty.id))
+        : appearanceFor(kitty.id),
       facing: view.facingFor(kitty.id),
       size: this.tile,
       phase: motion.phase,
