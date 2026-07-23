@@ -64,6 +64,15 @@ const THEME_ICONS = { day: '☀️', dusk: '🌇', night: '🌙' };
 const MODE_CYCLE = ['auto', 'day', 'dusk', 'night'];
 const AUTO_ICON = '🌤️'; // the sky decides
 
+/** The settings' plain names, shown beside the toggle (owner request,
+ * 2026-07-22: the bare icon needed words). */
+const MODE_NAMES = {
+  auto: 'Day/Night Cycle',
+  day: 'Always Day',
+  dusk: 'Always Dusk',
+  night: 'Always Night',
+};
+
 /**
  * One world day, in ticks (at the default 1s tick: a 10-minute day).
  * Dawn and dusk both wear the golden-hour set -- the light is the same,
@@ -128,12 +137,16 @@ function applyTheme() {
   if (toggle) {
     // The button wears the mode: the current hour when chosen by hand,
     // the "sky decides" glyph on auto (the page itself shows the hour).
-    // The label says where the next click goes.
+    // The name beside it says the setting in words; the aria-label says
+    // where the next click goes.
     const icon = themeMode === 'auto' ? AUTO_ICON : THEME_ICONS[themeMode];
     if (toggle.textContent !== icon) toggle.textContent = icon;
     const next = MODE_CYCLE[(MODE_CYCLE.indexOf(themeMode) + 1) % MODE_CYCLE.length];
-    const names = { auto: "the world's sky", day: 'day', dusk: 'golden hour', night: 'night' };
-    toggle.setAttribute('aria-label', `switch to ${names[next]}`);
+    toggle.setAttribute('aria-label', `switch to ${MODE_NAMES[next]}`);
+    const nameEl = document.getElementById('theme-name');
+    if (nameEl && nameEl.textContent !== MODE_NAMES[themeMode]) {
+      nameEl.textContent = MODE_NAMES[themeMode];
+    }
   }
 
   if (theme === currentTheme) return;
