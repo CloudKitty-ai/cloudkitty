@@ -221,7 +221,6 @@ const SKY_DIAL = Object.freeze({
   domeDay: 'rgba(255, 250, 240, 0.78)',
   domeDusk: 'rgba(255, 196, 130, 0.75)',
   domeNight: 'rgba(43, 39, 51, 0.78)',
-  rim: 'rgba(150, 125, 105, 0.4)',
   sun: '#f4c95d',
   sunRay: 'rgba(244, 201, 93, 0.85)',
   moon: '#eae6f2',
@@ -261,7 +260,8 @@ function drawSkyDial(tick) {
   const sky = skyForTick(tick);
   const hour = hourForTick(tick);
 
-  // The dome: a translucent slice of the world's actual sky.
+  // The dome: a translucent slice of the world's actual sky, unlined --
+  // the soft fill edge is the transition (owner call, 2026-07-23).
   ctx.beginPath();
   ctx.moveTo(cx - r, cy);
   ctx.arc(cx, cy, r, Math.PI, TAU);
@@ -271,9 +271,6 @@ function drawSkyDial(tick) {
     : hour === 'dusk' ? SKY_DIAL.domeDusk
     : SKY_DIAL.domeDay;
   ctx.fill();
-  ctx.strokeStyle = SKY_DIAL.rim;
-  ctx.lineWidth = 1;
-  ctx.stroke();
 
   // Left horizon -> zenith -> right horizon as t runs 0 -> 1.
   const angle = Math.PI + sky.t * Math.PI;
