@@ -50,11 +50,24 @@ const PROPS_NIGHT = Object.freeze({
   shadow: 'rgba(8, 10, 20, 0.4)',
 });
 
+/** Golden hour barely touches the props: the daytime ink still reads on
+ * amber grass, and only the shadows warm and stretch a little. */
+const PROPS_DUSK = Object.freeze({
+  ...PROPS_DAY,
+  shadow: 'rgba(110, 75, 85, 0.28)',
+});
+
 /** The active palette; the theme switch (app.js setTheme) swaps it. */
+const PROPS_BY_THEME = Object.freeze({
+  day: PROPS_DAY,
+  dusk: PROPS_DUSK,
+  night: PROPS_NIGHT,
+});
+
 let PROPS = PROPS_DAY;
 
-function setPropPalette(night) {
-  PROPS = night ? PROPS_NIGHT : PROPS_DAY;
+function setPropPalette(theme) {
+  PROPS = PROPS_BY_THEME[theme] ?? PROPS_DAY;
 }
 
 /**
@@ -191,7 +204,7 @@ function drawButterfly(ctx, opts) {
     phase = 0,
     bobPhase = 0,
     agitated = false,
-    night = false,
+    firefly = false,
     size,
     x = 0,
     y = 0,
@@ -215,9 +228,10 @@ function drawButterfly(ctx, opts) {
     ctx.save();
     ctx.translate(0, -hover);
 
-    if (night) {
-      // The night signature: a soft firefly glow carried behind the body,
-      // riding the same hover so it never detaches from the flier.
+    if (firefly) {
+      // The twilight signature: a soft firefly glow carried behind the
+      // body, riding the same hover so it never detaches from the flier.
+      // Fireflies come out at dusk and stay for the night.
       const glow = ctx.createRadialGradient(0.5, 0.53, 0.02, 0.5, 0.53, 0.4);
       glow.addColorStop(0, PROPS.fireflyCore);
       glow.addColorStop(1, PROPS.fireflyFade);
