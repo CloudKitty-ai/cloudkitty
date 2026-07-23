@@ -125,10 +125,7 @@ fn info_to_py<'py>(py: Python<'py>, info: &AgentInfo) -> PyResult<Bound<'py, PyD
 fn observations_to_py<'py>(py: Python<'py>, step: &EpisodeStep) -> PyResult<Bound<'py, PyDict>> {
     let obs = PyDict::new(py);
     for (id, observation) in &step.observations {
-        obs.set_item(
-            agent_name(*id),
-            observation.values.clone().into_pyarray(py),
-        )?;
+        obs.set_item(agent_name(*id), observation.values.clone().into_pyarray(py))?;
     }
     Ok(obs)
 }
@@ -340,9 +337,7 @@ impl ParallelEnv {
     ) -> PyResult<StepTuple<'py>> {
         let map = self.actions_from_py(actions)?;
         let episode = &mut self.episode;
-        let step = py
-            .detach(|| episode.step(&map))
-            .map_err(episode_err)?;
+        let step = py.detach(|| episode.step(&map)).map_err(episode_err)?;
         if step.truncated {
             self.live = false;
         }
