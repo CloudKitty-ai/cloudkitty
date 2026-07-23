@@ -220,9 +220,9 @@ const SKY_DIAL = Object.freeze({
   // the map's border read through it); the day dome then darkened a hair
   // more, since near-white on the near-white stage card got lost (same
   // day: night's clear differential is the model).
-  domeDay: 'rgba(240, 228, 205, 0.8)',
-  domeDusk: 'rgba(255, 196, 130, 0.75)',
-  domeNight: 'rgba(43, 39, 51, 0.78)',
+  domeDay: 'rgba(240, 228, 205, 0.45)',
+  domeDusk: 'rgba(255, 196, 130, 0.6)',
+  domeNight: 'rgba(43, 39, 51, 0.6)',
   // A richer gold than the sparkle stars: on the tan dome the soft
   // #f4c95d read dim (owner call, 2026-07-23), so the disc deepens and
   // takes a crisp rim, outline-first like the cats.
@@ -271,7 +271,9 @@ function drawSkyDial(tick) {
   ctx.clearRect(0, 0, W, H);
 
   const cx = W / 2;
-  const cy = H - 1.5; // the horizon rides the bottom edge
+  const cy = H; // the horizon IS the bitmap's bottom edge -- no margin
+  // (the 1.5px allowance below it left a visible gap above the tiles
+  // once the rim stroke retired; owner call, 2026-07-23)
   const sky = skyForTick(tick);
   const hour = hourForTick(tick);
 

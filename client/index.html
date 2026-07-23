@@ -140,7 +140,11 @@
      2:1 ratio. */
   #sky-dial {
     position: absolute;
-    bottom: calc(100% - 16px);
+    /* Stage padding plus 1px INTO the map: percentage sizing can land
+       the dial's bottom on a fractional pixel, and the 1px overlap
+       swallows the hairline seam that would otherwise open above the
+       tiles. */
+    bottom: calc(100% - 17px);
     right: 5%;
     width: 10.5%;
     pointer-events: none;
@@ -317,7 +321,7 @@
     body { padding: 16px 10px 28px; }
     .stage { padding: 10px; border-radius: 20px; }
     /* Thinner stage padding moves the map's top edge; the horizon follows. */
-    #sky-dial { bottom: calc(100% - 10px); }
+    #sky-dial { bottom: calc(100% - 11px); }
     canvas { border-radius: 12px; }
     .panel {
       display: grid;
