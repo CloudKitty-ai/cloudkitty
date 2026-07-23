@@ -52,6 +52,8 @@ class WorldRenderer {
     this.showGreebles = false;
     this.showGrid = false; // spec 008 FR-004: the demoted debug lattice
     this.showPaths = false; // spec 008 FR-009: worn trails, off by default
+    this.night = false; // moonlit meadow -- set by setTheme (app.js), which
+    // also swaps the MEADOW/PROPS palettes and clears the ground cache
     this.tile = 22;
     this.cssWidth = 0;
     this.cssHeight = 0;
@@ -290,7 +292,7 @@ class WorldRenderer {
 
     if (t !== undefined && VIEW.ambient.dustMotes) {
       // Two lazy dust motes circling in the warmth.
-      ctx.fillStyle = 'rgba(255, 236, 170, 0.75)';
+      ctx.fillStyle = MEADOW.moteColor;
       for (const i of [0, 1]) {
         const angle = t / (2600 + i * 700) + el.id * 2.1 + i * Math.PI;
         const mx = x + this.tile / 2 + Math.cos(angle) * this.tile * 0.28;
@@ -347,6 +349,7 @@ class WorldRenderer {
           phase: view.propPhaseFor(el.id, VIEW.props.flapPeriodMs),
           bobPhase: view.propPhaseFor(el.id, VIEW.props.bobPeriodMs),
           agitated: this.agitatedIds?.has(el.id) ?? false,
+          night: this.night, // fireflies after dark
           size: this.tile,
           x,
           y,
@@ -381,7 +384,7 @@ class WorldRenderer {
     const state = kitty.activity?.state ?? 'idle';
 
     // A soft shadow so cats sit on the grass rather than float above it.
-    ctx.fillStyle = 'rgba(140, 120, 100, 0.15)';
+    ctx.fillStyle = MEADOW.groundShadow;
     ctx.beginPath();
     ctx.ellipse(cx, cy + this.tile * 0.32, this.tile * 0.3, this.tile * 0.12, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -405,7 +408,9 @@ class WorldRenderer {
     }
     drawCat(ctx, {
       pose,
-      appearance: appearanceFor(kitty.id),
+      appearance: this.night
+        ? nightAppearanceOf(appearanceFor(kitty.id))
+        : appearanceFor(kitty.id),
       facing: view.facingFor(kitty.id),
       size: this.tile,
       phase: motion.phase,

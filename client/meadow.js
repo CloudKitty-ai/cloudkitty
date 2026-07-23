@@ -13,7 +13,7 @@
  */
 
 /** Every meadow color, named in one place (spec 008 FR-010, Article VI). */
-const MEADOW = Object.freeze({
+const MEADOW_DAY = Object.freeze({
   // The ground: close greens, deliberately near the retired checkerboard
   // pair so the world keeps its palette while losing its grid.
   grassTones: Object.freeze(['#e9f3e1', '#e4efd9', '#dfecd4', '#e6f1dc']),
@@ -35,7 +35,46 @@ const MEADOW = Object.freeze({
   pathTint: '#c8b28e',
   // The demoted debug lattice (formerly baked into the ground cache).
   gridLine: 'rgba(140, 170, 130, 0.16)',
+  // Dust motes circling in the sunbeams (render.js reads this).
+  moteColor: 'rgba(255, 236, 170, 0.75)',
+  // The soft ground shadow that seats a cat on the grass (render.js).
+  groundShadow: 'rgba(140, 120, 100, 0.15)',
 });
+
+/**
+ * The same meadow after sundown: every hue keeps its identity, just
+ * moonlit. Not a dark mode -- greens stay green, water stays water, and
+ * the sunbeam stops turn silvery because the light is now the moon's.
+ */
+const MEADOW_NIGHT = Object.freeze({
+  grassTones: Object.freeze(['#3e4a3d', '#39453a', '#344136', '#404d3f']),
+  jitterTint: '#9db3d0', // moonlight, where day jitter is white sunlight
+  jitterShade: '#1f2922',
+  pondWater: '#2f4a5c',
+  pondShallow: '#3c5a6d',
+  pondRim: '#52748a',
+  lilyPad: '#4d6847',
+  lilyPadRim: '#3c5439',
+  // Moonbeams: the same radial pool, silver instead of gold.
+  glowCore: 'rgba(205, 220, 255, 0.55)',
+  glowMid: 'rgba(195, 212, 250, 0.28)',
+  glowFade: 'rgba(195, 212, 250, 0)',
+  pathTint: '#4a4136',
+  gridLine: 'rgba(190, 210, 190, 0.14)',
+  moteColor: 'rgba(215, 228, 255, 0.8)',
+  groundShadow: 'rgba(12, 10, 22, 0.35)',
+});
+
+/**
+ * The active palette. Drawing code reads MEADOW as ever; the theme switch
+ * (app.js setTheme) swaps which frozen set it names. The renderer's ground
+ * cache is invalidated by the same switch -- the cache bakes these colors.
+ */
+let MEADOW = MEADOW_DAY;
+
+function setMeadowPalette(night) {
+  MEADOW = night ? MEADOW_NIGHT : MEADOW_DAY;
+}
 
 /** Named salts for peeling independent values off tileHash (research R2). */
 const MEADOW_SALTS = Object.freeze({

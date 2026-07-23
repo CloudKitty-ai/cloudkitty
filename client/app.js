@@ -42,6 +42,53 @@ let latestWorld = null;
 anim.init(renderer);
 
 /**
+ * The day/night theme (design experiment round two). One entry point flips
+ * everything that carries color: the CSS tokens (body.night), the canvas
+ * palettes (meadow, props), the renderer's night flag (fireflies), and the
+ * baked ground cache. localStorage keeps only an explicit choice -- when
+ * the world grows its own day/night cycle, "no stored choice" is free to
+ * start meaning "follow the world" with no migration.
+ */
+const THEME_KEY = 'cloudkitty-theme';
+
+function setTheme(theme, { persist = false } = {}) {
+  const night = theme === 'night';
+  document.body.classList.toggle('night', night);
+  setMeadowPalette(night);
+  setPropPalette(night);
+  renderer.night = night;
+  renderer.groundCache = null; // the cache bakes the palette; rebake
+  const toggle = document.getElementById('theme-toggle');
+  if (toggle) {
+    // The button shows where it takes you, not where you are.
+    toggle.textContent = night ? '☀️' : '🌙';
+    toggle.setAttribute('aria-label', night ? 'switch to day' : 'switch to night');
+  }
+  if (persist) {
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+    } catch {
+      // Private browsing may refuse storage; the theme still switches.
+    }
+  }
+  anim.redraw(); // safe pre-world: redraw no-ops until a state exists
+}
+
+function initTheme() {
+  let stored = null;
+  try {
+    stored = localStorage.getItem(THEME_KEY);
+  } catch {
+    // No storage, no memory -- every visit starts at day.
+  }
+  setTheme(stored === 'night' ? 'night' : 'day');
+  document.getElementById('theme-toggle')?.addEventListener('click', () => {
+    const toNight = !document.body.classList.contains('night');
+    setTheme(toNight ? 'night' : 'day', { persist: true });
+  });
+}
+
+/**
  * The header's loafing kitties: the one place the world's art steps outside
  * the canvas. Both wear Biscuit's colorway, picked by name so a palette
  * reshuffle can never silently change who greets you; each canvas says
@@ -380,5 +427,6 @@ window.addEventListener('keydown', (event) => {
   anim.redraw();
 });
 
+initTheme();
 drawHeaderKitties();
 start();
