@@ -69,7 +69,7 @@ const AUTO_ICON = '🌤️'; // the sky decides
 const MODE_NAMES = {
   auto: 'Day/Night Cycle',
   day: 'Always Day',
-  dusk: 'Always Dusk',
+  dusk: 'Always Twilight',
   night: 'Always Night',
 };
 
