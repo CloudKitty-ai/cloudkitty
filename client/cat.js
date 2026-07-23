@@ -115,7 +115,7 @@ function appearanceFor(kittyId) {
  * is simply near-white furBase at full daylight brightness. Eyes are the
  * deliberate exception: night is when a cat's eyes shine.
  */
-const NIGHT_FUR_SHADE = 0.85;
+const NIGHT_FUR_SHADE = 0.89;
 
 function shadeHex(hex, factor) {
   const n = parseInt(hex.slice(1), 16);
