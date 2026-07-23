@@ -43,22 +43,71 @@ anim.init(renderer);
 
 /**
  * The hour themes (design experiment rounds two and three): day, golden
- * hour, and night, cycled by the footer toggle. One entry point flips
- * everything that carries color: the CSS tokens (body.dusk / body.night),
- * the canvas palettes (meadow, props), the renderer's theme (fireflies,
- * moonlit fur), and the baked ground cache. localStorage keeps only an
- * explicit choice -- when the world grows its own day/night cycle, "no
- * stored choice" is free to start meaning "follow the world" with no
- * migration, and dawn and dusk will both wear the golden-hour set.
+ * hour, and night. One applier flips everything that carries color: the
+ * CSS tokens (body.dusk / body.night), the canvas palettes (meadow,
+ * props), the renderer's theme (fireflies, twilight fur), and the baked
+ * ground cache.
+ *
+ * The default mode is "auto": the world has its own sky (cosmetic for
+ * now -- owner call, 2026-07-22), an hour derived as a pure function of
+ * the served tick, so every viewer sees the same sky, restarts resume
+ * mid-day where the snapshot left off, and the engine knows nothing
+ * about any of it (Article V). When time-of-day someday shapes behavior
+ * (crepuscular rewards for RL kitties), the served state will carry the
+ * hour and hourForTick retires. The footer toggle cycles auto -> day ->
+ * golden hour -> night; only explicit choices persist, so "no stored
+ * choice" means "follow the world", exactly as designed in round two.
  */
 const THEME_KEY = 'cloudkitty-theme';
 const THEMES = ['day', 'dusk', 'night'];
 const THEME_ICONS = { day: '☀️', dusk: '🌇', night: '🌙' };
+const MODE_CYCLE = ['auto', 'day', 'dusk', 'night'];
+const AUTO_ICON = '🌤️'; // the sky decides
 
-let currentTheme = 'day';
+/**
+ * One world day, in ticks (at the default 1s tick: a 10-minute day).
+ * Dawn and dusk both wear the golden-hour set -- the light is the same,
+ * only the direction differs, and ticks have no compass.
+ */
+const WORLD_DAY_PHASES = Object.freeze([
+  ['day', 240],
+  ['dusk', 60], // sunset
+  ['night', 240],
+  ['dusk', 60], // dawn
+]);
+const WORLD_DAY_TICKS = WORLD_DAY_PHASES.reduce((sum, [, span]) => sum + span, 0);
 
-function setTheme(theme, { persist = false } = {}) {
-  if (!THEMES.includes(theme)) theme = 'day';
+function hourForTick(tick) {
+  let t = (Math.max(0, tick | 0)) % WORLD_DAY_TICKS;
+  for (const [theme, span] of WORLD_DAY_PHASES) {
+    if (t < span) return theme;
+    t -= span;
+  }
+  return 'day';
+}
+
+let themeMode = 'auto'; // 'auto' | 'day' | 'dusk' | 'night'
+let currentTheme = null; // the visual theme actually applied
+
+/** Applies the mode's theme (auto reads the world clock) and syncs the
+ * toggle. Cheap when nothing changed, so render() may call it per tick. */
+function applyTheme() {
+  const theme =
+    themeMode === 'auto' ? hourForTick(latestWorld?.tick ?? 0) : themeMode;
+
+  const toggle = document.getElementById('theme-toggle');
+  if (toggle) {
+    // The button wears the mode: the current hour when chosen by hand,
+    // the "sky decides" glyph on auto (the page itself shows the hour).
+    // The label says where the next click goes.
+    const icon = themeMode === 'auto' ? AUTO_ICON : THEME_ICONS[themeMode];
+    if (toggle.textContent !== icon) toggle.textContent = icon;
+    const next = MODE_CYCLE[(MODE_CYCLE.indexOf(themeMode) + 1) % MODE_CYCLE.length];
+    const names = { auto: "the world's sky", day: 'day', dusk: 'golden hour', night: 'night' };
+    toggle.setAttribute('aria-label', `switch to ${names[next]}`);
+  }
+
+  if (theme === currentTheme) return;
   currentTheme = theme;
   document.body.classList.toggle('dusk', theme === 'dusk');
   document.body.classList.toggle('night', theme === 'night');
@@ -66,23 +115,19 @@ function setTheme(theme, { persist = false } = {}) {
   setPropPalette(theme);
   renderer.theme = theme;
   renderer.groundCache = null; // the cache bakes the palette; rebake
-  const toggle = document.getElementById('theme-toggle');
-  if (toggle) {
-    // The button wears the current hour (owner call, 2026-07-22: the
-    // destination convention read as wrong icons); the label still says
-    // where the next click goes.
-    const next = THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length];
-    toggle.textContent = THEME_ICONS[theme];
-    toggle.setAttribute('aria-label', `switch to ${next === 'dusk' ? 'golden hour' : next}`);
-  }
-  if (persist) {
-    try {
-      localStorage.setItem(THEME_KEY, theme);
-    } catch {
-      // Private browsing may refuse storage; the theme still switches.
-    }
-  }
   anim.redraw(); // safe pre-world: redraw no-ops until a state exists
+}
+
+function setThemeMode(mode) {
+  themeMode = MODE_CYCLE.includes(mode) ? mode : 'auto';
+  try {
+    // Only explicit choices persist; auto is the unstored default.
+    if (themeMode === 'auto') localStorage.removeItem(THEME_KEY);
+    else localStorage.setItem(THEME_KEY, themeMode);
+  } catch {
+    // Private browsing may refuse storage; the sky still changes.
+  }
+  applyTheme();
 }
 
 function initTheme() {
@@ -90,12 +135,12 @@ function initTheme() {
   try {
     stored = localStorage.getItem(THEME_KEY);
   } catch {
-    // No storage, no memory -- every visit starts at day.
+    // No storage, no memory -- every visit follows the world.
   }
-  setTheme(THEMES.includes(stored) ? stored : 'day');
+  themeMode = THEMES.includes(stored) ? stored : 'auto';
+  applyTheme();
   document.getElementById('theme-toggle')?.addEventListener('click', () => {
-    const next = THEMES[(THEMES.indexOf(currentTheme) + 1) % THEMES.length];
-    setTheme(next, { persist: true });
+    setThemeMode(MODE_CYCLE[(MODE_CYCLE.indexOf(themeMode) + 1) % MODE_CYCLE.length]);
   });
 }
 
@@ -132,6 +177,9 @@ function setStatus(text, connected) {
 
 function render(world) {
   latestWorld = world;
+  // The world's sky: on auto, the hour follows the served tick. applyTheme
+  // early-returns when the hour hasn't changed, so this is per-tick cheap.
+  if (themeMode === 'auto') applyTheme();
   anim.push(world);
   tickEl.textContent = world.tick;
   renderPanel(world);
