@@ -227,7 +227,7 @@ const SKY_DIAL = Object.freeze({
   // #f4c95d read dim (owner call, 2026-07-23), so the disc deepens and
   // takes a crisp rim, outline-first like the cats.
   sun: '#f5d12e',
-  sunRim: '#bd7f14', // a real step down from the disc: the rim is the pop
+  sunRim: '#e6d119', // a real step down from the disc: the rim is the pop
   sunRay: 'rgba(245, 173, 46, 0.9)',
   // The low sun burns red-orange (owner call, 2026-07-23: gold vanished
   // into the amber twilight dome).
@@ -252,9 +252,9 @@ const SKY_DIAL = Object.freeze({
 function drawSkyDial(tick) {
   const el = document.getElementById('sky-dial');
   if (!el) return;
-  const W = 68;
-  const H = 34;
-  const r = 30;
+  const W = 90; // one tile wider than the first cut (owner call), same 2:1
+  const H = 45;
+  const r = 40;
   const dpr = window.devicePixelRatio || 1;
   if (el.width !== W * dpr) {
     el.width = W * dpr;
