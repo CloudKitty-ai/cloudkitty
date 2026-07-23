@@ -64,9 +64,9 @@
   header { text-align: center; }
 
   /* The wordmark: the one place the display face appears, with the world's
-     own art loafing beside it. The canvas rides the text baseline -- the
-     cat's ground line sits at 88% of its box (cat.js), so the -6px shift
-     (0.12 * 48px) puts its feet exactly on the baseline. */
+     own art loafing at each end. The canvases ride the text baseline -- the
+     cat's ground line sits at 88% of its box (cat.js), so the -4px shift
+     (0.12 * 32px) puts their feet exactly on the baseline. */
   h1 {
     margin: 0;
     font-family: "Baloo 2", "Nunito", ui-rounded, system-ui, sans-serif;
@@ -76,8 +76,8 @@
   }
 
   h1 canvas {
-    vertical-align: -6px;
-    margin-right: 4px;
+    vertical-align: -4px;
+    margin: 0 4px;
   }
 
   .subtitle {
@@ -259,7 +259,7 @@
 </head>
 <body>
   <header>
-    <h1><canvas id="header-kitty" width="48" height="48" aria-hidden="true"></canvas>CloudKitty</h1>
+    <h1><canvas class="header-kitty" data-facing="right" width="32" height="32" aria-hidden="true"></canvas>CloudKitty<canvas class="header-kitty" data-facing="left" width="32" height="32" aria-hidden="true"></canvas></h1>
     <p class="subtitle">a small, safe world where kitties frolic and play</p>
   </header>
 
