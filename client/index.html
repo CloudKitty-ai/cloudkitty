@@ -116,13 +116,13 @@
   .kitty-card .mood {
     font-size: 0.75rem;
     color: var(--ink-soft);
-    margin: 2px 0 0;
+    margin: 2px 0 2px;
   }
 
   .kitty-card .doing {
     font-size: 0.75rem;
     color: var(--ink);
-    margin: 1px 0 1px;
+    margin: 1px 0 2px;
     min-height: 1em;
   }
 
@@ -130,29 +130,24 @@
      therefore invisible) whenever nothing has been wanted for too long --
      but always one line tall, so its coming and going never changes the
      card's height (which would ripple into page scrollbar toggles and
-     subtle card wobble). */
+     subtle card wobble). The -2px bottom margin tucks the "needs" heading
+     slightly into this line's leading: constant, so no height wobble, and
+     small enough that ~2px of air remains when the cue text is showing. */
   .kitty-card .patience {
     font-size: 0.72rem;
     font-style: italic;
     color: #b0876a;
-    margin: 0;
+    margin: 0 0 -2px;
     min-height: 1em;
   }
 
-  /* Section labels over the happiness bar and the needs grid. The 8px top
-     margin is what used to live on .needs, so the section rhythm is
-     unchanged; the labels just name what the bars mean. */
+  /* The "needs" heading. No top margin: the reserved patience line above
+     already provides the section's air. */
   .kitty-card .section-label {
     font-size: 0.68rem;
     font-weight: 600;
     color: var(--ink-soft);
-    margin: 8px 0 2px;
-  }
-
-  /* "Happy" sits right after the reserved patience line, which already
-     provides a full line of air even when empty -- no extra margin needed. */
-  .kitty-card .patience + .section-label {
-    margin-top: 0;
+    margin: 0 0 2px;
   }
 
   .bar {
