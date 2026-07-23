@@ -47,6 +47,20 @@
     --meh: #efa98b;
   }
 
+  /* Golden hour (the canvas world switches with it -- see setTheme in
+     app.js). One twilight set serving both dawn and dusk: still a light
+     page, so the ink family stays daytime; the grounds take an apricot
+     wash and shadows warm. */
+  body.dusk {
+    --cream: #f4dcc8;
+    --cream-deep: #e8c9ae;
+    --zenith: #ffe8c4;
+    --grass: #dfe3bd;
+    --grass-line: #cdd6ad;
+    --card: #fdf3e6;
+    --shadow: rgba(150, 100, 80, 0.22);
+  }
+
   /* The page after sundown (the canvas world switches with it -- see
      setTheme in app.js). Not a dark mode: the same warm world, moonlit.
      Plum-indigo dusk instead of black, cards as lantern-lit surfaces,
@@ -315,7 +329,7 @@
     <span id="debug-note" hidden>· 👻 greebles visible</span>
     <span id="grid-note" hidden>· ⌗ grid lines visible</span>
     <span id="paths-note" hidden>· 🐾 worn paths visible</span>
-    · <button id="theme-toggle" aria-label="switch to night">🌙</button>
+    · <button id="theme-toggle" aria-label="switch to golden hour">☀️</button>
   </footer>
 
   <script src="cat.js"></script>

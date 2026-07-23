@@ -109,13 +109,15 @@ function appearanceFor(kittyId) {
 }
 
 /**
- * Moonlit fur (night theme): the same appearance, every fur color dimmed
- * by one named factor -- which also cures the "white outline" a pale
- * colorway like the seal point grows against dark grass, since that ring
- * is simply near-white furBase at full daylight brightness. Eyes are the
- * deliberate exception: night is when a cat's eyes shine.
+ * Twilight fur (dusk/night themes): the same appearance, every fur color
+ * dimmed by the theme's named factor -- which also cures the "white
+ * outline" a pale colorway like the seal point grows against dark grass,
+ * since that ring is simply near-white furBase at full daylight
+ * brightness. Eyes are the deliberate exception at every hour: dusk and
+ * night are when a cat's eyes shine. The night factor was tuned live
+ * (2026-07-22); dusk barely dims -- golden hour flatters the fur.
  */
-const NIGHT_FUR_SHADE = 0.89;
+const FUR_SHADE_BY_THEME = Object.freeze({ day: 1, dusk: 0.96, night: 0.89 });
 
 function shadeHex(hex, factor) {
   const n = parseInt(hex.slice(1), 16);
@@ -125,27 +127,35 @@ function shadeHex(hex, factor) {
   return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
 }
 
-/** Memoized per palette entry -- appearances are stable frozen objects. */
-const NIGHT_APPEARANCES = new Map();
+/** Memoized per palette entry and factor -- appearances are stable
+ * frozen objects, so identity is a sound cache key. */
+const SHADED_APPEARANCES = new Map();
 
-function nightAppearanceOf(appearance) {
-  let night = NIGHT_APPEARANCES.get(appearance);
-  if (!night) {
+function shadedAppearanceOf(appearance, theme) {
+  const factor = FUR_SHADE_BY_THEME[theme] ?? 1;
+  if (factor === 1) return appearance;
+  let byFactor = SHADED_APPEARANCES.get(appearance);
+  if (!byFactor) {
+    byFactor = new Map();
+    SHADED_APPEARANCES.set(appearance, byFactor);
+  }
+  let shaded = byFactor.get(factor);
+  if (!shaded) {
     const p = appearance.pattern;
-    night = {
+    shaded = {
       ...appearance,
-      furBase: shadeHex(appearance.furBase, NIGHT_FUR_SHADE),
-      furShade: shadeHex(appearance.furShade, NIGHT_FUR_SHADE),
-      noseColor: shadeHex(appearance.noseColor, NIGHT_FUR_SHADE),
+      furBase: shadeHex(appearance.furBase, factor),
+      furShade: shadeHex(appearance.furShade, factor),
+      noseColor: shadeHex(appearance.noseColor, factor),
       pattern: p && {
         ...p,
-        ...(p.color ? { color: shadeHex(p.color, NIGHT_FUR_SHADE) } : {}),
-        ...(p.color2 ? { color2: shadeHex(p.color2, NIGHT_FUR_SHADE) } : {}),
+        ...(p.color ? { color: shadeHex(p.color, factor) } : {}),
+        ...(p.color2 ? { color2: shadeHex(p.color2, factor) } : {}),
       },
     };
-    NIGHT_APPEARANCES.set(appearance, night);
+    byFactor.set(factor, shaded);
   }
-  return night;
+  return shaded;
 }
 
 /**

@@ -42,27 +42,38 @@ let latestWorld = null;
 anim.init(renderer);
 
 /**
- * The day/night theme (design experiment round two). One entry point flips
- * everything that carries color: the CSS tokens (body.night), the canvas
- * palettes (meadow, props), the renderer's night flag (fireflies), and the
- * baked ground cache. localStorage keeps only an explicit choice -- when
- * the world grows its own day/night cycle, "no stored choice" is free to
- * start meaning "follow the world" with no migration.
+ * The hour themes (design experiment rounds two and three): day, golden
+ * hour, and night, cycled by the footer toggle. One entry point flips
+ * everything that carries color: the CSS tokens (body.dusk / body.night),
+ * the canvas palettes (meadow, props), the renderer's theme (fireflies,
+ * moonlit fur), and the baked ground cache. localStorage keeps only an
+ * explicit choice -- when the world grows its own day/night cycle, "no
+ * stored choice" is free to start meaning "follow the world" with no
+ * migration, and dawn and dusk will both wear the golden-hour set.
  */
 const THEME_KEY = 'cloudkitty-theme';
+const THEMES = ['day', 'dusk', 'night'];
+const THEME_ICONS = { day: '☀️', dusk: '🌇', night: '🌙' };
+
+let currentTheme = 'day';
 
 function setTheme(theme, { persist = false } = {}) {
-  const night = theme === 'night';
-  document.body.classList.toggle('night', night);
-  setMeadowPalette(night);
-  setPropPalette(night);
-  renderer.night = night;
+  if (!THEMES.includes(theme)) theme = 'day';
+  currentTheme = theme;
+  document.body.classList.toggle('dusk', theme === 'dusk');
+  document.body.classList.toggle('night', theme === 'night');
+  setMeadowPalette(theme);
+  setPropPalette(theme);
+  renderer.theme = theme;
   renderer.groundCache = null; // the cache bakes the palette; rebake
   const toggle = document.getElementById('theme-toggle');
   if (toggle) {
-    // The button shows where it takes you, not where you are.
-    toggle.textContent = night ? '☀️' : '🌙';
-    toggle.setAttribute('aria-label', night ? 'switch to day' : 'switch to night');
+    // The button wears the current hour (owner call, 2026-07-22: the
+    // destination convention read as wrong icons); the label still says
+    // where the next click goes.
+    const next = THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length];
+    toggle.textContent = THEME_ICONS[theme];
+    toggle.setAttribute('aria-label', `switch to ${next === 'dusk' ? 'golden hour' : next}`);
   }
   if (persist) {
     try {
@@ -81,10 +92,10 @@ function initTheme() {
   } catch {
     // No storage, no memory -- every visit starts at day.
   }
-  setTheme(stored === 'night' ? 'night' : 'day');
+  setTheme(THEMES.includes(stored) ? stored : 'day');
   document.getElementById('theme-toggle')?.addEventListener('click', () => {
-    const toNight = !document.body.classList.contains('night');
-    setTheme(toNight ? 'night' : 'day', { persist: true });
+    const next = THEMES[(THEMES.indexOf(currentTheme) + 1) % THEMES.length];
+    setTheme(next, { persist: true });
   });
 }
 

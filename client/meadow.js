@@ -66,14 +66,46 @@ const MEADOW_NIGHT = Object.freeze({
 });
 
 /**
+ * The meadow at golden hour -- one twilight palette serving both dawn and
+ * dusk. Grass takes an amber wash, the water sits exactly midway between
+ * its day and night blues (owner call, 2026-07-22: evening water, not
+ * sunset-rose), and the sunbeam pools deepen from noon gold to low-sun
+ * amber. Shadows warm and stretch.
+ */
+const MEADOW_DUSK = Object.freeze({
+  grassTones: Object.freeze(['#e6e8c2', '#e0e2bb', '#dadcb3', '#e3e5be']),
+  jitterTint: '#fff0d8', // golden light where day jitter is white
+  jitterShade: '#8a8a60',
+  pondWater: '#9bbdcd', // 75% of the way from night #2f4a5c to day #bfe3f2
+  pondShallow: '#b3cbd8', // (owner-tuned, 2026-07-22: evening light lingers
+  pondRim: '#8ab8cf', // on the water)
+  lilyPad: '#93b183',
+  lilyPadRim: '#79996d',
+  // Low-sun beams: the same radial pool, deeper amber.
+  glowCore: 'rgba(255, 190, 110, 0.85)',
+  glowMid: 'rgba(255, 175, 100, 0.4)',
+  glowFade: 'rgba(255, 175, 100, 0)',
+  pathTint: '#c3a075',
+  gridLine: 'rgba(150, 150, 110, 0.18)',
+  moteColor: 'rgba(255, 210, 140, 0.8)',
+  groundShadow: 'rgba(120, 80, 90, 0.2)', // long violet-warm evening shadows
+});
+
+/**
  * The active palette. Drawing code reads MEADOW as ever; the theme switch
  * (app.js setTheme) swaps which frozen set it names. The renderer's ground
  * cache is invalidated by the same switch -- the cache bakes these colors.
  */
+const MEADOW_BY_THEME = Object.freeze({
+  day: MEADOW_DAY,
+  dusk: MEADOW_DUSK,
+  night: MEADOW_NIGHT,
+});
+
 let MEADOW = MEADOW_DAY;
 
-function setMeadowPalette(night) {
-  MEADOW = night ? MEADOW_NIGHT : MEADOW_DAY;
+function setMeadowPalette(theme) {
+  MEADOW = MEADOW_BY_THEME[theme] ?? MEADOW_DAY;
 }
 
 /** Named salts for peeling independent values off tileHash (research R2). */

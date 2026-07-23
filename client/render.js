@@ -52,8 +52,9 @@ class WorldRenderer {
     this.showGreebles = false;
     this.showGrid = false; // spec 008 FR-004: the demoted debug lattice
     this.showPaths = false; // spec 008 FR-009: worn trails, off by default
-    this.night = false; // moonlit meadow -- set by setTheme (app.js), which
-    // also swaps the MEADOW/PROPS palettes and clears the ground cache
+    this.theme = 'day'; // 'day' | 'dusk' | 'night' -- set by setTheme
+    // (app.js), which also swaps the MEADOW/PROPS palettes and clears
+    // the ground cache
     this.tile = 22;
     this.cssWidth = 0;
     this.cssHeight = 0;
@@ -349,7 +350,7 @@ class WorldRenderer {
           phase: view.propPhaseFor(el.id, VIEW.props.flapPeriodMs),
           bobPhase: view.propPhaseFor(el.id, VIEW.props.bobPeriodMs),
           agitated: this.agitatedIds?.has(el.id) ?? false,
-          night: this.night, // fireflies after dark
+          firefly: this.theme !== 'day', // fireflies from dusk onward
           size: this.tile,
           x,
           y,
@@ -408,9 +409,7 @@ class WorldRenderer {
     }
     drawCat(ctx, {
       pose,
-      appearance: this.night
-        ? nightAppearanceOf(appearanceFor(kitty.id))
-        : appearanceFor(kitty.id),
+      appearance: shadedAppearanceOf(appearanceFor(kitty.id), this.theme),
       facing: view.facingFor(kitty.id),
       size: this.tile,
       phase: motion.phase,
