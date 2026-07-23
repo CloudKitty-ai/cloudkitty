@@ -217,12 +217,18 @@ function drawHeaderKitties() {
  * fact about the world. Sun gold is kin to the sparkle stars. */
 const SKY_DIAL = Object.freeze({
   // Dome transparency halved from the first cut (owner call, 2026-07-23:
-  // the map's border read through it).
-  domeDay: 'rgba(255, 250, 240, 0.78)',
+  // the map's border read through it); the day dome then darkened a hair
+  // more, since near-white on the near-white stage card got lost (same
+  // day: night's clear differential is the model).
+  domeDay: 'rgba(240, 228, 205, 0.8)',
   domeDusk: 'rgba(255, 196, 130, 0.75)',
   domeNight: 'rgba(43, 39, 51, 0.78)',
   sun: '#f4c95d',
   sunRay: 'rgba(244, 201, 93, 0.85)',
+  // The low sun burns red-orange (owner call, 2026-07-23: gold vanished
+  // into the amber twilight dome).
+  duskSun: '#e2603c',
+  duskSunRay: 'rgba(226, 96, 60, 0.85)',
   moon: '#eae6f2',
   moonCrater: '#c9c2d8',
 });
@@ -279,7 +285,9 @@ function drawSkyDial(tick) {
   const br = Math.max(3.5, r * 0.16);
 
   if (sky.body === 'sun') {
-    ctx.strokeStyle = SKY_DIAL.sunRay;
+    // Twilight wears the setting-sun red; the high sun stays gold.
+    const low = hour === 'dusk';
+    ctx.strokeStyle = low ? SKY_DIAL.duskSunRay : SKY_DIAL.sunRay;
     ctx.lineWidth = 1.2;
     ctx.lineCap = 'round';
     for (let i = 0; i < 8; i++) {
@@ -289,7 +297,7 @@ function drawSkyDial(tick) {
       ctx.lineTo(bx + Math.cos(a) * br * 1.8, by + Math.sin(a) * br * 1.8);
       ctx.stroke();
     }
-    ctx.fillStyle = SKY_DIAL.sun;
+    ctx.fillStyle = low ? SKY_DIAL.duskSun : SKY_DIAL.sun;
     ctx.beginPath();
     ctx.arc(bx, by, br, 0, TAU);
     ctx.fill();
