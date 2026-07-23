@@ -68,9 +68,11 @@ function setTheme(theme, { persist = false } = {}) {
   renderer.groundCache = null; // the cache bakes the palette; rebake
   const toggle = document.getElementById('theme-toggle');
   if (toggle) {
-    // The button shows where it takes you, not where you are.
+    // The button wears the current hour (owner call, 2026-07-22: the
+    // destination convention read as wrong icons); the label still says
+    // where the next click goes.
     const next = THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length];
-    toggle.textContent = THEME_ICONS[next];
+    toggle.textContent = THEME_ICONS[theme];
     toggle.setAttribute('aria-label', `switch to ${next === 'dusk' ? 'golden hour' : next}`);
   }
   if (persist) {

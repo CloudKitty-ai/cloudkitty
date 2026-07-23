@@ -32,10 +32,12 @@ const PROPS_DAY = Object.freeze({
   yarn: '#c98da4', // a dusty rose no other prop uses
   fishDecal: '#3385ff', // the bowl's fish, a proper glaze blue (owner's pick)
   shadow: 'rgba(120, 110, 95, 0.25)', // the butterfly's ground shadow
-  // Firefly glow stops -- only drawn at night (drawButterfly's night opt),
-  // but named in both palettes so the lookup never branches.
-  fireflyCore: 'rgba(255, 236, 160, 0.8)',
+  // Firefly colors -- only drawn from dusk onward (drawButterfly's
+  // firefly opt), but named here so every palette inherits them.
+  fireflyCore: 'rgba(255, 236, 160, 0.9)',
+  fireflyMid: 'rgba(255, 236, 160, 0.38)',
   fireflyFade: 'rgba(255, 236, 160, 0)',
+  fireflyLamp: 'rgba(255, 242, 170, 0.95)', // the abdomen pinpoint itself
 });
 
 /**
@@ -232,12 +234,13 @@ function drawButterfly(ctx, opts) {
       // The twilight signature: a soft firefly glow carried behind the
       // body, riding the same hover so it never detaches from the flier.
       // Fireflies come out at dusk and stay for the night.
-      const glow = ctx.createRadialGradient(0.5, 0.53, 0.02, 0.5, 0.53, 0.4);
+      const glow = ctx.createRadialGradient(0.5, 0.53, 0.02, 0.5, 0.53, 0.52);
       glow.addColorStop(0, PROPS.fireflyCore);
+      glow.addColorStop(0.45, PROPS.fireflyMid);
       glow.addColorStop(1, PROPS.fireflyFade);
       ctx.fillStyle = glow;
       ctx.beginPath();
-      ctx.arc(0.5, 0.53, 0.4, 0, TAU);
+      ctx.arc(0.5, 0.53, 0.52, 0, TAU);
       ctx.fill();
     }
 
@@ -272,6 +275,16 @@ function drawButterfly(ctx, opts) {
     ctx.strokeStyle = colorway.body;
     ctx.lineWidth = 0.055;
     ctx.stroke();
+
+    if (firefly) {
+      // The lamp itself: a bright pinpoint at the abdomen tip, drawn over
+      // the body so the light reads even where the halo washes out
+      // against lighter grass.
+      ctx.fillStyle = PROPS.fireflyLamp;
+      ctx.beginPath();
+      ctx.arc(0.5, 0.665, 0.055, 0, TAU);
+      ctx.fill();
+    }
 
     if (fine) {
       // Thread antennae with ball tips.

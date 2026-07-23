@@ -67,17 +67,18 @@ const MEADOW_NIGHT = Object.freeze({
 
 /**
  * The meadow at golden hour -- one twilight palette serving both dawn and
- * dusk. Grass takes an amber wash, the ponds catch the sunset (rose-gold
- * water is the hour's one indulgence), and the sunbeam pools deepen from
- * noon gold to low-sun amber. Shadows warm and stretch.
+ * dusk. Grass takes an amber wash, the water sits exactly midway between
+ * its day and night blues (owner call, 2026-07-22: evening water, not
+ * sunset-rose), and the sunbeam pools deepen from noon gold to low-sun
+ * amber. Shadows warm and stretch.
  */
 const MEADOW_DUSK = Object.freeze({
   grassTones: Object.freeze(['#e6e8c2', '#e0e2bb', '#dadcb3', '#e3e5be']),
   jitterTint: '#fff0d8', // golden light where day jitter is white
   jitterShade: '#8a8a60',
-  pondWater: '#e5c3b8', // water wearing the sky's sunset
-  pondShallow: '#f2dcd2',
-  pondRim: '#c99a8e',
+  pondWater: '#7797a7', // the midpoint of day #bfe3f2 and night #2f4a5c
+  pondShallow: '#8ba6b4',
+  pondRim: '#77a2b8',
   lilyPad: '#93b183',
   lilyPadRim: '#79996d',
   // Low-sun beams: the same radial pool, deeper amber.
