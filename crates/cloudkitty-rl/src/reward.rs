@@ -27,6 +27,24 @@ pub fn unclamped_happiness(needs: &Needs, weights: &NeedWeights) -> f64 {
     cloudkitty_core::needs::raw_happiness(needs, weights) as f64
 }
 
+/// The floor on a shifted welfare term, doing two jobs (round-one review,
+/// 2026-07-24). Release NaN guard: validation makes `h + ε` strictly
+/// positive for every lawful config and the debug assertion below still
+/// catches violations where we want the failing seed, but in a release
+/// build a violating term clamps here instead of turning the team reward
+/// into a silent NaN through `ln`/`powf`. Overflow guard: a lawful ε
+/// barely over [`crate::config::MIN_EPSILON`] can leave a term as small as
+/// ~1e-7, and `powf` at a deeply negative exponent then overflows to
+/// infinity — which collapses the aggregate to exactly −ε, a dead
+/// gradient. At this floor, `TERM_FLOOR.powf(MIN_P)` ≈ 1e256: large, but
+/// finite, so the aggregate stays responsive at every validated `p`.
+const TERM_FLOOR: f64 = 1e-4;
+
+/// One shifted welfare term, floored (see [`TERM_FLOOR`]).
+fn shifted_term(h: f64, epsilon: f64) -> f64 {
+    (h + epsilon).max(TERM_FLOOR)
+}
+
 /// The inequality-averse welfare aggregate of normalized happiness values
 /// (each in [0, 1]): `M_p(h + ε) − ε`. Strictly increasing in every entry;
 /// concave for p ≤ 1.
@@ -36,13 +54,14 @@ pub fn welfare_aggregate(normalized: &[f64], p: f64, epsilon: f64) -> f64 {
     }
     // Guaranteed by config validation: ε > MIN_EPSILON dominates the most
     // negative normalized happiness any lawful core config can produce, so
-    // ln/powf below never see a non-positive term (third review).
+    // the terms below are strictly positive before the floor even applies
+    // (third review). Debug builds still fail loudly on a violation.
     debug_assert!(
         normalized.iter().all(|h| h + epsilon > 0.0),
         "epsilon must dominate negative normalized happiness"
     );
     let n = normalized.len() as f64;
-    let shifted = normalized.iter().map(|h| h + epsilon);
+    let shifted = normalized.iter().map(|h| shifted_term(*h, epsilon));
     let mean = if p == 0.0 {
         // Nash welfare: the geometric mean.
         (shifted.map(|v| v.ln()).sum::<f64>() / n).exp()
@@ -120,5 +139,36 @@ mod tests {
 
         let very_negative_p = welfare_aggregate(&with_zero, -8.0, 0.01);
         assert!(very_negative_p.is_finite());
+    }
+
+    #[test]
+    fn a_violating_term_clamps_instead_of_poisoning_the_reward() {
+        // Round-one review finding 3: the ε-safety rested on a debug_assert
+        // alone; in release a non-positive term reached ln/powf and the
+        // team reward went NaN. The floor is the release-safe guard.
+        assert_eq!(shifted_term(-0.5, 0.01), TERM_FLOOR);
+        assert_eq!(shifted_term(0.5, 0.01), 0.51);
+        // And the floor is sized to the validated exponent range: even at
+        // the most averse lawful p, a floored term cannot overflow powf.
+        assert!(TERM_FLOOR.powf(crate::config::MIN_P).is_finite());
+    }
+
+    #[test]
+    fn the_most_averse_lawful_config_keeps_a_live_gradient() {
+        // Round-one review finding 2: ε barely over its bound leaves a
+        // lawful term near 1e-7, and powf at a deeply negative p overflowed
+        // to infinity -- collapsing the aggregate to exactly −ε whatever
+        // the roster looked like. With the floor, the aggregate stays
+        // strictly above that collapse point.
+        let epsilon = 0.00101; // lawfully just over MIN_EPSILON
+        let worst = -0.001; // the lawful minimum of normalized happiness
+        let value = welfare_aggregate(&[worst, 0.9, 1.0], crate::config::MIN_P, epsilon);
+        assert!(value.is_finite());
+        assert!(
+            value > -epsilon,
+            "the aggregate must sit above the −ε overflow collapse: {value}"
+        );
+        // Deeply averse still means the least-happy kitty dominates.
+        assert!(value < 0.01, "got {value}");
     }
 }

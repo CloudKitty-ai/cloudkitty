@@ -176,8 +176,8 @@ export fails startup naming the config field, never mid-tick.
 cargo run -p cloudkitty-rl --bin kitty-eval -- --artifact policies/trained.ckpolicy
 
 # Deployment: a kitty gets the trained mind (cloudkitty.toml):
-#   [kitties.pumpkin]      -> behavior = "policy:trained"
-#   [rl.policy.trained]    -> artifact = "policies/trained.ckpolicy"
+#   its existing [[kitty]] entry -> behavior = "policy:trained"
+#   [rl.policy.trained]          -> artifact = "policies/trained.ckpolicy"
 ```
 
 `kitty-eval` fails (exit 2) on any fallback-taken decision during policy

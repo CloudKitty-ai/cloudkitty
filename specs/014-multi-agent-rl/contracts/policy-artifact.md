@@ -25,10 +25,15 @@ reference training script — not as a supported surface.
 
 ## Startup validation (FR-016)
 
-Config wiring:
+Config wiring — `behavior` set in the kitty's existing `[[kitty]]` entry,
+plus the policy block:
 
 ```toml
-[kitties.pumpkin]
+[[kitty]]
+id = 3
+name = "Pumpkin"
+x = 16
+y = 8
 behavior = "policy:sunchaser"
 
 [rl.policy.sunchaser]
