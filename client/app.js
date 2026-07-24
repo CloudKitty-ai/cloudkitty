@@ -221,7 +221,7 @@ const SKY_DIAL = Object.freeze({
   // more, since near-white on the near-white stage card got lost (same
   // day: night's clear differential is the model).
   domeDay: 'rgba(240, 228, 205, 0.45)',
-  domeDusk: 'rgba(255, 196, 130, 0.6)',
+  domeDusk: 'rgba(255, 196, 130, 0.5)',
   domeNight: 'rgba(43, 39, 51, 0.6)',
   // A richer gold than the sparkle stars: on the tan dome the soft
   // #f4c95d read dim (owner call, 2026-07-23), so the disc deepens and
