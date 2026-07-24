@@ -47,6 +47,35 @@
     --meh: #efa98b;
   }
 
+  /* The theme tokens above, registered so they animate. A plain transition
+     can't interpolate the body's radial-gradient, but a registered <color>
+     custom property tweens as a color and the gradient follows each frame.
+     Only the ten tokens the hour themes override are registered; browsers
+     without @property keep today's instant switch. */
+  @property --cream { syntax: "<color>"; inherits: true; initial-value: #fdf6ec; }
+  @property --cream-deep { syntax: "<color>"; inherits: true; initial-value: #f5e8d8; }
+  @property --zenith { syntax: "<color>"; inherits: true; initial-value: #fffaf2; }
+  @property --grass { syntax: "<color>"; inherits: true; initial-value: #e7f2df; }
+  @property --grass-line { syntax: "<color>"; inherits: true; initial-value: #d8e8cd; }
+  @property --ink { syntax: "<color>"; inherits: true; initial-value: #6b5a4e; }
+  @property --ink-soft { syntax: "<color>"; inherits: true; initial-value: #9c8a7c; }
+  @property --patience-ink { syntax: "<color>"; inherits: true; initial-value: #b0876a; }
+  @property --card { syntax: "<color>"; inherits: true; initial-value: #fffdfa; }
+  @property --shadow { syntax: "<color>"; inherits: true; initial-value: rgba(150, 125, 105, 0.18); }
+
+  /* The gentle fade between hour themes: the tokens tween on <body> (where
+     the .dusk/.night overrides land) and every inheritor recolors with
+     them. --theme-fade is the one dial. Joins the canvas in going still
+     under reduced motion. */
+  body {
+    --theme-fade: 1.5s;
+    transition-property: --cream, --cream-deep, --zenith, --grass,
+      --grass-line, --ink, --ink-soft, --patience-ink, --card, --shadow;
+    transition-duration: var(--theme-fade);
+    transition-timing-function: ease;
+  }
+  body.reduced-motion { transition: none; }
+
   /* Golden hour (the canvas world switches with it -- see setTheme in
      app.js). One twilight set serving both dawn and dusk: still a light
      page, so the ink family stays daytime; the grounds take an apricot
