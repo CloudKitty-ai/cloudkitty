@@ -93,6 +93,42 @@ contract: the same request and correlated envelope over HTTP POST to a
 configured endpoint. Spec'd as User Story 3 / FR-007 in
 `specs/016-behavior-plugins/` — start there, not from scratch.
 
+### ScriptBehavior transport residuals (from spec 016 review, 2026-07-23)
+Three bounded, low-severity residuals the deep review of PR #45 surfaced
+and accepted as not-blocking. Fold these in when ScriptBehavior is next
+opened (likely the HttpBehavior sitting, which shares the exchange
+machinery):
+1. **Grandchild pipe-inheritance thread leak.** The per-child I/O thread
+   reads the plugin's stdout; killing the plugin on timeout does *not*
+   close that pipe if a grandchild inherited fd 1 (a shell wrapper, a
+   leftover subprocess), so `read_until` never returns and the detached
+   thread lives until the grandchild exits — one stuck OS thread per
+   killed process, unbounded across relaunch cycles. The common wedge
+   (no grandchild) is already fixed. Deeper fix: spawn each plugin in its
+   own process group (`process_group(0)` on unix) and kill the whole
+   group, so grandchildren die and the pipe closes. Also correct the
+   `PluginChild::drop` comment, which currently claims the thread is
+   "gone the moment the stream closes" — true only absent a surviving
+   grandchild. `crates/cloudkitty-core/src/behavior/script.rs`.
+2. **Shared-plugin mutex burst.** The instance mutex is held across
+   `recv_timeout`, so when a shared plugin wedges, every sibling kitty's
+   `spawn_blocking` thread parks on `self.lock()` for up to
+   `exchange_timeout_ms` (default 1000) during the one relaunch+timeout
+   tick per cooldown window. Bounded and self-limiting (siblings
+   fast-fall-back once the first kitty marks the process Dead), strictly
+   better than the pre-fix infinite hang. Mitigation today is a lower
+   `exchange_timeout_ms` when many kitties share a process — already noted
+   in `docs/plugins.md`'s shared-plugin caveat. Only revisit if per-kitty
+   processes or a shorter default prove wanted in practice.
+3. **Exec-bit precision.** Startup validation checks `mode & 0o111`
+   (executable by *anyone*), not executability by the server's effective
+   user, so a script executable only by another owner/group passes
+   startup then fails every spawn. The common case (forgot `chmod +x`
+   entirely) is caught; closing the gap fully needs an effective-uid/gid
+   check, likely more than it's worth. Minimum: a doc note that the check
+   means "executable by someone", not "by us".
+   `crates/cloudkitty-server/src/lib.rs`.
+
 ### Friendship / relationship tracking (+ friend-proximity preference)
 The foundational social feature. Kitties develop preferences from shared
 history (play, co-sleeping, grooming); "friend" stops meaning "any other kitty"
