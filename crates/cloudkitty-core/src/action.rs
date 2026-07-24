@@ -1,10 +1,14 @@
 //! Actions: what a kitty does with its tick.
 //!
-//! Article IV: behaviors *propose*, the engine disposes. Every proposal passes
-//! through [`validate`], which returns the action to actually apply --
-//! [`Action::Idle`] whenever the proposal is illegal for the current world state.
-//! Nothing here can return an error, because an advisor's mistake must never
-//! become a kitty's problem.
+//! Article IV (v1.2.0): behaviors *propose*, the engine disposes -- in two
+//! distinct layers. External bytes MUST enter through [`parse_proposal`], the
+//! strict outer gate: anything malformed fails there and the kitty's fallback
+//! behavior takes the turn (the derived `Deserialize` stays lenient about
+//! unknown keys and is reserved for data the engine wrote itself, like
+//! snapshots). What parses then passes through [`validate`], which returns
+//! the action to actually apply -- [`Action::Idle`] whenever the proposal is
+//! illegal for the current world state. Neither layer can become a kitty's
+//! problem: an advisor's mistake resolves to a safe outcome, never an error.
 
 use serde::{Deserialize, Deserializer, Serialize};
 
@@ -118,6 +122,188 @@ impl Action {
     /// personalities apart.
     pub fn is_playful(&self) -> bool {
         matches!(self, Action::Play { .. } | Action::Chase(_))
+    }
+}
+
+/// The proposal wire's version, carried in every plugin decision request.
+/// Bump on any breaking change to the accepted proposal shapes.
+pub const PROPOSAL_WIRE_VERSION: u32 = 1;
+
+/// Why a proposal failed to parse (spec 016). Every kind resolves the same
+/// way downstream -- the fallback decides, per amended Article IV's default --
+/// so these exist for the operator reading the rejection log, not for
+/// divergent handling.
+#[derive(Debug, thiserror::Error)]
+pub enum ProposalError {
+    #[error("not JSON: {0}")]
+    NotJson(serde_json::Error),
+    #[error("valid JSON, but a proposal must be an object")]
+    NotAnObject,
+    #[error("no \"action\" key names the action kind")]
+    MissingKind,
+    #[error("unknown action kind {0}")]
+    UnknownKind(String),
+    #[error("bad fields for {kind:?}: {error}")]
+    InvalidFields {
+        kind: &'static str,
+        error: serde_json::Error,
+    },
+    #[error("reply exceeded the {limit}-byte bound (reply_max_bytes)")]
+    TooLarge { limit: usize },
+}
+
+/// Per-variant strict mirrors of [`Action`]'s wire shapes (spec 016,
+/// research R1). `deny_unknown_fields` cannot be used on `Action` itself
+/// (it is internally tagged and `Play` flattens), so each variant's fields
+/// are accepted by a mirror that *can* reject unknown keys, then converted
+/// into the real variant -- field by field, so a drift between `Action` and
+/// its mirror is a compile error or an immediate round-trip test failure,
+/// never a silently widened wire.
+mod proposal_wire {
+    use serde::Deserialize;
+
+    use super::TargetRef;
+    use crate::grid::Direction;
+    use crate::kitty::KittyId;
+    use crate::meow::MessageKind;
+
+    #[derive(Deserialize)]
+    #[serde(deny_unknown_fields)]
+    pub(super) struct MoveWire {
+        pub direction: Direction,
+    }
+
+    /// Rest and sleep share a shape: an optional kitty to duet with.
+    #[derive(Deserialize)]
+    #[serde(deny_unknown_fields)]
+    pub(super) struct WithWire {
+        #[serde(default)]
+        pub with: Option<KittyId>,
+    }
+
+    #[derive(Deserialize)]
+    #[serde(deny_unknown_fields)]
+    pub(super) struct GroomWire {
+        #[serde(default)]
+        pub target: Option<KittyId>,
+    }
+
+    /// Eat, drink, purr, and idle carry nothing but their kind.
+    #[derive(Deserialize)]
+    #[serde(deny_unknown_fields)]
+    pub(super) struct EmptyWire {}
+
+    #[derive(Deserialize, Clone, Copy)]
+    #[serde(rename_all = "snake_case")]
+    pub(super) enum TargetKindWire {
+        Element,
+        Kitty,
+    }
+
+    impl TargetKindWire {
+        pub(super) fn with_id(self, id: u32) -> TargetRef {
+            match self {
+                TargetKindWire::Element => TargetRef::Element { id },
+                TargetKindWire::Kitty => TargetRef::Kitty { id },
+            }
+        }
+    }
+
+    #[derive(Deserialize)]
+    #[serde(deny_unknown_fields)]
+    pub(super) struct ChaseWire {
+        pub target: TargetKindWire,
+        pub id: u32,
+    }
+
+    /// Play's target is optional but must be all-or-nothing -- the same rule
+    /// `strict_play_target` enforces on the internal derive.
+    #[derive(Deserialize)]
+    #[serde(deny_unknown_fields)]
+    pub(super) struct PlayWire {
+        #[serde(default)]
+        pub target: Option<TargetKindWire>,
+        #[serde(default)]
+        pub id: Option<u32>,
+    }
+
+    #[derive(Deserialize)]
+    #[serde(deny_unknown_fields)]
+    pub(super) struct MeowWire {
+        pub message: MessageKind,
+    }
+}
+
+/// Parses one proposal from external bytes, strictly (spec 016 FR-002).
+///
+/// This -- not `Action`'s derived `Deserialize` -- is the mandatory entry
+/// point wherever untrusted bytes arrive (plugin transports). The derive
+/// stays lenient about unknown keys and is reserved for data we wrote
+/// ourselves (snapshots, fixtures); everything the engine serializes parses
+/// back through here unchanged (the round-trip suite pins that).
+pub fn parse_proposal(input: &str) -> Result<Action, ProposalError> {
+    use proposal_wire::*;
+
+    // Duplicate keys collapsed to the last occurrence here, before any
+    // strict check -- standard JSON semantics, documented in the contract.
+    let value: serde_json::Value = serde_json::from_str(input).map_err(ProposalError::NotJson)?;
+    let serde_json::Value::Object(mut map) = value else {
+        return Err(ProposalError::NotAnObject);
+    };
+    let Some(kind_value) = map.remove("action") else {
+        return Err(ProposalError::MissingKind);
+    };
+    let serde_json::Value::String(kind) = kind_value else {
+        return Err(ProposalError::UnknownKind(kind_value.to_string()));
+    };
+    let rest = serde_json::Value::Object(map);
+
+    fn fields<T: serde::de::DeserializeOwned>(
+        kind: &'static str,
+        rest: serde_json::Value,
+    ) -> Result<T, ProposalError> {
+        serde_json::from_value(rest).map_err(|error| ProposalError::InvalidFields { kind, error })
+    }
+
+    match kind.as_str() {
+        "move" => Ok(Action::Move {
+            direction: fields::<MoveWire>("move", rest)?.direction,
+        }),
+        "rest" => Ok(Action::Rest {
+            with: fields::<WithWire>("rest", rest)?.with,
+        }),
+        "sleep" => Ok(Action::Sleep {
+            with: fields::<WithWire>("sleep", rest)?.with,
+        }),
+        "groom" => Ok(Action::Groom {
+            target: fields::<GroomWire>("groom", rest)?.target,
+        }),
+        "eat" => fields::<EmptyWire>("eat", rest).map(|_| Action::Eat),
+        "drink" => fields::<EmptyWire>("drink", rest).map(|_| Action::Drink),
+        "chase" => {
+            let wire = fields::<ChaseWire>("chase", rest)?;
+            Ok(Action::Chase(wire.target.with_id(wire.id)))
+        }
+        "play" => {
+            let wire = fields::<PlayWire>("play", rest)?;
+            match (wire.target, wire.id) {
+                (None, None) => Ok(Action::play_solo()),
+                (Some(target), Some(id)) => Ok(Action::play_with(target.with_id(id))),
+                _ => Err(ProposalError::InvalidFields {
+                    kind: "play",
+                    error: <serde_json::Error as serde::de::Error>::custom(
+                        "a play target must be a complete {\"target\": \"element\"|\"kitty\", \
+                         \"id\": N} or omitted entirely for solo play",
+                    ),
+                }),
+            }
+        }
+        "purr" => fields::<EmptyWire>("purr", rest).map(|_| Action::Purr),
+        "meow" => Ok(Action::Meow {
+            message: fields::<MeowWire>("meow", rest)?.message,
+        }),
+        "idle" => fields::<EmptyWire>("idle", rest).map(|_| Action::Idle),
+        other => Err(ProposalError::UnknownKind(other.to_string())),
     }
 }
 
@@ -1176,6 +1362,171 @@ mod tests {
                 &config
             ),
             Action::Idle
+        );
+    }
+}
+
+/// The proposal wire's contract suite (spec 016 US1). The module name keeps
+/// `cargo test -p cloudkitty-core proposal` as the one-filter gate the
+/// quickstart promises.
+#[cfg(test)]
+mod proposal_contract_tests {
+    use super::*;
+    use crate::grid::Direction;
+    use crate::meow::MessageKind;
+
+    /// Every proposal shape the engine can construct -- the round-trip
+    /// corpus. A new `Action` variant that is not added here still fails the
+    /// suite: its serialization hits `parse_proposal` as an unknown kind.
+    fn every_constructible_shape() -> Vec<Action> {
+        let mut shapes = Vec::new();
+        for direction in Direction::ALL {
+            shapes.push(Action::move_to(direction));
+        }
+        shapes.push(Action::Rest { with: None });
+        shapes.push(Action::Rest { with: Some(2) });
+        shapes.push(Action::Sleep { with: None });
+        shapes.push(Action::Sleep { with: Some(3) });
+        shapes.push(Action::Groom { target: None });
+        shapes.push(Action::Groom { target: Some(1) });
+        shapes.push(Action::Eat);
+        shapes.push(Action::Drink);
+        shapes.push(Action::Chase(TargetRef::Element { id: 17 }));
+        shapes.push(Action::Chase(TargetRef::Kitty { id: 3 }));
+        shapes.push(Action::play_solo());
+        shapes.push(Action::play_with(TargetRef::Element { id: 8 }));
+        shapes.push(Action::play_with(TargetRef::Kitty { id: 2 }));
+        shapes.push(Action::Purr);
+        for message in [
+            MessageKind::WantEat,
+            MessageKind::WantDrink,
+            MessageKind::FollowMe,
+            MessageKind::WantPlay,
+            MessageKind::WantCuddle,
+            MessageKind::Purr,
+            MessageKind::WaitForMe,
+        ] {
+            shapes.push(Action::Meow { message });
+        }
+        shapes.push(Action::Idle);
+        shapes
+    }
+
+    #[test]
+    fn every_shape_the_engine_serializes_round_trips_unchanged() {
+        let shapes = every_constructible_shape();
+        assert_eq!(shapes.len(), 26, "the corpus covers every wire shape");
+        for action in shapes {
+            let wire = serde_json::to_string(&action).expect("actions serialize");
+            let parsed = parse_proposal(&wire)
+                .unwrap_or_else(|e| panic!("{wire} must parse strictly: {e}"));
+            assert_eq!(parsed, action, "round-trip identity for {wire}");
+        }
+    }
+
+    /// The rejection matrix (FR-002): every malformed-variant class, per
+    /// shape where it applies. The `rejected` examples from
+    /// contracts/wire-protocol.md appear verbatim.
+    #[test]
+    fn malformed_proposals_are_rejected_never_reshaped() {
+        let rejected = [
+            // -- the contract's own rejected examples, verbatim ------------
+            r#"{"action": "levitate"}"#,
+            r#"{"action": "move"}"#,
+            r#"{"action": "move", "direction": "up"}"#,
+            r#"{"action": "move", "direction": "north", "speed": 9}"#,
+            r#"{"action": "chase", "target": "element"}"#,
+            r#"{"action": "play", "id": 2}"#,
+            r#"{"action": "groom", "target": "Miso"}"#,
+            r#"{"action": "rest", "with": -1}"#,
+            r#""idle""#,
+            // -- unknown or missing kind -----------------------------------
+            r#"{"direction": "north"}"#,
+            r#"{"action": 7}"#,
+            r#"{"action": null}"#,
+            // -- missing required fields -----------------------------------
+            r#"{"action": "meow"}"#,
+            r#"{"action": "chase", "id": 4}"#,
+            // -- wrong types ------------------------------------------------
+            r#"{"action": "move", "direction": 5}"#,
+            r#"{"action": "sleep", "with": "Biscuit"}"#,
+            r#"{"action": "chase", "target": "kitty", "id": -3}"#,
+            r#"{"action": "chase", "target": "kitty", "id": 1.5}"#,
+            // -- unrecognized closed-set values ----------------------------
+            r#"{"action": "meow", "message": "want_snacks"}"#,
+            r#"{"action": "chase", "target": "bogus", "id": 1}"#,
+            r#"{"action": "play", "target": "sunbeam", "id": 1}"#,
+            // -- incomplete play target ------------------------------------
+            r#"{"action": "play", "target": "kitty"}"#,
+            // -- unknown extra fields, one per shape ------------------------
+            r#"{"action": "rest", "with": 2, "snuggle": true}"#,
+            r#"{"action": "sleep", "where": "sunbeam"}"#,
+            r#"{"action": "groom", "target": 1, "vigor": 11}"#,
+            r#"{"action": "eat", "snack": "chow"}"#,
+            r#"{"action": "drink", "amount": 2}"#,
+            r#"{"action": "chase", "target": "kitty", "id": 1, "speed": 9}"#,
+            r#"{"action": "play", "target": "kitty", "id": 2, "style": "pounce"}"#,
+            r#"{"action": "purr", "volume": 11}"#,
+            r#"{"action": "meow", "message": "want_play", "volume": 11}"#,
+            r#"{"action": "idle", "why": "sleepy"}"#,
+            // -- not an object / not JSON ----------------------------------
+            r#"[{"action": "idle"}]"#,
+            r#"42"#,
+            r#"meow meow"#,
+            r#""#,
+        ];
+        for wire in rejected {
+            assert!(
+                parse_proposal(wire).is_err(),
+                "{wire:?} must be rejected, not reshaped into a legal action"
+            );
+        }
+    }
+
+    #[test]
+    fn rejection_kinds_name_the_problem_for_the_operator() {
+        assert!(matches!(
+            parse_proposal(r#"{"action": "levitate"}"#),
+            Err(ProposalError::UnknownKind(k)) if k == "levitate"
+        ));
+        assert!(matches!(
+            parse_proposal(r#"{"direction": "north"}"#),
+            Err(ProposalError::MissingKind)
+        ));
+        assert!(matches!(
+            parse_proposal(r#""idle""#),
+            Err(ProposalError::NotAnObject)
+        ));
+        assert!(matches!(
+            parse_proposal("meow meow"),
+            Err(ProposalError::NotJson(_))
+        ));
+        // The mirror's serde error names the offending extra field.
+        let err = parse_proposal(r#"{"action": "move", "direction": "north", "speed": 9}"#)
+            .expect_err("extra fields reject");
+        assert!(
+            err.to_string().contains("unknown field `speed`"),
+            "the operator sees which field was wrong: {err}"
+        );
+    }
+
+    #[test]
+    fn a_stale_purr_proposal_parses_and_is_left_to_validation() {
+        // Purr retired as an action in spec 011: recognizing the shape and
+        // idling it at validation keeps a confused advisor from being
+        // punished as a parse error.
+        assert_eq!(parse_proposal(r#"{"action": "purr"}"#).unwrap(), Action::Purr);
+    }
+
+    #[test]
+    fn duplicate_keys_collapse_to_the_last_occurrence_before_strict_checks() {
+        // Standard JSON semantics, documented in the wire contract: the
+        // JSON parser resolves duplicates (last wins) before the strict
+        // checks ever see the object.
+        assert_eq!(
+            parse_proposal(r#"{"action": "move", "direction": "north", "direction": "south"}"#)
+                .unwrap(),
+            Action::move_to(Direction::South)
         );
     }
 }

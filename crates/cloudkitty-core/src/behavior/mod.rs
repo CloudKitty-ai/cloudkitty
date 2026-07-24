@@ -1,10 +1,14 @@
 //! Pluggable behaviors: untrusted advisors to a sovereign engine.
 //!
-//! Article IV in one paragraph: a behavior is handed a read-only view of the world
-//! and returns *one proposed action*. It cannot touch the world. Whatever it
-//! returns is validated before it is applied, and anything illegal becomes an idle
-//! turn. A behavior that hangs, panics, or returns nonsense costs its kitty a
-//! moment of cleverness and nothing more.
+//! Article IV (v1.2.0) in one paragraph: a behavior is handed a read-only view
+//! of the world and returns *one proposed action*. It cannot touch the world.
+//! A proposal that cannot even be understood -- a failed plugin exchange, an
+//! unparseable reply, a panic, a timeout -- resolves to the **default
+//! built-in (needs-based) fallback** deciding from the dealt seed; a proposal
+//! that parses but is illegal for the current world state is validated down
+//! to an **idle turn**. Both are constitutionally safe outcomes, and a
+//! behavior that hangs, panics, or returns nonsense costs its kitty a moment
+//! of cleverness and nothing more.
 //!
 //! The `async` signature is deliberate and is the whole extension point: a future
 //! `ScriptBehavior`, `HttpBehavior`, or local-service behavior drops in here with
@@ -65,6 +69,17 @@ pub struct DecisionContext {
 pub trait Behavior: Send + Sync {
     /// Propose one action. Never applied directly -- the engine validates first.
     async fn decide(&self, ctx: &DecisionContext) -> Action;
+
+    /// Propose one action, or nothing. `None` means the advisor has no
+    /// intelligible proposal -- a failed plugin exchange, an unparseable
+    /// reply -- and dispatch treats it exactly like a crashed advisor: the
+    /// fallback decides from the dealt seed (amended Article IV's default
+    /// resolution). Built-ins never return `None`; only external advisors,
+    /// whose proposals can fail in ways a panic does not express, override
+    /// this.
+    async fn try_decide(&self, ctx: &DecisionContext) -> Option<Action> {
+        Some(self.decide(ctx).await)
+    }
 
     /// Built-ins run in-process and are exempt from the wall-clock decision
     /// budget. External implementations must leave this as `false`.
@@ -419,13 +434,16 @@ async fn fallback_from_seed(
     fallback(&ctx).await
 }
 
-/// Runs a behavior, converting a panic into `None` rather than unwinding into the
-/// tick loop.
+/// Runs a behavior, converting a panic -- or the advisor's own `None` from
+/// [`Behavior::try_decide`] -- into `None` rather than unwinding into the
+/// tick loop. Every dispatch path funnels through here, so "no proposal" and
+/// "crashed" are one and the same fallback downstream.
 async fn run_catching(behavior: &dyn Behavior, ctx: &DecisionContext) -> Option<Action> {
-    std::panic::AssertUnwindSafe(behavior.decide(ctx))
+    std::panic::AssertUnwindSafe(behavior.try_decide(ctx))
         .catch_unwind()
         .await
         .ok()
+        .flatten()
 }
 
 /// `NeedsDriven` is total: it always returns something sensible, so it is the one
@@ -738,6 +756,58 @@ mod tests {
             .find(|r| r.kitty_id == config.kitties[1].id)
             .unwrap();
         assert_eq!(healthy.provenance, crate::seam::Provenance::PolicyMade);
+    }
+
+    #[test]
+    fn an_unintelligible_advisor_falls_back_never_reshapes() {
+        // Spec 016 FR-003: an advisor with no intelligible proposal (a failed
+        // plugin exchange) resolves to the fallback deciding from the dealt
+        // seed -- the crashed-advisor path -- never to some reshaped action.
+        let mut config = test_config();
+        config.kitties[0].behavior = "unintelligible".into();
+        let config = Arc::new(config);
+        let registry = registry_with(
+            "unintelligible",
+            Arc::new(super::test_behaviors::Unintelligible),
+        );
+        let mut world = World::generate(&config);
+        let snapshot = Arc::new(world.snapshot());
+
+        let resolved = resolve_decisions(&mut world, &registry, &config);
+        let broken = resolved
+            .iter()
+            .find(|r| r.kitty_id == config.kitties[0].id)
+            .expect("the kitty with no proposal still decided");
+        assert_eq!(broken.provenance, crate::seam::Provenance::FallbackTaken);
+
+        // The fallback decided from the dealt seed: replaying the default
+        // built-in on that seed reproduces the action exactly.
+        let me = snapshot.kitty(broken.kitty_id).unwrap().clone();
+        let ctx = DecisionContext {
+            me,
+            world: snapshot.clone(),
+            rng: DecisionRng::from_seed(broken.seed),
+            config: config.clone(),
+        };
+        let expected = futures::executor::block_on(fallback(&ctx));
+        assert_eq!(broken.action, expected);
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn the_served_path_survives_an_unintelligible_advisor() {
+        // The same guarantee on the budgeted path: no proposal, no lost turn,
+        // no stalled tick.
+        let mut config = test_config();
+        config.kitties[0].behavior = "unintelligible".into();
+        let config = Arc::new(config);
+        let registry = registry_with(
+            "unintelligible",
+            Arc::new(super::test_behaviors::Unintelligible),
+        );
+        let mut world = World::generate(&config);
+
+        let decisions = gather_decisions(&mut world, &registry, &config).await;
+        assert_eq!(decisions.len(), world.kitties.len(), "nobody loses a turn");
     }
 
     #[test]
