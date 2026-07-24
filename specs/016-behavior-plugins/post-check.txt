@@ -15,3 +15,14 @@ test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 --- step 8: startup validation (manual, isolated tmp dir) ---
 broken [plugins.broken].command -> startup refused before any tick:
 "[plugins.broken].command (/definitely/not/a/real/program) does not exist or is not a file"
+
+--- review remediation gate (2026-07-23, /code-review high: 14 findings fixed) ---
+cargo fmt --all --check              PASS
+cargo clippy --workspace --all-targets -- -D warnings   clean
+cargo test --workspace               37 suites ok, 0 failed
+  core lib 249 (was 246: +wedge-deadline unit x2, +duplicate-registration)
+  server lib 19 (was 16: +shadow guard, +exec-bit refusal, updated fixture)
+  plugin e2e 6 (was 5: +a_silently_wedged_plugin_cannot_stall_the_budgetless_driver)
+Wedge containment verified end to end: a read-request-never-reply plugin on
+the budgetless drive_tick path completes 3 ticks bounded by the 150ms test
+deadline (pre-fix behavior: infinite hang).

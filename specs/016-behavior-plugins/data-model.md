@@ -40,7 +40,11 @@ Kinds (exact naming free to implementation):
   problem: unknown extra field ("unknown field \`speed\`, expected …"),
   missing required field, wrong type, unrecognized enum value, incomplete
   play target
-- `TooLarge` — reply exceeded `reply_max_bytes` (transport layer)
+
+(The oversized-reply case is transport-layer and lives where the transport
+does: `script.rs`'s internal `ExchangeFailure::TooLarge`, not
+`ProposalError` — the parser never sees a line the size cap already
+stopped. Review 2026-07-23; originally drafted as a `ProposalError` kind.)
 
 Note: duplicate JSON keys collapse to the last occurrence at `Value` parse
 time (standard JSON semantics) *before* any strict check — documented in the
@@ -118,8 +122,9 @@ same non-exposure). Registered as `ScriptBehavior` under the table key via
 |---|---|---|
 | `reply_max_bytes` | `65536` | cap on one reply line; beyond it the exchange fails and the child is killed (research.md R7) |
 | `relaunch_cooldown_ticks` | `20` | minimum ticks between spawn attempts for a dead plugin process (research.md R4) |
+| `exchange_timeout_ms` | `1000` | hard wall-clock deadline on one exchange, carried inside the transport so it bounds every dispatch path; missing it fails the proposal and kills the child (research.md R12) |
 
-Both validated non-zero in `Config::validate()` like `budget_strikes` /
+All validated non-zero in `Config::validate()` like `budget_strikes` /
 `bench_ticks`.
 
 ## Provenance (unchanged shape)

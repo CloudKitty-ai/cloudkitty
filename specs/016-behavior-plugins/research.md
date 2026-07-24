@@ -231,3 +231,40 @@ never earned).
 A new hostile test behavior (`Unintelligible`: `try_decide` → `None`) proves
 the path independently of any transport, which keeps User Story 1 testable
 without User Story 2.
+
+## R12 — The exchange deadline (review remediation, 2026-07-23)
+
+**Decision**: `ScriptBehavior` carries its own hard wall-clock deadline per
+exchange (`[behavior] exchange_timeout_ms`, default 1000, non-zero
+validated). Each child's pipes belong to a dedicated I/O thread; an exchange
+hands it one request over a channel and waits for the reply with
+`recv_timeout`. A miss fails the proposal and kills the process (which
+closes the pipes and unblocks the I/O thread); the thread is detached, never
+joined, so a plugin grandchild holding the pipe open can strand at most one
+self-freeing OS thread per killed process.
+
+**Rationale**: the post-implementation review confirmed four consequences of
+relying on the *served* budget alone for wedge containment: (1) a silently
+wedged plugin stranded one tokio blocking-pool thread per timed-out decision
+— unbounded across bench windows, eventually saturating the shared pool and
+degrading every external advisor; (2) the budgetless dispatch path
+(`resolve_one` / `seam::drive_tick`, spec 014's mixed-control API) had no
+wall clock at all, so a wedge hung headless drivers forever; (3) a
+budget-stray thread could hold the instance mutex indefinitely; (4) its
+eventual `Dead { since_tick }` write could carry an unboundedly stale tick,
+pre-expiring the relaunch cooldown. A transport-carried deadline collapses
+all four: strays finish within one deadline, every path is bounded, and the
+`since_tick` skew is capped at one deadline's worth of ticks.
+
+**Alternatives considered**: pipe-level `poll(2)` with a timeout (needs a
+libc dependency and per-platform code for what a std thread + channel does);
+relying on the breaker alone (leaves the budgetless path unbounded — the
+review's finding, not a fix); joining the I/O thread on drop (deadlocks on a
+plugin grandchild that inherits the stdout pipe).
+
+**Residual, documented**: on the served path a kitty's budget clock also
+covers its wait behind siblings sharing the process, so an overloaded shared
+plugin can cost tail kitties budget strikes even when each reply is prompt —
+documented in docs/plugins.md ("keep kitties × reply time inside the
+budget") rather than re-architected, since per-kitty processes are one
+config line away.

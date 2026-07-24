@@ -202,9 +202,12 @@ sunbeam_reach = 8
 # External advisor knobs (spec 016), shown at their defaults. One plugin
 # reply line may carry at most reply_max_bytes; beyond it the proposal fails
 # and the plugin process is restarted. A dead plugin process is relaunched at
-# most once per relaunch_cooldown_ticks.
+# most once per relaunch_cooldown_ticks. A reply that misses the
+# exchange_timeout_ms wall-clock deadline fails the proposal and kills the
+# process — the transport's own containment, active on every dispatch path.
 # reply_max_bytes = 65536
 # relaunch_cooldown_ticks = 20
+# exchange_timeout_ms = 1000
 
 [events]
 # How many distress events to keep.

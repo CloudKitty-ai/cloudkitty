@@ -116,12 +116,31 @@ pub fn register_plugin_behaviors(
             );
         }
         let command = Path::new(&entry.command);
-        if !command.is_file() {
-            anyhow::bail!(
+        let metadata = match std::fs::metadata(command) {
+            Ok(metadata) if metadata.is_file() => metadata,
+            _ => anyhow::bail!(
                 "[plugins.{name}].command ({}) does not exist or is not a file",
                 entry.command
-            );
+            ),
+        };
+        // The docs promise "an existing executable file... validated at
+        // startup" — a missing exec bit is startup-detectable, so it must
+        // be a startup error, not a per-tick launch failure (FR-011). In
+        // the interpreter-plus-script form the command IS the interpreter,
+        // which is exactly the thing that must be executable.
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            if metadata.permissions().mode() & 0o111 == 0 {
+                anyhow::bail!(
+                    "[plugins.{name}].command ({}) is not executable (chmod +x it, \
+                     or use an interpreter path as the command with the script in args)",
+                    entry.command
+                );
+            }
         }
+        #[cfg(not(unix))]
+        let _ = metadata;
         tracing::info!(
             plugin = %name,
             command = %entry.command,
@@ -188,20 +207,55 @@ mod plugin_registration_tests {
         assert!(msg.contains("/definitely/not/a/real/program"), "{msg}");
     }
 
+    /// A per-process fixture dir: two concurrent `cargo test` runs on one
+    /// machine must not share (and delete) each other's files.
+    fn fixture_dir(label: &str) -> std::path::PathBuf {
+        let dir =
+            std::env::temp_dir().join(format!("cloudkitty-016-{label}-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
     #[test]
     fn a_real_program_registers_under_its_config_name() {
-        // Any existing file passes the startup check; whether it is a
-        // *working* advisor is a per-tick question with a per-tick fallback.
-        let dir = std::env::temp_dir().join("cloudkitty-016-plugin-test");
-        std::fs::create_dir_all(&dir).unwrap();
+        // Any existing executable file passes the startup check; whether it
+        // is a *working* advisor is a per-tick question with a per-tick
+        // fallback.
+        let dir = fixture_dir("plugin-registers");
         let program = dir.join("demo.sh");
         std::fs::write(&program, "#!/bin/sh\n").unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(&program, std::fs::Permissions::from_mode(0o755)).unwrap();
+        }
 
         let toml_text = format!("[plugins.demo]\ncommand = {:?}\n", program);
         let plugins: PluginsConfig = toml::from_str(&toml_text).unwrap();
         let mut registry = BehaviorRegistry::with_builtins();
         register_plugin_behaviors(&mut registry, &plugins).unwrap();
         assert!(registry.get("demo").is_some(), "the plugin is a behavior");
+
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_non_executable_program_fails_startup_with_a_clear_error() {
+        // Review 2026-07-23: the docs promise "an existing executable file
+        // ... validated at startup" — a forgotten chmod +x must be a
+        // startup error, never a silent per-tick launch failure.
+        let dir = fixture_dir("plugin-noexec");
+        let program = dir.join("forgot-chmod.py");
+        std::fs::write(&program, "#!/usr/bin/env python3\n").unwrap();
+
+        let toml_text = format!("[plugins.brain]\ncommand = {:?}\n", program);
+        let plugins: PluginsConfig = toml::from_str(&toml_text).unwrap();
+        let mut registry = BehaviorRegistry::with_builtins();
+        let err = register_plugin_behaviors(&mut registry, &plugins).unwrap_err();
+        let msg = err.to_string();
+        assert!(msg.contains("[plugins.brain].command"), "{msg}");
+        assert!(msg.contains("not executable"), "{msg}");
 
         std::fs::remove_dir_all(&dir).ok();
     }

@@ -148,8 +148,6 @@ pub enum ProposalError {
         kind: &'static str,
         error: serde_json::Error,
     },
-    #[error("reply exceeded the {limit}-byte bound (reply_max_bytes)")]
-    TooLarge { limit: usize },
 }
 
 /// Per-variant strict mirrors of [`Action`]'s wire shapes (spec 016,
@@ -242,11 +240,20 @@ mod proposal_wire {
 /// ourselves (snapshots, fixtures); everything the engine serializes parses
 /// back through here unchanged (the round-trip suite pins that).
 pub fn parse_proposal(input: &str) -> Result<Action, ProposalError> {
-    use proposal_wire::*;
-
     // Duplicate keys collapsed to the last occurrence here, before any
     // strict check -- standard JSON semantics, documented in the contract.
     let value: serde_json::Value = serde_json::from_str(input).map_err(ProposalError::NotJson)?;
+    parse_proposal_value(value)
+}
+
+/// [`parse_proposal`] for input that is already a parsed [`serde_json::Value`]
+/// (the plugin reply envelope carries the proposal as one). Same strict gate,
+/// same semantics -- duplicate keys collapsed last-wins when the `Value` was
+/// parsed, exactly as `parse_proposal`'s own first step would have -- without
+/// a render-to-string round trip.
+pub fn parse_proposal_value(value: serde_json::Value) -> Result<Action, ProposalError> {
+    use proposal_wire::*;
+
     let serde_json::Value::Object(mut map) = value else {
         return Err(ProposalError::NotAnObject);
     };
@@ -1397,15 +1404,10 @@ mod proposal_contract_tests {
         shapes.push(Action::play_with(TargetRef::Element { id: 8 }));
         shapes.push(Action::play_with(TargetRef::Kitty { id: 2 }));
         shapes.push(Action::Purr);
-        for message in [
-            MessageKind::WantEat,
-            MessageKind::WantDrink,
-            MessageKind::FollowMe,
-            MessageKind::WantPlay,
-            MessageKind::WantCuddle,
-            MessageKind::Purr,
-            MessageKind::WaitForMe,
-        ] {
+        // Every message kind, from the enum's own roster -- an eighth meow
+        // joins the corpus the moment it joins MessageKind::ALL (whose own
+        // exhaustive-match tests force it in).
+        for message in MessageKind::ALL {
             shapes.push(Action::Meow { message });
         }
         shapes.push(Action::Idle);
@@ -1415,7 +1417,10 @@ mod proposal_contract_tests {
     #[test]
     fn every_shape_the_engine_serializes_round_trips_unchanged() {
         let shapes = every_constructible_shape();
-        assert_eq!(shapes.len(), 26, "the corpus covers every wire shape");
+        // 15 fixed shapes (rest/sleep/groom x2, eat, drink, chase x2,
+        // play x3, purr, idle) plus one per direction and one per meow.
+        let expected = 15 + Direction::ALL.len() + MessageKind::ALL.len();
+        assert_eq!(shapes.len(), expected, "the corpus covers every wire shape");
         for action in shapes {
             let wire = serde_json::to_string(&action).expect("actions serialize");
             let parsed =

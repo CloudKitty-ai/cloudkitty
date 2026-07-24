@@ -143,6 +143,40 @@ fn an_oversized_reply_fails_the_proposal_and_kills_the_process() {
     }
 }
 
+/// Review 2026-07-23: the silent wedge — a plugin that reads each request,
+/// never answers, and keeps stdout open. This runs on the BUDGETLESS path
+/// (drive_tick has no wall-clock budget), so only the transport's own
+/// exchange deadline can contain it: every tick must complete, bounded by
+/// `exchange_timeout_ms`, with the fallback deciding and the wedged process
+/// killed and re-tried after the cooldown. Before the deadline existed this
+/// exact scenario hung the driver forever.
+#[test]
+fn a_silently_wedged_plugin_cannot_stall_the_budgetless_driver() {
+    let (mut world, registry, config) = world_with_plugin(plugin("wedged.py", &[]), &[0], |c| {
+        c.behavior.exchange_timeout_ms = 150;
+        c.behavior.relaunch_cooldown_ticks = 1;
+    });
+    let advised = config.kitties[0].id;
+
+    let started = std::time::Instant::now();
+    for _ in 0..3 {
+        let driven = drive_tick(&mut world, &registry, &config);
+        assert_eq!(
+            driven.report.record(advised).unwrap().provenance,
+            Provenance::FallbackTaken,
+            "tick {}: a wedged plugin costs cleverness, never the tick",
+            world.tick
+        );
+    }
+    assert_eq!(world.tick, 3, "zero missed ticks");
+    // Generous bound: 3 ticks x 150ms deadline plus process churn. The
+    // point is bounded-at-all — the pre-fix behavior was an infinite hang.
+    assert!(
+        started.elapsed() < std::time::Duration::from_secs(30),
+        "each tick is bounded by the exchange deadline"
+    );
+}
+
 /// Analysis finding I1: a plugin that replies twice per request. The stale
 /// second line -- a perfectly valid envelope for an earlier decision -- must
 /// never be applied: the correlation check fails it and restarts the

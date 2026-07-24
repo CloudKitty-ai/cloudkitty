@@ -92,10 +92,16 @@ reshaped into a different legal action.
   An unparseable reply line is just a failed proposal (no restart).
 - `v` is `1`. Plugins should reject versions they do not understand (their
   failed reply simply falls back — safe by construction).
-- Budget: the whole exchange runs under the standing wall-clock decision
-  budget (default: half a tick). A late reply is discarded; repeated
-  timeouts bench the kitty's dispatch (existing circuit breaker, expiring
-  bench).
+- Deadline: each exchange must answer within `exchange_timeout_ms`
+  (default 1000). A miss fails the proposal and kills the process (the
+  stream is unaccounted for); relaunch follows the cooldown. This deadline
+  is the transport's own and applies on every dispatch path, including
+  budgetless headless drivers (review 2026-07-23).
+- Budget: on the served path the whole exchange additionally runs under the
+  standing wall-clock decision budget (default: half a tick), including any
+  wait behind other kitties sharing the process. A late reply is discarded;
+  repeated timeouts bench the kitty's dispatch (existing circuit breaker,
+  expiring bench).
 - Reply bound: one line, at most `reply_max_bytes` (default 64 KiB). An
   oversized reply fails the proposal and kills the process (the stream is
   mid-line and unrecoverable); relaunch follows the cooldown.

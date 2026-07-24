@@ -8,35 +8,46 @@
 //! [`DecisionRequest`] line to the program's stdin and reads one reply line
 //! from its stdout -- a strict envelope echoing the request's `tick` and
 //! `kitty_id` around a single proposal, which is parsed by the hardened
-//! [`parse_proposal`] gate. stdout is only for replies; the program's stderr
-//! is inherited, landing in the server log.
+//! [`parse_proposal_value`] gate. stdout is only for replies; the program's
+//! stderr is inherited, landing in the server log.
+//!
+//! The pipes belong to a dedicated I/O thread per child process; an exchange
+//! hands it one request and waits for the reply with a hard wall-clock
+//! deadline (`exchange_timeout_ms`). The deadline is carried *here*, inside
+//! the transport, so it bounds the exchange on every dispatch path -- the
+//! served, budgeted one and the budgetless headless one alike -- and a
+//! silently wedged program can never strand a thread forever or stall a
+//! driver (review 2026-07-23).
 //!
 //! Failure semantics, in one line each:
 //! - unparseable reply -> failed proposal (fallback decides); framing is
 //!   intact, the process lives on;
-//! - oversized reply or correlation mismatch -> failed proposal AND the
-//!   process is killed (the stream is unrecoverable; relaunch resyncs it);
-//! - dead process / I/O error -> failed proposal; relaunch is attempted on a
-//!   later decision, at most once per `relaunch_cooldown_ticks`;
-//! - slow or wedged exchange -> the standing budget and circuit breaker
-//!   handle it exactly as for any external advisor. A wedged exchange keeps
-//!   this instance's mutex until its stray thread finishes, which is the
-//!   same bounded-leak story the breaker already tells: every kitty sharing
-//!   the wedged plugin is benched after `budget_strikes` timeouts.
+//! - oversized reply, correlation mismatch, or missed deadline -> failed
+//!   proposal AND the process is killed (the stream is unrecoverable or
+//!   unaccounted for; relaunch resyncs it);
+//! - dead process / I/O error (including a reply cut off mid-line) -> failed
+//!   proposal; relaunch is attempted on a later decision, at most once per
+//!   `relaunch_cooldown_ticks`.
 //!
 //! One shared process may advise several kitties: the mutex serializes
-//! exchanges and the request's `kitty_id` says who is asking.
+//! exchanges and the request's `kitty_id` says who is asking. On the served
+//! path each kitty's wall-clock budget also covers its wait in that queue,
+//! so keep (kitties sharing the process) x (reply time) comfortably inside
+//! the decision budget -- a slow shared plugin can cost its tail kitties
+//! budget strikes even when every individual reply is prompt (documented in
+//! docs/plugins.md).
 
 use std::io::{BufRead, BufReader, Read, Write};
 use std::path::PathBuf;
 use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
-use std::sync::Mutex;
+use std::sync::{mpsc, Mutex};
+use std::time::Duration;
 
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
 use super::{Behavior, DecisionContext};
-use crate::action::{parse_proposal, Action, ProposalError, PROPOSAL_WIRE_VERSION};
+use crate::action::{parse_proposal_value, Action, ProposalError, PROPOSAL_WIRE_VERSION};
 use crate::config::Config;
 use crate::kitty::{Kitty, KittyId};
 use crate::world::WorldSnapshot;
@@ -83,17 +94,62 @@ struct ReplyEnvelope {
     proposal: serde_json::Value,
 }
 
-/// A live child process with its pipes taken.
+/// One unit of work for a child's I/O thread: write this line, read one
+/// capped reply line back.
+struct IoRequest {
+    line: String,
+    max_bytes: usize,
+}
+
+/// The I/O thread's whole life: one blocking write-then-read per request,
+/// results handed back over the reply channel. It owns the pipes, so the
+/// deciding thread never blocks on child I/O directly -- it waits on the
+/// channel with a deadline instead. The thread frees itself when either
+/// channel closes or the stream breaks; killing the child closes the pipes
+/// and unblocks any read in progress.
+fn io_loop(
+    mut stdin: ChildStdin,
+    mut stdout: BufReader<ChildStdout>,
+    requests: mpsc::Receiver<IoRequest>,
+    replies: mpsc::Sender<std::io::Result<Vec<u8>>>,
+) {
+    while let Ok(request) = requests.recv() {
+        let result = (|| -> std::io::Result<Vec<u8>> {
+            stdin.write_all(request.line.as_bytes())?;
+            stdin.write_all(b"\n")?;
+            stdin.flush()?;
+            // Read one line, capped: one byte beyond the bound proves the
+            // line is oversized without ever buffering an unbounded reply.
+            let mut line = Vec::new();
+            Read::by_ref(&mut stdout)
+                .take(request.max_bytes as u64 + 1)
+                .read_until(b'\n', &mut line)?;
+            Ok(line)
+        })();
+        let broke = result.is_err();
+        if replies.send(result).is_err() || broke {
+            break;
+        }
+    }
+}
+
+/// A live child process, its pipes owned by a dedicated I/O thread.
 struct PluginChild {
     child: Child,
-    stdin: ChildStdin,
-    stdout: BufReader<ChildStdout>,
+    request_tx: mpsc::Sender<IoRequest>,
+    reply_rx: mpsc::Receiver<std::io::Result<Vec<u8>>>,
 }
 
 impl Drop for PluginChild {
     fn drop(&mut self) {
         // Kill-and-reap so a replaced or abandoned process never lingers as
-        // a zombie; a plugin's death must cost nothing but cleverness.
+        // a zombie; a plugin's death must cost nothing but cleverness. The
+        // kill closes the pipes, which unblocks the I/O thread; the channel
+        // halves dropping right after tell it to exit. The thread is
+        // detached, never joined: a grandchild of the plugin could inherit
+        // the stdout pipe and hold it open indefinitely, and one detached
+        // thread per killed process -- gone the moment the stream closes --
+        // is the bounded worst case.
         let _ = self.child.kill();
         let _ = self.child.wait();
     }
@@ -120,17 +176,20 @@ pub struct ScriptBehavior {
 /// `try_decide -> None`; the variants only shape the log line and decide
 /// whether the process must be killed for resync.
 enum ExchangeFailure {
-    /// The process is gone or its pipes broke; state is already `Dead`.
+    /// The process is gone or its pipes broke -- including a reply cut off
+    /// mid-line, which proves stdout closed.
     Io(std::io::Error),
     /// The reply line was not a well-formed envelope. Framing is intact.
     BadEnvelope(serde_json::Error),
     /// The envelope answers a different decision; stream desynced.
     Desynced { got_tick: u64, got_kitty: KittyId },
     /// The proposal inside a well-correlated envelope failed the hardened
-    /// gate ([`parse_proposal`]).
+    /// gate ([`parse_proposal_value`]).
     Rejected(ProposalError),
     /// The reply exceeded `reply_max_bytes`; the stream is mid-line.
     TooLarge { limit: usize },
+    /// No reply within `exchange_timeout_ms`; the stream is unaccounted for.
+    TimedOut { deadline_ms: u64 },
 }
 
 impl ScriptBehavior {
@@ -160,107 +219,134 @@ impl ScriptBehavior {
             .spawn()?;
         let stdin = child.stdin.take().expect("stdin was piped");
         let stdout = BufReader::new(child.stdout.take().expect("stdout was piped"));
+        let (request_tx, request_rx) = mpsc::channel();
+        let (reply_tx, reply_rx) = mpsc::channel();
+        let spawned = std::thread::Builder::new()
+            .name(format!("plugin-io-{}", self.name))
+            .spawn(move || io_loop(stdin, stdout, request_rx, reply_tx));
+        if let Err(error) = spawned {
+            // No thread means no pipes served; don't leak the process.
+            let _ = child.kill();
+            let _ = child.wait();
+            return Err(error);
+        }
         Ok(PluginChild {
             child,
-            stdin,
-            stdout,
+            request_tx,
+            reply_rx,
         })
     }
 
     /// Makes sure a process is running, honoring the relaunch cooldown.
     /// Returns `false` when this decision must fall back without an exchange.
     fn ensure_running(&self, state: &mut ChildState, now: u64, cooldown: u64) -> bool {
-        match state {
-            ChildState::Running(_) => true,
-            ChildState::NotSpawned => match self.spawn_child() {
-                Ok(child) => {
-                    *state = ChildState::Running(child);
-                    true
-                }
-                Err(error) => {
-                    tracing::warn!(plugin = %self.name, %error, "plugin failed to launch");
-                    *state = ChildState::Dead { since_tick: now };
-                    false
-                }
-            },
+        let relaunch = match state {
+            ChildState::Running(_) => return true,
+            ChildState::NotSpawned => false,
             ChildState::Dead { since_tick } => {
                 if now.saturating_sub(*since_tick) < cooldown {
                     return false;
                 }
-                match self.spawn_child() {
-                    Ok(child) => {
-                        tracing::warn!(plugin = %self.name, tick = now, "plugin relaunched");
-                        *state = ChildState::Running(child);
-                        true
-                    }
-                    Err(error) => {
-                        tracing::warn!(plugin = %self.name, %error, "plugin relaunch failed");
-                        *state = ChildState::Dead { since_tick: now };
-                        false
-                    }
+                true
+            }
+        };
+        match self.spawn_child() {
+            Ok(child) => {
+                if relaunch {
+                    tracing::warn!(plugin = %self.name, tick = now, "plugin relaunched");
                 }
+                *state = ChildState::Running(child);
+                true
+            }
+            Err(error) => {
+                let context = if relaunch {
+                    "plugin relaunch failed"
+                } else {
+                    "plugin failed to launch"
+                };
+                tracing::warn!(plugin = %self.name, %error, "{context}");
+                *state = ChildState::Dead { since_tick: now };
+                false
             }
         }
     }
 
-    /// One request/response exchange against a running child.
+    /// One request/response exchange against a running child, bounded by
+    /// `deadline` end to end.
     fn exchange(
         child: &mut PluginChild,
-        request_line: &str,
+        request_line: String,
         expect_tick: u64,
         expect_kitty: KittyId,
         reply_max_bytes: usize,
+        deadline: Duration,
     ) -> Result<Action, ExchangeFailure> {
+        let io_gone = || {
+            ExchangeFailure::Io(std::io::Error::new(
+                std::io::ErrorKind::BrokenPipe,
+                "the plugin's I/O thread is gone",
+            ))
+        };
         child
-            .stdin
-            .write_all(request_line.as_bytes())
-            .and_then(|()| child.stdin.write_all(b"\n"))
-            .and_then(|()| child.stdin.flush())
-            .map_err(ExchangeFailure::Io)?;
+            .request_tx
+            .send(IoRequest {
+                line: request_line,
+                max_bytes: reply_max_bytes,
+            })
+            .map_err(|_| io_gone())?;
 
-        // Read one line, capped: one byte beyond the bound proves the line
-        // is oversized without ever buffering an unbounded reply.
-        let mut line = Vec::new();
-        let read = Read::by_ref(&mut child.stdout)
-            .take(reply_max_bytes as u64 + 1)
-            .read_until(b'\n', &mut line)
-            .map_err(ExchangeFailure::Io)?;
-        if read == 0 {
-            return Err(ExchangeFailure::Io(std::io::Error::new(
-                std::io::ErrorKind::UnexpectedEof,
-                "plugin closed its stdout",
-            )));
-        }
+        let mut line = match child.reply_rx.recv_timeout(deadline) {
+            Ok(Ok(line)) => line,
+            Ok(Err(error)) => return Err(ExchangeFailure::Io(error)),
+            Err(mpsc::RecvTimeoutError::Timeout) => {
+                return Err(ExchangeFailure::TimedOut {
+                    deadline_ms: deadline.as_millis() as u64,
+                })
+            }
+            Err(mpsc::RecvTimeoutError::Disconnected) => return Err(io_gone()),
+        };
+
         if line.last() == Some(&b'\n') {
             line.pop();
         } else if line.len() > reply_max_bytes {
             return Err(ExchangeFailure::TooLarge {
                 limit: reply_max_bytes,
             });
+        } else {
+            // Under the cap but no newline: the stream ended mid-line (or
+            // was already at EOF), which proves stdout closed -- an I/O
+            // death, not a framing problem (review 2026-07-23).
+            return Err(ExchangeFailure::Io(std::io::Error::new(
+                std::io::ErrorKind::UnexpectedEof,
+                "plugin closed its stdout mid-reply",
+            )));
         }
-        let line = String::from_utf8_lossy(&line);
+        let text = String::from_utf8_lossy(&line);
 
         let envelope: ReplyEnvelope =
-            serde_json::from_str(&line).map_err(ExchangeFailure::BadEnvelope)?;
+            serde_json::from_str(&text).map_err(ExchangeFailure::BadEnvelope)?;
         if envelope.tick != expect_tick || envelope.kitty_id != expect_kitty {
             return Err(ExchangeFailure::Desynced {
                 got_tick: envelope.tick,
                 got_kitty: envelope.kitty_id,
             });
         }
-        // Through the hardened gate, exactly like any external bytes. The
-        // envelope was parsed leniently to a Value first, so re-render it;
-        // duplicate keys have already collapsed (documented semantics).
-        parse_proposal(&envelope.proposal.to_string()).map_err(ExchangeFailure::Rejected)
+        // Through the hardened gate, exactly like any external bytes; the
+        // envelope's `Value` already collapsed duplicate keys last-wins
+        // (documented semantics).
+        parse_proposal_value(envelope.proposal).map_err(ExchangeFailure::Rejected)
     }
 }
 
 #[async_trait]
 impl Behavior for ScriptBehavior {
-    async fn decide(&self, ctx: &DecisionContext) -> Action {
-        // Dispatch consults try_decide; a hypothetical direct caller gets
-        // the other constitutionally safe outcome.
-        self.try_decide(ctx).await.unwrap_or(Action::Idle)
+    async fn decide(&self, _ctx: &DecisionContext) -> Action {
+        // Dispatch resolves external advisors through try_decide; a caller
+        // reaching this arm is a bug, and the panic is the safe answer --
+        // run_catching converts it (even through a decide-only delegating
+        // wrapper) into the uniform fallback-from-dealt-seed resolution,
+        // where a quiet made-up action here would not (review 2026-07-23).
+        unreachable!("dispatch consults try_decide; ScriptBehavior never decides directly")
     }
 
     /// `None` on any failure: dispatch takes the crashed-advisor path and
@@ -270,6 +356,8 @@ impl Behavior for ScriptBehavior {
         let kitty = ctx.me.id;
         let behavior_config = &ctx.config.behavior;
 
+        // Built unconditionally -- the seed draw must advance the kitty's
+        // decision stream identically whether or not the plugin is alive.
         let request = DecisionRequest {
             v: PROPOSAL_WIRE_VERSION,
             tick: now,
@@ -279,7 +367,6 @@ impl Behavior for ScriptBehavior {
             seed: ctx.rng.gen_u64(),
             config: &ctx.config,
         };
-        let request_line = serde_json::to_string(&request).expect("requests serialize");
 
         let mut state = self.lock();
         if !self.ensure_running(&mut state, now, behavior_config.relaunch_cooldown_ticks) {
@@ -288,13 +375,17 @@ impl Behavior for ScriptBehavior {
         let ChildState::Running(child) = &mut *state else {
             unreachable!("ensure_running returned true");
         };
+        // Serialized only after liveness is settled: a dead or cooling-down
+        // plugin must not cost a full world serialization per decision.
+        let request_line = serde_json::to_string(&request).expect("requests serialize");
 
         match Self::exchange(
             child,
-            &request_line,
+            request_line,
             now,
             kitty,
             behavior_config.reply_max_bytes,
+            Duration::from_millis(behavior_config.exchange_timeout_ms),
         ) {
             Ok(action) => Some(action),
             Err(failure) => {
@@ -307,6 +398,13 @@ impl Behavior for ScriptBehavior {
                     }
                     ExchangeFailure::TooLarge { limit } => {
                         tracing::warn!(plugin = %self.name, kitty, limit, "plugin reply exceeded reply_max_bytes");
+                        true
+                    }
+                    ExchangeFailure::TimedOut { deadline_ms } => {
+                        tracing::warn!(
+                            plugin = %self.name, kitty, deadline_ms,
+                            "plugin exchange timed out; killing the plugin process"
+                        );
                         true
                     }
                     ExchangeFailure::Desynced {
@@ -330,6 +428,11 @@ impl Behavior for ScriptBehavior {
                     }
                 };
                 if kill {
+                    // `now` is the request tick. Exchanges are bounded by
+                    // the deadline, so even a write from a budget-stray
+                    // thread lags reality by at most one deadline's worth
+                    // of ticks -- the cooldown clock can no longer be
+                    // pre-expired by an unboundedly stale tick.
                     *state = ChildState::Dead { since_tick: now };
                 }
                 None
@@ -386,5 +489,69 @@ mod tests {
         assert_eq!(object["tick"], 7);
         assert_eq!(object["seed"], 42);
         assert!(!line.contains('\n'), "one request means one line");
+    }
+
+    /// A reply cut off mid-line (the plugin crashed mid-write) is an I/O
+    /// death -- stdout provably closed -- never a mere framing complaint
+    /// that would leave the dead child unreaped (review 2026-07-23).
+    #[test]
+    fn a_reply_cut_off_mid_line_is_an_io_death_not_a_framing_complaint() {
+        let behavior = ScriptBehavior::new(
+            "partial",
+            "/bin/sh",
+            vec!["-c".into(), "read line; printf notaline".into()],
+        );
+        let mut child = behavior.spawn_child().expect("sh spawns");
+        let result = ScriptBehavior::exchange(
+            &mut child,
+            "{}".to_string(),
+            0,
+            0,
+            65536,
+            Duration::from_secs(10),
+        );
+        assert!(
+            matches!(
+                &result,
+                Err(ExchangeFailure::Io(e)) if e.kind() == std::io::ErrorKind::UnexpectedEof
+            ),
+            "a mid-line EOF is an I/O failure"
+        );
+    }
+
+    /// A silently wedged plugin -- request read, reply never written, stdout
+    /// held open -- is cut off by the exchange deadline, on any dispatch
+    /// path, without stranding the deciding thread (review 2026-07-23).
+    #[test]
+    fn a_silent_wedge_is_cut_off_by_the_exchange_deadline() {
+        let behavior = ScriptBehavior::new(
+            "wedged",
+            "/bin/sh",
+            vec!["-c".into(), "read line; exec sleep 600".into()],
+        );
+        let mut child = behavior.spawn_child().expect("sh spawns");
+        let started = std::time::Instant::now();
+        let result = ScriptBehavior::exchange(
+            &mut child,
+            "{}".to_string(),
+            0,
+            0,
+            65536,
+            Duration::from_millis(100),
+        );
+        assert!(
+            matches!(&result, Err(ExchangeFailure::TimedOut { deadline_ms: 100 })),
+            "the deadline fires"
+        );
+        assert!(
+            started.elapsed() < Duration::from_secs(30),
+            "the exchange is bounded by the deadline, not the plugin"
+        );
+        // Dropping the child kills the wedged process without blocking.
+        drop(child);
+        assert!(
+            started.elapsed() < Duration::from_secs(30),
+            "drop is prompt"
+        );
     }
 }

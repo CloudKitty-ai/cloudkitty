@@ -80,6 +80,12 @@ pub trait Behavior: Send + Sync {
     /// resolution). Built-ins never return `None`; only external advisors,
     /// whose proposals can fail in ways a panic does not express, override
     /// this.
+    ///
+    /// **Wrapper authors**: dispatch consults `try_decide`, so a delegating
+    /// behavior must forward `try_decide` to its inner behavior, not just
+    /// `decide` -- a decide-only wrapper around an external advisor would
+    /// silently convert "no proposal" into whatever `decide` improvises,
+    /// bypassing the uniform fallback rule.
     async fn try_decide(&self, ctx: &DecisionContext) -> Option<Action> {
         Some(self.decide(ctx).await)
     }
@@ -130,8 +136,19 @@ impl BehaviorRegistry {
         registry
     }
 
+    /// Registers a behavior under `name`. Names are unique by construction:
+    /// a duplicate registration is a programmer error and panics -- silent
+    /// last-write-wins once let a same-named plugin shadow a builtin with
+    /// no warning (review 2026-07-23). Callers whose names come from config
+    /// (plugin registration) check first and return a proper startup error;
+    /// this panic is the backstop for every future registration source.
     pub fn register(&mut self, name: impl Into<String>, behavior: Arc<dyn Behavior>) {
-        self.map.insert(name.into(), behavior);
+        let name = name.into();
+        let previous = self.map.insert(name.clone(), behavior);
+        assert!(
+            previous.is_none(),
+            "behavior {name:?} registered twice; names must be unique"
+        );
     }
 
     pub fn get(&self, name: &str) -> Option<Arc<dyn Behavior>> {
@@ -357,11 +374,13 @@ async fn decide_one(job: DecisionJob, budget: Duration, registry: &BehaviorRegis
         // could never preempt it and a slow advisor would stall the tick
         // loop. On the blocking pool the tick loop keeps its budget; on
         // timeout the JoinHandle is dropped and the stray computation
-        // finishes on its detached thread. Because a wedged advisor might
-        // *never* finish, consecutive per-kitty timeouts bench the kitty's
-        // dispatch (the registry's circuit breaker): the leak is bounded
-        // at budget_strikes threads per bench window, not one per tick
-        // forever.
+        // finishes on its detached thread. An arbitrary external advisor
+        // might *never* finish, so consecutive per-kitty timeouts bench the
+        // kitty's dispatch (the registry's circuit breaker); ScriptBehavior
+        // additionally carries its own per-exchange deadline
+        // (exchange_timeout_ms), so its strays always finish within one
+        // deadline -- the pool can never fill with permanently blocked
+        // plugin threads (review 2026-07-23).
         Some(b) => {
             let now = job.ctx.world.tick;
             if registry.is_benched(job.id, now) {
@@ -481,6 +500,15 @@ mod tests {
     fn external_behaviors_are_not_builtin_by_default() {
         assert!(!SleepySlow::new(50).is_builtin());
         assert!(!AlwaysInvalid.is_builtin());
+    }
+
+    #[test]
+    #[should_panic(expected = "registered twice")]
+    fn a_duplicate_registration_is_a_programmer_error() {
+        // Review 2026-07-23: silent last-write-wins let a same-named plugin
+        // shadow a builtin. The registry itself is the backstop now.
+        let mut r = BehaviorRegistry::with_builtins();
+        r.register("playful", Arc::new(AlwaysInvalid));
     }
 
     #[tokio::test]

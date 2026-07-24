@@ -161,8 +161,8 @@ twice; unknown meow kind; extra field on a bare action; not an object.)
 | Parses, and is legal right now | Applied — your kitty does it | The action, attributed to your plugin |
 | Parses, but is illegal right now (chasing a vanished bug, eating with no chow near) | Idle turn, via engine validation | An idle turn — not a punishment, just the law |
 | Fails to parse | Fallback: the built-in needs-driven behavior takes the turn | `proposal rejected` in the log, with the parse error |
-| Wrong `tick`/`kitty_id` echo, or oversized | Fallback, **and your process is restarted** | `plugin reply desynced` / size warning in the log |
-| Your process crashed, hung, or never answered in budget | Fallback (a hung exchange is cut off by the decision budget; repeated timeouts bench your kitty's dispatch for a while — it recovers on its own) | `plugin exchange failed`, budget/bench warnings |
+| Wrong `tick`/`kitty_id` echo, oversized, or no reply within `exchange_timeout_ms` | Fallback, **and your process is restarted** | `plugin reply desynced` / size / `exchange timed out` warning in the log |
+| Your process crashed or its stream broke | Fallback (repeated budget timeouts also bench your kitty's dispatch for a while — it recovers on its own) | `plugin exchange failed`, budget/bench warnings |
 
 Two constitutional safety rails you can rely on (Article IV, v1.2.0): a
 malformed proposal resolves to the **fallback**, a well-formed-but-illegal
@@ -171,16 +171,27 @@ didn't send, never a stalled world.
 
 ## Lifecycle
 
-- **Launch** is lazy (first decision) after startup validation of the path.
+- **Launch** is lazy (first decision) after startup validation: the
+  `command` must exist, be a file, and be executable (`chmod +x`), or the
+  server refuses to start.
 - **Death** is survived: every affected decision falls back, and the engine
   relaunches your program — at most once per `relaunch_cooldown_ticks`
   (default 20), so a crash-looping program never becomes a spawn storm.
-- **Budget**: the whole exchange runs inside the standing decision budget
-  (default: half a tick — `budget_fraction_of_tick`). Answer promptly;
-  precompute between ticks if you must think slowly.
+- **Deadline**: each exchange must answer within `exchange_timeout_ms`
+  (default 1000). Miss it and the proposal fails, your process is killed,
+  and the relaunch cooldown starts — a silently hung program can never
+  stall the world. This deadline is the transport's own and applies
+  everywhere, including headless drivers with no decision budget.
+- **Budget**: on the served path the whole exchange (including waiting for
+  siblings sharing your process — see below) also runs inside the standing
+  decision budget (default: half a tick — `budget_fraction_of_tick`).
+  Answer promptly; precompute between ticks if you must think slowly.
 - **Shared processes**: several kitties may name the same plugin. Exchanges
   are serialized and `kitty_id` says who is asking; keep per-kitty state
-  keyed by it.
+  keyed by it. Because a kitty's budget clock also covers its wait in the
+  queue, keep (kitties sharing the process) × (your reply time) comfortably
+  inside the budget — a slow shared plugin can cost its last-served kitties
+  budget strikes even when every individual reply is prompt.
 
 ## The multi-agent livelock warning
 
@@ -207,9 +218,10 @@ eventually dance.
 
 | Key | Default | Meaning |
 |---|---|---|
-| `[plugins.<name>] command` | — | Path to your executable; validated at startup |
+| `[plugins.<name>] command` | — | Path to your executable (existence and the exec bit validated at startup) |
 | `[plugins.<name>] args` | `[]` | Arguments, passed verbatim |
 | `[behavior] reply_max_bytes` | `65536` | Cap on one reply line |
 | `[behavior] relaunch_cooldown_ticks` | `20` | Minimum ticks between relaunch attempts |
+| `[behavior] exchange_timeout_ms` | `1000` | Hard wall-clock deadline on one exchange; missing it kills your process |
 | `[behavior] budget_fraction_of_tick` | `0.5` | Your decision budget, as a share of a tick |
 | `[behavior] budget_strikes` / `bench_ticks` | `5` / `300` | Consecutive timeouts before your kitty's dispatch is benched, and for how long |

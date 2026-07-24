@@ -580,6 +580,18 @@ pub struct BehaviorConfig {
     /// bounded spawn rate, never a spawn storm. Default: 20.
     #[serde(default = "default_relaunch_cooldown_ticks")]
     pub relaunch_cooldown_ticks: u64,
+    /// Hard wall-clock deadline on one plugin exchange, in milliseconds
+    /// (spec 016, review remediation). This is the plugin transport's own
+    /// containment — carried inside `ScriptBehavior`, so it bounds the
+    /// exchange on *every* dispatch path, including the budgetless one the
+    /// served budget never covers. A reply that misses the deadline is a
+    /// failed proposal and kills the process (a silently wedged program
+    /// must never strand a thread or stall a headless driver). Wall clock
+    /// here cannot touch Article V: determinism is scoped to built-in
+    /// behaviors, and this deadline exists only inside the external
+    /// transport. Default: 1000.
+    #[serde(default = "default_exchange_timeout_ms")]
+    pub exchange_timeout_ms: u64,
 }
 
 fn default_playful_comfort() -> f32 {
@@ -634,6 +646,10 @@ fn default_relaunch_cooldown_ticks() -> u64 {
     20
 }
 
+fn default_exchange_timeout_ms() -> u64 {
+    1000
+}
+
 impl Default for BehaviorConfig {
     fn default() -> Self {
         Self {
@@ -651,6 +667,7 @@ impl Default for BehaviorConfig {
             bench_ticks: default_bench_ticks(),
             reply_max_bytes: default_reply_max_bytes(),
             relaunch_cooldown_ticks: default_relaunch_cooldown_ticks(),
+            exchange_timeout_ms: default_exchange_timeout_ms(),
         }
     }
 }
@@ -1146,6 +1163,13 @@ impl Config {
                 "must be at least 1 tick (unbounded respawn would be a spawn storm)",
             ));
         }
+        if self.behavior.exchange_timeout_ms == 0 {
+            return Err(ConfigError::invalid(
+                "[behavior] exchange_timeout_ms",
+                "0".to_string(),
+                "must be at least 1 ms (a plugin must have a moment to answer)",
+            ));
+        }
         let solo = self.actions.solo_play_relief;
         if !solo.is_finite() || solo < 0.0 {
             return Err(ConfigError::invalid(
@@ -1592,6 +1616,11 @@ mod tests {
         let msg = c.validate().unwrap_err().to_string();
         assert!(msg.contains("relaunch_cooldown_ticks"), "{msg}");
 
+        let mut c = cfg();
+        c.behavior.exchange_timeout_ms = 0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("exchange_timeout_ms"), "{msg}");
+
         let old: BehaviorConfig =
             toml::from_str("budget_fraction_of_tick = 0.5").expect("old shape parses");
         assert_eq!(old.reply_max_bytes, default_reply_max_bytes());
@@ -1599,6 +1628,7 @@ mod tests {
             old.relaunch_cooldown_ticks,
             default_relaunch_cooldown_ticks()
         );
+        assert_eq!(old.exchange_timeout_ms, default_exchange_timeout_ms());
     }
 
     #[test]

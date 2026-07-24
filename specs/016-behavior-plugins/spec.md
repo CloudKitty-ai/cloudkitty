@@ -219,6 +219,11 @@ carries the livelock warning with the symmetry-breaking advice.
   much.
 - A reply that arrives after the budget has expired → already handled: the
   fallback has taken the turn; the late answer is discarded.
+- A silently hung program — request read, reply never written, stream held
+  open → the transport's own per-exchange deadline (`exchange_timeout_ms`)
+  fails the proposal and kills the process, on every dispatch path including
+  budgetless headless drivers (review 2026-07-23, research.md R12); no
+  thread is stranded and no driver stalls.
 - A plugin process that dies mid-run, or an endpoint that disappears → every
   affected decision falls back; the world never stalls or crashes; recovery is
   automatic — the engine relaunches an exited long-running program, and the
