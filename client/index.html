@@ -222,13 +222,19 @@
   }
 
   /* One-line text rows: with the card width fixed, a rare over-long line
-     trims to an ellipsis rather than ever stretching the card. */
+     trims to an ellipsis rather than ever stretching the card. The pinned
+     line-height matters as much as the width (owner catch, 2026-07-23):
+     under `normal`, a line holding an emoji takes the emoji font's taller
+     metrics and the row grows a couple of pixels -- so "eating 🍥" coming
+     and going bobbed every card below it. With a specified line-height,
+     every line box is exactly this tall no matter which font renders it. */
   .kitty-card .mood,
   .kitty-card .doing,
   .kitty-card .patience {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    line-height: 1.4;
   }
 
   .kitty-card .mood {
@@ -241,22 +247,26 @@
     font-size: 0.75rem;
     color: var(--ink);
     margin: 1px 0 2px;
-    min-height: 1em;
+    /* Matches the pinned line-height above, so an empty row is exactly as
+       tall as a full one (1em was a leading's-worth short). */
+    min-height: 1.4em;
   }
 
   /* The gentle long-distress cue: soft, caring, never an alarm. Empty (and
      therefore invisible) whenever nothing has been wanted for too long --
-     but always one line tall, so its coming and going never changes the
-     card's height (which would ripple into page scrollbar toggles and
-     subtle card wobble). The -2px bottom margin tucks the "needs" heading
-     slightly into this line's leading: constant, so no height wobble, and
-     small enough that ~2px of air remains when the cue text is showing. */
+     but always one line tall (min-height matching the pinned line-height,
+     so empty really is the same height as full), and its coming and going
+     never changes the card's height (which would ripple into page
+     scrollbar toggles and subtle card wobble). The -2px bottom margin
+     tucks the "needs" heading slightly into this line's leading: constant,
+     so no height wobble, and small enough that ~2px of air remains when
+     the cue text is showing. */
   .kitty-card .patience {
     font-size: 0.72rem;
     font-style: italic;
     color: var(--patience-ink);
     margin: 0 0 -2px;
-    min-height: 1em;
+    min-height: 1.4em;
   }
 
   /* The "needs" heading. No top margin: the reserved patience line above
