@@ -323,22 +323,26 @@ impl Default for ElementsConfig {
                 ttl: None,
                 servings: Some(5),
             },
+            // Long, unhurried lifetimes (owner call 2026-07-23): a calmer
+            // world is kinder to watch and to learn in (RL agents see fewer
+            // targets vanish mid-plan). Staggered respawns come from the
+            // spawn-time TTL jitter (spawn.rs), not from fast churn.
             bug: ElementRule {
                 min: 3,
                 max: 8,
-                ttl: Some(120),
+                ttl: Some(300),
                 servings: None,
             },
             greeble: ElementRule {
                 min: 1,
                 max: 3,
-                ttl: Some(90),
+                ttl: Some(300),
                 servings: None,
             },
             sunbeam: ElementRule {
                 min: 3,
                 max: 6,
-                ttl: Some(150),
+                ttl: Some(300),
                 servings: None,
             },
         }
