@@ -71,8 +71,12 @@ jobs:
       - name: pytest (smoke + SC-002 two-process reproducibility)
         run: pytest crates/cloudkitty-py/tests -v
 
-      - name: PettingZoo conformance (optional)
-        continue-on-error: true
+      # Pinned, and no longer continue-on-error (2026-07-24): the unpinned
+      # optional step failed silently for months when pettingzoo 1.26
+      # changed its harness. The pin means only OUR regressions can fail
+      # this step; a pettingzoo upgrade is a deliberate bump of this line,
+      # with whatever harness changes it brings faced consciously.
+      - name: PettingZoo conformance
         run: |
-          pip install pettingzoo
+          pip install "pettingzoo==1.26.1"
           pytest crates/cloudkitty-py/tests/test_pettingzoo_conformance.py -v

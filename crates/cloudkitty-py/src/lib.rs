@@ -176,11 +176,24 @@ fn discrete_space(py: Python<'_>, n: usize) -> PyResult<Py<PyAny>> {
 }
 
 /// The PettingZoo-parallel CloudKitty environment (one world).
-#[pyclass]
+///
+/// `dict` gives instances a `__dict__`: ecosystem tooling decorates env
+/// objects with bookkeeping attributes (pettingzoo ≥ 1.26's conformance
+/// harness opens with `env.max_cycles = n`), and a compiled class without
+/// one raises AttributeError before any real API check runs. Foreign
+/// attributes are inert to us -- nothing here reads them.
+#[pyclass(dict)]
 struct ParallelEnv {
     episode: Episode,
     external: Vec<KittyId>,
     live: bool,
+    /// PettingZoo requires `observation_space(agent)` and
+    /// `action_space(agent)` to return the *same object* on every call
+    /// (identity, not equality — trainers cache spaces and the conformance
+    /// harness checks `is`). Built once on first ask, then handed out as
+    /// references to that one Python object.
+    observation_space_obj: std::sync::OnceLock<Py<PyAny>>,
+    action_space_obj: std::sync::OnceLock<Py<PyAny>>,
 }
 
 /// The (core, rl) config pair with the horizon override applied — parsed
@@ -271,6 +284,8 @@ impl ParallelEnv {
             episode,
             external,
             live: false,
+            observation_space_obj: std::sync::OnceLock::new(),
+            action_space_obj: std::sync::OnceLock::new(),
         })
     }
 
@@ -290,6 +305,13 @@ impl ParallelEnv {
         self.external.iter().copied().map(agent_name).collect()
     }
 
+    /// PettingZoo's `unwrapped` convention: there are no wrapper layers
+    /// here, so the environment is its own unwrapped self.
+    #[getter]
+    fn unwrapped(slf: PyRef<'_, Self>) -> Py<ParallelEnv> {
+        slf.into()
+    }
+
     #[getter]
     fn metadata<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let dict = PyDict::new(py);
@@ -299,11 +321,25 @@ impl ParallelEnv {
     }
 
     fn observation_space(&self, py: Python<'_>, _agent: &str) -> PyResult<Py<PyAny>> {
-        box_space(py, observation_len(&self.episode.rl_config().observation))
+        let space = match self.observation_space_obj.get() {
+            Some(space) => space,
+            None => {
+                let built = box_space(py, observation_len(&self.episode.rl_config().observation))?;
+                self.observation_space_obj.get_or_init(|| built)
+            }
+        };
+        Ok(space.clone_ref(py))
     }
 
     fn action_space(&self, py: Python<'_>, _agent: &str) -> PyResult<Py<PyAny>> {
-        discrete_space(py, self.episode.codec().len())
+        let space = match self.action_space_obj.get() {
+            Some(space) => space,
+            None => {
+                let built = discrete_space(py, self.episode.codec().len())?;
+                self.action_space_obj.get_or_init(|| built)
+            }
+        };
+        Ok(space.clone_ref(py))
     }
 
     #[pyo3(signature = (seed=None, options=None))]
