@@ -13,7 +13,6 @@
 
 use std::collections::BTreeMap;
 use std::ops::Range;
-use std::panic::AssertUnwindSafe;
 use std::sync::mpsc;
 use std::thread::JoinHandle;
 
@@ -21,25 +20,14 @@ use cloudkitty_core::kitty::KittyId;
 
 use crate::episode::{Episode, EpisodeError, EpisodeStep};
 
-/// Resets one worker-owned world. `Episode` owns the poison/refuse/
-/// reset-revives state machine itself (third review), so a panic mid-step
-/// is already caught and recorded there; the one panic the episode cannot
-/// catch is a world-generation panic during its own reset, caught here and
-/// recorded so the next step is refused with the original message while
-/// the sibling worlds and the environment stay usable. Any later
-/// successful reset heals.
+/// Resets one worker-owned world through the shared panic guard
+/// ([`Episode::reset_caught`], which owns the catch/poison/heal story —
+/// since the round-one review the Python surface's solo reset shares it,
+/// so no reset path is bare). A failed world stays refused with the
+/// original message while the sibling worlds and the environment stay
+/// usable; any later successful reset heals.
 fn reset_slot(episode: &mut Episode, seed: Option<u64>) -> Result<EpisodeStep, EpisodeError> {
-    match std::panic::catch_unwind(AssertUnwindSafe(|| match seed {
-        Some(seed) => episode.reset(seed),
-        None => episode.reset_fresh(),
-    })) {
-        Ok(step) => Ok(step),
-        Err(payload) => {
-            let message = crate::episode::panic_message(payload);
-            episode.poison(message.clone());
-            Err(EpisodeError::Panicked { message })
-        }
-    }
+    episode.reset_caught(seed)
 }
 
 enum Command {

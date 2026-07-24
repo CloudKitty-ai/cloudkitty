@@ -262,6 +262,28 @@ impl Episode {
         self.reset(next)
     }
 
+    /// [`Episode::reset`] / [`Episode::reset_fresh`] behind the panic guard
+    /// every reset path must share (round-one review, 2026-07-24: the
+    /// Python surface's solo reset lacked it while the batched reset had
+    /// it — an asymmetry, not a design). The one panic an episode cannot
+    /// catch from inside is a world-generation panic during its own reset;
+    /// caught here, the episode is poisoned with the original message —
+    /// further steps refused, any later successful reset heals — and the
+    /// caller gets an error instead of an unwind.
+    pub fn reset_caught(&mut self, seed: Option<u64>) -> Result<EpisodeStep, EpisodeError> {
+        match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| match seed {
+            Some(seed) => self.reset(seed),
+            None => self.reset_fresh(),
+        })) {
+            Ok(step) => Ok(step),
+            Err(payload) => {
+                let message = panic_message(payload);
+                self.poison(message.clone());
+                Err(EpisodeError::Panicked { message })
+            }
+        }
+    }
+
     /// One joint-action step. `actions` maps every external agent to a menu
     /// index; a missing entry lawfully substitutes idle (Article IV), an
     /// out-of-range index is a caller error.

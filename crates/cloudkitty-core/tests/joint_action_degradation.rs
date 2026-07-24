@@ -111,3 +111,51 @@ fn a_retired_purr_proposal_lawfully_resolves_to_idle() {
     assert_eq!(record.validated, Action::Idle, "validation refused it");
     assert_eq!(record.provenance, Provenance::PolicyMade);
 }
+
+#[test]
+fn a_duplicate_proposal_resolves_last_write_wins() {
+    // Documented at JointProposal::propose since spec 014 FR-001, untested
+    // until the round-one review: a second proposal for the same kitty
+    // replaces the first, and the record reports the replacement as what
+    // was proposed.
+    let config = Arc::new(Config::default());
+    let mut world = World::generate(&config);
+    let kitty = world.kitties[0].id;
+
+    let mut proposals = JointProposal::new();
+    proposals.propose(
+        kitty,
+        Action::Move {
+            direction: Direction::South,
+        },
+    );
+    proposals.propose(kitty, Action::Idle);
+    assert_eq!(proposals.len(), 1, "one entry per kitty, not per call");
+
+    let report = world.tick_with_proposals(&proposals, &config);
+    let record = report.record(kitty).expect("the kitty has a record");
+    assert_eq!(record.proposed, Action::Idle, "the last write won");
+    assert_eq!(
+        record.provenance,
+        Provenance::PolicyMade,
+        "a replaced proposal is still a made proposal, never a substitution"
+    );
+}
+
+#[test]
+#[should_panic(expected = "dealt for tick")]
+fn a_stale_deal_cannot_cross_ticks() {
+    // The double-deal footgun (round-one review): seeds dealt for tick T
+    // must never apply at any other tick — quietly doing so would desync
+    // the master RNG stream (Article V). The engine asserts the deal's
+    // tick stamp; this pins the assertion so it cannot regress to a
+    // silent acceptance.
+    let config = Arc::new(Config::default());
+    let mut world = World::generate(&config);
+
+    let stale = world.deal_decision_seeds();
+    // The world moves on with its own properly-dealt tick...
+    world.tick_with_proposals(&JointProposal::new(), &config);
+    // ...and the held-over deal is refused loudly, not absorbed.
+    world.tick_with_proposals_seeded(&JointProposal::new(), stale, &config);
+}

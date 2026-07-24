@@ -71,10 +71,12 @@ TargetTable. Direction order is the engine's: North, East, South, West.
 - **Advisory**: legality speaks to the frozen snapshot; within-tick
   contention is resolved by the engine's fair order. Necessary, never
   sufficient.
-- **Guarding test (pure oracle, no carve-outs)**: for every menu entry,
-  mask verdict == the engine's validate-plus-enforcement verdict against
-  a world in the snapshot's state; plus a property test that the mask is
-  never all-zero across randomized worlds, rosters, and activities.
+- **Guarding test (no carve-outs)**: for every menu entry, mask verdict
+  == the engine's validate-plus-enforcement verdict against a world in
+  the snapshot's state — the engine's own judgment replayed, not an
+  independent re-derivation, so the guard pins the mask's assembly to
+  the one implementation of the law; plus a property test that the mask
+  is never all-zero across randomized worlds, rosters, and activities.
 
 ## Global state v1 (FR-019)
 
