@@ -1,0 +1,17 @@
+=== 016 post-check, branch 016-behavior-plugins, Thu Jul 23 19:03:44 MDT 2026 ===
+--- quickstart step 1: fmt + clippy + full suite ---
+fmt: PASS
+    Checking cloudkitty-py v0.1.0 (/Users/elizabethkelly/ai/cloudkitty/crates/cloudkitty-py)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.73s
+37
+suites-ok count above; failures:
+(none listed = all green)
+--- step 2: wire matrix ---
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 240 filtered out; finished in 0.00s
+--- steps 3-5: plugin e2e ---
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s
+--- step 6: docs examples ---
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+--- step 8: startup validation (manual, isolated tmp dir) ---
+broken [plugins.broken].command -> startup refused before any tick:
+"[plugins.broken].command (/definitely/not/a/real/program) does not exist or is not a file"

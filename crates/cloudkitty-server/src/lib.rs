@@ -168,10 +168,9 @@ mod plugin_registration_tests {
     fn a_missing_plugin_program_fails_startup_with_a_clear_error() {
         // Spec 016 FR-011: detectable config errors stop the world before it
         // starts, naming the field and the path.
-        let plugins: PluginsConfig = toml::from_str(
-            "[plugins.ghost]\ncommand = \"/definitely/not/a/real/program\"\n",
-        )
-        .unwrap();
+        let plugins: PluginsConfig =
+            toml::from_str("[plugins.ghost]\ncommand = \"/definitely/not/a/real/program\"\n")
+                .unwrap();
         let mut registry = BehaviorRegistry::with_builtins();
         let err = register_plugin_behaviors(&mut registry, &plugins).unwrap_err();
         let msg = err.to_string();
@@ -199,9 +198,8 @@ mod plugin_registration_tests {
 
     #[test]
     fn an_unknown_plugin_field_is_a_startup_error_not_a_surprise() {
-        let parsed: Result<PluginsConfig, _> = toml::from_str(
-            "[plugins.demo]\ncommand = \"/bin/echo\"\nworkdir = \"/tmp\"\n",
-        );
+        let parsed: Result<PluginsConfig, _> =
+            toml::from_str("[plugins.demo]\ncommand = \"/bin/echo\"\nworkdir = \"/tmp\"\n");
         assert!(parsed.is_err(), "unknown [plugins] fields are refused");
     }
 }

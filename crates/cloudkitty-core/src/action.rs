@@ -1418,8 +1418,8 @@ mod proposal_contract_tests {
         assert_eq!(shapes.len(), 26, "the corpus covers every wire shape");
         for action in shapes {
             let wire = serde_json::to_string(&action).expect("actions serialize");
-            let parsed = parse_proposal(&wire)
-                .unwrap_or_else(|e| panic!("{wire} must parse strictly: {e}"));
+            let parsed =
+                parse_proposal(&wire).unwrap_or_else(|e| panic!("{wire} must parse strictly: {e}"));
             assert_eq!(parsed, action, "round-trip identity for {wire}");
         }
     }
@@ -1515,7 +1515,10 @@ mod proposal_contract_tests {
         // Purr retired as an action in spec 011: recognizing the shape and
         // idling it at validation keeps a confused advisor from being
         // punished as a parse error.
-        assert_eq!(parse_proposal(r#"{"action": "purr"}"#).unwrap(), Action::Purr);
+        assert_eq!(
+            parse_proposal(r#"{"action": "purr"}"#).unwrap(),
+            Action::Purr
+        );
     }
 
     #[test]

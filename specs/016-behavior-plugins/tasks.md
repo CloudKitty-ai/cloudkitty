@@ -116,8 +116,8 @@ docs_examples`) plus a completeness read against FR-015/FR-016.
 
 ## Phase 7: Polish & Cross-Cutting
 
-- [ ] T021 [P] Retire the two shipped P2 entries in BACKLOG.md ("Harden the whole proposal boundary", "External behavior plugins") with a shipped-in-016 note recording that the HTTP transport remains open (deferred, spec'd in specs/016-behavior-plugins/)
-- [ ] T022 Run the automated quickstart gates (steps 1–6 and 8 of specs/016-behavior-plugins/quickstart.md), including `cargo fmt --all` **before** the final check (the 015 CI lesson); fix any fallout; record results in specs/016-behavior-plugins/post-check.txt. Step 7 (manual viewer smoke) is the owner's.
+- [X] T021 [P] Retire the two shipped P2 entries in BACKLOG.md ("Harden the whole proposal boundary", "External behavior plugins") with a shipped-in-016 note recording that the HTTP transport remains open (deferred, spec'd in specs/016-behavior-plugins/)
+- [X] T022 Run the automated quickstart gates (steps 1–6 and 8 of specs/016-behavior-plugins/quickstart.md), including `cargo fmt --all` **before** the final check (the 015 CI lesson); fix any fallout; record results in specs/016-behavior-plugins/post-check.txt. Step 7 (manual viewer smoke) is the owner's.
 
 ---
 

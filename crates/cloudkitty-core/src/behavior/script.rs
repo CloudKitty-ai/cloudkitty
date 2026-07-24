@@ -127,11 +127,7 @@ enum ExchangeFailure {
 }
 
 impl ScriptBehavior {
-    pub fn new(
-        name: impl Into<String>,
-        command: impl Into<PathBuf>,
-        args: Vec<String>,
-    ) -> Self {
+    pub fn new(name: impl Into<String>, command: impl Into<PathBuf>, args: Vec<String>) -> Self {
         Self {
             name: name.into(),
             command: command.into(),
@@ -279,11 +275,7 @@ impl Behavior for ScriptBehavior {
         let request_line = serde_json::to_string(&request).expect("requests serialize");
 
         let mut state = self.lock();
-        if !self.ensure_running(
-            &mut state,
-            now,
-            behavior_config.relaunch_cooldown_ticks,
-        ) {
+        if !self.ensure_running(&mut state, now, behavior_config.relaunch_cooldown_ticks) {
             return None;
         }
         let ChildState::Running(child) = &mut *state else {
@@ -310,7 +302,10 @@ impl Behavior for ScriptBehavior {
                         tracing::warn!(plugin = %self.name, kitty, limit, "plugin reply exceeded reply_max_bytes");
                         true
                     }
-                    ExchangeFailure::Desynced { got_tick, got_kitty } => {
+                    ExchangeFailure::Desynced {
+                        got_tick,
+                        got_kitty,
+                    } => {
                         tracing::warn!(
                             plugin = %self.name, kitty, tick = now,
                             got_tick, got_kitty,

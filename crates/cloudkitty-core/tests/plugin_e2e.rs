@@ -80,8 +80,7 @@ fn a_well_behaved_plugin_drives_kitties_for_a_full_day() {
 /// garbage, and no malformed proposal is ever reshaped into a legal one.
 #[test]
 fn a_hostile_plugin_costs_cleverness_and_nothing_else() {
-    let (mut world, registry, config) =
-        world_with_plugin(plugin("hostile.py", &[]), &[0], |_| {});
+    let (mut world, registry, config) = world_with_plugin(plugin("hostile.py", &[]), &[0], |_| {});
     let advised = config.kitties[0].id;
 
     for _ in 0..1000 {
@@ -151,11 +150,9 @@ fn an_oversized_reply_fails_the_proposal_and_kills_the_process() {
 /// and no stale proposal ever lands.
 #[test]
 fn a_desynced_reply_stream_is_caught_by_correlation_never_applied_stale() {
-    let (mut world, registry, config) = world_with_plugin(
-        plugin("desync.py", &[]),
-        &[0],
-        |c| c.behavior.relaunch_cooldown_ticks = 1,
-    );
+    let (mut world, registry, config) = world_with_plugin(plugin("desync.py", &[]), &[0], |c| {
+        c.behavior.relaunch_cooldown_ticks = 1
+    });
     let advised = config.kitties[0].id;
 
     for step in 0..8u64 {

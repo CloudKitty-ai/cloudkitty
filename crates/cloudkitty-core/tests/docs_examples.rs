@@ -5,7 +5,10 @@
 
 use cloudkitty_core::action::parse_proposal;
 
-const DOCS: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/plugins.md"));
+const DOCS: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../docs/plugins.md"
+));
 
 /// Collects the individual JSON lines of every fenced block carrying the
 /// given annotation.
@@ -61,7 +64,10 @@ fn every_documented_rejected_example_fails() {
 fn the_docs_worked_example_is_the_shipped_demo_plugin() {
     // The quick start points at docs/examples/demo_plugin.py; make sure the
     // file the docs promise actually ships, executable bit and all.
-    let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/examples/demo_plugin.py");
+    let path = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../docs/examples/demo_plugin.py"
+    );
     let metadata = std::fs::metadata(path).expect("the demo plugin ships with the docs");
     #[cfg(unix)]
     {

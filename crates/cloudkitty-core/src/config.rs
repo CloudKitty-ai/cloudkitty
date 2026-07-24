@@ -1595,7 +1595,10 @@ mod tests {
         let old: BehaviorConfig =
             toml::from_str("budget_fraction_of_tick = 0.5").expect("old shape parses");
         assert_eq!(old.reply_max_bytes, default_reply_max_bytes());
-        assert_eq!(old.relaunch_cooldown_ticks, default_relaunch_cooldown_ticks());
+        assert_eq!(
+            old.relaunch_cooldown_ticks,
+            default_relaunch_cooldown_ticks()
+        );
     }
 
     #[test]
