@@ -99,12 +99,22 @@ pub struct PluginEntry {
 /// at startup what can be validated at startup (spec 016 FR-011): a missing
 /// program is a config error before any tick, not a per-tick surprise.
 /// Runs after policy registration and before behavior-name validation, so a
-/// kitty may name a plugin exactly as it names any other behavior.
+/// kitty may name a plugin exactly as it names any other behavior — and a
+/// plugin may not *shadow* one: registration is last-write-wins, so without
+/// the collision check a `[plugins.playful]` block would silently replace
+/// the builtin and every kitty configured `playful` would be driven by an
+/// external process nobody asked for.
 pub fn register_plugin_behaviors(
     registry: &mut BehaviorRegistry,
     plugins: &PluginsConfig,
 ) -> anyhow::Result<()> {
     for (name, entry) in &plugins.plugins {
+        if registry.get(name).is_some() {
+            anyhow::bail!(
+                "[plugins.{name}] collides with an existing behavior named {name:?} \
+                 (a builtin or policy behavior); pick a different plugin name"
+            );
+        }
         let command = Path::new(&entry.command);
         if !command.is_file() {
             anyhow::bail!(
@@ -194,6 +204,23 @@ mod plugin_registration_tests {
         assert!(registry.get("demo").is_some(), "the plugin is a behavior");
 
         std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn a_plugin_may_not_shadow_an_existing_behavior() {
+        // Code review 2026-07-23: registration is last-write-wins, so a
+        // colliding name would silently replace the builtin — every kitty
+        // configured with it would be driven by an external process with no
+        // warning. Collisions are a startup error instead.
+        let plugins: PluginsConfig =
+            toml::from_str("[plugins.playful]\ncommand = \"/bin/echo\"\n").unwrap();
+        let mut registry = BehaviorRegistry::with_builtins();
+        let err = register_plugin_behaviors(&mut registry, &plugins).unwrap_err();
+        let msg = err.to_string();
+        assert!(msg.contains("[plugins.playful]"), "{msg}");
+        assert!(msg.contains("collides"), "{msg}");
+        // The builtin survives untouched.
+        assert!(registry.get("playful").unwrap().is_builtin());
     }
 
     #[test]

@@ -61,7 +61,14 @@ pub struct DecisionRequest<'a> {
     /// it to break symmetry (see the livelock warning in `behavior`).
     pub seed: u64,
     /// The simulation config (the served core config; plugin definitions
-    /// themselves never travel).
+    /// themselves never travel). Deliberately resent with every request even
+    /// though it never changes for the world's life: the wire stays
+    /// stateless, so a plugin needs no handshake and survives its own
+    /// restarts with zero protocol. The cost is one redundant `Config`
+    /// serialization per decision — small next to the `WorldSnapshot` riding
+    /// alongside it. If plugin throughput ever matters, a send-once
+    /// handshake is a wire-version bump (a v2 candidate, noted for the
+    /// HttpBehavior sitting).
     pub config: &'a Config,
 }
 
