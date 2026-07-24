@@ -74,13 +74,30 @@ fn spawn_one(world: &mut World, kind: ElementType, config: &Config) -> bool {
     };
 
     let id = world.allocate_element_id();
+    let ttl = rule.ttl.map(|base| jittered_ttl(world, base));
     world.elements.push(Element {
         id,
         kind: element_kind,
         pos,
-        ttl: rule.ttl,
+        ttl,
     });
     true
+}
+
+/// TTL spread on every timed spawn, in ticks either side of the configured
+/// base. Without it a cohort born together expires together -- and since
+/// restocking is immediate, the whole population relocates in one
+/// synchronized jump every cycle (owner observation 2026-07-23, glaring at
+/// turbo speed on sunbeams, which nothing ever perturbs). The jitter
+/// staggers the first generation and compounds with every respawn.
+const TTL_JITTER: u64 = 100;
+
+/// Draws `base` ± [`TTL_JITTER`] uniformly through the master RNG (Article
+/// V), floored at 1 so a base smaller than the jitter can never spawn an
+/// already-expired element.
+fn jittered_ttl(world: &mut World, base: u64) -> u64 {
+    let offset = world.rng.gen_range_u32(0, 2 * TTL_JITTER as u32 + 1) as u64;
+    (base + offset).saturating_sub(TTL_JITTER).max(1)
 }
 
 /// How many random candidate tiles a spawn considers before choosing.
@@ -355,5 +372,54 @@ mod tests {
             count_before,
             "no room means no spawn, not an overlapping one"
         );
+    }
+
+    #[test]
+    fn timed_spawns_stagger_their_ttls_instead_of_marching_in_lockstep() {
+        // Owner call 2026-07-23: a cohort born together must not expire
+        // together. Every timed spawn draws base ± TTL_JITTER, so even the
+        // freshly generated world starts staggered.
+        let mut config = test_config();
+        config.elements.sunbeam.min = 10;
+        config.elements.sunbeam.max = 12;
+        config.elements.sunbeam.ttl = Some(300);
+        let world = World::generate(&config);
+
+        let ttls: Vec<u64> = world
+            .elements
+            .iter()
+            .filter(|e| e.element_type() == ElementType::Sunbeam)
+            .map(|e| e.ttl.expect("sunbeams are timed"))
+            .collect();
+        assert_eq!(ttls.len(), 10);
+        for ttl in &ttls {
+            assert!((200..=400).contains(ttl), "ttl {ttl} outside base ± jitter");
+        }
+        assert!(
+            ttls.iter().any(|t| t != &ttls[0]),
+            "ten draws all identical: the jitter is not being applied"
+        );
+    }
+
+    #[test]
+    fn a_ttl_base_smaller_than_the_jitter_still_spawns_alive() {
+        // The floor: an operator's short-lived critter (base < jitter) must
+        // never roll an already-expired element.
+        let mut config = test_config();
+        config.elements.bug.min = 10;
+        config.elements.bug.max = 12;
+        config.elements.bug.ttl = Some(5);
+        let world = World::generate(&config);
+
+        for el in world
+            .elements
+            .iter()
+            .filter(|e| e.element_type() == ElementType::Bug)
+        {
+            let ttl = el.ttl.expect("bugs are timed");
+            assert!(ttl >= 1, "a spawn must never be born expired");
+            assert!(ttl <= 5 + 100, "jitter cannot exceed base + TTL_JITTER");
+            assert!(!el.is_expired());
+        }
     }
 }
