@@ -106,10 +106,15 @@ nonzero count exits nonzero by design).
 
 ## 6. Deployment: a kitty gets a trained mind (US4 / SC-005, SC-006)
 
-Add to `cloudkitty.toml` ([contracts/policy-artifact.md](contracts/policy-artifact.md)):
+In `cloudkitty.toml`, set `behavior` in the kitty's existing `[[kitty]]`
+entry and add the policy block ([contracts/policy-artifact.md](contracts/policy-artifact.md)):
 
 ```toml
-[kitties.pumpkin]
+[[kitty]]
+id = 3
+name = "Pumpkin"
+x = 16
+y = 8
 behavior = "policy:trained"
 
 [rl.policy.trained]

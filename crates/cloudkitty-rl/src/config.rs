@@ -148,7 +148,9 @@ impl Default for GlobalStateConfig {
 pub struct RewardConfig {
     /// Power-mean exponent. 1 = plain average, 0 = Nash welfare (geometric
     /// mean, the default), large negative → the least-happy kitty's score.
-    /// Must be ≤ 1 (inequality-averse: concave).
+    /// Must lie in [[`MIN_P`], 1] (inequality-averse: concave), and be
+    /// exactly 0 or at least [`MIN_P_MAGNITUDE`] in size — a tinier
+    /// nonzero exponent is numerically Nash with worse rounding.
     #[serde(default = "default_p")]
     pub p: f64,
     /// Offset keeping the aggregate and its gradient finite at zero
@@ -178,6 +180,20 @@ fn default_epsilon() -> f64 {
 /// ε at or below that would let `h + ε` hit zero or go negative, and
 /// `ln`/`powf` would turn the team reward into a silent NaN.
 pub const MIN_EPSILON: f64 = 1e-3;
+
+/// The inclusive floor on `[rl.reward] p` (round-one review, 2026-07-24).
+/// By −64 the power mean is numerically indistinguishable from the
+/// least-happy-kitty limit, and more negative exponents only push `powf`
+/// toward overflow; the reward's term floor is sized so this exponent
+/// stays finite (`reward::TERM_FLOOR`).
+pub const MIN_P: f64 = -64.0;
+
+/// The smallest nonzero magnitude `[rl.reward] p` may take (round-one
+/// review, 2026-07-24). A nonzero exponent tinier than this computes the
+/// same aggregate as Nash welfare through `powf` rounding, only less
+/// precisely — an operator who means the geometric mean should say
+/// `p = 0` and get the dedicated `ln`-based path.
+pub const MIN_P_MAGNITUDE: f64 = 1e-3;
 
 impl Default for RewardConfig {
     fn default() -> Self {
@@ -349,11 +365,22 @@ impl RlConfig {
                 "must be at least 1",
             ));
         }
-        if self.reward.p > 1.0 || !self.reward.p.is_finite() {
+        if !self.reward.p.is_finite() || self.reward.p > 1.0 || self.reward.p < MIN_P {
             return Err(RlConfigError::invalid(
                 "[rl.reward] p",
                 self.reward.p.to_string(),
-                "must be a finite exponent at most 1 (inequality-averse aggregation)",
+                "must be a finite exponent in [-64, 1]: at most 1 keeps the \
+                 aggregation inequality-averse, and below -64 the power mean is \
+                 numerically the least-happy-kitty limit while powf courts overflow",
+            ));
+        }
+        if self.reward.p != 0.0 && self.reward.p.abs() < MIN_P_MAGNITUDE {
+            return Err(RlConfigError::invalid(
+                "[rl.reward] p",
+                self.reward.p.to_string(),
+                "a nonzero exponent must be at least 0.001 in magnitude: anything \
+                 tinier is Nash welfare with worse rounding — say p = 0 to mean \
+                 the geometric mean",
             ));
         }
         if self.reward.epsilon <= MIN_EPSILON || !self.reward.epsilon.is_finite() {
@@ -514,5 +541,71 @@ mod tests {
 
         let err = RlConfig::from_toml_str("[rl.policy.broken]\nartifact = \"\"\n").unwrap_err();
         assert!(err.to_string().contains("[rl.policy.broken]"), "{err}");
+    }
+
+    #[test]
+    fn the_p_exponent_is_bounded_on_both_sides() {
+        // Round-one review finding 2: any finite p ≤ 1 used to pass. A
+        // tiny nonzero |p| collapses the aggregate into a badly-rounded
+        // Nash; a hugely negative p drives powf toward overflow.
+        let err = RlConfig::from_toml_str("[rl.reward]\np = 0.0001\n").unwrap_err();
+        assert!(err.to_string().contains("p = 0"), "{err}");
+        let err = RlConfig::from_toml_str("[rl.reward]\np = -0.0005\n").unwrap_err();
+        assert!(err.to_string().contains("p = 0"), "{err}");
+        let err = RlConfig::from_toml_str("[rl.reward]\np = -65.0\n").unwrap_err();
+        assert!(err.to_string().contains("[rl.reward] p"), "{err}");
+
+        // The documented extremes stay lawful: the floor itself, the
+        // smallest honest nonzero magnitude, Nash, and the plain average.
+        for lawful in ["-64.0", "-0.001", "0.001", "0.0", "1.0"] {
+            RlConfig::from_toml_str(&format!("[rl.reward]\np = {lawful}\n"))
+                .unwrap_or_else(|e| panic!("p = {lawful} must be lawful: {e}"));
+        }
+    }
+
+    #[test]
+    fn the_documented_deploy_snippet_wires_a_policy_kitty() {
+        // Round-one review finding 1: the docs showed `[kitties.pumpkin]`,
+        // a table core's lenient config silently ignores -- the US4 deploy
+        // step no-oped with no error. This pins the corrected `[[kitty]]`
+        // form end to end: the behavior lands on the kitty, and the policy
+        // block is found.
+        let (core, rl) = load_configs_from_str(
+            r#"
+            [world]
+            width = 32
+            height = 32
+            tick_ms = 800
+            seed = 1
+
+            [[kitty]]
+            id = 1
+            name = "Miso"
+            x = 1
+            y = 1
+            behavior = "needs_driven"
+
+            [[kitty]]
+            id = 3
+            name = "Pumpkin"
+            x = 2
+            y = 2
+            behavior = "policy:trained"
+
+            [rl.policy.trained]
+            artifact = "policies/trained.ckpolicy"
+            "#,
+        )
+        .expect("the documented deploy config must load");
+        let pumpkin = core
+            .kitties
+            .iter()
+            .find(|k| k.name == "Pumpkin")
+            .expect("Pumpkin is in the roster");
+        assert_eq!(pumpkin.behavior, "policy:trained");
+        assert_eq!(
+            rl.policy.get("trained").unwrap().artifact,
+            "policies/trained.ckpolicy"
+        );
     }
 }

@@ -195,10 +195,15 @@ those deltas are ≥ 0 and every welfare bound in the scorecard holds.
 
 ## 5. Deploy it
 
-Two blocks in `cloudkitty.toml`:
+Two changes in `cloudkitty.toml`: set `behavior` in the kitty's existing
+`[[kitty]]` entry, and add the policy block.
 
 ```toml
-[kitties.pumpkin]
+[[kitty]]
+id = 3
+name = "Pumpkin"
+x = 16
+y = 8
 behavior = "policy:trained"
 
 [rl.policy.trained]
