@@ -567,6 +567,31 @@ pub struct BehaviorConfig {
     /// `budget_strikes` timeouts.
     #[serde(default = "default_bench_ticks")]
     pub bench_ticks: u64,
+    /// Cap on one plugin reply line, in bytes (spec 016). A reply beyond it
+    /// is a failed proposal and kills the plugin process — the stream is
+    /// mid-line and unrecoverable. A real proposal envelope is under 200
+    /// bytes; the default (64 KiB) is three orders of magnitude of headroom
+    /// while keeping "a plugin cannot exhaust engine memory by talking"
+    /// literal. Default: 65536.
+    #[serde(default = "default_reply_max_bytes")]
+    pub reply_max_bytes: usize,
+    /// Minimum ticks between spawn attempts for a dead plugin process
+    /// (spec 016). A crash-looping program costs its kitty cleverness at a
+    /// bounded spawn rate, never a spawn storm. Default: 20.
+    #[serde(default = "default_relaunch_cooldown_ticks")]
+    pub relaunch_cooldown_ticks: u64,
+    /// Hard wall-clock deadline on one plugin exchange, in milliseconds
+    /// (spec 016, review remediation). This is the plugin transport's own
+    /// containment — carried inside `ScriptBehavior`, so it bounds the
+    /// exchange on *every* dispatch path, including the budgetless one the
+    /// served budget never covers. A reply that misses the deadline is a
+    /// failed proposal and kills the process (a silently wedged program
+    /// must never strand a thread or stall a headless driver). Wall clock
+    /// here cannot touch Article V: determinism is scoped to built-in
+    /// behaviors, and this deadline exists only inside the external
+    /// transport. Default: 1000.
+    #[serde(default = "default_exchange_timeout_ms")]
+    pub exchange_timeout_ms: u64,
 }
 
 fn default_playful_comfort() -> f32 {
@@ -613,6 +638,18 @@ fn default_bench_ticks() -> u64 {
     300
 }
 
+fn default_reply_max_bytes() -> usize {
+    65536
+}
+
+fn default_relaunch_cooldown_ticks() -> u64 {
+    20
+}
+
+fn default_exchange_timeout_ms() -> u64 {
+    1000
+}
+
 impl Default for BehaviorConfig {
     fn default() -> Self {
         Self {
@@ -628,6 +665,9 @@ impl Default for BehaviorConfig {
             sunbeam_reach: default_sunbeam_reach(),
             budget_strikes: default_budget_strikes(),
             bench_ticks: default_bench_ticks(),
+            reply_max_bytes: default_reply_max_bytes(),
+            relaunch_cooldown_ticks: default_relaunch_cooldown_ticks(),
+            exchange_timeout_ms: default_exchange_timeout_ms(),
         }
     }
 }
@@ -1109,6 +1149,27 @@ impl Config {
                 "must be at least 1 tick (a bench must last long enough to exist)",
             ));
         }
+        if self.behavior.reply_max_bytes == 0 {
+            return Err(ConfigError::invalid(
+                "[behavior] reply_max_bytes",
+                "0".to_string(),
+                "must be at least 1 byte (a plugin must be allowed to answer)",
+            ));
+        }
+        if self.behavior.relaunch_cooldown_ticks == 0 {
+            return Err(ConfigError::invalid(
+                "[behavior] relaunch_cooldown_ticks",
+                "0".to_string(),
+                "must be at least 1 tick (unbounded respawn would be a spawn storm)",
+            ));
+        }
+        if self.behavior.exchange_timeout_ms == 0 {
+            return Err(ConfigError::invalid(
+                "[behavior] exchange_timeout_ms",
+                "0".to_string(),
+                "must be at least 1 ms (a plugin must have a moment to answer)",
+            ));
+        }
         let solo = self.actions.solo_play_relief;
         if !solo.is_finite() || solo < 0.0 {
             return Err(ConfigError::invalid(
@@ -1539,6 +1600,35 @@ mod tests {
         let old: BehaviorConfig =
             toml::from_str("budget_fraction_of_tick = 0.5").expect("old shape parses");
         assert_eq!(old.sunbeam_reach, default_sunbeam_reach());
+    }
+
+    #[test]
+    fn zero_plugin_knobs_are_rejected_and_defaults_stand_in() {
+        // Spec 016: both plugin knobs must be non-zero, and a config written
+        // before they existed gets the documented defaults.
+        let mut c = cfg();
+        c.behavior.reply_max_bytes = 0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("reply_max_bytes"), "{msg}");
+
+        let mut c = cfg();
+        c.behavior.relaunch_cooldown_ticks = 0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("relaunch_cooldown_ticks"), "{msg}");
+
+        let mut c = cfg();
+        c.behavior.exchange_timeout_ms = 0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("exchange_timeout_ms"), "{msg}");
+
+        let old: BehaviorConfig =
+            toml::from_str("budget_fraction_of_tick = 0.5").expect("old shape parses");
+        assert_eq!(old.reply_max_bytes, default_reply_max_bytes());
+        assert_eq!(
+            old.relaunch_cooldown_ticks,
+            default_relaunch_cooldown_ticks()
+        );
+        assert_eq!(old.exchange_timeout_ms, default_exchange_timeout_ms());
     }
 
     #[test]

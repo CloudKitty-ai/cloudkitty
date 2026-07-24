@@ -1,0 +1,28 @@
+=== 016 post-check, branch 016-behavior-plugins, Thu Jul 23 19:03:44 MDT 2026 ===
+--- quickstart step 1: fmt + clippy + full suite ---
+fmt: PASS
+    Checking cloudkitty-py v0.1.0 (/Users/elizabethkelly/ai/cloudkitty/crates/cloudkitty-py)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.73s
+37
+suites-ok count above; failures:
+(none listed = all green)
+--- step 2: wire matrix ---
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 240 filtered out; finished in 0.00s
+--- steps 3-5: plugin e2e ---
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s
+--- step 6: docs examples ---
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+--- step 8: startup validation (manual, isolated tmp dir) ---
+broken [plugins.broken].command -> startup refused before any tick:
+"[plugins.broken].command (/definitely/not/a/real/program) does not exist or is not a file"
+
+--- review remediation gate (2026-07-23, /code-review high: 14 findings fixed) ---
+cargo fmt --all --check              PASS
+cargo clippy --workspace --all-targets -- -D warnings   clean
+cargo test --workspace               37 suites ok, 0 failed
+  core lib 249 (was 246: +wedge-deadline unit x2, +duplicate-registration)
+  server lib 19 (was 16: +shadow guard, +exec-bit refusal, updated fixture)
+  plugin e2e 6 (was 5: +a_silently_wedged_plugin_cannot_stall_the_budgetless_driver)
+Wedge containment verified end to end: a read-request-never-reply plugin on
+the budgetless drive_tick path completes 3 ticks bounded by the 150ms test
+deadline (pre-fix behavior: infinite hang).

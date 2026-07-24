@@ -159,3 +159,21 @@ impl Behavior for QuietExternal {
         Action::Idle
     }
 }
+
+/// Never produces an intelligible proposal: `try_decide` is `None` every
+/// turn -- the shape of an external advisor whose reply failed to parse
+/// (spec 016). Proves that "no proposal" rides the crashed-advisor path:
+/// fallback from the dealt seed, `FallbackTaken` provenance, and never a
+/// reshaped legal action.
+pub struct Unintelligible;
+
+#[async_trait]
+impl Behavior for Unintelligible {
+    async fn decide(&self, _ctx: &DecisionContext) -> Action {
+        unreachable!("dispatch consults try_decide; Unintelligible never decides")
+    }
+
+    async fn try_decide(&self, _ctx: &DecisionContext) -> Option<Action> {
+        None
+    }
+}

@@ -109,6 +109,13 @@ impl DecisionRng {
         self.with(|r| r.gen::<f32>())
     }
 
+    /// One raw draw. The seed a plugin decision request carries (spec 016,
+    /// research R5): drawn from the kitty's own stream, so it is
+    /// deterministic to the world and never synchronized between kitties.
+    pub fn gen_u64(&self) -> u64 {
+        self.with(|r| r.gen::<u64>())
+    }
+
     pub fn choose<'a, T>(&self, items: &'a [T]) -> Option<&'a T> {
         if items.is_empty() {
             return None;

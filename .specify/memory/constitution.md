@@ -1,25 +1,29 @@
 <!--
 Sync Impact Report
 ==================
-Version change: 1.0.0 → 1.1.0
-Rationale: Amendment ratified by the owner (2026-07-20, spec 013): Article V's
-tick-order clause (2) restated as a principle rather than an implementation.
-"Actions are applied in stable kitty-id order" named a mechanism that silently
-favored lower-id kitties in every within-tick contest; the clause now guarantees
-*fairness* — an equal, reproducible chance to act first — and leaves the
-mechanism to the engine. Determinism (the article's core) is unchanged and the
-clause is guarded by a fairness property test per Article VI.
+Version change: 1.1.0 → 1.2.0
+Rationale: Amendment ratified by the owner (2026-07-23, spec 016): Article IV's
+first clause said failed proposals "resolve to a safe no-op (idle)" while its
+second clause promised "automatic fallback to the default built-in behavior" —
+and the engine has always delivered the fallback for failed advisors. The
+clause now names BOTH constitutionally safe resolutions — the default built-in
+(needs-based) fallback behavior, which is the default resolution, and the idle
+no-op — since there are scenarios where each is right (unintelligible proposal
+→ fallback; well-formed but illegal proposal → idle). Guarded by spec 016's
+round-trip/rejection suite and dispatch fallback tests per Article VI.
 
-Modified principles: Article V, clause (2) of the tick order (fair turn order)
+Modified principles: Article IV, clause (1) (proposal resolution outcomes)
 Added sections: none
 Removed sections: none
 
-Templates requiring updates: none (the amendment touches one clause; plan-time
-Constitution Check gates derive from this file automatically)
+Templates requiring updates: none (plan-time Constitution Check gates derive
+from this file automatically)
 
 Follow-up TODOs: none.
 
-Previous report (1.0.0, initial ratification): the user-authored document
+Previous report (1.0.0 → 1.1.0, spec 013): Article V's tick-order clause (2)
+restated as a fairness principle rather than a stable-id mechanism, guarded by
+a fairness property test. Initial ratification note: the user-authored document
 superseded a generic placeholder constitution that was never adopted and does
 not count toward version history.
 -->
@@ -59,10 +63,12 @@ violate them, and each must be guarded by automated tests that run in CI.
 
 ## Article IV — The Engine Is the Law; Behaviors Are Untrusted Advisors
 
-- Kitty behaviors (including future external scripts, APIs, or local services) only
+- Kitty behaviors (including external scripts, APIs, or local services) only
   *propose* actions. The engine validates every proposed action against the rules and
-  current world state. Invalid, malformed, late, or absent proposals resolve to a safe
-  no-op (idle) — never an error state, never a rule violation.
+  current world state. Invalid, malformed, late, or absent proposals resolve safely to
+  one of two constitutionally safe outcomes: the **default built-in (needs-based)
+  fallback behavior** — the default resolution — or the **idle no-op**. Never an error
+  state, never a rule violation, never a reshaped legal action.
 - Every behavior decision is subject to a time budget with automatic fallback to the
   default built-in behavior. A slow or failed behavior can degrade one kitty's
   cleverness, never the tick loop or the constitution.
@@ -96,4 +102,4 @@ violate them, and each must be guarded by automated tests that run in CI.
 - The "Later features" list in the spec is explicitly out of scope for the MVP; MVP
   design decisions should avoid *blocking* them but must not implement them.
 
-**Version**: 1.1.0 | **Ratified**: 2026-07-18 | **Last Amended**: 2026-07-20
+**Version**: 1.2.0 | **Ratified**: 2026-07-18 | **Last Amended**: 2026-07-23

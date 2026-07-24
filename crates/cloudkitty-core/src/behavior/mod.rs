@@ -1,16 +1,21 @@
 //! Pluggable behaviors: untrusted advisors to a sovereign engine.
 //!
-//! Article IV in one paragraph: a behavior is handed a read-only view of the world
-//! and returns *one proposed action*. It cannot touch the world. Whatever it
-//! returns is validated before it is applied, and anything illegal becomes an idle
-//! turn. A behavior that hangs, panics, or returns nonsense costs its kitty a
-//! moment of cleverness and nothing more.
+//! Article IV (v1.2.0) in one paragraph: a behavior is handed a read-only view
+//! of the world and returns *one proposed action*. It cannot touch the world.
+//! A proposal that cannot even be understood -- a failed plugin exchange, an
+//! unparseable reply, a panic, a timeout -- resolves to the **default
+//! built-in (needs-based) fallback** deciding from the dealt seed; a proposal
+//! that parses but is illegal for the current world state is validated down
+//! to an **idle turn**. Both are constitutionally safe outcomes, and a
+//! behavior that hangs, panics, or returns nonsense costs its kitty a moment
+//! of cleverness and nothing more.
 //!
-//! The `async` signature is deliberate and is the whole extension point: a future
-//! `ScriptBehavior`, `HttpBehavior`, or local-service behavior drops in here with
-//! no engine changes. Built-in behaviors resolve immediately and are exempt from
-//! the wall-clock budget -- that exemption is what keeps Article V's determinism
-//! unconditional, since a slow machine can never change what a built-in decides.
+//! The `async` signature is deliberate and is the whole extension point:
+//! [`ScriptBehavior`] (spec 016) drops in here with no engine changes, and a
+//! future `HttpBehavior` will too. Built-in behaviors resolve immediately and
+//! are exempt from the wall-clock budget -- that exemption is what keeps
+//! Article V's determinism unconditional, since a slow machine can never
+//! change what a built-in decides.
 //!
 //! **Multi-agent livelock warning for behavior authors.** All kitties decide
 //! against the same start-of-tick snapshot, so two deterministic behaviors
@@ -42,11 +47,13 @@ use crate::world::{World, WorldSnapshot};
 
 pub mod needs_driven;
 pub mod playful;
+pub mod script;
 pub mod selection;
 pub mod test_behaviors;
 
 pub use needs_driven::NeedsDriven;
 pub use playful::Playful;
+pub use script::{DecisionRequest, ScriptBehavior};
 
 /// Everything a behavior is allowed to know. Read-only by construction.
 pub struct DecisionContext {
@@ -65,6 +72,23 @@ pub struct DecisionContext {
 pub trait Behavior: Send + Sync {
     /// Propose one action. Never applied directly -- the engine validates first.
     async fn decide(&self, ctx: &DecisionContext) -> Action;
+
+    /// Propose one action, or nothing. `None` means the advisor has no
+    /// intelligible proposal -- a failed plugin exchange, an unparseable
+    /// reply -- and dispatch treats it exactly like a crashed advisor: the
+    /// fallback decides from the dealt seed (amended Article IV's default
+    /// resolution). Built-ins never return `None`; only external advisors,
+    /// whose proposals can fail in ways a panic does not express, override
+    /// this.
+    ///
+    /// **Wrapper authors**: dispatch consults `try_decide`, so a delegating
+    /// behavior must forward `try_decide` to its inner behavior, not just
+    /// `decide` -- a decide-only wrapper around an external advisor would
+    /// silently convert "no proposal" into whatever `decide` improvises,
+    /// bypassing the uniform fallback rule.
+    async fn try_decide(&self, ctx: &DecisionContext) -> Option<Action> {
+        Some(self.decide(ctx).await)
+    }
 
     /// Built-ins run in-process and are exempt from the wall-clock decision
     /// budget. External implementations must leave this as `false`.
@@ -112,8 +136,19 @@ impl BehaviorRegistry {
         registry
     }
 
+    /// Registers a behavior under `name`. Names are unique by construction:
+    /// a duplicate registration is a programmer error and panics -- silent
+    /// last-write-wins once let a same-named plugin shadow a builtin with
+    /// no warning (review 2026-07-23). Callers whose names come from config
+    /// (plugin registration) check first and return a proper startup error;
+    /// this panic is the backstop for every future registration source.
     pub fn register(&mut self, name: impl Into<String>, behavior: Arc<dyn Behavior>) {
-        self.map.insert(name.into(), behavior);
+        let name = name.into();
+        let previous = self.map.insert(name.clone(), behavior);
+        assert!(
+            previous.is_none(),
+            "behavior {name:?} registered twice; names must be unique"
+        );
     }
 
     pub fn get(&self, name: &str) -> Option<Arc<dyn Behavior>> {
@@ -339,11 +374,13 @@ async fn decide_one(job: DecisionJob, budget: Duration, registry: &BehaviorRegis
         // could never preempt it and a slow advisor would stall the tick
         // loop. On the blocking pool the tick loop keeps its budget; on
         // timeout the JoinHandle is dropped and the stray computation
-        // finishes on its detached thread. Because a wedged advisor might
-        // *never* finish, consecutive per-kitty timeouts bench the kitty's
-        // dispatch (the registry's circuit breaker): the leak is bounded
-        // at budget_strikes threads per bench window, not one per tick
-        // forever.
+        // finishes on its detached thread. An arbitrary external advisor
+        // might *never* finish, so consecutive per-kitty timeouts bench the
+        // kitty's dispatch (the registry's circuit breaker); ScriptBehavior
+        // additionally carries its own per-exchange deadline
+        // (exchange_timeout_ms), so its strays always finish within one
+        // deadline -- the pool can never fill with permanently blocked
+        // plugin threads (review 2026-07-23).
         Some(b) => {
             let now = job.ctx.world.tick;
             if registry.is_benched(job.id, now) {
@@ -419,13 +456,16 @@ async fn fallback_from_seed(
     fallback(&ctx).await
 }
 
-/// Runs a behavior, converting a panic into `None` rather than unwinding into the
-/// tick loop.
+/// Runs a behavior, converting a panic -- or the advisor's own `None` from
+/// [`Behavior::try_decide`] -- into `None` rather than unwinding into the
+/// tick loop. Every dispatch path funnels through here, so "no proposal" and
+/// "crashed" are one and the same fallback downstream.
 async fn run_catching(behavior: &dyn Behavior, ctx: &DecisionContext) -> Option<Action> {
-    std::panic::AssertUnwindSafe(behavior.decide(ctx))
+    std::panic::AssertUnwindSafe(behavior.try_decide(ctx))
         .catch_unwind()
         .await
         .ok()
+        .flatten()
 }
 
 /// `NeedsDriven` is total: it always returns something sensible, so it is the one
@@ -460,6 +500,15 @@ mod tests {
     fn external_behaviors_are_not_builtin_by_default() {
         assert!(!SleepySlow::new(50).is_builtin());
         assert!(!AlwaysInvalid.is_builtin());
+    }
+
+    #[test]
+    #[should_panic(expected = "registered twice")]
+    fn a_duplicate_registration_is_a_programmer_error() {
+        // Review 2026-07-23: silent last-write-wins let a same-named plugin
+        // shadow a builtin. The registry itself is the backstop now.
+        let mut r = BehaviorRegistry::with_builtins();
+        r.register("playful", Arc::new(AlwaysInvalid));
     }
 
     #[tokio::test]
@@ -738,6 +787,58 @@ mod tests {
             .find(|r| r.kitty_id == config.kitties[1].id)
             .unwrap();
         assert_eq!(healthy.provenance, crate::seam::Provenance::PolicyMade);
+    }
+
+    #[test]
+    fn an_unintelligible_advisor_falls_back_never_reshapes() {
+        // Spec 016 FR-003: an advisor with no intelligible proposal (a failed
+        // plugin exchange) resolves to the fallback deciding from the dealt
+        // seed -- the crashed-advisor path -- never to some reshaped action.
+        let mut config = test_config();
+        config.kitties[0].behavior = "unintelligible".into();
+        let config = Arc::new(config);
+        let registry = registry_with(
+            "unintelligible",
+            Arc::new(super::test_behaviors::Unintelligible),
+        );
+        let mut world = World::generate(&config);
+        let snapshot = Arc::new(world.snapshot());
+
+        let resolved = resolve_decisions(&mut world, &registry, &config);
+        let broken = resolved
+            .iter()
+            .find(|r| r.kitty_id == config.kitties[0].id)
+            .expect("the kitty with no proposal still decided");
+        assert_eq!(broken.provenance, crate::seam::Provenance::FallbackTaken);
+
+        // The fallback decided from the dealt seed: replaying the default
+        // built-in on that seed reproduces the action exactly.
+        let me = snapshot.kitty(broken.kitty_id).unwrap().clone();
+        let ctx = DecisionContext {
+            me,
+            world: snapshot.clone(),
+            rng: DecisionRng::from_seed(broken.seed),
+            config: config.clone(),
+        };
+        let expected = futures::executor::block_on(fallback(&ctx));
+        assert_eq!(broken.action, expected);
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn the_served_path_survives_an_unintelligible_advisor() {
+        // The same guarantee on the budgeted path: no proposal, no lost turn,
+        // no stalled tick.
+        let mut config = test_config();
+        config.kitties[0].behavior = "unintelligible".into();
+        let config = Arc::new(config);
+        let registry = registry_with(
+            "unintelligible",
+            Arc::new(super::test_behaviors::Unintelligible),
+        );
+        let mut world = World::generate(&config);
+
+        let decisions = gather_decisions(&mut world, &registry, &config).await;
+        assert_eq!(decisions.len(), world.kitties.len(), "nobody loses a turn");
     }
 
     #[test]

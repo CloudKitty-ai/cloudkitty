@@ -76,40 +76,58 @@ since 2026-07-22: the meadow renders under three palettes (day / golden
 hour / night, PRs #37–#39), so new grass work must be judged in all
 three, and any new color belongs in every `MEADOW_*` set.
 
-### Harden the whole proposal boundary (do this *with* the plugin work)
-The strict play-target parsing that shipped in PR #5 fixed one instance of a
-general problem: a malformed proposal was silently reshaped into a legal,
-*rewarded* action instead of reaching the engine as something to reject.
-`chase`, `move`, `meow`, `rest`, `sleep` and `groom` have never had the same
-scrutiny — nobody has asked what each does with a missing field, a wrong
-type, an unknown enum value, or an extra key, because until now every
-proposal was constructed in-process by a built-in.
+<!-- "Harden the whole proposal boundary" and "External behavior plugins
+(ScriptBehavior)" both shipped 2026-07-23 as one sitting (spec 016): strict
+parse_proposal per action shape with round-trip + rejection suites, Article
+IV amended to v1.2.0 (fallback and idle both named safe, fallback default),
+ScriptBehavior with docs/plugins.md and the livelock warning. -->
 
-That stops being true the moment an out-of-process brain can propose. This
-belongs in the same sitting as **External behavior plugins** below — writing
-the plugin transport without first pinning down what the wire accepts is how
-you end up with the flatten bug in five more places. Deliverable: a
-round-trip and rejection test per action shape (the play tests are the
-template), plus a documented rule that malformed proposals resolve to the
-fallback, never to a legal action. `Action`'s serde surface is the contract;
-treat it like one.
+### HttpBehavior — the remote plugin transport
+The second transport for external behavior plugins, deliberately deferred
+from spec 016 (clarified 2026-07-23): build it once ScriptBehavior has
+proven satisfying in practice. Everything hard already exists and was kept
+transport-agnostic on purpose — the hardened proposal wire, the
+`DecisionRequest`/reply-envelope JSON bodies, `try_decide`, the budget /
+breaker / fallback stack. This is a thin second speaker of the same
+contract: the same request and correlated envelope over HTTP POST to a
+configured endpoint. Spec'd as User Story 3 / FR-007 in
+`specs/016-behavior-plugins/` — start there, not from scratch.
 
-### External behavior plugins (ScriptBehavior / HttpBehavior)
-The payoff of Article IV's design: the async `Behavior` trait, wall-clock
-budget, validation, and `NeedsDriven` fallback all exist so an out-of-process
-brain can drop in with zero engine changes. Ship one reference implementation
-(local script or HTTP endpoint) plus docs. This is the door to "an LLM decides
-what the kitty does." Test scaffolding (`sleepy_slow`, `panicky`,
-`always_invalid`) already covers the hostile cases — but only *behavioural*
-hostility, not malformed input: pair this with **Harden the whole proposal
-boundary** above, which is the same sitting's prerequisite. Plugin docs must
-also carry the multi-agent livelock warning (`behavior/mod.rs`): all kitties
-decide against the same snapshot, so a deterministic external brain that
-mirrors another kitty's moves can dance forever — advise symmetry-breaking
-via the per-kitty seeded rng or id-based right-of-way, as the built-ins do
-since 010/012. Deliberately P2:
-the highest-value non-cosmetic item, held for a proper sitting rather than a
-squeezed-in version.
+### ScriptBehavior transport residuals (from spec 016 review, 2026-07-23)
+Three bounded, low-severity residuals the deep review of PR #45 surfaced
+and accepted as not-blocking. Fold these in when ScriptBehavior is next
+opened (likely the HttpBehavior sitting, which shares the exchange
+machinery):
+1. **Grandchild pipe-inheritance thread leak.** The per-child I/O thread
+   reads the plugin's stdout; killing the plugin on timeout does *not*
+   close that pipe if a grandchild inherited fd 1 (a shell wrapper, a
+   leftover subprocess), so `read_until` never returns and the detached
+   thread lives until the grandchild exits — one stuck OS thread per
+   killed process, unbounded across relaunch cycles. The common wedge
+   (no grandchild) is already fixed. Deeper fix: spawn each plugin in its
+   own process group (`process_group(0)` on unix) and kill the whole
+   group, so grandchildren die and the pipe closes. Also correct the
+   `PluginChild::drop` comment, which currently claims the thread is
+   "gone the moment the stream closes" — true only absent a surviving
+   grandchild. `crates/cloudkitty-core/src/behavior/script.rs`.
+2. **Shared-plugin mutex burst.** The instance mutex is held across
+   `recv_timeout`, so when a shared plugin wedges, every sibling kitty's
+   `spawn_blocking` thread parks on `self.lock()` for up to
+   `exchange_timeout_ms` (default 1000) during the one relaunch+timeout
+   tick per cooldown window. Bounded and self-limiting (siblings
+   fast-fall-back once the first kitty marks the process Dead), strictly
+   better than the pre-fix infinite hang. Mitigation today is a lower
+   `exchange_timeout_ms` when many kitties share a process — already noted
+   in `docs/plugins.md`'s shared-plugin caveat. Only revisit if per-kitty
+   processes or a shorter default prove wanted in practice.
+3. **Exec-bit precision.** Startup validation checks `mode & 0o111`
+   (executable by *anyone*), not executability by the server's effective
+   user, so a script executable only by another owner/group passes
+   startup then fails every spawn. The common case (forgot `chmod +x`
+   entirely) is caught; closing the gap fully needs an effective-uid/gid
+   check, likely more than it's worth. Minimum: a doc note that the check
+   means "executable by someone", not "by us".
+   `crates/cloudkitty-server/src/lib.rs`.
 
 ### Friendship / relationship tracking (+ friend-proximity preference)
 The foundational social feature. Kitties develop preferences from shared
