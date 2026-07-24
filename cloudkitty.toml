@@ -199,6 +199,12 @@ solo_play_reach = 8
 # that, a kitty sleeps where it is. Prices the sleep score and bounds the
 # sleep walk with the same number, so they can never disagree.
 sunbeam_reach = 8
+# External advisor knobs (spec 016), shown at their defaults. One plugin
+# reply line may carry at most reply_max_bytes; beyond it the proposal fails
+# and the plugin process is restarted. A dead plugin process is relaunched at
+# most once per relaunch_cooldown_ticks.
+# reply_max_bytes = 65536
+# relaunch_cooldown_ticks = 20
 
 [events]
 # How many distress events to keep.
@@ -211,3 +217,15 @@ activity_retention = 1000
 # Read by the web client via /config; the simulation ignores it. A distress
 # unresolved this long earns a gentle cue on the kitty's card.
 distress_patience_ticks = 60
+
+# External behavior plugins (spec 016): each [plugins.<name>] block registers
+# a long-running external program as a behavior; give a kitty
+# `behavior = "<name>"` to hand it the reins. The command must be a path to
+# an existing executable file (a shebang script, or an absolute interpreter
+# path with the script in args) -- validated at startup. Program paths and
+# args are never served on GET /config. Wire contract, failure semantics,
+# and a worked example: docs/plugins.md.
+#
+# [plugins.professor_whiskers]
+# command = "docs/examples/demo_plugin.py"
+# args = []

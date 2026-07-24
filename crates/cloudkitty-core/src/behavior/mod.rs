@@ -10,11 +10,12 @@
 //! behavior that hangs, panics, or returns nonsense costs its kitty a moment
 //! of cleverness and nothing more.
 //!
-//! The `async` signature is deliberate and is the whole extension point: a future
-//! `ScriptBehavior`, `HttpBehavior`, or local-service behavior drops in here with
-//! no engine changes. Built-in behaviors resolve immediately and are exempt from
-//! the wall-clock budget -- that exemption is what keeps Article V's determinism
-//! unconditional, since a slow machine can never change what a built-in decides.
+//! The `async` signature is deliberate and is the whole extension point:
+//! [`ScriptBehavior`] (spec 016) drops in here with no engine changes, and a
+//! future `HttpBehavior` will too. Built-in behaviors resolve immediately and
+//! are exempt from the wall-clock budget -- that exemption is what keeps
+//! Article V's determinism unconditional, since a slow machine can never
+//! change what a built-in decides.
 //!
 //! **Multi-agent livelock warning for behavior authors.** All kitties decide
 //! against the same start-of-tick snapshot, so two deterministic behaviors
@@ -46,11 +47,13 @@ use crate::world::{World, WorldSnapshot};
 
 pub mod needs_driven;
 pub mod playful;
+pub mod script;
 pub mod selection;
 pub mod test_behaviors;
 
 pub use needs_driven::NeedsDriven;
 pub use playful::Playful;
+pub use script::{DecisionRequest, ScriptBehavior};
 
 /// Everything a behavior is allowed to know. Read-only by construction.
 pub struct DecisionContext {
