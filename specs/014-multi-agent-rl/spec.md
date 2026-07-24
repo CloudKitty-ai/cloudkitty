@@ -445,7 +445,13 @@ offending config field.
   property test MUST guard the mask against the engine's own judgment
   (Article VI): for every menu entry, the mask's verdict equals the
   verdict of validation plus duration enforcement run against a world
-  in the snapshot's state — a pure oracle, with no carved exceptions.
+  in the snapshot's state — no carved exceptions. (The reference verdict
+  is the engine's own validation and enforcement code replayed on a
+  probe world — one implementation of the law on both sides, by design.
+  The guard catches drift in the mask's *assembly* — slots, indexing,
+  staleness — not errors in the law itself, which deliberately has no
+  second implementation. Wording corrected per the round-one review,
+  2026-07-24: "pure oracle" overstated its independence.)
 - **FR-019**: For centralized training, a fixed-size privileged global
   state MUST be derivable from the same frozen snapshot — every kitty's
   full state without slot truncation, a bounded configured summary of the
@@ -546,7 +552,11 @@ offending config field.
   requirements and Success Criteria join CI;
   every new constant lives in configuration with documented defaults.
 
-**Amendment required: none.** The constitution stays at v1.1.0.
+**Amendment required: none.** The constitution stood at v1.1.0 throughout
+this feature, which changed nothing in it. (Spec 016 later amended it to
+v1.2.0 — Article IV's proposal-resolution outcomes — independently of
+this feature; noted here per the round-one review so the claim reads
+true against the current tree.)
 
 ## Success Criteria *(mandatory)*
 
@@ -578,9 +588,10 @@ offending config field.
   reference machine, and the entire existing CI suite (welfare,
   determinism, invariants, fairness) passes with a policy kitty in the
   roster.
-- **SC-006**: Constitutional cleanliness — the constitution is untouched at
-  v1.1.0, the engine gains no reward concept, and zero new constants exist
-  outside configuration.
+- **SC-006**: Constitutional cleanliness — the constitution is untouched
+  by this feature (v1.1.0 at delivery; since amended to v1.2.0 by spec
+  016, unrelated to this work), the engine gains no reward concept, and
+  zero new constants exist outside configuration.
 
 ## Assumptions
 

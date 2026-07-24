@@ -318,12 +318,15 @@ impl ParallelEnv {
         // fresh-seed chain (Episode::reset_fresh — the chain has exactly
         // one owner): the standard trainer loop — seed once, then bare
         // reset() per episode — gets a genuinely new episode every time,
-        // while the whole sequence replays from the first seed.
+        // while the whole sequence replays from the first seed. The reset
+        // rides the shared panic guard (Episode::reset_caught; round-one
+        // review: this path used to lack the batched reset's guard), so a
+        // world-generation panic poisons the episode and raises with the
+        // original message instead of unwinding across the FFI boundary.
         let episode = &mut self.episode;
-        let step = py.detach(|| match seed {
-            Some(seed) => episode.reset(seed),
-            None => episode.reset_fresh(),
-        });
+        let step = py
+            .detach(|| episode.reset_caught(seed))
+            .map_err(episode_err)?;
         self.live = true;
         let obs = observations_to_py(py, &step)?;
         let infos = infos_to_py(py, &step)?;

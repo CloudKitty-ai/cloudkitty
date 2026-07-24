@@ -47,10 +47,12 @@ those corners open; `partner()`-plus-play-target is the correct key.
   Target-priority removes the corner instead of documenting it: the
   guarantee holds by construction at any roster or population size,
   including future kittens.
-- *The property test becomes a pure oracle.* FR-018's guard — mask verdict
+- *The property test loses its carve-out.* FR-018's guard — mask verdict
   equals the engine's validate-plus-enforcement verdict for every menu
   entry — no longer needs a carved, asserted exception. A test with no
-  carve-outs is strictly stronger and simpler to trust.
+  carve-outs is strictly stronger and simpler to trust. (The reference
+  stays the engine's own judgment code replayed on a probe world, not an
+  independent oracle — wording corrected per the round-one review.)
 - *The target stays observable exactly when it matters.* The
   continue-or-end decision mid-activity needs the referenced entity's
   state (a friend's needs, a critter's position); the idle-bit design

@@ -286,3 +286,47 @@ def test_omitted_action_reports_survived_none():
     assert infos[agents[0]]["provenance"] == "substituted_idle"
     for agent in agents[1:]:
         assert infos[agent]["survived"] in (True, False)
+
+
+def test_vector_batch_matches_parallel_solo_streams():
+    # Round-one review: the contract promises a VectorEnv batch is N fully
+    # independent worlds, and the Rust layer tests that against solo
+    # Episodes -- but nothing at this surface compared the batch stream
+    # against ParallelEnv stepping the same seeds solo. Observations,
+    # rewards, truncations, and masks must match bit-for-bit.
+    seeds = [11, 12]
+    horizon = 15
+    batch = cloudkitty.VectorEnv(len(seeds), horizon=horizon, workers=2)
+    batch_obs, batch_infos = batch.reset(seeds=seeds)
+    agents = batch.possible_agents
+
+    solos = []
+    for world, seed in enumerate(seeds):
+        env = cloudkitty.ParallelEnv(horizon=horizon)
+        obs, infos = env.reset(seed=seed)
+        for agent in agents:
+            assert obs[agent].tobytes() == batch_obs[agent][world].tobytes(), (
+                f"world {world} diverged from its solo run at reset ({agent})"
+            )
+        solos.append(env)
+
+    for step_index in range(horizon):
+        actions = {a: (step_index + i) % 40 for i, a in enumerate(agents)}
+        batch_actions = {a: [actions[a]] * len(seeds) for a in agents}
+        b_obs, b_rew, b_term, b_trunc, b_infos = batch.step(batch_actions)
+        for world, env in enumerate(solos):
+            s_obs, s_rew, s_term, s_trunc, s_infos = env.step(actions)
+            for agent in agents:
+                assert s_obs[agent].tobytes() == b_obs[agent][world].tobytes(), (
+                    f"world {world} observations diverged at step {step_index}"
+                )
+                assert s_rew[agent] == b_rew[agent][world], (
+                    f"world {world} rewards diverged at step {step_index}"
+                )
+                assert s_trunc[agent] == b_trunc[agent][world], (
+                    f"world {world} truncations diverged at step {step_index}"
+                )
+                assert (
+                    s_infos[agent]["mask"].tobytes()
+                    == b_infos[agent]["mask"][world].tobytes()
+                ), f"world {world} masks diverged at step {step_index}"
