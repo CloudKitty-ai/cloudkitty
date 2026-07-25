@@ -1,0 +1,115 @@
+# evals/v1/scale.toml — the scale exam (spec 017, FR-005).
+# FROZEN at landing: eval-suite-v1. Do not edit; see evals/v1/manifest.toml.
+#
+# Does cooperation survive distance and crowds? 2,304 tiles (2.25x the
+# default world), 8 kitties (2x), and the default world's element counts
+# left deliberately UNSCALED: dilution and travel are the exam. Article I
+# is fully active - the safeguard still spawns relief; scarcity here means
+# walking, yielding, and asking (meows), never suffering.
+
+[world]
+width = 48
+height = 48
+tick_ms = 800        # never consulted headlessly (budgetless dispatch)
+seed = 1             # structural; the harness seeds each run explicitly
+
+# Behaviors here are placeholders: standard-exam scoring assigns the
+# subject per roster mode, exactly as on the default world.
+[[kitty]]
+id = 1
+name = "Miso"
+x = 6
+y = 6
+behavior = "needs_driven"
+
+[[kitty]]
+id = 2
+name = "Biscuit"
+x = 41
+y = 6
+behavior = "needs_driven"
+
+[[kitty]]
+id = 3
+name = "Pumpkin"
+x = 6
+y = 41
+behavior = "needs_driven"
+
+[[kitty]]
+id = 4
+name = "Kittybear"
+x = 41
+y = 41
+behavior = "needs_driven"
+
+[[kitty]]
+id = 5
+name = "Clementine"
+x = 24
+y = 24
+behavior = "needs_driven"
+
+[[kitty]]
+id = 6
+name = "Mochi"
+x = 24
+y = 6
+behavior = "needs_driven"
+
+[[kitty]]
+id = 7
+name = "Marmalade"
+x = 6
+y = 24
+behavior = "needs_driven"
+
+[[kitty]]
+id = 8
+name = "Noodle"
+x = 41
+y = 24
+behavior = "needs_driven"
+
+# The default world's rates: metabolism is not this exam's axis.
+[needs]
+eat = 0.4
+drink = 0.4
+sleep = 0.3
+play = 0.4
+cuddle = 0.4
+bath = 0.2
+
+# The default world's counts on 2.25x the area - dilution IS the exam.
+[elements.water]
+min = 8
+max = 10
+
+[elements.chow]
+min = 8
+max = 10
+servings = 5
+
+[elements.bug]
+min = 4
+max = 8
+ttl = 300
+
+[elements.greeble]
+min = 1
+max = 3
+ttl = 300
+
+[elements.sunbeam]
+min = 5
+max = 6
+ttl = 300
+
+[rl.reward]
+p = 0.0          # Nash welfare - the objective, unchanged (spec 017 FR-014)
+epsilon = 0.01
+mode = "level"
+
+[rl.eval]
+seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+ticks = 20000

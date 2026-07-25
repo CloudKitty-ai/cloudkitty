@@ -89,6 +89,14 @@ pub struct RunOutcome {
 
 /// Runs one seeded, budgetless, behavior-driven evaluation.
 pub fn run_one(request: &EvalRequest<'_>) -> RunOutcome {
+    run_one_with(request, |_| {})
+}
+
+/// `run_one` with a per-tick observer: called once per completed tick with
+/// the post-tick world (spec 017 R6 — suite-side metrics like
+/// duet-participation shares ride here, so the shared welfare module and
+/// the run loop stay single-sourced).
+pub fn run_one_with(request: &EvalRequest<'_>, mut observer: impl FnMut(&World)) -> RunOutcome {
     let mut config = request.core.clone();
     config.world.seed = request.seed;
     if let Some(subject) = request.subject {
@@ -128,6 +136,7 @@ pub fn run_one(request: &EvalRequest<'_>) -> RunOutcome {
         let (welfare, plain) = roster_welfare(&world.kitties, &config, &request.rl.reward);
         welfare_sum += welfare;
         plain_sum += plain;
+        observer(&world);
     }
 
     let report = accumulator.report();
@@ -210,4 +219,35 @@ pub fn paired_against_baseline(
     let baseline_runs = run_many(&request.baseline(), seeds);
     let deltas = pair_runs(&subject_runs, &baseline_runs);
     (subject_runs, baseline_runs, deltas)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::RlConfig;
+
+    #[test]
+    fn the_observer_fires_once_per_completed_tick() {
+        let core = Config::default();
+        let rl = RlConfig::default();
+        let registry = BehaviorRegistry::with_builtins();
+        let request = EvalRequest {
+            core: &core,
+            rl: &rl,
+            registry: &registry,
+            subject: Some("needs_driven"),
+            roster: RosterMode::AllSubject,
+            seed: 7,
+            ticks: 25,
+        };
+        let mut seen = Vec::new();
+        let observed = run_one_with(&request, |world| seen.push(world.tick));
+        assert_eq!(seen.len(), 25, "one observation per tick");
+        assert!(
+            seen.windows(2).all(|w| w[0] < w[1]),
+            "the observer sees an advancing world"
+        );
+        // The observer is pure observation: the outcome is the plain run's.
+        assert_eq!(observed, run_one(&request));
+    }
 }

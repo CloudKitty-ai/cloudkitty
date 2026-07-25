@@ -143,3 +143,23 @@ cargo run -p cloudkitty-rl --bin kitty-eval -- --artifact policies/trained.ckpol
 scoring, and the server validates and hash-logs the artifact before the
 first tick. Evaluation always runs on the **default** world — the training
 world is a gym, not the bar.
+
+## The exam suite
+
+```bash
+# Measurement beside the bar (spec 017): four frozen held-out worlds.
+cargo run -p cloudkitty-rl --bin kitty-eval -- \
+  --suite evals/v1 --artifact policies/trained.ckpolicy
+```
+
+The suite scores across committed exam configs — scale, scarcity,
+heterogeneity, and the mixed-roster composition cells — **in addition to**
+default-world certification, never instead of it: the default world
+remains the sole certification bar. Exam worlds are never judged by the
+bar's welfare bounds (a scarcity-floor world lawfully scores below bounds
+calibrated for abundance); the paired baseline delta is an exam's meaning,
+and the mixed-roster verdict is anchored to its own all-scripted baseline
+(exit 4 when it fails — the exploitation probe caught something). The
+held-out doctrine, verbatim: **results against a suite version are void if
+any of its exams appeared in training.** A landed suite version is frozen
+(hash-guarded in CI); evolution is a new `evals/v2/` alongside.
