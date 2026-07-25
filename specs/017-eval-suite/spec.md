@@ -53,7 +53,7 @@ project's whole history.
 
 - Q: Is suite support a `kitty-eval` mode or a thin wrapper invoking it per
   config? → A: A `kitty-eval` mode. The harness already accepts `--config`,
-  and every per-exam obligation (both roster modes, paired baseline, fallback
+  and every per-exam obligation (roster modes, paired baseline, fallback
   accounting, determinism self-check, JSON report) is machinery the binary
   already owns; a wrapper would re-implement report aggregation and exit
   semantics outside the tested surface. One binary, one report shape.
@@ -103,10 +103,11 @@ must aggregate exactly those numbers.
 **Acceptance Scenarios**:
 
 1. **Given** a policy artifact and a named suite version, **When** the suite
-   run is invoked, **Then** every exam in the suite is scored — both roster
-   modes, paired against `needs_driven` on the same seeds — and the report
-   presents each exam's scorecard plus a suite summary, in both human and
-   JSON forms.
+   run is invoked, **Then** every exam in the suite is scored — standard
+   exams in both roster modes, the mixed-roster exam by its composition
+   cells, all paired against `needs_driven` on the same seeds — and the
+   report presents each exam's scorecard plus a suite summary, in both human
+   and JSON forms.
 2. **Given** a suite containing an exam config that fails engine validation,
    **When** the suite run starts, **Then** the run fails before any scoring,
    naming the exam file and the offending field — no exam is silently
@@ -265,10 +266,13 @@ the guard suite: the modification is detected and fails loudly.
   mechanical guarantee this feature *can* give is distinctness: no exam file
   equals a training or certification config.
 - **Mixed roster mode on exam worlds**: the deployment-reality mode (one
-  policy kitty among `needs_driven`) runs per exam exactly as on the default
-  world — both roster modes are part of every exam's scorecard. The
-  mixed-roster *exam* is a different instrument: composition cells with
-  their own baseline and verdict (US3), not a rerun of certification's mode.
+  policy kitty among `needs_driven`) runs per **standard** exam exactly as
+  on the default world — both roster modes are part of every standard exam's
+  scorecard. The mixed-roster exam does not repeat them: its composition
+  cells *subsume* roster variation — the guest cell **is** the
+  deployment-reality composition, probed at richer compositions besides —
+  with their own baseline and verdict (US3), not a rerun of certification's
+  mode.
 - **The exploitation signature**: a negative guest-welfare differential in
   the host cell under a healthy team Nash — team welfare respectable, the
   scripted cat permanently least-happy. No other metric in the suite catches
@@ -302,11 +306,14 @@ the guard suite: the modification is detected and fails loudly.
   measurement, and no suite result substitutes for default-world
   certification.
 - **FR-002**: Each exam MUST be scored with the full per-config obligations
-  the harness already owns: both roster modes for a policy subject, the
-  paired same-seed `needs_driven` baseline comparison, fallback accounting
-  (a nonzero fallback count fails the run), and the determinism self-check —
-  on the budgetless headless path, per the standing doctrine (spec 014
-  FR-017).
+  the harness already owns — the paired same-seed `needs_driven` baseline
+  comparison, fallback accounting (a nonzero fallback count fails the run),
+  and the determinism self-check — on the budgetless headless path, per the
+  standing doctrine (spec 014 FR-017). Standard exams additionally run both
+  roster modes for a policy subject, exactly as certification does; the
+  mixed-roster exam runs its composition cells instead (FR-008) — the cells
+  subsume roster variation, the guest cell being the deployment-reality
+  composition.
 - **FR-003**: The suite report MUST present, per exam: the full long-run
   welfare panel the single-config report presents (mean happiness,
   low-happiness streaks and share, floor touches, pinned streaks, distress
@@ -363,8 +370,9 @@ the guard suite: the modification is detected and fails loudly.
   scripted kitty's happiness with policy neighbors versus with scripted
   neighbors), least-happy identity counts (whether the least-happy kitty is
   systematically the out-group member — identity, not just value), and
-  per-kitty duet-participation shares (which the activity record already
-  carries).
+  per-kitty duet-participation shares (derivable from the engine's recorded
+  activity state; the plan derives them from per-tick partner observation —
+  the same measure).
 - **FR-010**: The mixed-roster exam's verdict MUST be anchored to its own
   all-scripted baseline, never to the default world's bounds. It passes
   when: no cell's paired team aggregate falls below the all-scripted
@@ -414,8 +422,9 @@ the guard suite: the modification is detected and fails loudly.
 - **Suite Manifest**: the record of a suite version's membership and each
   exam's content identity — what the freeze guard verifies and reports cite.
 - **Exam Scorecard**: one exam's results — welfare panel, team aggregate
-  with plain mean and least-happy beside it, both roster modes, paired
-  baseline deltas, fallback and determinism accounting.
+  with plain mean and least-happy beside it, roster modes (standard exams)
+  or composition cells (mixed-roster), paired baseline deltas, fallback and
+  determinism accounting.
 - **Composition Cell**: one seat arrangement of the mixed-roster exam —
   guest, half-and-half, or host — scored on paired seeds against the
   all-scripted baseline of the same config and seeds.

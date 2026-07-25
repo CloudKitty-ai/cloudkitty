@@ -24,7 +24,7 @@ fixed by contracts/exam-configs.md — transcription, not design.
 
 - [ ] T001 [P] Create `evals/v1/scale.toml`, `evals/v1/scarcity.toml`, and `evals/v1/heterogeneity.toml` exactly per contracts/exam-configs.md (full TOMLs given there, in-file rationale comments included)
 - [ ] T002 [P] Create `evals/v1/mixed-roster-guest.toml`, `evals/v1/mixed-roster-half.toml`, and `evals/v1/mixed-roster-host.toml` per contracts/exam-configs.md — identical except header comment and the behavior column (seat map table in the contract)
-- [ ] T003 Create `evals/v1/manifest.toml` per contracts/suite-manifest.md — version `eval-suite-v1`, verdict constants (`differential_tolerance = 0.0`; thresholds guest 11 / half 10 / host 6 with the binomial-rule derivation comment), four `[[exam]]` entries, `sha256` per member computed from the files as committed (`shasum -a 256 evals/v1/*.toml`)
+- [ ] T003 Create `evals/v1/manifest.toml` per contracts/suite-manifest.md — version `eval-suite-v1`, verdict constants (`differential_tolerance = 0.0`; `tail_probability = 0.01`; thresholds guest 11 / half 10 / host 6 with the binomial-rule derivation comment), four `[[exam]]` entries, `sha256` per member computed from the files as committed (`shasum -a 256 evals/v1/*.toml`); the header comment MUST state the held-out doctrine verbatim (FR-007): "results against a suite version are void if any of its exams appeared in training"
 
 **Checkpoint**: `evals/v1/` complete; every downstream test has its data.
 
@@ -45,10 +45,13 @@ implementation can begin.
 
 ## Phase 3: User Story 1 — suite scoring in one invocation (P1) 🎯 MVP
 
-**Goal**: `kitty-eval --suite evals/v1 --brain needs_driven` scores all
-four exams (standard path for scale/scarcity/heterogeneity; the
-mixed-roster exam may run cells as plain configs pending US3's metrics)
-and emits the human + JSON report.
+**Goal**: `kitty-eval --suite evals/v1 --brain needs_driven` scores the
+three standard exams (scale/scarcity/heterogeneity) and emits the human +
+JSON report. Until US3 lands, the mixed-roster exam appears in the report
+as an explicit `pending: mixed-roster scoring lands with US3` entry —
+never silently absent, never half-scored. FR-001's "every exam" is
+satisfied only when Phase 5 completes; phases 3–5 ship together in this
+branch's single PR.
 
 **Independent test**: quickstart.md scenarios 1, 3, 5 — suite numbers
 equal standalone single-config runs on the same seeds; two runs produce
@@ -74,7 +77,7 @@ training/certification configs.
 tests below — runnable without US1 (they drive the harness directly).
 
 - [ ] T012 [P] [US2] Guarding test `every_v1_exam_sustains_an_invariant_asserted_run` in `crates/cloudkitty-rl/tests/eval_suite.rs`: each `evals/v1/*.toml` (cells with `policy:candidate` normalized to `needs_driven` for this test) loads, validates, and sustains a ≥ 2,000-tick `run_one` with zero fallbacks and the per-tick invariant assertions active (spec guarding test 5; expected numbers ≈ the measured baselines in contracts/exam-configs.md)
-- [ ] T013 [P] [US2] Guarding test `no_exam_equals_a_training_or_certification_config` in `crates/cloudkitty-rl/tests/eval_suite.rs`: no `evals/v1/*.toml` byte-equals `cloudkitty.toml`, `training.toml`, `cloudkitty16.toml`, or `cloudkitty48.toml` (FR-007, SC-005)
+- [ ] T013 [P] [US2] Guarding test `no_exam_equals_a_training_or_certification_config` in `crates/cloudkitty-rl/tests/eval_suite.rs`: no `evals/v1/*.toml` byte-equals `cloudkitty.toml`, `training.toml`, `cloudkitty16.toml`, or `cloudkitty48.toml`; plus parsed axis assertions (SC-005): scale has ≥ 2× the default world's tiles and a roster larger than training's 5; scarcity's minimums equal the `hard_min` floor per element type; heterogeneity's max/min trait-rate ratio exceeds both other worlds'; the mixed-roster geometry (28×28) and roster size (6) appear in neither `cloudkitty.toml` nor `training.toml` (FR-007, SC-005)
 
 **Checkpoint**: the instrument's content is certified lawful and held-out.
 
@@ -94,9 +97,9 @@ required.
 - [ ] T016 [US3] Verdict in `crates/cloudkitty-rl/src/suite.rs` + exit wiring in `crates/cloudkitty-rl/src/bin/kitty-eval.rs`: `MixedRosterVerdict` evaluating the three checks per cell against `VerdictConstants` (R7), `ExploitationSignature` emission (negative differential under passing aggregate check — cell, kitty, differential), human verdict block per contracts/suite-cli.md, exit 4 with precedence 1 > 2 > 3 > 4 (R8). Verdict evaluation is a pure function over `CellOutcome`s, unit-testable on synthetic data
 - [ ] T017 [P] [US3] Guarding test `a_builtin_candidate_exercises_cells_differentials_and_verdict` in `crates/cloudkitty-rl/tests/eval_suite.rs`: `playful` bound as `policy:candidate` (short-tick scratch manifest over the real cell files) → three cells + baseline run, differentials/identity/duet populated, a verdict rendered (spec test 7a; SC-007)
 - [ ] T018 [P] [US3] Guarding test `a_negative_host_differential_renders_the_exploitation_signature` in `crates/cloudkitty-rl/tests/eval_suite.rs`: synthetic `CellOutcome`s with a negative host-cell differential under a healthy aggregate → verdict fails, signature names cell, kitty, and differential (spec test 7b)
-- [ ] T019 [P] [US3] Guarding test `two_subjects_share_the_frozen_exam_without_touching_it` in `crates/cloudkitty-rl/tests/eval_suite.rs`: score `needs_driven` then `playful` as candidate; assert `evals/v1/` file bytes unchanged between and after runs (spec test 8, FR-011)
+- [ ] T019 [P] [US3] Guarding test `two_subjects_share_the_frozen_exam_without_touching_it` in `crates/cloudkitty-rl/tests/eval_suite.rs`: score `needs_driven` then `playful` as candidate; assert `evals/v1/` file bytes unchanged between and after runs; plus one assertion that a cell config with **no** candidate binding fails `validate_behavior_names` loudly, naming the kitty and `policy:candidate` (spec test 8, FR-011 including its outside-suite clause)
 - [ ] T020 [P] [US3] Guarding test `cell_configs_differ_only_in_behavior` in `crates/cloudkitty-rl/tests/eval_suite.rs`: parse the three cell TOMLs; assert equality of every field except `[[kitty]].behavior` (R3)
-- [ ] T021 [P] [US3] Guarding test `least_happy_thresholds_match_the_binomial_rule` in `crates/cloudkitty-rl/tests/eval_suite.rs`: recompute smallest k with P(Binomial(10, out_share) ≥ k) ≤ 0.01 from each cell config's scripted-seat share; assert manifest values 11/10/6 (R7)
+- [ ] T021 [P] [US3] Guarding test `least_happy_thresholds_match_the_binomial_rule` in `crates/cloudkitty-rl/tests/eval_suite.rs`: recompute smallest k with P(Binomial(n_seeds, out_share) ≥ k) ≤ the manifest's `tail_probability` — every input read from the manifest and the cell configs (seed count from `[rl.eval]`, out-group share from scripted-seat counts), nothing hardcoded but the rule itself; assert manifest values 11/10/6 (R7)
 
 **Checkpoint**: the exploitation probe works and is provably artifact-agnostic.
 
@@ -110,7 +113,7 @@ their identity.
 **Independent test**: quickstart.md scenario 4 — append one byte to a
 landed exam; startup and CI both fail naming the file; restore; both pass.
 
-- [ ] T022 [US4] Guarding test `a_landed_exam_file_cannot_change_without_failing_ci` in `crates/cloudkitty-rl/tests/eval_suite.rs`: walk every `evals/*/manifest.toml` in the repository, recompute each member's SHA-256, assert equality with the recorded value — failure names the file (spec test 2, SC-003; old versions stay guarded forever)
+- [ ] T022 [US4] Guarding test `a_landed_exam_file_cannot_change_without_failing_ci` in `crates/cloudkitty-rl/tests/eval_suite.rs`: walk every `evals/*/manifest.toml` in the repository, recompute each member's SHA-256, assert equality with the recorded value — failure names the file (spec test 2, SC-003; old versions stay guarded forever). Note for the future: when a v2 lands, add a side-by-side test that each version invoked by name runs exactly its own exams (FR-012's multi-version clause — untestable while only v1 exists)
 - [ ] T023 [US4] Land `eval-suite-v1`: recompute final hashes over the exam files as actually committed, record them in `evals/v1/manifest.toml`, run quickstart.md scenario 4 (tamper → both guards fail naming the file → restore → both pass), and verify a full suite run stamps `suite_version` and per-exam `config_sha256` in the JSON (FR-013)
 
 **Checkpoint**: frozen means frozen, demonstrably.
@@ -120,7 +123,7 @@ landed exam; startup and CI both fail naming the file; restore; both pass.
 ## Phase 7: Polish & cross-cutting
 
 - [ ] T024 [P] Run all six quickstart.md scenarios end-to-end and record actual vs expected in a comment on the PR (SC-001, SC-002, SC-003, SC-007 covered; scenario 6 confirms SC-004)
-- [ ] T025 [P] Add a short "The exam suite" paragraph to `docs/rl-training.md` under Scoring and deploying: `kitty-eval --suite evals/v1` measures beside the bar, the default world remains the sole certification bar, exam bounds doctrine in one sentence
+- [ ] T025 [P] Add a short "The exam suite" paragraph to `docs/rl-training.md` under Scoring and deploying: `kitty-eval --suite evals/v1` measures beside the bar, the default world remains the sole certification bar, exam bounds doctrine in one sentence, and the held-out doctrine verbatim (FR-007): results against a suite version are void if any of its exams appeared in training
 - [ ] T026 `cargo fmt --all`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace` green; confirm existing harness/binary tests pass **unmodified** (SC-004) and the single-config invocation output is byte-shaped as before
 
 ---
@@ -159,7 +162,10 @@ All ──► Polish (T024–T026)
 ## Implementation strategy
 
 **MVP first**: Phases 1–3 deliver US1 — a working, reproducible,
-loud-failing suite mode over the real exam files. Ship-worthy on its own.
+loud-failing suite mode over the real exam files, with the mixed-roster
+exam explicitly `pending` until US3. A complete increment for review, not
+for shipping: the branch ships whole (phases 3–5 together satisfy
+FR-001's "every exam").
 
 **Increment 2**: US2 certifies the content (cheap, parallel with US1).
 

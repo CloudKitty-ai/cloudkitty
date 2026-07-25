@@ -27,11 +27,14 @@ constants bind to it).
 | Field | Type | Notes |
 |---|---|---|
 | `differential_tolerance` | f64 | default 0.0; differential check is `mean ≥ -tolerance` |
-| `least_happy_threshold` | map cell-name → u32 | smallest k with P(Binomial(n_seeds, out_share) ≥ k) ≤ 0.01; v1: guest 11, half 10, host 6 |
+| `tail_probability` | f64 | default 0.01; the binomial tail bound the thresholds derive from |
+| `least_happy_threshold` | map cell-name → u32 | smallest k with P(Binomial(n_seeds, out_share) ≥ k) ≤ `tail_probability`; v1: guest 11, half 10, host 6 |
 
-**Validation**: tolerance ≥ 0 and finite; a threshold present for every
-cell of the mixed-roster exam; a unit test recomputes each threshold from
-the rule and asserts equality (constants stay derivable, never folklore).
+**Validation**: tolerance ≥ 0 and finite; `tail_probability` in (0, 1);
+a threshold present for every cell of the mixed-roster exam; a unit test
+recomputes each threshold from the rule — every input read from the
+manifest and cell configs — and asserts equality (constants stay
+derivable, never folklore).
 
 ## ExamEntry
 

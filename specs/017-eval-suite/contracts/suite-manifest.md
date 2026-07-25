@@ -11,6 +11,12 @@ membership, freeze identity, and verdict constants. Parsed into
 # FROZEN: every file below is immutable once landed (spec 017 FR-012).
 # Any edit fails CI (tests/eval_suite.rs freeze guard) and fails suite
 # startup. Evolution = a new evals/v2/ alongside; this file never changes.
+#
+# HELD-OUT DOCTRINE (spec 017 FR-007): these exams exist to be worlds the
+# policy has never trained on. Results claimed against a suite version are
+# VOID if any of its exams appeared in training. Held-out is a doctrine,
+# not a lock — the mechanical guarantee is distinctness; the rest is on
+# the experimenter.
 
 version = "eval-suite-v1"
 
@@ -19,13 +25,20 @@ version = "eval-suite-v1"
 # differential is >= -differential_tolerance (spec FR-010: >= 0).
 differential_tolerance = 0.0
 
+# The binomial tail bound behind the identity thresholds below: "beyond
+# what seed noise explains" means an outcome this concentrated has
+# probability <= tail_probability under exchangeable seeds.
+tail_probability = 0.01
+
 # Identity check thresholds: fail a cell when the least-happy kitty is a
 # scripted (out-group) member in >= threshold of the seeds. Rule: the
-# smallest k with P(Binomial(n_seeds, out_group_share) >= k) <= 0.01,
-# n_seeds = 10. guest: share 5/6 -> 11 (unattainable: chance alone puts
-# the out-group last most days when it is 5 of 6 cats — the check cannot
-# bind there, honestly). half: share 3/6 -> 10. host: share 1/6 -> 6.
-# A unit test recomputes these from the rule.
+# smallest k with P(Binomial(n_seeds, out_group_share) >= k) <=
+# tail_probability, n_seeds = 10 (from each exam's [rl.eval]). guest:
+# share 5/6 -> 11 (unattainable: chance alone puts the out-group last
+# most days when it is 5 of 6 cats — the check cannot bind there,
+# honestly). half: share 3/6 -> 10. host: share 1/6 -> 6. A unit test
+# recomputes these from the rule, reading every input from this file and
+# the cell configs.
 [verdict.least_happy_threshold]
 guest = 11
 half = 10
