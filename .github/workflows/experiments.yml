@@ -1,0 +1,36 @@
+name: experiments (non-blocking)
+
+# Builds the research tooling under experiments/tools so engine API drift
+# gets noticed. Deliberately not a required check: experiments/ is trainer
+# territory (see experiments/README.md) and must never gate product changes.
+
+on:
+  push:
+    branches: [main]
+    paths: ["experiments/**", "crates/**"]
+  pull_request:
+    branches: [main]
+    paths: ["experiments/**", "crates/**"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-tools:
+    name: build experiments/tools
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install stable toolchain
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: experiments/tools/twin-probe
+
+      - name: Build twin-probe
+        run: cargo build --manifest-path experiments/tools/twin-probe/Cargo.toml
