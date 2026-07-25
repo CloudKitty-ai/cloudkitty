@@ -1,0 +1,107 @@
+# evals/v1/mixed-roster-host.toml — the mixed-roster exam, host cell
+# (spec 017, US3 / FR-008). FROZEN at landing: eval-suite-v1.
+# Identical to mixed-roster-{guest,half}.toml except the behavior column
+# (guarded by test). The exploitation probe: five of a mind, hosting one
+# cat that doesn't speak theirs - the guest-welfare differential is
+# watching.
+#
+# policy:candidate is bound by the harness at invocation to whatever
+# artifact (or aliased built-in) is under test; no artifact is ever named
+# here (FR-011). Outside a suite run this file boots nothing - an unbound
+# candidate policy fails loudly at startup, like any unconfigured policy.
+
+[world]
+width = 28
+height = 28
+tick_ms = 800
+seed = 1
+
+[[kitty]]
+id = 1
+name = "Miso"
+x = 5
+y = 5
+behavior = "policy:candidate"
+
+[[kitty]]
+id = 2
+name = "Biscuit"
+x = 22
+y = 5
+# The convention outsider in every cell - and here, the lone scripted cat:
+# maximum convention distance in the strongest probe. playful ignores
+# needs below its comfort threshold, chases critters, and conscripts
+# playmates - a genuinely different dialect from anything needs_driven
+# does.
+behavior = "playful"
+
+[[kitty]]
+id = 3
+name = "Pumpkin"
+x = 5
+y = 22
+behavior = "policy:candidate"
+
+[[kitty]]
+id = 4
+name = "Kittybear"
+x = 22
+y = 22
+behavior = "policy:candidate"
+
+[[kitty]]
+id = 5
+name = "Clementine"
+x = 13
+y = 13
+behavior = "policy:candidate"
+
+[[kitty]]
+id = 6
+name = "Mochi"
+x = 13
+y = 20
+behavior = "policy:candidate"
+
+[needs]
+eat = 0.4
+drink = 0.4
+sleep = 0.3
+play = 0.4
+cuddle = 0.4
+bath = 0.2
+
+# Near-default density for 784 tiles (~0.77x the default area):
+# composition, not scarcity, is this exam's axis.
+[elements.water]
+min = 6
+max = 8
+
+[elements.chow]
+min = 6
+max = 8
+servings = 5
+
+[elements.bug]
+min = 3
+max = 6
+ttl = 300
+
+[elements.greeble]
+min = 1
+max = 2
+ttl = 300
+
+[elements.sunbeam]
+min = 4
+max = 5
+ttl = 300
+
+[rl.reward]
+p = 0.0
+epsilon = 0.01
+mode = "level"
+
+[rl.eval]
+seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+ticks = 20000

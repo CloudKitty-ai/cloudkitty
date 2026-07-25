@@ -23,56 +23,15 @@ meadow. Training defaults instead to **5 kitties on a 24×24 world**:
   and cheapen ticks. Floor ~20×20: element minimums, the safeguard
   spawner, and the pathing/etiquette behaviors want room.
 
-```toml
-# training.toml — the reference training world
-[world]
-width = 24
-height = 24
-tick_ms = 800        # never consulted headlessly (budgetless dispatch)
-seed = 1
-
-[[kitty]]
-id = 1
-name = "Miso"
-x = 4
-y = 4
-behavior = "needs_driven"   # control is per-episode, not config
-
-[[kitty]]
-id = 2
-name = "Biscuit"
-x = 19
-y = 4
-behavior = "needs_driven"
-
-[[kitty]]
-id = 3
-name = "Pumpkin"
-x = 4
-y = 19
-behavior = "needs_driven"
-
-[[kitty]]
-id = 4
-name = "Kittybear"
-x = 19
-y = 19
-behavior = "needs_driven"
-
-[[kitty]]
-id = 5
-name = "Clementine"
-x = 12
-y = 12
-behavior = "needs_driven"
-
-[rl.episode]
-horizon = 2000
-
-[rl.reward]
-p = 0.0          # Nash welfare (default)
-epsilon = 0.01
-```
+The repository ships this world as **`training.toml`** at the repo root —
+the single source of truth, so this page never drifts from the file. It is
+the R11 base amended three ways (rationale in the file's own comments):
+one trait override per kitty on a distinct need (Biscuit plays, Pumpkin
+snacks, Kittybear naps, Clementine cuddles — the observation's trait
+features and the fairness gradient do real work), global rise rates about
+1.25× the default world's (more decisions that matter per episode), and
+elements one notch scarcer (bowls and beams worth walking for and worth
+yielding — the Article I safeguard still guarantees relief).
 
 Roster randomization is free robustness: vectorized worlds are fully
 independent, so mixing 4/5/6-kitty configs across one batch trains a
@@ -184,3 +143,31 @@ cargo run -p cloudkitty-rl --bin kitty-eval -- --artifact policies/trained.ckpol
 scoring, and the server validates and hash-logs the artifact before the
 first tick. Evaluation always runs on the **default** world — the training
 world is a gym, not the bar.
+
+## The exam suite
+
+```bash
+# Measurement beside the bar (spec 017): four frozen held-out worlds.
+cargo run -p cloudkitty-rl --bin kitty-eval -- \
+  --suite evals/v1 --artifact policies/trained.ckpolicy
+```
+
+The suite scores across committed exam configs — scale, scarcity,
+heterogeneity, and the mixed-roster composition cells — **in addition to**
+default-world certification, never instead of it: the default world
+remains the sole certification bar. Exam worlds are never judged by the
+bar's welfare bounds (a scarcity-floor world lawfully scores below bounds
+calibrated for abundance); the paired baseline delta is an exam's meaning,
+and the mixed-roster verdict is anchored to its own all-scripted baseline
+(exit 4 when it fails — the exploitation probe caught something). The
+per-kitty **sign test** warns by default: a scripted kitty whose paired
+differential is negative in ≥ `sign_test_k` seeds is named at exit 0 —
+as an `EXPLOITATION SIGNATURE` when the cell's team aggregate is healthy
+(the masking case: a good score hiding a victim), or a `SIGN-TEST TRIP`
+when the cell is failing anyway (general harm from a weak candidate, not
+masked exploitation). Treat either on a real candidate as a prompt to
+rerun with `--enforce sign-test` (tighten-only: it promotes warn to gate,
+and nothing can loosen a gate) before quoting the result.
+The held-out doctrine, verbatim: **results against a suite version are
+void if any of its exams appeared in training.** A landed suite version is
+frozen (hash-guarded in CI); evolution is a new `evals/v2/` alongside.

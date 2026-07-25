@@ -1,0 +1,93 @@
+# evals/v1/scarcity.toml — the scarcity exam (spec 017, FR-005).
+# FROZEN at landing: eval-suite-v1. Do not edit; see evals/v1/manifest.toml.
+#
+# Does yielding survive genuine contention? The default world's geometry
+# and roster with every element minimum at the validation floor (greebles
+# 0, all else 1) and maxima at floor+1: one puddle, one bowl, one sunbeam,
+# four cats. The safeguard spawner still answers every need above its
+# threshold - working harder for relief is lawful; going without is not.
+# NOTE: the default world's welfare bounds are calibrated to the default
+# world's abundance. Scores here mean nothing against those bounds and are
+# never judged by them (FR-003) - the paired needs_driven baseline is this
+# exam's yardstick.
+
+[world]
+width = 32
+height = 32
+tick_ms = 800
+seed = 1
+
+# The bar's roster (positions and Pumpkin's snacky trait included), so
+# contention is the ONLY axis this exam moves.
+[[kitty]]
+id = 1
+name = "Miso"
+x = 10
+y = 12
+behavior = "needs_driven"
+
+[[kitty]]
+id = 2
+name = "Biscuit"
+x = 20
+y = 18
+behavior = "needs_driven"
+
+[[kitty]]
+id = 3
+name = "Pumpkin"
+x = 16
+y = 8
+behavior = "needs_driven"
+[kitty.needs]
+eat = 0.8
+
+[[kitty]]
+id = 4
+name = "Kittybear"
+x = 5
+y = 5
+behavior = "needs_driven"
+
+[needs]
+eat = 0.4
+drink = 0.4
+sleep = 0.3
+play = 0.4
+cuddle = 0.4
+bath = 0.2
+
+# The floor. hard_min is 1 (greebles 0); maxima at floor+1 keep the
+# population lean instead of drifting back toward abundance.
+[elements.water]
+min = 1
+max = 2
+
+[elements.chow]
+min = 1
+max = 2
+servings = 5
+
+[elements.bug]
+min = 1
+max = 2
+ttl = 300
+
+[elements.greeble]
+min = 0
+max = 1
+ttl = 300
+
+[elements.sunbeam]
+min = 1
+max = 2
+ttl = 300
+
+[rl.reward]
+p = 0.0
+epsilon = 0.01
+mode = "level"
+
+[rl.eval]
+seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+ticks = 20000

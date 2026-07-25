@@ -1,0 +1,103 @@
+# training.toml — 5-kitty training world (R11 base + heterogeneity + mild scarcity)
+# The gym, not the bar: kitty-eval always scores on the default 32x32 world.
+
+[world]
+width = 24
+height = 24
+tick_ms = 800        # never consulted headlessly (budgetless dispatch)
+seed = 1             # base seed; per-episode seeds come from reset()/VectorEnv
+
+[[kitty]]
+id = 1
+name = "Miso"
+x = 4
+y = 4
+behavior = "needs_driven"   # placeholder — control is per-episode, not config
+
+[[kitty]]
+id = 2
+name = "Biscuit"
+x = 19
+y = 4
+behavior = "needs_driven"
+# A player: play pressure returns fast.
+[kitty.needs]
+play = 0.7
+
+[[kitty]]
+id = 3
+name = "Pumpkin"
+x = 4
+y = 19
+behavior = "needs_driven"
+# The canon snacky cat, kept snacky in training.
+[kitty.needs]
+eat = 0.8
+
+[[kitty]]
+id = 4
+name = "Kittybear"
+x = 19
+y = 19
+behavior = "needs_driven"
+# A big sleepy cat: sunbeams matter to Kittybear.
+[kitty.needs]
+sleep = 0.5
+
+[[kitty]]
+id = 5
+name = "Clementine"
+x = 12
+y = 12
+behavior = "needs_driven"
+# Affection-hungry: with an odd roster and pairwise cuddles, someone is
+# always left out — Clementine makes turn-taking a live decision.
+[kitty.needs]
+cuddle = 0.7
+
+# Global rise rates ~1.25x the default world: needs return sooner, so each
+# 2,000-tick episode contains more decisions that matter.
+[needs]
+eat = 0.5
+drink = 0.5
+sleep = 0.35
+play = 0.5
+cuddle = 0.5
+bath = 0.25
+
+# Scarcer than the default's "generous on purpose" 8-10, per that file's own
+# invitation: the safeguard still guarantees relief (Article I holds in
+# training), but bowls and beams are worth walking for and worth yielding.
+[elements.water]
+min = 5
+max = 7
+
+[elements.chow]
+min = 5
+max = 7
+servings = 5
+
+[elements.bug]
+min = 4
+max = 8
+ttl = 300
+
+[elements.greeble]
+min = 1
+max = 3
+ttl = 300
+
+# Three beams, five cats, one napper per beam: the yield-this-take-next
+# behavior the observation's two sunbeam slots were sized for.
+[elements.sunbeam]
+min = 3
+max = 4
+ttl = 300
+
+[rl.episode]
+horizon = 2000
+
+[rl.reward]
+p = 0.0          # Nash welfare — the product objective, unchanged
+epsilon = 0.01
+mode = "level"

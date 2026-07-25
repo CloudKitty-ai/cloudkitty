@@ -19,6 +19,7 @@ pub mod mask;
 pub mod observe;
 pub mod policy;
 pub mod reward;
+pub mod suite;
 pub mod test_support;
 pub mod vector;
 pub mod welfare;
