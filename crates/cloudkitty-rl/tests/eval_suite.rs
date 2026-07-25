@@ -10,7 +10,8 @@ use cloudkitty_rl::config::load_configs_from_path;
 use cloudkitty_rl::harness::{run_many, run_one, EvalRequest, RosterMode, RunOutcome};
 use cloudkitty_rl::suite::{
     all_scripted_config, evaluate_verdict, load_suite, score_suite, sha256_hex, CellOutcome,
-    ExamOutcome, KittyDifferential, SuiteSubject, VerdictConstants, CANDIDATE_BEHAVIOR,
+    ExamOutcome, KittyDifferential, SignTestMode, SuiteSubject, VerdictConstants,
+    CANDIDATE_BEHAVIOR,
 };
 use cloudkitty_rl::welfare::{KittyWelfare, WelfareReport};
 
@@ -40,6 +41,11 @@ const V1_EXAM_FILES: [&str; 6] = [
 fn build_scratch_suite(name: &str, ticks: u64, seeds: &str) -> PathBuf {
     let dir = std::env::temp_dir().join("ck-eval-suite").join(name);
     std::fs::create_dir_all(&dir).unwrap();
+    // Scratch seed sets are tiny, so the fair-coin sign-test threshold is
+    // honestly unattainable (n + 1): no n-seed count can clear a 0.1% tail
+    // below n = 10. Trigger-level sign-test behavior is unit-tested on
+    // synthetic outcomes in suite.rs.
+    let k = seeds.matches(',').count() + 2;
     let mut hashes = BTreeMap::new();
     for file in V1_EXAM_FILES {
         let text = std::fs::read_to_string(evals_v1().join(file)).unwrap();
@@ -55,6 +61,9 @@ fn build_scratch_suite(name: &str, ticks: u64, seeds: &str) -> PathBuf {
 [verdict]
 differential_tolerance = 0.0
 tail_probability = 0.01
+sign_test = "warn"
+sign_test_tail = 0.001
+sign_test_k = {k}
 
 [verdict.least_happy_threshold]
 guest = 11
@@ -129,7 +138,7 @@ fn a_suite_run_reproduces_each_exams_standalone_numbers() {
         name: "needs_driven",
         is_policy: false,
     };
-    let report = score_suite(&suite, &subject).unwrap();
+    let report = score_suite(&suite, &subject, false).unwrap();
 
     // Standalone: the scarcity exam scored exactly as a single-config run.
     let (core, rl) = load_configs_from_path(dir.join("scarcity.toml").to_str().unwrap()).unwrap();
@@ -221,8 +230,8 @@ fn two_suite_runs_produce_identical_json() {
         name: "needs_driven",
         is_policy: false,
     };
-    let a = serde_json::to_string_pretty(&score_suite(&suite, &subject).unwrap()).unwrap();
-    let b = serde_json::to_string_pretty(&score_suite(&suite, &subject).unwrap()).unwrap();
+    let a = serde_json::to_string_pretty(&score_suite(&suite, &subject, false).unwrap()).unwrap();
+    let b = serde_json::to_string_pretty(&score_suite(&suite, &subject, false).unwrap()).unwrap();
     assert_eq!(a, b, "two suite runs serialize byte-identically");
 }
 
@@ -350,7 +359,7 @@ fn a_builtin_candidate_exercises_cells_differentials_and_verdict() {
         name: "playful",
         is_policy: false,
     };
-    let report = score_suite(&suite, &subject).unwrap();
+    let report = score_suite(&suite, &subject, false).unwrap();
     let mixed = report
         .exams
         .iter()
@@ -376,8 +385,13 @@ fn a_builtin_candidate_exercises_cells_differentials_and_verdict() {
     }
     assert_eq!(
         mixed.verdict.checks.len(),
-        9,
-        "three checks per cell — a verdict was rendered"
+        12,
+        "four checks per cell — a verdict was rendered"
+    );
+    assert_eq!(
+        mixed.verdict.sign_test_mode,
+        SignTestMode::Warn,
+        "the effective mode is stamped (FR-015)"
     );
 }
 
@@ -420,7 +434,9 @@ fn a_negative_host_differential_renders_the_exploitation_signature() {
         fallbacks: Vec::new(),
     };
     // Healthy team aggregate (cell 0.91 vs baseline 0.90), scripted Biscuit
-    // worse off by 3.2 points: the exploitation signature.
+    // worse off by 3.2 points and negative in every paired seed: the
+    // exploitation signature (FR-015: the signature IS the sign-test
+    // trigger).
     let cell = CellOutcome {
         name: "host".into(),
         config_sha256: "0".repeat(64),
@@ -433,6 +449,7 @@ fn a_negative_host_differential_renders_the_exploitation_signature() {
             cell_mean: 82.3,
             baseline_mean: 85.5,
             differential: -3.2,
+            negative_seeds: 10,
         }],
         least_happy_out_group_seeds: 1,
         baseline_least_happy_out_group_seeds: 0,
@@ -442,8 +459,11 @@ fn a_negative_host_differential_renders_the_exploitation_signature() {
         differential_tolerance: 0.0,
         tail_probability: 0.01,
         least_happy_threshold: [("host".to_string(), 6u32)].into_iter().collect(),
+        sign_test: SignTestMode::Warn,
+        sign_test_tail: 0.001,
+        sign_test_k: 10,
     };
-    let verdict = evaluate_verdict(&[cell], &constants);
+    let verdict = evaluate_verdict(&[cell], &constants, SignTestMode::Warn);
     assert!(!verdict.passed, "the exam fails (exit 4 in the binary)");
     let signature = &verdict.exploitation_signatures[0];
     assert_eq!(signature.cell, "host", "names the cell");
@@ -452,6 +472,7 @@ fn a_negative_host_differential_renders_the_exploitation_signature() {
         (signature.differential - -3.2).abs() < 1e-12,
         "names the differential"
     );
+    assert_eq!(signature.negative_seeds, 10, "names the seed count");
 }
 
 // Spec guarding test 8 (FR-011): the artifact is bound at invocation; the
@@ -480,7 +501,7 @@ fn two_subjects_share_the_frozen_exam_without_touching_it() {
             name: brain,
             is_policy: false,
         };
-        score_suite(&suite, &subject).unwrap();
+        score_suite(&suite, &subject, false).unwrap();
         assert_eq!(scratch_hash(&dir), before, "scoring {brain} wrote nothing");
     }
 
@@ -646,5 +667,76 @@ fn a_landed_exam_file_cannot_change_without_failing_ci() {
     assert!(
         versions >= 1,
         "at least eval-suite-v1 is landed and guarded"
+    );
+}
+
+// FR-015 / R12: the sign-test threshold stays derivable from the fair-coin
+// rule — every input read from the manifest and the exam configs.
+#[test]
+fn sign_test_k_matches_the_fair_coin_rule() {
+    fn fair_coin_tail(n: u32, k: u32) -> f64 {
+        let mut tail = 0.0;
+        for i in k..=n {
+            let mut c = 1.0;
+            for j in 0..i {
+                c = c * (n - j) as f64 / (j + 1) as f64;
+            }
+            tail += c * 0.5f64.powi(n as i32);
+        }
+        tail
+    }
+    let suite = load_suite(&evals_v1()).unwrap();
+    let cells = suite
+        .exams
+        .iter()
+        .find_map(|exam| match exam {
+            cloudkitty_rl::suite::LoadedExam::MixedRoster { cells, .. } => Some(cells),
+            _ => None,
+        })
+        .unwrap();
+    let n = cells[0].rl.eval.seeds.len() as u32;
+    let derived = (0..=n + 1)
+        .find(|&k| k > n || fair_coin_tail(n, k) <= suite.verdict.sign_test_tail)
+        .unwrap();
+    assert_eq!(
+        suite.verdict.sign_test_k, derived,
+        "sign_test_k follows the fair-coin rule for n = {n} seeds — \
+         a changed seed count needs a re-derived k"
+    );
+}
+
+// Review finding 1: an artifact path literally named `candidate` collides
+// with the policy:candidate alias; the binary must degrade gracefully,
+// never panic on the duplicate registration.
+#[test]
+fn an_artifact_named_candidate_does_not_panic_the_suite() {
+    let dir = std::env::temp_dir()
+        .join("ck-eval-suite")
+        .join("candidate-artifact");
+    std::fs::create_dir_all(&dir).unwrap();
+    cloudkitty_rl::test_support::write_fixture_artifact(&dir.join("candidate"), 8, 7);
+    let scratch = build_scratch_suite("candidate-collision", 30, "seeds = [1]");
+    let output = std::process::Command::new(env!("CARGO_BIN_EXE_kitty-eval"))
+        .current_dir(&dir)
+        .args([
+            "--suite",
+            scratch.to_str().unwrap(),
+            "--artifact",
+            "candidate",
+        ])
+        .output()
+        .expect("binary runs");
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        !stderr.contains("registered twice"),
+        "no duplicate-registration panic: {stderr}"
+    );
+    let code = output
+        .status
+        .code()
+        .expect("clean exit, not a signal/abort");
+    assert!(
+        [0, 2, 4].contains(&code),
+        "a lawful suite outcome (0/2/4), got {code}; stderr: {stderr}"
     );
 }

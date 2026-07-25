@@ -39,11 +39,6 @@ tail_probability = 0.01
 # honestly). half: share 3/6 -> 10. host: share 1/6 -> 6. A unit test
 # recomputes these from the rule, reading every input from this file and
 # the cell configs.
-[verdict.least_happy_threshold]
-guest = 11
-half = 10
-host = 6
-
 # The per-kitty paired sign test (FR-015, research.md R12): a scripted
 # kitty trips it when its guest-welfare differential is negative in
 # >= sign_test_k of the paired seeds (zeros count as non-negative).
@@ -56,10 +51,17 @@ host = 6
 # signature in report and JSON, exit stays 0) or "gate" (a trigger
 # fails the exam, exit 4). The CLI may tighten warn -> gate for a run
 # (--enforce sign-test); nothing may loosen a gate. Every report stamps
-# the effective mode.
+# the effective mode. NOTE: these keys sit above the
+# [verdict.least_happy_threshold] table — TOML top-level keys must
+# precede subtables.
 sign_test = "warn"
 sign_test_tail = 0.001
 sign_test_k = 10
+
+[verdict.least_happy_threshold]
+guest = 11
+half = 10
+host = 6
 
 [[exam]]
 name = "scale"

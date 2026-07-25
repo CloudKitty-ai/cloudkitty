@@ -112,3 +112,6 @@ harness tests unmodified.
 | R3 cell siblings | `cell_configs_differ_only_in_behavior` |
 | R7 thresholds | `least_happy_thresholds_match_the_binomial_rule` |
 | FR-007 distinctness | `no_exam_equals_a_training_or_certification_config` |
+| FR-015 k derivation | `sign_test_k_matches_the_fair_coin_rule` |
+| FR-015 warn/gate + tighten-only | `a_tripped_sign_test_warns_by_default_and_gates_when_enforced`, `the_sign_test_mode_only_ever_tightens` (suite.rs unit) |
+| Review finding 1 regression | `an_artifact_named_candidate_does_not_panic_the_suite` |

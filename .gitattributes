@@ -1,0 +1,4 @@
+# The eval-suite freeze (spec 017 FR-012) hashes exam files byte-for-byte;
+# line-ending translation on checkout would break every recorded sha256.
+# Never let git rewrite these.
+evals/** -text

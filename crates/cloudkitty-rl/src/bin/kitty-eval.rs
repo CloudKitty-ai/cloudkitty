@@ -33,6 +33,7 @@ struct Args {
     roster: Option<String>,
     json: Option<String>,
     suite: Option<String>,
+    enforce_sign_test: bool,
 }
 
 fn parse_args() -> Result<Args, String> {
@@ -45,6 +46,7 @@ fn parse_args() -> Result<Args, String> {
         roster: None,
         json: None,
         suite: None,
+        enforce_sign_test: false,
     };
     let mut argv = std::env::args().skip(1);
     while let Some(flag) = argv.next() {
@@ -72,12 +74,18 @@ fn parse_args() -> Result<Args, String> {
             "--roster" => args.roster = Some(value("--roster")?),
             "--json" => args.json = Some(value("--json")?),
             "--suite" => args.suite = Some(value("--suite")?),
+            // Tighten-only (spec 017 FR-015): promotes the sign test from
+            // warn to gate for this run; nothing can loosen a frozen gate.
+            "--enforce" => match value("--enforce")?.as_str() {
+                "sign-test" => args.enforce_sign_test = true,
+                other => return Err(format!("--enforce: unknown check '{other}' (sign-test)")),
+            },
             "--help" | "-h" => {
                 return Err("usage: kitty-eval --brain NAME | --artifact PATH \
                             [--config cloudkitty.toml] [--seeds 1,2,...] [--ticks 20000] \
                             [--roster all-policy|mixed|both] [--json out.json]\n       \
                             kitty-eval --suite evals/v1 (--brain NAME | --artifact PATH) \
-                            [--json out.json]"
+                            [--enforce sign-test] [--json out.json]"
                     .to_string())
             }
             other => return Err(format!("unknown flag {other}")),
@@ -99,6 +107,8 @@ fn parse_args() -> Result<Args, String> {
                 ));
             }
         }
+    } else if args.enforce_sign_test {
+        return Err("--enforce applies to suite runs only (pass --suite)".to_string());
     }
     Ok(args)
 }
@@ -184,8 +194,13 @@ fn human_report(output: &EvalOutput) {
 
 /// The suite mode (spec 017): load, verify, score, report. Exit codes per
 /// contracts/suite-cli.md — 1 usage/validation, 2 fallback-taken, 3
-/// determinism, 4 mixed-roster verdict failure; mechanical failures
-/// dominate the verdict (1 > 2 > 3 > 4).
+/// determinism, 4 mixed-roster verdict failure. Mechanical failures
+/// dominate the verdict; between them the order follows where they occur:
+/// 1 before anything runs, 3 aborts the run at the exam that produced it
+/// (fallbacks are judged over the completed report, so a run that fails
+/// determinism exits 3 regardless of fallbacks — the measurement is
+/// untrustworthy either way, matching the single-config path), 2 over the
+/// finished report, 4 last.
 fn run_suite(dir: &str, args: &Args) -> ExitCode {
     let mut registry = BehaviorRegistry::with_builtins();
     let (subject_name, is_policy) = match (&args.brain, &args.artifact) {
@@ -217,7 +232,13 @@ fn run_suite(dir: &str, args: &Args) -> ExitCode {
                 Ok(behavior) => {
                     let behavior: Arc<_> = Arc::new(behavior);
                     let name = format!("policy:{path}");
-                    registry.register(name.clone(), behavior.clone());
+                    // An artifact literally named `candidate` makes
+                    // `policy:{path}` collide with the alias; one
+                    // registration suffices — the registry panics on
+                    // duplicates by design (review finding 1).
+                    if name != suite::CANDIDATE_BEHAVIOR {
+                        registry.register(name.clone(), behavior.clone());
+                    }
                     registry.register(suite::CANDIDATE_BEHAVIOR, behavior);
                     (name, true)
                 }
@@ -241,7 +262,7 @@ fn run_suite(dir: &str, args: &Args) -> ExitCode {
         name: &subject_name,
         is_policy,
     };
-    let report = match suite::score_suite(&loaded, &subject) {
+    let report = match suite::score_suite(&loaded, &subject, args.enforce_sign_test) {
         Ok(report) => report,
         Err(suite::SuiteRunError::Determinism { location, seed }) => {
             eprintln!("kitty-eval: determinism self-check failed on seed {seed} ({location})");

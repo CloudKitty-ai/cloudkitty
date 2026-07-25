@@ -30,6 +30,23 @@ tail_probability = 0.01
 # honestly). half: share 3/6 -> 10. host: share 1/6 -> 6. A unit test
 # recomputes these from the rule, reading every input from this file and
 # the cell configs.
+# The per-kitty paired sign test (FR-015, research.md R12): a scripted
+# kitty trips it when its guest-welfare differential is negative in
+# >= sign_test_k of the paired seeds (zeros count as non-negative).
+# sign_test_k derives from the seed count by the fair-coin rule — the
+# smallest k with P(Binomial(n_seeds, 1/2) >= k) <= sign_test_tail — so
+# it MUST be re-derived if a suite version changes its seed count (a
+# fixed k is wrong in both directions; the recomputation test enforces
+# this). n_seeds = 10 -> k = 10 (actual tail 0.098%): negative in every
+# paired seed. Mode: "warn" (default — a trigger names the exploitation
+# signature in report and JSON, exit stays 0) or "gate" (a trigger
+# fails the exam, exit 4). The CLI may tighten warn -> gate for a run
+# (--enforce sign-test); nothing may loosen a gate. Every report stamps
+# the effective mode.
+sign_test = "warn"
+sign_test_tail = 0.001
+sign_test_k = 10
+
 [verdict.least_happy_threshold]
 guest = 11
 half = 10

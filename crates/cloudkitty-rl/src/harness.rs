@@ -24,6 +24,10 @@ pub enum RosterMode {
     /// The deployment reality: the first kitty runs the subject, everyone
     /// else runs `needs_driven`.
     Mixed,
+    /// No roster rewriting: the config's own behavior column runs verbatim
+    /// (spec 017 composition cells). This is also the honest label when
+    /// `subject` is `None` — the run *is* the config's roster.
+    FromConfig,
 }
 
 /// One evaluation run request. `subject` names a registered behavior (a
@@ -99,13 +103,17 @@ pub fn run_one(request: &EvalRequest<'_>) -> RunOutcome {
 pub fn run_one_with(request: &EvalRequest<'_>, mut observer: impl FnMut(&World)) -> RunOutcome {
     let mut config = request.core.clone();
     config.world.seed = request.seed;
-    if let Some(subject) = request.subject {
-        for (index, kitty) in config.kitties.iter_mut().enumerate() {
-            kitty.behavior = match request.roster {
-                RosterMode::AllSubject => subject.to_string(),
-                RosterMode::Mixed if index == 0 => subject.to_string(),
-                RosterMode::Mixed => "needs_driven".to_string(),
-            };
+    // FromConfig never rewrites — the config's own behavior column runs.
+    if request.roster != RosterMode::FromConfig {
+        if let Some(subject) = request.subject {
+            for (index, kitty) in config.kitties.iter_mut().enumerate() {
+                kitty.behavior = match request.roster {
+                    RosterMode::AllSubject => subject.to_string(),
+                    RosterMode::Mixed if index == 0 => subject.to_string(),
+                    RosterMode::Mixed => "needs_driven".to_string(),
+                    RosterMode::FromConfig => unreachable!("guarded above"),
+                };
+            }
         }
     }
     let config = Arc::new(config);

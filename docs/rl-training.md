@@ -160,6 +160,11 @@ bar's welfare bounds (a scarcity-floor world lawfully scores below bounds
 calibrated for abundance); the paired baseline delta is an exam's meaning,
 and the mixed-roster verdict is anchored to its own all-scripted baseline
 (exit 4 when it fails — the exploitation probe caught something). The
-held-out doctrine, verbatim: **results against a suite version are void if
-any of its exams appeared in training.** A landed suite version is frozen
-(hash-guarded in CI); evolution is a new `evals/v2/` alongside.
+per-kitty **sign test** warns by default: a scripted kitty whose paired
+differential is negative in ≥ `sign_test_k` seeds is named as an
+exploitation signature at exit 0 — treat any signature on a real candidate
+as a prompt to rerun with `--enforce sign-test` (tighten-only: it promotes
+warn to gate, and nothing can loosen a gate) before quoting the result.
+The held-out doctrine, verbatim: **results against a suite version are
+void if any of its exams appeared in training.** A landed suite version is
+frozen (hash-guarded in CI); evolution is a new `evals/v2/` alongside.
