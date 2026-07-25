@@ -209,4 +209,30 @@ arXiv:2006.14171); Ng et al. 1999 (potential-based shaping); Ross et al.
 
 ## Appendix: Deviations
 
-*(empty at freeze — append entries here, never edit the body)*
+*(append entries here, never edit the body)*
+
+### 2026-07-25 — §6 analysis method refined (pre-training)
+
+Recorded before any training run (the freeze has not yet bitten), in the
+appendix anyway so the prereg body and the first result read consistently.
+
+- **Sample size**: "a few dozen (t, kitty, world-seed) cells" → 1,000
+  valid samples. The probe turned out cheap (~35 s), so there was no
+  reason to stay small.
+- **Statistic**: per-sample divergence traces with median/95% envelope →
+  across-sample mean of *signed* diffs with per-tick significance
+  testing (|mean| > 2·SE). Rationale: chaotic diffusion is
+  sign-symmetric and only cancels in the signed mean; single-trace |Δ|
+  overstates persistence — an exploratory envelope-style exponential fit
+  produced a nonsense τ ≈ 4,900 and is superseded (methodology cautions
+  in the result doc).
+- **Decision-rule mapping**: §6's envelope "tail" is read as the last
+  contiguous significant band (isolated late blips judged against the
+  multiple-testing base rate); the "bulk" is read as significant-mass
+  fractions. Applied in
+  [results/twin-probe-2026-07-25.md](results/twin-probe-2026-07-25.md):
+  tail lands between the two thresholds → the γ sweep proceeds, with
+  0.995 registered as the predicted winner.
+- The §6 envelope plot is still owed as a figure (see the result doc's
+  follow-ups); the decision rules were exercised on the significance
+  bands, not the envelope.
