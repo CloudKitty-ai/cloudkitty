@@ -20,6 +20,10 @@ configs are frozen and versioned; nothing here may train on them.
 
 ## Layout
 
+- `FINDINGS.md` — the findings register: distilled, generalizable
+  conclusions with statuses, scope, evidence links, and standing
+  re-verification triggers. Pre-registrations MUST cite the F-ids they
+  rely on. Read it before designing any experiment or training run.
 - `tools/` — shared across experiments: the twin probe, config generators,
   analysis scripts. One directory per tool.
 - `exp-NNN-slug/` — one directory per experiment, holding everything that
