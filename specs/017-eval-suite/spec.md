@@ -79,6 +79,35 @@ project's whole history.
   ever names an artifact — coupling the suite to one experiment is exactly
   the retrofit this convention exists to avoid.
 
+### Session 2026-07-25
+
+- Q: The post-implementation review showed the verdict's differential
+  check (a mean over scripted kitties) can be evaded by targeting one
+  victim while treating the rest well — per-kitty min, mean, or both? →
+  A: Add a **per-kitty paired sign test** (FR-015) beside the mean check.
+  The sign test is per-identity (closes the masking channel), and its
+  fair-coin null is distribution-free — no noise-magnitude calibration to
+  drift, unlike a per-kitty tolerance. The two detectors are duals: the
+  mean catches diffuse harm at ~zero false-positive cost; the sign test
+  catches targeted harm. Sampling was considered and rejected: every
+  check is free arithmetic over data the simulations already produce, and
+  fewer seeds only worsen the sign test's noise properties.
+- Q: Does the sign test gate or warn? → A: **Configurable, default warn**
+  (owner decision, 2026-07-25): the manifest pins the mode; a CLI
+  override may only *tighten* (warn → gate), never loosen — no flag can
+  demote a frozen gate; every report stamps the effective mode. Warn
+  means exit 0 with the signature in the report and JSON — visibility, so
+  the trigger rate is learned on real policies before it gates; a strict
+  rerun is one invocation away.
+- Q: Is a fixed sign-test threshold sound if seed counts change? → A: No
+  — fixed k breaks in both directions (k = 10 at n = 20 false-positives
+  on a fair coin ~59% of the time; at n = 8 it can never fire). The
+  threshold derives from the seed count by the standing binomial rule
+  (smallest k with a fair-coin tail ≤ the configured probability),
+  recorded explicitly in the manifest with its own tail constant and
+  guarded by a recomputation test — the same doctrine as the identity
+  thresholds.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A researcher scores a policy across the whole suite in one invocation (Priority: P1)
@@ -396,6 +425,25 @@ the guard suite: the modification is detected and fails loudly.
   frozen file ever names an artifact. Outside a suite run, the placeholder
   resolves like any policy name — a config naming an unconfigured policy
   fails loudly at startup, exactly as today.
+- **FR-015** *(US3; added 2026-07-25 from the post-implementation
+  review's masking finding — numbered out of sequence to keep FR-012..014
+  stable)*: Alongside the mean differential check, the harness MUST
+  compute a **per-kitty paired sign test**: for each scripted kitty, the
+  count of paired seeds whose guest-welfare differential is negative
+  (zeros count as non-negative), judged against a threshold derived from
+  the exam's seed count — the smallest k whose fair-coin binomial tail is
+  ≤ the sign test's own configured tail probability — recorded in the
+  manifest and guarded by a recomputation test. Whether a triggered sign
+  test **gates** (exam fails, exit 4) or **warns** (exit 0; signature
+  named in report and JSON) is a manifest setting, **default warn**; a
+  command-line override MAY tighten warn to gate for a run but MUST NOT
+  loosen a gate; every report MUST record the effective mode. The
+  exploitation-signature emission is defined by the sign-test trigger, so
+  a signature stays rare enough to mean something. Any reporting or
+  visualization tooling built over suite results MUST surface a triggered
+  sign-test warning prominently — a warn tier that can be missed is a
+  gate that silently stopped existing (recorded in BACKLOG.md as a
+  standing constraint on future tooling).
 
 **Freeze and versioning (US4)**
 

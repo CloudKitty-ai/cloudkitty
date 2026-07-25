@@ -8,7 +8,7 @@ invocation is byte-compatible — report shape and exit codes unchanged
 
 ```text
 kitty-eval --suite evals/v1 (--artifact path/to/policy.ckpolicy | --brain NAME)
-           [--json out.json]
+           [--enforce sign-test] [--json out.json]
 ```
 
 - `--suite DIR` names a suite version directory; the manifest is
@@ -24,6 +24,16 @@ kitty-eval --suite evals/v1 (--artifact path/to/policy.ckpolicy | --brain NAME)
   `--suite` (exit 1): a suite is a fixed instrument. Per-exam seeds and
   ticks are frozen in each exam config's `[rl.eval]` block. Exploratory
   runs use the unchanged single-config path against any exam file.
+- `--enforce sign-test` (FR-015) promotes the sign test from warn to gate
+  for this run. Tighten-only by construction: there is no flag that
+  demotes a gate — a frozen suite's canonical semantics can be
+  strengthened per run, never weakened. The report stamps the effective
+  mode either way. With the default warn mode, a triggered sign test
+  exits 0 with the exploitation signature named in the human report and
+  a `sign_test` block (mode, per-kitty negative-seed counts, triggered
+  list) in the JSON — deliberately not a distinct nonzero "warning" exit
+  code, since most CI treats nonzero as failure, which would make the
+  warn tier a gate in disguise.
 
 ## Execution order
 

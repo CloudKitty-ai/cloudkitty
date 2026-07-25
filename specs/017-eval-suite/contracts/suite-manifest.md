@@ -44,6 +44,23 @@ guest = 11
 half = 10
 host = 6
 
+# The per-kitty paired sign test (FR-015, research.md R12): a scripted
+# kitty trips it when its guest-welfare differential is negative in
+# >= sign_test_k of the paired seeds (zeros count as non-negative).
+# sign_test_k derives from the seed count by the fair-coin rule — the
+# smallest k with P(Binomial(n_seeds, 1/2) >= k) <= sign_test_tail — so
+# it MUST be re-derived if a suite version changes its seed count (a
+# fixed k is wrong in both directions; the recomputation test enforces
+# this). n_seeds = 10 -> k = 10 (actual tail 0.098%): negative in every
+# paired seed. Mode: "warn" (default — a trigger names the exploitation
+# signature in report and JSON, exit stays 0) or "gate" (a trigger
+# fails the exam, exit 4). The CLI may tighten warn -> gate for a run
+# (--enforce sign-test); nothing may loosen a gate. Every report stamps
+# the effective mode.
+sign_test = "warn"
+sign_test_tail = 0.001
+sign_test_k = 10
+
 [[exam]]
 name = "scale"
 kind = "standard"
@@ -111,6 +128,9 @@ sha256 = "<recorded at landing>"
 - Threshold derivation: recompute `least_happy_threshold` values from the
   binomial rule and each cell's out-group share (derived from the cell
   config's roster); assert equality with the manifest.
+- Sign-test derivation (FR-015): recompute `sign_test_k` from the exam's
+  seed count and `sign_test_tail` via the fair-coin rule; assert equality
+  — a seed-count change without a re-derived k fails CI naming the number.
 - Cell-sibling identity (R3): the three cell configs are identical except
   `[[kitty]].behavior`.
 - Distinctness (FR-007 / SC-005): no exam file's bytes equal

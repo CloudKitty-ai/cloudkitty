@@ -17,6 +17,23 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 ## P2 — the bigger pieces, for a proper sitting
 
+### Suite reporting/visualization tooling — standing constraint (added 2026-07-25)
+No such tooling exists yet; this entry records a **binding design
+constraint** for whenever it is built (dashboards, experiment trackers,
+report renderers — anything that consumes `kitty-eval --suite` JSON).
+The mixed-roster exam's per-kitty **sign test** (spec 017 FR-015,
+research R12) defaults to *warn*: a triggered exploitation signature
+exits 0 and lives only in the report and the JSON `sign_test` block.
+That tier's entire value is visibility — a warn that can be missed is a
+gate that silently stopped existing, and we have the scar to prove it
+(the PettingZoo conformance step failed silently under
+`continue-on-error` for months). Therefore: **any reporting or
+visualization surface MUST display a triggered sign-test warning
+prominently** — top-level, not buried in a table — alongside the
+doctrine that a signature on a real candidate prompts a strict rerun
+(`--enforce sign-test`) before the result is quoted. When the tooling
+is specced, this constraint goes in its FRs on day one.
+
 ### Dynamic element populations (added 2026-07-20 — ideate with the owner first)
 Environmental elements are effectively static: `ensure_minimums`
 (`spawn.rs`) tops every type back to its configured min on the very next

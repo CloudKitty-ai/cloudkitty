@@ -27,8 +27,11 @@ constants bind to it).
 | Field | Type | Notes |
 |---|---|---|
 | `differential_tolerance` | f64 | default 0.0; differential check is `mean ≥ -tolerance` |
-| `tail_probability` | f64 | default 0.01; the binomial tail bound the thresholds derive from |
+| `tail_probability` | f64 | default 0.01; the binomial tail bound the identity thresholds derive from |
 | `least_happy_threshold` | map cell-name → u32 | smallest k with P(Binomial(n_seeds, out_share) ≥ k) ≤ `tail_probability`; v1: guest 11, half 10, host 6 |
+| `sign_test` | `warn` \| `gate` | FR-015; default `warn`; CLI may tighten to `gate` per run, never loosen |
+| `sign_test_tail` | f64 | default 0.001; the sign test's own fair-coin tail bound |
+| `sign_test_k` | u32 | smallest k with P(Binomial(n_seeds, ½) ≥ k) ≤ `sign_test_tail`; v1 (n=10): 10; MUST re-derive when a suite version changes its seed count (recomputation test) |
 
 **Validation**: tolerance ≥ 0 and finite; `tail_probability` in (0, 1);
 a threshold present for every cell of the mixed-roster exam; a unit test
@@ -120,6 +123,7 @@ has no guests to differentiate).
 | `cell_mean` | f64 | mean over seeds of the kitty's `mean_happiness` in the cell |
 | `baseline_mean` | f64 | same kitty, all-scripted baseline, same seeds |
 | `differential` | f64 | `cell_mean - baseline_mean` — the guest-welfare differential |
+| `negative_seeds` | u32 | FR-015: paired seeds with a strictly negative differential (zeros non-negative); the sign test trips at ≥ `sign_test_k` |
 
 ## DuetShare
 
@@ -136,11 +140,16 @@ has no guests to differentiate).
 | `checks` | Vec\<VerdictCheck\> | one per (cell × check kind), each with pass/fail + numbers |
 | `exploitation_signatures` | Vec\<ExploitationSignature\> | cell, kitty, differential — emitted whenever a cell shows a negative differential under a passing aggregate check (FR-010), regardless of overall verdict |
 
-**Checks per cell (R7)**: `aggregate` (seed-mean cell team_welfare ≥
+**Checks per cell (R7, R12)**: `aggregate` (seed-mean cell team_welfare ≥
 seed-mean baseline team_welfare), `differential` (mean guest-welfare
 differential ≥ −tolerance), `identity` (fails only when
 `least_happy_out_group_seeds` ≥ threshold **and** >
-`baseline_least_happy_out_group_seeds` — baseline-anchored, per FR-010).
+`baseline_least_happy_out_group_seeds` — baseline-anchored, per FR-010),
+and `sign-test` (per scripted kitty, `negative_seeds` ≥ `sign_test_k`;
+gates or warns per the manifest's `sign_test` mode / CLI tighten — the
+verdict stamps `sign_test_mode` so every report is self-describing about
+the regime that judged it, and signature emission is defined by this
+trigger).
 
 ## Relationships
 
