@@ -114,7 +114,7 @@ their identity.
 landed exam; startup and CI both fail naming the file; restore; both pass.
 
 - [X] T022 [US4] Guarding test `a_landed_exam_file_cannot_change_without_failing_ci` in `crates/cloudkitty-rl/tests/eval_suite.rs`: walk every `evals/*/manifest.toml` in the repository, recompute each member's SHA-256, assert equality with the recorded value — failure names the file (spec test 2, SC-003; old versions stay guarded forever). Note for the future: when a v2 lands, add a side-by-side test that each version invoked by name runs exactly its own exams (FR-012's multi-version clause — untestable while only v1 exists)
-- [ ] T023 [US4] Land `eval-suite-v1`: recompute final hashes over the exam files as actually committed, record them in `evals/v1/manifest.toml`, run quickstart.md scenario 4 (tamper → both guards fail naming the file → restore → both pass), and verify a full suite run stamps `suite_version` and per-exam `config_sha256` in the JSON (FR-013)
+- [X] T023 [US4] Land `eval-suite-v1`: recompute final hashes over the exam files as actually committed, record them in `evals/v1/manifest.toml`, run quickstart.md scenario 4 (tamper → both guards fail naming the file → restore → both pass), and verify a full suite run stamps `suite_version` and per-exam `config_sha256` in the JSON (FR-013)
 
 **Checkpoint**: frozen means frozen, demonstrably.
 
@@ -122,9 +122,9 @@ landed exam; startup and CI both fail naming the file; restore; both pass.
 
 ## Phase 7: Polish & cross-cutting
 
-- [ ] T024 [P] Run all six quickstart.md scenarios end-to-end and record actual vs expected in a comment on the PR (SC-001, SC-002, SC-003, SC-007 covered; scenario 6 confirms SC-004)
+- [X] T024 [P] Run all six quickstart.md scenarios end-to-end and record actual vs expected in a comment on the PR (SC-001, SC-002, SC-003, SC-007 covered; scenario 6 confirms SC-004)
 - [X] T025 [P] Add a short "The exam suite" paragraph to `docs/rl-training.md` under Scoring and deploying: `kitty-eval --suite evals/v1` measures beside the bar, the default world remains the sole certification bar, exam bounds doctrine in one sentence, and the held-out doctrine verbatim (FR-007): results against a suite version are void if any of its exams appeared in training
-- [ ] T026 `cargo fmt --all`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace` green; confirm existing harness/binary tests pass **unmodified** (SC-004) and the single-config invocation output is byte-shaped as before
+- [X] T026 `cargo fmt --all`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace` green; confirm existing harness/binary tests pass **unmodified** (SC-004) and the single-config invocation output is byte-shaped as before
 
 ---
 
