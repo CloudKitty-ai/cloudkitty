@@ -162,10 +162,14 @@ over the exam's frozen seed set:
    with this derivation in a comment, and a unit test recomputes them from
    the rule.
 
-A failed check fails the exam; a negative host-cell differential with a
-passing aggregate check is additionally reported as the named
-**exploitation signature** (cell, kitty, differential). Duet-participation
-shares are report-only in v1 — a diagnostic, not a gate.
+A failed check fails the exam (a failed sign-test check gates or is
+forgiven per R12's mode). Signature emission is defined by the sign-test
+trigger (R12; superseding this section's original
+negative-mean-differential rule, 2026-07-25): each named signature —
+cell, kitty, differential, paired-seed count — carries its cell's
+aggregate-check health, distinguishing masked exploitation (healthy
+aggregate) from general harm (failing cell). Duet-participation shares
+are report-only in v1 — a diagnostic, not a gate.
 
 **Rationale**: deterministic, closed-form, no statistics dependency; the
 binomial rule honors "beyond what seed noise explains" while keeping every
@@ -181,9 +185,15 @@ them as secondary reads).
 **Decision**: exit 0 success; 1 usage/validation (including manifest hash
 mismatch and exam validation failure); 2 any fallback-taken decision; 3
 determinism self-check failure; **4 mixed-roster verdict failure** (new).
-Precedence 1 > 2 > 3 > 4: a run that both takes a fallback and fails the
-verdict exits 2 — a mechanical failure means the scores behind the verdict
-aren't trustworthy anyway. Codes 2 and 3 keep their exact single-config
+Mechanical failures dominate the verdict, ordered by where they occur
+(corrected 2026-07-25 to match the contract and binary — the original
+strict "1 > 2 > 3 > 4" wrongly implied fallback beats determinism): 1
+before anything runs; 3 aborts the run at the exam that produced it, so a
+nondeterministic run exits 3 regardless of fallbacks taken earlier; 2 is
+judged over the completed report; 4 last. A run that both takes a
+fallback and fails the verdict exits 2 — a mechanical failure means the
+scores behind the verdict aren't trustworthy anyway. Codes 2 and 3 keep
+their exact single-config
 meanings (SC-004).
 
 **Rationale**: scripting and CI want "measured and failed the exam"

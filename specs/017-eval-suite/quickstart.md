@@ -74,7 +74,7 @@ diff /tmp/a.json /tmp/b.json && echo "byte-identical"
 echo "# poke" >> evals/v1/scarcity.toml
 cargo run -p cloudkitty-rl --bin kitty-eval -- \
   --suite evals/v1 --brain needs_driven; echo "exit: $?"   # expect 1, names scarcity.toml
-cargo test -p cloudkitty-rl --test eval_suite freeze      # expect FAIL, names scarcity.toml
+cargo test -p cloudkitty-rl --test eval_suite a_landed_exam_file   # expect FAIL, names scarcity.toml
 git checkout -- evals/v1/scarcity.toml                     # restore; both pass again
 ```
 
