@@ -27,3 +27,7 @@ __pycache__/
 
 # Saved worlds (runtime state, like snapshot.json)
 worlds.backup/
+
+# Experiments (research artifacts): build outputs and raw data stay local
+experiments/**/target/
+experiments/**/raw/

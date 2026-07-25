@@ -8,3 +8,4 @@
 4. Fix success criteria before coding, then loop until verified. Never
    weaken tests or criteria to pass. If stuck after ~3 real attempts,
    stop and say exactly where.
+5. Before designing experiments or training runs, read experiments/FINDINGS.md
