@@ -31,12 +31,14 @@ worlds: **train / validate / test**. The training world is the gym. The
 default world is the bar. This feature adds the exam room — a small suite of
 fixed, committed, versioned worlds the policy never trains on, each built to
 probe one axis the gym and the bar share no leverage over: scale, scarcity,
-trait heterogeneity, and unfamiliar company. Exams produce *scores*, not
+trait heterogeneity, and partner composition. Exams never import the bar's
 verdicts: the default world remains the sole certification bar, and nothing
 in this feature implies its calibrated welfare bounds apply to worlds they
 were never calibrated for. What an exam measures is relative — the policy
-against the `needs_driven` baseline, paired seed by seed, on ground neither
-has seen.
+against a scripted baseline, paired seed by seed, on ground neither has
+seen; where an exam renders a verdict of its own (the mixed-roster exam's
+pass shape, FR-010), that verdict is anchored to the same scripted baseline,
+never to the bar's bounds.
 
 Frozen means frozen. A landed suite version is immutable — its files
 mechanically guarded against edits — because an exam that shifts under a
@@ -56,17 +58,26 @@ project's whole history.
   already owns; a wrapper would re-implement report aggregation and exit
   semantics outside the tested surface. One binary, one report shape.
 - Q: Where do exam configs live — the repo-root convention
-  (`cloudkitty*.toml`) or a dedicated directory? → A: **Recommended: a
-  dedicated `evals/` directory, one subdirectory per suite version**
-  (e.g., `evals/v1/`), with the manifest beside the exams. The root
-  convention is for served worlds; a suite version is four-plus files with a
-  freeze boundary, and a directory *is* that boundary. ⚠️ Flagged for owner
-  confirmation before the plan phase — this is the one open question the
-  advisory session directed the flow to surface rather than settle.
-- Q: Do exams carry pass/fail thresholds of their own? → A: Not in v1. Exams
-  report the welfare panel and paired baseline deltas; the only failures are
-  mechanical (config invalid, fallback taken, determinism broken). Exam-level
-  bounds, if ever wanted, are a future suite version's decision.
+  (`cloudkitty*.toml`) or a dedicated directory? → A: A dedicated `evals/`
+  directory, one subdirectory per suite version (e.g., `evals/v1/`), with
+  the manifest beside the exams. The root convention is for served worlds; a
+  suite version is four-plus files with a freeze boundary, and a directory
+  *is* that boundary. **Confirmed by the owner, 2026-07-24.**
+- Q: Do exams carry pass/fail thresholds of their own? → A: No absolute
+  welfare bounds, ever — those belong to the bar. Three of the four v1 exams
+  report scores and paired baseline deltas only; the mixed-roster exam alone
+  renders a verdict, and that verdict is *relative*, anchored to its own
+  all-scripted baseline (FR-010) — a comparison, not a bound. Mechanical
+  failures (config invalid, fallback taken, determinism broken) fail any
+  exam.
+- Q: How does a frozen exam config name a policy seat, when exams must be
+  committed before any particular artifact exists? → A: Seat-binding
+  convention (owner-specified, 2026-07-24): exam configs mark policy seats
+  with the placeholder `behavior = "policy:candidate"`, and the harness
+  binds `candidate` to whatever artifact is under test at invocation
+  (FR-011). Composition is expressed precisely and frozen; no frozen file
+  ever names an artifact — coupling the suite to one experiment is exactly
+  the retrofit this convention exists to avoid.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -118,10 +129,12 @@ larger meadow and roster — does cooperation survive distance and crowds?), a
 **scarcity exam** (element minimums at the lawful floor — does yielding
 survive genuine contention?), a **heterogeneity exam** (an extreme lawful
 trait spread — does fairness survive kitties with wildly different
-metabolisms?), and a **company exam** (partners and a roster size seen in
-neither training nor certification — does cooperation survive strangers?).
-Every exam is a lawful world: validation passes, the safeguard spawner runs,
-Article I holds — scarcity means walking and yielding, never suffering.
+metabolisms?), and a **mixed-roster exam** (compositions of policy and
+scripted kitties seen in neither training nor certification — does
+cooperation survive partners who don't share the policy's conventions? US3
+gives this exam its full design). Every exam is a lawful world: validation
+passes, the safeguard spawner runs, Article I holds — scarcity means walking
+and yielding, never suffering.
 
 **Why this priority**: the suite mode without discriminating content is an
 empty exam room. The exams are the instrument.
@@ -146,7 +159,64 @@ on its named axis, verifiable by reading the configs.
 
 ---
 
-### User Story 3 - Results stay comparable for the life of the project (Priority: P3)
+### User Story 3 - A researcher catches a policy majority exploiting a scripted minority (Priority: P2)
+
+A researcher scores a policy on the mixed-roster exam and reads three
+composition cells — the policy as **guest** (one policy kitty among scripted
+cats), **half-and-half**, and the policy as **host** (a policy majority with
+one scripted cat) — each paired against an all-scripted run of the same
+config and seeds. The report's discriminating number is the
+**guest-welfare differential**: the scripted kitties' happiness with policy
+neighbors versus with scripted neighbors. Positive means policy neighbors
+make a scripted cat's life *better* — genuine cooperative surplus. Negative
+in the host cell, under a healthy team Nash, is the exploitation signature:
+a trained team cooperating beautifully with copies of itself while
+structurally out-competing the one cat that doesn't anticipate its moves —
+always first to the contested bowl, never conscripting the outsider into
+duets, treating its meows as noise.
+
+**Why this priority**: the Nash score counts the whole roster, scripted
+kitties included, so this exploitation mode keeps team welfare respectable
+while the scripted cat becomes the permanent least-happy member — and no
+other metric in the suite catches it. Certification's existing mixed mode is
+the *weak* direction (one policy kitty among scripted cats — the policy is
+the guest); this exam probes the *strong* direction, the policy majority
+hosting. It is the suite's held-out stress test for what the multi-agent
+literature calls ad-hoc teamwork (Stone et al., 2010) and zero-shot
+coordination: agents trained together develop implicit conventions — who
+yields, who initiates duets, how meows get used — and cooperative
+performance can collapse when a partner doesn't speak the dialect (the
+fragility Hu et al.'s Other-Play (2020) documents; the engine mediates most
+coordination here, so the milder form is what's live).
+
+**Independent Test**: bind the candidate seat to a built-in brain (`playful`
+is a genuinely different convention) and run the exam: all three cells and
+the all-scripted baseline run on paired seeds, the report carries per-cell
+aggregates, guest-welfare differentials, least-happy identity counts, and
+duet-participation shares, and a verdict is rendered — no trained artifact
+required.
+
+**Acceptance Scenarios**:
+
+1. **Given** a subject and the mixed-roster exam, **When** it is scored,
+   **Then** all three composition cells and the all-scripted baseline run on
+   paired seeds, and the report presents per-cell team aggregates, the
+   guest-welfare differential per scripted kitty, least-happy identity
+   counts per cell, and per-kitty duet-participation shares.
+2. **Given** a host cell whose scripted kitty's differential is negative
+   while the cell's team aggregate is healthy, **When** the verdict is
+   rendered, **Then** the exam fails and the report names the exploitation
+   signature explicitly — which cell, which kitty, what differential.
+3. **Given** the candidate seat bound to a built-in behavior, **When** the
+   exam runs, **Then** it completes end-to-end and renders a verdict — the
+   machinery never requires a trained artifact.
+4. **Given** two different artifacts scored against the same frozen exam,
+   **When** both runs complete, **Then** no committed file differed between
+   them — the artifact is bound at invocation, never named in the config.
+
+---
+
+### User Story 4 - Results stay comparable for the life of the project (Priority: P3)
 
 A researcher comparing this month's policy against last quarter's runs both
 against `eval-suite-v1` and trusts the comparison, because v1 is bit-for-bit
@@ -196,7 +266,18 @@ the guard suite: the modification is detected and fails loudly.
   equals a training or certification config.
 - **Mixed roster mode on exam worlds**: the deployment-reality mode (one
   policy kitty among `needs_driven`) runs per exam exactly as on the default
-  world — both roster modes are part of every exam's scorecard.
+  world — both roster modes are part of every exam's scorecard. The
+  mixed-roster *exam* is a different instrument: composition cells with
+  their own baseline and verdict (US3), not a rerun of certification's mode.
+- **The exploitation signature**: a negative guest-welfare differential in
+  the host cell under a healthy team Nash — team welfare respectable, the
+  scripted cat permanently least-happy. No other metric in the suite catches
+  it; the differential exists for exactly this case (FR-010).
+- **The `policy:candidate` placeholder outside a suite run**: it is an
+  ordinary policy behavior name. A served config using it without a
+  configured `candidate` policy fails at startup naming the field, exactly
+  like any unconfigured policy today — the placeholder is a harness-side
+  binding convention, not a new engine concept.
 - **Fallback or determinism failure mid-suite**: the run fails with the
   established exit semantics (fallback-taken and determinism-self-check
   failures are distinct, nonzero, and unchanged from single-config runs);
@@ -243,16 +324,16 @@ the guard suite: the modification is detected and fails loudly.
 
 **The exams (US2)**
 
-- **FR-005**: Suite v1 MUST comprise three to four committed exam configs
-  covering these axes: **scale** (a world at least twice the default's tile
+- **FR-005**: Suite v1 MUST comprise four committed exam configs covering
+  these axes: **scale** (a world at least twice the default's tile
   count with a roster larger than any the policy trained with — the session
   recommendation is 48×48 with 8 kitties), **scarcity** (element minimums at
   the lawful floor the engine's own validation permits), **heterogeneity**
-  (an extreme but lawful per-kitty trait spread), and **company** (a roster
-  whose size and partner behaviors were seen in neither training nor
-  certification). Exact TOML contents are plan-phase deliverables; each exam
-  MUST document, in the file itself, what it probes and why its numbers are
-  chosen.
+  (an extreme but lawful per-kitty trait spread), and **mixed-roster**
+  (held-out compositions of policy and scripted seats — designed in full by
+  FR-008 through FR-011). Exact TOML contents are plan-phase deliverables;
+  each exam MUST document, in the file itself, what it probes and why its
+  numbers are chosen.
 - **FR-006**: Every exam MUST be a lawful world: it passes the same
   validation as any served config, and the full constitution — the safeguard
   spawner included — is active during exam runs. Scarcity and scale are
@@ -263,20 +344,58 @@ the guard suite: the modification is detected and fails loudly.
   suite's documentation MUST state the doctrine itself: results against a
   suite version are void if its exams were trained on.
 
-**Freeze and versioning (US3)**
+**The mixed-roster exam (US3)**
 
-- **FR-008**: A landed suite version is immutable: its exam files MUST be
+- **FR-008**: The mixed-roster exam MUST hold out *composition*, not merely
+  configuration: a geometry and roster that are neither the bar's nor the
+  gym's (the session design: 28×28, roster of 6), scored as three
+  composition cells on paired seeds — **guest** (one policy seat among
+  scripted kitties), **half-and-half**, and **host** (a policy majority with
+  a scripted minority). The scripted contingent MUST include at least one
+  `playful` partner alongside `needs_driven`: `playful` follows a genuinely
+  different convention (ignores needs below its comfort threshold, chases
+  critters, conscripts playmates aggressively), and a policy robust only to
+  `needs_driven` partners has demonstrated one memorized partner model, not
+  partner-generality.
+- **FR-009**: For the mixed-roster exam the harness MUST also run the
+  **all-scripted baseline** — the same config and seeds with every seat
+  scripted — and report, per cell: the **guest-welfare differential** (each
+  scripted kitty's happiness with policy neighbors versus with scripted
+  neighbors), least-happy identity counts (whether the least-happy kitty is
+  systematically the out-group member — identity, not just value), and
+  per-kitty duet-participation shares (which the activity record already
+  carries).
+- **FR-010**: The mixed-roster exam's verdict MUST be anchored to its own
+  all-scripted baseline, never to the default world's bounds. It passes
+  when: no cell's paired team aggregate falls below the all-scripted
+  baseline; the guest-welfare differential is ≥ 0 in every cell; and
+  least-happy identity is not concentrated on the out-group beyond what seed
+  noise explains. A negative host-cell differential under a healthy team
+  aggregate is the exploitation signature this exam exists to catch, and the
+  report MUST name it explicitly — cell, kitty, differential — when it
+  appears.
+- **FR-011**: Frozen exam configs MUST express policy seats
+  artifact-agnostically: a policy seat is marked with the placeholder
+  `behavior = "policy:candidate"`, and the harness binds `candidate` to the
+  artifact under test at invocation. Composition is precise and frozen; no
+  frozen file ever names an artifact. Outside a suite run, the placeholder
+  resolves like any policy name — a config naming an unconfigured policy
+  fails loudly at startup, exactly as today.
+
+**Freeze and versioning (US4)**
+
+- **FR-012**: A landed suite version is immutable: its exam files MUST be
   mechanically guarded (content identity recorded at landing and verified in
   CI) so that any edit to a landed exam fails loudly. Evolution happens only
   by landing a new suite version alongside; prior versions remain runnable
   and invocable by name.
-- **FR-009**: Every suite report MUST record the suite version and the
+- **FR-013**: Every suite report MUST record the suite version and the
   identity of each exam scored, so any result can be tied to exactly the
   worlds that produced it.
 
 **Scope guard**
 
-- **FR-010**: This feature MUST NOT change the engine, the bindings'
+- **FR-014**: This feature MUST NOT change the engine, the bindings'
   training surface, the served world's semantics, the reward's objective
   semantics (Nash, p = 0, ε = 0.01, level mode — untouchable per the
   session's settled decisions), the default world's config, or the
@@ -297,6 +416,16 @@ the guard suite: the modification is detected and fails loudly.
 - **Exam Scorecard**: one exam's results — welfare panel, team aggregate
   with plain mean and least-happy beside it, both roster modes, paired
   baseline deltas, fallback and determinism accounting.
+- **Composition Cell**: one seat arrangement of the mixed-roster exam —
+  guest, half-and-half, or host — scored on paired seeds against the
+  all-scripted baseline of the same config and seeds.
+- **Guest-Welfare Differential**: a scripted kitty's happiness with policy
+  neighbors minus its happiness with scripted neighbors, per cell — the
+  mixed-roster exam's discriminating metric, positive when policy neighbors
+  create cooperative surplus for a cat outside their conventions.
+- **Candidate Seat**: a policy seat in a frozen exam config, marked
+  `policy:candidate` and bound to the artifact under test at invocation —
+  composition frozen, artifact free.
 - **Suite Report**: the scorecards plus the cross-exam summary, stamped with
   the suite version; human and JSON forms.
 
@@ -311,7 +440,7 @@ the guard suite: the modification is detected and fails loudly.
 - **Article II (no death)**: untouched. Exams change world shape, never
   mechanics; no removal path exists to configure.
 - **Article III (never alone)**: every exam passes the ≥ 2 kitty validation
-  like any config; the scale and company exams *grow* rosters.
+  like any config; the scale and mixed-roster exams *grow* rosters.
 - **Article IV (engine is the law)**: the suite scores through the same
   validate-everything harness path as today; fallback accounting keeps
   headless dispatch honest on every world, and a fallback-taken run fails
@@ -341,6 +470,13 @@ the guard suite: the modification is detected and fails loudly.
 6. Single-config compatibility: the existing `kitty-eval` invocation's
    behavior and exit codes are unchanged (existing harness tests keep
    passing, unmodified).
+7. Mixed-roster machinery: with the candidate seat bound to a built-in
+   brain, the exam runs all three cells plus the all-scripted baseline and
+   renders a verdict; a constructed run whose host-cell differential is
+   negative under a healthy team aggregate renders the exploitation-
+   signature failure naming cell, kitty, and differential.
+8. Seat binding: the same frozen mixed-roster config scores two different
+   subjects with no committed file changing between runs.
 
 **Amendment required: none.** The constitution stands at v1.2.0 and this
 feature changes nothing in it.
@@ -365,10 +501,15 @@ feature changes nothing in it.
   configs: the scale exam has ≥ 2× the default's tiles and a roster larger
   than training's; the scarcity exam's minimums sit at the validation
   floor; the heterogeneity exam's trait spread exceeds both other worlds';
-  the company exam's roster size and partner behaviors appear in neither.
+  the mixed-roster exam's geometry, roster size, and composition cells
+  appear in neither training nor certification.
 - **SC-006**: Constitutional cleanliness — the constitution, engine, and
   default world config are untouched; zero new constants exist outside
   configuration or the suite manifest.
+- **SC-007**: The mixed-roster exam is executable without any trained
+  artifact: binding the candidate seat to a built-in brain produces the
+  full three-cell report — differentials, least-happy identity counts,
+  duet-participation shares — and a verdict, reproducibly (per SC-002).
 
 ## Assumptions
 
@@ -378,16 +519,21 @@ feature changes nothing in it.
 - **Exam contents are plan-phase**: this spec fixes the axes, lawfulness,
   distinctness, and documentation requirements; the exact TOML numbers are
   designed in the plan and frozen at landing.
-- **"Company exam" interprets the session's "mixed-roster exam"**: read as
-  partner generalization — unfamiliar roster size *and* partner behaviors
-  (the second built-in, `playful`, exists precisely to be an unfamiliar
-  partner). If the owner meant only roster-size variation, the exam
-  simplifies; the axis (unfamiliar company) is unchanged. Flagged.
-- **No exam-level pass/fail bounds in v1**: exams produce scores and paired
-  deltas. The default world remains the only bar (Clarifications).
-- **Location pending owner confirmation**: this spec recommends a dedicated
-  `evals/<version>/` directory; the plan phase does not begin until the
-  owner confirms or redirects (the one deliberately open question).
+- **The mixed-roster exam is fair because training includes mixed-control
+  episodes**: the training recipe deliberately exposes the policy to
+  scripted partners in general — just never these compositions, this
+  geometry, or these seeds. **Held-out refers to the configs, not the
+  concept.** If a future experiment drops mixed-control training, this exam
+  is expected to fail first and loudest — which is precisely the
+  early-warning role a held-out suite member exists to play, not a defect
+  in the exam.
+- **No absolute exam-level bounds in v1**: three exams produce scores and
+  paired deltas only; the mixed-roster exam's verdict is relative to its
+  own all-scripted baseline (Clarifications, FR-010). The default world
+  remains the only absolute bar.
+- **Location confirmed**: exam configs live in a dedicated
+  `evals/<version>/` directory with the manifest beside them
+  (owner-confirmed, 2026-07-24).
 - **Ask B resolved — no bindings change**: VectorEnv constructs N worlds
   from one config, and its batch geometry (observation length, agent set,
   state length) is derived from that config — per-world heterogeneous

@@ -34,8 +34,9 @@
 - Existing product surfaces (`kitty-eval`, TOML configs, JSON reports) are
   named where the feature extends them, following the house precedent set by
   specs 013/014; no new implementation technology is prescribed.
-- One question is deliberately left for the owner rather than settled here,
-  per the session handoff: where exam configs live (recommended
-  `evals/<version>/`; see Clarifications). It is recorded with a recommended
-  default, not a [NEEDS CLARIFICATION] marker, and gates the plan phase, not
-  this spec.
+- Both questions flagged in the first draft are now owner-resolved
+  (2026-07-24): exam configs live in `evals/<version>/`, and the
+  mixed-roster exam carries the owner's full design — composition cells,
+  guest-welfare differential, baseline-anchored pass shape, and the
+  `policy:candidate` seat-binding convention (US3, FR-008 through FR-011).
+  No open questions gate the plan phase.
