@@ -430,6 +430,13 @@ pub struct ExploitationSignature {
     pub kitty: String,
     pub differential: f64,
     pub negative_seeds: u32,
+    /// Whether this cell's aggregate check passed. True is the *masking
+    /// case* — a healthy team score hiding a per-kitty victim, the story
+    /// FR-010 exists to catch ("exploitation"). False means the cell is
+    /// failing anyway: the trip is general harm from an underperforming
+    /// candidate, not masked exploitation — a true detection wearing a
+    /// different story (2026-07-25 owner review).
+    pub cell_aggregate_healthy: bool,
 }
 
 #[derive(Serialize)]
@@ -759,10 +766,11 @@ pub fn evaluate_verdict(
     for cell in cells {
         let aggregate = mean(cell.runs.iter().map(|r| r.aggregates.team_welfare))
             - mean(cell.baseline_runs.iter().map(|r| r.aggregates.team_welfare));
+        let aggregate_healthy = aggregate >= 0.0;
         checks.push(VerdictCheck {
             cell: cell.name.clone(),
             check: "aggregate",
-            passed: aggregate >= 0.0,
+            passed: aggregate_healthy,
             value: aggregate,
             bound: 0.0,
             baseline: None,
@@ -829,6 +837,7 @@ pub fn evaluate_verdict(
                 kitty: d.name.clone(),
                 differential: d.differential,
                 negative_seeds: d.negative_seeds,
+                cell_aggregate_healthy: aggregate_healthy,
             });
         }
     }
@@ -1013,14 +1022,31 @@ pub fn human_report(report: &SuiteReport) {
                     );
                 }
                 for signature in &exam.verdict.exploitation_signatures {
-                    println!(
-                        "  EXPLOITATION SIGNATURE [{}]: {} differential {:+.2}, \
-                         negative in {} paired seeds",
-                        signature.cell,
-                        signature.kitty,
-                        signature.differential,
-                        signature.negative_seeds
-                    );
+                    // Same trigger, two stories: a victim under a healthy
+                    // team score is masked exploitation (the case this exam
+                    // exists to catch); a victim in a failing cell is
+                    // general harm from an underperforming candidate.
+                    if signature.cell_aggregate_healthy {
+                        println!(
+                            "  EXPLOITATION SIGNATURE [{}]: {} differential {:+.2}, \
+                             negative in {} paired seeds — under a healthy cell \
+                             aggregate (the masking case)",
+                            signature.cell,
+                            signature.kitty,
+                            signature.differential,
+                            signature.negative_seeds
+                        );
+                    } else {
+                        println!(
+                            "  SIGN-TEST TRIP [{}]: {} differential {:+.2}, \
+                             negative in {} paired seeds — cell aggregate also \
+                             failing: general harm, not masked exploitation",
+                            signature.cell,
+                            signature.kitty,
+                            signature.differential,
+                            signature.negative_seeds
+                        );
+                    }
                 }
                 println!(
                     "  mixed-roster verdict: {}",
@@ -1347,6 +1373,10 @@ sha256 = "{sha}"
             ("host", "Biscuit")
         );
         assert_eq!(signature.negative_seeds, 10);
+        assert!(
+            signature.cell_aggregate_healthy,
+            "healthy aggregate + victim = the masking case, labeled as such"
+        );
         // The check itself records the measurement, mode-independently:
         // value vs bound and passed always agree (second review, finding 1).
         let check = warned
@@ -1367,6 +1397,29 @@ sha256 = "{sha}"
             .unwrap();
         assert!(!check.passed);
         assert_eq!((check.value, check.bound), (10.0, 10.0));
+    }
+
+    // The same trigger under a FAILING aggregate is annotated as general
+    // harm, not masked exploitation — an underperforming candidate makes
+    // its neighbors' trips true detections wearing a different story
+    // (owner review, 2026-07-25).
+    #[test]
+    fn a_trip_in_a_failing_cell_is_general_harm_not_masked_exploitation() {
+        let cell = synthetic_cell(
+            "host",
+            &[(0.85, 0.90)],
+            &[("Biscuit", -2.3, 10), ("Miso", 2.5, 0)],
+            1,
+            1,
+        );
+        let verdict = evaluate_verdict(&[cell], &constants(), SignTestMode::Warn);
+        assert!(!verdict.passed, "the failing aggregate gates regardless");
+        let signature = &verdict.exploitation_signatures[0];
+        assert_eq!(signature.kitty, "Biscuit");
+        assert!(
+            !signature.cell_aggregate_healthy,
+            "failing aggregate: the trip is named, but not as masked exploitation"
+        );
     }
 
     #[test]

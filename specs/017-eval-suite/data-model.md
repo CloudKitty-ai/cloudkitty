@@ -138,7 +138,7 @@ has no guests to differentiate).
 |---|---|---|
 | `passed` | bool | all checks green |
 | `checks` | Vec\<VerdictCheck\> | one per (cell × check kind), each with pass/fail + numbers |
-| `exploitation_signatures` | Vec\<ExploitationSignature\> | cell, kitty, differential — emitted whenever a cell shows a negative differential under a passing aggregate check (FR-010), regardless of overall verdict |
+| `exploitation_signatures` | Vec\<ExploitationSignature\> | cell, kitty, differential, `negative_seeds`, and `cell_aggregate_healthy` — emitted on the sign-test trigger (FR-015), regardless of overall verdict; `cell_aggregate_healthy: true` marks the masking case (exploitation), `false` general harm in an already-failing cell |
 
 **Checks per cell (R7, R12)**: `aggregate` (seed-mean cell team_welfare ≥
 seed-mean baseline team_welfare), `differential` (mean guest-welfare

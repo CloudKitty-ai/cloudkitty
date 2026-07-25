@@ -88,12 +88,18 @@ deltas. Differences from single-config mode:
   name:
 
 ```text
-EXPLOITATION SIGNATURE [host]: Biscuit differential -2.28, negative in 10 paired seeds
+EXPLOITATION SIGNATURE [host]: Biscuit differential -2.28, negative in 10 paired seeds — under a healthy cell aggregate (the masking case)
+SIGN-TEST TRIP [half]: Mochi differential -0.88, negative in 10 paired seeds — cell aggregate also failing: general harm, not masked exploitation
 ```
 
-A sign-test check that trips under warn mode renders `[WARN]` (the
-verdict forgives it; the label makes it unmissable); the check's own
-`passed`/`value`/`bound` always agree — mode lives on the verdict.
+Same trigger, two stories, annotated per signature
+(`cell_aggregate_healthy` in JSON): a victim under a healthy team score
+is masked exploitation — the case the exam exists to catch — while a
+victim in an already-failing cell is general harm from an
+underperforming candidate. A sign-test check that trips under warn mode
+renders `[WARN]` (the verdict forgives it; the label makes it
+unmissable); the check's own `passed`/`value`/`bound` always agree —
+mode lives on the verdict.
 
 - The report header and JSON carry `suite_version` and each exam's
   `config_sha256` (FR-013).

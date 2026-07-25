@@ -17,6 +17,32 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 ## P2 — the bigger pieces, for a proper sitting
 
+### Eval-suite v2: a stronger counterfactual baseline (added 2026-07-25)
+Spec 017's guest-welfare differentials and per-kitty sign test measure
+every scripted kitty against its own counterfactual self in the
+**all-scripted baseline**, where candidate seats are rewritten to
+`needs_driven` (research.md R4). That reference is deliberate for v1 —
+`needs_driven` is the shipped default, and pairing against it makes
+temperament cancel exactly — but it means a differential reads "worse
+than needs_driven neighbors would have been," not harm in an absolute
+sense, and a merely-mediocre candidate trips sign tests as general harm
+(now annotated as such, distinct from masked exploitation). Once a
+trained policy has cleared certification and earned trust, a future
+suite version can raise the bar: bind the **baseline** seats to a
+proven better-than-needs-based agent (a pinned, hash-referenced
+`.ckpolicy` — frozen like everything else in the version), so
+differentials measure candidates against the best-known cooperative
+partner rather than the hand-written default. Design cares when picked
+up: the baseline artifact becomes part of the suite version's frozen
+identity (manifest-referenced by hash — the artifact-agnostic
+`policy:candidate` convention stays for the *candidate* seats only);
+determinism self-checks must cover policy-driven baselines (they are no
+longer "scripted", so the exit-2 fallback accounting applies to
+baseline runs too); and cross-version comparability breaks by design —
+v1-vs-v2 scores are different questions, which the version stamp
+already makes explicit. Sequencing: after the first certified policy
+exists, alongside whatever else v2 wants (owner note, 2026-07-25).
+
 ### Suite reporting/visualization tooling — standing constraint (added 2026-07-25)
 No such tooling exists yet; this entry records a **binding design
 constraint** for whenever it is built (dashboards, experiment trackers,

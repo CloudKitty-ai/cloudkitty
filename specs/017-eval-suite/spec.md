@@ -420,9 +420,15 @@ the guard suite: the modification is detected and fails loudly.
   paired-seed count — whenever the per-kitty sign test trips (FR-015
   defines the trigger; reconciled 2026-07-25 — the original "when it
   appears" predated the sign-test tier and would spray signatures on
-  seed-noise negatives). Every scripted kitty's differential remains
-  visible in the report's per-cell table regardless of whether it is
-  signature-named.
+  seed-noise negatives). Each signature MUST carry its cell's
+  aggregate-check health, in report and JSON: a trip under a **healthy**
+  aggregate is the masking case this exam exists to catch (exploitation —
+  a good team score hiding a victim), while a trip in a **failing** cell
+  is general harm from an underperforming candidate — a true detection
+  wearing a different story, and tooling filtering for exploitation needs
+  the distinction (owner review, 2026-07-25). Every scripted kitty's
+  differential remains visible in the report's per-cell table regardless
+  of whether it is signature-named.
 - **FR-011**: Frozen exam configs MUST express policy seats
   artifact-agnostically: a policy seat is marked with the placeholder
   `behavior = "policy:candidate"`, and the harness binds `candidate` to the
@@ -600,6 +606,14 @@ feature changes nothing in it.
   paired deltas only; the mixed-roster exam's verdict is relative to its
   own all-scripted baseline (Clarifications, FR-010). The default world
   remains the only absolute bar.
+- **The v1 counterfactual is `needs_driven`, by choice**: the
+  all-scripted baseline rewrites candidate seats to the shipped default,
+  so every differential reads "worse than `needs_driven` neighbors would
+  have been" — the right reference while that is the best trusted brain.
+  Once a certified policy earns trust, a future suite version may bind
+  the baseline seats to it instead (a pinned, hash-frozen artifact),
+  raising what "cooperative surplus" is measured against; recorded as a
+  v2 design note in BACKLOG.md (owner direction, 2026-07-25).
 - **Location confirmed**: exam configs live in a dedicated
   `evals/<version>/` directory with the manifest beside them
   (owner-confirmed, 2026-07-24).

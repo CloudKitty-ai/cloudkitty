@@ -473,6 +473,10 @@ fn a_negative_host_differential_renders_the_exploitation_signature() {
         "names the differential"
     );
     assert_eq!(signature.negative_seeds, 10, "names the seed count");
+    assert!(
+        signature.cell_aggregate_healthy,
+        "healthy aggregate (0.91 vs 0.90): labeled as the masking case"
+    );
 }
 
 // Spec guarding test 8 (FR-011): the artifact is bound at invocation; the
