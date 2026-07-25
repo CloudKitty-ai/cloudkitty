@@ -145,11 +145,13 @@ seed-mean baseline team_welfare), `differential` (mean guest-welfare
 differential ≥ −tolerance), `identity` (fails only when
 `least_happy_out_group_seeds` ≥ threshold **and** >
 `baseline_least_happy_out_group_seeds` — baseline-anchored, per FR-010),
-and `sign-test` (per scripted kitty, `negative_seeds` ≥ `sign_test_k`;
-gates or warns per the manifest's `sign_test` mode / CLI tighten — the
-verdict stamps `sign_test_mode` so every report is self-describing about
-the regime that judged it, and signature emission is defined by this
-trigger).
+and `sign-test` (per scripted kitty, `negative_seeds` ≥ `sign_test_k`).
+The sign-test check's `passed` records the *measurement* verdict,
+mode-independently — value vs bound and `passed` always agree on every
+check. Whether a tripped sign test fails the exam is decided at the
+verdict level: `MixedRosterVerdict.passed` forgives failed sign-test
+checks when `sign_test_mode` is `warn` (human report renders them
+`[WARN]`), and signature emission is defined by this trigger.
 
 ## Relationships
 

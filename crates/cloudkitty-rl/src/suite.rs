@@ -578,14 +578,20 @@ fn mean(values: impl Iterator<Item = f64>) -> f64 {
     }
 }
 
+/// One kitty's mean happiness in one run's welfare report. The single
+/// lookup both the seed-mean aggregation and the sign test's per-seed
+/// counting go through — they must never disagree about what a kitty's
+/// per-seed value is.
+fn per_seed_kitty_mean(run: &RunOutcome, id: KittyId) -> Option<f64> {
+    run.report
+        .kitties
+        .iter()
+        .find(|k| k.kitty_id == id)
+        .map(|k| k.mean_happiness)
+}
+
 fn kitty_mean(runs: &[RunOutcome], id: KittyId) -> f64 {
-    mean(runs.iter().filter_map(|run| {
-        run.report
-            .kitties
-            .iter()
-            .find(|k| k.kitty_id == id)
-            .map(|k| k.mean_happiness)
-    }))
+    mean(runs.iter().filter_map(|run| per_seed_kitty_mean(run, id)))
 }
 
 fn score_cell(
@@ -665,13 +671,6 @@ fn score_cell(
         .filter(|k| k.behavior != CANDIDATE_BEHAVIOR)
         .map(|k| (k.id, k.name.clone()))
         .collect();
-    let per_seed_kitty_mean = |run: &RunOutcome, id: KittyId| {
-        run.report
-            .kitties
-            .iter()
-            .find(|k| k.kitty_id == id)
-            .map(|k| k.mean_happiness)
-    };
     let differentials: Vec<KittyDifferential> = scripted
         .iter()
         .map(|(id, name)| {
@@ -683,13 +682,9 @@ fn score_cell(
                 .iter()
                 .zip(&baseline_runs)
                 .filter(|(cell_run, base_run)| {
-                    matches!(
-                        (
-                            per_seed_kitty_mean(cell_run, *id),
-                            per_seed_kitty_mean(base_run, *id),
-                        ),
-                        (Some(c), Some(b)) if c < b
-                    )
+                    per_seed_kitty_mean(cell_run, *id)
+                        .zip(per_seed_kitty_mean(base_run, *id))
+                        .is_some_and(|(c, b)| c < b)
                 })
                 .count() as u32;
             KittyDifferential {
@@ -805,8 +800,10 @@ pub fn evaluate_verdict(
         // FR-015: the per-kitty paired sign test. The signature IS the
         // trigger — a scripted kitty whose differential was negative in
         // ≥ sign_test_k paired seeds — so signatures stay rare enough to
-        // mean something. The check gates or warns per the effective mode;
-        // triggered kitties are named either way.
+        // mean something. `passed` carries the mode-independent measurement
+        // verdict (value vs bound stays reconstructible from the check's
+        // own fields); whether a tripped check FAILS the exam or only
+        // WARNS is the verdict-level mode's decision below.
         let tripped: Vec<&KittyDifferential> = cell
             .differentials
             .iter()
@@ -821,7 +818,7 @@ pub fn evaluate_verdict(
         checks.push(VerdictCheck {
             cell: cell.name.clone(),
             check: "sign-test",
-            passed: sign_test_mode == SignTestMode::Warn || tripped.is_empty(),
+            passed: tripped.is_empty(),
             value: max_negative as f64,
             bound: constants.sign_test_k as f64,
             baseline: None,
@@ -835,8 +832,14 @@ pub fn evaluate_verdict(
             });
         }
     }
+    // A failed sign-test check is forgiven under warn mode — the check
+    // records the measurement; the mode decides whether it gates. Every
+    // other check always gates.
+    let passed = checks
+        .iter()
+        .all(|c| c.passed || (c.check == "sign-test" && sign_test_mode == SignTestMode::Warn));
     MixedRosterVerdict {
-        passed: checks.iter().all(|c| c.passed),
+        passed,
         sign_test_mode,
         checks,
         exploitation_signatures: signatures,
@@ -989,25 +992,25 @@ pub fn human_report(report: &SuiteReport) {
                     }
                 );
                 for check in &exam.verdict.checks {
-                    match check.baseline {
-                        Some(baseline) => println!(
-                            "  [{}] {}[{}]: value {:+.4}, bound {:+.4}, baseline {:+.4}",
-                            if check.passed { "PASS" } else { "FAIL" },
-                            check.check,
-                            check.cell,
-                            check.value,
-                            check.bound,
-                            baseline
-                        ),
-                        None => println!(
-                            "  [{}] {}[{}]: value {:+.4}, bound {:+.4}",
-                            if check.passed { "PASS" } else { "FAIL" },
-                            check.check,
-                            check.cell,
-                            check.value,
-                            check.bound
-                        ),
-                    }
+                    // A tripped sign-test check under warn mode is forgiven
+                    // by the verdict but must be unmissable in the report.
+                    let label = if check.passed {
+                        "PASS"
+                    } else if check.check == "sign-test"
+                        && exam.verdict.sign_test_mode == SignTestMode::Warn
+                    {
+                        "WARN"
+                    } else {
+                        "FAIL"
+                    };
+                    let baseline = check
+                        .baseline
+                        .map(|b| format!(", baseline {b:+.4}"))
+                        .unwrap_or_default();
+                    println!(
+                        "  [{label}] {}[{}]: value {:+.4}, bound {:+.4}{baseline}",
+                        check.check, check.cell, check.value, check.bound
+                    );
                 }
                 for signature in &exam.verdict.exploitation_signatures {
                     println!(
@@ -1294,6 +1297,13 @@ sha256 = "{sha}"
         let cell = synthetic_cell("host", &[(0.91, 0.90)], &[("Biscuit", -3.2, 2)], 2, 1);
         let verdict = evaluate_verdict(&[cell], &constants(), SignTestMode::Warn);
         assert!(!verdict.passed, "the differential check fails the exam");
+        // Sub-k concentration is not a signature (FR-015 defines the
+        // trigger; FR-010 defers to it) — the harm stays visible in the
+        // differential table, not in the signature list.
+        assert!(
+            verdict.exploitation_signatures.is_empty(),
+            "negative_seeds 2 < k 10: table-visible, not signature-named"
+        );
     }
 
     #[test]
@@ -1337,6 +1347,15 @@ sha256 = "{sha}"
             ("host", "Biscuit")
         );
         assert_eq!(signature.negative_seeds, 10);
+        // The check itself records the measurement, mode-independently:
+        // value vs bound and passed always agree (second review, finding 1).
+        let check = warned
+            .checks
+            .iter()
+            .find(|c| c.check == "sign-test")
+            .unwrap();
+        assert!(!check.passed, "tripped is tripped, even when forgiven");
+        assert_eq!((check.value, check.bound), (10.0, 10.0));
 
         let gated = evaluate_verdict(&[cell()], &constants(), SignTestMode::Gate);
         assert!(!gated.passed, "gate mode fails the exam (exit 4)");

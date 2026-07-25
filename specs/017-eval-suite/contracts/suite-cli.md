@@ -63,9 +63,13 @@ kitty-eval --suite evals/v1 (--artifact path/to/policy.ckpolicy | --brain NAME)
 | 3 | determinism self-check failure | unchanged |
 | 4 | mixed-roster verdict failure | **new; suite mode only** |
 
-Precedence 1 > 2 > 3 > 4: mechanical failures dominate the verdict — a
-measurement that broke cannot fail an exam honestly. Failures name the
-exam (and cell) that produced them.
+Mechanical failures dominate the verdict — a measurement that broke
+cannot fail an exam honestly — and among them the order follows where
+they occur: 1 before anything runs; 3 aborts the run at the exam that
+produced it (a nondeterministic run exits 3 regardless of any fallbacks
+taken earlier — fallbacks are judged only over a completed report,
+matching the single-config path); 2 over the finished report; 4 last.
+Failures name the exam (and cell) that produced them.
 
 ## Human report shape
 
@@ -84,9 +88,12 @@ deltas. Differences from single-config mode:
   name:
 
 ```text
-EXPLOITATION SIGNATURE [host]: Biscuit differential -3.2
-  (team welfare healthy at +0.011 vs baseline)
+EXPLOITATION SIGNATURE [host]: Biscuit differential -2.28, negative in 10 paired seeds
 ```
+
+A sign-test check that trips under warn mode renders `[WARN]` (the
+verdict forgives it; the label makes it unmissable); the check's own
+`passed`/`value`/`bound` always agree — mode lives on the verdict.
 
 - The report header and JSON carry `suite_version` and each exam's
   `config_sha256` (FR-013).

@@ -26,7 +26,9 @@ pub enum RosterMode {
     Mixed,
     /// No roster rewriting: the config's own behavior column runs verbatim
     /// (spec 017 composition cells). This is also the honest label when
-    /// `subject` is `None` — the run *is* the config's roster.
+    /// `subject` is `None` — the run *is* the config's roster. Pairing it
+    /// with a `Some` subject is a caller error (the subject would be
+    /// silently ignored); `run_one_with` debug-asserts against it.
     FromConfig,
 }
 
@@ -101,19 +103,22 @@ pub fn run_one(request: &EvalRequest<'_>) -> RunOutcome {
 /// duet-participation shares ride here, so the shared welfare module and
 /// the run loop stay single-sourced).
 pub fn run_one_with(request: &EvalRequest<'_>, mut observer: impl FnMut(&World)) -> RunOutcome {
+    debug_assert!(
+        request.subject.is_none() || request.roster != RosterMode::FromConfig,
+        "FromConfig ignores the subject — pass subject: None"
+    );
     let mut config = request.core.clone();
     config.world.seed = request.seed;
-    // FromConfig never rewrites — the config's own behavior column runs.
-    if request.roster != RosterMode::FromConfig {
-        if let Some(subject) = request.subject {
-            for (index, kitty) in config.kitties.iter_mut().enumerate() {
-                kitty.behavior = match request.roster {
-                    RosterMode::AllSubject => subject.to_string(),
-                    RosterMode::Mixed if index == 0 => subject.to_string(),
-                    RosterMode::Mixed => "needs_driven".to_string(),
-                    RosterMode::FromConfig => unreachable!("guarded above"),
-                };
-            }
+    if let Some(subject) = request.subject {
+        for (index, kitty) in config.kitties.iter_mut().enumerate() {
+            kitty.behavior = match request.roster {
+                RosterMode::AllSubject => subject.to_string(),
+                RosterMode::Mixed if index == 0 => subject.to_string(),
+                RosterMode::Mixed => "needs_driven".to_string(),
+                // FromConfig never rewrites — the config's own column runs
+                // (unreachable in debug via the assert; graceful in release).
+                RosterMode::FromConfig => continue,
+            };
         }
     }
     let config = Arc::new(config);

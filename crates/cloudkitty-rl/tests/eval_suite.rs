@@ -576,22 +576,25 @@ fn cell_configs_differ_only_in_behavior() {
     );
 }
 
+/// P(X >= k) for X ~ Binomial(n, p), exact. The one implementation both
+/// threshold-derivation guards recompute against — two tails would let a
+/// boundary fix in one silently leave the other validating different math.
+fn binomial_tail(n: u32, p: f64, k: u32) -> f64 {
+    let mut tail = 0.0;
+    for i in k..=n {
+        let mut c = 1.0;
+        for j in 0..i {
+            c = c * (n - j) as f64 / (j + 1) as f64;
+        }
+        tail += c * p.powi(i as i32) * (1.0 - p).powi((n - i) as i32);
+    }
+    tail
+}
+
 // Research.md R7: thresholds stay derivable, never folklore. Every input is
 // read from the manifest and the cell configs.
 #[test]
 fn least_happy_thresholds_match_the_binomial_rule() {
-    fn binomial_tail(n: u32, p: f64, k: u32) -> f64 {
-        // P(X >= k) for X ~ Binomial(n, p), exact.
-        let mut tail = 0.0;
-        for i in k..=n {
-            let mut c = 1.0;
-            for j in 0..i {
-                c = c * (n - j) as f64 / (j + 1) as f64;
-            }
-            tail += c * p.powi(i as i32) * (1.0 - p).powi((n - i) as i32);
-        }
-        tail
-    }
     let suite = load_suite(&evals_v1()).unwrap();
     let cells = suite
         .exams
@@ -671,38 +674,35 @@ fn a_landed_exam_file_cannot_change_without_failing_ci() {
 }
 
 // FR-015 / R12: the sign-test threshold stays derivable from the fair-coin
-// rule — every input read from the manifest and the exam configs.
+// rule — every input read from the manifest and the exam configs. The
+// suite-level k must be valid for EVERY cell of EVERY mixed exam: a single
+// constant applied to divergent seed counts would be mis-calibrated for
+// some cells while a first-cell-only guard stayed green (second review,
+// finding 6), so every cell's seed count must derive the same k.
 #[test]
 fn sign_test_k_matches_the_fair_coin_rule() {
-    fn fair_coin_tail(n: u32, k: u32) -> f64 {
-        let mut tail = 0.0;
-        for i in k..=n {
-            let mut c = 1.0;
-            for j in 0..i {
-                c = c * (n - j) as f64 / (j + 1) as f64;
-            }
-            tail += c * 0.5f64.powi(n as i32);
-        }
-        tail
-    }
     let suite = load_suite(&evals_v1()).unwrap();
-    let cells = suite
-        .exams
-        .iter()
-        .find_map(|exam| match exam {
-            cloudkitty_rl::suite::LoadedExam::MixedRoster { cells, .. } => Some(cells),
-            _ => None,
-        })
-        .unwrap();
-    let n = cells[0].rl.eval.seeds.len() as u32;
-    let derived = (0..=n + 1)
-        .find(|&k| k > n || fair_coin_tail(n, k) <= suite.verdict.sign_test_tail)
-        .unwrap();
-    assert_eq!(
-        suite.verdict.sign_test_k, derived,
-        "sign_test_k follows the fair-coin rule for n = {n} seeds — \
-         a changed seed count needs a re-derived k"
-    );
+    let mut cells_checked = 0;
+    for exam in &suite.exams {
+        let cloudkitty_rl::suite::LoadedExam::MixedRoster { name, cells } = exam else {
+            continue;
+        };
+        for cell in cells {
+            cells_checked += 1;
+            let n = cell.rl.eval.seeds.len() as u32;
+            let derived = (0..=n + 1)
+                .find(|&k| k > n || binomial_tail(n, 0.5, k) <= suite.verdict.sign_test_tail)
+                .unwrap();
+            assert_eq!(
+                suite.verdict.sign_test_k, derived,
+                "exam {name}, cell {}: the suite-level sign_test_k must follow the \
+                 fair-coin rule for this cell's n = {n} seeds — a divergent seed \
+                 count needs per-exam constants, not a silently mis-calibrated k",
+                cell.name
+            );
+        }
+    }
+    assert!(cells_checked >= 3, "every mixed-roster cell was checked");
 }
 
 // Review finding 1: an artifact path literally named `candidate` collides

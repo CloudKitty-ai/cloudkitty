@@ -415,9 +415,14 @@ the guard suite: the modification is detected and fails loudly.
   2026-07-24: the first full-suite run showed the absolute reading
   false-positives on exactly the `playful` partner FR-008 requires.)
   A negative host-cell differential under a healthy team
-  aggregate is the exploitation signature this exam exists to catch, and the
-  report MUST name it explicitly — cell, kitty, differential — when it
-  appears.
+  aggregate is the exploitation signature this exam exists to catch; the
+  report MUST name it explicitly — cell, kitty, differential, and the
+  paired-seed count — whenever the per-kitty sign test trips (FR-015
+  defines the trigger; reconciled 2026-07-25 — the original "when it
+  appears" predated the sign-test tier and would spray signatures on
+  seed-noise negatives). Every scripted kitty's differential remains
+  visible in the report's per-cell table regardless of whether it is
+  signature-named.
 - **FR-011**: Frozen exam configs MUST express policy seats
   artifact-agnostically: a policy seat is marked with the placeholder
   `behavior = "policy:candidate"`, and the harness binds `candidate` to the
