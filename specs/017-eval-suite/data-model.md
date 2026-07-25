@@ -109,6 +109,7 @@ has no guests to differentiate).
 | `paired` | Vec\<PairedDelta\> | cell vs all-scripted, per seed |
 | `differentials` | Vec\<KittyDifferential\> | scripted kitties only |
 | `least_happy_out_group_seeds` | u32 | seeds where the least-happy kitty is scripted |
+| `baseline_least_happy_out_group_seeds` | u32 | the same count in the all-scripted baseline — the identity check's anchor |
 | `duet_shares` | Vec\<DuetShare\> | every kitty; report-only diagnostic |
 
 ## KittyDifferential
@@ -137,8 +138,9 @@ has no guests to differentiate).
 
 **Checks per cell (R7)**: `aggregate` (seed-mean cell team_welfare ≥
 seed-mean baseline team_welfare), `differential` (mean guest-welfare
-differential ≥ −tolerance), `identity` (`least_happy_out_group_seeds` <
-threshold).
+differential ≥ −tolerance), `identity` (fails only when
+`least_happy_out_group_seeds` ≥ threshold **and** >
+`baseline_least_happy_out_group_seeds` — baseline-anchored, per FR-010).
 
 ## Relationships
 

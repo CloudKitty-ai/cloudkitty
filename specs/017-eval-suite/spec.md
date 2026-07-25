@@ -378,7 +378,14 @@ the guard suite: the modification is detected and fails loudly.
   when: no cell's paired team aggregate falls below the all-scripted
   baseline; the guest-welfare differential is ≥ 0 in every cell; and
   least-happy identity is not concentrated on the out-group beyond what seed
-  noise explains. A negative host-cell differential under a healthy team
+  noise explains — measured against the baseline's own concentration, like
+  every other verdict input: a `playful` out-group cat is its meadow's
+  least-happy by temperament in the cell and the all-scripted baseline
+  alike, so concentration is a signal only when it both clears the
+  seed-noise threshold and exceeds the baseline's. (Wording made explicit
+  2026-07-24: the first full-suite run showed the absolute reading
+  false-positives on exactly the `playful` partner FR-008 requires.)
+  A negative host-cell differential under a healthy team
   aggregate is the exploitation signature this exam exists to catch, and the
   report MUST name it explicitly — cell, kitty, differential — when it
   appears.

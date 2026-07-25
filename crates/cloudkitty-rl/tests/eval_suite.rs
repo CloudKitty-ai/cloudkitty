@@ -435,6 +435,7 @@ fn a_negative_host_differential_renders_the_exploitation_signature() {
             differential: -3.2,
         }],
         least_happy_out_group_seeds: 1,
+        baseline_least_happy_out_group_seeds: 0,
         duet_shares: Vec::new(),
     };
     let constants = VerdictConstants {

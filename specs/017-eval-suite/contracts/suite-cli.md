@@ -68,9 +68,10 @@ deltas. Differences from single-config mode:
   `calibrated_to: "default world"`.
 - The mixed-roster section adds, per cell: the paired cell-vs-baseline
   deltas, a differential table (scripted kitties: cell mean, baseline
-  mean, differential), `least-happy out-group seeds k/n vs threshold`,
-  and duet-participation shares; then the verdict block — each check with
-  its numbers, any exploitation signature called out by name:
+  mean, differential), `least-happy out-group seeds k/n (all-scripted
+  baseline b/n)`, and duet-participation shares; then the verdict block —
+  each check with its numbers, any exploitation signature called out by
+  name:
 
 ```text
 EXPLOITATION SIGNATURE [host]: Biscuit differential -3.2
