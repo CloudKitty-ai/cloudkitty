@@ -5,7 +5,9 @@ CLI's contract — flags, exit codes 0–4 and their occurrence-based
 precedence, JSON shapes, human report bytes, error messages — is frozen by
 spec 018 FR-005 and documented where it always was
 (`specs/017-eval-suite/contracts/suite-cli.md` for suite mode; the binary's
-own help/output for certification mode). This refactor changes none of it.
+own help/output for certification mode — "certification mode
+(single-config)" is the canonical name for the non-suite path throughout
+this feature's documents). This refactor changes none of it.
 
 ## Standing
 
