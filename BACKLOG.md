@@ -60,6 +60,90 @@ doctrine that a signature on a real candidate prompts a strict rerun
 (`--enforce sign-test`) before the result is quoted. When the tooling
 is specced, this constraint goes in its FRs on day one.
 
+### Refactoring targets — from the 2026-07-26 survey (added 2026-07-26)
+A three-way parallel survey (core engine / RL crate / client + py bindings)
+ranked refactors by benefit-per-risk, evidence verified line-by-line. Not
+features: each is behavior-preserving, and the verification bar when picked
+up is bit-identical output (determinism suite + byte-diffed eval reruns),
+which may stand in for the full spec-first flow at the owner's call.
+
+**Top three, in order:**
+
+1. **`crates/cloudkitty-rl/src/bin/kitty-eval.rs` — delete the duplication
+   with `suite.rs`.** The binary carries the `--brain`/`--artifact`
+   subject-resolution ladder *twice within itself* (~40 lines each, in
+   `run_suite` and `main`, error strings duplicated verbatim), and
+   re-implements three things the library owns: `human_report` mirrors the
+   private `suite::print_run_panel` line-for-line, the determinism
+   self-check re-implements `suite::self_check`, and `main`'s baseline+mode
+   orchestration copies the `score_standard` algorithm. The two report
+   paths are supposed to stay byte-identical — during 017 that was
+   verified by hand-diffing; today nothing structural prevents drift.
+   Fix shape: extract `resolve_subject(...)`, make the suite printers
+   `pub`, share one mode-loop/self-check helper (natural home:
+   `harness.rs`). Every future CLI-contract change becomes one edit site
+   instead of four. Lowest risk of the three — glue code, integration
+   tests, byte-diff verifiable.
+
+2. **`crates/cloudkitty-core/src/behavior/needs_driven.rs` (+
+   `selection.rs`) — make the need→resource mirror compiler-enforced.**
+   The `NeedKind` → relieving-resource mapping is encoded independently in
+   two exhaustive matches — `selection::distance_given` (what gets
+   *scored*) and `needs_driven::pursue` (what gets *walked to*) — plus
+   three repeated per-need adjacency blocks in `take_what_is_here`. The
+   comments admit the fragility ("Mirrors `pursue`'s sleep arm exactly";
+   "the mirror the 004 review demanded"): the compiler cannot catch drift
+   between them. Highest *correctness* payoff in the repo, because
+   `needs_driven` is the counterfactual anchor of the eval suite — silent
+   scoring-vs-walking divergence would skew every sign test downstream.
+   Fix shape: one method on `NeedKind` (the way `kitty.rs` centralizes
+   `Activity` mappings), making "chosen and walked can never disagree"
+   structural instead of comment-enforced.
+
+3. **`crates/cloudkitty-core/src/config.rs` — table-driven validation +
+   module split.** 1,818 lines; `ConfigError::invalid(...)` constructed
+   46×, including ~13 verbatim copies of the same 7-line "must be ≥ 1"
+   guard; `validate_behavior` is a 170-line catch-all actually validating
+   six unrelated sections. Fix shape: a `require_at_least`-style helper or
+   the table-loop pattern the file already uses in two places (new bounded
+   field = one table row), and a `config/defaults.rs` + `config/validate.rs`
+   split (the ~20 `default_*` fns and nine `validate_*` fns are two clean
+   clusters). Purely mechanical; user-facing error-message consistency
+   improves for free.
+
+**Runners-up (fold in opportunistically, don't open a sitting for them):**
+
+- `suite.rs` (1,101 production lines) splits cleanly along its four banner
+  seams (manifest / report types / scoring+verdict / render) — but it's
+  days old and stable; let it earn the churn. Item 1 overlaps it anyway.
+- `world.rs` (2,260 lines, ~49% tests) splits into activity-lifecycle /
+  pursuit / environment submodules — the test module already clusters by
+  the same themes. Pure navigability. Small bonus: the verbatim
+  `AbandonedChase` push duplicated in two `update_pursuit` arms.
+- `harness.rs` RosterMode fold — already owner-agreed for "the next
+  harness touch" (017 deferral): fold `subject` into `RosterMode` so
+  `FromConfig + Some(subject)` is unrepresentable (today a release-silent
+  `debug_assert`). Scope confirmed ~5 real edit sites across 3 files;
+  one care: `RosterMode` serializes into run JSON, so the wire shape is
+  the non-mechanical part.
+- `cloudkitty-py/src/lib.rs` — the agent-info schema is marshaled in two
+  places that must stay identical (`info_to_py` and
+  `VectorEnv::stack_infos`; the code comments warn about it). Single-source
+  via a shared field-descriptor table when the Python surface is next
+  touched. Smaller: `reshape+map_err` boilerplate ×3, gymnasium-or-dict
+  fallback ×2.
+- `action.rs` — `apply` is a ~153-line dispatcher with full arm bodies
+  inline; the wire/parsing layer (own test module already) splits cleanly
+  from apply/validate. The `Action`/`Activity` parallel-enum shotgun
+  surgery (~10 edit sites per new activity) is real but fully
+  compile-forced — navigability, not hazard.
+- Client, for a polish sitting: `cat.js` coat-pattern logic scattered
+  across five draw functions (new colorway = five edits → one descriptor
+  table); `anim.js:pushState` is ~129 lines doing six jobs (beats,
+  path-heat, element-diff all separable); `distressPatienceTicks` lives in
+  two hand-synced copies (`app.js` + `anim.js` — silent-divergence trap,
+  cheap fix); DPR-canvas setup duplicated across 5 sites.
+
 ### Dynamic element populations (added 2026-07-20 — ideate with the owner first)
 Environmental elements are effectively static: `ensure_minimums`
 (`spawn.rs`) tops every type back to its configured min on the very next
