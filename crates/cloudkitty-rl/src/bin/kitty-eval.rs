@@ -18,6 +18,7 @@ use std::sync::Arc;
 
 use cloudkitty_core::behavior::BehaviorRegistry;
 use cloudkitty_core::Config;
+use cloudkitty_rl::cli_support;
 use cloudkitty_rl::config::{load_configs_from_path, RlConfig};
 use cloudkitty_rl::harness::{pair_runs, run_many, run_one, EvalRequest, RosterMode, RunOutcome};
 use cloudkitty_rl::suite;
@@ -124,72 +125,41 @@ struct EvalOutput {
 }
 
 fn human_report(output: &EvalOutput) {
-    println!(
-        "== kitty-eval: {} ({} ticks/seed) ==",
-        output.subject, output.ticks
-    );
-    for run in &output.runs {
-        println!(
-            "seed {} [{:?}]: team welfare {:.4}, plain mean {:.4}, least-happy mean {:.1}, \
-             fallbacks {}",
-            run.seed,
-            run.roster,
-            run.aggregates.team_welfare,
-            run.aggregates.plain_mean,
-            run.aggregates.least_happy_mean,
-            run.fallback_count
-        );
-        for kitty in &run.report.kitties {
-            println!(
-                "  {:<10} mean {:>5.1}  low-share {:>5.2}%  longest-low {:>3}  floor {}",
-                kitty.name,
-                kitty.mean_happiness,
-                kitty.low_share * 100.0,
-                kitty.max_low_streak,
-                kitty.floor_touches
-            );
+    let stdout = std::io::stdout();
+    let w: &mut dyn std::io::Write = &mut stdout.lock();
+    (|| -> std::io::Result<()> {
+        writeln!(
+            w,
+            "== kitty-eval: {} ({} ticks/seed) ==",
+            output.subject, output.ticks
+        )?;
+        for run in &output.runs {
+            cli_support::print_run_panel(w, run, true)?;
         }
-        println!("  max distress age {}", run.report.max_distress_age);
-        let violations = run.report.violations();
-        if violations.is_empty() {
-            println!("  welfare bounds: PASS");
-        } else {
-            for violation in &violations {
-                println!("  BOUND VIOLATED: {violation}");
+        writeln!(w, "-- paired vs needs_driven baseline --")?;
+        cli_support::print_paired(w, &output.paired, "baseline", "")?;
+        // One aggregate per roster mode: an all-policy score and the mixed
+        // deployment reality are different claims and never blend (spec 014
+        // review).
+        for mode in [RosterMode::AllSubject, RosterMode::Mixed] {
+            let deltas: Vec<f64> = output
+                .paired
+                .iter()
+                .filter(|p| p.roster == mode)
+                .map(|p| p.delta)
+                .collect();
+            if !deltas.is_empty() {
+                let mean: f64 = deltas.iter().sum::<f64>() / deltas.len() as f64;
+                writeln!(
+                    w,
+                    "aggregate delta [{mode:?}] {mean:+.4} over {} seeds",
+                    deltas.len()
+                )?;
             }
         }
-        for fallback in &run.fallbacks {
-            println!(
-                "  FALLBACK: kitty {} took {} fallback decisions (first at ticks {:?})",
-                fallback.kitty_id, fallback.count, fallback.first_ticks
-            );
-        }
-    }
-    println!("-- paired vs needs_driven baseline --");
-    for pair in &output.paired {
-        println!(
-            "seed {} [{:?}]: subject {:.4} vs baseline {:.4} (delta {:+.4})",
-            pair.seed, pair.roster, pair.subject_welfare, pair.baseline_welfare, pair.delta
-        );
-    }
-    // One aggregate per roster mode: an all-policy score and the mixed
-    // deployment reality are different claims and never blend (spec 014
-    // review).
-    for mode in [RosterMode::AllSubject, RosterMode::Mixed] {
-        let deltas: Vec<f64> = output
-            .paired
-            .iter()
-            .filter(|p| p.roster == mode)
-            .map(|p| p.delta)
-            .collect();
-        if !deltas.is_empty() {
-            let mean: f64 = deltas.iter().sum::<f64>() / deltas.len() as f64;
-            println!(
-                "aggregate delta [{mode:?}] {mean:+.4} over {} seeds",
-                deltas.len()
-            );
-        }
-    }
+        Ok(())
+    })()
+    .expect("writing report to stdout");
 }
 
 /// The suite mode (spec 017): load, verify, score, report. Exit codes per

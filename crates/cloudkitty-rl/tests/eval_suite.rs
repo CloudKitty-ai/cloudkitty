@@ -744,3 +744,84 @@ fn an_artifact_named_candidate_does_not_panic_the_suite() {
         "a lawful suite outcome (0/2/4), got {code}; stderr: {stderr}"
     );
 }
+
+/// Spec 018 FR-009 share-guard: both CLI modes render a run through
+/// `cli_support::print_run_panel`, and the two modes' outputs differ by
+/// exactly the documented bounds-block option — nothing else.
+#[test]
+fn share_guard_panel_modes_differ_only_by_the_bounds_block() {
+    let core = Config::default();
+    let rl = cloudkitty_rl::config::RlConfig::default();
+    let registry = BehaviorRegistry::with_builtins();
+    let request = EvalRequest {
+        core: &core,
+        rl: &rl,
+        registry: &registry,
+        subject: Some("needs_driven"),
+        roster: RosterMode::AllSubject,
+        seed: 7,
+        ticks: 120,
+    };
+    let run = run_one(&request);
+
+    let mut suite_bytes = Vec::new();
+    cloudkitty_rl::cli_support::print_run_panel(&mut suite_bytes, &run, false).unwrap();
+    let mut cert_bytes = Vec::new();
+    cloudkitty_rl::cli_support::print_run_panel(&mut cert_bytes, &run, true).unwrap();
+    let suite_text = String::from_utf8(suite_bytes).unwrap();
+    let cert_text = String::from_utf8(cert_bytes).unwrap();
+
+    let suite_lines: Vec<&str> = suite_text.lines().collect();
+    let cert_lines: Vec<&str> = cert_text.lines().collect();
+    let distress = suite_lines
+        .iter()
+        .position(|l| l.starts_with("  max distress age"))
+        .expect("panel always renders the distress line");
+    // Identical up to and including the distress line...
+    assert_eq!(cert_lines[..=distress], suite_lines[..=distress]);
+    // ...then certification mode inserts only bounds lines...
+    let extra = cert_lines.len() - suite_lines.len();
+    assert!(extra >= 1, "bounds block must add at least one line");
+    for line in &cert_lines[distress + 1..distress + 1 + extra] {
+        assert!(
+            line.starts_with("  welfare bounds:") || line.starts_with("  BOUND VIOLATED:"),
+            "non-bounds line inside the divergence window: {line}"
+        );
+    }
+    // ...and the tails agree again byte-for-byte.
+    assert_eq!(cert_lines[distress + 1 + extra..], suite_lines[distress + 1..]);
+}
+
+/// Spec 018 FR-009 share-guard, paired block: the prefix parameter is the
+/// only divergence between the suite's indented lines and the
+/// certification mode's unindented ones.
+#[test]
+fn share_guard_paired_prefix_is_the_only_divergence() {
+    let core = Config::default();
+    let rl = cloudkitty_rl::config::RlConfig::default();
+    let registry = BehaviorRegistry::with_builtins();
+    let request = EvalRequest {
+        core: &core,
+        rl: &rl,
+        registry: &registry,
+        subject: Some("needs_driven"),
+        roster: RosterMode::AllSubject,
+        seed: 7,
+        ticks: 120,
+    };
+    let runs = vec![run_one(&request)];
+    let baseline = vec![run_one(&request.baseline())];
+    let paired = cloudkitty_rl::harness::pair_runs(&runs, &baseline);
+    assert!(!paired.is_empty());
+
+    let mut plain = Vec::new();
+    cloudkitty_rl::cli_support::print_paired(&mut plain, &paired, "baseline", "").unwrap();
+    let mut indented = Vec::new();
+    cloudkitty_rl::cli_support::print_paired(&mut indented, &paired, "baseline", "  ").unwrap();
+    let plain = String::from_utf8(plain).unwrap();
+    let indented = String::from_utf8(indented).unwrap();
+    for (p, i) in plain.lines().zip(indented.lines()) {
+        assert_eq!(format!("  {p}"), i);
+        assert!(p.starts_with("seed "));
+    }
+}

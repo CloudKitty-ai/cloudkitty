@@ -1419,4 +1419,48 @@ sha256 = "{sha}"
         assert_eq!(SignTestMode::Gate.tightened(false), SignTestMode::Gate);
         assert_eq!(SignTestMode::Gate.tightened(true), SignTestMode::Gate);
     }
+
+    /// Spec 018 FR-009 share-guard, suite side: the suite report embeds the
+    /// shared renderer's suite-variant output verbatim — the report cannot
+    /// describe a run differently than `cli_support::print_run_panel` does.
+    #[test]
+    fn share_guard_suite_report_embeds_the_shared_panel_verbatim() {
+        let core = Config::default();
+        let rl = crate::config::RlConfig::default();
+        let registry = BehaviorRegistry::with_builtins();
+        let request = EvalRequest {
+            core: &core,
+            rl: &rl,
+            registry: &registry,
+            subject: Some("needs_driven"),
+            roster: RosterMode::AllSubject,
+            seed: 7,
+            ticks: 120,
+        };
+        let run = run_one(&request);
+
+        let mut panel = Vec::new();
+        crate::cli_support::print_run_panel(&mut panel, &run, false).unwrap();
+        let panel = String::from_utf8(panel).unwrap();
+
+        let report = SuiteReport {
+            suite_version: "share-guard".to_string(),
+            subject: "needs_driven".to_string(),
+            exams: vec![ExamOutcome::Standard(StandardOutcome {
+                name: "fixture".to_string(),
+                config_sha256: "0".repeat(64),
+                runs: vec![run],
+                baseline_runs: Vec::new(),
+                paired: Vec::new(),
+                reference_bounds: ReferenceBounds::current(),
+            })],
+        };
+        let mut rendered = Vec::new();
+        human_report_to(&mut rendered, &report).unwrap();
+        let rendered = String::from_utf8(rendered).unwrap();
+        assert!(
+            rendered.contains(&panel),
+            "suite report does not embed the shared panel verbatim"
+        );
+    }
 }
