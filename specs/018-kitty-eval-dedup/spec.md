@@ -24,6 +24,24 @@ that quietly means something different in one mode than the other. This
 refactor removes the copies so agreement is guaranteed by construction, not
 by vigilance.
 
+## Clarifications
+
+### Session 2026-07-26
+
+- Q: Should subject resolution move into the library now, anticipating a
+  second CLI consumer? → A: Start minimal — it stays binary-local; promote
+  into the library later if a second consumer materializes.
+- Q: Scattered `pub` promotions, or one gathered support module? → A:
+  Gather every promoted item into one documented CLI-support module
+  (internal plumbing, not a stability promise); later promotions join it.
+- Q: Is the byte-comparison a one-time recorded procedure, permanent
+  golden files, or a structural share-guard test? → A: One-time recorded
+  procedure plus a permanent structural share-guard test (A + C). Golden
+  files (B) are deliberately deferred — reconsider only once the report
+  reaches a very stable state.
+- Q: Does anything non-human parse the human-readable report? → A: No,
+  and none is planned; the machine interface is the JSON report.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Run reporting is single-sourced (Priority: P1)
@@ -171,7 +189,12 @@ still exiting with the determinism exit code and unchanged message.
   they are.
 - **FR-006**: The refactor MUST NOT add new user-facing capability: no new
   flags, no new report content, no new configuration. Any newly shared
-  internal surface is limited to what single-sourcing requires.
+  internal surface is limited to what single-sourcing requires; every item
+  promoted for the CLI's benefit MUST be gathered into one documented
+  CLI-support module (marked as internal plumbing, not a stability
+  promise), and subject resolution MUST remain local to the CLI (promoted
+  into the library only if a second consumer materializes — out of scope
+  here).
 - **FR-007**: All existing automated tests MUST pass without modification
   to their assertions; no test may be weakened or deleted to accommodate
   the refactor.
@@ -179,7 +202,13 @@ still exiting with the determinism exit code and unchanged message.
   outputs (human and JSON) between pre- and post-refactor builds, for at
   least one full suite evaluation and one single-config certification run
   with identical inputs, and the comparison procedure and result MUST be
-  recorded in the feature's quickstart validation document.
+  recorded in the feature's quickstart validation document. This is a
+  one-time procedure; committed golden-output files are deliberately out
+  of scope (deferred until the report format reaches a very stable state).
+- **FR-009**: A permanent structural share-guard test MUST land with the
+  refactor: it asserts both CLI modes render the same run record through
+  the shared path to identical output — locking the modes-agree invariant
+  without freezing report bytes against future intentional change.
 
 ### Key Entities
 
@@ -230,6 +259,7 @@ still exiting with the determinism exit code and unchanged message.
   here; if the orchestration sharing touches the same seams, it must not
   change the serialized shapes that refactor is concerned with.
 - The behavior-preservation bar (byte-identical outputs plus unchanged
-  tests) stands in for new test development; the only new automated
-  coverage this feature may add is a guard that both modes share the
-  single-sourced paths, if one is cheap to express.
+  tests) stands in for broad new test development; the one required piece
+  of new automated coverage is the FR-009 share-guard test. The human
+  report has no non-human consumers (clarified 2026-07-26), so its bytes
+  are verified for this refactor but are not promised stable beyond it.
