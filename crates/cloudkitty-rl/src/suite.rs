@@ -493,7 +493,7 @@ pub enum SuiteRunError {
     Determinism { location: String, seed: u64 },
 }
 
-fn self_check(
+pub(crate) fn self_check(
     request: &EvalRequest<'_>,
     first_outcome: &RunOutcome,
     location: String,
@@ -525,40 +525,20 @@ fn score_standard(
         seed: 0,
         ticks: rl.eval.ticks,
     };
-    // The baseline is mode-independent, computed once (spec 014 review).
-    let baseline_runs = run_many(&base.baseline(), seeds);
     let modes: &[RosterMode] = if subject.is_policy {
         &[RosterMode::AllSubject, RosterMode::Mixed]
     } else {
         &[RosterMode::AllSubject]
     };
-    let mut runs = Vec::new();
-    let mut paired = Vec::new();
-    for mode in modes {
-        let request = EvalRequest {
-            roster: *mode,
-            ..base.clone()
-        };
-        let subject_runs = run_many(&request, seeds);
-        if let Some(first) = seeds.first() {
-            self_check(
-                &EvalRequest {
-                    seed: *first,
-                    ..request.clone()
-                },
-                &subject_runs[0],
-                format!("exam {name} ({mode:?})"),
-            )?;
-        }
-        paired.extend(pair_runs(&subject_runs, &baseline_runs));
-        runs.extend(subject_runs);
-    }
+    let sweep = crate::cli_support::run_subject_over_modes(&base, modes, seeds, |mode| {
+        format!("exam {name} ({mode:?})")
+    })?;
     Ok(StandardOutcome {
         name: name.to_string(),
         config_sha256: sha256.to_string(),
-        runs,
-        baseline_runs,
-        paired,
+        runs: sweep.runs,
+        baseline_runs: sweep.baseline_runs,
+        paired: sweep.paired,
         reference_bounds: ReferenceBounds::current(),
     })
 }
@@ -916,106 +896,80 @@ pub fn score_suite(
 // Human report (contracts/suite-cli.md; research.md R11)
 // ---------------------------------------------------------------------------
 
-fn print_run_panel(run: &RunOutcome) {
-    println!(
-        "seed {} [{:?}]: team welfare {:.4}, plain mean {:.4}, least-happy mean {:.1}, fallbacks {}",
-        run.seed,
-        run.roster,
-        run.aggregates.team_welfare,
-        run.aggregates.plain_mean,
-        run.aggregates.least_happy_mean,
-        run.fallback_count
-    );
-    for kitty in &run.report.kitties {
-        println!(
-            "  {:<10} mean {:>5.1}  low-share {:>5.2}%  longest-low {:>3}  floor {}",
-            kitty.name,
-            kitty.mean_happiness,
-            kitty.low_share * 100.0,
-            kitty.max_low_streak,
-            kitty.floor_touches
-        );
-    }
-    println!("  max distress age {}", run.report.max_distress_age);
-    // Deliberately no "welfare bounds" verdict line: those bounds are the
-    // default world's, and this is not the default world (FR-003, R11).
-    for fallback in &run.fallbacks {
-        println!(
-            "  FALLBACK: kitty {} took {} fallback decisions (first at ticks {:?})",
-            fallback.kitty_id, fallback.count, fallback.first_ticks
-        );
-    }
-}
-
-fn print_paired(paired: &[PairedDelta], baseline_label: &str) {
-    for pair in paired {
-        println!(
-            "  seed {} [{:?}]: subject {:.4} vs {baseline_label} {:.4} (delta {:+.4})",
-            pair.seed, pair.roster, pair.subject_welfare, pair.baseline_welfare, pair.delta
-        );
-    }
-}
-
 /// Prints the whole suite report, exam by exam, in manifest order.
 pub fn human_report(report: &SuiteReport) {
-    println!(
+    let stdout = std::io::stdout();
+    human_report_to(&mut stdout.lock(), report).expect("writing suite report to stdout");
+}
+
+/// Writer-based body of [`human_report`], capturable by the share-guard
+/// test (spec 018 FR-009). Per-run and paired rendering flow through
+/// `cli_support` — the single implementation both CLI modes share.
+fn human_report_to(w: &mut dyn std::io::Write, report: &SuiteReport) -> std::io::Result<()> {
+    writeln!(
+        w,
         "== kitty-eval suite {}: subject {} ==",
         report.suite_version, report.subject
-    );
+    )?;
     for exam in &report.exams {
         match exam {
             ExamOutcome::Standard(exam) => {
-                println!(
+                writeln!(
+                    w,
                     "\n-- exam {} (sha256 {}) --",
                     exam.name,
                     &exam.config_sha256[..12.min(exam.config_sha256.len())]
-                );
+                )?;
                 for run in &exam.runs {
-                    print_run_panel(run);
+                    crate::cli_support::print_run_panel(w, run, false)?;
                 }
-                println!("-- paired vs needs_driven baseline --");
-                print_paired(&exam.paired, "baseline");
+                writeln!(w, "-- paired vs needs_driven baseline --")?;
+                crate::cli_support::print_paired(w, &exam.paired, "baseline", "  ")?;
             }
             ExamOutcome::MixedRoster(exam) => {
-                println!("\n-- exam {} --", exam.name);
+                writeln!(w, "\n-- exam {} --", exam.name)?;
                 for cell in &exam.cells {
-                    println!(
+                    writeln!(
+                        w,
                         "\ncell {} (sha256 {}):",
                         cell.name,
                         &cell.config_sha256[..12.min(cell.config_sha256.len())]
-                    );
+                    )?;
                     for run in &cell.runs {
-                        print_run_panel(run);
+                        crate::cli_support::print_run_panel(w, run, false)?;
                     }
-                    print_paired(&cell.paired, "all-scripted");
-                    println!("  guest-welfare differentials (scripted kitties):");
+                    crate::cli_support::print_paired(w, &cell.paired, "all-scripted", "  ")?;
+                    writeln!(w, "  guest-welfare differentials (scripted kitties):")?;
                     for d in &cell.differentials {
-                        println!(
+                        writeln!(
+                            w,
                             "    {:<10} cell {:>5.1}  all-scripted {:>5.1}  differential {:+.2}",
                             d.name, d.cell_mean, d.baseline_mean, d.differential
-                        );
+                        )?;
                     }
-                    println!(
+                    writeln!(
+                        w,
                         "  least-happy out-group seeds: {}/{} (all-scripted baseline {}/{})",
                         cell.least_happy_out_group_seeds,
                         cell.runs.len(),
                         cell.baseline_least_happy_out_group_seeds,
                         cell.baseline_runs.len()
-                    );
-                    println!("  duet-participation shares:");
+                    )?;
+                    writeln!(w, "  duet-participation shares:")?;
                     for share in &cell.duet_shares {
-                        println!("    {:<10} {:.3}", share.name, share.share);
+                        writeln!(w, "    {:<10} {:.3}", share.name, share.share)?;
                     }
                 }
-                println!("\nverdict:");
-                println!(
+                writeln!(w, "\nverdict:")?;
+                writeln!(
+                    w,
                     "  sign-test mode: {} (FR-015; a signature under warn \
                      prompts a strict rerun with --enforce sign-test)",
                     match exam.verdict.sign_test_mode {
                         SignTestMode::Warn => "warn",
                         SignTestMode::Gate => "gate",
                     }
-                );
+                )?;
                 for check in &exam.verdict.checks {
                     // A tripped sign-test check under warn mode is forgiven
                     // by the verdict but must be unmissable in the report.
@@ -1030,10 +984,11 @@ pub fn human_report(report: &SuiteReport) {
                         .baseline
                         .map(|b| format!(", baseline {b:+.4}"))
                         .unwrap_or_default();
-                    println!(
+                    writeln!(
+                        w,
                         "  [{label}] {}[{}]: value {:+.4}, bound {:+.4}{baseline}",
                         check.check, check.cell, check.value, check.bound
-                    );
+                    )?;
                 }
                 for signature in &exam.verdict.exploitation_signatures {
                     // Same trigger, two stories: a victim under a healthy
@@ -1051,22 +1006,25 @@ pub fn human_report(report: &SuiteReport) {
                             "cell aggregate also failing: general harm, not masked exploitation",
                         )
                     };
-                    println!(
+                    writeln!(
+                        w,
                         "  {label} [{}]: {} differential {:+.2}, negative in {} \
                          paired seeds — {tail}",
                         signature.cell,
                         signature.kitty,
                         signature.differential,
                         signature.negative_seeds
-                    );
+                    )?;
                 }
-                println!(
+                writeln!(
+                    w,
                     "  mixed-roster verdict: {}",
                     if exam.verdict.passed { "PASS" } else { "FAIL" }
-                );
+                )?;
             }
         }
     }
+    Ok(())
 }
 
 /// Sum of fallback-taken decisions across every run in the report,
@@ -1440,5 +1398,49 @@ sha256 = "{sha}"
         assert_eq!(SignTestMode::Warn.tightened(true), SignTestMode::Gate);
         assert_eq!(SignTestMode::Gate.tightened(false), SignTestMode::Gate);
         assert_eq!(SignTestMode::Gate.tightened(true), SignTestMode::Gate);
+    }
+
+    /// Spec 018 FR-009 share-guard, suite side: the suite report embeds the
+    /// shared renderer's suite-variant output verbatim — the report cannot
+    /// describe a run differently than `cli_support::print_run_panel` does.
+    #[test]
+    fn share_guard_suite_report_embeds_the_shared_panel_verbatim() {
+        let core = Config::default();
+        let rl = crate::config::RlConfig::default();
+        let registry = BehaviorRegistry::with_builtins();
+        let request = EvalRequest {
+            core: &core,
+            rl: &rl,
+            registry: &registry,
+            subject: Some("needs_driven"),
+            roster: RosterMode::AllSubject,
+            seed: 7,
+            ticks: 120,
+        };
+        let run = run_one(&request);
+
+        let mut panel = Vec::new();
+        crate::cli_support::print_run_panel(&mut panel, &run, false).unwrap();
+        let panel = String::from_utf8(panel).unwrap();
+
+        let report = SuiteReport {
+            suite_version: "share-guard".to_string(),
+            subject: "needs_driven".to_string(),
+            exams: vec![ExamOutcome::Standard(StandardOutcome {
+                name: "fixture".to_string(),
+                config_sha256: "0".repeat(64),
+                runs: vec![run],
+                baseline_runs: Vec::new(),
+                paired: Vec::new(),
+                reference_bounds: ReferenceBounds::current(),
+            })],
+        };
+        let mut rendered = Vec::new();
+        human_report_to(&mut rendered, &report).unwrap();
+        let rendered = String::from_utf8(rendered).unwrap();
+        assert!(
+            rendered.contains(&panel),
+            "suite report does not embed the shared panel verbatim"
+        );
     }
 }

@@ -10,6 +10,7 @@
 //! Python reimplementation of any of it is expressly forbidden.
 
 pub mod behavior;
+pub mod cli_support;
 pub mod codec;
 pub mod config;
 pub mod episode;

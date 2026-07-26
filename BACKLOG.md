@@ -69,21 +69,13 @@ which may stand in for the full spec-first flow at the owner's call.
 
 **Top three, in order:**
 
-1. **`crates/cloudkitty-rl/src/bin/kitty-eval.rs` — delete the duplication
-   with `suite.rs`.** The binary carries the `--brain`/`--artifact`
-   subject-resolution ladder *twice within itself* (~40 lines each, in
-   `run_suite` and `main`, error strings duplicated verbatim), and
-   re-implements three things the library owns: `human_report` mirrors the
-   private `suite::print_run_panel` line-for-line, the determinism
-   self-check re-implements `suite::self_check`, and `main`'s baseline+mode
-   orchestration copies the `score_standard` algorithm. The two report
-   paths are supposed to stay byte-identical — during 017 that was
-   verified by hand-diffing; today nothing structural prevents drift.
-   Fix shape: extract `resolve_subject(...)`, make the suite printers
-   `pub`, share one mode-loop/self-check helper (natural home:
-   `harness.rs`). Every future CLI-contract change becomes one edit site
-   instead of four. Lowest risk of the three — glue code, integration
-   tests, byte-diff verifiable.
+1. ~~**`kitty-eval.rs` — delete the duplication with `suite.rs`.**~~
+   **SHIPPED as spec 018** (2026-07-26): `cli_support` module now houses
+   the shared renderers (bounds/prefix options) and the mode-sweep
+   orchestration; one `resolve_subject` ladder, one JSON writer, one
+   FR-013 gate in the binary; share-guard tests lock the modes-agree
+   invariant. Verified byte-identical against the v2.3 baseline in both
+   modes, human and JSON, plus seven error paths.
 
 2. **`crates/cloudkitty-core/src/behavior/needs_driven.rs` (+
    `selection.rs`) — make the need→resource mirror compiler-enforced.**
