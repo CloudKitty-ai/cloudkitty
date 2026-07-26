@@ -162,6 +162,101 @@ fn human_report(output: &EvalOutput) {
     .expect("writing report to stdout");
 }
 
+/// Resolves `--brain`/`--artifact` into a registered subject, returning
+/// `(name, is_policy)`. One ladder for both CLI modes (spec 018 FR-001);
+/// `bind_candidate` carries the suite mode's extra behavior — registering
+/// the subject under the reserved candidate seat name (spec 017 FR-011)
+/// with the collision guard. The caller picks the `RlConfig` used for
+/// artifact validation: certification mode passes the loaded config, the
+/// suite passes defaults (per-exam RlConfigs govern scoring, not loading —
+/// the compiled schema constants are global).
+fn resolve_subject(
+    registry: &mut BehaviorRegistry,
+    args: &Args,
+    rl: &RlConfig,
+    bind_candidate: bool,
+) -> Result<(String, bool), ExitCode> {
+    match (&args.brain, &args.artifact) {
+        (Some(_), Some(_)) | (None, None) => {
+            eprintln!("kitty-eval: pass exactly one of --brain or --artifact");
+            Err(ExitCode::from(1))
+        }
+        (Some(brain), None) => {
+            let Some(behavior) = registry.get(brain) else {
+                let mut names = registry.names();
+                names.sort();
+                eprintln!(
+                    "kitty-eval: unknown brain '{brain}'; must be one of: {}",
+                    names.join(", ")
+                );
+                return Err(ExitCode::from(1));
+            };
+            if bind_candidate {
+                // Alias the built-in as the candidate: the exam machinery
+                // never requires a trained artifact (spec 017 SC-007,
+                // research.md R4).
+                registry.register(suite::CANDIDATE_BEHAVIOR, behavior);
+            }
+            Ok((brain.clone(), false))
+        }
+        (None, Some(path)) => {
+            match cloudkitty_rl::behavior::PolicyBehavior::from_artifact_path(path, rl) {
+                Ok(behavior) => {
+                    let behavior: Arc<_> = Arc::new(behavior);
+                    let name = format!("policy:{path}");
+                    if bind_candidate {
+                        // An artifact literally named `candidate` makes
+                        // `policy:{path}` collide with the alias; one
+                        // registration suffices — the registry panics on
+                        // duplicates by design (spec 017 review finding 1).
+                        if name != suite::CANDIDATE_BEHAVIOR {
+                            registry.register(name.clone(), behavior.clone());
+                        }
+                        registry.register(suite::CANDIDATE_BEHAVIOR, behavior);
+                    } else {
+                        registry.register(name.clone(), behavior);
+                    }
+                    Ok((name, true))
+                }
+                Err(e) => {
+                    eprintln!("kitty-eval: artifact validation failed: {e}");
+                    Err(ExitCode::from(1))
+                }
+            }
+        }
+    }
+}
+
+/// Writes the JSON report (spec 018 FR-005: message preserved verbatim).
+fn write_json<T: Serialize>(path: &str, value: &T) -> Result<(), ExitCode> {
+    match serde_json::to_string_pretty(value) {
+        Ok(json) => {
+            if let Err(e) = std::fs::write(path, json) {
+                eprintln!("kitty-eval: cannot write {path}: {e}");
+                return Err(ExitCode::from(1));
+            }
+            Ok(())
+        }
+        Err(e) => {
+            eprintln!("kitty-eval: {e}");
+            Err(ExitCode::from(1))
+        }
+    }
+}
+
+/// FR-013 gate, both modes: a policy run that ever took a fallback fails
+/// rather than reporting the fallback's welfare as the policy's.
+fn fallback_gate(is_policy: bool, fallbacks: u64) -> Option<ExitCode> {
+    if is_policy && fallbacks > 0 {
+        eprintln!(
+            "kitty-eval: {fallbacks} fallback decisions during policy scoring — \
+             the run fails rather than reporting the fallback's welfare as the policy's (FR-013)"
+        );
+        return Some(ExitCode::from(2));
+    }
+    None
+}
+
 /// The suite mode (spec 017): load, verify, score, report. Exit codes per
 /// contracts/suite-cli.md — 1 usage/validation, 2 fallback-taken, 3
 /// determinism, 4 mixed-roster verdict failure. Mechanical failures
@@ -173,52 +268,11 @@ fn human_report(output: &EvalOutput) {
 /// finished report, 4 last.
 fn run_suite(dir: &str, args: &Args) -> ExitCode {
     let mut registry = BehaviorRegistry::with_builtins();
-    let (subject_name, is_policy) = match (&args.brain, &args.artifact) {
-        (Some(_), Some(_)) | (None, None) => {
-            eprintln!("kitty-eval: pass exactly one of --brain or --artifact");
-            return ExitCode::from(1);
-        }
-        (Some(brain), None) => {
-            // Alias the built-in as the candidate: the exam machinery never
-            // requires a trained artifact (spec 017 SC-007, research.md R4).
-            let Some(behavior) = registry.get(brain) else {
-                let mut names = registry.names();
-                names.sort();
-                eprintln!(
-                    "kitty-eval: unknown brain '{brain}'; must be one of: {}",
-                    names.join(", ")
-                );
-                return ExitCode::from(1);
-            };
-            registry.register(suite::CANDIDATE_BEHAVIOR, behavior);
-            (brain.clone(), false)
-        }
-        (None, Some(path)) => {
-            // The artifact needs an RlConfig for schema validation; the
-            // compiled schema constants are global, so defaults serve —
-            // per-exam RlConfigs govern scoring, not loading.
-            let rl = RlConfig::default();
-            match cloudkitty_rl::behavior::PolicyBehavior::from_artifact_path(path, &rl) {
-                Ok(behavior) => {
-                    let behavior: Arc<_> = Arc::new(behavior);
-                    let name = format!("policy:{path}");
-                    // An artifact literally named `candidate` makes
-                    // `policy:{path}` collide with the alias; one
-                    // registration suffices — the registry panics on
-                    // duplicates by design (review finding 1).
-                    if name != suite::CANDIDATE_BEHAVIOR {
-                        registry.register(name.clone(), behavior.clone());
-                    }
-                    registry.register(suite::CANDIDATE_BEHAVIOR, behavior);
-                    (name, true)
-                }
-                Err(e) => {
-                    eprintln!("kitty-eval: artifact validation failed: {e}");
-                    return ExitCode::from(1);
-                }
-            }
-        }
-    };
+    let (subject_name, is_policy) =
+        match resolve_subject(&mut registry, args, &RlConfig::default(), true) {
+            Ok(subject) => subject,
+            Err(code) => return code,
+        };
 
     let loaded = match suite::load_suite(std::path::Path::new(dir)) {
         Ok(loaded) => loaded,
@@ -242,27 +296,13 @@ fn run_suite(dir: &str, args: &Args) -> ExitCode {
 
     suite::human_report(&report);
     if let Some(path) = &args.json {
-        match serde_json::to_string_pretty(&report) {
-            Ok(json) => {
-                if let Err(e) = std::fs::write(path, json) {
-                    eprintln!("kitty-eval: cannot write {path}: {e}");
-                    return ExitCode::from(1);
-                }
-            }
-            Err(e) => {
-                eprintln!("kitty-eval: {e}");
-                return ExitCode::from(1);
-            }
+        if let Err(code) = write_json(path, &report) {
+            return code;
         }
     }
 
-    let fallbacks = suite::total_fallbacks(&report);
-    if is_policy && fallbacks > 0 {
-        eprintln!(
-            "kitty-eval: {fallbacks} fallback decisions during policy scoring — \
-             the run fails rather than reporting the fallback's welfare as the policy's (FR-013)"
-        );
-        return ExitCode::from(2);
+    if let Some(code) = fallback_gate(is_policy, suite::total_fallbacks(&report)) {
+        return code;
     }
     if suite::verdict_failed(&report) {
         eprintln!(
@@ -297,43 +337,16 @@ fn main() -> ExitCode {
         },
         None => (Config::default(), RlConfig::default()),
     };
-    let seeds = args.seeds.unwrap_or_else(|| rl.eval.seeds.clone());
-    let ticks = args.ticks.unwrap_or(rl.eval.ticks);
     let mut registry = BehaviorRegistry::with_builtins();
 
     // Resolve the subject: a built-in name, or a policy artifact loaded
     // through the same validation as server startup (US4).
-    let (subject_name, is_policy) = match (&args.brain, &args.artifact) {
-        (Some(_), Some(_)) | (None, None) => {
-            eprintln!("kitty-eval: pass exactly one of --brain or --artifact");
-            return ExitCode::from(1);
-        }
-        (Some(brain), None) => {
-            if registry.get(brain).is_none() {
-                let mut names = registry.names();
-                names.sort();
-                eprintln!(
-                    "kitty-eval: unknown brain '{brain}'; must be one of: {}",
-                    names.join(", ")
-                );
-                return ExitCode::from(1);
-            }
-            (brain.clone(), false)
-        }
-        (None, Some(path)) => {
-            match cloudkitty_rl::behavior::PolicyBehavior::from_artifact_path(path, &rl) {
-                Ok(behavior) => {
-                    let name = format!("policy:{path}");
-                    registry.register(name.clone(), Arc::new(behavior));
-                    (name, true)
-                }
-                Err(e) => {
-                    eprintln!("kitty-eval: artifact validation failed: {e}");
-                    return ExitCode::from(1);
-                }
-            }
-        }
+    let (subject_name, is_policy) = match resolve_subject(&mut registry, &args, &rl, false) {
+        Ok(subject) => subject,
+        Err(code) => return code,
     };
+    let seeds = args.seeds.unwrap_or_else(|| rl.eval.seeds.clone());
+    let ticks = args.ticks.unwrap_or(rl.eval.ticks);
 
     // Policy scoring runs both roster modes by default (FR-013); built-in
     // scoring defaults to all-subject.
@@ -409,27 +422,14 @@ fn main() -> ExitCode {
     };
     human_report(&output);
     if let Some(path) = &args.json {
-        match serde_json::to_string_pretty(&output) {
-            Ok(json) => {
-                if let Err(e) = std::fs::write(path, json) {
-                    eprintln!("kitty-eval: cannot write {path}: {e}");
-                    return ExitCode::from(1);
-                }
-            }
-            Err(e) => {
-                eprintln!("kitty-eval: {e}");
-                return ExitCode::from(1);
-            }
+        if let Err(code) = write_json(path, &output) {
+            return code;
         }
     }
 
     let total_fallbacks: u64 = output.runs.iter().map(|r| r.fallback_count).sum();
-    if is_policy && total_fallbacks > 0 {
-        eprintln!(
-            "kitty-eval: {total_fallbacks} fallback decisions during policy scoring — \
-             the run fails rather than reporting the fallback's welfare as the policy's (FR-013)"
-        );
-        return ExitCode::from(2);
+    if let Some(code) = fallback_gate(is_policy, total_fallbacks) {
+        return code;
     }
     ExitCode::SUCCESS
 }
