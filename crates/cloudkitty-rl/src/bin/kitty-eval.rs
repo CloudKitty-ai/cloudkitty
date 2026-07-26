@@ -20,7 +20,7 @@ use cloudkitty_core::behavior::BehaviorRegistry;
 use cloudkitty_core::Config;
 use cloudkitty_rl::cli_support;
 use cloudkitty_rl::config::{load_configs_from_path, RlConfig};
-use cloudkitty_rl::harness::{pair_runs, run_many, run_one, EvalRequest, RosterMode, RunOutcome};
+use cloudkitty_rl::harness::{EvalRequest, RosterMode, RunOutcome};
 use cloudkitty_rl::suite;
 use serde::Serialize;
 
@@ -361,64 +361,36 @@ fn main() -> ExitCode {
         }
     };
 
-    // The baseline is mode-independent (always the all-needs_driven
-    // roster): computed once over the seed set and paired against every
-    // mode's subject runs (spec 014 review: no duplicated simulation, no
-    // duplicate JSON entries).
-    let baseline_runs = run_many(
-        &EvalRequest {
-            core: &core,
-            rl: &rl,
-            registry: &registry,
-            subject: Some(&subject_name),
-            roster: RosterMode::AllSubject,
-            seed: 0,
-            ticks,
-        }
-        .baseline(),
-        &seeds,
-    );
-    let mut runs = Vec::new();
-    let mut paired = Vec::new();
-    for mode in &modes {
-        let request = EvalRequest {
-            core: &core,
-            rl: &rl,
-            registry: &registry,
-            subject: Some(&subject_name),
-            roster: *mode,
-            seed: 0,
-            ticks,
-        };
-        let subject_runs = run_many(&request, &seeds);
-        // Determinism self-check, per roster mode: mixed dispatch is a
-        // different code path and deserves its own re-run (spec 014 second
-        // review) — the first seed, repeated, must agree with itself
-        // exactly.
-        if let Some(first) = seeds.first() {
-            let again = run_one(&EvalRequest {
-                seed: *first,
-                ..request.clone()
-            });
-            if again != subject_runs[0] {
-                eprintln!(
-                    "kitty-eval: determinism self-check failed on seed {first} ({:?})",
-                    mode
-                );
+    // The scoring sequence — baseline once, per-mode runs, first-seed
+    // determinism self-check, pairing — is the library's single
+    // implementation (spec 018 FR-004), shared with the suite's standard
+    // exams.
+    let base = EvalRequest {
+        core: &core,
+        rl: &rl,
+        registry: &registry,
+        subject: Some(&subject_name),
+        roster: RosterMode::AllSubject,
+        seed: 0,
+        ticks,
+    };
+    let sweep =
+        match cli_support::run_subject_over_modes(&base, &modes, &seeds, |mode| format!("{mode:?}"))
+        {
+            Ok(sweep) => sweep,
+            Err(suite::SuiteRunError::Determinism { location, seed }) => {
+                eprintln!("kitty-eval: determinism self-check failed on seed {seed} ({location})");
                 return ExitCode::from(3);
             }
-        }
-        paired.extend(pair_runs(&subject_runs, &baseline_runs));
-        runs.extend(subject_runs);
-    }
+        };
 
     let output = EvalOutput {
         subject: subject_name,
         ticks,
         seeds,
-        runs,
-        baseline_runs,
-        paired,
+        runs: sweep.runs,
+        baseline_runs: sweep.baseline_runs,
+        paired: sweep.paired,
     };
     human_report(&output);
     if let Some(path) = &args.json {

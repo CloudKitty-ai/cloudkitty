@@ -10,7 +10,62 @@
 
 use std::io::{self, Write};
 
-use crate::harness::{PairedDelta, RunOutcome};
+use crate::harness::{pair_runs, run_many, EvalRequest, PairedDelta, RosterMode, RunOutcome};
+use crate::suite::SuiteRunError;
+
+/// The result of sweeping one subject across roster modes: the
+/// mode-independent baseline, every mode's runs in mode order, and the
+/// paired deltas against the baseline.
+pub struct ModeSweep {
+    pub baseline_runs: Vec<RunOutcome>,
+    pub runs: Vec<RunOutcome>,
+    pub paired: Vec<PairedDelta>,
+}
+
+/// The baseline-once / per-mode / first-seed-self-checked / paired scoring
+/// sequence — the one implementation (spec 018 FR-004) behind both the
+/// suite's standard exams and certification mode (single-config).
+/// `location` names the failing context for a determinism error in each
+/// caller's own words.
+pub fn run_subject_over_modes(
+    base: &EvalRequest<'_>,
+    modes: &[RosterMode],
+    seeds: &[u64],
+    location: impl Fn(RosterMode) -> String,
+) -> Result<ModeSweep, SuiteRunError> {
+    // The baseline is mode-independent, computed once (spec 014 review).
+    let baseline_runs = run_many(&base.baseline(), seeds);
+    let mut runs = Vec::new();
+    let mut paired = Vec::new();
+    for mode in modes {
+        let request = EvalRequest {
+            roster: *mode,
+            ..base.clone()
+        };
+        let subject_runs = run_many(&request, seeds);
+        // Determinism self-check, per roster mode: mixed dispatch is a
+        // different code path and deserves its own re-run (spec 014 second
+        // review) — the first seed, repeated, must agree with itself
+        // exactly.
+        if let Some(first) = seeds.first() {
+            crate::suite::self_check(
+                &EvalRequest {
+                    seed: *first,
+                    ..request.clone()
+                },
+                &subject_runs[0],
+                location(*mode),
+            )?;
+        }
+        paired.extend(pair_runs(&subject_runs, &baseline_runs));
+        runs.extend(subject_runs);
+    }
+    Ok(ModeSweep {
+        baseline_runs,
+        runs,
+        paired,
+    })
+}
 
 /// One run's panel: header, per-kitty welfare lines, max distress age,
 /// optionally the default-world welfare-bounds verdict, fallback lines.

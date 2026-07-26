@@ -493,7 +493,7 @@ pub enum SuiteRunError {
     Determinism { location: String, seed: u64 },
 }
 
-fn self_check(
+pub(crate) fn self_check(
     request: &EvalRequest<'_>,
     first_outcome: &RunOutcome,
     location: String,
@@ -525,40 +525,20 @@ fn score_standard(
         seed: 0,
         ticks: rl.eval.ticks,
     };
-    // The baseline is mode-independent, computed once (spec 014 review).
-    let baseline_runs = run_many(&base.baseline(), seeds);
     let modes: &[RosterMode] = if subject.is_policy {
         &[RosterMode::AllSubject, RosterMode::Mixed]
     } else {
         &[RosterMode::AllSubject]
     };
-    let mut runs = Vec::new();
-    let mut paired = Vec::new();
-    for mode in modes {
-        let request = EvalRequest {
-            roster: *mode,
-            ..base.clone()
-        };
-        let subject_runs = run_many(&request, seeds);
-        if let Some(first) = seeds.first() {
-            self_check(
-                &EvalRequest {
-                    seed: *first,
-                    ..request.clone()
-                },
-                &subject_runs[0],
-                format!("exam {name} ({mode:?})"),
-            )?;
-        }
-        paired.extend(pair_runs(&subject_runs, &baseline_runs));
-        runs.extend(subject_runs);
-    }
+    let sweep = crate::cli_support::run_subject_over_modes(&base, modes, seeds, |mode| {
+        format!("exam {name} ({mode:?})")
+    })?;
     Ok(StandardOutcome {
         name: name.to_string(),
         config_sha256: sha256.to_string(),
-        runs,
-        baseline_runs,
-        paired,
+        runs: sweep.runs,
+        baseline_runs: sweep.baseline_runs,
+        paired: sweep.paired,
         reference_bounds: ReferenceBounds::current(),
     })
 }
