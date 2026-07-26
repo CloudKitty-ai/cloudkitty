@@ -745,29 +745,38 @@ fn an_artifact_named_candidate_does_not_panic_the_suite() {
     );
 }
 
+/// The one sample run every share-guard test renders: a single simulation
+/// pins the tests to literally the same run, so FR-009's "both modes
+/// render the same run" property cannot be un-pinned by fixture drift.
+fn share_guard_sample_run() -> &'static RunOutcome {
+    static RUN: std::sync::OnceLock<RunOutcome> = std::sync::OnceLock::new();
+    RUN.get_or_init(|| {
+        let core = Config::default();
+        let rl = cloudkitty_rl::config::RlConfig::default();
+        let registry = BehaviorRegistry::with_builtins();
+        run_one(&EvalRequest {
+            core: &core,
+            rl: &rl,
+            registry: &registry,
+            subject: Some("needs_driven"),
+            roster: RosterMode::AllSubject,
+            seed: 7,
+            ticks: 120,
+        })
+    })
+}
+
 /// Spec 018 FR-009 share-guard: both CLI modes render a run through
 /// `cli_support::print_run_panel`, and the two modes' outputs differ by
 /// exactly the documented bounds-block option — nothing else.
 #[test]
 fn share_guard_panel_modes_differ_only_by_the_bounds_block() {
-    let core = Config::default();
-    let rl = cloudkitty_rl::config::RlConfig::default();
-    let registry = BehaviorRegistry::with_builtins();
-    let request = EvalRequest {
-        core: &core,
-        rl: &rl,
-        registry: &registry,
-        subject: Some("needs_driven"),
-        roster: RosterMode::AllSubject,
-        seed: 7,
-        ticks: 120,
-    };
-    let run = run_one(&request);
+    let run = share_guard_sample_run();
 
     let mut suite_bytes = Vec::new();
-    cloudkitty_rl::cli_support::print_run_panel(&mut suite_bytes, &run, false).unwrap();
+    cloudkitty_rl::cli_support::print_run_panel(&mut suite_bytes, run, false).unwrap();
     let mut cert_bytes = Vec::new();
-    cloudkitty_rl::cli_support::print_run_panel(&mut cert_bytes, &run, true).unwrap();
+    cloudkitty_rl::cli_support::print_run_panel(&mut cert_bytes, run, true).unwrap();
     let suite_text = String::from_utf8(suite_bytes).unwrap();
     let cert_text = String::from_utf8(cert_bytes).unwrap();
 
@@ -800,21 +809,11 @@ fn share_guard_panel_modes_differ_only_by_the_bounds_block() {
 /// certification mode's unindented ones.
 #[test]
 fn share_guard_paired_prefix_is_the_only_divergence() {
-    let core = Config::default();
-    let rl = cloudkitty_rl::config::RlConfig::default();
-    let registry = BehaviorRegistry::with_builtins();
-    let request = EvalRequest {
-        core: &core,
-        rl: &rl,
-        registry: &registry,
-        subject: Some("needs_driven"),
-        roster: RosterMode::AllSubject,
-        seed: 7,
-        ticks: 120,
-    };
-    let runs = vec![run_one(&request)];
-    let baseline = vec![run_one(&request.baseline())];
-    let paired = cloudkitty_rl::harness::pair_runs(&runs, &baseline);
+    // The sample subject is needs_driven, so its baseline run is the
+    // identical simulation — pairing the run against itself is
+    // byte-equivalent to running the baseline and costs zero extra ticks.
+    let run = std::slice::from_ref(share_guard_sample_run());
+    let paired = cloudkitty_rl::harness::pair_runs(run, run);
     assert!(!paired.is_empty());
 
     let mut plain = Vec::new();

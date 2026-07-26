@@ -126,40 +126,43 @@ struct EvalOutput {
 
 fn human_report(output: &EvalOutput) {
     let stdout = std::io::stdout();
-    let w: &mut dyn std::io::Write = &mut stdout.lock();
-    (|| -> std::io::Result<()> {
-        writeln!(
-            w,
-            "== kitty-eval: {} ({} ticks/seed) ==",
-            output.subject, output.ticks
-        )?;
-        for run in &output.runs {
-            cli_support::print_run_panel(w, run, true)?;
+    human_report_to(&mut stdout.lock(), output).expect("writing report to stdout");
+}
+
+/// Writer-based body of [`human_report`], mirroring the suite's shape
+/// (spec 018 research D4) so the assembled certification report is
+/// capturable in-process.
+fn human_report_to(w: &mut dyn std::io::Write, output: &EvalOutput) -> std::io::Result<()> {
+    writeln!(
+        w,
+        "== kitty-eval: {} ({} ticks/seed) ==",
+        output.subject, output.ticks
+    )?;
+    for run in &output.runs {
+        cli_support::print_run_panel(w, run, true)?;
+    }
+    writeln!(w, "-- paired vs needs_driven baseline --")?;
+    cli_support::print_paired(w, &output.paired, "baseline", "")?;
+    // One aggregate per roster mode: an all-policy score and the mixed
+    // deployment reality are different claims and never blend (spec 014
+    // review).
+    for mode in [RosterMode::AllSubject, RosterMode::Mixed] {
+        let deltas: Vec<f64> = output
+            .paired
+            .iter()
+            .filter(|p| p.roster == mode)
+            .map(|p| p.delta)
+            .collect();
+        if !deltas.is_empty() {
+            let mean: f64 = deltas.iter().sum::<f64>() / deltas.len() as f64;
+            writeln!(
+                w,
+                "aggregate delta [{mode:?}] {mean:+.4} over {} seeds",
+                deltas.len()
+            )?;
         }
-        writeln!(w, "-- paired vs needs_driven baseline --")?;
-        cli_support::print_paired(w, &output.paired, "baseline", "")?;
-        // One aggregate per roster mode: an all-policy score and the mixed
-        // deployment reality are different claims and never blend (spec 014
-        // review).
-        for mode in [RosterMode::AllSubject, RosterMode::Mixed] {
-            let deltas: Vec<f64> = output
-                .paired
-                .iter()
-                .filter(|p| p.roster == mode)
-                .map(|p| p.delta)
-                .collect();
-            if !deltas.is_empty() {
-                let mean: f64 = deltas.iter().sum::<f64>() / deltas.len() as f64;
-                writeln!(
-                    w,
-                    "aggregate delta [{mode:?}] {mean:+.4} over {} seeds",
-                    deltas.len()
-                )?;
-            }
-        }
-        Ok(())
-    })()
-    .expect("writing report to stdout");
+    }
+    Ok(())
 }
 
 /// Resolves `--brain`/`--artifact` into a registered subject, returning
@@ -244,6 +247,14 @@ fn write_json<T: Serialize>(path: &str, value: &T) -> Result<(), ExitCode> {
     }
 }
 
+/// Exit-3 arm shared by both modes: the spec-pinned determinism-failure
+/// message (contracts/suite-cli.md), single-sourced like its siblings.
+fn determinism_exit(err: suite::SuiteRunError) -> ExitCode {
+    let suite::SuiteRunError::Determinism { location, seed } = err;
+    eprintln!("kitty-eval: determinism self-check failed on seed {seed} ({location})");
+    ExitCode::from(3)
+}
+
 /// FR-013 gate, both modes: a policy run that ever took a fallback fails
 /// rather than reporting the fallback's welfare as the policy's.
 fn fallback_gate(is_policy: bool, fallbacks: u64) -> Option<ExitCode> {
@@ -288,10 +299,7 @@ fn run_suite(dir: &str, args: &Args) -> ExitCode {
     };
     let report = match suite::score_suite(&loaded, &subject, args.enforce_sign_test) {
         Ok(report) => report,
-        Err(suite::SuiteRunError::Determinism { location, seed }) => {
-            eprintln!("kitty-eval: determinism self-check failed on seed {seed} ({location})");
-            return ExitCode::from(3);
-        }
+        Err(err) => return determinism_exit(err),
     };
 
     suite::human_report(&report);
@@ -378,10 +386,7 @@ fn main() -> ExitCode {
         format!("{mode:?}")
     }) {
         Ok(sweep) => sweep,
-        Err(suite::SuiteRunError::Determinism { location, seed }) => {
-            eprintln!("kitty-eval: determinism self-check failed on seed {seed} ({location})");
-            return ExitCode::from(3);
-        }
+        Err(err) => return determinism_exit(err),
     };
 
     let output = EvalOutput {
