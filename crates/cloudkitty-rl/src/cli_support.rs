@@ -7,3 +7,82 @@
 //! its signatures may change whenever both consumers move together. Future
 //! promotions for the CLI's benefit join this module rather than scattering
 //! `pub` elsewhere (owner ruling, spec 018 Clarifications 2026-07-26).
+
+use std::io::{self, Write};
+
+use crate::harness::{PairedDelta, RunOutcome};
+
+/// One run's panel: header, per-kitty welfare lines, max distress age,
+/// optionally the default-world welfare-bounds verdict, fallback lines.
+///
+/// `default_world_bounds` is the single deliberate divergence between the
+/// CLI's two modes (spec 018 FR-002): certification mode (single-config)
+/// passes `true` and gets the PASS / BOUND VIOLATED block; the suite passes
+/// `false` — deliberately no "welfare bounds" verdict line there, because
+/// those bounds are the default world's, and a suite exam is not the
+/// default world (spec 017 FR-003, research R11).
+pub fn print_run_panel(
+    w: &mut dyn Write,
+    run: &RunOutcome,
+    default_world_bounds: bool,
+) -> io::Result<()> {
+    writeln!(
+        w,
+        "seed {} [{:?}]: team welfare {:.4}, plain mean {:.4}, least-happy mean {:.1}, fallbacks {}",
+        run.seed,
+        run.roster,
+        run.aggregates.team_welfare,
+        run.aggregates.plain_mean,
+        run.aggregates.least_happy_mean,
+        run.fallback_count
+    )?;
+    for kitty in &run.report.kitties {
+        writeln!(
+            w,
+            "  {:<10} mean {:>5.1}  low-share {:>5.2}%  longest-low {:>3}  floor {}",
+            kitty.name,
+            kitty.mean_happiness,
+            kitty.low_share * 100.0,
+            kitty.max_low_streak,
+            kitty.floor_touches
+        )?;
+    }
+    writeln!(w, "  max distress age {}", run.report.max_distress_age)?;
+    if default_world_bounds {
+        let violations = run.report.violations();
+        if violations.is_empty() {
+            writeln!(w, "  welfare bounds: PASS")?;
+        } else {
+            for violation in &violations {
+                writeln!(w, "  BOUND VIOLATED: {violation}")?;
+            }
+        }
+    }
+    for fallback in &run.fallbacks {
+        writeln!(
+            w,
+            "  FALLBACK: kitty {} took {} fallback decisions (first at ticks {:?})",
+            fallback.kitty_id, fallback.count, fallback.first_ticks
+        )?;
+    }
+    Ok(())
+}
+
+/// Paired subject-vs-baseline delta lines. `prefix` preserves the two
+/// modes' byte streams (`"  "` in the suite report, `""` in certification
+/// mode); `baseline_label` names the comparison roster.
+pub fn print_paired(
+    w: &mut dyn Write,
+    paired: &[PairedDelta],
+    baseline_label: &str,
+    prefix: &str,
+) -> io::Result<()> {
+    for pair in paired {
+        writeln!(
+            w,
+            "{prefix}seed {} [{:?}]: subject {:.4} vs {baseline_label} {:.4} (delta {:+.4})",
+            pair.seed, pair.roster, pair.subject_welfare, pair.baseline_welfare, pair.delta
+        )?;
+    }
+    Ok(())
+}
