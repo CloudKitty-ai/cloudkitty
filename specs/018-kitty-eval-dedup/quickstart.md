@@ -51,8 +51,11 @@ git worktree remove /tmp/ck-v23
 Also confirm exit codes match per invocation (`echo $?` after each run;
 expected 0 for all of the above).
 
-> **Record (filled at implementation):** date, baseline commit, exact
-> exit codes, and the four verdicts.
+> **Record (2026-07-26):** baseline = tag `v2.3` worktree (temp dirs
+> under the session job dir rather than shared `/tmp`; commands otherwise
+> as above). Baseline exits 0/0; feature exits 0/0. All four comparisons
+> **byte-identical** — verified three times (after US1, after US2, and
+> final after US3).
 
 ## 2. Error-path spot checks (US2)
 
@@ -69,7 +72,9 @@ $NEW --enforce sign-test                               # --enforce without --sui
 
 Compare stderr/stdout text against the baseline binary for each.
 
-> **Record:** confirmation per rejection path.
+> **Record (2026-07-26):** seven rejection paths compared (the five
+> above plus `--brain X --artifact Y` and the no-arguments case): all
+> MATCH on message bytes and exit code (all exit 1).
 
 ## 3. The share-guard test (FR-009) — permanent
 
@@ -97,7 +102,12 @@ Add a trailing marker to the shared panel header in `cli_support`; run
 one suite exam and one certification run; confirm the marker appears in
 both outputs; revert the edit. Do not land the marker.
 
-> **Record:** confirmation + the revert commit-free status.
+> **Record (2026-07-26):** ` ###` marker added to the shared panel header
+> only; appeared identically in certification-mode and suite-mode output;
+> reverted via `git checkout` — clean tree confirmed, marker never
+> committed. Also exercised (T014): a forced self-check failure exits 3
+> in both modes with the pre-refactor message shapes
+> (`(AllSubject)` / `(exam scale (AllSubject))`).
 
 ## 6. SC-001/SC-005 review sweep
 

@@ -789,7 +789,10 @@ fn share_guard_panel_modes_differ_only_by_the_bounds_block() {
         );
     }
     // ...and the tails agree again byte-for-byte.
-    assert_eq!(cert_lines[distress + 1 + extra..], suite_lines[distress + 1..]);
+    assert_eq!(
+        cert_lines[distress + 1 + extra..],
+        suite_lines[distress + 1..]
+    );
 }
 
 /// Spec 018 FR-009 share-guard, paired block: the prefix parameter is the

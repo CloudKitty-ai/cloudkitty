@@ -20,20 +20,23 @@ rather than scattering `pub` elsewhere.
 
 ## Surface
 
-- `print_run_panel(w: &mut dyn Write, run: &RunOutcome, default_world_bounds: bool)`
+- `print_run_panel(w: &mut dyn Write, run: &RunOutcome, default_world_bounds: bool) -> io::Result<()>`
   — renders one run's panel. `default_world_bounds` is the single
   deliberate mode divergence (spec 018, Edge Cases): `true` inserts the
   certification mode's welfare-bounds block (PASS / BOUND VIOLATED lines)
   between the max-distress-age line and the fallback lines; `false`
   reproduces the suite's deliberate omission (FR-003/R11 of spec 017 —
   the rationale comment lives here now).
-- `print_paired(w: &mut dyn Write, paired: &[PairedDelta], baseline_label: &str, prefix: &str)`
+- `print_paired(w: &mut dyn Write, paired: &[PairedDelta], baseline_label: &str, prefix: &str) -> io::Result<()>`
   — renders paired-delta lines. `prefix` preserves the two modes' byte
   streams (`"  "` suite, `""` certification); `baseline_label` as today.
-- Mode-sweep orchestration fn + result struct (exact names chosen at
-  implementation; shapes in [data-model.md](../data-model.md)) — the
-  baseline-once / per-mode / self-checked / paired sequence formerly
-  duplicated between `score_standard` and the binary's `main`.
+- `run_subject_over_modes(base: &EvalRequest, modes: &[RosterMode], seeds: &[u64], location: impl Fn(RosterMode) -> String) -> Result<ModeSweep, SuiteRunError>`
+  with `ModeSweep { baseline_runs, runs, paired }` — the baseline-once /
+  per-mode / first-seed-self-checked / paired sequence formerly duplicated
+  between `score_standard` and the binary's `main`. `location` names the
+  determinism-failure context in each caller's own words (suite:
+  `exam {name} ({mode:?})`; certification: `{mode:?}`), preserving both
+  pre-refactor messages.
 
 ## Consumers (exhaustive at landing)
 

@@ -374,15 +374,15 @@ fn main() -> ExitCode {
         seed: 0,
         ticks,
     };
-    let sweep =
-        match cli_support::run_subject_over_modes(&base, &modes, &seeds, |mode| format!("{mode:?}"))
-        {
-            Ok(sweep) => sweep,
-            Err(suite::SuiteRunError::Determinism { location, seed }) => {
-                eprintln!("kitty-eval: determinism self-check failed on seed {seed} ({location})");
-                return ExitCode::from(3);
-            }
-        };
+    let sweep = match cli_support::run_subject_over_modes(&base, &modes, &seeds, |mode| {
+        format!("{mode:?}")
+    }) {
+        Ok(sweep) => sweep,
+        Err(suite::SuiteRunError::Determinism { location, seed }) => {
+            eprintln!("kitty-eval: determinism self-check failed on seed {seed} ({location})");
+            return ExitCode::from(3);
+        }
+    };
 
     let output = EvalOutput {
         subject: subject_name,
