@@ -1,0 +1,15 @@
+[package]
+name = "family-gen"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Training-config generator: patch a base engine TOML by dotted key, validate through the engine's own Config/RlConfig validators, write the variant."
+
+[dependencies]
+cloudkitty-core = { path = "../../../crates/cloudkitty-core" }
+cloudkitty-rl = { path = "../../../crates/cloudkitty-rl" }
+toml = "0.8"
+
+# Standalone on purpose: not a member of the product workspace (see
+# experiments/README.md — product CI never builds research code).
+[workspace]

@@ -1,5 +1,7 @@
-# training.toml — 5-kitty training world (R11 base + heterogeneity + mild scarcity)
+# training.toml — 5-kitty training world (heterogeneity + scarcity + 1.5x tempo)
 # The gym, not the bar: kitty-eval always scores on the default 32x32 world.
+# This is the probe-searched "scarcity1-rates150" world (frozen 2026-07-27):
+# needs_driven holds team welfare ~0.88 here (bounds pass with margin).
 
 [world]
 width = 24
@@ -55,26 +57,30 @@ behavior = "needs_driven"
 [kitty.needs]
 cuddle = 0.7
 
-# Global rise rates ~1.25x the default world: needs return sooner, so each
-# 2,000-tick episode contains more decisions that matter.
+# Global rise rates 1.5x the default world: needs return sooner, so each
+# 2,000-tick episode contains more decisions that matter. 1.5x (up from the
+# original 1.25x) is the probe-searched winner — see F-004 and
+# experiments/exp-001-bc-mappo/results/world-search-2026-07-27.md; 1.75x
+# was measured and is WORSE (trajectory noise outruns signal).
 [needs]
-eat = 0.5
-drink = 0.5
-sleep = 0.35
-play = 0.5
-cuddle = 0.5
-bath = 0.25
+eat = 0.6
+drink = 0.6
+sleep = 0.42
+play = 0.6
+cuddle = 0.6
+bath = 0.3
 
-# Scarcer than the default's "generous on purpose" 8-10, per that file's own
-# invitation: the safeguard still guarantees relief (Article I holds in
-# training), but bowls and beams are worth walking for and worth yielding.
+# Scarcer still than the first cut (was 5-7): the safeguard guarantees
+# relief (Article I holds in training), but bowls and beams are contested —
+# scarcity x tempo is the one combination whose cooperative-signal gain
+# replicated across three disjoint world batches (F-004).
 [elements.water]
-min = 5
-max = 7
+min = 3
+max = 4
 
 [elements.chow]
-min = 5
-max = 7
+min = 3
+max = 4
 servings = 5
 
 [elements.bug]
@@ -87,11 +93,11 @@ min = 1
 max = 3
 ttl = 300
 
-# Three beams, five cats, one napper per beam: the yield-this-take-next
-# behavior the observation's two sunbeam slots were sized for.
+# Two beams, five cats: the yield-this-take-next behavior the observation's
+# two sunbeam slots were sized for, now with real turn-taking pressure.
 [elements.sunbeam]
-min = 3
-max = 4
+min = 2
+max = 2
 ttl = 300
 
 [rl.episode]
