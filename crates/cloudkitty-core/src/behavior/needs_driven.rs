@@ -10,6 +10,7 @@
 
 use async_trait::async_trait;
 
+use super::relief::ReliefSource;
 use super::{selection, Behavior, DecisionContext};
 use crate::action::Action;
 use crate::element::ElementType;
@@ -136,21 +137,23 @@ pub(crate) fn pursue(ctx: &DecisionContext, choice: selection::Choice) -> Action
     let me = &ctx.me;
     let world = &ctx.world;
 
-    match choice.need {
-        NeedKind::Eat => seek_element(ctx, ElementType::Chow, Action::Eat),
-        NeedKind::Drink => seek_element(ctx, ElementType::Water, Action::Drink),
+    // The need→relief pairing comes from the one authoritative definition
+    // (`relief.rs`, spec 019); this function owns only how each relief
+    // shape is pursued.
+    match choice.need.relief() {
+        ReliefSource::Element { kind, use_it } => seek_element(ctx, kind, use_it),
 
-        NeedKind::Bath => Action::Groom { target: None },
+        ReliefSource::InPlace { use_it } => use_it,
 
-        NeedKind::Sleep => {
+        ReliefSource::Sunbeam => {
             // Already in a sunbeam? Perfect.
             if world.element_at(me.pos).map(|e| e.element_type()) == Some(ElementType::Sunbeam) {
                 return Action::Sleep { with: None };
             }
             match selection::sunbeam_worth_walking(ctx) {
                 // Worth walking to, if it is not an expedition. The same
-                // priced helper feeds the sleep score in `selection`, so what
-                // gets chosen and what gets walked can never disagree.
+                // priced helper feeds the sleep score in `selection` (the
+                // within-shape agreement the `relief` module documents).
                 Some((pos, _)) => step_toward(ctx, pos),
                 // Otherwise a nap right here will do; a friend nearby makes it cosier.
                 None => Action::Sleep {
@@ -162,9 +165,9 @@ pub(crate) fn pursue(ctx: &DecisionContext, choice: selection::Choice) -> Action
         // Play targeting, give-up and the solo backstop live in `selection` so
         // both built-in profiles pursue fun by exactly the same rules -- against
         // the playmate the scored pass already found.
-        NeedKind::Play => selection::play_action_with(ctx, choice.playmate),
+        ReliefSource::Playmate => selection::play_action_with(ctx, choice.playmate),
 
-        NeedKind::Cuddle => {
+        ReliefSource::Friend => {
             // Only an idle friend can be drawn into a cuddle (spec 006
             // conscription) -- proposing at a busy one would just bounce to
             // Idle. Seek the nearest *free* friend instead.
