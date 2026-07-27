@@ -77,20 +77,14 @@ which may stand in for the full spec-first flow at the owner's call.
    invariant. Verified byte-identical against the v2.3 baseline in both
    modes, human and JSON, plus seven error paths.
 
-2. **`crates/cloudkitty-core/src/behavior/needs_driven.rs` (+
-   `selection.rs`) — make the need→resource mirror compiler-enforced.**
-   The `NeedKind` → relieving-resource mapping is encoded independently in
-   two exhaustive matches — `selection::distance_given` (what gets
-   *scored*) and `needs_driven::pursue` (what gets *walked to*) — plus
-   three repeated per-need adjacency blocks in `take_what_is_here`. The
-   comments admit the fragility ("Mirrors `pursue`'s sleep arm exactly";
-   "the mirror the 004 review demanded"): the compiler cannot catch drift
-   between them. Highest *correctness* payoff in the repo, because
-   `needs_driven` is the counterfactual anchor of the eval suite — silent
-   scoring-vs-walking divergence would skew every sign test downstream.
-   Fix shape: one method on `NeedKind` (the way `kitty.rs` centralizes
-   `Activity` mappings), making "chosen and walked can never disagree"
-   structural instead of comment-enforced.
+2. ~~**`needs_driven.rs` (+ `selection.rs`) — make the need→resource
+   mirror compiler-enforced.**~~ **SHIPPED as spec 019** (2026-07-26):
+   `behavior/relief.rs` holds the one exhaustive `NeedKind::relief()`
+   pairing (five `ReliefSource` shapes); scoring, pursuit, and the
+   opportunism ladder all derive from it; the mirror comments retired in
+   favor of the module's documented invariant. Verified bit/byte-identical:
+   full workspace suite unchanged, four-way eval comparison identical,
+   new-need walkthrough shows one compiler-forced correspondence site.
 
 3. **`crates/cloudkitty-core/src/config.rs` — table-driven validation +
    module split.** 1,818 lines; `ConfigError::invalid(...)` constructed

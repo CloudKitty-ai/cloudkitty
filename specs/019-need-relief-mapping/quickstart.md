@@ -30,8 +30,11 @@ modules cannot be separated by pathspec: additionally review
 hunk falls inside a `#[cfg(test)]` module (the rewires touch production
 functions only).
 
-> **Record:** test totals + confirmation the tests-dir diff is empty and
-> no behavior-file hunk touches an inline test module.
+> **Record (2026-07-26):** full workspace green at every checkpoint
+> (T005, T007, final). Tests-dir diff vs `c6fbeae`: empty. Behavior-file
+> hunks all fall in production regions (largest hunk start line 185;
+> inline test modules begin past line 360 in both files) — zero test
+> changes anywhere.
 
 ## 2. The eval-instrument recheck (FR-006, SC-003) — four-way byte comparison
 
@@ -65,7 +68,11 @@ seats, `playful` seats, and the derived all-scripted baseline all flow
 through the refactored stack, so this one command covers every built-in
 consumer including `playful`'s shared opportunism.
 
-> **Record:** date, baseline commit, exit codes, four verdicts.
+> **Record (2026-07-26):** baseline built from the branch base (code
+> verified identical to `c6fbeae`: `git diff c6fbeae -- crates/` empty at
+> capture time — no separate worktree needed). Exits 0/0 both builds.
+> All four comparisons **byte-identical**, verified three times (after
+> US1, after US2, and final).
 
 ## 3. Single-definition review sweep (SC-001, FR-002)
 
@@ -77,7 +84,13 @@ are gone; the retired mirror comments no longer exist
 nothing for the retired pair); `relief()` is the only site pairing a
 need with its relief.
 
-> **Record:** confirmation + grep output.
+> **Record (2026-07-26):** "Mirrors `pursue`'s sleep arm exactly" — zero
+> hits; the 004-mirror phrasing survives only inside the reworded
+> historical attribution on `sunbeam_worth_walking` (which now points at
+> the `relief` module's invariant). Remaining `ElementType::Chow/Water`
+> references in the behavior stack are terrain/pricing knowledge
+> (spec 010 water surcharge, seek/wander mechanics) and test fixtures —
+> none pairs a need with its relief. `relief()` is the sole pairing site.
 
 ## 4. The new-need walkthrough (SC-005, FR-003) — recorded, not landed
 
@@ -96,4 +109,14 @@ list names exactly `relief()` (plus any engine-side exhaustive matches
 outside this feature's scope — enumerate them honestly), then revert.
 Nothing lands (spec 019 FR-008).
 
-> **Record:** the before/after edit-site lists and compiler-error sites.
+> **Record (2026-07-26):** hypothetical `NeedKind::Bask` added; the
+> compiler forced exactly four sites: `behavior/relief.rs:57` (the
+> correspondence — the **only** behavior-stack site), plus three
+> pre-existing definitional/engine sites outside this feature's scope
+> (`needs.rs` — the `ALL` const and the enum's own definitional impls —
+> and `meow.rs:54`, the meow-vocabulary mapping). The three consumer
+> steps (`distance_given`, `pursue`, `take_what_is_here`) did **not**
+> appear — pre-refactor, each would have. Downstream-crate sites were
+> not reached (core fails first); the RL observation encoder iterates
+> `NeedKind::ALL` rather than matching, by 014 design. Variant reverted;
+> tree clean; nothing landed.
