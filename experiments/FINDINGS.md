@@ -25,7 +25,12 @@ evidence; this register is the evolving knowledge layer on top of them.
 
 ---
 
-## F-001 · active · Credit in CloudKitty is two-channel: fast self, slow teammate
+## F-001 · superseded by F-003 · Credit in CloudKitty is two-channel: fast self, slow teammate
+
+*(Superseded 2026-07-27: the companionship retune — PR #60, cf82007 —
+changed the happiness weights and social relief rates these numbers were
+measured under. The two-channel structure survives; the quantities do not.
+See F-003.)*
 
 An action's effect on the actor's own happiness is front-loaded (~60% of
 significant signal mass within 18 ticks — direct relief); its effect on
@@ -62,3 +67,59 @@ all-policy and mixed rosters, and compare the teammate band; supersede or
 narrow this finding accordingly. Also due regardless: a default-world
 geometry repeat and by-action-class conditioning (the 1k sample mix is
 move-dominated).
+
+---
+
+## F-002 · reserved (candidate, unverified) · `needs_driven` under-uses the non-binding cuddle routes
+
+Reserved: exp-001's prereg deviation of 2026-07-27 names this claim
+"candidate F-002" — `needs_driven` under-uses `Sleep{with}`/`Groom{target}`
+for Cuddle relief beside busy friends (the 38 events spec 021 miscounted as
+false positives were real refusals). The pre-retune count is stale evidence;
+the claim registers here, under this id, if a post-retune recount verifies
+it. Until then it grounds no design decisions.
+
+---
+
+## F-003 · active · The companionship retune tripled the credit horizon; channels unchanged
+
+Supersedes F-001's quantities on the retuned baseline (PR #60, cf82007:
+happiness weights eat/drink→0.20, cuddle/bath→0.15; groom/play relief→20,
+cuddle→15). The two-channel structure holds — self credit front-loaded,
+teammate credit slow — but every band moved out ~2–4×: the spillover band
+is now ~230–430 ticks (peak k≈406, was ~50–200 peaking k≈106), the team
+reward peaks at k≈230 with only 16% of significant mass within 200 ticks
+(was 90%), and a diffuse-but-real tail (≈2.5× chance rate of significant
+ticks) persists past k=1,000. Mechanism: slower social relief lengthens
+scenes, so contention/coordination consequences propagate later and wider.
+Decision-point density also fell 0.86→0.72 (more mid-scene ticks where an
+idle substitution is rewritten back).
+
+**Scope**: `training.toml` (24×24, 5 kitties, heterogeneous traits) on
+post-retune compiled defaults (main 758ec28), `needs_driven` dynamics for
+every kitty, substitution ticks 100–1100, 1,000 samples, 1,200-tick traces
+(600 is now too short — the first pass truncated live signal at its edge).
+Not yet measured: trained-policy dynamics, default-world geometry, larger
+rosters, per-action-class structure.
+
+**Evidence**: [exp-001 retuned twin-probe result](exp-001-bc-mappo/results/twin-probe-2026-07-27-retuned.md)
+(bit-reproducible; commands inside).
+
+**Implications**: discounted team-signal retention is now 0.10 at γ=0.99,
+0.20 at γ=0.995, 0.45 at γ=0.998 — γ=0.99 ends before the cooperative band
+*begins* and is empirically dead for the cooperative hypothesis;
+recommendation to the owner is to amend exp-001's sweep to {0.995, 0.998}
+(prereg amendment, owner's call). Cooperative-credit-is-critic-carried is
+strengthened (even less signal inside any reachable GAE window); λ=0.95
+and fragment 256 stand.
+
+**Would invalidate**: another engine-defaults change touching happiness
+weights, relief rates, or scene durations (check the suite's
+`engine_defaults_sha256` stamp); the band failing to reproduce on other
+geometries; trained-policy dynamics compressing propagation.
+
+**Re-verify when**: any engine-defaults change (immediately — this finding
+died once already that way, as F-001); or the first policy artifact
+exceeding `needs_driven` / passing certification — policy-seated probe in
+both roster modes, per F-001's original trigger. Still due regardless:
+default-world repeat, by-action-class conditioning (mix is 72% move).
