@@ -20,6 +20,7 @@
 //! Both built-in profiles select through this module (and external behaviors
 //! are welcome to copy it) -- one tested rule, no drift between personalities.
 
+use super::relief::ReliefSource;
 use super::DecisionContext;
 use crate::action::{Action, TargetRef};
 use crate::element::ElementType;
@@ -113,17 +114,21 @@ fn distance_given(
 ) -> Option<f32> {
     let me = &ctx.me;
 
-    match need {
-        // Grooming happens wherever the cat is standing.
-        NeedKind::Bath => Some(0.0),
-        NeedKind::Sleep => Some(sleep_travel_distance(ctx)),
-        NeedKind::Eat => priced_nearest_element(ctx, ElementType::Chow).map(|(_, cost)| cost),
-        NeedKind::Drink => priced_nearest_element(ctx, ElementType::Water).map(|(_, cost)| cost),
+    // The need→relief pairing comes from the one authoritative definition
+    // (`relief.rs`, spec 019); this function owns only the pricing of each
+    // relief shape.
+    match need.relief() {
+        // Relieved-in-place needs cost no travel.
+        ReliefSource::InPlace { .. } => Some(0.0),
+        ReliefSource::Sunbeam => Some(sleep_travel_distance(ctx)),
+        ReliefSource::Element { kind, .. } => {
+            priced_nearest_element(ctx, kind).map(|(_, cost)| cost)
+        }
         // Playmates are deliberately unpriced (spec 010 scope decision): they
         // move every tick, chases re-aim continuously, and pricing a fleeing
         // target's momentary path would add noise, not honesty.
-        NeedKind::Play => Some(play_travel_distance(ctx, playmate) as f32),
-        NeedKind::Cuddle => ctx
+        ReliefSource::Playmate => Some(play_travel_distance(ctx, playmate) as f32),
+        ReliefSource::Friend => ctx
             .world
             .nearest_friend(me.id, me.pos)
             .map(|k| priced_travel(ctx, me.pos, k.pos)),
@@ -176,8 +181,9 @@ pub fn priced_nearest_element(ctx: &DecisionContext, kind: ElementType) -> Optio
 
 /// The sunbeam worth walking to for a nap, if any: the priced-cheapest one,
 /// provided its priced cost fits within `sunbeam_reach`. One helper for both
-/// the sleep score and `pursue`'s sleep arm -- the mirror the 004 review
-/// demanded, now priced.
+/// the sleep score and `pursue`'s sleep arm -- the shared carrier of
+/// within-shape agreement the `relief` module's invariant names (spec 019;
+/// originally the mirror the 004 review demanded, now priced).
 pub fn sunbeam_worth_walking(ctx: &DecisionContext) -> Option<(Position, f32)> {
     let (pos, cost) = priced_nearest_element(ctx, ElementType::Sunbeam)?;
     (cost <= ctx.config.behavior.sunbeam_reach as f32).then_some((pos, cost))
@@ -185,9 +191,10 @@ pub fn sunbeam_worth_walking(ctx: &DecisionContext) -> Option<(Position, f32)> {
 
 /// The distance sleep pursuit would actually cover: a sunbeam within
 /// `sunbeam_reach` (priced) is worth walking to, anything farther (or no
-/// sunbeam at all) means a nap on the spot. Mirrors `pursue`'s sleep arm
-/// exactly -- the score must never call sleep free and then commit the cat
-/// to a trek.
+/// sunbeam at all) means a nap on the spot. Agrees with `pursue`'s sleep
+/// arm through [`sunbeam_worth_walking`] (the `relief` module documents
+/// this invariant) -- the score must never call sleep free and then commit
+/// the cat to a trek.
 fn sleep_travel_distance(ctx: &DecisionContext) -> f32 {
     match sunbeam_worth_walking(ctx) {
         Some((_, cost)) => cost,

@@ -77,20 +77,14 @@ which may stand in for the full spec-first flow at the owner's call.
    invariant. Verified byte-identical against the v2.3 baseline in both
    modes, human and JSON, plus seven error paths.
 
-2. **`crates/cloudkitty-core/src/behavior/needs_driven.rs` (+
-   `selection.rs`) — make the need→resource mirror compiler-enforced.**
-   The `NeedKind` → relieving-resource mapping is encoded independently in
-   two exhaustive matches — `selection::distance_given` (what gets
-   *scored*) and `needs_driven::pursue` (what gets *walked to*) — plus
-   three repeated per-need adjacency blocks in `take_what_is_here`. The
-   comments admit the fragility ("Mirrors `pursue`'s sleep arm exactly";
-   "the mirror the 004 review demanded"): the compiler cannot catch drift
-   between them. Highest *correctness* payoff in the repo, because
-   `needs_driven` is the counterfactual anchor of the eval suite — silent
-   scoring-vs-walking divergence would skew every sign test downstream.
-   Fix shape: one method on `NeedKind` (the way `kitty.rs` centralizes
-   `Activity` mappings), making "chosen and walked can never disagree"
-   structural instead of comment-enforced.
+2. ~~**`needs_driven.rs` (+ `selection.rs`) — make the need→resource
+   mirror compiler-enforced.**~~ **SHIPPED as spec 019** (2026-07-26):
+   `behavior/relief.rs` holds the one exhaustive `NeedKind::relief()`
+   pairing (five `ReliefSource` shapes); scoring, pursuit, and the
+   opportunism ladder all derive from it; the mirror comments retired in
+   favor of the module's documented invariant. Verified bit/byte-identical:
+   full workspace suite unchanged, four-way eval comparison identical,
+   new-need walkthrough shows one compiler-forced correspondence site.
 
 3. **`crates/cloudkitty-core/src/config.rs` — table-driven validation +
    module split.** 1,818 lines; `ConfigError::invalid(...)` constructed
@@ -135,6 +129,25 @@ which may stand in for the full spec-first flow at the owner's call.
   path-heat, element-diff all separable); `distressPatienceTicks` lives in
   two hand-synced copies (`app.js` + `anim.js` — silent-divergence trap,
   cheap fix); DPR-canvas setup duplicated across 5 sites.
+
+### Welfare pinned-streak Cuddle false-positive (added 2026-07-26 — resolve before the first real certification campaign)
+Found by the spec 019 review (pre-existing, not introduced there):
+`zero_distance_relief_exists` in `crates/cloudkitty-rl/src/welfare.rs`
+counts **any** adjacent kitty as available Cuddle relief, while the
+built-in behavior's conscription rule (spec 006, via
+`ReliefSource::Friend`) only ever cuddles a **free** (not mid-activity)
+friend. A cat pinned high on Cuddle beside only busy friends therefore
+accrues pinned-streak toward `MAX_PINNED_STREAK` for "refusing" relief it
+cannot lawfully take. Latent today (the streak must survive to the cap),
+but this metric feeds the certification welfare bounds — a trained policy
+could in principle be dinged for correctly declining to conscript. Fix
+direction when picked up: align welfare's Cuddle arm with the free-friend
+rule — which *tightens* the metric's accuracy but changes bound semantics,
+so it needs its own small spec-level look (never weaken tests: re-baseline
+deliberately, not by drift). The `relief.rs` module doc points here; note
+the encoding is cross-crate by design (`pub(crate)` policy knowledge must
+not leak into the measuring layer), so consolidation is not the fix —
+reconciling the Cuddle rule is.
 
 ### Dynamic element populations (added 2026-07-20 — ideate with the owner first)
 Environmental elements are effectively static: `ensure_minimums`

@@ -47,6 +47,7 @@ use crate::world::{World, WorldSnapshot};
 
 pub mod needs_driven;
 pub mod playful;
+mod relief;
 pub mod script;
 pub mod selection;
 pub mod test_behaviors;

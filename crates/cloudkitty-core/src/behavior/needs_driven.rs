@@ -10,6 +10,7 @@
 
 use async_trait::async_trait;
 
+use super::relief::ReliefSource;
 use super::{selection, Behavior, DecisionContext};
 use crate::action::Action;
 use crate::element::ElementType;
@@ -86,43 +87,61 @@ pub(crate) fn finish_what_you_started(ctx: &DecisionContext) -> Option<Action> {
     activity.continuation()
 }
 
+/// The emergency ladder: the needs opportunism considers, in load-bearing
+/// order — food and water first, the sunbeam you are standing in, and only
+/// then a passing playmate. Cuddle and Bath are deliberately absent: they
+/// are never grabbed opportunistically.
+///
+/// Membership contract (spec 019 review): every Element/Sunbeam/Playmate-
+/// shaped need in `relief()` belongs on this ladder, and no Friend/InPlace
+/// need may join it (the match below would no-op it silently). The
+/// `ladder_membership_matches_relief_shapes` test enforces both directions;
+/// a deliberate omission gets an allow-list entry there, with its reason.
+const OPPORTUNISM_LADDER: [NeedKind; 4] = [
+    NeedKind::Eat,
+    NeedKind::Drink,
+    NeedKind::Sleep,
+    NeedKind::Play,
+];
+
 /// Eat, drink, nap or play when the means are already underfoot and the need is
 /// real. Shared with `Playful`: opportunism is good sense, not a personality
-/// trait. The order is the emergency ladder: food and water first, the sunbeam
-/// you are standing in, and only then a passing playmate.
+/// trait. The need→relief pairing comes from the one authoritative definition
+/// (`relief.rs`, spec 019); this function owns only the underfoot checks.
 pub(crate) fn take_what_is_here(ctx: &DecisionContext) -> Option<Action> {
     let me = &ctx.me;
     let detour = ctx.config.behavior.worth_a_detour;
 
-    if me.needs.get(NeedKind::Eat) >= detour
-        && ctx
-            .world
-            .elements_of(ElementType::Chow)
-            .any(|e| me.pos.is_adjacent(&e.pos))
-    {
-        return Some(Action::Eat);
-    }
-
-    if me.needs.get(NeedKind::Drink) >= detour
-        && ctx
-            .world
-            .elements_of(ElementType::Water)
-            .any(|e| me.pos.is_adjacent(&e.pos))
-    {
-        return Some(Action::Drink);
-    }
-
-    // A sunbeam you are already sitting in is too good to waste.
-    if me.needs.get(NeedKind::Sleep) >= detour
-        && ctx.world.element_at(me.pos).map(|e| e.element_type()) == Some(ElementType::Sunbeam)
-    {
-        return Some(Action::Sleep { with: None });
-    }
-
-    // A bug within paw's reach gets batted at, whatever the errand was.
-    if me.needs.get(NeedKind::Play) >= detour {
-        if let Some(target) = selection::adjacent_playmate(ctx) {
-            return Some(Action::play_with(target));
+    for need in OPPORTUNISM_LADDER {
+        if me.needs.get(need) < detour {
+            continue;
+        }
+        match need.relief() {
+            ReliefSource::Element { kind, use_it } => {
+                if ctx
+                    .world
+                    .elements_of(kind)
+                    .any(|e| me.pos.is_adjacent(&e.pos))
+                {
+                    return Some(use_it);
+                }
+            }
+            // A sunbeam you are already sitting in is too good to waste.
+            ReliefSource::Sunbeam => {
+                if ctx.world.element_at(me.pos).map(|e| e.element_type())
+                    == Some(ElementType::Sunbeam)
+                {
+                    return Some(Action::Sleep { with: None });
+                }
+            }
+            // A bug within paw's reach gets batted at, whatever the errand was.
+            ReliefSource::Playmate => {
+                if let Some(target) = selection::adjacent_playmate(ctx) {
+                    return Some(Action::play_with(target));
+                }
+            }
+            // Not opportunistic (and absent from the ladder).
+            ReliefSource::Friend | ReliefSource::InPlace { .. } => {}
         }
     }
 
@@ -136,21 +155,23 @@ pub(crate) fn pursue(ctx: &DecisionContext, choice: selection::Choice) -> Action
     let me = &ctx.me;
     let world = &ctx.world;
 
-    match choice.need {
-        NeedKind::Eat => seek_element(ctx, ElementType::Chow, Action::Eat),
-        NeedKind::Drink => seek_element(ctx, ElementType::Water, Action::Drink),
+    // The need→relief pairing comes from the one authoritative definition
+    // (`relief.rs`, spec 019); this function owns only how each relief
+    // shape is pursued.
+    match choice.need.relief() {
+        ReliefSource::Element { kind, use_it } => seek_element(ctx, kind, use_it),
 
-        NeedKind::Bath => Action::Groom { target: None },
+        ReliefSource::InPlace { use_it } => use_it,
 
-        NeedKind::Sleep => {
+        ReliefSource::Sunbeam => {
             // Already in a sunbeam? Perfect.
             if world.element_at(me.pos).map(|e| e.element_type()) == Some(ElementType::Sunbeam) {
                 return Action::Sleep { with: None };
             }
             match selection::sunbeam_worth_walking(ctx) {
                 // Worth walking to, if it is not an expedition. The same
-                // priced helper feeds the sleep score in `selection`, so what
-                // gets chosen and what gets walked can never disagree.
+                // priced helper feeds the sleep score in `selection` (the
+                // within-shape agreement the `relief` module documents).
                 Some((pos, _)) => step_toward(ctx, pos),
                 // Otherwise a nap right here will do; a friend nearby makes it cosier.
                 None => Action::Sleep {
@@ -162,9 +183,9 @@ pub(crate) fn pursue(ctx: &DecisionContext, choice: selection::Choice) -> Action
         // Play targeting, give-up and the solo backstop live in `selection` so
         // both built-in profiles pursue fun by exactly the same rules -- against
         // the playmate the scored pass already found.
-        NeedKind::Play => selection::play_action_with(ctx, choice.playmate),
+        ReliefSource::Playmate => selection::play_action_with(ctx, choice.playmate),
 
-        NeedKind::Cuddle => {
+        ReliefSource::Friend => {
             // Only an idle friend can be drawn into a cuddle (spec 006
             // conscription) -- proposing at a busy one would just bounce to
             // Idle. Seek the nearest *free* friend instead.
@@ -1019,5 +1040,28 @@ mod tests {
         let a = NeedsDriven.decide(&make()).await;
         let b = NeedsDriven.decide(&make()).await;
         assert_eq!(a, b);
+    }
+
+    /// Spec 019 review guard: ladder membership must track relief shapes.
+    /// Both directions matter — an opportunistic-shaped need missing from
+    /// the ladder is silently never grabbed underfoot; a Friend/InPlace
+    /// need added to the ladder is a silent dead rung (the no-op arm).
+    /// A future deliberate omission joins an allow-list here, with its
+    /// reason.
+    #[test]
+    fn ladder_membership_matches_relief_shapes() {
+        use super::super::relief::ReliefSource;
+        for need in NeedKind::ALL {
+            let opportunistic = matches!(
+                need.relief(),
+                ReliefSource::Element { .. } | ReliefSource::Sunbeam | ReliefSource::Playmate
+            );
+            assert_eq!(
+                opportunistic,
+                OPPORTUNISM_LADDER.contains(&need),
+                "{need:?}: opportunistic-shaped needs and OPPORTUNISM_LADDER membership \
+                 must agree (deliberate omissions get an allow-list in this test)"
+            );
+        }
     }
 }
