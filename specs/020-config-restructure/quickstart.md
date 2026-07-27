@@ -26,7 +26,10 @@ diff shows the `#[cfg(test)]` content relocating without modification
 (compare `git show 33f69df:crates/cloudkitty-core/src/config.rs`'s test
 region against `config/mod.rs`'s — a pure move).
 
-> **Record:** totals + both confirmations.
+> **Record (2026-07-26):** workspace green at every checkpoint (T004,
+> T007, T009, final). Diff outside the config module vs `33f69df`: empty.
+> Tests module: byte-identical pure move (diffed against
+> `git show 33f69df:…/config.rs`'s test region).
 
 ## 2. The enumerated rejection-path sweep (FR-008, SC-003) — one-time
 
@@ -60,8 +63,17 @@ in the Record. Multi-fault tiebreaks across the old interleave are
 excluded from the diff (amended FR-004) and instead spot-asserted
 against the data-model.md sequence (two or three representative pairs).
 
-> **Record:** rule count, coverage confirmation, diff verdict, the
-> multi-fault spot-assertions, and deletion of the harness.
+> **Record (2026-07-26):** base pinned = the committed `cloudkitty.toml`
+> (tracked, identical both trees). 46 rejection rules exercised —
+> matching the 46 `ConfigError::invalid` sites, with 3 documented as
+> untrippable-by-design in the harness header (both capacity rules are
+> pigeonhole/arithmetic-shadowed defense in depth; `validate_behavior_names`
+> is registry-time). Sweep run at T002 (self-consistency: identical
+> pre-change), T004, T007, and T009 — byte-identical every time. Three
+> multi-fault spot-assertions: the interleave-spanning pair
+> (`purr.min_ticks=0` + `sunbeam_reach=0`) reports `[behavior]` first per
+> the amended FR-004; the two non-spanning pairs report unchanged order.
+> Harness deleted before landing; worktree removed.
 
 ## 3. Serde-behavior spot-set (FR-005)
 
@@ -74,7 +86,11 @@ cargo test -p cloudkitty-core config
 Plus: `Config::default()` debug-printed in both trees, diffed (defaults
 byte-identical).
 
-> **Record:** test names + the defaults-diff verdict.
+> **Record (2026-07-26):** the config test module (43 tests) passes
+> unmodified — it pins invalid-config rejections, default fallbacks
+> (`zero_sunbeam_reach_is_rejected_and_the_default_stands_in` and kin),
+> and TOML round-trips. `Config::default()` debug-printed in both trees:
+> byte-identical.
 
 ## 4. US1 walkthrough — one table row (done once, reverted; FR-009)
 
@@ -84,7 +100,11 @@ after the split — + ONE table row); confirm an out-of-bounds TOML
 rejects with a correctly-formatted message and an in-bounds one accepts;
 revert. Nothing lands.
 
-> **Record:** the row, both outcomes, clean-tree confirmation.
+> **Record (2026-07-26):** throwaway `[behavior] walkthrough_ticks`
+> (field + default fn + one table row): out-of-bounds TOML rejected with
+> `config error: [behavior] walkthrough_ticks is 0; must be at least 1
+> tick (walkthrough)` — cluster-consistent format from the shared row
+> shape; in-bounds accepted. Reverted; clean tree confirmed.
 
 ## 5. SC-001/SC-002 review sweep
 
@@ -93,7 +113,10 @@ such rule is a table row); no validator touches another section's
 fields; the catch-all is gone; `mod.rs`/`defaults.rs`/`validate.rs` each
 contain what data-model.md says and nothing else.
 
-> **Record:** confirmation.
+> **Record (2026-07-26):** confirmed — zero repeated guard copies (the
+> two remaining single-field `== 0` ifs are one-per-section, not
+> duplicates); no validator touches another section's fields; the
+> catch-all no longer exists; the three files match data-model.md.
 
 ## 6. Optional belt-and-suspenders (not required — research D5)
 
