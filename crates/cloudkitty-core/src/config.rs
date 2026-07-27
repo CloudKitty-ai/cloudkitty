@@ -775,6 +775,11 @@ impl Config {
     /// Errors name the field, its value, and the allowed range so an operator can
     /// fix the file without reading the source.
     pub fn validate(&self) -> Result<(), ConfigError> {
+        // Section order is spec-contract (spec 020, amended FR-004): the
+        // first-failing message a multiply-invalid config reports follows
+        // this sequence; reordering it is a spec change, not a refactor.
+        // Positions 1-7 and 13-14 are the pre-020 entry order; 7-12 expand
+        // the old catch-all in its slot, in its own first-occurrence order.
         self.validate_world()?;
         self.validate_roster()?;
         self.validate_thresholds()?;
@@ -782,6 +787,11 @@ impl Config {
         self.validate_needs()?;
         self.validate_elements()?;
         self.validate_behavior()?;
+        self.validate_purr()?;
+        self.validate_actions()?;
+        self.validate_viewer()?;
+        self.validate_events()?;
+        self.validate_persistence()?;
         self.validate_durations()?;
         self.validate_capacity()?;
         Ok(())
@@ -1051,6 +1061,9 @@ impl Config {
         Ok(())
     }
 
+    /// `[behavior]` only since spec 020: the purr, actions, viewer, events,
+    /// and persistence rules this validator once accumulated live in their
+    /// own section validators below.
     fn validate_behavior(&self) -> Result<(), ConfigError> {
         let f = self.behavior.budget_fraction_of_tick;
         // The budget must leave room for the rest of the tick's work.
@@ -1067,23 +1080,6 @@ impl Config {
                 "[behavior] playful_comfort",
                 comfort.to_string(),
                 "must be greater than 0 and at most 100",
-            ));
-        }
-        if self.purr.min_ticks < 1 {
-            return Err(ConfigError::invalid(
-                "[purr] min_ticks",
-                self.purr.min_ticks.to_string(),
-                "must be at least 1",
-            ));
-        }
-        if self.purr.min_ticks > self.purr.max_ticks {
-            return Err(ConfigError::invalid(
-                "[purr] min_ticks",
-                format!(
-                    "{} (max_ticks is {})",
-                    self.purr.min_ticks, self.purr.max_ticks
-                ),
-                "must be at most max_ticks",
             ));
         }
         for (field, value) in [
@@ -1169,6 +1165,33 @@ impl Config {
                 return Err(ConfigError::invalid(field, "0".to_string(), expected));
             }
         }
+        Ok(())
+    }
+
+    fn validate_purr(&self) -> Result<(), ConfigError> {
+        if self.purr.min_ticks < 1 {
+            return Err(ConfigError::invalid(
+                "[purr] min_ticks",
+                self.purr.min_ticks.to_string(),
+                "must be at least 1",
+            ));
+        }
+        if self.purr.min_ticks > self.purr.max_ticks {
+            return Err(ConfigError::invalid(
+                "[purr] min_ticks",
+                format!(
+                    "{} (max_ticks is {})",
+                    self.purr.min_ticks, self.purr.max_ticks
+                ),
+                "must be at most max_ticks",
+            ));
+        }
+        Ok(())
+    }
+
+    /// `[actions]` relief rules; the duration bounds have their own
+    /// validator (`validate_durations`), unchanged since spec 006.
+    fn validate_actions(&self) -> Result<(), ConfigError> {
         let solo = self.actions.solo_play_relief;
         if !solo.is_finite() || solo < 0.0 {
             return Err(ConfigError::invalid(
@@ -1187,32 +1210,50 @@ impl Config {
                 ),
             ));
         }
-        // Same row shape as the behavior table above (spec 020 D2).
-        for (field, value, expected) in [
-            (
+        Ok(())
+    }
+
+    fn validate_viewer(&self) -> Result<(), ConfigError> {
+        if self.viewer.distress_patience_ticks == 0 {
+            return Err(ConfigError::invalid(
                 "[viewer] distress_patience_ticks",
-                self.viewer.distress_patience_ticks,
+                "0".to_string(),
                 "must be at least 1 tick",
-            ),
+            ));
+        }
+        Ok(())
+    }
+
+    fn validate_events(&self) -> Result<(), ConfigError> {
+        // Row shape per spec 020 D2.
+        for (field, value) in [
             (
                 "[events] distress_retention",
-                self.events.distress_retention as u64,
-                "must be at least 1",
+                self.events.distress_retention,
             ),
             (
                 "[events] activity_retention",
-                self.events.activity_retention as u64,
-                "must be at least 1",
-            ),
-            (
-                "[persistence] save_every_ticks",
-                self.persistence.save_every_ticks,
-                "must be at least 1",
+                self.events.activity_retention,
             ),
         ] {
             if value == 0 {
-                return Err(ConfigError::invalid(field, "0".to_string(), expected));
+                return Err(ConfigError::invalid(
+                    field,
+                    "0".to_string(),
+                    "must be at least 1",
+                ));
             }
+        }
+        Ok(())
+    }
+
+    fn validate_persistence(&self) -> Result<(), ConfigError> {
+        if self.persistence.save_every_ticks == 0 {
+            return Err(ConfigError::invalid(
+                "[persistence] save_every_ticks",
+                "0".to_string(),
+                "must be at least 1",
+            ));
         }
         Ok(())
     }
