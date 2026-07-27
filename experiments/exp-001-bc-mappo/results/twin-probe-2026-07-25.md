@@ -2,6 +2,15 @@
 
 **Date**: 2026-07-25 · **Prereg**: [§6 of prereg.md](../prereg.md) · **Status**: measurement complete, γ decision informed
 
+> **Scope notice (2026-07-27)**: these numbers were measured *before* the
+> baseline retune (PR #60, cf82007 — happiness weights and social relief
+> rates changed, reaching `training.toml` via the compiled defaults). They
+> stand as the historical record of the pre-retune world; the prereg's
+> Deviations appendix records the consequence — the probe re-runs on the
+> retuned baseline before the γ sweep, and F-001 gets a confirm-or-supersede
+> verdict from that run. The regeneration commands below reproduce *this*
+> dataset only at cf82007's parent or earlier.
+
 ## Headline
 
 CloudKitty's credit structure splits into two channels with very different
