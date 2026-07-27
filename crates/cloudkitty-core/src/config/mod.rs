@@ -17,6 +17,9 @@ use crate::needs::NeedWeights;
 mod defaults;
 mod validate;
 
+// Load-bearing glob: the `#[serde(default = "default_x")]` string attributes
+// below and the `Default` impls resolve these names bare. Narrowing or
+// removing this import breaks every one of them.
 use defaults::*;
 
 /// Elements may occupy at most one tile in every `TILES_PER_ELEMENT`, which sets
@@ -36,7 +39,7 @@ pub enum ConfigError {
 }
 
 impl ConfigError {
-    pub(super) fn invalid(
+    fn invalid(
         field: impl Into<String>,
         value: impl Into<String>,
         expected: impl Into<String>,
@@ -1274,5 +1277,34 @@ mod tests {
             b.fingerprint(),
             "duration tuning must never orphan a saved world"
         );
+    }
+
+    /// Spec 020 review guard: the section sequence in `validate` is a
+    /// message-order contract (amended FR-004) — the first-reported error
+    /// for a multiply-invalid config follows the documented call order.
+    /// These fixtures make a reorder of the call list fail here instead of
+    /// silently changing operator-facing messages.
+    #[test]
+    fn multi_fault_first_error_follows_the_section_sequence() {
+        // behavior (position 7) reports before purr (8).
+        let mut c = Config::default();
+        c.purr.min_ticks = 0;
+        c.behavior.sunbeam_reach = 0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[behavior] sunbeam_reach"), "{msg}");
+
+        // actions (9) reports before viewer (10).
+        let mut c = Config::default();
+        c.viewer.distress_patience_ticks = 0;
+        c.actions.solo_play_relief = -1.0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[actions] solo_play_relief"), "{msg}");
+
+        // world (1) reports before the dissolved sections entirely.
+        let mut c = Config::default();
+        c.persistence.save_every_ticks = 0;
+        c.world.tick_ms = 0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[world] tick_ms"), "{msg}");
     }
 }

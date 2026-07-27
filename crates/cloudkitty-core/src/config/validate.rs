@@ -301,28 +301,20 @@ impl Config {
                 "must be between 0 and 100",
             ));
         }
-        for (field, value) in [
-            (
-                "[behavior] chase_patience_ticks",
-                self.behavior.chase_patience_ticks,
-            ),
-            (
-                "[behavior] chase_exclusion_ticks",
-                self.behavior.chase_exclusion_ticks,
-            ),
-        ] {
-            if value == 0 {
-                return Err(ConfigError::invalid(
-                    field,
-                    "0".to_string(),
-                    "must be at least 1 tick",
-                ));
-            }
-        }
         // One row per nonzero-bounded field: `(field, value, expected)`,
         // message bytes verbatim per row (spec 020 D2 — the loop owns only
         // the if/return shape; a new bounded field is a new row).
         for (field, value, expected) in [
+            (
+                "[behavior] chase_patience_ticks",
+                self.behavior.chase_patience_ticks,
+                "must be at least 1 tick",
+            ),
+            (
+                "[behavior] chase_exclusion_ticks",
+                self.behavior.chase_exclusion_ticks,
+                "must be at least 1 tick",
+            ),
             (
                 "[behavior] solo_play_reach",
                 self.behavior.solo_play_reach as u64,
@@ -458,6 +450,14 @@ impl Config {
 
     /// The world must physically fit its inhabitants: one tile per kitty, and one
     /// tile per element at minimum population.
+    ///
+    /// Both branches are currently unreachable through `validate()`: roster
+    /// uniqueness (unique in-bounds positions) pigeonholes the kitty count at
+    /// ≤ area, and per-kind element maxima (≤ area/32, five kinds) cap the
+    /// combined minimums below area. Retained deliberately as defense in
+    /// depth — these are the direct statements of the capacity invariant, and
+    /// they become load-bearing the moment the earlier validators' rules
+    /// loosen. Do not delete as dead code.
     pub(super) fn validate_capacity(&self) -> Result<(), ConfigError> {
         let area = self.world.area();
         let kitty_count = self.kitties.len() as u32;
