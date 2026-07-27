@@ -42,7 +42,11 @@ const VIEW = Object.freeze({
   breathePeriodMs: 3400, // the slow ambient cycle for resting poses
 
   // Beats (US5).
-  reliefSparkleDrop: 15, // need-points a drop must exceed to sparkle
+  // The observed drop is relief minus that tick's need rise, so the
+  // threshold must sit below the smallest sparkle-worthy relief: cuddle at
+  // 15/tick lands as ~14.6. Kept above solo play (~9.6) and sleep (~7.7),
+  // which stay sparkle-free.
+  reliefSparkleDrop: 12, // need-points a drop must exceed to sparkle
   sadBeatMs: 1600,
   sparkleMs: 1000,
 

@@ -161,13 +161,15 @@ impl NeedWeights {
 
 impl Default for NeedWeights {
     fn default() -> Self {
+        // Rebalanced toward companionship (owner tuning, 2026-07-27):
+        // eat/drink 0.25 -> 0.20, cuddle/bath 0.10 -> 0.15.
         Self {
-            eat: 0.25,
-            drink: 0.25,
+            eat: 0.20,
+            drink: 0.20,
             sleep: 0.15,
             play: 0.15,
-            cuddle: 0.10,
-            bath: 0.10,
+            cuddle: 0.15,
+            bath: 0.15,
         }
     }
 }
@@ -242,9 +244,9 @@ mod tests {
     fn happiness_uses_configured_weights() {
         let mut needs = Needs::default();
         needs.add(NeedKind::Eat, 100.0);
-        // Default eat weight is 0.25 => 100 - 25 = 75.
+        // Default eat weight is 0.20 => 100 - 20 = 80.
         let h = happiness(&needs, &NeedWeights::default(), 5.0);
-        assert!((h - 75.0).abs() < f32::EPSILON, "got {h}");
+        assert!((h - 80.0).abs() < f32::EPSILON, "got {h}");
     }
 
     #[test]
