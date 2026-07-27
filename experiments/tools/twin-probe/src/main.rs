@@ -18,6 +18,13 @@
 //!   sample (duration enforcement rewrote both, twins are bit-identical
 //!   forever): skipped and counted. The skip rate itself measures the
 //!   density of genuine decision points.
+//! - `--only-action <classes>` (comma-separated wire names) oversamples rare
+//!   action classes: the substituted kitty is chosen among those whose base
+//!   applied action matches, and non-matching ticks are skipped before the
+//!   trace is paid for. Filtered skips are counted separately from
+//!   degenerates and excluded from the decision-point density.
+//! - `--quiet` suppresses the carriage-return progress line (which pollutes
+//!   captured output); the summary and shortfall warning still print.
 
 use std::collections::BTreeMap;
 use std::fs;
@@ -54,8 +61,13 @@ struct SampleRecord {
 struct Summary {
     valid_samples: usize,
     degenerate_skipped: usize,
+    /// Attempts skipped because no kitty's applied action matched
+    /// `--only-action` that tick. Not decision-point evidence, so excluded
+    /// from `decision_point_density`.
+    filtered_out: usize,
     attempts: usize,
     decision_point_density: f64,
+    only_action: Vec<String>,
     config: String,
     world_seeds: Vec<u64>,
     t_min: u64,
@@ -92,7 +104,16 @@ struct Args {
     trace_len: usize,
     probe_seed: u64,
     out: PathBuf,
+    /// Wire names to oversample; empty = accept every action class.
+    only_action: Vec<String>,
+    quiet: bool,
 }
+
+/// Every wire name `action_wire_name` can produce; guards `--only-action`
+/// against typos that would otherwise filter out every sample silently.
+const WIRE_NAMES: [&str; 11] = [
+    "move", "rest", "sleep", "groom", "eat", "drink", "chase", "play", "purr", "meow", "idle",
+];
 
 fn parse_args() -> Args {
     let mut args = Args {
@@ -104,6 +125,8 @@ fn parse_args() -> Args {
         trace_len: 600,
         probe_seed: 42,
         out: PathBuf::from("twin-probe.jsonl"),
+        only_action: Vec::new(),
+        quiet: false,
     };
     let mut it = std::env::args().skip(1);
     while let Some(flag) = it.next() {
@@ -129,11 +152,27 @@ fn parse_args() -> Args {
                 args.probe_seed = value("--probe-seed").parse().expect("--probe-seed: u64")
             }
             "--out" => args.out = PathBuf::from(value("--out")),
+            "--only-action" => {
+                args.only_action = value("--only-action")
+                    .split(',')
+                    .map(|s| s.trim().to_string())
+                    .collect()
+            }
+            "--quiet" => args.quiet = true,
             other => panic!("unknown flag {other}"),
         }
     }
     assert!(args.t_min < args.t_max, "--t-min must be below --t-max");
-    assert!(!args.seeds.is_empty(), "--seeds must name at least one seed");
+    assert!(
+        !args.seeds.is_empty(),
+        "--seeds must name at least one seed"
+    );
+    for name in &args.only_action {
+        assert!(
+            WIRE_NAMES.contains(&name.as_str()),
+            "--only-action: unknown action class {name:?} (expected one of {WIRE_NAMES:?})"
+        );
+    }
     args
 }
 
@@ -158,7 +197,8 @@ fn record_diff(
             .iter()
             .find(|k| k.id == bk.id)
             .expect("twin roster matches base roster");
-        let diff = unclamped_happiness(&bk.needs, weights) - unclamped_happiness(&tk.needs, weights);
+        let diff =
+            unclamped_happiness(&bk.needs, weights) - unclamped_happiness(&tk.needs, weights);
         dh.entry(bk.id).or_default().push(diff);
     }
 }
@@ -168,7 +208,9 @@ fn main() {
     let text = fs::read_to_string(&args.config)
         .unwrap_or_else(|e| panic!("reading {}: {e}", args.config.display()));
     let base_cfg: Config = toml::from_str(&text).expect("config parses as engine TOML");
-    base_cfg.validate().expect("config passes engine validation");
+    base_cfg
+        .validate()
+        .expect("config passes engine validation");
     let rl = RlConfig::from_toml_str(&text).expect("[rl] blocks parse and validate");
     let registry = BehaviorRegistry::with_builtins();
 
@@ -183,8 +225,11 @@ fn main() {
     let mut rng = SplitMix(args.probe_seed);
     let mut valid = 0usize;
     let mut degenerate = 0usize;
+    let mut filtered = 0usize;
     let mut attempts = 0usize;
-    let max_attempts = args.samples * 6;
+    // Rejection sampling against a rare action class burns attempts on
+    // filtered ticks; give the filtered path a much longer leash.
+    let max_attempts = args.samples * if args.only_action.is_empty() { 6 } else { 200 };
 
     while valid < args.samples && attempts < max_attempts {
         attempts += 1;
@@ -208,6 +253,34 @@ fn main() {
         // the twins' only difference.
         let mut twin = base.clone();
         let driven = drive_tick(&mut base, &registry, &config);
+
+        // With a class filter, re-choose the substituted kitty among those
+        // whose applied action matched this tick (the pre-drawn `kitty` keeps
+        // the unfiltered path's draw sequence unchanged). Skipping here is
+        // cheap: the 2×trace_len forward ticks were never paid for.
+        let kitty = if args.only_action.is_empty() {
+            kitty
+        } else {
+            let candidates: Vec<KittyId> = kitty_ids
+                .iter()
+                .copied()
+                .filter(|id| {
+                    driven.report.record(*id).is_some_and(|rec| {
+                        args.only_action
+                            .iter()
+                            .any(|n| n == action_wire_name(&rec.applied))
+                    })
+                })
+                .collect();
+            match candidates.len() {
+                0 => {
+                    filtered += 1;
+                    continue;
+                }
+                n => candidates[rng.below(n as u64) as usize],
+            }
+        };
+
         let mut subbed = JointProposal::new();
         for id in driven.proposals.ids() {
             match driven.proposals.get(id) {
@@ -252,19 +325,29 @@ fn main() {
         serde_json::to_writer(&mut out, &record).expect("writing sample record");
         out.write_all(b"\n").expect("writing sample record");
         valid += 1;
-        eprint!("\rvalid {valid}/{} (degenerate {degenerate})", args.samples);
+        if !args.quiet {
+            eprint!(
+                "\rvalid {valid}/{} (degenerate {degenerate}, filtered {filtered})",
+                args.samples
+            );
+        }
     }
-    eprintln!();
+    if !args.quiet {
+        eprintln!();
+    }
 
+    let unfiltered_attempts = attempts - filtered;
     let summary = Summary {
         valid_samples: valid,
         degenerate_skipped: degenerate,
+        filtered_out: filtered,
         attempts,
-        decision_point_density: if attempts > 0 {
-            valid as f64 / attempts as f64
+        decision_point_density: if unfiltered_attempts > 0 {
+            valid as f64 / unfiltered_attempts as f64
         } else {
             0.0
         },
+        only_action: args.only_action.clone(),
         config: args.config.display().to_string(),
         world_seeds: args.seeds.clone(),
         t_min: args.t_min,
@@ -273,7 +356,10 @@ fn main() {
         probe_seed: args.probe_seed,
         out: args.out.display().to_string(),
     };
-    println!("{}", serde_json::to_string_pretty(&summary).expect("summary"));
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&summary).expect("summary")
+    );
     if valid < args.samples {
         eprintln!(
             "warning: only {valid}/{} valid samples after {attempts} attempts",

@@ -236,3 +236,61 @@ appendix anyway so the prereg body and the first result read consistently.
 - The §6 envelope plot is still owed as a figure (see the result doc's
   follow-ups); the decision rules were exercised on the significance
   bands, not the envelope.
+
+### 2026-07-27 — v2.4 accepted; Cuddle diagnosis flipped; baseline retune (pre-training)
+
+Recorded before any training run, in the appendix per the precedent above.
+Three developments, in the order they landed:
+
+**1. Product handover accepted (refactor arc 018–020, tagged v2.4).** The
+"Depends on" line's v2.1 reads as v2.4: bit/byte-identical refactors only,
+verified from this side by review. The seat-0 convention (Mixed mode always
+seats the subject at kitty index 0) is noted as fair for paired comparison;
+seat rotation is a v2 nicety, not a threat.
+
+**2. Cuddle diagnosis corrected (spec 021 withdrawn 2026-07-27).** Planning
+around this experiment briefly carried a "welfare Cuddle bound produces
+false positives beside busy friends" premise. It is false: busy neighbors
+*are* lawful cuddle relief — `Sleep{with}` and `Groom{target}` validate on
+adjacency alone and bind nobody, and both routes sit in the 40-action menu
+and are masked-in on adjacency. No confound note enters this prereg and no
+certification gate exists. The standing interpretation rule instead: **a
+trained arm showing Cuddle pinned streaks beside busy friends failed to
+learn the non-binding social routes** — a real skill gap the certification
+bound correctly punishes, diagnosed under decision rule §9.4 as a fairness/
+transfer failure, never as an eval bug. (Candidate finding F-002 —
+`needs_driven` itself under-uses these routes; the 38 events spec 021
+miscounted as false positives were real refusals — awaits a recount on the
+retuned baseline below before any registration.)
+
+**3. Baseline retune ([PR #60](https://github.com/CloudKitty-ai/cloudkitty/pull/60),
+cf82007, 2026-07-27).** Owner rebalance toward companionship: happiness
+weights eat/drink 0.25→0.20 and cuddle/bath 0.10→0.15; `groom_relief`→20,
+`play_relief` 25→20, `cuddle_relief` 20→15 — applied to the compiled
+defaults, which `training.toml` and the frozen `evals/v1` exams inherit.
+Consequences for this prereg:
+
+- **F-001's quantities are stale for this experiment.** The two-channel
+  numbers behind §5/§6 (teammate band 50–200 peaking k≈106; discounted
+  team-signal retention 0.59 at γ=0.995 vs 0.38 at γ=0.99) were measured
+  pre-retune. The probe re-runs on the retuned baseline before any compute
+  is spent on the γ sweep; γ=0.995 stands as the *predicted* winner — the
+  retune plausibly strengthens it (slower social relief lengthens scenes;
+  cuddle/bath weigh 1.5× more in the reward), but the decision inputs are
+  the fresh run's, whichever way they land. F-001 gets a confirm-or-
+  supersede verdict in FINDINGS.md from that run.
+- The planned bit-identical regeneration diff of the committed probe data
+  against v2.4 is superseded: trajectories moved deliberately with the
+  retune, so a byte diff no longer verifies anything.
+- `needs_driven` anchor on the retuned defaults: 3-seed 20k-tick
+  certification probe means ≈ 90.2–90.6 (PR #60 verification note). §1's
+  "near the achievable ceiling" reads against these numbers now.
+- Pre- and post-retune suite results are not comparable even though the
+  frozen exam hashes still validate. Suite reports now stamp
+  `engine_defaults_sha256`
+  ([PR #61](https://github.com/CloudKitty-ai/cloudkitty/pull/61)); every
+  result written against this prereg must come from a stamped post-retune
+  run, and the §10.3 reproducibility manifest gains that stamp as a
+  required field.
+- The retuned baseline sits untagged at time of writing; results cite the
+  merge commit until Product tags it (v2.5 recommended).
