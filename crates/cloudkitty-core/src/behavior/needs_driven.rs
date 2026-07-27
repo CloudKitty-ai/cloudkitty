@@ -87,43 +87,55 @@ pub(crate) fn finish_what_you_started(ctx: &DecisionContext) -> Option<Action> {
     activity.continuation()
 }
 
+/// The emergency ladder: the needs opportunism considers, in load-bearing
+/// order — food and water first, the sunbeam you are standing in, and only
+/// then a passing playmate. Cuddle and Bath are deliberately absent: they
+/// are never grabbed opportunistically.
+const OPPORTUNISM_LADDER: [NeedKind; 4] = [
+    NeedKind::Eat,
+    NeedKind::Drink,
+    NeedKind::Sleep,
+    NeedKind::Play,
+];
+
 /// Eat, drink, nap or play when the means are already underfoot and the need is
 /// real. Shared with `Playful`: opportunism is good sense, not a personality
-/// trait. The order is the emergency ladder: food and water first, the sunbeam
-/// you are standing in, and only then a passing playmate.
+/// trait. The need→relief pairing comes from the one authoritative definition
+/// (`relief.rs`, spec 019); this function owns only the underfoot checks.
 pub(crate) fn take_what_is_here(ctx: &DecisionContext) -> Option<Action> {
     let me = &ctx.me;
     let detour = ctx.config.behavior.worth_a_detour;
 
-    if me.needs.get(NeedKind::Eat) >= detour
-        && ctx
-            .world
-            .elements_of(ElementType::Chow)
-            .any(|e| me.pos.is_adjacent(&e.pos))
-    {
-        return Some(Action::Eat);
-    }
-
-    if me.needs.get(NeedKind::Drink) >= detour
-        && ctx
-            .world
-            .elements_of(ElementType::Water)
-            .any(|e| me.pos.is_adjacent(&e.pos))
-    {
-        return Some(Action::Drink);
-    }
-
-    // A sunbeam you are already sitting in is too good to waste.
-    if me.needs.get(NeedKind::Sleep) >= detour
-        && ctx.world.element_at(me.pos).map(|e| e.element_type()) == Some(ElementType::Sunbeam)
-    {
-        return Some(Action::Sleep { with: None });
-    }
-
-    // A bug within paw's reach gets batted at, whatever the errand was.
-    if me.needs.get(NeedKind::Play) >= detour {
-        if let Some(target) = selection::adjacent_playmate(ctx) {
-            return Some(Action::play_with(target));
+    for need in OPPORTUNISM_LADDER {
+        if me.needs.get(need) < detour {
+            continue;
+        }
+        match need.relief() {
+            ReliefSource::Element { kind, use_it } => {
+                if ctx
+                    .world
+                    .elements_of(kind)
+                    .any(|e| me.pos.is_adjacent(&e.pos))
+                {
+                    return Some(use_it);
+                }
+            }
+            // A sunbeam you are already sitting in is too good to waste.
+            ReliefSource::Sunbeam => {
+                if ctx.world.element_at(me.pos).map(|e| e.element_type())
+                    == Some(ElementType::Sunbeam)
+                {
+                    return Some(Action::Sleep { with: None });
+                }
+            }
+            // A bug within paw's reach gets batted at, whatever the errand was.
+            ReliefSource::Playmate => {
+                if let Some(target) = selection::adjacent_playmate(ctx) {
+                    return Some(Action::play_with(target));
+                }
+            }
+            // Not opportunistic (and absent from the ladder).
+            ReliefSource::Friend | ReliefSource::InPlace { .. } => {}
         }
     }
 
