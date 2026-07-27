@@ -117,10 +117,12 @@ which may stand in for the full spec-first flow at the owner's call.
   `debug_assert`). Scope confirmed ~5 real edit sites across 3 files;
   one care: `RosterMode` serializes into run JSON, so the wire shape is
   the non-mechanical part. **Definition-of-done ask (experiments session,
-  2026-07-27): land a golden-file test on run JSON *before* the refactor
-  starts — longitudinal report comparability is the thing the eval-suite
-  doctrine can't lose, and this is the agreed exception to the
-  goldens-deferred ruling.**
+  2026-07-27): a golden-file test on run JSON lands before the refactor
+  starts — SATISFIED same day (PR #59,
+  `crates/cloudkitty-rl/tests/run_json_golden.rs`): all three RosterMode
+  wire tags + PairedDelta pinned against a committed golden, regeneration
+  doctrine in the module docs. The fold is now free to ride the next
+  harness touch with its wire-shape care mechanically checked.**
 - `cloudkitty-py/src/lib.rs` — the agent-info schema is marshaled in two
   places that must stay identical (`info_to_py` and
   `VectorEnv::stack_infos`; the code comments warn about it). Single-source
