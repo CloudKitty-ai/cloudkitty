@@ -14,7 +14,7 @@
 
 **Purpose**: The verification instrument every story checkpoints against.
 
-- [ ] T001 Author the throwaway sweep harness as `crates/cloudkitty-core/examples/config_sweep.rs` (per research D4): for every rejection rule in baseline `config.rs`, one minimal TOML mutation of the default config that trips exactly that rule; output sorted `rule\tmessage` lines. Coverage bar: rule count matches the `ConfigError::invalid` site count (~46 at `33f69df`); any rule untrippable via parseable TOML is enumerated with a reason. Cross-check the inventory against the existing unit tests' invalid-config cases. (Working-tree only — never committed; deleted at T010.)
+- [ ] T001 Author the throwaway sweep harness as `crates/cloudkitty-core/examples/config_sweep.rs` (per research D4): for every rejection rule in baseline `config.rs`, one minimal mutation of a pinned base config that trips exactly that rule; output sorted `rule\tmessage` lines. **Base config is pinned at this task**: the committed `cloudkitty.toml` (valid, committed, untouched by this branch) — or empty TOML only if verified to parse with full serde defaults; record the choice in quickstart §2. **Mutations are structural**, via `toml::Value` path-set on the parsed base (never text append — TOML rejects duplicate keys). Coverage bar: rule count matches the `ConfigError::invalid` site count (~46 at `33f69df`); any rule untrippable via parseable TOML is enumerated with a reason. Cross-check the inventory against the existing unit tests' invalid-config cases. (Working-tree only — never committed; deleted at T010.)
 
 ---
 
@@ -36,7 +36,7 @@
 
 - [ ] T003 [US1] Fold the mechanical guards in `crates/cloudkitty-core/src/config.rs` into per-cluster table loops (research D2): the ~13 zero/at-least guards (baseline 1072–1176 region) plus any other same-shape clusters across the section validators (survey the whole file — the two existing loops at 1089–1101 and 1110–1127 are the pattern). Every row carries `(field, rendered_value, expected)` with the exact baseline message — rationale parentheticals included, byte-for-byte; clusters already sharing one message keep the shared-message form. Relational/branching rules (min>max, range checks with `is_nan`, capacity logic) stay as-is (FR-002 moves them later; they are never table rows).
 - [ ] T004 [US1] Checkpoint: `cargo test --workspace` green; rerun the sweep in the branch tree and `diff` against `base-sweep.txt` — byte-identical required before proceeding.
-- [ ] T005 [US1] Run the quickstart §4 walkthrough: throwaway bounded field (struct field + default fn + one table row), out-of-bounds TOML rejects with a cluster-consistent message, in-bounds accepts, revert; record in quickstart; clean tree (FR-009: nothing lands).
+- [ ] T005 [US1] Run the quickstart §4 walkthrough: throwaway bounded field (struct field + a `default_*` fn in its then-current home — the split has not happened yet at this point — + one table row), out-of-bounds TOML rejects with a cluster-consistent message, in-bounds accepts, revert; record in quickstart; clean tree (FR-009: nothing lands).
 
 **Checkpoint**: US1 delivered — the recurring per-field toll is one row.
 

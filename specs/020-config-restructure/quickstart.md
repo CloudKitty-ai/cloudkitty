@@ -34,16 +34,22 @@ Throwaway harness (never landed): for each rejection rule, one minimal
 TOML mutation of the default config tripping exactly that rule.
 
 ```sh
-# Rule inventory: every ConfigError::invalid site + table rows
-grep -c "ConfigError::invalid" crates/cloudkitty-core/src/config/validate.rs crates/cloudkitty-core/src/config/mod.rs
+# Rule inventory: every ConfigError::invalid site (+ table rows)
+# — grep config.rs before the split; the config/ files after:
+grep -c "ConfigError::invalid" crates/cloudkitty-core/src/config.rs 2>/dev/null \
+  || grep -c "ConfigError::invalid" crates/cloudkitty-core/src/config/validate.rs crates/cloudkitty-core/src/config/mod.rs
 # Baseline worktree
 git worktree add "$CLAUDE_JOB_DIR/tmp/ck-020-base" 33f69df
-# Harness shape (implementation writes it in both trees, e.g. examples/sweep.rs
-# or a #[ignore] test invoked explicitly): for each (rule, toml-mutation):
-#   parse default TOML + mutation → validate() → print "rule\tmessage"
-# Run in both trees, sort, diff:
-diff "$CLAUDE_JOB_DIR/tmp/ck-020-verify/base-sweep.txt" \
-     "$CLAUDE_JOB_DIR/tmp/ck-020-verify/new-sweep.txt" && echo "ALL REJECTION PATHS BYTE-IDENTICAL"
+# Harness: crates/cloudkitty-core/examples/config_sweep.rs (working-tree only,
+# copied into the worktree, deleted before landing). Base config pinned at
+# T001 (committed cloudkitty.toml, or empty TOML iff it parses with full
+# defaults — record which); mutations are structural toml::Value path-sets,
+# never text append. For each (rule, mutation): parse → validate() → print
+# "rule\tmessage", sorted.
+OUT="$CLAUDE_JOB_DIR/tmp/ck-020-verify" && mkdir -p "$OUT"
+(cd "$CLAUDE_JOB_DIR/tmp/ck-020-base" && cargo run -p cloudkitty-core --example config_sweep) > "$OUT/base-sweep.txt"
+cargo run -p cloudkitty-core --example config_sweep > "$OUT/new-sweep.txt"
+diff "$OUT/base-sweep.txt" "$OUT/new-sweep.txt" && echo "ALL REJECTION PATHS BYTE-IDENTICAL"
 git worktree remove "$CLAUDE_JOB_DIR/tmp/ck-020-base"
 ```
 
@@ -72,9 +78,11 @@ byte-identical).
 
 ## 4. US1 walkthrough — one table row (done once, reverted; FR-009)
 
-Add a throwaway bounded field (struct field + `defaults::` fn + ONE table
-row); confirm an out-of-bounds TOML rejects with a correctly-formatted
-message and an in-bounds one accepts; revert. Nothing lands.
+Add a throwaway bounded field (struct field + a `default_*` fn in its
+then-current home — plain `config.rs` when run at US1, `defaults.rs`
+after the split — + ONE table row); confirm an out-of-bounds TOML
+rejects with a correctly-formatted message and an in-bounds one accepts;
+revert. Nothing lands.
 
 > **Record:** the row, both outcomes, clean-tree confirmation.
 
