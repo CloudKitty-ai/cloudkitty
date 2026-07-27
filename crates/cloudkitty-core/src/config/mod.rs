@@ -14,6 +14,14 @@ use crate::grid::Position;
 use crate::kitty::KittyId;
 use crate::needs::NeedWeights;
 
+mod defaults;
+mod validate;
+
+// Load-bearing glob: the `#[serde(default = "default_x")]` string attributes
+// below and the `Default` impls resolve these names bare. Narrowing or
+// removing this import breaks every one of them.
+use defaults::*;
+
 /// Elements may occupy at most one tile in every `TILES_PER_ELEMENT`, which sets
 /// the hard upper bound on each element type's population.
 pub const TILES_PER_ELEMENT: u32 = 32;
@@ -91,18 +99,6 @@ pub struct PurrConfig {
     pub cooldown_ticks: u64,
 }
 
-fn default_purr_min_ticks() -> u64 {
-    6
-}
-
-fn default_purr_max_ticks() -> u64 {
-    15
-}
-
-fn default_purr_cooldown_ticks() -> u64 {
-    30
-}
-
 impl Default for PurrConfig {
     fn default() -> Self {
         Self {
@@ -121,10 +117,6 @@ pub struct WorldConfig {
     pub seed: u64,
     #[serde(default = "default_bind")]
     pub bind: String,
-}
-
-fn default_bind() -> String {
-    "127.0.0.1:8090".to_string()
 }
 
 impl Default for WorldConfig {
@@ -402,10 +394,6 @@ pub struct ActionEffects {
     pub durations: DurationsConfig,
 }
 
-fn default_solo_play_relief() -> f32 {
-    10.0
-}
-
 impl Default for ActionEffects {
     fn default() -> Self {
         Self {
@@ -454,17 +442,6 @@ pub struct DurationsConfig {
     pub sleep: DurationBounds,
     #[serde(default = "default_long_activity")]
     pub cuddle: DurationBounds,
-}
-
-fn default_short_activity() -> DurationBounds {
-    DurationBounds::new(2, 5)
-}
-
-fn default_long_activity() -> DurationBounds {
-    // Min raised 2 -> 3 once the 005 animations made durations visible:
-    // a nap or cuddle worth watching holds for at least three ticks
-    // (owner tuning, 2026-07-20; spec 006 defaults amended in step).
-    DurationBounds::new(3, 8)
 }
 
 impl Default for DurationsConfig {
@@ -598,62 +575,6 @@ pub struct BehaviorConfig {
     pub exchange_timeout_ms: u64,
 }
 
-fn default_playful_comfort() -> f32 {
-    55.0
-}
-
-fn default_urgency_weight() -> f32 {
-    2.0
-}
-
-fn default_tile_cost() -> f32 {
-    1.0
-}
-
-fn default_water_step_cost() -> f32 {
-    4.0
-}
-
-fn default_worth_a_detour() -> f32 {
-    30.0
-}
-
-fn default_chase_patience_ticks() -> u64 {
-    12
-}
-
-fn default_chase_exclusion_ticks() -> u64 {
-    60
-}
-
-fn default_solo_play_reach() -> u32 {
-    8
-}
-
-fn default_sunbeam_reach() -> u32 {
-    8
-}
-
-fn default_budget_strikes() -> u32 {
-    5
-}
-
-fn default_bench_ticks() -> u64 {
-    300
-}
-
-fn default_reply_max_bytes() -> usize {
-    65536
-}
-
-fn default_relaunch_cooldown_ticks() -> u64 {
-    20
-}
-
-fn default_exchange_timeout_ms() -> u64 {
-    1000
-}
-
 impl Default for BehaviorConfig {
     fn default() -> Self {
         Self {
@@ -691,10 +612,6 @@ pub struct EventsConfig {
     /// alone cannot show (the final tick clears the clock it stamped).
     #[serde(default = "default_activity_retention")]
     pub activity_retention: usize,
-}
-
-fn default_activity_retention() -> usize {
-    1000
 }
 
 impl Default for EventsConfig {
@@ -775,6 +692,11 @@ impl Config {
     /// Errors name the field, its value, and the allowed range so an operator can
     /// fix the file without reading the source.
     pub fn validate(&self) -> Result<(), ConfigError> {
+        // Section order is spec-contract (spec 020, amended FR-004): the
+        // first-failing message a multiply-invalid config reports follows
+        // this sequence; reordering it is a spec change, not a refactor.
+        // Positions 1-7 and 13-14 are the pre-020 entry order; 7-12 expand
+        // the old catch-all in its slot, in its own first-occurrence order.
         self.validate_world()?;
         self.validate_roster()?;
         self.validate_thresholds()?;
@@ -782,207 +704,13 @@ impl Config {
         self.validate_needs()?;
         self.validate_elements()?;
         self.validate_behavior()?;
+        self.validate_purr()?;
+        self.validate_actions()?;
+        self.validate_viewer()?;
+        self.validate_events()?;
+        self.validate_persistence()?;
         self.validate_durations()?;
         self.validate_capacity()?;
-        Ok(())
-    }
-
-    /// Spec 006: every activity's duration bounds must satisfy 1 <= min <= max.
-    fn validate_durations(&self) -> Result<(), ConfigError> {
-        for (name, bounds) in self.actions.durations.all() {
-            if bounds.min < 1 {
-                return Err(ConfigError::invalid(
-                    format!("[actions.durations] {name}.min"),
-                    bounds.min.to_string(),
-                    "an activity runs at least 1 tick (1 <= min <= max)",
-                ));
-            }
-            if bounds.max < bounds.min {
-                return Err(ConfigError::invalid(
-                    format!("[actions.durations] {name}.max"),
-                    bounds.max.to_string(),
-                    format!("must be at least {name}.min ({})", bounds.min),
-                ));
-            }
-        }
-        Ok(())
-    }
-
-    fn validate_world(&self) -> Result<(), ConfigError> {
-        let w = &self.world;
-        if w.width == 0 || w.height == 0 {
-            return Err(ConfigError::invalid(
-                "[world] width/height",
-                format!("{}x{}", w.width, w.height),
-                "both must be at least 1",
-            ));
-        }
-        if w.tick_ms == 0 {
-            return Err(ConfigError::invalid(
-                "[world] tick_ms",
-                w.tick_ms.to_string(),
-                "must be greater than 0",
-            ));
-        }
-        // Below this, `floor(area / 32)` is zero and no element type could reach its
-        // hard minimum of one.
-        if w.area() < TILES_PER_ELEMENT {
-            return Err(ConfigError::invalid(
-                "[world] width x height",
-                format!("{} tiles", w.area()),
-                format!(
-                    "must be at least {TILES_PER_ELEMENT} tiles so each element type can exist"
-                ),
-            ));
-        }
-        Ok(())
-    }
-
-    fn validate_roster(&self) -> Result<(), ConfigError> {
-        // Article III: kitties cannot be alone.
-        if self.kitties.len() < 2 {
-            return Err(ConfigError::invalid(
-                "[[kitty]] roster",
-                format!("{} kitties", self.kitties.len()),
-                "the constitution requires at least 2 kitties (Article III: kitties cannot be alone)",
-            ));
-        }
-
-        let mut seen_ids = std::collections::BTreeSet::new();
-        let mut seen_positions = std::collections::BTreeSet::new();
-        for k in &self.kitties {
-            if !seen_ids.insert(k.id) {
-                return Err(ConfigError::invalid(
-                    "[[kitty]] id",
-                    k.id.to_string(),
-                    "kitty ids must be unique",
-                ));
-            }
-            if k.id == crate::kitty::RESERVED_KITTY_ID {
-                return Err(ConfigError::invalid(
-                    "[[kitty]] id",
-                    k.id.to_string(),
-                    "this id is reserved (spec 014: downstream encodings use it to \
-                     mean \"no kitty\", so no live kitty may ever carry it)",
-                ));
-            }
-            if !k.position().in_bounds(self.world.width, self.world.height) {
-                return Err(ConfigError::invalid(
-                    format!("[[kitty]] '{}' position", k.name),
-                    format!("({}, {})", k.x, k.y),
-                    format!(
-                        "must be within the world: x in 0..{}, y in 0..{}",
-                        self.world.width, self.world.height
-                    ),
-                ));
-            }
-            if !seen_positions.insert((k.x, k.y)) {
-                return Err(ConfigError::invalid(
-                    format!("[[kitty]] '{}' position", k.name),
-                    format!("({}, {})", k.x, k.y),
-                    "two kitties may not start on the same tile",
-                ));
-            }
-            if k.behavior.trim().is_empty() {
-                return Err(ConfigError::invalid(
-                    format!("[[kitty]] '{}' behavior", k.name),
-                    "empty".to_string(),
-                    "must name a registered behavior, e.g. \"needs_driven\"",
-                ));
-            }
-        }
-        Ok(())
-    }
-
-    fn validate_thresholds(&self) -> Result<(), ConfigError> {
-        let t = &self.thresholds;
-        for (field, value) in [
-            ("[thresholds] distress", t.distress),
-            ("[thresholds] safeguard", t.safeguard),
-            ("[thresholds] purr", t.purr),
-        ] {
-            if !(0.0..=100.0).contains(&value) || value.is_nan() {
-                return Err(ConfigError::invalid(
-                    field,
-                    value.to_string(),
-                    "must be between 0 and 100",
-                ));
-            }
-        }
-        // Relief must arrive before distress is even recorded, or the safeguard
-        // would be pointless.
-        if t.safeguard >= t.distress {
-            return Err(ConfigError::invalid(
-                "[thresholds] safeguard",
-                t.safeguard.to_string(),
-                format!(
-                    "must be below [thresholds] distress ({}) so relief arrives before distress",
-                    t.distress
-                ),
-            ));
-        }
-        Ok(())
-    }
-
-    fn validate_happiness(&self) -> Result<(), ConfigError> {
-        let h = &self.happiness;
-        // Article I: happiness can never reach zero, so the floor must be above it.
-        if !(h.floor > 0.0 && h.floor < 100.0) {
-            return Err(ConfigError::invalid(
-                "[happiness] floor",
-                h.floor.to_string(),
-                "must be greater than 0 and less than 100 (Article I: happiness can never reach zero)",
-            ));
-        }
-        let sum = h.weights.sum();
-        if (sum - 1.0).abs() > 1e-3 {
-            return Err(ConfigError::invalid(
-                "[happiness.weights]",
-                format!("sum {sum}"),
-                "the six weights must sum to 1.0",
-            ));
-        }
-        for kind in crate::needs::NeedKind::ALL {
-            let w = h.weights.get(kind);
-            if w < 0.0 || w.is_nan() {
-                return Err(ConfigError::invalid(
-                    format!("[happiness.weights] {}", kind.as_str()),
-                    w.to_string(),
-                    "must not be negative",
-                ));
-            }
-        }
-        Ok(())
-    }
-
-    fn validate_needs(&self) -> Result<(), ConfigError> {
-        for kind in crate::needs::NeedKind::ALL {
-            let rate = self.needs.rate(kind);
-            if rate < 0.0 || rate.is_nan() {
-                return Err(ConfigError::invalid(
-                    format!("[needs] {}", kind.as_str()),
-                    rate.to_string(),
-                    "must not be negative (needs rise, they do not fall on their own)",
-                ));
-            }
-        }
-        // Per-kitty overrides obey the same rule as the globals they replace.
-        for kitty in &self.kitties {
-            let Some(overrides) = &kitty.needs else {
-                continue;
-            };
-            for kind in crate::needs::NeedKind::ALL {
-                if let Some(rate) = overrides.get(kind) {
-                    if rate < 0.0 || rate.is_nan() {
-                        return Err(ConfigError::invalid(
-                            format!("[kitty.needs] {} for '{}'", kind.as_str(), kitty.name),
-                            rate.to_string(),
-                            "must not be negative (needs rise, they do not fall on their own)",
-                        ));
-                    }
-                }
-            }
-        }
         Ok(())
     }
 
@@ -996,271 +724,6 @@ impl Config {
             .and_then(|k| k.needs.as_ref())
             .and_then(|o| o.get(kind))
             .unwrap_or_else(|| self.needs.rate(kind))
-    }
-
-    fn validate_elements(&self) -> Result<(), ConfigError> {
-        let area = self.world.area();
-        let hard_max = ElementsConfig::hard_max(area);
-        for kind in ElementType::ALL {
-            let rule = self.elements.rule(kind);
-            let hard_min = ElementsConfig::hard_min(kind);
-            let field = format!("[elements.{}]", kind.as_str());
-
-            if rule.min < hard_min {
-                return Err(ConfigError::invalid(
-                    format!("{field} min"),
-                    rule.min.to_string(),
-                    format!("must be at least {hard_min} for this element type"),
-                ));
-            }
-            if rule.max > hard_max {
-                return Err(ConfigError::invalid(
-                    format!("{field} max"),
-                    rule.max.to_string(),
-                    format!(
-                        "must be at most {hard_max} (floor(area / {TILES_PER_ELEMENT}) for a {}x{} world)",
-                        self.world.width, self.world.height
-                    ),
-                ));
-            }
-            if rule.min > rule.max {
-                return Err(ConfigError::invalid(
-                    format!("{field} min"),
-                    rule.min.to_string(),
-                    format!("must not exceed max ({})", rule.max),
-                ));
-            }
-            if matches!(kind, ElementType::Chow) {
-                let servings = rule.servings.unwrap_or(0);
-                if servings == 0 {
-                    return Err(ConfigError::invalid(
-                        "[elements.chow] servings",
-                        servings.to_string(),
-                        "must be at least 1",
-                    ));
-                }
-            }
-            if let Some(0) = rule.ttl {
-                return Err(ConfigError::invalid(
-                    format!("{field} ttl"),
-                    "0".to_string(),
-                    "must be at least 1 tick, or omitted for a permanent element",
-                ));
-            }
-        }
-        Ok(())
-    }
-
-    fn validate_behavior(&self) -> Result<(), ConfigError> {
-        let f = self.behavior.budget_fraction_of_tick;
-        // The budget must leave room for the rest of the tick's work.
-        if !(f > 0.0 && f < 1.0) {
-            return Err(ConfigError::invalid(
-                "[behavior] budget_fraction_of_tick",
-                f.to_string(),
-                "must be greater than 0 and less than 1 (the decision budget must be shorter than a tick)",
-            ));
-        }
-        let comfort = self.behavior.playful_comfort;
-        if !(comfort > 0.0 && comfort <= 100.0) || comfort.is_nan() {
-            return Err(ConfigError::invalid(
-                "[behavior] playful_comfort",
-                comfort.to_string(),
-                "must be greater than 0 and at most 100",
-            ));
-        }
-        if self.purr.min_ticks < 1 {
-            return Err(ConfigError::invalid(
-                "[purr] min_ticks",
-                self.purr.min_ticks.to_string(),
-                "must be at least 1",
-            ));
-        }
-        if self.purr.min_ticks > self.purr.max_ticks {
-            return Err(ConfigError::invalid(
-                "[purr] min_ticks",
-                format!(
-                    "{} (max_ticks is {})",
-                    self.purr.min_ticks, self.purr.max_ticks
-                ),
-                "must be at most max_ticks",
-            ));
-        }
-        for (field, value) in [
-            ("[behavior] urgency_weight", self.behavior.urgency_weight),
-            ("[behavior] tile_cost", self.behavior.tile_cost),
-            ("[behavior] water_step_cost", self.behavior.water_step_cost),
-        ] {
-            if !value.is_finite() || value < 0.0 {
-                return Err(ConfigError::invalid(
-                    field,
-                    value.to_string(),
-                    "must be a finite number of at least 0",
-                ));
-            }
-        }
-        let detour = self.behavior.worth_a_detour;
-        if !(0.0..=100.0).contains(&detour) || detour.is_nan() {
-            return Err(ConfigError::invalid(
-                "[behavior] worth_a_detour",
-                detour.to_string(),
-                "must be between 0 and 100",
-            ));
-        }
-        for (field, value) in [
-            (
-                "[behavior] chase_patience_ticks",
-                self.behavior.chase_patience_ticks,
-            ),
-            (
-                "[behavior] chase_exclusion_ticks",
-                self.behavior.chase_exclusion_ticks,
-            ),
-        ] {
-            if value == 0 {
-                return Err(ConfigError::invalid(
-                    field,
-                    "0".to_string(),
-                    "must be at least 1 tick",
-                ));
-            }
-        }
-        if self.behavior.solo_play_reach == 0 {
-            return Err(ConfigError::invalid(
-                "[behavior] solo_play_reach",
-                "0".to_string(),
-                "must be at least 1 tile",
-            ));
-        }
-        if self.behavior.sunbeam_reach == 0 {
-            return Err(ConfigError::invalid(
-                "[behavior] sunbeam_reach",
-                "0".to_string(),
-                "must be at least 1 tile",
-            ));
-        }
-        if self.behavior.budget_strikes == 0 {
-            return Err(ConfigError::invalid(
-                "[behavior] budget_strikes",
-                "0".to_string(),
-                "must be at least 1 (an advisor gets at least one timed slot)",
-            ));
-        }
-        if self.behavior.bench_ticks == 0 {
-            return Err(ConfigError::invalid(
-                "[behavior] bench_ticks",
-                "0".to_string(),
-                "must be at least 1 tick (a bench must last long enough to exist)",
-            ));
-        }
-        if self.behavior.reply_max_bytes == 0 {
-            return Err(ConfigError::invalid(
-                "[behavior] reply_max_bytes",
-                "0".to_string(),
-                "must be at least 1 byte (a plugin must be allowed to answer)",
-            ));
-        }
-        if self.behavior.relaunch_cooldown_ticks == 0 {
-            return Err(ConfigError::invalid(
-                "[behavior] relaunch_cooldown_ticks",
-                "0".to_string(),
-                "must be at least 1 tick (unbounded respawn would be a spawn storm)",
-            ));
-        }
-        if self.behavior.exchange_timeout_ms == 0 {
-            return Err(ConfigError::invalid(
-                "[behavior] exchange_timeout_ms",
-                "0".to_string(),
-                "must be at least 1 ms (a plugin must have a moment to answer)",
-            ));
-        }
-        let solo = self.actions.solo_play_relief;
-        if !solo.is_finite() || solo < 0.0 {
-            return Err(ConfigError::invalid(
-                "[actions] solo_play_relief",
-                solo.to_string(),
-                "must be a finite number of at least 0",
-            ));
-        }
-        if solo > self.actions.play_relief {
-            return Err(ConfigError::invalid(
-                "[actions] solo_play_relief",
-                solo.to_string(),
-                format!(
-                    "must not exceed play_relief ({}) -- playing together must stay the better deal",
-                    self.actions.play_relief
-                ),
-            ));
-        }
-        if self.viewer.distress_patience_ticks == 0 {
-            return Err(ConfigError::invalid(
-                "[viewer] distress_patience_ticks",
-                "0".to_string(),
-                "must be at least 1 tick",
-            ));
-        }
-        if self.events.distress_retention == 0 {
-            return Err(ConfigError::invalid(
-                "[events] distress_retention",
-                "0".to_string(),
-                "must be at least 1",
-            ));
-        }
-        if self.events.activity_retention == 0 {
-            return Err(ConfigError::invalid(
-                "[events] activity_retention",
-                "0".to_string(),
-                "must be at least 1",
-            ));
-        }
-        if self.persistence.save_every_ticks == 0 {
-            return Err(ConfigError::invalid(
-                "[persistence] save_every_ticks",
-                "0".to_string(),
-                "must be at least 1",
-            ));
-        }
-        Ok(())
-    }
-
-    /// The world must physically fit its inhabitants: one tile per kitty, and one
-    /// tile per element at minimum population.
-    fn validate_capacity(&self) -> Result<(), ConfigError> {
-        let area = self.world.area();
-        let kitty_count = self.kitties.len() as u32;
-        if kitty_count > area {
-            return Err(ConfigError::invalid(
-                "[[kitty]] roster",
-                format!("{kitty_count} kitties"),
-                format!("must not exceed the {area} tiles in the world"),
-            ));
-        }
-        let element_min = self.elements.total_min();
-        if element_min > area {
-            return Err(ConfigError::invalid(
-                "[elements] combined minimums",
-                element_min.to_string(),
-                format!("must not exceed the {area} tiles in the world"),
-            ));
-        }
-        Ok(())
-    }
-
-    /// Confirms every configured behavior name is registered. Called once the
-    /// behavior registry is known.
-    pub fn validate_behavior_names(&self, known: &[String]) -> Result<(), ConfigError> {
-        for k in &self.kitties {
-            if !known.iter().any(|n| n == &k.behavior) {
-                let mut names = known.to_vec();
-                names.sort();
-                return Err(ConfigError::invalid(
-                    format!("[[kitty]] '{}' behavior", k.name),
-                    k.behavior.clone(),
-                    format!("must be one of: {}", names.join(", ")),
-                ));
-            }
-        }
-        Ok(())
     }
 
     /// Identifies the settings a saved world must agree with to be resumable.
@@ -1814,5 +1277,34 @@ mod tests {
             b.fingerprint(),
             "duration tuning must never orphan a saved world"
         );
+    }
+
+    /// Spec 020 review guard: the section sequence in `validate` is a
+    /// message-order contract (amended FR-004) — the first-reported error
+    /// for a multiply-invalid config follows the documented call order.
+    /// These fixtures make a reorder of the call list fail here instead of
+    /// silently changing operator-facing messages.
+    #[test]
+    fn multi_fault_first_error_follows_the_section_sequence() {
+        // behavior (position 7) reports before purr (8).
+        let mut c = Config::default();
+        c.purr.min_ticks = 0;
+        c.behavior.sunbeam_reach = 0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[behavior] sunbeam_reach"), "{msg}");
+
+        // actions (9) reports before viewer (10).
+        let mut c = Config::default();
+        c.viewer.distress_patience_ticks = 0;
+        c.actions.solo_play_relief = -1.0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[actions] solo_play_relief"), "{msg}");
+
+        // world (1) reports before the dissolved sections entirely.
+        let mut c = Config::default();
+        c.persistence.save_every_ticks = 0;
+        c.world.tick_ms = 0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[world] tick_ms"), "{msg}");
     }
 }

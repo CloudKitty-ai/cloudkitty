@@ -86,16 +86,15 @@ which may stand in for the full spec-first flow at the owner's call.
    full workspace suite unchanged, four-way eval comparison identical,
    new-need walkthrough shows one compiler-forced correspondence site.
 
-3. **`crates/cloudkitty-core/src/config.rs` — table-driven validation +
-   module split.** 1,818 lines; `ConfigError::invalid(...)` constructed
-   46×, including ~13 verbatim copies of the same 7-line "must be ≥ 1"
-   guard; `validate_behavior` is a 170-line catch-all actually validating
-   six unrelated sections. Fix shape: a `require_at_least`-style helper or
-   the table-loop pattern the file already uses in two places (new bounded
-   field = one table row), and a `config/defaults.rs` + `config/validate.rs`
-   split (the ~20 `default_*` fns and nine `validate_*` fns are two clean
-   clusters). Purely mechanical; user-facing error-message consistency
-   improves for free.
+3. ~~**`config.rs` — table-driven validation + module split.**~~
+   **SHIPPED as spec 020** (2026-07-26): `config/{mod,defaults,validate}.rs`
+   with public paths byte-compatible; the 170-line catch-all dissolved
+   into six section validators called in a documented spec-contract
+   sequence (FR-004 amended by owner ruling for the cross-section
+   multi-fault tiebreak — recorded in the spec's Clarifications);
+   mechanical guards are table rows carrying verbatim messages. Verified
+   by a 46-rule enumerated rejection sweep, byte-identical at every
+   checkpoint.
 
 **Runners-up (fold in opportunistically, don't open a sitting for them):**
 

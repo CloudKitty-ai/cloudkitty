@@ -26,6 +26,27 @@ validation each get a home — without changing a single accepted config, a
 single rejected config, or a single character of the error messages
 operators see.
 
+## Clarifications
+
+### Session 2026-07-26
+
+- Q: Plan-phase discovery — today's catch-all interleaves sections
+  (behavior, then purr, then more behavior, then actions…), so clean
+  per-section validators (FR-002) cannot reproduce the exact
+  first-failing message for configurations invalid across those sections
+  (FR-004 as originally written). Which gives way? → A: **Amend FR-004.**
+  First-failing order is preserved *within* each section; across
+  sections, the documented section sequence governs (the catch-all's
+  sections dissolve into validators called in the catch-all's
+  first-occurrence order). Only configurations invalid in two or more
+  sections spanning the old interleave can report a different — still
+  byte-exact — error first; every single-fault configuration remains
+  byte-identical, which the FR-008 sweep proves exhaustively. Rationale:
+  the interleaved order was historical accident, not design; enshrining
+  it permanently (a purr tenant inside the behavior validator, guarded
+  by a comment) would recreate the comment-enforced-invariant pattern
+  spec 019 exists to retire.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Adding a bounded field costs one row (Priority: P1)
@@ -120,9 +141,11 @@ surface (what other code imports) is unchanged.
   inconsistent — normalizing them is out of scope, because operators and
   any scripts matching on messages see these strings.
 - The order in which validation failures are detected is observable (the
-  first failing rule's message is the one reported). Reordering rules
-  across validators must not change which message a multiply-invalid
-  config produces.
+  first failing rule's message is the one reported). Within a section,
+  rule order must not change; across sections, the amended FR-004's
+  documented section sequence governs — the plan MUST record that
+  sequence explicitly, and any future reordering of it is a spec-level
+  change, not a refactor.
 - Serialization behavior — accepted TOML shapes, defaults applied to
   omitted fields, unknown-field handling, section names — is entirely out
   of bounds; the restructure touches how rules and defaults are organized,
@@ -143,11 +166,14 @@ surface (what other code imports) is unchanged.
 - **FR-003**: The module MUST be organized so default-value definitions
   and validation rules each have a distinct, findable home, with the
   configuration types remaining the module's clearly primary content.
-- **FR-004**: Validation outcomes MUST be preserved exactly: every
-  configuration accepted today is accepted, every configuration rejected
-  today is rejected, and every rejection message is byte-identical —
-  including which message is reported for configurations that violate
-  multiple rules.
+- **FR-004** *(amended 2026-07-26, see Clarifications)*: Validation
+  outcomes MUST be preserved exactly for every configuration invalid in
+  a single rule: accepted stays accepted, rejected stays rejected, and
+  every rejection message is byte-identical. For configurations invalid
+  in multiple rules, the first-failing message MUST be preserved within
+  each section; across sections, the documented section sequence (the
+  catch-all's first-occurrence order) governs which message reports —
+  a deliberate, recorded re-specification, not drift.
 - **FR-005**: Parsing and defaulting behavior MUST be completely
   unchanged: accepted document shapes, defaults applied to omitted fields,
   unknown-field handling, and section naming are all out of scope and
