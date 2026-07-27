@@ -1125,54 +1125,49 @@ impl Config {
                 ));
             }
         }
-        if self.behavior.solo_play_reach == 0 {
-            return Err(ConfigError::invalid(
+        // One row per nonzero-bounded field: `(field, value, expected)`,
+        // message bytes verbatim per row (spec 020 D2 — the loop owns only
+        // the if/return shape; a new bounded field is a new row).
+        for (field, value, expected) in [
+            (
                 "[behavior] solo_play_reach",
-                "0".to_string(),
+                self.behavior.solo_play_reach as u64,
                 "must be at least 1 tile",
-            ));
-        }
-        if self.behavior.sunbeam_reach == 0 {
-            return Err(ConfigError::invalid(
+            ),
+            (
                 "[behavior] sunbeam_reach",
-                "0".to_string(),
+                self.behavior.sunbeam_reach as u64,
                 "must be at least 1 tile",
-            ));
-        }
-        if self.behavior.budget_strikes == 0 {
-            return Err(ConfigError::invalid(
+            ),
+            (
                 "[behavior] budget_strikes",
-                "0".to_string(),
+                self.behavior.budget_strikes as u64,
                 "must be at least 1 (an advisor gets at least one timed slot)",
-            ));
-        }
-        if self.behavior.bench_ticks == 0 {
-            return Err(ConfigError::invalid(
+            ),
+            (
                 "[behavior] bench_ticks",
-                "0".to_string(),
+                self.behavior.bench_ticks,
                 "must be at least 1 tick (a bench must last long enough to exist)",
-            ));
-        }
-        if self.behavior.reply_max_bytes == 0 {
-            return Err(ConfigError::invalid(
+            ),
+            (
                 "[behavior] reply_max_bytes",
-                "0".to_string(),
+                self.behavior.reply_max_bytes as u64,
                 "must be at least 1 byte (a plugin must be allowed to answer)",
-            ));
-        }
-        if self.behavior.relaunch_cooldown_ticks == 0 {
-            return Err(ConfigError::invalid(
+            ),
+            (
                 "[behavior] relaunch_cooldown_ticks",
-                "0".to_string(),
+                self.behavior.relaunch_cooldown_ticks,
                 "must be at least 1 tick (unbounded respawn would be a spawn storm)",
-            ));
-        }
-        if self.behavior.exchange_timeout_ms == 0 {
-            return Err(ConfigError::invalid(
+            ),
+            (
                 "[behavior] exchange_timeout_ms",
-                "0".to_string(),
+                self.behavior.exchange_timeout_ms,
                 "must be at least 1 ms (a plugin must have a moment to answer)",
-            ));
+            ),
+        ] {
+            if value == 0 {
+                return Err(ConfigError::invalid(field, "0".to_string(), expected));
+            }
         }
         let solo = self.actions.solo_play_relief;
         if !solo.is_finite() || solo < 0.0 {
@@ -1192,33 +1187,32 @@ impl Config {
                 ),
             ));
         }
-        if self.viewer.distress_patience_ticks == 0 {
-            return Err(ConfigError::invalid(
+        // Same row shape as the behavior table above (spec 020 D2).
+        for (field, value, expected) in [
+            (
                 "[viewer] distress_patience_ticks",
-                "0".to_string(),
+                self.viewer.distress_patience_ticks,
                 "must be at least 1 tick",
-            ));
-        }
-        if self.events.distress_retention == 0 {
-            return Err(ConfigError::invalid(
+            ),
+            (
                 "[events] distress_retention",
-                "0".to_string(),
+                self.events.distress_retention as u64,
                 "must be at least 1",
-            ));
-        }
-        if self.events.activity_retention == 0 {
-            return Err(ConfigError::invalid(
+            ),
+            (
                 "[events] activity_retention",
-                "0".to_string(),
+                self.events.activity_retention as u64,
                 "must be at least 1",
-            ));
-        }
-        if self.persistence.save_every_ticks == 0 {
-            return Err(ConfigError::invalid(
+            ),
+            (
                 "[persistence] save_every_ticks",
-                "0".to_string(),
+                self.persistence.save_every_ticks,
                 "must be at least 1",
-            ));
+            ),
+        ] {
+            if value == 0 {
+                return Err(ConfigError::invalid(field, "0".to_string(), expected));
+            }
         }
         Ok(())
     }
