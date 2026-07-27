@@ -42,6 +42,12 @@ baseline runs too); and cross-version comparability breaks by design —
 v1-vs-v2 scores are different questions, which the version stamp
 already makes explicit. Sequencing: after the first certified policy
 exists, alongside whatever else v2 wants (owner note, 2026-07-25).
+Additional v2 nicety (experiments session, 2026-07-27, low priority):
+Mixed mode always seats the subject at roster index 0
+(`harness.rs`, the `Mixed if index == 0` arm), so mixed certification
+only ever tests the policy from one seat/start position. Fine for
+paired comparisons (seat-symmetric by construction — exp-001 is
+unaffected); a rotate-the-seat option is a v2 nicety, not a fix.
 
 ### Suite reporting/visualization tooling — standing constraint (added 2026-07-25)
 No such tooling exists yet; this entry records a **binding design
@@ -110,7 +116,11 @@ which may stand in for the full spec-first flow at the owner's call.
   `FromConfig + Some(subject)` is unrepresentable (today a release-silent
   `debug_assert`). Scope confirmed ~5 real edit sites across 3 files;
   one care: `RosterMode` serializes into run JSON, so the wire shape is
-  the non-mechanical part.
+  the non-mechanical part. **Definition-of-done ask (experiments session,
+  2026-07-27): land a golden-file test on run JSON *before* the refactor
+  starts — longitudinal report comparability is the thing the eval-suite
+  doctrine can't lose, and this is the agreed exception to the
+  goldens-deferred ruling.**
 - `cloudkitty-py/src/lib.rs` — the agent-info schema is marshaled in two
   places that must stay identical (`info_to_py` and
   `VectorEnv::stack_infos`; the code comments warn about it). Single-source
@@ -129,7 +139,7 @@ which may stand in for the full spec-first flow at the owner's call.
   two hand-synced copies (`app.js` + `anim.js` — silent-divergence trap,
   cheap fix); DPR-canvas setup duplicated across 5 sites.
 
-### Welfare pinned-streak Cuddle false-positive (added 2026-07-26 — resolve before the first real certification campaign)
+### Welfare pinned-streak Cuddle false-positive (added 2026-07-26 — resolve before the first real certification campaign; realistic horizon: weeks)
 Found by the spec 019 review (pre-existing, not introduced there):
 `zero_distance_relief_exists` in `crates/cloudkitty-rl/src/welfare.rs`
 counts **any** adjacent kitty as available Cuddle relief, while the
@@ -141,9 +151,14 @@ cannot lawfully take. Latent today (the streak must survive to the cap),
 but this metric feeds the certification welfare bounds — a trained policy
 could in principle be dinged for correctly declining to conscript. Fix
 direction when picked up: align welfare's Cuddle arm with the free-friend
-rule — which *tightens* the metric's accuracy but changes bound semantics,
-so it needs its own small spec-level look (never weaken tests: re-baseline
-deliberately, not by drift). The `relief.rs` module doc points here; note
+rule (count only *conscriptable* friends) — a small spec-level change to
+`zero_distance_relief_exists`. **Framing caution (experiments-session
+review, 2026-07-27): the tighten-only doctrine needs the explicit
+argument that this is a semantics *correction* — the bound was measuring
+relief that didn't lawfully exist under spec 006 conscription — not a
+loosening of the welfare guarantee.** Make that argument in the spec, in
+those words (never weaken tests: re-baseline deliberately, not by
+drift). The `relief.rs` module doc points here; note
 the encoding is cross-crate by design (`pub(crate)` policy knowledge must
 not leak into the measuring layer), so consolidation is not the fix —
 reconciling the Cuddle rule is.

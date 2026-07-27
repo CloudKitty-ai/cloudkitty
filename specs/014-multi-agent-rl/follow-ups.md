@@ -25,6 +25,16 @@ callers to mark their own fallbacks — which weakens the honesty story the
 seam currently owns, and it changes `JointProposal`'s serde shape. Decide
 deliberately when the second consumer arrives.
 
+**Trigger bookkeeping (2026-07-27):** the stated trigger has technically
+fired — the counterfactual twin probe (`experiments/tools/twin-probe`,
+2026-07-25) is a second seam consumer — and it fired *benignly*: the
+probe reads only applied actions and rewards from its `TickReport`s,
+never provenance, so no `FallbackTaken` decision can be misreported
+through it and no action is needed. The trigger is re-scoped
+accordingly: the real decision point is the **first consumer that reads
+provenance from raw seam `TickReport`s** (without the episode layer's
+`scripted_marks` restoration).
+
 ## 2. One first-reset semantic across the three surfaces
 
 **Trigger: the first support question about seeds, or the next surface.**
