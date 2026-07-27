@@ -91,6 +91,12 @@ pub(crate) fn finish_what_you_started(ctx: &DecisionContext) -> Option<Action> {
 /// order — food and water first, the sunbeam you are standing in, and only
 /// then a passing playmate. Cuddle and Bath are deliberately absent: they
 /// are never grabbed opportunistically.
+///
+/// Membership contract (spec 019 review): every Element/Sunbeam/Playmate-
+/// shaped need in `relief()` belongs on this ladder, and no Friend/InPlace
+/// need may join it (the match below would no-op it silently). The
+/// `ladder_membership_matches_relief_shapes` test enforces both directions;
+/// a deliberate omission gets an allow-list entry there, with its reason.
 const OPPORTUNISM_LADDER: [NeedKind; 4] = [
     NeedKind::Eat,
     NeedKind::Drink,
@@ -1034,5 +1040,28 @@ mod tests {
         let a = NeedsDriven.decide(&make()).await;
         let b = NeedsDriven.decide(&make()).await;
         assert_eq!(a, b);
+    }
+
+    /// Spec 019 review guard: ladder membership must track relief shapes.
+    /// Both directions matter — an opportunistic-shaped need missing from
+    /// the ladder is silently never grabbed underfoot; a Friend/InPlace
+    /// need added to the ladder is a silent dead rung (the no-op arm).
+    /// A future deliberate omission joins an allow-list here, with its
+    /// reason.
+    #[test]
+    fn ladder_membership_matches_relief_shapes() {
+        use super::super::relief::ReliefSource;
+        for need in NeedKind::ALL {
+            let opportunistic = matches!(
+                need.relief(),
+                ReliefSource::Element { .. } | ReliefSource::Sunbeam | ReliefSource::Playmate
+            );
+            assert_eq!(
+                opportunistic,
+                OPPORTUNISM_LADDER.contains(&need),
+                "{need:?}: opportunistic-shaped needs and OPPORTUNISM_LADDER membership \
+                 must agree (deliberate omissions get an allow-list in this test)"
+            );
+        }
     }
 }

@@ -1,5 +1,9 @@
 //! The need→relief correspondence (spec 019): the one authoritative
-//! definition of what relieves each need.
+//! definition, within the built-in behavior stack, of what relieves each
+//! need. (The RL crate's welfare metric keeps its own cross-crate
+//! zero-distance encoding of relief availability — `welfare.rs`,
+//! unreachable from here by design; its known Cuddle divergence is
+//! recorded in BACKLOG.)
 //!
 //! Three decision steps consume this pairing — target-selection scoring
 //! (`selection::distance_given`), pursuit (`needs_driven::pursue`), and

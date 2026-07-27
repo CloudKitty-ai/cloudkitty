@@ -130,6 +130,25 @@ which may stand in for the full spec-first flow at the owner's call.
   two hand-synced copies (`app.js` + `anim.js` — silent-divergence trap,
   cheap fix); DPR-canvas setup duplicated across 5 sites.
 
+### Welfare pinned-streak Cuddle false-positive (added 2026-07-26 — resolve before the first real certification campaign)
+Found by the spec 019 review (pre-existing, not introduced there):
+`zero_distance_relief_exists` in `crates/cloudkitty-rl/src/welfare.rs`
+counts **any** adjacent kitty as available Cuddle relief, while the
+built-in behavior's conscription rule (spec 006, via
+`ReliefSource::Friend`) only ever cuddles a **free** (not mid-activity)
+friend. A cat pinned high on Cuddle beside only busy friends therefore
+accrues pinned-streak toward `MAX_PINNED_STREAK` for "refusing" relief it
+cannot lawfully take. Latent today (the streak must survive to the cap),
+but this metric feeds the certification welfare bounds — a trained policy
+could in principle be dinged for correctly declining to conscript. Fix
+direction when picked up: align welfare's Cuddle arm with the free-friend
+rule — which *tightens* the metric's accuracy but changes bound semantics,
+so it needs its own small spec-level look (never weaken tests: re-baseline
+deliberately, not by drift). The `relief.rs` module doc points here; note
+the encoding is cross-crate by design (`pub(crate)` policy knowledge must
+not leak into the measuring layer), so consolidation is not the fix —
+reconciling the Cuddle rule is.
+
 ### Dynamic element populations (added 2026-07-20 — ideate with the owner first)
 Environmental elements are effectively static: `ensure_minimums`
 (`spawn.rs`) tops every type back to its configured min on the very next
