@@ -959,9 +959,9 @@ mod tests {
             &config,
         );
 
-        assert!((world.kitty(1).unwrap().needs.get(NeedKind::Play) - 35.0).abs() < 0.01);
+        assert!((world.kitty(1).unwrap().needs.get(NeedKind::Play) - 40.0).abs() < 0.01);
         assert!(
-            (world.kitty(2).unwrap().needs.get(NeedKind::Play) - 35.0).abs() < 0.01,
+            (world.kitty(2).unwrap().needs.get(NeedKind::Play) - 40.0).abs() < 0.01,
             "the friend has fun too"
         );
     }
@@ -1016,8 +1016,8 @@ mod tests {
 
         apply(&mut world, 1, Action::Groom { target: Some(2) }, &config);
 
-        assert!((world.kitty(2).unwrap().needs.get(NeedKind::Bath) - 30.0).abs() < 0.01);
-        assert!((world.kitty(1).unwrap().needs.get(NeedKind::Cuddle) - 30.0).abs() < 0.01);
+        assert!((world.kitty(2).unwrap().needs.get(NeedKind::Bath) - 40.0).abs() < 0.01);
+        assert!((world.kitty(1).unwrap().needs.get(NeedKind::Cuddle) - 35.0).abs() < 0.01);
     }
 
     #[test]

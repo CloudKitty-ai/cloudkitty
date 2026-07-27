@@ -64,12 +64,12 @@ floor = 5.0
 
 # Happiness = 100 - weighted average of the needs. These must sum to 1.0.
 [happiness.weights]
-eat = 0.25
-drink = 0.25
+eat = 0.20
+drink = 0.20
 sleep = 0.15
 play = 0.15
-cuddle = 0.10
-bath = 0.10
+cuddle = 0.15
+bath = 0.15
 
 [thresholds]
 # A need crossing `distress` records a distress event -- a signal for whoever is
@@ -123,10 +123,10 @@ drink_relief = 35.0
 sleep_relief = 5.0
 # Sleeping in a sunbeam is properly restorative.
 sleep_relief_sunbeam = 8.0
-groom_relief = 25.0
-play_relief = 25.0
+groom_relief = 20.0
+play_relief = 20.0
 # Resting, sleeping or grooming alongside a friend.
-cuddle_relief = 20.0
+cuddle_relief = 15.0
 # Pouncing at nothing, for a kitty with nobody to play with. Must not exceed
 # play_relief -- playing together stays the better deal.
 solo_play_relief = 10.0

@@ -2112,7 +2112,7 @@ mod tests {
         for id in [1, 2] {
             assert_eq!(
                 world.kitty(id).unwrap().needs.get(NeedKind::Play),
-                75.0,
+                80.0,
                 "exactly one helping of relief per tick"
             );
         }
@@ -2127,7 +2127,7 @@ mod tests {
         run_slot(&mut world, &config, 1, Action::Idle);
         run_slot(&mut world, &config, 2, Action::Idle);
         for id in [1, 2] {
-            assert_eq!(world.kitty(id).unwrap().needs.get(NeedKind::Play), 50.0);
+            assert_eq!(world.kitty(id).unwrap().needs.get(NeedKind::Play), 60.0);
         }
     }
 
@@ -2229,7 +2229,7 @@ mod tests {
         );
         assert_eq!(
             world.kitty(1).unwrap().needs.get(NeedKind::Play),
-            75.0,
+            80.0,
             "relief already granted is kept; none is invented"
         );
     }
