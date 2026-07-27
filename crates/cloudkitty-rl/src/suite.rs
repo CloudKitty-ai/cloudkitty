@@ -156,6 +156,28 @@ pub fn sha256_hex(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
 
+/// The engine-defaults stamp (experiments-session request, 2026-07-27).
+///
+/// Frozen exam files inherit every config section they omit from the
+/// compiled defaults, so the manifest's file hashes freeze the exam *text*
+/// but not the world it simulates — a change to `Config::default()` or
+/// `RlConfig::default()` moves every exam's meaning while every sha256
+/// still validates (as the 2026-07-27 relief/weights retune did). This
+/// stamp closes that gap: it hashes the canonical JSON of both default
+/// surfaces, so two suite reports are comparable only if their stamps
+/// match, whatever their `suite_version` says.
+pub fn engine_defaults_sha256() -> String {
+    defaults_stamp(&Config::default(), &RlConfig::default())
+}
+
+/// [`engine_defaults_sha256`]'s body, parameterized so the sensitivity
+/// property (any default moving moves the stamp) is testable.
+fn defaults_stamp(core: &Config, rl: &RlConfig) -> String {
+    let core = serde_json::to_string(core).expect("compiled core defaults always serialize");
+    let rl = serde_json::to_string(rl).expect("compiled rl defaults always serialize");
+    sha256_hex(format!("{core}\n{rl}").as_bytes())
+}
+
 fn load_member(
     dir: &Path,
     rel: &str,
@@ -467,6 +489,9 @@ pub enum ExamOutcome {
 #[derive(Serialize)]
 pub struct SuiteReport {
     pub suite_version: String,
+    /// See [`engine_defaults_sha256`]: reports whose stamps differ ran
+    /// different engines and must not be compared, same version or not.
+    pub engine_defaults_sha256: String,
     pub subject: String,
     pub exams: Vec<ExamOutcome>,
 }
@@ -887,6 +912,7 @@ pub fn score_suite(
     }
     Ok(SuiteReport {
         suite_version: suite.version.clone(),
+        engine_defaults_sha256: engine_defaults_sha256(),
         subject: subject.name.to_string(),
         exams,
     })
@@ -911,6 +937,7 @@ fn human_report_to(w: &mut dyn std::io::Write, report: &SuiteReport) -> std::io:
         "== kitty-eval suite {}: subject {} ==",
         report.suite_version, report.subject
     )?;
+    writeln!(w, "engine defaults {}", report.engine_defaults_sha256)?;
     for exam in &report.exams {
         match exam {
             ExamOutcome::Standard(exam) => {
@@ -1425,6 +1452,7 @@ sha256 = "{sha}"
 
         let report = SuiteReport {
             suite_version: "share-guard".to_string(),
+            engine_defaults_sha256: engine_defaults_sha256(),
             subject: "needs_driven".to_string(),
             exams: vec![ExamOutcome::Standard(StandardOutcome {
                 name: "fixture".to_string(),
@@ -1441,6 +1469,35 @@ sha256 = "{sha}"
         assert!(
             rendered.contains(&panel),
             "suite report does not embed the shared panel verbatim"
+        );
+    }
+
+    #[test]
+    fn the_engine_defaults_stamp_is_stable_and_well_formed() {
+        let stamp = engine_defaults_sha256();
+        assert_eq!(stamp.len(), 64);
+        assert!(stamp.chars().all(|c| c.is_ascii_hexdigit()));
+        assert_eq!(stamp, engine_defaults_sha256(), "same build, same stamp");
+    }
+
+    #[test]
+    fn any_default_moving_moves_the_stamp() {
+        let baseline = engine_defaults_sha256();
+
+        let mut core = Config::default();
+        core.actions.cuddle_relief += 1.0;
+        assert_ne!(
+            defaults_stamp(&core, &crate::config::RlConfig::default()),
+            baseline,
+            "a core default moved but the stamp did not — silent comparability"
+        );
+
+        let mut rl = crate::config::RlConfig::default();
+        rl.reward.epsilon += 0.001;
+        assert_ne!(
+            defaults_stamp(&Config::default(), &rl),
+            baseline,
+            "an rl default moved but the stamp did not — silent comparability"
         );
     }
 }
