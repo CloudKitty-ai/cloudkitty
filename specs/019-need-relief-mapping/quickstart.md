@@ -19,13 +19,19 @@ welfare gates, behavior property tests:
 
 ```sh
 cargo test --workspace
-git diff c6fbeae -- '**/tests' 'crates/cloudkitty-core/src/behavior' -- ':!*relief.rs'
+# Integration-test dirs: must produce NO output (zero test changes)
+git diff c6fbeae -- 'crates/cloudkitty-core/tests' 'crates/cloudkitty-rl/tests' \
+                    'crates/cloudkitty-server/tests' 'crates/cloudkitty-py'
 ```
 
-Every test passes; the diff over test code shows zero assertion changes
-(new coverage, if any, is additive only).
+Every test passes and the diff above is empty. Inline `#[cfg(test)]`
+modules cannot be separated by pathspec: additionally review
+`git diff c6fbeae -- crates/cloudkitty-core/src/behavior` and confirm no
+hunk falls inside a `#[cfg(test)]` module (the rewires touch production
+functions only).
 
-> **Record:** test totals + confirmation of zero assertion changes.
+> **Record:** test totals + confirmation the tests-dir diff is empty and
+> no behavior-file hunk touches an inline test module.
 
 ## 2. The eval-instrument recheck (FR-006, SC-003) — four-way byte comparison
 
@@ -40,7 +46,7 @@ cargo build --release --manifest-path "$CLAUDE_JOB_DIR/tmp/ck-019-base/Cargo.tom
 # Feature binary
 cargo build --release -p cloudkitty-rl --bin kitty-eval
 
-OUT=/tmp/ck-019-verify && mkdir -p $OUT
+OUT="$CLAUDE_JOB_DIR/tmp/ck-019-verify" && mkdir -p "$OUT"   # job tmp, not shared /tmp
 BASE="$CLAUDE_JOB_DIR/tmp/ck-019-base/target/release/kitty-eval"
 NEW=target/release/kitty-eval
 
