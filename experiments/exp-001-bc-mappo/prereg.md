@@ -294,3 +294,53 @@ Consequences for this prereg:
   required field.
 - The retuned baseline sits untagged at time of writing; results cite the
   merge commit until Product tags it (v2.5 recommended).
+
+### 2026-07-27b — γ sweep amended; training world frozen by measurement (pre-training)
+
+Still pre-freeze; recorded with the owner's approval of the probe-guided
+search plan ("reduce element count… improve the ability to train").
+
+- **§5 amendment — the swept γ set is {0.995, 0.998}** (was {0.99, 0.995}).
+  Basis: F-003 (post-retune credit horizon: γ=0.99's horizon ends before
+  the cooperative band begins, retaining 0.10 of team signal — sweeping
+  it would spend a third of the compute proving an arm blind by
+  construction) and F-005 (the frozen world's replicated band is late,
+  k ≈ 730–940, favoring 0.998; 0.995 covers state-mediated credit
+  arriving earlier than probe-visible reward effects). λ, clip, entropy,
+  LR, KL-to-clone, fragment length: unchanged.
+- **§4 amendment — `training.toml` is the probe-searched scarcity×tempo
+  world** (rates ×1.5 of engine defaults, water/chow 3–4, sunbeams 2),
+  frozen 2026-07-27 after a 10-candidate search under cluster-robust
+  statistics with disjoint-world replication (F-004 discipline; F-005
+  result; full method and table in
+  [results/world-search-2026-07-27.md](results/world-search-2026-07-27.md)).
+  `needs_driven` anchor on the frozen world: team welfare 0.881–0.883,
+  all welfare bounds pass (3 seeds × 20k). The §8 evaluation protocol is
+  untouched — certification and reporting stay on the default world.
+- **§6 note**: probe significance analysis now clusters by world seed
+  (F-004); `analyze.py`'s per-sample method is superseded for
+  significance claims. The §6 decision rules were re-exercised on the
+  frozen world under the new statistics.
+- H0a contingency sharpened (decision rule §9.2): hardening steps come
+  from the search's measured Pareto table with fresh measurement, not
+  ad hoc.
+
+### 2026-07-27c — critic-pretrain targets made truncation-aware (pre-training)
+
+Episode length stays 2,000 (bootstrapping decouples the credit window
+from the episode boundary, and resets are cheap state diversity). But the
+critic-pretraining step (§7.3) fits **Monte-Carlo** targets, which have no
+bootstrap: a state 500 ticks before rollout end is missing γ^500 ≈ 37% of
+its return scale at γ = 0.998, and with the frozen world's slow band at
+k ≈ 730–940 that censoring lands exactly on the cooperative consequences
+the critic must learn. Amendment to §7:
+
+- **BC-dataset rollouts run long** (6,000–10,000 ticks) rather than
+  episode-length.
+- **Pretraining targets are fit only on states with ≥ 1,500 ticks of
+  realized future**; later states are dropped from the regression (they
+  remain in the BC classification dataset — the censoring bites value
+  targets, not action labels).
+
+PPO fine-tuning itself is unchanged (horizon 2,000, fragment 256,
+bootstrap at every cut).

@@ -70,14 +70,27 @@ move-dominated).
 
 ---
 
-## F-002 · reserved (candidate, unverified) · `needs_driven` under-uses the non-binding cuddle routes
+## F-002 · refuted · Non-binding cuddle-route under-use is real but carries no material headroom
 
-Reserved: exp-001's prereg deviation of 2026-07-27 names this claim
-"candidate F-002" — `needs_driven` under-uses `Sleep{with}`/`Groom{target}`
-for Cuddle relief beside busy friends (the 38 events spec 021 miscounted as
-false positives were real refusals). The pre-retune count is stale evidence;
-the claim registers here, under this id, if a post-retune recount verifies
-it. Until then it grounds no design decisions.
+Resolved 2026-07-27 (was reserved for exp-001's prereg-named candidate).
+The census (`cuddle-census`, engine-predicate classification, 5 seeds ×
+20k ticks per config) splits the claim: the **mechanical under-use is
+confirmed** — `needs_driven` takes `Sleep{with}`/`Groom{target}` in 0.7%
+of moderate-need busy-only opportunities and never when a binding rest
+duet is available — but the **headroom hypothesis is refuted**: post-
+retune, high-need (≥80) opportunities beside friends occur ~1–2 per 100k
+ticks on both the frozen and default worlds, because the heavier cuddle
+weight makes the scripted cat service the need early. The 38 pre-retune
+events described a world that no longer exists. Not a channel for beating
+`needs_driven`; the prereg's interpretation rule (trained-policy Cuddle
+pinned streaks beside busy friends = real skill gap) stands unchanged.
+
+**Evidence**: [frozen-world addendum §2](exp-001-bc-mappo/results/frozen-world-addendum-2026-07-27.md).
+
+**Re-verify when**: happiness weights or relief rates change again
+(check `engine_defaults_sha256`), or a trained policy shows Cuddle
+pinned streaks (then the routes' availability matters, not their
+scripted-cat usage).
 
 ---
 
@@ -123,3 +136,84 @@ died once already that way, as F-001); or the first policy artifact
 exceeding `needs_driven` / passing certification — policy-seated probe in
 both roster modes, per F-001's original trigger. Still due regardless:
 default-world repeat, by-action-class conditioning (mix is 72% move).
+
+---
+
+## F-004 · active · Probe statistics must cluster by world; few-world batches produce phantoms
+
+Twin-probe samples that share a world share long-lived state, so for the
+slow cooperative channel the effective sample size is the number of
+**worlds**, not the number of substitution samples. Per-sample 2·SE
+testing on 20-world batches produced a 3× phantom "winner" in the
+training-world search that collapsed to nothing on 20 disjoint seeds;
+cluster-robust per-tick statistics (mean/SE over per-world mean traces)
+on 100+ worlds eliminated it. Ranking differences smaller than ~2× on
+100-world batches still flip between batches — replicate on disjoint
+worlds before acting on one.
+
+**Scope**: any across-sample statistic over twin-probe traces (or any
+future rollout-derived statistic with shared world seeds). Applies
+retroactively as a margin-of-error note on F-001/F-003, whose datasets
+used 20 worlds: their per-sample significance overstates confidence for
+the late bands specifically; their structural claims (two channels,
+post-retune lengthening) are paired-comparison results on shared seeds
+and survive, but their absolute band edges and retention decimals carry
+world-batch noise.
+
+**Evidence**: [world-search result](exp-001-bc-mappo/results/world-search-2026-07-27.md)
+(the phantom, its collapse, and the fix are all reproducible from the
+archived first-pass rows).
+
+**Implications**: `search.py`'s cluster-robust `channel_metrics` is the
+reference implementation; every future probe analysis uses it (the
+original `analyze.py` per-sample method is superseded for significance
+claims). Probe runs default to 100+ worlds.
+
+**Would invalidate**: a demonstration that within-world sample
+correlation is negligible at some horizon (it is not, at k > ~50, on
+current evidence).
+
+**Re-verify when**: n/a — this is a statistics discipline, not an
+environment measurement; revisit only if the probe's sampling design
+changes (e.g., one world per sample).
+
+---
+
+## F-005 · active · Training-world knobs move detectable cooperative signal weakly; scarcity×tempo is the one replicated improver
+
+Across 10 candidate worlds (scarcity, tempo, grid size, combinations)
+measured under F-004 discipline, most knobs do nothing or hurt: shrinking
+the grid raises chaotic mixing and drowns signal, tempo ×1.75 overshoots
+(noise outruns signal — tempo has a sweet spot), scarcity alone is a
+wash. The current environment's team-reward counterfactual signal beyond
+the early self-mediated band (k ≤ ~14) sits at the false-positive
+detection floor even at 3,000 samples / 300 worlds. The single
+replicated improvement: **scarcity + tempo ×1.5** (water/chow 3–4,
+sunbeams 2, rates ×1.5) — S(.998) 1.5–1.8× base in three disjoint world
+batches, with dr and spillover bands co-occurring at k ≈ 730–940, the
+signature of queueing/turn-taking consequences. Frozen as `training.toml`
+2026-07-27; `needs_driven` holds 0.881–0.883 there (bounds pass,
+0.10 above the 0.78 feasibility floor).
+
+**Scope**: `needs_driven` dynamics, 5-kitty heterogeneous roster, the
+knob ranges actually searched. Says nothing about trained-policy
+dynamics, other rosters, or knobs not searched (durations, trait
+spreads, roster size).
+
+**Evidence**: [world-search result](exp-001-bc-mappo/results/world-search-2026-07-27.md).
+
+**Implications**: exp-001 trains on the frozen scarcity×tempo world; the
+searched-and-rejected table is the recorded H0a contingency (harden from
+the measured Pareto set, don't invent). The near-floor absolute signal
+sharpens the experiment's framing: single-action counterfactual reward
+effects are marginal, so learnable cooperation, if it exists, is carried
+by state-mediated credit (critic bootstrapping through visible
+intermediate states) — critic EV remains the make-or-break diagnostic.
+
+**Would invalidate**: engine-defaults changes (check
+`engine_defaults_sha256`); a knob outside the searched ranges proving a
+large improver; trained-policy dynamics changing the signal landscape.
+
+**Re-verify when**: H0a is observed in exp-001 (re-run the search with
+fresh budget before choosing the hardening step); or any engine-defaults
+change (with F-003).
