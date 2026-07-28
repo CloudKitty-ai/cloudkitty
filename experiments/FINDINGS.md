@@ -70,14 +70,27 @@ move-dominated).
 
 ---
 
-## F-002 · reserved (candidate, unverified) · `needs_driven` under-uses the non-binding cuddle routes
+## F-002 · refuted · Non-binding cuddle-route under-use is real but carries no material headroom
 
-Reserved: exp-001's prereg deviation of 2026-07-27 names this claim
-"candidate F-002" — `needs_driven` under-uses `Sleep{with}`/`Groom{target}`
-for Cuddle relief beside busy friends (the 38 events spec 021 miscounted as
-false positives were real refusals). The pre-retune count is stale evidence;
-the claim registers here, under this id, if a post-retune recount verifies
-it. Until then it grounds no design decisions.
+Resolved 2026-07-27 (was reserved for exp-001's prereg-named candidate).
+The census (`cuddle-census`, engine-predicate classification, 5 seeds ×
+20k ticks per config) splits the claim: the **mechanical under-use is
+confirmed** — `needs_driven` takes `Sleep{with}`/`Groom{target}` in 0.7%
+of moderate-need busy-only opportunities and never when a binding rest
+duet is available — but the **headroom hypothesis is refuted**: post-
+retune, high-need (≥80) opportunities beside friends occur ~1–2 per 100k
+ticks on both the frozen and default worlds, because the heavier cuddle
+weight makes the scripted cat service the need early. The 38 pre-retune
+events described a world that no longer exists. Not a channel for beating
+`needs_driven`; the prereg's interpretation rule (trained-policy Cuddle
+pinned streaks beside busy friends = real skill gap) stands unchanged.
+
+**Evidence**: [frozen-world addendum §2](exp-001-bc-mappo/results/frozen-world-addendum-2026-07-27.md).
+
+**Re-verify when**: happiness weights or relief rates change again
+(check `engine_defaults_sha256`), or a trained policy shows Cuddle
+pinned streaks (then the routes' availability matters, not their
+scripted-cat usage).
 
 ---
 
