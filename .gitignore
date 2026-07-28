@@ -31,3 +31,4 @@ worlds.backup/
 # Experiments (research artifacts): build outputs and raw data stay local
 experiments/**/target/
 experiments/**/raw/
+experiments/**/artifacts/
