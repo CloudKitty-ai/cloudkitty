@@ -5,11 +5,14 @@ A cute, safe sandbox where kitties frolic and play.
 CloudKitty is a 2D tile world that runs on a server and is watched through a browser.
 Kitties wander, eat, drink, nap in sunbeams, groom each other, chase bugs, and meow
 about it. Each kitty is driven by a pluggable *behavior*, so different cats can live
-visibly different lives — and the interface is designed so a future behavior can be an
-external script, an HTTP service, or a language model, with no changes to the engine.
-As of 2.0 that future is here for the most interesting case: a kitty's mind can be a
-**trained neural policy**. The world doubles as a multi-agent RL environment, and a
-policy trained in it deploys back into the living world as just another behavior.
+visibly different lives.
+
+A kitty's mind can be a **trained neural policy** — the world doubles as a multi-agent
+RL environment, and a policy trained in it deploys back as just another behavior — or
+an **external program in any language**, speaking JSON over stdio. Whatever drives a
+cat, the engine treats it as an untrusted advisor: it proposes, the engine decides. And
+before a mind ships, there is an exam room — a frozen, held-out suite that asks not just
+"is this policy good" but "are the *other* cats worse off for living with it."
 
 Nothing bad ever happens to a kitty. That is not a design goal, it is a
 [constitution](.specify/memory/constitution.md).
@@ -51,12 +54,19 @@ Putting a world on the public internet? See
 systemd), the config that goes with it, and what the API deliberately makes
 public.
 
-**In the viewer:** press <kbd>g</kbd> to reveal greebles — fast, erratic critters
-that are always in the world and always in the API, but are never drawn. That is
-why you will sometimes see a kitty pounce on absolutely nothing. Press
-<kbd>l</kbd> for the tile grid lines (debug), and <kbd>p</kbd> for worn paths —
-faint trails where the kitties have walked this session, fading with time and
-kept entirely in the browser. All three start hidden on every load.
+**In the viewer:** the meadow keeps its own day — day, golden hour, night and back,
+600 ticks around (ten minutes at the default tick rate). The hour is a pure function
+of the served tick, so every viewer sees the same sky and a restart resumes mid-day
+where the snapshot left off; the engine knows nothing about any of it (Article V).
+The footer toggle cycles the world's cycle → Always Day → Always Twilight → Always
+Night, and only an explicit choice is remembered.
+
+Press <kbd>g</kbd> to reveal greebles — fast, erratic critters that are always in the
+world and always in the API, but are never drawn. That is why you will sometimes see
+a kitty pounce on absolutely nothing. Press <kbd>l</kbd> for the tile grid lines
+(debug), and <kbd>p</kbd> for worn paths — faint trails where the kitties have walked
+this session, fading with time and kept entirely in the browser. All three start
+hidden on every load.
 
 ## The constitution
 
@@ -68,8 +78,8 @@ merge:
 | I | **Kitties cannot suffer.** Needs are bounded 0–100, happiness has a floor, and when a need gets urgent the world guarantees relief exists. |
 | II | **Kitties cannot die.** There is no health, damage, or despawn concept, and no code path removes a kitty. Only environment elements expire. |
 | III | **Kitties cannot be alone.** Always at least two, rejected at startup and re-asserted every tick. |
-| IV | **The engine is the law.** Behaviors only *propose*; the engine validates every action and anything illegal becomes an idle turn. |
-| V | **Server-authoritative and deterministic.** All logic server-side, one seeded RNG, fixed tick order — with a fair turn order: every kitty gets an equal, reproducible chance to act first. Same seed → same world, always. |
+| IV | **The engine is the law.** Behaviors only *propose*. Every proposal is validated, and anything the engine won't allow resolves one of two safe ways: a malformed or absent answer falls back to the built-in needs-driven behavior; a well-formed but illegal one becomes an idle turn. Never an error, never a reshaped action. |
+| V | **Server-authoritative and deterministic.** All logic server-side, one seeded RNG, fixed tick order — with a fair turn order: every kitty gets an equal, reproducible chance to act first. Same seed → same world, always, for built-in behaviors; an external advisor answers outside the seeded stream, which is why its containment is a deadline. |
 | VI | **Spec-first, test-guarded.** Every constant lives in config; the invariant suite is a required CI gate. |
 
 Distress is a *signal*, never a punishment: when a need crosses the distress threshold
@@ -118,15 +128,26 @@ crates/cloudkitty-rl/       the training layer: observations, action codec + leg
                             the kitty-eval harness, policy artifacts — the engine knows
                             nothing of any of it
 crates/cloudkitty-py/       PyO3 bindings: ParallelEnv / VectorEnv, PettingZoo-style
-docs/                       guides: the RL HOWTO (howto-rl.md), the training
-                            reference (rl-training.md), and the deployment
-                            guide (deployment.md)
+docs/                       guides: the RL HOWTO (howto-rl.md), the training reference
+                            (rl-training.md), the plugin contract (plugins.md) with a
+                            worked example under examples/, and deployment.md
 client/                     the viewer: vanilla JS on a canvas, no build step — hand-drawn
                             vector cats, props, and meadow; gallery.html is the standalone
                             art-approval page (opens from file://, no server needed)
+evals/v1/                   the exam room: frozen, hash-pinned held-out worlds
+experiments/                the lab notebook — trainer territory, no constitutional
+                            gates, non-blocking CI; may import from crates/, never
+                            the reverse. FINDINGS.md is the register
 specs/                      one directory per shipped feature: spec, plan, research,
                             data model, contracts, tasks, quickstart
+cloudkitty.toml             the served world (16/48 variants alongside it)
+training.toml               the gym: the world policies are trained in
 ```
+
+**Three worlds, three jobs.** `training.toml` is the gym. `cloudkitty.toml` is the
+bar — certification runs on the default world, because that is where the welfare
+bounds are calibrated. `evals/v1/` is the exam room, and it is held out: a result
+claimed against a suite version is void if any of its exams were trained on.
 
 What's next lives in [BACKLOG.md](BACKLOG.md).
 
@@ -147,20 +168,23 @@ The suite covers need arithmetic, action legality, meow cooldowns, spawning, con
 rejection, persistence, determinism (including across a save/restore), behavior
 timeouts and panics, the HTTP and WebSocket contracts — and the property suite, which
 drives randomized worlds with deliberately hostile behaviors for tens of thousands of
-ticks and asserts every constitutional guarantee after every tick. Since 2.0 it also
-guards the training layer: golden parity (a behavior-driven world and a joint-action
-world fed the same decisions stay byte-identical over 5,000 ticks), a legal-action
-mask proven against the engine as its oracle, and two-process bit-reproducibility of
-Python rollouts.
+ticks and asserts every constitutional guarantee after every tick. It also guards the
+training layer: golden parity (a behavior-driven world and a joint-action world fed the
+same decisions stay byte-identical over 5,000 ticks), a legal-action mask proven
+against the engine as its oracle, two-process bit-reproducibility of Python rollouts,
+a 20,000-tick welfare run held to the constitutional bounds, and the frozen exam
+configs — whose hashes are checked in CI, so a suite version cannot drift.
 
 ## Writing a behavior
+
+In Rust, in-process:
 
 ```rust
 #[async_trait]
 impl Behavior for MyCat {
     async fn decide(&self, ctx: &DecisionContext) -> Action {
         // ctx has this kitty's state, a read-only world snapshot, and its own RNG.
-        Action::Purr
+        Action::play_solo()
     }
 }
 ```
@@ -168,28 +192,56 @@ impl Behavior for MyCat {
 Register it, name it in a kitty's config, and that is the whole integration. The engine
 validates whatever you return, budgets your time, and falls back to the default
 behavior if you are slow or broken — so a misbehaving advisor can cost a cat a moment
-of cleverness, but never anything more. Or skip the writing entirely and train one —
-see *Training a mind* below.
+of cleverness, but never anything more.
+
+**Or in any language at all.** A behavior can be an external program: the server keeps
+it alive as a subprocess and speaks newline-delimited JSON over stdio, one request line
+in, one reply line out.
+
+```toml
+[plugins.professor_whiskers]
+command = "docs/examples/demo_plugin.py"   # a path to an existing executable
+args = []
+
+[[kitty]]
+id = 2
+name = "Biscuit"
+behavior = "professor_whiskers"
+```
+
+The program's existence and exec bit are checked at startup, not discovered mid-tick;
+a plugin may not shadow a built-in name; and its command line is deliberately never
+served on `GET /config`. The failure ladder is Article IV made concrete — malformed
+answer falls back, illegal answer idles, a desync or timeout falls back *and* restarts
+the process, a crash relaunches it at most once per cooldown. A cat advised by a
+crashing script is a slightly less clever cat, and nothing else.
+
+The full contract — wire format, resync rules, every accepted and rejected example
+(each one enforced by a test) — is in [docs/plugins.md](docs/plugins.md). This is also
+the door a language model walks through.
+
+Or skip the writing entirely and train one — see *Training a mind* below.
 
 ## Training a mind
 
-Since 2.0 the same world that runs the sanctuary can train one. The Python surface
-speaks the PettingZoo parallel convention — cooperative, one team reward (Nash
-welfare over *every* kitty, so a policy can't win by favoring its own cat):
+The same world that runs the sanctuary can train one. The Python surface speaks the
+PettingZoo parallel convention — cooperative, one team reward (Nash welfare over
+*every* kitty, so a policy can't win by favoring its own cat):
 
 ```bash
 cd crates/cloudkitty-py && maturin develop --release
 python examples/random_rollout.py --seed 7    # shapes, masks, rewards — no trainer needed
 ```
 
-Rollouts are bit-reproducible across processes from the same seed, and a policy is
-evaluated before it is trusted: `kitty-eval` scores it against the built-in
-`needs_driven` baseline on paired seeds, and every constitutional welfare bound must
-hold — a trained mind that makes any kitty's life worse does not ship. Deployment is
-one config block:
+Rollouts are bit-reproducible across processes from the same seed. Deployment is two
+lines of config — point a kitty at the policy, and name the artifact:
 
 ```toml
-[kitties.pumpkin]
+[[kitty]]
+id = 3
+name = "Pumpkin"
+x = 16
+y = 8
 behavior = "policy:trained"
 
 [rl.policy.trained]
@@ -203,3 +255,45 @@ budgeted, benched if it misbehaves. Start with the HOWTO —
 minimal runnable example — then the training reference in
 [docs/rl-training.md](docs/rl-training.md); the contracts live in
 [specs/014-multi-agent-rl/](specs/014-multi-agent-rl/).
+
+## Proving a mind is safe
+
+A policy is evaluated before it is trusted, in two places.
+
+**Certification** runs on the default world: `kitty-eval` scores the candidate against
+the built-in `needs_driven` baseline on paired seeds, and every constitutional welfare
+bound must hold — a trained mind that makes any kitty's life worse does not ship.
+
+```bash
+kitty-eval --brain needs_driven --seeds 1,2,3 --ticks 20000
+kitty-eval --artifact policies/trained.ckpolicy --roster both --json out.json
+```
+
+**The exam suite** runs on worlds the policy has never seen: bigger, leaner, and more
+heterogeneous than the one it grew up in.
+
+```bash
+kitty-eval --suite evals/v1 --artifact policies/trained.ckpolicy
+```
+
+Every exam config is sha256-pinned in the manifest and frozen — a landed suite version
+never changes, and evolving it means a new `evals/v2/` alongside. The suite fixes its
+own seeds and tick counts, so `--seeds`, `--ticks`, `--config` and `--roster` are
+refused with `--suite`: an instrument you can adjust is not a bar.
+
+The exam that matters most is the mixed-roster one, which seats the candidate among
+scripted cats in three compositions — a lone guest, an even split, a near-full house —
+and asks whether the *scripted* cats end up worse off than they would have been among
+their own kind. It checks aggregate welfare, the guest-welfare differential, whether
+the least-happy kitty is systematically an out-group member, and a per-kitty sign test
+that catches a policy doing well on average while quietly exploiting one neighbor. The
+sign test warns by default and names the pattern in the report; `--enforce sign-test`
+turns it into a gate for a run. Nothing can loosen a frozen bar — tightening is the
+only direction that exists.
+
+Exit codes: `0` pass · `1` usage or validation · `2` a fallback was taken while scoring
+a policy (a broken advisor never rides the fallback through an evaluation) · `3` a
+determinism self-check disagreed with itself · `4` the mixed-roster verdict failed.
+
+Every report stamps the engine defaults it ran under, so results from before a tuning
+change can't be quietly compared against results from after one.
