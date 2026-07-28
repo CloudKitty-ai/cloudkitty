@@ -1,0 +1,13 @@
+[package]
+name = "artifact-tools"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Policy-artifact utilities for exp-001: the zero (uniform-under-mask) artifact and shape checks."
+
+[dependencies]
+cloudkitty-rl = { path = "../../../crates/cloudkitty-rl" }
+
+# Standalone on purpose: not a member of the product workspace (see
+# experiments/README.md).
+[workspace]
