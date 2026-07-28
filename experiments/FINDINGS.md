@@ -217,3 +217,52 @@ large improver; trained-policy dynamics changing the signal landscape.
 **Re-verify when**: H0a is observed in exp-001 (re-run the search with
 fresh budget before choosing the hardening step); or any engine-defaults
 change (with F-003).
+
+---
+
+## F-006 · active · The default world carries no detectable cooperative credit
+
+Measured 2026-07-27 (product thread, at the owner's request; verified
+bit-exact by the experiments thread): on `cloudkitty.toml` (32×32, 4
+kitties, element minimums 8, post-retune defaults), 1,000 samples over
+150 disjoint worlds under F-004 statistics, the fast self channel
+reproduces (contiguous k = 0–11 band) while **team-reward and spillover
+significance sit below the false-positive floor** (13 and 10 ticks vs
+~60 expected by chance). The teammate band F-003 measured on the
+training world does not exist here — detectable team credit is ~7×
+smaller than the frozen training world's and statistically absent.
+
+**Scope**: `needs_driven` dynamics on the default world as configured at
+post-retune defaults. **Confounded by design**: geometry, roster size,
+and scarcity all differ from the training world at once; this finding
+says the default world is signal-free, not which knob makes it so (the
+scarcity-only deconfound at fixed geometry is cheap via family-gen and
+unrun). Trained-policy dynamics unmeasured, as everywhere.
+
+**Evidence**: [default-world twin-probe result](exp-001-bc-mappo/results/twin-probe-2026-07-27-default-world.md)
+(regeneration verified bit-identical by a second session).
+
+**Implications**:
+- The training-world selection (F-005) was load-bearing and is now
+  corroborated from outside its searched set: training on the default
+  world would have optimized against a signal that is not measurably
+  there.
+- **Certification is a welfare gate, not a cooperation instrument.**
+  Certification and the report protocol run on the default world, where
+  single-action cooperative credit is undetectable — a policy's paired
+  Nash gain there must come from policy-level behavioral differences
+  compounding over the run, not from the marginal credit the probe
+  measures. This sharpens H0c (transfer) risk for exp-001: cooperation
+  learned in the contended gym must survive in a roomy world where
+  coordination moments are rare. The design already carries the
+  mitigations (default-world anneal, mixed-roster exam as the
+  cooperation instrument); this finding is why they matter.
+- F-003's "default-world repeat" follow-up is closed by this entry.
+
+**Would invalidate**: signal appearing on the default world under
+trained-policy dynamics (coordinated cats may *create* the contention
+scripted cats avoid — that would narrow this to needs_driven dynamics);
+default-config changes (check `engine_defaults_sha256`).
+
+**Re-verify when**: the policy-seated probe runs (F-003's trigger) —
+run it on BOTH worlds; and after any engine-defaults change.
