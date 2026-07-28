@@ -324,3 +324,23 @@ search plan ("reduce element count… improve the ability to train").
 - H0a contingency sharpened (decision rule §9.2): hardening steps come
   from the search's measured Pareto table with fresh measurement, not
   ad hoc.
+
+### 2026-07-27c — critic-pretrain targets made truncation-aware (pre-training)
+
+Episode length stays 2,000 (bootstrapping decouples the credit window
+from the episode boundary, and resets are cheap state diversity). But the
+critic-pretraining step (§7.3) fits **Monte-Carlo** targets, which have no
+bootstrap: a state 500 ticks before rollout end is missing γ^500 ≈ 37% of
+its return scale at γ = 0.998, and with the frozen world's slow band at
+k ≈ 730–940 that censoring lands exactly on the cooperative consequences
+the critic must learn. Amendment to §7:
+
+- **BC-dataset rollouts run long** (6,000–10,000 ticks) rather than
+  episode-length.
+- **Pretraining targets are fit only on states with ≥ 1,500 ticks of
+  realized future**; later states are dropped from the regression (they
+  remain in the BC classification dataset — the censoring bites value
+  targets, not action labels).
+
+PPO fine-tuning itself is unchanged (horizon 2,000, fragment 256,
+bootstrap at every cut).
