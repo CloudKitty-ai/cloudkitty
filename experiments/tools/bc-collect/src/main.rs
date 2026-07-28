@@ -19,7 +19,9 @@
 //!
 //! Output: one directory per rollout with obs.npy (N x 182 f32), mask.npy
 //! (N x 40 u8), label.npy (N u16), kitty.npy (N u32), tick.npy (N u32),
-//! reward.npy (T f32), and meta.json (config sha, seed, counts).
+//! reward.npy (T f32), state.npy (T x state_len f32 — the privileged
+//! global critic view, pre-tick, same clock as the observations), and
+//! meta.json (config sha, seed, counts).
 //!
 //! Usage:
 //!   bc-collect --family-dir DIR | --config FILE
@@ -35,6 +37,7 @@ use cloudkitty_core::{BehaviorRegistry, Config, KittyId, World};
 use cloudkitty_rl::codec::ActionCodec;
 use cloudkitty_rl::config::RlConfig;
 use cloudkitty_rl::episode::action_wire_name;
+use cloudkitty_rl::global_state::encode_global_state;
 use cloudkitty_rl::mask::legal_action_mask;
 use cloudkitty_rl::observe::encode_observation;
 use cloudkitty_rl::reward::team_reward;
@@ -170,12 +173,18 @@ fn main() {
             let mut kitty_buf: Vec<u32> = Vec::new();
             let mut tick_buf: Vec<u32> = Vec::new();
             let mut reward_buf: Vec<f32> = Vec::new();
+            let mut state_buf: Vec<f32> = Vec::new();
+            let mut state_len = 0usize;
             let (mut dropped, mut mask_mismatch) = (0u64, 0u64);
             let mut dropped_by: BTreeMap<&'static str, u64> = BTreeMap::new();
 
             for tick in 0..args.ticks {
                 let clock = (tick % rl.episode.horizon) as f32 / horizon;
                 let snap = world.snapshot();
+                let state =
+                    encode_global_state(&snap, &config, &rl.global_state, &rl.observation, clock);
+                state_len = state.len();
+                state_buf.extend_from_slice(&state);
                 // Encode every kitty's view of the pre-tick snapshot, then
                 // tick and label with what each actually did.
                 let views: Vec<_> = ids
@@ -223,6 +232,11 @@ fn main() {
                 &dir.join("reward.npy"),
                 &reward_buf,
                 &format!("({},)", reward_buf.len()),
+            );
+            write_npy_f32(
+                &dir.join("state.npy"),
+                &state_buf,
+                &format!("({}, {state_len})", reward_buf.len()),
             );
             let dropped_json: Vec<String> = dropped_by
                 .iter()
