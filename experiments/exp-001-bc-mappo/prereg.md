@@ -372,3 +372,14 @@ bootstrap at every cut).
   dependency, confined to `experiments/`), verified pre-training by a
   numpy-forward parity check against the exported artifact and a seated
   smoke run through `kitty-eval`.
+
+### 2026-07-29b — clone epoch cap raised 20 → 60 (post-freeze)
+
+The first full clone run hit the 20-epoch cap pinned above with val top-1
+still climbing (0.7493 at epoch 20, +0.5 pt over epoch 19 — no plateau).
+§7.2's frozen criterion is "masked CE **to plateau** on masked top-1
+accuracy"; the discretionary cap contradicted the body and loses. Cap
+raised to 60, patience-3 stop and every other setting unchanged, rerun
+from the same seed (epochs 1–20 reproduce identically, training then
+continues to the §7.2 plateau). Recorded before the extended run started;
+the 20-epoch checkpoint was not evaluated further and feeds nothing.
