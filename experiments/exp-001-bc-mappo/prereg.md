@@ -344,3 +344,31 @@ the critic must learn. Amendment to §7:
 
 PPO fine-tuning itself is unchanged (horizon 2,000, fragment 256,
 bootstrap at every cut).
+
+### 2026-07-29 — BC-clone discretionary settings pinned; freeze reading (pre-training)
+
+§5 leaves the clone's own optimization knobs to trainer's discretion
+("masked CE to plateau", softening amount unspecified). Recorded here
+*before* the first full clone run so the freeze has a clean edge:
+
+- **Freeze reading**: "the first training run" = the first full-dataset
+  clone run (Arm 1 is a registered result). Debug smoke runs on subset
+  data, whose outputs feed nothing downstream, do not bite the freeze.
+  The first full run starts immediately after this entry.
+- **Clone**: Adam lr 3e-4, batch 4096, ≤ 20 epochs with patience-3
+  plateau stop on masked val top-1, seed 20260729. Label softening:
+  ε = 0.05 spread uniformly over each row's *legal* actions only
+  (smoothing never fights the mask; converged entropy > 0 by
+  construction, per §11).
+- **Split**: by rollout, never by row (rows within a rollout share one
+  long-lived world — F-004's correlation logic applied to BC).
+  Validation = `rollout-04` of every config (9/45 rollouts ≈ 20%): all
+  9 family variants appear in both splits, no world seed shared.
+- **Critic pretrain**: Adam lr 1e-3, batch 4096, ≤ 60 epochs with
+  patience-5 plateau stop on val MSE; one critic per γ ∈ {0.995, 0.998};
+  targets per deviation 27c, normalized on train-split statistics
+  (mean/std recorded in the artifact and stats JSON).
+- Implementation: `trainer/` (PyTorch — the repo's first ML framework
+  dependency, confined to `experiments/`), verified pre-training by a
+  numpy-forward parity check against the exported artifact and a seated
+  smoke run through `kitty-eval`.
