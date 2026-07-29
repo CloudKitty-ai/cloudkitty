@@ -383,3 +383,16 @@ raised to 60, patience-3 stop and every other setting unchanged, rerun
 from the same seed (epochs 1–20 reproduce identically, training then
 continues to the §7.2 plateau). Recorded before the extended run started;
 the 20-epoch checkpoint was not evaluated further and feeds nothing.
+
+### 2026-07-29c — clone epoch cap removed; the patience criterion terminates (post-freeze)
+
+Epoch 60 was still not a plateau (val top-1 0.8013, ~+0.04 pt/epoch and
+decelerating; val loss still falling — no overfitting signal, and the
+patience stop keeps the best-val epoch regardless). Same lesson as 29b
+one level up: any hand-picked cap is a guess that fights §7.2. The cap is
+removed (set far above reach at 300); the pinned patience-3 / 1e-4 stop
+on masked val top-1 — which *is* §7.2's plateau criterion made
+executable — terminates the run. All other settings unchanged, rerun
+from the same seed; epochs 1–60 of the prior runs reproduced exactly
+(deterministic), so this extends rather than replaces them. The 60-epoch
+checkpoint feeds nothing.
