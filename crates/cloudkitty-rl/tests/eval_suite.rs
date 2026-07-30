@@ -864,9 +864,10 @@ fn share_guard_paired_prefix_is_the_only_divergence() {
     assert!(!paired.is_empty());
 
     let mut plain = Vec::new();
-    cloudkitty_rl::cli_support::print_paired(&mut plain, &paired, "baseline", "").unwrap();
+    cloudkitty_rl::cli_support::print_paired(&mut plain, &paired, "baseline", "", None).unwrap();
     let mut indented = Vec::new();
-    cloudkitty_rl::cli_support::print_paired(&mut indented, &paired, "baseline", "  ").unwrap();
+    cloudkitty_rl::cli_support::print_paired(&mut indented, &paired, "baseline", "  ", None)
+        .unwrap();
     let plain = String::from_utf8(plain).unwrap();
     let indented = String::from_utf8(indented).unwrap();
     for (p, i) in plain.lines().zip(indented.lines()) {

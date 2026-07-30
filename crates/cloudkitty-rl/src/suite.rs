@@ -941,13 +941,10 @@ pub fn human_report(report: &SuiteReport) {
 /// test (spec 018 FR-009). Per-run and paired rendering flow through
 /// `cli_support` — the single implementation both CLI modes share.
 fn human_report_to(w: &mut dyn std::io::Write, report: &SuiteReport) -> std::io::Result<()> {
-    let selection = report
-        .selection
-        .map(|s| format!(" ({s} selection)"))
-        .unwrap_or_default();
+    let note = crate::cli_support::selection_note(report.selection);
     writeln!(
         w,
-        "== kitty-eval suite {}: subject {}{selection} ==",
+        "== kitty-eval suite {}: subject {}{note} ==",
         report.suite_version, report.subject
     )?;
     writeln!(w, "engine defaults {}", report.engine_defaults_sha256)?;
@@ -964,7 +961,13 @@ fn human_report_to(w: &mut dyn std::io::Write, report: &SuiteReport) -> std::io:
                     crate::cli_support::print_run_panel(w, run, false)?;
                 }
                 writeln!(w, "-- paired vs needs_driven baseline --")?;
-                crate::cli_support::print_paired(w, &exam.paired, "baseline", "  ")?;
+                crate::cli_support::print_paired(
+                    w,
+                    &exam.paired,
+                    "baseline",
+                    "  ",
+                    report.selection,
+                )?;
             }
             ExamOutcome::MixedRoster(exam) => {
                 writeln!(w, "\n-- exam {} --", exam.name)?;
@@ -978,7 +981,13 @@ fn human_report_to(w: &mut dyn std::io::Write, report: &SuiteReport) -> std::io:
                     for run in &cell.runs {
                         crate::cli_support::print_run_panel(w, run, false)?;
                     }
-                    crate::cli_support::print_paired(w, &cell.paired, "all-scripted", "  ")?;
+                    crate::cli_support::print_paired(
+                        w,
+                        &cell.paired,
+                        "all-scripted",
+                        "  ",
+                        report.selection,
+                    )?;
                     writeln!(w, "  guest-welfare differentials (scripted kitties):")?;
                     for d in &cell.differentials {
                         writeln!(

@@ -231,6 +231,30 @@ fn the_sample_flag_without_an_artifact_is_a_usage_error() {
     }
 }
 
+// The other silent-loss route (issue #70 requirement 5): a flag sitting
+// where a value belongs must be a usage error, or `--json --sample`
+// swallows the sampling request and certifies a greedy run with exit 0.
+#[test]
+fn a_flag_where_a_value_belongs_is_a_usage_error() {
+    let output = std::process::Command::new(env!("CARGO_BIN_EXE_kitty-eval"))
+        .args([
+            "--artifact",
+            "p.ckpolicy",
+            "--seeds",
+            "1",
+            "--json",
+            "--sample",
+        ])
+        .output()
+        .expect("kitty-eval runs");
+    assert_eq!(output.status.code(), Some(1));
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("--json requires a value, got flag '--sample'"),
+        "{stderr}"
+    );
+}
+
 #[test]
 fn the_kitty_eval_binary_refuses_a_corrupt_artifact() {
     let dir = std::env::temp_dir().join("ck-harness-policy");

@@ -53,9 +53,13 @@ fn parse_args() -> Result<Args, String> {
     };
     let mut argv = std::env::args().skip(1);
     while let Some(flag) = argv.next() {
-        let mut value = |name: &str| {
-            argv.next()
-                .ok_or_else(|| format!("{name} requires a value"))
+        // A flag where a value belongs is a usage error, not a value —
+        // otherwise `--json --sample` swallows the sampling request and
+        // certifies a greedy run (issue #70 requirement 5).
+        let mut value = |name: &str| match argv.next() {
+            Some(v) if !v.starts_with("--") => Ok(v),
+            Some(v) => Err(format!("{name} requires a value, got flag '{v}'")),
+            None => Err(format!("{name} requires a value")),
         };
         match flag.as_str() {
             "--brain" => args.brain = Some(value("--brain")?),
@@ -160,22 +164,22 @@ fn human_report(output: &EvalOutput) {
 /// (spec 018 research D4) so the assembled certification report is
 /// capturable in-process.
 fn human_report_to(w: &mut dyn std::io::Write, output: &EvalOutput) -> std::io::Result<()> {
-    // Selection mode in the header AND the paired section (issue #70): a
-    // quoted certification line must carry its own distribution label.
-    let selection = output
-        .selection
-        .map(|s| format!(", {s} selection"))
-        .unwrap_or_default();
+    // The selection stamp attaches to the subject's name in the header,
+    // and print_paired stamps every paired line (issue #70): any quoted
+    // certification line carries its own distribution label. Built-ins
+    // stamp nothing, keeping their output byte-identical (SC-004 as
+    // amended 2026-07-29).
+    let note = cli_support::selection_note(output.selection);
     writeln!(
         w,
-        "== kitty-eval: {} ({} ticks/seed{selection}) ==",
+        "== kitty-eval: {}{note} ({} ticks/seed) ==",
         output.subject, output.ticks
     )?;
     for run in &output.runs {
         cli_support::print_run_panel(w, run, true)?;
     }
-    writeln!(w, "-- paired vs needs_driven baseline{selection} --")?;
-    cli_support::print_paired(w, &output.paired, "baseline", "")?;
+    writeln!(w, "-- paired vs needs_driven baseline --")?;
+    cli_support::print_paired(w, &output.paired, "baseline", "", output.selection)?;
     // One aggregate per roster mode: an all-policy score and the mixed
     // deployment reality are different claims and never blend (spec 014
     // review).
