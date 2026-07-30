@@ -317,11 +317,12 @@
     font-size: 0.75rem;
   }
 
-  /* The theme control: label, toggle button, and the setting's name in
-     words. One unbreakable unit so footer wrapping never splits it. */
+  /* The footer controls (kitty vocabulary, theme): label plus toggle
+     button as one unbreakable unit so footer wrapping never splits it. */
   .theme-control { white-space: nowrap; }
 
-  #theme-toggle {
+  #theme-toggle,
+  #vocab-toggle {
     background: var(--cream-deep);
     border: none;
     border-radius: 99px;
@@ -332,7 +333,8 @@
     line-height: 1.3;
   }
 
-  #theme-toggle:focus-visible {
+  #theme-toggle:focus-visible,
+  #vocab-toggle:focus-visible {
     outline: 2px solid var(--ink-soft);
     outline-offset: 2px;
   }
@@ -398,16 +400,67 @@
     <span id="debug-note" hidden>· 👻 greebles visible</span>
     <span id="grid-note" hidden>· ⌗ grid lines visible</span>
     <span id="paths-note" hidden>· 🐾 worn paths visible</span>
+    · <span class="theme-control">kitties
+      <button id="vocab-toggle" aria-label="switch kitty vocabulary">v2</button></span>
     · <span class="theme-control">set theme
       <button id="theme-toggle" aria-label="switch to Always Day">🌤️</button>
       <span id="theme-name">Day/Night Cycle</span></span>
   </footer>
 
+  <!-- Kitty vocabulary dispatcher (v2 default, 2026-07-29 — graduated
+       from the index-v2.html preview page). Both vocabularies load —
+       cat.js first, so cat-v2.js stays namespaced — and the chosen one
+       is installed here. v2 carries its locked 1.05x overdraw and the
+       hunting-only focused-eye rule. The footer toggle persists the
+       choice in localStorage and reloads, which also refreshes the
+       once-drawn portraits and header kitties. -->
   <script src="cat.js"></script>
+  <script src="cat-v2.js"></script>
+  <script>
+    const VOCAB_KEY = 'cloudkitty-vocab-preview';
+    const useV2 = (localStorage.getItem(VOCAB_KEY) ?? 'v2') === 'v2';
+    if (useV2) {
+      const OVERDRAW = 1.05; // locked (owner, 2026-07-29)
+      window.drawCat = (ctx, opts) => CatV2.drawCat(ctx, {
+        ...opts,
+        size: opts.size * OVERDRAW,
+        // Feet-anchored, same rule as the lab scenes. Callers without
+        // x/y (header, portraits) anchor from the box origin.
+        x: (opts.x ?? 0) + opts.size * (1 - OVERDRAW) / 2,
+        y: (opts.y ?? 0) + 0.88 * opts.size * (1 - OVERDRAW),
+      });
+      window.appearanceFor = CatV2.appearanceFor;
+      window.shadedAppearanceOf = CatV2.shadedAppearanceOf;
+    }
+  </script>
   <script src="props.js"></script>
   <script src="meadow.js"></script>
   <script src="render.js"></script>
   <script src="anim.js"></script>
+  <script>
+    // v2 expression rule (owner, 2026-07-29): focused eyes are for
+    // HUNTING -- element (bug/greeble) chases only; a kitty chase is
+    // social play in motion and wears the open playing eyes. v1 keeps
+    // its focused-for-every-pursuit rule, so the toggle A/Bs this too.
+    if (useV2) {
+      Presentation.prototype.expressionFor = (kitty) =>
+        kitty.pursuit?.target?.target === 'element' ? 'focused' : undefined;
+    }
+  </script>
   <script src="app.js"></script>
+  <script>
+    // The footer toggle: flip, persist, reload. The title only gains a
+    // suffix off the default, so the everyday tab stays plain CloudKitty.
+    (() => {
+      const btn = document.getElementById('vocab-toggle');
+      btn.textContent = useV2 ? 'v2' : 'v1';
+      btn.setAttribute('aria-label', 'switch to ' + (useV2 ? 'v1' : 'v2') + ' kitties');
+      if (!useV2) document.title = 'CloudKitty — v1 kitties';
+      btn.addEventListener('click', () => {
+        localStorage.setItem(VOCAB_KEY, useV2 ? 'v1' : 'v2');
+        location.reload();
+      });
+    })();
+  </script>
 </body>
 </html>

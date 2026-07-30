@@ -18,9 +18,9 @@
  *    (the profile ω was tried and cut). No whiskers -- tried and cut.
  *
  * Everything lives in an IIFE so this file can share a page with cat.js:
- * the comparison gallery loads both and draws them side by side. When
- * loaded WITHOUT cat.js (a future index-v2.html), it claims the same
- * global names and works as a drop-in replacement.
+ * the comparison gallery and index.html's v1/v2 toggle both load the two
+ * side by side. When loaded WITHOUT cat.js, it claims the same global
+ * names and works as a drop-in replacement.
  *
  * Pure drawing, as v1: no DOM beyond ctx, no fetches. Unit box 0..1,
  * y down; the base cat faces right and mirrors for left.
@@ -909,9 +909,10 @@ function drawDroplet(ctx, head) {
 }
 
 // ---------------------------------------------------------------------------
-// Exports. Namespaced always (the comparison gallery draws v1 and v2 on one
-// page); global drop-in only when cat.js is absent, so a future
-// index-v2.html swaps vocabularies by swapping one script tag.
+// Exports. Namespaced always (the comparison gallery and index.html's
+// v1/v2 toggle draw both vocabularies from one page); global drop-in only
+// when cat.js is absent, so a page can swap vocabularies by swapping one
+// script tag.
 // ---------------------------------------------------------------------------
 
 const api = {

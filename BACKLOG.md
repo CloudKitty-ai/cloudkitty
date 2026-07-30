@@ -15,6 +15,34 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 <!-- (pyo3 advisory upgrade shipped 2026-07-23, spec 015 — the
      do-before-more-RL-work gate is retired) -->
 
+### Graphics v2 follow-ons: face-group pitch, then live motion (added 2026-07-29)
+The v2 kitty vocabulary (`client/cat-v2.js`, owner-dialed face values)
+shipped 2026-07-29 (`f4a8d0d`) and is now the `index.html` default with a
+footer v1/v2 toggle; `client/gallery-v2.html` is the judging lab. Two
+pieces were parked mid-arc at the owner's call, in order:
+
+1. **Face-group pitch** — slide eyes+nose+mouth together up/down the head
+   to simulate the head tilting (looking down to eat/drink, up at a bug).
+   Shape agreed: a per-pose scalar (e.g. `L.pitch`), blendable through
+   `blendLayouts` like any layout number, consumed in `drawFace` as one
+   shared y-offset on the eyes and nose (the mouth anchors to the nose and
+   follows for free). **Trap, learned the hard way elsewhere:** the
+   tuxedo/seal-point head masks are anchored to the `NOSE` tunables so
+   they track nose *dialing* — but they are fur markings and must NOT
+   move with pitch; pin them to the static baked values. **Dead end, do
+   not rebuild:** pupil-shift gaze was built, verified, and reverted —
+   max pupil travel is ~1% of the cat box (~0.24px at world size),
+   unreadable. Pitch replaces it.
+2. **Live motion wiring** — the vocabulary machinery all exists and is
+   owner-approved in the lab (pose blending via `drawCatTween`, the slow
+   blink, arrive-and-settle at its slowed 400ms), but the live page still
+   snaps between poses. Wiring it in is renderer work in
+   `render.js`/`anim.js` territory, gated on the same side-by-side
+   judging as the face work.
+
+Judge every value in the lab first (dials + copy/paste readout), bake on
+the owner's paste — that workflow is the house method for this arc.
+
 ## P2 — the bigger pieces, for a proper sitting
 
 ### Eval-suite v2: a stronger counterfactual baseline (added 2026-07-25)
