@@ -396,3 +396,46 @@ executable — terminates the run. All other settings unchanged, rerun
 from the same seed; epochs 1–60 of the prior runs reproduced exactly
 (deterministic), so this extends rather than replaces them. The 60-epoch
 checkpoint feeds nothing.
+
+### 2026-07-30 — Arm 2 (MAPPO) discretionary settings pinned (post-freeze, pre-Arm-2-run)
+
+§4/§5 pin the architecture, γ set, λ, clip, entropy schedule, LR, leash,
+fragment, world/mixed-control bands, and budget band; the remaining knobs
+are recorded here *before the first Arm 2 training run* (smoke runs on
+toy settings exempt, per deviation 29's precedent). Trainer:
+`trainer/ppo_env.py` + `trainer/train_ppo.py`.
+
+- **Env step** = one tick of one world; **20M per run** (bottom of §4's
+  20–50M band). Fragment 256 × 12 worlds = 3,072 ticks/update.
+- **Worlds (12)**: 8 all-external cycling `training.toml` + the family-v1
+  variants; 2 with one scripted kitty, 2 with two (scripted = lowest ids,
+  `needs_driven`) → 33% mixed-control, inside §4's 25–50% / 1–2 band.
+- **Seeds**: world seed base 1,000,000 + training-seed×100,000
+  (+1,000/resume segment, +50,000 in the anneal phase), bare-reset chains
+  thereafter — ≥1,000 and disjoint from eval seeds per §11. Validation
+  probes use 40,001–40,003 (never trained on, not eval seeds): greedy,
+  3 × 2,000 ticks on the default world, every 50 updates.
+- **PPO internals**: 4 epochs × 4 minibatches per update; advantages
+  normalized per update batch (pre-normalization stats logged per §10.1);
+  no value clipping; value coef 0.5; grad clip 0.5; actor and critic
+  updated by decoupled Adam optimizers, both on §5's 1e-4 with linear
+  warmup over the first 2% of updates. KL-to-clone leash starts at
+  β = 0.5 (β0 discretionary; §5 pins the anneal-to-0-by-20% schedule).
+- **Critic warm start**: pretrain normalizer (mean/std) frozen; value
+  regression stays in normalized space; GAE denormalizes.
+- **Default-world anneal** at progress ≥ 0.85 (§4's "final ~15%"), mixed
+  structure retained; the roster-4 state is adapted to the critic's
+  5-kitty layout by splicing a zeroed phantom-kitty block before the
+  element tail (layout per `global_state.rs`).
+- **Diagnostics as built** (§10.1): Nash return/episode, default-world
+  validation curve, masked entropy, KL-to-clone, critic EV, advantage
+  mean/std, clip fraction, grad norm, value loss, mask-violation rate of
+  unmasked argmax — all per update to `metrics.jsonl`. **Not implemented
+  in-training**: journey-length distribution, distress events, min-kitty
+  happiness/spread — the Python binding exposes none of these; they are
+  covered eval-side (§10.2) instead. Recorded as a known gap, not
+  silently dropped.
+- **Long-run mechanics**: checkpoint + resume. World state cannot be
+  serialized through the binding, so each resumed segment re-seeds its
+  envs deterministically; segment indices are logged in `metrics.jsonl`
+  and are part of the run record.
