@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CloudKitty — v2 Cat Lab</title>
+<!--
+  The v2 comparison lab (graphics investigation, 2026-07-29). Standalone on
+  purpose, like gallery.html: open straight from disk, no server.
+
+  Loads BOTH vocabularies -- cat.js (the shipped look) and cat-v2.js (the
+  prototype) -- and draws them side by side. Locked so far (owner,
+  2026-07-29): head 1.05x, overdraw 1.05x, no mouth, no whiskers; slow
+  blink APPROVED; turn-around squash tried and REVERTED (reads uncanny in
+  2D -- v1's instant mirror flip stays). Under evaluation: eye dials
+  (live sliders writing CatV2.EYE), pose-space blending, and the
+  arrive-and-settle (slowed once from 180/260ms on owner feedback).
+  Judging happens here; revision means editing cat-v2.js and reloading.
+  cat.js is never edited.
+-->
+<style>
+  :root {
+    --cream: #fdf6ec;
+    --ink: #6b5a4e;
+    --ink-soft: #9c8a7c;
+    --card: #fffdfa;
+    --accent: #c47a4f;
+    --shadow: rgba(150, 125, 105, 0.18);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px 16px 64px;
+    font-family: ui-rounded, "SF Pro Rounded", "Nunito", "Quicksand",
+      system-ui, sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+  }
+  h1 { margin: 0 0 4px; font-size: 26px; }
+  h2 { margin: 40px 0 4px; font-size: 20px; }
+  .sub { color: var(--ink-soft); margin: 0 0 16px; font-size: 14px; }
+
+  .controls {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    align-items: center;
+    background: var(--card);
+    border-radius: 14px;
+    box-shadow: 0 2px 10px var(--shadow);
+    padding: 12px 16px;
+    margin: 16px 0 8px;
+    font-size: 14px;
+  }
+  .controls label { display: flex; align-items: center; gap: 8px; }
+  .controls .val { font-variant-numeric: tabular-nums; min-width: 3.2em; }
+  input[type="range"] { accent-color: var(--accent); }
+
+  .scene-card {
+    background: var(--card);
+    border-radius: 14px;
+    box-shadow: 0 2px 10px var(--shadow);
+    padding: 14px 16px 16px;
+    margin: 14px 0;
+  }
+  .scene-card h3 { margin: 0 0 2px; font-size: 16px; }
+  .scene-card .note { color: var(--ink-soft); font-size: 13px; margin: 0 0 10px; }
+  /* Canvases must NEVER be squeezed below true pixel size (a shrunk
+     canvas is a resampled lie -- "1x" stops being 1x). Rows scroll
+     sideways instead of shrinking their contents. */
+  .rows {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    align-items: flex-end;
+    overflow-x: auto;
+  }
+  .row { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+  .row .tag { font-size: 12px; color: var(--ink-soft); letter-spacing: 0.04em; }
+  .row canvas {
+    border-radius: 8px;
+    background: #cfe6bd;
+    display: block;
+    flex-shrink: 0;
+  }
+
+  .dials {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 10px 26px;
+    font-size: 14px;
+  }
+  .dials label { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
+  .dials input { flex: 1; }
+  #eyeReadout {
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+
+  table.grid { border-collapse: collapse; }
+  table.grid td, table.grid th {
+    padding: 6px 10px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+  .swatch { display: inline-flex; gap: 10px; align-items: center; }
+</style>
+</head>
+<body>
+
+<h1>v2 Cat Lab</h1>
+<p class="sub">
+  cat.js (shipped) vs cat-v2.js (prototype). Locked: head 1.05×, overdraw
+  1.05×. Now dialing: eyes (live sliders below) and motion. Zoom is a
+  magnifying glass over true pixels — 1× is exactly what the meadow shows.
+</p>
+
+<div class="controls">
+  <label>v2 overdraw
+    <input id="factor" type="range" min="1" max="1.6" step="0.05" value="1.05">
+    <span class="val" id="factorVal">1.05×</span>
+  </label>
+  <label>tile
+    <select id="tile">
+      <option>16</option>
+      <option selected>22</option>
+      <option>28</option>
+    </select> px
+  </label>
+  <label>zoom
+    <select id="zoom">
+      <option selected>1</option>
+      <option>2</option>
+      <option>3</option>
+    </select>×
+  </label>
+  <label><input id="v1too" type="checkbox"> overdraw v1 too</label>
+  <label><input id="animate" type="checkbox"> animate</label>
+</div>
+
+<h2>Face dials</h2>
+<p class="sub">
+  Live: every canvas on this page redraws as you drag. Eyes are BAKED
+  (owner, 2026-07-29) — their dials start at the locked values. Nose is
+  under review. When it's right, read the values off the line below and
+  we bake them into cat-v2.js.
+</p>
+<div class="scene-card">
+  <div class="dials" id="dials"></div>
+  <div class="rows" id="bench" style="margin-top: 14px;"></div>
+  <label style="font-size: 13px; display: inline-flex; gap: 8px; align-items: center; margin-top: 8px;">
+    bench coat
+    <select id="benchPal"></select>
+  </label>
+  <div id="eyeReadout"></div>
+</div>
+
+<h2>Motion lab</h2>
+<p class="sub">
+  Prototypes of the animation upgrades, v1 behavior vs v2, at 84px so the
+  mechanics read clearly. Everything here derives from state the server
+  already serves — these are presentation-layer moves, previewed
+  vocabulary-side before they're wired into anim.js.
+</p>
+<div id="motion"></div>
+
+<h2>Scenes — neighbors and piles</h2>
+<p class="sub">
+  Overdrawn cats on adjacent tiles, feet-anchored, y-sorted (lower rows in
+  front) — the order the live renderer would use.
+</p>
+<div id="scenes"></div>
+
+<h2>Faces</h2>
+<p class="sub">
+  Every eye state at 72px — one pale coat, one dark. `focused` is v1's
+  hunter face, deliberately unchanged.
+</p>
+<div class="scene-card"><div class="rows" id="faces"></div></div>
+
+<h2>Every colorway</h2>
+<p class="sub">Idle and loaf, world size (22px) and inspection size (72px).</p>
+<div class="scene-card"><div id="colorways"></div></div>
+
+<script src="cat.js"></script>
+<script src="cat-v2.js"></script>
+<script>
+(() => {
+  const V1 = { drawCat, appearanceFor, name: 'v1 · shipped' };
+  const V2 = { drawCat: CatV2.drawCat, appearanceFor: CatV2.appearanceFor, name: 'v2 · prototype' };
+
+  const GRASS = ['#cfe6bd', '#c6dfb2'];
+  const SHADOW = 'rgba(96, 72, 48, 0.18)';
+  const MISO = 1, BISCUIT = 2, PUMPKIN = 3, STORM = 4;
+
+  const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+  const easeSmooth = (t) => t * t * (3 - 2 * t);
+
+  // ------------------------------------------------------------------ scenes
+  const SCENES = [
+    {
+      title: 'The cuddle',
+      note: 'Rest{with} — two loafs on adjacent tiles, faced toward each other.',
+      cols: 4, rows: 1,
+      cats: [
+        { tx: 1, ty: 0, pose: 'loaf', pal: MISO, facing: 'right', phase0: 0.1 },
+        { tx: 2, ty: 0, pose: 'loaf', pal: BISCUIT, facing: 'left', phase0: 0.6 },
+      ],
+    },
+    {
+      title: 'Co-sleeping',
+      note: 'Sleep{with} — the curl pair.',
+      cols: 4, rows: 1,
+      cats: [
+        { tx: 1, ty: 0, pose: 'sleep-curl', pal: PUMPKIN, facing: 'right', phase0: 0.2 },
+        { tx: 2, ty: 0, pose: 'sleep-curl', pal: STORM, facing: 'left', phase0: 0.7 },
+      ],
+    },
+    {
+      title: 'The pile',
+      note: 'Worst case: a 2×2 block, everyone adjacent to everyone.',
+      cols: 4, rows: 2,
+      cats: [
+        { tx: 1, ty: 0, pose: 'loaf', pal: MISO, facing: 'right', phase0: 0.15 },
+        { tx: 2, ty: 0, pose: 'sleep-curl', pal: BISCUIT, facing: 'left', phase0: 0.4 },
+        { tx: 1, ty: 1, pose: 'sleep-curl', pal: PUMPKIN, facing: 'right', phase0: 0.65 },
+        { tx: 2, ty: 1, pose: 'loaf', pal: STORM, facing: 'left', phase0: 0.9 },
+      ],
+    },
+    {
+      title: 'The caravan',
+      note: 'Three walkers in file.',
+      cols: 5, rows: 1,
+      cats: [
+        { tx: 1, ty: 0, pose: 'walking', pal: MISO, facing: 'right', phase0: 0.15 },
+        { tx: 2, ty: 0, pose: 'walking', pal: BISCUIT, facing: 'right', phase0: 0.5 },
+        { tx: 3, ty: 0, pose: 'walking', pal: PUMPKIN, facing: 'right', phase0: 0.85 },
+      ],
+    },
+    {
+      title: 'Passing lanes',
+      note: 'Vertical adjacency — upper cat’s feet meet lower cat’s ears.',
+      cols: 4, rows: 2,
+      cats: [
+        { tx: 1, ty: 0, pose: 'walking', pal: STORM, facing: 'left', phase0: 0.3 },
+        { tx: 1, ty: 1, pose: 'walking', pal: MISO, facing: 'right', phase0: 0.6 },
+        { tx: 2, ty: 1, pose: 'idle', pal: BISCUIT, facing: 'left', phase0: 0.1 },
+      ],
+    },
+    {
+      title: 'The hunt',
+      note: 'Pounce crouch with the focused eyes (unchanged), a bystander one tile over.',
+      cols: 4, rows: 1,
+      cats: [
+        { tx: 1, ty: 0, pose: 'pouncing', pal: PUMPKIN, facing: 'right', phase0: 0.3, eyes: 'focused' },
+        { tx: 2, ty: 0, pose: 'idle', pal: STORM, facing: 'left', phase0: 0.5 },
+      ],
+    },
+  ];
+
+  const ui = {
+    factor: document.getElementById('factor'),
+    factorVal: document.getElementById('factorVal'),
+    tile: document.getElementById('tile'),
+    zoom: document.getElementById('zoom'),
+    v1too: document.getElementById('v1too'),
+    animate: document.getElementById('animate'),
+  };
+
+  const RESTING = new Set(['idle', 'loaf', 'sleep-curl']);
+  function phaseFor(cat, now) {
+    if (!ui.animate.checked || now == null) return cat.phase0;
+    const seed = (cat.tx * 31 + cat.ty * 17 + cat.pal) * 137;
+    const period = RESTING.has(cat.pose) ? 3400 : 1100;
+    return ((now + seed + cat.phase0 * period) % period) / period;
+  }
+
+  function renderScene(canvas, scene, vocab, factor, tile, zoom, now) {
+    const dpr = window.devicePixelRatio || 1;
+    const margin = Math.ceil(tile * 0.8);
+    const w = scene.cols * tile + margin * 2;
+    const h = scene.rows * tile + margin * 2;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    canvas.style.width = `${w * zoom}px`;
+    canvas.style.height = `${h * zoom}px`;
+    // Pixelated only when magnifying: zoomed views want honest chunky
+    // pixels; 1x wants exactly the browser compositing the meadow gets.
+    canvas.style.imageRendering = zoom > 1 ? 'pixelated' : 'auto';
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    for (let gy = -1; gy <= scene.rows; gy++) {
+      for (let gx = -1; gx <= scene.cols; gx++) {
+        ctx.fillStyle = GRASS[((gx + gy) % 2 + 2) % 2];
+        ctx.fillRect(margin + gx * tile, margin + gy * tile, tile, tile);
+      }
+    }
+
+    const size = tile * factor;
+    const cats = [...scene.cats].sort((a, b) => a.ty - b.ty || a.tx - b.tx);
+    for (const cat of cats) {
+      const cx = margin + cat.tx * tile + tile / 2;
+      const groundY = margin + cat.ty * tile + tile * 0.84;
+      ctx.fillStyle = SHADOW;
+      ctx.beginPath();
+      ctx.ellipse(cx, groundY, size * 0.3, size * 0.11, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    for (const cat of cats) {
+      const tx = margin + cat.tx * tile;
+      const ty = margin + cat.ty * tile;
+      vocab.drawCat(ctx, {
+        pose: cat.pose,
+        appearance: vocab.appearanceFor(cat.pal),
+        facing: cat.facing,
+        size,
+        phase: phaseFor(cat, now),
+        eyesOverride: cat.eyes,
+        x: tx + (tile - size) / 2,
+        y: ty + 0.88 * (tile - size),
+      });
+    }
+  }
+
+  const sceneRoot = document.getElementById('scenes');
+  const sceneViews = [];
+  for (const scene of SCENES) {
+    const card = document.createElement('div');
+    card.className = 'scene-card';
+    card.innerHTML = `<h3>${scene.title}</h3><p class="note">${scene.note}</p>`;
+    const rows = document.createElement('div');
+    rows.className = 'rows';
+    for (const vocab of [V1, V2]) {
+      const row = document.createElement('div');
+      row.className = 'row';
+      const tag = document.createElement('span');
+      tag.className = 'tag';
+      const canvas = document.createElement('canvas');
+      row.append(tag, canvas);
+      rows.append(row);
+      sceneViews.push({ scene, vocab, canvas, tag });
+    }
+    card.append(rows);
+    sceneRoot.append(card);
+  }
+
+  // -------------------------------------------------------------- eye dials
+  const DIALS = [
+    { obj: 'EYE', key: 'scale', label: 'eye size (of head)', min: 0.12, max: 0.26, step: 0.005 },
+    { obj: 'EYE', key: 'height', label: 'eye height (− up / + down)', min: -0.16, max: 0.16, step: 0.005 },
+    { obj: 'EYE', key: 'shift', label: 'eye position (− back / + nose)', min: -0.2, max: 0.2, step: 0.005 },
+    { obj: 'EYE', key: 'pupil', label: 'pupil (of iris)', min: 0.4, max: 0.8, step: 0.01 },
+    { obj: 'EYE', key: 'focusedScale', label: 'focused-eye size (of head)', min: 0.1, max: 0.22, step: 0.005 },
+    { obj: 'EYE', key: 'focusedHeight', label: 'focused-eye height (− up / + down)', min: -0.16, max: 0.16, step: 0.005 },
+    { obj: 'EYE', key: 'halfLid', label: 'half-eye lid coverage', min: 0.3, max: 0.85, step: 0.01 },
+    { obj: 'EYE', key: 'lidTilt', label: 'lid tilt (− away / + toward middle)', min: -0.3, max: 0.6, step: 0.01 },
+    { obj: 'EYE', key: 'lidCurve', label: 'lid curve (− concave / + convex)', min: -0.4, max: 0.4, step: 0.01 },
+    { obj: 'NOSE', key: 'x', label: 'nose position (− back / + out)', min: -0.2, max: 1.0, step: 0.01 },
+    { obj: 'NOSE', key: 'y', label: 'nose height (− up / + down)', min: -0.1, max: 0.45, step: 0.01 },
+    { obj: 'NOSE', key: 'size', label: 'nose size (of head)', min: 0.06, max: 0.24, step: 0.005 },
+    { obj: 'MOUTH', key: 'gap', label: 'mouth gap (below nose)', min: 0, max: 0.25, step: 0.005 },
+    { obj: 'MOUTH', key: 'width', label: 'mouth width (half-span)', min: 0.03, max: 0.3, step: 0.005 },
+    { obj: 'MOUTH', key: 'depth', label: 'mouth depth (leg drop)', min: 0, max: 0.25, step: 0.005 },
+  ];
+  const dialRoot = document.getElementById('dials');
+  const readout = document.getElementById('eyeReadout');
+  // Mouth style toggle: the ∧ vs the rounded ω.
+  {
+    const label = document.createElement('label');
+    const span = document.createElement('span');
+    span.textContent = 'mouth style';
+    const select = document.createElement('select');
+    for (const [value, name] of [['v', '∧ upside-down V'], ['w', 'ω rounded']]) {
+      const opt = document.createElement('option');
+      opt.value = value;
+      opt.textContent = name;
+      if (CatV2.MOUTH.style === value) opt.selected = true;
+      select.append(opt);
+    }
+    select.addEventListener('input', () => {
+      CatV2.MOUTH.style = select.value;
+      renderStill();
+    });
+    label.append(span, select);
+    dialRoot.append(label);
+  }
+  for (const d of DIALS) {
+    const label = document.createElement('label');
+    const span = document.createElement('span');
+    span.textContent = d.label;
+    const input = document.createElement('input');
+    input.type = 'range';
+    input.min = d.min;
+    input.max = d.max;
+    input.step = d.step;
+    input.value = CatV2[d.obj][d.key];
+    input.addEventListener('input', () => {
+      CatV2[d.obj][d.key] = Number(input.value);
+      renderStill();
+    });
+    label.append(span, input);
+    dialRoot.append(label);
+  }
+  function updateReadout() {
+    const e = CatV2.EYE;
+    const n = CatV2.NOSE;
+    const m = CatV2.MOUTH;
+    readout.style.whiteSpace = 'pre-line';
+    readout.textContent =
+      `EYE = { scale: ${e.scale}, height: ${e.height}, shift: ${e.shift}, pupil: ${e.pupil} } · ` +
+      `NOSE = { x: ${n.x}, y: ${n.y}, size: ${n.size} } · ` +
+      `MOUTH = { style: '${m.style}', gap: ${m.gap}, width: ${m.width}, depth: ${m.depth} }\n` +
+      `LID = { halfLid: ${e.halfLid}, lidTilt: ${e.lidTilt}, lidCurve: ${e.lidCurve} } · ` +
+      `FOCUSED = { focusedScale: ${e.focusedScale}, focusedHeight: ${e.focusedHeight} }`;
+  }
+
+  // Slider bench: a static standing pair, redrawn live as the dials move.
+  // Large for judging shape, true 22px for the meadow reality, and the
+  // same 22px magnified 3x for seeing what the pixels actually did.
+  const benchPal = document.getElementById('benchPal');
+  CatV2.PALETTES.forEach((p, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = p.name;
+    if (i === BISCUIT) opt.selected = true;
+    benchPal.append(opt);
+  });
+  benchPal.addEventListener('input', () => renderBench());
+
+  const benchRoot = document.getElementById('bench');
+  const benchViews = [];
+  for (const vocab of [V1, V2]) {
+    const row = document.createElement('div');
+    row.className = 'row';
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    tag.textContent = vocab.name;
+    const holder = document.createElement('div');
+    holder.className = 'swatch';
+    const cells = [];
+    // Open-eyed trio, then a half-closed pair for the lid dials.
+    for (const [size, zoom, eyes] of [
+      [128, 1], [22, 1], [22, 3],
+      [128, 1, 'half'], [22, 3, 'half'],
+    ]) {
+      const canvas = document.createElement('canvas');
+      holder.append(canvas);
+      cells.push({ canvas, size, zoom, eyes });
+    }
+    row.append(tag, holder);
+    benchRoot.append(row);
+    benchViews.push({ vocab, cells });
+  }
+
+  function renderBench() {
+    const dpr = window.devicePixelRatio || 1;
+    const pal = Number(benchPal.value);
+    for (const { vocab, cells } of benchViews) {
+      for (const { canvas, size, zoom, eyes } of cells) {
+        canvas.width = size * dpr;
+        canvas.height = size * dpr;
+        canvas.style.width = `${size * zoom}px`;
+        canvas.style.height = `${size * zoom}px`;
+        canvas.style.imageRendering = zoom > 1 ? 'pixelated' : 'auto';
+        const ctx = canvas.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        vocab.drawCat(ctx, {
+          pose: 'idle',
+          appearance: vocab.appearanceFor(pal),
+          facing: 'right',
+          size,
+          phase: 0,
+          eyesOverride: eyes,
+        });
+      }
+    }
+  }
+
+  // -------------------------------------------------------------- motion lab
+  // Each demo: one drawFrame(ctx, w, h, now, isV2). v1 column shows today's
+  // behavior (snaps); v2 shows the prototype (blends, squash, lid, settle).
+  const CAT = 84;
+  const DEMOS = [
+    {
+      title: 'Pose flow',
+      note: 'idle → walking → loaf → sleep-curl. v1 snaps at each boundary; v2 blends over 260 ms (pose-space lerp).',
+      draw(ctx, w, h, now, isV2) {
+        const SEQ = [
+          ['idle', 1300], ['walking', 1300], ['loaf', 1300], ['sleep-curl', 1700],
+        ];
+        const total = SEQ.reduce((s, [, ms]) => s + ms, 0);
+        let t = now % total;
+        let i = 0;
+        while (t >= SEQ[i][1]) { t -= SEQ[i][1]; i++; }
+        const pose = SEQ[i][0];
+        const prev = SEQ[(i + SEQ.length - 1) % SEQ.length][0];
+        const phase = (p) => (RESTING.has(p) ? (now % 3400) / 3400 : (now % 1100) / 1100);
+        const base = { appearance: CatV2.appearanceFor(PUMPKIN), facing: 'right', size: CAT, x: (w - CAT) / 2, y: h - CAT * 0.95 };
+        const BLEND = 260;
+        if (isV2 && t < BLEND) {
+          CatV2.drawCatTween(ctx, {
+            ...base, from: prev, to: pose, t: easeSmooth(t / BLEND),
+            phaseFrom: phase(prev), phaseTo: phase(pose),
+          });
+        } else {
+          (isV2 ? CatV2.drawCat : drawCat)(ctx, { ...base, pose, phase: phase(pose) });
+        }
+      },
+    },
+    // Turn-around squash: tried 2026-07-29, REVERTED same day (owner) --
+    // the through-the-turn squash reads uncanny on a flat 2D cat. Facing
+    // flips stay v1's instant mirror.
+    {
+      title: 'Slow blink',
+      note: 'The cat “I love you”. v1 can only snap open/closed; v2 eases the lid down and up (the relief-beat candidate).',
+      draw(ctx, w, h, now, isV2) {
+        const CYCLE = 2600;
+        const t = now % CYCLE;
+        let lid = 0;
+        if (t > 1200 && t <= 1550) lid = easeSmooth((t - 1200) / 350);
+        else if (t > 1550 && t <= 1700) lid = 1;
+        else if (t > 1700 && t <= 2150) lid = 1 - easeSmooth((t - 1700) / 450);
+        const base = {
+          pose: 'idle', appearance: CatV2.appearanceFor(BISCUIT), facing: 'right',
+          size: CAT, x: (w - CAT) / 2, y: h - CAT * 0.95, phase: (now % 3400) / 3400,
+        };
+        if (isV2) CatV2.drawCat(ctx, { ...base, lid });
+        else drawCat(ctx, { ...base, eyesOverride: lid > 0.5 ? 'closed' : undefined });
+      },
+    },
+    {
+      title: 'Arrive & settle',
+      note: 'One-tile glide, then stop. v1 swaps walking→idle in one frame; v2 blends the pose and lands with a slow settle (owner-tuned: 180→400 ms).',
+      draw(ctx, w, h, now, isV2) {
+        const CYCLE = 2800, MOVE = 800, BLEND = 340, SETTLE = 400;
+        const t = now % CYCLE;
+        const from = w / 2 - CAT * 0.45;
+        const to = w / 2 + CAT * 0.45 - CAT;
+        const cycle = Math.floor(now / CYCLE);
+        const flip = cycle % 2 === 1;
+        const [x0, x1] = flip ? [to, from] : [from, to];
+        const facing = flip ? 'left' : 'right';
+        const moving = t < MOVE;
+        const u = moving ? easeInOutCubic(t / MOVE) : 1;
+        const x = x0 + (x1 - x0) * u;
+        let sy = 1;
+        if (isV2 && !moving && t < MOVE + SETTLE) {
+          const s = (t - MOVE) / SETTLE;
+          sy = 1 - 0.05 * Math.sin(Math.PI * easeSmooth(s)); // slow landing settle
+        }
+        const groundY = h - CAT * 0.95 + CAT * 0.88;
+        ctx.save();
+        ctx.translate(0, groundY);
+        ctx.scale(1, sy);
+        ctx.translate(0, -groundY);
+        const base = { appearance: CatV2.appearanceFor(STORM), facing, size: CAT, x, y: h - CAT * 0.95 };
+        if (moving) {
+          (isV2 ? CatV2.drawCat : drawCat)(ctx, { ...base, pose: 'walking', phase: (t / MOVE) % 1 });
+        } else if (isV2 && t < MOVE + BLEND) {
+          CatV2.drawCatTween(ctx, {
+            ...base, from: 'walking', to: 'idle', t: easeSmooth((t - MOVE) / BLEND),
+            phaseFrom: 1, phaseTo: (now % 3400) / 3400,
+          });
+        } else {
+          (isV2 ? CatV2.drawCat : drawCat)(ctx, { ...base, pose: 'idle', phase: (now % 3400) / 3400 });
+        }
+        ctx.restore();
+      },
+    },
+  ];
+
+  const motionRoot = document.getElementById('motion');
+  const motionViews = [];
+  for (const demo of DEMOS) {
+    const card = document.createElement('div');
+    card.className = 'scene-card';
+    card.innerHTML = `<h3>${demo.title}</h3><p class="note">${demo.note}</p>`;
+    const rows = document.createElement('div');
+    rows.className = 'rows motion-row';
+    for (const isV2 of [false, true]) {
+      const row = document.createElement('div');
+      row.className = 'row';
+      const tag = document.createElement('span');
+      tag.className = 'tag';
+      tag.textContent = isV2 ? 'v2 · prototype' : 'v1 · shipped';
+      const canvas = document.createElement('canvas');
+      row.append(tag, canvas);
+      rows.append(row);
+      motionViews.push({ demo, isV2, canvas });
+    }
+    card.append(rows);
+    motionRoot.append(card);
+  }
+
+  function renderMotion(now) {
+    const dpr = window.devicePixelRatio || 1;
+    const w = 180, h = 120;
+    for (const { demo, isV2, canvas } of motionViews) {
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.fillStyle = GRASS[0];
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = SHADOW;
+      ctx.beginPath();
+      ctx.ellipse(w / 2, h - CAT * 0.12, CAT * 0.32, CAT * 0.09, 0, 0, Math.PI * 2);
+      ctx.fill();
+      demo.draw(ctx, w, h, now ?? 0, isV2);
+    }
+  }
+
+  // ------------------------------------------------------- faces, colorways
+  const faceRoot = document.getElementById('faces');
+  const FACE_SIZE = 72;
+  const faceViews = [];
+  for (const pal of [BISCUIT, 5 /* midnight */]) {
+    for (const eyes of ['open', 'half', 'closed', 'focused']) {
+      const row = document.createElement('div');
+      row.className = 'row';
+      const tag = document.createElement('span');
+      tag.className = 'tag';
+      tag.textContent = eyes;
+      const holder = document.createElement('div');
+      holder.className = 'swatch';
+      const pair = [];
+      for (const vocab of [V1, V2]) {
+        const canvas = document.createElement('canvas');
+        holder.append(canvas);
+        pair.push({ vocab, canvas });
+      }
+      row.append(tag, holder);
+      faceRoot.append(row);
+      faceViews.push({ pal, eyes, pair });
+    }
+  }
+
+  function renderFaces() {
+    const dpr = window.devicePixelRatio || 1;
+    for (const { pal, eyes, pair } of faceViews) {
+      for (const { vocab, canvas } of pair) {
+        canvas.width = FACE_SIZE * dpr;
+        canvas.height = FACE_SIZE * dpr;
+        canvas.style.width = `${FACE_SIZE}px`;
+        canvas.style.height = `${FACE_SIZE}px`;
+        const ctx = canvas.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        vocab.drawCat(ctx, {
+          pose: 'idle',
+          appearance: vocab.appearanceFor(pal),
+          facing: 'right',
+          size: FACE_SIZE,
+          phase: 0,
+          eyesOverride: eyes === 'open' ? undefined : eyes,
+        });
+      }
+    }
+  }
+
+  function renderColorways() {
+    const root = document.getElementById('colorways');
+    root.innerHTML = '';
+    const dpr = window.devicePixelRatio || 1;
+    const table = document.createElement('table');
+    table.className = 'grid';
+    table.innerHTML =
+      '<tr><th></th><th>idle 22</th><th>loaf 22</th><th>idle 72</th><th>loaf 72</th></tr>';
+    for (let pal = 0; pal < 8; pal++) {
+      const tr = document.createElement('tr');
+      const name = document.createElement('td');
+      name.textContent = CatV2.PALETTES[pal].name;
+      name.style.textAlign = 'right';
+      tr.append(name);
+      for (const [pose, px] of [['idle', 22], ['loaf', 22], ['idle', 72], ['loaf', 72]]) {
+        const td = document.createElement('td');
+        const holder = document.createElement('div');
+        holder.className = 'swatch';
+        for (const vocab of [V1, V2]) {
+          const canvas = document.createElement('canvas');
+          canvas.width = px * dpr;
+          canvas.height = px * dpr;
+          canvas.style.width = `${px}px`;
+          canvas.style.height = `${px}px`;
+          const ctx = canvas.getContext('2d');
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          vocab.drawCat(ctx, {
+            pose, appearance: vocab.appearanceFor(pal), facing: 'right', size: px, phase: 0,
+          });
+          holder.append(canvas);
+        }
+        td.append(holder);
+        tr.append(td);
+      }
+      table.append(tr);
+    }
+    root.append(table);
+  }
+
+  // ------------------------------------------------------------------- wiring
+  function renderScenes(now) {
+    const factor = Number(ui.factor.value);
+    const tile = Number(ui.tile.value);
+    const zoom = Number(ui.zoom.value);
+    ui.factorVal.textContent = `${factor.toFixed(2)}×`;
+    for (const view of sceneViews) {
+      const isV2 = view.vocab === V2;
+      const f = isV2 || ui.v1too.checked ? factor : 1;
+      view.tag.textContent = `${view.vocab.name} · ${f.toFixed(2)}×`;
+      renderScene(view.canvas, view.scene, view.vocab, f, tile, zoom, now);
+    }
+  }
+
+  /** Everything except the motion lab, one still frame. */
+  function renderStill() {
+    updateReadout();
+    renderBench();
+    renderScenes(null);
+    renderFaces();
+    renderColorways();
+    if (!ui.animate.checked) renderMotion(null);
+  }
+
+  let rafId = 0;
+  function loop(now) {
+    rafId = 0;
+    if (!ui.animate.checked) return;
+    renderScenes(now);
+    renderMotion(now);
+    rafId = requestAnimationFrame(loop);
+  }
+  function onAnimateToggle() {
+    if (ui.animate.checked && !rafId) rafId = requestAnimationFrame(loop);
+    if (!ui.animate.checked) { renderScenes(null); renderMotion(null); }
+  }
+
+  for (const el of [ui.factor, ui.tile, ui.zoom, ui.v1too]) {
+    el.addEventListener('input', () => renderScenes(null));
+  }
+  ui.animate.addEventListener('input', onAnimateToggle);
+
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  ui.animate.checked = !reduced;
+
+  renderStill();
+  onAnimateToggle();
+})();
+</script>
+</body>
+</html>
