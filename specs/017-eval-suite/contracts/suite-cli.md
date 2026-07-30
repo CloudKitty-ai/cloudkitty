@@ -2,7 +2,11 @@
 
 `kitty-eval --suite`, extending the existing binary. The single-config
 invocation is byte-compatible — report shape and exit codes unchanged
-(SC-004).
+(SC-004). *(Amended 2026-07-29, issue #70: byte-compatibility as stated
+holds for exit codes and for built-in subjects; policy subjects gained
+the unconditional greedy/sampled selection stamp. See SC-004's amendment
+in spec.md for the full re-baseline and cutover note — the labeled shape
+is the baseline from that amendment forward.)*
 
 ## Invocation
 
