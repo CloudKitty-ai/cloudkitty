@@ -140,10 +140,14 @@ fn the_kitty_eval_binary_scores_an_artifact_in_both_modes_and_exits_zero() {
 // disagreement, so exit 0 also certifies requirement 2).
 #[test]
 fn the_sample_flag_routes_labels_and_stays_deterministic() {
-    let dir = std::env::temp_dir().join("ck-harness-policy-sample");
-    std::fs::create_dir_all(&dir).unwrap();
-    let path = dir.join("uniform.ckpolicy");
-    cloudkitty_rl::test_support::write_fixture_artifact_with_output(&path, 8, 0, Some(0.0));
+    let path = test_support::fixture_artifact_with_output(
+        "ck-harness-policy-sample",
+        "uniform",
+        8,
+        0,
+        Some(0.0),
+    );
+    let dir = path.parent().unwrap().to_path_buf();
 
     let run = |label: &str, sample: bool| {
         let json = dir.join(format!("{label}.json"));
@@ -265,10 +269,14 @@ fn a_flag_where_a_value_belongs_is_a_usage_error() {
 // (the run_json_golden regeneration doctrine's lesson).
 #[test]
 fn sc_004_amended_output_shapes_are_pinned() {
-    let dir = std::env::temp_dir().join("ck-harness-policy-sc004");
-    std::fs::create_dir_all(&dir).unwrap();
-    let artifact = dir.join("pin.ckpolicy");
-    cloudkitty_rl::test_support::write_fixture_artifact_with_output(&artifact, 8, 0, Some(0.0));
+    let artifact = test_support::fixture_artifact_with_output(
+        "ck-harness-policy-sc004",
+        "pin",
+        8,
+        0,
+        Some(0.0),
+    );
+    let dir = artifact.parent().unwrap().to_path_buf();
 
     let run = |label: &str, subject_args: &[&str]| {
         let json = dir.join(format!("{label}.json"));

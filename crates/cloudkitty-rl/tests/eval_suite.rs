@@ -754,12 +754,14 @@ fn an_artifact_named_candidate_does_not_panic_the_suite() {
 // state which distribution was evaluated.
 #[test]
 fn a_sampled_suite_run_stamps_its_selection_mode() {
-    let dir = std::env::temp_dir()
-        .join("ck-eval-suite")
-        .join("sampled-subject");
-    std::fs::create_dir_all(&dir).unwrap();
-    let artifact = dir.join("uniform.ckpolicy");
-    cloudkitty_rl::test_support::write_fixture_artifact_with_output(&artifact, 8, 0, Some(0.0));
+    let artifact = cloudkitty_rl::test_support::fixture_artifact_with_output(
+        "ck-eval-suite-sampled",
+        "uniform",
+        8,
+        0,
+        Some(0.0),
+    );
+    let dir = artifact.parent().unwrap().to_path_buf();
     let json = dir.join("report.json");
     let scratch = build_scratch_suite("sampled-subject", 30, "seeds = [1]");
     let output = std::process::Command::new(env!("CARGO_BIN_EXE_kitty-eval"))

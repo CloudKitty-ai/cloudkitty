@@ -70,6 +70,19 @@ pub fn write_fixture_artifact_with_output(
 /// concurrent reader always sees a complete, correct artifact — never a
 /// half-written one (the `BadMagic` flake this replaces).
 pub fn fixture_artifact(dir_name: &str, file_name: &str, hidden: usize, pattern: u32) -> PathBuf {
+    fixture_artifact_with_output(dir_name, file_name, hidden, pattern, None)
+}
+
+/// [`fixture_artifact`] with the output layer optionally flooded (see
+/// [`write_fixture_artifact_with_output`]) — the constant-logit shape the
+/// --sample tests need — under the same atomic rename discipline.
+pub fn fixture_artifact_with_output(
+    dir_name: &str,
+    file_name: &str,
+    hidden: usize,
+    pattern: u32,
+    output_fill: Option<f32>,
+) -> PathBuf {
     static SCRATCH: AtomicU64 = AtomicU64::new(0);
     let dir = std::env::temp_dir().join(dir_name);
     std::fs::create_dir_all(&dir).expect("temp dir");
@@ -79,7 +92,7 @@ pub fn fixture_artifact(dir_name: &str, file_name: &str, hidden: usize, pattern:
         std::process::id(),
         SCRATCH.fetch_add(1, Ordering::Relaxed)
     ));
-    write_fixture_artifact(&scratch, hidden, pattern);
+    write_fixture_artifact_with_output(&scratch, hidden, pattern, output_fill);
     std::fs::rename(&scratch, &path).expect("fixture artifacts land");
     path
 }
