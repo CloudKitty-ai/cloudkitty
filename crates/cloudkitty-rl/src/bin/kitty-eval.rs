@@ -35,6 +35,7 @@ struct Args {
     json: Option<String>,
     suite: Option<String>,
     enforce_sign_test: bool,
+    sample: bool,
 }
 
 fn parse_args() -> Result<Args, String> {
@@ -48,12 +49,17 @@ fn parse_args() -> Result<Args, String> {
         json: None,
         suite: None,
         enforce_sign_test: false,
+        sample: false,
     };
     let mut argv = std::env::args().skip(1);
     while let Some(flag) = argv.next() {
-        let mut value = |name: &str| {
-            argv.next()
-                .ok_or_else(|| format!("{name} requires a value"))
+        // A flag where a value belongs is a usage error, not a value —
+        // otherwise `--json --sample` swallows the sampling request and
+        // certifies a greedy run (issue #70 requirement 5).
+        let mut value = |name: &str| match argv.next() {
+            Some(v) if !v.starts_with("--") => Ok(v),
+            Some(v) => Err(format!("{name} requires a value, got flag '{v}'")),
+            None => Err(format!("{name} requires a value")),
         };
         match flag.as_str() {
             "--brain" => args.brain = Some(value("--brain")?),
@@ -73,6 +79,10 @@ fn parse_args() -> Result<Args, String> {
                 args.seeds = Some(seeds.map_err(|e| format!("--seeds: {e}"))?);
             }
             "--roster" => args.roster = Some(value("--roster")?),
+            // Softmax sampling for artifact seating (issue #70): the same
+            // selection path `[rl.policy.<name>].sample = true` takes at
+            // server startup — plumbing, never new selection semantics.
+            "--sample" => args.sample = true,
             "--json" => args.json = Some(value("--json")?),
             "--suite" => args.suite = Some(value("--suite")?),
             // Tighten-only (spec 017 FR-015): promotes the sign test from
@@ -82,12 +92,14 @@ fn parse_args() -> Result<Args, String> {
                 other => return Err(format!("--enforce: unknown check '{other}' (sign-test)")),
             },
             "--help" | "-h" => {
-                return Err("usage: kitty-eval --brain NAME | --artifact PATH \
+                return Err(
+                    "usage: kitty-eval --brain NAME | --artifact PATH [--sample] \
                             [--config cloudkitty.toml] [--seeds 1,2,...] [--ticks 20000] \
                             [--roster all-policy|mixed|both] [--json out.json]\n       \
-                            kitty-eval --suite evals/v1 (--brain NAME | --artifact PATH) \
-                            [--enforce sign-test] [--json out.json]"
-                    .to_string())
+                            kitty-eval --suite evals/v1 (--brain NAME | --artifact PATH \
+                            [--sample]) [--enforce sign-test] [--json out.json]"
+                        .to_string(),
+                )
             }
             other => return Err(format!("unknown flag {other}")),
         }
@@ -111,12 +123,31 @@ fn parse_args() -> Result<Args, String> {
     } else if args.enforce_sign_test {
         return Err("--enforce applies to suite runs only (pass --suite)".to_string());
     }
+    // A usage error, never silently ignored (issue #70): built-in brains
+    // have no action distribution to sample from.
+    if args.sample && args.artifact.is_none() {
+        return Err("--sample applies to artifact seating only (pass --artifact)".to_string());
+    }
     Ok(args)
+}
+
+/// The recorded selection mode: a certification record must never be
+/// ambiguous about which policy distribution was evaluated (issue #70).
+/// `None` for built-in brains, which have no distribution to select from.
+fn selection_label(is_policy: bool, sample: bool) -> Option<&'static str> {
+    match (is_policy, sample) {
+        (false, _) => None,
+        (true, false) => Some("greedy"),
+        (true, true) => Some("sampled"),
+    }
 }
 
 #[derive(Serialize)]
 struct EvalOutput {
     subject: String,
+    /// `greedy`/`sampled` for a policy subject; absent for built-ins.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    selection: Option<&'static str>,
     ticks: u64,
     seeds: Vec<u64>,
     runs: Vec<RunOutcome>,
@@ -133,16 +164,22 @@ fn human_report(output: &EvalOutput) {
 /// (spec 018 research D4) so the assembled certification report is
 /// capturable in-process.
 fn human_report_to(w: &mut dyn std::io::Write, output: &EvalOutput) -> std::io::Result<()> {
+    // The selection stamp attaches to the subject's name in the header,
+    // and print_paired stamps every paired line (issue #70): any quoted
+    // certification line carries its own distribution label. Built-ins
+    // stamp nothing, keeping their output byte-identical (SC-004 as
+    // amended 2026-07-29).
+    let note = cli_support::selection_note(output.selection);
     writeln!(
         w,
-        "== kitty-eval: {} ({} ticks/seed) ==",
+        "== kitty-eval: {}{note} ({} ticks/seed) ==",
         output.subject, output.ticks
     )?;
     for run in &output.runs {
         cli_support::print_run_panel(w, run, true)?;
     }
     writeln!(w, "-- paired vs needs_driven baseline --")?;
-    cli_support::print_paired(w, &output.paired, "baseline", "")?;
+    cli_support::print_paired(w, &output.paired, "baseline", "", output.selection)?;
     // One aggregate per roster mode: an all-policy score and the mixed
     // deployment reality are different claims and never blend (spec 014
     // review).
@@ -203,7 +240,8 @@ fn resolve_subject(
             Ok((brain.clone(), false))
         }
         (None, Some(path)) => {
-            match cloudkitty_rl::behavior::PolicyBehavior::from_artifact_path(path, rl) {
+            match cloudkitty_rl::behavior::PolicyBehavior::from_artifact_path(path, rl, args.sample)
+            {
                 Ok(behavior) => {
                     let behavior: Arc<_> = Arc::new(behavior);
                     let name = format!("policy:{path}");
@@ -296,6 +334,7 @@ fn run_suite(dir: &str, args: &Args) -> ExitCode {
         registry: &registry,
         name: &subject_name,
         is_policy,
+        selection: selection_label(is_policy, args.sample),
     };
     let report = match suite::score_suite(&loaded, &subject, args.enforce_sign_test) {
         Ok(report) => report,
@@ -391,6 +430,7 @@ fn main() -> ExitCode {
 
     let output = EvalOutput {
         subject: subject_name,
+        selection: selection_label(is_policy, args.sample),
         ticks,
         seeds,
         runs: sweep.runs,

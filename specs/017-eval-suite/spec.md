@@ -571,6 +571,23 @@ feature changes nothing in it.
 - **SC-004**: The existing single-config evaluation path is byte-compatible:
   its report shape and exit codes are unchanged and its existing guarding
   tests pass unmodified.
+  **Amended 2026-07-29 (issue #70, `--sample`) — a deliberate re-baseline,
+  not drift.** What survives intact: exit codes are unchanged, and
+  built-in-subject (`--brain`) output remains byte-identical — the
+  selection machinery emits nothing for built-ins. What changed, on
+  purpose: policy subjects (`--artifact`) now carry a selection stamp
+  (`greedy` or `sampled`) in the report header, the paired-baseline line,
+  and the JSON `selection` field, **unconditionally** — labeling only
+  sampled runs would make absence carry meaning, and absence is
+  undecodable across binary vintages since every pre-amendment record
+  also lacks the label. The labeled shape is the byte-compat baseline
+  from this amendment forward, pinned by an executable shape guard
+  (`sc_004_amended_output_shapes_are_pinned`, tests/harness_policy.rs).
+  Cutover note for readers of stored reports: records predating this
+  amendment carry no selection label and were all greedy — kitty-eval
+  could not sample before issue #70. The four guarding-test edits that
+  accompanied the change were signature-only (`from_artifact_path` gained
+  the `sample` parameter); no assertion was weakened.
 - **SC-005**: Each v1 exam verifiably differs from both the default world
   and the training world on its named axis by inspection of the committed
   configs: the scale exam has ≥ 2× the default's tiles and a roster larger

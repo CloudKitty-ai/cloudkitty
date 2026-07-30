@@ -65,6 +65,12 @@ pub fn register_policy_behaviors(
             observation_schema = artifact.header.observation_schema,
             action_schema = artifact.header.action_schema,
             mask_schema = artifact.header.mask_schema,
+            // The seated selection mode, so the startup record is never
+            // ambiguous about which distribution ran (issue #70 doctrine)
+            // and an incident can be reproduced with kitty-eval --sample
+            // (or without) instead of guessing from a config that may
+            // have changed since.
+            sample = policy.sample,
             "policy artifact validated"
         );
         let behavior = PolicyBehavior::new(artifact, rl.clone(), policy.sample);

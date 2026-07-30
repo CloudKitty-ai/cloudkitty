@@ -44,8 +44,8 @@ fn the_same_artifact_observation_and_seed_select_the_same_action() {
     let rl = RlConfig::default();
 
     // Greedy: two independent loads decide identically (seed-independent).
-    let a = PolicyBehavior::from_artifact_path(path.to_str().unwrap(), &rl).unwrap();
-    let b = PolicyBehavior::from_artifact_path(path.to_str().unwrap(), &rl).unwrap();
+    let a = PolicyBehavior::from_artifact_path(path.to_str().unwrap(), &rl, false).unwrap();
+    let b = PolicyBehavior::from_artifact_path(path.to_str().unwrap(), &rl, false).unwrap();
     assert_eq!(a.decide_sync(&context(1)), b.decide_sync(&context(2)));
 
     // Sampling: deterministic given the kitty's decision seed, and only
@@ -71,7 +71,8 @@ fn garbage_logits_still_select_a_masked_in_action() {
         ("all-equal", 0.0),
     ] {
         let path = artifact_path(name, fill);
-        let behavior = PolicyBehavior::from_artifact_path(path.to_str().unwrap(), &rl).unwrap();
+        let behavior =
+            PolicyBehavior::from_artifact_path(path.to_str().unwrap(), &rl, false).unwrap();
         let action = behavior.decide_sync(&context(3));
 
         // The selected action decodes from a masked-in entry: encode it

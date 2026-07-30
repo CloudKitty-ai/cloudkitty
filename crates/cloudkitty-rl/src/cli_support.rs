@@ -123,19 +123,34 @@ pub fn print_run_panel(
     Ok(())
 }
 
+/// The selection stamp fragment appended wherever the subject is named
+/// (issue #70; SC-004 amendment 2026-07-29): `" (greedy selection)"`,
+/// `" (sampled selection)"`, or nothing for built-in subjects. One
+/// implementation so the two report modes cannot drift.
+pub fn selection_note(selection: Option<&str>) -> String {
+    selection
+        .map(|s| format!(" ({s} selection)"))
+        .unwrap_or_default()
+}
+
 /// Paired subject-vs-baseline delta lines. `prefix` preserves the two
 /// modes' byte streams (`"  "` in the suite report, `""` in certification
-/// mode); `baseline_label` names the comparison roster.
+/// mode); `baseline_label` names the comparison roster. `selection` stamps
+/// every line with the subject's selection mode — each paired line is a
+/// quotable certification line and must carry its own distribution label
+/// (issue #70); built-ins pass `None` and their bytes are unchanged.
 pub fn print_paired(
     w: &mut dyn Write,
     paired: &[PairedDelta],
     baseline_label: &str,
     prefix: &str,
+    selection: Option<&str>,
 ) -> io::Result<()> {
+    let note = selection_note(selection);
     for pair in paired {
         writeln!(
             w,
-            "{prefix}seed {} [{:?}]: subject {:.4} vs {baseline_label} {:.4} (delta {:+.4})",
+            "{prefix}seed {} [{:?}]: subject{note} {:.4} vs {baseline_label} {:.4} (delta {:+.4})",
             pair.seed, pair.roster, pair.subject_welfare, pair.baseline_welfare, pair.delta
         )?;
     }

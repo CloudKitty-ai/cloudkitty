@@ -28,8 +28,8 @@ fn a_valid_artifact_loads_with_a_stable_hash() {
     valid_artifact(&path);
     let rl = RlConfig::default();
 
-    let a = PolicyBehavior::from_artifact_path(path.to_str().unwrap(), &rl).unwrap();
-    let b = PolicyBehavior::from_artifact_path(path.to_str().unwrap(), &rl).unwrap();
+    let a = PolicyBehavior::from_artifact_path(path.to_str().unwrap(), &rl, false).unwrap();
+    let b = PolicyBehavior::from_artifact_path(path.to_str().unwrap(), &rl, false).unwrap();
     assert_eq!(a.content_hash(), b.content_hash(), "same file, same hash");
     assert_eq!(a.content_hash().len(), 64);
 }

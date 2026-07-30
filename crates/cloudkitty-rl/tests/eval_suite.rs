@@ -137,6 +137,7 @@ fn a_suite_run_reproduces_each_exams_standalone_numbers() {
         registry: &registry,
         name: "needs_driven",
         is_policy: false,
+        selection: None,
     };
     let report = score_suite(&suite, &subject, false).unwrap();
 
@@ -229,6 +230,7 @@ fn two_suite_runs_produce_identical_json() {
         registry: &registry,
         name: "needs_driven",
         is_policy: false,
+        selection: None,
     };
     let a = serde_json::to_string_pretty(&score_suite(&suite, &subject, false).unwrap()).unwrap();
     let b = serde_json::to_string_pretty(&score_suite(&suite, &subject, false).unwrap()).unwrap();
@@ -358,6 +360,7 @@ fn a_builtin_candidate_exercises_cells_differentials_and_verdict() {
         registry: &registry,
         name: "playful",
         is_policy: false,
+        selection: None,
     };
     let report = score_suite(&suite, &subject, false).unwrap();
     let mixed = report
@@ -504,6 +507,7 @@ fn two_subjects_share_the_frozen_exam_without_touching_it() {
             registry: &registry,
             name: brain,
             is_policy: false,
+            selection: None,
         };
         score_suite(&suite, &subject, false).unwrap();
         assert_eq!(scratch_hash(&dir), before, "scoring {brain} wrote nothing");
@@ -745,6 +749,51 @@ fn an_artifact_named_candidate_does_not_panic_the_suite() {
     );
 }
 
+// --sample in suite mode (issue #70 requirement 4): the selection mode is
+// a subject property, and the suite record — human header and JSON — must
+// state which distribution was evaluated.
+#[test]
+fn a_sampled_suite_run_stamps_its_selection_mode() {
+    let artifact = cloudkitty_rl::test_support::fixture_artifact_with_output(
+        "ck-eval-suite-sampled",
+        "uniform",
+        8,
+        0,
+        Some(0.0),
+    );
+    let dir = artifact.parent().unwrap().to_path_buf();
+    let json = dir.join("report.json");
+    let scratch = build_scratch_suite("sampled-subject", 30, "seeds = [1]");
+    let output = std::process::Command::new(env!("CARGO_BIN_EXE_kitty-eval"))
+        .args([
+            "--suite",
+            scratch.to_str().unwrap(),
+            "--artifact",
+            artifact.to_str().unwrap(),
+            "--sample",
+            "--json",
+            json.to_str().unwrap(),
+        ])
+        .output()
+        .expect("binary runs");
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let code = output
+        .status
+        .code()
+        .expect("clean exit, not a signal/abort");
+    assert!(
+        [0, 2, 4].contains(&code),
+        "a lawful suite outcome (0/2/4), got {code}; stderr: {stderr}"
+    );
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("(sampled selection)"), "{stdout}");
+    let report = std::fs::read_to_string(&json).unwrap();
+    assert!(
+        report.contains("\"selection\": \"sampled\""),
+        "JSON lacks the selection stamp"
+    );
+}
+
 /// The one sample run every share-guard test renders: a single simulation
 /// pins the tests to literally the same run, so FR-009's "both modes
 /// render the same run" property cannot be un-pinned by fixture drift.
@@ -817,9 +866,10 @@ fn share_guard_paired_prefix_is_the_only_divergence() {
     assert!(!paired.is_empty());
 
     let mut plain = Vec::new();
-    cloudkitty_rl::cli_support::print_paired(&mut plain, &paired, "baseline", "").unwrap();
+    cloudkitty_rl::cli_support::print_paired(&mut plain, &paired, "baseline", "", None).unwrap();
     let mut indented = Vec::new();
-    cloudkitty_rl::cli_support::print_paired(&mut indented, &paired, "baseline", "  ").unwrap();
+    cloudkitty_rl::cli_support::print_paired(&mut indented, &paired, "baseline", "  ", None)
+        .unwrap();
     let plain = String::from_utf8(plain).unwrap();
     let indented = String::from_utf8(indented).unwrap();
     for (p, i) in plain.lines().zip(indented.lines()) {

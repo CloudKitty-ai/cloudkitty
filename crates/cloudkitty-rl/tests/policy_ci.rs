@@ -30,7 +30,7 @@ fn fixture_artifact() -> PathBuf {
 fn policy_registry(rl: &RlConfig) -> BehaviorRegistry {
     let path = fixture_artifact();
     let mut registry = BehaviorRegistry::with_builtins();
-    let behavior = PolicyBehavior::from_artifact_path(path.to_str().unwrap(), rl).unwrap();
+    let behavior = PolicyBehavior::from_artifact_path(path.to_str().unwrap(), rl, false).unwrap();
     registry.register("policy:fixture", Arc::new(behavior));
     registry
 }

@@ -144,6 +144,13 @@ scoring, and the server validates and hash-logs the artifact before the
 first tick. Evaluation always runs on the **default** world — the training
 world is a gym, not the bar.
 
+**Match the certified distribution to the deployed one.** `kitty-eval`
+seats the artifact greedy unless you pass `--sample`; it never reads
+`[rl.policy.<name>].sample` from a config. If your deployment sets
+`sample = true`, certify with `--sample` — otherwise the certification
+measures a distribution the server will not run. The report labels which
+one it measured (`greedy`/`sampled` in the header and JSON).
+
 ## The exam suite
 
 ```bash

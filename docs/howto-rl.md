@@ -179,6 +179,11 @@ seed-for-seed against the baseline:
 cargo run --release -p cloudkitty-rl --bin kitty-eval -- --artifact minimal.ckpolicy
 ```
 
+(Greedy selection by default. If the policy will deploy with
+`[rl.policy.<name>].sample = true`, add `--sample` so the certified and
+deployed distributions match — the report's `greedy`/`sampled` label
+records which one was measured.)
+
 For the artifact above, honestly:
 
 ```
