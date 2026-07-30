@@ -255,6 +255,91 @@ fn a_flag_where_a_value_belongs_is_a_usage_error() {
     );
 }
 
+// The executable half of SC-004 as amended 2026-07-29 (spec 017, issue
+// #70): the promise is a gate, not prose. Built-in-subject output carries
+// no selection stamp anywhere — byte-shaped exactly as before the
+// amendment — and the labeled policy-subject shape (header note attached
+// to the subject's name, every paired line stamped, JSON `selection`
+// key) is the byte-compat baseline going forward. Shape is pinned, not
+// welfare numbers, so deliberate engine retunes don't false-alarm here
+// (the run_json_golden regeneration doctrine's lesson).
+#[test]
+fn sc_004_amended_output_shapes_are_pinned() {
+    let dir = std::env::temp_dir().join("ck-harness-policy-sc004");
+    std::fs::create_dir_all(&dir).unwrap();
+    let artifact = dir.join("pin.ckpolicy");
+    cloudkitty_rl::test_support::write_fixture_artifact_with_output(&artifact, 8, 0, Some(0.0));
+
+    let run = |label: &str, subject_args: &[&str]| {
+        let json = dir.join(format!("{label}.json"));
+        let output = std::process::Command::new(env!("CARGO_BIN_EXE_kitty-eval"))
+            .args(subject_args)
+            .args(["--seeds", "1", "--ticks", "60", "--json"])
+            .arg(&json)
+            .output()
+            .expect("kitty-eval runs");
+        assert!(
+            output.status.success(),
+            "{label}: exit {:?}\n{}",
+            output.status,
+            String::from_utf8_lossy(&output.stderr)
+        );
+        (
+            String::from_utf8_lossy(&output.stdout).into_owned(),
+            std::fs::read_to_string(&json).unwrap(),
+        )
+    };
+    let artifact_path = artifact.to_str().unwrap();
+
+    // Built-in subject: the pre-amendment shape, unstamped everywhere.
+    let (stdout, json) = run("brain", &["--brain", "needs_driven"]);
+    assert!(
+        stdout.contains("== kitty-eval: needs_driven (60 ticks/seed) =="),
+        "{stdout}"
+    );
+    assert!(
+        stdout.contains("-- paired vs needs_driven baseline --"),
+        "{stdout}"
+    );
+    assert!(
+        stdout.contains("]: subject ") && !stdout.contains("]: subject ("),
+        "paired lines keep the unstamped 'subject <n>' form: {stdout}"
+    );
+    assert!(!stdout.contains("selection"), "{stdout}");
+    assert!(
+        !json.contains("\"selection\""),
+        "brain JSON gains no selection key"
+    );
+
+    // Policy subject, greedy: stamped in header, every paired line, JSON.
+    let (stdout, json) = run("greedy", &["--artifact", artifact_path]);
+    assert!(
+        stdout.contains(&format!(
+            "== kitty-eval: policy:{artifact_path} (greedy selection) (60 ticks/seed) =="
+        )),
+        "{stdout}"
+    );
+    assert!(
+        stdout.contains("]: subject (greedy selection) "),
+        "{stdout}"
+    );
+    assert!(json.contains("\"selection\": \"greedy\""));
+
+    // Policy subject, sampled: the same shape with the other label.
+    let (stdout, json) = run("sampled", &["--artifact", artifact_path, "--sample"]);
+    assert!(
+        stdout.contains(&format!(
+            "== kitty-eval: policy:{artifact_path} (sampled selection) (60 ticks/seed) =="
+        )),
+        "{stdout}"
+    );
+    assert!(
+        stdout.contains("]: subject (sampled selection) "),
+        "{stdout}"
+    );
+    assert!(json.contains("\"selection\": \"sampled\""));
+}
+
 #[test]
 fn the_kitty_eval_binary_refuses_a_corrupt_artifact() {
     let dir = std::env::temp_dir().join("ck-harness-policy");
