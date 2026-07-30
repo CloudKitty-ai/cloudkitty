@@ -1,10 +1,11 @@
 //! Writes the Arm 0 artifact: an all-zero MLP in the exp-001 shape
 //! (182→256→256→40). Constant logits make masked SAMPLING exactly uniform
-//! over legal actions (Arm 0 as pre-registered); under greedy selection the
-//! same artifact is a degenerate first-legal-action policy, which is still
-//! a valid end-to-end plumbing probe for the artifact → PolicyBehavior →
-//! kitty-eval chain. (kitty-eval currently seats artifacts greedy-only;
-//! the --sample exposure is a product-side addition.)
+//! over legal actions — Arm 0 as pre-registered, seated via
+//! `kitty-eval --artifact <path> --sample` (flag landed in PR #71 /
+//! issue #70). Under greedy selection (the default) the same artifact
+//! degenerates to a first-legal-action policy: still a valid end-to-end
+//! plumbing probe for the artifact → PolicyBehavior → kitty-eval chain,
+//! but NOT Arm 0.
 //!
 //! Usage: zero-artifact <out.ckpolicy>
 
