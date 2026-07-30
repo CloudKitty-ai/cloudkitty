@@ -67,10 +67,16 @@ impl PolicyBehavior {
         }
     }
 
-    /// Loads, validates, and seats an artifact (greedy selection).
-    pub fn from_artifact_path(path: &str, rl: &RlConfig) -> Result<Self, ArtifactError> {
+    /// Loads, validates, and seats an artifact. `sample` picks the
+    /// selection mode exactly as `[rl.policy.<name>].sample` does at server
+    /// startup — the same [`select`] path either way (issue #70).
+    pub fn from_artifact_path(
+        path: &str,
+        rl: &RlConfig,
+        sample: bool,
+    ) -> Result<Self, ArtifactError> {
         let artifact = PolicyArtifact::load(Path::new(path), &Self::expectations(rl))?;
-        Ok(Self::new(artifact, rl.clone(), false))
+        Ok(Self::new(artifact, rl.clone(), sample))
     }
 
     /// The loaded artifact's content hash (FR-016: logged and exposed).

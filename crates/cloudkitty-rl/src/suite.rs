@@ -493,6 +493,11 @@ pub struct SuiteReport {
     /// different engines and must not be compared, same version or not.
     pub engine_defaults_sha256: String,
     pub subject: String,
+    /// `greedy`/`sampled` for a policy subject; absent for built-ins. A
+    /// certification record must never be ambiguous about which policy
+    /// distribution was evaluated (issue #70).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub selection: Option<&'static str>,
     pub exams: Vec<ExamOutcome>,
 }
 
@@ -506,6 +511,9 @@ pub struct SuiteSubject<'a> {
     pub registry: &'a BehaviorRegistry,
     pub name: &'a str,
     pub is_policy: bool,
+    /// `greedy`/`sampled` for a policy subject; `None` for built-ins.
+    /// Stamped into the report — see [`SuiteReport::selection`].
+    pub selection: Option<&'static str>,
 }
 
 /// A mid-suite mechanical failure. Fallback accounting is not here — it is
@@ -914,6 +922,7 @@ pub fn score_suite(
         suite_version: suite.version.clone(),
         engine_defaults_sha256: engine_defaults_sha256(),
         subject: subject.name.to_string(),
+        selection: subject.selection,
         exams,
     })
 }
@@ -932,9 +941,13 @@ pub fn human_report(report: &SuiteReport) {
 /// test (spec 018 FR-009). Per-run and paired rendering flow through
 /// `cli_support` — the single implementation both CLI modes share.
 fn human_report_to(w: &mut dyn std::io::Write, report: &SuiteReport) -> std::io::Result<()> {
+    let selection = report
+        .selection
+        .map(|s| format!(" ({s} selection)"))
+        .unwrap_or_default();
     writeln!(
         w,
-        "== kitty-eval suite {}: subject {} ==",
+        "== kitty-eval suite {}: subject {}{selection} ==",
         report.suite_version, report.subject
     )?;
     writeln!(w, "engine defaults {}", report.engine_defaults_sha256)?;
@@ -1454,6 +1467,7 @@ sha256 = "{sha}"
             suite_version: "share-guard".to_string(),
             engine_defaults_sha256: engine_defaults_sha256(),
             subject: "needs_driven".to_string(),
+            selection: None,
             exams: vec![ExamOutcome::Standard(StandardOutcome {
                 name: "fixture".to_string(),
                 config_sha256: "0".repeat(64),

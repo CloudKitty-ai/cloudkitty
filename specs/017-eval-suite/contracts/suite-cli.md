@@ -7,7 +7,7 @@ invocation is byte-compatible — report shape and exit codes unchanged
 ## Invocation
 
 ```text
-kitty-eval --suite evals/v1 (--artifact path/to/policy.ckpolicy | --brain NAME)
+kitty-eval --suite evals/v1 (--artifact path/to/policy.ckpolicy [--sample] | --brain NAME)
            [--enforce sign-test] [--json out.json]
 ```
 
@@ -20,6 +20,12 @@ kitty-eval --suite evals/v1 (--artifact path/to/policy.ckpolicy | --brain NAME)
   `policy:candidate` (cell seats). `--brain` uses the built-in as the
   standard-exam subject and aliases it as `policy:candidate` — the exam
   machinery needs no trained artifact (SC-007).
+- `--sample` (amendment 2026-07-29, issue #70) composes with `--artifact`:
+  the selection mode is a property of the *subject*, like the artifact
+  path itself, not of the instrument — the frozen exams are untouched.
+  The report header and JSON stamp `selection: "greedy" | "sampled"` so
+  the record is never ambiguous. With `--brain` it is a usage error, as
+  in single-config mode (spec 014 contracts/evaluation-harness.md).
 - `--config`, `--seeds`, `--ticks`, and `--roster` are rejected alongside
   `--suite` (exit 1): a suite is a fixed instrument. Per-exam seeds and
   ticks are frozen in each exam config's `[rl.eval]` block. Exploratory

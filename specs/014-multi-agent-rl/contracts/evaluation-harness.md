@@ -7,7 +7,7 @@ path (research.md R5, R9).
 ## Invocation
 
 ```text
-kitty-eval --brain needs_driven | --artifact path/to/policy.ckpolicy
+kitty-eval --brain needs_driven | --artifact path/to/policy.ckpolicy [--sample]
            [--config cloudkitty.toml]
            [--seeds 1,2,...  (default: the 10 fixed CI seeds)]
            [--ticks 20000]
@@ -18,6 +18,18 @@ kitty-eval --brain needs_driven | --artifact path/to/policy.ckpolicy
 - `--brain` names a built-in (`needs_driven`, `playful`); `--artifact`
   loads a policy through the same validation as server startup
   (contracts/policy-artifact.md). Exactly one of the two.
+- `--sample` (amendment 2026-07-29, issue #70) seats the artifact with
+  FR-015's softmax sampling instead of greedy argmax — the identical
+  selection path `[rl.policy.<name>].sample = true` takes at server
+  startup; the flag is plumbing, never new selection semantics. Sampling
+  draws from the seed-derived per-kitty decision stream, so a `--sample`
+  run with fixed `--seeds` is exactly reproducible and the determinism
+  self-check applies unchanged; so do the fallback gate and welfare
+  reporting. The report (human header, paired-baseline section, and JSON
+  `selection: "greedy" | "sampled"`) states which distribution was
+  evaluated — a certification record is never ambiguous about it.
+  `--sample` without `--artifact` is a usage error, never silently
+  ignored: built-in brains have no action distribution to sample.
 - Policy scoring runs **both roster modes** by default: every kitty
   policy-driven, and the deployment reality of one policy kitty among
   `needs_driven` kitties (FR-013).
