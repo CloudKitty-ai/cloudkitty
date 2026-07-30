@@ -266,3 +266,111 @@ default-config changes (check `engine_defaults_sha256`).
 
 **Re-verify when**: the policy-seated probe runs (F-003's trigger) —
 run it on BOTH worlds; and after any engine-defaults change.
+
+---
+
+## F-007 · active · BC initialization is necessary for MAPPO to beat the baseline at exp-001's budget
+
+Measured 2026-07-30 (exp-001 Arms 1–3, deviation 30b). With identical §5
+settings, worlds, seeds, and a 20M-tick budget, BC-initialized MAPPO
+produced three maximal-significance wins over `needs_driven` (best
++0.0212 paired Nash AllSubject, 30/30 eval seeds, W=0, p=1.9e-09), while
+**all six from-scratch runs finished at or below the BC clone's own
+level** (−0.127 to −0.168, 0/30 seeds, both γ) despite genuine learning
+(probes 0.21 → ~0.79 plateau). Diagnostic signature of the from-scratch
+ceiling: unmasked-argmax mask-violation rate converges to 0.99–1.00 —
+without a BC prior the policy leans wholly on the mask crutch and never
+internalizes action legality. The clone alone is 0/30 (−0.120) — so
+neither ingredient suffices: BC provides the floor RL climbs from, RL
+provides the entire +0.13 above it.
+
+**Scope**: exp-001's fixed factors (§4/§5 + deviations 30/30b): MLP
+182→256→256→40, level Nash reward, 20M ticks, the frozen scarcity×tempo
+training family, mixed control 33%. Says nothing about 10×+ budgets,
+other architectures, or curriculum/objective variants.
+
+**Evidence**: [report-protocol result](exp-001-bc-mappo/results/report-protocol-2026-07-30.md);
+[Arm 2 record](exp-001-bc-mappo/results/arm2-training-2026-07-30.md).
+
+**Implications**: the BC stage (dataset → clone → critic pretrain) is
+load-bearing and stays in every exp-002 design; "more RL instead of BC"
+is not a live hypothesis at this compute scale. The mask-violation rate
+doubles as a cheap fingerprint distinguishing BC-lineage policies from
+scratch-trained ones.
+
+**Would invalidate**: a from-scratch run reaching baseline under a
+larger budget or a different algorithm (that would narrow this to
+"necessary at 20M ticks with PPO", which is still the operative claim).
+
+**Re-verify when**: any exp-002 arm changes the training algorithm or
+raises the budget ≥ 5×; then one from-scratch control seed is cheap
+insurance against over-crediting BC.
+
+---
+
+## F-008 · active · A long-horizon all-policy instability mode exists that short probes cannot detect; scripted teammates arrest it
+
+In exp-001 Arm 2, 2 of 6 runs (γ=.998 s2, γ=.995 s3) carry seeds whose
+all-policy rosters collapse (welfare 0.31–0.69) at 20,000-tick
+evaluation while the same policies' 2,000-tick default-world probes read
+a healthy ~0.94 — indistinguishable from the runs that certify positive.
+The failure needs > 2k ticks to compound, and it never appears in Mixed
+rosters (all six runs are Mixed-positive or Mixed-neutral): scripted
+teammates arrest the spiral. Training-time diagnostics (§10.1 full set)
+were uniformly healthy in the failing runs — this mode is currently
+invisible until certification-length all-policy evaluation.
+
+**Scope**: exp-001 Arm 2 policies on the default world, greedy seating.
+Mechanism unknown (investigation deliberately parked); plausibly a
+self-reinforcing coordination failure among five copies of the same
+policy.
+
+**Evidence**: [Arm 2 record](exp-001-bc-mappo/results/arm2-training-2026-07-30.md)
+(probe-vs-certification divergence); per-seed tables in the report
+protocol result.
+
+**Implications**: **no deployment-soak or shipped-candidate decision may
+rest on sub-certification-length or mixed-roster evidence alone** —
+candidate selection requires the full 20k all-policy run. Trainer
+validation probes at 2k ticks measure transfer, not stability. The
+Mixed-roster immunity is a concrete lead for exp-002's
+partner-population-curriculum item.
+
+**Would invalidate**: the mechanism turning out to be an evaluation
+artifact (e.g. a specific eval-seed interaction) rather than a policy
+property — the parked investigation decides.
+
+**Re-verify when**: the instability investigation runs; or any new
+policy lineage (exp-002) reaches candidate stage — screen it with
+full-length all-policy runs before any other claim.
+
+---
+
+## F-009 · active · House rule: a measurement's horizon bounds the failures it can detect
+
+Methodological, promoted from two independent bites in one experiment:
+(1) the 600-tick twin-probe traces truncated live cooperative signal
+mid-band and had to be extended to 1,200 (F-003's history); (2) 2,000-
+tick validation probes rated two long-horizon-unstable policies as
+indistinguishable from certifiable ones (F-008). In both cases the
+instrument was honest about what it measured and silent about everything
+past its own horizon, and in both cases the miss was discovered only by
+a longer measurement that already existed in the protocol.
+
+**Scope**: any instrument whose readings feed a decision — probes,
+validation curves, smoke evals, forensic re-checks.
+
+**Evidence**: F-003 (probe extension), F-008 (probe-vs-certification
+divergence); the general pattern is the point.
+
+**Implications**: when designing any measurement, state the horizon of
+the *claim* it supports and check the instrument covers it; when a
+shorter instrument is used for economy (2k probes during training),
+record what it cannot see and gate decisions on the full-length
+instrument. Companion to F-004 (which is the same discipline for sample
+*structure* rather than sample *length*).
+
+**Would invalidate**: n/a — a discipline, not an environment
+measurement; revisit only if it stops paying for its enforcement cost.
+
+**Re-verify when**: n/a.
