@@ -439,3 +439,28 @@ toy settings exempt, per deviation 29's precedent). Trainer:
   serialized through the binding, so each resumed segment re-seeds its
   envs deterministically; segment indices are logged in `metrics.jsonl`
   and are part of the run record.
+
+### 2026-07-30b — Arm 3 interpretation pinned (post-freeze, pre-Arm-3-run)
+
+§3 lists Arm 3 as "MAPPO from scratch. Was BC necessary? Run if budget
+allows." Budget allows (a 20M-tick run costs ~25 minutes on this
+machine). Interpretation recorded before the first Arm 3 run:
+
+- **"From scratch" = the whole BC stage removed**: random policy init,
+  random critic init, no KL-to-clone leash (there is no clone to leash
+  to; β = 0). This tests BC's full contribution — dataset, clone init,
+  and critic pretrain together — which is the reading that answers "was
+  BC necessary."
+- Everything else identical to Arm 2 (deviation 30): same §5 settings,
+  same worlds/mixed structure, same seeds, same 20M budget, same anneal.
+- **Value normalizer** (Arm 2 inherits the BC pretrain's mean/std, which
+  a from-scratch run must not touch): calibrated instead from a
+  pre-training rollout — 2,000 ticks of the random policy on the
+  training worlds, discounted MC returns on ticks with ≥ 1,000 realized
+  future, mean/std frozen from those, worlds rebuilt from the same seeds
+  afterward so training still starts at the registered world state.
+- Prediction, for the record (owner may disagree; recorded by the
+  session running the experiment): Arm 3 fails to reach baseline —
+  the zero-artifact's behavior suggests how hostile the environment is
+  to uninitialized policies. Whichever way it lands, it calibrates how
+  much of Arm 2's result BC bought.

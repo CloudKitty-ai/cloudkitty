@@ -22,6 +22,7 @@ import json
 import time
 from pathlib import Path
 
+import cloudkitty
 import numpy as np
 import torch
 
@@ -108,6 +109,27 @@ def gae(buf, v_last, gamma, lam):
     return adv, adv + buf["value"]  # (advantage, raw value target)
 
 
+def calibrate_vstats(runner, policy, gamma, ticks=2000, min_future=1000):
+    """Arm 3 value-normalizer calibration (deviation 30b): discounted MC
+    returns of a random-policy rollout, censored to ticks with >=
+    min_future realized future (mirrors the pretrain normalizer's
+    semantics without touching BC data). The caller rebuilds the runner
+    afterward — this consumes world state."""
+    rewards = np.zeros((ticks, runner.n_worlds))
+    with torch.no_grad():
+        for t in range(ticks):
+            obs, mask = runner.flat_obs()
+            dist = masked_dist(policy(torch.from_numpy(obs)), torch.from_numpy(mask))
+            rewards[t], _, _ = runner.step(dist.sample().numpy())
+    g = np.zeros_like(rewards)
+    acc = np.zeros(runner.n_worlds)
+    for t in range(ticks - 1, -1, -1):
+        acc = rewards[t] + gamma * acc
+        g[t] = acc
+    vals = g[: ticks - min_future].ravel()
+    return float(vals.mean()), float(vals.std())
+
+
 def run_probe(policy, config_path, seeds, ticks):
     """Greedy 2k-tick default-world probes (§10.1 validation curve).
     Dedicated seed range — never eval 1..30, never training seeds."""
@@ -165,30 +187,47 @@ def main():
     ap.add_argument("--horizon", type=int, default=None,
                     help="override [rl.episode] horizon — smoke tests only; "
                          "the prereg fixes 2000 for real runs")
+    ap.add_argument("--scratch", action="store_true",
+                    help="Arm 3 (deviation 30b): random policy + critic, no "
+                         "KL leash, normalizer from a calibration rollout")
     args = ap.parse_args()
+    if args.scratch:
+        args.kl_beta = 0.0
 
     tag = f"{args.gamma}".replace("0.", "0p")
-    out = args.out_dir or EXP / f"artifacts/arm2-g{tag}-s{args.seed}"
+    arm = "arm3" if args.scratch else "arm2"
+    out = args.out_dir or EXP / f"artifacts/{arm}-g{tag}-s{args.seed}"
     out.mkdir(parents=True, exist_ok=True)
     t_start = time.time()
 
     torch.manual_seed(20260730 + args.seed)
     np.random.seed(20260730 + args.seed)
 
-    clone_ckpt = torch.load(args.clone, map_location="cpu", weights_only=True)
-    policy = MLP(clone_ckpt["dims"])
-    policy.load_state_dict(clone_ckpt["state_dict"])
-    clone = MLP(clone_ckpt["dims"])          # frozen KL anchor
-    clone.load_state_dict(clone_ckpt["state_dict"])
-    clone.eval()
-    for p in clone.parameters():
-        p.requires_grad_(False)
+    if args.scratch:
+        # Arm 3: dims read from a probe env, not from BC checkpoints —
+        # a from-scratch run must not depend on the BC stage existing.
+        probe_env = cloudkitty.ParallelEnv(str(args.training_toml))
+        o0, i0 = probe_env.reset(seed=0)
+        a0 = next(iter(o0))
+        policy = MLP([o0[a0].shape[0], 256, 256, i0[a0]["mask"].shape[0]])
+        critic = MLP([probe_env.state().shape[0], 256, 256, 1])
+        clone, vstats = None, None
+        del probe_env
+    else:
+        clone_ckpt = torch.load(args.clone, map_location="cpu", weights_only=True)
+        policy = MLP(clone_ckpt["dims"])
+        policy.load_state_dict(clone_ckpt["state_dict"])
+        clone = MLP(clone_ckpt["dims"])          # frozen KL anchor
+        clone.load_state_dict(clone_ckpt["state_dict"])
+        clone.eval()
+        for p in clone.parameters():
+            p.requires_grad_(False)
 
-    critic_ckpt = torch.load(args.critic_dir / f"critic-{tag}.pt",
-                             map_location="cpu", weights_only=True)
-    critic = MLP(critic_ckpt["dims"])
-    critic.load_state_dict(critic_ckpt["state_dict"])
-    vstats = (critic_ckpt["target_mean"], critic_ckpt["target_std"])
+        critic_ckpt = torch.load(args.critic_dir / f"critic-{tag}.pt",
+                                 map_location="cpu", weights_only=True)
+        critic = MLP(critic_ckpt["dims"])
+        critic.load_state_dict(critic_ckpt["state_dict"])
+        vstats = (critic_ckpt["target_mean"], critic_ckpt["target_std"])
 
     opt_pi = torch.optim.Adam(policy.parameters(), lr=args.lr)
     opt_v = torch.optim.Adam(critic.parameters(), lr=args.lr)
@@ -206,6 +245,7 @@ def main():
         torch.set_rng_state(ck["torch_rng"])
         np.random.set_state(ck["np_rng"])
         start_update, segment = ck["update"], ck["segment"] + 1
+        vstats = ck.get("vstats", vstats)
 
     # Training seeds ≥ 1000, disjoint from eval 1..10/1..30 and probe
     # seeds (§11). Each resumed segment re-seeds deterministically.
@@ -223,6 +263,13 @@ def main():
 
     phase = "anneal" if start_update >= int(args.anneal_frac * total_updates) else "train"
     runner = make_runner(phase)
+    if vstats is None:
+        # Deviation 30b: calibrate the value normalizer from a random-
+        # policy rollout, then rebuild the worlds from the same seeds so
+        # training still starts at the registered world state.
+        vstats = calibrate_vstats(runner, policy, args.gamma)
+        print(f"calibrated vstats: mean {vstats[0]:.2f} std {vstats[1]:.2f}")
+        runner = make_runner(phase)
     log_path = out / "metrics.jsonl"
     mean_v, std_v = vstats
 
@@ -270,10 +317,13 @@ def main():
                 p = logp_all.exp()
                 safe = torch.where(mask[mb], logp_all, torch.zeros_like(logp_all))
                 ent = -(p * safe).sum(-1).mean()
-                with torch.no_grad():
-                    clone_lp = masked_log_softmax(clone(obs[mb]), mask[mb])
-                clone_safe = torch.where(mask[mb], clone_lp, torch.zeros_like(clone_lp))
-                kl = (p * (safe - clone_safe)).sum(-1).mean()
+                if clone is None:
+                    kl = torch.zeros_like(ploss)
+                else:
+                    with torch.no_grad():
+                        clone_lp = masked_log_softmax(clone(obs[mb]), mask[mb])
+                    clone_safe = torch.where(mask[mb], clone_lp, torch.zeros_like(clone_lp))
+                    kl = (p * (safe - clone_safe)).sum(-1).mean()
                 loss = ploss - ent_coef * ent + kl_beta * kl
                 opt_pi.zero_grad()
                 loss.backward()
@@ -321,16 +371,14 @@ def main():
                                     "default_world_nash": nash}) + "\n")
             print(f"  probe u{update}: default-world nash {nash:.4f}")
 
+        ck = {"policy": policy.state_dict(), "critic": critic.state_dict(),
+              "opt_pi": opt_pi.state_dict(), "opt_v": opt_v.state_dict(),
+              "torch_rng": torch.get_rng_state(), "np_rng": np.random.get_state(),
+              "update": update + 1, "segment": segment, "vstats": vstats}
         if (update + 1) % args.ckpt_every == 0 or update == total_updates - 1:
-            torch.save({"policy": policy.state_dict(), "critic": critic.state_dict(),
-                        "opt_pi": opt_pi.state_dict(), "opt_v": opt_v.state_dict(),
-                        "torch_rng": torch.get_rng_state(), "np_rng": np.random.get_state(),
-                        "update": update + 1, "segment": segment}, ckpt_path)
+            torch.save(ck, ckpt_path)
         if args.wall_min and (time.time() - t_start) / 60 > args.wall_min:
-            torch.save({"policy": policy.state_dict(), "critic": critic.state_dict(),
-                        "opt_pi": opt_pi.state_dict(), "opt_v": opt_v.state_dict(),
-                        "torch_rng": torch.get_rng_state(), "np_rng": np.random.get_state(),
-                        "update": update + 1, "segment": segment}, ckpt_path)
+            torch.save(ck, ckpt_path)
             print(f"wall limit: checkpointed at update {update + 1}; rerun with --resume")
             return
 
