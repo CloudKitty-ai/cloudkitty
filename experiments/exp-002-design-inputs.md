@@ -81,6 +81,17 @@ demo charm, so there is a floor on how quiet the meadow should get.
 Fold into the #79 spec conversation: "what should each purr system
 mean once both exist?" One engine batch, one recertification.
 
+> **RESOLVED in spec 022 (Product, 2026-07-31).** Duration 8–13,
+> `cooldown_factor = 2.5` (flat `cooldown_ticks` retired; old key
+> rejected loudly, purr-table-scoped). The **earned rule stays
+> verbatim** (`happiness > thresholds.purr || rose`, both origins) —
+> deliberately scoped OUT of 022, because the decided tuning depends
+> on it: the constant ≈28.6% duty cycle holds only because `rose`
+> re-earns instantly at cooldown expiry, and the deliberate purr's
+> mask gate keys on the same rule. Any future earned-rule change must
+> re-derive both the ambient duty cycle and the row-38 gate — treat
+> the rule as pinned by 022's Assumptions, not still open.
+
 ## 3. Standing carries (recorded elsewhere; do not re-derive)
 
 - **Roster 3–5 coverage in the training family** or absent-slot
