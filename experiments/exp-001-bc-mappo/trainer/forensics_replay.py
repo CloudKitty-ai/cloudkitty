@@ -30,14 +30,20 @@ HAPPINESS_OFF = 6
 DISTRESS_OFF = 20
 
 
-def replay(policy, config_path, seed, ticks, horizon=None, pin_clock=False):
+STATE_TAIL = 37  # element summary + chow servings + clock (after kitty blocks)
+
+
+def replay(policy, config_path, seed, ticks, horizon=None, pin_clock=False,
+           control=None):
     # config_path None = compiled defaults — the world `kitty-eval`
     # actually certifies on when invoked without --config (3 kitties).
+    # control: kitty name -> builtin behavior; those kitties leave the
+    # agent surface (binding semantics) and the policy drives the rest.
     env = cloudkitty.ParallelEnv(str(config_path) if config_path else None,
-                                 horizon=horizon)
+                                 horizon=horizon, control=control)
     obs, infos = env.reset(seed=seed)
     names = list(env.possible_agents)
-    roster = len(names)
+    roster = (env.state().size - STATE_TAIL) // PER_KITTY
     log = {
         "reward": np.zeros(ticks, np.float64),
         "happiness": np.zeros((ticks, roster), np.float32),
@@ -53,20 +59,25 @@ def replay(policy, config_path, seed, ticks, horizon=None, pin_clock=False):
                 log["happiness"][t, k] = state[b + HAPPINESS_OFF] * 100.0
                 log["distress"][t, k] = int(state[b + DISTRESS_OFF:b + DISTRESS_OFF + 6].any())
                 log["pos"][t, k] = state[b + 7:b + 9]
-            to = torch.from_numpy(np.stack([obs[a] for a in names]))
-            if pin_clock:
-                to[:, -1] = 0.0  # deploy semantics: decide_sync pins the episode clock
-            tm = torch.from_numpy(np.stack([infos[a]["mask"] for a in names]).astype(bool))
-            acts = policy(to).masked_fill(~tm, NEG_INF).argmax(-1).numpy()
-            obs, rew, _term, trunc, infos = env.step(
-                {a: int(acts[j]) for j, a in enumerate(names)})
-            log["reward"][t] = rew[names[0]]
+            if names:
+                to = torch.from_numpy(np.stack([obs[a] for a in names]))
+                if pin_clock:
+                    to[:, -1] = 0.0  # deploy semantics: decide_sync pins the episode clock
+                tm = torch.from_numpy(np.stack([infos[a]["mask"] for a in names]).astype(bool))
+                acts = policy(to).masked_fill(~tm, NEG_INF).argmax(-1).numpy()
+                step_acts = {a: int(acts[j]) for j, a in enumerate(names)}
+            else:
+                step_acts = {}  # fully scripted world: baseline arm
+            obs, rew, _term, trunc, infos = env.step(step_acts)
+            log["reward"][t] = rew[names[0]] if names else float(
+                np.exp(np.log(np.clip(log["happiness"][t] / 100.0, 1e-6, None)).mean()))
             for j, a in enumerate(names):
                 ap = infos[a]["applied_action"]
                 log["action"][t, j] = -1 if ap is None else ap
             if any(trunc.values()):
                 obs, infos = env.reset()
-    return log, names
+    labels = names if len(names) == roster else [f"kitty_{k + 1}" for k in range(roster)]
+    return log, labels
 
 
 def group_of(idx):
@@ -132,7 +143,13 @@ def main():
     ap.add_argument("--horizon", type=int, default=None,
                     help="continuous run: set to --ticks to remove episode resets")
     ap.add_argument("--pin-clock", action="store_true")
+    ap.add_argument("--control", default=None,
+                    help="scripted seats, e.g. kitty_2=playful,kitty_3=needs_driven; "
+                         "the policy drives the remaining (external) kitties")
     args = ap.parse_args()
+    control = None
+    if args.control:
+        control = dict(pair.split("=", 1) for pair in args.control.split(","))
 
     ck = torch.load(args.policy, map_location="cpu", weights_only=True)
     policy = MLP(ck["dims"])
@@ -140,10 +157,14 @@ def main():
     policy.eval()
 
     log, names = replay(policy, args.config, args.seed, args.ticks,
-                        horizon=args.horizon, pin_clock=args.pin_clock)
-    print(f"== {args.policy.parent.name} seed {args.seed} ({args.ticks} ticks) ==")
+                        horizon=args.horizon, pin_clock=args.pin_clock,
+                        control=control)
+    seat = f" control[{args.control}]" if args.control else ""
+    print(f"== {args.policy.parent.name} seed {args.seed} ({args.ticks} ticks){seat} ==")
     summarize(log, names, args.window, args.threshold)
-    tagbits = ("h" + str(args.horizon) if args.horizon else "episodic") + ("-pinned" if args.pin_clock else "")
+    tagbits = (("h" + str(args.horizon) if args.horizon else "episodic")
+               + ("-pinned" if args.pin_clock else "")
+               + ("-seated" if args.control else ""))
     out = args.out or args.policy.parent / f"forensics-seed{args.seed}-{tagbits}.npz"
     np.savez_compressed(out, **log, names=np.array(names))
     print(f"saved {out}")
