@@ -48,6 +48,31 @@ depends on who is speaking:
   strengthening, not an amendment (the one exception is spec 022's
   earned-gated purr row, decided in this same sitting).
 
+## Clarifications
+
+### Session 2026-07-31
+
+- Q: The timing keys now mean courtesy, not law — keep the names, rename
+  them, or move them? → A: Rename in place, retire loudly (owner):
+  `[meow] courtesy_ticks` / `urgent_courtesy_ticks`; a config naming the
+  old keys is rejected at load with an error naming the replacements —
+  spec 022's retirement doctrine, applied consistently. The served
+  `cloudkitty.toml` pins the old key at 15 (with law-language comments), so
+  the loud rejection forces the served-config update in the batch window
+  that already edits that file; keep-names would have silently preserved
+  the dead air this spec removes.
+- Q: SC-003 referenced "existing observed bands" no instrument has ever
+  recorded — what should it guard? → A: A built-in rate limit on the
+  scripted behaviors, nothing more (owner): the target roster is agent
+  kitties with scripted behaviors as the Article IV fallback, so
+  baselining or monitoring scripted meow rates buys little — the
+  requirement is that scripted behaviors cannot spam, guarded as a
+  property-tested spacing invariant. Noted for the record: the fallback
+  role keeps this limit relevant in an all-agent world (fallback turns run
+  scripted meow logic, politely, against bookkeeping the agent's own meows
+  also stamp), and a third-party plugin advisor remains bounded but not
+  rate-limited — the same acceptance issue #84 made for a chatty agent.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - An agent's meow always happens (Priority: P1)
@@ -134,22 +159,30 @@ mystery plumbing.
 stale is a trap for the next tuner; a stamp with no reader is a trap for the
 next implementer.
 
-**Independent Test**: Read the config surface: the meow timing keys document
-themselves as scripted-behavior courtesy, with validation rows; the default
-base interval is 10. Verify no purr start of either origin stamps any meow
-bookkeeping, and no code path swallows an emission by consulting it.
+**Independent Test**: Read the config surface: the courtesy keys are named
+for what they are (`courtesy_ticks` / `urgent_courtesy_ticks`), document
+themselves as scripted-behavior courtesy, and carry validation rows; the
+default base interval is 10; a config naming the retired key names is
+rejected with an error naming the replacements. Verify no purr start of
+either origin stamps any meow bookkeeping, and no code path swallows an
+emission by consulting it.
 
 **Acceptance Scenarios**:
 
-1. **Given** the meow timing keys, **When** the config is read, **Then**
-   their documentation states the courtesy semantics (consulted by scripted
+1. **Given** the courtesy keys (`courtesy_ticks` /
+   `urgent_courtesy_ticks`), **When** the config is read, **Then** their
+   documentation states the courtesy semantics (consulted by scripted
    behaviors; not engine-enforced) and the base default is 10.
-2. **Given** a purr start of either origin (spec 022's deliberate purr or
+2. **Given** a config file still naming `cooldown_ticks` or
+   `urgent_cooldown_ticks` under the meow section, **When** the world loads
+   it, **Then** loading fails with a clear error naming the retired key and
+   its replacement — never a silent acceptance with shifted semantics.
+3. **Given** a purr start of either origin (spec 022's deliberate purr or
    the motor), **When** it announces, **Then** it stamps no meow
    bookkeeping — the Purr kind has no courtesy reader (no scripted behavior
    proposes purr-meows), so the stamp spec 022 provisionally carried is
    deleted here, per the handoff in 022 FR-008.
-3. **Given** a snapshot saved by the pre-change engine with stamped
+4. **Given** a snapshot saved by the pre-change engine with stamped
    cooldowns, **When** it is restored, **Then** the world loads and runs:
    restored bookkeeping is harmless record-keeping that at most delays a
    scripted kitty's next courtesy consult.
@@ -158,15 +191,22 @@ bookkeeping, and no code path swallows an emission by consulting it.
 
 ### Edge Cases
 
-- **Worst-case chatty agent**: bounded on every surface — turn economics
-  (one meow forfeits everything else), clamped digest presence (saturates,
-  never compounds), pruned recent-meow record (10-tick window), and the
-  client's one-bubble-per-cat rendering (checked 2026-07-31: newest wins, no
-  stacking). No engine cap exists anymore, by design.
+- **Worst-case chatty advisor (learned policy or external plugin)**: bounded
+  on every surface — turn economics (one meow forfeits everything else),
+  clamped digest presence (saturates, never compounds), pruned recent-meow
+  record (10-tick window), and the client's one-bubble-per-cat rendering
+  (checked 2026-07-31: newest wins, no stacking). No engine cap exists
+  anymore, by design; for a plugin that isn't optimizing reward, bounded —
+  not prevented — is the accepted posture (Clarifications).
+- **Fallback turns in an agent roster**: when Article IV falls back to the
+  scripted behavior for an agent kitty's turn, the courtesy consult applies
+  as usual — and because the shared bookkeeping is stamped by the agent's
+  own emitted meows too (FR-003), a fallback turn is polite relative to
+  everything that kitty recently said, whichever mind said it.
 - **Urgency threshold boundary**: a need exactly at the threshold uses the
   urgent interval, matching the existing urgency rule — unchanged, restated
   here because it becomes courtesy rather than law.
-- **Purr kind bookkeeping**: never stamped (US3 scenario 2) and never read;
+- **Purr kind bookkeeping**: never stamped (US3 scenario 3) and never read;
   spec 022's purr-start announcements are state announcements outside the
   meow-action path entirely.
 - **Legacy `Action::Purr` wire proposals**: out of scope here as in spec 022
@@ -203,11 +243,17 @@ bookkeeping, and no code path swallows an emission by consulting it.
   exactly at expiry: no dead air, no stacking. The urgent interval (5) and
   urgency threshold are unchanged, expressed through the digest's existing
   decay envelope with no special engine rule.
-- **FR-006**: The meow timing keys MUST remain in their current config home
-  as the shared vocabulary for all scripted behaviors, re-documented at the
-  key to state the courtesy semantics (consulted, not enforced), each with a
-  validation row per Article VI. The base default changes 15 → 10; no key is
-  added or removed.
+- **FR-006**: The meow timing keys MUST be renamed for what they now are,
+  staying in their current config home as the shared vocabulary for all
+  scripted behaviors: `[meow] courtesy_ticks` (default 10) and
+  `[meow] urgent_courtesy_ticks` (default 5, applied at or above the
+  unchanged urgency threshold), each documented at the key as courtesy
+  (consulted by scripted behaviors, enforced on no one) and each with a
+  validation row per Article VI (both non-negative; urgent ≤ base). A
+  configuration naming the retired keys (`cooldown_ticks`,
+  `urgent_cooldown_ticks`) MUST be rejected at load with an error naming
+  the replacements — never silently accepted with shifted semantics (the
+  same retirement doctrine as spec 022's `[purr] cooldown_ticks`).
 - **FR-007**: Purr starts of either origin MUST stamp no meow bookkeeping.
   This resolves spec 022's FR-008 handoff: the Purr kind has no courtesy
   reader, so the stamp is deleted rather than kept inert — and because both
@@ -264,10 +310,13 @@ bookkeeping, and no code path swallows an emission by consulting it.
   air: its per-kind digest presence, once established, never rests at zero
   between refreshes (was: dark one-third of the time at 15 vs a 10-tick
   window).
-- **SC-003**: Scripted meadow character is preserved: long-run meow rates of
-  the built-in behaviors stay within their existing observed bands — the
-  courtesy retune changes spacing, not personality; no scripted kitty
-  becomes chatty.
+- **SC-003**: Scripted behaviors are rate-limited by construction: a
+  scripted kitty never emits same-kind meows closer than its courtesy
+  interval (the urgent interval at or above the urgency threshold),
+  property-tested over randomized configurations and seeds — bounding every
+  scripted kitty's per-kind meow rate at one per interval, with no
+  historical baseline required. This holds on Article IV fallback turns in
+  an agent roster exactly as in an all-scripted one.
 - **SC-004**: Every previously shipped policy artifact loads and runs
   unmodified, and observation, action-menu, and mask shapes are all
   reported identical to the pre-change engine.
@@ -288,11 +337,13 @@ bookkeeping, and no code path swallows an emission by consulting it.
   change-set, one recertification, exp-002 preregs against the final channel
   rules. Spec 022's FR-008/FR-015 were amended in the same sitting to hand
   purr-stamp semantics and the doctrine framing to this spec.
-- **Config keys stay put**: issue #84 left "stay in the shared meow section
-  vs move under behavior config" open. This spec keeps them in place as
-  shared vocabulary for all scripted behaviors — the smallest footprint, and
-  plugin behaviors can honor the same courtesy without a new config surface.
-  Revisitable at clarify if the owner prefers relocation.
+- **Config keys renamed in place (clarify decision, 2026-07-31)**: issue
+  #84 left the config home open; the owner chose rename-and-retire-loudly
+  in the shared meow section (see Clarifications). Consequence the batch
+  must carry: the served `cloudkitty.toml` names the retired key, so its
+  meow section MUST be updated (rename + new comment text) in the same
+  batch window that already edits that file for the 24×24 restore — the
+  loud rejection makes forgetting impossible, which is the point.
 - **The client check is done** (2026-07-31, this sitting): bubble rendering
   dedups to one bubble per cat, newest wins, and the recent-meow record is
   pruned to the digest window — a worst-case chatty agent yields one
