@@ -27,6 +27,11 @@ Consequences:
   product clarification.) F-006's "certification is a welfare gate"
   implication conflates the two worlds and needs a correction note
   whichever way the answer goes.
+  **RESOLVED 2026-07-30**: owner fixed §8's world as `cloudkitty.toml`
+  (deviation 31); winners re-measured — all three certify clean
+  ([served-world-remeasure-2026-07-30.md](served-world-remeasure-2026-07-30.md));
+  F-006 corrected, F-008 superseded by F-010; product ask filed for
+  the `kitty-eval` bare default.
 
 ## Discovery 2 — the failure mechanism: empty-kitty-slot OOD → idle catatonia
 
