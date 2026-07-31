@@ -390,6 +390,19 @@ impl ParallelEnv {
         self.episode.current_global_state().into_pyarray(py)
     }
 
+    /// The world's live meow stream: (tick, kitty_id, kind) per entry still
+    /// inside `[meow] recent_window_ticks`. Read-only forensics surface —
+    /// engine announcements (spontaneous purr starts) and audible deliberate
+    /// meows both appear here; cooldown-swallowed meows never do.
+    fn recent_meows(&self) -> Vec<(u64, u32, String)> {
+        self.episode
+            .world()
+            .recent_meows
+            .iter()
+            .map(|m| (m.tick, m.kitty_id, format!("{:?}", m.kind)))
+            .collect()
+    }
+
     fn close(&self) {}
 
     fn render(&self) -> Option<String> {

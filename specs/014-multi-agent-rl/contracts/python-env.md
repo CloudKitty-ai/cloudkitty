@@ -41,6 +41,12 @@ full roster.
     (never raise) — the codec-totality boundary.
 - `state() -> float32 ndarray` — the privileged global state (FR-019).
   Present on the training env; absent from anything deployable.
+- `recent_meows() -> list[(tick, kitty_id, kind)]` — the world's live
+  meow stream inside `[meow] recent_window_ticks`, read-only (amendment
+  2026-07-30, PR #78 forensics). Engine announcements (spontaneous purr
+  starts) and audible deliberate meows appear; cooldown-swallowed meows
+  never do. A forensics surface, not an observation input — FR-005's
+  observation schema is unchanged.
 - `agents`, `possible_agents`, `observation_space(agent)`,
   `action_space(agent)` — constant for the environment's life;
   Discrete(40) actions, Box observations with documented bounds.
