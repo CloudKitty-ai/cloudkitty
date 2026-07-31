@@ -54,6 +54,20 @@ def replay(policy, config_path, seed, ticks, horizon=None, pin_clock=False,
                                  horizon=horizon, control=control)
     obs, infos = env.reset(seed=seed)
     names = list(env.possible_agents)
+    if seats:
+        unknown = set(seats) - set(names)
+        assert not unknown, (
+            f"--seat names not on the agent surface: {sorted(unknown)} "
+            f"(live agents: {names}; controlled/scripted kitties cannot be "
+            f"seated — a silent fallback here would run a homogeneous "
+            f"roster while claiming a heterogeneous one)")
+    if digest_probe and names:
+        n_actions = infos[names[0]]["mask"].shape[-1]
+        assert n_actions == len(ACTION_NAMES), (
+            f"menu has {n_actions} actions but ACTION_NAMES lists "
+            f"{len(ACTION_NAMES)} — the codec changed, so LEARNED_MEOWS "
+            f"(and with it the digest width MEOW_DIGEST = kinds * 3) may "
+            f"have too; re-derive the digest slice before trusting the probe")
     roster = (env.state().size - STATE_TAIL) // PER_KITTY
     log = {
         "reward": np.zeros(ticks, np.float64),

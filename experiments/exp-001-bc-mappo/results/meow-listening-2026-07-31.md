@@ -84,4 +84,7 @@ done
 ```
 
 Raw outputs: `artifacts/arm2-g0p998-s6/meow-probe-seed*.{npz,txt}`
-(gitignored, machine-local). Policy sha256 `8030b94d…` (unchanged).
+(gitignored, machine-local). Weights: the probe runs the training
+checkpoint `policy-final.pt` (sha256 `1fe8aec9…`), the same weights
+the exported artifact `arm2.ckpolicy` (sha256 `8030b94d…`, the
+certified identity) carries — parity verified at export.
