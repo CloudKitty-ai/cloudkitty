@@ -397,6 +397,8 @@ instrument. Companion to F-004 (which is the same discipline for sample
 **Would invalidate**: n/a — a discipline, not an environment
 measurement; revisit only if it stops paying for its enforcement cost.
 
+**Re-verify when**: n/a.
+
 ---
 
 ## F-010 · active · Roster-OOD fragility: an empty kitty slot can collapse an exp-001 policy into idle catatonia (supersedes F-008)
@@ -451,5 +453,3 @@ implicate something beyond slot support).
 
 **Re-verify when**: exp-002 candidates reach screening; any change to
 the obs slot encoding or slot count.
-
-**Re-verify when**: n/a.
