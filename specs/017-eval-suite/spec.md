@@ -588,6 +588,33 @@ feature changes nothing in it.
   could not sample before issue #70. The four guarding-test edits that
   accompanied the change were signature-only (`from_artifact_path` gained
   the `sample` parameter); no assertion was weakened.
+  **Amended 2026-07-31 (issue #76, world identity) — the same doctrine,
+  second application.** What survives intact: exit codes and their
+  meanings are unchanged, and suite mode is untouched (exams already
+  self-identify via per-exam `config_sha256` and the
+  `engine_defaults_sha256` stamp; `--config` stays rejected beside
+  `--suite`). What changed, on purpose: (1) a bare invocation no longer
+  silently runs the compiled default world — it resolves
+  `cloudkitty.toml` from the working directory, the same file the server
+  serves, and is a usage error when that file is missing (the server may
+  boot on compiled defaults because it must boot; a measurement must
+  never guess its world — every exp-001 certification to 2026-07-30
+  measured the compiled world unknowingly, issue #76). The compiled
+  world stays reachable only explicitly, via the reserved value
+  `--config compiled`. (2) Every single-config report — human and JSON,
+  built-in and policy subjects alike — now stamps the resolved world
+  identity (source, kitty count, the config file's sha256 when a file
+  was read, and the engine-defaults stamp), unconditionally, for the
+  same reason the selection stamp is unconditional: absence is
+  undecodable across binary vintages. This supersedes the 2026-07-29
+  clause that built-in output stayed byte-identical — the world stamp is
+  subject-independent, because the world measured is a property of every
+  record. The stamped shape is the byte-compat baseline from this
+  amendment forward, pinned by the same executable shape guard
+  (`sc_004_amended_output_shapes_are_pinned`). Cutover note: records
+  predating this amendment carry no world stamp; a stored bare-invocation
+  record measured the compiled 3-kitty world — exactly the ambiguity
+  this amendment retires.
 - **SC-005**: Each v1 exam verifiably differs from both the default world
   and the training world on its named axis by inspection of the committed
   configs: the scale exam has ≥ 2× the default's tiles and a roster larger
