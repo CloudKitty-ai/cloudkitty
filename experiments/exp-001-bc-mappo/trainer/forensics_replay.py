@@ -51,6 +51,7 @@ def replay(policy, config_path, seed, ticks, horizon=None, pin_clock=False,
         "pos": np.zeros((ticks, roster, 2), np.float32),
         "action": np.full((ticks, roster), -1, np.int16),
     }
+    meows = set()  # (tick, kitty_id, kind) — audible meows + engine purr announcements
     with torch.no_grad():
         for t in range(ticks):
             state = env.state()
@@ -74,8 +75,10 @@ def replay(policy, config_path, seed, ticks, horizon=None, pin_clock=False,
             for j, a in enumerate(names):
                 ap = infos[a]["applied_action"]
                 log["action"][t, j] = -1 if ap is None else ap
+            meows.update(env.recent_meows())
             if any(trunc.values()):
                 obs, infos = env.reset()
+    log["meows"] = np.array(sorted(meows), dtype=object) if meows else np.empty((0, 3), object)
     labels = names if len(names) == roster else [f"kitty_{k + 1}" for k in range(roster)]
     return log, labels
 

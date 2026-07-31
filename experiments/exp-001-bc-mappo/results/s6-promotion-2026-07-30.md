@@ -30,6 +30,20 @@ teammate it never trained or evaluated with. And the meow channel is
 alive in deployment conditions: **0.101% of Miso's decisions** — 137
 MeowPurr, 65 MeowWantDrink across 200k ticks.
 
+**Audibility** (meow-stream forensics; a meow on cooldown is a legal
+action that produces silence): **47 of the 137 deliberate purr-meows
+were audible (34.3%)**; 26 of 65 want-drink meows (40.0%). The purr
+swallowing is mostly self-collision: the spontaneous purr motor —
+always "earned" at Miso's happiness — announces a rumble ~every 40
+ticks (4,942 announcements over 200k ticks), each stamping the shared
+15-tick Purr-message cooldown (~37% tick coverage). The policy's
+deliberate purrs land in cooldown windows at nearly double the chance
+rate because both purr paths fire in the same happy moments. Measured
+via a new read-only `recent_meows()` accessor on the Python binding
+(engine announcements and audible meows both enter the stream;
+swallowed meows never do); the cooldown reconstruction cross-checks
+against the stream with 0 mismatches on all 202 meows.
+
 ## Config change (cloudkitty.toml, staged on this branch)
 
 - `[[kitty]] id 1 (Miso): behavior = "policy:s6"`
