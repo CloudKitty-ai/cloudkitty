@@ -384,6 +384,55 @@ Deliberately kept out of the 005 refresh (2026-07-18): the bar here is
 ears, slow flicks of irritation), worth its own unhurried design pass with
 reference study, not a quick mapping bolted onto the refresh.
 
+### Rethink how water works for learned cats (added 2026-07-31, from the s6 soak)
+The first deployed policy exposed a seam in spec 010's water aversion:
+it is scripted-behavior *style*, not physics. The `water_step_cost`
+surcharge lives in `needs_driven`'s route scoring (ordering only, never
+options — `behavior/needs_driven.rs`), and the engine charges nothing
+for crossing or occupying a wet tile. The BC clone imitated dry-pathing
+from its demonstrations; PPO, finding zero reward behind it, shed the
+mannerism — and the live cat (s6 as Miso) wades and lounges in ponds.
+Owner ruling 2026-07-31: **accepted as a personality quirk for now**,
+and deliberately *not* in the #79 pre-recert engine batch — an
+engine-real water cost is reward-relevant, so existing artifacts
+wouldn't just need recertification, policies would need **retraining**
+to learn the aversion at all.
+
+Design questions for the sitting (ideate with the owner first):
+- Where should catlike style live for learned cats — in the world (an
+  honest cost RL discovers for itself), in the view only (a shake-off
+  animation, ear/tail displeasure — welfare-neutral), or nowhere
+  (accept that learned cats have their own personalities)?
+- If a cost: its shape (a small happiness nick per wet tick? pressure
+  on the bath need?) with Article I intact — the puddle as *drinking
+  destination* must stay free (today's rule in `selection.rs`), so
+  relief is never frustrated and safeguards are untouched.
+- Sequencing: the cheapest landing is alongside the next training
+  generation (exp-002), so the cost is in-distribution from tick one;
+  it changes certification numbers, so it rides that generation's
+  recert, not an interim one.
+
+**Hard design constraint (owner, 2026-07-31): water is a cost, never a
+wall.** No cat may ever be trapped — a kitty spawned with water on all
+sides must always be able to swim across. The engine already honors
+this (every water tile is passable; the surcharge only reorders route
+choice, and spec 010's tests pin "a kitty wades when water is the only
+way forward") — the constraint exists so no future cost hardens into
+impassability. Whatever shape a cost takes, traversability is
+invariant; Article I's relief guarantees assume it.
+
+**Companion idea for the same sitting**: guarantee at least one 2×2 or
+larger lake per map — real water bodies instead of scattered puddles.
+Connects to *Dynamic element populations* (P2), whose spatial-character
+idea (water spawning adjacent to water) is the organic version of the
+same wish, and which the 008 pond renderer would immediately reward
+with proper merged shorelines. A guaranteed lake also gives the swim
+pose (below) and any wet-tile cost something worth crossing.
+
+Related: the swim pose below suddenly has a real audience (wading is no
+longer rare when a policy cat likes ponds); food types' water-near-food
+rules touch the same element.
+
 ### Swim pose for wading kitties (parked 2026-07-20, from the 010 spec)
 A kitty standing on a water tile shows a `swim` pose — pure view
 (`poseFor` in `client/render.js` plus one new `cat.js` pose), with its own
