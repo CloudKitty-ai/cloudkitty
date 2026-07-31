@@ -92,6 +92,21 @@ mean once both exist?" One engine batch, one recertification.
 > re-derive both the ambient duty cycle and the row-38 gate — treat
 > the rule as pinned by 022's Assumptions, not still open.
 
+## 2a. Meow cooldown retired at engine level (owner decision, issue #84)
+
+Owner-approved 2026-07-31: the engine stops enforcing meow cooldowns on
+agent meows (the silent swallow was illegible and wasted turns; cooldown
+15 > window 10 forced dead air). Scripted behaviors keep a voluntary
+courtesy cooldown at 10 via their existing `can_meow()` checks (both
+needs_driven and playful). Constant deliberate purring is endorsed
+(turn cost + earned gate + one announcement per phase are the brakes).
+Full design and pins in issue #84. **Timing is the open decision**
+(the #79/#82 batch vs the exp-002-generation engine change) — if it
+lands with exp-002's engine, it joins wet-fur in that batch. Standing
+obligation either way: the spam backstop for learned agents becomes
+*economics under cooperative team reward* — any per-kitty or
+competitive reward design must revisit before training.
+
 ## 3. Standing carries (recorded elsewhere; do not re-derive)
 
 - **Roster 3–5 coverage in the training family** or absent-slot
