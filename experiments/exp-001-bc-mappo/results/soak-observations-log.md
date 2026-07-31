@@ -44,6 +44,19 @@ pre-soak probe (same world config) and the 1.78M-decision BC dataset
    mechanically the second door to cuddle relief (`Groom{target}`
    needs only adjacency), i.e., the same trick as the co-sleeping.
 
+4. **"Visibly happier than the needs-based kitties — not always,
+   but an observer would notice; smaller gap than playful vs
+   needs-based" — calibrated almost exactly.** Probe means: Miso
+   93.5 vs needs_driven 89.5/90.7 (**+3.4**); needs_driven vs
+   playful Biscuit 79.0 (**+11.1**) — the owner's magnitude ordering
+   is right, ~3× smaller. "Not always": Miso is the happier cat on
+   80–86% of ticks against each needs_driven kitty (one moment in
+   ~five, they're momentarily ahead). Invisible from the client but
+   true: *every* kitty is happier with Miso seated than in the
+   all-scripted counterfactual (Biscuit +1.6, Pumpkin +0.6,
+   Kittybear +0.4) — the visible gap understates the policy's
+   contribution.
+
 Related but separate (own records): meow *listening* demonstrated via
 digest-zeroing probe — 8.2% of heard decisions change when silenced
 ([meow-listening-2026-07-31.md](meow-listening-2026-07-31.md));
