@@ -398,15 +398,54 @@ engine-real water cost is reward-relevant, so existing artifacts
 wouldn't just need recertification, policies would need **retraining**
 to learn the aversion at all.
 
-Design questions for the sitting (ideate with the owner first):
-- Where should catlike style live for learned cats — in the world (an
-  honest cost RL discovers for itself), in the view only (a shake-off
-  animation, ear/tail displeasure — welfare-neutral), or nowhere
-  (accept that learned cats have their own personalities)?
-- If a cost: its shape (a small happiness nick per wet tick? pressure
-  on the bath need?) with Article I intact — the puddle as *drinking
-  destination* must stay free (today's rule in `selection.rs`), so
-  relief is never frustrated and safeguards are untouched.
+**Leading candidate (owner-picked from ideation, 2026-07-31): "wet
+fur" — charge the crossing in bath need, not ticks.** Stepping onto a
+water tile spikes the bath need (optionally scaled by the cat's own
+per-kitty bath rise rate — the `[kitty.needs]` override Pumpkin already
+demonstrates for `eat`); movement stays 1 tile/tick, so the cat swims
+briskly and never visibly stalls. The cost is real to every decider:
+happiness = 100 − weighted needs, so RL feels it in reward directly,
+and the scripted priority ladder responds through existing machinery.
+Calibration target: integrated happiness cost of one wet tile ≈ ~4
+ticks of detour (matching `water_step_cost = 4.0`, the effort the
+scripted pathfinder already imagines). Why this shape won:
+- **No schema or codec change**: a policy already observes its own six
+  rise-rate traits (014 FR-005) and its needs — so per-cat modulation
+  is learnable from the existing vector, artifacts stay loadable, and
+  the warm-start-from-s6 lever (exp-002 design inputs §1) survives.
+- Even a *flat* spike is personality-modulated in effect (high bath
+  rise ⇒ faster return to discomfort ⇒ more integral pain per swim);
+  explicit scaling makes it legible and lets a low-bath cat be "the
+  swimmer" — designable roster personality.
+- The charm is emergent: post-swim shore grooming falls out of
+  GroomSelf being bath's relief; pair with the swim pose (below) and a
+  client-side shake-off.
+- Per-tile accumulation makes lake *width* matter — crossing vs
+  skirting gets interesting exactly where the guaranteed lakes are.
+
+Design cares recorded from the same conversation:
+- **Learnability needs variance**: to learn trait→cost (not memorize a
+  constant), the exp-002 training family must vary bath rise rates
+  across kitties — F-010's lesson applied prospectively.
+- **Distress hygiene**: bath feeds the certification-counted
+  distress/safeguard thresholds (90/75); size/clamp the spike so a
+  swim from a normal bath level can never single-handedly cross the
+  distress line. Spike size is a prereg'd exp-002 tuning decision,
+  never a live dial.
+- **Scripted consistency**: scale `needs_driven`'s route surcharge by
+  the cat's own bath trait too, so both deciders express one coherent
+  preference (fastidious cats visibly detour harder).
+- Article I intact — the puddle as *drinking destination* must stay
+  free (today's rule in `selection.rs`), so relief is never
+  frustrated and safeguards are untouched.
+
+Rejected shapes, for the record: literal multi-tick traversal (a
+`Swimming` activity renders nicely via client tweening but adds an
+Activity variant + observation one-hot ⇒ schema bump ⇒ orphans every
+artifact — hold for a generation already breaking the schema);
+stochastic slow-movement on water (deterministic but reads as the
+frozen-cat jank this backlog already dislikes — see "Chases route
+around friends").
 - Sequencing: the cheapest landing is alongside the next training
   generation (exp-002), so the cost is in-distribution from tick one;
   it changes certification numbers, so it rides that generation's
