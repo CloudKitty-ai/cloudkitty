@@ -27,7 +27,9 @@ id = 1
 name = "Miso"
 x = 10
 y = 12
-behavior = "needs_driven"
+# exp-001 deployment soak (prereg §9.1): Miso is driven by the arm2-g0p998-s6
+# policy — the seat kitty-eval's Mixed roster certified (subject at index 0).
+behavior = "policy:s6"
 
 [[kitty]]
 id = 2
@@ -232,3 +234,12 @@ distress_patience_ticks = 60
 # [plugins.professor_whiskers]
 # command = "docs/examples/demo_plugin.py"
 # args = []
+
+# RL policy artifacts (spec 014 FR-016): a kitty with behavior = "policy:<name>"
+# resolves through the matching [rl.policy.<name>] block. The artifact is
+# schema-validated and content-hashed at startup (never served on GET /config).
+# s6 = exp-001 arm2-g0p998-s6, sha256 8030b94d… — certified clean on this world
+# 2026-07-30 (results/served-world-remeasure-2026-07-30.md); greedy selection
+# (sample = false), matching the certified condition.
+[rl.policy.s6]
+artifact = "experiments/exp-001-bc-mappo/artifacts/arm2-g0p998-s6/arm2.ckpolicy"
