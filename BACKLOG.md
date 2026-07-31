@@ -432,9 +432,11 @@ knob prices both crossing and lounging). Derivation: +S bath persists
 indifference point; 1.5 makes cats strictly skirt puddles while still
 swimming when detours are long. Legible framing: 1.0 = **5× the
 ambient bath rise** (0.2/tick), and the per-cat multiplier scales as
-`gain × bath_rise/0.2`. Safety clamp: gain applies only while bath
-< ~70 (under safeguard 75) so no amount of voluntary pond-lounging
-can ever cause a safeguard/distress event — certification hygiene by
+`gain × bath_rise/0.2`. Safety clamp (owner-set 2026-07-31): gain applies only while bath
+**< 50** — well under safeguard 75, leaving ~25 points of headroom so
+water contribution plus ordinary ambient accrual still can't crowd
+the safeguard line; no amount of voluntary pond-lounging can ever
+cause a safeguard/distress event — certification hygiene by
 construction. Error bars are order-of-magnitude (persistence and
 detour-pressure estimates); final value is a prereg'd exp-002 tuning
 decision, calibrated empirically by seating the water-indifferent s6
