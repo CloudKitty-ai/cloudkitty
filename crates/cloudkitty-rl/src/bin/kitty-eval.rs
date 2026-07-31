@@ -4,9 +4,15 @@
 //!
 //! ```text
 //! kitty-eval --brain needs_driven | --artifact path/to/policy.ckpolicy
-//!            [--config cloudkitty.toml] [--seeds 1,2,...] [--ticks 20000]
+//!            [--config path/to/world.toml | compiled] [--seeds 1,2,...] [--ticks 20000]
 //!            [--roster all-policy | mixed | both] [--json out.json]
 //! ```
+//!
+//! The world is never guessed (issue #76): without `--config` the server's
+//! own default `cloudkitty.toml` must exist in the working directory, the
+//! compiled default world is reachable only via the reserved value
+//! `--config compiled`, and every report stamps the resolved world
+//! identity.
 //!
 //! Exit codes: 0 success; 1 usage/validation error; 2 nonzero fallback
 //! count on a policy scoring run (FR-013 — the run fails rather than
@@ -19,7 +25,7 @@ use std::sync::Arc;
 use cloudkitty_core::behavior::BehaviorRegistry;
 use cloudkitty_core::Config;
 use cloudkitty_rl::cli_support;
-use cloudkitty_rl::config::{load_configs_from_path, RlConfig};
+use cloudkitty_rl::config::{load_configs_from_str, RlConfig};
 use cloudkitty_rl::harness::{EvalRequest, RosterMode, RunOutcome};
 use cloudkitty_rl::suite;
 use serde::Serialize;
@@ -94,7 +100,8 @@ fn parse_args() -> Result<Args, String> {
             "--help" | "-h" => {
                 return Err(
                     "usage: kitty-eval --brain NAME | --artifact PATH [--sample] \
-                            [--config cloudkitty.toml] [--seeds 1,2,...] [--ticks 20000] \
+                            [--config PATH|compiled (default ./cloudkitty.toml)] \
+                            [--seeds 1,2,...] [--ticks 20000] \
                             [--roster all-policy|mixed|both] [--json out.json]\n       \
                             kitty-eval --suite evals/v1 (--brain NAME | --artifact PATH \
                             [--sample]) [--enforce sign-test] [--json out.json]"
@@ -142,12 +149,82 @@ fn selection_label(is_policy: bool, sample: bool) -> Option<&'static str> {
     }
 }
 
+/// The server's own default config file, resolved the same way the server
+/// resolves it: relative to the working directory.
+const DEFAULT_CONFIG: &str = "cloudkitty.toml";
+/// Reserved `--config` value naming the compiled default world. A file
+/// literally named `compiled` is spelled `./compiled`.
+const COMPILED_WORLD: &str = "compiled";
+
+/// The resolved world a report measured (issue #76): a certification
+/// record is self-describing — which world ran must never be inferable
+/// only from binary vintage and working directory.
+#[derive(Serialize)]
+struct WorldIdentity {
+    /// The config path as given, or `compiled defaults`.
+    source: String,
+    kitties: usize,
+    /// sha256 of the config file's bytes; absent for the compiled world.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    config_sha256: Option<String>,
+    /// Spec 017's defaults stamp: a config file's hash freezes its text,
+    /// not the compiled defaults every omitted section inherits.
+    engine_defaults_sha256: String,
+}
+
+/// Resolves the world: an explicit path, the reserved `compiled`
+/// sentinel, or the server's default file — never a silent guess. The
+/// server falls back to compiled defaults because it must boot; a
+/// measurement without a world is a usage error instead (issue #76).
+fn resolve_world(config: Option<&str>) -> Result<(Config, RlConfig, WorldIdentity), String> {
+    let path = match config {
+        Some(COMPILED_WORLD) => None,
+        Some(path) => Some(path),
+        None if std::path::Path::new(DEFAULT_CONFIG).exists() => Some(DEFAULT_CONFIG),
+        None => {
+            return Err(format!(
+                "no --config given and ./{DEFAULT_CONFIG} does not exist; pass \
+                 --config <path> to name a world or --config {COMPILED_WORLD} for the \
+                 built-in defaults — an evaluation never guesses its world (issue #76)"
+            ));
+        }
+    };
+    let engine_defaults_sha256 = suite::engine_defaults_sha256();
+    match path {
+        Some(path) => {
+            let bytes = std::fs::read(path).map_err(|e| format!("cannot read {path}: {e}"))?;
+            let config_sha256 = suite::sha256_hex(&bytes);
+            let text = String::from_utf8(bytes).map_err(|e| format!("cannot read {path}: {e}"))?;
+            let (core, rl) = load_configs_from_str(&text).map_err(|e| e.to_string())?;
+            let world = WorldIdentity {
+                source: path.to_string(),
+                kitties: core.kitties.len(),
+                config_sha256: Some(config_sha256),
+                engine_defaults_sha256,
+            };
+            Ok((core, rl, world))
+        }
+        None => {
+            let core = Config::default();
+            let world = WorldIdentity {
+                source: "compiled defaults".to_string(),
+                kitties: core.kitties.len(),
+                config_sha256: None,
+                engine_defaults_sha256,
+            };
+            Ok((core, RlConfig::default(), world))
+        }
+    }
+}
+
 #[derive(Serialize)]
 struct EvalOutput {
     subject: String,
     /// `greedy`/`sampled` for a policy subject; absent for built-ins.
     #[serde(skip_serializing_if = "Option::is_none")]
     selection: Option<&'static str>,
+    /// The world this record measured (issue #76) — always present.
+    world: WorldIdentity,
     ticks: u64,
     seeds: Vec<u64>,
     runs: Vec<RunOutcome>,
@@ -175,6 +252,22 @@ fn human_report_to(w: &mut dyn std::io::Write, output: &EvalOutput) -> std::io::
         "== kitty-eval: {}{note} ({} ticks/seed) ==",
         output.subject, output.ticks
     )?;
+    // World identity first (issue #76): which world a record measured is
+    // a property of every record, stamped unconditionally — absence is
+    // undecodable across binary vintages, like the selection stamp.
+    match &output.world.config_sha256 {
+        Some(hash) => writeln!(
+            w,
+            "world {} ({} kitties) sha256 {hash}",
+            output.world.source, output.world.kitties
+        )?,
+        None => writeln!(
+            w,
+            "world {} ({} kitties)",
+            output.world.source, output.world.kitties
+        )?,
+    }
+    writeln!(w, "engine defaults {}", output.world.engine_defaults_sha256)?;
     for run in &output.runs {
         cli_support::print_run_panel(w, run, true)?;
     }
@@ -374,15 +467,12 @@ fn main() -> ExitCode {
         return run_suite(dir, &args);
     }
 
-    let (core, rl): (Config, RlConfig) = match &args.config {
-        Some(path) => match load_configs_from_path(path) {
-            Ok(pair) => pair,
-            Err(e) => {
-                eprintln!("kitty-eval: {e}");
-                return ExitCode::from(1);
-            }
-        },
-        None => (Config::default(), RlConfig::default()),
+    let (core, rl, world) = match resolve_world(args.config.as_deref()) {
+        Ok(resolved) => resolved,
+        Err(e) => {
+            eprintln!("kitty-eval: {e}");
+            return ExitCode::from(1);
+        }
     };
     let mut registry = BehaviorRegistry::with_builtins();
 
@@ -431,6 +521,7 @@ fn main() -> ExitCode {
     let output = EvalOutput {
         subject: subject_name,
         selection: selection_label(is_policy, args.sample),
+        world,
         ticks,
         seeds,
         runs: sweep.runs,

@@ -8,7 +8,7 @@ path (research.md R5, R9).
 
 ```text
 kitty-eval --brain needs_driven | --artifact path/to/policy.ckpolicy [--sample]
-           [--config cloudkitty.toml]
+           [--config path/to/world.toml | compiled  (default: ./cloudkitty.toml, which must exist)]
            [--seeds 1,2,...  (default: the 10 fixed CI seeds)]
            [--ticks 20000]
            [--roster all-policy | mixed | both  (default both; policy only)]
@@ -33,9 +33,31 @@ kitty-eval --brain needs_driven | --artifact path/to/policy.ckpolicy [--sample]
 - Policy scoring runs **both roster modes** by default: every kitty
   policy-driven, and the deployment reality of one policy kitty among
   `needs_driven` kitties (FR-013).
+- `--config` (amendment 2026-07-31, issue #76): **the world is never
+  guessed.** Absent the flag, kitty-eval resolves `cloudkitty.toml` from
+  the working directory — the same file, resolved the same way, the
+  server serves — and a missing file is a usage error naming both
+  candidates, never a silent fallback (the server may boot on compiled
+  defaults because it must boot; a measurement must not guess its
+  world). The compiled default world stays reachable, explicitly: the
+  reserved value `--config compiled` names it (a file literally named
+  `compiled` is spelled `./compiled`). Every report — human and JSON,
+  regardless of subject kind — stamps the resolved **world identity**:
+  the source (config path or `compiled defaults`), the kitty count, the
+  config file's sha256 (absent for the compiled world), and the
+  engine-defaults stamp (spec 017's `engine_defaults_sha256` — a config
+  file's hash freezes its text, not the compiled defaults every omitted
+  section inherits). A certification record is self-describing about
+  which world it measured; before this amendment a bare invocation ran
+  the compiled 3-kitty world unlabeled (the exp-001 mismeasurement).
+  Suite mode is untouched: `--config` stays rejected beside `--suite`,
+  and exams already self-identify per spec 017 FR-013.
 
 ## Report (per seed and aggregated; JSON + human table)
 
+- The resolved **world identity**, first (amendment 2026-07-31, issue
+  #76): source, kitty count, config sha256 (file worlds), engine-defaults
+  stamp — in the human header block and a JSON `world` object.
 - Every long-run welfare metric the CI suite guards, from the shared
   `cloudkitty-rl::welfare` module (same code as the gate): mean
   happiness, low-happiness streaks and share, floor touches, pinned
@@ -55,6 +77,8 @@ kitty-eval --brain needs_driven | --artifact path/to/policy.ckpolicy [--sample]
 - Artifact validation failure (same errors as startup).
 - Determinism self-check failure (a repeated seed disagreeing with
   itself).
+- No `--config` and no `./cloudkitty.toml` in the working directory —
+  usage error naming both candidates (amendment 2026-07-31, issue #76).
 
 ## Guarding tests
 

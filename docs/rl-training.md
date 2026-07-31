@@ -141,8 +141,11 @@ cargo run -p cloudkitty-rl --bin kitty-eval -- --artifact policies/trained.ckpol
 
 `kitty-eval` fails (exit 2) on any fallback-taken decision during policy
 scoring, and the server validates and hash-logs the artifact before the
-first tick. Evaluation always runs on the **default** world — the training
-world is a gym, not the bar.
+first tick. Evaluation runs on the **served** world by default
+(`./cloudkitty.toml`, resolved the way the server resolves it; the world
+is never guessed — a missing file is an error, and every report stamps
+the resolved world identity, issue #76) — the training world is a gym,
+not the bar.
 
 **Match the certified distribution to the deployed one.** `kitty-eval`
 seats the artifact greedy unless you pass `--sample`; it never reads

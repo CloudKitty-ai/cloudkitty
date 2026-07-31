@@ -113,6 +113,8 @@ fn the_kitty_eval_binary_scores_an_artifact_in_both_modes_and_exits_zero() {
         .args([
             "--artifact",
             path.to_str().unwrap(),
+            "--config",
+            "compiled",
             "--seeds",
             "1",
             "--ticks",
@@ -154,6 +156,8 @@ fn the_sample_flag_routes_labels_and_stays_deterministic() {
         let mut args = vec![
             "--artifact",
             path.to_str().unwrap(),
+            "--config",
+            "compiled",
             "--seeds",
             "1",
             "--ticks",
@@ -259,14 +263,96 @@ fn a_flag_where_a_value_belongs_is_a_usage_error() {
     );
 }
 
-// The executable half of SC-004 as amended 2026-07-29 (spec 017, issue
-// #70): the promise is a gate, not prose. Built-in-subject output carries
-// no selection stamp anywhere — byte-shaped exactly as before the
-// amendment — and the labeled policy-subject shape (header note attached
-// to the subject's name, every paired line stamped, JSON `selection`
-// key) is the byte-compat baseline going forward. Shape is pinned, not
-// welfare numbers, so deliberate engine retunes don't false-alarm here
-// (the run_json_golden regeneration doctrine's lesson).
+// Issue #76: the world is never guessed. A bare invocation resolves the
+// server's own default file from the working directory; where that file
+// does not exist the run is a usage error naming both candidates — a
+// silent compiled-defaults fallback is how every exp-001 certification
+// to 2026-07-30 measured the wrong world.
+#[test]
+fn a_bare_invocation_without_the_served_config_is_a_usage_error() {
+    let dir = std::env::temp_dir().join("ck-harness-policy-no-world");
+    std::fs::create_dir_all(&dir).unwrap();
+    let _ = std::fs::remove_file(dir.join("cloudkitty.toml"));
+    let output = std::process::Command::new(env!("CARGO_BIN_EXE_kitty-eval"))
+        .current_dir(&dir)
+        .args(["--brain", "needs_driven", "--seeds", "1", "--ticks", "60"])
+        .output()
+        .expect("kitty-eval runs");
+    assert_eq!(output.status.code(), Some(1));
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("cloudkitty.toml does not exist"),
+        "{stderr}"
+    );
+    assert!(stderr.contains("--config compiled"), "{stderr}");
+    assert!(stderr.contains("never guesses its world"), "{stderr}");
+}
+
+// Issue #76: absent --config, the served world resolves the way the
+// server resolves it — ./cloudkitty.toml — and the report stamps the
+// resolved identity, config hash included, in text and JSON. The world
+// file is the repository's real served config (the harness's roster
+// modes rewrite kitty behaviors, so its policy seatings never reach the
+// registry); the expected count and hash derive from the same bytes, so
+// config retunes don't false-alarm here.
+#[test]
+fn a_bare_invocation_resolves_and_stamps_the_served_config() {
+    let served = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../cloudkitty.toml");
+    let bytes = std::fs::read(&served).expect("the repository's served config exists");
+    let expected_sha = cloudkitty_rl::suite::sha256_hex(&bytes);
+    let (core, _) =
+        cloudkitty_rl::config::load_configs_from_str(std::str::from_utf8(&bytes).unwrap())
+            .expect("the served config loads");
+    let kitties = core.kitties.len();
+
+    let dir = std::env::temp_dir().join("ck-harness-policy-served-world");
+    std::fs::create_dir_all(&dir).unwrap();
+    std::fs::write(dir.join("cloudkitty.toml"), &bytes).unwrap();
+    let json_path = dir.join("out.json");
+    let output = std::process::Command::new(env!("CARGO_BIN_EXE_kitty-eval"))
+        .current_dir(&dir)
+        .args([
+            "--brain",
+            "needs_driven",
+            "--seeds",
+            "1",
+            "--ticks",
+            "60",
+            "--json",
+        ])
+        .arg(&json_path)
+        .output()
+        .expect("kitty-eval runs");
+    assert!(
+        output.status.success(),
+        "exit {:?}\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains(&format!(
+            "world cloudkitty.toml ({kitties} kitties) sha256 {expected_sha}"
+        )),
+        "{stdout}"
+    );
+    let json = std::fs::read_to_string(&json_path).unwrap();
+    assert!(json.contains("\"source\": \"cloudkitty.toml\""), "{json}");
+    assert!(
+        json.contains(&format!("\"config_sha256\": \"{expected_sha}\"")),
+        "{json}"
+    );
+}
+
+// The executable half of SC-004 as amended 2026-07-29 (issue #70) and
+// 2026-07-31 (issue #76): the promise is a gate, not prose. Built-in
+// subjects carry no selection stamp anywhere; the labeled policy-subject
+// shape (header note attached to the subject's name, every paired line
+// stamped, JSON `selection` key) and the unconditional world-identity
+// stamp (world + engine-defaults header lines, JSON `world` object,
+// subject-independent) are the byte-compat baseline going forward. Shape
+// is pinned, not welfare numbers, so deliberate engine retunes don't
+// false-alarm here (the run_json_golden regeneration doctrine's lesson).
 #[test]
 fn sc_004_amended_output_shapes_are_pinned() {
     let artifact = test_support::fixture_artifact_with_output(
@@ -282,7 +368,9 @@ fn sc_004_amended_output_shapes_are_pinned() {
         let json = dir.join(format!("{label}.json"));
         let output = std::process::Command::new(env!("CARGO_BIN_EXE_kitty-eval"))
             .args(subject_args)
-            .args(["--seeds", "1", "--ticks", "60", "--json"])
+            .args([
+                "--config", "compiled", "--seeds", "1", "--ticks", "60", "--json",
+            ])
             .arg(&json)
             .output()
             .expect("kitty-eval runs");
@@ -299,11 +387,26 @@ fn sc_004_amended_output_shapes_are_pinned() {
     };
     let artifact_path = artifact.to_str().unwrap();
 
-    // Built-in subject: the pre-amendment shape, unstamped everywhere.
+    // Built-in subject: no selection stamp anywhere, but the world stamp
+    // is subject-independent (issue #76) — the world measured is a
+    // property of every record.
     let (stdout, json) = run("brain", &["--brain", "needs_driven"]);
     assert!(
         stdout.contains("== kitty-eval: needs_driven (60 ticks/seed) =="),
         "{stdout}"
+    );
+    assert!(
+        stdout.contains("world compiled defaults (3 kitties)\n"),
+        "{stdout}"
+    );
+    assert!(stdout.contains("engine defaults "), "{stdout}");
+    assert!(json.contains("\"world\""), "{json}");
+    assert!(json.contains("\"source\": \"compiled defaults\""), "{json}");
+    assert!(json.contains("\"kitties\": 3"), "{json}");
+    assert!(json.contains("\"engine_defaults_sha256\""), "{json}");
+    assert!(
+        !json.contains("\"config_sha256\""),
+        "the compiled world has no config file to hash: {json}"
     );
     assert!(
         stdout.contains("-- paired vs needs_driven baseline --"),
@@ -355,7 +458,7 @@ fn the_kitty_eval_binary_refuses_a_corrupt_artifact() {
     let path = dir.join("corrupt.ckpolicy");
     std::fs::write(&path, b"definitely not a policy").unwrap();
     let output = std::process::Command::new(env!("CARGO_BIN_EXE_kitty-eval"))
-        .args(["--artifact", path.to_str().unwrap()])
+        .args(["--artifact", path.to_str().unwrap(), "--config", "compiled"])
         .output()
         .expect("kitty-eval runs");
     assert_eq!(output.status.code(), Some(1));

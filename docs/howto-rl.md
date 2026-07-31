@@ -171,9 +171,12 @@ every other line of the pipeline stays the same.
 ## 4. Score it against the bar
 
 Training return is not the deployment claim — `kitty-eval` is. It runs
-the policy on the **default** world, both roster modes (everyone runs
-the policy; one kitty runs it among `needs_driven` friends), paired
-seed-for-seed against the baseline:
+the policy on the **served** world (`./cloudkitty.toml`, the same file
+the server serves; the world is never guessed — a missing file is an
+error, `--config` names another world, `--config compiled` names the
+built-in defaults, and the report stamps which world ran), both roster
+modes (everyone runs the policy; one kitty runs it among `needs_driven`
+friends), paired seed-for-seed against the baseline:
 
 ```bash
 cargo run --release -p cloudkitty-rl --bin kitty-eval -- --artifact minimal.ckpolicy

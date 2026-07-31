@@ -6,7 +6,12 @@ invocation is byte-compatible — report shape and exit codes unchanged
 holds for exit codes and for built-in subjects; policy subjects gained
 the unconditional greedy/sampled selection stamp. See SC-004's amendment
 in spec.md for the full re-baseline and cutover note — the labeled shape
-is the baseline from that amendment forward.)*
+is the baseline from that amendment forward.)* *(Second amendment
+2026-07-31, issue #76: single-config invocations now stamp the resolved
+world identity and no longer default silently to the compiled world.
+Suite mode is untouched — `--config` remains rejected beside `--suite`,
+and exams self-identify via per-exam `config_sha256` plus the
+engine-defaults stamp, FR-013.)*
 
 ## Invocation
 
