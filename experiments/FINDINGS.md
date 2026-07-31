@@ -248,7 +248,12 @@ unrun). Trained-policy dynamics unmeasured, as everywhere.
   world would have optimized against a signal that is not measurably
   there.
 - **Certification is a welfare gate, not a cooperation instrument.**
-  Certification and the report protocol run on the default world, where
+  *(Correction 2026-07-30: this bullet conflated two "default worlds".
+  F-006's measurement is of `cloudkitty.toml` — correct and unchanged —
+  but exp-001's certifications to that date had actually run on the
+  compiled 3-kitty default, a different world; see deviation 31, which
+  fixes §8's world to `cloudkitty.toml` and makes the point below
+  apply as intended.)* Certification and the report protocol run on the default world, where
   single-action cooperative credit is undetectable — a policy's paired
   Nash gain there must come from policy-level behavioral differences
   compounding over the run, not from the marginal credit the probe
@@ -308,7 +313,18 @@ insurance against over-crediting BC.
 
 ---
 
-## F-008 · active · A long-horizon all-policy instability mode exists that short probes cannot detect; scripted teammates arrest it
+## F-008 · superseded by F-010 (2026-07-30) · A long-horizon all-policy instability mode exists that short probes cannot detect; scripted teammates arrest it
+
+> **Supersession note (2026-07-30)**: forensics
+> ([collapse-forensics-2026-07-30.md](exp-001-bc-mappo/results/collapse-forensics-2026-07-30.md))
+> identified the mechanism and found this entry's framing wrong on both
+> counts. The mode is not long-horizon (collapse is visible *within*
+> 2,000 ticks on the world that triggers it) and not a coordination
+> instability (a single fragile policy collapses alone). It is
+> **roster-OOD input fragility** — see F-010. The observations below
+> were real; their interpretation was an artifact of certification
+> accidentally running the compiled 3-kitty world (deviation 31) while
+> probes ran `cloudkitty.toml`. Kept for the record.
 
 In exp-001 Arm 2, 2 of 6 runs (γ=.998 s2, γ=.995 s3) carry seeds whose
 all-policy rosters collapse (welfare 0.31–0.69) at 20,000-tick
@@ -357,6 +373,14 @@ instrument was honest about what it measured and silent about everything
 past its own horizon, and in both cases the miss was discovered only by
 a longer measurement that already existed in the protocol.
 
+*(Nuance, 2026-07-30: forensics showed bite (2) was really a
+world-identity miss, not a horizon miss — the probes ran a world where
+the failure's trigger never occurs, and on the triggering world the
+collapse is visible within the probe's own 2k horizon (F-010,
+deviation 31). The rule generalizes rather than weakens: every
+dimension an instrument holds fixed — horizon, world, roster — bounds
+the failures it can detect. State all of them with the claim.)*
+
 **Scope**: any instrument whose readings feed a decision — probes,
 validation curves, smoke evals, forensic re-checks.
 
@@ -374,3 +398,58 @@ instrument. Companion to F-004 (which is the same discipline for sample
 measurement; revisit only if it stops paying for its enforcement cost.
 
 **Re-verify when**: n/a.
+
+---
+
+## F-010 · active · Roster-OOD fragility: an empty kitty slot can collapse an exp-001 policy into idle catatonia (supersedes F-008)
+
+Measured 2026-07-30 (collapse forensics + served-world re-measurement,
+deviation 31). Observations carry three proximity-sorted kitty slots;
+exp-001's training family (5 kitties) and anneal world (4 kitties) keep
+them always full. The compiled 3-kitty default world — which every
+pre-deviation-31 certification unknowingly ran — leaves one slot
+permanently empty: an input outside training support. On it, **3 of 9
+Arm 2 training seeds collapse into an idle attractor** (85% Idle
+post-onset, zero eat/drink, all kitties in permanent distress, welfare
+≈ 0.31), tipped by element layout (the same policy is healthy on
+another eval seed; a robust policy is healthy on the "collapsing"
+seed). Collapse is visible within 2,000 ticks on the triggering world
+(seed 8: welfare 0.58 at t=2000, first unresolved distress t≈769). The
+same policies on the served world (`cloudkitty.toml`, slots full):
+certification-clean — max distress age 0 across 60 runs, deltas +0.04.
+
+Re-reading F-008's observations: "scripted teammates arrest it" = in
+Mixed rosters only the lone subject idles while competent scripted
+kitties keep the world afloat; "invisible to 2k probes" = the probes
+ran a world (served) where the trigger never occurs. Env-chain replay
+reproduces the engine's certified numbers exactly given the same
+config.
+
+**Scope**: exp-001's policy class (MLP on slot-structured obs, BC
+lineage, frozen family). The *mechanism* — undefined extrapolation on
+slot patterns absent from training — plausibly generalizes to any
+slot-structured encoding; the 1/3 seed rate is specific to this class.
+
+**Evidence**: [collapse forensics](exp-001-bc-mappo/results/collapse-forensics-2026-07-30.md);
+[served-world re-measurement](exp-001-bc-mappo/results/served-world-remeasure-2026-07-30.md);
+tool `trainer/forensics_replay.py`.
+
+**Implications**:
+- **exp-002's primary robustness target**: make empty-slot patterns
+  in-distribution (roster 3–5 coverage in the training family — the
+  bill for family-v1's deferred roster variation — or absent-slot
+  masking in the encoding).
+- **Candidate screening**: certify-length runs on every roster the
+  deploy surface can present (3, 4, 5). The compiled 3-kitty world is
+  retained as an explicitly-named secondary robustness screen
+  (deviation 31), never the primary gate.
+- The partner-population-curriculum hypothesis is weakened as the fix
+  for *this* mode (it is not self-play resonance) but not dead.
+
+**Would invalidate**: the collapse reproducing on a full-slot world
+(would reopen a genuine coordination-instability reading); roster-
+covered exp-002 policies still collapsing on 3-kitty worlds (would
+implicate something beyond slot support).
+
+**Re-verify when**: exp-002 candidates reach screening; any change to
+the obs slot encoding or slot count.
