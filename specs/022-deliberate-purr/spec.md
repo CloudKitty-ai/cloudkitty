@@ -49,12 +49,28 @@ After this change the two surfaces have distinct, coherent meanings:
 - **The rhythm is retuned.** Purr durations draw 8–13 ticks (consistent 6–10
   second episodes; no blips, no drones) and the motor's rest becomes
   proportional to the finished purr (`cooldown_factor`), making a happy
-  kitty's purr duty cycle a constant ≈28.6% regardless of the duration draw —
+  kitty's purr duty cycle a constant ≈30.8% regardless of the duration draw —
   the motor is the ambient floor; anything above it is a cat choosing to purr.
 
 Stated for the record (owner-endorsed, issue #82): information that was
 ambient becomes something cats must choose to share — a deliberate shift in
 the world's character.
+
+## Clarifications
+
+### Session 2026-07-31
+
+- Q: When a pre-022 snapshot is restored mid-purr (no stored duration), what
+  deterministic rule stamps the proportional cooldown at purr end? → A:
+  Treat the unknown duration as the configured minimum (`min_ticks`).
+- Q: SC-004's "converges" needed a testable bound — what tolerance and
+  horizon? → A: Within ±2 percentage points of 1/(1+`cooldown_factor`) over
+  a run of at least 20,000 ticks.
+- Q: Widen the healthy-vs-regression gap while we're here? → A: Yes —
+  `cooldown_factor` default retuned 2.5 → 2.25 (owner, this session;
+  supersedes issue #82's tuning comment). Duty target becomes ≈30.8%, and
+  the separation from the flat-cooldown regression (≈25.9%) grows from
+  2.7pp to 4.8pp, giving the ±2pp band real headroom.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -146,9 +162,9 @@ announcing, exactly one announcement per purr.
 
 An owner tuning the world gets purr dials whose meanings are clean: the
 duration draw (8–13 ticks) sets only the *texture* of episodes, while the new
-`cooldown_factor` (2.5) fixes the happy-kitty duty cycle at a constant
-1/(1+2.5) ≈ 28.6% independent of the draw — every happy cat rumbles just
-under a third of the time, varying only in rhythm (cycle length 28–45.5
+`cooldown_factor` (2.25) fixes the happy-kitty duty cycle at a constant
+1/(1+2.25) ≈ 30.8% independent of the draw — every happy cat rumbles just
+under a third of the time, varying only in rhythm (cycle length 26–43
 ticks). The retired flat `cooldown_ticks` knob is rejected loudly, never
 silently ignored.
 
@@ -158,7 +174,8 @@ choice. It depends on US2 (see coupling requirement FR-013) and is meaningless
 without US1.
 
 **Independent Test**: Over long runs on a healthy world, per-kitty purring
-occupancy converges to ≈28.6% under multiple duration-draw configurations;
+occupancy lands within 2 percentage points of ≈30.8% over ≥20,000 ticks
+under multiple duration-draw configurations;
 every drawn duration lies in 8–13; a config file naming `cooldown_ticks` is
 rejected at load with an error naming `cooldown_factor`.
 
@@ -168,8 +185,8 @@ rejected at load with an error naming `cooldown_factor`.
    cooldown is stamped, **Then** it equals the fixed rounding of
    `cooldown_factor ×` that purr's actual duration — proportional, not flat.
 2. **Given** a healthy kitty that re-earns immediately, **When** many
-   purr/rest cycles pass, **Then** its purring share converges to
-   1/(1+`cooldown_factor`) regardless of the duration bounds.
+   purr/rest cycles pass, **Then** its purring share lands within SC-004's
+   band around 1/(1+`cooldown_factor`) regardless of the duration bounds.
 3. **Given** a config file that still sets `[purr] cooldown_ticks`, **When**
    the world loads it, **Then** loading fails with a clear error naming the
    retired knob and its replacement — never a silent ignore.
@@ -194,10 +211,11 @@ rejected at load with an error naming `cooldown_factor`.
   purr's duration at end-time, so the purr phase's identity (enough to derive
   its duration) must survive a snapshot. A snapshot taken mid-purr and
   restored must stamp the same cooldown the uninterrupted run would have. Old
-  snapshots (pre-022, no stored duration) must restore deterministically
-  under a documented rule.
+  snapshots (pre-022, no stored duration) restore under the fixed convention
+  of FR-012: the purr is treated as having the configured minimum duration.
 - **Cooldown arithmetic lands on a fraction**: `cooldown_factor × duration`
-  can be non-integral (e.g., 2.5 × 9); the tick value is the ceiling —
+  can be non-integral (e.g., 2.25 × 9 = 20.25); the tick value is the
+  ceiling —
   deterministic, and rest is never shortened by rounding.
 - **`cooldown_factor` of zero or below**: rejected by validation (must be
   > 0). The pre-022 "0 = back-to-back rumbles" capability is deliberately
@@ -263,7 +281,8 @@ rejected at load with an error naming `cooldown_factor`.
   named tunable with a documented default and its own validation row
   (Article VI):
   - `[purr] announce_probability` — new; probability in [0, 1]; default 0.
-  - `[purr] cooldown_factor` — new; must be > 0; default 2.5.
+  - `[purr] cooldown_factor` — new; must be > 0; default 2.25 (retuned from
+    issue #82's 2.5 at clarify, owner decision — see Clarifications).
   - `[purr] min_ticks` / `max_ticks` — defaults change 6/15 → 8/13; existing
     bounds validation unchanged.
   - `[purr] cooldown_ticks` — retired. A configuration that names it MUST be
@@ -280,12 +299,16 @@ rejected at load with an error naming `cooldown_factor`.
 - **FR-012**: Save/restore MUST reproduce the purr exactly: the state a
   snapshot carries MUST suffice to stamp the same proportional cooldown the
   uninterrupted run would have stamped. A pre-022 snapshot restored mid-purr
-  MUST resolve deterministically under a documented rule.
+  carries no duration; its purr MUST be treated as having the configured
+  minimum duration (`min_ticks`) when the cooldown is stamped — a fixed
+  convention (the true duration is unrecoverable), biased to the shortest
+  lawful rest.
 - **FR-013**: Coupling: the proportional cooldown and retuned draw (US3) MUST
   NOT take effect in any released engine without the silent-motor change
-  (US2). At these numbers purr starts become ~25% more frequent; under the
-  old broadcast rules that would mean *more* cooldown-stamping and worse
-  deliberate audibility — the retune ships with, never before, mechanism 2.
+  (US2). At these numbers purr starts become materially more frequent (mean
+  cycle ≈34.5 vs ≈40.5 ticks today); under the old broadcast rules that
+  would mean *more* cooldown-stamping and worse deliberate audibility — the
+  retune ships with, never before, mechanism 2.
   (Within this spec the constraint is structural: one change-set, one batch.)
 - **FR-014**: Compatibility MUST be schema-invariant: no new message kind, no
   observation change (digest width unchanged), no action-menu growth,
@@ -344,9 +367,13 @@ rejected at load with an error naming `cooldown_factor`.
 - **SC-003**: Every purr in the world, of either origin, occurs at a moment
   the earned rule holds — property-tested over randomized configs and
   behaviors; no purr ever certifies an unhappy cat.
-- **SC-004**: A healthy kitty's long-run purring occupancy converges to
-  1/(1+`cooldown_factor`) (≈28.6% at default), independent of the duration
-  bounds; every purr duration lies within the configured 8–13 tick bounds.
+- **SC-004**: A healthy kitty's long-run purring occupancy lies within 2
+  percentage points of 1/(1+`cooldown_factor`) (≈30.8% at default) over a
+  run of at least 20,000 ticks, independent of the duration bounds; every
+  purr duration lies within the configured 8–13 tick bounds. (Calibration:
+  ceiling rounding puts the true expectation ≈0.3pp under the ideal; the
+  flat-cooldown regression sits ≈4.8pp under it — inside the band and
+  outside it respectively, with margin.)
 - **SC-005**: Every previously shipped policy artifact loads and runs against
   the new engine without modification, and the RL interface reports identical
   shapes: observation width, action-menu size, mask width, and message-kind
@@ -363,8 +390,9 @@ rejected at load with an error naming `cooldown_factor`.
 - **The earned rule stays verbatim.** `experiments/exp-002-design-inputs.md`
   §2 flags the rule itself as open for rethink, but the owner's decided
   tuning (issue #82's tuning comment, 2026-07-31) *depends* on the current
-  rule: the constant ≈28.6% duty cycle follows only because a happy cat
-  re-earns essentially instantly under the `rose` clause. Changing the rule
+  rule: the constant duty cycle (≈30.8% at the adopted default) follows only
+  because a happy cat re-earns essentially instantly under the `rose`
+  clause. Changing the rule
   here would silently invalidate the decided numbers; any rethink is a
   future, separately-specified change.
 - **Ceiling rounding for the proportional cooldown** is chosen as the fixed
