@@ -491,3 +491,40 @@ results. Recorded before any new run starts:
   they are an additional cohort answering one question: do the
   transient guardrail incidents wash out with more optimization, or are
   they a property of this policy class at any budget?
+
+### 2026-07-30d — §8's "default world" clarified; served-world re-measurement scoped (post-hoc discovery, pre-re-measurement)
+
+**Context, stated honestly**: forensics
+([collapse-forensics-2026-07-30.md](results/collapse-forensics-2026-07-30.md))
+discovered that `kitty-eval` invoked without `--config` — as every §8
+certification and report run in this experiment was — runs the
+**compiled default config (3 kitties, state 133)**, not
+`cloudkitty.toml` (4 kitties, 165, the served world). The trainer's §4
+anneal phase and §10.1 validation probes targeted `cloudkitty.toml`
+throughout: we annealed to one world and certified on another, without
+knowing it. **Owner decision (2026-07-30): §8's "default world" means
+`cloudkitty.toml` — the world the kitties actually live in. The
+compiled default was an accident, not a design choice.**
+
+Recorded before any re-measurement run starts:
+
+- **Rule going forward**: every §8 certification and report-protocol
+  invocation passes `--config cloudkitty.toml` explicitly. (A product
+  ask is filed to make `kitty-eval`'s bare default non-ambiguous.)
+- **One-time served-world re-measurement, winners-first scope**: the
+  three maximal-Wilcoxon-win artifacts — arm2-g0p998-s3 (20M), s4 and
+  s6 (40M) — are certified once (§8, seeds 1–10) and reported once
+  (seeds 1–30, Wilcoxon) on `cloudkitty.toml`. Paired `needs_driven`
+  baselines are internal to `kitty-eval` and run on the same config.
+  Whether the remaining artifacts (other Arm 2 seeds, clone, Arm 0
+  anchors) are re-measured is decided *after* these results and
+  recorded as a further note — the winners-first split is the owner's
+  scoping call, made before seeing any served-world number.
+- **Relation to deviation 30c's evaluate-once rule**: not a re-run.
+  The intended measurement has never been taken; each artifact gets
+  exactly one evaluation per world. The compiled-world numbers stay in
+  the registered record as what they are — measurements of the compiled
+  3-kitty world, reinterpreted as an out-of-roster robustness screen
+  (one obs kitty-slot empty: an input outside training support).
+- **The compiled world is retained** as an explicitly-named secondary
+  robustness screen (roster-OOD), never again the primary gate.
