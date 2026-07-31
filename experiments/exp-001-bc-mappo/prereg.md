@@ -528,3 +528,39 @@ Recorded before any re-measurement run starts:
   (one obs kitty-slot empty: an input outside training support).
 - **The compiled world is retained** as an explicitly-named secondary
   robustness screen (roster-OOD), never again the primary gate.
+
+### 2026-07-31a — Phase-0 screens during the §9.1 soak (scoped before any run)
+
+Two exploratory measurements run while the registered soak proceeds
+untouched; neither is a §8 certification, and both are scoped here
+before any number is seen. (Owner directive 2026-07-31: phase-0 items
+of the post-soak roadmap, executed during the soak.)
+
+- **Geometry screen (24×24)**: owner intent restored — the served
+  world was always meant to be 24×24 (a hand-edited server checkout
+  never committed; the repo's 32×32 was the accident). Before the
+  post-#79 recert batch lands, s6 alone is screened on a 24×24 variant
+  of `cloudkitty.toml` (width/height 24 only; engine and everything
+  else unchanged; Miso's seat reverted to `needs_driven` in the
+  variant so the config carries no double seating). Shape: one
+  certification-form run, `--config <variant>`, seeds 1–10, 20k ticks,
+  both rosters. **Criteria, fixed now**: the screen "passes" if the §8
+  bounds pass with zero guardrail violations; the paired deltas are
+  reported descriptively against the variant's internal needs_driven
+  baseline. Pass or fail, this is a *screen* informing the recert
+  batch's bisection (geometry vs engine changes), not a certification
+  — the 24×24 world becomes §8's world only when the owner lands it in
+  `cloudkitty.toml`. Evaluate-once: this is s6's first and only
+  pre-recert evaluation on this geometry.
+- **Meow-listening probe (digest-zeroing)**: exploratory forensics, no
+  pass/fail. s6 seated as Miso (presoak configuration, seeds 1–10 ×
+  20k continuous pinned); per decision, the counterfactual argmax with
+  the meow digest zeroed is recorded alongside the as-lived action
+  (which alone drives the world — no trajectory fork). **Metric, fixed
+  now**: the share of digest-active decisions that change under
+  silencing, with the heard→silent flip table. Interpretation
+  standard: a rate ≈ 0 reads "ornament" (meows are spoken but not
+  used); a clearly non-zero rate with coherent flips reads "listening"
+  — informing exp-002's meow-preservation design (design-inputs §1)
+  and the issue-#79 spec. Tool: `forensics_replay.py --digest-probe`
+  (committed before these runs).

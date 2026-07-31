@@ -31,6 +31,21 @@ Communication vs ornament decides which preservation lever matters:
 functional meowing is an attractor that re-emerges under self-play;
 ornamental meowing must be carried deliberately.
 
+> **GATE RESOLVED 2026-07-31 — s6 LISTENS**
+> ([results/meow-listening-2026-07-31.md](exp-001-bc-mappo/results/meow-listening-2026-07-31.md)):
+> silencing the digest changes **8.18%** of digest-active decisions
+> (10,213/124,838; 7.7–8.6% across all 10 seeds). Flips are coherent:
+> hearing pulls s6 toward play/chase (39.9% vs 15.2% silenced) and
+> attending-idle (20.2% vs 0.2%); silenced it would sleep/groom. The
+> gloss: Biscuit meows WantPlay, Miso answers. **Speak and listen are
+> both demonstrated — the channel is functional communication**, so
+> preservation upgrades from "carry a lucky quirk" to "keep a working
+> behavior with reward backing." Levers below stand; selection is now
+> the backstop, not the main hope. Caveat: 8.18% is marginal decision
+> change in the scripted served world (mostly one playful emitter);
+> welfare value of listening and responses to the other four kinds
+> remain unmeasured.
+
 Preservation levers, strongest first:
 1. **Warm-start from s6, not scratch.** Issue #79's shape A (menu row
    38 keeps its slot, no codec bump) was chosen to keep s6's artifact
