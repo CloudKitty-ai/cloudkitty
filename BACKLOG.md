@@ -423,14 +423,17 @@ scripted pathfinder already imagines). Why this shape won:
 - Per-tile accumulation makes lake *width* matter — crossing vs
   skirting gets interesting exactly where the guaranteed lakes are.
 
-**Starting dial (owner-requested estimate, 2026-07-31)**:
-`water_bath_gain ≈ 1.0–1.5` bath/tick in water (per-*tick*, so one
-knob prices both crossing and lounging). Derivation: +S bath persists
-~150 ticks (half a groom cycle) at happiness weight 0.15 →
-`0.15·S·150 ≈ 22.5·S` happiness·ticks per wet tick, vs ~25 for the
-2-tick detour around a 1-tile puddle → S≈1.0 is the single-tile
-indifference point; 1.5 makes cats strictly skirt puddles while still
-swimming when detours are long. Legible framing: 1.0 = **5× the
+**Starting dial (owner-set 2026-07-31): `water_bath_gain = 1.5`**
+bath/tick in water (per-*tick*, so one knob prices both crossing and
+lounging). Derivation: +S bath persists ~150 ticks (half a groom
+cycle) at happiness weight 0.15 → `0.15·S·150 ≈ 22.5·S`
+happiness·ticks per wet tick, vs ~25 for the 2-tick detour around a
+1-tile puddle → S≈1.0 is the single-tile indifference point; **1.5
+puts cats strictly on the skirt-the-puddle side while still swimming
+when detours are long** — slightly-averse-but-willing, the catlike
+setting, with the graceful failure mode (too strong just looks like
+today's scripted skirting; too weak preserves a quirk already deemed
+livable). Legible framing: 1.0 = **5× the
 ambient bath rise** (0.2/tick), and the per-cat multiplier scales as
 `gain × bath_rise/0.2`. Safety clamp (owner-set 2026-07-31): gain applies only while bath
 **< 50** — well under safeguard 75, leaving ~25 points of headroom so
