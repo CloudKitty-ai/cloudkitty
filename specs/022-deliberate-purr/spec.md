@@ -117,8 +117,8 @@ self-collision, which is what lifts deliberate audibility from 34% to 100%.
 
 **Independent Test**: Run a healthy world under default configuration for many
 ticks; count purr phases (unchanged cadence) and Purr announcements (none from
-the motor). Set the announce probability to 1 and observe motor starts
-announcing and stamping exactly as the pre-change engine did.
+the motor). Set the announce probability to 1 and observe every motor start
+announcing, exactly one announcement per purr.
 
 **Acceptance Scenarios**:
 
@@ -128,8 +128,7 @@ announcing and stamping exactly as the pre-change engine did.
    stamped.
 2. **Given** an announce probability strictly between 0 and 1, **When**
    spontaneous purrs start, **Then** each start independently announces with
-   that probability; announcing starts are recorded and stamp the Purr message
-   cooldown, silent starts do neither.
+   that probability; announcing starts are recorded, silent starts are not.
 3. **Given** any announce probability, **When** a spontaneous purr starts,
    **Then** exactly one announce decision is drawn from the seeded RNG —
    configuration can change the outcome, never the draw count.
@@ -137,9 +136,9 @@ announcing and stamping exactly as the pre-change engine did.
    purrs silently, **Then** the kitty still reads as purring for the whole
    phase — the announcement changed, the phenomenon did not.
 5. **Given** a deliberate purr start, **When** it announces (it always does),
-   **Then** the announcement is a state announcement: recorded directly,
-   never swallowed by any message cooldown, and it stamps the Purr message
-   cooldown as purr starts do today.
+   **Then** the announcement is a state announcement: recorded directly and
+   never swallowed by any message cooldown. (Purr-start stamping is retired
+   altogether by companion spec 023 — see FR-008.)
 
 ---
 
@@ -242,16 +241,19 @@ rejected at load with an error naming `cooldown_factor`.
   (either origin) MUST be a silent no-op: turn consumed, no state change, no
   announcement, no RNG draw.
 - **FR-007**: Spontaneous purr starts MUST announce only per a configured
-  announce probability (default 0 — silent). A silent start emits no
-  announcement and MUST NOT stamp the Purr message cooldown. An announcing
-  start (probability satisfied) announces and stamps exactly as today. The
-  motor's start *cadence* — when purrs begin and how long they last — is
+  announce probability (default 0 — silent). A silent start emits nothing.
+  An announcing start (probability satisfied) announces exactly as today.
+  The motor's start *cadence* — when purrs begin and how long they last — is
   unchanged by this requirement.
 - **FR-008**: Purr-start announcements of either origin are state
   announcements, not proposals: when they fire, they MUST be recorded
-  directly — never swallowed by any message cooldown — and MUST stamp the
-  Purr message cooldown. Deliberate purr starts always announce; their
-  audibility is 100% by construction.
+  directly — never swallowed by any message cooldown. Deliberate purr starts
+  always announce; their audibility is 100% by construction. Purr starts
+  stamp **nothing**: companion spec 023 (issue #84, same engine batch)
+  retires engine-enforced meow cooldowns, leaving the Purr message cooldown
+  with no reader — the stamp is deleted rather than kept as inert plumbing,
+  and because the two specs land in one batch, no released engine ever
+  carries an intermediate stamp semantics.
 - **FR-009**: The flat motor rest (`cooldown_ticks`) MUST be retired in favor
   of a proportional rule: when a purr of either origin ends, the motor
   cooldown stamped equals ⌈`cooldown_factor` × that purr's actual duration⌉.
@@ -300,8 +302,10 @@ rejected at load with an error naming `cooldown_factor`.
     but a purr can now be *initiated* by choice through the meow-purr row.
   - The MVP-era "Meow: always legal; the cooldown decides whether it is
     audible" doctrine (spec 001 data model, carried into the spec 014 mask
-    contract) is amended: the purr row is the one earned-gated meow row; the
-    other meow rows keep the old rule.
+    contract) is amended: the purr row is the one earned-gated meow row.
+    For the six other meow rows the doctrine is simultaneously
+    *strengthened* by companion spec 023 — legal in effect, not just in the
+    mask: no cooldown ever decides audibility again.
   - Guarding tests that pin the old semantics (purr-proposal-refused,
     always-legal-meow mask assertions, one-meow-per-purr counting) are
     re-baselined deliberately in the same change — a semantics correction
@@ -318,9 +322,10 @@ rejected at load with an error naming `cooldown_factor`.
   spontaneous starts carry it only per the announce probability.
 - **Motor cooldown**: the rest the *motor* observes between rumbles — now
   proportional to the finished purr; never binding on a deliberate purr.
-- **Purr message cooldown**: the shared per-kitty message-kind cooldown
-  (15 ticks); after this change it is stamped only by announcing starts and
-  can no longer swallow any purr announcement.
+- **Purr message cooldown**: the shared per-kitty message-kind cooldown that
+  swallowed two-thirds of deliberate purrs; after this batch it can swallow
+  nothing and purr starts no longer stamp it — its retirement (and the fate
+  of per-kind meow bookkeeping generally) is owned by companion spec 023.
 - **The purr action** (menu row 38 / wire meow-purr): the deliberate purr —
   turn-consuming, earned-gated, motor-cooldown-exempt.
 
@@ -379,10 +384,11 @@ rejected at load with an error naming `cooldown_factor`.
   the spec 017/SC-004 amendments: deliberate re-baseline, stated in advance.)
 - **Sequencing is owner-controlled and out of band**: this engine change
   merges only after the §9.1 deployment soak concludes on the current engine,
-  lands in one batch with the 24×24 world restore and the `policies/`
-  artifact-home cutover, and precedes exp-002's prereg freeze so exp-002
-  trains and evaluates under one engine. The spec records the constraint;
-  the calendar belongs to the owner.
+  lands in one batch with companion spec 023 (issue #84, meow-cooldown
+  retirement — owner decision 2026-07-31), the 24×24 world restore, and the
+  `policies/` artifact-home cutover, and precedes exp-002's prereg freeze so
+  exp-002 trains and evaluates under one engine. The spec records the
+  constraint; the calendar belongs to the owner.
 - **Scope boundaries**: no client work; no new message kinds; no change to
   the six non-purr meow rows or their honest-urgency cooldowns; no change to
   the legacy `Action::Purr` wire variant (still refused); no change to the
