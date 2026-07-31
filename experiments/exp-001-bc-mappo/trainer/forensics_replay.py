@@ -32,13 +32,24 @@ DISTRESS_OFF = 20
 
 STATE_TAIL = 37  # element summary + chow servings + clock (after kitty blocks)
 
+# Observation tail (observe.rs): meow digest (6 learned kinds x 3 floats)
+# then the episode clock. Schema v1 layout — the digest is obs[-19:-1].
+MEOW_DIGEST = 18
+DIGEST_SLICE = slice(-1 - MEOW_DIGEST, -1)
+
 
 def replay(policy, config_path, seed, ticks, horizon=None, pin_clock=False,
-           control=None):
+           control=None, seats=None, digest_probe=False):
     # config_path None = compiled defaults — the world `kitty-eval`
     # actually certifies on when invoked without --config (3 kitties).
     # control: kitty name -> builtin behavior; those kitties leave the
     # agent surface (binding semantics) and the policy drives the rest.
+    # seats: agent name -> policy module, overriding `policy` per seat —
+    # heterogeneous rosters (each external kitty may run different weights).
+    # digest_probe: per decision, also compute the counterfactual argmax
+    # with the meow digest zeroed ("what would it do if it heard nothing").
+    # The as-lived action still drives the world; the probe never forks
+    # the trajectory, so listening is measured decision-by-decision.
     env = cloudkitty.ParallelEnv(str(config_path) if config_path else None,
                                  horizon=horizon, control=control)
     obs, infos = env.reset(seed=seed)
@@ -51,6 +62,9 @@ def replay(policy, config_path, seed, ticks, horizon=None, pin_clock=False,
         "pos": np.zeros((ticks, roster, 2), np.float32),
         "action": np.full((ticks, roster), -1, np.int16),
     }
+    if digest_probe:
+        log["cf_action"] = np.full((ticks, roster), -1, np.int16)
+        log["digest_active"] = np.zeros((ticks, roster), np.int8)
     meows = set()  # (tick, kitty_id, kind) — audible meows + engine purr announcements
     with torch.no_grad():
         for t in range(ticks):
@@ -65,8 +79,22 @@ def replay(policy, config_path, seed, ticks, horizon=None, pin_clock=False,
                 if pin_clock:
                     to[:, -1] = 0.0  # deploy semantics: decide_sync pins the episode clock
                 tm = torch.from_numpy(np.stack([infos[a]["mask"] for a in names]).astype(bool))
-                acts = policy(to).masked_fill(~tm, NEG_INF).argmax(-1).numpy()
-                step_acts = {a: int(acts[j]) for j, a in enumerate(names)}
+                step_acts = {}
+                for j, a in enumerate(names):
+                    pol = seats.get(a, policy) if seats else policy
+                    row, mask = to[j:j + 1], tm[j:j + 1]
+                    act = int(pol(row).masked_fill(~mask, NEG_INF).argmax(-1))
+                    step_acts[a] = act
+                    if digest_probe:
+                        active = bool(row[0, DIGEST_SLICE].abs().max() > 0)
+                        log["digest_active"][t, j] = active
+                        if active:
+                            silent = row.clone()
+                            silent[:, DIGEST_SLICE] = 0.0
+                            cf = int(pol(silent).masked_fill(~mask, NEG_INF).argmax(-1))
+                        else:
+                            cf = act  # zeroing a zero digest changes nothing
+                        log["cf_action"][t, j] = cf
             else:
                 step_acts = {}  # fully scripted world: baseline arm
             obs, rew, _term, trunc, infos = env.step(step_acts)
@@ -133,6 +161,30 @@ def summarize(log, names, window, threshold):
     return onset
 
 
+def probe_summary(log, names):
+    """Digest-zeroing report: of the decisions made while the meow digest
+    was non-zero (something audible in the window), how many would have
+    differed had the kitty heard nothing?"""
+    from collections import Counter
+    for j, nm in enumerate(names):
+        a, c = log["action"][:, j], log["cf_action"][:, j]
+        heard = (a >= 0) & log["digest_active"][:, j].astype(bool)
+        n_valid = int((a >= 0).sum())
+        n_heard = int(heard.sum())
+        changed = heard & (a != c)
+        n_changed = int(changed.sum())
+        print(f"[probe] {nm}: digest non-zero on {n_heard}/{n_valid} decisions "
+              f"({n_heard / max(1, n_valid):.1%}); "
+              f"decision changed by silencing: {n_changed}/{max(1, n_heard)} "
+              f"({n_changed / max(1, n_heard):.2%} of heard)")
+        if n_changed:
+            flips = Counter(
+                (ACTION_NAMES[int(x)], ACTION_NAMES[int(y)])
+                for x, y in zip(a[changed], c[changed]))
+            for (lived, silent), n in flips.most_common(8):
+                print(f"[probe]   heard->{lived}  silent->{silent}  x{n}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--policy", type=Path, required=True)
@@ -149,25 +201,48 @@ def main():
     ap.add_argument("--control", default=None,
                     help="scripted seats, e.g. kitty_2=playful,kitty_3=needs_driven; "
                          "the policy drives the remaining (external) kitties")
+    ap.add_argument("--seat", default=None,
+                    help="per-seat policy overrides for heterogeneous rosters, "
+                         "e.g. kitty_2=artifacts/arm2-g0p998-s4/policy-final.pt; "
+                         "unseated external kitties run --policy")
+    ap.add_argument("--digest-probe", action="store_true",
+                    help="per decision, also compute the argmax with the meow "
+                         "digest zeroed; report how often silence changes it")
     args = ap.parse_args()
     control = None
     if args.control:
         control = dict(pair.split("=", 1) for pair in args.control.split(","))
 
-    ck = torch.load(args.policy, map_location="cpu", weights_only=True)
-    policy = MLP(ck["dims"])
-    policy.load_state_dict(ck["state_dict"])
-    policy.eval()
+    def load_policy(path):
+        ck = torch.load(path, map_location="cpu", weights_only=True)
+        pol = MLP(ck["dims"])
+        pol.load_state_dict(ck["state_dict"])
+        pol.eval()
+        return pol
+
+    policy = load_policy(args.policy)
+    seats = None
+    if args.seat:
+        seats = {name: load_policy(Path(p))
+                 for name, p in (pair.split("=", 1)
+                                 for pair in args.seat.split(","))}
 
     log, names = replay(policy, args.config, args.seed, args.ticks,
                         horizon=args.horizon, pin_clock=args.pin_clock,
-                        control=control)
+                        control=control, seats=seats,
+                        digest_probe=args.digest_probe)
     seat = f" control[{args.control}]" if args.control else ""
+    if args.seat:
+        seat += f" seats[{args.seat}]"
     print(f"== {args.policy.parent.name} seed {args.seed} ({args.ticks} ticks){seat} ==")
     summarize(log, names, args.window, args.threshold)
+    if args.digest_probe:
+        probe_summary(log, names)
     tagbits = (("h" + str(args.horizon) if args.horizon else "episodic")
                + ("-pinned" if args.pin_clock else "")
-               + ("-seated" if args.control else ""))
+               + ("-seated" if args.control else "")
+               + ("-hetero" if args.seat else "")
+               + ("-probe" if args.digest_probe else ""))
     out = args.out or args.policy.parent / f"forensics-seed{args.seed}-{tagbits}.npz"
     np.savez_compressed(out, **log, names=np.array(names))
     print(f"saved {out}")
