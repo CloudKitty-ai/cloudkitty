@@ -423,6 +423,24 @@ scripted pathfinder already imagines). Why this shape won:
 - Per-tile accumulation makes lake *width* matter — crossing vs
   skirting gets interesting exactly where the guaranteed lakes are.
 
+**Starting dial (owner-requested estimate, 2026-07-31)**:
+`water_bath_gain ≈ 1.0–1.5` bath/tick in water (per-*tick*, so one
+knob prices both crossing and lounging). Derivation: +S bath persists
+~150 ticks (half a groom cycle) at happiness weight 0.15 →
+`0.15·S·150 ≈ 22.5·S` happiness·ticks per wet tick, vs ~25 for the
+2-tick detour around a 1-tile puddle → S≈1.0 is the single-tile
+indifference point; 1.5 makes cats strictly skirt puddles while still
+swimming when detours are long. Legible framing: 1.0 = **5× the
+ambient bath rise** (0.2/tick), and the per-cat multiplier scales as
+`gain × bath_rise/0.2`. Safety clamp: gain applies only while bath
+< ~70 (under safeguard 75) so no amount of voluntary pond-lounging
+can ever cause a safeguard/distress event — certification hygiene by
+construction. Error bars are order-of-magnitude (persistence and
+detour-pressure estimates); final value is a prereg'd exp-002 tuning
+decision, calibrated empirically by seating the water-indifferent s6
+on a wet-fur engine build and measuring welfare delta per crossing
+with the replay tool.
+
 Design cares recorded from the same conversation:
 - **Learnability needs variance**: to learn trait→cost (not memorize a
   constant), the exp-002 training family must vary bath rise rates
