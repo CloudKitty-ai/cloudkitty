@@ -464,3 +464,30 @@ machine). Interpretation recorded before the first Arm 3 run:
   the zero-artifact's behavior suggests how hostile the environment is
   to uninitialized policies. Whichever way it lands, it calibrates how
   much of Arm 2's result BC bought.
+
+### 2026-07-30c — Arm 2 fresh seeds at 40M ticks; evaluation rule fixed in advance (post-freeze)
+
+**Context, stated honestly**: this is an outcome-dependent decision.
+The first Arm 2 cohort (seeds 1–3, 20M ticks) produced three maximal
+endpoint wins but zero certification passes — the near-misses failing on
+rare transient incidents (forensics in
+[report-protocol-2026-07-30.md](results/report-protocol-2026-07-30.md)).
+The owner chose the **fresh-seeds** route over extending already-
+evaluated runs, precisely because extension would adapt on evaluated
+results. Recorded before any new run starts:
+
+- **Cohort**: training seeds 4, 5, 6 (never run before), **γ = 0.998
+  only** (two of the three maximal wins including the best; F-003's
+  retention analysis favors it), **40M ticks** (within §4's 20–50M
+  band). Every other setting identical to deviation 30. Schedules are
+  progress-relative, so all phases (warmup, leash release at 20%,
+  anneal at 85%) double in absolute length with the budget.
+- **Evaluation rule, fixed now**: each finished run is certified once
+  (§8, seeds 1–10) and reported once (seeds 1–30, Wilcoxon), whatever
+  the outcome. **No extension, no re-run, no further cohort based on
+  these results without a new deviation recorded first** — there is no
+  extend-until-pass path. All three runs are reported.
+- These seeds do not replace seeds 1–3 in the registered Arm 2 record;
+  they are an additional cohort answering one question: do the
+  transient guardrail incidents wash out with more optimization, or are
+  they a property of this policy class at any budget?
