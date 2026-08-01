@@ -686,3 +686,30 @@ toward the seating whose displaced kitty loses least. Both fail →
 no seating; report to owner. Descriptive extras (no gates): per-kitty
 happiness vs baseline, meow-stream counts (first world where s6's
 meows have a policy audience). Evaluate-once: one run per arm.
+
+### 2026-08-01 — O1 opt-in declared (pre-run; no O1 measurement seen)
+
+The owner opted in to O1 on 2026-08-01 ("then O1 if those look good",
+after the figure batches). Per 31b the list is fixed now, before the
+first run:
+
+**Pool: the three γ = 0.995 runs — `arm2-g0p995-s1/s2/s3`
+(`arm2.ckpolicy`, sha256 `3774e1aa…`, `d0a44a33…`, `0f0cb995…`) — and
+nothing else.** The γ=.998 non-winners s1/s2/s5 are excluded (s2 is
+the F-008 collapse exemplar; certifying the lineage's known-bad tail
+adds no pool diversity), and the Arm 1 clone is excluded (BC-only,
+sub-baseline by construction — R2's ladder anchors it already). No
+additions after seeing results.
+
+**Criteria identical to R2** (§8: 20k ticks, seeds 1–10, both
+rosters, greedy, welfare bounds, zero fallbacks), with one pinned
+interpretation: O1 runs under the **R2 world stamp** — config sha256
+`4c5245b1…` extracted byte-identical from git (`77ba3e8`,
+"policies/" commit), not the current `cloudkitty.toml`, whose s3
+seating (PR #87) changed the file hash and would seat a second policy
+inside the Mixed roster, changing the measurement condition. The
+engine is unchanged since R2 (no `crates/` commits since the binary
+build); the stamp must read `engine_defaults_sha256 b0865884…` or the
+runs are void. Purpose is pool extension: certified-clean O1 members
+become mixed-model seating candidates alongside s3/s4/s6; failures
+are reported, not remediated. Evaluate-once per artifact.
