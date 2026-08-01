@@ -46,6 +46,14 @@ ornamental meowing must be carried deliberately.
 > welfare value of listening and responses to the other four kinds
 > remain unmeasured.
 
+> **SECOND SPEAKER FOUND 2026-07-31 (F-012, pair-screen)**: s3 —
+> silent in every solo measurement — emits FollowMe beside s6.
+> Channel use is context-dependent; the 1/9 "meower base rate" is a
+> solo-context floor. Consequences for the levers: channel-use
+> selection (lever 5) must screen candidates *in policy company*;
+> the two-policy served world (lever 3) already carries two-way
+> traffic (s6: Purr/WantDrink; s3: FollowMe) before exp-002 begins.
+
 Preservation levers, strongest first:
 1. **Warm-start from s6, not scratch.** Issue #79's shape A (menu row
    38 keeps its slot, no codec bump) was chosen to keep s6's artifact
