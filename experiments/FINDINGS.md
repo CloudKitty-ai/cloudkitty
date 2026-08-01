@@ -453,3 +453,38 @@ implicate something beyond slot support).
 
 **Re-verify when**: exp-002 candidates reach screening; any change to
 the obs slot encoding or slot count.
+
+## F-011 · active · Design premise: meow restraint is a reward-structure equilibrium, not an engine guarantee (spec 023)
+
+Spec 023 retired the engine-enforced meow cooldown ("manners, not
+law"): learned agents face no rate limit on the channel. The spam
+backstop is now *economics under the cooperative team reward* — a
+meow costs a turn, misleading teammates lowers the shared objective,
+and an always-on signal devalues its own contrast in the presence
+digest. Evidence the equilibrium is real: s6 settled at ~0.1% meow
+rate with functional listening on the receiving end, under no
+compulsion beyond the (old) cooldown.
+
+**Scope**: any training or serving configuration using CloudKitty's
+cooperative team reward. The premise is the *reward structure*, not
+the policy class.
+
+**Evidence**: issue #84 (design record); spec 023;
+[meow-listening probe](exp-001-bc-mappo/results/meow-listening-2026-07-31.md);
+[s6 promotion record](exp-001-bc-mappo/results/s6-promotion-2026-07-30.md).
+
+**Implications**:
+- **Any per-kitty or competitive reward design voids the premise.**
+  Revisit spec 023 before training under such a reward — a
+  self-interested agent may find channel manipulation or saturation
+  profitable, and the engine will not stop it.
+- Scripted behaviors are not covered by the economics; their restraint
+  is the behavior-level courtesy values (`[meow] courtesy_ticks`),
+  which any new scripted behavior must also consult.
+
+**Would invalidate**: a cooperative-reward policy learning sustained
+channel saturation that survives training (would show the economic
+argument insufficient even under shared reward).
+
+**Re-verify when**: any reward-structure change; exp-002 candidate
+screening (check channel-use rates alongside welfare).
