@@ -103,3 +103,8 @@ $PY experiments/exp-001-bc-mappo/trainer/forensics_replay.py \
     --seeds 8 --ticks 2000 --roster all-policy
 ```
 Per-tick logs saved as `artifacts/arm2-*/forensics-*.npz` (gitignored).
+
+**Figure (added 2026-08-01):**
+[figures/collapse-portrait.png](figures/collapse-portrait.png) — the
+s2 seed-8 onset and low-welfare attractor (source arrays preserved in
+[figures/data/](figures/data/)).

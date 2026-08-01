@@ -17,6 +17,11 @@ Batch of 2026-08-01 (current engine post-022/023, served world 24×24):
 | `pairing-three-arm.png` | Partner-tick matrices vs seats + team-Nash gradient 0.8698→0.8857→0.8977; agents pair more, choose partners, bond with each other | `data/pair-partner-*.npy` |
 | `meow-raster.png` | Every emitted meow, seed 1, three arms; seating s3 retires Kittybear's WaitForMe spam; s3's FollowMe is bursty (see pair-screen correction 2026-08-01) | `data/traj-*.npz` |
 | `bc-label-distribution.png` | bc-v1's 1.78M labels over the 40-action menu; meow labels near-absent (92; FollowMe/WantPlay/Purr zero); partner-grooming also zero-labeled → RL-emergent in deployment | `data/bc-label-hist.npz` |
+| `roster-ood-streaks.png` | R3 per-run worst low-happiness streaks: s3 20/20 clean, s6 mild (39), s4 recurring (365) — the ranking behind the second-seat pick (F-010 screen) | `data/r3-s{3,4,6}.json` |
+| `meow-listening-flip.png` | The digest-zeroing probe: 8.18% of digest-active decisions flip when s6 is deafened; hearing pulls toward play, silence toward sleep/groom | `data/meow-listening-summary.npz` (from `artifacts/arm2-g0p998-s6/meow-probe-seed*.npz`) |
+| `collapse-portrait.png` | F-008's canonical failure: s2 seed 8 on the compiled world — onset t≈1541, permanent low-welfare attractor | `data/collapse-s2-seed8.npz` |
+| `clone-training.png` | Arm 1 BC curves (64 epochs, best 61, top-1 0.802) + per-class accuracy vs support | `data/clone-metrics.json` |
+| `critic-ev.png` | Critic pretrain explained variance per γ (best 0.506 / 0.442) | `data/critic-0p99{5,8}-stats.json` |
 
 The three-arm replays (`traj`, `pair-partner`) are descriptive
 re-reads: baseline and Seating B reproduce the registered pair-screen

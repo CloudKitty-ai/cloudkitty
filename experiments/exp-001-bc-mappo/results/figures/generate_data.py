@@ -127,6 +127,59 @@ def traj():
         print(f"traj: {arm} -> traj-{arm}.npz ({len(mrows)} meows)")
 
 
+def listening():
+    """Summarize the ten s6 meow-probe replays (digest-zeroing, F-011a
+    evidence) into per-seed flip stats + a lived->silenced action-group
+    transition matrix over the changed decisions."""
+    sys.path.insert(0, str(EXP / "trainer"))
+    from data import ACTION_GROUPS
+    groups = list(ACTION_GROUPS)
+
+    def group_of(idx):
+        for g, rng in ACTION_GROUPS.items():
+            if idx in rng:
+                return groups.index(g)
+        return -1
+
+    probes = sorted((EXP / "artifacts/arm2-g0p998-s6").glob(
+        "meow-probe-seed*.npz"), key=lambda p: int(p.stem.split("seed")[1]))
+    if not probes:
+        print("listening: no meow-probe npz found, skipped")
+        return
+    per_seed = []
+    trans = np.zeros((len(groups), len(groups)), np.int64)
+    for p in probes:
+        d = np.load(p, allow_pickle=True)
+        a, c = d["action"], d["cf_action"]
+        heard = (a >= 0) & d["digest_active"].astype(bool)
+        changed = heard & (a != c)
+        per_seed.append((int(p.stem.split("seed")[1]), int(heard.sum()),
+                         int(changed.sum())))
+        for lived, silent in zip(a[changed].ravel(), c[changed].ravel()):
+            trans[group_of(int(lived)), group_of(int(silent))] += 1
+    np.savez_compressed(DATA / "meow-listening-summary.npz",
+                        per_seed=np.array(per_seed, np.int64),
+                        trans=trans, groups=np.array(groups))
+    tot = np.array(per_seed)
+    print(f"listening: {len(probes)} probes, flip "
+          f"{tot[:, 2].sum() / tot[:, 1].sum():.2%} -> "
+          "meow-listening-summary.npz")
+
+
+def collapse():
+    """Trim the F-008 collapse forensics record (s2 seed 8, compiled
+    3-kitty world, 20k continuous pinned) to the plotted arrays."""
+    src = EXP / "artifacts/arm2-g0p998-s2/forensics-seed8-h20000-pinned.npz"
+    if not src.exists():
+        print("collapse: s2 forensics npz not found, skipped")
+        return
+    d = np.load(src, allow_pickle=True)
+    np.savez_compressed(DATA / "collapse-s2-seed8.npz",
+                        reward=d["reward"], happiness=d["happiness"],
+                        distress=d["distress"], names=d["names"])
+    print("collapse: -> collapse-s2-seed8.npz")
+
+
 def copy():
     scratch = sorted(Path("/private/tmp").glob(
         "claude-*/-Users-elizabethkelly-ai-cloudkitty/*/scratchpad"))
@@ -134,8 +187,16 @@ def copy():
         "r2-s3.json": [s / "r2-s3.json" for s in scratch],
         "r2-s4.json": [s / "r2-s4.json" for s in scratch],
         "r2-s6.json": [s / "r2-s6.json" for s in scratch],
+        "r3-s3.json": [s / "r3-s3.json" for s in scratch],
+        "r3-s4.json": [s / "r3-s4.json" for s in scratch],
+        "r3-s6.json": [s / "r3-s6.json" for s in scratch],
         "arm0-cert.json": [s / "arm0-cert.json" for s in scratch],
         "clone-report30.json": [EXP / "artifacts/clone/report30.json"],
+        "clone-metrics.json": [EXP / "artifacts/clone/clone-metrics.json"],
+        "critic-0p995-stats.json":
+            [EXP / "artifacts/clone/critic-0p995-stats.json"],
+        "critic-0p998-stats.json":
+            [EXP / "artifacts/clone/critic-0p998-stats.json"],
         "pair-partner-all-scripted.npy":
             [s / "pair-partner-all-scripted.npy" for s in scratch],
         "pair-partner-baseline.npy":
@@ -155,7 +216,8 @@ def copy():
             print(f"copy: MISSING {name} — no source and no committed copy")
 
 
-SECTIONS = {"curves": curves, "labels": labels, "traj": traj, "copy": copy}
+SECTIONS = {"curves": curves, "labels": labels, "traj": traj,
+            "listening": listening, "collapse": collapse, "copy": copy}
 
 if __name__ == "__main__":
     wanted = sys.argv[1:] or list(SECTIONS)

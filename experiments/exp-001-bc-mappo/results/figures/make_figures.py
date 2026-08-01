@@ -277,9 +277,186 @@ def fig_labels():
     print("bc-label-distribution.png")
 
 
+def fig_ood():
+    order = [("s3", "r3-s3.json"), ("s6", "r3-s6.json"),
+             ("s4", "r3-s4.json")]
+    roster_style = {"all-subject": ("tab:blue", "o"),
+                    "mixed": ("tab:orange", "s")}
+    rng = np.random.default_rng(0)  # jitter only
+    fig, ax = plt.subplots(figsize=(7.6, 3.0))
+    for y, (name, f) in enumerate(order):
+        runs = json.load(open(DATA / f))["runs"]
+        for r in runs:
+            worst = max(k["max_low_streak"] for k in r["report"]["kitties"])
+            c, m = roster_style[r["roster"]]
+            ax.scatter(worst, y + rng.uniform(-0.16, 0.16), s=26, color=c,
+                       marker=m, alpha=0.7, edgecolors="none")
+        streaks = [max(k["max_low_streak"] for k in r["report"]["kitties"])
+                   for r in runs]
+        zeros = sum(s == 0 for s in streaks)
+        ax.annotate(f"{zeros}/{len(runs)} runs clean; worst "
+                    f"{max(streaks)}", (max(max(streaks), 12), y),
+                    xytext=(8, 0), textcoords="offset points", va="center",
+                    fontsize=8, color="0.35")
+    ax.set_yticks(range(3), [f"{n}" for n, _ in order])
+    ax.set_xlabel("worst per-kitty low-happiness streak in the run (ticks)")
+    ax.set_title("Roster-OOD screen (R3, compiled 3-kitty world, "
+                 "report-only) — why s3 got the second seat")
+    handles = [plt.Line2D([], [], ls="", marker=m, color=c)
+               for c, m in roster_style.values()]
+    ax.legend(handles, roster_style, frameon=False, fontsize=8,
+              loc="center right")
+    ax.set_xlim(-12, 480)
+    fig.tight_layout()
+    fig.savefig(FIGDIR / "roster-ood-streaks.png", bbox_inches="tight")
+    plt.close(fig)
+    print("roster-ood-streaks.png")
+
+
+def fig_listening():
+    d = np.load(DATA / "meow-listening-summary.npz", allow_pickle=True)
+    per_seed, trans, groups = d["per_seed"], d["trans"], list(d["groups"])
+    pct = per_seed[:, 2] / per_seed[:, 1] * 100
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(9.0, 3.3),
+                                   gridspec_kw={"width_ratios": [1, 1.5]})
+    ax1.scatter(pct, range(len(pct)), s=30, color="tab:blue")
+    mean = per_seed[:, 2].sum() / per_seed[:, 1].sum() * 100
+    ax1.axvline(mean, color="tab:blue", ls="--", lw=1)
+    ax1.text(mean + 0.06, len(pct) - 1.2, f"pooled {mean:.2f}%", fontsize=8,
+             color="tab:blue")
+    ax1.set_yticks(range(len(pct)), [f"seed {s}" for s in per_seed[:, 0]],
+                   fontsize=7.5)
+    ax1.set_xlabel("digest-active decisions changed\nby silencing (%)")
+    flows = [(groups[i], groups[j], trans[i, j])
+             for i in range(len(groups)) for j in range(len(groups))
+             if trans[i, j] > 0]
+    flows.sort(key=lambda x: -x[2])
+    top = flows[:7]
+    ax2.barh(range(len(top)), [n for _, _, n in top], color="tab:blue",
+             alpha=0.75)
+    ax2.set_yticks(range(len(top)),
+                   [f"heard: {a}  →  silenced: {b}" for a, b, _ in top],
+                   fontsize=8)
+    ax2.invert_yaxis()
+    ax2.set_xlabel("changed decisions (10 seeds pooled)")
+    ax2.set_title("what hearing changes", fontsize=9)
+    fig.suptitle("s6 listens: the digest-zeroing probe (F-011a evidence — "
+                 "hearing pulls toward play; silence toward sleep/groom)",
+                 y=1.02)
+    fig.tight_layout()
+    fig.savefig(FIGDIR / "meow-listening-flip.png", bbox_inches="tight")
+    plt.close(fig)
+    print("meow-listening-flip.png")
+
+
+def fig_collapse():
+    d = np.load(DATA / "collapse-s2-seed8.npz", allow_pickle=True)
+    reward, hap = d["reward"], d["happiness"]
+    w = 500
+    roll = np.convolve(reward, np.ones(w) / w, mode="valid")
+    below = roll < 0.75
+    onset, run = None, 0
+    for i, b in enumerate(below):
+        run = run + 1 if b else 0
+        if run >= w:
+            onset = i + w - 1
+            break
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8.6, 4.6), sharex=True)
+    ax1.plot(np.arange(w - 1, len(reward)), roll, color="tab:blue", lw=1.2)
+    ax1.set_ylabel(f"team reward (rolling {w})")
+    ax2.set_prop_cycle(color=["tab:green", "tab:purple", "tab:brown"])
+    for k in range(hap.shape[1]):
+        ax2.plot(hap[:, k], lw=0.9, label=f"kitty {k + 1}")
+    ax2.set_ylabel("happiness")
+    ax2.set_xlabel("tick (continuous, pinned clock)")
+    ax2.legend(frameon=False, fontsize=8, loc="lower left")
+    for ax in (ax1, ax2):
+        if onset is not None:
+            ax.axvline(onset, color="tab:red", ls="--", lw=1)
+    if onset is not None:
+        ax1.text(onset + 200, roll.max() * 0.98, f"onset t={onset}",
+                 color="tab:red", fontsize=8, va="top")
+    fig.suptitle("Collapse portrait — s2, compiled 3-kitty world, seed 8 "
+                 "(F-008: the certification-gate failure mode)", y=0.99)
+    fig.tight_layout()
+    fig.savefig(FIGDIR / "collapse-portrait.png", bbox_inches="tight")
+    plt.close(fig)
+    print("collapse-portrait.png")
+
+
+def fig_clone():
+    cm = json.load(open(DATA / "clone-metrics.json"))
+    h = cm["history"]
+    ep = [r["epoch"] for r in h]
+    fig, axes = plt.subplots(1, 3, figsize=(10.6, 3.2))
+    axes[0].plot(ep, [r["train_loss"] for r in h], label="train loss")
+    axes[0].plot(ep, [r["val_loss"] for r in h], label="val loss")
+    axes[0].axvline(cm["best_epoch"], color="0.6", ls="--", lw=0.8)
+    axes[0].set_xlabel("epoch")
+    axes[0].set_title("masked CE", fontsize=9)
+    axes[0].legend(frameon=False, fontsize=8)
+    axes[1].plot(ep, [r["val_top1"] for r in h], label="val top-1")
+    axes[1].plot(ep, [r["val_entropy"] for r in h], label="val entropy")
+    axes[1].axvline(cm["best_epoch"], color="0.6", ls="--", lw=0.8)
+    axes[1].text(cm["best_epoch"] + 1, 0.35, f"best epoch "
+                 f"{cm['best_epoch']}\ntop-1 "
+                 f"{cm['val_at_best']['top1']:.3f}", fontsize=7.5,
+                 color="0.4")
+    axes[1].set_xlabel("epoch")
+    axes[1].set_title("masked accuracy / entropy", fontsize=9)
+    axes[1].legend(frameon=False, fontsize=8)
+    group_color = {"move": "0.55", "rest/sleep/groom": "tab:green",
+                   "eat/drink": "tab:orange", "play/chase": "tab:blue",
+                   "meow": "tab:red", "idle": "tab:purple"}
+    for row in cm["per_class"]:
+        if row["count"] == 0:
+            continue
+        g = next(g for g, rng in ACTION_GROUPS.items() if row["index"] in rng)
+        axes[2].scatter(row["count"], row["accuracy"], s=22,
+                        color=group_color[g], alpha=0.8)
+    axes[2].set_xscale("log")
+    axes[2].set_xlabel("class support (log)")
+    axes[2].set_ylabel("val accuracy")
+    axes[2].set_title("per-class accuracy vs support", fontsize=9)
+    handles = [plt.Line2D([], [], ls="", marker="o", color=c)
+               for c in group_color.values()]
+    axes[2].legend(handles, group_color, frameon=False, fontsize=6.5,
+                   loc="lower right")
+    fig.suptitle("Arm 1 — BC clone training (val = rollout-04 of each "
+                 "config, split by rollout)", y=1.02)
+    fig.tight_layout()
+    fig.savefig(FIGDIR / "clone-training.png", bbox_inches="tight")
+    plt.close(fig)
+    print("clone-training.png")
+
+
+def fig_critic():
+    fig, ax = plt.subplots(figsize=(6.4, 3.2))
+    for gamma, color in (("0p995", "tab:orange"), ("0p998", "tab:blue")):
+        cs = json.load(open(DATA / f"critic-{gamma}-stats.json"))
+        h = cs["history"]
+        ax.plot([r["epoch"] for r in h], [r["val_ev"] for r in h],
+                color=color, label=f"γ = 0.{gamma[2:]} "
+                f"(best EV {cs['best_val_ev']:.3f})")
+    ax.set_xlabel("epoch")
+    ax.set_ylabel("explained variance (val)")
+    ax.set_ylim(0, 1)
+    ax.axhline(0.5, color="0.8", lw=0.8, ls=":")
+    ax.legend(frameon=False, fontsize=8)
+    ax.set_title("Critic pretrain — val explained variance "
+                 "(the F-003/F-005/F-006 make-or-break diagnostic)")
+    fig.tight_layout()
+    fig.savefig(FIGDIR / "critic-ev.png", bbox_inches="tight")
+    plt.close(fig)
+    print("critic-ev.png")
+
+
 FIGS = {"lottery": fig_lottery, "ladder": fig_ladder,
         "occupancy": fig_occupancy, "pairing": fig_pairing,
-        "raster": fig_raster, "labels": fig_labels}
+        "raster": fig_raster, "labels": fig_labels,
+        "ood": fig_ood, "listening": fig_listening,
+        "collapse": fig_collapse, "clone": fig_clone,
+        "critic": fig_critic}
 
 if __name__ == "__main__":
     for name in (sys.argv[1:] or list(FIGS)):

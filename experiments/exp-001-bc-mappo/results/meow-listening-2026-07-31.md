@@ -88,3 +88,7 @@ Raw outputs: `artifacts/arm2-g0p998-s6/meow-probe-seed*.{npz,txt}`
 checkpoint `policy-final.pt` (sha256 `1fe8aec9…`), the same weights
 the exported artifact `arm2.ckpolicy` (sha256 `8030b94d…`, the
 certified identity) carries — parity verified at export.
+
+**Figure (added 2026-08-01):**
+[figures/meow-listening-flip.png](figures/meow-listening-flip.png)
+— per-seed flip rates + what hearing changes, from the same probes.
