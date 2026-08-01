@@ -119,12 +119,12 @@ stories green.
 **Purpose**: determinism proof, doctrine reconciliation, schema-invariance
 gate, final quality bar.
 
-- [ ] T022 Determinism tests in crates/cloudkitty-core/src/world.rs: same seed + config + ticks → identical world state with purrs of both origins in play (drive one kitty via deliberate purr proposals); mid-purr save/restore → identical subsequent trajectory including the stamped cooldown (SC-006; contract test 11)
-- [ ] T023 [P] Doctrine amendment in specs/011-sustained-purring/spec.md: dated note on the "purring is never an action" line — purring remains engine-owned state; initiation-by-choice added by spec 022 row 38 (FR-015)
-- [ ] T024 [P] Doctrine amendment in specs/001-cloudkitty-mvp/data-model.md: dated note on "Meow: always legal; the cooldown decides whether it is audible" — purr row earned-gated (spec 022); cooldown clause deleted by spec 023 (FR-015)
-- [ ] T025 [P] Mask-contract annotation in specs/014-multi-agent-rl/contracts/encodings.md: row 38 legal iff earned (spec 022); mask shape and no-carve-outs guard unchanged (FR-015)
-- [ ] T026 SC-005 gate: all pre-existing `cloudkitty-rl` tests pass without modification — the T009 mask-test additions are expected; no existing assertion may change (observation width, menu 40, mask width, kind count all unchanged); then full `cargo test --workspace`, `cargo clippy --workspace -- -D warnings`, `cargo fmt` (repo root)
-- [ ] T027 Run quickstart.md end-to-end: targeted proof-point commands foreground with generous timeout (SC-004 test is long-running), plus the manual quiet-meadow smoke if a client check is wanted (specs/022-deliberate-purr/quickstart.md)
+- [x] T022 Determinism tests in crates/cloudkitty-core/src/world.rs: same seed + config + ticks → identical world state with purrs of both origins in play (drive one kitty via deliberate purr proposals); mid-purr save/restore → identical subsequent trajectory including the stamped cooldown (SC-006; contract test 11)
+- [x] T023 [P] Doctrine amendment in specs/011-sustained-purring/spec.md: dated note on the "purring is never an action" line — purring remains engine-owned state; initiation-by-choice added by spec 022 row 38 (FR-015)
+- [x] T024 [P] Doctrine amendment in specs/001-cloudkitty-mvp/data-model.md: dated note on "Meow: always legal; the cooldown decides whether it is audible" — purr row earned-gated (spec 022); cooldown clause deleted by spec 023 (FR-015)
+- [x] T025 [P] Mask-contract annotation in specs/014-multi-agent-rl/contracts/encodings.md: row 38 legal iff earned (spec 022); mask shape and no-carve-outs guard unchanged (FR-015)
+- [x] T026 SC-005 gate: all pre-existing `cloudkitty-rl` tests pass without modification — the T009 mask-test additions are expected; no existing assertion may change (observation width, menu 40, mask width, kind count all unchanged); then full `cargo test --workspace`, `cargo clippy --workspace -- -D warnings`, `cargo fmt` (repo root)
+- [x] T027 Run quickstart.md end-to-end: targeted proof-point commands foreground with generous timeout (SC-004 test is long-running), plus the manual quiet-meadow smoke if a client check is wanted (specs/022-deliberate-purr/quickstart.md)
 
 ---
 

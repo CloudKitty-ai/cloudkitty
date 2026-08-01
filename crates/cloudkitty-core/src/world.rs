@@ -1269,6 +1269,78 @@ mod tests {
 
     // ---- sustained purring (spec 011, amended by spec 022) ---------------
 
+    /// One scripted "tick" of the purr surfaces: randomized moods, one
+    /// kitty attempting the deliberate purr through validation, then the
+    /// purr phase. Shared by the determinism tests so both runs replay the
+    /// identical script.
+    fn purr_script_tick(world: &mut World, config: &Config, scratch: &mut SimRng) {
+        world.tick += 1;
+        for idx in 0..world.kitties.len() {
+            world.kitties[idx].happiness = scratch.gen_range_u32(0, 101) as f32;
+            world.kitties[idx].happiness_rose = scratch.gen_bool(0.3);
+        }
+        let choose = scratch.gen_range_u32(0, world.kitties.len() as u32) as usize;
+        let id = world.kitties[choose].id;
+        let validated = crate::action::validate(
+            world,
+            id,
+            crate::action::Action::Meow {
+                message: crate::meow::MessageKind::Purr,
+            },
+            config,
+        );
+        crate::action::apply(world, id, validated, config);
+        world.purr_phase(config);
+    }
+
+    #[test]
+    fn same_seed_purr_trajectories_replay_exactly_with_both_origins() {
+        // Spec 022 SC-006: same seed + config + ticks -> identical world,
+        // with motor and deliberate purrs interleaving.
+        let run = || {
+            let (mut world, config) = test_world();
+            world.rng = SimRng::from_seed(9);
+            let mut scratch = SimRng::from_seed(13);
+            for _ in 0..300 {
+                purr_script_tick(&mut world, &config, &mut scratch);
+            }
+            serde_json::to_string(&world).unwrap()
+        };
+        assert_eq!(run(), run());
+    }
+
+    #[test]
+    fn purr_determinism_survives_a_mid_purr_save_and_restore() {
+        // Spec 022 FR-012/SC-006: a world saved mid-purr and restored
+        // replays exactly what the uninterrupted run does -- including the
+        // proportional cooldown stamped from the restored duration.
+        let (mut a, config) = test_world();
+        a.rng = SimRng::from_seed(31);
+        let mut scratch = SimRng::from_seed(77);
+        for _ in 0..40 {
+            purr_script_tick(&mut a, &config, &mut scratch);
+        }
+        assert!(
+            a.kitties.iter().any(|k| k.purring_until.is_some()),
+            "the save point should catch someone mid-purr"
+        );
+
+        // Save/restore the whole world (RNG state included) and continue
+        // both copies with identically-seeded scratch streams.
+        let saved = serde_json::to_string(&a).unwrap();
+        let mut b: World = serde_json::from_str(&saved).unwrap();
+        let mut scratch_b = scratch.clone();
+        for _ in 0..120 {
+            purr_script_tick(&mut a, &config, &mut scratch);
+            purr_script_tick(&mut b, &config, &mut scratch_b);
+        }
+        assert_eq!(
+            serde_json::to_string(&a).unwrap(),
+            serde_json::to_string(&b).unwrap(),
+            "the restored world replays the uninterrupted one exactly"
+        );
+    }
+
     #[test]
     fn every_purr_of_either_origin_certifies_an_earned_cat() {
         // Spec 022 SC-003 property: across randomized seeds, moods, and
@@ -1352,7 +1424,11 @@ mod tests {
         };
         assert_eq!(purr_meows(&world), 1, "exactly one meow, at purr start");
         assert!(
-            !world.kitty(1).unwrap().meow_cooldowns.contains_key(&crate::meow::MessageKind::Purr),
+            !world
+                .kitty(1)
+                .unwrap()
+                .meow_cooldowns
+                .contains_key(&crate::meow::MessageKind::Purr),
             "purr starts stamp no message cooldown (spec 022 FR-008; 023 re-verifies)"
         );
 
@@ -1383,7 +1459,9 @@ mod tests {
             "a silent start records no announcement"
         );
         assert!(
-            !kitty.meow_cooldowns.contains_key(&crate::meow::MessageKind::Purr),
+            !kitty
+                .meow_cooldowns
+                .contains_key(&crate::meow::MessageKind::Purr),
             "a silent start stamps nothing"
         );
     }

@@ -399,10 +399,10 @@ impl Config {
                 "must be at most cooldown_factor_max",
             ));
         }
-        if self.purr.cooldown_ticks.is_some() {
+        if let Some(retired) = self.purr.cooldown_ticks {
             return Err(ConfigError::invalid(
                 "[purr] cooldown_ticks",
-                self.purr.cooldown_ticks.unwrap().to_string(),
+                retired.to_string(),
                 "retired by spec 022: the motor's rest is proportional now -- \
                  use cooldown_factor_min / cooldown_factor_max",
             ));
