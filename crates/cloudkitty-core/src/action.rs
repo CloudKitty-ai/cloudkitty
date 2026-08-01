@@ -544,8 +544,7 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
                                     if d == dir || d == dir.opposite() {
                                         continue;
                                     }
-                                    let Some(p) =
-                                        kitty_pos.step(d, world.width, world.height)
+                                    let Some(p) = kitty_pos.step(d, world.width, world.height)
                                     else {
                                         continue;
                                     };
