@@ -82,10 +82,13 @@ pub struct Config {
     pub viewer: ViewerConfig,
 }
 
-/// The rhythm of a sustained purr (spec 011). Purring is engine-owned kitty
-/// state -- earned by happiness, never proposed, never a spent turn -- and
-/// these three numbers give the rumble its wave shape: a seeded draw between
-/// `min_ticks` and `max_ticks`, then `cooldown_ticks` of rest.
+/// The rhythm of a sustained purr (spec 011, retuned by spec 022). Purring
+/// is engine-owned kitty state -- earned by happiness -- that a kitty may
+/// now also *choose* to start (the deliberate purr, a spent turn). The
+/// duration draw sets episode texture; the factor bounds set the rhythm:
+/// each finished purr rests the motor for a freshly drawn multiple of its
+/// own length, so a happy kitty rumbles a constant 1/(1 + midpoint) of the
+/// time -- ~30.8% at the defaults -- while no two rests repeat mechanically.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PurrConfig {
     /// Shortest purr, in ticks. Must be at least 1 and at most `max_ticks`.
@@ -94,9 +97,15 @@ pub struct PurrConfig {
     /// Longest purr, in ticks.
     #[serde(default = "default_purr_max_ticks")]
     pub max_ticks: u64,
-    /// Rest between purrs, in ticks. 0 is legal: back-to-back rumbles.
-    #[serde(default = "default_purr_cooldown_ticks")]
-    pub cooldown_ticks: u64,
+    /// Lower bound of the per-end cooldown-factor draw (spec 022): the
+    /// motor's rest is ⌈factor × the finished purr's duration⌉. Must be
+    /// positive and at most `cooldown_factor_max`; equal bounds fix the
+    /// factor.
+    #[serde(default = "default_purr_cooldown_factor_min")]
+    pub cooldown_factor_min: f32,
+    /// Upper bound of the per-end cooldown-factor draw.
+    #[serde(default = "default_purr_cooldown_factor_max")]
+    pub cooldown_factor_max: f32,
     /// Chance a *spontaneous* purr start announces itself with a Purr meow
     /// (spec 022). Drawn once per start regardless of value (the
     /// fixed-shape rule); deliberate purrs always announce. 0 -- the
@@ -104,6 +113,11 @@ pub struct PurrConfig {
     /// only chosen purrs.
     #[serde(default = "default_purr_announce_probability")]
     pub announce_probability: f32,
+    /// RETIRED (spec 022): the flat rest was replaced by the proportional
+    /// factor pair above. Deserialize-only sentinel -- a config that still
+    /// names this key fails validation loudly, never silently ignored.
+    #[serde(default, skip_serializing)]
+    pub cooldown_ticks: Option<u64>,
 }
 
 impl Default for PurrConfig {
@@ -111,8 +125,10 @@ impl Default for PurrConfig {
         Self {
             min_ticks: default_purr_min_ticks(),
             max_ticks: default_purr_max_ticks(),
-            cooldown_ticks: default_purr_cooldown_ticks(),
+            cooldown_factor_min: default_purr_cooldown_factor_min(),
+            cooldown_factor_max: default_purr_cooldown_factor_max(),
             announce_probability: default_purr_announce_probability(),
+            cooldown_ticks: None,
         }
     }
 }
@@ -998,24 +1014,61 @@ mod tests {
     #[test]
     fn purr_table_defaults_when_absent_and_rejects_bad_bounds() {
         // A pre-011 config has no [purr] section at all: the whole-table
-        // default must land (spec 011 SC-005).
+        // default must land (spec 011 SC-005; defaults retuned by spec 022).
         let parsed: PurrConfig = toml::from_str("").expect("an empty purr table parses");
+        assert_eq!((parsed.min_ticks, parsed.max_ticks), (8, 13));
         assert_eq!(
-            (parsed.min_ticks, parsed.max_ticks, parsed.cooldown_ticks),
-            (6, 15, 30)
+            (parsed.cooldown_factor_min, parsed.cooldown_factor_max),
+            (1.75, 2.75)
         );
 
         let mut c = cfg();
         c.purr.min_ticks = 0;
         let msg = c.validate().unwrap_err().to_string();
         assert!(msg.contains("[purr] min_ticks"), "{msg}");
-        c.purr.min_ticks = 20; // > max_ticks 15
+        c.purr.min_ticks = 20; // > max_ticks 13
         let msg = c.validate().unwrap_err().to_string();
         assert!(msg.contains("[purr] min_ticks"), "{msg}");
         assert!(msg.contains("max_ticks"), "{msg}");
         c.purr.min_ticks = c.purr.max_ticks; // fixed-length purrs are legal
-        c.purr.cooldown_ticks = 0; // as are back-to-back rumbles
         assert!(c.validate().is_ok());
+    }
+
+    #[test]
+    fn purr_factor_bounds_validate_and_equal_bounds_fix_the_factor() {
+        // Spec 022 FR-010 validation rows for the cooldown-factor pair.
+        let mut c = cfg();
+        c.purr.cooldown_factor_min = 0.0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[purr] cooldown_factor_min"), "{msg}");
+        c.purr.cooldown_factor_min = -1.0;
+        assert!(c.validate().is_err());
+        c.purr.cooldown_factor_min = f32::NAN;
+        assert!(c.validate().is_err());
+        c.purr.cooldown_factor_min = 3.0; // > max 2.75
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("cooldown_factor_max"), "{msg}");
+        c.purr.cooldown_factor_min = 2.25;
+        c.purr.cooldown_factor_max = 2.25; // equal bounds: fixed factor
+        assert!(c.validate().is_ok());
+        c.purr.cooldown_factor_max = f32::INFINITY;
+        assert!(c.validate().is_err());
+    }
+
+    #[test]
+    fn the_retired_purr_cooldown_knob_is_rejected_loudly() {
+        // Spec 022 FR-010 / US3 scenario 3: a config still naming the flat
+        // rest fails at load with an error naming the replacements -- never
+        // a silent ignore (the config module accepts unknown keys, so the
+        // sentinel is what makes this loud).
+        let parsed: PurrConfig =
+            toml::from_str("cooldown_ticks = 30").expect("the retired key still parses");
+        let mut c = cfg();
+        c.purr = parsed;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[purr] cooldown_ticks"), "{msg}");
+        assert!(msg.contains("retired"), "{msg}");
+        assert!(msg.contains("cooldown_factor_min"), "{msg}");
     }
 
     #[test]

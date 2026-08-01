@@ -163,11 +163,19 @@ recent_window_ticks = 10
 
 [purr]
 # A contented kitty rumbles for a while (a seeded draw between min and max
-# ticks), then rests its motor for the cooldown before the next rumble.
-# Purring is pure charm: it never costs a turn and never changes a need.
-min_ticks = 6
-max_ticks = 15
-cooldown_ticks = 30
+# ticks), then rests its motor for a freshly drawn multiple of that purr's
+# length (a factor between the bounds below, ceiling-rounded) -- so a happy
+# meadow rumbles about 1/(1 + midpoint) of the time with an organic rhythm.
+# A kitty may also *choose* to purr (spec 022): that spends its whole turn,
+# must be earned by happiness, always announces, and is never blocked by the
+# motor's rest. Spontaneous purring stays pure charm -- no turn, no need
+# change -- and announces itself only with probability announce_probability
+# (0 keeps the broadcast channel for chosen purrs only).
+min_ticks = 8
+max_ticks = 13
+cooldown_factor_min = 1.75
+cooldown_factor_max = 2.75
+announce_probability = 0.0
 
 [behavior]
 # Share of a tick an *external* behavior may spend deciding before the engine

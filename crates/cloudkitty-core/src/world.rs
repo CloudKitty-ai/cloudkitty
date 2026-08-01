@@ -885,9 +885,22 @@ impl World {
             };
             match purring_until {
                 Some(until) if tick >= until => {
+                    // Spec 022: the motor's rest is proportional to the
+                    // finished purr -- one fresh factor draw per end (even
+                    // when the bounds are equal), ceiling-rounded so rest
+                    // is never shortened. A pre-022 snapshot's in-flight
+                    // purr carries no duration; the fixed convention reads
+                    // it as min_ticks (FR-012).
+                    let duration = self.kitties[idx]
+                        .purring_duration
+                        .unwrap_or(config.purr.min_ticks);
+                    let factor = config.purr.cooldown_factor_min
+                        + (config.purr.cooldown_factor_max - config.purr.cooldown_factor_min)
+                            * self.rng.gen_f32();
+                    let cooldown = (factor * duration as f32).ceil() as u64;
                     self.kitties[idx].purring_until = None;
                     self.kitties[idx].purring_duration = None;
-                    self.kitties[idx].purr_cooldown_until = tick + config.purr.cooldown_ticks;
+                    self.kitties[idx].purr_cooldown_until = tick + cooldown;
                 }
                 Some(_) => {}
                 None => {
@@ -1403,6 +1416,124 @@ mod tests {
     }
 
     #[test]
+    fn a_finished_purr_rests_by_a_drawn_factor_of_its_own_length() {
+        // Spec 022 FR-009 / US3 scenario 1: the stamp is ⌈factor × the
+        // finished purr's actual duration⌉ with the factor drawn per end;
+        // equal bounds make the expectation exact, unequal bounds bound it.
+        let (mut world, mut config) = test_world();
+        config.purr.cooldown_factor_min = 2.25;
+        config.purr.cooldown_factor_max = 2.25;
+        world.tick = 100;
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].purring_until = Some(100); // ends this tick
+        world.kitties[idx].purring_duration = Some(9);
+        for k in world.kitties.iter_mut() {
+            k.happiness = 10.0; // nobody else starts or ends anything
+            k.happiness_rose = false;
+        }
+
+        world.purr_phase(&config);
+
+        let kitty = world.kitty(1).unwrap();
+        assert_eq!(kitty.purring_until, None);
+        assert_eq!(kitty.purring_duration, None, "cleared together");
+        // 2.25 × 9 = 20.25 → 21: the ceiling never shortens rest.
+        assert_eq!(kitty.purr_cooldown_until, 100 + 21);
+
+        // Unequal bounds: same seed reproduces the same stamp exactly, and
+        // it always lies within the ceil(min×d)..=ceil(max×d) envelope.
+        let stamp = |seed: u64| -> u64 {
+            let (mut world, mut config) = test_world();
+            config.purr.cooldown_factor_min = 1.75;
+            config.purr.cooldown_factor_max = 2.75;
+            world.rng = SimRng::from_seed(seed);
+            world.tick = 100;
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].purring_until = Some(100);
+            world.kitties[idx].purring_duration = Some(9);
+            for k in world.kitties.iter_mut() {
+                k.happiness = 10.0;
+                k.happiness_rose = false;
+            }
+            world.purr_phase(&config);
+            world.kitty(1).unwrap().purr_cooldown_until - 100
+        };
+        for seed in 0..10 {
+            let s = stamp(seed);
+            assert_eq!(s, stamp(seed), "seed-reproducible");
+            let lo = (1.75f32 * 9.0).ceil() as u64; // 16
+            let hi = (2.75f32 * 9.0).ceil() as u64; // 25
+            assert!((lo..=hi).contains(&s), "stamp {s} outside [{lo}, {hi}]");
+        }
+    }
+
+    #[test]
+    fn a_pre_022_snapshot_mid_purr_rests_by_the_min_ticks_convention() {
+        // FR-012 (clarified 2026-07-31): a restored pre-022 purr carries no
+        // stored duration; the cooldown treats it as min_ticks -- a fixed
+        // convention, biased to the shortest lawful rest.
+        let (mut world, mut config) = test_world();
+        config.purr.cooldown_factor_min = 2.25;
+        config.purr.cooldown_factor_max = 2.25;
+        world.tick = 100;
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].purring_until = Some(100);
+        world.kitties[idx].purring_duration = None; // the pre-022 shape
+        for k in world.kitties.iter_mut() {
+            k.happiness = 10.0;
+            k.happiness_rose = false;
+        }
+
+        world.purr_phase(&config);
+
+        let expected = (2.25f32 * config.purr.min_ticks as f32).ceil() as u64;
+        assert_eq!(
+            world.kitty(1).unwrap().purr_cooldown_until,
+            100 + expected,
+            "unknown duration reads as min_ticks"
+        );
+    }
+
+    #[test]
+    fn happy_kitty_occupancy_holds_the_factor_midpoint_duty_cycle() {
+        // Spec 022 SC-004: occupancy within 2pp of 1/(1 + mean factor
+        // bounds) over ≥20k ticks, independent of the duration bounds and
+        // of the factor spread (configs share the 2.25 midpoint).
+        let configs: [(u64, u64, f32, f32); 2] = [
+            (8, 13, 1.75, 2.75), // the defaults
+            (3, 20, 2.25, 2.25), // wild durations, fixed factor
+        ];
+        for (min_t, max_t, f_min, f_max) in configs {
+            let (mut world, mut config) = test_world();
+            config.purr.min_ticks = min_t;
+            config.purr.max_ticks = max_t;
+            config.purr.cooldown_factor_min = f_min;
+            config.purr.cooldown_factor_max = f_max;
+            world.rng = SimRng::from_seed(4242);
+            let idx = world.kitty_index(1).unwrap();
+            let mut purring_ticks = 0u64;
+            const TICKS: u64 = 20_000;
+            for _ in 0..TICKS {
+                world.tick += 1;
+                for k in world.kitties.iter_mut() {
+                    k.happiness = 95.0; // a healthy meadow, pinned
+                }
+                world.purr_phase(&config);
+                if world.kitties[idx].purring_until.is_some() {
+                    purring_ticks += 1;
+                }
+            }
+            let occupancy = purring_ticks as f64 / TICKS as f64;
+            let target = 1.0 / (1.0 + (f_min + f_max) as f64 / 2.0);
+            assert!(
+                (occupancy - target).abs() < 0.02,
+                "occupancy {occupancy:.4} vs target {target:.4} \
+                 for ({min_t}, {max_t}, {f_min}, {f_max})"
+            );
+        }
+    }
+
+    #[test]
     fn the_cooldown_holds_an_earned_purr_back() {
         let (mut world, config) = test_world();
         world.tick = 60;
@@ -1427,10 +1558,15 @@ mod tests {
 
     #[test]
     fn a_purr_ends_on_schedule_and_stamps_the_cooldown() {
-        let (mut world, config) = test_world();
+        // Re-baselined by spec 022: the stamp is proportional now. Equal
+        // factor bounds make the expected rest exact.
+        let (mut world, mut config) = test_world();
+        config.purr.cooldown_factor_min = 2.25;
+        config.purr.cooldown_factor_max = 2.25;
         let idx = world.kitty_index(1).unwrap();
         world.kitties[idx].happiness = 90.0; // earned throughout -- gates nothing mid-purr
         world.kitties[idx].purring_until = Some(80);
+        world.kitties[idx].purring_duration = Some(9);
 
         world.tick = 79;
         world.purr_phase(&config);
@@ -1442,8 +1578,8 @@ mod tests {
         assert_eq!(kitty.purring_until, None, "the rumble winds down on time");
         assert_eq!(
             kitty.purr_cooldown_until,
-            80 + config.purr.cooldown_ticks,
-            "and the motor rests before the next one"
+            80 + 21, // ⌈2.25 × 9⌉
+            "and the motor rests in proportion to the finished purr"
         );
     }
 

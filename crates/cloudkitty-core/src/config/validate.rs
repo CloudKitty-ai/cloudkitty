@@ -384,6 +384,29 @@ impl Config {
                 "must be between 0 and 1",
             ));
         }
+        let (f_min, f_max) = (self.purr.cooldown_factor_min, self.purr.cooldown_factor_max);
+        if !f_min.is_finite() || f_min <= 0.0 {
+            return Err(ConfigError::invalid(
+                "[purr] cooldown_factor_min",
+                f_min.to_string(),
+                "must be a positive number",
+            ));
+        }
+        if !f_max.is_finite() || f_min > f_max {
+            return Err(ConfigError::invalid(
+                "[purr] cooldown_factor_min",
+                format!("{f_min} (cooldown_factor_max is {f_max})"),
+                "must be at most cooldown_factor_max",
+            ));
+        }
+        if self.purr.cooldown_ticks.is_some() {
+            return Err(ConfigError::invalid(
+                "[purr] cooldown_ticks",
+                self.purr.cooldown_ticks.unwrap().to_string(),
+                "retired by spec 022: the motor's rest is proportional now -- \
+                 use cooldown_factor_min / cooldown_factor_max",
+            ));
+        }
         Ok(())
     }
 

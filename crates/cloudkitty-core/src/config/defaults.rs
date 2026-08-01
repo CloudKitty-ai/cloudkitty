@@ -5,15 +5,19 @@
 use super::DurationBounds;
 
 pub(super) fn default_purr_min_ticks() -> u64 {
-    6
+    8
 }
 
 pub(super) fn default_purr_max_ticks() -> u64 {
-    15
+    13
 }
 
-pub(super) fn default_purr_cooldown_ticks() -> u64 {
-    30
+pub(super) fn default_purr_cooldown_factor_min() -> f32 {
+    1.75
+}
+
+pub(super) fn default_purr_cooldown_factor_max() -> f32 {
+    2.75
 }
 
 pub(super) fn default_purr_announce_probability() -> f32 {

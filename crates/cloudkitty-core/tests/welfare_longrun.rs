@@ -307,6 +307,7 @@ async fn purrs_come_in_waves_with_bounded_durations_and_one_meow_each() {
     let n = world.kitties.len();
     let mut prev_purr: Vec<Option<u64>> = vec![None; n];
     let mut last_end: Vec<Option<u64>> = vec![None; n];
+    let mut last_duration: Vec<Option<u64>> = vec![None; n];
     let mut starts_per_kitty = vec![0u64; n];
     let mut start_set: BTreeSet<(u32, u64)> = BTreeSet::new();
     let mut seen_meows: BTreeSet<(u32, u64)> = BTreeSet::new();
@@ -324,13 +325,19 @@ async fn purrs_come_in_waves_with_bounded_durations_and_one_meow_each() {
                         "{}: purr duration {duration} outside bounds at tick {just}",
                         kitty.name
                     );
-                    if let Some(end) = last_end[idx] {
+                    // Spec 022 re-baseline: the rest is proportional --
+                    // at least ⌈cooldown_factor_min × the previous purr's
+                    // duration⌉ (the drawn factor can only lengthen it).
+                    if let (Some(end), Some(prev_d)) = (last_end[idx], last_duration[idx]) {
+                        let min_rest =
+                            (config.purr.cooldown_factor_min * prev_d as f32).ceil() as u64;
                         assert!(
-                            just >= end + config.purr.cooldown_ticks,
-                            "{}: purr at {just} inside the cooldown after {end}",
+                            just >= end + min_rest,
+                            "{}: purr at {just} inside the minimum rest after {end}",
                             kitty.name
                         );
                     }
+                    last_duration[idx] = Some(duration);
                     starts_per_kitty[idx] += 1;
                     start_set.insert((kitty.id, just));
                 }
