@@ -626,3 +626,16 @@ is pre-cleared (24×24 screen: zero incidents, +0.0450, old engine).
 Run discipline: foreground with generous timeouts, phase order
 R0→R1→R2→R3, results doc `results/recert-2026-XX-XX.md` with the full
 per-seed tables and regeneration commands.
+
+### 2026-07-31c — 31b preconditions amended (pre-run; no measurement seen)
+
+Two additions from the Product handoff rounds, fixed before R1:
+(1) **R1 and R2 do not start until the `policies/` bundle lands on
+main** (committed artifact home + `cloudkitty.toml` path row) — the
+path row moves the config sha, and R2 must stamp the final shape
+once. R0 has no such dependency. (2) **Artifact citation convention**:
+R2 runs invoke and record artifacts as `policies/<file>` with the
+README row (filename → sha256 → certification record); the s6 row's
+committed bytes must hash `8030b94d…` (byte-identical move, never a
+re-export) — R2 verifies the hash before seating the artifact in any
+run.
