@@ -330,3 +330,43 @@ def test_vector_batch_matches_parallel_solo_streams():
                     s_infos[agent]["mask"].tobytes()
                     == b_infos[agent]["mask"][world].tobytes()
                 ), f"world {world} masks diverged at step {step_index}"
+
+
+def test_elements_positions_types_and_determinism():
+    env = make_env()
+    env.reset(seed=7)
+    elems = env.elements()
+    assert len(elems) > 0
+
+    known = {"Water", "Chow", "Bug", "Greeble", "Sunbeam"}
+    ids = [eid for eid, _, _, _ in elems]
+    assert len(ids) == len(set(ids)), "element ids are unique"
+    for eid, kind, x, y in elems:
+        assert isinstance(eid, int) and eid >= 0
+        assert kind in known
+        assert isinstance(x, int) and x >= 0
+        assert isinstance(y, int) and y >= 0
+    kinds = {kind for _, kind, _, _ in elems}
+    assert "Water" in kinds, "water minimums guarantee at least one"
+    assert "Greeble" in kinds, "greebles are never filtered from an API"
+
+    # Same call twice without stepping: identical (no hidden advance).
+    assert env.elements() == elems
+
+    # Same seed, fresh env: identical spawn (the deterministic fishbowl).
+    twin = make_env()
+    twin.reset(seed=7)
+    assert twin.elements() == elems
+
+    # The surface is live, not a reset snapshot: greebles wander every
+    # tick, so a few steps must move at least one element.
+    rng = np.random.default_rng(0)
+    infos = env.reset(seed=7)[1]
+    agents = env.possible_agents
+    for _ in range(10):
+        actions = {a: masked_choice(infos[a]["mask"], rng) for a in agents}
+        infos = env.step(actions)[4]
+    after = {eid: (x, y) for eid, _, x, y in env.elements()}
+    before = {eid: (x, y) for eid, _, x, y in elems}
+    moved = [eid for eid in before if eid in after and after[eid] != before[eid]]
+    assert moved, "ten ticks of greebles never moving would be a frozen world"
