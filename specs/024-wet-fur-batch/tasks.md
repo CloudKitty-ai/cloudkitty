@@ -73,7 +73,9 @@ fixtures prove SC-001. No other dynamics change.
       charge additive), off-water doesn't, pre-charge gate at the
       ceiling (overshoot ≤ one scaled charge), trait scaling via
       `[kitty.needs] bath` override, gain 0 disables, charge visible in
-      the same tick's happiness
+      the same tick's happiness; FR-003 explicit assertions — drinking
+      from adjacency incurs no bath charge, and a move onto/off water
+      remains exactly one tile in one tick (movement untouched)
 - [ ] T007 [US1] Scale the scripted surcharge: `water_step_cost ×
       (need_rate_for(me, Bath) / needs.bath)` in
       crates/cloudkitty-core/src/behavior/needs_driven.rs:327-343;
@@ -83,10 +85,14 @@ fixtures prove SC-001. No other dynamics change.
 - [ ] T008 [P] [US1] NEW crates/cloudkitty-core/tests/water_safeguard.rs
       — the runtime half of FR-004 (R10): directed swim-forever hostile
       behavior over thousands of ticks asserts zero Bath distress
-      events and bath never crossing safeguard via water; plus a
-      lounging fixture (accrues to ceiling, then stops); plus SC-001
-      skirt-vs-swim scripted fixtures (1-tile puddle with short detour
-      → skirts; long detour → swims)
+      events and bath never crossing safeguard via water, with
+      `[water]` values **randomized through `validate`** so the guard
+      holds at every legal dial (SC-002's letter), and roster bath-rise
+      variance included; plus a lounging fixture (accrues to ceiling,
+      then stops); plus a chase-or-sidestep-onto-water fixture
+      asserting the occupancy charge applies that tick (no special
+      case); plus SC-001 skirt-vs-swim scripted fixtures (1-tile
+      puddle with short detour → skirts; long detour → swims)
 - [ ] T009 [US1] Re-verify dynamics-sensitive behavioral suites under
       wet fur: crates/cloudkitty-core/tests/stuck_state_regression.rs
       and crates/cloudkitty-core/tests/welfare_longrun.rs (R8 items
@@ -121,8 +127,11 @@ decorrelate.
       sidestep, a draw happens only when blocked (stream-shape sanity)
 - [ ] T012 [US2] Mirrored two-chaser decorrelation fixture (integration,
       crates/cloudkitty-core/tests/approach_etiquette.rs or sibling):
-      two kitties chasing across one lane for 1,000+ ticks never enter
-      a sustained lockstep dance; deterministic across reruns
+      two kitties chasing across one lane for 1,000+ ticks, asserting
+      the operational lockstep definition — no window of 8+ consecutive
+      ticks in which both chasers' per-tick displacement vectors are
+      mirror images while neither closes distance; deterministic across
+      reruns
 - [ ] T013 [US2] FR-007 re-baseline: run
       crates/cloudkitty-core/tests/behavior_variation.rs and the
       selection staleness expectations

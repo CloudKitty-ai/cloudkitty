@@ -252,8 +252,9 @@ law and fails when either side is deliberately perturbed.
 - **Water charge**: the per-tick bath cost of occupying a water tile —
   dial × trait scaling, gated by the clamp; a need-pressure mechanic,
   never a punishment (no new state, no new events).
-- **Clamp**: the pre-charge bath ceiling (50) above which water charges
-  stop; together with dial bounds it guarantees safeguard headroom.
+- **Clamp** (config key `bath_gain_ceiling`): the pre-charge bath
+  ceiling (50) above which water charges stop; together with dial
+  bounds it guarantees safeguard headroom.
 - **Sidestep**: a lawful adjacent step taken when the straight chase
   step is blocked by a kitty; per-kitty seeded, decorrelated.
 - **Equivalence fixture matrix**: need kind × neighbor state × relief
