@@ -639,3 +639,21 @@ README row (filename → sha256 → certification record); the s6 row's
 committed bytes must hash `8030b94d…` (byte-identical move, never a
 re-export) — R2 verifies the hash before seating the artifact in any
 run.
+
+### 2026-07-31d — R1 duty-cycle method pinned (pre-run; no measurement seen)
+
+Neither the pyo3 surface nor the privileged state exposes purr-phase
+state, so R1's ambient-duty measurement uses an **observability
+variant**: the served config with `announce_probability = 1.0` only.
+Validity: `start_purr` draws the announce decision even at p = 0 and
+p = 1 (`gen_f32 < p`, documented in-engine as the draw-shape rule), so
+the variant consumes identical RNG and replays the identical
+trajectory — announcements are added to the stream, nothing else
+changes (and no scripted behavior reads the stream). Per seed, R1 runs
+the served config (p = 0: meow volume per kind, zero-Purr check) and
+the variant (p = 1: motor starts), and **asserts the non-Purr streams
+are identical across the pair** (determinism cross-check of the shape
+rule). Duty estimator, fixed now: motor starts × E[duration] /
+(kitties × ticks), E[duration] = 10.5 (uniform 8..13). Expected value
+with ceiling-rounded drawn factors: ≈ 30.3% (the 30.8% in 31b is the
+no-ceiling approximation; both stated in advance).
