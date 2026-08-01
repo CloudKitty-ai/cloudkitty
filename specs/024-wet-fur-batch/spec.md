@@ -97,7 +97,10 @@ only because wet fur is the batch's reason for existing.
 
 **Independent Test**: Fixture worlds with a blocker in the chase lane;
 assert the chase advances via a lawful adjacent step instead of stalling,
-that two mirrored chasers never sidestep in lockstep, and that the run is
+that two mirrored chasers engage the sidestep and pass each other
+promptly (the original "never in lockstep" window metric could not fail
+under sequential apply and was replaced by the 2026-08-01 review — see
+tasks.md, Post-review reconciliation), and that the run is
 bit-reproducible from the seed.
 
 **Acceptance Scenarios**:
@@ -191,7 +194,10 @@ law and fails when either side is deliberately perturbed.
   framing: 1.0 equals 5× the ambient bath rise (0.2/tick).
 - **FR-002**: While a kitty occupies a water tile and its bath need is
   **below 50** (pre-charge), the engine MUST charge bath by
-  `bath_gain × (kitty's bath rise / 0.2)` that tick — per-cat
+  `bath_gain × (kitty's bath rise / the world's [needs] bath baseline)`
+  that tick (at the default baseline of 0.2 a plain cat's ratio is 1;
+  training.toml runs baseline 0.3, so budget from the config in hand,
+  not the default) — per-cat
   personality scaling through the existing trait, on top of ordinary
   ambient accrual. At or above 50, no water charge applies.
 - **FR-003**: Water occupancy MUST NOT change movement: 1 tile/tick,

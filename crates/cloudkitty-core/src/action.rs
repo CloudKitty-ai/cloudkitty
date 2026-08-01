@@ -1487,6 +1487,7 @@ mod tests {
         world.kitties[a].pos = Position::new(5, 5);
         let b = world.kitty_index(2).unwrap();
         world.kitties[b].pos = Position::new(6, 5);
+        let before = serde_json::to_string(&world.rng).unwrap();
         apply(
             &mut world,
             1,
@@ -1498,13 +1499,19 @@ mod tests {
             Position::new(5, 5),
             "an adjacent chaser must hold its pounce, never orbit away"
         );
+        assert_eq!(
+            serde_json::to_string(&world.rng).unwrap(),
+            before,
+            "pounce range must not consume a draw"
+        );
     }
 
     #[test]
     fn a_chase_beside_its_bug_under_a_sitting_friend_stays_put() {
         // The element flavor of the same edge: the bug one step away,
-        // a friend sitting on it. Stall, not retreat.
+        // a friend sitting on it. Stall, not retreat, no draw.
         let (mut world, config) = chase_lane(Position::new(6, 5), Some(Position::new(6, 5)));
+        let before = serde_json::to_string(&world.rng).unwrap();
         apply(
             &mut world,
             1,
@@ -1512,6 +1519,11 @@ mod tests {
             &config,
         );
         assert_eq!(world.kitty(1).unwrap().pos, Position::new(5, 5));
+        assert_eq!(
+            serde_json::to_string(&world.rng).unwrap(),
+            before,
+            "pounce range must not consume a draw"
+        );
     }
 
     #[test]
