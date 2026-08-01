@@ -299,6 +299,13 @@ pub struct Kitty {
     /// "rumbling now" signal. Absent in pre-011 snapshots: quiet.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub purring_until: Option<u64>,
+    /// The drawn length of the current purr (spec 022): set at purr start
+    /// (either origin), consumed at purr end to stamp the proportional motor
+    /// cooldown, then cleared -- paired with `purring_until`. Absent in
+    /// pre-022 snapshots: an in-flight purr restores without it, and its end
+    /// treats the duration as `[purr] min_ticks` (the fixed convention).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub purring_duration: Option<u64>,
     /// No new purr may begin before this tick (spec 011). 0 in pre-011
     /// snapshots: immediately eligible.
     #[serde(default)]
@@ -330,6 +337,7 @@ impl Kitty {
             distress_since: BTreeMap::new(),
             activity_clock: None,
             purring_until: None,
+            purring_duration: None,
             purr_cooldown_until: 0,
         }
     }
@@ -343,7 +351,19 @@ impl Kitty {
         self.activity_clock = None;
     }
 
-    /// Whether `kind` may be meowed at `tick`.
+    /// The earned-purr rule (specs 011/022), the one definition both
+    /// enforcement sites share: the motor's start check (`World::purr_phase`)
+    /// and the deliberate purr's validate gate -- which the RL mask derives
+    /// from -- must never disagree, so neither may inline its own copy.
+    /// `purr_threshold` is `config.thresholds.purr`.
+    pub fn purr_earned(&self, purr_threshold: f32) -> bool {
+        self.happiness > purr_threshold || self.happiness_rose
+    }
+
+    /// Whether repeating `kind` at `tick` would be courteous (spec 023):
+    /// consulted voluntarily by the scripted behaviors before they propose
+    /// a repeat. The engine enforces nothing with this -- every validated
+    /// meow emits.
     pub fn can_meow(&self, kind: MessageKind, tick: u64) -> bool {
         match self.meow_cooldowns.get(&kind) {
             Some(&ready_at) => tick >= ready_at,
@@ -428,6 +448,8 @@ mod tests {
         });
         k.last_relief.insert(NeedKind::Eat, 1396);
         k.distress_since.insert(NeedKind::Play, 1249);
+        k.purring_until = Some(1500);
+        k.purring_duration = Some(9);
 
         let json = serde_json::to_string(&k).unwrap();
         let back: Kitty = serde_json::from_str(&json).unwrap();
@@ -453,11 +475,40 @@ mod tests {
         assert!(k.abandoned_chases.is_empty());
         assert!(k.last_relief.is_empty());
         assert!(k.distress_since.is_empty());
+        assert!(
+            k.purring_duration.is_none(),
+            "pre-022 snapshots have no stored duration (min_ticks convention)"
+        );
         assert_eq!(
             k.last_relief_tick(NeedKind::Bath),
             0,
             "never = dawn of time"
         );
+    }
+
+    #[test]
+    fn restored_meow_bookkeeping_is_a_harmless_courtesy_record() {
+        // Spec 023 US3 scenario 4: a pre-023 snapshot's stamped cooldowns
+        // load fine; the courtesy consult respects them (a delayed next
+        // scripted meow) and nothing enforces them -- the engine reads
+        // this map nowhere.
+        let json = r#"{
+            "id": 1, "name": "Miso", "pos": {"x": 3, "y": 3},
+            "needs": {"eat": 30.0, "drink": 30.0, "sleep": 30.0,
+                      "play": 30.0, "cuddle": 30.0, "bath": 30.0},
+            "happiness": 80.0,
+            "activity": {"state": "idle"},
+            "behavior": "needs_driven",
+            "meow_cooldowns": {"want_eat": 500},
+            "in_distress": [],
+            "happiness_rose": false
+        }"#;
+        let k: Kitty = serde_json::from_str(json).unwrap();
+        assert!(
+            !k.can_meow(MessageKind::WantEat, 499),
+            "the restored record delays the courtesy consult"
+        );
+        assert!(k.can_meow(MessageKind::WantEat, 500));
     }
 
     #[test]
@@ -467,6 +518,7 @@ mod tests {
         assert!(json.get("abandoned_chases").is_none());
         assert!(json.get("last_relief").is_none());
         assert!(json.get("distress_since").is_none());
+        assert!(json.get("purring_duration").is_none());
     }
 
     #[test]

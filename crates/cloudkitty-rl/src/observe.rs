@@ -538,6 +538,44 @@ mod tests {
     }
 
     #[test]
+    fn a_chatty_meower_saturates_the_digest_and_never_compounds() {
+        // Spec 023 (US1 scenario 2): with no engine cap on emission,
+        // per-tick repeats drive presence to the clamp -- the max of
+        // decayed contributions -- so ten meows read exactly like one
+        // fresh meow. Saturation, never compounding.
+        use cloudkitty_core::meow::{Meow, MessageKind};
+        let (mut world, config) = test_world();
+        world.tick = 50;
+        for t in 41..=50 {
+            world.recent_meows.push(Meow {
+                kitty_id: 2,
+                kind: MessageKind::WantEat,
+                tick: t,
+            });
+        }
+        let cfg = ObservationConfig::default();
+        let spam = encode_observation(&world.snapshot(), 1, &config, &cfg, 0.0);
+
+        let (mut one_world, _) = test_world();
+        one_world.tick = 50;
+        one_world.recent_meows.push(Meow {
+            kitty_id: 2,
+            kind: MessageKind::WantEat,
+            tick: 50,
+        });
+        let one = encode_observation(&one_world.snapshot(), 1, &config, &cfg, 0.0);
+
+        // WantEat is the first digest kind; its presence leads the digest
+        // block, which sits just before the episode clock.
+        let presence_index = observation_len(&cfg) - 1 - MEOW_DIGEST;
+        assert_eq!(spam.values[presence_index], 1.0, "saturated at the clamp");
+        assert_eq!(
+            spam.values[presence_index], one.values[presence_index],
+            "ten meows read exactly like one fresh meow"
+        );
+    }
+
+    #[test]
     fn encoding_is_deterministic_and_in_bounds() {
         let (world, config) = test_world();
         let snapshot = world.snapshot();

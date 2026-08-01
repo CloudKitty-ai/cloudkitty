@@ -82,10 +82,13 @@ pub struct Config {
     pub viewer: ViewerConfig,
 }
 
-/// The rhythm of a sustained purr (spec 011). Purring is engine-owned kitty
-/// state -- earned by happiness, never proposed, never a spent turn -- and
-/// these three numbers give the rumble its wave shape: a seeded draw between
-/// `min_ticks` and `max_ticks`, then `cooldown_ticks` of rest.
+/// The rhythm of a sustained purr (spec 011, retuned by spec 022). Purring
+/// is engine-owned kitty state -- earned by happiness -- that a kitty may
+/// now also *choose* to start (the deliberate purr, a spent turn). The
+/// duration draw sets episode texture; the factor bounds set the rhythm:
+/// each finished purr rests the motor for a freshly drawn multiple of its
+/// own length, so a happy kitty rumbles a constant 1/(1 + midpoint) of the
+/// time -- ~30.8% at the defaults -- while no two rests repeat mechanically.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PurrConfig {
     /// Shortest purr, in ticks. Must be at least 1 and at most `max_ticks`.
@@ -94,9 +97,27 @@ pub struct PurrConfig {
     /// Longest purr, in ticks.
     #[serde(default = "default_purr_max_ticks")]
     pub max_ticks: u64,
-    /// Rest between purrs, in ticks. 0 is legal: back-to-back rumbles.
-    #[serde(default = "default_purr_cooldown_ticks")]
-    pub cooldown_ticks: u64,
+    /// Lower bound of the per-end cooldown-factor draw (spec 022): the
+    /// motor's rest is ⌈factor × the finished purr's duration⌉. Must be
+    /// positive and at most `cooldown_factor_max`; equal bounds fix the
+    /// factor.
+    #[serde(default = "default_purr_cooldown_factor_min")]
+    pub cooldown_factor_min: f32,
+    /// Upper bound of the per-end cooldown-factor draw.
+    #[serde(default = "default_purr_cooldown_factor_max")]
+    pub cooldown_factor_max: f32,
+    /// Chance a *spontaneous* purr start announces itself with a Purr meow
+    /// (spec 022). Drawn once per start regardless of value (the
+    /// fixed-shape rule); deliberate purrs always announce. 0 -- the
+    /// default -- keeps the motor silent: the broadcast channel carries
+    /// only chosen purrs.
+    #[serde(default = "default_purr_announce_probability")]
+    pub announce_probability: f32,
+    /// RETIRED (spec 022): the flat rest was replaced by the proportional
+    /// factor pair above. Deserialize-only sentinel -- a config that still
+    /// names this key fails validation loudly, never silently ignored.
+    #[serde(default, skip_serializing)]
+    pub cooldown_ticks: Option<u64>,
 }
 
 impl Default for PurrConfig {
@@ -104,7 +125,10 @@ impl Default for PurrConfig {
         Self {
             min_ticks: default_purr_min_ticks(),
             max_ticks: default_purr_max_ticks(),
-            cooldown_ticks: default_purr_cooldown_ticks(),
+            cooldown_factor_min: default_purr_cooldown_factor_min(),
+            cooldown_factor_max: default_purr_cooldown_factor_max(),
+            announce_probability: default_purr_announce_probability(),
+            cooldown_ticks: None,
         }
     }
 }
@@ -473,22 +497,47 @@ impl DurationsConfig {
     }
 }
 
+/// The meow channel's manners (spec 023). The engine enforces nothing here:
+/// every validated meow emits, and a learned agent is governed by the turn
+/// cost alone. The courtesy values are consulted *voluntarily* by the
+/// scripted behaviors before they repeat themselves -- manners, not law.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct MeowConfig {
-    pub cooldown_ticks: u64,
-    pub urgent_cooldown_ticks: u64,
+    /// Scripted courtesy: how long a built-in waits before repeating the
+    /// same message kind. Equal to the digest window by default, so a
+    /// persistent signal refreshes exactly as the old one expires -- no
+    /// dead air, no stacking.
+    #[serde(default = "default_meow_courtesy_ticks")]
+    pub courtesy_ticks: u64,
+    /// The urgent carve-out: at or above `urgent_need_threshold` a scripted
+    /// kitty may repeat sooner. Must be at most `courtesy_ticks`.
+    #[serde(default = "default_meow_urgent_courtesy_ticks")]
+    pub urgent_courtesy_ticks: u64,
+    /// Need level at which the urgent courtesy applies.
+    #[serde(default = "default_meow_urgent_need_threshold")]
     pub urgent_need_threshold: f32,
     /// How long a meow stays visible to kitties and viewers.
+    #[serde(default = "default_meow_recent_window_ticks")]
     pub recent_window_ticks: u64,
+    /// RETIRED (spec 023): renamed to `courtesy_ticks` when engine
+    /// enforcement ended. Deserialize-only sentinel -- a config naming it
+    /// fails validation loudly, never silently shifting semantics.
+    #[serde(default, skip_serializing)]
+    pub cooldown_ticks: Option<u64>,
+    /// RETIRED (spec 023): renamed to `urgent_courtesy_ticks`.
+    #[serde(default, skip_serializing)]
+    pub urgent_cooldown_ticks: Option<u64>,
 }
 
 impl Default for MeowConfig {
     fn default() -> Self {
         Self {
-            cooldown_ticks: 15,
-            urgent_cooldown_ticks: 5,
-            urgent_need_threshold: 75.0,
-            recent_window_ticks: 10,
+            courtesy_ticks: default_meow_courtesy_ticks(),
+            urgent_courtesy_ticks: default_meow_urgent_courtesy_ticks(),
+            urgent_need_threshold: default_meow_urgent_need_threshold(),
+            recent_window_ticks: default_meow_recent_window_ticks(),
+            cooldown_ticks: None,
+            urgent_cooldown_ticks: None,
         }
     }
 }
@@ -708,6 +757,7 @@ impl Config {
         self.validate_elements()?;
         self.validate_behavior()?;
         self.validate_purr()?;
+        self.validate_meow()?;
         self.validate_actions()?;
         self.validate_viewer()?;
         self.validate_events()?;
@@ -990,23 +1040,148 @@ mod tests {
     #[test]
     fn purr_table_defaults_when_absent_and_rejects_bad_bounds() {
         // A pre-011 config has no [purr] section at all: the whole-table
-        // default must land (spec 011 SC-005).
+        // default must land (spec 011 SC-005; defaults retuned by spec 022).
         let parsed: PurrConfig = toml::from_str("").expect("an empty purr table parses");
+        assert_eq!((parsed.min_ticks, parsed.max_ticks), (8, 13));
         assert_eq!(
-            (parsed.min_ticks, parsed.max_ticks, parsed.cooldown_ticks),
-            (6, 15, 30)
+            (parsed.cooldown_factor_min, parsed.cooldown_factor_max),
+            (1.75, 2.75)
         );
 
         let mut c = cfg();
         c.purr.min_ticks = 0;
         let msg = c.validate().unwrap_err().to_string();
         assert!(msg.contains("[purr] min_ticks"), "{msg}");
-        c.purr.min_ticks = 20; // > max_ticks 15
+        c.purr.min_ticks = 20; // > max_ticks 13
         let msg = c.validate().unwrap_err().to_string();
         assert!(msg.contains("[purr] min_ticks"), "{msg}");
         assert!(msg.contains("max_ticks"), "{msg}");
         c.purr.min_ticks = c.purr.max_ticks; // fixed-length purrs are legal
-        c.purr.cooldown_ticks = 0; // as are back-to-back rumbles
+        assert!(c.validate().is_ok());
+    }
+
+    #[test]
+    fn purr_factor_bounds_validate_and_equal_bounds_fix_the_factor() {
+        // Spec 022 FR-010 validation rows for the cooldown-factor pair.
+        let mut c = cfg();
+        c.purr.cooldown_factor_min = 0.0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[purr] cooldown_factor_min"), "{msg}");
+        c.purr.cooldown_factor_min = -1.0;
+        assert!(c.validate().is_err());
+        c.purr.cooldown_factor_min = f32::NAN;
+        assert!(c.validate().is_err());
+        c.purr.cooldown_factor_min = 3.0; // > max 2.75
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("cooldown_factor_max"), "{msg}");
+        c.purr.cooldown_factor_min = 2.25;
+        c.purr.cooldown_factor_max = 2.25; // equal bounds: fixed factor
+        assert!(c.validate().is_ok());
+        // A bad max blames max (review fix: the error names the field the
+        // user must change, not its innocent partner).
+        c.purr.cooldown_factor_max = f32::INFINITY;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[purr] cooldown_factor_max"), "{msg}");
+        c.purr.cooldown_factor_max = f32::NAN;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[purr] cooldown_factor_max"), "{msg}");
+        c.purr.cooldown_factor_max = 1_001.0; // over the exactness bound
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[purr] cooldown_factor_max"), "{msg}");
+    }
+
+    #[test]
+    fn purr_tick_bounds_reject_arithmetic_hazards() {
+        // Review fix alongside spec 022: without an upper bound, an absurd
+        // max_ticks silently truncated the duration draw and could undercut
+        // the "rest is never shortened" ceiling (f32 mantissa) or overflow
+        // `tick + duration`. The bound makes those configs fail loudly.
+        let mut c = cfg();
+        c.purr.max_ticks = 1_000_000; // at the bound: legal
+        assert!(c.validate().is_ok());
+        c.purr.max_ticks = 1_000_001;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[purr] max_ticks"), "{msg}");
+        c.purr.max_ticks = u64::MAX;
+        assert!(c.validate().is_err());
+    }
+
+    #[test]
+    fn meow_courtesy_defaults_land_and_the_rows_hold() {
+        // Spec 023 FR-006: an absent [meow] table (or partial one) fills
+        // from defaults -- the [purr] posture, adopted deliberately so an
+        // old-key config reaches validation where the retirement error can
+        // explain itself.
+        let parsed: MeowConfig = toml::from_str("").expect("an empty meow table parses");
+        assert_eq!(
+            (parsed.courtesy_ticks, parsed.urgent_courtesy_ticks),
+            (10, 5)
+        );
+        let partial: MeowConfig =
+            toml::from_str("courtesy_ticks = 12").expect("a partial meow table parses");
+        assert_eq!(partial.urgent_courtesy_ticks, 5);
+
+        let mut c = cfg();
+        c.meow.urgent_courtesy_ticks = c.meow.courtesy_ticks + 1;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[meow] urgent_courtesy_ticks"), "{msg}");
+        c.meow.urgent_courtesy_ticks = c.meow.courtesy_ticks; // equal is legal
+        assert!(c.validate().is_ok());
+    }
+
+    #[test]
+    fn the_retired_meow_cooldown_knobs_are_rejected_loudly() {
+        // Spec 023 FR-006 / US3 scenario 2: the enforcement-era names fail
+        // at load naming their replacements -- never silently accepted with
+        // shifted semantics.
+        let parsed: MeowConfig =
+            toml::from_str("cooldown_ticks = 15").expect("the retired key still parses");
+        let mut c = cfg();
+        c.meow = parsed;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[meow] cooldown_ticks"), "{msg}");
+        assert!(msg.contains("retired"), "{msg}");
+        assert!(msg.contains("courtesy_ticks"), "{msg}");
+
+        let parsed: MeowConfig = toml::from_str("urgent_cooldown_ticks = 5").expect("parses");
+        let mut c = cfg();
+        c.meow = parsed;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[meow] urgent_cooldown_ticks"), "{msg}");
+        assert!(msg.contains("urgent_courtesy_ticks"), "{msg}");
+    }
+
+    #[test]
+    fn the_retired_purr_cooldown_knob_is_rejected_loudly() {
+        // Spec 022 FR-010 / US3 scenario 3: a config still naming the flat
+        // rest fails at load with an error naming the replacements -- never
+        // a silent ignore (the config module accepts unknown keys, so the
+        // sentinel is what makes this loud).
+        let parsed: PurrConfig =
+            toml::from_str("cooldown_ticks = 30").expect("the retired key still parses");
+        let mut c = cfg();
+        c.purr = parsed;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[purr] cooldown_ticks"), "{msg}");
+        assert!(msg.contains("retired"), "{msg}");
+        assert!(msg.contains("cooldown_factor_min"), "{msg}");
+    }
+
+    #[test]
+    fn purr_announce_probability_defaults_silent_and_rejects_nonsense() {
+        // Spec 022 FR-007/FR-010: an absent key means a silent motor.
+        let parsed: PurrConfig = toml::from_str("").expect("empty purr table parses");
+        assert_eq!(parsed.announce_probability, 0.0);
+
+        let mut c = cfg();
+        c.purr.announce_probability = -0.1;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[purr] announce_probability"), "{msg}");
+        c.purr.announce_probability = 1.1;
+        assert!(c.validate().is_err());
+        c.purr.announce_probability = f32::NAN;
+        assert!(c.validate().is_err());
+        c.purr.announce_probability = 1.0; // legal: every start announces
         assert!(c.validate().is_ok());
     }
 

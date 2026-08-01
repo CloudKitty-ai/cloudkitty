@@ -25,6 +25,15 @@ something it *does*: a contented kitty starts purring and keeps purring — for
 a while, through whatever else it's doing — then rests its motor before the
 next rumble. No turn is ever spent on it.
 
+> *(Amended 2026-07-31, spec 022: a purr may now also be **initiated by
+> choice** — the deliberate purr, the purr-meow menu row, a deliberately
+> spent turn — while purring itself remains engine-owned background state;
+> there is still no purr action verb. The motor's flat rest became a
+> per-purr drawn factor and its start announcement became probabilistic,
+> silent by default. "No turn is ever spent on it" holds for the
+> spontaneous motor; the deliberate purr spends its turn by design. See
+> specs/022-deliberate-purr.)*
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - The purr runs in the background (Priority: P1)

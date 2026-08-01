@@ -100,7 +100,12 @@ within one tick of the direct walk); full suite green.
   yields, and ids are strict.
 - **Yield meow on its own cooldown** (a second dance within the base window):
   the turn is still spent holding still, so the symmetry still breaks; only
-  the bubble is skipped. Etiquette works silent.
+  the bubble is skipped. Etiquette works silent. *(Amended 2026-07-31, spec
+  023: the silence moved layers. The engine no longer swallows any meow, so
+  the yield itself consults the courtesy record and stands silently — an
+  idle turn — when "Wait for me!" was said within the courtesy interval.
+  Same observable etiquette, now the behavior's own manners; the progress
+  guarantee was always the stand, never the meow.)*
 - **The partner moves away entirely**: next tick the distance is no longer 2
   and normal pursuit resumes; the rule only ever touches the exact corner
   moment.

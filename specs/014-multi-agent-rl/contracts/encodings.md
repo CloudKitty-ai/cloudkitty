@@ -55,6 +55,13 @@ TargetTable. Direction order is the engine's: North, East, South, West.
   the wait-for-me meow is engine-reserved (spec 012) and absent.
 - **Extensibility**: growth only by codec version bump; indices never
   repurposed; no reserved indices.
+- **Purr-meow gate (amendment 2026-07-31, spec 022)**: index 38 is the
+  deliberate purr — the one earned-gated meow row (the motor's rule:
+  happiness above the purr threshold, or happiness that rose). The gate
+  lives in engine validation; the mask derives it like every other verdict
+  (no carve-outs) and never-all-zero is untouched (idle, index 39). Not a
+  repurposing: the index keeps its wire form and identity — its effect
+  gained the purr it always named.
 
 ## Legal-action mask v1 (versioned with the codec)
 

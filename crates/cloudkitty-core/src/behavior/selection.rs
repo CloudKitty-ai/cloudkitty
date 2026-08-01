@@ -297,12 +297,19 @@ pub fn should_wait_for(ctx: &DecisionContext, friend: KittyId, friend_pos: Posit
         && ctx.world.tick.is_multiple_of(2)
 }
 
-/// The yield itself: the held turn is spent asking, not pacing. If the word
-/// is on its base cooldown the meow is lawfully silent -- the turn is still
-/// spent standing, which is what breaks the dance (spec 012 FR-003).
-pub fn wait_for_them() -> Action {
-    Action::Meow {
-        message: MessageKind::WaitForMe,
+/// The yield itself: the held turn is spent asking -- or, when the word was
+/// said recently, just standing. Either way the turn is spent not pacing,
+/// and the stand is what breaks the dance (spec 012 FR-003, amended by spec
+/// 023): with the engine's swallow retired, the yield consults courtesy
+/// like every scripted emitter, so a long dance asks at most once per
+/// courtesy interval instead of every yielding turn.
+pub fn wait_for_them(ctx: &DecisionContext) -> Action {
+    if ctx.me.can_meow(MessageKind::WaitForMe, ctx.world.tick) {
+        Action::Meow {
+            message: MessageKind::WaitForMe,
+        }
+    } else {
+        Action::Idle
     }
 }
 
@@ -333,7 +340,7 @@ pub fn play_action_with(ctx: &DecisionContext, playmate: Option<(TargetRef, Posi
                 // does not take turns.
                 if let TargetRef::Kitty { id } = target {
                     if should_wait_for(ctx, id, pos) {
-                        return wait_for_them();
+                        return wait_for_them(ctx);
                     }
                 }
                 Action::Chase(target)
@@ -775,7 +782,9 @@ mod tests {
 
         assert_eq!(
             play_action(&make(2, 100)),
-            wait_for_them(),
+            Action::Meow {
+                message: MessageKind::WaitForMe,
+            },
             "higher id, even tick: hold the corner and ask"
         );
         assert_eq!(
@@ -787,6 +796,31 @@ mod tests {
             play_action(&make(1, 100)),
             Action::Chase(TargetRef::Kitty { id: 2 }),
             "the lower id always closes"
+        );
+
+        // Spec 023: with the engine swallow retired, the yield itself keeps
+        // the courtesy -- inside the interval it stands silently. The turn
+        // is still spent not pacing, so the dance's progress guarantee (the
+        // stand, tick parity) is untouched.
+        let mut on_courtesy = make(2, 100);
+        on_courtesy
+            .me
+            .set_meow_cooldown(MessageKind::WaitForMe, 100 + 4);
+        assert_eq!(
+            play_action(&on_courtesy),
+            Action::Idle,
+            "on courtesy, the yield is a silent stand"
+        );
+        let mut courtesy_over = make(2, 100);
+        courtesy_over
+            .me
+            .set_meow_cooldown(MessageKind::WaitForMe, 100);
+        assert_eq!(
+            play_action(&courtesy_over),
+            Action::Meow {
+                message: MessageKind::WaitForMe,
+            },
+            "courtesy elapsed: the ask returns"
         );
 
         // Out of the corner zone, nobody stands on ceremony.

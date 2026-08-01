@@ -154,7 +154,12 @@ error. Notable rules:
 - **Rest / Sleep / Groom with a partner**: the partner must exist and be adjacent.
 - **Eat**: requires adjacent chow with `servings > 0`; **Drink**: adjacent water.
 - **Purr**: happiness > threshold (default 70) *or* happiness rose last tick.
+  *(Retired as an action by spec 011; the rule returned as the purr-meow's
+  gate in spec 022.)*
 - **Meow**: always legal; the cooldown decides whether it is audible.
+  *(Amended 2026-07-31: spec 022 earned-gates the purr-meow — the one gated
+  meow row, using the Purr rule above. The cooldown-audibility clause is
+  deleted by spec 023: a legal meow is a heard meow.)*
 
 Application never errors either. Effects are applied through the clamped `Need`
 type, so Article I holds whatever magnitudes the config carries.

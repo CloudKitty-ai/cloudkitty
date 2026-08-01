@@ -74,6 +74,16 @@ pub struct WorldSnapshot {
     pub recent_meows: Vec<Meow>,
 }
 
+/// Who initiated a purr start (spec 022): the same phenomenon either way,
+/// differing only in audibility -- see `World::start_purr`.
+#[derive(Clone, Copy)]
+pub(crate) enum PurrOrigin {
+    /// Chosen via the purr-meow action: always announces.
+    Deliberate,
+    /// The engine's background motor: announces per `announce_probability`.
+    Motor,
+}
+
 impl World {
     /// Builds a fresh world from configuration. Assumes `config.validate()` has
     /// already passed.
@@ -853,58 +863,98 @@ impl World {
         new_events
     }
 
-    /// Spec 011: purring is engine-owned background state, never an action.
-    /// Runs right after needs and happiness settle, so a purr can begin the
-    /// very tick contentment crosses the line; stable kitty-id order keeps
-    /// the RNG draws deterministic (Article V). A purr that ends this tick
-    /// starts its cooldown and cannot restart until the cooldown passes --
-    /// with a zero cooldown, back-to-back rumbles begin the very next tick,
-    /// each its own purr with its own start meow.
+    /// One purr-duration draw from the master RNG -- shared by the motor and
+    /// the deliberate purr (spec 022) so the draw has a single
+    /// implementation. One draw even when min == max: config can never
+    /// change the draw *count* (the fixed-shape rule). The span always fits
+    /// u32: `validate_purr` bounds `max_ticks`.
+    pub(crate) fn draw_purr_duration(&mut self, config: &Config) -> u64 {
+        let span = (config.purr.max_ticks - config.purr.min_ticks + 1) as u32;
+        config.purr.min_ticks + self.rng.gen_range_u32(0, span) as u64
+    }
+
+    /// The purr-start transition (spec 022): one implementation for both
+    /// origins, so the paired fields (`purring_until` + `purring_duration`)
+    /// can never drift apart. Draws the duration -- always exactly one draw
+    /// -- then records the start announcement per the origin's audibility:
+    /// a deliberate purr always announces; the motor announces per
+    /// `announce_probability`, drawing its decision even at 0 and 1 --
+    /// config changes outcomes, never the draw shape. (`gen_f32 < p` rather
+    /// than `gen_bool(p)`: Bernoulli short-circuits p = 1.0 without
+    /// consuming the stream, which would break the shape rule.) Purr starts
+    /// stamp no message cooldown (the stamp lost its last reader -- spec
+    /// 023 retires the enforcement it once fed).
+    pub(crate) fn start_purr(
+        &mut self,
+        idx: usize,
+        config: &Config,
+        tick: u64,
+        origin: PurrOrigin,
+    ) {
+        let duration = self.draw_purr_duration(config);
+        self.kitties[idx].purring_until = Some(tick + duration);
+        self.kitties[idx].purring_duration = Some(duration);
+        let announce = match origin {
+            PurrOrigin::Deliberate => true,
+            PurrOrigin::Motor => self.rng.gen_f32() < config.purr.announce_probability,
+        };
+        if announce {
+            let id = self.kitties[idx].id;
+            self.recent_meows.push(Meow {
+                kitty_id: id,
+                kind: crate::meow::MessageKind::Purr,
+                tick,
+            });
+        }
+    }
+
+    /// Spec 011's engine-owned background purr, amended by spec 022: a purr
+    /// may now also be *initiated* by choice (the deliberate purr, applied
+    /// in the action phase), but running and ending are origin-less and live
+    /// here. Runs right after needs and happiness settle, so a purr can
+    /// begin the very tick contentment crosses the line; stable kitty-id
+    /// order keeps the RNG draws deterministic (Article V). A purr that ends
+    /// this tick starts the motor's cooldown and the motor cannot restart it
+    /// until the cooldown passes -- a deliberate purr may, at any time
+    /// (choice beats reflex).
     fn purr_phase(&mut self, config: &Config) {
         let tick = self.tick;
         for idx in 0..self.kitties.len() {
-            let (purring_until, cooldown_until, happiness, rose) = {
+            let (purring_until, cooldown_until, earned) = {
                 let k = &self.kitties[idx];
                 (
                     k.purring_until,
                     k.purr_cooldown_until,
-                    k.happiness,
-                    k.happiness_rose,
+                    k.purr_earned(config.thresholds.purr),
                 )
             };
             match purring_until {
                 Some(until) if tick >= until => {
+                    // Spec 022: the motor's rest is proportional to the
+                    // finished purr -- one fresh factor draw per end (even
+                    // when the bounds are equal), ceiling-rounded so rest
+                    // is never shortened. The product is taken in f64,
+                    // where it is exact for every validated config (factor
+                    // has 24 mantissa bits, duration is bounded by
+                    // `validate_purr`), so the ceiling truly never
+                    // undercuts. A pre-022 snapshot's in-flight purr
+                    // carries no duration; the fixed convention reads it
+                    // as min_ticks (FR-012).
+                    let duration = self.kitties[idx]
+                        .purring_duration
+                        .unwrap_or(config.purr.min_ticks);
+                    let factor = config.purr.cooldown_factor_min
+                        + (config.purr.cooldown_factor_max - config.purr.cooldown_factor_min)
+                            * self.rng.gen_f32();
+                    let cooldown = (f64::from(factor) * duration as f64).ceil() as u64;
                     self.kitties[idx].purring_until = None;
-                    self.kitties[idx].purr_cooldown_until = tick + config.purr.cooldown_ticks;
+                    self.kitties[idx].purring_duration = None;
+                    self.kitties[idx].purr_cooldown_until = tick + cooldown;
                 }
                 Some(_) => {}
                 None => {
-                    // The earned rule, verbatim from the retired Purr action.
-                    let earned = happiness > config.thresholds.purr || rose;
                     if earned && tick >= cooldown_until {
-                        // One draw even when min == max, so config can never
-                        // change the draw *count* (the fixed-shape rule).
-                        let span = (config.purr.max_ticks - config.purr.min_ticks + 1)
-                            .min(u32::MAX as u64) as u32;
-                        let duration =
-                            config.purr.min_ticks + self.rng.gen_range_u32(0, span) as u64;
-                        self.kitties[idx].purring_until = Some(tick + duration);
-                        // The start meow is a state announcement, not a
-                        // proposal: recorded directly so it fires exactly
-                        // once per purr (FR-005) -- the proposal cooldown
-                        // gate would swallow it under a short purr cooldown.
-                        // Stamping the cooldown keeps every other meow rule
-                        // exactly as it was.
-                        let id = self.kitties[idx].id;
-                        self.kitties[idx].set_meow_cooldown(
-                            crate::meow::MessageKind::Purr,
-                            tick + config.meow.cooldown_ticks,
-                        );
-                        self.recent_meows.push(Meow {
-                            kitty_id: id,
-                            kind: crate::meow::MessageKind::Purr,
-                            tick,
-                        });
+                        self.start_purr(idx, config, tick, PurrOrigin::Motor);
                     }
                 }
             }
@@ -1242,11 +1292,206 @@ mod tests {
         }
     }
 
-    // ---- sustained purring (spec 011) ------------------------------------
+    // ---- sustained purring (spec 011, amended by spec 022) ---------------
+
+    #[test]
+    fn no_purr_start_of_either_origin_stamps_meow_bookkeeping() {
+        // Spec 023 US3 scenario 3 -- the 022 FR-008 handoff, guarded from
+        // this side: motor starts (silent or announcing) and deliberate
+        // starts write nothing into `meow_cooldowns`.
+        for p in [0.0f32, 1.0] {
+            let (mut world, mut config) = test_world();
+            config.purr.announce_probability = p;
+            world.tick = 10;
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].happiness = 90.0;
+            world.purr_phase(&config); // motor start
+            let kitty = world.kitty(1).unwrap();
+            assert!(kitty.purring_until.is_some());
+            assert!(
+                !kitty
+                    .meow_cooldowns
+                    .contains_key(&crate::meow::MessageKind::Purr),
+                "motor start (p = {p}) stamped bookkeeping"
+            );
+        }
+
+        let (mut world, config) = test_world();
+        world.tick = 10;
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].happiness = 90.0;
+        crate::action::apply(
+            &mut world,
+            1,
+            crate::action::Action::Meow {
+                message: crate::meow::MessageKind::Purr,
+            },
+            &config,
+        );
+        let kitty = world.kitty(1).unwrap();
+        assert!(kitty.purring_until.is_some(), "the deliberate purr started");
+        assert!(
+            !kitty
+                .meow_cooldowns
+                .contains_key(&crate::meow::MessageKind::Purr),
+            "a deliberate start stamped bookkeeping"
+        );
+    }
+
+    #[test]
+    fn per_tick_meowing_stays_bounded_by_the_pruning_window() {
+        // Spec 023 (US1 scenario 2): no engine cap on emission, but the
+        // record cannot grow without limit -- pruning holds it to the
+        // retention window.
+        let (mut world, config) = test_world();
+        for _ in 0..200 {
+            world.tick += 1;
+            let tick = world.tick;
+            world.recent_meows.push(crate::meow::Meow {
+                kitty_id: 1,
+                kind: crate::meow::MessageKind::WantPlay,
+                tick,
+            });
+            world.prune_transient(&config);
+        }
+        assert!(
+            world.recent_meows.len() as u64 <= config.meow.recent_window_ticks + 1,
+            "bounded: {} entries for window {}",
+            world.recent_meows.len(),
+            config.meow.recent_window_ticks
+        );
+    }
+
+    /// One scripted "tick" of the purr surfaces: randomized moods, one
+    /// kitty attempting the deliberate purr through validation, then the
+    /// purr phase. Shared by the determinism tests so both runs replay the
+    /// identical script.
+    fn purr_script_tick(world: &mut World, config: &Config, scratch: &mut SimRng) {
+        world.tick += 1;
+        for idx in 0..world.kitties.len() {
+            world.kitties[idx].happiness = scratch.gen_range_u32(0, 101) as f32;
+            world.kitties[idx].happiness_rose = scratch.gen_bool(0.3);
+        }
+        let choose = scratch.gen_range_u32(0, world.kitties.len() as u32) as usize;
+        let id = world.kitties[choose].id;
+        let validated = crate::action::validate(
+            world,
+            id,
+            crate::action::Action::Meow {
+                message: crate::meow::MessageKind::Purr,
+            },
+            config,
+        );
+        crate::action::apply(world, id, validated, config);
+        world.purr_phase(config);
+    }
+
+    #[test]
+    fn same_seed_purr_trajectories_replay_exactly_with_both_origins() {
+        // Spec 022 SC-006: same seed + config + ticks -> identical world,
+        // with motor and deliberate purrs interleaving.
+        let run = || {
+            let (mut world, config) = test_world();
+            world.rng = SimRng::from_seed(9);
+            let mut scratch = SimRng::from_seed(13);
+            for _ in 0..300 {
+                purr_script_tick(&mut world, &config, &mut scratch);
+            }
+            serde_json::to_string(&world).unwrap()
+        };
+        assert_eq!(run(), run());
+    }
+
+    #[test]
+    fn purr_determinism_survives_a_mid_purr_save_and_restore() {
+        // Spec 022 FR-012/SC-006: a world saved mid-purr and restored
+        // replays exactly what the uninterrupted run does -- including the
+        // proportional cooldown stamped from the restored duration.
+        let (mut a, config) = test_world();
+        a.rng = SimRng::from_seed(31);
+        let mut scratch = SimRng::from_seed(77);
+        for _ in 0..40 {
+            purr_script_tick(&mut a, &config, &mut scratch);
+        }
+        assert!(
+            a.kitties.iter().any(|k| k.purring_until.is_some()),
+            "the save point should catch someone mid-purr"
+        );
+
+        // Save/restore the whole world (RNG state included) and continue
+        // both copies with identically-seeded scratch streams.
+        let saved = serde_json::to_string(&a).unwrap();
+        let mut b: World = serde_json::from_str(&saved).unwrap();
+        let mut scratch_b = scratch.clone();
+        for _ in 0..120 {
+            purr_script_tick(&mut a, &config, &mut scratch);
+            purr_script_tick(&mut b, &config, &mut scratch_b);
+        }
+        assert_eq!(
+            serde_json::to_string(&a).unwrap(),
+            serde_json::to_string(&b).unwrap(),
+            "the restored world replays the uninterrupted one exactly"
+        );
+    }
+
+    #[test]
+    fn every_purr_of_either_origin_certifies_an_earned_cat() {
+        // Spec 022 SC-003 property: across randomized seeds, moods, and
+        // purr configs, a purr never starts -- by motor or by choice --
+        // unless the earned rule held at that moment.
+        for seed in 0..20u64 {
+            let (mut world, mut config) = test_world();
+            world.rng = SimRng::from_seed(seed);
+            config.thresholds.purr = 50.0 + (seed % 5) as f32 * 10.0;
+            config.purr.min_ticks = 2 + seed % 4;
+            config.purr.max_ticks = config.purr.min_ticks + seed % 7;
+            let mut scratch = SimRng::from_seed(seed ^ 0x00C0_FFEE);
+
+            for _ in 0..2_000 {
+                world.tick += 1;
+                let tick = world.tick;
+                let mut was_purring = Vec::new();
+                for idx in 0..world.kitties.len() {
+                    world.kitties[idx].happiness = scratch.gen_range_u32(0, 101) as f32;
+                    world.kitties[idx].happiness_rose = scratch.gen_bool(0.3);
+                    was_purring.push(world.kitties[idx].purring_until.is_some());
+                }
+                // A random kitty tries the deliberate path each tick; the
+                // validate gate decides whether the choice is lawful.
+                let choose = scratch.gen_range_u32(0, world.kitties.len() as u32) as usize;
+                let id = world.kitties[choose].id;
+                let validated = crate::action::validate(
+                    &world,
+                    id,
+                    crate::action::Action::Meow {
+                        message: crate::meow::MessageKind::Purr,
+                    },
+                    &config,
+                );
+                crate::action::apply(&mut world, id, validated, &config);
+                world.purr_phase(&config);
+
+                for (idx, was) in was_purring.iter().enumerate() {
+                    let k = &world.kitties[idx];
+                    if !was && k.purring_until.is_some() {
+                        assert!(
+                            k.happiness > config.thresholds.purr || k.happiness_rose,
+                            "seed {seed} tick {tick}: a purr started unearned"
+                        );
+                    }
+                }
+            }
+        }
+    }
 
     #[test]
     fn an_earned_kitty_starts_purring_with_a_bounded_draw_and_one_meow() {
-        let (mut world, config) = test_world();
+        // Re-baselined by spec 022 (FR-015): the motor announces per
+        // `announce_probability`; the spec-011 one-meow-per-purr guarantee
+        // is asserted against an always-announcing world (p = 1), exactly
+        // the pre-022 behavior.
+        let (mut world, mut config) = test_world();
+        config.purr.announce_probability = 1.0;
         world.tick = 50;
         let idx = world.kitty_index(1).unwrap();
         world.kitties[idx].happiness = 90.0; // past the purr threshold
@@ -1271,12 +1516,192 @@ mod tests {
                 .count()
         };
         assert_eq!(purr_meows(&world), 1, "exactly one meow, at purr start");
+        assert!(
+            !world
+                .kitty(1)
+                .unwrap()
+                .meow_cooldowns
+                .contains_key(&crate::meow::MessageKind::Purr),
+            "purr starts stamp no message cooldown (spec 022 FR-008; 023 re-verifies)"
+        );
 
         // Further purring ticks announce nothing.
         world.tick = 51;
         world.purr_phase(&config);
         assert_eq!(world.kitty(1).unwrap().purring_until, Some(until));
         assert_eq!(purr_meows(&world), 1);
+    }
+
+    #[test]
+    fn the_default_motor_is_silent_at_an_unchanged_cadence() {
+        // Spec 022 US2: at the default announce probability (0) the motor
+        // purrs exactly as it would at p = 1 -- same starts, same
+        // durations -- but records no announcement and stamps nothing.
+        let (mut world, config) = test_world();
+        assert_eq!(config.purr.announce_probability, 0.0, "default is silent");
+        world.tick = 50;
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].happiness = 90.0;
+
+        world.purr_phase(&config);
+
+        let kitty = world.kitty(1).unwrap();
+        assert!(kitty.purring_until.is_some(), "the rumble is unchanged");
+        assert!(
+            world.recent_meows.is_empty(),
+            "a silent start records no announcement"
+        );
+        assert!(
+            !kitty
+                .meow_cooldowns
+                .contains_key(&crate::meow::MessageKind::Purr),
+            "a silent start stamps nothing"
+        );
+    }
+
+    #[test]
+    fn purr_timings_are_identical_across_announce_probabilities() {
+        // Spec 022 FR-011 shape rule (research D10): the announce decision
+        // is drawn even at 0 and 1, so flipping the probability changes
+        // what is heard, never when purrs start or end.
+        let run = |p: f32| -> Vec<(u64, Option<u64>)> {
+            let (mut world, mut config) = test_world();
+            config.purr.announce_probability = p;
+            world.rng = SimRng::from_seed(7);
+            let mut scratch = SimRng::from_seed(99);
+            let mut timeline = Vec::new();
+            for _ in 0..400 {
+                world.tick += 1;
+                for idx in 0..world.kitties.len() {
+                    // Same mood script on both runs (independent stream).
+                    world.kitties[idx].happiness = scratch.gen_range_u32(0, 101) as f32;
+                    world.kitties[idx].happiness_rose = scratch.gen_bool(0.3);
+                }
+                world.purr_phase(&config);
+                timeline.push((world.tick, world.kitty(1).unwrap().purring_until));
+            }
+            timeline
+        };
+
+        assert_eq!(run(0.0), run(1.0), "announcements differ; timings must not");
+    }
+
+    #[test]
+    fn a_finished_purr_rests_by_a_drawn_factor_of_its_own_length() {
+        // Spec 022 FR-009 / US3 scenario 1: the stamp is ⌈factor × the
+        // finished purr's actual duration⌉ with the factor drawn per end;
+        // equal bounds make the expectation exact, unequal bounds bound it.
+        let (mut world, mut config) = test_world();
+        config.purr.cooldown_factor_min = 2.25;
+        config.purr.cooldown_factor_max = 2.25;
+        world.tick = 100;
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].purring_until = Some(100); // ends this tick
+        world.kitties[idx].purring_duration = Some(9);
+        for k in world.kitties.iter_mut() {
+            k.happiness = 10.0; // nobody else starts or ends anything
+            k.happiness_rose = false;
+        }
+
+        world.purr_phase(&config);
+
+        let kitty = world.kitty(1).unwrap();
+        assert_eq!(kitty.purring_until, None);
+        assert_eq!(kitty.purring_duration, None, "cleared together");
+        // 2.25 × 9 = 20.25 → 21: the ceiling never shortens rest.
+        assert_eq!(kitty.purr_cooldown_until, 100 + 21);
+
+        // Unequal bounds: same seed reproduces the same stamp exactly, and
+        // it always lies within the ceil(min×d)..=ceil(max×d) envelope.
+        let stamp = |seed: u64| -> u64 {
+            let (mut world, mut config) = test_world();
+            config.purr.cooldown_factor_min = 1.75;
+            config.purr.cooldown_factor_max = 2.75;
+            world.rng = SimRng::from_seed(seed);
+            world.tick = 100;
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].purring_until = Some(100);
+            world.kitties[idx].purring_duration = Some(9);
+            for k in world.kitties.iter_mut() {
+                k.happiness = 10.0;
+                k.happiness_rose = false;
+            }
+            world.purr_phase(&config);
+            world.kitty(1).unwrap().purr_cooldown_until - 100
+        };
+        for seed in 0..10 {
+            let s = stamp(seed);
+            assert_eq!(s, stamp(seed), "seed-reproducible");
+            let lo = (1.75f32 * 9.0).ceil() as u64; // 16
+            let hi = (2.75f32 * 9.0).ceil() as u64; // 25
+            assert!((lo..=hi).contains(&s), "stamp {s} outside [{lo}, {hi}]");
+        }
+    }
+
+    #[test]
+    fn a_pre_022_snapshot_mid_purr_rests_by_the_min_ticks_convention() {
+        // FR-012 (clarified 2026-07-31): a restored pre-022 purr carries no
+        // stored duration; the cooldown treats it as min_ticks -- a fixed
+        // convention, biased to the shortest lawful rest.
+        let (mut world, mut config) = test_world();
+        config.purr.cooldown_factor_min = 2.25;
+        config.purr.cooldown_factor_max = 2.25;
+        world.tick = 100;
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].purring_until = Some(100);
+        world.kitties[idx].purring_duration = None; // the pre-022 shape
+        for k in world.kitties.iter_mut() {
+            k.happiness = 10.0;
+            k.happiness_rose = false;
+        }
+
+        world.purr_phase(&config);
+
+        let expected = (2.25f32 * config.purr.min_ticks as f32).ceil() as u64;
+        assert_eq!(
+            world.kitty(1).unwrap().purr_cooldown_until,
+            100 + expected,
+            "unknown duration reads as min_ticks"
+        );
+    }
+
+    #[test]
+    fn happy_kitty_occupancy_holds_the_factor_midpoint_duty_cycle() {
+        // Spec 022 SC-004: occupancy within 2pp of 1/(1 + mean factor
+        // bounds) over ≥20k ticks, independent of the duration bounds and
+        // of the factor spread (configs share the 2.25 midpoint).
+        let configs: [(u64, u64, f32, f32); 2] = [
+            (8, 13, 1.75, 2.75), // the defaults
+            (3, 20, 2.25, 2.25), // wild durations, fixed factor
+        ];
+        for (min_t, max_t, f_min, f_max) in configs {
+            let (mut world, mut config) = test_world();
+            config.purr.min_ticks = min_t;
+            config.purr.max_ticks = max_t;
+            config.purr.cooldown_factor_min = f_min;
+            config.purr.cooldown_factor_max = f_max;
+            world.rng = SimRng::from_seed(4242);
+            let idx = world.kitty_index(1).unwrap();
+            let mut purring_ticks = 0u64;
+            const TICKS: u64 = 20_000;
+            for _ in 0..TICKS {
+                world.tick += 1;
+                for k in world.kitties.iter_mut() {
+                    k.happiness = 95.0; // a healthy meadow, pinned
+                }
+                world.purr_phase(&config);
+                if world.kitties[idx].purring_until.is_some() {
+                    purring_ticks += 1;
+                }
+            }
+            let occupancy = purring_ticks as f64 / TICKS as f64;
+            let target = 1.0 / (1.0 + (f_min + f_max) as f64 / 2.0);
+            assert!(
+                (occupancy - target).abs() < 0.02,
+                "occupancy {occupancy:.4} vs target {target:.4} \
+                 for ({min_t}, {max_t}, {f_min}, {f_max})"
+            );
+        }
     }
 
     #[test]
@@ -1304,10 +1729,15 @@ mod tests {
 
     #[test]
     fn a_purr_ends_on_schedule_and_stamps_the_cooldown() {
-        let (mut world, config) = test_world();
+        // Re-baselined by spec 022: the stamp is proportional now. Equal
+        // factor bounds make the expected rest exact.
+        let (mut world, mut config) = test_world();
+        config.purr.cooldown_factor_min = 2.25;
+        config.purr.cooldown_factor_max = 2.25;
         let idx = world.kitty_index(1).unwrap();
         world.kitties[idx].happiness = 90.0; // earned throughout -- gates nothing mid-purr
         world.kitties[idx].purring_until = Some(80);
+        world.kitties[idx].purring_duration = Some(9);
 
         world.tick = 79;
         world.purr_phase(&config);
@@ -1319,8 +1749,8 @@ mod tests {
         assert_eq!(kitty.purring_until, None, "the rumble winds down on time");
         assert_eq!(
             kitty.purr_cooldown_until,
-            80 + config.purr.cooldown_ticks,
-            "and the motor rests before the next one"
+            80 + 21, // ⌈2.25 × 9⌉
+            "and the motor rests in proportion to the finished purr"
         );
     }
 

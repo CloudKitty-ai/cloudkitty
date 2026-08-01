@@ -6,6 +6,15 @@
 use super::{Config, ConfigError, ElementsConfig, TILES_PER_ELEMENT};
 use crate::element::ElementType;
 
+/// Upper bounds on the purr knobs (spec 022 review): generous beyond any
+/// real world (durations default 8-13 ticks; a million ticks is days of
+/// sim time), but they keep the cooldown arithmetic provably exact --
+/// duration and factor x duration both fit f64's integer range with room
+/// to spare, so the "rest is never shortened" ceiling can never be
+/// undercut by rounding, and `tick + cooldown` can never overflow.
+const MAX_PURR_TICKS: u64 = 1_000_000;
+const MAX_PURR_COOLDOWN_FACTOR: f32 = 1_000.0;
+
 impl Config {
     /// Spec 006: every activity's duration bounds must satisfy 1 <= min <= max.
     pub(super) fn validate_durations(&self) -> Result<(), ConfigError> {
@@ -374,6 +383,82 @@ impl Config {
                     self.purr.min_ticks, self.purr.max_ticks
                 ),
                 "must be at most max_ticks",
+            ));
+        }
+        if self.purr.max_ticks > MAX_PURR_TICKS {
+            return Err(ConfigError::invalid(
+                "[purr] max_ticks",
+                self.purr.max_ticks.to_string(),
+                "must be at most 1000000 (keeps the cooldown arithmetic exact)",
+            ));
+        }
+        let p = self.purr.announce_probability;
+        if !(0.0..=1.0).contains(&p) || p.is_nan() {
+            return Err(ConfigError::invalid(
+                "[purr] announce_probability",
+                p.to_string(),
+                "must be between 0 and 1",
+            ));
+        }
+        let (f_min, f_max) = (self.purr.cooldown_factor_min, self.purr.cooldown_factor_max);
+        if !f_min.is_finite() || f_min <= 0.0 {
+            return Err(ConfigError::invalid(
+                "[purr] cooldown_factor_min",
+                f_min.to_string(),
+                "must be a positive number",
+            ));
+        }
+        if !f_max.is_finite() || f_max > MAX_PURR_COOLDOWN_FACTOR {
+            return Err(ConfigError::invalid(
+                "[purr] cooldown_factor_max",
+                f_max.to_string(),
+                "must be a finite number of at most 1000",
+            ));
+        }
+        if f_min > f_max {
+            return Err(ConfigError::invalid(
+                "[purr] cooldown_factor_min",
+                format!("{f_min} (cooldown_factor_max is {f_max})"),
+                "must be at most cooldown_factor_max",
+            ));
+        }
+        if let Some(retired) = self.purr.cooldown_ticks {
+            return Err(ConfigError::invalid(
+                "[purr] cooldown_ticks",
+                retired.to_string(),
+                "retired by spec 022: the motor's rest is proportional now -- \
+                 use cooldown_factor_min / cooldown_factor_max",
+            ));
+        }
+        Ok(())
+    }
+
+    /// `[meow]` courtesy rows (spec 023): urgent at most base, and the
+    /// retired enforcement-era key names rejected loudly.
+    pub(super) fn validate_meow(&self) -> Result<(), ConfigError> {
+        if self.meow.urgent_courtesy_ticks > self.meow.courtesy_ticks {
+            return Err(ConfigError::invalid(
+                "[meow] urgent_courtesy_ticks",
+                format!(
+                    "{} (courtesy_ticks is {})",
+                    self.meow.urgent_courtesy_ticks, self.meow.courtesy_ticks
+                ),
+                "must be at most courtesy_ticks -- urgency shortens the wait",
+            ));
+        }
+        if let Some(retired) = self.meow.cooldown_ticks {
+            return Err(ConfigError::invalid(
+                "[meow] cooldown_ticks",
+                retired.to_string(),
+                "retired by spec 023: the engine no longer enforces meow \
+                 cooldowns -- the scripted-courtesy value is courtesy_ticks",
+            ));
+        }
+        if let Some(retired) = self.meow.urgent_cooldown_ticks {
+            return Err(ConfigError::invalid(
+                "[meow] urgent_cooldown_ticks",
+                retired.to_string(),
+                "retired by spec 023: use urgent_courtesy_ticks",
             ));
         }
         Ok(())

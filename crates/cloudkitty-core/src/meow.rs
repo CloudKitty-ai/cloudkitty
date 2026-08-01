@@ -1,9 +1,11 @@
 //! Kitty communication.
 //!
-//! Six fixed messages, visible to every other kitty and to viewers. Each message
-//! type has a per-kitty cooldown that shortens when the related need gets urgent,
-//! so a hungry cat may say so more often than a merely chatty one. A meow attempted
-//! during cooldown is silently dropped but still costs the kitty its turn.
+//! Six fixed messages, visible to every other kitty and to viewers. The engine
+//! never blocks one (spec 023): every meow a kitty spends its turn on is heard.
+//! Each message type keeps a per-kitty *courtesy* record -- an interval that
+//! shortens when the related need gets urgent -- which the scripted behaviors
+//! consult voluntarily before repeating themselves. Manners, not law: learned
+//! agents are governed by the turn cost alone.
 
 use serde::{Deserialize, Serialize};
 
@@ -81,8 +83,9 @@ pub struct Meow {
     pub tick: u64,
 }
 
-/// How long this kitty must wait before repeating `kind`, given how urgent the
-/// related need currently is.
+/// The courtesy interval stamped when `kind` is emitted, given how urgent
+/// the related need currently is (spec 023: record-keeping the scripted
+/// behaviors consult -- the engine enforces nothing with it).
 pub fn cooldown_for(
     kind: MessageKind,
     need_value: Option<f32>,

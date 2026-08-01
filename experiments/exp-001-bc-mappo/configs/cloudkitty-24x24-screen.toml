@@ -155,10 +155,12 @@ sleep = { min = 6, max = 12 }
 cuddle = { min = 6, max = 12 }
 
 [meow]
-# Ticks before a kitty may repeat the same message...
-cooldown_ticks = 15
+# Keys renamed for spec 023's courtesy semantics (values preserved from
+# the exp-001 capture): the interval is a courtesy record the scripted
+# behaviors consult, not an engine-enforced cooldown.
+courtesy_ticks = 15
 # ...unless the related need is urgent, when it may say so more often.
-urgent_cooldown_ticks = 5
+urgent_courtesy_ticks = 5
 urgent_need_threshold = 75.0
 # How long a meow stays visible to other kitties and to viewers.
 recent_window_ticks = 10
@@ -169,7 +171,13 @@ recent_window_ticks = 10
 # Purring is pure charm: it never costs a turn and never changes a need.
 min_ticks = 6
 max_ticks = 15
-cooldown_ticks = 30
+# Spec 022 retired the flat cooldown (this capture ran cooldown_ticks =
+# 30). Equal factor bounds of 30 / mean(6..15) = 2.857143 preserve the
+# captured duty cycle (~25.9%) in expectation; per-purr rests are now
+# proportional to the finished purr rather than flat, which no migration
+# can undo.
+cooldown_factor_min = 2.857143
+cooldown_factor_max = 2.857143
 
 [behavior]
 # Share of a tick an *external* behavior may spend deciding before the engine
