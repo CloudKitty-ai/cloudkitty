@@ -275,12 +275,11 @@ fn every_v1_exam_sustains_an_invariant_asserted_run() {
 #[test]
 fn no_exam_equals_a_training_or_certification_config() {
     let root = repo_root();
-    let others = [
-        "cloudkitty.toml",
-        "training.toml",
-        "cloudkitty16.toml",
-        "cloudkitty48.toml",
-    ];
+    // cloudkitty16/48.toml left this list when the owner retired them
+    // (2026-07-31, world-size experiments concluded; copies live in the
+    // untracked worlds.backup/) -- they carried pre-022 purr/meow keys and
+    // would no longer load.
+    let others = ["cloudkitty.toml", "training.toml"];
     for file in V1_EXAM_FILES {
         let exam_bytes = std::fs::read(evals_v1().join(file)).unwrap();
         for other in others {
