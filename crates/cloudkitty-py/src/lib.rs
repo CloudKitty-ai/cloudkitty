@@ -407,6 +407,23 @@ impl ParallelEnv {
             .collect()
     }
 
+    /// Every element in the live world: (id, type, x, y) in stored order.
+    /// Read-only descriptive surface, sibling to `recent_meows`; type names
+    /// match `recent_meows` kind spelling (`Water`, `Chow`, `Bug`, `Greeble`,
+    /// `Sunbeam`). Greebles appear here as everywhere — invisibility is a
+    /// client rendering rule, never an API filter. Positions and payload-free
+    /// types only: enough to join kitty positions against element tiles
+    /// (occupancy measurement); payloads (servings, headings, ttl) wait for
+    /// a consumer.
+    fn elements(&self) -> Vec<(u32, String, u32, u32)> {
+        self.episode
+            .world()
+            .elements
+            .iter()
+            .map(|e| (e.id, format!("{:?}", e.element_type()), e.pos.x, e.pos.y))
+            .collect()
+    }
+
     fn close(&self) {}
 
     fn render(&self) -> Option<String> {
