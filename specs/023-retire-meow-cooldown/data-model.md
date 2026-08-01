@@ -5,7 +5,7 @@
 | Element | Before | After |
 |---|---|---|
 | `Kitty::meow_cooldowns` (BTreeMap kind → ready tick) | stamped at emission; **gates** emission (swallow) | stamped at emission identically; gates **nothing** |
-| `Kitty::can_meow(kind, tick)` | engine enforcement + behavior consult | behavior courtesy consult only (name/docs updated to say so) |
+| `Kitty::can_meow(kind, tick)` | engine enforcement + behavior consult | behavior courtesy consult only (docs updated to say so; the name stays — renaming a public consult is churn with no semantic gain) |
 | `Kitty::set_meow_cooldown` | stamp | stamp (unchanged) |
 | `cooldown_for(kind, need, base, urgent, threshold)` | enforcement arithmetic | stamp-time arithmetic (unchanged function; docs updated) |
 | Purr kind entry | stamped by purr starts (pre-022) | never stamped, never read (settled by 022's implementation; guard test here) |
