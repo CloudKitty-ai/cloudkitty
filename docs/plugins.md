@@ -125,10 +125,19 @@ Every accepted shape:
 Field notes: `with` / `target` on rest, sleep, and groom name a kitty id and
 may be omitted (or `null`) for the solo version. `play` with no target is
 solo play; a play target must be complete — both `target` and `id` — or
-absent entirely. `purr` still parses (it was retired as an action in
-spec 011) but always validates down to an idle turn: a stale advisor is not
-a parse error. Duplicate JSON keys collapse to the last occurrence before
+absent entirely. Duplicate JSON keys collapse to the last occurrence before
 any strict check — standard JSON semantics.
+
+Two purrs, two fates. The purr **meow** is the deliberate purr (spec 022):
+proposed by a content cat — happiness above the purr threshold, or rising —
+it starts a real purr; proposed unearned, it resolves to an idle turn, the
+one meow kind that is not always legal. The bare `purr` **action** still
+parses (it was retired as an action in spec 011) but always validates down
+to an idle turn: a stale advisor is not a parse error.
+
+And a meow, once validated, always sounds: since spec 023 there is no
+engine meow cooldown and nothing is ever swallowed — every legal meow
+emits, every time, and the turn spent is the only cost.
 
 And a gallery of rejections — each of these fails parsing and costs the
 proposing kitty its tick (fallback decides):
@@ -159,7 +168,7 @@ twice; unknown meow kind; extra field on a bare action; not an object.)
 | Your reply | Resolution | You'll see |
 |---|---|---|
 | Parses, and is legal right now | Applied — your kitty does it | The action, attributed to your plugin |
-| Parses, but is illegal right now (chasing a vanished bug, eating with no chow near) | Idle turn, via engine validation | An idle turn — not a punishment, just the law |
+| Parses, but is illegal right now (chasing a vanished bug, eating with no chow near, purring without contentment) | Idle turn, via engine validation | An idle turn — not a punishment, just the law |
 | Fails to parse | Fallback: the built-in needs-driven behavior takes the turn | `proposal rejected` in the log, with the parse error |
 | Wrong `tick`/`kitty_id` echo, oversized, or no reply within `exchange_timeout_ms` | Fallback, **and your process is restarted** | `plugin reply desynced` / size / `exchange timed out` warning in the log |
 | Your process crashed or its stream broke | Fallback (repeated budget timeouts also bench your kitty's dispatch for a while — it recovers on its own) | `plugin exchange failed`, budget/bench warnings |
