@@ -63,4 +63,9 @@ digest-zeroing probe — 8.2% of heard decisions change when silenced
 geometry screen passed
 ([geometry-screen-24x24-2026-07-31.md](geometry-screen-24x24-2026-07-31.md)).
 
-<!-- Append further dated entries above the soak-record cutoff. -->
+## 2026-07-31 — soak CONCLUDED (owner-satisfied)
+
+Owner declared satisfaction and closed the soak; no watch criterion
+ever fired. Verdict and consequences in the soak record:
+[soak-record-2026-07-31.md](soak-record-2026-07-31.md). This log is
+now closed.
