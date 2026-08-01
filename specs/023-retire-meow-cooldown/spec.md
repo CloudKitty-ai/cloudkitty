@@ -72,6 +72,16 @@ depends on who is speaking:
   scripted meow logic, politely, against bookkeeping the agent's own meows
   also stamp), and a third-party plugin advisor remains bounded but not
   rate-limited — the same acceptance issue #84 made for a chatty agent.
+- Plan-phase correction (2026-07-31, code archaeology): wait-for-me is not
+  engine-emitted — it is proposed by the built-in approach-etiquette yield
+  (`selection::wait_for_them`, reached from both kitty-approach paths)
+  *without* a courtesy consult, deliberately leaning on the engine swallow
+  ("the meow is lawfully silent — the turn is still spent standing").
+  Without correction, retiring the swallow would bubble "Wait for me!"
+  every other tick of an approach dance. Resolution: the yield becomes the
+  third courtesy-consulting scripted emitter (FR-004); on courtesy it
+  yields as a silent stand, which preserves spec 012's tick-parity
+  progress guarantee — amended in spec 012 in the same change (FR-008).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -142,8 +152,14 @@ proposing.
 3. **Given** the playful behavior's occasional play announcement, **When**
    it considers meowing, **Then** it consults courtesy first, exactly as the
    needs announcer does — both scripted emitters are covered.
-4. **Given** the engine-reserved wait-for-me meow (spec 012), **When** the
-   engine emits it, **Then** nothing about it changes under this spec.
+4. **Given** the menu-reserved wait-for-me meow (spec 012 — absent from
+   the learned menu, proposed by the built-in approach-etiquette yield
+   from both kitty-approach paths), **When** a yielding kitty holds its
+   corner, **Then** the yield consults courtesy like every scripted
+   emitter: on courtesy it yields *silently* — the turn is still spent
+   standing, which is what breaks the orbit dance; the meow was never the
+   progress guarantee. (Plan-phase correction: this path today relies on
+   the engine swallow it does not consult — see Clarifications.)
 
 ---
 
@@ -234,10 +250,16 @@ emission by consulting it.
   "may I meow?" query surface) MUST survive unchanged as record-keeping:
   emitted meow actions stamp it exactly as today, with the urgent rule
   applied at stamp time. Enforcement is the only thing removed.
-- **FR-004**: Both scripted emitters — the urgent needs announcer and the
-  playful play announcer — MUST consult the courtesy query before proposing
-  a meow, as they already do. Courtesy is voluntary, lives in the behavior
-  layer, and binds no external advisor and no learned agent.
+- **FR-004**: Every scripted emitter MUST consult the courtesy query before
+  proposing a meow. There are three (plan-phase correction — see
+  Clarifications): the urgent needs announcer and the playful play
+  announcer, which already consult, and the approach-etiquette yield
+  ("Wait for me!", proposed from both kitty-approach paths), which today
+  deliberately relies on the engine swallow and MUST gain the consult —
+  yielding as a silent stand when the word is on courtesy, preserving the
+  anti-orbit progress guarantee (the stand, not the meow). Courtesy is
+  voluntary, lives in the behavior layer, and binds no external advisor
+  and no learned agent.
 - **FR-005**: The courtesy base interval MUST change from 15 to 10 ticks —
   equal to the digest retention window, so a persistent signal refreshes
   exactly at expiry: no dead air, no stacking. The urgent interval (5) and
@@ -262,9 +284,13 @@ emission by consulting it.
   (Article VI governance): the "Meow is always legal; the cooldown decides
   whether it is audible" doctrine (spec 001 data model, spec 014 mask
   contract) is strengthened — legal means heard, for every meow row except
-  spec 022's earned-gated purr row. Guarding tests that pin the swallow
-  (meow-on-cooldown-dropped and kin) are re-baselined deliberately to pin
-  the new never-swallowed rule in the same change.
+  spec 022's earned-gated purr row. Spec 012's approach-etiquette clause
+  ("if the word is on its base cooldown the meow is lawfully silent") is
+  amended in the same change: the yield now consults courtesy and stands
+  silently instead, its tick-parity progress guarantee restated as the
+  stand. Guarding tests that pin the swallow (meow-on-cooldown-dropped and
+  kin) are re-baselined deliberately to pin the new never-swallowed rule
+  in the same change.
 - **FR-009**: Compatibility MUST be schema-invariant, same family as spec
   022 FR-014: no observation layout change (digest width and decay
   unchanged), no action-menu or codec change, no mask shape change. Digest
@@ -285,7 +311,7 @@ emission by consulting it.
 
 ### Key Entities
 
-- **The meow action** (six learned kinds + engine-reserved wait-for-me): a
+- **The meow action** (six learned kinds + menu-reserved wait-for-me): a
   turn-consuming broadcast; after this change, emission is unconditional on
   validation — audibility is no longer a property any state can revoke.
 - **Meow bookkeeping**: per-kitty, per-kind last-meow timestamps and the
@@ -358,6 +384,7 @@ emission by consulting it.
   reward. The FINDINGS echo of FR-011's record is an Experiments-thread
   follow-up (their document); this spec owns stating it on the Product side.
 - **Scope boundaries**: no change to which meows exist, to the wait-for-me
+  menu
   reservation (spec 012), to digest layout or decay, to the mask, or to any
   purr semantics beyond deleting the stamp that spec 022 handed off; no
   client work; no new config keys.
