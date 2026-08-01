@@ -208,10 +208,12 @@ law and fails when either side is deliberately perturbed.
   learned reward) express one coherent per-cat preference — a low-bath
   cat is legibly "the swimmer" to both.
 - **FR-006**: A chase step blocked by another kitty MUST resolve to a
-  lawful, never-retreating sidestep carrying the spec 012 FR-008
-  guarantees: **deterministic given the seed, never synchronized across
-  kitties**, falling back to today's stall only when no lawful sidestep
-  exists. *(Amended at plan time — the FR-008 mechanism as built is
+  lawful, never-reversing sidestep (closing steps preferred; a
+  perpendicular arc only when nothing closes — routing around a blocker
+  in an axis-aligned lane necessarily arcs) carrying the spec 012
+  FR-008 guarantees: **deterministic given the seed, never synchronized
+  across kitties**, falling back to today's stall only when no lawful
+  sidestep exists. *(Amended at plan time — the FR-008 mechanism as built is
   behavior-side and draws per-kitty decision randomness that does not
   exist in the apply phase; the engine delivers the same two guarantees
   via seeded master-RNG draws in the tick's fair apply order, the spec

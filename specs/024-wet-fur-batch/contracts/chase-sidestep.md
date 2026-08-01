@@ -9,10 +9,22 @@ Validation of Chase proposals is unchanged (target-existence only).
 dest = straight step toward target (Direction::toward)
 if dest is lawful (in-bounds, kitty-free):   move there        # unchanged
 else:
-    pool = lawful steps with Manhattan(target) ≤ current, minus dest
+    closing = lawful steps (excluding dir and its reverse) with
+              Manhattan(target) < current      # the other axis, diagonal case
+    arcing  = lawful steps (excluding dir and its reverse) otherwise
+              # perpendicular, +1 -- the axis-aligned lane case
+    pool = closing if non-empty, else arcing
     if pool non-empty:  move to a uniform master-RNG choice from pool
     else:               stall in place                          # unchanged
 ```
+
+*(Amended during implementation: the first-draft rule "Manhattan ≤
+current" had an empty pool in exactly the headline case — a blocker
+squarely in an axis-aligned lane, where both perpendicular steps are +1.
+Routing around a lane-blocker necessarily arcs before it passes; the
+behavior-side FR-008 sidestep fires on non-closing steps for the same
+reason. The reverse direction is never a candidate: arcing is routing,
+walking backwards is retreat.)*
 
 ## Guarantees
 
@@ -26,10 +38,13 @@ else:
 - **Draw shape**: a draw occurs iff (blocked ∧ pool non-empty) — a
   world-state condition. No config key changes draw shape (the
   fixed-shape rule constrains config, not state).
-- **Never retreats**: candidates never increase Manhattan distance; a
-  fully boxed-in chase stalls exactly as today and the patience clock
+- **Never reverses**: the opposite of the chase direction is never a
+  candidate; closing steps are preferred, and a perpendicular arc (+1
+  Manhattan) is taken only when nothing closes. A fully boxed-in chase
+  stalls exactly as today and the patience clock
   (`chase_patience_ticks`, staleness from last *progress*) governs
-  unchanged.
+  unchanged — an arcing chase that never re-closes is still abandoned
+  on schedule.
 - **Preference-free**: the engine expresses no dry-tile preference — a
   sidestep through water is lawful and pays the wet-fur occupancy charge.
   Water preferences remain behavior style (Article IV doctrine).

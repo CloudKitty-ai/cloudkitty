@@ -113,33 +113,33 @@ stalling (contracts/chase-sidestep.md); patience bookkeeping unchanged.
 stalls exactly as today; same seed → identical runs; mirrored chasers
 decorrelate.
 
-- [ ] T010 [US2] Implement the sidestep in the Chase apply arm
+- [X] T010 [US2] Implement the sidestep in the Chase apply arm
       (crates/cloudkitty-core/src/action.rs:494-522): candidate pool =
       lawful steps (`Position::step` + `world.kitty_at`) with
       Manhattan-to-target ≤ current, minus the blocked straight step;
       uniform `world.rng` choice (master RNG at apply time, R5); empty
       pool → today's stall; rewrite the 505-512 stall comment to record
       the new law and the BACKLOG item's retirement
-- [ ] T011 [P] [US2] Unit tests in crates/cloudkitty-core/src/action.rs:
+- [X] T011 [P] [US2] Unit tests in crates/cloudkitty-core/src/action.rs:
       blocked→sidesteps to a non-retreating lawful tile (first direct
       coverage of the stall branch), fully-boxed→stalls, sidestep
       never increases Manhattan distance, same seed twice → same
       sidestep, a draw happens only when blocked (stream-shape sanity)
-- [ ] T012 [US2] Mirrored two-chaser decorrelation fixture (integration,
+- [X] T012 [US2] Mirrored two-chaser decorrelation fixture (integration,
       crates/cloudkitty-core/tests/approach_etiquette.rs or sibling):
       two kitties chasing across one lane for 1,000+ ticks, asserting
       the operational lockstep definition — no window of 8+ consecutive
       ticks in which both chasers' per-tick displacement vectors are
       mirror images while neither closes distance; deterministic across
       reruns
-- [ ] T013 [US2] FR-007 re-baseline: run
+- [X] T013 [US2] FR-007 re-baseline: run
       crates/cloudkitty-core/tests/behavior_variation.rs and the
       selection staleness expectations
       (crates/cloudkitty-core/src/behavior/selection.rs tests) under
       the sidestep; document every expectation that legitimately
       shifts (stall-fed abandonment drops) in the commit message as a
       deliberate re-baseline — never a silent number change
-- [ ] T014 [US2] Verify crates/cloudkitty-core/tests/joint_action_parity.rs
+- [X] T014 [US2] Verify crates/cloudkitty-core/tests/joint_action_parity.rs
       stays green unmodified (shared apply-arm code ⇒ parity and
       draw-shape hold by construction; a failure here means the
       implementation leaked asymmetry — STOP and fix)

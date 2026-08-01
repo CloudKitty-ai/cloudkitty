@@ -144,9 +144,18 @@ mechanics. A chase sidestep through water pays the wet-fur charge, and
 whether to propose chases near water stays a decider-level concern.
 
 **Rationale**: "Keeps the chase alive" (spec US2) means never stepping
-away from the target; non-increasing Manhattan candidates are exactly the
-perpendicular/diagonal-progress steps. Engine neutrality keeps the two
-batch items orthogonal and the mechanic legible to a learner.
+away from the target. Engine neutrality keeps the two batch items
+orthogonal and the mechanic legible to a learner.
+
+**Implementation correction (2026-08-01)**: the first-draft candidate
+rule (Manhattan ≤ current) had an *empty pool in the headline case* — a
+blocker squarely in an axis-aligned lane leaves both perpendicular steps
+at +1, so the jank the BACKLOG describes would have kept stalling. The
+shipped rule is two-tier: closing steps preferred (the diagonal case's
+other axis), perpendicular arcs (+1) otherwise, and the reverse
+direction never (arcing is routing, walking backwards is retreat). The
+behavior-side FR-008 sidestep fires on non-closing steps for the same
+geometric reason. Contract and FR-006 amended to match.
 
 ## R7 — Equivalence guardrail: home, shape, and the eat-side finding
 

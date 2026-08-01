@@ -80,6 +80,18 @@ impl Direction {
         Direction::West,
     ];
 
+    /// The reverse of this direction (spec 024: the one step a chase
+    /// sidestep must never take -- arcing around a blocker is routing,
+    /// walking backwards is retreat).
+    pub fn opposite(self) -> Direction {
+        match self {
+            Direction::North => Direction::South,
+            Direction::South => Direction::North,
+            Direction::East => Direction::West,
+            Direction::West => Direction::East,
+        }
+    }
+
     /// The direction that moves `from` closest to `to`, or `None` when already there.
     /// Ties resolve to the larger axis gap, then to horizontal movement, so the
     /// choice is deterministic without consulting the RNG.
