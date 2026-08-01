@@ -81,16 +81,22 @@ demo charm, so there is a floor on how quiet the meadow should get.
 Fold into the #79 spec conversation: "what should each purr system
 mean once both exist?" One engine batch, one recertification.
 
-> **RESOLVED in spec 022 (Product, 2026-07-31).** Duration 8–13,
-> `cooldown_factor = 2.5` (flat `cooldown_ticks` retired; old key
-> rejected loudly, purr-table-scoped). The **earned rule stays
-> verbatim** (`happiness > thresholds.purr || rose`, both origins) —
-> deliberately scoped OUT of 022, because the decided tuning depends
-> on it: the constant ≈28.6% duty cycle holds only because `rose`
-> re-earns instantly at cooldown expiry, and the deliberate purr's
-> mask gate keys on the same rule. Any future earned-rule change must
-> re-derive both the ambient duty cycle and the row-38 gate — treat
-> the rule as pinned by 022's Assumptions, not still open.
+> **RESOLVED in spec 022 (Product, 2026-07-31; final numbers from the
+> batch handoff).** Duration 8–13; flat `cooldown_ticks` retired for a
+> **per-end uniform factor draw 1.75–2.75** (each rest = factor × the
+> finished purr, ceiling-rounded) → ambient duty ≈ 1/(1+2.25) ≈
+> **30.8%**. This supersedes the in-chat flat 2.5×/28.6% — midpoint
+> 2.25 purrs slightly more; inside the owner's stated ≤1/3 envelope,
+> and the draw gives the meadow an organic rhythm instead of a
+> metronome. The **earned rule stays verbatim**, now one definition
+> for both origins (`Kitty::purr_earned`) — deliberately scoped OUT
+> of 022, because the tuning depends on it: the constant duty cycle
+> holds only because `rose` re-earns instantly at rest expiry, and
+> the deliberate purr's mask gate keys on the same rule. Any future
+> earned-rule change must re-derive both the ambient duty cycle and
+> the row-38 gate — treat the rule as pinned by 022's Assumptions,
+> not still open. (The inert Purr message-cooldown stamp is DELETED
+> by the batch — spec 023 removed its last reader.)
 
 ## 2a. Meow cooldown retired at engine level (owner decision, issue #84)
 
@@ -100,12 +106,34 @@ agent meows (the silent swallow was illegible and wasted turns; cooldown
 courtesy cooldown at 10 via their existing `can_meow()` checks (both
 needs_driven and playful). Constant deliberate purring is endorsed
 (turn cost + earned gate + one announcement per phase are the brakes).
-Full design and pins in issue #84. **Timing is the open decision**
-(the #79/#82 batch vs the exp-002-generation engine change) — if it
-lands with exp-002's engine, it joins wet-fur in that batch. Standing
-obligation either way: the spam backstop for learned agents becomes
+Full design and pins in issue #84. **Timing RESOLVED: #84 became spec
+023 and rides the 022 batch** (branch `022-deliberate-purr`): engine
+never blocks a meow ("manners, not law"), served `courtesy_ticks = 10`
+(= digest window), `urgent_courtesy_ticks = 5`, both behavior-consulted
+only. Standing obligation: the spam backstop for learned agents becomes
 *economics under cooperative team reward* — any per-kitty or
 competitive reward design must revisit before training.
+
+Experiments carries from the batch handoff (2026-07-31):
+- **Forensics contract changed**: pyo3 `recent_meows()` now streams
+  every emitted meow (per-tick repeats legal, bounded only by the
+  window), and a Purr entry no longer implies a motor start (motor
+  silent at `announce_probability = 0`; Purr entries ≈ deliberate).
+  Pre-022 stream-derived baselines are dead for cross-engine
+  comparison: the 36:1 reflex:deliberate ratio, 34.3% audibility, and
+  the 0.101% meow rate are old-engine numbers. `forensics_replay.py`'s
+  set-dedup logic survives as-is; its meow-collection comment and any
+  rate interpretation get swept at recert setup.
+- **`configs/cloudkitty-24x24-screen.toml` migrated values-preserved**
+  on the batch branch (courtesy 15/5 kept from the capture; pinned
+  `cooldown_factor 2.857143` = 30/mean(6..15), preserving the captured
+  ~25.9% duty in expectation; rest *shape* now proportional, which no
+  migration can undo). Kept as the historical capture — its purpose
+  completes when `cloudkitty.toml` goes 24×24 in the same batch; the
+  recert measures the served config, not this file.
+- `cloudkitty16.toml`/`cloudkitty48.toml` removed by the batch (copies
+  in `worlds.backup/`); verified nothing under `experiments/` or
+  `evals/` references them.
 
 ## 3. Standing carries (recorded elsewhere; do not re-derive)
 
