@@ -184,13 +184,14 @@ law and fails when either side is deliberately perturbed.
 ### Functional Requirements
 
 - **FR-001**: Configuration MUST gain a water-cost dial,
-  `water_bath_gain`, engine default **1.5** (bath per occupied tick,
+  `[water] bath_gain` (named `water_bath_gain` in early drafts; the
+  shipped key is the sectioned form), engine default **1.5** (bath per occupied tick,
   before trait scaling), with validation bounds such that no legal value
   can defeat the safeguard-headroom guarantee (FR-004). The legible
   framing: 1.0 equals 5× the ambient bath rise (0.2/tick).
 - **FR-002**: While a kitty occupies a water tile and its bath need is
   **below 50** (pre-charge), the engine MUST charge bath by
-  `water_bath_gain × (kitty's bath rise / 0.2)` that tick — per-cat
+  `bath_gain × (kitty's bath rise / 0.2)` that tick — per-cat
   personality scaling through the existing trait, on top of ordinary
   ambient accrual. At or above 50, no water charge applies.
 - **FR-003**: Water occupancy MUST NOT change movement: 1 tile/tick,

@@ -76,11 +76,13 @@ why it was parked rather than merged. **Treat it as a lead, not as truth.**
 Nothing in it is needed for correctness: `main` never carried the change,
 and outputs were verified byte-identical to pre-021 `main`.
 
-## Guardrail worth building
+## Guardrail worth building — built (spec 024 US3)
 
-Nothing currently ties `zero_distance_relief_exists` to `action::validate`.
-The two encode the same law in different places, and only the latter is
-authoritative. An equivalence test over that public API — for each need, does
-the metric's zero-distance predicate agree with whether any lawful relieving
-action validates? — would have collapsed this whole detour into a red test,
-and would catch the drift that could make the predicate genuinely wrong later.
+`crates/cloudkitty-rl/tests/welfare_validate_equivalence.rs` now ties
+`zero_distance_relief_exists` to `action::validate`: for every need over a
+neighbor × relief-element fixture matrix, the metric's zero-distance
+predicate must agree with whether any lawful relieving action validates,
+and the busy-neighbor cell pins this document's doctrine on true. The
+original observation, kept for the record: the two encode the same law in
+different places, only the latter is authoritative, and this drift class is
+now a red test rather than silent certification skew.

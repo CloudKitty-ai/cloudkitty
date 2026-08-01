@@ -351,8 +351,33 @@ RNG draw at apply time — deterministic, never synchronized). The design
 detail this entry held lives in
 `specs/024-wet-fur-batch/contracts/chase-sidestep.md`, including the
 implementation correction (the first-draft candidate rule was empty in
-exactly the axis-aligned lane case). Re-baseline verdict: no
-`chase_patience_ticks` expectations moved.
+exactly the axis-aligned lane case). Re-baseline note (corrected
+2026-08-01: an earlier "no expectations moved" verdict here was recorded
+without measurement): a sidestep that unsticks blocked chases plausibly
+lowers abandonment rates, so any pre-024 `chase_patience_ticks` tuning
+or chase-statistic baseline must be re-measured before comparing across
+the break — Experiments' calibration probe is the natural place.
+
+### Equivalence guardrail: subject-state axis (added 2026-08-01)
+`welfare_validate_equivalence.rs` varies neighbors and relief elements
+but always leaves the subject idle. A busy subject is the untested axis:
+`validate` may refuse actions mid-activity while the metric's relief
+predicate ignores the subject's own state. Extend the fixture matrix
+with a subject-activity axis, keeping `action::validate` as the oracle
+(the 024 review checked the alternative gauntlet oracle and it is
+strictly weaker). If cells diverge, that is a doctrine question — does
+"relief exists" mean available-now or available-once-free? — to settle
+in spec text before changing either layer.
+
+### Trait-scaled routing with the charge off (added 2026-08-01)
+`selection::bath_ratio` scales the `water_step_cost` surcharge even when
+`[water] bath_gain = 0` (identity for shipped rosters, every ratio 1.0;
+documented at the definition). Two open ends, opportunistic only:
+whether an ablation lever should restore flat pre-024 routing for
+trait-override rosters too, and whether an extreme bath-rise override
+deserves a clamp so route pricing cannot become effectively prohibitive
+(the "preference, never prohibition" doctrine holds today only because
+shipped ratios stay near 1).
 
 ### Cuddle puddles (added 2026-07-22)
 More than two kitties cuddling or sleeping together in one pile. Low

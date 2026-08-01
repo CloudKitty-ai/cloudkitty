@@ -257,3 +257,29 @@ break twice. Implement sequentially US1→US2→US3→Polish, commit per
 task-cluster (the 022 batch's granularity), never push without
 confirmation, and the merge additionally waits on nothing external —
 the Experiments baseline gate is already cleared (`e144867`).
+
+## Post-review reconciliation (2026-08-01)
+
+The xhigh review of the finished branch found several checked
+descriptions above had drifted from what shipped. The record, rather
+than a rewrite of history:
+
+- **T008** promised `[water]` values randomized through `validate` plus
+  SC-001 skirt-vs-swim scripted fixtures. Shipped narrower and
+  deterministic: `dial_table()` in tests/water_safeguard.rs pins the
+  legal corners (defaults, near-limit gain, tiny ceiling, doubled
+  trait) instead of sampling, and skirt-vs-swim coverage lives in the
+  needs_driven pricing tests rather than dedicated fixtures.
+- **T010** describes the first-draft candidate rule ("Manhattan-to-
+  target ≤ current"). Shipped: the amended two-tier rule
+  (contracts/chase-sidestep.md) — closing steps preferred, +1 arcs
+  otherwise, never the reverse — plus a `current > 1` guard added by
+  the review: at pounce range every arc is a guaranteed retreat, so an
+  adjacent chaser keeps the pre-024 stall.
+- **T011** promised a "sidestep never increases Manhattan distance"
+  test; the amended contract makes arcs +1 by design, so that property
+  is false as stated. The distance-1 stay-put tests took its place.
+- **T012**'s mirrored-window lockstep metric could not fail under
+  sequential apply (the first mover always clears the second's lane);
+  tests/chase_sidestep.rs now asserts the block engages and the pass
+  resolves promptly instead.
