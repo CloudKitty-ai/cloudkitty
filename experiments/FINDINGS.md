@@ -488,3 +488,41 @@ argument insufficient even under shared reward).
 
 **Re-verify when**: any reward-structure change; exp-002 candidate
 screening (check channel-use rates alongside welfare).
+
+## F-012 · active · Channel use is context-dependent: solo probes underestimate a policy's meow behavior
+
+s3 — silent in every solo measurement (certifications, forensics,
+the "s6 is the only meower among nine seeds" survey) — emits FollowMe
+meows (7–16 per 20k-tick seed) and the occasional WantCuddle as soon
+as its world contains another *policy* kitty. The behavior was latent:
+never expressed among scripted neighbors, unmasked by policy company.
+s6's behavior also shifts in the pair world (deliberate purrs down,
+WantDrink up), consistent with two-way channel traffic.
+
+**Scope**: exp-001's policy class; plausibly any policy whose training
+population (self-play siblings) differs from its evaluation population
+(scripted cats) — the behavior was learned *for* an audience that solo
+evaluation removes.
+
+**Evidence**: [pair-screen record](exp-001-bc-mappo/results/pair-screen-2026-07-31.md)
+(attribution tables); prior null:
+[meow-listening probe](exp-001-bc-mappo/results/meow-listening-2026-07-31.md).
+
+**Implications**:
+- Channel-use surveys for selection or preservation (exp-002 §1's
+  levers) must measure candidates **in policy company**, not solo —
+  the 1/9 "meower base rate" is a solo-context floor, not the truth.
+- The mixed-model roster is likely to be chattier than any solo
+  measurement predicts; viewer-facing meow volume should be assessed
+  on the actual roster.
+- Latent-behavior logic generalizes: any social behavior (grooming,
+  duets) may be under-counted by solo probes.
+
+**Would invalidate**: attribution showing FollowMe emission is an
+artifact of the seat (a scripted-behavior interaction) rather than
+s3's policy — checkable by seating s3 with scripted-only rosters at
+the same seats (it was silent there in certification Mixed runs,
+which *is* that control: same seats, scripted neighbors, no meows).
+
+**Re-verify when**: exp-002 candidate screening; any channel-use
+selection measurement.
