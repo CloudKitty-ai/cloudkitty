@@ -316,15 +316,21 @@ pub fn parse_proposal_value(value: serde_json::Value) -> Result<Action, Proposal
 
 /// Returns the action the engine will actually apply: the proposal if it is legal,
 /// otherwise `Idle`. This is the whole of Article IV's enforcement surface.
-// `_config`: no current rule consults configuration (the retired Purr arm
-// was the last), but the parameter stays -- validation is Article IV's whole
-// enforcement surface and its shape should not churn with individual rules.
-pub fn validate(world: &World, kitty_id: KittyId, proposal: Action, _config: &Config) -> Action {
+pub fn validate(world: &World, kitty_id: KittyId, proposal: Action, config: &Config) -> Action {
     let Some(kitty) = world.kitty(kitty_id) else {
         return Action::Idle;
     };
 
     let legal = match proposal {
+        // The purr-meow is the deliberate purr since spec 022: only a
+        // content cat may choose to purr -- the motor's earned rule,
+        // verbatim (`World::purr_phase`). An unearned proposal resolves to
+        // Idle like any other illegal one (Article IV); the RL mask derives
+        // this gate from here (spec 014 encodings: no carve-outs). Every
+        // other meow kind keeps the always-legal doctrine.
+        Action::Meow {
+            message: MessageKind::Purr,
+        } => kitty.happiness > config.thresholds.purr || kitty.happiness_rose,
         Action::Idle | Action::Meow { .. } => true,
 
         // A meow that is on cooldown is still a legal action -- it just produces
@@ -544,10 +550,42 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
         // over the wire-compatible Action surface.
         Action::Purr => {}
 
+        Action::Meow {
+            message: MessageKind::Purr,
+        } => {
+            start_deliberate_purr(world, kitty_id, config, tick);
+        }
         Action::Meow { message } => {
             emit_meow(world, kitty_id, message, config, tick);
         }
     }
+}
+
+/// The deliberate purr (spec 022): the purr-meow row starts a real purr
+/// phase -- the same phenomenon the motor produces, initiated by choice.
+/// Already purring (either origin) is a silent no-op: the turn is spent,
+/// nothing is drawn, nothing is announced. Otherwise the duration is drawn
+/// here, at apply time in the tick's fair apply order (the Article V pin),
+/// and the one start announcement is recorded directly -- a state
+/// announcement, never swallowed and stamping no message cooldown. The
+/// motor's cooldown is deliberately not consulted: choice beats reflex
+/// (spec 022 FR-005), which is what makes this action's outcome fully
+/// predictable to a policy.
+fn start_deliberate_purr(world: &mut World, kitty_id: KittyId, config: &Config, tick: u64) {
+    let Some(idx) = world.kitty_index(kitty_id) else {
+        return;
+    };
+    if world.kitties[idx].purring_until.is_some() {
+        return;
+    }
+    let duration = world.draw_purr_duration(config);
+    world.kitties[idx].purring_until = Some(tick + duration);
+    world.kitties[idx].purring_duration = Some(duration);
+    world.recent_meows.push(Meow {
+        kitty_id,
+        kind: MessageKind::Purr,
+        tick,
+    });
 }
 
 /// Services the ongoing activity for one more tick (spec 006). Every activity
@@ -984,24 +1022,116 @@ mod tests {
     }
 
     #[test]
-    fn purring_is_no_longer_an_action() {
-        // Spec 011: purring is engine-owned background state; the proposal
-        // shape survives for pre-011 snapshots' last_action, but validation
-        // refuses it regardless of how earned the purr would have been.
+    fn the_legacy_purr_action_is_still_refused() {
+        // Spec 011 retired `Action::Purr`; spec 022 deliberately did NOT
+        // revive it (shape B rejected -- the deliberate purr is the
+        // purr-meow row instead). The legacy wire shape survives only for
+        // pre-011 snapshots' last_action, and validation refuses it
+        // regardless of how earned the purr would have been.
         let (mut world, config) = test_world();
         let idx = world.kitty_index(1).unwrap();
         world.kitties[idx].happiness = 50.0;
         world.kitties[idx].happiness_rose = false;
         assert_eq!(validate(&world, 1, Action::Purr, &config), Action::Idle);
 
-        // Even a delighted kitty spends no turn on it...
         world.kitties[idx].happiness = 80.0;
         assert_eq!(validate(&world, 1, Action::Purr, &config), Action::Idle);
 
-        // ...and neither does a brightening one.
         world.kitties[idx].happiness = 50.0;
         world.kitties[idx].happiness_rose = true;
         assert_eq!(validate(&world, 1, Action::Purr, &config), Action::Idle);
+    }
+
+    #[test]
+    fn a_deliberate_purr_starts_a_real_purr_with_one_announcement() {
+        // Spec 022 US1: the purr-meow row starts a purr phase with the
+        // normal duration draw and exactly one start announcement -- even
+        // under an active motor cooldown (choice beats reflex, FR-005).
+        let (mut world, config) = test_world();
+        world.tick = 50;
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].happiness = 90.0; // earned
+        world.kitties[idx].purr_cooldown_until = 1_000; // motor deep in rest
+
+        let proposal = Action::Meow {
+            message: MessageKind::Purr,
+        };
+        assert_eq!(
+            validate(&world, 1, proposal, &config),
+            proposal,
+            "an earned purr-meow is legal"
+        );
+        apply(&mut world, 1, proposal, &config);
+
+        let kitty = world.kitty(1).unwrap();
+        let until = kitty.purring_until.expect("the chosen purr is real");
+        let duration = kitty
+            .purring_duration
+            .expect("the duration is stored for the proportional cooldown");
+        assert_eq!(until, 50 + duration);
+        assert!(
+            (config.purr.min_ticks..=config.purr.max_ticks).contains(&duration),
+            "duration {duration} within [{}, {}]",
+            config.purr.min_ticks,
+            config.purr.max_ticks
+        );
+        let purrs = world
+            .recent_meows
+            .iter()
+            .filter(|m| m.kind == MessageKind::Purr)
+            .count();
+        assert_eq!(purrs, 1, "exactly one announcement, never swallowed");
+    }
+
+    #[test]
+    fn an_unearned_purr_meow_resolves_to_idle() {
+        // Spec 022 FR-004: the one earned-gated meow row. Well-formed but
+        // illegal resolves to the idle no-op (Article IV).
+        let (mut world, config) = test_world();
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].happiness = 50.0;
+        world.kitties[idx].happiness_rose = false;
+        assert_eq!(
+            validate(
+                &world,
+                1,
+                Action::Meow {
+                    message: MessageKind::Purr,
+                },
+                &config,
+            ),
+            Action::Idle
+        );
+    }
+
+    #[test]
+    fn a_deliberate_purr_while_already_purring_is_a_silent_no_op() {
+        // Spec 022 FR-006: turn consumed, no state change, no announcement,
+        // and -- crucially -- no RNG draw. Comparing full serialized worlds
+        // (RNG state included) proves the stream is untouched.
+        let (mut world, config) = test_world();
+        world.tick = 50;
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].happiness = 90.0;
+        world.kitties[idx].purring_until = Some(55);
+        world.kitties[idx].purring_duration = Some(9);
+        let twin = world.clone();
+
+        let proposal = Action::Meow {
+            message: MessageKind::Purr,
+        };
+        assert_eq!(
+            validate(&world, 1, proposal, &config),
+            proposal,
+            "legal while purring -- the no-op still costs the turn"
+        );
+        apply(&mut world, 1, proposal, &config);
+
+        assert_eq!(
+            serde_json::to_string(&world).unwrap(),
+            serde_json::to_string(&twin).unwrap(),
+            "silent no-op: identical world, identical RNG stream"
+        );
     }
 
     #[test]

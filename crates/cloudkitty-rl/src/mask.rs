@@ -90,6 +90,42 @@ mod tests {
     }
 
     #[test]
+    fn the_purr_row_is_earned_gated_with_no_mask_side_carve_out() {
+        // Spec 022 FR-004: row 38 (the purr-meow) is the one earned-gated
+        // meow row. The gate lives in `action::validate`; this test goes
+        // through the ordinary mask path, so it also proves no carve-out
+        // was added on the mask side.
+        let (mut world, config) = test_world();
+        let cfg = ObservationConfig::default();
+        let codec = ActionCodec::v1(&cfg);
+
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].happiness = 50.0;
+        world.kitties[idx].happiness_rose = false;
+        let snapshot = world.snapshot();
+        let table = TargetTable::build(&snapshot, 1, &cfg);
+        let mask = legal_action_mask(&snapshot, 1, &table, &codec, &config);
+        assert!(!mask[38], "an unearned kitty cannot choose to purr");
+        assert!(
+            mask[39],
+            "idle keeps the mask from ever going all-zero (structural rule)"
+        );
+
+        world.kitties[idx].happiness = 90.0;
+        let snapshot = world.snapshot();
+        let table = TargetTable::build(&snapshot, 1, &cfg);
+        let mask = legal_action_mask(&snapshot, 1, &table, &codec, &config);
+        assert!(mask[38], "an earned kitty may choose to purr");
+
+        world.kitties[idx].happiness = 50.0;
+        world.kitties[idx].happiness_rose = true;
+        let snapshot = world.snapshot();
+        let table = TargetTable::build(&snapshot, 1, &cfg);
+        let mask = legal_action_mask(&snapshot, 1, &table, &codec, &config);
+        assert!(mask[38], "a brightening kitty may choose to purr (rose)");
+    }
+
+    #[test]
     fn inside_the_minimum_the_mask_reduces_to_the_exact_continuation() {
         let (mut world, config) = test_world();
         let idx = world.kitty_index(1).unwrap();

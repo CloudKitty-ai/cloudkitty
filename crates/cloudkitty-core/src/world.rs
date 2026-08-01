@@ -853,13 +853,24 @@ impl World {
         new_events
     }
 
-    /// Spec 011: purring is engine-owned background state, never an action.
-    /// Runs right after needs and happiness settle, so a purr can begin the
-    /// very tick contentment crosses the line; stable kitty-id order keeps
-    /// the RNG draws deterministic (Article V). A purr that ends this tick
-    /// starts its cooldown and cannot restart until the cooldown passes --
-    /// with a zero cooldown, back-to-back rumbles begin the very next tick,
-    /// each its own purr with its own start meow.
+    /// One purr-duration draw from the master RNG -- shared by the motor and
+    /// the deliberate purr (spec 022) so the draw has a single
+    /// implementation. One draw even when min == max: config can never
+    /// change the draw *count* (the fixed-shape rule).
+    pub(crate) fn draw_purr_duration(&mut self, config: &Config) -> u64 {
+        let span = (config.purr.max_ticks - config.purr.min_ticks + 1).min(u32::MAX as u64) as u32;
+        config.purr.min_ticks + self.rng.gen_range_u32(0, span) as u64
+    }
+
+    /// Spec 011's engine-owned background purr, amended by spec 022: a purr
+    /// may now also be *initiated* by choice (the deliberate purr, applied
+    /// in the action phase), but running and ending are origin-less and live
+    /// here. Runs right after needs and happiness settle, so a purr can
+    /// begin the very tick contentment crosses the line; stable kitty-id
+    /// order keeps the RNG draws deterministic (Article V). A purr that ends
+    /// this tick starts the motor's cooldown and the motor cannot restart it
+    /// until the cooldown passes -- a deliberate purr may, at any time
+    /// (choice beats reflex).
     fn purr_phase(&mut self, config: &Config) {
         let tick = self.tick;
         for idx in 0..self.kitties.len() {
@@ -875,6 +886,7 @@ impl World {
             match purring_until {
                 Some(until) if tick >= until => {
                     self.kitties[idx].purring_until = None;
+                    self.kitties[idx].purring_duration = None;
                     self.kitties[idx].purr_cooldown_until = tick + config.purr.cooldown_ticks;
                 }
                 Some(_) => {}
@@ -882,13 +894,9 @@ impl World {
                     // The earned rule, verbatim from the retired Purr action.
                     let earned = happiness > config.thresholds.purr || rose;
                     if earned && tick >= cooldown_until {
-                        // One draw even when min == max, so config can never
-                        // change the draw *count* (the fixed-shape rule).
-                        let span = (config.purr.max_ticks - config.purr.min_ticks + 1)
-                            .min(u32::MAX as u64) as u32;
-                        let duration =
-                            config.purr.min_ticks + self.rng.gen_range_u32(0, span) as u64;
+                        let duration = self.draw_purr_duration(config);
                         self.kitties[idx].purring_until = Some(tick + duration);
+                        self.kitties[idx].purring_duration = Some(duration);
                         // The start meow is a state announcement, not a
                         // proposal: recorded directly so it fires exactly
                         // once per purr (FR-005) -- the proposal cooldown
@@ -1242,7 +1250,57 @@ mod tests {
         }
     }
 
-    // ---- sustained purring (spec 011) ------------------------------------
+    // ---- sustained purring (spec 011, amended by spec 022) ---------------
+
+    #[test]
+    fn every_purr_of_either_origin_certifies_an_earned_cat() {
+        // Spec 022 SC-003 property: across randomized seeds, moods, and
+        // purr configs, a purr never starts -- by motor or by choice --
+        // unless the earned rule held at that moment.
+        for seed in 0..20u64 {
+            let (mut world, mut config) = test_world();
+            world.rng = SimRng::from_seed(seed);
+            config.thresholds.purr = 50.0 + (seed % 5) as f32 * 10.0;
+            config.purr.min_ticks = 2 + seed % 4;
+            config.purr.max_ticks = config.purr.min_ticks + seed % 7;
+            let mut scratch = SimRng::from_seed(seed ^ 0x00C0_FFEE);
+
+            for _ in 0..2_000 {
+                world.tick += 1;
+                let tick = world.tick;
+                let mut was_purring = Vec::new();
+                for idx in 0..world.kitties.len() {
+                    world.kitties[idx].happiness = scratch.gen_range_u32(0, 101) as f32;
+                    world.kitties[idx].happiness_rose = scratch.gen_bool(0.3);
+                    was_purring.push(world.kitties[idx].purring_until.is_some());
+                }
+                // A random kitty tries the deliberate path each tick; the
+                // validate gate decides whether the choice is lawful.
+                let choose = scratch.gen_range_u32(0, world.kitties.len() as u32) as usize;
+                let id = world.kitties[choose].id;
+                let validated = crate::action::validate(
+                    &world,
+                    id,
+                    crate::action::Action::Meow {
+                        message: crate::meow::MessageKind::Purr,
+                    },
+                    &config,
+                );
+                crate::action::apply(&mut world, id, validated, &config);
+                world.purr_phase(&config);
+
+                for (idx, was) in was_purring.iter().enumerate() {
+                    let k = &world.kitties[idx];
+                    if !was && k.purring_until.is_some() {
+                        assert!(
+                            k.happiness > config.thresholds.purr || k.happiness_rose,
+                            "seed {seed} tick {tick}: a purr started unearned"
+                        );
+                    }
+                }
+            }
+        }
+    }
 
     #[test]
     fn an_earned_kitty_starts_purring_with_a_bounded_draw_and_one_meow() {

@@ -299,6 +299,13 @@ pub struct Kitty {
     /// "rumbling now" signal. Absent in pre-011 snapshots: quiet.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub purring_until: Option<u64>,
+    /// The drawn length of the current purr (spec 022): set at purr start
+    /// (either origin), consumed at purr end to stamp the proportional motor
+    /// cooldown, then cleared -- paired with `purring_until`. Absent in
+    /// pre-022 snapshots: an in-flight purr restores without it, and its end
+    /// treats the duration as `[purr] min_ticks` (the fixed convention).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub purring_duration: Option<u64>,
     /// No new purr may begin before this tick (spec 011). 0 in pre-011
     /// snapshots: immediately eligible.
     #[serde(default)]
@@ -330,6 +337,7 @@ impl Kitty {
             distress_since: BTreeMap::new(),
             activity_clock: None,
             purring_until: None,
+            purring_duration: None,
             purr_cooldown_until: 0,
         }
     }
@@ -428,6 +436,8 @@ mod tests {
         });
         k.last_relief.insert(NeedKind::Eat, 1396);
         k.distress_since.insert(NeedKind::Play, 1249);
+        k.purring_until = Some(1500);
+        k.purring_duration = Some(9);
 
         let json = serde_json::to_string(&k).unwrap();
         let back: Kitty = serde_json::from_str(&json).unwrap();
@@ -453,6 +463,10 @@ mod tests {
         assert!(k.abandoned_chases.is_empty());
         assert!(k.last_relief.is_empty());
         assert!(k.distress_since.is_empty());
+        assert!(
+            k.purring_duration.is_none(),
+            "pre-022 snapshots have no stored duration (min_ticks convention)"
+        );
         assert_eq!(
             k.last_relief_tick(NeedKind::Bath),
             0,
@@ -467,6 +481,7 @@ mod tests {
         assert!(json.get("abandoned_chases").is_none());
         assert!(json.get("last_relief").is_none());
         assert!(json.get("distress_since").is_none());
+        assert!(json.get("purring_duration").is_none());
     }
 
     #[test]

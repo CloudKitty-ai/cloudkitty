@@ -23,7 +23,7 @@ the silent motor).
 
 **Purpose**: clean baseline — no scaffolding needed (existing workspace).
 
-- [ ] T001 Verify green baseline: run `cargo test --workspace`, `cargo clippy --workspace -- -D warnings`, `cargo fmt --check` at the branch point; record any pre-existing failure before touching code (repo root)
+- [x] T001 Verify green baseline: run `cargo test --workspace`, `cargo clippy --workspace -- -D warnings`, `cargo fmt --check` at the branch point; record any pre-existing failure before touching code (repo root)
 
 ---
 
@@ -33,9 +33,9 @@ the silent motor).
 
 **⚠️ CRITICAL**: complete before any user story phase.
 
-- [ ] T002 Add `purring_duration: Option<u64>` to `Kitty` with `#[serde(default, skip_serializing_if = "Option::is_none")]` beside `purring_until`, initialized `None` in the constructor, in crates/cloudkitty-core/src/kitty.rs (data-model.md pattern)
-- [ ] T003 Set `purring_duration = Some(duration)` at the motor's purr start and clear both `purring_until`/`purring_duration` together at purr end in `World::purr_phase`, crates/cloudkitty-core/src/world.rs (no behavior change yet — bookkeeping only)
-- [ ] T004 Unit tests in crates/cloudkitty-core/src/kitty.rs: serde round-trip includes the new field when `Some` and omits it when `None`; a legacy kitty JSON without the field deserializes to `None` (pre-022 snapshot shape)
+- [x] T002 Add `purring_duration: Option<u64>` to `Kitty` with `#[serde(default, skip_serializing_if = "Option::is_none")]` beside `purring_until`, initialized `None` in the constructor, in crates/cloudkitty-core/src/kitty.rs (data-model.md pattern)
+- [x] T003 Set `purring_duration = Some(duration)` at the motor's purr start and clear both `purring_until`/`purring_duration` together at purr end in `World::purr_phase`, crates/cloudkitty-core/src/world.rs (no behavior change yet — bookkeeping only)
+- [x] T004 Unit tests in crates/cloudkitty-core/src/kitty.rs: serde round-trip includes the new field when `Some` and omits it when `None`; a legacy kitty JSON without the field deserializes to `None` (pre-022 snapshot shape)
 
 **Checkpoint**: `cargo test -p cloudkitty-core` green; kitty state carries
 duration with zero semantic change.
@@ -54,12 +54,12 @@ phase (duration in bounds) with exactly one announcement and its turn spent;
 under an active motor cooldown it still starts; unearned proposals resolve
 to `Idle` and the mask excludes row 38.
 
-- [ ] T005 [US1] Earned gate in `validate()`: the `Action::Meow { message: MessageKind::Purr }` arm becomes legal iff `happiness > config.thresholds.purr || happiness_rose` (motor rule verbatim); unearned resolves to `Idle` through the existing illegal-proposal path, in crates/cloudkitty-core/src/action.rs (research D2)
-- [ ] T006 [US1] Deliberate-purr apply branch: on `Meow(Purr)`, if `purring_until.is_some()` → silent no-op (turn consumed, no draw, no announcement); else draw duration via the existing bounds draw on the master RNG at apply time, set `purring_until`/`purring_duration`, push `Meow { kind: Purr }` directly to `recent_meows` (state announcement — no `emit_meow`, no stamp), in crates/cloudkitty-core/src/action.rs (research D1, D5; contract draw table)
-- [ ] T007 [US1] Re-baseline `purring_is_no_longer_an_action` in crates/cloudkitty-core/src/action.rs: keep the legacy `Action::Purr` → `Idle` half verbatim; replace the `Meow(Purr)` expectations with the earned-gate pair (earned → legal; unearned → `Idle`), doc comment citing spec 022 FR-015 (deliberate re-baseline, not weakening)
-- [ ] T008 [US1] Unit tests in crates/cloudkitty-core/src/action.rs: contract tests 1–3 — earned start (phase begins, duration in bounds, exactly one announcement, turn consumed), start under active motor cooldown (FR-005), already-purring silent no-op with RNG-stream equality (same seed with and without the no-op proposal → identical subsequent draws)
-- [ ] T009 [P] [US1] Mask tests in crates/cloudkitty-rl/src/mask.rs: row 38 legal for an earned kitty, excluded for an unearned one, mask never all-zero either way (idle row 39); no mask-side special case — assertions go through the existing derive-from-validate path (contract test 4)
-- [ ] T010 [US1] Every-purr-earned property test (SC-003 of this spec): randomized configs/seeds/behaviors over thousands of ticks, assert every tick where any kitty is purring satisfies the earned rule at its purr's start, in crates/cloudkitty-core/src/world.rs tests (contract test 5)
+- [x] T005 [US1] Earned gate in `validate()`: the `Action::Meow { message: MessageKind::Purr }` arm becomes legal iff `happiness > config.thresholds.purr || happiness_rose` (motor rule verbatim); unearned resolves to `Idle` through the existing illegal-proposal path, in crates/cloudkitty-core/src/action.rs (research D2)
+- [x] T006 [US1] Deliberate-purr apply branch: on `Meow(Purr)`, if `purring_until.is_some()` → silent no-op (turn consumed, no draw, no announcement); else draw duration via the existing bounds draw on the master RNG at apply time, set `purring_until`/`purring_duration`, push `Meow { kind: Purr }` directly to `recent_meows` (state announcement — no `emit_meow`, no stamp), in crates/cloudkitty-core/src/action.rs (research D1, D5; contract draw table)
+- [x] T007 [US1] Re-baseline `purring_is_no_longer_an_action` in crates/cloudkitty-core/src/action.rs: keep the legacy `Action::Purr` → `Idle` half verbatim; replace the `Meow(Purr)` expectations with the earned-gate pair (earned → legal; unearned → `Idle`), doc comment citing spec 022 FR-015 (deliberate re-baseline, not weakening)
+- [x] T008 [US1] Unit tests in crates/cloudkitty-core/src/action.rs: contract tests 1–3 — earned start (phase begins, duration in bounds, exactly one announcement, turn consumed), start under active motor cooldown (FR-005), already-purring silent no-op with RNG-stream equality (same seed with and without the no-op proposal → identical subsequent draws)
+- [x] T009 [P] [US1] Mask tests in crates/cloudkitty-rl/src/mask.rs: row 38 legal for an earned kitty, excluded for an unearned one, mask never all-zero either way (idle row 39); no mask-side special case — assertions go through the existing derive-from-validate path (contract test 4)
+- [x] T010 [US1] Every-purr-earned property test (SC-003 of this spec): randomized configs/seeds/behaviors over thousands of ticks, assert every tick where any kitty is purring satisfies the earned rule at its purr's start, in crates/cloudkitty-core/src/world.rs tests (contract test 5)
 
 **Checkpoint**: deliberate purring fully works against the still-noisy
 motor — independently shippable MVP.
