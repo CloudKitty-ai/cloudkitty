@@ -657,3 +657,32 @@ rule). Duty estimator, fixed now: motor starts × E[duration] /
 (kitties × ticks), E[duration] = 10.5 (uniform 8..13). Expected value
 with ceiling-rounded drawn factors: ≈ 30.3% (the 30.8% in 31b is the
 no-ceiling approximation; both stated in advance).
+
+### 2026-07-31e — Second-seat pair-screen: s3 beside s6 (scoped before any run)
+
+**Not a certification** (`kitty-eval` seats one subject; heterogeneous
+pairs are exactly the unmeasured configuration) — this is the
+F-010-mandated screen on the exact demo roster, owner-directed after
+s3 entered as the favored candidate (recert R3: pristine roster-OOD).
+Owner constraint: Biscuit stays scripted (keeps the meow instigator).
+
+**Arms, seeds 1–10 × 20k continuous `--pin-clock` (deploy semantics),
+same-seed pairing throughout:**
+- Baseline: served world as deployed (Miso = s6, others scripted) —
+  re-run fresh on the new engine (pre-batch probe numbers are dead).
+- Seating A: s3 as **Pumpkin** (keeps Pumpkin's `eat = 0.8` trait).
+- Seating B: s3 as **Kittybear**.
+Policies via `forensics_replay.py --seat` (`.pt` weights; artifact
+parity `.pt` ↔ `.ckpolicy` was verified at export and s3's cert used
+the `.ckpolicy`).
+
+**Criteria, fixed now.** A seating PASSES if: (1) **zero distress
+ticks** for every kitty in all 10 seeds (the standard the s6 pre-soak
+probe met); (2) per-seed team Nash ≥ the same-seed baseline in **≥
+8/10 seeds** (adding s3 must not degrade the deployed world).
+Seat recommendation = the passing seating with the higher mean Nash
+delta; if both pass, per-kitty means break near-ties (within +0.002)
+toward the seating whose displaced kitty loses least. Both fail →
+no seating; report to owner. Descriptive extras (no gates): per-kitty
+happiness vs baseline, meow-stream counts (first world where s6's
+meows have a policy audience). Evaluate-once: one run per arm.
