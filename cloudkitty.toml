@@ -250,8 +250,11 @@ distress_patience_ticks = 60
 # RL policy artifacts (spec 014 FR-016): a kitty with behavior = "policy:<name>"
 # resolves through the matching [rl.policy.<name>] block. The artifact is
 # schema-validated and content-hashed at startup (never served on GET /config).
-# s6 = exp-001 arm2-g0p998-s6, sha256 8030b94d… — certified clean on this world
+# Deployed artifacts live in the committed policies/ directory (owner
+# decision 2026-07-31) so a fresh clone serves the roster as-is; the README
+# there maps each file to its sha256 and certification record.
+# s6 = exp-001 arm2-g0p998-s6, sha256 8030b94d… — certified clean
 # 2026-07-30 (results/served-world-remeasure-2026-07-30.md); greedy selection
 # (sample = false), matching the certified condition.
 [rl.policy.s6]
-artifact = "experiments/exp-001-bc-mappo/artifacts/arm2-g0p998-s6/arm2.ckpolicy"
+artifact = "policies/s6.ckpolicy"
