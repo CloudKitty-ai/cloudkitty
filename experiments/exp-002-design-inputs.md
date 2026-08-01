@@ -143,6 +143,44 @@ Experiments carries from the batch handoff (2026-07-31):
   in `worlds.backup/`); verified nothing under `experiments/` or
   `evals/` references them.
 
+## 2b. Wet-fur engine change rides exp-002's generation (owner-picked design)
+
+Full design in BACKLOG "Rethink how water works for learned cats" —
+that entry is the source of truth; this section records only what
+binds exp-002's design (ported 2026-08-01 per the register rule):
+
+- **Engine batch fixed by owner 2026-08-01**: `elements()` pyo3
+  accessor + the wet-fur bath cost (`water_bath_gain = 1.5` starting
+  dial, bath<50 safety clamp). **No schema changes this generation**
+  (protects the warm-start-from-s6 lever; the policy already observes
+  water slots, own bath need, and own traits — the cost is learnable
+  from the existing 182-dim vector). Client (parallel, non-blocking):
+  swim animation; per-kitty "brain" indicator toggle.
+- **Family must vary bath rise rates** across kitties, or the policy
+  memorizes a constant instead of learning trait→cost.
+- **Final gain value is a prereg'd exp-002 tuning decision**,
+  calibrated by seating the water-indifferent s6 on a wet-fur build
+  and measuring welfare delta per crossing (needs `elements()`).
+- **Pre-change baseline is a now-or-never measurement**: quantify s6's
+  current water behavior (wading/lounging occupancy) before the engine
+  changes — post-022 stream-baseline lesson applied prospectively.
+- **Distress hygiene**: the clamp guarantees no voluntary swim can
+  cross safeguard/distress lines — certification hygiene by
+  construction; spec should carry an executable guard.
+
+## 2c. Mixed-population training (owner-directed, 2026-08-01)
+
+Test the impact of **training with scripted teammates vs. pure
+self-play** as explicit compared conditions — not a single chosen
+recipe. Prior arms trained pure self-play and deployed into scripted
+company; that transfer gap is implicated in both F-010 (roster-OOD
+catatonia) and F-012 (latent channel use). Evaluation for every
+candidate covers **three deployment shapes**: 1 (new) agent among
+scripted kitties, partial-agent worlds (mixed policy + scripted, incl.
+seats beside s6), and full-agent worlds. Interplay with §1: channel
+use must be screened in policy company (F-012), so the eval matrix
+above doubles as the channel-use screen.
+
 ## 3. Standing carries (recorded elsewhere; do not re-derive)
 
 - **Roster 3–5 coverage in the training family** or absent-slot
