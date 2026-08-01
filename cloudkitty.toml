@@ -5,8 +5,8 @@
 # is rejected at startup with a message naming the field and its allowed range.
 
 [world]
-width = 32
-height = 32
+width = 24
+height = 24
 # Milliseconds per tick. 800ms is a comfortable watching pace.
 tick_ms = 800
 # The same seed replays the same world, exactly.
