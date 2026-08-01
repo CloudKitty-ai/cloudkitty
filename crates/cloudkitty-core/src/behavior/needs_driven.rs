@@ -314,6 +314,9 @@ fn step_toward(ctx: &DecisionContext, target: crate::grid::Position) -> Action {
     };
 
     let current = progress_score(&me);
+    // Spec 024: one shared water-aversion ratio -- see
+    // `selection::bath_ratio` for why score and walk must price alike.
+    let bath_ratio = selection::bath_ratio(ctx);
     let mut best: Option<(f32, Direction)> = None;
     let mut dry_sidesteps: Vec<Direction> = Vec::new();
     let mut wet_sidesteps: Vec<Direction> = Vec::new();
@@ -333,7 +336,7 @@ fn step_toward(ctx: &DecisionContext, target: crate::grid::Position) -> Action {
         if score < current {
             let cost = score as f32
                 + if is_water(&dest) {
-                    ctx.config.behavior.water_step_cost
+                    ctx.config.behavior.water_step_cost * bath_ratio
                 } else {
                     0.0
                 };
@@ -814,6 +817,65 @@ mod tests {
             NeedsDriven.decide(&ctx).await,
             Action::move_to(Direction::East),
             "the priced choice and the walk agree on the dry bowl"
+        );
+    }
+
+    #[tokio::test]
+    async fn a_low_bath_cat_is_the_swimmer_to_both_deciders() {
+        // Spec 024 FR-005: the surcharge scales by the cat's own bath
+        // trait. Geometry: the wet bowl is 4 steps south across two water
+        // tiles; the dry bowl is 9 steps east. At the shipped surcharge a
+        // plain cat prices the wet path 4 + 2x4 = 12 and detours east; a
+        // half-bath cat prices it 4 + 2x2 = 8 and swims south. One world,
+        // one rule, two personalities.
+        let build = |world: &mut crate::world::World| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx].needs.add(NeedKind::Eat, 95.0);
+            world.push_element(Element {
+                id: 570,
+                kind: ElementKind::Chow { servings: 3 },
+                pos: Position::new(5, 9),
+                ttl: None,
+            });
+            world.push_element(Element {
+                id: 571,
+                kind: ElementKind::Chow { servings: 3 },
+                pos: Position::new(14, 5),
+                ttl: None,
+            });
+            for (id, y) in [(572u32, 7u32), (573, 8)] {
+                world.push_element(Element {
+                    id,
+                    kind: ElementKind::Water,
+                    pos: Position::new(5, y),
+                    ttl: None,
+                });
+            }
+        };
+
+        let mut plain = decision_context(build);
+        plain.me.set_meow_cooldown(MessageKind::WantEat, u64::MAX);
+        assert_eq!(
+            NeedsDriven.decide(&plain).await,
+            Action::move_to(Direction::East),
+            "the plain cat detours dry"
+        );
+
+        let mut swimmer = decision_context(build);
+        swimmer.me.set_meow_cooldown(MessageKind::WantEat, u64::MAX);
+        let mut config = crate::test_support::test_config();
+        config.kitties[0].needs = Some(crate::config::NeedRateOverrides {
+            bath: Some(config.needs.bath * 0.5), // ratio 0.5: barely minds wet fur
+            ..Default::default()
+        });
+        config.validate().expect("valid");
+        swimmer.config = std::sync::Arc::new(config);
+        assert_eq!(
+            NeedsDriven.decide(&swimmer).await,
+            Action::move_to(Direction::South),
+            "the swimmer takes the pond shortcut"
         );
     }
 
