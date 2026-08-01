@@ -54,10 +54,14 @@ pub fn zero_distance_relief_exists(world: &World, kitty_idx: usize, kind: NeedKi
             .kitties
             .iter()
             .any(|other| other.id != kitty.id && kitty.pos.is_adjacent(&other.pos)),
-        NeedKind::Eat => world
-            .elements
-            .iter()
-            .any(|e| e.element_type() == ElementType::Chow && kitty.pos.is_adjacent(&e.pos)),
+        // Spec 024 reconciliation: the metric asks the SAME question the
+        // engine answers -- the nearest adjacent bowl, filtered for
+        // servings (World::adjacent_stocked_chow, the arm `Eat` validates
+        // against). Pre-024 this counted any adjacent Chow, so a cat
+        // starved beside an empty bowl accrued pinned-streak blame for a
+        // relief the engine would refuse -- the exact divergence class the
+        // equivalence guardrail exists to catch, found while planning it.
+        NeedKind::Eat => world.adjacent_stocked_chow(kitty.pos).is_some(),
         NeedKind::Drink => world
             .elements
             .iter()
