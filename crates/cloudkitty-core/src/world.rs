@@ -897,22 +897,26 @@ impl World {
                         let duration = self.draw_purr_duration(config);
                         self.kitties[idx].purring_until = Some(tick + duration);
                         self.kitties[idx].purring_duration = Some(duration);
-                        // The start meow is a state announcement, not a
-                        // proposal: recorded directly so it fires exactly
-                        // once per purr (FR-005) -- the proposal cooldown
-                        // gate would swallow it under a short purr cooldown.
-                        // Stamping the cooldown keeps every other meow rule
-                        // exactly as it was.
-                        let id = self.kitties[idx].id;
-                        self.kitties[idx].set_meow_cooldown(
-                            crate::meow::MessageKind::Purr,
-                            tick + config.meow.cooldown_ticks,
-                        );
-                        self.recent_meows.push(Meow {
-                            kitty_id: id,
-                            kind: crate::meow::MessageKind::Purr,
-                            tick,
-                        });
+                        // Spec 022: the motor announces only per the
+                        // configured probability. The decision is drawn even
+                        // at 0 and 1 -- config changes outcomes, never the
+                        // draw shape. An announcing start is a state
+                        // announcement recorded directly, once per purr;
+                        // purr starts stamp no message cooldown (the stamp
+                        // lost its last reader -- spec 023 retires the
+                        // enforcement it once fed).
+                        // `gen_f32 < p` rather than `gen_bool(p)`: Bernoulli
+                        // short-circuits p = 1.0 without consuming the
+                        // stream, which would break the shape rule.
+                        let announce = self.rng.gen_f32() < config.purr.announce_probability;
+                        if announce {
+                            let id = self.kitties[idx].id;
+                            self.recent_meows.push(Meow {
+                                kitty_id: id,
+                                kind: crate::meow::MessageKind::Purr,
+                                tick,
+                            });
+                        }
                     }
                 }
             }
@@ -1304,7 +1308,12 @@ mod tests {
 
     #[test]
     fn an_earned_kitty_starts_purring_with_a_bounded_draw_and_one_meow() {
-        let (mut world, config) = test_world();
+        // Re-baselined by spec 022 (FR-015): the motor announces per
+        // `announce_probability`; the spec-011 one-meow-per-purr guarantee
+        // is asserted against an always-announcing world (p = 1), exactly
+        // the pre-022 behavior.
+        let (mut world, mut config) = test_world();
+        config.purr.announce_probability = 1.0;
         world.tick = 50;
         let idx = world.kitty_index(1).unwrap();
         world.kitties[idx].happiness = 90.0; // past the purr threshold
@@ -1329,12 +1338,68 @@ mod tests {
                 .count()
         };
         assert_eq!(purr_meows(&world), 1, "exactly one meow, at purr start");
+        assert!(
+            !world.kitty(1).unwrap().meow_cooldowns.contains_key(&crate::meow::MessageKind::Purr),
+            "purr starts stamp no message cooldown (spec 022 FR-008; 023 re-verifies)"
+        );
 
         // Further purring ticks announce nothing.
         world.tick = 51;
         world.purr_phase(&config);
         assert_eq!(world.kitty(1).unwrap().purring_until, Some(until));
         assert_eq!(purr_meows(&world), 1);
+    }
+
+    #[test]
+    fn the_default_motor_is_silent_at_an_unchanged_cadence() {
+        // Spec 022 US2: at the default announce probability (0) the motor
+        // purrs exactly as it would at p = 1 -- same starts, same
+        // durations -- but records no announcement and stamps nothing.
+        let (mut world, config) = test_world();
+        assert_eq!(config.purr.announce_probability, 0.0, "default is silent");
+        world.tick = 50;
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].happiness = 90.0;
+
+        world.purr_phase(&config);
+
+        let kitty = world.kitty(1).unwrap();
+        assert!(kitty.purring_until.is_some(), "the rumble is unchanged");
+        assert!(
+            world.recent_meows.is_empty(),
+            "a silent start records no announcement"
+        );
+        assert!(
+            !kitty.meow_cooldowns.contains_key(&crate::meow::MessageKind::Purr),
+            "a silent start stamps nothing"
+        );
+    }
+
+    #[test]
+    fn purr_timings_are_identical_across_announce_probabilities() {
+        // Spec 022 FR-011 shape rule (research D10): the announce decision
+        // is drawn even at 0 and 1, so flipping the probability changes
+        // what is heard, never when purrs start or end.
+        let run = |p: f32| -> Vec<(u64, Option<u64>)> {
+            let (mut world, mut config) = test_world();
+            config.purr.announce_probability = p;
+            world.rng = SimRng::from_seed(7);
+            let mut scratch = SimRng::from_seed(99);
+            let mut timeline = Vec::new();
+            for _ in 0..400 {
+                world.tick += 1;
+                for idx in 0..world.kitties.len() {
+                    // Same mood script on both runs (independent stream).
+                    world.kitties[idx].happiness = scratch.gen_range_u32(0, 101) as f32;
+                    world.kitties[idx].happiness_rose = scratch.gen_bool(0.3);
+                }
+                world.purr_phase(&config);
+                timeline.push((world.tick, world.kitty(1).unwrap().purring_until));
+            }
+            timeline
+        };
+
+        assert_eq!(run(0.0), run(1.0), "announcements differ; timings must not");
     }
 
     #[test]

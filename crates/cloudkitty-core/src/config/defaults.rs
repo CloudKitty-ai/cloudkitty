@@ -16,6 +16,10 @@ pub(super) fn default_purr_cooldown_ticks() -> u64 {
     30
 }
 
+pub(super) fn default_purr_announce_probability() -> f32 {
+    0.0
+}
+
 pub(super) fn default_bind() -> String {
     "127.0.0.1:8090".to_string()
 }

@@ -52,6 +52,16 @@ impl SimRng {
         self.inner.gen()
     }
 
+    /// One uniform draw in `[0, 1)` -- the same recipe as
+    /// [`DecisionRng::gen_f32`], on the master stream (spec 022: the purr
+    /// announce decision and cooldown-factor draw). Always consumes exactly
+    /// one draw: probability comparisons against it keep the fixed-shape
+    /// rule even at 0 and 1 -- unlike `gen_bool`, whose Bernoulli
+    /// short-circuits `p = 1.0` without touching the stream.
+    pub fn gen_f32(&mut self) -> f32 {
+        self.inner.gen()
+    }
+
     /// Derives an independent stream for one kitty's decision this tick.
     pub fn derive_decision_rng(&mut self) -> DecisionRng {
         DecisionRng::from_seed(self.next_u64())
@@ -178,6 +188,21 @@ mod tests {
         }
 
         assert_eq!(forward, backward);
+    }
+
+    #[test]
+    fn master_gen_f32_is_deterministic_in_unit_range_and_always_consumes() {
+        // Spec 022: same seed -> same sequence, every value in [0, 1), and
+        // exactly one stream consumption per call (proved by the streams
+        // staying aligned after equal call counts).
+        let mut a = SimRng::from_seed(11);
+        let mut b = SimRng::from_seed(11);
+        for _ in 0..1_000 {
+            let v = a.gen_f32();
+            assert!((0.0..1.0).contains(&v));
+            assert_eq!(v, b.gen_f32());
+        }
+        assert_eq!(a.next_u64(), b.next_u64(), "streams still aligned");
     }
 
     #[test]

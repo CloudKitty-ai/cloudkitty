@@ -376,6 +376,14 @@ impl Config {
                 "must be at most max_ticks",
             ));
         }
+        let p = self.purr.announce_probability;
+        if !(0.0..=1.0).contains(&p) || p.is_nan() {
+            return Err(ConfigError::invalid(
+                "[purr] announce_probability",
+                p.to_string(),
+                "must be between 0 and 1",
+            ));
+        }
         Ok(())
     }
 

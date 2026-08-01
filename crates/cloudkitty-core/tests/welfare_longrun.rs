@@ -289,10 +289,17 @@ async fn purrs_come_in_waves_with_bounded_durations_and_one_meow_each() {
     // kitty are separated by at least cooldown_ticks; every purr begins with
     // exactly one purr meow stamped at its start tick, and no purr meow is
     // ever stamped mid-purr; and the default world -- a happy one -- rumbles.
+    //
+    // Re-baselined by spec 022 (FR-015): the motor is silent by default, so
+    // the announcement half of the property is asserted against an
+    // always-announcing world (announce_probability = 1) -- exactly the
+    // pre-022 behavior. The wave properties are announce-independent.
     use cloudkitty_core::meow::MessageKind;
     use std::collections::BTreeSet;
 
-    let config = Arc::new(Config::default());
+    let mut announcing = Config::default();
+    announcing.purr.announce_probability = 1.0;
+    let config = Arc::new(announcing);
     config.validate().expect("valid");
     let registry = BehaviorRegistry::with_builtins();
     let mut world = World::generate(&config);

@@ -97,6 +97,13 @@ pub struct PurrConfig {
     /// Rest between purrs, in ticks. 0 is legal: back-to-back rumbles.
     #[serde(default = "default_purr_cooldown_ticks")]
     pub cooldown_ticks: u64,
+    /// Chance a *spontaneous* purr start announces itself with a Purr meow
+    /// (spec 022). Drawn once per start regardless of value (the
+    /// fixed-shape rule); deliberate purrs always announce. 0 -- the
+    /// default -- keeps the motor silent: the broadcast channel carries
+    /// only chosen purrs.
+    #[serde(default = "default_purr_announce_probability")]
+    pub announce_probability: f32,
 }
 
 impl Default for PurrConfig {
@@ -105,6 +112,7 @@ impl Default for PurrConfig {
             min_ticks: default_purr_min_ticks(),
             max_ticks: default_purr_max_ticks(),
             cooldown_ticks: default_purr_cooldown_ticks(),
+            announce_probability: default_purr_announce_probability(),
         }
     }
 }
@@ -1007,6 +1015,24 @@ mod tests {
         assert!(msg.contains("max_ticks"), "{msg}");
         c.purr.min_ticks = c.purr.max_ticks; // fixed-length purrs are legal
         c.purr.cooldown_ticks = 0; // as are back-to-back rumbles
+        assert!(c.validate().is_ok());
+    }
+
+    #[test]
+    fn purr_announce_probability_defaults_silent_and_rejects_nonsense() {
+        // Spec 022 FR-007/FR-010: an absent key means a silent motor.
+        let parsed: PurrConfig = toml::from_str("").expect("empty purr table parses");
+        assert_eq!(parsed.announce_probability, 0.0);
+
+        let mut c = cfg();
+        c.purr.announce_probability = -0.1;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[purr] announce_probability"), "{msg}");
+        c.purr.announce_probability = 1.1;
+        assert!(c.validate().is_err());
+        c.purr.announce_probability = f32::NAN;
+        assert!(c.validate().is_err());
+        c.purr.announce_probability = 1.0; // legal: every start announces
         assert!(c.validate().is_ok());
     }
 
