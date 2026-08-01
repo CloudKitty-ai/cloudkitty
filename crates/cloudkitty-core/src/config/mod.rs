@@ -77,9 +77,36 @@ pub struct Config {
     #[serde(default)]
     pub purr: PurrConfig,
     #[serde(default)]
+    pub water: WaterConfig,
+    #[serde(default)]
     pub events: EventsConfig,
     #[serde(default)]
     pub viewer: ViewerConfig,
+}
+
+/// Wet fur (spec 024): occupying a water tile charges the bath need, so
+/// water is priced the same way to every decider -- scripted ladders feel
+/// it through need pressure, learned policies through reward. The charge
+/// is per occupied tick (one knob prices both crossing and lounging),
+/// scaled per cat by its own bath rise relative to the world's baseline,
+/// and stops at the ceiling: pond-lounging is priced, never punished.
+/// Validation proves the safeguard threshold unreachable by water alone
+/// (certification hygiene by construction -- see `validate_water`).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct WaterConfig {
+    /// Bath need added per tick spent on a water tile, before trait
+    /// scaling. The legible framing: 1.0 is 5x the default ambient bath
+    /// rise (0.2/tick); the shipped 1.5 puts cats on the skirt-the-puddle
+    /// side of a one-tile detour while still swimming when detours are
+    /// long. 0 disables the mechanic.
+    #[serde(default = "default_water_bath_gain")]
+    pub bath_gain: f32,
+    /// Pre-charge bath value at or above which the charge stops. The gate
+    /// reads the value before that tick's charge, so overshoot is bounded
+    /// by one scaled charge -- headroom the validator budgets against the
+    /// safeguard threshold.
+    #[serde(default = "default_water_bath_gain_ceiling")]
+    pub bath_gain_ceiling: f32,
 }
 
 /// The rhythm of a sustained purr (spec 011, retuned by spec 022). Purring
@@ -732,8 +759,18 @@ impl Default for Config {
             meow: MeowConfig::default(),
             behavior: BehaviorConfig::default(),
             purr: PurrConfig::default(),
+            water: WaterConfig::default(),
             events: EventsConfig::default(),
             viewer: ViewerConfig::default(),
+        }
+    }
+}
+
+impl Default for WaterConfig {
+    fn default() -> Self {
+        Self {
+            bath_gain: default_water_bath_gain(),
+            bath_gain_ceiling: default_water_bath_gain_ceiling(),
         }
     }
 }
@@ -764,6 +801,9 @@ impl Config {
         self.validate_persistence()?;
         self.validate_durations()?;
         self.validate_capacity()?;
+        // Position 16: appended by spec 024 (a spec-contract extension,
+        // documented in that spec -- new sections append, never reorder).
+        self.validate_water()?;
         Ok(())
     }
 
@@ -1205,6 +1245,89 @@ mod tests {
     }
 
     #[test]
+    fn water_section_defaults_when_absent_and_old_configs_keep_parsing() {
+        // A pre-024 config has no [water] table: the section default must
+        // land whole, so every existing config file keeps working unedited
+        // (spec 024 FR-010) -- including the hash-frozen exam configs,
+        // which can never be edited at all.
+        let parsed: Config = toml::from_str(
+            "[world]\nwidth = 32\nheight = 32\nseed = 7\ntick_ms = 1000\n\
+             [[kitty]]\nid = 1\nname = \"A\"\nx = 1\ny = 1\nbehavior = \"needs_driven\"\n\
+             [[kitty]]\nid = 2\nname = \"B\"\nx = 2\ny = 2\nbehavior = \"needs_driven\"\n",
+        )
+        .expect("pre-024 config parses");
+        assert_eq!(parsed.water.bath_gain, 1.5);
+        assert_eq!(parsed.water.bath_gain_ceiling, 50.0);
+        parsed.validate().expect("defaults validate");
+    }
+
+    #[test]
+    fn water_rejections_name_the_field_the_user_must_change() {
+        for bad in [f32::NAN, f32::INFINITY, -1.0, 101.0] {
+            let mut c = cfg();
+            c.water.bath_gain = bad;
+            let msg = c.validate().unwrap_err().to_string();
+            assert!(msg.contains("[water] bath_gain"), "{bad}: {msg}");
+        }
+        for bad in [f32::NAN, f32::NEG_INFINITY, -0.5, 100.5] {
+            let mut c = cfg();
+            c.water.bath_gain_ceiling = bad;
+            let msg = c.validate().unwrap_err().to_string();
+            assert!(msg.contains("[water] bath_gain_ceiling"), "{bad}: {msg}");
+        }
+    }
+
+    #[test]
+    fn water_safeguard_headroom_is_unrepresentable_to_break() {
+        // The flat case: ceiling + gain crowds the safeguard (75).
+        let mut c = cfg();
+        c.water.bath_gain = 30.0;
+        c.water.bath_gain_ceiling = 50.0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[water] bath_gain_ceiling"), "{msg}");
+        assert!(msg.contains("75"), "shows the safeguard: {msg}");
+
+        // The trait-scaled case: a high bath-rise cat doubles the charge,
+        // and the error names that cat -- the field the operator must
+        // reconsider is on the roster, not in [water].
+        let mut c = cfg();
+        c.water.bath_gain = 15.0; // fine alone: 50 + 15 < 75
+        c.kitties[1].needs = Some(NeedRateOverrides {
+            bath: Some(0.4), // ratio 2.0 against the 0.2 baseline
+            ..Default::default()
+        });
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[water] bath_gain_ceiling"), "{msg}");
+        assert!(msg.contains("Biscuit"), "blames the swimmer: {msg}");
+
+        // A zero ambient baseline has nothing to scale against.
+        let mut c = cfg();
+        c.needs.bath = 0.0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[needs] bath"), "{msg}");
+
+        // ...unless wet fur is off entirely: 0 disables the mechanic and
+        // every budget with it.
+        let mut c = cfg();
+        c.needs.bath = 0.0;
+        c.water.bath_gain = 0.0;
+        assert!(c.validate().is_ok());
+    }
+
+    #[test]
+    fn fingerprint_ignores_water_tunables() {
+        let a = cfg();
+        let mut b = cfg();
+        b.water.bath_gain = 0.0;
+        b.water.bath_gain_ceiling = 10.0;
+        assert_eq!(
+            a.fingerprint(),
+            b.fingerprint(),
+            "pricing water must never orphan a saved world (spec 024)"
+        );
+    }
+
+    #[test]
     fn worth_a_detour_outside_need_range_is_rejected() {
         let mut c = cfg();
         c.behavior.worth_a_detour = 101.0;
@@ -1484,5 +1607,12 @@ mod tests {
         c.world.tick_ms = 0;
         let msg = c.validate().unwrap_err().to_string();
         assert!(msg.contains("[world] tick_ms"), "{msg}");
+
+        // persistence (13) reports before water (16, appended by spec 024).
+        let mut c = Config::default();
+        c.water.bath_gain = -1.0;
+        c.persistence.save_every_ticks = 0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("save_every_ticks"), "{msg}");
     }
 }
