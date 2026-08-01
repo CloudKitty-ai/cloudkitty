@@ -529,34 +529,44 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
                             // not state). Preference-free: no dry-tile bias,
                             // the engine is mechanics -- a wet sidestep pays
                             // the wet-fur charge. Empty pool (boxed in) keeps
-                            // the old stall, patience clock unchanged.
+                            // the old stall, patience clock unchanged. Pounce
+                            // range keeps it too: at distance 1 every lawful
+                            // perpendicular step is +1 Manhattan -- a
+                            // guaranteed retreat wearing an arc's name -- so
+                            // a cat already beside its target never draws
+                            // (the `current > 1` rule needs_driven's own
+                            // sidestep has always had).
                             let current = kitty_pos.manhattan_distance(&target_pos);
-                            let mut closing: Vec<Position> = Vec::new();
-                            let mut arcing: Vec<Position> = Vec::new();
-                            for d in Direction::ALL {
-                                if d == dir || d == dir.opposite() {
-                                    continue;
+                            if current > 1 {
+                                let mut closing: Vec<Position> = Vec::new();
+                                let mut arcing: Vec<Position> = Vec::new();
+                                for d in Direction::ALL {
+                                    if d == dir || d == dir.opposite() {
+                                        continue;
+                                    }
+                                    let Some(p) =
+                                        kitty_pos.step(d, world.width, world.height)
+                                    else {
+                                        continue;
+                                    };
+                                    if world.kitty_at(p).is_some() {
+                                        continue;
+                                    }
+                                    if p.manhattan_distance(&target_pos) < current {
+                                        closing.push(p);
+                                    } else {
+                                        arcing.push(p);
+                                    }
                                 }
-                                let Some(p) = kitty_pos.step(d, world.width, world.height) else {
-                                    continue;
-                                };
-                                if world.kitty_at(p).is_some() {
-                                    continue;
-                                }
-                                if p.manhattan_distance(&target_pos) < current {
-                                    closing.push(p);
+                                let pool = if closing.is_empty() {
+                                    &arcing
                                 } else {
-                                    arcing.push(p);
-                                }
-                            }
-                            let pool = if closing.is_empty() {
-                                &arcing
-                            } else {
-                                &closing
-                            };
-                            if let Some(side) = world.rng.choose(pool).copied() {
-                                if let Some(idx) = world.kitty_index(kitty_id) {
-                                    world.kitties[idx].pos = side;
+                                    &closing
+                                };
+                                if let Some(side) = world.rng.choose(pool).copied() {
+                                    if let Some(idx) = world.kitty_index(kitty_id) {
+                                        world.kitties[idx].pos = side;
+                                    }
                                 }
                             }
                         }
@@ -1409,13 +1419,15 @@ mod tests {
 
     /// Rig: chaser at (5,5), a bug down the lane, an optional blocker.
     /// Returns the world ready for one Chase apply (spec 024 sidestep).
+    /// Without a blocker, kitty 2 parks in the far corner of the 16x16
+    /// test world -- in bounds, out of the lane.
     fn chase_lane(bug: Position, blocker: Option<Position>) -> (crate::world::World, Config) {
         let (mut world, config) = test_world();
         world.elements.clear();
         let a = world.kitty_index(1).unwrap();
         world.kitties[a].pos = Position::new(5, 5);
         let b = world.kitty_index(2).unwrap();
-        world.kitties[b].pos = blocker.unwrap_or(Position::new(30, 30));
+        world.kitties[b].pos = blocker.unwrap_or(Position::new(15, 15));
         world.push_element(Element {
             id: 901,
             kind: ElementKind::Bug,
@@ -1461,6 +1473,45 @@ mod tests {
             Position::new(5, 6),
             "the other axis closes and is preferred over any arc"
         );
+    }
+
+    #[test]
+    fn a_chase_already_beside_its_kitty_stays_put() {
+        // Distance 1: the target's own tile is the "blocked" step and
+        // every perpendicular tile is +1 Manhattan, so any sidestep would
+        // be a guaranteed retreat -- the orbit the 024 review caught.
+        // Pounce range holds still, exactly the pre-024 stall (and no
+        // RNG draw: the stream must not remember the near-miss).
+        let (mut world, config) = test_world();
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(5, 5);
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(6, 5);
+        apply(
+            &mut world,
+            1,
+            Action::Chase(TargetRef::Kitty { id: 2 }),
+            &config,
+        );
+        assert_eq!(
+            world.kitty(1).unwrap().pos,
+            Position::new(5, 5),
+            "an adjacent chaser must hold its pounce, never orbit away"
+        );
+    }
+
+    #[test]
+    fn a_chase_beside_its_bug_under_a_sitting_friend_stays_put() {
+        // The element flavor of the same edge: the bug one step away,
+        // a friend sitting on it. Stall, not retreat.
+        let (mut world, config) = chase_lane(Position::new(6, 5), Some(Position::new(6, 5)));
+        apply(
+            &mut world,
+            1,
+            Action::Chase(TargetRef::Element { id: 901 }),
+            &config,
+        );
+        assert_eq!(world.kitty(1).unwrap().pos, Position::new(5, 5));
     }
 
     #[test]
