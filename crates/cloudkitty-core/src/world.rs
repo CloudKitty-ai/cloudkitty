@@ -74,6 +74,16 @@ pub struct WorldSnapshot {
     pub recent_meows: Vec<Meow>,
 }
 
+/// Who initiated a purr start (spec 022): the same phenomenon either way,
+/// differing only in audibility -- see `World::start_purr`.
+#[derive(Clone, Copy)]
+pub(crate) enum PurrOrigin {
+    /// Chosen via the purr-meow action: always announces.
+    Deliberate,
+    /// The engine's background motor: announces per `announce_probability`.
+    Motor,
+}
+
 impl World {
     /// Builds a fresh world from configuration. Assumes `config.validate()` has
     /// already passed.
@@ -856,10 +866,46 @@ impl World {
     /// One purr-duration draw from the master RNG -- shared by the motor and
     /// the deliberate purr (spec 022) so the draw has a single
     /// implementation. One draw even when min == max: config can never
-    /// change the draw *count* (the fixed-shape rule).
+    /// change the draw *count* (the fixed-shape rule). The span always fits
+    /// u32: `validate_purr` bounds `max_ticks`.
     pub(crate) fn draw_purr_duration(&mut self, config: &Config) -> u64 {
-        let span = (config.purr.max_ticks - config.purr.min_ticks + 1).min(u32::MAX as u64) as u32;
+        let span = (config.purr.max_ticks - config.purr.min_ticks + 1) as u32;
         config.purr.min_ticks + self.rng.gen_range_u32(0, span) as u64
+    }
+
+    /// The purr-start transition (spec 022): one implementation for both
+    /// origins, so the paired fields (`purring_until` + `purring_duration`)
+    /// can never drift apart. Draws the duration -- always exactly one draw
+    /// -- then records the start announcement per the origin's audibility:
+    /// a deliberate purr always announces; the motor announces per
+    /// `announce_probability`, drawing its decision even at 0 and 1 --
+    /// config changes outcomes, never the draw shape. (`gen_f32 < p` rather
+    /// than `gen_bool(p)`: Bernoulli short-circuits p = 1.0 without
+    /// consuming the stream, which would break the shape rule.) Purr starts
+    /// stamp no message cooldown (the stamp lost its last reader -- spec
+    /// 023 retires the enforcement it once fed).
+    pub(crate) fn start_purr(
+        &mut self,
+        idx: usize,
+        config: &Config,
+        tick: u64,
+        origin: PurrOrigin,
+    ) {
+        let duration = self.draw_purr_duration(config);
+        self.kitties[idx].purring_until = Some(tick + duration);
+        self.kitties[idx].purring_duration = Some(duration);
+        let announce = match origin {
+            PurrOrigin::Deliberate => true,
+            PurrOrigin::Motor => self.rng.gen_f32() < config.purr.announce_probability,
+        };
+        if announce {
+            let id = self.kitties[idx].id;
+            self.recent_meows.push(Meow {
+                kitty_id: id,
+                kind: crate::meow::MessageKind::Purr,
+                tick,
+            });
+        }
     }
 
     /// Spec 011's engine-owned background purr, amended by spec 022: a purr
@@ -874,13 +920,12 @@ impl World {
     fn purr_phase(&mut self, config: &Config) {
         let tick = self.tick;
         for idx in 0..self.kitties.len() {
-            let (purring_until, cooldown_until, happiness, rose) = {
+            let (purring_until, cooldown_until, earned) = {
                 let k = &self.kitties[idx];
                 (
                     k.purring_until,
                     k.purr_cooldown_until,
-                    k.happiness,
-                    k.happiness_rose,
+                    k.purr_earned(config.thresholds.purr),
                 )
             };
             match purring_until {
@@ -888,48 +933,28 @@ impl World {
                     // Spec 022: the motor's rest is proportional to the
                     // finished purr -- one fresh factor draw per end (even
                     // when the bounds are equal), ceiling-rounded so rest
-                    // is never shortened. A pre-022 snapshot's in-flight
-                    // purr carries no duration; the fixed convention reads
-                    // it as min_ticks (FR-012).
+                    // is never shortened. The product is taken in f64,
+                    // where it is exact for every validated config (factor
+                    // has 24 mantissa bits, duration is bounded by
+                    // `validate_purr`), so the ceiling truly never
+                    // undercuts. A pre-022 snapshot's in-flight purr
+                    // carries no duration; the fixed convention reads it
+                    // as min_ticks (FR-012).
                     let duration = self.kitties[idx]
                         .purring_duration
                         .unwrap_or(config.purr.min_ticks);
                     let factor = config.purr.cooldown_factor_min
                         + (config.purr.cooldown_factor_max - config.purr.cooldown_factor_min)
                             * self.rng.gen_f32();
-                    let cooldown = (factor * duration as f32).ceil() as u64;
+                    let cooldown = (f64::from(factor) * duration as f64).ceil() as u64;
                     self.kitties[idx].purring_until = None;
                     self.kitties[idx].purring_duration = None;
                     self.kitties[idx].purr_cooldown_until = tick + cooldown;
                 }
                 Some(_) => {}
                 None => {
-                    // The earned rule, verbatim from the retired Purr action.
-                    let earned = happiness > config.thresholds.purr || rose;
                     if earned && tick >= cooldown_until {
-                        let duration = self.draw_purr_duration(config);
-                        self.kitties[idx].purring_until = Some(tick + duration);
-                        self.kitties[idx].purring_duration = Some(duration);
-                        // Spec 022: the motor announces only per the
-                        // configured probability. The decision is drawn even
-                        // at 0 and 1 -- config changes outcomes, never the
-                        // draw shape. An announcing start is a state
-                        // announcement recorded directly, once per purr;
-                        // purr starts stamp no message cooldown (the stamp
-                        // lost its last reader -- spec 023 retires the
-                        // enforcement it once fed).
-                        // `gen_f32 < p` rather than `gen_bool(p)`: Bernoulli
-                        // short-circuits p = 1.0 without consuming the
-                        // stream, which would break the shape rule.
-                        let announce = self.rng.gen_f32() < config.purr.announce_probability;
-                        if announce {
-                            let id = self.kitties[idx].id;
-                            self.recent_meows.push(Meow {
-                                kitty_id: id,
-                                kind: crate::meow::MessageKind::Purr,
-                                tick,
-                            });
-                        }
+                        self.start_purr(idx, config, tick, PurrOrigin::Motor);
                     }
                 }
             }

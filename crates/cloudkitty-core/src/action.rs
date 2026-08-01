@@ -18,7 +18,7 @@ use crate::grid::Direction;
 use crate::kitty::{Activity, ActivityClock, KittyId};
 use crate::meow::{cooldown_for, Meow, MessageKind};
 use crate::needs::NeedKind;
-use crate::world::World;
+use crate::world::{PurrOrigin, World};
 
 /// What a `chase` or `play` action is aimed at.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -323,14 +323,14 @@ pub fn validate(world: &World, kitty_id: KittyId, proposal: Action, config: &Con
 
     let legal = match proposal {
         // The purr-meow is the deliberate purr since spec 022: only a
-        // content cat may choose to purr -- the motor's earned rule,
-        // verbatim (`World::purr_phase`). An unearned proposal resolves to
+        // content cat may choose to purr -- the motor's earned rule, shared
+        // via `Kitty::purr_earned`. An unearned proposal resolves to
         // Idle like any other illegal one (Article IV); the RL mask derives
         // this gate from here (spec 014 encodings: no carve-outs). Every
         // other meow kind keeps the always-legal doctrine.
         Action::Meow {
             message: MessageKind::Purr,
-        } => kitty.happiness > config.thresholds.purr || kitty.happiness_rose,
+        } => kitty.purr_earned(config.thresholds.purr),
         Action::Idle | Action::Meow { .. } => true,
 
         // A meow that is on cooldown is still a legal action -- it just produces
@@ -564,13 +564,13 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
 /// The deliberate purr (spec 022): the purr-meow row starts a real purr
 /// phase -- the same phenomenon the motor produces, initiated by choice.
 /// Already purring (either origin) is a silent no-op: the turn is spent,
-/// nothing is drawn, nothing is announced. Otherwise the duration is drawn
-/// here, at apply time in the tick's fair apply order (the Article V pin),
-/// and the one start announcement is recorded directly -- a state
-/// announcement, never swallowed and stamping no message cooldown. The
-/// motor's cooldown is deliberately not consulted: choice beats reflex
-/// (spec 022 FR-005), which is what makes this action's outcome fully
-/// predictable to a policy.
+/// nothing is drawn, nothing is announced. Otherwise the shared start
+/// transition (`World::start_purr`) runs here, at apply time in the tick's
+/// fair apply order (the Article V pin), with the one start announcement
+/// recorded directly -- a state announcement, never swallowed and stamping
+/// no message cooldown. The motor's cooldown is deliberately not consulted:
+/// choice beats reflex (spec 022 FR-005), which is what makes this action's
+/// outcome fully predictable to a policy.
 fn start_deliberate_purr(world: &mut World, kitty_id: KittyId, config: &Config, tick: u64) {
     let Some(idx) = world.kitty_index(kitty_id) else {
         return;
@@ -578,14 +578,7 @@ fn start_deliberate_purr(world: &mut World, kitty_id: KittyId, config: &Config, 
     if world.kitties[idx].purring_until.is_some() {
         return;
     }
-    let duration = world.draw_purr_duration(config);
-    world.kitties[idx].purring_until = Some(tick + duration);
-    world.kitties[idx].purring_duration = Some(duration);
-    world.recent_meows.push(Meow {
-        kitty_id,
-        kind: MessageKind::Purr,
-        tick,
-    });
+    world.start_purr(idx, config, tick, PurrOrigin::Deliberate);
 }
 
 /// Services the ongoing activity for one more tick (spec 006). Every activity

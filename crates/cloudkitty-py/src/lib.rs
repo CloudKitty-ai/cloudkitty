@@ -392,8 +392,12 @@ impl ParallelEnv {
 
     /// The world's live meow stream: (tick, kitty_id, kind) per entry still
     /// inside `[meow] recent_window_ticks`. Read-only forensics surface —
-    /// engine announcements (spontaneous purr starts) and audible deliberate
-    /// meows both appear here; cooldown-swallowed meows never do.
+    /// every emitted meow appears here. Since spec 023 nothing is swallowed:
+    /// per-(kitty, kind) repeats are legal on consecutive ticks and bounded
+    /// only by the window, so do not assume courtesy spacing when counting.
+    /// A Purr entry is a deliberate purr (spec 022) or a motor start that
+    /// won the `announce_probability` draw (silent by default) — it no
+    /// longer implies a spontaneous start.
     fn recent_meows(&self) -> Vec<(u64, u32, String)> {
         self.episode
             .world()

@@ -351,6 +351,15 @@ impl Kitty {
         self.activity_clock = None;
     }
 
+    /// The earned-purr rule (specs 011/022), the one definition both
+    /// enforcement sites share: the motor's start check (`World::purr_phase`)
+    /// and the deliberate purr's validate gate -- which the RL mask derives
+    /// from -- must never disagree, so neither may inline its own copy.
+    /// `purr_threshold` is `config.thresholds.purr`.
+    pub fn purr_earned(&self, purr_threshold: f32) -> bool {
+        self.happiness > purr_threshold || self.happiness_rose
+    }
+
     /// Whether repeating `kind` at `tick` would be courteous (spec 023):
     /// consulted voluntarily by the scripted behaviors before they propose
     /// a repeat. The engine enforces nothing with this -- every validated

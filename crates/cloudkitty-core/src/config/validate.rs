@@ -6,6 +6,15 @@
 use super::{Config, ConfigError, ElementsConfig, TILES_PER_ELEMENT};
 use crate::element::ElementType;
 
+/// Upper bounds on the purr knobs (spec 022 review): generous beyond any
+/// real world (durations default 8-13 ticks; a million ticks is days of
+/// sim time), but they keep the cooldown arithmetic provably exact --
+/// duration and factor x duration both fit f64's integer range with room
+/// to spare, so the "rest is never shortened" ceiling can never be
+/// undercut by rounding, and `tick + cooldown` can never overflow.
+const MAX_PURR_TICKS: u64 = 1_000_000;
+const MAX_PURR_COOLDOWN_FACTOR: f32 = 1_000.0;
+
 impl Config {
     /// Spec 006: every activity's duration bounds must satisfy 1 <= min <= max.
     pub(super) fn validate_durations(&self) -> Result<(), ConfigError> {
@@ -376,6 +385,13 @@ impl Config {
                 "must be at most max_ticks",
             ));
         }
+        if self.purr.max_ticks > MAX_PURR_TICKS {
+            return Err(ConfigError::invalid(
+                "[purr] max_ticks",
+                self.purr.max_ticks.to_string(),
+                "must be at most 1000000 (keeps the cooldown arithmetic exact)",
+            ));
+        }
         let p = self.purr.announce_probability;
         if !(0.0..=1.0).contains(&p) || p.is_nan() {
             return Err(ConfigError::invalid(
@@ -392,7 +408,14 @@ impl Config {
                 "must be a positive number",
             ));
         }
-        if !f_max.is_finite() || f_min > f_max {
+        if !f_max.is_finite() || f_max > MAX_PURR_COOLDOWN_FACTOR {
+            return Err(ConfigError::invalid(
+                "[purr] cooldown_factor_max",
+                f_max.to_string(),
+                "must be a finite number of at most 1000",
+            ));
+        }
+        if f_min > f_max {
             return Err(ConfigError::invalid(
                 "[purr] cooldown_factor_min",
                 format!("{f_min} (cooldown_factor_max is {f_max})"),

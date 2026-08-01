@@ -1077,7 +1077,32 @@ mod tests {
         c.purr.cooldown_factor_min = 2.25;
         c.purr.cooldown_factor_max = 2.25; // equal bounds: fixed factor
         assert!(c.validate().is_ok());
+        // A bad max blames max (review fix: the error names the field the
+        // user must change, not its innocent partner).
         c.purr.cooldown_factor_max = f32::INFINITY;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[purr] cooldown_factor_max"), "{msg}");
+        c.purr.cooldown_factor_max = f32::NAN;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[purr] cooldown_factor_max"), "{msg}");
+        c.purr.cooldown_factor_max = 1_001.0; // over the exactness bound
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[purr] cooldown_factor_max"), "{msg}");
+    }
+
+    #[test]
+    fn purr_tick_bounds_reject_arithmetic_hazards() {
+        // Review fix alongside spec 022: without an upper bound, an absurd
+        // max_ticks silently truncated the duration draw and could undercut
+        // the "rest is never shortened" ceiling (f32 mantissa) or overflow
+        // `tick + duration`. The bound makes those configs fail loudly.
+        let mut c = cfg();
+        c.purr.max_ticks = 1_000_000; // at the bound: legal
+        assert!(c.validate().is_ok());
+        c.purr.max_ticks = 1_000_001;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[purr] max_ticks"), "{msg}");
+        c.purr.max_ticks = u64::MAX;
         assert!(c.validate().is_err());
     }
 
