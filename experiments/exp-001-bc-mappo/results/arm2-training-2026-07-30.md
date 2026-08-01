@@ -75,3 +75,7 @@ s3 `bbaf5f8b…`; 0.995 s1 `3774e1aa…`, s2 `d0a44a33…`, s3 `0f0cb995…`.
   triggers are now armed: a policy exceeds `needs_driven`).
 - Register updates (FINDINGS.md) — nothing recorded until the owner
   reviews this record.
+
+**Figure (added 2026-08-01):**
+[figures/seed-lottery.png](figures/seed-lottery.png) — all 15 Arm 2/3
+training curves, certified winners highlighted.

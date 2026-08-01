@@ -46,8 +46,12 @@ Two results, both new:
    measurement (nine seeds, solo probes, certifications) showed s3
    silent — but those worlds gave it only scripted neighbors. Seated
    beside a policy, s3 emits FollowMe — a kind *no other agent in the
-   world uses* — at 7–16 per seed. Channel use is context-dependent;
-   solo probes underestimate it (recorded as **F-012**).
+   world uses*. The rate is bursty, not steady (correction 2026-08-01;
+   "7–16 per seed" as first written was the two arms' per-seed means):
+   Seating B per-seed counts over seeds 1–10 are 0, 1, 0, 1, 3, 19, 5,
+   13, 112, 5 — seed 9 alone carries 112 of the 159. Channel use is
+   context-dependent; solo probes underestimate it (recorded as
+   **F-012**).
 2. **s6 behaves differently with a policy partner**: deliberate purrs
    drop (43 → 27/19), WantDrink chatter rises (51 → 119/85). s6 is a
    proven listener (8.18% flip rate), and the pair world is the first
@@ -77,3 +81,11 @@ Runner and attribution scripts archived in the session scratchpad
 config + seed: `forensics_replay.replay(s6.pt, cloudkitty.toml, seed,
 20000, horizon=20000, pin_clock=True, control={...}, seats={...})`
 per the 31e arm table.
+
+**Figures (added 2026-08-01, descriptive re-reads + an all-scripted
+control arm):**
+[figures/pairing-three-arm.png](figures/pairing-three-arm.png)
+(partner-tick attribution vs number of policy seats),
+[figures/meow-raster.png](figures/meow-raster.png),
+[figures/occupancy.png](figures/occupancy.png). Provenance in
+[figures/README.md](figures/README.md).

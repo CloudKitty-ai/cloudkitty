@@ -493,9 +493,14 @@ screening (check channel-use rates alongside welfare).
 
 s3 — silent in every solo measurement (certifications, forensics,
 the "s6 is the only meower among nine seeds" survey) — emits FollowMe
-meows (7–16 per 20k-tick seed) and the occasional WantCuddle as soon
-as its world contains another *policy* kitty. The behavior was latent:
-never expressed among scripted neighbors, unmasked by policy company.
+meows and the occasional WantCuddle as soon as its world contains
+another *policy* kitty. The rate is **bursty, not steady** (correction
+2026-08-01; the original "7–16 per seed" was the two arms' means):
+Seating B per-seed FollowMe over seeds 1–10 is 0, 1, 0, 1, 3, 19, 5,
+13, 112, 5 — eight near-silent seeds and two carrying the bulk, seed 9
+alone 112 of 159. The behavior was latent: never expressed among
+scripted neighbors, unmasked by policy company — and when expressed,
+episodic.
 s6's behavior also shifts in the pair world (deliberate purrs down,
 WantDrink up), consistent with two-way channel traffic.
 
