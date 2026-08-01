@@ -18,7 +18,7 @@ the batch's one comparability break is executed and recorded.
 
 ## Phase 1: Setup
 
-- [ ] T001 Verify the branch base is green: `cargo test --workspace` +
+- [X] T001 Verify the branch base is green: `cargo test --workspace` +
       clippy + fmt on `024-wet-fur-batch` before any change (baseline for
       attributing breakage; long-run tests run foreground with generous
       timeout per house practice)
@@ -40,14 +40,14 @@ ceiling-gated, safeguard-unreachable by construction (contracts/water-config.md)
 hostile swim-forever property proves the guard; scripted skirt-vs-swim
 fixtures prove SC-001. No other dynamics change.
 
-- [ ] T002 [US1] Add `WaterConfig` section: struct + `[serde(default)]`
+- [X] T002 [US1] Add `WaterConfig` section: struct + `[serde(default)]`
       field on `Config` + `Default` listing in
       crates/cloudkitty-core/src/config/mod.rs; `default_water_bath_gain`
       (1.5) and `default_water_bath_gain_ceiling` (50.0) fns in
       crates/cloudkitty-core/src/config/defaults.rs (spec 020 FR-003
       pattern; doc comments carry the 5×-ambient framing and the
       BACKLOG derivation pointer)
-- [ ] T003 [US1] Implement `validate_water` in
+- [X] T003 [US1] Implement `validate_water` in
       crates/cloudkitty-core/src/config/validate.rs — the four contract
       rules including the roster-arithmetic safeguard bound (R4), errors
       naming the field the user must change; append to the
@@ -55,20 +55,20 @@ fixtures prove SC-001. No other dynamics change.
       (crates/cloudkitty-core/src/config/mod.rs) and update the
       order-guard fixture test in the same commit, documented as a
       deliberate spec-contract extension
-- [ ] T004 [P] [US1] Config tests in crates/cloudkitty-core/src/config/mod.rs:
+- [X] T004 [P] [US1] Config tests in crates/cloudkitty-core/src/config/mod.rs:
       absent-section defaults (old toml parses), each rejection naming
       its field (non-finite/negative/over-100 gain; ceiling out of
       range; headroom violation showing the arithmetic and offending
       kitty; `[needs] bath = 0` with positive gain), fingerprint
       unchanged by `[water]` (extend the existing
       fingerprint-ignores-tunables test)
-- [ ] T005 [US1] Implement the charge in `World::advance_needs`
+- [X] T005 [US1] Implement the charge in `World::advance_needs`
       (crates/cloudkitty-core/src/world.rs:810-825): collect water
       positions from `self.elements` before the kitty loop (R1 borrow
       note), pre-charge ceiling gate, `bath_gain ×
       need_rate_for(kitty, Bath) / needs.bath` via `Need::add`, before
       the same-tick happiness recompute; no RNG, no phase-order change
-- [ ] T006 [P] [US1] Charge-law unit tests in
+- [X] T006 [P] [US1] Charge-law unit tests in
       crates/cloudkitty-core/src/world.rs: on-water charges (ambient +
       charge additive), off-water doesn't, pre-charge gate at the
       ceiling (overshoot ≤ one scaled charge), trait scaling via
@@ -76,13 +76,13 @@ fixtures prove SC-001. No other dynamics change.
       the same tick's happiness; FR-003 explicit assertions — drinking
       from adjacency incurs no bath charge, and a move onto/off water
       remains exactly one tile in one tick (movement untouched)
-- [ ] T007 [US1] Scale the scripted surcharge: `water_step_cost ×
+- [X] T007 [US1] Scale the scripted surcharge: `water_step_cost ×
       (need_rate_for(me, Bath) / needs.bath)` in
       crates/cloudkitty-core/src/behavior/needs_driven.rs:327-343;
       existing arithmetic tests stay exact at ratio 1.0 (default
       worlds), add one trait-scaled case ("the swimmer" low-bath cat
       pays less, both deciders agree)
-- [ ] T008 [P] [US1] NEW crates/cloudkitty-core/tests/water_safeguard.rs
+- [X] T008 [P] [US1] NEW crates/cloudkitty-core/tests/water_safeguard.rs
       — the runtime half of FR-004 (R10): directed swim-forever hostile
       behavior over thousands of ticks asserts zero Bath distress
       events and bath never crossing safeguard via water, with
@@ -93,7 +93,7 @@ fixtures prove SC-001. No other dynamics change.
       asserting the occupancy charge applies that tick (no special
       case); plus SC-001 skirt-vs-swim scripted fixtures (1-tile
       puddle with short detour → skirts; long detour → swims)
-- [ ] T009 [US1] Re-verify dynamics-sensitive behavioral suites under
+- [X] T009 [US1] Re-verify dynamics-sensitive behavioral suites under
       wet fur: crates/cloudkitty-core/tests/stuck_state_regression.rs
       and crates/cloudkitty-core/tests/welfare_longrun.rs (R8 items
       4–5). If any bound fails, STOP and surface — bounds are never
