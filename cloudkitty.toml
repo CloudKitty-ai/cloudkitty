@@ -153,10 +153,14 @@ sleep = { min = 6, max = 12 }
 cuddle = { min = 6, max = 12 }
 
 [meow]
-# Ticks before a kitty may repeat the same message...
-cooldown_ticks = 15
-# ...unless the related need is urgent, when it may say so more often.
-urgent_cooldown_ticks = 5
+# Manners, not law (spec 023): the engine never blocks a meow -- every one a
+# kitty spends its turn on is heard. Built-in behaviors consult these
+# courtesy values before repeating themselves; learned kitties are governed
+# by the turn cost alone. Base courtesy equals the digest window, so an
+# honest persistent signal refreshes exactly as the old one fades...
+courtesy_ticks = 10
+# ...unless the related need is urgent, when a script may say so sooner.
+urgent_courtesy_ticks = 5
 urgent_need_threshold = 75.0
 # How long a meow stays visible to other kitties and to viewers.
 recent_window_ticks = 10

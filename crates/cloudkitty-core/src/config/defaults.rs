@@ -24,6 +24,22 @@ pub(super) fn default_purr_announce_probability() -> f32 {
     0.0
 }
 
+pub(super) fn default_meow_courtesy_ticks() -> u64 {
+    10
+}
+
+pub(super) fn default_meow_urgent_courtesy_ticks() -> u64 {
+    5
+}
+
+pub(super) fn default_meow_urgent_need_threshold() -> f32 {
+    75.0
+}
+
+pub(super) fn default_meow_recent_window_ticks() -> u64 {
+    10
+}
+
 pub(super) fn default_bind() -> String {
     "127.0.0.1:8090".to_string()
 }

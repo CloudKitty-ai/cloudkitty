@@ -18,7 +18,7 @@ invariant), US3 verifies the dials and handoffs.
 
 ## Phase 1: Setup
 
-- [ ] T001 Verify spec 022 tasks are complete and the workspace is green on this branch (`cargo test --workspace`) before starting — 023's guard tests assume purr paths stamp nothing (repo root)
+- [x] T001 Verify spec 022 tasks are complete and the workspace is green on this branch (`cargo test --workspace`) before starting — 023's guard tests assume purr paths stamp nothing (repo root)
 
 ---
 
@@ -29,9 +29,9 @@ invariant), US3 verifies the dials and handoffs.
 **⚠️ CRITICAL**: T002–T004 land as one commit — the repo `cloudkitty.toml`
 must never be unloadable in between.
 
-- [ ] T002 Rename `MeowConfig` fields in crates/cloudkitty-core/src/config/mod.rs: `courtesy_ticks` (default fn 10) and `urgent_courtesy_ticks` (default fn 5) with `#[serde(default = ...)]` on all four real fields (posture aligned with PurrConfig, research D2); add deserialize-only sentinels `cooldown_ticks`/`urgent_cooldown_ticks: Option<u64>`; default fns in crates/cloudkitty-core/src/config/defaults.rs; `validate_meow` in crates/cloudkitty-core/src/config/validate.rs (urgent ≤ base; each sentinel `Some` → error naming old key and replacement); sweep all `config.meow.cooldown_ticks`/`urgent_cooldown_ticks` readers (emit_meow in action.rs, tests) to the new names and verify no purr-phase reader remains (022 removed them)
-- [ ] T003 Config unit tests in crates/cloudkitty-core/src/config/mod.rs: retired-key TOMLs each fail naming the replacement (US3 scenario 2 / contract test 6); partial `[meow]` table default-fills; urgent > base rejected; absent table yields defaults 10/5
-- [ ] T004 Rewrite the `[meow]` section of cloudkitty.toml (lines 155-159): `courtesy_ticks = 10`, `urgent_courtesy_ticks = 5`, comments rewritten from law-language to courtesy-language per contracts/meow-channel.md schema block (research D6 — same commit as T002)
+- [x] T002 Rename `MeowConfig` fields in crates/cloudkitty-core/src/config/mod.rs: `courtesy_ticks` (default fn 10) and `urgent_courtesy_ticks` (default fn 5) with `#[serde(default = ...)]` on all four real fields (posture aligned with PurrConfig, research D2); add deserialize-only sentinels `cooldown_ticks`/`urgent_cooldown_ticks: Option<u64>`; default fns in crates/cloudkitty-core/src/config/defaults.rs; `validate_meow` in crates/cloudkitty-core/src/config/validate.rs (urgent ≤ base; each sentinel `Some` → error naming old key and replacement); sweep all `config.meow.cooldown_ticks`/`urgent_cooldown_ticks` readers (emit_meow in action.rs, tests) to the new names and verify no purr-phase reader remains (022 removed them)
+- [x] T003 Config unit tests in crates/cloudkitty-core/src/config/mod.rs: retired-key TOMLs each fail naming the replacement (US3 scenario 2 / contract test 6); partial `[meow]` table default-fills; urgent > base rejected; absent table yields defaults 10/5
+- [x] T004 Rewrite the `[meow]` section of cloudkitty.toml (lines 155-159): `courtesy_ticks = 10`, `urgent_courtesy_ticks = 5`, comments rewritten from law-language to courtesy-language per contracts/meow-channel.md schema block (research D6 — same commit as T002)
 
 **Checkpoint**: workspace green, repo config loads, semantics unchanged
 (enforcement still in place, reading renamed keys).

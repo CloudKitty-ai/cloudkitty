@@ -497,22 +497,47 @@ impl DurationsConfig {
     }
 }
 
+/// The meow channel's manners (spec 023). The engine enforces nothing here:
+/// every validated meow emits, and a learned agent is governed by the turn
+/// cost alone. The courtesy values are consulted *voluntarily* by the
+/// scripted behaviors before they repeat themselves -- manners, not law.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct MeowConfig {
-    pub cooldown_ticks: u64,
-    pub urgent_cooldown_ticks: u64,
+    /// Scripted courtesy: how long a built-in waits before repeating the
+    /// same message kind. Equal to the digest window by default, so a
+    /// persistent signal refreshes exactly as the old one expires -- no
+    /// dead air, no stacking.
+    #[serde(default = "default_meow_courtesy_ticks")]
+    pub courtesy_ticks: u64,
+    /// The urgent carve-out: at or above `urgent_need_threshold` a scripted
+    /// kitty may repeat sooner. Must be at most `courtesy_ticks`.
+    #[serde(default = "default_meow_urgent_courtesy_ticks")]
+    pub urgent_courtesy_ticks: u64,
+    /// Need level at which the urgent courtesy applies.
+    #[serde(default = "default_meow_urgent_need_threshold")]
     pub urgent_need_threshold: f32,
     /// How long a meow stays visible to kitties and viewers.
+    #[serde(default = "default_meow_recent_window_ticks")]
     pub recent_window_ticks: u64,
+    /// RETIRED (spec 023): renamed to `courtesy_ticks` when engine
+    /// enforcement ended. Deserialize-only sentinel -- a config naming it
+    /// fails validation loudly, never silently shifting semantics.
+    #[serde(default, skip_serializing)]
+    pub cooldown_ticks: Option<u64>,
+    /// RETIRED (spec 023): renamed to `urgent_courtesy_ticks`.
+    #[serde(default, skip_serializing)]
+    pub urgent_cooldown_ticks: Option<u64>,
 }
 
 impl Default for MeowConfig {
     fn default() -> Self {
         Self {
-            cooldown_ticks: 15,
-            urgent_cooldown_ticks: 5,
-            urgent_need_threshold: 75.0,
-            recent_window_ticks: 10,
+            courtesy_ticks: default_meow_courtesy_ticks(),
+            urgent_courtesy_ticks: default_meow_urgent_courtesy_ticks(),
+            urgent_need_threshold: default_meow_urgent_need_threshold(),
+            recent_window_ticks: default_meow_recent_window_ticks(),
+            cooldown_ticks: None,
+            urgent_cooldown_ticks: None,
         }
     }
 }
@@ -732,6 +757,7 @@ impl Config {
         self.validate_elements()?;
         self.validate_behavior()?;
         self.validate_purr()?;
+        self.validate_meow()?;
         self.validate_actions()?;
         self.validate_viewer()?;
         self.validate_events()?;
@@ -1053,6 +1079,52 @@ mod tests {
         assert!(c.validate().is_ok());
         c.purr.cooldown_factor_max = f32::INFINITY;
         assert!(c.validate().is_err());
+    }
+
+    #[test]
+    fn meow_courtesy_defaults_land_and_the_rows_hold() {
+        // Spec 023 FR-006: an absent [meow] table (or partial one) fills
+        // from defaults -- the [purr] posture, adopted deliberately so an
+        // old-key config reaches validation where the retirement error can
+        // explain itself.
+        let parsed: MeowConfig = toml::from_str("").expect("an empty meow table parses");
+        assert_eq!(
+            (parsed.courtesy_ticks, parsed.urgent_courtesy_ticks),
+            (10, 5)
+        );
+        let partial: MeowConfig =
+            toml::from_str("courtesy_ticks = 12").expect("a partial meow table parses");
+        assert_eq!(partial.urgent_courtesy_ticks, 5);
+
+        let mut c = cfg();
+        c.meow.urgent_courtesy_ticks = c.meow.courtesy_ticks + 1;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[meow] urgent_courtesy_ticks"), "{msg}");
+        c.meow.urgent_courtesy_ticks = c.meow.courtesy_ticks; // equal is legal
+        assert!(c.validate().is_ok());
+    }
+
+    #[test]
+    fn the_retired_meow_cooldown_knobs_are_rejected_loudly() {
+        // Spec 023 FR-006 / US3 scenario 2: the enforcement-era names fail
+        // at load naming their replacements -- never silently accepted with
+        // shifted semantics.
+        let parsed: MeowConfig =
+            toml::from_str("cooldown_ticks = 15").expect("the retired key still parses");
+        let mut c = cfg();
+        c.meow = parsed;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[meow] cooldown_ticks"), "{msg}");
+        assert!(msg.contains("retired"), "{msg}");
+        assert!(msg.contains("courtesy_ticks"), "{msg}");
+
+        let parsed: MeowConfig =
+            toml::from_str("urgent_cooldown_ticks = 5").expect("parses");
+        let mut c = cfg();
+        c.meow = parsed;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[meow] urgent_cooldown_ticks"), "{msg}");
+        assert!(msg.contains("urgent_courtesy_ticks"), "{msg}");
     }
 
     #[test]

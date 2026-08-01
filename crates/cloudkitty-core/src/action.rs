@@ -750,8 +750,8 @@ fn emit_meow(
     let cooldown = cooldown_for(
         message,
         need_value,
-        config.meow.cooldown_ticks,
-        config.meow.urgent_cooldown_ticks,
+        config.meow.courtesy_ticks,
+        config.meow.urgent_courtesy_ticks,
         config.meow.urgent_need_threshold,
     );
     if let Some(idx) = world.kitty_index(kitty_id) {

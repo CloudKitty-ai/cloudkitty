@@ -410,6 +410,37 @@ impl Config {
         Ok(())
     }
 
+    /// `[meow]` courtesy rows (spec 023): urgent at most base, and the
+    /// retired enforcement-era key names rejected loudly.
+    pub(super) fn validate_meow(&self) -> Result<(), ConfigError> {
+        if self.meow.urgent_courtesy_ticks > self.meow.courtesy_ticks {
+            return Err(ConfigError::invalid(
+                "[meow] urgent_courtesy_ticks",
+                format!(
+                    "{} (courtesy_ticks is {})",
+                    self.meow.urgent_courtesy_ticks, self.meow.courtesy_ticks
+                ),
+                "must be at most courtesy_ticks -- urgency shortens the wait",
+            ));
+        }
+        if let Some(retired) = self.meow.cooldown_ticks {
+            return Err(ConfigError::invalid(
+                "[meow] cooldown_ticks",
+                retired.to_string(),
+                "retired by spec 023: the engine no longer enforces meow \
+                 cooldowns -- the scripted-courtesy value is courtesy_ticks",
+            ));
+        }
+        if let Some(retired) = self.meow.urgent_cooldown_ticks {
+            return Err(ConfigError::invalid(
+                "[meow] urgent_cooldown_ticks",
+                retired.to_string(),
+                "retired by spec 023: use urgent_courtesy_ticks",
+            ));
+        }
+        Ok(())
+    }
+
     /// `[actions]` relief rules; the duration bounds have their own
     /// validator (`validate_durations`), unchanged since spec 006.
     pub(super) fn validate_actions(&self) -> Result<(), ConfigError> {
