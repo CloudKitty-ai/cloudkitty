@@ -55,7 +55,10 @@ id = 4
 name = "Kittybear"
 x = 5
 y = 5
-behavior = "needs_driven"
+# Second policy seat (pair-screen 2026-07-31, Seating B): Kittybear is driven
+# by the arm2-g0p998-s3 policy — both seatings passed, B held the higher Nash
+# delta per the pre-registered rule.
+behavior = "policy:s3"
 
 # How fast each need rises, per tick. Higher means more pressing, more often.
 [needs]
@@ -258,3 +261,9 @@ distress_patience_ticks = 60
 # (sample = false), matching the certified condition.
 [rl.policy.s6]
 artifact = "policies/s6.ckpolicy"
+
+# s3 = exp-001 arm2-g0p998-s3, sha256 bbaf5f8b… — certified clean on this
+# shape 2026-07-31 (results/recert-2026-07-31.md); seated per the pair
+# screen (Seating B); greedy selection, matching the certified condition.
+[rl.policy.s3]
+artifact = "policies/s3.ckpolicy"

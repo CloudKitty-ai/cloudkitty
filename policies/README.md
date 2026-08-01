@@ -25,3 +25,4 @@ matches the `policies/` examples in `docs/rl-training.md`; the root
 | File | sha256 | Provenance | Certification |
 |------|--------|------------|---------------|
 | `s6.ckpolicy` | `8030b94d8cbf670a46435b38a817035e864d4923203ffa71e52e761099eeeb5f` | exp-001 arm2, γ = 0.998, seed 6 (BC → MAPPO); drives Miso (`policy:s6`), greedy selection | `experiments/exp-001-bc-mappo/results/recert-2026-07-31.md` (certify clean, new engine + 24×24, +0.0448 AllSubject); lineage: `served-world-remeasure-2026-07-30.md`, `s6-promotion-2026-07-30.md`, `soak-record-2026-07-31.md` (§9.1 PASS) |
+| `s3.ckpolicy` | `bbaf5f8bbfc312447046aae326eaff23cee9454a6d143cb472adbade9187aad2` | exp-001 arm2, γ = 0.998, seed 3 (BC → MAPPO); drives Kittybear (`policy:s3`), greedy selection | `experiments/exp-001-bc-mappo/results/recert-2026-07-31.md` (certify clean, new engine + 24×24, +0.0427 AllSubject); `pair-screen-2026-07-31.md` (seating screen, Seating B per the pre-registered rule) |
