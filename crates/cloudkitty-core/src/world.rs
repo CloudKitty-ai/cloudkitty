@@ -1269,6 +1269,74 @@ mod tests {
 
     // ---- sustained purring (spec 011, amended by spec 022) ---------------
 
+    #[test]
+    fn no_purr_start_of_either_origin_stamps_meow_bookkeeping() {
+        // Spec 023 US3 scenario 3 -- the 022 FR-008 handoff, guarded from
+        // this side: motor starts (silent or announcing) and deliberate
+        // starts write nothing into `meow_cooldowns`.
+        for p in [0.0f32, 1.0] {
+            let (mut world, mut config) = test_world();
+            config.purr.announce_probability = p;
+            world.tick = 10;
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].happiness = 90.0;
+            world.purr_phase(&config); // motor start
+            let kitty = world.kitty(1).unwrap();
+            assert!(kitty.purring_until.is_some());
+            assert!(
+                !kitty
+                    .meow_cooldowns
+                    .contains_key(&crate::meow::MessageKind::Purr),
+                "motor start (p = {p}) stamped bookkeeping"
+            );
+        }
+
+        let (mut world, config) = test_world();
+        world.tick = 10;
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].happiness = 90.0;
+        crate::action::apply(
+            &mut world,
+            1,
+            crate::action::Action::Meow {
+                message: crate::meow::MessageKind::Purr,
+            },
+            &config,
+        );
+        let kitty = world.kitty(1).unwrap();
+        assert!(kitty.purring_until.is_some(), "the deliberate purr started");
+        assert!(
+            !kitty
+                .meow_cooldowns
+                .contains_key(&crate::meow::MessageKind::Purr),
+            "a deliberate start stamped bookkeeping"
+        );
+    }
+
+    #[test]
+    fn per_tick_meowing_stays_bounded_by_the_pruning_window() {
+        // Spec 023 (US1 scenario 2): no engine cap on emission, but the
+        // record cannot grow without limit -- pruning holds it to the
+        // retention window.
+        let (mut world, config) = test_world();
+        for _ in 0..200 {
+            world.tick += 1;
+            let tick = world.tick;
+            world.recent_meows.push(crate::meow::Meow {
+                kitty_id: 1,
+                kind: crate::meow::MessageKind::WantPlay,
+                tick,
+            });
+            world.prune_transient(&config);
+        }
+        assert!(
+            world.recent_meows.len() as u64 <= config.meow.recent_window_ticks + 1,
+            "bounded: {} entries for window {}",
+            world.recent_meows.len(),
+            config.meow.recent_window_ticks
+        );
+    }
+
     /// One scripted "tick" of the purr surfaces: randomized moods, one
     /// kitty attempting the deliberate purr through validation, then the
     /// purr phase. Shared by the determinism tests so both runs replay the

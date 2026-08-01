@@ -351,7 +351,10 @@ impl Kitty {
         self.activity_clock = None;
     }
 
-    /// Whether `kind` may be meowed at `tick`.
+    /// Whether repeating `kind` at `tick` would be courteous (spec 023):
+    /// consulted voluntarily by the scripted behaviors before they propose
+    /// a repeat. The engine enforces nothing with this -- every validated
+    /// meow emits.
     pub fn can_meow(&self, kind: MessageKind, tick: u64) -> bool {
         match self.meow_cooldowns.get(&kind) {
             Some(&ready_at) => tick >= ready_at,
@@ -472,6 +475,31 @@ mod tests {
             0,
             "never = dawn of time"
         );
+    }
+
+    #[test]
+    fn restored_meow_bookkeeping_is_a_harmless_courtesy_record() {
+        // Spec 023 US3 scenario 4: a pre-023 snapshot's stamped cooldowns
+        // load fine; the courtesy consult respects them (a delayed next
+        // scripted meow) and nothing enforces them -- the engine reads
+        // this map nowhere.
+        let json = r#"{
+            "id": 1, "name": "Miso", "pos": {"x": 3, "y": 3},
+            "needs": {"eat": 30.0, "drink": 30.0, "sleep": 30.0,
+                      "play": 30.0, "cuddle": 30.0, "bath": 30.0},
+            "happiness": 80.0,
+            "activity": {"state": "idle"},
+            "behavior": "needs_driven",
+            "meow_cooldowns": {"want_eat": 500},
+            "in_distress": [],
+            "happiness_rose": false
+        }"#;
+        let k: Kitty = serde_json::from_str(json).unwrap();
+        assert!(
+            !k.can_meow(MessageKind::WantEat, 499),
+            "the restored record delays the courtesy consult"
+        );
+        assert!(k.can_meow(MessageKind::WantEat, 500));
     }
 
     #[test]

@@ -181,3 +181,16 @@ and nothing can loosen a gate) before quoting the result.
 The held-out doctrine, verbatim: **results against a suite version are
 void if any of its exams appeared in training.** A landed suite version is
 frozen (hash-guarded in CI); evolution is a new `evals/v2/` alongside.
+
+## Certification assumptions
+
+Standing premises a certification inherits without measuring them. Revisit
+each before training under a design that breaks its "holds because."
+
+- **Meow spam is restrained by economics, not law** (spec 023): the engine
+  never blocks an agent's meow. Holds because every meow spends the whole
+  turn *and* the reward is the cooperative team aggregate, under which
+  misleading teammates is self-defeating. Any per-kitty or competitive
+  reward design voids this premise and must revisit spec 023 before
+  training — an unrestrained channel plus an incentive to misuse it is a
+  different world than the one certified.

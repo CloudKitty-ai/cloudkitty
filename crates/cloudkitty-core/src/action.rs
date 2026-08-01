@@ -741,11 +741,11 @@ fn emit_meow(
     let Some(kitty) = world.kitty(kitty_id) else {
         return;
     };
-    // A meow on cooldown is swallowed, but the kitty still spent its turn saying
-    // nothing -- exactly as the spec requires.
-    if !kitty.can_meow(message, tick) {
-        return;
-    }
+    // Spec 023: the engine never swallows a meow. A validated meow action
+    // always emits -- the turn cost is the only price, which is exactly the
+    // price a learning agent can reason about. The bookkeeping stamp below
+    // is a *record*, consulted voluntarily by the scripted behaviors'
+    // courtesy; it gates nothing here.
     let need_value = message.related_need().map(|n| kitty.needs.get(n));
     let cooldown = cooldown_for(
         message,
@@ -1177,7 +1177,11 @@ mod tests {
     }
 
     #[test]
-    fn meows_on_cooldown_are_silently_dropped() {
+    fn repeated_meows_all_emit_and_stamp() {
+        // Spec 023 (SC-001/SC-007): replaces the retired
+        // `meows_on_cooldown_are_silently_dropped` -- the swallow assertion
+        // is deliberately gone, because the swallow is. Every validated
+        // meow emits; the bookkeeping stamp advances as a record.
         let (mut world, config) = test_world();
         apply(
             &mut world,
@@ -1188,8 +1192,10 @@ mod tests {
             &config,
         );
         assert_eq!(world.recent_meows.len(), 1);
+        let first_stamp = world.kitty(1).unwrap().meow_cooldowns[&MessageKind::FollowMe];
 
-        // Immediately again: cooldown swallows it, but it was still a legal action.
+        // Immediately again: no cooldown, no state can null it -- it emits.
+        world.tick += 1;
         apply(
             &mut world,
             1,
@@ -1198,7 +1204,36 @@ mod tests {
             },
             &config,
         );
-        assert_eq!(world.recent_meows.len(), 1, "second meow was dropped");
+        assert_eq!(world.recent_meows.len(), 2, "the second meow is heard too");
+        let second_stamp = world.kitty(1).unwrap().meow_cooldowns[&MessageKind::FollowMe];
+        assert!(
+            second_stamp > first_stamp,
+            "every emission stamps the bookkeeping record"
+        );
+    }
+
+    #[test]
+    fn the_urgent_rule_applies_at_stamp_time() {
+        // Spec 023 FR-003: the stamp is record-keeping with the urgency
+        // arithmetic intact -- an urgent need stamps the shorter interval
+        // the scripted courtesy will read.
+        let (mut world, config) = test_world();
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].needs.add(NeedKind::Eat, 90.0); // >= threshold 75
+        let tick = world.tick;
+        apply(
+            &mut world,
+            1,
+            Action::Meow {
+                message: MessageKind::WantEat,
+            },
+            &config,
+        );
+        assert_eq!(
+            world.kitty(1).unwrap().meow_cooldowns[&MessageKind::WantEat],
+            tick + config.meow.urgent_courtesy_ticks,
+            "urgent need -> urgent stamp"
+        );
     }
 
     #[test]

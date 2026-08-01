@@ -200,7 +200,7 @@ pub(crate) fn pursue(ctx: &DecisionContext, choice: selection::Choice) -> Action
                 // Approach etiquette (spec 012): at the corner, the higher-id
                 // kitty asks and holds; the lower one closes the last step.
                 Some(friend) if selection::should_wait_for(ctx, friend.id, friend.pos) => {
-                    selection::wait_for_them()
+                    selection::wait_for_them(ctx)
                 }
                 // Walking over for a cuddle is not a chase; this cat is not playing.
                 Some(friend) => step_toward(ctx, friend.pos),

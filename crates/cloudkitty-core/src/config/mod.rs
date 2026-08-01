@@ -1118,8 +1118,7 @@ mod tests {
         assert!(msg.contains("retired"), "{msg}");
         assert!(msg.contains("courtesy_ticks"), "{msg}");
 
-        let parsed: MeowConfig =
-            toml::from_str("urgent_cooldown_ticks = 5").expect("parses");
+        let parsed: MeowConfig = toml::from_str("urgent_cooldown_ticks = 5").expect("parses");
         let mut c = cfg();
         c.meow = parsed;
         let msg = c.validate().unwrap_err().to_string();

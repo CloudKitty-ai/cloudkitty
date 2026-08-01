@@ -47,9 +47,9 @@ and stamps; turn cost and all bounding surfaces unchanged.
 presence saturates (clamped); recent record stays pruned; bookkeeping
 timestamps advance on every emission.
 
-- [ ] T005 [US1] Delete the `can_meow` early-return (swallow) in `emit_meow`, crates/cloudkitty-core/src/action.rs:706-710; the stamp and push run unconditionally; update the function and call-site doc comments to the record-not-law semantics citing spec 023 (research D1)
-- [ ] T006 [US1] Re-baseline `meows_on_cooldown_are_silently_dropped` in crates/cloudkitty-core/src/action.rs: replaced by a repeat-emits test (consecutive same-kind meows both recorded — contract test 1, SC-001) plus an emission-always-stamps test (timestamp advances, urgent rule applied at stamp time — contract test 2); doc comment notes the deliberate retirement of the swallow assertion (SC-007)
-- [ ] T007 [P] [US1] Bounded-chatty-advisor tests: extend the digest clamp test in crates/cloudkitty-rl/src/observe.rs (per-tick same-kind meows saturate presence at the clamp, never compound) and assert `recent_meows` stays within the pruning window under per-tick meowing in crates/cloudkitty-core/src/world.rs (contract test 3, US1 scenario 2)
+- [x] T005 [US1] Delete the `can_meow` early-return (swallow) in `emit_meow`, crates/cloudkitty-core/src/action.rs:706-710; the stamp and push run unconditionally; update the function and call-site doc comments to the record-not-law semantics citing spec 023 (research D1)
+- [x] T006 [US1] Re-baseline `meows_on_cooldown_are_silently_dropped` in crates/cloudkitty-core/src/action.rs: replaced by a repeat-emits test (consecutive same-kind meows both recorded — contract test 1, SC-001) plus an emission-always-stamps test (timestamp advances, urgent rule applied at stamp time — contract test 2); doc comment notes the deliberate retirement of the swallow assertion (SC-007)
+- [x] T007 [P] [US1] Bounded-chatty-advisor tests: extend the digest clamp test in crates/cloudkitty-rl/src/observe.rs (per-tick same-kind meows saturate presence at the clamp, never compound) and assert `recent_meows` stays within the pruning window under per-tick meowing in crates/cloudkitty-core/src/world.rs (contract test 3, US1 scenario 2)
 
 **Checkpoint**: no swallow anywhere; agents fully governed by economics.
 
@@ -65,9 +65,9 @@ ticks with no dead air; approach dance emits "Wait for me!" at most once
 per courtesy interval while still progressing; spacing invariant holds over
 randomized long runs.
 
-- [ ] T008 [US2] Third emitter (plan-phase correction, FR-004): change `wait_for_them()` to `wait_for_them(ctx: &DecisionContext) -> Action` in crates/cloudkitty-core/src/behavior/selection.rs — consult `ctx.me.can_meow(MessageKind::WaitForMe, ctx.world.tick)`; on courtesy return `Action::Idle` (silent stand); update both call sites (crates/cloudkitty-core/src/behavior/needs_driven.rs:203 and selection.rs:336) and the yield doc comment (the stand is the progress guarantee)
-- [ ] T009 [US2] Re-baseline yield tests in crates/cloudkitty-core/src/behavior/selection.rs (incl. the `wait_for_them()` expectation at selection.rs:778) and add: on-courtesy yield is `Idle`, dance still progresses across ticks (tick-parity preserved), no WaitForMe emission inside the courtesy interval (contract test 5, US2 scenario 4)
-- [ ] T010 [US2] SC-003 spacing-invariant property test in crates/cloudkitty-core/src/world.rs: long randomized runs under built-in rosters with per-tick emission capture (diff `recent_meows` by tick, research D4); assert per-kitty per-kind gaps ≥ applicable courtesy interval (urgent 5 at/above threshold at proposal time, else 10), including a forced approach-dance scenario and a persistent-urgency stretch asserting the no-dead-air refresh (contract test 4, US2 scenarios 1–2)
+- [x] T008 [US2] Third emitter (plan-phase correction, FR-004): change `wait_for_them()` to `wait_for_them(ctx: &DecisionContext) -> Action` in crates/cloudkitty-core/src/behavior/selection.rs — consult `ctx.me.can_meow(MessageKind::WaitForMe, ctx.world.tick)`; on courtesy return `Action::Idle` (silent stand); update both call sites (crates/cloudkitty-core/src/behavior/needs_driven.rs:203 and selection.rs:336) and the yield doc comment (the stand is the progress guarantee)
+- [x] T009 [US2] Re-baseline yield tests in crates/cloudkitty-core/src/behavior/selection.rs (incl. the `wait_for_them()` expectation at selection.rs:778) and add: on-courtesy yield is `Idle`, dance still progresses across ticks (tick-parity preserved), no WaitForMe emission inside the courtesy interval (contract test 5, US2 scenario 4)
+- [x] T010 [US2] SC-003 spacing-invariant property test in crates/cloudkitty-core/src/world.rs: long randomized runs under built-in rosters with per-tick emission capture (diff `recent_meows` by tick, research D4); assert per-kitty per-kind gaps ≥ applicable courtesy interval (urgent 5 at/above threshold at proposal time, else 10), including a forced approach-dance scenario and a persistent-urgency stretch asserting the no-dead-air refresh (contract test 4, US2 scenarios 1–2)
 
 **Checkpoint**: courtesy complete and property-guarded; meadow character
 preserved by construction.
@@ -80,8 +80,8 @@ preserved by construction.
 harmless. (The config-honesty scenarios landed in Phase 2: T003 covers US3
 scenarios 1–2.)
 
-- [ ] T011 [P] [US3] Purr-stamps-nothing guard test in crates/cloudkitty-core/src/world.rs: after deliberate and spontaneous purr starts (announce probability 0 and 1), assert the Purr entry of `meow_cooldowns` is never written (022 FR-008 handoff, contract test 7, US3 scenario 3)
-- [ ] T012 [P] [US3] Legacy-snapshot test in crates/cloudkitty-core/src/kitty.rs or world.rs: a kitty JSON fixture with stamped `meow_cooldowns` restores and runs; a scripted consult respects the restored stamp (delayed next meow), and nothing else reads it (contract test 8, US3 scenario 4)
+- [x] T011 [P] [US3] Purr-stamps-nothing guard test in crates/cloudkitty-core/src/world.rs: after deliberate and spontaneous purr starts (announce probability 0 and 1), assert the Purr entry of `meow_cooldowns` is never written (022 FR-008 handoff, contract test 7, US3 scenario 3)
+- [x] T012 [P] [US3] Legacy-snapshot test in crates/cloudkitty-core/src/kitty.rs or world.rs: a kitty JSON fixture with stamped `meow_cooldowns` restores and runs; a scripted consult respects the restored stamp (delayed next meow), and nothing else reads it (contract test 8, US3 scenario 4)
 
 **Checkpoint**: all three stories green; full 023 semantics in place.
 
@@ -89,11 +89,11 @@ scenarios 1–2.)
 
 ## Phase 6: Polish & Cross-Cutting
 
-- [ ] T013 [P] Doctrine amendment in specs/012-approach-etiquette/spec.md: dated note on the "lawfully silent" clause — the yield consults courtesy and stands silently (spec 023); progress guarantee restated as the stand (FR-008)
-- [ ] T014 [P] Verify/extend the shared spec 001 annotation from 022's T024 in specs/001-cloudkitty-mvp/data-model.md: the "cooldown decides whether it is audible" clause deletion is attributed to spec 023 with the purr-row exception attributed to 022 (FR-008 — one dated note, both pointers)
-- [ ] T015 [P] Record the reward-structure dependency in docs/rl-training.md: certification-assumptions note — spam backstop for learned agents is economics under the cooperative team reward; any per-kitty or competitive reward design revisits spec 023 before training (FR-011, research D5)
-- [ ] T016 Doc-comment sweep in crates/cloudkitty-core/src/meow.rs (module header + `cooldown_for`) and crates/cloudkitty-core/src/kitty.rs (`can_meow`/`set_meow_cooldown`): courtesy/record language replaces enforcement language, citing spec 023
-- [ ] T017 Gates: all pre-existing `cloudkitty-rl` tests pass without modification — the T007 digest-clamp extension is expected; no existing assertion may change (SC-004; contract test 9); full `cargo test --workspace`, `cargo clippy --workspace -- -D warnings`, `cargo fmt`, then run specs/023-retire-meow-cooldown/quickstart.md proof points foreground with generous timeout (SC-005/SC-006; contract test 10)
+- [x] T013 [P] Doctrine amendment in specs/012-approach-etiquette/spec.md: dated note on the "lawfully silent" clause — the yield consults courtesy and stands silently (spec 023); progress guarantee restated as the stand (FR-008)
+- [x] T014 [P] Verify/extend the shared spec 001 annotation from 022's T024 in specs/001-cloudkitty-mvp/data-model.md: the "cooldown decides whether it is audible" clause deletion is attributed to spec 023 with the purr-row exception attributed to 022 (FR-008 — one dated note, both pointers)
+- [x] T015 [P] Record the reward-structure dependency in docs/rl-training.md: certification-assumptions note — spam backstop for learned agents is economics under the cooperative team reward; any per-kitty or competitive reward design revisits spec 023 before training (FR-011, research D5)
+- [x] T016 Doc-comment sweep in crates/cloudkitty-core/src/meow.rs (module header + `cooldown_for`) and crates/cloudkitty-core/src/kitty.rs (`can_meow`/`set_meow_cooldown`): courtesy/record language replaces enforcement language, citing spec 023
+- [x] T017 Gates: all pre-existing `cloudkitty-rl` tests pass without modification — the T007 digest-clamp extension is expected; no existing assertion may change (SC-004; contract test 9); full `cargo test --workspace`, `cargo clippy --workspace -- -D warnings`, `cargo fmt`, then run specs/023-retire-meow-cooldown/quickstart.md proof points foreground with generous timeout (SC-005/SC-006; contract test 10)
 
 ---
 
