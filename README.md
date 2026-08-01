@@ -59,7 +59,9 @@ public.
 of the served tick, so every viewer sees the same sky and a restart resumes mid-day
 where the snapshot left off; the engine knows nothing about any of it (Article V).
 The footer toggle cycles the world's cycle → Always Day → Always Twilight → Always
-Night, and only an explicit choice is remembered.
+Night, and only an explicit choice is remembered. A second footer toggle switches
+the cats between the two art vocabularies — v2 is the default, the original v1 one
+click away — likewise remembered per browser only on an explicit choice.
 
 Press <kbd>g</kbd> to reveal greebles — fast, erratic critters that are always in the
 world and always in the API, but are never drawn. That is why you will sometimes see
@@ -130,22 +132,27 @@ crates/cloudkitty-rl/       the training layer: observations, action codec + leg
 crates/cloudkitty-py/       PyO3 bindings: ParallelEnv / VectorEnv, PettingZoo-style
 docs/                       guides: the RL HOWTO (howto-rl.md), the training reference
                             (rl-training.md), the plugin contract (plugins.md) with a
-                            worked example under examples/, and deployment.md
+                            worked example under examples/, deployment.md, and the
+                            engine-law note on cuddle relief
+                            (cuddle-relief-semantics.md)
 client/                     the viewer: vanilla JS on a canvas, no build step — hand-drawn
                             vector cats, props, and meadow; gallery.html is the standalone
                             art-approval page (opens from file://, no server needed)
 evals/v1/                   the exam room: frozen, hash-pinned held-out worlds
+policies/                   deployed minds: every .ckpolicy artifact the served world
+                            runs, committed byte-identical and hash-pinned to its
+                            certification record in policies/README.md
 experiments/                the lab notebook — trainer territory, no constitutional
                             gates, non-blocking CI; may import from crates/, never
                             the reverse. FINDINGS.md is the register
 specs/                      one directory per shipped feature: spec, plan, research,
                             data model, contracts, tasks, quickstart
-cloudkitty.toml             the served world (16/48 variants alongside it)
+cloudkitty.toml             the served world
 training.toml               the gym: the world policies are trained in
 ```
 
 **Three worlds, three jobs.** `training.toml` is the gym. `cloudkitty.toml` is the
-bar — certification runs on the default world, because that is where the welfare
+bar — certification runs on the served world, because that is where the welfare
 bounds are calibrated. `evals/v1/` is the exam room, and it is held out: a result
 claimed against a suite version is void if any of its exams were trained on.
 
@@ -164,7 +171,7 @@ node client/test-meadow.mjs  # headless checks for the viewer's meadow drawing
 cd crates/cloudkitty-py && maturin develop --release && python -m pytest tests/
 ```
 
-The suite covers need arithmetic, action legality, meow cooldowns, spawning, config
+The suite covers need arithmetic, action legality, meow semantics, spawning, config
 rejection, persistence, determinism (including across a save/restore), behavior
 timeouts and panics, the HTTP and WebSocket contracts — and the property suite, which
 drives randomized worlds with deliberately hostile behaviors for tens of thousands of
@@ -250,7 +257,10 @@ artifact = "policies/trained.ckpolicy"
 
 The server validates and hash-logs the artifact before the first tick, and the engine
 treats the policy exactly like any other behavior — proposals only, validated,
-budgeted, benched if it misbehaves. Start with the HOWTO —
+budgeted, benched if it misbehaves. None of this is hypothetical: two of the served
+world's four kitties, Miso and Kittybear, are trained policies, and
+[policies/README.md](policies/README.md) is the registry — every deployed artifact
+hash-pinned to its certification record. Start with the HOWTO —
 [docs/howto-rl.md](docs/howto-rl.md), a verified start-to-finish walkthrough with a
 minimal runnable example — then the training reference in
 [docs/rl-training.md](docs/rl-training.md); the contracts live in
@@ -260,9 +270,12 @@ minimal runnable example — then the training reference in
 
 A policy is evaluated before it is trusted, in two places.
 
-**Certification** runs on the default world: `kitty-eval` scores the candidate against
-the built-in `needs_driven` baseline on paired seeds, and every constitutional welfare
-bound must hold — a trained mind that makes any kitty's life worse does not ship.
+**Certification** runs on the served world — a bare `kitty-eval` resolves
+`cloudkitty.toml` exactly the way the server does, and the compiled 3-kitty world
+stays reachable by name as `--config compiled` (it is kept deliberately, as a
+roster-out-of-distribution screen). It scores the candidate against the built-in
+`needs_driven` baseline on paired seeds, and every constitutional welfare bound must
+hold — a trained mind that makes any kitty's life worse does not ship.
 
 ```bash
 kitty-eval --brain needs_driven --seeds 1,2,3 --ticks 20000
@@ -295,5 +308,6 @@ Exit codes: `0` pass · `1` usage or validation · `2` a fallback was taken whil
 a policy (a broken advisor never rides the fallback through an evaluation) · `3` a
 determinism self-check disagreed with itself · `4` the mixed-roster verdict failed.
 
-Every report stamps the engine defaults it ran under, so results from before a tuning
-change can't be quietly compared against results from after one.
+Every report stamps the engine defaults and the world identity it ran under — config
+source, kitty count, config hash — so results from before a tuning change, or from a
+different world entirely, can't be quietly compared against results from after one.
