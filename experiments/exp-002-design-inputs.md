@@ -158,10 +158,11 @@ binds exp-002's design (ported 2026-08-01 per the register rule):
   already observes water slots, own bath need, and own traits — the
   cost is learnable from the existing 182-dim vector). Client
   (parallel, non-blocking): swim animation; the per-kitty
-  brain-indicator toggle is owner-deferred to BACKLOG. Still open with
-  the owner: the Cuddle pinned-streak welfare correction
-  (recommended for the same batch — measurement-layer re-baseline is
-  free while certifications lapse anyway).
+  brain-indicator toggle is owner-deferred to BACKLOG. The Cuddle
+  pinned-streak "fix" is RETIRED (premise falsified — spec 021,
+  docs/cuddle-relief-semantics.md); what rides the batch instead is
+  that doc's **welfare ↔ action::validate equivalence guardrail test**
+  (owner call, 2026-08-01).
 - **Family must vary bath rise rates** across kitties, or the policy
   memorizes a constant instead of learning trait→cost.
 - **Final gain value is a prereg'd exp-002 tuning decision**,

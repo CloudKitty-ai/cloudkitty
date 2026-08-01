@@ -169,29 +169,22 @@ which may stand in for the full spec-first flow at the owner's call.
   two hand-synced copies (`app.js` + `anim.js` — silent-divergence trap,
   cheap fix); DPR-canvas setup duplicated across 5 sites.
 
-### Welfare pinned-streak Cuddle false-positive (added 2026-07-26 — resolve before the first real certification campaign; realistic horizon: weeks)
-Found by the spec 019 review (pre-existing, not introduced there):
-`zero_distance_relief_exists` in `crates/cloudkitty-rl/src/welfare.rs`
-counts **any** adjacent kitty as available Cuddle relief, while the
-built-in behavior's conscription rule (spec 006, via
-`ReliefSource::Friend`) only ever cuddles a **free** (not mid-activity)
-friend. A cat pinned high on Cuddle beside only busy friends therefore
-accrues pinned-streak toward `MAX_PINNED_STREAK` for "refusing" relief it
-cannot lawfully take. Latent today (the streak must survive to the cap),
-but this metric feeds the certification welfare bounds — a trained policy
-could in principle be dinged for correctly declining to conscript. Fix
-direction when picked up: align welfare's Cuddle arm with the free-friend
-rule (count only *conscriptable* friends) — a small spec-level change to
-`zero_distance_relief_exists`. **Framing caution (experiments-session
-review, 2026-07-27): the tighten-only doctrine needs the explicit
-argument that this is a semantics *correction* — the bound was measuring
-relief that didn't lawfully exist under spec 006 conscription — not a
-loosening of the welfare guarantee.** Make that argument in the spec, in
-those words (never weaken tests: re-baseline deliberately, not by
-drift). The `relief.rs` module doc points here; note
-the encoding is cross-crate by design (`pub(crate)` policy knowledge must
-not leak into the measuring layer), so consolidation is not the fix —
-reconciling the Cuddle rule is.
+### ~~Welfare pinned-streak Cuddle false-positive~~ RETIRED 2026-08-01 — premise falsified
+The claimed false positive does not exist: `Sleep { with }` and
+`Groom { target }` lawfully relieve Cuddle from a **busy** adjacent
+neighbor (adjacency alone; only `Rest { with }` conscripts and needs a
+free friend), so `zero_distance_relief_exists` counting any adjacent
+kitty is **correct as written** — narrowing it would *loosen*
+`MAX_PINNED_STREAK` (false negatives), a tighten-only regression. Full
+story and the authoritative rule table:
+[docs/cuddle-relief-semantics.md](docs/cuddle-relief-semantics.md)
+(spec 021, built on the false premise, withdrawn 2026-07-27; package
+at tag `parked/021-withdrawn`, lead-not-truth). The one live salvage —
+the **welfare ↔ `action::validate` equivalence guardrail test** — was
+pulled into the wet-fur engine batch (owner call, 2026-08-01). This
+entry retired so the stale premise can't recruit a third reader; it
+did once (2026-08-01, a batch-planning recommendation, caught before
+any code).
 
 ### Dynamic element populations (added 2026-07-20 — ideate with the owner first)
 Environmental elements are effectively static: `ensure_minimums`
