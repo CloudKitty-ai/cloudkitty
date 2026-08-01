@@ -2,10 +2,12 @@
 //!
 //! Two cats chase past each other down one lane, each squarely blocking
 //! the other's straight step — the head-on geometry that produced the
-//! 2026-07-20 dance family. The sidestep's master-RNG draws are
-//! successive stream values, so the two cats can never compute the same
-//! arc from shared state; this suite pins the operational definition of
-//! "never a sustained lockstep" and the determinism of the whole affair.
+//! 2026-07-20 dance family. This suite pins the outcome that matters
+//! operationally — the pass engages the sidestep and resolves promptly —
+//! and the determinism of the whole affair. (An earlier mirrored-window
+//! metric was dropped by the 2026-08-01 review: under sequential apply
+//! the first mover always clears the second's lane, so a both-blocked
+//! round can never occur and the metric could not fail.)
 
 use std::sync::Arc;
 
@@ -74,10 +76,22 @@ fn manhattan(p: Position, q: Position) -> u32 {
 }
 
 #[test]
-fn head_on_chasers_pass_each_other_without_a_sustained_lockstep() {
+fn head_on_chasers_pass_each_other_promptly() {
     let (a_track, b_track) = run(1_000);
     let a_goal = Position::new(12, 5);
     let b_goal = Position::new(3, 5);
+
+    // The fixture's premise must engage: cat 1's very first step east is
+    // squarely blocked by cat 2, so round 0 has to be a perpendicular
+    // arc off the lane — same column, different row.
+    assert_eq!(
+        a_track[0].x, 7,
+        "cat 1's straight step was blocked; an arc keeps the column"
+    );
+    assert_ne!(
+        a_track[0].y, 5,
+        "cat 1's first move must be an arc off the lane, not a stall"
+    );
 
     // The chases must actually resolve: both cats reach their bugs. (A
     // chase apply steps onto the target tile when it gets there; reaching
@@ -91,39 +105,18 @@ fn head_on_chasers_pass_each_other_without_a_sustained_lockstep() {
         "cat 2 never got past its friend"
     );
 
-    // The operational lockstep bound (spec 024 tasks T012): no window of
-    // 8+ consecutive rounds in which both displacement vectors are mirror
-    // images across the lane (dx_a == -dx_b, dy_a == dy_b) while neither
-    // cat closes distance on its own target. Only rounds where both
-    // chases are still live count — two cats parked on their caught bugs
-    // are finished hunters, not dancers.
-    let done = (1..a_track.len())
+    // ...and PROMPTLY (spec 024 tasks T012's intent, sharpened by the
+    // 2026-08-01 review): the straight walk is 4 rounds (start distance
+    // 5, done at Manhattan <= 1) and the passing maneuver adds an arc or
+    // two, so a generous multiple still binds — a rule that livelocked
+    // (the dance family) or retreated (the distance-1 orbit) would blow
+    // it by an order of magnitude.
+    let done = (0..a_track.len())
         .find(|&i| manhattan(a_track[i], a_goal) <= 1 && manhattan(b_track[i], b_goal) <= 1)
         .unwrap_or(a_track.len());
-    let mut worst = 0usize;
-    let mut streak = 0usize;
-    for i in 1..done {
-        let da = (
-            a_track[i].x as i64 - a_track[i - 1].x as i64,
-            a_track[i].y as i64 - a_track[i - 1].y as i64,
-        );
-        let db = (
-            b_track[i].x as i64 - b_track[i - 1].x as i64,
-            b_track[i].y as i64 - b_track[i - 1].y as i64,
-        );
-        let mirrored = da.0 == -db.0 && da.1 == db.1;
-        let a_closed = manhattan(a_track[i], a_goal) < manhattan(a_track[i - 1], a_goal);
-        let b_closed = manhattan(b_track[i], b_goal) < manhattan(b_track[i - 1], b_goal);
-        if mirrored && !a_closed && !b_closed {
-            streak += 1;
-            worst = worst.max(streak);
-        } else {
-            streak = 0;
-        }
-    }
     assert!(
-        worst < 8,
-        "a {worst}-round mirrored stall is a dance; the draws must decorrelate"
+        done <= 24,
+        "the pass took {done} rounds; head-on chasers must resolve promptly"
     );
 }
 
