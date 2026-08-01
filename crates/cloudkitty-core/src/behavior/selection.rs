@@ -144,7 +144,7 @@ fn distance_given(
 /// it can reorder choices but never remove one.
 pub fn priced_travel(ctx: &DecisionContext, from: Position, to: Position) -> f32 {
     let mut cost = from.manhattan_distance(&to) as f32;
-    let surcharge = ctx.config.behavior.water_step_cost;
+    let surcharge = ctx.config.behavior.water_step_cost * bath_ratio(ctx);
     if surcharge > 0.0 {
         let mut pos = from;
         while let Some(dir) = crate::grid::Direction::toward(pos, to) {
@@ -165,6 +165,21 @@ pub fn priced_travel(ctx: &DecisionContext, from: Position, to: Position) -> f32
         }
     }
     cost
+}
+
+/// The deciding cat's water aversion, as a multiple of the shipped
+/// surcharge: [`Config::bath_ratio`] for the cat deciding -- the SAME
+/// ratio the engine's wet-fur charge uses, so the scripted ladder and
+/// the felt need-pressure express one coherent per-cat preference. A
+/// low-bath cat is legibly "the swimmer" to both. Shared by both PRICING
+/// sites (score and walk must never disagree -- the 004 agreement rule);
+/// the blocked-walk sidestep pool is not a pricing site and keeps its
+/// flat dry-first preference (spec 010). Note the scale applies whether
+/// or not `[water] bath_gain` is on: for the shipped rosters every ratio
+/// is 1.0, so `bath_gain = 0` restores pre-024 routing exactly, but a
+/// bath-trait override still tilts routes with the charge disabled.
+pub fn bath_ratio(ctx: &DecisionContext) -> f32 {
+    ctx.config.bath_ratio(ctx.me.id)
 }
 
 /// The element of `kind` cheapest to actually walk to, by

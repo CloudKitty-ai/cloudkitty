@@ -14,7 +14,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::config::Config;
 use crate::element::{ElementId, ElementKind, ElementType};
-use crate::grid::Direction;
+use crate::grid::{Direction, Position};
 use crate::kitty::{Activity, ActivityClock, KittyId};
 use crate::meow::{cooldown_for, Meow, MessageKind};
 use crate::needs::NeedKind;
@@ -502,17 +502,71 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
             if let Some(target_pos) = target_pos {
                 if let Some(dir) = Direction::toward(kitty_pos, target_pos) {
                     if let Some(dest) = kitty_pos.step(dir, world.width, world.height) {
-                        // A chase that runs into another kitty simply stalls; the
-                        // spec turns blocked movement into idling, never an error.
-                        // Stalls are bounded (the patience clock abandons a chase
-                        // that stops closing), so this is not a livelock -- but it
-                        // is the one walk with no route-around, and a candidate
-                        // for the seeded-shuffle treatment if frozen mid-chase
-                        // cats ever grate (BACKLOG P3 "Chases route around
-                        // friends"; see behavior/mod.rs's livelock note).
                         if world.kitty_at(dest).is_none() {
                             if let Some(idx) = world.kitty_index(kitty_id) {
                                 world.kitties[idx].pos = dest;
+                            }
+                        } else {
+                            // Spec 024: a blocked chase step routes around the
+                            // friend instead of freezing mid-pounce. Two tiers:
+                            // a lawful step that still CLOSES distance wins
+                            // (the other axis, when the target sits diagonal);
+                            // otherwise a perpendicular arc (+1 Manhattan) --
+                            // routing around a blocker standing squarely in an
+                            // axis-aligned lane necessarily arcs before it
+                            // passes. The reverse direction is never a
+                            // candidate: arcing is routing, walking backwards
+                            // is retreat. The pick is one uniform draw from
+                            // the master RNG at apply time in the tick's fair
+                            // apply order -- deterministic given the seed, and
+                            // two blocked kitties draw successive stream
+                            // values, so they can never compute the same pick
+                            // from shared state (the livelock family's root
+                            // cause; behavior/mod.rs's note, spec 012
+                            // FR-008's guarantees delivered engine-side). The
+                            // draw count depends only on world state, never
+                            // on config (the fixed-shape rule governs config,
+                            // not state). Preference-free: no dry-tile bias,
+                            // the engine is mechanics -- a wet sidestep pays
+                            // the wet-fur charge. Empty pool (boxed in) keeps
+                            // the old stall, patience clock unchanged. Pounce
+                            // range keeps it too: at distance 1 every lawful
+                            // perpendicular step is +1 Manhattan -- a
+                            // guaranteed retreat wearing an arc's name -- so
+                            // a cat already beside its target never draws
+                            // (the `current > 1` rule needs_driven's own
+                            // sidestep has always had).
+                            let current = kitty_pos.manhattan_distance(&target_pos);
+                            if current > 1 {
+                                let mut closing: Vec<Position> = Vec::new();
+                                let mut arcing: Vec<Position> = Vec::new();
+                                for d in Direction::ALL {
+                                    if d == dir || d == dir.opposite() {
+                                        continue;
+                                    }
+                                    let Some(p) = kitty_pos.step(d, world.width, world.height)
+                                    else {
+                                        continue;
+                                    };
+                                    if world.kitty_at(p).is_some() {
+                                        continue;
+                                    }
+                                    if p.manhattan_distance(&target_pos) < current {
+                                        closing.push(p);
+                                    } else {
+                                        arcing.push(p);
+                                    }
+                                }
+                                let pool = if closing.is_empty() {
+                                    &arcing
+                                } else {
+                                    &closing
+                                };
+                                if let Some(side) = world.rng.choose(pool).copied() {
+                                    if let Some(idx) = world.kitty_index(kitty_id) {
+                                        world.kitties[idx].pos = side;
+                                    }
+                                }
                             }
                         }
                     }
@@ -1360,6 +1414,200 @@ mod tests {
             &config,
         );
         assert_eq!(validated, Action::Idle);
+    }
+
+    /// Rig: chaser at (5,5), a bug down the lane, an optional blocker.
+    /// Returns the world ready for one Chase apply (spec 024 sidestep).
+    /// Without a blocker, kitty 2 parks in the far corner of the 16x16
+    /// test world -- in bounds, out of the lane.
+    fn chase_lane(bug: Position, blocker: Option<Position>) -> (crate::world::World, Config) {
+        let (mut world, config) = test_world();
+        world.elements.clear();
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(5, 5);
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = blocker.unwrap_or(Position::new(15, 15));
+        world.push_element(Element {
+            id: 901,
+            kind: ElementKind::Bug,
+            pos: bug,
+            ttl: None,
+        });
+        (world, config)
+    }
+
+    #[test]
+    fn a_blocked_lane_chase_arcs_instead_of_stalling() {
+        // The headline jank (spec 024 US2): friend squarely in the lane.
+        // Both perpendicular arcs are +1 Manhattan; the reverse and the
+        // stall are the two forbidden outcomes.
+        let (mut world, config) = chase_lane(Position::new(8, 5), Some(Position::new(6, 5)));
+        apply(
+            &mut world,
+            1,
+            Action::Chase(TargetRef::Element { id: 901 }),
+            &config,
+        );
+        let pos = world.kitty(1).unwrap().pos;
+        assert!(
+            pos == Position::new(5, 4) || pos == Position::new(5, 6),
+            "an arc, not a stall or a retreat: {pos:?}"
+        );
+    }
+
+    #[test]
+    fn a_diagonal_blocked_chase_takes_the_closing_axis() {
+        // Target at (8,7): east is dominant and blocked; south still
+        // CLOSES (4 < 5), north merely arcs -- the closing tier wins
+        // deterministically, no coin involved in which tier.
+        let (mut world, config) = chase_lane(Position::new(8, 7), Some(Position::new(6, 5)));
+        apply(
+            &mut world,
+            1,
+            Action::Chase(TargetRef::Element { id: 901 }),
+            &config,
+        );
+        assert_eq!(
+            world.kitty(1).unwrap().pos,
+            Position::new(5, 6),
+            "the other axis closes and is preferred over any arc"
+        );
+    }
+
+    #[test]
+    fn a_chase_already_beside_its_kitty_stays_put() {
+        // Distance 1: the target's own tile is the "blocked" step and
+        // every perpendicular tile is +1 Manhattan, so any sidestep would
+        // be a guaranteed retreat -- the orbit the 024 review caught.
+        // Pounce range holds still, exactly the pre-024 stall (and no
+        // RNG draw: the stream must not remember the near-miss).
+        let (mut world, config) = test_world();
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(5, 5);
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(6, 5);
+        let before = serde_json::to_string(&world.rng).unwrap();
+        apply(
+            &mut world,
+            1,
+            Action::Chase(TargetRef::Kitty { id: 2 }),
+            &config,
+        );
+        assert_eq!(
+            world.kitty(1).unwrap().pos,
+            Position::new(5, 5),
+            "an adjacent chaser must hold its pounce, never orbit away"
+        );
+        assert_eq!(
+            serde_json::to_string(&world.rng).unwrap(),
+            before,
+            "pounce range must not consume a draw"
+        );
+    }
+
+    #[test]
+    fn a_chase_beside_its_bug_under_a_sitting_friend_stays_put() {
+        // The element flavor of the same edge: the bug one step away,
+        // a friend sitting on it. Stall, not retreat, no draw.
+        let (mut world, config) = chase_lane(Position::new(6, 5), Some(Position::new(6, 5)));
+        let before = serde_json::to_string(&world.rng).unwrap();
+        apply(
+            &mut world,
+            1,
+            Action::Chase(TargetRef::Element { id: 901 }),
+            &config,
+        );
+        assert_eq!(world.kitty(1).unwrap().pos, Position::new(5, 5));
+        assert_eq!(
+            serde_json::to_string(&world.rng).unwrap(),
+            before,
+            "pounce range must not consume a draw"
+        );
+    }
+
+    #[test]
+    fn a_boxed_in_chase_stalls_exactly_as_before() {
+        // Corner cat: east blocked by a friend, south blocked by another,
+        // north off-grid, west is the forbidden reverse. Empty pool ->
+        // the pre-024 stall, patience clock's territory.
+        let (mut world, config) = test_world();
+        world.elements.clear();
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(0, 0);
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(1, 0);
+        // The two-kitty test roster needs one more paw in the way: a
+        // fixture-only clone (apply consults positions, nothing deeper).
+        let mut third = world.kitties[b].clone();
+        third.id = 99;
+        third.pos = Position::new(0, 1);
+        world.kitties.push(third);
+        world.push_element(Element {
+            id: 902,
+            kind: ElementKind::Bug,
+            pos: Position::new(3, 0),
+            ttl: None,
+        });
+        apply(
+            &mut world,
+            1,
+            Action::Chase(TargetRef::Element { id: 902 }),
+            &config,
+        );
+        assert_eq!(
+            world.kitty(1).unwrap().pos,
+            Position::new(0, 0),
+            "nowhere lawful to go: the stall survives"
+        );
+    }
+
+    #[test]
+    fn same_seed_same_sidestep() {
+        let run = || {
+            let (mut world, config) = chase_lane(Position::new(8, 5), Some(Position::new(6, 5)));
+            apply(
+                &mut world,
+                1,
+                Action::Chase(TargetRef::Element { id: 901 }),
+                &config,
+            );
+            world.kitty(1).unwrap().pos
+        };
+        assert_eq!(run(), run(), "Article V: the arc is seeded, not random");
+    }
+
+    #[test]
+    fn the_sidestep_draws_only_when_blocked() {
+        // Stream-shape sanity: an unblocked chase consumes no randomness;
+        // a blocked one consumes exactly its one draw. (Config never
+        // changes draw shape -- world state may.)
+        let (mut world, config) = chase_lane(Position::new(8, 5), None);
+        let before = serde_json::to_string(&world.rng).unwrap();
+        apply(
+            &mut world,
+            1,
+            Action::Chase(TargetRef::Element { id: 901 }),
+            &config,
+        );
+        assert_eq!(
+            serde_json::to_string(&world.rng).unwrap(),
+            before,
+            "an open lane draws nothing"
+        );
+
+        let (mut world, config) = chase_lane(Position::new(8, 5), Some(Position::new(6, 5)));
+        let before = serde_json::to_string(&world.rng).unwrap();
+        apply(
+            &mut world,
+            1,
+            Action::Chase(TargetRef::Element { id: 901 }),
+            &config,
+        );
+        assert_ne!(
+            serde_json::to_string(&world.rng).unwrap(),
+            before,
+            "a blocked lane consumes its one sidestep draw"
+        );
     }
 
     #[test]

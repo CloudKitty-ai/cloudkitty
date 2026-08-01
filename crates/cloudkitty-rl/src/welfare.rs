@@ -54,10 +54,17 @@ pub fn zero_distance_relief_exists(world: &World, kitty_idx: usize, kind: NeedKi
             .kitties
             .iter()
             .any(|other| other.id != kitty.id && kitty.pos.is_adjacent(&other.pos)),
-        NeedKind::Eat => world
-            .elements
-            .iter()
-            .any(|e| e.element_type() == ElementType::Chow && kitty.pos.is_adjacent(&e.pos)),
+        // Spec 024 reconciliation: the metric asks the SAME question the
+        // engine answers -- the nearest adjacent bowl, filtered for
+        // servings (World::adjacent_stocked_chow, the arm `Eat` validates
+        // against). Pre-024 this counted any adjacent Chow -- a textual
+        // divergence from the engine, though never an observable one: the
+        // tick reaps a drained bowl (Element::is_expired) before any
+        // metric read, so no cat ever sat beside a zero-serving Chow at
+        // observation time. The rewrite closes the drift class on
+        // principle, and the equivalence guardrail now pins it red if
+        // either layer moves.
+        NeedKind::Eat => world.adjacent_stocked_chow(kitty.pos).is_some(),
         NeedKind::Drink => world
             .elements
             .iter()

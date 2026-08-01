@@ -344,26 +344,40 @@ When it comes: an observation-schema version bump per 014's extensibility
 doctrine, slot width paid per kitty slot, and worth pairing with a
 training-ablation check that the traits actually earn their vector space.
 
-### Chases route around friends (added 2026-07-20)
-**Pulled into the wet-fur engine batch (owner call, 2026-08-01)** — the
-one-break-per-generation window: exp-002 policies train heavily on
-play/chase, so the fix lands before the generation bakes in the stall.
-The `chase_patience_ticks` re-baseline care below rides the same spec.
-Entry retained for the design detail until the batch ships.
+### ~~Chases route around friends~~ SHIPPED in spec 024 (2026-08-01)
+Blocked chase steps now arc around the blocker (closing steps
+preferred, perpendicular arcs otherwise, never the reverse; one master-
+RNG draw at apply time — deterministic, never synchronized). The design
+detail this entry held lives in
+`specs/024-wet-fur-batch/contracts/chase-sidestep.md`, including the
+implementation correction (the first-draft candidate rule was empty in
+exactly the axis-aligned lane case). Re-baseline note (corrected
+2026-08-01: an earlier "no expectations moved" verdict here was recorded
+without measurement): a sidestep that unsticks blocked chases plausibly
+lowers abandonment rates, so any pre-024 `chase_patience_ticks` tuning
+or chase-statistic baseline must be re-measured before comparing across
+the break — Experiments' calibration probe is the natural place.
 
-The one walk with no route-around: a chase step is applied engine-side via
-the straight `Direction::toward`, and a friend standing in the lane stalls
-the chase in place (`action.rs`, the Chase apply arm). Bounded, not a
-livelock — the patience clock abandons a chase that stops closing — but a
-kitty visibly frozen mid-pounce for up to `chase_patience_ticks` behind a
-bystander is the same *flavor* of jank as the 2026-07-20 dance family.
-Candidate fix: give blocked chase steps the seeded-shuffle sidestep the
-behavior stepper got in 012 FR-008 (deterministic per Article V, never
-synchronized). Design care: stalls currently *feed* the abandon/exclusion
-tuning — more persistent chases shift how often greebles get written off,
-so re-baseline `chase_patience_ticks` expectations in the same change.
-Polish, not urgent; see `behavior/mod.rs`'s multi-agent livelock note for
-the family history.
+### Equivalence guardrail: subject-state axis (added 2026-08-01)
+`welfare_validate_equivalence.rs` varies neighbors and relief elements
+but always leaves the subject idle. A busy subject is the untested axis:
+`validate` may refuse actions mid-activity while the metric's relief
+predicate ignores the subject's own state. Extend the fixture matrix
+with a subject-activity axis, keeping `action::validate` as the oracle
+(the 024 review checked the alternative gauntlet oracle and it is
+strictly weaker). If cells diverge, that is a doctrine question — does
+"relief exists" mean available-now or available-once-free? — to settle
+in spec text before changing either layer.
+
+### Trait-scaled routing with the charge off (added 2026-08-01)
+`selection::bath_ratio` scales the `water_step_cost` surcharge even when
+`[water] bath_gain = 0` (identity for shipped rosters, every ratio 1.0;
+documented at the definition). Two open ends, opportunistic only:
+whether an ablation lever should restore flat pre-024 routing for
+trait-override rosters too, and whether an extreme bath-rise override
+deserves a clamp so route pricing cannot become effectively prohibitive
+(the "preference, never prohibition" doctrine holds today only because
+shipped ratios stay near 1).
 
 ### Cuddle puddles (added 2026-07-22)
 More than two kitties cuddling or sleeping together in one pile. Low
@@ -397,7 +411,19 @@ Deliberately kept out of the 005 refresh (2026-07-18): the bar here is
 ears, slow flicks of irritation), worth its own unhurried design pass with
 reference study, not a quick mapping bolted onto the refresh.
 
-### Rethink how water works for learned cats (added 2026-07-31, from the s6 soak)
+### ~~Rethink how water works for learned cats~~ SHIPPED as spec 024 wet fur (2026-08-01)
+Shipped exactly as pinned: `[water] bath_gain = 1.5` /
+`bath_gain_ceiling = 50.0`, trait-scaled, drinking free, both deciders
+on one aversion ratio, the no-distress-from-swimming guarantee
+executable at config load AND re-proven at runtime
+(`specs/024-wet-fur-batch/`, `tests/water_safeguard.rs`). Final dial
+value remains a prereg'd exp-002 tuning decision. **Still live from
+this entry**: the hard traversability constraint below (water is a
+cost, never a wall — durable doctrine, now also pinned by spec 010's
+wade tests + 024's charge law), and the guaranteed-lake companion idea
+(unshipped, still open with *Dynamic element populations*). The
+derivation is retained below as the historical record.
+
 The first deployed policy exposed a seam in spec 010's water aversion:
 it is scripted-behavior *style*, not physics. The `water_step_cost`
 surcharge lives in `needs_driven`'s route scoring (ordering only, never

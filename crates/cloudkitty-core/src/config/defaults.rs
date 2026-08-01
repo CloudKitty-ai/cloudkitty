@@ -75,6 +75,14 @@ pub(super) fn default_water_step_cost() -> f32 {
     4.0
 }
 
+pub(super) fn default_water_bath_gain() -> f32 {
+    1.5
+}
+
+pub(super) fn default_water_bath_gain_ceiling() -> f32 {
+    50.0
+}
+
 pub(super) fn default_worth_a_detour() -> f32 {
     30.0
 }

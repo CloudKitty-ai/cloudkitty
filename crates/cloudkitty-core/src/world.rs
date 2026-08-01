@@ -808,10 +808,41 @@ impl World {
     }
 
     fn advance_needs(&mut self, config: &Config) {
+        // Wet fur (spec 024): occupancy of a water tile is priced in bath
+        // need, per tick, so crossing and lounging share one knob. Water
+        // positions are collected before the kitty loop (the loop holds
+        // &mut self.kitties, and elements is a disjoint field), and only
+        // when the charge exists at all. No RNG is drawn anywhere in this
+        // phase -- reads never shape the stream.
+        let water: Vec<Position> = if config.water.bath_gain > 0.0 {
+            self.elements
+                .iter()
+                .filter(|el| el.element_type() == ElementType::Water)
+                .map(|el| el.pos)
+                .collect()
+        } else {
+            Vec::new()
+        };
         for kitty in &mut self.kitties {
             for kind in NeedKind::ALL {
                 // Per-kitty override when configured, global rate otherwise.
                 kitty.needs.add(kind, config.need_rate_for(kitty.id, kind));
+            }
+            // The charge gates on the PRE-charge value (after this tick's
+            // ambient rise): overshoot is bounded by one scaled charge,
+            // headroom validate_water already budgeted against the
+            // safeguard. Scaling is `Config::bath_ratio` -- the cat's own
+            // bath rise over the world baseline (validate_water keeps the
+            // baseline positive whenever the gain is; the helper degrades
+            // to 1 rather than divide if a config skipped validation).
+            if config.water.bath_gain > 0.0
+                && kitty.needs.get(NeedKind::Bath) < config.water.bath_gain_ceiling
+                && water.contains(&kitty.pos)
+            {
+                let ratio = config.bath_ratio(kitty.id);
+                kitty
+                    .needs
+                    .add(NeedKind::Bath, config.water.bath_gain * ratio);
             }
             let previous = kitty.happiness;
             let current = happiness(
@@ -1273,6 +1304,202 @@ mod tests {
         assert_eq!(
             world.kitty(1).unwrap().needs.get(NeedKind::Drink),
             world.kitty(2).unwrap().needs.get(NeedKind::Drink)
+        );
+    }
+
+    /// Drops a permanent water tile at `pos` (spec 024 test rigging).
+    fn add_water(world: &mut World, pos: Position) {
+        world.elements.push(Element {
+            id: 9_000 + world.elements.len() as ElementId,
+            kind: ElementKind::Water,
+            pos,
+            ttl: None,
+        });
+    }
+
+    /// Moves the needle to an exact value regardless of the world's start.
+    fn set_need(world: &mut World, id: KittyId, kind: NeedKind, target: f32) {
+        let current = world.kitty(id).unwrap().needs.get(kind);
+        world
+            .kitties
+            .iter_mut()
+            .find(|k| k.id == id)
+            .unwrap()
+            .needs
+            .add(kind, target - current);
+    }
+
+    #[test]
+    fn water_occupancy_charges_bath_on_top_of_ambient() {
+        let config = test_config();
+        let mut world = World::generate(&config);
+        let dry_pos = world.kitties[1].pos;
+        let wet_pos = world.kitties[0].pos;
+        add_water(&mut world, wet_pos);
+        // Same starting point for a clean read.
+        set_need(&mut world, 1, NeedKind::Bath, 10.0);
+        set_need(&mut world, 2, NeedKind::Bath, 10.0);
+        assert_ne!(dry_pos, wet_pos);
+
+        world.advance_needs(&config);
+
+        let wet = world.kitty(1).unwrap().needs.get(NeedKind::Bath);
+        let dry = world.kitty(2).unwrap().needs.get(NeedKind::Bath);
+        // Ambient rise is identical; the difference is exactly the charge.
+        assert!(
+            (wet - dry - config.water.bath_gain).abs() < 1e-4,
+            "wet {wet}, dry {dry}, gain {}",
+            config.water.bath_gain
+        );
+        // FR-002: charge and ambient are additive, not either-or.
+        assert!((dry - 10.0 - config.needs.bath).abs() < 1e-4);
+        // The same tick's happiness already reflects the charge.
+        assert!(
+            world.kitty(1).unwrap().happiness < world.kitty(2).unwrap().happiness,
+            "the swimmer's happiness must feel the charge this tick"
+        );
+    }
+
+    #[test]
+    fn the_charge_gates_on_the_pre_charge_value() {
+        let config = test_config();
+        let mut world = World::generate(&config);
+        let pos = world.kitties[0].pos;
+        add_water(&mut world, pos);
+        let ceiling = config.water.bath_gain_ceiling;
+
+        // At the ceiling before the check: ambient pushes past it, no charge.
+        set_need(&mut world, 1, NeedKind::Bath, ceiling);
+        world.advance_needs(&config);
+        let bath = world.kitty(1).unwrap().needs.get(NeedKind::Bath);
+        assert!(
+            (bath - (ceiling + config.needs.bath)).abs() < 1e-4,
+            "at {bath}: above the ceiling only ambient applies"
+        );
+
+        // Just under after ambient: the charge lands whole -- bounded
+        // overshoot of at most one scaled charge (the validated headroom).
+        set_need(
+            &mut world,
+            1,
+            NeedKind::Bath,
+            ceiling - config.needs.bath - 0.1,
+        );
+        world.advance_needs(&config);
+        let bath = world.kitty(1).unwrap().needs.get(NeedKind::Bath);
+        let expected = ceiling - 0.1 + config.water.bath_gain;
+        assert!(
+            (bath - expected).abs() < 1e-3,
+            "at {bath}, expected {expected}: one whole charge, then done"
+        );
+        assert!(bath > ceiling, "the overshoot case is real");
+
+        // And the tick after the overshoot: ambient only, forever.
+        world.advance_needs(&config);
+        let after = world.kitty(1).unwrap().needs.get(NeedKind::Bath);
+        assert!((after - (bath + config.needs.bath)).abs() < 1e-4);
+    }
+
+    #[test]
+    fn the_charge_scales_with_the_bath_trait() {
+        use crate::config::NeedRateOverrides;
+
+        let mut config = test_config();
+        config.kitties[0].needs = Some(NeedRateOverrides {
+            bath: Some(config.needs.bath * 2.0), // ratio 2: a fussy cat
+            ..Default::default()
+        });
+        config.validate().expect("valid");
+        let mut world = World::generate(&config);
+        let (p1, p2) = (world.kitties[0].pos, world.kitties[1].pos);
+        add_water(&mut world, p1);
+        add_water(&mut world, p2);
+        set_need(&mut world, 1, NeedKind::Bath, 0.0);
+        set_need(&mut world, 2, NeedKind::Bath, 0.0);
+
+        world.advance_needs(&config);
+
+        let fussy = world.kitty(1).unwrap().needs.get(NeedKind::Bath);
+        let plain = world.kitty(2).unwrap().needs.get(NeedKind::Bath);
+        let expected_fussy = config.needs.bath * 2.0 + config.water.bath_gain * 2.0;
+        let expected_plain = config.needs.bath + config.water.bath_gain;
+        assert!((fussy - expected_fussy).abs() < 1e-4, "fussy at {fussy}");
+        assert!((plain - expected_plain).abs() < 1e-4, "plain at {plain}");
+    }
+
+    #[test]
+    fn gain_zero_disables_wet_fur_entirely() {
+        let mut config = test_config();
+        config.water.bath_gain = 0.0;
+        config
+            .validate()
+            .expect("0 is legal: disables the mechanic");
+        let mut world = World::generate(&config);
+        let pos = world.kitties[0].pos;
+        add_water(&mut world, pos);
+        set_need(&mut world, 1, NeedKind::Bath, 10.0);
+
+        world.advance_needs(&config);
+
+        let bath = world.kitty(1).unwrap().needs.get(NeedKind::Bath);
+        assert!((bath - 10.0 - config.needs.bath).abs() < 1e-4);
+    }
+
+    #[test]
+    fn adjacency_is_free_only_occupancy_pays() {
+        // FR-003: water as a drinking DESTINATION costs nothing -- the
+        // charge attaches to standing on the tile, never to being beside
+        // it (where drinking happens).
+        let config = test_config();
+        let mut world = World::generate(&config);
+        let pos = world.kitties[0].pos;
+        let beside = Position::new(pos.x + 1, pos.y);
+        add_water(&mut world, beside);
+        set_need(&mut world, 1, NeedKind::Bath, 10.0);
+
+        world.advance_needs(&config);
+
+        let bath = world.kitty(1).unwrap().needs.get(NeedKind::Bath);
+        assert!(
+            (bath - 10.0 - config.needs.bath).abs() < 1e-4,
+            "adjacent cat pays ambient only, at {bath}"
+        );
+        // And Drink validates from adjacency exactly as before.
+        let verdict = action::validate(&world, 1, Action::Drink, &config);
+        assert_eq!(verdict, Action::Drink, "drinking stays free and legal");
+    }
+
+    #[test]
+    fn moving_onto_water_is_one_ordinary_step() {
+        // FR-003: movement is untouched -- one tile per tick, wet or dry.
+        let config = test_config();
+        let mut world = World::generate(&config);
+        let start = world.kitties[0].pos;
+        let dest = Position::new(start.x + 1, start.y);
+        // Clear the destination of kitties, then flood it.
+        if let Some(other) = world.kitty_at(dest).map(|k| k.id) {
+            let far = Position::new(0, 0);
+            world
+                .kitties
+                .iter_mut()
+                .find(|k| k.id == other)
+                .unwrap()
+                .pos = far;
+        }
+        add_water(&mut world, dest);
+
+        action::apply(
+            &mut world,
+            1,
+            Action::Move {
+                direction: Direction::East,
+            },
+            &config,
+        );
+        assert_eq!(
+            world.kitty(1).unwrap().pos,
+            dest,
+            "a wet destination is entered exactly like a dry one"
         );
     }
 
