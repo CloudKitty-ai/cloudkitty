@@ -221,6 +221,20 @@ async fn run() -> Result<()> {
         "world ready"
     );
 
+    // Which water-dynamics regime is live (spec 024): the [water] keys
+    // carry engine defaults, so a config that never mentions them still
+    // runs wet fur -- this line makes the regime legible at every boot
+    // instead of silent (the snapshot fingerprint deliberately ignores it).
+    if config.water.bath_gain > 0.0 {
+        tracing::info!(
+            bath_gain = config.water.bath_gain,
+            ceiling = config.water.bath_gain_ceiling,
+            "wet fur active: water occupancy charges the bath need"
+        );
+    } else {
+        tracing::info!("wet fur disabled ([water] bath_gain = 0): water occupancy is free");
+    }
+
     let sim = sim_task::spawn(world, config.clone(), registry, Some(snapshot_path.clone()));
 
     let state = AppState {
