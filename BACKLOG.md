@@ -322,6 +322,20 @@ wiring, not new art. Age
 must never become a health mechanic (Article II: no decline, no death; cats
 may age into *distinguished*, never into frail).
 
+### Kitty "brain" indicator in the viewer (added 2026-08-01, owner-deferred)
+Show which brain drives each kitty — scripted profile (`needs_driven`,
+`playful`) vs. a seated policy (`policy:s6`, `policy:s3`) — as a
+client toggle, now that the served world mixes them. Deferred by the
+owner 2026-08-01 (the swim animation outranks it in the current client
+queue). Design cares when picked up: the client cannot currently know
+this — the served state carries no behavior identity — so the item
+starts with a **small read-only server API addition** (per-kitty
+behavior name in the state payload), then a thin client overlay.
+Follow the existing debug-toggle conventions (`g`/`l`/`p` keys,
+keyboard-only by design, off by default); label with the config's
+behavior string verbatim so the display can never drift from the
+seating truth.
+
 ## P3 — simulation depth
 
 ### Kitties learn each other's traits — anticipatory cooperation (added 2026-07-21)
@@ -338,6 +352,12 @@ doctrine, slot width paid per kitty slot, and worth pairing with a
 training-ablation check that the traits actually earn their vector space.
 
 ### Chases route around friends (added 2026-07-20)
+**Pulled into the wet-fur engine batch (owner call, 2026-08-01)** — the
+one-break-per-generation window: exp-002 policies train heavily on
+play/chase, so the fix lands before the generation bakes in the stall.
+The `chase_patience_ticks` re-baseline care below rides the same spec.
+Entry retained for the design detail until the batch ships.
+
 The one walk with no route-around: a chase step is applied engine-side via
 the straight `Direction::toward`, and a friend standing in the lane stalls
 the chase in place (`action.rs`, the Chase apply arm). Bounded, not a

@@ -151,11 +151,17 @@ binds exp-002's design (ported 2026-08-01 per the register rule):
 
 - **Engine batch fixed by owner 2026-08-01**: `elements()` pyo3
   accessor + the wet-fur bath cost (`water_bath_gain = 1.5` starting
-  dial, bath<50 safety clamp). **No schema changes this generation**
-  (protects the warm-start-from-s6 lever; the policy already observes
-  water slots, own bath need, and own traits — the cost is learnable
-  from the existing 182-dim vector). Client (parallel, non-blocking):
-  swim animation; per-kitty "brain" indicator toggle.
+  dial, bath<50 safety clamp) + the **chase sidestep** (BACKLOG
+  "Chases route around friends", approved into this batch 2026-08-01;
+  `chase_patience_ticks` re-baseline rides along). **No schema changes
+  this generation** (protects the warm-start-from-s6 lever; the policy
+  already observes water slots, own bath need, and own traits — the
+  cost is learnable from the existing 182-dim vector). Client
+  (parallel, non-blocking): swim animation; the per-kitty
+  brain-indicator toggle is owner-deferred to BACKLOG. Still open with
+  the owner: the Cuddle pinned-streak welfare correction
+  (recommended for the same batch — measurement-layer re-baseline is
+  free while certifications lapse anyway).
 - **Family must vary bath rise rates** across kitties, or the policy
   memorizes a constant instead of learning trait→cost.
 - **Final gain value is a prereg'd exp-002 tuning decision**,
