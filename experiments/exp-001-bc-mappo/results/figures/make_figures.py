@@ -94,26 +94,31 @@ def _paired_welfare(path):
 
 
 def fig_ladder():
-    rungs = [  # label, file, historical?
-        ("Arm 0 — uniform-random floor", "arm0-cert.json", True),
-        ("Arm 1 — BC clone of needs_driven", "clone-report30.json", True),
-        ("s3  (Kittybear's policy)", "r2-s3.json", False),
-        ("s4", "r2-s4.json", False),
-        ("s6  (Miso's policy)", "r2-s6.json", False),
+    tiers = {"hist": "0.6", "o1": "tab:cyan", "r2": "tab:blue"}
+    rungs = [  # label, file, tier
+        ("Arm 0 — uniform-random floor", "arm0-cert.json", "hist"),
+        ("Arm 1 — BC clone of needs_driven", "clone-report30.json", "hist"),
+        ("γ=.995 s1  (O1)", "o1-g0p995-s1.json", "o1"),
+        ("γ=.995 s2  (O1)", "o1-g0p995-s2.json", "o1"),
+        ("γ=.995 s3  (O1)", "o1-g0p995-s3.json", "o1"),
+        ("γ=.998 s3 — Kittybear", "r2-s3.json", "r2"),
+        ("γ=.998 s4", "r2-s4.json", "r2"),
+        ("γ=.998 s6 — Miso", "r2-s6.json", "r2"),
     ]
+    rungs = [(lb, f, t) for lb, f, t in rungs if (DATA / f).exists()]
     base = np.concatenate([
         np.array([p["baseline_welfare"]
                   for p in json.load(open(DATA / f))["paired"]
                   if p["roster"] == "all-subject"])
-        for _, f, hist in rungs if not hist])
-    fig, ax = plt.subplots(figsize=(7.2, 3.4))
+        for _, f, t in rungs if t != "hist"])
+    fig, ax = plt.subplots(figsize=(7.2, 4.2))
     ax.axvline(base.mean(), color="gray", ls="--", lw=0.9, zorder=1)
     ax.text(base.mean() - 0.005, 1.5,
             f"scripted needs_driven baseline {base.mean():.3f}",
             fontsize=7.5, color="gray", ha="right", va="center")
-    for y, (label, f, hist) in enumerate(rungs):
+    for y, (label, f, tier) in enumerate(rungs):
         w = _paired_welfare(DATA / f)
-        color = "0.6" if hist else "tab:blue"
+        color = tiers[tier]
         ax.scatter(w, np.full_like(w, y), s=14, color=color, alpha=0.5,
                    zorder=2)
         ax.scatter([w.mean()], [y], s=90, color=color, marker="D", zorder=3)
@@ -125,7 +130,9 @@ def fig_ladder():
                   "— per-seed dots, mean ◆")
     ax.set_title("Certification ladder")
     ax.text(0.02, 0.97, "gray = pre-022-engine anchors (historical scale "
-            "only)\nblue = recert 2026-07-31: current engine, 24×24",
+            "only)\nblue = recert 2026-07-31 · cyan = O1 pool extension "
+            "2026-08-01\n(same world stamp: config 4c5245b1…, engine "
+            "b0865884…)",
             transform=ax.transAxes, fontsize=7.5, color="0.4", va="top")
     fig.tight_layout()
     fig.savefig(FIGDIR / "certification-ladder.png", bbox_inches="tight")

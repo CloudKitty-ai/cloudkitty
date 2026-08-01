@@ -12,7 +12,7 @@ Batch of 2026-08-01 (current engine post-022/023, served world 24×24):
 | Figure | Shows | Data |
 |---|---|---|
 | `seed-lottery.png` | Training curves for all 15 MAPPO runs (Arm 2 BC-warm-started ×9, Arm 3 scratch ×6); certified winners s3/s4/s6 bold; identical settings diverge by seed, scratch plateaus below baseline | `data/training-curves.npz` (from `artifacts/arm*/metrics.jsonl`) |
-| `certification-ladder.png` | All-subject welfare per rung: uniform floor 0.559 → BC clone 0.785 (pre-022-engine anchors) → recert winners ≈0.95 vs scripted baseline 0.907 | `data/arm0-cert.json`, `data/clone-report30.json`, `data/r2-s{3,4,6}.json` |
+| `certification-ladder.png` | All-subject welfare per rung: uniform floor 0.559 → BC clone 0.785 (pre-022-engine anchors) → the six-strong certified pool ≈0.95 (R2 γ=.998 + O1 γ=.995, same world stamp) vs scripted baseline 0.907 | `data/arm0-cert.json`, `data/clone-report30.json`, `data/r2-s{3,4,6}.json`, `data/o1-g0p995-s{1,2,3}.json` |
 | `occupancy.png` | 24×24 position density per kitty × 0/1/2 policy seats; wall-hugging playful patrol, agents' den spots | `data/traj-*.npz` |
 | `pairing-three-arm.png` | Partner-tick matrices vs seats + team-Nash gradient 0.8698→0.8857→0.8977; agents pair more, choose partners, bond with each other | `data/pair-partner-*.npy` |
 | `meow-raster.png` | Every emitted meow, seed 1, three arms; seating s3 retires Kittybear's WaitForMe spam; s3's FollowMe is bursty (see pair-screen correction 2026-08-01) | `data/traj-*.npz` |

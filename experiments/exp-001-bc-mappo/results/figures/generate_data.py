@@ -191,6 +191,9 @@ def copy():
         "r3-s4.json": [s / "r3-s4.json" for s in scratch],
         "r3-s6.json": [s / "r3-s6.json" for s in scratch],
         "arm0-cert.json": [s / "arm0-cert.json" for s in scratch],
+        "o1-g0p995-s1.json": [s / "o1-g0p995-s1.json" for s in scratch],
+        "o1-g0p995-s2.json": [s / "o1-g0p995-s2.json" for s in scratch],
+        "o1-g0p995-s3.json": [s / "o1-g0p995-s3.json" for s in scratch],
         "clone-report30.json": [EXP / "artifacts/clone/report30.json"],
         "clone-metrics.json": [EXP / "artifacts/clone/clone-metrics.json"],
         "critic-0p995-stats.json":
