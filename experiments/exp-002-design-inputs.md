@@ -171,6 +171,12 @@ binds exp-002's design (ported 2026-08-01 per the register rule):
 - **Pre-change baseline is a now-or-never measurement**: quantify s6's
   current water behavior (wading/lounging occupancy) before the engine
   changes — post-022 stream-baseline lesson applied prospectively.
+  **RECORDED 2026-08-01**
+  ([results/water-baseline-2026-08-01.md](exp-001-bc-mappo/results/water-baseline-2026-08-01.md)):
+  agents occupy water 8.28%/7.87% of ticks vs scripted 1.40–1.74%,
+  incl. sleeping+grooming in the pond; ~21–24% of agent drinking is
+  on-tile (Article I exposure, judged benign under the clamp). The
+  batch is UNBLOCKED on Experiments' side.
 - **Distress hygiene**: the clamp guarantees no voluntary swim can
   cross safeguard/distress lines — certification hygiene by
   construction; spec should carry an executable guard.
