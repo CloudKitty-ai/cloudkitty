@@ -26,8 +26,8 @@ fn registry() -> BehaviorRegistry {
 /// one-tile state no real walk can produce; skipping a tick keeps the
 /// scenario honest and the pin resumes as soon as the tile clears).
 fn pin(world: &mut World, kitty_id: u32, wet: Position) {
-    let occupied_by_other = world.kitty_at(wet).map(|k| k.id) != Some(kitty_id)
-        && world.kitty_at(wet).is_some();
+    let occupied_by_other =
+        world.kitty_at(wet).map(|k| k.id) != Some(kitty_id) && world.kitty_at(wet).is_some();
     if !occupied_by_other {
         let idx = world.kitty_index(kitty_id).unwrap();
         world.kitties[idx].pos = wet;

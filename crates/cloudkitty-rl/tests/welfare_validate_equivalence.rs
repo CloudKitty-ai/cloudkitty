@@ -97,21 +97,17 @@ fn build(neighbor: Neighbor, relief: ReliefElement) -> (World, Arc<Config>) {
 /// "At least one lawful action relieving `kind` validates" — through the
 /// public `validate` only, with the spec-019 relieving sets above.
 fn lawful_relief_exists(world: &World, config: &Config, kind: NeedKind) -> bool {
-    let validates = |a: Action| action::validate(world, SUBJECT, a.clone(), config) == a;
+    let validates = |a: Action| action::validate(world, SUBJECT, a, config) == a;
     match kind {
         NeedKind::Eat => validates(Action::Eat),
         NeedKind::Drink => validates(Action::Drink),
         NeedKind::Bath => validates(Action::Groom { target: None }),
         NeedKind::Sleep => validates(Action::Sleep { with: None }),
         NeedKind::Play => validates(Action::play_solo()),
-        NeedKind::Cuddle => world
-            .kitties
-            .iter()
-            .filter(|k| k.id != SUBJECT)
-            .any(|k| {
-                validates(Action::Sleep { with: Some(k.id) })
-                    || validates(Action::Groom { target: Some(k.id) })
-            }),
+        NeedKind::Cuddle => world.kitties.iter().filter(|k| k.id != SUBJECT).any(|k| {
+            validates(Action::Sleep { with: Some(k.id) })
+                || validates(Action::Groom { target: Some(k.id) })
+        }),
     }
 }
 

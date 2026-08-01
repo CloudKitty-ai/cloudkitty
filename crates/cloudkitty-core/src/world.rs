@@ -834,9 +834,10 @@ impl World {
                 && kitty.needs.get(NeedKind::Bath) < config.water.bath_gain_ceiling
                 && water.contains(&kitty.pos)
             {
-                let ratio =
-                    config.need_rate_for(kitty.id, NeedKind::Bath) / config.needs.bath;
-                kitty.needs.add(NeedKind::Bath, config.water.bath_gain * ratio);
+                let ratio = config.need_rate_for(kitty.id, NeedKind::Bath) / config.needs.bath;
+                kitty
+                    .needs
+                    .add(NeedKind::Bath, config.water.bath_gain * ratio);
             }
             let previous = kitty.happiness;
             let current = happiness(
@@ -1373,7 +1374,12 @@ mod tests {
 
         // Just under after ambient: the charge lands whole -- bounded
         // overshoot of at most one scaled charge (the validated headroom).
-        set_need(&mut world, 1, NeedKind::Bath, ceiling - config.needs.bath - 0.1);
+        set_need(
+            &mut world,
+            1,
+            NeedKind::Bath,
+            ceiling - config.needs.bath - 0.1,
+        );
         world.advance_needs(&config);
         let bath = world.kitty(1).unwrap().needs.get(NeedKind::Bath);
         let expected = ceiling - 0.1 + config.water.bath_gain;
@@ -1420,7 +1426,9 @@ mod tests {
     fn gain_zero_disables_wet_fur_entirely() {
         let mut config = test_config();
         config.water.bath_gain = 0.0;
-        config.validate().expect("0 is legal: disables the mechanic");
+        config
+            .validate()
+            .expect("0 is legal: disables the mechanic");
         let mut world = World::generate(&config);
         let pos = world.kitties[0].pos;
         add_water(&mut world, pos);
@@ -1466,11 +1474,23 @@ mod tests {
         // Clear the destination of kitties, then flood it.
         if let Some(other) = world.kitty_at(dest).map(|k| k.id) {
             let far = Position::new(0, 0);
-            world.kitties.iter_mut().find(|k| k.id == other).unwrap().pos = far;
+            world
+                .kitties
+                .iter_mut()
+                .find(|k| k.id == other)
+                .unwrap()
+                .pos = far;
         }
         add_water(&mut world, dest);
 
-        action::apply(&mut world, 1, Action::Move { direction: Direction::East }, &config);
+        action::apply(
+            &mut world,
+            1,
+            Action::Move {
+                direction: Direction::East,
+            },
+            &config,
+        );
         assert_eq!(
             world.kitty(1).unwrap().pos,
             dest,

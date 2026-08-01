@@ -157,7 +157,7 @@ planning is reconciled (owner-approved).
 **Independent test**: it is a test; matrix passes on the shipped law,
 goes red under deliberate perturbation of either side.
 
-- [ ] T015 [US3] Reconcile the Eat predicate: tighten
+- [X] T015 [US3] Reconcile the Eat predicate: tighten
       `zero_distance_relief_exists` (crates/cloudkitty-rl/src/welfare.rs:57-60)
       to adjacent **stocked** chow, matching `validate`'s
       `adjacent_stocked_chow` (crates/cloudkitty-core/src/action.rs:366);
@@ -165,17 +165,17 @@ goes red under deliberate perturbation of either side.
       can call (promote `World::adjacent_stocked_chow` to `pub` with a
       doc comment if it is `pub(crate)` today); document the
       pinned-streak semantic correction at the change site
-- [ ] T016 [P] [US3] NEW crates/cloudkitty-rl/tests/welfare_validate_equivalence.rs
+- [X] T016 [P] [US3] NEW crates/cloudkitty-rl/tests/welfare_validate_equivalence.rs
       (mask_oracle.rs precedent): matrix builder over need kind ×
       neighbor state × relief-element state (impossible cells skipped
       with documented reasons), asserting predicate ⇔ some lawful
       relieving action validates, public APIs only; the adjacent-busy
       cuddle cell pins the spec-021 doctrine on the *true* side
-- [ ] T017 [US3] SC-005 perturbation check: temporarily loosen the
+- [X] T017 [US3] SC-005 perturbation check: temporarily loosen the
       predicate, observe red; temporarily carve out a validate arm,
       observe red; remove both perturbations; record the check in the
       commit message (no perturbation code ships)
-- [ ] T018 [US3] Verify pinned-streak accounting under the honest
+- [X] T018 [US3] Verify pinned-streak accounting under the honest
       predicate: crates/cloudkitty-rl/tests/welfare_longrun.rs
       violations report — expected effect is *fewer or equal*
       false-positive pinned streaks, bounds untouched (tighten-only
@@ -185,42 +185,42 @@ goes red under deliberate perturbation of either side.
 
 ## Phase 6: Polish — executing the comparability break, exactly once
 
-- [ ] T019 Regenerate the values golden once:
+- [X] T019 Regenerate the values golden once:
       `UPDATE_GOLDENS=1 cargo test -p cloudkitty-rl --test run_json_golden`,
       with the justification (this batch = the exp-002 generation's
       designed break) in the commit message per the golden doctrine
       (crates/cloudkitty-rl/tests/run_json_golden.rs:14-18)
-- [ ] T020 Re-clear the 20k constitutional bar on the new dynamics:
+- [X] T020 Re-clear the 20k constitutional bar on the new dynamics:
       `cargo test -p cloudkitty-rl --test welfare_longrun` (foreground,
       generous timeout); bounds constants untouched
-- [ ] T021 [P] Migrate the screen config
+- [X] T021 [P] Migrate the screen config
       (experiments/exp-001-bc-mappo/configs/cloudkitty-24x24-screen.toml):
       explicit `[water]` block at engine defaults with a provenance
       comment noting pre-batch captures were made under no-water-cost
       dynamics (R9); `cargo test -p cloudkitty-core --test shipped_configs`
       green (frozen exams untouched by construction)
-- [ ] T022 [P] Confirm the no-schema-change constraint held: existing
+- [X] T022 [P] Confirm the no-schema-change constraint held: existing
       length asserts green (`codec.len() == 40`
       crates/cloudkitty-rl/src/codec.rs:235; 182-value layout test
       crates/cloudkitty-rl/src/observe.rs:467) and
       `engine_defaults_sha256` moved from b0865884… (the designed mark
       — record old→new in the PR body)
-- [ ] T023 Python surface unaffected: `maturin develop --release` +
+- [X] T023 Python surface unaffected: `maturin develop --release` +
       `python -m pytest tests/` in crates/cloudkitty-py (18 tests,
       incl. reproducibility) — no schema, no API change
-- [ ] T024 Snapshot compatibility: a pre-batch `snapshot.json` from the
+- [X] T024 Snapshot compatibility: a pre-batch `snapshot.json` from the
       served world shape resumes on the new engine (fingerprint covers
       only shape — verified R8; test via the existing persist tests +
       one manual load if practical)
-- [ ] T025 BACKLOG bookkeeping in BACKLOG.md: mark the wet-fur entry
+- [X] T025 BACKLOG bookkeeping in BACKLOG.md: mark the wet-fur entry
       shipped (retain the derivation pointer to specs/024), retire the
       "Chases route around friends" entry (its design detail now lives
       in the spec + contract), leave the parked schema-v2 wishlist and
       swim-pose entries untouched
-- [ ] T026 Delete HANDOFF-2026-08-01-wet-fur-batch.md (consumed — its
+- [X] T026 Delete HANDOFF-2026-08-01-wet-fur-batch.md (consumed — its
       instruction; items 0 and the baseline gate are long done, the
       batch is this spec, the client track is parked in BACKLOG)
-- [ ] T027 Full gate: `cargo test --workspace` + `cargo clippy
+- [X] T027 Full gate: `cargo test --workspace` + `cargo clippy
       --workspace --all-targets -- -D warnings` + `cargo fmt --all --
       check` + `node client/test-meadow.mjs` (untouched client, cheap
       confirmation) — all green before review

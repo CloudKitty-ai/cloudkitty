@@ -537,9 +537,7 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
                                 if d == dir || d == dir.opposite() {
                                     continue;
                                 }
-                                let Some(p) =
-                                    kitty_pos.step(d, world.width, world.height)
-                                else {
+                                let Some(p) = kitty_pos.step(d, world.width, world.height) else {
                                     continue;
                                 };
                                 if world.kitty_at(p).is_some() {
@@ -551,7 +549,11 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
                                     arcing.push(p);
                                 }
                             }
-                            let pool = if closing.is_empty() { &arcing } else { &closing };
+                            let pool = if closing.is_empty() {
+                                &arcing
+                            } else {
+                                &closing
+                            };
                             if let Some(side) = world.rng.choose(pool).copied() {
                                 if let Some(idx) = world.kitty_index(kitty_id) {
                                     world.kitties[idx].pos = side;
@@ -1428,8 +1430,7 @@ mod tests {
         // The headline jank (spec 024 US2): friend squarely in the lane.
         // Both perpendicular arcs are +1 Manhattan; the reverse and the
         // stall are the two forbidden outcomes.
-        let (mut world, config) =
-            chase_lane(Position::new(8, 5), Some(Position::new(6, 5)));
+        let (mut world, config) = chase_lane(Position::new(8, 5), Some(Position::new(6, 5)));
         apply(
             &mut world,
             1,
@@ -1448,8 +1449,7 @@ mod tests {
         // Target at (8,7): east is dominant and blocked; south still
         // CLOSES (4 < 5), north merely arcs -- the closing tier wins
         // deterministically, no coin involved in which tier.
-        let (mut world, config) =
-            chase_lane(Position::new(8, 7), Some(Position::new(6, 5)));
+        let (mut world, config) = chase_lane(Position::new(8, 7), Some(Position::new(6, 5)));
         apply(
             &mut world,
             1,
@@ -1502,8 +1502,7 @@ mod tests {
     #[test]
     fn same_seed_same_sidestep() {
         let run = || {
-            let (mut world, config) =
-                chase_lane(Position::new(8, 5), Some(Position::new(6, 5)));
+            let (mut world, config) = chase_lane(Position::new(8, 5), Some(Position::new(6, 5)));
             apply(
                 &mut world,
                 1,
@@ -1534,8 +1533,7 @@ mod tests {
             "an open lane draws nothing"
         );
 
-        let (mut world, config) =
-            chase_lane(Position::new(8, 5), Some(Position::new(6, 5)));
+        let (mut world, config) = chase_lane(Position::new(8, 5), Some(Position::new(6, 5)));
         let before = serde_json::to_string(&world.rng).unwrap();
         apply(
             &mut world,
