@@ -208,19 +208,30 @@ law and fails when either side is deliberately perturbed.
   learned reward) express one coherent per-cat preference — a low-bath
   cat is legibly "the swimmer" to both.
 - **FR-006**: A chase step blocked by another kitty MUST resolve to a
-  lawful sidestep chosen by the spec 012 FR-008 mechanism (per-kitty
-  seeded shuffle): deterministic given the seed, never synchronized
-  across kitties, falling back to today's stall only when no lawful
-  sidestep exists.
+  lawful, never-retreating sidestep carrying the spec 012 FR-008
+  guarantees: **deterministic given the seed, never synchronized across
+  kitties**, falling back to today's stall only when no lawful sidestep
+  exists. *(Amended at plan time — the FR-008 mechanism as built is
+  behavior-side and draws per-kitty decision randomness that does not
+  exist in the apply phase; the engine delivers the same two guarantees
+  via seeded master-RNG draws in the tick's fair apply order, the spec
+  022 deliberate-purr pattern. Research R5; 023 wait-for-me precedent.)*
 - **FR-007**: Expectations and tuning tied to chase stalls feeding
   abandonment statistics (`chase_patience_ticks` calibration) MUST be
   re-baselined in this same change, with the re-baseline documented as
   deliberate (never a silent test weakening).
 - **FR-008**: A welfare↔validation equivalence test MUST assert, for
   each need kind over a fixture matrix (neighbor free / busy / absent ×
-  relief elements on/off), that the welfare layer's zero-distance-relief
-  predicate agrees with "at least one lawful relieving action
-  validates." It MUST consume public APIs only.
+  relief elements on/off/consumed), that the welfare layer's
+  zero-distance-relief predicate agrees with "at least one lawful
+  relieving action validates." It MUST consume public APIs only.
+  *(Plan-phase finding: the test fails on today's law — the predicate
+  counts any adjacent chow as Eat-relief while validation requires
+  stocked chow, so a cat beside an empty bowl is "relieved" to the
+  metric and refused by the engine. This batch reconciles the predicate
+  to the authoritative side (stocked chow); pinned-streak accounting
+  inherits the honest definition, landing inside the batch's designed
+  comparability break. Research R7.)*
 - **FR-009**: The batch MUST NOT change observation or action schema:
   observation stays 182 values, the action menu stays 40 rows, no new
   activity variant (Swimming stays out; a swim *pose* is client-only,
@@ -268,7 +279,8 @@ law and fails when either side is deliberately perturbed.
 - **SC-004**: The existing long-run welfare gate (20,000 ticks) passes
   on the new engine with every constitutional bound intact.
 - **SC-005**: The equivalence test covers every need kind × every
-  fixture in the matrix, passes on the shipped law, and fails when
+  fixture in the matrix, passes on the law as shipped by this batch
+  (eat-side reconciliation included — see FR-008), and fails when
   either layer is perturbed (verified once during development by
   deliberate perturbation, then the perturbation removed).
 - **SC-006**: Observation length (182) and action-menu length (40) are
