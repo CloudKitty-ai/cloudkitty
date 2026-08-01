@@ -564,3 +564,65 @@ of the post-soak roadmap, executed during the soak.)
   — informing exp-002's meow-preservation design (design-inputs §1)
   and the issue-#79 spec. Tool: `forensics_replay.py --digest-probe`
   (committed before these runs).
+
+### 2026-07-31b — Recertification campaign after the 022/023 engine batch (scoped before any run)
+
+**Trigger.** PR #85 merged (spec 022 deliberate purr + tuning, spec 023
+meow courtesy retirement, config estate) and the 24×24 restore landed
+(c77fb97). Per the 2026-07-30d amendment, §8's world is
+`cloudkitty.toml` as committed — which now means the new engine at
+24×24 automatically; no reinterpretation needed. Every pre-022
+certification and stream-derived baseline is dead for cross-engine
+comparison (batch recert doctrine). s6 is currently seated in
+production on this engine/geometry with a lapsed certification (owner
+accepted the ordering); the soak-era watch criteria and abort path
+remain in force until phase R2 completes.
+
+**Expected effects, stated in advance.** This recert is load-bearing,
+not a formality: (a) s6's *inputs* change — the spontaneous purr motor
+is silent (`announce_probability = 0`), so the Purr digest channel
+drops from ~36:1 reflex-dominated to ~all-deliberate, and s6 is a
+proven listener (8.18% of heard decisions change when silenced);
+(b) s6's *action surface* changes — menu row 38 now starts a real
+earned-gated purr and is masked when unearned; (c) the meow channel
+never swallows, so previously-nulled actions now emit. Geometry alone
+is pre-cleared (24×24 screen: zero incidents, +0.0450, old engine).
+
+**Phases and criteria, fixed now:**
+
+- **R0 — tooling sweep (no measurement).** Update
+  `forensics_replay.py`'s meow-collection comment and any rate framing
+  to the post-023 stream contract (`recent_meows()` = every emitted
+  meow; a Purr entry ≈ a deliberate purr). Committed before R1.
+- **R1 — new-engine stream baseline (descriptive, no gate).**
+  All-scripted baseline mode (`forensics_replay.py`, no policy seats),
+  served config, seeds 1–3 × 20k continuous: record the new-engine
+  meow volume per kind, empirical ambient purr duty (expect ≈30.8%),
+  and confirm zero Purr-kind stream entries from the silent motor.
+  These replace the dead 36:1 / 34.3% / 0.101% numbers as the anchors
+  all later stream statistics compare against.
+- **R2 — certification (§8 as written, evaluate-once).** For each of
+  the three deployable winners {arm2-γ0.998 s3, s4, s6}: `kitty-eval
+  --artifact <a> --seeds 1..10 --ticks 20000 --roster both` on the
+  served world (kitty-eval's world-identity stamp per PR #83 is the
+  provenance record). Pass = all §8 welfare bounds, zero guardrail
+  violations, zero fallbacks. **Decision rule:** all three pass →
+  promotion stands, demo pool unchanged; s6 fails → owner decides
+  unseat/replace immediately, diagnosed by which bound (§9 rule 4);
+  a non-seated winner fails → it leaves the deployable pool. No
+  re-runs without a new deviation.
+- **R3 — roster-OOD robustness screen (report-only, not a gate).**
+  Winners passing R2, compiled 3-kitty world (`--config compiled`
+  sentinel), seeds 1–10 × 20k: F-010 tracking on the new engine.
+  Reported alongside the certification, gates nothing.
+- **O1 — optional pool extension (owner opt-in, declared before any
+  O1 run).** Any of the remaining artifacts (arm2 γ=.998 s1/s2/s5;
+  the three γ=.995 runs; the Arm 1 clone) may be certified under
+  criteria identical to R2 to widen the demo pool (mixed-model
+  roster diversity; pool is currently all γ=.998). The opt-in list
+  must be fixed before the first O1 run — no adding artifacts after
+  seeing results.
+
+Run discipline: foreground with generous timeouts, phase order
+R0→R1→R2→R3, results doc `results/recert-2026-XX-XX.md` with the full
+per-seed tables and regeneration commands.
