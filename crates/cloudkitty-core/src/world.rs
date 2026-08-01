@@ -811,14 +811,18 @@ impl World {
         // Wet fur (spec 024): occupancy of a water tile is priced in bath
         // need, per tick, so crossing and lounging share one knob. Water
         // positions are collected before the kitty loop (the loop holds
-        // &mut self.kitties, and elements is a disjoint field). No RNG is
-        // drawn anywhere in this phase -- reads never shape the stream.
-        let water: Vec<Position> = self
-            .elements
-            .iter()
-            .filter(|el| el.element_type() == ElementType::Water)
-            .map(|el| el.pos)
-            .collect();
+        // &mut self.kitties, and elements is a disjoint field), and only
+        // when the charge exists at all. No RNG is drawn anywhere in this
+        // phase -- reads never shape the stream.
+        let water: Vec<Position> = if config.water.bath_gain > 0.0 {
+            self.elements
+                .iter()
+                .filter(|el| el.element_type() == ElementType::Water)
+                .map(|el| el.pos)
+                .collect()
+        } else {
+            Vec::new()
+        };
         for kitty in &mut self.kitties {
             for kind in NeedKind::ALL {
                 // Per-kitty override when configured, global rate otherwise.
@@ -827,14 +831,15 @@ impl World {
             // The charge gates on the PRE-charge value (after this tick's
             // ambient rise): overshoot is bounded by one scaled charge,
             // headroom validate_water already budgeted against the
-            // safeguard. Scaling is the cat's own bath rise relative to
-            // the world baseline -- validate_water guarantees the baseline
-            // is positive whenever the gain is.
+            // safeguard. Scaling is `Config::bath_ratio` -- the cat's own
+            // bath rise over the world baseline (validate_water keeps the
+            // baseline positive whenever the gain is; the helper degrades
+            // to 1 rather than divide if a config skipped validation).
             if config.water.bath_gain > 0.0
                 && kitty.needs.get(NeedKind::Bath) < config.water.bath_gain_ceiling
                 && water.contains(&kitty.pos)
             {
-                let ratio = config.need_rate_for(kitty.id, NeedKind::Bath) / config.needs.bath;
+                let ratio = config.bath_ratio(kitty.id);
                 kitty
                     .needs
                     .add(NeedKind::Bath, config.water.bath_gain * ratio);

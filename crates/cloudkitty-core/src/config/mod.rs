@@ -819,6 +819,20 @@ impl Config {
             .unwrap_or_else(|| self.needs.rate(kind))
     }
 
+    /// The wet-fur trait scale for one kitty (spec 024): its own bath rise
+    /// over the world baseline. One definition shared by the engine's
+    /// occupancy charge, the behavior ladder's route pricing, and load-time
+    /// validation, so the three can never disagree. A non-positive baseline
+    /// (legal only while wet fur is disabled) degrades to 1 rather than
+    /// divide.
+    pub fn bath_ratio(&self, kitty_id: KittyId) -> f32 {
+        if self.needs.bath > 0.0 {
+            self.need_rate_for(kitty_id, crate::needs::NeedKind::Bath) / self.needs.bath
+        } else {
+            1.0
+        }
+    }
+
     /// Identifies the settings a saved world must agree with to be resumable.
     pub fn fingerprint(&self) -> String {
         let mut ids: Vec<String> = self.kitties.iter().map(|k| k.id.to_string()).collect();

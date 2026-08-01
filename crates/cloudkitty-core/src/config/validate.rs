@@ -5,7 +5,6 @@
 
 use super::{Config, ConfigError, ElementsConfig, TILES_PER_ELEMENT};
 use crate::element::ElementType;
-use crate::needs::NeedKind;
 
 /// Upper bounds on the purr knobs (spec 022 review): generous beyond any
 /// real world (durations default 8-13 ticks; a million ticks is days of
@@ -471,11 +470,12 @@ impl Config {
                  this baseline",
             ));
         }
-        // The largest single charge any rostered cat can receive, and who.
+        // The largest single charge any rostered cat can receive, and who
+        // (Config::bath_ratio, the same scale the engine charges by).
         let (max_ratio, swimmer) = self
             .kitties
             .iter()
-            .map(|k| (self.need_rate_for(k.id, NeedKind::Bath) / baseline, k))
+            .map(|k| (self.bath_ratio(k.id), k))
             .fold((1.0_f32, None), |(best, who), (ratio, k)| {
                 if ratio > best {
                     (ratio, Some(k))
@@ -496,7 +496,10 @@ impl Config {
                 format!(
                     "ceiling plus the largest trait-scaled charge must stay \
                      below the safeguard threshold ({safeguard}); lower the \
-                     ceiling, the gain, or that cat's [kitty.needs] bath rise"
+                     ceiling, the gain, or that cat's [kitty.needs] bath \
+                     rise -- or set [water] bath_gain = 0 to disable wet \
+                     fur (both [water] keys have engine defaults, so this \
+                     can fire for a config that never wrote them)"
                 ),
             ));
         }

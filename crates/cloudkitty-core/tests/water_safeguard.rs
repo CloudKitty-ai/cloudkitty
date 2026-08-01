@@ -95,7 +95,7 @@ async fn bath_moves_in_gated_steps_at_every_legal_dial() {
         let registry = registry();
         let kitty_id = world.kitties[0].id;
 
-        let ratio = config.need_rate_for(kitty_id, NeedKind::Bath) / config.needs.bath;
+        let ratio = config.bath_ratio(kitty_id);
         let ambient = config.need_rate_for(kitty_id, NeedKind::Bath);
         let charge = config.water.bath_gain * ratio;
         let ceiling = config.water.bath_gain_ceiling;
