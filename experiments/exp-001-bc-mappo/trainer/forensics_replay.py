@@ -79,7 +79,13 @@ def replay(policy, config_path, seed, ticks, horizon=None, pin_clock=False,
     if digest_probe:
         log["cf_action"] = np.full((ticks, roster), -1, np.int16)
         log["digest_active"] = np.zeros((ticks, roster), np.int8)
-    meows = set()  # (tick, kitty_id, kind) — audible meows + engine purr announcements
+    # (tick, kitty_id, kind). Post-023 stream contract: recent_meows()
+    # carries EVERY emitted meow (the engine never swallows; per-tick
+    # repeats are legal, bounded only by the window), and a Purr entry
+    # means a deliberate purr (the spontaneous motor is silent at
+    # announce_probability = 0). Rates from pre-022 engines are not
+    # comparable to this stream.
+    meows = set()
     with torch.no_grad():
         for t in range(ticks):
             state = env.state()
