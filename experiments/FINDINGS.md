@@ -176,6 +176,12 @@ reference implementation; every future probe analysis uses it (the
 original `analyze.py` per-sample method is superseded for significance
 claims). Probe runs default to 100+ worlds.
 
+*(Addendum 2026-08-02: the post-024 engine's flatter amplitudes moved
+the power bar — three disjoint 100-world batches produced three
+different search leaders with 5× swings, while 150-world batches
+replicate cleanly (served world: 0.089/0.109/0.090). Probe claims on
+the post-024 engine use 150+ worlds; see the post-024 world search.)*
+
 **Would invalidate**: a demonstration that within-world sample
 correlation is negligible at some horizon (it is not, at k > ~50, on
 current evidence).
@@ -614,3 +620,49 @@ mortality as its predecessors).
 **Re-verify when**: any engine-defaults or served-config change; the
 first exp-002 policy artifact reaches candidate stage (policy-seated
 probe, both worlds, per the F-001→F-003 standing trigger).
+
+## F-014 · active · Post-024 world search: the served world wins as it stands; the knob landscape is flat at 100-world power
+
+Measured 2026-08-02 (F-013's recommended slimmed search, executed:
+nine served-centered candidates + the gym incumbent, three disjoint
+100-world rounds + a 150-world finalist wave, welfare-gated).
+
+1. **No searched knob beats the served world.** At 150-world power:
+   served S(.998) = 0.0896 (its *third* independent 150-world
+   replication: 0.089/0.109/0.090 — the strongest replication record
+   any world has held here); tempo125 0.066; roster5 0.041; size22
+   sub-floor; gym 0.017 (third sub-floor batch). Scarcity and tempo —
+   the pre-024 winners — now *hurt* or do nothing.
+2. **The knob landscape is flat at 100-world power**: three disjoint
+   100-world rounds produced three different leaders with 5× swings
+   (incl. a one-batch tempo125 early-band phantom). The pre-024
+   amplification regime (scarcity×tempo 1.5–1.8×, replicated at this
+   exact instrument) does not exist on the new engine.
+3. **Roster is a real signal knob**: adding a 5th kitty halves the
+   served world's S (0.090 → 0.041, mass spreads later) — more cats,
+   more chaotic mixing. The family's F-010 roster stratification is
+   therefore a quantified signal-for-robustness trade.
+
+**Scope**: needs_driven/playful scripted dynamics (policy seats
+neutralized), post-024 engine (`6d955ab`), the searched knob ranges
+(sizes 22/26, scarcity two notches, tempo ×1.25, roster ±1). Not
+searched: durations, trait spreads, element ratios, tempo below 1×.
+
+**Evidence**: [world-search-2026-08-02-post024.md](exp-001-bc-mappo/results/world-search-2026-08-02-post024.md);
+driver `experiments/tools/world-search/search_post024.py`.
+
+**Implications**: exp-002's family base = the served world shape
+(family-gen v3 jitter as the variation envelope; 5-kitty base variant
+for roster stratification carries the quantified signal cost);
+γ sweep {0.995, 0.998} confirmed (the served band sits inside 0.998's
+horizon — F-013's conditional 0.9985 rule stays dormant unless the
+family's realized band peak moves past k ≈ 500); probe claims on this
+engine use 150+ worlds (F-004 addendum).
+
+**Would invalidate**: a knob outside the searched ranges beating the
+served base at 150-world power; trained-policy dynamics reshaping the
+landscape (the standing caveat everywhere).
+
+**Re-verify when**: any engine-defaults or served-config change;
+exp-002 candidate stage (policy-seated probe re-ranks the worlds that
+matter).

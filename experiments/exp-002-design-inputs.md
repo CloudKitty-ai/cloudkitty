@@ -248,3 +248,11 @@ above doubles as the channel-use screen.
   band peak lands past k ≈ 500; class-conditioned priors (play/chase
   3.6×) must be re-measured on the chosen world; certification on the
   served world is no longer credit-blind.
+  **SEARCH RUN 2026-08-02 (F-014)**: the served world wins as it
+  stands — no searched knob beats it at 150-world power (3rd
+  independent replication S(.998) ≈ 0.09; gym 3rd sub-floor batch;
+  scarcity/tempo now hurt). Family base = served shape, family-gen v3
+  jitter as the envelope; the 5-kitty base variant for roster
+  stratification halves S (0.090 → 0.041) — a quantified
+  signal-for-robustness trade the prereg owns explicitly. Probe
+  claims on this engine need 150+ worlds (F-004 addendum).
