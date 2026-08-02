@@ -165,6 +165,17 @@ binds exp-002's design (ported 2026-08-01 per the register rule):
   (owner call, 2026-08-01).
 - **Family must vary bath rise rates** across kitties, or the policy
   memorizes a constant instead of learning trait→cost.
+  **TOOL READY 2026-08-02** (family-gen v3, `experiments/tools/family-gen`):
+  roster stratified 3/4/5 per variant (exact ⅓ coverage — roster-3 is
+  the only empty-slot shape, F-010), every kitty gets an explicit bath
+  override spanning ratio 0.5–2.0×, `[water]` pinned into variants
+  (`--water-gain` = the prereg's dial, default 1.5). Base
+  `training.toml` untouched (exp-001's registered artifact). The
+  *frozen* family (N, seed, dial) is generated at prereg time.
+  Consequence for the trainer: **global-state dim varies with roster**
+  (32/kitty; 133 floats at roster 3 vs 197 at roster 5) — the exp-002
+  critic must pad or bucket. Obs stays 182 on every roster (verified
+  in ParallelEnv; dropped ids simply vanish from the agent list).
 - **Final gain value is a prereg'd exp-002 tuning decision**,
   calibrated by seating the water-indifferent s6 on a wet-fur build
   and measuring welfare delta per crossing (needs `elements()`).
@@ -223,3 +234,12 @@ above doubles as the channel-use screen.
 - **Latency residual dissolved** on the served world (deviation 31
   re-measure) — do not carry it as a target; roster-OOD fragility is
   the target.
+- **FINDINGS re-verify triggers fired by the 024 batch** (engine-
+  defaults change; `engine_defaults_sha256` moved by design): F-003
+  (credit horizon), F-005 (scarcity×tempo world selection), F-006
+  (default-world signal absence) all carry "re-verify on any
+  engine-defaults change." The prereg must either re-run the twin
+  probes on the post-024 engine or argue the wet-fur/sidestep deltas
+  don't touch what they measured (scripted cats occupy water 1.4–2%
+  of ticks — the calibration doc quantifies how small the surface
+  is). Decide explicitly; don't cite pre-024 F-numbers silently.
