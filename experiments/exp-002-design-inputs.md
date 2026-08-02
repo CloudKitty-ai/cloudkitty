@@ -168,6 +168,15 @@ binds exp-002's design (ported 2026-08-01 per the register rule):
 - **Final gain value is a prereg'd exp-002 tuning decision**,
   calibrated by seating the water-indifferent s6 on a wet-fur build
   and measuring welfare delta per crossing (needs `elements()`).
+  **CALIBRATED 2026-08-02**
+  ([results/water-calibration-2026-08-02.md](exp-001-bc-mappo/results/water-calibration-2026-08-02.md)):
+  at the shipped 1.5 dial the frozen policies show **no avoidance —
+  a groom-loop equilibrium** (occupancy up to 9.3–9.5%,
+  grooming-on-water doubled; the success signature is a training
+  outcome). Welfare price: paired ΔNash **−0.0014** (t ≈ −4.2,
+  9/10 seeds), ≈ −0.06 reward-units per crossing. Clamp healthy
+  (max bath 57.1 vs safeguard 75); Article I drinking unharmed.
+  The prereg picks the dial with this as its measurement.
 - **Pre-change baseline is a now-or-never measurement**: quantify s6's
   current water behavior (wading/lounging occupancy) before the engine
   changes — post-022 stream-baseline lesson applied prospectively.
