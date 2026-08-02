@@ -431,6 +431,15 @@
       });
       window.appearanceFor = CatV2.appearanceFor;
       window.shadedAppearanceOf = CatV2.shadedAppearanceOf;
+      // Installing this is what switches the renderer's live-motion path
+      // on (pose blends, eased lids, the landing settle): render.js keys
+      // on its presence, so v1 keeps every snap it ships with today.
+      window.drawCatTween = (ctx, opts) => CatV2.drawCatTween(ctx, {
+        ...opts,
+        size: opts.size * OVERDRAW,
+        x: (opts.x ?? 0) + opts.size * (1 - OVERDRAW) / 2,
+        y: (opts.y ?? 0) + 0.88 * opts.size * (1 - OVERDRAW),
+      });
     }
   </script>
   <script src="props.js"></script>

@@ -41,6 +41,19 @@ const VIEW = Object.freeze({
   idleMotionWindowMs: 420, // and lasting about this long
   breathePeriodMs: 3400, // the slow ambient cycle for resting poses
 
+  // v2 live motion -- every value owner-judged in the gallery-v2 motion
+  // lab (2026-07-29; the settle was slowed 180→400ms on owner feedback).
+  // Consumed only when the vocabulary dispatcher installs drawCatTween
+  // (the v2 kitties); v1 keeps its pose snap and its snap blink.
+  poseBlendMs: 260, // generic pose-space blend on any pose change
+  arriveBlendMs: 340, // the walking -> standing blend, paired with the settle
+  settleMs: 400, // landing squash, concurrent with the arrive blend
+  settleDip: 0.05, // peak vertical squash of the settle
+  blendTickShareCap: 0.45, // a blend never outlasts this share of a tick
+  slowBlinkDownMs: 350, // the lid eases down ...
+  slowBlinkHoldMs: 150, // ... holds ...
+  slowBlinkUpMs: 450, // ... and releases (the cat "I love you")
+
   // Beats (US5).
   // The observed drop is relief minus that tick's need rise, so the
   // threshold must sit below the smallest sparkle-worthy relief: cuddle at
@@ -116,6 +129,12 @@ function easeInOutCubic(t) {
   return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
 }
 
+/** The motion lab's smoothstep: gentle at both ends. Pose blends, the
+ * slow-blink lid, and the landing settle all ease through this. */
+function easeSmooth(t) {
+  return t * t * (3 - 2 * t);
+}
+
 /** A little overshoot-and-settle, for things that pop in (US6 juice). */
 function easeOutBack(t) {
   const c1 = 1.70158;
@@ -144,6 +163,10 @@ class Presentation {
     this.newElementIds = new Set();
     this.expiredElements = [];
     this.pathHeat = new Map(); // "x,y" -> { heat, stampedAt } (spec 008 US5)
+    // v2 pose-blend memory (motion wiring): what each kitty last wore on
+    // screen, and its in-flight blend if a change just happened.
+    this.lastPose = new Map(); // id -> { pose, phase, at } as last drawn
+    this.poseTween = new Map(); // id -> { from, fromPhase, at }
   }
 
   /** Reconnects and hidden-tab returns break continuity by definition. */
@@ -193,6 +216,8 @@ class Presentation {
       // Worn paths are the session's own memory (spec 008 FR-009): a
       // different moment of the world starts with clean grass.
       this.pathHeat.clear();
+      this.lastPose.clear();
+      this.poseTween.clear();
       return;
     }
 
@@ -324,6 +349,55 @@ class Presentation {
   }
 
   /**
+   * The v2 pose blend (motion wiring): a pose change opens a short
+   * pose-space blend for drawCatTween, and arriving -- walking to a
+   * stand -- lands with the lab's slow settle squash, concurrent with its
+   * blend (the lab's own timeline). Detection is draw-time, so mid-tick
+   * changes (the fall-asleep loaf -> sleep-curl swap) blend too. The
+   * from-phase freezes at the change: the old pose leaves exactly as last
+   * seen. Only the v2 renderer path consumes this; the recording is
+   * harmless when nothing reads it.
+   */
+  tweenFor(id, pose, phase, now) {
+    const last = this.lastPose.get(id);
+    this.lastPose.set(id, { pose, phase, at: now });
+    if (last && last.pose !== pose) {
+      if (now - last.at <= this.tickMs) {
+        // Newest wins: a change mid-blend restarts from the old target.
+        this.poseTween.set(id, { from: last.pose, fromPhase: last.phase, at: now });
+      } else {
+        // A draw gap past a tick is a different moment (hidden tab, a
+        // reduced-motion spell): snap, never a catch-up blend.
+        this.poseTween.delete(id);
+      }
+    }
+    const tw = this.poseTween.get(id);
+    if (!tw) return null;
+    const arrive = tw.from === 'walking' && (pose === 'idle' || pose === 'loaf');
+    const blendMs = Math.min(
+      arrive ? VIEW.arriveBlendMs : VIEW.poseBlendMs,
+      VIEW.blendTickShareCap * this.tickMs,
+    );
+    const elapsed = now - tw.at;
+    const out = {};
+    if (elapsed < blendMs) {
+      out.blend = {
+        from: tw.from,
+        fromPhase: tw.fromPhase,
+        t: easeSmooth(elapsed / blendMs),
+      };
+    }
+    if (arrive && elapsed < VIEW.settleMs) {
+      out.sy = 1 - VIEW.settleDip * Math.sin(Math.PI * easeSmooth(elapsed / VIEW.settleMs));
+    }
+    if (!out.blend && out.sy === undefined) {
+      this.poseTween.delete(id);
+      return null;
+    }
+    return out;
+  }
+
+  /**
    * Phase and micro-motion for one kitty (US4). Action poses run on the
    * tick clock (their whole animation fits the tick that served them);
    * resting poses breathe on a slow local cycle; idle cats get their
@@ -349,12 +423,29 @@ class Presentation {
     // cycling blink -> tail flick -> ear twitch, offset per kitty.
     const wobble = now + id * 1337;
     const at = wobble % VIEW.idleMotionPeriodMs;
+    const kind = Math.floor(wobble / VIEW.idleMotionPeriodMs) % 3;
     if (at < VIEW.idleMotionWindowMs) {
-      const kind = Math.floor(wobble / VIEW.idleMotionPeriodMs) % 3;
       const w = at / VIEW.idleMotionWindowMs;
       if (kind === 0) motion.eyesOverride = 'closed'; // a blink
       else if (kind === 1) motion.phase = w; // one quick tail flick
       else motion.earsBack = w < 0.5; // an ear twitch
+    }
+    if (kind === 0) {
+      // The v2 slow blink (lab-judged envelope): the lid eases down,
+      // holds, and releases -- deliberately longer than the v1 snap
+      // window. The v2 renderer prefers this lid over the snapped
+      // eyesOverride; v1 never reads it, so its blink stays bit-identical.
+      const down = VIEW.slowBlinkDownMs;
+      const hold = VIEW.slowBlinkHoldMs;
+      const up = VIEW.slowBlinkUpMs;
+      if (at < down + hold + up) {
+        motion.blinkLid =
+          at < down
+            ? easeSmooth(at / down)
+            : at < down + hold
+              ? 1
+              : 1 - easeSmooth((at - down - hold) / up);
+      }
     }
     return motion;
   }
@@ -464,6 +555,10 @@ class Presentation {
       // Still frames get the static pose for the state, nothing more
       // (FR-015): phase 0, no blinks, no flicks.
       motionFor: (id, pose) => (still ? { phase: 0 } : this.motionFor(id, pose, now)),
+      // The v2 pose blend + landing settle. Null in still frames -- a
+      // still frame is the pose, held -- and recording skips with it, so
+      // a spell of stillness can never seed a stale blend.
+      tweenFor: (id, pose, phase) => (still ? null : this.tweenFor(id, pose, phase, now)),
       // One-shot particles rest under reduced motion; the sustained
       // *informational* cues (focused eyes, the thought bubble) do not --
       // they carry state, not motion (R6).

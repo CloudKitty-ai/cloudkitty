@@ -406,6 +406,15 @@ class WorldRenderer {
     const beat = view.oneShotFor(kitty.id);
     let eyes = motion.eyesOverride;
     let ears = motion.earsBack;
+    // Live motion is a v2-vocabulary affair: the dispatcher installs
+    // drawCatTween exactly when v2 kitties are active, so v1 keeps its
+    // pose snap and its snap blink by construction.
+    const v2Motion = typeof drawCatTween === 'function';
+    let lid;
+    if (v2Motion && motion.blinkLid !== undefined) {
+      lid = motion.blinkLid;
+      if (eyes === 'closed') eyes = undefined; // the eased lid replaces the snap blink
+    }
     const expression = view.expressionFor(kitty);
     if (expression && !eyes) eyes = expression; // focused, unless mid-blink
     if (beat?.kind === 'sad') {
@@ -413,17 +422,39 @@ class WorldRenderer {
       ears = true;
       eyes = 'half';
     }
-    drawCat(ctx, {
-      pose,
+    const tween = v2Motion && view.tweenFor ? view.tweenFor(kitty.id, pose, motion.phase) : null;
+    if (tween?.sy !== undefined) {
+      // The landing settle: a soft squash about the ground line, so the
+      // feet stay planted (the dispatcher's overdraw anchors feet too).
+      const groundY = y + 0.88 * this.tile;
+      ctx.save();
+      ctx.translate(0, groundY);
+      ctx.scale(1, tween.sy);
+      ctx.translate(0, -groundY);
+    }
+    const catOpts = {
       appearance: shadedAppearanceOf(appearanceFor(kitty.id), this.theme),
       facing: view.facingFor(kitty.id),
       size: this.tile,
-      phase: motion.phase,
       eyesOverride: eyes,
       earsBack: ears,
+      lid,
       x,
       y,
-    });
+    };
+    if (tween?.blend) {
+      drawCatTween(ctx, {
+        ...catOpts,
+        from: tween.blend.from,
+        to: pose,
+        t: tween.blend.t,
+        phaseFrom: tween.blend.fromPhase,
+        phaseTo: motion.phase,
+      });
+    } else {
+      drawCat(ctx, { ...catOpts, pose, phase: motion.phase });
+    }
+    if (tween?.sy !== undefined) ctx.restore();
     if (beat) this.drawBeat(beat, cx, cy, view.facingFor(kitty.id));
 
     if (state === 'sleeping') {
