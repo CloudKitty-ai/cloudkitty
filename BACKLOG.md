@@ -15,11 +15,13 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 <!-- (pyo3 advisory upgrade shipped 2026-07-23, spec 015 — the
      do-before-more-RL-work gate is retired) -->
 
-### Graphics v2 follow-ons: face-group pitch, then live motion (added 2026-07-29)
+### Graphics v2 follow-ons: face-group pitch (added 2026-07-29; reordered 2026-08-01)
 The v2 kitty vocabulary (`client/cat-v2.js`, owner-dialed face values)
 shipped 2026-07-29 (`f4a8d0d`) and is now the `index.html` default with a
-footer v1/v2 toggle; `client/gallery-v2.html` is the judging lab. Two
-pieces were parked mid-arc at the owner's call, in order:
+footer v1/v2 toggle; `client/gallery-v2.html` is the judging lab.
+**Live motion wiring — BUILT** (2026-08-02, the client motion+swim
+branch): the owner consciously reordered motion ahead of pitch on
+2026-08-01, and it shipped with the swim pose. One piece remains:
 
 1. **Face-group pitch** — slide eyes+nose+mouth together up/down the head
    to simulate the head tilting (looking down to eat/drink, up at a bug).
@@ -33,15 +35,12 @@ pieces were parked mid-arc at the owner's call, in order:
    not rebuild:** pupil-shift gaze was built, verified, and reverted —
    max pupil travel is ~1% of the cat box (~0.24px at world size),
    unreadable. Pitch replaces it.
-2. **Live motion wiring** — the vocabulary machinery all exists and is
-   owner-approved in the lab (pose blending via `drawCatTween`, the slow
-   blink, arrive-and-settle at its slowed 400ms), but the live page still
-   snaps between poses. Wiring it in is renderer work in
-   `render.js`/`anim.js` territory, gated on the same side-by-side
-   judging as the face work.
 
 Judge every value in the lab first (dials + copy/paste readout), bake on
-the owner's paste — that workflow is the house method for this arc.
+the owner's paste — that workflow is the house method for this arc. The
+motion wiring added a seam pitch can reuse: `Presentation.tweenFor`
+blends any per-pose layout number, so `L.pitch` rides `blendLayouts`
+for free once the drawFace offset and the mask-pinning land.
 
 ## P2 — the bigger pieces, for a proper sitting
 
@@ -534,13 +533,14 @@ Related: the swim pose below suddenly has a real audience (wading is no
 longer rare when a policy cat likes ponds); food types' water-near-food
 rules touch the same element.
 
-### Swim pose for wading kitties (parked 2026-07-20, from the 010 spec)
-A kitty standing on a water tile shows a `swim` pose — pure view
-(`poseFor` in `client/render.js` plus one new `cat.js` pose), with its own
-mini gallery gate like the other cat art. Wading is deliberately rare
-since 010 (kitties skirt ponds and paddle only when water is the only way
-forward), which is exactly why this is low priority — but the paddling
-fallback deserves its art when we are next in the cat-pose neighborhood.
+### Swim pose for wading kitties — BUILT (2026-08-02; parked 2026-07-20, from the 010 spec)
+Built on the client motion+swim branch: `poseFor` water arm plus a v2
+`swim` layout (owner call 2026-08-01: v2 only — v1 keeps normal
+standing/walking). First-cut silhouette values sit in `CatV2.SWIM`
+awaiting the lab judging round (dials + readout are in
+`gallery-v2.html`); bake on the owner's paste closes this out. Wading
+stays deliberately rare since 010 — and the wet-fur engine batch (spec
+024) may make swims slightly rarer still once its charge deploys.
 
 ### Dynamic in-game speed changes
 ⚠️ Architectural string attached: the MVP API is read-only and the spec fixes
