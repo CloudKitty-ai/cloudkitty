@@ -418,6 +418,13 @@ class Presentation {
       phase: ((now + seed) % VIEW.breathePeriodMs) / VIEW.breathePeriodMs,
     };
     if (pose === 'sleep-curl') return motion; // sleepers just breathe
+    if (pose === 'swim') {
+      // Paddling rides the tick clock on the move, like the walk it
+      // replaces; a floating cat bobs on the ambient cycle and, like a
+      // sleeper, skips the idle twitches (its tail is underwater).
+      if (this.movedFor(id)) return { phase: this.progress(now) };
+      return motion;
+    }
 
     // Idle and loafing cats are never statues: one small motion per period,
     // cycling blink -> tail flick -> ear twitch, offset per kitty.

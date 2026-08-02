@@ -16,10 +16,12 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const animSrc = readFileSync(join(here, 'anim.js'), 'utf8');
 const catV2Src = readFileSync(join(here, 'cat-v2.js'), 'utf8');
+const renderSrc = readFileSync(join(here, 'render.js'), 'utf8');
 
 const api = eval(animSrc + ';({ VIEW, Presentation, easeSmooth })');
 eval(catV2Src); // IIFE: registers globalThis.CatV2
 const CatV2 = globalThis.CatV2;
+const { poseFor } = eval(renderSrc + ';({ poseFor })');
 
 /** Canvas ctx stand-in: logs every command, throws on non-finite numbers. */
 function guardCtx(log = []) {
@@ -124,9 +126,11 @@ check('arriving (walking -> stand) settles, concurrent with its blend', () => {
 check('only walking -> stand settles', () => {
   const pairs = [
     ['walking', 'eating'],
+    ['walking', 'swim'],
     ['idle', 'loaf'],
     ['loaf', 'sleep-curl'],
     ['pouncing', 'idle'],
+    ['swim', 'idle'],
   ];
   for (const [from, to] of pairs) {
     const p = new api.Presentation();
@@ -229,6 +233,8 @@ check('a finished blend is command-for-command the held pose', () => {
     ['walking', 'loaf'],
     ['loaf', 'sleep-curl'],
     ['eating', 'idle'],
+    ['walking', 'swim'],
+    ['swim', 'idle'],
   ];
   for (const [from, to] of pairs) {
     const base = { appearance, facing: 'right', size: 22, x: 3, y: 4 };
@@ -260,6 +266,43 @@ check('every blend frame sweeps clean at every lid depth', () => {
       }
     }
   }
+});
+
+// ---- the swim pose (spec 010's parked wading pose) ----
+
+check('swim is in the v2 vocabulary with the wading silhouette', () => {
+  assert(CatV2.POSES.includes('swim'), 'POSES lists swim');
+  const L = CatV2.catLayout('swim', 0.25);
+  assert(L.legs.length === 0, 'legs paddle out of sight');
+  assert(L.droplet === true, 'the splash droplet shows');
+  close(L.head.r, 0.226, 'the locked head radius is untouched');
+  assert(L.body.ry < 0.21, 'body floats flatter than standing');
+  assert(L.eyes === 'open', 'eyes open above water');
+  assert(L.earsUpright === true, 'ears dry and up');
+});
+
+check('poseFor: water under movement and idling, never over the rest', () => {
+  const k = (extra) => ({ id: 1, pos: { x: 2, y: 2 }, ...extra });
+  assert(poseFor(k({}), true, true) === 'swim', 'moving on water swims');
+  assert(poseFor(k({}), false, true) === 'swim', 'floating in place swims');
+  assert(poseFor(k({}), true, false) === 'walking', 'dry movement walks');
+  assert(poseFor(k({}), true) === 'walking', 'v1 callers (no flag) are untouched');
+  assert(poseFor(k({ activity: { state: 'sleeping' } }), false, true) === 'sleep-curl', 'activity outranks water');
+  assert(poseFor(k({ activity: { state: 'drinking' } }), false, true) === 'drinking', 'activity outranks water');
+  assert(poseFor(k({ last_action: { action: 'chase' } }), true, true) === 'pouncing', 'the pounce outranks water');
+});
+
+check('swim paddles on the tick clock moving, bobs on the breathe cycle afloat', () => {
+  const p = new api.Presentation();
+  p.pushState(world(1, [kitty(1, 2, 2)]), 1000);
+  p.pushState(world(2, [kitty(1, 3, 2)]), 1800); // moved: paddling
+  close(p.motionFor(1, 'swim', 2200).phase, 0.5, 'mid-tick paddle is mid-phase');
+  const q = new api.Presentation();
+  q.pushState(world(1, [kitty(1, 2, 2)]), 1000);
+  q.pushState(world(2, [kitty(1, 2, 2)]), 1800); // still: floating
+  const m = q.motionFor(1, 'swim', 2200);
+  close(m.phase, ((2200 + 997) % api.VIEW.breathePeriodMs) / api.VIEW.breathePeriodMs, 'ambient bob');
+  assert(m.eyesOverride === undefined && m.blinkLid === undefined, 'no idle twitches afloat');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

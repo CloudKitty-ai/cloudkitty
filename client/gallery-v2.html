@@ -369,6 +369,14 @@
     { obj: 'MOUTH', key: 'gap', label: 'mouth gap (below nose)', min: 0, max: 0.25, step: 0.005 },
     { obj: 'MOUTH', key: 'width', label: 'mouth width (half-span)', min: 0.03, max: 0.3, step: 0.005 },
     { obj: 'MOUTH', key: 'depth', label: 'mouth depth (leg drop)', min: 0, max: 0.25, step: 0.005 },
+    // Swim-pose dials (2026-08-02): first-cut values, judged in the
+    // motion lab's swim card below, baked on the owner's paste.
+    { obj: 'SWIM', key: 'bodyY', label: 'swim body depth (− up / + down)', min: 0.68, max: 0.86, step: 0.005 },
+    { obj: 'SWIM', key: 'bodyRy', label: 'swim body flatness', min: 0.08, max: 0.2, step: 0.005 },
+    { obj: 'SWIM', key: 'headY', label: 'swim head height (− up / + down)', min: 0.45, max: 0.68, step: 0.005 },
+    { obj: 'SWIM', key: 'bob', label: 'swim bob amplitude', min: 0, max: 0.03, step: 0.001 },
+    { obj: 'SWIM', key: 'rock', label: 'swim paddle rock', min: 0, max: 0.1, step: 0.005 },
+    { obj: 'SWIM', key: 'tailLift', label: 'swim tail-tip height (− up / + down)', min: 0.45, max: 0.75, step: 0.005 },
   ];
   const dialRoot = document.getElementById('dials');
   const readout = document.getElementById('eyeReadout');
@@ -413,13 +421,16 @@
     const e = CatV2.EYE;
     const n = CatV2.NOSE;
     const m = CatV2.MOUTH;
+    const s = CatV2.SWIM;
     readout.style.whiteSpace = 'pre-line';
     readout.textContent =
       `EYE = { scale: ${e.scale}, height: ${e.height}, shift: ${e.shift}, pupil: ${e.pupil} } · ` +
       `NOSE = { x: ${n.x}, y: ${n.y}, size: ${n.size} } · ` +
       `MOUTH = { style: '${m.style}', gap: ${m.gap}, width: ${m.width}, depth: ${m.depth} }\n` +
       `LID = { halfLid: ${e.halfLid}, lidTilt: ${e.lidTilt}, lidCurve: ${e.lidCurve} } · ` +
-      `FOCUSED = { focusedScale: ${e.focusedScale}, focusedHeight: ${e.focusedHeight} }`;
+      `FOCUSED = { focusedScale: ${e.focusedScale}, focusedHeight: ${e.focusedHeight} }\n` +
+      `SWIM = { bodyY: ${s.bodyY}, bodyRy: ${s.bodyRy}, headY: ${s.headY}, ` +
+      `bob: ${s.bob}, rock: ${s.rock}, tailLift: ${s.tailLift} }`;
   }
 
   // Slider bench: a static standing pair, redrawn live as the dials move.
@@ -573,6 +584,32 @@
           (isV2 ? CatV2.drawCat : drawCat)(ctx, { ...base, pose: 'idle', phase: (now % 3400) / 3400 });
         }
         ctx.restore();
+      },
+    },
+    {
+      title: 'Swim (the wading kitty)',
+      note: 'A kitty on a water tile paddles: tick-clock strokes on the move, an ambient bob afloat. v2 only (owner call 2026-08-01) — v1 walks through water like today. The swim dials above write CatV2.SWIM live.',
+      draw(ctx, w, h, now, isV2) {
+        const CYCLE = 4200, MOVE = 2400, TICK = 800;
+        const t = now % CYCLE;
+        const moving = t < MOVE;
+        const y = h - CAT * 0.95;
+        // Pond band first: the world draws water UNDER the cat, so the
+        // low silhouette must read as swimming without any clipping.
+        const S = CatV2.SWIM;
+        const waterline = y + CAT * (S.bodyY - S.bodyRy - 0.02);
+        ctx.fillStyle = '#9ccfe6';
+        ctx.fillRect(0, waterline, w, h - waterline);
+        const from = w / 2 - CAT * 0.55;
+        const to = w / 2 + CAT * 0.15;
+        const x = moving ? from + (to - from) * easeInOutCubic(t / MOVE) : to;
+        const base = { appearance: CatV2.appearanceFor(STORM), facing: 'right', size: CAT, x, y };
+        const phase = moving ? (t % TICK) / TICK : (now % 3400) / 3400;
+        if (isV2) {
+          CatV2.drawCat(ctx, { ...base, pose: 'swim', phase });
+        } else {
+          drawCat(ctx, { ...base, pose: moving ? 'walking' : 'idle', phase });
+        }
       },
     },
   ];
