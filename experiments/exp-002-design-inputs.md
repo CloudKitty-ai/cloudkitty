@@ -234,12 +234,17 @@ above doubles as the channel-use screen.
 - **Latency residual dissolved** on the served world (deviation 31
   re-measure) — do not carry it as a target; roster-OOD fragility is
   the target.
-- **FINDINGS re-verify triggers fired by the 024 batch** (engine-
-  defaults change; `engine_defaults_sha256` moved by design): F-003
-  (credit horizon), F-005 (scarcity×tempo world selection), F-006
-  (default-world signal absence) all carry "re-verify on any
-  engine-defaults change." The prereg must either re-run the twin
-  probes on the post-024 engine or argue the wet-fur/sidestep deltas
-  don't touch what they measured (scripted cats occupy water 1.4–2%
-  of ticks — the calibration doc quantifies how small the surface
-  is). Decide explicitly; don't cite pre-024 F-numbers silently.
+- **FINDINGS re-verify triggers fired by the 024 batch — RUN
+  2026-08-02, landscape inverted (F-013)**: the served 24×24 world
+  now carries a replicated cooperative band (k ≈ 230–330, S(.998) ≈
+  0.09–0.11) while the frozen gym's paired-seed signal fell sub-floor
+  (sidestep dissolved its stall-queueing advantage). F-003/F-005/
+  F-006 superseded by F-013
+  ([results/twin-probe-2026-08-02-post024.md](exp-001-bc-mappo/results/twin-probe-2026-08-02-post024.md)).
+  Prereg consequences: **training-world choice reopened** (served-
+  centered family is the evidence-backed default; slimmed post-024
+  world search recommended before freezing); γ sweep {0.995, 0.998}
+  stands with 0.9985 as a conditional arm only if the chosen world's
+  band peak lands past k ≈ 500; class-conditioned priors (play/chase
+  3.6×) must be re-measured on the chosen world; certification on the
+  served world is no longer credit-blind.

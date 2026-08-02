@@ -94,7 +94,14 @@ scripted-cat usage).
 
 ---
 
-## F-003 · active · The companionship retune tripled the credit horizon; channels unchanged
+## F-003 · superseded by F-013 · The companionship retune tripled the credit horizon; channels unchanged
+
+*(Superseded 2026-08-02: the 024 wet-fur batch — this finding's own
+"any engine-defaults change" trigger — moved every quantity again,
+exactly as the retune did to F-001. The two-channel structure
+re-confirms on the post-024 engine (early self band reproduces in all
+six re-verification runs); the band edges, peak locations, and
+retention decimals below are pre-024 history. See F-013.)*
 
 Supersedes F-001's quantities on the retuned baseline (PR #60, cf82007:
 happiness weights eat/drink→0.20, cuddle/bath→0.15; groom/play relief→20,
@@ -179,7 +186,14 @@ changes (e.g., one world per sample).
 
 ---
 
-## F-005 · active · Training-world knobs move detectable cooperative signal weakly; scarcity×tempo is the one replicated improver
+## F-005 · superseded by F-013 · Training-world knobs move detectable cooperative signal weakly; scarcity×tempo is the one replicated improver
+
+*(Superseded 2026-08-02: on the post-024 engine the frozen
+scarcity×tempo world's paired-seed signal halved and fell below the
+false-positive floor — the mechanism reads as the chase sidestep
+dissolving the stall-fed queueing consequences this world's gain was
+made of. The knob search was honest for the engine it measured; that
+engine is gone. See F-013.)*
 
 Across 10 candidate worlds (scarcity, tempo, grid size, combinations)
 measured under F-004 discipline, most knobs do nothing or hurt: shrinking
@@ -220,7 +234,14 @@ change (with F-003).
 
 ---
 
-## F-006 · active · The default world carries no detectable cooperative credit
+## F-006 · superseded by F-013 · The default world carries no detectable cooperative credit
+
+*(Superseded 2026-08-02: both of this finding's own re-verify
+conditions arrived at once — an engine-defaults change (024) and a
+default-config change (the #86 24×24 cutover). On the current served
+world the claim is inverted: a replicated cooperative band exists at
+k ≈ 230–330. The 32×32 measurement below remains correct for the
+world it measured. See F-013.)*
 
 Measured 2026-07-27 (product thread, at the owner's request; verified
 bit-exact by the experiments thread): on `cloudkitty.toml` (32×32, 4
@@ -531,3 +552,65 @@ which *is* that control: same seats, scripted neighbors, no meows).
 
 **Re-verify when**: exp-002 candidate screening; any channel-use
 selection measurement.
+
+## F-013 · active · The 024 batch rewired the credit landscape: the served world gained a cooperative band, the frozen gym lost its edge (supersedes F-003/F-005/F-006 quantities)
+
+Measured 2026-08-02, the fired engine-defaults triggers executed
+(six probe runs, cluster-robust per F-004, replication batches
+included). Three coupled results:
+
+1. **The current served world (`cloudkitty.toml`, 24×24, post-#86
+   cutover) carries a replicated cooperative band at k ≈ 230–330** —
+   dr 82/111 significant ticks on two disjoint 150-world batches
+   (floor ≈ 60), 25–43-tick contiguous runs, peak amplitude ~0.003–
+   0.005, S(.998) ≈ 0.09–0.11 — 3.4–4× the frozen gym's best pre-024
+   showing. Spillover co-locates (peak k=311).
+2. **The frozen scarcity×tempo gym lost its signal on paired seeds**
+   (3001–3150, engine-only change): 68 → 36 significant dr ticks
+   (sub-floor), S(.998) 0.026 → 0.011, surviving mass pushed to the
+   k≈930 queueing remnant. Consistent mechanism: the chase sidestep
+   dissolves the stall-queueing consequences that were the gym's
+   measured advantage (F-005's own k≈730–940 signature).
+3. **Geometry deconfound**: on the post-024 engine, the served config
+   at 32×32 (F-006's shape) is borderline (57 ticks, S(.998)=0.036);
+   at 24×24 it is clear. The 24×24 cutover is the dominant factor,
+   the engine's new water economics a plausible contributor — the
+   contention mechanism of F-005/F-006, now working in the served
+   world's favor.
+
+The two-channel *structure* (F-001→F-003 lineage) re-confirms
+everywhere: early self band (k ≤ ~16) in every run, team credit slow.
+
+**Scope**: `needs_driven` dynamics, post-024 engine (`6d955ab`),
+current served config and frozen `training.toml`; 1,000 samples ×
+1,200-tick traces per run. Trained-policy dynamics unmeasured (as
+always). Class-conditioned structure (the play/chase 3.6× prior)
+unmeasured on this engine.
+
+**Evidence**: [post-024 re-verification](exp-001-bc-mappo/results/twin-probe-2026-08-02-post024.md)
+(all six runs, dense retention curves, regeneration commands).
+
+**Implications**:
+- **exp-002's training-world choice is reopened and inverted**:
+  training on a family centered on the served world is the
+  evidence-backed default hypothesis (family-gen v3 already centers
+  24×24); the frozen gym is no longer self-recommending. A slimmed
+  post-024 world search should confirm before the prereg freezes.
+- **γ**: the served-world band sits inside γ=0.998's horizon; 0.995's
+  horizon ends before the band begins. Sweep {0.995, 0.998} stands;
+  0.9985 only as a conditional arm if the chosen world's band peak
+  lands past k ≈ 500.
+- Certification on the served world is no longer credit-blind —
+  paired-Nash gains there may partially reflect marginal cooperative
+  credit (F-006's welfare-gate-only framing is retired with it).
+- Every pre-024 probe quantity is design-dead; re-measure
+  class-conditioning on the chosen world before citing it.
+
+**Would invalidate**: the served-world band failing to reproduce on
+further disjoint batches or dissolving under trained-policy dynamics;
+a future engine or config change (this finding inherits the same
+mortality as its predecessors).
+
+**Re-verify when**: any engine-defaults or served-config change; the
+first exp-002 policy artifact reaches candidate stage (policy-seated
+probe, both worlds, per the F-001→F-003 standing trigger).
