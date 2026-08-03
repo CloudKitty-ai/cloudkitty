@@ -128,3 +128,21 @@ cd experiments/exp-001-bc-mappo/trainer
 Descriptive replay; evaluate-once does not apply. Valid for the
 post-024 engine (`6d955ab`); dies at the next dynamics change, same as
 its "before" sibling.
+
+## Post-025 re-verification (2026-08-03, engine `0fd551d`)
+
+The "dies at the next dynamics change" clause above triggered (spec
+025 per-target play relief). Re-run, same instrument, per-seed JSONs
+archived in `results/water-calibration-2026-08-03-post025/` (the
+instrument now takes the archive label as argv[1] so reruns can't
+overwrite committed records):
+
+|  | lounging-on-water | total in-water | post-024 values |
+|---|---|---|---|
+| frozen seats (Miso+Kittybear) | 4.14% (sd 0.42) | 9.21% (sd 0.94) | 4.22% / 9.42% |
+| scripted (Biscuit+Pumpkin) | 0.31% (sd 0.08) | 1.63% (sd 0.24) | 0.32% / 1.65% |
+
+Mean Nash 0.8966 (sd 0.0011) vs 0.8964 post-024 — within noise,
+direction consistent with faster play servicing. **The water economy
+is untouched by 025**; every conclusion in this doc, and the §9.1
+anchors quoted in the exp-002 prereg, carry over to `0fd551d`.

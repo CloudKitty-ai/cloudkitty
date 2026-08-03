@@ -1,5 +1,12 @@
 # Class-conditioned credit on the exp-002 family base (post-024)
 
+> **SUPERSEDED 2026-08-03** by
+> [class-credit-2026-08-03-post025.md](class-credit-2026-08-03-post025.md)
+> (spec 025 per-target play relief, engine `0fd551d`). Kept as the
+> post-024 record: the play/chase inversion below is what 025 was
+> shipped to fix, and the fix is confirmed there. The §3 γ-trigger
+> conclusion (F-9985 follow-up cell) survives the refresh.
+
 **Date**: 2026-08-02 · **Engine**: main @ `6d955ab` · **World**: the
 frozen family base (`family/base.toml` — served shape + Clementine,
 policy seats neutralized) · **Recipe**: 1,000 samples per class, 150

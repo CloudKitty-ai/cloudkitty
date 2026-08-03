@@ -76,6 +76,17 @@ re-verification + class probe (prediction: play/chase class rises off
 its 0.1× floor — the falsifiable point of the change), dial-rule
 anchors, family regen, dataset v2 recollection, welfare bounds.
 
+## Post-025 re-check (2026-08-03, engine `0fd551d`)
+
+Re-run after the split landed with the proposed values (10/20/25/35,
+spec 025). Scripted cadence held within trajectory noise —
+needs_driven 6.2/8.2 chase-ticks/catch (bug/greeble, was 5.9/9.0),
+playful 2.4/7.1 (was 2.4/6.9), duet starts within 1%, solo play
+still zero starts in 400k world-ticks — confirming the registered
+fact that no behavior-layer code reads relief magnitudes. The EV
+table above therefore still describes the shipped economy; the
+guards (ordering, greeble < 2×kitty) are live in `validate_actions`.
+
 ## Reproduce
 
 ```
