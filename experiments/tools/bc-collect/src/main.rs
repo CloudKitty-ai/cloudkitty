@@ -1,6 +1,6 @@
 //! BC dataset collector (exp-001 prereg §7.1, deviation 2026-07-27c).
 //!
-//! Drives behavior-run worlds (`needs_driven` everywhere — the expert) and
+//! Drives behavior-run worlds (config behaviors — the demonstrators) and
 //! records, per kitty per tick: the observation (182 f32), the legal-action
 //! mask (40 u8), and the label — the **applied** action encoded through the
 //! codec. Applied rather than proposed: the applied action is what the
@@ -242,12 +242,29 @@ fn main() {
                 .iter()
                 .map(|(k, v)| format!("\"{k}\": {v}"))
                 .collect();
+            // Demonstrator provenance per kitty (§10.3 stamping): the
+            // configured behavior when the registry knows it, else the
+            // engine's needs_driven fallback -- exp-002 families seat a
+            // playful Biscuit, so a flat "needs_driven" stamp would lie.
+            let experts_json: Vec<String> = config
+                .kitties
+                .iter()
+                .map(|k| {
+                    let resolved = if registry.get(&k.behavior).is_some() {
+                        k.behavior.as_str()
+                    } else {
+                        "needs_driven"
+                    };
+                    format!("\"{}\": \"{resolved}\"", k.id)
+                })
+                .collect();
             let meta = format!(
-                "{{\n  \"config\": \"{}\",\n  \"config_sha256\": \"{config_sha}\",\n  \"world_seed\": {world_seed},\n  \"ticks\": {},\n  \"decisions\": {n},\n  \"dropped_inexpressible\": {dropped},\n  \"dropped_by_action\": {{{}}},\n  \"mask_mismatch\": {mask_mismatch},\n  \"horizon\": {},\n  \"expert\": \"needs_driven\"\n}}\n",
+                "{{\n  \"config\": \"{}\",\n  \"config_sha256\": \"{config_sha}\",\n  \"world_seed\": {world_seed},\n  \"ticks\": {},\n  \"decisions\": {n},\n  \"dropped_inexpressible\": {dropped},\n  \"dropped_by_action\": {{{}}},\n  \"mask_mismatch\": {mask_mismatch},\n  \"horizon\": {},\n  \"experts\": {{{}}}\n}}\n",
                 config_path.display(),
                 args.ticks,
                 dropped_json.join(", "),
                 rl.episode.horizon,
+                experts_json.join(", "),
             );
             fs::write(dir.join("meta.json"), meta).expect("writing meta");
             total_decisions += n as u64;

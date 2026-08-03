@@ -142,7 +142,19 @@ appendix; do not re-derive), except:
   dirs, 1,907,967 decisions, all labels legal, dims 182/40
   everywhere; scripted drop rates 0.71%/0.13% (bc-v1-comparable);
   s6 data carries 777 channel-row decisions (rows 34/38/39) where
-  bc-v1 had none. `raw/bc-v2/`, regenerable via the §10.3 manifest.
+  bc-v1 had none. `raw/bc-v2/` is gitignored; the exact regeneration
+  (verified deterministic — identical label bytes on rerun):
+  ```
+  ./experiments/tools/bc-collect/target/release/bc-collect \
+    --family-dir experiments/exp-002-mixed-population/family/v2-dial1.5 \
+    --rollouts 3 --ticks 8000 --seed-base 400001 \
+    --out-dir experiments/exp-002-mixed-population/raw/bc-v2
+  trainer/.venv/bin/python \
+    experiments/exp-002-mixed-population/collect_s6_rollouts.py
+  ```
+  Per-rollout metas stamp per-kitty demonstrator provenance
+  (`"experts"`; the family seats a playful Biscuit) and the episode
+  horizon read from each config.
 
 ## 6. Pre-experiment measurements (all complete or gated pre-freeze)
 

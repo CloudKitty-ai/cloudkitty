@@ -21,6 +21,7 @@ Usage: trainer/.venv/bin/python collect_s6_rollouts.py
 import hashlib
 import json
 import sys
+import tomllib
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -37,9 +38,17 @@ from model import MLP  # noqa: E402
 FAMILY = HERE / "family/v2-dial1.5"
 OUT = HERE / "raw/bc-v2"
 TICKS = 8_000
-HORIZON = 2_000  # sawtooth period, = [rl.episode] horizon (bc-collect parity)
 SEED_BASE = 500_001
 ARTIFACT = TRAINER.parent / "artifacts/arm2-g0p998-s6/policy-final.pt"
+
+
+def episode_horizon(config):
+    """Sawtooth period = the config's [rl.episode] horizon (bc-collect
+    parity), falling back to the engine's serde default when the section
+    is absent -- read, not assumed."""
+    with open(config, "rb") as f:
+        rl = tomllib.load(f).get("rl", {})
+    return int(rl.get("episode", {}).get("horizon", 2_000))
 
 
 def load_policy():
@@ -51,6 +60,7 @@ def load_policy():
 
 
 def run_variant(ci, config, pol):
+    horizon = episode_horizon(config)
     seed = SEED_BASE + ci * 1_000
     env = cloudkitty.ParallelEnv(str(config), horizon=TICKS)
     obs, infos = env.reset(seed=seed)
@@ -61,7 +71,7 @@ def run_variant(ci, config, pol):
     rewards, states = [], []
     with torch.no_grad():
         for t in range(TICKS):
-            clock = (t % HORIZON) / HORIZON
+            clock = (t % horizon) / horizon
             state = np.array(env.state(), dtype=np.float32)
             state[-1] = clock
             states.append(state)
@@ -101,7 +111,7 @@ def run_variant(ci, config, pol):
         "decisions": len(labels),
         "dropped_inexpressible": 0,
         "mask_mismatch": 0,
-        "horizon": HORIZON,
+        "horizon": horizon,
         "expert": "policy:s6 (all seats, greedy)",
         "labeling": "chosen",
     }
