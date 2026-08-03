@@ -539,22 +539,86 @@ impl Config {
 
     /// `[actions]` relief rules; the duration bounds have their own
     /// validator (`validate_durations`), unchanged since spec 006.
+    ///
+    /// Spec 025: the play economy is a validated gradient, not four loose
+    /// dials. Order of checks: finiteness first, then the strict chain,
+    /// then the duet ceiling -- an error always names the most upstream
+    /// problem.
     pub(super) fn validate_actions(&self) -> Result<(), ConfigError> {
-        let solo = self.actions.solo_play_relief;
-        if !solo.is_finite() || solo < 0.0 {
-            return Err(ConfigError::invalid(
-                "[actions] solo_play_relief",
-                solo.to_string(),
-                "must be a finite number of at least 0",
-            ));
+        let a = &self.actions;
+        for (key, value) in [
+            ("[actions] solo_play_relief", a.solo_play_relief),
+            ("[actions] play_relief", a.play_relief),
+            ("[actions] play_relief_bug", a.play_relief_bug),
+            ("[actions] play_relief_greeble", a.play_relief_greeble),
+        ] {
+            if !value.is_finite() || value < 0.0 {
+                return Err(ConfigError::invalid(
+                    key,
+                    value.to_string(),
+                    "must be a finite number of at least 0",
+                ));
+            }
         }
-        if solo > self.actions.play_relief {
-            return Err(ConfigError::invalid(
+        // The strict chain: solo < kitty < bug < greeble. Equality anywhere
+        // makes two play forms indistinguishable -- exactly the
+        // team-neutrality the split exists to remove. Each link carries its
+        // own why: the doctrine phrase belongs to the solo/kitty link alone
+        // (FR-005), and the kitty/bug link is where a pre-025 config
+        // collides with the compiled default, so that error carries the
+        // migration map.
+        for (key, value, bound_name, bound, why) in [
+            (
                 "[actions] solo_play_relief",
-                solo.to_string(),
+                a.solo_play_relief,
+                "play_relief",
+                a.play_relief,
+                "playing together must stay the better deal",
+            ),
+            (
+                "[actions] play_relief",
+                a.play_relief,
+                "play_relief_bug",
+                a.play_relief_bug,
+                "a config written before spec 025 hits this through the compiled \
+                 default (25): set play_relief_bug and play_relief_greeble explicitly",
+            ),
+            (
+                "[actions] play_relief_bug",
+                a.play_relief_bug,
+                "play_relief_greeble",
+                a.play_relief_greeble,
+                "critter play ranks bugs below greebles",
+            ),
+        ] {
+            if value >= bound {
+                return Err(ConfigError::invalid(
+                    key,
+                    value.to_string(),
+                    format!(
+                        "must be strictly less than {bound_name} ({bound}) -- the play \
+                         gradient is solo < kitty < bug < greeble, and {why}"
+                    ),
+                ));
+            }
+        }
+        // The duet ceiling, the load-bearing bound: a duet relieves BOTH
+        // cats, so team welfare earns 2 x play_relief per duet tick. Below
+        // the ceiling social play stays team-optimal and WantPlay
+        // recruitment keeps its value; at or above it, cats should ignore
+        // each other and the meow economy dies.
+        if a.play_relief_greeble >= 2.0 * a.play_relief {
+            return Err(ConfigError::invalid(
+                "[actions] play_relief_greeble",
+                a.play_relief_greeble.to_string(),
                 format!(
-                    "must not exceed play_relief ({}) -- playing together must stay the better deal",
-                    self.actions.play_relief
+                    "must be strictly less than 2 x play_relief ({}) -- a duet relieves \
+                     both cats, so the team earns 2 x play_relief per duet tick; at or \
+                     above this ceiling solo greeble-hunting beats social play and meow \
+                     recruitment loses its value (a config written before spec 025 with \
+                     play_relief at or below 17.5 hits this through the compiled default \
+                     greeble (35): set play_relief_bug and play_relief_greeble explicitly)",
+                    2.0 * a.play_relief
                 ),
             ));
         }

@@ -432,13 +432,29 @@ pub struct ActionEffects {
     pub sleep_relief: f32,
     pub sleep_relief_sunbeam: f32,
     pub groom_relief: f32,
+    /// The kitty/duet play value: what each partner gains per tick of
+    /// social play. The name predates the per-target split (spec 025)
+    /// and is kept deliberately -- every config in the wild carries it
+    /// with exactly this meaning, and renaming would move the `/config`
+    /// wire key for zero behavioral gain.
     pub play_relief: f32,
     /// Cuddle relief from resting/sleeping/grooming alongside a friend.
     pub cuddle_relief: f32,
     /// Play relief for pouncing at nothing. Smaller than `play_relief` so a
-    /// kitty with company always prefers the real thing.
+    /// kitty with company always prefers the real thing. Also the price a
+    /// vanished play target drops to (spec 025): the critter is gone, the
+    /// kitty is pouncing at nothing.
     #[serde(default = "default_solo_play_relief")]
     pub solo_play_relief: f32,
+    /// Play relief per tick while playing with a bug (spec 025). Sits
+    /// between the duet value and the greeble in the validated gradient.
+    #[serde(default = "default_play_relief_bug")]
+    pub play_relief_bug: f32,
+    /// Play relief per tick while playing with a greeble (spec 025). The
+    /// top of the gradient, capped below 2 x `play_relief` so a duet's
+    /// team total always beats it.
+    #[serde(default = "default_play_relief_greeble")]
+    pub play_relief_greeble: f32,
     /// How long each activity runs, in ticks (spec 006): the engine holds an
     /// activity at least `min` ticks and never lets it pass `max`.
     #[serde(default)]
@@ -459,6 +475,8 @@ impl Default for ActionEffects {
             play_relief: 20.0,
             cuddle_relief: 15.0,
             solo_play_relief: default_solo_play_relief(),
+            play_relief_bug: default_play_relief_bug(),
+            play_relief_greeble: default_play_relief_greeble(),
             durations: DurationsConfig::default(),
         }
     }
@@ -1427,6 +1445,144 @@ mod tests {
     }
 
     #[test]
+    fn the_play_gradient_rejects_equality_at_every_link() {
+        // Spec 025 FR-005: the chain is strict -- equality anywhere makes
+        // two play forms indistinguishable, which is the team-neutrality
+        // the split exists to remove.
+        for key in ["solo_play_relief", "play_relief", "play_relief_bug"] {
+            let mut c = cfg();
+            match key {
+                "solo_play_relief" => c.actions.solo_play_relief = c.actions.play_relief,
+                "play_relief" => c.actions.play_relief = c.actions.play_relief_bug,
+                _ => c.actions.play_relief_bug = c.actions.play_relief_greeble,
+            }
+            let msg = c.validate().unwrap_err().to_string();
+            // The full "[actions] {key} is" prefix, not a bare contains(key):
+            // "play_relief" is a substring of every play key, so a bare
+            // contains could never catch the error blaming the wrong link.
+            assert!(
+                msg.contains(&format!("[actions] {key} is")),
+                "{key} equality must be rejected under its own key: {msg}"
+            );
+            assert!(
+                msg.contains("strictly less than"),
+                "the rule is named: {msg}"
+            );
+        }
+    }
+
+    #[test]
+    fn the_duet_ceiling_holds_at_exactly_twice_the_kitty_value() {
+        // Spec 025 FR-006: at greeble == 2 x kitty a myopic defection is
+        // exactly team-neutral -- the dilemma's edge goes flat -- so the
+        // boundary itself is rejected, and the message teaches why.
+        let mut c = cfg();
+        c.actions.play_relief_greeble = 2.0 * c.actions.play_relief;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("play_relief_greeble"), "{msg}");
+        assert!(
+            msg.contains("both cats"),
+            "the error explains the duet economics: {msg}"
+        );
+
+        // Just under the ceiling (and above the bug value) passes.
+        let mut c = cfg();
+        c.actions.play_relief_greeble = 2.0 * c.actions.play_relief - 0.5;
+        c.validate()
+            .expect("a greeble just under the ceiling is lawful");
+    }
+
+    #[test]
+    fn the_new_play_keys_reject_negative_and_non_finite_values() {
+        // Spec 025 FR-007, including the tightening the contract names:
+        // a NaN play_relief previously slipped past the old guard by
+        // accident of comparison semantics (solo > NaN is false).
+        for poison in [f32::NAN, f32::INFINITY, -1.0] {
+            for setter in [
+                (|c: &mut Config, v: f32| c.actions.solo_play_relief = v) as fn(&mut Config, f32),
+                |c, v| c.actions.play_relief = v,
+                |c, v| c.actions.play_relief_bug = v,
+                |c, v| c.actions.play_relief_greeble = v,
+            ] {
+                let mut c = cfg();
+                setter(&mut c, poison);
+                assert!(
+                    c.validate().is_err(),
+                    "{poison} must be rejected wherever it lands"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn a_pre_025_config_outside_the_survivable_band_fails_with_a_map() {
+        // The contract's two documented break classes: a legacy config
+        // carrying play_relief >= 25 collides with the defaulted bug value
+        // in the chain; one at or below 17.5 collides with the defaulted
+        // greeble via the duet ceiling. Both must fail loudly, blaming the
+        // defaulted key and pointing at the migration (pin the 025 keys).
+        // In between, the band upgrades untouched.
+        let legacy = |play_relief: f32| -> Config {
+            toml::from_str(&format!(
+                r#"
+                [world]
+                width = 32
+                height = 32
+                tick_ms = 800
+                seed = 1
+
+                [[kitty]]
+                id = 1
+                name = "A"
+                x = 1
+                y = 1
+                behavior = "needs_driven"
+
+                [[kitty]]
+                id = 2
+                name = "B"
+                x = 2
+                y = 2
+                behavior = "playful"
+
+                [actions]
+                eat_relief = 40.0
+                drink_relief = 40.0
+                sleep_relief = 5.0
+                sleep_relief_sunbeam = 8.0
+                groom_relief = 30.0
+                play_relief = {play_relief}
+                cuddle_relief = 20.0
+            "#
+            ))
+            .expect("legacy shape parses")
+        };
+
+        let msg = legacy(25.0).validate().unwrap_err().to_string();
+        assert!(msg.contains("play_relief_bug"), "{msg}");
+        assert!(msg.contains("explicitly"), "points at the migration: {msg}");
+
+        let msg = legacy(15.0).validate().unwrap_err().to_string();
+        assert!(msg.contains("play_relief_greeble"), "{msg}");
+        assert!(msg.contains("explicitly"), "points at the migration: {msg}");
+
+        legacy(20.0)
+            .validate()
+            .expect("the in-band legacy config upgrades untouched");
+    }
+
+    #[test]
+    fn the_shipped_play_gradient_is_lawful() {
+        // 10 < 20 < 25 < 35 and 35 < 40: the defaults pass their own guards,
+        // ceiling margin included.
+        let c = cfg();
+        c.validate().expect("shipped defaults validate");
+        assert_eq!(c.actions.play_relief_bug, 25.0);
+        assert_eq!(c.actions.play_relief_greeble, 35.0);
+        assert!(c.actions.play_relief_greeble < 2.0 * c.actions.play_relief);
+    }
+
+    #[test]
     fn zero_viewer_patience_is_rejected() {
         let mut c = cfg();
         c.viewer.distress_patience_ticks = 0;
@@ -1466,7 +1622,7 @@ mod tests {
             sleep_relief = 5.0
             sleep_relief_sunbeam = 8.0
             groom_relief = 30.0
-            play_relief = 25.0
+            play_relief = 20.0
             cuddle_relief = 20.0
         "#;
         let c: Config = toml::from_str(toml_src).expect("old-shape config parses");
@@ -1476,6 +1632,10 @@ mod tests {
             default_chase_exclusion_ticks()
         );
         assert_eq!(c.actions.solo_play_relief, default_solo_play_relief());
+        // Spec 025: a today's-keys-only config gets the per-target play
+        // values by default -- and the whole gradient still validates.
+        assert_eq!(c.actions.play_relief_bug, default_play_relief_bug());
+        assert_eq!(c.actions.play_relief_greeble, default_play_relief_greeble());
         assert_eq!(c.viewer.distress_patience_ticks, 60);
         c.validate().expect("defaults are valid");
     }

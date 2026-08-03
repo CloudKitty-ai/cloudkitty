@@ -368,6 +368,11 @@ async fn the_viewer_config_travels_through_the_config_endpoint() {
     );
     assert_eq!(config["behavior"]["chase_patience_ticks"], 12);
     assert_eq!(config["actions"]["solo_play_relief"], 10.0);
+    // Spec 025's additive-only wire promise: the split arrives as two new
+    // keys while play_relief keeps its name and duet meaning.
+    assert_eq!(config["actions"]["play_relief"], 20.0);
+    assert_eq!(config["actions"]["play_relief_bug"], 25.0);
+    assert_eq!(config["actions"]["play_relief_greeble"], 35.0);
 
     server.shutdown().await;
 }
