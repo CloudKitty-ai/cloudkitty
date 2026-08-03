@@ -1,0 +1,19 @@
+{
+ "policy": "/Users/elizabethkelly/ai/cloudkitty-exp002-pilot/experiments/exp-002-mixed-population/artifacts/M33-g0p998-s1/policy-final.pt",
+ "lounge_share": 0.0373075,
+ "inwater_share": 0.077185,
+ "per_seat": {
+  "Miso": {
+   "lounge": 0.03668,
+   "inwater": 0.075485
+  },
+  "Kittybear": {
+   "lounge": 0.037935,
+   "inwater": 0.078885
+  }
+ },
+ "pass_lounge_1pct": false,
+ "pass_inwater_3pct": false,
+ "both_pass": false,
+ "nash_mean": 0.894294637083364
+}

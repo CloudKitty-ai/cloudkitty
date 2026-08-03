@@ -35,8 +35,10 @@ import torch  # noqa: E402
 from bc_loss import NEG_INF  # noqa: E402
 from model import MLP  # noqa: E402
 
-FAMILY = HERE / "family/v2-dial1.5"
-OUT = HERE / "raw/bc-v2"
+# argv[1] selects the family dir (default the dial-1.5 freeze; the §9.1
+# escalation regenerates at 2.5 and recollects). argv[2] the out dir.
+FAMILY = HERE / (sys.argv[1] if len(sys.argv) > 1 else "family/v2-dial1.5")
+OUT = HERE / (sys.argv[2] if len(sys.argv) > 2 else "raw/bc-v2")
 TICKS = 8_000
 SEED_BASE = 500_001
 ARTIFACT = TRAINER.parent / "artifacts/arm2-g0p998-s6/policy-final.pt"
