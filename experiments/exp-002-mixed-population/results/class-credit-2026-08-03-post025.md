@@ -71,6 +71,12 @@ addendum). Run as the registered post-025 re-baseline (handoff
   20k): team welfare 0.906–0.908, up from the 0.88–0.90 band —
   faster play servicing raises happiness, the direction the handoff
   predicted. Welfare bounds gain margin.
+- **Meow-listening anchor re-measured** (digest-zeroing probe, s6 as
+  Miso in scripted company, 10 seeds × 20k — the pre-024 8.18% had
+  lapsed): flips **13.26% of heard** (11.79–15.17% per seed, 10/10
+  consistent) on a much quieter channel (audibility 62.4% → 10.7%).
+  Listening functional; H3's ≥3% threshold anchored with margin. See
+  the meow-listening doc's post-025 addendum.
 
 ## Reproduce
 

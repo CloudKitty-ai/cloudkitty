@@ -44,7 +44,12 @@ F-007, F-009, F-010, F-011, F-012, F-013, F-014.
 - **H3 (meow preservation)**: warm-start arms retain functional
   channel use, measured **in policy company** (F-012): digest-zeroing
   changes ≥ 3% of digest-active decisions for at least one seed per
-  warm-start cell (s6 anchor: 8.18%).
+  warm-start cell (s6 anchor re-measured post-025: **13.26% of
+  heard**, per-seed 11.79–15.17%, scripted company — the pre-024
+  8.18% lapsed with the engine; audibility fell 62.4% → 10.7%, so
+  per-run flip-rate estimates carry more variance — see the
+  [meow-listening doc](../exp-001-bc-mappo/results/meow-listening-2026-07-31.md)
+  post-025 addendum).
 - **H4 (roster robustness)**: with roster 3–5 in the training family,
   no candidate exhibits F-010 catatonia on any deploy-surface roster
   (3/4/5) at certification length.
@@ -311,12 +316,18 @@ history): no candidate claim rests on training curves.
 
 ## 12. Reading list
 
-FINDINGS F-004, F-007, F-009 → F-014; the register
+FINDINGS F-004, F-007, F-009 → F-015 (F-015: class-conditioned
+absolute S, never class-vs-all ratios); the register
 (exp-002-design-inputs.md, all sections); results docs: water
-baseline 2026-08-01, wet-fur calibration 2026-08-02, post-024 probe
-re-verification, post-024 world search; docs/cuddle-relief-semantics.md
-(before any welfare-Cuddle claim); exp-001 prereg §5 + deviations
-2026-07-30 (inherited hyperparameters), §9.1 soak protocol.
+baseline 2026-08-01, wet-fur calibration 2026-08-02 (+ post-025
+addendum), post-024 probe re-verification, post-024 world search,
+**post-025 class credit**
+([results/class-credit-2026-08-03-post025.md](results/class-credit-2026-08-03-post025.md)
+— the current credit landscape; the 08-02 doc is superseded),
+meow-listening 2026-07-31 (+ post-025 re-anchor);
+docs/cuddle-relief-semantics.md (before any welfare-Cuddle claim);
+exp-001 prereg §5 + deviations 2026-07-30 (inherited
+hyperparameters), §9.1 soak protocol.
 
 ## Appendix: Deviations
 
