@@ -1445,6 +1445,87 @@ mod tests {
     }
 
     #[test]
+    fn the_play_gradient_rejects_equality_at_every_link() {
+        // Spec 025 FR-005: the chain is strict -- equality anywhere makes
+        // two play forms indistinguishable, which is the team-neutrality
+        // the split exists to remove.
+        let cases: [(&str, fn(&mut Config)); 3] = [
+            ("solo_play_relief", |c| {
+                c.actions.solo_play_relief = c.actions.play_relief
+            }),
+            ("play_relief", |c| {
+                c.actions.play_relief = c.actions.play_relief_bug
+            }),
+            ("play_relief_bug", |c| {
+                c.actions.play_relief_bug = c.actions.play_relief_greeble
+            }),
+        ];
+        for (key, set_equal) in cases {
+            let mut c = cfg();
+            set_equal(&mut c);
+            let msg = c.validate().unwrap_err().to_string();
+            assert!(msg.contains(key), "{key} equality must be rejected: {msg}");
+            assert!(
+                msg.contains("strictly less than"),
+                "the rule is named: {msg}"
+            );
+        }
+    }
+
+    #[test]
+    fn the_duet_ceiling_holds_at_exactly_twice_the_kitty_value() {
+        // Spec 025 FR-006: at greeble == 2 x kitty a myopic defection is
+        // exactly team-neutral -- the dilemma's edge goes flat -- so the
+        // boundary itself is rejected, and the message teaches why.
+        let mut c = cfg();
+        c.actions.play_relief_greeble = 2.0 * c.actions.play_relief;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("play_relief_greeble"), "{msg}");
+        assert!(
+            msg.contains("both cats"),
+            "the error explains the duet economics: {msg}"
+        );
+
+        // Just under the ceiling (and above the bug value) passes.
+        let mut c = cfg();
+        c.actions.play_relief_greeble = 2.0 * c.actions.play_relief - 0.5;
+        c.validate()
+            .expect("a greeble just under the ceiling is lawful");
+    }
+
+    #[test]
+    fn the_new_play_keys_reject_negative_and_non_finite_values() {
+        // Spec 025 FR-007, including the tightening the contract names:
+        // a NaN play_relief previously slipped past the old guard by
+        // accident of comparison semantics (solo > NaN is false).
+        for poison in [f32::NAN, f32::INFINITY, -1.0] {
+            for setter in [
+                (|c: &mut Config, v: f32| c.actions.play_relief = v) as fn(&mut Config, f32),
+                |c, v| c.actions.play_relief_bug = v,
+                |c, v| c.actions.play_relief_greeble = v,
+            ] {
+                let mut c = cfg();
+                setter(&mut c, poison);
+                assert!(
+                    c.validate().is_err(),
+                    "{poison} must be rejected wherever it lands"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn the_shipped_play_gradient_is_lawful() {
+        // 10 < 20 < 25 < 35 and 35 < 40: the defaults pass their own guards,
+        // ceiling margin included.
+        let c = cfg();
+        c.validate().expect("shipped defaults validate");
+        assert_eq!(c.actions.play_relief_bug, 25.0);
+        assert_eq!(c.actions.play_relief_greeble, 35.0);
+        assert!(c.actions.play_relief_greeble < 2.0 * c.actions.play_relief);
+    }
+
+    #[test]
     fn zero_viewer_patience_is_rejected() {
         let mut c = cfg();
         c.viewer.distress_patience_ticks = 0;
@@ -1484,7 +1565,7 @@ mod tests {
             sleep_relief = 5.0
             sleep_relief_sunbeam = 8.0
             groom_relief = 30.0
-            play_relief = 25.0
+            play_relief = 20.0
             cuddle_relief = 20.0
         "#;
         let c: Config = toml::from_str(toml_src).expect("old-shape config parses");
@@ -1494,6 +1575,13 @@ mod tests {
             default_chase_exclusion_ticks()
         );
         assert_eq!(c.actions.solo_play_relief, default_solo_play_relief());
+        // Spec 025: a today's-keys-only config gets the per-target play
+        // values by default -- and the whole gradient still validates.
+        assert_eq!(c.actions.play_relief_bug, default_play_relief_bug());
+        assert_eq!(
+            c.actions.play_relief_greeble,
+            default_play_relief_greeble()
+        );
         assert_eq!(c.viewer.distress_patience_ticks, 60);
         c.validate().expect("defaults are valid");
     }
