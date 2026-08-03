@@ -400,12 +400,19 @@ class WorldRenderer {
     // active, so v1 keeps its pose snap, its snap blink, and its
     // walk-through-water by construction.
     const v2Motion = typeof drawCatTween === 'function';
-    // A kitty on a served water tile is wading (spec 010's parked swim
-    // pose): the served elements are the truth, mid-fade or not.
+    // A kitty over a water tile is wading (spec 010's parked swim pose).
+    // Keyed on the tile under the DRAWN cat -- the eased interpolation,
+    // not the served destination -- so the pose flips as the cat visibly
+    // crosses the shore (mid-tick; the tween machinery blends it there),
+    // never a full glide early. The served elements are the truth about
+    // where water is, mid-fade or not.
     const onWater =
       v2Motion &&
       world.elements.some(
-        (el) => el.kind === 'water' && el.pos.x === kitty.pos.x && el.pos.y === kitty.pos.y,
+        (el) =>
+          el.kind === 'water' &&
+          el.pos.x === Math.round(pos.x) &&
+          el.pos.y === Math.round(pos.y),
       );
 
     // The approved vector cat (spec 005 US2/US4/US5): identity from the
@@ -414,15 +421,6 @@ class WorldRenderer {
     // layer -- and the drama layered by the documented rule: pose, then
     // action animation, then expression, then the single one-shot beat.
     const pose = view.adjustPose(kitty.id, poseFor(kitty, view.movedFor(kitty.id), onWater));
-
-    // A soft shadow so cats sit on the grass rather than float above it
-    // -- unless they are floating: a swimmer rides the water, shadowless.
-    if (pose !== 'swim') {
-      ctx.fillStyle = MEADOW.groundShadow;
-      ctx.beginPath();
-      ctx.ellipse(cx, cy + this.tile * 0.32, this.tile * 0.3, this.tile * 0.12, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
 
     const motion = view.motionFor(kitty.id, pose);
     const beat = view.oneShotFor(kitty.id);
@@ -434,13 +432,42 @@ class WorldRenderer {
       if (eyes === 'closed') eyes = undefined; // the eased lid replaces the snap blink
     }
     const expression = view.expressionFor(kitty);
-    if (expression && !eyes) eyes = expression; // focused, unless mid-blink
+    // On the v2 path a pursuit's focused eyes hold through the blink slot
+    // -- drawFace exempts 'focused' from the lid, so hunters keep their
+    // unbroken stare (v1 still snap-blinks over focused, as it always has).
+    if (expression && !eyes) eyes = expression;
     if (beat?.kind === 'sad') {
-      // The give-up droop wears on the cat itself: ears back, eyes low.
+      // The give-up droop wears on the cat itself: ears back, eyes low --
+      // and it outranks a blink in progress, exactly as it did pre-lid
+      // (a full lid would promote the droop to the happy closed arcs).
       ears = true;
       eyes = 'half';
+      lid = undefined;
     }
     const tween = v2Motion && view.tweenFor ? view.tweenFor(kitty.id, pose, motion.phase) : null;
+
+    // A soft shadow so cats sit on the grass rather than float above it.
+    // It follows the drawn silhouette, not the pose label: gone while
+    // swimming, fading with the shoreline blend in either direction (the
+    // label flips at t=0, when the drawn cat is still wholly the from-pose).
+    const shadowAlpha = tween?.blend
+      ? pose === 'swim'
+        ? 1 - tween.blend.t
+        : tween.blend.from === 'swim'
+          ? tween.blend.t
+          : 1
+      : pose === 'swim'
+        ? 0
+        : 1;
+    if (shadowAlpha > 0) {
+      ctx.save();
+      ctx.globalAlpha = shadowAlpha;
+      ctx.fillStyle = MEADOW.groundShadow;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy + this.tile * 0.32, this.tile * 0.3, this.tile * 0.12, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
     if (tween?.sy !== undefined) {
       // The landing settle: a soft squash about the ground line, so the
       // feet stay planted (the dispatcher's overdraw anchors feet too).
