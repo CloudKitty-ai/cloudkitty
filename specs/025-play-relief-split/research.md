@@ -29,14 +29,20 @@ on `8bed190` (branch base).
   up each serviced tick; on a miss (expired id) or a non-critter kind
   (unreachable via validation, `action.rs:385-388`), the tick pays
   `solo_play_relief`.
-- **Rationale**: elements expire mid-scene (`world.rs:807`,
-  `Element::is_expired`) while the scene's clock keeps running, and
-  today's arm never looks the element up — the kitty keeps collecting
-  20/tick from a vanished critter. Under a 35 greeble value that tail
-  becomes a real grind vector, and the census's no-grind-exploit
-  argument priced only ticks with a critter present. "The critter is
-  gone, the kitty is pouncing at nothing" is also the honest
-  semantics; solo is the value for exactly that.
+- **Rationale** *(corrected during implementation — the original
+  reading here and in the handoff was wrong about the tail)*: elements
+  expire mid-scene (`world.rs:807`, `Element::is_expired`), and the
+  effect arm indeed never looks the element up — but the slot
+  pipeline's `prune_dead_activity` (`world.rs:421-456`) ends a
+  vanished-target scene at the kitty's next slot, before any further
+  effect lands (guarded by
+  `world::tests::a_vanished_critter_ends_play_where_it_stands`). There
+  was never a 20/tick tail in the canonical loop, and there is no
+  35/tick grind vector to close. The fallback earns its place as
+  defense-in-depth instead: `apply` is public and total, and the arm
+  must never pay a critter's price for an id it cannot resolve. "The
+  critter is gone, the kitty is pouncing at nothing" is the honest
+  price for that path.
 - **Alternatives considered**: (a) keep paying the kitty value
   (today's accidental behavior) — rejected, preserves the exploit
   tail and gives a vanished greeble the duet price; (b) end the

@@ -432,13 +432,29 @@ pub struct ActionEffects {
     pub sleep_relief: f32,
     pub sleep_relief_sunbeam: f32,
     pub groom_relief: f32,
+    /// The kitty/duet play value: what each partner gains per tick of
+    /// social play. The name predates the per-target split (spec 025)
+    /// and is kept deliberately -- every config in the wild carries it
+    /// with exactly this meaning, and renaming would move the `/config`
+    /// wire key for zero behavioral gain.
     pub play_relief: f32,
     /// Cuddle relief from resting/sleeping/grooming alongside a friend.
     pub cuddle_relief: f32,
     /// Play relief for pouncing at nothing. Smaller than `play_relief` so a
-    /// kitty with company always prefers the real thing.
+    /// kitty with company always prefers the real thing. Also the price a
+    /// vanished play target drops to (spec 025): the critter is gone, the
+    /// kitty is pouncing at nothing.
     #[serde(default = "default_solo_play_relief")]
     pub solo_play_relief: f32,
+    /// Play relief per tick while playing with a bug (spec 025). Sits
+    /// between the duet value and the greeble in the validated gradient.
+    #[serde(default = "default_play_relief_bug")]
+    pub play_relief_bug: f32,
+    /// Play relief per tick while playing with a greeble (spec 025). The
+    /// top of the gradient, capped below 2 x `play_relief` so a duet's
+    /// team total always beats it.
+    #[serde(default = "default_play_relief_greeble")]
+    pub play_relief_greeble: f32,
     /// How long each activity runs, in ticks (spec 006): the engine holds an
     /// activity at least `min` ticks and never lets it pass `max`.
     #[serde(default)]
@@ -459,6 +475,8 @@ impl Default for ActionEffects {
             play_relief: 20.0,
             cuddle_relief: 15.0,
             solo_play_relief: default_solo_play_relief(),
+            play_relief_bug: default_play_relief_bug(),
+            play_relief_greeble: default_play_relief_greeble(),
             durations: DurationsConfig::default(),
         }
     }

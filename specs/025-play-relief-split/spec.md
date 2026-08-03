@@ -151,19 +151,21 @@ and hash pins are untouched by the diff.
 
 ### Edge Cases
 
-- **The despawn edge (must be pinned — today's arm never looks the
+- **The despawn edge (must be pinned — the effect arm never looks the
   element up)**: elements expire and are removed by the environment
-  phase (`world.rs:807`), while a `Playing { Element }` scene keeps
-  its clock. Today the kitty keeps collecting 20/tick from a vanished
-  critter until the scene ends. Under the split, the effect-time
-  lookup that routes by type will miss. **Pin: a lookup miss pays
-  `solo_play_relief`** — the critter is gone, the kitty is pouncing at
-  nothing, and the solo value is the honest price. This also closes
-  the post-despawn tail at greeble rates (35/tick for a scene's
-  remainder is exactly the grind exploit the census priced out of the
-  live values). Note the delta vs today: the vanished-target tail pays
-  10, not 20 — a dynamics change inside this break, called out so the
-  goldens' shift is expected, not mysterious.
+  phase (`world.rs:807`). *(Corrected during implementation:)* the
+  slot pipeline already ends a vanished-target scene before its next
+  effect lands — `prune_dead_activity` (`world.rs:421-456`) fires at
+  the kitty's slot, and
+  `world::tests::a_vanished_critter_ends_play_where_it_stands` guards
+  it ("relief already granted is kept; none is invented"). So no
+  post-despawn tail exists in the canonical loop, on either engine.
+  **Pin: a lookup miss pays `solo_play_relief`** — as defense-in-depth,
+  not exploit closure: `apply` is a public entry point and must stay
+  total, and the effect body must never pay a critter's price for an
+  id it cannot resolve. The fallback is unreachable through the loop
+  today and priced honestly (pouncing at nothing) if any caller or
+  future reordering reaches it.
 - **Non-critter element as play target**: unreachable through
   validation (`action.rs:385-388` requires `is_critter()` plus
   adjacency at proposal time), but the effect body stays total: any
@@ -267,8 +269,11 @@ and hash pins are untouched by the diff.
 - **SC-003**: Every guard violation produces a config error naming the
   offending key(s) and value(s); the ceiling error explains the duet
   economics in its message text.
-- **SC-004**: After a play target despawns mid-scene, no tick pays a
-  critter rate for it: the remaining scene ticks pay the solo value.
+- **SC-004**: After a play target despawns, no tick ever pays a
+  critter rate for it: the canonical loop ends the scene with no
+  further relief (existing guard,
+  `a_vanished_critter_ends_play_where_it_stands`), and a direct
+  `apply` caller reaching the arm pays the solo value (new guard).
 - **SC-005**: `engine_defaults_sha256` changes exactly once;
   observation dim (182) and codec (40) are byte-identical; frozen exam
   configs and hash pins show no diff.
@@ -283,11 +288,13 @@ and hash pins are untouched by the diff.
   (2026-08-02), grounded in the chase census; this spec does not
   re-litigate them.
 - The despawn fallback (miss → `solo_play_relief`) is Product's pin,
-  chosen over "keep paying the kitty value" (today's accidental
-  behavior) because the census's no-grind-exploit argument assumed
-  critter rates are paid only while a critter is present. Flagged for
-  review as the one place this spec adds semantics the handoff left
-  open.
+  and implementation corrected its rationale: the canonical loop
+  already ends vanished-target scenes (`prune_dead_activity`), so the
+  fallback is defense-in-depth for the public `apply` path, not
+  exploit closure. It remains the one place this spec adds semantics
+  the handoff left open, and the handoff's premise ("today's arm never
+  looks the element up") described the effect body accurately but the
+  engine incompletely — the end rules do look.
 - Keeping the `play_relief` key name (vs renaming to
   `play_relief_kitty` with an alias) is Product's naming call:
   it satisfies back-compat with zero alias machinery and keeps the

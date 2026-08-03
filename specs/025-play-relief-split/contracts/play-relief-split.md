@@ -53,9 +53,12 @@ Equality violates every bound (strict inequalities throughout).
 
 - The duet and solo rows are byte-for-byte the previous engine's
   behavior.
-- The despawn row is a deliberate change from the previous engine
-  (which kept paying 20 for a vanished element): from the first
-  serviced tick after the element is gone, the price is solo.
+- The despawn row is defense-in-depth, unreachable through the
+  canonical loop: the slot pipeline ends a vanished-target scene
+  before its next effect lands (`prune_dead_activity`), on both the
+  previous engine and this one. The row promises that any *direct*
+  `apply` caller reaching the arm with an unresolvable id pays solo —
+  never a critter's price, never a panic.
 - Gradient invariant (validated, not just defaulted):
   solo < kitty < bug < greeble, and greeble < 2×kitty, so a duet's
   team total always beats a greeble.

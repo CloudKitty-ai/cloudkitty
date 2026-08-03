@@ -709,8 +709,21 @@ fn apply_activity_effects(world: &mut World, kitty_id: KittyId, config: &Config)
         Activity::Playing { target } => match target {
             // Solo play is real play, just a smaller helping of it.
             None => lower_need(world, kitty_id, NeedKind::Play, effects.solo_play_relief),
-            Some(TargetRef::Element { .. }) => {
-                lower_need(world, kitty_id, NeedKind::Play, effects.play_relief);
+            Some(TargetRef::Element { id }) => {
+                // Spec 025: element play is worth what the element is, read
+                // at effect time. In the canonical loop a vanished target
+                // never reaches this arm -- prune_dead_activity ends the
+                // scene at the kitty's next slot -- so the solo fallback is
+                // defense-in-depth: apply stays total for direct callers,
+                // and a missing (or non-critter) id pays the pouncing-at-
+                // nothing price, never a critter's. The duet arm below is
+                // deliberately untouched.
+                let relief = match world.element(id).map(|e| e.element_type()) {
+                    Some(ElementType::Bug) => effects.play_relief_bug,
+                    Some(ElementType::Greeble) => effects.play_relief_greeble,
+                    _ => effects.solo_play_relief,
+                };
+                lower_need(world, kitty_id, NeedKind::Play, relief);
             }
             Some(TargetRef::Kitty { id }) => {
                 // The duet's effects land once per tick, from whichever
@@ -1752,6 +1765,170 @@ mod tests {
         assert!(
             config.actions.solo_play_relief < config.actions.play_relief,
             "config validation keeps social play the better deal"
+        );
+    }
+
+    #[test]
+    fn element_play_pays_by_what_the_element_is() {
+        // Spec 025 US1: the gradient is real -- a bug tick and a greeble
+        // tick differ, and both differ from the old uniform play_relief.
+        for kind in [
+            ElementKind::Bug,
+            ElementKind::Greeble { heading: Direction::North },
+        ] {
+            let (mut world, config) = test_world();
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx].needs.add(NeedKind::Play, 80.0);
+            world.push_element(Element {
+                id: 950,
+                kind: kind.clone(),
+                pos: Position::new(5, 6),
+                ttl: Some(50),
+            });
+
+            apply(
+                &mut world,
+                1,
+                Action::play_with(TargetRef::Element { id: 950 }),
+                &config,
+            );
+
+            let relief = match kind.element_type() {
+                ElementType::Bug => config.actions.play_relief_bug,
+                _ => config.actions.play_relief_greeble,
+            };
+            let after = world.kitty(1).unwrap().needs.get(NeedKind::Play);
+            let expected = 80.0 - relief;
+            assert!(
+                (after - expected).abs() < 0.01,
+                "{kind:?} play must pay its own value, got {after}, wanted {expected}"
+            );
+        }
+    }
+
+    #[test]
+    fn duet_play_still_pays_both_partners_the_kitty_value() {
+        // Spec 025 FR-001: the duet arm is byte-for-byte pre-split -- each
+        // partner gains play_relief (never a critter value), once, and the
+        // partner is stamped serviced against a second helping.
+        let (mut world, config) = test_world();
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(5, 5);
+        world.kitties[a].needs.add(NeedKind::Play, 80.0);
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(5, 6);
+        world.kitties[b].needs.add(NeedKind::Play, 80.0);
+
+        apply(
+            &mut world,
+            1,
+            Action::play_with(TargetRef::Kitty { id: 2 }),
+            &config,
+        );
+
+        for id in [1, 2] {
+            let after = world.kitty(id).unwrap().needs.get(NeedKind::Play);
+            let expected = 80.0 - config.actions.play_relief;
+            assert!(
+                (after - expected).abs() < 0.01,
+                "kitty {id} gains exactly the kitty value, got {after}"
+            );
+        }
+        let partner_clock = world.kitty(2).unwrap().activity_clock.expect("bound in");
+        assert_eq!(
+            partner_clock.applied, world.tick,
+            "the partner's stamp closes the door on a second helping"
+        );
+    }
+
+    #[test]
+    fn a_vanished_play_target_pays_the_solo_price() {
+        // Spec 025 FR-003. The canonical loop ends a vanished-target scene
+        // at the kitty's next slot (prune_dead_activity; see
+        // world::tests::a_vanished_critter_ends_play_where_it_stands), so
+        // this drives apply() directly: the one path that can still see a
+        // missing id must stay total and pay the pouncing-at-nothing
+        // price -- never a 35/tick tail from an empty tile.
+        let (mut world, config) = test_world();
+        world.elements.clear();
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].pos = Position::new(5, 5);
+        world.kitties[idx].needs.add(NeedKind::Play, 80.0);
+        world.push_element(Element {
+            id: 951,
+            kind: ElementKind::Greeble { heading: Direction::North },
+            pos: Position::new(5, 6),
+            ttl: Some(50),
+        });
+
+        apply(
+            &mut world,
+            1,
+            Action::play_with(TargetRef::Element { id: 951 }),
+            &config,
+        );
+        let after_first = world.kitty(1).unwrap().needs.get(NeedKind::Play);
+        let expected_first = 80.0 - config.actions.play_relief_greeble;
+        assert!(
+            (after_first - expected_first).abs() < 0.01,
+            "tick one, greeble present: greeble price"
+        );
+
+        // The greeble is gone; the continuation is serviced next tick.
+        world.elements.retain(|e| e.id != 951);
+        world.tick += 1;
+        apply(&mut world, 1, Action::Idle, &config);
+
+        let after_second = world.kitty(1).unwrap().needs.get(NeedKind::Play);
+        let expected_second = after_first - config.actions.solo_play_relief;
+        assert!(
+            (after_second - expected_second).abs() < 0.01,
+            "tick two, greeble gone: solo price, got {after_second}, wanted {expected_second}"
+        );
+        assert!(
+            matches!(
+                world.kitty(1).unwrap().activity,
+                Activity::Playing {
+                    target: Some(TargetRef::Element { id: 951 })
+                }
+            ),
+            "apply() alone reprices; ending the scene is the slot pipeline's job"
+        );
+        let clock = world.kitty(1).unwrap().activity_clock.expect("clocked");
+        assert_eq!(clock.applied, world.tick, "the continuation stamped the clock");
+    }
+
+    #[test]
+    fn a_non_critter_target_defensively_pays_solo() {
+        // Unreachable through validate (only adjacent critters pass), but
+        // apply stays total: a chow id routed straight in pays solo, never
+        // a critter value and never a panic (spec 025 FR-003).
+        let (mut world, config) = test_world();
+        world.elements.clear();
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].pos = Position::new(5, 5);
+        world.kitties[idx].needs.add(NeedKind::Play, 80.0);
+        world.push_element(Element {
+            id: 952,
+            kind: ElementKind::Chow { servings: 3 },
+            pos: Position::new(5, 6),
+            ttl: None,
+        });
+
+        apply(
+            &mut world,
+            1,
+            Action::play_with(TargetRef::Element { id: 952 }),
+            &config,
+        );
+
+        let after = world.kitty(1).unwrap().needs.get(NeedKind::Play);
+        let expected = 80.0 - config.actions.solo_play_relief;
+        assert!(
+            (after - expected).abs() < 0.01,
+            "a non-critter target pays the solo price, got {after}"
         );
     }
 
