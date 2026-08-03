@@ -74,12 +74,13 @@
 
   /** One cat, feet on groundY, centered at cx. Static phases picked per
    * pose so every silhouette reads mid-life, not mid-glitch. */
-  function cat(pose, palette, cx, groundY, size, facing, phase = 0.3) {
+  function cat(pose, palette, cx, groundY, size, facing, phase = 0.3, eyes) {
     const x = cx - size / 2;
     const y = groundY - size * 0.88;
     if (pose !== 'swim') shadow(cx, groundY, size);
     CatV2.drawCat(ctx, {
       pose, phase, facing, size, x, y,
+      eyesOverride: eyes,
       appearance: CatV2.appearanceFor(palette),
     });
   }
@@ -124,7 +125,9 @@
     ctx.fillText('a small, safe world where kitties frolic and play', W / 2, 258);
 
     // The residents: a loaf, a stroll, a stand, and the swimmer.
-    cat('loaf', BISCUIT, 200, 560, 150, 'right');
+    // Biscuit dozes: eyes fully closed (owner call, 2026-08-02) -- the
+    // happy arcs, a content loaf.
+    cat('loaf', BISCUIT, 200, 560, 150, 'right', 0.3, 'closed');
     cat('idle', PUMPKIN, 445, 528, 138, 'right');
     cat('walking', MISO, 660, 575, 156, 'right', 0.22);
     // Storm paddles the pond: feet-line placed so the SWIM body rides
