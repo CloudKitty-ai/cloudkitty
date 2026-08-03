@@ -74,6 +74,13 @@ rejected as a default arm and carried as a **dormant conditional**:
 it enters (replacing 0.998's role in a follow-up cell) only if the
 frozen family's measured dr band peak lands past k ≈ 500 under the
 §6 class-conditioned probe — the F-013 decision rule, registered.
+> **TRIGGER FIRED 2026-08-02**
+> ([results/class-credit-2026-08-02.md](results/class-credit-2026-08-02.md)):
+> the family base's band peak is k=948 (5-kitty worlds carry credit
+> late, per F-014's roster result). Per the clause: **one follow-up
+> cell F-9985 (33% mix, γ=0.9985, 3 seeds, 20M) runs after the main
+> grid.** The 18-run grid is unchanged; roster-4 family members keep
+> their band inside 0.998's horizon.
 
 **Mix semantics** (registered definition): per episode, with
 probability = the arm's mix, all non-subject seats run their family
@@ -122,12 +129,20 @@ appendix; do not re-derive), except:
   contract; critic initialized from the γ-matched critic pretrain on
   dataset v2 (never reused across γ).
 - **Dataset v2** (collection precedes freeze): scripted rollouts on
-  all 15 family variants (3 rollouts each, 45 total, all-`needs_driven`
-  control — the exp-001 lineage recipe) **plus 15 s6-seated rollouts**
-  (1 per variant, s6 at every policy-capable seat) so critic pretrain
-  sees policy-like state distributions and the scratch clone's data
-  contains meow labels (§1 lever 4 of the register). Same invariants
-  and split-by-rollout discipline as exp-001 §4.
+  all 15 family variants (3 rollouts each, 45 total) driven by the
+  **family config behaviors** — needs_driven plus the deploy
+  surface's playful seat (Biscuit), matching the dynamics every F-014
+  measurement ran; **plus 15 s6-seated rollouts** (1 per variant, s6
+  at every seat, greedy, chosen-action labeling — see
+  `collect_s6_rollouts.py`) so critic pretrain sees policy-like state
+  distributions and the scratch clone's data contains meow labels
+  (§1 lever 4). Same invariants and split-by-rollout discipline as
+  exp-001 §4.
+  **COLLECTED 2026-08-02** (pre-freeze, per this section): 60 rollout
+  dirs, 1,907,967 decisions, all labels legal, dims 182/40
+  everywhere; scripted drop rates 0.71%/0.13% (bc-v1-comparable);
+  s6 data carries 777 channel-row decisions (rows 34/38/39) where
+  bc-v1 had none. `raw/bc-v2/`, regenerable via the §10.3 manifest.
 
 ## 6. Pre-experiment measurements (all complete or gated pre-freeze)
 
@@ -136,11 +151,17 @@ Done, with results docs: pre-wet-fur water baseline (now-or-never,
 probe re-verification (F-013); post-024 world search (F-014).
 
 Remaining before freeze:
-1. **Class-conditioned probe on the family base** (`--only-action`
-   play/chase vs eat/drink vs groom/sleep/rest, 150 worlds) — the
-   pre-024 play/chase 3.6× prior is dead (F-013); refresh it so
-   §10.1's diagnostics read against a measured prior.
-2. Dataset v2 collection + invariant checks (§5).
+1. ~~Class-conditioned probe on the family base~~ **DONE 2026-08-02**
+   ([results/class-credit-2026-08-02.md](results/class-credit-2026-08-02.md)):
+   the play/chase prior *inverted* (3.6× → 0.1×, sub-floor; the
+   sidestep removed chase-stall contention) — §10.1 diagnostics watch
+   eat/drink and groom/sleep/rest contention instead. Family-base
+   band peak k=948 → the §3 dormant-γ trigger fired (follow-up cell
+   F-9985 registered there).
+2. ~~Dataset v2 collection + invariant checks~~ **DONE 2026-08-02**
+   (§5). Family frozen at dial 1.5: `family/v2-dial1.5/` (15
+   variants, seed 20260802, manifest committed; regenerated-if-§9.1-
+   escalates, which also invalidates and recollects dataset v2).
 3. Owner review of this draft.
 
 ## 7. Training protocol

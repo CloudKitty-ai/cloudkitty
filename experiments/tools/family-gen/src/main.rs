@@ -233,10 +233,14 @@ fn family_mode(base: &Path, n: usize, family_seed: u64, out_dir: &Path, water_ga
             set_i64(&mut root, &["elements", elem, "max"], min + 1);
             summary.push(format!("{elem}={min}-{}", min + 1));
         }
-        let sun = *rng.pick(&[2i64, 3]);
+        // v3 fix: jitter around the BASE like water/chow (the old fixed
+        // {2,3} was training.toml-shaped; on a served-shaped base it
+        // silently imposed a scarcity level F-014 measured as harmful).
+        let sun_base = get_f64(&base_root, &["elements", "sunbeam", "min"]) as i64;
+        let sun = (sun_base + rng.pick(&[-1i64, 0, 1])).max(1);
         set_i64(&mut root, &["elements", "sunbeam", "min"], sun);
-        set_i64(&mut root, &["elements", "sunbeam", "max"], sun);
-        summary.push(format!("sunbeam={sun}"));
+        set_i64(&mut root, &["elements", "sunbeam", "max"], sun + 1);
+        summary.push(format!("sunbeam={sun}-{}", sun + 1));
 
         let mult = *rng.pick(&[0.9f64, 1.0, 1.1]);
         for need in ["eat", "drink", "sleep", "play", "cuddle", "bath"] {
