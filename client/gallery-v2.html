@@ -612,6 +612,48 @@
         }
       },
     },
+    {
+      title: 'Shoreline crossing',
+      note: 'The full trip on the live wiring’s clocks: walk in, blend to paddling at the shore (260 ms smoothstep, from-phase frozen at the crossing), swim across on the tick clock, blend back out. v1 walks straight through — snapless because it never changes pose at all.',
+      draw(ctx, w, h, now, isV2) {
+        const CYCLE = 6600, IN = 1800, OUT = 4200, TICK = 800, BLEND = 260;
+        const t = now % CYCLE;
+        const y = h - CAT * 0.95;
+        const S = CatV2.SWIM;
+        const waterline = y + CAT * (S.bodyY - S.bodyRy - 0.02);
+        // The trip is linear in time, so the shore sits exactly where the
+        // pose crossing happens (measured at the cat's center).
+        const x0 = 8, x1 = w - CAT - 8;
+        const xAt = (ms) => x0 + (x1 - x0) * (ms / CYCLE);
+        const x = xAt(t);
+        ctx.fillStyle = '#b7dcae';
+        ctx.fillRect(0, waterline, w, h - waterline);
+        const pondL = xAt(IN) + CAT * 0.5;
+        const pondR = xAt(OUT) + CAT * 0.5;
+        ctx.fillStyle = '#9ccfe6';
+        ctx.fillRect(pondL, waterline, pondR - pondL, h - waterline);
+        const wPhase = (ms) => (ms % TICK) / TICK;
+        const base = { appearance: CatV2.appearanceFor(STORM), facing: 'right', size: CAT, x, y };
+        if (!isV2) {
+          drawCat(ctx, { ...base, pose: 'walking', phase: wPhase(t) });
+          return;
+        }
+        if (t >= IN && t < IN + BLEND) {
+          CatV2.drawCatTween(ctx, {
+            ...base, from: 'walking', to: 'swim', t: easeSmooth((t - IN) / BLEND),
+            phaseFrom: wPhase(IN), phaseTo: wPhase(t),
+          });
+        } else if (t >= OUT && t < OUT + BLEND) {
+          CatV2.drawCatTween(ctx, {
+            ...base, from: 'swim', to: 'walking', t: easeSmooth((t - OUT) / BLEND),
+            phaseFrom: wPhase(OUT), phaseTo: wPhase(t),
+          });
+        } else {
+          const inWater = t >= IN && t < OUT;
+          CatV2.drawCat(ctx, { ...base, pose: inWater ? 'swim' : 'walking', phase: wPhase(t) });
+        }
+      },
+    },
   ];
 
   const motionRoot = document.getElementById('motion');
