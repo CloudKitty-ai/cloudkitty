@@ -67,7 +67,7 @@ in-repo pin needs editing.
 ```sh
 cargo test -p cloudkitty-core --test welfare_longrun
 cargo test -p cloudkitty-rl --lib
-python -m pytest crates/cloudkitty-server/tests/python 2>/dev/null || true  # if surface present
+[ -d crates/cloudkitty-server/tests/python ] && python -m pytest crates/cloudkitty-server/tests/python  # only if the surface exists; a present-but-failing surface must fail
 ```
 
 Expected: welfare floors hold (more margin is fine; loosening is not),

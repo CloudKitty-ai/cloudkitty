@@ -19,10 +19,13 @@ play_relief_greeble = 35.0
 - A config omitting the new keys parses and validates; the defaults
   (25/35) fill in.
 - A config valid on the previous engine that names only previous keys
-  remains valid — with one deliberate tightening: the ordering chain
-  is strict, so `solo_play_relief == play_relief` (previously
-  accepted) is now rejected. No shipped, served, or frozen config used
-  equality.
+  remains valid — with two deliberate tightenings: (1) the ordering
+  chain is strict, so `solo_play_relief == play_relief` (previously
+  accepted) is now rejected; (2) the finite/≥0 check now covers
+  `play_relief` itself — a NaN or negative `play_relief` previously
+  slipped past the old guard by accident of comparison semantics
+  (`solo > NaN` is false) and is now rejected. No shipped, served, or
+  frozen config used equality or a non-finite value.
 - `/config` payload: gains exactly `play_relief_bug` and
   `play_relief_greeble`; no key renamed or removed.
 

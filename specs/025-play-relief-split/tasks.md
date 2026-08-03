@@ -132,12 +132,14 @@ outside test fixtures.
       promise, contracts/play-relief-split.md)
 - [ ] T009 [US3] Frozen-surface sweep: `git diff main --stat` shows no
       `.toml` outside crate test fixtures, no `evals/` changes, served
-      cloudkitty.toml untouched; grep docs/ and cloudkitty.toml comments
-      for `play_relief` statements whose meaning the re-scope touches
-      (e.g. cloudkitty.toml:138-143's "playing together stays the better
-      deal" comment) and update prose ONLY where it states the old
-      uniform-element semantics — report, don't fix, anything unrelated
-      found on the way (CLAUDE.md #3)
+      cloudkitty.toml untouched (FR-009 — the file is EXCLUDED from any
+      prose sweep; its "must not exceed play_relief" comment is one word
+      stale vs the strict guard, left as-is and flagged for a future
+      owner-side touch); grep docs/ and in-crate doc comments for
+      `play_relief` statements whose meaning the re-scope touches and
+      update prose ONLY there (analyze pass verified docs/ currently has
+      zero mentions) — report, don't fix, anything unrelated found on
+      the way (CLAUDE.md #3)
 
 **Checkpoint**: back-compat proven by tests and by diff inspection.
 

@@ -295,7 +295,10 @@ and hash pins are untouched by the diff.
   lives in the doc comments and the validators' error messages.
 - The strict (`<`) chain intentionally tightens today's guard (which
   permitted equality); no existing config sits on a boundary, and
-  tighten-only is house doctrine (spec 017).
+  tighten-only is house doctrine (spec 017). A second tightening rides
+  FR-007: a non-finite or negative `play_relief` was previously
+  accepted by accident of comparison semantics (`solo > NaN` is false)
+  and is now rejected.
 - Scripted behavior does not re-rank: needs_driven selects relief by
   shape, never magnitude (verified — the one `solo_play_relief` read
   in `behavior/selection.rs` is test code, and solo's value does not
