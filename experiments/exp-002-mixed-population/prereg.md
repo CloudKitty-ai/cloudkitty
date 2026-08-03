@@ -183,19 +183,25 @@ this experiment's per-candidate readout).
 ### 9.1 The wet-fur dial (the registered conditional)
 
 Pilot completes → seat the pilot policy at Miso+Kittybear on the
-served world (water_calibration instrument, 10 seeds × 20k). Compute
-**lounging-on-water share** = (Sleeping + Grooming + Resting ticks on
-water) / total ticks, averaged over the two seats.
+served world (water_calibration instrument, 10 seeds × 20k). Two
+metrics, averaged over the two seats (post-024 anchors from the
+[calibration doc](../exp-001-bc-mappo/results/water-calibration-2026-08-02.md):
+frozen agents 4.22% / 9.42%, scripted 0.32% / 1.65%):
 
-- Anchors: frozen s6 ≈ 4.0% (post-024 calibration); scripted
-  needs_driven ≈ 0.5%.
-- **If lounging ≤ 1.5%** (≥ ~60% of the frozen-policy excess
-  unlearned): the dial freezes at 1.5; pilot stands as M33-g998-s1.
-- **If lounging > 1.5%**: dial escalates to 2.5 — rerun the
-  calibration probe at 2.5, regenerate the family
-  (`--water-gain 2.5`), discard the pilot, rerun. **One escalation
-  maximum**; a second failure is a deviation and an owner
-  conversation, not another silent turn of the dial.
+1. **Lounging-on-water share** = (Sleeping + Grooming + Resting ticks
+   on water) / total ticks. **Pass: ≤ 1.0%** (~83% of the
+   frozen-policy excess unlearned).
+2. **Total in-water share** = all on-water ticks / total ticks.
+   **Pass: ≤ TBD%** (owner target pending; legitimate floor ≈ 1.1%
+   transit + lawful on-tile drinking — scripted parity ≈ 2%).
+
+- **Both pass** → the dial freezes at 1.5; pilot stands as
+  M33-g998-s1.
+- **Either fails** → dial escalates to 2.5 — rerun the calibration
+  probe at 2.5, regenerate the family (`--water-gain 2.5`), discard
+  the pilot, rerun. **One escalation maximum**; a second failure is a
+  deviation and an owner conversation, not another silent turn of the
+  dial.
 
 ### 9.2 Selection and comparison
 
