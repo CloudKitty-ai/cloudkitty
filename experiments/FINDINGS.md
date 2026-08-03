@@ -666,3 +666,50 @@ landscape (the standing caveat everywhere).
 **Re-verify when**: any engine-defaults or served-config change;
 exp-002 candidate stage (policy-seated probe re-ranks the worlds that
 matter).
+
+## F-015 · active · Pooled all-action probes dilute under heterogeneous class amplitudes; class-conditioned batches carry the credit signal
+
+Measured 2026-08-03 on the exp-002 family base, post-025 engine
+(`0fd551d`), 150 worlds per batch (F-004 addendum), identical recipe
+and seeds as the post-024 measurement it pairs with.
+
+1. **The registered spec-025 prediction confirmed** (registered
+   2026-08-02 in the handoff + census doc, before the change
+   landed): the per-target play-relief gradient lifted the
+   play/chase credit class off its post-024 floor — S(.998)
+   0.0039 → 0.0245 (6.3×), significant ticks 8 → 43, real bands,
+   peak k=301 (inside 0.998's horizon). Eat/drink doubled
+   (0.0333 → 0.0709, now the largest class); groom/sleep/rest
+   roughly held (0.0334 → 0.0399).
+2. **The methodological finding: the pooled all-action batch went
+   sub-floor while every class rose** (S 0.0387 → 0.0099, 30
+   significant ticks against fp ≈ 60). Verified mechanism is
+   dilution, not cancellation: all classes are positive-signed, but
+   play/chase decision points are the most abundant in the pool
+   (density 0.71) with the smallest per-tick amplitude (+0.0003 vs
+   eat/drink's +0.0087), so the pooled per-tick mean drops below the
+   2·SE bar. A pooled probe's "all-action" S is a
+   composition-weighted average, NOT a ceiling or a denominator —
+   post-024's convenient "class ÷ all" ratio framing only worked
+   because amplitudes happened to be comparable.
+
+**Scope**: the twin-probe substitution instrument with cluster-robust
+per-tick means; scripted dynamics on the family base. The dilution
+mechanism is instrument-generic (any pooled mean over heterogeneous
+subpopulations), so assume it wherever decision-type frequencies and
+effect sizes are inversely related.
+
+**Evidence**: [class-credit-2026-08-03-post025.md](exp-002-mixed-population/results/class-credit-2026-08-03-post025.md)
+(supersedes the post-024 table's ratios, not its record).
+
+**Implications**: credit claims compare class-conditioned absolute S
+values, never class-vs-all ratios; an all-action batch still runs as
+a composition read (its density and sign structure), not a credit
+score. Prereg §10.1 diagnostics watch eat/drink, groom/sleep/rest,
+AND play/chase (re-entered post-025). The §3 dormant-γ trigger
+outcome (F-9985 follow-up cell) survives the refresh: late bands
+persist past k ≈ 500 in the class batches.
+
+**Re-verify when**: any engine-defaults change; when policy-seated
+(rather than scripted) probes become available at the exp-002
+candidate stage.

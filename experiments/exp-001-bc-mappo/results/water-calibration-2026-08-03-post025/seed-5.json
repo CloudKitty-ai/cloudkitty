@@ -1,0 +1,90 @@
+{
+ "seed": 5,
+ "ticks": 20000,
+ "nash": 0.895897246933371,
+ "n_water_tiles": 8,
+ "on_water_by_activity": {
+  "Miso": {
+   "Idle": 760,
+   "Resting": 10,
+   "Sleeping": 301,
+   "Eating": 10,
+   "Drinking": 210,
+   "Playing": 73,
+   "Grooming": 536
+  },
+  "Biscuit": {
+   "Idle": 130,
+   "Resting": 5,
+   "Sleeping": 11,
+   "Eating": 0,
+   "Drinking": 2,
+   "Playing": 36,
+   "Grooming": 3
+  },
+  "Pumpkin": {
+   "Idle": 223,
+   "Resting": 10,
+   "Sleeping": 20,
+   "Eating": 2,
+   "Drinking": 21,
+   "Playing": 15,
+   "Grooming": 57
+  },
+  "Kittybear": {
+   "Idle": 634,
+   "Resting": 5,
+   "Sleeping": 305,
+   "Eating": 6,
+   "Drinking": 166,
+   "Playing": 82,
+   "Grooming": 420
+  }
+ },
+ "entries": {
+  "Miso": 215,
+  "Biscuit": 69,
+  "Pumpkin": 144,
+  "Kittybear": 171
+ },
+ "drinking_at_distance": {
+  "Miso": {
+   "on_tile": 210,
+   "beside": 687
+  },
+  "Biscuit": {
+   "on_tile": 2,
+   "beside": 152
+  },
+  "Pumpkin": {
+   "on_tile": 21,
+   "beside": 369
+  },
+  "Kittybear": {
+   "on_tile": 166,
+   "beside": 710
+  }
+ },
+ "bath": {
+  "Miso": {
+   "mean_on_water": 5.764473364604147,
+   "max": 32.20000457763672,
+   "groom_ticks_total": 2307
+  },
+  "Biscuit": {
+   "mean_on_water": 24.44014396578233,
+   "max": 57.400150299072266,
+   "groom_ticks_total": 84
+  },
+  "Pumpkin": {
+   "mean_on_water": 7.651435886991435,
+   "max": 34.90000915527344,
+   "groom_ticks_total": 909
+  },
+  "Kittybear": {
+   "mean_on_water": 7.2432012085714215,
+   "max": 39.10000991821289,
+   "groom_ticks_total": 2975
+  }
+ }
+}

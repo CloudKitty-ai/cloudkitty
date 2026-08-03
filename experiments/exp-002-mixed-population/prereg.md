@@ -37,14 +37,19 @@ F-007, F-009, F-010, F-011, F-012, F-013, F-014.
   significant loss on the full-agent shape. Direction registered;
   33-vs-67 ordering is exploratory.
 - **H2 (wet-fur learning)**: trained policies reduce water-lounging
-  relative to frozen s6 on the post-024 engine — success signature
+  relative to frozen s6 on the pinned engine (§4) — success signature
   per the [water baseline](../exp-001-bc-mappo/results/water-baseline-2026-08-01.md):
   Sleeping/Grooming/Resting-on-water collapses toward scripted
   levels, Idle transit survives, Drinking unharmed.
 - **H3 (meow preservation)**: warm-start arms retain functional
   channel use, measured **in policy company** (F-012): digest-zeroing
   changes ≥ 3% of digest-active decisions for at least one seed per
-  warm-start cell (s6 anchor: 8.18%).
+  warm-start cell (s6 anchor re-measured post-025: **13.26% of
+  heard**, per-seed 11.79–15.17%, scripted company — the pre-024
+  8.18% lapsed with the engine; audibility fell 62.4% → 10.7%, so
+  per-run flip-rate estimates carry more variance — see the
+  [meow-listening doc](../exp-001-bc-mappo/results/meow-listening-2026-07-31.md)
+  post-025 addendum).
 - **H4 (roster robustness)**: with roster 3–5 in the training family,
   no candidate exhibits F-010 catatonia on any deploy-surface roster
   (3/4/5) at certification length.
@@ -92,8 +97,12 @@ is drawn uniformly over the roster per episode.
 ## 4. Fixed factors (identical across arms)
 
 - **Engine**: the one-engine rule — train and evaluate on the engine
-  pinned at freeze (currently main @ `6d955ab`); any engine change
-  after freeze is a deviation with a re-baseline inventory.
+  pinned at freeze (currently main @ `0fd551d`, spec 025 per-target
+  play relief; re-pinned 2026-08-03 from `6d955ab` after the
+  registered pre-freeze re-baseline —
+  [results/class-credit-2026-08-03-post025.md](results/class-credit-2026-08-03-post025.md));
+  any engine change after freeze is a deviation with a re-baseline
+  inventory.
 - **No schema changes**: observation 182-dim, action codec 40 rows,
   mask semantics — frozen (protects the warm start; spec 024 kept
   this invariant deliberately).
@@ -138,12 +147,15 @@ appendix; do not re-derive), except:
   distributions and the scratch clone's data contains meow labels
   (§1 lever 4). Same invariants and split-by-rollout discipline as
   exp-001 §4.
-  **COLLECTED 2026-08-02** (pre-freeze, per this section): 60 rollout
-  dirs, 1,907,967 decisions, all labels legal, dims 182/40
-  everywhere; scripted drop rates 0.71%/0.13% (bc-v1-comparable);
-  s6 data carries 777 channel-row decisions (rows 34/38/39) where
-  bc-v1 had none. `raw/bc-v2/` is gitignored; the exact regeneration
-  (verified deterministic — identical label bytes on rerun):
+  **COLLECTED 2026-08-02, RECOLLECTED 2026-08-03** on the re-pinned
+  engine `0fd551d` (spec 025 changed dynamics, so the pre-025
+  collection was invalidated by design): 60 rollout dirs, 1,908,182
+  decisions, all labels legal, dims 182/40 everywhere; scripted drop
+  rates 0.69%/0.13% (bc-v1-comparable); s6 data carries 774
+  channel-row decisions (rows 34/38/39) where bc-v1 had none.
+  `raw/bc-v2/` is gitignored; the exact regeneration (determinism
+  verified on the 08-02 collection — identical label bytes on
+  rerun):
   ```
   ./experiments/tools/bc-collect/target/release/bc-collect \
     --family-dir experiments/exp-002-mixed-population/family/v2-dial1.5 \
@@ -160,20 +172,32 @@ appendix; do not re-derive), except:
 
 Done, with results docs: pre-wet-fur water baseline (now-or-never,
 2026-08-01); wet-fur calibration at dial 1.5 (2026-08-02); post-024
-probe re-verification (F-013); post-024 world search (F-014).
+probe re-verification (F-013); post-024 world search (F-014);
+**post-025 re-baseline 2026-08-03** (spec 025 per-target play
+relief, the generation's second and final planned comparability
+break — every measurement below refreshed on `0fd551d`,
+[results/class-credit-2026-08-03-post025.md](results/class-credit-2026-08-03-post025.md)).
 
 Remaining before freeze:
-1. ~~Class-conditioned probe on the family base~~ **DONE 2026-08-02**
-   ([results/class-credit-2026-08-02.md](results/class-credit-2026-08-02.md)):
-   the play/chase prior *inverted* (3.6× → 0.1×, sub-floor; the
-   sidestep removed chase-stall contention) — §10.1 diagnostics watch
-   eat/drink and groom/sleep/rest contention instead. Family-base
-   band peak k=948 → the §3 dormant-γ trigger fired (follow-up cell
-   F-9985 registered there).
-2. ~~Dataset v2 collection + invariant checks~~ **DONE 2026-08-02**
-   (§5). Family frozen at dial 1.5: `family/v2-dial1.5/` (15
-   variants, seed 20260802, manifest committed; regenerated-if-§9.1-
-   escalates, which also invalidates and recollects dataset v2).
+1. ~~Class-conditioned probe on the family base~~ **DONE 2026-08-02,
+   REFRESHED post-025 2026-08-03**
+   ([results/class-credit-2026-08-03-post025.md](results/class-credit-2026-08-03-post025.md)):
+   the registered spec-025 prediction confirmed — play/chase rose
+   off its 0.1× floor (S(.998) 0.0039 → 0.0245, band peak k=301,
+   inside 0.998's horizon). §10.1 diagnostics watch eat/drink (now
+   the largest channel, 0.0709), groom/sleep/rest, **and**
+   play/chase. Method note: the pooled all-action probe went
+   sub-floor by dilution (F-015) — class-conditioned absolute S is
+   the comparable quantity. Late bands persist past k≈500 → the §3
+   dormant-γ trigger stays fired (follow-up cell F-9985 registered
+   there).
+2. ~~Dataset v2 collection + invariant checks~~ **DONE 2026-08-02,
+   RECOLLECTED post-025 2026-08-03** (§5). Family frozen at dial
+   1.5: `family/v2-dial1.5/` (15 variants, seed 20260802, manifest
+   committed; byte-identical under regeneration on `0fd551d` —
+   relief values live in engine defaults, not configs; regenerated-
+   if-§9.1-escalates, which also invalidates and recollects dataset
+   v2).
 3. Owner review of this draft.
 
 ## 7. Training protocol
@@ -217,9 +241,11 @@ this experiment's per-candidate readout).
 
 Pilot completes → seat the pilot policy at Miso+Kittybear on the
 served world (water_calibration instrument, 10 seeds × 20k). Two
-metrics, averaged over the two seats (post-024 anchors from the
-[calibration doc](../exp-001-bc-mappo/results/water-calibration-2026-08-02.md):
-frozen agents 4.22% / 9.42%, scripted 0.32% / 1.65%):
+metrics, averaged over the two seats (anchors from the
+[calibration doc](../exp-001-bc-mappo/results/water-calibration-2026-08-02.md),
+re-verified post-025: frozen agents 4.14% / 9.21%, scripted
+0.31% / 1.63% — post-024 values 4.22% / 9.42% and 0.32% / 1.65%,
+within noise):
 
 1. **Lounging-on-water share** = (Sleeping + Grooming + Resting ticks
    on water) / total ticks. **Pass: ≤ 1.0%** (~83% of the
@@ -290,12 +316,18 @@ history): no candidate claim rests on training curves.
 
 ## 12. Reading list
 
-FINDINGS F-004, F-007, F-009 → F-014; the register
+FINDINGS F-004, F-007, F-009 → F-015 (F-015: class-conditioned
+absolute S, never class-vs-all ratios); the register
 (exp-002-design-inputs.md, all sections); results docs: water
-baseline 2026-08-01, wet-fur calibration 2026-08-02, post-024 probe
-re-verification, post-024 world search; docs/cuddle-relief-semantics.md
-(before any welfare-Cuddle claim); exp-001 prereg §5 + deviations
-2026-07-30 (inherited hyperparameters), §9.1 soak protocol.
+baseline 2026-08-01, wet-fur calibration 2026-08-02 (+ post-025
+addendum), post-024 probe re-verification, post-024 world search,
+**post-025 class credit**
+([results/class-credit-2026-08-03-post025.md](results/class-credit-2026-08-03-post025.md)
+— the current credit landscape; the 08-02 doc is superseded),
+meow-listening 2026-07-31 (+ post-025 re-anchor);
+docs/cuddle-relief-semantics.md (before any welfare-Cuddle claim);
+exp-001 prereg §5 + deviations 2026-07-30 (inherited
+hyperparameters), §9.1 soak protocol.
 
 ## Appendix: Deviations
 

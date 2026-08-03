@@ -29,7 +29,11 @@ sys.path.insert(0, str(TRAINER))
 
 REPO = TRAINER.parents[2]
 CONFIG = REPO / "cloudkitty.toml"
-OUTDIR = TRAINER.parent / "results" / "water-calibration-2026-08-02"
+# Each run archives under its own label: past dirs are committed records
+# (a rerun must never overwrite them). Pass the label as argv[1].
+OUTDIR = TRAINER.parent / "results" / (
+    sys.argv[1] if len(sys.argv) > 1 else "water-calibration-2026-08-02"
+)
 TICKS = 20_000
 NAMES = ["Miso", "Biscuit", "Pumpkin", "Kittybear"]
 ACTIVITIES = ["Idle", "Resting", "Sleeping", "Eating", "Drinking",
