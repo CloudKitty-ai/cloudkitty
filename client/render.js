@@ -434,7 +434,8 @@ class WorldRenderer {
     const expression = view.expressionFor(kitty);
     // On the v2 path a pursuit's focused eyes hold through the blink slot
     // -- drawFace exempts 'focused' from the lid, so hunters keep their
-    // unbroken stare (v1 still snap-blinks over focused, as it always has).
+    // unbroken stare (v1 still snap-blinks over focused, as it always
+    // has). Locked (owner, 2026-08-02): hunting kitties do not blink.
     if (expression && !eyes) eyes = expression;
     if (beat?.kind === 'sad') {
       // The give-up droop wears on the cat itself: ears back, eyes low --
