@@ -25,7 +25,7 @@
         {
           "kitty_id": 3,
           "name": "Pumpkin",
-          "mean_happiness": 91.15175050099691,
+          "mean_happiness": 91.1580005009969,
           "max_low_streak": 0,
           "low_share": 0.0,
           "floor_touches": 0
@@ -35,8 +35,8 @@
       "pinned": []
     },
     "aggregates": {
-      "team_welfare": 0.9143157615177733,
-      "plain_mean": 0.9145045854780409,
+      "team_welfare": 0.9143368045849553,
+      "plain_mean": 0.9145254188113743,
       "least_happy_mean": 91.13252067565918
     },
     "fallback_count": 0,
@@ -68,7 +68,7 @@
         {
           "kitty_id": 3,
           "name": "Pumpkin",
-          "mean_happiness": 91.15175050099691,
+          "mean_happiness": 91.1580005009969,
           "max_low_streak": 0,
           "low_share": 0.0,
           "floor_touches": 0
@@ -78,8 +78,8 @@
       "pinned": []
     },
     "aggregates": {
-      "team_welfare": 0.9143157615177733,
-      "plain_mean": 0.9145045854780409,
+      "team_welfare": 0.9143368045849553,
+      "plain_mean": 0.9145254188113743,
       "least_happy_mean": 91.13252067565918
     },
     "fallback_count": 0,
@@ -132,8 +132,8 @@
     {
       "seed": 7,
       "roster": "all-subject",
-      "subject_welfare": 0.9143157615177733,
-      "baseline_welfare": 0.9143157615177733,
+      "subject_welfare": 0.9143368045849553,
+      "baseline_welfare": 0.9143368045849553,
       "delta": 0.0
     }
   ]

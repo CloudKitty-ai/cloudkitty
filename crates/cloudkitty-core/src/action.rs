@@ -1774,7 +1774,9 @@ mod tests {
         // tick differ, and both differ from the old uniform play_relief.
         for kind in [
             ElementKind::Bug,
-            ElementKind::Greeble { heading: Direction::North },
+            ElementKind::Greeble {
+                heading: Direction::North,
+            },
         ] {
             let (mut world, config) = test_world();
             world.elements.clear();
@@ -1858,7 +1860,9 @@ mod tests {
         world.kitties[idx].needs.add(NeedKind::Play, 80.0);
         world.push_element(Element {
             id: 951,
-            kind: ElementKind::Greeble { heading: Direction::North },
+            kind: ElementKind::Greeble {
+                heading: Direction::North,
+            },
             pos: Position::new(5, 6),
             ttl: Some(50),
         });
@@ -1897,7 +1901,10 @@ mod tests {
             "apply() alone reprices; ending the scene is the slot pipeline's job"
         );
         let clock = world.kitty(1).unwrap().activity_clock.expect("clocked");
-        assert_eq!(clock.applied, world.tick, "the continuation stamped the clock");
+        assert_eq!(
+            clock.applied, world.tick,
+            "the continuation stamped the clock"
+        );
     }
 
     #[test]

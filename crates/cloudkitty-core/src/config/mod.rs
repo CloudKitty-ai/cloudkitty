@@ -1449,20 +1449,13 @@ mod tests {
         // Spec 025 FR-005: the chain is strict -- equality anywhere makes
         // two play forms indistinguishable, which is the team-neutrality
         // the split exists to remove.
-        let cases: [(&str, fn(&mut Config)); 3] = [
-            ("solo_play_relief", |c| {
-                c.actions.solo_play_relief = c.actions.play_relief
-            }),
-            ("play_relief", |c| {
-                c.actions.play_relief = c.actions.play_relief_bug
-            }),
-            ("play_relief_bug", |c| {
-                c.actions.play_relief_bug = c.actions.play_relief_greeble
-            }),
-        ];
-        for (key, set_equal) in cases {
+        for key in ["solo_play_relief", "play_relief", "play_relief_bug"] {
             let mut c = cfg();
-            set_equal(&mut c);
+            match key {
+                "solo_play_relief" => c.actions.solo_play_relief = c.actions.play_relief,
+                "play_relief" => c.actions.play_relief = c.actions.play_relief_bug,
+                _ => c.actions.play_relief_bug = c.actions.play_relief_greeble,
+            }
             let msg = c.validate().unwrap_err().to_string();
             assert!(msg.contains(key), "{key} equality must be rejected: {msg}");
             assert!(
@@ -1578,10 +1571,7 @@ mod tests {
         // Spec 025: a today's-keys-only config gets the per-target play
         // values by default -- and the whole gradient still validates.
         assert_eq!(c.actions.play_relief_bug, default_play_relief_bug());
-        assert_eq!(
-            c.actions.play_relief_greeble,
-            default_play_relief_greeble()
-        );
+        assert_eq!(c.actions.play_relief_greeble, default_play_relief_greeble());
         assert_eq!(c.viewer.distress_patience_ticks, 60);
         c.validate().expect("defaults are valid");
     }

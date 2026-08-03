@@ -17,7 +17,11 @@ play_relief_greeble = 35.0
 ```
 
 - A config omitting the new keys parses and validates; the defaults
-  (25/35) fill in.
+  (25/35) fill in — **provided its `play_relief` sits below 25**. A
+  config carrying `play_relief ≥ 25` collides with the defaulted bug
+  value under the strict chain and must pin the new keys explicitly
+  (the spec-004 capture is the repo's one instance, migrated
+  value-preserving: 25 kept, 30/39 pinned).
 - A config valid on the previous engine that names only previous keys
   remains valid — with two deliberate tightenings: (1) the ordering
   chain is strict, so `solo_play_relief == play_relief` (previously

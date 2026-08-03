@@ -53,7 +53,7 @@ exams and hash pins untouched, served `cloudkitty.toml` unedited).
 ## 5. The break's visible mark
 
 ```sh
-UPDATE_GOLDENS=1 cargo test -p cloudkitty-rl --test harness_policy
+UPDATE_GOLDENS=1 cargo test -p cloudkitty-rl --test run_json_golden
 cargo test -p cloudkitty-rl
 ```
 

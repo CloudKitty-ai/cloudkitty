@@ -174,9 +174,14 @@ and hash pins are untouched by the diff.
   generic value.
 - **Equality at the guard boundaries**: the ordering chain is strict
   (`<` everywhere). Today's guard (`validate.rs:551`) allowed
-  `solo == play_relief`; the new chain rejects it. No shipped or
-  frozen config sits on a boundary (checked: eval configs carry no
-  play keys; served config is 10/20).
+  `solo == play_relief`; the new chain rejects it. *(Corrected during
+  implementation:)* one shipped config DID sit on a boundary — the
+  spec-004 stuck-state capture carries `play_relief = 25`, colliding
+  with the defaulted bug value (the `shipped_configs` sweep caught it,
+  exactly its charter). Migrated in-place: the historical 25 is
+  preserved and the new keys pinned explicitly above it (30/39). The
+  general class is documented in the contract: a config carrying
+  `play_relief ≥ 25` must set the new keys itself.
 - **The duet arm and the solo arm do not change**: both-parties
   relief, the serviced stamp on the partner, and the solo value are
   byte-for-byte today's semantics. Only the `Element` arm gains logic.
@@ -263,9 +268,12 @@ and hash pins are untouched by the diff.
 - **SC-001**: In a default-config world, one serviced play tick moves
   the play need by exactly 10 (solo), 20 (each duet partner), 25
   (bug), 35 (greeble) — observable via the API's need read-back.
-- **SC-002**: A config valid today that names only today's keys parses
-  and validates identically after the change; zero config files in the
-  repo need editing (the diff touches no `.toml` outside tests).
+- **SC-002**: A config valid today that names only today's keys and a
+  `play_relief` below the defaulted bug value (25) parses and
+  validates identically after the change. Repo-wide, exactly one
+  `.toml` needed editing (the spec-004 capture at the boundary,
+  migrated value-preserving); served config, evals, and experiments
+  configs are untouched.
 - **SC-003**: Every guard violation produces a config error naming the
   offending key(s) and value(s); the ceiling error explains the duet
   economics in its message text.

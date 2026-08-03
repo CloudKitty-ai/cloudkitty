@@ -124,6 +124,12 @@ sleep_relief = 5.0
 sleep_relief_sunbeam = 8.0
 groom_relief = 30.0
 play_relief = 25.0
+# (Keys added by spec 025's per-target split: this capture's play_relief
+# (25) collides with the new keys' compiled defaults (25/35), so the
+# gradient is pinned explicitly here -- values chosen to sit lawfully
+# above the historical 25, which is preserved untouched.)
+play_relief_bug = 30.0
+play_relief_greeble = 39.0
 # Resting, sleeping or grooming alongside a friend.
 cuddle_relief = 20.0
 

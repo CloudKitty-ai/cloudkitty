@@ -19,14 +19,14 @@ the chosen one. Polish executes and records the comparability break.
 
 ## Phase 1: Setup
 
-- [ ] T001 Verify the branch base is green: `cargo test --workspace` +
+- [X] T001 Verify the branch base is green: `cargo test --workspace` +
       clippy + fmt on `025-play-relief-split` (base `8bed190`) before
       any change — baseline for attributing breakage; long tests run
       foreground with generous timeout (house practice)
 
 ## Phase 2: Foundational
 
-- [ ] T002 Add `play_relief_bug` and `play_relief_greeble` to
+- [X] T002 Add `play_relief_bug` and `play_relief_greeble` to
       `ActionEffects` in crates/cloudkitty-core/src/config/mod.rs
       (`#[serde(default = ...)]` each, `Default` impl entries 25.0/35.0)
       and re-scope `play_relief`'s doc comment to the kitty/duet value
@@ -47,7 +47,7 @@ duet 20 each (unchanged mechanics), solo 10, vanished/non-critter target
 form; serviced-tick relief magnitudes match the contract table exactly;
 the duet still relieves both parties and stamps the partner.
 
-- [ ] T003 [US1] Split the `Activity::Playing { Element }` arm in
+- [X] T003 [US1] Split the `Activity::Playing { Element }` arm in
       `apply_activity_effects`, crates/cloudkitty-core/src/action.rs:712-714:
       look the element up by id at effect time, route
       `ElementType::Bug` → `play_relief_bug`, `ElementType::Greeble` →
@@ -55,7 +55,7 @@ the duet still relieves both parties and stamps the partner.
       `solo_play_relief`; doc comment records the despawn pin ("the
       critter is gone; the kitty is pouncing at nothing") and that the
       duet/solo arms are deliberately untouched (spec 025 R2/R4)
-- [ ] T004 [US1] Routing tests in the crates/cloudkitty-core/src/action.rs
+- [X] T004 [US1] Routing tests in the crates/cloudkitty-core/src/action.rs
       test module: one serviced tick pays exactly 25 (adjacent bug), 35
       (adjacent greeble), 20 to BOTH duet partners + partner serviced
       stamp, 10 (solo) at defaults; despawn fallback — start a greeble
@@ -80,7 +80,7 @@ discouraged.
 equality) are rejected naming their keys and values; defaults and the
 served config's values pass.
 
-- [ ] T005 [US2] Grow `validate_actions` in
+- [X] T005 [US2] Grow `validate_actions` in
       crates/cloudkitty-core/src/config/validate.rs:542-562: extend the
       finite/≥0 check to all four keys; replace the solo-vs-play guard
       (:551) with the strict chain `solo < play_relief < bug < greeble`
@@ -91,7 +91,7 @@ served config's values pass.
       per tick team-side; at or above the ceiling solo greeble-hunting
       dominates and meow recruitment loses its value). Order: finiteness,
       then chain, then ceiling (data-model.md)
-- [ ] T006 [US2] Guard tests in crates/cloudkitty-core/src/config/mod.rs:
+- [X] T006 [US2] Guard tests in crates/cloudkitty-core/src/config/mod.rs:
       each chain boundary rejected including exact equality (solo==kitty,
       kitty==bug, bug==greeble), ceiling rejected at exactly
       `greeble == 2 × play_relief` while a greeble just under the
@@ -119,21 +119,23 @@ additively only.
 fields and validates; repo diff shows no `.toml`/`evals/` changes
 outside test fixtures.
 
-- [ ] T007 [P] [US3] Extend the old-shape/durationless config tests in
+- [X] T007 [P] [US3] Extend the old-shape/durationless config tests in
       crates/cloudkitty-core/src/config/mod.rs (the T006-reconciled
       fixture and mod.rs:~1520): assert `play_relief_bug == 25.0` and
       `play_relief_greeble == 35.0` default in when absent from the
       TOML, and the config validates
-- [ ] T008 [P] [US3] Extend the `/config` payload assertions in
+- [X] T008 [P] [US3] Extend the `/config` payload assertions in
       crates/cloudkitty-server/tests/server_integration.rs:370 area:
       `config["actions"]["play_relief_bug"] == 25.0`,
       `["play_relief_greeble"] == 35.0`, and `["play_relief"] == 20.0`
       still present under its original name (the additive-only wire
       promise, contracts/play-relief-split.md)
-- [ ] T009 [US3] Frozen-surface sweep: `git diff main --stat` shows no
-      `.toml` outside crate test fixtures, no `evals/` changes, served
-      cloudkitty.toml untouched (FR-009 — the file is EXCLUDED from any
-      prose sweep; its "must not exceed play_relief" comment is one word
+- [X] T009 [US3] Frozen-surface sweep: `git diff main --stat` shows no
+      `.toml` outside crate test fixtures and the spec-004 capture
+      (whose boundary collision the shipped_configs sweep caught —
+      migrated value-preserving, 25 kept, 30/39 pinned), no `evals/`
+      changes, served cloudkitty.toml untouched (FR-009 — the file is
+      EXCLUDED from any prose sweep; its "must not exceed play_relief" comment is one word
       stale vs the strict guard, left as-is and flagged for a future
       owner-side touch); grep docs/ and in-crate doc comments for
       `play_relief` statements whose meaning the re-scope touches and
@@ -147,23 +149,24 @@ outside test fixtures.
 
 ## Phase 6: Polish — executing the break
 
-- [ ] T010 Regenerate crates/cloudkitty-rl/tests/goldens/run-json.golden.json
-      (`UPDATE_GOLDENS=1 cargo test -p cloudkitty-rl --test harness_policy`),
+- [X] T010 Regenerate crates/cloudkitty-rl/tests/goldens/run-json.golden.json
+      (`UPDATE_GOLDENS=1 cargo test -p cloudkitty-rl --test run_json_golden`
+      — the guard lives in run_json_golden.rs, not harness_policy),
       inspect the diff tells the expected story (play-scene needs fall
       faster where element play occurs; no unrelated drift), then full
       `cargo test -p cloudkitty-rl` green with the moved
       `engine_defaults_sha256` (no pin to edit — plan.md Structure
       Decision)
-- [ ] T011 Re-verify crates/cloudkitty-core/tests/welfare_longrun.rs
+- [X] T011 Re-verify crates/cloudkitty-core/tests/welfare_longrun.rs
       foreground with generous timeout: floors hold (play services
       faster → happiness up → more margin expected); bounds are
       tighten-only — if any bound FAILS, stop and report per CLAUDE.md
       #4, never loosen
-- [ ] T012 Full gate + quickstart walk: `cargo test --workspace`,
+- [X] T012 Full gate + quickstart walk: `cargo test --workspace`,
       `cargo fmt --check`, `cargo clippy --workspace -- -D warnings`,
       then each quickstart.md step in order; mark spec checklists
       complete in specs/025-play-relief-split/
-- [ ] T013 Record the break for the PR: draft PR body noting (a) the
+- [X] T013 Record the break for the PR: draft PR body noting (a) the
       `engine_defaults_sha256` move as the generation's second and
       FINAL planned break, (b) the despawn-pin semantics delta (10 not
       20 on the vanished-target tail — spec Edge Cases), (c) the ping

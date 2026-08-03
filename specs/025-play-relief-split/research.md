@@ -59,10 +59,15 @@ on `8bed190` (branch base).
   exactly the team-neutrality the split exists to remove. At the
   ceiling boundary (`greeble == 2×kitty`) a myopic defection is
   exactly team-neutral, so the dilemma's edge goes flat; strict keeps
-  the margin real. Tighten-only is house doctrine (spec 017), and no
-  shipped or frozen config sits on a boundary (checked: eval configs
-  carry no play keys; served config is 10/20). One in-repo **test
-  fixture** does collide: the old-shape-parses test
+  the margin real. Tighten-only is house doctrine (spec 017).
+  *(Corrected during implementation — the original sweep here covered
+  evals/ and the served toml but missed specs/ and experiments/:)*
+  the `shipped_configs` sweep found one boundary collision, the
+  spec-004 stuck-state capture (`play_relief = 25` vs defaulted
+  bug 25) — migrated value-preserving (25 kept, new keys pinned
+  30/39). All experiments/ configs carry 20/10 and pass with
+  defaults. One in-repo **test fixture** also collides: the
+  old-shape-parses test
   (`config/mod.rs:1440-1481`) carries `play_relief = 25.0` and calls
   `validate()` — with `play_relief_bug` defaulting to 25 the chain
   rejects `25 < 25`. The fixture's value is arbitrary to its intent
