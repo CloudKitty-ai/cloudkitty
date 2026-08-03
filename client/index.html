@@ -432,25 +432,23 @@
     const useV2 = (localStorage.getItem(VOCAB_KEY) ?? 'v2') === 'v2';
     if (useV2) {
       const OVERDRAW = 1.05; // locked (owner, 2026-07-29)
-      window.drawCat = (ctx, opts) => CatV2.drawCat(ctx, {
+      // Feet-anchored, same rule as the lab scenes. Callers without x/y
+      // (header, portraits) anchor from the box origin. ONE transform for
+      // both entry points: a held pose and a blend frame must always
+      // agree on where the cat box sits, or pose changes jitter.
+      const overdrawn = (opts) => ({
         ...opts,
         size: opts.size * OVERDRAW,
-        // Feet-anchored, same rule as the lab scenes. Callers without
-        // x/y (header, portraits) anchor from the box origin.
         x: (opts.x ?? 0) + opts.size * (1 - OVERDRAW) / 2,
         y: (opts.y ?? 0) + 0.88 * opts.size * (1 - OVERDRAW),
       });
+      window.drawCat = (ctx, opts) => CatV2.drawCat(ctx, overdrawn(opts));
       window.appearanceFor = CatV2.appearanceFor;
       window.shadedAppearanceOf = CatV2.shadedAppearanceOf;
       // Installing this is what switches the renderer's live-motion path
       // on (pose blends, eased lids, the landing settle): render.js keys
       // on its presence, so v1 keeps every snap it ships with today.
-      window.drawCatTween = (ctx, opts) => CatV2.drawCatTween(ctx, {
-        ...opts,
-        size: opts.size * OVERDRAW,
-        x: (opts.x ?? 0) + opts.size * (1 - OVERDRAW) / 2,
-        y: (opts.y ?? 0) + 0.88 * opts.size * (1 - OVERDRAW),
-      });
+      window.drawCatTween = (ctx, opts) => CatV2.drawCatTween(ctx, overdrawn(opts));
     }
   </script>
   <script src="props.js"></script>

@@ -499,6 +499,12 @@
   // Each demo: one drawFrame(ctx, w, h, now, isV2). v1 column shows today's
   // behavior (snaps); v2 shows the prototype (blends, squash, lid, settle).
   const CAT = 84;
+  // Where the water surface crosses a swimming cat's box (both swim
+  // cards share it, so a SWIM re-dial can never leave the two cards'
+  // waterlines disagreeing). The -0.02 is the shore margin: the surface
+  // sits just above the floating body's top edge.
+  const waterlineAt = (y) =>
+    y + CAT * (CatV2.SWIM.bodyY - CatV2.SWIM.bodyRy - 0.02);
   const DEMOS = [
     {
       title: 'Pose flow',
@@ -596,8 +602,7 @@
         const y = h - CAT * 0.95;
         // Pond band first: the world draws water UNDER the cat, so the
         // low silhouette must read as swimming without any clipping.
-        const S = CatV2.SWIM;
-        const waterline = y + CAT * (S.bodyY - S.bodyRy - 0.02);
+        const waterline = waterlineAt(y);
         ctx.fillStyle = '#9ccfe6';
         ctx.fillRect(0, waterline, w, h - waterline);
         const from = w / 2 - CAT * 0.55;
@@ -616,11 +621,12 @@
       title: 'Shoreline crossing',
       note: 'The full trip on the live wiring’s clocks: walk in, blend to paddling at the shore (260 ms smoothstep, from-phase frozen at the crossing), swim across on the tick clock, blend back out. v1 walks straight through — snapless because it never changes pose at all.',
       draw(ctx, w, h, now, isV2) {
+        // BLEND mirrors anim.js's VIEW.poseBlendMs (this page never loads
+        // anim.js); if that dial moves after judging, move this with it.
         const CYCLE = 6600, IN = 1800, OUT = 4200, TICK = 800, BLEND = 260;
         const t = now % CYCLE;
         const y = h - CAT * 0.95;
-        const S = CatV2.SWIM;
-        const waterline = y + CAT * (S.bodyY - S.bodyRy - 0.02);
+        const waterline = waterlineAt(y);
         // The trip is linear in time, so the shore sits exactly where the
         // pose crossing happens (measured at the cat's center).
         const x0 = 8, x1 = w - CAT - 8;
