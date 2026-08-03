@@ -339,6 +339,14 @@
     outline-offset: 2px;
   }
 
+  /* The repo link rides the footer's soft ink; underline says "link"
+     since color alone won't here. Visible on touch too (unlike .keys). */
+  footer a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
   /* The tick counter's digits change every second; tabular figures keep the
      footer from jittering as they do. */
   #tick { font-variant-numeric: tabular-nums; }
@@ -405,6 +413,9 @@
     · <span class="theme-control">set theme
       <button id="theme-toggle" aria-label="switch to Always Day">🌤️</button>
       <span id="theme-name">Day/Night Cycle</span></span>
+    · <span class="theme-control">view source
+      <a href="https://github.com/CloudKitty-ai/cloudkitty" target="_blank"
+      rel="noopener" title="CloudKitty source on GitHub">GitHub</a></span>
   </footer>
 
   <!-- Kitty vocabulary dispatcher (v2 default, 2026-07-29 — graduated
