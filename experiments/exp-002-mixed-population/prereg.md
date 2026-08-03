@@ -192,8 +192,9 @@ frozen agents 4.22% / 9.42%, scripted 0.32% / 1.65%):
    on water) / total ticks. **Pass: ≤ 1.0%** (~83% of the
    frozen-policy excess unlearned).
 2. **Total in-water share** = all on-water ticks / total ticks.
-   **Pass: ≤ TBD%** (owner target pending; legitimate floor ≈ 1.1%
-   transit + lawful on-tile drinking — scripted parity ≈ 2%).
+   **Pass: ≤ 3.0%** (owner target, 2026-08-02: lounging and
+   idle-loitering gone, residual lawful on-tile drinking tolerated;
+   legitimate floor ≈ 1.1% transit — scripted parity would be ≈ 2%).
 
 - **Both pass** → the dial freezes at 1.5; pilot stands as
   M33-g998-s1.
