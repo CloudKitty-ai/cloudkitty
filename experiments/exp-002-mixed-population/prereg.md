@@ -1,10 +1,12 @@
 # Experiment 002 — Pre-registration: mixed-population fine-tuning on the wet-fur engine
 
-**STATUS: DRAFT (2026-08-02).** Freezes when the first model-training
-compute starts (the scratch-BC clone or the pilot, whichever is first);
-smoke runs on subset data are exempt, as in exp-001. One registered
-conditional survives the freeze: the wet-fur dial (§9.1), resolved by
-the pilot under a rule written here before any run.
+**STATUS: FROZEN 2026-08-03** (drafted 2026-08-02; owner-reviewed
+2026-08-03). Frozen at the start of the first model-training compute —
+the scratch-BC clone + per-γ critic pretrains on dataset v2, engine
+main @ `0fd551d`. Smoke runs on subset data were exempt, as in
+exp-001. One registered conditional survives the freeze: the wet-fur
+dial (§9.1), resolved by the pilot under a rule written here before
+any run. Post-freeze changes go to the Deviations appendix.
 
 Owner decisions folded in (2026-08-02): three teammate-mix conditions
 {0%, 33%, 67%}; all main arms warm-start from s6; one scratch-BC
@@ -167,6 +169,13 @@ appendix; do not re-derive), except:
   Per-rollout metas stamp per-kitty demonstrator provenance
   (`"experts"`; the family seats a playful Biscuit) and the episode
   horizon read from each config.
+  **Split (by rollout, F-004; fixed at freeze)**: val =
+  `rollout-02` of every variant (one held-out world seed per config,
+  scripted) **plus** `s6-rollout-00` of configs 12/13/14 (one per
+  roster size, so policy-like states and channel rows appear in val);
+  the other 42 rollouts train. World seeds are disjoint by
+  construction (scripted `400001 + ci·1000 + r`, s6
+  `500001 + ci·1000`).
 
 ## 6. Pre-experiment measurements (all complete or gated pre-freeze)
 
@@ -299,19 +308,29 @@ history): no candidate claim rests on training curves.
 
 ## 11. Threats-to-validity checklist (verify before run 1)
 
-- [ ] Engine pinned; `engine_defaults_sha256` recorded; no pending
-      Product batch scheduled to land mid-experiment (ask).
-- [ ] Family regenerated-if-escalated and manifest committed BEFORE
-      the grid starts; variants byte-stable under re-generation.
-- [ ] Dataset v2 invariants pass (label legality, split-by-rollout,
-      row counts vs manifests).
-- [ ] s6 artifact sha matches the deployed `policies/s6.ckpolicy`.
+- [x] Engine pinned (`0fd551d`); `engine_defaults_sha256`
+      `12bf38624186…` recorded (2026-08-03, matches the spec-025
+      record); no pending Product batch scheduled to land
+      mid-experiment — **owner confirmed 2026-08-03** (possible
+      client-only work; no engine impact).
+- [x] Family manifest committed; variants byte-stable under
+      re-generation (verified 2026-08-03). Regenerate-if-escalated
+      re-checked at §9.1 resolution before the grid starts.
+- [x] Dataset v2 invariants pass (2026-08-03: 1,908,182 decisions,
+      all labels legal vs mask, dims 182/40, row counts match all 60
+      metas; split is by rollout per §5).
+- [x] s6 artifact sha matches the deployed `policies/s6.ckpolicy`
+      (`8030b94d…`, verified 2026-08-03).
 - [ ] Eval seeds disjoint from training family seeds and from each
-      other across shapes; evaluate-once ledger opened.
-- [ ] Probe claims all cite 150+-world batches (F-004 addendum).
+      other across shapes; evaluate-once ledger opened. *(At eval
+      time — before the first shape-i evaluation.)*
+- [x] Probe claims all cite 150+-world batches (F-004 addendum;
+      post-025 re-baseline used 150-world batches throughout).
 - [ ] Long runs execute in a dedicated worktree (shared-checkout
       hazard); commits land before any destructive verification.
-- [ ] F-011 premise check: reward is cooperative team Nash (it is) —
+      *(At pilot start — the clone/critic pretrains are short,
+      foreground, on committed code.)*
+- [x] F-011 premise check: reward is cooperative team Nash (it is) —
       re-read spec 023's backstop note if that ever changes.
 
 ## 12. Reading list
