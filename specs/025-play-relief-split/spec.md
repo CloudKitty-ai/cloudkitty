@@ -179,9 +179,14 @@ and hash pins are untouched by the diff.
   spec-004 stuck-state capture carries `play_relief = 25`, colliding
   with the defaulted bug value (the `shipped_configs` sweep caught it,
   exactly its charter). Migrated in-place: the historical 25 is
-  preserved and the new keys pinned explicitly above it (30/39). The
-  general class is documented in the contract: a config carrying
-  `play_relief ≥ 25` must set the new keys itself.
+  preserved and the new keys pinned at the minimal lawful values above
+  it (26/27), keeping the archived incident's economics as close to
+  the record as the chain allows. The general class is documented in
+  the contract: a legacy config survives the upgrade untouched only
+  with `play_relief` strictly between 17.5 (the duet ceiling vs the
+  defaulted greeble) and 25 (the chain vs the defaulted bug);
+  outside the band it must set the new keys itself, and both guard
+  errors say so.
 - **The duet arm and the solo arm do not change**: both-parties
   relief, the serviced stamp on the partner, and the solo value are
   byte-for-byte today's semantics. Only the `Element` arm gains logic.

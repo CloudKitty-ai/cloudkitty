@@ -133,7 +133,8 @@ outside test fixtures.
 - [X] T009 [US3] Frozen-surface sweep: `git diff main --stat` shows no
       `.toml` outside crate test fixtures and the spec-004 capture
       (whose boundary collision the shipped_configs sweep caught —
-      migrated value-preserving, 25 kept, 30/39 pinned), no `evals/`
+      migrated value-preserving, 25 kept, minimal lawful 26/27
+      pinned per review), no `evals/`
       changes, served cloudkitty.toml untouched (FR-009 — the file is
       EXCLUDED from any prose sweep; its "must not exceed play_relief" comment is one word
       stale vs the strict guard, left as-is and flagged for a future

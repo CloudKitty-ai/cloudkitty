@@ -1457,7 +1457,13 @@ mod tests {
                 _ => c.actions.play_relief_bug = c.actions.play_relief_greeble,
             }
             let msg = c.validate().unwrap_err().to_string();
-            assert!(msg.contains(key), "{key} equality must be rejected: {msg}");
+            // The full "[actions] {key} is" prefix, not a bare contains(key):
+            // "play_relief" is a substring of every play key, so a bare
+            // contains could never catch the error blaming the wrong link.
+            assert!(
+                msg.contains(&format!("[actions] {key} is")),
+                "{key} equality must be rejected under its own key: {msg}"
+            );
             assert!(
                 msg.contains("strictly less than"),
                 "the rule is named: {msg}"
@@ -1493,7 +1499,8 @@ mod tests {
         // accident of comparison semantics (solo > NaN is false).
         for poison in [f32::NAN, f32::INFINITY, -1.0] {
             for setter in [
-                (|c: &mut Config, v: f32| c.actions.play_relief = v) as fn(&mut Config, f32),
+                (|c: &mut Config, v: f32| c.actions.solo_play_relief = v) as fn(&mut Config, f32),
+                |c, v| c.actions.play_relief = v,
                 |c, v| c.actions.play_relief_bug = v,
                 |c, v| c.actions.play_relief_greeble = v,
             ] {
@@ -1505,6 +1512,63 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn a_pre_025_config_outside_the_survivable_band_fails_with_a_map() {
+        // The contract's two documented break classes: a legacy config
+        // carrying play_relief >= 25 collides with the defaulted bug value
+        // in the chain; one at or below 17.5 collides with the defaulted
+        // greeble via the duet ceiling. Both must fail loudly, blaming the
+        // defaulted key and pointing at the migration (pin the 025 keys).
+        // In between, the band upgrades untouched.
+        let legacy = |play_relief: f32| -> Config {
+            toml::from_str(&format!(
+                r#"
+                [world]
+                width = 32
+                height = 32
+                tick_ms = 800
+                seed = 1
+
+                [[kitty]]
+                id = 1
+                name = "A"
+                x = 1
+                y = 1
+                behavior = "needs_driven"
+
+                [[kitty]]
+                id = 2
+                name = "B"
+                x = 2
+                y = 2
+                behavior = "playful"
+
+                [actions]
+                eat_relief = 40.0
+                drink_relief = 40.0
+                sleep_relief = 5.0
+                sleep_relief_sunbeam = 8.0
+                groom_relief = 30.0
+                play_relief = {play_relief}
+                cuddle_relief = 20.0
+            "#
+            ))
+            .expect("legacy shape parses")
+        };
+
+        let msg = legacy(25.0).validate().unwrap_err().to_string();
+        assert!(msg.contains("play_relief_bug"), "{msg}");
+        assert!(msg.contains("explicitly"), "points at the migration: {msg}");
+
+        let msg = legacy(15.0).validate().unwrap_err().to_string();
+        assert!(msg.contains("play_relief_greeble"), "{msg}");
+        assert!(msg.contains("explicitly"), "points at the migration: {msg}");
+
+        legacy(20.0)
+            .validate()
+            .expect("the in-band legacy config upgrades untouched");
     }
 
     #[test]

@@ -562,25 +562,33 @@ impl Config {
         }
         // The strict chain: solo < kitty < bug < greeble. Equality anywhere
         // makes two play forms indistinguishable -- exactly the
-        // team-neutrality the split exists to remove.
-        for (key, value, bound_name, bound) in [
+        // team-neutrality the split exists to remove. Each link carries its
+        // own why: the doctrine phrase belongs to the solo/kitty link alone
+        // (FR-005), and the kitty/bug link is where a pre-025 config
+        // collides with the compiled default, so that error carries the
+        // migration map.
+        for (key, value, bound_name, bound, why) in [
             (
                 "[actions] solo_play_relief",
                 a.solo_play_relief,
                 "play_relief",
                 a.play_relief,
+                "playing together must stay the better deal",
             ),
             (
                 "[actions] play_relief",
                 a.play_relief,
                 "play_relief_bug",
                 a.play_relief_bug,
+                "a config written before spec 025 hits this through the compiled \
+                 default (25): set play_relief_bug and play_relief_greeble explicitly",
             ),
             (
                 "[actions] play_relief_bug",
                 a.play_relief_bug,
                 "play_relief_greeble",
                 a.play_relief_greeble,
+                "critter play ranks bugs below greebles",
             ),
         ] {
             if value >= bound {
@@ -589,8 +597,7 @@ impl Config {
                     value.to_string(),
                     format!(
                         "must be strictly less than {bound_name} ({bound}) -- the play \
-                         gradient is solo < kitty < bug < greeble, and playing together \
-                         must stay the better deal"
+                         gradient is solo < kitty < bug < greeble, and {why}"
                     ),
                 ));
             }
@@ -608,7 +615,9 @@ impl Config {
                     "must be strictly less than 2 x play_relief ({}) -- a duet relieves \
                      both cats, so the team earns 2 x play_relief per duet tick; at or \
                      above this ceiling solo greeble-hunting beats social play and meow \
-                     recruitment loses its value",
+                     recruitment loses its value (a config written before spec 025 with \
+                     play_relief at or below 17.5 hits this through the compiled default \
+                     greeble (35): set play_relief_bug and play_relief_greeble explicitly)",
                     2.0 * a.play_relief
                 ),
             ));

@@ -64,9 +64,14 @@ on `8bed190` (branch base).
   evals/ and the served toml but missed specs/ and experiments/:)*
   the `shipped_configs` sweep found one boundary collision, the
   spec-004 stuck-state capture (`play_relief = 25` vs defaulted
-  bug 25) — migrated value-preserving (25 kept, new keys pinned
-  30/39). All experiments/ configs carry 20/10 and pass with
-  defaults. One in-repo **test fixture** also collides: the
+  bug 25) — migrated value-preserving (25 kept, new keys pinned at
+  the minimal lawful 26/27 per the review pass, keeping the archived
+  incident's economics closest to the record). All experiments/
+  configs carry 20/10 and pass with defaults. The review pass also
+  named the full legacy band: only `play_relief` strictly inside
+  (17.5, 25) upgrades without pinning the new keys — the ceiling vs
+  the defaulted greeble closes the lower half — and both guard
+  errors now carry the migration map. One in-repo **test fixture** also collides: the
   old-shape-parses test
   (`config/mod.rs:1440-1481`) carries `play_relief = 25.0` and calls
   `validate()` — with `play_relief_bug` defaulting to 25 the chain
