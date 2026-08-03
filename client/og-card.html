@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CloudKitty — OG card generator</title>
+<!--
+  The social-card generator (2026-08-02). Standalone like the galleries:
+  open straight from disk, click download, drop the PNG at
+  client/og-image.png. Regenerate after art or copy changes -- the scene
+  is drawn by the real v2 vocabulary, so the card can never drift from
+  the kitties it advertises. 1200x630, the standard OG size.
+-->
+<style>
+  @font-face {
+    font-family: "Nunito";
+    font-style: normal;
+    font-weight: 200 1000;
+    src: url("fonts/nunito-latin.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "Baloo 2";
+    font-style: normal;
+    font-weight: 400 800;
+    src: url("fonts/baloo2-latin.woff2") format("woff2");
+  }
+  body {
+    margin: 0;
+    padding: 24px 16px;
+    font-family: "Nunito", ui-rounded, system-ui, sans-serif;
+    background: #fdf6ec;
+    color: #6b5a4e;
+    text-align: center;
+  }
+  canvas {
+    max-width: 900px;
+    width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(150, 125, 105, 0.25);
+  }
+  button {
+    margin: 16px auto;
+    display: block;
+    background: #f5e8d8;
+    border: none;
+    border-radius: 99px;
+    padding: 8px 22px;
+    font: inherit;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  p { color: #9c8a7c; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+
+<h1>OG card</h1>
+<canvas id="card" width="1200" height="630"></canvas>
+<button id="save">download og-image.png</button>
+<p>Drop the file at <code>client/og-image.png</code> (it ships next to index.html).</p>
+
+<script src="cat-v2.js"></script>
+<script>
+  const MISO = 1, BISCUIT = 2, PUMPKIN = 3, STORM = 4;
+  const canvas = document.getElementById('card');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  function shadow(cx, groundY, size) {
+    ctx.fillStyle = 'rgba(150, 125, 105, 0.18)';
+    ctx.beginPath();
+    ctx.ellipse(cx, groundY, size * 0.34, size * 0.12, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  /** One cat, feet on groundY, centered at cx. Static phases picked per
+   * pose so every silhouette reads mid-life, not mid-glitch. */
+  function cat(pose, palette, cx, groundY, size, facing, phase = 0.3) {
+    const x = cx - size / 2;
+    const y = groundY - size * 0.88;
+    if (pose !== 'swim') shadow(cx, groundY, size);
+    CatV2.drawCat(ctx, {
+      pose, phase, facing, size, x, y,
+      appearance: CatV2.appearanceFor(palette),
+    });
+  }
+
+  function draw() {
+    // The page's own sky: bright zenith into cream.
+    const sky = ctx.createRadialGradient(W / 2, 0, 80, W / 2, 0, H * 1.1);
+    sky.addColorStop(0, '#fffaf2');
+    sky.addColorStop(1, '#fdf6ec');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, W, H);
+
+    // The meadow band, with a soft horizon line.
+    const horizon = 388;
+    ctx.fillStyle = '#e7f2df';
+    ctx.fillRect(0, horizon, W, H - horizon);
+    ctx.strokeStyle = '#d8e8cd';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, horizon + 1.5);
+    ctx.lineTo(W, horizon + 1.5);
+    ctx.stroke();
+
+    // The pond, home of the newest pose.
+    ctx.fillStyle = '#9ccfe6';
+    ctx.beginPath();
+    ctx.ellipse(930, 545, 200, 62, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.ellipse(930, 545, 150, 40, 0, Math.PI * 1.15, Math.PI * 1.6);
+    ctx.stroke();
+
+    // The wordmark and the one-line truth.
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#6b5a4e';
+    ctx.font = '600 104px "Baloo 2"';
+    ctx.fillText('CloudKitty', W / 2, 192);
+    ctx.fillStyle = '#9c8a7c';
+    ctx.font = '600 36px "Nunito"';
+    ctx.fillText('a small, safe world where kitties frolic and play', W / 2, 258);
+
+    // The residents: a loaf, a stroll, a stand, and the swimmer.
+    cat('loaf', BISCUIT, 200, 560, 150, 'right');
+    cat('idle', PUMPKIN, 445, 528, 138, 'right');
+    cat('walking', MISO, 660, 575, 156, 'right', 0.22);
+    // Storm paddles the pond: feet-line placed so the SWIM body rides
+    // the ellipse's surface, phase picked for a visible bob and rock.
+    const swimSize = 140;
+    const S = CatV2.SWIM;
+    const swimGround = 545 - 62 * 0.35 + swimSize * (0.88 - S.bodyY + S.bodyRy);
+    cat('swim', STORM, 930, swimGround, swimSize, 'left', 0.62);
+  }
+
+  Promise.all([
+    document.fonts.load('600 104px "Baloo 2"'),
+    document.fonts.load('600 36px "Nunito"'),
+  ]).then(draw);
+
+  document.getElementById('save').addEventListener('click', () => {
+    canvas.toBlob((blob) => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'og-image.png';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }, 'image/png');
+  });
+</script>
+</body>
+</html>
