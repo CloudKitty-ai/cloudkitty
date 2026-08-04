@@ -38,11 +38,20 @@ F-007, F-009, F-010, F-011, F-012, F-013, F-014.
   1-agent and partial-agent deployment shapes (§8), without
   significant loss on the full-agent shape. Direction registered;
   33-vs-67 ordering is exploratory.
+  > **H1 NOT SUPPORTED 2026-08-03**
+  > ([results/grid-2026-08-03.md](results/grid-2026-08-03.md)): mixing
+  > buys ≤ +0.0009 on the 1-agent shape (γ=0.995 only) and costs
+  > 0.004–0.015 on the full-agent shape — the "without significant
+  > loss" clause fails. See the shape-i geometry note (Deviation 2).
 - **H2 (wet-fur learning)**: trained policies reduce water-lounging
   relative to frozen s6 on the pinned engine (§4) — success signature
   per the [water baseline](../exp-001-bc-mappo/results/water-baseline-2026-08-01.md):
   Sleeping/Grooming/Resting-on-water collapses toward scripted
   levels, Idle transit survives, Drinking unharmed.
+  > **H2 FALSIFIED 2026-08-03 — see Deviation 1.** Neither registered
+  > dial reaches the §9.1 gates; the wet-fur dial does not buy deployed
+  > water avoidance at welfare-neutral cost. Registered text above is
+  > unchanged; the result is recorded, not the criterion.
 - **H3 (meow preservation)**: warm-start arms retain functional
   channel use, measured **in policy company** (F-012): digest-zeroing
   changes ≥ 3% of digest-active decisions for at least one seed per
@@ -52,13 +61,20 @@ F-007, F-009, F-010, F-011, F-012, F-013, F-014.
   per-run flip-rate estimates carry more variance — see the
   [meow-listening doc](../exp-001-bc-mappo/results/meow-listening-2026-07-31.md)
   post-025 addendum).
-  > **H2 FALSIFIED 2026-08-03 — see Deviation 1.** Neither registered
-  > dial reaches the §9.1 gates; the wet-fur dial does not buy deployed
-  > water avoidance at welfare-neutral cost. Registered text above is
-  > unchanged; the result is recorded, not the criterion.
+  > **H3 CONFIRMED 2026-08-03**
+  > ([results/grid-2026-08-03.md](results/grid-2026-08-03.md)): every
+  > warm-start cell passes with every seed ≥ 10% of heard (threshold
+  > 3%), measured in policy company beside frozen s6 after the
+  > forensics_replay labeling fix (Deviation 2).
 - **H4 (roster robustness)**: with roster 3–5 in the training family,
   no candidate exhibits F-010 catatonia on any deploy-surface roster
   (3/4/5) at certification length.
+  > **H4 PARTIALLY FALSIFIED 2026-08-03** (grid doc): 17/22 candidates
+  > pass the distress-age gate on all three rosters; 5 fail, worst the
+  > scratch control (3/30 seeds catatonic). Failures are per-training-
+  > seed, not per-cell — the family did not eliminate F-010, but the
+  > gate catches it and the roster is screened, which is what §9.2
+  > consumes.
 - **Anchors (registered predictions)**: γ=0.998 ≥ γ=0.995 within each
   mix condition (F-013 band position); the scratch-BC control ends at
   or below its warm-start twin cell (F-007); `needs_driven` holds
@@ -418,3 +434,32 @@ self-block flag and water occupancy must be inferred from a
 nearest-water slot at distance 0 — a §4-forbidden schema change here
 because it voids the warm start), and raise the bath penalty
 substantially rather than incrementally.
+
+### Deviation 2 — evaluation-instrument notes (2026-08-03)
+
+Recorded after the grid evaluation; none changes a registered
+criterion.
+
+1. **Shape-i geometry substitution.** §8 registered the 1-agent shape
+   as "candidate at one seat, all other seats scripted (served config
+   behaviors)". The available instrument — kitty-eval's `Mixed`
+   roster — seats the subject at the first kitty and rewrites every
+   other seat to `needs_driven`, so Biscuit's `playful` was not in
+   company. No harness mode matches the registered geometry (the
+   `FromConfig` mode would run the config's `policy:` seats). Shape-i
+   results are honest paired measurements in all-needs_driven
+   company; cell contrasts share the geometry, so H1's evaluation
+   stands with that reading. A harness extension is Product's call.
+2. **forensics_replay labeling fix.** The shape-ii screen initially
+   appeared untrustworthy; the cause was probe columns labeled
+   positionally instead of by agent name (candidate at kitty_4
+   printed as "kitty_2"). Fixed and re-verified before any H3 number
+   was recorded; the H3 screen ran after the fix. The real trap —
+   omitting `--config` silently probes the compiled 3-kitty world and
+   re-measures frozen s6 — is documented in the grid doc.
+3. **Evaluate-once footnote.** M33-γ.998-s1's shape i ran once as a
+   pre-ledger timing check (identical protocol and seeds) and again
+   in the sweep; results identical, one recorded.
+4. **H2 per-candidate water readout skipped** for all grid candidates
+   under Deviation 1 (H2 falsified; the dial carries no remaining
+   decision rule this generation).

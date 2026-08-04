@@ -1,0 +1,343 @@
+{
+ "run": "M67-g0p998-s3",
+ "geometry": "seating-B (candidate at kitty_4, s6 at kitty_1, scripted company)",
+ "seeds": [
+  {
+   "seed": 200001,
+   "ticks": 20000,
+   "candidate": {
+    "heard": 2045,
+    "audibility": 0.10225,
+    "changed": 319,
+    "flip_rate": 0.15599022004889976
+   },
+   "s6_reference": {
+    "heard": 1993,
+    "audibility": 0.09965,
+    "changed": 222,
+    "flip_rate": 0.11138986452584045
+   },
+   "meow_emissions_by_kitty_id": {
+    "3": {
+     "WaitForMe": 149
+    },
+    "2": {
+     "WantPlay": 199,
+     "WaitForMe": 96
+    },
+    "4": {
+     "FollowMe": 2
+    },
+    "1": {
+     "WantDrink": 18,
+     "Purr": 1
+    }
+   },
+   "mean_team_reward": 0.8965659756460332
+  },
+  {
+   "seed": 200002,
+   "ticks": 20000,
+   "candidate": {
+    "heard": 2295,
+    "audibility": 0.11475,
+    "changed": 338,
+    "flip_rate": 0.14727668845315905
+   },
+   "s6_reference": {
+    "heard": 2303,
+    "audibility": 0.11515,
+    "changed": 301,
+    "flip_rate": 0.13069908814589665
+   },
+   "meow_emissions_by_kitty_id": {
+    "2": {
+     "WantPlay": 226,
+     "WaitForMe": 95
+    },
+    "3": {
+     "WaitForMe": 154
+    },
+    "4": {
+     "FollowMe": 6,
+     "Purr": 1
+    },
+    "1": {
+     "WantDrink": 11
+    }
+   },
+   "mean_team_reward": 0.8976273477831801
+  },
+  {
+   "seed": 200003,
+   "ticks": 20000,
+   "candidate": {
+    "heard": 2024,
+    "audibility": 0.1012,
+    "changed": 268,
+    "flip_rate": 0.1324110671936759
+   },
+   "s6_reference": {
+    "heard": 2027,
+    "audibility": 0.10135,
+    "changed": 230,
+    "flip_rate": 0.11346817957572768
+   },
+   "meow_emissions_by_kitty_id": {
+    "3": {
+     "WaitForMe": 158
+    },
+    "2": {
+     "WantPlay": 198,
+     "WaitForMe": 115
+    },
+    "1": {
+     "WantDrink": 6,
+     "Purr": 1
+    },
+    "4": {
+     "FollowMe": 9
+    }
+   },
+   "mean_team_reward": 0.8966543983483097
+  },
+  {
+   "seed": 200004,
+   "ticks": 20000,
+   "candidate": {
+    "heard": 2105,
+    "audibility": 0.10525,
+    "changed": 331,
+    "flip_rate": 0.15724465558194775
+   },
+   "s6_reference": {
+    "heard": 2051,
+    "audibility": 0.10255,
+    "changed": 262,
+    "flip_rate": 0.12774256460263286
+   },
+   "meow_emissions_by_kitty_id": {
+    "3": {
+     "WaitForMe": 141
+    },
+    "2": {
+     "WaitForMe": 107,
+     "WantPlay": 203
+    },
+    "4": {
+     "WantDrink": 1,
+     "FollowMe": 1,
+     "WantCuddle": 1
+    },
+    "1": {
+     "WantDrink": 23
+    }
+   },
+   "mean_team_reward": 0.8976819952495146
+  },
+  {
+   "seed": 200005,
+   "ticks": 20000,
+   "candidate": {
+    "heard": 2353,
+    "audibility": 0.11765,
+    "changed": 362,
+    "flip_rate": 0.15384615384615385
+   },
+   "s6_reference": {
+    "heard": 2290,
+    "audibility": 0.1145,
+    "changed": 262,
+    "flip_rate": 0.11441048034934498
+   },
+   "meow_emissions_by_kitty_id": {
+    "3": {
+     "WaitForMe": 152
+    },
+    "2": {
+     "WaitForMe": 117,
+     "WantPlay": 228
+    },
+    "1": {
+     "WantDrink": 18,
+     "Purr": 1
+    },
+    "4": {
+     "FollowMe": 1
+    }
+   },
+   "mean_team_reward": 0.8968585714427926
+  },
+  {
+   "seed": 200006,
+   "ticks": 20000,
+   "candidate": {
+    "heard": 2185,
+    "audibility": 0.10925,
+    "changed": 331,
+    "flip_rate": 0.15148741418764303
+   },
+   "s6_reference": {
+    "heard": 2175,
+    "audibility": 0.10875,
+    "changed": 256,
+    "flip_rate": 0.11770114942528735
+   },
+   "meow_emissions_by_kitty_id": {
+    "3": {
+     "WaitForMe": 140,
+     "WantEat": 1
+    },
+    "2": {
+     "WaitForMe": 117,
+     "WantPlay": 212
+    },
+    "1": {
+     "Purr": 3,
+     "WantDrink": 6
+    },
+    "4": {
+     "FollowMe": 7,
+     "WantDrink": 1
+    }
+   },
+   "mean_team_reward": 0.8955495354989056
+  },
+  {
+   "seed": 200007,
+   "ticks": 20000,
+   "candidate": {
+    "heard": 2150,
+    "audibility": 0.1075,
+    "changed": 308,
+    "flip_rate": 0.14325581395348838
+   },
+   "s6_reference": {
+    "heard": 2143,
+    "audibility": 0.10715,
+    "changed": 241,
+    "flip_rate": 0.11245916938870743
+   },
+   "meow_emissions_by_kitty_id": {
+    "3": {
+     "WaitForMe": 137
+    },
+    "2": {
+     "WantPlay": 212,
+     "WaitForMe": 128
+    },
+    "4": {
+     "WantCuddle": 1,
+     "FollowMe": 1,
+     "WantDrink": 3
+    },
+    "1": {
+     "Purr": 1,
+     "WantDrink": 5
+    }
+   },
+   "mean_team_reward": 0.8963801048014058
+  },
+  {
+   "seed": 200008,
+   "ticks": 20000,
+   "candidate": {
+    "heard": 2436,
+    "audibility": 0.1218,
+    "changed": 340,
+    "flip_rate": 0.13957307060755336
+   },
+   "s6_reference": {
+    "heard": 2390,
+    "audibility": 0.1195,
+    "changed": 318,
+    "flip_rate": 0.13305439330543933
+   },
+   "meow_emissions_by_kitty_id": {
+    "3": {
+     "WaitForMe": 162
+    },
+    "2": {
+     "WaitForMe": 116,
+     "WantPlay": 238
+    },
+    "1": {
+     "WantDrink": 8,
+     "Purr": 3
+    },
+    "4": {
+     "FollowMe": 1
+    }
+   },
+   "mean_team_reward": 0.8987845033827456
+  },
+  {
+   "seed": 200009,
+   "ticks": 20000,
+   "candidate": {
+    "heard": 2141,
+    "audibility": 0.10705,
+    "changed": 302,
+    "flip_rate": 0.1410555815039701
+   },
+   "s6_reference": {
+    "heard": 2093,
+    "audibility": 0.10465,
+    "changed": 279,
+    "flip_rate": 0.1333014811275681
+   },
+   "meow_emissions_by_kitty_id": {
+    "2": {
+     "WantPlay": 206,
+     "WaitForMe": 110
+    },
+    "3": {
+     "WaitForMe": 119
+    },
+    "1": {
+     "WantDrink": 35,
+     "Purr": 1
+    },
+    "4": {
+     "FollowMe": 5,
+     "WantDrink": 1
+    }
+   },
+   "mean_team_reward": 0.8969627478940587
+  },
+  {
+   "seed": 200010,
+   "ticks": 20000,
+   "candidate": {
+    "heard": 1875,
+    "audibility": 0.09375,
+    "changed": 243,
+    "flip_rate": 0.1296
+   },
+   "s6_reference": {
+    "heard": 1809,
+    "audibility": 0.09045,
+    "changed": 229,
+    "flip_rate": 0.1265892758430072
+   },
+   "meow_emissions_by_kitty_id": {
+    "2": {
+     "WantPlay": 177,
+     "WaitForMe": 117
+    },
+    "3": {
+     "WaitForMe": 132
+    },
+    "1": {
+     "WantDrink": 20,
+     "Purr": 4
+    },
+    "4": {
+     "Purr": 3,
+     "FollowMe": 1
+    }
+   },
+   "mean_team_reward": 0.8984092399469248
+  }
+ ]
+}

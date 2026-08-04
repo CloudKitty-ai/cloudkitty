@@ -97,6 +97,18 @@
       300028,
       300029,
       300030
+    ],
+    "shape_ii_h3": [
+      200001,
+      200002,
+      200003,
+      200004,
+      200005,
+      200006,
+      200007,
+      200008,
+      200009,
+      200010
     ]
   },
   "seed_disjointness": "training episode seeds are >=1_000_000 by construction (train_ppo_v2 seed_base = 1e6 + seed*1e5 + segment*1e3, episode seed = seed_base + world*1e6 + episode); in-training probes use 40_001..40_003; eval shapes use 100k/200k/300k bands \u2014 pairwise disjoint and disjoint from both.",
@@ -174,6 +186,30 @@
       "M67-g0p998-s3"
     ],
     "roster5": [
+      "C-scratch-g0p998-s1",
+      "M0-g0p995-s1",
+      "M0-g0p995-s2",
+      "M0-g0p995-s3",
+      "M0-g0p998-s1",
+      "M0-g0p998-s2",
+      "M0-g0p998-s3",
+      "M33-g0p995-s1",
+      "M33-g0p995-s2",
+      "M33-g0p995-s3",
+      "M33-g0p998-s1",
+      "M33-g0p998-s2",
+      "M33-g0p998-s3",
+      "M33-g0p9985-s1",
+      "M33-g0p9985-s2",
+      "M33-g0p9985-s3",
+      "M67-g0p995-s1",
+      "M67-g0p995-s2",
+      "M67-g0p995-s3",
+      "M67-g0p998-s1",
+      "M67-g0p998-s2",
+      "M67-g0p998-s3"
+    ],
+    "shape_ii_h3": [
       "C-scratch-g0p998-s1",
       "M0-g0p995-s1",
       "M0-g0p995-s2",
@@ -529,5 +565,9 @@
       "family_manifest_sha256": "f1956e6c9a845b1652a91446bf48a855fd3bb1b15db83d8d8413eefc45fb19b9",
       "git_head": "0397c91fedb845f71d9008b888603206e191c6de"
     }
+  ],
+  "notes": [
+    "shape_ii_h3: Seating-B digest screen via h3_screen.py (candidate at kitty_4, s6 at kitty_1), 10 seeds from the shape-ii band; results/h3-screen-2026-08-03/",
+    "evaluate-once footnote: M33-g0p998-s1 shape i was run once as a pre-ledger timing check with the identical protocol/seeds before the sweep re-ran it; one result recorded"
   ]
 }
