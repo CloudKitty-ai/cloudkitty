@@ -48,12 +48,29 @@ The world saves itself every `save_every_ticks` ticks and again on
 graceful shutdown, atomically (temp file + rename), so a crash mid-write
 can cost at most one save interval — never the world.
 
+## Hostnames
+
+The world is served at **`kitties.ai`** — the canonical host — and
+mirrored at **`cloudkitty.ai`**. Both have a `www` CNAME, and both `www`
+forms 301 to their own apex (`www.kitties.ai` → `kitties.ai`,
+`www.cloudkitty.ai` → `cloudkitty.ai`). Plain HTTP 308s to HTTPS on all
+of them; Caddy does that itself once a hostname is in the site block.
+
+`kitties.ai` is canonical in one place that matters: `client/index.html`
+hardcodes it in `og:url` and `og:image`, because the Open Graph spec
+requires absolute URLs and the pickier crawlers refuse relative ones.
+That is deliberate — a share from either host collapses to one preview
+entry rather than two. **If the canonical host ever changes, those two
+meta tags must change with it**, or every social preview will keep
+pointing at the old name. Nothing else in the codebase knows the
+hostname.
+
 ## Caddy
 
 The whole recommended Caddyfile:
 
 ```caddyfile
-cloudkitty.example.com {
+kitties.ai, cloudkitty.ai {
 	encode zstd gzip
 	reverse_proxy 127.0.0.1:8090
 	header {
@@ -61,6 +78,14 @@ cloudkitty.example.com {
 		X-Frame-Options DENY
 		Referrer-Policy no-referrer
 	}
+}
+
+www.kitties.ai {
+	redir https://kitties.ai{uri} permanent
+}
+
+www.cloudkitty.ai {
+	redir https://cloudkitty.ai{uri} permanent
 }
 ```
 
@@ -113,6 +138,15 @@ git pull
 cargo build --release -p cloudkitty-server
 sudo systemctl restart cloudkitty
 ```
+
+**A viewer-only change needs no restart at all.** `ServeDir` opens each
+file from disk per request and caches nothing in memory, and the server
+sends `no-cache` so browsers revalidate. Updating `client/` on the box is
+therefore live on the next request — the running binary, and the world it
+is holding, are untouched. That is the safe way to ship viewer work while
+an experiment is mid-flight and the engine must not move. (A `git pull`
+still updates the engine *source*; nothing changes until you rebuild and
+restart.)
 
 Two things to know before restarting into new code or config:
 

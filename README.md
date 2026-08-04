@@ -2,6 +2,9 @@
 
 A cute, safe sandbox where kitties frolic and play.
 
+Watch the live world at **[kitties.ai](https://kitties.ai)** (also served at
+[cloudkitty.ai](https://cloudkitty.ai)).
+
 CloudKitty is a 2D tile world that runs on a server and is watched through a browser.
 Kitties wander, eat, drink, nap in sunbeams, groom each other, chase bugs, and meow
 about it. Each kitty is driven by a pluggable *behavior*, so different cats can live
