@@ -26,7 +26,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 EXP = HERE.parent
 REPO = EXP.parents[1]
-PY = REPO / "experiments/exp-001-bc-mappo/trainer/.venv/bin/python"
+PY = sys.executable  # the venv running this driver (it is gitignored, so a
+                     # worktree has none of its own — reuse ours)
 TRAIN = HERE / "train_ppo_v2.py"
 
 FAMILY = EXP / "family/v2-dial1.5"
@@ -58,7 +59,7 @@ def run_segment(spec, wall_min, total_ticks):
     out = out_dir(*spec)
     if (out / "policy-final.pt").exists():
         return spec, "done", ""
-    cmd = [str(PY), str(TRAIN), "--mix-pct", str(mix), "--gamma", str(gamma),
+    cmd = [PY, str(TRAIN), "--mix-pct", str(mix), "--gamma", str(gamma),
            "--seed", str(seed), "--init", init,
            "--family-dir", str(FAMILY), "--critic-dir", str(CRITICS),
            "--total-ticks", str(total_ticks),
