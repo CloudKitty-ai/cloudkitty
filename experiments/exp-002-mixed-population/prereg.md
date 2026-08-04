@@ -38,11 +38,20 @@ F-007, F-009, F-010, F-011, F-012, F-013, F-014.
   1-agent and partial-agent deployment shapes (§8), without
   significant loss on the full-agent shape. Direction registered;
   33-vs-67 ordering is exploratory.
+  > **H1 NOT SUPPORTED 2026-08-03**
+  > ([results/grid-2026-08-03.md](results/grid-2026-08-03.md)): mixing
+  > buys ≤ +0.0009 on the 1-agent shape (γ=0.995 only) and costs
+  > 0.004–0.015 on the full-agent shape — the "without significant
+  > loss" clause fails. See the shape-i geometry note (Deviation 2).
 - **H2 (wet-fur learning)**: trained policies reduce water-lounging
   relative to frozen s6 on the pinned engine (§4) — success signature
   per the [water baseline](../exp-001-bc-mappo/results/water-baseline-2026-08-01.md):
   Sleeping/Grooming/Resting-on-water collapses toward scripted
   levels, Idle transit survives, Drinking unharmed.
+  > **H2 FALSIFIED 2026-08-03 — see Deviation 1.** Neither registered
+  > dial reaches the §9.1 gates; the wet-fur dial does not buy deployed
+  > water avoidance at welfare-neutral cost. Registered text above is
+  > unchanged; the result is recorded, not the criterion.
 - **H3 (meow preservation)**: warm-start arms retain functional
   channel use, measured **in policy company** (F-012): digest-zeroing
   changes ≥ 3% of digest-active decisions for at least one seed per
@@ -52,9 +61,20 @@ F-007, F-009, F-010, F-011, F-012, F-013, F-014.
   per-run flip-rate estimates carry more variance — see the
   [meow-listening doc](../exp-001-bc-mappo/results/meow-listening-2026-07-31.md)
   post-025 addendum).
+  > **H3 CONFIRMED 2026-08-03**
+  > ([results/grid-2026-08-03.md](results/grid-2026-08-03.md)): every
+  > warm-start cell passes with every seed ≥ 10% of heard (threshold
+  > 3%), measured in policy company beside frozen s6 after the
+  > forensics_replay labeling fix (Deviation 2).
 - **H4 (roster robustness)**: with roster 3–5 in the training family,
   no candidate exhibits F-010 catatonia on any deploy-surface roster
   (3/4/5) at certification length.
+  > **H4 PARTIALLY FALSIFIED 2026-08-03** (grid doc): 17/22 candidates
+  > pass the distress-age gate on all three rosters; 5 fail, worst the
+  > scratch control (3/30 seeds catatonic). Failures are per-training-
+  > seed, not per-cell — the family did not eliminate F-010, but the
+  > gate catches it and the roster is screened, which is what §9.2
+  > consumes.
 - **Anchors (registered predictions)**: γ=0.998 ≥ γ=0.995 within each
   mix condition (F-013 band position); the scratch-BC control ends at
   or below its warm-start twin cell (F-007); `needs_driven` holds
@@ -272,6 +292,12 @@ within noise):
   deviation and an owner conversation, not another silent turn of the
   dial.
 
+> **RESOLVED BY DEVIATION 1 (2026-08-03).** Both dials failed; the
+> escalation clause is exhausted and the owner conversation it
+> requires was held. Outcome: H2 falsified, dial set to 1.5, grid
+> proceeds on H1/H3/H4. Full record:
+> [results/dial-resolution-2026-08-03.md](results/dial-resolution-2026-08-03.md).
+
 ### 9.2 Selection and comparison
 
 - **Primary**: paired Nash vs scripted baseline on shapes i and iii
@@ -350,4 +376,90 @@ hyperparameters), §9.1 soak protocol.
 
 ## Appendix: Deviations
 
-*(none yet — the draft is unfrozen)*
+### Deviation 1 — §9.1 exhausted; H2 falsified; dial set to 1.5 (2026-08-03)
+
+**Trigger.** §9.1's registered escalation ran in full and both dials
+failed the gates (lounging ≤1.0%, in-water ≤3.0%), averaged over the
+Miso+Kittybear seats on the served world, 10 seeds × 20k:
+
+| Pilot | lounging | in-water |
+|---|---|---|
+| M33-g998-s1 @ dial 1.5 | 3.73% | 7.72% |
+| M33-g998-s1 @ dial 2.5 | 2.89% | 6.58% |
+
+The escalation was executed as registered before the second reading
+was taken: calibration probe rerun at 2.5, family regenerated
+`--water-gain 2.5` at the same family seed, dataset v2 invalidated and
+recollected on it, clone and both critics retrained, the dial-1.5
+pilot discarded, the pilot rerun. §9.1 caps escalation at one turn and
+names a second failure a deviation and an owner conversation. No third
+dial turn was taken and no threshold was moved.
+
+**Owner decision (2026-08-03).** Accept **H2 as falsified for this
+generation** and run the grid on the science that does not depend on
+the dial. H1, H3 and H4 are untouched by this result.
+
+**Dial set to 1.5.** With H2 resolved, the dial carries no remaining
+decision rule, so the training family takes the value that matches the
+deployment shape this generation is built around: 1.5 — the served
+world's value and the engine default. Training at 2.5 while evaluating
+on a 1.5 served world would open a train/deploy dynamics gap inside
+H1's own subject matter. `family/v2-dial1.5` and its dataset v2, clone
+and critics (all retained) are the grid's inputs; the 2.5 family,
+dataset, clone and critics are retained beside them as the escalation
+record.
+
+**Pilots.** Both pilot runs are recorded as pilots and **neither is
+cited as a grid seed**. §3's "the pilot IS run M33-g998-seed1" clause
+would arguably reinstate the 1.5 pilot now that the dial resolves to
+1.5, but that pilot was discarded under the escalation branch, and
+un-discarding a run because its dial later won is a researcher degree
+of freedom this document exists to spend. All 18 grid runs execute
+fresh; M33-g998-s1 is trained again from the registered init.
+
+**Why H2 failed (measured, not speculated).** The dial does move what
+it should — grooming-on-water fell 60% and idle loitering a third
+across the two dials — but sleeping-on-water barely responds and now
+dominates the residual, and it is not sunbeam napping (elements cannot
+share a tile). The behavior costs ≈0.002 team Nash, so PPO has no
+gradient to remove it, and the 130-probe series is flat after ≈2M
+ticks in both runs, so the runs are converged rather than undertrained.
+The gates are reachable in principle — the scripted ladder achieves
+0.31% / 1.63%.
+
+**Carried to exp-003 (owner, 2026-08-03).** Two changes to try
+together next generation: extend the observation schema so a kitty can
+see it is standing in water (today sunbeam occupancy has a dedicated
+self-block flag and water occupancy must be inferred from a
+nearest-water slot at distance 0 — a §4-forbidden schema change here
+because it voids the warm start), and raise the bath penalty
+substantially rather than incrementally.
+
+### Deviation 2 — evaluation-instrument notes (2026-08-03)
+
+Recorded after the grid evaluation; none changes a registered
+criterion.
+
+1. **Shape-i geometry substitution.** §8 registered the 1-agent shape
+   as "candidate at one seat, all other seats scripted (served config
+   behaviors)". The available instrument — kitty-eval's `Mixed`
+   roster — seats the subject at the first kitty and rewrites every
+   other seat to `needs_driven`, so Biscuit's `playful` was not in
+   company. No harness mode matches the registered geometry (the
+   `FromConfig` mode would run the config's `policy:` seats). Shape-i
+   results are honest paired measurements in all-needs_driven
+   company; cell contrasts share the geometry, so H1's evaluation
+   stands with that reading. A harness extension is Product's call.
+2. **forensics_replay labeling fix.** The shape-ii screen initially
+   appeared untrustworthy; the cause was probe columns labeled
+   positionally instead of by agent name (candidate at kitty_4
+   printed as "kitty_2"). Fixed and re-verified before any H3 number
+   was recorded; the H3 screen ran after the fix. The real trap —
+   omitting `--config` silently probes the compiled 3-kitty world and
+   re-measures frozen s6 — is documented in the grid doc.
+3. **Evaluate-once footnote.** M33-γ.998-s1's shape i ran once as a
+   pre-ledger timing check (identical protocol and seeds) and again
+   in the sweep; results identical, one recorded.
+4. **H2 per-candidate water readout skipped** for all grid candidates
+   under Deviation 1 (H2 falsified; the dial carries no remaining
+   decision rule this generation).

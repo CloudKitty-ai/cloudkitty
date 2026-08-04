@@ -127,8 +127,15 @@ def replay(policy, config_path, seed, ticks, horizon=None, pin_clock=False,
             if any(trunc.values()):
                 obs, infos = env.reset()
     log["meows"] = np.array(sorted(meows), dtype=object) if meows else np.empty((0, 3), object)
-    labels = names if len(names) == roster else [f"kitty_{k + 1}" for k in range(roster)]
-    return log, labels
+    # Column semantics differ by array: happiness/distress/pos columns
+    # follow the snapshot's kitty order (roster-wide), while action/
+    # cf_action/digest_active columns follow the AGENT list — with
+    # controlled seats those are different lists. Return both; the old
+    # single synthetic label list mislabeled a candidate's probe column
+    # as a scripted seat (grid results 2026-08-03, H3 correction).
+    roster_labels = (names if len(names) == roster
+                     else [f"state-slot-{k}" for k in range(roster)])
+    return log, names, roster_labels
 
 
 def group_of(idx):
@@ -247,24 +254,26 @@ def main():
                  for name, p in (pair.split("=", 1)
                                  for pair in args.seat.split(","))}
 
-    log, names = replay(policy, args.config, args.seed, args.ticks,
-                        horizon=args.horizon, pin_clock=args.pin_clock,
-                        control=control, seats=seats,
-                        digest_probe=args.digest_probe)
+    log, agents, roster_labels = replay(
+        policy, args.config, args.seed, args.ticks,
+        horizon=args.horizon, pin_clock=args.pin_clock,
+        control=control, seats=seats,
+        digest_probe=args.digest_probe)
     seat = f" control[{args.control}]" if args.control else ""
     if args.seat:
         seat += f" seats[{args.seat}]"
     print(f"== {args.policy.parent.name} seed {args.seed} ({args.ticks} ticks){seat} ==")
-    summarize(log, names, args.window, args.threshold)
+    summarize(log, roster_labels, args.window, args.threshold)
     if args.digest_probe:
-        probe_summary(log, names)
+        probe_summary(log, agents)
     tagbits = (("h" + str(args.horizon) if args.horizon else "episodic")
                + ("-pinned" if args.pin_clock else "")
                + ("-seated" if args.control else "")
                + ("-hetero" if args.seat else "")
                + ("-probe" if args.digest_probe else ""))
     out = args.out or args.policy.parent / f"forensics-seed{args.seed}-{tagbits}.npz"
-    np.savez_compressed(out, **log, names=np.array(names))
+    np.savez_compressed(out, **log, names=np.array(agents),
+                        roster_labels=np.array(roster_labels))
     print(f"saved {out}")
 
 

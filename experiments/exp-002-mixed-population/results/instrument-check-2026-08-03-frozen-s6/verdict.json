@@ -1,0 +1,19 @@
+{
+ "policy": "/Users/elizabethkelly/ai/cloudkitty/experiments/exp-001-bc-mappo/artifacts/arm2-g0p998-s6/policy-final.pt",
+ "lounge_share": 0.04439,
+ "inwater_share": 0.099975,
+ "per_seat": {
+  "Miso": {
+   "lounge": 0.04199,
+   "inwater": 0.09596
+  },
+  "Kittybear": {
+   "lounge": 0.04679,
+   "inwater": 0.10399
+  }
+ },
+ "pass_lounge_1pct": false,
+ "pass_inwater_3pct": false,
+ "both_pass": false,
+ "nash_mean": 0.897382658756978
+}

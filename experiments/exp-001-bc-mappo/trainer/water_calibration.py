@@ -16,7 +16,11 @@ Adds to the baseline instrument (new fields, nothing renamed):
 Seeds run in a process pool (new machine, 18 cores); per-seed JSONs
 land in results/water-calibration-2026-08-02/.
 
-Usage: trainer/.venv/bin/python water_calibration.py [seed ...]
+Usage: trainer/.venv/bin/python water_calibration.py [label] [config]
+  label:  archive dir name under results/ (default the 08-02 record)
+  config: world config override (default the served cloudkitty.toml) —
+          lets the instrument anchor non-served regimes, e.g. the §9.1
+          escalated dial. Seeds are fixed at 1..10 (the registered set).
 """
 import json
 import sys
@@ -28,7 +32,8 @@ TRAINER = Path(__file__).resolve().parent
 sys.path.insert(0, str(TRAINER))
 
 REPO = TRAINER.parents[2]
-CONFIG = REPO / "cloudkitty.toml"
+CONFIG = (Path(sys.argv[2]).resolve() if len(sys.argv) > 2
+          else REPO / "cloudkitty.toml")
 # Each run archives under its own label: past dirs are committed records
 # (a rerun must never overwrite them). Pass the label as argv[1].
 OUTDIR = TRAINER.parent / "results" / (
@@ -140,7 +145,7 @@ def run_seed(seed):
 
 
 def main():
-    seeds = [int(a) for a in sys.argv[1:]] or list(range(1, 11))
+    seeds = list(range(1, 11))  # the registered 10-seed set
     OUTDIR.mkdir(exist_ok=True)
     with ProcessPoolExecutor(max_workers=min(len(seeds), 10)) as pool:
         for r in pool.map(run_seed, seeds):
