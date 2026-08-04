@@ -17,12 +17,81 @@ matches the `policies/` examples in `docs/rl-training.md`; the root
 - Every file gets a row here: filename → sha256 → provenance →
   certification record. A file without a row (or a row whose hash no
   longer matches) is a deployment error.
-- Retired artifacts are deleted, not overwritten — history keeps the
-  bytes; this directory holds only what the served config may name.
+- **Top level holds exactly what the served config may name.** A
+  `.ckpolicy` beside this README that no `[rl.policy.*]` block points
+  at is a deployment error, and so is a config block pointing at a
+  file that isn't here.
+- **Retired artifacts move to `retired/`; they are not deleted** (owner
+  decision, 2026-08-04, revising the original delete rule). Git history
+  keeps the bytes either way — what deletion actually costs is the
+  legible record of service: which cat an artifact drove, for how long,
+  and what replaced it. That record is the retired table below. Nothing
+  in `retired/` may be named by the served config, and every file there
+  needs a retirement row.
+- Renaming is allowed and does not break the chain: the sha256 is the
+  identity, the filename is a label. A renamed file keeps its row and
+  gains a "formerly" note, so older certification documents — which
+  name the old file — stay followable.
 
-## Artifacts
+## Naming
+
+`e<experiment>-<the axes that experiment varied>`. The name identifies
+a *run*, so it greps straight into that experiment's record:
+
+- `e001-a2-s6` — exp-001, arm 2, seed 6. Exp-001 varied arm and seed.
+- `e002-m0-g998-s1` — exp-002, mix 0%, γ = 0.998, seed 1. Exp-002
+  varied mixing rate, discount, and seed.
+
+Why "the axes that varied" rather than "everything true about the
+model" (reasoned out 2026-08-04):
+
+- A name's job is to be a unique, stable identifier tied to a record.
+  It is not a spec sheet.
+- Properties held constant across an experiment — architecture,
+  activation, layer widths — are already recorded mechanically in the
+  artifact header (`layers`, `activation`, `artifact_version`) and in
+  the prereg. Repeating them in the name creates a second source of
+  truth that can drift. The header cannot lie; a name can.
+- The experiment number already stamps the era, so "which generation
+  of brain is this" is answerable without a type token. Everything
+  through exp-002 is a 182→256→256→40 ReLU MLP because that is what
+  those experiments trained, and the prereg says so.
+- **When an experiment varies architecture, architecture enters the
+  name by this same rule** — an MLP arm against an LSTM arm in exp-007
+  yields `e007-mlp-s1` and `e007-lstm-s1`, with no convention change
+  and no retroactive renaming. That is the answer to "shouldn't we
+  call out model type once we deploy LSTMs or LLMs": we will, exactly
+  when it distinguishes something. A new architecture also cannot
+  masquerade as one of these — `PolicyArtifact::load` pins
+  `artifact_version` to 1 and the forward pass is stateless, so
+  recurrence arrives as a format change that validates itself, and an
+  out-of-process LLM cat would live in the `[plugins.*]` namespace
+  rather than here.
+- If a name ever does carry a type token, assert it against the header
+  at load or in CI. Duplication is fine when it is mechanically
+  checked; it is not fine when it is merely conventional.
+
+Names are a public interface: `GET /config` serializes each kitty's
+`behavior` string verbatim, so `policy:<name>` is already visible to
+every client. Pick a name once; don't churn it. The human-readable
+description belongs in the tables below — and, when a "show brain"
+feature is specced, in a served field on `[rl.policy.*]`. Don't add a
+`description =` key before then: `PolicyConfig` has no
+`deny_unknown_fields`, so serde silently discards unknown keys and the
+config would carry something that looks like data but is inert.
+
+## Active
 
 | File | sha256 | Provenance | Certification |
 |------|--------|------------|---------------|
-| `s6.ckpolicy` | `8030b94d8cbf670a46435b38a817035e864d4923203ffa71e52e761099eeeb5f` | exp-001 arm2, γ = 0.998, seed 6 (BC → MAPPO); drives Miso (`policy:s6`), greedy selection | `experiments/exp-001-bc-mappo/results/recert-2026-07-31.md` (certify clean, new engine + 24×24, +0.0448 AllSubject); lineage: `served-world-remeasure-2026-07-30.md`, `s6-promotion-2026-07-30.md`, `soak-record-2026-07-31.md` (§9.1 PASS) |
-| `s3.ckpolicy` | `bbaf5f8bbfc312447046aae326eaff23cee9454a6d143cb472adbade9187aad2` | exp-001 arm2, γ = 0.998, seed 3 (BC → MAPPO); drives Kittybear (`policy:s3`), greedy selection | `experiments/exp-001-bc-mappo/results/recert-2026-07-31.md` (certify clean, new engine + 24×24, +0.0427 AllSubject); `pair-screen-2026-07-31.md` (seating screen, Seating B per the pre-registered rule) |
+| `e001-a2-s6.ckpolicy` | `8030b94d8cbf670a46435b38a817035e864d4923203ffa71e52e761099eeeb5f` | exp-001 arm2, γ = 0.998, seed 6 — BC clone of 1.78M scripted decisions, then MAPPO. Drives Miso (`policy:e001-a2-s6`), greedy selection. Formerly `s6.ckpolicy` (renamed 2026-08-04, bytes untouched) | `experiments/exp-001-bc-mappo/results/recert-2026-07-31.md` (certify clean, new engine + 24×24, +0.0448 AllSubject); lineage: `served-world-remeasure-2026-07-30.md`, `s6-promotion-2026-07-30.md`, `soak-record-2026-07-31.md` (§9.1 PASS) |
+| `e002-m0-g998-s1.ckpolicy` | `1cb3fdac5b09dbc2315c6d529bef1ced6b1dfad15946402810ddff3b27b9ca27` | exp-002 winner: no mixing, γ = 0.998, seed 1 — 20M ticks of PPO warm-started from `e001-a2-s6`. Drives Kittybear (`policy:e002-m0-g998-s1`) from deployment stage 1, greedy selection | `experiments/exp-002-mixed-population/results/grid-2026-08-03.md` — selected by the pre-registered §9.2 rule (primary left a two-way tie; channel use broke it, 13.37% vs 12.66%). Winner-vs-deployed addendum: shape iii +0.04730 vs +0.04396, in-water 5.14% vs 9.21%, distress 0. H3 flip floor 12.26% against the 3% gate; H4 0/0/0. Ledger: `experiments/exp-002-mixed-population/results/eval-ledger-2026-08-03.json` |
+
+## Retired
+
+Kept for the record, and because these ran the world. Nothing here may
+be named by the served config.
+
+| File | sha256 | Service | Superseded by |
+|------|--------|---------|---------------|
+| `retired/e001-a2-s3.ckpolicy` | `bbaf5f8bbfc312447046aae326eaff23cee9454a6d143cb472adbade9187aad2` | exp-001 arm2, γ = 0.998, seed 3 — same recipe as `e001-a2-s6`, different seed. Drove Kittybear as `policy:s3` from 2026-08-01 (PR #87; seated per `pair-screen-2026-07-31.md`, Seating B) until the stage-1 restart that follows this cutover. Certified in `experiments/exp-001-bc-mappo/results/recert-2026-07-31.md` (+0.0427 AllSubject). Formerly `s3.ckpolicy` | `e002-m0-g998-s1.ckpolicy` (2026-08-04) |

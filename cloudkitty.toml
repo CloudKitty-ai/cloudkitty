@@ -29,7 +29,8 @@ x = 10
 y = 12
 # exp-001 deployment soak (prereg §9.1): Miso is driven by the arm2-g0p998-s6
 # policy — the seat kitty-eval's Mixed roster certified (subject at index 0).
-behavior = "policy:s6"
+# Inherits the exp-002 winner at deployment stage 2 (experiments/ROADMAP.md).
+behavior = "policy:e001-a2-s6"
 
 [[kitty]]
 id = 2
@@ -55,10 +56,11 @@ id = 4
 name = "Kittybear"
 x = 5
 y = 5
-# Second policy seat (pair-screen 2026-07-31, Seating B): Kittybear is driven
-# by the arm2-g0p998-s3 policy — both seatings passed, B held the higher Nash
-# delta per the pre-registered rule.
-behavior = "policy:s3"
+# Second policy seat (pair-screen 2026-07-31, Seating B). Kittybear inherits
+# the exp-002 winner at deployment stage 1 (experiments/ROADMAP.md), replacing
+# arm2-g0p998-s3: measured in exactly this seat — candidate at kitty_4 beside
+# frozen s6 at kitty_1 — team reward 0.8976, in-water 5.14% (from 9.21%).
+behavior = "policy:e002-m0-g998-s1"
 
 # How fast each need rises, per tick. Higher means more pressing, more often.
 [needs]
@@ -255,15 +257,19 @@ distress_patience_ticks = 60
 # schema-validated and content-hashed at startup (never served on GET /config).
 # Deployed artifacts live in the committed policies/ directory (owner
 # decision 2026-07-31) so a fresh clone serves the roster as-is; the README
-# there maps each file to its sha256 and certification record.
-# s6 = exp-001 arm2-g0p998-s6, sha256 8030b94d… — certified clean
+# there maps each file to its sha256, its certification record, and the
+# naming convention these keys follow.
+# e001-a2-s6 = exp-001 arm2-g0p998-s6, sha256 8030b94d… — certified clean
 # 2026-07-30 (results/served-world-remeasure-2026-07-30.md); greedy selection
-# (sample = false), matching the certified condition.
-[rl.policy.s6]
-artifact = "policies/s6.ckpolicy"
+# (sample = false), matching the certified condition. Renamed from `s6`
+# 2026-08-04 with the bytes untouched; the sha is the continuity.
+[rl.policy.e001-a2-s6]
+artifact = "policies/e001-a2-s6.ckpolicy"
 
-# s3 = exp-001 arm2-g0p998-s3, sha256 bbaf5f8b… — certified clean on this
-# shape 2026-07-31 (results/recert-2026-07-31.md); seated per the pair
-# screen (Seating B); greedy selection, matching the certified condition.
-[rl.policy.s3]
-artifact = "policies/s3.ckpolicy"
+# e002-m0-g998-s1 = exp-002 winner (no mixing, γ = 0.998, seed 1), warm-started
+# from e001-a2-s6, sha256 1cb3fdac… — selected by the pre-registered §9.2 rule
+# (experiments/exp-002-mixed-population/results/grid-2026-08-03.md); greedy
+# selection, matching the certified condition. Replaces `s3`, retired to
+# policies/retired/ the same day.
+[rl.policy.e002-m0-g998-s1]
+artifact = "policies/e002-m0-g998-s1.ckpolicy"
