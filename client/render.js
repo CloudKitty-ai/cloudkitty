@@ -32,10 +32,14 @@ const BUBBLE_TICKS = 3;
 
 /**
  * Which pose a served kitty is in (spec 005, data-model table): the activity
- * state speaks first, then the applied action, then movement, then idle.
- * Pure function of served data -- nothing here predicts (Article V).
+ * state speaks first, then the applied action, then movement, then idle --
+ * with water under the last two (a wading kitty paddles instead of walking
+ * or standing; activities and the pounce keep their poses, spec 010's
+ * skirt-the-puddle rule makes all of these rare). Pure function of served
+ * data -- nothing here predicts (Article V). `onWater` arrives pre-gated:
+ * only the v2 vocabulary owns a swim pose, so v1 callers pass false.
  */
-function poseFor(kitty, moved) {
+function poseFor(kitty, moved, onWater = false) {
   const state = kitty.activity?.state;
   if (state === 'sleeping') return 'sleep-curl';
   if (state === 'resting') return 'loaf';
@@ -44,6 +48,7 @@ function poseFor(kitty, moved) {
   if (state === 'grooming') return 'grooming';
   const action = kitty.last_action?.action;
   if (action === 'play' || action === 'chase') return 'pouncing';
+  if (onWater) return 'swim';
   if (moved) return 'walking';
   return 'idle';
 }
@@ -390,40 +395,112 @@ class WorldRenderer {
     const cy = y + this.tile / 2;
     const state = kitty.activity?.state ?? 'idle';
 
-    // A soft shadow so cats sit on the grass rather than float above it.
-    ctx.fillStyle = MEADOW.groundShadow;
-    ctx.beginPath();
-    ctx.ellipse(cx, cy + this.tile * 0.32, this.tile * 0.3, this.tile * 0.12, 0, 0, Math.PI * 2);
-    ctx.fill();
+    // Live motion and the swim pose are v2-vocabulary affairs: the
+    // dispatcher installs drawCatTween exactly when v2 kitties are
+    // active, so v1 keeps its pose snap, its snap blink, and its
+    // walk-through-water by construction.
+    const v2Motion = typeof drawCatTween === 'function';
+    // A kitty over a water tile is wading (spec 010's parked swim pose).
+    // Keyed on the tile under the DRAWN cat -- the eased interpolation,
+    // not the served destination -- so the pose flips as the cat visibly
+    // crosses the shore (mid-tick; the tween machinery blends it there),
+    // never a full glide early. The served elements are the truth about
+    // where water is, mid-fade or not.
+    const onWater =
+      v2Motion &&
+      world.elements.some(
+        (el) =>
+          el.kind === 'water' &&
+          el.pos.x === Math.round(pos.x) &&
+          el.pos.y === Math.round(pos.y),
+      );
 
     // The approved vector cat (spec 005 US2/US4/US5): identity from the
     // kitty's id, pose from served state (with the fall-asleep settle),
     // facing from its last horizontal movement, motion from the animation
     // layer -- and the drama layered by the documented rule: pose, then
     // action animation, then expression, then the single one-shot beat.
-    const pose = view.adjustPose(kitty.id, poseFor(kitty, view.movedFor(kitty.id)));
+    const pose = view.adjustPose(kitty.id, poseFor(kitty, view.movedFor(kitty.id), onWater));
+
     const motion = view.motionFor(kitty.id, pose);
     const beat = view.oneShotFor(kitty.id);
     let eyes = motion.eyesOverride;
     let ears = motion.earsBack;
+    let lid;
+    if (v2Motion && motion.blinkLid !== undefined) {
+      lid = motion.blinkLid;
+      if (eyes === 'closed') eyes = undefined; // the eased lid replaces the snap blink
+    }
     const expression = view.expressionFor(kitty);
-    if (expression && !eyes) eyes = expression; // focused, unless mid-blink
+    // On the v2 path a pursuit's focused eyes hold through the blink slot
+    // -- drawFace exempts 'focused' from the lid, so hunters keep their
+    // unbroken stare (v1 still snap-blinks over focused, as it always
+    // has). Locked (owner, 2026-08-02): hunting kitties do not blink.
+    if (expression && !eyes) eyes = expression;
     if (beat?.kind === 'sad') {
-      // The give-up droop wears on the cat itself: ears back, eyes low.
+      // The give-up droop wears on the cat itself: ears back, eyes low --
+      // and it outranks a blink in progress, exactly as it did pre-lid
+      // (a full lid would promote the droop to the happy closed arcs).
       ears = true;
       eyes = 'half';
+      lid = undefined;
     }
-    drawCat(ctx, {
-      pose,
+    const tween = v2Motion && view.tweenFor ? view.tweenFor(kitty.id, pose, motion.phase) : null;
+
+    // A soft shadow so cats sit on the grass rather than float above it.
+    // It follows the drawn silhouette, not the pose label: gone while
+    // swimming, fading with the shoreline blend in either direction (the
+    // label flips at t=0, when the drawn cat is still wholly the from-pose).
+    const shadowAlpha = tween?.blend
+      ? pose === 'swim'
+        ? 1 - tween.blend.t
+        : tween.blend.from === 'swim'
+          ? tween.blend.t
+          : 1
+      : pose === 'swim'
+        ? 0
+        : 1;
+    if (shadowAlpha > 0) {
+      ctx.save();
+      ctx.globalAlpha = shadowAlpha;
+      ctx.fillStyle = MEADOW.groundShadow;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy + this.tile * 0.32, this.tile * 0.3, this.tile * 0.12, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+    if (tween?.sy !== undefined) {
+      // The landing settle: a soft squash about the ground line, so the
+      // feet stay planted (the dispatcher's overdraw anchors feet too).
+      const groundY = y + 0.88 * this.tile;
+      ctx.save();
+      ctx.translate(0, groundY);
+      ctx.scale(1, tween.sy);
+      ctx.translate(0, -groundY);
+    }
+    const catOpts = {
       appearance: shadedAppearanceOf(appearanceFor(kitty.id), this.theme),
       facing: view.facingFor(kitty.id),
       size: this.tile,
-      phase: motion.phase,
       eyesOverride: eyes,
       earsBack: ears,
+      lid,
       x,
       y,
-    });
+    };
+    if (tween?.blend) {
+      drawCatTween(ctx, {
+        ...catOpts,
+        from: tween.blend.from,
+        to: pose,
+        t: tween.blend.t,
+        phaseFrom: tween.blend.fromPhase,
+        phaseTo: motion.phase,
+      });
+    } else {
+      drawCat(ctx, { ...catOpts, pose, phase: motion.phase });
+    }
+    if (tween?.sy !== undefined) ctx.restore();
     if (beat) this.drawBeat(beat, cx, cy, view.facingFor(kitty.id));
 
     if (state === 'sleeping') {

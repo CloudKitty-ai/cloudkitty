@@ -106,8 +106,9 @@ const PALETTES = [
 ];
 
 /**
- * The pose vocabulary -- eight names, matching the spec's clarified list
- * (idle is a standing cat; sitting is deliberately skipped for now).
+ * The pose vocabulary -- the spec's clarified eight (idle is a standing
+ * cat; sitting is deliberately skipped for now), plus v2's swim (the
+ * parked 010 wading pose, built 2026-08-02; v1 never wears it).
  */
 const POSES = [
   'idle',
@@ -118,7 +119,23 @@ const POSES = [
   'grooming',
   'loaf',
   'sleep-curl',
+  'swim',
 ];
+
+/**
+ * Swim-pose tunables, mutable for the gallery lab's dials exactly like
+ * EYE/NOSE/MOUTH: the owner dials, the paste gets baked here. Unit space
+ * (0..1 box, ground near y 0.88); the pond draws underneath the cat, so
+ * "underwater" is a reading the low flat silhouette earns, not clipping.
+ */
+const SWIM = {
+  bodyY: 0.78, // body center: low, most of the cat under the waterline
+  bodyRy: 0.14, // flattened floating body
+  headY: 0.56, // head held clear of the water
+  bob: 0.012, // vertical bob amplitude (paddle rhythm)
+  rock: 0.045, // paddling body rock, radians
+  tailLift: 0.6, // where the tail tip rides above the surface
+};
 
 /** The stable per-kitty appearance (FR-003). The one override point when
  * served appearance data exists someday: callers never index PALETTES. */
@@ -437,6 +454,28 @@ function catLayout(pose, phase) {
       L.legs = [];
       // Tail curled right around to the nose.
       L.tail = { x0: 0.24, y0: 0.82, c1x: 0.4, c1y: 0.94, c2x: 0.66, c2y: 0.92, x1: 0.78, y1: 0.76 };
+      break;
+    }
+
+    case 'swim': {
+      // The wading kitty (spec 010's parked pose): a low flat float, head
+      // and ears dry, legs paddling out of sight below the surface (none
+      // drawn -- blends shrink them away on the way in). Paddling reads
+      // as a gentle bob plus a slow body rock; the droplet doubles as the
+      // splash beside the head. Every number lives in SWIM for the lab.
+      const bob = SWIM.bob * Math.sin(phase * TAU);
+      const rock = SWIM.rock * Math.sin(phase * TAU * 2);
+      L.body = { cx: 0.44, cy: SWIM.bodyY + bob, rx: 0.3, ry: SWIM.bodyRy, rot: rock };
+      L.head = { cx: 0.7, cy: SWIM.headY + bob, r: 0.226 };
+      L.legs = [];
+      L.droplet = true;
+      // Tail trailing behind, tip riding above the surface.
+      L.tail = {
+        x0: 0.16, y0: SWIM.bodyY + bob,
+        c1x: 0.04, c1y: SWIM.bodyY - 0.05,
+        c2x: 0.0, c2y: SWIM.tailLift + 0.08,
+        x1: 0.05, y1: SWIM.tailLift,
+      };
       break;
     }
 
@@ -925,6 +964,7 @@ const api = {
   EYE,
   NOSE,
   MOUTH,
+  SWIM,
   PALETTES,
   POSES,
   // Not cat API, but props.js, meadow.js and app.js quietly depend on

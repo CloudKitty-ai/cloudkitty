@@ -369,6 +369,14 @@
     { obj: 'MOUTH', key: 'gap', label: 'mouth gap (below nose)', min: 0, max: 0.25, step: 0.005 },
     { obj: 'MOUTH', key: 'width', label: 'mouth width (half-span)', min: 0.03, max: 0.3, step: 0.005 },
     { obj: 'MOUTH', key: 'depth', label: 'mouth depth (leg drop)', min: 0, max: 0.25, step: 0.005 },
+    // Swim-pose dials (2026-08-02): first-cut values, judged in the
+    // motion lab's swim card below, baked on the owner's paste.
+    { obj: 'SWIM', key: 'bodyY', label: 'swim body depth (− up / + down)', min: 0.68, max: 0.86, step: 0.005 },
+    { obj: 'SWIM', key: 'bodyRy', label: 'swim body flatness', min: 0.08, max: 0.2, step: 0.005 },
+    { obj: 'SWIM', key: 'headY', label: 'swim head height (− up / + down)', min: 0.45, max: 0.68, step: 0.005 },
+    { obj: 'SWIM', key: 'bob', label: 'swim bob amplitude', min: 0, max: 0.03, step: 0.001 },
+    { obj: 'SWIM', key: 'rock', label: 'swim paddle rock', min: 0, max: 0.1, step: 0.005 },
+    { obj: 'SWIM', key: 'tailLift', label: 'swim tail-tip height (− up / + down)', min: 0.45, max: 0.75, step: 0.005 },
   ];
   const dialRoot = document.getElementById('dials');
   const readout = document.getElementById('eyeReadout');
@@ -413,13 +421,16 @@
     const e = CatV2.EYE;
     const n = CatV2.NOSE;
     const m = CatV2.MOUTH;
+    const s = CatV2.SWIM;
     readout.style.whiteSpace = 'pre-line';
     readout.textContent =
       `EYE = { scale: ${e.scale}, height: ${e.height}, shift: ${e.shift}, pupil: ${e.pupil} } · ` +
       `NOSE = { x: ${n.x}, y: ${n.y}, size: ${n.size} } · ` +
       `MOUTH = { style: '${m.style}', gap: ${m.gap}, width: ${m.width}, depth: ${m.depth} }\n` +
       `LID = { halfLid: ${e.halfLid}, lidTilt: ${e.lidTilt}, lidCurve: ${e.lidCurve} } · ` +
-      `FOCUSED = { focusedScale: ${e.focusedScale}, focusedHeight: ${e.focusedHeight} }`;
+      `FOCUSED = { focusedScale: ${e.focusedScale}, focusedHeight: ${e.focusedHeight} }\n` +
+      `SWIM = { bodyY: ${s.bodyY}, bodyRy: ${s.bodyRy}, headY: ${s.headY}, ` +
+      `bob: ${s.bob}, rock: ${s.rock}, tailLift: ${s.tailLift} }`;
   }
 
   // Slider bench: a static standing pair, redrawn live as the dials move.
@@ -488,6 +499,12 @@
   // Each demo: one drawFrame(ctx, w, h, now, isV2). v1 column shows today's
   // behavior (snaps); v2 shows the prototype (blends, squash, lid, settle).
   const CAT = 84;
+  // Where the water surface crosses a swimming cat's box (both swim
+  // cards share it, so a SWIM re-dial can never leave the two cards'
+  // waterlines disagreeing). The -0.02 is the shore margin: the surface
+  // sits just above the floating body's top edge.
+  const waterlineAt = (y) =>
+    y + CAT * (CatV2.SWIM.bodyY - CatV2.SWIM.bodyRy - 0.02);
   const DEMOS = [
     {
       title: 'Pose flow',
@@ -573,6 +590,74 @@
           (isV2 ? CatV2.drawCat : drawCat)(ctx, { ...base, pose: 'idle', phase: (now % 3400) / 3400 });
         }
         ctx.restore();
+      },
+    },
+    {
+      title: 'Swim (the wading kitty)',
+      note: 'A kitty on a water tile paddles: tick-clock strokes on the move, an ambient bob afloat. v2 only (owner call 2026-08-01) — v1 walks through water like today. The swim dials above write CatV2.SWIM live.',
+      draw(ctx, w, h, now, isV2) {
+        const CYCLE = 4200, MOVE = 2400, TICK = 800;
+        const t = now % CYCLE;
+        const moving = t < MOVE;
+        const y = h - CAT * 0.95;
+        // Pond band first: the world draws water UNDER the cat, so the
+        // low silhouette must read as swimming without any clipping.
+        const waterline = waterlineAt(y);
+        ctx.fillStyle = '#9ccfe6';
+        ctx.fillRect(0, waterline, w, h - waterline);
+        const from = w / 2 - CAT * 0.55;
+        const to = w / 2 + CAT * 0.15;
+        const x = moving ? from + (to - from) * easeInOutCubic(t / MOVE) : to;
+        const base = { appearance: CatV2.appearanceFor(STORM), facing: 'right', size: CAT, x, y };
+        const phase = moving ? (t % TICK) / TICK : (now % 3400) / 3400;
+        if (isV2) {
+          CatV2.drawCat(ctx, { ...base, pose: 'swim', phase });
+        } else {
+          drawCat(ctx, { ...base, pose: moving ? 'walking' : 'idle', phase });
+        }
+      },
+    },
+    {
+      title: 'Shoreline crossing',
+      note: 'The full trip on the live wiring’s clocks: walk in, blend to paddling at the shore (260 ms smoothstep, from-phase frozen at the crossing), swim across on the tick clock, blend back out. v1 walks straight through — snapless because it never changes pose at all.',
+      draw(ctx, w, h, now, isV2) {
+        // BLEND mirrors anim.js's VIEW.poseBlendMs (this page never loads
+        // anim.js); if that dial moves after judging, move this with it.
+        const CYCLE = 6600, IN = 1800, OUT = 4200, TICK = 800, BLEND = 260;
+        const t = now % CYCLE;
+        const y = h - CAT * 0.95;
+        const waterline = waterlineAt(y);
+        // The trip is linear in time, so the shore sits exactly where the
+        // pose crossing happens (measured at the cat's center).
+        const x0 = 8, x1 = w - CAT - 8;
+        const xAt = (ms) => x0 + (x1 - x0) * (ms / CYCLE);
+        const x = xAt(t);
+        ctx.fillStyle = '#b7dcae';
+        ctx.fillRect(0, waterline, w, h - waterline);
+        const pondL = xAt(IN) + CAT * 0.5;
+        const pondR = xAt(OUT) + CAT * 0.5;
+        ctx.fillStyle = '#9ccfe6';
+        ctx.fillRect(pondL, waterline, pondR - pondL, h - waterline);
+        const wPhase = (ms) => (ms % TICK) / TICK;
+        const base = { appearance: CatV2.appearanceFor(STORM), facing: 'right', size: CAT, x, y };
+        if (!isV2) {
+          drawCat(ctx, { ...base, pose: 'walking', phase: wPhase(t) });
+          return;
+        }
+        if (t >= IN && t < IN + BLEND) {
+          CatV2.drawCatTween(ctx, {
+            ...base, from: 'walking', to: 'swim', t: easeSmooth((t - IN) / BLEND),
+            phaseFrom: wPhase(IN), phaseTo: wPhase(t),
+          });
+        } else if (t >= OUT && t < OUT + BLEND) {
+          CatV2.drawCatTween(ctx, {
+            ...base, from: 'swim', to: 'walking', t: easeSmooth((t - OUT) / BLEND),
+            phaseFrom: wPhase(OUT), phaseTo: wPhase(t),
+          });
+        } else {
+          const inWater = t >= IN && t < OUT;
+          CatV2.drawCat(ctx, { ...base, pose: inWater ? 'swim' : 'walking', phase: wPhase(t) });
+        }
       },
     },
   ];
