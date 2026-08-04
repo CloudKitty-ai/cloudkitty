@@ -11,13 +11,18 @@
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <!-- The social card (rendered by og-card.html from the real v2 art;
-     regenerate after art changes). og:image is root-relative: the spec
-     wants an absolute URL and most crawlers resolve relative anyway --
-     swap in the public origin here when it's pinned down. -->
+     regenerate after art changes). These two URLs are absolute because the
+     spec requires it and the pickier crawlers (Slack, LinkedIn, WhatsApp)
+     will not resolve a relative one. They are hardcoded to the canonical
+     host on purpose: the world is also served at cloudkitty.ai, and a
+     share from either host should collapse to the same preview. Rename the
+     canonical host and these two lines must move with it -- see the
+     Hostnames section of docs/deployment.md. -->
 <meta property="og:title" content="CloudKitty">
 <meta property="og:description" content="a small, safe world where kitties frolic and play">
 <meta property="og:type" content="website">
-<meta property="og:image" content="/og-image.png">
+<meta property="og:url" content="https://kitties.ai/">
+<meta property="og:image" content="https://kitties.ai/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Vector kitties in a cream meadow under the CloudKitty wordmark: one loafing with closed eyes, one standing, one strolling, one paddling a pond.">
