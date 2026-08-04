@@ -52,6 +52,10 @@ F-007, F-009, F-010, F-011, F-012, F-013, F-014.
   per-run flip-rate estimates carry more variance — see the
   [meow-listening doc](../exp-001-bc-mappo/results/meow-listening-2026-07-31.md)
   post-025 addendum).
+  > **H2 FALSIFIED 2026-08-03 — see Deviation 1.** Neither registered
+  > dial reaches the §9.1 gates; the wet-fur dial does not buy deployed
+  > water avoidance at welfare-neutral cost. Registered text above is
+  > unchanged; the result is recorded, not the criterion.
 - **H4 (roster robustness)**: with roster 3–5 in the training family,
   no candidate exhibits F-010 catatonia on any deploy-surface roster
   (3/4/5) at certification length.
@@ -272,6 +276,12 @@ within noise):
   deviation and an owner conversation, not another silent turn of the
   dial.
 
+> **RESOLVED BY DEVIATION 1 (2026-08-03).** Both dials failed; the
+> escalation clause is exhausted and the owner conversation it
+> requires was held. Outcome: H2 falsified, dial set to 1.5, grid
+> proceeds on H1/H3/H4. Full record:
+> [results/dial-resolution-2026-08-03.md](results/dial-resolution-2026-08-03.md).
+
 ### 9.2 Selection and comparison
 
 - **Primary**: paired Nash vs scripted baseline on shapes i and iii
@@ -350,4 +360,61 @@ hyperparameters), §9.1 soak protocol.
 
 ## Appendix: Deviations
 
-*(none yet — the draft is unfrozen)*
+### Deviation 1 — §9.1 exhausted; H2 falsified; dial set to 1.5 (2026-08-03)
+
+**Trigger.** §9.1's registered escalation ran in full and both dials
+failed the gates (lounging ≤1.0%, in-water ≤3.0%), averaged over the
+Miso+Kittybear seats on the served world, 10 seeds × 20k:
+
+| Pilot | lounging | in-water |
+|---|---|---|
+| M33-g998-s1 @ dial 1.5 | 3.73% | 7.72% |
+| M33-g998-s1 @ dial 2.5 | 2.89% | 6.58% |
+
+The escalation was executed as registered before the second reading
+was taken: calibration probe rerun at 2.5, family regenerated
+`--water-gain 2.5` at the same family seed, dataset v2 invalidated and
+recollected on it, clone and both critics retrained, the dial-1.5
+pilot discarded, the pilot rerun. §9.1 caps escalation at one turn and
+names a second failure a deviation and an owner conversation. No third
+dial turn was taken and no threshold was moved.
+
+**Owner decision (2026-08-03).** Accept **H2 as falsified for this
+generation** and run the grid on the science that does not depend on
+the dial. H1, H3 and H4 are untouched by this result.
+
+**Dial set to 1.5.** With H2 resolved, the dial carries no remaining
+decision rule, so the training family takes the value that matches the
+deployment shape this generation is built around: 1.5 — the served
+world's value and the engine default. Training at 2.5 while evaluating
+on a 1.5 served world would open a train/deploy dynamics gap inside
+H1's own subject matter. `family/v2-dial1.5` and its dataset v2, clone
+and critics (all retained) are the grid's inputs; the 2.5 family,
+dataset, clone and critics are retained beside them as the escalation
+record.
+
+**Pilots.** Both pilot runs are recorded as pilots and **neither is
+cited as a grid seed**. §3's "the pilot IS run M33-g998-seed1" clause
+would arguably reinstate the 1.5 pilot now that the dial resolves to
+1.5, but that pilot was discarded under the escalation branch, and
+un-discarding a run because its dial later won is a researcher degree
+of freedom this document exists to spend. All 18 grid runs execute
+fresh; M33-g998-s1 is trained again from the registered init.
+
+**Why H2 failed (measured, not speculated).** The dial does move what
+it should — grooming-on-water fell 60% and idle loitering a third
+across the two dials — but sleeping-on-water barely responds and now
+dominates the residual, and it is not sunbeam napping (elements cannot
+share a tile). The behavior costs ≈0.002 team Nash, so PPO has no
+gradient to remove it, and the 130-probe series is flat after ≈2M
+ticks in both runs, so the runs are converged rather than undertrained.
+The gates are reachable in principle — the scripted ladder achieves
+0.31% / 1.63%.
+
+**Carried to exp-003 (owner, 2026-08-03).** Two changes to try
+together next generation: extend the observation schema so a kitty can
+see it is standing in water (today sunbeam occupancy has a dedicated
+self-block flag and water occupancy must be inferred from a
+nearest-water slot at distance 0 — a §4-forbidden schema change here
+because it voids the warm start), and raise the bath penalty
+substantially rather than incrementally.
