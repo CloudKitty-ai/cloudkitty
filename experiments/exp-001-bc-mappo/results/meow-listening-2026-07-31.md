@@ -92,3 +92,31 @@ certified identity) carries — parity verified at export.
 **Figure (added 2026-08-01):**
 [figures/meow-listening-flip.png](figures/meow-listening-flip.png)
 — per-seed flip rates + what hearing changes, from the same probes.
+
+## Post-025 re-measure (2026-08-03, engine `0fd551d`)
+
+The 07-31 numbers above predate BOTH the 024 wet-fur batch and spec
+025, so they were re-anchored for the exp-002 prereg (same
+instrument, same seeds, outputs `meow-probe-post025-seed*.npz`):
+
+| | post-025 | 07-31 (pre-024) |
+|---|---|---|
+| digest non-zero (audible) | 21,325 / 200,000 (**10.7%**) | 62.4% |
+| decision changed by silencing | 2,827 / 21,325 (**13.26% of heard**) | 8.18% |
+| per-seed range | 11.79% – 15.17% (10/10 consistent) | 7.72% – 8.60% |
+
+Two shifts, one story: the channel got much *quieter* (audibility
+62.4% → 10.7% — consistent with the 024 sidestep dissolving
+stall-scenes and 025's faster play servicing shortening recruitment,
+so fewer meows are in flight), while s6's *dependence on what it does
+hear* rose (8.18% → 13.26% of heard). Listening remains functional
+and 10/10-seed consistent; H3's ≥3% criterion is anchored with
+margin. Caveat for exp-002's H3 screen: the digest-active denominator
+is now ~2.1k decisions per 20k-tick run (was ~12.5k) — the flip-rate
+estimate carries proportionally more per-run variance.
+
+Context note: this instrument measures s6 in *scripted* company
+(deploy presoak shape); H3's registered measurement runs in *policy*
+company (shape ii, per F-012). The pair-screen number lapsed with the
+engine like everything else — this scripted-company anchor is the
+cheap re-measurable one, and H3's threshold (3%) sits far below it.

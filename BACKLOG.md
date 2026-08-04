@@ -15,6 +15,19 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 <!-- (pyo3 advisory upgrade shipped 2026-07-23, spec 015 — the
      do-before-more-RL-work gate is retired) -->
 
+### Finiteness sweep for the remaining [actions] relief dials (added 2026-08-03)
+Spec 025's review (finding 7, pre-existing gap) noted that the six
+non-play relief dials — `eat_relief`, `drink_relief`, `sleep_relief`,
+`sleep_relief_sunbeam`, `groom_relief`, `cuddle_relief` — have no
+finiteness or negativity validation at all: `cuddle_relief = nan`
+passes `Config::validate()` today, and the first duet rest tick
+propagates NaN into the need and every downstream happiness metric for
+the rest of the run. Spec 025 closed this class for the four play keys
+(`validate_actions`' finiteness table); extending the same table to the
+other six is trivially tighten-only (no shipped config carries a bad
+value) and needs no spec of its own — it rides any next `[actions]`
+touch, with one rejection test per dial.
+
 ### Graphics v2 follow-ons: face-group pitch (added 2026-07-29; reordered 2026-08-01)
 The v2 kitty vocabulary (`client/cat-v2.js`, owner-dialed face values)
 shipped 2026-07-29 (`f4a8d0d`) and is now the `index.html` default with a

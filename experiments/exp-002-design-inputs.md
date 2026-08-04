@@ -165,6 +165,17 @@ binds exp-002's design (ported 2026-08-01 per the register rule):
   (owner call, 2026-08-01).
 - **Family must vary bath rise rates** across kitties, or the policy
   memorizes a constant instead of learning trait→cost.
+  **TOOL READY 2026-08-02** (family-gen v3, `experiments/tools/family-gen`):
+  roster stratified 3/4/5 per variant (exact ⅓ coverage — roster-3 is
+  the only empty-slot shape, F-010), every kitty gets an explicit bath
+  override spanning ratio 0.5–2.0×, `[water]` pinned into variants
+  (`--water-gain` = the prereg's dial, default 1.5). Base
+  `training.toml` untouched (exp-001's registered artifact). The
+  *frozen* family (N, seed, dial) is generated at prereg time.
+  Consequence for the trainer: **global-state dim varies with roster**
+  (32/kitty; 133 floats at roster 3 vs 197 at roster 5) — the exp-002
+  critic must pad or bucket. Obs stays 182 on every roster (verified
+  in ParallelEnv; dropped ids simply vanish from the agent list).
 - **Final gain value is a prereg'd exp-002 tuning decision**,
   calibrated by seating the water-indifferent s6 on a wet-fur build
   and measuring welfare delta per crossing (needs `elements()`).
@@ -223,3 +234,25 @@ above doubles as the channel-use screen.
 - **Latency residual dissolved** on the served world (deviation 31
   re-measure) — do not carry it as a target; roster-OOD fragility is
   the target.
+- **FINDINGS re-verify triggers fired by the 024 batch — RUN
+  2026-08-02, landscape inverted (F-013)**: the served 24×24 world
+  now carries a replicated cooperative band (k ≈ 230–330, S(.998) ≈
+  0.09–0.11) while the frozen gym's paired-seed signal fell sub-floor
+  (sidestep dissolved its stall-queueing advantage). F-003/F-005/
+  F-006 superseded by F-013
+  ([results/twin-probe-2026-08-02-post024.md](exp-001-bc-mappo/results/twin-probe-2026-08-02-post024.md)).
+  Prereg consequences: **training-world choice reopened** (served-
+  centered family is the evidence-backed default; slimmed post-024
+  world search recommended before freezing); γ sweep {0.995, 0.998}
+  stands with 0.9985 as a conditional arm only if the chosen world's
+  band peak lands past k ≈ 500; class-conditioned priors (play/chase
+  3.6×) must be re-measured on the chosen world; certification on the
+  served world is no longer credit-blind.
+  **SEARCH RUN 2026-08-02 (F-014)**: the served world wins as it
+  stands — no searched knob beats it at 150-world power (3rd
+  independent replication S(.998) ≈ 0.09; gym 3rd sub-floor batch;
+  scarcity/tempo now hurt). Family base = served shape, family-gen v3
+  jitter as the envelope; the 5-kitty base variant for roster
+  stratification halves S (0.090 → 0.041) — a quantified
+  signal-for-robustness trade the prereg owns explicitly. Probe
+  claims on this engine need 150+ worlds (F-004 addendum).

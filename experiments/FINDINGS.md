@@ -94,7 +94,14 @@ scripted-cat usage).
 
 ---
 
-## F-003 · active · The companionship retune tripled the credit horizon; channels unchanged
+## F-003 · superseded by F-013 · The companionship retune tripled the credit horizon; channels unchanged
+
+*(Superseded 2026-08-02: the 024 wet-fur batch — this finding's own
+"any engine-defaults change" trigger — moved every quantity again,
+exactly as the retune did to F-001. The two-channel structure
+re-confirms on the post-024 engine (early self band reproduces in all
+six re-verification runs); the band edges, peak locations, and
+retention decimals below are pre-024 history. See F-013.)*
 
 Supersedes F-001's quantities on the retuned baseline (PR #60, cf82007:
 happiness weights eat/drink→0.20, cuddle/bath→0.15; groom/play relief→20,
@@ -169,6 +176,12 @@ reference implementation; every future probe analysis uses it (the
 original `analyze.py` per-sample method is superseded for significance
 claims). Probe runs default to 100+ worlds.
 
+*(Addendum 2026-08-02: the post-024 engine's flatter amplitudes moved
+the power bar — three disjoint 100-world batches produced three
+different search leaders with 5× swings, while 150-world batches
+replicate cleanly (served world: 0.089/0.109/0.090). Probe claims on
+the post-024 engine use 150+ worlds; see the post-024 world search.)*
+
 **Would invalidate**: a demonstration that within-world sample
 correlation is negligible at some horizon (it is not, at k > ~50, on
 current evidence).
@@ -179,7 +192,14 @@ changes (e.g., one world per sample).
 
 ---
 
-## F-005 · active · Training-world knobs move detectable cooperative signal weakly; scarcity×tempo is the one replicated improver
+## F-005 · superseded by F-013 · Training-world knobs move detectable cooperative signal weakly; scarcity×tempo is the one replicated improver
+
+*(Superseded 2026-08-02: on the post-024 engine the frozen
+scarcity×tempo world's paired-seed signal halved and fell below the
+false-positive floor — the mechanism reads as the chase sidestep
+dissolving the stall-fed queueing consequences this world's gain was
+made of. The knob search was honest for the engine it measured; that
+engine is gone. See F-013.)*
 
 Across 10 candidate worlds (scarcity, tempo, grid size, combinations)
 measured under F-004 discipline, most knobs do nothing or hurt: shrinking
@@ -220,7 +240,14 @@ change (with F-003).
 
 ---
 
-## F-006 · active · The default world carries no detectable cooperative credit
+## F-006 · superseded by F-013 · The default world carries no detectable cooperative credit
+
+*(Superseded 2026-08-02: both of this finding's own re-verify
+conditions arrived at once — an engine-defaults change (024) and a
+default-config change (the #86 24×24 cutover). On the current served
+world the claim is inverted: a replicated cooperative band exists at
+k ≈ 230–330. The 32×32 measurement below remains correct for the
+world it measured. See F-013.)*
 
 Measured 2026-07-27 (product thread, at the owner's request; verified
 bit-exact by the experiments thread): on `cloudkitty.toml` (32×32, 4
@@ -531,3 +558,158 @@ which *is* that control: same seats, scripted neighbors, no meows).
 
 **Re-verify when**: exp-002 candidate screening; any channel-use
 selection measurement.
+
+## F-013 · active · The 024 batch rewired the credit landscape: the served world gained a cooperative band, the frozen gym lost its edge (supersedes F-003/F-005/F-006 quantities)
+
+Measured 2026-08-02, the fired engine-defaults triggers executed
+(six probe runs, cluster-robust per F-004, replication batches
+included). Three coupled results:
+
+1. **The current served world (`cloudkitty.toml`, 24×24, post-#86
+   cutover) carries a replicated cooperative band at k ≈ 230–330** —
+   dr 82/111 significant ticks on two disjoint 150-world batches
+   (floor ≈ 60), 25–43-tick contiguous runs, peak amplitude ~0.003–
+   0.005, S(.998) ≈ 0.09–0.11 — 3.4–4× the frozen gym's best pre-024
+   showing. Spillover co-locates (peak k=311).
+2. **The frozen scarcity×tempo gym lost its signal on paired seeds**
+   (3001–3150, engine-only change): 68 → 36 significant dr ticks
+   (sub-floor), S(.998) 0.026 → 0.011, surviving mass pushed to the
+   k≈930 queueing remnant. Consistent mechanism: the chase sidestep
+   dissolves the stall-queueing consequences that were the gym's
+   measured advantage (F-005's own k≈730–940 signature).
+3. **Geometry deconfound**: on the post-024 engine, the served config
+   at 32×32 (F-006's shape) is borderline (57 ticks, S(.998)=0.036);
+   at 24×24 it is clear. The 24×24 cutover is the dominant factor,
+   the engine's new water economics a plausible contributor — the
+   contention mechanism of F-005/F-006, now working in the served
+   world's favor.
+
+The two-channel *structure* (F-001→F-003 lineage) re-confirms
+everywhere: early self band (k ≤ ~16) in every run, team credit slow.
+
+**Scope**: `needs_driven` dynamics, post-024 engine (`6d955ab`),
+current served config and frozen `training.toml`; 1,000 samples ×
+1,200-tick traces per run. Trained-policy dynamics unmeasured (as
+always). Class-conditioned structure (the play/chase 3.6× prior)
+unmeasured on this engine.
+
+**Evidence**: [post-024 re-verification](exp-001-bc-mappo/results/twin-probe-2026-08-02-post024.md)
+(all six runs, dense retention curves, regeneration commands).
+
+**Implications**:
+- **exp-002's training-world choice is reopened and inverted**:
+  training on a family centered on the served world is the
+  evidence-backed default hypothesis (family-gen v3 already centers
+  24×24); the frozen gym is no longer self-recommending. A slimmed
+  post-024 world search should confirm before the prereg freezes.
+- **γ**: the served-world band sits inside γ=0.998's horizon; 0.995's
+  horizon ends before the band begins. Sweep {0.995, 0.998} stands;
+  0.9985 only as a conditional arm if the chosen world's band peak
+  lands past k ≈ 500.
+- Certification on the served world is no longer credit-blind —
+  paired-Nash gains there may partially reflect marginal cooperative
+  credit (F-006's welfare-gate-only framing is retired with it).
+- Every pre-024 probe quantity is design-dead; re-measure
+  class-conditioning on the chosen world before citing it.
+
+**Would invalidate**: the served-world band failing to reproduce on
+further disjoint batches or dissolving under trained-policy dynamics;
+a future engine or config change (this finding inherits the same
+mortality as its predecessors).
+
+**Re-verify when**: any engine-defaults or served-config change; the
+first exp-002 policy artifact reaches candidate stage (policy-seated
+probe, both worlds, per the F-001→F-003 standing trigger).
+
+## F-014 · active · Post-024 world search: the served world wins as it stands; the knob landscape is flat at 100-world power
+
+Measured 2026-08-02 (F-013's recommended slimmed search, executed:
+nine served-centered candidates + the gym incumbent, three disjoint
+100-world rounds + a 150-world finalist wave, welfare-gated).
+
+1. **No searched knob beats the served world.** At 150-world power:
+   served S(.998) = 0.0896 (its *third* independent 150-world
+   replication: 0.089/0.109/0.090 — the strongest replication record
+   any world has held here); tempo125 0.066; roster5 0.041; size22
+   sub-floor; gym 0.017 (third sub-floor batch). Scarcity and tempo —
+   the pre-024 winners — now *hurt* or do nothing.
+2. **The knob landscape is flat at 100-world power**: three disjoint
+   100-world rounds produced three different leaders with 5× swings
+   (incl. a one-batch tempo125 early-band phantom). The pre-024
+   amplification regime (scarcity×tempo 1.5–1.8×, replicated at this
+   exact instrument) does not exist on the new engine.
+3. **Roster is a real signal knob**: adding a 5th kitty halves the
+   served world's S (0.090 → 0.041, mass spreads later) — more cats,
+   more chaotic mixing. The family's F-010 roster stratification is
+   therefore a quantified signal-for-robustness trade.
+
+**Scope**: needs_driven/playful scripted dynamics (policy seats
+neutralized), post-024 engine (`6d955ab`), the searched knob ranges
+(sizes 22/26, scarcity two notches, tempo ×1.25, roster ±1). Not
+searched: durations, trait spreads, element ratios, tempo below 1×.
+
+**Evidence**: [world-search-2026-08-02-post024.md](exp-001-bc-mappo/results/world-search-2026-08-02-post024.md);
+driver `experiments/tools/world-search/search_post024.py`.
+
+**Implications**: exp-002's family base = the served world shape
+(family-gen v3 jitter as the variation envelope; 5-kitty base variant
+for roster stratification carries the quantified signal cost);
+γ sweep {0.995, 0.998} confirmed (the served band sits inside 0.998's
+horizon — F-013's conditional 0.9985 rule stays dormant unless the
+family's realized band peak moves past k ≈ 500); probe claims on this
+engine use 150+ worlds (F-004 addendum).
+
+**Would invalidate**: a knob outside the searched ranges beating the
+served base at 150-world power; trained-policy dynamics reshaping the
+landscape (the standing caveat everywhere).
+
+**Re-verify when**: any engine-defaults or served-config change;
+exp-002 candidate stage (policy-seated probe re-ranks the worlds that
+matter).
+
+## F-015 · active · Pooled all-action probes dilute under heterogeneous class amplitudes; class-conditioned batches carry the credit signal
+
+Measured 2026-08-03 on the exp-002 family base, post-025 engine
+(`0fd551d`), 150 worlds per batch (F-004 addendum), identical recipe
+and seeds as the post-024 measurement it pairs with.
+
+1. **The registered spec-025 prediction confirmed** (registered
+   2026-08-02 in the handoff + census doc, before the change
+   landed): the per-target play-relief gradient lifted the
+   play/chase credit class off its post-024 floor — S(.998)
+   0.0039 → 0.0245 (6.3×), significant ticks 8 → 43, real bands,
+   peak k=301 (inside 0.998's horizon). Eat/drink doubled
+   (0.0333 → 0.0709, now the largest class); groom/sleep/rest
+   roughly held (0.0334 → 0.0399).
+2. **The methodological finding: the pooled all-action batch went
+   sub-floor while every class rose** (S 0.0387 → 0.0099, 30
+   significant ticks against fp ≈ 60). Verified mechanism is
+   dilution, not cancellation: all classes are positive-signed, but
+   play/chase decision points are the most abundant in the pool
+   (density 0.71) with the smallest per-tick amplitude (+0.0003 vs
+   eat/drink's +0.0087), so the pooled per-tick mean drops below the
+   2·SE bar. A pooled probe's "all-action" S is a
+   composition-weighted average, NOT a ceiling or a denominator —
+   post-024's convenient "class ÷ all" ratio framing only worked
+   because amplitudes happened to be comparable.
+
+**Scope**: the twin-probe substitution instrument with cluster-robust
+per-tick means; scripted dynamics on the family base. The dilution
+mechanism is instrument-generic (any pooled mean over heterogeneous
+subpopulations), so assume it wherever decision-type frequencies and
+effect sizes are inversely related.
+
+**Evidence**: [class-credit-2026-08-03-post025.md](exp-002-mixed-population/results/class-credit-2026-08-03-post025.md)
+(supersedes the post-024 table's ratios, not its record).
+
+**Implications**: credit claims compare class-conditioned absolute S
+values, never class-vs-all ratios; an all-action batch still runs as
+a composition read (its density and sign structure), not a credit
+score. Prereg §10.1 diagnostics watch eat/drink, groom/sleep/rest,
+AND play/chase (re-entered post-025). The §3 dormant-γ trigger
+outcome (F-9985 follow-up cell) survives the refresh: late bands
+persist past k ≈ 500 in the class batches.
+
+**Re-verify when**: any engine-defaults change; when policy-seated
+(rather than scripted) probes become available at the exp-002
+candidate stage.

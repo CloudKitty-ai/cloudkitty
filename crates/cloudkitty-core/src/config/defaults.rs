@@ -48,6 +48,20 @@ pub(super) fn default_solo_play_relief() -> f32 {
     10.0
 }
 
+// The per-target play values (spec 025): the gradient solo < kitty <
+// bug < greeble is what makes "which play" a real decision. Sized by
+// the exp-002 chase census (owner-fixed 2026-08-02): greebles are
+// 1.5-2.9x harder per catch than bugs and 4x scarcer, so 35 is an
+// in-the-moment temptation with no grind exploit, while a duet's team
+// total (2 x 20) still beats it.
+pub(super) fn default_play_relief_bug() -> f32 {
+    25.0
+}
+
+pub(super) fn default_play_relief_greeble() -> f32 {
+    35.0
+}
+
 pub(super) fn default_short_activity() -> DurationBounds {
     DurationBounds::new(2, 5)
 }

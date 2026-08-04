@@ -2886,8 +2886,8 @@ mod tests {
         );
         assert_eq!(
             world.kitty(1).unwrap().needs.get(NeedKind::Play),
-            80.0,
-            "relief already granted is kept; none is invented"
+            75.0,
+            "relief already granted is kept (one bug-priced tick, spec 025); none is invented"
         );
     }
 

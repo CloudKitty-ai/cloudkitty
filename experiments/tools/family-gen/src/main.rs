@@ -19,11 +19,25 @@
 //!   floor 2), sunbeams ({2,3}), a single global rate multiplier
 //!   ({0.9,1.0,1.1} — preserving the frozen tempo's ratios and staying
 //!   inside the measured sweet spot, F-005), and per-kitty trait overrides
-//!   (±0.1, clamped to [0.1,1.0]). Roster size stays fixed at the base's —
-//!   roster variation is deliberately out of v1 (eval-side transfer is the
-//!   017 scale/heterogeneity exams' job). Emits `family-<i>.toml` plus a
+//!   (±0.1, clamped to [0.1,1.0]). Emits `family-<i>.toml` plus a
 //!   `family-manifest.json` (tool version, base sha256, sampler seed, per-
 //!   variant summaries) for the prereg §10.3 reproducibility line.
+//!
+//!   v3 additions (exp-002, register §2b + F-010):
+//!   - **Roster stratification**: variant i keeps [3,4,5][i % 3] of the
+//!     base's kitties (rng-shuffled survivors, base order preserved) —
+//!     exact 1/3 coverage per roster size, because roster-3 worlds are the
+//!     only ones that leave a neighbor slot empty (F-010's trigger) and
+//!     that coverage must not ride on sampling luck.
+//!   - **Bath-rise variance**: every surviving kitty gets an explicit
+//!     `bath` trait override = {0.5,0.75,1.0,1.5,2.0} x the variant's
+//!     global bath rate — the multiplier IS the engine's `bath_ratio`, so
+//!     the wet-fur charge spans 0.5-2x across cats and trait->cost is
+//!     learnable, not memorizable (register §2b).
+//!   - **`[water]` pinned into variants** (self-describing; immune to
+//!     engine-default drift). `--water-gain X` overrides the pinned gain
+//!     (default 1.5, the shipped dial) so the prereg's tuning decision is
+//!     a regeneration, not a code edit.
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -33,7 +47,20 @@ use cloudkitty_rl::config::RlConfig;
 use sha2::{Digest, Sha256};
 use toml::Value;
 
-const GENERATOR_VERSION: &str = "family-gen v2 (2026-07-28)";
+const GENERATOR_VERSION: &str = "family-gen v3 (2026-08-02)";
+
+/// The shipped wet-fur dial (engine defaults, spec 024) — pinned into every
+/// variant so family files stay self-describing if defaults ever move.
+const DEFAULT_WATER_GAIN: f64 = 1.5;
+const WATER_GAIN_CEILING: f64 = 50.0;
+
+/// Per-kitty bath-rise multipliers over the variant's global bath rate.
+/// Chosen so the engine's `bath_ratio` spans 0.5-2x (worst case
+/// ceiling + gain x 2.0 = 53 < safeguard 75, validated per variant).
+const BATH_MULTS: [f64; 5] = [0.5, 0.75, 1.0, 1.5, 2.0];
+
+/// Roster sizes cycled per variant index — exact coverage, F-010.
+const ROSTER_SIZES: [usize; 3] = [3, 4, 5];
 
 struct Patch {
     path: Vec<String>,
@@ -54,6 +81,16 @@ impl SplitMix {
 
     fn pick<'a, T>(&mut self, options: &'a [T]) -> &'a T {
         &options[(self.next() % options.len() as u64) as usize]
+    }
+
+    /// Fisher-Yates over 0..n — the roster-survivor draw.
+    fn shuffled_indices(&mut self, n: usize) -> Vec<usize> {
+        let mut idx: Vec<usize> = (0..n).collect();
+        for i in (1..n).rev() {
+            let j = (self.next() % (i as u64 + 1)) as usize;
+            idx.swap(i, j);
+        }
+        idx
     }
 }
 
@@ -171,7 +208,7 @@ fn set_i64(root: &mut Value, path: &[&str], v: i64) {
     node[path[path.len() - 1]] = Value::Integer(v);
 }
 
-fn family_mode(base: &Path, n: usize, family_seed: u64, out_dir: &Path) {
+fn family_mode(base: &Path, n: usize, family_seed: u64, out_dir: &Path, water_gain: f64) {
     let text =
         fs::read_to_string(base).unwrap_or_else(|e| panic!("reading {}: {e}", base.display()));
     let base_sha = format!("{:x}", Sha256::digest(text.as_bytes()));
@@ -196,10 +233,14 @@ fn family_mode(base: &Path, n: usize, family_seed: u64, out_dir: &Path) {
             set_i64(&mut root, &["elements", elem, "max"], min + 1);
             summary.push(format!("{elem}={min}-{}", min + 1));
         }
-        let sun = *rng.pick(&[2i64, 3]);
+        // v3 fix: jitter around the BASE like water/chow (the old fixed
+        // {2,3} was training.toml-shaped; on a served-shaped base it
+        // silently imposed a scarcity level F-014 measured as harmful).
+        let sun_base = get_f64(&base_root, &["elements", "sunbeam", "min"]) as i64;
+        let sun = (sun_base + rng.pick(&[-1i64, 0, 1])).max(1);
         set_i64(&mut root, &["elements", "sunbeam", "min"], sun);
-        set_i64(&mut root, &["elements", "sunbeam", "max"], sun);
-        summary.push(format!("sunbeam={sun}"));
+        set_i64(&mut root, &["elements", "sunbeam", "max"], sun + 1);
+        summary.push(format!("sunbeam={sun}-{}", sun + 1));
 
         let mult = *rng.pick(&[0.9f64, 1.0, 1.1]);
         for need in ["eat", "drink", "sleep", "play", "cuddle", "bath"] {
@@ -207,22 +248,71 @@ fn family_mode(base: &Path, n: usize, family_seed: u64, out_dir: &Path) {
             set_f64(&mut root, &["needs", need], v);
         }
         summary.push(format!("rates=x{mult}"));
+        let global_bath = get_f64(&root, &["needs", "bath"]);
 
-        // Trait overrides: jitter every [kitty.needs] entry the base declares.
+        // Roster stratification (F-010): keep [3,4,5][i % 3] rng-shuffled
+        // survivors, base order preserved — roster-3 variants are the only
+        // ones with an empty neighbor slot, so their share is exact, not
+        // sampled.
+        let roster_size;
+        {
+            let kitties = root["kitty"].as_array_mut().expect("[[kitty]] array");
+            roster_size = ROSTER_SIZES[i % ROSTER_SIZES.len()].min(kitties.len());
+            let mut keep = rng.shuffled_indices(kitties.len());
+            keep.truncate(roster_size);
+            keep.sort_unstable();
+            let mut k = 0usize;
+            kitties.retain(|_| {
+                k += 1;
+                keep.contains(&(k - 1))
+            });
+        }
+
+        // Per-kitty traits: jitter every declared override (v1 behavior),
+        // then give EVERY survivor an explicit bath override — the
+        // multiplier is the engine's `bath_ratio`, so the wet-fur charge
+        // varies 0.5-2x across cats (register §2b: trait->cost must be
+        // learnable, not memorizable).
+        let mut roster_names = Vec::new();
         if let Some(kitties) = root["kitty"].as_array_mut() {
             for kitty in kitties.iter_mut() {
                 let name = kitty["name"].as_str().unwrap_or("?").to_string();
-                if let Some(needs) = kitty.get_mut("needs").and_then(|n| n.as_table_mut()) {
-                    let keys: Vec<String> = needs.keys().cloned().collect();
-                    for key in keys {
-                        let base_v = needs[&key].as_float().expect("trait overrides are floats");
-                        let jitter = *rng.pick(&[-0.1f64, 0.0, 0.1]);
-                        let v = ((base_v + jitter).clamp(0.1, 1.0) * 10_000.0).round() / 10_000.0;
-                        needs[&key] = Value::Float(v);
-                        summary.push(format!("{name}.{key}={v}"));
-                    }
+                if kitty.get("needs").is_none() {
+                    kitty
+                        .as_table_mut()
+                        .expect("[[kitty]] entries are tables")
+                        .insert("needs".into(), Value::Table(Default::default()));
                 }
+                let needs = kitty
+                    .get_mut("needs")
+                    .and_then(|n| n.as_table_mut())
+                    .expect("[kitty.needs] is a table");
+                let keys: Vec<String> = needs.keys().filter(|k| *k != "bath").cloned().collect();
+                for key in keys {
+                    let base_v = needs[&key].as_float().expect("trait overrides are floats");
+                    let jitter = *rng.pick(&[-0.1f64, 0.0, 0.1]);
+                    let v = ((base_v + jitter).clamp(0.1, 1.0) * 10_000.0).round() / 10_000.0;
+                    needs[&key] = Value::Float(v);
+                    summary.push(format!("{name}.{key}={v}"));
+                }
+                let bath_mult = *rng.pick(&BATH_MULTS);
+                let v = ((global_bath * bath_mult).clamp(0.1, 1.0) * 10_000.0).round() / 10_000.0;
+                needs.insert("bath".into(), Value::Float(v));
+                summary.push(format!("{name}.bath={v}(x{bath_mult})"));
+                roster_names.push(name);
             }
+        }
+        summary.insert(1, format!("roster={}", roster_names.join("+")));
+
+        // Pin [water] so the variant is self-describing even if engine
+        // defaults move; the gain is the prereg's dial (--water-gain).
+        {
+            let mut water = toml::value::Table::new();
+            water.insert("bath_gain".into(), Value::Float(water_gain));
+            water.insert("bath_gain_ceiling".into(), Value::Float(WATER_GAIN_CEILING));
+            root.as_table_mut()
+                .expect("root is a table")
+                .insert("water".into(), Value::Table(water));
         }
 
         let patched = toml::to_string_pretty(&root).expect("serializing variant");
@@ -237,7 +327,7 @@ fn family_mode(base: &Path, n: usize, family_seed: u64, out_dir: &Path) {
     }
 
     let manifest = format!(
-        "{{\n  \"generator\": \"{GENERATOR_VERSION}\",\n  \"base\": \"{}\",\n  \"base_sha256\": \"{base_sha}\",\n  \"family_seed\": {family_seed},\n  \"variants\": [\n    {}\n  ]\n}}\n",
+        "{{\n  \"generator\": \"{GENERATOR_VERSION}\",\n  \"base\": \"{}\",\n  \"base_sha256\": \"{base_sha}\",\n  \"family_seed\": {family_seed},\n  \"water_gain\": {water_gain},\n  \"water_gain_ceiling\": {WATER_GAIN_CEILING},\n  \"variants\": [\n    {}\n  ]\n}}\n",
         base.display(),
         manifest_variants.join(",\n    ")
     );
@@ -251,6 +341,7 @@ fn main() {
     if args.iter().any(|a| a == "--family") {
         let mut base = PathBuf::from("training.toml");
         let (mut n, mut seed, mut out_dir) = (0usize, 0u64, None::<PathBuf>);
+        let mut water_gain = DEFAULT_WATER_GAIN;
         let mut it = args.iter();
         while let Some(flag) = it.next() {
             let mut value = |name: &str| {
@@ -264,12 +355,15 @@ fn main() {
                     seed = value("--family-seed").parse().expect("--family-seed: u64")
                 }
                 "--out-dir" => out_dir = Some(PathBuf::from(value("--out-dir"))),
+                "--water-gain" => {
+                    water_gain = value("--water-gain").parse().expect("--water-gain: f64")
+                }
                 other => panic!("unknown flag in family mode: {other}"),
             }
         }
         assert!(n > 0, "--family must be > 0");
         let out_dir = out_dir.expect("--out-dir is required in family mode");
-        family_mode(&base, n, seed, &out_dir);
+        family_mode(&base, n, seed, &out_dir, water_gain);
         return;
     }
 

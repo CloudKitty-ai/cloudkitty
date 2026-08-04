@@ -1,0 +1,166 @@
+[actions]
+cuddle_relief = 15.0
+drink_relief = 35.0
+eat_relief = 35.0
+groom_relief = 20.0
+play_relief = 20.0
+sleep_relief = 5.0
+sleep_relief_sunbeam = 8.0
+solo_play_relief = 10.0
+
+[actions.durations.bath]
+max = 8
+min = 4
+
+[actions.durations.cuddle]
+max = 12
+min = 6
+
+[actions.durations.drink]
+max = 3
+min = 2
+
+[actions.durations.eat]
+max = 3
+min = 2
+
+[actions.durations.play]
+max = 5
+min = 2
+
+[actions.durations.sleep]
+max = 12
+min = 6
+
+[behavior]
+budget_fraction_of_tick = 0.5
+chase_exclusion_ticks = 60
+chase_patience_ticks = 10
+playful_comfort = 55.0
+solo_play_reach = 8
+sunbeam_reach = 8
+tile_cost = 1.0
+urgency_weight = 2.0
+water_step_cost = 4.0
+worth_a_detour = 30.0
+
+[elements.bug]
+max = 8
+min = 4
+ttl = 300
+
+[elements.chow]
+max = 10
+min = 9
+servings = 5
+
+[elements.greeble]
+max = 3
+min = 1
+ttl = 300
+
+[elements.sunbeam]
+max = 7
+min = 6
+ttl = 300
+
+[elements.water]
+max = 10
+min = 9
+
+[events]
+activity_retention = 1000
+distress_retention = 1000
+
+[happiness]
+floor = 5.0
+
+[happiness.weights]
+bath = 0.15
+cuddle = 0.15
+drink = 0.2
+eat = 0.2
+play = 0.15
+sleep = 0.15
+
+[[kitty]]
+behavior = "playful"
+id = 2
+name = "Biscuit"
+x = 20
+y = 18
+
+[kitty.needs]
+bath = 0.15
+
+[[kitty]]
+behavior = "needs_driven"
+id = 3
+name = "Pumpkin"
+x = 16
+y = 8
+
+[kitty.needs]
+bath = 0.15
+eat = 0.9
+
+[[kitty]]
+behavior = "needs_driven"
+id = 5
+name = "Clementine"
+x = 12
+y = 12
+
+[kitty.needs]
+bath = 0.3
+cuddle = 0.6
+
+[meow]
+courtesy_ticks = 10
+recent_window_ticks = 10
+urgent_courtesy_ticks = 5
+urgent_need_threshold = 75.0
+
+[needs]
+bath = 0.2
+cuddle = 0.4
+drink = 0.4
+eat = 0.4
+play = 0.4
+sleep = 0.3
+
+[persistence]
+save_every_ticks = 100
+snapshot_path = "snapshot.json"
+
+[purr]
+announce_probability = 0.0
+cooldown_factor_max = 2.75
+cooldown_factor_min = 1.75
+max_ticks = 13
+min_ticks = 8
+
+[rl.policy.s3]
+artifact = "policies/s3.ckpolicy"
+
+[rl.policy.s6]
+artifact = "policies/s6.ckpolicy"
+
+[thresholds]
+distress = 90.0
+purr = 70.0
+safeguard = 75.0
+
+[viewer]
+distress_patience_ticks = 60
+
+[water]
+bath_gain = 1.5
+bath_gain_ceiling = 50.0
+
+[world]
+bind = "127.0.0.1:8090"
+height = 26
+seed = 20260718
+tick_ms = 800
+width = 26
