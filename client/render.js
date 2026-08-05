@@ -84,6 +84,10 @@ class WorldRenderer {
     this.cssHeight = 0;
     this.groundCache = null;
     this.pondCache = null; // { signature, ponds } -- rebuilt on water change
+    // The devicePixelRatio the backing store was actually sized with, not
+    // whatever the display reports right now (issue #102). Null until the
+    // first fit.
+    this.dpr = null;
   }
 
   /**
@@ -163,12 +167,21 @@ class WorldRenderer {
     const displayWidth = `${cssWidth * scale}px`;
     const dpr = window.devicePixelRatio || 1;
 
-    if (this.canvas.style.width !== displayWidth) {
+    // The guard watches dpr as well as CSS width (issue #102). Dragging a
+    // window between a Retina and a non-Retina display changes dpr while
+    // the CSS width stays put, so a width-only guard left the backing
+    // store at its old pixel size and old transform -- invisible on its
+    // own, because everything drawn live is then stale *consistently*.
+    // The damage surfaced minutes later, when the day->dusk->night change
+    // nulled the ground cache and it rebaked at the old size with a fresh
+    // dpr, putting the meadow in the upper-left quarter of the map.
+    if (this.canvas.style.width !== displayWidth || this.dpr !== dpr) {
       this.canvas.style.width = displayWidth;
       this.canvas.style.height = `${cssHeight * scale}px`;
       this.canvas.width = Math.floor(cssWidth * dpr);
       this.canvas.height = Math.floor(cssHeight * dpr);
       this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      this.dpr = dpr;
       this.groundCache = null; // new size, new ground
       this.pondCache = null; // and shorelines rebuilt at the new tile size
     }
@@ -249,14 +262,25 @@ class WorldRenderer {
    * behind `l` (spec 008 FR-004).
    */
   blitGround(world) {
-    if (!this.groundCache) {
+    // The cache's transform must be the ratio the canvas was SIZED with,
+    // never a freshly-read devicePixelRatio (issue #102): the offscreen is
+    // sized from `this.canvas.width`, so reading the display's current dpr
+    // here straddles the two and paints the meadow into a corner of its
+    // own cache. Belt and braces on top of the resize guard -- the stamp
+    // catches any future path that clears the cache without a resize.
+    const dpr = this.dpr || window.devicePixelRatio || 1;
+    const stale =
+      !this.groundCache ||
+      this.groundCache.dataset.dpr !== String(dpr) ||
+      this.groundCache.width !== this.canvas.width;
+    if (stale) {
       const off = document.createElement('canvas');
       off.width = this.canvas.width;
       off.height = this.canvas.height;
       const g = off.getContext('2d');
-      const dpr = window.devicePixelRatio || 1;
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
       drawMeadowGround(g, { width: world.width, height: world.height, tile: this.tile });
+      off.dataset.dpr = String(dpr);
       this.groundCache = off;
     }
     this.ctx.drawImage(this.groundCache, 0, 0, this.cssWidth, this.cssHeight);
