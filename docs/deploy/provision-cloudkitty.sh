@@ -36,10 +36,11 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 
 # --- identity / source -----------------------------------------------------
-CK_REPO="${CK_REPO:-elizabeth-kelly-public/cloudkitty}"
+CK_REPO="${CK_REPO:-CloudKitty-ai/cloudkitty}"
 CK_BRANCH="${CK_BRANCH:-main}"
 CK_BUILD_DIR="${CK_BUILD_DIR:-/root/cloudkitty}"     # where root builds
 CK_APP_DIR="${CK_APP_DIR:-/opt/cloudkitty}"          # what the service runs
+CK_STATE_DIR="${CK_STATE_DIR:-${CK_APP_DIR}/state}"  # the ONLY writable path
 CK_USER="${CK_USER:-cloudkitty}"
 CK_DEPLOY_KEY="${CK_DEPLOY_KEY:-/root/.ssh/cloudkitty-server}"
 
@@ -47,7 +48,12 @@ CK_DEPLOY_KEY="${CK_DEPLOY_KEY:-/root/.ssh/cloudkitty-server}"
 # Both domains are served by one site block; the www variants redirect to them.
 # There is deliberately no port knob: the port comes from `bind` in the
 # installed cloudkitty.toml (see "Proxy target" in step 7).
-CK_DOMAINS="${CK_DOMAINS:-cloudkitty.ai kitties.ai}"
+#
+# kitties.ai leads because it is the canonical host: client/index.html hardcodes
+# it in og:url and og:image, and the first name here is the one this script
+# echoes in its DNS instructions. See the Hostnames section of
+# docs/deployment.md.
+CK_DOMAINS="${CK_DOMAINS:-kitties.ai cloudkitty.ai}"
 
 # --- toggles (see the accompanying notes for the reasoning) ----------------
 CK_SWAP="${CK_SWAP:-1}"                  # 2G swapfile + swappiness=10
@@ -66,6 +72,17 @@ CK_START_SERVICES="${CK_START_SERVICES:-0}"        # 1 = start cloudkitty + cadd
 # trust-on-first-use. https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints
 GITHUB_ED25519_FP="SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU"
 
+# Caddy's apt signing key, pinned for the same reason: an apt signing key is
+# permanent root-level trust, re-used by every unattended-upgrades run.
+#
+# This is the PRIMARY key fingerprint (rsa4096, created 2016-04-01, uid
+# "Caddy Web Server <contact@caddyserver.com>"), deliberately not a subkey:
+# Caddy's signing subkeys have expired and rotated before (caddyserver/caddy
+# #7411), and the primary fingerprint is stable across that.
+# Verify independently at https://cloudsmith.io/~caddy/repos/stable/pub-keys/
+# before changing this value.
+CADDY_GPG_FP="65760C51EDEA2017CEA2CA15155B6D79CA56EA34"
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -83,6 +100,13 @@ step "Preflight"
 
 [[ $EUID -eq 0 ]] || die "run as root (sudo bash $0)"
 
+# mapfile, and empty-array expansion under `set -u`, both need bash >= 4.4.
+# Ubuntu 24.04 ships 5.2; macOS ships 3.2, where this would fail in confusing
+# ways several hundred lines in rather than being refused here.
+if (( BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 4) )); then
+    die "bash >= 4.4 required (found ${BASH_VERSION}); this script targets Ubuntu 24.04"
+fi
+
 if [[ -r /etc/os-release ]]; then
     . /etc/os-release
     [[ "${ID:-}" == "ubuntu" ]] || warn "built for Ubuntu; found ID=${ID:-unknown}"
@@ -92,7 +116,23 @@ fi
 # Fresh-box guard: refuse to run over an existing install.
 for path in "$CK_APP_DIR" "$CK_BUILD_DIR" /etc/systemd/system/cloudkitty.service; do
     if [[ -e "$path" ]]; then
-        die "$path already exists — this script is fresh-box only"
+        die "$path already exists — this script is fresh-box only.
+
+    If a PREVIOUS RUN FAILED PART-WAY, remove what it created and re-run:
+
+      systemctl disable --now cloudkitty caddy 2>/dev/null || true
+      rm -f  /etc/systemd/system/cloudkitty.service
+      rm -rf ${CK_BUILD_DIR}
+      rm -rf ${CK_APP_DIR}
+
+    ** Check ${CK_STATE_DIR}/snapshot.json first. ** That file is the world,
+    and the line above deletes it. If a world has ever been placed here, copy
+    it somewhere safe before removing anything:
+
+      cp -a ${CK_STATE_DIR}/snapshot.json /root/snapshot.json.rescued
+
+    If this box is already SERVING, none of the above applies — you want
+    /root/update.sh, not this script."
     fi
 done
 
@@ -154,7 +194,11 @@ if ! grep -q '^github\.com ' /root/.ssh/known_hosts 2>/dev/null; then
     # script on failure, so the diagnostic below would never print.
     scanned="$(ssh-keyscan -t ed25519 github.com 2>/dev/null || true)"
     [[ -n "$scanned" ]] || die "could not reach github.com to fetch its host key"
-    got="$(printf '%s\n' "$scanned" | ssh-keygen -lf - | awk '{print $2}')"
+    # Same assign-then-test discipline as above: a garbled keyscan response
+    # makes ssh-keygen fail, and a bare assignment would abort the script with
+    # no message instead of reaching the fingerprint-mismatch die below.
+    got="$(printf '%s\n' "$scanned" | ssh-keygen -lf - 2>/dev/null | awk '{print $2}' || true)"
+    [[ -n "$got" ]] || die "could not read a host key fingerprint from github.com's response"
     [[ "$got" == "$GITHUB_ED25519_FP" ]] \
         || die "github.com host key fingerprint mismatch: got $got, expected $GITHUB_ED25519_FP"
     printf '%s\n' "$scanned" >> /root/.ssh/known_hosts
@@ -278,8 +322,13 @@ info "built $(du -h "$BIN" | cut -f1) binary"
 
 step "Install to ${CK_APP_DIR}"
 
-install -o "$CK_USER" -g "$CK_USER" -m 755 "$BIN" "${CK_APP_DIR}/cloudkitty-server"
-install -o "$CK_USER" -g "$CK_USER" -m 644 "${CK_BUILD_DIR}/cloudkitty.toml" "${CK_APP_DIR}/cloudkitty.toml"
+# Everything the service READS is root-owned; only the state directory is
+# writable by it. The service previously owned its own executable inside
+# ReadWritePaths, so any write-primitive bug in the server could replace the
+# binary and Restart=on-failure would re-execute it -- defeating the whole
+# sandbox below. Root-owned code plus a narrow writable state dir closes that.
+install -o root -g root -m 755 "$BIN" "${CK_APP_DIR}/cloudkitty-server"
+install -o root -g root -m 644 "${CK_BUILD_DIR}/cloudkitty.toml" "${CK_APP_DIR}/cloudkitty.toml"
 rsync -a --delete "${CK_BUILD_DIR}/client/" "${CK_APP_DIR}/client/"
 # The deployed policy artifacts are committed to policies/ (owner decision
 # 2026-07-31, policies/README.md), so they arrive with the clone and deploy
@@ -288,38 +337,95 @@ rsync -a --delete "${CK_BUILD_DIR}/client/" "${CK_APP_DIR}/client/"
 if [[ -d "${CK_BUILD_DIR}/policies" ]]; then
     rsync -a --delete "${CK_BUILD_DIR}/policies/" "${CK_APP_DIR}/policies/"
 fi
-chown -R "$CK_USER:$CK_USER" "$CK_APP_DIR"
+chown -R root:root "${CK_APP_DIR}/client"
+if [[ -d "${CK_APP_DIR}/policies" ]]; then
+    chown -R root:root "${CK_APP_DIR}/policies"
+fi
+
+# The world lives here and nowhere else -- the only path the service can write.
+# ExecStart passes --snapshot, which overrides [persistence].snapshot_path
+# (main.rs), so cloudkitty.toml is still never modified by this script.
+install -d -o "$CK_USER" -g "$CK_USER" -m 750 "${CK_STATE_DIR}"
 
 # --- Proxy target ----------------------------------------------------------
 # One world per server, so the config is the single source of truth for the
 # port: read it here and hand it to Caddy, rather than carrying a knob that can
 # silently disagree with the file. The config itself is never modified.
-CK_BIND="$(grep -oP '^\s*bind\s*=\s*"\K[^"]+' "${CK_APP_DIR}/cloudkitty.toml" | head -n1 || true)"
-[[ -n "$CK_BIND" ]] || die "no bind = \"...\" found in ${CK_APP_DIR}/cloudkitty.toml"
+# Accept both TOML string forms. `bind` is #[serde(default)] in the engine
+# (config/defaults.rs::default_bind), so a config that omits it is valid and
+# runs on 127.0.0.1:8090 -- dying here would refuse a config the server
+# accepts, after /opt/cloudkitty already exists.
+CK_BIND="$(grep -oP '^\s*bind\s*=\s*["'"'"']\K[^"'"'"']+' "${CK_APP_DIR}/cloudkitty.toml" | head -n1 || true)"
+if [[ -z "$CK_BIND" ]]; then
+    CK_BIND="127.0.0.1:8090"
+    info "no bind = in cloudkitty.toml; using the engine default ${CK_BIND}"
+fi
 
+# Split host from port, keeping bracketed IPv6 literals intact.
 case "$CK_BIND" in
-    127.0.0.1:*|localhost:*|'[::1]:'*) ;;
+    \[*\]:*) CK_BIND_HOST="${CK_BIND%]:*}]"; CK_BIND_PORT="${CK_BIND##*:}" ;;
+    *:*)     CK_BIND_HOST="${CK_BIND%:*}";   CK_BIND_PORT="${CK_BIND##*:}" ;;
+    *)       die "cannot parse bind = \"${CK_BIND}\" as host:port" ;;
+esac
+
+case "$CK_BIND_HOST" in
+    127.0.0.1|localhost|'[::1]') ;;
     *) die "cloudkitty.toml binds ${CK_BIND}, not loopback — the server would be publicly reachable, bypassing Caddy" ;;
 esac
 
-CK_BIND_PORT="${CK_BIND##*:}"
-info "proxy target ${CK_BIND} (from cloudkitty.toml)"
+# Carry the host through to reverse_proxy rather than assuming IPv4. A config
+# binding [::1] used to provision cleanly and then 502 on every request,
+# because Caddy was pointed at 127.0.0.1 where nothing was listening.
+CK_PROXY_UPSTREAM="${CK_BIND_HOST}:${CK_BIND_PORT}"
+info "proxy target ${CK_PROXY_UPSTREAM} (from cloudkitty.toml)"
 
 # The RL policy artifacts the config expects; read once, checked again in the
 # closing summary. Anything under policies/ landed in the rsync above. A config
 # may still name an artifact from outside the tree (experiments/**/artifacts/
 # is gitignored), and only that kind still needs an scp target made for it.
-mapfile -t CK_ARTIFACTS < <(grep -oP '^\s*artifact\s*=\s*"\K[^"]+' "${CK_APP_DIR}/cloudkitty.toml" || true)
+#
+# Only policies a kitty actually names are required: the server collects
+# `behavior = "policy:<name>"` across the roster and loads just those
+# (cloudkitty-server/src/lib.rs). An [rl.policy.*] block no kitty references is
+# never opened, so demanding its artifact would send the operator chasing a
+# file the server will never look for.
+mapfile -t CK_POLICY_NAMES < <(grep -oP '^\s*behavior\s*=\s*["'"'"']policy:\K[^"'"'"']+' "${CK_APP_DIR}/cloudkitty.toml" || true)
+
+CK_ARTIFACTS=()
+for name in "${CK_POLICY_NAMES[@]}"; do
+    # The artifact line belonging to [rl.policy.<name>]: take the first
+    # `artifact =` after that section header.
+    # Three separate subs, not one alternation: POSIX awk matches
+    # leftmost-LONGEST, so /^["']|["'].*$/ matches the whole value from its
+    # opening quote and erases it. Verified against the real cloudkitty.toml.
+    art="$(awk -v want="[rl.policy.${name}]" '
+        $0 ~ /^\[/ { insec = ($0 == want) }
+        insec && /^[ \t]*artifact[ \t]*=/ {
+            sub(/^[^=]*=[ \t]*/, "")
+            sub(/^["'"'"']/, "")
+            sub(/["'"'"'].*$/, "")
+            print
+            exit
+        }' "${CK_APP_DIR}/cloudkitty.toml" || true)"
+    [[ -n "$art" ]] || die "a kitty names behavior \"policy:${name}\" but cloudkitty.toml has no [rl.policy.${name}] artifact — the server refuses to start on this"
+    CK_ARTIFACTS+=("$art")
+done
 
 CK_ARTIFACTS_PRESENT=0
 for rel in "${CK_ARTIFACTS[@]}"; do
-    if [[ -f "${CK_APP_DIR}/${rel}" ]]; then
+    # Absolute paths are used verbatim by the server, so they must not be
+    # reinterpreted as relative to the app dir.
+    case "$rel" in
+        /*) target="$rel" ;;
+        *)  target="${CK_APP_DIR}/${rel}" ;;
+    esac
+    if [[ -f "$target" ]]; then
         CK_ARTIFACTS_PRESENT=$((CK_ARTIFACTS_PRESENT + 1))
     elif [[ "$CK_MAKE_ARTIFACT_DIR" == "1" ]]; then
-        install -d -o "$CK_USER" -g "$CK_USER" -m 755 "${CK_APP_DIR}/$(dirname "$rel")"
+        install -d -o "$CK_USER" -g "$CK_USER" -m 755 "$(dirname "$target")"
     fi
 done
-info "policy artifacts: ${CK_ARTIFACTS_PRESENT}/${#CK_ARTIFACTS[@]} named by the config are deployed"
+info "policy artifacts: ${CK_ARTIFACTS_PRESENT}/${#CK_ARTIFACTS[@]} required by the roster are deployed"
 
 # ---------------------------------------------------------------------------
 # 8. Deploy script for subsequent updates
@@ -327,111 +433,29 @@ info "policy artifacts: ${CK_ARTIFACTS_PRESENT}/${#CK_ARTIFACTS[@]} named by the
 
 step "Update script"
 
-cat > /root/update.sh <<EOF
-#!/usr/bin/env bash
-#
-# Pull, rebuild, and deploy the world server.
-#
-# Deploys the config and the policy artifacts too, not just the binary and the
-# viewer: a commit that reseats a kitty or relocates a .ckpolicy is otherwise a
-# silent no-op on the served world.
-#
-# The resume guard fingerprints world size, seed, and the roster's kitty ids
-# (Config::fingerprint). A config that changes any of those makes the server
-# refuse to resume the saved world rather than discard it — so it fails to
-# start, and this script puts the old config back and brings the old world up
-# again instead of leaving the site down.
+# Install the version-controlled script rather than generating a copy. The
+# generated heredoc that used to live here was byte-identical to
+# docs/deploy/update.sh, which meant two copies of the rollback logic with
+# nothing to detect drift -- and the box ran the copy nobody reviewed. The
+# file arrives with the clone, so there is nothing to duplicate.
+CK_UPDATE_SRC="${CK_BUILD_DIR}/docs/deploy/update.sh"
+[[ -f "$CK_UPDATE_SRC" ]] || die "missing $CK_UPDATE_SRC — the checkout is older than this provisioning script"
+install -o root -g root -m 755 "$CK_UPDATE_SRC" /root/update.sh
 
-set -euo pipefail
-
-export CARGO_HOME=/root/.cargo RUSTUP_HOME=/root/.rustup
-export PATH="/root/.cargo/bin:\$PATH"
-
-REPO=${CK_BUILD_DIR}
-APP=${CK_APP_DIR}
-SVC_USER=${CK_USER}
-BACKUP=/root/cloudkitty-deploy-backup
-
-cd "\$REPO"
-git pull --ff-only
-cargo build --release -p cloudkitty-server
-
-# Keep the last-known-good config and world next to each other, before the
-# service is touched. The artifacts are backed up with the config because they
-# roll back with it: this deploy may rename, retire, or delete a .ckpolicy the
-# old config still names, and \`rsync --delete\` below would take it away.
-install -d -m 700 "\$BACKUP"
-cp -a "\${APP}/cloudkitty.toml" "\${BACKUP}/cloudkitty.toml"
-rm -rf "\${BACKUP}/policies"
-if [[ -d "\${APP}/policies" ]]; then
-    rsync -a "\${APP}/policies/" "\${BACKUP}/policies/"
-fi
-
-systemctl stop cloudkitty          # SIGINT: the world takes its final save
-cp -a "\${APP}/snapshot.json" "\${BACKUP}/snapshot.json" 2>/dev/null || true
-
-cp target/release/cloudkitty-server "\${APP}/"
-# --delete, not cp -r: a merge would leave assets deleted upstream behind, and
-# the server would keep serving them.
-rsync -a --delete client/ "\${APP}/client/"
-install -m 644 cloudkitty.toml "\${APP}/cloudkitty.toml"
-if [[ -d policies ]]; then
-    rsync -a --delete policies/ "\${APP}/policies/"
-fi
-chown -R "\${SVC_USER}:\${SVC_USER}" "\$APP"
-
-# \`systemctl start\` returns as soon as exec succeeds, so give the world a
-# moment to either come up or fall over before believing it.
-systemctl start cloudkitty || true
-sleep 3
-
-if systemctl is-active --quiet cloudkitty; then
-    systemctl --no-pager --lines=5 status cloudkitty
-    exit 0
-fi
-
-echo >&2
-echo "!! cloudkitty did not come up — restoring the previous config" >&2
-journalctl -u cloudkitty --no-pager --lines=15 -o cat >&2
-
-systemctl stop cloudkitty || true
-cp -a "\${BACKUP}/cloudkitty.toml" "\${APP}/cloudkitty.toml"
-if [[ -d "\${BACKUP}/policies" ]]; then
-    rsync -a --delete "\${BACKUP}/policies/" "\${APP}/policies/"
-fi
-chown -R "\${SVC_USER}:\${SVC_USER}" "\$APP"
-systemctl start cloudkitty || true
-sleep 3
-
-if systemctl is-active --quiet cloudkitty; then
-    cat >&2 <<MSG
-
-    Rolled back: the previous config and the policy artifacts it names are
-    deployed and the world is serving again. The new binary and viewer are
-    still in place — \${APP}/cloudkitty.toml and \${APP}/policies were reverted.
-
-    If the new config changes world size, seed, or the roster's kitty ids,
-    the saved world cannot resume it. Options:
-      - keep the old shape, or
-      - start a new world:  cd \${APP} && ./cloudkitty-server --config cloudkitty.toml --fresh
-        (--fresh moves the old save to snapshot.json.<timestamp>.bak first)
-
-    The world as of this deploy is saved at \${BACKUP}/snapshot.json.
-MSG
-else
-    cat >&2 <<MSG
-
-    Rollback did not bring it up either. The world as of this deploy is at
-    \${BACKUP}/snapshot.json, the previous config at \${BACKUP}/cloudkitty.toml,
-    and the artifacts it names at \${BACKUP}/policies.
-    Check: journalctl -u cloudkitty -n 50
-MSG
-fi
-
-exit 1
+# Paths live here so update.sh has no hardcoded layout to disagree with. It
+# sources this if present and falls back to the same defaults otherwise.
+install -o root -g root -m 644 /dev/null /etc/default/cloudkitty-deploy
+cat > /etc/default/cloudkitty-deploy <<EOF
+# Written by provision-cloudkitty.sh. Consumed by /root/update.sh.
+CK_BUILD_DIR=${CK_BUILD_DIR}
+CK_APP_DIR=${CK_APP_DIR}
+CK_STATE_DIR=${CK_STATE_DIR}
+CK_USER=${CK_USER}
+# Where the world server listens, so a deploy can probe it for real rather
+# than trusting systemd's "active".
+CK_UPSTREAM=${CK_PROXY_UPSTREAM}
 EOF
-chmod +x /root/update.sh
-info "wrote /root/update.sh (binary, viewer, config, policies)"
+info "installed /root/update.sh from the checkout + /etc/default/cloudkitty-deploy"
 
 # ---------------------------------------------------------------------------
 # 9. systemd unit
@@ -446,33 +470,46 @@ Description=CloudKitty world server
 After=network-online.target
 Wants=network-online.target
 
+# These are [Unit] keys, not [Service] ones — they moved in systemd 229, and
+# systemd silently ignores them (with a log warning) if put beside RestartSec.
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
 [Service]
 User=${CK_USER}
 Group=${CK_USER}
 WorkingDirectory=${CK_APP_DIR}
-ExecStart=${CK_APP_DIR}/cloudkitty-server --config ${CK_APP_DIR}/cloudkitty.toml
+ExecStart=${CK_APP_DIR}/cloudkitty-server --config ${CK_APP_DIR}/cloudkitty.toml --snapshot ${CK_STATE_DIR}/snapshot.json
 
 # Graceful shutdown — "letting the kitties settle", final world save included —
 # listens for SIGINT only. systemd's default SIGTERM would skip it.
 KillSignal=SIGINT
 TimeoutStopSec=30
 Restart=on-failure
-RestartSec=2
+
+# RestartSec=2 against systemd's default limit (5 starts per 10s) burns every
+# attempt in 8 seconds, so any fault taking longer than that to clear leaves
+# the unit failed permanently and the site down until someone runs
+# \`systemctl reset-failed\`. Five-second spacing (with the wider window set
+# in [Unit]) rides out a slow dependency without hiding a genuine crash loop.
+RestartSec=5
 EOF
 
 if [[ "$CK_HARDEN_UNIT" == "1" ]]; then
 cat <<EOF
 
 # --- sandboxing ---
-# The whole filesystem is read-only to this service except its own directory,
-# which has to stay writable for snapshot.json.
+# The whole filesystem is read-only to this service except ${CK_STATE_DIR},
+# which holds the world and nothing else. The binary, the config, client/ and
+# policies/ are root-owned and outside ReadWritePaths, so a compromised server
+# cannot rewrite the code it will be restarted into.
 #
 # ProcSubset=pid is deliberately absent: it hides /proc/meminfo and
 # /proc/cpuinfo, which allocators and thread pools read during startup, and
 # the failure would not surface until the first manual start.
 NoNewPrivileges=true
 ProtectSystem=strict
-ReadWritePaths=${CK_APP_DIR}
+ReadWritePaths=${CK_STATE_DIR}
 ProtectHome=true
 PrivateTmp=true
 PrivateDevices=true
@@ -517,14 +554,40 @@ fi
 
 step "Caddy"
 
+# Upstream Caddy, not Ubuntu universe's: the proxy is the box's main attack
+# surface (owner, 2026-08-04), so it tracks upstream security releases rather
+# than universe's frozen 2.6.x.
+#
 # Guard on the sources list, not the keyring: a box carrying the keyring but no
 # list would otherwise skip the whole block and silently install Ubuntu
 # universe's caddy 2.6.x, which satisfies `apt-get install caddy` just as well.
 if [[ ! -f /etc/apt/sources.list.d/caddy-stable.list ]]; then
+    # Pin the signing key by fingerprint, the same way github.com's host key is
+    # pinned above. Fetching a key over TLS and immediately trusting it makes
+    # every later apt operation -- including unattended-upgrades, forever --
+    # trust whoever answered that one request. Verify before installing it.
+    caddy_key="$(mktemp)"
     curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' \
-        | gpg --dearmor --yes -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-    curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' \
-        > /etc/apt/sources.list.d/caddy-stable.list
+        | gpg --dearmor > "$caddy_key" || die "could not fetch the Caddy signing key"
+    caddy_fp="$(gpg --show-keys --with-colons --fingerprint "$caddy_key" \
+        | awk -F: '/^fpr:/ {print $10; exit}')"
+    if [[ "$caddy_fp" != "$CADDY_GPG_FP" ]]; then
+        rm -f "$caddy_key"
+        die "Caddy signing key fingerprint mismatch: got ${caddy_fp:-none}, expected $CADDY_GPG_FP
+    Either the key rotated (check https://caddyserver.com/docs/install#debian-ubuntu-raspbian
+    and update CADDY_GPG_FP) or the download was tampered with. Refusing to
+    trust it -- an apt signing key is permanent root-level trust."
+    fi
+    install -m 644 "$caddy_key" /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+    rm -f "$caddy_key"
+    info "pinned Caddy signing key ($caddy_fp)"
+
+    # Write the source line locally rather than curling it: a fetched
+    # sources.list can name any host, which would route apt around the key we
+    # just verified. signed-by= binds this repo to that one key.
+    cat > /etc/apt/sources.list.d/caddy-stable.list <<EOF
+deb [signed-by=/usr/share/keyrings/caddy-stable-archive-keyring.gpg] https://dl.cloudsmith.io/public/caddy/stable/deb/debian any-version main
+EOF
     apt-get update -qq
 fi
 apt-get install -y -qq caddy
@@ -537,8 +600,21 @@ apt-get install -y -qq caddy
 # check reports failure precisely when it succeeds. It aborted a real
 # provisioning run here on 2026-08-04, with a message blaming the repo.
 CK_CADDY_POLICY="$(apt-cache policy caddy)"
-grep -q 'dl\.cloudsmith\.io' <<< "$CK_CADDY_POLICY" \
-    || die "caddy did not come from the official repo — check /etc/apt/sources.list.d/caddy-stable.list"
+
+# Check the INSTALLED version's origin, not merely that the repo is configured.
+# `apt-cache policy` lists every known source, so a bare grep for the cloudsmith
+# host passes even when the installed line is universe's 2.6.x from
+# /var/lib/dpkg/status -- exactly the outcome this guard exists to prevent.
+# The `***` marker flags the installed version; the line after it names where
+# that version came from.
+CK_CADDY_ORIGIN="$(grep -A1 '^ \*\*\*' <<< "$CK_CADDY_POLICY" | tail -n1 || true)"
+grep -q 'dl\.cloudsmith\.io' <<< "$CK_CADDY_ORIGIN" \
+    || die "the INSTALLED caddy did not come from the official repo.
+    apt-cache policy caddy reports its origin as:
+      ${CK_CADDY_ORIGIN:-<none>}
+    Ubuntu universe ships a frozen 2.6.x that satisfies \`apt-get install caddy\`
+    just as well. Remove it (apt-get purge caddy) and re-run, or check
+    /etc/apt/preferences.d/ for a pin favouring universe."
 info "installed $(caddy version 2>/dev/null | head -n1 || true) from the official repo"
 
 # The package starts Caddy on the stock welcome-page config; stop it while we
@@ -557,7 +633,7 @@ done
 cat <<EOF
 ${CADDY_SITES} {
 	encode zstd gzip
-	reverse_proxy 127.0.0.1:${CK_BIND_PORT}
+	reverse_proxy ${CK_PROXY_UPSTREAM}
 	header {
 		X-Content-Type-Options nosniff
 		X-Frame-Options DENY
@@ -605,8 +681,28 @@ step "ufw"
 
 # Open the port sshd actually listens on, not the OpenSSH profile's hardcoded
 # 22 — `ufw enable` below applies a default-deny policy to the live session.
-SSH_PORTS="$(sshd -T 2>/dev/null | awk '/^port /{print $2}' || true)"
-[[ -n "$SSH_PORTS" ]] || SSH_PORTS=22
+# `sshd -T` reports sshd_config's Port, which on 24.04 is NOT necessarily what
+# sshd listens on: ssh.socket is enabled by default and its ListenStream= does
+# the binding, so a host moved to another port the supported way still reports
+# 22 here. Ask the socket first, fall back to the config, and only then to 22.
+SSH_PORTS=""
+if systemctl is-enabled --quiet ssh.socket 2>/dev/null; then
+    SSH_PORTS="$(systemctl show ssh.socket -p ListenStream --value 2>/dev/null \
+        | awk -F: 'NF{print $NF}' | sort -u || true)"
+    if [[ -n "$SSH_PORTS" ]]; then
+        info "ssh.socket is active; ports from ListenStream"
+    fi
+fi
+if [[ -z "$SSH_PORTS" ]]; then
+    SSH_PORTS="$(sshd -T 2>/dev/null | awk '/^port /{print $2}' || true)"
+fi
+# Never silently assume 22: `ufw enable` applies default-deny, and guessing
+# wrong locks out the next login (the current session survives on the
+# ESTABLISHED rule, so the run looks like it succeeded).
+[[ -n "$SSH_PORTS" ]] || die "could not determine the port sshd listens on \
+(neither ssh.socket ListenStream nor sshd -T answered).
+    Refusing to enable a default-deny firewall on a guess. Set the port
+    explicitly and re-run, or provision with the firewall step reviewed by hand."
 
 ufw --force reset >/dev/null 2>&1 || true
 ufw default deny incoming >/dev/null
@@ -637,26 +733,62 @@ if [[ "$CK_HARDEN_SSH" == "1" ]]; then
         [[ -s "${home}/.ssh/authorized_keys" ]] || KEYLESS+=("$acct")
     done < /etc/passwd
 
-    if [[ ${#KEYLESS[@]} -eq 0 ]]; then
-        cat > /etc/ssh/sshd_config.d/99-cloudkitty-hardening.conf <<'EOF'
+    # This box is key-only by policy (owner, 2026-08-04). A keyless
+    # login-capable account is therefore a provisioning error to be fixed, not
+    # a reason to leave password auth on: the old behaviour skipped hardening
+    # entirely -- including for root -- behind a single warning, and still
+    # exited 0. Fail loudly instead, and say exactly how to proceed.
+    if [[ ${#KEYLESS[@]} -gt 0 ]]; then
+        die "no authorized_keys for: ${KEYLESS[*]}
+    This host is key-only by policy, so provisioning stops rather than
+    leaving password authentication enabled. Either install a key for each
+    account listed, remove/disable the accounts, or re-run with
+    CK_HARDEN_SSH=0 to keep password auth on deliberately."
+    fi
+
+    # 00-, not 99-: sshd takes the FIRST value it obtains for each keyword,
+    # /etc/ssh/sshd_config Includes sshd_config.d/*.conf at the top, and the
+    # glob expands in lexical order. Ubuntu cloud images ship
+    # 50-cloud-init.conf carrying `PasswordAuthentication yes`, which at 99-
+    # silently outranked this file: the run printed "password auth disabled"
+    # while the box still accepted passwords. Numbering it 00- makes this the
+    # first value read, and the verification below proves it took effect.
+    CK_SSHD_DROPIN=/etc/ssh/sshd_config.d/00-cloudkitty-hardening.conf
+    rm -f /etc/ssh/sshd_config.d/99-cloudkitty-hardening.conf
+    cat > "$CK_SSHD_DROPIN" <<'EOF'
 # Keys only. Written by provision-cloudkitty.sh.
+# Must sort BEFORE any other drop-in: sshd uses the first value per keyword.
 PasswordAuthentication no
 KbdInteractiveAuthentication no
 PermitEmptyPasswords no
 PermitRootLogin prohibit-password
 EOF
-        if sshd -t; then
-            # 24.04 socket-activates sshd, so per-connection instances pick the
-            # new config up anyway; reload the service if one is running.
-            systemctl reload ssh 2>/dev/null || systemctl restart ssh 2>/dev/null || true
-            info "password auth disabled, root login key-only"
-        else
-            rm -f /etc/ssh/sshd_config.d/99-cloudkitty-hardening.conf
-            warn "sshd rejected the hardening drop-in; reverted, nothing changed"
-        fi
-    else
-        warn "no authorized_keys for: ${KEYLESS[*]} — skipping, disabling password auth would lock them out"
+
+    if ! sshd -t; then
+        rm -f "$CK_SSHD_DROPIN"
+        die "sshd rejected the hardening drop-in; reverted, nothing changed"
     fi
+
+    # Assert the EFFECTIVE config, not the file we just wrote. `sshd -T`
+    # resolves every Include in order, so this is the only check that can tell
+    # "hardened" apart from "outranked by a drop-in we did not write".
+    CK_SSHD_EFFECTIVE="$(sshd -T 2>/dev/null || true)"
+    [[ -n "$CK_SSHD_EFFECTIVE" ]] || die "could not read the effective sshd config (sshd -T)"
+    for kv in passwordauthentication=no kbdinteractiveauthentication=no permitemptypasswords=no; do
+        if ! grep -qixF "${kv/=/ }" <<< "$CK_SSHD_EFFECTIVE"; then
+            rm -f "$CK_SSHD_DROPIN"
+            die "hardening did not take effect: sshd still reports \
+'$(grep -i "^${kv%%=*} " <<< "$CK_SSHD_EFFECTIVE" || echo "${kv%%=*} (unset)")'.
+    Another drop-in in /etc/ssh/sshd_config.d/ outranks ours, or the main
+    sshd_config sets it before the Include. Reverted; nothing changed.
+    Inspect with: grep -r . /etc/ssh/sshd_config.d/ /etc/ssh/sshd_config"
+        fi
+    done
+
+    # 24.04 socket-activates sshd, so per-connection instances pick the new
+    # config up anyway; reload the service if one is running.
+    systemctl reload ssh 2>/dev/null || systemctl restart ssh 2>/dev/null || true
+    info "password auth disabled and verified via sshd -T; root login key-only"
 fi
 
 if [[ "$CK_UNATTENDED" == "1" ]]; then
@@ -715,8 +847,12 @@ step "Provisioned"
 
 MISSING_ARTIFACTS=()
 for rel in "${CK_ARTIFACTS[@]}"; do
-    if [[ ! -f "${CK_APP_DIR}/${rel}" ]]; then
-        MISSING_ARTIFACTS+=("$rel")
+    case "$rel" in
+        /*) target="$rel" ;;
+        *)  target="${CK_APP_DIR}/${rel}" ;;
+    esac
+    if [[ ! -f "$target" ]]; then
+        MISSING_ARTIFACTS+=("$target")
     fi
 done
 
@@ -741,22 +877,29 @@ EOF
 if [[ ${#MISSING_ARTIFACTS[@]} -gt 0 ]]; then
 cat <<EOF
 
-      2. Supply the RL policy artifact(s) below. The config names them and the
-         server refuses to start without them. Deployed artifacts belong in the
-         committed policies/ directory, where they deploy with everything else —
-         one missing here is either a config naming a path outside the tree, or
-         an artifact that never got committed (policies/README.md). Meanwhile,
-         from your local checkout:
+      2. Supply the RL policy artifact(s) below. A kitty in the roster names
+         each one, so the server refuses to start without them. Deployed
+         artifacts belong in the committed policies/ directory, where they
+         deploy with everything else — one missing here is either a config
+         naming a path outside the tree, or an artifact that never got
+         committed (policies/README.md). From your local checkout:
 
-$(for a in "${MISSING_ARTIFACTS[@]}"; do echo "           scp $a root@${PUBLIC_ADDR}:${CK_APP_DIR}/$a"; done)
-           ssh root@${PUBLIC_ADDR} chown -R ${CK_USER}:${CK_USER} ${CK_APP_DIR}
+$(for a in "${MISSING_ARTIFACTS[@]}"; do echo "           scp <local-path> root@${PUBLIC_ADDR}:${a}"; done)
 
-      3. Place a snapshot.json in ${CK_APP_DIR} if resuming an existing world.
+      3. Place the world at ${CK_STATE_DIR}/snapshot.json if resuming an
+         existing one, owned by ${CK_USER}:
+
+           scp snapshot.json root@${PUBLIC_ADDR}:${CK_STATE_DIR}/
+           ssh root@${PUBLIC_ADDR} chown -R ${CK_USER}:${CK_USER} ${CK_STATE_DIR}
 EOF
 else
 cat <<EOF
 
-      2. Place a snapshot.json in ${CK_APP_DIR} if resuming an existing world.
+      2. Place the world at ${CK_STATE_DIR}/snapshot.json if resuming an
+         existing one, owned by ${CK_USER}:
+
+           scp snapshot.json root@${PUBLIC_ADDR}:${CK_STATE_DIR}/
+           ssh root@${PUBLIC_ADDR} chown -R ${CK_USER}:${CK_USER} ${CK_STATE_DIR}
 EOF
 fi
 
@@ -774,9 +917,23 @@ if [[ "$CK_START_SERVICES" == "1" ]]; then
     step "Starting services (CK_START_SERVICES=1)"
     # Unguarded, a failed start would abort before Caddy starts and before the
     # status output that explains why.
-    systemctl start cloudkitty || warn "cloudkitty failed to start"
-    systemctl start caddy || warn "caddy failed to start"
+    CK_START_FAILED=0
+    systemctl start cloudkitty || { warn "cloudkitty failed to start"; CK_START_FAILED=1; }
+    systemctl start caddy      || { warn "caddy failed to start";      CK_START_FAILED=1; }
     sleep 3
+    for svc in cloudkitty caddy; do
+        if ! systemctl is-active --quiet "$svc"; then
+            warn "$svc is not active"
+            CK_START_FAILED=1
+        fi
+    done
     systemctl --no-pager --lines=10 status cloudkitty || true
     systemctl --no-pager --lines=10 status caddy || true
+    # Exit non-zero when asked to start and the services are not up: a caller
+    # must be able to tell "provisioned and serving" from "provisioned and
+    # dead", and a warning printed after the "Provisioned" banner cannot.
+    if [[ "$CK_START_FAILED" == "1" ]]; then
+        die "provisioning finished but the services are not running (see status above)"
+    fi
+    info "cloudkitty and caddy are running"
 fi

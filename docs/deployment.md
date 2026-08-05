@@ -115,7 +115,7 @@ After=network.target
 
 [Service]
 WorkingDirectory=/opt/cloudkitty
-ExecStart=/opt/cloudkitty/target/release/cloudkitty-server
+ExecStart=/opt/cloudkitty/cloudkitty-server --config /opt/cloudkitty/cloudkitty.toml
 Restart=on-failure
 
 # The server takes its final world save on SIGINT (Ctrl-C); systemd's
@@ -131,13 +131,33 @@ The `KillSignal` line is the one non-obvious part: graceful shutdown —
 "letting the kitties settle", final save included — listens for SIGINT
 only.
 
+The unit above is the minimal shape, for understanding. The one
+`docs/deploy/provision-cloudkitty.sh` installs adds a service account,
+systemd sandboxing, and restart limits — see [Scripted
+provisioning](#scripted-provisioning) below.
+
 ## Updating
+
+**On a box provisioned by the script, run `/root/update.sh`** — it pulls,
+rebuilds, deploys the binary *and* the viewer, config and policy
+artifacts, verifies the world is actually serving, and rolls back if it
+is not.
+
+By hand, where the checkout *is* the app directory:
 
 ```bash
 git pull
 cargo build --release -p cloudkitty-server
 sudo systemctl restart cloudkitty
 ```
+
+Note what that hand sequence does **not** do: it deploys neither
+`client/`, nor `cloudkitty.toml`, nor `policies/`. If the checkout and
+the app directory are separate — which is the layout the provisioning
+script installs — it also rebuilds in one tree and restarts a binary in
+the other, which looks like a successful deploy and changes nothing. A
+commit that reseats a kitty or relocates a `.ckpolicy` is a silent no-op
+under it. That is the whole reason `update.sh` exists.
 
 **A viewer-only change needs no restart at all.** `ServeDir` opens each
 file from disk per request and caches nothing in memory, and the server
@@ -158,6 +178,36 @@ Two things to know before restarting into new code or config:
 - **`--fresh` never loses a world by accident**: the old save is moved
   aside to `snapshot.json.<timestamp>.bak` first (pass `--no-backup` to
   skip that).
+
+## Scripted provisioning
+
+Everything above describes the shape by hand, which is what you want when
+reading to understand it. To actually stand a box up, `docs/deploy/` does
+it:
+
+- **`provision-cloudkitty.sh`** — a fresh Ubuntu 24.04 host to a serving
+  one: read-only deploy key, clone, Rust toolchain, build, service
+  account, systemd unit, upstream Caddy, ufw, and SSH/unattended-upgrade
+  hardening. Run once, as root, on a **new** box; it refuses to run over
+  an existing install. Services are installed and enabled but not
+  started, so the first boot of the world is yours to time.
+- **`update.sh`** — every deploy after that. Installed to
+  `/root/update.sh` by the provisioning script, which also writes this
+  box's paths to `/etc/default/cloudkitty-deploy`.
+
+Two differences from the hand-rolled shape above are load-bearing:
+
+- **The service does not own the code it runs.** The binary, config,
+  `client/` and `policies/` are root-owned; the only path writable by the
+  service is `/opt/cloudkitty/state`, which holds `snapshot.json` and
+  nothing else. Otherwise a write-primitive bug in the server could
+  replace the binary and `Restart=on-failure` would re-execute it. The
+  unit passes `--snapshot` to point at that directory, so
+  `cloudkitty.toml` is never modified.
+- **The checkout and the app directory are separate.** Root builds in
+  `/root/cloudkitty` and the service runs from `/opt/cloudkitty`. This is
+  why the hand `git pull && restart` sequence does not deploy anything on
+  a scripted box.
 
 ## What is public, on purpose
 
