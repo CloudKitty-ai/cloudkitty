@@ -27,10 +27,13 @@ id = 1
 name = "Miso"
 x = 10
 y = 12
-# exp-001 deployment soak (prereg §9.1): Miso is driven by the arm2-g0p998-s6
-# policy — the seat kitty-eval's Mixed roster certified (subject at index 0).
-# Inherits the exp-002 winner at deployment stage 2 (experiments/ROADMAP.md).
-behavior = "policy:e001-a2-s6"
+# PARKED POLICY SEAT (spec 026). Miso's policy, policies/e001-a2-s6.ckpolicy,
+# is an observation-generation-1 artifact (schema 1, 182-wide); this binary
+# speaks generation 2 and refuses it at boot, by design. The seat runs the
+# scripted default until exp-003 certifies a schema-2 winner, which re-seats
+# it at the post-exp-003 rollout. The served box still runs the generation-1
+# binary with this policy seated — its config is not this file.
+behavior = "needs_driven"
 
 [[kitty]]
 id = 2
@@ -56,11 +59,11 @@ id = 4
 name = "Kittybear"
 x = 5
 y = 5
-# Second policy seat (pair-screen 2026-07-31, Seating B). Kittybear inherits
-# the exp-002 winner at deployment stage 1 (experiments/ROADMAP.md), replacing
-# arm2-g0p998-s3: measured in exactly this seat — candidate at kitty_4 beside
-# frozen s6 at kitty_1 — team reward 0.8976, in-water 5.14% (from 9.21%).
-behavior = "policy:e002-m0-g998-s1"
+# PARKED POLICY SEAT (spec 026), same story as Miso's: the exp-002 winner
+# policies/e002-m0-g998-s1.ckpolicy is generation-1 (its pair-screen record —
+# team reward 0.8976, in-water 5.14% from 9.21% — stands in the [rl.policy]
+# block below). Scripted until exp-003's schema-2 winner re-seats it.
+behavior = "needs_driven"
 
 # How fast each need rises, per tick. Higher means more pressing, more often.
 [needs]
@@ -255,10 +258,13 @@ distress_patience_ticks = 60
 # RL policy artifacts (spec 014 FR-016): a kitty with behavior = "policy:<name>"
 # resolves through the matching [rl.policy.<name>] block. The artifact is
 # schema-validated and content-hashed at startup (never served on GET /config).
-# Deployed artifacts live in the committed policies/ directory (owner
-# decision 2026-07-31) so a fresh clone serves the roster as-is; the README
-# there maps each file to its sha256, its certification record, and the
-# naming convention these keys follow.
+# Artifacts live in the committed policies/ directory (owner decision
+# 2026-07-31); the README there maps each file to its sha256, its
+# certification record, and the naming convention these keys follow.
+# Since spec 026 both committed artifacts are observation-generation 1 and
+# no kitty above references them — the blocks below are kept for provenance
+# (an unreferenced block never opens its artifact) until exp-003's schema-2
+# winners take the seats back.
 # e001-a2-s6 = exp-001 arm2-g0p998-s6, sha256 8030b94d… — certified clean
 # 2026-07-30 (results/served-world-remeasure-2026-07-30.md); greedy selection
 # (sample = false), matching the certified condition. Renamed from `s6`

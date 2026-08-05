@@ -97,6 +97,38 @@ fn a_corrupted_artifact_fails_startup_naming_the_config_field() {
     );
 }
 
+#[test]
+fn the_shipped_config_boots_scripted_across_the_generation_gap() {
+    // Spec 026 US4: main must stay runnable while the committed policy
+    // artifacts are a generation behind the binary. The shipped
+    // cloudkitty.toml seats no policy, yet its [rl.policy.*] blocks still
+    // name both generation-1 artifacts for provenance. Ok here is the
+    // whole proof: had registration opened either artifact, the schema
+    // gate would refuse it (they are generation 1, this binary speaks
+    // generation 2) — success means unreferenced blocks are never
+    // followed, exactly the early-return the reseat leans on.
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../cloudkitty.toml");
+    let text = std::fs::read_to_string(&root).expect("the shipped config is readable");
+    let config: Config = toml::from_str(&text).unwrap();
+    config.validate().expect("the shipped config validates");
+    assert!(
+        config
+            .kitties
+            .iter()
+            .all(|k| !k.behavior.starts_with("policy:")),
+        "spec 026 parked every policy seat until a schema-2 winner exists"
+    );
+    let rl = RlConfig::from_toml_str(&text).unwrap();
+    assert!(
+        !rl.policy.is_empty(),
+        "the provenance [rl.policy.*] blocks stay in the shipped config"
+    );
+    let mut registry = BehaviorRegistry::with_builtins();
+    register_policy_behaviors(&mut registry, &config, &rl)
+        .expect("no seat references a policy, so no artifact is ever opened");
+    config.validate_behavior_names(&registry.names()).unwrap();
+}
+
 #[tokio::test]
 async fn a_policy_kitty_is_viewer_indistinguishable_from_a_built_in() {
     let artifact = fixture_artifact("served");
