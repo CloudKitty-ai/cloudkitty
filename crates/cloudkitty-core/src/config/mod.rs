@@ -345,6 +345,11 @@ pub struct ElementRule {
     pub min: u32,
     pub max: u32,
     /// Lifetime in ticks; `None` (absent) means permanent.
+    ///
+    /// Note on `max` below: it is read only by config validation. The
+    /// simulation tops each type up to `min` and no further, so the
+    /// standing population IS the minimums -- `min` is the real knob,
+    /// and lowering `max` alone changes nothing at runtime.
     #[serde(default)]
     pub ttl: Option<u64>,
     /// Chow only: servings per element.
@@ -359,6 +364,23 @@ pub struct ElementsConfig {
     pub bug: ElementRule,
     pub greeble: ElementRule,
     pub sunbeam: ElementRule,
+    /// Best-of-N width for every spawn placement draw: how many candidate
+    /// tiles a spawn considers before choosing (spec 027; was a code
+    /// constant). Higher spreads harder; 1 is a plain uniform pick.
+    #[serde(default = "default_spread_candidates")]
+    pub spread_candidates: usize,
+    /// Every timed spawn draws its lifetime as base ± this many ticks, so
+    /// a cohort born together never expires together (owner call
+    /// 2026-07-23; spec 027 moved the number here). Floored so a short
+    /// base can never spawn an already-expired element.
+    #[serde(default = "default_ttl_jitter")]
+    pub ttl_jitter: u64,
+    /// Interior preference (spec 027): subtracted from a perimeter
+    /// candidate's spread score, in tiles. A preference, never a
+    /// prohibition -- a spawn still lands on the edge when the edge is
+    /// all that's free. 0 disables it exactly.
+    #[serde(default = "default_edge_penalty")]
+    pub edge_penalty: f32,
 }
 
 impl Default for ElementsConfig {
@@ -400,6 +422,9 @@ impl Default for ElementsConfig {
                 ttl: Some(300),
                 servings: None,
             },
+            spread_candidates: default_spread_candidates(),
+            ttl_jitter: default_ttl_jitter(),
+            edge_penalty: default_edge_penalty(),
         }
     }
 }

@@ -82,6 +82,7 @@ fn build_config(
             bug: rule(1, Some(60), None),
             greeble: rule(1, Some(40), None),
             sunbeam: rule(1, Some(80), None),
+            ..ElementsConfig::default()
         },
         ..Config::default()
     }
