@@ -85,6 +85,13 @@ fn a_corrupted_artifact_fails_startup_naming_the_config_field() {
         message.contains("[rl.policy.trained].artifact"),
         "the error names the config field: {message}"
     );
+    // ...and the artifact path rides in the same context line, so the
+    // operator can answer "which file" without opening the config
+    // (spec 026 contract C3, questions 1 and 2).
+    assert!(
+        message.contains("corrupt.ckpolicy"),
+        "the error names the artifact file: {message}"
+    );
 
     // A missing [rl.policy] block is equally fatal, equally named.
     let mut no_block: Config = toml::from_str(&text).unwrap();

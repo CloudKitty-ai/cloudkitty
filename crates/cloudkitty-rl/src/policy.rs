@@ -41,7 +41,11 @@ pub enum ArtifactError {
     Header(String),
     #[error("unsupported artifact version {found} (this build supports {supported})")]
     UnsupportedVersion { found: u32, supported: u32 },
-    #[error("{schema} schema mismatch: artifact was trained against v{found}, this build compiles v{expected}")]
+    #[error(
+        "{schema} schema mismatch: the artifact was trained for {schema} schema v{found}, \
+         this binary speaks v{expected} -- an artifact re-trained for this binary's \
+         generation is required (there is no conversion or compatibility mode)"
+    )]
     SchemaMismatch {
         schema: &'static str,
         found: u32,
@@ -163,7 +167,9 @@ impl PolicyArtifact {
         }
         if header.layers[0][0] != expected.observation_len {
             return Err(ArtifactError::Shape(format!(
-                "input width {} does not match the observation size {}",
+                "input width {} does not match the compiled observation size {} -- \
+                 usually the artifact predates this binary's observation generation, \
+                 and an artifact re-trained for it is required",
                 header.layers[0][0], expected.observation_len
             )));
         }
