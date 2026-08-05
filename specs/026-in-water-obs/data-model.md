@@ -72,13 +72,15 @@ artifact included).
 | Key | Old default | New default | Semantics |
 |---|---|---|---|
 | `[water] bath_gain` | 1.5 | **3.5** | unchanged: per occupied tick, trait-scaled (× cat's bath rise / baseline), 0 disables |
-| `[water] bath_gain_ceiling` | 50 | **65** | unchanged: pre-charge gate; charge stops at/above it |
+| `[water] bath_gain_ceiling` | 50 | **60** | unchanged: pre-charge gate; charge stops at/above it |
 
 **Invariant (unchanged rule, new arithmetic)**:
 `ceiling + gain × max_bath_ratio < safeguard(75)`; at defaults
-65 + 3.5×1.0 = 68.5 for the shipped roster. Max admissible bath ratio
-under new defaults ≈ 2.857 (was ≈ 16.7 — narrowed on purpose; the
-validator's existing error names the offending cat and remedies).
+60 + 3.5×1.0 = 63.5 for the shipped roster; the frozen heterogeneity
+exam's 4× bath cat charges 14, 60 + 14 = 74 < 75 — the binding
+constraint that set the ceiling. Max admissible bath ratio under new
+defaults ≈ 4.28 (was ≈ 16.7 — narrowed on purpose; the validator's
+existing error names the offending cat and remedies).
 
 **Dependent state**: `engine_defaults_sha256` (serialized default
 configs) changes with these two numbers — planned, batch-wide,

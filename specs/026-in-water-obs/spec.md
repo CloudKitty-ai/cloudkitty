@@ -32,9 +32,10 @@ dial resolution failed its gates at both bath_gain 1.5 and 2.5, and the
 measured slope (≈ −0.84 pp lounging per dial unit) extrapolates to a
 dial near 5 to reach the gates by penalty alone. The bit and the
 penalty therefore ship *together* — the owner set the pair at **3.5**
-with ceiling **65** (2026-08-05): substantial without being
-gate-reaching on its own, and a higher ceiling so the *accumulated*
-happiness cost of lounging is large enough for PPO to learn from.
+with ceiling **60** (2026-08-05, see Clarifications): substantial
+without being gate-reaching on its own, and a higher ceiling so the
+*accumulated* happiness cost of lounging is large enough for PPO to
+learn from.
 
 Deployment posture (owner, 2026-08-05): the served box keeps its
 schema-1 binary and config until a single hand rollout after exp-003.
@@ -42,6 +43,19 @@ Both deployed policies (`e001-a2-s6`, `e002-m0-g998-s1`) are schema-1
 and 182-wide; a schema-2 binary refuses them at boot, by design. Merge
 freely, deploy never — until a schema-2 winner exists. Nothing
 deploys mid-soak.
+
+## Clarifications
+
+### Session 2026-08-05
+
+- Q: The owner's dial pair (3.5/65) fails certification-hygiene
+  validation against the FROZEN exam `evals/v1/heterogeneity.toml`
+  (its 4x-bath Miso draws a 14-point charge; 65 + 14 = 79 >= 75), and
+  the exam can never be edited. Resolve the ceiling? -> A: **3.5 / 60**
+  (owner). Keeps the gain; the ceiling drops to the exact roofline the
+  frozen suite permits (60 + 14 = 74 < 75). The Input block above
+  quotes the original 65 as history; every requirement in this spec
+  uses 60.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -106,10 +120,10 @@ guard still proves the safeguard threshold unreachable by water alone.
 
 1. **Given** a config with no `[water]` section, **When** the world
    boots, **Then** the effective `bath_gain` is 3.5 and
-   `bath_gain_ceiling` is 65, and `GET /config` reports both.
+   `bath_gain_ceiling` is 60, and `GET /config` reports both.
 2. **Given** the shipped roster (all bath ratios 1.0), **When** config
    validation runs, **Then** it passes: ceiling + largest single
-   charge = 65 + 3.5 = 68.5, below the safeguard threshold (75).
+   charge = 60 + 3.5 = 63.5, below the safeguard threshold (75).
 3. **Given** a config whose ceiling + largest trait-scaled charge
    reaches the safeguard threshold, **When** validation runs, **Then**
    it is rejected at startup with the existing error naming the cat
@@ -210,9 +224,10 @@ acting, and that no artifact file was opened.
   but neither flag consults the other, so a future multi-element tile
   would not silently break either.
 - **Configs that validated yesterday may fail today**: the ceiling
-  raise shrinks trait headroom — a cat with bath rise ≥ ~2.86× the
+  raise shrinks trait headroom — a cat with bath rise > ~4.28× the
   baseline now trips the certification-hygiene guard that passed at
-  ceiling 50 (headroom was ~16.7×). That is the guard doing its job;
+  ceiling 50 (headroom was ~16.7×); the frozen heterogeneity exam's
+  4× cat sits just inside the new roofline, and deliberately so. That is the guard doing its job;
   the existing error names the cat and the remedies. Called out in
   the config comments so an operator meeting it can orient.
 - **Water with a TTL**: default puddles are permanent, but water may
@@ -254,12 +269,13 @@ acting, and that no artifact file was opened.
   (was 1.5). The charge semantics — per occupied tick, trait-scaled by
   the cat's bath rise relative to baseline, stopped at the ceiling —
   MUST NOT change.
-- **FR-005**: The default `[water] bath_gain_ceiling` MUST become 65
+- **FR-005**: The default `[water] bath_gain_ceiling` MUST become 60
   (was 50). The ceiling's pre-charge gate semantics MUST NOT change.
 - **FR-006**: The certification-hygiene validation rule (ceiling plus
   largest trait-scaled single charge strictly below the safeguard
   threshold) MUST remain in force unaltered and MUST pass at the new
-  defaults for the shipped roster (68.5 < 75).
+  defaults for the shipped roster (63.5 < 75) and for every frozen
+  exam — heterogeneity.toml's 4× bath cat binds it (60 + 14 = 74 < 75).
 - **FR-007**: A schema or shape refusal at artifact load MUST report,
   in one message: the artifact's file path, the policy name being
   resolved, what the artifact carries versus what the binary expects
@@ -290,7 +306,7 @@ acting, and that no artifact file was opened.
   remain valid history (and remain deployed on the served box) but are
   unloadable by a generation-2 binary.
 - **Wet-fur pricing**: the `[water]` dial pair; per-tick charge 3.5,
-  accumulation ceiling 65, trait-scaled, safeguard-bounded by
+  accumulation ceiling 60, trait-scaled, safeguard-bounded by
   validation.
 
 ## Success Criteria *(mandatory)*
@@ -309,7 +325,7 @@ acting, and that no artifact file was opened.
 - **SC-003**: A fresh clone at the merged commit boots the default
   world with zero configuration and serves all four kitties.
 - **SC-004**: A config that never writes `[water]` reports gain 3.5 /
-  ceiling 65 on `GET /config`, and the boot banner names the same
+  ceiling 60 on `GET /config`, and the boot banner names the same
   values.
 - **SC-005**: The full test suite passes; determinism holds (same
   seed + config + ticks → identical world state, asserted by the
@@ -322,7 +338,7 @@ acting, and that no artifact file was opened.
   hand rollout after exp-003; the 48h+ Stage-2 soak running since
   2026-08-04 is against schema-1 and is not interrupted. Nothing in
   this spec touches the served box.
-- **Dial magnitudes** (owner, 2026-08-05): 3.5 / 65, chosen so the
+- **Dial magnitudes** (owner, 2026-08-05): 3.5 / 60, chosen so the
   penalty is substantial but not gate-reaching alone (keeping a gate
   pass attributable to the bit + penalty jointly) and the raised
   ceiling extends the accumulated cost PPO can observe. Recorded here
@@ -335,7 +351,7 @@ acting, and that no artifact file was opened.
   the break can land without stranding main.
 - **The trainer inherits the pricing by design**: `training.toml`
   writes no `[water]` section, so exp-003's training world picks up
-  3.5/65 from defaults with no config edit.
+  3.5/60 from defaults with no config edit.
 - **Experiments owns the aftermath**: rebuilding the trainer's engine
   binding, re-baselining the measurement stack, and re-measuring the
   anchors keyed to the old stamp (handoff §4) happen after this

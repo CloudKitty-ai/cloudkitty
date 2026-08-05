@@ -9,7 +9,7 @@
 Open observation generation 2: add one in-water flag to the self block
 (`observe.rs`, `OBSERVATION_SCHEMA_VERSION` 1→2, default length
 182→183), raise the wet-fur dial defaults (`bath_gain` 1.5→3.5,
-`bath_gain_ceiling` 50→65, owner-set 2026-08-05), make the
+`bath_gain_ceiling` 50→60, owner-set 2026-08-05), make the
 cross-generation artifact refusal carry its own diagnosis, and keep
 main bootable by parking the two schema-1 policy seats on scripted
 behaviors until exp-003 produces schema-2 winners. No compatibility
@@ -31,7 +31,7 @@ shim, no served-box change; the engine-defaults stamp moves, by plan.
 
 **Performance Goals**: none newly introduced; the flag is one `Vec::push` per observation and one position lookup per encode.
 
-**Constraints**: determinism (Article V) — the flag is a pure snapshot read, no RNG; fail-fast boot on artifact mismatch (Article IV posture) preserved; the certification-hygiene bound (ceiling + max charge < safeguard) must hold at new defaults (68.5 < 75 for the shipped roster).
+**Constraints**: determinism (Article V) — the flag is a pure snapshot read, no RNG; fail-fast boot on artifact mismatch (Article IV posture) preserved; the certification-hygiene bound (ceiling + max charge < safeguard) must hold at new defaults (63.5 < 75 for the shipped roster; 74 < 75 for the frozen 4×-bath exam cat).
 
 **Scale/Scope**: 4 crates touched, ~6 source files + tests + `cloudkitty.toml` + `policies/README.md` + docs. Second and larger half of the pre-exp-003 batch lands separately as spec 027.
 
@@ -43,7 +43,8 @@ shim, no served-box change; the engine-defaults stamp moves, by plan.
   dials increase need *pressure*, never exceed bounds: the existing
   `validate_water` proof (ceiling + largest trait-scaled charge
   strictly below the safeguard threshold) is retained unchanged and
-  passes at 3.5/65 for every bath ratio ≤ ~2.857. Property tests for
+  passes at 3.5/60 for every bath ratio ≤ ~4.28 — the frozen
+  heterogeneity exam's 4× cat included. Property tests for
   Articles I–III run unmodified.
 - **Article II (no death)** — untouched; no kitty-removal path exists
   or is added.
@@ -95,7 +96,7 @@ crates/cloudkitty-rl/src/
 
 crates/cloudkitty-core/src/config/
 ├── defaults.rs          # default_water_bath_gain 1.5→3.5 (:92),
-│                        # default_water_bath_gain_ceiling 50→65 (:96)
+│                        # default_water_bath_gain_ceiling 50→60 (:96)
 ├── mod.rs               # [water] doc comments: new numbers + rationale
 └── validate.rs          # untouched (rule unchanged, arithmetic re-proved
                          # by existing tests)

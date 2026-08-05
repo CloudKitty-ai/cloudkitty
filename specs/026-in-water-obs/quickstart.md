@@ -56,7 +56,7 @@ curl -fsS http://127.0.0.1:8090/config | python3 -c \
 kill %1
 ```
 
-Expected: `3.5 65.0`, from a config that never writes `[water]`; the
+Expected: `3.5 60.0`, from a config that never writes `[water]`; the
 boot banner names the same regime values.
 
 ## The stamp moved (expected, not a failure)

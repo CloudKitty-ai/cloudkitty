@@ -57,29 +57,32 @@ not leak, determinism holds.
 
 ## Phase 4: User Story 2 — Lounging in water costs enough to learn from (P2)
 
-**Goal**: defaults 3.5 / 65 flow from `defaults.rs` through validation,
+**Goal**: defaults 3.5 / 60 flow from `defaults.rs` through validation,
 `GET /config`, and the boot banner; semantics untouched.
 
 **Independent Test**: `cargo test -p cloudkitty-core` green; quickstart
-SC-004 shows `3.5 65.0` from a `[water]`-less config.
+SC-004 shows `3.5 60.0` from a `[water]`-less config.
 
 - [ ] T004 [P] [US2] Raise the dial defaults in
   `crates/cloudkitty-core/src/config/defaults.rs`:
   `default_water_bath_gain` 1.5→3.5 (:92-94),
-  `default_water_bath_gain_ceiling` 50→65 (:96-98); update the
+  `default_water_bath_gain_ceiling` 50→60 (:96-98); update the
   `[water]` field docs in `crates/cloudkitty-core/src/config/mod.rs`
   (:96-110) — the "legible framing" comment still describes 1.5 and
   must describe 3.5 (≈17.5× the 0.2/tick ambient rise), plus the
   owner's rationale (accumulated-cost signal for learning,
-  2026-08-05) and the narrowed trait headroom (max bath ratio ≈2.86,
+  2026-08-05; ceiling re-set 65→60 same day — the frozen heterogeneity
+  exam's 4× bath cat is the binding constraint) and the narrowed
+  trait headroom (max bath ratio ≈4.28,
   was ≈16.7 — configs that validated at ceiling 50 can now fail, and
   that is the certification-hygiene guard working).
 - [ ] T005 [US2] Prove the defaults land: grep
   `crates/cloudkitty-core` tests for assumptions pinning 1.5/50 (the
   `water_safeguard.rs` suite sets explicit values and should be
   untouched — verify, do not weaken); add/extend a test asserting
-  `Config::default()` yields gain 3.5, ceiling 65, and that
-  `validate_water` passes the shipped roster arithmetic (68.5 < 75);
+  `Config::default()` yields gain 3.5, ceiling 60, and that
+  `validate_water` passes the shipped roster arithmetic (63.5 < 75)
+  and the frozen-exam sweep (heterogeneity: 60 + 14 = 74 < 75);
   run `cargo test -p cloudkitty-core` and fix only what the default
   change legitimately moved.
 

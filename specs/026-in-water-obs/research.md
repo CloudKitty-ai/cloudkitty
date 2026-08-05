@@ -3,7 +3,8 @@
 Phase 0 output. Every decision below was verified against the code in
 this worktree (branch `026-in-water-obs` at `d6c5143`), not estimated.
 No NEEDS CLARIFICATION markers remained after the owner's 2026-08-05
-dial decision (3.5 / 65); the items here are the design decisions the
+dial decision (3.5, ceiling re-set 65→60 mid-implementation — see
+R3); the items here are the design decisions the
 plan commits to and the code facts that ground them.
 
 ## R1 — Where the flag goes and what it reads
@@ -69,16 +70,21 @@ the binary (Article VI covers tunables, not contracts).
 ## R3 — Dial defaults, and only defaults
 
 **Decision**: change `default_water_bath_gain` 1.5→3.5 and
-`default_water_bath_gain_ceiling` 50→65 (`defaults.rs:92-98`); leave
+`default_water_bath_gain_ceiling` 50→60 (`defaults.rs:92-98`); leave
 `validate_water` (`validate.rs:440-505`) byte-untouched; do not write
 a `[water]` block into `cloudkitty.toml`.
 
 **Rationale**: the knob semantics are certified by spec 024's tests
 (`water_safeguard.rs` exercises gain, ceiling, trait scaling, and the
 safeguard proof with explicit values, so they are default-independent).
-At 3.5/65 the shipped roster's bound is 65 + 3.5×1.0 = 68.5 < 75; the
-guard's headroom shrinks from bath-ratio ~16.7× to ~2.857×, which is
-the guard working, not a regression (spec edge case). `training.toml`
+At 3.5/60 the shipped roster's bound is 60 + 3.5×1.0 = 63.5 < 75; the
+guard's headroom shrinks from bath-ratio ~16.7× to ~4.28×, which is
+the guard working, not a regression (spec edge case). 60 is not a
+round-number retreat from the owner's first choice (65): it is the
+exact roofline the FROZEN eval suite permits — heterogeneity.toml
+carries a 4× bath-rise Miso whose single scaled charge is 14, and
+65 + 14 = 79 breached the safeguard, refusing the un-editable exam at
+validation. Owner re-decided to 60 the same day (60 + 14 = 74 < 75). `training.toml`
 writes no `[water]` section (verified), so the trainer inherits the
 new pricing with zero config edits — the intended coupling.
 Keeping `cloudkitty.toml` free of a `[water]` block leaves one source
