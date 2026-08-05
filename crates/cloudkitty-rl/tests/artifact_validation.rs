@@ -65,10 +65,11 @@ fn missing_truncated_corrupt_and_mismatched_artifacts_each_fail_by_name() {
     ));
 
     // Schema-mismatched: trained against a different observation schema.
+    // Relative offset, so the test names a mismatch in every generation.
     let mismatched = scratch_dir("mismatch").join("old-schema.ckpolicy");
     valid_artifact(&mismatched);
     let mut wrong = expectations;
-    wrong.observation_schema = 2;
+    wrong.observation_schema += 1;
     let err = PolicyArtifact::load(&mismatched, &wrong).unwrap_err();
     assert!(
         matches!(

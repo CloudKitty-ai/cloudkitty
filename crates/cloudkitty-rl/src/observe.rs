@@ -6,8 +6,14 @@
 //!
 //! 1. **Self block**: needs (/100), happiness (/100), position (x/width,
 //!    y/height), activity one-hot (7) + social flag + in-sunbeam flag +
-//!    progress (elapsed/min, clamped), distress flags (6), pursuit (active
-//!    flag + staleness), static traits (6 per-need rise rates / reference).
+//!    in-water flag + progress (elapsed/min, clamped), distress flags (6),
+//!    pursuit (active flag + staleness), static traits (6 per-need rise
+//!    rates / reference). The two occupancy-ish flags differ on purpose:
+//!    in-sunbeam is *activity*-derived (sleeping in a sunbeam), while
+//!    in-water (schema 2) is *tile*-derived — 1.0 whenever a water element
+//!    occupies the kitty's tile in the snapshot, whatever the kitty is
+//!    doing and whatever the `[water]` pricing dials say. A cat walking
+//!    through a pond is wet; that is the fact the flag reports.
 //! 2. **Kitty slots × K**: present, relative position, distance, needs,
 //!    happiness, activity one-hot + social, `is-activity-target` bit.
 //! 3. **Element slots**: chow (present, rel pos, distance, servings), water
@@ -41,8 +47,9 @@ use cloudkitty_core::Config;
 
 use crate::config::ObservationConfig;
 
-/// Version pinned into policy artifacts (FR-007/FR-016).
-pub const OBSERVATION_SCHEMA_VERSION: u32 = 1;
+/// Version pinned into policy artifacts (FR-007/FR-016). Schema 2
+/// (spec 026): the self block gained the in-water flag, 182 → 183.
+pub const OBSERVATION_SCHEMA_VERSION: u32 = 2;
 
 /// The meow kinds a policy can hear and speak: every kind except the
 /// engine-reserved `wait_for_me` (spec 012). Order is normative — the meow
@@ -56,7 +63,7 @@ pub const LEARNED_MEOWS: [MessageKind; 6] = [
     MessageKind::Purr,
 ];
 
-const SELF_BLOCK: usize = 6 + 1 + 2 + 7 + 1 + 1 + 1 + 6 + 2 + 6;
+const SELF_BLOCK: usize = 6 + 1 + 2 + 7 + 1 + 1 + 1 + 1 + 6 + 2 + 6;
 const KITTY_SLOT: usize = 1 + 2 + 1 + 6 + 1 + 7 + 1 + 1;
 const CHOW_SLOT: usize = 1 + 2 + 1 + 1;
 const WATER_SLOT: usize = 1 + 2 + 1;
@@ -66,7 +73,7 @@ const MEOW_DIGEST: usize = LEARNED_MEOWS.len() * 3;
 const CLOCK: usize = 1;
 
 /// The exact observation length for a slot configuration. With the default
-/// slots (3 kitty, 4 critter, 2 chow, 2 water, 2 sunbeam) this is 182.
+/// slots (3 kitty, 4 critter, 2 chow, 2 water, 2 sunbeam) this is 183.
 pub fn observation_len(cfg: &ObservationConfig) -> usize {
     SELF_BLOCK
         + cfg.kitty_slots * KITTY_SLOT
@@ -200,6 +207,19 @@ pub fn encode_observation(
         Activity::Sleeping { in_sunbeam, .. } if in_sunbeam => 1.0,
         _ => 0.0,
     });
+    // Tile-derived, unlike its sunbeam neighbor (see the module doc): wet
+    // is a fact about the tile, not the activity, and not the pricing.
+    v.push(
+        if snapshot
+            .elements
+            .iter()
+            .any(|e| e.element_type() == ElementType::Water && e.pos == me.pos)
+        {
+            1.0
+        } else {
+            0.0
+        },
+    );
     v.push(activity_progress(me, snapshot.tick, core));
     push_distress_flags(&mut v, me);
     match me.pursuit {
@@ -464,8 +484,96 @@ mod tests {
     use cloudkitty_core::test_support::test_world;
 
     #[test]
-    fn the_default_layout_is_182_values() {
-        assert_eq!(observation_len(&ObservationConfig::default()), 182);
+    fn the_default_layout_is_183_values() {
+        assert_eq!(observation_len(&ObservationConfig::default()), 183);
+    }
+
+    #[test]
+    fn the_self_block_carries_schema_2_exactly_once_at_any_slot_config() {
+        // Spec 026 US1 scenario 4: the +1 lives in the self block, so every
+        // slot configuration is exactly one longer than its generation-1
+        // shape — growing a slot count adds slot-sized steps on top of the
+        // same single self block.
+        assert_eq!(SELF_BLOCK, 34, "generation 1's 33 + the in-water flag");
+        let cfg = ObservationConfig {
+            kitty_slots: ObservationConfig::default().kitty_slots + 2,
+            ..ObservationConfig::default()
+        };
+        assert_eq!(observation_len(&cfg), 183 + 2 * KITTY_SLOT);
+    }
+
+    /// The in-water flag's fixed self-block index: needs (6) + happiness +
+    /// position (2) + activity one-hot (7) + social flag + in-sunbeam flag.
+    /// A layout drift moves the flag and fails these tests loudly.
+    const IN_WATER_INDEX: usize = 6 + 1 + 2 + 7 + 1 + 1;
+
+    #[test]
+    fn the_in_water_flag_is_tile_occupancy_not_proximity() {
+        use cloudkitty_core::element::Element;
+        let (mut world, config) = test_world();
+        let cfg = ObservationConfig::default();
+        let idx = world.kitty_index(1).unwrap();
+        let me = world.kitties[idx].pos;
+
+        // Dry: no water anywhere.
+        world
+            .elements
+            .retain(|e| e.element_type() != ElementType::Water);
+        let dry = encode_observation(&world.snapshot(), 1, &config, &cfg, 0.0);
+        assert_eq!(dry.values[IN_WATER_INDEX], 0.0, "no water: dry");
+
+        // Water on the neighboring tile must not leak into the flag —
+        // schema 1's distance-0 inference is exactly what this replaces.
+        world.elements.push(Element {
+            id: 9001,
+            kind: ElementKind::Water,
+            pos: Position::new(me.x + 1, me.y),
+            ttl: None,
+        });
+        let beside = encode_observation(&world.snapshot(), 1, &config, &cfg, 0.0);
+        assert_eq!(
+            beside.values[IN_WATER_INDEX],
+            0.0,
+            "water beside is not water underfoot"
+        );
+
+        // Underfoot: the tile itself holds water. A configured TTL changes
+        // nothing — present in the snapshot is present to the flag.
+        world.elements.push(Element {
+            id: 9002,
+            kind: ElementKind::Water,
+            pos: me,
+            ttl: Some(300),
+        });
+        let wet = encode_observation(&world.snapshot(), 1, &config, &cfg, 0.0);
+        assert_eq!(wet.values[IN_WATER_INDEX], 1.0, "water underfoot: wet");
+    }
+
+    #[test]
+    fn the_in_water_flag_ignores_the_activity() {
+        // Tile-derived, unlike the in-sunbeam flag beside it: a kitty
+        // grooming on a puddle is wet, whatever it is busy doing.
+        use cloudkitty_core::element::Element;
+        let (mut world, config) = test_world();
+        let cfg = ObservationConfig::default();
+        let idx = world.kitty_index(1).unwrap();
+        let me = world.kitties[idx].pos;
+        world
+            .elements
+            .retain(|e| e.element_type() != ElementType::Water);
+        world.elements.push(Element {
+            id: 9003,
+            kind: ElementKind::Water,
+            pos: me,
+            ttl: None,
+        });
+        world.kitties[idx].activity = Activity::Grooming { target: None };
+        world.kitties[idx].activity_clock = Some(ActivityClock::start(0));
+        let obs = encode_observation(&world.snapshot(), 1, &config, &cfg, 0.0);
+        assert_eq!(obs.values[IN_WATER_INDEX], 1.0);
+        // And the neighboring sunbeam flag stayed activity-derived: not
+        // sleeping in a sunbeam, so 0 — the deliberate asymmetry.
+        assert_eq!(obs.values[IN_WATER_INDEX - 1], 0.0);
     }
 
     #[test]

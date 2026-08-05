@@ -284,10 +284,12 @@ pub fn write_artifact(
 mod tests {
     use super::*;
 
+    use crate::observe::OBSERVATION_SCHEMA_VERSION;
+
     fn tiny_header(input: usize, hidden: usize, output: usize) -> ArtifactHeader {
         ArtifactHeader {
             artifact_version: ARTIFACT_VERSION,
-            observation_schema: 1,
+            observation_schema: OBSERVATION_SCHEMA_VERSION,
             action_schema: 1,
             mask_schema: 1,
             layers: vec![[input, hidden], [hidden, output]],
@@ -297,7 +299,7 @@ mod tests {
 
     fn expectations(input: usize, output: usize) -> SchemaExpectations {
         SchemaExpectations {
-            observation_schema: 1,
+            observation_schema: OBSERVATION_SCHEMA_VERSION,
             action_schema: 1,
             mask_schema: 1,
             observation_len: input,
