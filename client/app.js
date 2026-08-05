@@ -78,11 +78,24 @@ const MODE_NAMES = {
  * Dawn and dusk both wear the golden-hour set -- the light is the same,
  * only the direction differs, and ticks have no compass.
  */
+/* Each row is [name, span, fadeOut]: how long the phase lasts, and how
+ * many of its closing ticks are spent crossing into the next one. The
+ * fade is per phase rather than one global constant (owner, 2026-08-05)
+ * so "how long is this phase" and "how long does it take to leave" are
+ * independent -- a single constant capped at half a span coupled them,
+ * and left the two short twilights settled for only 25 ticks each.
+ *
+ * The fades are 24 and 16 because both divide 32 (BLEND_STEPS): the
+ * quantiser then lands on evenly-spaced steps, where an awkward length
+ * like 13 gives gaps of 2,3,2,3. The shape is deliberate -- twilight is
+ * approached slowly and handed over briskly -- and the spans give the
+ * two short phases 49 settled ticks each, up from 25 under the old
+ * single-constant scheme, without shortening the day much. */
 const WORLD_DAY_PHASES = Object.freeze([
-  ['day', 300],
-  ['dusk', 50], // sunset
-  ['night', 200],
-  ['dusk', 50], // dawn
+  ['day', 280, 24],
+  ['dusk', 65, 16], // sunset -> night: twilight hands over briskly
+  ['night', 190, 24],
+  ['dusk', 65, 16], // dawn -> day
 ]);
 const WORLD_DAY_TICKS = WORLD_DAY_PHASES.reduce((sum, [, span]) => sum + span, 0);
 
@@ -125,32 +138,28 @@ function skyForTick(tick) {
 }
 
 /**
- * How long one phase takes to cross into the next, in ticks, and how many
- * steps that crossing is quantised into (v3, 2026-08-05).
+ * How many steps a crossing is quantised into (v3, 2026-08-05).
  *
  * The world used to jump between three frozen palettes. It now crosses
  * between them -- but the ground cache BAKES the palette, so a genuinely
  * continuous blend would rebake it every frame and turn a one-blit ground
  * into a full redraw. Quantising is what makes it affordable: a palette
- * only exists at 1/32 steps, so a transition costs 32 rebakes and a
- * settled phase costs none at all. At 800ms ticks that is a rebake every
- * second or so while the light moves, and nothing in between.
- *
- * The crossfade is capped at half a phase so the short phases still get
- * to be themselves: golden hour is 50 ticks, and a flat 40 would leave it
- * blending into night for 80% of its life.
+ * only exists at 1/32 steps, so a crossing costs at most 32 rebakes and a
+ * settled phase costs none at all. A fade shorter than 32 ticks simply
+ * gets one step per tick, which is already finer than the eye.
  */
-const CROSSFADE_TICKS = 40;
 const BLEND_STEPS = 32;
 
 /** Which phase the world is in, which it is heading for, and how far
- * across -- quantised, so the caller can cheaply skip identical work. */
+ * across -- quantised, so the caller can cheaply skip identical work.
+ * The fade is clamped to the span as a guard: a table row asking to fade
+ * for longer than its phase lasts would otherwise never settle. */
 function phaseBlendFor(tick) {
   let t = Math.max(0, tick | 0) % WORLD_DAY_TICKS;
   for (let i = 0; i < WORLD_DAY_PHASES.length; i += 1) {
-    const [theme, span] = WORLD_DAY_PHASES[i];
+    const [theme, span, fadeOut = 0] = WORLD_DAY_PHASES[i];
     if (t < span) {
-      const fade = Math.min(CROSSFADE_TICKS, Math.floor(span / 2));
+      const fade = Math.min(fadeOut, span);
       const remaining = span - t;
       if (fade <= 0 || remaining > fade) return { theme, next: null, step: 0 };
       const next = WORLD_DAY_PHASES[(i + 1) % WORLD_DAY_PHASES.length][0];
