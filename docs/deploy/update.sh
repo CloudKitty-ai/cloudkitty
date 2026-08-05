@@ -34,6 +34,13 @@ UPSTREAM="${CK_UPSTREAM:-127.0.0.1:8090}"
 BACKUP_ROOT=/root/cloudkitty-deploy-backup
 KEEP_BACKUPS="${CK_KEEP_BACKUPS:-5}"
 
+# Declared up front so the ERR trap can reference them no matter how early it
+# fires -- under `set -u` an unbound expansion inside the trap would replace a
+# useful diagnostic with a confusing one. Filled in later.
+WORLD=""
+LEGACY_LAYOUT=0
+BACKUP="(not created yet)"
+
 # One deploy at a time. Two concurrent runs interleave a stop, an rsync
 # --delete and a world copy, leaving a backup holding one run's config beside
 # another run's world with no way to tell afterwards.
@@ -58,7 +65,7 @@ on_error() {
     echo "     cp -a ${BACKUP}/cloudkitty-server ${APP}/cloudkitty-server" >&2
     echo "     cp -a ${BACKUP}/cloudkitty.toml   ${APP}/cloudkitty.toml" >&2
     echo "     rsync -a --delete ${BACKUP}/policies/ ${APP}/policies/" >&2
-    echo "     cp -a ${BACKUP}/snapshot.json ${STATE}/snapshot.json" >&2
+    echo "     cp -a ${BACKUP}/snapshot.json ${WORLD:-${STATE}/snapshot.json}   # only if that backup exists" >&2
     echo "     systemctl reset-failed cloudkitty && systemctl start cloudkitty" >&2
     exit "$rc"
 }
@@ -122,15 +129,47 @@ fi
 DEPLOY_STARTED=1
 systemctl stop cloudkitty          # SIGINT: the world takes its final save
 
+# Find the world before backing it up. Boxes provisioned before the state/
+# split keep it in the app root, and their systemd unit passes no --snapshot,
+# so it is still the live world there. Looking only in state/ on such a box
+# would report "nothing to back up" and sail on -- the same silent-safety-net
+# failure this backup exists to prevent.
+if [[ -f "${STATE}/snapshot.json" ]]; then
+    WORLD="${STATE}/snapshot.json"
+elif [[ -f "${APP}/snapshot.json" ]]; then
+    WORLD="${APP}/snapshot.json"
+    LEGACY_LAYOUT=1
+fi
+
 # Copy the world only if there is one, and let a real failure be a real
 # failure. The old blanket `2>/dev/null || true` hid ENOSPC and permission
 # errors as readily as the legitimate "no world yet" case, and both closing
 # messages then pointed the operator at a file that was never written.
-if [[ -f "${STATE}/snapshot.json" ]]; then
-    cp -a "${STATE}/snapshot.json" "${BACKUP}/snapshot.json"
-    log "world backed up to ${BACKUP}/snapshot.json"
+if [[ -n "$WORLD" ]]; then
+    cp -a "$WORLD" "${BACKUP}/snapshot.json"
+    log "world backed up from ${WORLD} to ${BACKUP}/snapshot.json"
 else
-    log "no world at ${STATE}/snapshot.json yet — nothing to back up"
+    log "no world found in ${STATE} or ${APP} yet — nothing to back up"
+fi
+
+if [[ "$LEGACY_LAYOUT" == "1" ]]; then
+    cat >&2 <<MSG
+
+    NOTE: the world is still at ${APP}/snapshot.json, the pre-state/ layout.
+    This deploy leaves it there and backs it up from there, so nothing is
+    lost. To move to the sandboxed layout (the service can no longer rewrite
+    its own binary), after this deploy settles:
+
+      systemctl stop cloudkitty
+      install -d -o ${SVC_USER} -g ${SVC_USER} -m 750 ${STATE}
+      mv ${APP}/snapshot.json ${STATE}/snapshot.json
+      chown ${SVC_USER}:${SVC_USER} ${STATE}/snapshot.json
+      # then add to ExecStart in /etc/systemd/system/cloudkitty.service:
+      #   --snapshot ${STATE}/snapshot.json
+      # and set: ReadWritePaths=${STATE}
+      systemctl daemon-reload && systemctl start cloudkitty
+
+MSG
 fi
 
 install -o root -g root -m 755 target/release/cloudkitty-server "${APP}/cloudkitty-server"
