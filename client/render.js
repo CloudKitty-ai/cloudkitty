@@ -10,6 +10,22 @@
 // (TILE_COLORS is gone -- spec 008: every ground hue now lives in the named
 // MEADOW palette in meadow.js, beside the drawings that use it.)
 
+/** A ceiling on the map's longest side, in CSS pixels, so a very large
+ * display does not blow the meadow up past the art's comfortable range.
+ * On any normal screen the viewport height binds long before this does. */
+const MAP_MAX_PX = 1200;
+
+/** Slack for the margins between header, map and footer, which are not
+ * worth measuring individually. Too small and the page gains a scrollbar;
+ * too large and the map is needlessly shy of the space it has. Tightened
+ * 40 -> 30 (owner, 2026-08-05) now that the rest of the fit is measured
+ * rather than guessed. 16 was tried and is too tight: it left an 8-12px
+ * scrollbar on the larger displays, which is exactly the inter-section
+ * margin this constant stands in for. Verified scrollbar-free across the
+ * display matrix at both 20x20 and 24x24 -- if that ever regresses, this
+ * is the first number to suspect. */
+const VERTICAL_SLACK = 30;
+
 const MEOW_TEXT = {
   want_eat: 'I want to eat!',
   want_drink: 'I want to drink!',
@@ -78,18 +94,72 @@ class WorldRenderer {
    * resize listener required.
    */
   resizeFor(world) {
-    // The desktop cap, shrunk to the viewport on small screens (the body
-    // and stage padding around the canvas total at most 64px).
-    const viewport = document.documentElement.clientWidth || 720;
-    const maxPixels = Math.max(160, Math.min(720, viewport - 64));
-    this.tile = Math.max(8, Math.floor(maxPixels / Math.max(world.width, world.height)));
+    // v3 (2026-08-04): fitted to the room the map actually has, in BOTH
+    // axes. This used to be a flat 720px cap on width alone, so a square
+    // world simply overflowed the viewport vertically and the page
+    // scrolled -- and for a square world HEIGHT is the binding axis,
+    // because screens are wide and not tall. Measured rather than
+    // hardcoded, so reclaiming a header or moving the cards beside the
+    // map (see index.html) feeds straight back into tile size.
+    //
+    // A cat draws at exactly one tile, so the tile IS the cat, and this
+    // is the one dial that sets how big cats are.
+    const doc = document.documentElement;
+    const stage = this.canvas.parentElement;
+    const cell = stage ? stage.parentElement : null;
+    const px = (el, ...sides) => {
+      if (!el) return 0;
+      const cs = getComputedStyle(el);
+      return sides.reduce((sum, side) => sum + (parseFloat(cs[side]) || 0), 0);
+    };
+    const boxOf = (sel) => {
+      const el = document.querySelector(sel);
+      return el ? el.getBoundingClientRect().height : 0;
+    };
+
+    const stagePadX = px(stage, 'paddingLeft', 'paddingRight');
+    const stagePadY = px(stage, 'paddingTop', 'paddingBottom');
+    // Everything the map is not: header, footer, the body's own padding,
+    // the stage's padding, and a little slack for the margins between.
+    const chromeY =
+      boxOf('header') + boxOf('footer') +
+      px(document.body, 'paddingTop', 'paddingBottom') +
+      stagePadY + VERTICAL_SLACK;
+
+    // Width the map may have: the layout's full width less whatever the
+    // card columns take beside it. Measured from `.layout` rather than
+    // from the map's own cell, because a content-sized cell is exactly as
+    // wide as the canvas already in it -- ask that and the map can never
+    // grow. When the cards are stacked below, the columns are
+    // `display: contents` and measure zero, which is the right answer.
+    const layout = cell ? cell.parentElement : null;
+    const columns = layout ? layout.querySelectorAll('.panel-col') : [];
+    let besideWidth = 0;
+    for (const column of columns) besideWidth += column.getBoundingClientRect().width;
+    const gap = layout ? parseFloat(getComputedStyle(layout).columnGap) || 0 : 0;
+    const widthBudget =
+      (layout ? layout.clientWidth : doc.clientWidth) -
+      besideWidth -
+      (besideWidth > 0 ? gap * columns.length : 0) -
+      stagePadX;
+    const heightBudget = (doc.clientHeight || 800) - chromeY;
+    this.tile = Math.max(
+      8,
+      Math.floor(
+        Math.min(
+          widthBudget / world.width,
+          heightBudget / world.height,
+          MAP_MAX_PX / Math.max(world.width, world.height),
+        ),
+      ),
+    );
     const cssWidth = this.tile * world.width;
     const cssHeight = this.tile * world.height;
     // Integer tiles keep the art crisp, but the 8px floor means a wide
     // enough world (45+ tiles) is irreducibly wider than a phone. The
     // display scale absorbs the difference: the canvas still renders at
     // the floor and the browser shrinks the result to fit.
-    const scale = Math.min(1, maxPixels / cssWidth);
+    const scale = Math.min(1, widthBudget / cssWidth, heightBudget / cssHeight);
     const displayWidth = `${cssWidth * scale}px`;
     const dpr = window.devicePixelRatio || 1;
 
@@ -447,19 +517,18 @@ class WorldRenderer {
     }
     const tween = v2Motion && view.tweenFor ? view.tweenFor(kitty.id, pose, motion.phase) : null;
 
+    // Wetness is a fact about the tile, not the pose (owner call,
+    // 2026-08-04). `poseFor` lets an activity outrank the wade, so a cat
+    // drinking in a pond keeps its drinking pose -- but it is still
+    // standing in water and should look it. One eased signal now drives
+    // both cues, the shadow it loses and the ripple it gains, so the two
+    // can never disagree the way the old pose-derived reading could: that
+    // read `pose === 'swim'`, and therefore dried a grooming cat off
+    // while it stood in the pond.
+    const wet = v2Motion && view.wetFor ? view.wetFor(kitty.id, onWater) : 0;
+
     // A soft shadow so cats sit on the grass rather than float above it.
-    // It follows the drawn silhouette, not the pose label: gone while
-    // swimming, fading with the shoreline blend in either direction (the
-    // label flips at t=0, when the drawn cat is still wholly the from-pose).
-    const shadowAlpha = tween?.blend
-      ? pose === 'swim'
-        ? 1 - tween.blend.t
-        : tween.blend.from === 'swim'
-          ? tween.blend.t
-          : 1
-      : pose === 'swim'
-        ? 0
-        : 1;
+    const shadowAlpha = 1 - wet;
     if (shadowAlpha > 0) {
       ctx.save();
       ctx.globalAlpha = shadowAlpha;
@@ -467,6 +536,20 @@ class WorldRenderer {
       ctx.beginPath();
       ctx.ellipse(cx, cy + this.tile * 0.32, this.tile * 0.3, this.tile * 0.12, 0, 0, Math.PI * 2);
       ctx.fill();
+      ctx.restore();
+    }
+    if (wet > 0.01) {
+      // ...and the water it displaces instead. A first pass: the finished
+      // waterline is the pond restyle's business, judged in the lab.
+      ctx.save();
+      ctx.globalAlpha = wet * 0.55;
+      ctx.strokeStyle = MEADOW.pondRim;
+      ctx.lineWidth = Math.max(1, this.tile * 0.045);
+      for (const [rx, ry, dy] of [[0.34, 0.13, 0.3], [0.22, 0.085, 0.36]]) {
+        ctx.beginPath();
+        ctx.ellipse(cx, cy + this.tile * dy, this.tile * rx, this.tile * ry, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
       ctx.restore();
     }
     if (tween?.sy !== undefined) {

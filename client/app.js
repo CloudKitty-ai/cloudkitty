@@ -350,16 +350,27 @@ function render(world) {
 function renderPanel(world) {
   // Rebuild only when the roster changes; otherwise update in place so the CSS
   // transitions can do their thing.
-  const needsRebuild = panelEl.childElementCount !== world.kitties.length;
+  // Two columns, filled by halves rather than alternating: on a wide
+  // screen they sit either side of the meadow, and filling them
+  // first-half/second-half keeps DOM order equal to roster order, which
+  // is what the positional update below relies on. (Alternating would
+  // read out as 0,2,1,3.) Below the breakpoint the columns dissolve to
+  // `display: contents` and the cards are one wrapping row again.
+  const columns = panelEl.querySelectorAll('.panel-col');
+  const cards = () => panelEl.querySelectorAll('.kitty-card');
+  const needsRebuild = cards().length !== world.kitties.length;
   if (needsRebuild) {
-    panelEl.innerHTML = '';
-    for (const kitty of world.kitties) {
-      panelEl.appendChild(buildKittyCard(kitty));
-    }
+    for (const column of columns) column.innerHTML = '';
+    const half = Math.ceil(world.kitties.length / columns.length);
+    world.kitties.forEach((kitty, index) => {
+      const column = columns[Math.min(columns.length - 1, Math.floor(index / half))];
+      column.appendChild(buildKittyCard(kitty));
+    });
   }
 
+  const built = cards();
   world.kitties.forEach((kitty, index) => {
-    const card = panelEl.children[index];
+    const card = built[index];
     if (!card) return;
     card.querySelector('.name > span').textContent = kitty.name;
     // The sustained purr (spec 011) is a contentment signal, so it rides the
