@@ -532,8 +532,7 @@ mod tests {
         });
         let beside = encode_observation(&world.snapshot(), 1, &config, &cfg, 0.0);
         assert_eq!(
-            beside.values[IN_WATER_INDEX],
-            0.0,
+            beside.values[IN_WATER_INDEX], 0.0,
             "water beside is not water underfoot"
         );
 

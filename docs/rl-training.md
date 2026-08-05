@@ -102,13 +102,18 @@ then bias [out]**, in declared layer order:
 import json
 import struct
 
+import cloudkitty
+
 def export_ckpolicy(path, layers, obs_len):
     """layers: list of (weight_matrix [out,in], bias [out]) numpy arrays."""
     header = {
         "artifact_version": 1,
-        "observation_schema": 1,   # cloudkitty.OBSERVATION_SCHEMA_VERSION
-        "action_schema": 1,        # cloudkitty.ACTION_SCHEMA_VERSION
-        "mask_schema": 1,          # cloudkitty.MASK_SCHEMA_VERSION
+        # Always the binding's constants, never literals: an artifact
+        # stamped with a stale generation is refused at load (schema 2
+        # since spec 026 -- the in-water flag took the observation to 183).
+        "observation_schema": cloudkitty.OBSERVATION_SCHEMA_VERSION,
+        "action_schema": cloudkitty.ACTION_SCHEMA_VERSION,
+        "mask_schema": cloudkitty.MASK_SCHEMA_VERSION,
         "layers": [[int(w.shape[1]), int(w.shape[0])] for w, _ in layers],
         "activation": "relu",
     }
