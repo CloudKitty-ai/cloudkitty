@@ -54,6 +54,7 @@ log() { printf '==> %s\n' "$*"; }
 # service stopped, no rollback attempted, and no word about where the backup
 # is — the operator is left with a dark site and no map.
 DEPLOY_STARTED=0
+# shellcheck disable=SC2329  # invoked indirectly by `trap on_error ERR` below
 on_error() {
     local rc=$?
     [[ "$DEPLOY_STARTED" == "1" ]] || exit "$rc"
