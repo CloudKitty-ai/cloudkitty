@@ -12,6 +12,98 @@
  * test harness can run this file with its own tunables fallback.
  */
 
+/* ── palette interpolation (v3, 2026-08-05) ──────────────────────────
+   The world used to jump between three frozen palettes. It now crosses
+   between them, so the meadow changes light the way a day does rather
+   than switching sets. The palettes stay as named colour STRINGS -- every
+   drawing call site reads them unchanged -- and the blend parses, mixes
+   and re-serialises. That is more work per rebuild than kitten.me's
+   [r,g,b] arrays, but it costs nothing per frame: the blend is quantised
+   (see app.js) so a palette is rebuilt a few dozen times a transition,
+   not sixty times a second.
+
+   Lives here rather than props.js because the standalone meadow harness
+   evals cat.js + meadow.js + anim.js only. props.js loads first in the
+   browser but calls these later, by which point they are in scope. */
+
+const HEX3 = /^#([0-9a-f])([0-9a-f])([0-9a-f])$/i;
+const HEX6 = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i;
+const RGB_FN = /^rgba?\(([^)]+)\)$/i;
+
+/** '#abc' | '#aabbcc' | 'rgb(r,g,b)' | 'rgba(r,g,b,a)' -> [r, g, b, a]. */
+function parsePaletteColor(value) {
+  if (typeof value !== 'string') return null;
+  const short = HEX3.exec(value);
+  if (short) {
+    return [
+      parseInt(short[1] + short[1], 16),
+      parseInt(short[2] + short[2], 16),
+      parseInt(short[3] + short[3], 16),
+      1,
+    ];
+  }
+  const long = HEX6.exec(value);
+  if (long) {
+    return [parseInt(long[1], 16), parseInt(long[2], 16), parseInt(long[3], 16), 1];
+  }
+  const fn = RGB_FN.exec(value);
+  if (fn) {
+    const parts = fn[1].split(',').map((n) => parseFloat(n));
+    if (parts.length < 3 || parts.some((n) => !Number.isFinite(n))) return null;
+    return [parts[0], parts[1], parts[2], parts.length > 3 ? parts[3] : 1];
+  }
+  return null;
+}
+
+function formatPaletteColor([r, g, b, a]) {
+  const c = (n) => Math.max(0, Math.min(255, Math.round(n)));
+  return a >= 1
+    ? `rgb(${c(r)}, ${c(g)}, ${c(b)})`
+    : `rgba(${c(r)}, ${c(g)}, ${c(b)}, ${Math.round(a * 1000) / 1000})`;
+}
+
+/** Mixes two colour strings. Anything unparseable snaps at the midpoint
+ *  rather than throwing -- a palette should never be able to crash a frame. */
+function mixPaletteColor(from, to, t) {
+  // Exact at both ends, the same guarantee blendLayouts makes for poses: a
+  // settled phase is its authored colour string, not a re-serialised
+  // approximation of it.
+  if (from === to || t <= 0) return from;
+  if (t >= 1) return to;
+  const a = parsePaletteColor(from);
+  const b = parsePaletteColor(to);
+  if (!a || !b) return t < 0.5 ? from : to;
+  return formatPaletteColor([
+    a[0] + (b[0] - a[0]) * t,
+    a[1] + (b[1] - a[1]) * t,
+    a[2] + (b[2] - a[2]) * t,
+    a[3] + (b[3] - a[3]) * t,
+  ]);
+}
+
+/** Blends two palettes entry by entry: colour strings mix, arrays of them
+ *  mix elementwise, numbers lerp (the sun's lean and shadow length), and
+ *  anything else takes the nearer end. */
+function mixPalettes(A, B, t) {
+  if (t <= 0) return A;
+  if (t >= 1) return B;
+  const out = {};
+  for (const key of Object.keys(A)) {
+    const from = A[key];
+    const to = Object.prototype.hasOwnProperty.call(B, key) ? B[key] : from;
+    if (Array.isArray(from) && Array.isArray(to)) {
+      out[key] = Object.freeze(from.map((c, i) => mixPaletteColor(c, to[i] ?? c, t)));
+    } else if (typeof from === 'number' && typeof to === 'number') {
+      out[key] = from + (to - from) * t;
+    } else if (typeof from === 'string' && typeof to === 'string') {
+      out[key] = mixPaletteColor(from, to, t);
+    } else {
+      out[key] = t < 0.5 ? from : to;
+    }
+  }
+  return Object.freeze(out);
+}
+
 /** Every meadow color, named in one place (spec 008 FR-010, Article VI). */
 const MEADOW_DAY = Object.freeze({
   // The ground: close greens, deliberately near the retired checkerboard
@@ -104,8 +196,15 @@ const MEADOW_BY_THEME = Object.freeze({
 
 let MEADOW = MEADOW_DAY;
 
-function setMeadowPalette(theme) {
-  MEADOW = MEADOW_BY_THEME[theme] ?? MEADOW_DAY;
+/** Names the active palette, or a blend of two when the world is between
+ *  phases. `t` is how far from `theme` toward `next`. */
+function setMeadowPalette(theme, next, t = 0) {
+  const from = MEADOW_BY_THEME[theme] ?? MEADOW_DAY;
+  if (!next || t <= 0) {
+    MEADOW = from;
+    return;
+  }
+  MEADOW = mixPalettes(from, MEADOW_BY_THEME[next] ?? from, t);
 }
 
 /** Named salts for peeling independent values off tileHash (research R2). */

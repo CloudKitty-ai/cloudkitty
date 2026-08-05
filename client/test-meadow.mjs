@@ -90,8 +90,13 @@ function guardCtx(log = []) {
   );
 }
 
+// MEADOW is a getter, not a value: setMeadowPalette rebinds it, and a
+// snapshot taken at eval time could never see that.
 const EXPORTS =
-  ';({ MEADOW, MEADOW_SALTS, MEADOW_DEFAULTS, tileHash, drawMeadowGround, drawGridOverlay, groupWaterTiles, buildPondPath, drawPonds, drawSunbeamGlow, drawWornPaths, VIEW, Presentation })';
+  ';({ get MEADOW() { return MEADOW; }, MEADOW_DAY, MEADOW_DUSK, MEADOW_NIGHT, setMeadowPalette,' +
+  ' mixPaletteColor, mixPalettes, parsePaletteColor,' +
+  ' MEADOW_SALTS, MEADOW_DEFAULTS, tileHash, drawMeadowGround, drawGridOverlay, groupWaterTiles,' +
+  ' buildPondPath, drawPonds, drawSunbeamGlow, drawWornPaths, VIEW, Presentation })';
 const api = eval(src + EXPORTS);
 
 let passed = 0;
@@ -397,6 +402,51 @@ check('viewAt exposes wornPaths in moving and still frames alike', () => {
   p.pushState(world(2, [kitty(1, 2, 2)]), 1800);
   assert(p.viewAt(1900, false).wornPaths().length === 1, 'moving frame');
   assert(p.viewAt(1900, true).wornPaths().length === 1, 'still frame (state, not motion)');
+});
+
+// ---- palette blending (v3): the light crosses, it does not switch ----
+
+check('colours parse from every form the palettes actually use', () => {
+  // #rrggbb, rgba(), and the short hex form, since a future palette may.
+  assert(api.mixPaletteColor('#000000', '#ffffff', 0.5) === 'rgb(128, 128, 128)', 'six-digit hex');
+  assert(api.mixPaletteColor('#000', '#fff', 0) === '#000', 'identity returns the original string');
+  const half = api.mixPaletteColor('rgba(0, 0, 0, 0)', 'rgba(100, 200, 40, 1)', 0.5);
+  assert(half === 'rgba(50, 100, 20, 0.5)', `alpha mixes too, got ${half}`);
+});
+
+check('an unparseable colour snaps rather than throwing', () => {
+  // A palette must never be able to crash a frame.
+  assert(api.mixPaletteColor('not-a-colour', '#ffffff', 0.2) === 'not-a-colour', 'near end wins');
+  assert(api.mixPaletteColor('not-a-colour', '#ffffff', 0.8) === '#ffffff', 'far end wins past halfway');
+});
+
+check('palettes blend entry by entry, arrays included', () => {
+  const mid = api.mixPalettes(api.MEADOW_DAY, api.MEADOW_NIGHT, 0.5);
+  assert(Array.isArray(mid.grassTones), 'grassTones stays an array');
+  assert(mid.grassTones.length === api.MEADOW_DAY.grassTones.length, 'and the same length');
+  for (const tone of mid.grassTones) {
+    assert(/^rgba?\(/.test(tone), `each tone is a real colour, got ${tone}`);
+  }
+  // Midway grass must sit between day and night, not equal either.
+  assert(mid.grassTones[0] !== api.MEADOW_DAY.grassTones[0], 'moved off day');
+  assert(mid.grassTones[0] !== api.MEADOW_NIGHT.grassTones[0], 'and is not night yet');
+  assert(Object.isFrozen(mid), 'blended palettes are frozen like the named ones');
+});
+
+check('the ends of a blend are exactly the named palettes', () => {
+  assert(api.mixPalettes(api.MEADOW_DAY, api.MEADOW_NIGHT, 0) === api.MEADOW_DAY, 't=0 IS day');
+  assert(api.mixPalettes(api.MEADOW_DAY, api.MEADOW_NIGHT, 1) === api.MEADOW_NIGHT, 't=1 IS night');
+});
+
+check('api.setMeadowPalette names one palette or a blend of two', () => {
+  api.setMeadowPalette('day');
+  assert(api.MEADOW === api.MEADOW_DAY, 'a named phase is the frozen set itself');
+  api.setMeadowPalette('day', 'night', 0);
+  assert(api.MEADOW === api.MEADOW_DAY, 'zero blend is still the set itself');
+  api.setMeadowPalette('day', 'night', 0.5);
+  assert(api.MEADOW !== api.MEADOW_DAY && api.MEADOW !== api.MEADOW_NIGHT, 'mid-crossing is neither');
+  assert(typeof api.MEADOW.pondWater === 'string', 'and still reads as colour strings');
+  api.setMeadowPalette('day'); // leave the module as we found it
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

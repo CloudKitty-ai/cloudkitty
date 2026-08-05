@@ -124,14 +124,60 @@ function skyForTick(tick) {
   return { body: 'sun', t: sinceDawn / (WORLD_DAY_TICKS - nightSpan) };
 }
 
+/**
+ * How long one phase takes to cross into the next, in ticks, and how many
+ * steps that crossing is quantised into (v3, 2026-08-05).
+ *
+ * The world used to jump between three frozen palettes. It now crosses
+ * between them -- but the ground cache BAKES the palette, so a genuinely
+ * continuous blend would rebake it every frame and turn a one-blit ground
+ * into a full redraw. Quantising is what makes it affordable: a palette
+ * only exists at 1/32 steps, so a transition costs 32 rebakes and a
+ * settled phase costs none at all. At 800ms ticks that is a rebake every
+ * second or so while the light moves, and nothing in between.
+ *
+ * The crossfade is capped at half a phase so the short phases still get
+ * to be themselves: golden hour is 50 ticks, and a flat 40 would leave it
+ * blending into night for 80% of its life.
+ */
+const CROSSFADE_TICKS = 40;
+const BLEND_STEPS = 32;
+
+/** Which phase the world is in, which it is heading for, and how far
+ * across -- quantised, so the caller can cheaply skip identical work. */
+function phaseBlendFor(tick) {
+  let t = Math.max(0, tick | 0) % WORLD_DAY_TICKS;
+  for (let i = 0; i < WORLD_DAY_PHASES.length; i += 1) {
+    const [theme, span] = WORLD_DAY_PHASES[i];
+    if (t < span) {
+      const fade = Math.min(CROSSFADE_TICKS, Math.floor(span / 2));
+      const remaining = span - t;
+      if (fade <= 0 || remaining > fade) return { theme, next: null, step: 0 };
+      const next = WORLD_DAY_PHASES[(i + 1) % WORLD_DAY_PHASES.length][0];
+      const k = 1 - remaining / fade;
+      return { theme, next, step: Math.round(k * BLEND_STEPS) / BLEND_STEPS };
+    }
+    t -= span;
+  }
+  return { theme: 'day', next: null, step: 0 };
+}
+
 let themeMode = 'auto'; // 'auto' | 'day' | 'dusk' | 'night'
 let currentTheme = null; // the visual theme actually applied
+let currentBlend = null; // and the quantised blend key it was applied at
 
 /** Applies the mode's theme (auto reads the world clock) and syncs the
  * toggle. Cheap when nothing changed, so render() may call it per tick. */
 function applyTheme() {
-  const theme =
-    themeMode === 'auto' ? hourForTick(latestWorld?.tick ?? 0) : themeMode;
+  // A hand-picked theme is exactly itself; only the world clock blends.
+  const blend =
+    themeMode === 'auto'
+      ? phaseBlendFor(latestWorld?.tick ?? 0)
+      : { theme: themeMode, next: null, step: 0 };
+  // Which phase the page WEARS: its classes, its cat shading, its name in
+  // the footer. Mid-crossing that is whichever end is nearer, the same
+  // rule the canvas palette uses for anything it cannot interpolate.
+  const theme = blend.next && blend.step > 0.5 ? blend.next : blend.theme;
 
   const toggle = document.getElementById('theme-toggle');
   if (toggle) {
@@ -149,13 +195,24 @@ function applyTheme() {
     }
   }
 
-  if (theme === currentTheme) return;
-  currentTheme = theme;
-  document.body.classList.toggle('dusk', theme === 'dusk');
-  document.body.classList.toggle('night', theme === 'night');
-  setMeadowPalette(theme);
-  setPropPalette(theme);
-  renderer.theme = theme;
+  // Cheap when nothing moved: a settled phase produces the same key every
+  // tick, so this returns before touching the cache.
+  const key = `${blend.theme}>${blend.next ?? ''}@${blend.step}`;
+  if (key === currentBlend) return;
+  currentBlend = key;
+
+  // The page's own tokens only change on the whole-phase boundary; their
+  // 1.5s CSS transition does the smoothing that the canvas gets from the
+  // blend, and re-toggling a class it already has would restart it.
+  if (theme !== currentTheme) {
+    currentTheme = theme;
+    document.body.classList.toggle('dusk', theme === 'dusk');
+    document.body.classList.toggle('night', theme === 'night');
+    renderer.theme = theme;
+  }
+
+  setMeadowPalette(blend.theme, blend.next, blend.step);
+  setPropPalette(blend.theme, blend.next, blend.step);
   renderer.groundCache = null; // the cache bakes the palette; rebake
   anim.redraw(); // safe pre-world: redraw no-ops until a state exists
 }

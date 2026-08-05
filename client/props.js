@@ -68,8 +68,16 @@ const PROPS_BY_THEME = Object.freeze({
 
 let PROPS = PROPS_DAY;
 
-function setPropPalette(theme) {
-  PROPS = PROPS_BY_THEME[theme] ?? PROPS_DAY;
+/** As setMeadowPalette: a named palette, or a blend of two between
+ *  phases. `mixPalettes` lives in meadow.js, which loads after this file
+ *  but well before anything calls in here. */
+function setPropPalette(theme, next, t = 0) {
+  const from = PROPS_BY_THEME[theme] ?? PROPS_DAY;
+  if (!next || t <= 0) {
+    PROPS = from;
+    return;
+  }
+  PROPS = mixPalettes(from, PROPS_BY_THEME[next] ?? from, t);
 }
 
 /**
