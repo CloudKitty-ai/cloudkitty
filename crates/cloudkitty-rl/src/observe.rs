@@ -1,4 +1,5 @@
-//! Observation schema v1 (spec 014 FR-005) and the target table.
+//! Observation schema v2 (spec 014 FR-005; generation 2 since spec 026)
+//! and the target table.
 //!
 //! A fixed-size per-kitty vector, a deterministic pure function of the frozen
 //! start-of-tick [`WorldSnapshot`] — the same information a behavior's

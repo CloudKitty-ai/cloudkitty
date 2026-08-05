@@ -107,10 +107,12 @@ import cloudkitty
 def export_ckpolicy(path, layers, obs_len):
     """layers: list of (weight_matrix [out,in], bias [out]) numpy arrays."""
     header = {
-        "artifact_version": 1,
-        # Always the binding's constants, never literals: an artifact
-        # stamped with a stale generation is refused at load (schema 2
-        # since spec 026 -- the in-water flag took the observation to 183).
+        "artifact_version": 1,   # the container format, not a generation:
+                                 # it moves only if the file layout changes
+        # The three SCHEMA fields always come from the binding's constants,
+        # never literals: an artifact stamped with a stale generation is
+        # refused at load (observation schema 2 since spec 026 -- the
+        # in-water flag took the vector to 183).
         "observation_schema": cloudkitty.OBSERVATION_SCHEMA_VERSION,
         "action_schema": cloudkitty.ACTION_SCHEMA_VERSION,
         "mask_schema": cloudkitty.MASK_SCHEMA_VERSION,

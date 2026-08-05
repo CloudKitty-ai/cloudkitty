@@ -25,17 +25,31 @@ Expected: green across the board; the gen-1 layout test now asserts
 
 ## SC-002 — both committed artifacts are refused, legibly
 
+Re-seat one kitty onto a parked generation-1 policy in a *copy* of the
+config, and boot it (run from the repo root so the artifact's relative
+path resolves; the copy also avoids colliding with a live server on
+8090 — change `bind` if one is running):
+
 ```bash
-cargo run -p cloudkitty-server -- --config <(sed \
-  -e 's/^behavior = "needs_driven" # parked: e001-a2-s6.*/behavior = "policy:e001-a2-s6"/' \
-  cloudkitty.toml) 2>&1 | head -20   # exact reseat line per final config text
+python3 - <<'EOF'
+s = open('cloudkitty.toml').read()
+s = s.replace('behavior = "needs_driven"', 'behavior = "policy:e001-a2-s6"', 1)
+open('/tmp/sc2.toml', 'w').write(s)
+EOF
+cargo run -p cloudkitty-server -- --config /tmp/sc2.toml \
+  --snapshot /tmp/sc2-snap.json; echo "exit=$?"
 ```
 
-Simpler equivalent (what the test suite automates with a synthetic
-gen-1 artifact): temporarily point a kitty at `policy:e001-a2-s6` in a
-copy of the config and boot. Expected: exit nonzero, no serving; the
-error chain contains the artifact path, the policy name,
-"schema … 1 … 2" (or widths 182/183), and the re-train remedy.
+Expected: nonzero exit, nothing served, and the error is the whole
+diagnosis in one line (verified 2026-08-05):
+
+```
+[rl.policy.e001-a2-s6].artifact (policies/e001-a2-s6.ckpolicy):
+observation schema mismatch: the artifact was trained for observation
+schema v1, this binary speaks v2 -- an artifact re-trained for this
+binary's generation is required (there is no conversion or
+compatibility mode)
+```
 
 ## SC-003 — a fresh clone boots
 
