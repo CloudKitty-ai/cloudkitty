@@ -200,6 +200,16 @@ bounds.
 - **Boundary between guarantee tiers**: water minimum exactly 4 means
   the entire standing water population is the lake; minimum 3 means no
   guarantee. Both generate; the boundary is documented at the knob.
+- **Resumed worlds are retrofitted**: a pre-027 snapshot resumed
+  under this engine with water minimum ≥ 4 gains its lake on the
+  first environment phase — up to four water tiles spliced into the
+  live world, mid-life, once. Intended: the guarantee holds for every
+  running world, not just freshly generated ones. The served world
+  (water min 8) will visibly grow a lake at the post-exp-003 rollout;
+  in permanent-water worlds the retrofit can leave the standing water
+  count above the minimum (the square completes whole), which is
+  lawful — the population claim "standing = minimums" is exact only
+  for freshly generated permanent-water worlds.
 - **Seeded-world continuity breaks, on purpose**: the lake step and
   the edge weighting change the master-RNG draw sequence, so every
   seeded world regenerates differently and the exp-002 family

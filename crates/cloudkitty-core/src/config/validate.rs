@@ -284,6 +284,15 @@ impl Config {
                 "must be at least 1 (a spawn needs at least one candidate tile)",
             ));
         }
+        if self.elements.spread_candidates > 10_000 {
+            return Err(ConfigError::invalid(
+                "[elements] spread_candidates",
+                self.elements.spread_candidates.to_string(),
+                "must be at most 10000 -- candidates are drawn per spawn, and \
+                 more than any plausible world has tiles is a config error, \
+                 refused here rather than discovered as a hang at spawn time",
+            ));
+        }
         let penalty = self.elements.edge_penalty;
         if !penalty.is_finite() || penalty < 0.0 {
             return Err(ConfigError::invalid(

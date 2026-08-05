@@ -37,8 +37,13 @@ learners, and Experiments' measurement stack alike.
 
 - Every placement draw flows through the master RNG; same seed + same
   config → same world, lake position included.
-- The per-spawn draw *count* is a function of config alone
-  (`spread_candidates`), never of world contents.
+- The per-spawn draw *count* in ordinary placement is a function of
+  config alone (`spread_candidates`), never of world contents. The
+  lake step is the exception: a standing lake draws nothing, so its
+  per-phase draw count is a deterministic function of world state —
+  determinism holds because that state is itself a pure function of
+  seed and config, not because the count is fixed. Replay tooling
+  must not assume a fixed per-phase draw budget in timed-water worlds.
 - Relative to pre-027 engines, seeded worlds differ (the lake step
   consumes draws; the penalty changes selections). This is a
   documented generation break, re-baselined once for the whole batch

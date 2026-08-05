@@ -22,7 +22,7 @@ follows both merges.
 
 **Primary Dependencies**: `cloudkitty-core` only (spawn.rs, world.rs call sites, config). No other crate changes; no new dependencies.
 
-**Storage**: TOML config (three new `[elements]` keys); snapshots unaffected — `Config::fingerprint` (size, seed, roster ids) does not include the new keys, so existing worlds resume.
+**Storage**: TOML config (three new `[elements]` keys); snapshots resume unchanged (`Config::fingerprint` excludes the new keys) — and a resumed world lacking a lake is retrofitted with one on its first environment phase (documented in the spec's edge cases; the served world will visibly gain its lake at rollout).
 
 **Testing**: `cargo test` workspace; new property-style seeded-sample tests for the lake guarantee and the perimeter-share reduction; existing spread/safeguard/TTL tests must pass unmodified (they assert semantics the spec preserves).
 

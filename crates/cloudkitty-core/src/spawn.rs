@@ -37,6 +37,16 @@ pub fn ensure_minimums(world: &mut World, config: &Config) {
 /// meets when room allows and carries over when it does not: nothing is
 /// ever evicted or stacked, and the Article I safeguard path is
 /// untouched.
+///
+/// Two honest bounds on the guarantee's edges. In timed-water worlds a
+/// re-form can push the water count past `min` (the square completes
+/// whole; TTLs drain the excess) — so "population == minimums" is exact
+/// only for permanent water. And the lake runs before the safeguard in
+/// the phase, which matters only on a board too full to exist under a
+/// validated config: per-type populations are capped at min ≤
+/// floor(area/32), so standing elements never approach the free-tile
+/// exhaustion a lake-starves-the-safeguard scenario needs — reachable
+/// from hand-built states, not through ticking.
 fn ensure_lake(world: &mut World, config: &Config) {
     if config.elements.water.min < 4 {
         return;
@@ -96,7 +106,10 @@ fn ensure_lake(world: &mut World, config: &Config) {
         }
     }
     // Plus a sampled handful of fresh anchors, all randomness through
-    // the master RNG (Article V). Draw count depends on config alone.
+    // the master RNG (Article V). Unlike pick_spread_tile's draws, the
+    // count here IS world-dependent (a standing lake draws nothing) --
+    // determinism holds because the state deciding it is itself a pure
+    // function of seed and config, not because the count is fixed.
     let fresh: Vec<Position> = free
         .iter()
         .filter(|p| p.x + 1 < world.width && p.y + 1 < world.height)
@@ -118,7 +131,11 @@ fn ensure_lake(world: &mut World, config: &Config) {
 
     // Fewest missing tiles first (completion beats construction), then
     // the interior preference — gated on the knob, so a zero penalty
-    // leaves ties to draw order here as everywhere else.
+    // leaves ties to draw order here as everywhere else. Note the
+    // divergence from best_spread: there the penalty's MAGNITUDE trades
+    // against the spread gap; an anchor has no gap to trade against, so
+    // here any positive penalty enables an interior tie-break and the
+    // magnitude is not consulted.
     let on_edge =
         |p: &Position| p.x == 0 || p.y == 0 || p.x + 1 >= world.width || p.y + 1 >= world.height;
     let mut best = anchors[0];
@@ -213,15 +230,17 @@ fn spawn_one(world: &mut World, kind: ElementType, config: &Config) -> bool {
 
 /// Draws `base` ± the configured `[elements] ttl_jitter` uniformly through
 /// the master RNG (Article V), floored at 1 so a base smaller than the
-/// jitter can never spawn an already-expired element. The jitter exists so
-/// a cohort born together never expires together -- restocking is
-/// immediate, and without the stagger the whole population relocates in
-/// one synchronized jump every cycle (owner observation 2026-07-23,
-/// glaring at turbo speed on sunbeams, which nothing ever perturbs).
+/// jitter can never spawn an already-expired element, and saturating at
+/// the top so an absurd configured base cannot overflow (it just means
+/// effectively-permanent). The jitter exists so a cohort born together
+/// never expires together -- restocking is immediate, and without the
+/// stagger the whole population relocates in one synchronized jump every
+/// cycle (owner observation 2026-07-23, glaring at turbo speed on
+/// sunbeams, which nothing ever perturbs).
 fn jittered_ttl(world: &mut World, base: u64, config: &Config) -> u64 {
     let jitter = config.elements.ttl_jitter;
     let offset = world.rng.gen_range_u32(0, 2 * jitter as u32 + 1) as u64;
-    (base + offset).saturating_sub(jitter).max(1)
+    base.saturating_add(offset).saturating_sub(jitter).max(1)
 }
 
 /// Picks a spawn tile with a preference for open space, so the RNG cannot pile
