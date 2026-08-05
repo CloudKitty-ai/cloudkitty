@@ -7,12 +7,14 @@ voids warm starts, so world-dynamics changes are free to take *now* and
 expensive to take later — a second world change after the freeze costs a
 full re-baseline, exactly as the 2026-08-02 play-relief handover argued.
 
-Five workstreams. Item 1 is the one nothing in the design conversation
-had named, and it is a hard deployment cliff.
+Five workstreams. Item 1 is a hard deployment cliff that nothing in the
+design conversation had named; the owner has since chosen the posture
+that steps around it. **Item 3b is withdrawn — do not build it.**
 
 ---
 
 ## 1. THE CLIFF: the schema bump un-deploys the served world
+### — resolved by deployment posture, owner 2026-08-05
 
 **`PolicyArtifact::load` will refuse both currently-deployed policies
 the moment the in-water observation bit ships.** Two independent checks
@@ -30,33 +32,30 @@ to boot. `policies/e001-a2-s6.ckpolicy` (Miso) and
 `policies/e002-m0-g998-s1.ckpolicy` (Kittybear) are both schema-1,
 182-wide, and both are named by the served `cloudkitty.toml`.
 
-So: the served world cannot run a schema-2 engine until exp-003 produces
-a schema-2 winner. Product needs to decide the shape of that gap and say
-so in the spec. Three options, in my order of preference:
+So the served world cannot run a schema-2 engine until exp-003 produces
+a schema-2 winner.
 
-1. **Ship the schema behind the release, not the deployment** — the
-   engine change lands on `main`, the served box stays on the schema-1
-   binary until exp-003's winner exists. This is exactly the posture the
-   owner already held through exp-002 ("owner holds ALL further server
-   updates until exp-002 finishes"), so it is a known-good pattern and
-   costs nothing new.
-2. **Dual-schema loader** — accept schema 1 *and* 2, zero-filling the
-   new bit for schema-1 artifacts. Buys uninterrupted deployment but
-   adds a compatibility path that has to be tested and eventually
-   retired; a schema-1 policy also runs blind to the very bit exp-003
-   exists to test.
-3. **Fall back to scripted seats during the gap** — cheapest to
-   implement, but it silently retires two trained policies from the live
-   world, which the owner should choose explicitly rather than inherit.
+**Owner decision, 2026-08-05: the served box keeps its current config
+and binary until she updates it by hand, in a single large rollout after
+exp-003.** The schema change may therefore land on `main` freely — it
+simply must not be *deployed* before a schema-2 winner exists. No
+dual-schema loader and no scripted-fallback path are needed; the gap is
+handled by not crossing it. This is the same posture that held through
+exp-002 ("owner holds ALL further server updates until exp-002
+finishes"), so it is known-good and costs nothing new.
 
-**Whatever is chosen, the boot-time failure must be legible.** Today the
-error names the schema numbers but not the remedy. Worth a message that
-says which artifact, which schema it carries, which the binary wants,
-and that a re-trained artifact is required — this will be someone's 2am.
+Two things still follow from it:
 
-Also note the **soak currently running**: Miso and Kittybear went onto
-the exp-002 winner on 2026-08-04, with a 48h+ clean-soak gate before
-Stage 2. Don't let a schema-2 binary reach that box mid-soak.
+- **Nothing deploys mid-soak.** Miso and Kittybear went onto the exp-002
+  winner on 2026-08-04 with a 48h+ clean-soak gate before Stage 2. That
+  soak is running against the schema-1 binary and must stay there.
+- **The boot-time failure should still be made legible.** Today the
+  error names the schema numbers but not the remedy. A message saying
+  which artifact, which schema it carries, which the binary expects, and
+  that a re-trained artifact is required is worth the few lines —
+  precisely *because* the deployment posture means nobody will meet this
+  error until the one day they do, at which point the message is the
+  entire diagnosis.
 
 ---
 
@@ -82,7 +81,7 @@ Stage 2. Don't let a schema-2 binary reach that box mid-soak.
 
 ---
 
-## 3. World changes (the owner's three, 2026-08-05)
+## 3. World changes (2026-08-05 — two to build, one withdrawn)
 
 ### 3a. Mandatory 2×2 lake
 
@@ -107,34 +106,28 @@ Design notes:
   test-pinned, and Article I's relief guarantees assume it. A 2×2 body
   must not become a wall.
 
-### 3b. Minimum separation between same-type elements
+### 3b. Minimum separation between same-type elements — WITHDRAWN
 
-**This inverts a deliberate design decision, and the reason is
-constitutional.** `pick_spread_tile` already implements separation as
+**Proposed and withdrawn the same day (owner, 2026-08-05), after
+reading the existing implementation: she prefers it as it stands. Do
+not build this.** Recorded rather than deleted so it does not get
+helpfully reintroduced.
+
+For whoever finds this later, the existing design is deliberate and
+worth leaving alone. `pick_spread_tile` already implements separation as
 best-of-8 sampling — draw eight free tiles, keep the one whose nearest
-same-type neighbour is farthest (Chebyshev). Its comment is explicit:
+same-type neighbour is farthest (Chebyshev) — and it is a *preference*
+rather than a constraint on purpose:
 
 > This is a *preference*, never a constraint: some candidate always
 > wins, so a spawn — in particular an Article I safeguard spawn — can
 > never fail for want of a well-spread tile.
 
 A hard minimum can be unsatisfiable, and an unsatisfiable *safeguard*
-spawn means a thirsty cat gets no water — an Article I violation, not a
-placement failure. So the requirement is: **separation must degrade
-gracefully, or `safeguard` must be exempt from it outright.** Please
-pin whichever in the spec with a test, not in prose.
-
-`ensure_minimums` already breaks out of its loop when `spawn_one`
-returns false, so there is no infinite-loop hazard today — preserve that
-property.
-
-**The cheap version of the owner's intent already exists**:
-`SPREAD_CANDIDATES = 8` is a hardcoded constant. Best-of-16 spreads
-strictly better than best-of-8 with no new failure mode and no
-constitutional risk. Exposing it in config would also close a small
-**Article VI** gap — `cloudkitty.toml`'s header claims every number the
-simulation uses lives in that file, and this one does not (nor does
-`TTL_JITTER`). Worth considering as the whole of 3b, or as its floor.
+spawn means a thirsty cat gets no water — an Article I violation rather
+than a placement failure. `ensure_minimums` already breaks its loop when
+`spawn_one` returns false, so there is no infinite-loop hazard today;
+preserve that property if this code is touched for any other reason.
 
 ### 3c. Reduced spawn chance at the map edge
 
@@ -153,9 +146,9 @@ Genuinely new; slots into the same best-of-N draw as a weighting.
 ### 3d. Correction to the stated rationale
 
 The owner's premise was that better placement buys welfare headroom to
-lower the element count. That holds for 3b and 3c — better coverage
-shortens the mean trip to the nearest resource — but **the lake pushes
-the other way**. With water at 6 tiles, a mandatory 2×2 consumes four of
+lower the element count. With 3b withdrawn, 3c carries that argument
+alone — moving elements off the edge shortens the mean trip to the
+nearest resource — and **the lake pushes the other way**. With water at 6 tiles, a mandatory 2×2 consumes four of
 them and leaves two scattered, concentrating water and lengthening the
 average trip to a drink. Expect the lake to spend some of what placement
 earns.
@@ -225,6 +218,13 @@ re-measured in step 2:
   32×32 and became wrong when `c77fb97` changed only the two dimension
   lines. At 24×24 the cap is `576/32` = **18**. Untouched by Experiments
   — flagged, not fixed, per house rules.
+- **Two spawn constants live in code, not config.** `SPREAD_CANDIDATES`
+  (= 8, the best-of-N width in `pick_spread_tile`) and `TTL_JITTER` are
+  numbers the simulation uses, while `cloudkitty.toml`'s header claims
+  every such number lives in that file (**Article VI**). Not a request
+  to change behaviour — with 3b withdrawn, best-of-8 stays as it is —
+  just an inconsistency worth knowing about, and a cheap one to close if
+  this code is opened anyway.
 - **`rule.max` for elements is read only by config validation.** No
   simulation code consults it; `ensure_minimums` tops each type to
   `rule.min` and no further, so the world's standing population *is* the
