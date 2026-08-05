@@ -108,6 +108,7 @@ if (( BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 4) ))
 fi
 
 if [[ -r /etc/os-release ]]; then
+    # shellcheck source=/dev/null
     . /etc/os-release
     [[ "${ID:-}" == "ubuntu" ]] || warn "built for Ubuntu; found ID=${ID:-unknown}"
     [[ "${VERSION_ID:-}" == "24.04" ]] || warn "built for Ubuntu 24.04; found ${VERSION_ID:-unknown}"
