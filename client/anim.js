@@ -46,6 +46,10 @@ const VIEW = Object.freeze({
   // Consumed only when the vocabulary dispatcher installs drawCatTween
   // (the v2 kitties); v1 keeps its pose snap and its snap blink.
   poseBlendMs: 260, // generic pose-space blend on any pose change
+  // Wetness is a fact about the tile, not the pose (owner, 2026-08-04):
+  // a cat drinking in a pond is still standing in water. It fades on the
+  // same clock as a pose blend so a shoreline crossing does not pop.
+  wetFadeMs: 260,
   arriveBlendMs: 340, // the walking -> standing blend, paired with the settle
   settleMs: 400, // landing squash, concurrent with the arrive blend
   settleDip: 0.05, // peak vertical squash of the settle
@@ -135,6 +139,13 @@ function easeSmooth(t) {
   return t * t * (3 - 2 * t);
 }
 
+/** Where a wetness fade has got to. Resumed from `from` rather than from
+ * the far end, so a cat darting in and out of the shallows never snaps. */
+function wetValue(w, now) {
+  const target = w.on ? 1 : 0;
+  return w.from + (target - w.from) * easeSmooth(Math.min(1, (now - w.at) / VIEW.wetFadeMs));
+}
+
 /** A little overshoot-and-settle, for things that pop in (US6 juice). */
 function easeOutBack(t) {
   const c1 = 1.70158;
@@ -167,6 +178,9 @@ class Presentation {
     // screen, and its in-flight blend if a change just happened.
     this.lastPose = new Map(); // id -> { pose, phase, at } as last drawn
     this.poseTween = new Map(); // id -> { from, fromPhase, at }
+    // Wetness, kept apart from the pose on purpose: the drawn tile says
+    // whether a cat is in water, whatever it happens to be doing there.
+    this.wetness = new Map(); // id -> { on, at, from }
   }
 
   /** Reconnects and hidden-tab returns break continuity by definition. */
@@ -218,6 +232,7 @@ class Presentation {
       this.pathHeat.clear();
       this.lastPose.clear();
       this.poseTween.clear();
+      this.wetness.clear();
       return;
     }
 
@@ -398,6 +413,27 @@ class Presentation {
   }
 
   /**
+   * How wet a cat looks, 0..1. Deliberately independent of the pose
+   * (owner call, 2026-08-04): `poseFor` lets an activity outrank the
+   * wade, so a cat drinking in a pond keeps its drinking pose -- but it
+   * is still standing in water, and should look it. Keyed on the tile
+   * under the DRAWN cat, the same reading the swim pose uses, so the
+   * cue turns over at the shoreline the viewer can see.
+   */
+  wetFor(id, onWater, now) {
+    const prev = this.wetness.get(id);
+    if (!prev) {
+      // First sight settles rather than fading in, as pose memory does.
+      this.wetness.set(id, { on: onWater, at: now, from: onWater ? 1 : 0 });
+      return onWater ? 1 : 0;
+    }
+    if (prev.on !== onWater) {
+      this.wetness.set(id, { on: onWater, at: now, from: wetValue(prev, now) });
+    }
+    return wetValue(this.wetness.get(id), now);
+  }
+
+  /**
    * Phase and micro-motion for one kitty (US4). Action poses run on the
    * tick clock (their whole animation fits the tick that served them);
    * resting poses breathe on a slow local cycle; idle cats get their
@@ -566,6 +602,11 @@ class Presentation {
       // still frame is the pose, held -- and recording skips with it, so
       // a spell of stillness can never seed a stale blend.
       tweenFor: (id, pose, phase) => (still ? null : this.tweenFor(id, pose, phase, now)),
+      // Wetness carries state (this cat is in water), not motion, so a
+      // still frame gets it at full strength rather than not at all --
+      // the worn-paths and focused-eyes rule (FR-012, R6).
+      wetFor: (id, onWater) =>
+        still ? (onWater ? 1 : 0) : this.wetFor(id, onWater, now),
       // One-shot particles rest under reduced motion; the sustained
       // *informational* cues (focused eyes, the thought bubble) do not --
       // they carry state, not motion (R6).

@@ -55,6 +55,30 @@ motion wiring added a seam pitch can reuse: `Presentation.tweenFor`
 blends any per-pose layout number, so `L.pitch` rides `blendLayouts`
 for free once the drawFace offset and the mask-pinning land.
 
+### Water cues: occlude the cat's lower body (added 2026-08-04, owner-deferred)
+The owner's idea, and a better answer than what v3 Phase 0 shipped:
+**clip the bottom of the cat against the waterline** so a cat on a water
+tile is visibly half-submerged. It solves the water+action case in one
+stroke — a cat can keep its *drinking* or *grooming* pose (which
+`poseFor` deliberately lets outrank the wade) and still read as standing
+in water, with no second pose and no per-activity special-casing.
+
+Groundwork already in place from Phase 0: `Presentation.wetFor(id,
+onWater, now)` gives an eased 0..1 wetness keyed on the tile under the
+**drawn** cat, independent of pose. An occlusion clip would consume that
+same signal, so the waterline could rise and fall with it rather than
+popping.
+
+Why it is deferred rather than done: v3 Phase 0's ripple + dropped
+shadow measured **0.128% of pixels changed, max delta 26/255** at the
+current 30px tile — real, correct, and very nearly invisible (owner:
+"barely registers"). Occlusion is a much stronger cue, but it is worth
+building against the larger tile that v3 Phase 1 brings, and judging in
+the lab at that size. Also fold in: a single water tile currently renders
+as a rounded blue square, because `shoreRounding` is a flat 0.45 tiles
+applied to a 1x1 blob — the same beading that would turn a 1-wide river
+into a string of lozenges.
+
 ## P2 — the bigger pieces, for a proper sitting
 
 ### Eval-suite v2: a stronger counterfactual baseline (added 2026-07-25)

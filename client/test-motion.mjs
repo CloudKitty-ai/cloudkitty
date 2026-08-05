@@ -274,7 +274,7 @@ check('swim is in the v2 vocabulary with the wading silhouette', () => {
   assert(CatV2.POSES.includes('swim'), 'POSES lists swim');
   const L = CatV2.catLayout('swim', 0.25);
   assert(L.legs.length === 0, 'legs paddle out of sight');
-  assert(L.droplet === true, 'the splash droplet shows');
+  // The splash droplet was cut 2026-08-04 -- see the dedicated check below.
   close(L.head.r, 0.226, 'the locked head radius is untouched');
   assert(L.body.ry < 0.21, 'body floats flatter than standing');
   assert(L.eyes === 'open', 'eyes open above water');
@@ -303,6 +303,73 @@ check('swim paddles on the tick clock moving, bobs on the breathe cycle afloat',
   const m = q.motionFor(1, 'swim', 2200);
   close(m.phase, ((2200 + 997) % api.VIEW.breathePeriodMs) / api.VIEW.breathePeriodMs, 'ambient bob');
   assert(m.eyesOverride === undefined && m.blinkLid === undefined, 'no idle twitches afloat');
+});
+
+// ---- leaving the water (owner, 2026-08-04: "coming out of the water in
+// the grass") ----
+
+check('the wading kitty carries no splash droplet', () => {
+  // A ~2px smudge at every size this world draws at, so it read as
+  // clutter (owner, 2026-08-04). Being in water is the renderer's to
+  // say -- the ripple and the lost shadow -- and that scales with tile.
+  assert(CatV2.catLayout('swim', 0.25).droplet === false, 'swim: no droplet');
+  assert(CatV2.catLayout('walking', 0.25).droplet === false, 'walking: none either');
+  // Drinking keeps its own lap of water; that one is not about wading.
+  assert(CatV2.catLayout('drinking', 0.25).droplet === true, 'drinking keeps its lap');
+});
+
+// ---- wetness: a fact about the tile, not the pose ----
+
+check('wetness is independent of the pose the cat happens to be in', () => {
+  const p = new api.Presentation();
+  const drinkingInAPond = { id: 1, pos: { x: 2, y: 2 }, activity: { state: 'drinking' } };
+  // poseFor keeps the activity -- that is its documented rule, unchanged.
+  assert(poseFor(drinkingInAPond, false, true) === 'drinking', 'the activity still wins the pose');
+  // ...and the cat is nonetheless soaking wet, which is the whole point.
+  close(p.wetFor(1, true, 1000), 1, 'a drinking cat on water still reads as wet');
+});
+
+check('first sight settles rather than fading in', () => {
+  const p = new api.Presentation();
+  close(p.wetFor(1, true, 1000), 1, 'seen already in the water: fully wet at once');
+  const q = new api.Presentation();
+  close(q.wetFor(2, false, 1000), 0, 'seen on land: fully dry at once');
+});
+
+check('a shoreline crossing fades over wetFadeMs, both ways', () => {
+  const p = new api.Presentation();
+  p.wetFor(1, true, 1000); // settled, in the water
+  close(p.wetFor(1, false, 1000), 1, 'still wet at the moment it steps out');
+  close(p.wetFor(1, false, 1130), 0.5, 'half dry a half-fade later');
+  close(p.wetFor(1, false, 1260), 0, 'dry when the fade ends');
+  close(p.wetFor(1, false, 5000), 0, 'and stays dry');
+});
+
+check('darting in and out resumes from the part-fade, never snapping', () => {
+  const p = new api.Presentation();
+  p.wetFor(1, true, 1000); // settled, in the water
+  p.wetFor(1, false, 1000); // steps out: the fade starts here
+  close(p.wetFor(1, false, 1130), 0.5, 'half dry on the way out');
+  close(p.wetFor(1, true, 1130), 0.5, 'turning back does not snap to wet');
+  close(p.wetFor(1, true, 1260), 0.75, 'it re-wets from where it had got to');
+});
+
+check('still frames carry wetness at full strength', () => {
+  const p = new api.Presentation();
+  p.pushState(world(1, [kitty(1, 2, 2)]), 1000);
+  const still = p.viewAt(1100, true);
+  close(still.wetFor(1, true), 1, 'state, not motion: a still frame shows it');
+  close(still.wetFor(1, false), 0, 'and shows dry as dry');
+});
+
+check('a discontinuity clears wetness with the rest of the memory', () => {
+  const p = new api.Presentation();
+  p.pushState(world(1, [kitty(1, 2, 2)]), 1000);
+  p.pushState(world(2, [kitty(1, 2, 2)]), 1800);
+  p.wetFor(1, true, 1900);
+  assert(p.wetness.size === 1, 'wetness recorded');
+  p.pushState(world(9, [kitty(1, 2, 2)]), 2600); // tick jump: a different moment
+  assert(p.wetness.size === 0, 'wetness cleared');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);
