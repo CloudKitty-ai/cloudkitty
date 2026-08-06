@@ -123,6 +123,21 @@ function propTunables() {
   return (typeof VIEW !== 'undefined' && VIEW.props) || PROP_DEFAULTS;
 }
 
+/**
+ * Where the sun is, for anything here that casts a shadow (v3). The
+ * values live in the meadow palette because they describe the world's
+ * light rather than any one prop -- but gallery.html loads this file
+ * WITHOUT meadow.js, so the read is defensive and falls back to a sun
+ * directly overhead. Same defer-if-present shape as propTunables above.
+ */
+function sunShadow() {
+  const world = typeof MEADOW !== 'undefined' ? MEADOW : null;
+  return {
+    lean: typeof world?.shadowLean === 'number' ? world.shadowLean : 0,
+    length: typeof world?.shadowLength === 'number' ? world.shadowLength : 1,
+  };
+}
+
 /** The wisp's not-quite-there outline (R6): dashed, unlike everything else. */
 const WISP_DASH = [0.05, 0.035];
 
@@ -238,9 +253,22 @@ function drawButterfly(ctx, opts) {
   const hover = t.hoverLift + t.bobAmplitude * Math.sin(bobPhase * TAU);
 
   propBox(ctx, size, x, y, () => {
-    // The shadow keeps to the ground -- the gap is what says "flying".
+    // The shadow keeps to the ground -- the gap is what says "flying" --
+    // and leans and stretches with the sun, like the cats' (v3). No alpha
+    // falloff here, unlike the cat shadow: the caller owns globalAlpha
+    // for the element fade, and reading it back is not safe against the
+    // harness's mock ctx, which answers every property with a function.
+    const sun = sunShadow();
     ctx.beginPath();
-    ctx.ellipse(0.5, 0.80, 0.13 + 0.03 * flap, 0.042, 0, 0, TAU);
+    ctx.ellipse(
+      0.5 + sun.lean * 0.25,
+      0.80,
+      (0.13 + 0.03 * flap) * sun.length,
+      0.042,
+      0,
+      0,
+      TAU,
+    );
     ctx.fillStyle = PROPS.shadow;
     ctx.fill();
 

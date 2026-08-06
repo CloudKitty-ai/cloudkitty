@@ -551,14 +551,33 @@ class WorldRenderer {
     // while it stood in the pond.
     const wet = v2Motion && view.wetFor ? view.wetFor(kitty.id, onWater) : 0;
 
-    // A soft shadow so cats sit on the grass rather than float above it.
+    // A soft shadow so cats sit on the grass rather than float above it --
+    // and, since v3, one that knows where the sun is. It leans and
+    // stretches with the phase (MEADOW.shadowLean / shadowLength), which
+    // is the cue that most says "the hour is moving": short and almost
+    // straight down at noon, long and thrown to one side at sunset, long
+    // to the OTHER side at dawn, and directionless under the moon.
+    // Because both are plain numbers, they interpolate across a phase
+    // crossing for free -- the shadow swings round as the light does.
     const shadowAlpha = 1 - wet;
     if (shadowAlpha > 0) {
+      const lean = MEADOW.shadowLean ?? 0;
+      const length = MEADOW.shadowLength ?? 1;
       ctx.save();
-      ctx.globalAlpha = shadowAlpha;
+      // Alpha falls as the shadow stretches: the same darkness spread
+      // over more ground would read as a stain rather than a shadow.
+      ctx.globalAlpha = shadowAlpha / Math.max(1, length * 0.8);
       ctx.fillStyle = MEADOW.groundShadow;
       ctx.beginPath();
-      ctx.ellipse(cx, cy + this.tile * 0.32, this.tile * 0.3, this.tile * 0.12, 0, 0, Math.PI * 2);
+      ctx.ellipse(
+        cx + lean * this.tile * 0.5,
+        cy + this.tile * 0.32,
+        this.tile * 0.3 * length,
+        this.tile * 0.12,
+        0,
+        0,
+        Math.PI * 2,
+      );
       ctx.fill();
       ctx.restore();
     }

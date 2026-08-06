@@ -95,7 +95,7 @@ function guardCtx(log = []) {
 const EXPORTS =
   ';({ get MEADOW() { return MEADOW; }, MEADOW_DAY, MEADOW_DUSK, MEADOW_NIGHT, setMeadowPalette,' +
   ' mixPaletteColor, mixPalettes, parsePaletteColor,' +
-  ' MEADOW_SALTS, MEADOW_DEFAULTS, tileHash, drawMeadowGround, drawGridOverlay, groupWaterTiles,' +
+  ' MEADOW_DAWN, MEADOW_SALTS, MEADOW_DEFAULTS, tileHash, drawMeadowGround, drawGridOverlay, groupWaterTiles,' +
   ' buildPondPath, drawPonds, drawSunbeamGlow, drawWornPaths, VIEW, Presentation })';
 const api = eval(src + EXPORTS);
 
@@ -113,6 +113,9 @@ function check(name, fn) {
 }
 function assert(cond, msg) {
   if (!cond) throw new Error(msg);
+}
+function close(a, b, msg) {
+  assert(Math.abs(a - b) < 1e-12, `${msg}: ${a} != ${b}`);
 }
 
 // ---- tunables home ----
@@ -447,6 +450,57 @@ check('api.setMeadowPalette names one palette or a blend of two', () => {
   assert(api.MEADOW !== api.MEADOW_DAY && api.MEADOW !== api.MEADOW_NIGHT, 'mid-crossing is neither');
   assert(typeof api.MEADOW.pondWater === 'string', 'and still reads as colour strings');
   api.setMeadowPalette('day'); // leave the module as we found it
+});
+
+// ---- the sun's position (v3): shadows lean and stretch with the hour ----
+
+check('every phase says where its sun is', () => {
+  for (const [name, pal] of [
+    ['day', api.MEADOW_DAY],
+    ['dusk', api.MEADOW_DUSK],
+    ['night', api.MEADOW_NIGHT],
+    ['dawn', api.MEADOW_DAWN],
+  ]) {
+    assert(typeof pal.shadowLean === 'number', `${name} has a lean`);
+    assert(typeof pal.shadowLength === 'number', `${name} has a length`);
+    assert(pal.shadowLength >= 1, `${name}: a shadow never shrinks below the caster`);
+  }
+});
+
+check('the two twilights throw their shadows opposite ways', () => {
+  // The one place dawn and sunset differ in geometry rather than colour:
+  // the same low sun, on opposite horizons.
+  assert(api.MEADOW_DUSK.shadowLean > 0.5, 'sunset leans one way');
+  assert(api.MEADOW_DAWN.shadowLean < -0.5, 'dawn leans the other');
+  assert(
+    Math.sign(api.MEADOW_DUSK.shadowLean) !== Math.sign(api.MEADOW_DAWN.shadowLean),
+    'and they are genuinely opposite in sign',
+  );
+});
+
+check('noon is overhead and the moon has no direction', () => {
+  assert(Math.abs(api.MEADOW_DAY.shadowLean) < 0.2, 'noon barely leans');
+  close(api.MEADOW_DAY.shadowLength, 1, 'and casts the shortest shadow');
+  close(api.MEADOW_NIGHT.shadowLean, 0, 'the moon reads as a lamp, not a low sun');
+  assert(api.MEADOW_NIGHT.shadowLength > 1, 'but still stretches a little');
+});
+
+check('the sun swings round across a crossing rather than jumping', () => {
+  // Numbers lerp in mixPalettes, so this comes for free -- which is the
+  // reason the lean was made a number rather than a named direction.
+  const mid = api.mixPalettes(api.MEADOW_DAY, api.MEADOW_DUSK, 0.5);
+  const a = api.MEADOW_DAY.shadowLean;
+  const b = api.MEADOW_DUSK.shadowLean;
+  close(mid.shadowLean, (a + b) / 2, 'lean is halfway');
+  close(
+    mid.shadowLength,
+    (api.MEADOW_DAY.shadowLength + api.MEADOW_DUSK.shadowLength) / 2,
+    'length is halfway',
+  );
+  // And the long way round: night -> dawn passes through zero, so the
+  // shadow shortens toward straight-down before swinging out the far side.
+  const swing = api.mixPalettes(api.MEADOW_NIGHT, api.MEADOW_DAWN, 0.5);
+  assert(swing.shadowLean < 0 && swing.shadowLean > api.MEADOW_DAWN.shadowLean, 'part way over');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

@@ -129,8 +129,13 @@ const MEADOW_DAY = Object.freeze({
   gridLine: 'rgba(140, 170, 130, 0.16)',
   // Dust motes circling in the sunbeams (render.js reads this).
   moteColor: 'rgba(255, 236, 170, 0.75)',
-  // The soft ground shadow that seats a cat on the grass (render.js).
+  // The soft ground shadow that seats a cat on the grass (render.js), and
+  // where the sun is putting it (v3): `shadowLean` slides it sideways in
+  // half-tile units, `shadowLength` stretches it away from the caster.
+  // Noon is nearly overhead, so the shadow is short and barely leans.
   groundShadow: 'rgba(140, 120, 100, 0.15)',
+  shadowLean: 0.06,
+  shadowLength: 1,
 });
 
 /**
@@ -155,6 +160,11 @@ const MEADOW_NIGHT = Object.freeze({
   gridLine: 'rgba(190, 210, 190, 0.14)',
   moteColor: 'rgba(215, 228, 255, 0.8)',
   groundShadow: 'rgba(12, 10, 22, 0.35)',
+  // The moon reads as a lamp overhead rather than a low light, so night
+  // has no lean at all -- and that is the point: it is the still hour
+  // between the two horizons the sun uses.
+  shadowLean: 0,
+  shadowLength: 1.25,
 });
 
 /**
@@ -182,6 +192,9 @@ const MEADOW_DUSK = Object.freeze({
   gridLine: 'rgba(150, 150, 110, 0.18)',
   moteColor: 'rgba(255, 210, 140, 0.8)',
   groundShadow: 'rgba(120, 80, 90, 0.2)', // long violet-warm evening shadows
+  // The sun is low on one horizon; shadows run long, away from it.
+  shadowLean: 0.85,
+  shadowLength: 1.85,
 });
 
 /**
@@ -226,6 +239,12 @@ const MEADOW_DAWN = Object.freeze({
   gridLine: 'rgba(140, 148, 140, 0.16)',
   moteColor: 'rgba(228, 226, 218, 0.75)',
   groundShadow: 'rgba(60, 66, 72, 0.24)', // long, cool, but not blue
+  // The same low sun as sunset, on the opposite horizon -- so the lean
+  // is the opposite sign. This is the one place dawn and sunset differ
+  // in geometry rather than only in colour, and it is what stops the two
+  // twilights reading as the same hour played twice.
+  shadowLean: -0.8,
+  shadowLength: 1.8,
 });
 
 /**
