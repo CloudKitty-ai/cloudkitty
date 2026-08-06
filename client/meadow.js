@@ -125,6 +125,13 @@ const MEADOW_DAY = Object.freeze({
   glowFade: 'rgba(255, 226, 138, 0)',
   // Worn paths: bare warm earth showing through the grass.
   pathTint: '#c8b28e',
+  // Ground detail (v3): moss patches, the two flower colours, and the
+  // shrubs. Worn earth reuses pathTint -- it is the same bare ground.
+  moss: '#cfe0c0',
+  bloom: '#fbf7ef',
+  bloomHeart: '#f2cf7a',
+  bush: '#8ab377',
+  bushHi: '#a6c78f',
   // The demoted debug lattice (formerly baked into the ground cache).
   gridLine: 'rgba(140, 170, 130, 0.16)',
   // Dust motes circling in the sunbeams (render.js reads this).
@@ -157,6 +164,11 @@ const MEADOW_NIGHT = Object.freeze({
   glowMid: 'rgba(195, 212, 250, 0.28)',
   glowFade: 'rgba(195, 212, 250, 0)',
   pathTint: '#4a4136',
+  moss: '#33402f',
+  bloom: '#7f8ba0', // moonlit, not white: nothing is lit from above now
+  bloomHeart: '#9aa6b8',
+  bush: '#33422f',
+  bushHi: '#41533b',
   gridLine: 'rgba(190, 210, 190, 0.14)',
   moteColor: 'rgba(215, 228, 255, 0.8)',
   // No shadows after dark (owner, 2026-08-05). Expressed as a zero ALPHA
@@ -193,6 +205,11 @@ const MEADOW_DUSK = Object.freeze({
   glowMid: 'rgba(255, 175, 100, 0.4)',
   glowFade: 'rgba(255, 175, 100, 0)',
   pathTint: '#c3a075',
+  moss: '#cdd0a0',
+  bloom: '#fdf0d8',
+  bloomHeart: '#e8b45e',
+  bush: '#8f9a5f',
+  bushHi: '#a9b378',
   gridLine: 'rgba(150, 150, 110, 0.18)',
   moteColor: 'rgba(255, 210, 140, 0.8)',
   groundShadow: 'rgba(120, 80, 90, 0.2)', // long violet-warm evening shadows
@@ -241,6 +258,11 @@ const MEADOW_DAWN = Object.freeze({
   glowMid: 'rgba(218, 208, 196, 0.3)',
   glowFade: 'rgba(218, 208, 196, 0)',
   pathTint: '#8f867e',
+  moss: '#9aa697',
+  bloom: '#e8e6df',
+  bloomHeart: '#c9bda2',
+  bush: '#7e8c79',
+  bushHi: '#95a18e',
   gridLine: 'rgba(140, 148, 140, 0.16)',
   moteColor: 'rgba(228, 226, 218, 0.75)',
   groundShadow: 'rgba(60, 66, 72, 0.24)', // long, cool, but not blue
@@ -285,6 +307,17 @@ const MEADOW_SALTS = Object.freeze({
   jitter: 2,
   lily: 7,
   shore: 9,
+  // Ground detail (v3). Each scatter needs its own channel, or the
+  // patches, blades, blooms and shrubs would all land on the same tiles.
+  patch: 11,
+  patchKind: 12,
+  blade: 13,
+  bladeX: 14,
+  bladeY: 15,
+  bloom: 17,
+  bloomX: 18,
+  bush: 19,
+  bushShape: 20,
 });
 
 /**
@@ -301,6 +334,14 @@ const MEADOW_DEFAULTS = Object.freeze({
   toneCells: 3.5, // tiles per noise cell: how broad a grass blotch is
   jitterCells: 1.7, // and the finer lattice the brightness grain rides
   jitterAlpha: 0.05, // peak alpha of the per-tile brightness jitter
+  patchChance: 0.028, // share of tiles carrying a worn-earth or moss patch
+  patchEarthAlpha: 0.15,
+  patchMossAlpha: 0.2,
+  bladeChance: 0.45, // tiles with a tuft of grass
+  bladeAlpha: 0.55,
+  bloomChance: 0.045, // tiles with a flower
+  bushChance: 0.05, // tiles with a clump of tufted ground cover
+  bushAlpha: 0.5, // and how strongly it reads against the grass
   shoreRounding: 0.45, // pond corner rounding, in tiles
   shoreWobble: 0.07, // organic shoreline waviness, in tiles
   lilyPadMinTiles: 4, // ponds at least this big carry a lily pad
@@ -427,6 +468,154 @@ function drawMeadowGround(ctx, { width, height, tile }) {
       ctx.globalAlpha = t.jitterAlpha * Math.abs(j * 2 - 1);
       ctx.fillStyle = j < 0.5 ? MEADOW.jitterShade : MEADOW.jitterTint;
       ctx.fillRect(x * tile - TILE_BLEED, y * tile - TILE_BLEED, span, span);
+      ctx.globalAlpha = 1;
+    }
+  }
+  drawGroundDetail(ctx, { width, height, tile, t });
+}
+
+/**
+ * What makes it a meadow rather than a green field (v3, 2026-08-05):
+ * worn earth and moss, tufts of grass, the odd flower, and low shrubs.
+ * This is the flora that was scrapped at the 2026-07-20 gate and sent to
+ * the backlog -- back now that phase 1 gave the tiles the size to carry
+ * it, and softened so it reads as ground rather than as sprites.
+ *
+ * Every layer is a sparse scatter over the tile grid from its own salt,
+ * so it is deterministic and it never lands on the same tiles as another
+ * layer. Patches and shrubs are drawn from the tile CENTRE and are wider
+ * than a tile on purpose: crossing the boundaries is what stops them
+ * re-drawing the grid the tone work just removed.
+ *
+ * All of it bakes into the ground cache, so it costs nothing per frame.
+ */
+function drawGroundDetail(ctx, { width, height, tile, t }) {
+  // --- worn earth and moss: broad, soft, crossing tile lines ---
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (tileHash(x, y, MEADOW_SALTS.patch) < 1 - t.patchChance) continue;
+      const k = tileHash(x, y, MEADOW_SALTS.patchKind);
+      const earth = k > 0.62;
+      const r = (0.9 + k * 1.7) * tile * 0.5;
+      ctx.globalAlpha = earth ? t.patchEarthAlpha : t.patchMossAlpha;
+      ctx.fillStyle = earth ? MEADOW.pathTint : MEADOW.moss;
+      ctx.beginPath();
+      ctx.ellipse((x + 0.5) * tile, (y + 0.5) * tile, r, r * 0.66, k * 3, 0, TAU);
+      ctx.fill();
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  // --- grass tufts: one path for the lot, so it is a single stroke ---
+  ctx.lineWidth = Math.max(1, tile * 0.035);
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = MEADOW.moss;
+  ctx.globalAlpha = t.bladeAlpha;
+  ctx.beginPath();
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const n = tileHash(x, y, MEADOW_SALTS.blade);
+      if (n < 1 - t.bladeChance) continue;
+      const bx = (x + tileHash(x, y, MEADOW_SALTS.bladeX)) * tile;
+      const by = (y + tileHash(x, y, MEADOW_SALTS.bladeY)) * tile;
+      ctx.moveTo(bx, by);
+      ctx.quadraticCurveTo(
+        bx + tile * 0.06,
+        by - tile * 0.17,
+        bx + (n - 0.5) * tile * 0.34,
+        by - tile * 0.32,
+      );
+    }
+  }
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // --- flowers: five petals and a heart when the tile can carry them,
+  //     a single dot when it cannot. The same `fine` threshold the cats
+  //     and the bowl's decal use, so detail arrives everywhere at once. ---
+  const fine = tile >= 44;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (tileHash(x, y, MEADOW_SALTS.bloom) < 1 - t.bloomChance) continue;
+      const k = tileHash(x, y, MEADOW_SALTS.bloomX);
+      const bx = (x + 0.25 + k * 0.5) * tile;
+      const by = (y + 0.25 + tileHash(x, y, MEADOW_SALTS.blade) * 0.5) * tile;
+      const r = tile * 0.055;
+      ctx.fillStyle = MEADOW.bloom;
+      if (fine) {
+        for (let i = 0; i < 5; i++) {
+          const a = (i / 5) * TAU + k * 3;
+          ctx.beginPath();
+          ctx.arc(bx + Math.cos(a) * r, by + Math.sin(a) * r, r * 0.85, 0, TAU);
+          ctx.fill();
+        }
+        ctx.fillStyle = MEADOW.bloomHeart;
+        ctx.beginPath();
+        ctx.arc(bx, by, r * 0.7, 0, TAU);
+        ctx.fill();
+      } else {
+        ctx.beginPath();
+        ctx.arc(bx, by, r * 1.15, 0, TAU);
+        ctx.fill();
+      }
+    }
+  }
+
+  // --- clumps of tufted growth: overlapping lobes, low and soft.
+  //
+  //     These were drawn as proper shrubs first and it was wrong: the
+  //     ground cache sits under EVERYTHING, so a cat crossing one stood
+  //     on top of it and the shrub read as a puddle. Nothing in this
+  //     renderer y-sorts -- elements draw before cats, always -- so a
+  //     bush that a cat can walk behind needs a sorted sprite layer that
+  //     does not exist yet. Until it does, these are ground cover: low,
+  //     desaturated, and unbothered by being stood on. ---
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (tileHash(x, y, MEADOW_SALTS.bush) < 1 - t.bushChance) continue;
+      const s = tileHash(x, y, MEADOW_SALTS.bushShape);
+      const bx = (x + 0.5) * tile;
+      const by = (y + 0.5) * tile;
+      const r = (0.26 + s * 0.18) * tile;
+      // Its own shadow, on the same sun the cats use.
+      const lean = MEADOW.shadowLean ?? 0;
+      const length = MEADOW.shadowLength ?? 1;
+      ctx.globalAlpha = 1 / Math.max(1, length * 0.8);
+      ctx.fillStyle = MEADOW.groundShadow;
+      ctx.beginPath();
+      ctx.ellipse(
+        bx + lean * (r * length - r),
+        by + r * 0.52,
+        r * length,
+        r * 0.3,
+        0,
+        0,
+        TAU,
+      );
+      ctx.fill();
+      ctx.globalAlpha = t.bushAlpha;
+      ctx.fillStyle = MEADOW.bush;
+      for (let i = 0; i < 4; i++) {
+        const a = (i / 4) * TAU + s * 5;
+        ctx.beginPath();
+        // Flattened lobes: growth lying on the ground, not standing up
+        // off it, which is the only thing this layer can honestly draw.
+        ctx.ellipse(
+          bx + Math.cos(a) * r * 0.42,
+          by + Math.sin(a) * r * 0.26,
+          r * 0.62,
+          r * 0.42,
+          0,
+          0,
+          TAU,
+        );
+        ctx.fill();
+      }
+      ctx.globalAlpha = t.bushAlpha * 0.5;
+      ctx.fillStyle = MEADOW.bushHi;
+      ctx.beginPath();
+      ctx.arc(bx - r * 0.22, by - r * 0.3, r * 0.3, 0, TAU);
+      ctx.fill();
       ctx.globalAlpha = 1;
     }
   }
