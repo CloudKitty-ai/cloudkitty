@@ -340,7 +340,7 @@ const MEADOW_DEFAULTS = Object.freeze({
   bladeChance: 0.55, // tiles with a tuft of grass
   bladeAlpha: 0.38,
   bloomChance: 0.05, // tiles with a flower
-  bushChance: 0.025, // tiles with a clump of tufted ground cover
+  bushChance: 0.015, // tiles with a clump of tufted ground cover
   bushAlpha: 0.9, // and how strongly it reads against the grass
   // 'cover' | 'tuft' | 'bramble' (flat) | 'shrub' | 'grown' | 'trunk' |
   // 'tall' (standing). Judged in gallery-meadow.html.
@@ -352,7 +352,7 @@ const MEADOW_DEFAULTS = Object.freeze({
   bushShadowLean: 1, // gain on the anchor: 1 keeps the sun-side edge on the shrub
   bushShadowLength: 0.3, // and of its stretch past the caster
   bushShadowAlpha: 1, // no thinning: contact, not a smear
-  bushLift: 0.9, // how far a shrub's canopy stands above its base, in radii
+  bushLift: 1.15, // how far a shrub's canopy stands above its base, in radii
   bushBase: 0.72, // where it meets the ground, in tiles from the tile's top
   // How far the canopy's height pushes its shadow along the lean. Kept
   // small: a rooted thing's shadow leaves its base, and pushing it far
@@ -658,6 +658,11 @@ function drawBushAt(ctx, { x, y, seed, tile, t }) {
       const bx = (x + 0.5) * tile;
       const by = (y + 0.5) * tile;
       const r = (0.26 + s * 0.18) * tile;
+      // Where this thing meets the earth. The shadow is centred here, so
+      // anything standing must be planted here too -- drawing from the
+      // tile centre instead left the trunk stopping 0.4 radii short of
+      // its own shadow, which reads as hovering (owner, 2026-08-05).
+      const groundY = by + r * 0.52;
 
       // Anything that stands up off the ground casts; the flat styles
       // have nothing to cast onto and would only look like they stand.
@@ -703,7 +708,7 @@ function drawBushAt(ctx, { x, y, seed, tile, t }) {
         const canopyLift = r * t.bushLift;
         const offset = lean * (r * length - r) + lean * canopyLift * t.bushShadowThrow;
         ctx.beginPath();
-        ctx.ellipse(bx + offset, by + r * 0.52, r * length, r * 0.3, 0, 0, TAU);
+        ctx.ellipse(bx + offset, groundY, r * length, r * 0.3, 0, 0, TAU);
         ctx.fill();
       }
 
@@ -751,34 +756,36 @@ function drawBushAt(ctx, { x, y, seed, tile, t }) {
           const taper = 1 - 0.34 * (i / (lobes - 1));
           const sway = Math.cos(i * 2.3 + s * 7) * r * 0.3;
           ctx.beginPath();
-          ctx.ellipse(bx + sway, by - up, r * 0.58 * taper, r * 0.46 * taper, 0, 0, TAU);
+          ctx.ellipse(bx + sway, groundY - r * 0.46 - up, r * 0.58 * taper, r * 0.46 * taper, 0, 0, TAU);
           ctx.fill();
         }
         ctx.globalAlpha = t.bushAlpha * 0.5;
         ctx.fillStyle = MEADOW.bushHi;
         ctx.beginPath();
-        ctx.ellipse(bx - r * 0.18, by - height * 0.85, r * 0.24, r * 0.18, 0, 0, TAU);
+        ctx.ellipse(bx - r * 0.18, groundY - r * 0.46 - height * 0.85, r * 0.24, r * 0.18, 0, 0, TAU);
         ctx.fill();
       } else if (style === 'trunk') {
         // PROPOSAL 2 -- own the gap. A stem connects the raised canopy to
         // the ground, so the height reads as structure rather than as
         // levitation. Reads as a standard or a young tree, not a bush.
-        const canopy = r * t.bushLift + r * 0.3;
+        // Measured from groundY, so the stem ends in the middle of its
+        // own shadow rather than in the air above it.
+        const crown = groundY - r * t.bushLift - r * 0.3;
         ctx.globalAlpha = t.bushAlpha;
         ctx.fillStyle = MEADOW.bush;
         ctx.beginPath();
-        ctx.rect(bx - r * 0.1, by - canopy, r * 0.2, canopy + r * 0.12);
+        ctx.rect(bx - r * 0.1, crown, r * 0.2, groundY - crown);
         ctx.fill();
         for (let i = 0; i < 4; i++) {
           const a = (i / 4) * TAU + s * 5;
           ctx.beginPath();
-          ctx.arc(bx + Math.cos(a) * r * 0.38, by - canopy + Math.sin(a) * r * 0.3, r * 0.55, 0, TAU);
+          ctx.arc(bx + Math.cos(a) * r * 0.38, crown + Math.sin(a) * r * 0.3, r * 0.55, 0, TAU);
           ctx.fill();
         }
         ctx.globalAlpha = t.bushAlpha * 0.5;
         ctx.fillStyle = MEADOW.bushHi;
         ctx.beginPath();
-        ctx.arc(bx - r * 0.2, by - canopy - r * 0.28, r * 0.26, 0, TAU);
+        ctx.arc(bx - r * 0.2, crown - r * 0.28, r * 0.26, 0, TAU);
         ctx.fill();
       } else if (style === 'tall') {
         // PROPOSAL 3 -- one silhouette, stretched. A single rounded body
@@ -789,19 +796,19 @@ function drawBushAt(ctx, { x, y, seed, tile, t }) {
         ctx.globalAlpha = t.bushAlpha;
         ctx.fillStyle = MEADOW.bush;
         ctx.beginPath();
-        ctx.ellipse(bx, by - height * 0.42, r * 0.6, height * 0.55, 0, 0, TAU);
+        ctx.ellipse(bx, groundY - height * 0.55, r * 0.6, height * 0.55, 0, 0, TAU);
         ctx.fill();
         for (let i = 0; i < 3; i++) {
           const off = (i - 1) * r * 0.36;
           ctx.beginPath();
-          ctx.ellipse(bx + off, by - height * (0.72 + 0.1 * Math.cos(i + s * 5)),
+          ctx.ellipse(bx + off, groundY - height * (0.85 + 0.1 * Math.cos(i + s * 5)),
             r * 0.3, r * 0.26, 0, 0, TAU);
           ctx.fill();
         }
         ctx.globalAlpha = t.bushAlpha * 0.5;
         ctx.fillStyle = MEADOW.bushHi;
         ctx.beginPath();
-        ctx.ellipse(bx - r * 0.2, by - height * 0.7, r * 0.22, r * 0.3, 0.3, 0, TAU);
+        ctx.ellipse(bx - r * 0.2, groundY - height * 0.82, r * 0.22, r * 0.3, 0.3, 0, TAU);
         ctx.fill();
       } else if (style === 'tuft') {
         // A fan of blades from one root: long grass rather than a bush.

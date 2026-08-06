@@ -116,7 +116,7 @@ const VIEW = Object.freeze({
     bladeChance: 0.55, // tiles with a tuft of grass
     bladeAlpha: 0.38,
     bloomChance: 0.05, // tiles with a flower
-    bushChance: 0.025, // tiles with a clump of tufted ground cover
+    bushChance: 0.015, // tiles with a clump of tufted ground cover
     bushAlpha: 0.9, // and how strongly it reads against the grass
     // 'cover' | 'tuft' | 'bramble' (flat) | 'shrub' | 'grown' | 'trunk' |
     // 'tall' (standing). Judged in gallery-meadow.html.
@@ -128,7 +128,7 @@ const VIEW = Object.freeze({
     bushShadowLean: 1, // gain on the anchor: 1 keeps the sun-side edge on the shrub
     bushShadowLength: 0.3, // and of its stretch past the caster
     bushShadowAlpha: 1, // no thinning: contact, not a smear
-    bushLift: 0.9, // how far a shrub's canopy stands above its base, in radii
+    bushLift: 1.15, // how far a shrub's canopy stands above its base, in radii
     bushBase: 0.72, // where it meets the ground, in tiles from the tile's top
     // How far the canopy's height pushes its shadow along the lean. Kept
     // small: a rooted thing's shadow leaves its base, and pushing it far
