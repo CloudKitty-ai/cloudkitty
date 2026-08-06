@@ -263,8 +263,10 @@ check('slowBlinkLid takes its values from the bag it is given', () => {
   assert(api.slowBlinkLid((down + hold + up) * 2, dials) === undefined, 'over after it');
   // The instant the shipped blink ends is the cleanest place to see which
   // envelope is in charge: one is finished, the other still has half to run.
+  // Asked of the envelope directly, not through `motionFor` -- which slot
+  // is blinking is the schedule's business, and has nothing to say here.
   const shipped = down + hold + up;
-  assert(p.motionFor(0, 'idle', shipped).blinkLid === undefined, 'the shipped blink is over');
+  assert(api.slowBlinkLid(shipped) === undefined, 'the shipped envelope is over');
   assert(api.slowBlinkLid(shipped, dials) !== undefined, 'the dialled one is still going');
   // Defaulting is what `motionFor` relies on.
   close(api.slowBlinkLid(down), 1, 'no bag: falls back to VIEW');

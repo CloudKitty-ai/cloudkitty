@@ -37,7 +37,7 @@ const VIEW = Object.freeze({
   critterGlideMaxTiles: 2,
 
   // Idle life (US4).
-  idleMotionPeriodMs: 4600, // one idle slot about this long
+  idleMotionPeriodMs: 5200, // one idle slot about this long
   idleMotionWindowMs: 420, // an ear twitch (and v1's snap blink) lasts this
   breathePeriodMs: 3400, // the slow ambient cycle for resting poses
 
@@ -49,16 +49,18 @@ const VIEW = Object.freeze({
   // inside the slot. All of it is hashed from (id, slot), never random, so
   // `motionFor` stays a pure function of (id, pose, now) -- still frames,
   // reduced motion and the harness all depend on that.
-  idleBlinkWeight: 40,
-  idleEarsWeight: 40,
+  idleBlinkWeight: 35,
+  idleEarsWeight: 30,
   // A slot where nothing happens. It is what makes the other two feel
   // unscheduled -- and it is a real nothing, not the vestigial tail flick
   // it replaces, which quietly restarted the breathing cycle at 8x speed
   // for a tail-tip sway of 0.4px at a live 33px cat.
-  idleRestWeight: 20,
+  idleRestWeight: 35,
   // 0 = every motion on the beat (the old behaviour), 1 = anywhere in the
   // slot it still fits. The motion can never overrun its slot either way.
-  idleJitter: 1,
+  // Half, owner-dialled: enough to break the metronome without letting a
+  // motion drift so far into its slot that two land back to back.
+  idleJitter: 0.5,
   // Per-cat tempo, +/- this share. Four cats on one clock read as one
   // animal drawn four times; a little spread reads as four animals.
   idleTempoSpread: 0.15,
