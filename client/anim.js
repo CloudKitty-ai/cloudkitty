@@ -117,14 +117,14 @@ const VIEW = Object.freeze({
     bladeAlpha: 0.38,
     bloomChance: 0.05, // tiles with a flower
     bushChance: 0.025, // tiles with a clump of tufted ground cover
-    bushAlpha: 0.3, // and how strongly it reads against the grass
+    bushAlpha: 0.4, // and how strongly it reads against the grass
     bushStyle: 'shrub', // 'cover' | 'tuft' | 'bramble' | 'shrub' (gallery-meadow.html)
     // The shrub's shadow, damped against the cats': a squat canopy sits
     // close to the ground, so it stretches far less and needs no alpha
     // falloff. Only the LENGTH is damped -- the lean also anchors the
     // sun-side edge to the caster, and damping that recentres it.
     bushShadowLean: 1, // gain on the anchor: 1 keeps the sun-side edge on the shrub
-    bushShadowLength: 0.45, // and of its stretch past the caster
+    bushShadowLength: 0.3, // and of its stretch past the caster
     bushShadowAlpha: 1, // no thinning: contact, not a smear
     shoreRounding: 0.45, // pond corner rounding, in tiles
     shoreWobble: 0.07, // organic shoreline waviness, in tiles

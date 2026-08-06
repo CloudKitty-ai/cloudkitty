@@ -341,14 +341,14 @@ const MEADOW_DEFAULTS = Object.freeze({
   bladeAlpha: 0.38,
   bloomChance: 0.05, // tiles with a flower
   bushChance: 0.025, // tiles with a clump of tufted ground cover
-  bushAlpha: 0.3, // and how strongly it reads against the grass
+  bushAlpha: 0.4, // and how strongly it reads against the grass
   bushStyle: 'shrub', // 'cover' | 'tuft' | 'bramble' | 'shrub' (gallery-meadow.html)
   // The shrub's shadow, damped against the cats': a squat canopy sits
   // close to the ground, so it stretches far less and needs no alpha
   // falloff. Only the LENGTH is damped -- the lean also anchors the
   // sun-side edge to the caster, and damping that recentres it.
   bushShadowLean: 1, // gain on the anchor: 1 keeps the sun-side edge on the shrub
-  bushShadowLength: 0.45, // and of its stretch past the caster
+  bushShadowLength: 0.3, // and of its stretch past the caster
   bushShadowAlpha: 1, // no thinning: contact, not a smear
   shoreRounding: 0.45, // pond corner rounding, in tiles
   shoreWobble: 0.07, // organic shoreline waviness, in tiles
@@ -613,8 +613,19 @@ function drawGroundCover(ctx, { width, height, tile, t }) {
         // `bushShadowLean` is therefore a gain on that anchor, not a
         // brake on the sun: 1 keeps the sun-side edge on the shrub.
         const lean = (MEADOW.shadowLean ?? 0) * t.bushShadowLean;
-        const length = 1 + ((MEADOW.shadowLength ?? 1) - 1) * t.bushShadowLength;
-        ctx.globalAlpha = t.bushShadowAlpha;
+        const sunLength = MEADOW.shadowLength ?? 1;
+        const length = 1 + (sunLength - 1) * t.bushShadowLength;
+        // The alpha falloff keys on the SUN's lowness, not on how long we
+        // chose to draw this shadow. The palettes' groundShadow alphas
+        // climb into twilight (0.15 day, 0.20 sunset, 0.24 dawn) precisely
+        // BECAUSE the cats divide them by their length -- authored to land
+        // near 0.15 either way. Taking the raw value, as this did while
+        // its own length was damped short, made a twilight shrub 33-60%
+        // darker than a midday one and concentrated it besides (owner,
+        // 2026-08-05: "too intense during dusk/dawn"). Spreading light
+        // over more ground is a fact about the light; the drawn length is
+        // an art choice, and must not be the thing that sets the alpha.
+        ctx.globalAlpha = t.bushShadowAlpha / Math.max(1, sunLength * 0.8);
         ctx.fillStyle = MEADOW.groundShadow;
         ctx.beginPath();
         ctx.ellipse(bx + lean * (r * length - r), by + r * 0.52, r * length, r * 0.3, 0, 0, TAU);
