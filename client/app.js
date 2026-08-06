@@ -456,10 +456,21 @@ function renderPanel(world) {
     if (!card) return;
     card.querySelector('.name > span').textContent = kitty.name;
     // The sustained purr (spec 011) is a contentment signal, so it rides the
-    // mood line -- and the card is fixed-width (index.html), so no line ever
-    // resizes the portrait. `purring_until` in the payload means rumbling now.
-    const purring = kitty.purring_until != null ? ' · purring 💕' : '';
-    card.querySelector('.mood').textContent = moodFor(kitty) + purring;
+    // mood line -- as a lamp pinned to the right rather than a suffix that
+    // lengthens it. `purring_until` in the payload means rumbling now.
+    card.querySelector('.mood > span').textContent = moodFor(kitty);
+    const purring = kitty.purring_until != null;
+    const purr = card.querySelector('.purr');
+    purr.classList.toggle('is-on', purring);
+    purr.setAttribute('aria-label', purring ? 'purring' : 'not purring');
+    // 🤍 unlit, 💗 lit. The white heart is a filled glyph with its own colour
+    // rather than one that inherits the text's, which is why it reads as a
+    // lamp that is off rather than a label that is broken -- and also the
+    // one thing that would have to change if the cards ever took the world's
+    // palette: a white heart on a night-themed card would be wrong, and the
+    // outline ♡ (which does inherit colour) is the fallback (owner,
+    // 2026-08-06, accepting that for this pass).
+    for (const h of purr.querySelectorAll('.h')) h.textContent = purring ? '💗' : '🤍';
     card.querySelector('.doing').textContent = doingFor(kitty, world);
     card.querySelector('.patience').textContent = patienceFor(kitty, world);
 
@@ -559,6 +570,22 @@ function buildKittyCard(kitty) {
 
   const mood = document.createElement('div');
   mood.className = 'mood';
+  mood.appendChild(document.createElement('span')); // the mood words
+  // The purr lamp, always present so it never moves the line. Hearts are
+  // decoration; `aria-label` carries the state, because "purring" flanked by
+  // dim hearts would otherwise read to a screen reader as a purring cat.
+  const purr = document.createElement('span');
+  purr.className = 'purr';
+  const word = document.createElement('span');
+  word.textContent = 'purring';
+  const heart = () => {
+    const h = document.createElement('span');
+    h.className = 'h';
+    h.setAttribute('aria-hidden', 'true');
+    return h;
+  };
+  purr.append(heart(), word, heart());
+  mood.appendChild(purr);
   card.appendChild(mood);
 
   const happiness = document.createElement('div');

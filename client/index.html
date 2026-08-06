@@ -361,6 +361,33 @@
     font-size: 0.75rem;
     color: var(--ink-soft);
     margin: 2px 0 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* The purr indicator: always present, pinned right, so it reads as a lamp
+     at a constant place on every card rather than text that comes and goes.
+     It used to be a ` · purring 💕` suffix on the mood string, which grew
+     the line by 60px whenever a cat started up. */
+  .kitty-card .purr {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    transition: opacity 0.4s ease;
+  }
+  /* Fixed slots. The unlit and lit glyphs are different widths, and without
+     a fixed box the word between them would step sideways every time a cat
+     started or stopped purring -- which is the shifting this replaced. */
+  .kitty-card .purr .h {
+    display: inline-block;
+    width: 1.15em;
+    text-align: center;
+  }
+  .kitty-card .purr:not(.is-on) {
+    opacity: 0.34;
   }
 
   .kitty-card .doing {
