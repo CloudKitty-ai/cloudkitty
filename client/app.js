@@ -545,19 +545,35 @@ function buildKittyCard(kitty) {
   // The card wears the kitty's own portrait (spec 005 polish): the same
   // drawCat the world uses, drawn once -- appearance never changes.
   const portrait = document.createElement('canvas');
-  const portraitSize = 22;
+  // The cat is drawn at the size it takes in the meadow -- 32-33px on a
+  // typical desktop -- so the portrait and the animal out in the world are
+  // the same picture at the same scale, and the face resolves. At 22px it
+  // was a blob: below about 30px the ears, eyes and stripes do not separate.
+  const PORTRAIT_CAT = 33;
+  // The chip is bigger than the cat because the idle pose's ink runs past
+  // its own box: the tail crosses the left edge by 2% of the size, so a
+  // chip the same size as the cat cuts the tail off. Measured at the real
+  // size rather than derived -- stroke widths do not scale linearly down
+  // here, so the ink is proportionally fatter at 33px than the geometry
+  // suggests. 37px is the first size that clips nothing; 38 keeps a pixel
+  // in hand. (The old 22px portrait clipped too; it was just too small to
+  // see what was missing.)
+  const PORTRAIT_CHIP = 38;
+  const inset = (PORTRAIT_CHIP - PORTRAIT_CAT) / 2;
   const dpr = window.devicePixelRatio || 1;
-  portrait.width = portraitSize * dpr;
-  portrait.height = portraitSize * dpr;
-  portrait.style.width = `${portraitSize}px`;
-  portrait.style.height = `${portraitSize}px`;
+  portrait.width = PORTRAIT_CHIP * dpr;
+  portrait.height = PORTRAIT_CHIP * dpr;
+  portrait.style.width = `${PORTRAIT_CHIP}px`;
+  portrait.style.height = `${PORTRAIT_CHIP}px`;
   const portraitCtx = portrait.getContext('2d');
   portraitCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
   drawCat(portraitCtx, {
     pose: 'idle',
     appearance: appearanceFor(kitty.id),
     facing: 'right', // toward its own name
-    size: portraitSize,
+    size: PORTRAIT_CAT,
+    x: inset,
+    y: inset,
     phase: 0,
   });
   name.appendChild(portrait);
