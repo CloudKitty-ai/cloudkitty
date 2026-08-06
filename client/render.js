@@ -76,6 +76,11 @@ class WorldRenderer {
     this.showGreebles = false;
     this.showGrid = false; // spec 008 FR-004: the demoted debug lattice
     this.showPaths = false; // spec 008 FR-009: worn trails, off by default
+    // Happiness bars, off by default (owner, 2026-08-05): the cards carry
+    // the same number in words, and a well-trained roster pins happiness
+    // near its ceiling anyway -- so four near-full bars said little while
+    // sitting exactly where the ground shadows fall. `h` brings them back.
+    this.showHappiness = false;
     this.theme = 'day'; // 'day' | 'dusk' | 'night' -- set by setTheme
     // (app.js), which also swaps the MEADOW/PROPS palettes and clears
     // the ground cache
@@ -563,6 +568,18 @@ class WorldRenderer {
     if (shadowAlpha > 0) {
       const lean = MEADOW.shadowLean ?? 0;
       const length = MEADOW.shadowLength ?? 1;
+      // A shadow starts at the thing casting it and runs away from the
+      // light -- it does not spread out both ways. So the extra length is
+      // thrown entirely to one side: the sun-side edge stays where the
+      // caster's own footprint is, and only the far edge travels.
+      //
+      // Multiplying the throw by `lean` rather than by its sign keeps this
+      // smooth: at lean 0 (noon, and the moon) the stretch stays
+      // symmetrical, which is right for a light directly overhead, and
+      // nothing jumps as the lean crosses zero between phases.
+      const footprint = this.tile * 0.3;
+      const halfWidth = footprint * length;
+      const offset = lean * (halfWidth - footprint);
       ctx.save();
       // Alpha falls as the shadow stretches: the same darkness spread
       // over more ground would read as a stain rather than a shadow.
@@ -570,9 +587,9 @@ class WorldRenderer {
       ctx.fillStyle = MEADOW.groundShadow;
       ctx.beginPath();
       ctx.ellipse(
-        cx + lean * this.tile * 0.5,
+        cx + offset,
         cy + this.tile * 0.32,
-        this.tile * 0.3 * length,
+        halfWidth,
         this.tile * 0.12,
         0,
         0,
@@ -663,7 +680,7 @@ class WorldRenderer {
       }
     }
 
-    this.drawHappinessBar(kitty, x, y, view);
+    if (this.showHappiness) this.drawHappinessBar(kitty, x, y, view);
   }
 
   /**

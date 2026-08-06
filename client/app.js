@@ -15,6 +15,7 @@ const panelEl = document.getElementById('panel');
 const debugNoteEl = document.getElementById('debug-note');
 const gridNoteEl = document.getElementById('grid-note');
 const pathsNoteEl = document.getElementById('paths-note');
+const happyNoteEl = document.getElementById('happy-note');
 
 const NEED_LABELS = {
   eat: 'eat',
@@ -726,6 +727,9 @@ window.addEventListener('keydown', (event) => {
   } else if (key === 'p' && VIEW.meadow.paths) {
     renderer.showPaths = !renderer.showPaths;
     pathsNoteEl.hidden = !renderer.showPaths;
+  } else if (key === 'h') {
+    renderer.showHappiness = !renderer.showHappiness;
+    happyNoteEl.hidden = !renderer.showHappiness;
   } else {
     return;
   }

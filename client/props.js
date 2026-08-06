@@ -42,14 +42,16 @@ const PROPS_DAY = Object.freeze({
 
 /**
  * The props after sundown. Only what must change changes: the drawn ink
- * (Zs, yarn wraps) flips pale so it holds against dark grass, and shadows
- * deepen to moonlight. The furniture keeps its daytime colors -- a
+ * (Zs, yarn wraps) flips pale so it holds against dark grass, and the
+ * shadows go away entirely. The furniture keeps its daytime colors -- a
  * terracotta bowl at night is still a terracotta bowl.
  */
 const PROPS_NIGHT = Object.freeze({
   ...PROPS_DAY,
   ink: '#e6dccb',
-  shadow: 'rgba(8, 10, 20, 0.4)',
+  // Transparent, matching the meadow: nothing casts after dark, and a
+  // firefly least of all (2026-08-05).
+  shadow: 'rgba(8, 10, 20, 0)',
 });
 
 /** Golden hour barely touches the props: the daytime ink still reads on
@@ -258,12 +260,16 @@ function drawButterfly(ctx, opts) {
     // falloff here, unlike the cat shadow: the caller owns globalAlpha
     // for the element fade, and reading it back is not safe against the
     // harness's mock ctx, which answers every property with a function.
+    // Anchored the same way the cats' shadows are: the sun-side edge stays
+    // put and only the far edge travels.
     const sun = sunShadow();
+    const footprint = 0.13 + 0.03 * flap;
+    const halfWidth = footprint * sun.length;
     ctx.beginPath();
     ctx.ellipse(
-      0.5 + sun.lean * 0.25,
+      0.5 + sun.lean * (halfWidth - footprint),
       0.80,
-      (0.13 + 0.03 * flap) * sun.length,
+      halfWidth,
       0.042,
       0,
       0,

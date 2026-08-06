@@ -467,15 +467,43 @@ check('every phase says where its sun is', () => {
   }
 });
 
-check('the two twilights throw their shadows opposite ways', () => {
-  // The one place dawn and sunset differ in geometry rather than colour:
-  // the same low sun, on opposite horizons.
-  assert(api.MEADOW_DUSK.shadowLean > 0.5, 'sunset leans one way');
-  assert(api.MEADOW_DAWN.shadowLean < -0.5, 'dawn leans the other');
+check('shadows fall away from the sun the sky dial draws', () => {
+  // skyForTick hands the dial t=0 (LEFT horizon) exactly as dawn begins
+  // and t~1 (RIGHT) as sunset ends, and the dial runs left -> zenith ->
+  // right. So the shadows must be thrown right at dawn and left at
+  // sunset -- opposite signs, and each opposite to its own sun.
+  assert(api.MEADOW_DAWN.shadowLean > 0.5, 'dawn: sun left, shadow right');
+  assert(api.MEADOW_DUSK.shadowLean < -0.5, 'sunset: sun right, shadow left');
   assert(
-    Math.sign(api.MEADOW_DUSK.shadowLean) !== Math.sign(api.MEADOW_DAWN.shadowLean),
-    'and they are genuinely opposite in sign',
+    Math.sign(api.MEADOW_DAWN.shadowLean) !== Math.sign(api.MEADOW_DUSK.shadowLean),
+    'and the two twilights are genuinely opposite',
   );
+});
+
+check('the shadow grows away from the light, not both ways', () => {
+  // The geometry render.js and props.js both use: the sun-side edge stays
+  // on the caster's own footprint and only the far edge travels.
+  // The anchor is exact only at |lean| = 1; below that the sun-side edge
+  // creeps out a little, which is the price of multiplying by `lean`
+  // rather than its sign so nothing jumps as the lean crosses zero.
+  const NEARLY = 0.2;
+  const edges = (lean, length, footprint = 1) => {
+    const halfWidth = footprint * length;
+    const centre = lean * (halfWidth - footprint);
+    return [centre - halfWidth, centre + halfWidth];
+  };
+  // Sunset: sun on the right, so the RIGHT edge should barely move while
+  // the left one runs out.
+  const [dl, dr] = edges(api.MEADOW_DUSK.shadowLean, api.MEADOW_DUSK.shadowLength);
+  assert(Math.abs(dr - 1) < NEARLY, `sunset: sun-side edge stays put, got ${dr.toFixed(2)}`);
+  assert(dl < -1.4, `sunset: the far edge runs out, got ${dl.toFixed(2)}`);
+  // Dawn mirrors it.
+  const [wl, wr] = edges(api.MEADOW_DAWN.shadowLean, api.MEADOW_DAWN.shadowLength);
+  assert(Math.abs(wl + 1) < NEARLY, `dawn: sun-side edge stays put, got ${wl.toFixed(2)}`);
+  assert(wr > 1.4, `dawn: the far edge runs out, got ${wr.toFixed(2)}`);
+  // A light straight overhead has no side to run from, so it stays even.
+  const [nl, nr] = edges(api.MEADOW_NIGHT.shadowLean, api.MEADOW_NIGHT.shadowLength);
+  close(nl, -nr, 'overhead light stretches symmetrically');
 });
 
 check('noon is overhead and the moon has no direction', () => {
@@ -500,7 +528,11 @@ check('the sun swings round across a crossing rather than jumping', () => {
   // And the long way round: night -> dawn passes through zero, so the
   // shadow shortens toward straight-down before swinging out the far side.
   const swing = api.mixPalettes(api.MEADOW_NIGHT, api.MEADOW_DAWN, 0.5);
-  assert(swing.shadowLean < 0 && swing.shadowLean > api.MEADOW_DAWN.shadowLean, 'part way over');
+  assert(
+    swing.shadowLean > api.MEADOW_NIGHT.shadowLean &&
+      swing.shadowLean < api.MEADOW_DAWN.shadowLean,
+    'part way over',
+  );
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

@@ -134,7 +134,7 @@ const MEADOW_DAY = Object.freeze({
   // half-tile units, `shadowLength` stretches it away from the caster.
   // Noon is nearly overhead, so the shadow is short and barely leans.
   groundShadow: 'rgba(140, 120, 100, 0.15)',
-  shadowLean: 0.06,
+  shadowLean: -0.06,
   shadowLength: 1,
 });
 
@@ -159,10 +159,14 @@ const MEADOW_NIGHT = Object.freeze({
   pathTint: '#4a4136',
   gridLine: 'rgba(190, 210, 190, 0.14)',
   moteColor: 'rgba(215, 228, 255, 0.8)',
-  groundShadow: 'rgba(12, 10, 22, 0.35)',
-  // The moon reads as a lamp overhead rather than a low light, so night
-  // has no lean at all -- and that is the point: it is the still hour
-  // between the two horizons the sun uses.
+  // No shadows after dark (owner, 2026-08-05). Expressed as a zero ALPHA
+  // rather than a theme special-case, so the shadows fade out as night
+  // falls and return with the dawn -- the alpha interpolates along with
+  // every other colour, and no drawing code needs to know about night.
+  groundShadow: 'rgba(12, 10, 22, 0)',
+  // Lean and length still carry values because a crossing interpolates
+  // through them: shadows lengthen as they fade at dusk, and come back
+  // out of dawn already pointing the right way.
   shadowLean: 0,
   shadowLength: 1.25,
 });
@@ -192,8 +196,9 @@ const MEADOW_DUSK = Object.freeze({
   gridLine: 'rgba(150, 150, 110, 0.18)',
   moteColor: 'rgba(255, 210, 140, 0.8)',
   groundShadow: 'rgba(120, 80, 90, 0.2)', // long violet-warm evening shadows
-  // The sun is low on one horizon; shadows run long, away from it.
-  shadowLean: 0.85,
+  // The sun sets on the RIGHT of the sky dial (skyForTick puts it at
+  // t~1 as sunset ends), so shadows are thrown LEFT, away from it.
+  shadowLean: -0.85,
   shadowLength: 1.85,
 });
 
@@ -239,11 +244,12 @@ const MEADOW_DAWN = Object.freeze({
   gridLine: 'rgba(140, 148, 140, 0.16)',
   moteColor: 'rgba(228, 226, 218, 0.75)',
   groundShadow: 'rgba(60, 66, 72, 0.24)', // long, cool, but not blue
-  // The same low sun as sunset, on the opposite horizon -- so the lean
-  // is the opposite sign. This is the one place dawn and sunset differ
-  // in geometry rather than only in colour, and it is what stops the two
-  // twilights reading as the same hour played twice.
-  shadowLean: -0.8,
+  // The sun RISES on the left (skyForTick hands the dial t=0 exactly as
+  // dawn begins), so shadows are thrown right -- the opposite sign to
+  // sunset. This is the one place dawn and sunset differ in geometry
+  // rather than only in colour, and it is what stops the two twilights
+  // reading as the same hour played twice.
+  shadowLean: 0.8,
   shadowLength: 1.8,
 });
 
