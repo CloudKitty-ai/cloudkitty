@@ -198,13 +198,24 @@ check('still frames neither blend nor record', () => {
 check('the slow-blink lid walks the lab envelope exactly', () => {
   const p = new api.Presentation();
   const lidAt = (now) => p.motionFor(0, 'idle', now).blinkLid;
+  // Derived from the dials, not restated: these spans are meant to be
+  // re-judged in the lab, and a midpoint written out as a number turns
+  // every re-dial into a test failure that says nothing about the shape.
+  const { slowBlinkDownMs: down, slowBlinkHoldMs: hold, slowBlinkUpMs: up } = api.VIEW;
   close(lidAt(0), 0, 'starts open');
-  close(lidAt(175), 0.5, 'half-down at the down midpoint');
-  close(lidAt(api.VIEW.slowBlinkDownMs), 1, 'fully down');
-  close(lidAt(api.VIEW.slowBlinkDownMs + api.VIEW.slowBlinkHoldMs), 1, 'held');
-  close(lidAt(725), 0.5, 'half-up at the up midpoint'); // 350+150+225, 225/450
-  const total = api.VIEW.slowBlinkDownMs + api.VIEW.slowBlinkHoldMs + api.VIEW.slowBlinkUpMs;
+  close(lidAt(down / 2), 0.5, 'half-down at the down midpoint');
+  close(lidAt(down), 1, 'fully down');
+  close(lidAt(down + hold), 1, 'held');
+  close(lidAt(down + hold + up / 2), 0.5, 'half-up at the up midpoint');
+  const total = down + hold + up;
   assert(lidAt(total) === undefined, 'over after the envelope');
+  // Not an art constraint, so unlike the spans themselves this is pinned:
+  // `at` arrives modulo the idle slot, so a blink that outlasts its own
+  // slot is always in progress and the eyes never settle open again.
+  assert(
+    total < api.VIEW.idleMotionPeriodMs,
+    `a ${total}ms blink must fit the ${api.VIEW.idleMotionPeriodMs}ms idle slot`,
+  );
 });
 
 // The v2 lab drives its Slow blink card through this same function with a
@@ -213,19 +224,26 @@ check('the slow-blink lid walks the lab envelope exactly', () => {
 // dialled ones -- and bake whatever it was shown.
 check('slowBlinkLid takes its values from the bag it is given', () => {
   const p = new api.Presentation();
-  const dials = { slowBlinkDownMs: 800, slowBlinkHoldMs: 400, slowBlinkUpMs: 1000 };
-  close(api.slowBlinkLid(400, dials), 0.5, 'half-down at the dialled midpoint');
-  close(api.slowBlinkLid(800, dials), 1, 'shut when the dialled down ends');
-  close(api.slowBlinkLid(1200, dials), 1, 'still shut through the dialled hold');
-  close(api.slowBlinkLid(1700, dials), 0.5, 'half-up at the dialled midpoint');
-  assert(api.slowBlinkLid(2200, dials) === undefined, 'over after the dialled envelope');
-  // Same instant, two envelopes: the bag really is what decides.
-  assert(
-    api.slowBlinkLid(800, dials) !== p.motionFor(0, 'idle', 800).blinkLid,
-    'a longer blink is still shut where the shipped one is releasing',
-  );
+  const { slowBlinkDownMs: down, slowBlinkHoldMs: hold, slowBlinkUpMs: up } = api.VIEW;
+  // Twice the shipped envelope, derived rather than written out, so a
+  // re-dial cannot leave this test asserting against yesterday's numbers.
+  const dials = {
+    slowBlinkDownMs: down * 2,
+    slowBlinkHoldMs: hold * 2,
+    slowBlinkUpMs: up * 2,
+  };
+  close(api.slowBlinkLid(down, dials), 0.5, 'half-down at the dialled midpoint');
+  close(api.slowBlinkLid(down * 2, dials), 1, 'shut when the dialled down ends');
+  close(api.slowBlinkLid(down * 2 + hold, dials), 1, 'still shut through the dialled hold');
+  close(api.slowBlinkLid((down + hold) * 2 + up, dials), 0.5, 'half-up at the dialled midpoint');
+  assert(api.slowBlinkLid((down + hold + up) * 2, dials) === undefined, 'over after it');
+  // The instant the shipped blink ends is the cleanest place to see which
+  // envelope is in charge: one is finished, the other still has half to run.
+  const shipped = down + hold + up;
+  assert(p.motionFor(0, 'idle', shipped).blinkLid === undefined, 'the shipped blink is over');
+  assert(api.slowBlinkLid(shipped, dials) !== undefined, 'the dialled one is still going');
   // Defaulting is what `motionFor` relies on.
-  close(api.slowBlinkLid(api.VIEW.slowBlinkDownMs), 1, 'no bag: falls back to VIEW');
+  close(api.slowBlinkLid(down), 1, 'no bag: falls back to VIEW');
 });
 
 check('the v1 snap blink is untouched beside the lid', () => {

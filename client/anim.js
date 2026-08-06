@@ -54,9 +54,14 @@ const VIEW = Object.freeze({
   settleMs: 400, // landing squash, concurrent with the arrive blend
   settleDip: 0.05, // peak vertical squash of the settle
   blendTickShareCap: 0.45, // a blend never outlasts this share of a tick
-  slowBlinkDownMs: 350, // the lid eases down ...
-  slowBlinkHoldMs: 150, // ... holds ...
-  slowBlinkUpMs: 450, // ... and releases (the cat "I love you")
+  // The cat "I love you", re-dialled in the v2 lab (owner, 2026-08-06):
+  // the lid eases down, holds, and releases. The hold carries the gesture
+  // and was the value that moved -- 150ms was long enough to see but not
+  // to mean anything, and at 550 the closed eye is held rather than
+  // passed through. 1550ms total, well inside the 4600ms idle slot.
+  slowBlinkDownMs: 550, // the lid eases down ...
+  slowBlinkHoldMs: 550, // ... holds ...
+  slowBlinkUpMs: 450, // ... and releases
 
   // Beats (US5).
   // The observed drop is relief minus that tick's need rise, so the
@@ -167,8 +172,9 @@ function easeSmooth(t) {
 
 /**
  * The slow-blink lid at `at` ms into a blink, or undefined once the blink
- * is over. Down, hold, release -- the "I love you" envelope, asymmetric on
- * purpose so the eyes open more slowly than they close.
+ * is over. Down, hold, release -- the "I love you" envelope. The three
+ * spans are dialled independently and the weight sits in the hold: the
+ * gesture is the held closed eye, not the travel to it.
  *
  * Pulled out of `motionFor` so the v2 lab can drive its Slow blink card
  * through the shipping envelope instead of restating the shape and the
