@@ -59,11 +59,20 @@ const PROPS_DUSK = Object.freeze({
   shadow: 'rgba(110, 75, 85, 0.28)',
 });
 
+/** Dawn does to the props what dusk does, in the opposite temperature:
+ * the daytime ink still reads on cool grass, and the shadows go long and
+ * cold instead of long and warm. */
+const PROPS_DAWN = Object.freeze({
+  ...PROPS_DAY,
+  shadow: 'rgba(55, 60, 66, 0.28)',
+});
+
 /** The active palette; the theme switch (app.js setTheme) swaps it. */
 const PROPS_BY_THEME = Object.freeze({
   day: PROPS_DAY,
   dusk: PROPS_DUSK,
   night: PROPS_NIGHT,
+  dawn: PROPS_DAWN,
 });
 
 let PROPS = PROPS_DAY;

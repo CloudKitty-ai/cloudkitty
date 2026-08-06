@@ -158,8 +158,9 @@ const MEADOW_NIGHT = Object.freeze({
 });
 
 /**
- * The meadow at golden hour -- one twilight palette serving both dawn and
- * dusk. Grass takes an amber wash, the water sits exactly midway between
+ * The meadow at golden hour. Sunset only as of v3 -- dawn was split off
+ * into MEADOW_DAWN below, which runs cool and dim where this runs warm
+ * and bright. Grass takes an amber wash, the water sits exactly midway between
  * its day and night blues (owner call, 2026-07-22: evening water, not
  * sunset-rose), and the sunbeam pools deepen from noon gold to low-sun
  * amber. Shadows warm and stretch.
@@ -184,14 +185,60 @@ const MEADOW_DUSK = Object.freeze({
 });
 
 /**
+ * First light, and the counterweight to golden hour (v3, 2026-08-05).
+ * Dawn and dusk shared one palette until now, because ticks have no
+ * compass and the light was called "the same, only the direction
+ * differs". It is not the same: sunset is the day's warmth draining out
+ * through amber, dawn is cold air and a sky that brightens before
+ * anything is lit. So this set runs cool where MEADOW_DUSK runs warm --
+ * lilac-grey rather than gold, the jitter picking out blue-white first
+ * light rather than sunlight, and shadows a cold violet.
+ *
+ * FIRST CUT -- authored to be dialed, not to be right. Judge it on the
+ * meadow at real scale (the theme toggle now stops on Dawn) and paste
+ * back whatever it should be.
+ */
+const MEADOW_DAWN = Object.freeze({
+  // Second pass (owner, 2026-08-05). The first cut sat at day's lightness
+  // with the saturation pulled out, which read as a washed-out noon
+  // rather than an early morning -- and it made the step out of night
+  // enormous, the wrong shape for the phase that LEADS out of night. This
+  // one drops the value so dawn lands between night and day, and takes
+  // the blue back out: the cast was never really in the grass, it was in
+  // the jitter, the glow, the motes and the shadow, all of which are now
+  // neutral. The sky is lit; the ground is not lit yet.
+  grassTones: Object.freeze(['#adb8ab', '#a7b2a5', '#a1ac9f', '#aab5a8']),
+  jitterTint: '#f0e9de', // first light: pale, and a touch warm -- the sun
+  //                          is coming, even if it has not arrived
+  jitterShade: '#5f6a5c',
+  pondWater: '#8fa3b0', // water still reads as water, just unlit
+  pondShallow: '#a6b8c2',
+  pondRim: '#7b8f9c',
+  lilyPad: '#7d9184',
+  lilyPadRim: '#66786c',
+  // The sky brightening before the sun clears the horizon. A hint of
+  // warmth rather than silver -- silver is the moon's, and this light is
+  // the sun's, just not arrived.
+  glowCore: 'rgba(226, 216, 204, 0.62)',
+  glowMid: 'rgba(218, 208, 196, 0.3)',
+  glowFade: 'rgba(218, 208, 196, 0)',
+  pathTint: '#8f867e',
+  gridLine: 'rgba(140, 148, 140, 0.16)',
+  moteColor: 'rgba(228, 226, 218, 0.75)',
+  groundShadow: 'rgba(60, 66, 72, 0.24)', // long, cool, but not blue
+});
+
+/**
  * The active palette. Drawing code reads MEADOW as ever; the theme switch
- * (app.js setTheme) swaps which frozen set it names. The renderer's ground
- * cache is invalidated by the same switch -- the cache bakes these colors.
+ * (app.js setTheme) swaps which frozen set it names, or blends two of
+ * them. The renderer's ground cache is invalidated by the same switch --
+ * the cache bakes these colors.
  */
 const MEADOW_BY_THEME = Object.freeze({
   day: MEADOW_DAY,
   dusk: MEADOW_DUSK,
   night: MEADOW_NIGHT,
+  dawn: MEADOW_DAWN,
 });
 
 let MEADOW = MEADOW_DAY;

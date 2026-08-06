@@ -152,7 +152,7 @@ function appearanceFor(kittyId) {
  * night are when a cat's eyes shine. The night factor was tuned live
  * (2026-07-22); dusk barely dims -- golden hour flatters the fur.
  */
-const FUR_SHADE_BY_THEME = Object.freeze({ day: 1, dusk: 0.96, night: 0.89 });
+const FUR_SHADE_BY_THEME = Object.freeze({ day: 1, dusk: 0.96, night: 0.89, dawn: 0.94 });
 
 function shadeHex(hex, factor) {
   const n = parseInt(hex.slice(1), 16);

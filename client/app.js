@@ -42,11 +42,12 @@ let latestWorld = null;
 anim.init(renderer);
 
 /**
- * The hour themes (design experiment rounds two and three): day, golden
- * hour, and night. One applier flips everything that carries color: the
- * CSS tokens (body.dusk / body.night), the canvas palettes (meadow,
- * props), the renderer's theme (fireflies, twilight fur), and the baked
- * ground cache.
+ * The hour themes (design experiment rounds two and three, split four
+ * ways in v3): day, sunset, night and dawn. One applier flips everything
+ * that carries color: the CSS tokens (body.dusk / body.night /
+ * body.dawn), the canvas palettes (meadow, props), the renderer's theme
+ * (fireflies, twilight fur), and the baked ground cache. Between phases
+ * the canvas palettes are a blend of two rather than one of the four.
  *
  * The default mode is "auto": the world has its own sky (cosmetic for
  * now -- owner call, 2026-07-22), an hour derived as a pure function of
@@ -59,9 +60,9 @@ anim.init(renderer);
  * choice" means "follow the world", exactly as designed in round two.
  */
 const THEME_KEY = 'cloudkitty-theme';
-const THEMES = ['day', 'dusk', 'night'];
-const THEME_ICONS = { day: '☀️', dusk: '🌇', night: '🌙' };
-const MODE_CYCLE = ['auto', 'day', 'dusk', 'night'];
+const THEMES = ['day', 'dusk', 'night', 'dawn'];
+const THEME_ICONS = { day: '☀️', dusk: '🌇', night: '🌙', dawn: '🌅' };
+const MODE_CYCLE = ['auto', 'day', 'dusk', 'night', 'dawn'];
 const AUTO_ICON = '🌤️'; // the sky decides
 
 /** The settings' plain names, shown beside the toggle (owner request,
@@ -69,16 +70,22 @@ const AUTO_ICON = '🌤️'; // the sky decides
 const MODE_NAMES = {
   auto: 'Day/Night Cycle',
   day: 'Always Day',
-  dusk: 'Always Twilight',
+  // "Twilight" was unambiguous while one palette served both ends of the
+  // day; now that dawn is its own phase it has to say which twilight.
+  dusk: 'Always Sunset',
   night: 'Always Night',
+  dawn: 'Always Dawn',
 };
 
 /**
- * One world day, in ticks (at the default 1s tick: a 10-minute day).
- * Dawn and dusk both wear the golden-hour set -- the light is the same,
- * only the direction differs, and ticks have no compass.
- */
-/* Each row is [name, span, fadeOut]: how long the phase lasts, and how
+ * One world day, in ticks (at the default 800ms tick, an 8-minute day).
+ *
+ * Dawn used to wear the golden-hour set on the reasoning that the light
+ * is the same and only the direction differs. It is not the same: sunset
+ * is the day's warmth draining out, dawn is cold air and a sky that
+ * brightens before anything is lit. They are separate phases as of v3.
+ *
+ * Each row is [name, span, fadeOut]: how long the phase lasts, and how
  * many of its closing ticks are spent crossing into the next one. The
  * fade is per phase rather than one global constant (owner, 2026-08-05)
  * so "how long is this phase" and "how long does it take to leave" are
@@ -95,7 +102,7 @@ const WORLD_DAY_PHASES = Object.freeze([
   ['day', 280, 24],
   ['dusk', 65, 16], // sunset -> night: twilight hands over briskly
   ['night', 190, 24],
-  ['dusk', 65, 16], // dawn -> day
+  ['dawn', 65, 16], // dawn -> day
 ]);
 const WORLD_DAY_TICKS = WORLD_DAY_PHASES.reduce((sum, [, span]) => sum + span, 0);
 
@@ -217,6 +224,7 @@ function applyTheme() {
     currentTheme = theme;
     document.body.classList.toggle('dusk', theme === 'dusk');
     document.body.classList.toggle('night', theme === 'night');
+    document.body.classList.toggle('dawn', theme === 'dawn');
     renderer.theme = theme;
   }
 
