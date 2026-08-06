@@ -344,9 +344,10 @@ const MEADOW_DEFAULTS = Object.freeze({
   bushAlpha: 0.3, // and how strongly it reads against the grass
   bushStyle: 'shrub', // 'cover' | 'tuft' | 'bramble' | 'shrub' (gallery-meadow.html)
   // The shrub's shadow, damped against the cats': a squat canopy sits
-  // close to the ground, so it leans far less and needs no alpha
-  // falloff to stay believable.
-  bushShadowLean: 0.3, // share of the palette's lean a shrub takes
+  // close to the ground, so it stretches far less and needs no alpha
+  // falloff. Only the LENGTH is damped -- the lean also anchors the
+  // sun-side edge to the caster, and damping that recentres it.
+  bushShadowLean: 1, // gain on the anchor: 1 keeps the sun-side edge on the shrub
   bushShadowLength: 0.45, // and of its stretch past the caster
   bushShadowAlpha: 1, // no thinning: contact, not a smear
   shoreRounding: 0.45, // pond corner rounding, in tiles
@@ -599,11 +600,18 @@ function drawGroundCover(ctx, { width, height, tile, t }) {
         // Standing growth, with the leaning shadow that says so.
         //
         // Damped against the cats' (owner, 2026-08-05: "too dramatic").
-        // A shrub is squat and its canopy sits close to the ground, so
-        // it throws a far shorter shadow than a standing cat does even
-        // under the same low sun -- and taking the length down means the
-        // alpha no longer has to be spread thin to stay believable, so
-        // the shadow reads as contact rather than as a smear.
+        // A shrub is squat and its canopy sits close to the ground, so it
+        // throws a far shorter shadow than a standing cat does under the
+        // same low sun -- and because it is no longer long, the alpha does
+        // not have to be spread thin to stay believable.
+        //
+        // The damping applies to LENGTH only. `lean` does two jobs here:
+        // it says which way the shadow goes, and it anchors the sun-side
+        // edge to the caster (the same `lean * (halfWidth - footprint)`
+        // the cats use). Damping it damped the anchor too, which recentred
+        // the shadow under the shrub -- the bug this fixes.
+        // `bushShadowLean` is therefore a gain on that anchor, not a
+        // brake on the sun: 1 keeps the sun-side edge on the shrub.
         const lean = (MEADOW.shadowLean ?? 0) * t.bushShadowLean;
         const length = 1 + ((MEADOW.shadowLength ?? 1) - 1) * t.bushShadowLength;
         ctx.globalAlpha = t.bushShadowAlpha;
