@@ -13,19 +13,6 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 <!-- shipped P1 items are removed once merged; see git history -->
 
-### Finiteness sweep for the remaining [actions] relief dials (added 2026-08-03)
-Spec 025's review (finding 7, pre-existing gap) noted that the six
-non-play relief dials — `eat_relief`, `drink_relief`, `sleep_relief`,
-`sleep_relief_sunbeam`, `groom_relief`, `cuddle_relief` — have no
-finiteness or negativity validation at all: `cuddle_relief = nan`
-passes `Config::validate()` today, and the first duet rest tick
-propagates NaN into the need and every downstream happiness metric for
-the rest of the run. Spec 025 closed this class for the four play keys
-(`validate_actions`' finiteness table); extending the same table to the
-other six is trivially tighten-only (no shipped config carries a bad
-value) and needs no spec of its own — it rides any next `[actions]`
-touch, with one rejection test per dial.
-
 ### Graphics v2 follow-on: face-group pitch (added 2026-07-29; Client thread)
 The one v2 piece still unbuilt (vocabulary, motion wiring, and swim all
 shipped — see git history / PR #92). Slide eyes+nose+mouth together
@@ -305,17 +292,6 @@ Design detail and the axis-aligned-lane correction live in
 `specs/024-wet-fur-batch/contracts/chase-sidestep.md`. Still live:
 pre-024 chase-statistic baselines must be re-measured before comparing
 across the break (Experiments' calibration probe is the natural place).
-
-### Equivalence guardrail: subject-state axis (added 2026-08-01)
-`welfare_validate_equivalence.rs` varies neighbors and relief elements
-but always leaves the subject idle. A busy subject is the untested axis:
-`validate` may refuse actions mid-activity while the metric's relief
-predicate ignores the subject's own state. Extend the fixture matrix
-with a subject-activity axis, keeping `action::validate` as the oracle
-(the 024 review checked the alternative gauntlet oracle and it is
-strictly weaker). If cells diverge, that is a doctrine question — does
-"relief exists" mean available-now or available-once-free? — to settle
-in spec text before changing either layer.
 
 ### Trait-scaled routing with the charge off (added 2026-08-01)
 `selection::bath_ratio` scales the `water_step_cost` surcharge even when
