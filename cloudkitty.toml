@@ -97,9 +97,22 @@ safeguard = 75.0
 # Happiness above `purr` earns a purr (as does happiness that just went up).
 purr = 70.0
 
-# Element populations. `min`/`max` must sit within the hard bounds derived from
-# world size: at least 1 of each type (greebles may be 0), and at most
-# floor(width * height / 32) -- 32 for this world.
+# Element populations. `min`/`max` must sit within the hard bounds derived
+# from world size: at least 1 of each type (greebles may be 0), and at most
+# floor(width * height / 32) -- 18 for this 24x24 world.
+#
+# Know your knobs: `max` is read only by config validation. The world tops
+# each type up to `min` and no further, so the standing population IS the
+# minimums -- `min` is the real knob, and lowering `max` alone changes
+# nothing at runtime.
+#
+# Placement (spec 027): a world whose water minimum is 4+ always holds at
+# least one 2x2 lake, and spawns prefer the interior. Three `[elements]`
+# dials govern placement and expiry, shown here at their engine defaults;
+# write them only to change them:
+# spread_candidates = 8   # best-of-N width for every spawn draw
+# ttl_jitter = 100        # timed spawns draw base +/- this many ticks
+# edge_penalty = 2.0      # perimeter handicap in tiles; 0 disables
 
 [elements.water]
 # Generous on purpose: a kitty should never have to cross the whole world for a

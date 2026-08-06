@@ -534,13 +534,12 @@ way forward") — the constraint exists so no future cost hardens into
 impassability. Whatever shape a cost takes, traversability is
 invariant; Article I's relief guarantees assume it.
 
-**Companion idea for the same sitting**: guarantee at least one 2×2 or
-larger lake per map — real water bodies instead of scattered puddles.
-Connects to *Dynamic element populations* (P2), whose spatial-character
-idea (water spawning adjacent to water) is the organic version of the
-same wish, and which the 008 pond renderer would immediately reward
-with proper merged shorelines. A guaranteed lake also gives the swim
-pose (below) and any wet-tile cost something worth crossing.
+**Companion idea for the same sitting — SHIPPED as spec 027
+(2026-08-05)**: the guaranteed 2×2 lake landed in the pre-exp-003
+world batch (conditional on water min ≥ 4, maintained by the restock
+path, edge-weighted anchor). The organic spatial-character variant of
+*Dynamic element populations* (P2) — water spawning adjacent to water
+— remains open as the evolutionary next step beyond the guarantee.
 
 Related: the swim pose below suddenly has a real audience (wading is no
 longer rare when a policy cat likes ponds); food types' water-near-food
