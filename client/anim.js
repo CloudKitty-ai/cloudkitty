@@ -37,9 +37,31 @@ const VIEW = Object.freeze({
   critterGlideMaxTiles: 2,
 
   // Idle life (US4).
-  idleMotionPeriodMs: 4600, // one flick/blink about this often
-  idleMotionWindowMs: 420, // and lasting about this long
+  idleMotionPeriodMs: 4600, // one idle slot about this long
+  idleMotionWindowMs: 420, // an ear twitch (and v1's snap blink) lasts this
   breathePeriodMs: 3400, // the slow ambient cycle for resting poses
+
+  // What breaks up the rhythm (2026-08-06). The slots used to run a strict
+  // blink -> flick -> twitch rotation, every cat on the same clock and
+  // every motion starting exactly on the beat, which measured as a literal
+  // metronome: all four cats blinking at 13800ms intervals, zero spread.
+  // Each slot now draws a motion from these weights and starts it somewhere
+  // inside the slot. All of it is hashed from (id, slot), never random, so
+  // `motionFor` stays a pure function of (id, pose, now) -- still frames,
+  // reduced motion and the harness all depend on that.
+  idleBlinkWeight: 40,
+  idleEarsWeight: 40,
+  // A slot where nothing happens. It is what makes the other two feel
+  // unscheduled -- and it is a real nothing, not the vestigial tail flick
+  // it replaces, which quietly restarted the breathing cycle at 8x speed
+  // for a tail-tip sway of 0.4px at a live 33px cat.
+  idleRestWeight: 20,
+  // 0 = every motion on the beat (the old behaviour), 1 = anywhere in the
+  // slot it still fits. The motion can never overrun its slot either way.
+  idleJitter: 1,
+  // Per-cat tempo, +/- this share. Four cats on one clock read as one
+  // animal drawn four times; a little spread reads as four animals.
+  idleTempoSpread: 0.15,
 
   // v2 live motion -- every value owner-judged in the gallery-v2 motion
   // lab (2026-07-29; the settle was slowed 180→400ms on owner feedback).
@@ -168,6 +190,65 @@ function easeInOutCubic(t) {
  * slow-blink lid, and the landing settle all ease through this. */
 function easeSmooth(t) {
   return t * t * (3 - 2 * t);
+}
+
+/**
+ * Named channels for the idle hash. Same discipline as the meadow's
+ * MEADOW_SALTS: each scatter gets its own channel, because two draws off
+ * one channel correlate and the correlation is what reads as a pattern.
+ */
+const IDLE_SALTS = Object.freeze({
+  tempo: 1, // each cat's own clock speed
+  pick: 2, // which motion a slot gets
+  offset: 3, // where in the slot it starts
+});
+
+/**
+ * Deterministic 0..1 from two small integers and a salt. Hashed rather than
+ * random so `motionFor` stays pure: a still frame, a reduced-motion frame
+ * and a test all have to be able to ask what a cat is doing at time T and
+ * get the same answer, and an RNG would buy the same look and cost that.
+ *
+ * meadow.js has `tileHash` doing the same job for ground scatter, and one
+ * hash would be better than two -- but anim.js currently depends on
+ * nothing, the motion harness evals it on its own, and motion reaching into
+ * ground art for a hash is the wrong direction for that dependency to run.
+ * Four lines is the cheaper price. If a third caller turns up, lift both
+ * into one file rather than adding a third.
+ */
+function idleHash(a, b, salt = 0) {
+  let h = (a | 0) * 374761393 + (b | 0) * 668265263 + (salt | 0) * 2246822519;
+  h = (h ^ (h >>> 13)) * 1274126177;
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
+
+/** This cat's own idle tempo. Constant per cat, so the slot maths stays
+ * modular arithmetic on a fixed period rather than accumulated time. */
+function idlePeriodFor(id, dials = VIEW) {
+  const spread = (idleHash(id, 0, IDLE_SALTS.tempo) * 2 - 1) * dials.idleTempoSpread;
+  return dials.idleMotionPeriodMs * (1 + spread);
+}
+
+/** Which motion this slot gets, drawn from the weights. */
+function idlePickFor(id, slot, dials = VIEW) {
+  const blink = Math.max(0, dials.idleBlinkWeight);
+  const ears = Math.max(0, dials.idleEarsWeight);
+  const total = blink + ears + Math.max(0, dials.idleRestWeight);
+  if (total <= 0) return 'rest';
+  const draw = idleHash(id, slot, IDLE_SALTS.pick) * total;
+  if (draw < blink) return 'blink';
+  if (draw < blink + ears) return 'ears';
+  return 'rest';
+}
+
+/**
+ * How far into the slot the motion starts. Bounded by the slack the slot
+ * has left after the motion's own length, so jitter can move a motion
+ * around inside its slot but can never let one overrun into the next.
+ */
+function idleOffsetFor(id, slot, period, durationMs, dials = VIEW) {
+  const slack = Math.max(0, period - durationMs);
+  return idleHash(id, slot, IDLE_SALTS.offset) * slack * dials.idleJitter;
 }
 
 /**
@@ -499,7 +580,7 @@ class Presentation {
    * scheduled blink, tail flick, or ear twitch -- gentle, occasional, and
    * never during an action, so idle motion can never imply one (FR-008).
    */
-  motionFor(id, pose, now) {
+  motionFor(id, pose, now, dials = VIEW) {
     const isAction =
       pose === 'pouncing' ||
       pose === 'eating' ||
@@ -510,7 +591,7 @@ class Presentation {
 
     const seed = id * 997;
     const motion = {
-      phase: ((now + seed) % VIEW.breathePeriodMs) / VIEW.breathePeriodMs,
+      phase: ((now + seed) % dials.breathePeriodMs) / dials.breathePeriodMs,
     };
     if (pose === 'sleep-curl') return motion; // sleepers just breathe
     if (pose === 'swim') {
@@ -521,25 +602,35 @@ class Presentation {
       return motion;
     }
 
-    // Idle and loafing cats are never statues: one small motion per period,
-    // cycling blink -> tail flick -> ear twitch, offset per kitty.
+    // Idle and loafing cats are never statues: each slot draws a motion and
+    // starts it somewhere inside the slot. A slot may equally draw nothing,
+    // which is what stops the ones that do land from reading as scheduled.
+    const period = idlePeriodFor(id, dials);
     const wobble = now + id * 1337;
-    const at = wobble % VIEW.idleMotionPeriodMs;
-    const kind = Math.floor(wobble / VIEW.idleMotionPeriodMs) % 3;
-    if (at < VIEW.idleMotionWindowMs) {
-      const w = at / VIEW.idleMotionWindowMs;
-      if (kind === 0) motion.eyesOverride = 'closed'; // a blink
-      else if (kind === 1) motion.phase = w; // one quick tail flick
-      else motion.earsBack = w < 0.5; // an ear twitch
+    const slot = Math.floor(wobble / period);
+    const at = wobble % period;
+    const pick = idlePickFor(id, slot, dials);
+    if (pick === 'rest') return motion; // a slot off, breathing as usual
+
+    const blinkMs =
+      dials.slowBlinkDownMs + dials.slowBlinkHoldMs + dials.slowBlinkUpMs;
+    const durationMs = pick === 'blink' ? blinkMs : dials.idleMotionWindowMs;
+    // Time into the motion itself, which is what every envelope below is
+    // measured from -- negative before it starts, past `durationMs` after.
+    const t = at - idleOffsetFor(id, slot, period, durationMs, dials);
+
+    if (pick === 'ears') {
+      if (t >= 0 && t < dials.idleMotionWindowMs) {
+        motion.earsBack = t / dials.idleMotionWindowMs < 0.5; // an ear twitch
+      }
+      return motion;
     }
-    if (kind === 0) {
-      // The v2 slow blink (lab-judged envelope), deliberately longer than
-      // the v1 snap window. The v2 renderer prefers this lid over the
-      // snapped eyesOverride; v1 never reads it, so its blink stays
-      // bit-identical.
-      const lid = slowBlinkLid(at);
-      if (lid !== undefined) motion.blinkLid = lid;
-    }
+
+    // v1 keeps its snap blink over its own short window; the v2 renderer
+    // prefers the eased lid and drops the snap, so v1 stays bit-identical.
+    if (t >= 0 && t < dials.idleMotionWindowMs) motion.eyesOverride = 'closed';
+    const lid = slowBlinkLid(t, dials);
+    if (lid !== undefined) motion.blinkLid = lid;
     return motion;
   }
 

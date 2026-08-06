@@ -18,7 +18,31 @@ const animSrc = readFileSync(join(here, 'anim.js'), 'utf8');
 const catV2Src = readFileSync(join(here, 'cat-v2.js'), 'utf8');
 const renderSrc = readFileSync(join(here, 'render.js'), 'utf8');
 
-const api = eval(animSrc + ';({ VIEW, Presentation, easeSmooth, slowBlinkLid })');
+const api = eval(
+  animSrc +
+    ';({ VIEW, Presentation, easeSmooth, slowBlinkLid, idleHash, idlePeriodFor,' +
+    ' idlePickFor, idleOffsetFor })',
+);
+
+/**
+ * A slot that actually draws `want`, and the clock reading that puts a cat
+ * `x` ms into that motion. Which slot gets which motion is hashed now, so a
+ * test cannot assume slot 0 is a blink starting on the beat -- it has to go
+ * and find one. Slots start at 5 so `now` stays positive.
+ */
+function slotOf(api, id, want, dials = api.VIEW) {
+  const period = api.idlePeriodFor(id, dials);
+  const span =
+    want === 'blink'
+      ? dials.slowBlinkDownMs + dials.slowBlinkHoldMs + dials.slowBlinkUpMs
+      : dials.idleMotionWindowMs;
+  for (let slot = 5; slot < 400; slot++) {
+    if (api.idlePickFor(id, slot, dials) !== want) continue;
+    const off = api.idleOffsetFor(id, slot, period, span, dials);
+    return { slot, period, off, span, at: (x) => slot * period + off + x - id * 1337 };
+  }
+  return null;
+}
 eval(catV2Src); // IIFE: registers globalThis.CatV2
 const CatV2 = globalThis.CatV2;
 const { poseFor } = eval(renderSrc + ';({ poseFor })');
@@ -193,11 +217,11 @@ check('still frames neither blend nor record', () => {
 
 // ---- motionFor: the slow-blink lid ----
 
-// id 0 puts the idle-motion wobble at `now` itself: kind 0 (a blink) for
-// now in [0, idleMotionPeriodMs), offset `at` = now.
 check('the slow-blink lid walks the lab envelope exactly', () => {
   const p = new api.Presentation();
-  const lidAt = (now) => p.motionFor(0, 'idle', now).blinkLid;
+  const blink = slotOf(api, 1, 'blink');
+  assert(blink, 'found a slot that draws a blink');
+  const lidAt = (x) => p.motionFor(1, 'idle', blink.at(x)).blinkLid;
   // Derived from the dials, not restated: these spans are meant to be
   // re-judged in the lab, and a midpoint written out as a number turns
   // every re-dial into a test failure that says nothing about the shape.
@@ -248,19 +272,113 @@ check('slowBlinkLid takes its values from the bag it is given', () => {
 
 check('the v1 snap blink is untouched beside the lid', () => {
   const p = new api.Presentation();
-  const m100 = p.motionFor(0, 'idle', 100);
-  assert(m100.eyesOverride === 'closed', 'v1 window: snapped closed');
-  assert(m100.blinkLid !== undefined, 'v2 lid runs alongside');
-  const m430 = p.motionFor(0, 'idle', 430); // past the 420ms v1 window
-  assert(m430.eyesOverride === undefined, 'v1 window over: eyes open');
-  assert(m430.blinkLid !== undefined, 'the eased lid is still easing');
+  const blink = slotOf(api, 1, 'blink');
+  const w = api.VIEW.idleMotionWindowMs;
+  const inside = p.motionFor(1, 'idle', blink.at(w / 2));
+  assert(inside.eyesOverride === 'closed', 'v1 window: snapped closed');
+  assert(inside.blinkLid !== undefined, 'v2 lid runs alongside');
+  const after = p.motionFor(1, 'idle', blink.at(w + 10));
+  assert(after.eyesOverride === undefined, 'v1 window over: eyes open');
+  assert(after.blinkLid !== undefined, 'the eased lid is still easing');
 });
 
-check('only the blink slot wears a lid', () => {
+check('only a blink slot wears a lid', () => {
   const p = new api.Presentation();
-  // id 0, now in [4600, 9200): kind 1, the tail flick.
-  const m = p.motionFor(0, 'idle', 4700);
-  assert(m.blinkLid === undefined, 'tail-flick slot has no lid');
+  for (const want of ['ears', 'rest']) {
+    const s = slotOf(api, 1, want);
+    assert(s, `found a slot that draws ${want}`);
+    // Sweep the whole slot: no part of it may carry a lid.
+    for (let x = 0; x < s.period; x += 25) {
+      const m = p.motionFor(1, 'idle', s.slot * s.period + x - 1337);
+      assert(m.blinkLid === undefined, `${want} slot has no lid at +${x}ms`);
+    }
+  }
+});
+
+// ---- the idle schedule: hashed, bounded, and weighted ----
+
+check('a rest slot is a real nothing, not a fast breath', () => {
+  const p = new api.Presentation();
+  const rest = slotOf(api, 1, 'rest');
+  for (let x = 0; x < rest.period; x += 25) {
+    const now = rest.slot * rest.period + x - 1337;
+    const m = p.motionFor(1, 'idle', now);
+    assert(m.eyesOverride === undefined, `no snap blink at +${x}ms`);
+    assert(m.earsBack === undefined, `no ear twitch at +${x}ms`);
+    assert(m.blinkLid === undefined, `no lid at +${x}ms`);
+    // The old tail-flick branch overrode the breathing phase; a rest slot
+    // must leave the ambient breath exactly as it found it.
+    const ambient = ((now + 997) % api.VIEW.breathePeriodMs) / api.VIEW.breathePeriodMs;
+    close(m.phase, ambient, `breathing undisturbed at +${x}ms`);
+  }
+});
+
+check('no motion ever overruns its slot', () => {
+  const p = new api.Presentation();
+  for (const id of [1, 2, 3, 4]) {
+    const period = api.idlePeriodFor(id);
+    for (let slot = 5; slot < 60; slot++) {
+      const pick = api.idlePickFor(id, slot);
+      if (pick === 'rest') continue;
+      const span =
+        pick === 'blink'
+          ? api.VIEW.slowBlinkDownMs + api.VIEW.slowBlinkHoldMs + api.VIEW.slowBlinkUpMs
+          : api.VIEW.idleMotionWindowMs;
+      const off = api.idleOffsetFor(id, slot, period, span);
+      assert(off >= 0, `id ${id} slot ${slot}: offset is not negative`);
+      assert(
+        off + span <= period + 1e-6,
+        `id ${id} slot ${slot}: ${pick} ends inside its own slot`,
+      );
+    }
+  }
+});
+
+check('the weights are what decides how often each motion lands', () => {
+  const dials = { ...api.VIEW, idleBlinkWeight: 70, idleEarsWeight: 20, idleRestWeight: 10 };
+  const seen = { blink: 0, ears: 0, rest: 0 };
+  const N = 4000;
+  for (let slot = 0; slot < N; slot++) seen[api.idlePickFor(1, slot, dials)]++;
+  // Loose bounds: this is asserting the draw is weighted, not that the
+  // hash is a perfect uniform generator.
+  assert(Math.abs(seen.blink / N - 0.7) < 0.03, `blink share ${(seen.blink / N).toFixed(3)} ~ 0.70`);
+  assert(Math.abs(seen.ears / N - 0.2) < 0.03, `ears share ${(seen.ears / N).toFixed(3)} ~ 0.20`);
+  assert(Math.abs(seen.rest / N - 0.1) < 0.03, `rest share ${(seen.rest / N).toFixed(3)} ~ 0.10`);
+  // All the weight on one motion means every slot draws it.
+  const only = { ...api.VIEW, idleBlinkWeight: 0, idleEarsWeight: 1, idleRestWeight: 0 };
+  for (let slot = 0; slot < 50; slot++) {
+    assert(api.idlePickFor(1, slot, only) === 'ears', `slot ${slot}: only ears can be drawn`);
+  }
+});
+
+check('jitter moves a motion inside its slot, and zero jitter is on the beat', () => {
+  const still = { ...api.VIEW, idleJitter: 0 };
+  const loose = { ...api.VIEW, idleJitter: 1 };
+  const period = api.idlePeriodFor(1, still);
+  const span = api.VIEW.idleMotionWindowMs;
+  const offsets = new Set();
+  for (let slot = 5; slot < 40; slot++) {
+    close(api.idleOffsetFor(1, slot, period, span, still), 0, `slot ${slot}: no jitter, on the beat`);
+    offsets.add(Math.round(api.idleOffsetFor(1, slot, period, span, loose)));
+  }
+  assert(offsets.size > 25, `jitter spreads the starts (${offsets.size} distinct of 35)`);
+});
+
+check('cats run their own tempos, and the schedule is deterministic', () => {
+  const p = new api.Presentation();
+  const periods = [1, 2, 3, 4].map((id) => api.idlePeriodFor(id));
+  assert(new Set(periods.map(Math.round)).size === 4, `four cats, four tempos: ${periods.map(Math.round)}`);
+  for (const period of periods) {
+    const drift = Math.abs(period / api.VIEW.idleMotionPeriodMs - 1);
+    assert(drift <= api.VIEW.idleTempoSpread + 1e-9, `tempo stays inside the spread (${drift.toFixed(3)})`);
+  }
+  // Purity is what still frames, reduced motion and this harness all rely
+  // on: the same cat at the same instant is always doing the same thing.
+  for (const now of [1234, 20000, 987654]) {
+    const a = JSON.stringify(p.motionFor(3, 'idle', now));
+    const b = JSON.stringify(new api.Presentation().motionFor(3, 'idle', now));
+    assert(a === b, `id 3 at ${now}ms is the same on a fresh Presentation`);
+  }
 });
 
 // ---- drawCatTween: structural endpoint identity ----
