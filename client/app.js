@@ -558,21 +558,26 @@ function buildKittyCard(kitty) {
   // suggests. 37px is the first size that clips nothing; 38 keeps a pixel
   // in hand. (The old 22px portrait clipped too; it was just too small to
   // see what was missing.)
-  const PORTRAIT_CHIP = 38;
+  // The chip is not square. An idle cat's ink is 33.5 x 27px -- wider than
+  // it is tall -- so a square chip carries twice as much air above and
+  // below as it does at the sides, and reads hollow. 38x34 (owner) leaves
+  // 2.25px at the sides and 3.5px top and bottom: still a frame the cat
+  // sits in rather than a shape cut around it, which is what the tighter
+  // sizes started to look like.
+  const PORTRAIT_W = 38;
+  const PORTRAIT_H = 34;
   // Not the chip's geometric centre. The ink is not centred in the cat's
   // own box -- at this size it runs 2.5px further left than right, because
   // the tail reaches past the left edge while the right side stops short --
   // so drawing at (chip - cat) / 2 leaves the cat visibly shoved left
-  // (owner spotted it). These equalise the measured ink margins instead:
-  // 2.25px each side, 5.5px top and bottom. Vertical was already within
-  // half a pixel, so the correction that shows is the horizontal one.
+  // (owner spotted it). These equalise the measured ink margins instead.
   const PORTRAIT_X = 3.75;
-  const PORTRAIT_Y = 2.75;
+  const PORTRAIT_Y = 0.92;
   const dpr = window.devicePixelRatio || 1;
-  portrait.width = PORTRAIT_CHIP * dpr;
-  portrait.height = PORTRAIT_CHIP * dpr;
-  portrait.style.width = `${PORTRAIT_CHIP}px`;
-  portrait.style.height = `${PORTRAIT_CHIP}px`;
+  portrait.width = PORTRAIT_W * dpr;
+  portrait.height = PORTRAIT_H * dpr;
+  portrait.style.width = `${PORTRAIT_W}px`;
+  portrait.style.height = `${PORTRAIT_H}px`;
   const portraitCtx = portrait.getContext('2d');
   portraitCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
   drawCat(portraitCtx, {
