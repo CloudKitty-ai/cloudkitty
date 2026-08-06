@@ -12,8 +12,6 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 ## P1 — quick wins, next up
 
 <!-- shipped P1 items are removed once merged; see git history -->
-<!-- (pyo3 advisory upgrade shipped 2026-07-23, spec 015 — the
-     do-before-more-RL-work gate is retired) -->
 
 ### Finiteness sweep for the remaining [actions] relief dials (added 2026-08-03)
 Spec 025's review (finding 7, pre-existing gap) noted that the six
@@ -28,32 +26,20 @@ other six is trivially tighten-only (no shipped config carries a bad
 value) and needs no spec of its own — it rides any next `[actions]`
 touch, with one rejection test per dial.
 
-### Graphics v2 follow-ons: face-group pitch (added 2026-07-29; reordered 2026-08-01)
-The v2 kitty vocabulary (`client/cat-v2.js`, owner-dialed face values)
-shipped 2026-07-29 (`f4a8d0d`) and is now the `index.html` default with a
-footer v1/v2 toggle; `client/gallery-v2.html` is the judging lab.
-**Live motion wiring — BUILT** (2026-08-02, the client motion+swim
-branch): the owner consciously reordered motion ahead of pitch on
-2026-08-01, and it shipped with the swim pose. One piece remains:
-
-1. **Face-group pitch** — slide eyes+nose+mouth together up/down the head
-   to simulate the head tilting (looking down to eat/drink, up at a bug).
-   Shape agreed: a per-pose scalar (e.g. `L.pitch`), blendable through
-   `blendLayouts` like any layout number, consumed in `drawFace` as one
-   shared y-offset on the eyes and nose (the mouth anchors to the nose and
-   follows for free). **Trap, learned the hard way elsewhere:** the
-   tuxedo/seal-point head masks are anchored to the `NOSE` tunables so
-   they track nose *dialing* — but they are fur markings and must NOT
-   move with pitch; pin them to the static baked values. **Dead end, do
-   not rebuild:** pupil-shift gaze was built, verified, and reverted —
-   max pupil travel is ~1% of the cat box (~0.24px at world size),
-   unreadable. Pitch replaces it.
-
-Judge every value in the lab first (dials + copy/paste readout), bake on
-the owner's paste — that workflow is the house method for this arc. The
-motion wiring added a seam pitch can reuse: `Presentation.tweenFor`
-blends any per-pose layout number, so `L.pitch` rides `blendLayouts`
-for free once the drawFace offset and the mask-pinning land.
+### Graphics v2 follow-on: face-group pitch (added 2026-07-29; Client thread)
+The one v2 piece still unbuilt (vocabulary, motion wiring, and swim all
+shipped — see git history / PR #92). Slide eyes+nose+mouth together
+up/down the head to simulate head tilt (looking down to eat/drink, up
+at a bug). Shape agreed: a per-pose scalar (e.g. `L.pitch`) blended
+through `blendLayouts` (the motion wiring's `Presentation.tweenFor`
+seam makes this free), consumed in `drawFace` as one shared y-offset on
+eyes and nose (mouth anchors to the nose and follows). **Trap:** the
+tuxedo/seal-point head masks are anchored to the `NOSE` tunables — they
+are fur markings and must NOT move with pitch; pin them to the static
+baked values. **Dead end, do not rebuild:** pupil-shift gaze was built
+and reverted — max travel ~0.24px at world size, unreadable; pitch
+replaces it. House method: judge in `gallery-v2.html` (dials +
+readout), bake on the owner's paste.
 
 ## P2 — the bigger pieces, for a proper sitting
 
@@ -81,7 +67,10 @@ longer "scripted", so the exit-2 fallback accounting applies to
 baseline runs too); and cross-version comparability breaks by design —
 v1-vs-v2 scores are different questions, which the version stamp
 already makes explicit. Sequencing: after the first certified policy
-exists, alongside whatever else v2 wants (owner note, 2026-07-25).
+exists, alongside whatever else v2 wants (owner note, 2026-07-25) —
+**that condition is now met** (s3/s6 certified clean 2026-07-30), but
+the suite is in active exp-003 service; hold until that experiment
+closes. Natural pairing: the small-world exams entry below (P2).
 Additional v2 nicety (experiments session, 2026-07-27, low priority):
 Mixed mode always seats the subject at roster index 0
 (`harness.rs`, the `Mixed if index == 0` arm), so mixed certification
@@ -113,34 +102,11 @@ features: each is behavior-preserving, and the verification bar when picked
 up is bit-identical output (determinism suite + byte-diffed eval reruns),
 which may stand in for the full spec-first flow at the owner's call.
 
-**Top three, in order:**
-
-1. ~~**`kitty-eval.rs` — delete the duplication with `suite.rs`.**~~
-   **SHIPPED as spec 018** (2026-07-26): `cli_support` module now houses
-   the shared renderers (bounds/prefix options) and the mode-sweep
-   orchestration; one `resolve_subject` ladder, one JSON writer, one
-   FR-013 gate in the binary; share-guard tests lock the modes-agree
-   invariant. Verified byte-identical against the v2.3 baseline in both
-   modes, human and JSON, plus seven error paths.
-
-2. ~~**`needs_driven.rs` (+ `selection.rs`) — make the need→resource
-   mirror compiler-enforced.**~~ **SHIPPED as spec 019** (2026-07-26):
-   `behavior/relief.rs` holds the one exhaustive `NeedKind::relief()`
-   pairing (five `ReliefSource` shapes); scoring, pursuit, and the
-   opportunism ladder all derive from it; the mirror comments retired in
-   favor of the module's documented invariant. Verified bit/byte-identical:
-   full workspace suite unchanged, four-way eval comparison identical,
-   new-need walkthrough shows one compiler-forced correspondence site.
-
-3. ~~**`config.rs` — table-driven validation + module split.**~~
-   **SHIPPED as spec 020** (2026-07-26): `config/{mod,defaults,validate}.rs`
-   with public paths byte-compatible; the 170-line catch-all dissolved
-   into six section validators called in a documented spec-contract
-   sequence (FR-004 amended by owner ruling for the cross-section
-   multi-fault tiebreak — recorded in the spec's Clarifications);
-   mechanical guards are table rows carrying verbatim messages. Verified
-   by a 46-rule enumerated rejection sweep, byte-identical at every
-   checkpoint.
+**Top three: all SHIPPED** as specs 018/019/020 (2026-07-26, tagged
+v2.4, PRs #56–#58) — kitty-eval/suite dedup via `cli_support`, the
+compiler-enforced need→relief pairing in `behavior/relief.rs`, and the
+`config/{mod,defaults,validate}.rs` split. Each verified bit/byte-
+identical; the specs and git history hold the detail.
 
 **Runners-up (fold in opportunistically, don't open a sitting for them):**
 
@@ -182,86 +148,51 @@ which may stand in for the full spec-first flow at the owner's call.
   cheap fix); DPR-canvas setup duplicated across 5 sites.
 
 ### ~~Welfare pinned-streak Cuddle false-positive~~ RETIRED 2026-08-01 — premise falsified
-The claimed false positive does not exist: `Sleep { with }` and
-`Groom { target }` lawfully relieve Cuddle from a **busy** adjacent
-neighbor (adjacency alone; only `Rest { with }` conscripts and needs a
-free friend), so `zero_distance_relief_exists` counting any adjacent
-kitty is **correct as written** — narrowing it would *loosen*
-`MAX_PINNED_STREAK` (false negatives), a tighten-only regression. Full
-story and the authoritative rule table:
-[docs/cuddle-relief-semantics.md](docs/cuddle-relief-semantics.md)
-(spec 021, built on the false premise, withdrawn 2026-07-27; package
-at tag `parked/021-withdrawn`, lead-not-truth). The one live salvage —
-the **welfare ↔ `action::validate` equivalence guardrail test** — was
-pulled into the wet-fur engine batch (owner call, 2026-08-01). This
-entry retired so the stale premise can't recruit a third reader; it
-did once (2026-08-01, a batch-planning recommendation, caught before
-any code).
+Not a bug: busy adjacent neighbors ARE lawful cuddle relief, so the
+metric is correct as written and narrowing it would be a tighten-only
+regression. Authoritative rule table:
+[docs/cuddle-relief-semantics.md](docs/cuddle-relief-semantics.md).
+Tombstone kept because the stale premise recruited a reader once.
 
 ### Dynamic element populations (added 2026-07-20 — ideate with the owner first)
 Environmental elements are effectively static: `ensure_minimums`
 (`spawn.rs`) tops every type back to its configured min on the very next
 environment phase, only Article I safeguard spawns ever exceed it, and
 the configured max is nearly dead config — so worlds sit pinned at min
-counts forever. **That was never the intended behavior.** Goal: organic
-ebb and flow that a viewer can feel — populations wandering between min
-and max, expiry gaps that linger a little instead of refilling the same
-tick, maybe time-varying spawn pressure (bug flushes, chow deliveries)
-or spatial character (water spawning adjacent to water, which the 008
-pond renderer would immediately reward with real merged ponds). Hard
-constraints: never frustrating for the kitties — the Article I
-safeguard's instant relief spawn is untouchable, and min still means
+counts forever. **That was never the intended behavior.** Spec 027
+(2026-08-05) took the first bites: the guaranteed 2×2 lake (water's
+spatial character, maintained by the restock path), the interior spawn
+preference, and `ttl_jitter`/`spread_candidates`/`edge_penalty` in
+config. **Still open — the actual dynamics**: populations wandering
+between min and max, expiry gaps that linger a little instead of
+refilling the same tick, time-varying spawn pressure (bug flushes, chow
+deliveries), water spawning adjacent to water beyond the lake. Hard
+constraints unchanged: never frustrating for the kitties — the Article
+I safeguard's instant relief spawn is untouchable, and min still means
 min; fully deterministic through the seeded RNG; tunables named in
-config (Article VI). **Design not settled — this entry records intent
-only; start with an ideation conversation, as the 008 direction was.**
+config (Article VI). **Design not settled — start with an ideation
+conversation, as the 008 direction was.**
 
-### Meadow finishing touches: grass detail + world edge (deferred from 008)
-**Shipped in 008** (PR #13, merged 2026-07-20 — "Beautification II, step 2:
-the meadow itself", gate approved after two revision rounds):
+### Meadow finishing touches: grass detail + world edge (deferred from 008; Client thread)
+The meadow itself shipped in 008 (PR #13: organic ground, ponds,
+sunbeam glow, worn paths, grid demoted to `l` toggle). Three pieces
+were built or attempted, judged, and scrapped for a proper art pass:
 
-- **Organic ground** — the checkerboard retired for four close grass tones
-  plus barely-visible brightness jitter, all from a pure per-tile hash
-  (identical across reloads, any world size, zero served data).
-- **Ponds** — contiguous water merged into smooth wavy-shored blobs with an
-  inner shallows band; lily pads on larger ponds; purely visual.
-- **Sunbeams as light** — radial warm glow bleeding past tile bounds, under
-  the unchanged 005 pulse and motes.
-- **Worn paths** — session-local trail memory (`p` toggle, off by default),
-  fading on a half-life, cleared on reload/discontinuity, never served.
-- **Grid demoted** — the tile lattice is now a debug overlay (`l` toggle).
+1. **Grass detail** — two attempts at scattered flora accents both read
+   as sparse/odd noise. Next attempt should try denser micro-texture
+   (blade clusters, mottling) rather than discrete per-tile accents,
+   judged at multiple tile sizes (16×16 renders at 45px, 64×64 at 11px).
+2. **A world edge** — the grass-fringe frame never landed. Consider a
+   low hedge or picket frame in the cats' outline style instead.
+3. **Grass sway** — removed 2026-07-22: fixed-pixel geometry read as
+   stray diagonal lines at mobile tile sizes. Any return must be
+   tile-proportional.
 
-Two pieces were built, judged at the gate, and scrapped at the owner's
-call for a proper art pass later:
-
-1. **Grass detail** — scattered flora accents. Two attempts (tiny
-   accents, then bigger/denser weighted tufts/clover/flowers) both read
-   as sparse/odd noise rather than a living meadow. Next attempt should
-   explore a different vocabulary: denser micro-texture (blade clusters,
-   mottling) rather than discrete per-tile accents, judged at multiple
-   tile sizes (16×16 renders at 45px, 64×64 at 11px).
-2. **A world edge** — the grass-fringe frame (single row, then two-row
-   hem) never landed. Consider the other 2026-07-20 ideation option: a
-   low hedge or picket frame in the cats' outline style instead of
-   blades.
-3. **Grass sway** — the 005-era ambient blades were removed 2026-07-22:
-   their geometry was fixed-pixel (5.5px blades, 2.2px sway), which read
-   as subtle grass at desktop's 22px tiles but as stray diagonal lines
-   at mobile's ~10px tiles. Any return should be tile-proportional and,
-   like the rest of this entry, judged at multiple tile sizes.
-
-The 008 scaffolding stands ready: `tileHash` in `client/meadow.js` is the
-deterministic scatter source (per-tile hash of (x, y) — stable across
-reloads, density proportional to area, no new served data), palette and
-tunables homes established, harness in `client/test-meadow.mjs`. Note
-since 2026-07-22: the meadow renders under three palettes (day / golden
-hour / night, PRs #37–#39), so new grass work must be judged in all
-three, and any new color belongs in every `MEADOW_*` set.
-
-<!-- "Harden the whole proposal boundary" and "External behavior plugins
-(ScriptBehavior)" both shipped 2026-07-23 as one sitting (spec 016): strict
-parse_proposal per action shape with round-trip + rejection suites, Article
-IV amended to v1.2.0 (fallback and idle both named safe, fallback default),
-ScriptBehavior with docs/plugins.md and the livelock warning. -->
+Scaffolding stands ready: `tileHash` in `client/meadow.js`
+(deterministic per-tile scatter, no served data), tunables homes,
+harness in `client/test-meadow.mjs`. All new grass work is judged under
+all three palettes (day / golden hour / night) and at multiple tile
+sizes; any new color belongs in every `MEADOW_*` set.
 
 ### HttpBehavior — the remote plugin transport
 The second transport for external behavior plugins, deliberately deferred
@@ -327,19 +258,32 @@ wiring, not new art. Age
 must never become a health mechanic (Article II: no decline, no death; cats
 may age into *distinguished*, never into frail).
 
-### Kitty "brain" indicator in the viewer (added 2026-08-01, owner-deferred)
+### Kitty "brain" indicator in the viewer (added 2026-08-01; Client thread — no server work needed)
 Show which brain drives each kitty — scripted profile (`needs_driven`,
-`playful`) vs. a seated policy (`policy:s6`, `policy:s3`) — as a
-client toggle, now that the served world mixes them. Deferred by the
-owner 2026-08-01 (the swim animation outranks it in the current client
-queue). Design cares when picked up: the client cannot currently know
-this — the served state carries no behavior identity — so the item
-starts with a **small read-only server API addition** (per-kitty
-behavior name in the state payload), then a thin client overlay.
-Follow the existing debug-toggle conventions (`g`/`l`/`p` keys,
-keyboard-only by design, off by default); label with the config's
-behavior string verbatim so the display can never drift from the
-seating truth.
+`playful`) vs. a seated policy (`policy:s6`) — as a client toggle, now
+that the served world mixes them. Its 2026-08-01 blocker (the swim
+animation) shipped in PR #92. **Corrected 2026-08-06: the "small server
+API addition" this entry once called for already exists** — `GET
+/config` serializes the whole `Config`, `kitties[].behavior` included
+verbatim, and the client already fetches `/config` (app.js:573). So
+this is pure client work: map kitty id → behavior string from the
+response already in hand, draw a thin overlay. Follow the debug-toggle
+conventions (`g`/`l`/`p` keys, keyboard-only by design, off by
+default); display the config string verbatim so the label can never
+drift from the seating truth.
+
+### evals/v2 — small-world exams for the certification path (added 2026-08-06, from the consumed pre-exp-003 handoff)
+Post-exp-003, Product-owned. The owner tests 20×20 and 22×22 geometry
+after exp-003 and picks a new default then; every frozen `evals/v1`
+exam is ≥28×28, so a small-world default would leave certification
+blind exactly where the served world lives. Design question the sitting
+must settle before any exam is written: `evals/v1` is frozen by sha
+pins plus a CI guard, and the held-out doctrine (017 FR-007) voids
+results if an exam appeared in training — so v2 needs its own
+freeze-and-guard story and a clean answer to "what was this exam's
+provenance" before the first candidate is scored against it. Context
+that shaped this: F-014 (22×22 is sub-floor on welfare *signal*, not
+just size) and the world-tuning screens (landed, re-runnable).
 
 ## P3 — simulation depth
 
@@ -357,18 +301,10 @@ doctrine, slot width paid per kitty slot, and worth pairing with a
 training-ablation check that the traits actually earn their vector space.
 
 ### ~~Chases route around friends~~ SHIPPED in spec 024 (2026-08-01)
-Blocked chase steps now arc around the blocker (closing steps
-preferred, perpendicular arcs otherwise, never the reverse; one master-
-RNG draw at apply time — deterministic, never synchronized). The design
-detail this entry held lives in
-`specs/024-wet-fur-batch/contracts/chase-sidestep.md`, including the
-implementation correction (the first-draft candidate rule was empty in
-exactly the axis-aligned lane case). Re-baseline note (corrected
-2026-08-01: an earlier "no expectations moved" verdict here was recorded
-without measurement): a sidestep that unsticks blocked chases plausibly
-lowers abandonment rates, so any pre-024 `chase_patience_ticks` tuning
-or chase-statistic baseline must be re-measured before comparing across
-the break — Experiments' calibration probe is the natural place.
+Design detail and the axis-aligned-lane correction live in
+`specs/024-wet-fur-batch/contracts/chase-sidestep.md`. Still live:
+pre-024 chase-statistic baselines must be re-measured before comparing
+across the break (Experiments' calibration probe is the natural place).
 
 ### Equivalence guardrail: subject-state axis (added 2026-08-01)
 `welfare_validate_equivalence.rs` varies neighbors and relief elements
@@ -424,135 +360,21 @@ ears, slow flicks of irritation), worth its own unhurried design pass with
 reference study, not a quick mapping bolted onto the refresh.
 
 ### ~~Rethink how water works for learned cats~~ SHIPPED as spec 024 wet fur (2026-08-01)
-Shipped exactly as pinned: `[water] bath_gain = 1.5` /
-`bath_gain_ceiling = 50.0`, trait-scaled, drinking free, both deciders
-on one aversion ratio, the no-distress-from-swimming guarantee
-executable at config load AND re-proven at runtime
-(`specs/024-wet-fur-batch/`, `tests/water_safeguard.rs`). Final dial
-value remains a prereg'd exp-002 tuning decision. **Still live from
-this entry**: the hard traversability constraint below (water is a
-cost, never a wall — durable doctrine, now also pinned by spec 010's
-wade tests + 024's charge law), and the guaranteed-lake companion idea
-(unshipped, still open with *Dynamic element populations*). The
-derivation is retained below as the historical record.
+The charge law, the original 1.5/50 dial derivation, and the 3.5/60
+re-decision (spec 026, 2026-08-05 — which supersedes the "final value
+is a prereg'd exp-002 decision" note this entry used to carry) now
+live in [docs/wet-fur-pricing.md](docs/wet-fur-pricing.md), alongside
+the hard doctrine **water is a cost, never a wall** (owner, 2026-07-31;
+pinned by spec 010's wade tests and Article I). The guaranteed-lake
+companion shipped as spec 027; the organic water-adjacency variant
+remains with *Dynamic element populations* (P2). Trait-scaled routing
+residuals keep their own entry above.
 
-The first deployed policy exposed a seam in spec 010's water aversion:
-it is scripted-behavior *style*, not physics. The `water_step_cost`
-surcharge lives in `needs_driven`'s route scoring (ordering only, never
-options — `behavior/needs_driven.rs`), and the engine charges nothing
-for crossing or occupying a wet tile. The BC clone imitated dry-pathing
-from its demonstrations; PPO, finding zero reward behind it, shed the
-mannerism — and the live cat (s6 as Miso) wades and lounges in ponds.
-Owner ruling 2026-07-31: **accepted as a personality quirk for now**,
-and deliberately *not* in the #79 pre-recert engine batch — an
-engine-real water cost is reward-relevant, so existing artifacts
-wouldn't just need recertification, policies would need **retraining**
-to learn the aversion at all.
-
-**Leading candidate (owner-picked from ideation, 2026-07-31): "wet
-fur" — charge the crossing in bath need, not ticks.** Stepping onto a
-water tile spikes the bath need (optionally scaled by the cat's own
-per-kitty bath rise rate — the `[kitty.needs]` override Pumpkin already
-demonstrates for `eat`); movement stays 1 tile/tick, so the cat swims
-briskly and never visibly stalls. The cost is real to every decider:
-happiness = 100 − weighted needs, so RL feels it in reward directly,
-and the scripted priority ladder responds through existing machinery.
-Calibration target: integrated happiness cost of one wet tile ≈ ~4
-ticks of detour (matching `water_step_cost = 4.0`, the effort the
-scripted pathfinder already imagines). Why this shape won:
-- **No schema or codec change**: a policy already observes its own six
-  rise-rate traits (014 FR-005) and its needs — so per-cat modulation
-  is learnable from the existing vector, artifacts stay loadable, and
-  the warm-start-from-s6 lever (exp-002 design inputs §1) survives.
-- Even a *flat* spike is personality-modulated in effect (high bath
-  rise ⇒ faster return to discomfort ⇒ more integral pain per swim);
-  explicit scaling makes it legible and lets a low-bath cat be "the
-  swimmer" — designable roster personality.
-- The charm is emergent: post-swim shore grooming falls out of
-  GroomSelf being bath's relief; pair with the swim pose (below) and a
-  client-side shake-off.
-- Per-tile accumulation makes lake *width* matter — crossing vs
-  skirting gets interesting exactly where the guaranteed lakes are.
-
-**Starting dial (owner-set 2026-07-31): `water_bath_gain = 1.5`**
-bath/tick in water (per-*tick*, so one knob prices both crossing and
-lounging). Derivation: +S bath persists ~150 ticks (half a groom
-cycle) at happiness weight 0.15 → `0.15·S·150 ≈ 22.5·S`
-happiness·ticks per wet tick, vs ~25 for the 2-tick detour around a
-1-tile puddle → S≈1.0 is the single-tile indifference point; **1.5
-puts cats strictly on the skirt-the-puddle side while still swimming
-when detours are long** — slightly-averse-but-willing, the catlike
-setting, with the graceful failure mode (too strong just looks like
-today's scripted skirting; too weak preserves a quirk already deemed
-livable). Legible framing: 1.0 = **5× the
-ambient bath rise** (0.2/tick), and the per-cat multiplier scales as
-`gain × bath_rise/0.2`. Safety clamp (owner-set 2026-07-31): gain applies only while bath
-**< 50** — well under safeguard 75, leaving ~25 points of headroom so
-water contribution plus ordinary ambient accrual still can't crowd
-the safeguard line; no amount of voluntary pond-lounging can ever
-cause a safeguard/distress event — certification hygiene by
-construction. Error bars are order-of-magnitude (persistence and
-detour-pressure estimates); final value is a prereg'd exp-002 tuning
-decision, calibrated empirically by seating the water-indifferent s6
-on a wet-fur engine build and measuring welfare delta per crossing
-with the replay tool.
-
-Design cares recorded from the same conversation:
-- **Learnability needs variance**: to learn trait→cost (not memorize a
-  constant), the exp-002 training family must vary bath rise rates
-  across kitties — F-010's lesson applied prospectively.
-- **Distress hygiene**: bath feeds the certification-counted
-  distress/safeguard thresholds (90/75); size/clamp the spike so a
-  swim from a normal bath level can never single-handedly cross the
-  distress line. Spike size is a prereg'd exp-002 tuning decision,
-  never a live dial.
-- **Scripted consistency**: scale `needs_driven`'s route surcharge by
-  the cat's own bath trait too, so both deciders express one coherent
-  preference (fastidious cats visibly detour harder).
-- Article I intact — the puddle as *drinking destination* must stay
-  free (today's rule in `selection.rs`), so relief is never
-  frustrated and safeguards are untouched.
-
-Rejected shapes, for the record: literal multi-tick traversal (a
-`Swimming` activity renders nicely via client tweening but adds an
-Activity variant + observation one-hot ⇒ schema bump ⇒ orphans every
-artifact — hold for a generation already breaking the schema);
-stochastic slow-movement on water (deterministic but reads as the
-frozen-cat jank this backlog already dislikes — see "Chases route
-around friends").
-- Sequencing: the cheapest landing is alongside the next training
-  generation (exp-002), so the cost is in-distribution from tick one;
-  it changes certification numbers, so it rides that generation's
-  recert, not an interim one.
-
-**Hard design constraint (owner, 2026-07-31): water is a cost, never a
-wall.** No cat may ever be trapped — a kitty spawned with water on all
-sides must always be able to swim across. The engine already honors
-this (every water tile is passable; the surcharge only reorders route
-choice, and spec 010's tests pin "a kitty wades when water is the only
-way forward") — the constraint exists so no future cost hardens into
-impassability. Whatever shape a cost takes, traversability is
-invariant; Article I's relief guarantees assume it.
-
-**Companion idea for the same sitting — SHIPPED as spec 027
-(2026-08-05)**: the guaranteed 2×2 lake landed in the pre-exp-003
-world batch (conditional on water min ≥ 4, maintained by the restock
-path, edge-weighted anchor). The organic spatial-character variant of
-*Dynamic element populations* (P2) — water spawning adjacent to water
-— remains open as the evolutionary next step beyond the guarantee.
-
-Related: the swim pose below suddenly has a real audience (wading is no
-longer rare when a policy cat likes ponds); food types' water-near-food
-rules touch the same element.
-
-### Swim pose for wading kitties — BUILT (2026-08-02; parked 2026-07-20, from the 010 spec)
-Built on the client motion+swim branch: `poseFor` water arm plus a v2
-`swim` layout (owner call 2026-08-01: v2 only — v1 keeps normal
-standing/walking). First-cut silhouette values sit in `CatV2.SWIM`
-awaiting the lab judging round (dials + readout are in
-`gallery-v2.html`); bake on the owner's paste closes this out. Wading
-stays deliberately rare since 010 — and the wet-fur engine batch (spec
-024) may make swims slightly rarer still once its charge deploys.
+### ~~Swim pose for wading kitties~~ SHIPPED (PR #92, merged 2026-08-04)
+`poseFor` water arm + v2 `swim` layout (v1 keeps normal standing per
+the owner's call); values live in `CatV2.SWIM` on main. Whether a final
+owner value-judging pass in `gallery-v2.html` closes this fully is the
+Client thread's call — otherwise done.
 
 ### Dynamic in-game speed changes
 ⚠️ Architectural string attached: the MVP API is read-only and the spec fixes
