@@ -6,6 +6,15 @@
 # viewer: a commit that reseats a kitty or relocates a .ckpolicy is otherwise a
 # silent no-op on the served world.
 #
+# `update.sh --client-only` deploys ONLY the viewer: pull, rsync client/,
+# done. No build, no restart, no binary/config/policy swap — the server reads
+# client files from disk per request (ServeDir), so new assets are live
+# immediately. This is the only safe deploy while main carries a newer
+# observation schema than the served policy artifacts speak (the exp-003
+# window): a full deploy would build that newer binary, which then refuses to
+# boot against the deployed .ckpolicy files. Client fixes must not be able to
+# take the world down.
+#
 # The resume guard fingerprints world size, seed, and the roster's kitty ids
 # (Config::fingerprint). A config that changes any of those makes the server
 # refuse to resume the saved world rather than discard it — so it fails to
@@ -18,6 +27,18 @@
 # which meant the reviewed copy and the running copy could drift apart.
 
 set -euo pipefail
+
+CLIENT_ONLY=0
+case "${1:-}" in
+    "") ;;
+    --client-only) CLIENT_ONLY=1 ;;
+    *)
+        echo "usage: update.sh [--client-only]" >&2
+        echo "  (no args)      full deploy: pull, build, swap binary+config+policies+client" >&2
+        echo "  --client-only  pull and deploy client/ only; server untouched" >&2
+        exit 2
+        ;;
+esac
 
 # Paths come from provisioning; the defaults match its defaults so the script
 # still runs on a box provisioned before the env file existed.
@@ -100,6 +121,24 @@ wait_healthy() {
 cd "$REPO"
 git pull --ff-only
 DEPLOYED_REV="$(git rev-parse --short HEAD)"
+
+if [[ "$CLIENT_ONLY" == "1" ]]; then
+    log "client-only: deploying viewer assets from ${DEPLOYED_REV}; server untouched"
+    # No backup slot: the client is never rolled back by the full deploy
+    # either ("it is static and does not affect startup"), and every prior
+    # version is one `git checkout` away in this checkout. If the rsync dies
+    # midway the site stays up (the server keeps running); rerun to finish.
+    rsync -a --delete client/ "${APP}/client/"
+    chown -R root:root "${APP}/client"
+    if curl -fsS --max-time 3 "http://${UPSTREAM}/world" >/dev/null 2>&1; then
+        log "client ${DEPLOYED_REV} live — server still serving"
+    else
+        log "client ${DEPLOYED_REV} deployed — but the server is not answering" \
+            "(it was not touched by this run; check systemctl status cloudkitty)"
+    fi
+    exit 0
+fi
+
 log "building ${DEPLOYED_REV}"
 
 # Before touching anything: a release build plus a full copy of the world can
