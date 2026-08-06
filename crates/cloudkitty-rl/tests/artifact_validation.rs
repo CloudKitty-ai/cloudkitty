@@ -64,11 +64,14 @@ fn missing_truncated_corrupt_and_mismatched_artifacts_each_fail_by_name() {
         Err(ArtifactError::BlobSize { .. })
     ));
 
-    // Schema-mismatched: trained against a different observation schema.
+    // Schema-mismatched: an artifact one generation OLDER than the binary
+    // (relative offset, so the test names a mismatch in every generation).
+    // The message is the whole diagnosis on the day this fires (spec 026
+    // contract C3): both generation numbers and the re-train remedy.
     let mismatched = scratch_dir("mismatch").join("old-schema.ckpolicy");
     valid_artifact(&mismatched);
     let mut wrong = expectations;
-    wrong.observation_schema = 2;
+    wrong.observation_schema += 1;
     let err = PolicyArtifact::load(&mismatched, &wrong).unwrap_err();
     assert!(
         matches!(
@@ -80,11 +83,48 @@ fn missing_truncated_corrupt_and_mismatched_artifacts_each_fail_by_name() {
         ),
         "{err}"
     );
-    assert!(err.to_string().contains("observation"), "{err}");
+    let msg = err.to_string();
+    assert!(
+        msg.contains(&format!("v{}", expectations.observation_schema))
+            && msg.contains(&format!("v{}", wrong.observation_schema)),
+        "names found and expected generations: {msg}"
+    );
+    assert!(msg.contains("re-trained"), "carries the remedy: {msg}");
+
+    // The symmetric direction: an artifact one generation NEWER than the
+    // binary (a schema-2 file met by a schema-1 server) refuses just as
+    // legibly, numbers reversed.
+    let mut older_binary = expectations;
+    older_binary.observation_schema -= 1;
+    let err = PolicyArtifact::load(&mismatched, &older_binary).unwrap_err();
+    let msg = err.to_string();
+    assert!(
+        matches!(
+            err,
+            ArtifactError::SchemaMismatch {
+                schema: "observation",
+                ..
+            }
+        ) && msg.contains("re-trained"),
+        "symmetric refusal, same remedy: {msg}"
+    );
 
     // Shape-mismatched: input width for a different slot configuration.
+    // Both widths and the predates-the-generation hint must be in the text
+    // (the width gate fires independently of the schema gate).
     let mut small = RlConfig::default();
     small.observation.kitty_slots = 1;
-    let err = PolicyArtifact::load(&mismatched, &PolicyBehavior::expectations(&small)).unwrap_err();
+    let small_expect = PolicyBehavior::expectations(&small);
+    let err = PolicyArtifact::load(&mismatched, &small_expect).unwrap_err();
     assert!(matches!(err, ArtifactError::Shape(_)), "{err}");
+    let msg = err.to_string();
+    assert!(
+        msg.contains(&expectations.observation_len.to_string())
+            && msg.contains(&small_expect.observation_len.to_string()),
+        "names both widths: {msg}"
+    );
+    assert!(
+        msg.contains("generation") && msg.contains("re-trained"),
+        "hints at the generation wall and the remedy: {msg}"
+    );
 }

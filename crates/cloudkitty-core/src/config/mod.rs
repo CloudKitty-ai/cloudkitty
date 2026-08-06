@@ -96,15 +96,27 @@ pub struct Config {
 pub struct WaterConfig {
     /// Bath need added per tick spent on a water tile, before trait
     /// scaling. The legible framing: 1.0 is 5x the default ambient bath
-    /// rise (0.2/tick); the shipped 1.5 puts cats on the skirt-the-puddle
-    /// side of a one-tile detour while still swimming when detours are
-    /// long. 0 disables the mechanic.
+    /// rise (0.2/tick); the shipped 3.5 (spec 026, owner-set 2026-08-05,
+    /// raised from 1.5) makes every wet tick unmistakably pricier than
+    /// ambient drift -- exp-002's dial resolution showed 1.5 and 2.5 both
+    /// too faint for a learner to price lounging by. Cats still swim when
+    /// the detour is long enough. 0 disables the mechanic.
     #[serde(default = "default_water_bath_gain")]
     pub bath_gain: f32,
     /// Pre-charge bath value at or above which the charge stops. The gate
     /// reads the value before that tick's charge, so overshoot is bounded
     /// by one scaled charge -- headroom the validator budgets against the
-    /// safeguard threshold.
+    /// safeguard threshold. Raised 50 -> 60 with the gain (spec 026): the
+    /// ceiling caps the *accumulated* cost of staying wet, and a higher
+    /// cap gives a learner a larger, longer-lived signal against
+    /// pond-lounging. 60 is the exact roofline the frozen eval suite
+    /// permits -- heterogeneity.toml's 4x bath cat draws a 14-point
+    /// charge, and 60 + 14 stays under the safeguard where the owner's
+    /// first choice (65) did not. Note the tighter trait budget: at
+    /// 3.5/60 a cat's bath rise may reach ~4.2x the world baseline
+    /// before validation refuses the config (it was ~16x at 1.5/50) --
+    /// a config that validated under the old defaults can legitimately
+    /// fail now, and the error names the cat and the remedies.
     #[serde(default = "default_water_bath_gain_ceiling")]
     pub bath_gain_ceiling: f32,
 }
@@ -1288,8 +1300,8 @@ mod tests {
              [[kitty]]\nid = 2\nname = \"B\"\nx = 2\ny = 2\nbehavior = \"needs_driven\"\n",
         )
         .expect("pre-024 config parses");
-        assert_eq!(parsed.water.bath_gain, 1.5);
-        assert_eq!(parsed.water.bath_gain_ceiling, 50.0);
+        assert_eq!(parsed.water.bath_gain, 3.5);
+        assert_eq!(parsed.water.bath_gain_ceiling, 60.0);
         parsed.validate().expect("defaults validate");
     }
 
@@ -1323,7 +1335,7 @@ mod tests {
         // and the error names that cat -- the field the operator must
         // reconsider is on the roster, not in [water].
         let mut c = cfg();
-        c.water.bath_gain = 15.0; // fine alone: 50 + 15 < 75
+        c.water.bath_gain = 8.0; // fine alone: 60 + 8 < 75
         c.kitties[1].needs = Some(NeedRateOverrides {
             bath: Some(0.4), // ratio 2.0 against the 0.2 baseline
             ..Default::default()

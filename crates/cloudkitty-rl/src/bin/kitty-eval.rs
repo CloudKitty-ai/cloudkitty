@@ -353,7 +353,10 @@ fn resolve_subject(
                     Ok((name, true))
                 }
                 Err(e) => {
-                    eprintln!("kitty-eval: artifact validation failed: {e}");
+                    // The path rides in the message (spec 026 contract C3):
+                    // in a batch-certification log interleaving dozens of
+                    // candidates, "which file" must not depend on scrollback.
+                    eprintln!("kitty-eval: artifact validation failed for {path}: {e}");
                     Err(ExitCode::from(1))
                 }
             }

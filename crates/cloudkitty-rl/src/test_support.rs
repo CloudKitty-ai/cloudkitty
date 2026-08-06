@@ -9,7 +9,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 
 use crate::codec::ActionCodec;
 use crate::config::RlConfig;
-use crate::observe::observation_len;
+use crate::observe::{observation_len, OBSERVATION_SCHEMA_VERSION};
 use crate::policy::{write_artifact, ArtifactHeader, ARTIFACT_VERSION};
 
 /// Writes a valid fixture policy artifact shaped for the default schemas
@@ -35,7 +35,7 @@ pub fn write_fixture_artifact_with_output(
     let menu = ActionCodec::v1(&rl.observation).len();
     let header = ArtifactHeader {
         artifact_version: ARTIFACT_VERSION,
-        observation_schema: 1,
+        observation_schema: OBSERVATION_SCHEMA_VERSION,
         action_schema: 1,
         mask_schema: 1,
         layers: vec![[input, hidden], [hidden, menu]],

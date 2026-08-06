@@ -2,7 +2,18 @@
 
 The durable home for every `.ckpolicy` the served world references
 (owner decision, 2026-07-31): committed so a fresh clone serves the
-roster as-is, named here so certification stays auditable. The name
+roster as-is, named here so certification stays auditable.
+
+> **Generation gap (spec 026, 2026-08-05).** Both artifacts below are
+> observation-generation **1** (schema 1, 182-wide inputs). The engine
+> on `main` now speaks generation **2** (the in-water flag, 183) and
+> refuses them at boot — so `cloudkitty.toml` seats no policy right
+> now, and the `[rl.policy.*]` blocks stand unreferenced, for
+> provenance. This is temporary and deliberate: the **served box**
+> still runs the generation-1 binary with both policies seated, and
+> stays there until one hand rollout after exp-003, whose certified
+> schema-2 winners take these seats back. Until then a fresh clone
+> serves a fully scripted roster. The name
 matches the `policies/` examples in `docs/rl-training.md`; the root
 `artifacts/` name was rejected because it collides with the gitignored
 `experiments/**/artifacts/` vocabulary.
