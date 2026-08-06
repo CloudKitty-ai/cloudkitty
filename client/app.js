@@ -559,7 +559,15 @@ function buildKittyCard(kitty) {
   // in hand. (The old 22px portrait clipped too; it was just too small to
   // see what was missing.)
   const PORTRAIT_CHIP = 38;
-  const inset = (PORTRAIT_CHIP - PORTRAIT_CAT) / 2;
+  // Not the chip's geometric centre. The ink is not centred in the cat's
+  // own box -- at this size it runs 2.5px further left than right, because
+  // the tail reaches past the left edge while the right side stops short --
+  // so drawing at (chip - cat) / 2 leaves the cat visibly shoved left
+  // (owner spotted it). These equalise the measured ink margins instead:
+  // 2.25px each side, 5.5px top and bottom. Vertical was already within
+  // half a pixel, so the correction that shows is the horizontal one.
+  const PORTRAIT_X = 3.75;
+  const PORTRAIT_Y = 2.75;
   const dpr = window.devicePixelRatio || 1;
   portrait.width = PORTRAIT_CHIP * dpr;
   portrait.height = PORTRAIT_CHIP * dpr;
@@ -572,8 +580,8 @@ function buildKittyCard(kitty) {
     appearance: appearanceFor(kitty.id),
     facing: 'right', // toward its own name
     size: PORTRAIT_CAT,
-    x: inset,
-    y: inset,
+    x: PORTRAIT_X,
+    y: PORTRAIT_Y,
     phase: 0,
   });
   name.appendChild(portrait);
