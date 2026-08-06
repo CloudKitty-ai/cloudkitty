@@ -470,9 +470,14 @@ function renderPanel(world) {
     for (const [need, value] of Object.entries(kitty.needs)) {
       const bar = card.querySelector(`[data-need="${need}"] > span`);
       if (!bar) continue;
-      bar.style.width = `${clampPercent(value)}%`;
-      // Needs are pressure: a full bar is a cat that wants something.
-      bar.style.backgroundColor = needColor(value);
+      // The engine sends pressure -- how much the cat wants this. The card
+      // shows the other side of it, how well the need is MET, so that every
+      // bar on the card fills the same way. Two bars 8px apart reading in
+      // opposite directions is a legibility bug, not a style: a delighted
+      // cat used to be a full green happiness bar above six empty ones.
+      const satisfaction = 100 - clampPercent(value);
+      bar.style.width = `${satisfaction}%`;
+      bar.style.backgroundColor = needColor(satisfaction);
     }
   });
 
@@ -565,11 +570,9 @@ function buildKittyCard(kitty) {
   patience.className = 'patience';
   card.appendChild(patience);
 
-  const needsLabel = document.createElement('div');
-  needsLabel.className = 'section-label';
-  needsLabel.textContent = 'needs';
-  card.appendChild(needsLabel);
-
+  // No heading over the need bars. It cost 17px on every card to caption
+  // six rows that already carry their own labels -- and once the bars fill
+  // as the need is MET, a heading reading "needs" pointed the wrong way.
   const needs = document.createElement('div');
   needs.className = 'needs';
   for (const [need, label] of Object.entries(NEED_LABELS)) {
@@ -691,9 +694,21 @@ function clampPercent(value) {
   return Math.max(0, Math.min(100, value));
 }
 
-function needColor(value) {
-  if (value >= 75) return '#efa98b';
-  if (value >= 45) return '#f3cf7a';
+/**
+ * The colour of a need bar, keyed on how SATISFIED the need is, so every
+ * bar on the card fills the same way: more is better.
+ *
+ * The thresholds are the old pressure ones read from the other end (75 and
+ * 45 of pressure are 25 and 55 of satisfaction), so nothing changes about
+ * when a need starts looking worrying -- only which end of the bar says so.
+ *
+ * The satisfied green is deliberately paler than `happinessColor`'s. Six
+ * full bars in the headline green would out-shout the happiness bar right
+ * above them, and happiness is the summary the eye should land on first.
+ */
+function needColor(satisfaction) {
+  if (satisfaction <= 25) return '#efa98b';
+  if (satisfaction <= 55) return '#f3cf7a';
   return '#bcd9c0';
 }
 
