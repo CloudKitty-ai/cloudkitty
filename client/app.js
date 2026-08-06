@@ -434,22 +434,20 @@ function render(world) {
 function renderPanel(world) {
   // Rebuild only when the roster changes; otherwise update in place so the CSS
   // transitions can do their thing.
-  // Two columns, filled by halves rather than alternating: on a wide
-  // screen they sit either side of the meadow, and filling them
-  // first-half/second-half keeps DOM order equal to roster order, which
-  // is what the positional update below relies on. (Alternating would
-  // read out as 0,2,1,3.) Below the breakpoint the columns dissolve to
-  // `display: contents` and the cards are one wrapping row again.
+  // Everything is built into the right-hand column, which is where the cards
+  // prefer to live; `placeCards` at the end splits them back across both
+  // sides if that stack won't fit. Cards are only ever appended in roster
+  // order, and the left column comes first in the DOM, so document order
+  // equals roster order under either placement -- which is what the
+  // positional update below relies on.
   const columns = panelEl.querySelectorAll('.panel-col');
   const cards = () => panelEl.querySelectorAll('.kitty-card');
   const needsRebuild = cards().length !== world.kitties.length;
   if (needsRebuild) {
     for (const column of columns) column.innerHTML = '';
-    const half = Math.ceil(world.kitties.length / columns.length);
-    world.kitties.forEach((kitty, index) => {
-      const column = columns[Math.min(columns.length - 1, Math.floor(index / half))];
-      column.appendChild(buildKittyCard(kitty));
-    });
+    for (const kitty of world.kitties) {
+      columns[columns.length - 1].appendChild(buildKittyCard(kitty));
+    }
   }
 
   const built = cards();
@@ -477,6 +475,57 @@ function renderPanel(world) {
       bar.style.backgroundColor = needColor(value);
     }
   });
+
+  // After the text lands, not before: the fit test measures real cards, and
+  // an un-filled card is the wrong height.
+  placeCards();
+  // The map is sized by the renderer on its own frame, so on the very first
+  // push -- and on any roster change -- this runs before the canvas has its
+  // real height and decides against a map that is still growing. A later
+  // tick would put it right, but a frozen world has no later tick, so take
+  // the reading again once the frame the renderer drew is on screen.
+  if (needsRebuild) requestAnimationFrame(placeCards);
+}
+
+/**
+ * Which side of the meadow the cards sit on. One stack on the right is the
+ * preference; if that stack is taller than the map, split it as evenly as
+ * possible across both sides instead.
+ *
+ * The test compares against the map's CURRENT height, and that is what keeps
+ * it from oscillating. Moving every card to the right empties the left
+ * column, so the map's width budget grows and its height can only rise or
+ * stay put -- never fall. Measuring what is on screen is therefore
+ * conservative in the direction that matters: a stack that fits beside
+ * today's map still fits beside the taller map it turns into. Splitting runs
+ * the same argument backwards. So neither decision can undo itself, and the
+ * layout settles in one step rather than flapping between the two.
+ */
+function placeCards() {
+  const columns = panelEl.querySelectorAll('.panel-col');
+  const cards = [...panelEl.querySelectorAll('.kitty-card')];
+  if (columns.length < 2 || !cards.length) return;
+  // Below the breakpoint `.panel-col` dissolves to `display: contents` and
+  // the cards are one wrapping row beneath the map -- there are no sides to
+  // choose. Ask the computed style rather than restating the media query's
+  // width here, so the breakpoint keeps living in exactly one place.
+  if (getComputedStyle(columns[0]).display === 'contents') return;
+
+  const gap = parseFloat(getComputedStyle(columns[0]).rowGap) || 0;
+  const stack =
+    cards.reduce((sum, card) => sum + card.getBoundingClientRect().height, 0) +
+    gap * (cards.length - 1);
+  // An odd roster splits with the spare card on the right, the side the
+  // cards prefer anyway -- both halves are the same height either way, so
+  // the tie goes to keeping the rule's story straight.
+  const onLeft =
+    stack <= canvas.getBoundingClientRect().height ? 0 : Math.floor(cards.length / 2);
+
+  // Appending a card that is already in place would restart its transitions,
+  // so only touch the DOM when the split actually changes. The count is
+  // enough to tell: the order within a placement is always roster order.
+  if (columns[0].children.length === onLeft) return;
+  cards.forEach((card, index) => columns[index < onLeft ? 0 : 1].appendChild(card));
 }
 
 function buildKittyCard(kitty) {
@@ -720,6 +769,12 @@ async function start() {
     setTimeout(start, RECONNECT_DELAY_MS);
   }
 }
+
+// A world push already re-runs the fit, but a tick is up to 800ms away and a
+// window drag should not lag that far behind. The reading here can be one
+// frame stale -- the renderer resizes the canvas on its own rAF -- and that
+// is fine: the next tick re-measures and settles it.
+window.addEventListener('resize', placeCards);
 
 // The debug toggles, all in one mold (spec 008 FR-004/FR-009): `g` reveals
 // greebles, `l` the demoted grid lines, `p` the session's worn paths. Each
