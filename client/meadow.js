@@ -352,6 +352,7 @@ const MEADOW_DEFAULTS = Object.freeze({
   bushShadowAlpha: 1, // no thinning: contact, not a smear
   bushLift: 0.9, // how far a shrub's canopy stands above its base, in radii
   bushBase: 0.72, // where it meets the ground, in tiles from the tile's top
+  bushShadowThrow: 0.6, // how far the canopy's height pushes its shadow along the lean
   shoreRounding: 0.45, // pond corner rounding, in tiles
   shoreWobble: 0.07, // organic shoreline waviness, in tiles
   lilyPadMinTiles: 4, // ponds at least this big carry a lily pad
@@ -661,14 +662,24 @@ function drawBushAt(ctx, { x, y, seed, tile, t }) {
         // an art choice, and must not be the thing that sets the alpha.
         ctx.globalAlpha = t.bushShadowAlpha / Math.max(1, sunLength * 0.8);
         ctx.fillStyle = MEADOW.groundShadow;
+        // Two terms, and the second is what makes the shadow belong to a
+        // canopy that stands UP rather than to a flat patch:
+        //
+        //   anchor  keeps the sun-side edge on the caster, as the cats' does
+        //   throw   displaces it by the canopy's HEIGHT along the lean --
+        //           a tall thing's shadow falls further from its base than
+        //           a short one's under the same sun, which is the whole
+        //           reason a lifted canopy needs its shadow moved at all
+        const canopyLift = r * t.bushLift;
+        const offset = lean * (r * length - r) + lean * canopyLift * t.bushShadowThrow;
         ctx.beginPath();
-        ctx.ellipse(bx + lean * (r * length - r), by + r * 0.52, r * length, r * 0.3, 0, 0, TAU);
+        ctx.ellipse(bx + offset, by + r * 0.52, r * length, r * 0.3, 0, 0, TAU);
         ctx.fill();
         // The canopy stands ABOVE the base rather than sitting on it, so
         // the shrub occupies the tile above its own -- which is the only
         // way a cat can be behind one. Its shadow stays at the base: that
         // is where it meets the ground, and where the depth sort keys it.
-        const lift = r * t.bushLift;
+        const lift = canopyLift;
         ctx.globalAlpha = t.bushAlpha;
         ctx.fillStyle = MEADOW.bush;
         for (let i = 0; i < 4; i++) {
