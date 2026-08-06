@@ -128,7 +128,10 @@ const VIEW = Object.freeze({
     bushShadowAlpha: 1, // no thinning: contact, not a smear
     bushLift: 0.9, // how far a shrub's canopy stands above its base, in radii
     bushBase: 0.72, // where it meets the ground, in tiles from the tile's top
-    bushShadowThrow: 0.6, // how far the canopy's height pushes its shadow along the lean
+    // How far the canopy's height pushes its shadow along the lean. Kept
+    // small: a rooted thing's shadow leaves its base, and pushing it far
+    // is precisely what makes a bush look airborne.
+    bushShadowThrow: 0.25,
     shoreRounding: 0.45, // pond corner rounding, in tiles
     shoreWobble: 0.07, // organic shoreline waviness, in tiles
     lilyPadMinTiles: 4, // ponds at least this big carry a lily pad

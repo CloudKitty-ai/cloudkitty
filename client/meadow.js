@@ -352,7 +352,10 @@ const MEADOW_DEFAULTS = Object.freeze({
   bushShadowAlpha: 1, // no thinning: contact, not a smear
   bushLift: 0.9, // how far a shrub's canopy stands above its base, in radii
   bushBase: 0.72, // where it meets the ground, in tiles from the tile's top
-  bushShadowThrow: 0.6, // how far the canopy's height pushes its shadow along the lean
+  // How far the canopy's height pushes its shadow along the lean. Kept
+  // small: a rooted thing's shadow leaves its base, and pushing it far
+  // is precisely what makes a bush look airborne.
+  bushShadowThrow: 0.25,
   shoreRounding: 0.45, // pond corner rounding, in tiles
   shoreWobble: 0.07, // organic shoreline waviness, in tiles
   lilyPadMinTiles: 4, // ponds at least this big carry a lily pad
@@ -682,6 +685,14 @@ function drawBushAt(ctx, { x, y, seed, tile, t }) {
         const lift = canopyLift;
         ctx.globalAlpha = t.bushAlpha;
         ctx.fillStyle = MEADOW.bush;
+        // A skirt at the base FIRST, so the silhouette is continuous from
+        // the ground up. Without it a lifted canopy hangs over its own
+        // shadow with clear air between, which reads as hovering -- the
+        // butterfly's trick, and deliberate there, but wrong for
+        // something rooted (owner, 2026-08-05).
+        ctx.beginPath();
+        ctx.ellipse(bx, by + r * 0.08, r * 0.58, r * 0.44, 0, 0, TAU);
+        ctx.fill();
         for (let i = 0; i < 4; i++) {
           const a = (i / 4) * TAU + s * 5;
           ctx.beginPath();
