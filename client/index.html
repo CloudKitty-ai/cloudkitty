@@ -62,6 +62,11 @@
     --happy: #8fce8f;
     --okay: #f3cf7a;
     --meh: #efa98b;
+    /* One card column. Single-sourced because the empty side of the layout
+       reserves exactly this much to keep the map centred -- if the two ever
+       drifted apart the map would sit slightly off-centre with no rule
+       obviously wrong. */
+    --card-width: 226px;
   }
 
   /* The theme tokens above, registered so they animate. A plain transition
@@ -288,6 +293,15 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
+      /* Both sides reserve a card column whether or not they hold cards, so
+         the map stays centred on the page when every card is on the right.
+         Without it the grid centres itself around the cards it happens to
+         have, which puts the map half a card column (113px) to the left.
+         This costs no map size: the tile is height-bound on every display
+         we fit, so the width the empty side takes was never in use -- and
+         it makes the map's width budget the same under either placement,
+         which is why `placeCards` cannot chase its own decision. */
+      min-width: var(--card-width);
     }
     /* All three share row 1 explicitly. Auto-placement is "sparse": it
        never moves the cursor backwards, so with the stage first in the
@@ -310,7 +324,7 @@
        row exactly, and shrinkable flex items would quietly compress by a
        few pixels whenever a scrollbar appears. */
     box-sizing: border-box;
-    width: 226px;
+    width: var(--card-width);
     flex: 0 0 auto;
   }
 

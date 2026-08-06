@@ -486,14 +486,12 @@ function renderPanel(world) {
  * preference; if that stack is taller than the map, split it as evenly as
  * possible across both sides instead.
  *
- * The test compares against the map's CURRENT height, and that is what keeps
- * it from oscillating. Moving every card to the right empties the left
- * column, so the map's width budget grows and its height can only rise or
- * stay put -- never fall. Measuring what is on screen is therefore
- * conservative in the direction that matters: a stack that fits beside
- * today's map still fits beside the taller map it turns into. Splitting runs
- * the same argument backwards. So neither decision can undo itself, and the
- * layout settles in one step rather than flapping between the two.
+ * The test compares against the map's current height, and cannot chase its
+ * own decision: both sides reserve a card column whether or not they hold
+ * cards (index.html), so the map's width budget is the same under either
+ * placement and moving cards cannot resize the map at all. The reading is
+ * therefore stable by construction rather than merely monotone -- which is
+ * what the reserve bought beyond centring the map.
  */
 function placeCards() {
   const columns = panelEl.querySelectorAll('.panel-col');
