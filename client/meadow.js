@@ -644,6 +644,10 @@ function coverSortKey(bush, t) {
 
 /** One clump, at tile coordinates. Split out of the scatter so the
  *  renderer can interleave these with the cats by depth. */
+/** Styles whose silhouette leaves the ground, and so cast a shadow. The
+ *  flat ones lie on it and would only look like they stand. */
+const STANDING_COVER = new Set(['shrub', 'grown', 'trunk', 'tall']);
+
 function drawBushAt(ctx, { x, y, seed, tile, t }) {
   const style = t.bushStyle || 'cover';
   {
@@ -653,8 +657,10 @@ function drawBushAt(ctx, { x, y, seed, tile, t }) {
       const by = (y + 0.5) * tile;
       const r = (0.26 + s * 0.18) * tile;
 
-      if (style === 'shrub') {
-        // Standing growth, with the leaning shadow that says so.
+      // Anything that stands up off the ground casts; the flat styles
+      // have nothing to cast onto and would only look like they stand.
+      if (STANDING_COVER.has(style)) {
+        // The leaning shadow that says a thing stands up.
         //
         // Damped against the cats' (owner, 2026-08-05: "too dramatic").
         // A shrub is squat and its canopy sits close to the ground, so it
@@ -697,6 +703,10 @@ function drawBushAt(ctx, { x, y, seed, tile, t }) {
         ctx.beginPath();
         ctx.ellipse(bx + offset, by + r * 0.52, r * length, r * 0.3, 0, 0, TAU);
         ctx.fill();
+      }
+
+      if (style === 'shrub') {
+        const canopyLift = r * t.bushLift;
         // The canopy stands ABOVE the base rather than sitting on it, so
         // the shrub occupies the tile above its own -- which is the only
         // way a cat can be behind one. Its shadow stays at the base: that
@@ -722,6 +732,74 @@ function drawBushAt(ctx, { x, y, seed, tile, t }) {
         ctx.fillStyle = MEADOW.bushHi;
         ctx.beginPath();
         ctx.arc(bx - r * 0.22, by - lift - r * 0.3, r * 0.3, 0, TAU);
+        ctx.fill();
+      } else if (style === 'grown') {
+        // PROPOSAL 1 -- grow, do not lift. Lobes are distributed from the
+        // base upward over a height set by bushLift, tapering as they go,
+        // so the silhouette fills its whole height by construction. No
+        // gap is possible at any lift: the lowest lobe always sits on the
+        // ground. `bushLift` stops meaning "how high off the ground" and
+        // starts meaning "how tall".
+        const height = r * (0.5 + t.bushLift);
+        ctx.globalAlpha = t.bushAlpha;
+        ctx.fillStyle = MEADOW.bush;
+        const lobes = 5;
+        for (let i = 0; i < lobes; i++) {
+          const up = (i / (lobes - 1)) * height;
+          const taper = 1 - 0.34 * (i / (lobes - 1));
+          const sway = Math.cos(i * 2.3 + s * 7) * r * 0.3;
+          ctx.beginPath();
+          ctx.ellipse(bx + sway, by - up, r * 0.58 * taper, r * 0.46 * taper, 0, 0, TAU);
+          ctx.fill();
+        }
+        ctx.globalAlpha = t.bushAlpha * 0.5;
+        ctx.fillStyle = MEADOW.bushHi;
+        ctx.beginPath();
+        ctx.ellipse(bx - r * 0.18, by - height * 0.85, r * 0.24, r * 0.18, 0, 0, TAU);
+        ctx.fill();
+      } else if (style === 'trunk') {
+        // PROPOSAL 2 -- own the gap. A stem connects the raised canopy to
+        // the ground, so the height reads as structure rather than as
+        // levitation. Reads as a standard or a young tree, not a bush.
+        const canopy = r * t.bushLift + r * 0.3;
+        ctx.globalAlpha = t.bushAlpha;
+        ctx.fillStyle = MEADOW.bush;
+        ctx.beginPath();
+        ctx.rect(bx - r * 0.1, by - canopy, r * 0.2, canopy + r * 0.12);
+        ctx.fill();
+        for (let i = 0; i < 4; i++) {
+          const a = (i / 4) * TAU + s * 5;
+          ctx.beginPath();
+          ctx.arc(bx + Math.cos(a) * r * 0.38, by - canopy + Math.sin(a) * r * 0.3, r * 0.55, 0, TAU);
+          ctx.fill();
+        }
+        ctx.globalAlpha = t.bushAlpha * 0.5;
+        ctx.fillStyle = MEADOW.bushHi;
+        ctx.beginPath();
+        ctx.arc(bx - r * 0.2, by - canopy - r * 0.28, r * 0.26, 0, TAU);
+        ctx.fill();
+      } else if (style === 'tall') {
+        // PROPOSAL 3 -- one silhouette, stretched. A single rounded body
+        // rising from the ground with lobed bumps on its crown, rather
+        // than a cluster of circles. Height is the shape's own
+        // proportion, so it scales to any lift without ever separating.
+        const height = r * (0.8 + t.bushLift * 1.1);
+        ctx.globalAlpha = t.bushAlpha;
+        ctx.fillStyle = MEADOW.bush;
+        ctx.beginPath();
+        ctx.ellipse(bx, by - height * 0.42, r * 0.6, height * 0.55, 0, 0, TAU);
+        ctx.fill();
+        for (let i = 0; i < 3; i++) {
+          const off = (i - 1) * r * 0.36;
+          ctx.beginPath();
+          ctx.ellipse(bx + off, by - height * (0.72 + 0.1 * Math.cos(i + s * 5)),
+            r * 0.3, r * 0.26, 0, 0, TAU);
+          ctx.fill();
+        }
+        ctx.globalAlpha = t.bushAlpha * 0.5;
+        ctx.fillStyle = MEADOW.bushHi;
+        ctx.beginPath();
+        ctx.ellipse(bx - r * 0.2, by - height * 0.7, r * 0.22, r * 0.3, 0.3, 0, TAU);
         ctx.fill();
       } else if (style === 'tuft') {
         // A fan of blades from one root: long grass rather than a bush.

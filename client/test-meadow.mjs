@@ -576,7 +576,7 @@ check('drawBushAt sweeps clean in every style, at every size', () => {
   }
 });
 
-check('only the shrub style casts a shadow', () => {
+check('standing styles cast a shadow, flat ones do not', () => {
   const shadowsIn = (bushStyle) => {
     const log = [];
     api.drawBushAt(guardCtx(log), {
@@ -585,7 +585,9 @@ check('only the shrub style casts a shadow', () => {
     return log.filter(([c, p, v]) => c === 'set' && p === 'fillStyle'
       && String(v) === String(api.MEADOW.groundShadow)).length;
   };
-  assert(shadowsIn('shrub') === 1, 'a shrub stands up, so it casts');
+  for (const standing of ['shrub', 'grown', 'trunk', 'tall']) {
+    assert(shadowsIn(standing) === 1, `${standing} stands up, so it casts`);
+  }
   for (const flat of ['cover', 'tuft', 'bramble']) {
     assert(shadowsIn(flat) === 0, `${flat} lies on the ground and casts nothing`);
   }
