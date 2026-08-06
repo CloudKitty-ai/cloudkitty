@@ -108,6 +108,7 @@ if (( BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 4) ))
 fi
 
 if [[ -r /etc/os-release ]]; then
+    # shellcheck source=/dev/null
     . /etc/os-release
     [[ "${ID:-}" == "ubuntu" ]] || warn "built for Ubuntu; found ID=${ID:-unknown}"
     [[ "${VERSION_ID:-}" == "24.04" ]] || warn "built for Ubuntu 24.04; found ${VERSION_ID:-unknown}"
@@ -862,7 +863,7 @@ cat <<EOF
 
       app        ${CK_APP_DIR}          (${CK_USER}, nologin)
       source     ${CK_BUILD_DIR}        (root builds; deploy key pulls)
-      update     /root/update.sh
+      update     /root/update.sh   (--client-only deploys the viewer alone)
       service    /etc/systemd/system/cloudkitty.service
       proxy      /etc/caddy/Caddyfile -> ${CK_BIND}
       firewall   ${SSH_PORTS//$'\n'/, } (ssh), 80, 443

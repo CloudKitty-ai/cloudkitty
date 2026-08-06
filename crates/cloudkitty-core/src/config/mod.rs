@@ -96,15 +96,27 @@ pub struct Config {
 pub struct WaterConfig {
     /// Bath need added per tick spent on a water tile, before trait
     /// scaling. The legible framing: 1.0 is 5x the default ambient bath
-    /// rise (0.2/tick); the shipped 1.5 puts cats on the skirt-the-puddle
-    /// side of a one-tile detour while still swimming when detours are
-    /// long. 0 disables the mechanic.
+    /// rise (0.2/tick); the shipped 3.5 (spec 026, owner-set 2026-08-05,
+    /// raised from 1.5) makes every wet tick unmistakably pricier than
+    /// ambient drift -- exp-002's dial resolution showed 1.5 and 2.5 both
+    /// too faint for a learner to price lounging by. Cats still swim when
+    /// the detour is long enough. 0 disables the mechanic.
     #[serde(default = "default_water_bath_gain")]
     pub bath_gain: f32,
     /// Pre-charge bath value at or above which the charge stops. The gate
     /// reads the value before that tick's charge, so overshoot is bounded
     /// by one scaled charge -- headroom the validator budgets against the
-    /// safeguard threshold.
+    /// safeguard threshold. Raised 50 -> 60 with the gain (spec 026): the
+    /// ceiling caps the *accumulated* cost of staying wet, and a higher
+    /// cap gives a learner a larger, longer-lived signal against
+    /// pond-lounging. 60 is the exact roofline the frozen eval suite
+    /// permits -- heterogeneity.toml's 4x bath cat draws a 14-point
+    /// charge, and 60 + 14 stays under the safeguard where the owner's
+    /// first choice (65) did not. Note the tighter trait budget: at
+    /// 3.5/60 a cat's bath rise may reach ~4.2x the world baseline
+    /// before validation refuses the config (it was ~16x at 1.5/50) --
+    /// a config that validated under the old defaults can legitimately
+    /// fail now, and the error names the cat and the remedies.
     #[serde(default = "default_water_bath_gain_ceiling")]
     pub bath_gain_ceiling: f32,
 }
@@ -333,6 +345,11 @@ pub struct ElementRule {
     pub min: u32,
     pub max: u32,
     /// Lifetime in ticks; `None` (absent) means permanent.
+    ///
+    /// Note on `max` below: it is read only by config validation. The
+    /// simulation tops each type up to `min` and no further, so the
+    /// standing population IS the minimums -- `min` is the real knob,
+    /// and lowering `max` alone changes nothing at runtime.
     #[serde(default)]
     pub ttl: Option<u64>,
     /// Chow only: servings per element.
@@ -347,6 +364,23 @@ pub struct ElementsConfig {
     pub bug: ElementRule,
     pub greeble: ElementRule,
     pub sunbeam: ElementRule,
+    /// Best-of-N width for every spawn placement draw: how many candidate
+    /// tiles a spawn considers before choosing (spec 027; was a code
+    /// constant). Higher spreads harder; 1 is a plain uniform pick.
+    #[serde(default = "default_spread_candidates")]
+    pub spread_candidates: usize,
+    /// Every timed spawn draws its lifetime as base ± this many ticks, so
+    /// a cohort born together never expires together (owner call
+    /// 2026-07-23; spec 027 moved the number here). Floored so a short
+    /// base can never spawn an already-expired element.
+    #[serde(default = "default_ttl_jitter")]
+    pub ttl_jitter: u64,
+    /// Interior preference (spec 027): subtracted from a perimeter
+    /// candidate's spread score, in tiles. A preference, never a
+    /// prohibition -- a spawn still lands on the edge when the edge is
+    /// all that's free. 0 disables it exactly.
+    #[serde(default = "default_edge_penalty")]
+    pub edge_penalty: f32,
 }
 
 impl Default for ElementsConfig {
@@ -388,6 +422,9 @@ impl Default for ElementsConfig {
                 ttl: Some(300),
                 servings: None,
             },
+            spread_candidates: default_spread_candidates(),
+            ttl_jitter: default_ttl_jitter(),
+            edge_penalty: default_edge_penalty(),
         }
     }
 }
@@ -1288,8 +1325,8 @@ mod tests {
              [[kitty]]\nid = 2\nname = \"B\"\nx = 2\ny = 2\nbehavior = \"needs_driven\"\n",
         )
         .expect("pre-024 config parses");
-        assert_eq!(parsed.water.bath_gain, 1.5);
-        assert_eq!(parsed.water.bath_gain_ceiling, 50.0);
+        assert_eq!(parsed.water.bath_gain, 3.5);
+        assert_eq!(parsed.water.bath_gain_ceiling, 60.0);
         parsed.validate().expect("defaults validate");
     }
 
@@ -1323,7 +1360,7 @@ mod tests {
         // and the error names that cat -- the field the operator must
         // reconsider is on the roster, not in [water].
         let mut c = cfg();
-        c.water.bath_gain = 15.0; // fine alone: 50 + 15 < 75
+        c.water.bath_gain = 8.0; // fine alone: 60 + 8 < 75
         c.kitties[1].needs = Some(NeedRateOverrides {
             bath: Some(0.4), // ratio 2.0 against the 0.2 baseline
             ..Default::default()
@@ -1509,6 +1546,38 @@ mod tests {
                 assert!(
                     c.validate().is_err(),
                     "{poison} must be rejected wherever it lands"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn the_remaining_relief_dials_reject_negative_and_non_finite_values() {
+        // The finiteness sweep (2026-08-06, spec 025 review finding 7):
+        // the six non-play relief dials joined the play keys' table.
+        // Before this, `cuddle_relief = nan` validated cleanly and the
+        // first duet rest tick poisoned the need and every downstream
+        // happiness metric for the rest of the run.
+        for poison in [f32::NAN, f32::INFINITY, -1.0] {
+            for (name, setter) in [
+                (
+                    "eat_relief",
+                    (|c: &mut Config, v: f32| c.actions.eat_relief = v) as fn(&mut Config, f32),
+                ),
+                ("drink_relief", |c, v| c.actions.drink_relief = v),
+                ("sleep_relief", |c, v| c.actions.sleep_relief = v),
+                ("sleep_relief_sunbeam", |c, v| {
+                    c.actions.sleep_relief_sunbeam = v
+                }),
+                ("groom_relief", |c, v| c.actions.groom_relief = v),
+                ("cuddle_relief", |c, v| c.actions.cuddle_relief = v),
+            ] {
+                let mut c = cfg();
+                setter(&mut c, poison);
+                let err = c.validate().expect_err("poison must be rejected");
+                assert!(
+                    err.to_string().contains(name),
+                    "{poison} in {name} must be rejected by name, got: {err}"
                 );
             }
         }

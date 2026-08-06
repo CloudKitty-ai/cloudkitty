@@ -61,9 +61,9 @@ fn dial_table() -> Vec<Config> {
     // The shipped defaults.
     table.push(Config::default());
 
-    // Near the validation limit: 50 + 24 = 74 < 75.
+    // Near the validation limit: 60 + 14 = 74 < 75.
     let mut hot = Config::default();
-    hot.water.bath_gain = 24.0;
+    hot.water.bath_gain = 14.0;
     table.push(hot);
 
     // A tiny ceiling: charges stop almost immediately.
@@ -72,9 +72,9 @@ fn dial_table() -> Vec<Config> {
     table.push(low);
 
     // A doubled bath trait riding a gain sized so the scaled charge still
-    // clears validation: 50 + 12x2 = 74 < 75.
+    // clears validation: 60 + 7x2 = 74 < 75.
     let mut fussy = Config::default();
-    fussy.water.bath_gain = 12.0;
+    fussy.water.bath_gain = 7.0;
     fussy.kitties[0].needs = Some(NeedRateOverrides {
         bath: Some(fussy.needs.bath * 2.0),
         ..Default::default()

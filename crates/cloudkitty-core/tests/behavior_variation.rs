@@ -95,6 +95,7 @@ fn test_config() -> Config {
                 ttl: Some(150),
                 servings: None,
             },
+            ..ElementsConfig::default()
         },
         ..Config::default()
     }

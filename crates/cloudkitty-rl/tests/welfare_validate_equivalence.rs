@@ -39,6 +39,22 @@ enum Neighbor {
     Absent,
 }
 
+/// The subject-state axis (backlog, added 2026-08-01; built 2026-08-06):
+/// the original matrix always left the subject idle, so "does either
+/// layer care that the subject itself is mid-activity?" was untested.
+/// Both layers ignore it by design -- `validate` gates on the world and
+/// the *target*, never the proposer's own activity (a proposal mid-scene
+/// is a scene switch, handled at apply time), and the metric asks only
+/// whether relief *exists*. This axis pins that agreement; if either
+/// layer ever starts consulting subject state, the divergence is a
+/// doctrine question (available-now vs available-once-free) to settle in
+/// spec text before changing the other layer to match.
+#[derive(Debug, Clone, Copy)]
+enum Subject {
+    Idle,
+    MidActivity,
+}
+
 /// The relief-element axis. `None` is the bare-tile case; consumed chow
 /// (zero servings) is the cell that caught the pre-024 eat divergence.
 /// Water/sunbeam have no "consumed" state — the impossible cells are
@@ -51,13 +67,19 @@ enum ReliefElement {
     Water,
 }
 
-fn build(neighbor: Neighbor, relief: ReliefElement) -> (World, Arc<Config>) {
+fn build(subject: Subject, neighbor: Neighbor, relief: ReliefElement) -> (World, Arc<Config>) {
     let config = Arc::new(Config::default());
     let mut world = World::generate(&config);
     world.elements.clear();
 
     let s = world.kitty_index(SUBJECT).unwrap();
     world.kitties[s].pos = Position::new(10, 10);
+    if let Subject::MidActivity = subject {
+        // Solo rest: no partner entanglement, so the cell varies exactly
+        // one thing -- the subject's own busyness.
+        world.kitties[s].activity = Activity::Resting { with_friend: None };
+        world.kitties[s].activity_clock = Some(ActivityClock::start(0));
+    }
 
     let n = world.kitty_index(2).unwrap();
     match neighbor {
@@ -124,20 +146,42 @@ fn the_metric_and_the_law_agree_on_every_cell() {
         ReliefElement::ConsumedChow,
         ReliefElement::Water,
     ];
-    for neighbor in neighbors {
-        for relief in reliefs {
-            let (world, config) = build(neighbor, relief);
-            let idx = world.kitty_index(SUBJECT).unwrap();
-            for kind in NeedKind::ALL {
-                let metric = zero_distance_relief_exists(&world, idx, kind);
-                let law = lawful_relief_exists(&world, &config, kind);
-                assert_eq!(
-                    metric, law,
-                    "divergence at {neighbor:?} x {relief:?} for {kind:?}: \
-                     the metric says {metric}, the engine says {law}"
-                );
+    for subject in [Subject::Idle, Subject::MidActivity] {
+        for neighbor in neighbors {
+            for relief in reliefs {
+                let (world, config) = build(subject, neighbor, relief);
+                let idx = world.kitty_index(SUBJECT).unwrap();
+                for kind in NeedKind::ALL {
+                    let metric = zero_distance_relief_exists(&world, idx, kind);
+                    let law = lawful_relief_exists(&world, &config, kind);
+                    assert_eq!(
+                        metric, law,
+                        "divergence at {subject:?} x {neighbor:?} x {relief:?} for {kind:?}: \
+                         the metric says {metric}, the engine says {law}"
+                    );
+                }
             }
         }
+    }
+}
+
+#[test]
+fn a_busy_subject_changes_neither_layers_answer() {
+    // The axis's point, pinned directly: relief existence is a property
+    // of the world around the subject, not of what the subject is doing.
+    // Cell chosen so relief exists (stocked chow + free neighbor): both
+    // layers must say true whether the subject is idle or mid-rest.
+    for subject in [Subject::Idle, Subject::MidActivity] {
+        let (world, config) = build(subject, Neighbor::AdjacentFree, ReliefElement::StockedChow);
+        let idx = world.kitty_index(SUBJECT).unwrap();
+        assert!(
+            zero_distance_relief_exists(&world, idx, NeedKind::Eat),
+            "metric flipped on {subject:?}"
+        );
+        assert!(
+            lawful_relief_exists(&world, &config, NeedKind::Eat),
+            "law flipped on {subject:?}"
+        );
     }
 }
 
@@ -147,7 +191,7 @@ fn the_busy_neighbor_cell_pins_the_cuddle_doctrine_on_true() {
     // adjacent neighbor is lawful cuddle relief (Sleep-with and
     // Groom-target need adjacency alone), and the metric agrees. A future
     // change that narrows either side turns this red.
-    let (world, config) = build(Neighbor::AdjacentBusy, ReliefElement::None);
+    let (world, config) = build(Subject::Idle, Neighbor::AdjacentBusy, ReliefElement::None);
     let idx = world.kitty_index(SUBJECT).unwrap();
     assert!(zero_distance_relief_exists(&world, idx, NeedKind::Cuddle));
     assert!(lawful_relief_exists(&world, &config, NeedKind::Cuddle));
@@ -157,12 +201,12 @@ fn the_busy_neighbor_cell_pins_the_cuddle_doctrine_on_true() {
 fn the_consumed_bowl_cell_pins_the_eat_reconciliation() {
     // The divergence the guardrail caught before it was written: an empty
     // adjacent bowl is relief to neither layer now.
-    let (world, config) = build(Neighbor::Absent, ReliefElement::ConsumedChow);
+    let (world, config) = build(Subject::Idle, Neighbor::Absent, ReliefElement::ConsumedChow);
     let idx = world.kitty_index(SUBJECT).unwrap();
     assert!(!zero_distance_relief_exists(&world, idx, NeedKind::Eat));
     assert!(!lawful_relief_exists(&world, &config, NeedKind::Eat));
 
-    let (world, config) = build(Neighbor::Absent, ReliefElement::StockedChow);
+    let (world, config) = build(Subject::Idle, Neighbor::Absent, ReliefElement::StockedChow);
     let idx = world.kitty_index(SUBJECT).unwrap();
     assert!(zero_distance_relief_exists(&world, idx, NeedKind::Eat));
     assert!(lawful_relief_exists(&world, &config, NeedKind::Eat));

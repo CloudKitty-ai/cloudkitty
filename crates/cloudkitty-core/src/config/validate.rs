@@ -265,6 +265,52 @@ impl Config {
                 ));
             }
         }
+        // The spawn dials (spec 027). The jitter's floor-at-1 math is
+        // total, but its draw is 32-bit: 2*jitter+1 must fit.
+        if self.elements.ttl_jitter > (u32::MAX / 2 - 1) as u64 {
+            return Err(ConfigError::invalid(
+                "[elements] ttl_jitter",
+                self.elements.ttl_jitter.to_string(),
+                format!(
+                    "must fit the RNG's 32-bit draw (at most {})",
+                    u32::MAX / 2 - 1
+                ),
+            ));
+        }
+        if self.elements.spread_candidates < 1 {
+            return Err(ConfigError::invalid(
+                "[elements] spread_candidates",
+                self.elements.spread_candidates.to_string(),
+                "must be at least 1 (a spawn needs at least one candidate tile)",
+            ));
+        }
+        if self.elements.spread_candidates > 10_000 {
+            return Err(ConfigError::invalid(
+                "[elements] spread_candidates",
+                self.elements.spread_candidates.to_string(),
+                "must be at most 10000 -- candidates are drawn per spawn, and \
+                 more than any plausible world has tiles is a config error, \
+                 refused here rather than discovered as a hang at spawn time",
+            ));
+        }
+        let penalty = self.elements.edge_penalty;
+        if !penalty.is_finite() || penalty < 0.0 {
+            return Err(ConfigError::invalid(
+                "[elements] edge_penalty",
+                penalty.to_string(),
+                "must be a finite number of tiles >= 0 (0 disables the interior preference)",
+            ));
+        }
+        // Lake feasibility (spec 027): the guarantee needs a 2x2 to fit.
+        // Today's world-size floors already imply this; the check is
+        // explicit so the invariant survives a future floor change.
+        if self.elements.water.min >= 4 && (self.world.width < 2 || self.world.height < 2) {
+            return Err(ConfigError::invalid(
+                "[world] width/height",
+                format!("{}x{}", self.world.width, self.world.height),
+                "a water minimum of 4+ guarantees a 2x2 lake, which needs a 2x2 world",
+            ));
+        }
         Ok(())
     }
 
@@ -546,11 +592,24 @@ impl Config {
     /// problem.
     pub(super) fn validate_actions(&self) -> Result<(), ConfigError> {
         let a = &self.actions;
+        // Every relief dial shares one finiteness/negativity rule. Spec 025
+        // built the table for the four play keys; the remaining six joined
+        // 2026-08-06 (the 025 review's finding 7): before that,
+        // `cuddle_relief = nan` passed validation and the first duet rest
+        // tick propagated NaN into the need and every downstream happiness
+        // metric. Zero stays legal -- "this action relieves nothing" is a
+        // strange world, not an invalid one.
         for (key, value) in [
             ("[actions] solo_play_relief", a.solo_play_relief),
             ("[actions] play_relief", a.play_relief),
             ("[actions] play_relief_bug", a.play_relief_bug),
             ("[actions] play_relief_greeble", a.play_relief_greeble),
+            ("[actions] eat_relief", a.eat_relief),
+            ("[actions] drink_relief", a.drink_relief),
+            ("[actions] sleep_relief", a.sleep_relief),
+            ("[actions] sleep_relief_sunbeam", a.sleep_relief_sunbeam),
+            ("[actions] groom_relief", a.groom_relief),
+            ("[actions] cuddle_relief", a.cuddle_relief),
         ] {
             if !value.is_finite() || value < 0.0 {
                 return Err(ConfigError::invalid(

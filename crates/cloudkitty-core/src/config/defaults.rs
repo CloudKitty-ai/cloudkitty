@@ -89,12 +89,24 @@ pub(super) fn default_water_step_cost() -> f32 {
     4.0
 }
 
+pub(super) fn default_spread_candidates() -> usize {
+    8
+}
+
+pub(super) fn default_ttl_jitter() -> u64 {
+    100
+}
+
+pub(super) fn default_edge_penalty() -> f32 {
+    2.0
+}
+
 pub(super) fn default_water_bath_gain() -> f32 {
-    1.5
+    3.5
 }
 
 pub(super) fn default_water_bath_gain_ceiling() -> f32 {
-    50.0
+    60.0
 }
 
 pub(super) fn default_worth_a_detour() -> f32 {
