@@ -106,7 +106,9 @@ const VIEW = Object.freeze({
     glow: true, // sunbeams as radial light (off: plain warm tile)
     paths: true, // whether the worn-paths overlay is available at all
     gridOverlay: true, // whether the grid debug overlay is available at all
-    toneCount: 4, // how many close grass tones the meadow mixes
+    toneSteps: 24, // steps in the ramp blended through the grass tones
+    toneCells: 3.5, // tiles per noise cell: how broad a grass blotch is
+    jitterCells: 1.7, // and the finer lattice the brightness grain rides
     jitterAlpha: 0.05, // peak alpha of the per-tile brightness jitter
     shoreRounding: 0.45, // pond corner rounding, in tiles
     shoreWobble: 0.07, // organic shoreline waviness, in tiles

@@ -297,7 +297,9 @@ const MEADOW_DEFAULTS = Object.freeze({
   glow: true, // sunbeams as radial light (off: plain warm tile)
   paths: true, // whether the worn-paths overlay is available at all
   gridOverlay: true, // whether the grid debug overlay is available at all
-  toneCount: 4, // how many close grass tones the meadow mixes
+  toneSteps: 24, // steps in the ramp blended through the grass tones
+  toneCells: 3.5, // tiles per noise cell: how broad a grass blotch is
+  jitterCells: 1.7, // and the finer lattice the brightness grain rides
   jitterAlpha: 0.05, // peak alpha of the per-tile brightness jitter
   shoreRounding: 0.45, // pond corner rounding, in tiles
   shoreWobble: 0.07, // organic shoreline waviness, in tiles
@@ -337,20 +339,94 @@ function tileHash(x, y, salt = 0) {
  * cache; the per-frame cost stays one blit. (Flora accents were scrapped
  * at the gate, 2026-07-20 round 2 -- deferred to the backlog.)
  */
+/**
+ * A finer ramp than the four authored tones (v3, 2026-08-05).
+ *
+ * The ground used to pick one of four discrete tones per tile, so
+ * neighbouring tiles differed by a whole step and the meadow read as a
+ * mosaic -- the grid spec 008 retired, drawn in colour instead of lines.
+ * Blending through the same four tones in `toneSteps` gives tiles that
+ * differ by a little rather than a lot, without changing the palette
+ * anyone authored.
+ *
+ * Cached on the tones array's identity: a settled phase reuses one ramp
+ * forever, and a blended palette (a fresh frozen array each rebake) pays
+ * `toneSteps` mixes rather than one per tile -- 24 instead of 576 on the
+ * demo world.
+ */
+let GRASS_RAMP = { source: null, steps: 0, ramp: null };
+
+function grassRamp(tones, steps) {
+  if (GRASS_RAMP.source === tones && GRASS_RAMP.steps === steps) return GRASS_RAMP.ramp;
+  const ramp = new Array(steps);
+  for (let s = 0; s < steps; s += 1) {
+    const at = (s / steps) * tones.length;
+    const i = Math.floor(at) % tones.length;
+    ramp[s] = mixPaletteColor(tones[i], tones[(i + 1) % tones.length], at - Math.floor(at));
+  }
+  GRASS_RAMP = { source: tones, steps, ramp };
+  return ramp;
+}
+
+/** Half a pixel of overdraw on every side. At fractional tile sizes a
+ *  rect edge lands mid-pixel and antialiasing leaves a paler hairline
+ *  between neighbours -- which reads as exactly the lattice spec 008
+ *  demoted to a debug toggle. Overlapping the neighbour hides it. */
+const TILE_BLEED = 0.5;
+
+/**
+ * Smooth value noise over the tile grid (v3, 2026-08-05).
+ *
+ * A per-tile hash gives every tile a tone unrelated to its neighbours, so
+ * however fine the ramp, the meadow reads as a mosaic -- shrinking each
+ * step only shrinks the checks. What kills it is spatial correlation:
+ * sample the hash on a COARSER lattice and interpolate between those
+ * corners, and the ground gains soft blotches of lighter and darker
+ * grass, the way a real meadow varies, while neighbouring tiles differ by
+ * a fraction of a step.
+ *
+ * Still a pure function of tile coordinates and a salt, so the ground
+ * stays identical across reloads, restarts and machines (FR-002) -- the
+ * same contract the raw hash carries, just smoothed.
+ */
+function smoothNoise(x, y, salt, cells) {
+  const fx = x / cells;
+  const fy = y / cells;
+  const x0 = Math.floor(fx);
+  const y0 = Math.floor(fy);
+  // Smoothstep the cell-local position so the seams between lattice cells
+  // have no visible crease -- a plain lerp would leave a gradient kink.
+  const sx = easeCell(fx - x0);
+  const sy = easeCell(fy - y0);
+  const h00 = tileHash(x0, y0, salt);
+  const h10 = tileHash(x0 + 1, y0, salt);
+  const h01 = tileHash(x0, y0 + 1, salt);
+  const h11 = tileHash(x0 + 1, y0 + 1, salt);
+  const top = h00 + (h10 - h00) * sx;
+  const bottom = h01 + (h11 - h01) * sx;
+  return top + (bottom - top) * sy;
+}
+
+function easeCell(t) {
+  return t * t * (3 - 2 * t);
+}
+
 function drawMeadowGround(ctx, { width, height, tile }) {
   const t = meadowTunables();
-  const tones = MEADOW.grassTones;
+  const ramp = grassRamp(MEADOW.grassTones, t.toneSteps);
+  const span = tile + TILE_BLEED * 2;
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
-      const tone =
-        Math.floor(tileHash(x, y, MEADOW_SALTS.tone) * t.toneCount) %
-        tones.length;
-      ctx.fillStyle = tones[tone];
-      ctx.fillRect(x * tile, y * tile, tile, tile);
-      const j = tileHash(x, y, MEADOW_SALTS.jitter);
+      const n = smoothNoise(x, y, MEADOW_SALTS.tone, t.toneCells);
+      ctx.fillStyle = ramp[Math.min(ramp.length - 1, Math.floor(n * ramp.length))];
+      ctx.fillRect(x * tile - TILE_BLEED, y * tile - TILE_BLEED, span, span);
+      // The jitter stays finer-grained than the tone -- it is the grass's
+      // own texture rather than the ground's shape -- but smoothed too,
+      // on a tighter lattice, so it grains the meadow instead of tiling it.
+      const j = smoothNoise(x, y, MEADOW_SALTS.jitter, t.jitterCells);
       ctx.globalAlpha = t.jitterAlpha * Math.abs(j * 2 - 1);
       ctx.fillStyle = j < 0.5 ? MEADOW.jitterShade : MEADOW.jitterTint;
-      ctx.fillRect(x * tile, y * tile, tile, tile);
+      ctx.fillRect(x * tile - TILE_BLEED, y * tile - TILE_BLEED, span, span);
       ctx.globalAlpha = 1;
     }
   }
