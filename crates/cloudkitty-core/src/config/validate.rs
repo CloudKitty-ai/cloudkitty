@@ -592,11 +592,24 @@ impl Config {
     /// problem.
     pub(super) fn validate_actions(&self) -> Result<(), ConfigError> {
         let a = &self.actions;
+        // Every relief dial shares one finiteness/negativity rule. Spec 025
+        // built the table for the four play keys; the remaining six joined
+        // 2026-08-06 (the 025 review's finding 7): before that,
+        // `cuddle_relief = nan` passed validation and the first duet rest
+        // tick propagated NaN into the need and every downstream happiness
+        // metric. Zero stays legal -- "this action relieves nothing" is a
+        // strange world, not an invalid one.
         for (key, value) in [
             ("[actions] solo_play_relief", a.solo_play_relief),
             ("[actions] play_relief", a.play_relief),
             ("[actions] play_relief_bug", a.play_relief_bug),
             ("[actions] play_relief_greeble", a.play_relief_greeble),
+            ("[actions] eat_relief", a.eat_relief),
+            ("[actions] drink_relief", a.drink_relief),
+            ("[actions] sleep_relief", a.sleep_relief),
+            ("[actions] sleep_relief_sunbeam", a.sleep_relief_sunbeam),
+            ("[actions] groom_relief", a.groom_relief),
+            ("[actions] cuddle_relief", a.cuddle_relief),
         ] {
             if !value.is_finite() || value < 0.0 {
                 return Err(ConfigError::invalid(

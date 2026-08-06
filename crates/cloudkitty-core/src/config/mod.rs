@@ -1552,6 +1552,38 @@ mod tests {
     }
 
     #[test]
+    fn the_remaining_relief_dials_reject_negative_and_non_finite_values() {
+        // The finiteness sweep (2026-08-06, spec 025 review finding 7):
+        // the six non-play relief dials joined the play keys' table.
+        // Before this, `cuddle_relief = nan` validated cleanly and the
+        // first duet rest tick poisoned the need and every downstream
+        // happiness metric for the rest of the run.
+        for poison in [f32::NAN, f32::INFINITY, -1.0] {
+            for (name, setter) in [
+                (
+                    "eat_relief",
+                    (|c: &mut Config, v: f32| c.actions.eat_relief = v) as fn(&mut Config, f32),
+                ),
+                ("drink_relief", |c, v| c.actions.drink_relief = v),
+                ("sleep_relief", |c, v| c.actions.sleep_relief = v),
+                ("sleep_relief_sunbeam", |c, v| {
+                    c.actions.sleep_relief_sunbeam = v
+                }),
+                ("groom_relief", |c, v| c.actions.groom_relief = v),
+                ("cuddle_relief", |c, v| c.actions.cuddle_relief = v),
+            ] {
+                let mut c = cfg();
+                setter(&mut c, poison);
+                let err = c.validate().expect_err("poison must be rejected");
+                assert!(
+                    err.to_string().contains(name),
+                    "{poison} in {name} must be rejected by name, got: {err}"
+                );
+            }
+        }
+    }
+
+    #[test]
     fn a_pre_025_config_outside_the_survivable_band_fails_with_a_map() {
         // The contract's two documented break classes: a legacy config
         // carrying play_relief >= 25 collides with the defaulted bug value
