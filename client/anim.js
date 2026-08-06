@@ -126,6 +126,8 @@ const VIEW = Object.freeze({
     bushShadowLean: 1, // gain on the anchor: 1 keeps the sun-side edge on the shrub
     bushShadowLength: 0.3, // and of its stretch past the caster
     bushShadowAlpha: 1, // no thinning: contact, not a smear
+    bushLift: 0.9, // how far a shrub's canopy stands above its base, in radii
+    bushBase: 0.72, // where it meets the ground, in tiles from the tile's top
     shoreRounding: 0.45, // pond corner rounding, in tiles
     shoreWobble: 0.07, // organic shoreline waviness, in tiles
     lilyPadMinTiles: 4, // ponds at least this big carry a lily pad

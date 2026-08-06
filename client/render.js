@@ -247,9 +247,42 @@ class WorldRenderer {
       }
       this.drawElement(el, view.elementAlphaFor(el), view);
     }
-    for (const kitty of world.kitties) {
-      this.drawKitty(kitty, world, view);
+    // Cats and ground cover, interleaved by depth (v3, 2026-08-05).
+    //
+    // Ground cover used to bake into the ground cache, which sits under
+    // everything -- so a cat crossing a shrub walked over the top of it.
+    // Sorting the two together by their drawn y is what lets a cat pass
+    // BEHIND one. Only these two participate: bubbles and thought
+    // bubbles already run as their own passes below, so they stay clear
+    // of cover for free, and served elements are handled by keeping cover
+    // off their tiles entirely (see bushesFor) rather than by sorting --
+    // which avoids dragging bowls and butterflies into the ordering.
+    const cover = typeof bushesFor === 'function'
+      ? bushesFor(world.width, world.height, VIEW.meadow, this.occupiedTiles(world))
+      : [];
+    const layer = [];
+    for (const bush of cover) {
+      // Sorted by GROUND CONTACT, not by tile position: what decides
+      // which of two things is in front is where each one meets the
+      // earth. A cat's ground line is 88% down its box (the same 0.88 the
+      // landing settle and the header wordmark use); a shrub's is its
+      // base, below the canopy that stands up off it. Keying either by
+      // its tile instead put a shrub on top of a cat sharing its tile --
+      // the exact bug the sort exists to fix.
+      layer.push({
+        y: bush.y + VIEW.meadow.bushBase,
+        draw: () => drawBushAt(this.ctx, { ...bush, tile: this.tile, t: VIEW.meadow }),
+      });
     }
+    for (const kitty of world.kitties) {
+      layer.push({
+        y: view.posFor(kitty).y + 0.88,
+        draw: () => this.drawKitty(kitty, world, view),
+      });
+    }
+    layer.sort((a, b) => a.y - b.y);
+    for (const item of layer) item.draw();
+
     this.drawBubbles(world, view);
     // Thought bubbles sit above speech in the stack (the documented
     // two-beats rule): at most one per kitty, only while the wait is long.
@@ -266,6 +299,15 @@ class WorldRenderer {
    * The grid lines that used to live here are now the debug-only overlay
    * behind `l` (spec 008 FR-004).
    */
+  /** Tiles the served world has something standing on: cover skips them,
+   *  which keeps a shrub from sprouting through a bowl without having to
+   *  put elements into the depth sort as well. */
+  occupiedTiles(world) {
+    const taken = new Set();
+    for (const el of world.elements) taken.add(`${el.pos.x},${el.pos.y}`);
+    return taken;
+  }
+
   blitGround(world) {
     // The cache's transform must be the ratio the canvas was SIZED with,
     // never a freshly-read devicePixelRatio (issue #102): the offscreen is
@@ -284,7 +326,9 @@ class WorldRenderer {
       off.height = this.canvas.height;
       const g = off.getContext('2d');
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
-      drawMeadowGround(g, { width: world.width, height: world.height, tile: this.tile });
+      // `cover: false` -- ground cover is drawn per frame instead, sorted
+      // against the cats so they can pass behind it (see draw()).
+      drawMeadowGround(g, { width: world.width, height: world.height, tile: this.tile, cover: false });
       off.dataset.dpr = String(dpr);
       this.groundCache = off;
     }

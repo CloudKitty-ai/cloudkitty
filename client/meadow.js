@@ -350,6 +350,8 @@ const MEADOW_DEFAULTS = Object.freeze({
   bushShadowLean: 1, // gain on the anchor: 1 keeps the sun-side edge on the shrub
   bushShadowLength: 0.3, // and of its stretch past the caster
   bushShadowAlpha: 1, // no thinning: contact, not a smear
+  bushLift: 0.9, // how far a shrub's canopy stands above its base, in radii
+  bushBase: 0.72, // where it meets the ground, in tiles from the tile's top
   shoreRounding: 0.45, // pond corner rounding, in tiles
   shoreWobble: 0.07, // organic shoreline waviness, in tiles
   lilyPadMinTiles: 4, // ponds at least this big carry a lily pad
@@ -460,7 +462,7 @@ function easeCell(t) {
   return t * t * (3 - 2 * t);
 }
 
-function drawMeadowGround(ctx, { width, height, tile }) {
+function drawMeadowGround(ctx, { width, height, tile, cover = true }) {
   const t = meadowTunables();
   const ramp = grassRamp(MEADOW.grassTones, t.toneSteps);
   const span = tile + TILE_BLEED * 2;
@@ -480,6 +482,10 @@ function drawMeadowGround(ctx, { width, height, tile }) {
     }
   }
   drawGroundDetail(ctx, { width, height, tile, t });
+  // Ground cover is drawn here only for callers that are not sorting
+  // it themselves (the lab, the harness). render.js passes false and
+  // draws it interleaved with the cats -- see bushesFor/drawBushAt.
+  if (cover) drawGroundCover(ctx, { width, height, tile, t });
 }
 
 /**
@@ -569,7 +575,6 @@ function drawGroundDetail(ctx, { width, height, tile, t }) {
     }
   }
 
-  drawGroundCover(ctx, { width, height, tile, t });
 }
 
 /**
@@ -586,12 +591,41 @@ function drawGroundDetail(ctx, { width, height, tile, t }) {
  * the failure is the fastest way to judge whether a sorted sprite layer
  * is worth building.
  */
-function drawGroundCover(ctx, { width, height, tile, t }) {
-  const style = t.bushStyle || 'cover';
+function drawGroundCover(ctx, { width, height, tile, t, occupied }) {
+  for (const bush of bushesFor(width, height, t, occupied)) {
+    drawBushAt(ctx, { ...bush, tile, t });
+  }
+}
+
+/**
+ * Where the ground cover grows: a pure, deterministic scatter over the
+ * tile grid, so the same world always grows the same shrubs (FR-002).
+ *
+ * `occupied` is the set of tiles the server has put something on --
+ * bowls, water, critters. Cover skips them. That is only possible because
+ * this is evaluated per frame against the served state rather than baked
+ * into the ground cache, and it is what keeps a bowl from sprouting a
+ * shrub through it without needing elements in the sort order too.
+ */
+function bushesFor(width, height, t, occupied) {
+  const out = [];
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       if (tileHash(x, y, MEADOW_SALTS.bush) < 1 - t.bushChance) continue;
-      const s = tileHash(x, y, MEADOW_SALTS.bushShape);
+      if (occupied && occupied.has(`${x},${y}`)) continue;
+      out.push({ x, y, seed: tileHash(x, y, MEADOW_SALTS.bushShape) });
+    }
+  }
+  return out;
+}
+
+/** One clump, at tile coordinates. Split out of the scatter so the
+ *  renderer can interleave these with the cats by depth. */
+function drawBushAt(ctx, { x, y, seed, tile, t }) {
+  const style = t.bushStyle || 'cover';
+  {
+    {
+      const s = seed;
       const bx = (x + 0.5) * tile;
       const by = (y + 0.5) * tile;
       const r = (0.26 + s * 0.18) * tile;
@@ -630,18 +664,23 @@ function drawGroundCover(ctx, { width, height, tile, t }) {
         ctx.beginPath();
         ctx.ellipse(bx + lean * (r * length - r), by + r * 0.52, r * length, r * 0.3, 0, 0, TAU);
         ctx.fill();
+        // The canopy stands ABOVE the base rather than sitting on it, so
+        // the shrub occupies the tile above its own -- which is the only
+        // way a cat can be behind one. Its shadow stays at the base: that
+        // is where it meets the ground, and where the depth sort keys it.
+        const lift = r * t.bushLift;
         ctx.globalAlpha = t.bushAlpha;
         ctx.fillStyle = MEADOW.bush;
         for (let i = 0; i < 4; i++) {
           const a = (i / 4) * TAU + s * 5;
           ctx.beginPath();
-          ctx.arc(bx + Math.cos(a) * r * 0.42, by + Math.sin(a) * r * 0.3, r * 0.62, 0, TAU);
+          ctx.arc(bx + Math.cos(a) * r * 0.42, by - lift + Math.sin(a) * r * 0.34, r * 0.62, 0, TAU);
           ctx.fill();
         }
         ctx.globalAlpha = t.bushAlpha * 0.5;
         ctx.fillStyle = MEADOW.bushHi;
         ctx.beginPath();
-        ctx.arc(bx - r * 0.22, by - r * 0.3, r * 0.3, 0, TAU);
+        ctx.arc(bx - r * 0.22, by - lift - r * 0.3, r * 0.3, 0, TAU);
         ctx.fill();
       } else if (style === 'tuft') {
         // A fan of blades from one root: long grass rather than a bush.

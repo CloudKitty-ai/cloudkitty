@@ -95,7 +95,7 @@ function guardCtx(log = []) {
 const EXPORTS =
   ';({ get MEADOW() { return MEADOW; }, MEADOW_DAY, MEADOW_DUSK, MEADOW_NIGHT, setMeadowPalette,' +
   ' mixPaletteColor, mixPalettes, parsePaletteColor,' +
-  ' MEADOW_DAWN, MEADOW_SALTS, MEADOW_DEFAULTS, tileHash, drawMeadowGround, drawGridOverlay, groupWaterTiles,' +
+  ' MEADOW_DAWN, bushesFor, drawBushAt, drawGroundCover, MEADOW_SALTS, MEADOW_DEFAULTS, tileHash, drawMeadowGround, drawGridOverlay, groupWaterTiles,' +
   ' buildPondPath, drawPonds, drawSunbeamGlow, drawWornPaths, VIEW, Presentation })';
 const api = eval(src + EXPORTS);
 
@@ -533,6 +533,62 @@ check('the sun swings round across a crossing rather than jumping', () => {
       swing.shadowLean < api.MEADOW_DAWN.shadowLean,
     'part way over',
   );
+});
+
+// ---- ground cover: a scatter the renderer can sort by depth ----
+
+check('bushesFor is deterministic across independent evals', () => {
+  const api2 = eval(src + EXPORTS);
+  const a = api.bushesFor(40, 40, api.VIEW.meadow);
+  const b = api2.bushesFor(40, 40, api.VIEW.meadow);
+  assert(a.length > 0, 'some cover grows at all');
+  assert(JSON.stringify(a) === JSON.stringify(b), 'same world, same shrubs');
+});
+
+check('cover density tracks bushChance', () => {
+  const tiles = 60 * 60;
+  const sparse = api.bushesFor(60, 60, { ...api.VIEW.meadow, bushChance: 0.02 }).length;
+  const dense = api.bushesFor(60, 60, { ...api.VIEW.meadow, bushChance: 0.2 }).length;
+  assert(dense > sparse * 4, `0.2 should far outgrow 0.02, got ${dense} vs ${sparse}`);
+  assert(Math.abs(sparse / tiles - 0.02) < 0.01, `sparse share ${(sparse / tiles).toFixed(3)}`);
+  assert(Math.abs(dense / tiles - 0.2) < 0.03, `dense share ${(dense / tiles).toFixed(3)}`);
+});
+
+check('cover keeps off tiles the server has put something on', () => {
+  const all = api.bushesFor(40, 40, api.VIEW.meadow);
+  assert(all.length > 3, 'enough cover to test with');
+  // Occupy the first few and they must vanish, the rest untouched.
+  const taken = new Set(all.slice(0, 3).map((b) => `${b.x},${b.y}`));
+  const left = api.bushesFor(40, 40, api.VIEW.meadow, taken);
+  assert(left.length === all.length - 3, `expected ${all.length - 3}, got ${left.length}`);
+  for (const b of left) assert(!taken.has(`${b.x},${b.y}`), 'none on an occupied tile');
+});
+
+check('drawBushAt sweeps clean in every style, at every size', () => {
+  for (const bushStyle of ['cover', 'tuft', 'bramble', 'shrub']) {
+    for (const tile of [8, 22, 54]) {
+      const t = { ...api.VIEW.meadow, bushStyle };
+      // A guarding ctx throws on any non-finite argument.
+      api.drawBushAt(guardCtx(), { x: 3, y: 4, seed: 0.42, tile, t });
+      api.drawBushAt(guardCtx(), { x: 0, y: 0, seed: 0, tile, t });
+      api.drawBushAt(guardCtx(), { x: 9, y: 9, seed: 0.999, tile, t });
+    }
+  }
+});
+
+check('only the shrub style casts a shadow', () => {
+  const shadowsIn = (bushStyle) => {
+    const log = [];
+    api.drawBushAt(guardCtx(log), {
+      x: 2, y: 2, seed: 0.5, tile: 40, t: { ...api.VIEW.meadow, bushStyle },
+    });
+    return log.filter(([c, p, v]) => c === 'set' && p === 'fillStyle'
+      && String(v) === String(api.MEADOW.groundShadow)).length;
+  };
+  assert(shadowsIn('shrub') === 1, 'a shrub stands up, so it casts');
+  for (const flat of ['cover', 'tuft', 'bramble']) {
+    assert(shadowsIn(flat) === 0, `${flat} lies on the ground and casts nothing`);
+  }
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);
