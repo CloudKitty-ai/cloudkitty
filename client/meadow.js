@@ -330,19 +330,25 @@ const MEADOW_DEFAULTS = Object.freeze({
   glow: true, // sunbeams as radial light (off: plain warm tile)
   paths: true, // whether the worn-paths overlay is available at all
   gridOverlay: true, // whether the grid debug overlay is available at all
-  toneSteps: 24, // steps in the ramp blended through the grass tones
-  toneCells: 3.5, // tiles per noise cell: how broad a grass blotch is
+  toneSteps: 18, // steps in the ramp blended through the grass tones
+  toneCells: 3, // tiles per noise cell: how broad a grass blotch is
   jitterCells: 1.7, // and the finer lattice the brightness grain rides
   jitterAlpha: 0.05, // peak alpha of the per-tile brightness jitter
-  patchChance: 0.028, // share of tiles carrying a worn-earth or moss patch
-  patchEarthAlpha: 0.15,
-  patchMossAlpha: 0.2,
-  bladeChance: 0.45, // tiles with a tuft of grass
-  bladeAlpha: 0.55,
-  bloomChance: 0.045, // tiles with a flower
-  bushChance: 0.05, // tiles with a clump of tufted ground cover
-  bushAlpha: 0.5, // and how strongly it reads against the grass
-  bushStyle: 'cover', // 'cover' | 'tuft' | 'bramble' | 'shrub' (gallery-meadow.html)
+  patchChance: 0.118, // share of tiles carrying a worn-earth or moss patch
+  patchEarthAlpha: 0.03,
+  patchMossAlpha: 0.05,
+  bladeChance: 0.55, // tiles with a tuft of grass
+  bladeAlpha: 0.38,
+  bloomChance: 0.05, // tiles with a flower
+  bushChance: 0.025, // tiles with a clump of tufted ground cover
+  bushAlpha: 0.3, // and how strongly it reads against the grass
+  bushStyle: 'shrub', // 'cover' | 'tuft' | 'bramble' | 'shrub' (gallery-meadow.html)
+  // The shrub's shadow, damped against the cats': a squat canopy sits
+  // close to the ground, so it leans far less and needs no alpha
+  // falloff to stay believable.
+  bushShadowLean: 0.3, // share of the palette's lean a shrub takes
+  bushShadowLength: 0.45, // and of its stretch past the caster
+  bushShadowAlpha: 1, // no thinning: contact, not a smear
   shoreRounding: 0.45, // pond corner rounding, in tiles
   shoreWobble: 0.07, // organic shoreline waviness, in tiles
   lilyPadMinTiles: 4, // ponds at least this big carry a lily pad
@@ -590,11 +596,17 @@ function drawGroundCover(ctx, { width, height, tile, t }) {
       const r = (0.26 + s * 0.18) * tile;
 
       if (style === 'shrub') {
-        // Standing growth, with the leaning shadow that says so. Correct
-        // only where nothing walks through it.
-        const lean = MEADOW.shadowLean ?? 0;
-        const length = MEADOW.shadowLength ?? 1;
-        ctx.globalAlpha = 1 / Math.max(1, length * 0.8);
+        // Standing growth, with the leaning shadow that says so.
+        //
+        // Damped against the cats' (owner, 2026-08-05: "too dramatic").
+        // A shrub is squat and its canopy sits close to the ground, so
+        // it throws a far shorter shadow than a standing cat does even
+        // under the same low sun -- and taking the length down means the
+        // alpha no longer has to be spread thin to stay believable, so
+        // the shadow reads as contact rather than as a smear.
+        const lean = (MEADOW.shadowLean ?? 0) * t.bushShadowLean;
+        const length = 1 + ((MEADOW.shadowLength ?? 1) - 1) * t.bushShadowLength;
+        ctx.globalAlpha = t.bushShadowAlpha;
         ctx.fillStyle = MEADOW.groundShadow;
         ctx.beginPath();
         ctx.ellipse(bx + lean * (r * length - r), by + r * 0.52, r * length, r * 0.3, 0, 0, TAU);

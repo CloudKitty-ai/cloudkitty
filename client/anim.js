@@ -106,19 +106,25 @@ const VIEW = Object.freeze({
     glow: true, // sunbeams as radial light (off: plain warm tile)
     paths: true, // whether the worn-paths overlay is available at all
     gridOverlay: true, // whether the grid debug overlay is available at all
-    toneSteps: 24, // steps in the ramp blended through the grass tones
-    toneCells: 3.5, // tiles per noise cell: how broad a grass blotch is
+    toneSteps: 18, // steps in the ramp blended through the grass tones
+    toneCells: 3, // tiles per noise cell: how broad a grass blotch is
     jitterCells: 1.7, // and the finer lattice the brightness grain rides
     jitterAlpha: 0.05, // peak alpha of the per-tile brightness jitter
-    patchChance: 0.028, // share of tiles carrying a worn-earth or moss patch
-    patchEarthAlpha: 0.15,
-    patchMossAlpha: 0.2,
-    bladeChance: 0.45, // tiles with a tuft of grass
-    bladeAlpha: 0.55,
-    bloomChance: 0.045, // tiles with a flower
-    bushChance: 0.05, // tiles with a clump of tufted ground cover
-    bushAlpha: 0.5, // and how strongly it reads against the grass
-    bushStyle: 'cover', // 'cover' | 'tuft' | 'bramble' | 'shrub' (gallery-meadow.html)
+    patchChance: 0.118, // share of tiles carrying a worn-earth or moss patch
+    patchEarthAlpha: 0.03,
+    patchMossAlpha: 0.05,
+    bladeChance: 0.55, // tiles with a tuft of grass
+    bladeAlpha: 0.38,
+    bloomChance: 0.05, // tiles with a flower
+    bushChance: 0.025, // tiles with a clump of tufted ground cover
+    bushAlpha: 0.3, // and how strongly it reads against the grass
+    bushStyle: 'shrub', // 'cover' | 'tuft' | 'bramble' | 'shrub' (gallery-meadow.html)
+    // The shrub's shadow, damped against the cats': a squat canopy sits
+    // close to the ground, so it leans far less and needs no alpha
+    // falloff to stay believable.
+    bushShadowLean: 0.3, // share of the palette's lean a shrub takes
+    bushShadowLength: 0.45, // and of its stretch past the caster
+    bushShadowAlpha: 1, // no thinning: contact, not a smear
     shoreRounding: 0.45, // pond corner rounding, in tiles
     shoreWobble: 0.07, // organic shoreline waviness, in tiles
     lilyPadMinTiles: 4, // ponds at least this big carry a lily pad
