@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CloudKitty — meadow lab</title>
+<!--
+  The meadow's judging lab (v3, 2026-08-05), the counterpart to
+  gallery-v2.html's cat lab.
+
+  Same house method: the lab calls exactly the functions the live renderer
+  calls, so what gets approved is what ships. It draws through
+  drawMeadowGround from meadow.js, with real cats from the vocabulary on
+  top for scale.
+
+  Standalone, like the other galleries: no server, no anim.js. It defines
+  its own MUTABLE `VIEW.meadow` before meadow.js loads, which is what the
+  dials write to -- meadow.js reads VIEW at call time and prefers it over
+  its frozen MEADOW_DEFAULTS, so a slider moves the shipped drawing code.
+  Bake by pasting the readout into BOTH homes (anim.js's VIEW.meadow and
+  meadow.js's MEADOW_DEFAULTS); test-meadow.mjs fails if they drift.
+-->
+<style>
+  :root { color-scheme: light; }
+  body {
+    margin: 0;
+    padding: 20px;
+    font-family: ui-rounded, system-ui, -apple-system, sans-serif;
+    background: #fdf6ec;
+    color: #4a4038;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 20px;
+    align-items: start;
+  }
+  h1 { font-size: 1.1rem; margin: 0 0 4px; }
+  h2 { font-size: 0.82rem; margin: 16px 0 6px; text-transform: uppercase; letter-spacing: 0.06em; color: #8a7a6c; }
+  p.note { margin: 0 0 12px; font-size: 0.8rem; color: #8a7a6c; max-width: 62ch; line-height: 1.5; }
+  canvas { border-radius: 10px; display: block; box-shadow: 0 6px 18px rgba(150,125,105,.18); }
+  .panel { background: #fffdfa; border-radius: 14px; padding: 14px 16px; box-shadow: 0 6px 18px rgba(150,125,105,.14); }
+  label { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; margin: 5px 0; }
+  label span.name { flex: 1 1 auto; }
+  label output { font-variant-numeric: tabular-nums; min-width: 3.6em; text-align: right; color: #8a7a6c; }
+  input[type=range] { flex: 0 0 110px; }
+  button { font: inherit; font-size: 0.78rem; padding: 5px 10px; border-radius: 8px;
+           border: 1px solid #e0d3c2; background: #fffdfa; cursor: pointer; }
+  button[aria-pressed=true] { background: #f2cf7a; border-color: #d9b45e; }
+  .row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+  textarea { width: 100%; height: 190px; font: 11px/1.45 ui-monospace, monospace;
+             border-radius: 8px; border: 1px solid #e0d3c2; padding: 8px; background: #fffdfa; resize: vertical; }
+  .styles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
+  .styles figure { margin: 0; }
+  .styles figcaption { font-size: 0.72rem; color: #8a7a6c; margin-top: 4px; text-align: center; }
+  .warn { color: #b5654a; }
+</style>
+</head>
+<body>
+
+<div>
+  <h1>Meadow lab</h1>
+  <p class="note">
+    Every slider writes <code>VIEW.meadow</code>, which is the same object the
+    live renderer reads — so this draws the shipped code, not a copy of it.
+    Cats are here for scale only. Paste the readout into both
+    <code>anim.js</code> and <code>meadow.js</code> to bake.
+  </p>
+  <canvas id="stage" width="960" height="600"></canvas>
+
+  <h2>Ground cover — the four styles, same seed</h2>
+  <p class="note">
+    All four bake into the ground cache, which sits under everything: nothing
+    in the renderer y-sorts, so <strong>a cat walking across one draws on top
+    of it</strong>. Anything that reads as standing up off the ground reads
+    wrong the moment that happens — which is the whole reason
+    <code>cover</code> lies flat. <span class="warn">Each panel below draws a
+    cat over a clump so you can judge that directly.</span>
+  </p>
+  <div class="styles" id="styles"></div>
+</div>
+
+<div class="panel">
+  <h2>Hour</h2>
+  <div class="row" id="phases"></div>
+  <label><span class="name">blend toward next</span>
+    <input type="range" id="blend" min="0" max="1" step="0.02" value="0"><output id="blend-out">0</output></label>
+
+  <h2>Scale</h2>
+  <label><span class="name">tile px</span>
+    <input type="range" id="tile" min="14" max="64" step="1" value="31"><output id="tile-out">31</output></label>
+  <p class="note" id="scale-note"></p>
+
+  <h2>Ground cover</h2>
+  <div class="row" id="bush-styles"></div>
+
+  <h2>Dials</h2>
+  <div id="dials"></div>
+
+  <h2>Readout</h2>
+  <div class="row">
+    <button id="copy">Copy</button>
+    <button id="reset">Reset</button>
+  </div>
+  <textarea id="readout" readonly></textarea>
+</div>
+
+<script src="cat.js"></script>
+<script src="cat-v2.js"></script>
+<script>
+  // The lab judges the v2 vocabulary, matching index.html's default.
+  if (typeof CatV2 !== 'undefined') Object.assign(globalThis, CatV2);
+
+  // A MUTABLE stand-in for anim.js's frozen VIEW. meadow.js reads
+  // `VIEW.meadow` at call time and prefers it over MEADOW_DEFAULTS, so
+  // everything the dials touch reaches the shipped drawing code.
+  var VIEW = { meadow: {} };
+</script>
+<script src="props.js"></script>
+<script src="meadow.js"></script>
+<script>
+(() => {
+  // Seed the mutable tunables from the file's own defaults, so the lab
+  // opens on exactly what ships.
+  Object.assign(VIEW.meadow, MEADOW_DEFAULTS);
+
+  const DIALS = [
+    ['toneSteps', 4, 64, 1],
+    ['toneCells', 1, 10, 0.1],
+    ['jitterCells', 0.6, 6, 0.1],
+    ['jitterAlpha', 0, 0.25, 0.005],
+    ['patchChance', 0, 0.2, 0.002],
+    ['patchEarthAlpha', 0, 0.6, 0.01],
+    ['patchMossAlpha', 0, 0.6, 0.01],
+    ['bladeChance', 0, 1, 0.01],
+    ['bladeAlpha', 0, 1, 0.01],
+    ['bloomChance', 0, 0.3, 0.005],
+    ['bushChance', 0, 0.3, 0.005],
+    ['bushAlpha', 0, 1, 0.02],
+  ];
+  const PHASES = ['day', 'dusk', 'night', 'dawn'];
+  const STYLES = ['cover', 'tuft', 'bramble', 'shrub'];
+
+  let phase = 'day';
+  let blend = 0;
+  let tile = 31;
+
+  const stage = document.getElementById('stage');
+  const sctx = stage.getContext('2d');
+
+  const nextPhase = (p) => PHASES[(PHASES.indexOf(p) + 1) % PHASES.length];
+
+  function applyPalette() {
+    setMeadowPalette(phase, blend > 0 ? nextPhase(phase) : null, blend);
+    if (typeof setPropPalette === 'function') {
+      setPropPalette(phase, blend > 0 ? nextPhase(phase) : null, blend);
+    }
+  }
+
+  /** The four roster colorways, for scale and for judging contrast. */
+  const CATS = [1, 2, 3, 4];
+
+  function drawCatsOn(ctx, size, spots) {
+    if (typeof drawCat !== 'function') return;
+    const theme = blend > 0.5 ? nextPhase(phase) : phase;
+    spots.forEach(([cx, cy, id], i) => {
+      const appearance = typeof shadedAppearanceOf === 'function'
+        ? shadedAppearanceOf(appearanceFor(id), theme)
+        : appearanceFor(id);
+      drawCat(ctx, {
+        pose: ['idle', 'loaf', 'walking', 'sleep-curl'][i % 4],
+        appearance, facing: i % 2 ? 'left' : 'right',
+        size, x: cx, y: cy, phase: 0.3,
+      });
+    });
+  }
+
+  function render() {
+    applyPalette();
+    const width = Math.ceil(stage.width / tile);
+    const height = Math.ceil(stage.height / tile);
+    sctx.setTransform(1, 0, 0, 1, 0, 0);
+    sctx.clearRect(0, 0, stage.width, stage.height);
+    drawMeadowGround(sctx, { width, height, tile });
+    // Cats at a few spots, one of them deliberately over a clump.
+    drawCatsOn(sctx, tile, [
+      [tile * 3, tile * 3, 1],
+      [tile * 6.2, tile * 5.1, 2],
+      [tile * 10, tile * 8.4, 3],
+      [tile * 15, tile * 4, 4],
+    ]);
+    document.getElementById('scale-note').textContent =
+      `${tile}px tile — ${tile >= 44 ? 'above' : 'below'} the fine-detail threshold (44px). `
+      + `Demo world today is 31px; WQHD reaches 47px; 20x20 reaches 54px.`;
+    renderStyles();
+    readout();
+  }
+
+  /** One small canvas per style, same seed and settings, cat included. */
+  function renderStyles() {
+    const host = document.getElementById('styles');
+    if (!host.children.length) {
+      for (const name of STYLES) {
+        const fig = document.createElement('figure');
+        const c = document.createElement('canvas');
+        c.width = 300; c.height = 190; c.dataset.style = name;
+        const cap = document.createElement('figcaption');
+        cap.textContent = name + (name === 'cover' ? ' (shipped)' : name === 'shrub' ? ' — walked over' : '');
+        fig.append(c, cap);
+        host.appendChild(fig);
+      }
+    }
+    const keep = VIEW.meadow.bushStyle;
+    for (const c of host.querySelectorAll('canvas')) {
+      VIEW.meadow.bushStyle = c.dataset.style;
+      // Much denser than the world: the panel exists to show a cat
+      // ON one, so there has to be one under it.
+      const chance = VIEW.meadow.bushChance;
+      VIEW.meadow.bushChance = Math.max(chance, 0.4);
+      const g = c.getContext('2d');
+      g.setTransform(1, 0, 0, 1, 0, 0);
+      g.clearRect(0, 0, c.width, c.height);
+      const st = 42;
+      drawMeadowGround(g, { width: Math.ceil(c.width / st), height: Math.ceil(c.height / st), tile: st });
+      drawCatsOn(g, st, [[c.width / 2 - st / 2, c.height / 2 - st / 2, 3]]);
+      VIEW.meadow.bushChance = chance;
+    }
+    VIEW.meadow.bushStyle = keep;
+  }
+
+  function readout() {
+    const lines = ['// paste into BOTH anim.js (VIEW.meadow) and meadow.js (MEADOW_DEFAULTS)'];
+    for (const [key] of DIALS) lines.push(`${key}: ${VIEW.meadow[key]},`);
+    lines.push(`bushStyle: '${VIEW.meadow.bushStyle}',`);
+    document.getElementById('readout').value = lines.join('\n');
+  }
+
+  // --- controls ---
+  const phaseRow = document.getElementById('phases');
+  for (const p of PHASES) {
+    const b = document.createElement('button');
+    b.textContent = p;
+    b.onclick = () => {
+      phase = p;
+      [...phaseRow.children].forEach((c) => c.setAttribute('aria-pressed', String(c === b)));
+      render();
+    };
+    b.setAttribute('aria-pressed', String(p === phase));
+    phaseRow.appendChild(b);
+  }
+
+  const styleRow = document.getElementById('bush-styles');
+  for (const s of STYLES) {
+    const b = document.createElement('button');
+    b.textContent = s;
+    b.onclick = () => {
+      VIEW.meadow.bushStyle = s;
+      [...styleRow.children].forEach((c) => c.setAttribute('aria-pressed', String(c === b)));
+      render();
+    };
+    b.setAttribute('aria-pressed', String(s === VIEW.meadow.bushStyle));
+    styleRow.appendChild(b);
+  }
+
+  const dialHost = document.getElementById('dials');
+  for (const [key, min, max, step] of DIALS) {
+    const l = document.createElement('label');
+    l.innerHTML = `<span class="name">${key}</span>`;
+    const input = document.createElement('input');
+    Object.assign(input, { type: 'range', min, max, step, value: VIEW.meadow[key] });
+    const out = document.createElement('output');
+    out.textContent = VIEW.meadow[key];
+    input.oninput = () => {
+      VIEW.meadow[key] = parseFloat(input.value);
+      out.textContent = input.value;
+      render();
+    };
+    l.append(input, out);
+    dialHost.appendChild(l);
+  }
+
+  const blendEl = document.getElementById('blend');
+  blendEl.oninput = () => {
+    blend = parseFloat(blendEl.value);
+    document.getElementById('blend-out').textContent = blend.toFixed(2);
+    render();
+  };
+  const tileEl = document.getElementById('tile');
+  tileEl.oninput = () => {
+    tile = parseInt(tileEl.value, 10);
+    document.getElementById('tile-out').textContent = tile;
+    render();
+  };
+
+  document.getElementById('copy').onclick = async () => {
+    await navigator.clipboard.writeText(document.getElementById('readout').value);
+  };
+  document.getElementById('reset').onclick = () => {
+    Object.assign(VIEW.meadow, MEADOW_DEFAULTS);
+    for (const l of dialHost.querySelectorAll('label')) {
+      const key = l.querySelector('.name').textContent;
+      l.querySelector('input').value = VIEW.meadow[key];
+      l.querySelector('output').textContent = VIEW.meadow[key];
+    }
+    [...styleRow.children].forEach((c) =>
+      c.setAttribute('aria-pressed', String(c.textContent === VIEW.meadow.bushStyle)));
+    render();
+  };
+
+  render();
+})();
+</script>
+</body>
+</html>

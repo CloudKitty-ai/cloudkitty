@@ -118,6 +118,7 @@ const VIEW = Object.freeze({
     bloomChance: 0.045, // tiles with a flower
     bushChance: 0.05, // tiles with a clump of tufted ground cover
     bushAlpha: 0.5, // and how strongly it reads against the grass
+    bushStyle: 'cover', // 'cover' | 'tuft' | 'bramble' | 'shrub' (gallery-meadow.html)
     shoreRounding: 0.45, // pond corner rounding, in tiles
     shoreWobble: 0.07, // organic shoreline waviness, in tiles
     lilyPadMinTiles: 4, // ponds at least this big carry a lily pad

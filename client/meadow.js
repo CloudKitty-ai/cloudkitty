@@ -342,6 +342,7 @@ const MEADOW_DEFAULTS = Object.freeze({
   bloomChance: 0.045, // tiles with a flower
   bushChance: 0.05, // tiles with a clump of tufted ground cover
   bushAlpha: 0.5, // and how strongly it reads against the grass
+  bushStyle: 'cover', // 'cover' | 'tuft' | 'bramble' | 'shrub' (gallery-meadow.html)
   shoreRounding: 0.45, // pond corner rounding, in tiles
   shoreWobble: 0.07, // organic shoreline waviness, in tiles
   lilyPadMinTiles: 4, // ponds at least this big carry a lily pad
@@ -561,15 +562,25 @@ function drawGroundDetail(ctx, { width, height, tile, t }) {
     }
   }
 
-  // --- clumps of tufted growth: overlapping lobes, low and soft.
-  //
-  //     These were drawn as proper shrubs first and it was wrong: the
-  //     ground cache sits under EVERYTHING, so a cat crossing one stood
-  //     on top of it and the shrub read as a puddle. Nothing in this
-  //     renderer y-sorts -- elements draw before cats, always -- so a
-  //     bush that a cat can walk behind needs a sorted sprite layer that
-  //     does not exist yet. Until it does, these are ground cover: low,
-  //     desaturated, and unbothered by being stood on. ---
+  drawGroundCover(ctx, { width, height, tile, t });
+}
+
+/**
+ * The scrubby growth between the grass -- in one of four vocabularies,
+ * named by `bushStyle` so the meadow lab dials exactly what ships
+ * (gallery-meadow.html).
+ *
+ * The constraint that shapes all of them: this bakes into the ground
+ * cache, which sits under EVERYTHING. Nothing in the renderer y-sorts --
+ * elements draw before cats, always -- so a cat crossing one of these
+ * draws on top of it. Anything that reads as standing UP off the ground
+ * therefore reads wrong the moment a cat walks through it, which is why
+ * the shipped default lies flat. `shrub` is kept anyway, because seeing
+ * the failure is the fastest way to judge whether a sorted sprite layer
+ * is worth building.
+ */
+function drawGroundCover(ctx, { width, height, tile, t }) {
+  const style = t.bushStyle || 'cover';
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       if (tileHash(x, y, MEADOW_SALTS.bush) < 1 - t.bushChance) continue;
@@ -577,45 +588,95 @@ function drawGroundDetail(ctx, { width, height, tile, t }) {
       const bx = (x + 0.5) * tile;
       const by = (y + 0.5) * tile;
       const r = (0.26 + s * 0.18) * tile;
-      // Its own shadow, on the same sun the cats use.
-      const lean = MEADOW.shadowLean ?? 0;
-      const length = MEADOW.shadowLength ?? 1;
-      ctx.globalAlpha = 1 / Math.max(1, length * 0.8);
-      ctx.fillStyle = MEADOW.groundShadow;
-      ctx.beginPath();
-      ctx.ellipse(
-        bx + lean * (r * length - r),
-        by + r * 0.52,
-        r * length,
-        r * 0.3,
-        0,
-        0,
-        TAU,
-      );
-      ctx.fill();
-      ctx.globalAlpha = t.bushAlpha;
-      ctx.fillStyle = MEADOW.bush;
-      for (let i = 0; i < 4; i++) {
-        const a = (i / 4) * TAU + s * 5;
+
+      if (style === 'shrub') {
+        // Standing growth, with the leaning shadow that says so. Correct
+        // only where nothing walks through it.
+        const lean = MEADOW.shadowLean ?? 0;
+        const length = MEADOW.shadowLength ?? 1;
+        ctx.globalAlpha = 1 / Math.max(1, length * 0.8);
+        ctx.fillStyle = MEADOW.groundShadow;
         ctx.beginPath();
-        // Flattened lobes: growth lying on the ground, not standing up
-        // off it, which is the only thing this layer can honestly draw.
-        ctx.ellipse(
-          bx + Math.cos(a) * r * 0.42,
-          by + Math.sin(a) * r * 0.26,
-          r * 0.62,
-          r * 0.42,
-          0,
-          0,
-          TAU,
-        );
+        ctx.ellipse(bx + lean * (r * length - r), by + r * 0.52, r * length, r * 0.3, 0, 0, TAU);
+        ctx.fill();
+        ctx.globalAlpha = t.bushAlpha;
+        ctx.fillStyle = MEADOW.bush;
+        for (let i = 0; i < 4; i++) {
+          const a = (i / 4) * TAU + s * 5;
+          ctx.beginPath();
+          ctx.arc(bx + Math.cos(a) * r * 0.42, by + Math.sin(a) * r * 0.3, r * 0.62, 0, TAU);
+          ctx.fill();
+        }
+        ctx.globalAlpha = t.bushAlpha * 0.5;
+        ctx.fillStyle = MEADOW.bushHi;
+        ctx.beginPath();
+        ctx.arc(bx - r * 0.22, by - r * 0.3, r * 0.3, 0, TAU);
+        ctx.fill();
+      } else if (style === 'tuft') {
+        // A fan of blades from one root: long grass rather than a bush.
+        // Nothing to stand on, so a cat crossing it reads as wading.
+        ctx.globalAlpha = t.bushAlpha;
+        ctx.strokeStyle = MEADOW.bush;
+        ctx.lineWidth = Math.max(1, tile * 0.045);
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        for (let i = 0; i < 7; i++) {
+          const spread = (i / 6 - 0.5) * 1.5;
+          ctx.moveTo(bx + spread * r * 0.5, by + r * 0.3);
+          ctx.quadraticCurveTo(
+            bx + spread * r * 0.9,
+            by - r * 0.2,
+            bx + spread * r * 1.5 + (s - 0.5) * r * 0.6,
+            by - r * (0.5 + s * 0.4),
+          );
+        }
+        ctx.stroke();
+      } else if (style === 'bramble') {
+        // A scatter of small leaves: texture rather than a silhouette,
+        // and the least bothered of the four by being walked over.
+        ctx.globalAlpha = t.bushAlpha;
+        ctx.fillStyle = MEADOW.bush;
+        for (let i = 0; i < 9; i++) {
+          const a = (i / 9) * TAU + s * 7;
+          const d = 0.25 + ((i * 37) % 11) / 11 * 0.75;
+          ctx.beginPath();
+          ctx.ellipse(
+            bx + Math.cos(a) * r * d,
+            by + Math.sin(a) * r * d * 0.6,
+            r * 0.24,
+            r * 0.16,
+            a,
+            0,
+            TAU,
+          );
+          ctx.fill();
+        }
+      } else {
+        // 'cover' -- the shipped default: flattened overlapping lobes,
+        // lying on the ground, casting nothing. A cat standing on it
+        // reads as a cat on a denser patch of grass, which is true.
+        ctx.globalAlpha = t.bushAlpha;
+        ctx.fillStyle = MEADOW.bush;
+        for (let i = 0; i < 4; i++) {
+          const a = (i / 4) * TAU + s * 5;
+          ctx.beginPath();
+          ctx.ellipse(
+            bx + Math.cos(a) * r * 0.42,
+            by + Math.sin(a) * r * 0.26,
+            r * 0.62,
+            r * 0.42,
+            0,
+            0,
+            TAU,
+          );
+          ctx.fill();
+        }
+        ctx.globalAlpha = t.bushAlpha * 0.5;
+        ctx.fillStyle = MEADOW.bushHi;
+        ctx.beginPath();
+        ctx.ellipse(bx - r * 0.22, by - r * 0.22, r * 0.3, r * 0.2, 0, 0, TAU);
         ctx.fill();
       }
-      ctx.globalAlpha = t.bushAlpha * 0.5;
-      ctx.fillStyle = MEADOW.bushHi;
-      ctx.beginPath();
-      ctx.arc(bx - r * 0.22, by - r * 0.3, r * 0.3, 0, TAU);
-      ctx.fill();
       ctx.globalAlpha = 1;
     }
   }
