@@ -49,6 +49,14 @@ const VIEW = Object.freeze({
   // inside the slot. All of it is hashed from (id, slot), never random, so
   // `motionFor` stays a pure function of (id, pose, now) -- still frames,
   // reduced motion and the harness all depend on that.
+  // Owner-dialled 2026-08-06, and the intent matters more than the
+  // numbers: a new viewer should think "did that cat just slow blink?",
+  // watch for a while, and find the occasional blink or ear twitch --
+  // common enough to be really there, rare enough to stay a treat. So the
+  // long quiet stretches are the point, not a shortfall. Measured over 30
+  // minutes, the gaps where all four cats are still run 1.79s +/- 1.47s
+  // (median 1.54s, p99 6.3s); before any of this it was a flat 0.9s.
+  // Anything that makes the meadow busier is trading that feeling away.
   idleBlinkWeight: 35,
   idleEarsWeight: 30,
   // A slot where nothing happens. It is what makes the other two feel
