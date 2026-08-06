@@ -257,10 +257,8 @@
     const cw = c.width / cols;
     g.setTransform(1, 0, 0, 1, 0, 0);
     g.clearRect(0, 0, c.width, c.height);
-    // A plain ground under the whole strip, cover suppressed: the only
-    // shrub in each cell is the one placed by hand below.
-    const bare = { ...VIEW.meadow, bushChance: 0, bloomChance: 0.02 };
-    const keep = VIEW.meadow;
+    // A plain ground under the whole strip: `cover: false` suppresses the
+    // scatter, so the only growth in each cell is the one placed by hand.
     drawMeadowGround(g, { width: Math.ceil(c.width / st), height: Math.ceil(c.height / st), tile: st, cover: false });
 
     const theme = blend > 0.5 ? nextPhase(phase) : phase;

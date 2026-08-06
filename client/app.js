@@ -298,6 +298,11 @@ const SKY_DIAL = Object.freeze({
   domeDay: 'rgba(240, 228, 205, 0.45)',
   domeDusk: 'rgba(255, 196, 130, 0.5)',
   domeNight: 'rgba(43, 39, 51, 0.6)',
+  // Dawn's dome, cool and dim where dusk's is amber. Without it the
+  // dial painted full daylight through the whole dawn phase while the
+  // page, the meadow and the fur were all in the dim set -- the one
+  // thing that tells you what hour you are in, misreporting it.
+  domeDawn: 'rgba(206, 208, 224, 0.5)',
   // A richer gold than the sparkle stars: on the tan dome the soft
   // #f4c95d read dim (owner call, 2026-07-23), so the disc deepens and
   // takes a crisp rim, outline-first like the cats.
@@ -361,6 +366,7 @@ function drawSkyDial(tick) {
   ctx.fillStyle =
     hour === 'night' ? SKY_DIAL.domeNight
     : hour === 'dusk' ? SKY_DIAL.domeDusk
+    : hour === 'dawn' ? SKY_DIAL.domeDawn
     : SKY_DIAL.domeDay;
   ctx.fill();
 
@@ -372,7 +378,10 @@ function drawSkyDial(tick) {
 
   if (sky.body === 'sun') {
     // Twilight wears the setting-sun red; the high sun stays gold.
-    const low = hour === 'dusk';
+    // Both twilights sit on a horizon, so both get the low-sun disc --
+    // a rising sun is as red as a setting one. Gating on 'dusk' alone
+    // drew dawn's horizon sun in high-noon gold.
+    const low = hour === 'dusk' || hour === 'dawn';
     ctx.strokeStyle = low ? SKY_DIAL.duskSunRay : SKY_DIAL.sunRay;
     ctx.lineWidth = 1.2;
     ctx.lineCap = 'round';

@@ -257,11 +257,13 @@
      it puts the whole world and every card on screen at once, and frees
      the height the panel used to take below the map.
 
-     The middle column is `minmax(0, 1fr)` so it reports the room actually
-     available rather than being inflated by the canvas inside it: the
-     renderer measures `.stage-cell` to decide how big a tile can be, and
-     a cell sized BY its own canvas would be circular. The stage stays
-     `max-content` so its card background hugs the map, not the column.
+     The renderer works out its own width budget from `.layout` minus the
+     card columns -- NOT from the map's cell, which is content-sized and
+     therefore exactly as wide as the canvas already inside it. Asking the
+     cell would be circular and the map could never grow. That is why the
+     middle column can be `auto` rather than `1fr`; see the rule below for
+     why `1fr` was rejected. The stage stays `max-content` so its card
+     background hugs the map rather than the whole column.
 
      This block must stay AFTER the plain `.panel` rule above: media
      queries add no specificity, so an earlier `display: contents` loses

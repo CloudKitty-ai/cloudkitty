@@ -316,6 +316,7 @@ const MEADOW_SALTS = Object.freeze({
   bladeY: 15,
   bloom: 17,
   bloomX: 18,
+  bloomY: 16,
   bush: 19,
   bushShape: 20,
 });
@@ -559,7 +560,11 @@ function drawGroundDetail(ctx, { width, height, tile, t }) {
       if (tileHash(x, y, MEADOW_SALTS.bloom) < 1 - t.bloomChance) continue;
       const k = tileHash(x, y, MEADOW_SALTS.bloomX);
       const bx = (x + 0.25 + k * 0.5) * tile;
-      const by = (y + 0.25 + tileHash(x, y, MEADOW_SALTS.blade) * 0.5) * tile;
+      // Its own channel, not the tuft's: sharing `blade` tied a flower's
+      // height in its tile to whether that tile also grew grass, so
+      // every bloom in the upper part of the band sat on bare ground
+      // and every one below it sat in a tuft.
+      const by = (y + 0.25 + tileHash(x, y, MEADOW_SALTS.bloomY) * 0.5) * tile;
       const r = tile * 0.055;
       ctx.fillStyle = MEADOW.bloom;
       if (fine) {

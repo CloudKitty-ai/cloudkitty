@@ -23,7 +23,13 @@ const MAP_MAX_PX = 1200;
  * scrollbar on the larger displays, which is exactly the inter-section
  * margin this constant stands in for. Verified scrollbar-free across the
  * display matrix at both 20x20 and 24x24 -- if that ever regresses, this
- * is the first number to suspect. */
+ * is the first number to suspect.
+ *
+ * The invariant is narrower than it reads: it holds where the cards sit
+ * BESIDE the map (>= 1100px). Below that breakpoint they stack under it
+ * and their height is real vertical chrome this sum does not include, so
+ * a narrow window scrolls to reach them -- accepted (owner, 2026-08-05:
+ * phones may scroll for the cards). */
 const VERTICAL_SLACK = 30;
 
 const MEOW_TEXT = {
@@ -151,7 +157,14 @@ class WorldRenderer {
       besideWidth -
       (besideWidth > 0 ? gap * columns.length : 0) -
       stagePadX;
-    const heightBudget = (doc.clientHeight || 800) - chromeY;
+    // Floored, and not only for tidiness: chromeY can exceed the viewport
+    // on a very short window, and a negative budget used to reach `scale`
+    // below and produce a negative CSS width. The CSSOM rejects that, so
+    // `canvas.style.width` keeps its old value while the guard keeps
+    // comparing it against a string that can never be assigned -- which
+    // mismatches on EVERY frame and rebakes the whole ground cache at
+    // 60fps. The tile had a floor already; the budget did not.
+    const heightBudget = Math.max(120, (doc.clientHeight || 800) - chromeY);
     this.tile = Math.max(
       8,
       Math.floor(
@@ -168,7 +181,7 @@ class WorldRenderer {
     // enough world (45+ tiles) is irreducibly wider than a phone. The
     // display scale absorbs the difference: the canvas still renders at
     // the floor and the browser shrinks the result to fit.
-    const scale = Math.min(1, widthBudget / cssWidth, heightBudget / cssHeight);
+    const scale = Math.max(0.05, Math.min(1, widthBudget / cssWidth, heightBudget / cssHeight));
     const displayWidth = `${cssWidth * scale}px`;
     const dpr = window.devicePixelRatio || 1;
 
