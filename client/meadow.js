@@ -623,6 +623,25 @@ function bushesFor(width, height, t, occupied) {
   return out;
 }
 
+/**
+ * Depth-sort keys, in tiles measured from a tile's top edge.
+ *
+ * Shared so the renderer and the meadow lab cannot disagree about what
+ * "in front" means. Both are GROUND CONTACT points, because that is what
+ * decides which of two things is nearer: a cat's ground line sits 88% down
+ * its box (the same 0.88 the landing settle and the header wordmark use),
+ * and a shrub's is its base, below the canopy standing up off it.
+ */
+const CAT_GROUND_LINE = 0.88;
+
+function catSortKey(pos) {
+  return pos.y + CAT_GROUND_LINE;
+}
+
+function coverSortKey(bush, t) {
+  return bush.y + t.bushBase;
+}
+
 /** One clump, at tile coordinates. Split out of the scatter so the
  *  renderer can interleave these with the cats by depth. */
 function drawBushAt(ctx, { x, y, seed, tile, t }) {

@@ -270,13 +270,13 @@ class WorldRenderer {
       // its tile instead put a shrub on top of a cat sharing its tile --
       // the exact bug the sort exists to fix.
       layer.push({
-        y: bush.y + VIEW.meadow.bushBase,
+        y: coverSortKey(bush, VIEW.meadow),
         draw: () => drawBushAt(this.ctx, { ...bush, tile: this.tile, t: VIEW.meadow }),
       });
     }
     for (const kitty of world.kitties) {
       layer.push({
-        y: view.posFor(kitty).y + 0.88,
+        y: catSortKey(view.posFor(kitty)),
         draw: () => this.drawKitty(kitty, world, view),
       });
     }

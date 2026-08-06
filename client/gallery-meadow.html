@@ -66,6 +66,20 @@
   </p>
   <canvas id="stage" width="960" height="600"></canvas>
 
+  <h2>Occlusion — a cat walking past a shrub</h2>
+  <p class="note">
+    The same cat at five depths relative to one shrub, drawn through the
+    renderer's own sort keys (<code>catSortKey</code> /
+    <code>coverSortKey</code> in meadow.js, shared so this and the live page
+    cannot disagree). The cat should be <strong>hidden</strong> at −1 and
+    <strong>in front</strong> at +1; where it flips is
+    <code>bushBase</code>, and how much there is to hide behind is
+    <code>bushLift</code>. Set <code>bushLift</code> to 0 and nothing
+    occludes at all — the shrub no longer leaves its tile.
+  </p>
+  <canvas id="occlusion" width="960" height="230"></canvas>
+  <div class="styles" id="occ-labels" style="grid-template-columns: repeat(5, 1fr);"></div>
+
   <h2>Ground cover — the four styles, same seed</h2>
   <p class="note">
     All four bake into the ground cache, which sits under everything: nothing
@@ -226,7 +240,57 @@
       `${tile}px tile — ${tile >= 44 ? 'above' : 'below'} the fine-detail threshold (44px). `
       + `Demo world today is 31px; WQHD reaches 47px; 20x20 reaches 54px.`;
     renderStyles();
+    renderOcclusion();
     readout();
+  }
+
+  /** A cat at five depths past one shrub, sorted exactly as the renderer
+   *  sorts -- so dialing bushLift/bushBase here answers "does a cat go
+   *  behind this?" for the live page too. */
+  const OCC_OFFSETS = [-1, -0.5, 0, 0.5, 1];
+
+  function renderOcclusion() {
+    const c = document.getElementById('occlusion');
+    const g = c.getContext('2d');
+    const st = 62;
+    const cols = OCC_OFFSETS.length;
+    const cw = c.width / cols;
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.clearRect(0, 0, c.width, c.height);
+    // A plain ground under the whole strip, cover suppressed: the only
+    // shrub in each cell is the one placed by hand below.
+    const bare = { ...VIEW.meadow, bushChance: 0, bloomChance: 0.02 };
+    const keep = VIEW.meadow;
+    drawMeadowGround(g, { width: Math.ceil(c.width / st), height: Math.ceil(c.height / st), tile: st, cover: false });
+
+    const theme = blend > 0.5 ? nextPhase(phase) : phase;
+    OCC_OFFSETS.forEach((dy, i) => {
+      g.save();
+      g.beginPath();
+      g.rect(i * cw, 0, cw, c.height);
+      g.clip();
+      const bushTile = { x: (i * cw + cw / 2) / st - 0.5, y: 1.5, seed: 0.55 };
+      const catPos = { x: bushTile.x, y: bushTile.y + dy };
+      const items = [
+        { y: coverSortKey(bushTile, VIEW.meadow),
+          draw: () => drawBushAt(g, { ...bushTile, tile: st, t: VIEW.meadow }) },
+        { y: catSortKey(catPos),
+          draw: () => drawCatsOn(g, st, [[catPos.x * st, catPos.y * st, 3]]) },
+      ];
+      items.sort((a, b) => a.y - b.y);
+      for (const it of items) it.draw();
+      g.restore();
+    });
+
+    const host = document.getElementById('occ-labels');
+    if (host.children.length !== cols) {
+      host.innerHTML = '';
+      for (const dy of OCC_OFFSETS) {
+        const f = document.createElement('figcaption');
+        f.textContent = `${dy > 0 ? '+' : ''}${dy} tile`;
+        host.appendChild(f);
+      }
+    }
   }
 
   /** One small canvas per style, same seed and settings, cat included. */
