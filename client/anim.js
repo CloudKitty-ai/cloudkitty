@@ -117,8 +117,10 @@ const VIEW = Object.freeze({
     bladeAlpha: 0.38,
     bloomChance: 0.05, // tiles with a flower
     bushChance: 0.025, // tiles with a clump of tufted ground cover
-    bushAlpha: 0.4, // and how strongly it reads against the grass
-    bushStyle: 'shrub', // 'cover' | 'tuft' | 'bramble' | 'shrub' (gallery-meadow.html)
+    bushAlpha: 0.9, // and how strongly it reads against the grass
+    // 'cover' | 'tuft' | 'bramble' (flat) | 'shrub' | 'grown' | 'trunk' |
+    // 'tall' (standing). Judged in gallery-meadow.html.
+    bushStyle: 'trunk',
     // The shrub's shadow, damped against the cats': a squat canopy sits
     // close to the ground, so it stretches far less and needs no alpha
     // falloff. Only the LENGTH is damped -- the lean also anchors the
