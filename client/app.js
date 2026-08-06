@@ -479,12 +479,6 @@ function renderPanel(world) {
   // After the text lands, not before: the fit test measures real cards, and
   // an un-filled card is the wrong height.
   placeCards();
-  // The map is sized by the renderer on its own frame, so on the very first
-  // push -- and on any roster change -- this runs before the canvas has its
-  // real height and decides against a map that is still growing. A later
-  // tick would put it right, but a frozen world has no later tick, so take
-  // the reading again once the frame the renderer drew is on screen.
-  if (needsRebuild) requestAnimationFrame(placeCards);
 }
 
 /**
@@ -770,11 +764,20 @@ async function start() {
   }
 }
 
-// A world push already re-runs the fit, but a tick is up to 800ms away and a
-// window drag should not lag that far behind. The reading here can be one
-// frame stale -- the renderer resizes the canvas on its own rAF -- and that
-// is fine: the next tick re-measures and settles it.
-window.addEventListener('resize', placeCards);
+// Watch the map itself rather than the window. A `resize` listener fires
+// while the canvas is still the size the PREVIOUS display gave it -- the
+// renderer resizes it on its own frame -- so dragging the window between a
+// large screen and a small one decided the split against the screen just
+// left: cards overflowing the map on the smaller one, cards split on the
+// larger one that had room for the stack. A live world hid it by
+// re-measuring on the next tick; a frozen one has no next tick and the
+// wrong answer simply stayed. Observing the canvas fires once it has
+// actually changed size, which is the moment the fit test wants, and it
+// covers everything that can move the map: viewport, world size, dpr.
+// This settles rather than looping -- placing the cards can resize the map,
+// but re-running the test on the new size returns the same answer and
+// writes nothing (see `placeCards`).
+new ResizeObserver(placeCards).observe(canvas);
 
 // The debug toggles, all in one mold (spec 008 FR-004/FR-009): `g` reveals
 // greebles, `l` the demoted grid lines, `p` the session's worn paths. Each
