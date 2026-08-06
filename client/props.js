@@ -42,14 +42,16 @@ const PROPS_DAY = Object.freeze({
 
 /**
  * The props after sundown. Only what must change changes: the drawn ink
- * (Zs, yarn wraps) flips pale so it holds against dark grass, and shadows
- * deepen to moonlight. The furniture keeps its daytime colors -- a
+ * (Zs, yarn wraps) flips pale so it holds against dark grass, and the
+ * shadows go away entirely. The furniture keeps its daytime colors -- a
  * terracotta bowl at night is still a terracotta bowl.
  */
 const PROPS_NIGHT = Object.freeze({
   ...PROPS_DAY,
   ink: '#e6dccb',
-  shadow: 'rgba(8, 10, 20, 0.4)',
+  // Transparent, matching the meadow: nothing casts after dark, and a
+  // firefly least of all (2026-08-05).
+  shadow: 'rgba(8, 10, 20, 0)',
 });
 
 /** Golden hour barely touches the props: the daytime ink still reads on
@@ -59,17 +61,34 @@ const PROPS_DUSK = Object.freeze({
   shadow: 'rgba(110, 75, 85, 0.28)',
 });
 
+/** Dawn does to the props what dusk does, in the opposite temperature:
+ * the daytime ink still reads on cool grass, and the shadows go long and
+ * cold instead of long and warm. */
+const PROPS_DAWN = Object.freeze({
+  ...PROPS_DAY,
+  shadow: 'rgba(55, 60, 66, 0.28)',
+});
+
 /** The active palette; the theme switch (app.js setTheme) swaps it. */
 const PROPS_BY_THEME = Object.freeze({
   day: PROPS_DAY,
   dusk: PROPS_DUSK,
   night: PROPS_NIGHT,
+  dawn: PROPS_DAWN,
 });
 
 let PROPS = PROPS_DAY;
 
-function setPropPalette(theme) {
-  PROPS = PROPS_BY_THEME[theme] ?? PROPS_DAY;
+/** As setMeadowPalette: a named palette, or a blend of two between
+ *  phases. `mixPalettes` lives in meadow.js, which loads after this file
+ *  but well before anything calls in here. */
+function setPropPalette(theme, next, t = 0) {
+  const from = PROPS_BY_THEME[theme] ?? PROPS_DAY;
+  if (!next || t <= 0) {
+    PROPS = from;
+    return;
+  }
+  PROPS = mixPalettes(from, PROPS_BY_THEME[next] ?? from, t);
 }
 
 /**
@@ -104,6 +123,21 @@ const PROP_DEFAULTS = Object.freeze({
 
 function propTunables() {
   return (typeof VIEW !== 'undefined' && VIEW.props) || PROP_DEFAULTS;
+}
+
+/**
+ * Where the sun is, for anything here that casts a shadow (v3). The
+ * values live in the meadow palette because they describe the world's
+ * light rather than any one prop -- but gallery.html loads this file
+ * WITHOUT meadow.js, so the read is defensive and falls back to a sun
+ * directly overhead. Same defer-if-present shape as propTunables above.
+ */
+function sunShadow() {
+  const world = typeof MEADOW !== 'undefined' ? MEADOW : null;
+  return {
+    lean: typeof world?.shadowLean === 'number' ? world.shadowLean : 0,
+    length: typeof world?.shadowLength === 'number' ? world.shadowLength : 1,
+  };
 }
 
 /** The wisp's not-quite-there outline (R6): dashed, unlike everything else. */
@@ -221,9 +255,26 @@ function drawButterfly(ctx, opts) {
   const hover = t.hoverLift + t.bobAmplitude * Math.sin(bobPhase * TAU);
 
   propBox(ctx, size, x, y, () => {
-    // The shadow keeps to the ground -- the gap is what says "flying".
+    // The shadow keeps to the ground -- the gap is what says "flying" --
+    // and leans and stretches with the sun, like the cats' (v3). No alpha
+    // falloff here, unlike the cat shadow: the caller owns globalAlpha
+    // for the element fade, and reading it back is not safe against the
+    // harness's mock ctx, which answers every property with a function.
+    // Anchored the same way the cats' shadows are: the sun-side edge stays
+    // put and only the far edge travels.
+    const sun = sunShadow();
+    const footprint = 0.13 + 0.03 * flap;
+    const halfWidth = footprint * sun.length;
     ctx.beginPath();
-    ctx.ellipse(0.5, 0.80, 0.13 + 0.03 * flap, 0.042, 0, 0, TAU);
+    ctx.ellipse(
+      0.5 + sun.lean * (halfWidth - footprint),
+      0.80,
+      halfWidth,
+      0.042,
+      0,
+      0,
+      TAU,
+    );
     ctx.fillStyle = PROPS.shadow;
     ctx.fill();
 

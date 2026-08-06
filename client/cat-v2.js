@@ -152,7 +152,7 @@ function appearanceFor(kittyId) {
  * night are when a cat's eyes shine. The night factor was tuned live
  * (2026-07-22); dusk barely dims -- golden hour flatters the fur.
  */
-const FUR_SHADE_BY_THEME = Object.freeze({ day: 1, dusk: 0.96, night: 0.89 });
+const FUR_SHADE_BY_THEME = Object.freeze({ day: 1, dusk: 0.96, night: 0.89, dawn: 0.94 });
 
 function shadeHex(hex, factor) {
   const n = parseInt(hex.slice(1), 16);
@@ -461,14 +461,19 @@ function catLayout(pose, phase) {
       // The wading kitty (spec 010's parked pose): a low flat float, head
       // and ears dry, legs paddling out of sight below the surface (none
       // drawn -- blends shrink them away on the way in). Paddling reads
-      // as a gentle bob plus a slow body rock; the droplet doubles as the
-      // splash beside the head. Every number lives in SWIM for the lab.
+      // as a gentle bob plus a slow body rock. Every number lives in SWIM
+      // for the lab.
+      //
+      // No splash droplet (owner, 2026-08-04): at 0.028 x 0.04 of a tile
+      // it is a ~2px smudge at any size this world draws at, so it read
+      // as clutter rather than water. Being in water is said by the
+      // ripple and the lost shadow, which are the renderer's job and
+      // scale with the tile.
       const bob = SWIM.bob * Math.sin(phase * TAU);
       const rock = SWIM.rock * Math.sin(phase * TAU * 2);
       L.body = { cx: 0.44, cy: SWIM.bodyY + bob, rx: 0.3, ry: SWIM.bodyRy, rot: rock };
       L.head = { cx: 0.7, cy: SWIM.headY + bob, r: 0.226 };
       L.legs = [];
-      L.droplet = true;
       // Tail trailing behind, tip riding above the surface.
       L.tail = {
         x0: 0.16, y0: SWIM.bodyY + bob,

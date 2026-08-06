@@ -90,8 +90,13 @@ function guardCtx(log = []) {
   );
 }
 
+// MEADOW is a getter, not a value: setMeadowPalette rebinds it, and a
+// snapshot taken at eval time could never see that.
 const EXPORTS =
-  ';({ MEADOW, MEADOW_SALTS, MEADOW_DEFAULTS, tileHash, drawMeadowGround, drawGridOverlay, groupWaterTiles, buildPondPath, drawPonds, drawSunbeamGlow, drawWornPaths, VIEW, Presentation })';
+  ';({ get MEADOW() { return MEADOW; }, MEADOW_DAY, MEADOW_DUSK, MEADOW_NIGHT, setMeadowPalette,' +
+  ' mixPaletteColor, mixPalettes, parsePaletteColor,' +
+  ' MEADOW_DAWN, bushesFor, drawBushAt, drawGroundCover, MEADOW_SALTS, MEADOW_DEFAULTS, tileHash, drawMeadowGround, drawGridOverlay, groupWaterTiles,' +
+  ' buildPondPath, drawPonds, drawSunbeamGlow, drawWornPaths, VIEW, Presentation })';
 const api = eval(src + EXPORTS);
 
 let passed = 0;
@@ -108,6 +113,9 @@ function check(name, fn) {
 }
 function assert(cond, msg) {
   if (!cond) throw new Error(msg);
+}
+function close(a, b, msg) {
+  assert(Math.abs(a - b) < 1e-12, `${msg}: ${a} != ${b}`);
 }
 
 // ---- tunables home ----
@@ -397,6 +405,192 @@ check('viewAt exposes wornPaths in moving and still frames alike', () => {
   p.pushState(world(2, [kitty(1, 2, 2)]), 1800);
   assert(p.viewAt(1900, false).wornPaths().length === 1, 'moving frame');
   assert(p.viewAt(1900, true).wornPaths().length === 1, 'still frame (state, not motion)');
+});
+
+// ---- palette blending (v3): the light crosses, it does not switch ----
+
+check('colours parse from every form the palettes actually use', () => {
+  // #rrggbb, rgba(), and the short hex form, since a future palette may.
+  assert(api.mixPaletteColor('#000000', '#ffffff', 0.5) === 'rgb(128, 128, 128)', 'six-digit hex');
+  assert(api.mixPaletteColor('#000', '#fff', 0) === '#000', 'identity returns the original string');
+  const half = api.mixPaletteColor('rgba(0, 0, 0, 0)', 'rgba(100, 200, 40, 1)', 0.5);
+  assert(half === 'rgba(50, 100, 20, 0.5)', `alpha mixes too, got ${half}`);
+});
+
+check('an unparseable colour snaps rather than throwing', () => {
+  // A palette must never be able to crash a frame.
+  assert(api.mixPaletteColor('not-a-colour', '#ffffff', 0.2) === 'not-a-colour', 'near end wins');
+  assert(api.mixPaletteColor('not-a-colour', '#ffffff', 0.8) === '#ffffff', 'far end wins past halfway');
+});
+
+check('palettes blend entry by entry, arrays included', () => {
+  const mid = api.mixPalettes(api.MEADOW_DAY, api.MEADOW_NIGHT, 0.5);
+  assert(Array.isArray(mid.grassTones), 'grassTones stays an array');
+  assert(mid.grassTones.length === api.MEADOW_DAY.grassTones.length, 'and the same length');
+  for (const tone of mid.grassTones) {
+    assert(/^rgba?\(/.test(tone), `each tone is a real colour, got ${tone}`);
+  }
+  // Midway grass must sit between day and night, not equal either.
+  assert(mid.grassTones[0] !== api.MEADOW_DAY.grassTones[0], 'moved off day');
+  assert(mid.grassTones[0] !== api.MEADOW_NIGHT.grassTones[0], 'and is not night yet');
+  assert(Object.isFrozen(mid), 'blended palettes are frozen like the named ones');
+});
+
+check('the ends of a blend are exactly the named palettes', () => {
+  assert(api.mixPalettes(api.MEADOW_DAY, api.MEADOW_NIGHT, 0) === api.MEADOW_DAY, 't=0 IS day');
+  assert(api.mixPalettes(api.MEADOW_DAY, api.MEADOW_NIGHT, 1) === api.MEADOW_NIGHT, 't=1 IS night');
+});
+
+check('api.setMeadowPalette names one palette or a blend of two', () => {
+  api.setMeadowPalette('day');
+  assert(api.MEADOW === api.MEADOW_DAY, 'a named phase is the frozen set itself');
+  api.setMeadowPalette('day', 'night', 0);
+  assert(api.MEADOW === api.MEADOW_DAY, 'zero blend is still the set itself');
+  api.setMeadowPalette('day', 'night', 0.5);
+  assert(api.MEADOW !== api.MEADOW_DAY && api.MEADOW !== api.MEADOW_NIGHT, 'mid-crossing is neither');
+  assert(typeof api.MEADOW.pondWater === 'string', 'and still reads as colour strings');
+  api.setMeadowPalette('day'); // leave the module as we found it
+});
+
+// ---- the sun's position (v3): shadows lean and stretch with the hour ----
+
+check('every phase says where its sun is', () => {
+  for (const [name, pal] of [
+    ['day', api.MEADOW_DAY],
+    ['dusk', api.MEADOW_DUSK],
+    ['night', api.MEADOW_NIGHT],
+    ['dawn', api.MEADOW_DAWN],
+  ]) {
+    assert(typeof pal.shadowLean === 'number', `${name} has a lean`);
+    assert(typeof pal.shadowLength === 'number', `${name} has a length`);
+    assert(pal.shadowLength >= 1, `${name}: a shadow never shrinks below the caster`);
+  }
+});
+
+check('shadows fall away from the sun the sky dial draws', () => {
+  // skyForTick hands the dial t=0 (LEFT horizon) exactly as dawn begins
+  // and t~1 (RIGHT) as sunset ends, and the dial runs left -> zenith ->
+  // right. So the shadows must be thrown right at dawn and left at
+  // sunset -- opposite signs, and each opposite to its own sun.
+  assert(api.MEADOW_DAWN.shadowLean > 0.5, 'dawn: sun left, shadow right');
+  assert(api.MEADOW_DUSK.shadowLean < -0.5, 'sunset: sun right, shadow left');
+  assert(
+    Math.sign(api.MEADOW_DAWN.shadowLean) !== Math.sign(api.MEADOW_DUSK.shadowLean),
+    'and the two twilights are genuinely opposite',
+  );
+});
+
+check('the shadow grows away from the light, not both ways', () => {
+  // The geometry render.js and props.js both use: the sun-side edge stays
+  // on the caster's own footprint and only the far edge travels.
+  // The anchor is exact only at |lean| = 1; below that the sun-side edge
+  // creeps out a little, which is the price of multiplying by `lean`
+  // rather than its sign so nothing jumps as the lean crosses zero.
+  const NEARLY = 0.2;
+  const edges = (lean, length, footprint = 1) => {
+    const halfWidth = footprint * length;
+    const centre = lean * (halfWidth - footprint);
+    return [centre - halfWidth, centre + halfWidth];
+  };
+  // Sunset: sun on the right, so the RIGHT edge should barely move while
+  // the left one runs out.
+  const [dl, dr] = edges(api.MEADOW_DUSK.shadowLean, api.MEADOW_DUSK.shadowLength);
+  assert(Math.abs(dr - 1) < NEARLY, `sunset: sun-side edge stays put, got ${dr.toFixed(2)}`);
+  assert(dl < -1.4, `sunset: the far edge runs out, got ${dl.toFixed(2)}`);
+  // Dawn mirrors it.
+  const [wl, wr] = edges(api.MEADOW_DAWN.shadowLean, api.MEADOW_DAWN.shadowLength);
+  assert(Math.abs(wl + 1) < NEARLY, `dawn: sun-side edge stays put, got ${wl.toFixed(2)}`);
+  assert(wr > 1.4, `dawn: the far edge runs out, got ${wr.toFixed(2)}`);
+  // A light straight overhead has no side to run from, so it stays even.
+  const [nl, nr] = edges(api.MEADOW_NIGHT.shadowLean, api.MEADOW_NIGHT.shadowLength);
+  close(nl, -nr, 'overhead light stretches symmetrically');
+});
+
+check('noon is overhead and the moon has no direction', () => {
+  assert(Math.abs(api.MEADOW_DAY.shadowLean) < 0.2, 'noon barely leans');
+  close(api.MEADOW_DAY.shadowLength, 1, 'and casts the shortest shadow');
+  close(api.MEADOW_NIGHT.shadowLean, 0, 'the moon reads as a lamp, not a low sun');
+  assert(api.MEADOW_NIGHT.shadowLength > 1, 'but still stretches a little');
+});
+
+check('the sun swings round across a crossing rather than jumping', () => {
+  // Numbers lerp in mixPalettes, so this comes for free -- which is the
+  // reason the lean was made a number rather than a named direction.
+  const mid = api.mixPalettes(api.MEADOW_DAY, api.MEADOW_DUSK, 0.5);
+  const a = api.MEADOW_DAY.shadowLean;
+  const b = api.MEADOW_DUSK.shadowLean;
+  close(mid.shadowLean, (a + b) / 2, 'lean is halfway');
+  close(
+    mid.shadowLength,
+    (api.MEADOW_DAY.shadowLength + api.MEADOW_DUSK.shadowLength) / 2,
+    'length is halfway',
+  );
+  // And the long way round: night -> dawn passes through zero, so the
+  // shadow shortens toward straight-down before swinging out the far side.
+  const swing = api.mixPalettes(api.MEADOW_NIGHT, api.MEADOW_DAWN, 0.5);
+  assert(
+    swing.shadowLean > api.MEADOW_NIGHT.shadowLean &&
+      swing.shadowLean < api.MEADOW_DAWN.shadowLean,
+    'part way over',
+  );
+});
+
+// ---- ground cover: a scatter the renderer can sort by depth ----
+
+check('bushesFor is deterministic across independent evals', () => {
+  const api2 = eval(src + EXPORTS);
+  const a = api.bushesFor(40, 40, api.VIEW.meadow);
+  const b = api2.bushesFor(40, 40, api.VIEW.meadow);
+  assert(a.length > 0, 'some cover grows at all');
+  assert(JSON.stringify(a) === JSON.stringify(b), 'same world, same shrubs');
+});
+
+check('cover density tracks bushChance', () => {
+  const tiles = 60 * 60;
+  const sparse = api.bushesFor(60, 60, { ...api.VIEW.meadow, bushChance: 0.02 }).length;
+  const dense = api.bushesFor(60, 60, { ...api.VIEW.meadow, bushChance: 0.2 }).length;
+  assert(dense > sparse * 4, `0.2 should far outgrow 0.02, got ${dense} vs ${sparse}`);
+  assert(Math.abs(sparse / tiles - 0.02) < 0.01, `sparse share ${(sparse / tiles).toFixed(3)}`);
+  assert(Math.abs(dense / tiles - 0.2) < 0.03, `dense share ${(dense / tiles).toFixed(3)}`);
+});
+
+check('cover keeps off tiles the server has put something on', () => {
+  const all = api.bushesFor(40, 40, api.VIEW.meadow);
+  assert(all.length > 3, 'enough cover to test with');
+  // Occupy the first few and they must vanish, the rest untouched.
+  const taken = new Set(all.slice(0, 3).map((b) => `${b.x},${b.y}`));
+  const left = api.bushesFor(40, 40, api.VIEW.meadow, taken);
+  assert(left.length === all.length - 3, `expected ${all.length - 3}, got ${left.length}`);
+  for (const b of left) assert(!taken.has(`${b.x},${b.y}`), 'none on an occupied tile');
+});
+
+check('drawBushAt sweeps clean in every style, at every size', () => {
+  for (const bushStyle of ['cover', 'tuft', 'bramble', 'shrub']) {
+    for (const tile of [8, 22, 54]) {
+      const t = { ...api.VIEW.meadow, bushStyle };
+      // A guarding ctx throws on any non-finite argument.
+      api.drawBushAt(guardCtx(), { x: 3, y: 4, seed: 0.42, tile, t });
+      api.drawBushAt(guardCtx(), { x: 0, y: 0, seed: 0, tile, t });
+      api.drawBushAt(guardCtx(), { x: 9, y: 9, seed: 0.999, tile, t });
+    }
+  }
+});
+
+check('standing styles cast a shadow, flat ones do not', () => {
+  const shadowsIn = (bushStyle) => {
+    const log = [];
+    api.drawBushAt(guardCtx(log), {
+      x: 2, y: 2, seed: 0.5, tile: 40, t: { ...api.VIEW.meadow, bushStyle },
+    });
+    return log.filter(([c, p, v]) => c === 'set' && p === 'fillStyle'
+      && String(v) === String(api.MEADOW.groundShadow)).length;
+  };
+  for (const standing of ['shrub', 'grown', 'trunk', 'tall']) {
+    assert(shadowsIn(standing) === 1, `${standing} stands up, so it casts`);
+  }
+  for (const flat of ['cover', 'tuft', 'bramble']) {
+    assert(shadowsIn(flat) === 0, `${flat} lies on the ground and casts nothing`);
+  }
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

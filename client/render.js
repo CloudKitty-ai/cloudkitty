@@ -10,6 +10,28 @@
 // (TILE_COLORS is gone -- spec 008: every ground hue now lives in the named
 // MEADOW palette in meadow.js, beside the drawings that use it.)
 
+/** A ceiling on the map's longest side, in CSS pixels, so a very large
+ * display does not blow the meadow up past the art's comfortable range.
+ * On any normal screen the viewport height binds long before this does. */
+const MAP_MAX_PX = 1200;
+
+/** Slack for the margins between header, map and footer, which are not
+ * worth measuring individually. Too small and the page gains a scrollbar;
+ * too large and the map is needlessly shy of the space it has. Tightened
+ * 40 -> 30 (owner, 2026-08-05) now that the rest of the fit is measured
+ * rather than guessed. 16 was tried and is too tight: it left an 8-12px
+ * scrollbar on the larger displays, which is exactly the inter-section
+ * margin this constant stands in for. Verified scrollbar-free across the
+ * display matrix at both 20x20 and 24x24 -- if that ever regresses, this
+ * is the first number to suspect.
+ *
+ * The invariant is narrower than it reads: it holds where the cards sit
+ * BESIDE the map (>= 1100px). Below that breakpoint they stack under it
+ * and their height is real vertical chrome this sum does not include, so
+ * a narrow window scrolls to reach them -- accepted (owner, 2026-08-05:
+ * phones may scroll for the cards). */
+const VERTICAL_SLACK = 30;
+
 const MEOW_TEXT = {
   want_eat: 'I want to eat!',
   want_drink: 'I want to drink!',
@@ -60,6 +82,11 @@ class WorldRenderer {
     this.showGreebles = false;
     this.showGrid = false; // spec 008 FR-004: the demoted debug lattice
     this.showPaths = false; // spec 008 FR-009: worn trails, off by default
+    // Happiness bars, off by default (owner, 2026-08-05): the cards carry
+    // the same number in words, and a well-trained roster pins happiness
+    // near its ceiling anyway -- so four near-full bars said little while
+    // sitting exactly where the ground shadows fall. `h` brings them back.
+    this.showHappiness = false;
     this.theme = 'day'; // 'day' | 'dusk' | 'night' -- set by setTheme
     // (app.js), which also swaps the MEADOW/PROPS palettes and clears
     // the ground cache
@@ -68,6 +95,10 @@ class WorldRenderer {
     this.cssHeight = 0;
     this.groundCache = null;
     this.pondCache = null; // { signature, ponds } -- rebuilt on water change
+    // The devicePixelRatio the backing store was actually sized with, not
+    // whatever the display reports right now (issue #102). Null until the
+    // first fit.
+    this.dpr = null;
   }
 
   /**
@@ -78,27 +109,97 @@ class WorldRenderer {
    * resize listener required.
    */
   resizeFor(world) {
-    // The desktop cap, shrunk to the viewport on small screens (the body
-    // and stage padding around the canvas total at most 64px).
-    const viewport = document.documentElement.clientWidth || 720;
-    const maxPixels = Math.max(160, Math.min(720, viewport - 64));
-    this.tile = Math.max(8, Math.floor(maxPixels / Math.max(world.width, world.height)));
+    // v3 (2026-08-04): fitted to the room the map actually has, in BOTH
+    // axes. This used to be a flat 720px cap on width alone, so a square
+    // world simply overflowed the viewport vertically and the page
+    // scrolled -- and for a square world HEIGHT is the binding axis,
+    // because screens are wide and not tall. Measured rather than
+    // hardcoded, so reclaiming a header or moving the cards beside the
+    // map (see index.html) feeds straight back into tile size.
+    //
+    // A cat draws at exactly one tile, so the tile IS the cat, and this
+    // is the one dial that sets how big cats are.
+    const doc = document.documentElement;
+    const stage = this.canvas.parentElement;
+    const cell = stage ? stage.parentElement : null;
+    const px = (el, ...sides) => {
+      if (!el) return 0;
+      const cs = getComputedStyle(el);
+      return sides.reduce((sum, side) => sum + (parseFloat(cs[side]) || 0), 0);
+    };
+    const boxOf = (sel) => {
+      const el = document.querySelector(sel);
+      return el ? el.getBoundingClientRect().height : 0;
+    };
+
+    const stagePadX = px(stage, 'paddingLeft', 'paddingRight');
+    const stagePadY = px(stage, 'paddingTop', 'paddingBottom');
+    // Everything the map is not: header, footer, the body's own padding,
+    // the stage's padding, and a little slack for the margins between.
+    const chromeY =
+      boxOf('header') + boxOf('footer') +
+      px(document.body, 'paddingTop', 'paddingBottom') +
+      stagePadY + VERTICAL_SLACK;
+
+    // Width the map may have: the layout's full width less whatever the
+    // card columns take beside it. Measured from `.layout` rather than
+    // from the map's own cell, because a content-sized cell is exactly as
+    // wide as the canvas already in it -- ask that and the map can never
+    // grow. When the cards are stacked below, the columns are
+    // `display: contents` and measure zero, which is the right answer.
+    const layout = cell ? cell.parentElement : null;
+    const columns = layout ? layout.querySelectorAll('.panel-col') : [];
+    let besideWidth = 0;
+    for (const column of columns) besideWidth += column.getBoundingClientRect().width;
+    const gap = layout ? parseFloat(getComputedStyle(layout).columnGap) || 0 : 0;
+    const widthBudget =
+      (layout ? layout.clientWidth : doc.clientWidth) -
+      besideWidth -
+      (besideWidth > 0 ? gap * columns.length : 0) -
+      stagePadX;
+    // Floored, and not only for tidiness: chromeY can exceed the viewport
+    // on a very short window, and a negative budget used to reach `scale`
+    // below and produce a negative CSS width. The CSSOM rejects that, so
+    // `canvas.style.width` keeps its old value while the guard keeps
+    // comparing it against a string that can never be assigned -- which
+    // mismatches on EVERY frame and rebakes the whole ground cache at
+    // 60fps. The tile had a floor already; the budget did not.
+    const heightBudget = Math.max(120, (doc.clientHeight || 800) - chromeY);
+    this.tile = Math.max(
+      8,
+      Math.floor(
+        Math.min(
+          widthBudget / world.width,
+          heightBudget / world.height,
+          MAP_MAX_PX / Math.max(world.width, world.height),
+        ),
+      ),
+    );
     const cssWidth = this.tile * world.width;
     const cssHeight = this.tile * world.height;
     // Integer tiles keep the art crisp, but the 8px floor means a wide
     // enough world (45+ tiles) is irreducibly wider than a phone. The
     // display scale absorbs the difference: the canvas still renders at
     // the floor and the browser shrinks the result to fit.
-    const scale = Math.min(1, maxPixels / cssWidth);
+    const scale = Math.max(0.05, Math.min(1, widthBudget / cssWidth, heightBudget / cssHeight));
     const displayWidth = `${cssWidth * scale}px`;
     const dpr = window.devicePixelRatio || 1;
 
-    if (this.canvas.style.width !== displayWidth) {
+    // The guard watches dpr as well as CSS width (issue #102). Dragging a
+    // window between a Retina and a non-Retina display changes dpr while
+    // the CSS width stays put, so a width-only guard left the backing
+    // store at its old pixel size and old transform -- invisible on its
+    // own, because everything drawn live is then stale *consistently*.
+    // The damage surfaced minutes later, when the day->dusk->night change
+    // nulled the ground cache and it rebaked at the old size with a fresh
+    // dpr, putting the meadow in the upper-left quarter of the map.
+    if (this.canvas.style.width !== displayWidth || this.dpr !== dpr) {
       this.canvas.style.width = displayWidth;
       this.canvas.style.height = `${cssHeight * scale}px`;
       this.canvas.width = Math.floor(cssWidth * dpr);
       this.canvas.height = Math.floor(cssHeight * dpr);
       this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      this.dpr = dpr;
       this.groundCache = null; // new size, new ground
       this.pondCache = null; // and shorelines rebuilt at the new tile size
     }
@@ -159,9 +260,42 @@ class WorldRenderer {
       }
       this.drawElement(el, view.elementAlphaFor(el), view);
     }
-    for (const kitty of world.kitties) {
-      this.drawKitty(kitty, world, view);
+    // Cats and ground cover, interleaved by depth (v3, 2026-08-05).
+    //
+    // Ground cover used to bake into the ground cache, which sits under
+    // everything -- so a cat crossing a shrub walked over the top of it.
+    // Sorting the two together by their drawn y is what lets a cat pass
+    // BEHIND one. Only these two participate: bubbles and thought
+    // bubbles already run as their own passes below, so they stay clear
+    // of cover for free, and served elements are handled by keeping cover
+    // off their tiles entirely (see bushesFor) rather than by sorting --
+    // which avoids dragging bowls and butterflies into the ordering.
+    const cover = typeof bushesFor === 'function'
+      ? bushesFor(world.width, world.height, VIEW.meadow, this.occupiedTiles(world))
+      : [];
+    const layer = [];
+    for (const bush of cover) {
+      // Sorted by GROUND CONTACT, not by tile position: what decides
+      // which of two things is in front is where each one meets the
+      // earth. A cat's ground line is 88% down its box (the same 0.88 the
+      // landing settle and the header wordmark use); a shrub's is its
+      // base, below the canopy that stands up off it. Keying either by
+      // its tile instead put a shrub on top of a cat sharing its tile --
+      // the exact bug the sort exists to fix.
+      layer.push({
+        y: coverSortKey(bush, VIEW.meadow),
+        draw: () => drawBushAt(this.ctx, { ...bush, tile: this.tile, t: VIEW.meadow }),
+      });
     }
+    for (const kitty of world.kitties) {
+      layer.push({
+        y: catSortKey(view.posFor(kitty)),
+        draw: () => this.drawKitty(kitty, world, view),
+      });
+    }
+    layer.sort((a, b) => a.y - b.y);
+    for (const item of layer) item.draw();
+
     this.drawBubbles(world, view);
     // Thought bubbles sit above speech in the stack (the documented
     // two-beats rule): at most one per kitty, only while the wait is long.
@@ -178,15 +312,37 @@ class WorldRenderer {
    * The grid lines that used to live here are now the debug-only overlay
    * behind `l` (spec 008 FR-004).
    */
+  /** Tiles the served world has something standing on: cover skips them,
+   *  which keeps a shrub from sprouting through a bowl without having to
+   *  put elements into the depth sort as well. */
+  occupiedTiles(world) {
+    const taken = new Set();
+    for (const el of world.elements) taken.add(`${el.pos.x},${el.pos.y}`);
+    return taken;
+  }
+
   blitGround(world) {
-    if (!this.groundCache) {
+    // The cache's transform must be the ratio the canvas was SIZED with,
+    // never a freshly-read devicePixelRatio (issue #102): the offscreen is
+    // sized from `this.canvas.width`, so reading the display's current dpr
+    // here straddles the two and paints the meadow into a corner of its
+    // own cache. Belt and braces on top of the resize guard -- the stamp
+    // catches any future path that clears the cache without a resize.
+    const dpr = this.dpr || window.devicePixelRatio || 1;
+    const stale =
+      !this.groundCache ||
+      this.groundCache.dataset.dpr !== String(dpr) ||
+      this.groundCache.width !== this.canvas.width;
+    if (stale) {
       const off = document.createElement('canvas');
       off.width = this.canvas.width;
       off.height = this.canvas.height;
       const g = off.getContext('2d');
-      const dpr = window.devicePixelRatio || 1;
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
-      drawMeadowGround(g, { width: world.width, height: world.height, tile: this.tile });
+      // `cover: false` -- ground cover is drawn per frame instead, sorted
+      // against the cats so they can pass behind it (see draw()).
+      drawMeadowGround(g, { width: world.width, height: world.height, tile: this.tile, cover: false });
+      off.dataset.dpr = String(dpr);
       this.groundCache = off;
     }
     this.ctx.drawImage(this.groundCache, 0, 0, this.cssWidth, this.cssHeight);
@@ -447,26 +603,70 @@ class WorldRenderer {
     }
     const tween = v2Motion && view.tweenFor ? view.tweenFor(kitty.id, pose, motion.phase) : null;
 
-    // A soft shadow so cats sit on the grass rather than float above it.
-    // It follows the drawn silhouette, not the pose label: gone while
-    // swimming, fading with the shoreline blend in either direction (the
-    // label flips at t=0, when the drawn cat is still wholly the from-pose).
-    const shadowAlpha = tween?.blend
-      ? pose === 'swim'
-        ? 1 - tween.blend.t
-        : tween.blend.from === 'swim'
-          ? tween.blend.t
-          : 1
-      : pose === 'swim'
-        ? 0
-        : 1;
+    // Wetness is a fact about the tile, not the pose (owner call,
+    // 2026-08-04). `poseFor` lets an activity outrank the wade, so a cat
+    // drinking in a pond keeps its drinking pose -- but it is still
+    // standing in water and should look it. One eased signal now drives
+    // both cues, the shadow it loses and the ripple it gains, so the two
+    // can never disagree the way the old pose-derived reading could: that
+    // read `pose === 'swim'`, and therefore dried a grooming cat off
+    // while it stood in the pond.
+    const wet = v2Motion && view.wetFor ? view.wetFor(kitty.id, onWater) : 0;
+
+    // A soft shadow so cats sit on the grass rather than float above it --
+    // and, since v3, one that knows where the sun is. It leans and
+    // stretches with the phase (MEADOW.shadowLean / shadowLength), which
+    // is the cue that most says "the hour is moving": short and almost
+    // straight down at noon, long and thrown to one side at sunset, long
+    // to the OTHER side at dawn, and directionless under the moon.
+    // Because both are plain numbers, they interpolate across a phase
+    // crossing for free -- the shadow swings round as the light does.
+    const shadowAlpha = 1 - wet;
     if (shadowAlpha > 0) {
+      const lean = MEADOW.shadowLean ?? 0;
+      const length = MEADOW.shadowLength ?? 1;
+      // A shadow starts at the thing casting it and runs away from the
+      // light -- it does not spread out both ways. So the extra length is
+      // thrown entirely to one side: the sun-side edge stays where the
+      // caster's own footprint is, and only the far edge travels.
+      //
+      // Multiplying the throw by `lean` rather than by its sign keeps this
+      // smooth: at lean 0 (noon, and the moon) the stretch stays
+      // symmetrical, which is right for a light directly overhead, and
+      // nothing jumps as the lean crosses zero between phases.
+      const footprint = this.tile * 0.3;
+      const halfWidth = footprint * length;
+      const offset = lean * (halfWidth - footprint);
       ctx.save();
-      ctx.globalAlpha = shadowAlpha;
+      // Alpha falls as the shadow stretches: the same darkness spread
+      // over more ground would read as a stain rather than a shadow.
+      ctx.globalAlpha = shadowAlpha / Math.max(1, length * 0.8);
       ctx.fillStyle = MEADOW.groundShadow;
       ctx.beginPath();
-      ctx.ellipse(cx, cy + this.tile * 0.32, this.tile * 0.3, this.tile * 0.12, 0, 0, Math.PI * 2);
+      ctx.ellipse(
+        cx + offset,
+        cy + this.tile * 0.32,
+        halfWidth,
+        this.tile * 0.12,
+        0,
+        0,
+        Math.PI * 2,
+      );
       ctx.fill();
+      ctx.restore();
+    }
+    if (wet > 0.01) {
+      // ...and the water it displaces instead. A first pass: the finished
+      // waterline is the pond restyle's business, judged in the lab.
+      ctx.save();
+      ctx.globalAlpha = wet * 0.55;
+      ctx.strokeStyle = MEADOW.pondRim;
+      ctx.lineWidth = Math.max(1, this.tile * 0.045);
+      for (const [rx, ry, dy] of [[0.34, 0.13, 0.3], [0.22, 0.085, 0.36]]) {
+        ctx.beginPath();
+        ctx.ellipse(cx, cy + this.tile * dy, this.tile * rx, this.tile * ry, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
       ctx.restore();
     }
     if (tween?.sy !== undefined) {
@@ -537,7 +737,7 @@ class WorldRenderer {
       }
     }
 
-    this.drawHappinessBar(kitty, x, y, view);
+    if (this.showHappiness) this.drawHappinessBar(kitty, x, y, view);
   }
 
   /**

@@ -15,6 +15,7 @@ const panelEl = document.getElementById('panel');
 const debugNoteEl = document.getElementById('debug-note');
 const gridNoteEl = document.getElementById('grid-note');
 const pathsNoteEl = document.getElementById('paths-note');
+const happyNoteEl = document.getElementById('happy-note');
 
 const NEED_LABELS = {
   eat: 'eat',
@@ -42,11 +43,12 @@ let latestWorld = null;
 anim.init(renderer);
 
 /**
- * The hour themes (design experiment rounds two and three): day, golden
- * hour, and night. One applier flips everything that carries color: the
- * CSS tokens (body.dusk / body.night), the canvas palettes (meadow,
- * props), the renderer's theme (fireflies, twilight fur), and the baked
- * ground cache.
+ * The hour themes (design experiment rounds two and three, split four
+ * ways in v3): day, sunset, night and dawn. One applier flips everything
+ * that carries color: the CSS tokens (body.dusk / body.night /
+ * body.dawn), the canvas palettes (meadow, props), the renderer's theme
+ * (fireflies, twilight fur), and the baked ground cache. Between phases
+ * the canvas palettes are a blend of two rather than one of the four.
  *
  * The default mode is "auto": the world has its own sky (cosmetic for
  * now -- owner call, 2026-07-22), an hour derived as a pure function of
@@ -59,9 +61,9 @@ anim.init(renderer);
  * choice" means "follow the world", exactly as designed in round two.
  */
 const THEME_KEY = 'cloudkitty-theme';
-const THEMES = ['day', 'dusk', 'night'];
-const THEME_ICONS = { day: '☀️', dusk: '🌇', night: '🌙' };
-const MODE_CYCLE = ['auto', 'day', 'dusk', 'night'];
+const THEMES = ['day', 'dusk', 'night', 'dawn'];
+const THEME_ICONS = { day: '☀️', dusk: '🌇', night: '🌙', dawn: '🌅' };
+const MODE_CYCLE = ['auto', 'day', 'dusk', 'night', 'dawn'];
 const AUTO_ICON = '🌤️'; // the sky decides
 
 /** The settings' plain names, shown beside the toggle (owner request,
@@ -69,20 +71,39 @@ const AUTO_ICON = '🌤️'; // the sky decides
 const MODE_NAMES = {
   auto: 'Day/Night Cycle',
   day: 'Always Day',
-  dusk: 'Always Twilight',
+  // "Twilight" was unambiguous while one palette served both ends of the
+  // day; now that dawn is its own phase it has to say which twilight.
+  dusk: 'Always Sunset',
   night: 'Always Night',
+  dawn: 'Always Dawn',
 };
 
 /**
- * One world day, in ticks (at the default 1s tick: a 10-minute day).
- * Dawn and dusk both wear the golden-hour set -- the light is the same,
- * only the direction differs, and ticks have no compass.
- */
+ * One world day, in ticks (at the default 800ms tick, an 8-minute day).
+ *
+ * Dawn used to wear the golden-hour set on the reasoning that the light
+ * is the same and only the direction differs. It is not the same: sunset
+ * is the day's warmth draining out, dawn is cold air and a sky that
+ * brightens before anything is lit. They are separate phases as of v3.
+ *
+ * Each row is [name, span, fadeOut]: how long the phase lasts, and how
+ * many of its closing ticks are spent crossing into the next one. The
+ * fade is per phase rather than one global constant (owner, 2026-08-05)
+ * so "how long is this phase" and "how long does it take to leave" are
+ * independent -- a single constant capped at half a span coupled them,
+ * and left the two short twilights settled for only 25 ticks each.
+ *
+ * The fades are 24 and 16 because both divide 32 (BLEND_STEPS): the
+ * quantiser then lands on evenly-spaced steps, where an awkward length
+ * like 13 gives gaps of 2,3,2,3. The shape is deliberate -- twilight is
+ * approached slowly and handed over briskly -- and the spans give the
+ * two short phases 49 settled ticks each, up from 25 under the old
+ * single-constant scheme, without shortening the day much. */
 const WORLD_DAY_PHASES = Object.freeze([
-  ['day', 300],
-  ['dusk', 50], // sunset
-  ['night', 200],
-  ['dusk', 50], // dawn
+  ['day', 280, 24],
+  ['dusk', 65, 16], // sunset -> night: twilight hands over briskly
+  ['night', 190, 24],
+  ['dawn', 65, 16], // dawn -> day
 ]);
 const WORLD_DAY_TICKS = WORLD_DAY_PHASES.reduce((sum, [, span]) => sum + span, 0);
 
@@ -124,14 +145,56 @@ function skyForTick(tick) {
   return { body: 'sun', t: sinceDawn / (WORLD_DAY_TICKS - nightSpan) };
 }
 
+/**
+ * How many steps a crossing is quantised into (v3, 2026-08-05).
+ *
+ * The world used to jump between three frozen palettes. It now crosses
+ * between them -- but the ground cache BAKES the palette, so a genuinely
+ * continuous blend would rebake it every frame and turn a one-blit ground
+ * into a full redraw. Quantising is what makes it affordable: a palette
+ * only exists at 1/32 steps, so a crossing costs at most 32 rebakes and a
+ * settled phase costs none at all. A fade shorter than 32 ticks simply
+ * gets one step per tick, which is already finer than the eye.
+ */
+const BLEND_STEPS = 32;
+
+/** Which phase the world is in, which it is heading for, and how far
+ * across -- quantised, so the caller can cheaply skip identical work.
+ * The fade is clamped to the span as a guard: a table row asking to fade
+ * for longer than its phase lasts would otherwise never settle. */
+function phaseBlendFor(tick) {
+  let t = Math.max(0, tick | 0) % WORLD_DAY_TICKS;
+  for (let i = 0; i < WORLD_DAY_PHASES.length; i += 1) {
+    const [theme, span, fadeOut = 0] = WORLD_DAY_PHASES[i];
+    if (t < span) {
+      const fade = Math.min(fadeOut, span);
+      const remaining = span - t;
+      if (fade <= 0 || remaining > fade) return { theme, next: null, step: 0 };
+      const next = WORLD_DAY_PHASES[(i + 1) % WORLD_DAY_PHASES.length][0];
+      const k = 1 - remaining / fade;
+      return { theme, next, step: Math.round(k * BLEND_STEPS) / BLEND_STEPS };
+    }
+    t -= span;
+  }
+  return { theme: 'day', next: null, step: 0 };
+}
+
 let themeMode = 'auto'; // 'auto' | 'day' | 'dusk' | 'night'
 let currentTheme = null; // the visual theme actually applied
+let currentBlend = null; // and the quantised blend key it was applied at
 
 /** Applies the mode's theme (auto reads the world clock) and syncs the
  * toggle. Cheap when nothing changed, so render() may call it per tick. */
 function applyTheme() {
-  const theme =
-    themeMode === 'auto' ? hourForTick(latestWorld?.tick ?? 0) : themeMode;
+  // A hand-picked theme is exactly itself; only the world clock blends.
+  const blend =
+    themeMode === 'auto'
+      ? phaseBlendFor(latestWorld?.tick ?? 0)
+      : { theme: themeMode, next: null, step: 0 };
+  // Which phase the page WEARS: its classes, its cat shading, its name in
+  // the footer. Mid-crossing that is whichever end is nearer, the same
+  // rule the canvas palette uses for anything it cannot interpolate.
+  const theme = blend.next && blend.step > 0.5 ? blend.next : blend.theme;
 
   const toggle = document.getElementById('theme-toggle');
   if (toggle) {
@@ -149,13 +212,25 @@ function applyTheme() {
     }
   }
 
-  if (theme === currentTheme) return;
-  currentTheme = theme;
-  document.body.classList.toggle('dusk', theme === 'dusk');
-  document.body.classList.toggle('night', theme === 'night');
-  setMeadowPalette(theme);
-  setPropPalette(theme);
-  renderer.theme = theme;
+  // Cheap when nothing moved: a settled phase produces the same key every
+  // tick, so this returns before touching the cache.
+  const key = `${blend.theme}>${blend.next ?? ''}@${blend.step}`;
+  if (key === currentBlend) return;
+  currentBlend = key;
+
+  // The page's own tokens only change on the whole-phase boundary; their
+  // 1.5s CSS transition does the smoothing that the canvas gets from the
+  // blend, and re-toggling a class it already has would restart it.
+  if (theme !== currentTheme) {
+    currentTheme = theme;
+    document.body.classList.toggle('dusk', theme === 'dusk');
+    document.body.classList.toggle('night', theme === 'night');
+    document.body.classList.toggle('dawn', theme === 'dawn');
+    renderer.theme = theme;
+  }
+
+  setMeadowPalette(blend.theme, blend.next, blend.step);
+  setPropPalette(blend.theme, blend.next, blend.step);
   renderer.groundCache = null; // the cache bakes the palette; rebake
   anim.redraw(); // safe pre-world: redraw no-ops until a state exists
 }
@@ -223,6 +298,11 @@ const SKY_DIAL = Object.freeze({
   domeDay: 'rgba(240, 228, 205, 0.45)',
   domeDusk: 'rgba(255, 196, 130, 0.5)',
   domeNight: 'rgba(43, 39, 51, 0.6)',
+  // Dawn's dome, cool and dim where dusk's is amber. Without it the
+  // dial painted full daylight through the whole dawn phase while the
+  // page, the meadow and the fur were all in the dim set -- the one
+  // thing that tells you what hour you are in, misreporting it.
+  domeDawn: 'rgba(206, 208, 224, 0.5)',
   // A richer gold than the sparkle stars: on the tan dome the soft
   // #f4c95d read dim (owner call, 2026-07-23), so the disc deepens and
   // takes a crisp rim, outline-first like the cats.
@@ -286,6 +366,7 @@ function drawSkyDial(tick) {
   ctx.fillStyle =
     hour === 'night' ? SKY_DIAL.domeNight
     : hour === 'dusk' ? SKY_DIAL.domeDusk
+    : hour === 'dawn' ? SKY_DIAL.domeDawn
     : SKY_DIAL.domeDay;
   ctx.fill();
 
@@ -297,7 +378,10 @@ function drawSkyDial(tick) {
 
   if (sky.body === 'sun') {
     // Twilight wears the setting-sun red; the high sun stays gold.
-    const low = hour === 'dusk';
+    // Both twilights sit on a horizon, so both get the low-sun disc --
+    // a rising sun is as red as a setting one. Gating on 'dusk' alone
+    // drew dawn's horizon sun in high-noon gold.
+    const low = hour === 'dusk' || hour === 'dawn';
     ctx.strokeStyle = low ? SKY_DIAL.duskSunRay : SKY_DIAL.sunRay;
     ctx.lineWidth = 1.2;
     ctx.lineCap = 'round';
@@ -350,16 +434,27 @@ function render(world) {
 function renderPanel(world) {
   // Rebuild only when the roster changes; otherwise update in place so the CSS
   // transitions can do their thing.
-  const needsRebuild = panelEl.childElementCount !== world.kitties.length;
+  // Two columns, filled by halves rather than alternating: on a wide
+  // screen they sit either side of the meadow, and filling them
+  // first-half/second-half keeps DOM order equal to roster order, which
+  // is what the positional update below relies on. (Alternating would
+  // read out as 0,2,1,3.) Below the breakpoint the columns dissolve to
+  // `display: contents` and the cards are one wrapping row again.
+  const columns = panelEl.querySelectorAll('.panel-col');
+  const cards = () => panelEl.querySelectorAll('.kitty-card');
+  const needsRebuild = cards().length !== world.kitties.length;
   if (needsRebuild) {
-    panelEl.innerHTML = '';
-    for (const kitty of world.kitties) {
-      panelEl.appendChild(buildKittyCard(kitty));
-    }
+    for (const column of columns) column.innerHTML = '';
+    const half = Math.ceil(world.kitties.length / columns.length);
+    world.kitties.forEach((kitty, index) => {
+      const column = columns[Math.min(columns.length - 1, Math.floor(index / half))];
+      column.appendChild(buildKittyCard(kitty));
+    });
   }
 
+  const built = cards();
   world.kitties.forEach((kitty, index) => {
-    const card = panelEl.children[index];
+    const card = built[index];
     if (!card) return;
     card.querySelector('.name > span').textContent = kitty.name;
     // The sustained purr (spec 011) is a contentment signal, so it rides the
@@ -641,6 +736,9 @@ window.addEventListener('keydown', (event) => {
   } else if (key === 'p' && VIEW.meadow.paths) {
     renderer.showPaths = !renderer.showPaths;
     pathsNoteEl.hidden = !renderer.showPaths;
+  } else if (key === 'h') {
+    renderer.showHappiness = !renderer.showHappiness;
+    happyNoteEl.hidden = !renderer.showHappiness;
   } else {
     return;
   }
