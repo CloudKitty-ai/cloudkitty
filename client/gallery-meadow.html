@@ -93,6 +93,7 @@
   <div class="row" id="bush-styles"></div>
 
   <h2>Dials</h2>
+  <p class="note warn" id="drift" hidden></p>
   <div id="dials"></div>
 
   <h2>Readout</h2>
@@ -122,23 +123,53 @@
   // opens on exactly what ships.
   Object.assign(VIEW.meadow, MEADOW_DEFAULTS);
 
-  const DIALS = [
-    ['toneSteps', 4, 64, 1],
-    ['toneCells', 1, 10, 0.1],
-    ['jitterCells', 0.6, 6, 0.1],
-    ['jitterAlpha', 0, 0.25, 0.005],
-    ['patchChance', 0, 0.2, 0.002],
-    ['patchEarthAlpha', 0, 0.6, 0.01],
-    ['patchMossAlpha', 0, 0.6, 0.01],
-    ['bladeChance', 0, 1, 0.01],
-    ['bladeAlpha', 0, 1, 0.01],
-    ['bloomChance', 0, 0.3, 0.005],
-    ['bushChance', 0, 0.3, 0.005],
-    ['bushAlpha', 0, 1, 0.02],
-    ['bushShadowLean', 0, 1, 0.02],
-    ['bushShadowLength', 0, 1, 0.02],
-    ['bushShadowAlpha', 0, 1, 0.02],
-  ];
+  /**
+   * The dials this lab drives, with the range each wants. Keys come from
+   * MEADOW_DEFAULTS, so the lab and the shipped tunables cannot silently
+   * drift: anything in there that is neither listed here nor known to
+   * belong to another layer shows up as a warning rather than being
+   * quietly ignored.
+   */
+  const RANGES = {
+    toneSteps: [4, 64, 1],
+    toneCells: [1, 10, 0.1],
+    jitterCells: [0.6, 6, 0.1],
+    jitterAlpha: [0, 0.25, 0.005],
+    patchChance: [0, 0.3, 0.002],
+    patchEarthAlpha: [0, 0.6, 0.01],
+    patchMossAlpha: [0, 0.6, 0.01],
+    bladeChance: [0, 1, 0.01],
+    bladeAlpha: [0, 1, 0.01],
+    bloomChance: [0, 0.3, 0.005],
+    bushChance: [0, 0.3, 0.005],
+    bushAlpha: [0, 1, 0.02],
+    bushShadowLean: [0, 2, 0.02],
+    bushShadowLength: [0, 1, 0.02],
+    bushShadowAlpha: [0, 1, 0.02],
+    bushLift: [0, 2, 0.05],
+    bushBase: [0, 1, 0.02],
+  };
+
+  /** Tunables that live in MEADOW_DEFAULTS but belong to layers this lab
+   *  does not draw -- ponds, sunbeams, worn paths -- plus the one string,
+   *  which has its own buttons. Dialing them here would do nothing. */
+  const ELSEWHERE = new Set([
+    'ponds', 'glow', 'paths', 'gridOverlay', 'bushStyle',
+    'shoreRounding', 'shoreWobble', 'lilyPadMinTiles', 'glowRadiusTiles', 'glowAlpha',
+    'pathHeatCap', 'pathFullHeat', 'pathHalfLifeMs', 'pathVisibilityFloor', 'pathTintAlpha',
+  ]);
+
+  const DIALS = Object.keys(RANGES)
+    .filter((k) => k in MEADOW_DEFAULTS)
+    .map((k) => [k, ...RANGES[k]]);
+
+  // Anything new and unaccounted for, said out loud.
+  const UNDIALED = Object.keys(MEADOW_DEFAULTS).filter(
+    (k) => !(k in RANGES) && !ELSEWHERE.has(k),
+  );
+  // ...and anything this lab thinks it dials that no longer exists.
+  const STALE = Object.keys(RANGES).filter((k) => !(k in MEADOW_DEFAULTS));
+
   const PHASES = ['day', 'dusk', 'night', 'dawn'];
   const STYLES = ['cover', 'tuft', 'bramble', 'shrub'];
 
@@ -261,6 +292,15 @@
     };
     b.setAttribute('aria-pressed', String(s === VIEW.meadow.bushStyle));
     styleRow.appendChild(b);
+  }
+
+  const driftEl = document.getElementById('drift');
+  if (UNDIALED.length || STALE.length) {
+    driftEl.hidden = false;
+    driftEl.textContent =
+      [UNDIALED.length ? `New tunables with no dial here: ${UNDIALED.join(', ')}.` : '',
+       STALE.length ? `Dialed here but gone from MEADOW_DEFAULTS: ${STALE.join(', ')}.` : '',
+       'Add them to RANGES (or ELSEWHERE) in this file.'].filter(Boolean).join(' ');
   }
 
   const dialHost = document.getElementById('dials');
