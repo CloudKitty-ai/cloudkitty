@@ -18,7 +18,7 @@ const animSrc = readFileSync(join(here, 'anim.js'), 'utf8');
 const catV2Src = readFileSync(join(here, 'cat-v2.js'), 'utf8');
 const renderSrc = readFileSync(join(here, 'render.js'), 'utf8');
 
-const api = eval(animSrc + ';({ VIEW, Presentation, easeSmooth })');
+const api = eval(animSrc + ';({ VIEW, Presentation, easeSmooth, slowBlinkLid })');
 eval(catV2Src); // IIFE: registers globalThis.CatV2
 const CatV2 = globalThis.CatV2;
 const { poseFor } = eval(renderSrc + ';({ poseFor })');
@@ -205,6 +205,27 @@ check('the slow-blink lid walks the lab envelope exactly', () => {
   close(lidAt(725), 0.5, 'half-up at the up midpoint'); // 350+150+225, 225/450
   const total = api.VIEW.slowBlinkDownMs + api.VIEW.slowBlinkHoldMs + api.VIEW.slowBlinkUpMs;
   assert(lidAt(total) === undefined, 'over after the envelope');
+});
+
+// The v2 lab drives its Slow blink card through this same function with a
+// bag of slider values, because VIEW is frozen. If the override stopped
+// working the lab would silently judge the shipped numbers instead of the
+// dialled ones -- and bake whatever it was shown.
+check('slowBlinkLid takes its values from the bag it is given', () => {
+  const p = new api.Presentation();
+  const dials = { slowBlinkDownMs: 800, slowBlinkHoldMs: 400, slowBlinkUpMs: 1000 };
+  close(api.slowBlinkLid(400, dials), 0.5, 'half-down at the dialled midpoint');
+  close(api.slowBlinkLid(800, dials), 1, 'shut when the dialled down ends');
+  close(api.slowBlinkLid(1200, dials), 1, 'still shut through the dialled hold');
+  close(api.slowBlinkLid(1700, dials), 0.5, 'half-up at the dialled midpoint');
+  assert(api.slowBlinkLid(2200, dials) === undefined, 'over after the dialled envelope');
+  // Same instant, two envelopes: the bag really is what decides.
+  assert(
+    api.slowBlinkLid(800, dials) !== p.motionFor(0, 'idle', 800).blinkLid,
+    'a longer blink is still shut where the shipped one is releasing',
+  );
+  // Defaulting is what `motionFor` relies on.
+  close(api.slowBlinkLid(api.VIEW.slowBlinkDownMs), 1, 'no bag: falls back to VIEW');
 });
 
 check('the v1 snap blink is untouched beside the lid', () => {

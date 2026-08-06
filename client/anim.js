@@ -165,6 +165,33 @@ function easeSmooth(t) {
   return t * t * (3 - 2 * t);
 }
 
+/**
+ * The slow-blink lid at `at` ms into a blink, or undefined once the blink
+ * is over. Down, hold, release -- the "I love you" envelope, asymmetric on
+ * purpose so the eyes open more slowly than they close.
+ *
+ * Pulled out of `motionFor` so the v2 lab can drive its Slow blink card
+ * through the shipping envelope instead of restating the shape and the
+ * numbers, which it used to do -- a second home for values that are meant
+ * to be judged in the lab and pasted back is the one place drift is
+ * guaranteed to start. `dials` exists for that lab: VIEW is frozen, so the
+ * sliders need a bag of their own to write to, and passing it here keeps
+ * the shape shared even while the values differ.
+ *
+ * The three spans must stay comfortably under `idleMotionPeriodMs`: `at`
+ * arrives modulo that period, so a blink longer than its own slot would
+ * always be in progress and the eyes would never settle open.
+ */
+function slowBlinkLid(at, dials = VIEW) {
+  const down = dials.slowBlinkDownMs;
+  const hold = dials.slowBlinkHoldMs;
+  const up = dials.slowBlinkUpMs;
+  if (at < 0 || at >= down + hold + up) return undefined;
+  if (at < down) return easeSmooth(at / down);
+  if (at < down + hold) return 1;
+  return 1 - easeSmooth((at - down - hold) / up);
+}
+
 /** Where a wetness fade has got to. Resumed from `from` rather than from
  * the far end, so a cat darting in and out of the shallows never snaps. */
 function wetValue(w, now) {
@@ -500,21 +527,12 @@ class Presentation {
       else motion.earsBack = w < 0.5; // an ear twitch
     }
     if (kind === 0) {
-      // The v2 slow blink (lab-judged envelope): the lid eases down,
-      // holds, and releases -- deliberately longer than the v1 snap
-      // window. The v2 renderer prefers this lid over the snapped
-      // eyesOverride; v1 never reads it, so its blink stays bit-identical.
-      const down = VIEW.slowBlinkDownMs;
-      const hold = VIEW.slowBlinkHoldMs;
-      const up = VIEW.slowBlinkUpMs;
-      if (at < down + hold + up) {
-        motion.blinkLid =
-          at < down
-            ? easeSmooth(at / down)
-            : at < down + hold
-              ? 1
-              : 1 - easeSmooth((at - down - hold) / up);
-      }
+      // The v2 slow blink (lab-judged envelope), deliberately longer than
+      // the v1 snap window. The v2 renderer prefers this lid over the
+      // snapped eyesOverride; v1 never reads it, so its blink stays
+      // bit-identical.
+      const lid = slowBlinkLid(at);
+      if (lid !== undefined) motion.blinkLid = lid;
     }
     return motion;
   }

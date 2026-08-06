@@ -191,6 +191,10 @@
 
 <script src="cat.js"></script>
 <script src="cat-v2.js"></script>
+<!-- For VIEW (the shipped motion values) and slowBlinkLid (the shipped
+     envelope). Nothing in anim.js runs until `anim.init`, which the lab
+     never calls, so loading it here costs a parse and no behaviour. -->
+<script src="anim.js"></script>
 <script>
 (() => {
   const V1 = { drawCat, appearanceFor, name: 'v1 · shipped' };
@@ -202,6 +206,27 @@
 
   const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
   const easeSmooth = (t) => t * t * (3 - 2 * t);
+
+  // Blink dials. Seeded from the shipped VIEW so the lab can never open on
+  // a different number than the world runs, and held in a bag of their own
+  // because VIEW is frozen. `slowBlinkLid` draws the card from these, so
+  // what the sliders show is the shipping envelope, not a copy of it.
+  const BLINK = {
+    slowBlinkDownMs: VIEW.slowBlinkDownMs,
+    slowBlinkHoldMs: VIEW.slowBlinkHoldMs,
+    slowBlinkUpMs: VIEW.slowBlinkUpMs,
+    // Not a blink dial: the idle cycle blinks share with the tail flick and
+    // the ear twitch. A blink is every third slot, so the real interval
+    // between two blinks is 3x this.
+    idleMotionPeriodMs: VIEW.idleMotionPeriodMs,
+    // Lab-only, never pasted: how often the card replays the blink, so a
+    // 14-second cadence does not mean waiting 14 seconds to see one.
+    replayMs: 2600,
+    trueCadence: false,
+  };
+  const blinkTotal = () =>
+    BLINK.slowBlinkDownMs + BLINK.slowBlinkHoldMs + BLINK.slowBlinkUpMs;
+  const blinkInterval = () => BLINK.idleMotionPeriodMs * 3;
 
   // ------------------------------------------------------------------ scenes
   const SCENES = [
@@ -537,14 +562,37 @@
     // flips stay v1's instant mirror.
     {
       title: 'Slow blink',
-      note: 'The cat “I love you”. v1 can only snap open/closed; v2 eases the lid down and up (the relief-beat candidate).',
+      note: 'The cat “I love you”. v1 can only snap open/closed; v2 eases the lid down and up. Drawn through the shipped envelope (anim.js slowBlinkLid) with the dials below standing in for VIEW, so what you judge here is what bakes.',
+      bag: BLINK,
+      dials: [
+        { key: 'slowBlinkDownMs', label: 'lid down (ms)', min: 100, max: 1600, step: 10 },
+        { key: 'slowBlinkHoldMs', label: 'held shut (ms)', min: 0, max: 1600, step: 10 },
+        { key: 'slowBlinkUpMs', label: 'lid release (ms)', min: 100, max: 2200, step: 10 },
+        { key: 'idleMotionPeriodMs', label: 'idle slot (ms) — also moves the tail flick and ear twitch', min: 2000, max: 14000, step: 100 },
+        { key: 'replayMs', label: 'replay every (ms) — lab only, never pasted', min: 1200, max: 20000, step: 100 },
+      ],
+      toggles: [{ key: 'trueCadence', label: 'replay at the real interval (3 × idle slot)' }],
+      readout() {
+        const total = blinkTotal();
+        const over = total >= BLINK.idleMotionPeriodMs;
+        return (
+          `slowBlinkDownMs: ${BLINK.slowBlinkDownMs}, slowBlinkHoldMs: ${BLINK.slowBlinkHoldMs}, ` +
+          `slowBlinkUpMs: ${BLINK.slowBlinkUpMs}, idleMotionPeriodMs: ${BLINK.idleMotionPeriodMs}\n` +
+          `one blink = ${total}ms (${BLINK.slowBlinkHoldMs}ms of it fully shut) · ` +
+          `a cat blinks every ${(blinkInterval() / 1000).toFixed(1)}s\n` +
+          (over
+            ? `⚠ ${total}ms of blink does not fit a ${BLINK.idleMotionPeriodMs}ms slot: the lid would ` +
+              `never finish before the next one is due and the eyes would never settle open. ` +
+              `Raise the idle slot or shorten the blink.`
+            : `fits the ${BLINK.idleMotionPeriodMs}ms slot with ${BLINK.idleMotionPeriodMs - total}ms of open eyes to spare`)
+        );
+      },
       draw(ctx, w, h, now, isV2) {
-        const CYCLE = 2600;
-        const t = now % CYCLE;
-        let lid = 0;
-        if (t > 1200 && t <= 1550) lid = easeSmooth((t - 1200) / 350);
-        else if (t > 1550 && t <= 1700) lid = 1;
-        else if (t > 1700 && t <= 2150) lid = 1 - easeSmooth((t - 1700) / 450);
+        const total = blinkTotal();
+        // Eyes open for the rest of the cycle, then one blink. The floor
+        // keeps a blink longer than its replay from running back-to-back.
+        const cycle = Math.max(BLINK.trueCadence ? blinkInterval() : BLINK.replayMs, total + 200);
+        const lid = slowBlinkLid((now % cycle) - (cycle - total), BLINK) ?? 0;
         const base = {
           pose: 'idle', appearance: CatV2.appearanceFor(BISCUIT), facing: 'right',
           size: CAT, x: (w - CAT) / 2, y: h - CAT * 0.95, phase: (now % 3400) / 3400,
@@ -662,6 +710,62 @@
     },
   ];
 
+  /**
+   * Live dials for one motion card, writing straight into the card's own
+   * bag. The cards redraw every frame while `animate` is on, so a slider
+   * needs no redraw of its own -- only the readout does.
+   */
+  function buildDemoDials(demo) {
+    const wrap = document.createElement('div');
+    wrap.className = 'dials';
+    wrap.style.marginTop = '12px';
+    const readout = document.createElement('div');
+    readout.className = 'note';
+    readout.style.whiteSpace = 'pre-line';
+    readout.style.marginTop = '10px';
+    const sync = () => { if (demo.readout) readout.textContent = demo.readout(); };
+    for (const d of demo.dials ?? []) {
+      const label = document.createElement('label');
+      const span = document.createElement('span');
+      span.textContent = d.label;
+      const input = document.createElement('input');
+      input.type = 'range';
+      input.min = d.min;
+      input.max = d.max;
+      input.step = d.step;
+      input.value = demo.bag[d.key];
+      const value = document.createElement('b');
+      const show = () => { value.textContent = String(demo.bag[d.key]); };
+      input.addEventListener('input', () => {
+        demo.bag[d.key] = Number(input.value);
+        show();
+        sync();
+      });
+      show();
+      label.append(span, input, value);
+      wrap.append(label);
+    }
+    for (const t of demo.toggles ?? []) {
+      const label = document.createElement('label');
+      const span = document.createElement('span');
+      span.textContent = t.label;
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.checked = demo.bag[t.key];
+      input.style.flex = '0 0 auto';
+      input.addEventListener('input', () => {
+        demo.bag[t.key] = input.checked;
+        sync();
+      });
+      label.append(span, input);
+      wrap.append(label);
+    }
+    sync();
+    const both = document.createDocumentFragment();
+    both.append(wrap, readout);
+    return both;
+  }
+
   const motionRoot = document.getElementById('motion');
   const motionViews = [];
   for (const demo of DEMOS) {
@@ -682,6 +786,7 @@
       motionViews.push({ demo, isV2, canvas });
     }
     card.append(rows);
+    if (demo.dials) card.append(buildDemoDials(demo));
     motionRoot.append(card);
   }
 
