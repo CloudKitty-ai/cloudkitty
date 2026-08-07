@@ -427,16 +427,18 @@
      Nothing below it, and there is nothing to trim there -- the line box's
      own descender space is the margin, and the 💭 fills it to within
      0.06px, so any negative bottom margin clips the emoji.
-     -2px above (owner, 2026-08-06): the last need row centres a 5px bar
+     -3px above (owner, 2026-08-06): the last need row centres a 5px bar
      against a taller label, leaving 5px of empty box beneath the bath bar,
-     and this borrows two of them. It costs no glyph -- "bath" is always the
-     last label and has no descender -- and still leaves ~6.7px between its
-     ink and the cue's. */
+     and this borrows three of them. It costs no glyph -- "bath" is always
+     the last label and has no descender -- and still leaves ~5.7px between
+     its ink and the cue's. Two of the five remain, so this is not the
+     floor, but it is where the line stops reading as a separate row and
+     starts reading as part of the table. */
   .kitty-card .patience {
     font-size: 0.72rem;
     font-style: italic;
     color: var(--patience-ink);
-    margin: -2px 0 0;
+    margin: -3px 0 0;
     min-height: 1.4em;
   }
 
