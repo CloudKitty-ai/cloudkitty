@@ -439,8 +439,13 @@
      the need bars as though they were one set. */
   .kitty-card .needs {
     border-top: 1px solid var(--rule);
-    padding-top: 8px;
-    margin-top: 2px;
+    /* 5 above the rule, 2 below (owner, 2026-08-06), which looks lopsided
+       written down and is not. The need rows centre their contents, so the
+       first BAR sits ~5px below the top of its row -- but the eye anchors
+       on the "eat" LABEL, which starts near the row top. Balancing against
+       the bar over-corrects and leaves the rule visibly low. */
+    margin-top: 5px;
+    padding-top: 2px;
   }
 
   .bar {
