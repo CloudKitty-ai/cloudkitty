@@ -53,6 +53,7 @@ impl ConfigError {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Config {
     pub world: WorldConfig,
     #[serde(default)]
@@ -82,6 +83,28 @@ pub struct Config {
     pub events: EventsConfig,
     #[serde(default)]
     pub viewer: ViewerConfig,
+    /// The `[rl]` and `[plugins]` tables are parsed from the same file
+    /// text by cloudkitty-rl and the server respectively -- everything
+    /// under them is someone else's business. They are recognised here
+    /// only so `deny_unknown_fields` can hold on everything that is
+    /// actually ours, and they never serialize: `GET /config` must not
+    /// grow keys, and `engine_defaults_sha256` hashes this struct's
+    /// serialized defaults.
+    #[serde(default, skip_serializing)]
+    pub rl: ForeignTable,
+    #[serde(default, skip_serializing)]
+    pub plugins: ForeignTable,
+}
+
+/// A table this struct accepts and discards because another parser owns
+/// it. Deserializes from any value; carries nothing.
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+pub struct ForeignTable;
+
+impl<'de> serde::Deserialize<'de> for ForeignTable {
+    fn deserialize<D: serde::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        serde::de::IgnoredAny::deserialize(d).map(|_| ForeignTable)
+    }
 }
 
 /// Wet fur (spec 024): occupying a water tile charges the bath need, so
@@ -93,6 +116,7 @@ pub struct Config {
 /// Validation proves the safeguard threshold unreachable by water alone
 /// (certification hygiene by construction -- see `validate_water`).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct WaterConfig {
     /// Bath need added per tick spent on a water tile, before trait
     /// scaling. The legible framing: 1.0 is 5x the default ambient bath
@@ -129,6 +153,7 @@ pub struct WaterConfig {
 /// own length, so a happy kitty rumbles a constant 1/(1 + midpoint) of the
 /// time -- ~30.8% at the defaults -- while no two rests repeat mechanically.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct PurrConfig {
     /// Shortest purr, in ticks. Must be at least 1 and at most `max_ticks`.
     #[serde(default = "default_purr_min_ticks")]
@@ -173,6 +198,7 @@ impl Default for PurrConfig {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct WorldConfig {
     pub width: u32,
     pub height: u32,
@@ -201,6 +227,7 @@ impl WorldConfig {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct PersistenceConfig {
     pub snapshot_path: String,
     pub save_every_ticks: u64,
@@ -216,6 +243,7 @@ impl Default for PersistenceConfig {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct KittyConfig {
     pub id: KittyId,
     pub name: String,
@@ -237,6 +265,7 @@ impl KittyConfig {
 
 /// Per-kitty need-rate overrides; every field optional.
 #[derive(Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct NeedRateOverrides {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub eat: Option<f32>,
@@ -268,6 +297,7 @@ impl NeedRateOverrides {
 
 /// Per-tick rise rates for each need.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct NeedsConfig {
     pub eat: f32,
     pub drink: f32,
@@ -305,6 +335,7 @@ impl NeedsConfig {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct HappinessConfig {
     #[serde(default)]
     pub weights: NeedWeights,
@@ -321,6 +352,7 @@ impl Default for HappinessConfig {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ThresholdConfig {
     /// A need at or above this records a distress event (Article I).
     pub distress: f32,
@@ -341,6 +373,7 @@ impl Default for ThresholdConfig {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ElementRule {
     pub min: u32,
     pub max: u32,
@@ -358,6 +391,7 @@ pub struct ElementRule {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ElementsConfig {
     pub water: ElementRule,
     pub chow: ElementRule,
@@ -463,6 +497,7 @@ impl ElementsConfig {
 
 /// How much each action relieves the need it addresses.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ActionEffects {
     pub eat_relief: f32,
     pub drink_relief: f32,
@@ -523,6 +558,7 @@ impl Default for ActionEffects {
 /// it starts on. Relief applies on every tick, so `min` also sets the least
 /// relief an undertaking delivers.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct DurationBounds {
     pub min: u64,
     pub max: u64,
@@ -538,6 +574,7 @@ impl DurationBounds {
 /// the need-facing activity: `bath` governs grooming and `cuddle` governs
 /// resting, solo or duet.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct DurationsConfig {
     #[serde(default = "default_short_activity")]
     pub eat: DurationBounds,
@@ -584,6 +621,7 @@ impl DurationsConfig {
 /// cost alone. The courtesy values are consulted *voluntarily* by the
 /// scripted behaviors before they repeat themselves -- manners, not law.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct MeowConfig {
     /// Scripted courtesy: how long a built-in waits before repeating the
     /// same message kind. Equal to the digest window by default, so a
@@ -625,6 +663,7 @@ impl Default for MeowConfig {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct BehaviorConfig {
     /// Share of a tick an *external* behavior may spend deciding. Built-in
     /// behaviors are exempt (see `behavior::gather_decisions`).
@@ -739,6 +778,7 @@ impl BehaviorConfig {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct EventsConfig {
     pub distress_retention: usize,
     /// How many finished-activity events the world remembers (spec 006):
@@ -761,6 +801,7 @@ impl Default for EventsConfig {
 /// this section — it exists so client tunables are still real configuration
 /// (Article VI) without the client computing anything (Article V).
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ViewerConfig {
     /// Unresolved-distress age, in ticks, before a kitty's card shows its
     /// gentle "has wanted this for a while" cue.
@@ -817,6 +858,8 @@ impl Default for Config {
             water: WaterConfig::default(),
             events: EventsConfig::default(),
             viewer: ViewerConfig::default(),
+            rl: ForeignTable,
+            plugins: ForeignTable,
         }
     }
 }
@@ -1857,5 +1900,56 @@ mod tests {
         c.persistence.save_every_ticks = 0;
         let msg = c.validate().unwrap_err().to_string();
         assert!(msg.contains("save_every_ticks"), "{msg}");
+    }
+
+    #[test]
+    fn a_misspelt_dial_is_rejected_at_load_not_silently_ignored() {
+        // The 2026-08-06 handoff's incident class: one typo'd letter used
+        // to disable a safety validator without a word -- the file
+        // validated and the world ran on the default.
+        let err = toml::from_str::<Config>("[water]\nbath_gain_ceilling = 9999.0\n")
+            .expect_err("an unknown key in a known table is refused");
+        assert!(err.to_string().contains("bath_gain_ceilling"), "{err}");
+    }
+
+    #[test]
+    fn a_key_in_the_wrong_table_is_rejected_at_load() {
+        // The exact measurement that went wrong: a real dial, real value,
+        // wrong table -- accepted silently, engine ran the default.
+        let err = toml::from_str::<Config>("[thresholds]\nedge_penalty = 0.0\n")
+            .expect_err("a known key under the wrong table is refused");
+        assert!(err.to_string().contains("edge_penalty"), "{err}");
+    }
+
+    #[test]
+    fn an_invented_section_is_rejected_at_load() {
+        let err = toml::from_str::<Config>("[not_a_section]\nknob = 1\n")
+            .expect_err("an unknown top-level table is refused");
+        assert!(err.to_string().contains("not_a_section"), "{err}");
+    }
+
+    #[test]
+    fn the_rl_and_plugins_tables_belong_to_other_parsers_and_still_load() {
+        let text = "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
+                    [rl.observation]\nkitty_slots = 4\n\n\
+                    [plugins.greeter]\ncommand = \"/bin/true\"\n";
+        let c: Config = toml::from_str(text).expect("foreign tables are recognised, not rejected");
+        let plain: Config =
+            toml::from_str("[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n").unwrap();
+        assert_eq!(c, plain, "and they carry nothing into Config");
+    }
+
+    #[test]
+    fn the_foreign_tables_never_serialize() {
+        // GET /config serves this struct's JSON and engine_defaults_sha256
+        // hashes its serialized defaults -- neither may grow keys.
+        let json: serde_json::Value =
+            serde_json::from_str(&serde_json::to_string(&Config::default()).unwrap()).unwrap();
+        let obj = json.as_object().unwrap();
+        assert!(!obj.contains_key("rl"), "rl leaked into serialization");
+        assert!(
+            !obj.contains_key("plugins"),
+            "plugins leaked into serialization"
+        );
     }
 }
