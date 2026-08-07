@@ -40,6 +40,20 @@ The two levers separate cleanly:
 
 So the aggression belongs in the ceiling.
 
+> **Measured 2026-08-06 — this reasoning survives, but it is now the
+> *second* reason to prefer the ceiling.** The re-baseline found that
+> raising the gain 1.5 → 3.5 *increases* scripted on-water time, because
+> the wet-fur charge raises the Bath need and grooming — the activity
+> that relieves it — happens wherever the cat is standing. Rest, sleep
+> and play on water all fall as intended; grooming rises 61% and
+> swallows them (**F-016**,
+> [rebaseline-2026-08-06/results.md](rebaseline-2026-08-06/results.md)).
+> The ceiling is the better lever for a further reason, then: it caps
+> the accumulated need, and so caps how often that loop re-arms, where
+> the gain only makes it fire sooner. The dial stays at 3.5/60 — the
+> avoidance it buys is real — but nobody should raise the *gain*
+> expecting less water contact.
+
 **Why the ceiling is 60 and not 65 — verified, not derived.** Validation
 requires `ceiling + gain × max_bath_ratio < safeguard (75)`.
 `evals/v1/heterogeneity.toml` carries a deliberately fussy cat at bath
@@ -91,12 +105,24 @@ the engine would stop it.
 the only way) from *discretionary* occupancy, so the true floor is
 measured rather than inferred.
 
-**Note the baseline moves.** The 0.31% / 1.63% scripted anchors were
-measured at dial 1.5. Wet fur prices water for every decider — scripted
-ladders feel it as need pressure — so the `needs_driven` baseline falls
-at dial 3.5 too. Any "similar to needs-based" claim is only meaningful
-measured on the same engine, which step 2 of the ordering below
-produces.
+**The baseline moved — and upward.** *(Measured 2026-08-06; this
+paragraph originally predicted it would fall.)* The 0.31% / 1.63%
+scripted anchors were measured at dial 1.5 on a pre-lake world. On the
+merged engine, scripted cats in the two seats exp-003's policy will
+occupy sit at **1.50% lounging / 3.44% in-water**; the same two seats
+the old anchor used read 0.81% / 2.27%. The reasoning that wet fur
+prices water for every decider was right; the sign was wrong, for the
+grooming reason in §1.
+
+**So the registered ceiling is the urgent problem, not the floor.**
+exp-002 gated in-water at ≤ 3.0%. Scripted `needs_driven` is now at
+3.44% in those seats — *above* the old gate. Reusing it would
+pre-register a target that demands the policy out-avoid the scripted
+ladder, fail a policy that behaves exactly like the baseline, and do it
+in the name of a preference the owner never expressed. Both edges of
+the band come from the same-engine measurement, and the diagnostic below
+must split grooming out, because a single in-water number pools a
+channel the dial suppresses with one it amplifies.
 
 **Standing tension worth naming**: three aversion levers fire together
 for the first time (higher gain, higher ceiling, and an observation bit
@@ -107,7 +133,16 @@ is an aesthetic version of the same risk: the mandatory lake and the
 built-and-waiting swim pose both become pointless if exp-003 succeeds
 too well.
 
-## 3. Family design (owner-approved 2026-08-05)
+## 3. Family design (owner-approved 2026-08-05) — ✅ built 2026-08-06
+
+Shipped as family-gen v4: `--base` required, geometry and water topology
+stratified rather than sampled, dials defaulted from the engine. A
+15-variant family off the exp-002 base now comes out 12 lake / 3
+lakeless with exact geometry and roster coverage, and all 15
+(roster, water) pairs distinct — so lakelessness is not confounded with
+roster size. The manifest records whether each world *actually* grew a
+lake, observed by generating it.
+
 
 ### 3a. Add 20×20; reserve 18×18
 
@@ -153,11 +188,13 @@ beyond the family.** That is what v1 already does — geometry 28–48
 against a family of 22–26, rosters 6–8 against 3–5 — and it is why
 training on lakeless worlds does not void `scarcity.toml` as an exam.
 
-## 4. Tooling debt — gate these in §11, do not merely remember them
+## 4. Tooling debt — ✅ cleared 2026-08-06, before §11 had to gate it
 
-The entire chain still speaks generation 1 and **compiles clean, so no
-CI signal fires** (found by Product, 2026-08-05; each verified here).
-Ranked by danger, because it is not the order they look:
+The entire chain still spoke generation 1 and **compiled clean, so no
+CI signal fired** (found by Product, 2026-08-05; each verified here).
+All five are fixed — the list stays because the *ranking* is the durable
+part, and because §11 should still assert the outcome rather than trust
+this paragraph. Ranked by danger, because it is not the order they look:
 
 1. **`bc-collect` can corrupt a dataset silently.** `write_npy_f32`
    takes the shape as a *string* and writes it as the header with no
@@ -187,12 +224,33 @@ Ranked by danger, because it is not the order they look:
 
 **The durable fix in every case is to derive rather than update.** A
 constant corrected today drifts again at the next schema change; a value
-read from the engine or the data cannot.
+read from the engine or the data cannot. That is what shipped: npy
+headers are checked against their buffers and widths come from
+`observation_len()`; both trainers read dims off a live observation;
+`export_artifact.py` and `zero-artifact` stamp from the engine's own
+schema constants; `family-gen` takes its pinned dials from
+`WaterConfig::default()`. A sixth item surfaced during the pass —
+`zero-artifact` hardcoded 182/schema-1 too, which would have left the
+one artifact whose entire job is to prove the load path unable to load.
+
+Two things the pass found that were not on the list:
+
+- **The trainer venv's binding was still reporting observation schema
+  1**, three commits after the engine moved. Everything Python-side
+  would have measured the previous generation's dynamics, silently.
+  Rebuilt; `train_ppo_v2` now checks its init against the live gym at
+  startup and names this case in the error.
+- **`--s6-artifact` still defaulted to `policies/s6.ckpolicy`**, renamed
+  in PR #98. Same bytes, existing path.
 
 Also: `twin-probe` and `cuddle-census` default to `training.toml`, so a
 casual probe run measures the gym rather than the served world. Not a
-bug — F-013/F-014 used the gym deliberately as a control arm — but a
-foot-gun worth knowing about.
+bug — F-013/F-014 used the gym deliberately as a control arm — but the
+foot-gun has grown teeth: `training.toml` runs `water.min = 3`, so
+post-027 the gym is *lakeless* while the served world always holds a
+lake. The default now selects a qualitatively different world, not just
+a differently-tuned one. Left as-is deliberately (changing it would
+silently redefine F-013/F-014's control arm), but pass `--config`.
 
 ## 5. Ordering — the requirement that makes exp-003 interpretable
 
@@ -200,19 +258,34 @@ The lake and edge-avoidance both move in-water share, which is exp-003's
 dependent variable. Required sequence (the one exp-002 followed after
 spec 025):
 
-1. Engine changes land and **merge**.
+1. Engine changes land and **merge**. ✅ 2026-08-06, PRs #105/#106/#107,
+   stamp `cba976dae4b88703…`.
 2. **Re-baseline the measurement stack** on the new engine-defaults
-   stamp (~1 hour).
-3. Prereg **freezes**, citing anchors measured on the new world.
+   stamp. ✅ 2026-08-06,
+   [rebaseline-2026-08-06/results.md](rebaseline-2026-08-06/results.md).
+3. Prereg **freezes**, citing anchors measured on the new world. ← next.
 
-**Never freeze first.** If the engine batch slips, exp-003 waits.
+**Never freeze first.** It earned its keep: step 2 found that exp-002's
+in-water gate now sits below the scripted baseline, so a prereg frozen
+before the re-baseline would have been running against a target no
+well-behaved policy could meet.
 
-**Anchors that die on the stamp move** — all keyed to `12bf386241…`:
-water shares 4.14%/9.21% (s6+s3), 1.91%/5.14% (exp-002 winner),
-0.31%/1.63% (scripted); Nash 0.8966 and 0.8973–0.8976; the
-`needs_driven` band 0.906–0.908; and any `FINDINGS.md` entry carrying
-the "re-verify when engine-defaults change" trigger — F-013 and F-014
-most pointedly, since both are quantitative claims about *this* world.
+**Anchors that died on the stamp move** — all were keyed to
+`12bf386241…`; resolved as follows:
+
+| anchor | status |
+|---|---|
+| water 4.14%/9.21% (s6+s3), 1.91%/5.14% (exp-002 winner) | **retired** — schema-1 artifacts cannot run here at all |
+| Nash 0.8966, 0.8973–0.8976 | **retired**, same reason |
+| scripted 0.31%/1.63% | **re-measured**: 1.50%/3.44% policy seats, 0.81%/2.27% like-for-like |
+| `needs_driven` band 0.906–0.908 | **re-measured**: 0.9039–0.9054 — the screens' criterion 6 must be re-registered |
+
+Still outstanding: any `FINDINGS.md` entry carrying the "re-verify when
+engine-defaults change" trigger — **F-013 and F-014** most pointedly,
+since both are quantitative claims about *this* world, and F-014's
+knob-search verdict is what the family's geometry choices lean on. Both
+need a twin-probe pass on the new stamp; neither blocks the prereg,
+which cites them structurally rather than numerically.
 
 **Two gotchas with history**: rebuild the trainer's `cloudkitty` binding
 after every engine change, or collection scripts silently run stale
