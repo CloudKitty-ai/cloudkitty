@@ -41,6 +41,9 @@ let latestWorld = null;
 // The animation layer owns every drawing decision from here on (spec 005
 // US3): app.js feeds it served states and keeps running the panel.
 anim.init(renderer);
+// ...and the panel's portraits ride the same frames, so the cats on the
+// cards blink on the world's clock rather than a clock of their own.
+anim.onFrame = paintPortraits;
 
 /**
  * The hour themes (design experiment rounds two and three, split four
@@ -649,6 +652,107 @@ function placeCards() {
   cards.forEach((card, index) => columns[index < onLeft ? 0 : 1].appendChild(card));
 }
 
+// Sized for the GESTURE to read, not to match the meadow.
+//
+// It was 33px on the reasoning that a cat draws at one tile, so the
+// portrait and the animal in the world would be the same picture. That
+// only held on two of six displays measured -- the tile is height-bound,
+// so it is 47px on a WQHD, 23px on a 1100px window and 15px on a phone,
+// and 20x20 worlds will widen the gap again. The load-bearing property
+// was never "matches the meadow"; it was "big enough to read".
+//
+// 47px is what the slow blink needs. Closing two small eyes moves very
+// little ink: at 33px a full blink changed 26 pixels where an ear twitch
+// changed 44, so the gentler of the two gestures was the harder to see.
+// 47px doubles the blink's ink (9 -> 20) and is the first size where the
+// shut eyes read as shut rather than as slightly smudged. Owner call,
+// 2026-08-07, with the card portraits about to start animating -- which
+// is what makes the blink worth seeing at all, since a cat out in the
+// world is usually mid-action and idle motion is suppressed there.
+const PORTRAIT_CAT = 47;
+// The chip is bigger than the cat because the idle pose's ink runs past
+// its own box -- the tail crosses the left edge -- so a chip the size of
+// the cat cuts the tail off. Measured at the real size, never derived:
+// stroke widths do not scale linearly, so the ink is 0.957 x 0.766 of the
+// cat here against 1.015 x 0.818 at 33px, and geometry from one size lies
+// about another -- nor does a probe drawn with a different appearance,
+// which is how the first pass at this landed 3px out. Measured in situ on
+// the card's own canvas, the ink is 48.00 x 38.33.
+//
+// Not square, and the padding is proportional to the one owner-picked at
+// 33px (2.25 side / 3.5 vertical on a 33px cat, so ~3.2 / ~5.0 on a 47px
+// one). Absolute padding would have kept the frame the same thickness
+// while the cat grew 42%, which drifts it from "a frame the cat sits in"
+// toward "a shape cut around it" -- the thing the tighter chips were
+// rejected for.
+const PORTRAIT_W = 54;
+const PORTRAIT_H = 48;
+// Not the chip's geometric centre. The ink is not centred in the cat's
+// own box -- the tail reaches past the left edge while the right side
+// stops short, and the whole silhouette sits low -- so drawing at
+// (chip - cat) / 2 leaves the cat visibly shoved left (owner spotted it
+// at the old size). These equalise the measured ink margins instead.
+const PORTRAIT_X = 5.33;
+const PORTRAIT_Y = 0.91;
+
+/**
+ * Paint one card portrait at a given moment of idle motion.
+ *
+ * One painter for both callers -- the first paint when a card is built and
+ * every frame after -- because two of these would drift the day someone
+ * tunes one of them.
+ */
+function paintPortrait(canvas, kittyId, motion) {
+  const dpr = window.devicePixelRatio || 1;
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, PORTRAIT_W, PORTRAIT_H);
+  // The same lid/blink handoff the meadow makes (render.js): on the v2
+  // path the eased lid REPLACES the snap-closed eyes, or a blinking cat
+  // wears both and the ease never shows. v1 has no lid and keeps the
+  // snap, so the toggle still A/Bs the portraits like everything else.
+  let eyes = motion.eyesOverride;
+  let lid;
+  if (typeof drawCatTween === 'function' && motion.blinkLid !== undefined) {
+    lid = motion.blinkLid;
+    if (eyes === 'closed') eyes = undefined;
+  }
+  drawCat(ctx, {
+    pose: 'idle',
+    appearance: appearanceFor(kittyId),
+    facing: 'right', // toward its own name
+    size: PORTRAIT_CAT,
+    x: PORTRAIT_X,
+    y: PORTRAIT_Y,
+    phase: motion.phase ?? 0,
+    eyesOverride: eyes,
+    earsBack: motion.earsBack,
+    lid,
+  });
+}
+
+/**
+ * Every portrait, on the frame's own clock. Wired to `anim.onFrame`.
+ *
+ * The pose is ALWAYS `idle`, never the cat's real one (owner, 2026-08-07).
+ * That is the entire point: `motionFor` returns early for action poses, so
+ * idle motion is suppressed exactly where a cat spends most of its time,
+ * and a portrait that mirrored the world would suppress it too. The card is
+ * a portrait -- the cat at rest -- which is the one place the blink and the
+ * ear twitch reliably get to happen.
+ *
+ * `view.motionFor` rather than the presentation's, so a still frame hands
+ * back phase 0 and the portraits hold their pose along with the meadow.
+ */
+function paintPortraits(world, view) {
+  const canvases = panelEl.querySelectorAll('.name canvas');
+  for (const canvas of canvases) {
+    const id = Number(canvas.dataset.kitty);
+    if (!Number.isFinite(id)) continue;
+    paintPortrait(canvas, id, view.motionFor(id, 'idle'));
+  }
+}
+
 function buildKittyCard(kitty) {
   const card = document.createElement('div');
   card.className = 'kitty-card';
@@ -656,70 +760,20 @@ function buildKittyCard(kitty) {
   const name = document.createElement('div');
   name.className = 'name';
   // The card wears the kitty's own portrait (spec 005 polish): the same
-  // drawCat the world uses, drawn once -- appearance never changes.
+  // drawCat the world uses, on the same frames -- see paintPortraits.
   const portrait = document.createElement('canvas');
-  // The cat is drawn at the size it takes in the meadow -- 32-33px on a
-  // typical desktop -- so the portrait and the animal out in the world are
-  // the same picture at the same scale, and the face resolves. At 22px it
-  // was a blob: below about 30px the ears, eyes and stripes do not separate.
-  // Sized for the GESTURE to read, not to match the meadow.
-  //
-  // It was 33px on the reasoning that a cat draws at one tile, so the
-  // portrait and the animal in the world would be the same picture. That
-  // only held on two of six displays measured -- the tile is height-bound,
-  // so it is 47px on a WQHD, 23px on a 1100px window and 15px on a phone,
-  // and 20x20 worlds will widen the gap again. The load-bearing property
-  // was never "matches the meadow"; it was "big enough to read".
-  //
-  // 47px is what the slow blink needs. Closing two small eyes moves very
-  // little ink: at 33px a full blink changed 26 pixels where an ear twitch
-  // changed 44, so the gentler of the two gestures was the harder to see.
-  // 47px doubles the blink's ink (9 -> 20) and is the first size where the
-  // shut eyes read as shut rather than as slightly smudged. Owner call,
-  // 2026-08-07, with the card portraits about to start animating -- which
-  // is what makes the blink worth seeing at all, since a cat out in the
-  // world is usually mid-action and idle motion is suppressed there.
-  const PORTRAIT_CAT = 47;
-  // The chip is bigger than the cat because the idle pose's ink runs past
-  // its own box -- the tail crosses the left edge -- so a chip the size of
-  // the cat cuts the tail off. Measured at the real size, never derived:
-  // stroke widths do not scale linearly, so the ink is 0.957 x 0.766 of the
-  // cat here against 1.015 x 0.818 at 33px, and geometry from one size lies
-  // about another -- nor does a probe drawn with a different appearance,
-  // which is how the first pass at this landed 3px out. Measured in situ on
-  // the card's own canvas, the ink is 48.00 x 38.33.
-  //
-  // Not square, and the padding is proportional to the one owner-picked at
-  // 33px (2.25 side / 3.5 vertical on a 33px cat, so ~3.2 / ~5.0 on a 47px
-  // one). Absolute padding would have kept the frame the same thickness
-  // while the cat grew 42%, which drifts it from "a frame the cat sits in"
-  // toward "a shape cut around it" -- the thing the tighter chips were
-  // rejected for.
-  const PORTRAIT_W = 54;
-  const PORTRAIT_H = 48;
-  // Not the chip's geometric centre. The ink is not centred in the cat's
-  // own box -- the tail reaches past the left edge while the right side
-  // stops short, and the whole silhouette sits low -- so drawing at
-  // (chip - cat) / 2 leaves the cat visibly shoved left (owner spotted it
-  // at the old size). These equalise the measured ink margins instead.
-  const PORTRAIT_X = 5.33;
-  const PORTRAIT_Y = 0.91;
+  // Sizing is PORTRAIT_CAT's business (above); the floor it respects is
+  // that below about 30px the ears, eyes and stripes stop separating and
+  // the cat is a blob, which is where the 22px original died.
   const dpr = window.devicePixelRatio || 1;
   portrait.width = PORTRAIT_W * dpr;
   portrait.height = PORTRAIT_H * dpr;
   portrait.style.width = `${PORTRAIT_W}px`;
   portrait.style.height = `${PORTRAIT_H}px`;
-  const portraitCtx = portrait.getContext('2d');
-  portraitCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  drawCat(portraitCtx, {
-    pose: 'idle',
-    appearance: appearanceFor(kitty.id),
-    facing: 'right', // toward its own name
-    size: PORTRAIT_CAT,
-    x: PORTRAIT_X,
-    y: PORTRAIT_Y,
-    phase: 0,
-  });
+  portrait.dataset.kitty = kitty.id;
+  // A first pose so a freshly built card is never a blank chip; the frame
+  // hook takes it from here.
+  paintPortrait(portrait, kitty.id, { phase: 0 });
   name.appendChild(portrait);
   name.appendChild(document.createElement('span'));
   card.appendChild(name);
