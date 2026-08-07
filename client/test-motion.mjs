@@ -698,8 +698,11 @@ check('the dial is honoured, not hardcoded', () => {
 // properties that fix is made of, so a re-dial in the lab cannot quietly
 // undo it.
 
-const { catLayout, GAIT, MAX_LIFT, gaitStep } = CatV2;
+const { catLayout, GAIT, MAX_LIFT, gaitStep, plantedReach } = CatV2;
 const GROUND_Y = 0.88;
+/** `phase` is progress across one TILE; the gait runs GAIT.cycles steps
+ * inside it, so a cycle-space position converts back like this. */
+const atCycle = (u) => catLayout('walking', u / GAIT.cycles);
 
 /** `close` is 1e-12; wrap comparisons ride a finite phase step. */
 function nearly(a, b, tol, msg) {
@@ -724,11 +727,37 @@ check('a planted foot only ever travels backward', () => {
   assert(samples > 100, `only ${samples} stance samples -- is duty sane?`);
 });
 
+check('a planted foot holds still against the ground', () => {
+  // The stronger form of the check above, and the one that actually
+  // decides whether a cat skates. Moving backward is not enough -- a foot
+  // that drifts back too slowly still slides, just less. Planted means
+  // sweeping back through exactly the ground covered during the stance.
+  //
+  // A budget rather than an equality, because the reach is a lab dial and
+  // may be pulled off the ideal for looks. 0.05 of a tile is 3px of
+  // residual slide at the live 60px tile; the walk this replaced slid the
+  // whole 0.62-tile stance AND reversed direction inside it.
+  const BUDGET = 0.05;
+  const slide = Math.abs(2 * GAIT.reach - GAIT.duty / GAIT.cycles);
+  assert(
+    slide <= BUDGET,
+    `foot slides ${slide.toFixed(3)} tiles per stance; ` +
+      `reach ${GAIT.reach} wants to be ~${plantedReach().toFixed(3)}`,
+  );
+});
+
+check('the step count is a whole number', () => {
+  // `phase` is tick progress and returns to 0 every tile. A fractional
+  // step count leaves the gait mid-stride there, tearing once per tile.
+  close(GAIT.cycles, Math.round(GAIT.cycles), 'GAIT.cycles is fractional');
+  assert(GAIT.cycles >= 1, `GAIT.cycles ${GAIT.cycles} is not a step count`);
+});
+
 check('every foot clears the ground at mid-swing', () => {
   const mid = GAIT.duty + (1 - GAIT.duty) / 2;
   close(gaitStep(mid, GAIT.duty).lift, 1, 'peak lift is a full unit at mid-swing');
-  // Index 1 is the front leg, and it rides `phase` directly.
-  const front = catLayout('walking', mid).legs[1];
+  // Index 1 is the front leg, and it rides the cycle directly.
+  const front = atCycle(mid).legs[1];
   assert(front.bottom < GROUND_Y, 'the front foot never leaves the ground');
   close(GROUND_Y - front.bottom, GAIT.lift, 'and it clears by exactly the dial');
 });
@@ -789,14 +818,14 @@ check('the body rides at twice the stride, lowest just after footfall', () => {
   // Two footfalls per cycle, so one dip each. The old walk had this
   // frequency right and its amplitude wrong -- 0.008 is 0.48px at a 60px
   // tile, which is rounding, not animation.
-  const cyAt = (phase) => catLayout('walking', phase).body.cy;
+  const cyAt = (u) => atCycle(u).body.cy;
   let lowest = -Infinity;
   let at = 0;
   for (let i = 0; i < 2000; i += 1) {
-    const phase = i / 2000;
-    if (cyAt(phase) > lowest) {
-      lowest = cyAt(phase);
-      at = phase;
+    const u = i / 2000; // one gait cycle, in cycle space
+    if (cyAt(u) > lowest) {
+      lowest = cyAt(u);
+      at = u;
     }
   }
   nearly(at, GAIT.bobPhase, 1e-3, 'the dip does not sit where bobPhase says');

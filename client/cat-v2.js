@@ -154,12 +154,35 @@ const SWIM = {
  * ALLOWED to move.
  */
 const GAIT = {
+  // Steps per tile. MUST be a whole number: `phase` is tick progress and
+  // returns to 0 every tile, so a fractional count tears the cycle once
+  // per tile crossed. It is also the setting that makes planting possible
+  // at all -- see PLANTED below.
+  cycles: 2,
   duty: 0.62, // share of the cycle a foot is planted (>0.5 = a walk, not a run)
-  reach: 0.06, // stride half-width, in tiles either side of the leg's base
+  reach: 0.155, // stride half-width, in tiles either side of the leg's base
   lift: 0.035, // ground clearance at mid-swing; see MAX_LIFT before raising
   bob: 0.018, // body rise and fall -- the old 0.008 was 0.48px at tile 60
   bobPhase: 0.15, // where in the cycle the body sits lowest (0 = at footfall)
 };
+
+/**
+ * The reach that actually plants a foot, for a given duty and step count.
+ *
+ * Moving backward is not enough: a foot that drifts back too SLOWLY still
+ * skates, just less. To hold still against the world it has to sweep back
+ * through exactly the ground the cat covers while it is down -- the cat
+ * travels 1/cycles of a tile per step and is planted for `duty` of that,
+ * so 2 * reach must equal duty / cycles.
+ *
+ * This is why the step count matters. At one step per tile it wants a
+ * reach of ~0.31, and the legs cross each other at 0.211 -- so a
+ * one-step-per-tile walk CANNOT be planted at this leg geometry, only
+ * made less bad. Two steps brings it inside the limit with room to spare.
+ */
+function plantedReach(dials = GAIT) {
+  return dials.duty / (2 * dials.cycles);
+}
 
 /**
  * The paw is a half-disc of radius w/2 struck at `bottom`, so a foot
@@ -413,7 +436,10 @@ function catLayout(pose, phase) {
       // frequency -- which the old walk had right; only its 0.008
       // amplitude was too small to see. Lowest just after each footfall
       // (bobPhase), where the weight lands.
-      L.body.cy += GAIT.bob * Math.cos((phase - GAIT.bobPhase) * 2 * TAU);
+      // `phase` is progress across ONE TILE; the gait runs GAIT.cycles
+      // steps inside that, so everything below works in cycle space.
+      const cycle = phase * GAIT.cycles;
+      L.body.cy += GAIT.bob * Math.cos((cycle - GAIT.bobPhase) * 2 * TAU);
       L.head.cx = 0.72;
       // Index 0 is the rear leg and index 1 the front, in every pose that
       // has them -- blendLayouts pairs legs BY INDEX, so swapping them
@@ -428,7 +454,7 @@ function catLayout(pose, phase) {
           w: 0.095,
         };
       };
-      L.legs = [leg(0.28, phase + 0.5), leg(0.62, phase)];
+      L.legs = [leg(0.28, cycle + 0.5), leg(0.62, cycle)];
       // Tail streams behind, gently lifted.
       L.tail = { x0: 0.14, y0: 0.58, c1x: 0.04, c1y: 0.56, c2x: 0.0, c2y: 0.5, x1: 0.03, y1: 0.42 };
       break;
@@ -1039,6 +1065,7 @@ const api = {
   GAIT,
   MAX_LIFT,
   gaitStep,
+  plantedReach,
   PALETTES,
   POSES,
   // Not cat API, but props.js, meadow.js and app.js quietly depend on
