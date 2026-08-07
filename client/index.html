@@ -578,6 +578,37 @@
     /* Keyboard hints mean nothing to a touch screen. */
     .keys { display: none; }
   }
+
+  /* A squat window -- a phone turned sideways, mostly (owner, 2026-08-07:
+     "rotating a phone sideways makes the map super small").
+
+     The map is square and height-bound, so a 390px-tall viewport has almost
+     nothing to give it: chrome took 206px of those 390, over half, and the
+     tile landed on its 8px floor with the canvas scaled down from there.
+     Everything below buys height back -- the wordmark shrinks and drops its
+     cats, the subtitle goes, the hints go, the paddings tighten.
+
+     Keyed on height, not orientation: a short window on a laptop has the
+     same problem and `orientation: landscape` would miss it. 500px is under
+     any phone's portrait height and above any landscape one.
+
+     This is a floor-raiser, not a fix. Even with zero chrome a 390px
+     viewport gives a 24x24 world a 16px tile -- landscape simply has no
+     height for a square map, and the real answer is the deferred camera
+     mode, which would spend the 844px of width that is sitting idle.
+     Pinch-zoom covers the gap in the meantime (owner call). */
+  @media (max-height: 500px) {
+    body { padding: 6px 10px 8px; }
+    h1 { font-size: 1.25rem; }
+    /* The wordmark's loafing cats are 32px each of a header we are trying
+       to shrink, and they are decoration -- aria-hidden already. */
+    .header-kitty { display: none; }
+    .subtitle { display: none; }
+    .keys { display: none; }
+    footer { font-size: 0.72rem; }
+    .stage { --stage-pad: 4px; border-radius: 16px; }
+    canvas { border-radius: 10px; }
+  }
 </style>
 </head>
 <body>
