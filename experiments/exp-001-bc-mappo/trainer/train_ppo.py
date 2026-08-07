@@ -51,9 +51,10 @@ def collect_fragment(runner, policy, critic, vstats, T, device):
     """One on-policy fragment across all worlds. Returns flat buffers."""
     mean, std = vstats
     S, n = len(runner.pairs), runner.n_worlds
+    obs_dim, n_actions = runner.dims
     buf = {
-        "obs": np.zeros((T, S, 182), np.float32),
-        "mask": np.zeros((T, S, 40), bool),
+        "obs": np.zeros((T, S, obs_dim), np.float32),
+        "mask": np.zeros((T, S, n_actions), bool),
         "act": np.zeros((T, S), np.int64),
         "logp": np.zeros((T, S), np.float32),
         "state": np.zeros((T, n, critic.dims[0]), np.float32),
