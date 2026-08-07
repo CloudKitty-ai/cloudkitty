@@ -165,12 +165,21 @@ class WorldRenderer {
     // mismatches on EVERY frame and rebakes the whole ground cache at
     // 60fps. The tile had a floor already; the budget did not.
     const heightBudget = Math.max(120, (doc.clientHeight || 800) - chromeY);
+    // A phone held sideways is the one viewport where fitting the height
+    // is the wrong answer: a square world in a 280px-tall window is a
+    // 12px tile whatever we reclaim, and there is half a screen of unused
+    // WIDTH beside it. So on a short viewport the map fits the width and
+    // overflows into a scroll instead -- owner call, 2026-08-07: "if they
+    // want to scroll they can pinch zoom". Keyed to the same query the
+    // landscape CSS uses, so "this screen is short" has one definition.
+    const short =
+      typeof matchMedia === 'function' && matchMedia('(max-height: 500px)').matches;
     this.tile = Math.max(
       8,
       Math.floor(
         Math.min(
           widthBudget / world.width,
-          heightBudget / world.height,
+          short ? Infinity : heightBudget / world.height,
           MAP_MAX_PX / Math.max(world.width, world.height),
         ),
       ),
@@ -181,7 +190,10 @@ class WorldRenderer {
     // enough world (45+ tiles) is irreducibly wider than a phone. The
     // display scale absorbs the difference: the canvas still renders at
     // the floor and the browser shrinks the result to fit.
-    const scale = Math.max(0.05, Math.min(1, widthBudget / cssWidth, heightBudget / cssHeight));
+    const scale = Math.max(
+      0.05,
+      Math.min(1, widthBudget / cssWidth, short ? Infinity : heightBudget / cssHeight),
+    );
     const displayWidth = `${cssWidth * scale}px`;
     const dpr = window.devicePixelRatio || 1;
 
