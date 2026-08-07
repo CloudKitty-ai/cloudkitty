@@ -1,8 +1,15 @@
 # Experiment 003 — Pre-registration: the in-water observation bit
 
-**STATUS: DRAFT — NOT FROZEN.** Freezing is the owner's authorization.
-Nothing in §7 (training) may start until this document is frozen and its
-freeze commit recorded here.
+**STATUS: FROZEN 2026-08-06** (owner authorization, PR #115). This
+commit is the freeze. From here the registered text does not change —
+outcomes and deviations are *recorded*, never edited in, and no
+criterion is weakened after the fact. The exp-002 precedent holds: a
+falsified hypothesis keeps its original wording with the result quoted
+beneath it.
+
+**Frozen against**: engine `5a6a3f5`, engine-defaults stamp
+`cba976dae4b88703…`; family seed `20260807`, manifest sha256
+`3be3578daa969c8d…`; family-gen v4.
 
 **Engine**: pinned at `5a6a3f5`, engine-defaults stamp
 `cba976dae4b88703f5cff8028a54db24efde6a5cfe8d79dcdbb3948151751b03`.
@@ -130,8 +137,9 @@ gain would be actively counterproductive.
 - Wet-fur dials **3.5 / 60**, pinned into every family variant by
   family-gen from `WaterConfig::default()`.
 - Family: **15 variants**, family-gen **v4**, base
-  `experiments/exp-002-mixed-population/family/base.toml`, family seed
-  to be recorded at generation. Stratified, not sampled:
+  `experiments/exp-002-mixed-population/family/base.toml`
+  (sha256 `603ded13…`), family seed **20260807**, manifest sha256
+  `3be3578daa969c8d…`. Stratified, not sampled:
   - geometry cycled over **{20, 22, 24, 26}** — 20×20 is the deployment
     candidate Client designs against;
   - **18×18 excluded** and test-guarded — it is the reserved held-out
@@ -176,7 +184,12 @@ the schema change forces a choice:
 - [x] **Config strictness** (PR #114): a misspelt or misplaced dial is
       now a load error, and every shipped TOML is swept through both
       config surfaces.
-- [ ] **Family generated and manifest committed** — at freeze.
+- [x] **Family generated and manifest committed** (2026-08-06, seed
+      `20260807`). Stratification verified from the manifest, not
+      asserted: geometry 20/22/24/26 at 4/4/4/3 with **18×18 absent**;
+      water minimum 3/4/7/8/9 at three each → **12 lake / 3 lakeless**;
+      roster 3/4/5 at five each; all 15 (roster, water) pairs distinct.
+      Dials pinned 3.5/60 from the engine.
 - [ ] **Dataset v3 collected and invariants checked** — after freeze
       (collection is not training; it may run pre-freeze only under a
       recorded deviation).
@@ -287,8 +300,9 @@ engine for the first time.
       buffer; widths come from `observation_len()` / `ActionCodec::len()`.
 - [x] `family-gen` requires `--base`; dials default from the engine.
 - [x] `export_artifact.py` stamps schema from the binding.
-- [ ] Family manifest committed; variants byte-stable under
-      re-generation. *(At freeze.)*
+- [x] Family manifest committed; variants **byte-stable** under
+      re-generation (regenerated into a scratch tree and diffed:
+      identical, 2026-08-06).
 - [ ] Dataset v3 invariants: all labels legal vs mask, dims **183/40**
       read from headers, row counts match every meta. *(At collection.)*
 - [ ] Eval seeds disjoint; evaluate-once ledger opened. *(At eval time.)*
