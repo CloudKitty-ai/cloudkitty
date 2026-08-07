@@ -28,29 +28,43 @@ and reverted — max travel ~0.24px at world size, unreadable; pitch
 replaces it. House method: judge in `gallery-v2.html` (dials +
 readout), bake on the owner's paste.
 
-### Water cues: occlude the cat's lower body (added 2026-08-04, owner-deferred)
-The owner's idea, and a better answer than what v3 Phase 0 shipped:
-**clip the bottom of the cat against the waterline** so a cat on a water
-tile is visibly half-submerged. It solves the water+action case in one
-stroke — a cat can keep its *drinking* or *grooming* pose (which
-`poseFor` deliberately lets outrank the wade) and still read as standing
-in water, with no second pose and no per-activity special-casing.
+### Water cues: occlude the cat's lower body — SHIPPED 2026-08-07 (PR #124)
+Clipping the cat against the waterline, so a cat on a water tile is
+visibly half-submerged whatever pose it is wearing. Solved the
+water+action case in one stroke, as the entry predicted: a cat keeps its
+*drinking* or *grooming* pose (which `poseFor` lets outrank the wade) and
+still reads as standing in water — no second pose, no per-activity
+special-casing.
 
-Groundwork already in place from Phase 0: `Presentation.wetFor(id,
-onWater, now)` gives an eased 0..1 wetness keyed on the tile under the
-**drawn** cat, independent of pose. An occlusion clip would consume that
-same signal, so the waterline could rise and fall with it rather than
-popping.
+Built exactly on the groundwork the entry named: it consumes
+`Presentation.wetFor`, so the surface rises and falls with a shoreline
+crossing (measured 0.88 → 0.72 and back, symmetric over `wetFadeMs`)
+rather than popping, and the shadow, the ripple and the waterline can
+never disagree.
 
-Why it is deferred rather than done: v3 Phase 0's ripple + dropped
-shadow measured **0.128% of pixels changed, max delta 26/255** at the
-current 30px tile — real, correct, and very nearly invisible (owner:
-"barely registers"). Occlusion is a much stronger cue, but it is worth
-building against the larger tile that v3 Phase 1 brings, and judging in
-the lab at that size. Also fold in: a single water tile currently renders
-as a rounded blue square, because `shoreRounding` is a flat 0.45 tiles
-applied to a 1x1 blob — the same beading that would turn a 1-wide river
-into a string of lozenges.
+**Waterline 0.72**, owner-picked from six depths rendered through the
+shipping path at live tile size; it crosses the bottom of the body so the
+cat is clearly *in* the pond, while the pose stays legible. 0.62 —
+matching `SWIM`'s own surface, which would have given wading and swimming
+cats one shared water level — was rejected because a standing cat then
+looks like it is swimming. The swim pose opts out of clipping entirely:
+it is already drawn sunk.
+
+The deferral condition was met by v3 Phase 1's larger tile, as planned.
+
+**The entry's second half is resolved too, and verified rather than
+assumed.** It said a single water tile rendered as a rounded blue square,
+because `shoreRounding` was a flat 0.45 tiles applied to a 1×1 blob. The
+shoreline pipeline was rewritten in the 2026-08-07 meadow round — arcs
+first (`sampleRoundedLoop`), wobble riding the finished curve, rounding
+0.8 — and an isolated water tile now draws as a rounded organic blob.
+Checked on interior 1×1 ponds in the preview world at high zoom, not
+inferred from the dial change.
+
+That leaves the river case, which is NOT covered: rounding is still a
+flat constant rather than clamped by local channel width, so a 1-wide
+channel would still bead into lozenges, and `groupWaterTiles` still
+floods 4-adjacent only. Both are recorded in the v3 plan's Phase 5.
 
 ## P2 — the bigger pieces, for a proper sitting
 
