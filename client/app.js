@@ -622,10 +622,6 @@ function buildKittyCard(kitty) {
   happiness.appendChild(document.createElement('span'));
   card.appendChild(happiness);
 
-  const patience = document.createElement('div');
-  patience.className = 'patience';
-  card.appendChild(patience);
-
   // No heading over the need bars. It cost 17px on every card to caption
   // six rows that already carry their own labels -- and once the bars fill
   // as the need is MET, a heading reading "needs" pointed the wrong way.
@@ -642,6 +638,16 @@ function buildKittyCard(kitty) {
     needs.appendChild(bar);
   }
   card.appendChild(needs);
+
+  // Last, under the needs (owner, 2026-08-06). The cue reserves its line
+  // whether or not it speaks, so the card never resizes when a cat becomes
+  // distressed -- and at the foot of the card that reservation doubles as
+  // the bottom padding rather than sitting as a gap in the middle. It also
+  // reads better here: it is a note about the cat, not about the bar it
+  // used to sit beneath.
+  const patience = document.createElement('div');
+  patience.className = 'patience';
+  card.appendChild(patience);
 
   return card;
 }

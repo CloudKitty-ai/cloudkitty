@@ -59,6 +59,11 @@
     --patience-ink: #b0876a; /* the gentle long-distress cue */
     --card: #fffdfa;
     --shadow: rgba(150, 125, 105, 0.18);
+    /* Hairline rules: the card's own edge, and the one dividing a card's
+       summary from its needs table. Same ink as the shadow, a shade
+       lighter, so an outlined card reads as the shadow made explicit
+       rather than as a second, competing edge. */
+    --rule: rgba(150, 125, 105, 0.16);
     --happy: #8fce8f;
     --okay: #f3cf7a;
     --meh: #efa98b;
@@ -315,8 +320,17 @@
   .kitty-card {
     background: var(--card);
     border-radius: 18px;
-    padding: 10px 14px;
-    box-shadow: 0 6px 16px var(--shadow);
+    /* No bottom padding: the distress line lives at the foot of the card
+       and its own line box supplies the space. The line is reserved whether
+       or not it speaks (see `.patience`), so a card that has nothing to
+       report still ends in a proper margin -- the reserve pays for itself
+       instead of sitting as a gap in the middle of the card. */
+    padding: 10px 14px 0;
+    /* The card is #fffdfa on a #fdf6ec page -- about 3% of luminance apart,
+       so without an edge the shape is carried entirely by the shadow, and
+       the shadow is the first thing to vanish on a dim screen. */
+    border: 1px solid var(--rule);
+    box-shadow: 0 4px 12px var(--shadow);
     /* Fixed width, sized for the longest lines a card can carry (the
        patience cue and a full meow quote), so text changes -- purring on
        and off, meows, activities -- never resize the portrait. `flex` with
@@ -404,20 +418,30 @@
      but always one line tall (min-height matching the pinned line-height,
      so empty really is the same height as full), and its coming and going
      never changes the card's height (which would ripple into page
-     scrollbar toggles and subtle card wobble). The -2px bottom margin
-     tucks the "needs" heading slightly into this line's leading: constant,
-     so no height wobble, and small enough that ~2px of air remains when
-     the cue text is showing. */
+     scrollbar toggles and subtle card wobble).
+     It sits at the FOOT of the card (owner, 2026-08-06). Reserved space in
+     the middle read as a hole; at the bottom the same reservation reads as
+     the card's bottom padding, which is why `.kitty-card` has none of its
+     own. 1px above, nothing below -- the line box's descender space is the
+     margin. It also belongs here: the cue summarises the cat, not the bar
+     it used to sit under. */
   .kitty-card .patience {
     font-size: 0.72rem;
     font-style: italic;
     color: var(--patience-ink);
-    margin: 0 0 -2px;
+    margin: 1px 0 0;
     min-height: 1.4em;
   }
 
-  /* The "needs" heading. No top margin: the reserved patience line above
-     already provides the section's air. */
+  /* A rule between what the card says about the cat and the table of how
+     its needs are doing. Both now fill left-to-right as things get better,
+     so without a divider the eye runs from the happiness bar straight into
+     the need bars as though they were one set. */
+  .kitty-card .needs {
+    border-top: 1px solid var(--rule);
+    padding-top: 8px;
+    margin-top: 2px;
+  }
 
   .bar {
     height: 8px;
