@@ -697,12 +697,21 @@ mod tests {
     }
 
     #[test]
+    #[cfg(debug_assertions)]
     fn an_engine_panic_mid_step_poisons_instead_of_unwinding() {
         // A real invariant panic (not a simulated one): corrupt the world
         // so the tick's constitutional check fires. The step must come back
         // as Err(Panicked) with the engine's message, the next step must be
         // refused with the same message (not a second, misleading panic
         // about seeds), and reset must heal.
+        //
+        // Debug-only BY DESIGN, not by oversight (2026-08-06 handoff item
+        // 1): the panic comes from `invariants::assert_or_report`, which
+        // deliberately logs instead of panicking in release -- the served
+        // binary must not die on a violation -- so in release the corrupted
+        // world never panics and this test would fail on a healthy engine.
+        // The poison/refuse/heal mechanics themselves are covered in both
+        // profiles by the simulated-poison test above.
         let mut episode = episode_all_external();
         episode.reset(9);
         let (w, h) = (episode.world.width, episode.world.height);
