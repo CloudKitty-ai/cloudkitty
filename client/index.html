@@ -501,6 +501,18 @@
     grid-template-rows: 0fr;
   }
 
+  /* `body.reduced-motion { transition: none }` above only reaches the body
+     itself -- which is exactly why `.bar > span` has its own rule further
+     down. This transition needs the same, or a reduced-motion viewer gets
+     the one animation on the page that ignores the preference (FR-015).
+     Measured before adding it: the collapse still ran its full 0.26s under
+     `prefers-reduced-motion: reduce` while every other transition read 0s.
+     `placeCards` needs no change -- it reads the duration, so with none to
+     wait for it simply places the cards straight away. */
+  body.reduced-motion .kitty-card .details {
+    transition: none;
+  }
+
   /* The distress cue sits 1px lower on a collapsed card than on an
      expanded one, and the extra pixel is vestigial: `.mood` carries a 2px
      bottom margin to hold itself off the happiness bar, and when the bars

@@ -388,9 +388,11 @@ function applyCardMode() {
  * collapsed -- exactly backwards).
  *
  * So wait for the transition. `transitionend` is the precise signal, but
- * it does not fire when there is no transition to run (reduced motion
- * turns them off) or when one is interrupted mid-flight by a second
- * click, so the timer is the backstop and whichever arrives first wins.
+ * it does not fire when there is no transition to run -- which is the
+ * reduced-motion case, where the CSS zeroes the duration -- so the
+ * duration is read first and a zero one places the cards immediately.
+ * The timer is the backstop for anything else that could swallow the
+ * event, and whichever arrives first wins.
  */
 let placementTimer = 0;
 function schedulePlacement() {
@@ -794,7 +796,21 @@ const PORTRAIT_Y = 0.91;
  */
 function paintPortrait(canvas, kittyId, motion) {
   const dpr = window.devicePixelRatio || 1;
+  // Re-size the backing store when the display changes under us -- issue
+  // #102's bug, in a second place. Dragging a window between a Retina and
+  // a non-Retina screen changes dpr while the CSS size stays put, so a
+  // store sized once at build time is then wrong, and the transform below
+  // happily scales into it: measured 1.5x too large and clipped at both
+  // edges. The world canvas has guarded this since #102; the portraits
+  // are the same canvas problem and need the same guard.
+  const wantWidth = Math.round(PORTRAIT_W * dpr);
+  if (canvas.width !== wantWidth) {
+    canvas.width = wantWidth;
+    canvas.height = Math.round(PORTRAIT_H * dpr);
+  }
   const ctx = canvas.getContext('2d');
+  // After a resize the store is cleared and the transform reset, so this
+  // has to come after the block above, not before it.
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, PORTRAIT_W, PORTRAIT_H);
   // The same lid/blink handoff the meadow makes (render.js): on the v2
