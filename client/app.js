@@ -662,30 +662,48 @@ function buildKittyCard(kitty) {
   // typical desktop -- so the portrait and the animal out in the world are
   // the same picture at the same scale, and the face resolves. At 22px it
   // was a blob: below about 30px the ears, eyes and stripes do not separate.
-  const PORTRAIT_CAT = 33;
+  // Sized for the GESTURE to read, not to match the meadow.
+  //
+  // It was 33px on the reasoning that a cat draws at one tile, so the
+  // portrait and the animal in the world would be the same picture. That
+  // only held on two of six displays measured -- the tile is height-bound,
+  // so it is 47px on a WQHD, 23px on a 1100px window and 15px on a phone,
+  // and 20x20 worlds will widen the gap again. The load-bearing property
+  // was never "matches the meadow"; it was "big enough to read".
+  //
+  // 47px is what the slow blink needs. Closing two small eyes moves very
+  // little ink: at 33px a full blink changed 26 pixels where an ear twitch
+  // changed 44, so the gentler of the two gestures was the harder to see.
+  // 47px doubles the blink's ink (9 -> 20) and is the first size where the
+  // shut eyes read as shut rather than as slightly smudged. Owner call,
+  // 2026-08-07, with the card portraits about to start animating -- which
+  // is what makes the blink worth seeing at all, since a cat out in the
+  // world is usually mid-action and idle motion is suppressed there.
+  const PORTRAIT_CAT = 47;
   // The chip is bigger than the cat because the idle pose's ink runs past
-  // its own box: the tail crosses the left edge by 2% of the size, so a
-  // chip the same size as the cat cuts the tail off. Measured at the real
-  // size rather than derived -- stroke widths do not scale linearly down
-  // here, so the ink is proportionally fatter at 33px than the geometry
-  // suggests. 37px is the first size that clips nothing; 38 keeps a pixel
-  // in hand. (The old 22px portrait clipped too; it was just too small to
-  // see what was missing.)
-  // The chip is not square. An idle cat's ink is 33.5 x 27px -- wider than
-  // it is tall -- so a square chip carries twice as much air above and
-  // below as it does at the sides, and reads hollow. 38x34 (owner) leaves
-  // 2.25px at the sides and 3.5px top and bottom: still a frame the cat
-  // sits in rather than a shape cut around it, which is what the tighter
-  // sizes started to look like.
-  const PORTRAIT_W = 38;
-  const PORTRAIT_H = 34;
+  // its own box -- the tail crosses the left edge -- so a chip the size of
+  // the cat cuts the tail off. Measured at the real size, never derived:
+  // stroke widths do not scale linearly, so the ink is 0.957 x 0.766 of the
+  // cat here against 1.015 x 0.818 at 33px, and geometry from one size lies
+  // about another -- nor does a probe drawn with a different appearance,
+  // which is how the first pass at this landed 3px out. Measured in situ on
+  // the card's own canvas, the ink is 48.00 x 38.33.
+  //
+  // Not square, and the padding is proportional to the one owner-picked at
+  // 33px (2.25 side / 3.5 vertical on a 33px cat, so ~3.2 / ~5.0 on a 47px
+  // one). Absolute padding would have kept the frame the same thickness
+  // while the cat grew 42%, which drifts it from "a frame the cat sits in"
+  // toward "a shape cut around it" -- the thing the tighter chips were
+  // rejected for.
+  const PORTRAIT_W = 54;
+  const PORTRAIT_H = 48;
   // Not the chip's geometric centre. The ink is not centred in the cat's
-  // own box -- at this size it runs 2.5px further left than right, because
-  // the tail reaches past the left edge while the right side stops short --
-  // so drawing at (chip - cat) / 2 leaves the cat visibly shoved left
-  // (owner spotted it). These equalise the measured ink margins instead.
-  const PORTRAIT_X = 3.75;
-  const PORTRAIT_Y = 0.92;
+  // own box -- the tail reaches past the left edge while the right side
+  // stops short, and the whole silhouette sits low -- so drawing at
+  // (chip - cat) / 2 leaves the cat visibly shoved left (owner spotted it
+  // at the old size). These equalise the measured ink margins instead.
+  const PORTRAIT_X = 5.33;
+  const PORTRAIT_Y = 0.91;
   const dpr = window.devicePixelRatio || 1;
   portrait.width = PORTRAIT_W * dpr;
   portrait.height = PORTRAIT_H * dpr;
