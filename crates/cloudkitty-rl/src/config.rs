@@ -38,6 +38,7 @@ impl RlConfigError {
 
 /// Everything under `[rl]`.
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct RlConfig {
     #[serde(default)]
     pub observation: ObservationConfig,
@@ -57,6 +58,7 @@ pub struct RlConfig {
 
 /// `[rl.observation]`: slot counts and normalization constants (FR-005).
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ObservationConfig {
     /// Kitty slots in the observation (default 3 — the default roster's
     /// "everyone else"; larger rosters are partially observable by design).
@@ -124,6 +126,7 @@ impl Default for ObservationConfig {
 /// `[rl.global_state]`: the privileged critic view's bounded element summary
 /// (FR-019).
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct GlobalStateConfig {
     /// Positions of the K nearest elements per type to the world center
     /// included in the summary. Default 2.
@@ -145,6 +148,7 @@ impl Default for GlobalStateConfig {
 
 /// `[rl.reward]` (FR-008/FR-009).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct RewardConfig {
     /// Power-mean exponent. 1 = plain average, 0 = Nash welfare (geometric
     /// mean, the default), large negative → the least-happy kitty's score.
@@ -219,6 +223,7 @@ pub enum RewardMode {
 /// roster)`. Provably policy-invariant; off by default; every coefficient
 /// configured.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ShapingConfig {
     #[serde(default)]
     pub enabled: bool,
@@ -244,6 +249,7 @@ impl Default for ShapingConfig {
 
 /// `[rl.episode]` (FR-010).
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct EpisodeConfig {
     /// Truncation horizon in ticks. Default 2000; must be ≥ 1.
     #[serde(default = "default_horizon")]
@@ -264,6 +270,7 @@ impl Default for EpisodeConfig {
 
 /// `[rl.eval]` (FR-013): the harness defaults.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct EvalConfig {
     /// Run length per seed. Default 20,000 — the long-run welfare horizon.
     #[serde(default = "default_eval_ticks")]
@@ -292,6 +299,7 @@ impl Default for EvalConfig {
 
 /// One `[rl.policy.<name>]` block (FR-016).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct PolicyConfig {
     /// Path to the policy artifact file.
     pub artifact: String,
@@ -607,5 +615,25 @@ mod tests {
             rl.policy.get("trained").unwrap().artifact,
             "policies/trained.ckpolicy"
         );
+    }
+
+    #[test]
+    fn a_misspelt_rl_key_is_rejected_at_load_not_silently_ignored() {
+        // Same strictness as the core config (2026-08-06 handoff): a
+        // typo'd dial under [rl.*] must refuse to load, not run defaults.
+        let err = RlConfig::from_toml_str("[rl.observation]\nkitty_slotz = 4\n")
+            .expect_err("an unknown key in an rl table is refused");
+        assert!(err.to_string().contains("kitty_slotz"), "{err}");
+    }
+
+    #[test]
+    fn parked_policy_seats_stay_legal_under_strictness() {
+        // Spec 026 parks seats by leaving [rl.policy.<name>] blocks
+        // present but unreferenced -- known fields, never unknown ones.
+        let rl = RlConfig::from_toml_str(
+            "[rl.policy.parked]\nartifact = \"policies/parked.ckpolicy\"\nsample = true\n",
+        )
+        .expect("a parked seat block still loads");
+        assert!(rl.policy.contains_key("parked"));
     }
 }

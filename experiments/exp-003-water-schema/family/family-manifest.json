@@ -1,0 +1,27 @@
+{
+  "generator": "family-gen v4 (2026-08-06)",
+  "base": "experiments/exp-002-mixed-population/family/base.toml",
+  "base_sha256": "603ded13b4e099e787dc945163c106885d3288d935c13de97b4a14d0a0512a9f",
+  "family_seed": 20260807,
+  "water_gain": 3.5,
+  "water_gain_ceiling": 60,
+  "lake_variants": 12,
+  "lakeless_variants": 3,
+  "variants": [
+    {"file": "family-00.toml", "size": 20, "roster": 3, "water_min": 3, "lake": false, "summary": "size=20 roster=Biscuit+Kittybear+Clementine water=3-4 chow=7-8 sunbeam=5-6 rates=x1.1 Biscuit.bath=0.44(x2) Kittybear.bath=0.33(x1.5) Clementine.cuddle=0.6 Clementine.bath=0.22(x1) lake=false"},
+    {"file": "family-01.toml", "size": 22, "roster": 4, "water_min": 4, "lake": true, "summary": "size=22 roster=Miso+Biscuit+Kittybear+Clementine water=4-5 chow=9-10 sunbeam=5-6 rates=x1.1 Miso.bath=0.33(x1.5) Biscuit.bath=0.11(x0.5) Kittybear.bath=0.33(x1.5) Clementine.cuddle=0.6 Clementine.bath=0.11(x0.5) lake=true"},
+    {"file": "family-02.toml", "size": 24, "roster": 5, "water_min": 7, "lake": true, "summary": "size=24 roster=Miso+Biscuit+Pumpkin+Kittybear+Clementine water=7-8 chow=7-8 sunbeam=6-7 rates=x1.1 Miso.bath=0.22(x1) Biscuit.bath=0.22(x1) Pumpkin.eat=0.9 Pumpkin.bath=0.44(x2) Kittybear.bath=0.44(x2) Clementine.cuddle=0.8 Clementine.bath=0.11(x0.5) lake=true"},
+    {"file": "family-03.toml", "size": 26, "roster": 3, "water_min": 8, "lake": true, "summary": "size=26 roster=Miso+Biscuit+Pumpkin water=8-9 chow=7-8 sunbeam=4-5 rates=x1 Miso.bath=0.15(x0.75) Biscuit.bath=0.3(x1.5) Pumpkin.eat=0.9 Pumpkin.bath=0.4(x2) lake=true"},
+    {"file": "family-04.toml", "size": 20, "roster": 4, "water_min": 9, "lake": true, "summary": "size=20 roster=Miso+Biscuit+Pumpkin+Clementine water=9-10 chow=7-8 sunbeam=6-7 rates=x0.9 Miso.bath=0.18(x1) Biscuit.bath=0.36(x2) Pumpkin.eat=0.7 Pumpkin.bath=0.1(x0.5) Clementine.cuddle=0.6 Clementine.bath=0.36(x2) lake=true"},
+    {"file": "family-05.toml", "size": 22, "roster": 5, "water_min": 3, "lake": false, "summary": "size=22 roster=Miso+Biscuit+Pumpkin+Kittybear+Clementine water=3-4 chow=7-8 sunbeam=5-6 rates=x0.9 Miso.bath=0.27(x1.5) Biscuit.bath=0.18(x1) Pumpkin.eat=0.9 Pumpkin.bath=0.36(x2) Kittybear.bath=0.27(x1.5) Clementine.cuddle=0.6 Clementine.bath=0.135(x0.75) lake=false"},
+    {"file": "family-06.toml", "size": 24, "roster": 3, "water_min": 4, "lake": true, "summary": "size=24 roster=Biscuit+Pumpkin+Kittybear water=4-5 chow=9-10 sunbeam=5-6 rates=x1 Biscuit.bath=0.4(x2) Pumpkin.eat=0.8 Pumpkin.bath=0.4(x2) Kittybear.bath=0.4(x2) lake=true"},
+    {"file": "family-07.toml", "size": 26, "roster": 4, "water_min": 7, "lake": true, "summary": "size=26 roster=Miso+Pumpkin+Kittybear+Clementine water=7-8 chow=8-9 sunbeam=6-7 rates=x1.1 Miso.bath=0.11(x0.5) Pumpkin.eat=0.7 Pumpkin.bath=0.11(x0.5) Kittybear.bath=0.33(x1.5) Clementine.cuddle=0.7 Clementine.bath=0.44(x2) lake=true"},
+    {"file": "family-08.toml", "size": 20, "roster": 5, "water_min": 8, "lake": true, "summary": "size=20 roster=Miso+Biscuit+Pumpkin+Kittybear+Clementine water=8-9 chow=7-8 sunbeam=5-6 rates=x1 Miso.bath=0.2(x1) Biscuit.bath=0.2(x1) Pumpkin.eat=0.7 Pumpkin.bath=0.15(x0.75) Kittybear.bath=0.1(x0.5) Clementine.cuddle=0.8 Clementine.bath=0.3(x1.5) lake=true"},
+    {"file": "family-09.toml", "size": 22, "roster": 3, "water_min": 9, "lake": true, "summary": "size=22 roster=Pumpkin+Kittybear+Clementine water=9-10 chow=9-10 sunbeam=5-6 rates=x1.1 Pumpkin.eat=0.7 Pumpkin.bath=0.33(x1.5) Kittybear.bath=0.165(x0.75) Clementine.cuddle=0.6 Clementine.bath=0.22(x1) lake=true"},
+    {"file": "family-10.toml", "size": 24, "roster": 4, "water_min": 3, "lake": false, "summary": "size=24 roster=Miso+Biscuit+Pumpkin+Kittybear water=3-4 chow=7-8 sunbeam=6-7 rates=x1 Miso.bath=0.15(x0.75) Biscuit.bath=0.2(x1) Pumpkin.eat=0.7 Pumpkin.bath=0.3(x1.5) Kittybear.bath=0.1(x0.5) lake=false"},
+    {"file": "family-11.toml", "size": 26, "roster": 5, "water_min": 4, "lake": true, "summary": "size=26 roster=Miso+Biscuit+Pumpkin+Kittybear+Clementine water=4-5 chow=7-8 sunbeam=4-5 rates=x1.1 Miso.bath=0.22(x1) Biscuit.bath=0.44(x2) Pumpkin.eat=0.7 Pumpkin.bath=0.11(x0.5) Kittybear.bath=0.44(x2) Clementine.cuddle=0.7 Clementine.bath=0.22(x1) lake=true"},
+    {"file": "family-12.toml", "size": 20, "roster": 3, "water_min": 7, "lake": true, "summary": "size=20 roster=Miso+Biscuit+Kittybear water=7-8 chow=9-10 sunbeam=4-5 rates=x0.9 Miso.bath=0.135(x0.75) Biscuit.bath=0.36(x2) Kittybear.bath=0.135(x0.75) lake=true"},
+    {"file": "family-13.toml", "size": 22, "roster": 4, "water_min": 8, "lake": true, "summary": "size=22 roster=Miso+Biscuit+Pumpkin+Clementine water=8-9 chow=9-10 sunbeam=6-7 rates=x0.9 Miso.bath=0.1(x0.5) Biscuit.bath=0.1(x0.5) Pumpkin.eat=0.9 Pumpkin.bath=0.18(x1) Clementine.cuddle=0.7 Clementine.bath=0.18(x1) lake=true"},
+    {"file": "family-14.toml", "size": 24, "roster": 5, "water_min": 9, "lake": true, "summary": "size=24 roster=Miso+Biscuit+Pumpkin+Kittybear+Clementine water=9-10 chow=9-10 sunbeam=6-7 rates=x1.1 Miso.bath=0.11(x0.5) Biscuit.bath=0.11(x0.5) Pumpkin.eat=0.7 Pumpkin.bath=0.33(x1.5) Kittybear.bath=0.33(x1.5) Clementine.cuddle=0.6 Clementine.bath=0.165(x0.75) lake=true"}
+  ]
+}

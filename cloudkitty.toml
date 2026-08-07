@@ -105,11 +105,13 @@ purr = 70.0
 # each type up to `min` and no further, so the standing population IS the
 # minimums -- `min` is the real knob, and lowering `max` alone changes
 # nothing at runtime.
-#
+[elements]
 # Placement (spec 027): a world whose water minimum is 4+ always holds at
-# least one 2x2 lake, and spawns prefer the interior. Three `[elements]`
+# least one 2x2 lake, and spawns prefer the interior. Three table-level
 # dials govern placement and expiry, shown here at their engine defaults;
-# write them only to change them:
+# uncomment one HERE, under this header, to change it (before 2026-08-06
+# this block sat inside [thresholds], where an uncommented dial landed in
+# the wrong table -- silently then, loudly now).
 # spread_candidates = 8   # best-of-N width for every spawn draw
 # ttl_jitter = 100        # timed spawns draw base +/- this many ticks
 # edge_penalty = 2.0      # perimeter handicap in tiles; 0 disables
