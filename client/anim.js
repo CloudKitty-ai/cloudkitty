@@ -82,6 +82,36 @@ const VIEW = Object.freeze({
   // a cat drinking in a pond is still standing in water. It fades on the
   // same clock as a pose blend so a shoreline crossing does not pop.
   wetFadeMs: 260,
+  /**
+   * Where the pond surface cuts a cat standing in it, in the cat's own
+   * unit space (0 top, ground at 0.88) -- BACKLOG P1, the owner's idea.
+   *
+   * The cat is clipped below this line, so a cat on a water tile reads as
+   * half-submerged whatever pose it is in. That is the point: `poseFor`
+   * deliberately lets drinking and grooming outrank the wade, so those
+   * cats keep a land pose while standing in a pond, and occlusion is what
+   * makes them look like it -- one clip instead of a water variant of
+   * every activity.
+   *
+   * Rides `wetFor`, the same eased 0..1 the shadow and ripple already
+   * use, so the surface rises and falls with the shoreline crossing
+   * rather than popping, and the three cues can never disagree.
+   *
+   * NOT applied to the swim pose: that one earns "underwater" from its
+   * own low flat silhouette (see cat-v2's SWIM), and clipping it too
+   * would submerge a cat that is already drawn sunk.
+   *
+   * 0.72 owner-picked 2026-08-07 from a sheet of six depths rendered
+   * through this exact path. It cuts across the bottom of the body
+   * rather than sitting under it, so the cat is clearly IN the pond
+   * instead of on it, while the grooming or drinking pose stays legible.
+   * The two depths either side were both rejected for real reasons:
+   * 0.76 only hides the legs and is easy to miss, and 0.62 -- which
+   * would have matched SWIM's own surface, so wading and swimming cats
+   * shared one water level -- makes a standing cat look like it is
+   * swimming. One water level lost to pose legibility, deliberately.
+   */
+  waterline: 0.72,
   arriveBlendMs: 340, // the walking -> standing blend, paired with the settle
   settleMs: 400, // landing squash, concurrent with the arrive blend
   settleDip: 0.05, // peak vertical squash of the settle
