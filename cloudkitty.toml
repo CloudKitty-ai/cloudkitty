@@ -5,8 +5,8 @@
 # is rejected at startup with a message naming the field and its allowed range.
 
 [world]
-width = 24
-height = 24
+width = 20
+height = 20
 # Milliseconds per tick. 800ms is a comfortable watching pace.
 tick_ms = 800
 # The same seed replays the same world, exactly.
@@ -25,8 +25,8 @@ save_every_ticks = 100
 [[kitty]]
 id = 1
 name = "Miso"
-x = 10
-y = 12
+x = 8
+y = 10
 # PARKED POLICY SEAT (spec 026). Miso's policy, policies/e001-a2-s6.ckpolicy,
 # is an observation-generation-1 artifact (schema 1, 182-wide); this binary
 # speaks generation 2 and refuses it at boot, by design. The seat runs the
@@ -38,16 +38,16 @@ behavior = "policy:e003-m0-g998-s3"
 [[kitty]]
 id = 2
 name = "Biscuit"
-x = 20
-y = 18
+x = 16
+y = 15
 # Biscuit would rather chase a bug than eat a proper meal.
 behavior = "playful"
 
 [[kitty]]
 id = 3
 name = "Pumpkin"
-x = 16
-y = 8
+x = 13
+y = 6
 behavior = "needs_driven"
 # Any kitty may override the global [needs] rise rates; unset needs keep the
 # defaults. Pumpkin is a snacky little cat.
@@ -57,8 +57,8 @@ eat = 0.8
 [[kitty]]
 id = 4
 name = "Kittybear"
-x = 5
-y = 5
+x = 4
+y = 4
 # PARKED POLICY SEAT (spec 026), same story as Miso's: the exp-002 winner
 # policies/e002-m0-g998-s1.ckpolicy is generation-1 (its pair-screen record —
 # team reward 0.8976, in-water 5.14% from 9.21% — stands in the [rl.policy]
@@ -99,7 +99,7 @@ purr = 70.0
 
 # Element populations. `min`/`max` must sit within the hard bounds derived
 # from world size: at least 1 of each type (greebles may be 0), and at most
-# floor(width * height / 32) -- 18 for this 24x24 world.
+# floor(width * height / 32) -- 12 for this 20x20 world.
 #
 # Know your knobs: `max` is read only by config validation. The world tops
 # each type up to `min` and no further, so the standing population IS the
@@ -120,19 +120,19 @@ purr = 70.0
 # Generous on purpose: a kitty should never have to cross the whole world for a
 # drink. Lower these for a sparser, more demanding world -- the constitution still
 # guarantees relief, but the cats will work harder for it.
-min = 8
-max = 10
+min = 7
+max = 9
 # No ttl: puddles are permanent.
 
 [elements.chow]
-min = 8
-max = 10
+min = 6
+max = 8
 # Each bowl feeds this many meals before it is empty and vanishes.
 servings = 5
 
 [elements.bug]
-min = 4
-max = 8
+min = 3
+max = 7
 ttl = 300
 
 [elements.greeble]
@@ -143,8 +143,8 @@ max = 3
 ttl = 300
 
 [elements.sunbeam]
-min = 5
-max = 6
+min = 4
+max = 5
 ttl = 300
 
 # How much each action relieves the need it addresses.
