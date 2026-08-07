@@ -1045,7 +1045,54 @@ async function start() {
 // This settles rather than looping -- placing the cards can resize the map,
 // but re-running the test on the new size returns the same answer and
 // writes nothing (see `placeCards`).
-new ResizeObserver(placeCards).observe(canvas);
+/**
+ * Bring the middle of the meadow into view on a short viewport.
+ *
+ * A phone held sideways fits the world to the WIDTH and lets it overflow
+ * (render.js), so the top of the page is the top EDGE of the map -- often
+ * an empty corner with no cat in it, which is a poor thing to open on.
+ * This scrolls to the world's middle instead.
+ *
+ * The guard is "has the reader moved the page themselves", NOT "have we
+ * done this already". Latching on the first observation looked equivalent
+ * and was not: that observation can arrive while the canvas is still the
+ * 720px default in the markup, and centring a 720px map leaves an 840px
+ * one 60px out with no second chance. So instead we remember the position
+ * we set, and keep correcting for as long as the page is still sitting
+ * exactly where we put it. The moment it isn't, the reader has scrolled
+ * and we never touch it again. Leaving the short layout re-arms the whole
+ * thing, so a rotate back into landscape is a new context rather than a
+ * scroll anyone chose.
+ */
+let wasShort = false;
+let autoScrollY = null;
+function centreMapWhenShort() {
+  if (!matchMedia('(max-height: 500px)').matches) {
+    wasShort = false;
+    autoScrollY = null; // re-arm for the next rotation
+    return;
+  }
+  const rect = canvas.getBoundingClientRect();
+  // Nothing to centre until the map actually overflows. Deliberately
+  // BEFORE the `entering` latch, so a fire this early still counts as the
+  // first one and the real centring is not skipped.
+  if (rect.height <= window.innerHeight) return;
+  const entering = !wasShort;
+  wasShort = true;
+  const untouched =
+    autoScrollY === null ? window.scrollY === 0 : Math.abs(window.scrollY - autoScrollY) <= 1;
+  if (!entering && !untouched) return;
+  const target = Math.max(0, window.scrollY + rect.top + rect.height / 2 - window.innerHeight / 2);
+  if (Math.abs(target - window.scrollY) <= 1) return;
+  // Instant, not smooth: a page that slides on arrival reads as a glitch.
+  window.scrollTo({ top: target, behavior: 'auto' });
+  autoScrollY = Math.round(window.scrollY); // read back: the browser may clamp
+}
+
+new ResizeObserver(() => {
+  placeCards();
+  centreMapWhenShort();
+}).observe(canvas);
 
 // The debug toggles, all in one mold (spec 008 FR-004/FR-009): `g` reveals
 // greebles, `l` the demoted grid lines, `p` the session's worn paths. Each
