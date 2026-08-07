@@ -707,6 +707,77 @@
       },
     },
     {
+      title: 'Walk cycle (treadmill)',
+      note: 'The ground scrolls at exactly the speed a live cat crosses a tile, so a planted paw has to hold still against a stripe. That is the whole reason this card exists — a cat on a still background looks fine either way, and “looks better” is not a measurement. The readout does the arithmetic: a foot plants when its reach sweeps back through the ground the cat covers during its stance, which is why the step count is a dial and not a constant. At one step per tile no reach can plant it, because the legs cross before it gets there.',
+      v2Only: true,
+      w: 420,
+      h: 150,
+      ownShadows: true,
+      bag: CatV2.GAIT,
+      dials: [
+        { key: 'cycles', label: 'steps per tile — whole numbers only', min: 1, max: 4, step: 1 },
+        { key: 'duty', label: 'stance share (how much of a step a foot is down)', min: 0.5, max: 0.85, step: 0.01 },
+        { key: 'reach', label: 'stride reach — a foot leaves the body past 0.14', min: 0.02, max: 0.14, step: 0.005 },
+        { key: 'lift', label: 'foot clearance at mid-swing', min: 0, max: 0.09, step: 0.0025 },
+        { key: 'bob', label: 'body rise and fall', min: 0, max: 0.05, step: 0.002 },
+        { key: 'bobPhase', label: 'where the body sits lowest (0 = at footfall)', min: 0, max: 0.5, step: 0.01 },
+      ],
+      readout() {
+        const g = CatV2.GAIT;
+        const slide = Math.abs(2 * g.reach - g.duty / g.cycles);
+        const TILE = 60; // the live desktop tile at 20x20
+        return (
+          `GAIT = { cycles: ${g.cycles}, duty: ${g.duty}, reach: ${g.reach}, ` +
+          `lift: ${g.lift}, bob: ${g.bob}, bobPhase: ${g.bobPhase} }\n` +
+          `planted reach for this duty and step count: ${CatV2.plantedReach().toFixed(3)}\n` +
+          (slide < 0.005
+            ? '✓ the feet are planted — no measurable slide'
+            : `⚠ feet slide ${slide.toFixed(3)} tiles per stance ` +
+              `(${(slide * TILE).toFixed(1)}px at the live ${TILE}px tile)`) +
+          `\none step every ${Math.round(800 / g.cycles)}ms · foot clears ` +
+          `${(g.lift * TILE).toFixed(1)}px · body travels ${(g.bob * 2 * TILE).toFixed(1)}px`
+        );
+      },
+      draw(ctx, w, h, now) {
+        const TICK = 800;
+        const y = h - CAT * 0.95;
+        const groundY = y + CAT * 0.88; // the cat's own foot line, not the stock one
+        // One tile per tick is the speed a live cat crosses the world, so
+        // these stripes move exactly as the ground would under a walking
+        // cat. Hold one and watch a paw against it.
+        const stripe = CAT / 2;
+        const travel = (now / TICK) * CAT;
+        ctx.fillStyle = '#cfe0b8';
+        ctx.fillRect(0, groundY, w, h - groundY);
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, groundY, w, h - groundY);
+        ctx.clip();
+        ctx.strokeStyle = 'rgba(107, 90, 78, 0.3)';
+        ctx.lineWidth = 2;
+        for (let x = -(travel % stripe); x < w + stripe; x += stripe) {
+          ctx.beginPath();
+          ctx.moveTo(x, groundY);
+          ctx.lineTo(x, h);
+          ctx.stroke();
+        }
+        ctx.restore();
+        ctx.fillStyle = SHADOW;
+        ctx.beginPath();
+        ctx.ellipse(w / 2, groundY, CAT * 0.32, CAT * 0.09, 0, 0, Math.PI * 2);
+        ctx.fill();
+        CatV2.drawCat(ctx, {
+          pose: 'walking',
+          appearance: CatV2.appearanceFor(STORM),
+          facing: 'right',
+          size: CAT,
+          x: (w - CAT) / 2,
+          y,
+          phase: (now % TICK) / TICK,
+        });
+      },
+    },
+    {
       title: 'Arrive & settle',
       note: 'One-tile glide, then stop. v1 swaps walking→idle in one frame; v2 blends the pose and lands with a slow settle (owner-tuned: 180→400 ms).',
       draw(ctx, w, h, now, isV2) {

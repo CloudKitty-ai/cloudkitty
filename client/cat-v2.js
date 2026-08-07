@@ -158,9 +158,9 @@ const GAIT = {
   // returns to 0 every tile, so a fractional count tears the cycle once
   // per tile crossed. It is also the setting that makes planting possible
   // at all -- see PLANTED below.
-  cycles: 2,
+  cycles: 3,
   duty: 0.62, // share of the cycle a foot is planted (>0.5 = a walk, not a run)
-  reach: 0.155, // stride half-width, in tiles either side of the leg's base
+  reach: 0.103, // stride half-width, in tiles either side of the leg's base
   lift: 0.035, // ground clearance at mid-swing; see MAX_LIFT before raising
   bob: 0.018, // body rise and fall -- the old 0.008 was 0.48px at tile 60
   bobPhase: 0.15, // where in the cycle the body sits lowest (0 = at footfall)
@@ -175,10 +175,14 @@ const GAIT = {
  * travels 1/cycles of a tile per step and is planted for `duty` of that,
  * so 2 * reach must equal duty / cycles.
  *
- * This is why the step count matters. At one step per tile it wants a
- * reach of ~0.31, and the legs cross each other at 0.211 -- so a
- * one-step-per-tile walk CANNOT be planted at this leg geometry, only
- * made less bad. Two steps brings it inside the limit with room to spare.
+ * This is why the step count matters, and it is the whole reason `cycles`
+ * exists. Reach has a hard ceiling of 0.14: a leg here is a free peg, not
+ * a limb on a hip, so a foot that reaches past the body's own edge
+ * (the walking body spans x 0.12..0.76) leaves a stick hanging in the air
+ * with no cat above it. Planting therefore needs
+ * duty / (2 * cycles) <= 0.14 -- at least THREE steps per tile at a 0.62
+ * duty. One step per tile wants a reach of 0.31 and cannot be planted at
+ * all, only made less bad, which is where this started.
  */
 function plantedReach(dials = GAIT) {
   return dials.duty / (2 * dials.cycles);

@@ -792,6 +792,26 @@ check('a walk always has a foot down', () => {
   }
 });
 
+check('a foot never steps out from under the cat', () => {
+  // A leg here is a free-standing peg, not a limb on a hip: nothing draws
+  // between its top and the body. So a foot that reaches past the body's
+  // own silhouette leaves a stick hanging in the air with no cat above
+  // it. This binds well before the leg-crossing limit does -- it is what
+  // rules out a two-step-per-tile walk at a 0.62 duty.
+  for (let i = 0; i < 360; i += 1) {
+    const phase = i / 360;
+    const { body, legs } = catLayout('walking', phase);
+    for (const leg of legs) {
+      assert(
+        leg.x >= body.cx - body.rx && leg.x <= body.cx + body.rx,
+        `foot at ${leg.x.toFixed(3)} is outside the body ` +
+          `(${(body.cx - body.rx).toFixed(2)}..${(body.cx + body.rx).toFixed(2)}) ` +
+          `at phase ${phase.toFixed(3)}`,
+      );
+    }
+  }
+});
+
 check('the rear leg stays behind the front one', () => {
   // blendLayouts pairs legs BY INDEX, so a reach big enough to cross them
   // would cross a cat's legs on every blend out of the walk.
@@ -799,6 +819,26 @@ check('the rear leg stays behind the front one', () => {
     const phase = i / 360;
     const { legs } = catLayout('walking', phase);
     assert(legs[0].x < legs[1].x, `legs crossed at phase ${phase.toFixed(3)}`);
+  }
+});
+
+check('the whole cycle draws, and blends out of it at every phase', () => {
+  // The guarding ctx rejects any non-finite draw argument, so this sweeps
+  // the new stance/swing maths for a phase that produces one -- and does
+  // the same through blendLayouts, which now carries a moving `bottom`
+  // where the old walk had a constant.
+  const appearance = CatV2.appearanceFor(3);
+  const base = { appearance, facing: 'right', size: 60, x: 0, y: 0 };
+  for (let i = 0; i <= 120; i += 1) {
+    const phase = i / 120;
+    CatV2.drawCat(guardCtx(), { ...base, pose: 'walking', phase });
+    for (const to of ['idle', 'loaf', 'grooming', 'swim']) {
+      for (const t of [0.25, 0.5, 0.75]) {
+        CatV2.drawCatTween(guardCtx(), {
+          ...base, from: 'walking', to, t, phaseFrom: phase, phaseTo: 0.4,
+        });
+      }
+    }
   }
 });
 
