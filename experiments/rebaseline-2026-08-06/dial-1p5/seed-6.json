@@ -1,0 +1,43 @@
+{
+ "seed": 6,
+ "ticks": 20000,
+ "mean_water_tiles": 8.0,
+ "on_water_by_activity": {
+  "Miso": {
+   "Idle": 351,
+   "Resting": 40,
+   "Sleeping": 60,
+   "Eating": 6,
+   "Drinking": 22,
+   "Playing": 26,
+   "Grooming": 141
+  },
+  "Biscuit": {
+   "Idle": 234,
+   "Resting": 40,
+   "Sleeping": 0,
+   "Eating": 3,
+   "Drinking": 1,
+   "Playing": 75,
+   "Grooming": 3
+  },
+  "Pumpkin": {
+   "Idle": 207,
+   "Resting": 30,
+   "Sleeping": 20,
+   "Eating": 3,
+   "Drinking": 17,
+   "Playing": 10,
+   "Grooming": 81
+  },
+  "Kittybear": {
+   "Idle": 329,
+   "Resting": 45,
+   "Sleeping": 60,
+   "Eating": 6,
+   "Drinking": 19,
+   "Playing": 19,
+   "Grooming": 114
+  }
+ }
+}
