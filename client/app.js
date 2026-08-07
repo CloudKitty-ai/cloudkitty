@@ -1053,27 +1053,40 @@ async function start() {
  * an empty corner with no cat in it, which is a poor thing to open on.
  * This scrolls to the world's middle instead.
  *
- * Once per short-layout episode, and never while one is already running:
- * re-centring on every resize would yank the page out from under someone
- * who had scrolled somewhere deliberately. Leaving the short layout
- * re-arms it, so a rotate back into landscape gets a fresh centring --
- * which is a new context, not a scroll the reader chose.
+ * The guard is "has the reader moved the page themselves", NOT "have we
+ * done this already". Latching on the first observation looked equivalent
+ * and was not: that observation can arrive while the canvas is still the
+ * 720px default in the markup, and centring a 720px map leaves an 840px
+ * one 60px out with no second chance. So instead we remember the position
+ * we set, and keep correcting for as long as the page is still sitting
+ * exactly where we put it. The moment it isn't, the reader has scrolled
+ * and we never touch it again. Leaving the short layout re-arms the whole
+ * thing, so a rotate back into landscape is a new context rather than a
+ * scroll anyone chose.
  */
-let centredForShort = false;
+let wasShort = false;
+let autoScrollY = null;
 function centreMapWhenShort() {
   if (!matchMedia('(max-height: 500px)').matches) {
-    centredForShort = false; // re-arm for the next rotation
+    wasShort = false;
+    autoScrollY = null; // re-arm for the next rotation
     return;
   }
-  if (centredForShort) return;
   const rect = canvas.getBoundingClientRect();
-  // Nothing to centre until the map actually overflows; don't latch on a
-  // measurement taken before the canvas has been sized.
+  // Nothing to centre until the map actually overflows. Deliberately
+  // BEFORE the `entering` latch, so a fire this early still counts as the
+  // first one and the real centring is not skipped.
   if (rect.height <= window.innerHeight) return;
-  centredForShort = true;
-  const middle = window.scrollY + rect.top + rect.height / 2;
+  const entering = !wasShort;
+  wasShort = true;
+  const untouched =
+    autoScrollY === null ? window.scrollY === 0 : Math.abs(window.scrollY - autoScrollY) <= 1;
+  if (!entering && !untouched) return;
+  const target = Math.max(0, window.scrollY + rect.top + rect.height / 2 - window.innerHeight / 2);
+  if (Math.abs(target - window.scrollY) <= 1) return;
   // Instant, not smooth: a page that slides on arrival reads as a glitch.
-  window.scrollTo({ top: Math.max(0, middle - window.innerHeight / 2), behavior: 'auto' });
+  window.scrollTo({ top: target, behavior: 'auto' });
+  autoScrollY = Math.round(window.scrollY); // read back: the browser may clamp
 }
 
 new ResizeObserver(() => {
