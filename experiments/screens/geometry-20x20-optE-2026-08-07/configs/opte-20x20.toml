@@ -33,7 +33,7 @@ y = 10
 # scripted default until exp-003 certifies a schema-2 winner, which re-seats
 # it at the post-exp-003 rollout. The served box still runs the generation-1
 # binary with this policy seated — its config is not this file.
-behavior = "policy:e003-m0-g998-s3"
+behavior = "needs_driven"
 
 [[kitty]]
 id = 2
@@ -63,7 +63,7 @@ y = 4
 # policies/e002-m0-g998-s1.ckpolicy is generation-1 (its pair-screen record —
 # team reward 0.8976, in-water 5.14% from 9.21% — stands in the [rl.policy]
 # block below). Scripted until exp-003's schema-2 winner re-seats it.
-behavior = "policy:e003-m0-g998-s3"
+behavior = "needs_driven"
 
 # How fast each need rises, per tick. Higher means more pressing, more often.
 [needs]
@@ -99,7 +99,7 @@ purr = 70.0
 
 # Element populations. `min`/`max` must sit within the hard bounds derived
 # from world size: at least 1 of each type (greebles may be 0), and at most
-# floor(width * height / 32) -- 12 for this 20x20 world.
+# floor(width * height / 32) -- 18 for this 24x24 world.
 #
 # Know your knobs: `max` is read only by config validation. The world tops
 # each type up to `min` and no further, so the standing population IS the
@@ -277,17 +277,3 @@ distress_patience_ticks = 60
 # 2026-07-31); the README there maps each file to its sha256, its
 # certification record, and the naming convention these keys follow.
 # Since spec 026 both committed artifacts are observation-generation 1 and
-# e003-m0-g998-s3 = exp-003's driest candidate (self-play, γ = 0.998, seed 3),
-# sha256 756aa680… — the first schema-2 policy to reach the served world.
-# Water: 2.79% in-water / 0.62% lounging on the §9.1 instrument, both BELOW the
-# scripted baseline (3.44% / 1.50%) — the behaviour exp-002 proved no dial
-# setting could buy. Welfare +0.0420 vs needs_driven; on this world at roster 4
-# it scores max_distress_age 0 and floor_touches 0 across 30 seeds, both shapes.
-# Seated at both policy seats, superseding e001-a2-s6 and e002-m0-g998-s1
-# (retired to policies/retired/, and unrunnable here in any case — schema 1).
-# Deployed on the owner's judgement, NOT certified: it fails exp-003's §9.2 by
-# 3 ticks of eat-need on one seed of an off-deployment world. The decision and
-# its evidence are in the prereg's Deviations appendix.
-# Greedy selection (sample = false), matching the measured condition.
-[rl.policy.e003-m0-g998-s3]
-artifact = "policies/e003-m0-g998-s3.ckpolicy"

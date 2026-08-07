@@ -1,0 +1,501 @@
+== kitty-eval: policy:policies/e003-m0-g998-s3.ckpolicy (greedy selection) (20000 ticks/seed) ==
+world experiments/screens/geometry-20x20-2026-08-07/configs/optd-20x20.toml (4 kitties) sha256 c3edfbfd2db6b5454af63f1b22b0d1c2e56b7bd192f622a5c10a66e6629d0fbd
+engine defaults cba976dae4b88703f5cff8028a54db24efde6a5cfe8d79dcdbb3948151751b03
+seed 770001 [AllSubject]: team welfare 0.9473, plain mean 0.9474, least-happy mean 93.9, fallbacks 0
+  Miso       mean  95.0  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  95.0  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  93.9  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  95.1  low-share  0.00%  longest-low   0  floor 0
+  max distress age 19
+  welfare bounds: PASS
+seed 770002 [AllSubject]: team welfare 0.9387, plain mean 0.9390, least-happy mean 92.9, fallbacks 0
+  Miso       mean  94.2  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  94.2  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  92.9  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  94.3  low-share  0.00%  longest-low   0  floor 0
+  max distress age 1
+  welfare bounds: PASS
+seed 770003 [AllSubject]: team welfare 0.9435, plain mean 0.9436, least-happy mean 93.4, fallbacks 0
+  Miso       mean  94.7  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  94.7  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  93.4  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  94.7  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770004 [AllSubject]: team welfare 0.9448, plain mean 0.9449, least-happy mean 93.6, fallbacks 0
+  Miso       mean  94.8  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  94.8  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  93.6  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  94.7  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770005 [AllSubject]: team welfare 0.9467, plain mean 0.9468, least-happy mean 93.8, fallbacks 0
+  Miso       mean  95.0  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  95.0  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  93.8  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  94.9  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770006 [AllSubject]: team welfare 0.9437, plain mean 0.9440, least-happy mean 93.3, fallbacks 0
+  Miso       mean  94.7  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  94.8  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  93.3  low-share  0.05%  longest-low  10  floor 0
+  Kittybear  mean  94.8  low-share  0.00%  longest-low   0  floor 0
+  max distress age 46
+  welfare bounds: PASS
+seed 770007 [AllSubject]: team welfare 0.8876, plain mean 0.8879, least-happy mean 88.0, fallbacks 0
+  Miso       mean  89.1  low-share  8.95%  longest-low 1639  floor 0
+  Biscuit    mean  88.8  low-share  9.01%  longest-low 1277  floor 0
+  Pumpkin    mean  88.0  low-share  8.95%  longest-low 535  floor 0
+  Kittybear  mean  89.3  low-share  8.60%  longest-low 440  floor 0
+  max distress age 1909
+  BOUND VIOLATED: Miso was below 45 happiness for 1639 consecutive ticks (limit 20)
+  BOUND VIOLATED: Miso spent 8.9% of ticks below 45 (limit 1%)
+  BOUND VIOLATED: Biscuit was below 45 happiness for 1277 consecutive ticks (limit 20)
+  BOUND VIOLATED: Biscuit spent 9.0% of ticks below 45 (limit 1%)
+  BOUND VIOLATED: Pumpkin was below 45 happiness for 535 consecutive ticks (limit 20)
+  BOUND VIOLATED: Pumpkin spent 8.9% of ticks below 45 (limit 1%)
+  BOUND VIOLATED: Kittybear was below 45 happiness for 440 consecutive ticks (limit 20)
+  BOUND VIOLATED: Kittybear spent 8.6% of ticks below 45 (limit 1%)
+  BOUND VIOLATED: a distress went unresolved for 1909 ticks (limit 150)
+  BOUND VIOLATED: kitty 1's sleep need sat within 1.0 of the cap for 61 consecutive ticks while zero-distance relief existed (limit 25)
+  BOUND VIOLATED: kitty 2's sleep need sat within 1.0 of the cap for 106 consecutive ticks while zero-distance relief existed (limit 25)
+  BOUND VIOLATED: kitty 4's sleep need sat within 1.0 of the cap for 35 consecutive ticks while zero-distance relief existed (limit 25)
+seed 770008 [AllSubject]: team welfare 0.9443, plain mean 0.9444, least-happy mean 93.5, fallbacks 0
+  Miso       mean  94.8  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  94.7  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  93.5  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  94.7  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770009 [AllSubject]: team welfare 0.9444, plain mean 0.9445, least-happy mean 93.5, fallbacks 0
+  Miso       mean  94.7  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  94.7  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  93.5  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  94.8  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770010 [AllSubject]: team welfare 0.9387, plain mean 0.9390, least-happy mean 92.9, fallbacks 0
+  Miso       mean  94.3  low-share  0.36%  longest-low  72  floor 0
+  Biscuit    mean  94.2  low-share  0.52%  longest-low 103  floor 0
+  Pumpkin    mean  92.9  low-share  0.69%  longest-low 139  floor 0
+  Kittybear  mean  94.2  low-share  0.24%  longest-low  44  floor 0
+  max distress age 221
+  BOUND VIOLATED: Miso was below 45 happiness for 72 consecutive ticks (limit 20)
+  BOUND VIOLATED: Biscuit was below 45 happiness for 103 consecutive ticks (limit 20)
+  BOUND VIOLATED: Pumpkin was below 45 happiness for 139 consecutive ticks (limit 20)
+  BOUND VIOLATED: Kittybear was below 45 happiness for 44 consecutive ticks (limit 20)
+  BOUND VIOLATED: a distress went unresolved for 221 ticks (limit 150)
+seed 770011 [AllSubject]: team welfare 0.9431, plain mean 0.9433, least-happy mean 93.4, fallbacks 0
+  Miso       mean  94.8  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  94.6  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  93.4  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  94.6  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770012 [AllSubject]: team welfare 0.9437, plain mean 0.9439, least-happy mean 93.3, fallbacks 0
+  Miso       mean  94.7  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  94.7  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  93.3  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  94.9  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770013 [AllSubject]: team welfare 0.9450, plain mean 0.9452, least-happy mean 93.6, fallbacks 0
+  Miso       mean  94.8  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  94.8  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  93.6  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  94.8  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770014 [AllSubject]: team welfare 0.9427, plain mean 0.9428, least-happy mean 93.3, fallbacks 0
+  Miso       mean  94.5  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  94.6  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  93.3  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  94.7  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770015 [AllSubject]: team welfare 0.9445, plain mean 0.9447, least-happy mean 93.5, fallbacks 0
+  Miso       mean  94.8  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  94.8  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  93.5  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  94.7  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770016 [AllSubject]: team welfare 0.9445, plain mean 0.9446, least-happy mean 93.6, fallbacks 0
+  Miso       mean  94.8  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  94.7  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  93.6  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  94.7  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770017 [AllSubject]: team welfare 0.9470, plain mean 0.9471, least-happy mean 93.9, fallbacks 0
+  Miso       mean  95.0  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  95.0  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  93.9  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  95.0  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770018 [AllSubject]: team welfare 0.9440, plain mean 0.9442, least-happy mean 93.6, fallbacks 0
+  Miso       mean  94.8  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  94.6  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  93.6  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  94.7  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770019 [AllSubject]: team welfare 0.9443, plain mean 0.9445, least-happy mean 93.6, fallbacks 0
+  Miso       mean  94.8  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  94.6  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  93.6  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  94.7  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770020 [AllSubject]: team welfare 0.9437, plain mean 0.9439, least-happy mean 93.4, fallbacks 0
+  Miso       mean  94.7  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  94.7  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  93.4  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  94.7  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770021 [AllSubject]: team welfare 0.9468, plain mean 0.9470, least-happy mean 93.9, fallbacks 0
+  Miso       mean  95.1  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  94.9  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  93.9  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  94.9  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770022 [AllSubject]: team welfare 0.9459, plain mean 0.9460, least-happy mean 93.7, fallbacks 0
+  Miso       mean  94.9  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  94.9  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  93.7  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  94.9  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770023 [AllSubject]: team welfare 0.9464, plain mean 0.9465, least-happy mean 93.8, fallbacks 0
+  Miso       mean  95.0  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  95.0  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  93.8  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  94.9  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770024 [AllSubject]: team welfare 0.9441, plain mean 0.9442, least-happy mean 93.6, fallbacks 0
+  Miso       mean  94.7  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  94.7  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  93.6  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  94.7  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770025 [AllSubject]: team welfare 0.9433, plain mean 0.9435, least-happy mean 93.4, fallbacks 0
+  Miso       mean  94.7  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  94.6  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  93.4  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  94.6  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770026 [AllSubject]: team welfare 0.9439, plain mean 0.9441, least-happy mean 93.5, fallbacks 0
+  Miso       mean  94.7  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  94.8  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  93.5  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  94.7  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770027 [AllSubject]: team welfare 0.9445, plain mean 0.9446, least-happy mean 93.5, fallbacks 0
+  Miso       mean  94.8  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  94.8  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  93.5  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  94.8  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770028 [AllSubject]: team welfare 0.9441, plain mean 0.9443, least-happy mean 93.5, fallbacks 0
+  Miso       mean  94.8  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  94.8  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  93.5  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  94.7  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770029 [AllSubject]: team welfare 0.9428, plain mean 0.9430, least-happy mean 93.4, fallbacks 0
+  Miso       mean  94.6  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  94.6  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  93.4  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  94.5  low-share  0.00%  longest-low   0  floor 0
+  max distress age 7
+  welfare bounds: PASS
+seed 770030 [AllSubject]: team welfare 0.9426, plain mean 0.9427, least-happy mean 93.4, fallbacks 0
+  Miso       mean  94.5  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  94.6  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  93.4  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  94.6  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770001 [Mixed]: team welfare 0.9172, plain mean 0.9175, least-happy mean 90.3, fallbacks 0
+  Miso       mean  94.4  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.2  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  90.3  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  91.1  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770002 [Mixed]: team welfare 0.9154, plain mean 0.9158, least-happy mean 89.9, fallbacks 0
+  Miso       mean  94.1  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.2  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  89.9  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  91.1  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770003 [Mixed]: team welfare 0.9150, plain mean 0.9153, least-happy mean 90.0, fallbacks 0
+  Miso       mean  94.0  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.1  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  90.0  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  91.1  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770004 [Mixed]: team welfare 0.9159, plain mean 0.9163, least-happy mean 90.0, fallbacks 0
+  Miso       mean  94.2  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.1  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  90.0  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  91.2  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770005 [Mixed]: team welfare 0.9166, plain mean 0.9169, least-happy mean 90.2, fallbacks 0
+  Miso       mean  94.3  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.2  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  90.2  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  91.1  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770006 [Mixed]: team welfare 0.9164, plain mean 0.9168, least-happy mean 89.9, fallbacks 0
+  Miso       mean  94.3  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.4  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  89.9  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  91.2  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770007 [Mixed]: team welfare 0.9165, plain mean 0.9169, least-happy mean 90.1, fallbacks 0
+  Miso       mean  94.3  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.2  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  90.1  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  91.2  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770008 [Mixed]: team welfare 0.9151, plain mean 0.9155, least-happy mean 89.9, fallbacks 0
+  Miso       mean  94.2  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.1  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  89.9  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  91.0  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770009 [Mixed]: team welfare 0.9160, plain mean 0.9163, least-happy mean 90.1, fallbacks 0
+  Miso       mean  94.2  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.1  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  90.1  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  91.1  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770010 [Mixed]: team welfare 0.9158, plain mean 0.9161, least-happy mean 90.1, fallbacks 0
+  Miso       mean  94.1  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.1  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  90.1  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  91.1  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770011 [Mixed]: team welfare 0.9155, plain mean 0.9158, least-happy mean 90.2, fallbacks 0
+  Miso       mean  94.0  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.1  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  90.2  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  91.0  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770012 [Mixed]: team welfare 0.9150, plain mean 0.9154, least-happy mean 90.2, fallbacks 0
+  Miso       mean  94.2  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.0  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  90.2  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  90.8  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770013 [Mixed]: team welfare 0.9155, plain mean 0.9158, least-happy mean 90.2, fallbacks 0
+  Miso       mean  94.1  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.0  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  90.2  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  91.0  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770014 [Mixed]: team welfare 0.9175, plain mean 0.9178, least-happy mean 90.2, fallbacks 0
+  Miso       mean  94.5  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.3  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  90.2  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  91.2  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770015 [Mixed]: team welfare 0.9161, plain mean 0.9165, least-happy mean 90.2, fallbacks 0
+  Miso       mean  94.2  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.2  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  90.2  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  90.9  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770016 [Mixed]: team welfare 0.9162, plain mean 0.9165, least-happy mean 90.2, fallbacks 0
+  Miso       mean  94.2  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.1  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  90.2  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  91.1  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770017 [Mixed]: team welfare 0.9174, plain mean 0.9178, least-happy mean 90.2, fallbacks 0
+  Miso       mean  94.4  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.4  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  90.2  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  91.1  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770018 [Mixed]: team welfare 0.9150, plain mean 0.9153, least-happy mean 90.0, fallbacks 0
+  Miso       mean  94.0  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.1  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  90.0  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  91.0  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770019 [Mixed]: team welfare 0.9165, plain mean 0.9169, least-happy mean 90.2, fallbacks 0
+  Miso       mean  94.1  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.2  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  90.2  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  91.2  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770020 [Mixed]: team welfare 0.9142, plain mean 0.9146, least-happy mean 90.0, fallbacks 0
+  Miso       mean  94.0  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.0  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  90.0  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  90.8  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770021 [Mixed]: team welfare 0.9171, plain mean 0.9175, least-happy mean 90.2, fallbacks 0
+  Miso       mean  94.4  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.1  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  90.2  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  91.2  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770022 [Mixed]: team welfare 0.9156, plain mean 0.9159, least-happy mean 90.0, fallbacks 0
+  Miso       mean  94.2  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.1  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  90.0  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  91.1  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770023 [Mixed]: team welfare 0.9163, plain mean 0.9167, least-happy mean 90.1, fallbacks 0
+  Miso       mean  94.2  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.2  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  90.1  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  91.2  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770024 [Mixed]: team welfare 0.9153, plain mean 0.9156, least-happy mean 90.2, fallbacks 0
+  Miso       mean  94.1  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.1  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  90.2  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  90.9  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770025 [Mixed]: team welfare 0.9164, plain mean 0.9168, least-happy mean 90.2, fallbacks 0
+  Miso       mean  94.3  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.1  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  90.2  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  91.1  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770026 [Mixed]: team welfare 0.9162, plain mean 0.9165, least-happy mean 90.2, fallbacks 0
+  Miso       mean  94.2  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.0  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  90.2  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  91.1  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770027 [Mixed]: team welfare 0.9163, plain mean 0.9166, least-happy mean 90.3, fallbacks 0
+  Miso       mean  94.2  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.2  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  90.3  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  91.0  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770028 [Mixed]: team welfare 0.9165, plain mean 0.9168, least-happy mean 90.1, fallbacks 0
+  Miso       mean  94.3  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.3  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  90.1  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  91.1  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770029 [Mixed]: team welfare 0.9159, plain mean 0.9163, least-happy mean 90.2, fallbacks 0
+  Miso       mean  94.2  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.1  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  90.2  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  91.1  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+seed 770030 [Mixed]: team welfare 0.9158, plain mean 0.9162, least-happy mean 90.2, fallbacks 0
+  Miso       mean  94.0  low-share  0.00%  longest-low   0  floor 0
+  Biscuit    mean  91.1  low-share  0.00%  longest-low   0  floor 0
+  Pumpkin    mean  90.2  low-share  0.00%  longest-low   0  floor 0
+  Kittybear  mean  91.2  low-share  0.00%  longest-low   0  floor 0
+  max distress age 0
+  welfare bounds: PASS
+-- paired vs needs_driven baseline --
+seed 770001 [AllSubject]: subject (greedy selection) 0.9473 vs baseline 0.9055 (delta +0.0418)
+seed 770002 [AllSubject]: subject (greedy selection) 0.9387 vs baseline 0.9045 (delta +0.0342)
+seed 770003 [AllSubject]: subject (greedy selection) 0.9435 vs baseline 0.9054 (delta +0.0380)
+seed 770004 [AllSubject]: subject (greedy selection) 0.9448 vs baseline 0.9030 (delta +0.0418)
+seed 770005 [AllSubject]: subject (greedy selection) 0.9467 vs baseline 0.9063 (delta +0.0403)
+seed 770006 [AllSubject]: subject (greedy selection) 0.9437 vs baseline 0.9048 (delta +0.0389)
+seed 770007 [AllSubject]: subject (greedy selection) 0.8876 vs baseline 0.9065 (delta -0.0189)
+seed 770008 [AllSubject]: subject (greedy selection) 0.9443 vs baseline 0.9044 (delta +0.0399)
+seed 770009 [AllSubject]: subject (greedy selection) 0.9444 vs baseline 0.9055 (delta +0.0388)
+seed 770010 [AllSubject]: subject (greedy selection) 0.9387 vs baseline 0.9059 (delta +0.0328)
+seed 770011 [AllSubject]: subject (greedy selection) 0.9431 vs baseline 0.9064 (delta +0.0367)
+seed 770012 [AllSubject]: subject (greedy selection) 0.9437 vs baseline 0.9044 (delta +0.0393)
+seed 770013 [AllSubject]: subject (greedy selection) 0.9450 vs baseline 0.9077 (delta +0.0374)
+seed 770014 [AllSubject]: subject (greedy selection) 0.9427 vs baseline 0.9054 (delta +0.0373)
+seed 770015 [AllSubject]: subject (greedy selection) 0.9445 vs baseline 0.9067 (delta +0.0378)
+seed 770016 [AllSubject]: subject (greedy selection) 0.9445 vs baseline 0.9051 (delta +0.0393)
+seed 770017 [AllSubject]: subject (greedy selection) 0.9470 vs baseline 0.9051 (delta +0.0418)
+seed 770018 [AllSubject]: subject (greedy selection) 0.9440 vs baseline 0.9052 (delta +0.0388)
+seed 770019 [AllSubject]: subject (greedy selection) 0.9443 vs baseline 0.9058 (delta +0.0385)
+seed 770020 [AllSubject]: subject (greedy selection) 0.9437 vs baseline 0.9058 (delta +0.0379)
+seed 770021 [AllSubject]: subject (greedy selection) 0.9468 vs baseline 0.9063 (delta +0.0406)
+seed 770022 [AllSubject]: subject (greedy selection) 0.9459 vs baseline 0.9052 (delta +0.0407)
+seed 770023 [AllSubject]: subject (greedy selection) 0.9464 vs baseline 0.9061 (delta +0.0403)
+seed 770024 [AllSubject]: subject (greedy selection) 0.9441 vs baseline 0.9047 (delta +0.0394)
+seed 770025 [AllSubject]: subject (greedy selection) 0.9433 vs baseline 0.9055 (delta +0.0378)
+seed 770026 [AllSubject]: subject (greedy selection) 0.9439 vs baseline 0.9038 (delta +0.0401)
+seed 770027 [AllSubject]: subject (greedy selection) 0.9445 vs baseline 0.9055 (delta +0.0390)
+seed 770028 [AllSubject]: subject (greedy selection) 0.9441 vs baseline 0.9051 (delta +0.0391)
+seed 770029 [AllSubject]: subject (greedy selection) 0.9428 vs baseline 0.9055 (delta +0.0373)
+seed 770030 [AllSubject]: subject (greedy selection) 0.9426 vs baseline 0.9057 (delta +0.0369)
+seed 770001 [Mixed]: subject (greedy selection) 0.9172 vs baseline 0.9055 (delta +0.0117)
+seed 770002 [Mixed]: subject (greedy selection) 0.9154 vs baseline 0.9045 (delta +0.0109)
+seed 770003 [Mixed]: subject (greedy selection) 0.9150 vs baseline 0.9054 (delta +0.0095)
+seed 770004 [Mixed]: subject (greedy selection) 0.9159 vs baseline 0.9030 (delta +0.0129)
+seed 770005 [Mixed]: subject (greedy selection) 0.9166 vs baseline 0.9063 (delta +0.0102)
+seed 770006 [Mixed]: subject (greedy selection) 0.9164 vs baseline 0.9048 (delta +0.0116)
+seed 770007 [Mixed]: subject (greedy selection) 0.9165 vs baseline 0.9065 (delta +0.0100)
+seed 770008 [Mixed]: subject (greedy selection) 0.9151 vs baseline 0.9044 (delta +0.0108)
+seed 770009 [Mixed]: subject (greedy selection) 0.9160 vs baseline 0.9055 (delta +0.0104)
+seed 770010 [Mixed]: subject (greedy selection) 0.9158 vs baseline 0.9059 (delta +0.0098)
+seed 770011 [Mixed]: subject (greedy selection) 0.9155 vs baseline 0.9064 (delta +0.0091)
+seed 770012 [Mixed]: subject (greedy selection) 0.9150 vs baseline 0.9044 (delta +0.0106)
+seed 770013 [Mixed]: subject (greedy selection) 0.9155 vs baseline 0.9077 (delta +0.0078)
+seed 770014 [Mixed]: subject (greedy selection) 0.9175 vs baseline 0.9054 (delta +0.0121)
+seed 770015 [Mixed]: subject (greedy selection) 0.9161 vs baseline 0.9067 (delta +0.0094)
+seed 770016 [Mixed]: subject (greedy selection) 0.9162 vs baseline 0.9051 (delta +0.0110)
+seed 770017 [Mixed]: subject (greedy selection) 0.9174 vs baseline 0.9051 (delta +0.0122)
+seed 770018 [Mixed]: subject (greedy selection) 0.9150 vs baseline 0.9052 (delta +0.0098)
+seed 770019 [Mixed]: subject (greedy selection) 0.9165 vs baseline 0.9058 (delta +0.0107)
+seed 770020 [Mixed]: subject (greedy selection) 0.9142 vs baseline 0.9058 (delta +0.0084)
+seed 770021 [Mixed]: subject (greedy selection) 0.9171 vs baseline 0.9063 (delta +0.0108)
+seed 770022 [Mixed]: subject (greedy selection) 0.9156 vs baseline 0.9052 (delta +0.0103)
+seed 770023 [Mixed]: subject (greedy selection) 0.9163 vs baseline 0.9061 (delta +0.0103)
+seed 770024 [Mixed]: subject (greedy selection) 0.9153 vs baseline 0.9047 (delta +0.0106)
+seed 770025 [Mixed]: subject (greedy selection) 0.9164 vs baseline 0.9055 (delta +0.0110)
+seed 770026 [Mixed]: subject (greedy selection) 0.9162 vs baseline 0.9038 (delta +0.0123)
+seed 770027 [Mixed]: subject (greedy selection) 0.9163 vs baseline 0.9055 (delta +0.0108)
+seed 770028 [Mixed]: subject (greedy selection) 0.9165 vs baseline 0.9051 (delta +0.0114)
+seed 770029 [Mixed]: subject (greedy selection) 0.9159 vs baseline 0.9055 (delta +0.0104)
+seed 770030 [Mixed]: subject (greedy selection) 0.9158 vs baseline 0.9057 (delta +0.0101)
+aggregate delta [AllSubject] +0.0368 over 30 seeds
+aggregate delta [Mixed] +0.0106 over 30 seeds
