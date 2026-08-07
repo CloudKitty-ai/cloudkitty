@@ -75,6 +75,28 @@ function poseFor(kitty, moved, onWater = false) {
   return 'idle';
 }
 
+/** The cat's own ground line, in its 0..1 unit space (see cat-v2). */
+const CAT_GROUND_Y = 0.88;
+
+/**
+ * Where the pond surface cuts a cat, in the cat's unit space -- or null
+ * when nothing should be clipped (BACKLOG P1, the owner's idea).
+ *
+ * Pure, and derived from `wet` rather than from the pose, because the
+ * pose is exactly what must NOT decide this: `poseFor` lets drinking and
+ * grooming outrank the wade, so those cats keep a land pose while
+ * standing in a pond and still have to look wet. The one pose exempted
+ * is `swim`, which is already drawn sunk and would be submerged twice.
+ *
+ * The surface travels from the ground line up to the waterline as `wet`
+ * eases 0 -> 1, so a shoreline crossing raises the water instead of
+ * popping it.
+ */
+function waterlineFor(pose, wet, dials = VIEW) {
+  if (pose === 'swim' || !(wet > 0.01)) return null;
+  return CAT_GROUND_Y - wet * (CAT_GROUND_Y - dials.waterline);
+}
+
 class WorldRenderer {
   constructor(canvas) {
     this.canvas = canvas;
@@ -708,6 +730,22 @@ class WorldRenderer {
       }
       ctx.restore();
     }
+    // Water occlusion (BACKLOG P1, the owner's idea): clip the cat against
+    // the waterline so a cat standing in a pond is visibly in it, whatever
+    // pose it is wearing. This is what makes the water+activity case work
+    // without a second pose per activity -- a cat drinking at the edge of a
+    // pond keeps its drinking pose and still reads as standing in water.
+    const cut = waterlineFor(pose, wet);
+    const submerged = cut !== null;
+    if (submerged) {
+      ctx.save();
+      ctx.beginPath();
+      // Generous horizontally and upward: the tail and the dispatcher's
+      // 1.05x overdraw both put ink outside the nominal box, and clipping
+      // is only ever meant to cut the BOTTOM off.
+      ctx.rect(x - this.tile, y - this.tile * 2, this.tile * 3, this.tile * (2 + cut));
+      ctx.clip();
+    }
     if (tween?.sy !== undefined) {
       // The landing settle: a soft squash about the ground line, so the
       // feet stay planted (the dispatcher's overdraw anchors feet too).
@@ -740,6 +778,10 @@ class WorldRenderer {
       drawCat(ctx, { ...catOpts, pose, phase: motion.phase });
     }
     if (tween?.sy !== undefined) ctx.restore();
+    if (submerged) ctx.restore();
+    // The beat, the Zs and the cuddle heart all live ABOVE the water and
+    // are drawn after the clip is released -- a thought bubble does not
+    // get cut off because the cat it belongs to is standing in a pond.
     if (beat) this.drawBeat(beat, cx, cy, view.facingFor(kitty.id));
 
     if (state === 'sleeping') {

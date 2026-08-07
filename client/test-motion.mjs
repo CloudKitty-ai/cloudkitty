@@ -45,7 +45,15 @@ function slotOf(api, id, want, dials = api.VIEW) {
 }
 eval(catV2Src); // IIFE: registers globalThis.CatV2
 const CatV2 = globalThis.CatV2;
-const { poseFor, WorldRenderer } = eval(renderSrc + ';({ poseFor, WorldRenderer })');
+// render.js reads `VIEW` as a global (the browser loads anim.js alongside
+// it); each eval here gets its own scope, so hand it one. Direct eval runs
+// in this scope, so the binding is visible to the code below -- and it is
+// the SAME object anim.js built, so a re-dialled tunable cannot diverge
+// between what the harness tests and what the page draws.
+const VIEW = api.VIEW;
+const { poseFor, WorldRenderer, waterlineFor } = eval(
+  renderSrc + ';({ poseFor, WorldRenderer, waterlineFor })',
+);
 
 /** Canvas ctx stand-in: logs every command, throws on non-finite numbers. */
 function guardCtx(log = []) {
@@ -618,6 +626,67 @@ check('the portrait pose is idle because an action pose has no idle motion', () 
       `${pose} would have suppressed the portrait's blink`,
     );
   }
+});
+
+// ---- water occlusion: where the surface cuts the cat ----
+
+const GROUND = 0.88;
+
+check('a dry cat is never clipped, in any pose', () => {
+  for (const pose of ['idle', 'walking', 'grooming', 'drinking', 'loaf', 'sleep-curl']) {
+    assert(waterlineFor(pose, 0) === null, `${pose} dry`);
+    assert(waterlineFor(pose, 0.005) === null, `${pose} barely damp`);
+  }
+});
+
+check('the swim pose opts out however wet it is', () => {
+  // It is already drawn sunk (cat-v2's SWIM); clipping would submerge it
+  // a second time.
+  for (const wet of [0.01, 0.3, 0.7, 1]) {
+    assert(waterlineFor('swim', wet) === null, `swim at wet ${wet}`);
+  }
+});
+
+check('a land pose in water is clipped, and the pose does not change where', () => {
+  // The whole point: poseFor lets these outrank the wade, so they must
+  // all meet the same surface.
+  const poses = ['grooming', 'drinking', 'eating', 'loaf', 'sleep-curl', 'idle', 'pouncing'];
+  const at = poses.map((p) => waterlineFor(p, 1));
+  for (let i = 0; i < poses.length; i += 1) {
+    close(at[i], api.VIEW.waterline, `${poses[i]} fully wet`);
+  }
+});
+
+check('the surface rises from the ground line, monotonically', () => {
+  // Derived from VIEW, never a copy of it -- a re-dialled waterline must
+  // not need this test edited.
+  // Integer steps, and an epsilon on the endpoint: 0.88 - 1 * (0.88 - 0.72)
+  // is 0.7199999999999999 in binary floating point, so an exact bound here
+  // would fail on arithmetic rather than on behaviour.
+  const EPS = 1e-9;
+  let previous = GROUND + 1;
+  for (let i = 1; i <= 50; i += 1) {
+    const wet = i / 50;
+    const cut = waterlineFor('grooming', wet);
+    assert(cut < previous, `not monotonic at wet ${wet.toFixed(2)}`);
+    assert(cut <= GROUND + EPS, `above the ground line at ${wet.toFixed(2)}: ${cut}`);
+    assert(cut >= api.VIEW.waterline - EPS, `past the waterline at ${wet.toFixed(2)}: ${cut}`);
+    previous = cut;
+  }
+  close(waterlineFor('grooming', 1), api.VIEW.waterline, 'fully wet sits exactly on the dial');
+  // Half wet is half way, so the ease in `wetFor` is the only shaping.
+  close(
+    waterlineFor('grooming', 0.5),
+    GROUND - 0.5 * (GROUND - api.VIEW.waterline),
+    'halfway is halfway',
+  );
+});
+
+check('the dial is honoured, not hardcoded', () => {
+  const shallow = { waterline: 0.8 };
+  const deep = { waterline: 0.6 };
+  close(waterlineFor('grooming', 1, shallow), 0.8, 'shallow dial');
+  close(waterlineFor('grooming', 1, deep), 0.6, 'deep dial');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);
