@@ -44,7 +44,11 @@ _v2.VAL_S6_CONFIGS = ()
 VAL_ROLLOUT = 3
 EXPECTED_TRAIN, EXPECTED_VAL = 45, 15
 
-# Unchanged pieces, re-exported for the exp-001 training scripts.
+# Unchanged pieces, re-exported so exp-001's training scripts and
+# exp-002's `ppo_env` (which imports PER_KITTY/TAIL/TARGET_ROSTER/
+# pad_states for its padded critic view) run against this module
+# unmodified. A missing name here is an ImportError, not a silent
+# fallback — which is why the list is explicit rather than a star import.
 ACTION_NAMES = _v2.ACTION_NAMES
 ACTION_GROUPS = _v2.ACTION_GROUPS
 load_rollout = _v2.load_rollout
@@ -52,6 +56,9 @@ stack_decisions = _v2.stack_decisions
 critic_arrays = _v2.critic_arrays
 pad_states = _v2.pad_states
 roster_of = _v2.roster_of
+PER_KITTY = _v2.PER_KITTY
+TAIL = _v2.TAIL
+TARGET_ROSTER = _v2.TARGET_ROSTER
 PADDED_STATE_DIM = _v2.PADDED_STATE_DIM
 
 
