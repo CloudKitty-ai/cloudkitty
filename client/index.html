@@ -339,7 +339,24 @@
        and its own line box supplies the space. The line is reserved whether
        or not it speaks (see `.patience`), so a card that has nothing to
        report still ends in a proper margin -- the reserve pays for itself
-       instead of sitting as a gap in the middle of the card. */
+       instead of sitting as a gap in the middle of the card.
+
+       The top and bottom are NOT even, and that is a decision rather than
+       an oversight (owner, 2026-08-07, after measuring). A healthy card
+       has 10px above and 16px below; a distressed one has 10 and 2. The
+       two states differ by exactly the cue's ink height, because one
+       reserved line serves both, so no single value balances them --
+       and the bottom is pinned at 16, so evening it up means RAISING the
+       top, not lowering the bottom. 14px and 16px were both offered and
+       declined: collapsing the cards was about height, and spending 4-6px
+       of it back on whitespace gives some of that away. Most visible on a
+       collapsed card, where 6px is five times the share it is on the
+       232px expanded one.
+
+       Dropping the reserve is not the escape it looks like -- measured, it
+       buys ONE pixel (110 -> 109), because the space under the mood line
+       is mostly its own descender plus padding rather than the reserve. It
+       would trade the no-wobble invariant for nothing. */
     padding: 10px 14px 0;
     /* The card is #fffdfa on a #fdf6ec page -- about 3% of luminance apart,
        so without an edge the shape is carried entirely by the shadow, and
