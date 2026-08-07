@@ -55,6 +55,15 @@ UPSTREAM="${CK_UPSTREAM:-127.0.0.1:8090}"
 BACKUP_ROOT=/root/cloudkitty-deploy-backup
 KEEP_BACKUPS="${CK_KEEP_BACKUPS:-5}"
 
+# The shell running this may be non-interactive (`ssh root@box ./update.sh`),
+# so nothing has sourced ~/.cargo/env and the toolchain provisioning installed
+# is invisible. Same reasoning, same exports as provision-cloudkitty.sh's own
+# build step; harmless when cargo is already on PATH or for --client-only,
+# which never builds.
+export CARGO_HOME="${CARGO_HOME:-/root/.cargo}"
+export RUSTUP_HOME="${RUSTUP_HOME:-/root/.rustup}"
+export PATH="${CARGO_HOME}/bin:${PATH}"
+
 # Declared up front so the ERR trap can reference them no matter how early it
 # fires -- under `set -u` an unbound expansion inside the trap would replace a
 # useful diagnostic with a confusing one. Filled in later.
@@ -140,6 +149,11 @@ if [[ "$CLIENT_ONLY" == "1" ]]; then
 fi
 
 log "building ${DEPLOYED_REV}"
+
+command -v cargo >/dev/null || {
+    echo "cargo not found (looked on PATH incl. ${CARGO_HOME}/bin); run provision-cloudkitty.sh first" >&2
+    exit 1
+}
 
 # Before touching anything: a release build plus a full copy of the world can
 # fill a small droplet, and a truncated backup is worse than none.
