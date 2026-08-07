@@ -20,7 +20,7 @@ from bc_loss import NEG_INF, bc_loss_and_metrics
 from data import ACTION_GROUPS, ACTION_NAMES, load_dataset, stack_decisions
 from model import MLP
 
-HIDDEN = [256, 256]  # prereg §4: 182 -> 256 -> 256 -> 40
+HIDDEN = [256, 256]  # prereg §4: obs -> 256 -> 256 -> menu (dims from the data)
 
 
 def evaluate(model, obs, mask, label, eps, batch_size, n_actions):

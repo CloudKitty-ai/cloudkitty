@@ -109,6 +109,21 @@ class MixedVecRunner:
                 f"mixed episode must seat exactly the subject, got "
                 f"{self.agent_names[w]}")
 
+    @property
+    def dims(self) -> tuple[int, int]:
+        """(observation width, menu length), as the live engine reports them.
+
+        Read from a real observation rather than declared: the width moved
+        182 -> 183 when the in-water flag landed, and a trainer carrying
+        the old literal would have died mid-run on a broadcast error
+        instead of never starting. Every world in the family shares these
+        (they are schema-level, not world-level), so world 0 speaks for
+        all of them.
+        """
+        first = self.agent_names[0][0]
+        return (int(np.asarray(self._obs[0][first]).shape[0]),
+                int(len(self._mask[0][first])))
+
     def flat_obs(self, obs_dim: int, n_actions: int):
         """(obs (n,5,obs_dim), mask (n,5,n_actions), valid (n,5))."""
         n = self.n_worlds

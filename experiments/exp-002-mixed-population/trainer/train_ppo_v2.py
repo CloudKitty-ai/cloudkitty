@@ -40,6 +40,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(1, str(HERE.parents[1] / "exp-001-bc-mappo" / "trainer"))
 
+import cloudkitty
 import numpy as np
 import torch
 
@@ -50,7 +51,6 @@ from data import ACTION_GROUPS
 from ppo_env import MAX_SEATS, MixedVecRunner, load_family
 
 EXP = HERE.parent
-OBS_DIM, N_ACTIONS = 182, 40
 MEOW = list(ACTION_GROUPS["meow"])
 LOUNGE_ACTS = (1, 2, 6)  # Resting, Sleeping, Grooming (state one-hot order)
 POS_OFF, ACT_OFF = 7, 9
@@ -86,9 +86,10 @@ def collect_fragment(runner, policy, critic, vstats, T):
     whole roster, and worlds redraw at episode boundaries mid-fragment."""
     mean, std = vstats
     n = runner.n_worlds
+    obs_dim, n_actions = runner.dims
     buf = {
-        "obs": np.zeros((T, n, MAX_SEATS, OBS_DIM), np.float32),
-        "mask": np.zeros((T, n, MAX_SEATS, N_ACTIONS), bool),
+        "obs": np.zeros((T, n, MAX_SEATS, obs_dim), np.float32),
+        "mask": np.zeros((T, n, MAX_SEATS, n_actions), bool),
         "valid": np.zeros((T, n, MAX_SEATS), bool),
         "act": np.zeros((T, n, MAX_SEATS), np.int64),
         "logp": np.zeros((T, n, MAX_SEATS), np.float32),
@@ -103,7 +104,7 @@ def collect_fragment(runner, policy, critic, vstats, T):
         for t in range(T):
             states = runner.states()
             v_raw = critic(torch.from_numpy(states)).squeeze(-1).numpy() * std + mean
-            obs, mask, valid = runner.flat_obs(OBS_DIM, N_ACTIONS)
+            obs, mask, valid = runner.flat_obs(obs_dim, n_actions)
             to = torch.from_numpy(obs[valid])
             tm = torch.from_numpy(mask[valid])
             logits = policy(to)
@@ -244,7 +245,10 @@ def main():
     ap.add_argument("--ckpt-every", type=int, default=50)
     ap.add_argument("--wall-min", type=float, default=None)
     ap.add_argument("--resume", action="store_true")
-    ap.add_argument("--s6-artifact", type=Path, default=Path("policies/s6.ckpolicy"))
+    # Renamed under the provenance convention (PR #98); the sha is
+    # unchanged, so this is the same warm start exp-002 registered.
+    ap.add_argument("--s6-artifact", type=Path,
+                    default=Path("policies/e001-a2-s6.ckpolicy"))
     ap.add_argument("--clone", type=Path, default=EXP / "artifacts/clone-v2/clone.pt")
     ap.add_argument("--critic-dir", type=Path, default=EXP / "artifacts/clone-v2")
     ap.add_argument("--family-dir", type=Path, default=EXP / "family/v2-dial1.5")
@@ -315,6 +319,22 @@ def main():
     variants = load_family(args.family_dir)
     runner = MixedVecRunner(variants, mix, args.n_worlds, seed_base,
                             horizon=args.horizon)
+
+    # The init and the gym must belong to the same engine generation.
+    # Everything below this line would otherwise run: the mismatch first
+    # shows up as a torch matmul error somewhere inside the first update,
+    # after the family has loaded and the run has stamped its manifest.
+    # Say it here, in the terms the operator can act on.
+    obs_dim, n_actions = runner.dims
+    if policy.dims[0] != obs_dim or policy.dims[-1] != n_actions:
+        sys.exit(
+            f"init policy is {policy.dims[0]}->{policy.dims[-1]} but this "
+            f"engine speaks {obs_dim}->{n_actions} (observation schema "
+            f"{cloudkitty.OBSERVATION_SCHEMA_VERSION}). A policy from an "
+            f"earlier generation cannot be "
+            f"warm-started across a schema change -- retrain from the clone, "
+            f"or rebuild the binding if it is the one that is stale.")
+
     mean_v, std_v = vstats
 
     # §10.3: stamp the run before the first update.

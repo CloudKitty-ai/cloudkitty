@@ -110,6 +110,17 @@ class VecRunner:
         self.ep_len = np.zeros(self.n_worlds, dtype=np.int64)
         self.completed: list[tuple[float, int]] = []  # (mean per-tick reward, len)
 
+    @property
+    def dims(self) -> tuple[int, int]:
+        """(observation width, menu length) as the live engine reports them.
+
+        Read from a real observation, not declared: the width moved
+        182 -> 183 at observation schema 2.
+        """
+        w, a = self.pairs[0]
+        return (int(np.asarray(self._obs[w][a]).shape[0]),
+                int(len(self._mask[w][a])))
+
     def flat_obs(self):
         obs = np.stack([self._obs[w][a] for w, a in self.pairs])
         mask = np.stack([self._mask[w][a] for w, a in self.pairs]).astype(bool)

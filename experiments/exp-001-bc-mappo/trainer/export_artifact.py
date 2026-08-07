@@ -6,6 +6,16 @@ reference writer cloudkitty_rl::policy::write_artifact:
   in the length) | per layer: f32-LE weights [out][in] (PyTorch
   nn.Linear.weight layout, no transpose), then bias [out].
 No checksum in the file; the loader hashes the whole file at load.
+
+The schema stamps are read from the engine binding, never written as
+literals. They were literals until 2026-08-06, and they said 1 after the
+in-water flag took the observation to schema 2 -- so nothing this script
+exported could have loaded, and the failure would have surfaced at the
+end of a training run rather than the start of one. Reading them from
+`cloudkitty` also makes the stamp mean the right thing: the binding is
+the engine the policy was actually trained against, so the artifact
+declares the generation it belongs to rather than the generation someone
+last edited into this file.
 """
 
 import argparse
@@ -14,6 +24,7 @@ import json
 import struct
 from pathlib import Path
 
+import cloudkitty as ck
 import numpy as np
 import torch
 
@@ -29,9 +40,9 @@ def export(clone_path: Path, out_path: Path) -> str:
     linears = model.linears()
     header = {
         "artifact_version": 1,
-        "observation_schema": 1,
-        "action_schema": 1,
-        "mask_schema": 1,
+        "observation_schema": ck.OBSERVATION_SCHEMA_VERSION,
+        "action_schema": ck.ACTION_SCHEMA_VERSION,
+        "mask_schema": ck.MASK_SCHEMA_VERSION,
         "layers": [[m.in_features, m.out_features] for m in linears],
         "activation": "relu",
     }
@@ -53,6 +64,8 @@ def export(clone_path: Path, out_path: Path) -> str:
     sha = hashlib.sha256(out_path.read_bytes()).hexdigest()
     print(f"wrote {out_path} ({out_path.stat().st_size} bytes)")
     print(f"layers {header['layers']}")
+    print(f"schemas obs {header['observation_schema']} "
+          f"action {header['action_schema']} mask {header['mask_schema']}")
     print(f"sha256 {sha}")
     return sha
 
