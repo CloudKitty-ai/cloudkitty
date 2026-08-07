@@ -178,7 +178,10 @@ const VIEW = Object.freeze({
     shoreRounding: 0.8, // pond corner rounding, in tiles
     shoreWobble: 0.08, // shoreline undulation depth, in tiles
     shoreWobblePeriod: 0.35, // and its wavelength around the perimeter, in tiles
-    shoreDipEase: 0.75, // how far INWARD dips reach, vs the outward bulges
+    // Despite the name, this scales the OUTWARD bulges: bays cut the full
+    // `shoreWobble`, headlands reach this share of it. See meadow.js
+    // `wobbleAlong` for why the name reads backwards.
+    shoreBulgeEase: 0.75,
     shoreOverdraw: 0.1, // push the whole outline out this far, in tiles
     lilyPadMinTiles: 4, // ponds at least this big carry a lily pad
     glowRadiusTiles: 1.4, // sunbeam glow radius, in tiles

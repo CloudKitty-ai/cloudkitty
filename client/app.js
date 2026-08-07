@@ -202,13 +202,23 @@ let currentBlend = null; // and the quantised blend key it was applied at
 let themeTokens = null;
 function readThemeTokens() {
   const body = document.body;
+  const savedDuration = body.style.transitionDuration;
+  body.style.transitionDuration = '0s';
+  // Take `reduced-motion` off for the read. It sets `transition: none`
+  // (index.html), which computes transition-property to `none` -- so the
+  // list below came back empty and, because this result is memoised, a
+  // viewer who prefers reduced motion lost the world-clock crossing for the
+  // whole session, silently, and never got it back by changing the setting.
+  // The list we want is the one the stylesheet authors, not the one motion
+  // preference leaves behind. Durations are already pinned above and nothing
+  // paints before it goes back on, so this cannot start an animation.
+  const hadReduced = body.classList.contains('reduced-motion');
+  if (hadReduced) body.classList.remove('reduced-motion');
   const names = getComputedStyle(body)
     .transitionProperty.split(',')
     .map((n) => n.trim())
     .filter((n) => n.startsWith('--'));
   const had = THEMES.filter((t) => body.classList.contains(t));
-  const savedDuration = body.style.transitionDuration;
-  body.style.transitionDuration = '0s';
   // Clear anything `paintThemeTokens` has already written. Inline
   // properties beat the class rules, so reading with them in place returns
   // the current blend four times over instead of the four themes. Memoising
@@ -228,6 +238,7 @@ function readThemeTokens() {
     for (const name of names) out[theme][name] = style.getPropertyValue(name).trim();
   }
   for (const t of THEMES) body.classList.toggle(t, had.includes(t));
+  if (hadReduced) body.classList.add('reduced-motion');
   for (const name of names) {
     if (savedInline[name]) body.style.setProperty(name, savedInline[name]);
   }
@@ -438,13 +449,28 @@ function drawSkyDial(tick) {
     : phase === 'dusk' ? SKY_DIAL.domeDusk
     : phase === 'dawn' ? SKY_DIAL.domeDawn
     : SKY_DIAL.domeDay;
-  // How low the sun sits, 0..1: both twilights ride a horizon, noon and
-  // midnight do not. Crossing a phase mixes the two, so the disc warms into
-  // its sunset red rather than switching colour under you.
-  const lowness = (phase) => (phase === 'dusk' || phase === 'dawn' ? 1 : 0);
-  const low = blend.next
-    ? lowness(blend.theme) + (lowness(blend.next) - lowness(blend.theme)) * blend.step
-    : lowness(blend.theme);
+  // How low the sun sits, 0..1 -- read off its own height on the arc, not
+  // off the name of the phase.
+  //
+  // Keying it to the phase was wrong twice over. Once by omission: `dusk`
+  // alone meant dawn's horizon sun drew in high-noon gold. Then by blending
+  // it, because the PHASE hands over to night 16 ticks before the sun
+  // actually sets, so the disc warmed back toward gold over its last ten
+  // seconds of being up -- the reverse of the point. Holding it across that
+  // one crossing patched the symptom while leaving the cause: a colour that
+  // says "near the horizon" derived from something that is not the horizon.
+  //
+  // `sky.t` runs 0 at the rising horizon, 0.5 at the peak, 1 at the setting
+  // one, so its sine IS the height. Now the sun cannot un-redden while it is
+  // still up, whatever the phase table says, and the warm-up happens as it
+  // descends rather than as the label changes.
+  //
+  // The band is how high still counts as low. At 0.5 the red fades out
+  // around a sixth of the way up the arc, which lands within three ticks of
+  // where dawn ends today -- the look this replaces, arrived at honestly.
+  const HORIZON_BAND = 0.5;
+  const height = Math.sin(Math.min(1, Math.max(0, sky.t)) * Math.PI);
+  const low = Math.min(1, Math.max(0, 1 - height / HORIZON_BAND));
 
   // The dome: a translucent slice of the world's actual sky, unlined --
   // the soft fill edge is the transition (owner call, 2026-07-23).
@@ -690,8 +716,16 @@ function buildKittyCard(kitty) {
   // The purr lamp, always present so it never moves the line. Hearts are
   // decoration; `aria-label` carries the state, because "purring" flanked by
   // dim hearts would otherwise read to a screen reader as a purring cat.
+  //
+  // `role="img"` is what makes that label land. ARIA prohibits naming a
+  // generic element, so on a bare <span> both Chrome and Firefox drop the
+  // aria-label and fall through to the subtree -- which always contains the
+  // word "purring", so every cat on the page announced as purring whether it
+  // was or not. A role that takes a name replaces the subtree with the
+  // label, which is the whole point of writing one.
   const purr = document.createElement('span');
   purr.className = 'purr';
+  purr.setAttribute('role', 'img');
   const word = document.createElement('span');
   word.textContent = 'purring';
   const heart = () => {

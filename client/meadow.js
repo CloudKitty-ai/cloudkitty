@@ -365,7 +365,9 @@ const MEADOW_DEFAULTS = Object.freeze({
   shoreRounding: 0.8, // pond corner rounding, in tiles
   shoreWobble: 0.08, // shoreline undulation depth, in tiles
   shoreWobblePeriod: 0.35, // and its wavelength around the perimeter, in tiles
-  shoreDipEase: 0.75, // how far INWARD dips reach, as a share of the outward bulges
+  // Despite the name, this scales the OUTWARD bulges: bays cut the full
+  // `shoreWobble`, headlands reach this share of it. See `wobbleAlong`.
+  shoreBulgeEase: 0.75,
   shoreOverdraw: 0.1, // push the whole outline out this far, in tiles
   lilyPadMinTiles: 4, // ponds at least this big carry a lily pad
   glowRadiusTiles: 1.4, // sunbeam glow radius, in tiles
@@ -1017,7 +1019,7 @@ function buildPondPath(tiles, tile) {
     // matter what `shoreRounding` said. It read as a rounded square and the
     // tunable did nothing above 0.5.
     let points = sampleRoundedLoop(loop, t.shoreRounding);
-    points = wobbleAlong(points, t.shoreWobble, t.shoreWobblePeriod, t.shoreDipEase, loop[0]);
+    points = wobbleAlong(points, t.shoreWobble, t.shoreWobblePeriod, t.shoreBulgeEase, loop[0]);
     points = growOutward(points, t.shoreOverdraw);
     smoothClosedPath(path, points, tile);
   }
@@ -1112,13 +1114,23 @@ function sampleRoundedLoop(corners, rounding, step = 0.22) {
  * and smoothstepped between, so the whole shoreline moves together, and the
  * lattice wraps so the seam is invisible.
  *
- * `dipEase` scales only the INWARD half. Bays cutting into the water as
- * deeply as headlands push out reads as damage at this scale; easing them
- * keeps the irregularity while the water stays convex. It also biases the
- * outline outward by `0.25 * amp * (1 - dipEase)` on average, which rides on
- * top of `shoreOverdraw` -- the two are not independent.
+ * `bulgeEase` scales the OUTWARD half -- the half that bulges away from the
+ * water. Read the name with care: it says "dip", but with the winding the
+ * tile walk produces, `(-ty, tx)` points INTO the water, so a positive noise
+ * value is an inward bay and it is the negative (outward) half that `value
+ * *= bulgeEase` reaches. Headlands therefore reach `bulgeEase * amp` while bays
+ * cut the full `amp`. That is the shoreline the owner dialled and accepted
+ * (2026-08-07) -- the name and this note are what were wrong, not the
+ * numbers -- but anyone turning this knob should know which way it moves:
+ * lower flattens the seaward bulges and leaves only bays, higher lets the
+ * headlands out.
+ *
+ * The same sign carries into the mean: the outline is biased INWARD by
+ * `0.25 * amp * (1 - bulgeEase)` on average, so it eats into `shoreOverdraw`
+ * rather than riding on top of it -- the two are not independent. At the
+ * shipped 0.08 / 0.75 / 0.1 that is 0.005 tile off a 0.1 tile spill.
  */
-function wobbleAlong(points, amp, period, dipEase, seed) {
+function wobbleAlong(points, amp, period, bulgeEase, seed) {
   if (!amp) return points;
   const n = points.length;
   let perimeter = 0;
@@ -1138,7 +1150,7 @@ function wobbleAlong(points, amp, period, dipEase, seed) {
     const cell = Math.floor(u);
     const frac = u - cell;
     let value = (lattice(cell) + (lattice(cell + 1) - lattice(cell)) * ease(frac) - 0.5) * 2;
-    if (value < 0) value *= dipEase;
+    if (value < 0) value *= bulgeEase;
     const prev = points[(i - 1 + n) % n];
     const next = points[(i + 1) % n];
     const tx = next[0] - prev[0];
@@ -1164,7 +1176,14 @@ function wobbleAlong(points, amp, period, dipEase, seed) {
  *
  * Which way is "out" depends on the loop's winding, and the loops here come
  * from an edge walk that does not guarantee one, so pick the direction that
- * grows the enclosed area.
+ * grows the loop's SIGNED area.
+ *
+ * Signed, not absolute. A ring pond traces an outer loop and an
+ * opposite-winding hole loop (see `buildPondPath`), and on |area| both of
+ * them grow away from their own centre -- so the island swelled by
+ * `shoreOverdraw` and ate 0.1 tile of water, instead of the hole tightening
+ * and giving 0.1 tile back. Signed area gets both: it grows the outer loop
+ * and shrinks the hole, which is "more water" in each case.
  */
 function growOutward(points, amount) {
   if (!amount) return points;
@@ -1185,7 +1204,7 @@ function growOutward(points, amount) {
       const b = pts[(i + 1) % pts.length];
       sum += a[0] * b[1] - b[0] * a[1];
     }
-    return Math.abs(sum / 2);
+    return sum / 2;
   };
   const outward = push(1);
   const inward = push(-1);

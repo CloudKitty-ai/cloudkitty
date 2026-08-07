@@ -62,7 +62,11 @@
     /* Hairline rules: the card's own edge, and the one dividing a card's
        summary from its needs table. Same ink as the shadow, a shade
        lighter, so an outlined card reads as the shadow made explicit
-       rather than as a second, competing edge. */
+       rather than as a second, competing edge. Each hour restates it from
+       that hour's --shadow at the same ratio (0.16/0.18), so the edge and
+       the shadow under it stay one family as the light changes -- a warm
+       daylight hairline was still sitting on the plum night card while
+       every other token had crossed. */
     --rule: rgba(150, 125, 105, 0.16);
     --happy: #8fce8f;
     --okay: #f3cf7a;
@@ -77,7 +81,7 @@
   /* The theme tokens above, registered so they animate. A plain transition
      can't interpolate the body's radial-gradient, but a registered <color>
      custom property tweens as a color and the gradient follows each frame.
-     Only the ten tokens the hour themes override are registered; browsers
+     Only the eleven tokens the hour themes override are registered; browsers
      without @property keep today's instant switch. */
   @property --cream { syntax: "<color>"; inherits: true; initial-value: #fdf6ec; }
   @property --cream-deep { syntax: "<color>"; inherits: true; initial-value: #f5e8d8; }
@@ -89,6 +93,7 @@
   @property --patience-ink { syntax: "<color>"; inherits: true; initial-value: #b0876a; }
   @property --card { syntax: "<color>"; inherits: true; initial-value: #fffdfa; }
   @property --shadow { syntax: "<color>"; inherits: true; initial-value: rgba(150, 125, 105, 0.18); }
+  @property --rule { syntax: "<color>"; inherits: true; initial-value: rgba(150, 125, 105, 0.16); }
 
   /* The gentle fade between hour themes: the tokens tween on <body> (where
      the .dusk/.night overrides land) and every inheritor recolors with
@@ -103,7 +108,8 @@
        live tick rate. Long enough and the page would lag the canvas. */
     --theme-fade: 0.5s;
     transition-property: --cream, --cream-deep, --zenith, --grass,
-      --grass-line, --ink, --ink-soft, --patience-ink, --card, --shadow;
+      --grass-line, --ink, --ink-soft, --patience-ink, --card, --shadow,
+      --rule;
     transition-duration: var(--theme-fade);
     transition-timing-function: ease;
   }
@@ -120,6 +126,7 @@
     --grass-line: #cdd6ad;
     --card: #fdf3e6;
     --shadow: rgba(150, 100, 80, 0.22);
+    --rule: rgba(150, 100, 80, 0.20);
   }
 
   /* First light (v3, 2026-08-05) -- sunset's counterweight. Where dusk
@@ -137,6 +144,7 @@
     --grass-line: #aeb8ab;
     --card: #f2f1ec;
     --shadow: rgba(92, 97, 100, 0.20);
+    --rule: rgba(92, 97, 100, 0.18);
   }
 
   /* The page after sundown (the canvas world switches with it -- see
@@ -155,6 +163,7 @@
     --patience-ink: #cfa287;
     --card: #37313f;
     --shadow: rgba(12, 8, 20, 0.5);
+    --rule: rgba(12, 8, 20, 0.44);
   }
 
   * { box-sizing: border-box; }

@@ -215,9 +215,11 @@
     slowBlinkDownMs: VIEW.slowBlinkDownMs,
     slowBlinkHoldMs: VIEW.slowBlinkHoldMs,
     slowBlinkUpMs: VIEW.slowBlinkUpMs,
-    // Not a blink dial: the idle cycle blinks share with the tail flick and
-    // the ear twitch. A blink is every third slot, so the real interval
-    // between two blinks is 3x this.
+    // Not a blink dial: the idle slot is shared with the ear twitch and with
+    // the slots that draw nothing. Which one a slot gets is a weighted draw,
+    // so the interval between two blinks is `total weight / blink weight`
+    // times this -- about 2.9x at the shipped 35/30/35. See `blinkInterval`,
+    // which computes it rather than assuming the old fixed rotation.
     idleMotionPeriodMs: VIEW.idleMotionPeriodMs,
     // Lab-only, never pasted: how often the card replays the blink, so a
     // 14-second cadence does not mean waiting 14 seconds to see one.
@@ -602,7 +604,9 @@
         { key: 'idleMotionPeriodMs', label: 'idle slot (ms) — also moves the tail flick and ear twitch', min: 2000, max: 14000, step: 100 },
         { key: 'replayMs', label: 'replay every (ms) — lab only, never pasted', min: 1200, max: 20000, step: 100 },
       ],
-      toggles: [{ key: 'trueCadence', label: 'replay at the real interval (3 × idle slot)' }],
+      toggles: [
+        { key: 'trueCadence', label: 'replay at the real interval (idle slot ÷ blink share)' },
+      ],
       readout() {
         const total = blinkTotal();
         const over = total >= BLINK.idleMotionPeriodMs;
@@ -670,9 +674,14 @@
             : '')
         );
       },
-      draw(ctx, w, h) {
+      // `now` comes from the harness, not from `performance.now()`: with
+      // `animate` off it arrives as 0 and every other card freezes at its
+      // canonical first frame. Reading the clock directly made this one
+      // paint whatever instant the re-render happened to land on -- a
+      // different pose on every reload and every resize, and the default
+      // state for anyone who prefers reduced motion.
+      draw(ctx, w, h, now) {
         const SIZE = 96;
-        const now = performance.now();
         const gap = w / IDLE_CAST.length;
         for (const [i, cat] of IDLE_CAST.entries()) {
           const x = gap * i + (gap - SIZE) / 2;

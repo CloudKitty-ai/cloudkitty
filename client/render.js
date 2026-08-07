@@ -267,9 +267,17 @@ class WorldRenderer {
     // Sorting the two together by their drawn y is what lets a cat pass
     // BEHIND one. Only these two participate: bubbles and thought
     // bubbles already run as their own passes below, so they stay clear
-    // of cover for free, and served elements are handled by keeping cover
-    // off their tiles entirely (see bushesFor) rather than by sorting --
-    // which avoids dragging bowls and butterflies into the ordering.
+    // of cover for free, and served elements stay out of the ordering
+    // rather than being sorted -- which avoids dragging bowls and
+    // butterflies into it.
+    //
+    // That used to be free, because cover was kept off every served
+    // element's tile. `occupiedTiles` now yields water only (see there for
+    // why), so it is no longer free: the element pass above draws first,
+    // so a shrub or tree sharing a tile with a bowl or a toy is painted
+    // OVER it. Owner accepted that trade against the alternative -- trees
+    // blinking out wherever a bug walked -- but it is a real edge, not the
+    // guarantee this comment used to claim.
     const cover = typeof bushesFor === 'function'
       ? bushesFor(world.width, world.height, VIEW.meadow, this.occupiedTiles(world))
       : [];
@@ -312,9 +320,6 @@ class WorldRenderer {
    * The grid lines that used to live here are now the debug-only overlay
    * behind `l` (spec 008 FR-004).
    */
-  /** Tiles the served world has something standing on: cover skips them,
-   *  which keeps a shrub from sprouting through a bowl without having to
-   *  put elements into the depth sort as well. */
   /**
    * Tiles the ground cover must keep off, and ONLY the ones that will still
    * be there next tick.
