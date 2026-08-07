@@ -68,6 +68,11 @@ Two consequences this document is built around:
   observable, trained policies land inside the water band registered in
   §9.1 — which no dial setting achieved for a blind policy (exp-002,
   falsified H2). Direction registered; the margin is exploratory.
+  > **H1 SUPPORTED 2026-08-07** ([results/grid-2026-08-07.md](results/grid-2026-08-07.md)): 7/9 candidates inside the band,
+  > 9/9 clear of the in-water ceiling, and the best are drier than the
+  > scripted ladder itself (2.79% against B of 3.44%). Both failures are
+  > the lounging criterion alone. The observation bit bought what no
+  > dial setting could.
 
 - **H2 (water behaviour preserved, not eliminated)**: the same band's
   **floor** holds. A policy that never touches water fails H1. Registered
@@ -76,18 +81,27 @@ Two consequences this document is built around:
   *adjacent* water (`world.rs`) — cats drink from the bank — so
   near-zero water contact is reachable and nothing in the engine
   prevents it.
+  > **H2 HOLDS 2026-08-07** ([results/grid-2026-08-07.md](results/grid-2026-08-07.md)): 9/9 above the floor, none close to
+  > it. The one-sided-gate failure mode this clause was written against
+  > did not occur.
 
 - **H3 (welfare non-regression)**: candidates do not buy water avoidance
   with welfare. Subject team welfare on the served world ≥ the
   same-engine `needs_driven` baseline + 0.02 (the exp-001 certification
   margin was +0.041; +0.02 is half of it, registered as the floor a
   candidate must clear to be considered at all).
+  > **H3 SUPPORTED 2026-08-07** ([results/grid-2026-08-07.md](results/grid-2026-08-07.md)): 8/9 at +0.0266 to +0.0423. The
+  > one failure (A0-m33-g998-s3, −0.1103) is the run that also collapses
+  > under H5.
 
 - **H4 (meow preservation)**: warm-start... **not applicable this
   generation.** The schema change voids warm starts, so every candidate
   is BC-then-PPO from scratch. Channel use is measured and reported
   (F-012: in policy company, not solo), but no threshold is registered —
   there is no predecessor to preserve it *relative to*.
+  > **REPORTED 2026-08-07** ([results/grid-2026-08-07.md](results/grid-2026-08-07.md)): greedy `meow/1k` 0.01–0.41 across
+  > all nine — the channel was not discovered from exploration in 20M
+  > ticks. The reason H4 was dropped is confirmed, not merely assumed.
 
 - **H5 (roster robustness)**: with roster 3–5 stratified in the family,
   no candidate exhibits F-010 catatonia on any deploy-surface roster
@@ -95,6 +109,13 @@ Two consequences this document is built around:
   which was *partially* falsified — the family did not eliminate F-010,
   but the gate caught it. The gate, not the family, is what §9.2
   consumes.
+  > **H5 NOT SUPPORTED 2026-08-07** ([results/grid-2026-08-07.md](results/grid-2026-08-07.md)): 0/9 under the registered
+  > gate. The gate is satisfiable — `needs_driven` scores 0/0/0 and
+  > exp-002 met it with 9 of 22 candidates — so it is not an unmeetable
+  > criterion. But the failures are bimodal: six candidates show only
+  > trace eat-timing lapses (3–212 threshold-ticks in 100,000), three
+  > collapse outright. World shape is ruled out as the cause; the engine
+  > route cannot be tested, because schema-1 artifacts do not load here.
 
 - **Anchors (registered predictions)**:
   - `needs_driven` holds **0.9039–0.9054** team welfare on the served
