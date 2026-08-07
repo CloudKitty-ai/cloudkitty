@@ -351,4 +351,44 @@ FR-012 (suite freeze), specs 026/027.
 
 ## Appendix: Deviations
 
-*(None yet — this document is not frozen.)*
+### Deviation 1 — deploying a candidate §9.2 did not certify (owner, 2026-08-07)
+
+**No criterion is changed by this entry.** §9.2 stands exactly as
+frozen, H5 stands as not supported, and no candidate is certified.
+What is recorded here is a *deployment* decision, which is the owner's
+to make and downstream of what the experiment may claim.
+
+**Decision**: `A2-m0-g998-s3` is promoted to
+`policies/e003-m0-g998-s3.ckpolicy` (sha256 `756aa680…`, byte-identical
+to the evaluated artifact) and seated at both policy seats, superseding
+`e001-a2-s6` and `e002-m0-g998-s1`.
+
+**What it fails**: §9.2, by `max_distress_age` 3 — three ticks of
+eat-need on one seed of the roster-5 *family* world. The gate admits no
+nonzero value and admitted no candidate at all, from nine.
+
+**What it passes, and why the owner judged that decisive**:
+
+- **§9.1**: 2.79% in-water, 0.62% lounging — the driest of the nine and
+  **below the scripted baseline** on both (3.44% / 1.50%). This is the
+  behaviour exp-002 proved no dial setting could buy, and the water
+  behaviour was the owner's sole note from the stage-1 soak.
+- **§9.3**: +0.0420 against `needs_driven`.
+- **The actual deployment condition**: the served world at roster 4, 30
+  seeds × 20k, both shapes — `max_distress_age` **0**, `floor_touches`
+  **0**, `fallback_count` **0**.
+
+**The honest shape of the disagreement**: §9.2 was written to catch
+F-010 catatonia and does — `A0-m33-g998-s3` saturates five needs with
+161,314 floor touches. The same rule cannot distinguish that from three
+ticks. The failures are bimodal with two orders of magnitude between the
+populations ([grid-2026-08-07.md](results/grid-2026-08-07.md)). That is
+an argument for a *better-specified* criterion in exp-004, and
+explicitly **not** a reason to reread this one now — designing a gate
+around the run that motivated it is how a gate stops meaning anything.
+
+**Alternative considered and rejected**: rolling out with both seats
+scripted (`needs_driven`, main's parked configuration). It requires no
+policy decision, but it is *worse on the axis that prompted the
+rollout* — scripted cats sit at 3.44% / 1.50% against this candidate's
+2.79% / 0.62%.
