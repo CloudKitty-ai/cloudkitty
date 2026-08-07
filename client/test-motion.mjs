@@ -21,7 +21,7 @@ const renderSrc = readFileSync(join(here, 'render.js'), 'utf8');
 const api = eval(
   animSrc +
     ';({ VIEW, Presentation, easeSmooth, slowBlinkLid, idleHash, idlePeriodFor,' +
-    ' idlePickFor, idleOffsetFor })',
+    ' idlePickFor, idleOffsetFor, anim })',
 );
 
 /**
@@ -561,6 +561,63 @@ check('occupiedTiles keeps cover off water, and off nothing else', () => {
   // wandering past it does not take one with it.
   const mixed = occupied([at('water', 1, 1), at('bug', 2, 2), at('chow', 3, 3)]);
   assert(mixed.size === 1 && mixed.has('1,1'), `only water: got ${[...mixed].join(' ')}`);
+});
+
+// ---- the card portraits: onFrame, and the always-idle rule ----
+
+// A stand-in for the pair anim.redraw needs: something to draw with, and a
+// world to draw. The portraits ride the same call, so this is all it takes.
+function riggedAnim() {
+  const a = Object.create(api.anim);
+  a.presentation = new api.Presentation();
+  a.presentation.curr = world(1, [kitty(1, 2, 2)]);
+  a.renderer = { draw() {} };
+  a.rafId = 0;
+  return a;
+}
+
+check('a still frame hands the portraits a still view', () => {
+  const a = riggedAnim();
+  const seen = [];
+  a.onFrame = (w, view) => seen.push({ w, view });
+  a.redraw();
+  assert(seen.length === 1, `onFrame ran ${seen.length} times, want 1`);
+  assert(seen[0].w === a.presentation.curr, 'onFrame gets the drawn world');
+  assert(seen[0].view.still === true, 'a still frame must say so');
+  // This is what keeps reduced motion working without app.js knowing the
+  // rule: phase 0 and nothing else, so a portrait holds its pose.
+  const m = seen[0].view.motionFor(1, 'idle');
+  assert(m.phase === 0, `still motion phase ${m.phase}, want 0`);
+  assert(m.blinkLid === undefined, 'a still frame must not blink');
+  assert(m.earsBack === undefined, 'a still frame must not twitch');
+});
+
+check('no onFrame hook is not an error', () => {
+  const a = riggedAnim();
+  a.onFrame = null;
+  a.redraw(); // must not throw
+});
+
+check('the portrait pose is idle because an action pose has no idle motion', () => {
+  // The card asks for 'idle' whatever the cat is really doing (owner,
+  // 2026-08-07). This is the reason: motionFor returns early for action
+  // poses, so a portrait that mirrored the world would go still exactly
+  // when the cat is busy -- which is most of the time.
+  const p = new api.Presentation();
+  const slot = slotOf(api, 1, 'blink');
+  assert(slot, 'no blink slot found for kitty 1');
+  const mid = slot.at(api.VIEW.slowBlinkDownMs + api.VIEW.slowBlinkHoldMs / 2);
+
+  const asIdle = p.motionFor(1, 'idle', mid);
+  assert(asIdle.blinkLid > 0.9, `idle mid-blink lid ${asIdle.blinkLid}, want ~1`);
+
+  for (const pose of ['pouncing', 'eating', 'drinking', 'grooming', 'walking']) {
+    const acting = p.motionFor(1, pose, mid);
+    assert(
+      acting.blinkLid === undefined,
+      `${pose} would have suppressed the portrait's blink`,
+    );
+  }
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);
