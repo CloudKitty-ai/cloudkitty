@@ -171,8 +171,15 @@ const VIEW = Object.freeze({
     // small: a rooted thing's shadow leaves its base, and pushing it far
     // is precisely what makes a bush look airborne.
     bushShadowThrow: 0.25,
-    shoreRounding: 0.45, // pond corner rounding, in tiles
-    shoreWobble: 0.07, // organic shoreline waviness, in tiles
+    // The shoreline. Corners are rounded into arcs first and the wobble
+    // rides on the finished curve (meadow.js buildPondPath); before, the
+    // wobble subdivided the edges and capped the radius at 0.25 tile
+    // whatever this said.
+    shoreRounding: 0.8, // pond corner rounding, in tiles
+    shoreWobble: 0.08, // shoreline undulation depth, in tiles
+    shoreWobblePeriod: 0.35, // and its wavelength around the perimeter, in tiles
+    shoreDipEase: 0.75, // how far INWARD dips reach, vs the outward bulges
+    shoreOverdraw: 0.1, // push the whole outline out this far, in tiles
     lilyPadMinTiles: 4, // ponds at least this big carry a lily pad
     glowRadiusTiles: 1.4, // sunbeam glow radius, in tiles
     glowAlpha: 0.6, // overall glow strength
