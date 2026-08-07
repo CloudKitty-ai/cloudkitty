@@ -145,7 +145,7 @@ def main():
     all_l, all_w = shares(results, tuple(NAMES))
     verdict = {
         "engine_defaults_sha256": engine,
-        "config": str(CONFIG.relative_to(REPO)),
+        "config": str(CONFIG.relative_to(REPO)) if CONFIG.is_relative_to(REPO) else str(CONFIG),
         "seats": CONTROL,
         "seeds": SEEDS,
         "ticks": TICKS,

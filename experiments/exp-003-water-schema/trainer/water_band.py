@@ -41,9 +41,9 @@ EXP = HERE.parent
 REPO = EXP.parents[1]
 sys.path.insert(1, str(REPO / "experiments" / "exp-001-bc-mappo" / "trainer"))
 
-CONFIG = REPO / "cloudkitty.toml"
+CONFIG = REPO / "cloudkitty.toml"      # overridable via --config
 TICKS = 20_000
-SEEDS = list(range(740_001, 740_011))
+SEEDS = list(range(740_001, 740_011))  # overridable via --seed-base
 NAMES = ["Miso", "Biscuit", "Pumpkin", "Kittybear"]
 ACTIVITIES = ["Idle", "Resting", "Sleeping", "Eating", "Drinking",
               "Playing", "Grooming"]
@@ -61,7 +61,12 @@ WIDTH, HEIGHT = _world["width"], _world["height"]
 
 
 def run_seed(args):
-    policy_path, seed = args
+    # Every world-dependent value travels in the job. Workers are *spawned*,
+    # so they re-import this module and see its module-level defaults; an
+    # override applied in main() never reaches them. That silently measured
+    # the served world twice while reporting two different configs.
+    policy_path, seed, config_path, width, height = args
+    config, WIDTH, HEIGHT = Path(config_path), width, height
     import cloudkitty
     import numpy as np
     import torch
@@ -75,15 +80,17 @@ def run_seed(args):
     pol.eval()
 
     control = {"kitty_2": "playful", "kitty_3": "needs_driven"}
-    env = cloudkitty.ParallelEnv(str(CONFIG), horizon=TICKS, control=control)
+    env = cloudkitty.ParallelEnv(str(config), horizon=TICKS, control=control)
     obs, infos = env.reset(seed=seed)
     names = list(env.possible_agents)  # kitty_1 + kitty_4, both the candidate
 
     on_water = np.zeros((len(NAMES), len(ACTIVITIES)), np.int64)
+    water_tiles = 0
     with torch.no_grad():
         for _t in range(TICKS):
             water = {(x, y) for (_i, kind, x, y) in env.elements()
                      if kind == "Water"}
+            water_tiles += len(water)
             state = env.state()
             for k in range(len(NAMES)):
                 b = k * PER_KITTY
@@ -102,6 +109,11 @@ def run_seed(args):
             obs, _rew, _term, _trunc, infos = env.step(acts)
 
     return {"seed": seed,
+            # Recorded so the record says which world was actually measured.
+            # A --config that fails to reach the workers shows up here as an
+            # unchanged tile count instead of as plausible numbers.
+            "config": str(config),
+            "mean_water_tiles": water_tiles / TICKS,
             "on_water_by_activity": {NAMES[k]: dict(zip(ACTIVITIES,
                                                         on_water[k].tolist()))
                                      for k in range(len(NAMES))}}
@@ -114,6 +126,9 @@ def verdict(results):
         for s in POLICY_SEATS:
             for a, c in r["on_water_by_activity"][s].items():
                 acc[a] += c
+    tiles = {round(r["mean_water_tiles"], 3) for r in results}
+    configs = {r["config"] for r in results}
+    assert len(configs) == 1, f"seeds disagree on the world: {configs}"
     inwater = sum(acc.values()) / total
     lounge = sum(v for a, v in acc.items() if a in LOUNGE) / total
     groom = acc["Grooming"] / total
@@ -122,6 +137,8 @@ def verdict(results):
         "grooming_on_water_share": groom,           # reported, NOT gated
         "lounge_excl_grooming": lounge - groom,
         "by_activity_share": {a: c / total for a, c in acc.items()},
+        "config": next(iter(configs)),
+        "mean_water_tiles": sum(tiles) / len(tiles),
         "B_inwater": B_INWATER, "B_lounge": B_LOUNGE,
         "ceiling": CEIL, "floor": FLOOR,
         "pass_ceiling": inwater <= CEIL,
@@ -135,11 +152,26 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("artifacts", type=Path)
     ap.add_argument("--workers", type=int, default=10)
+    ap.add_argument("--config", type=Path, default=None,
+                    help="world to measure on (default: the served config)")
+    ap.add_argument("--seed-base", type=int, default=None)
+    ap.add_argument("--only", default=None, help="measure one candidate")
+    ap.add_argument("--label", default="water-band")
     args = ap.parse_args()
+    global CONFIG, SEEDS, WIDTH, HEIGHT
+    if args.config:
+        CONFIG = args.config.resolve()
+        with CONFIG.open("rb") as f:
+            w = tomllib.load(f)["world"]
+        WIDTH, HEIGHT = w["width"], w["height"]
+    if args.seed_base:
+        SEEDS = list(range(args.seed_base, args.seed_base + 10))
 
-    outdir = args.artifacts / "water-band"
-    outdir.mkdir(exist_ok=True)
+    outdir = args.artifacts / args.label
+    outdir.mkdir(exist_ok=True, parents=True)
     cands = sorted(d for d in args.artifacts.glob("A[0-2]-*") if d.is_dir())
+    if args.only:
+        cands = [d for d in cands if d.name == args.only]
 
     print(f"§9.1 band — ceiling {CEIL*100:.2f}%  floor {FLOOR*100:.2f}%  "
           f"lounge {B_LOUNGE*100:.2f}%   (B_inwater {B_INWATER*100:.2f}%)\n")
@@ -149,7 +181,9 @@ def main():
     for d in cands:
         pt = d / "policy-final.pt"
         with ProcessPoolExecutor(max_workers=args.workers) as pool:
-            results = list(pool.map(run_seed, [(str(pt), s) for s in SEEDS]))
+            results = list(pool.map(
+                run_seed,
+                [(str(pt), s, str(CONFIG), WIDTH, HEIGHT) for s in SEEDS]))
         v = verdict(results)
         (outdir / f"{d.name}.json").write_text(
             json.dumps({"candidate": d.name, "seeds": SEEDS, "ticks": TICKS,
