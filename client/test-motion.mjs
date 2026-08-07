@@ -45,7 +45,7 @@ function slotOf(api, id, want, dials = api.VIEW) {
 }
 eval(catV2Src); // IIFE: registers globalThis.CatV2
 const CatV2 = globalThis.CatV2;
-const { poseFor } = eval(renderSrc + ';({ poseFor })');
+const { poseFor, WorldRenderer } = eval(renderSrc + ';({ poseFor, WorldRenderer })');
 
 /** Canvas ctx stand-in: logs every command, throws on non-finite numbers. */
 function guardCtx(log = []) {
@@ -529,6 +529,38 @@ check('a discontinuity clears wetness with the rest of the memory', () => {
   assert(p.wetness.size === 1, 'wetness recorded');
   p.pushState(world(9, [kitty(1, 2, 2)]), 2600); // tick jump: a different moment
   assert(p.wetness.size === 0, 'wetness cleared');
+});
+
+// ---- occupiedTiles: what the ground cover must keep off ----
+
+// The rule this pins is a contract, not a preference: cover is scenery, so
+// it may only avoid things that will still be there next tick. It used to
+// avoid every served element, and bugs, greebles, chow and sunbeams all move
+// or expire -- so a critter walking onto a tree's tile deleted the tree and
+// walking off grew it back. Nothing caught that, because the cover test
+// exercises `bushesFor` with a hand-built set and never asked what builds it.
+check('occupiedTiles keeps cover off water, and off nothing else', () => {
+  // `this` is unused, so the method can be exercised without a canvas.
+  const occupied = (elements) =>
+    WorldRenderer.prototype.occupiedTiles.call(null, { elements });
+  const at = (kind, x, y) => ({ kind, pos: { x, y } });
+
+  const water = occupied([at('water', 3, 4)]);
+  assert(water.has('3,4'), 'water is avoided');
+
+  for (const kind of ['bug', 'greeble', 'chow', 'sunbeam']) {
+    const set = occupied([at(kind, 7, 8)]);
+    assert(
+      !set.has('7,8'),
+      `${kind} does not suppress cover -- it moves or expires, and cover that ` +
+        'follows it blinks',
+    );
+  }
+
+  // The mixed case is the real world: a pond keeps its tile, the critter
+  // wandering past it does not take one with it.
+  const mixed = occupied([at('water', 1, 1), at('bug', 2, 2), at('chow', 3, 3)]);
+  assert(mixed.size === 1 && mixed.has('1,1'), `only water: got ${[...mixed].join(' ')}`);
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);
