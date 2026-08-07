@@ -267,9 +267,17 @@ class WorldRenderer {
     // Sorting the two together by their drawn y is what lets a cat pass
     // BEHIND one. Only these two participate: bubbles and thought
     // bubbles already run as their own passes below, so they stay clear
-    // of cover for free, and served elements are handled by keeping cover
-    // off their tiles entirely (see bushesFor) rather than by sorting --
-    // which avoids dragging bowls and butterflies into the ordering.
+    // of cover for free, and served elements stay out of the ordering
+    // rather than being sorted -- which avoids dragging bowls and
+    // butterflies into it.
+    //
+    // That used to be free, because cover was kept off every served
+    // element's tile. `occupiedTiles` now yields water only (see there for
+    // why), so it is no longer free: the element pass above draws first,
+    // so a shrub or tree sharing a tile with a bowl or a toy is painted
+    // OVER it. Owner accepted that trade against the alternative -- trees
+    // blinking out wherever a bug walked -- but it is a real edge, not the
+    // guarantee this comment used to claim.
     const cover = typeof bushesFor === 'function'
       ? bushesFor(world.width, world.height, VIEW.meadow, this.occupiedTiles(world))
       : [];
@@ -312,12 +320,31 @@ class WorldRenderer {
    * The grid lines that used to live here are now the debug-only overlay
    * behind `l` (spec 008 FR-004).
    */
-  /** Tiles the served world has something standing on: cover skips them,
-   *  which keeps a shrub from sprouting through a bowl without having to
-   *  put elements into the depth sort as well. */
+  /**
+   * Tiles the ground cover must keep off, and ONLY the ones that will still
+   * be there next tick.
+   *
+   * This used to take every served element, which made trees blink: a bug or
+   * a greeble skittering across the meadow occupied a tile for a moment, the
+   * tree standing there vanished, and it came back when the critter moved on
+   * (owner-reported 2026-08-07; measured at one flickering tile in 41 samples
+   * of a fast world, the culprit a greeble). Chow and sunbeams do the same
+   * more slowly, by spawning and expiring.
+   *
+   * Water is the only element that is a fact about the world rather than an
+   * event in it -- placed at worldgen and fixed for the world's life -- so
+   * keying on it alone makes the cover a pure function of the map, stable for
+   * the session, which is what scenery has to be. A bowl can now spawn on a
+   * tree's tile; at a 1.5% cover chance that is about one tile in eight
+   * worlds, and a bowl briefly under a canopy is a far smaller wrong than
+   * trees popping in and out everywhere a bug walks.
+   */
   occupiedTiles(world) {
     const taken = new Set();
-    for (const el of world.elements) taken.add(`${el.pos.x},${el.pos.y}`);
+    for (const el of world.elements) {
+      if (el.kind !== 'water') continue;
+      taken.add(`${el.pos.x},${el.pos.y}`);
+    }
     return taken;
   }
 

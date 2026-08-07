@@ -185,6 +185,79 @@ let currentBlend = null; // and the quantised blend key it was applied at
 
 /** Applies the mode's theme (auto reads the world clock) and syncs the
  * toggle. Cheap when nothing changed, so render() may call it per tick. */
+/**
+ * Every theme's page tokens, read out of the stylesheet once.
+ *
+ * Read rather than restated: index.html authors `:root` and the `body.dusk`
+ * / `.night` / `.dawn` blocks, and a second copy of those colours in JS
+ * would drift the first time one is tweaked. Which tokens matter is read
+ * from the same place too -- the `transition-property` list on `body` is
+ * already the set that is meant to cross with the light.
+ *
+ * Reading means briefly wearing each theme. Transitions are pinned to zero
+ * across the read so the computed value is the theme's own colour rather
+ * than a frame of the animation into it, and nothing yields in between, so
+ * the browser never paints an intermediate state.
+ */
+let themeTokens = null;
+function readThemeTokens() {
+  const body = document.body;
+  const savedDuration = body.style.transitionDuration;
+  body.style.transitionDuration = '0s';
+  // Take `reduced-motion` off for the read. It sets `transition: none`
+  // (index.html), which computes transition-property to `none` -- so the
+  // list below came back empty and, because this result is memoised, a
+  // viewer who prefers reduced motion lost the world-clock crossing for the
+  // whole session, silently, and never got it back by changing the setting.
+  // The list we want is the one the stylesheet authors, not the one motion
+  // preference leaves behind. Durations are already pinned above and nothing
+  // paints before it goes back on, so this cannot start an animation.
+  const hadReduced = body.classList.contains('reduced-motion');
+  if (hadReduced) body.classList.remove('reduced-motion');
+  const names = getComputedStyle(body)
+    .transitionProperty.split(',')
+    .map((n) => n.trim())
+    .filter((n) => n.startsWith('--'));
+  const had = THEMES.filter((t) => body.classList.contains(t));
+  // Clear anything `paintThemeTokens` has already written. Inline
+  // properties beat the class rules, so reading with them in place returns
+  // the current blend four times over instead of the four themes. Memoising
+  // means production never reaches that, but a function that silently
+  // returns nonsense on a second call is a trap for whoever calls it next.
+  const savedInline = {};
+  for (const name of names) {
+    savedInline[name] = body.style.getPropertyValue(name);
+    body.style.removeProperty(name);
+  }
+  const out = {};
+  for (const theme of THEMES) {
+    for (const t of THEMES) body.classList.toggle(t, t === theme);
+    void body.offsetHeight; // flush the class change into computed style
+    const style = getComputedStyle(body);
+    out[theme] = {};
+    for (const name of names) out[theme][name] = style.getPropertyValue(name).trim();
+  }
+  for (const t of THEMES) body.classList.toggle(t, had.includes(t));
+  if (hadReduced) body.classList.add('reduced-motion');
+  for (const name of names) {
+    if (savedInline[name]) body.style.setProperty(name, savedInline[name]);
+  }
+  body.style.transitionDuration = savedDuration;
+  return out;
+}
+
+/** Paint the page's tokens at the world's own blend position. */
+function paintThemeTokens(blend) {
+  if (!themeTokens) themeTokens = readThemeTokens();
+  const from = themeTokens[blend.theme];
+  const to = themeTokens[blend.next ?? blend.theme];
+  if (!from || !to) return;
+  for (const name of Object.keys(from)) {
+    const value = blend.next ? mixPaletteColor(from[name], to[name], blend.step) : from[name];
+    document.body.style.setProperty(name, value);
+  }
+}
+
 function applyTheme() {
   // A hand-picked theme is exactly itself; only the world clock blends.
   const blend =
@@ -218,9 +291,10 @@ function applyTheme() {
   if (key === currentBlend) return;
   currentBlend = key;
 
-  // The page's own tokens only change on the whole-phase boundary; their
-  // 1.5s CSS transition does the smoothing that the canvas gets from the
-  // blend, and re-toggling a class it already has would restart it.
+  // The classes still flip at the crossing's midpoint: they carry the
+  // things that cannot be interpolated -- which phase the cats are shaded
+  // for, the footer's name for the hour. Re-toggling a class it already
+  // has would restart its transition, so only on a real change.
   if (theme !== currentTheme) {
     currentTheme = theme;
     document.body.classList.toggle('dusk', theme === 'dusk');
@@ -228,6 +302,14 @@ function applyTheme() {
     document.body.classList.toggle('dawn', theme === 'dawn');
     renderer.theme = theme;
   }
+
+  // ...but the COLOURS cross on the world's clock, not the class's.
+  // They used to ride the class flip and a 1.5s CSS transition, so the page
+  // finished changing 19 seconds before the meadow did -- the sky was still
+  // handing over while the paper had long since decided (owner, 2026-08-07).
+  // Setting them inline at the blend's own step puts the two on one clock;
+  // the CSS transition survives only to smooth between quantised steps.
+  paintThemeTokens(blend);
 
   setMeadowPalette(blend.theme, blend.next, blend.step);
   setPropPalette(blend.theme, blend.next, blend.step);
@@ -355,7 +437,40 @@ function drawSkyDial(tick) {
   // (the 1.5px allowance below it left a visible gap above the tiles
   // once the rim stroke retired; owner call, 2026-07-23)
   const sky = skyForTick(tick);
-  const hour = hourForTick(tick);
+  // The dial crosses between phases on the same clock as the meadow. It
+  // used to pick one of four domes by `hourForTick` and swap at the phase
+  // boundary, so the sky under the sun changed in a single frame while the
+  // world it reports was still 19 seconds into a crossfade (owner,
+  // 2026-08-07). Always the world's own blend, never the manual override --
+  // the dial is what tells you what you are overriding.
+  const blend = phaseBlendFor(tick);
+  const domeOf = (phase) =>
+    phase === 'night' ? SKY_DIAL.domeNight
+    : phase === 'dusk' ? SKY_DIAL.domeDusk
+    : phase === 'dawn' ? SKY_DIAL.domeDawn
+    : SKY_DIAL.domeDay;
+  // How low the sun sits, 0..1 -- read off its own height on the arc, not
+  // off the name of the phase.
+  //
+  // Keying it to the phase was wrong twice over. Once by omission: `dusk`
+  // alone meant dawn's horizon sun drew in high-noon gold. Then by blending
+  // it, because the PHASE hands over to night 16 ticks before the sun
+  // actually sets, so the disc warmed back toward gold over its last ten
+  // seconds of being up -- the reverse of the point. Holding it across that
+  // one crossing patched the symptom while leaving the cause: a colour that
+  // says "near the horizon" derived from something that is not the horizon.
+  //
+  // `sky.t` runs 0 at the rising horizon, 0.5 at the peak, 1 at the setting
+  // one, so its sine IS the height. Now the sun cannot un-redden while it is
+  // still up, whatever the phase table says, and the warm-up happens as it
+  // descends rather than as the label changes.
+  //
+  // The band is how high still counts as low. At 0.5 the red fades out
+  // around a sixth of the way up the arc, which lands within three ticks of
+  // where dawn ends today -- the look this replaces, arrived at honestly.
+  const HORIZON_BAND = 0.5;
+  const height = Math.sin(Math.min(1, Math.max(0, sky.t)) * Math.PI);
+  const low = Math.min(1, Math.max(0, 1 - height / HORIZON_BAND));
 
   // The dome: a translucent slice of the world's actual sky, unlined --
   // the soft fill edge is the transition (owner call, 2026-07-23).
@@ -363,11 +478,9 @@ function drawSkyDial(tick) {
   ctx.moveTo(cx - r, cy);
   ctx.arc(cx, cy, r, Math.PI, TAU);
   ctx.closePath();
-  ctx.fillStyle =
-    hour === 'night' ? SKY_DIAL.domeNight
-    : hour === 'dusk' ? SKY_DIAL.domeDusk
-    : hour === 'dawn' ? SKY_DIAL.domeDawn
-    : SKY_DIAL.domeDay;
+  ctx.fillStyle = blend.next
+    ? mixPaletteColor(domeOf(blend.theme), domeOf(blend.next), blend.step)
+    : domeOf(blend.theme);
   ctx.fill();
 
   // Left horizon -> zenith -> right horizon as t runs 0 -> 1.
@@ -377,12 +490,12 @@ function drawSkyDial(tick) {
   const br = Math.max(3.5, r * 0.16);
 
   if (sky.body === 'sun') {
-    // Twilight wears the setting-sun red; the high sun stays gold.
-    // Both twilights sit on a horizon, so both get the low-sun disc --
-    // a rising sun is as red as a setting one. Gating on 'dusk' alone
-    // drew dawn's horizon sun in high-noon gold.
-    const low = hour === 'dusk' || hour === 'dawn';
-    ctx.strokeStyle = low ? SKY_DIAL.duskSunRay : SKY_DIAL.sunRay;
+    // Twilight wears the setting-sun red; the high sun stays gold. Both
+    // twilights sit on a horizon, so both get the low-sun disc -- a rising
+    // sun is as red as a setting one. `low` is a share rather than a flag
+    // now, so the warm-up happens across the crossfade.
+    const warm = (high, lowColour) => mixPaletteColor(high, lowColour, low);
+    ctx.strokeStyle = warm(SKY_DIAL.sunRay, SKY_DIAL.duskSunRay);
     ctx.lineWidth = 1.2;
     ctx.lineCap = 'round';
     for (let i = 0; i < 8; i++) {
@@ -392,8 +505,8 @@ function drawSkyDial(tick) {
       ctx.lineTo(bx + Math.cos(a) * br * 1.8, by + Math.sin(a) * br * 1.8);
       ctx.stroke();
     }
-    ctx.fillStyle = low ? SKY_DIAL.duskSun : SKY_DIAL.sun;
-    ctx.strokeStyle = low ? SKY_DIAL.duskSunRim : SKY_DIAL.sunRim;
+    ctx.fillStyle = warm(SKY_DIAL.sun, SKY_DIAL.duskSun);
+    ctx.strokeStyle = warm(SKY_DIAL.sunRim, SKY_DIAL.duskSunRim);
     ctx.lineWidth = 1.4;
     ctx.beginPath();
     ctx.arc(bx, by, br, 0, TAU);
@@ -434,22 +547,20 @@ function render(world) {
 function renderPanel(world) {
   // Rebuild only when the roster changes; otherwise update in place so the CSS
   // transitions can do their thing.
-  // Two columns, filled by halves rather than alternating: on a wide
-  // screen they sit either side of the meadow, and filling them
-  // first-half/second-half keeps DOM order equal to roster order, which
-  // is what the positional update below relies on. (Alternating would
-  // read out as 0,2,1,3.) Below the breakpoint the columns dissolve to
-  // `display: contents` and the cards are one wrapping row again.
+  // Everything is built into the right-hand column, which is where the cards
+  // prefer to live; `placeCards` at the end splits them back across both
+  // sides if that stack won't fit. Cards are only ever appended in roster
+  // order, and the left column comes first in the DOM, so document order
+  // equals roster order under either placement -- which is what the
+  // positional update below relies on.
   const columns = panelEl.querySelectorAll('.panel-col');
   const cards = () => panelEl.querySelectorAll('.kitty-card');
   const needsRebuild = cards().length !== world.kitties.length;
   if (needsRebuild) {
     for (const column of columns) column.innerHTML = '';
-    const half = Math.ceil(world.kitties.length / columns.length);
-    world.kitties.forEach((kitty, index) => {
-      const column = columns[Math.min(columns.length - 1, Math.floor(index / half))];
-      column.appendChild(buildKittyCard(kitty));
-    });
+    for (const kitty of world.kitties) {
+      columns[columns.length - 1].appendChild(buildKittyCard(kitty));
+    }
   }
 
   const built = cards();
@@ -458,10 +569,21 @@ function renderPanel(world) {
     if (!card) return;
     card.querySelector('.name > span').textContent = kitty.name;
     // The sustained purr (spec 011) is a contentment signal, so it rides the
-    // mood line -- and the card is fixed-width (index.html), so no line ever
-    // resizes the portrait. `purring_until` in the payload means rumbling now.
-    const purring = kitty.purring_until != null ? ' · purring 💕' : '';
-    card.querySelector('.mood').textContent = moodFor(kitty) + purring;
+    // mood line -- as a lamp pinned to the right rather than a suffix that
+    // lengthens it. `purring_until` in the payload means rumbling now.
+    card.querySelector('.mood > span').textContent = moodFor(kitty);
+    const purring = kitty.purring_until != null;
+    const purr = card.querySelector('.purr');
+    purr.classList.toggle('is-on', purring);
+    purr.setAttribute('aria-label', purring ? 'purring' : 'not purring');
+    // 🤍 unlit, 💗 lit. The white heart is a filled glyph with its own colour
+    // rather than one that inherits the text's, which is why it reads as a
+    // lamp that is off rather than a label that is broken -- and also the
+    // one thing that would have to change if the cards ever took the world's
+    // palette: a white heart on a night-themed card would be wrong, and the
+    // outline ♡ (which does inherit colour) is the fallback (owner,
+    // 2026-08-06, accepting that for this pass).
+    for (const h of purr.querySelectorAll('.h')) h.textContent = purring ? '💗' : '🤍';
     card.querySelector('.doing').textContent = doingFor(kitty, world);
     card.querySelector('.patience').textContent = patienceFor(kitty, world);
 
@@ -472,11 +594,59 @@ function renderPanel(world) {
     for (const [need, value] of Object.entries(kitty.needs)) {
       const bar = card.querySelector(`[data-need="${need}"] > span`);
       if (!bar) continue;
-      bar.style.width = `${clampPercent(value)}%`;
-      // Needs are pressure: a full bar is a cat that wants something.
-      bar.style.backgroundColor = needColor(value);
+      // The engine sends pressure -- how much the cat wants this. The card
+      // shows the other side of it, how well the need is MET, so that every
+      // bar on the card fills the same way. Two bars 8px apart reading in
+      // opposite directions is a legibility bug, not a style: a delighted
+      // cat used to be a full green happiness bar above six empty ones.
+      const satisfaction = 100 - clampPercent(value);
+      bar.style.width = `${satisfaction}%`;
+      bar.style.backgroundColor = needColor(satisfaction);
     }
   });
+
+  // After the text lands, not before: the fit test measures real cards, and
+  // an un-filled card is the wrong height.
+  placeCards();
+}
+
+/**
+ * Which side of the meadow the cards sit on. One stack on the right is the
+ * preference; if that stack is taller than the map, split it as evenly as
+ * possible across both sides instead.
+ *
+ * The test compares against the map's current height, and cannot chase its
+ * own decision: both sides reserve a card column whether or not they hold
+ * cards (index.html), so the map's width budget is the same under either
+ * placement and moving cards cannot resize the map at all. The reading is
+ * therefore stable by construction rather than merely monotone -- which is
+ * what the reserve bought beyond centring the map.
+ */
+function placeCards() {
+  const columns = panelEl.querySelectorAll('.panel-col');
+  const cards = [...panelEl.querySelectorAll('.kitty-card')];
+  if (columns.length < 2 || !cards.length) return;
+  // Below the breakpoint `.panel-col` dissolves to `display: contents` and
+  // the cards are one wrapping row beneath the map -- there are no sides to
+  // choose. Ask the computed style rather than restating the media query's
+  // width here, so the breakpoint keeps living in exactly one place.
+  if (getComputedStyle(columns[0]).display === 'contents') return;
+
+  const gap = parseFloat(getComputedStyle(columns[0]).rowGap) || 0;
+  const stack =
+    cards.reduce((sum, card) => sum + card.getBoundingClientRect().height, 0) +
+    gap * (cards.length - 1);
+  // An odd roster splits with the spare card on the right, the side the
+  // cards prefer anyway -- both halves are the same height either way, so
+  // the tie goes to keeping the rule's story straight.
+  const onLeft =
+    stack <= canvas.getBoundingClientRect().height ? 0 : Math.floor(cards.length / 2);
+
+  // Appending a card that is already in place would restart its transitions,
+  // so only touch the DOM when the split actually changes. The count is
+  // enough to tell: the order within a placement is always roster order.
+  if (columns[0].children.length === onLeft) return;
+  cards.forEach((card, index) => columns[index < onLeft ? 0 : 1].appendChild(card));
 }
 
 function buildKittyCard(kitty) {
@@ -488,19 +658,48 @@ function buildKittyCard(kitty) {
   // The card wears the kitty's own portrait (spec 005 polish): the same
   // drawCat the world uses, drawn once -- appearance never changes.
   const portrait = document.createElement('canvas');
-  const portraitSize = 22;
+  // The cat is drawn at the size it takes in the meadow -- 32-33px on a
+  // typical desktop -- so the portrait and the animal out in the world are
+  // the same picture at the same scale, and the face resolves. At 22px it
+  // was a blob: below about 30px the ears, eyes and stripes do not separate.
+  const PORTRAIT_CAT = 33;
+  // The chip is bigger than the cat because the idle pose's ink runs past
+  // its own box: the tail crosses the left edge by 2% of the size, so a
+  // chip the same size as the cat cuts the tail off. Measured at the real
+  // size rather than derived -- stroke widths do not scale linearly down
+  // here, so the ink is proportionally fatter at 33px than the geometry
+  // suggests. 37px is the first size that clips nothing; 38 keeps a pixel
+  // in hand. (The old 22px portrait clipped too; it was just too small to
+  // see what was missing.)
+  // The chip is not square. An idle cat's ink is 33.5 x 27px -- wider than
+  // it is tall -- so a square chip carries twice as much air above and
+  // below as it does at the sides, and reads hollow. 38x34 (owner) leaves
+  // 2.25px at the sides and 3.5px top and bottom: still a frame the cat
+  // sits in rather than a shape cut around it, which is what the tighter
+  // sizes started to look like.
+  const PORTRAIT_W = 38;
+  const PORTRAIT_H = 34;
+  // Not the chip's geometric centre. The ink is not centred in the cat's
+  // own box -- at this size it runs 2.5px further left than right, because
+  // the tail reaches past the left edge while the right side stops short --
+  // so drawing at (chip - cat) / 2 leaves the cat visibly shoved left
+  // (owner spotted it). These equalise the measured ink margins instead.
+  const PORTRAIT_X = 3.75;
+  const PORTRAIT_Y = 0.92;
   const dpr = window.devicePixelRatio || 1;
-  portrait.width = portraitSize * dpr;
-  portrait.height = portraitSize * dpr;
-  portrait.style.width = `${portraitSize}px`;
-  portrait.style.height = `${portraitSize}px`;
+  portrait.width = PORTRAIT_W * dpr;
+  portrait.height = PORTRAIT_H * dpr;
+  portrait.style.width = `${PORTRAIT_W}px`;
+  portrait.style.height = `${PORTRAIT_H}px`;
   const portraitCtx = portrait.getContext('2d');
   portraitCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
   drawCat(portraitCtx, {
     pose: 'idle',
     appearance: appearanceFor(kitty.id),
     facing: 'right', // toward its own name
-    size: portraitSize,
+    size: PORTRAIT_CAT,
+    x: PORTRAIT_X,
+    y: PORTRAIT_Y,
     phase: 0,
   });
   name.appendChild(portrait);
@@ -513,6 +712,30 @@ function buildKittyCard(kitty) {
 
   const mood = document.createElement('div');
   mood.className = 'mood';
+  mood.appendChild(document.createElement('span')); // the mood words
+  // The purr lamp, always present so it never moves the line. Hearts are
+  // decoration; `aria-label` carries the state, because "purring" flanked by
+  // dim hearts would otherwise read to a screen reader as a purring cat.
+  //
+  // `role="img"` is what makes that label land. ARIA prohibits naming a
+  // generic element, so on a bare <span> both Chrome and Firefox drop the
+  // aria-label and fall through to the subtree -- which always contains the
+  // word "purring", so every cat on the page announced as purring whether it
+  // was or not. A role that takes a name replaces the subtree with the
+  // label, which is the whole point of writing one.
+  const purr = document.createElement('span');
+  purr.className = 'purr';
+  purr.setAttribute('role', 'img');
+  const word = document.createElement('span');
+  word.textContent = 'purring';
+  const heart = () => {
+    const h = document.createElement('span');
+    h.className = 'h';
+    h.setAttribute('aria-hidden', 'true');
+    return h;
+  };
+  purr.append(heart(), word, heart());
+  mood.appendChild(purr);
   card.appendChild(mood);
 
   const happiness = document.createElement('div');
@@ -520,15 +743,9 @@ function buildKittyCard(kitty) {
   happiness.appendChild(document.createElement('span'));
   card.appendChild(happiness);
 
-  const patience = document.createElement('div');
-  patience.className = 'patience';
-  card.appendChild(patience);
-
-  const needsLabel = document.createElement('div');
-  needsLabel.className = 'section-label';
-  needsLabel.textContent = 'needs';
-  card.appendChild(needsLabel);
-
+  // No heading over the need bars. It cost 17px on every card to caption
+  // six rows that already carry their own labels -- and once the bars fill
+  // as the need is MET, a heading reading "needs" pointed the wrong way.
   const needs = document.createElement('div');
   needs.className = 'needs';
   for (const [need, label] of Object.entries(NEED_LABELS)) {
@@ -542,6 +759,16 @@ function buildKittyCard(kitty) {
     needs.appendChild(bar);
   }
   card.appendChild(needs);
+
+  // Last, under the needs (owner, 2026-08-06). The cue reserves its line
+  // whether or not it speaks, so the card never resizes when a cat becomes
+  // distressed -- and at the foot of the card that reservation doubles as
+  // the bottom padding rather than sitting as a gap in the middle. It also
+  // reads better here: it is a note about the cat, not about the bar it
+  // used to sit beneath.
+  const patience = document.createElement('div');
+  patience.className = 'patience';
+  card.appendChild(patience);
 
   return card;
 }
@@ -650,9 +877,21 @@ function clampPercent(value) {
   return Math.max(0, Math.min(100, value));
 }
 
-function needColor(value) {
-  if (value >= 75) return '#efa98b';
-  if (value >= 45) return '#f3cf7a';
+/**
+ * The colour of a need bar, keyed on how SATISFIED the need is, so every
+ * bar on the card fills the same way: more is better.
+ *
+ * The thresholds are the old pressure ones read from the other end (75 and
+ * 45 of pressure are 25 and 55 of satisfaction), so nothing changes about
+ * when a need starts looking worrying -- only which end of the bar says so.
+ *
+ * The satisfied green is deliberately paler than `happinessColor`'s. Six
+ * full bars in the headline green would out-shout the happiness bar right
+ * above them, and happiness is the summary the eye should land on first.
+ */
+function needColor(satisfaction) {
+  if (satisfaction <= 25) return '#efa98b';
+  if (satisfaction <= 55) return '#f3cf7a';
   return '#bcd9c0';
 }
 
@@ -720,6 +959,21 @@ async function start() {
     setTimeout(start, RECONNECT_DELAY_MS);
   }
 }
+
+// Watch the map itself rather than the window. A `resize` listener fires
+// while the canvas is still the size the PREVIOUS display gave it -- the
+// renderer resizes it on its own frame -- so dragging the window between a
+// large screen and a small one decided the split against the screen just
+// left: cards overflowing the map on the smaller one, cards split on the
+// larger one that had room for the stack. A live world hid it by
+// re-measuring on the next tick; a frozen one has no next tick and the
+// wrong answer simply stayed. Observing the canvas fires once it has
+// actually changed size, which is the moment the fit test wants, and it
+// covers everything that can move the map: viewport, world size, dpr.
+// This settles rather than looping -- placing the cards can resize the map,
+// but re-running the test on the new size returns the same answer and
+// writes nothing (see `placeCards`).
+new ResizeObserver(placeCards).observe(canvas);
 
 // The debug toggles, all in one mold (spec 008 FR-004/FR-009): `g` reveals
 // greebles, `l` the demoted grid lines, `p` the session's worn paths. Each

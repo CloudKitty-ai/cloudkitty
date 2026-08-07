@@ -18,10 +18,34 @@ const animSrc = readFileSync(join(here, 'anim.js'), 'utf8');
 const catV2Src = readFileSync(join(here, 'cat-v2.js'), 'utf8');
 const renderSrc = readFileSync(join(here, 'render.js'), 'utf8');
 
-const api = eval(animSrc + ';({ VIEW, Presentation, easeSmooth })');
+const api = eval(
+  animSrc +
+    ';({ VIEW, Presentation, easeSmooth, slowBlinkLid, idleHash, idlePeriodFor,' +
+    ' idlePickFor, idleOffsetFor })',
+);
+
+/**
+ * A slot that actually draws `want`, and the clock reading that puts a cat
+ * `x` ms into that motion. Which slot gets which motion is hashed now, so a
+ * test cannot assume slot 0 is a blink starting on the beat -- it has to go
+ * and find one. Slots start at 5 so `now` stays positive.
+ */
+function slotOf(api, id, want, dials = api.VIEW) {
+  const period = api.idlePeriodFor(id, dials);
+  const span =
+    want === 'blink'
+      ? dials.slowBlinkDownMs + dials.slowBlinkHoldMs + dials.slowBlinkUpMs
+      : dials.idleMotionWindowMs;
+  for (let slot = 5; slot < 400; slot++) {
+    if (api.idlePickFor(id, slot, dials) !== want) continue;
+    const off = api.idleOffsetFor(id, slot, period, span, dials);
+    return { slot, period, off, span, at: (x) => slot * period + off + x - id * 1337 };
+  }
+  return null;
+}
 eval(catV2Src); // IIFE: registers globalThis.CatV2
 const CatV2 = globalThis.CatV2;
-const { poseFor } = eval(renderSrc + ';({ poseFor })');
+const { poseFor, WorldRenderer } = eval(renderSrc + ';({ poseFor, WorldRenderer })');
 
 /** Canvas ctx stand-in: logs every command, throws on non-finite numbers. */
 function guardCtx(log = []) {
@@ -193,35 +217,170 @@ check('still frames neither blend nor record', () => {
 
 // ---- motionFor: the slow-blink lid ----
 
-// id 0 puts the idle-motion wobble at `now` itself: kind 0 (a blink) for
-// now in [0, idleMotionPeriodMs), offset `at` = now.
 check('the slow-blink lid walks the lab envelope exactly', () => {
   const p = new api.Presentation();
-  const lidAt = (now) => p.motionFor(0, 'idle', now).blinkLid;
+  const blink = slotOf(api, 1, 'blink');
+  assert(blink, 'found a slot that draws a blink');
+  const lidAt = (x) => p.motionFor(1, 'idle', blink.at(x)).blinkLid;
+  // Derived from the dials, not restated: these spans are meant to be
+  // re-judged in the lab, and a midpoint written out as a number turns
+  // every re-dial into a test failure that says nothing about the shape.
+  const { slowBlinkDownMs: down, slowBlinkHoldMs: hold, slowBlinkUpMs: up } = api.VIEW;
   close(lidAt(0), 0, 'starts open');
-  close(lidAt(175), 0.5, 'half-down at the down midpoint');
-  close(lidAt(api.VIEW.slowBlinkDownMs), 1, 'fully down');
-  close(lidAt(api.VIEW.slowBlinkDownMs + api.VIEW.slowBlinkHoldMs), 1, 'held');
-  close(lidAt(725), 0.5, 'half-up at the up midpoint'); // 350+150+225, 225/450
-  const total = api.VIEW.slowBlinkDownMs + api.VIEW.slowBlinkHoldMs + api.VIEW.slowBlinkUpMs;
+  close(lidAt(down / 2), 0.5, 'half-down at the down midpoint');
+  close(lidAt(down), 1, 'fully down');
+  close(lidAt(down + hold), 1, 'held');
+  close(lidAt(down + hold + up / 2), 0.5, 'half-up at the up midpoint');
+  const total = down + hold + up;
   assert(lidAt(total) === undefined, 'over after the envelope');
+  // Not an art constraint, so unlike the spans themselves this is pinned:
+  // `at` arrives modulo the idle slot, so a blink that outlasts its own
+  // slot is always in progress and the eyes never settle open again.
+  assert(
+    total < api.VIEW.idleMotionPeriodMs,
+    `a ${total}ms blink must fit the ${api.VIEW.idleMotionPeriodMs}ms idle slot`,
+  );
+});
+
+// The v2 lab drives its Slow blink card through this same function with a
+// bag of slider values, because VIEW is frozen. If the override stopped
+// working the lab would silently judge the shipped numbers instead of the
+// dialled ones -- and bake whatever it was shown.
+check('slowBlinkLid takes its values from the bag it is given', () => {
+  const p = new api.Presentation();
+  const { slowBlinkDownMs: down, slowBlinkHoldMs: hold, slowBlinkUpMs: up } = api.VIEW;
+  // Twice the shipped envelope, derived rather than written out, so a
+  // re-dial cannot leave this test asserting against yesterday's numbers.
+  const dials = {
+    slowBlinkDownMs: down * 2,
+    slowBlinkHoldMs: hold * 2,
+    slowBlinkUpMs: up * 2,
+  };
+  close(api.slowBlinkLid(down, dials), 0.5, 'half-down at the dialled midpoint');
+  close(api.slowBlinkLid(down * 2, dials), 1, 'shut when the dialled down ends');
+  close(api.slowBlinkLid(down * 2 + hold, dials), 1, 'still shut through the dialled hold');
+  close(api.slowBlinkLid((down + hold) * 2 + up, dials), 0.5, 'half-up at the dialled midpoint');
+  assert(api.slowBlinkLid((down + hold + up) * 2, dials) === undefined, 'over after it');
+  // The instant the shipped blink ends is the cleanest place to see which
+  // envelope is in charge: one is finished, the other still has half to run.
+  // Asked of the envelope directly, not through `motionFor` -- which slot
+  // is blinking is the schedule's business, and has nothing to say here.
+  const shipped = down + hold + up;
+  assert(api.slowBlinkLid(shipped) === undefined, 'the shipped envelope is over');
+  assert(api.slowBlinkLid(shipped, dials) !== undefined, 'the dialled one is still going');
+  // Defaulting is what `motionFor` relies on.
+  close(api.slowBlinkLid(down), 1, 'no bag: falls back to VIEW');
 });
 
 check('the v1 snap blink is untouched beside the lid', () => {
   const p = new api.Presentation();
-  const m100 = p.motionFor(0, 'idle', 100);
-  assert(m100.eyesOverride === 'closed', 'v1 window: snapped closed');
-  assert(m100.blinkLid !== undefined, 'v2 lid runs alongside');
-  const m430 = p.motionFor(0, 'idle', 430); // past the 420ms v1 window
-  assert(m430.eyesOverride === undefined, 'v1 window over: eyes open');
-  assert(m430.blinkLid !== undefined, 'the eased lid is still easing');
+  const blink = slotOf(api, 1, 'blink');
+  const w = api.VIEW.idleMotionWindowMs;
+  const inside = p.motionFor(1, 'idle', blink.at(w / 2));
+  assert(inside.eyesOverride === 'closed', 'v1 window: snapped closed');
+  assert(inside.blinkLid !== undefined, 'v2 lid runs alongside');
+  const after = p.motionFor(1, 'idle', blink.at(w + 10));
+  assert(after.eyesOverride === undefined, 'v1 window over: eyes open');
+  assert(after.blinkLid !== undefined, 'the eased lid is still easing');
 });
 
-check('only the blink slot wears a lid', () => {
+check('only a blink slot wears a lid', () => {
   const p = new api.Presentation();
-  // id 0, now in [4600, 9200): kind 1, the tail flick.
-  const m = p.motionFor(0, 'idle', 4700);
-  assert(m.blinkLid === undefined, 'tail-flick slot has no lid');
+  for (const want of ['ears', 'rest']) {
+    const s = slotOf(api, 1, want);
+    assert(s, `found a slot that draws ${want}`);
+    // Sweep the whole slot: no part of it may carry a lid.
+    for (let x = 0; x < s.period; x += 25) {
+      const m = p.motionFor(1, 'idle', s.slot * s.period + x - 1337);
+      assert(m.blinkLid === undefined, `${want} slot has no lid at +${x}ms`);
+    }
+  }
+});
+
+// ---- the idle schedule: hashed, bounded, and weighted ----
+
+check('a rest slot is a real nothing, not a fast breath', () => {
+  const p = new api.Presentation();
+  const rest = slotOf(api, 1, 'rest');
+  for (let x = 0; x < rest.period; x += 25) {
+    const now = rest.slot * rest.period + x - 1337;
+    const m = p.motionFor(1, 'idle', now);
+    assert(m.eyesOverride === undefined, `no snap blink at +${x}ms`);
+    assert(m.earsBack === undefined, `no ear twitch at +${x}ms`);
+    assert(m.blinkLid === undefined, `no lid at +${x}ms`);
+    // The old tail-flick branch overrode the breathing phase; a rest slot
+    // must leave the ambient breath exactly as it found it.
+    const ambient = ((now + 997) % api.VIEW.breathePeriodMs) / api.VIEW.breathePeriodMs;
+    close(m.phase, ambient, `breathing undisturbed at +${x}ms`);
+  }
+});
+
+check('no motion ever overruns its slot', () => {
+  const p = new api.Presentation();
+  for (const id of [1, 2, 3, 4]) {
+    const period = api.idlePeriodFor(id);
+    for (let slot = 5; slot < 60; slot++) {
+      const pick = api.idlePickFor(id, slot);
+      if (pick === 'rest') continue;
+      const span =
+        pick === 'blink'
+          ? api.VIEW.slowBlinkDownMs + api.VIEW.slowBlinkHoldMs + api.VIEW.slowBlinkUpMs
+          : api.VIEW.idleMotionWindowMs;
+      const off = api.idleOffsetFor(id, slot, period, span);
+      assert(off >= 0, `id ${id} slot ${slot}: offset is not negative`);
+      assert(
+        off + span <= period + 1e-6,
+        `id ${id} slot ${slot}: ${pick} ends inside its own slot`,
+      );
+    }
+  }
+});
+
+check('the weights are what decides how often each motion lands', () => {
+  const dials = { ...api.VIEW, idleBlinkWeight: 70, idleEarsWeight: 20, idleRestWeight: 10 };
+  const seen = { blink: 0, ears: 0, rest: 0 };
+  const N = 4000;
+  for (let slot = 0; slot < N; slot++) seen[api.idlePickFor(1, slot, dials)]++;
+  // Loose bounds: this is asserting the draw is weighted, not that the
+  // hash is a perfect uniform generator.
+  assert(Math.abs(seen.blink / N - 0.7) < 0.03, `blink share ${(seen.blink / N).toFixed(3)} ~ 0.70`);
+  assert(Math.abs(seen.ears / N - 0.2) < 0.03, `ears share ${(seen.ears / N).toFixed(3)} ~ 0.20`);
+  assert(Math.abs(seen.rest / N - 0.1) < 0.03, `rest share ${(seen.rest / N).toFixed(3)} ~ 0.10`);
+  // All the weight on one motion means every slot draws it.
+  const only = { ...api.VIEW, idleBlinkWeight: 0, idleEarsWeight: 1, idleRestWeight: 0 };
+  for (let slot = 0; slot < 50; slot++) {
+    assert(api.idlePickFor(1, slot, only) === 'ears', `slot ${slot}: only ears can be drawn`);
+  }
+});
+
+check('jitter moves a motion inside its slot, and zero jitter is on the beat', () => {
+  const still = { ...api.VIEW, idleJitter: 0 };
+  const loose = { ...api.VIEW, idleJitter: 1 };
+  const period = api.idlePeriodFor(1, still);
+  const span = api.VIEW.idleMotionWindowMs;
+  const offsets = new Set();
+  for (let slot = 5; slot < 40; slot++) {
+    close(api.idleOffsetFor(1, slot, period, span, still), 0, `slot ${slot}: no jitter, on the beat`);
+    offsets.add(Math.round(api.idleOffsetFor(1, slot, period, span, loose)));
+  }
+  assert(offsets.size > 25, `jitter spreads the starts (${offsets.size} distinct of 35)`);
+});
+
+check('cats run their own tempos, and the schedule is deterministic', () => {
+  const p = new api.Presentation();
+  const periods = [1, 2, 3, 4].map((id) => api.idlePeriodFor(id));
+  assert(new Set(periods.map(Math.round)).size === 4, `four cats, four tempos: ${periods.map(Math.round)}`);
+  for (const period of periods) {
+    const drift = Math.abs(period / api.VIEW.idleMotionPeriodMs - 1);
+    assert(drift <= api.VIEW.idleTempoSpread + 1e-9, `tempo stays inside the spread (${drift.toFixed(3)})`);
+  }
+  // Purity is what still frames, reduced motion and this harness all rely
+  // on: the same cat at the same instant is always doing the same thing.
+  for (const now of [1234, 20000, 987654]) {
+    const a = JSON.stringify(p.motionFor(3, 'idle', now));
+    const b = JSON.stringify(new api.Presentation().motionFor(3, 'idle', now));
+    assert(a === b, `id 3 at ${now}ms is the same on a fresh Presentation`);
+  }
 });
 
 // ---- drawCatTween: structural endpoint identity ----
@@ -370,6 +529,38 @@ check('a discontinuity clears wetness with the rest of the memory', () => {
   assert(p.wetness.size === 1, 'wetness recorded');
   p.pushState(world(9, [kitty(1, 2, 2)]), 2600); // tick jump: a different moment
   assert(p.wetness.size === 0, 'wetness cleared');
+});
+
+// ---- occupiedTiles: what the ground cover must keep off ----
+
+// The rule this pins is a contract, not a preference: cover is scenery, so
+// it may only avoid things that will still be there next tick. It used to
+// avoid every served element, and bugs, greebles, chow and sunbeams all move
+// or expire -- so a critter walking onto a tree's tile deleted the tree and
+// walking off grew it back. Nothing caught that, because the cover test
+// exercises `bushesFor` with a hand-built set and never asked what builds it.
+check('occupiedTiles keeps cover off water, and off nothing else', () => {
+  // `this` is unused, so the method can be exercised without a canvas.
+  const occupied = (elements) =>
+    WorldRenderer.prototype.occupiedTiles.call(null, { elements });
+  const at = (kind, x, y) => ({ kind, pos: { x, y } });
+
+  const water = occupied([at('water', 3, 4)]);
+  assert(water.has('3,4'), 'water is avoided');
+
+  for (const kind of ['bug', 'greeble', 'chow', 'sunbeam']) {
+    const set = occupied([at(kind, 7, 8)]);
+    assert(
+      !set.has('7,8'),
+      `${kind} does not suppress cover -- it moves or expires, and cover that ` +
+        'follows it blinks',
+    );
+  }
+
+  // The mixed case is the real world: a pond keeps its tile, the critter
+  // wandering past it does not take one with it.
+  const mixed = occupied([at('water', 1, 1), at('bug', 2, 2), at('chow', 3, 3)]);
+  assert(mixed.size === 1 && mixed.has('1,1'), `only water: got ${[...mixed].join(' ')}`);
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

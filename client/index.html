@@ -59,15 +59,29 @@
     --patience-ink: #b0876a; /* the gentle long-distress cue */
     --card: #fffdfa;
     --shadow: rgba(150, 125, 105, 0.18);
+    /* Hairline rules: the card's own edge, and the one dividing a card's
+       summary from its needs table. Same ink as the shadow, a shade
+       lighter, so an outlined card reads as the shadow made explicit
+       rather than as a second, competing edge. Each hour restates it from
+       that hour's --shadow at the same ratio (0.16/0.18), so the edge and
+       the shadow under it stay one family as the light changes -- a warm
+       daylight hairline was still sitting on the plum night card while
+       every other token had crossed. */
+    --rule: rgba(150, 125, 105, 0.16);
     --happy: #8fce8f;
     --okay: #f3cf7a;
     --meh: #efa98b;
+    /* One card column. Single-sourced because the empty side of the layout
+       reserves exactly this much to keep the map centred -- if the two ever
+       drifted apart the map would sit slightly off-centre with no rule
+       obviously wrong. */
+    --card-width: 226px;
   }
 
   /* The theme tokens above, registered so they animate. A plain transition
      can't interpolate the body's radial-gradient, but a registered <color>
      custom property tweens as a color and the gradient follows each frame.
-     Only the ten tokens the hour themes override are registered; browsers
+     Only the eleven tokens the hour themes override are registered; browsers
      without @property keep today's instant switch. */
   @property --cream { syntax: "<color>"; inherits: true; initial-value: #fdf6ec; }
   @property --cream-deep { syntax: "<color>"; inherits: true; initial-value: #f5e8d8; }
@@ -79,15 +93,23 @@
   @property --patience-ink { syntax: "<color>"; inherits: true; initial-value: #b0876a; }
   @property --card { syntax: "<color>"; inherits: true; initial-value: #fffdfa; }
   @property --shadow { syntax: "<color>"; inherits: true; initial-value: rgba(150, 125, 105, 0.18); }
+  @property --rule { syntax: "<color>"; inherits: true; initial-value: rgba(150, 125, 105, 0.16); }
 
   /* The gentle fade between hour themes: the tokens tween on <body> (where
      the .dusk/.night overrides land) and every inheritor recolors with
      them. --theme-fade is the one dial. Joins the canvas in going still
      under reduced motion. */
   body {
-    --theme-fade: 1.5s;
+    /* 1.5s -> 0.5s (2026-08-07). This is no longer the crossfade: app.js
+       sets these tokens at the world's own blend position, so the page
+       changes light on the same clock as the meadow instead of racing 19
+       seconds ahead of it. All this has left to do is round off the steps
+       between successive blend positions, which land ~600ms apart at the
+       live tick rate. Long enough and the page would lag the canvas. */
+    --theme-fade: 0.5s;
     transition-property: --cream, --cream-deep, --zenith, --grass,
-      --grass-line, --ink, --ink-soft, --patience-ink, --card, --shadow;
+      --grass-line, --ink, --ink-soft, --patience-ink, --card, --shadow,
+      --rule;
     transition-duration: var(--theme-fade);
     transition-timing-function: ease;
   }
@@ -104,6 +126,7 @@
     --grass-line: #cdd6ad;
     --card: #fdf3e6;
     --shadow: rgba(150, 100, 80, 0.22);
+    --rule: rgba(150, 100, 80, 0.20);
   }
 
   /* First light (v3, 2026-08-05) -- sunset's counterweight. Where dusk
@@ -121,6 +144,7 @@
     --grass-line: #aeb8ab;
     --card: #f2f1ec;
     --shadow: rgba(92, 97, 100, 0.20);
+    --rule: rgba(92, 97, 100, 0.18);
   }
 
   /* The page after sundown (the canvas world switches with it -- see
@@ -139,6 +163,7 @@
     --patience-ink: #cfa287;
     --card: #37313f;
     --shadow: rgba(12, 8, 20, 0.5);
+    --rule: rgba(12, 8, 20, 0.44);
   }
 
   * { box-sizing: border-box; }
@@ -288,6 +313,15 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
+      /* Both sides reserve a card column whether or not they hold cards, so
+         the map stays centred on the page when every card is on the right.
+         Without it the grid centres itself around the cards it happens to
+         have, which puts the map half a card column (113px) to the left.
+         This costs no map size: the tile is height-bound on every display
+         we fit, so the width the empty side takes was never in use -- and
+         it makes the map's width budget the same under either placement,
+         which is why `placeCards` cannot chase its own decision. */
+      min-width: var(--card-width);
     }
     /* All three share row 1 explicitly. Auto-placement is "sparse": it
        never moves the cursor backwards, so with the stage first in the
@@ -301,8 +335,17 @@
   .kitty-card {
     background: var(--card);
     border-radius: 18px;
-    padding: 10px 14px;
-    box-shadow: 0 6px 16px var(--shadow);
+    /* No bottom padding: the distress line lives at the foot of the card
+       and its own line box supplies the space. The line is reserved whether
+       or not it speaks (see `.patience`), so a card that has nothing to
+       report still ends in a proper margin -- the reserve pays for itself
+       instead of sitting as a gap in the middle of the card. */
+    padding: 10px 14px 0;
+    /* The card is #fffdfa on a #fdf6ec page -- about 3% of luminance apart,
+       so without an edge the shape is carried entirely by the shadow, and
+       the shadow is the first thing to vanish on a dim screen. */
+    border: 1px solid var(--rule);
+    box-shadow: 0 4px 12px var(--shadow);
     /* Fixed width, sized for the longest lines a card can carry (the
        patience cue and a full meow quote), so text changes -- purring on
        and off, meows, activities -- never resize the portrait. `flex` with
@@ -310,7 +353,7 @@
        row exactly, and shrinkable flex items would quietly compress by a
        few pixels whenever a scrollbar appears. */
     box-sizing: border-box;
-    width: 226px;
+    width: var(--card-width);
     flex: 0 0 auto;
   }
 
@@ -347,6 +390,33 @@
     font-size: 0.75rem;
     color: var(--ink-soft);
     margin: 2px 0 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* The purr indicator: always present, pinned right, so it reads as a lamp
+     at a constant place on every card rather than text that comes and goes.
+     It used to be a ` · purring 💕` suffix on the mood string, which grew
+     the line by 60px whenever a cat started up. */
+  .kitty-card .purr {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    transition: opacity 0.4s ease;
+  }
+  /* Fixed slots. The unlit and lit glyphs are different widths, and without
+     a fixed box the word between them would step sideways every time a cat
+     started or stopped purring -- which is the shifting this replaced. */
+  .kitty-card .purr .h {
+    display: inline-block;
+    width: 1.15em;
+    text-align: center;
+  }
+  .kitty-card .purr:not(.is-on) {
+    opacity: 0.34;
   }
 
   .kitty-card .doing {
@@ -363,25 +433,43 @@
      but always one line tall (min-height matching the pinned line-height,
      so empty really is the same height as full), and its coming and going
      never changes the card's height (which would ripple into page
-     scrollbar toggles and subtle card wobble). The -2px bottom margin
-     tucks the "needs" heading slightly into this line's leading: constant,
-     so no height wobble, and small enough that ~2px of air remains when
-     the cue text is showing. */
+     scrollbar toggles and subtle card wobble).
+     It sits at the FOOT of the card (owner, 2026-08-06). Reserved space in
+     the middle read as a hole; at the bottom the same reservation reads as
+     the card's bottom padding, which is why `.kitty-card` has none of its
+     own. It also belongs here: the cue summarises the cat, not the bar it
+     used to sit under.
+     Nothing below it, and there is nothing to trim there -- the line box's
+     own descender space is the margin, and the 💭 fills it to within
+     0.06px, so any negative bottom margin clips the emoji.
+     -4px above (owner, 2026-08-06): the last need row centres a 5px bar
+     against a taller label, leaving 5px of empty box beneath the bath bar,
+     and this borrows four of them. It costs no glyph -- "bath" is always
+     the last label and has no descender -- and still leaves ~4.7px between
+     its ink and the cue's. One pixel of slack remains: at -5px the cue's
+     cap height reaches the bath label's baseline, and the two rows read as
+     one. So this is the last comfortable step, not an arbitrary stop. */
   .kitty-card .patience {
     font-size: 0.72rem;
     font-style: italic;
     color: var(--patience-ink);
-    margin: 0 0 -2px;
+    margin: -4px 0 0;
     min-height: 1.4em;
   }
 
-  /* The "needs" heading. No top margin: the reserved patience line above
-     already provides the section's air. */
-  .kitty-card .section-label {
-    font-size: 0.68rem;
-    font-weight: 600;
-    color: var(--ink-soft);
-    margin: 0 0 2px;
+  /* A rule between what the card says about the cat and the table of how
+     its needs are doing. Both now fill left-to-right as things get better,
+     so without a divider the eye runs from the happiness bar straight into
+     the need bars as though they were one set. */
+  .kitty-card .needs {
+    border-top: 1px solid var(--rule);
+    /* 5 above the rule, 2 below (owner, 2026-08-06), which looks lopsided
+       written down and is not. The need rows centre their contents, so the
+       first BAR sits ~5px below the top of its row -- but the eye anchors
+       on the "eat" LABEL, which starts near the row top. Balancing against
+       the bar over-corrects and leaves the rule visibly low. */
+    margin-top: 5px;
+    padding-top: 2px;
   }
 
   .bar {

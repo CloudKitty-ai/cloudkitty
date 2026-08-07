@@ -359,8 +359,16 @@ const MEADOW_DEFAULTS = Object.freeze({
   // small: a rooted thing's shadow leaves its base, and pushing it far
   // is precisely what makes a bush look airborne.
   bushShadowThrow: 0.25,
-  shoreRounding: 0.45, // pond corner rounding, in tiles
-  shoreWobble: 0.07, // organic shoreline waviness, in tiles
+  // The shoreline. Corners are rounded into arcs first and the wobble rides
+  // on the finished curve (buildPondPath); before, the wobble subdivided the
+  // edges and capped the radius at 0.25 tile whatever this said.
+  shoreRounding: 0.8, // pond corner rounding, in tiles
+  shoreWobble: 0.08, // shoreline undulation depth, in tiles
+  shoreWobblePeriod: 0.35, // and its wavelength around the perimeter, in tiles
+  // Despite the name, this scales the OUTWARD bulges: bays cut the full
+  // `shoreWobble`, headlands reach this share of it. See `wobbleAlong`.
+  shoreBulgeEase: 0.75,
+  shoreOverdraw: 0.1, // push the whole outline out this far, in tiles
   lilyPadMinTiles: 4, // ponds at least this big carry a lily pad
   glowRadiusTiles: 1.4, // sunbeam glow radius, in tiles
   glowAlpha: 0.6, // overall glow strength
@@ -1004,40 +1012,222 @@ function buildPondPath(tiles, tile) {
 
   const path = new Path2D();
   for (const loop of loops) {
-    roundedLoop(path, wobbleLoop(loop, t.shoreWobble), t.shoreRounding, tile);
+    // Round the corners FIRST, into a dense polyline, then wobble that.
+    // The old order did the reverse and the two fought: wobbling split every
+    // edge into half-tile segments, and the corner radius clamps to half a
+    // segment, so a 1x1 pond could never round further than 0.25 tile no
+    // matter what `shoreRounding` said. It read as a rounded square and the
+    // tunable did nothing above 0.5.
+    let points = sampleRoundedLoop(loop, t.shoreRounding);
+    points = wobbleAlong(points, t.shoreWobble, t.shoreWobblePeriod, t.shoreBulgeEase, loop[0]);
+    points = growOutward(points, t.shoreOverdraw);
+    smoothClosedPath(path, points, tile);
   }
   return path;
 }
 
 /**
- * Organic shorelines: subdivide each straight run and push the new points
- * a hash-chosen whisker sideways (revision 1 -- straight-sided ponds read
- * exactly like the old squares, especially the common single-tile pool).
- * The wobble is small enough that tile membership stays unambiguous, and
- * hashing the quantized point keeps it deterministic (FR-002).
+ * Walk a corner loop and sample the arc-rounded outline into a dense
+ * polyline, in tile units.
+ *
+ * True circular arcs, not the quadratic-with-the-corner-as-control-point
+ * this replaces: at the same radius a quadratic bulges ~6% past the arc and
+ * leaves flats either side of it, which is most of why ponds read square.
+ * The radius still clamps to half of each adjoining edge, so a 1x1 pond
+ * tops out at a circle and a 2x2 needs 1.0 to get there.
  */
-function wobbleLoop(points, wobble) {
-  const out = [];
-  const n = points.length;
+function sampleRoundedLoop(corners, rounding, step = 0.22) {
+  const n = corners.length;
+  const raw = [];
+  // Consecutive duplicates are not harmless here. Where the radius uses up a
+  // whole edge -- a 1x1 pond at rounding >= 0.5, where the arcs meet exactly
+  // at the edge midpoints -- one corner's end point IS the next one's start,
+  // and a repeated point gives the wobble a zero-length tangent, hence a
+  // garbage normal and a spike in the outline.
+  const pts = {
+    push(p) {
+      const last = raw[raw.length - 1];
+      if (last && Math.abs(last[0] - p[0]) < 1e-9 && Math.abs(last[1] - p[1]) < 1e-9) return;
+      raw.push(p);
+    },
+  };
+  if (n < 3) return corners.map((c) => c.slice());
+  const unit = (a, b) => {
+    const dx = b[0] - a[0];
+    const dy = b[1] - a[1];
+    const len = Math.hypot(dx, dy) || 1;
+    return { ux: dx / len, uy: dy / len, len };
+  };
+  const geom = corners.map((v, i) => {
+    const prev = corners[(i - 1 + n) % n];
+    const next = corners[(i + 1) % n];
+    const inc = unit(prev, v);
+    const out = unit(v, next);
+    const r = Math.min(rounding, inc.len / 2, out.len / 2);
+    // Which side the turn goes decides where the arc's centre sits.
+    const turn = Math.sign(inc.ux * out.uy - inc.uy * out.ux) || 1;
+    const t1 = [v[0] - inc.ux * r, v[1] - inc.uy * r];
+    const t2 = [v[0] + out.ux * r, v[1] + out.uy * r];
+    const nx = -inc.uy * turn;
+    const ny = inc.ux * turn;
+    return { r, t1, t2, cx: t1[0] + nx * r, cy: t1[1] + ny * r };
+  });
   for (let i = 0; i < n; i++) {
-    const [ax, ay] = points[i];
-    const [bx, by] = points[(i + 1) % n];
-    out.push([ax, ay]);
-    const len = Math.hypot(bx - ax, by - ay);
-    const ux = (bx - ax) / len;
-    const uy = (by - ay) / len;
-    const segments = Math.max(2, Math.round(len * 2));
-    for (let j = 1; j < segments; j++) {
-      const px = ax + (bx - ax) * (j / segments);
-      const py = ay + (by - ay) * (j / segments);
-      const h = tileHash(Math.round(px * 4), Math.round(py * 4), MEADOW_SALTS.shore);
-      const off = (h - 0.5) * 2 * wobble;
-      // Perpendicular to the direction of travel.
-      out.push([px - uy * off, py + ux * off]);
+    const g = geom[i];
+    if (g.r > 1e-6) {
+      const a1 = Math.atan2(g.t1[1] - g.cy, g.t1[0] - g.cx);
+      const a2 = Math.atan2(g.t2[1] - g.cy, g.t2[0] - g.cx);
+      let sweep = a2 - a1;
+      while (sweep > Math.PI) sweep -= Math.PI * 2;
+      while (sweep < -Math.PI) sweep += Math.PI * 2;
+      const steps = Math.max(2, Math.ceil((Math.abs(sweep) * g.r) / step));
+      for (let k = 0; k <= steps; k++) {
+        const a = a1 + sweep * (k / steps);
+        pts.push([g.cx + Math.cos(a) * g.r, g.cy + Math.sin(a) * g.r]);
+      }
+    } else {
+      pts.push(g.t1.slice());
     }
+    const to = geom[(i + 1) % n].t1;
+    const run = unit(g.t2, to);
+    const steps = Math.max(1, Math.round(run.len / step));
+    for (let k = 1; k < steps; k++) {
+      pts.push([g.t2[0] + run.ux * run.len * (k / steps), g.t2[1] + run.uy * run.len * (k / steps)]);
+    }
+  }
+  // The loop closes on itself, so the last point can duplicate the first.
+  const first = raw[0];
+  const last = raw[raw.length - 1];
+  if (raw.length > 1 && Math.abs(first[0] - last[0]) < 1e-9 && Math.abs(first[1] - last[1]) < 1e-9) {
+    raw.pop();
+  }
+  return raw;
+}
+
+/**
+ * Displace a sampled outline along its own normals, with smooth 1-D noise
+ * around the perimeter rather than a hash per point.
+ *
+ * Per-point hashing (what this replaces) gives neighbouring samples
+ * independent values, so the edge chatters at the sampling frequency instead
+ * of undulating. Here the noise is drawn at a coarse lattice around the loop
+ * and smoothstepped between, so the whole shoreline moves together, and the
+ * lattice wraps so the seam is invisible.
+ *
+ * `bulgeEase` scales the OUTWARD half -- the half that bulges away from the
+ * water. Read the name with care: it says "dip", but with the winding the
+ * tile walk produces, `(-ty, tx)` points INTO the water, so a positive noise
+ * value is an inward bay and it is the negative (outward) half that `value
+ * *= bulgeEase` reaches. Headlands therefore reach `bulgeEase * amp` while bays
+ * cut the full `amp`. That is the shoreline the owner dialled and accepted
+ * (2026-08-07) -- the name and this note are what were wrong, not the
+ * numbers -- but anyone turning this knob should know which way it moves:
+ * lower flattens the seaward bulges and leaves only bays, higher lets the
+ * headlands out.
+ *
+ * The same sign carries into the mean: the outline is biased INWARD by
+ * `0.25 * amp * (1 - bulgeEase)` on average, so it eats into `shoreOverdraw`
+ * rather than riding on top of it -- the two are not independent. At the
+ * shipped 0.08 / 0.75 / 0.1 that is 0.005 tile off a 0.1 tile spill.
+ */
+function wobbleAlong(points, amp, period, bulgeEase, seed) {
+  if (!amp) return points;
+  const n = points.length;
+  let perimeter = 0;
+  for (let i = 0; i < n; i++) {
+    const a = points[i];
+    const b = points[(i + 1) % n];
+    perimeter += Math.hypot(b[0] - a[0], b[1] - a[1]);
+  }
+  const cells = Math.max(4, Math.round(perimeter / Math.max(0.05, period)));
+  const salt = MEADOW_SALTS.shore;
+  const lattice = (i) => tileHash(((i % cells) + cells) % cells, seed[0] * 13 + seed[1] * 7, salt);
+  const ease = (u) => u * u * (3 - 2 * u);
+  const out = [];
+  let walked = 0;
+  for (let i = 0; i < n; i++) {
+    const u = (walked / perimeter) * cells;
+    const cell = Math.floor(u);
+    const frac = u - cell;
+    let value = (lattice(cell) + (lattice(cell + 1) - lattice(cell)) * ease(frac) - 0.5) * 2;
+    if (value < 0) value *= bulgeEase;
+    const prev = points[(i - 1 + n) % n];
+    const next = points[(i + 1) % n];
+    const tx = next[0] - prev[0];
+    const ty = next[1] - prev[1];
+    const len = Math.hypot(tx, ty) || 1;
+    out.push([points[i][0] + (-ty / len) * value * amp, points[i][1] + (tx / len) * value * amp]);
+    const b = points[(i + 1) % n];
+    walked += Math.hypot(b[0] - points[i][0], b[1] - points[i][1]);
   }
   return out;
 }
+
+/**
+ * Push the outline outward along its normals, so the water reaches past the
+ * flat edges of its tiles instead of stopping short of them.
+ *
+ * Rounding costs a pond the corners of its own tiles -- unavoidable, since a
+ * circle inscribed in a square leaves 0.207 tile at each corner -- and this
+ * buys some of it back. It spills the same distance everywhere, so corner
+ * grass and edge spill move together: it cannot fill one without the other.
+ * Owner accepted the spill (2026-08-07); it also means more of a water tile
+ * reads as water, which helps a wading cat look like it is in the pond.
+ *
+ * Which way is "out" depends on the loop's winding, and the loops here come
+ * from an edge walk that does not guarantee one, so pick the direction that
+ * grows the loop's SIGNED area.
+ *
+ * Signed, not absolute. A ring pond traces an outer loop and an
+ * opposite-winding hole loop (see `buildPondPath`), and on |area| both of
+ * them grow away from their own centre -- so the island swelled by
+ * `shoreOverdraw` and ate 0.1 tile of water, instead of the hole tightening
+ * and giving 0.1 tile back. Signed area gets both: it grows the outer loop
+ * and shrinks the hole, which is "more water" in each case.
+ */
+function growOutward(points, amount) {
+  if (!amount) return points;
+  const n = points.length;
+  const push = (sign) =>
+    points.map((p, i) => {
+      const prev = points[(i - 1 + n) % n];
+      const next = points[(i + 1) % n];
+      const tx = next[0] - prev[0];
+      const ty = next[1] - prev[1];
+      const len = Math.hypot(tx, ty) || 1;
+      return [p[0] + (-ty / len) * amount * sign, p[1] + (tx / len) * amount * sign];
+    });
+  const area = (pts) => {
+    let sum = 0;
+    for (let i = 0; i < pts.length; i++) {
+      const a = pts[i];
+      const b = pts[(i + 1) % pts.length];
+      sum += a[0] * b[1] - b[0] * a[1];
+    }
+    return sum / 2;
+  };
+  const outward = push(1);
+  const inward = push(-1);
+  return area(outward) > area(inward) ? outward : inward;
+}
+
+/** Draw a closed curve through the points: quadratics via segment midpoints,
+ * which is continuous at every joint, so the wobble reads as undulation
+ * rather than as a polygon with a lot of corners. */
+function smoothClosedPath(path, points, tile) {
+  const n = points.length;
+  if (n < 3) return;
+  const mid = (a, b) => [((a[0] + b[0]) / 2) * tile, ((a[1] + b[1]) / 2) * tile];
+  const start = mid(points[n - 1], points[0]);
+  path.moveTo(start[0], start[1]);
+  for (let i = 0; i < n; i++) {
+    const v = points[i];
+    const to = mid(v, points[(i + 1) % n]);
+    path.quadraticCurveTo(v[0] * tile, v[1] * tile, to[0], to[1]);
+  }
+  path.closePath();
+}
+
 
 /** Merge collinear runs so rounding only happens at true corners. */
 function simplifyLoop(points) {
@@ -1054,33 +1244,6 @@ function simplifyLoop(points) {
   return out;
 }
 
-/** Append one corner-rounded closed loop (tile units -> pixels) to path. */
-function roundedLoop(path, points, rounding, tile) {
-  const n = points.length;
-  if (n < 3) return;
-  const px = (p) => p[0] * tile;
-  const py = (p) => p[1] * tile;
-  const seg = (a, b) => {
-    const dx = px(b) - px(a);
-    const dy = py(b) - py(a);
-    const len = Math.hypot(dx, dy);
-    return { ux: dx / len, uy: dy / len, len };
-  };
-  for (let i = 0; i <= n; i++) {
-    const prev = points[(i - 1 + n) % n];
-    const v = points[i % n];
-    const next = points[(i + 1) % n];
-    const inc = seg(prev, v);
-    const out = seg(v, next);
-    const r = Math.min(rounding * tile, inc.len / 2, out.len / 2);
-    const ax = px(v) - inc.ux * r;
-    const ay = py(v) - inc.uy * r;
-    if (i === 0) path.moveTo(ax, ay);
-    else path.lineTo(ax, ay);
-    if (i < n) path.quadraticCurveTo(px(v), py(v), px(v) + out.ux * r, py(v) + out.uy * r);
-  }
-  path.closePath();
-}
 
 /**
  * Ponds, step three (US2): fill + rim the cached shoreline paths; larger

@@ -191,6 +191,10 @@
 
 <script src="cat.js"></script>
 <script src="cat-v2.js"></script>
+<!-- For VIEW (the shipped motion values) and slowBlinkLid (the shipped
+     envelope). Nothing in anim.js runs until `anim.init`, which the lab
+     never calls, so loading it here costs a parse and no behaviour. -->
+<script src="anim.js"></script>
 <script>
 (() => {
   const V1 = { drawCat, appearanceFor, name: 'v1 · shipped' };
@@ -202,6 +206,60 @@
 
   const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
   const easeSmooth = (t) => t * t * (3 - 2 * t);
+
+  // Blink dials. Seeded from the shipped VIEW so the lab can never open on
+  // a different number than the world runs, and held in a bag of their own
+  // because VIEW is frozen. `slowBlinkLid` draws the card from these, so
+  // what the sliders show is the shipping envelope, not a copy of it.
+  const BLINK = {
+    slowBlinkDownMs: VIEW.slowBlinkDownMs,
+    slowBlinkHoldMs: VIEW.slowBlinkHoldMs,
+    slowBlinkUpMs: VIEW.slowBlinkUpMs,
+    // Not a blink dial: the idle slot is shared with the ear twitch and with
+    // the slots that draw nothing. Which one a slot gets is a weighted draw,
+    // so the interval between two blinks is `total weight / blink weight`
+    // times this -- about 2.9x at the shipped 35/30/35. See `blinkInterval`,
+    // which computes it rather than assuming the old fixed rotation.
+    idleMotionPeriodMs: VIEW.idleMotionPeriodMs,
+    // Lab-only, never pasted: how often the card replays the blink, so a
+    // 14-second cadence does not mean waiting 14 seconds to see one.
+    replayMs: 2600,
+    trueCadence: false,
+  };
+  const blinkTotal = () =>
+    BLINK.slowBlinkDownMs + BLINK.slowBlinkHoldMs + BLINK.slowBlinkUpMs;
+  const blinkInterval = () =>
+    BLINK.idleMotionPeriodMs *
+    ((VIEW.idleBlinkWeight + VIEW.idleEarsWeight + VIEW.idleRestWeight) /
+      Math.max(1, VIEW.idleBlinkWeight));
+
+  // Idle-schedule dials, same arrangement: seeded from VIEW, held in their
+  // own bag because VIEW is frozen, and handed to the shipping `motionFor`
+  // so the card runs the real scheduler rather than an impression of it.
+  const IDLE = {
+    idleBlinkWeight: VIEW.idleBlinkWeight,
+    idleEarsWeight: VIEW.idleEarsWeight,
+    idleRestWeight: VIEW.idleRestWeight,
+    idleJitter: VIEW.idleJitter,
+    idleTempoSpread: VIEW.idleTempoSpread,
+    idleMotionPeriodMs: VIEW.idleMotionPeriodMs,
+    idleMotionWindowMs: VIEW.idleMotionWindowMs,
+    breathePeriodMs: VIEW.breathePeriodMs,
+    slowBlinkDownMs: VIEW.slowBlinkDownMs,
+    slowBlinkHoldMs: VIEW.slowBlinkHoldMs,
+    slowBlinkUpMs: VIEW.slowBlinkUpMs,
+  };
+  // The real roster's ids, because the schedule is hashed off the id: these
+  // are the four rhythms the demo world actually has, not four samples.
+  const IDLE_CAST = [
+    { id: 1, name: 'Miso', palette: MISO },
+    { id: 2, name: 'Biscuit', palette: BISCUIT },
+    { id: 3, name: 'Pumpkin', palette: PUMPKIN },
+    { id: 4, name: 'Kittybear', palette: STORM },
+  ];
+  // `motionFor` needs no state for an idle cat, so a bare Presentation is
+  // the whole scheduler.
+  const idleScheduler = new Presentation();
 
   // ------------------------------------------------------------------ scenes
   const SCENES = [
@@ -537,20 +595,115 @@
     // flips stay v1's instant mirror.
     {
       title: 'Slow blink',
-      note: 'The cat “I love you”. v1 can only snap open/closed; v2 eases the lid down and up (the relief-beat candidate).',
+      note: 'The cat “I love you”. v1 can only snap open/closed; v2 eases the lid down and up. Drawn through the shipped envelope (anim.js slowBlinkLid) with the dials below standing in for VIEW, so what you judge here is what bakes.',
+      bag: BLINK,
+      dials: [
+        { key: 'slowBlinkDownMs', label: 'lid down (ms)', min: 100, max: 1600, step: 10 },
+        { key: 'slowBlinkHoldMs', label: 'held shut (ms)', min: 0, max: 1600, step: 10 },
+        { key: 'slowBlinkUpMs', label: 'lid release (ms)', min: 100, max: 2200, step: 10 },
+        { key: 'idleMotionPeriodMs', label: 'idle slot (ms) — also moves the tail flick and ear twitch', min: 2000, max: 14000, step: 100 },
+        { key: 'replayMs', label: 'replay every (ms) — lab only, never pasted', min: 1200, max: 20000, step: 100 },
+      ],
+      toggles: [
+        { key: 'trueCadence', label: 'replay at the real interval (idle slot ÷ blink share)' },
+      ],
+      readout() {
+        const total = blinkTotal();
+        const over = total >= BLINK.idleMotionPeriodMs;
+        return (
+          `slowBlinkDownMs: ${BLINK.slowBlinkDownMs}, slowBlinkHoldMs: ${BLINK.slowBlinkHoldMs}, ` +
+          `slowBlinkUpMs: ${BLINK.slowBlinkUpMs}, idleMotionPeriodMs: ${BLINK.idleMotionPeriodMs}\n` +
+          `one blink = ${total}ms (${BLINK.slowBlinkHoldMs}ms of it fully shut) · ` +
+          `a cat blinks every ${(blinkInterval() / 1000).toFixed(1)}s\n` +
+          (over
+            ? `⚠ ${total}ms of blink does not fit a ${BLINK.idleMotionPeriodMs}ms slot: the lid would ` +
+              `never finish before the next one is due and the eyes would never settle open. ` +
+              `Raise the idle slot or shorten the blink.`
+            : `fits the ${BLINK.idleMotionPeriodMs}ms slot with ${BLINK.idleMotionPeriodMs - total}ms of open eyes to spare`)
+        );
+      },
       draw(ctx, w, h, now, isV2) {
-        const CYCLE = 2600;
-        const t = now % CYCLE;
-        let lid = 0;
-        if (t > 1200 && t <= 1550) lid = easeSmooth((t - 1200) / 350);
-        else if (t > 1550 && t <= 1700) lid = 1;
-        else if (t > 1700 && t <= 2150) lid = 1 - easeSmooth((t - 1700) / 450);
+        const total = blinkTotal();
+        // Eyes open for the rest of the cycle, then one blink. The floor
+        // keeps a blink longer than its replay from running back-to-back.
+        const cycle = Math.max(BLINK.trueCadence ? blinkInterval() : BLINK.replayMs, total + 200);
+        const lid = slowBlinkLid((now % cycle) - (cycle - total), BLINK) ?? 0;
         const base = {
           pose: 'idle', appearance: CatV2.appearanceFor(BISCUIT), facing: 'right',
           size: CAT, x: (w - CAT) / 2, y: h - CAT * 0.95, phase: (now % 3400) / 3400,
         };
         if (isV2) CatV2.drawCat(ctx, { ...base, lid });
         else drawCat(ctx, { ...base, eyesOverride: lid > 0.5 ? 'closed' : undefined });
+      },
+    },
+    {
+      title: 'Idle rhythm (four cats)',
+      note: 'The whole idle schedule, four cats at once, driven by the shipping `motionFor` with the dials below standing in for VIEW. Each slot draws a blink, an ear twitch, or nothing, and starts it somewhere inside the slot. Watch the group, not one cat: the thing being judged is whether they read as four animals or one animal drawn four times.',
+      v2Only: true,
+      w: 560,
+      h: 130,
+      ownShadows: true,
+      bag: IDLE,
+      dials: [
+        { key: 'idleBlinkWeight', label: 'blink weight', min: 0, max: 100, step: 5 },
+        { key: 'idleEarsWeight', label: 'ear-twitch weight', min: 0, max: 100, step: 5 },
+        { key: 'idleRestWeight', label: 'do-nothing weight', min: 0, max: 100, step: 5 },
+        { key: 'idleJitter', label: 'jitter (0 = on the beat, 1 = anywhere in the slot)', min: 0, max: 1, step: 0.05 },
+        { key: 'idleTempoSpread', label: 'per-cat tempo spread (± share)', min: 0, max: 0.4, step: 0.01 },
+        { key: 'idleMotionPeriodMs', label: 'idle slot (ms)', min: 2000, max: 14000, step: 100 },
+      ],
+      readout() {
+        const total = IDLE.idleBlinkWeight + IDLE.idleEarsWeight + IDLE.idleRestWeight;
+        if (total <= 0) return 'every weight is zero: nothing would ever happen.';
+        const share = (n) => n / total;
+        const every = (n) => (share(n) > 0 ? `${(IDLE.idleMotionPeriodMs / 1000 / share(n)).toFixed(1)}s` : 'never');
+        const blinkMs = VIEW.slowBlinkDownMs + VIEW.slowBlinkHoldMs + VIEW.slowBlinkUpMs;
+        const tempos = IDLE_CAST.map((c) =>
+          (idlePeriodFor(c.id, IDLE) / 1000).toFixed(2)).join(', ');
+        return (
+          `idleBlinkWeight: ${IDLE.idleBlinkWeight}, idleEarsWeight: ${IDLE.idleEarsWeight}, ` +
+          `idleRestWeight: ${IDLE.idleRestWeight}, idleJitter: ${IDLE.idleJitter}, ` +
+          `idleTempoSpread: ${IDLE.idleTempoSpread}, idleMotionPeriodMs: ${IDLE.idleMotionPeriodMs}\n` +
+          `per cat, on average: a blink every ${every(IDLE.idleBlinkWeight)}, ` +
+          `an ear twitch every ${every(IDLE.idleEarsWeight)}, ` +
+          `a slot off ${(share(IDLE.idleRestWeight) * 100).toFixed(0)}% of the time\n` +
+          `eyes shut ${((blinkMs / (IDLE.idleMotionPeriodMs / share(IDLE.idleBlinkWeight))) * 100).toFixed(1)}% of the time · ` +
+          `the four tempos: ${tempos}s` +
+          (blinkMs >= IDLE.idleMotionPeriodMs
+            ? `\n⚠ a ${blinkMs}ms blink does not fit a ${IDLE.idleMotionPeriodMs}ms slot`
+            : '')
+        );
+      },
+      // `now` comes from the harness, not from `performance.now()`: with
+      // `animate` off it arrives as 0 and every other card freezes at its
+      // canonical first frame. Reading the clock directly made this one
+      // paint whatever instant the re-render happened to land on -- a
+      // different pose on every reload and every resize, and the default
+      // state for anyone who prefers reduced motion.
+      draw(ctx, w, h, now) {
+        const SIZE = 96;
+        const gap = w / IDLE_CAST.length;
+        for (const [i, cat] of IDLE_CAST.entries()) {
+          const x = gap * i + (gap - SIZE) / 2;
+          const y = h - SIZE * 0.98;
+          ctx.fillStyle = SHADOW;
+          ctx.beginPath();
+          ctx.ellipse(x + SIZE / 2, h - SIZE * 0.1, SIZE * 0.3, SIZE * 0.085, 0, 0, Math.PI * 2);
+          ctx.fill();
+          // The shipping scheduler, asked directly. Nothing about the
+          // rhythm is restated here -- if the card looks wrong, the world
+          // is wrong too.
+          const m = idleScheduler.motionFor(cat.id, 'idle', now, IDLE);
+          CatV2.drawCat(ctx, {
+            pose: 'idle', appearance: CatV2.appearanceFor(cat.palette),
+            facing: 'right', size: SIZE, x, y, phase: m.phase,
+            lid: m.blinkLid ?? 0, earsBack: m.earsBack ?? false,
+          });
+          ctx.fillStyle = 'rgba(107, 90, 78, 0.75)';
+          ctx.font = '11px ui-rounded, system-ui, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(cat.name, x + SIZE / 2, 14);
+        }
       },
     },
     {
@@ -662,6 +815,62 @@
     },
   ];
 
+  /**
+   * Live dials for one motion card, writing straight into the card's own
+   * bag. The cards redraw every frame while `animate` is on, so a slider
+   * needs no redraw of its own -- only the readout does.
+   */
+  function buildDemoDials(demo) {
+    const wrap = document.createElement('div');
+    wrap.className = 'dials';
+    wrap.style.marginTop = '12px';
+    const readout = document.createElement('div');
+    readout.className = 'note';
+    readout.style.whiteSpace = 'pre-line';
+    readout.style.marginTop = '10px';
+    const sync = () => { if (demo.readout) readout.textContent = demo.readout(); };
+    for (const d of demo.dials ?? []) {
+      const label = document.createElement('label');
+      const span = document.createElement('span');
+      span.textContent = d.label;
+      const input = document.createElement('input');
+      input.type = 'range';
+      input.min = d.min;
+      input.max = d.max;
+      input.step = d.step;
+      input.value = demo.bag[d.key];
+      const value = document.createElement('b');
+      const show = () => { value.textContent = String(demo.bag[d.key]); };
+      input.addEventListener('input', () => {
+        demo.bag[d.key] = Number(input.value);
+        show();
+        sync();
+      });
+      show();
+      label.append(span, input, value);
+      wrap.append(label);
+    }
+    for (const t of demo.toggles ?? []) {
+      const label = document.createElement('label');
+      const span = document.createElement('span');
+      span.textContent = t.label;
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.checked = demo.bag[t.key];
+      input.style.flex = '0 0 auto';
+      input.addEventListener('input', () => {
+        demo.bag[t.key] = input.checked;
+        sync();
+      });
+      label.append(span, input);
+      wrap.append(label);
+    }
+    sync();
+    const both = document.createDocumentFragment();
+    both.append(wrap, readout);
+    return both;
+  }
+
   const motionRoot = document.getElementById('motion');
   const motionViews = [];
   for (const demo of DEMOS) {
@@ -670,25 +879,30 @@
     card.innerHTML = `<h3>${demo.title}</h3><p class="note">${demo.note}</p>`;
     const rows = document.createElement('div');
     rows.className = 'rows motion-row';
-    for (const isV2 of [false, true]) {
+    // Most cards are a v1/v2 pair at one size. A card judging the schedule
+    // rather than the vocabulary asks for `v2Only` -- v1 would run the same
+    // schedule with a snap blink, which is a distraction, not a comparison.
+    for (const isV2 of demo.v2Only ? [true] : [false, true]) {
       const row = document.createElement('div');
       row.className = 'row';
       const tag = document.createElement('span');
       tag.className = 'tag';
-      tag.textContent = isV2 ? 'v2 · prototype' : 'v1 · shipped';
+      tag.textContent = demo.v2Only ? 'v2' : isV2 ? 'v2 · prototype' : 'v1 · shipped';
       const canvas = document.createElement('canvas');
       row.append(tag, canvas);
       rows.append(row);
       motionViews.push({ demo, isV2, canvas });
     }
     card.append(rows);
+    if (demo.dials) card.append(buildDemoDials(demo));
     motionRoot.append(card);
   }
 
   function renderMotion(now) {
     const dpr = window.devicePixelRatio || 1;
-    const w = 180, h = 120;
     for (const { demo, isV2, canvas } of motionViews) {
+      // A card may ask for its own stage; one cat at 180x120 is the default.
+      const w = demo.w ?? 180, h = demo.h ?? 120;
       canvas.width = w * dpr;
       canvas.height = h * dpr;
       canvas.style.width = `${w}px`;
@@ -697,10 +911,14 @@
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.fillStyle = GRASS[0];
       ctx.fillRect(0, 0, w, h);
-      ctx.fillStyle = SHADOW;
-      ctx.beginPath();
-      ctx.ellipse(w / 2, h - CAT * 0.12, CAT * 0.32, CAT * 0.09, 0, 0, Math.PI * 2);
-      ctx.fill();
+      // The stock stage has one cat centred, so it paints one shadow. A card
+      // drawing its own cast paints its own (`ownShadows`).
+      if (!demo.ownShadows) {
+        ctx.fillStyle = SHADOW;
+        ctx.beginPath();
+        ctx.ellipse(w / 2, h - CAT * 0.12, CAT * 0.32, CAT * 0.09, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
       demo.draw(ctx, w, h, now ?? 0, isV2);
     }
   }
