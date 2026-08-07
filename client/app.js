@@ -347,6 +347,96 @@ function initTheme() {
 }
 
 /**
+ * Collapsed cards: portrait, name, what the cat is doing, its mood in
+ * words -- and the distress cue, which never hides. The bars are what go.
+ *
+ * ALL of them or none (owner, 2026-08-06): one toggle over the whole
+ * panel, never per-card. Collapsed is the default, and it is what lets
+ * four cards sit in one stack beside the map on displays where four
+ * expanded ones have to split across both sides.
+ *
+ * The class goes on `body` rather than on each card so a roster change
+ * cannot leave a freshly built card in the wrong state -- there is one
+ * flag, and no per-card state to keep in step.
+ */
+const CARDS_KEY = 'cloudkitty-cards';
+let cardsCollapsed = true;
+
+function applyCardMode() {
+  document.body.classList.toggle('cards-collapsed', cardsCollapsed);
+  const toggle = document.getElementById('cards-toggle');
+  if (toggle) {
+    toggle.textContent = cardsCollapsed ? 'expand' : 'collapse';
+    toggle.setAttribute('aria-expanded', String(!cardsCollapsed));
+    toggle.setAttribute(
+      'aria-label',
+      cardsCollapsed ? 'expand every kitty card' : 'collapse every kitty card',
+    );
+  }
+  schedulePlacement();
+}
+
+/**
+ * Re-place the cards once they are the size they are BECOMING.
+ *
+ * Collapsing changes card heights, which changes whether they fit as one
+ * stack -- and it does not resize the canvas, so the ResizeObserver that
+ * normally re-places them never fires for this. But measuring straight
+ * after the class flip reads the size the cards are leaving, because the
+ * collapse is a transition: the first build of this placed every toggle
+ * one state behind (four in a column while expanded, split while
+ * collapsed -- exactly backwards).
+ *
+ * So wait for the transition. `transitionend` is the precise signal, but
+ * it does not fire when there is no transition to run (reduced motion
+ * turns them off) or when one is interrupted mid-flight by a second
+ * click, so the timer is the backstop and whichever arrives first wins.
+ */
+let placementTimer = 0;
+function schedulePlacement() {
+  const details = panelEl.querySelector('.kitty-card .details');
+  const seconds = details ? parseFloat(getComputedStyle(details).transitionDuration) || 0 : 0;
+  clearTimeout(placementTimer);
+  if (seconds <= 0) {
+    placeCards();
+    return;
+  }
+  // The bars inside `.details` run their own width transitions and those
+  // events bubble, so the listener has to say which property it is for.
+  const done = (event) => {
+    if (event.target !== details || event.propertyName !== 'grid-template-rows') return;
+    details.removeEventListener('transitionend', done);
+    clearTimeout(placementTimer);
+    placeCards();
+  };
+  details.addEventListener('transitionend', done);
+  placementTimer = setTimeout(() => {
+    details.removeEventListener('transitionend', done);
+    placeCards();
+  }, seconds * 1000 + 80);
+}
+
+function initCards() {
+  let stored = null;
+  try {
+    stored = localStorage.getItem(CARDS_KEY);
+  } catch {
+    // No storage, no memory -- every visit opens collapsed.
+  }
+  cardsCollapsed = stored !== 'expanded';
+  applyCardMode();
+  document.getElementById('cards-toggle')?.addEventListener('click', () => {
+    cardsCollapsed = !cardsCollapsed;
+    try {
+      localStorage.setItem(CARDS_KEY, cardsCollapsed ? 'collapsed' : 'expanded');
+    } catch {
+      // Private browsing may refuse storage; the toggle still works.
+    }
+    applyCardMode();
+  });
+}
+
+/**
  * The header's loafing kitties: the one place the world's art steps outside
  * the canvas. Both wear Biscuit's colorway, picked by name so a palette
  * reshuffle can never silently change who greets you; each canvas says
@@ -810,10 +900,22 @@ function buildKittyCard(kitty) {
   mood.appendChild(purr);
   card.appendChild(mood);
 
+  // Everything the collapsed card drops, in one box so the toggle has a
+  // single thing to hide. What stays is the owner's list: portrait, name,
+  // what the cat is doing, the mood in words -- and `.patience`, which is
+  // outside this box on purpose (see below).
+  const details = document.createElement('div');
+  details.className = 'details';
+  // The grid-rows collapse needs exactly one child to size (see the CSS);
+  // this is that child, and it is what actually clips.
+  const detailsInner = document.createElement('div');
+  detailsInner.className = 'details-inner';
+  details.appendChild(detailsInner);
+
   const happiness = document.createElement('div');
   happiness.className = 'bar happiness';
   happiness.appendChild(document.createElement('span'));
-  card.appendChild(happiness);
+  detailsInner.appendChild(happiness);
 
   // No heading over the need bars. It cost 17px on every card to caption
   // six rows that already carry their own labels -- and once the bars fill
@@ -830,7 +932,8 @@ function buildKittyCard(kitty) {
     needs.appendChild(caption);
     needs.appendChild(bar);
   }
-  card.appendChild(needs);
+  detailsInner.appendChild(needs);
+  card.appendChild(details);
 
   // Last, under the needs (owner, 2026-08-06). The cue reserves its line
   // whether or not it speaks, so the card never resizes when a cat becomes
@@ -838,6 +941,13 @@ function buildKittyCard(kitty) {
   // the bottom padding rather than sitting as a gap in the middle. It also
   // reads better here: it is a note about the cat, not about the bar it
   // used to sit beneath.
+  //
+  // OUTSIDE `.details`, deliberately (owner, 2026-08-06): it is the only
+  // line in the UI that says a cat needs help, and a collapsed default
+  // that could suppress the alarm would be worse than no alarm. It costs
+  // nothing to keep -- it is empty until a distress goes unanswered past
+  // the threshold -- and its reserved line is the collapsed card's bottom
+  // padding exactly as it is the expanded one's.
   const patience = document.createElement('div');
   patience.className = 'patience';
   card.appendChild(patience);
@@ -1119,5 +1229,6 @@ window.addEventListener('keydown', (event) => {
 });
 
 initTheme();
+initCards();
 drawHeaderKitties();
 start();
