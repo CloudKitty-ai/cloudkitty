@@ -991,7 +991,41 @@ async function start() {
 // This settles rather than looping -- placing the cards can resize the map,
 // but re-running the test on the new size returns the same answer and
 // writes nothing (see `placeCards`).
-new ResizeObserver(placeCards).observe(canvas);
+/**
+ * Bring the middle of the meadow into view on a short viewport.
+ *
+ * A phone held sideways fits the world to the WIDTH and lets it overflow
+ * (render.js), so the top of the page is the top EDGE of the map -- often
+ * an empty corner with no cat in it, which is a poor thing to open on.
+ * This scrolls to the world's middle instead.
+ *
+ * Once per short-layout episode, and never while one is already running:
+ * re-centring on every resize would yank the page out from under someone
+ * who had scrolled somewhere deliberately. Leaving the short layout
+ * re-arms it, so a rotate back into landscape gets a fresh centring --
+ * which is a new context, not a scroll the reader chose.
+ */
+let centredForShort = false;
+function centreMapWhenShort() {
+  if (!matchMedia('(max-height: 500px)').matches) {
+    centredForShort = false; // re-arm for the next rotation
+    return;
+  }
+  if (centredForShort) return;
+  const rect = canvas.getBoundingClientRect();
+  // Nothing to centre until the map actually overflows; don't latch on a
+  // measurement taken before the canvas has been sized.
+  if (rect.height <= window.innerHeight) return;
+  centredForShort = true;
+  const middle = window.scrollY + rect.top + rect.height / 2;
+  // Instant, not smooth: a page that slides on arrival reads as a glitch.
+  window.scrollTo({ top: Math.max(0, middle - window.innerHeight / 2), behavior: 'auto' });
+}
+
+new ResizeObserver(() => {
+  placeCards();
+  centreMapWhenShort();
+}).observe(canvas);
 
 // The debug toggles, all in one mold (spec 008 FR-004/FR-009): `g` reveals
 // greebles, `l` the demoted grid lines, `p` the session's worn paths. Each
