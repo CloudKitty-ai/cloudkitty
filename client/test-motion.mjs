@@ -689,5 +689,120 @@ check('the dial is honoured, not hardcoded', () => {
   close(waterlineFor('grooming', 1, deep), 0.6, 'deep dial');
 });
 
+// --------------------------------------------------------------- the walk
+//
+// The walk this replaced ran both feet along one shared sine at a fixed y,
+// which gave it no stance at all: for half of every step a planted foot
+// travelled FORWARD while the cat was already moving forward. Feet
+// outrunning the cat is what reads as skating. These checks pin the
+// properties that fix is made of, so a re-dial in the lab cannot quietly
+// undo it.
+
+const { catLayout, GAIT, MAX_LIFT, gaitStep } = CatV2;
+const GROUND_Y = 0.88;
+
+/** `close` is 1e-12; wrap comparisons ride a finite phase step. */
+function nearly(a, b, tol, msg) {
+  assert(Math.abs(a - b) <= tol, `${msg}: ${a} != ${b}`);
+}
+
+check('a planted foot only ever travels backward', () => {
+  const N = 720;
+  let previous = null;
+  let samples = 0;
+  for (let i = 0; i <= N; i += 1) {
+    const u = i / N;
+    if (u >= GAIT.duty) break;
+    const g = gaitStep(u, GAIT.duty);
+    assert(g.lift === 0, `a planted foot is off the ground at u ${u.toFixed(3)}`);
+    if (previous !== null) {
+      assert(g.x < previous, `stance foot moved forward at u ${u.toFixed(3)}`);
+      samples += 1;
+    }
+    previous = g.x;
+  }
+  assert(samples > 100, `only ${samples} stance samples -- is duty sane?`);
+});
+
+check('every foot clears the ground at mid-swing', () => {
+  const mid = GAIT.duty + (1 - GAIT.duty) / 2;
+  close(gaitStep(mid, GAIT.duty).lift, 1, 'peak lift is a full unit at mid-swing');
+  // Index 1 is the front leg, and it rides `phase` directly.
+  const front = catLayout('walking', mid).legs[1];
+  assert(front.bottom < GROUND_Y, 'the front foot never leaves the ground');
+  close(GROUND_Y - front.bottom, GAIT.lift, 'and it clears by exactly the dial');
+});
+
+check('the paw arc can never invert', () => {
+  // drawLegs strikes the paw as a half-disc of radius w/2 at `bottom`, so
+  // a lift past (height - w/2) puts the arc above the leg's own top and
+  // the path turns inside out. The mock ctx cannot catch it -- an
+  // inverted path is made of perfectly finite numbers.
+  assert(GAIT.lift <= MAX_LIFT, `baked lift ${GAIT.lift} exceeds the ${MAX_LIFT} ceiling`);
+  for (let i = 0; i < 360; i += 1) {
+    const phase = i / 360;
+    for (const leg of catLayout('walking', phase).legs) {
+      assert(
+        leg.bottom - leg.w / 2 > leg.top,
+        `leg inverted at phase ${phase.toFixed(3)}: bottom ${leg.bottom}, top ${leg.top}`,
+      );
+    }
+  }
+});
+
+check('a walk always has a foot down', () => {
+  // duty > 0.5 is the difference between a walk and a run, and it is why
+  // the cat never reads as hopping.
+  assert(GAIT.duty > 0.5, `duty ${GAIT.duty} leaves a flight phase`);
+  for (let i = 0; i < 360; i += 1) {
+    const phase = i / 360;
+    const down = catLayout('walking', phase).legs.filter(
+      (leg) => leg.bottom >= GROUND_Y - 1e-9,
+    ).length;
+    assert(down >= 1, `both feet airborne at phase ${phase.toFixed(3)}`);
+  }
+});
+
+check('the rear leg stays behind the front one', () => {
+  // blendLayouts pairs legs BY INDEX, so a reach big enough to cross them
+  // would cross a cat's legs on every blend out of the walk.
+  for (let i = 0; i < 360; i += 1) {
+    const phase = i / 360;
+    const { legs } = catLayout('walking', phase);
+    assert(legs[0].x < legs[1].x, `legs crossed at phase ${phase.toFixed(3)}`);
+  }
+});
+
+check('the cycle wraps without a snap at the tick boundary', () => {
+  // `phase` is tick progress, so it returns to 0 once per tile crossed. A
+  // gait discontinuous there would tear on every tile.
+  const a = catLayout('walking', 0);
+  const b = catLayout('walking', 1 - 1e-9);
+  for (let i = 0; i < a.legs.length; i += 1) {
+    nearly(b.legs[i].x, a.legs[i].x, 1e-7, `leg ${i} x wraps`);
+    nearly(b.legs[i].bottom, a.legs[i].bottom, 1e-7, `leg ${i} lift wraps`);
+  }
+  nearly(b.body.cy, a.body.cy, 1e-7, 'the body bob wraps');
+});
+
+check('the body rides at twice the stride, lowest just after footfall', () => {
+  // Two footfalls per cycle, so one dip each. The old walk had this
+  // frequency right and its amplitude wrong -- 0.008 is 0.48px at a 60px
+  // tile, which is rounding, not animation.
+  const cyAt = (phase) => catLayout('walking', phase).body.cy;
+  let lowest = -Infinity;
+  let at = 0;
+  for (let i = 0; i < 2000; i += 1) {
+    const phase = i / 2000;
+    if (cyAt(phase) > lowest) {
+      lowest = cyAt(phase);
+      at = phase;
+    }
+  }
+  nearly(at, GAIT.bobPhase, 1e-3, 'the dip does not sit where bobPhase says');
+  nearly(cyAt(GAIT.bobPhase), cyAt(GAIT.bobPhase + 0.5), 1e-9, 'the two dips differ');
+  close(lowest - catLayout('idle', 0).body.cy, GAIT.bob, 'dip depth is the dial');
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

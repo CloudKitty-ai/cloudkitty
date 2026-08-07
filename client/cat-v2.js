@@ -137,6 +137,59 @@ const SWIM = {
   tailLift: 0.6, // where the tail tip rides above the surface
 };
 
+/**
+ * Walk-cycle tunables, mutable for the lab like SWIM.
+ *
+ * The walk this replaces slid both feet along a shared sine at a fixed
+ * y. That has no stance: for half of every step each planted foot moved
+ * FORWARD while the cat was already moving forward, so the feet outran
+ * the cat and the whole thing read as skating. Invisible at a 30px tile;
+ * at 60 it is the first thing you see.
+ *
+ * A foot on the ground has exactly one honest job -- to hold still
+ * against the world, which in body space means travelling backward at
+ * the speed the ground passes under it. So the cycle is split: `duty` of
+ * it planted and drifting back, the rest lifted and swinging forward.
+ * The lift is what buys the illusion, because a foot in the air is
+ * ALLOWED to move.
+ */
+const GAIT = {
+  duty: 0.62, // share of the cycle a foot is planted (>0.5 = a walk, not a run)
+  reach: 0.06, // stride half-width, in tiles either side of the leg's base
+  lift: 0.035, // ground clearance at mid-swing; see MAX_LIFT before raising
+  bob: 0.018, // body rise and fall -- the old 0.008 was 0.48px at tile 60
+  bobPhase: 0.15, // where in the cycle the body sits lowest (0 = at footfall)
+};
+
+/**
+ * The paw is a half-disc of radius w/2 struck at `bottom`, so a foot
+ * lifted past (height - w/2) puts the arc above the leg's own top and
+ * the path turns inside out. Nothing downstream notices -- the harness's
+ * mock ctx only rejects non-finite numbers, and an inverted path is
+ * perfectly finite -- so the ceiling is asserted in test-motion.mjs
+ * instead. 0.14 tall, 0.095 wide => 0.0925 of headroom.
+ */
+const MAX_LIFT = 0.0925;
+
+/**
+ * One leg's offset at its own phase `u` in [0,1). Returns a stride
+ * position in -1..1 (+1 forward) and a lift in 0..1, both unitless --
+ * GAIT scales them. Continuous at u=0/1 and across the stance/swing
+ * seam, so the cycle wraps without a snap at the tick boundary.
+ */
+function gaitStep(u, duty) {
+  if (u < duty) {
+    // Planted: a straight backward drift. Linear on purpose -- the
+    // ground moves at a constant rate, and easing this is what made the
+    // old sine read wrong.
+    return { x: 1 - 2 * (u / duty), lift: 0 };
+  }
+  // Airborne: forward again, eased at both ends so the foot settles into
+  // its next stance rather than snapping into it, and arcing over.
+  const v = (u - duty) / (1 - duty);
+  return { x: -Math.cos(v * Math.PI), lift: Math.sin(v * Math.PI) };
+}
+
 /** The stable per-kitty appearance (FR-003). The one override point when
  * served appearance data exists someday: callers never index PALETTES. */
 function appearanceFor(kittyId) {
@@ -355,14 +408,27 @@ function catLayout(pose, phase) {
       break;
 
     case 'walking': {
-      const stride = Math.sin(phase * TAU);
       L.body.rx = 0.32;
-      L.body.cy += 0.008 * Math.sin(phase * 2 * TAU); // gait bob
+      // Two footfalls per cycle, so the body rides at twice the stride
+      // frequency -- which the old walk had right; only its 0.008
+      // amplitude was too small to see. Lowest just after each footfall
+      // (bobPhase), where the weight lands.
+      L.body.cy += GAIT.bob * Math.cos((phase - GAIT.bobPhase) * 2 * TAU);
       L.head.cx = 0.72;
-      L.legs = [
-        { x: 0.28 - 0.05 * stride, top: 0.74, bottom: 0.88, w: 0.095 },
-        { x: 0.62 + 0.05 * stride, top: 0.74, bottom: 0.88, w: 0.095 },
-      ];
+      // Index 0 is the rear leg and index 1 the front, in every pose that
+      // has them -- blendLayouts pairs legs BY INDEX, so swapping them
+      // here would cross a cat's legs on the way to any other pose.
+      // Half a cycle apart: one foot is planted while the other swings.
+      const leg = (base, u) => {
+        const g = gaitStep(((u % 1) + 1) % 1, GAIT.duty);
+        return {
+          x: base + GAIT.reach * g.x,
+          top: 0.74,
+          bottom: 0.88 - GAIT.lift * g.lift,
+          w: 0.095,
+        };
+      };
+      L.legs = [leg(0.28, phase + 0.5), leg(0.62, phase)];
       // Tail streams behind, gently lifted.
       L.tail = { x0: 0.14, y0: 0.58, c1x: 0.04, c1y: 0.56, c2x: 0.0, c2y: 0.5, x1: 0.03, y1: 0.42 };
       break;
@@ -970,6 +1036,9 @@ const api = {
   NOSE,
   MOUTH,
   SWIM,
+  GAIT,
+  MAX_LIFT,
+  gaitStep,
   PALETTES,
   POSES,
   // Not cat API, but props.js, meadow.js and app.js quietly depend on
