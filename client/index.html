@@ -372,6 +372,11 @@
     box-sizing: border-box;
     width: var(--card-width);
     flex: 0 0 auto;
+    /* The whole card toggles the panel (see app.js). The pointer is the
+       only hint it is clickable -- no hover lift or border change, because
+       four cards that all react to being pointed at would be busier than
+       the meadow they sit beside. */
+    cursor: pointer;
   }
 
   .kitty-card .name {

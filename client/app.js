@@ -418,6 +418,16 @@ function schedulePlacement() {
   }, seconds * 1000 + 80);
 }
 
+function toggleCards() {
+  cardsCollapsed = !cardsCollapsed;
+  try {
+    localStorage.setItem(CARDS_KEY, cardsCollapsed ? 'collapsed' : 'expanded');
+  } catch {
+    // Private browsing may refuse storage; the toggle still works.
+  }
+  applyCardMode();
+}
+
 function initCards() {
   let stored = null;
   try {
@@ -427,14 +437,41 @@ function initCards() {
   }
   cardsCollapsed = stored !== 'expanded';
   applyCardMode();
-  document.getElementById('cards-toggle')?.addEventListener('click', () => {
-    cardsCollapsed = !cardsCollapsed;
-    try {
-      localStorage.setItem(CARDS_KEY, cardsCollapsed ? 'collapsed' : 'expanded');
-    } catch {
-      // Private browsing may refuse storage; the toggle still works.
-    }
-    applyCardMode();
+  document.getElementById('cards-toggle')?.addEventListener('click', toggleCards);
+
+  // Clicking a card does the same thing (owner, 2026-08-07). It toggles
+  // ALL of them, not the one clicked -- the all-or-none rule is the
+  // owner's, and a card that expanded alone would quietly break it.
+  //
+  // Delegated to the panel rather than bound per card, because cards are
+  // rebuilt on a roster change and per-card listeners would have to be
+  // rebound with them.
+  //
+  // Deliberately NOT given `tabindex`/`role="button"`: the footer control
+  // is a real button with `aria-expanded`, and it already reaches
+  // everything this does. Four extra tab stops that all fire the same
+  // global toggle would be four ways to hear the same thing, which is
+  // worse for a keyboard or screen-reader user than one clear control.
+  // So this is a pointer convenience over an affordance that already
+  // exists, and it adds no function that is only reachable by mouse.
+  // Someone dragging across a card is selecting a cat's name to copy, not
+  // asking the panel to move, so a drag is not a click.
+  //
+  // This has to be measured from the pointer, NOT from `getSelection()`:
+  // pressing the mouse clears the selection before the click event fires,
+  // so by the time a handler runs there is never a selection to find. That
+  // check was written first, tested, and did nothing at all.
+  const DRAG_SLOP_PX = 4; // a steady hand still moves a pixel or two
+  let pressedAt = null;
+  panelEl.addEventListener('mousedown', (event) => {
+    pressedAt = { x: event.clientX, y: event.clientY };
+  });
+  panelEl.addEventListener('click', (event) => {
+    const from = pressedAt;
+    pressedAt = null;
+    if (!event.target.closest('.kitty-card')) return;
+    if (from && Math.hypot(event.clientX - from.x, event.clientY - from.y) > DRAG_SLOP_PX) return;
+    toggleCards();
   });
 }
 
