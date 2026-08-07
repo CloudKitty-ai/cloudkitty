@@ -105,15 +105,20 @@ fn a_corrupted_artifact_fails_startup_naming_the_config_field() {
 }
 
 #[test]
-fn the_shipped_config_boots_scripted_across_the_generation_gap() {
-    // Spec 026 US4: main must stay runnable while the committed policy
-    // artifacts are a generation behind the binary. The shipped
-    // cloudkitty.toml seats no policy, yet its [rl.policy.*] blocks still
-    // name both generation-1 artifacts for provenance. Ok here is the
-    // whole proof: had registration opened either artifact, the schema
-    // gate would refuse it (they are generation 1, this binary speaks
-    // generation 2) — success means unreferenced blocks are never
-    // followed, exactly the early-return the reseat leans on.
+fn the_shipped_config_seats_a_policy_this_binary_can_open() {
+    // Supersedes `the_shipped_config_boots_scripted_across_the_generation_gap`
+    // (spec 026 US4), which asserted every policy seat stayed parked "until a
+    // schema-2 winner exists". One does: exp-003 promoted
+    // `e003-m0-g998-s3` on 2026-08-07, so the generation gap this repo spent
+    // a week straddling is closed and the parked assertion has expired by its
+    // own terms.
+    //
+    // What replaces it is strictly stronger. The old test proved unreferenced
+    // blocks are never opened; this one proves the referenced one IS opened
+    // and survives the schema gate. It therefore catches a seat naming a
+    // missing artifact, a stale-generation artifact, or a policy with no
+    // `[rl.policy.*]` block — none of which the parked version could see,
+    // because it required that nothing be opened at all.
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../cloudkitty.toml");
     let text = std::fs::read_to_string(&root).expect("the shipped config is readable");
     let config: Config = toml::from_str(&text).unwrap();
@@ -122,17 +127,24 @@ fn the_shipped_config_boots_scripted_across_the_generation_gap() {
         config
             .kitties
             .iter()
-            .all(|k| !k.behavior.starts_with("policy:")),
-        "spec 026 parked every policy seat until a schema-2 winner exists"
+            .any(|k| k.behavior.starts_with("policy:")),
+        "the shipped config seats at least one policy now that a schema-2 \
+         winner exists; if the seats are parked again, restore the \
+         generation-gap test instead of deleting this one"
     );
-    let rl = RlConfig::from_toml_str(&text).unwrap();
-    assert!(
-        !rl.policy.is_empty(),
-        "the provenance [rl.policy.*] blocks stay in the shipped config"
-    );
+    let mut rl = RlConfig::from_toml_str(&text).unwrap();
+    // Artifact paths in the shipped config are relative to the repo root (the
+    // server's working directory); a test's is the crate root, so resolve them
+    // before opening anything.
+    let repo = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    for policy in rl.policy.values_mut() {
+        policy.artifact = repo.join(&policy.artifact).to_string_lossy().into_owned();
+    }
     let mut registry = BehaviorRegistry::with_builtins();
+    // The proof: registration opens every named artifact and runs it through
+    // the schema gate. A generation-1 artifact would be refused here.
     register_policy_behaviors(&mut registry, &config, &rl)
-        .expect("no seat references a policy, so no artifact is ever opened");
+        .expect("every seated policy resolves to an artifact this binary can open");
     config.validate_behavior_names(&registry.names()).unwrap();
 }
 

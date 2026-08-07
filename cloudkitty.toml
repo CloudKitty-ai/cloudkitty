@@ -33,7 +33,7 @@ y = 12
 # scripted default until exp-003 certifies a schema-2 winner, which re-seats
 # it at the post-exp-003 rollout. The served box still runs the generation-1
 # binary with this policy seated — its config is not this file.
-behavior = "needs_driven"
+behavior = "policy:e003-m0-g998-s3"
 
 [[kitty]]
 id = 2
@@ -63,7 +63,7 @@ y = 5
 # policies/e002-m0-g998-s1.ckpolicy is generation-1 (its pair-screen record —
 # team reward 0.8976, in-water 5.14% from 9.21% — stands in the [rl.policy]
 # block below). Scripted until exp-003's schema-2 winner re-seats it.
-behavior = "needs_driven"
+behavior = "policy:e003-m0-g998-s3"
 
 # How fast each need rises, per tick. Higher means more pressing, more often.
 [needs]
@@ -277,20 +277,17 @@ distress_patience_ticks = 60
 # 2026-07-31); the README there maps each file to its sha256, its
 # certification record, and the naming convention these keys follow.
 # Since spec 026 both committed artifacts are observation-generation 1 and
-# no kitty above references them — the blocks below are kept for provenance
-# (an unreferenced block never opens its artifact) until exp-003's schema-2
-# winners take the seats back.
-# e001-a2-s6 = exp-001 arm2-g0p998-s6, sha256 8030b94d… — certified clean
-# 2026-07-30 (results/served-world-remeasure-2026-07-30.md); greedy selection
-# (sample = false), matching the certified condition. Renamed from `s6`
-# 2026-08-04 with the bytes untouched; the sha is the continuity.
-[rl.policy.e001-a2-s6]
-artifact = "policies/e001-a2-s6.ckpolicy"
-
-# e002-m0-g998-s1 = exp-002 winner (no mixing, γ = 0.998, seed 1), warm-started
-# from e001-a2-s6, sha256 1cb3fdac… — selected by the pre-registered §9.2 rule
-# (experiments/exp-002-mixed-population/results/grid-2026-08-03.md); greedy
-# selection, matching the certified condition. Replaces `s3`, retired to
-# policies/retired/ the same day.
-[rl.policy.e002-m0-g998-s1]
-artifact = "policies/e002-m0-g998-s1.ckpolicy"
+# e003-m0-g998-s3 = exp-003's driest candidate (self-play, γ = 0.998, seed 3),
+# sha256 756aa680… — the first schema-2 policy to reach the served world.
+# Water: 2.79% in-water / 0.62% lounging on the §9.1 instrument, both BELOW the
+# scripted baseline (3.44% / 1.50%) — the behaviour exp-002 proved no dial
+# setting could buy. Welfare +0.0420 vs needs_driven; on this world at roster 4
+# it scores max_distress_age 0 and floor_touches 0 across 30 seeds, both shapes.
+# Seated at both policy seats, superseding e001-a2-s6 and e002-m0-g998-s1
+# (retired to policies/retired/, and unrunnable here in any case — schema 1).
+# Deployed on the owner's judgement, NOT certified: it fails exp-003's §9.2 by
+# 3 ticks of eat-need on one seed of an off-deployment world. The decision and
+# its evidence are in the prereg's Deviations appendix.
+# Greedy selection (sample = false), matching the measured condition.
+[rl.policy.e003-m0-g998-s3]
+artifact = "policies/e003-m0-g998-s3.ckpolicy"
