@@ -365,8 +365,8 @@ const MEADOW_DEFAULTS = Object.freeze({
   shoreRounding: 0.8, // pond corner rounding, in tiles
   shoreWobble: 0.08, // shoreline undulation depth, in tiles
   shoreWobblePeriod: 0.35, // and its wavelength around the perimeter, in tiles
-  // Despite the name, this scales the OUTWARD bulges: bays cut the full
-  // `shoreWobble`, headlands reach this share of it. See `wobbleAlong`.
+  // Scales the OUTWARD bulges only: bays cut the full `shoreWobble`,
+  // headlands reach this share of it. See `wobbleAlong`.
   shoreBulgeEase: 0.75,
   shoreOverdraw: 0.1, // push the whole outline out this far, in tiles
   lilyPadMinTiles: 4, // ponds at least this big carry a lily pad
@@ -1114,16 +1114,18 @@ function sampleRoundedLoop(corners, rounding, step = 0.22) {
  * and smoothstepped between, so the whole shoreline moves together, and the
  * lattice wraps so the seam is invisible.
  *
- * `bulgeEase` scales the OUTWARD half -- the half that bulges away from the
- * water. Read the name with care: it says "dip", but with the winding the
- * tile walk produces, `(-ty, tx)` points INTO the water, so a positive noise
- * value is an inward bay and it is the negative (outward) half that `value
- * *= bulgeEase` reaches. Headlands therefore reach `bulgeEase * amp` while bays
- * cut the full `amp`. That is the shoreline the owner dialled and accepted
- * (2026-08-07) -- the name and this note are what were wrong, not the
- * numbers -- but anyone turning this knob should know which way it moves:
+ * `bulgeEase` scales the OUTWARD half -- the headlands that push away from
+ * the water. Bays cut the full `amp`; headlands reach `bulgeEase * amp`. So
  * lower flattens the seaward bulges and leaves only bays, higher lets the
  * headlands out.
+ *
+ * Which half is which is not obvious from the arithmetic, so: with the
+ * winding the tile walk produces, `(-ty, tx)` points INTO the water. A
+ * positive noise value is therefore an inward bay, and it is the negative
+ * half that `value *= bulgeEase` reaches. (This shipped for a while as
+ * `shoreDipEase`, documented as easing the bays -- the opposite of what it
+ * does. Renamed 2026-08-07; the numbers were always the ones the owner
+ * dialled and are unchanged.)
  *
  * The same sign carries into the mean: the outline is biased INWARD by
  * `0.25 * amp * (1 - bulgeEase)` on average, so it eats into `shoreOverdraw`
