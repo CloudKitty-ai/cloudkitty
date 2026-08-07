@@ -865,11 +865,27 @@ const anim = {
   /** One static draw of the newest state (reduced motion, snaps, toggles). */
   redraw() {
     if (!this.presentation.curr || !this.renderer) return;
-    this.renderer.draw(
-      this.presentation.curr,
-      this.presentation.viewAt(performance.now(), true),
-    );
+    const view = this.presentation.viewAt(performance.now(), true);
+    this.renderer.draw(this.presentation.curr, view);
+    // The still view is what makes this safe to share: `motionFor` returns
+    // phase 0 and nothing else, so whatever paints here holds its pose.
+    if (this.onFrame) this.onFrame(this.presentation.curr, view);
   },
+
+  /**
+   * Anything outside the canvas that has to move on the world's clock.
+   *
+   * The card portraits are the first: they are cats, so they blink and
+   * twitch off the same `motionFor` the meadow uses. Handing them the
+   * frame's own view rather than letting them run a second rAF loop is
+   * what keeps the two honest -- one clock, and every rule the canvas
+   * already obeys comes with it. A still frame passes a still view, so
+   * reduced motion stops the portraits without app.js knowing the rule
+   * exists (FR-015); a hidden tab stops the loop, so they stop too
+   * (FR-016); and the pair can never drift, because there is no second
+   * timer to drift from.
+   */
+  onFrame: null,
 
   startLoop() {
     if (this.rafId || this.reduced) return;
@@ -877,7 +893,11 @@ const anim = {
       this.rafId = 0;
       if (document.hidden || this.reduced) return;
       const p = this.presentation;
-      if (p.curr) this.renderer.draw(p.curr, p.viewAt(performance.now(), false));
+      if (p.curr) {
+        const view = p.viewAt(performance.now(), false);
+        this.renderer.draw(p.curr, view);
+        if (this.onFrame) this.onFrame(p.curr, view);
+      }
       this.rafId = requestAnimationFrame(step);
     };
     this.rafId = requestAnimationFrame(step);
