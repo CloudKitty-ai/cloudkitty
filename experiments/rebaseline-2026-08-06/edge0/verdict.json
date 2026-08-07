@@ -1,0 +1,62 @@
+{
+ "engine_defaults_sha256": "cba976dae4b88703f5cff8028a54db24efde6a5cfe8d79dcdbb3948151751b03",
+ "config": "experiments/rebaseline-2026-08-06/configs/edge0.toml",
+ "seats": {
+  "kitty_1": "needs_driven",
+  "kitty_2": "playful",
+  "kitty_3": "needs_driven",
+  "kitty_4": "needs_driven"
+ },
+ "seeds": [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10
+ ],
+ "ticks": 20000,
+ "mean_water_tiles": 8.0,
+ "policy_seats": {
+  "seats": [
+   "Miso",
+   "Kittybear"
+  ],
+  "lounge_share": 0.016075,
+  "inwater_share": 0.0367825
+ },
+ "legacy_reference_seats": {
+  "seats": [
+   "Biscuit",
+   "Pumpkin"
+  ],
+  "lounge_share": 0.0077175,
+  "inwater_share": 0.021595
+ },
+ "all_seats": {
+  "lounge_share": 0.01189625,
+  "inwater_share": 0.02918875
+ },
+ "per_seat": {
+  "Miso": {
+   "lounge": 0.015295,
+   "inwater": 0.035295
+  },
+  "Biscuit": {
+   "lounge": 0.005345,
+   "inwater": 0.019045
+  },
+  "Pumpkin": {
+   "lounge": 0.01009,
+   "inwater": 0.024145
+  },
+  "Kittybear": {
+   "lounge": 0.016855,
+   "inwater": 0.03827
+  }
+ }
+}

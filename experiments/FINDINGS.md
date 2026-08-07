@@ -713,3 +713,63 @@ persist past k ≈ 500 in the class batches.
 **Re-verify when**: any engine-defaults change; when policy-seated
 (rather than scripted) probes become available at the exp-002
 candidate stage.
+
+---
+
+## F-016 · active · The wet-fur dial subsidises the behaviour it prices: raising bath_gain increases scripted on-water time through the grooming channel
+
+Measured 2026-08-06 on the post-027 engine
+(`cba976dae4b88703…`), served world, all four seats scripted, 10 seeds
+× 20k ticks, paired across identical seeds.
+
+1. **Raising `bath_gain` 1.5/50 → 3.5/60 *increases* total scripted
+   in-water share**, in all four splits measured: policy seats
+   +0.333pp (8/10 seeds) at `edge_penalty` 2.0 and +0.682pp (9/10) at
+   0; the historical reference seats +0.218pp and +0.211pp (7/10
+   each).
+2. **The mechanism is grooming, and it is a feedback loop.**
+   Decomposed by activity, every avoidance the dial was aimed at
+   happens — resting on water −0.043pp, sleeping −0.044pp, playing
+   −0.024pp — while **grooming-on-water rises +0.414pp (+61%)** and
+   swallows the rest. `Activity::Grooming => Some(NeedKind::Bath)`
+   (`kitty.rs:165`) with `groom_relief` applied to Bath
+   (`action.rs:699`), and the wet-fur charge *raises* Bath per
+   occupied water tick: being wet makes a cat want a bath, a
+   `needs_driven` cat takes it where it stands, and standing there
+   keeps charging. A higher gain engages the loop sooner.
+3. **A scripted floor and a learned policy move oppositely on this
+   lever.** exp-002's §9.1 dial resolution found a *policy's*
+   grooming-on-water fell ~60% between dials while its sleeping-on-water
+   was stubborn. Same channel, opposite sign, different decider — so a
+   scripted baseline is not a conservative proxy for policy behaviour
+   here, in either direction.
+4. **`edge_penalty` does not move water occupancy at this power**:
+   4/10, 3/10, 5/10, 5/10 seeds positive across the same four splits,
+   signs disagreeing, every delta inside its own seed spread. Its
+   effect is on welfare (+0.00049, 7/10), which is what it was for.
+
+**Scope**: scripted `needs_driven`/`playful` dynamics on the served
+24×24 world with a guaranteed lake, dials 1.5/50 vs 3.5/60,
+`edge_penalty` 0 vs 2.0, 10 seeds × 20k ticks. Says nothing about
+learned policies on this engine — none can run on it yet (observation
+schema 1 artifacts are rejected outright). The mechanism is structural
+rather than dial-specific, so expect it wherever a cost raises a need
+whose relief activity is location-indifferent.
+
+**Evidence**: [rebaseline-2026-08-06/results.md](rebaseline-2026-08-06/results.md);
+instrument `experiments/rebaseline-2026-08-06/scripted_water_baseline.py`.
+
+**Implications**: exp-003 cannot register "in-water share" as a single
+gated number — it pools a channel the dial suppresses with one it
+amplifies. Split grooming out, and set H2's band against the
+same-engine scripted measurement (policy seats: 1.50% lounging / 3.44%
+in-water), noting that exp-002's registered ≤3.0% in-water ceiling now
+sits *below* the scripted baseline in those seats. If the goal is to
+price lingering rather than bathing, the lever to reach for is the
+ceiling (which caps the accumulated need, and so caps how often the
+grooming loop re-arms) rather than the gain.
+
+**Re-verify when**: engine defaults change; `groom_relief`, the bath
+happiness weight, or the wet-fur charge move; and — first opportunity —
+when a schema-2 policy exists, since point 3 predicts it will not
+follow the scripted direction.
