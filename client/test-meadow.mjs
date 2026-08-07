@@ -17,7 +17,14 @@ const src =
   ';' +
   readFileSync(join(here, 'meadow.js'), 'utf8') +
   ';' +
-  readFileSync(join(here, 'anim.js'), 'utf8');
+  readFileSync(join(here, 'anim.js'), 'utf8') +
+  ';' +
+  // render.js for WorldRenderer.occupiedTiles: it is the other half of the
+  // ground-cover contract bushesFor implements, and the two agree over a key
+  // format that only a composed check can see. Safe to share the scope --
+  // render.js declares no name the other three do, and runs nothing at the
+  // top level.
+  readFileSync(join(here, 'render.js'), 'utf8');
 
 /** Path2D stand-in: records commands, throws on non-finite coordinates. */
 class MockPath2D {
@@ -96,7 +103,8 @@ const EXPORTS =
   ';({ get MEADOW() { return MEADOW; }, MEADOW_DAY, MEADOW_DUSK, MEADOW_NIGHT, setMeadowPalette,' +
   ' mixPaletteColor, mixPalettes, parsePaletteColor,' +
   ' MEADOW_DAWN, bushesFor, drawBushAt, drawGroundCover, MEADOW_SALTS, MEADOW_DEFAULTS, tileHash, drawMeadowGround, drawGridOverlay, groupWaterTiles,' +
-  ' buildPondPath, drawPonds, drawSunbeamGlow, drawWornPaths, VIEW, Presentation })';
+  ' buildPondPath, drawPonds, drawSunbeamGlow, drawWornPaths, VIEW, Presentation,' +
+  ' WorldRenderer })';
 const api = eval(src + EXPORTS);
 
 let passed = 0;
@@ -562,6 +570,41 @@ check('cover keeps off tiles the server has put something on', () => {
   const left = api.bushesFor(40, 40, api.VIEW.meadow, taken);
   assert(left.length === all.length - 3, `expected ${all.length - 3}, got ${left.length}`);
   for (const b of left) assert(!taken.has(`${b.x},${b.y}`), 'none on an occupied tile');
+});
+
+// ---- occupiedTiles x bushesFor: the two halves, composed ----
+
+/**
+ * WHICH elements the cover avoids is pinned next door, in test-motion.mjs
+ * ("occupiedTiles keeps cover off water, and off nothing else"). This is the
+ * other question, and the one neither side can answer alone: the two
+ * functions meet over a `"x,y"` string and nothing else, so if `bushesFor`'s
+ * lookup and `occupiedTiles`' key ever drift apart, cover silently stops
+ * being excluded at all.
+ *
+ * Both unit tests stay green through exactly that: test-motion.mjs asserts
+ * `has('3,4')` without ever calling `bushesFor`, and the hand-built set in
+ * "cover keeps off tiles the server has put something on" never asks what
+ * builds it. Verified 2026-08-07 by pointing `bushesFor` at `x:y` -- the
+ * motion suite passed 33/33 and this check is what failed.
+ */
+check('the cover the renderer computes is the cover bushesFor honours', () => {
+  // `occupiedTiles` never touches `this`, but going through a real instance
+  // keeps this a test of the renderer's method rather than of a copy of it.
+  const renderer = new api.WorldRenderer({ getContext: () => guardCtx() });
+  const all = api.bushesFor(40, 40, api.VIEW.meadow);
+  assert(all.length > 0, 'enough cover to test with');
+  const spot = all[0]; // a tile the meadow does cover, so removing it shows
+
+  const taken = renderer.occupiedTiles({
+    elements: [
+      { kind: 'water', id: 1, pos: { x: spot.x, y: spot.y } },
+      { kind: 'bug', id: 2, pos: { x: spot.x, y: spot.y } }, // rides along, changes nothing
+    ],
+  });
+  const left = api.bushesFor(40, 40, api.VIEW.meadow, taken);
+  assert(left.length === all.length - 1, `expected ${all.length - 1}, got ${left.length}`);
+  assert(!left.some((b) => b.x === spot.x && b.y === spot.y), 'and it is the water tile that went');
 });
 
 check('drawBushAt sweeps clean in every style, at every size', () => {
