@@ -95,7 +95,13 @@
      them. --theme-fade is the one dial. Joins the canvas in going still
      under reduced motion. */
   body {
-    --theme-fade: 1.5s;
+    /* 1.5s -> 0.5s (2026-08-07). This is no longer the crossfade: app.js
+       sets these tokens at the world's own blend position, so the page
+       changes light on the same clock as the meadow instead of racing 19
+       seconds ahead of it. All this has left to do is round off the steps
+       between successive blend positions, which land ~600ms apart at the
+       live tick rate. Long enough and the page would lag the canvas. */
+    --theme-fade: 0.5s;
     transition-property: --cream, --cream-deep, --zenith, --grass,
       --grass-line, --ink, --ink-soft, --patience-ink, --card, --shadow;
     transition-duration: var(--theme-fade);

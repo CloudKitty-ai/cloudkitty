@@ -185,6 +185,68 @@ let currentBlend = null; // and the quantised blend key it was applied at
 
 /** Applies the mode's theme (auto reads the world clock) and syncs the
  * toggle. Cheap when nothing changed, so render() may call it per tick. */
+/**
+ * Every theme's page tokens, read out of the stylesheet once.
+ *
+ * Read rather than restated: index.html authors `:root` and the `body.dusk`
+ * / `.night` / `.dawn` blocks, and a second copy of those colours in JS
+ * would drift the first time one is tweaked. Which tokens matter is read
+ * from the same place too -- the `transition-property` list on `body` is
+ * already the set that is meant to cross with the light.
+ *
+ * Reading means briefly wearing each theme. Transitions are pinned to zero
+ * across the read so the computed value is the theme's own colour rather
+ * than a frame of the animation into it, and nothing yields in between, so
+ * the browser never paints an intermediate state.
+ */
+let themeTokens = null;
+function readThemeTokens() {
+  const body = document.body;
+  const names = getComputedStyle(body)
+    .transitionProperty.split(',')
+    .map((n) => n.trim())
+    .filter((n) => n.startsWith('--'));
+  const had = THEMES.filter((t) => body.classList.contains(t));
+  const savedDuration = body.style.transitionDuration;
+  body.style.transitionDuration = '0s';
+  // Clear anything `paintThemeTokens` has already written. Inline
+  // properties beat the class rules, so reading with them in place returns
+  // the current blend four times over instead of the four themes. Memoising
+  // means production never reaches that, but a function that silently
+  // returns nonsense on a second call is a trap for whoever calls it next.
+  const savedInline = {};
+  for (const name of names) {
+    savedInline[name] = body.style.getPropertyValue(name);
+    body.style.removeProperty(name);
+  }
+  const out = {};
+  for (const theme of THEMES) {
+    for (const t of THEMES) body.classList.toggle(t, t === theme);
+    void body.offsetHeight; // flush the class change into computed style
+    const style = getComputedStyle(body);
+    out[theme] = {};
+    for (const name of names) out[theme][name] = style.getPropertyValue(name).trim();
+  }
+  for (const t of THEMES) body.classList.toggle(t, had.includes(t));
+  for (const name of names) {
+    if (savedInline[name]) body.style.setProperty(name, savedInline[name]);
+  }
+  body.style.transitionDuration = savedDuration;
+  return out;
+}
+
+/** Paint the page's tokens at the world's own blend position. */
+function paintThemeTokens(blend) {
+  if (!themeTokens) themeTokens = readThemeTokens();
+  const from = themeTokens[blend.theme];
+  const to = themeTokens[blend.next ?? blend.theme];
+  if (!from || !to) return;
+  for (const name of Object.keys(from)) {
+    const value = blend.next ? mixPaletteColor(from[name], to[name], blend.step) : from[name];
+    document.body.style.setProperty(name, value);
+  }
+}
+
 function applyTheme() {
   // A hand-picked theme is exactly itself; only the world clock blends.
   const blend =
@@ -218,9 +280,10 @@ function applyTheme() {
   if (key === currentBlend) return;
   currentBlend = key;
 
-  // The page's own tokens only change on the whole-phase boundary; their
-  // 1.5s CSS transition does the smoothing that the canvas gets from the
-  // blend, and re-toggling a class it already has would restart it.
+  // The classes still flip at the crossing's midpoint: they carry the
+  // things that cannot be interpolated -- which phase the cats are shaded
+  // for, the footer's name for the hour. Re-toggling a class it already
+  // has would restart its transition, so only on a real change.
   if (theme !== currentTheme) {
     currentTheme = theme;
     document.body.classList.toggle('dusk', theme === 'dusk');
@@ -228,6 +291,14 @@ function applyTheme() {
     document.body.classList.toggle('dawn', theme === 'dawn');
     renderer.theme = theme;
   }
+
+  // ...but the COLOURS cross on the world's clock, not the class's.
+  // They used to ride the class flip and a 1.5s CSS transition, so the page
+  // finished changing 19 seconds before the meadow did -- the sky was still
+  // handing over while the paper had long since decided (owner, 2026-08-07).
+  // Setting them inline at the blend's own step puts the two on one clock;
+  // the CSS transition survives only to smooth between quantised steps.
+  paintThemeTokens(blend);
 
   setMeadowPalette(blend.theme, blend.next, blend.step);
   setPropPalette(blend.theme, blend.next, blend.step);
@@ -355,7 +426,25 @@ function drawSkyDial(tick) {
   // (the 1.5px allowance below it left a visible gap above the tiles
   // once the rim stroke retired; owner call, 2026-07-23)
   const sky = skyForTick(tick);
-  const hour = hourForTick(tick);
+  // The dial crosses between phases on the same clock as the meadow. It
+  // used to pick one of four domes by `hourForTick` and swap at the phase
+  // boundary, so the sky under the sun changed in a single frame while the
+  // world it reports was still 19 seconds into a crossfade (owner,
+  // 2026-08-07). Always the world's own blend, never the manual override --
+  // the dial is what tells you what you are overriding.
+  const blend = phaseBlendFor(tick);
+  const domeOf = (phase) =>
+    phase === 'night' ? SKY_DIAL.domeNight
+    : phase === 'dusk' ? SKY_DIAL.domeDusk
+    : phase === 'dawn' ? SKY_DIAL.domeDawn
+    : SKY_DIAL.domeDay;
+  // How low the sun sits, 0..1: both twilights ride a horizon, noon and
+  // midnight do not. Crossing a phase mixes the two, so the disc warms into
+  // its sunset red rather than switching colour under you.
+  const lowness = (phase) => (phase === 'dusk' || phase === 'dawn' ? 1 : 0);
+  const low = blend.next
+    ? lowness(blend.theme) + (lowness(blend.next) - lowness(blend.theme)) * blend.step
+    : lowness(blend.theme);
 
   // The dome: a translucent slice of the world's actual sky, unlined --
   // the soft fill edge is the transition (owner call, 2026-07-23).
@@ -363,11 +452,9 @@ function drawSkyDial(tick) {
   ctx.moveTo(cx - r, cy);
   ctx.arc(cx, cy, r, Math.PI, TAU);
   ctx.closePath();
-  ctx.fillStyle =
-    hour === 'night' ? SKY_DIAL.domeNight
-    : hour === 'dusk' ? SKY_DIAL.domeDusk
-    : hour === 'dawn' ? SKY_DIAL.domeDawn
-    : SKY_DIAL.domeDay;
+  ctx.fillStyle = blend.next
+    ? mixPaletteColor(domeOf(blend.theme), domeOf(blend.next), blend.step)
+    : domeOf(blend.theme);
   ctx.fill();
 
   // Left horizon -> zenith -> right horizon as t runs 0 -> 1.
@@ -377,12 +464,12 @@ function drawSkyDial(tick) {
   const br = Math.max(3.5, r * 0.16);
 
   if (sky.body === 'sun') {
-    // Twilight wears the setting-sun red; the high sun stays gold.
-    // Both twilights sit on a horizon, so both get the low-sun disc --
-    // a rising sun is as red as a setting one. Gating on 'dusk' alone
-    // drew dawn's horizon sun in high-noon gold.
-    const low = hour === 'dusk' || hour === 'dawn';
-    ctx.strokeStyle = low ? SKY_DIAL.duskSunRay : SKY_DIAL.sunRay;
+    // Twilight wears the setting-sun red; the high sun stays gold. Both
+    // twilights sit on a horizon, so both get the low-sun disc -- a rising
+    // sun is as red as a setting one. `low` is a share rather than a flag
+    // now, so the warm-up happens across the crossfade.
+    const warm = (high, lowColour) => mixPaletteColor(high, lowColour, low);
+    ctx.strokeStyle = warm(SKY_DIAL.sunRay, SKY_DIAL.duskSunRay);
     ctx.lineWidth = 1.2;
     ctx.lineCap = 'round';
     for (let i = 0; i < 8; i++) {
@@ -392,8 +479,8 @@ function drawSkyDial(tick) {
       ctx.lineTo(bx + Math.cos(a) * br * 1.8, by + Math.sin(a) * br * 1.8);
       ctx.stroke();
     }
-    ctx.fillStyle = low ? SKY_DIAL.duskSun : SKY_DIAL.sun;
-    ctx.strokeStyle = low ? SKY_DIAL.duskSunRim : SKY_DIAL.sunRim;
+    ctx.fillStyle = warm(SKY_DIAL.sun, SKY_DIAL.duskSun);
+    ctx.strokeStyle = warm(SKY_DIAL.sunRim, SKY_DIAL.duskSunRim);
     ctx.lineWidth = 1.4;
     ctx.beginPath();
     ctx.arc(bx, by, br, 0, TAU);
