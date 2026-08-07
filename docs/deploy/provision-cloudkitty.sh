@@ -863,7 +863,7 @@ cat <<EOF
 
       app        ${CK_APP_DIR}          (${CK_USER}, nologin)
       source     ${CK_BUILD_DIR}        (root builds; deploy key pulls)
-      update     /root/update.sh   (--client-only deploys the viewer alone)
+      update     /root/update.sh   (--client-only: viewer alone; --fresh: retire the world)
       service    /etc/systemd/system/cloudkitty.service
       proxy      /etc/caddy/Caddyfile -> ${CK_BIND}
       firewall   ${SSH_PORTS//$'\n'/, } (ssh), 80, 443

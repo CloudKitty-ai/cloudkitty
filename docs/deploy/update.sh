@@ -21,6 +21,18 @@
 # start, and this script puts the old config back and brings the old world up
 # again instead of leaving the site down.
 #
+# `update.sh --fresh` is the deliberate way through that guard: a full deploy
+# that RETIRES the saved world so the new server generates one from the new
+# config. The server binary has its own --fresh, but the systemd unit's
+# ExecStart is fixed, so this script does what that flag would: after the
+# world lands in the deploy backup it is renamed aside to
+# <name>.<unix-seconds>.bak — same convention, same directory, atomic — and
+# the boot finds no snapshot. The old world ends up in TWO places (the
+# pruned backup generation and the .bak beside the new snapshot); a rollback
+# renames the .bak straight back. This costs the world's history and restarts
+# any soak clock — use it only when the config no longer resumes the old
+# world (geometry, seed, roster changes).
+#
 # Installed to /root/update.sh by provision-cloudkitty.sh, which also writes
 # /etc/default/cloudkitty-deploy with this box's paths. This file is the only
 # copy: it used to be duplicated as a heredoc inside the provisioning script,
@@ -29,16 +41,25 @@
 set -euo pipefail
 
 CLIENT_ONLY=0
-case "${1:-}" in
-    "") ;;
-    --client-only) CLIENT_ONLY=1 ;;
-    *)
-        echo "usage: update.sh [--client-only]" >&2
-        echo "  (no args)      full deploy: pull, build, swap binary+config+policies+client" >&2
-        echo "  --client-only  pull and deploy client/ only; server untouched" >&2
-        exit 2
-        ;;
-esac
+FRESH=0
+for arg in "$@"; do
+    case "$arg" in
+        --client-only) CLIENT_ONLY=1 ;;
+        --fresh) FRESH=1 ;;
+        *)
+            echo "usage: update.sh [--client-only | --fresh]" >&2
+            echo "  (no args)      full deploy: pull, build, swap binary+config+policies+client" >&2
+            echo "  --client-only  pull and deploy client/ only; server untouched" >&2
+            echo "  --fresh        full deploy, then retire the saved world so the new" >&2
+            echo "                 config generates a new one (old world backed up twice)" >&2
+            exit 2
+            ;;
+    esac
+done
+if [[ "$CLIENT_ONLY" == "1" && "$FRESH" == "1" ]]; then
+    echo "--client-only and --fresh do not combine: a client-only deploy never touches the world" >&2
+    exit 2
+fi
 
 # Paths come from provisioning; the defaults match its defaults so the script
 # still runs on a box provisioned before the env file existed.
@@ -70,6 +91,7 @@ export PATH="${CARGO_HOME}/bin:${PATH}"
 WORLD=""
 LEGACY_LAYOUT=0
 BACKUP="(not created yet)"
+RETIRED=""
 
 # One deploy at a time. Two concurrent runs interleave a stop, an rsync
 # --delete and a world copy, leaving a backup holding one run's config beside
@@ -96,7 +118,11 @@ on_error() {
     echo "     cp -a ${BACKUP}/cloudkitty-server ${APP}/cloudkitty-server" >&2
     echo "     cp -a ${BACKUP}/cloudkitty.toml   ${APP}/cloudkitty.toml" >&2
     echo "     rsync -a --delete ${BACKUP}/policies/ ${APP}/policies/" >&2
-    echo "     cp -a ${BACKUP}/snapshot.json ${WORLD:-${STATE}/snapshot.json}   # only if that backup exists" >&2
+    if [[ -n "$RETIRED" ]]; then
+        echo "     mv ${RETIRED} ${WORLD}   # --fresh retired the world; put it back" >&2
+    else
+        echo "     cp -a ${BACKUP}/snapshot.json ${WORLD:-${STATE}/snapshot.json}   # only if that backup exists" >&2
+    fi
     echo "     systemctl reset-failed cloudkitty && systemctl start cloudkitty" >&2
     exit "$rc"
 }
@@ -206,6 +232,27 @@ else
     log "no world found in ${STATE} or ${APP} yet — nothing to back up"
 fi
 
+# --fresh retires the world only AFTER it is safely in the backup, and by
+# rename rather than delete — the same <name>.<unix-seconds>.bak convention as
+# the server binary's own --fresh, probed so a same-second rerun cannot
+# clobber an earlier retirement. The boot below then finds no snapshot and
+# generates a world from the newly deployed config. The .bak outlives the
+# pruned backup generations, so it is the durable copy.
+if [[ "$FRESH" == "1" ]]; then
+    if [[ -n "$WORLD" ]]; then
+        RETIRED="${WORLD}.$(date +%s).bak"
+        n=1
+        while [[ -e "$RETIRED" ]]; do
+            RETIRED="${WORLD}.$(date +%s).${n}.bak"
+            n=$((n + 1))
+        done
+        mv "$WORLD" "$RETIRED"
+        log "world retired to ${RETIRED} — the new config generates a fresh one"
+    else
+        log "--fresh: no world to retire — the boot below generates a fresh one anyway"
+    fi
+fi
+
 if [[ "$LEGACY_LAYOUT" == "1" ]]; then
     cat >&2 <<MSG
 
@@ -253,6 +300,9 @@ if wait_healthy; then
     trap - ERR
     systemctl --no-pager --lines=5 status cloudkitty
     log "deployed ${DEPLOYED_REV} — serving at http://${UPSTREAM}/world"
+    if [[ -n "$RETIRED" ]]; then
+        log "fresh world serving; the old one is at ${RETIRED} and in ${BACKUP} — soak clock restarts now"
+    fi
     # Prune old generations, newest kept. Guarded: an empty or missing backup
     # root must not fail a deploy that already succeeded.
     if [[ -d "$BACKUP_ROOT" ]]; then
@@ -285,6 +335,12 @@ cp -a "${BACKUP}/cloudkitty-server" "${APP}/cloudkitty-server"
 cp -a "${BACKUP}/cloudkitty.toml"   "${APP}/cloudkitty.toml"
 if [[ -d "${BACKUP}/policies" ]]; then
     rsync -a --delete "${BACKUP}/policies/" "${APP}/policies/"
+fi
+# A --fresh run moved the world aside; the restored (old) config expects to
+# resume it, so put it back before starting. A rename undoes a rename exactly.
+if [[ -n "$RETIRED" && -e "$RETIRED" ]]; then
+    mv "$RETIRED" "$WORLD"
+    log "retired world moved back to ${WORLD}"
 fi
 chown -R root:root "${APP}/client"
 if [[ -d "${APP}/policies" ]]; then
