@@ -1,0 +1,5580 @@
+{
+  "artifact": "experiments/exp-003-water-schema/artifacts/A1-m33-g995-s3/A1-m33-g995-s3.ckpolicy",
+  "subject": "policy:experiments/exp-003-water-schema/artifacts/A1-m33-g995-s3/A1-m33-g995-s3.ckpolicy",
+  "config": "/private/tmp/claude-501/-Users-elizabethkelly-ai-cloudkitty/c344c5ac-df5f-439b-977c-3cfdd15fedaa/scratchpad/era-cloudkitty-dbfb367f.toml",
+  "config_sha256": "dbfb367fc071d4a4633af317eb1154c98a40672abdc42653cc6d9cbfb7c43fa5",
+  "distress_threshold": 90.0,
+  "ticks": 20000,
+  "seeds": [
+    710001,
+    710002,
+    710003,
+    710004,
+    710005,
+    710006,
+    710007,
+    710008,
+    710009,
+    710010,
+    710011,
+    710012,
+    710013,
+    710014,
+    710015,
+    710016,
+    710017,
+    710018,
+    710019,
+    710020,
+    710021,
+    710022,
+    710023,
+    710024,
+    710025,
+    710026,
+    710027,
+    710028,
+    710029,
+    710030
+  ],
+  "runs": [
+    {
+      "seed": 710001,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710001,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.76323878326416,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.79783725967407,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.55587241973878,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.66667783508301,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 0,
+          "pinned": []
+        },
+        "aggregates": {
+          "team_welfare": 0.9443099897801789,
+          "plain_mean": 0.9444590657444,
+          "least_happy_mean": 93.55587241973878
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710002,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710002,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.58549983673096,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.42625795288086,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.32311506652832,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.45844251556396,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 0,
+          "pinned": []
+        },
+        "aggregates": {
+          "team_welfare": 0.9418159226269445,
+          "plain_mean": 0.9419832884292582,
+          "least_happy_mean": 93.32311506652832
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710003,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710003,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.85627651176452,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.87474047012329,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.67438160018921,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.80495946121216,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 0,
+          "pinned": []
+        },
+        "aggregates": {
+          "team_welfare": 0.9453815131867883,
+          "plain_mean": 0.9455258951082265,
+          "least_happy_mean": 93.67438160018921
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710004,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710004,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.73874080543519,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.61842064933776,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.6110353981018,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.6483738445282,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 0,
+          "pinned": []
+        },
+        "aggregates": {
+          "team_welfare": 0.9438945530664163,
+          "plain_mean": 0.944041426743502,
+          "least_happy_mean": 93.6110353981018
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710005,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710005,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.65464790344238,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.70662033157349,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.64984543991089,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.55321266822816,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 0,
+          "pinned": []
+        },
+        "aggregates": {
+          "team_welfare": 0.9437588349152013,
+          "plain_mean": 0.9439108158578882,
+          "least_happy_mean": 93.64984543991089
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710006,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710006,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.843972032547,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.77858449363708,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.67272562904358,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.76774522132874,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 0,
+          "pinned": []
+        },
+        "aggregates": {
+          "team_welfare": 0.9450117739103671,
+          "plain_mean": 0.945157568441394,
+          "least_happy_mean": 93.67272562904358
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710007,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 1,
+              "episodes": 1
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 1,
+          "any_need_ticks": 1
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710007,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.66108758773804,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.53050438423156,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.45580925979614,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.57800011634826,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 1,
+          "pinned": []
+        },
+        "aggregates": {
+          "team_welfare": 0.9429023568117493,
+          "plain_mean": 0.9430635033702829,
+          "least_happy_mean": 93.45580925979614
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710008,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710008,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.66754376106262,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.65947349128723,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.64762741584778,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.60566308250428,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 0,
+          "pinned": []
+        },
+        "aggregates": {
+          "team_welfare": 0.9438047050865515,
+          "plain_mean": 0.9439507693767553,
+          "least_happy_mean": 93.64762741584778
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710009,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710009,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.55505739097595,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.61713084220887,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.54395326805114,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.62040086135865,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 0,
+          "pinned": []
+        },
+        "aggregates": {
+          "team_welfare": 0.9431827707069164,
+          "plain_mean": 0.9433413559064926,
+          "least_happy_mean": 93.54395326805114
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710010,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710010,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.81151954612731,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.81814047241211,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.65695211715698,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.81878395271302,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 0,
+          "pinned": []
+        },
+        "aggregates": {
+          "team_welfare": 0.9451227306372076,
+          "plain_mean": 0.9452634902210204,
+          "least_happy_mean": 93.65695211715698
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710011,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710011,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.76700300979614,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.69337156143189,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.58305164718628,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.75240232124328,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 0,
+          "pinned": []
+        },
+        "aggregates": {
+          "team_welfare": 0.9443359204038472,
+          "plain_mean": 0.9444895713491424,
+          "least_happy_mean": 93.58305164718628
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710012,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710012,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.82632324790954,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.65085960235595,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.67397196464539,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.69269680137634,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 0,
+          "pinned": []
+        },
+        "aggregates": {
+          "team_welfare": 0.9444591573525362,
+          "plain_mean": 0.944609629040717,
+          "least_happy_mean": 93.67397196464539
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710013,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710013,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.74694354057311,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.73329053649903,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.82119463005066,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.60784984054565,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 0,
+          "pinned": []
+        },
+        "aggregates": {
+          "team_welfare": 0.9446347974301738,
+          "plain_mean": 0.9447731963691729,
+          "least_happy_mean": 93.82119463005066
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710014,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 5,
+              "episodes": 1
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 5,
+          "any_need_ticks": 5
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710014,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.74186730804443,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.5939703453064,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.38759805259704,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.61219155464173,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 5,
+          "pinned": []
+        },
+        "aggregates": {
+          "team_welfare": 0.9431809531481197,
+          "plain_mean": 0.9433390681514682,
+          "least_happy_mean": 93.38759805259704
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710015,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710015,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.76097280921935,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.72568260879517,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.52079994163513,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.61554910430908,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 0,
+          "pinned": []
+        },
+        "aggregates": {
+          "team_welfare": 0.9439020916406972,
+          "plain_mean": 0.9440575111599002,
+          "least_happy_mean": 93.52079994163513
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710016,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710016,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.6471331287384,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.56764110107422,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.49725796852111,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.6868880645752,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 0,
+          "pinned": []
+        },
+        "aggregates": {
+          "team_welfare": 0.9433423997461372,
+          "plain_mean": 0.9434973006572723,
+          "least_happy_mean": 93.49725796852111
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710017,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710017,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.81793196907043,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.7413245513916,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.54500216255188,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.73208879394531,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 0,
+          "pinned": []
+        },
+        "aggregates": {
+          "team_welfare": 0.9444249247753631,
+          "plain_mean": 0.9445908686923967,
+          "least_happy_mean": 93.54500216255188
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710018,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710018,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.74050652351379,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.68405801811218,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.67342986335754,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.75223628387451,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 0,
+          "pinned": []
+        },
+        "aggregates": {
+          "team_welfare": 0.9444907028550186,
+          "plain_mean": 0.944625576722149,
+          "least_happy_mean": 93.67342986335754
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710019,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710019,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.7675130268097,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.6631823009491,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.55395624618531,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.7018688217163,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 0,
+          "pinned": []
+        },
+        "aggregates": {
+          "team_welfare": 0.9440619763987125,
+          "plain_mean": 0.9442163009891535,
+          "least_happy_mean": 93.55395624618531
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710020,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710020,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.66333483390808,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.6162805984497,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.6711078453064,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.7111632774353,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 0,
+          "pinned": []
+        },
+        "aggregates": {
+          "team_welfare": 0.9440016605873656,
+          "plain_mean": 0.9441547163877453,
+          "least_happy_mean": 93.6711078453064
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710021,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710021,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.79181099090576,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.75071802139283,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.69645909690857,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.78908820419312,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 0,
+          "pinned": []
+        },
+        "aggregates": {
+          "team_welfare": 0.9449261826967026,
+          "plain_mean": 0.9450701907834993,
+          "least_happy_mean": 93.69645909690857
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710022,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 43,
+              "episodes": 1
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 43,
+          "any_need_ticks": 43
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710022,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.3783251499176,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.31637014656067,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 92.9797594543457,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.33297197265625,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 43,
+          "pinned": [
+            {
+              "kitty_id": 3,
+              "need": "eat",
+              "streak": 1
+            }
+          ]
+        },
+        "aggregates": {
+          "team_welfare": 0.9398176647060973,
+          "plain_mean": 0.940018566808703,
+          "least_happy_mean": 92.9797594543457
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710023,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710023,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.77866850547791,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.85229420509339,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.70331761550904,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.77852800979615,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 0,
+          "pinned": []
+        },
+        "aggregates": {
+          "team_welfare": 0.9451403307139519,
+          "plain_mean": 0.9452820208396931,
+          "least_happy_mean": 93.70331761550904
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710024,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710024,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.70034956245422,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.58084740791321,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.43321285743713,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.74629528694153,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 0,
+          "pinned": []
+        },
+        "aggregates": {
+          "team_welfare": 0.9434760678113585,
+          "plain_mean": 0.9436517627868652,
+          "least_happy_mean": 93.43321285743713
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710025,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710025,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.73499400634766,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.85253074188232,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.64839391822815,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.75410474472046,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 0,
+          "pinned": []
+        },
+        "aggregates": {
+          "team_welfare": 0.9448248654385719,
+          "plain_mean": 0.9449750585279484,
+          "least_happy_mean": 93.64839391822815
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710026,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710026,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.80405429496766,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.74793130607605,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.67671636047363,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.8078817539215,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 0,
+          "pinned": []
+        },
+        "aggregates": {
+          "team_welfare": 0.9449435273193282,
+          "plain_mean": 0.9450914592886004,
+          "least_happy_mean": 93.67671636047363
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710027,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 38,
+              "episodes": 1
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 38,
+          "any_need_ticks": 38
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710027,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.46655190658569,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.33367446174621,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 92.94884242858886,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.37354362983703,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 38,
+          "pinned": [
+            {
+              "kitty_id": 3,
+              "need": "eat",
+              "streak": 1
+            }
+          ]
+        },
+        "aggregates": {
+          "team_welfare": 0.9400942162485724,
+          "plain_mean": 0.9403065310668948,
+          "least_happy_mean": 92.94884242858886
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710028,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 40,
+              "episodes": 1
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 40,
+          "any_need_ticks": 40
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710028,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.8099504234314,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.76627700271607,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.5847101305008,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.71470388793945,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 40,
+          "pinned": [
+            {
+              "kitty_id": 3,
+              "need": "eat",
+              "streak": 1
+            }
+          ]
+        },
+        "aggregates": {
+          "team_welfare": 0.9445377024086451,
+          "plain_mean": 0.94468910361147,
+          "least_happy_mean": 93.5847101305008
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710029,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710029,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.74829458122254,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.54334744949341,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.42703880004883,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.65980984764099,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 0,
+          "pinned": []
+        },
+        "aggregates": {
+          "team_welfare": 0.943281513671932,
+          "plain_mean": 0.9434462266960086,
+          "least_happy_mean": 93.42703880004883
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    },
+    {
+      "seed": 710030,
+      "distress": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        },
+        {
+          "kitty_id": 4,
+          "name": "Kittybear",
+          "by_need": {
+            "bath": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "cuddle": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "drink": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "eat": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "play": {
+              "ticks": 0,
+              "episodes": 0
+            },
+            "sleep": {
+              "ticks": 0,
+              "episodes": 0
+            }
+          },
+          "total_ticks": 0,
+          "any_need_ticks": 0
+        }
+      ],
+      "outcome": {
+        "seed": 710030,
+        "ticks": 20000,
+        "roster": "all-subject",
+        "report": {
+          "ticks": 20000,
+          "kitties": [
+            {
+              "kitty_id": 1,
+              "name": "Miso",
+              "mean_happiness": 94.67864514656067,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 2,
+              "name": "Biscuit",
+              "mean_happiness": 94.65441485939026,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 3,
+              "name": "Pumpkin",
+              "mean_happiness": 93.35448378105164,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            },
+            {
+              "kitty_id": 4,
+              "name": "Kittybear",
+              "mean_happiness": 94.5777344455719,
+              "max_low_streak": 0,
+              "low_share": 0.0,
+              "floor_touches": 0
+            }
+          ],
+          "max_distress_age": 0,
+          "pinned": []
+        },
+        "aggregates": {
+          "team_welfare": 0.9429897194911707,
+          "plain_mean": 0.9431631955814335,
+          "least_happy_mean": 93.35448378105164
+        },
+        "fallback_count": 0,
+        "fallbacks": []
+      }
+    }
+  ]
+}

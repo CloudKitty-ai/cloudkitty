@@ -497,7 +497,13 @@ report and the deployed-composition screen still standing between any
 admit and a seat. A **distress-tick counter** (per run × kitty × need:
 ticks at/above the distress threshold, plus episode count) rides the
 Product spec batch — *reported* in exp-004, so a future generation can
-gate on distress-share with history behind it. Certification for
+gate on distress-share with history behind it. **The counter already
+has its history**: exp-003's nine candidates retro-replayed 2026-08-08
+(810/810 runs reproduce the committed evals exactly;
+`exp-003-water-schema/results/distress-census-2026-08-08.md`) —
+healthy 0.0001–0.015% distress-share, the gate's accepted admit A0-s2
+at 4× the worst healthy, collapses at 0.5–50%; that record is the
+Product spec's acceptance target. Certification for
 *deployment* moves where it belongs: the shipping composition, its own
 declared instrument, derived margins (0.002 welfare), with a second
 disjoint band reported as a drift alarm.
