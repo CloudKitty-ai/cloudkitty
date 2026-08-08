@@ -1046,6 +1046,15 @@ check('a grounded foot stays on the ground; the leap’s feet ride the body', ()
   );
 });
 
+check('the head and tail ride the body they are attached to', () => {
+  const base = CatV2.catLayout('walking', 0);
+  const shaped = reshaped({ bodyH: 1.2 }, () => CatV2.catLayout('walking', 0));
+  const dy = shaped.body.cy - base.body.cy;
+  assert(dy < -1e-9, 'a taller body against a held floor must raise the centre');
+  close(shaped.head.cy - base.head.cy, dy, 'the head came off the body');
+  close(shaped.tail.y0 - base.tail.y0, dy, 'the tail stayed behind at the old rump');
+});
+
 check('rounding the body out is what buys visible leg', () => {
   // kitten.me's 1.33 aspect, reached by height alone: ry 0.210 -> 0.241.
   const shipped = legAt({});
