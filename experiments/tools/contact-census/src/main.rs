@@ -1,0 +1,687 @@
+//! The scripted contact census (exp-004 cosleep-pricing baseline).
+//!
+//! Measures what "presence" is actually worth on a behavior-driven world:
+//! how often cats co-sleep, how long the named companion actually stays in
+//! contact, what that companion is doing while the credit flows, and where
+//! the cuddle need sits between contacts. This is the "before" picture for
+//! the cosleep dial-pricing pilot (exp-004 design inputs §1) — the pilot's
+//! control arm re-runs this instrument after the routing change and the
+//! dedicated dials exist.
+//!
+//! Geometry is the F-016 instrument's (`scripted_water_baseline.py` /
+//! `water_band.py`): served world, 10 seeds × 20k ticks. The census also
+//! tallies on-water occupancy by activity so the run cross-checks against
+//! the committed scripted baseline (`rebaseline-2026-08-06/optE-B`) — a
+//! disagreement there means this tool is broken, not the world.
+//!
+//! Why Rust and not the pyo3 env: the measurement's subject is the *named*
+//! sleep companion (`Activity::Sleeping { with_friend }`), which the state
+//! vector's activity one-hot does not carry. The engine snapshot does.
+//!
+//! Measurement conventions, stated once:
+//! - The census reads the snapshot *after* each driven tick. The engine's
+//!   grant check (`is_available_friend`) runs intra-tick, so a run edge can
+//!   differ from the paid sequence by one tick. A census of durations does
+//!   not care; a ledger of paid relief would.
+//! - "Serviced" = the named companion is adjacent (Manhattan ≤ 1, the same
+//!   `Position::is_adjacent` the engine uses).
+//! - "Mutual" = on a serviced tick the companion is itself Sleeping or
+//!   Resting — option C's tier, measured before it exists.
+//! - An episode is a maximal run of ticks in the same activity with the same
+//!   partner; episodes still open at the horizon are flushed and flagged
+//!   `truncated` (they are length-biased low, not discarded).
+
+use std::collections::BTreeMap;
+use std::fs;
+use std::path::PathBuf;
+use std::sync::Arc;
+
+use cloudkitty_core::seam::drive_tick;
+use cloudkitty_core::{
+    Activity, BehaviorRegistry, Config, ElementType, KittyId, World, WorldSnapshot,
+};
+use cloudkitty_rl::config::RlConfig;
+use cloudkitty_rl::reward::team_reward;
+use serde::Serialize;
+
+const ACTIVITIES: [&str; 7] = [
+    "Idle", "Resting", "Sleeping", "Eating", "Drinking", "Playing", "Grooming",
+];
+
+fn activity_index(a: &Activity) -> usize {
+    match a {
+        Activity::Idle => 0,
+        Activity::Resting { .. } => 1,
+        Activity::Sleeping { .. } => 2,
+        Activity::Eating => 3,
+        Activity::Drinking => 4,
+        Activity::Playing { .. } => 5,
+        Activity::Grooming { .. } => 6,
+    }
+}
+
+/// The cuddle thresholds worth counting time above: the scripted ladder's
+/// attention line (`worth_a_detour` 30), the meow urgency line (75), and
+/// the distress line (90). Read from config where a dial exists; the fixed
+/// list is the *reporting* choice, not an engine claim.
+const CUDDLE_MARKS: [f32; 3] = [30.0, 75.0, 90.0];
+
+#[derive(Serialize, Clone)]
+struct CosleepEpisode {
+    partner: KittyId,
+    len: u64,
+    serviced: u64,
+    /// Maximal runs of consecutive serviced ticks — the pilot's
+    /// "contact duration" is the mean over these.
+    contact_runs: Vec<u64>,
+    /// The companion walked away and the sleeper slept on: the episode had
+    /// contact and its final tick did not.
+    partner_left: bool,
+    truncated: bool,
+}
+
+#[derive(Serialize, Default, Clone)]
+struct KittyCensus {
+    activity_ticks: [u64; 7],
+    on_water_by_activity: [u64; 7],
+    sleep_solo_sunbeam: u64,
+    sleep_solo_plain: u64,
+    sleep_with_friend: u64,
+    cosleep_serviced: u64,
+    cosleep_unserviced: u64,
+    /// The named companion's activity on serviced ticks.
+    partner_activity_on_serviced: [u64; 7],
+    rest_duet_ticks: u64,
+    groom_actor_ticks: u64,
+    /// Co-sleep ticks by named partner (partner-selection symmetry check).
+    cosleep_ticks_by_partner: BTreeMap<KittyId, u64>,
+    cuddle_sum: f64,
+    cuddle_above: [u64; CUDDLE_MARKS.len()],
+    cuddle_at_floor: u64,
+    happiness_sum: f64,
+    cosleep_episodes: Vec<CosleepEpisode>,
+    solo_sleep_lens: Vec<u64>,
+    rest_duet_lens: Vec<u64>,
+}
+
+/// The in-progress episode for one kitty; closed when the (class, partner)
+/// signature changes.
+enum OpenEpisode {
+    None,
+    SoloSleep {
+        len: u64,
+    },
+    Cosleep {
+        partner: KittyId,
+        len: u64,
+        serviced: u64,
+        run: u64,
+        runs: Vec<u64>,
+        last_serviced: bool,
+    },
+    RestDuet {
+        partner: KittyId,
+        len: u64,
+    },
+    Other,
+}
+
+struct SeedCensus {
+    ids: Vec<KittyId>,
+    names: BTreeMap<KittyId, String>,
+    kitties: BTreeMap<KittyId, KittyCensus>,
+    open: BTreeMap<KittyId, OpenEpisode>,
+    team_reward_sum: f64,
+    water_tiles_sum: u64,
+    ticks_seen: u64,
+}
+
+impl SeedCensus {
+    fn new(snap: &WorldSnapshot) -> Self {
+        let ids: Vec<KittyId> = snap.kitties.iter().map(|k| k.id).collect();
+        SeedCensus {
+            names: snap
+                .kitties
+                .iter()
+                .map(|k| (k.id, k.name.clone()))
+                .collect(),
+            kitties: ids.iter().map(|id| (*id, KittyCensus::default())).collect(),
+            open: ids.iter().map(|id| (*id, OpenEpisode::None)).collect(),
+            ids,
+            team_reward_sum: 0.0,
+            water_tiles_sum: 0,
+            ticks_seen: 0,
+        }
+    }
+
+    fn close(&mut self, id: KittyId, truncated: bool) {
+        let ep = std::mem::replace(self.open.get_mut(&id).unwrap(), OpenEpisode::None);
+        let c = self.kitties.get_mut(&id).unwrap();
+        match ep {
+            OpenEpisode::None | OpenEpisode::Other => {}
+            OpenEpisode::SoloSleep { len } => c.solo_sleep_lens.push(len),
+            OpenEpisode::RestDuet { len, .. } => c.rest_duet_lens.push(len),
+            OpenEpisode::Cosleep {
+                partner,
+                len,
+                serviced,
+                run,
+                mut runs,
+                last_serviced,
+            } => {
+                if run > 0 {
+                    runs.push(run);
+                }
+                c.cosleep_episodes.push(CosleepEpisode {
+                    partner,
+                    len,
+                    serviced,
+                    contact_runs: runs,
+                    partner_left: serviced > 0 && !last_serviced,
+                    truncated,
+                });
+            }
+        }
+    }
+
+    fn observe(&mut self, snap: &WorldSnapshot) {
+        self.ticks_seen += 1;
+        let water: Vec<_> = snap
+            .elements
+            .iter()
+            .filter(|e| e.element_type() == ElementType::Water)
+            .map(|e| e.pos)
+            .collect();
+        self.water_tiles_sum += water.len() as u64;
+
+        let by_id: BTreeMap<KittyId, &cloudkitty_core::Kitty> =
+            snap.kitties.iter().map(|k| (k.id, k)).collect();
+
+        for id in &self.ids.clone() {
+            let me = by_id[id];
+            let act = activity_index(&me.activity);
+            let c = self.kitties.get_mut(id).unwrap();
+            c.activity_ticks[act] += 1;
+            if water.contains(&me.pos) {
+                c.on_water_by_activity[act] += 1;
+            }
+            let cuddle = me.needs.cuddle.value();
+            c.cuddle_sum += f64::from(cuddle);
+            for (i, mark) in CUDDLE_MARKS.iter().enumerate() {
+                if cuddle >= *mark {
+                    c.cuddle_above[i] += 1;
+                }
+            }
+            if cuddle <= 0.0 {
+                c.cuddle_at_floor += 1;
+            }
+            c.happiness_sum += f64::from(me.happiness);
+
+            // Tick tallies + episode advance, by activity shape.
+            match &me.activity {
+                Activity::Sleeping {
+                    in_sunbeam,
+                    with_friend: None,
+                } => {
+                    if *in_sunbeam {
+                        c.sleep_solo_sunbeam += 1;
+                    } else {
+                        c.sleep_solo_plain += 1;
+                    }
+                    match self.open.get_mut(id).unwrap() {
+                        OpenEpisode::SoloSleep { len } => *len += 1,
+                        _ => {
+                            self.close(*id, false);
+                            *self.open.get_mut(id).unwrap() = OpenEpisode::SoloSleep { len: 1 };
+                        }
+                    }
+                }
+                Activity::Sleeping {
+                    with_friend: Some(p),
+                    ..
+                } => {
+                    let partner = *p;
+                    let serviced = by_id
+                        .get(&partner)
+                        .is_some_and(|k| me.pos.is_adjacent(&k.pos));
+                    let c = self.kitties.get_mut(id).unwrap();
+                    c.sleep_with_friend += 1;
+                    *c.cosleep_ticks_by_partner.entry(partner).or_default() += 1;
+                    if serviced {
+                        c.cosleep_serviced += 1;
+                        c.partner_activity_on_serviced
+                            [activity_index(&by_id[&partner].activity)] += 1;
+                    } else {
+                        c.cosleep_unserviced += 1;
+                    }
+                    match self.open.get_mut(id).unwrap() {
+                        OpenEpisode::Cosleep {
+                            partner: cur,
+                            len,
+                            serviced: s,
+                            run,
+                            runs,
+                            last_serviced,
+                        } if *cur == partner => {
+                            *len += 1;
+                            if serviced {
+                                *s += 1;
+                                *run += 1;
+                            } else if *run > 0 {
+                                runs.push(*run);
+                                *run = 0;
+                            }
+                            *last_serviced = serviced;
+                        }
+                        _ => {
+                            self.close(*id, false);
+                            *self.open.get_mut(id).unwrap() = OpenEpisode::Cosleep {
+                                partner,
+                                len: 1,
+                                serviced: u64::from(serviced),
+                                run: u64::from(serviced),
+                                runs: Vec::new(),
+                                last_serviced: serviced,
+                            };
+                        }
+                    }
+                }
+                Activity::Resting {
+                    with_friend: Some(p),
+                } => {
+                    let partner = *p;
+                    self.kitties.get_mut(id).unwrap().rest_duet_ticks += 1;
+                    match self.open.get_mut(id).unwrap() {
+                        OpenEpisode::RestDuet { partner: cur, len } if *cur == partner => *len += 1,
+                        _ => {
+                            self.close(*id, false);
+                            *self.open.get_mut(id).unwrap() =
+                                OpenEpisode::RestDuet { partner, len: 1 };
+                        }
+                    }
+                }
+                other => {
+                    if let Activity::Grooming { target: Some(_) } = other {
+                        self.kitties.get_mut(id).unwrap().groom_actor_ticks += 1;
+                    }
+                    let open = self.open.get_mut(id).unwrap();
+                    if !matches!(open, OpenEpisode::None | OpenEpisode::Other) {
+                        self.close(*id, false);
+                    }
+                    *self.open.get_mut(id).unwrap() = OpenEpisode::Other;
+                }
+            }
+        }
+    }
+
+    fn finish(&mut self) {
+        for id in self.ids.clone() {
+            self.close(id, true);
+        }
+    }
+}
+
+#[derive(Serialize)]
+struct SeedRecord {
+    seed: u64,
+    ticks: u64,
+    config: String,
+    seat_overrides: BTreeMap<String, String>,
+    mean_water_tiles: f64,
+    mean_team_reward: f64,
+    kitties: BTreeMap<String, KittyCensus>,
+}
+
+struct Args {
+    config: PathBuf,
+    seeds: Vec<u64>,
+    ticks: u64,
+    out: PathBuf,
+    /// `kitty_<id>=<behavior>` overrides applied to the config roster before
+    /// generation — how the policy seats are handed back to a scripted
+    /// ladder for a B-geometry run.
+    seats: BTreeMap<u32, String>,
+}
+
+fn parse_args() -> Args {
+    let mut args = Args {
+        config: PathBuf::from("cloudkitty.toml"),
+        seeds: (1..=10).collect(),
+        ticks: 20_000,
+        out: PathBuf::from("contact-census-out"),
+        seats: BTreeMap::new(),
+    };
+    let mut it = std::env::args().skip(1);
+    while let Some(flag) = it.next() {
+        let mut value = |name: &str| {
+            it.next()
+                .unwrap_or_else(|| panic!("{name} requires a value"))
+        };
+        match flag.as_str() {
+            "--config" => args.config = PathBuf::from(value("--config")),
+            "--seeds" => {
+                args.seeds = value("--seeds")
+                    .split(',')
+                    .map(|s| s.trim().parse().expect("--seeds: u64 list"))
+                    .collect()
+            }
+            "--ticks" => args.ticks = value("--ticks").parse().expect("--ticks: u64"),
+            "--out" => args.out = PathBuf::from(value("--out")),
+            "--seat" => {
+                for pair in value("--seat").split(',') {
+                    let (seat, behavior) = pair
+                        .split_once('=')
+                        .expect("--seat: kitty_<id>=<behavior> pairs");
+                    let id: u32 = seat
+                        .trim()
+                        .strip_prefix("kitty_")
+                        .expect("--seat keys look like kitty_<id>")
+                        .parse()
+                        .expect("--seat: numeric kitty id");
+                    args.seats.insert(id, behavior.trim().to_string());
+                }
+            }
+            other => panic!("unknown flag {other}"),
+        }
+    }
+    assert!(!args.seeds.is_empty(), "--seeds must name at least one seed");
+    args
+}
+
+fn quantiles(mut v: Vec<u64>) -> serde_json::Value {
+    if v.is_empty() {
+        return serde_json::json!({ "n": 0 });
+    }
+    v.sort_unstable();
+    let n = v.len();
+    let mean = v.iter().sum::<u64>() as f64 / n as f64;
+    let at = |q: f64| v[((n - 1) as f64 * q).round() as usize];
+    serde_json::json!({
+        "n": n,
+        "mean": mean,
+        "median": at(0.5),
+        "p90": at(0.9),
+        "max": v[n - 1],
+    })
+}
+
+fn main() {
+    let args = parse_args();
+    let text = fs::read_to_string(&args.config)
+        .unwrap_or_else(|e| panic!("reading {}: {e}", args.config.display()));
+    let mut base_cfg: Config = toml::from_str(&text).expect("config parses as engine TOML");
+    let rl = RlConfig::from_toml_str(&text).expect("[rl] blocks parse and validate");
+
+    for (id, behavior) in &args.seats {
+        let kitty = base_cfg
+            .kitties
+            .iter_mut()
+            .find(|k| k.id == *id)
+            .unwrap_or_else(|| panic!("--seat kitty_{id}: no such kitty in the config"));
+        kitty.behavior = behavior.clone();
+    }
+    // A behavior-driven world can only be driven by built-in scripted
+    // ladders; a policy seat left in place would need an artifact forward
+    // pass this tool deliberately does not have. Fail loudly, not per-tick.
+    for k in &base_cfg.kitties {
+        assert!(
+            k.behavior == "needs_driven" || k.behavior == "playful",
+            "kitty_{} runs {:?}; hand policy seats to a scripted ladder with \
+             --seat kitty_{}=needs_driven",
+            k.id,
+            k.behavior,
+            k.id
+        );
+    }
+    base_cfg
+        .validate()
+        .expect("config passes engine validation");
+    let registry = BehaviorRegistry::with_builtins();
+    let seat_overrides: BTreeMap<String, String> = args
+        .seats
+        .iter()
+        .map(|(id, b)| (format!("kitty_{id}"), b.clone()))
+        .collect();
+
+    fs::create_dir_all(&args.out).expect("creating output directory");
+
+    let mut records: Vec<SeedRecord> = Vec::new();
+    for &seed in &args.seeds {
+        let mut cfg = base_cfg.clone();
+        cfg.world.seed = seed;
+        let config = Arc::new(cfg);
+        let mut world = World::generate(&config);
+        let mut census = SeedCensus::new(&world.snapshot());
+        for _ in 0..args.ticks {
+            let _ = drive_tick(&mut world, &registry, &config);
+            let snap = world.snapshot();
+            census.team_reward_sum += team_reward(&snap, &config, &rl.reward);
+            census.observe(&snap);
+        }
+        census.finish();
+
+        let record = SeedRecord {
+            seed,
+            ticks: args.ticks,
+            config: args.config.display().to_string(),
+            seat_overrides: seat_overrides.clone(),
+            mean_water_tiles: census.water_tiles_sum as f64 / args.ticks as f64,
+            mean_team_reward: census.team_reward_sum / args.ticks as f64,
+            kitties: census
+                .kitties
+                .iter()
+                .map(|(id, c)| (census.names[id].clone(), c.clone()))
+                .collect(),
+        };
+        fs::write(
+            args.out.join(format!("seed-{seed}.json")),
+            serde_json::to_string_pretty(&record).expect("seed record serializes") + "\n",
+        )
+        .expect("writing seed record");
+        let slept: u64 = record
+            .kitties
+            .values()
+            .map(|c| c.activity_ticks[2])
+            .sum();
+        let with: u64 = record.kitties.values().map(|c| c.sleep_with_friend).sum();
+        println!(
+            "seed {seed}: {slept} sleep ticks, {with} co-sleep ({:.1}%)",
+            100.0 * with as f64 / slept.max(1) as f64
+        );
+        records.push(record);
+    }
+
+    // ---- verdict: aggregate over seeds, per kitty and overall ----
+    let names: Vec<String> = records[0].kitties.keys().cloned().collect();
+    let id_names: BTreeMap<String, String> = {
+        // Partner ids in episode records → names, via the config roster.
+        base_cfg
+            .kitties
+            .iter()
+            .map(|k| (k.id.to_string(), k.name.clone()))
+            .collect()
+    };
+
+    let mut verdict = serde_json::Map::new();
+    verdict.insert("config".into(), args.config.display().to_string().into());
+    verdict.insert(
+        "seat_overrides".into(),
+        serde_json::to_value(&seat_overrides).unwrap(),
+    );
+    verdict.insert(
+        "seeds".into(),
+        serde_json::to_value(&args.seeds).unwrap(),
+    );
+    verdict.insert("ticks".into(), args.ticks.into());
+    verdict.insert(
+        "mean_team_reward".into(),
+        (records.iter().map(|r| r.mean_team_reward).sum::<f64>() / records.len() as f64).into(),
+    );
+    verdict.insert(
+        "mean_water_tiles".into(),
+        (records.iter().map(|r| r.mean_water_tiles).sum::<f64>() / records.len() as f64).into(),
+    );
+
+    let total_ticks = args.ticks * records.len() as u64;
+    let mut per_kitty = serde_json::Map::new();
+    let mut all = KittyCensus::default();
+    for name in &names {
+        let mut agg = KittyCensus::default();
+        for r in &records {
+            let c = &r.kitties[name];
+            for i in 0..7 {
+                agg.activity_ticks[i] += c.activity_ticks[i];
+                agg.on_water_by_activity[i] += c.on_water_by_activity[i];
+                agg.partner_activity_on_serviced[i] += c.partner_activity_on_serviced[i];
+            }
+            agg.sleep_solo_sunbeam += c.sleep_solo_sunbeam;
+            agg.sleep_solo_plain += c.sleep_solo_plain;
+            agg.sleep_with_friend += c.sleep_with_friend;
+            agg.cosleep_serviced += c.cosleep_serviced;
+            agg.cosleep_unserviced += c.cosleep_unserviced;
+            agg.rest_duet_ticks += c.rest_duet_ticks;
+            agg.groom_actor_ticks += c.groom_actor_ticks;
+            for (p, n) in &c.cosleep_ticks_by_partner {
+                *agg.cosleep_ticks_by_partner.entry(*p).or_default() += n;
+            }
+            agg.cuddle_sum += c.cuddle_sum;
+            for i in 0..CUDDLE_MARKS.len() {
+                agg.cuddle_above[i] += c.cuddle_above[i];
+            }
+            agg.cuddle_at_floor += c.cuddle_at_floor;
+            agg.happiness_sum += c.happiness_sum;
+            agg.cosleep_episodes.extend(c.cosleep_episodes.iter().cloned());
+            agg.solo_sleep_lens.extend(&c.solo_sleep_lens);
+            agg.rest_duet_lens.extend(&c.rest_duet_lens);
+        }
+        let summary = summarize(&agg, total_ticks, &id_names);
+        // Roll into the all-kitties aggregate before moving on.
+        for i in 0..7 {
+            all.activity_ticks[i] += agg.activity_ticks[i];
+            all.on_water_by_activity[i] += agg.on_water_by_activity[i];
+            all.partner_activity_on_serviced[i] += agg.partner_activity_on_serviced[i];
+        }
+        all.sleep_solo_sunbeam += agg.sleep_solo_sunbeam;
+        all.sleep_solo_plain += agg.sleep_solo_plain;
+        all.sleep_with_friend += agg.sleep_with_friend;
+        all.cosleep_serviced += agg.cosleep_serviced;
+        all.cosleep_unserviced += agg.cosleep_unserviced;
+        all.rest_duet_ticks += agg.rest_duet_ticks;
+        all.groom_actor_ticks += agg.groom_actor_ticks;
+        for (p, n) in &agg.cosleep_ticks_by_partner {
+            *all.cosleep_ticks_by_partner.entry(*p).or_default() += n;
+        }
+        all.cuddle_sum += agg.cuddle_sum;
+        for i in 0..CUDDLE_MARKS.len() {
+            all.cuddle_above[i] += agg.cuddle_above[i];
+        }
+        all.cuddle_at_floor += agg.cuddle_at_floor;
+        all.happiness_sum += agg.happiness_sum;
+        all.cosleep_episodes.extend(agg.cosleep_episodes.iter().cloned());
+        all.solo_sleep_lens.extend(&agg.solo_sleep_lens);
+        all.rest_duet_lens.extend(&agg.rest_duet_lens);
+        per_kitty.insert(name.clone(), summary);
+    }
+    verdict.insert("per_kitty".into(), per_kitty.into());
+    verdict.insert(
+        "all_kitties".into(),
+        summarize(&all, total_ticks * names.len() as u64, &id_names),
+    );
+
+    fs::write(
+        args.out.join("verdict.json"),
+        serde_json::to_string_pretty(&serde_json::Value::Object(verdict.clone())).unwrap() + "\n",
+    )
+    .expect("writing verdict");
+    println!(
+        "\n{}",
+        serde_json::to_string_pretty(&verdict["all_kitties"]).unwrap()
+    );
+    println!("\nwrote {}", args.out.display());
+}
+
+/// Shares and episode statistics for one aggregated census. `ticks` is the
+/// kitty-tick denominator the shares are over.
+fn summarize(
+    c: &KittyCensus,
+    ticks: u64,
+    id_names: &BTreeMap<String, String>,
+) -> serde_json::Value {
+    let sleep_ticks = c.activity_ticks[2].max(1);
+    let contact_runs: Vec<u64> = c
+        .cosleep_episodes
+        .iter()
+        .flat_map(|e| e.contact_runs.iter().copied())
+        .collect();
+    let cosleep_lens: Vec<u64> = c.cosleep_episodes.iter().map(|e| e.len).collect();
+    let fully_serviced = c
+        .cosleep_episodes
+        .iter()
+        .filter(|e| e.serviced == e.len)
+        .count();
+    let partner_left = c.cosleep_episodes.iter().filter(|e| e.partner_left).count();
+    let never_serviced = c
+        .cosleep_episodes
+        .iter()
+        .filter(|e| e.serviced == 0)
+        .count();
+    let serviced_ticks = c.cosleep_serviced.max(1);
+    let t = ticks.max(1) as f64;
+    serde_json::json!({
+        "activity_share": ACTIVITIES.iter().zip(c.activity_ticks)
+            .map(|(a, n)| (a.to_string(), n as f64 / t))
+            .collect::<BTreeMap<_, _>>(),
+        "sleep": {
+            "ticks": c.activity_ticks[2],
+            "solo_sunbeam_share": c.sleep_solo_sunbeam as f64 / sleep_ticks as f64,
+            "solo_plain_share": c.sleep_solo_plain as f64 / sleep_ticks as f64,
+            "cosleep_share": c.sleep_with_friend as f64 / sleep_ticks as f64,
+        },
+        "cosleep": {
+            "ticks": c.sleep_with_friend,
+            "serviced_share": c.cosleep_serviced as f64
+                / c.sleep_with_friend.max(1) as f64,
+            "episodes": quantiles(cosleep_lens),
+            "contact_runs": quantiles(contact_runs),
+            "episodes_fully_serviced": fully_serviced,
+            "episodes_partner_left": partner_left,
+            "episodes_never_serviced": never_serviced,
+            "partner_on_serviced_tick": ACTIVITIES.iter()
+                .zip(c.partner_activity_on_serviced)
+                .map(|(a, n)| (a.to_string(), n as f64 / serviced_ticks as f64))
+                .collect::<BTreeMap<_, _>>(),
+            // Option C's tier, measured before it exists: companion is
+            // itself Sleeping or Resting on a serviced tick.
+            "mutual_share_of_serviced": (c.partner_activity_on_serviced[1]
+                + c.partner_activity_on_serviced[2]) as f64
+                / serviced_ticks as f64,
+            "ticks_by_partner": c.cosleep_ticks_by_partner.iter()
+                .map(|(p, n)| (id_names.get(&p.to_string())
+                                    .cloned()
+                                    .unwrap_or_else(|| p.to_string()), *n))
+                .collect::<BTreeMap<_, _>>(),
+        },
+        "solo_sleep_episodes": quantiles(c.solo_sleep_lens.clone()),
+        "rest_duet": {
+            "ticks": c.rest_duet_ticks,
+            "episodes": quantiles(c.rest_duet_lens.clone()),
+        },
+        "groom_actor_ticks": c.groom_actor_ticks,
+        "cuddle_need": {
+            "mean": c.cuddle_sum / t,
+            "share_above": CUDDLE_MARKS.iter().zip(c.cuddle_above)
+                .map(|(m, n)| (format!("{m}"), n as f64 / t))
+                .collect::<BTreeMap<_, _>>(),
+            "share_at_floor": c.cuddle_at_floor as f64 / t,
+        },
+        "mean_happiness": c.happiness_sum / t,
+        "water": {
+            "inwater_share": c.on_water_by_activity.iter().sum::<u64>() as f64 / t,
+            "lounge_share": (c.on_water_by_activity[1] + c.on_water_by_activity[2]
+                + c.on_water_by_activity[6]) as f64 / t,
+            "by_activity": ACTIVITIES.iter().zip(c.on_water_by_activity)
+                .map(|(a, n)| (a.to_string(), n))
+                .collect::<BTreeMap<_, _>>(),
+        },
+    })
+}

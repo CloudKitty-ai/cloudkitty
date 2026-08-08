@@ -1,0 +1,17 @@
+[package]
+name = "contact-census"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Scripted contact census: co-sleep episodes, contact durations and the cuddle economy on a behavior-driven world (exp-004 cosleep-pricing baseline)."
+
+[dependencies]
+cloudkitty-core = { path = "../../../crates/cloudkitty-core" }
+cloudkitty-rl = { path = "../../../crates/cloudkitty-rl" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+
+# Standalone on purpose: not a member of the product workspace (see
+# experiments/README.md — product CI never builds research code).
+[workspace]
