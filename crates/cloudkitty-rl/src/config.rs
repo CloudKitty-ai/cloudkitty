@@ -37,88 +37,57 @@ impl RlConfigError {
 }
 
 /// Everything under `[rl]`.
+///
+/// Missing fields and tables fall back to the `Default` impls (the
+/// container-level `serde(default)`, which composes with the strictness:
+/// an *absent* key defaults, an *unknown* key still refuses to load).
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[serde(default, deny_unknown_fields)]
 pub struct RlConfig {
-    #[serde(default)]
     pub observation: ObservationConfig,
-    #[serde(default)]
     pub global_state: GlobalStateConfig,
-    #[serde(default)]
     pub reward: RewardConfig,
-    #[serde(default)]
     pub episode: EpisodeConfig,
-    #[serde(default)]
     pub eval: EvalConfig,
     /// `[rl.policy.<name>] artifact = "path"` — the policies configuration
     /// may name in a kitty's `behavior = "policy:<name>"`.
-    #[serde(default)]
     pub policy: BTreeMap<String, PolicyConfig>,
 }
 
 /// `[rl.observation]`: slot counts and normalization constants (FR-005).
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[serde(default, deny_unknown_fields)]
 pub struct ObservationConfig {
     /// Kitty slots in the observation (default 3 — the default roster's
     /// "everyone else"; larger rosters are partially observable by design).
-    #[serde(default = "default_kitty_slots")]
     pub kitty_slots: usize,
     /// Critter slots (default 4).
-    #[serde(default = "default_critter_slots")]
     pub critter_slots: usize,
     /// Chow slots (default 2).
-    #[serde(default = "default_chow_slots")]
     pub chow_slots: usize,
     /// Water slots (default 2).
-    #[serde(default = "default_water_slots")]
     pub water_slots: usize,
     /// Sunbeam slots (default 2).
-    #[serde(default = "default_sunbeam_slots")]
     pub sunbeam_slots: usize,
     /// The need-rise rate one trait unit corresponds to: a kitty's encoded
     /// trait is `rate / reference_need_rate`, clamped to [0, 4] (documented
     /// bound). Default 1.0.
-    #[serde(default = "default_reference_need_rate")]
     pub reference_need_rate: f32,
     /// Chow servings are encoded as `servings / max_chow_servings`, clamped
     /// to [0, 1]. Default 5 — the default `[elements.chow] servings`.
-    #[serde(default = "default_max_chow_servings")]
     pub max_chow_servings: u32,
-}
-
-fn default_kitty_slots() -> usize {
-    3
-}
-fn default_critter_slots() -> usize {
-    4
-}
-fn default_chow_slots() -> usize {
-    2
-}
-fn default_water_slots() -> usize {
-    2
-}
-fn default_sunbeam_slots() -> usize {
-    2
-}
-fn default_reference_need_rate() -> f32 {
-    1.0
-}
-fn default_max_chow_servings() -> u32 {
-    5
 }
 
 impl Default for ObservationConfig {
     fn default() -> Self {
         Self {
-            kitty_slots: default_kitty_slots(),
-            critter_slots: default_critter_slots(),
-            chow_slots: default_chow_slots(),
-            water_slots: default_water_slots(),
-            sunbeam_slots: default_sunbeam_slots(),
-            reference_need_rate: default_reference_need_rate(),
-            max_chow_servings: default_max_chow_servings(),
+            kitty_slots: 3,
+            critter_slots: 4,
+            chow_slots: 2,
+            water_slots: 2,
+            sunbeam_slots: 2,
+            reference_need_rate: 1.0,
+            max_chow_servings: 5,
         }
     }
 }
@@ -126,56 +95,40 @@ impl Default for ObservationConfig {
 /// `[rl.global_state]`: the privileged critic view's bounded element summary
 /// (FR-019).
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[serde(default, deny_unknown_fields)]
 pub struct GlobalStateConfig {
     /// Positions of the K nearest elements per type to the world center
     /// included in the summary. Default 2.
-    #[serde(default = "default_elements_per_type")]
     pub elements_per_type: usize,
-}
-
-fn default_elements_per_type() -> usize {
-    2
 }
 
 impl Default for GlobalStateConfig {
     fn default() -> Self {
         Self {
-            elements_per_type: default_elements_per_type(),
+            elements_per_type: 2,
         }
     }
 }
 
 /// `[rl.reward]` (FR-008/FR-009).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[serde(default, deny_unknown_fields)]
 pub struct RewardConfig {
     /// Power-mean exponent. 1 = plain average, 0 = Nash welfare (geometric
     /// mean, the default), large negative → the least-happy kitty's score.
     /// Must lie in [[`MIN_P`], 1] (inequality-averse: concave), and be
     /// exactly 0 or at least [`MIN_P_MAGNITUDE`] in size — a tinier
     /// nonzero exponent is numerically Nash with worse rounding.
-    #[serde(default = "default_p")]
     pub p: f64,
     /// Offset keeping the aggregate and its gradient finite at zero
     /// happiness. Default 0.01; must exceed [`MIN_EPSILON`] so the shifted
     /// welfare terms stay strictly positive for every lawful core config.
-    #[serde(default = "default_epsilon")]
     pub epsilon: f64,
     /// `level` (default): the welfare aggregate each step. `delta`: its
     /// change since the previous step.
-    #[serde(default)]
     pub mode: RewardMode,
     /// Potential-based shaping (FR-009). Off by default.
-    #[serde(default)]
     pub shaping: ShapingConfig,
-}
-
-fn default_p() -> f64 {
-    0.0
-}
-fn default_epsilon() -> f64 {
-    0.01
 }
 
 /// The exclusive lower bound on `[rl.reward] epsilon` (spec 014 third
@@ -202,8 +155,8 @@ pub const MIN_P_MAGNITUDE: f64 = 1e-3;
 impl Default for RewardConfig {
     fn default() -> Self {
         Self {
-            p: default_p(),
-            epsilon: default_epsilon(),
+            p: 0.0,
+            epsilon: 0.01,
             mode: RewardMode::default(),
             shaping: ShapingConfig::default(),
         }
@@ -223,25 +176,18 @@ pub enum RewardMode {
 /// roster)`. Provably policy-invariant; off by default; every coefficient
 /// configured.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[serde(default, deny_unknown_fields)]
 pub struct ShapingConfig {
-    #[serde(default)]
     pub enabled: bool,
-    #[serde(default = "default_gamma")]
     pub gamma: f64,
-    #[serde(default)]
     pub distress_coefficient: f64,
-}
-
-fn default_gamma() -> f64 {
-    1.0
 }
 
 impl Default for ShapingConfig {
     fn default() -> Self {
         Self {
             enabled: false,
-            gamma: default_gamma(),
+            gamma: 1.0,
             distress_coefficient: 0.0,
         }
     }
@@ -249,50 +195,33 @@ impl Default for ShapingConfig {
 
 /// `[rl.episode]` (FR-010).
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[serde(default, deny_unknown_fields)]
 pub struct EpisodeConfig {
     /// Truncation horizon in ticks. Default 2000; must be ≥ 1.
-    #[serde(default = "default_horizon")]
     pub horizon: u64,
-}
-
-fn default_horizon() -> u64 {
-    2_000
 }
 
 impl Default for EpisodeConfig {
     fn default() -> Self {
-        Self {
-            horizon: default_horizon(),
-        }
+        Self { horizon: 2_000 }
     }
 }
 
 /// `[rl.eval]` (FR-013): the harness defaults.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[serde(default, deny_unknown_fields)]
 pub struct EvalConfig {
     /// Run length per seed. Default 20,000 — the long-run welfare horizon.
-    #[serde(default = "default_eval_ticks")]
     pub ticks: u64,
     /// The fixed seed set. Default: the 10 fixed CI seeds 1..=10.
-    #[serde(default = "default_eval_seeds")]
     pub seeds: Vec<u64>,
-}
-
-fn default_eval_ticks() -> u64 {
-    20_000
-}
-
-fn default_eval_seeds() -> Vec<u64> {
-    (1..=10).collect()
 }
 
 impl Default for EvalConfig {
     fn default() -> Self {
         Self {
-            ticks: default_eval_ticks(),
-            seeds: default_eval_seeds(),
+            ticks: 20_000,
+            seeds: (1..=10).collect(),
         }
     }
 }

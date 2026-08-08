@@ -85,9 +85,10 @@ Names are a public interface: `GET /config` serializes each kitty's
 every client. Pick a name once; don't churn it. The human-readable
 description belongs in the tables below — and, when a "show brain"
 feature is specced, in a served field on `[rl.policy.*]`. Don't add a
-`description =` key before then: `PolicyConfig` has no
-`deny_unknown_fields`, so serde silently discards unknown keys and the
-config would carry something that looks like data but is inert.
+`description =` key before then: since the strictness pass (PR #114,
+2026-08-06) `PolicyConfig` carries `deny_unknown_fields`, so an
+unspecced key refuses to load outright — the config that names it
+never boots.
 
 ## Active
 
