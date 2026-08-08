@@ -1010,12 +1010,36 @@ const bellyAt = (x, b) => {
 const legAt = (over, x = CatV2.GAIT.hip) =>
   0.88 - bellyAt(x, reshaped(over, () => CatV2.catLayout('walking', 0)).body);
 
-check('the shape dials ship as identity', () => {
+/** The v1 body every multiplier is measured against. */
+const IDENT = { bodyW: 1, bodyH: 1, headR: 1, headY: 0, headX: 0 };
+
+check('the shipped shape is the one the owner dialled', () => {
   const p = CatV2.PROPORTION;
-  assert(
-    p.bodyW === 1 && p.bodyH === 1 && p.headR === 1 && p.headY === 0,
-    'shipped PROPORTION must still be today’s cat -- a lab value is pasted deliberately, never left behind',
+  // Pinned, not asserted-as-identity: these were chosen in the lab on
+  // 2026-08-08. The check exists so the next edit has to be deliberate too.
+  close(p.bodyW, 1.1, 'bodyW drifted');
+  close(p.bodyH, 1.1, 'bodyH drifted');
+  close(p.headR, 1, 'headR drifted');
+  close(p.headY, 0.02, 'headY drifted');
+  close(p.headX, 0, 'headX drifted');
+  // Equal width and height scaling leaves the aspect alone -- this is a
+  // bigger body, not a rounder one, and the readout must not claim otherwise.
+  const shipped = CatV2.catLayout('walking', 0);
+  const v1 = reshaped(IDENT, () => CatV2.catLayout('walking', 0));
+  close(
+    shipped.body.rx / shipped.body.ry,
+    v1.body.rx / v1.body.ry,
+    'equal bodyW/bodyH must leave the aspect untouched',
   );
+});
+
+check('the head slides along the body without reshaping it', () => {
+  const base = CatV2.catLayout('walking', 0);
+  const fwd = reshaped({ headX: 0.05 }, () => CatV2.catLayout('walking', 0));
+  close(fwd.head.cx - base.head.cx, 0.05, 'the head did not move forward');
+  close(fwd.head.cy, base.head.cy, 'moving the head forward moved it vertically');
+  close(fwd.body.cx, base.body.cx, 'the body followed the head');
+  close(fwd.head.r, base.head.r, 'the head resized while sliding');
 });
 
 check('reshaping holds the belly floor in every pose', () => {
@@ -1056,12 +1080,14 @@ check('the head and tail ride the body they are attached to', () => {
 });
 
 check('rounding the body out is what buys visible leg', () => {
+  // Measured against the v1 body, not the shipped one, so the claim stays
+  // about the mechanism rather than about wherever the dials happen to sit.
   // kitten.me's 1.33 aspect, reached by height alone: ry 0.210 -> 0.241.
-  const shipped = legAt({});
-  const rounder = legAt({ bodyH: 1.146 });
+  const v1 = legAt(IDENT);
+  const rounder = legAt({ ...IDENT, bodyH: 1.146 });
   assert(
-    rounder > shipped + 0.008,
-    `a rounder body must show MORE leg, not less: ${shipped.toFixed(4)} -> ${rounder.toFixed(4)}`,
+    rounder > v1 + 0.008,
+    `a rounder body must show MORE leg, not less: ${v1.toFixed(4)} -> ${rounder.toFixed(4)}`,
   );
 });
 

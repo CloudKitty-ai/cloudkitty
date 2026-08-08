@@ -219,7 +219,7 @@
   // Shape dials write into the same shipped object, so every card in the
   // lab -- the pose gallery included -- reshapes together. Proportion has
   // to be judged in the pounce and the loaf, not only mid-stride.
-  for (const k of ['bodyW', 'bodyH', 'headR', 'headY']) {
+  for (const k of ['bodyW', 'bodyH', 'headR', 'headY', 'headX']) {
     Object.defineProperty(WALK_BAG, k, {
       get: () => CatV2.PROPORTION[k], set: (v) => { CatV2.PROPORTION[k] = v; }, enumerable: true,
     });
@@ -742,6 +742,7 @@
         { key: 'bodyH', label: 'BODY HEIGHT \u00d7 (belly floor held \u2014 rounder body = more visible leg)', min: 0.85, max: 1.35, step: 0.002 },
         { key: 'bodyW', label: 'BODY WIDTH \u00d7', min: 0.85, max: 1.35, step: 0.002 },
         { key: 'headR', label: 'HEAD SIZE \u00d7 (buys headroom, never leg)', min: 0.75, max: 1.15, step: 0.002 },
+        { key: 'headX', label: 'HEAD FORWARD / BACK along the body (+ is forward)', min: -0.1, max: 0.1, step: 0.002 },
         { key: 'headY', label: 'head nudge after it rides the body (+ is down)', min: -0.06, max: 0.06, step: 0.002 },
         { key: 'cycles', label: 'steps per tile \u2014 fractional now, the gait rides distance', min: 1, max: 4, step: 0.1 },
         { key: 'duty', label: 'stance share (how much of a step a foot is down)', min: 0.5, max: 0.85, step: 0.01 },
@@ -777,7 +778,7 @@
           `lift: ${g.lift}, bob: ${g.bob}, beats: ${g.beats}, bobPhase: ${g.bobPhase}, pivot: ${g.pivot}, ` +
           `hip: ${g.hip}, shoulder: ${g.shoulder}, spread: ${g.spread} }\n` +
           `PROPORTION = { lift: ${p.lift}, bodyW: ${p.bodyW}, bodyH: ${p.bodyH}, ` +
-          `headR: ${p.headR}, headY: ${p.headY} }\n` +
+          `headR: ${p.headR}, headY: ${p.headY}, headX: ${p.headX} }\n` +
           `head:body ${(B.rx ? CatV2.catLayout('walking', 0).head.r / B.rx : 0).toFixed(2)} ` +
           `(kitten.me 0.61, shipped 0.71), body aspect ${(B.rx / B.ry).toFixed(2)} ` +
           `(kitten.me 1.33, shipped 1.52)\n` +

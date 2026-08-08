@@ -196,14 +196,21 @@ const GAIT = {
  */
 const PROPORTION = {
   lift: 0, // 0 is exactly today's cat
-  // Shape, as multiples of today's cat -- 1 is exactly today's. Held as
-  // multipliers rather than radii because every pose sets its own body
-  // (walking widens rx, the pounce crouch squashes ry, sleep-curl is a
-  // ball); an absolute would overwrite all of that, a scale respects it.
-  bodyW: 1,
-  bodyH: 1,
+  // Shape, as multiples of the v1 cat -- 1 is the body this vocabulary
+  // shipped with. Held as multipliers rather than radii because every pose
+  // sets its own body (walking widens rx, the pounce crouch squashes ry,
+  // sleep-curl is a ball); an absolute would overwrite all of that, a
+  // scale respects it.
+  //
+  // Owner-dialled 2026-08-08. Note bodyW and bodyH move together here, so
+  // the ASPECT is untouched at 1.52 -- this is a 10% bigger body, not a
+  // rounder one. What it buys is head:body 0.71 -> 0.64, most of the way to
+  // kitten.me's 0.61, by growing the body rather than shrinking the head.
+  bodyW: 1.1,
+  bodyH: 1.1,
   headR: 1,
-  headY: 0, // extra head nudge after the ride-along, + is down
+  headY: 0.02, // head nudge after the ride-along, + is down
+  headX: 0, // and along the body, + is forward (the base cat faces right)
 };
 
 /**
@@ -257,8 +264,8 @@ function liftLayout(L, airborne) {
  * none of it, only headroom.
  */
 function proportionLayout(L, airborne) {
-  const { bodyW, bodyH, headR, headY } = PROPORTION;
-  if (bodyW === 1 && bodyH === 1 && headR === 1 && !headY) return L;
+  const { bodyW, bodyH, headR, headY, headX } = PROPORTION;
+  if (bodyW === 1 && bodyH === 1 && headR === 1 && !headY && !headX) return L;
 
   const floor = L.body.cy + L.body.ry;
   L.body.rx *= bodyW;
@@ -268,6 +275,7 @@ function proportionLayout(L, airborne) {
 
   L.head.r *= headR;
   L.head.cy += dy + headY;
+  L.head.cx += headX;
 
   const t = L.tail;
   t.y0 += dy; t.c1y += dy; t.c2y += dy; t.y1 += dy;
