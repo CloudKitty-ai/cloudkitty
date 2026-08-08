@@ -269,6 +269,10 @@ that admits your favourite.
   cuddle is 0.7% pooled and zero for six of nine.
 - **Rebuild the Python binding after every engine change.** It was
   reporting observation schema 1 three commits after the engine moved.
+- **F-015's re-verify trigger has fired and is unserviced**: its class
+  amplitudes/densities were measured pre-026/027. exp-004's first
+  twin-probe run re-measures class-conditioned credit (and re-derives
+  F-004's world-count bar) before any probe-based claim.
 
 ---
 
