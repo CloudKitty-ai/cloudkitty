@@ -60,11 +60,6 @@ pub struct DealtSeeds {
 }
 
 impl DealtSeeds {
-    /// The tick these seeds were dealt for.
-    pub fn tick(&self) -> u64 {
-        self.tick
-    }
-
     /// The seed dealt to `kitty_id`, if it was in the roster at deal time.
     pub fn seed_for(&self, kitty_id: KittyId) -> Option<u64> {
         self.seeds

@@ -49,20 +49,12 @@ impl ElementType {
         matches!(self, ElementType::Bug | ElementType::Greeble)
     }
 
-    /// The need this element type can satisfy, if any. Used by the Article I
-    /// safeguard: only eat and drink depend on a *scarce* resource, so only those
-    /// can ever leave a kitty without relief. Play is satisfiable by any critter or
-    /// friend, cuddle by any friend (there are always >= 2 kitties), bath by
-    /// self-grooming, and sleep anywhere (a sunbeam only makes it faster).
-    pub fn satisfies(&self) -> Option<NeedKind> {
-        match self {
-            ElementType::Chow => Some(NeedKind::Eat),
-            ElementType::Water => Some(NeedKind::Drink),
-            _ => None,
-        }
-    }
-
     /// The element type that relieves `need`, when relief requires an element.
+    /// Used by the Article I safeguard: only eat and drink depend on a *scarce*
+    /// resource, so only those can ever leave a kitty without relief. Play is
+    /// satisfiable by any critter or friend, cuddle by any friend (there are
+    /// always >= 2 kitties), bath by self-grooming, and sleep anywhere (a
+    /// sunbeam only makes it faster).
     pub fn for_need(need: NeedKind) -> Option<ElementType> {
         match need {
             NeedKind::Eat => Some(ElementType::Chow),
@@ -186,11 +178,22 @@ mod tests {
 
     #[test]
     fn only_food_and_water_are_safeguard_resources() {
-        assert_eq!(ElementType::Chow.satisfies(), Some(NeedKind::Eat));
-        assert_eq!(ElementType::Water.satisfies(), Some(NeedKind::Drink));
-        assert_eq!(ElementType::Bug.satisfies(), None);
-        assert_eq!(ElementType::Sunbeam.satisfies(), None);
-        assert_eq!(ElementType::for_need(NeedKind::Play), None);
+        assert_eq!(
+            ElementType::for_need(NeedKind::Eat),
+            Some(ElementType::Chow)
+        );
+        assert_eq!(
+            ElementType::for_need(NeedKind::Drink),
+            Some(ElementType::Water)
+        );
+        for need in [
+            NeedKind::Play,
+            NeedKind::Cuddle,
+            NeedKind::Sleep,
+            NeedKind::Bath,
+        ] {
+            assert_eq!(ElementType::for_need(need), None);
+        }
     }
 
     #[test]

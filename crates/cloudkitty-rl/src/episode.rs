@@ -195,14 +195,6 @@ impl Episode {
         &self.world
     }
 
-    pub fn horizon(&self) -> u64 {
-        self.horizon
-    }
-
-    pub fn tick_in_episode(&self) -> u64 {
-        self.tick_in_episode
-    }
-
     /// Every kitty in the roster, stable id order.
     pub fn roster(&self) -> Vec<KittyId> {
         self.world.kitties.iter().map(|k| k.id).collect()

@@ -99,10 +99,6 @@ impl Activity {
         matches!(self, Activity::Sleeping { .. })
     }
 
-    pub fn is_resting(&self) -> bool {
-        matches!(self, Activity::Resting { .. })
-    }
-
     pub fn is_in_progress(&self) -> bool {
         !matches!(self, Activity::Idle)
     }

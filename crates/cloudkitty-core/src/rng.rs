@@ -61,11 +61,6 @@ impl SimRng {
     pub fn gen_f32(&mut self) -> f32 {
         self.inner.gen()
     }
-
-    /// Derives an independent stream for one kitty's decision this tick.
-    pub fn derive_decision_rng(&mut self) -> DecisionRng {
-        DecisionRng::from_seed(self.next_u64())
-    }
 }
 
 /// A per-kitty, per-tick RNG handed to a behavior.
@@ -176,11 +171,15 @@ mod tests {
         // Deriving streams in a fixed order then consuming them in any order must
         // give the same values -- this is what makes concurrent decisions safe.
         let mut master = SimRng::from_seed(99);
-        let streams: Vec<DecisionRng> = (0..4).map(|_| master.derive_decision_rng()).collect();
+        let streams: Vec<DecisionRng> = (0..4)
+            .map(|_| DecisionRng::from_seed(master.next_u64()))
+            .collect();
         let forward: Vec<f32> = streams.iter().map(|s| s.gen_f32()).collect();
 
         let mut master2 = SimRng::from_seed(99);
-        let streams2: Vec<DecisionRng> = (0..4).map(|_| master2.derive_decision_rng()).collect();
+        let streams2: Vec<DecisionRng> = (0..4)
+            .map(|_| DecisionRng::from_seed(master2.next_u64()))
+            .collect();
         // Consume in reverse order; each stream still yields its own first value.
         let mut backward = vec![0.0; 4];
         for i in (0..4).rev() {
