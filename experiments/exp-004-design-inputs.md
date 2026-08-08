@@ -317,6 +317,18 @@ F-016 feedback check). This prices the dials; it does not certify
 anything — policy-side effects are measured later, in policy company
 (F-012), class-conditioned (F-015).
 
+**Baseline MEASURED 2026-08-08** — the pilot's "before" picture is on
+the record: `experiments/contact-baseline-2026-08-08/results.md`
+(instrument: `experiments/tools/contact-census/`, cross-checked against
+optE-B to one kitty-tick in 800k). The numbers that matter for the
+dials: typical contact run **3 ticks** (median 3, p90 5), so 15/tick
+pays ~45 per contact against a mean cuddle need of **11.6** — the
+instantaneous-pricing critique, quantified; companion Idle on **42%**
+of paid ticks; mutual (option C's tier) already **31.5%** of serviced
+ticks; rest duets outweigh cosleep **27×** on the shared dial (the
+dedicated-dial requirement, quantified); scripted GroomKitty is **0
+ticks** in 800k (the demonstrator gap is total, not just rare).
+
 ### Constraint
 
 Anything touching the digest **bumps the observation schema** → another
