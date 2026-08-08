@@ -688,8 +688,19 @@ disjoint band reported as a drift alarm.
   threshold is a config dial** — grounded legality reads need-vs-dial
   at mask time, so retuning is a config rollout, not a generation
   wall. Killer fact stands: the old urgent 75 is above every cat's
-  lived range (≤ 0.02% occupancy). Responder's "cuddle is real" gate
-  ~15–20 (12% occupancy), not 30 (2.5%).
+  lived range (≤ 0.02% occupancy). Responder's "cuddle is real" gate:
+  **SETTLED 2026-08-08, ships 15** (spec 028 FR-019, config dial;
+  Experiments concurring with Product) — rare-class asymmetry (a
+  demonstrator that stayed silent cannot be dialed into existence
+  after collection; GroomKitty starts from 0-in-800k), over-response
+  safe by construction (welfare-positive trade, ladder-governed,
+  non-conscripting), decide-once because the shipped default is what
+  re-baseline `B` measures. Correction on the record: the 12.1%
+  occupancy figure attaches to threshold **20**; at 15 in-gate share
+  sits higher (~high teens), strengthening the traffic argument. Gate
+  held constant at 15 across all pilot cells (the `cuddle_relief`
+  axis raises in-gate occupancy in reduced cells — measured, part of
+  the readout).
 - ~~Digest: per-kind intensity?~~ **SETTLED 2026-08-08: IN** (owner) —
   engine-stamped need-at-emission (grounded, cannot lie), same emitter
   as the direction fields (coherent recency/direction/intensity

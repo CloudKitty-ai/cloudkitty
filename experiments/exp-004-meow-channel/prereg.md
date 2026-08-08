@@ -83,7 +83,8 @@ scratch, and no cross-generation artifact comparison exists.
 
 - **H2 (the demonstrated response transfers)**: trained candidates
   respond to the channel. Registered direction: P(approach-and-groom
-  the emitter | WantBath heard ∧ own cuddle ≥ responder region)
+  the emitter | WantBath heard ∧ own cuddle ≥ the shipped responder
+  gate, 15 — spec 028 FR-019)
   exceeds the same policy's rate absent the meow, measured by paired
   census on matched seeds. Registered floor: GroomKitty ticks > 0 in
   policy company at certification (v3 tick-level truth: exactly 0).

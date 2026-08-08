@@ -92,7 +92,10 @@ ceiling ~55–56, needs_driven initiation 12–23).
   requirement): grounded legality reads need-vs-dial at mask time, so
   retuning it later is a config rollout, **not a generation wall**.
   Register 30 for exp-004; the product can move it with evidence.
-- **Responder gate**: unchanged, ~15–20 (needs_driven cuddle-initiation
+- **Responder gate**: unchanged, ~15–20 *(settled 2026-08-08: ships
+  **15**, spec 028 FR-019 — and note the 12.1% occupancy below
+  attaches to threshold 20; at 15 the in-gate share sits higher)*
+  (needs_driven cuddle-initiation
   region; 12% occupancy at 20 vs 2.5% at 30).
 - **WantSleep**: same structure both compositions (playful 46 emits/1k
   at 30; policy 0.02) — in the batch per the owner's call.
