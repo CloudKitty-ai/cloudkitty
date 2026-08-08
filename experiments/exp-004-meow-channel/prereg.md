@@ -129,7 +129,13 @@ scratch, and no cross-generation artifact comparison exists.
 arm lost on every axis; no γ sweep this generation (registered
 exclusion, reaffirmed by the owner 2026-08-08: spare capacity goes to
 **seeds, not sweeps** — per-seed lottery noise, not per-cell effects,
-dominated both prior grids). A higher-γ (0.9985/0.999) follow-up is
+dominated both prior grids). **A0 and A1 seed counts are equal by
+construction** (the on/off contrast stays balanced whatever N the
+freeze picks); N is a per-experiment resource choice, declared here
+per F-009, and owes no consistency to other experiments' N — training
+seeds are never pooled across generations, and every standardized
+instrument parameter (gate n = 30/shape, screen seeds, bands) is
+registered on the eval side independent of it. A higher-γ (0.9985/0.999) follow-up is
 *named but not run*: exp-002's 0.9985 cell added nothing and its
 critic pretrained worst, so it re-enters only if A0/A1 show
 horizon-limited channel signatures.
