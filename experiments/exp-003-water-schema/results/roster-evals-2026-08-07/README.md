@@ -10,9 +10,10 @@ grid evaluation (`trainer/run_eval.py`); exp-002's counterpart set is
 already committed at
 `experiments/exp-002-mixed-population/results/eval-2026-08-03/`.
 
-`gate_check.py` re-runs the proposed gate (saturation ≥ 1,000 /
-repetition >1-over-150 per shape / any floor-touch) against both
-cohorts and prints the fail list the proposal quotes. Its exp-002
+`gate_check.py` re-runs the settled gate (owner, 2026-08-08: incident
+bar 225 with rate `max(1, floor(0.05n))` per shape / `low_share` > 5%
+backstop / any floor-touch) against both cohorts and prints the fail
+list the design-inputs doc quotes. Its exp-002
 count reads 23, not 22: the extra row is `s6-reference`, the frozen
 exp-001 anchor evaluated alongside the grid (it passes; it is not a
 candidate).
