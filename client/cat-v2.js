@@ -137,6 +137,165 @@ const SWIM = {
   tailLift: 0.6, // where the tail tip rides above the surface
 };
 
+/**
+ * Walk-cycle tunables, mutable for the lab like SWIM.
+ *
+ * The walk this replaces slid both feet along a shared sine at a fixed
+ * y. That has no stance: for half of every step each planted foot moved
+ * FORWARD while the cat was already moving forward, so the feet outran
+ * the cat and the whole thing read as skating. Invisible at a 30px tile;
+ * at 60 it is the first thing you see.
+ *
+ * A foot on the ground has exactly one honest job -- to hold still
+ * against the world, which in body space means travelling backward at
+ * the speed the ground passes under it. So the cycle is split: `duty` of
+ * it planted and drifting back, the rest lifted and swinging forward.
+ * The lift is what buys the illusion, because a foot in the air is
+ * ALLOWED to move.
+ */
+const GAIT = {
+  // Steps per tile. MUST be a whole number: `phase` is tick progress and
+  // returns to 0 every tile, so a fractional count tears the cycle once
+  // per tile crossed. It is also the setting that makes planting possible
+  // at all -- see PLANTED below.
+  cycles: 1.8,
+  duty: 0.62, // share of the cycle a foot is planted (>0.5 = a walk, not a run)
+  reach: 0.085, // stride half-width, in tiles either side of the leg's base
+  lift: 0.04, // ground clearance at mid-swing
+  bob: 0.005, // body rise and fall -- the old 0.008 was 0.48px at tile 60
+  // Body dips per gait cycle. There are FOUR footfalls in a cycle (the
+  // lateral sequence lands a paw every 0.25), so 4 answers every step and
+  // is the only setting where bobPhase has something to line up against:
+  // at 2 the body responds to one pair of legs and ignores the other,
+  // which is why no phase looked right.
+  beats: 2,
+  bobPhase: 0.5, // where in the cycle the body sits lowest (0 = at footfall)
+  pivot: 0.62, // where the limb hangs from, inside the body and out of sight
+  hip: 0.2, // hind limb's pivot x
+  shoulder: 0.66, // fore limb's pivot x
+  spread: 0, // how far the far-side pair sits off the near one (depth, not stance)
+};
+
+/**
+ * How far the cat stands off the ground, in tiles. Mutable for the lab.
+ *
+ * Today's cat is a body resting on 1.9px of paw: the body's underside sits
+ * at 0.85 and the feet at 0.88, so there is almost no daylight beneath it.
+ * That silhouette -- low mass, negligible legs, sliding horizontally -- is
+ * what reads as an insect rather than a cat, and no amount of gait work
+ * reaches it, because there is nowhere for the motion to happen.
+ *
+ * The lift raises the body, head and tail while leaving the FEET where
+ * they are, which is what turns it into leg length. Because the ground
+ * line never moves, render.js's CAT_GROUND_Y, the pond clip and the
+ * landing settle all keep working untouched.
+ *
+ * A real cat's belly clearance is ~40% of its standing height. We are not
+ * going there -- kitten.me has no legs at all and reads beautifully. This
+ * only has to buy somewhere for an articulation to live.
+ */
+const PROPORTION = {
+  lift: 0, // 0 is exactly today's cat
+};
+
+/**
+ * Applies PROPORTION.lift to a finished layout.
+ *
+ * `airborne` is the whole point of the signature. A foot on the ground is
+ * positioned against the GROUND, so it must not move -- that is what
+ * lengthens the leg. But the pounce's leap has both feet already clear of
+ * the ground, where they are positioned against the BODY, and lifting the
+ * body out from under them would detach the limbs mid-leap. So grounded
+ * poses lift everything except `bottom`, and airborne ones lift the foot
+ * too, keeping the limb rigid.
+ *
+ * Runs inside catLayout, so nothing downstream ever sees an unlifted cat
+ * and blendLayouts needs no new field.
+ */
+function liftLayout(L, airborne) {
+  const d = PROPORTION.lift;
+  if (!d) return L;
+  const up = (y) => y - d;
+  L.body.cy = up(L.body.cy);
+  L.head.cy = up(L.head.cy);
+  const t = L.tail;
+  t.y0 = up(t.y0); t.c1y = up(t.c1y); t.c2y = up(t.c2y); t.y1 = up(t.y1);
+  L.legs = L.legs.map((leg) => ({
+    ...leg,
+    top: up(leg.top),
+    bottom: airborne ? up(leg.bottom) : leg.bottom,
+  }));
+  return L;
+}
+
+/**
+ * The reach that actually plants a foot, for a given duty and step count.
+ *
+ * Moving backward is not enough: a foot that drifts back too SLOWLY still
+ * skates, just less. To hold still against the world it has to sweep back
+ * through exactly the ground the cat covers while it is down -- the cat
+ * travels 1/cycles of a tile per step and is planted for `duty` of that,
+ * so 2 * reach must equal duty / cycles.
+ *
+ * This is why the step count matters, and it is the whole reason `cycles`
+ * exists. Reach has a hard ceiling of 0.14: a leg here is a free peg, not
+ * a limb on a hip, so a foot that reaches past the body's own edge
+ * (the walking body spans x 0.12..0.76) leaves a stick hanging in the air
+ * with no cat above it. Planting therefore needs
+ * duty / (2 * cycles) <= 0.14 -- at least THREE steps per tile at a 0.62
+ * duty. One step per tile wants a reach of 0.31 and cannot be planted at
+ * all, only made less bad, which is where this started.
+ */
+function plantedReach(dials = GAIT) {
+  return dials.duty / (2 * dials.cycles);
+}
+
+/**
+ * The paw is a half-disc of radius w/2 struck at `bottom`, so a foot
+ * lifted past (height - w/2) puts the arc above the leg's own top and
+ * the path turns inside out. Nothing downstream notices -- the harness's
+ * mock ctx only rejects non-finite numbers, and an inverted path is
+ * perfectly finite -- so the ceiling is asserted in test-motion.mjs
+ * instead. 0.14 tall, 0.095 wide => 0.0925 of headroom.
+ */
+const MAX_LIFT = 0.0925;
+
+/**
+ * The far-side pair: the same legs a little further off, drawn FIRST and
+ * in shade so they sit behind.
+ *
+ * Two legs read as a biped the moment they stop being pegs and start
+ * being limbs -- a horizontal body with a tail on two articulated legs is
+ * a theropod, which is exactly what the first cut looked like. The second
+ * pair is the whole difference between a cat and a dinosaur.
+ *
+ * Narrow tracking (a cat sets its paws almost on one line) means the
+ * offset is small: this is depth, not a stance.
+ */
+function withFarPair(legs, dx = GAIT.spread) {
+  const far = legs.map((l) => ({ ...l, x: l.x + dx, hx: (l.hx ?? l.x) + dx, far: true }));
+  return [...far, ...legs];
+}
+
+/**
+ * One leg's offset at its own phase `u` in [0,1). Returns a stride
+ * position in -1..1 (+1 forward) and a lift in 0..1, both unitless --
+ * GAIT scales them. Continuous at u=0/1 and across the stance/swing
+ * seam, so the cycle wraps without a snap at the tick boundary.
+ */
+function gaitStep(u, duty) {
+  if (u < duty) {
+    // Planted: a straight backward drift. Linear on purpose -- the
+    // ground moves at a constant rate, and easing this is what made the
+    // old sine read wrong.
+    return { x: 1 - 2 * (u / duty), lift: 0 };
+  }
+  // Airborne: forward again, eased at both ends so the foot settles into
+  // its next stance rather than snapping into it, and arcing over.
+  const v = (u - duty) / (1 - duty);
+  return { x: -Math.cos(v * Math.PI), lift: Math.sin(v * Math.PI) };
+}
+
 /** The stable per-kitty appearance (FR-003). The one override point when
  * served appearance data exists someday: callers never index PALETTES. */
 function appearanceFor(kittyId) {
@@ -269,7 +428,12 @@ function blendLayouts(A, B, t) {
     const a = A.legs[i];
     const b = B.legs[i];
     if (a && b) {
-      legs.push({ x: n(a.x, b.x), top: n(a.top, b.top), bottom: n(a.bottom, b.bottom), w: n(a.w, b.w) });
+      legs.push({
+        x: n(a.x, b.x), top: n(a.top, b.top), bottom: n(a.bottom, b.bottom), w: n(a.w, b.w),
+        hx: n(a.hx ?? a.x, b.hx ?? b.x),
+        front: t >= 0.5 ? b.front : a.front,
+        far: t >= 0.5 ? b.far : a.far,
+      });
     } else if (a) {
       const w = a.w * Math.max(0, 1 - 2 * t);
       if (w > 0.015) legs.push({ ...a, w });
@@ -339,14 +503,16 @@ function catLayout(pose, phase) {
     earsUpright: true, // false = flattened back a touch (naps, meals)
     // Tail as a cubic bezier from rump to tip, drawn as an outlined stroke.
     tail: { x0: 0.16, y0: 0.62, c1x: 0.02, c1y: 0.62, c2x: 0.0, c2y: 0.42, x1: 0.05, y1: 0.3 },
-    legs: [
-      { x: 0.3, top: 0.74, bottom: 0.88, w: 0.1 },
-      { x: 0.6, top: 0.74, bottom: 0.88, w: 0.1 },
-    ],
+    legs: withFarPair([
+      { x: 0.2, top: 0.74, bottom: 0.88, w: 0.1 },
+      { x: 0.7, top: 0.74, bottom: 0.88, w: 0.1 },
+    ]),
     eyes: 'open', // 'open' | 'closed' | 'half' | 'focused'
     droplet: false,
     pawUp: false,
   };
+  // Set by any pose whose feet are clear of the ground; see liftLayout.
+  let airborne = false;
 
   switch (pose) {
     case 'idle':
@@ -355,14 +521,43 @@ function catLayout(pose, phase) {
       break;
 
     case 'walking': {
-      const stride = Math.sin(phase * TAU);
       L.body.rx = 0.32;
-      L.body.cy += 0.008 * Math.sin(phase * 2 * TAU); // gait bob
+      // `phase` is now TILES COVERED, not time (see Presentation.strideFor),
+      // so `cycles` is steps per tile of ground and may be fractional --
+      // there is no tick boundary left for a part-stride to tear against.
+      const cycle = phase * GAIT.cycles;
+      L.body.cy += GAIT.bob * Math.cos((cycle - GAIT.bobPhase) * GAIT.beats * TAU);
       L.head.cx = 0.72;
+      // Index 0 is the rear leg and index 1 the front, in every pose that
+      // has them -- blendLayouts pairs legs BY INDEX, so swapping them
+      // here would cross a cat's legs on the way to any other pose.
+      // Half a cycle apart: one foot is planted while the other swings.
+      // The pivot sits high INSIDE the body and never moves; only the foot
+      // swings, so the limb angles like a leg instead of sliding like a peg.
+      // Everything above the belly is hidden, so the limb getting longer at
+      // the stride extremes costs nothing -- which is what lets the stance
+      // foot stay honestly planted at y 0.88 while the swing foot arcs.
+      const { hip: HIP, shoulder: SHOULDER } = GAIT;
+      const leg = (base, u) => {
+        const g = gaitStep(((u % 1) + 1) % 1, GAIT.duty);
+        return {
+          hx: base,
+          x: base + GAIT.reach * g.x,
+          top: GAIT.pivot,
+          bottom: 0.88 - GAIT.lift * g.lift,
+          w: 0.095,
+        };
+      };
+      // The four-beat lateral walk off the owner's footfall chart: left
+      // hind, left fore, right hind, right fore, each a quarter cycle
+      // apart. Far pair first so it draws behind. Index order is fixed --
+      // blendLayouts pairs legs BY INDEX.
       L.legs = [
-        { x: 0.28 - 0.05 * stride, top: 0.74, bottom: 0.88, w: 0.095 },
-        { x: 0.62 + 0.05 * stride, top: 0.74, bottom: 0.88, w: 0.095 },
-      ];
+        { ...leg(HIP, cycle - 0.5), far: true },   // right hind
+        { ...leg(SHOULDER, cycle - 0.75), far: true }, // right fore
+        leg(HIP, cycle),                           // left hind
+        leg(SHOULDER, cycle - 0.25),               // left fore
+      ].map((l, i) => (i < 2 ? { ...l, x: l.x + GAIT.spread, hx: l.hx + GAIT.spread } : l));
       // Tail streams behind, gently lifted.
       L.tail = { x0: 0.14, y0: 0.58, c1x: 0.04, c1y: 0.56, c2x: 0.0, c2y: 0.5, x1: 0.03, y1: 0.42 };
       break;
@@ -375,21 +570,29 @@ function catLayout(pose, phase) {
       if (!leap) {
         L.body = { cx: 0.42, cy: 0.68, rx: 0.31, ry: 0.17, rot: -0.1 };
         L.head = { cx: 0.68, cy: 0.5, r: 0.221 };
-        L.legs = [
-          { x: 0.28, top: 0.78, bottom: 0.88, w: 0.1 },
-          { x: 0.58, top: 0.78, bottom: 0.88, w: 0.1 },
-        ];
+        L.legs = withFarPair([
+          { x: 0.2, top: 0.78, bottom: 0.88, w: 0.1 },
+          { x: 0.64, top: 0.78, bottom: 0.88, w: 0.1 },
+        ]);
         // Tail high and twitching with intent.
         L.tail = {
           x0: 0.14, y0: 0.6, c1x: 0.03, c1y: 0.5, c2x: 0.0, c2y: 0.32,
           x1: 0.06 + 0.02 * Math.sin(phase * 2 * TAU), y1: 0.24,
         };
       } else {
+        // Both feet clear of the ground -- the only pose where that is
+        // true, and the reason liftLayout takes an `airborne` flag.
+        airborne = true;
         L.body = { cx: 0.46, cy: 0.56, rx: 0.34, ry: 0.165, rot: -0.18 };
         L.head = { cx: 0.78, cy: 0.34, r: 0.215 };
         L.legs = [
           { x: 0.22, top: 0.66, bottom: 0.84, w: 0.09 },
-          { x: 0.74, top: 0.5, bottom: 0.68, w: 0.09 }, // forepaw reaching
+          // Drawn in FRONT of the body. Legs otherwise go behind it now,
+          // and the leap's body covers y 0.47..0.65 at this x -- which
+          // would bury all but 1.6px of the reach, gutting the one frame
+          // the owner singled out as worth protecting. Grooming's raised
+          // paw has always been a front element for the same reason.
+          { x: 0.74, top: 0.5, bottom: 0.68, w: 0.09, front: true }, // forepaw reaching
         ];
         L.tail = { x0: 0.14, y0: 0.6, c1x: 0.02, c1y: 0.6, c2x: 0.0, c2y: 0.46, x1: 0.04, y1: 0.38 };
       }
@@ -402,10 +605,10 @@ function catLayout(pose, phase) {
       L.earsUpright = false;
       L.eyes = 'closed'; // happy chomping
       L.tail = { x0: 0.15, y0: 0.66, c1x: 0.05, c1y: 0.68, c2x: 0.02, c2y: 0.6, x1: 0.03, y1: 0.55 };
-      L.legs = [
-        { x: 0.28, top: 0.76, bottom: 0.88, w: 0.1 },
-        { x: 0.56, top: 0.76, bottom: 0.88, w: 0.1 },
-      ];
+      L.legs = withFarPair([
+        { x: 0.2, top: 0.76, bottom: 0.88, w: 0.1 },
+        { x: 0.66, top: 0.76, bottom: 0.88, w: 0.1 },
+      ]);
       break;
     }
 
@@ -416,10 +619,10 @@ function catLayout(pose, phase) {
       L.eyes = 'half';
       L.droplet = true; // the little lap of water that says "drinking"
       L.tail = { x0: 0.15, y0: 0.66, c1x: 0.05, c1y: 0.68, c2x: 0.02, c2y: 0.6, x1: 0.03, y1: 0.55 };
-      L.legs = [
-        { x: 0.28, top: 0.76, bottom: 0.88, w: 0.1 },
-        { x: 0.56, top: 0.76, bottom: 0.88, w: 0.1 },
-      ];
+      L.legs = withFarPair([
+        { x: 0.2, top: 0.76, bottom: 0.88, w: 0.1 },
+        { x: 0.66, top: 0.76, bottom: 0.88, w: 0.1 },
+      ]);
       break;
     }
 
@@ -430,7 +633,7 @@ function catLayout(pose, phase) {
       L.head = { cx: 0.54, cy: 0.42 + 0.012 * Math.sin(phase * 3 * TAU), r: 0.215 };
       L.eyes = 'closed';
       L.pawUp = true;
-      L.legs = [{ x: 0.32, top: 0.76, bottom: 0.88, w: 0.1 }];
+      L.legs = withFarPair([{ x: 0.26, top: 0.76, bottom: 0.88, w: 0.1 }]);
       L.tail = { x0: 0.16, y0: 0.62, c1x: 0.03, c1y: 0.6, c2x: 0.01, c2y: 0.44, x1: 0.06, y1: 0.34 };
       break;
     }
@@ -488,7 +691,7 @@ function catLayout(pose, phase) {
       break;
   }
 
-  return L;
+  return liftLayout(L, airborne);
 }
 
 // ---------------------------------------------------------------------------
@@ -503,8 +706,15 @@ function paintCat(ctx, L, a, fine, lid = 0) {
   const p = a.pattern || { kind: 'solid' };
 
   drawTail(ctx, L.tail, a, p);
+  // Legs go UNDER the body (owner's idea, 2026-08-08): a limb pivots from
+  // high inside the body and only the part below the silhouette is seen,
+  // so the visible paw is small while its MOTION is a long lever's. The
+  // body doing the hiding means no clip and no new geometry -- just this
+  // order. It also hides changes in limb LENGTH, which is what lets a
+  // stance foot stay planted on the ground while a swinging one arcs.
+  drawLegs(ctx, L.legs.filter((l) => !l.front), a, p);
   drawBody(ctx, L.body, a, p);
-  drawLegs(ctx, L.legs, a, p);
+  drawLegs(ctx, L.legs.filter((l) => l.front), a, p);
   drawEars(ctx, L.head, a, p, L.earsUpright);
   drawHead(ctx, L.head, a, p, fine);
   drawInnerEars(ctx, L.head, a, L.earsUpright);
@@ -577,27 +787,33 @@ function drawBody(ctx, b, a, p) {
 }
 
 function drawLegs(ctx, legs, a, p) {
+  // A stroked segment from the pivot (hx, top) to the foot (x, bottom):
+  // outline underneath, fur over it, round caps so the far end IS the paw.
+  // `hx` defaults to x, which is the old vertical peg exactly.
   for (const leg of legs) {
-    const half = leg.w / 2;
-    ctx.beginPath();
-    ctx.moveTo(leg.x - half, leg.top);
-    ctx.lineTo(leg.x - half, leg.bottom - half);
-    ctx.arc(leg.x, leg.bottom - half, half, Math.PI, 0, true);
-    ctx.lineTo(leg.x + half, leg.top);
-    ctx.closePath();
-    ctx.fillStyle = a.furBase;
-    ctx.fill();
-    ctx.strokeStyle = a.furShade;
-    ctx.lineWidth = OUTLINE_W;
-    ctx.stroke();
-
-    // Socked paws for the masked colorways.
+    const hx = leg.hx ?? leg.x;
+    const limb = () => {
+      ctx.beginPath();
+      ctx.moveTo(hx, leg.top);
+      ctx.lineTo(leg.x, leg.bottom);
+      ctx.stroke();
+    };
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = leg.far ? shadeHex(a.furShade, 0.85) : a.furShade;
+    ctx.lineWidth = leg.w + OUTLINE_W;
+    limb();
+    ctx.strokeStyle = leg.far ? a.furShade : a.furBase;
+    ctx.lineWidth = leg.w;
+    limb();
+    // Socked paws for the masked colorways: the last stretch before the toe.
     if (p.kind === 'tuxedo-mask' || p.kind === 'point-mask') {
-      ctx.save();
-      ctx.clip(); // the leg path built above
-      ctx.fillStyle = p.color;
-      ctx.fillRect(leg.x - half, leg.bottom - leg.w * 0.9, leg.w, leg.w);
-      ctx.restore();
+      const at = 0.68;
+      ctx.strokeStyle = p.color;
+      ctx.lineWidth = leg.w;
+      ctx.beginPath();
+      ctx.moveTo(hx + (leg.x - hx) * at, leg.top + (leg.bottom - leg.top) * at);
+      ctx.lineTo(leg.x, leg.bottom);
+      ctx.stroke();
     }
   }
 }
@@ -970,6 +1186,11 @@ const api = {
   NOSE,
   MOUTH,
   SWIM,
+  GAIT,
+  PROPORTION,
+  MAX_LIFT,
+  gaitStep,
+  plantedReach,
   PALETTES,
   POSES,
   // Not cat API, but props.js, meadow.js and app.js quietly depend on

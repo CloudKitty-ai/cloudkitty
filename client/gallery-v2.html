@@ -204,7 +204,22 @@
   const SHADOW = 'rgba(96, 72, 48, 0.18)';
   const MISO = 1, BISCUIT = 2, PUMPKIN = 3, STORM = 4;
 
+  // One bag over two shipped objects, so the sliders write live into the
+  // real GAIT and PROPORTION rather than into a copy that has to be
+  // transcribed back. `stand` is PROPORTION.lift under a clearer name.
+  const WALK_BAG = {};
+  for (const k of Object.keys(CatV2.GAIT)) {
+    Object.defineProperty(WALK_BAG, k, {
+      get: () => CatV2.GAIT[k], set: (v) => { CatV2.GAIT[k] = v; }, enumerable: true,
+    });
+  }
+  Object.defineProperty(WALK_BAG, 'stand', {
+    get: () => CatV2.PROPORTION.lift, set: (v) => { CatV2.PROPORTION.lift = v; }, enumerable: true,
+  });
+
   const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+  // anim.js startEase: a step taken from rest, arriving at walking speed.
+  const startEase = (t) => t * t * (2 - t);
   const easeSmooth = (t) => t * t * (3 - 2 * t);
 
   // Blink dials. Seeded from the shipped VIEW so the lab can never open on
@@ -707,6 +722,95 @@
       },
     },
     {
+      title: 'Walk cycle',
+      note: 'A cat walking the way the world walks it: constant speed straight through the tile boundaries, since only a step taken from rest eases in now. The ground is fixed and marked every half tile — a planted paw must hold still against a mark as the cat passes over it, which is the one thing that cannot be judged on a blank background. The readout does the arithmetic: a foot plants when its reach sweeps back through the ground covered during its stance, which is why the step count is a dial rather than a constant.',
+      v2Only: true,
+      w: 420,
+      h: 150,
+      ownShadows: true,
+      bag: WALK_BAG,
+      dials: [
+        { key: 'stand', label: 'HOW HIGH THE CAT STANDS (0 = today\u2019s cat)', min: 0, max: 0.15, step: 0.005 },
+        { key: 'cycles', label: 'steps per tile \u2014 fractional now, the gait rides distance', min: 1, max: 4, step: 0.1 },
+        { key: 'duty', label: 'stance share (how much of a step a foot is down)', min: 0.5, max: 0.85, step: 0.01 },
+        { key: 'reach', label: 'stride reach', min: 0.02, max: 0.16, step: 0.005 },
+        { key: 'pivot', label: 'where the limb hangs from (lower = less limb showing)', min: 0.45, max: 0.82, step: 0.01 },
+        { key: 'shoulder', label: 'fore limb position (forward = more of it clears the belly)', min: 0.5, max: 0.76, step: 0.01 },
+        { key: 'hip', label: 'hind limb position', min: 0.12, max: 0.38, step: 0.01 },
+        { key: 'lift', label: 'foot clearance at mid-swing', min: 0, max: 0.09, step: 0.0025 },
+        { key: 'bob', label: 'body rise and fall', min: 0, max: 0.02, step: 0.0005 },
+        { key: 'beats', label: 'body dips per step cycle (4 = one per footfall)', min: 1, max: 4, step: 1 },
+        { key: 'bobPhase', label: 'where the body sits lowest (0 = at footfall)', min: 0, max: 0.5, step: 0.01 },
+        { key: 'spread', label: 'far-pair offset (depth only \u2014 cats track narrow)', min: 0, max: 0.08, step: 0.005 },
+      ],
+      readout() {
+        const g = CatV2.GAIT, T = 60;
+        const slide = Math.abs(2 * g.reach - g.duty / g.cycles);
+        // How much limb actually SHOWS at each pivot: everything above the
+        // belly is hidden, and the belly is an ellipse, so a limb further
+        // out shows more. This is the number behind "the front legs go too
+        // far up the body".
+        const cx = 0.44, rx = 0.32, ry = 0.21, cy = 0.64 - CatV2.PROPORTION.lift;
+        const shows = (x) => {
+          const d = Math.abs(x - cx);
+          const under = d >= rx ? cy - ry : cy + ry * Math.sqrt(1 - (d / rx) ** 2);
+          return ((0.88 - under) * T).toFixed(1);
+        };
+        return (
+          `GAIT = { cycles: ${g.cycles}, duty: ${g.duty}, reach: ${g.reach}, ` +
+          `lift: ${g.lift}, bob: ${g.bob}, beats: ${g.beats}, bobPhase: ${g.bobPhase}, pivot: ${g.pivot}, ` +
+          `hip: ${g.hip}, shoulder: ${g.shoulder}, spread: ${g.spread} }\n` +
+          `PROPORTION = { lift: ${CatV2.PROPORTION.lift} }\n` +
+          `visible limb: ${shows(g.hip)}px at the hip, ${shows(g.shoulder)}px at the shoulder` +
+          `  (today's cat shows 3.1 / 3.5px)\n` +
+          (slide < 0.005
+            ? '\u2713 the feet are planted \u2014 no measurable slide'
+            : `\u26a0 feet slide ${slide.toFixed(3)} tiles per stance ` +
+              `(${(slide * T).toFixed(1)}px at the live ${T}px tile) \u2014 ` +
+              `planted reach here is ${CatV2.plantedReach().toFixed(3)}`) +
+          `\none step per ${(1 / g.cycles).toFixed(2)} tiles (~${Math.round(800 / g.cycles)}ms), ` +
+          `${(4 * g.cycles).toFixed(1)} footfalls and ${(g.beats * g.cycles).toFixed(1)} body dips per tile` +
+          `\nbody travels ${(g.bob * 2 * T).toFixed(2)}px`
+        );
+      },
+      draw(ctx, w, h, now) {
+        const TICK = 800;
+        const y = h - CAT * 0.95;
+        const groundY = y + CAT * 0.88; // the cat's own foot line
+        // Tiles covered. The gait rides THIS, not the clock, so the dials
+        // below are read in ground rather than in time.
+        const dist = now / TICK;
+        // The ground holds still and the cat travels over it, exactly as the
+        // world does it. Marks every half tile: hold one and watch a planted
+        // paw stay on it as the cat passes.
+        ctx.fillStyle = '#cfe0b8';
+        ctx.fillRect(0, groundY, w, h - groundY);
+        ctx.strokeStyle = 'rgba(107, 90, 78, 0.3)';
+        ctx.lineWidth = 2;
+        for (let x = 0; x < w + 1; x += CAT / 2) {
+          ctx.beginPath();
+          ctx.moveTo(x, groundY);
+          ctx.lineTo(x, h);
+          ctx.stroke();
+        }
+        const span = w + CAT * 2;
+        const x = ((dist * CAT) % span) - CAT;
+        ctx.fillStyle = SHADOW;
+        ctx.beginPath();
+        ctx.ellipse(x + CAT / 2, groundY, CAT * 0.32, CAT * 0.09, 0, 0, Math.PI * 2);
+        ctx.fill();
+        CatV2.drawCat(ctx, {
+          pose: 'walking',
+          appearance: CatV2.appearanceFor(STORM),
+          facing: 'right',
+          size: CAT,
+          x,
+          y,
+          phase: dist, // tiles covered, not time
+        });
+      },
+    },
+    {
       title: 'Arrive & settle',
       note: 'One-tile glide, then stop. v1 swaps walking→idle in one frame; v2 blends the pose and lands with a slow settle (owner-tuned: 180→400 ms).',
       draw(ctx, w, h, now, isV2) {
@@ -719,7 +823,10 @@
         const [x0, x1] = flip ? [to, from] : [from, to];
         const facing = flip ? 'left' : 'right';
         const moving = t < MOVE;
-        const u = moving ? easeInOutCubic(t / MOVE) : 1;
+        // A single step out of a standstill, so it rides startEase like the
+        // world now does -- easeInOutCubic here would brake into the stop
+        // twice over, once in the curve and again in the settle.
+        const u = moving ? startEase(t / MOVE) : 1;
         const x = x0 + (x1 - x0) * u;
         let sy = 1;
         if (isV2 && !moving && t < MOVE + SETTLE) {
