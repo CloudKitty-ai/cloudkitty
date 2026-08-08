@@ -675,18 +675,25 @@ disjoint band reported as a drift alarm.
   B + C** (drip + mutual tier, dedicated dials). The dial-pricing
   pilot prices *both* dials — drip level × mutual rate — against the
   measured baseline (contact runs 3 ticks, cuddle need 11.6).
-- Shaping: coefficient by pilot, or a registered value with
-  justification?
-- Mixing: **owner direction 2026-08-08 — reduced scope, retained for
-  diagnostics.** Proposed re-aim (pending confirm): the falsified
-  welfare question stays closed; the message head gives mixing a *new*
-  mechanism — scripted company now emits live, grounded channel
-  traffic, so a mixed arm tests whether that anchors channel semantics
-  against self-play drift (private codes, channel silence). Shape: one
-  m33 cell at the main arm's γ, 3 seeds, registered
-  **diagnostic-only — ineligible for deployment selection**; readout =
-  channel metrics vs the self-play arm (rates per kind, listener
-  response, F-015 class-conditioned credit), not welfare.
+- ~~Shaping: coefficient by pilot, or a registered value with
+  justification?~~ **SETTLED 2026-08-08: registered on/off arm** (A1
+  in the prereg) — not a pilot: a shaping pilot would mean training
+  runs pre-freeze, which is tuning the learning signal on preview
+  data. **c = 0.5 registered with derivation** (one distress entry ≈
+  half a healthy tick's team reward at roster 4);
+  **`ShapingConfig::gamma` pinned = training γ (0.998)** — the 1.0
+  compiled default silently voids the invariance proof. Φ prices
+  distress, never the channel (F-011 intact); A1 candidates
+  deployment-eligible (invariance preserves the optimum).
+- ~~Mixing~~ **SETTLED 2026-08-08 (owner): D1 kept — 3 seeds,
+  selection-INELIGIBLE, diagnostic-only.** The falsified welfare
+  question stays closed; D1 tests whether live scripted channel
+  traffic anchors meow semantics against self-play drift, and is the
+  control that makes a channel collapse *interpretable* (quiet
+  everywhere = imitation/reward; quiet self-play beside a live D1 =
+  company anchors). Readout = channel metrics only. Also settled with
+  it: **no γ sweep — seeds, not sweeps** (per-seed lottery dominated
+  both prior grids; higher-γ named as a conditional follow-up only).
 - ~~Sampling: run the 20-minute measurement, or leave greedy alone?~~
   **Resolved 2026-08-08: measured, greedy stays** (§2; it costs distress
   and water margin at the deployed composition and fixes nothing).
