@@ -51,25 +51,52 @@ kind = one per ~33 ticks), T50 ≈ 59/1k**. The one flappy signal: bath
 under the wet-fur charge — needs_driven dwells above 40 are **2–3
 ticks** (F-016's spike); everything playful dwells 40–70 ticks.
 
-## Recommendation (PROPOSED 2026-08-08 — owner confirmation pending)
+## The policy-side counterpart (added 2026-08-08, owner's question)
 
-- **Announce threshold 40, global**: above needs_driven's entire
-  self-serve band (p90 ≤ 33), below playful's ~55 ceiling. The
-  40→55 window ≈ 15 need-points ≈ **37 ticks** at 0.4/tick — longer
-  than a cross-board walk (~10–20 ticks), so a responder can arrive
-  before self-relief. At 50 the window (~12 ticks) drops below walk
-  time; at 30 the playful signal is always-on and needs_driven noise
-  rises 5×.
-- **Hysteresis 5** (legal ≥ 40, stays legal until < 35): sized by the
-  2–3-tick wet-fur bath spikes; nothing else flaps.
-- **Cooldown = `recent_window_ticks` (10), no new dial**: dwells at 40
-  span multiple cooldown periods, so a persisting need re-announces as
-  its digest entry fades — the honest persistent signal.
-- **Responder gate (spec consequence)**: the demonstrated chain is
-  playful-announces → needs_driven-responds (needs_driven bath emits at
-  40 ≈ 0.4/1k). The responder's "cuddle is real" condition must sit at
-  ~15–20 (their natural cuddle-initiation region, 12% occupancy at 20);
-  at 30 (2.5% occupancy) the answered-chain rate collapses.
-- **WantSleep behaves identically** (playful 29 emits/1k at 40;
-  needs_driven 0.2) — in the batch per the owner's call, demonstrated
-  by the same structure.
+The scripted analysis missed the constituency that matters most: the
+live world's future is agent cats, and the current generation keeps
+needs in a **far more compressed band**. Instrument:
+`experiments/tools/needs-census/` (replay via `run_one_with`, deployed
+artifact `e003-m0-g998-s3`, current served 20×20, seeds 820001–820030
+× 20k, both compositions; raw histograms in `needs-allpolicy.json` /
+`needs-deployed.json`).
+
+**All-policy (4 agent cats)** — per-need quantiles p50 / p90 / p99:
+eat 7/17/29, drink 4/11/17, sleep 2/7/13, play 4/10/15, cuddle
+2/7/16, bath 4/10/22. Initiation medians 1–13. Occupancy at 40 is
+0.003–0.16% per need. **Expected traffic at threshold 40: ~0.6
+meows/1k ticks per cat ≈ one meow per cat per ~23 live minutes** — a
+channel that exists but is never seen. At 30: ~2.9/1k ≈ one per ~5.7
+min per cat (one somewhere in the world every ~90 s). At 25: ~6.4/1k.
+
+**Deployed 2+2**: policy cats similar (slightly lower); scripted
+neighbors in policy company match the dataset-v3 picture (playful
+ceiling ~55–56, needs_driven initiation 12–23).
+
+## Recommendation (REVISED 2026-08-08 after the policy-side data)
+
+- **Announce threshold 30, global** — the value that serves both
+  populations: *above* needs_driven's initiation medians (13–23) and
+  eat median (23), so a scripted meow at 30 still means "past my usual
+  acting point"; *above the policy cats' p99* for five of six needs
+  (13–29), so an agent meow at 30 is a top-1% state — highly
+  informative; *below* playful's ~55 ceiling with a 30→55 window ≈
+  **62 ticks**, double the walk time; and it keeps the 4-agent live
+  world audibly alive (~3 meows/1k per cat) where 40 mutes it. The
+  original 40 was correct for scripted distributions alone; the
+  compressed policy band moves the sweet spot down.
+- **Hysteresis 5** (legal ≥ 30, stays legal until < 25) — still sized
+  by the wet-fur bath spikes.
+- **Cooldown = `recent_window_ticks` (10), no new dial** — unchanged.
+- **The threshold must be a config dial, not a constant** (spec
+  requirement): grounded legality reads need-vs-dial at mask time, so
+  retuning it later is a config rollout, **not a generation wall**.
+  Register 30 for exp-004; the product can move it with evidence.
+- **Responder gate**: unchanged, ~15–20 (needs_driven cuddle-initiation
+  region; 12% occupancy at 20 vs 2.5% at 30).
+- **WantSleep**: same structure both compositions (playful 46 emits/1k
+  at 30; policy 0.02) — in the batch per the owner's call.
+- Known cost of 30 vs 40: needs_driven eat-meows at ~9/1k (initiation
+  p90 is 34, so a third of their normal top-band overlaps) and playful
+  legal ~44% of ticks on four needs — chattier demonstrations, more
+  channel rows in dataset v4, which is also the point.

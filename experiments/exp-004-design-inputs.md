@@ -557,26 +557,30 @@ disjoint band reported as a drift alarm.
   around"). The needs data confirms it demonstrates by the same
   playful-announces structure as `WantBath` (29 vs 0.2 emits/1k at
   threshold 40).
-- Meow: announce threshold + hysteresis — **analysis DONE, decision
-  pending** (`experiments/needs-analysis-2026-08-08/results.md`, from
-  dataset v3's 1.9M rows). Recommended: **threshold 40** (above
-  needs_driven's whole self-serve band, p90 ≤ 33; below playful's ~55
-  neglect ceiling; the 40→55 window ≈ 37 ticks > a cross-board walk,
-  while at 50 it drops below walk time), **hysteresis 5** (sized by
-  the 2–3-tick wet-fur bath spikes), **cooldown =
-  `recent_window_ticks` (10), no new dial**. Killer fact: the old
-  urgent threshold 75 is above the lived range of every scripted cat
-  (occupancy ≤ 0.02%) — grounding inherited from it is a dead channel
-  by construction. Spec consequence: the responder's "cuddle is real"
-  gate must sit at ~15–20 (12% occupancy), not 30 (2.5%), or the
-  demonstrated chain collapses.
-- Digest: per-kind intensity — **recommended IN, pending owner call**:
+- Meow: announce threshold + hysteresis — **analysis DONE both sides,
+  recommendation REVISED 40 → 30**
+  (`experiments/needs-analysis-2026-08-08/results.md`: dataset v3's
+  1.9M scripted rows + the policy-side census the owner asked for —
+  current-gen agent cats replayed on the served 20×20, both
+  compositions). The policy band is compressed (p99s 13–29,
+  initiation medians 1–13): at threshold 40 a 4-agent live world emits
+  ~one meow per cat per **23 minutes** — a mute channel; at **30** it
+  is ~3/1k per cat (audibly alive), still above needs_driven's
+  initiation medians (13–23) and above the policy cats' p99 on five of
+  six needs — a top-1% state, highly informative. Hysteresis 5,
+  cooldown = `recent_window_ticks` (10). **Spec requirement: the
+  threshold is a config dial** — grounded legality reads need-vs-dial
+  at mask time, so retuning is a config rollout, not a generation
+  wall. Killer fact stands: the old urgent 75 is above every cat's
+  lived range (≤ 0.02% occupancy). Responder's "cuddle is real" gate
+  ~15–20 (12% occupancy), not 30 (2.5%).
+- ~~Digest: per-kind intensity?~~ **SETTLED 2026-08-08: IN** (owner) —
   engine-stamped need-at-emission (grounded, cannot lie), same emitter
   as the direction fields (coherent recency/direction/intensity
-  triple), and **no registered hypothesis** — no scripted behavior
-  reads it, so it is unexercised infrastructure this generation,
-  justified by wall economics alone (adding later costs a generation
-  wall; adding now costs ~6 obs values).
+  triple), **no registered hypothesis**: no scripted behavior reads
+  it, so it is unexercised infrastructure this generation, justified
+  by wall economics (adding later costs a generation wall; adding now
+  costs ~6 obs values).
 - ~~Cosleep credit: B + C or drip alone?~~ **SETTLED 2026-08-08:
   B + C** (drip + mutual tier, dedicated dials). The dial-pricing
   pilot prices *both* dials — drip level × mutual rate — against the
