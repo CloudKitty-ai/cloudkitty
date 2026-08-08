@@ -121,9 +121,14 @@ scratch, and no cross-generation artifact comparison exists.
 
 | arm | init | mix | γ | shaping | seeds | selection |
 |---|---|---|---|---|---|---|
-| A0 | BC v4 clone | 0% (self-play) | 0.998 | off | **[AT FREEZE: N ≥ 3]** | eligible |
-| A1 | BC v4 clone | 0% (self-play) | 0.998 | **on** (c = 0.5, γ_Φ = 0.998) | **[AT FREEZE: N ≥ 3]** | eligible |
-| D1 | BC v4 clone | 33% | 0.998 | off | 3 | **ineligible — diagnostic only** (owner confirmed 2026-08-08) |
+| A0 | BC v4 clone | 0% (self-play) | 0.998 | off | 5 | eligible |
+| A1 | BC v4 clone | 0% (self-play) | 0.998 | **on** (c = 0.5, γ_Φ = 0.998) | 5 | eligible |
+| D1 | BC v4 clone | 33% | 0.998 | off | 5 | **ineligible — diagnostic only** (owner confirmed 2026-08-08) |
+
+Seed counts set by the owner 2026-08-08: **5/5/5** — 15 concurrent
+runs sized to the 18-core box with headroom for other work.
+Draft-adjustable until freeze if new-engine run times surprise; the
+A0 = A1 balance is the invariant, not the 5.
 
 **A0/A1 are the experiment.** γ fixed at 0.998 — exp-003's γ = 0.995
 arm lost on every axis; no γ sweep this generation (registered
@@ -156,7 +161,8 @@ welfare cost — "does invariant shaping help in finite time" is the
 measured question. D1 runs shaping-off for comparability with A0.
 
 **D1 is a diagnostic, not a contender** (owner confirmed 2026-08-08:
-keep, 3 seeds, ineligible). The falsified mixing-welfare question
+keep, ineligible; seeds raised 3 → 5 with the rest of the grid). The
+falsified mixing-welfare question
 stays closed (two generations, no benefit). What is new is the
 channel: scripted company now emits live, grounded meow traffic
 during training, so D1 tests whether that **anchors channel
