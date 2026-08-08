@@ -1018,7 +1018,7 @@ check('the shipped shape is the one the owner dialled', () => {
   // Pinned, not asserted-as-identity: these were chosen in the lab on
   // 2026-08-08. The check exists so the next edit has to be deliberate too.
   close(p.bodyW, 1.1, 'bodyW drifted');
-  close(p.bodyH, 1.088, 'bodyH drifted');
+  close(p.bodyH, 1.05, 'bodyH drifted');
   close(p.headR, 1, 'headR drifted');
   close(p.headY, 0.01, 'headY drifted');
   close(p.headX, 0.02, 'headX drifted');

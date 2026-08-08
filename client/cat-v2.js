@@ -207,7 +207,7 @@ const PROPORTION = {
   // rounder one. What it buys is head:body 0.71 -> 0.64, most of the way to
   // kitten.me's 0.61, by growing the body rather than shrinking the head.
   bodyW: 1.1,
-  bodyH: 1.088,
+  bodyH: 1.05,
   headR: 1,
   headY: 0.01, // head nudge after the ride-along, + is down
   headX: 0.02, // and along the body, + is forward (the base cat faces right)
