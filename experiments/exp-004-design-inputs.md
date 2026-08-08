@@ -317,6 +317,18 @@ F-016 feedback check). This prices the dials; it does not certify
 anything — policy-side effects are measured later, in policy company
 (F-012), class-conditioned (F-015).
 
+**Baseline MEASURED 2026-08-08** — the pilot's "before" picture is on
+the record: `experiments/contact-baseline-2026-08-08/results.md`
+(instrument: `experiments/tools/contact-census/`, cross-checked against
+optE-B to one kitty-tick in 800k). The numbers that matter for the
+dials: typical contact run **3 ticks** (median 3, p90 5), so 15/tick
+pays ~45 per contact against a mean cuddle need of **11.6** — the
+instantaneous-pricing critique, quantified; companion Idle on **42%**
+of paid ticks; mutual (option C's tier) already **31.5%** of serviced
+ticks; rest duets outweigh cosleep **27×** on the shared dial (the
+dedicated-dial requirement, quantified); scripted GroomKitty is **0
+ticks** in 800k (the demonstrator gap is total, not just rare).
+
 ### Constraint
 
 Anything touching the digest **bumps the observation schema** → another
@@ -363,9 +375,13 @@ composition the world shows **zero** distress under greedy. Costs:
 certification does not transfer (every §9.1 number is greedy), it is not
 a clean win even where it helps (incidents 92/270 → 69/270; two
 candidates worsen by worst distress, three by incident count — different
-sets), and it is a registered condition, not a toggle (issue
-#70). **Proposed test, ~20 min**: §9.1 water band + deployed-composition
-probe under `--sample`, compared against greedy. Not yet run.
+sets), and it is a registered condition, not a toggle (issue #70).
+**Test RUN 2026-08-08** (`exp-003-water-schema/results/
+sampled-selection-2026-08-08.md`): at the deployed composition sampling
+*costs* — distress 0/30 → 1/30 with a 127-tick streak, and in-water
+slides 79% → 90% of B (band still passes, margin halves). It fixes
+nothing the served world has wrong. **Closed: greedy stays**; sampling
+remains a measurement tool for symmetric all-policy rosters only.
 
 **Symmetry-breaking machinery — do not build.** The owner intends
 heterogeneous agents (different models per seat) eventually, which
@@ -419,6 +435,53 @@ threshold-ticks per 100,000, three with multi-need saturation. Design any
 replacement against **exp-002's 22 candidates as well as exp-003's 9**; a
 criterion tuned only on the run that motivated it is how you get a gate
 that admits your favourite.
+
+**Respecification designed 2026-08-08 (proposal, for exp-004's prereg —
+not registered here).** Built against both cohorts' full per-run
+distributions: exp-002's committed `results/eval-2026-08-03/` eval
+JSONs (22 candidates; 15 runs per roster shape, 30 on shape iii) and
+exp-003's, now committed at
+`exp-003-water-schema/results/roster-evals-2026-08-07/` (9 candidates ×
+shapes iii/roster3/roster5, 30 runs each). Three observations drove the
+shape:
+
+- Every healthy candidate in both cohorts has **median 0**; the only
+  nonzero median in 31 candidates is a collapse (A1-s1, median 16).
+  The trace region (1–150) is populated by healthy candidates in both
+  generations — any threshold *inside* it is band-arbitrary (the same
+  cliff that voided a screen: zero on one band, 241 on another).
+- Collapse is marked by **repetition and saturation**, never by a lone
+  blip: the three exp-003 collapses show 4, 9 and 10 runs over 150 (of
+  60); every healthy candidate shows at most one.
+- **exp-003's §9.2 gated rosters 3+5 but not the 4-seat all-policy
+  shape** (shape iii — exp-002's H4 gated all three as rosters 3/4/5).
+  Shape iii was still *measured*, which is how we know what the gate
+  missed: C-scratch — the F-010 poster child — reads worst 477 on
+  rosters 3+5 and **17,749 with 76k floor-touches on shape iii**. The
+  full-roster shape is where the clearest catatonia on record lives;
+  it must be in the gate.
+
+**The proposed gate**: on the stress probe (rosters 3, **4/iii** and 5,
+declared seed band per F-009), a candidate fails iff any shape shows
+**(i)** a run with `max_distress_age` ≥ 1,000 (saturation — 2× the
+worst healthy run ever recorded, 477, and well under every true
+collapse event), **(ii)** more than one run over 150 (repetition — the
+eval-suite v1 bound, kept as a *marker*, no longer a cliff), or
+**(iii)** any `floor_touches` (in 31 candidates × 3 shapes they occur
+in exactly two, both collapses). Everything in the 1–150 region is
+**reported, never gated**. Validation over all three shapes, all 31:
+exp-003 fails exactly the three forensically-labelled collapses
+(A0-s2 by repetition on both rosters; A1-s1 and A0-s3 by saturation)
+and admits the six healthy — the deployed winner passes with worst 3,
+and is at zero on shape iii; exp-002 fails C-scratch
+(saturation + floor, shape iii), M33-995-s2 (saturation on all three
+shapes) and M33-998-s3 (repetition on roster 3). Two H4-era failures
+(M0-998-s2 at 708-once, M67-995-s1 at 318-once) become reported
+single-incident admits — the deliberate loosening, and the
+deployed-composition screen still stands between any admit and a seat.
+Certification for *deployment* moves where it belongs: the shipping
+composition, its own declared instrument, derived margins (0.002
+welfare), with a second disjoint band reported as a drift alarm.
 
 ---
 
@@ -480,6 +543,14 @@ that admits your favourite.
 - Shaping: coefficient by pilot, or a registered value with
   justification?
 - Mixing: drop outright, or one arm to close it out?
-- Sampling: run the 20-minute measurement, or leave greedy alone?
-- §9.2: respecify now (it blocks certification) or fold into exp-004's
-  prereg?
+- ~~Sampling: run the 20-minute measurement, or leave greedy alone?~~
+  **Resolved 2026-08-08: measured, greedy stays** (§2; it costs distress
+  and water margin at the deployed composition and fixes nothing).
+- ~~§9.2: respecify now or fold into exp-004's prereg?~~ **Designed
+  2026-08-08, adoption folds into exp-004's prereg** (§3: saturation /
+  repetition / floor markers on rosters 3+4+5; trace region reported,
+  never gated; validated against all 31 candidates). The owner's call
+  at freeze: accept the proposed thresholds (1,000 / one-over-150 /
+  any-floor-touch) or move them — and whether the deployed artifact's
+  certification status gets re-stated under the new gate (it passes on
+  all three stress shapes; worst run 3, zero on shape iii).
