@@ -192,7 +192,12 @@ block (§3) and D1's mix rate; everything below is shared.
 - Announce dials **30 / 5**; cooldown = `recent_window_ticks` = 10;
   the courtesy trio retired (spec batch).
 - Cosleep dials **[AT FREEZE: drip, mutual — from the pilot]**;
-  `cuddle_relief` (grooming actor, rest duet) untouched at 15.
+  `cuddle_relief` (grooming actor, rest duet) **[AT FREEZE: from the
+  pilot's third axis — {15, 8, 5} swept; 15 is the control, not a
+  commitment]**. The owner added this axis 2026-08-08: the
+  instantaneous-pricing degeneracy is by volume a rest-duet
+  phenomenon, and the dial doubles as the WantBath responder's wage —
+  both flows are measured per cell before the value is pinned.
 - Message head **Silent + 8**; `WaitForMe` yield-only; digest 8 kinds
   × (recency, dx, dy, intensity) = 32 values; observation width
   **[AT FREEZE: from the landed spec]**; action codec v2 (activity
@@ -244,8 +249,11 @@ choice:
 - [ ] **pyo3 binding rebuilt** and schema-checked against the live gym.
 - [ ] **Dial-pricing pilot** (scripted-only, F-016 instrument + contact
       census, 10 seeds × 20k paired, drip {1,2,3,5,15} × mutual
-      {off,on}, routing change held constant) → **drip and mutual
-      pinned into §4**.
+      {off,on} × `cuddle_relief` {15,8,5} — 30 cells, routing change
+      held constant; per-cell metrics include rest-duet durations and
+      the groom-trade wage, since `cuddle_relief` is also the WantBath
+      responder's payment) → **three values pinned into §4: drip,
+      mutual rate, `cuddle_relief`**.
 - [ ] **Re-baseline `B` on the new stamp**: welfare band, water shares,
       contact metrics, scripted meow rates by kind (the §2 anchors),
       distress-tick baseline. Instruments: `scripted_water_baseline`

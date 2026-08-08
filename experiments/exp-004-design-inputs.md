@@ -307,15 +307,30 @@ the instantaneous-presence degeneracy, keeps 021's doctrine and the
 passive-comfort realism, gives RL a dense gradient, and creates the
 coordination payoff communication needs.
 
-**Dial-pricing pilot (agreed 2026-08-08, pre-freeze, scripted-only).**
-F-016's instrument: 10 seeds × 20k, paired across identical seeds,
-served world. Sweep drip ∈ {1, 2, 3, 5, 15 = control} × mutual bonus
-{off, on}, with the routing change held constant. Record: cosleep rate
-and **mean contact duration**, mutual-vs-passive share, cuddle
-time-above-threshold, welfare, and the water/grooming metrics (the
-F-016 feedback check). This prices the dials; it does not certify
-anything — policy-side effects are measured later, in policy company
-(F-012), class-conditioned (F-015).
+**Dial-pricing pilot (agreed 2026-08-08, pre-freeze, scripted-only;
+third axis added by the owner 2026-08-08).** F-016's instrument: 10
+seeds × 20k, paired across identical seeds, served world. Sweep
+**drip ∈ {1, 2, 3, 5, 15 = control} × mutual bonus {off, on} ×
+`cuddle_relief` ∈ {15 = control, 8, 5}** — 30 cells, with the routing
+change held constant. The third axis exists because the
+instantaneous-pricing degeneracy is by volume a **rest-duet**
+phenomenon (27× cosleep's ticks, every duet pinned at its ~5-tick
+minimum by 15/tick against a mean need of 11.6): repricing cosleep
+alone fixes the boutique case and leaves the mass-market one
+degenerate. But `cuddle_relief` is also the **WantBath responder's
+wage** (the grooming actor's per-tick payment), so cutting it pulls
+the demonstrator trade in two directions at once — weaker payoff per
+response, more ticks on which "my cuddle is real" holds. Measured,
+not intuited. Record per cell: cosleep rate and **mean contact
+duration**, mutual-vs-passive share, cuddle time-above-threshold,
+**rest-duet durations, groom-trade frequency and wage delivered**,
+welfare, and the water/grooming metrics (the F-016 feedback check).
+The pilot's registered output is **three pinned values** — drip,
+mutual rate, `cuddle_relief` — and it does not certify anything;
+policy-side effects are measured later, in policy company (F-012),
+class-conditioned (F-015). No new engine surface: `cuddle_relief` is
+an existing dial, deliberately retuned with all three of its flows
+measured (the shared-dial trap, walked with eyes open).
 
 **Baseline MEASURED 2026-08-08** — the pilot's "before" picture is on
 the record: `experiments/contact-baseline-2026-08-08/results.md`
