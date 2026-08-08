@@ -685,8 +685,9 @@ disjoint band reported as a drift alarm.
   compiled default silently voids the invariance proof. Φ prices
   distress, never the channel (F-011 intact); A1 candidates
   deployment-eligible (invariance preserves the optimum).
-- ~~Mixing~~ **SETTLED 2026-08-08 (owner): D1 kept — 3 seeds,
-  selection-INELIGIBLE, diagnostic-only.** The falsified welfare
+- ~~Mixing~~ **SETTLED 2026-08-08 (owner): D1 kept — 5 seeds (raised
+  from 3 with the whole grid at 5/5/5), selection-INELIGIBLE,
+  diagnostic-only.** The falsified welfare
   question stays closed; D1 tests whether live scripted channel
   traffic anchors meow semantics against self-play drift, and is the
   control that makes a channel collapse *interpretable* (quiet
