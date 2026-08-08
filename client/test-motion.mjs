@@ -1104,5 +1104,81 @@ check('the head ratio buys headroom, never leg', () => {
   close(small.head.cy, base.head.cy, 'the head centre moved when only its radius was dialled');
 });
 
+// ---- POUNCE: the launch that replaced a two-position switch ----
+
+check('the pounce reaches both of its old positions exactly', () => {
+  // The crouch and the leap are the drawings that shipped; only the frames
+  // between them are new. Pinned as literals so an "improvement" to the
+  // launch cannot quietly redraw either end.
+  // Measured on the v1 body: these pin the POSE, not whatever the shape
+  // dials are set to this week.
+  const loaded = reshaped(IDENT, () => CatV2.catLayout('pouncing', 0));
+  close(loaded.body.cy, 0.68, 'crouch body cy');
+  close(loaded.body.ry, 0.17, 'crouch body ry');
+  close(loaded.head.cy, 0.5, 'crouch head cy');
+  assert(
+    loaded.legs.every((l) => Math.abs(l.bottom - 0.88) < 1e-12),
+    'the loaded cat has every foot on the ground',
+  );
+
+  const out = reshaped(IDENT, () => CatV2.catLayout('pouncing', 0.95));
+  close(out.body.cy, 0.56, 'leap body cy');
+  close(out.body.rot, -0.18, 'leap body rot');
+  close(out.head.cx, 0.78, 'leap head cx');
+  assert(
+    out.legs.every((l) => l.bottom < 0.88 - 1e-9),
+    'the leap has no foot on the ground',
+  );
+});
+
+check('the launch is continuous -- no frame jumps', () => {
+  // The bug this pose had: one 0.12-unit step at phase 0.45. Sampled at
+  // 1/400 of a beat, no adjacent pair may move the body more than a
+  // fraction of that, whatever the dials say.
+  let worst = 0;
+  let prev = CatV2.catLayout('pouncing', 0);
+  for (let i = 1; i <= 400; i++) {
+    const now = CatV2.catLayout('pouncing', i / 400);
+    worst = Math.max(worst, Math.abs(now.body.cy - prev.body.cy));
+    prev = now;
+  }
+  assert(worst < 0.01, `the pounce still jumps: biggest single-frame body move ${worst.toFixed(4)}`);
+});
+
+check('the launch only ever extends, and holds at both ends', () => {
+  const at = (p) => CatV2.catLayout('pouncing', p).body.cy;
+  const P = CatV2.POUNCE;
+  close(at(0), at(P.hold), 'the cat must stay loaded until the launch starts');
+  close(at(Math.min(1, P.hold + P.launch)), at(1), 'and hold its reach afterwards');
+  let prev = Infinity;
+  for (let i = 0; i <= 200; i++) {
+    const cy = at(i / 200);
+    assert(cy <= prev + 1e-12, `the body dropped back mid-launch at phase ${i / 200}`);
+    prev = cy;
+  }
+  assert(at(1) < at(0) - 0.05, 'the leap must actually rise off the crouch');
+});
+
+check('pounceLaunch is exact at its ends for any dials', () => {
+  for (const snap of [1, 2.4, 5]) {
+    for (const hold of [0, 0.34, 0.7]) {
+      const d = { hold, launch: 0.22, snap, twitch: 0 };
+      close(CatV2.pounceLaunch(hold, d), 0, `snap ${snap} hold ${hold}: starts at 0`);
+      close(CatV2.pounceLaunch(hold + 0.22, d), 1, `snap ${snap} hold ${hold}: ends at 1`);
+      assert(CatV2.pounceLaunch(hold - 0.01, d) === 0, 'nothing happens before the hold');
+      assert(CatV2.pounceLaunch(hold + 0.3, d) === 1, 'and nothing after the launch');
+    }
+  }
+});
+
+check('the far pair stays behind the body through the whole pounce', () => {
+  for (let i = 0; i <= 20; i++) {
+    const L = CatV2.catLayout('pouncing', i / 20);
+    for (const leg of L.legs) {
+      assert(!(leg.far && leg.front), `a shaded far leg drew in front at phase ${i / 20}`);
+    }
+  }
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

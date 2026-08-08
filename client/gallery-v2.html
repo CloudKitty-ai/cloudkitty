@@ -225,6 +225,13 @@
     });
   }
 
+  const POUNCE_BAG = {};
+  for (const k of Object.keys(CatV2.POUNCE)) {
+    Object.defineProperty(POUNCE_BAG, k, {
+      get: () => CatV2.POUNCE[k], set: (v) => { CatV2.POUNCE[k] = v; }, enumerable: true,
+    });
+  }
+
   const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
   // anim.js startEase: a step taken from rest, arriving at walking speed.
   const startEase = (t) => t * t * (2 - t);
@@ -829,6 +836,95 @@
           y,
           phase: dist, // tiles covered, not time
         });
+      },
+    },
+    {
+      title: 'Pounce',
+      note: 'The pounce used to be a two-position switch at phase 0.45 — loaded, then suddenly extended, with nothing in between, which is why it popped. Now it holds the load, launches, and holds the reach. Both ends are the same drawings as before; only the frames between them are new. The filmstrip samples the beat evenly, so a flat run of frames means the cat is holding and a crowded one means it is moving.',
+      v2Only: true,
+      w: 560,
+      h: 200,
+      ownShadows: true,
+      bag: POUNCE_BAG,
+      dials: [
+        { key: 'hold', label: 'time spent LOADED before anything moves', min: 0, max: 0.7, step: 0.01 },
+        { key: 'launch', label: 'time spent EXTENDING into the leap', min: 0.04, max: 0.6, step: 0.01 },
+        { key: 'snap', label: 'how front-loaded the launch is (1 = even, higher = snappier)', min: 1, max: 5, step: 0.1 },
+        { key: 'twitch', label: 'tail-tip twitch while loading', min: 0, max: 0.06, step: 0.002 },
+      ],
+      readout() {
+        const P = CatV2.POUNCE, TICK = 800;
+        const held = P.hold * TICK;
+        const out = P.launch * TICK;
+        const rest = Math.max(0, TICK - held - out);
+        // Where the extension actually happens, as opposed to where the
+        // window is: with snap > 1 most of the travel is in its first part.
+        const half = P.launch * (1 - 0.5 ** (1 / P.snap));
+        return (
+          `POUNCE = { hold: ${P.hold}, launch: ${P.launch}, snap: ${P.snap}, twitch: ${P.twitch} }\n` +
+          `loaded ${held.toFixed(0)}ms → extends over ${out.toFixed(0)}ms → reaching for ${rest.toFixed(0)}ms` +
+          ` (one 800ms tick)\n` +
+          `half the extension is done ${(half * TICK).toFixed(0)}ms in` +
+          (rest <= 0 ? '\n⚠ the launch runs past the beat — the cat never reaches full extension' : '')
+        );
+      },
+      draw(ctx, w, h, now) {
+        const TICK = 800;
+        const phase = (now % TICK) / TICK;
+        const groundY = h - 46;
+
+        ctx.fillStyle = '#cfe0b8';
+        ctx.fillRect(0, groundY, w, h - groundY);
+
+        // Filmstrip: the beat sampled evenly. Even spacing is the point --
+        // frames that repeat are a hold, frames that jump are the launch.
+        const N = 9;
+        const SMALL = 52;
+        for (let i = 0; i < N; i++) {
+          const x = 8 + i * ((w - 16 - SMALL) / (N - 1));
+          ctx.globalAlpha = 0.5;
+          CatV2.drawCat(ctx, {
+            pose: 'pouncing',
+            appearance: CatV2.appearanceFor(STORM),
+            facing: 'right',
+            size: SMALL,
+            x,
+            y: groundY - SMALL * 0.88,
+            phase: i / (N - 1),
+          });
+          ctx.globalAlpha = 1;
+        }
+
+        // The live one, at the real size, over the strip.
+        CatV2.drawCat(ctx, {
+          pose: 'pouncing',
+          appearance: CatV2.appearanceFor(STORM),
+          facing: 'right',
+          size: CAT,
+          x: w / 2 - CAT / 2,
+          y: groundY - CAT * 0.88,
+          phase,
+        });
+
+        // Timeline: loaded | extending | reaching, with a playhead.
+        const P = CatV2.POUNCE;
+        const bar = h - 26, barH = 10, x0 = 8, barW = w - 16;
+        const seg = [
+          [0, P.hold, 'rgba(107, 90, 78, 0.22)'],
+          [P.hold, Math.min(1, P.hold + P.launch), 'rgba(214, 122, 61, 0.55)'],
+          [Math.min(1, P.hold + P.launch), 1, 'rgba(107, 90, 78, 0.10)'],
+        ];
+        for (const [a, b, fill] of seg) {
+          if (b <= a) continue;
+          ctx.fillStyle = fill;
+          ctx.fillRect(x0 + a * barW, bar, (b - a) * barW, barH);
+        }
+        ctx.fillStyle = '#6b5a4e';
+        ctx.fillRect(x0 + phase * barW - 1, bar - 3, 2, barH + 6);
+        ctx.fillStyle = 'rgba(107, 90, 78, 0.75)';
+        ctx.font = '10px ui-rounded, system-ui, sans-serif';
+        ctx.fillText('loaded', x0 + 3, bar - 5);
+        if (P.launch > 0.08) ctx.fillText('launch', x0 + (P.hold + 0.01) * barW, bar - 5);
       },
     },
     {
