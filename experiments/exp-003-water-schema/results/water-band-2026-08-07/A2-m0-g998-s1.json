@@ -1,0 +1,449 @@
+{
+ "candidate": "A2-m0-g998-s1",
+ "seeds": [
+  740001,
+  740002,
+  740003,
+  740004,
+  740005,
+  740006,
+  740007,
+  740008,
+  740009,
+  740010
+ ],
+ "ticks": 20000,
+ "inwater_share": 0.032145,
+ "lounge_share": 0.01185,
+ "grooming_on_water_share": 0.0039125,
+ "lounge_excl_grooming": 0.0079375,
+ "by_activity_share": {
+  "Idle": 0.0177675,
+  "Resting": 0.00035,
+  "Sleeping": 0.0075875,
+  "Eating": 0.0005975,
+  "Drinking": 0.001145,
+  "Playing": 0.000785,
+  "Grooming": 0.0039125
+ },
+ "B_inwater": 0.034352,
+ "B_lounge": 0.015,
+ "ceiling": 0.051528000000000004,
+ "floor": 0.017176,
+ "pass_ceiling": true,
+ "pass_floor": true,
+ "pass_lounge": true,
+ "band_pass": true,
+ "per_seed": [
+  {
+   "seed": 740001,
+   "on_water_by_activity": {
+    "Miso": {
+     "Idle": 385,
+     "Resting": 0,
+     "Sleeping": 140,
+     "Eating": 19,
+     "Drinking": 24,
+     "Playing": 14,
+     "Grooming": 91
+    },
+    "Biscuit": {
+     "Idle": 253,
+     "Resting": 0,
+     "Sleeping": 0,
+     "Eating": 2,
+     "Drinking": 3,
+     "Playing": 53,
+     "Grooming": 30
+    },
+    "Pumpkin": {
+     "Idle": 283,
+     "Resting": 10,
+     "Sleeping": 25,
+     "Eating": 5,
+     "Drinking": 16,
+     "Playing": 18,
+     "Grooming": 165
+    },
+    "Kittybear": {
+     "Idle": 401,
+     "Resting": 5,
+     "Sleeping": 200,
+     "Eating": 14,
+     "Drinking": 30,
+     "Playing": 21,
+     "Grooming": 104
+    }
+   }
+  },
+  {
+   "seed": 740002,
+   "on_water_by_activity": {
+    "Miso": {
+     "Idle": 315,
+     "Resting": 0,
+     "Sleeping": 145,
+     "Eating": 12,
+     "Drinking": 24,
+     "Playing": 23,
+     "Grooming": 75
+    },
+    "Biscuit": {
+     "Idle": 219,
+     "Resting": 5,
+     "Sleeping": 0,
+     "Eating": 1,
+     "Drinking": 4,
+     "Playing": 55,
+     "Grooming": 24
+    },
+    "Pumpkin": {
+     "Idle": 323,
+     "Resting": 25,
+     "Sleeping": 25,
+     "Eating": 2,
+     "Drinking": 17,
+     "Playing": 19,
+     "Grooming": 192
+    },
+    "Kittybear": {
+     "Idle": 284,
+     "Resting": 0,
+     "Sleeping": 135,
+     "Eating": 10,
+     "Drinking": 17,
+     "Playing": 6,
+     "Grooming": 51
+    }
+   }
+  },
+  {
+   "seed": 740003,
+   "on_water_by_activity": {
+    "Miso": {
+     "Idle": 384,
+     "Resting": 15,
+     "Sleeping": 110,
+     "Eating": 15,
+     "Drinking": 23,
+     "Playing": 24,
+     "Grooming": 64
+    },
+    "Biscuit": {
+     "Idle": 311,
+     "Resting": 20,
+     "Sleeping": 11,
+     "Eating": 1,
+     "Drinking": 3,
+     "Playing": 69,
+     "Grooming": 39
+    },
+    "Pumpkin": {
+     "Idle": 359,
+     "Resting": 30,
+     "Sleeping": 15,
+     "Eating": 6,
+     "Drinking": 25,
+     "Playing": 32,
+     "Grooming": 201
+    },
+    "Kittybear": {
+     "Idle": 367,
+     "Resting": 0,
+     "Sleeping": 115,
+     "Eating": 8,
+     "Drinking": 20,
+     "Playing": 17,
+     "Grooming": 66
+    }
+   }
+  },
+  {
+   "seed": 740004,
+   "on_water_by_activity": {
+    "Miso": {
+     "Idle": 361,
+     "Resting": 10,
+     "Sleeping": 135,
+     "Eating": 9,
+     "Drinking": 20,
+     "Playing": 12,
+     "Grooming": 80
+    },
+    "Biscuit": {
+     "Idle": 272,
+     "Resting": 20,
+     "Sleeping": 11,
+     "Eating": 2,
+     "Drinking": 7,
+     "Playing": 37,
+     "Grooming": 48
+    },
+    "Pumpkin": {
+     "Idle": 364,
+     "Resting": 20,
+     "Sleeping": 35,
+     "Eating": 4,
+     "Drinking": 18,
+     "Playing": 20,
+     "Grooming": 192
+    },
+    "Kittybear": {
+     "Idle": 357,
+     "Resting": 5,
+     "Sleeping": 150,
+     "Eating": 6,
+     "Drinking": 23,
+     "Playing": 17,
+     "Grooming": 84
+    }
+   }
+  },
+  {
+   "seed": 740005,
+   "on_water_by_activity": {
+    "Miso": {
+     "Idle": 328,
+     "Resting": 10,
+     "Sleeping": 185,
+     "Eating": 9,
+     "Drinking": 24,
+     "Playing": 15,
+     "Grooming": 92
+    },
+    "Biscuit": {
+     "Idle": 158,
+     "Resting": 5,
+     "Sleeping": 22,
+     "Eating": 0,
+     "Drinking": 1,
+     "Playing": 39,
+     "Grooming": 30
+    },
+    "Pumpkin": {
+     "Idle": 279,
+     "Resting": 5,
+     "Sleeping": 15,
+     "Eating": 4,
+     "Drinking": 12,
+     "Playing": 13,
+     "Grooming": 156
+    },
+    "Kittybear": {
+     "Idle": 386,
+     "Resting": 5,
+     "Sleeping": 150,
+     "Eating": 13,
+     "Drinking": 23,
+     "Playing": 25,
+     "Grooming": 107
+    }
+   }
+  },
+  {
+   "seed": 740006,
+   "on_water_by_activity": {
+    "Miso": {
+     "Idle": 389,
+     "Resting": 15,
+     "Sleeping": 170,
+     "Eating": 14,
+     "Drinking": 22,
+     "Playing": 10,
+     "Grooming": 85
+    },
+    "Biscuit": {
+     "Idle": 212,
+     "Resting": 10,
+     "Sleeping": 0,
+     "Eating": 0,
+     "Drinking": 3,
+     "Playing": 43,
+     "Grooming": 33
+    },
+    "Pumpkin": {
+     "Idle": 267,
+     "Resting": 15,
+     "Sleeping": 30,
+     "Eating": 5,
+     "Drinking": 14,
+     "Playing": 8,
+     "Grooming": 144
+    },
+    "Kittybear": {
+     "Idle": 411,
+     "Resting": 5,
+     "Sleeping": 190,
+     "Eating": 19,
+     "Drinking": 32,
+     "Playing": 16,
+     "Grooming": 102
+    }
+   }
+  },
+  {
+   "seed": 740007,
+   "on_water_by_activity": {
+    "Miso": {
+     "Idle": 330,
+     "Resting": 25,
+     "Sleeping": 135,
+     "Eating": 9,
+     "Drinking": 17,
+     "Playing": 21,
+     "Grooming": 75
+    },
+    "Biscuit": {
+     "Idle": 251,
+     "Resting": 15,
+     "Sleeping": 0,
+     "Eating": 0,
+     "Drinking": 3,
+     "Playing": 50,
+     "Grooming": 48
+    },
+    "Pumpkin": {
+     "Idle": 309,
+     "Resting": 20,
+     "Sleeping": 20,
+     "Eating": 4,
+     "Drinking": 21,
+     "Playing": 7,
+     "Grooming": 174
+    },
+    "Kittybear": {
+     "Idle": 358,
+     "Resting": 0,
+     "Sleeping": 150,
+     "Eating": 12,
+     "Drinking": 32,
+     "Playing": 11,
+     "Grooming": 78
+    }
+   }
+  },
+  {
+   "seed": 740008,
+   "on_water_by_activity": {
+    "Miso": {
+     "Idle": 304,
+     "Resting": 20,
+     "Sleeping": 135,
+     "Eating": 10,
+     "Drinking": 12,
+     "Playing": 11,
+     "Grooming": 51
+    },
+    "Biscuit": {
+     "Idle": 205,
+     "Resting": 5,
+     "Sleeping": 0,
+     "Eating": 2,
+     "Drinking": 4,
+     "Playing": 39,
+     "Grooming": 33
+    },
+    "Pumpkin": {
+     "Idle": 250,
+     "Resting": 15,
+     "Sleeping": 25,
+     "Eating": 3,
+     "Drinking": 14,
+     "Playing": 8,
+     "Grooming": 132
+    },
+    "Kittybear": {
+     "Idle": 338,
+     "Resting": 0,
+     "Sleeping": 125,
+     "Eating": 9,
+     "Drinking": 17,
+     "Playing": 16,
+     "Grooming": 52
+    }
+   }
+  },
+  {
+   "seed": 740009,
+   "on_water_by_activity": {
+    "Miso": {
+     "Idle": 339,
+     "Resting": 15,
+     "Sleeping": 170,
+     "Eating": 14,
+     "Drinking": 27,
+     "Playing": 21,
+     "Grooming": 69
+    },
+    "Biscuit": {
+     "Idle": 202,
+     "Resting": 0,
+     "Sleeping": 0,
+     "Eating": 0,
+     "Drinking": 1,
+     "Playing": 47,
+     "Grooming": 36
+    },
+    "Pumpkin": {
+     "Idle": 298,
+     "Resting": 25,
+     "Sleeping": 10,
+     "Eating": 0,
+     "Drinking": 16,
+     "Playing": 23,
+     "Grooming": 177
+    },
+    "Kittybear": {
+     "Idle": 330,
+     "Resting": 0,
+     "Sleeping": 165,
+     "Eating": 9,
+     "Drinking": 27,
+     "Playing": 12,
+     "Grooming": 78
+    }
+   }
+  },
+  {
+   "seed": 740010,
+   "on_water_by_activity": {
+    "Miso": {
+     "Idle": 380,
+     "Resting": 0,
+     "Sleeping": 170,
+     "Eating": 17,
+     "Drinking": 20,
+     "Playing": 11,
+     "Grooming": 81
+    },
+    "Biscuit": {
+     "Idle": 190,
+     "Resting": 15,
+     "Sleeping": 11,
+     "Eating": 2,
+     "Drinking": 1,
+     "Playing": 33,
+     "Grooming": 18
+    },
+    "Pumpkin": {
+     "Idle": 343,
+     "Resting": 25,
+     "Sleeping": 20,
+     "Eating": 7,
+     "Drinking": 13,
+     "Playing": 15,
+     "Grooming": 216
+    },
+    "Kittybear": {
+     "Idle": 360,
+     "Resting": 10,
+     "Sleeping": 160,
+     "Eating": 11,
+     "Drinking": 24,
+     "Playing": 11,
+     "Grooming": 80
+    }
+   }
+  }
+ ]
+}

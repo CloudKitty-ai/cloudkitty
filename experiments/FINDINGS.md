@@ -22,127 +22,67 @@ evidence; this register is the evolving knowledge layer on top of them.
   graduates into operating defaults (docs/rl-training.md, reference
   configs, the prereg conventions) with its F-id cited as provenance.
   Promotion is the point; a register that only accumulates is a graveyard.
+- Superseded and refuted entries keep only a **stub** here (id · status ·
+  claim · why it fell); their full text moves verbatim to
+  [FINDINGS-ARCHIVE.md](FINDINGS-ARCHIVE.md) under the same `## F-NNN`
+  header, so citations keep resolving. Do the move as part of the
+  superseding edit. Promoted findings keep status `active` plus a
+  promotion note naming where the operating default now lives.
+
+---
+
+## Index
+
+| id | status | claim |
+|---|---|---|
+| F-001 | superseded → F-003 | Two-channel credit: fast self, slow teammate (pre-retune quantities) |
+| F-002 | refuted | Non-binding cuddle routes carry no material headroom |
+| F-003 | superseded → F-013 | The retune tripled the credit horizon; channels unchanged |
+| F-004 | active · **promoted** | Cluster probe statistics by world; replicate on disjoint worlds |
+| F-005 | superseded → F-013 | Scarcity×tempo was the one replicated training-world improver |
+| F-006 | superseded → F-013 | Pre-024 default world carried no detectable cooperative credit |
+| F-007 | active | BC initialization is necessary for MAPPO to beat the baseline at exp-001's budget |
+| F-008 | superseded → F-010 | All-policy collapse read as long-horizon coordination instability |
+| F-009 | active · **promoted** | Every dimension an instrument holds fixed bounds the failures it can detect |
+| F-010 | active | Roster-OOD fragility: an empty kitty slot can collapse an exp-001 policy |
+| F-011 | active | Meow restraint is a reward-structure equilibrium, not an engine guarantee |
+| F-012 | active | Channel use is context-dependent; measure in policy company, not solo |
+| F-013 | active | The 024 batch rewired the credit landscape; the served world gained a cooperative band |
+| F-014 | active | Post-024 world search: the served world wins as it stands; knob landscape flat |
+| F-015 | active · **re-verify due** | Pooled probes dilute under heterogeneous class amplitudes; condition by class |
+| F-016 | active | Raising bath_gain increases scripted on-water time via the grooming channel |
+| F-017 | active | The multi-copy collapse is largely a symmetry artifact; sampling dissolves it |
 
 ---
 
 ## F-001 · superseded by F-003 · Credit in CloudKitty is two-channel: fast self, slow teammate
 
-*(Superseded 2026-07-27: the companionship retune — PR #60, cf82007 —
-changed the happiness weights and social relief rates these numbers were
-measured under. The two-channel structure survives; the quantities do not.
-See F-003.)*
-
-An action's effect on the actor's own happiness is front-loaded (~60% of
-significant signal mass within 18 ticks — direct relief); its effect on
-teammates has near-zero early mass (0.3% within 18 ticks) and lives in a
-50–200-tick band peaking around k≈106 — contention and coordination
-consequences propagating through others' welfare. The team reward inherits
-the slow channel (90% of significant mass within 200 ticks; last
-significant tick 380).
-
-**Scope**: measured on `training.toml` (24×24, 5 kitties, heterogeneous
-traits) under **`needs_driven` dynamics for every kitty**, substitution
-ticks 100–1100, 1,000 samples. Not yet measured: trained-policy dynamics,
-the default world's geometry, larger rosters.
-
-**Evidence**: [exp-001 twin-probe result](exp-001-bc-mappo/results/twin-probe-2026-07-25.md)
-(bit-reproducible; regeneration commands inside).
-
-**Implications**: γ = 0.995 registered as exp-001's predicted sweep winner
-(preserves 0.59 of the discounted team signal vs 0.38 at γ = 0.99, whose
-horizon bisects the cooperative band); λ stays 0.95 (no GAE setting
-bridges a 100-tick gap); cooperative credit is carried almost entirely by
-the critic — critic explained-variance is the watch-first training
-diagnostic, and the MAPPO privileged global state is empirically
-motivated, not merely conventional.
-
-**Would invalidate**: the teammate band failing to appear on other
-geometries; or shifting below ~50 ticks under trained-policy dynamics
-(coordinated cats may propagate consequences faster than scripted ones).
-
-**Re-verify when**: the first policy artifact exceeds `needs_driven` on
-the paired Nash aggregate (or passes SC-004 certification, whichever
-comes first) — re-run the twin probe with that policy seated, in both
-all-policy and mixed rosters, and compare the teammate band; supersede or
-narrow this finding accordingly. Also due regardless: a default-world
-geometry repeat and by-action-class conditioning (the 1k sample mix is
-move-dominated).
+Claimed the two-channel credit structure (fast self, ~60% of mass within
+18 ticks; slow teammate, 50–200 ticks peaking k≈106) on the pre-retune
+engine. The structure survived every engine since; these quantities died
+with the companionship retune (PR #60). Chain: F-001 → F-003 → F-013.
+Full text: [FINDINGS-ARCHIVE.md](FINDINGS-ARCHIVE.md).
 
 ---
 
 ## F-002 · refuted · Non-binding cuddle-route under-use is real but carries no material headroom
 
-Resolved 2026-07-27 (was reserved for exp-001's prereg-named candidate).
-The census (`cuddle-census`, engine-predicate classification, 5 seeds ×
-20k ticks per config) splits the claim: the **mechanical under-use is
-confirmed** — `needs_driven` takes `Sleep{with}`/`Groom{target}` in 0.7%
-of moderate-need busy-only opportunities and never when a binding rest
-duet is available — but the **headroom hypothesis is refuted**: post-
-retune, high-need (≥80) opportunities beside friends occur ~1–2 per 100k
-ticks on both the frozen and default worlds, because the heavier cuddle
-weight makes the scripted cat service the need early. The 38 pre-retune
-events described a world that no longer exists. Not a channel for beating
-`needs_driven`; the prereg's interpretation rule (trained-policy Cuddle
-pinned streaks beside busy friends = real skill gap) stands unchanged.
-
-**Evidence**: [frozen-world addendum §2](exp-001-bc-mappo/results/frozen-world-addendum-2026-07-27.md).
-
-**Re-verify when**: happiness weights or relief rates change again
-(check `engine_defaults_sha256`), or a trained policy shows Cuddle
-pinned streaks (then the routes' availability matters, not their
-scripted-cat usage).
+The mechanical under-use was confirmed, but the headroom hypothesis was
+refuted post-retune: high-need opportunities beside friends occur ~1–2
+per 100k ticks (the heavier cuddle weight services the need early), so
+the route cannot beat `needs_driven`. The prereg's interpretation rule —
+trained-policy Cuddle pinned streaks beside busy friends = real skill
+gap — stands. Full text: [FINDINGS-ARCHIVE.md](FINDINGS-ARCHIVE.md).
 
 ---
 
 ## F-003 · superseded by F-013 · The companionship retune tripled the credit horizon; channels unchanged
 
-*(Superseded 2026-08-02: the 024 wet-fur batch — this finding's own
-"any engine-defaults change" trigger — moved every quantity again,
-exactly as the retune did to F-001. The two-channel structure
-re-confirms on the post-024 engine (early self band reproduces in all
-six re-verification runs); the band edges, peak locations, and
-retention decimals below are pre-024 history. See F-013.)*
-
-Supersedes F-001's quantities on the retuned baseline (PR #60, cf82007:
-happiness weights eat/drink→0.20, cuddle/bath→0.15; groom/play relief→20,
-cuddle→15). The two-channel structure holds — self credit front-loaded,
-teammate credit slow — but every band moved out ~2–4×: the spillover band
-is now ~230–430 ticks (peak k≈406, was ~50–200 peaking k≈106), the team
-reward peaks at k≈230 with only 16% of significant mass within 200 ticks
-(was 90%), and a diffuse-but-real tail (≈2.5× chance rate of significant
-ticks) persists past k=1,000. Mechanism: slower social relief lengthens
-scenes, so contention/coordination consequences propagate later and wider.
-Decision-point density also fell 0.86→0.72 (more mid-scene ticks where an
-idle substitution is rewritten back).
-
-**Scope**: `training.toml` (24×24, 5 kitties, heterogeneous traits) on
-post-retune compiled defaults (main 758ec28), `needs_driven` dynamics for
-every kitty, substitution ticks 100–1100, 1,000 samples, 1,200-tick traces
-(600 is now too short — the first pass truncated live signal at its edge).
-Not yet measured: trained-policy dynamics, default-world geometry, larger
-rosters, per-action-class structure.
-
-**Evidence**: [exp-001 retuned twin-probe result](exp-001-bc-mappo/results/twin-probe-2026-07-27-retuned.md)
-(bit-reproducible; commands inside).
-
-**Implications**: discounted team-signal retention is now 0.10 at γ=0.99,
-0.20 at γ=0.995, 0.45 at γ=0.998 — γ=0.99 ends before the cooperative band
-*begins* and is empirically dead for the cooperative hypothesis;
-recommendation to the owner is to amend exp-001's sweep to {0.995, 0.998}
-(prereg amendment, owner's call). Cooperative-credit-is-critic-carried is
-strengthened (even less signal inside any reachable GAE window); λ=0.95
-and fragment 256 stand.
-
-**Would invalidate**: another engine-defaults change touching happiness
-weights, relief rates, or scene durations (check the suite's
-`engine_defaults_sha256` stamp); the band failing to reproduce on other
-geometries; trained-policy dynamics compressing propagation.
-
-**Re-verify when**: any engine-defaults change (immediately — this finding
-died once already that way, as F-001); or the first policy artifact
-exceeding `needs_driven` / passing certification — policy-seated probe in
-both roster modes, per F-001's original trigger. Still due regardless:
-default-world repeat, by-action-class conditioning (mix is 72% move).
+Re-measured F-001 on the retuned engine: two-channel structure held,
+every band moved out 2–4× (spillover ~230–430, team peak k≈230, live
+tail past k=1,000). Killed by its own registered trigger when the 024
+wet-fur batch moved the quantities again — the same death as F-001.
+See F-013. Full text: [FINDINGS-ARCHIVE.md](FINDINGS-ARCHIVE.md).
 
 ---
 
@@ -182,6 +122,13 @@ different search leaders with 5× swings, while 150-world batches
 replicate cleanly (served world: 0.089/0.109/0.090). Probe claims on
 the post-024 engine use 150+ worlds; see the post-024 world search.)*
 
+*(Promoted 2026-08-08 → [README.md § Measurement
+discipline](README.md): the discipline — cluster-robust by world,
+replicate on disjoint worlds before acting. The **world-count bar is
+not promoted** and stays here, engine-indexed: 100+ pre-024, 150+
+post-024, post-026/027 unmeasured — re-derive it at the next probe
+campaign rather than trusting either number.)*
+
 **Would invalidate**: a demonstration that within-world sample
 correlation is negligible at some horizon (it is not, at k > ~50, on
 current evidence).
@@ -194,110 +141,24 @@ changes (e.g., one world per sample).
 
 ## F-005 · superseded by F-013 · Training-world knobs move detectable cooperative signal weakly; scarcity×tempo is the one replicated improver
 
-*(Superseded 2026-08-02: on the post-024 engine the frozen
-scarcity×tempo world's paired-seed signal halved and fell below the
-false-positive floor — the mechanism reads as the chase sidestep
-dissolving the stall-fed queueing consequences this world's gain was
-made of. The knob search was honest for the engine it measured; that
-engine is gone. See F-013.)*
-
-Across 10 candidate worlds (scarcity, tempo, grid size, combinations)
-measured under F-004 discipline, most knobs do nothing or hurt: shrinking
-the grid raises chaotic mixing and drowns signal, tempo ×1.75 overshoots
-(noise outruns signal — tempo has a sweet spot), scarcity alone is a
-wash. The current environment's team-reward counterfactual signal beyond
-the early self-mediated band (k ≤ ~14) sits at the false-positive
-detection floor even at 3,000 samples / 300 worlds. The single
-replicated improvement: **scarcity + tempo ×1.5** (water/chow 3–4,
-sunbeams 2, rates ×1.5) — S(.998) 1.5–1.8× base in three disjoint world
-batches, with dr and spillover bands co-occurring at k ≈ 730–940, the
-signature of queueing/turn-taking consequences. Frozen as `training.toml`
-2026-07-27; `needs_driven` holds 0.881–0.883 there (bounds pass,
-0.10 above the 0.78 feasibility floor).
-
-**Scope**: `needs_driven` dynamics, 5-kitty heterogeneous roster, the
-knob ranges actually searched. Says nothing about trained-policy
-dynamics, other rosters, or knobs not searched (durations, trait
-spreads, roster size).
-
-**Evidence**: [world-search result](exp-001-bc-mappo/results/world-search-2026-07-27.md).
-
-**Implications**: exp-001 trains on the frozen scarcity×tempo world; the
-searched-and-rejected table is the recorded H0a contingency (harden from
-the measured Pareto set, don't invent). The near-floor absolute signal
-sharpens the experiment's framing: single-action counterfactual reward
-effects are marginal, so learnable cooperation, if it exists, is carried
-by state-mediated credit (critic bootstrapping through visible
-intermediate states) — critic EV remains the make-or-break diagnostic.
-
-**Would invalidate**: engine-defaults changes (check
-`engine_defaults_sha256`); a knob outside the searched ranges proving a
-large improver; trained-policy dynamics changing the signal landscape.
-
-**Re-verify when**: H0a is observed in exp-001 (re-run the search with
-fresh budget before choosing the hardening step); or any engine-defaults
-change (with F-003).
+Across 10 candidate worlds most knobs did nothing or hurt; scarcity +
+tempo ×1.5 was the one replicated improver and became the frozen
+training world. On the post-024 engine its gain fell below the
+false-positive floor (the chase sidestep dissolved the queueing
+consequences it fed on). The search was honest for an engine that is
+gone. See F-013. Full text: [FINDINGS-ARCHIVE.md](FINDINGS-ARCHIVE.md).
 
 ---
 
 ## F-006 · superseded by F-013 · The default world carries no detectable cooperative credit
 
-*(Superseded 2026-08-02: both of this finding's own re-verify
-conditions arrived at once — an engine-defaults change (024) and a
-default-config change (the #86 24×24 cutover). On the current served
-world the claim is inverted: a replicated cooperative band exists at
-k ≈ 230–330. The 32×32 measurement below remains correct for the
-world it measured. See F-013.)*
-
-Measured 2026-07-27 (product thread, at the owner's request; verified
-bit-exact by the experiments thread): on `cloudkitty.toml` (32×32, 4
-kitties, element minimums 8, post-retune defaults), 1,000 samples over
-150 disjoint worlds under F-004 statistics, the fast self channel
-reproduces (contiguous k = 0–11 band) while **team-reward and spillover
-significance sit below the false-positive floor** (13 and 10 ticks vs
-~60 expected by chance). The teammate band F-003 measured on the
-training world does not exist here — detectable team credit is ~7×
-smaller than the frozen training world's and statistically absent.
-
-**Scope**: `needs_driven` dynamics on the default world as configured at
-post-retune defaults. **Confounded by design**: geometry, roster size,
-and scarcity all differ from the training world at once; this finding
-says the default world is signal-free, not which knob makes it so (the
-scarcity-only deconfound at fixed geometry is cheap via family-gen and
-unrun). Trained-policy dynamics unmeasured, as everywhere.
-
-**Evidence**: [default-world twin-probe result](exp-001-bc-mappo/results/twin-probe-2026-07-27-default-world.md)
-(regeneration verified bit-identical by a second session).
-
-**Implications**:
-- The training-world selection (F-005) was load-bearing and is now
-  corroborated from outside its searched set: training on the default
-  world would have optimized against a signal that is not measurably
-  there.
-- **Certification is a welfare gate, not a cooperation instrument.**
-  *(Correction 2026-07-30: this bullet conflated two "default worlds".
-  F-006's measurement is of `cloudkitty.toml` — correct and unchanged —
-  but exp-001's certifications to that date had actually run on the
-  compiled 3-kitty default, a different world; see deviation 31, which
-  fixes §8's world to `cloudkitty.toml` and makes the point below
-  apply as intended.)* Certification and the report protocol run on the default world, where
-  single-action cooperative credit is undetectable — a policy's paired
-  Nash gain there must come from policy-level behavioral differences
-  compounding over the run, not from the marginal credit the probe
-  measures. This sharpens H0c (transfer) risk for exp-001: cooperation
-  learned in the contended gym must survive in a roomy world where
-  coordination moments are rare. The design already carries the
-  mitigations (default-world anneal, mixed-roster exam as the
-  cooperation instrument); this finding is why they matter.
-- F-003's "default-world repeat" follow-up is closed by this entry.
-
-**Would invalidate**: signal appearing on the default world under
-trained-policy dynamics (coordinated cats may *create* the contention
-scripted cats avoid — that would narrow this to needs_driven dynamics);
-default-config changes (check `engine_defaults_sha256`).
-
-**Re-verify when**: the policy-seated probe runs (F-003's trigger) —
-run it on BOTH worlds; and after any engine-defaults change.
+On the pre-024 32×32 default world, team/spillover significance sat
+below the false-positive floor — the training-world selection was
+load-bearing. Both of its re-verify conditions arrived at once (024 +
+the 24×24 cutover) and the claim inverted: the served world now carries
+a replicated cooperative band at k≈230–330. The 32×32 measurement
+remains correct for the world it measured. See F-013.
+Full text: [FINDINGS-ARCHIVE.md](FINDINGS-ARCHIVE.md).
 
 ---
 
@@ -342,50 +203,14 @@ insurance against over-crediting BC.
 
 ## F-008 · superseded by F-010 (2026-07-30) · A long-horizon all-policy instability mode exists that short probes cannot detect; scripted teammates arrest it
 
-> **Supersession note (2026-07-30)**: forensics
-> ([collapse-forensics-2026-07-30.md](exp-001-bc-mappo/results/collapse-forensics-2026-07-30.md))
-> identified the mechanism and found this entry's framing wrong on both
-> counts. The mode is not long-horizon (collapse is visible *within*
-> 2,000 ticks on the world that triggers it) and not a coordination
-> instability (a single fragile policy collapses alone). It is
-> **roster-OOD input fragility** — see F-010. The observations below
-> were real; their interpretation was an artifact of certification
-> accidentally running the compiled 3-kitty world (deviation 31) while
-> probes ran `cloudkitty.toml`. Kept for the record.
-
-In exp-001 Arm 2, 2 of 6 runs (γ=.998 s2, γ=.995 s3) carry seeds whose
-all-policy rosters collapse (welfare 0.31–0.69) at 20,000-tick
-evaluation while the same policies' 2,000-tick default-world probes read
-a healthy ~0.94 — indistinguishable from the runs that certify positive.
-The failure needs > 2k ticks to compound, and it never appears in Mixed
-rosters (all six runs are Mixed-positive or Mixed-neutral): scripted
-teammates arrest the spiral. Training-time diagnostics (§10.1 full set)
-were uniformly healthy in the failing runs — this mode is currently
-invisible until certification-length all-policy evaluation.
-
-**Scope**: exp-001 Arm 2 policies on the default world, greedy seating.
-Mechanism unknown (investigation deliberately parked); plausibly a
-self-reinforcing coordination failure among five copies of the same
-policy.
-
-**Evidence**: [Arm 2 record](exp-001-bc-mappo/results/arm2-training-2026-07-30.md)
-(probe-vs-certification divergence); per-seed tables in the report
-protocol result.
-
-**Implications**: **no deployment-soak or shipped-candidate decision may
-rest on sub-certification-length or mixed-roster evidence alone** —
-candidate selection requires the full 20k all-policy run. Trainer
-validation probes at 2k ticks measure transfer, not stability. The
-Mixed-roster immunity is a concrete lead for exp-002's
-partner-population-curriculum item.
-
-**Would invalidate**: the mechanism turning out to be an evaluation
-artifact (e.g. a specific eval-seed interaction) rather than a policy
-property — the parked investigation decides.
-
-**Re-verify when**: the instability investigation runs; or any new
-policy lineage (exp-002) reaches candidate stage — screen it with
-full-length all-policy runs before any other claim.
+Read a 20k-tick all-policy collapse (invisible to 2k probes) as a
+long-horizon coordination instability that scripted teammates arrest.
+Forensics found both halves wrong: the mode is **roster-OOD input
+fragility** — visible within 2k ticks on the world that triggers it,
+collapsing a single policy alone; the framing was an artifact of
+certification accidentally running a different world than the probes
+(deviation 31). See F-010.
+Full text: [FINDINGS-ARCHIVE.md](FINDINGS-ARCHIVE.md).
 
 ---
 
@@ -407,6 +232,21 @@ collapse is visible within the probe's own 2k horizon (F-010,
 deviation 31). The rule generalizes rather than weakens: every
 dimension an instrument holds fixed — horizon, world, roster — bounds
 the failures it can detect. State all of them with the claim.)*
+
+*(Third bite, 2026-08-07, folded in at promotion: the **seed band** is
+one of those dimensions. Three independent signs in one week — exp-003's
+§9.2 admitting none of nine candidates, the bimodal failure split, and a
+[screen that voided itself](screens/geometry-20x20-2026-08-07/results.md)
+because its control showed 241-tick distress on a band where the same
+artifact on the same world had scored zero; the criterion had
+generalized one band's zero into a policy property. `max_distress_age
+== 0` is a property of policy × world × seed band. State the band with
+the claim.)*
+
+*(Promoted 2026-08-08 → [README.md § Measurement
+discipline](README.md): every criteria/prereg measurement section must
+declare its instrument's held-fixed dimensions — horizon, world, roster,
+seed band, selection mode. This entry stays as provenance.)*
 
 **Scope**: any instrument whose readings feed a decision — probes,
 validation curves, smoke evals, forensic re-checks.
@@ -712,7 +552,11 @@ persist past k ≈ 500 in the class batches.
 
 **Re-verify when**: any engine-defaults change; when policy-seated
 (rather than scripted) probes become available at the exp-002
-candidate stage.
+candidate stage. *(Trigger FIRED, 2026-08-08 review: the 026/027 batch
+moved the engine to stamp `cba976da…` and no re-measurement has run —
+the class amplitudes and densities above are stale on the current
+engine. Queued as exp-004's first probe obligation; the dilution
+mechanism itself is instrument-generic and stands.)*
 
 ---
 
@@ -773,3 +617,77 @@ grooming loop re-arms) rather than the gain.
 happiness weight, or the wet-fur charge move; and — first opportunity —
 when a schema-2 policy exists, since point 3 predicts it will not
 follow the scripted direction.
+
+---
+
+## F-017 · active · The multi-copy collapse is largely a symmetry artifact: identical greedy policies deadlock over contested resources, and sampled selection dissolves it
+
+Measured 2026-08-07 on the post-027 engine (`cba976da…`), all nine
+exp-003 candidates, roster-5 world, 30 seeds × 20k, `--roster
+all-policy`, greedy vs `--sample` on matched seeds.
+
+1. **Breaking the tie removes the catastrophe.** `floor_touches`
+   **108,584 → 0** across the sweep; worst `max_distress_age`
+   **16,027 → 1,020**. The two collapsing candidates fall 300× and 15×,
+   and their welfare recovers from 0.9126 / 0.8681 to ~0.921 — into the
+   band the healthy candidates already occupied. Fallbacks zero in both
+   modes.
+2. **The mechanism is symmetry, not incapacity.** Four identical
+   deterministic policies observing similar states select the same
+   action, converge on the same resource tile, and deadlock; the
+   worst-off cat starves while the whole roster degrades. (Mechanism
+   *inferred* — from the greedy-vs-sampled contrast, the failing-need
+   signature, and the chow-tile geometry result; the committed JSON is
+   outcome-level, no position traces.) Eat leads the failing needs in
+   every §9.2 probe, drink usually second — the contested consumables —
+   and adding a single chow tile to a 20×20 world independently moved
+   incident runs 9/60 → 1/60
+   ([geometry-20x20-optE screen](screens/geometry-20x20-optE-2026-08-07/results.md)).
+   Two different interventions on contention, same direction.
+3. **Very little noise is required.** End-of-training policy entropy is
+   **0.31–0.39 nats** (uniform over the 40-action menu would be 3.69),
+   so `--sample` is near-greedy — it mostly agrees with the argmax. The
+   tie is fragile; breaking it is cheap.
+4. **Mixed and self-play arms respond oppositely**: mixed worst-case
+   mean **5,494.7 → 213.2** (26× better), self-play **80.0 → 135.7**
+   (slightly worse). Self-play trains entirely under self-contention and
+   has already learned to break symmetry behaviourally, so randomisation
+   only adds noise; mixed arms spent a third of training with no
+   self-contention and never learned it. This is a second, independent
+   line of evidence for the same mechanism as the mixing gradient
+   (exp-002's monotone 0/33/67 replication).
+5. **Not a free win**: incident *counts* fall only 92/270 → 69/270, and
+   the improvement is not uniform — by worst distress two candidates
+   worsen (A2-s1, A2-s3), by incident count three do (a different set:
+   A0-s2, A1-s1, A2-s1). Sampling trades a rare catastrophic tail for
+   slightly more frequent small wobbles.
+
+**Scope**: exp-003's schema-2 MLP policies on the roster-5 family world
+at four occupied seats. Says nothing about deployment, which seats two
+policies among two scripted cats and shows **zero** distress under
+greedy selection either way. The symmetry argument is generic to
+identical deterministic agents sharing scarce indivisible resources, so
+expect it wherever policy share is high; the *magnitudes* are specific
+to these policies and this world.
+
+**Evidence**: [selection-symmetry-2026-08-07.md](exp-003-water-schema/results/selection-symmetry-2026-08-07.md);
+per-run JSON committed beside it, seed band 810k.
+
+**Implications**: an all-policy collapse is weak evidence about policy
+*quality* — it conflates a coordination failure with a competence
+failure, which matters directly for respecifying exp-003 §9.2's roster
+gate (it admitted none of nine). For exp-004, symmetry-breaking rises up
+the knob list in two forms: cheap and behavioural (sampled selection, or
+a per-seat identity feature letting copies specialise) and principled
+(the meow channel — signalling intent is the designed resolution for
+resource contention, `WantEat` already exists, and these policies never
+learned to use it: greedy `meow/1k` 0.01–0.41). Nothing here licenses
+switching the served world to sampled selection: every §9.1 water figure
+— and the deployment record itself (Deviation 1: deployed, **not**
+certified) — is greedy, so a switch needs re-measurement rather than
+assumption.
+
+**Re-verify when**: policy entropy at convergence moves materially (the
+effect depends on distributions being sharp); a policy trained with any
+explicit symmetry-breaking or coordination mechanism exists; or the
+action menu changes such that resource targets stop being indivisible.

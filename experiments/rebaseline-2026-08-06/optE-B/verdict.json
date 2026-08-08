@@ -1,0 +1,62 @@
+{
+ "engine_defaults_sha256": "cba976dae4b88703f5cff8028a54db24efde6a5cfe8d79dcdbb3948151751b03",
+ "config": "experiments/screens/geometry-20x20-optE-2026-08-07/configs/opte-20x20.toml",
+ "seats": {
+  "kitty_1": "needs_driven",
+  "kitty_2": "playful",
+  "kitty_3": "needs_driven",
+  "kitty_4": "needs_driven"
+ },
+ "seeds": [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10
+ ],
+ "ticks": 20000,
+ "mean_water_tiles": 7.0,
+ "policy_seats": {
+  "seats": [
+   "Miso",
+   "Kittybear"
+  ],
+  "lounge_share": 0.01831,
+  "inwater_share": 0.0418025
+ },
+ "legacy_reference_seats": {
+  "seats": [
+   "Biscuit",
+   "Pumpkin"
+  ],
+  "lounge_share": 0.0098525,
+  "inwater_share": 0.026955
+ },
+ "all_seats": {
+  "lounge_share": 0.01408125,
+  "inwater_share": 0.03437875
+ },
+ "per_seat": {
+  "Miso": {
+   "lounge": 0.018525,
+   "inwater": 0.04221
+  },
+  "Biscuit": {
+   "lounge": 0.00537,
+   "inwater": 0.02026
+  },
+  "Pumpkin": {
+   "lounge": 0.014335,
+   "inwater": 0.03365
+  },
+  "Kittybear": {
+   "lounge": 0.018095,
+   "inwater": 0.041395
+  }
+ }
+}

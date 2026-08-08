@@ -1,0 +1,62 @@
+{
+ "engine_defaults_sha256": "cba976dae4b88703f5cff8028a54db24efde6a5cfe8d79dcdbb3948151751b03",
+ "config": "/private/tmp/claude-501/-Users-elizabethkelly-ai-cloudkitty/c344c5ac-df5f-439b-977c-3cfdd15fedaa/scratchpad/w11.toml",
+ "seats": {
+  "kitty_1": "needs_driven",
+  "kitty_2": "playful",
+  "kitty_3": "needs_driven",
+  "kitty_4": "needs_driven"
+ },
+ "seeds": [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10
+ ],
+ "ticks": 20000,
+ "mean_water_tiles": 11.0,
+ "policy_seats": {
+  "seats": [
+   "Miso",
+   "Kittybear"
+  ],
+  "lounge_share": 0.015805,
+  "inwater_share": 0.0366125
+ },
+ "legacy_reference_seats": {
+  "seats": [
+   "Biscuit",
+   "Pumpkin"
+  ],
+  "lounge_share": 0.0077025,
+  "inwater_share": 0.0224975
+ },
+ "all_seats": {
+  "lounge_share": 0.01175375,
+  "inwater_share": 0.029555
+ },
+ "per_seat": {
+  "Miso": {
+   "lounge": 0.0163,
+   "inwater": 0.036865
+  },
+  "Biscuit": {
+   "lounge": 0.004365,
+   "inwater": 0.01817
+  },
+  "Pumpkin": {
+   "lounge": 0.01104,
+   "inwater": 0.026825
+  },
+  "Kittybear": {
+   "lounge": 0.01531,
+   "inwater": 0.03636
+  }
+ }
+}
