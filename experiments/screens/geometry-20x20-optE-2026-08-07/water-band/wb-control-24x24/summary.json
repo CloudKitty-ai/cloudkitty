@@ -1,0 +1,27 @@
+{
+  "A2-m0-g998-s3": {
+    "inwater_share": 0.02902,
+    "lounge_share": 0.00708,
+    "grooming_on_water_share": 0.0014775,
+    "lounge_excl_grooming": 0.0056025,
+    "by_activity_share": {
+      "Idle": 0.0198075,
+      "Resting": 0.0005375,
+      "Sleeping": 0.005065,
+      "Eating": 0.000705,
+      "Drinking": 0.0006775,
+      "Playing": 0.00075,
+      "Grooming": 0.0014775
+    },
+    "config": "/Users/elizabethkelly/ai/cloudkitty/experiments/screens/geometry-20x20-optE-2026-08-07/configs/control-24x24.toml",
+    "mean_water_tiles": 8.0,
+    "B_inwater": 0.034352,
+    "B_lounge": 0.015,
+    "ceiling": 0.051528000000000004,
+    "floor": 0.017176,
+    "pass_ceiling": true,
+    "pass_floor": true,
+    "pass_lounge": true,
+    "band_pass": true
+  }
+}

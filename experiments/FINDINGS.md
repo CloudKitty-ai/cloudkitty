@@ -790,10 +790,14 @@ all-policy`, greedy vs `--sample` on matched seeds.
    modes.
 2. **The mechanism is symmetry, not incapacity.** Four identical
    deterministic policies observing similar states select the same
-   action, converge on the same resource tile, and deadlock; whichever
-   cat loses every tie starves. The failing need is always eat, with
-   drink second — the contested consumables — and adding a single chow
-   tile to a 20×20 world independently moved incident runs 9/60 → 1/60
+   action, converge on the same resource tile, and deadlock; the
+   worst-off cat starves while the whole roster degrades. (Mechanism
+   *inferred* — from the greedy-vs-sampled contrast, the failing-need
+   signature, and the chow-tile geometry result; the committed JSON is
+   outcome-level, no position traces.) Eat leads the failing needs in
+   every §9.2 probe, drink usually second — the contested consumables —
+   and adding a single chow tile to a 20×20 world independently moved
+   incident runs 9/60 → 1/60
    ([geometry-20x20-optE screen](screens/geometry-20x20-optE-2026-08-07/results.md)).
    Two different interventions on contention, same direction.
 3. **Very little noise is required.** End-of-training policy entropy is
@@ -808,8 +812,10 @@ all-policy`, greedy vs `--sample` on matched seeds.
    self-contention and never learned it. This is a second, independent
    line of evidence for the same mechanism as the mixing gradient
    (exp-002's monotone 0/33/67 replication).
-5. **Not a free win**: incident *counts* fall only 92/270 → 69/270 and
-   three candidates worsen. Sampling trades a rare catastrophic tail for
+5. **Not a free win**: incident *counts* fall only 92/270 → 69/270, and
+   the improvement is not uniform — by worst distress two candidates
+   worsen (A2-s1, A2-s3), by incident count three do (a different set:
+   A0-s2, A1-s1, A2-s1). Sampling trades a rare catastrophic tail for
    slightly more frequent small wobbles.
 
 **Scope**: exp-003's schema-2 MLP policies on the roster-5 family world
@@ -832,9 +838,10 @@ a per-seat identity feature letting copies specialise) and principled
 (the meow channel — signalling intent is the designed resolution for
 resource contention, `WantEat` already exists, and these policies never
 learned to use it: greedy `meow/1k` 0.01–0.41). Nothing here licenses
-switching the served world to sampled selection: exp-003 certified
-greedy and every §9.1 water figure was measured that way, so a switch
-needs re-certification rather than assumption.
+switching the served world to sampled selection: every §9.1 water figure
+— and the deployment record itself (Deviation 1: deployed, **not**
+certified) — is greedy, so a switch needs re-measurement rather than
+assumption.
 
 **Re-verify when**: policy entropy at convergence moves materially (the
 effect depends on distributions being sharp); a policy trained with any

@@ -38,9 +38,13 @@ candidates already occupied.
 
 **Four identical deterministic policies facing similar observations
 choose the same action.** They converge on the same chow tile and
-deadlock over it; the cat that loses every tie starves. Breaking the tie
-with sampling dissolves the catastrophic mode — a population that hit
-the happiness floor 108,584 times across the sweep now never touches it
+deadlock over it; the worst-off cat starves while the whole roster
+degrades. (This mechanism is *inferred* — from the greedy-vs-sampled
+contrast, the eat/drink failure signature, and the chow-tile geometry
+result — not observed in traces; the committed JSON is outcome-level
+only.) Breaking the tie with sampling dissolves the catastrophic mode —
+a population that hit the happiness floor 108,584 times across the
+sweep (all of them one candidate, A0-m33-g998-s3) now never touches it
 once.
 
 This is a much better explanation of the §9.2 failures than "these
@@ -67,8 +71,11 @@ same mechanism from different directions.
 
 ### It is not a free win
 
-Incident *counts* fall only 92/270 → 69/270, and three candidates get
-worse (A2-s3 184 → 342, A2-s1 15 → 25). Sampling trades a rare
+Incident *counts* fall only 92/270 → 69/270, and the improvement is not
+uniform. By worst distress two candidates worsen (A2-s3 184 → 342,
+A2-s1 15 → 25); by incident count three do, in a different set (A0-s2
+8 → 11, A1-s1 16 → 17, A2-s1 1 → 2), while A2-s3's incident count
+*improves* 5 → 1. Sampling trades a rare
 catastrophic tail for slightly more frequent small wobbles. If the
 metric that matters is "never collapse", it is a large win; if it is
 "never any distress at all", it is roughly a wash.
@@ -85,8 +92,9 @@ very little noise to break a tie, and the tie is what was killing them.
 ## What this does and does not license
 
 **Does not**: change any exp-003 result. §9.2 still admits no candidate,
-H5 is still not supported, and `e003-m0-g998-s3` remains certified and
-deployed **greedy** — every §9.1 water number was measured that way.
+H5 is still not supported, and `e003-m0-g998-s3` remains deployed
+**greedy** (deployed, *not* certified — Deviation 1) — every §9.1 water
+number was measured that way.
 Switching the served world to sampled selection would require
 re-certification, not an assumption: sampling changes the action
 distribution, so water behaviour and welfare both need re-measuring.

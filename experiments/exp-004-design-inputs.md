@@ -20,8 +20,11 @@ it should carry more signal and possibly cost less.
 
 `MessageKind::for_need` (`crates/cloudkitty-core/src/meow.rs`) returns a
 message for Eat, Drink, Play and Cuddle, and **`None` for Sleep and
-Bath**. `LEARNED_MEOWS` is 6 of the 7 kinds; `WaitForMe` is
-engine-reserved for the yield rule and nothing else may spend it.
+Bath**. `LEARNED_MEOWS` is 6 of the 7 kinds; `WaitForMe` is reserved
+for the yield rule — by menu construction (policies can't select it)
+and scripted convention, **not** engine law: `validate` accepts any
+non-Purr meow from any proposal source. If exp-004 restructures the
+vocabulary, that asymmetry belongs in the spec.
 
 The owner's first reading was that Sleep and Bath are satisfiable solo,
 so a message buys little. **That holds for Sleep and breaks for Bath.**
@@ -87,13 +90,33 @@ policy a meow costs exactly one action's opportunity cost, and "make it
 cheaper" means changing **what a meow displaces** — letting it ride
 alongside another action rather than replacing one.
 
-### Bandwidth is probably not the constraint
+### Bandwidth is not the constraint — content is (now verified)
 
 The digest is `LEARNED_MEOWS.len() * 3` = **18 of 183 observation
-values**, roughly 10% of everything a policy sees. Check what those three
-values per kind encode before adding more: the limitation may be
-*content* (kind only — no intensity, no addressee, no "I am heading
-there") rather than capacity.
+values**, roughly 10% of everything a policy sees. What the three
+values per kind actually encode (`observe.rs:331-359`): a
+recency-weighted presence — the freshest heard meow of that kind,
+`1 − age/window`, window 10 ticks, own meows excluded — plus the
+relative position `(dx, dy)` of the *nearest* current emitter. So the
+channel already carries recency and direction, but **no intensity, no
+addressee, no emitter identity** — and with two same-kind emitters the
+presence and the position can describe *different cats*.
+
+Three engine facts that sharpen the design space:
+
+- **Meows are a global broadcast.** The digest filters by kind and
+  self-exclusion only — no range, no falloff. A `WantBath` meow would
+  be heard grid-wide for 10 ticks, and the digest already hands a
+  responder the direction to walk. Grooming requires adjacency and a
+  free target, so that navigation signal is exactly what a responder
+  needs.
+- **The emitter is blind to its own signal.** Own meows are excluded
+  from the digest and the forward pass is stateless, so a policy
+  cannot know it already asked. Repeating a request costs a full turn
+  each time, with no observable state to amortize against — the
+  strongest argument for the ride-along form of "cheaper".
+- **Purr is already a gated meow** (`purr_earned` gates its mask row) —
+  standing precedent if exp-004 wants a conditionally-legal message.
 
 ### The channel is empirically dead
 
@@ -157,8 +180,9 @@ close it out cleanly.
 fixes a problem the served world does not have: at the deployed 2-of-4
 composition the world shows **zero** distress under greedy. Costs:
 certification does not transfer (every §9.1 number is greedy), it is not
-a clean win even where it helps (incidents 92/270 → 69/270, three
-candidates worse), and it is a registered condition, not a toggle (issue
+a clean win even where it helps (incidents 92/270 → 69/270; two
+candidates worsen by worst distress, three by incident count — different
+sets), and it is a registered condition, not a toggle (issue
 #70). **Proposed test, ~20 min**: §9.1 water band + deployed-composition
 probe under `--sample`, compared against greedy. Not yet run.
 
@@ -183,8 +207,13 @@ change that validates itself. Naming already anticipates it
 **The collapse is a self-interaction failure, and largely a symmetry
 artifact (F-017).**
 
-- At **one** policy seat, 8/9 exp-003 candidates score `max_distress_age`
-  0. The policies are individually fine; the *population* fails.
+- At **one** policy seat, **7/9** exp-003 candidates score
+  `max_distress_age` 0 (the two exceptions, both mixed-arm, score 32 and
+  194 — mild, not collapse; an earlier draft said 8/9, conflating this
+  with H3's welfare count). The policies are individually fine; the
+  *population* fails. The deployed winner is also the **only** candidate
+  of nine at zero on shape-iii — stronger support for this specific
+  deployment than the docs emphasized.
 - Under `--sample`, `floor_touches` **108,584 → 0** and worst distress
   **16,027 → 1,020**. Four identical deterministic policies pick the same
   action, converge on the same tile and deadlock.
@@ -194,8 +223,9 @@ artifact (F-017).**
 - **exp-002 replicates the mixing gradient out-of-sample**: median
   distress M0 **0.0** → M33 **6.0** → M67 **28.5**, zero-rate 67% → 44%
   → 17%.
-- The failing need is always **eat**, drink second — contested
-  consumables. Cuddle and bath never appear in a healthy candidate.
+- **Eat** leads the failing needs in every §9.2 probe, drink usually
+  second — the contested consumables dominate the failure mode. (Not
+  "always": one healthy candidate's second need is bath.)
 
 **`all-policy` is not a shipping condition.** The served world seats
 **two** policies among two scripted cats. §9.2 gates a population that

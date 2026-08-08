@@ -1,0 +1,105 @@
+{
+  "experiment": "exp-003",
+  "opened": "2026-08-07",
+  "engine_defaults_sha256": "cba976dae4b88703f5cff8028a54db24efde6a5cfe8d79dcdbb3948151751b03",
+  "rule": "evaluate-once (prereg \u00a711): a (run, shape) pair recorded here is never re-run. Seed bands are disjoint from training (>=1e6), collection (600_001-614_004), in-training probes (40_001-3) and every prior experiment's bands.",
+  "seed_bands": {
+    "i": 700001,
+    "iii": 710001,
+    "roster3": 720001,
+    "roster5": 730001
+  },
+  "candidates": [
+    {
+      "run": "A0-m33-g998-s1",
+      "artifact": "experiments/exp-003-water-schema/artifacts/A0-m33-g998-s1/A0-m33-g998-s1.ckpolicy",
+      "sha256": "73937cb2052cd2befc94fba1bf76e26f091f12350aea66010d54ef27b1484982"
+    },
+    {
+      "run": "A0-m33-g998-s2",
+      "artifact": "experiments/exp-003-water-schema/artifacts/A0-m33-g998-s2/A0-m33-g998-s2.ckpolicy",
+      "sha256": "ab661c66f69c8350128fb52115f030d654042f6dd995a55129f169a73cdfb4a6"
+    },
+    {
+      "run": "A0-m33-g998-s3",
+      "artifact": "experiments/exp-003-water-schema/artifacts/A0-m33-g998-s3/A0-m33-g998-s3.ckpolicy",
+      "sha256": "0d9148d6da1f5588c33d0910062370e76cb6a0919343182554a0a10fd209c93c"
+    },
+    {
+      "run": "A1-m33-g995-s1",
+      "artifact": "experiments/exp-003-water-schema/artifacts/A1-m33-g995-s1/A1-m33-g995-s1.ckpolicy",
+      "sha256": "86379bf16abe84733fbf8d638b0e0b14802529dec11b6dba86577da95269ff69"
+    },
+    {
+      "run": "A1-m33-g995-s2",
+      "artifact": "experiments/exp-003-water-schema/artifacts/A1-m33-g995-s2/A1-m33-g995-s2.ckpolicy",
+      "sha256": "69cad18151d616a5c166e2eafe050c03dcbade775eba48a0ed63b96641767156"
+    },
+    {
+      "run": "A1-m33-g995-s3",
+      "artifact": "experiments/exp-003-water-schema/artifacts/A1-m33-g995-s3/A1-m33-g995-s3.ckpolicy",
+      "sha256": "192a91494e7367adf7fc45969f2d4b1971ae07738a619f1596a339ee439924e9"
+    },
+    {
+      "run": "A2-m0-g998-s1",
+      "artifact": "experiments/exp-003-water-schema/artifacts/A2-m0-g998-s1/A2-m0-g998-s1.ckpolicy",
+      "sha256": "53ee645b69d907f8cdd90cecf3823648bade9a1394a57c98a42780701f282a52"
+    },
+    {
+      "run": "A2-m0-g998-s2",
+      "artifact": "experiments/exp-003-water-schema/artifacts/A2-m0-g998-s2/A2-m0-g998-s2.ckpolicy",
+      "sha256": "932166d451874f274c6422a2061c5c9c5c09ce7cf6f56c83f79981f9d9c54290"
+    },
+    {
+      "run": "A2-m0-g998-s3",
+      "artifact": "experiments/exp-003-water-schema/artifacts/A2-m0-g998-s3/A2-m0-g998-s3.ckpolicy",
+      "sha256": "756aa6802ee5dd061b0c1c2633977f49a531fe08db71aff9dc25deedb729283b"
+    }
+  ],
+  "evaluated": {
+    "roster3": [
+      "A0-m33-g998-s1",
+      "A0-m33-g998-s2",
+      "A0-m33-g998-s3",
+      "A1-m33-g995-s1",
+      "A1-m33-g995-s2",
+      "A1-m33-g995-s3",
+      "A2-m0-g998-s1",
+      "A2-m0-g998-s2",
+      "A2-m0-g998-s3"
+    ],
+    "roster5": [
+      "A0-m33-g998-s1",
+      "A0-m33-g998-s2",
+      "A0-m33-g998-s3",
+      "A1-m33-g995-s1",
+      "A1-m33-g995-s2",
+      "A1-m33-g995-s3",
+      "A2-m0-g998-s1",
+      "A2-m0-g998-s2",
+      "A2-m0-g998-s3"
+    ],
+    "iii": [
+      "A0-m33-g998-s1",
+      "A0-m33-g998-s2",
+      "A0-m33-g998-s3",
+      "A1-m33-g995-s1",
+      "A1-m33-g995-s2",
+      "A1-m33-g995-s3",
+      "A2-m0-g998-s1",
+      "A2-m0-g998-s2",
+      "A2-m0-g998-s3"
+    ],
+    "i": [
+      "A0-m33-g998-s1",
+      "A0-m33-g998-s2",
+      "A0-m33-g998-s3",
+      "A1-m33-g995-s1",
+      "A1-m33-g995-s2",
+      "A1-m33-g995-s3",
+      "A2-m0-g998-s1",
+      "A2-m0-g998-s2",
+      "A2-m0-g998-s3"
+    ]
+  }
+}

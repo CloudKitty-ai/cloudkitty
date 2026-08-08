@@ -387,6 +387,16 @@ an argument for a *better-specified* criterion in exp-004, and
 explicitly **not** a reason to reread this one now — designing a gate
 around the run that motivated it is how a gate stops meaning anything.
 
+### Correction to Deviation 1 (2026-08-08)
+
+Post-hoc verification (independent recomputation from the eval JSON)
+found that "one seed" above understates the blemish: the winner's
+`max_distress_age` 3 occurs on **two** seeds of the roster-5 family
+world — 730010 and 730016, each a 3-tick eat streak. No verdict moves;
+§9.2 admits no nonzero value, so one seed or two fails identically. The
+text above stands unedited per the append-only rule; this entry corrects
+the record.
+
 **Alternative considered and rejected**: rolling out with both seats
 scripted (`needs_driven`, main's parked configuration). It requires no
 policy decision, but it is *worse on the axis that prompted the
