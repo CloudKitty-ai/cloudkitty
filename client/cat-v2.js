@@ -196,6 +196,21 @@ const GAIT = {
  */
 const PROPORTION = {
   lift: 0, // 0 is exactly today's cat
+  // Shape, as multiples of the v1 cat -- 1 is the body this vocabulary
+  // shipped with. Held as multipliers rather than radii because every pose
+  // sets its own body (walking widens rx, the pounce crouch squashes ry,
+  // sleep-curl is a ball); an absolute would overwrite all of that, a
+  // scale respects it.
+  //
+  // Owner-dialled 2026-08-08. Note bodyW and bodyH move together here, so
+  // the ASPECT is untouched at 1.52 -- this is a 10% bigger body, not a
+  // rounder one. What it buys is head:body 0.71 -> 0.64, most of the way to
+  // kitten.me's 0.61, by growing the body rather than shrinking the head.
+  bodyW: 1.1,
+  bodyH: 1.05,
+  headR: 1,
+  headY: 0.01, // head nudge after the ride-along, + is down
+  headX: 0.02, // and along the body, + is forward (the base cat faces right)
 };
 
 /**
@@ -224,6 +239,51 @@ function liftLayout(L, airborne) {
     ...leg,
     top: up(leg.top),
     bottom: airborne ? up(leg.bottom) : leg.bottom,
+  }));
+  return L;
+}
+
+/**
+ * Applies PROPORTION's shape multipliers to a finished layout.
+ *
+ * The belly floor -- the body ellipse's lowest point -- is the invariant.
+ * Scaling `ry` about the centre would push the underside through the
+ * ground (or lift it off), which is a stand-height change wearing a
+ * proportion costume; `lift` is the dial for that, and confusing the two
+ * makes neither judgeable. So the floor stays and the centre moves.
+ *
+ * Everything that rides the body rides that move: head, tail, and each
+ * limb's pivot. Feet do not -- they are positioned against the GROUND, so
+ * holding them is exactly what turns a rounder body into more visible leg.
+ * Airborne poses are the documented exception, same rule as liftLayout.
+ *
+ * Measured consequence, for whoever tunes this: at a leg's x the ellipse
+ * edge sits above the floor by ry*(1 - sqrt(1 - t^2)) less than at the
+ * centre, so raising ry and the centre together RAISES the belly over the
+ * legs. Rounding the body out is what buys daylight; the head ratio buys
+ * none of it, only headroom.
+ */
+function proportionLayout(L, airborne) {
+  const { bodyW, bodyH, headR, headY, headX } = PROPORTION;
+  if (bodyW === 1 && bodyH === 1 && headR === 1 && !headY && !headX) return L;
+
+  const floor = L.body.cy + L.body.ry;
+  L.body.rx *= bodyW;
+  L.body.ry *= bodyH;
+  const dy = floor - L.body.ry - L.body.cy; // how far the centre had to move
+  L.body.cy += dy;
+
+  L.head.r *= headR;
+  L.head.cy += dy + headY;
+  L.head.cx += headX;
+
+  const t = L.tail;
+  t.y0 += dy; t.c1y += dy; t.c2y += dy; t.y1 += dy;
+
+  L.legs = L.legs.map((leg) => ({
+    ...leg,
+    top: leg.top + dy,
+    bottom: airborne ? leg.bottom + dy : leg.bottom,
   }));
   return L;
 }
@@ -691,7 +751,10 @@ function catLayout(pose, phase) {
       break;
   }
 
-  return liftLayout(L, airborne);
+  // Shape first, then stand height: proportion holds the belly floor and
+  // lift moves it, so running them the other way round would have lift's
+  // rise silently undone by proportion's floor-restoring step.
+  return liftLayout(proportionLayout(L, airborne), airborne);
 }
 
 // ---------------------------------------------------------------------------
@@ -1191,6 +1254,7 @@ const api = {
   MAX_LIFT,
   gaitStep,
   plantedReach,
+  proportionLayout,
   PALETTES,
   POSES,
   // Not cat API, but props.js, meadow.js and app.js quietly depend on

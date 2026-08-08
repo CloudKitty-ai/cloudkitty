@@ -990,5 +990,119 @@ check('a discontinuity resets the odometer with the rest of the memory', () => {
   close(p.strideFor(1, 2400), 0, 'the odometer starts clean, like facings and worn paths');
 });
 
+// ---- PROPORTION: the shape dials (the body:head work) ----
+
+const PROP_SHIPPED = { ...CatV2.PROPORTION };
+/** Run `fn` with the shape dials moved, and always put them back. */
+function reshaped(over, fn) {
+  Object.assign(CatV2.PROPORTION, over);
+  try {
+    return fn();
+  } finally {
+    Object.assign(CatV2.PROPORTION, PROP_SHIPPED);
+  }
+}
+/** The body ellipse's lower edge directly above `x` -- the belly a leg hangs below. */
+const bellyAt = (x, b) => {
+  const t = (x - b.cx) / b.rx;
+  return Math.abs(t) >= 1 ? b.cy - b.ry : b.cy + b.ry * Math.sqrt(1 - t * t);
+};
+const legAt = (over, x = CatV2.GAIT.hip) =>
+  0.88 - bellyAt(x, reshaped(over, () => CatV2.catLayout('walking', 0)).body);
+
+/** The v1 body every multiplier is measured against. */
+const IDENT = { bodyW: 1, bodyH: 1, headR: 1, headY: 0, headX: 0 };
+
+check('the shipped shape is the one the owner dialled', () => {
+  const p = CatV2.PROPORTION;
+  // Pinned, not asserted-as-identity: these were chosen in the lab on
+  // 2026-08-08. The check exists so the next edit has to be deliberate too.
+  close(p.bodyW, 1.1, 'bodyW drifted');
+  close(p.bodyH, 1.05, 'bodyH drifted');
+  close(p.headR, 1, 'headR drifted');
+  close(p.headY, 0.01, 'headY drifted');
+  close(p.headX, 0.02, 'headX drifted');
+  // Aspect moves only by the RATIO of the two scales -- dialling both by
+  // the same factor is a bigger body, not a rounder one. Worth asserting
+  // because it is the thing an eye cannot check: 1.1/1.088 looks like two
+  // different numbers and is very nearly none.
+  const shipped = CatV2.catLayout('walking', 0);
+  const v1 = reshaped(IDENT, () => CatV2.catLayout('walking', 0));
+  close(
+    shipped.body.rx / shipped.body.ry,
+    (v1.body.rx / v1.body.ry) * (p.bodyW / p.bodyH),
+    'the aspect moved by something other than bodyW/bodyH',
+  );
+});
+
+check('the head slides along the body without reshaping it', () => {
+  // Both ends measured from the v1 body: a check that reads the shipped
+  // dials as its own baseline stops testing the mechanism the moment
+  // someone pastes a new value into them.
+  const base = reshaped(IDENT, () => CatV2.catLayout('walking', 0));
+  const fwd = reshaped({ ...IDENT, headX: 0.05 }, () => CatV2.catLayout('walking', 0));
+  close(fwd.head.cx - base.head.cx, 0.05, 'the head did not move forward');
+  close(fwd.head.cy, base.head.cy, 'moving the head forward moved it vertically');
+  close(fwd.body.cx, base.body.cx, 'the body followed the head');
+  close(fwd.head.r, base.head.r, 'the head resized while sliding');
+});
+
+check('reshaping holds the belly floor in every pose', () => {
+  for (const pose of CatV2.POSES) {
+    const base = CatV2.catLayout(pose, 0.4);
+    const shaped = reshaped({ bodyH: 1.2, bodyW: 1.1 }, () => CatV2.catLayout(pose, 0.4));
+    close(
+      shaped.body.cy + shaped.body.ry,
+      base.body.cy + base.body.ry,
+      `${pose}: the underside moved, which is a stand-height change wearing a proportion costume`,
+    );
+  }
+});
+
+check('a grounded foot stays on the ground; the leap’s feet ride the body', () => {
+  const walk = CatV2.catLayout('walking', 0.4);
+  const walkShaped = reshaped({ bodyH: 1.2 }, () => CatV2.catLayout('walking', 0.4));
+  walk.legs.forEach((leg, i) =>
+    close(walkShaped.legs[i].bottom, leg.bottom, `walking foot ${i} left the ground`),
+  );
+  assert(walkShaped.legs[0].top < walk.legs[0].top, 'the pivot must ride the body up with it');
+
+  const leap = CatV2.catLayout('pouncing', 0.8); // phase >= 0.45 is the airborne half
+  const leapShaped = reshaped({ bodyH: 1.2 }, () => CatV2.catLayout('pouncing', 0.8));
+  assert(
+    leap.legs.every((leg, i) => leapShaped.legs[i].bottom < leg.bottom - 1e-9),
+    'the leap has no ground under it -- holding those feet would detach the limbs mid-air',
+  );
+});
+
+check('the head and tail ride the body they are attached to', () => {
+  const base = CatV2.catLayout('walking', 0);
+  const shaped = reshaped({ bodyH: 1.2 }, () => CatV2.catLayout('walking', 0));
+  const dy = shaped.body.cy - base.body.cy;
+  assert(dy < -1e-9, 'a taller body against a held floor must raise the centre');
+  close(shaped.head.cy - base.head.cy, dy, 'the head came off the body');
+  close(shaped.tail.y0 - base.tail.y0, dy, 'the tail stayed behind at the old rump');
+});
+
+check('rounding the body out is what buys visible leg', () => {
+  // Measured against the v1 body, not the shipped one, so the claim stays
+  // about the mechanism rather than about wherever the dials happen to sit.
+  // kitten.me's 1.33 aspect, reached by height alone: ry 0.210 -> 0.241.
+  const v1 = legAt(IDENT);
+  const rounder = legAt({ ...IDENT, bodyH: 1.146 });
+  assert(
+    rounder > v1 + 0.008,
+    `a rounder body must show MORE leg, not less: ${v1.toFixed(4)} -> ${rounder.toFixed(4)}`,
+  );
+});
+
+check('the head ratio buys headroom, never leg', () => {
+  close(legAt({ headR: 0.864 }), legAt({}), 'shrinking the head changed the leg daylight');
+  const base = CatV2.catLayout('walking', 0);
+  const small = reshaped({ headR: 0.864 }, () => CatV2.catLayout('walking', 0));
+  assert(small.head.r < base.head.r, 'the head did not shrink');
+  close(small.head.cy, base.head.cy, 'the head centre moved when only its radius was dialled');
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);
