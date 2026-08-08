@@ -119,31 +119,61 @@ scratch, and no cross-generation artifact comparison exists.
 
 ## 3. Arms
 
-| arm | init | mix | γ | seeds | selection |
-|---|---|---|---|---|---|
-| A0 | BC v4 clone | 0% (self-play) | 0.998 | **[AT FREEZE: N]** | eligible |
-| D1 | BC v4 clone | 33% | 0.998 | 3 | **ineligible — diagnostic only** [PENDING OWNER CONFIRM] |
+| arm | init | mix | γ | shaping | seeds | selection |
+|---|---|---|---|---|---|---|
+| A0 | BC v4 clone | 0% (self-play) | 0.998 | off | **[AT FREEZE: N ≥ 3]** | eligible |
+| A1 | BC v4 clone | 0% (self-play) | 0.998 | **on** (c = 0.5, γ_Φ = 0.998) | **[AT FREEZE: N ≥ 3]** | eligible |
+| D1 | BC v4 clone | 33% | 0.998 | off | 3 | **ineligible — diagnostic only** (owner confirmed 2026-08-08) |
 
-**A0 is the experiment.** γ fixed at 0.998 — exp-003's γ = 0.995 arm
-lost on every axis; no γ sweep this generation (registered exclusion).
+**A0/A1 are the experiment.** γ fixed at 0.998 — exp-003's γ = 0.995
+arm lost on every axis; no γ sweep this generation (registered
+exclusion, reaffirmed by the owner 2026-08-08: spare capacity goes to
+**seeds, not sweeps** — per-seed lottery noise, not per-cell effects,
+dominated both prior grids). A higher-γ (0.9985/0.999) follow-up is
+*named but not run*: exp-002's 0.9985 cell added nothing and its
+critic pretrained worst, so it re-enters only if A0/A1 show
+horizon-limited channel signatures.
 
-**D1 is a diagnostic, not a contender.** The falsified mixing-welfare
-question stays closed (two generations, no benefit). What is new is
-the channel: scripted company now emits live, grounded meow traffic
+**A1 — potential-based shaping, on-vs-off (owner, 2026-08-08).**
+`Φ(s) = −c × (active distress entries / roster)`, FR-009, enabled for
+the first time in any run. Registered values: **c = 0.5** — derivation:
+one cat entering distress costs 0.125 at roster 4, roughly half a
+healthy tick's team reward (0.87 measured) — salient against per-tick
+noise, unable to dominate the welfare objective; and
+**`ShapingConfig::gamma` = 0.998, pinned equal to the training γ** —
+the compiled default is 1.0 and the policy-invariance guarantee
+requires them matched; an unmatched γ_Φ voids the arm. Shaping exists
+only at training; the theorem preserves the optimum, so A1 candidates
+are deployment-eligible on identical criteria. Registered direction
+(secondary): A1 produces ≥ as many §9.2-passing candidates as A0 at no
+welfare cost — "does invariant shaping help in finite time" is the
+measured question. D1 runs shaping-off for comparability with A0.
+
+**D1 is a diagnostic, not a contender** (owner confirmed 2026-08-08:
+keep, 3 seeds, ineligible). The falsified mixing-welfare question
+stays closed (two generations, no benefit). What is new is the
+channel: scripted company now emits live, grounded meow traffic
 during training, so D1 tests whether that **anchors channel
-semantics** against self-play drift (private codes, channel silence).
-Its registered readouts are channel metrics against A0's — rates per
+semantics** against self-play drift (private codes, channel silence)
+— and it is the control that makes an A0/A1 channel collapse
+*interpretable*: quiet-everywhere means imitation or reward; quiet
+self-play beside a live D1 means company anchors the channel. Its
+registered readouts are channel metrics against A0/A1's — rates per
 kind, response behaviour, class-conditioned credit — never welfare,
 and it cannot be selected for deployment regardless of its numbers.
 
-**Registered exclusions**: no announce-dial arm (30/5 are shipped
-config defaults; if the channel stays quiet that is a result about
-imitation and reward, not an invitation to lower the bar — and the
-dial retunes by config rollout, not by experiment); no reward-penalty
-or meow-bonus arm (F-011: shaping the channel price is the dead-end
-already walked).
+**Registered exclusions**: no γ sweep (above); no announce-dial arm
+(30/5 are shipped config defaults; if the channel stays quiet that is
+a result about imitation and reward, not an invitation to lower the
+bar — and the dial retunes by config rollout, not by experiment); no
+reward-penalty or meow-bonus arm (F-011: shaping the channel *price*
+is the dead-end already walked — A1's Φ prices distress, never the
+channel).
 
 ## 4. Fixed factors (identical across arms)
+
+The single registered per-arm difference is A1's `[rl.reward.shaping]`
+block (§3) and D1's mix rate; everything below is shared.
 
 - Engine **[AT FREEZE: sha + stamp]**. Any engine change
   mid-experiment voids the affected runs (§11).
