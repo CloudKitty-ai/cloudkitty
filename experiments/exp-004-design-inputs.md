@@ -254,6 +254,69 @@ routing preference; (3) re-baseline `B`; (4) collect dataset v4 —
 GroomKitty 13–15 and the new meow rows must be nonzero **by
 construction**, checkable the day collection finishes.
 
+### Cosleep credit: pricing presence (owner review, 2026-08-08 — UNDECIDED)
+
+The owner is not sold on "just standing gives full credit" as built.
+Two corrections that sharpen what the mechanism actually is, before the
+options: the credit is **directed** (only the companion the sleeper
+*named* is paid; passersby get nothing) and **self-limiting** (relief
+clamps at zero — no banking, no farming beyond real need). The genuinely
+degenerate part is the **schedule**: cuddle rises 0.4/tick and relieves
+at 15/tick of contact, so one serviced tick erases ~37 ticks of
+accumulation and a need at 60 clears in four. Companionship is
+economically *instantaneous* — duration, the thing that would make
+staying a commitment, is irrelevant. The mechanism is defensible; the
+pricing makes presence trivial.
+
+⚠️ **Shared-dial trap**: `cuddle_relief` is one dial feeding three
+flows — the grooming actor's payment (`action.rs:705`), the rest duet
+(740–741), and cosleep (783/789). Any cosleep-specific retune needs its
+**own dial** or it silently drags the grooming trade and rest duets
+along (the F-016 coupling, again).
+
+Options, judged on: learnability (a contingent decision with gradient
+inside F-013's 50–200-tick credit band), legibility (F-015
+class-conditioned attribution), the non-conscription doctrine (spec
+021), robustness to degenerate attractors (F-017), product feel, cost.
+
+| option | shape | for | against |
+|---|---|---|---|
+| **A. status quo** | adjacency = full 15/tick | cheap; passive comfort is cat-real; "stay" is technically learnable | instantaneous pricing → the learned behavior is drive-by adjacency, not companionship; nothing ever needs communication |
+| **B. drip** | new dial, ~2–3/tick for a passive companion | flooring a real need takes ~20–30 ticks of *sustained* presence; dense per-tick RL gradient; cheapest real fix | another dial to price (hence the pilot below) |
+| **C. tiered** | drip passive, full/bonus when **mutual** (both sleeping/resting adjacent, each by own choice) | manufactures a true coordination problem without conscripting anyone — **the payoff that gives the meow channel something to do** | two dials; mutual-rate attractors need checking |
+| **D. mutual-only cliff** | no credit unless both engage | "honest" reciprocity | **rejected**: re-creates the coordination cost that killed the meow channel (scripted cats can't synchronize — that's *why* cosleep is 5.6%); demonstrator goes quiet; violates 021's spirit |
+| **E. contact ramp** | warmth accrues over consecutive adjacent ticks | most realistic | per-pair contact clocks = engine state + snapshot schema growth; B approximates it at a fraction of the cost — **parked** |
+
+Attractors and feedbacks to check, not assume:
+
+- **Nap-pile catatonia** (F-017 lens): if mutual cosleep is strictly
+  best, do four copies converge to a pile? Bounded — sleep services
+  neither eat nor drink and the Nash-mean welfare punishes neglect —so
+  the likely attractor is "pile except when hungry," i.e. cats. Measure
+  it.
+- **Partner-selection symmetry**: identical copies may all name the
+  same popular companion. Harmless for cosleep (availability is
+  non-exclusive); worth one look in the data.
+- Every option moves `B` and re-prices the cuddle economy grooming
+  competes in — F-016 says expect the feedback to surprise.
+
+**Recommendation (not a decision): B + C with dedicated dials** — a
+cosleep drip for the passive companion, the full rate reserved for
+mutual engagement, plus the demonstrator routing change above. Fixes
+the instantaneous-presence degeneracy, keeps 021's doctrine and the
+passive-comfort realism, gives RL a dense gradient, and creates the
+coordination payoff communication needs.
+
+**Dial-pricing pilot (agreed 2026-08-08, pre-freeze, scripted-only).**
+F-016's instrument: 10 seeds × 20k, paired across identical seeds,
+served world. Sweep drip ∈ {1, 2, 3, 5, 15 = control} × mutual bonus
+{off, on}, with the routing change held constant. Record: cosleep rate
+and **mean contact duration**, mutual-vs-passive share, cuddle
+time-above-threshold, welfare, and the water/grooming metrics (the
+F-016 feedback check). This prices the dials; it does not certify
+anything — policy-side effects are measured later, in policy company
+(F-012), class-conditioned (F-015).
+
 ### Constraint
 
 Anything touching the digest **bumps the observation schema** → another
@@ -411,6 +474,9 @@ that admits your favourite.
 - Meow: announce threshold + hysteresis values for grounded legality;
   cooldown = `recent_window_ticks` (10) or its own dial?
 - Digest: add the per-kind intensity value while the schema is open?
+- Cosleep credit: adopt B + C (drip + mutual tier, dedicated dials) or
+  drip alone? Drip value and mutual rate come from the agreed
+  dial-pricing pilot (§1), not from judgment.
 - Shaping: coefficient by pilot, or a registered value with
   justification?
 - Mixing: drop outright, or one arm to close it out?
