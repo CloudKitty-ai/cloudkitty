@@ -552,22 +552,56 @@ disjoint band reported as a drift alarm.
   restraint moves to grounded legality + cooldown in the message mask
   (see §1, "Cost and spam"). A lower turn cost was rejected (still
   friction, still a dead channel) and so was a reward penalty (F-011).
-- Meow: which rule — "another cat can change your outcome" (add
-  `WantBath`) or "broadcast state" (messages for everything)? Current
-  lean: `WantBath` is load-bearing either way; grounding makes the
-  broadcast reading cheap to add later.
-- Meow: is `WantSleep` in the batch? Routing alone fixes the scripted
-  co-sleep deficit; the kind only aids policy-side coordination. Cheap
-  while the wall is open, but not load-bearing.
-- Meow: announce threshold + hysteresis values for grounded legality;
-  cooldown = `recent_window_ticks` (10) or its own dial?
-- Digest: add the per-kind intensity value while the schema is open?
-- Cosleep credit: adopt B + C (drip + mutual tier, dedicated dials) or
-  drip alone? Drip value and mutual rate come from the agreed
-  dial-pricing pilot (§1), not from judgment.
+- ~~Meow: is `WantSleep` in the batch?~~ **SETTLED 2026-08-08: IN**
+  (owner: "make sure all the basic meows are in place this time
+  around"). The needs data confirms it demonstrates by the same
+  playful-announces structure as `WantBath` (29 vs 0.2 emits/1k at
+  threshold 40).
+- ~~Meow: announce threshold + hysteresis~~ — **SETTLED 2026-08-08
+  (owner): config dials, shipped defaults 30 / 5; cooldown reuses
+  `recent_window_ticks` (10).** The dial-ness unblocks the Product
+  spec batch immediately — the prereg pins registered values at freeze
+  without engine rework, and the live world retunes by rollout, never
+  by generation wall. Basis — **analysis DONE both sides,
+  recommendation revised 40 → 30**
+  (`experiments/needs-analysis-2026-08-08/results.md`: dataset v3's
+  1.9M scripted rows + the policy-side census the owner asked for —
+  current-gen agent cats replayed on the served 20×20, both
+  compositions). The policy band is compressed (p99s 13–29,
+  initiation medians 1–13): at threshold 40 a 4-agent live world emits
+  ~one meow per cat per **23 minutes** — a mute channel; at **30** it
+  is ~3/1k per cat (audibly alive), still above needs_driven's
+  initiation medians (13–23) and above the policy cats' p99 on five of
+  six needs — a top-1% state, highly informative. Hysteresis 5,
+  cooldown = `recent_window_ticks` (10). **Spec requirement: the
+  threshold is a config dial** — grounded legality reads need-vs-dial
+  at mask time, so retuning is a config rollout, not a generation
+  wall. Killer fact stands: the old urgent 75 is above every cat's
+  lived range (≤ 0.02% occupancy). Responder's "cuddle is real" gate
+  ~15–20 (12% occupancy), not 30 (2.5%).
+- ~~Digest: per-kind intensity?~~ **SETTLED 2026-08-08: IN** (owner) —
+  engine-stamped need-at-emission (grounded, cannot lie), same emitter
+  as the direction fields (coherent recency/direction/intensity
+  triple), **no registered hypothesis**: no scripted behavior reads
+  it, so it is unexercised infrastructure this generation, justified
+  by wall economics (adding later costs a generation wall; adding now
+  costs ~6 obs values).
+- ~~Cosleep credit: B + C or drip alone?~~ **SETTLED 2026-08-08:
+  B + C** (drip + mutual tier, dedicated dials). The dial-pricing
+  pilot prices *both* dials — drip level × mutual rate — against the
+  measured baseline (contact runs 3 ticks, cuddle need 11.6).
 - Shaping: coefficient by pilot, or a registered value with
   justification?
-- Mixing: drop outright, or one arm to close it out?
+- Mixing: **owner direction 2026-08-08 — reduced scope, retained for
+  diagnostics.** Proposed re-aim (pending confirm): the falsified
+  welfare question stays closed; the message head gives mixing a *new*
+  mechanism — scripted company now emits live, grounded channel
+  traffic, so a mixed arm tests whether that anchors channel semantics
+  against self-play drift (private codes, channel silence). Shape: one
+  m33 cell at the main arm's γ, 3 seeds, registered
+  **diagnostic-only — ineligible for deployment selection**; readout =
+  channel metrics vs the self-play arm (rates per kind, listener
+  response, F-015 class-conditioned credit), not welfare.
 - ~~Sampling: run the 20-minute measurement, or leave greedy alone?~~
   **Resolved 2026-08-08: measured, greedy stays** (§2; it costs distress
   and water margin at the deployed composition and fixes nothing).
