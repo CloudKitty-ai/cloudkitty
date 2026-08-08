@@ -329,6 +329,49 @@ ticks; rest duets outweigh cosleep **27×** on the shared dial (the
 dedicated-dial requirement, quantified); scripted GroomKitty is **0
 ticks** in 800k (the demonstrator gap is total, not just rare).
 
+### Spec-batch review responses (Product's four points, 2026-08-08)
+
+**1. Scripted demonstrators are two-channel deciders — explicit FR,
+agreed.** Scripted behaviors must return (activity, message) pairs;
+announcing never displaces the activity. If a scripted meow still
+spends the turn, dataset v4 pairs every announcement with a do-nothing
+activity and BC learns *Idle-when-announcing* — the imitability
+principle inverted at the source. Acceptance check for the collector:
+in dataset v4, the activity-label distribution conditioned on
+message ≠ Silent must match the unconditioned distribution to first
+order (announcing cats are mid-errand, not idle). Side effect: v3's
+meow-*turn* rows (3,892) have no v4 counterpart shape; the exporter
+writes `label_msg` from the message channel.
+
+**2. Message head enumeration — adopt Product's count.** Head =
+**Silent + 8**: the six current learned kinds + `WantBath` +
+`WantSleep`. `WaitForMe` stays yield-only (engine-reserved, outside
+both head and digest); `Purr` stays in the head carrying its
+`purr_earned` gating. Digest grows **18 → 24** (8 kinds × 3), and
+intensity adds **8 values → 32** (correcting this doc's earlier "~6",
+which counted today's kinds). Intensity semantics: want-kinds carry
+the grounding need /100 at emission; `Purr` and `FollowMe` carry a
+constant 0 this generation — no grounding value exists for them, and
+a constant is honest. Revisit only if `FollowMe` ever gains a
+grounding predicate.
+
+**3. The courtesy trio — retire all three.**
+`urgent_need_threshold` (75) is above the lived range of every cat
+measured (needs analysis: occupancy ≤ 0.02%), so
+`urgent_courtesy_ticks` guards a branch that never meaningfully
+fires; and plain `courtesy_ticks`' job — rate-limiting scripted
+repetition — is absorbed wholesale by cooldown-in-mask for everyone
+(= `recent_window_ticks`) plus grounded legality at the 30/5 dials.
+Retire `courtesy_ticks`, `urgent_courtesy_ticks`,
+`urgent_need_threshold`; strict loading makes configs carrying them
+fail loudly at the generation wall, which is the intended migration.
+`[purr] announce_probability` is untouched. The `[meow]` section
+lands as: `recent_window_ticks` (10, doubling as the mask cooldown),
+`announce_threshold` (30), `announce_hysteresis` (5).
+
+**4. Dial-shape adopted — acknowledged.** Nothing in the spec batch
+blocks on prereg values; the prereg pins registered values at freeze.
+
 ### Constraint
 
 Anything touching the digest **bumps the observation schema** → another
@@ -585,7 +628,8 @@ disjoint band reported as a drift alarm.
   triple), **no registered hypothesis**: no scripted behavior reads
   it, so it is unexercised infrastructure this generation, justified
   by wall economics (adding later costs a generation wall; adding now
-  costs ~6 obs values).
+  costs 8 obs values — one per head kind; see the spec-review
+  responses in §1 for the corrected digest arithmetic, 18 → 32).
 - ~~Cosleep credit: B + C or drip alone?~~ **SETTLED 2026-08-08:
   B + C** (drip + mutual tier, dedicated dials). The dial-pricing
   pilot prices *both* dials — drip level × mutual rate — against the
