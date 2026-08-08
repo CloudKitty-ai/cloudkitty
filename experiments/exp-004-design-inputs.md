@@ -552,22 +552,47 @@ disjoint band reported as a drift alarm.
   restraint moves to grounded legality + cooldown in the message mask
   (see §1, "Cost and spam"). A lower turn cost was rejected (still
   friction, still a dead channel) and so was a reward penalty (F-011).
-- Meow: which rule — "another cat can change your outcome" (add
-  `WantBath`) or "broadcast state" (messages for everything)? Current
-  lean: `WantBath` is load-bearing either way; grounding makes the
-  broadcast reading cheap to add later.
-- Meow: is `WantSleep` in the batch? Routing alone fixes the scripted
-  co-sleep deficit; the kind only aids policy-side coordination. Cheap
-  while the wall is open, but not load-bearing.
-- Meow: announce threshold + hysteresis values for grounded legality;
-  cooldown = `recent_window_ticks` (10) or its own dial?
-- Digest: add the per-kind intensity value while the schema is open?
-- Cosleep credit: adopt B + C (drip + mutual tier, dedicated dials) or
-  drip alone? Drip value and mutual rate come from the agreed
-  dial-pricing pilot (§1), not from judgment.
+- ~~Meow: is `WantSleep` in the batch?~~ **SETTLED 2026-08-08: IN**
+  (owner: "make sure all the basic meows are in place this time
+  around"). The needs data confirms it demonstrates by the same
+  playful-announces structure as `WantBath` (29 vs 0.2 emits/1k at
+  threshold 40).
+- Meow: announce threshold + hysteresis — **analysis DONE, decision
+  pending** (`experiments/needs-analysis-2026-08-08/results.md`, from
+  dataset v3's 1.9M rows). Recommended: **threshold 40** (above
+  needs_driven's whole self-serve band, p90 ≤ 33; below playful's ~55
+  neglect ceiling; the 40→55 window ≈ 37 ticks > a cross-board walk,
+  while at 50 it drops below walk time), **hysteresis 5** (sized by
+  the 2–3-tick wet-fur bath spikes), **cooldown =
+  `recent_window_ticks` (10), no new dial**. Killer fact: the old
+  urgent threshold 75 is above the lived range of every scripted cat
+  (occupancy ≤ 0.02%) — grounding inherited from it is a dead channel
+  by construction. Spec consequence: the responder's "cuddle is real"
+  gate must sit at ~15–20 (12% occupancy), not 30 (2.5%), or the
+  demonstrated chain collapses.
+- Digest: per-kind intensity — **recommended IN, pending owner call**:
+  engine-stamped need-at-emission (grounded, cannot lie), same emitter
+  as the direction fields (coherent recency/direction/intensity
+  triple), and **no registered hypothesis** — no scripted behavior
+  reads it, so it is unexercised infrastructure this generation,
+  justified by wall economics alone (adding later costs a generation
+  wall; adding now costs ~6 obs values).
+- ~~Cosleep credit: B + C or drip alone?~~ **SETTLED 2026-08-08:
+  B + C** (drip + mutual tier, dedicated dials). The dial-pricing
+  pilot prices *both* dials — drip level × mutual rate — against the
+  measured baseline (contact runs 3 ticks, cuddle need 11.6).
 - Shaping: coefficient by pilot, or a registered value with
   justification?
-- Mixing: drop outright, or one arm to close it out?
+- Mixing: **owner direction 2026-08-08 — reduced scope, retained for
+  diagnostics.** Proposed re-aim (pending confirm): the falsified
+  welfare question stays closed; the message head gives mixing a *new*
+  mechanism — scripted company now emits live, grounded channel
+  traffic, so a mixed arm tests whether that anchors channel semantics
+  against self-play drift (private codes, channel silence). Shape: one
+  m33 cell at the main arm's γ, 3 seeds, registered
+  **diagnostic-only — ineligible for deployment selection**; readout =
+  channel metrics vs the self-play arm (rates per kind, listener
+  response, F-015 class-conditioned credit), not welfare.
 - ~~Sampling: run the 20-minute measurement, or leave greedy alone?~~
   **Resolved 2026-08-08: measured, greedy stays** (§2; it costs distress
   and water margin at the deployed composition and fixes nothing).
