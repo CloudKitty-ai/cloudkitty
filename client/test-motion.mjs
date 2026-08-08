@@ -727,37 +727,77 @@ check('a planted foot only ever travels backward', () => {
   assert(samples > 100, `only ${samples} stance samples -- is duty sane?`);
 });
 
-check('a planted foot holds still against the ground', () => {
-  // The stronger form of the check above, and the one that actually
-  // decides whether a cat skates. Moving backward is not enough -- a foot
-  // that drifts back too slowly still slides, just less. Planted means
-  // sweeping back through exactly the ground covered during the stance.
+check('a planted foot drifts smoothly, never scrubs', () => {
+  // REPLACES an equality check on 2*reach == duty/cycles. That equality is
+  // correct physics -- it is the reach at which a foot holds still against
+  // the ground, and it does not depend on leg count, since each planted
+  // foot must match ground speed on its own. But it was the wrong pass/fail:
+  // it conflated "planted" with "does not skate", and those are different
+  // questions.
   //
-  // A budget rather than an equality, because the reach is a lab dial and
-  // may be pulled off the ideal for looks. 0.05 of a tile is 3px of
-  // residual slide at the live 60px tile; the walk this replaced slid the
-  // whole 0.62-tile stance AND reversed direction inside it.
-  const BUDGET = 0.05;
-  const slide = Math.abs(2 * GAIT.reach - GAIT.duty / GAIT.cycles);
+  // What read as skating in the walk this replaced was DIRECTION REVERSAL
+  // and speed mismatch -- feet moving forward through half of every stance
+  // against a body already moving forward, compounded by posFor's easing
+  // swinging body speed from 0 to 3x inside one tile. A foot that drifts
+  // steadily, always the same way, at a fraction of the body's pace is a
+  // far gentler artifact.
+  //
+  // Owner call (2026-08-08) at reach 0.085: "both look pretty natural,
+  // 0.085 makes the cat look more leisurely and keeps the legs from
+  // protruding too much." So a short stride is a deliberate choice, and
+  // these are the properties it still has to have.
+  const FLOOR = 0.4; // the foot must do at least this share of the ground's work
+  const N = 400;
+  const S = 1 / GAIT.cycles;
+  // Driven through catLayout, NOT through a copy of its arithmetic. The
+  // first version of this check recomputed the stance formula inline, so
+  // it passed no matter what gaitStep did -- a mutation to a cosine stance
+  // left it green. A test that cannot fail is not a test.
+  //
+  // `phase` is tiles covered, so the body's world position IS the phase,
+  // and leg 2 (the near hind) rides the cycle directly: its stance runs
+  // u in [0, duty), i.e. phase in [0, duty/cycles).
+  const at = (i) => {
+    const u = (GAIT.duty * i) / N;
+    const phase = u / GAIT.cycles;
+    const leg = catLayout('walking', phase).legs[2];
+    assert(leg.bottom >= GROUND_Y - 1e-9, `leg 2 is not planted at u ${u.toFixed(3)}`);
+    return phase + leg.x; // world-space foot position, in tiles
+  };
+  let first = null;
+  for (let i = 1; i <= N; i += 1) {
+    const v = (at(i) - at(i - 1)) / S;
+    assert(v >= 0, `the foot reversed mid-stance at ${i}/${N}`);
+    if (first === null) first = v;
+    // Constant rate: a foot that speeds up and slows down inside its own
+    // stance is the scrub, whatever its average comes to.
+    nearly(v, first, 1e-6, `the drift rate changed at ${i}/${N}`);
+  }
+  const share = (2 * GAIT.reach) / (GAIT.duty * S);
   assert(
-    slide <= BUDGET,
-    `foot slides ${slide.toFixed(3)} tiles per stance; ` +
-      `reach ${GAIT.reach} wants to be ~${plantedReach().toFixed(3)}`,
+    share >= FLOOR,
+    `the foot does only ${(100 * share).toFixed(0)}% of the ground's work ` +
+      `(floor ${100 * FLOOR}%); planted would be reach ${plantedReach().toFixed(3)}`,
   );
 });
 
-check('the step count is a whole number', () => {
-  // `phase` is tick progress and returns to 0 every tile. A fractional
-  // step count leaves the gait mid-stride there, tearing once per tile.
-  close(GAIT.cycles, Math.round(GAIT.cycles), 'GAIT.cycles is fractional');
-  assert(GAIT.cycles >= 1, `GAIT.cycles ${GAIT.cycles} is not a step count`);
+check('the step count may be fractional', () => {
+  // RETIRED and replaced. The old rule was that cycles had to be a whole
+  // number, because `phase` was tick progress and returned to 0 every
+  // tile, so a part-finished stride tore at the boundary. `phase` is now
+  // tiles covered (Presentation.strideFor), which is continuous, and
+  // fractional cadence is the point -- 1 step per tile reads too slow and
+  // 2 too fast. What is still required is that it be a real rate.
+  assert(GAIT.cycles > 0, `GAIT.cycles ${GAIT.cycles} is not a rate`);
+  assert(Number.isFinite(GAIT.cycles), 'GAIT.cycles is not finite');
 });
 
 check('every foot clears the ground at mid-swing', () => {
   const mid = GAIT.duty + (1 - GAIT.duty) / 2;
   close(gaitStep(mid, GAIT.duty).lift, 1, 'peak lift is a full unit at mid-swing');
-  // Index 1 is the front leg, and it rides the cycle directly.
-  const front = atCycle(mid).legs[1];
+  // Legs are [right hind, right fore, left hind, left fore]; the near fore
+  // is the one that rides `cycle - 0.25`, so mid-swing is measured there.
+  const front = atCycle(mid + 0.25).legs[3];
   assert(front.bottom < GROUND_Y, 'the front foot never leaves the ground');
   close(GROUND_Y - front.bottom, GAIT.lift, 'and it clears by exactly the dial');
 });
@@ -796,19 +836,22 @@ check('a walk always has a foot down', () => {
   }
 });
 
-check('a foot never steps out from under the cat', () => {
-  // A leg here is a free-standing peg, not a limb on a hip: nothing draws
-  // between its top and the body. So a foot that reaches past the body's
-  // own silhouette leaves a stick hanging in the air with no cat above
-  // it. This binds well before the leg-crossing limit does -- it is what
-  // rules out a two-step-per-tile walk at a 0.62 duty.
+check('every limb hangs from under the cat', () => {
+  // RETIRED and replaced, not loosened. The old rule was that a FOOT could
+  // not pass the body's silhouette -- true only while a leg was a free
+  // peg with nothing drawn between its top and the body. Legs now pivot
+  // from inside the body, so a forepaw reaching out under the chin is
+  // correct anatomy (the owner's brief calls for exactly that) and the
+  // limb is visibly attached. What still has to hold is that the PIVOT
+  // stays under the cat: a limb hanging off open air is the real defect.
   for (let i = 0; i < 360; i += 1) {
     const phase = i / 360;
     const { body, legs } = catLayout('walking', phase);
     for (const leg of legs) {
+      const hx = leg.hx ?? leg.x;
       assert(
-        leg.x >= body.cx - body.rx && leg.x <= body.cx + body.rx,
-        `foot at ${leg.x.toFixed(3)} is outside the body ` +
+        hx >= body.cx - body.rx && hx <= body.cx + body.rx,
+        `pivot at ${hx.toFixed(3)} is outside the body ` +
           `(${(body.cx - body.rx).toFixed(2)}..${(body.cx + body.rx).toFixed(2)}) ` +
           `at phase ${phase.toFixed(3)}`,
       );
@@ -846,35 +889,105 @@ check('the whole cycle draws, and blends out of it at every phase', () => {
   }
 });
 
-check('the cycle wraps without a snap at the tick boundary', () => {
-  // `phase` is tick progress, so it returns to 0 once per tile crossed. A
-  // gait discontinuous there would tear on every tile.
-  const a = catLayout('walking', 0);
-  const b = catLayout('walking', 1 - 1e-9);
-  for (let i = 0; i < a.legs.length; i += 1) {
-    nearly(b.legs[i].x, a.legs[i].x, 1e-7, `leg ${i} x wraps`);
-    nearly(b.legs[i].bottom, a.legs[i].bottom, 1e-7, `leg ${i} lift wraps`);
+check('the walk is continuous everywhere, at any cadence', () => {
+  // Replaces the old tick-boundary wrap check, which asserted that phase 1
+  // matched phase 0. That was the right property while phase meant
+  // "progress across one tile"; it is meaningless now that phase is
+  // distance and cycles may be fractional. The stronger property, and the
+  // one that actually matters, is that NO phase is a seam -- swept here
+  // across three cadences including a fractional one.
+  const was = GAIT.cycles;
+  try {
+    for (const cadence of [1, 1.5, 2]) {
+      GAIT.cycles = cadence;
+      const N = 4000;
+      let last = catLayout('walking', 0);
+      for (let i = 1; i <= N; i += 1) {
+        const now = catLayout('walking', (3 * i) / N); // three tiles of walking
+        for (let j = 0; j < now.legs.length; j += 1) {
+          nearly(now.legs[j].x, last.legs[j].x, 0.01, `cadence ${cadence}: leg ${j} x jumped`);
+          nearly(now.legs[j].bottom, last.legs[j].bottom, 0.01, `cadence ${cadence}: leg ${j} foot jumped`);
+        }
+        nearly(now.body.cy, last.body.cy, 0.01, `cadence ${cadence}: the body jumped`);
+        last = now;
+      }
+    }
+  } finally {
+    GAIT.cycles = was;
   }
-  nearly(b.body.cy, a.body.cy, 1e-7, 'the body bob wraps');
 });
 
-check('the body rides at twice the stride, lowest just after footfall', () => {
-  // Two footfalls per cycle, so one dip each. The old walk had this
-  // frequency right and its amplitude wrong -- 0.008 is 0.48px at a 60px
-  // tile, which is rounding, not animation.
+check('the body dips once per beat, lowest where bobPhase says', () => {
+  // GAIT.beats dips per cycle. At 4 that is one per footfall, which is the
+  // only setting where bobPhase has a landmark to line up against.
   const cyAt = (u) => atCycle(u).body.cy;
   let lowest = -Infinity;
   let at = 0;
   for (let i = 0; i < 2000; i += 1) {
-    const u = i / 2000; // one gait cycle, in cycle space
+    const u = i / (2000 * GAIT.beats) + GAIT.bobPhase - 0.5 / GAIT.beats; // one beat
     if (cyAt(u) > lowest) {
       lowest = cyAt(u);
       at = u;
     }
   }
   nearly(at, GAIT.bobPhase, 1e-3, 'the dip does not sit where bobPhase says');
-  nearly(cyAt(GAIT.bobPhase), cyAt(GAIT.bobPhase + 0.5), 1e-9, 'the two dips differ');
+  close(GAIT.beats, Math.round(GAIT.beats), 'beats must be whole or dips drift off the feet');
+  nearly(cyAt(GAIT.bobPhase), cyAt(GAIT.bobPhase + 1 / GAIT.beats), 1e-9, 'consecutive dips differ');
   close(lowest - catLayout('idle', 0).body.cy, GAIT.bob, 'dip depth is the dial');
+});
+
+// ---- strideFor: the gait's distance clock ----
+
+check('the stride clock measures ground, not time', () => {
+  const p = new api.Presentation();
+  p.tickMs = 800;
+  // Three ticks of walking east, then one standing still.
+  const at = (t, x) => world(t, [kitty(1, x, 5)]);
+  p.pushState(at(1, 0), 0);
+  p.pushState(at(2, 1), 800);
+  close(p.strideFor(1, 800), 0, 'a fresh pair starts the tick at zero distance');
+  // Mid-tick the cat is eased, so the stride must be eased with it.
+  const mid = p.strideFor(1, 1200);
+  assert(mid > 0 && mid < 1, `mid-tick stride ${mid} is inside the tile`);
+  // This first step is taken from rest, so it rides startEase, not linear.
+  close(mid, 0.5 * 0.5 * (2 - 0.5), 'a step from rest eases in');
+  close(p.strideFor(1, 1600), 1, 'a finished tick is exactly one tile');
+  p.pushState(at(3, 2), 1600);
+  // Second step in a row: the cat is already walking, so it runs linear
+  // and does not brake into the tile boundary and start again.
+  close(p.strideFor(1, 1600 + 400), 1.5, 'a continuing step is linear');
+  close(p.strideFor(1, 2400), 2, 'two tiles after two moves');
+  // Standing still must not advance the gait, however long it stands.
+  p.pushState(at(4, 2), 2400);
+  close(p.strideFor(1, 3200), 2, 'a stationary cat does not step');
+  p.pushState(at(5, 2), 3200);
+  close(p.strideFor(1, 4000), 2, 'still does not step');
+});
+
+check('the stride clock never runs backward', () => {
+  const p = new api.Presentation();
+  p.tickMs = 800;
+  let last = -1;
+  for (let t = 1; t <= 12; t += 1) {
+    p.pushState(world(t, [kitty(1, t - 1, 5)]), (t - 1) * 800);
+    for (let ms = 0; ms <= 800; ms += 50) {
+      const d = p.strideFor(1, (t - 1) * 800 + ms);
+      assert(d >= last - 1e-12, `stride went backward at tick ${t}+${ms}ms: ${d} < ${last}`);
+      last = d;
+    }
+  }
+});
+
+check('a discontinuity resets the odometer with the rest of the memory', () => {
+  const p = new api.Presentation();
+  p.tickMs = 800;
+  p.pushState(world(1, [kitty(1, 0, 5)]), 0);
+  p.pushState(world(2, [kitty(1, 1, 5)]), 800);
+  p.pushState(world(3, [kitty(1, 2, 5)]), 1600);
+  assert(p.strideFor(1, 2400) > 1, 'distance accumulated');
+  p.pushState(world(40, [kitty(1, 9, 9)]), 2400); // a different moment entirely
+  assert(p.discontinuous, 'that is a discontinuity');
+  close(p.strideFor(1, 2400), 0, 'the odometer starts clean, like facings and worn paths');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

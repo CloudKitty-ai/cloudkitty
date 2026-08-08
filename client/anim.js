@@ -343,6 +343,16 @@ function easeOutBack(t) {
 }
 
 /**
+ * A step taken from a standstill: starts at rest and arrives at full
+ * walking speed, so it hands over to a linear stride with no velocity
+ * jump. f(0)=0, f(1)=1, f'(0)=0, f'(1)=1 -- the unique cubic that does
+ * both, which is what makes the join invisible.
+ */
+function startEase(t) {
+  return t * t * (2 - t);
+}
+
+/**
  * The state-pair store plus per-kitty presentational memory. Consumes
  * served worlds; produces the view the renderer draws. No DOM, no fetches.
  */
@@ -358,6 +368,10 @@ class Presentation {
     this.distressPatienceTicks = VIEW.distressPatienceFallback;
     this.facings = new Map(); // id -> 'left' | 'right'
     this.movedNow = new Map(); // id -> bool, for this pair
+    // Tiles of ground each kitty has covered, completed ticks only. The
+    // walk rides this instead of the clock -- see strideFor.
+    this.odometer = new Map(); // id -> tiles
+    this.movedBefore = new Map(); // id -> bool, for the PREVIOUS pair
     this.sleepingSince = new Map(); // id -> tick its current sleep began
     this.oneShots = new Map(); // id -> { kind, t0, duration }, one slot each
     this.newElementIds = new Set();
@@ -379,6 +393,19 @@ class Presentation {
 
   pushState(world, now) {
     const prev = this.curr;
+    // Bank the distance the OUTGOING pair covered, so the odometer holds
+    // whole ticks and strideFor adds the eased part of the current one.
+    if (prev && this.prev) {
+      for (const k of prev.kitties) {
+        const was = this.prev.kitties.find((p) => p.id === k.id);
+        if (!was) continue;
+        this.odometer.set(
+          k.id,
+          (this.odometer.get(k.id) ?? 0) + Math.hypot(k.pos.x - was.pos.x, k.pos.y - was.pos.y),
+        );
+      }
+    }
+    this.movedBefore = new Map(this.movedNow);
     this.prev = prev;
     this.curr = world;
     this.currArrivedAt = now;
@@ -412,6 +439,8 @@ class Presentation {
       this.prev = null;
       this.facings.clear();
       this.movedNow.clear();
+      this.movedBefore.clear();
+      this.odometer.clear();
       this.sleepingSince.clear();
       this.oneShots.clear();
       this.newElementIds = new Set();
@@ -525,11 +554,60 @@ class Presentation {
     return this.movedNow.get(id) ?? false;
   }
 
-  /** Float tile position: the eased blend of the two newest served states. */
+  /**
+   * How far a kitty has walked, in tiles -- the clock the gait runs on.
+   *
+   * The walk used to ride `progress`, which is LINEAR, while `posFor`
+   * eases the cat across every tile with easeInOutCubic. The cat's speed
+   * therefore swings from a dead stop to three times its own average
+   * inside one tile while the feet swept at a constant rate, so a planted
+   * foot slid backward at the tile edges and forward through the middle,
+   * reversing twice per tile. No choice of stride length could fix that,
+   * because no instant is the average.
+   *
+   * Keying the gait to distance makes the easing cancel exactly: the foot
+   * and the ground are now measured in the same units. A cat easing to a
+   * stop slows its steps, which is what a cat does. And because distance
+   * is continuous, the steps-per-tile dial is free to be fractional --
+   * there is no longer a tick boundary for a part-finished stride to tear
+   * against.
+   */
+  strideFor(id, now) {
+    const done = this.odometer.get(id) ?? 0;
+    const was = this.prev?.kitties.find((p) => p.id === id);
+    const is = this.curr?.kitties.find((p) => p.id === id);
+    if (!was || !is) return done;
+    const step = Math.hypot(is.pos.x - was.pos.x, is.pos.y - was.pos.y);
+    const p = this.progress(now);
+    // The same curve posFor uses, or the feet would come off the ground.
+    return done + step * (this.movedBefore.get(id) ? p : startEase(p));
+  }
+
+  /**
+   * Float tile position: the blend of the two newest served states.
+   *
+   * This used to run easeInOutCubic on EVERY tile, which meant a cat
+   * crossing eight tiles accelerated from a standstill and braked to a
+   * dead stop eight times -- a stutter, not a walk (owner, 2026-08-08:
+   * "stopping/starting every step"). A cat already walking now carries
+   * its speed straight through the tile boundary; only a step taken from
+   * rest eases in, and it arrives at exactly walking speed so the join
+   * cannot be seen.
+   *
+   * There is deliberately no ease-OUT: the newest served state is the one
+   * being walked into, so whether the cat stops after it is not knowable
+   * yet, and a one-tick display lag to find out would cost more than it
+   * buys. The stop is absorbed by the landing settle instead, which is
+   * what that squash was always for.
+   *
+   * Safe because the gait rides distance (strideFor), not time: the feet
+   * stay planted under any speed profile this picks.
+   */
   posFor(kitty, now) {
     const was = this.prev?.kitties.find((p) => p.id === kitty.id);
     if (!was) return { x: kitty.pos.x, y: kitty.pos.y };
-    const t = easeInOutCubic(this.progress(now));
+    const p = this.progress(now);
+    const t = this.movedBefore.get(kitty.id) ? p : startEase(p);
     return {
       x: was.pos.x + (kitty.pos.x - was.pos.x) * t,
       y: was.pos.y + (kitty.pos.y - was.pos.y) * t,
@@ -630,12 +708,14 @@ class Presentation {
    * never during an action, so idle motion can never imply one (FR-008).
    */
   motionFor(id, pose, now, dials = VIEW) {
+    // The walk is measured in ground covered, not in time (strideFor);
+    // every other action still rides the tick clock.
+    if (pose === 'walking') return { phase: this.strideFor(id, now) };
     const isAction =
       pose === 'pouncing' ||
       pose === 'eating' ||
       pose === 'drinking' ||
-      pose === 'grooming' ||
-      pose === 'walking';
+      pose === 'grooming';
     if (isAction) return { phase: this.progress(now) };
 
     const seed = id * 997;
@@ -784,6 +864,7 @@ class Presentation {
         still ? { x: kitty.pos.x, y: kitty.pos.y } : this.posFor(kitty, now),
       facingFor: (id) => this.facingFor(id),
       movedFor: (id) => this.movedFor(id),
+      strideFor: (id) => this.strideFor(id, now),
       adjustPose: (id, pose) => (still ? pose : this.adjustPose(id, pose, now)),
       // Still frames get the static pose for the state, nothing more
       // (FR-015): phase 0, no blinks, no flicks.
