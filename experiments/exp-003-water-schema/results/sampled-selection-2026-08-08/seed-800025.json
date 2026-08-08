@@ -1,0 +1,52 @@
+{
+ "seed": 800025,
+ "config": "/Users/elizabethkelly/ai/cloudkitty/cloudkitty.toml",
+ "mean_water_tiles": 7.0,
+ "counts": [
+  0,
+  0,
+  0,
+  0,
+  0,
+  0
+ ],
+ "longest": 0,
+ "on_water_by_activity": {
+  "Miso": {
+   "Idle": 583,
+   "Resting": 25,
+   "Sleeping": 125,
+   "Eating": 24,
+   "Drinking": 34,
+   "Playing": 26,
+   "Grooming": 67
+  },
+  "Biscuit": {
+   "Idle": 368,
+   "Resting": 15,
+   "Sleeping": 0,
+   "Eating": 4,
+   "Drinking": 5,
+   "Playing": 87,
+   "Grooming": 87
+  },
+  "Pumpkin": {
+   "Idle": 337,
+   "Resting": 30,
+   "Sleeping": 65,
+   "Eating": 7,
+   "Drinking": 18,
+   "Playing": 15,
+   "Grooming": 210
+  },
+  "Kittybear": {
+   "Idle": 595,
+   "Resting": 10,
+   "Sleeping": 145,
+   "Eating": 21,
+   "Drinking": 42,
+   "Playing": 21,
+   "Grooming": 42
+  }
+ }
+}

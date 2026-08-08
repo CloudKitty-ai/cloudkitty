@@ -375,9 +375,13 @@ composition the world shows **zero** distress under greedy. Costs:
 certification does not transfer (every §9.1 number is greedy), it is not
 a clean win even where it helps (incidents 92/270 → 69/270; two
 candidates worsen by worst distress, three by incident count — different
-sets), and it is a registered condition, not a toggle (issue
-#70). **Proposed test, ~20 min**: §9.1 water band + deployed-composition
-probe under `--sample`, compared against greedy. Not yet run.
+sets), and it is a registered condition, not a toggle (issue #70).
+**Test RUN 2026-08-08** (`exp-003-water-schema/results/
+sampled-selection-2026-08-08.md`): at the deployed composition sampling
+*costs* — distress 0/30 → 1/30 with a 127-tick streak, and in-water
+slides 79% → 90% of B (band still passes, margin halves). It fixes
+nothing the served world has wrong. **Closed: greedy stays**; sampling
+remains a measurement tool for symmetric all-policy rosters only.
 
 **Symmetry-breaking machinery — do not build.** The owner intends
 heterogeneous agents (different models per seat) eventually, which
