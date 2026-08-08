@@ -369,6 +369,18 @@ fail loudly at the generation wall, which is the intended migration.
 lands as: `recent_window_ticks` (10, doubling as the mask cooldown),
 `announce_threshold` (30), `announce_hysteresis` (5).
 
+**Cooldown scope — per cat, per kind** (clarified 2026-08-08; the
+engine's `Kitty.meow_cooldowns` is already a per-kind map). The mask
+row for kind *k* is masked iff *k*'s own cooldown is live or its
+grounding fails; kinds never share a clock. Per-kind is load-bearing
+three ways: the cooldown-equals-window identity is a *per-kind*
+digest-refresh argument; a global per-cat cooldown would let chatty
+kinds (eat/drink) starve exactly the `WantBath` announcements the
+demonstrator chain needs; and the needs-analysis duty cycles were
+computed per-kind and summed. Consequence: a cat's total chatter
+ceiling is (grounded-legal kinds)/10 per tick — visual coalescing, if
+ever wanted, is a client concern, not a mask one.
+
 **4. Dial-shape adopted — acknowledged.** Nothing in the spec batch
 blocks on prereg values; the prereg pins registered values at freeze.
 
