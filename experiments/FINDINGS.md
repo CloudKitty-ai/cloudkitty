@@ -773,3 +773,70 @@ grooming loop re-arms) rather than the gain.
 happiness weight, or the wet-fur charge move; and — first opportunity —
 when a schema-2 policy exists, since point 3 predicts it will not
 follow the scripted direction.
+
+---
+
+## F-017 · active · The multi-copy collapse is largely a symmetry artifact: identical greedy policies deadlock over contested resources, and sampled selection dissolves it
+
+Measured 2026-08-07 on the post-027 engine (`cba976da…`), all nine
+exp-003 candidates, roster-5 world, 30 seeds × 20k, `--roster
+all-policy`, greedy vs `--sample` on matched seeds.
+
+1. **Breaking the tie removes the catastrophe.** `floor_touches`
+   **108,584 → 0** across the sweep; worst `max_distress_age`
+   **16,027 → 1,020**. The two collapsing candidates fall 300× and 15×,
+   and their welfare recovers from 0.9126 / 0.8681 to ~0.921 — into the
+   band the healthy candidates already occupied. Fallbacks zero in both
+   modes.
+2. **The mechanism is symmetry, not incapacity.** Four identical
+   deterministic policies observing similar states select the same
+   action, converge on the same resource tile, and deadlock; whichever
+   cat loses every tie starves. The failing need is always eat, with
+   drink second — the contested consumables — and adding a single chow
+   tile to a 20×20 world independently moved incident runs 9/60 → 1/60
+   ([geometry-20x20-optE screen](screens/geometry-20x20-optE-2026-08-07/results.md)).
+   Two different interventions on contention, same direction.
+3. **Very little noise is required.** End-of-training policy entropy is
+   **0.31–0.39 nats** (uniform over the 40-action menu would be 3.69),
+   so `--sample` is near-greedy — it mostly agrees with the argmax. The
+   tie is fragile; breaking it is cheap.
+4. **Mixed and self-play arms respond oppositely**: mixed worst-case
+   mean **5,494.7 → 213.2** (26× better), self-play **80.0 → 135.7**
+   (slightly worse). Self-play trains entirely under self-contention and
+   has already learned to break symmetry behaviourally, so randomisation
+   only adds noise; mixed arms spent a third of training with no
+   self-contention and never learned it. This is a second, independent
+   line of evidence for the same mechanism as the mixing gradient
+   (exp-002's monotone 0/33/67 replication).
+5. **Not a free win**: incident *counts* fall only 92/270 → 69/270 and
+   three candidates worsen. Sampling trades a rare catastrophic tail for
+   slightly more frequent small wobbles.
+
+**Scope**: exp-003's schema-2 MLP policies on the roster-5 family world
+at four occupied seats. Says nothing about deployment, which seats two
+policies among two scripted cats and shows **zero** distress under
+greedy selection either way. The symmetry argument is generic to
+identical deterministic agents sharing scarce indivisible resources, so
+expect it wherever policy share is high; the *magnitudes* are specific
+to these policies and this world.
+
+**Evidence**: [selection-symmetry-2026-08-07.md](exp-003-water-schema/results/selection-symmetry-2026-08-07.md);
+per-run JSON committed beside it, seed band 810k.
+
+**Implications**: an all-policy collapse is weak evidence about policy
+*quality* — it conflates a coordination failure with a competence
+failure, which matters directly for respecifying exp-003 §9.2's roster
+gate (it admitted none of nine). For exp-004, symmetry-breaking rises up
+the knob list in two forms: cheap and behavioural (sampled selection, or
+a per-seat identity feature letting copies specialise) and principled
+(the meow channel — signalling intent is the designed resolution for
+resource contention, `WantEat` already exists, and these policies never
+learned to use it: greedy `meow/1k` 0.01–0.41). Nothing here licenses
+switching the served world to sampled selection: exp-003 certified
+greedy and every §9.1 water figure was measured that way, so a switch
+needs re-certification rather than assumption.
+
+**Re-verify when**: policy entropy at convergence moves materially (the
+effect depends on distributions being sharp); a policy trained with any
+explicit symmetry-breaking or coordination mechanism exists; or the
+action menu changes such that resource targets stop being indivisible.
