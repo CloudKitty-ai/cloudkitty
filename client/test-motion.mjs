@@ -1018,24 +1018,29 @@ check('the shipped shape is the one the owner dialled', () => {
   // Pinned, not asserted-as-identity: these were chosen in the lab on
   // 2026-08-08. The check exists so the next edit has to be deliberate too.
   close(p.bodyW, 1.1, 'bodyW drifted');
-  close(p.bodyH, 1.1, 'bodyH drifted');
+  close(p.bodyH, 1.088, 'bodyH drifted');
   close(p.headR, 1, 'headR drifted');
-  close(p.headY, 0.02, 'headY drifted');
-  close(p.headX, 0, 'headX drifted');
-  // Equal width and height scaling leaves the aspect alone -- this is a
-  // bigger body, not a rounder one, and the readout must not claim otherwise.
+  close(p.headY, 0.01, 'headY drifted');
+  close(p.headX, 0.02, 'headX drifted');
+  // Aspect moves only by the RATIO of the two scales -- dialling both by
+  // the same factor is a bigger body, not a rounder one. Worth asserting
+  // because it is the thing an eye cannot check: 1.1/1.088 looks like two
+  // different numbers and is very nearly none.
   const shipped = CatV2.catLayout('walking', 0);
   const v1 = reshaped(IDENT, () => CatV2.catLayout('walking', 0));
   close(
     shipped.body.rx / shipped.body.ry,
-    v1.body.rx / v1.body.ry,
-    'equal bodyW/bodyH must leave the aspect untouched',
+    (v1.body.rx / v1.body.ry) * (p.bodyW / p.bodyH),
+    'the aspect moved by something other than bodyW/bodyH',
   );
 });
 
 check('the head slides along the body without reshaping it', () => {
-  const base = CatV2.catLayout('walking', 0);
-  const fwd = reshaped({ headX: 0.05 }, () => CatV2.catLayout('walking', 0));
+  // Both ends measured from the v1 body: a check that reads the shipped
+  // dials as its own baseline stops testing the mechanism the moment
+  // someone pastes a new value into them.
+  const base = reshaped(IDENT, () => CatV2.catLayout('walking', 0));
+  const fwd = reshaped({ ...IDENT, headX: 0.05 }, () => CatV2.catLayout('walking', 0));
   close(fwd.head.cx - base.head.cx, 0.05, 'the head did not move forward');
   close(fwd.head.cy, base.head.cy, 'moving the head forward moved it vertically');
   close(fwd.body.cx, base.body.cx, 'the body followed the head');
