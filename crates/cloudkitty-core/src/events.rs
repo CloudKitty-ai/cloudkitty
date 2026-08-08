@@ -96,10 +96,6 @@ impl<T> EventLog<T> {
     pub fn is_empty(&self) -> bool {
         self.events.is_empty()
     }
-
-    pub fn capacity(&self) -> usize {
-        self.capacity
-    }
 }
 
 impl<T: Clone> EventLog<T> {

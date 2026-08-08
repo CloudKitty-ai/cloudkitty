@@ -1050,13 +1050,6 @@ impl World {
             .filter(|e| matches!(e.kind, ElementKind::Chow { servings } if servings > 0))
     }
 
-    pub fn nearest_element(&self, pos: Position, kind: ElementType) -> Option<&Element> {
-        self.elements
-            .iter()
-            .filter(|e| e.element_type() == kind)
-            .min_by_key(|e| (pos.manhattan_distance(&e.pos), e.id))
-    }
-
     pub fn count_of(&self, kind: ElementType) -> u32 {
         self.elements
             .iter()
@@ -1217,20 +1210,6 @@ impl WorldSnapshot {
 
     pub fn element_at(&self, pos: Position) -> Option<&Element> {
         self.elements.iter().find(|e| e.pos == pos)
-    }
-
-    pub fn nearest_element(&self, pos: Position, kind: ElementType) -> Option<&Element> {
-        self.elements
-            .iter()
-            .filter(|e| e.element_type() == kind)
-            .min_by_key(|e| (pos.manhattan_distance(&e.pos), e.id))
-    }
-
-    /// Nearest bug or greeble. Kitties perceive greebles perfectly well, even
-    /// though nobody watching can see them.
-    pub fn nearest_critter(&self, pos: Position) -> Option<&Element> {
-        self.critters()
-            .min_by_key(|e| (pos.manhattan_distance(&e.pos), e.id))
     }
 
     pub fn nearest_friend(&self, me: KittyId, pos: Position) -> Option<&Kitty> {

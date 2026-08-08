@@ -61,19 +61,6 @@ impl MessageKind {
             NeedKind::Sleep | NeedKind::Bath => None,
         }
     }
-
-    /// Human-facing text, rendered in the viewer's speech bubbles.
-    pub fn text(&self) -> &'static str {
-        match self {
-            MessageKind::WantEat => "I want to eat!",
-            MessageKind::WantDrink => "I want to drink!",
-            MessageKind::FollowMe => "Follow me!",
-            MessageKind::WantPlay => "I want to play!",
-            MessageKind::WantCuddle => "I want to cuddle!",
-            MessageKind::Purr => "I am happy",
-            MessageKind::WaitForMe => "Wait for me!",
-        }
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -140,7 +127,6 @@ mod tests {
         // shortens a word whose meaning is patience), wire name stable.
         assert!(MessageKind::ALL.contains(&MessageKind::WaitForMe));
         assert_eq!(MessageKind::WaitForMe.related_need(), None);
-        assert_eq!(MessageKind::WaitForMe.text(), "Wait for me!");
         assert_eq!(
             serde_json::to_string(&MessageKind::WaitForMe).unwrap(),
             "\"wait_for_me\""

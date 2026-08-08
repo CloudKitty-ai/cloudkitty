@@ -53,8 +53,6 @@ pub struct VectorizedEnvironment {
     workers: Vec<Worker>,
     n_worlds: usize,
     external: Vec<KittyId>,
-    roster: Vec<KittyId>,
-    menu_len: usize,
     /// Batch coherence (third review), owned by the layer that owns the
     /// batch: `Some(why)` while stepping would be wrong — from construction
     /// (every world starts from the same config seed; reset gives each its
@@ -72,8 +70,6 @@ impl VectorizedEnvironment {
             .first()
             .map(|e| e.external_agents())
             .unwrap_or_default();
-        let roster = episodes.first().map(|e| e.roster()).unwrap_or_default();
-        let menu_len = episodes.first().map(|e| e.codec().len()).unwrap_or(0);
         let worker_count = workers.unwrap_or(n).clamp(1, n.max(1));
         let chunk = n.div_ceil(worker_count.max(1)).max(1);
 
@@ -120,33 +116,13 @@ impl VectorizedEnvironment {
             workers: pool,
             n_worlds: n,
             external,
-            roster,
-            menu_len,
             needs_reset: Some("the worlds are unseeded until the first reset()"),
         }
-    }
-
-    pub fn len(&self) -> usize {
-        self.n_worlds
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.n_worlds == 0
     }
 
     /// The externally controlled agents (identical across worlds).
     pub fn external_agents(&self) -> Vec<KittyId> {
         self.external.clone()
-    }
-
-    /// The full roster (identical across worlds).
-    pub fn roster(&self) -> Vec<KittyId> {
-        self.roster.clone()
-    }
-
-    /// The menu length of the shared codec.
-    pub fn menu_len(&self) -> usize {
-        self.menu_len
     }
 
     /// Resets world i from seeds[i]. A successful reset also revives a
