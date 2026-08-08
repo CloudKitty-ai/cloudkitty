@@ -461,27 +461,46 @@ shape:
   full-roster shape is where the clearest catatonia on record lives;
   it must be in the gate.
 
-**The proposed gate**: on the stress probe (rosters 3, **4/iii** and 5,
-declared seed band per F-009), a candidate fails iff any shape shows
-**(i)** a run with `max_distress_age` ≥ 1,000 (saturation — 2× the
-worst healthy run ever recorded, 477, and well under every true
-collapse event), **(ii)** more than one run over 150 (repetition — the
-eval-suite v1 bound, kept as a *marker*, no longer a cliff), or
-**(iii)** any `floor_touches` (in 31 candidates × 3 shapes they occur
-in exactly two, both collapses). Everything in the 1–150 region is
-**reported, never gated**. Validation over all three shapes, all 31:
-exp-003 fails exactly the three forensically-labelled collapses
-(A0-s2 by repetition on both rosters; A1-s1 and A0-s3 by saturation)
-and admits the six healthy — the deployed winner passes with worst 3,
-and is at zero on shape iii; exp-002 fails C-scratch
-(saturation + floor, shape iii), M33-995-s2 (saturation on all three
-shapes) and M33-998-s3 (repetition on roster 3). Two H4-era failures
-(M0-998-s2 at 708-once, M67-995-s1 at 318-once) become reported
-single-incident admits — the deliberate loosening, and the
-deployed-composition screen still stands between any admit and a seat.
-Certification for *deployment* moves where it belongs: the shipping
-composition, its own declared instrument, derived margins (0.002
-welfare), with a second disjoint band reported as a drift alarm.
+**The gate — SETTLED with the owner, 2026-08-08** (formal registration
+wording still belongs to the prereg at freeze). All-percentage
+formulation, constants derived where possible, everything validated on
+the 31-candidate history. On the stress probe (rosters 3, **4/iii**
+and 5, declared seed band per F-009, **n = 30 runs per shape
+declared**), a candidate fails iff any shape shows:
+
+- **(i) incident rate**: more than `max(1, floor(0.05 × n))` runs with
+  `max_distress_age` > **225**. The bar is *derived, not picked*: one
+  full untended need rise, `distress / rise_rate` = 90 / 0.4 — the
+  prereg registers the **formula** and recomputes it from the frozen
+  config's dials. The `max(1, ·)` guarantees at least one tolerated
+  blip at any n (a plain 5% at n = 15 would silently allow zero,
+  reverting to the zero-gate; a plain `ceil` at n = 30 would allow
+  two, which is the borderline-collapse signature).
+- **(ii) severity backstop**: any kitty-run with `low_share` > **5%**
+  (catches the single-run catastrophe a rate can't: measured on the
+  31, it fires on C-scratch 88%, A0-s3 96%, M33-995-s2 13.5%, A1-s1
+  6.8% — and on no healthy candidate, max 3.1%).
+- **(iii)** any `floor_touches` (0% tolerance; in 31 candidates × 3
+  shapes they occur in exactly two, both deep collapses).
+
+Everything below the incident bar is **reported, never gated**.
+Validation over all 31 (`results/roster-evals-2026-08-07/
+gate_check.py`): the four deep collapses fail on 2–3 independent
+criteria each (C-scratch, M33-995-s2, A0-s3, A1-s1); every healthy
+candidate passes; the deployed winner passes with worst 3, zero on
+shape iii. **Known and accepted**: the two repetition-at-150
+borderline cases (A0-s2, worst 574; M33-998-s3, worst 767 — each
+failing only by two-runs-over-150 under the older draft) become
+*reported admits* at the 225 bar — the owner's deliberate flexibility
+for upcoming new model types, with their profiles still visible in the
+report and the deployed-composition screen still standing between any
+admit and a seat. A **distress-tick counter** (per run × kitty × need:
+ticks at/above the distress threshold, plus episode count) rides the
+Product spec batch — *reported* in exp-004, so a future generation can
+gate on distress-share with history behind it. Certification for
+*deployment* moves where it belongs: the shipping composition, its own
+declared instrument, derived margins (0.002 welfare), with a second
+disjoint band reported as a drift alarm.
 
 ---
 
@@ -546,11 +565,13 @@ welfare), with a second disjoint band reported as a drift alarm.
 - ~~Sampling: run the 20-minute measurement, or leave greedy alone?~~
   **Resolved 2026-08-08: measured, greedy stays** (§2; it costs distress
   and water margin at the deployed composition and fixes nothing).
-- ~~§9.2: respecify now or fold into exp-004's prereg?~~ **Designed
-  2026-08-08, adoption folds into exp-004's prereg** (§3: saturation /
-  repetition / floor markers on rosters 3+4+5; trace region reported,
-  never gated; validated against all 31 candidates). The owner's call
-  at freeze: accept the proposed thresholds (1,000 / one-over-150 /
-  any-floor-touch) or move them — and whether the deployed artifact's
-  certification status gets re-stated under the new gate (it passes on
-  all three stress shapes; worst run 3, zero on shape iii).
+- ~~§9.2: respecify now or fold into exp-004's prereg?~~ **SETTLED
+  2026-08-08** (§3): incident bar 225 = one untended rise (formula
+  registered, value recomputed from frozen dials), rate
+  `max(1, floor(0.05n))` per shape at declared n=30, `low_share` > 5%
+  backstop, floor-touches 0%, shapes iii+3+5; trace region reported,
+  never gated. Accepted cost: two repetition-at-150 borderline cases
+  (A0-s2, M33-998-s3) become reported admits. Remaining at freeze:
+  registration wording only, plus re-stating the deployed artifact
+  under the new gate (it passes; worst 3, zero on iii). Distress-tick
+  counter → Product spec batch, reported not gated this generation.
