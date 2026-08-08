@@ -34,6 +34,28 @@ kind suffices at roster 4; identity invites partner-keying that heterogeneous ro
 would break). No per-meow reward penalty. No lower turn cost (superseded by
 ride-along). No range/falloff on the broadcast.
 
+## Clarifications
+
+### Session 2026-08-08
+
+- Q: After a cat emits any non-Silent message, what does the cooldown mask? → A:
+  **Per cat per message kind** — emitting a kind cools only that kind for that cat;
+  other kinds stay available (subject to their own grounding/gating/cooldowns).
+- Q: What do the dedicated cosleep dials default to at ship? → A:
+  **Behavior-preserving 15/15** (drip = mutual = today's effective rate); the
+  pre-freeze pilot prices them by config rollout.
+- Q: Scripted groom-responder gate default (band 15–20)? → A: **15** (Experiments
+  concurring with Product, and firmly): the rare-class lesson is this experiment's
+  founding trauma — restraint can be dialed up after collection, a silent
+  demonstrator cannot be dialed into existence afterward; over-response is safe by
+  construction (welfare-positive trade, responder rule sits inside the scripted
+  decision ladder so urgent needs still win); and since the shipped default is what
+  re-baseline `B` is measured under, 15 is decided once, now, and kept through
+  freeze — any post-v4 tightening lands in the next generation's config, never
+  between re-baseline and freeze. Correction for the record: the measured occupancy
+  figures are needs_driven cuddle ≥ 20 = 12.1% and ≥ 25 = 5.1%; at 15 the in-gate
+  share sits higher (roughly high teens by interpolation).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Announcing without giving up the turn (Priority: P1)
@@ -92,9 +114,11 @@ follows every emission; `Silent` is legal in every reachable state.
 2. **Given** a cat whose need has crossed the threshold and is drifting down, **When**
    the need sits between (threshold − hysteresis) and threshold, **Then** the kind
    remains legal; only below (threshold − hysteresis) does it re-mask.
-3. **Given** a cat that just emitted any non-Silent message, **When** masks are built
-   for the following ticks, **Then** every non-Silent kind is masked for the cooldown
-   window, and the cat therefore holds at most one live digest entry at a time.
+3. **Given** a cat that just emitted a non-Silent message of some kind, **When**
+   masks are built for the following ticks, **Then** that kind is masked for the
+   cooldown window while other kinds remain governed by their own grounding, gating,
+   and cooldowns — repeating the *same* announcement within the window is
+   structurally impossible.
 4. **Given** any combination of grounding, gating, and cooldown masking, **Then**
    `Silent` is legal — a legal message action always exists (the message-head
    analogue of FR-018's never-all-zero guarantee).
@@ -288,10 +312,12 @@ naming it. Load a committed pre-batch snapshot fixture → world resumes and tic
   against the start-of-tick snapshot.
 - **FR-006**: `Purr` MUST retain its `purr_earned` gate; `FollowMe` has no grounding
   predicate and is governed by cooldown only.
-- **FR-007**: After any non-Silent emission, ALL non-Silent kinds MUST be masked for
-  `recent_window_ticks` ticks (a single per-kitty cooldown), so a cat holds at most
-  one live digest entry at a time. This cooldown applies to every emitter — scripted
-  and learned — replacing the scripted-only courtesy system.
+- **FR-007**: After a non-Silent emission of a given kind, that kind MUST be masked
+  for that cat for `recent_window_ticks` ticks (a **per-cat, per-kind** cooldown —
+  clarified 2026-08-08). A cat therefore holds at most one live digest entry *per
+  kind*; same-kind repetition within the window is structurally impossible. This
+  cooldown applies to every emitter — scripted and learned — replacing the
+  scripted-only courtesy system.
 - **FR-008**: `Silent` MUST never be masked: in every reachable state a legal message
   action exists (the message-head analogue of FR-018's never-all-zero guarantee),
   and this MUST be a structural guarantee with a property test, not an emergent one.
@@ -378,8 +404,8 @@ naming it. Load a committed pre-batch snapshot fixture → world resumes and tic
 - **Decision pair**: the unit of choice — (activity, message) — produced by every
   decider from one random draw.
 - **Message mask**: per-cat, per-tick legality over Silent + 8 kinds, built from
-  grounding (need vs dials, with hysteresis), `purr_earned`, and the single
-  post-emission cooldown; Silent always legal.
+  grounding (need vs dials, with hysteresis), `purr_earned`, and per-kind
+  post-emission cooldowns; Silent always legal.
 - **Meow digest**: the listener's view — per kind, a coherent
   (recency, direction, intensity) description of the freshest audible emitter;
   anonymous; 32 observation values.
@@ -408,9 +434,9 @@ naming it. Load a committed pre-batch snapshot fixture → world resumes and tic
   shipped dial defaults stays numerically identical to today's.
 - **SC-004**: Determinism holds: same seed + config → byte-identical world state at
   tick N, messages included; decision count per tick is unchanged from today.
-- **SC-005**: No cat can spam: at most one live digest entry per cat at any time, and
-  a repeated identical announcement within the cooldown window is structurally
-  impossible.
+- **SC-005**: No cat can spam a kind: a repeated same-kind announcement within the
+  cooldown window is structurally impossible, so a cat holds at most one live digest
+  entry per kind at any time.
 - **SC-006**: The operator experience of the wall is exactly as promised: a
   pre-batch world snapshot resumes and runs; a config with any retired key refuses
   to load naming the key; a pre-batch policy artifact refuses to load with a
@@ -449,18 +475,20 @@ naming it. Load a committed pre-batch snapshot fixture → world resumes and tic
 - **Shared dials across kinds**: one `announce_threshold`/`announce_hysteresis` pair
   governs all want-kinds (the `[meow]` section is exactly three keys by settled
   decision; per-kind thresholds are a future dial split if ever needed).
-- **Cosleep dial defaults are behavior-preserving** (numerically today's effective
-  rates) so the batch alone doesn't move the cuddle economy; the agreed pre-freeze
-  pilot prices them (drip ∈ {1,2,3,5,15} × mutual {off,on}) by config rollout. This
-  is reversible and config-only.
-- **Responder gate default 15**: the design inputs settle the band (15–20, explicitly
-  not 30) without picking a value; 15 is the band's permissive end (12% occupancy),
-  maximizing demonstrator traffic for dataset v4. It's a dial; the pilot/prereg can
-  move it without engine rework.
-- **Cooldown scope is per-cat, not per-kind**: the design's stated purpose ("one cat
-  holds at most one live digest entry", occlusion shrinks to a corner case) requires
-  one cooldown covering all non-Silent kinds; per-kind cooldowns would not deliver
-  it.
+- ~~Cosleep dial defaults~~ **CLARIFIED 2026-08-08: behavior-preserving 15/15**
+  (drip = mutual = today's effective rate) so the batch alone doesn't move the
+  cuddle economy; the agreed pre-freeze pilot prices them
+  (drip ∈ {1,2,3,5,15} × mutual {off,on}) by config rollout.
+- ~~Responder gate default~~ **CLARIFIED 2026-08-08: 15** (see Clarifications —
+  Experiments concurring with Product). The band's permissive end (in-gate share
+  roughly high teens; the measured 12.1% attaches to threshold 20), maximizing
+  demonstrator GroomKitty traffic for dataset v4. A dial; kept through freeze, with
+  any tightening deferred to the next generation's config.
+- ~~Cooldown scope~~ **CLARIFIED 2026-08-08: per cat per message kind** (see
+  Clarifications). Consequence accepted: a cat with several real needs can hold one
+  live digest entry per kind simultaneously; the occlusion fix rests on the digest
+  coherence FR (one emitter per kind) plus same-kind cooldown, not on a global
+  silence.
 - **The FromConfig type-level refactor** (017 close-out: "at next harness touch") is
   in scope *if cheap* during planning, skipped if not — a flag, not a requirement.
 - **Shaping (A1), γ pinning, and all prereg-registered values** are Experiments'
