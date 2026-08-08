@@ -136,6 +136,124 @@ fall, and action classes 13–15 (currently dead) come alive. That is far
 more legible than "meow rate went up", and it is measurable with existing
 instruments.
 
+### Cost and spam — the resolved shape (owner discussion, 2026-08-08)
+
+The turn cost is not buying anything. In signaling theory, cost keeps
+signals honest **when interests conflict**; CloudKitty's reward is the
+team welfare aggregate at p = 0, so interests are aligned, nobody
+profits from lying about being wet, and cheap talk is stable (the
+emergent-communication literature gets informative protocols from
+completely free channels in cooperative settings). The turn cost is
+pure friction — and exp-003 measured the friction winning: 0.2% of the
+dataset, BC 0.0000, meow/1k 0.01–0.41. **Zero the marginal cost;
+prevent spam mechanically, not motivationally.**
+
+What spam would actually harm, and where each harm is properly fixed:
+
+- **Observation pollution — already bounded by the digest.** Presence is
+  a max over recency; a cat meowing every tick produces a *constant*,
+  and constants carry no information — gradients learn to ignore them.
+  Spam neuters the spammer, not the world.
+- **Occlusion is the real channel harm** (freshest/nearest collapse
+  lets one nearby chatterbox mask a distant genuine signaler) — and it
+  is a *digest* defect, not a price defect; a turn cost wouldn't fix it
+  either. Fix it in the digest while the schema is open.
+- **UX** (client renders meows) — a rate problem; the cooldown handles
+  it.
+
+The mechanism package:
+
+1. **Ride-along emission: the action becomes (activity, message).** Two
+   output heads on the shared trunk — activity (menu minus the six Meow
+   rows, 40→34) and message (Silent + kinds) — instead of a 34×7 joint
+   menu. Factored policy: log-probs, entropy, KL all sum across heads;
+   one shared advantage credits both; BC becomes two masked CEs
+   (dataset v4 grows a `label_msg` column). Full generation wall
+   (action schema, mask schema, artifact_version) — already being paid.
+   **Determinism care**: `DecisionRng` deals ONE u64 per kitty per
+   tick; sample both heads by splitting that u64 (two u32s), never by
+   drawing twice from the master stream. Do NOT implement cheap meows
+   as a free extra decision in the same tick — variable decision counts
+   break the determinism contract and bc-collect row alignment.
+2. **Grounded legality — the Purr pattern generalized.** `WantBath`
+   legal only while Bath is actually above an announce threshold (with
+   hysteresis), as `Purr` already requires `purr_earned`. This converts
+   the channel from cheap talk to *certified state* — and dissolves the
+   spam/signal distinction: "meow whenever legal" then IS the honest
+   broadcast the owner asked for, not spam.
+3. **Cooldown via the mask — courtesy for everyone.** `can_meow` /
+   `courtesy_ticks` already exist engine-side but bind scripted cats
+   only; wire them into the message-head mask. Setting cooldown =
+   `recent_window_ticks` (both already 10) means one cat holds at most
+   one live digest entry — occlusion shrinks to a corner case — and a
+   dark mask row is a mechanical patch for the blind emitter: it
+   *cannot* wastefully repeat what it cannot remember asking.
+4. **Digest fixes in the same schema bump**: presence and direction
+   must describe the same cat; optionally add an intensity value per
+   kind — trustworthy now, because emission is grounded.
+
+**Anti-recommendation: no per-meow reward penalty.** F-011 says
+restraint is already a reward equilibrium — the channel's problem is
+too much restraint. A penalty is the dead-channel medicine that
+produced meow/1k 0.01. Spam control lives in the mask and digest, where
+it cannot distort what the reward teaches. Expect training-time
+babbling from the entropy bonus and welcome it (it exercises the
+channel so listeners have correlations to learn); convergence behavior
+is what the F-012-compliant measurement judges.
+
+### The demonstrator plan (before BC v4)
+
+**Cosleeping needs routing, not a boost — verified 2026-08-08.**
+`apply_sleep_relief`: sleeper gets `sleep_relief` 5 (8 in sunbeam), and
+with a partner adjacent **both** cats get `cuddle_relief` 15/tick; two
+mutual co-sleepers each collect 5 sleep + 30 cuddle/tick — strictly
+better than a rest duet on every axis, and non-binding. "Available"
+means **adjacent, full stop** (`world.rs:1078`; co-sleep and grooming
+deliberately skip the conscriptable check — spec-021 doctrine, busy
+neighbors are lawful relief, `docs/cuddle-relief-semantics.md`). The
+companion can eat, groom, or just stand there and still be paid; grants
+stop the tick they step away (test:
+`a_departed_cosleeping_partner_stops_granting_cuddles`). Yet dataset v3
+shows **co-sleep at 5.6% of sleep decisions** (9,353 vs 157,282 solo),
+because `needs_driven` prefers sunbeams and only offers
+`with: adjacent_friend` as a fallback when no sunbeam is worth walking
+to — cats trade a 15+15 mutual payout for a +3 sunbeam bonus. The fix
+is the napper's routing alone (walk to a friend when cuddle is real;
+sunbeam when it isn't); the friend needs no behavior change at all.
+This weakens the case that `WantSleep` is load-bearing — it remains a
+policy-side coordination aid (a policy can't see where friends are),
+and its scripted response is the cheapest favor in the game (stand
+nearby, keep your errand, collect 15/tick).
+
+**WantBath is the load-bearing kind, and it demonstrates a trade, not a
+request.** Bath is self-satisfiable at the *same* relief (`GroomSelf`
+20, 140k decisions in v3), so a needy scripted cat self-grooms before
+anyone answers. The rule that fills GroomKitty 13–15 is on the
+**responder**: "my cuddle need is real + someone meowed WantBath → walk
+over and groom them" (15 cuddle to me, 20 bath to them, they stay
+free). The groomer initiates because the groomer is the one being paid.
+
+**Imitability principle — write it into the spec**: scripted responders
+must key on the **meow**, not on privileged need-reading. Scripted
+behaviors can see other cats' needs directly; policies see only the
+digest. Only when the demonstrated chain (need rises → meow → friend
+approaches → groom) is a function of the policy's own observation space
+can BC clone it.
+
+**Consequences to budget**: new scripted behavior moves `B` — full
+re-baseline before the exp-004 prereg freeze (re-baseline first, never
+freeze first). Water metrics will shift too: scripted grooming is part
+of F-016's wet-fur feedback loop, and a groom-response channel gives
+bath relief a second path; the relative-B construction absorbs it.
+
+**Order of work**: (1) the batched schema spec — message head,
+`WantBath` (+`WantSleep` if adopted), grounded masks, cooldown-for-all,
+digest fixes — Product's, spec-first; (2) scripted updates in the same
+generation: bath-announce emission, meow-keyed groom response, cosleep
+routing preference; (3) re-baseline `B`; (4) collect dataset v4 —
+GroomKitty 13–15 and the new meow rows must be nonzero **by
+construction**, checkable the day collection finishes.
+
 ### Constraint
 
 Anything touching the digest **bumps the observation schema** → another
@@ -278,10 +396,21 @@ that admits your favourite.
 
 ## 5. Open decisions
 
+- ~~Meow: cheaper how?~~ **Resolved 2026-08-08: ride-along** — the
+  action becomes (activity, message), two heads, zero marginal cost;
+  restraint moves to grounded legality + cooldown in the message mask
+  (see §1, "Cost and spam"). A lower turn cost was rejected (still
+  friction, still a dead channel) and so was a reward penalty (F-011).
 - Meow: which rule — "another cat can change your outcome" (add
-  `WantBath`) or "broadcast state" (messages for everything)?
-- Meow: cheaper how — ride-along with another action, or a lower turn
-  cost?
+  `WantBath`) or "broadcast state" (messages for everything)? Current
+  lean: `WantBath` is load-bearing either way; grounding makes the
+  broadcast reading cheap to add later.
+- Meow: is `WantSleep` in the batch? Routing alone fixes the scripted
+  co-sleep deficit; the kind only aids policy-side coordination. Cheap
+  while the wall is open, but not load-bearing.
+- Meow: announce threshold + hysteresis values for grounded legality;
+  cooldown = `recent_window_ticks` (10) or its own dial?
+- Digest: add the per-kind intensity value while the schema is open?
 - Shaping: coefficient by pilot, or a registered value with
   justification?
 - Mixing: drop outright, or one arm to close it out?
