@@ -40,6 +40,11 @@ change.
   artifact), and exp-003's record corrected from a verification sweep.
 - Operational, post-tag: the 20×20 world went live 2026-08-08 via
   `update.sh --fresh` — the first world of the canonical generation.
+- Refactor, no markers: `[rl]` config defaults collapsed to
+  container-level serde defaults and eleven dead accessors deleted
+  across core and rl — behavior-identical, stamp verified unchanged;
+  also corrects `policies/README.md`'s pre-#114 claim that unknown
+  `[rl.policy.*]` keys are silently inert (they refuse to load) (#142).
 
 ---
 
