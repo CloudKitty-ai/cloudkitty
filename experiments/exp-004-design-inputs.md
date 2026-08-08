@@ -372,6 +372,47 @@ lands as: `recent_window_ticks` (10, doubling as the mask cooldown),
 **4. Dial-shape adopted — acknowledged.** Nothing in the spec batch
 blocks on prereg values; the prereg pins registered values at freeze.
 
+### Final pre-spec sweep (2026-08-08) — additions before Product starts
+
+1. **`Silent` is never masked** — the message-head analogue of
+   FR-018's never-all-zero guarantee, and it wants the same structural
+   treatment: whatever grounding and cooldowns mask away, a legal
+   message action always exists. One FR line now saves a masked-corner
+   hunt later.
+2. **This wall is policy-side only — say so, and test it.** The batch
+   changes observation/action/mask schemas and config dials, not the
+   world snapshot's shape: new `MessageKind` variants deserialize old
+   snapshots fine, cosleep dials are config. So the rollout should
+   **not** need `update.sh --fresh` — the live world's history
+   survives this generation change, unlike 20×20's. Worth an explicit
+   spec claim plus a resume test (pre-batch snapshot loads and runs),
+   so nobody reaches for `--fresh` out of caution and throws away the
+   soak clock.
+3. **Client handoff rides the release**: `WantBath`/`WantSleep` reach
+   the client in `recent_meows` and on kitty cards the tick they
+   first fire — the client's kind→rendering map needs the two new
+   entries queued in the Client thread before rollout, or live meows
+   render as unknowns. `GET /config` also grows the new dials
+   (additive; client readers are tolerant, but note it).
+4. **The stamp legitimately moves.** New dials in, courtesy trio out —
+   the engine-defaults stamp changes by design. Follow the
+   release-honest gate process (record the new stamp, changelog
+   markers `[obs-schema]`, `[rng-sequence]`, `[stamp]`) rather than
+   treating the gate failure as a regression.
+
+Flags, not requirements: the standing **FromConfig type-level
+refactor** note (017 close-out: "at next harness touch") — this batch
+touches the harness, so in-scope if cheap, skip if not. And the seam's
+proposal type growing a message component ripples into
+`bc-collect`/`twin-probe`/the census tools — **Experiments absorbs
+those recompiles**, the spec only needs the seam types to stay public.
+
+Deliberate exclusion, restated so it isn't "discovered" later: the
+digest stays **anonymous** — no emitter identity, no addressee. That
+was reasoned (spatial + kind is enough at roster 4, and identity
+invites partner-keying that heterogeneous rosters would break), not
+forgotten.
+
 ### Constraint
 
 Anything touching the digest **bumps the observation schema** → another
