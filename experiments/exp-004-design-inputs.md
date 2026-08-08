@@ -557,8 +557,13 @@ disjoint band reported as a drift alarm.
   around"). The needs data confirms it demonstrates by the same
   playful-announces structure as `WantBath` (29 vs 0.2 emits/1k at
   threshold 40).
-- Meow: announce threshold + hysteresis — **analysis DONE both sides,
-  recommendation REVISED 40 → 30**
+- ~~Meow: announce threshold + hysteresis~~ — **SETTLED 2026-08-08
+  (owner): config dials, shipped defaults 30 / 5; cooldown reuses
+  `recent_window_ticks` (10).** The dial-ness unblocks the Product
+  spec batch immediately — the prereg pins registered values at freeze
+  without engine rework, and the live world retunes by rollout, never
+  by generation wall. Basis — **analysis DONE both sides,
+  recommendation revised 40 → 30**
   (`experiments/needs-analysis-2026-08-08/results.md`: dataset v3's
   1.9M scripted rows + the policy-side census the owner asked for —
   current-gen agent cats replayed on the served 20×20, both
