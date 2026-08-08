@@ -1,0 +1,27 @@
+{
+  "A2-m0-g998-s3": {
+    "inwater_share": 0.02832,
+    "lounge_share": 0.0067675,
+    "grooming_on_water_share": 0.0015175,
+    "lounge_excl_grooming": 0.00525,
+    "by_activity_share": {
+      "Idle": 0.019225,
+      "Resting": 0.0004375,
+      "Sleeping": 0.0048125,
+      "Eating": 0.00089,
+      "Drinking": 0.00077,
+      "Playing": 0.0006675,
+      "Grooming": 0.0015175
+    },
+    "config": "/private/tmp/claude-501/-Users-elizabethkelly-ai-cloudkitty/c344c5ac-df5f-439b-977c-3cfdd15fedaa/scratchpad/w11.toml",
+    "mean_water_tiles": 11.0,
+    "B_inwater": 0.034352,
+    "B_lounge": 0.015,
+    "ceiling": 0.051528000000000004,
+    "floor": 0.017176,
+    "pass_ceiling": true,
+    "pass_floor": true,
+    "pass_lounge": true,
+    "band_pass": true
+  }
+}

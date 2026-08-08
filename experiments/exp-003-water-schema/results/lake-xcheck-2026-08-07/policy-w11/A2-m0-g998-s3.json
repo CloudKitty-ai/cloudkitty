@@ -1,0 +1,471 @@
+{
+ "candidate": "A2-m0-g998-s3",
+ "seeds": [
+  760001,
+  760002,
+  760003,
+  760004,
+  760005,
+  760006,
+  760007,
+  760008,
+  760009,
+  760010
+ ],
+ "ticks": 20000,
+ "inwater_share": 0.02832,
+ "lounge_share": 0.0067675,
+ "grooming_on_water_share": 0.0015175,
+ "lounge_excl_grooming": 0.00525,
+ "by_activity_share": {
+  "Idle": 0.019225,
+  "Resting": 0.0004375,
+  "Sleeping": 0.0048125,
+  "Eating": 0.00089,
+  "Drinking": 0.00077,
+  "Playing": 0.0006675,
+  "Grooming": 0.0015175
+ },
+ "config": "/private/tmp/claude-501/-Users-elizabethkelly-ai-cloudkitty/c344c5ac-df5f-439b-977c-3cfdd15fedaa/scratchpad/w11.toml",
+ "mean_water_tiles": 11.0,
+ "B_inwater": 0.034352,
+ "B_lounge": 0.015,
+ "ceiling": 0.051528000000000004,
+ "floor": 0.017176,
+ "pass_ceiling": true,
+ "pass_floor": true,
+ "pass_lounge": true,
+ "band_pass": true,
+ "per_seed": [
+  {
+   "seed": 760001,
+   "config": "/private/tmp/claude-501/-Users-elizabethkelly-ai-cloudkitty/c344c5ac-df5f-439b-977c-3cfdd15fedaa/scratchpad/w11.toml",
+   "mean_water_tiles": 11.0,
+   "on_water_by_activity": {
+    "Miso": {
+     "Idle": 437,
+     "Resting": 10,
+     "Sleeping": 125,
+     "Eating": 18,
+     "Drinking": 20,
+     "Playing": 14,
+     "Grooming": 33
+    },
+    "Biscuit": {
+     "Idle": 217,
+     "Resting": 10,
+     "Sleeping": 0,
+     "Eating": 2,
+     "Drinking": 2,
+     "Playing": 51,
+     "Grooming": 48
+    },
+    "Pumpkin": {
+     "Idle": 308,
+     "Resting": 5,
+     "Sleeping": 25,
+     "Eating": 1,
+     "Drinking": 22,
+     "Playing": 18,
+     "Grooming": 186
+    },
+    "Kittybear": {
+     "Idle": 380,
+     "Resting": 0,
+     "Sleeping": 70,
+     "Eating": 16,
+     "Drinking": 11,
+     "Playing": 1,
+     "Grooming": 24
+    }
+   }
+  },
+  {
+   "seed": 760002,
+   "config": "/private/tmp/claude-501/-Users-elizabethkelly-ai-cloudkitty/c344c5ac-df5f-439b-977c-3cfdd15fedaa/scratchpad/w11.toml",
+   "mean_water_tiles": 11.0,
+   "on_water_by_activity": {
+    "Miso": {
+     "Idle": 454,
+     "Resting": 0,
+     "Sleeping": 100,
+     "Eating": 16,
+     "Drinking": 21,
+     "Playing": 13,
+     "Grooming": 45
+    },
+    "Biscuit": {
+     "Idle": 254,
+     "Resting": 10,
+     "Sleeping": 21,
+     "Eating": 4,
+     "Drinking": 4,
+     "Playing": 60,
+     "Grooming": 69
+    },
+    "Pumpkin": {
+     "Idle": 329,
+     "Resting": 20,
+     "Sleeping": 40,
+     "Eating": 8,
+     "Drinking": 21,
+     "Playing": 11,
+     "Grooming": 192
+    },
+    "Kittybear": {
+     "Idle": 429,
+     "Resting": 5,
+     "Sleeping": 135,
+     "Eating": 19,
+     "Drinking": 20,
+     "Playing": 19,
+     "Grooming": 45
+    }
+   }
+  },
+  {
+   "seed": 760003,
+   "config": "/private/tmp/claude-501/-Users-elizabethkelly-ai-cloudkitty/c344c5ac-df5f-439b-977c-3cfdd15fedaa/scratchpad/w11.toml",
+   "mean_water_tiles": 11.0,
+   "on_water_by_activity": {
+    "Miso": {
+     "Idle": 337,
+     "Resting": 15,
+     "Sleeping": 70,
+     "Eating": 10,
+     "Drinking": 13,
+     "Playing": 10,
+     "Grooming": 18
+    },
+    "Biscuit": {
+     "Idle": 212,
+     "Resting": 0,
+     "Sleeping": 0,
+     "Eating": 3,
+     "Drinking": 0,
+     "Playing": 50,
+     "Grooming": 48
+    },
+    "Pumpkin": {
+     "Idle": 340,
+     "Resting": 10,
+     "Sleeping": 40,
+     "Eating": 9,
+     "Drinking": 22,
+     "Playing": 14,
+     "Grooming": 198
+    },
+    "Kittybear": {
+     "Idle": 282,
+     "Resting": 5,
+     "Sleeping": 65,
+     "Eating": 12,
+     "Drinking": 11,
+     "Playing": 7,
+     "Grooming": 15
+    }
+   }
+  },
+  {
+   "seed": 760004,
+   "config": "/private/tmp/claude-501/-Users-elizabethkelly-ai-cloudkitty/c344c5ac-df5f-439b-977c-3cfdd15fedaa/scratchpad/w11.toml",
+   "mean_water_tiles": 11.0,
+   "on_water_by_activity": {
+    "Miso": {
+     "Idle": 297,
+     "Resting": 25,
+     "Sleeping": 70,
+     "Eating": 6,
+     "Drinking": 10,
+     "Playing": 16,
+     "Grooming": 21
+    },
+    "Biscuit": {
+     "Idle": 310,
+     "Resting": 15,
+     "Sleeping": 11,
+     "Eating": 1,
+     "Drinking": 3,
+     "Playing": 75,
+     "Grooming": 78
+    },
+    "Pumpkin": {
+     "Idle": 293,
+     "Resting": 15,
+     "Sleeping": 30,
+     "Eating": 1,
+     "Drinking": 23,
+     "Playing": 11,
+     "Grooming": 162
+    },
+    "Kittybear": {
+     "Idle": 329,
+     "Resting": 5,
+     "Sleeping": 70,
+     "Eating": 15,
+     "Drinking": 15,
+     "Playing": 16,
+     "Grooming": 24
+    }
+   }
+  },
+  {
+   "seed": 760005,
+   "config": "/private/tmp/claude-501/-Users-elizabethkelly-ai-cloudkitty/c344c5ac-df5f-439b-977c-3cfdd15fedaa/scratchpad/w11.toml",
+   "mean_water_tiles": 11.0,
+   "on_water_by_activity": {
+    "Miso": {
+     "Idle": 412,
+     "Resting": 0,
+     "Sleeping": 105,
+     "Eating": 32,
+     "Drinking": 16,
+     "Playing": 23,
+     "Grooming": 39
+    },
+    "Biscuit": {
+     "Idle": 310,
+     "Resting": 10,
+     "Sleeping": 0,
+     "Eating": 1,
+     "Drinking": 3,
+     "Playing": 75,
+     "Grooming": 90
+    },
+    "Pumpkin": {
+     "Idle": 322,
+     "Resting": 15,
+     "Sleeping": 30,
+     "Eating": 3,
+     "Drinking": 33,
+     "Playing": 24,
+     "Grooming": 186
+    },
+    "Kittybear": {
+     "Idle": 448,
+     "Resting": 15,
+     "Sleeping": 115,
+     "Eating": 27,
+     "Drinking": 20,
+     "Playing": 17,
+     "Grooming": 48
+    }
+   }
+  },
+  {
+   "seed": 760006,
+   "config": "/private/tmp/claude-501/-Users-elizabethkelly-ai-cloudkitty/c344c5ac-df5f-439b-977c-3cfdd15fedaa/scratchpad/w11.toml",
+   "mean_water_tiles": 11.0,
+   "on_water_by_activity": {
+    "Miso": {
+     "Idle": 345,
+     "Resting": 10,
+     "Sleeping": 85,
+     "Eating": 13,
+     "Drinking": 10,
+     "Playing": 23,
+     "Grooming": 27
+    },
+    "Biscuit": {
+     "Idle": 208,
+     "Resting": 10,
+     "Sleeping": 22,
+     "Eating": 0,
+     "Drinking": 2,
+     "Playing": 44,
+     "Grooming": 63
+    },
+    "Pumpkin": {
+     "Idle": 299,
+     "Resting": 0,
+     "Sleeping": 35,
+     "Eating": 3,
+     "Drinking": 20,
+     "Playing": 13,
+     "Grooming": 204
+    },
+    "Kittybear": {
+     "Idle": 372,
+     "Resting": 0,
+     "Sleeping": 60,
+     "Eating": 19,
+     "Drinking": 8,
+     "Playing": 9,
+     "Grooming": 21
+    }
+   }
+  },
+  {
+   "seed": 760007,
+   "config": "/private/tmp/claude-501/-Users-elizabethkelly-ai-cloudkitty/c344c5ac-df5f-439b-977c-3cfdd15fedaa/scratchpad/w11.toml",
+   "mean_water_tiles": 11.0,
+   "on_water_by_activity": {
+    "Miso": {
+     "Idle": 380,
+     "Resting": 15,
+     "Sleeping": 105,
+     "Eating": 15,
+     "Drinking": 15,
+     "Playing": 8,
+     "Grooming": 27
+    },
+    "Biscuit": {
+     "Idle": 214,
+     "Resting": 5,
+     "Sleeping": 11,
+     "Eating": 1,
+     "Drinking": 3,
+     "Playing": 62,
+     "Grooming": 57
+    },
+    "Pumpkin": {
+     "Idle": 373,
+     "Resting": 45,
+     "Sleeping": 45,
+     "Eating": 9,
+     "Drinking": 27,
+     "Playing": 10,
+     "Grooming": 225
+    },
+    "Kittybear": {
+     "Idle": 348,
+     "Resting": 0,
+     "Sleeping": 105,
+     "Eating": 13,
+     "Drinking": 17,
+     "Playing": 8,
+     "Grooming": 30
+    }
+   }
+  },
+  {
+   "seed": 760008,
+   "config": "/private/tmp/claude-501/-Users-elizabethkelly-ai-cloudkitty/c344c5ac-df5f-439b-977c-3cfdd15fedaa/scratchpad/w11.toml",
+   "mean_water_tiles": 11.0,
+   "on_water_by_activity": {
+    "Miso": {
+     "Idle": 444,
+     "Resting": 15,
+     "Sleeping": 105,
+     "Eating": 19,
+     "Drinking": 16,
+     "Playing": 17,
+     "Grooming": 21
+    },
+    "Biscuit": {
+     "Idle": 290,
+     "Resting": 25,
+     "Sleeping": 11,
+     "Eating": 1,
+     "Drinking": 7,
+     "Playing": 70,
+     "Grooming": 78
+    },
+    "Pumpkin": {
+     "Idle": 370,
+     "Resting": 35,
+     "Sleeping": 20,
+     "Eating": 4,
+     "Drinking": 17,
+     "Playing": 21,
+     "Grooming": 219
+    },
+    "Kittybear": {
+     "Idle": 386,
+     "Resting": 5,
+     "Sleeping": 95,
+     "Eating": 26,
+     "Drinking": 23,
+     "Playing": 11,
+     "Grooming": 30
+    }
+   }
+  },
+  {
+   "seed": 760009,
+   "config": "/private/tmp/claude-501/-Users-elizabethkelly-ai-cloudkitty/c344c5ac-df5f-439b-977c-3cfdd15fedaa/scratchpad/w11.toml",
+   "mean_water_tiles": 11.0,
+   "on_water_by_activity": {
+    "Miso": {
+     "Idle": 431,
+     "Resting": 10,
+     "Sleeping": 125,
+     "Eating": 24,
+     "Drinking": 21,
+     "Playing": 10,
+     "Grooming": 45
+    },
+    "Biscuit": {
+     "Idle": 287,
+     "Resting": 35,
+     "Sleeping": 11,
+     "Eating": 5,
+     "Drinking": 5,
+     "Playing": 60,
+     "Grooming": 66
+    },
+    "Pumpkin": {
+     "Idle": 379,
+     "Resting": 20,
+     "Sleeping": 25,
+     "Eating": 6,
+     "Drinking": 23,
+     "Playing": 35,
+     "Grooming": 228
+    },
+    "Kittybear": {
+     "Idle": 370,
+     "Resting": 20,
+     "Sleeping": 100,
+     "Eating": 21,
+     "Drinking": 17,
+     "Playing": 14,
+     "Grooming": 34
+    }
+   }
+  },
+  {
+   "seed": 760010,
+   "config": "/private/tmp/claude-501/-Users-elizabethkelly-ai-cloudkitty/c344c5ac-df5f-439b-977c-3cfdd15fedaa/scratchpad/w11.toml",
+   "mean_water_tiles": 11.0,
+   "on_water_by_activity": {
+    "Miso": {
+     "Idle": 426,
+     "Resting": 10,
+     "Sleeping": 105,
+     "Eating": 17,
+     "Drinking": 8,
+     "Playing": 20,
+     "Grooming": 24
+    },
+    "Biscuit": {
+     "Idle": 260,
+     "Resting": 25,
+     "Sleeping": 11,
+     "Eating": 1,
+     "Drinking": 2,
+     "Playing": 56,
+     "Grooming": 75
+    },
+    "Pumpkin": {
+     "Idle": 339,
+     "Resting": 20,
+     "Sleeping": 25,
+     "Eating": 7,
+     "Drinking": 23,
+     "Playing": 13,
+     "Grooming": 213
+    },
+    "Kittybear": {
+     "Idle": 383,
+     "Resting": 10,
+     "Sleeping": 115,
+     "Eating": 18,
+     "Drinking": 16,
+     "Playing": 11,
+     "Grooming": 36
+    }
+   }
+  }
+ ]
+}
