@@ -780,9 +780,13 @@ check('the paw arc can never invert', () => {
 });
 
 check('a walk always has a foot down', () => {
-  // duty > 0.5 is the difference between a walk and a run, and it is why
-  // the cat never reads as hopping.
-  assert(GAIT.duty > 0.5, `duty ${GAIT.duty} leaves a flight phase`);
+  // The boundary is 0.5, not above it. Two legs half a cycle apart means
+  // that at duty 0.5 exactly one foot is down at all times -- no double
+  // support, but no flight phase either. This first read `> 0.5`, which
+  // is the quadruple-support convention for a four-legged walk and the
+  // wrong rule for two drawn legs; verified against the per-phase count
+  // below, which is the real check.
+  assert(GAIT.duty >= 0.5, `duty ${GAIT.duty} leaves a flight phase`);
   for (let i = 0; i < 360; i += 1) {
     const phase = i / 360;
     const down = catLayout('walking', phase).legs.filter(
