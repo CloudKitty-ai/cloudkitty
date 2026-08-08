@@ -4,19 +4,17 @@ The durable home for every `.ckpolicy` the served world references
 (owner decision, 2026-07-31): committed so a fresh clone serves the
 roster as-is, named here so certification stays auditable.
 
-> **Generation gap (spec 026, 2026-08-05).** Both artifacts below are
-> observation-generation **1** (schema 1, 182-wide inputs). The engine
-> on `main` now speaks generation **2** (the in-water flag, 183) and
-> refuses them at boot — so `cloudkitty.toml` seats no policy right
-> now, and the `[rl.policy.*]` blocks stand unreferenced, for
-> provenance. This is temporary and deliberate: the **served box**
-> still runs the generation-1 binary with both policies seated, and
-> stays there until one hand rollout after exp-003, whose certified
-> schema-2 winners take these seats back. Until then a fresh clone
-> serves a fully scripted roster. The name
-matches the `policies/` examples in `docs/rl-training.md`; the root
-`artifacts/` name was rejected because it collides with the gitignored
-`experiments/**/artifacts/` vocabulary.
+> **Generation gap (spec 026, 2026-08-05 — closed 2026-08-07).** The
+> in-water observation took the schema 1 → 2, and for two days `main`'s
+> engine could open neither committed artifact: the config seated no
+> policy while the served box stayed on the generation-1 binary. The
+> gap closed when exp-003 produced the first schema-2 artifact and the
+> 2026-08-07 rollout seated it at both policy seats. The generation-1
+> artifacts are retired below, unrunnable here by design.
+
+The directory name matches the `policies/` examples in
+`docs/rl-training.md`; the root `artifacts/` name was rejected because
+it collides with the gitignored `experiments/**/artifacts/` vocabulary.
 
 ## Rules
 
@@ -95,7 +93,7 @@ config would carry something that looks like data but is inert.
 
 | File | sha256 | Provenance | Certification |
 |------|--------|------------|---------------|
-| `e003-m0-g998-s3.ckpolicy` | `756aa6802ee5dd061b0c1c2633977f49a531fe08db71aff9dc25deedb729283b` | exp-003 self-play arm, γ = 0.998, seed 3 — the first **observation-schema 2** policy, BC-cloned from 1.90M scripted decisions on the v4 family then 20M ticks of PPO. Drives **both** policy seats, Miso and Kittybear (`policy:e003-m0-g998-s3`), greedy selection | `experiments/exp-003-water-schema/results/grid-2026-08-07.md`. **Deployed, not certified** — it fails the pre-registered §9.2 roster gate (3 ticks of eat-need on one seed of an off-deployment world; the gate admits zero nonzero values and admitted no candidate at all). Deployed on the owner's judgement against the evidence, recorded in the prereg's Deviations appendix. What it does pass: §9.1 water band — 2.79% in-water / 0.62% lounging, **both below the scripted baseline** of 3.44% / 1.50%, the behaviour exp-002 proved no dial setting could buy; §9.3 welfare +0.0420; and on the served world at roster 4, `max_distress_age` 0 and `floor_touches` 0 across 30 seeds on both deployment shapes. Ledger: `experiments/exp-003-water-schema/artifacts/eval-ledger.json` |
+| `e003-m0-g998-s3.ckpolicy` | `756aa6802ee5dd061b0c1c2633977f49a531fe08db71aff9dc25deedb729283b` | exp-003 self-play arm, γ = 0.998, seed 3 — the first **observation-schema 2** policy, BC-cloned from 1.90M scripted decisions on the v4 family then 20M ticks of PPO. Drives **both** policy seats, Miso and Kittybear (`policy:e003-m0-g998-s3`), greedy selection | `experiments/exp-003-water-schema/results/grid-2026-08-07.md`. **Deployed, not certified** — it fails the pre-registered §9.2 roster gate (3 ticks of eat-need on one seed of an off-deployment world; the gate admits zero nonzero values and admitted no candidate at all). Deployed on the owner's judgement against the evidence, recorded in the prereg's Deviations appendix. What it does pass: §9.1 water band — 2.79% in-water / 0.62% lounging, **both below the scripted baseline** of 3.44% / 1.50%, the behaviour exp-002 proved no dial setting could buy; §9.3 welfare +0.0420; and on the served world at roster 4, `max_distress_age` 0 and `floor_touches` 0 across 30 seeds on both deployment shapes. Ledger: `experiments/exp-003-water-schema/results/eval-ledger-2026-08-07.json` (committed copy; working copy in gitignored `artifacts/`) |
 
 ## Retired
 
@@ -108,7 +106,8 @@ be named by the served config.
 | `retired/e001-a2-s6.ckpolicy` | `8030b94d8cbf670a46435b38a817035e864d4923203ffa71e52e761099eeeb5f` | exp-001 arm2, γ = 0.998, seed 6. Drove Miso from 2026-07-30 through the exp-003 rollout — the longest-serving policy here. Formerly `s6.ckpolicy`. Certification lineage in the Active table's history: `recert-2026-07-31.md`, `served-world-remeasure-2026-07-30.md`, `soak-record-2026-07-31.md` | `e003-m0-g998-s3.ckpolicy` (2026-08-07) |
 | `retired/e002-m0-g998-s1.ckpolicy` | `1cb3fdac5b09dbc2315c6d529bef1ced6b1dfad15946402810ddff3b27b9ca27` | exp-002 winner (no mixing, γ = 0.998, seed 1), warm-started from `e001-a2-s6`. Drove Kittybear from deployment stage 1 (2026-08-04) through a clean 50.7-hour soak — zero distress events — until the exp-003 rollout. Selected by exp-002's pre-registered §9.2 rule; `grid-2026-08-03.md` | `e003-m0-g998-s3.ckpolicy` (2026-08-07) |
 
-**These two are schema 1 and can never run again here.** The in-water
+**All three retired artifacts are schema 1 and can never run again
+here.** The in-water
 observation bit took the observation 182 → 183 and the schema 1 → 2, and
 `PolicyArtifact::load` rejects them on both counts independently. They are
 kept because they ran the world, not because they could.

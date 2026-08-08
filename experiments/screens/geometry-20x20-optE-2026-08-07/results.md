@@ -52,6 +52,12 @@ One tile. The eat-driven contention criteria.md named in advance as
 risk 1 was exactly one chow tile deep, and closing it moved optE past
 the 24×24 control rather than merely level with it.
 
+*(Provenance note, added 2026-08-08: the optD row is from the 780k band
+— data committed in the void screen's `seeds/` — while the optE row is
+this screen's 800k. The matched-780k optE numbers, 1/60 · worst 24 ·
+0.9468, agree in every direction, so the band mixing changes nothing;
+it should have been stated.)*
+
 ## F — the relative band paid off again
 
 | world | scripted `B` in-water | policy in-water | policy as % of B |
@@ -121,8 +127,15 @@ for w in control-24x24 opte-20x20; do
     --config $D/configs/$w.toml --seeds "$S" --ticks 20000 --roster both \
     --json $D/seeds/$w.json
 done
-# criterion A (deployed composition) and F (water band) drivers are in the
-# commit message; per-seed data under seeds/.
+# criterion A: deployed_composition.py, per-seed output committed at
+#   seeds/deployed-composition.json.
+# criterion F: policy side ran seeds 800_001–800_010 (water_band.py), per-run
+#   data committed under water-band/; the scripted baseline B ran seeds 1–10
+#   (scripted_water_baseline.py), committed at
+#   experiments/rebaseline-2026-08-06/{control-B,optE-B}/.
+#   Caveat: wb-opte-20x20/summary.json's stored B_* and band_pass fields were
+#   computed against the CONTROL's B; the per-world ratios quoted above are
+#   the correct ones, and the band passes under either B.
 ```
 
 Seed band 800_001–800_030, disjoint from all others.
