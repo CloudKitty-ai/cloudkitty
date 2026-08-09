@@ -746,9 +746,11 @@ class WorldRenderer {
       ctx.fill();
       ctx.restore();
     }
-    if (wet > 0.01) {
-      // ...and the water it displaces instead. A first pass: the finished
-      // waterline is the pond restyle's business, judged in the lab.
+    if (wet > 0.01 && VIEW.ambient.wetRipple) {
+      // ...and the water it displaces instead. Ships OFF (VIEW.ambient):
+      // the pond restyle owns the water's surface now, and the cat's rings
+      // fought the water's own. Kept behind the flag beside its sibling
+      // water effect rather than deleted, so the lab can put it back.
       ctx.save();
       ctx.globalAlpha = wet * 0.55;
       ctx.strokeStyle = MEADOW.pondRim;
