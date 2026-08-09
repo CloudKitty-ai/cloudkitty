@@ -27,13 +27,12 @@ id = 1
 name = "Miso"
 x = 8
 y = 10
-# PARKED POLICY SEAT (spec 028 generation wall): this seat ran
-# e003-m0-g998-s3 — exp-003's winner, seated at the 2026-08-07 rollout —
-# but that artifact speaks action schema 1 and this binary speaks v2, so
-# the seat is re-parked to scripted until a generation-3 artifact
-# certifies (spec 028 rollout notes; deploy is gated on exactly this).
-# Record and provenance: the [rl.policy] block below and policies/README.md.
-behavior = "needs_driven"
+# POLICY SEAT: e004-a1-s2 — exp-004's certified winner (grid 15/15 on the
+# settled §9.2 gate; §9.3 welfare +0.0440 over paired baseline), the first
+# two-head / observation-schema-3 policy to take a seat. Seated 2026-08-09
+# on the owner's word, ending the spec-028 generation wall this seat sat
+# parked behind. Provenance: the [rl.policy] block below and policies/README.md.
+behavior = "policy:e004-a1-s2"
 
 [[kitty]]
 id = 2
@@ -59,12 +58,10 @@ id = 4
 name = "Kittybear"
 x = 4
 y = 4
-# PARKED POLICY SEAT (spec 028 generation wall) — this seat ran the same
-# artifact as Miso's, by design: exp-003's winner took both policy seats at
-# the 2026-08-07 rollout. Re-parked to scripted with Miso's for the same
-# reason; its predecessor, e002-m0-g998-s1, is retired with its record in
-# policies/README.md.
-behavior = "needs_driven"
+# POLICY SEAT: e004-a1-s2 — the same artifact as Miso's, by design: one
+# winner takes both policy seats, as every rollout before it (e003, e002).
+# Seated 2026-08-09 with Miso's; predecessors' records in policies/README.md.
+behavior = "policy:e004-a1-s2"
 
 # How fast each need rises, per tick. Higher means more pressing, more often.
 [needs]
@@ -292,17 +289,20 @@ distress_patience_ticks = 60
 # Artifacts live in the committed policies/ directory (owner decision
 # 2026-07-31); the README there maps each file to its sha256, its
 # certification record, and the naming convention these keys follow.
-# e003-m0-g998-s3 = exp-003's driest candidate (self-play, γ = 0.998, seed 3),
-# sha256 756aa680… — the first schema-2 policy to reach the served world.
-# Water: 2.79% in-water / 0.62% lounging on the §9.1 instrument, both BELOW the
-# scripted baseline (3.44% / 1.50%) — the behaviour exp-002 proved no dial
-# setting could buy. Welfare +0.0420 vs needs_driven; on this world at roster 4
-# it scores max_distress_age 0 and floor_touches 0 across 30 seeds, both shapes.
-# Seated at both policy seats, superseding e001-a2-s6 and e002-m0-g998-s1
-# (retired to policies/retired/, and unrunnable here in any case — schema 1).
-# Deployed on the owner's judgement, NOT certified: it fails exp-003's §9.2 by
-# 3 ticks of eat-need on one seed of an off-deployment world. The decision and
-# its evidence are in the prereg's Deviations appendix.
+# e004-a1-s2 = exp-004's certified winner (shaped self-play arm A1: distress
+# shaping c = 0.5, γ_Φ = 0.998 pinned; RNG seed 2), sha256 21d19730… — the
+# first two-head, observation-schema-3 policy (v2 artifact) to reach the
+# served world, and the first CERTIFIED seating: 15/15 of its cohort passed
+# the settled §9.2 stress gate (this candidate: worst max_distress_age
+# 46/0/405 across shapes iii/r3/r5, zero floor touches, zero fallbacks in
+# 1,350 stress runs); §9.3 welfare +0.0440 over the paired scripted baseline
+# (0.9500 absolute). Channel: 169.6 meows/1k, Purr-dominant by grounded
+# legality (deviation D-002, registered — not collapse); GroomKitty 93.3/1k
+# where v3 measured 0. Seated at both policy seats 2026-08-09, superseding
+# e003-m0-g998-s3 (retired to policies/retired/ with its record — a v1
+# artifact this binary cannot open in any case).
+# Full certification record: experiments/exp-004-meow-channel/results/
+# grid-2026-08-09.md; ledger + per-run JSONs beside it.
 # Greedy selection (sample = false), matching the measured condition.
-[rl.policy.e003-m0-g998-s3]
-artifact = "policies/e003-m0-g998-s3.ckpolicy"
+[rl.policy.e004-a1-s2]
+artifact = "policies/e004-a1-s2.ckpolicy"

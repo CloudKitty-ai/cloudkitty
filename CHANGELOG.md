@@ -33,6 +33,12 @@ change.
 
 ## Unreleased
 
+- **e004-a1-s2 takes both policy seats** — the first certified seating:
+  exp-004's winner (grid 15/15 on the settled §9.2 gate, §9.3 welfare
+  +0.0440 over paired baseline) replaces the spec-028 scripted parking on
+  Miso and Kittybear. e003-m0-g998-s3 retires to `policies/retired/` with
+  its record; the seats-a-policy release test returns for its second
+  tour, superseding the generation-gap test per its own instruction.
 - **The Meow Channel** (spec 028) — the generation-3 schema batch, one
   wall crossed on purpose. `[obs-schema]` `[rng-sequence]` `[stamp]` —
   deliberately not `[world-fresh]`: pre-028 world snapshots load and run
