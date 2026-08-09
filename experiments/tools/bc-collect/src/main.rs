@@ -17,8 +17,15 @@
 //! the input covers the training range while the expert (clock-blind)
 //! teaches clock-invariance.
 //!
+//! Two-channel rows (spec 028): the message half is recorded alongside the
+//! activity half — mask_msg.npy from the engine's `legal_message_mask`,
+//! label_msg.npy from the APPLIED message (0 = Silent), same
+//! applied-not-proposed doctrine. The engine-reserved WaitForMe has no head
+//! index and labels as Silent, counted in meta as msg_inexpressible.
+//!
 //! Output: one directory per rollout with obs.npy (N x obs_width f32),
-//! mask.npy (N x mask_width u8), label.npy (N u16), kitty.npy (N u32),
+//! mask.npy (N x mask_width u8), label.npy (N u16), mask_msg.npy
+//! (N x msg_mask_width u8), label_msg.npy (N u16), kitty.npy (N u32),
 //! tick.npy (N u32), reward.npy (T f32), state.npy (T x state_len f32 —
 //! the privileged global critic view, pre-tick, same clock as the
 //! observations), and meta.json (config sha, seed, counts, row widths and
@@ -41,11 +48,11 @@ use std::sync::Arc;
 
 use cloudkitty_core::seam::drive_tick;
 use cloudkitty_core::{BehaviorRegistry, Config, KittyId, World};
-use cloudkitty_rl::codec::{ActionCodec, ACTION_SCHEMA_VERSION};
+use cloudkitty_rl::codec::{ActionCodec, MessageCodec, ACTION_SCHEMA_VERSION};
 use cloudkitty_rl::config::RlConfig;
 use cloudkitty_rl::episode::action_wire_name;
 use cloudkitty_rl::global_state::encode_global_state;
-use cloudkitty_rl::mask::{legal_action_mask, MASK_SCHEMA_VERSION};
+use cloudkitty_rl::mask::{legal_action_mask, legal_message_mask, MASK_SCHEMA_VERSION};
 use cloudkitty_rl::observe::{encode_observation, observation_len, OBSERVATION_SCHEMA_VERSION};
 use cloudkitty_rl::reward::team_reward;
 use sha2::{Digest, Sha256};
@@ -201,7 +208,7 @@ fn main() {
         let base_cfg: Config = toml::from_str(&text).expect("config parses");
         base_cfg.validate().expect("config validates");
         let rl = RlConfig::from_toml_str(&text).expect("[rl] blocks parse");
-        let codec = ActionCodec::v1(&rl.observation);
+        let codec = ActionCodec::v2(&rl.observation);
         let horizon = rl.episode.horizon as f32;
         // Row widths come from the engine that encodes the rows. They moved
         // once already (182 -> 183 at observation schema 2) and will move
@@ -209,6 +216,7 @@ fn main() {
         // engine has stopped producing.
         let obs_width = observation_len(&rl.observation);
         let mask_width = codec.len();
+        let msg_mask_width = MessageCodec::LEN;
 
         for r in 0..args.rollouts {
             let world_seed = args.seed_base + (ci as u64) * 1_000 + r as u64;
@@ -221,6 +229,10 @@ fn main() {
             let mut obs_buf: Vec<f32> = Vec::new();
             let mut mask_buf: Vec<u8> = Vec::new();
             let mut label_buf: Vec<u16> = Vec::new();
+            let mut mask_msg_buf: Vec<u8> = Vec::new();
+            let mut label_msg_buf: Vec<u16> = Vec::new();
+            let mut msg_inexpressible = 0u64;
+            let mut msg_mask_mismatch = 0u64;
             let mut kitty_buf: Vec<u32> = Vec::new();
             let mut tick_buf: Vec<u32> = Vec::new();
             let mut reward_buf: Vec<f32> = Vec::new();
@@ -243,11 +255,12 @@ fn main() {
                     .map(|&id| {
                         let obs = encode_observation(&snap, id, &config, &rl.observation, clock);
                         let mask = legal_action_mask(&snap, id, &obs.table, &codec, &config);
-                        (id, obs, mask)
+                        let msg_mask = legal_message_mask(&snap, id, &config);
+                        (id, obs, mask, msg_mask)
                     })
                     .collect();
                 let driven = drive_tick(&mut world, &registry, &config);
-                for (id, obs, mask) in views {
+                for (id, obs, mask, msg_mask) in views {
                     let rec = driven.report.record(id).expect("kitty in roster");
                     let Some(label) = codec.encode(&rec.applied, &obs.table) else {
                         dropped += 1;
@@ -262,9 +275,28 @@ fn main() {
                         mask_mismatch += 1;
                         continue;
                     }
+                    // The message half (spec 028): labeled with the APPLIED
+                    // message, same doctrine as the activity half. The
+                    // engine-reserved WaitForMe has no head index; it labels
+                    // as Silent (structurally legal) and is counted, so the
+                    // mapping is visible rather than silent.
+                    assert!(msg_mask[0], "Silent masked -- structural invariant broken");
+                    let msg_label = match MessageCodec::encode(rec.applied_message) {
+                        Some(i) => i,
+                        None => {
+                            msg_inexpressible += 1;
+                            0
+                        }
+                    };
+                    if !msg_mask[msg_label] {
+                        msg_mask_mismatch += 1;
+                        continue;
+                    }
                     obs_buf.extend_from_slice(&obs.values);
                     mask_buf.extend(mask.iter().map(|&b| b as u8));
                     label_buf.push(label as u16);
+                    mask_msg_buf.extend(msg_mask.iter().map(|&b| b as u8));
+                    label_msg_buf.push(msg_label as u16);
                     kitty_buf.push(id);
                     tick_buf.push(tick as u32);
                 }
@@ -277,6 +309,8 @@ fn main() {
             write_npy_f32(&dir.join("obs.npy"), &obs_buf, &[n, obs_width]);
             write_npy_u8(&dir.join("mask.npy"), &mask_buf, &[n, mask_width]);
             write_npy_u16(&dir.join("label.npy"), &label_buf, &[n]);
+            write_npy_u8(&dir.join("mask_msg.npy"), &mask_msg_buf, &[n, msg_mask_width]);
+            write_npy_u16(&dir.join("label_msg.npy"), &label_msg_buf, &[n]);
             write_npy_u32(&dir.join("kitty.npy"), &kitty_buf, &[n]);
             write_npy_u32(&dir.join("tick.npy"), &tick_buf, &[n]);
             write_npy_f32(&dir.join("reward.npy"), &reward_buf, &[reward_buf.len()]);
@@ -306,7 +340,7 @@ fn main() {
                 })
                 .collect();
             let meta = format!(
-                "{{\n  \"config\": \"{}\",\n  \"config_sha256\": \"{config_sha}\",\n  \"world_seed\": {world_seed},\n  \"ticks\": {},\n  \"decisions\": {n},\n  \"dropped_inexpressible\": {dropped},\n  \"dropped_by_action\": {{{}}},\n  \"mask_mismatch\": {mask_mismatch},\n  \"horizon\": {},\n  \"obs_width\": {obs_width},\n  \"mask_width\": {mask_width},\n  \"state_width\": {state_len},\n  \"observation_schema\": {},\n  \"action_schema\": {},\n  \"mask_schema\": {},\n  \"experts\": {{{}}}\n}}\n",
+                "{{\n  \"config\": \"{}\",\n  \"config_sha256\": \"{config_sha}\",\n  \"world_seed\": {world_seed},\n  \"ticks\": {},\n  \"decisions\": {n},\n  \"dropped_inexpressible\": {dropped},\n  \"dropped_by_action\": {{{}}},\n  \"mask_mismatch\": {mask_mismatch},\n  \"msg_mask_mismatch\": {msg_mask_mismatch},\n  \"msg_inexpressible\": {msg_inexpressible},\n  \"horizon\": {},\n  \"obs_width\": {obs_width},\n  \"mask_width\": {mask_width},\n  \"msg_mask_width\": {msg_mask_width},\n  \"state_width\": {state_len},\n  \"observation_schema\": {},\n  \"action_schema\": {},\n  \"mask_schema\": {},\n  \"experts\": {{{}}}\n}}\n",
                 config_path.display(),
                 args.ticks,
                 dropped_json.join(", "),
@@ -319,9 +353,9 @@ fn main() {
             fs::write(dir.join("meta.json"), meta).expect("writing meta");
             total_decisions += n as u64;
             total_dropped += dropped;
-            total_mask_mismatch += mask_mismatch;
+            total_mask_mismatch += mask_mismatch + msg_mask_mismatch;
             eprintln!(
-                "config {ci:02} rollout {r:02} (seed {world_seed}): {n} decisions, {dropped} dropped, {mask_mismatch} mask-mismatch"
+                "config {ci:02} rollout {r:02} (seed {world_seed}): {n} decisions, {dropped} dropped, {mask_mismatch} mask-mismatch, {msg_mask_mismatch} msg-mask-mismatch, {msg_inexpressible} msg-inexpressible"
             );
         }
     }

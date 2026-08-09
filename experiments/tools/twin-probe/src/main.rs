@@ -284,11 +284,11 @@ fn main() {
         let mut subbed = JointProposal::new();
         for id in driven.proposals.ids() {
             match driven.proposals.get(id) {
-                Some(ProposalEntry::Action(a)) if id == kitty => {
-                    let _ = a;
+                Some(ProposalEntry::Decision(d)) if id == kitty => {
+                    let _ = d;
                     subbed.propose(id, Action::Idle);
                 }
-                Some(ProposalEntry::Action(a)) => subbed.propose(id, *a),
+                Some(ProposalEntry::Decision(d)) => subbed.propose(id, *d),
                 Some(ProposalEntry::Malformed) => subbed.propose_malformed(id),
                 None => {}
             }

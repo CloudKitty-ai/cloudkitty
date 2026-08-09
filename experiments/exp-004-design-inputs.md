@@ -838,3 +838,22 @@ disjoint band reported as a drift alarm.
     break bit-exact replay (house byte-identical methodology). Ask:
     one sentence at `message_legal` making the latitude explicit
     ("convention, not law — guarded at the head, not the seam").
+- ~~Post-028 tools ports~~ **DONE 2026-08-09** (spec 028 merged
+  acd75eb): twin-probe (`ProposalEntry::Decision`), zero-artifact
+  (v2 codec, 43-logit two-head final layer, artifact v2), bc-collect
+  **two-channel collection** — `mask_msg.npy` (engine
+  `legal_message_mask`) + `label_msg.npy` from the APPLIED message,
+  applied-not-proposed doctrine both halves; **the engine-reserved
+  WaitForMe labels as Silent and is counted** (`msg_inexpressible` in
+  meta — structurally legal, teaches quiet-while-yielding, which is
+  the policy-side vocabulary law anyway); message-half mask
+  mismatches counted separately (`msg_mask_mismatch`). Smoke run
+  (root config, 2k ticks, seed 900001): 7,986 rows, obs 197 /
+  mask 34 / msg-mask 9, schemas 3/2/2, **5.0% non-Silent message
+  rows across five kinds (v3: 0.2%)**, msg-mask-mismatch 0 —
+  first empirical support for "mask-legal messages never downgrade."
+  CI's experiments job now builds ALL seven Rust tools crates (was:
+  twin-probe only), still non-blocking by doctrine. Prereg R10
+  wording checked against Product's f64 sampling fix: our text
+  ("one DecisionRng draw split") never described the f32 cast — no
+  change needed.
