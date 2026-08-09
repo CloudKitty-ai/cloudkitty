@@ -165,7 +165,7 @@ reachable state.
       threshold − hysteresis, hold in the band); tests: hysteresis edge triple
       (rising/held/falling per spec US2 scenarios), wire hygiene (absent when
       empty), pre-028 kitty JSON deserializes disarmed.
-- [ ] T010 [US2] Full `message_legal` truth table in
+- [X] T010 [US2] Full `message_legal` truth table in
       `crates/cloudkitty-core/src/meow.rs` + message-mask oracle in
       `crates/cloudkitty-rl/src/mask.rs`: want-kinds = armed ∧ cooldown clear,
       `FollowMe` = cooldown clear, `Purr`/`WaitForMe`/Silent as T005; add

@@ -93,9 +93,13 @@ impl MessageKind {
 /// kinds. The RL message mask derives from here by probing, exactly as the
 /// activity mask probes `validate` (the no-carve-outs doctrine).
 ///
-/// Skeleton form (T005): grounding for the want-kinds (announce arming +
-/// per-kind cooldown as law) lands with the arming state (T010); until
-/// then they are unconditionally legal, as they were.
+/// The full table: a want-kind needs its grounding need armed (threshold +
+/// hysteresis state, updated in the needs phase) AND its per-kind cooldown
+/// clear -- one live digest entry per kind per emitter, certified. The
+/// social words have no grounding to claim: FollowMe is cooldown-gated
+/// only; Purr is earned-only (the retired purr-meow's validate gate,
+/// byte-faithful); WaitForMe is cooldown-gated and head-excluded (the
+/// engine's yield rule proposes it; policies cannot).
 pub fn message_legal(
     kitty: &crate::kitty::Kitty,
     kind: MessageKind,
@@ -103,15 +107,12 @@ pub fn message_legal(
     config: &crate::config::Config,
 ) -> bool {
     match kind {
-        // Earned-only, byte-faithful to the retiring purr-meow's validate
-        // gate: a deliberate purr mid-purr stays a lawful no-op, and no
-        // cooldown clause sneaks in.
         MessageKind::Purr => kitty.purr_earned(config.thresholds.purr),
-        // Today's voluntary check in wait_for_them, made law -- this is
-        // what lets the engine-proposed yield word survive enforcement.
-        // Head-excluded: policies cannot express it (no codec index).
-        MessageKind::WaitForMe => kitty.can_meow(MessageKind::WaitForMe, tick),
-        _ => true,
+        MessageKind::FollowMe | MessageKind::WaitForMe => kitty.can_meow(kind, tick),
+        want => match want.related_need() {
+            Some(need) => kitty.announce_armed.contains(&need) && kitty.can_meow(want, tick),
+            None => unreachable!("every remaining kind is need-backed"),
+        },
     }
 }
 

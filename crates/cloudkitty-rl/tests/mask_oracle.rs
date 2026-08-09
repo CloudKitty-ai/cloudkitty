@@ -15,10 +15,11 @@ use cloudkitty_core::grid::{Direction, Position};
 use cloudkitty_core::kitty::{Activity, ActivityClock, Kitty, KittyId};
 use cloudkitty_core::world::World;
 use cloudkitty_core::Config;
+use cloudkitty_core::meow::message_legal;
 use cloudkitty_rl::codec::ActionCodec;
 use cloudkitty_rl::config::ObservationConfig;
-use cloudkitty_rl::mask::legal_action_mask;
-use cloudkitty_rl::observe::TargetTable;
+use cloudkitty_rl::mask::{legal_action_mask, legal_message_mask};
+use cloudkitty_rl::observe::{TargetTable, HEAD_KINDS};
 use proptest::prelude::*;
 
 /// The oracle: mask verdict == the engine's apply-slot gauntlet, run for
@@ -52,7 +53,52 @@ fn assert_mask_matches_engine(world: &World, config: &Config) {
             kitty.id,
             kitty.activity
         );
+
+        // The message head (spec 028): the mask is the engine's own
+        // message_legal, probed per kind -- and Silent is structurally
+        // never masked, in every reachable state this suite constructs
+        // (the named property test below walks it explicitly too).
+        let message_mask = legal_message_mask(&snapshot, kitty.id, config);
+        assert!(
+            message_mask[0],
+            "silent masked out for kitty {} -- structurally impossible",
+            kitty.id
+        );
+        for (k, &kind) in HEAD_KINDS.iter().enumerate() {
+            let engine_says = message_legal(kitty, kind, snapshot.tick, config);
+            assert_eq!(
+                message_mask[k + 1],
+                engine_says,
+                "kitty {} message {kind:?}: mask {}, engine {engine_says}",
+                kitty.id,
+                message_mask[k + 1]
+            );
+        }
     }
+}
+
+#[test]
+fn silent_is_never_masked() {
+    // Spec 028 (SC-008's structural half): index 0 of the message mask is
+    // true whatever the kitty's state -- armed or not, every cooldown
+    // stamped, mid-activity, mid-purr. Walked over adversarial states
+    // rather than trusted from the constructor.
+    let (mut world, config) = cloudkitty_core::test_support::test_world();
+    let idx = world.kitty_index(1).unwrap();
+    // Every cooldown stamped far in the future, nothing armed, unearned.
+    for kind in cloudkitty_core::meow::MessageKind::ALL {
+        world.kitties[idx].meow_cooldowns.insert(kind, u64::MAX);
+    }
+    world.kitties[idx].announce_armed.clear();
+    world.kitties[idx].happiness = 0.0;
+    world.kitties[idx].happiness_rose = false;
+    let snapshot = world.snapshot();
+    let mask = legal_message_mask(&snapshot, 1, &config);
+    assert!(mask[0], "Silent survives the most hostile state");
+    assert!(
+        mask[1..].iter().all(|&b| !b),
+        "and everything else is lawfully masked out here"
+    );
 }
 
 // ---- randomized rosters and activities --------------------------------
