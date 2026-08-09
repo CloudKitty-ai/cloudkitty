@@ -103,6 +103,17 @@
   </p>
   <canvas id="ponds-3x" width="960" height="290"></canvas>
 
+  <p class="note">
+    <strong>All four phases at once</strong>, each with a lone tile and the
+    2&times;2 lake, since the phase buttons only ever show you one. Night is
+    the one to look at: measured, its water separates from the ground less
+    than half as well as day&rsquo;s (contrast 1.29 against 1.98), while the
+    shore-to-deep ramp runs more than twice as strong and the meniscus goes
+    from invisible against the ground to a 5.3 rim. The pale ring and dark
+    centre are what &ldquo;reads as a hole&rdquo; looks like.
+  </p>
+  <canvas id="ponds-phases" width="960" height="160"></canvas>
+
   <h2>Ground cover — the four styles, same seed</h2>
   <p class="note">
     All four bake into the ground cache, which sits under everything: nothing
@@ -337,6 +348,76 @@
       g.restore();
     });
     drawPondLoupe(c);
+    drawPondPhases(now);
+  }
+
+  /** A lone tile and the lake together, so one cell shows both the shape
+   *  three of our four ponds actually are and the one with a middle. Not
+   *  adjacent, so groupWaterTiles returns them as two ponds and they share
+   *  one pair of offscreens -- the same path the renderer takes. */
+  const PHASE_TILES = [
+    { x: 1, y: 1 },
+    { x: 3, y: 1 }, { x: 4, y: 1 }, { x: 3, y: 2 }, { x: 4, y: 2 },
+  ];
+  const PHASES_4 = ['day', 'dusk', 'night', 'dawn'];
+  let phaseBake = null;
+
+  /**
+   * The same two ponds under all four palettes. The phase buttons show one
+   * at a time, which is no way to catch a palette that is an outlier -- and
+   * night is one on every measure we can take.
+   *
+   * The layers bake their colours in (the shore fill and the lip are mixed
+   * at build time), so the palette has to be set before buildPondLayers AND
+   * again before drawPonds, which reads pondDeep and the meniscus live.
+   */
+  function drawPondPhases(now) {
+    const c = document.getElementById('ponds-phases');
+    const g = c.getContext('2d');
+    const cw = c.width / PHASES_4.length;
+    const key = [tile, VIEW.meadow.pondDepthBlurTiles, VIEW.meadow.pondDepthBlurClamp,
+      VIEW.meadow.pondLipBlurTiles, VIEW.meadow.shoreRounding].join('|');
+    if (!phaseBake || phaseBake.key !== key) {
+      phaseBake = {
+        key,
+        cells: PHASES_4.map((ph) => {
+          setMeadowPalette(ph, null, 0);
+          const ponds = groupWaterTiles(PHASE_TILES)
+            .map((t) => ({ tiles: t, path: buildPondPath(t, tile) }));
+          return {
+            ph,
+            ponds,
+            layers: buildPondLayers(ponds, {
+              tile, widthPx: Math.round(cw), heightPx: c.height, dpr: 1,
+            }),
+          };
+        }),
+      };
+    }
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.clearRect(0, 0, c.width, c.height);
+    phaseBake.cells.forEach((cell, i) => {
+      setMeadowPalette(cell.ph, null, 0);
+      g.save();
+      g.beginPath();
+      g.rect(i * cw, 0, cw, c.height);
+      g.clip();
+      g.fillStyle = MEADOW.grassTones[0];
+      g.fillRect(i * cw, 0, cw, c.height);
+      g.translate(i * cw, 0);
+      drawPonds(g, { ponds: cell.ponds, tile, layers: cell.layers, now, motion: true });
+      // Same pill as the loupe labels: the palette has no ink colour, and
+      // black on night grass is barely there.
+      g.setTransform(1, 0, 0, 1, 0, 0);
+      g.font = '12px ui-monospace, monospace';
+      const w = g.measureText(cell.ph).width + 12;
+      g.fillStyle = 'rgba(0,0,0,0.55)';
+      g.fillRect(i * cw, c.height - 20, w, 20);
+      g.fillStyle = '#fff';
+      g.fillText(cell.ph, i * cw + 6, c.height - 6);
+      g.restore();
+    });
+    applyPalette(); // hand the global palette back to the rest of the page
   }
 
   /** A fixed WINDOW in source pixels, not a fixed share of each shape: three
