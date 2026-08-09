@@ -282,23 +282,6 @@ fn seek_element(ctx: &DecisionContext, kind: ElementType, use_it: Action) -> Act
     }
 }
 
-/// One step in the general direction of somewhere -- routing around other
-/// kitties rather than freezing against them, and preferring dry paws while
-/// it is at it.
-///
-/// The naive version proposed the single straight-line direction; when a friend
-/// happened to be standing on that tile, the Move validated to Idle and the cat
-/// simply froze -- three cats in a row could deadlock for hundreds of ticks
-/// with food two tiles away (found by the 004 welfare long-run). Instead: take
-/// the best legal step that closes distance, and when fully walled in, sidestep
-/// rather than stand still -- a shuffling cat finds the way around.
-///
-/// Water aversion (spec 010) changes only the *ordering*, never the options:
-/// among distance-closing steps, a wet destination carries a
-/// `water_step_cost` surcharge, so dry progress beats wet progress -- but
-/// when the only step that closes distance is wet, the kitty wades. The set
-/// of steps it is willing to take is exactly the pre-010 set, which is the
-/// whole anti-stuck argument: no layout can trap a cat that will always
 /// The groom response (spec 028 FR-019): a cat with real cuddle need that
 /// HEARS a bath ask answers it -- walk over, groom. Keyed on the audible
 /// meow alone (the freshest WantBath emitter, the digest's own selection
@@ -332,6 +315,23 @@ fn groom_response(ctx: &DecisionContext) -> Option<Action> {
     }
 }
 
+/// One step in the general direction of somewhere -- routing around other
+/// kitties rather than freezing against them, and preferring dry paws while
+/// it is at it.
+///
+/// The naive version proposed the single straight-line direction; when a friend
+/// happened to be standing on that tile, the Move validated to Idle and the cat
+/// simply froze -- three cats in a row could deadlock for hundreds of ticks
+/// with food two tiles away (found by the 004 welfare long-run). Instead: take
+/// the best legal step that closes distance, and when fully walled in, sidestep
+/// rather than stand still -- a shuffling cat finds the way around.
+///
+/// Water aversion (spec 010) changes only the *ordering*, never the options:
+/// among distance-closing steps, a wet destination carries a
+/// `water_step_cost` surcharge, so dry progress beats wet progress -- but
+/// when the only step that closes distance is wet, the kitty wades. The set
+/// of steps it is willing to take is exactly the pre-010 set, which is the
+/// whole anti-stuck argument: no layout can trap a cat that will always
 /// paddle when paddling is the only way forward. The sidestep fallback
 /// prefers dry tiles for the same reason a cat standing in a puddle gets out
 /// of it.

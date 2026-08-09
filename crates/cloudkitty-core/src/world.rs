@@ -879,10 +879,6 @@ impl World {
         }
     }
 
-    /// Edge-triggered: a need records one event when it crosses the threshold and
-    /// stays quiet until it drops back below and crosses again. Returns the
-    /// events this call produced — the tick report's capture (spec 014
-    /// FR-003), taken at the source rather than read back through the ring.
     /// The announce-arming edge rule (spec 028), distress's sibling: a
     /// want-kind arms at `>= announce_threshold`, disarms below
     /// `threshold - hysteresis`, and holds anywhere in the band -- so the
@@ -904,6 +900,10 @@ impl World {
         }
     }
 
+    /// Edge-triggered: a need records one event when it crosses the threshold and
+    /// stays quiet until it drops back below and crosses again. Returns the
+    /// events this call produced — the tick report's capture (spec 014
+    /// FR-003), taken at the source rather than read back through the ring.
     fn record_distress(&mut self, config: &Config) -> Vec<DistressEvent> {
         let threshold = config.thresholds.distress;
         let tick = self.tick;

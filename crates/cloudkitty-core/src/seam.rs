@@ -261,31 +261,6 @@ pub struct DrivenTick {
 /// fallback but no wall clock, and the dispatched proposals come back with
 /// the report. Same law as [`World::tick`], different dispatch — from the
 /// same seed the two produce byte-identical worlds.
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn the_legacy_mapping_rides_the_channel() {
-        // Transitional (spec 028): from_legacy lifts the retiring
-        // turn-spending meow onto the two-channel shape -- the message
-        // rides, the turn is idle -- and leaves everything else silent.
-        let d = Decision::from_legacy(Action::Meow {
-            message: MessageKind::WantPlay,
-        });
-        assert_eq!(
-            (d.activity, d.message),
-            (Action::Idle, Some(MessageKind::WantPlay))
-        );
-        assert_eq!(
-            Decision::from_legacy(Action::Eat),
-            Decision::silent(Action::Eat)
-        );
-        // A bare activity converts silently -- the typed-driver promise.
-        assert_eq!(Decision::from(Action::Eat).message, None);
-    }
-}
-
 pub fn drive_tick(
     world: &mut World,
     registry: &BehaviorRegistry,
@@ -312,5 +287,30 @@ pub fn drive_tick(
             unconsumed: Vec::new(),
         },
         proposals: JointProposal::from_actions(decisions),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_legacy_mapping_rides_the_channel() {
+        // Transitional (spec 028): from_legacy lifts the retiring
+        // turn-spending meow onto the two-channel shape -- the message
+        // rides, the turn is idle -- and leaves everything else silent.
+        let d = Decision::from_legacy(Action::Meow {
+            message: MessageKind::WantPlay,
+        });
+        assert_eq!(
+            (d.activity, d.message),
+            (Action::Idle, Some(MessageKind::WantPlay))
+        );
+        assert_eq!(
+            Decision::from_legacy(Action::Eat),
+            Decision::silent(Action::Eat)
+        );
+        // A bare activity converts silently -- the typed-driver promise.
+        assert_eq!(Decision::from(Action::Eat).message, None);
     }
 }
