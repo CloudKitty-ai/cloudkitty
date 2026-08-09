@@ -136,7 +136,13 @@ S(.998)≤600** but swing **1.68× on full-horizon S** (the spread is
 k>600 diffusion-tail mass, batch-specific). Bar for 028-engine probe
 claims: **150+ worlds, compare on the ≤600 truncated S**; full-S
 differences under ~2× are batch noise. The replication discipline is
-unchanged.)*
+unchanged. **Class-dependence, same day**
+([play-share.md](exp-004-rebaseline-2026-08-09/play-share/play-share.md)):
+the 1.24× bar was derived on eat/drink (per-tick amplitude ~0.009) and
+does NOT transfer to floor-amplitude classes — play/chase (~0.002)
+swings 3.1× between disjoint 150-world bands and dissolves when pooled
+to 300. Small-amplitude class claims require disjoint-band agreement
+before they are claims at all.)*
 
 **Would invalidate**: a demonstration that within-world sample
 correlation is negligible at some horizon (it is not, at k > ~50, on
@@ -575,10 +581,14 @@ eat/drink carries S(.998) 0.0663 (4.5× pooled) and groom/sleep/rest
 0.0398 (2.7×); same mechanism, dilution not cancellation (play/chase
 density 0.69, amplitude 0.0020 vs eat/drink 0.0091, all positive).
 The 2026-08-03 base cannot load post-028 (courtesy trio), so the new
-table is a fresh record, not a paired comparison. Notable direction:
-play/chase halved (0.0245 → 0.0125) — flagged to §10.1, not
-adjudicated. The flag clears; the trigger conditions stand
-unchanged.)*
+table is a fresh record, not a paired comparison. The flag clears; the
+trigger conditions stand unchanged. The initially-flagged play/chase
+"halving" (0.0245 → 0.0125) was investigated same-day and **withdrawn
+as a batch artifact** — an identical-config disjoint-band replication
+swung 3.1× and pooling dissolved significance entirely; play/chase
+credit is below reliable measurement at standard batch sizes on this
+engine
+([play-share.md](exp-004-rebaseline-2026-08-09/play-share/play-share.md)).)*
 
 ---
 
