@@ -112,6 +112,25 @@ const VIEW = Object.freeze({
    * swimming. One water level lost to pose legibility, deliberately.
    */
   waterline: 0.72,
+  /**
+   * How close a chase's quarry has to be before the cat is drawn
+   * mid-pounce, in tiles (Manhattan, like every decision distance).
+   *
+   * `Action::Chase` is lawful at any distance -- the engine's selection
+   * scans the whole world -- so a cat crossing the map after a bug used
+   * to be drawn mid-pounce the entire way, hiding the walk. Measured on
+   * 2700 live kitty-ticks: gating at 4 moves pouncing 27.9% -> 25.3% and
+   * walking 28.1% -> 30.5%, which is smaller than it sounds because half
+   * of pouncing is PLAY (adjacent by lawfulness, so never gated) and the
+   * median chase is only 2 tiles. 19% of chase runs reach past 4, about
+   * one every 12 seconds somewhere on the map.
+   *
+   * A chase whose target cannot be resolved -- caught or expired this
+   * tick -- keeps the pounce. The gate only ever takes it away when the
+   * quarry is positively known to be far, which is also what keeps v1
+   * callers, who pass no distance at all, drawing exactly as before.
+   */
+  pounceGateTiles: 4,
   arriveBlendMs: 340, // the walking -> standing blend, paired with the settle
   settleMs: 400, // landing squash, concurrent with the arrive blend
   settleDip: 0.05, // peak vertical squash of the settle
