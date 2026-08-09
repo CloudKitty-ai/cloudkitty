@@ -49,7 +49,7 @@ evidence; this register is the evolving knowledge layer on top of them.
 | F-012 | active | Channel use is context-dependent; measure in policy company, not solo |
 | F-013 | active | The 024 batch rewired the credit landscape; the served world gained a cooperative band |
 | F-014 | active | Post-024 world search: the served world wins as it stands; knob landscape flat |
-| F-015 | active · **re-verify due** | Pooled probes dilute under heterogeneous class amplitudes; condition by class |
+| F-015 | active | Pooled probes dilute under heterogeneous class amplitudes; condition by class |
 | F-016 | active | Raising bath_gain increases scripted on-water time via the grooming channel |
 | F-017 | active | The multi-copy collapse is largely a symmetry artifact; sampling dissolves it |
 
@@ -128,6 +128,15 @@ replicate on disjoint worlds before acting. The **world-count bar is
 not promoted** and stays here, engine-indexed: 100+ pre-024, 150+
 post-024, post-026/027 unmeasured — re-derive it at the next probe
 campaign rather than trusting either number.)*
+
+*(Re-derived 2026-08-09 on the 028 engine, v5 family base —
+[class-credit-2026-08-09.md](exp-004-rebaseline-2026-08-09/class-credit-2026-08-09.md):
+three disjoint 150-world eat/drink batches replicate to **1.24× on
+S(.998)≤600** but swing **1.68× on full-horizon S** (the spread is
+k>600 diffusion-tail mass, batch-specific). Bar for 028-engine probe
+claims: **150+ worlds, compare on the ≤600 truncated S**; full-S
+differences under ~2× are batch noise. The replication discipline is
+unchanged.)*
 
 **Would invalidate**: a demonstration that within-world sample
 correlation is negligible at some horizon (it is not, at k > ~50, on
@@ -557,6 +566,19 @@ moved the engine to stamp `cba976da…` and no re-measurement has run —
 the class amplitudes and densities above are stale on the current
 engine. Queued as exp-004's first probe obligation; the dilution
 mechanism itself is instrument-generic and stands.)*
+
+*(RE-VERIFIED 2026-08-09 on the 028 engine, v5 family base, identical
+recipe —
+[class-credit-2026-08-09.md](exp-004-rebaseline-2026-08-09/class-credit-2026-08-09.md):
+pooled all-action sub-floor again (33 sig ticks, fp ≈ 60) while
+eat/drink carries S(.998) 0.0663 (4.5× pooled) and groom/sleep/rest
+0.0398 (2.7×); same mechanism, dilution not cancellation (play/chase
+density 0.69, amplitude 0.0020 vs eat/drink 0.0091, all positive).
+The 2026-08-03 base cannot load post-028 (courtesy trio), so the new
+table is a fresh record, not a paired comparison. Notable direction:
+play/chase halved (0.0245 → 0.0125) — flagged to §10.1, not
+adjudicated. The flag clears; the trigger conditions stand
+unchanged.)*
 
 ---
 
