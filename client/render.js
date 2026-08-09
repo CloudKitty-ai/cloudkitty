@@ -40,6 +40,11 @@ const MEOW_TEXT = {
   want_cuddle: 'I want to cuddle!',
   purr: 'purrrr',
   wait_for_me: 'Wait for me!',
+  // Spec 028 gave the two silent needs their words. Appended in the engine's
+  // own order -- a kind missing here renders as the '…' fallback, not a crash,
+  // so the only symptom would have been a bubble with nothing to say.
+  want_bath: 'Bath time!',
+  want_sleep: 'I’m sleepy!',
 };
 
 /** The greeble wisp's face -- decided at the 007 gallery gate (2026-07-20):
