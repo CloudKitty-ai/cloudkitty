@@ -70,31 +70,32 @@ rows, talk = tot["rows"], tot["talk"]
 print(f"rows {rows}  channel rows {talk} ({100*talk/rows:.2f}%)  widths OK  legality OK")
 print("msg head dist:", dict(sorted(msg_dist.items())))
 
-# The FR check: compare activity-CLASS shares. Menu v2 index classes:
-# 0-3 move, 4 rest-solo, 5-8 rest-with, 9 sleep-solo, 10-13 sleep-with,
-# 14 groom-self, 15-18 groom-kitty, 19 eat, 20 drink, 21-27 chase,
-# 28-32 play(+solo), 33 idle.  Derived from ActionCodec::v2 order:
-# Move x4, RestSolo, RestWith x k, SleepSolo, SleepWith x k, GroomSelf,
-# GroomKitty x k, Eat, Drink, ChaseCritter x c, ChaseKitty x k, Play?,
-# Idle last.  We bucket coarsely and verify Idle by its exact index.
+# The FR check: compare activity-CLASS shares. Menu v2 (ActionCodec::v2,
+# kitty_slots=3, critter_slots=4, 34 entries): Move 0-3, RestSolo 4,
+# RestWith 5-7, SleepSolo 8, SleepWith 9-11, GroomSelf 12, GroomKitty
+# 13-15, Eat 16, Drink 17, ChaseCritter 18-21, ChaseKitty 22-24,
+# PlaySolo 25, PlayCritter 26-29, PlayKitty 30-32, Idle 33.
+# (Correction 2026-08-09: the first cut of this file bucketed with
+# speculative slot counts; Idle's index was right, so the FR verdict is
+# unaffected — the descriptive table shifts. See the results doc note.)
 IDLE = 33
 
 
 def classes(c):
-    total = sum(c.values())
+    total = sum(c.values()) or 1
     buckets = Counter()
     for ix, n in c.items():
         if ix <= 3:
             b = "move"
-        elif ix <= 8:
+        elif ix <= 7:
             b = "rest"
-        elif ix <= 13:
+        elif ix <= 11:
             b = "sleep"
-        elif ix <= 18:
+        elif ix <= 15:
             b = "groom"
-        elif ix == 19:
+        elif ix == 16:
             b = "eat"
-        elif ix == 20:
+        elif ix == 17:
             b = "drink"
         elif ix < IDLE:
             b = "play/chase"
