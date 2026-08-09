@@ -97,6 +97,21 @@ function guardCtx(log = []) {
   );
 }
 
+/** A canvas stand-in, so code that builds offscreens can run headlessly.
+ *  `buildPondLayers` makes four of them, which is exactly why the renderer
+ *  path below was never reachable before. */
+function mockCanvas(width = 640, height = 640) {
+  const canvas = { width, height, dataset: {}, style: {} };
+  const ctx = guardCtx([]);
+  ctx.canvas = canvas;
+  canvas.getContext = () => ctx;
+  return canvas;
+}
+globalThis.document = {
+  createElement: (tag) => (tag === 'canvas' ? mockCanvas() : { style: {} }),
+};
+globalThis.window = { devicePixelRatio: 1 };
+
 // MEADOW is a getter, not a value: setMeadowPalette rebinds it, and a
 // snapshot taken at eval time could never see that.
 const EXPORTS =
@@ -766,6 +781,73 @@ check('the depth blur is clamped so every pond has a middle', () => {
     assert(bare < 0.55, `${name} would not need the clamp (${bare})`);
     assert(depthAt(tiles) > 0.75, `${name} still has no middle (${depthAt(tiles)})`);
   }
+});
+
+/* ---- the renderer's own pond path ----
+ *
+ * Everything above tests the meadow's functions directly. `drawPondLayer` is
+ * the only place they are wired TOGETHER, and nothing executed it: the lab
+ * calls groupWaterTiles / buildPondLayers / drawPonds itself, and no check
+ * had ever constructed a WorldRenderer. A missing `groupWaterTiles` call
+ * shipped through that gap and took the live world down to bare ground and
+ * sunbeams -- every entity draws AFTER the ponds, so one throw there removes
+ * all of them. These checks exist so that cannot happen twice. */
+
+/** The live world's water: one 2x2 lake and three lone tiles (kitties.ai,
+ *  2026-08-09). Grouping is the whole point -- 7 tiles must become 4 ponds. */
+const LIVE_WATER = [
+  { x: 10, y: 2 }, { x: 11, y: 2 }, { x: 10, y: 3 }, { x: 11, y: 3 },
+  { x: 3, y: 18 }, { x: 12, y: 13 }, { x: 19, y: 1 },
+];
+
+function rendererFor(water) {
+  const renderer = new api.WorldRenderer(mockCanvas(640, 640));
+  renderer.tile = 32;
+  renderer.dpr = 1;
+  renderer.cssWidth = 640;
+  renderer.cssHeight = 640;
+  const world = {
+    width: 20,
+    height: 20,
+    kitties: [],
+    elements: water.map((pos, i) => ({ id: i + 1, kind: 'water', pos })),
+  };
+  const view = { elementAlphaFor: () => 1, expiredAlpha: 0, ambient: { now: 0 } };
+  return { renderer, world, view };
+}
+
+check('the renderer draws the live world\'s ponds without throwing', () => {
+  const { renderer, world, view } = rendererFor(LIVE_WATER);
+  renderer.drawPondLayer(world, view); // threw ReferenceError before the fix
+  assert(renderer.pondCache, 'a cache was built');
+  assert(
+    renderer.pondCache.ponds.length === 4,
+    `7 water tiles group into 4 ponds, got ${renderer.pondCache.ponds.length}`,
+  );
+  const sizes = renderer.pondCache.ponds.map((p) => p.tiles.length).sort();
+  assert(String(sizes) === '1,1,1,4', `one lake and three lone tiles, got ${sizes}`);
+  assert(renderer.pondCache.layers, 'and the depth layers baked');
+});
+
+check('the pond cache rebuilds only when the water moves', () => {
+  const { renderer, world, view } = rendererFor(LIVE_WATER);
+  renderer.drawPondLayer(world, view);
+  const first = renderer.pondCache;
+  renderer.drawPondLayer(world, view);
+  assert(renderer.pondCache === first, 'same water, same cache -- no re-blur per frame');
+  world.elements.push({ id: 99, kind: 'water', pos: { x: 5, y: 5 } });
+  renderer.drawPondLayer(world, view);
+  assert(renderer.pondCache !== first, 'new water rebuilds it');
+  assert(renderer.pondCache.ponds.length === 5, 'and the new tile is its own pond');
+});
+
+check('a world with no water clears the cache instead of baking one', () => {
+  const { renderer, world, view } = rendererFor(LIVE_WATER);
+  renderer.drawPondLayer(world, view);
+  assert(renderer.pondCache, 'cached with water');
+  world.elements = [];
+  renderer.drawPondLayer(world, view);
+  assert(renderer.pondCache === null, 'and cleared without it');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);
