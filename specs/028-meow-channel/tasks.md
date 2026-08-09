@@ -212,7 +212,7 @@ freshest; layout test pins 197.
 **Independent Test**: seeded scripted runs — GroomKitty > 0; responses only to
 audible meows; announcing cats mid-errand.
 
-- [ ] T012 [US4] The deterministic announce rule in
+- [X] T012 [US4] The deterministic announce rule in
       `crates/cloudkitty-core/src/behavior/needs_driven.rs` + `playful.rs` +
       `mod.rs` (shared helper): message = highest-pressure need whose want-kind
       is `message_legal` (equal pressures tie-break in `NeedKind::ALL` order,

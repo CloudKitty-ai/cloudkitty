@@ -9,7 +9,7 @@
         {
           "kitty_id": 1,
           "name": "Miso",
-          "mean_happiness": 91.30739580790201,
+          "mean_happiness": 91.27177079518636,
           "max_low_streak": 0,
           "low_share": 0.0,
           "floor_touches": 0
@@ -17,7 +17,7 @@
         {
           "kitty_id": 2,
           "name": "Biscuit",
-          "mean_happiness": 88.58520749409993,
+          "mean_happiness": 84.67731138865153,
           "max_low_streak": 0,
           "low_share": 0.0,
           "floor_touches": 0
@@ -25,7 +25,7 @@
         {
           "kitty_id": 3,
           "name": "Pumpkin",
-          "mean_happiness": 90.87710431416829,
+          "mean_happiness": 91.08620834350586,
           "max_low_streak": 0,
           "low_share": 0.0,
           "floor_touches": 0
@@ -35,9 +35,9 @@
       "pinned": []
     },
     "aggregates": {
-      "team_welfare": 0.9022980825558494,
-      "plain_mean": 0.9025656920539009,
-      "least_happy_mean": 88.58520749409993
+      "team_welfare": 0.8891060059952091,
+      "plain_mean": 0.8901176350911458,
+      "least_happy_mean": 84.67731138865153
     },
     "fallback_count": 0,
     "fallbacks": []
@@ -52,7 +52,7 @@
         {
           "kitty_id": 1,
           "name": "Miso",
-          "mean_happiness": 91.30739580790201,
+          "mean_happiness": 91.27177079518636,
           "max_low_streak": 0,
           "low_share": 0.0,
           "floor_touches": 0
@@ -60,7 +60,7 @@
         {
           "kitty_id": 2,
           "name": "Biscuit",
-          "mean_happiness": 88.58520749409993,
+          "mean_happiness": 84.67731138865153,
           "max_low_streak": 0,
           "low_share": 0.0,
           "floor_touches": 0
@@ -68,7 +68,7 @@
         {
           "kitty_id": 3,
           "name": "Pumpkin",
-          "mean_happiness": 90.87710431416829,
+          "mean_happiness": 91.08620834350586,
           "max_low_streak": 0,
           "low_share": 0.0,
           "floor_touches": 0
@@ -78,9 +78,9 @@
       "pinned": []
     },
     "aggregates": {
-      "team_welfare": 0.9022980825558494,
-      "plain_mean": 0.9025656920539009,
-      "least_happy_mean": 88.58520749409993
+      "team_welfare": 0.8891060059952091,
+      "plain_mean": 0.8901176350911458,
+      "least_happy_mean": 84.67731138865153
     },
     "fallback_count": 0,
     "fallbacks": []
@@ -132,8 +132,8 @@
     {
       "seed": 7,
       "roster": "all-subject",
-      "subject_welfare": 0.9022980825558494,
-      "baseline_welfare": 0.9022980825558494,
+      "subject_welfare": 0.8891060059952091,
+      "baseline_welfare": 0.8891060059952091,
       "delta": 0.0
     }
   ]

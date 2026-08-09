@@ -16,7 +16,6 @@ use crate::seam::Decision;
 use crate::action::Action;
 use crate::element::ElementType;
 use crate::grid::Direction;
-use crate::meow::MessageKind;
 use crate::needs::NeedKind;
 
 pub struct NeedsDriven;
@@ -24,11 +23,16 @@ pub struct NeedsDriven;
 #[async_trait]
 impl Behavior for NeedsDriven {
     async fn decide(&self, ctx: &DecisionContext) -> Decision {
-        // Transitional (spec 028 T004): the ladder still speaks legacy
-        // actions internally; the boundary maps a turn-spending meow onto
-        // the two-channel shape. T012 replaces the lottery with the
-        // deterministic announce rule and retires this mapping.
-        Decision::from_legacy(self.decide_action(ctx))
+        // Two channels (spec 028): the ladder picks the activity; the
+        // announce rule rides along, never displacing it. The one word the
+        // ladder itself can produce is the yield ("Wait for me!"), which
+        // from_legacy lifts onto the channel and which outranks announce --
+        // etiquette speaks first.
+        let mut decision = Decision::from_legacy(self.decide_action(ctx));
+        if decision.message.is_none() {
+            decision.message = super::announce(ctx);
+        }
+        decision
     }
 
     fn is_builtin(&self) -> bool {
@@ -48,28 +52,11 @@ impl NeedsDriven {
             return action;
         }
 
-        let (most_pressing, pressure) = ctx.me.needs.highest_pressure();
+        let (_, pressure) = ctx.me.needs.highest_pressure();
 
-        // Speak up when something is getting urgent -- but not every single tick.
-        // Transitional (spec 028 T002): `for_need` is total now, but the
-        // lottery keeps its pre-028 vocabulary so the ladder below it is
-        // undisturbed mid-branch; T012 replaces the lottery wholesale with
-        // the deterministic two-channel announce rule.
-        if matches!(
-            most_pressing,
-            NeedKind::Eat | NeedKind::Drink | NeedKind::Play | NeedKind::Cuddle
-        ) {
-            let message = MessageKind::for_need(most_pressing);
-            if pressure >= ctx.config.meow.announce_threshold
-                && ctx.me.can_meow(message, ctx.world.tick)
-                && ctx.rng.gen_bool(0.3)
-            {
-                return Action::Meow { message };
-            }
-        }
-
-        // (Purring left the proposal surface in spec 011: the engine rumbles
-        // a contented cat in the background, no turn required.)
+        // (Announcing left the ladder in spec 028: the message channel
+        // rides along every decision -- see `decide` -- so speaking up no
+        // longer costs a rung or a turn. Purring left in spec 011.)
 
         // Nothing pressing: potter about.
         if pressure < 20.0 && ctx.rng.gen_bool(0.4) {
@@ -410,6 +397,7 @@ fn wander(ctx: &DecisionContext) -> Action {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::meow::MessageKind;
     use crate::behavior::Behavior;
     use crate::element::{Element, ElementKind};
     use crate::grid::Position;
@@ -1144,5 +1132,65 @@ mod tests {
                  must agree (deliberate omissions get an allow-list in this test)"
             );
         }
+    }
+
+    #[tokio::test]
+    async fn announcing_never_alters_the_chosen_activity() {
+        // Spec 028 FR-017 (the engine-side half of FR-021): the message is
+        // computed after and independent of the activity, so deciding with
+        // the channel in play picks the same activity as the ladder alone.
+        // A hungry cat mid-walk announces WantEat and keeps walking.
+        let ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(2, 2);
+            world.kitties[idx].needs.add(NeedKind::Eat, 60.0);
+            world.kitties[idx].announce_armed.insert(NeedKind::Eat);
+            world.push_element(Element {
+                id: 700,
+                kind: ElementKind::Chow { servings: 5 },
+                pos: Position::new(12, 2),
+                ttl: None,
+            });
+        });
+        let decision = NeedsDriven.decide(&ctx).await;
+        assert_eq!(
+            decision.activity,
+            NeedsDriven.decide_action(&ctx),
+            "the channel rides along; it never displaces the turn"
+        );
+        assert_eq!(
+            decision.message,
+            Some(MessageKind::WantEat),
+            "and the errand is announced mid-walk"
+        );
+    }
+
+    #[tokio::test]
+    async fn a_grounded_cat_announces_its_highest_pressure_legal_want() {
+        // Two armed needs: the higher pressure wins; ties would fall to
+        // NeedKind::ALL order (the selection precedent).
+        let ctx = decision_context(|world| {
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].needs.add(NeedKind::Eat, 40.0);
+            world.kitties[idx].needs.add(NeedKind::Cuddle, 55.0);
+            world.kitties[idx].announce_armed.insert(NeedKind::Eat);
+            world.kitties[idx].announce_armed.insert(NeedKind::Cuddle);
+        });
+        let decision = NeedsDriven.decide(&ctx).await;
+        assert_eq!(decision.message, Some(MessageKind::WantCuddle));
+    }
+
+    #[tokio::test]
+    async fn an_ungrounded_cat_is_silent() {
+        // Nothing armed: the deterministic rule has nothing legal to say,
+        // whatever the raw pressures are.
+        let ctx = decision_context(|world| {
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].needs.add(NeedKind::Eat, 60.0);
+            world.kitties[idx].announce_armed.clear();
+        });
+        let decision = NeedsDriven.decide(&ctx).await;
+        assert_eq!(decision.message, None, "unarmed means Silent, by law");
     }
 }

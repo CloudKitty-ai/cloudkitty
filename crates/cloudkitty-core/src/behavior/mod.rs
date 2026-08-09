@@ -40,6 +40,7 @@ use futures::FutureExt;
 
 use crate::config::Config;
 use crate::kitty::{Kitty, KittyId};
+use crate::meow::MessageKind;
 use crate::rng::DecisionRng;
 use crate::seam::{Decision, Provenance, ResolvedDecision};
 use crate::world::{World, WorldSnapshot};
@@ -474,6 +475,30 @@ async fn run_catching(behavior: &dyn Behavior, ctx: &DecisionContext) -> Option<
 /// behavior the engine can rely on when another fails.
 async fn fallback(ctx: &DecisionContext) -> Decision {
     NeedsDriven.decide(ctx).await
+}
+
+/// The deterministic announce rule (spec 028 FR-018), shared by every
+/// scripted decider: say the highest-pressure need whose want-kind is
+/// legal right now -- "meow whenever legal" is the honest broadcast, and
+/// the mask (grounding + per-kind cooldown) is the whole restraint.
+/// Equal pressures tie-break in `NeedKind::ALL` order (the selection
+/// precedent). Computed after and independent of the activity: announcing
+/// never displaces the turn (the imitability principle's source-side
+/// half). No RNG -- the announce lotteries died with the courtesy era.
+pub(crate) fn announce(ctx: &DecisionContext) -> Option<MessageKind> {
+    let mut best: Option<(f32, MessageKind)> = None;
+    for need in crate::needs::NeedKind::ALL {
+        let want = MessageKind::for_need(need);
+        if !crate::meow::message_legal(&ctx.me, want, ctx.world.tick, &ctx.config) {
+            continue;
+        }
+        let pressure = ctx.me.needs.get(need);
+        // Strictly greater: on a tie the earlier kind in ALL order stays.
+        if best.is_none_or(|(top, _)| pressure > top) {
+            best = Some((pressure, want));
+        }
+    }
+    best.map(|(_, want)| want)
 }
 
 #[cfg(test)]
