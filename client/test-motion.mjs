@@ -1362,5 +1362,44 @@ check('the far pair stays behind the body through the whole pounce', () => {
   }
 });
 
+// ---- the sleeping head (2026-08-09) ----
+
+check('the sleep-curl head comes from SLEEP, not a literal', () => {
+  const before = CatV2.SLEEP.headR;
+  try {
+    close(CatV2.catLayout('sleep-curl', 0.3).head.r, before, 'the dial IS the radius');
+    CatV2.SLEEP.headR = 0.21;
+    close(CatV2.catLayout('sleep-curl', 0.3).head.r, 0.21, 'and moving it moves the pose');
+  } finally {
+    CatV2.SLEEP.headR = before; // a mutable tunable must not leak between checks
+  }
+});
+
+check('the sleeping head blends rather than pops', () => {
+  // head.r is interpolated by blendLayouts, so waking up is a ramp. This is
+  // the trap that bit the droplet: a per-pose value that is NOT threaded
+  // through blendLayouts switches at the midpoint instead.
+  const sleep = CatV2.catLayout('sleep-curl', 0);
+  const idle = CatV2.catLayout('idle', 0);
+  assert(sleep.head.r !== idle.head.r, 'the two poses genuinely differ');
+  const mid = CatV2.blendLayouts(sleep, idle, 0.5);
+  const expected = (sleep.head.r + idle.head.r) / 2;
+  close(mid.head.r, expected, 'halfway is halfway, not either end');
+  close(CatV2.blendLayouts(sleep, idle, 0).head.r, sleep.head.r, 't=0 is exactly sleep');
+  close(CatV2.blendLayouts(sleep, idle, 1).head.r, idle.head.r, 't=1 is exactly idle');
+});
+
+check('every pose draws a head, and sleep is the only one off the band', () => {
+  // The band is what makes the cats read as one animal. If a future pose
+  // lands outside it, that is a decision worth making on purpose.
+  for (const pose of CatV2.POSES) {
+    const r = CatV2.catLayout(pose, 0.3).head.r;
+    assert(r > 0.1 && r < 0.3, `${pose}: head radius ${r} is off any plausible scale`);
+    if (pose !== 'sleep-curl') {
+      assert(r >= 0.21 && r <= 0.23, `${pose}: head ${r} left the 0.215-0.226 band`);
+    }
+  }
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);
