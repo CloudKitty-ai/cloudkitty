@@ -444,6 +444,64 @@ check('palettes blend entry by entry, arrays included', () => {
   assert(Object.isFrozen(mid), 'blended palettes are frozen like the named ones');
 });
 
+/** Perceived lightness (CIE L*). The pond's depth ramp is tuned on this and
+ *  not on WCAG contrast ratio: that measure exists for text legibility, and
+ *  its +0.05 flare term swamps the comparison at night's luminances -- it
+ *  called night's ramp healthy while it was half again too strong. */
+function lstar(color) {
+  const parsed = api.parsePaletteColor(color);
+  assert(parsed, `parseable colour, got ${color}`);
+  const lin = (c) => {
+    const u = c / 255;
+    return u <= 0.03928 ? u / 12.92 : ((u + 0.055) / 1.055) ** 2.4;
+  };
+  const y = 0.2126 * lin(parsed[0]) + 0.7152 * lin(parsed[1]) + 0.0722 * lin(parsed[2]);
+  return y > 0.008856 ? 116 * Math.cbrt(y) - 16 : 903.3 * y;
+}
+
+check('every phase names its own shore and meniscus', () => {
+  // These were derived at draw time as a fixed push toward white, which is a
+  // daylight assumption: on the night palette it put the shore band 43 L*
+  // over the deep water and the meniscus 49 L* over the ground.
+  for (const [name, p] of Object.entries({
+    day: api.MEADOW_DAY,
+    dusk: api.MEADOW_DUSK,
+    night: api.MEADOW_NIGHT,
+    dawn: api.MEADOW_DAWN,
+  })) {
+    assert(typeof p.pondShore === 'string', `${name} names pondShore`);
+    assert(typeof p.pondMeniscus === 'string', `${name} names pondMeniscus`);
+  }
+});
+
+check('the pond depth ramp is the same ramp in every phase', () => {
+  for (const [name, p] of Object.entries({
+    day: api.MEADOW_DAY,
+    dusk: api.MEADOW_DUSK,
+    night: api.MEADOW_NIGHT,
+    dawn: api.MEADOW_DAWN,
+  })) {
+    // Shipped: 26.1 / 26.9 / 26.2 / 28.8. A pale ring round a dark middle is
+    // what "reads as a hole" looks like, and it starts when this runs wide.
+    const ramp = lstar(p.pondShore) - lstar(p.pondDeep);
+    assert(ramp > 24 && ramp < 31, `${name}: shore sits ${ramp.toFixed(1)} L* over deep, want 24-31`);
+    // The meniscus is a step above the shore band, never below it and never
+    // a second ramp of its own. Shipped: 1.3 / 4.0 / 2.5 / 5.2.
+    const step = lstar(p.pondMeniscus) - lstar(p.pondShore);
+    assert(step > 0 && step < 8, `${name}: meniscus is ${step.toFixed(1)} L* over the shore band`);
+  }
+});
+
+check('a crossfade holds the ramp all the way across', () => {
+  // The ramp is a property of the pond, not of a phase, so it must survive
+  // the crossing too -- three interpolated palettes, none of them named.
+  for (const t of [0.25, 0.5, 0.75]) {
+    const mid = api.mixPalettes(api.MEADOW_DUSK, api.MEADOW_NIGHT, t);
+    const ramp = lstar(mid.pondShore) - lstar(mid.pondDeep);
+    assert(ramp > 24 && ramp < 31, `dusk->night at ${t}: ramp ${ramp.toFixed(1)} L*`);
+  }
+});
+
 check('the ends of a blend are exactly the named palettes', () => {
   assert(api.mixPalettes(api.MEADOW_DAY, api.MEADOW_NIGHT, 0) === api.MEADOW_DAY, 't=0 IS day');
   assert(api.mixPalettes(api.MEADOW_DAY, api.MEADOW_NIGHT, 1) === api.MEADOW_NIGHT, 't=1 IS night');

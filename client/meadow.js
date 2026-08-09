@@ -117,6 +117,13 @@ const MEADOW_DAY = Object.freeze({
   pondWater: '#bfe3f2',
   pondShallow: '#daf1fb', // the pale band hugging the inside of the shore
   pondDeep: '#8ab2c7', // the middle, away from any shore
+  // The shallow band the depth field fades into, and the surface line at the
+  // water's edge. Named per theme rather than mixed toward white at draw
+  // time: a fixed push toward white is a daylight assumption, and at night it
+  // made both of these shout (see MEADOW_NIGHT). These three phases carry
+  // exactly what the old 0.45 / 0.65 mixes produced, so they are unchanged.
+  pondShore: '#ebf7fd',
+  pondMeniscus: '#f2fafe',
   pondLip: '#b9b288', // damp earth just outside the water
   pondRim: '#9ccfe6',
   lilyPad: '#9fcf8e',
@@ -159,6 +166,16 @@ const MEADOW_NIGHT = Object.freeze({
   pondWater: '#2f4a5c',
   pondShallow: '#3c5a6d',
   pondDeep: '#243947',
+  // Night is why these are named. The old mixes put the shore band 43 L*
+  // above the deep water where day, dusk and dawn all sit at 26-29, and the
+  // meniscus 49 L* above the ground where day sits at 3 -- a pale ring round
+  // a vanishing centre, which is what "reads as a hole" looks like, plus a
+  // rim that glowed. These restore the ramp (+26) and the shore-to-meniscus
+  // step (+3). The meniscus still clears the night ground by more than day's
+  // does, and has to: matching the ground here would put it BELOW the water
+  // and leave the edge undrawn.
+  pondShore: '#5f7887',
+  pondMeniscus: '#677e8d',
   pondLip: '#444134',
   pondRim: '#52748a',
   lilyPad: '#4d6847',
@@ -202,6 +219,8 @@ const MEADOW_DUSK = Object.freeze({
   pondWater: '#9bbdcd', // 75% of the way from night #2f4a5c to day #bfe3f2
   pondShallow: '#b3cbd8', // (owner-tuned, 2026-07-22: evening light lingers
   pondDeep: '#749cb2',
+  pondShore: '#d5e2ea',
+  pondMeniscus: '#e4edf1',
   pondLip: '#b69f70',
   pondRim: '#8ab8cf', // on the water)
   lilyPad: '#93b183',
@@ -255,6 +274,8 @@ const MEADOW_DAWN = Object.freeze({
   pondWater: '#8fa3b0', // water still reads as water, just unlit
   pondShallow: '#a6b8c2',
   pondDeep: '#6d8da1',
+  pondShore: '#ced8dd',
+  pondMeniscus: '#e0e6ea',
   pondLip: '#8b887d',
   pondRim: '#7b8f9c',
   lilyPad: '#7d9184',
@@ -1400,7 +1421,7 @@ function buildPondLayers(ponds, { tile, widthPx, heightPx, dpr }) {
     // Shore: pale everywhere the water is, then the blurred silhouette
     // punched out of it. What survives is strongest where it is shallow.
     clear(scratch);
-    scratch.g.fillStyle = mixPaletteColor(MEADOW.pondShallow, '#ffffff', 0.45);
+    scratch.g.fillStyle = MEADOW.pondShore;
     scratch.g.fill(pond.path);
     scratch.g.save();
     scratch.g.globalCompositeOperation = 'destination-out';
@@ -1507,7 +1528,7 @@ function drawPonds(ctx, { ponds, tile, layers = null, now = 0, motion = true }) 
     }
     // The meniscus, replacing pondRim's hardcoded 1.5px -- the literal that
     // made the rim vanish at a 44px tile and shout at 14px.
-    ctx.strokeStyle = mixPaletteColor(MEADOW.pondShallow, '#ffffff', 0.65);
+    ctx.strokeStyle = MEADOW.pondMeniscus;
     ctx.lineWidth = Math.max(1, tile * t.meniscusWidthTiles);
     ctx.stroke(pond.path);
     if (pond.tiles.length >= t.lilyPadMinTiles) {
