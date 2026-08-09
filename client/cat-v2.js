@@ -158,7 +158,7 @@ const GAIT = {
   // returns to 0 every tile, so a fractional count tears the cycle once
   // per tile crossed. It is also the setting that makes planting possible
   // at all -- see PLANTED below.
-  cycles: 1.8,
+  cycles: 2,
   duty: 0.62, // share of the cycle a foot is planted (>0.5 = a walk, not a run)
   reach: 0.085, // stride half-width, in tiles either side of the leg's base
   lift: 0.04, // ground clearance at mid-swing
