@@ -459,6 +459,21 @@ check('poseFor: water under movement and idling, never over the rest', () => {
   assert(poseFor(k({ last_action: { action: 'chase' } }), true, true) === 'pouncing', 'the pounce outranks water');
 });
 
+check('the wading cat’s ripple ships off, beside its sibling water effect', () => {
+  // Turned off 2026-08-09: the pond restyle gives the water its own surface
+  // motion, and two sets of rings read as a mistake rather than as depth.
+  assert(VIEW.ambient.wetRipple === false, 'the ripple must ship off');
+  // In `ambient` on purpose -- that block is documented as "each effect
+  // individually disableable", and this was the one water cue missing from
+  // it. Being there is what makes it a dial rather than a deletion.
+  for (const sibling of ['waterShimmer', 'sunbeamPulse', 'dustMotes', 'cloudShadows']) {
+    assert(sibling in VIEW.ambient, `ambient lost ${sibling}`);
+  }
+  // The cue it replaced is not lost: `wet` still fades the ground shadow,
+  // and the waterline clip still cuts the cat. Both are checked elsewhere.
+  assert(waterlineFor('idle', 1) !== null, 'a soaked cat is still clipped at the waterline');
+});
+
 // ---- the belly: a pale underside on every soft cat ----
 
 check('the shipped belly is the one the owner dialled', () => {

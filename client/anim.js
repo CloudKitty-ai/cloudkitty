@@ -156,6 +156,13 @@ const VIEW = Object.freeze({
   // Ambient life & juice (US6) -- each effect individually disableable.
   ambient: Object.freeze({
     waterShimmer: true,
+    // The rings a wading cat pushes out. OFF since 2026-08-09: the pond
+    // restyle gives the water its own surface motion, and two ring sets --
+    // the cat's and the water's -- read as a mistake rather than as depth.
+    // The cue it replaced is not lost: `wet` also fades the ground shadow,
+    // and the waterline clip already reads as submersion. Its own comment
+    // always called it a first pass pending exactly this work.
+    wetRipple: false,
     sunbeamPulse: true,
     dustMotes: true,
     cloudShadows: true,
