@@ -33,6 +33,13 @@ change.
 
 ## Unreleased
 
+- **All-policy roster: e004-a1-s2 takes the remaining two seats** —
+  Biscuit and Pumpkin follow Miso and Kittybear the same day, on the 4x
+  deployment screen (30 fresh seeds, reserved band: 0.9499 vs the live
+  2+2 composition's 0.8866 — the scripted seats were the live-welfare
+  cap; §9.1 water bounds PASS at the all-policy composition). Biscuit's
+  playful era ends; Pumpkin keeps the snacky needs override (world-law,
+  not behavior).
 - **e004-a1-s2 takes both policy seats** — the first certified seating:
   exp-004's winner (grid 15/15 on the settled §9.2 gate, §9.3 welfare
   +0.0440 over paired baseline) replaces the spec-028 scripted parking on
