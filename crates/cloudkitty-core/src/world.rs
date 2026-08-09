@@ -360,8 +360,10 @@ impl World {
         // Phase 3: the environment resolves.
         self.environment_phase(config);
 
-        // Phase 4: needs rise, happiness follows, distress is noted, invariants hold.
+        // Phase 4: needs rise, happiness follows, arming and distress are
+        // noted, invariants hold.
         self.advance_needs(config);
+        self.update_announce_arming(config);
         // The honest per-tick capture (spec 014 FR-003): both event kinds are
         // taken at their source, so the report cannot under-report however
         // small the configured retention rings are.
@@ -881,6 +883,27 @@ impl World {
     /// stays quiet until it drops back below and crosses again. Returns the
     /// events this call produced — the tick report's capture (spec 014
     /// FR-003), taken at the source rather than read back through the ring.
+    /// The announce-arming edge rule (spec 028), distress's sibling: a
+    /// want-kind arms at `>= announce_threshold`, disarms below
+    /// `threshold - hysteresis`, and holds anywhere in the band -- so the
+    /// message mask cannot flicker across one errand. No RNG, no events;
+    /// pure state the mask reads.
+    fn update_announce_arming(&mut self, config: &Config) {
+        let arm_at = config.meow.announce_threshold;
+        let disarm_below = arm_at - config.meow.announce_hysteresis;
+        for kitty in &mut self.kitties {
+            for kind in NeedKind::ALL {
+                let value = kitty.needs.get(kind);
+                if value >= arm_at {
+                    kitty.announce_armed.insert(kind);
+                } else if value < disarm_below {
+                    kitty.announce_armed.remove(&kind);
+                }
+                // In the band [disarm_below, arm_at): hold whatever it was.
+            }
+        }
+    }
+
     fn record_distress(&mut self, config: &Config) -> Vec<DistressEvent> {
         let threshold = config.thresholds.distress;
         let tick = self.tick;
@@ -1543,6 +1566,51 @@ mod tests {
     }
 
     // ---- sustained purring (spec 011, amended by spec 022) ---------------
+
+    #[test]
+    fn announce_arming_rises_holds_and_falls_on_the_hysteresis_edges() {
+        // Spec 028 US2: armed at >= threshold, held anywhere in the band
+        // [threshold - hysteresis, threshold), disarmed only below it. The
+        // three edges of the band, walked explicitly (defaults 30/5).
+        let (mut world, config) = test_world();
+        let idx = world.kitty_index(1).unwrap();
+        let set = |world: &mut World, value: f32| {
+            let current = world.kitties[idx].needs.get(crate::needs::NeedKind::Eat);
+            world.kitties[idx]
+                .needs
+                .add(crate::needs::NeedKind::Eat, value - current);
+        };
+        let armed = |world: &World| {
+            world.kitties[idx]
+                .announce_armed
+                .contains(&crate::needs::NeedKind::Eat)
+        };
+
+        // Rising: just below the threshold stays disarmed...
+        set(&mut world, 29.9);
+        world.update_announce_arming(&config);
+        assert!(!armed(&world), "below threshold never arms");
+        // ...at the threshold arms.
+        set(&mut world, 30.0);
+        world.update_announce_arming(&config);
+        assert!(armed(&world), "the threshold is inclusive");
+
+        // Held: relief into the band keeps the word speakable mid-errand.
+        set(&mut world, 26.0);
+        world.update_announce_arming(&config);
+        assert!(armed(&world), "the band holds an armed kind");
+
+        // Falling: below threshold - hysteresis disarms.
+        set(&mut world, 24.9);
+        world.update_announce_arming(&config);
+        assert!(!armed(&world), "below the band disarms");
+
+        // And a disarmed kind in the band stays disarmed (no re-arm from
+        // below): the band holds state, it never creates it.
+        set(&mut world, 27.0);
+        world.update_announce_arming(&config);
+        assert!(!armed(&world), "the band holds a disarmed kind too");
+    }
 
     #[test]
     fn no_purr_start_of_either_origin_stamps_meow_bookkeeping() {

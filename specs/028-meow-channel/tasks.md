@@ -158,7 +158,7 @@ engine law; Silent never masked, structurally.
 with hysteresis; every emission opens that kind's cooldown; Silent legal in every
 reachable state.
 
-- [ ] T009 [US2] Arming state in `crates/cloudkitty-core/src/kitty.rs` +
+- [X] T009 [US2] Arming state in `crates/cloudkitty-core/src/kitty.rs` +
       `world.rs`: `announce_armed: BTreeSet<NeedKind>`
       (`#[serde(default, skip_serializing_if = …)]`), updated in the needs phase
       beside `record_distress` (insert at ≥ threshold, remove below
