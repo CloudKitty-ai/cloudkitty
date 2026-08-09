@@ -370,7 +370,11 @@ const MEADOW_DEFAULTS = Object.freeze({
   // The shoreline. Corners are rounded into arcs first and the wobble rides
   // on the finished curve (buildPondPath); before, the wobble subdivided the
   // edges and capped the radius at 0.25 tile whatever this said.
-  shoreRounding: 0.8, // pond corner rounding, in tiles
+  // 0.8 rounded a lone tile into a plain circle: the radius clamps to half
+  // the shortest edge, and a 1x1 pond's edges are one tile, so anything from
+  // 0.5 up was the same circle. 0.35 is back inside the range where the dial
+  // bites, and the shape reads as a pond rather than a coin.
+  shoreRounding: 0.35, // pond corner rounding, in tiles
   // 0 since the pond restyle: the damp lip and the meniscus took over
   // softening the edge, and measured at our pond sizes the undulation was
   // nearly invisible anyway (a lone tile is identical with it on or off).
@@ -396,14 +400,23 @@ const MEADOW_DEFAULTS = Object.freeze({
   pondDepthBlurClamp: 1.8, // sigma <= inradius / this
   pondLipBlurTiles: 0.42, // blur radius of the damp lip
   pondLipAlpha: 0.8, // how strongly the lip reads
-  meniscusWidthTiles: 0.055, // surface line, replacing pondRim's hardcoded 1.5px
+  meniscusWidthTiles: 0.058, // surface line, replacing pondRim's hardcoded 1.5px
   // Ripple lines per pond, scaled by blob area rather than flat: the spec's
   // 8-per-pond costs MORE than the per-tile shimmer it replaces on a world
   // of small blobs (ours: 14 strokes today against 32 polylines).
+  //
+  // Dialed 2026-08-09: the ceiling now binds at 3 tiles and up, so on every
+  // blob this world has except the lone tile and the pair, the CAP sets the
+  // count and `causticLinesPerTile` is inert. Kept as the dial anyway --
+  // it is what makes a bigger pond busier if the cap is ever raised.
   causticLinesPerTile: 1.6,
-  causticLinesMax: 8,
-  causticAlpha: 0.13, // peak white, composited 'lighter'
-  causticAmplitude: 0.08, // wave depth, in tiles
+  causticLinesMax: 4,
+  // Peak white, composited 'lighter'. Landed at well under half the spec's
+  // 0.13 with a third of its wave depth: at a 31px tile a ribbon is only a
+  // couple of pixels wide, so what reads as "a suggestion of moving water"
+  // in a mockup reads as bold white rope in the world.
+  causticAlpha: 0.055,
+  causticAmplitude: 0.025, // wave depth, in tiles
   glowRadiusTiles: 1.4, // sunbeam glow radius, in tiles
   glowAlpha: 0.6, // overall glow strength
   pathHeatCap: 12, // worn-path heat ceiling per tile (memory, not display)

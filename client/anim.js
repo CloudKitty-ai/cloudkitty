@@ -231,7 +231,7 @@ const VIEW = Object.freeze({
     // rides on the finished curve (meadow.js buildPondPath); before, the
     // wobble subdivided the edges and capped the radius at 0.25 tile
     // whatever this said.
-    shoreRounding: 0.8, // pond corner rounding, in tiles
+    shoreRounding: 0.35, // pond corner rounding, in tiles
     // 0 since the pond restyle -- see MEADOW_DEFAULTS for why.
     shoreWobble: 0,
     shoreWobblePeriod: 0.35, // and its wavelength around the perimeter, in tiles
@@ -246,11 +246,11 @@ const VIEW = Object.freeze({
     pondDepthBlurClamp: 1.8,
     pondLipBlurTiles: 0.42,
     pondLipAlpha: 0.8,
-    meniscusWidthTiles: 0.055,
+    meniscusWidthTiles: 0.058,
     causticLinesPerTile: 1.6,
-    causticLinesMax: 8,
-    causticAlpha: 0.13,
-    causticAmplitude: 0.08,
+    causticLinesMax: 4,
+    causticAlpha: 0.055,
+    causticAmplitude: 0.025,
     glowRadiusTiles: 1.4, // sunbeam glow radius, in tiles
     glowAlpha: 0.6, // overall glow strength
     pathHeatCap: 12, // worn-path heat ceiling per tile (memory, not display)
