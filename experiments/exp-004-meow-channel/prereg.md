@@ -472,4 +472,19 @@ the whole Product side landed as one spec).
 
 ## Appendix: Deviations
 
-*(none — the appendix opens at freeze and is append-only)*
+- **2026-08-09 (D-001, probe seed derivation)**: the channel probes
+  (`h1_probe.py`, clone H1 + candidate channel-alive) run 20k ticks
+  against the config's 2,000-tick episode horizon by chaining
+  episodes on derived world seeds `band_seed × 100 + episode_index`
+  (e.g. 87000100–87000109). These derived seeds are disjoint from
+  every declared band by magnitude but were not themselves declared
+  in the §6 ledger. Filed on first use; measurement unaffected
+  (per-tick channel rates, no seed-sensitive claim).
+- **2026-08-09 (D-002, H2 direction unmeasurable)**: H2's registered
+  *reported* quantity — the paired heard-vs-unheard groom-response
+  delta — cannot be computed at certification: the selected candidate
+  emits ~2 WantBath asks per 800k kitty-ticks in company (grounded
+  legality: its needs never reach the announce threshold), leaving no
+  conditioning set. The registered H2 *gate* (GroomKitty > 0) is
+  unaffected and passes at 93.3 actor-ticks/1k. Recorded as
+  unmeasurable, not claimed either way.

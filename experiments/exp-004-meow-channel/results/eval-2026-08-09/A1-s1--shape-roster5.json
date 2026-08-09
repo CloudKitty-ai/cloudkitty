@@ -1,0 +1,5448 @@
+{
+  "subject": "policy:experiments/exp-004-meow-channel/artifacts/A1-s1/A1-s1.ckpolicy",
+  "selection": "greedy",
+  "world": {
+    "source": "/Users/elizabethkelly/ai/cloudkitty/experiments/exp-004-meow-channel/family/family-02.toml",
+    "kitties": 5,
+    "config_sha256": "c7b46881bec2431660d866a5575050128e3cba1e92c99ce52f83b83a702f2cff",
+    "engine_defaults_sha256": "412d00e2a92e4f5a3a4f4e72caa8f0266b18455e331ed41aef3044f05e749c87"
+  },
+  "ticks": 20000,
+  "seeds": [
+    880001,
+    880002,
+    880003,
+    880004,
+    880005,
+    880006,
+    880007,
+    880008,
+    880009,
+    880010,
+    880011,
+    880012,
+    880013,
+    880014,
+    880015,
+    880016,
+    880017,
+    880018,
+    880019,
+    880020,
+    880021,
+    880022,
+    880023,
+    880024,
+    880025,
+    880026,
+    880027,
+    880028,
+    880029,
+    880030
+  ],
+  "runs": [
+    {
+      "seed": 880001,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 95.00653736610413,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 95.03508772354127,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 93.1316162979126,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 94.98196915016175,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.58160938949585,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9452857014861377,
+        "plain_mean": 0.9454736398544253,
+        "least_happy_mean": 93.1316162979126
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880002,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 95.22169635849,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 95.3712409740448,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 93.52230108146668,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 95.1315708530426,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.94443242912293,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9482258116405781,
+        "plain_mean": 0.9483824833923236,
+        "least_happy_mean": 93.52230108146668
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880003,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 95.29279998397827,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 95.33213299293519,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 93.65775950241088,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 95.30566136283875,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.92741730384827,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9488812589422194,
+        "plain_mean": 0.9490315422920156,
+        "least_happy_mean": 93.65775950241088
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880004,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 95.05765936393738,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 95.28232479095459,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 93.36332505264282,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 95.0934129749298,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.71622230987549,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.946852570612912,
+        "plain_mean": 0.9470258889846784,
+        "least_happy_mean": 93.36332505264282
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880005,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 95.27714711494446,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 95.38331718673706,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 93.06142262248993,
+            "max_low_streak": 57,
+            "low_share": 0.00485,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 95.14206698036193,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.9181493812561,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 42,
+        "pinned": [
+          {
+            "kitty_id": 3,
+            "need": "eat",
+            "streak": 1
+          },
+          {
+            "kitty_id": 3,
+            "need": "drink",
+            "streak": 1
+          },
+          {
+            "kitty_id": 3,
+            "need": "cuddle",
+            "streak": 1
+          }
+        ],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {
+              "cuddle": {
+                "ticks": 41,
+                "episodes": 1
+              },
+              "drink": {
+                "ticks": 40,
+                "episodes": 1
+              },
+              "eat": {
+                "ticks": 42,
+                "episodes": 1
+              }
+            }
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9470588044996535,
+        "plain_mean": 0.9475642065715776,
+        "least_happy_mean": 93.06142262248993
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880006,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 95.01477059173584,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 95.23951081695557,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 93.40001464805603,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 94.95510300407409,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.80251853599549,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9466594139359018,
+        "plain_mean": 0.946823835193639,
+        "least_happy_mean": 93.40001464805603
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880007,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 95.4348933101654,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 95.46757590713501,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 93.65640180130005,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 95.25590088195801,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.98614807624817,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9494601908610545,
+        "plain_mean": 0.9496018399536243,
+        "least_happy_mean": 93.65640180130005
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880008,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 95.1670283695221,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 95.37747916679382,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 93.33407941970825,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 95.1792251033783,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.93749485397339,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9478225948587625,
+        "plain_mean": 0.947990613826761,
+        "least_happy_mean": 93.33407941970825
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880009,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 95.27633120651245,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 95.32602503509521,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 93.30135977287293,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 95.12565730133056,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.87387165908814,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9476440206162573,
+        "plain_mean": 0.9478064899497999,
+        "least_happy_mean": 93.30135977287293
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880010,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 95.22381913833618,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 95.34724145240784,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 93.52150872383118,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 95.18414782257081,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.82395034217835,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9480544919884011,
+        "plain_mean": 0.9482013349586501,
+        "least_happy_mean": 93.52150872383118
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880011,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 95.21771267471314,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 95.38262847824096,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 93.60732398109435,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 95.2106563873291,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.98946871948242,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.948664432628624,
+        "plain_mean": 0.9488155804817187,
+        "least_happy_mean": 93.60732398109435
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880012,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 95.06316452789306,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 95.15576121025086,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 93.22526741981507,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 94.96414511032104,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.72916315689086,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9461050153677519,
+        "plain_mean": 0.9462750028503384,
+        "least_happy_mean": 93.22526741981507
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880013,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 95.09800330581665,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 95.30921970291138,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 93.3018700416565,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 95.0414632396698,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.81629797859192,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.94696947590085,
+        "plain_mean": 0.9471337085372928,
+        "least_happy_mean": 93.3018700416565
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880014,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 95.23013516349792,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 95.37007957687378,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 93.60188586807251,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 95.12770745620728,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.83323103218079,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.948176518465891,
+        "plain_mean": 0.9483260781936637,
+        "least_happy_mean": 93.60188586807251
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880015,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 94.90918445625306,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 94.9623531124115,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 92.88283731651306,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 94.85714260940551,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.62525148735047,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9442809928621051,
+        "plain_mean": 0.9444735379638621,
+        "least_happy_mean": 92.88283731651306
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880016,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 95.22339442176819,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 95.27118115577697,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 93.38356860122681,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 95.09759358177185,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.76680315856933,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9473191548524579,
+        "plain_mean": 0.9474850818382318,
+        "least_happy_mean": 93.38356860122681
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880017,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 95.30374473800659,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 95.40700502052307,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 93.64410961112976,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 95.29765870323182,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.96155639801026,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9490842709897029,
+        "plain_mean": 0.9492281489418014,
+        "least_happy_mean": 93.64410961112976
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880018,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 95.33784032707214,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 95.35551151390075,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 93.45735362625122,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 95.18657720413208,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.78432718734742,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9480802574295741,
+        "plain_mean": 0.9482432197173996,
+        "least_happy_mean": 93.45735362625122
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880019,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 94.92809462013244,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 94.94603113098144,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 93.1391366607666,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 94.81219128952026,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.57675703926087,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9446172574047996,
+        "plain_mean": 0.9448044214813257,
+        "least_happy_mean": 93.1391366607666
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880020,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 94.97755541381837,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 95.12192916221619,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 92.90804827899933,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 95.05682052993774,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.63894545783997,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9451800243605843,
+        "plain_mean": 0.9454065976856267,
+        "least_happy_mean": 92.90804827899933
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880021,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 95.11965901718139,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 95.29073159637451,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 93.4146214756012,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 95.07890316467285,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.80460491027831,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9472511384011032,
+        "plain_mean": 0.9474170403282195,
+        "least_happy_mean": 93.4146214756012
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880022,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 95.188085811615,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 95.35534142837524,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 93.29212919235229,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 95.05161402206421,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.8586357585907,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9473180374603914,
+        "plain_mean": 0.9474916124259923,
+        "least_happy_mean": 93.29212919235229
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880023,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 94.7548937335968,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 94.99304390487671,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 92.82466763801575,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 94.83608230133056,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.44734847221375,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9435115450018904,
+        "plain_mean": 0.9437120721000665,
+        "least_happy_mean": 92.82466763801575
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880024,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 95.03397232170104,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 95.27954168128967,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 93.35700223884582,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 94.99136171569825,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.8426498752594,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9468238570739326,
+        "plain_mean": 0.9470090556655901,
+        "least_happy_mean": 93.35700223884582
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880025,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 95.18908067092896,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 95.22699539794922,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 93.54039525222778,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 95.01267162780762,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.75253950004577,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9472920102003002,
+        "plain_mean": 0.9474433648979234,
+        "least_happy_mean": 93.54039525222778
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880026,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 95.15968526649475,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 95.31842875556946,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 93.43154775733947,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 95.18865183181762,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.86643072700501,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9477752930440826,
+        "plain_mean": 0.9479294886764524,
+        "least_happy_mean": 93.43154775733947
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880027,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 95.20811922302246,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 95.34226826477051,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 93.40322025489807,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 95.15659892234802,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.88640096435547,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9478244972764551,
+        "plain_mean": 0.947993215258787,
+        "least_happy_mean": 93.40322025489807
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880028,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 95.21834401283265,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 95.16758030166626,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 93.46652905311585,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 95.03019569129944,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.96559147033692,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9475363800520027,
+        "plain_mean": 0.9476964810584968,
+        "least_happy_mean": 93.46652905311585
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880029,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 95.0754473739624,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 95.23176023902893,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 93.19771875686645,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 95.08850486793519,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.76619004669189,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9465487344069375,
+        "plain_mean": 0.9467192425689717,
+        "least_happy_mean": 93.19771875686645
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880030,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 95.01531807556152,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 95.2566404258728,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 93.20738210792541,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 95.1360359111786,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 94.79537795295715,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9466474440745692,
+        "plain_mean": 0.9468215089469926,
+        "least_happy_mean": 93.20738210792541
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    }
+  ],
+  "baseline_runs": [
+    {
+      "seed": 880001,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.42555580940247,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.77093141899108,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.4308657623291,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.43328206672669,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.49938835220337,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9087784665858648,
+        "plain_mean": 0.909120046819307,
+        "least_happy_mean": 89.4308657623291
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880002,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.46715505027771,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.79948640518188,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.756649467659,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.51578128852844,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.7620249912262,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9102710904913085,
+        "plain_mean": 0.9106021944057453,
+        "least_happy_mean": 89.756649467659
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880003,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.46693911895753,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.7539421546936,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.68196119003296,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.65120822143555,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.56389479408264,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9098970632704791,
+        "plain_mean": 0.9102358909584047,
+        "least_happy_mean": 89.68196119003296
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880004,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.4286179145813,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.81077534217835,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.53773870506286,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.45362399635314,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.58083689155579,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9092547361190664,
+        "plain_mean": 0.909623185699456,
+        "least_happy_mean": 89.53773870506286
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880005,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.62760537719727,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.849934400177,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.70974499168396,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.37888315620422,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.81173901672364,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9104392261339568,
+        "plain_mean": 0.9107558138839793,
+        "least_happy_mean": 89.70974499168396
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880006,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.59231622161865,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.73092805671692,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.48606369132996,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.35700606193542,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.59992499847412,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9091826554668265,
+        "plain_mean": 0.9095324780601531,
+        "least_happy_mean": 89.48606369132996
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880007,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.82904810562134,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.83714309387207,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.4938621723175,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.46117514724732,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.63773681221008,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9101625067358146,
+        "plain_mean": 0.9105179306625427,
+        "least_happy_mean": 89.4938621723175
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880008,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.29580390090942,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.86328264312745,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.38236754684448,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.27883908576965,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.71234867820739,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9086998401028515,
+        "plain_mean": 0.9090652837097221,
+        "least_happy_mean": 89.38236754684448
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880009,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.53455893096924,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.82712947158814,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.53774904975892,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.47494663887024,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.65334390296935,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9097185493335486,
+        "plain_mean": 0.9100554559883096,
+        "least_happy_mean": 89.53774904975892
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880010,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.66629295082092,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.9492594116211,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.64029581794739,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.60551402702332,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.6615308670044,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9107137836708457,
+        "plain_mean": 0.9110457861488408,
+        "least_happy_mean": 89.64029581794739
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880011,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.56599000968933,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.95887830581665,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.64606248359681,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.53268298873901,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.83633430404663,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9107309181996234,
+        "plain_mean": 0.9110798961837794,
+        "least_happy_mean": 89.64606248359681
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880012,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.4664157447815,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.64580919837951,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.30196717338562,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.32174503211975,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.43228990592957,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.907966489217739,
+        "plain_mean": 0.9083364541091858,
+        "least_happy_mean": 89.30196717338562
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880013,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.60007913475036,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.83268923873901,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.71063230400085,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.41276583595275,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.69027242164611,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9101418324976703,
+        "plain_mean": 0.910492877870177,
+        "least_happy_mean": 89.71063230400085
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880014,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.8036723461151,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.92593201713562,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.37510867805481,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.52329572219848,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.79081485710144,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9104518463406265,
+        "plain_mean": 0.9108376472412172,
+        "least_happy_mean": 89.37510867805481
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880015,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.49543923149109,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.74046324806213,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.50212905387879,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.47077279548645,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.69254527397156,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9094296799337138,
+        "plain_mean": 0.9098026992057822,
+        "least_happy_mean": 89.50212905387879
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880016,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.40017016487121,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.54783924674987,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.63951741981506,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.43480686836243,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.59130285072327,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9088878951116,
+        "plain_mean": 0.9092272731010438,
+        "least_happy_mean": 89.63951741981506
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880017,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.60709360275268,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.84547403335571,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.7014170387268,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.43688051109314,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 91.02497749290467,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9109157215412635,
+        "plain_mean": 0.9112316853576659,
+        "least_happy_mean": 89.7014170387268
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880018,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.5911323223114,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.85242155838013,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.61593040046692,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.50660586166381,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.48447014503479,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9097376472596616,
+        "plain_mean": 0.9101011205757119,
+        "least_happy_mean": 89.61593040046692
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880019,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.16802671318054,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.58181665763856,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.22805054893493,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.20359238433838,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.50760734367371,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9070268118908236,
+        "plain_mean": 0.9073781872955328,
+        "least_happy_mean": 89.22805054893493
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880020,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.53669834823609,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.81221235656739,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.6870407886505,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.09657500610352,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.4904994846344,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9088800696137838,
+        "plain_mean": 0.9092460519683772,
+        "least_happy_mean": 89.6870407886505
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880021,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.52235924491882,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.6962082836151,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.62156670570374,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.33217596321106,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.62324914169311,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9092447205980523,
+        "plain_mean": 0.9095911186782847,
+        "least_happy_mean": 89.62156670570374
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880022,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.48980937652588,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.8297535533905,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.7679005455017,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.5535988670349,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.82740877723694,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.910602825150862,
+        "plain_mean": 0.9109369422393787,
+        "least_happy_mean": 89.7679005455017
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880023,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.27811374740601,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.69187918052674,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.11911785430908,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.21053398475647,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.5146730014801,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9072094051663989,
+        "plain_mean": 0.9076286355369524,
+        "least_happy_mean": 89.11911785430908
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880024,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.45557793579101,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.81888920097352,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.63047021675109,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.36016003379822,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.61548026733398,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9094233026641015,
+        "plain_mean": 0.9097611553092952,
+        "least_happy_mean": 89.63047021675109
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880025,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.57490194320678,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.84768362884522,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.51223367004394,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.49886078987122,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.8244158695221,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9101674416209902,
+        "plain_mean": 0.9105161918029807,
+        "least_happy_mean": 89.51223367004394
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880026,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.54317697753906,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.69108164253235,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.78020732040406,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.4643706111908,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.6796399974823,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9100093418409899,
+        "plain_mean": 0.9103169530982989,
+        "least_happy_mean": 89.78020732040406
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880027,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.41395116462708,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.68431768608093,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.57070206108094,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.46903081588745,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.49795534515381,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9089148787821636,
+        "plain_mean": 0.9092719141456599,
+        "least_happy_mean": 89.57070206108094
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880028,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.57315899429321,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.82317104530334,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.76377387390137,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.28261644210815,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.68960291290283,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9099225544594588,
+        "plain_mean": 0.9102646465370233,
+        "least_happy_mean": 89.76377387390137
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880029,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.35622230339051,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.7115097377777,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.4120417263031,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.31228639640808,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.70732564239502,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9086390507592023,
+        "plain_mean": 0.9089987716125519,
+        "least_happy_mean": 89.4120417263031
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    },
+    {
+      "seed": 880030,
+      "ticks": 20000,
+      "roster": "all-subject",
+      "report": {
+        "ticks": 20000,
+        "kitties": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "mean_happiness": 91.32210711402892,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "mean_happiness": 91.66267806129456,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "mean_happiness": 89.8677698726654,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "mean_happiness": 91.5268688999176,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "mean_happiness": 90.4946341430664,
+            "max_low_streak": 0,
+            "low_share": 0.0,
+            "floor_touches": 0
+          }
+        ],
+        "max_distress_age": 0,
+        "pinned": [],
+        "distress_census": [
+          {
+            "kitty_id": 1,
+            "name": "Miso",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 2,
+            "name": "Biscuit",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 3,
+            "name": "Pumpkin",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 4,
+            "name": "Kittybear",
+            "by_need": {}
+          },
+          {
+            "kitty_id": 5,
+            "name": "Clementine",
+            "by_need": {}
+          }
+        ]
+      },
+      "aggregates": {
+        "team_welfare": 0.9093585922512695,
+        "plain_mean": 0.9097481161819465,
+        "least_happy_mean": 89.8677698726654
+      },
+      "fallback_count": 0,
+      "fallbacks": []
+    }
+  ],
+  "paired": [
+    {
+      "seed": 880001,
+      "roster": "all-subject",
+      "subject_welfare": 0.9452857014861377,
+      "baseline_welfare": 0.9087784665858648,
+      "delta": 0.036507234900272856
+    },
+    {
+      "seed": 880002,
+      "roster": "all-subject",
+      "subject_welfare": 0.9482258116405781,
+      "baseline_welfare": 0.9102710904913085,
+      "delta": 0.037954721149269566
+    },
+    {
+      "seed": 880003,
+      "roster": "all-subject",
+      "subject_welfare": 0.9488812589422194,
+      "baseline_welfare": 0.9098970632704791,
+      "delta": 0.038984195671740274
+    },
+    {
+      "seed": 880004,
+      "roster": "all-subject",
+      "subject_welfare": 0.946852570612912,
+      "baseline_welfare": 0.9092547361190664,
+      "delta": 0.03759783449384557
+    },
+    {
+      "seed": 880005,
+      "roster": "all-subject",
+      "subject_welfare": 0.9470588044996535,
+      "baseline_welfare": 0.9104392261339568,
+      "delta": 0.03661957836569674
+    },
+    {
+      "seed": 880006,
+      "roster": "all-subject",
+      "subject_welfare": 0.9466594139359018,
+      "baseline_welfare": 0.9091826554668265,
+      "delta": 0.03747675846907528
+    },
+    {
+      "seed": 880007,
+      "roster": "all-subject",
+      "subject_welfare": 0.9494601908610545,
+      "baseline_welfare": 0.9101625067358146,
+      "delta": 0.03929768412523993
+    },
+    {
+      "seed": 880008,
+      "roster": "all-subject",
+      "subject_welfare": 0.9478225948587625,
+      "baseline_welfare": 0.9086998401028515,
+      "delta": 0.03912275475591098
+    },
+    {
+      "seed": 880009,
+      "roster": "all-subject",
+      "subject_welfare": 0.9476440206162573,
+      "baseline_welfare": 0.9097185493335486,
+      "delta": 0.037925471282708734
+    },
+    {
+      "seed": 880010,
+      "roster": "all-subject",
+      "subject_welfare": 0.9480544919884011,
+      "baseline_welfare": 0.9107137836708457,
+      "delta": 0.03734070831755543
+    },
+    {
+      "seed": 880011,
+      "roster": "all-subject",
+      "subject_welfare": 0.948664432628624,
+      "baseline_welfare": 0.9107309181996234,
+      "delta": 0.037933514429000614
+    },
+    {
+      "seed": 880012,
+      "roster": "all-subject",
+      "subject_welfare": 0.9461050153677519,
+      "baseline_welfare": 0.907966489217739,
+      "delta": 0.0381385261500129
+    },
+    {
+      "seed": 880013,
+      "roster": "all-subject",
+      "subject_welfare": 0.94696947590085,
+      "baseline_welfare": 0.9101418324976703,
+      "delta": 0.03682764340317968
+    },
+    {
+      "seed": 880014,
+      "roster": "all-subject",
+      "subject_welfare": 0.948176518465891,
+      "baseline_welfare": 0.9104518463406265,
+      "delta": 0.037724672125264536
+    },
+    {
+      "seed": 880015,
+      "roster": "all-subject",
+      "subject_welfare": 0.9442809928621051,
+      "baseline_welfare": 0.9094296799337138,
+      "delta": 0.034851312928391276
+    },
+    {
+      "seed": 880016,
+      "roster": "all-subject",
+      "subject_welfare": 0.9473191548524579,
+      "baseline_welfare": 0.9088878951116,
+      "delta": 0.038431259740857926
+    },
+    {
+      "seed": 880017,
+      "roster": "all-subject",
+      "subject_welfare": 0.9490842709897029,
+      "baseline_welfare": 0.9109157215412635,
+      "delta": 0.03816854944843939
+    },
+    {
+      "seed": 880018,
+      "roster": "all-subject",
+      "subject_welfare": 0.9480802574295741,
+      "baseline_welfare": 0.9097376472596616,
+      "delta": 0.03834261016991258
+    },
+    {
+      "seed": 880019,
+      "roster": "all-subject",
+      "subject_welfare": 0.9446172574047996,
+      "baseline_welfare": 0.9070268118908236,
+      "delta": 0.037590445513976056
+    },
+    {
+      "seed": 880020,
+      "roster": "all-subject",
+      "subject_welfare": 0.9451800243605843,
+      "baseline_welfare": 0.9088800696137838,
+      "delta": 0.03629995474680059
+    },
+    {
+      "seed": 880021,
+      "roster": "all-subject",
+      "subject_welfare": 0.9472511384011032,
+      "baseline_welfare": 0.9092447205980523,
+      "delta": 0.03800641780305092
+    },
+    {
+      "seed": 880022,
+      "roster": "all-subject",
+      "subject_welfare": 0.9473180374603914,
+      "baseline_welfare": 0.910602825150862,
+      "delta": 0.036715212309529455
+    },
+    {
+      "seed": 880023,
+      "roster": "all-subject",
+      "subject_welfare": 0.9435115450018904,
+      "baseline_welfare": 0.9072094051663989,
+      "delta": 0.036302139835491465
+    },
+    {
+      "seed": 880024,
+      "roster": "all-subject",
+      "subject_welfare": 0.9468238570739326,
+      "baseline_welfare": 0.9094233026641015,
+      "delta": 0.03740055440983103
+    },
+    {
+      "seed": 880025,
+      "roster": "all-subject",
+      "subject_welfare": 0.9472920102003002,
+      "baseline_welfare": 0.9101674416209902,
+      "delta": 0.03712456857931001
+    },
+    {
+      "seed": 880026,
+      "roster": "all-subject",
+      "subject_welfare": 0.9477752930440826,
+      "baseline_welfare": 0.9100093418409899,
+      "delta": 0.037765951203092674
+    },
+    {
+      "seed": 880027,
+      "roster": "all-subject",
+      "subject_welfare": 0.9478244972764551,
+      "baseline_welfare": 0.9089148787821636,
+      "delta": 0.03890961849429153
+    },
+    {
+      "seed": 880028,
+      "roster": "all-subject",
+      "subject_welfare": 0.9475363800520027,
+      "baseline_welfare": 0.9099225544594588,
+      "delta": 0.03761382559254389
+    },
+    {
+      "seed": 880029,
+      "roster": "all-subject",
+      "subject_welfare": 0.9465487344069375,
+      "baseline_welfare": 0.9086390507592023,
+      "delta": 0.03790968364773528
+    },
+    {
+      "seed": 880030,
+      "roster": "all-subject",
+      "subject_welfare": 0.9466474440745692,
+      "baseline_welfare": 0.9093585922512695,
+      "delta": 0.03728885182329977
+    }
+  ]
+}

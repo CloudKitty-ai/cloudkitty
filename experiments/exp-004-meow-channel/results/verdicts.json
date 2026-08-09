@@ -1,0 +1,242 @@
+[
+ {
+  "run": "A0-s1",
+  "arm": "A0",
+  "welfare_iii": 0.9476977889527813,
+  "baseline_iii": 0.9059323610385323,
+  "delta_iii": 0.04176542791424909,
+  "delta_i": 0.006246449147530364,
+  "h4_pass": true,
+  "h5_pass": true,
+  "gate_reasons": [],
+  "worst_mds": {
+   "iii": 0,
+   "roster3": 0,
+   "roster5": 158
+  }
+ },
+ {
+  "run": "A0-s2",
+  "arm": "A0",
+  "welfare_iii": 0.9484736406654162,
+  "baseline_iii": 0.9059323610385323,
+  "delta_iii": 0.04254127962688392,
+  "delta_i": 0.00791596525877325,
+  "h4_pass": true,
+  "h5_pass": true,
+  "gate_reasons": [],
+  "worst_mds": {
+   "iii": 0,
+   "roster3": 0,
+   "roster5": 48
+  }
+ },
+ {
+  "run": "A0-s3",
+  "arm": "A0",
+  "welfare_iii": 0.9488001159019652,
+  "baseline_iii": 0.9059323610385323,
+  "delta_iii": 0.04286775486343297,
+  "delta_i": 0.007458787292607738,
+  "h4_pass": true,
+  "h5_pass": true,
+  "gate_reasons": [],
+  "worst_mds": {
+   "iii": 43,
+   "roster3": 17,
+   "roster5": 0
+  }
+ },
+ {
+  "run": "A0-s4",
+  "arm": "A0",
+  "welfare_iii": 0.947819464784435,
+  "baseline_iii": 0.9059323610385323,
+  "delta_iii": 0.041887103745902765,
+  "delta_i": 0.007260566874624286,
+  "h4_pass": true,
+  "h5_pass": true,
+  "gate_reasons": [],
+  "worst_mds": {
+   "iii": 0,
+   "roster3": 0,
+   "roster5": 0
+  }
+ },
+ {
+  "run": "A0-s5",
+  "arm": "A0",
+  "welfare_iii": 0.9487195435325019,
+  "baseline_iii": 0.9059323610385323,
+  "delta_iii": 0.04278718249396962,
+  "delta_i": 0.00705899543003119,
+  "h4_pass": true,
+  "h5_pass": true,
+  "gate_reasons": [],
+  "worst_mds": {
+   "iii": 0,
+   "roster3": 0,
+   "roster5": 0
+  }
+ },
+ {
+  "run": "A1-s1",
+  "arm": "A1",
+  "welfare_iii": 0.9486129831205727,
+  "baseline_iii": 0.9059323610385323,
+  "delta_iii": 0.04268062208204049,
+  "delta_i": 0.007377614750237238,
+  "h4_pass": true,
+  "h5_pass": true,
+  "gate_reasons": [],
+  "worst_mds": {
+   "iii": 0,
+   "roster3": 0,
+   "roster5": 42
+  }
+ },
+ {
+  "run": "A1-s2",
+  "arm": "A1",
+  "welfare_iii": 0.9499787249186518,
+  "baseline_iii": 0.9059323610385323,
+  "delta_iii": 0.04404636388011951,
+  "delta_i": 0.008329895079096317,
+  "h4_pass": true,
+  "h5_pass": true,
+  "gate_reasons": [],
+  "worst_mds": {
+   "iii": 46,
+   "roster3": 0,
+   "roster5": 405
+  }
+ },
+ {
+  "run": "A1-s3",
+  "arm": "A1",
+  "welfare_iii": 0.946938894131526,
+  "baseline_iii": 0.9059323610385323,
+  "delta_iii": 0.041006533092993736,
+  "delta_i": 0.007362410946029074,
+  "h4_pass": true,
+  "h5_pass": true,
+  "gate_reasons": [],
+  "worst_mds": {
+   "iii": 0,
+   "roster3": 0,
+   "roster5": 2
+  }
+ },
+ {
+  "run": "A1-s4",
+  "arm": "A1",
+  "welfare_iii": 0.9483744661921114,
+  "baseline_iii": 0.9059323610385323,
+  "delta_iii": 0.04244210515357916,
+  "delta_i": 0.007846471021237367,
+  "h4_pass": true,
+  "h5_pass": true,
+  "gate_reasons": [],
+  "worst_mds": {
+   "iii": 0,
+   "roster3": 15,
+   "roster5": 0
+  }
+ },
+ {
+  "run": "A1-s5",
+  "arm": "A1",
+  "welfare_iii": 0.9484130206467428,
+  "baseline_iii": 0.9059323610385323,
+  "delta_iii": 0.04248065960821057,
+  "delta_i": 0.006946525514730961,
+  "h4_pass": true,
+  "h5_pass": true,
+  "gate_reasons": [],
+  "worst_mds": {
+   "iii": 0,
+   "roster3": 0,
+   "roster5": 121
+  }
+ },
+ {
+  "run": "D1-s1",
+  "arm": "D1",
+  "welfare_iii": 0.928173712510849,
+  "baseline_iii": 0.9059323610385323,
+  "delta_iii": 0.02224135147231676,
+  "delta_i": 0.002191247768783877,
+  "h4_pass": true,
+  "h5_pass": true,
+  "gate_reasons": [],
+  "worst_mds": {
+   "iii": 1,
+   "roster3": 49,
+   "roster5": 48
+  }
+ },
+ {
+  "run": "D1-s2",
+  "arm": "D1",
+  "welfare_iii": 0.9310014994317345,
+  "baseline_iii": 0.9059323610385323,
+  "delta_iii": 0.02506913839320224,
+  "delta_i": 0.0025336110660371114,
+  "h4_pass": true,
+  "h5_pass": true,
+  "gate_reasons": [],
+  "worst_mds": {
+   "iii": 22,
+   "roster3": 11,
+   "roster5": 47
+  }
+ },
+ {
+  "run": "D1-s3",
+  "arm": "D1",
+  "welfare_iii": 0.9342949180548431,
+  "baseline_iii": 0.9059323610385323,
+  "delta_iii": 0.028362557016310852,
+  "delta_i": 0.0034707411268913857,
+  "h4_pass": true,
+  "h5_pass": true,
+  "gate_reasons": [],
+  "worst_mds": {
+   "iii": 9,
+   "roster3": 22,
+   "roster5": 187
+  }
+ },
+ {
+  "run": "D1-s4",
+  "arm": "D1",
+  "welfare_iii": 0.9308040519410651,
+  "baseline_iii": 0.9059323610385323,
+  "delta_iii": 0.024871690902532828,
+  "delta_i": -0.0007837251155363711,
+  "h4_pass": true,
+  "h5_pass": true,
+  "gate_reasons": [],
+  "worst_mds": {
+   "iii": 91,
+   "roster3": 137,
+   "roster5": 205
+  }
+ },
+ {
+  "run": "D1-s5",
+  "arm": "D1",
+  "welfare_iii": 0.9375470911253214,
+  "baseline_iii": 0.9059323610385323,
+  "delta_iii": 0.03161473008678917,
+  "delta_i": 0.003191866312944436,
+  "h4_pass": true,
+  "h5_pass": true,
+  "gate_reasons": [],
+  "worst_mds": {
+   "iii": 45,
+   "roster3": 49,
+   "roster5": 102
+  }
+ }
+]

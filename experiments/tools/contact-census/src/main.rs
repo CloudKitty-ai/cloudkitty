@@ -541,6 +541,8 @@ struct Args {
     /// generation — how the policy seats are handed back to a scripted
     /// ladder for a B-geometry run.
     seats: BTreeMap<u32, String>,
+    /// Optional .ckpolicy path; registered as "policy:subject".
+    artifact: Option<String>,
 }
 
 fn parse_args() -> Args {
@@ -550,6 +552,7 @@ fn parse_args() -> Args {
         ticks: 20_000,
         out: PathBuf::from("contact-census-out"),
         seats: BTreeMap::new(),
+        artifact: None,
     };
     let mut it = std::env::args().skip(1);
     while let Some(flag) = it.next() {
@@ -567,6 +570,7 @@ fn parse_args() -> Args {
             }
             "--ticks" => args.ticks = value("--ticks").parse().expect("--ticks: u64"),
             "--out" => args.out = PathBuf::from(value("--out")),
+            "--artifact" => args.artifact = Some(value("--artifact")),
             "--seat" => {
                 for pair in value("--seat").split(',') {
                     let (seat, behavior) = pair
@@ -620,14 +624,27 @@ fn main() {
             .unwrap_or_else(|| panic!("--seat kitty_{id}: no such kitty in the config"));
         kitty.behavior = behavior.clone();
     }
-    // A behavior-driven world can only be driven by built-in scripted
-    // ladders; a policy seat left in place would need an artifact forward
-    // pass this tool deliberately does not have. Fail loudly, not per-tick.
+    // Behavior-driven worlds run built-in ladders — or, since exp-004's
+    // certification battery, a policy artifact registered explicitly
+    // (--artifact PATH registers it as "policy:subject"; seat it with
+    // --seat kitty_N=policy:subject). Any other unresolvable behavior
+    // still fails loudly, not per-tick.
+    let mut registry = BehaviorRegistry::with_builtins();
+    if let Some(artifact) = &args.artifact {
+        let rl_full = cloudkitty_rl::config::RlConfig::from_toml_str(&text)
+            .expect("[rl] blocks parse");
+        let behavior = cloudkitty_rl::behavior::PolicyBehavior::from_artifact_path(
+            artifact, &rl_full, false)
+            .unwrap_or_else(|e| panic!("loading {artifact}: {e:?}"));
+        registry.register("policy:subject", std::sync::Arc::new(behavior));
+    }
     for k in &base_cfg.kitties {
         assert!(
-            k.behavior == "needs_driven" || k.behavior == "playful",
-            "kitty_{} runs {:?}; hand policy seats to a scripted ladder with \
-             --seat kitty_{}=needs_driven",
+            k.behavior == "needs_driven"
+                || k.behavior == "playful"
+                || (args.artifact.is_some() && k.behavior == "policy:subject"),
+            "kitty_{} runs {:?}; hand policy seats to a scripted ladder or \
+             register an artifact and seat --seat kitty_{}=policy:subject",
             k.id,
             k.behavior,
             k.id
@@ -636,7 +653,6 @@ fn main() {
     base_cfg
         .validate()
         .expect("config passes engine validation");
-    let registry = BehaviorRegistry::with_builtins();
     let seat_overrides: BTreeMap<String, String> = args
         .seats
         .iter()

@@ -1,0 +1,134 @@
+{
+  "candidates": [
+    {
+      "run": "A0-s1",
+      "artifact": "experiments/exp-004-meow-channel/artifacts/A0-s1/A0-s1.ckpolicy"
+    },
+    {
+      "run": "A0-s2",
+      "artifact": "experiments/exp-004-meow-channel/artifacts/A0-s2/A0-s2.ckpolicy"
+    },
+    {
+      "run": "A0-s3",
+      "artifact": "experiments/exp-004-meow-channel/artifacts/A0-s3/A0-s3.ckpolicy"
+    },
+    {
+      "run": "A0-s4",
+      "artifact": "experiments/exp-004-meow-channel/artifacts/A0-s4/A0-s4.ckpolicy"
+    },
+    {
+      "run": "A0-s5",
+      "artifact": "experiments/exp-004-meow-channel/artifacts/A0-s5/A0-s5.ckpolicy"
+    },
+    {
+      "run": "A1-s1",
+      "artifact": "experiments/exp-004-meow-channel/artifacts/A1-s1/A1-s1.ckpolicy"
+    },
+    {
+      "run": "A1-s2",
+      "artifact": "experiments/exp-004-meow-channel/artifacts/A1-s2/A1-s2.ckpolicy"
+    },
+    {
+      "run": "A1-s3",
+      "artifact": "experiments/exp-004-meow-channel/artifacts/A1-s3/A1-s3.ckpolicy"
+    },
+    {
+      "run": "A1-s4",
+      "artifact": "experiments/exp-004-meow-channel/artifacts/A1-s4/A1-s4.ckpolicy"
+    },
+    {
+      "run": "A1-s5",
+      "artifact": "experiments/exp-004-meow-channel/artifacts/A1-s5/A1-s5.ckpolicy"
+    },
+    {
+      "run": "D1-s1",
+      "artifact": "experiments/exp-004-meow-channel/artifacts/D1-s1/D1-s1.ckpolicy"
+    },
+    {
+      "run": "D1-s2",
+      "artifact": "experiments/exp-004-meow-channel/artifacts/D1-s2/D1-s2.ckpolicy"
+    },
+    {
+      "run": "D1-s3",
+      "artifact": "experiments/exp-004-meow-channel/artifacts/D1-s3/D1-s3.ckpolicy"
+    },
+    {
+      "run": "D1-s4",
+      "artifact": "experiments/exp-004-meow-channel/artifacts/D1-s4/D1-s4.ckpolicy"
+    },
+    {
+      "run": "D1-s5",
+      "artifact": "experiments/exp-004-meow-channel/artifacts/D1-s5/D1-s5.ckpolicy"
+    }
+  ],
+  "evaluated": {
+    "i": [
+      "A0-s1",
+      "A0-s2",
+      "A0-s3",
+      "A0-s4",
+      "A0-s5",
+      "A1-s1",
+      "A1-s2",
+      "A1-s3",
+      "A1-s4",
+      "A1-s5",
+      "D1-s1",
+      "D1-s2",
+      "D1-s3",
+      "D1-s4",
+      "D1-s5"
+    ],
+    "iii": [
+      "A0-s1",
+      "A0-s2",
+      "A0-s3",
+      "A0-s4",
+      "A0-s5",
+      "A1-s1",
+      "A1-s2",
+      "A1-s3",
+      "A1-s4",
+      "A1-s5",
+      "D1-s1",
+      "D1-s2",
+      "D1-s3",
+      "D1-s4",
+      "D1-s5"
+    ],
+    "roster3": [
+      "A0-s1",
+      "A0-s2",
+      "A0-s3",
+      "A0-s4",
+      "A0-s5",
+      "A1-s1",
+      "A1-s2",
+      "A1-s3",
+      "A1-s4",
+      "A1-s5",
+      "D1-s1",
+      "D1-s2",
+      "D1-s3",
+      "D1-s4",
+      "D1-s5"
+    ],
+    "roster5": [
+      "A0-s1",
+      "A0-s2",
+      "A0-s3",
+      "A0-s4",
+      "A0-s5",
+      "A1-s1",
+      "A1-s2",
+      "A1-s3",
+      "A1-s4",
+      "A1-s5",
+      "D1-s1",
+      "D1-s2",
+      "D1-s3",
+      "D1-s4",
+      "D1-s5"
+    ]
+  }
+}
