@@ -100,6 +100,14 @@ impl MessageKind {
 /// only; Purr is earned-only (the retired purr-meow's validate gate,
 /// byte-faithful); WaitForMe is cooldown-gated and head-excluded (the
 /// engine's yield rule proposes it; policies cannot).
+///
+/// WaitForMe's yield-rule-only vocabulary rule (spec 012) is convention,
+/// not law -- guarded at the head, not the seam. A trusted in-process
+/// caller CAN pass legality with it on a clear cooldown, deliberately:
+/// replay instruments re-propose recorded decisions through the typed
+/// seam, and a provenance guard (or debug_assert) here would downgrade a
+/// recorded yield-rule WaitForMe and break bit-exact replay. Python and
+/// plugins cannot reach it either way.
 pub fn message_legal(
     kitty: &crate::kitty::Kitty,
     kind: MessageKind,
