@@ -11,8 +11,8 @@ use cloudkitty_core::config::Config;
 use cloudkitty_core::world::World;
 
 fn fixture() -> World {
-    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/pre-028-world.json");
+    let path =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/pre-028-world.json");
     let text = std::fs::read_to_string(path).expect("the committed fixture is readable");
     serde_json::from_str(&text).expect("a pre-028 world deserializes on this engine")
 }
@@ -28,17 +28,11 @@ async fn a_pre_028_world_resumes_and_runs() {
         "old-kind meows are still audible"
     );
     assert!(
-        world
-            .recent_meows
-            .iter()
-            .all(|m| m.intensity == 0.0),
+        world.recent_meows.iter().all(|m| m.intensity == 0.0),
         "a pre-028 meow (no intensity field) reads 0.0"
     );
     assert!(
-        world
-            .kitties
-            .iter()
-            .any(|k| !k.meow_cooldowns.is_empty()),
+        world.kitties.iter().any(|k| !k.meow_cooldowns.is_empty()),
         "per-kind cooldown stamps survived the reinterpretation"
     );
     // ...and the new state defaulted honestly.
@@ -62,11 +56,8 @@ async fn a_pre_028_world_resumes_and_runs() {
     assert_eq!(world.tick, 3200, "two hundred lawful ticks later");
     assert!(
         world.kitties.iter().any(|k| !k.announce_armed.is_empty())
-            || world
-                .kitties
-                .iter()
-                .all(|k| k.needs.highest_pressure().1
-                    < config.meow.announce_threshold - config.meow.announce_hysteresis),
+            || world.kitties.iter().all(|k| k.needs.highest_pressure().1
+                < config.meow.announce_threshold - config.meow.announce_hysteresis),
         "arming state is live again (or honestly nothing is armable)"
     );
 }

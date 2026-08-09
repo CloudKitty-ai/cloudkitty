@@ -318,7 +318,10 @@ mod tests {
             Some(MessageKind::Purr),
             "the original six keep their positions"
         );
-        assert_eq!(MessageCodec::decode(7).unwrap(), Some(MessageKind::WantBath));
+        assert_eq!(
+            MessageCodec::decode(7).unwrap(),
+            Some(MessageKind::WantBath)
+        );
         assert_eq!(
             MessageCodec::decode(8).unwrap(),
             Some(MessageKind::WantSleep)

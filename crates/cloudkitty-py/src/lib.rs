@@ -270,10 +270,7 @@ impl ParallelEnv {
                     "action pair ({index}, {message}) for '{name}' is negative"
                 )));
             }
-            if map
-                .insert(id, (index as usize, message as usize))
-                .is_some()
-            {
+            if map.insert(id, (index as usize, message as usize)).is_some() {
                 return Err(PyValueError::new_err(format!(
                     "duplicate action entry for '{name}'"
                 )));

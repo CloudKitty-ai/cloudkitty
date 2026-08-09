@@ -688,7 +688,8 @@ mod tests {
         let mut episode = episode_all_external();
         episode.reset(3);
         let agents = episode.external_agents();
-        let mut actions: BTreeMap<KittyId, (usize, usize)> = agents.iter().map(|&id| (id, (33, 0))).collect();
+        let mut actions: BTreeMap<KittyId, (usize, usize)> =
+            agents.iter().map(|&id| (id, (33, 0))).collect();
         actions.insert(agents[0], (34, 0));
         assert!(matches!(
             episode.step(&actions),
@@ -696,7 +697,8 @@ mod tests {
         ));
 
         // In-range indices naming vacant slots decode and lawfully idle.
-        let mut actions: BTreeMap<KittyId, (usize, usize)> = agents.iter().map(|&id| (id, (33, 0))).collect();
+        let mut actions: BTreeMap<KittyId, (usize, usize)> =
+            agents.iter().map(|&id| (id, (33, 0))).collect();
         actions.insert(agents[0], (7, 0)); // rest with kitty slot 2 — vacant on a 3-kitty roster? (2 others)
         let step = episode.step(&actions).unwrap();
         let info = step.infos.get(&agents[0]).unwrap();

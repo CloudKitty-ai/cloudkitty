@@ -9,8 +9,8 @@ use std::sync::atomic::{AtomicU64, Ordering};
 
 use crate::codec::{ActionCodec, MessageCodec, ACTION_SCHEMA_VERSION};
 use crate::config::RlConfig;
-use crate::observe::{observation_len, OBSERVATION_SCHEMA_VERSION};
 use crate::mask::MASK_SCHEMA_VERSION;
+use crate::observe::{observation_len, OBSERVATION_SCHEMA_VERSION};
 use crate::policy::{write_artifact, ArtifactHeader, ARTIFACT_VERSION};
 
 /// Writes a valid fixture policy artifact shaped for the default schemas

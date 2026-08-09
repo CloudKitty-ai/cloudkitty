@@ -344,7 +344,8 @@ pub fn encode_observation(
     // which the old nearest-vs-freshest split could not promise.
     let window = core.meow.recent_window_ticks.max(1) as f32;
     for kind in HEAD_KINDS {
-        let freshest = cloudkitty_core::meow::freshest_audible(&snapshot.recent_meows, kind, kitty_id);
+        let freshest =
+            cloudkitty_core::meow::freshest_audible(&snapshot.recent_meows, kind, kitty_id);
         match freshest.and_then(|m| snapshot.kitty(m.kitty_id).map(|k| (m, k))) {
             Some((m, emitter)) => {
                 let recency =

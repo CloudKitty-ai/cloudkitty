@@ -12,11 +12,11 @@ use async_trait::async_trait;
 
 use super::relief::ReliefSource;
 use super::{selection, Behavior, DecisionContext};
-use crate::seam::Decision;
 use crate::action::Action;
 use crate::element::ElementType;
 use crate::grid::Direction;
 use crate::needs::NeedKind;
+use crate::seam::Decision;
 
 pub struct NeedsDriven;
 
@@ -192,17 +192,14 @@ pub(crate) fn pursue(ctx: &DecisionContext, choice: selection::Choice) -> Action
             // the pre-028 sunbeam logic, regression-pinned.
             if me.needs.get(NeedKind::Cuddle) >= ctx.config.behavior.cuddle_real_threshold {
                 if let Some(friend) = adjacent_friend(ctx) {
-                    return Action::Sleep {
-                        with: Some(friend),
-                    };
+                    return Action::Sleep { with: Some(friend) };
                 }
                 // A reachable friend is priced like a reachable sunbeam:
                 // worth a walk within sunbeam_reach, never an expedition.
                 let reachable = world
                     .others(me.id)
                     .filter(|k| {
-                        me.pos.manhattan_distance(&k.pos)
-                            <= ctx.config.behavior.sunbeam_reach
+                        me.pos.manhattan_distance(&k.pos) <= ctx.config.behavior.sunbeam_reach
                     })
                     .min_by_key(|k| (me.pos.manhattan_distance(&k.pos), k.id));
                 if let Some(friend) = reachable {
@@ -468,10 +465,10 @@ fn wander(ctx: &DecisionContext) -> Action {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::meow::MessageKind;
     use crate::behavior::Behavior;
     use crate::element::{Element, ElementKind};
     use crate::grid::Position;
+    use crate::meow::MessageKind;
     use crate::test_support::decision_context;
 
     #[tokio::test]
@@ -1005,7 +1002,10 @@ mod tests {
                 ttl: Some(100),
             });
         });
-        assert_eq!(NeedsDriven.decide_action(&ctx), Action::Sleep { with: None });
+        assert_eq!(
+            NeedsDriven.decide_action(&ctx),
+            Action::Sleep { with: None }
+        );
     }
 
     #[tokio::test]

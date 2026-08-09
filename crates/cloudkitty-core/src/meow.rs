@@ -169,7 +169,11 @@ mod tests {
             m(3, 8),
         ];
         let picked = freshest_audible(&meows, MessageKind::WantBath, 9).unwrap();
-        assert_eq!((picked.kitty_id, picked.tick), (2, 12), "tie to the lower id");
+        assert_eq!(
+            (picked.kitty_id, picked.tick),
+            (2, 12),
+            "tie to the lower id"
+        );
 
         // The listener's own freshest emission is inaudible to itself.
         let picked = freshest_audible(&meows, MessageKind::WantBath, 2).unwrap();

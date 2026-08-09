@@ -57,7 +57,6 @@ impl Decision {
             other => Self::silent(other),
         }
     }
-
 }
 
 impl From<Action> for Decision {

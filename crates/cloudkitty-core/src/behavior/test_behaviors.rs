@@ -8,10 +8,10 @@
 use async_trait::async_trait;
 
 use super::{Behavior, DecisionContext};
-use crate::seam::Decision;
 use crate::action::{Action, TargetRef};
 use crate::grid::Direction;
 use crate::meow::MessageKind;
+use crate::seam::Decision;
 
 /// Proposes actions that are always illegal for the current state. Every turn
 /// should be converted to `Idle` by the engine.

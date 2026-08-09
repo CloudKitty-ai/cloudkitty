@@ -1223,12 +1223,7 @@ impl PhaseOutcome {
     pub fn records(
         &self,
         decisions: impl IntoIterator<
-            Item = (
-                KittyId,
-                crate::seam::Decision,
-                crate::seam::Provenance,
-                u64,
-            ),
+            Item = (KittyId, crate::seam::Decision, crate::seam::Provenance, u64),
         >,
     ) -> Vec<crate::seam::KittyTickRecord> {
         let applied_by_id = self.applied_by_id();
@@ -1639,13 +1634,7 @@ mod tests {
         let idx = world.kitty_index(1).unwrap();
         world.kitties[idx].happiness = 90.0;
         // The deliberate purr rides the message channel since spec 028.
-        crate::action::apply_message(
-            &mut world,
-            1,
-            crate::meow::MessageKind::Purr,
-            &config,
-            10,
-        );
+        crate::action::apply_message(&mut world, 1, crate::meow::MessageKind::Purr, &config, 10);
         let kitty = world.kitty(1).unwrap();
         assert!(kitty.purring_until.is_some(), "the deliberate purr started");
         assert!(

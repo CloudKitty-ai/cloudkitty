@@ -47,10 +47,10 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
 use super::{Behavior, DecisionContext};
-use crate::seam::Decision;
 use crate::action::{parse_proposal_value, Action, ProposalError, PROPOSAL_WIRE_VERSION};
 use crate::config::Config;
 use crate::kitty::{Kitty, KittyId};
+use crate::seam::Decision;
 use crate::world::WorldSnapshot;
 
 /// One decision request, engine -> plugin, as one line of JSON. Everything a
