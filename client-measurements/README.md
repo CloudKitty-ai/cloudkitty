@@ -106,6 +106,19 @@ world, so treat the shares as ±1pp; and `onWater` is approximated from the
 served tile rather than the eased drawn tile the renderer uses (5 ticks
 affected).
 
-**No decision was taken from this.** The gate stays unbuilt until the pounce
-art itself is improved — a cuter pounce is worth more frames, and moves where
-the line belongs.
+### The gate SHIPPED at 4 tiles (2026-08-09)
+
+Deferred at the time — a cuter pounce is worth more frames, and moves where the
+line belongs — and taken up once the pounce stopped popping (PR #152). It lives
+in `poseFor` as `VIEW.pounceGateTiles`, with one deliberate asymmetry: a chase
+whose quarry cannot be resolved (caught or expired that very tick) **keeps** the
+pounce. The gate only ever takes it away on positive evidence that the quarry is
+far, which is also what leaves v1 callers — who pass no distance — untouched.
+
+`pose-analyze.mjs` was re-pointed to match: `poseFor` is now the shipped rule
+including the gate, and `poseUngated` is the pre-gate counterfactual, so the
+columns read `ungated → SHIPPED` and the cost stays measurable after the fact.
+
+**Re-measure before moving the number.** The table above was taken against the
+pounce that popped; the pose distribution it reports is not necessarily the one
+a nicer pounce earns.

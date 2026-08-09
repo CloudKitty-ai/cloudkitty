@@ -14,8 +14,11 @@ const ticks = [...byTick.keys()].sort((a, b) => a - b);
 
 const manhattan = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 
-/** render.js:64 -- the shipped rule, verbatim. */
-function poseFor(state, action, moved, onWater) {
+/**
+ * The rule as it stood BEFORE the gate shipped -- the counterfactual now,
+ * kept so the cost of the gate stays measurable after the fact.
+ */
+function poseUngated(state, action, moved, onWater) {
   if (state === 'sleeping') return 'sleep-curl';
   if (state === 'resting') return 'loaf';
   if (state === 'eating') return 'eating';
@@ -27,8 +30,12 @@ function poseFor(state, action, moved, onWater) {
   return 'idle';
 }
 
-/** The proposal: a chase only pounces when its quarry is within GATE tiles. */
-function poseGated(state, action, moved, onWater, near) {
+/**
+ * render.js:64 -- the shipped rule, verbatim, gate and all. Keep this in
+ * step with render.js: it is a copy, and a copy that drifts reports on a
+ * client nobody is running.
+ */
+function poseFor(state, action, moved, onWater, near) {
   if (state === 'sleeping') return 'sleep-curl';
   if (state === 'resting') return 'loaf';
   if (state === 'eating') return 'eating';
@@ -104,8 +111,8 @@ for (let i = 1; i < ticks.length; i++) {
       playKind[kind] = (playKind[kind] ?? 0) + 1;
     }
 
-    const pNow = poseFor(k.activity?.state ?? k.state, action, moved, onWater);
-    const pGate = poseGated(k.activity?.state ?? k.state, action, moved, onWater, near);
+    const pNow = poseUngated(k.activity?.state ?? k.state, action, moved, onWater);
+    const pGate = poseFor(k.activity?.state ?? k.state, action, moved, onWater, near);
     bump(now, pNow);
     bump(gated, pGate);
     seq.set(k.id, [...(seq.get(k.id) ?? []), { tick: t1, now: pNow, gate: pGate }]);
@@ -139,7 +146,7 @@ const keys = [...new Set([...now.keys(), ...gated.keys()])].sort();
 
 console.log(`ticks sampled: ${ticks.length}  usable consecutive pairs: ${pairs} kitty-ticks  (gaps skipped: ${gaps})`);
 console.log(`gate: chase pounces only within ${GATE} tiles (Manhattan)\n`);
-console.log('pose          present     gated      delta');
+console.log('pose          ungated     SHIPPED    delta');
 for (const key of keys) {
   const a = now.get(key) ?? 0;
   const b = gated.get(key) ?? 0;

@@ -51,8 +51,8 @@ const CatV2 = globalThis.CatV2;
 // the SAME object anim.js built, so a re-dialled tunable cannot diverge
 // between what the harness tests and what the page draws.
 const VIEW = api.VIEW;
-const { poseFor, WorldRenderer, waterlineFor } = eval(
-  renderSrc + ';({ poseFor, WorldRenderer, waterlineFor })',
+const { poseFor, WorldRenderer, waterlineFor, chaseDistanceFor } = eval(
+  renderSrc + ';({ poseFor, WorldRenderer, waterlineFor, chaseDistanceFor })',
 );
 
 /** Canvas ctx stand-in: logs every command, throws on non-finite numbers. */
@@ -457,6 +457,54 @@ check('poseFor: water under movement and idling, never over the rest', () => {
   assert(poseFor(k({ activity: { state: 'sleeping' } }), false, true) === 'sleep-curl', 'activity outranks water');
   assert(poseFor(k({ activity: { state: 'drinking' } }), false, true) === 'drinking', 'activity outranks water');
   assert(poseFor(k({ last_action: { action: 'chase' } }), true, true) === 'pouncing', 'the pounce outranks water');
+});
+
+check('the pounce is gated on how far the quarry is', () => {
+  const gate = VIEW.pounceGateTiles;
+  const chasing = { id: 1, pos: { x: 2, y: 2 }, last_action: { action: 'chase', target: 'element', id: 9 } };
+  assert(poseFor(chasing, true, false, 0) === 'pouncing', 'on top of the quarry');
+  assert(poseFor(chasing, true, false, gate) === 'pouncing', 'exactly at the gate still pounces');
+  assert(poseFor(chasing, true, false, gate + 1) === 'walking', 'one tile past it walks');
+  assert(poseFor(chasing, true, false, 20) === 'walking', 'and a cross-map trek walks');
+  // Unknown is not the same as far: a quarry caught or expired this tick
+  // keeps the pounce, which is also why v1 callers are untouched.
+  assert(poseFor(chasing, true, false, null) === 'pouncing', 'an unresolved quarry keeps the pounce');
+  assert(poseFor(chasing, true, false) === 'pouncing', 'v1 callers pass no distance and are untouched');
+  // Order below the gate is unchanged: water still outranks walking.
+  assert(poseFor(chasing, true, true, 20) === 'swim', 'a far chase on water wades');
+  assert(poseFor(chasing, false, false, 20) === 'idle', 'a far chase that did not move stands');
+  // Activities still outrank the whole branch, near or far.
+  const busy = { ...chasing, activity: { state: 'grooming' } };
+  assert(poseFor(busy, true, false, 0) === 'grooming', 'activity outranks a near chase');
+});
+
+check('play is never gated -- it is adjacent by lawfulness', () => {
+  const solo = { id: 1, pos: { x: 2, y: 2 }, last_action: { action: 'play' } };
+  const withBug = { ...solo, last_action: { action: 'play', target: 'element', id: 9 } };
+  for (const d of [null, 0, 1, 99]) {
+    assert(poseFor(solo, true, false, d) === 'pouncing', `solo play pounces at distance ${d}`);
+    assert(poseFor(withBug, true, false, d) === 'pouncing', `targeted play pounces at distance ${d}`);
+  }
+});
+
+check('chaseDistanceFor reads the served state, and admits when it cannot', () => {
+  const world = {
+    kitties: [
+      { id: 1, pos: { x: 2, y: 2 }, last_action: { action: 'chase', target: 'element', id: 9 } },
+      { id: 2, pos: { x: 6, y: 5 } },
+    ],
+    elements: [{ id: 9, kind: 'bug', pos: { x: 5, y: 4 } }],
+  };
+  close(chaseDistanceFor(world.kitties[0], world), 5, 'manhattan to the bug');
+  const atKitty = { ...world.kitties[0], last_action: { action: 'chase', target: 'kitty', id: 2 } };
+  close(chaseDistanceFor(atKitty, world), 7, 'manhattan to the friend');
+  const gone = { ...world.kitties[0], last_action: { action: 'chase', target: 'element', id: 404 } };
+  assert(chaseDistanceFor(gone, world) === null, 'a vanished quarry is null, not a distance');
+  assert(chaseDistanceFor(world.kitties[1], world) === null, 'a cat that is not chasing is null');
+  assert(
+    chaseDistanceFor({ ...world.kitties[0], last_action: { action: 'play' } }, world) === null,
+    'play is not a chase',
+  );
 });
 
 check('swim paddles on the tick clock moving, bobs on the breathe cycle afloat', () => {

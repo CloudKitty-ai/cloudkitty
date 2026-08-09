@@ -61,7 +61,7 @@ const BUBBLE_TICKS = 3;
  * data -- nothing here predicts (Article V). `onWater` arrives pre-gated:
  * only the v2 vocabulary owns a swim pose, so v1 callers pass false.
  */
-function poseFor(kitty, moved, onWater = false) {
+function poseFor(kitty, moved, onWater = false, chaseDist = null, dials = VIEW) {
   const state = kitty.activity?.state;
   if (state === 'sleeping') return 'sleep-curl';
   if (state === 'resting') return 'loaf';
@@ -69,10 +69,37 @@ function poseFor(kitty, moved, onWater = false) {
   if (state === 'drinking') return 'drinking';
   if (state === 'grooming') return 'grooming';
   const action = kitty.last_action?.action;
-  if (action === 'play' || action === 'chase') return 'pouncing';
+  // Play is never gated: every targeted Play is adjacent by lawfulness
+  // (the engine requires it), and solo play has no target at all.
+  if (action === 'play') return 'pouncing';
+  // A chase pounces once its quarry is within reach. `null` means the
+  // target could not be resolved -- caught or expired this very tick, or
+  // a v1 caller passing no distance -- and an unknown quarry keeps the
+  // pounce, so the gate only ever takes it away on positive evidence.
+  if (action === 'chase' && (chaseDist === null || chaseDist <= dials.pounceGateTiles)) {
+    return 'pouncing';
+  }
   if (onWater) return 'swim';
   if (moved) return 'walking';
   return 'idle';
+}
+
+/**
+ * Manhattan tiles from a kitty to whatever its applied chase named, or
+ * null when it is not chasing or the quarry is no longer served.
+ *
+ * Measured against the same served state the frame draws, which is
+ * exactly what the gate should see -- nothing here predicts (Article V).
+ */
+function chaseDistanceFor(kitty, world) {
+  const ref = kitty.last_action;
+  if (ref?.action !== 'chase') return null;
+  const pos =
+    ref.target === 'element'
+      ? world.elements.find((el) => el.id === ref.id)?.pos
+      : world.kitties.find((k) => k.id === ref.id)?.pos;
+  if (!pos) return null;
+  return Math.abs(kitty.pos.x - pos.x) + Math.abs(kitty.pos.y - pos.y);
 }
 
 /** The cat's own ground line, in its 0..1 unit space (see cat-v2). */
@@ -637,7 +664,10 @@ class WorldRenderer {
     // facing from its last horizontal movement, motion from the animation
     // layer -- and the drama layered by the documented rule: pose, then
     // action animation, then expression, then the single one-shot beat.
-    const pose = view.adjustPose(kitty.id, poseFor(kitty, view.movedFor(kitty.id), onWater));
+    const pose = view.adjustPose(
+      kitty.id,
+      poseFor(kitty, view.movedFor(kitty.id), onWater, chaseDistanceFor(kitty, world)),
+    );
 
     const motion = view.motionFor(kitty.id, pose);
     const beat = view.oneShotFor(kitty.id);
