@@ -24,14 +24,19 @@
 
 use cloudkitty_core::action;
 use cloudkitty_core::kitty::KittyId;
+use cloudkitty_core::meow::message_legal;
 use cloudkitty_core::world::{World, WorldSnapshot};
 use cloudkitty_core::Config;
 
 use crate::codec::ActionCodec;
-use crate::observe::TargetTable;
+use crate::observe::{TargetTable, HEAD_KINDS};
 
-/// Versioned with the codec (contracts/encodings.md).
-pub const MASK_SCHEMA_VERSION: u32 = 1;
+/// Versioned with the codec. Schema 2 (spec 028, encodings-v2.md): the
+/// serialized wire is one vector, `[activity mask (menu_len) | message
+/// mask (9)]` -- 43 at default slots. Both halves are pure oracles over
+/// engine law; neither is ever all-zero (activity: FR-018 structural;
+/// message: Silent always legal).
+pub const MASK_SCHEMA_VERSION: u32 = 2;
 
 /// Computes the legal-action mask for `kitty_id` against the frozen
 /// snapshot. One bool per menu entry, in menu order.
@@ -58,6 +63,26 @@ pub fn legal_action_mask(
         .collect()
 }
 
+/// The legal-message mask for `kitty_id` (spec 028): one bool per head
+/// index -- 0 (Silent) always true, k+1 probes the engine's own
+/// `message_legal` for `HEAD_KINDS[k]`. The same no-reimplementation
+/// doctrine as the activity mask: the ruling is the engine's function,
+/// called, never copied.
+pub fn legal_message_mask(
+    snapshot: &WorldSnapshot,
+    kitty_id: KittyId,
+    config: &Config,
+) -> Vec<bool> {
+    let mut mask = vec![false; 1 + HEAD_KINDS.len()];
+    mask[0] = true; // Silence is always legal -- structural, never all-zero.
+    if let Some(kitty) = snapshot.kitty(kitty_id) {
+        for (k, &kind) in HEAD_KINDS.iter().enumerate() {
+            mask[k + 1] = message_legal(kitty, kind, snapshot.tick, config);
+        }
+    }
+    mask
+}
+
 /// The mask as bytes (0/1), the shape the Python surface exposes.
 pub fn mask_bytes(mask: &[bool]) -> Vec<u8> {
     mask.iter().map(|&b| u8::from(b)).collect()
@@ -77,52 +102,16 @@ mod tests {
         let (world, config) = test_world();
         let snapshot = world.snapshot();
         let cfg = ObservationConfig::default();
-        let codec = ActionCodec::v1(&cfg);
+        let codec = ActionCodec::v2(&cfg);
         let table = TargetTable::build(&snapshot, 1, &cfg);
 
         let mask = legal_action_mask(&snapshot, 1, &table, &codec, &config);
-        assert_eq!(mask.len(), 40);
-        assert!(mask[39], "idle is genuinely legal outside an activity");
+        assert_eq!(mask.len(), 34, "menu v2: the meow rows are gone");
+        assert!(mask[33], "idle (renumbered, spec 028) is genuinely legal");
         assert!(mask[4], "solo rest is always legal");
         assert!(mask[12], "self-groom is always legal");
         assert!(mask[25], "solo play is always legal");
         assert!(mask.iter().filter(|&&b| b).count() >= 4);
-    }
-
-    #[test]
-    fn the_purr_row_is_earned_gated_with_no_mask_side_carve_out() {
-        // Spec 022 FR-004: row 38 (the purr-meow) is the one earned-gated
-        // meow row. The gate lives in `action::validate`; this test goes
-        // through the ordinary mask path, so it also proves no carve-out
-        // was added on the mask side.
-        let (mut world, config) = test_world();
-        let cfg = ObservationConfig::default();
-        let codec = ActionCodec::v1(&cfg);
-
-        let idx = world.kitty_index(1).unwrap();
-        world.kitties[idx].happiness = 50.0;
-        world.kitties[idx].happiness_rose = false;
-        let snapshot = world.snapshot();
-        let table = TargetTable::build(&snapshot, 1, &cfg);
-        let mask = legal_action_mask(&snapshot, 1, &table, &codec, &config);
-        assert!(!mask[38], "an unearned kitty cannot choose to purr");
-        assert!(
-            mask[39],
-            "idle keeps the mask from ever going all-zero (structural rule)"
-        );
-
-        world.kitties[idx].happiness = 90.0;
-        let snapshot = world.snapshot();
-        let table = TargetTable::build(&snapshot, 1, &cfg);
-        let mask = legal_action_mask(&snapshot, 1, &table, &codec, &config);
-        assert!(mask[38], "an earned kitty may choose to purr");
-
-        world.kitties[idx].happiness = 50.0;
-        world.kitties[idx].happiness_rose = true;
-        let snapshot = world.snapshot();
-        let table = TargetTable::build(&snapshot, 1, &cfg);
-        let mask = legal_action_mask(&snapshot, 1, &table, &codec, &config);
-        assert!(mask[38], "a brightening kitty may choose to purr (rose)");
     }
 
     #[test]
@@ -138,7 +127,7 @@ mod tests {
 
         let snapshot = world.snapshot();
         let cfg = ObservationConfig::default();
-        let codec = ActionCodec::v1(&cfg);
+        let codec = ActionCodec::v2(&cfg);
         let table = TargetTable::build(&snapshot, 1, &cfg);
         let mask = legal_action_mask(&snapshot, 1, &table, &codec, &config);
 
@@ -155,7 +144,7 @@ mod tests {
         let (world, config) = test_world();
         let snapshot = world.snapshot();
         let cfg = ObservationConfig::default();
-        let codec = ActionCodec::v1(&cfg);
+        let codec = ActionCodec::v2(&cfg);
         for kitty in &snapshot.kitties {
             let table = TargetTable::build(&snapshot, kitty.id, &cfg);
             let mask = legal_action_mask(&snapshot, kitty.id, &table, &codec, &config);

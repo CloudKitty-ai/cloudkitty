@@ -29,7 +29,9 @@ use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 pub const ARTIFACT_MAGIC: &[u8; 8] = b"CKPOLICY";
-pub const ARTIFACT_VERSION: u32 = 1;
+/// v2 (spec 028): one trunk, two heads -- the final layer's out-width is
+/// menu_len + message_head_len, logits split by index convention.
+pub const ARTIFACT_VERSION: u32 = 2;
 
 #[derive(Debug, Error)]
 pub enum ArtifactError {
@@ -68,6 +70,10 @@ pub struct SchemaExpectations {
     pub mask_schema: u32,
     pub observation_len: usize,
     pub menu_len: usize,
+    /// Spec 028: the message head's width (9). The final layer emits
+    /// menu_len + message_head_len logits; `[0..menu_len)` is the activity
+    /// head, `[menu_len..)` the message head.
+    pub message_head_len: usize,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -173,11 +179,15 @@ impl PolicyArtifact {
                 header.layers[0][0], expected.observation_len
             )));
         }
-        if header.layers.last().unwrap()[1] != expected.menu_len {
+        let two_head = expected.menu_len + expected.message_head_len;
+        if header.layers.last().unwrap()[1] != two_head {
             return Err(ArtifactError::Shape(format!(
-                "output width {} does not match the menu size {}",
+                "output width {} does not match the two-head width {} \
+                 (menu {} + message head {})",
                 header.layers.last().unwrap()[1],
-                expected.menu_len
+                two_head,
+                expected.menu_len,
+                expected.message_head_len
             )));
         }
         for pair in header.layers.windows(2) {
@@ -304,12 +314,15 @@ mod tests {
     }
 
     fn expectations(input: usize, output: usize) -> SchemaExpectations {
+        // Tests shape the head split as menu = output - 1, message head = 1:
+        // the two-head width is what load checks, not the split itself.
         SchemaExpectations {
             observation_schema: OBSERVATION_SCHEMA_VERSION,
             action_schema: 1,
             mask_schema: 1,
             observation_len: input,
-            menu_len: output,
+            menu_len: output - 1,
+            message_head_len: 1,
         }
     }
 

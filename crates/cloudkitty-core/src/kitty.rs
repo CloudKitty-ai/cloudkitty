@@ -306,6 +306,14 @@ pub struct Kitty {
     /// snapshots: immediately eligible.
     #[serde(default)]
     pub purr_cooldown_until: u64,
+    /// Needs currently armed for announcement (spec 028): a want-kind is
+    /// speakable only while its need is armed. Armed at `>= [meow]
+    /// announce_threshold`, disarmed below `threshold - hysteresis`, held
+    /// in the band -- updated in the needs phase beside distress, same
+    /// edge-rule style, no RNG. Absent in pre-028 snapshots: disarmed,
+    /// and re-armed honestly on the first needs phase.
+    #[serde(default, skip_serializing_if = "BTreeSet::is_empty")]
+    pub announce_armed: BTreeSet<NeedKind>,
 }
 
 impl Kitty {
@@ -335,6 +343,7 @@ impl Kitty {
             purring_until: None,
             purring_duration: None,
             purr_cooldown_until: 0,
+            announce_armed: BTreeSet::new(),
         }
     }
 
@@ -480,6 +489,42 @@ mod tests {
             0,
             "never = dawn of time"
         );
+    }
+
+    #[test]
+    fn a_pre_028_kitty_json_deserializes_disarmed() {
+        // Spec 028 (FR-022): a pre-028 kitty carries no announce_armed key
+        // and loads disarmed; the first needs phase re-arms honestly from
+        // the loaded need values. Wire hygiene both ways: empty sets are
+        // absent when serialized, armed sets round-trip.
+        let json = r#"{
+            "id": 1, "name": "Miso", "pos": {"x": 3, "y": 3},
+            "needs": {"eat": 80.0, "drink": 30.0, "sleep": 30.0,
+                      "play": 30.0, "cuddle": 30.0, "bath": 30.0},
+            "happiness": 80.0,
+            "activity": {"state": "idle"},
+            "behavior": "needs_driven",
+            "meow_cooldowns": {"want_eat": 120},
+            "in_distress": [],
+            "happiness_rose": false
+        }"#;
+        let k: Kitty = serde_json::from_str(json).unwrap();
+        assert!(
+            k.announce_armed.is_empty(),
+            "pre-028 kitties load disarmed, whatever their needs say"
+        );
+        let out = serde_json::to_string(&k).unwrap();
+        assert!(
+            !out.contains("announce_armed"),
+            "an empty set stays off the wire"
+        );
+
+        let mut armed = k.clone();
+        armed.announce_armed.insert(NeedKind::Eat);
+        let out = serde_json::to_string(&armed).unwrap();
+        assert!(out.contains("announce_armed"), "armed state rides the wire");
+        let back: Kitty = serde_json::from_str(&out).unwrap();
+        assert_eq!(back.announce_armed, armed.announce_armed);
     }
 
     #[test]

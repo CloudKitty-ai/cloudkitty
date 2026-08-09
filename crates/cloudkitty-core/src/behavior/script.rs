@@ -50,6 +50,7 @@ use super::{Behavior, DecisionContext};
 use crate::action::{parse_proposal_value, Action, ProposalError, PROPOSAL_WIRE_VERSION};
 use crate::config::Config;
 use crate::kitty::{Kitty, KittyId};
+use crate::seam::Decision;
 use crate::world::WorldSnapshot;
 
 /// One decision request, engine -> plugin, as one line of JSON. Everything a
@@ -340,7 +341,7 @@ impl ScriptBehavior {
 
 #[async_trait]
 impl Behavior for ScriptBehavior {
-    async fn decide(&self, _ctx: &DecisionContext) -> Action {
+    async fn decide(&self, _ctx: &DecisionContext) -> Decision {
         // Dispatch resolves external advisors through try_decide; a caller
         // reaching this arm is a bug, and the panic is the safe answer --
         // run_catching converts it (even through a decide-only delegating
@@ -351,7 +352,7 @@ impl Behavior for ScriptBehavior {
 
     /// `None` on any failure: dispatch takes the crashed-advisor path and
     /// the fallback decides from the dealt seed (amended Article IV).
-    async fn try_decide(&self, ctx: &DecisionContext) -> Option<Action> {
+    async fn try_decide(&self, ctx: &DecisionContext) -> Option<Decision> {
         let now = ctx.world.tick;
         let kitty = ctx.me.id;
         let behavior_config = &ctx.config.behavior;
@@ -387,7 +388,11 @@ impl Behavior for ScriptBehavior {
             behavior_config.reply_max_bytes,
             Duration::from_millis(behavior_config.exchange_timeout_ms),
         ) {
-            Ok(action) => Some(action),
+            // A plugin still speaks bare actions (spec 016 wire): its
+            // proposal arrives as a silent decision. An Action::Meow it
+            // proposes stays an *activity* -- post-028 that validates false
+            // (lawful degradation, the Purr precedent), never a message.
+            Ok(action) => Some(Decision::silent(action)),
             Err(failure) => {
                 // Log with the operator-facing shape research R8 promises,
                 // then decide whether the stream survives.

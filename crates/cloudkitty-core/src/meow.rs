@@ -1,11 +1,10 @@
 //! Kitty communication.
 //!
-//! Six fixed messages, visible to every other kitty and to viewers. The engine
-//! never blocks one (spec 023): every meow a kitty spends its turn on is heard.
-//! Each message type keeps a per-kitty *courtesy* record -- an interval that
-//! shortens when the related need gets urgent -- which the scripted behaviors
-//! consult voluntarily before repeating themselves. Manners, not law: learned
-//! agents are governed by the turn cost alone.
+//! Eight announceable kinds plus the engine's patience word, visible to every
+//! other kitty and to viewers. Spec 028 ended the courtesy era: emission
+//! stamps a per-kind cooldown of one audibility window, and (once the message
+//! channel lands) legality is engine law -- a want-kind may be spoken only
+//! while its need is armed and that kind's cooldown has cleared.
 
 use serde::{Deserialize, Serialize};
 
@@ -25,10 +24,14 @@ pub enum MessageKind {
     /// approach holds its corner and asks its partner to close the gap.
     /// Emitted by the yield rule only -- nothing else may spend it.
     WaitForMe,
+    /// Spec 028: the two silent needs get their words. Appended so the
+    /// existing six keep their normative positions.
+    WantBath,
+    WantSleep,
 }
 
 impl MessageKind {
-    pub const ALL: [MessageKind; 7] = [
+    pub const ALL: [MessageKind; 9] = [
         MessageKind::WantEat,
         MessageKind::WantDrink,
         MessageKind::FollowMe,
@@ -36,30 +39,88 @@ impl MessageKind {
         MessageKind::WantCuddle,
         MessageKind::Purr,
         MessageKind::WaitForMe,
+        MessageKind::WantBath,
+        MessageKind::WantSleep,
     ];
 
-    /// The need whose urgency shortens this message's cooldown. `FollowMe`,
-    /// `Purr` and `WaitForMe` have none, so they always use the base cooldown
-    /// -- urgency should not shorten a word whose meaning is patience.
+    /// The need this message asks about. `FollowMe`, `Purr` and `WaitForMe`
+    /// have none -- they are social words, not requests.
     pub fn related_need(&self) -> Option<NeedKind> {
         match self {
             MessageKind::WantEat => Some(NeedKind::Eat),
             MessageKind::WantDrink => Some(NeedKind::Drink),
             MessageKind::WantPlay => Some(NeedKind::Play),
             MessageKind::WantCuddle => Some(NeedKind::Cuddle),
+            MessageKind::WantBath => Some(NeedKind::Bath),
+            MessageKind::WantSleep => Some(NeedKind::Sleep),
             MessageKind::FollowMe | MessageKind::Purr | MessageKind::WaitForMe => None,
         }
     }
 
-    /// The message a kitty would use to ask for help with `need`, if any.
-    pub fn for_need(need: NeedKind) -> Option<MessageKind> {
-        match need {
-            NeedKind::Eat => Some(MessageKind::WantEat),
-            NeedKind::Drink => Some(MessageKind::WantDrink),
-            NeedKind::Play => Some(MessageKind::WantPlay),
-            NeedKind::Cuddle => Some(MessageKind::WantCuddle),
-            NeedKind::Sleep | NeedKind::Bath => None,
+    /// The wire spelling (serde's snake_case tag) as a static string --
+    /// the one spelling every surface reports (spec 028 R17: the py
+    /// binding's Debug-spelling wart died with this).
+    pub fn wire_name(&self) -> &'static str {
+        match self {
+            MessageKind::WantEat => "want_eat",
+            MessageKind::WantDrink => "want_drink",
+            MessageKind::FollowMe => "follow_me",
+            MessageKind::WantPlay => "want_play",
+            MessageKind::WantCuddle => "want_cuddle",
+            MessageKind::Purr => "purr",
+            MessageKind::WaitForMe => "wait_for_me",
+            MessageKind::WantBath => "want_bath",
+            MessageKind::WantSleep => "want_sleep",
         }
+    }
+
+    /// The message a kitty uses to ask for help with `need`. Total since
+    /// spec 028: every need is announceable.
+    pub fn for_need(need: NeedKind) -> MessageKind {
+        match need {
+            NeedKind::Eat => MessageKind::WantEat,
+            NeedKind::Drink => MessageKind::WantDrink,
+            NeedKind::Play => MessageKind::WantPlay,
+            NeedKind::Cuddle => MessageKind::WantCuddle,
+            NeedKind::Bath => MessageKind::WantBath,
+            NeedKind::Sleep => MessageKind::WantSleep,
+        }
+    }
+}
+
+/// Engine law (spec 028): may `kitty` speak `kind` at `tick`? Silence is
+/// the absence of a message and needs no ruling -- this covers the spoken
+/// kinds. The RL message mask derives from here by probing, exactly as the
+/// activity mask probes `validate` (the no-carve-outs doctrine).
+///
+/// The full table: a want-kind needs its grounding need armed (threshold +
+/// hysteresis state, updated in the needs phase) AND its per-kind cooldown
+/// clear -- one live digest entry per kind per emitter, certified. The
+/// social words have no grounding to claim: FollowMe is cooldown-gated
+/// only; Purr is earned-only (the retired purr-meow's validate gate,
+/// byte-faithful); WaitForMe is cooldown-gated and head-excluded (the
+/// engine's yield rule proposes it; policies cannot).
+///
+/// WaitForMe's yield-rule-only vocabulary rule (spec 012) is convention,
+/// not law -- guarded at the head, not the seam. A trusted in-process
+/// caller CAN pass legality with it on a clear cooldown, deliberately:
+/// replay instruments re-propose recorded decisions through the typed
+/// seam, and a provenance guard (or debug_assert) here would downgrade a
+/// recorded yield-rule WaitForMe and break bit-exact replay. Python and
+/// plugins cannot reach it either way.
+pub fn message_legal(
+    kitty: &crate::kitty::Kitty,
+    kind: MessageKind,
+    tick: u64,
+    config: &crate::config::Config,
+) -> bool {
+    match kind {
+        MessageKind::Purr => kitty.purr_earned(config.thresholds.purr),
+        MessageKind::FollowMe | MessageKind::WaitForMe => kitty.can_meow(kind, tick),
+        want => match want.related_need() {
+            Some(need) => kitty.announce_armed.contains(&need) && kitty.can_meow(want, tick),
+            None => unreachable!("every remaining kind is need-backed"),
+        },
     }
 }
 
@@ -68,22 +129,25 @@ pub struct Meow {
     pub kitty_id: KittyId,
     pub kind: MessageKind,
     pub tick: u64,
+    /// Spec 028: the grounding need's value at emission, /100 (want-kinds);
+    /// 0.0 for the social words. Pre-028 snapshots read 0.0.
+    #[serde(default)]
+    pub intensity: f32,
 }
 
-/// The courtesy interval stamped when `kind` is emitted, given how urgent
-/// the related need currently is (spec 023: record-keeping the scripted
-/// behaviors consult -- the engine enforces nothing with it).
-pub fn cooldown_for(
-    kind: MessageKind,
-    need_value: Option<f32>,
-    base_ticks: u64,
-    urgent_ticks: u64,
-    urgent_threshold: f32,
-) -> u64 {
-    match (kind.related_need(), need_value) {
-        (Some(_), Some(value)) if value >= urgent_threshold => urgent_ticks,
-        _ => base_ticks,
-    }
+/// The audible-emitter selection rule (spec 028), shared by the
+/// observation digest and the scripted groom responder: among meows of
+/// `kind`, the freshest wins (max tick), a tie falls to the LOWER kitty
+/// id -- hence the deliberately reversed id comparison inside the
+/// `max_by` -- and the listener's own emissions are never audible to
+/// itself. FR-019's imitability guarantee (the responder keys on exactly
+/// what the digest shows) holds only while both sides call this one
+/// function; do not re-derive it in place.
+pub fn freshest_audible(meows: &[Meow], kind: MessageKind, listener: KittyId) -> Option<&Meow> {
+    meows
+        .iter()
+        .filter(|m| m.kind == kind && m.kitty_id != listener)
+        .max_by(|a, b| a.tick.cmp(&b.tick).then(b.kitty_id.cmp(&a.kitty_id)))
 }
 
 #[cfg(test)]
@@ -91,65 +155,69 @@ mod tests {
     use super::*;
 
     #[test]
-    fn urgent_needs_shorten_the_cooldown() {
-        // Below the urgency threshold: base cooldown.
+    fn freshest_audible_takes_max_tick_ties_to_the_lower_id_and_never_self() {
+        let m = |kitty_id: KittyId, tick: u64| Meow {
+            kitty_id,
+            kind: MessageKind::WantBath,
+            tick,
+            intensity: 0.0,
+        };
+        let meows = vec![
+            m(5, 10),
+            m(2, 12),
+            m(7, 12), // same tick as id 2: the LOWER id must win
+            m(3, 8),
+        ];
+        let picked = freshest_audible(&meows, MessageKind::WantBath, 9).unwrap();
         assert_eq!(
-            cooldown_for(MessageKind::WantEat, Some(50.0), 15, 5, 75.0),
-            15
+            (picked.kitty_id, picked.tick),
+            (2, 12),
+            "tie to the lower id"
         );
-        // At or above it: the shortened one.
-        assert_eq!(
-            cooldown_for(MessageKind::WantEat, Some(75.0), 15, 5, 75.0),
-            5
-        );
-        assert_eq!(
-            cooldown_for(MessageKind::WantEat, Some(99.0), 15, 5, 75.0),
-            5
-        );
-    }
 
-    #[test]
-    fn messages_without_a_related_need_always_use_the_base_cooldown() {
-        assert_eq!(
-            cooldown_for(MessageKind::FollowMe, Some(100.0), 15, 5, 75.0),
-            15
-        );
-        assert_eq!(
-            cooldown_for(MessageKind::Purr, Some(100.0), 15, 5, 75.0),
-            15
-        );
-        assert_eq!(MessageKind::Purr.related_need(), None);
+        // The listener's own freshest emission is inaudible to itself.
+        let picked = freshest_audible(&meows, MessageKind::WantBath, 2).unwrap();
+        assert_eq!(picked.kitty_id, 7, "self excluded, next claimant wins");
+
+        // Kind filter is exact; a different kind hears nothing.
+        assert!(freshest_audible(&meows, MessageKind::WantPlay, 9).is_none());
     }
 
     #[test]
     fn wait_for_me_is_a_patience_word() {
-        // Spec 012: in the vocabulary, base cooldown class (urgency never
-        // shortens a word whose meaning is patience), wire name stable.
+        // Spec 012: in the vocabulary, no related need (urgency never
+        // touches a word whose meaning is patience), wire name stable.
         assert!(MessageKind::ALL.contains(&MessageKind::WaitForMe));
         assert_eq!(MessageKind::WaitForMe.related_need(), None);
         assert_eq!(
             serde_json::to_string(&MessageKind::WaitForMe).unwrap(),
             "\"wait_for_me\""
         );
-        assert_eq!(
-            cooldown_for(MessageKind::WaitForMe, None, 15, 5, 75.0),
-            15,
-            "always the base cooldown"
-        );
+    }
+
+    #[test]
+    fn wire_names_match_the_serde_tags_for_every_kind() {
+        for kind in MessageKind::ALL {
+            let tag = serde_json::to_value(kind).unwrap();
+            assert_eq!(tag.as_str().unwrap(), kind.wire_name(), "{kind:?}");
+        }
     }
 
     #[test]
     fn need_to_message_mapping_round_trips() {
-        for need in [
-            NeedKind::Eat,
-            NeedKind::Drink,
-            NeedKind::Play,
-            NeedKind::Cuddle,
-        ] {
-            let msg = MessageKind::for_need(need).expect("mapped message");
+        // Spec 028: total both ways -- every need has its word, and every
+        // want-kind points back at its need.
+        for need in NeedKind::ALL {
+            let msg = MessageKind::for_need(need);
             assert_eq!(msg.related_need(), Some(need));
         }
-        assert_eq!(MessageKind::for_need(NeedKind::Sleep), None);
-        assert_eq!(MessageKind::for_need(NeedKind::Bath), None);
+        assert_eq!(
+            serde_json::to_string(&MessageKind::WantBath).unwrap(),
+            "\"want_bath\""
+        );
+        assert_eq!(
+            serde_json::to_string(&MessageKind::WantSleep).unwrap(),
+            "\"want_sleep\""
+        );
     }
 }

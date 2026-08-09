@@ -20,7 +20,52 @@ use crate::behavior::{resolve_decisions, BehaviorRegistry};
 use crate::config::Config;
 use crate::events::{ActivityEnd, DistressEvent};
 use crate::kitty::KittyId;
+use crate::meow::MessageKind;
 use crate::world::World;
+
+/// One kitty's full decision (spec 028): an activity to spend the turn on
+/// and, riding along, an optional message. `None` is silence -- the message
+/// channel never costs the turn, and the pair is the only carrier shape any
+/// decider returns.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct Decision {
+    pub activity: Action,
+    /// `None` = Silent. Engine-legality is enforced at apply: an illegal
+    /// message downgrades to Silent; the paired activity is untouched.
+    pub message: Option<MessageKind>,
+}
+
+impl Decision {
+    /// An activity with nothing to say.
+    pub fn silent(activity: Action) -> Self {
+        Self {
+            activity,
+            message: None,
+        }
+    }
+
+    /// Transitional (spec 028): maps the retiring turn-spending meow onto
+    /// the two-channel shape -- `Action::Meow` becomes an idle turn carrying
+    /// the message; everything else is silent. Dies with the last internal
+    /// `Action::Meow` producer (T012's announce rule).
+    pub fn from_legacy(action: Action) -> Self {
+        match action {
+            Action::Meow { message } => Self {
+                activity: Action::Idle,
+                message: Some(message),
+            },
+            other => Self::silent(other),
+        }
+    }
+}
+
+impl From<Action> for Decision {
+    /// A bare activity is a silent decision -- the conversion typed drivers
+    /// lean on so proposing an `Action` keeps meaning what it always meant.
+    fn from(activity: Action) -> Self {
+        Self::silent(activity)
+    }
+}
 
 /// How a dispatched decision came to be (spec 014 FR-017). Every headlessly
 /// dispatched decision carries one of these marks, so a broken advisor can
@@ -81,7 +126,7 @@ impl DealtSeeds {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ResolvedDecision {
     pub kitty_id: KittyId,
-    pub action: Action,
+    pub decision: Decision,
     /// The seed this kitty's `DecisionRng` was built from this tick.
     pub seed: u64,
     pub provenance: Provenance,
@@ -94,7 +139,7 @@ pub struct ResolvedDecision {
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ProposalEntry {
-    Action(Action),
+    Decision(Decision),
     Malformed,
 }
 
@@ -114,18 +159,25 @@ impl JointProposal {
         Self::default()
     }
 
-    pub fn from_actions(actions: impl IntoIterator<Item = (KittyId, Action)>) -> Self {
+    /// Builds a proposal set from anything decision-shaped: `(id, Action)`
+    /// pairs propose silent decisions (the pre-028 meaning, preserved), and
+    /// `(id, Decision)` pairs carry a message.
+    pub fn from_actions<D: Into<Decision>>(
+        actions: impl IntoIterator<Item = (KittyId, D)>,
+    ) -> Self {
         let mut joint = Self::new();
-        for (id, action) in actions {
-            joint.propose(id, action);
+        for (id, decision) in actions {
+            joint.propose(id, decision);
         }
         joint
     }
 
-    /// Proposes `action` for `kitty_id`. A second proposal for the same kitty
-    /// replaces the first (last write wins).
-    pub fn propose(&mut self, kitty_id: KittyId, action: Action) {
-        self.entries.insert(kitty_id, ProposalEntry::Action(action));
+    /// Proposes a decision for `kitty_id` -- a bare `Action` proposes it
+    /// silently. A second proposal for the same kitty replaces the first
+    /// (last write wins).
+    pub fn propose(&mut self, kitty_id: KittyId, decision: impl Into<Decision>) {
+        self.entries
+            .insert(kitty_id, ProposalEntry::Decision(decision.into()));
     }
 
     /// Records that a proposal for `kitty_id` arrived but could not be
@@ -162,6 +214,14 @@ pub struct KittyTickRecord {
     pub proposed: Action,
     pub validated: Action,
     pub applied: Action,
+    /// Spec 028: the message the decision carried, and the one that actually
+    /// emitted. An illegal message shows as proposed != applied (Silent) --
+    /// there is no separate message provenance; activity provenance is
+    /// untouched by the channel.
+    #[serde(default)]
+    pub proposed_message: Option<MessageKind>,
+    #[serde(default)]
+    pub applied_message: Option<MessageKind>,
     pub provenance: Provenance,
     pub decision_seed: u64,
 }
@@ -206,16 +266,16 @@ pub fn drive_tick(
     config: &Arc<Config>,
 ) -> DrivenTick {
     let resolved = resolve_decisions(world, registry, config);
-    let decisions: Vec<(KittyId, Action)> =
-        resolved.iter().map(|r| (r.kitty_id, r.action)).collect();
-    let outcome = world.run_applied_phases(&decisions, config);
+    let decisions: Vec<(KittyId, Decision)> =
+        resolved.iter().map(|r| (r.kitty_id, r.decision)).collect();
+    let outcome = world.run_applied_phases_from_decisions(&decisions, config);
 
     // `resolved` is already in stable id order (the resolver iterates the
     // roster), so the records need no re-sort.
     let records = outcome.records(
         resolved
             .iter()
-            .map(|r| (r.kitty_id, r.action, r.provenance, r.seed)),
+            .map(|r| (r.kitty_id, r.decision, r.provenance, r.seed)),
     );
 
     DrivenTick {
@@ -226,5 +286,30 @@ pub fn drive_tick(
             unconsumed: Vec::new(),
         },
         proposals: JointProposal::from_actions(decisions),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_legacy_mapping_rides_the_channel() {
+        // Transitional (spec 028): from_legacy lifts the retiring
+        // turn-spending meow onto the two-channel shape -- the message
+        // rides, the turn is idle -- and leaves everything else silent.
+        let d = Decision::from_legacy(Action::Meow {
+            message: MessageKind::WantPlay,
+        });
+        assert_eq!(
+            (d.activity, d.message),
+            (Action::Idle, Some(MessageKind::WantPlay))
+        );
+        assert_eq!(
+            Decision::from_legacy(Action::Eat),
+            Decision::silent(Action::Eat)
+        );
+        // A bare activity converts silently -- the typed-driver promise.
+        assert_eq!(Decision::from(Action::Eat).message, None);
     }
 }

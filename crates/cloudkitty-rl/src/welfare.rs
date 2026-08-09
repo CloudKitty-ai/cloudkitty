@@ -88,6 +88,14 @@ pub struct WelfareAccumulator {
     max_distress_age: u64,
     pinned_streaks: BTreeMap<(usize, NeedKind), u64>,
     max_pinned: BTreeMap<(usize, NeedKind), u64>,
+    // The distress-tick census (spec 028 FR-023): the instrument's verbatim
+    // convention — post-tick, at-or-above the distress threshold counts the
+    // tick; the below→at/above edge counts the episode. Reported, never
+    // gated: no verdict reads these.
+    distress_threshold: f32,
+    distress_ticks: BTreeMap<(usize, NeedKind), u64>,
+    distress_episodes: BTreeMap<(usize, NeedKind), u64>,
+    distress_above: BTreeMap<(usize, NeedKind), bool>,
 }
 
 impl WelfareAccumulator {
@@ -106,6 +114,10 @@ impl WelfareAccumulator {
             max_distress_age: 0,
             pinned_streaks: BTreeMap::new(),
             max_pinned: BTreeMap::new(),
+            distress_threshold: config.thresholds.distress,
+            distress_ticks: BTreeMap::new(),
+            distress_episodes: BTreeMap::new(),
+            distress_above: BTreeMap::new(),
         }
     }
 
@@ -131,6 +143,24 @@ impl WelfareAccumulator {
             for since in kitty.distress_since.values() {
                 self.max_distress_age =
                     self.max_distress_age.max(world.tick.saturating_sub(*since));
+            }
+        }
+
+        // The census pass (spec 028): the instrument's counting rule,
+        // verbatim -- post-tick values, >= threshold, edge below→at/above.
+        for idx in 0..n {
+            for kind in NeedKind::ALL {
+                let key = (idx, kind);
+                let above = self.distress_above.entry(key).or_insert(false);
+                if world.kitties[idx].needs.get(kind) >= self.distress_threshold {
+                    *self.distress_ticks.entry(key).or_insert(0) += 1;
+                    if !*above {
+                        *self.distress_episodes.entry(key).or_insert(0) += 1;
+                        *above = true;
+                    }
+                } else {
+                    *above = false;
+                }
             }
         }
 
@@ -174,13 +204,57 @@ impl WelfareAccumulator {
                 streak,
             })
             .collect();
+        let distress_census = (0..self.ids.len())
+            .map(|idx| {
+                let by_need = NeedKind::ALL
+                    .into_iter()
+                    .filter_map(|kind| {
+                        let ticks = self.distress_ticks.get(&(idx, kind)).copied().unwrap_or(0);
+                        (ticks > 0).then(|| {
+                            (
+                                kind.as_str().to_string(),
+                                NeedCount {
+                                    ticks,
+                                    episodes: self
+                                        .distress_episodes
+                                        .get(&(idx, kind))
+                                        .copied()
+                                        .unwrap_or(0),
+                                },
+                            )
+                        })
+                    })
+                    .collect();
+                KittyDistressCounts {
+                    kitty_id: self.ids[idx],
+                    name: self.names[idx].clone(),
+                    by_need,
+                }
+            })
+            .collect();
         WelfareReport {
             ticks: self.ticks,
             kitties,
             max_distress_age: self.max_distress_age,
             pinned,
+            distress_census,
         }
     }
+}
+
+/// One kitty's distress-tick census row (spec 028): kinds with zero ticks
+/// are omitted from the map, kitties are always present.
+#[derive(Debug, Clone, Serialize, PartialEq)]
+pub struct KittyDistressCounts {
+    pub kitty_id: KittyId,
+    pub name: String,
+    pub by_need: BTreeMap<String, NeedCount>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, PartialEq)]
+pub struct NeedCount {
+    pub ticks: u64,
+    pub episodes: u64,
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq)]
@@ -207,6 +281,9 @@ pub struct WelfareReport {
     pub kitties: Vec<KittyWelfare>,
     pub max_distress_age: u64,
     pub pinned: Vec<PinnedStreak>,
+    /// The distress-tick census (spec 028 FR-023): reported in every JSON
+    /// and exam outcome, consumed by no verdict this generation.
+    pub distress_census: Vec<KittyDistressCounts>,
 }
 
 impl WelfareReport {

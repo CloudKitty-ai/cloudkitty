@@ -10,7 +10,7 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use cloudkitty_core::behavior::{Behavior, DecisionContext};
 use cloudkitty_core::config::{ElementRule, ElementsConfig, KittyConfig, WorldConfig};
-use cloudkitty_core::{Action, BehaviorRegistry, Config, World};
+use cloudkitty_core::{BehaviorRegistry, Config, Decision, World};
 
 /// Wraps a behavior and counts what it proposes, without changing any of it.
 struct Counting {
@@ -21,13 +21,13 @@ struct Counting {
 
 #[async_trait]
 impl Behavior for Counting {
-    async fn decide(&self, ctx: &DecisionContext) -> Action {
-        let action = self.inner.decide(ctx).await;
-        if action.is_playful() {
+    async fn decide(&self, ctx: &DecisionContext) -> Decision {
+        let decision = self.inner.decide(ctx).await;
+        if decision.activity.is_playful() {
             self.playful.fetch_add(1, Ordering::Relaxed);
         }
         self.total.fetch_add(1, Ordering::Relaxed);
-        action
+        decision
     }
 
     fn is_builtin(&self) -> bool {

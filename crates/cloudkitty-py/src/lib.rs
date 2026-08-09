@@ -61,7 +61,11 @@ fn provenance_str(p: Provenance) -> &'static str {
 
 fn episode_err(e: EpisodeError) -> PyErr {
     match e {
-        EpisodeError::ActionOutOfRange { .. } => PyIndexError::new_err(e.to_string()),
+        // Both halves of the pair raise IndexError on a bad index, matching
+        // VectorEnv's pre-check -- one exception type per fault class.
+        EpisodeError::ActionOutOfRange { .. } | EpisodeError::MessageOutOfRange { .. } => {
+            PyIndexError::new_err(e.to_string())
+        }
         EpisodeError::SteppedAfterTruncation | EpisodeError::Panicked { .. } => {
             PyRuntimeError::new_err(e.to_string())
         }
@@ -115,6 +119,8 @@ fn info_to_py<'py>(py: Python<'py>, info: &AgentInfo) -> PyResult<Bound<'py, PyD
     let dict = PyDict::new(py);
     dict.set_item("applied_action", info.applied_action)?;
     dict.set_item("applied_action_name", info.applied_action_name)?;
+    dict.set_item("applied_message", info.applied_message)?;
+    dict.set_item("proposed_message", info.proposed_message)?;
     dict.set_item("survived", info.survived)?;
     dict.set_item("mask", info.mask.clone().into_pyarray(py))?;
     dict.set_item("decision_seed", info.decision_seed)?;
@@ -163,13 +169,18 @@ fn box_space(py: Python<'_>, len: usize) -> PyResult<Py<PyAny>> {
     }
 }
 
-fn discrete_space(py: Python<'_>, n: usize) -> PyResult<Py<PyAny>> {
+/// The two-head action space (spec 028): MultiDiscrete([menu, head]),
+/// with the same dict fallback shape when gymnasium is absent.
+fn multi_discrete_space(py: Python<'_>, nvec: [usize; 2]) -> PyResult<Py<PyAny>> {
     match py.import("gymnasium.spaces") {
-        Ok(spaces) => Ok(spaces.getattr("Discrete")?.call1((n,))?.unbind()),
+        Ok(spaces) => Ok(spaces
+            .getattr("MultiDiscrete")?
+            .call1((nvec.to_vec(),))?
+            .unbind()),
         Err(_) => {
             let dict = PyDict::new(py);
-            dict.set_item("type", "discrete")?;
-            dict.set_item("n", n)?;
+            dict.set_item("type", "multi_discrete")?;
+            dict.set_item("nvec", nvec.to_vec())?;
             Ok(dict.unbind().into())
         }
     }
@@ -225,7 +236,10 @@ impl ParallelEnv {
         Episode::new(core, rl, control).map_err(episode_err)
     }
 
-    fn actions_from_py(&self, actions: &Bound<'_, PyDict>) -> PyResult<BTreeMap<KittyId, usize>> {
+    fn actions_from_py(
+        &self,
+        actions: &Bound<'_, PyDict>,
+    ) -> PyResult<BTreeMap<KittyId, (usize, usize)>> {
         let mut map = BTreeMap::new();
         for (key, value) in actions.iter() {
             let name: String = key.extract()?;
@@ -236,13 +250,27 @@ impl ParallelEnv {
                     "agent '{name}' is not externally controlled"
                 )));
             }
-            let index: i64 = value.extract()?;
-            if index < 0 {
-                return Err(PyIndexError::new_err(format!(
-                    "action index {index} for '{name}' is negative"
+            // Spec 028: a MultiDiscrete pair [activity, message]. Accepts
+            // any length-2 int sequence (list, tuple, numpy array).
+            let pair: Vec<i64> = value.extract().map_err(|_| {
+                PyValueError::new_err(format!(
+                    "action for '{name}' must be a length-2 [activity, message] pair"
+                ))
+            })?;
+            if pair.len() != 2 {
+                return Err(PyValueError::new_err(format!(
+                    "action for '{name}' must have exactly 2 entries \
+                     [activity, message], got {}",
+                    pair.len()
                 )));
             }
-            if map.insert(id, index as usize).is_some() {
+            let (index, message) = (pair[0], pair[1]);
+            if index < 0 || message < 0 {
+                return Err(PyIndexError::new_err(format!(
+                    "action pair ({index}, {message}) for '{name}' is negative"
+                )));
+            }
+            if map.insert(id, (index as usize, message as usize)).is_some() {
                 return Err(PyValueError::new_err(format!(
                     "duplicate action entry for '{name}'"
                 )));
@@ -335,11 +363,27 @@ impl ParallelEnv {
         let space = match self.action_space_obj.get() {
             Some(space) => space,
             None => {
-                let built = discrete_space(py, self.episode.codec().len())?;
+                let built = multi_discrete_space(
+                    py,
+                    [
+                        self.episode.codec().len(),
+                        cloudkitty_rl::codec::MessageCodec::LEN,
+                    ],
+                )?;
                 self.action_space_obj.get_or_init(|| built)
             }
         };
         Ok(space.clone_ref(py))
+    }
+
+    /// The activity menu's width (34 at default slots).
+    fn menu_len(&self) -> usize {
+        self.episode.codec().len()
+    }
+
+    /// The message head's width (spec 028): 9.
+    fn head_len(&self) -> usize {
+        cloudkitty_rl::codec::MessageCodec::LEN
     }
 
     #[pyo3(signature = (seed=None, options=None))]
@@ -403,7 +447,7 @@ impl ParallelEnv {
             .world()
             .recent_meows
             .iter()
-            .map(|m| (m.tick, m.kitty_id, format!("{:?}", m.kind)))
+            .map(|m| (m.tick, m.kitty_id, m.kind.wire_name().to_owned()))
             .collect()
     }
 
@@ -448,6 +492,7 @@ struct VectorEnv {
     external: Vec<KittyId>,
     obs_len: usize,
     menu_len: usize,
+    head_len: usize,
     state_len: usize,
     /// Seeds waiting to be applied verbatim by the next unseeded reset —
     /// the constructor's (or the last explicit reset's) seeds, consumed
@@ -490,6 +535,7 @@ impl VectorEnv {
         let external = episodes[0].external_agents();
         let obs_len = observation_len(&episodes[0].rl_config().observation);
         let menu_len = episodes[0].codec().len();
+        let head_len = cloudkitty_rl::codec::MessageCodec::LEN;
         let state_len = global_state_len(
             episodes[0].roster().len(),
             &episodes[0].rl_config().global_state,
@@ -507,6 +553,7 @@ impl VectorEnv {
             external,
             obs_len,
             menu_len,
+            head_len,
             state_len,
             pending_seeds: Some(seeds),
             last_states: vec![vec![0.0; state_len]; n],
@@ -572,7 +619,7 @@ impl VectorEnv {
     ) -> PyResult<StepTuple<'py>> {
         let n = self.n_worlds;
         // {agent: sequence[n]} → per-world action maps.
-        let mut per_world: Vec<BTreeMap<KittyId, usize>> = vec![BTreeMap::new(); n];
+        let mut per_world: Vec<BTreeMap<KittyId, (usize, usize)>> = vec![BTreeMap::new(); n];
         for (key, value) in actions.iter() {
             let name: String = key.extract()?;
             let id = parse_agent(&name)
@@ -586,13 +633,27 @@ impl VectorEnv {
                     "agent '{name}' is not externally controlled"
                 )));
             }
-            let indices: Vec<i64> = value.extract()?;
-            if indices.len() != n {
+            // Spec 028: one [activity, message] pair per world (shape
+            // [n, 2] -- lists, tuples, or numpy rows).
+            let pairs: Vec<Vec<i64>> = value.extract().map_err(|_| {
+                PyValueError::new_err(format!(
+                    "actions['{name}'] must be {n} [activity, message] pairs"
+                ))
+            })?;
+            if pairs.len() != n {
                 return Err(PyValueError::new_err(format!(
                     "actions['{name}'] must have one entry per world ({n})"
                 )));
             }
-            for (world, &index) in indices.iter().enumerate() {
+            for (world, pair) in pairs.iter().enumerate() {
+                if pair.len() != 2 {
+                    return Err(PyValueError::new_err(format!(
+                        "actions['{name}'] world {world}: expected \
+                         [activity, message], got {} entries",
+                        pair.len()
+                    )));
+                }
+                let (index, message) = (pair[0], pair[1]);
                 // Validate the whole batch BEFORE any world steps: a bad
                 // index must not leave some worlds a tick ahead of others
                 // (spec 014 review — silent batch desync).
@@ -603,7 +664,14 @@ impl VectorEnv {
                         self.menu_len
                     )));
                 }
-                per_world[world].insert(id, index as usize);
+                if message < 0 || message as usize >= self.head_len {
+                    return Err(PyIndexError::new_err(format!(
+                        "message index {message} for '{name}' in world {world} is out \
+                         of range (head has {} entries); no world was stepped",
+                        self.head_len
+                    )));
+                }
+                per_world[world].insert(id, (index as usize, message as usize));
             }
         }
 
@@ -681,6 +749,11 @@ impl VectorEnv {
         self.menu_len
     }
 
+    /// The message head's width (spec 028): 9.
+    fn head_len(&self) -> usize {
+        self.head_len
+    }
+
     fn close(&self) {}
 }
 
@@ -702,11 +775,14 @@ impl VectorEnv {
         let n = steps.len();
         let infos = PyDict::new(py);
         for id in &self.external {
-            let mut mask = Vec::with_capacity(n * self.menu_len);
+            let mask_width = self.menu_len + self.head_len;
+            let mut mask = Vec::with_capacity(n * mask_width);
             let mut seeds = Vec::with_capacity(n);
             let mut survived: Vec<i8> = Vec::with_capacity(n);
             let mut applied = Vec::with_capacity(n);
             let mut applied_names: Vec<Option<&'static str>> = Vec::with_capacity(n);
+            let mut applied_messages: Vec<Option<&'static str>> = Vec::with_capacity(n);
+            let mut proposed_messages: Vec<Option<&'static str>> = Vec::with_capacity(n);
             let mut provenance: Vec<Option<&'static str>> = Vec::with_capacity(n);
             for step in steps {
                 let info = step
@@ -722,19 +798,23 @@ impl VectorEnv {
                 });
                 applied.push(info.applied_action.map(|a| a as i64).unwrap_or(-1));
                 applied_names.push(info.applied_action_name);
+                applied_messages.push(info.applied_message);
+                proposed_messages.push(info.proposed_message);
                 provenance.push(info.provenance.map(provenance_str));
             }
             let agent = PyDict::new(py);
             agent.set_item(
                 "mask",
                 numpy::PyArray1::from_vec(py, mask)
-                    .reshape([n, self.menu_len])
+                    .reshape([n, mask_width])
                     .map_err(|e| PyRuntimeError::new_err(e.to_string()))?,
             )?;
             agent.set_item("decision_seed", seeds.into_pyarray(py))?;
             agent.set_item("survived", survived.into_pyarray(py))?;
             agent.set_item("applied_action", applied.into_pyarray(py))?;
             agent.set_item("applied_action_name", applied_names)?;
+            agent.set_item("applied_message", applied_messages)?;
+            agent.set_item("proposed_message", proposed_messages)?;
             agent.set_item("provenance", provenance)?;
             infos.set_item(agent_name(*id), agent)?;
         }

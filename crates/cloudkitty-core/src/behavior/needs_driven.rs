@@ -15,14 +15,33 @@ use super::{selection, Behavior, DecisionContext};
 use crate::action::Action;
 use crate::element::ElementType;
 use crate::grid::Direction;
-use crate::meow::MessageKind;
 use crate::needs::NeedKind;
+use crate::seam::Decision;
 
 pub struct NeedsDriven;
 
 #[async_trait]
 impl Behavior for NeedsDriven {
-    async fn decide(&self, ctx: &DecisionContext) -> Action {
+    async fn decide(&self, ctx: &DecisionContext) -> Decision {
+        // Two channels (spec 028): the ladder picks the activity; the
+        // announce rule rides along, never displacing it. The one word the
+        // ladder itself can produce is the yield ("Wait for me!"), which
+        // from_legacy lifts onto the channel and which outranks announce --
+        // etiquette speaks first.
+        let mut decision = Decision::from_legacy(self.decide_action(ctx));
+        if decision.message.is_none() {
+            decision.message = super::announce(ctx);
+        }
+        decision
+    }
+
+    fn is_builtin(&self) -> bool {
+        true
+    }
+}
+
+impl NeedsDriven {
+    fn decide_action(&self, ctx: &DecisionContext) -> Action {
         // A scene in progress that is still doing its job gets finished first.
         if let Some(action) = finish_what_you_started(ctx) {
             return action;
@@ -33,20 +52,17 @@ impl Behavior for NeedsDriven {
             return action;
         }
 
-        let (most_pressing, pressure) = ctx.me.needs.highest_pressure();
-
-        // Speak up when something is getting urgent -- but not every single tick.
-        if let Some(message) = MessageKind::for_need(most_pressing) {
-            if pressure >= ctx.config.meow.urgent_need_threshold
-                && ctx.me.can_meow(message, ctx.world.tick)
-                && ctx.rng.gen_bool(0.3)
-            {
-                return Action::Meow { message };
-            }
+        // Answer an audible ask before pottering off (spec 028): kindness
+        // sits above idle wandering, below the cat's own urgent errands.
+        if let Some(action) = groom_response(ctx) {
+            return action;
         }
 
-        // (Purring left the proposal surface in spec 011: the engine rumbles
-        // a contented cat in the background, no turn required.)
+        let (_, pressure) = ctx.me.needs.highest_pressure();
+
+        // (Announcing left the ladder in spec 028: the message channel
+        // rides along every decision -- see `decide` -- so speaking up no
+        // longer costs a rung or a turn. Purring left in spec 011.)
 
         // Nothing pressing: potter about.
         if pressure < 20.0 && ctx.rng.gen_bool(0.4) {
@@ -56,10 +72,6 @@ impl Behavior for NeedsDriven {
         // One scored pass over every need: urgency weighs in, travel counts
         // against, and nothing gets locked out (see `selection`).
         pursue(ctx, selection::choose(ctx))
-    }
-
-    fn is_builtin(&self) -> bool {
-        true
     }
 }
 
@@ -131,7 +143,16 @@ pub(crate) fn take_what_is_here(ctx: &DecisionContext) -> Option<Action> {
                 if ctx.world.element_at(me.pos).map(|e| e.element_type())
                     == Some(ElementType::Sunbeam)
                 {
-                    return Some(Action::Sleep { with: None });
+                    // Cosleep routing reaches the opportunism rung too
+                    // (spec 028 FR-020): real cuddle need plus a friend
+                    // already beside the sunbeam means the nap pays both
+                    // currencies -- the sunbeam is not abandoned, the
+                    // friend is simply named.
+                    let with = (ctx.me.needs.get(NeedKind::Cuddle)
+                        >= ctx.config.behavior.cuddle_real_threshold)
+                        .then(|| adjacent_friend(ctx))
+                        .flatten();
+                    return Some(Action::Sleep { with });
                 }
             }
             // A bug within paw's reach gets batted at, whatever the errand was.
@@ -164,6 +185,27 @@ pub(crate) fn pursue(ctx: &DecisionContext, choice: selection::Choice) -> Action
         ReliefSource::InPlace { use_it } => use_it,
 
         ReliefSource::Sunbeam => {
+            // Cosleep routing (spec 028 FR-020): a sleepy cat with real
+            // cuddle need prefers a friend's side to a sunbeam -- the nap
+            // pays both currencies at once, and the companion's behavior is
+            // unchanged (co-sleeping binds nobody). Below the gate, exactly
+            // the pre-028 sunbeam logic, regression-pinned.
+            if me.needs.get(NeedKind::Cuddle) >= ctx.config.behavior.cuddle_real_threshold {
+                if let Some(friend) = adjacent_friend(ctx) {
+                    return Action::Sleep { with: Some(friend) };
+                }
+                // A reachable friend is priced like a reachable sunbeam:
+                // worth a walk within sunbeam_reach, never an expedition.
+                let reachable = world
+                    .others(me.id)
+                    .filter(|k| {
+                        me.pos.manhattan_distance(&k.pos) <= ctx.config.behavior.sunbeam_reach
+                    })
+                    .min_by_key(|k| (me.pos.manhattan_distance(&k.pos), k.id));
+                if let Some(friend) = reachable {
+                    return step_toward(ctx, friend.pos);
+                }
+            }
             // Already in a sunbeam? Perfect.
             if world.element_at(me.pos).map(|e| e.element_type()) == Some(ElementType::Sunbeam) {
                 return Action::Sleep { with: None };
@@ -234,6 +276,38 @@ fn seek_element(ctx: &DecisionContext, kind: ElementType, use_it: Action) -> Act
         // The safeguard will have provided something by the next environment
         // phase; until then, there is nothing useful to do about it.
         None => Action::Idle,
+    }
+}
+
+/// The groom response (spec 028 FR-019): a cat with real cuddle need that
+/// HEARS a bath ask answers it -- walk over, groom. Keyed on the audible
+/// meow alone (the freshest WantBath emitter, the digest's own selection
+/// rule: max tick, ties to the lower id, self excluded) and never on a
+/// privileged read of the neighbor's needs -- everything this rung reads,
+/// a policy could observe (the imitability principle). Yields to the
+/// responder's own urgency: any need at or above the safeguard threshold
+/// is its own errand first, so urgent eat still wins the ladder.
+fn groom_response(ctx: &DecisionContext) -> Option<Action> {
+    let me = &ctx.me;
+    if me.needs.get(NeedKind::Cuddle) < ctx.config.behavior.cuddle_real_threshold {
+        return None;
+    }
+    let (_, top) = me.needs.highest_pressure();
+    if top >= ctx.config.thresholds.safeguard {
+        return None;
+    }
+    let heard = crate::meow::freshest_audible(
+        &ctx.world.recent_meows,
+        crate::meow::MessageKind::WantBath,
+        me.id,
+    )?;
+    let emitter = ctx.world.kitty(heard.kitty_id)?;
+    if me.pos.is_adjacent(&emitter.pos) {
+        Some(Action::Groom {
+            target: Some(emitter.id),
+        })
+    } else {
+        Some(step_toward(ctx, emitter.pos))
     }
 }
 
@@ -394,6 +468,7 @@ mod tests {
     use crate::behavior::Behavior;
     use crate::element::{Element, ElementKind};
     use crate::grid::Position;
+    use crate::meow::MessageKind;
     use crate::test_support::decision_context;
 
     #[tokio::test]
@@ -423,7 +498,7 @@ mod tests {
         });
         ctx.me.set_meow_cooldown(MessageKind::WantEat, u64::MAX);
         assert_eq!(
-            NeedsDriven.decide(&ctx).await,
+            NeedsDriven.decide_action(&ctx),
             Action::Sleep { with: None },
             "a nap still doing its job is finished, not re-litigated"
         );
@@ -453,7 +528,7 @@ mod tests {
             });
         });
         ctx.me.set_meow_cooldown(MessageKind::WantEat, u64::MAX);
-        assert_eq!(NeedsDriven.decide(&ctx).await, Action::Eat);
+        assert_eq!(NeedsDriven.decide_action(&ctx), Action::Eat);
     }
 
     #[tokio::test]
@@ -470,7 +545,7 @@ mod tests {
             world.kitties[friend].needs.add(NeedKind::Bath, 60.0);
         });
         assert_eq!(
-            NeedsDriven.decide(&dirty_friend).await,
+            NeedsDriven.decide_action(&dirty_friend),
             Action::Groom { target: Some(2) },
         );
 
@@ -483,7 +558,7 @@ mod tests {
             // the friend's bath need stays at its spawn value of zero: clean
         });
         assert_ne!(
-            NeedsDriven.decide(&clean_friend).await,
+            NeedsDriven.decide_action(&clean_friend),
             Action::Groom { target: Some(2) },
             "a clean friend releases the groomer whatever its own coat looks like"
         );
@@ -506,7 +581,7 @@ mod tests {
         // Remove the randomness of meowing about it first.
         ctx.me.set_meow_cooldown(MessageKind::WantEat, u64::MAX);
 
-        assert_eq!(NeedsDriven.decide(&ctx).await, Action::Eat);
+        assert_eq!(NeedsDriven.decide_action(&ctx), Action::Eat);
     }
 
     #[tokio::test]
@@ -527,7 +602,7 @@ mod tests {
 
         // A bowl of food does not run away, so this is a walk, not a chase.
         assert_eq!(
-            NeedsDriven.decide(&ctx).await,
+            NeedsDriven.decide_action(&ctx),
             Action::move_to(crate::grid::Direction::East)
         );
     }
@@ -551,7 +626,7 @@ mod tests {
         });
         ctx.me.set_meow_cooldown(MessageKind::WantEat, u64::MAX);
         assert_eq!(
-            NeedsDriven.decide(&ctx).await,
+            NeedsDriven.decide_action(&ctx),
             // East and south both close the corner; direction order breaks
             // the tie deterministically in favour of east.
             Action::move_to(Direction::East),
@@ -572,7 +647,7 @@ mod tests {
             });
         });
         ctx.me.set_meow_cooldown(MessageKind::WantEat, u64::MAX);
-        assert_eq!(NeedsDriven.decide(&ctx).await, Action::Eat);
+        assert_eq!(NeedsDriven.decide_action(&ctx), Action::Eat);
     }
 
     /// A bowl with every compass seat taken, for the crowded-target edge case
@@ -634,7 +709,7 @@ mod tests {
         // path (owner decision 2026-07-20), driven end-to-end in the welfare
         // suite's crowded-bowl run.
         let ctx = crowded_bowl_ctx();
-        let action = NeedsDriven.decide(&ctx).await;
+        let action = NeedsDriven.decide_action(&ctx);
         assert_eq!(
             action,
             Action::move_to(Direction::West),
@@ -667,7 +742,7 @@ mod tests {
         });
         ctx.me.set_meow_cooldown(MessageKind::WantEat, u64::MAX);
         assert_eq!(
-            NeedsDriven.decide(&ctx).await,
+            NeedsDriven.decide_action(&ctx),
             Action::move_to(Direction::South),
             "dry progress beats wet progress"
         );
@@ -697,7 +772,7 @@ mod tests {
         });
         ctx.me.set_meow_cooldown(MessageKind::WantEat, u64::MAX);
         assert_eq!(
-            NeedsDriven.decide(&ctx).await,
+            NeedsDriven.decide_action(&ctx),
             Action::move_to(Direction::South),
             "crossing is never refused -- a wet improving step beats no step"
         );
@@ -734,7 +809,7 @@ mod tests {
         // direction is the rng's business -- the *property* is that it moves,
         // and only onto a dry free tile (north or east here; west is wet,
         // south is a friend).
-        let action = NeedsDriven.decide(&ctx).await;
+        let action = NeedsDriven.decide_action(&ctx);
         assert!(
             action == Action::move_to(Direction::North)
                 || action == Action::move_to(Direction::East),
@@ -774,7 +849,7 @@ mod tests {
         // Standing on water means water is "adjacent" -- keep drink below the
         // opportunism line so the errand stays the errand.
         assert_eq!(
-            NeedsDriven.decide(&ctx).await,
+            NeedsDriven.decide_action(&ctx),
             Action::move_to(Direction::East),
             "out of the puddle, dry paws first"
         );
@@ -814,7 +889,7 @@ mod tests {
         });
         ctx.me.set_meow_cooldown(MessageKind::WantEat, u64::MAX);
         assert_eq!(
-            NeedsDriven.decide(&ctx).await,
+            NeedsDriven.decide_action(&ctx),
             Action::move_to(Direction::East),
             "the priced choice and the walk agree on the dry bowl"
         );
@@ -858,7 +933,7 @@ mod tests {
         let mut plain = decision_context(build);
         plain.me.set_meow_cooldown(MessageKind::WantEat, u64::MAX);
         assert_eq!(
-            NeedsDriven.decide(&plain).await,
+            NeedsDriven.decide_action(&plain),
             Action::move_to(Direction::East),
             "the plain cat detours dry"
         );
@@ -873,7 +948,7 @@ mod tests {
         config.validate().expect("valid");
         swimmer.config = std::sync::Arc::new(config);
         assert_eq!(
-            NeedsDriven.decide(&swimmer).await,
+            NeedsDriven.decide_action(&swimmer),
             Action::move_to(Direction::South),
             "the swimmer takes the pond shortcut"
         );
@@ -894,7 +969,7 @@ mod tests {
         });
         ctx.me.set_meow_cooldown(MessageKind::WantCuddle, u64::MAX);
         assert_eq!(
-            NeedsDriven.decide(&ctx).await,
+            NeedsDriven.decide_action(&ctx),
             Action::Meow {
                 message: MessageKind::WaitForMe
             }
@@ -908,7 +983,7 @@ mod tests {
             world.kitties[idx].needs.add(NeedKind::Bath, 99.0);
         });
         assert_eq!(
-            NeedsDriven.decide(&ctx).await,
+            NeedsDriven.decide_action(&ctx),
             Action::Groom { target: None }
         );
     }
@@ -927,7 +1002,10 @@ mod tests {
                 ttl: Some(100),
             });
         });
-        assert_eq!(NeedsDriven.decide(&ctx).await, Action::Sleep { with: None });
+        assert_eq!(
+            NeedsDriven.decide_action(&ctx),
+            Action::Sleep { with: None }
+        );
     }
 
     #[tokio::test]
@@ -939,7 +1017,7 @@ mod tests {
                 let idx = world.kitty_index(1).unwrap();
                 world.kitties[idx].needs.add(need, 99.0);
             });
-            let action = NeedsDriven.decide(&ctx).await;
+            let action = NeedsDriven.decide_action(&ctx);
             // Any action is fine; not returning one is not an option.
             let _ = action;
         }
@@ -967,7 +1045,7 @@ mod tests {
         // bath sits behind play. Stamp play as recently relieved to pin it.
         ctx.me.last_relief.insert(NeedKind::Play, 5);
         assert_eq!(
-            NeedsDriven.decide(&ctx).await,
+            NeedsDriven.decide_action(&ctx),
             Action::Groom { target: None }
         );
     }
@@ -997,7 +1075,7 @@ mod tests {
         ctx.me.set_meow_cooldown(MessageKind::WantDrink, u64::MAX);
 
         assert_eq!(
-            NeedsDriven.decide(&ctx).await,
+            NeedsDriven.decide_action(&ctx),
             Action::play_with(crate::action::TargetRef::Element { id: 511 })
         );
     }
@@ -1028,7 +1106,7 @@ mod tests {
         ctx.me.set_meow_cooldown(MessageKind::WantEat, u64::MAX);
         ctx.me.set_meow_cooldown(MessageKind::WantPlay, u64::MAX);
 
-        assert_eq!(NeedsDriven.decide(&ctx).await, Action::Eat);
+        assert_eq!(NeedsDriven.decide_action(&ctx), Action::Eat);
     }
 
     #[tokio::test]
@@ -1055,7 +1133,7 @@ mod tests {
         ctx.me.set_meow_cooldown(MessageKind::WantPlay, u64::MAX);
 
         assert_eq!(
-            NeedsDriven.decide(&ctx).await,
+            NeedsDriven.decide_action(&ctx),
             Action::play_solo(),
             "the nap is respected; play happens solo beside it"
         );
@@ -1083,7 +1161,7 @@ mod tests {
         });
         ctx.me.set_meow_cooldown(MessageKind::WantDrink, u64::MAX);
 
-        let action = NeedsDriven.decide(&ctx).await;
+        let action = NeedsDriven.decide_action(&ctx);
         assert_eq!(
             action,
             Action::move_to(Direction::South),
@@ -1125,5 +1203,249 @@ mod tests {
                  must agree (deliberate omissions get an allow-list in this test)"
             );
         }
+    }
+
+    #[tokio::test]
+    async fn announcing_never_alters_the_chosen_activity() {
+        // Spec 028 FR-017 (the engine-side half of FR-021): the message is
+        // computed after and independent of the activity, so deciding with
+        // the channel in play picks the same activity as the ladder alone.
+        // A hungry cat mid-walk announces WantEat and keeps walking.
+        let ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(2, 2);
+            world.kitties[idx].needs.add(NeedKind::Eat, 60.0);
+            world.kitties[idx].announce_armed.insert(NeedKind::Eat);
+            world.push_element(Element {
+                id: 700,
+                kind: ElementKind::Chow { servings: 5 },
+                pos: Position::new(12, 2),
+                ttl: None,
+            });
+        });
+        let decision = NeedsDriven.decide(&ctx).await;
+        assert_eq!(
+            decision.activity,
+            NeedsDriven.decide_action(&ctx),
+            "the channel rides along; it never displaces the turn"
+        );
+        assert_eq!(
+            decision.message,
+            Some(MessageKind::WantEat),
+            "and the errand is announced mid-walk"
+        );
+    }
+
+    #[tokio::test]
+    async fn a_grounded_cat_announces_its_highest_pressure_legal_want() {
+        // Two armed needs: the higher pressure wins; ties would fall to
+        // NeedKind::ALL order (the selection precedent).
+        let ctx = decision_context(|world| {
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].needs.add(NeedKind::Eat, 40.0);
+            world.kitties[idx].needs.add(NeedKind::Cuddle, 55.0);
+            world.kitties[idx].announce_armed.insert(NeedKind::Eat);
+            world.kitties[idx].announce_armed.insert(NeedKind::Cuddle);
+        });
+        let decision = NeedsDriven.decide(&ctx).await;
+        assert_eq!(decision.message, Some(MessageKind::WantCuddle));
+    }
+
+    #[tokio::test]
+    async fn an_ungrounded_cat_is_silent() {
+        // Nothing armed: the deterministic rule has nothing legal to say,
+        // whatever the raw pressures are.
+        let ctx = decision_context(|world| {
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].needs.add(NeedKind::Eat, 60.0);
+            world.kitties[idx].announce_armed.clear();
+        });
+        let decision = NeedsDriven.decide(&ctx).await;
+        assert_eq!(decision.message, None, "unarmed means Silent, by law");
+    }
+
+    #[tokio::test]
+    async fn a_meow_keyed_groomer_ignores_silent_wet_cats() {
+        // The imitability pair, negative half (spec 028 FR-019): a
+        // filthy-but-SILENT neighbor draws no response -- the rung keys on
+        // the audible meow, never on a privileged read of needs.
+        let ctx = decision_context(|world| {
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].needs.add(NeedKind::Cuddle, 40.0);
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].needs.add(NeedKind::Bath, 95.0); // soaked, silent
+        });
+        let action = NeedsDriven.decide_action(&ctx);
+        assert_ne!(
+            action,
+            Action::Groom { target: Some(2) },
+            "no meow, no response -- however wet the neighbor"
+        );
+    }
+
+    #[tokio::test]
+    async fn a_meow_keyed_groomer_answers_the_audible_ask() {
+        // The positive half: the same neighbor, now announcing -- the
+        // responder walks over (or grooms when adjacent).
+        let far = decision_context(|world| {
+            world.tick = 100;
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(2, 2);
+            world.kitties[a].needs.add(NeedKind::Cuddle, 40.0);
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(8, 2);
+            world.recent_meows.push(crate::meow::Meow {
+                kitty_id: 2,
+                kind: MessageKind::WantBath,
+                tick: 100,
+                intensity: 0.5,
+            });
+        });
+        assert!(
+            matches!(NeedsDriven.decide_action(&far), Action::Move { .. }),
+            "hears the ask, sets off"
+        );
+
+        let near = decision_context(|world| {
+            world.tick = 100;
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(2, 2);
+            world.kitties[a].needs.add(NeedKind::Cuddle, 40.0);
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(2, 3);
+            world.recent_meows.push(crate::meow::Meow {
+                kitty_id: 2,
+                kind: MessageKind::WantBath,
+                tick: 100,
+                intensity: 0.5,
+            });
+        });
+        assert_eq!(
+            NeedsDriven.decide_action(&near),
+            Action::Groom { target: Some(2) },
+            "adjacent: the answer is the groom itself"
+        );
+    }
+
+    #[tokio::test]
+    async fn the_groom_response_yields_to_the_responders_own_urgency() {
+        // Ladder position: an urgent own need (at/above the safeguard)
+        // outranks kindness -- urgent eat still wins.
+        let ctx = decision_context(|world| {
+            world.tick = 100;
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].needs.add(NeedKind::Cuddle, 40.0);
+            world.kitties[a].needs.add(NeedKind::Eat, 90.0); // past the safeguard
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(2, 3);
+            world.recent_meows.push(crate::meow::Meow {
+                kitty_id: 2,
+                kind: MessageKind::WantBath,
+                tick: 100,
+                intensity: 0.5,
+            });
+        });
+        let action = NeedsDriven.decide_action(&ctx);
+        assert_ne!(
+            action,
+            Action::Groom { target: Some(2) },
+            "the responder's own urgent errand comes first"
+        );
+    }
+
+    #[tokio::test(flavor = "current_thread")]
+    async fn groom_kitty_appears_in_a_seeded_scripted_run() {
+        // SC-002's engine half: with the channel and the responder rung in
+        // place, kitty-directed grooming happens in an ordinary scripted
+        // world (the pre-028 baseline measured 0 in 800k ticks). 20k ticks,
+        // one seed, all builtins.
+        use std::sync::Arc;
+        let config = Arc::new(crate::test_support::test_config());
+        let registry = crate::behavior::BehaviorRegistry::with_builtins();
+        let mut world = crate::world::World::generate(&config);
+        let mut groomed = 0u64;
+        for _ in 0..20_000 {
+            world.tick(&registry, &config).await;
+            for k in &world.kitties {
+                if let crate::kitty::Activity::Grooming { target: Some(_) } = k.activity {
+                    groomed += 1;
+                }
+            }
+        }
+        assert!(
+            groomed > 0,
+            "kitty-directed grooming must occur once cats can ask for it"
+        );
+    }
+
+    #[tokio::test]
+    async fn a_sleepy_cat_with_real_cuddle_need_naps_beside_a_friend() {
+        // Spec 028 US4 scenario 3 / FR-020: above the gate, an adjacent
+        // friend beats the sunbeam the cat is standing in -- one nap, two
+        // currencies.
+        let ctx = decision_context(|world| {
+            world.elements.clear();
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(4, 4);
+            world.kitties[a].needs.add(NeedKind::Sleep, 99.0);
+            world.kitties[a].needs.add(NeedKind::Cuddle, 40.0);
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(4, 5);
+            world.push_element(Element {
+                id: 900,
+                kind: ElementKind::Sunbeam,
+                pos: Position::new(4, 4),
+                ttl: Some(100),
+            });
+        });
+        assert_eq!(
+            NeedsDriven.decide_action(&ctx),
+            Action::Sleep { with: Some(2) },
+            "the friend's side wins over the sunbeam underfoot"
+        );
+    }
+
+    #[tokio::test]
+    async fn a_sleepy_cat_with_real_cuddle_need_walks_to_a_reachable_friend() {
+        let ctx = decision_context(|world| {
+            world.elements.clear();
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(4, 4);
+            world.kitties[a].needs.add(NeedKind::Sleep, 99.0);
+            world.kitties[a].needs.add(NeedKind::Cuddle, 40.0);
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(9, 4); // within sunbeam_reach (8)
+        });
+        assert!(
+            matches!(NeedsDriven.decide_action(&ctx), Action::Move { .. }),
+            "a friend within reach is worth the walk"
+        );
+    }
+
+    #[tokio::test]
+    async fn below_the_gate_the_sunbeam_logic_is_untouched() {
+        // The regression pin: cuddle below cuddle_real_threshold means
+        // exactly the pre-028 behavior -- the sunbeam underfoot wins.
+        let ctx = decision_context(|world| {
+            world.elements.clear();
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(4, 4);
+            world.kitties[a].needs.add(NeedKind::Sleep, 99.0);
+            // Cuddle stays at its generated default, below the gate.
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(4, 5);
+            world.push_element(Element {
+                id: 901,
+                kind: ElementKind::Sunbeam,
+                pos: Position::new(4, 4),
+                ttl: Some(100),
+            });
+        });
+        assert_eq!(
+            NeedsDriven.decide_action(&ctx),
+            Action::Sleep { with: None },
+            "below the gate: the sunbeam, exactly as before"
+        );
     }
 }

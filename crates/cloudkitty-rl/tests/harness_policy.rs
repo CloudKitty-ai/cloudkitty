@@ -7,7 +7,6 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use cloudkitty_core::action::Action;
 use cloudkitty_core::behavior::{Behavior, BehaviorRegistry, DecisionContext};
 use cloudkitty_core::Config;
 use cloudkitty_rl::behavior::PolicyBehavior;
@@ -69,7 +68,7 @@ struct ExplodingPolicy;
 
 #[async_trait]
 impl Behavior for ExplodingPolicy {
-    async fn decide(&self, _ctx: &DecisionContext) -> Action {
+    async fn decide(&self, _ctx: &DecisionContext) -> cloudkitty_core::Decision {
         panic!("deliberately broken policy");
     }
 }

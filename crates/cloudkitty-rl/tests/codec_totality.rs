@@ -37,8 +37,8 @@ fn dedup_in_place<T: PartialEq + Copy>(slots: &mut [Option<T>]) {
 proptest! {
     #[test]
     fn every_index_decodes_and_expressible_actions_round_trip(table in arb_table()) {
-        let codec = ActionCodec::v1(&ObservationConfig::default());
-        prop_assert_eq!(codec.len(), 40);
+        let codec = ActionCodec::v2(&ObservationConfig::default());
+        prop_assert_eq!(codec.len(), 34);
 
         for index in 0..codec.len() {
             let action = codec.decode(index, &table).expect("in-range decodes are total");
@@ -60,7 +60,7 @@ proptest! {
         }
 
         // Out of range is an error, never a panic.
-        let over = matches!(codec.decode(40, &table), Err(CodecError::OutOfRange { .. }));
+        let over = matches!(codec.decode(34, &table), Err(CodecError::OutOfRange { .. }));
         prop_assert!(over);
         let way_over = matches!(
             codec.decode(usize::MAX, &table),

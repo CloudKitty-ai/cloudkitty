@@ -24,20 +24,31 @@ pub(super) fn default_purr_announce_probability() -> f32 {
     0.0
 }
 
-pub(super) fn default_meow_courtesy_ticks() -> u64 {
-    10
-}
-
-pub(super) fn default_meow_urgent_courtesy_ticks() -> u64 {
-    5
-}
-
-pub(super) fn default_meow_urgent_need_threshold() -> f32 {
-    75.0
-}
-
 pub(super) fn default_meow_recent_window_ticks() -> u64 {
     10
+}
+
+// Spec 028: the announce band, derived from the needs analysis (2026-08-08)
+// -- 30 sits inside every cat's lived range and stays top-1%-informative;
+// 5 of hysteresis keeps the mask steady across an errand.
+pub(super) fn default_meow_announce_threshold() -> f32 {
+    30.0
+}
+
+pub(super) fn default_meow_announce_hysteresis() -> f32 {
+    5.0
+}
+
+// Spec 028: cosleep priced by presence, behavior-preserving at launch --
+// both tiers equal the classic cuddle_relief until the pilot re-prices them.
+pub(super) fn default_cosleep_relief() -> f32 {
+    15.0
+}
+
+// Spec 028: what "real cuddle need" means to the scripted responders
+// (groom-response and cosleep-routing share the one gate).
+pub(super) fn default_cuddle_real_threshold() -> f32 {
+    15.0
 }
 
 pub(super) fn default_bind() -> String {

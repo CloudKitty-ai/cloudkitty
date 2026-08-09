@@ -14,9 +14,12 @@ fn fresh_episode() -> Episode {
     Episode::new(Config::default(), RlConfig::default(), BTreeMap::new()).unwrap()
 }
 
-fn action_for(step_index: usize, agent_index: usize) -> usize {
-    // A deterministic per-agent script over the menu.
-    [39usize, 0, 1, 2, 3, 25, 12, 4][(step_index + agent_index) % 8]
+fn action_for(step_index: usize, agent_index: usize) -> (usize, usize) {
+    // A deterministic per-agent script over the menu; the message head
+    // cycles Silent and the always-audible-so-far kinds (spec 028 pairs).
+    let activity = [33usize, 0, 1, 2, 3, 25, 12, 4][(step_index + agent_index) % 8];
+    let message = [0usize, 0, 3, 0][(step_index + agent_index) % 4];
+    (activity, message)
 }
 
 fn fingerprint(step: &EpisodeStep) -> String {
@@ -44,7 +47,7 @@ fn each_world_in_a_batch_matches_the_same_world_stepped_alone() {
 
     let mut batch_traces: Vec<Vec<String>> = vec![Vec::new(); WORLDS];
     for step_index in 0..STEPS {
-        let actions: Vec<BTreeMap<KittyId, usize>> = (0..WORLDS)
+        let actions: Vec<BTreeMap<KittyId, (usize, usize)>> = (0..WORLDS)
             .map(|_| {
                 agents
                     .iter()
@@ -63,7 +66,7 @@ fn each_world_in_a_batch_matches_the_same_world_stepped_alone() {
         let mut solo = fresh_episode();
         solo.reset(seed);
         for (step_index, expected) in batch_traces[world].iter().enumerate() {
-            let actions: BTreeMap<KittyId, usize> = agents
+            let actions: BTreeMap<KittyId, (usize, usize)> = agents
                 .iter()
                 .enumerate()
                 .map(|(ai, &id)| (id, action_for(step_index, ai)))
@@ -94,7 +97,7 @@ fn worker_count_never_changes_outputs() {
         let agents = batch.external_agents();
         let mut traces = Vec::new();
         for step_index in 0..30 {
-            let actions: Vec<BTreeMap<KittyId, usize>> = (0..WORLDS)
+            let actions: Vec<BTreeMap<KittyId, (usize, usize)>> = (0..WORLDS)
                 .map(|_| {
                     agents
                         .iter()

@@ -62,7 +62,7 @@ fn garbage_logits_still_select_a_masked_in_action() {
     let config = Arc::new(Config::default());
     let world = cloudkitty_core::World::generate(&config);
     let snapshot = world.snapshot();
-    let codec = ActionCodec::v1(&rl.observation);
+    let codec = ActionCodec::v2(&rl.observation);
 
     for (name, fill) in [
         ("nan", f32::NAN),
@@ -73,15 +73,25 @@ fn garbage_logits_still_select_a_masked_in_action() {
         let path = artifact_path(name, fill);
         let behavior =
             PolicyBehavior::from_artifact_path(path.to_str().unwrap(), &rl, false).unwrap();
-        let action = behavior.decide_sync(&context(3));
+        let decision = behavior.decide_sync(&context(3));
+        let action = decision.activity;
 
-        // The selected action decodes from a masked-in entry: encode it
-        // back through the kitty's table and check the mask bit.
+        // The selected activity decodes from a masked-in entry: encode it
+        // back through the kitty's table and check the mask bit. The
+        // message head is checked against its own oracle (spec 028).
         let table = TargetTable::build(&snapshot, snapshot.kitties[0].id, &rl.observation);
         let mask = legal_action_mask(&snapshot, snapshot.kitties[0].id, &table, &codec, &config);
         let index = codec
             .encode(&action, &table)
             .unwrap_or_else(|| panic!("{name}: {action:?} is not expressible"));
         assert!(mask[index], "{name}: selected an illegal entry {index}");
+        let message_mask =
+            cloudkitty_rl::mask::legal_message_mask(&snapshot, snapshot.kitties[0].id, &config);
+        let head_index = cloudkitty_rl::codec::MessageCodec::encode(decision.message)
+            .expect("selected messages are head-expressible");
+        assert!(
+            message_mask[head_index],
+            "{name}: selected an illegal message {head_index}"
+        );
     }
 }

@@ -15,14 +15,33 @@ use async_trait::async_trait;
 
 use super::needs_driven::{finish_what_you_started, pursue, take_what_is_here};
 use super::{selection, Behavior, DecisionContext};
-use crate::action::{Action, TargetRef};
-use crate::meow::MessageKind;
+use crate::action::Action;
+use crate::seam::Decision;
 
 pub struct Playful;
 
 #[async_trait]
 impl Behavior for Playful {
-    async fn decide(&self, ctx: &DecisionContext) -> Action {
+    async fn decide(&self, ctx: &DecisionContext) -> Decision {
+        // Two channels (spec 028): same shape as NeedsDriven -- the yield
+        // word outranks announce, everything else announces by the shared
+        // rule. The old chase-announce lottery collapsed into it: WantPlay
+        // is spoken when Play is genuinely armed, because grounding is law
+        // for everyone.
+        let mut decision = Decision::from_legacy(self.decide_action(ctx));
+        if decision.message.is_none() {
+            decision.message = super::announce(ctx);
+        }
+        decision
+    }
+
+    fn is_builtin(&self) -> bool {
+        true
+    }
+}
+
+impl Playful {
+    fn decide_action(&self, ctx: &DecisionContext) -> Action {
         // Even a playful cat finishes the nap it is in the middle of.
         if let Some(action) = finish_what_you_started(ctx) {
             return action;
@@ -52,28 +71,16 @@ impl Behavior for Playful {
         // The game is wherever the nearest playmate worth having is -- critter
         // or friend, minus anything already written off as uncatchable. Shared
         // rules (viability, give-up, the solo backstop) live in `selection`.
-        let play = selection::play_action(ctx);
-
-        // Announce the plan occasionally before setting off after a friend.
-        if let Action::Chase(TargetRef::Kitty { .. }) = play {
-            if ctx.me.can_meow(MessageKind::WantPlay, ctx.world.tick) && ctx.rng.gen_bool(0.15) {
-                return Action::Meow {
-                    message: MessageKind::WantPlay,
-                };
-            }
-        }
-
-        play
-    }
-
-    fn is_builtin(&self) -> bool {
-        true
+        // (The chase-announce lottery died in spec 028: the shared announce
+        // rule speaks WantPlay whenever it is genuinely armed and legal.)
+        selection::play_action(ctx)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::action::TargetRef;
     use crate::element::{Element, ElementKind};
     use crate::grid::Position;
     use crate::needs::NeedKind;
@@ -103,7 +110,7 @@ mod tests {
         });
 
         assert_eq!(
-            Playful.decide(&ctx).await,
+            Playful.decide_action(&ctx),
             Action::Chase(TargetRef::Element { id: 601 }),
             "the bug wins over distant food"
         );
@@ -132,7 +139,7 @@ mod tests {
             });
         });
 
-        assert_eq!(Playful.decide(&ctx).await, Action::Eat);
+        assert_eq!(Playful.decide_action(&ctx), Action::Eat);
     }
 
     #[tokio::test]
@@ -158,7 +165,7 @@ mod tests {
             });
         });
 
-        let action = Playful.decide(&ctx).await;
+        let action = Playful.decide_action(&ctx);
         assert!(
             matches!(action, Action::Move { .. } | Action::Meow { .. }),
             "expected a step toward water (or a meow about it), got {action:?}"
@@ -182,7 +189,7 @@ mod tests {
         });
 
         assert_eq!(
-            Playful.decide(&ctx).await,
+            Playful.decide_action(&ctx),
             Action::play_with(TargetRef::Element { id: 602 })
         );
     }
@@ -202,7 +209,7 @@ mod tests {
         ctx.me
             .set_meow_cooldown(crate::meow::MessageKind::WantPlay, u64::MAX);
 
-        assert_eq!(Playful.decide(&ctx).await, Action::play_solo());
+        assert_eq!(Playful.decide_action(&ctx), Action::play_solo());
     }
 
     #[tokio::test]
@@ -226,7 +233,7 @@ mod tests {
             });
         });
 
-        let action = Playful.decide(&ctx).await;
+        let action = Playful.decide_action(&ctx);
         assert!(
             matches!(action, Action::Eat | Action::Meow { .. }),
             "a starving cat eats (or asks for food) rather than plays; got {action:?}"
