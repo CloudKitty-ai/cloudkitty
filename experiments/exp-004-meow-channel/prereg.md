@@ -192,10 +192,15 @@ block (§3) and D1's mix rate; everything below is shared.
   mid-experiment voids the affected runs (§11).
 - Announce dials **30 / 5**; cooldown = `recent_window_ticks` = 10;
   the courtesy trio retired (spec batch).
-- Cosleep dials **[AT FREEZE: drip, mutual — from the pilot]**;
-  `cuddle_relief` (grooming actor, rest duet) **[AT FREEZE: from the
-  pilot's third axis — {15, 8, 5} swept; 15 is the control, not a
-  commitment]**. The owner added this axis 2026-08-08: the
+- Cosleep dials **PINNED 2026-08-09 (owner, from the pilot): drip 3,
+  mutual 8 = rest-duet parity** (`cosleep_mutual_relief` tracks
+  `cuddle_relief`); `cuddle_relief` (grooming actor, rest duet)
+  **PINNED: 8**. Pilot record:
+  `experiments/exp-004-pilot-2026-08-09/results.md` — 30 cells, 10
+  paired seeds; headline: scripted contact length is structurally
+  inelastic, so the dials price the policy reward landscape; combined
+  welfare cost −0.0017 ± 0.0013 paired; c05 rejected on measured
+  grounds. The owner added the third axis 2026-08-08: the
   instantaneous-pricing degeneracy is by volume a rest-duet
   phenomenon, and the dial doubles as the WantBath responder's wage —
   both flows are measured per cell before the value is pinned.

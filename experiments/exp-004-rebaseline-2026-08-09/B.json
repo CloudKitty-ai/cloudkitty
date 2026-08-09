@@ -1,0 +1,60 @@
+{
+ "welfare": {
+  "mean": 0.8724073904200216,
+  "sd": 0.001114596739669194,
+  "min": 0.8697949339026254,
+  "max": 0.8747788680464471,
+  "se": 0.00020349659227951024,
+  "derived_margin_10se": 0.0020349659227951026
+ },
+ "water": {
+  "B_inwater": 0.034175833333333336,
+  "B_lounge": 0.013494583333333334
+ },
+ "contact": {
+  "contact_run_mean": 2.995826709062003,
+  "contact_run_p50": 2.0,
+  "cosleep_serviced_per_1k": 6.28125,
+  "mutual_share": 0.2940630182421227,
+  "duet_len_mean": 4.999592937465018,
+  "duet_ticks_per_1k": 81.88083333333333,
+  "groom_actor_ticks_per_1k": 5.875
+ },
+ "meow_rates_per_1k": {
+  "needs_driven:wait_for_me": 5.958333333333333,
+  "needs_driven:want_bath": 0.5461111111111111,
+  "needs_driven:want_cuddle": 1.426111111111111,
+  "needs_driven:want_drink": 1.1888888888888889,
+  "needs_driven:want_eat": 4.703888888888889,
+  "needs_driven:want_play": 0.36777777777777776,
+  "needs_driven:want_sleep": 0.37333333333333335,
+  "playful:wait_for_me": 9.903333333333334,
+  "playful:want_bath": 17.096666666666668,
+  "playful:want_cuddle": 24.08,
+  "playful:want_drink": 43.178333333333335,
+  "playful:want_eat": 49.961666666666666,
+  "playful:want_play": 0.023333333333333334,
+  "playful:want_sleep": 47.48166666666667
+ },
+ "distress": {
+  "share": 2.6666666666666667e-05,
+  "ticks": 64
+ },
+ "herding": {
+  "episodes": 5380,
+  "responders_per_episode_mean": 1.078996282527881,
+  "redundant_groom_share": 0.2887289383281531,
+  "redundant_tick_share_overpay_diagnostic": 0.6552420863578537,
+  "abandoned_pursuit_share": 0.2636986301369863,
+  "raw": {
+   "episodes": 5380,
+   "responders": null,
+   "groom_ticks_on_emitter": 13363,
+   "redundant_groom_ticks": 8756,
+   "groom_starts": 6113,
+   "redundant_groom_starts": 1765,
+   "pursuits": 7884,
+   "abandoned_pursuits": 2079
+  }
+ }
+}
