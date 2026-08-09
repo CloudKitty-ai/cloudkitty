@@ -66,6 +66,58 @@ flat constant rather than clamped by local channel width, so a 1-wide
 channel would still bead into lozenges, and `groupWaterTiles` still
 floods 4-adjacent only. Both are recorded in the v3 plan's Phase 5.
 
+### The walk contradicts itself travelling north/south (added 2026-08-08; Client thread)
+Our cat is a **side profile**, so it encodes a heading. The legs sweep
+fore–aft — horizontally on screen — whatever way the cat is actually
+going, and that sweep is the entire basis of the planted foot: a stance
+paw drifts backward at exactly the rate the ground passes under it, so
+it holds still against a mark.
+
+Travelling east or west that cancels: 9.5px of paw sweep against 56px of
+travel per tick, same axis. Travelling **north or south the axes are
+perpendicular** — the paw still sweeps 9.5px sideways while the cat
+carries it 56px vertically, so every foot, planted or not, slides across
+the ground at full walking speed. Nothing cancels. `dx === 0` also keeps
+the previous facing (`anim.js`), so the cat is a profile sliding sideways
+up the screen.
+
+**Measured, not guessed** (9-minute live census, `client-measurements/`):
+717 east/west moves against 394 north/south, so **35.5%** of walking is in
+the mode where the planting does nothing. Walking is ~28% of frames, so
+this is about **10% of all frames** — which is the budget any fix has to
+fit inside, and it rules out a new art vocabulary on its own.
+
+This is a consequence of the gait work succeeding, not a regression: with
+the old pegs the feet slid in every direction, so nothing was claimed and
+nothing was contradicted. **Doing nothing is a legitimate answer** and is
+what ships today (owner's call, 2026-08-08 — deferred in favour of higher
+value work).
+
+Options, costed, so this does not get re-derived:
+- **Front/rear-facing vocabulary** — the only true fix, and out of all
+  proportion: two more views of body, head, ears, face, tail, legs and
+  every pattern mask, for every pose, plus something sane when a cat turns
+  from east to north (a snap pops, a blend needs in-between views).
+- **Rotate the profile toward travel** — cheap, but a rotated side view
+  reads as a cat climbing a hill, not walking away.
+- **Isometric projection**, so north has a horizontal component — that is
+  the whole world (tiles, ponds, shadows, elements), and camera work is
+  already deferred until after the art.
+- **Damp the sweep by the horizontal share of travel**, `|dx|/(|dx|+|dy|)`
+  — about five lines, the renderer already has the delta. Risk: still legs
+  read as an escalator, and the factor pops at direction changes unless
+  smoothed across a tick.
+- **Swap the motion instead of killing it**: for vertical travel replace
+  the fore–aft sweep with a small alternating *piston*, paws stepping
+  under the body rather than past it — the old sprite-game convention for
+  "walking toward/away from you". ~30 lines, entirely inside the walking
+  case, no new vocabulary. **Best value of the list if this is picked up.**
+
+Suggested shape if revisited: one dial, 0 = today's full sweep, 1 = full
+piston, damping as the midpoint, judged in the lab on a card that walks a
+cat north and south — with "do nothing" as a fourth thing in the
+comparison, not as the absence of one.
+
 ## P2 — the bigger pieces, for a proper sitting
 
 ### Eval-suite v2: a stronger counterfactual baseline (added 2026-07-25)

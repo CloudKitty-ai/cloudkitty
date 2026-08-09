@@ -158,7 +158,7 @@ const GAIT = {
   // returns to 0 every tile, so a fractional count tears the cycle once
   // per tile crossed. It is also the setting that makes planting possible
   // at all -- see PLANTED below.
-  cycles: 1.8,
+  cycles: 2,
   duty: 0.62, // share of the cycle a foot is planted (>0.5 = a walk, not a run)
   reach: 0.085, // stride half-width, in tiles either side of the leg's base
   lift: 0.04, // ground clearance at mid-swing
@@ -241,6 +241,36 @@ function liftLayout(L, airborne) {
     bottom: airborne ? up(leg.bottom) : leg.bottom,
   }));
   return L;
+}
+
+/**
+ * Pounce timing, mutable for the lab like GAIT and SWIM.
+ *
+ * `phase` is tick progress, so the whole beat is one served tick (800ms
+ * live). The old pose was a two-position switch at 0.45 -- loaded, then
+ * suddenly extended -- which is why it popped. These three numbers say
+ * how long the cat stays loaded, how fast it extends, and how sharply.
+ */
+const POUNCE = {
+  hold: 0.2, // share of the beat spent loaded, before anything moves
+  launch: 0.4, // share spent extending; the rest is held at full reach
+  snap: 4, // >1 front-loads the extension. A cat launches, it does not glide.
+  twitch: 0, // tail-tip twitch while loading
+};
+
+/**
+ * How far through the launch `phase` is: 0 while loaded, 1 once extended.
+ *
+ * `snap` shapes it as 1-(1-u)^snap -- most of the travel in the first
+ * part of the window, decelerating into the reach. Exactly 0 and exactly
+ * 1 at the ends, which is what lets the crouch and the leap stay the
+ * drawings they already were.
+ */
+function pounceLaunch(phase, dials = POUNCE) {
+  const u = (phase - dials.hold) / Math.max(1e-6, dials.launch);
+  if (u <= 0) return 0;
+  if (u >= 1) return 1;
+  return 1 - (1 - u) ** dials.snap;
 }
 
 /**
@@ -626,36 +656,58 @@ function catLayout(pose, phase) {
     case 'pouncing': {
       // Anticipation crouch, then the leap: squash before stretch. The
       // static pose (phase 0, reduced motion) is the loaded crouch.
-      const leap = phase >= 0.45;
-      if (!leap) {
-        L.body = { cx: 0.42, cy: 0.68, rx: 0.31, ry: 0.17, rot: -0.1 };
-        L.head = { cx: 0.68, cy: 0.5, r: 0.221 };
-        L.legs = withFarPair([
+      //
+      // The two positions are unchanged -- what used to be a switch at
+      // phase 0.45 is now a launch BETWEEN them. Held loaded for
+      // POUNCE.hold, extended over POUNCE.launch, then held out. Both
+      // ends are reached exactly, so the crouch and the leap are the same
+      // drawings they have always been; only the frames between them are
+      // new, and there used to be none.
+      const t = pounceLaunch(phase);
+      const crouch = {
+        ...L,
+        body: { cx: 0.42, cy: 0.68, rx: 0.31, ry: 0.17, rot: -0.1 },
+        head: { cx: 0.68, cy: 0.5, r: 0.221 },
+        legs: withFarPair([
           { x: 0.2, top: 0.78, bottom: 0.88, w: 0.1 },
           { x: 0.64, top: 0.78, bottom: 0.88, w: 0.1 },
-        ]);
+        ]),
         // Tail high and twitching with intent.
-        L.tail = {
+        tail: {
           x0: 0.14, y0: 0.6, c1x: 0.03, c1y: 0.5, c2x: 0.0, c2y: 0.32,
-          x1: 0.06 + 0.02 * Math.sin(phase * 2 * TAU), y1: 0.24,
-        };
-      } else {
-        // Both feet clear of the ground -- the only pose where that is
-        // true, and the reason liftLayout takes an `airborne` flag.
-        airborne = true;
-        L.body = { cx: 0.46, cy: 0.56, rx: 0.34, ry: 0.165, rot: -0.18 };
-        L.head = { cx: 0.78, cy: 0.34, r: 0.215 };
-        L.legs = [
-          { x: 0.22, top: 0.66, bottom: 0.84, w: 0.09 },
-          // Drawn in FRONT of the body. Legs otherwise go behind it now,
-          // and the leap's body covers y 0.47..0.65 at this x -- which
-          // would bury all but 1.6px of the reach, gutting the one frame
-          // the owner singled out as worth protecting. Grooming's raised
-          // paw has always been a front element for the same reason.
-          { x: 0.74, top: 0.5, bottom: 0.68, w: 0.09, front: true }, // forepaw reaching
-        ];
-        L.tail = { x0: 0.14, y0: 0.6, c1x: 0.02, c1y: 0.6, c2x: 0.0, c2y: 0.46, x1: 0.04, y1: 0.38 };
-      }
+          x1: 0.06 + POUNCE.twitch * Math.sin(phase * 2 * TAU), y1: 0.24,
+        },
+      };
+      const leapLegs = withFarPair([
+        { x: 0.22, top: 0.66, bottom: 0.84, w: 0.09 },
+        // Drawn in FRONT of the body. Legs otherwise go behind it now,
+        // and the leap's body covers y 0.47..0.65 at this x -- which
+        // would bury all but 1.6px of the reach, gutting the one frame
+        // the owner singled out as worth protecting. Grooming's raised
+        // paw has always been a front element for the same reason.
+        { x: 0.74, top: 0.5, bottom: 0.68, w: 0.09, front: true }, // forepaw reaching
+      ]);
+      // The far pair belongs behind the body whatever the near one does:
+      // a shaded copy drawn in front would read as a second cat's paw.
+      leapLegs.forEach((leg, i) => {
+        if (i < 2) leg.front = false;
+      });
+      const leap = {
+        ...L,
+        body: { cx: 0.46, cy: 0.56, rx: 0.34, ry: 0.165, rot: -0.18 },
+        head: { cx: 0.78, cy: 0.34, r: 0.215 },
+        legs: leapLegs,
+        tail: { x0: 0.14, y0: 0.6, c1x: 0.02, c1y: 0.6, c2x: 0.0, c2y: 0.46, x1: 0.04, y1: 0.38 },
+      };
+      const blended = blendLayouts(crouch, leap, t);
+      L.body = blended.body;
+      L.head = blended.head;
+      L.tail = blended.tail;
+      L.legs = blended.legs;
+      // Feet leave the ground the moment the launch starts: past t=0 they
+      // are positioned against the BODY, not the ground, so they have to
+      // travel with it. Only the loaded crouch is planted.
+      airborne = t > 0;
       break;
     }
 
@@ -1250,11 +1302,13 @@ const api = {
   MOUTH,
   SWIM,
   GAIT,
+  POUNCE,
   PROPORTION,
   MAX_LIFT,
   gaitStep,
   plantedReach,
   proportionLayout,
+  pounceLaunch,
   PALETTES,
   POSES,
   // Not cat API, but props.js, meadow.js and app.js quietly depend on
