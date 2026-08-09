@@ -461,6 +461,7 @@ class WorldRenderer {
     }
     const signature = stable.map((p) => `${p.x},${p.y}`).sort().join(';');
     if (!this.pondCache || this.pondCache.signature !== signature) {
+      const groups = groupWaterTiles(stable);
       const ponds = groups.map((tiles) => ({ tiles, path: buildPondPath(tiles, this.tile) }));
       this.pondCache = {
         signature,
