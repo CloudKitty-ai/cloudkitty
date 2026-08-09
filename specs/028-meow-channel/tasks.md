@@ -58,10 +58,16 @@ in each); the branch is judged at its tip, each task still compiles green.
       enforcement), scripted urgent lottery reads `announce_threshold`. Rewrite
       `meow_courtesy_defaults_land_and_the_rows_hold` + add
       `the_retired_courtesy_trio_is_rejected_loudly`; update `cloudkitty.toml`
-      `[meow]` block + new `[actions]`/`[behavior]` keys with comments; both
-      shipped-config sweep tests stay green (experiment TOMLs carrying old keys:
-      the sweep skips `experiments/` — verify, else those files are
-      Experiments-owned and the task STOPS and reports rather than editing them).
+      `[meow]` block + new `[actions]`/`[behavior]` keys with comments; extend
+      the server integration test
+      `the_viewer_config_travels_through_the_config_endpoint` to assert the new
+      dials travel through GET /config (FR-025); both
+      shipped-config sweep tests stay green — VERIFIED at analyze: 62
+      `experiments/` TOMLs + `specs/004-fix-happiness-lockin/stuck-state-config.toml`
+      carry `courtesy_ticks` and the sweeps collect those dirs recursively, so
+      this task executes whatever sweep policy the cross-thread C1 decision
+      lands (Experiments-owned files are never edited from here; specs/004's
+      TOML is Product's to migrate or exclude).
 
 **Checkpoint**: vocabulary + dials exist; old courtesy machinery gone.
 
@@ -89,8 +95,10 @@ determinism suites green.
       `crates/cloudkitty-core/src/action.rs` + `meow.rs`: `validate` → `false`
       for `Meow` (Purr precedent; add `a_retired_meow_proposal_lawfully_resolves`
       beside the purr twins, keep the round-trip corpus green); new
-      `message_legal` skeleton (Silent true, `WaitForMe` false, `Purr`
-      earned+cooldown, others true — grounding lands in T010); apply order =
+      `message_legal` skeleton (Silent true, `WaitForMe` cooldown-clear —
+      today's voluntary `wait_for_them` check made law, so the yield word
+      survives illegal→Silent enforcement; `Purr` earned-only, today's validate
+      gate unchanged; others true — grounding lands in T010); apply order =
       activity then message; `emit_message` stamps intensity (need/100 want-kinds,
       0.0 else) + per-kind cooldown + `recent_meows` push; illegal proposed
       message downgrades to Silent in the record. Rewrite
@@ -194,7 +202,8 @@ audible meows; announcing cats mid-errand.
 - [ ] T012 [US4] The deterministic announce rule in
       `crates/cloudkitty-core/src/behavior/needs_driven.rs` + `playful.rs` +
       `mod.rs` (shared helper): message = highest-pressure need whose want-kind
-      is `message_legal`, else Silent; computed AFTER and independent of the
+      is `message_legal` (equal pressures tie-break in `NeedKind::ALL` order,
+      the selection.rs precedent), else Silent; computed AFTER and independent of the
       activity; delete the `gen_bool(0.3)`/`gen_bool(0.15)` lotteries and the
       transitional `(Idle, Some(kind))` returns from T004; tests: announcement
       never alters the chosen activity (decide with channel forced Silent ==
@@ -232,9 +241,9 @@ today; duet/groomer unaffected by cosleep dials.
       ∈ {Sleeping, Resting} → `cosleep_mutual_relief` else `cosleep_drip_relief`,
       both parties get the tier rate, sleeper's Sleep relief unchanged; duet and
       groomer keep `cuddle_relief`; tests: tier selection both ways,
-      behavior-preserving-at-defaults (a seeded run's cuddle trajectories are
-      byte-identical to a `cuddle_relief`-only build — assert via the dials
-      defaulting equal), `a_departed_cosleeping_partner_stops_granting_cuddles`
+      behavior-preserving-at-defaults (with all three dials equal at 15.0 a
+      seeded run's cuddle trajectories match today's arithmetic — asserted
+      numerically in one build, not cross-build), `a_departed_cosleeping_partner_stops_granting_cuddles`
       stays green, moving `cosleep_*` dials leaves duet/groom payments fixed.
 
 ---

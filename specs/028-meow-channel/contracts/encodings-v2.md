@@ -30,7 +30,7 @@ and validate-fail (lawful degradation, Purr precedent).
 | 3 | follow_me | cooldown clear |
 | 4 | want_play | armed(Play) ∧ cooldown clear |
 | 5 | want_cuddle | armed(Cuddle) ∧ cooldown clear |
-| 6 | purr | purr_earned ∧ tick ≥ purr_cooldown_until |
+| 6 | purr | purr_earned (earned-only, today's validate gate unchanged) |
 | 7 | want_bath | armed(Bath) ∧ cooldown clear |
 | 8 | want_sleep | armed(Sleep) ∧ cooldown clear |
 
@@ -40,7 +40,8 @@ and validate-fail (lawful degradation, Purr precedent).
   emission of that kind (clarified 2026-08-08).
 - `wait_for_me` has **no index**: engine-reserved, emitted only by the yield
   rule; scripted deciders may carry it in `Decision.message`, policies cannot
-  express it.
+  express it. Its `message_legal` is **cooldown clear** (not "never") so the
+  yield word survives illegal→Silent enforcement.
 - An illegal proposed message resolves to Silent; the paired activity is
   unaffected.
 

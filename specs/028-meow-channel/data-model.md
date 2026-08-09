@@ -22,9 +22,9 @@ prescriptions of final line numbers.
   |---|---|
   | (Silent — represented as `None` at the Decision level) | always |
   | want-kinds (6) | `announce_armed` contains the grounding need AND `can_meow(kind, tick)` |
-  | `Purr` | `purr_earned(thresholds.purr)` AND `tick >= purr_cooldown_until` |
+  | `Purr` | `purr_earned(thresholds.purr)` — earned-only, byte-faithful to today's validate gate; a deliberate purr mid-purr stays a lawful no-op |
   | `FollowMe` | `can_meow(FollowMe, tick)` |
-  | `WaitForMe` | never (head-excluded; yield rule emits engine-side) |
+  | `WaitForMe` | `can_meow(WaitForMe, tick)` — cooldown clear, mirroring today's voluntary check in `wait_for_them`; head-excluded (policies cannot express it, the yield rule proposes it engine-side), so legality here is what lets the yield word survive enforcement |
 
 ### `Meow` (meow.rs) — extended struct
 ```rust

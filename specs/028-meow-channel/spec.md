@@ -71,7 +71,9 @@ assumes it.
 
 **Independent Test**: Run a seeded world with only this story implemented (structural
 masks, no grounding): every decision carries a message slot, activities are identical
-in distribution to a pre-change world, determinism holds per seed, and a message can
+to a pre-change world up to the declared meow-turn→Idle translation (former meow
+turns become Idle turns; exact equality beyond that is transitional — US4 shifts
+distributions by design), determinism holds per seed, and a message can
 be emitted on the same tick as any activity.
 
 **Acceptance Scenarios**:
@@ -366,13 +368,13 @@ naming it. Load a committed pre-batch snapshot fixture → world resumes and tic
   source.)
 - **FR-018**: Scripted cats MUST announce want-kinds when grounded-legal ("meow
   whenever legal" is the honest broadcast), subject to the same mask as everyone.
-- **FR-019**: A scripted responder whose own Cuddle need is at/above the responder
-  gate (a config dial, default 15 — chosen inside the analysis band 15–20, NOT 30)
-  and who hears `WantBath` MUST walk to the emitter and groom. The response MUST key
+- **FR-019**: A scripted responder whose own Cuddle need is at/above the real-cuddle
+  gate (ONE config dial shared with FR-020, default 15 — chosen inside the analysis
+  band 15–20, NOT 30) and who hears `WantBath` MUST walk to the emitter and groom. The response MUST key
   on the audible meow only — a function of information a policy could observe —
   never on a privileged read of another cat's needs (imitability principle).
 - **FR-020**: The scripted napper MUST prefer sleeping adjacent to a reachable friend
-  over a sunbeam when its own Cuddle need is real (config dial, same default band);
+  over a sunbeam when its own Cuddle need is real (the same shared dial as FR-019);
   the companion's behavior is unchanged.
 - **FR-021**: The dataset collector's registered acceptance check: in dataset v4 the
   activity-label distribution conditioned on message ≠ Silent MUST match the

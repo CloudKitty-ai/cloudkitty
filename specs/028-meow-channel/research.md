@@ -48,9 +48,12 @@ old advisors and the corpus contract.
 **Decision**: `message_legal(kitty, kind, tick, config) -> bool` lives in
 cloudkitty-core (meow.rs). Rules: `Silent` → always true; want-kinds → armed
 (hysteresis state, R4) AND per-kind cooldown clear; `Purr` →
-`purr_earned` AND `tick >= purr_cooldown_until` (motor-consistent); `FollowMe` →
-cooldown clear only (no grounding predicate exists); `WaitForMe` → false
-(head-excluded; the yield rule emits it engine-side, not through the head).
+`purr_earned` only (today's validate gate byte-faithful; a deliberate purr
+mid-purr stays a lawful no-op — no cooldown clause); `FollowMe` →
+cooldown clear only (no grounding predicate exists); `WaitForMe` →
+cooldown clear (today's voluntary `wait_for_them` check made law; head-excluded
+— policies cannot express it, the yield rule proposes it engine-side — so this
+legality is what lets the yield word survive illegal→Silent enforcement).
 Enforcement at apply: an illegal proposed message downgrades to Silent, recorded
 in the tick record; the paired activity is untouched. The RL
 `legal_message_mask` derives from `message_legal` by probing, exactly as
@@ -236,7 +239,8 @@ dial without a definition skew.
 **Decision**:
 - **Announce rule (shared)**: after choosing the activity, a scripted decider
   sets message = the highest-pressure need whose want-kind is `message_legal`
-  (armed + cooldown clear), else Silent. Deterministic — the `gen_bool(0.3)` /
+  (armed + cooldown clear; equal pressures tie-break in `NeedKind::ALL` order,
+  the selection.rs precedent), else Silent. Deterministic — the `gen_bool(0.3)` /
   `gen_bool(0.15)` announce lotteries are deleted (their restraint job is now
   the mask's). Playful's chase announce collapses into the same rule
   (`WantPlay` announces when Play is genuinely ≥ threshold — grounding is law
