@@ -15,8 +15,9 @@ unfilled blank is invalid.
 
 **Frozen against**: engine **[AT FREEZE: sha]**, engine-defaults stamp
 **[AT FREEZE: stamp — it moves with this batch by design; record via
-the release-honest gate]**; family seed **[AT FREEZE]**, manifest
-sha256 **[AT FREEZE]**; family-gen **v5**.
+the release-honest gate]**; family seed **20260809**, manifest
+sha256 **21155233929bf08b3929ea934025cbe08a1a5a26bf835f914737b89a2ac96271**
+(generated 2026-08-09, byte-stable under regeneration); family-gen **v5**.
 **Predecessor**: [exp-003](../exp-003-water-schema/prereg.md).
 **Carry-forward register**:
 [exp-004-design-inputs.md](../exp-004-design-inputs.md) — every item
@@ -209,7 +210,10 @@ block (§3) and D1's mix rate; everything below is shared.
   **[AT FREEZE: from the landed spec]**; action codec v2 (activity
   34 + message 9), mask schema v2, `Silent` never masked.
 - Family: **15 variants**, family-gen **v5**, regenerated on the new
-  engine, family seed **[AT FREEZE]**. Stratification carried from
+  engine, family seed **20260809** (base =
+  `family/base.toml`: the shipped config + the training-only
+  Clementine fifth seat — the served roster is 4, and roster-5
+  stratification needs a 5-kitty base). Stratification carried from
   exp-003 verbatim: geometry {20, 22, 24, 26} (18×18 excluded and
   test-guarded, reserved held-out); water minimum cycle giving 3
   lakeless of 15; roster {3, 4, 5}, all (roster, water) pairs
