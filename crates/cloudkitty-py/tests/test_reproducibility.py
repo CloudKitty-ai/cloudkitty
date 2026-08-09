@@ -29,8 +29,13 @@ def rollout_digest():
         # rotated by step, so every process picks identically.
         actions = {}
         for offset, agent in enumerate(agents):
-            legal = np.flatnonzero(infos[agent]["mask"])
-            actions[agent] = int(legal[(step_index + offset) % legal.size])
+            mask = np.asarray(infos[agent]["mask"], dtype=np.uint8)
+            legal_a = np.flatnonzero(mask[:34])
+            legal_m = np.flatnonzero(mask[34:])
+            actions[agent] = [
+                int(legal_a[(step_index + offset) % legal_a.size]),
+                int(legal_m[(step_index + offset) % legal_m.size]),
+            ]
         obs, rewards, terminations, truncations, infos = env.step(actions)
         for agent in agents:
             digest.update(obs[agent].tobytes())

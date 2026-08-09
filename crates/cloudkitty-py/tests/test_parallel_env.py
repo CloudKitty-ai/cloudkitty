@@ -13,10 +13,18 @@ def make_env(horizon=25):
     return cloudkitty.ParallelEnv(horizon=horizon)
 
 
+MENU = 34  # menu v2 (spec 028); the mask concat is [activity 34 | message 9]
+IDLE = [33, 0]  # (idle, silent) — the v2 no-op pair
+
+
 def masked_choice(mask, rng):
-    legal = np.flatnonzero(np.asarray(mask, dtype=np.uint8))
-    assert legal.size > 0, "the mask is never all-zero"
-    return int(rng.choice(legal))
+    """A legal [activity, message] pair drawn from the two mask halves."""
+    mask = np.asarray(mask, dtype=np.uint8)
+    activities = np.flatnonzero(mask[:MENU])
+    messages = np.flatnonzero(mask[MENU:])
+    assert activities.size > 0, "the activity mask is never all-zero"
+    assert messages.size > 0, "Silent keeps the message mask alive"
+    return [int(rng.choice(activities)), int(rng.choice(messages))]
 
 
 def test_reset_shapes_and_bounds():
@@ -35,15 +43,18 @@ def test_reset_shapes_and_bounds():
         assert set(info) == {
             "applied_action",
             "applied_action_name",
+            "applied_message",
             "survived",
             "mask",
             "decision_seed",
             "provenance",
         }
         mask = info["mask"]
-        assert mask.dtype == np.uint8 and mask.shape == (40,)
+        assert mask.dtype == np.uint8 and mask.shape == (43,)
+        assert mask[MENU] == 1, "Silent (head index 0) is always legal"
         assert mask.any(), "never all-zero"
         assert info["applied_action"] is None, "nothing applied at reset"
+        assert info["applied_message"] is None, "no message at reset"
         assert isinstance(info["decision_seed"], int)
 
 
@@ -74,7 +85,7 @@ def test_step_bookkeeping_and_truncation_exactly_at_horizon():
 
     # Stepping past truncation is an error; reset rearms.
     with pytest.raises(RuntimeError):
-        env.step({a: 39 for a in agents})
+        env.step({a: IDLE for a in agents})
     assert env.agents == []
     obs, infos = env.reset(seed=4)
     assert env.agents == env.possible_agents
@@ -86,13 +97,13 @@ def test_out_of_range_raises_vacant_slots_do_not():
     agents = env.possible_agents
 
     with pytest.raises(IndexError):
-        env.step({agents[0]: 40, **{a: 39 for a in agents[1:]}})
+        env.step({agents[0]: [34, 0], **{a: IDLE for a in agents[1:]}})
 
     # Rest-with-kitty-slot-2 is vacant on the default roster (2 others):
     # decodes and lawfully resolves to idle — never a raise.
     env.reset(seed=5)
     obs, rewards, terminations, truncations, infos = env.step(
-        {agents[0]: 7, **{a: 39 for a in agents[1:]}}
+        {agents[0]: [7, 0], **{a: IDLE for a in agents[1:]}}
     )
     assert infos[agents[0]]["survived"] is False
 
@@ -114,7 +125,7 @@ def test_mixed_control_and_full_roster_reward():
     assert "kitty_1" not in agents, "scripted kitties are not agents"
     assert len(agents) >= 2
 
-    obs, rewards, *_ = env.step({a: 39 for a in agents})
+    obs, rewards, *_ = env.step({a: IDLE for a in agents})
     values = {rewards[a] for a in agents}
     assert len(values) == 1
 
@@ -128,10 +139,11 @@ def test_spaces_are_described():
     try:
         import gymnasium
 
-        assert act_space.n == 40
+        assert list(act_space.nvec) == [34, 9], "MultiDiscrete pair (spec 028)"
         assert obs_space.shape[0] > 100
     except ImportError:
-        assert act_space["n"] == 40
+        assert act_space["type"] == "multi_discrete"
+        assert list(act_space["nvec"]) == [34, 9]
         assert obs_space["shape"][0] > 100
 
 
@@ -167,8 +179,8 @@ def test_non_canonical_agent_names_are_rejected():
     env = make_env()
     env.reset(seed=2)
     agents = env.possible_agents
-    actions = {a: 39 for a in agents[1:]}
-    actions["kitty_01"] = 39
+    actions = {a: IDLE for a in agents[1:]}
+    actions["kitty_01"] = IDLE
     with pytest.raises(ValueError):
         env.step(actions)
 
@@ -180,13 +192,13 @@ def test_vector_env_bad_index_leaves_the_batch_in_sync():
     env.reset(seeds=[1, 2])
     agents = env.possible_agents
 
-    bad = {a: [39, 39] for a in agents}
-    bad[agents[0]] = [40, 39]
+    bad = {a: [IDLE, IDLE] for a in agents}
+    bad[agents[0]] = [[34, 0], IDLE]
     with pytest.raises(IndexError):
         env.step(bad)
 
     # All worlds still in lockstep: truncations flip together at horizon.
-    good = {a: [39, 39] for a in agents}
+    good = {a: [IDLE, IDLE] for a in agents}
     for step_index in range(10):
         obs, rewards, terminations, truncations, infos = env.step(good)
         flags = set(truncations[a].tolist()[i] for a in agents for i in range(2))
@@ -209,6 +221,7 @@ def test_vector_env_unseeded_reset_advances_every_world():
         "survived",
         "applied_action",
         "applied_action_name",
+        "applied_message",
         "provenance",
     }
     assert info["survived"].tolist() == [-1, -1], "no proposal at reset"
@@ -244,7 +257,7 @@ def test_vector_env_refuses_step_before_reset():
     env = cloudkitty.VectorEnv(2, seeds=[5, 6], horizon=10, workers=2)
     agents = env.possible_agents
     with pytest.raises(RuntimeError, match="reset"):
-        env.step({a: [39, 39] for a in agents})
+        env.step({a: [IDLE, IDLE] for a in agents})
 
     # The refused step did not consume the constructor seeds: the first
     # unseeded reset still runs them verbatim.
@@ -252,7 +265,7 @@ def test_vector_env_refuses_step_before_reset():
     b = cloudkitty.VectorEnv(2, horizon=10, workers=2)
     obs_b, _ = b.reset(seeds=[5, 6])
     assert all(obs_a[a].tobytes() == obs_b[a].tobytes() for a in agents)
-    env.step({a: [39, 39] for a in agents})
+    env.step({a: [IDLE, IDLE] for a in agents})
 
 
 def test_vector_env_rejects_unknown_and_scripted_agent_actions():
@@ -268,9 +281,9 @@ def test_vector_env_rejects_unknown_and_scripted_agent_actions():
     scripted.reset(seeds=[1, 2])
 
     with pytest.raises(ValueError, match="not externally controlled"):
-        env.step({**{a: [39, 39] for a in agents}, "kitty_999": [0, 0]})
+        env.step({**{a: [IDLE, IDLE] for a in agents}, "kitty_999": [IDLE, IDLE]})
     with pytest.raises(ValueError, match="not externally controlled"):
-        scripted.step({a: [39, 39] for a in agents})
+        scripted.step({a: [IDLE, IDLE] for a in agents})
 
 
 def test_omitted_action_reports_survived_none():
@@ -280,7 +293,7 @@ def test_omitted_action_reports_survived_none():
     env = make_env()
     env.reset(seed=8)
     agents = env.possible_agents
-    actions = {a: 39 for a in agents[1:]}  # agents[0] omitted
+    actions = {a: IDLE for a in agents[1:]}  # agents[0] omitted
     obs, rewards, terminations, truncations, infos = env.step(actions)
     assert infos[agents[0]]["survived"] is None
     assert infos[agents[0]]["provenance"] == "substituted_idle"
@@ -311,7 +324,7 @@ def test_vector_batch_matches_parallel_solo_streams():
         solos.append(env)
 
     for step_index in range(horizon):
-        actions = {a: (step_index + i) % 40 for i, a in enumerate(agents)}
+        actions = {a: [(step_index + i) % MENU, 0] for i, a in enumerate(agents)}
         batch_actions = {a: [actions[a]] * len(seeds) for a in agents}
         b_obs, b_rew, b_term, b_trunc, b_infos = batch.step(batch_actions)
         for world, env in enumerate(solos):

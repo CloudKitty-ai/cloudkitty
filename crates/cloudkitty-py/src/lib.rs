@@ -374,6 +374,11 @@ impl ParallelEnv {
         Ok(space.clone_ref(py))
     }
 
+    /// The activity menu's width (34 at default slots).
+    fn menu_len(&self) -> usize {
+        self.episode.codec().len()
+    }
+
     /// The message head's width (spec 028): 9.
     fn head_len(&self) -> usize {
         cloudkitty_rl::codec::MessageCodec::LEN
@@ -768,11 +773,13 @@ impl VectorEnv {
         let n = steps.len();
         let infos = PyDict::new(py);
         for id in &self.external {
-            let mut mask = Vec::with_capacity(n * self.menu_len);
+            let mask_width = self.menu_len + self.head_len;
+            let mut mask = Vec::with_capacity(n * mask_width);
             let mut seeds = Vec::with_capacity(n);
             let mut survived: Vec<i8> = Vec::with_capacity(n);
             let mut applied = Vec::with_capacity(n);
             let mut applied_names: Vec<Option<&'static str>> = Vec::with_capacity(n);
+            let mut applied_messages: Vec<Option<&'static str>> = Vec::with_capacity(n);
             let mut provenance: Vec<Option<&'static str>> = Vec::with_capacity(n);
             for step in steps {
                 let info = step
@@ -788,19 +795,21 @@ impl VectorEnv {
                 });
                 applied.push(info.applied_action.map(|a| a as i64).unwrap_or(-1));
                 applied_names.push(info.applied_action_name);
+                applied_messages.push(info.applied_message);
                 provenance.push(info.provenance.map(provenance_str));
             }
             let agent = PyDict::new(py);
             agent.set_item(
                 "mask",
                 numpy::PyArray1::from_vec(py, mask)
-                    .reshape([n, self.menu_len])
+                    .reshape([n, mask_width])
                     .map_err(|e| PyRuntimeError::new_err(e.to_string()))?,
             )?;
             agent.set_item("decision_seed", seeds.into_pyarray(py))?;
             agent.set_item("survived", survived.into_pyarray(py))?;
             agent.set_item("applied_action", applied.into_pyarray(py))?;
             agent.set_item("applied_action_name", applied_names)?;
+            agent.set_item("applied_message", applied_messages)?;
             agent.set_item("provenance", provenance)?;
             infos.set_item(agent_name(*id), agent)?;
         }

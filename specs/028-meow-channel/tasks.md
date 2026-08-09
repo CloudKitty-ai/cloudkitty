@@ -295,7 +295,7 @@ census convention.
 
 ## Phase 9: Polish & Cross-Cutting
 
-- [ ] T018 Python binding full pass in `crates/cloudkitty-py/`: `maturin develop`
+- [X] T018 Python binding full pass in `crates/cloudkitty-py/`: `maturin develop`
       + full pytest (PettingZoo conformance with `MultiDiscrete`, shapes/bounds,
       reproducibility, vector parity); schema constants re-export 3/2/2; fix any
       conformance fallout from the pair action space.
