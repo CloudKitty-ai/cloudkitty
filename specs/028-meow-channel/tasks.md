@@ -222,7 +222,7 @@ audible meows; announcing cats mid-errand.
       never alters the chosen activity (decide with channel forced Silent ==
       decide normally, activity-wise — the engine-side half of FR-021), a
       grounded cat announces, an ungrounded cat is Silent.
-- [ ] T013 [US4] Groom-response rung in
+- [X] T013 [US4] Groom-response rung in
       `crates/cloudkitty-core/src/behavior/needs_driven.rs`: after opportunism,
       before the potter — own Cuddle ≥ `cuddle_real_threshold` ∧ audible
       `WantBath` (self-excluded, freshest emitter per digest rule) → adjacent ?

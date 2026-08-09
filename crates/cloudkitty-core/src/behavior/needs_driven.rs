@@ -52,6 +52,12 @@ impl NeedsDriven {
             return action;
         }
 
+        // Answer an audible ask before pottering off (spec 028): kindness
+        // sits above idle wandering, below the cat's own urgent errands.
+        if let Some(action) = groom_response(ctx) {
+            return action;
+        }
+
         let (_, pressure) = ctx.me.needs.highest_pressure();
 
         // (Announcing left the ladder in spec 028: the message channel
@@ -260,6 +266,39 @@ fn seek_element(ctx: &DecisionContext, kind: ElementType, use_it: Action) -> Act
 /// when the only step that closes distance is wet, the kitty wades. The set
 /// of steps it is willing to take is exactly the pre-010 set, which is the
 /// whole anti-stuck argument: no layout can trap a cat that will always
+/// The groom response (spec 028 FR-019): a cat with real cuddle need that
+/// HEARS a bath ask answers it -- walk over, groom. Keyed on the audible
+/// meow alone (the freshest WantBath emitter, the digest's own selection
+/// rule: max tick, ties to the lower id, self excluded) and never on a
+/// privileged read of the neighbor's needs -- everything this rung reads,
+/// a policy could observe (the imitability principle). Yields to the
+/// responder's own urgency: any need at or above the safeguard threshold
+/// is its own errand first, so urgent eat still wins the ladder.
+fn groom_response(ctx: &DecisionContext) -> Option<Action> {
+    let me = &ctx.me;
+    if me.needs.get(NeedKind::Cuddle) < ctx.config.behavior.cuddle_real_threshold {
+        return None;
+    }
+    let (_, top) = me.needs.highest_pressure();
+    if top >= ctx.config.thresholds.safeguard {
+        return None;
+    }
+    let heard = ctx
+        .world
+        .recent_meows
+        .iter()
+        .filter(|m| m.kind == crate::meow::MessageKind::WantBath && m.kitty_id != me.id)
+        .max_by(|a, b| a.tick.cmp(&b.tick).then(b.kitty_id.cmp(&a.kitty_id)))?;
+    let emitter = ctx.world.kitty(heard.kitty_id)?;
+    if me.pos.is_adjacent(&emitter.pos) {
+        Some(Action::Groom {
+            target: Some(emitter.id),
+        })
+    } else {
+        Some(step_toward(ctx, emitter.pos))
+    }
+}
+
 /// paddle when paddling is the only way forward. The sidestep fallback
 /// prefers dry tiles for the same reason a cat standing in a puddle gets out
 /// of it.
@@ -1192,5 +1231,119 @@ mod tests {
         });
         let decision = NeedsDriven.decide(&ctx).await;
         assert_eq!(decision.message, None, "unarmed means Silent, by law");
+    }
+
+    #[tokio::test]
+    async fn a_meow_keyed_groomer_ignores_silent_wet_cats() {
+        // The imitability pair, negative half (spec 028 FR-019): a
+        // filthy-but-SILENT neighbor draws no response -- the rung keys on
+        // the audible meow, never on a privileged read of needs.
+        let ctx = decision_context(|world| {
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].needs.add(NeedKind::Cuddle, 40.0);
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].needs.add(NeedKind::Bath, 95.0); // soaked, silent
+        });
+        let action = NeedsDriven.decide_action(&ctx);
+        assert_ne!(
+            action,
+            Action::Groom { target: Some(2) },
+            "no meow, no response -- however wet the neighbor"
+        );
+    }
+
+    #[tokio::test]
+    async fn a_meow_keyed_groomer_answers_the_audible_ask() {
+        // The positive half: the same neighbor, now announcing -- the
+        // responder walks over (or grooms when adjacent).
+        let far = decision_context(|world| {
+            world.tick = 100;
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(2, 2);
+            world.kitties[a].needs.add(NeedKind::Cuddle, 40.0);
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(8, 2);
+            world.recent_meows.push(crate::meow::Meow {
+                kitty_id: 2,
+                kind: MessageKind::WantBath,
+                tick: 100,
+                intensity: 0.5,
+            });
+        });
+        assert!(
+            matches!(NeedsDriven.decide_action(&far), Action::Move { .. }),
+            "hears the ask, sets off"
+        );
+
+        let near = decision_context(|world| {
+            world.tick = 100;
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(2, 2);
+            world.kitties[a].needs.add(NeedKind::Cuddle, 40.0);
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(2, 3);
+            world.recent_meows.push(crate::meow::Meow {
+                kitty_id: 2,
+                kind: MessageKind::WantBath,
+                tick: 100,
+                intensity: 0.5,
+            });
+        });
+        assert_eq!(
+            NeedsDriven.decide_action(&near),
+            Action::Groom { target: Some(2) },
+            "adjacent: the answer is the groom itself"
+        );
+    }
+
+    #[tokio::test]
+    async fn the_groom_response_yields_to_the_responders_own_urgency() {
+        // Ladder position: an urgent own need (at/above the safeguard)
+        // outranks kindness -- urgent eat still wins.
+        let ctx = decision_context(|world| {
+            world.tick = 100;
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].needs.add(NeedKind::Cuddle, 40.0);
+            world.kitties[a].needs.add(NeedKind::Eat, 90.0); // past the safeguard
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(2, 3);
+            world.recent_meows.push(crate::meow::Meow {
+                kitty_id: 2,
+                kind: MessageKind::WantBath,
+                tick: 100,
+                intensity: 0.5,
+            });
+        });
+        let action = NeedsDriven.decide_action(&ctx);
+        assert_ne!(
+            action,
+            Action::Groom { target: Some(2) },
+            "the responder's own urgent errand comes first"
+        );
+    }
+
+    #[tokio::test(flavor = "current_thread")]
+    async fn groom_kitty_appears_in_a_seeded_scripted_run() {
+        // SC-002's engine half: with the channel and the responder rung in
+        // place, kitty-directed grooming happens in an ordinary scripted
+        // world (the pre-028 baseline measured 0 in 800k ticks). 20k ticks,
+        // one seed, all builtins.
+        use std::sync::Arc;
+        let config = Arc::new(crate::test_support::test_config());
+        let registry = crate::behavior::BehaviorRegistry::with_builtins();
+        let mut world = crate::world::World::generate(&config);
+        let mut groomed = 0u64;
+        for _ in 0..20_000 {
+            world.tick(&registry, &config).await;
+            for k in &world.kitties {
+                if let crate::kitty::Activity::Grooming { target: Some(_) } = k.activity {
+                    groomed += 1;
+                }
+            }
+        }
+        assert!(
+            groomed > 0,
+            "kitty-directed grooming must occur once cats can ask for it"
+        );
     }
 }
