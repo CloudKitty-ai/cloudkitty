@@ -1,0 +1,305 @@
+# CloudKitty's default world.
+#
+# Every number the simulation uses lives in this file -- the engine holds no magic
+# constants (Article VI). Edit freely: anything that would break the constitution
+# is rejected at startup with a message naming the field and its allowed range.
+
+[world]
+width = 20
+height = 20
+# Milliseconds per tick. 800ms is a comfortable watching pace.
+tick_ms = 800
+# The same seed replays the same world, exactly.
+seed = 20260718
+bind = "127.0.0.1:8090"
+
+[persistence]
+# The world is saved here on shutdown and every `save_every_ticks` ticks. Delete it
+# (or pass --fresh) to start over.
+snapshot_path = "snapshot.json"
+save_every_ticks = 100
+
+# The roster. At least two kitties, always (Article III: kitties cannot be alone).
+# `behavior` picks a strategy: "needs_driven" or "playful".
+
+[[kitty]]
+id = 1
+name = "Miso"
+x = 8
+y = 10
+# PARKED POLICY SEAT (spec 028 generation wall): this seat ran
+# e003-m0-g998-s3 — exp-003's winner, seated at the 2026-08-07 rollout —
+# but that artifact speaks action schema 1 and this binary speaks v2, so
+# the seat is re-parked to scripted until a generation-3 artifact
+# certifies (spec 028 rollout notes; deploy is gated on exactly this).
+# Record and provenance: the [rl.policy] block below and policies/README.md.
+behavior = "needs_driven"
+
+[[kitty]]
+id = 2
+name = "Biscuit"
+x = 16
+y = 15
+# Biscuit would rather chase a bug than eat a proper meal.
+behavior = "playful"
+
+[[kitty]]
+id = 3
+name = "Pumpkin"
+x = 13
+y = 6
+behavior = "needs_driven"
+# Any kitty may override the global [needs] rise rates; unset needs keep the
+# defaults. Pumpkin is a snacky little cat.
+[kitty.needs]
+eat = 0.8
+
+[[kitty]]
+id = 4
+name = "Kittybear"
+x = 4
+y = 4
+# PARKED POLICY SEAT (spec 028 generation wall) — this seat ran the same
+# artifact as Miso's, by design: exp-003's winner took both policy seats at
+# the 2026-08-07 rollout. Re-parked to scripted with Miso's for the same
+# reason; its predecessor, e002-m0-g998-s1, is retired with its record in
+# policies/README.md.
+behavior = "needs_driven"
+
+# How fast each need rises, per tick. Higher means more pressing, more often.
+[needs]
+eat = 0.4
+drink = 0.4
+sleep = 0.3
+play = 0.4
+cuddle = 0.4
+bath = 0.2
+
+[happiness]
+# Happiness never falls below this, and never reaches zero (Article I).
+floor = 5.0
+
+# Happiness = 100 - weighted average of the needs. These must sum to 1.0.
+[happiness.weights]
+eat = 0.20
+drink = 0.20
+sleep = 0.15
+play = 0.15
+cuddle = 0.15
+bath = 0.15
+
+[thresholds]
+# A need crossing `distress` records a distress event -- a signal for whoever is
+# watching, never a punishment for the kitty.
+distress = 90.0
+# A need past `safeguard` obliges the world to make sure relief exists. Must be
+# below `distress`, so help arrives before things get bad.
+safeguard = 75.0
+# Happiness above `purr` earns a purr (as does happiness that just went up).
+purr = 70.0
+
+# Element populations. `min`/`max` must sit within the hard bounds derived
+# from world size: at least 1 of each type (greebles may be 0), and at most
+# floor(width * height / 32) -- 12 for this 20x20 world.
+#
+# Know your knobs: `max` is read only by config validation. The world tops
+# each type up to `min` and no further, so the standing population IS the
+# minimums -- `min` is the real knob, and lowering `max` alone changes
+# nothing at runtime.
+[elements]
+# Placement (spec 027): a world whose water minimum is 4+ always holds at
+# least one 2x2 lake, and spawns prefer the interior. Three table-level
+# dials govern placement and expiry, shown here at their engine defaults;
+# uncomment one HERE, under this header, to change it (before 2026-08-06
+# this block sat inside [thresholds], where an uncommented dial landed in
+# the wrong table -- silently then, loudly now).
+# spread_candidates = 8   # best-of-N width for every spawn draw
+# ttl_jitter = 100        # timed spawns draw base +/- this many ticks
+# edge_penalty = 2.0      # perimeter handicap in tiles; 0 disables
+
+[elements.water]
+# Generous on purpose: a kitty should never have to cross the whole world for a
+# drink. Lower these for a sparser, more demanding world -- the constitution still
+# guarantees relief, but the cats will work harder for it.
+min = 7
+max = 9
+# No ttl: puddles are permanent.
+
+[elements.chow]
+min = 6
+max = 8
+# Each bowl feeds this many meals before it is empty and vanishes.
+servings = 5
+
+[elements.bug]
+min = 3
+max = 7
+ttl = 300
+
+[elements.greeble]
+# Greebles are fast, erratic, and invisible to humans -- they appear in the API
+# like any other element, but the viewer never draws them. Press `g` to cheat.
+min = 1
+max = 3
+ttl = 300
+
+[elements.sunbeam]
+min = 4
+max = 5
+ttl = 300
+
+# How much each action relieves the need it addresses.
+[actions]
+eat_relief = 35.0
+drink_relief = 35.0
+sleep_relief = 5.0
+# Sleeping in a sunbeam is properly restorative.
+sleep_relief_sunbeam = 8.0
+groom_relief = 20.0
+play_relief = 20.0
+# Resting or grooming alongside a friend (the rest duet and the groomer's
+# warmth). Cosleep is priced separately below since spec 028.
+cuddle_relief = 15.0
+# Cosleeping next to a friend (spec 028), per serviced sleep tick, both
+# parties: the passive tier when the partner is merely present...
+cosleep_drip_relief = 1.0
+# ...and the mutual tier when the partner is itself sleeping or resting.
+# Both launch equal to cuddle_relief -- behavior-preserving until the
+# dial-pricing pilot re-prices presence.
+cosleep_mutual_relief = 15.0
+# Pouncing at nothing, for a kitty with nobody to play with. Must not exceed
+# play_relief -- playing together stays the better deal.
+solo_play_relief = 10.0
+
+# How long each activity runs, in ticks (1 <= min <= max). The engine holds an
+# activity at least `min` ticks -- long enough to watch -- and never lets it
+# pass `max`. Relief applies on every tick, and a finished need (or an empty
+# bowl) ends the activity early once `min` is met. `bath` governs grooming;
+# `cuddle` governs resting, alone or together.
+[actions.durations]
+eat = { min = 2, max = 3 }
+drink = { min = 2, max = 3 }
+play = { min = 2, max = 5 }
+bath = { min = 4, max = 8 }
+sleep = { min = 6, max = 12 }
+cuddle = { min = 6, max = 12 }
+
+[meow]
+# Law, not manners (spec 028): a want-kind may be spoken only while its need
+# is armed and that kind's per-cat cooldown has cleared; silence is always
+# legal. The window below is both audibility and the per-kind cooldown, so
+# an honest persistent signal refreshes exactly as the old one fades --
+# one live digest entry per kind per emitter, never sooner.
+recent_window_ticks = 10
+# A want-kind arms at this need level (grounded legality)...
+announce_threshold = 30.0
+# ...and disarms below threshold - hysteresis, so the mask holds steady
+# while an errand is in progress.
+announce_hysteresis = 5.0
+
+[purr]
+# A contented kitty rumbles for a while (a seeded draw between min and max
+# ticks), then rests its motor for a freshly drawn multiple of that purr's
+# length (a factor between the bounds below, ceiling-rounded) -- so a happy
+# meadow rumbles about 1/(1 + midpoint) of the time with an organic rhythm.
+# A kitty may also *choose* to purr (spec 022): that spends its whole turn,
+# must be earned by happiness, always announces, and is never blocked by the
+# motor's rest. Spontaneous purring stays pure charm -- no turn, no need
+# change -- and announces itself only with probability announce_probability
+# (0 keeps the broadcast channel for chosen purrs only).
+min_ticks = 8
+max_ticks = 13
+cooldown_factor_min = 1.75
+cooldown_factor_max = 2.75
+announce_probability = 0.0
+
+[behavior]
+# Share of a tick an *external* behavior may spend deciding before the engine
+# steps in with the default behavior. Built-in behaviors are exempt: they run
+# in-process, so determinism never depends on how fast this machine is.
+budget_fraction_of_tick = 0.5
+# What "real cuddle need" means to the scripted responders (spec 028): at or
+# above this, a cat answers an audible want_bath with grooming and prefers a
+# friend's side to a sunbeam for its nap. One shared gate on purpose.
+cuddle_real_threshold = 15.0
+# The pressure at which a "playful" kitty stops playing and attends to a need.
+# Lower means a better-kept cat; higher means more single-minded fun.
+playful_comfort = 55.0
+# Need selection weighs pressure against travel. Pressure above the safeguard
+# threshold counts extra (urgency_weight per point), so urgent needs dominate --
+# but relief at zero distance still beats a hopeless cross-map trek.
+urgency_weight = 2.0
+# How many need-points one tile of travel is worth.
+tile_cost = 1.0
+# Extra tiles of effort a kitty ascribes to stepping onto water. Dry routes
+# win when they cost less than the splash; a kitty still wades when water is
+# the only way forward -- preference, never prohibition.
+water_step_cost = 4.0
+# A need at or above this is worth topping up when the means are already
+# underfoot (adjacent chow, water, a sunbeam, or a playmate).
+worth_a_detour = 30.0
+# A chase that hasn't closed distance in this many ticks is hopeless; the
+# target is then avoided for chase_exclusion_ticks. Greebles, mostly.
+chase_patience_ticks = 10
+chase_exclusion_ticks = 60
+# A viable playmate within this distance suppresses solo play; beyond it, a
+# kitty pounces at nothing sooner than sulking.
+solo_play_reach = 8
+# A sunbeam within this distance is worth walking to for a nap; farther than
+# that, a kitty sleeps where it is. Prices the sleep score and bounds the
+# sleep walk with the same number, so they can never disagree.
+sunbeam_reach = 8
+# External advisor knobs (spec 016), shown at their defaults. One plugin
+# reply line may carry at most reply_max_bytes; beyond it the proposal fails
+# and the plugin process is restarted. A dead plugin process is relaunched at
+# most once per relaunch_cooldown_ticks. A reply that misses the
+# exchange_timeout_ms wall-clock deadline fails the proposal and kills the
+# process — the transport's own containment, active on every dispatch path.
+# reply_max_bytes = 65536
+# relaunch_cooldown_ticks = 20
+# exchange_timeout_ms = 1000
+
+[events]
+# How many distress events to keep.
+distress_retention = 1000
+# How many finished-activity events to keep. Each records the true tick span
+# a scene ran (started..=ended), which snapshots alone cannot show.
+activity_retention = 1000
+
+[viewer]
+# Read by the web client via /config; the simulation ignores it. A distress
+# unresolved this long earns a gentle cue on the kitty's card.
+distress_patience_ticks = 60
+
+# External behavior plugins (spec 016): each [plugins.<name>] block registers
+# a long-running external program as a behavior; give a kitty
+# `behavior = "<name>"` to hand it the reins. The command must be a path to
+# an existing executable file (a shebang script, or an absolute interpreter
+# path with the script in args) -- validated at startup. Program paths and
+# args are never served on GET /config. Wire contract, failure semantics,
+# and a worked example: docs/plugins.md.
+#
+# [plugins.professor_whiskers]
+# command = "docs/examples/demo_plugin.py"
+# args = []
+
+# RL policy artifacts (spec 014 FR-016): a kitty with behavior = "policy:<name>"
+# resolves through the matching [rl.policy.<name>] block. The artifact is
+# schema-validated and content-hashed at startup (never served on GET /config).
+# Artifacts live in the committed policies/ directory (owner decision
+# 2026-07-31); the README there maps each file to its sha256, its
+# certification record, and the naming convention these keys follow.
+# e003-m0-g998-s3 = exp-003's driest candidate (self-play, γ = 0.998, seed 3),
+# sha256 756aa680… — the first schema-2 policy to reach the served world.
+# Water: 2.79% in-water / 0.62% lounging on the §9.1 instrument, both BELOW the
+# scripted baseline (3.44% / 1.50%) — the behaviour exp-002 proved no dial
+# setting could buy. Welfare +0.0420 vs needs_driven; on this world at roster 4
+# it scores max_distress_age 0 and floor_touches 0 across 30 seeds, both shapes.
+# Seated at both policy seats, superseding e001-a2-s6 and e002-m0-g998-s1
+# (retired to policies/retired/, and unrunnable here in any case — schema 1).
+# Deployed on the owner's judgement, NOT certified: it fails exp-003's §9.2 by
+# 3 ticks of eat-need on one seed of an off-deployment world. The decision and
+# its evidence are in the prereg's Deviations appendix.
+# Greedy selection (sample = false), matching the measured condition.
+[rl.policy.e003-m0-g998-s3]
+artifact = "policies/e003-m0-g998-s3.ckpolicy"
