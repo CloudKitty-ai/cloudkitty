@@ -80,6 +80,20 @@
   <canvas id="occlusion" width="960" height="230"></canvas>
   <div class="styles" id="occ-labels" style="grid-template-columns: repeat(5, 1fr);"></div>
 
+  <h2>Ponds — depth, lip, caustics, meniscus</h2>
+  <p class="note">
+    The three shapes this world actually has, drawn through the shipped
+    <code>buildPondLayers</code> and <code>drawPonds</code>. The blur is
+    <strong>clamped by each pond&rsquo;s own inradius</strong>: a blur wider
+    than the pond has nothing to be deep in the middle of, and at a flat
+    0.95 a lone tile reaches 18% depth and even the 2&times;2 lake only 49%.
+    The number under each shape is what it actually got. The river is here
+    because area-based sizing would call it as roomy as the lake, and it is
+    the blob that most needs a tight blur.
+  </p>
+  <canvas id="ponds" width="960" height="270"></canvas>
+  <div class="styles" id="pond-labels" style="grid-template-columns: repeat(3, 1fr);"></div>
+
   <h2>Ground cover — the four styles, same seed</h2>
   <p class="note">
     All four bake into the ground cache, which sits under everything: nothing
@@ -163,6 +177,22 @@
     bushLift: [0, 2, 0.05],
     bushBase: [0, 1, 0.02],
     bushShadowThrow: [0, 2, 0.05],
+    // Ponds (design handoff spec 02). The card below draws through the
+    // shipped drawPonds/buildPondLayers, so these are the real dials.
+    pondDepthBlurTiles: [0.1, 2, 0.05],
+    pondDepthBlurClamp: [0.8, 4, 0.05],
+    pondLipBlurTiles: [0, 1.2, 0.02],
+    pondLipAlpha: [0, 1, 0.02],
+    meniscusWidthTiles: [0, 0.14, 0.002],
+    causticLinesPerTile: [0, 4, 0.1],
+    causticLinesMax: [1, 20, 1],
+    causticAlpha: [0, 0.4, 0.005],
+    causticAmplitude: [0, 0.25, 0.005],
+    shoreRounding: [0, 1.6, 0.05],
+    shoreWobble: [0, 0.3, 0.005],
+    shoreWobblePeriod: [0.1, 1.5, 0.05],
+    shoreBulgeEase: [0, 1, 0.05],
+    shoreOverdraw: [0, 0.4, 0.01],
   };
 
   /** Tunables that live in MEADOW_DEFAULTS but belong to layers this lab
@@ -170,7 +200,7 @@
    *  which has its own buttons. Dialing them here would do nothing. */
   const ELSEWHERE = new Set([
     'ponds', 'glow', 'paths', 'gridOverlay', 'bushStyle',
-    'shoreRounding', 'shoreWobble', 'lilyPadMinTiles', 'glowRadiusTiles', 'glowAlpha',
+    'lilyPadMinTiles', 'glowRadiusTiles', 'glowAlpha', 'glowRadiusTiles', 'glowAlpha',
     'pathHeatCap', 'pathFullHeat', 'pathHalfLifeMs', 'pathVisibilityFloor', 'pathTintAlpha',
   ]);
 
@@ -222,6 +252,63 @@
     });
   }
 
+  const POND_SHAPES = [
+    ['lone tile', [{ x: 1, y: 1 }]],
+    ['2x2 lake', [{ x: 1, y: 1 }, { x: 2, y: 1 }, { x: 1, y: 2 }, { x: 2, y: 2 }]],
+    ['1-wide river', [{ x: 1, y: 1 }, { x: 2, y: 1 }, { x: 3, y: 1 }, { x: 4, y: 1 }]],
+  ];
+  let pondBake = null; // { key, cells } -- the blur is expensive, the clock is not
+
+  function pondKey() {
+    const d = VIEW.meadow;
+    return [tile, phase, blend, d.pondDepthBlurTiles, d.pondDepthBlurClamp,
+      d.pondLipBlurTiles, d.shoreRounding, d.shoreWobble].join('|');
+  }
+
+  function renderPonds(now = 0) {
+    const c = document.getElementById('ponds');
+    const g = c.getContext('2d');
+    const cw = c.width / POND_SHAPES.length;
+    if (!pondBake || pondBake.key !== pondKey()) {
+      pondBake = {
+        key: pondKey(),
+        cells: POND_SHAPES.map(([, tiles]) => {
+          const ponds = groupWaterTiles(tiles).map((t) => ({
+            tiles: t, path: buildPondPath(t, tile),
+          }));
+          return {
+            ponds,
+            layers: buildPondLayers(ponds, {
+              tile, widthPx: Math.round(cw), heightPx: c.height, dpr: 1,
+            }),
+            radius: pondInradius(tiles),
+          };
+        }),
+      };
+      const d = VIEW.meadow;
+      document.getElementById('pond-labels').innerHTML = POND_SHAPES
+        .map(([name], i) => {
+          const r = pondBake.cells[i].radius;
+          const sigma = Math.min(d.pondDepthBlurTiles, r / d.pondDepthBlurClamp);
+          return `<div>${name}<br><small>inradius ${r.toFixed(2)}t · blur ${sigma.toFixed(2)}t</small></div>`;
+        })
+        .join('');
+    }
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.clearRect(0, 0, c.width, c.height);
+    g.fillStyle = MEADOW.grassTones[0];
+    g.fillRect(0, 0, c.width, c.height);
+    pondBake.cells.forEach((cell, i) => {
+      g.save();
+      g.beginPath();
+      g.rect(i * cw, 0, cw, c.height);
+      g.clip();
+      g.translate(i * cw, 0);
+      drawPonds(g, { ponds: cell.ponds, tile, layers: cell.layers, now, motion: true });
+      g.restore();
+    });
+  }
+
   function render() {
     applyPalette();
     const width = Math.ceil(stage.width / tile);
@@ -241,6 +328,7 @@
       + `Demo world today is 31px; WQHD reaches 47px; 20x20 reaches 54px.`;
     renderStyles();
     renderOcclusion();
+    renderPonds(performance.now());
     readout();
   }
 
@@ -412,6 +500,15 @@
   };
 
   render();
+
+  // The caustics are motion, so the pond card gets its own clock. The bake
+  // is keyed on the dials that change the blur, so this repaints without
+  // rebuilding the layers.
+  (function tickPonds() {
+    renderPonds(performance.now());
+    requestAnimationFrame(tickPonds);
+  })();
+
 })();
 </script>
 </body>
