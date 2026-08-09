@@ -103,7 +103,7 @@ const EXPORTS =
   ';({ get MEADOW() { return MEADOW; }, MEADOW_DAY, MEADOW_DUSK, MEADOW_NIGHT, setMeadowPalette,' +
   ' mixPaletteColor, mixPalettes, parsePaletteColor,' +
   ' MEADOW_DAWN, bushesFor, drawBushAt, drawGroundCover, MEADOW_SALTS, MEADOW_DEFAULTS, tileHash, drawMeadowGround, drawGridOverlay, groupWaterTiles,' +
-  ' buildPondPath, drawPonds, drawSunbeamGlow, drawWornPaths, VIEW, Presentation,' +
+  ' buildPondPath, drawPonds, pondInradius, drawSunbeamGlow, drawWornPaths, VIEW, Presentation,' +
   ' WorldRenderer })';
 const api = eval(src + EXPORTS);
 
@@ -633,6 +633,48 @@ check('standing styles cast a shadow, flat ones do not', () => {
   }
   for (const flat of ['cover', 'tuft', 'bramble']) {
     assert(shadowsIn(flat) === 0, `${flat} lies on the ground and casts nothing`);
+  }
+});
+
+check('pondInradius measures the circle that fits, not the tile count', () => {
+  const P2 = (x, y) => ({ x, y });
+  const r = (tiles) => api.pondInradius(tiles);
+  const lone = r([P2(0, 0)]);
+  const lake = r([P2(0, 0), P2(1, 0), P2(0, 1), P2(1, 1)]);
+  const river = r([P2(0, 0), P2(1, 0), P2(2, 0), P2(3, 0)]);
+  // Each within a lattice step of the true 0.5 / 1.0 / 0.5.
+  assert(Math.abs(lone - 0.5) < 0.1, `lone tile ${lone}`);
+  assert(Math.abs(lake - 1.0) < 0.1, `2x2 lake ${lake}`);
+  assert(Math.abs(river - 0.5) < 0.1, `river ${river}`);
+  // The one that matters, and the one an area-based estimate gets exactly
+  // backwards: a four-tile river is as tight as a lone tile, not as roomy
+  // as a four-tile lake. Rivers are a sketched future shape.
+  assert(river < lake * 0.7, `a 1-wide river (${river}) must read tighter than a lake (${lake})`);
+  assert(Math.abs(river - lone) < 0.1, 'and about as tight as a lone tile');
+  // A reentrant corner has to count: axis rays alone read an L as 0.88.
+  const ell = r([P2(0, 0), P2(1, 0), P2(1, 1)]);
+  assert(ell < 0.7, `an L is 1-wide everywhere, got ${ell}`);
+});
+
+check('the depth blur is clamped so every pond has a middle', () => {
+  const d = api.MEADOW_DEFAULTS;
+  const depthAt = (tiles) => {
+    const rad = api.pondInradius(tiles);
+    const sigma = Math.min(d.pondDepthBlurTiles, rad / d.pondDepthBlurClamp);
+    return 1 - Math.exp(-(rad * rad) / (2 * sigma * sigma));
+  };
+  const P2 = (x, y) => ({ x, y });
+  const shapes = {
+    'lone tile': [P2(0, 0)],
+    '2x2 lake': [P2(0, 0), P2(1, 0), P2(0, 1), P2(1, 1)],
+    river: [P2(0, 0), P2(1, 0), P2(2, 0), P2(3, 0)],
+  };
+  for (const [name, tiles] of Object.entries(shapes)) {
+    // Unclamped, the spec's 0.95 leaves a lone tile at 18% and even our
+    // 2x2 lake at 49% -- every pond in this world running pale.
+    const bare = 1 - Math.exp(-(api.pondInradius(tiles) ** 2) / (2 * d.pondDepthBlurTiles ** 2));
+    assert(bare < 0.55, `${name} would not need the clamp (${bare})`);
+    assert(depthAt(tiles) > 0.75, `${name} still has no middle (${depthAt(tiles)})`);
   }
 });
 

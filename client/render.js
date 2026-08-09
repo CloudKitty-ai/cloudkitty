@@ -315,8 +315,10 @@ class WorldRenderer {
     for (const el of world.elements) {
       if (el.kind === 'sunbeam') continue;
       if (el.kind === 'water' && VIEW.meadow.ponds && view.elementAlphaFor(el) >= 1) {
-        // Drawn by the pond body already; only its shimmer remains here.
-        this.drawWaterShimmer(el, view);
+        // Drawn by the pond body already -- and since the pond restyle its
+        // surface motion is the caustic net, one per POND, so a per-tile
+        // shimmer on top would double it and re-tile a merged pond. The
+        // standalone mid-fade pools below keep theirs.
         continue;
       }
       this.drawElement(el, view.elementAlphaFor(el), view);
@@ -454,13 +456,30 @@ class WorldRenderer {
     }
     const signature = stable.map((p) => `${p.x},${p.y}`).sort().join(';');
     if (!this.pondCache || this.pondCache.signature !== signature) {
-      const groups = groupWaterTiles(stable);
+      const ponds = groups.map((tiles) => ({ tiles, path: buildPondPath(tiles, this.tile) }));
       this.pondCache = {
         signature,
-        ponds: groups.map((tiles) => ({ tiles, path: buildPondPath(tiles, this.tile) })),
+        ponds,
+        // Depth and lip bake here, where the paths are already being
+        // rebuilt -- so the blur is paid once per water change, not once
+        // per frame. Two layers for the whole world, not two per pond.
+        layers: buildPondLayers(ponds, {
+          tile: this.tile,
+          widthPx: this.canvas.width,
+          heightPx: this.canvas.height,
+          dpr: this.dpr || window.devicePixelRatio || 1,
+        }),
       };
     }
-    drawPonds(this.ctx, { ponds: this.pondCache.ponds, tile: this.tile });
+    drawPonds(this.ctx, {
+      ponds: this.pondCache.ponds,
+      tile: this.tile,
+      layers: this.pondCache.layers,
+      // Same clock and same flag the per-tile shimmer used, since the
+      // caustics replace it: reduced motion still stills the water.
+      now: view?.ambient?.now ?? 0,
+      motion: view?.ambient?.now !== undefined && VIEW.ambient.waterShimmer,
+    });
   }
 
   /** The shimmer sliding across a water surface (005 US6), shared by the
