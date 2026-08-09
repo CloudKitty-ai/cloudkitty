@@ -142,9 +142,12 @@ impl PolicyBehavior {
 }
 
 /// Maps a u32 onto [0, 1): the per-head uniform derived from one split
-/// `DecisionRng` draw (spec 028 R10).
-fn uniform_from_u32(bits: u32) -> f32 {
-    (bits as f64 / (u32::MAX as f64 + 1.0)) as f32
+/// `DecisionRng` draw (spec 028 R10). Stays f64: bits/2^32 is exact
+/// there (32 bits fit the 53-bit mantissa), so the result tops out at
+/// 1 - 2^-32. A cast to f32 would round the top 128 values to exactly
+/// 1.0 and degenerate the softmax draw to the last legal candidate.
+fn uniform_from_u32(bits: u32) -> f64 {
+    bits as f64 / (u32::MAX as f64 + 1.0)
 }
 
 /// Masked selection for one head, total by construction: non-finite
@@ -152,7 +155,7 @@ fn uniform_from_u32(bits: u32) -> f32 {
 /// wins. `uniform` None is greedy (ties to the lowest index, no draw);
 /// Some(u) is a softmax draw positioned by the caller-supplied uniform --
 /// the per-head half of one split u64 (spec 028 R10).
-fn select(logits: &[f32], mask: &[bool], uniform: Option<f32>) -> usize {
+fn select(logits: &[f32], mask: &[bool], uniform: Option<f64>) -> usize {
     let candidates: Vec<usize> = (0..logits.len())
         .filter(|&i| mask[i] && logits[i].is_finite())
         .collect();
@@ -180,7 +183,7 @@ fn select(logits: &[f32], mask: &[bool], uniform: Option<f32>) -> usize {
         .map(|&i| ((logits[i] - max) as f64).exp())
         .collect();
     let total: f64 = weights.iter().sum();
-    let mut draw = uniform as f64 * total;
+    let mut draw = uniform * total;
     for (&index, weight) in candidates.iter().zip(&weights) {
         if draw < *weight {
             return index;
@@ -236,5 +239,25 @@ mod tests {
             )
         };
         assert_eq!(draw(7), draw(7), "same seed, same draws");
+    }
+
+    #[test]
+    fn the_top_of_the_uniform_range_never_degenerates_the_draw() {
+        // Regression: casting the uniform to f32 rounded the top 128 u32
+        // values to exactly 1.0, making `draw < weight` never fire and
+        // handing the pick to the LAST legal candidate regardless of
+        // weight. With the mass overwhelmingly on index 0, bits at the
+        // very top of the range must still land there.
+        let mask = vec![true; 4];
+        let logits = vec![40.0, 0.0, 0.0, 0.0];
+        for bits in [u32::MAX, u32::MAX - 127] {
+            let uniform = uniform_from_u32(bits);
+            assert!(uniform < 1.0, "the uniform stays inside [0, 1)");
+            assert_eq!(
+                select(&logits, &mask, Some(uniform)),
+                0,
+                "bits {bits:#x}: the near-total-mass candidate wins"
+            );
+        }
     }
 }
