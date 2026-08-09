@@ -299,7 +299,7 @@ census convention.
       + full pytest (PettingZoo conformance with `MultiDiscrete`, shapes/bounds,
       reproducibility, vector parity); schema constants re-export 3/2/2; fix any
       conformance fallout from the pair action space.
-- [ ] T019 Process close-out: CHANGELOG.md Unreleased entry with
+- [X] T019 Process close-out: CHANGELOG.md Unreleased entry with
       `[obs-schema]`/`[rng-sequence]`/`[stamp]` markers + the NEW
       `engine_defaults_sha256` recorded (print via throwaway test, delete it);
       `cloudkitty.toml` comment sweep (window-doubles-as-cooldown note); assess

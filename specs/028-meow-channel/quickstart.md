@@ -17,11 +17,11 @@ Expect: all suites pass, including the extended mask-oracle property suite
 
 ```sh
 cargo test -p cloudkitty-rl silent_is_never_masked
-cargo test -p cloudkitty-rl the_mask_is_a_pure_oracle          # extended: both heads
+cargo test -p cloudkitty-rl --test mask_oracle                 # extended: both heads
 cargo test -p cloudkitty-core announce_arming                  # hysteresis edge tests
 cargo test -p cloudkitty-core a_pre_028_world_resumes_and_runs # committed fixture
 cargo test -p cloudkitty-core the_retired_courtesy_trio_is_rejected_loudly
-cargo test -p cloudkitty-rl distress_census_matches_the_instrument_convention
+cargo test -p cloudkitty-rl --test distress_census
 ```
 
 (Exact test names may vary at implementation; each guarantee must have a named
@@ -40,8 +40,8 @@ Same seed + config → identical worlds including `recent_meows` and intensities
 ## 4. Demonstrators use the channel (SC-001/002/003)
 
 ```sh
-cargo run -p cloudkitty-rl --bin kitty-eval -- --config cloudkitty.toml \
-  --seeds 1..10 --ticks 20000 --roster scripted
+cargo run -p cloudkitty-rl --bin kitty-eval -- --brain needs_driven \
+  --config cloudkitty.toml --seeds 1,2,3 --ticks 20000 --roster all-policy
 ```
 
 Expect in the report: nonzero GroomKitty activity (baseline was 0 in 800k),
@@ -55,8 +55,8 @@ cuddle is real.
 ```sh
 # a pre-028 artifact refuses loudly:
 cargo run -p cloudkitty-rl --bin kitty-eval -- \
-  --artifact policies/s6.ckpolicy --config cloudkitty.toml ; echo "exit: $?"
-# expect: artifact_version / schema mismatch error, exit 1
+  --artifact policies/e003-m0-g998-s3.ckpolicy --config cloudkitty.toml
+# expect: "unsupported artifact version 1 (this build supports 2)", exit 1
 
 # a config with a retired key refuses loudly:
 #   add `courtesy_ticks = 10` under [meow] in a scratch copy, then:
