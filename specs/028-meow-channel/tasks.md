@@ -126,7 +126,7 @@ determinism suites green.
       `HEAD_KINDS`); codec tests: 34-entry
       normative order, total decode both codecs, encode-inverts-decode,
       `WaitForMe` inexpressible; update `codec_totality.rs`.
-- [ ] T007 [US1] Two heads through rl (`crates/cloudkitty-rl/src/policy.rs`,
+- [X] T007 [US1] Two heads through rl (`crates/cloudkitty-rl/src/policy.rs`,
       `behavior.rs`, `episode.rs`, `mask.rs`): `ARTIFACT_VERSION = 2`, final
       layer out-width == menu_len + 9, `SchemaExpectations.message_head_len`,
       byte-frozen-style width error; `select` samples both heads from ONE

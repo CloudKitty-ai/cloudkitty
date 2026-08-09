@@ -74,7 +74,7 @@ fn mixed_rollouts_are_bit_reproducible() {
         for step_index in 0..120u64 {
             // A deterministic little action script over the menu.
             let index = [33usize, 0, 2, 25, 12, 33][step_index as usize % 6]; // 33 = idle, menu v2
-            let actions = BTreeMap::from([(external, index)]);
+            let actions = BTreeMap::from([(external, (index, 0))]);
             let step = episode.step(&actions).unwrap();
             let obs = &step.observations[&external];
             trace.push(format!(
@@ -104,7 +104,7 @@ fn the_team_reward_counts_the_full_roster() {
     assert!(episode.roster().len() > 1, "scripted kitties are rostered");
 
     for _ in 0..25 {
-        let actions = BTreeMap::from([(external, 33usize)]); // idle, menu v2
+        let actions = BTreeMap::from([(external, (33usize, 0usize))]); // (idle, silent)
         let step = episode.step(&actions).unwrap();
         let expected = team_reward(
             &episode.world().snapshot(),

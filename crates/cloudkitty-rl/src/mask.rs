@@ -24,14 +24,19 @@
 
 use cloudkitty_core::action;
 use cloudkitty_core::kitty::KittyId;
+use cloudkitty_core::meow::message_legal;
 use cloudkitty_core::world::{World, WorldSnapshot};
 use cloudkitty_core::Config;
 
 use crate::codec::ActionCodec;
-use crate::observe::TargetTable;
+use crate::observe::{TargetTable, HEAD_KINDS};
 
-/// Versioned with the codec (contracts/encodings.md).
-pub const MASK_SCHEMA_VERSION: u32 = 1;
+/// Versioned with the codec. Schema 2 (spec 028, encodings-v2.md): the
+/// serialized wire is one vector, `[activity mask (menu_len) | message
+/// mask (9)]` -- 43 at default slots. Both halves are pure oracles over
+/// engine law; neither is ever all-zero (activity: FR-018 structural;
+/// message: Silent always legal).
+pub const MASK_SCHEMA_VERSION: u32 = 2;
 
 /// Computes the legal-action mask for `kitty_id` against the frozen
 /// snapshot. One bool per menu entry, in menu order.
@@ -56,6 +61,26 @@ pub fn legal_action_mask(
             applied == proposal
         })
         .collect()
+}
+
+/// The legal-message mask for `kitty_id` (spec 028): one bool per head
+/// index -- 0 (Silent) always true, k+1 probes the engine's own
+/// `message_legal` for `HEAD_KINDS[k]`. The same no-reimplementation
+/// doctrine as the activity mask: the ruling is the engine's function,
+/// called, never copied.
+pub fn legal_message_mask(
+    snapshot: &WorldSnapshot,
+    kitty_id: KittyId,
+    config: &Config,
+) -> Vec<bool> {
+    let mut mask = vec![false; 1 + HEAD_KINDS.len()];
+    mask[0] = true; // Silence is always legal -- structural, never all-zero.
+    if let Some(kitty) = snapshot.kitty(kitty_id) {
+        for (k, &kind) in HEAD_KINDS.iter().enumerate() {
+            mask[k + 1] = message_legal(kitty, kind, snapshot.tick, config);
+        }
+    }
+    mask
 }
 
 /// The mask as bytes (0/1), the shape the Python surface exposes.

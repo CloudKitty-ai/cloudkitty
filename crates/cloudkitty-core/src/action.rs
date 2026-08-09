@@ -317,6 +317,10 @@ pub fn parse_proposal_value(value: serde_json::Value) -> Result<Action, Proposal
 /// Returns the action the engine will actually apply: the proposal if it is legal,
 /// otherwise `Idle`. This is the whole of Article IV's enforcement surface.
 pub fn validate(world: &World, kitty_id: KittyId, proposal: Action, config: &Config) -> Action {
+    // The signature keeps its config parameter (the stable validate shape
+    // every probe and caller shares) though no current arm reads it: the
+    // purr threshold moved to message_legal with the deliberate purr.
+    let _ = config;
     let Some(kitty) = world.kitty(kitty_id) else {
         return Action::Idle;
     };
@@ -399,8 +403,6 @@ pub fn validate(world: &World, kitty_id: KittyId, proposal: Action, config: &Con
 /// Applies an already-validated action. Every need change goes through the clamped
 /// `Need` type, so Article I holds no matter what magnitudes the config carries.
 pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Config) {
-    let tick = world.tick;
-
     // A continuation of the ongoing activity services it rather than starting
     // over: the duration clock never resets mid-scene (spec 006), however the
     // continuation was phrased (same action re-proposed, or Idle).

@@ -7,7 +7,7 @@
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use crate::codec::{ActionCodec, ACTION_SCHEMA_VERSION};
+use crate::codec::{ActionCodec, MessageCodec, ACTION_SCHEMA_VERSION};
 use crate::config::RlConfig;
 use crate::observe::{observation_len, OBSERVATION_SCHEMA_VERSION};
 use crate::mask::MASK_SCHEMA_VERSION;
@@ -33,7 +33,9 @@ pub fn write_fixture_artifact_with_output(
 ) {
     let rl = RlConfig::default();
     let input = observation_len(&rl.observation);
-    let menu = ActionCodec::v2(&rl.observation).len();
+    // v2 artifacts are two-headed (spec 028): one trunk, final layer
+    // out-width = menu + message head.
+    let menu = ActionCodec::v2(&rl.observation).len() + MessageCodec::LEN;
     let header = ArtifactHeader {
         artifact_version: ARTIFACT_VERSION,
         observation_schema: OBSERVATION_SCHEMA_VERSION,
