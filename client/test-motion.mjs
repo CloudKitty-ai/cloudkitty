@@ -1104,13 +1104,104 @@ check('the head ratio buys headroom, never leg', () => {
   close(small.head.cy, base.head.cy, 'the head centre moved when only its radius was dialled');
 });
 
+// ---- the body bob: whole-cat, and asymmetric if you want it ----
+
+/** Run `fn` with gait dials moved, and always put them back. */
+function regaited(over, fn) {
+  const was = { ...CatV2.GAIT };
+  Object.assign(CatV2.GAIT, over);
+  try {
+    return fn();
+  } finally {
+    Object.assign(CatV2.GAIT, was);
+  }
+}
+
+check('rise 0.5 is the cosine the walk shipped with, to the last bit', () => {
+  const g = CatV2.GAIT;
+  close(g.rise, 0.5, 'the shipped rise must stay the identity value');
+  close(g.headBob, 0, 'the shipped headBob must stay the identity value');
+  for (let i = 0; i < 500; i++) {
+    const c = i / 37;
+    const cosine = g.bob * Math.cos((c - g.bobPhase) * g.beats * 2 * Math.PI);
+    assert(
+      Math.abs(CatV2.bobOffset(c) - cosine) < 1e-15,
+      `bobOffset diverged from the old curve at cycle ${c}`,
+    );
+  }
+});
+
+check('the bob is periodic and continuous at any asymmetry', () => {
+  for (const rise of [0.3, 0.5, 0.62, 0.8]) {
+    const d = { ...CatV2.GAIT, rise, bob: 0.02 };
+    close(CatV2.bobOffset(0, d), CatV2.bobOffset(1, d), `rise ${rise}: not periodic over a cycle`);
+    let worst = 0;
+    let prev = CatV2.bobOffset(0, d);
+    for (let i = 1; i <= 2000; i++) {
+      const now = CatV2.bobOffset((2 * i) / 2000, d);
+      worst = Math.max(worst, Math.abs(now - prev));
+      prev = now;
+    }
+    // A smooth curve's step shrinks with the sampling; a discontinuity is
+    // the whole travel at once. A tenth of the travel separates them by a
+    // wide margin at any asymmetry -- a hard bar would just encode the
+    // steepest rise the dial happens to allow today.
+    const travel = 2 * d.bob;
+    assert(worst < travel * 0.1, `rise ${rise}: the bob steps by ${worst.toFixed(5)} of ${travel}`);
+  }
+});
+
+check('asymmetry spends the beat unevenly, in the stated direction', () => {
+  const d = { ...CatV2.GAIT, rise: 0.7, bob: 0.02, beats: 1, bobPhase: 0 };
+  // The fall is the shorter half, so it must be the steeper one.
+  const slope = (a) => Math.abs(CatV2.bobOffset(a + 1e-4, d) - CatV2.bobOffset(a - 1e-4, d));
+  assert(slope(0.85) > slope(0.35) * 1.5, 'a shorter fall must be a faster fall');
+});
+
+check('the whole cat takes the bob -- except a planted foot', () => {
+  const dials = { bob: 0.03, headBob: 0.6, rise: 0.62, beats: 4 };
+  const sample = (p) => regaited(dials, () => CatV2.catLayout('walking', p));
+  let bodyMin = 1, bodyMax = 0, headMin = 1, headMax = 0, tailMin = 1, tailMax = 0, topMin = 1, topMax = 0;
+  for (let i = 0; i < 120; i++) {
+    const L = sample(i / 120 / CatV2.GAIT.cycles);
+    bodyMin = Math.min(bodyMin, L.body.cy); bodyMax = Math.max(bodyMax, L.body.cy);
+    headMin = Math.min(headMin, L.head.cy); headMax = Math.max(headMax, L.head.cy);
+    tailMin = Math.min(tailMin, L.tail.y0); tailMax = Math.max(tailMax, L.tail.y0);
+    topMin = Math.min(topMin, L.legs[2].top); topMax = Math.max(topMax, L.legs[2].top);
+    for (const leg of L.legs) {
+      assert(leg.bottom <= 0.88 + 1e-12, 'a foot went through the floor');
+    }
+  }
+  const body = bodyMax - bodyMin;
+  assert(body > 0.05, `the body should travel ~0.06, got ${body.toFixed(4)}`);
+  close(tailMax - tailMin, body, 'the tail root must ride the spine 1:1');
+  close(topMax - topMin, body, 'each leg pivot must ride the body 1:1');
+  assert(
+    Math.abs((headMax - headMin) - body * 0.6) < 1e-9,
+    `the head must take exactly headBob of the bob: ${(headMax - headMin).toFixed(4)} vs ${(body * 0.6).toFixed(4)}`,
+  );
+});
+
+check('a planted foot ignores the bob entirely', () => {
+  // The property the gait rests on: the belly moves over a still paw.
+  const planted = [];
+  for (let i = 0; i < 200; i++) {
+    const L = regaited({ bob: 0.04, beats: 4 }, () =>
+      CatV2.catLayout('walking', i / 200 / CatV2.GAIT.cycles),
+    );
+    for (const leg of L.legs) if (Math.abs(leg.bottom - 0.88) < 1e-9) planted.push(leg.bottom);
+  }
+  assert(planted.length > 100, 'there should be planted feet in most frames');
+  assert(planted.every((b) => Math.abs(b - 0.88) < 1e-12), 'a planted foot moved with the bob');
+});
+
 // ---- POUNCE: the launch that replaced a two-position switch ----
 
 check('the shipped pounce timing is the one the owner dialled', () => {
   const P = CatV2.POUNCE;
-  close(P.hold, 0.25, 'hold drifted');
-  close(P.launch, 0.3, 'launch drifted');
-  close(P.snap, 4.5, 'snap drifted');
+  close(P.hold, 0.2, 'hold drifted');
+  close(P.launch, 0.4, 'launch drifted');
+  close(P.snap, 4, 'snap drifted');
   close(P.twitch, 0, 'twitch drifted');
   assert(P.hold + P.launch <= 1, 'the launch must finish inside the beat');
 });

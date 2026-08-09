@@ -170,6 +170,17 @@ const GAIT = {
   // which is why no phase looked right.
   beats: 2,
   bobPhase: 0.5, // where in the cycle the body sits lowest (0 = at footfall)
+  // Share of each beat spent RISING. 0.5 is a plain cosine -- rise and
+  // fall mirror images. Above it the cat falls onto the landing paw
+  // faster than it pushes back up, which is what weight does and what a
+  // sine cannot say.
+  rise: 0.5,
+  // How much of the body's bob the HEAD takes. 0 is today's cat: the
+  // torso moves alone and the head is welded to the box, so what reads is
+  // the neck compressing. 1 is a rigid block, which reads as hopping. A
+  // real cat's head is gimbal-stabilised, and since we draw no neck this
+  // factor is doing that job implicitly.
+  headBob: 0,
   pivot: 0.62, // where the limb hangs from, inside the body and out of sight
   hip: 0.2, // hind limb's pivot x
   shoulder: 0.66, // fore limb's pivot x
@@ -244,6 +255,32 @@ function liftLayout(L, airborne) {
 }
 
 /**
+ * The body's vertical offset at a point in the gait cycle, in tiles.
+ * Positive is DOWN, so it adds straight onto a `cy`.
+ *
+ * Two raised-cosine halves rather than one cosine, joined where `rise`
+ * says: smooth and flat at both extremes, C1 across the join, and exactly
+ * periodic. At rise = 0.5 the two halves collapse into
+ * `bob * cos((cycle - bobPhase) * beats * TAU)` -- algebraically the same
+ * expression the walk shipped with, which is why that value is the
+ * identity and why the check for it can demand bit equality.
+ *
+ * Everything on the spine takes this whole: body, tail root, and each
+ * limb's PIVOT. A planted foot takes none of it -- it is positioned
+ * against the ground, and holding it there while the belly moves over it
+ * is what turns the bob into visible leg. The head takes `headBob` of it.
+ */
+function bobOffset(cycle, dials = GAIT) {
+  const w = (((cycle - dials.bobPhase) * dials.beats) % 1 + 1) % 1;
+  const r = Math.min(0.999, Math.max(0.001, dials.rise));
+  // h: 0 at the bottom of the beat, 1 at the top.
+  const h = w < r
+    ? (1 - Math.cos((Math.PI * w) / r)) / 2
+    : (1 + Math.cos((Math.PI * (w - r)) / (1 - r))) / 2;
+  return dials.bob * (1 - 2 * h);
+}
+
+/**
  * Pounce timing, mutable for the lab like GAIT and SWIM.
  *
  * `phase` is tick progress, so the whole beat is one served tick (800ms
@@ -252,9 +289,9 @@ function liftLayout(L, airborne) {
  * how long the cat stays loaded, how fast it extends, and how sharply.
  */
 const POUNCE = {
-  hold: 0.25, // share of the beat spent loaded, before anything moves
-  launch: 0.3, // share spent extending; the rest is held at full reach
-  snap: 4.5, // >1 front-loads the extension. A cat launches, it does not glide.
+  hold: 0.2, // share of the beat spent loaded, before anything moves
+  launch: 0.4, // share spent extending; the rest is held at full reach
+  snap: 4, // >1 front-loads the extension. A cat launches, it does not glide.
   twitch: 0, // tail-tip twitch while loading
 };
 
@@ -616,7 +653,12 @@ function catLayout(pose, phase) {
       // so `cycles` is steps per tile of ground and may be fractional --
       // there is no tick boundary left for a part-stride to tear against.
       const cycle = phase * GAIT.cycles;
-      L.body.cy += GAIT.bob * Math.cos((cycle - GAIT.bobPhase) * GAIT.beats * TAU);
+      // The whole cat rises and falls, not just the torso. A body moving
+      // alone against a welded head and tail does not read as weight --
+      // it reads as the neck compressing, which is what it literally is.
+      const dy = bobOffset(cycle);
+      L.body.cy += dy;
+      L.head.cy += dy * GAIT.headBob;
       L.head.cx = 0.72;
       // Index 0 is the rear leg and index 1 the front, in every pose that
       // has them -- blendLayouts pairs legs BY INDEX, so swapping them
@@ -633,7 +675,10 @@ function catLayout(pose, phase) {
         return {
           hx: base,
           x: base + GAIT.reach * g.x,
-          top: GAIT.pivot,
+          // The pivot is inside the body, so it rides with it. The foot
+          // does not: a planted paw stays at 0.88 whatever the body does,
+          // and the belly moving over it is the cue.
+          top: GAIT.pivot + dy,
           bottom: 0.88 - GAIT.lift * g.lift,
           w: 0.095,
         };
@@ -648,8 +693,12 @@ function catLayout(pose, phase) {
         leg(HIP, cycle),                           // left hind
         leg(SHOULDER, cycle - 0.25),               // left fore
       ].map((l, i) => (i < 2 ? { ...l, x: l.x + GAIT.spread, hx: l.hx + GAIT.spread } : l));
-      // Tail streams behind, gently lifted.
-      L.tail = { x0: 0.14, y0: 0.58, c1x: 0.04, c1y: 0.56, c2x: 0.0, c2y: 0.5, x1: 0.03, y1: 0.42 };
+      // Tail streams behind, gently lifted. Its root is on the spine, so
+      // it takes the bob whole.
+      L.tail = {
+        x0: 0.14, y0: 0.58 + dy, c1x: 0.04, c1y: 0.56 + dy,
+        c2x: 0.0, c2y: 0.5 + dy, x1: 0.03, y1: 0.42 + dy,
+      };
       break;
     }
 
@@ -1306,6 +1355,7 @@ const api = {
   PROPORTION,
   MAX_LIFT,
   gaitStep,
+  bobOffset,
   plantedReach,
   proportionLayout,
   pounceLaunch,
