@@ -758,9 +758,9 @@
         { key: 'shoulder', label: 'fore limb position (forward = more of it clears the belly)', min: 0.5, max: 0.76, step: 0.01 },
         { key: 'hip', label: 'hind limb position', min: 0.12, max: 0.38, step: 0.01 },
         { key: 'lift', label: 'foot clearance at mid-swing', min: 0, max: 0.09, step: 0.0025 },
-        // bob / beats / bobPhase / rise / headBob live on the Body bob card,
-        // one slider per value: two thumbs bound to one number disagree the
-        // moment either is moved.
+        { key: 'bob', label: 'body rise and fall', min: 0, max: 0.02, step: 0.0005 },
+        { key: 'beats', label: 'body dips per step cycle (4 = one per footfall)', min: 1, max: 4, step: 1 },
+        { key: 'bobPhase', label: 'where the body sits lowest (0 = at footfall)', min: 0, max: 0.5, step: 0.01 },
         { key: 'spread', label: 'far-pair offset (depth only \u2014 cats track narrow)', min: 0, max: 0.08, step: 0.005 },
       ],
       readout() {
@@ -836,156 +836,6 @@
           y,
           phase: dist, // tiles covered, not time
         });
-      },
-    },
-    {
-      title: 'Body bob',
-      note: 'Vertical motion, isolated: the cat walks on the spot so the ground moves and the cat does not, leaving nothing to look at but the rise and fall. The trace below is the body height over two cycles — GREEN where it is rising, ORANGE where it is falling, ● where a paw lands. A plain cosine makes those two colours the same length; weight does not. The stills are the two extremes on one baseline. Today ships at rise 0.5 / head 0, which is the cat you already have: try bob 0.018, beats 4, rise 0.62, head 0.6.',
-      v2Only: true,
-      w: 620,
-      h: 330,
-      ownShadows: true,
-      bag: WALK_BAG,
-      dials: [
-        { key: 'bob', label: 'HOW FAR THE BODY RISES AND FALLS', min: 0, max: 0.05, step: 0.001 },
-        { key: 'beats', label: 'dips per step cycle (4 = one per footfall)', min: 1, max: 4, step: 1 },
-        { key: 'rise', label: 'share of each beat spent RISING (0.5 = a plain cosine)', min: 0.3, max: 0.8, step: 0.01 },
-        { key: 'headBob', label: 'how much of it the HEAD takes (0 = today, 1 = a rigid block)', min: 0, max: 1, step: 0.05 },
-        { key: 'bobPhase', label: 'where the body sits lowest (0 = at footfall)', min: 0, max: 0.5, step: 0.01 },
-      ],
-      readout() {
-        const g = CatV2.GAIT;
-        const travel = 2 * g.bob;
-        const px = (t) => (travel * t).toFixed(2);
-        const headPx = (t) => (travel * g.headBob * t).toFixed(2);
-        return (
-          `GAIT bob: ${g.bob}, beats: ${g.beats}, bobPhase: ${g.bobPhase}, ` +
-          `rise: ${g.rise}, headBob: ${g.headBob}\n` +
-          `body travels ${px(40)}px @40 tile / ${px(56)}px @56` +
-          (travel * 40 < 1 ? '  ⚠ under a pixel — this cannot read as motion, only as shimmer' : '') +
-          `\nhead travels ${headPx(40)}px / ${headPx(56)}px` +
-          (g.headBob === 0 ? '  (welded to the box — the torso moves alone)' : '') +
-          `\n${g.beats} dip${g.beats === 1 ? '' : 's'} against 4 footfalls per cycle` +
-          (g.beats === 4 ? ' — one each' : ` — the body answers ${g.beats} of every 4`) +
-          `\nfall takes ${((1 - g.rise) * 100).toFixed(0)}% of a beat, rise takes ${(g.rise * 100).toFixed(0)}%`
-        );
-      },
-      draw(ctx, w, h, now) {
-        const g = CatV2.GAIT;
-        const TICK = 800;
-        const SIZE = 104;
-        const dist = now / TICK; // tiles covered; the gait rides this
-        const cycle = dist * g.cycles;
-
-        // --- walking on the spot: the ground scrolls, the cat holds still,
-        // so every pixel of movement left on screen is vertical.
-        const groundY = 150;
-        ctx.fillStyle = '#cfe0b8';
-        ctx.fillRect(0, groundY, w, 34);
-        ctx.strokeStyle = 'rgba(107, 90, 78, 0.3)';
-        ctx.lineWidth = 2;
-        const step = SIZE / 2;
-        for (let k = -1; k < w / step + 1; k++) {
-          const x = ((k * step - dist * SIZE) % (w + step) + w + step) % (w + step);
-          ctx.beginPath();
-          ctx.moveTo(x, groundY);
-          ctx.lineTo(x, groundY + 34);
-          ctx.stroke();
-        }
-        // A fixed rule at the cat's shoulder: the body crossing it is the
-        // whole point, and the eye needs something that does not move.
-        const catX = 40;
-        ctx.strokeStyle = 'rgba(107, 90, 78, 0.35)';
-        ctx.setLineDash([3, 3]);
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(0, groundY - SIZE * 0.32);
-        ctx.lineTo(w, groundY - SIZE * 0.32);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        CatV2.drawCat(ctx, {
-          pose: 'walking',
-          appearance: CatV2.appearanceFor(STORM),
-          facing: 'right',
-          size: SIZE,
-          x: catX,
-          y: groundY - SIZE * 0.88,
-          phase: dist,
-        });
-        ctx.fillStyle = 'rgba(107, 90, 78, 0.75)';
-        ctx.font = '11px ui-rounded, system-ui, sans-serif';
-        ctx.fillText('walking on the spot', catX, groundY + 48);
-
-        // --- the two extremes, side by side on one baseline.
-        // Highest is w = rise into the beat; lowest is the start of it.
-        const at = (wFrac) => (g.bobPhase + wFrac / g.beats) / g.cycles;
-        const stills = [
-          ['lowest', at(0)],
-          ['highest', at(g.rise)],
-        ];
-        stills.forEach(([label, ph], i) => {
-          const x = w - 250 + i * 120;
-          ctx.strokeStyle = 'rgba(107, 90, 78, 0.35)';
-          ctx.beginPath();
-          ctx.moveTo(x - 6, groundY + 0.5);
-          ctx.lineTo(x + 110, groundY + 0.5);
-          ctx.stroke();
-          CatV2.drawCat(ctx, {
-            pose: 'walking',
-            appearance: CatV2.appearanceFor(STORM),
-            facing: 'right',
-            size: SIZE,
-            x,
-            y: groundY - SIZE * 0.88,
-            phase: ph,
-          });
-          ctx.fillStyle = 'rgba(107, 90, 78, 0.75)';
-          ctx.fillText(label, x + 24, groundY + 48);
-        });
-
-        // --- the trace: two cycles, rising green and falling orange.
-        const ty = groundY + 66, tH = 92, x0 = 8, tW = w - 16;
-        ctx.strokeStyle = 'rgba(107, 90, 78, 0.2)';
-        ctx.beginPath();
-        ctx.moveTo(x0, ty + tH / 2);
-        ctx.lineTo(x0 + tW, ty + tH / 2);
-        ctx.stroke();
-        const amp = Math.max(g.bob, 1e-6);
-        const N = 480;
-        let prev = null;
-        for (let i = 0; i <= N; i++) {
-          const c = (i / N) * 2; // two cycles
-          const o = CatV2.bobOffset(c, g);
-          const py = ty + tH / 2 + (o / amp) * (tH / 2 - 8);
-          const pt = { x: x0 + (i / N) * tW, y: py };
-          if (prev) {
-            // Falling means cy increasing means py increasing.
-            ctx.strokeStyle = pt.y > prev.y ? '#c2662a' : '#6f9350';
-            ctx.lineWidth = 2.5;
-            ctx.beginPath();
-            ctx.moveTo(prev.x, prev.y);
-            ctx.lineTo(pt.x, pt.y);
-            ctx.stroke();
-          }
-          prev = pt;
-        }
-        // Footfalls: four per cycle, at 0 / 0.25 / 0.5 / 0.75.
-        ctx.fillStyle = '#4a4335';
-        for (let c = 0; c < 2; c += 0.25) {
-          const px2 = x0 + (c / 2) * tW;
-          ctx.beginPath();
-          ctx.arc(px2, ty + tH + 6, 3, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.fillStyle = 'rgba(107, 90, 78, 0.75)';
-        ctx.fillText('rising', x0 + 2, ty - 4);
-        ctx.fillStyle = '#c2662a';
-        ctx.fillText('falling', x0 + 48, ty - 4);
-        ctx.fillStyle = 'rgba(107, 90, 78, 0.6)';
-        ctx.fillText('● paw lands', x0 + 108, ty - 4);
-        // Playhead, so the trace and the cat are visibly the same thing.
-        ctx.fillStyle = '#6b5a4e';
-        ctx.fillRect(x0 + ((cycle / 2) % 1) * tW - 1, ty, 2, tH);
       },
     },
     {
