@@ -99,6 +99,13 @@ def test_out_of_range_raises_vacant_slots_do_not():
     with pytest.raises(IndexError):
         env.step({agents[0]: [34, 0], **{a: IDLE for a in agents[1:]}})
 
+    # The message half gets the identical treatment (head has 9 entries)
+    # and the identical exception type — one fault class, one exception,
+    # matching VectorEnv's pre-check.
+    env.reset(seed=5)
+    with pytest.raises(IndexError):
+        env.step({agents[0]: [33, 9], **{a: IDLE for a in agents[1:]}})
+
     # Rest-with-kitty-slot-2 is vacant on the default roster (2 others):
     # decodes and lawfully resolves to idle — never a raise.
     env.reset(seed=5)
@@ -194,6 +201,11 @@ def test_vector_env_bad_index_leaves_the_batch_in_sync():
 
     bad = {a: [IDLE, IDLE] for a in agents}
     bad[agents[0]] = [[34, 0], IDLE]
+    with pytest.raises(IndexError):
+        env.step(bad)
+
+    # Same guard, message half: index 9 is off the head's end.
+    bad[agents[0]] = [[33, 9], IDLE]
     with pytest.raises(IndexError):
         env.step(bad)
 

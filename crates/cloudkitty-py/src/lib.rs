@@ -61,7 +61,11 @@ fn provenance_str(p: Provenance) -> &'static str {
 
 fn episode_err(e: EpisodeError) -> PyErr {
     match e {
-        EpisodeError::ActionOutOfRange { .. } => PyIndexError::new_err(e.to_string()),
+        // Both halves of the pair raise IndexError on a bad index, matching
+        // VectorEnv's pre-check -- one exception type per fault class.
+        EpisodeError::ActionOutOfRange { .. } | EpisodeError::MessageOutOfRange { .. } => {
+            PyIndexError::new_err(e.to_string())
+        }
         EpisodeError::SteppedAfterTruncation | EpisodeError::Panicked { .. } => {
             PyRuntimeError::new_err(e.to_string())
         }
