@@ -252,10 +252,10 @@ function liftLayout(L, airborne) {
  * how long the cat stays loaded, how fast it extends, and how sharply.
  */
 const POUNCE = {
-  hold: 0.34, // share of the beat spent loaded, before anything moves
-  launch: 0.22, // share spent extending; the rest is held at full reach
-  snap: 2.4, // >1 front-loads the extension. A cat launches, it does not glide.
-  twitch: 0.02, // tail-tip twitch while loading
+  hold: 0.25, // share of the beat spent loaded, before anything moves
+  launch: 0.3, // share spent extending; the rest is held at full reach
+  snap: 4.5, // >1 front-loads the extension. A cat launches, it does not glide.
+  twitch: 0, // tail-tip twitch while loading
 };
 
 /**

@@ -1106,6 +1106,15 @@ check('the head ratio buys headroom, never leg', () => {
 
 // ---- POUNCE: the launch that replaced a two-position switch ----
 
+check('the shipped pounce timing is the one the owner dialled', () => {
+  const P = CatV2.POUNCE;
+  close(P.hold, 0.25, 'hold drifted');
+  close(P.launch, 0.3, 'launch drifted');
+  close(P.snap, 4.5, 'snap drifted');
+  close(P.twitch, 0, 'twitch drifted');
+  assert(P.hold + P.launch <= 1, 'the launch must finish inside the beat');
+});
+
 check('the pounce reaches both of its old positions exactly', () => {
   // The crouch and the leap are the drawings that shipped; only the frames
   // between them are new. Pinned as literals so an "improvement" to the
