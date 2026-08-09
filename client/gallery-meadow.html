@@ -132,6 +132,25 @@
   <textarea id="readout" readonly></textarea>
 </div>
 
+<script>
+  // A lab that fails silently is worse than no lab: three times in this arc a
+  // broken harness has impersonated a broken FEATURE, and the tell each time
+  // was a blank canvas. Any uncaught error now says so on the page, in front
+  // of the card it killed, instead of hiding in a console nobody has open.
+  // The commonest cause is a stale cached script -- a browser holding the old
+  // meadow.js will throw `buildPondLayers is not defined` right here.
+  addEventListener('error', (e) => {
+    const bar = document.createElement('div');
+    bar.style.cssText =
+      'position:sticky;top:0;z-index:99;background:#7a1420;color:#fff;padding:10px 14px;'
+      + 'font:13px/1.5 ui-monospace,monospace;white-space:pre-wrap';
+    bar.textContent =
+      `⚠ ${e.message}\n${(e.filename || '').split('/').pop()}:${e.lineno}`
+      + `\nIf this names a function that should exist, hard-reload (Cmd+Shift+R) -- `
+      + `the browser is holding a stale script.`;
+    document.body.prepend(bar);
+  });
+</script>
 <script src="cat.js"></script>
 <script src="cat-v2.js"></script>
 <script>
