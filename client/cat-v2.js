@@ -1173,9 +1173,9 @@ const EYE = {
  * the body — which is 0.14 rx across, 0.36 ry down, at 0.5 x 0.45.
  */
 const BELLY = {
-  x: 0.05, // centre, in body rx from the body centre (+ is forward)
-  y: 0.7, // and in body ry downward
-  rx: 0.64, // half-width, in body rx
+  x: 0.13, // centre, in body rx from the body centre (+ is forward)
+  y: 0.55, // and in body ry downward
+  rx: 0.62, // half-width, in body rx
   ry: 0.42, // half-height, in body ry
   lighten: 0.35, // how far the fur base is mixed toward white
   alpha: 0.85,

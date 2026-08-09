@@ -463,9 +463,9 @@ check('poseFor: water under movement and idling, never over the rest', () => {
 
 check('the shipped belly is the one the owner dialled', () => {
   const B = CatV2.BELLY;
-  close(B.x, 0.05, 'x drifted');
-  close(B.y, 0.7, 'y drifted');
-  close(B.rx, 0.64, 'rx drifted');
+  close(B.x, 0.13, 'x drifted');
+  close(B.y, 0.55, 'y drifted');
+  close(B.rx, 0.62, 'rx drifted');
   close(B.ry, 0.42, 'ry drifted');
   close(B.lighten, 0.35, 'lighten drifted');
   close(B.alpha, 0.85, 'alpha drifted');
