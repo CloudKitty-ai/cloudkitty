@@ -474,31 +474,63 @@ check('every phase names its own shore and meniscus', () => {
   }
 });
 
-check('the pond depth ramp is the same ramp in every phase', () => {
-  for (const [name, p] of Object.entries({
-    day: api.MEADOW_DAY,
-    dusk: api.MEADOW_DUSK,
-    night: api.MEADOW_NIGHT,
-    dawn: api.MEADOW_DAWN,
-  })) {
-    // Shipped: 26.1 / 26.9 / 26.2 / 28.8. A pale ring round a dark middle is
-    // what "reads as a hole" looks like, and it starts when this runs wide.
-    const ramp = lstar(p.pondShore) - lstar(p.pondDeep);
-    assert(ramp > 24 && ramp < 31, `${name}: shore sits ${ramp.toFixed(1)} L* over deep, want 24-31`);
-    // The meniscus is a step above the shore band, never below it and never
-    // a second ramp of its own. Shipped: 1.3 / 4.0 / 2.5 / 5.2.
+/* The pond's shape in lightness, in the two phases the owner signed off on
+ * (day and dusk) -- everything below is measured against them.
+ *
+ * An earlier version of this check asserted a constant shore-to-deep ramp of
+ * 24-31 L*, fitted across day, dusk AND dawn. That was wrong twice over: the
+ * band was fitted to include dawn, which the owner then called too bright, and
+ * the ramp is an OUTPUT, not an invariant -- it is whatever pondDeep leaves
+ * under a shore that matches the grass, and it legitimately differs per phase.
+ * What day and dusk actually share is the two relationships below. Replaced
+ * rather than widened: a band stretched to admit night's 7 would have asserted
+ * nothing at all. */
+const PHASES = () => ({
+  day: api.MEADOW_DAY,
+  dusk: api.MEADOW_DUSK,
+  night: api.MEADOW_NIGHT,
+  dawn: api.MEADOW_DAWN,
+});
+
+check('the shore band sits at the grass, in every phase', () => {
+  // Day +1.8, dusk -1.8. This is what stops a pond reading as a lit pool
+  // dropped onto the meadow; night was +19 and dawn +12 before they were
+  // named, and both looked exactly as bright as that sounds.
+  for (const [name, p] of Object.entries(PHASES())) {
+    const d = lstar(p.pondShore) - lstar(p.grassTones[0]);
+    assert(Math.abs(d) < 4, `${name}: shore sits ${d.toFixed(1)} L* off the grass, want within 4`);
+    // The meniscus is a small step above the shore band -- never below it,
+    // and never a second ramp. Shipped: 1.3 / 4.0 / 3.3 / 3.3.
     const step = lstar(p.pondMeniscus) - lstar(p.pondShore);
-    assert(step > 0 && step < 8, `${name}: meniscus is ${step.toFixed(1)} L* over the shore band`);
+    assert(step > 0 && step < 6, `${name}: meniscus is ${step.toFixed(1)} L* over the shore band`);
   }
 });
 
-check('a crossfade holds the ramp all the way across', () => {
-  // The ramp is a property of the pond, not of a phase, so it must survive
-  // the crossing too -- three interpolated palettes, none of them named.
-  for (const t of [0.25, 0.5, 0.75]) {
-    const mid = api.mixPalettes(api.MEADOW_DUSK, api.MEADOW_NIGHT, t);
-    const ramp = lstar(mid.pondShore) - lstar(mid.pondDeep);
-    assert(ramp > 24 && ramp < 31, `dusk->night at ${t}: ramp ${ramp.toFixed(1)} L*`);
+check('every phase gives the pond a bottom', () => {
+  // With the shore pinned to the grass, the depth ramp is entirely pondDeep's
+  // doing, so THAT is what has to be checked. Night shipped at 7 L* under the
+  // grass -- no bottom to fade to, which is why its shore had to shout.
+  // Shipped: -24.2 / -28.7 / -25.0 / -16.7.
+  for (const [name, p] of Object.entries(PHASES())) {
+    const below = lstar(p.grassTones[0]) - lstar(p.pondDeep);
+    assert(below > 12, `${name}: deep water is only ${below.toFixed(1)} L* under the grass`);
+    assert(lstar(p.pondShore) > lstar(p.pondDeep), `${name}: the shore band is lighter than the deep`);
+  }
+});
+
+check('a crossfade holds both relationships all the way across', () => {
+  // Interpolated palettes are the ones nobody ever looks at.
+  for (const [from, to, label] of [
+    [api.MEADOW_DUSK, api.MEADOW_NIGHT, 'dusk->night'],
+    [api.MEADOW_NIGHT, api.MEADOW_DAWN, 'night->dawn'],
+  ]) {
+    for (const t of [0.25, 0.5, 0.75]) {
+      const mid = api.mixPalettes(from, to, t);
+      const d = lstar(mid.pondShore) - lstar(mid.grassTones[0]);
+      assert(Math.abs(d) < 4, `${label} at ${t}: shore ${d.toFixed(1)} L* off the grass`);
+      const below = lstar(mid.grassTones[0]) - lstar(mid.pondDeep);
+      assert(below > 12, `${label} at ${t}: deep only ${below.toFixed(1)} L* under the grass`);
+    }
   }
 });
 
