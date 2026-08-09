@@ -66,6 +66,56 @@ flat constant rather than clamped by local channel width, so a 1-wide
 channel would still bead into lozenges, and `groupWaterTiles` still
 floods 4-adjacent only. Both are recorded in the v3 plan's Phase 5.
 
+### Pond restyle — give the pond a bottom (added 2026-08-09; Client thread)
+The design handoff's **spec 02**, plus the deltas we measured against it. The
+bundle itself lives at `deletemewhendone/design_handoff_art_uplevel/` and is
+gitignored and temporary — everything below is the part worth keeping.
+
+**The proposal, in one line:** a blurred copy of the pond's own silhouette is a
+distance-to-shore field, so one blur buys depth without a distance transform.
+Composite a pale shore over a deep base inside the existing clip, add a damp
+"lip" ring outside the water, replace the per-tile shimmer with a caustic net,
+and swap the hardcoded 1.5px `pondRim` for a tile-proportional meniscus. It
+leaves `buildPondPath`, `groupWaterTiles` and the shore dials alone, adds seven
+tunables plus `pondDeep`/`pondLip` per theme, and bakes into the existing
+`pondCache`. Its own house-rules section is accurate — dual-home rule, Article
+V/VI, no assets, gallery-meadow as the lab.
+
+**Three deltas we measured, which the spec could not have known:**
+
+1. **The caustics cost claim is inverted for our world.** It argues "8 polylines
+   per pond instead of 2 strokes per tile", justified with a fifteen-tile pond.
+   We have **7 water tiles in 4 blobs — one 2x2 lake and three lone tiles**.
+   Today that is 14 shimmer strokes total; the proposal is 32 polylines, ~416
+   segments. A ~3x increase, not a saving. Cheap either way, but `causticLines`
+   wants to scale with blob area rather than being a flat 8 per pond.
+2. **Build the shared offscreens from the start.** The spec offers two canvases
+   *per pond* and notes in its own risks that 3+ blobs should share one pair. We
+   have 4. At WQHD that is ~19MB per offscreen: **~153MB per-pond against ~38MB
+   shared**.
+3. **Our world is dominated by the spec's own hardest case.** Its acceptance
+   criterion 1 says a lone tile is harder, because at `pondDepthBlurTiles = 0.95`
+   it is almost entirely "shore". **Three of our four ponds are lone tiles.** Judge
+   those first, and expect the blur to want clamping by blob size.
+
+**Owner decisions already taken, ahead of the work:**
+- **The cat's wet ripple is already off** (`VIEW.ambient.wetRipple`, 2026-08-09).
+  The spec proposes keeping and recolouring those rings; we overrode it — two sets
+  of rings, the cat's and the water's, read as a mistake rather than as depth.
+- **Zero the shore wobble as part of this**, not before it. `shoreWobble: 0` in
+  BOTH homes (dual-home rule). Measured at our pond sizes the irregular edge is
+  nearly invisible — a lone tile is identical with it on or off — so it costs
+  almost nothing, and the new lip and meniscus take over the job of softening the
+  edge. `wobbleAlong` short-circuits cleanly at 0. **Not independent of
+  `shoreOverdraw`**: the wobble biases the outline inward by
+  `0.25 * amp * (1 - bulgeEase)`, which at the shipped values is 0.005 tile off a
+  0.1 tile spill, so zeroing it returns that and the pond grows by a hair.
+
+**Also in the bundle:** spec 03 (meadow drifts — clustered cover instead of
+independent per-tile rolls, and the `grassTones` lattice), and a parked spec 01
+(cat lighting) the owner deferred. Recommended order 02 then 03; 03 is the one
+that needs the lab's occlusion strip.
+
 ### Ambient whole-body float — CLOSED, not doing (2026-08-09; Client thread)
 Graphics v3 Phase 4 listed a slow whole-body y-bob for every cat, borrowed
 from kitten.me, on top of the breathing we already have. **Closed by the
