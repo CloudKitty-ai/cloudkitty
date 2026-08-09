@@ -57,6 +57,23 @@ impl MessageKind {
         }
     }
 
+    /// The wire spelling (serde's snake_case tag) as a static string --
+    /// the one spelling every surface reports (spec 028 R17: the py
+    /// binding's Debug-spelling wart died with this).
+    pub fn wire_name(&self) -> &'static str {
+        match self {
+            MessageKind::WantEat => "want_eat",
+            MessageKind::WantDrink => "want_drink",
+            MessageKind::FollowMe => "follow_me",
+            MessageKind::WantPlay => "want_play",
+            MessageKind::WantCuddle => "want_cuddle",
+            MessageKind::Purr => "purr",
+            MessageKind::WaitForMe => "wait_for_me",
+            MessageKind::WantBath => "want_bath",
+            MessageKind::WantSleep => "want_sleep",
+        }
+    }
+
     /// The message a kitty uses to ask for help with `need`. Total since
     /// spec 028: every need is announceable.
     pub fn for_need(need: NeedKind) -> MessageKind {
@@ -123,6 +140,14 @@ mod tests {
             serde_json::to_string(&MessageKind::WaitForMe).unwrap(),
             "\"wait_for_me\""
         );
+    }
+
+    #[test]
+    fn wire_names_match_the_serde_tags_for_every_kind() {
+        for kind in MessageKind::ALL {
+            let tag = serde_json::to_value(kind).unwrap();
+            assert_eq!(tag.as_str().unwrap(), kind.wire_name(), "{kind:?}");
+        }
     }
 
     #[test]

@@ -115,6 +115,7 @@ fn info_to_py<'py>(py: Python<'py>, info: &AgentInfo) -> PyResult<Bound<'py, PyD
     let dict = PyDict::new(py);
     dict.set_item("applied_action", info.applied_action)?;
     dict.set_item("applied_action_name", info.applied_action_name)?;
+    dict.set_item("applied_message", info.applied_message)?;
     dict.set_item("survived", info.survived)?;
     dict.set_item("mask", info.mask.clone().into_pyarray(py))?;
     dict.set_item("decision_seed", info.decision_seed)?;
@@ -163,13 +164,18 @@ fn box_space(py: Python<'_>, len: usize) -> PyResult<Py<PyAny>> {
     }
 }
 
-fn discrete_space(py: Python<'_>, n: usize) -> PyResult<Py<PyAny>> {
+/// The two-head action space (spec 028): MultiDiscrete([menu, head]),
+/// with the same dict fallback shape when gymnasium is absent.
+fn multi_discrete_space(py: Python<'_>, nvec: [usize; 2]) -> PyResult<Py<PyAny>> {
     match py.import("gymnasium.spaces") {
-        Ok(spaces) => Ok(spaces.getattr("Discrete")?.call1((n,))?.unbind()),
+        Ok(spaces) => Ok(spaces
+            .getattr("MultiDiscrete")?
+            .call1((nvec.to_vec(),))?
+            .unbind()),
         Err(_) => {
             let dict = PyDict::new(py);
-            dict.set_item("type", "discrete")?;
-            dict.set_item("n", n)?;
+            dict.set_item("type", "multi_discrete")?;
+            dict.set_item("nvec", nvec.to_vec())?;
             Ok(dict.unbind().into())
         }
     }
@@ -355,11 +361,22 @@ impl ParallelEnv {
         let space = match self.action_space_obj.get() {
             Some(space) => space,
             None => {
-                let built = discrete_space(py, self.episode.codec().len())?;
+                let built = multi_discrete_space(
+                    py,
+                    [
+                        self.episode.codec().len(),
+                        cloudkitty_rl::codec::MessageCodec::LEN,
+                    ],
+                )?;
                 self.action_space_obj.get_or_init(|| built)
             }
         };
         Ok(space.clone_ref(py))
+    }
+
+    /// The message head's width (spec 028): 9.
+    fn head_len(&self) -> usize {
+        cloudkitty_rl::codec::MessageCodec::LEN
     }
 
     #[pyo3(signature = (seed=None, options=None))]
@@ -423,7 +440,7 @@ impl ParallelEnv {
             .world()
             .recent_meows
             .iter()
-            .map(|m| (m.tick, m.kitty_id, format!("{:?}", m.kind)))
+            .map(|m| (m.tick, m.kitty_id, m.kind.wire_name().to_owned()))
             .collect()
     }
 

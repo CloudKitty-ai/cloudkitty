@@ -80,7 +80,7 @@ pub struct AgentInfo {
     /// The wire name of the message that actually emitted (spec 028), e.g.
     /// "want_eat"; None at reset or when the applied message was Silent --
     /// including a proposed message enforcement downgraded.
-    pub applied_message: Option<String>,
+    pub applied_message: Option<&'static str>,
     /// Whether the proposal survived validation unchanged.
     pub survived: Option<bool>,
     /// The legal-action mask for the *next* decision (0/1 per menu entry).
@@ -451,13 +451,9 @@ impl Episode {
             let info = AgentInfo {
                 applied_action,
                 applied_action_name: record.map(|r| action_wire_name(&r.applied)),
-                applied_message: record.and_then(|r| r.applied_message).map(|kind| {
-                    serde_json::to_value(kind)
-                        .expect("message kinds serialize")
-                        .as_str()
-                        .expect("message kinds are strings on the wire")
-                        .to_owned()
-                }),
+                applied_message: record
+                    .and_then(|r| r.applied_message)
+                    .map(|kind| kind.wire_name()),
                 // Honest bookkeeping: a substituted idle never *proposed*
                 // anything, so it has no survival verdict — None, not a
                 // fabricated true (spec 014 review).

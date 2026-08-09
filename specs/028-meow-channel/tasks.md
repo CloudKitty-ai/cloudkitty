@@ -138,7 +138,7 @@ determinism suites green.
       `artifact_validation.rs`, `episode.rs`/`mixed_control.rs`/
       `vector_independence.rs`/`policy_ci.rs` fixtures, zero-artifact-style test
       helpers in `test_support.rs`.
-- [ ] T008 [US1] Keep `crates/cloudkitty-py/src/lib.rs` compiling and honest:
+- [X] T008 [US1] Keep `crates/cloudkitty-py/src/lib.rs` compiling and honest:
       `MultiDiscrete([menu_len, 9])` action space (dict fallback analogue), step
       accepts pairs, `head_len` getter, mask `[43]`/`[n,43]`,
       `applied_message` in info, `recent_meows` returns snake_case wire names
