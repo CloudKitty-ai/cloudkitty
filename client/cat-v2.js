@@ -411,6 +411,21 @@ function shadeHex(hex, factor) {
   return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
 }
 
+/**
+ * Mix a hex toward white. `shadeHex` cannot do this: it multiplies each
+ * channel, so a factor above 1 runs past 255 and wraps the byte, turning a
+ * pale cat lurid. Clamped, and separate rather than a fix to shadeHex,
+ * which every caller uses to DARKEN and none to lighten.
+ */
+function lightenHex(hex, t) {
+  const n = parseInt(hex.slice(1), 16);
+  const up = (c) => Math.min(255, Math.round(c + (255 - c) * t));
+  const r = up((n >> 16) & 255);
+  const g = up((n >> 8) & 255);
+  const b = up(n & 255);
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+}
+
 /** Memoized per palette entry and factor -- appearances are stable
  * frozen objects, so identity is a sound cache key. */
 const SHADED_APPEARANCES = new Map();
@@ -864,6 +879,45 @@ function drawBody(ctx, b, a, p) {
   bodyPath(ctx, b);
   ctx.fillStyle = a.furBase;
   ctx.fill();
+
+  // The belly is painted BEFORE the outline, in a clip of its own. A stroke
+  // straddles its path, so half the body's outline lies INSIDE the clip --
+  // drawn after, the belly paints over that inner half and the body's own
+  // line goes thin and pale exactly where the belly meets it. Skipped for
+  // the tuxedo, whose bib IS its belly and sits lower and paler; drawing
+  // both leaves the belly poking out behind the bib.
+  if (p.kind !== 'tuxedo-mask') {
+    const rot = b.rot || 0;
+    const cos = Math.cos(rot);
+    const sin = Math.sin(rot);
+    // The offset is expressed along the body's own axes, so it has to turn
+    // with the body -- otherwise the belly slides out of the crouch.
+    const ox = BELLY.x * b.rx;
+    const oy = BELLY.y * b.ry;
+    ctx.save();
+    bodyPath(ctx, b);
+    ctx.clip();
+    ctx.globalAlpha = BELLY.alpha;
+    ctx.fillStyle = lightenHex(a.furBase, BELLY.lighten);
+    ctx.beginPath();
+    ctx.ellipse(
+      b.cx + ox * cos - oy * sin,
+      b.cy + ox * sin + oy * cos,
+      b.rx * BELLY.rx,
+      b.ry * BELLY.ry,
+      rot,
+      0,
+      TAU,
+    );
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // Re-lay the body path before stroking it. `restore()` puts back the
+  // clip and the alpha but NOT the current path, so without this the
+  // outline is struck on whatever the belly last drew -- which is the
+  // belly ellipse, and it looks convincingly deliberate.
+  bodyPath(ctx, b);
   ctx.strokeStyle = a.furShade;
   ctx.lineWidth = OUTLINE_W;
   ctx.stroke();
@@ -1101,11 +1155,43 @@ const EYE = {
 /** Nose tunables (v2), dialed in the lab like EYE. Working values
  * (owner, 2026-07-29, NOT final): pulled from v1's muzzle tip (0.86,
  * 0.26) back to the eye midline for the front-on face. */
+/**
+ * The pale underside, mutable for the lab like NOSE and MOUTH.
+ *
+ * Every soft cat gets one; ours had none. The only underside in the whole
+ * vocabulary was the tuxedo's white bib, which is a PATTERN on one palette
+ * — so Miso, Biscuit, Pumpkin and Kittybear, the four cats actually on the
+ * world, were flat ellipses of a single fur colour.
+ *
+ * Offsets are in the body's OWN radii and its own rotated frame, so this
+ * follows every pose for free: the loaf, the curl, the crouch and the
+ * float all get a belly in the right place without a per-pose value, and
+ * without an entry in `blendLayouts` that could pop on a pose change.
+ *
+ * Ratios are kitten.me's, converted out of their tile units: their belly
+ * sits at (0.06s, 0.12s) with a body of (0.44s, 0.33s) and radii of half
+ * the body — which is 0.14 rx across, 0.36 ry down, at 0.5 x 0.45.
+ */
+const BELLY = {
+  x: 0.07, // centre, in body rx from the body centre (+ is forward)
+  y: 0.61, // and in body ry downward
+  rx: 0.67, // half-width, in body rx
+  ry: 0.36, // half-height, in body ry
+  lighten: 0.35, // how far the fur base is mixed toward white
+  alpha: 0.85,
+};
+
 const NOSE = {
   x: 0.22, // nose center from head center / head.r (toward the muzzle)
   y: 0.29, // below head center / head.r
   size: 0.17, // half-width / head.r
 };
+// A kitten.me-style heart was tried and cut (owner, 2026-08-09): a shallow
+// V over-stroked with round caps and joins, so the caps make the lobes and
+// the join the point. It is a good heart in isolation -- but at our head
+// radius it reads worse than the triangle it replaced, softer and less
+// legible where the triangle is a clean mark. Their heart works on a head
+// nearly 1.6x ours (0.27s against our 0.226 of a smaller box).
 
 /** Mouth tunables (v2): an upside-down V hanging under the nose apex,
  * centered on NOSE.x. Under review (owner, 2026-07-29) -- the earlier
@@ -1298,6 +1384,7 @@ const api = {
   shadedAppearanceOf,
   catLayout,
   EYE,
+  BELLY,
   NOSE,
   MOUTH,
   SWIM,
@@ -1306,6 +1393,7 @@ const api = {
   PROPORTION,
   MAX_LIFT,
   gaitStep,
+  lightenHex,
   plantedReach,
   proportionLayout,
   pounceLaunch,

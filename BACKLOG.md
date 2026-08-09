@@ -66,6 +66,34 @@ flat constant rather than clamped by local channel width, so a 1-wide
 channel would still bead into lozenges, and `groupWaterTiles` still
 floods 4-adjacent only. Both are recorded in the v3 plan's Phase 5.
 
+### Ambient whole-body float — CLOSED, not doing (2026-08-09; Client thread)
+Graphics v3 Phase 4 listed a slow whole-body y-bob for every cat, borrowed
+from kitten.me, on top of the breathing we already have. **Closed by the
+owner** rather than deferred, and the reasoning generalises so it is worth
+keeping: the walk's body bob was built, measured and reverted the same day
+(branch history, `56b071c`) because at our tile size a few tenths of a pixel
+of vertical motion on a rigid body reads as **edge shimmer, not life** — the
+body travelled 0.56px peak-to-peak at a 56px tile against a foot's 9.52px
+fore–aft.
+
+The same arithmetic applies to an ambient float, and worse: an idle cat has no
+lateral motion to hide behind. If it ever comes back it should come back as
+the *whole-cat* mechanism from that revert (head, tail and limb pivots riding
+the body, grounded feet held), not as a torso sliding against a welded head —
+and only at an amplitude that clears a pixel.
+
+### Whiskers — deferred to camera mode (2026-08-09; Client thread)
+`cat-v2.js` says "No whiskers — ever" and that stands for now: three per side
+at our cat size land near **0.8px strokes**, which is where the original
+attempt died. The v3 plan's hope was that a bigger tile would fix it; Phase 1
+raised the tile and it is still not enough.
+
+**The re-examination trigger is camera mode**, not a date. A camera that zooms
+in is the one change that would move whiskers out of sub-pixel territory, and
+it is already deferred until after the art (see Deferred, below). Judge them
+at the *camera's* cat size, not the gallery's, and treat "cut again" as an
+acceptable outcome — that is what happened the first two times.
+
 ### The walk contradicts itself travelling north/south (added 2026-08-08; Client thread)
 Our cat is a **side profile**, so it encodes a heading. The legs sweep
 fore–aft — horizontally on screen — whatever way the cat is actually

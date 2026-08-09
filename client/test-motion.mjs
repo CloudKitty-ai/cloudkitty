@@ -459,6 +459,116 @@ check('poseFor: water under movement and idling, never over the rest', () => {
   assert(poseFor(k({ last_action: { action: 'chase' } }), true, true) === 'pouncing', 'the pounce outranks water');
 });
 
+// ---- the belly: a pale underside on every soft cat ----
+
+check('the shipped belly is the one the owner dialled', () => {
+  const B = CatV2.BELLY;
+  close(B.x, 0.07, 'x drifted');
+  close(B.y, 0.61, 'y drifted');
+  close(B.rx, 0.67, 'rx drifted');
+  close(B.ry, 0.36, 'ry drifted');
+  close(B.lighten, 0.35, 'lighten drifted');
+  close(B.alpha, 0.85, 'alpha drifted');
+  // Low and wide: it should hug the underside, not float in the middle.
+  assert(B.y > B.ry, 'the belly must sit below the body centre');
+  assert(B.rx > B.ry, 'and read as an underside, not a blob');
+});
+
+check('lightenHex mixes toward white without wrapping the byte', () => {
+  assert(CatV2.lightenHex('#808080', 0) === '#808080', 't=0 is the colour itself');
+  assert(CatV2.lightenHex('#808080', 1) === '#ffffff', 't=1 is white');
+  // The exact trap this helper exists for: shadeHex multiplies, so a
+  // factor above 1 runs past 255 and wraps a pale cat to something lurid.
+  const pale = CatV2.lightenHex('#f3e4c8', 0.9);
+  assert(/^#[0-9a-f]{6}$/.test(pale), `still a hex: ${pale}`);
+  for (let i = 1; i < 7; i += 2) {
+    const c = parseInt(pale.slice(i, i + 2), 16);
+    assert(c >= 0xc8 && c <= 255, `channel ${c} left the range`);
+  }
+});
+
+/** Every fillStyle a cat's paint sets, in order. */
+function fillStyles(palette) {
+  const log = [];
+  CatV2.drawCat(guardCtx(log), {
+    pose: 'idle',
+    appearance: CatV2.appearanceFor(palette),
+    facing: 'right',
+    size: 120,
+    phase: 0.3,
+  });
+  return log.filter((e) => e[0] === 'set' && e[1] === 'fillStyle').map((e) => e[2]);
+}
+
+check('every soft cat gets a belly; the tuxedo keeps its bib instead', () => {
+  // Palette 0 is the tuxedo, whose white bib already is an underside.
+  for (const pal of [1, 2, 3, 4]) {
+    const want = CatV2.lightenHex(CatV2.appearanceFor(pal).furBase, CatV2.BELLY.lighten);
+    assert(fillStyles(pal).includes(want), `palette ${pal} has no belly (${want})`);
+  }
+  const tuxedo = CatV2.appearanceFor(0);
+  const wouldBe = CatV2.lightenHex(tuxedo.furBase, CatV2.BELLY.lighten);
+  assert(!fillStyles(0).includes(wouldBe), 'the tuxedo drew a belly behind its bib');
+  assert(fillStyles(0).includes(tuxedo.pattern.color), 'the tuxedo still draws its bib');
+});
+
+check('the body outline is struck on the BODY, and lands on top of the belly', () => {
+  // Two faults in one check, because they are one seam. The belly has to
+  // be painted before the outline -- a stroke straddles its path, so half
+  // the outline is inside the clip and a belly drawn after washes it out.
+  // And moving it earlier is only safe if the body path is re-laid: save/
+  // restore puts back the clip and the alpha but NOT the current path, so
+  // the outline otherwise strikes the belly ellipse and looks deliberate.
+  const log = [];
+  const L = CatV2.catLayout('idle', 0.3);
+  const a = CatV2.appearanceFor(2);
+  CatV2.drawCat(guardCtx(log), {
+    pose: 'idle', appearance: a, facing: 'right', size: 1, phase: 0.3,
+  });
+  let pen = null;
+  let width = null;
+  let lastEllipseRx = null;
+  let outlineRx = null;
+  let bellyAt = -1;
+  let outlineAt = -1;
+  for (let i = 0; i < log.length; i++) {
+    const e = log[i];
+    if (e[0] === 'set' && e[1] === 'strokeStyle') pen = e[2];
+    if (e[0] === 'set' && e[1] === 'lineWidth') width = e[2];
+    if (e[0] === 'set' && e[1] === 'fillStyle'
+        && e[2] === CatV2.lightenHex(a.furBase, CatV2.BELLY.lighten)) bellyAt = i;
+    if (e[0] === 'ellipse') lastEllipseRx = e[3];
+    if (e[0] === 'stroke' && pen === a.furShade
+        && Math.abs(width - CatV2.OUTLINE_W) < 1e-12 && outlineRx === null) {
+      outlineRx = lastEllipseRx;
+      outlineAt = i;
+    }
+  }
+  assert(bellyAt >= 0, 'no belly was drawn at all');
+  assert(outlineRx !== null, 'the body outline was never struck');
+  assert(
+    bellyAt < outlineAt,
+    'the belly was painted after the outline, so it washes out the line it crosses',
+  );
+  close(outlineRx, L.body.rx, 'the outline was struck on something other than the body');
+  assert(
+    Math.abs(outlineRx - L.body.rx * CatV2.BELLY.rx) > 1e-9,
+    'the outline was struck on the belly ellipse',
+  );
+});
+
+check('the belly is derived from the body, so it follows every pose', () => {
+  // No layout field, no blendLayouts entry, nothing to pop on a pose
+  // change: if it were per-pose it would have to be interpolated.
+  for (const pose of CatV2.POSES) {
+    const L = CatV2.catLayout(pose, 0.3);
+    assert(L.belly === undefined, `${pose} put a belly in the layout`);
+  }
+  const A = CatV2.catLayout('idle', 0);
+  const B = CatV2.catLayout('pouncing', 0.9);
+  assert(CatV2.blendLayouts(A, B, 0.5).belly === undefined, 'blendLayouts invented one');
+});
+
 check('the pounce is gated on how far the quarry is', () => {
   const gate = VIEW.pounceGateTiles;
   const chasing = { id: 1, pos: { x: 2, y: 2 }, last_action: { action: 'chase', target: 'element', id: 9 } };
