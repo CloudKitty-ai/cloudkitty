@@ -120,6 +120,7 @@ fn info_to_py<'py>(py: Python<'py>, info: &AgentInfo) -> PyResult<Bound<'py, PyD
     dict.set_item("applied_action", info.applied_action)?;
     dict.set_item("applied_action_name", info.applied_action_name)?;
     dict.set_item("applied_message", info.applied_message)?;
+    dict.set_item("proposed_message", info.proposed_message)?;
     dict.set_item("survived", info.survived)?;
     dict.set_item("mask", info.mask.clone().into_pyarray(py))?;
     dict.set_item("decision_seed", info.decision_seed)?;
@@ -784,6 +785,7 @@ impl VectorEnv {
             let mut applied = Vec::with_capacity(n);
             let mut applied_names: Vec<Option<&'static str>> = Vec::with_capacity(n);
             let mut applied_messages: Vec<Option<&'static str>> = Vec::with_capacity(n);
+            let mut proposed_messages: Vec<Option<&'static str>> = Vec::with_capacity(n);
             let mut provenance: Vec<Option<&'static str>> = Vec::with_capacity(n);
             for step in steps {
                 let info = step
@@ -800,6 +802,7 @@ impl VectorEnv {
                 applied.push(info.applied_action.map(|a| a as i64).unwrap_or(-1));
                 applied_names.push(info.applied_action_name);
                 applied_messages.push(info.applied_message);
+                proposed_messages.push(info.proposed_message);
                 provenance.push(info.provenance.map(provenance_str));
             }
             let agent = PyDict::new(py);
@@ -814,6 +817,7 @@ impl VectorEnv {
             agent.set_item("applied_action", applied.into_pyarray(py))?;
             agent.set_item("applied_action_name", applied_names)?;
             agent.set_item("applied_message", applied_messages)?;
+            agent.set_item("proposed_message", proposed_messages)?;
             agent.set_item("provenance", provenance)?;
             infos.set_item(agent_name(*id), agent)?;
         }

@@ -44,6 +44,7 @@ def test_reset_shapes_and_bounds():
             "applied_action",
             "applied_action_name",
             "applied_message",
+            "proposed_message",
             "survived",
             "mask",
             "decision_seed",
@@ -55,6 +56,7 @@ def test_reset_shapes_and_bounds():
         assert mask.any(), "never all-zero"
         assert info["applied_action"] is None, "nothing applied at reset"
         assert info["applied_message"] is None, "no message at reset"
+        assert info["proposed_message"] is None, "no proposal at reset"
         assert isinstance(info["decision_seed"], int)
 
 
@@ -113,6 +115,28 @@ def test_out_of_range_raises_vacant_slots_do_not():
         {agents[0]: [7, 0], **{a: IDLE for a in agents[1:]}}
     )
     assert infos[agents[0]]["survived"] is False
+
+
+def test_a_downgraded_message_stays_visible_as_proposed():
+    # Spec 028 review follow-up (F-015 / D1 ask): quiet-by-choice and
+    # quiet-by-downgrade must separate py-side. At a fresh reset nothing
+    # is armed, so a proposed want_eat (head index 1) downgrades
+    # deterministically: proposed carries the wire name, applied stays
+    # None, and the activity half is untouched.
+    env = make_env()
+    env.reset(seed=5)
+    agents = env.possible_agents
+    _, _, _, _, infos = env.step(
+        {agents[0]: [33, 1], **{a: IDLE for a in agents[1:]}}
+    )
+    info = infos[agents[0]]
+    assert info["proposed_message"] == "want_eat"
+    assert info["applied_message"] is None, "enforcement downgraded to Silent"
+    assert info["survived"] is True, "the activity half was untouched"
+
+    # A deliberate Silent shows no proposal at all — quiet by choice.
+    _, _, _, _, infos = env.step({a: IDLE for a in agents})
+    assert infos[agents[0]]["proposed_message"] is None
 
 
 def test_state_is_fixed_size_and_deterministic():
@@ -234,6 +258,7 @@ def test_vector_env_unseeded_reset_advances_every_world():
         "applied_action",
         "applied_action_name",
         "applied_message",
+        "proposed_message",
         "provenance",
     }
     assert info["survived"].tolist() == [-1, -1], "no proposal at reset"

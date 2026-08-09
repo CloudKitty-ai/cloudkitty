@@ -81,6 +81,14 @@ pub struct AgentInfo {
     /// "want_eat"; None at reset or when the applied message was Silent --
     /// including a proposed message enforcement downgraded.
     pub applied_message: Option<&'static str>,
+    /// The wire name of the message the agent PROPOSED, before engine
+    /// enforcement; None at reset, for a proposed Silent, or for a
+    /// substituted idle (which never proposed anything -- the same honest
+    /// bookkeeping as `survived`). Some here with `applied_message` None
+    /// is exactly an enforcement downgrade, so quiet-by-choice and
+    /// quiet-by-downgrade separate py-side (F-015's first-probe check and
+    /// D1's channel-collapse diagnosis both read this seam).
+    pub proposed_message: Option<&'static str>,
     /// Whether the proposal survived validation unchanged.
     pub survived: Option<bool>,
     /// The legal-action mask for the *next* decision (0/1 per menu entry).
@@ -453,6 +461,10 @@ impl Episode {
                 applied_action_name: record.map(|r| action_wire_name(&r.applied)),
                 applied_message: record
                     .and_then(|r| r.applied_message)
+                    .map(|kind| kind.wire_name()),
+                proposed_message: record
+                    .filter(|r| r.provenance != Provenance::SubstitutedIdle)
+                    .and_then(|r| r.proposed_message)
                     .map(|kind| kind.wire_name()),
                 // Honest bookkeeping: a substituted idle never *proposed*
                 // anything, so it has no survival verdict — None, not a
