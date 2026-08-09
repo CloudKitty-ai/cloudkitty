@@ -188,7 +188,7 @@ reachable state.
 **Independent Test**: two-emitter scenario — all four values describe the
 freshest; layout test pins 197.
 
-- [ ] T011 [US3] Digest v3 in `crates/cloudkitty-rl/src/observe.rs` (+ ripple):
+- [X] T011 [US3] Digest v3 in `crates/cloudkitty-rl/src/observe.rs` (+ ripple):
       digest loop → `HEAD_KINDS`, freshest-emitter selection (max tick, tie-break
       min kitty id), 4-tuple with stamped intensity, `MEOW_DIGEST = 32`,
       `OBSERVATION_SCHEMA_VERSION = 3`; rewrite

@@ -48,9 +48,11 @@ use cloudkitty_core::Config;
 
 use crate::config::ObservationConfig;
 
-/// Version pinned into policy artifacts (FR-007/FR-016). Schema 2
-/// (spec 026): the self block gained the in-water flag, 182 → 183.
-pub const OBSERVATION_SCHEMA_VERSION: u32 = 2;
+/// Version pinned into policy artifacts (FR-007/FR-016). Schema 3
+/// (spec 028): the meow digest became coherent -- 8 kinds x 4 values
+/// describing the single freshest emitter (recency, dx, dy, intensity),
+/// 183 → 197.
+pub const OBSERVATION_SCHEMA_VERSION: u32 = 3;
 
 /// The message-head kinds (spec 028): every kind a policy can hear and
 /// speak — all but the engine-reserved `wait_for_me` (spec 012). Order is
@@ -74,9 +76,9 @@ const CHOW_SLOT: usize = 1 + 2 + 1 + 1;
 const WATER_SLOT: usize = 1 + 2 + 1;
 const SUNBEAM_SLOT: usize = 1 + 2 + 1 + 1 + 1;
 const CRITTER_SLOT: usize = 1 + 2 + 1 + 1 + 4 + 1;
-// Transitional (T006): the digest still covers the original six kinds,
-// 3 values each; v3 (8 kinds x 4 values, spec 028) lands in T011.
-const MEOW_DIGEST: usize = 6 * 3;
+// Digest v3 (spec 028): every head kind, 4 values each -- recency, dx,
+// dy, intensity -- all describing the single freshest audible emitter.
+const MEOW_DIGEST: usize = HEAD_KINDS.len() * 4;
 const CLOCK: usize = 1;
 
 /// The exact observation length for a slot configuration. With the default
@@ -334,33 +336,29 @@ pub fn encode_observation(
         }
     }
 
-    // 4. Meow digest: others' recent meows, recency-weighted, with the
-    // nearest emitter's direction.
+    // 4. Meow digest v3 (spec 028): per head kind, the single FRESHEST
+    // audible emitter (max tick, tie-break lower kitty id; self excluded)
+    // described whole -- recency, direction, and the intensity stamped at
+    // emission. One emitter for all four values: a listener that turns
+    // toward the direction arrives at the cat whose urgency it heard,
+    // which the old nearest-vs-freshest split could not promise.
     let window = core.meow.recent_window_ticks.max(1) as f32;
-    for kind in HEAD_KINDS.into_iter().take(6) {
-        let heard: Vec<_> = snapshot
+    for kind in HEAD_KINDS {
+        let freshest = snapshot
             .recent_meows
             .iter()
             .filter(|m| m.kind == kind && m.kitty_id != kitty_id)
-            .collect();
-        let presence = heard
-            .iter()
-            .map(|m| 1.0 - (snapshot.tick.saturating_sub(m.tick) as f32 / window))
-            .fold(0.0f32, |a, b| a.max(b.clamp(0.0, 1.0)));
-        let nearest = heard
-            .iter()
-            .filter_map(|m| snapshot.kitty(m.kitty_id))
-            .min_by_key(|k| (me.pos.manhattan_distance(&k.pos), k.id));
-        v.push(presence);
-        match nearest {
-            Some(k) => {
-                v.push((k.pos.x as f32 - me.pos.x as f32) / width);
-                v.push((k.pos.y as f32 - me.pos.y as f32) / height);
+            .max_by(|a, b| a.tick.cmp(&b.tick).then(b.kitty_id.cmp(&a.kitty_id)));
+        match freshest.and_then(|m| snapshot.kitty(m.kitty_id).map(|k| (m, k))) {
+            Some((m, emitter)) => {
+                let recency =
+                    (1.0 - snapshot.tick.saturating_sub(m.tick) as f32 / window).clamp(0.0, 1.0);
+                v.push(recency);
+                v.push((emitter.pos.x as f32 - me.pos.x as f32) / width);
+                v.push((emitter.pos.y as f32 - me.pos.y as f32) / height);
+                v.push(m.intensity.clamp(0.0, 1.0));
             }
-            None => {
-                v.push(0.0);
-                v.push(0.0);
-            }
+            None => v.extend(std::iter::repeat_n(0.0, 4)),
         }
     }
 
@@ -491,8 +489,105 @@ mod tests {
     use cloudkitty_core::test_support::test_world;
 
     #[test]
-    fn the_default_layout_is_183_values() {
-        assert_eq!(observation_len(&ObservationConfig::default()), 183);
+    fn the_digest_describes_the_freshest_emitter_whole() {
+        // Spec 028 US3 (the coherence guarantee): two same-kind emitters,
+        // the NEARER one stale, the FARTHER one fresh -- all four values
+        // describe the fresh one, so direction and urgency can never point
+        // at different cats. (The old split digest took presence from the
+        // freshest and direction from the nearest.)
+        use cloudkitty_core::meow::{Meow, MessageKind};
+        let (mut world, config) = test_world();
+        world.tick = 50;
+        let me = world.kitties[world.kitty_index(1).unwrap()].pos;
+        let near = world.kitty_index(2).unwrap();
+        world.kitties[near].pos = Position::new(me.x + 1, me.y);
+        // A third cat for the far emitter (the test roster ships two).
+        world.kitties.push(cloudkitty_core::kitty::Kitty::new(
+            3,
+            "Pumpkin",
+            Position::new(me.x + 7, me.y),
+            "needs_driven",
+        ));
+        world.recent_meows.push(Meow {
+            kitty_id: 2,
+            kind: MessageKind::WantEat,
+            tick: 42, // stale
+            intensity: 0.9,
+        });
+        world.recent_meows.push(Meow {
+            kitty_id: 3,
+            kind: MessageKind::WantEat,
+            tick: 50, // fresh
+            intensity: 0.4,
+        });
+        let cfg = ObservationConfig::default();
+        let obs = encode_observation(&world.snapshot(), 1, &config, &cfg, 0.0);
+        // WantEat leads the digest, which sits just before the clock.
+        let digest_start = observation_len(&cfg) - MEOW_DIGEST - CLOCK;
+        let width = world.width as f32;
+        let window = config.meow.recent_window_ticks as f32;
+        assert!(
+            (obs.values[digest_start] - 1.0).abs() < 1e-6,
+            "recency reads the fresh emitter"
+        );
+        assert!(
+            (obs.values[digest_start + 1] - 7.0 / width).abs() < 1e-6,
+            "direction points at the fresh emitter, not the near one"
+        );
+        assert!(
+            (obs.values[digest_start + 3] - 0.4).abs() < 1e-6,
+            "intensity is the fresh emitter's stamp"
+        );
+        let _ = window;
+
+        // Tie on tick: the lower kitty id wins, deterministically.
+        world.recent_meows.push(Meow {
+            kitty_id: 2,
+            kind: MessageKind::WantEat,
+            tick: 50,
+            intensity: 0.9,
+        });
+        let obs = encode_observation(&world.snapshot(), 1, &config, &cfg, 0.0);
+        assert!(
+            (obs.values[digest_start + 1] - 1.0 / width).abs() < 1e-6,
+            "equal ticks tie-break to the lower kitty id"
+        );
+    }
+
+    #[test]
+    fn social_words_carry_zero_intensity_in_the_digest() {
+        // Purr and FollowMe stamp 0.0 at emission (FR-010); the digest
+        // reports the stamp verbatim.
+        use cloudkitty_core::meow::{Meow, MessageKind};
+        let (mut world, config) = test_world();
+        world.tick = 50;
+        world.recent_meows.push(Meow {
+            kitty_id: 2,
+            kind: MessageKind::Purr,
+            tick: 50,
+            intensity: 0.0,
+        });
+        world.recent_meows.push(Meow {
+            kitty_id: 2,
+            kind: MessageKind::FollowMe,
+            tick: 50,
+            intensity: 0.0,
+        });
+        let cfg = ObservationConfig::default();
+        let obs = encode_observation(&world.snapshot(), 1, &config, &cfg, 0.0);
+        let digest_start = observation_len(&cfg) - MEOW_DIGEST - CLOCK;
+        // Purr is HEAD_KINDS[5], FollowMe HEAD_KINDS[2]; intensity is +3.
+        for slot in [5usize, 2] {
+            let base = digest_start + slot * 4;
+            assert!(obs.values[base] > 0.0, "the word is audible");
+            assert_eq!(obs.values[base + 3], 0.0, "and carries no intensity");
+        }
+    }
+
+    #[test]
+    fn the_default_layout_is_197_values() {
+        // Schema 3 (spec 028): 183 + the digest's growth (6x3 -> 8x4).
+        assert_eq!(observation_len(&ObservationConfig::default()), 197);
     }
 
     #[test]
@@ -506,7 +601,7 @@ mod tests {
             kitty_slots: ObservationConfig::default().kitty_slots + 2,
             ..ObservationConfig::default()
         };
-        assert_eq!(observation_len(&cfg), 183 + 2 * KITTY_SLOT);
+        assert_eq!(observation_len(&cfg), 197 + 2 * KITTY_SLOT);
     }
 
     /// The in-water flag's fixed self-block index: needs (6) + happiness +
