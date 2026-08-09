@@ -778,3 +778,30 @@ disjoint band reported as a drift alarm.
   v5**: family-gen must emit the NEW `[meow]` surface — a carried-over
   courtesy block refuses to load by design (the intended migration
   signal, not a bug).
+- ~~Groom-responder herding (FR-019, `needs_driven.rs:310`): charming
+  or defect?~~ **EXAMINED 2026-08-08 (owner raised, Experiments
+  assessed, owner accepted): KEEP — measured, not fixed.** No
+  responder dedup: every eligible cat targets the freshest WantBath
+  emitter. Verdict grounds in the implementation (Product's 028
+  worktree): (1) **self-limiting** — `groom_response` re-evaluates
+  each tick against `recent_meows`, so pursuit survives only while a
+  meow is audible; post-relief staleness is ≤ 10 ticks from last
+  emission, shorter than typical 20×20 cross-grid walks — distant
+  responders abandon mid-walk rather than arrive late; redundant
+  grooms are confined to responders within ~10 ticks of arrival at
+  relief time. (2) **Lawful payoff** — a redundant groom pays the
+  groomer real cuddle relief; the clean target loses nothing
+  (spec-021 falsification doctrine, `docs/cuddle-relief-semantics.md`).
+  (3) **Dataset-v4 feature** — rare-class asymmetry wants abundant
+  response rows; demonstrator redundancy also leaves legible
+  coordination headroom (a policy that learns "someone else is
+  already going" beats B in a way that is visibly coordination, not
+  imitation — dedup in the demonstrator would delete that signature).
+  (4) The freshest-emitter collapse (two wet cats → herd to the
+  fresher) is the digest's known occlusion property, inherited
+  deliberately per the imitability principle. **Action: re-baseline B
+  gains three REPORTED (never gated) herding metrics** — responders
+  per meow episode, redundant-groom share (grooms landing on a target
+  already below hysteresis), abandoned-pursuit share — so B's record
+  states how much herding it contains; revisit as a config change
+  only if the redundant share turns out pathological, with data.
