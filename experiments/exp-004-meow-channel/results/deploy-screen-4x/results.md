@@ -27,3 +27,18 @@ deployed-screen band (890001–030, §6 ledger — its intended purpose),
 steps are Product-side (seat all four in the served config, release-
 honesty test, deploy by config rollout — no `--fresh`) plus the
 standing post-deploy soak watch, on the owner's word.
+
+## Addendum (owner's question): sampled selection at 4× — measured, greedy stays
+
+Paired on the same 30 screen seeds: sampled welfare 0.9474 vs greedy
+0.9499 — **−0.0025 ± 0.0007, 0/30 seeds up** (above the 0.0020
+margin) — while sampling zeroes the residual distress tail (worst
+`max_distress_age` 6 → 0/30). F-017's symmetry insurance is real but
+buys protection against a pathology 90 greedy all-policy seeds across
+three bands never exhibit (this generation is self-play-trained;
+4-copies is its native regime, unlike e003's mixed-trained collapse).
+Greedy is the certified mode and wins welfare on every seed; its
+worst distress signature (age 6) sits 37× under the incident bar.
+**Deploy greedy; sampling remains the evaluation tool it was closed
+as (2026-08-08), purchasable later by config flip if the soak ever
+shows symmetry trouble.**
