@@ -767,4 +767,14 @@ disjoint band reported as a drift alarm.
   semantics change, so era replay on the current binary dies twice
   over; exp-003 joins exp-002 in the era-engine-rebuild category. The
   counter's reproduce-the-record check must run pre-028 in Product's
-  batch ordering (post-028 it needs a fresh fixture).
+  batch ordering (post-028 it needs a fresh fixture). **Product's
+  close-out (same day, direct)**: T003 implements the manifest
+  (root-level `config-sweep-exclusions.txt`, both sweeps,
+  pinned-generation-dirs-only rule stated); the counter's acceptance
+  was already convention-agreement on the current engine, never era
+  replay, and the 810/810 record validated pre-028 — ordering
+  satisfied by history, era note added to the task so nobody
+  "re-verifies" against the dead record. **Carry-forward for family
+  v5**: family-gen must emit the NEW `[meow]` surface — a carried-over
+  courtesy block refuses to load by design (the intended migration
+  signal, not a bug).
