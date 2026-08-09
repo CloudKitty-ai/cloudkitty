@@ -20,7 +20,7 @@ unusual for this house and declared rather than hidden.
 
 **Purpose**: Capture the pre-028 world before the engine moves.
 
-- [ ] T001 Generate and commit the pre-batch snapshot fixture
+- [X] T001 Generate and commit the pre-batch snapshot fixture
       `crates/cloudkitty-core/tests/fixtures/pre-028-world.json`: at THIS commit
       (before any engine change), run the shipped `cloudkitty.toml` config
       scripted-only for ~500 ticks via a throwaway runner so meows, per-kind
