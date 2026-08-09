@@ -1,8 +1,12 @@
-//! Action codec v1 (spec 014 FR-006): the versioned bijection between the
-//! flat action menu and engine proposals, total in both directions.
+//! Action codec v2 (spec 028, succeeding spec 014's v1): the versioned
+//! bijection between the flat activity menu and engine proposals, total in
+//! both directions — plus the fixed-width [`MessageCodec`] for the message
+//! head that replaced the meow rows.
 //!
 //! With the default slot counts (3 kitty, 4 critter) the menu is the
-//! normative 40-entry table from contracts/encodings.md:
+//! normative 34-entry table from specs/028-meow-channel/contracts/
+//! encodings-v2.md — exactly menu v1 rows 0–32 with the six meow rows
+//! removed and Idle renumbered:
 //!
 //! | Index | Proposal |
 //! |-------|----------|
@@ -20,15 +24,18 @@
 //! | 25    | Play (solo pounce) |
 //! | 26–29 | Play with critter slot 0 / 1 / 2 / 3 |
 //! | 30–32 | Play with kitty slot 0 / 1 / 2 |
-//! | 33–38 | Meow: want-eat / want-drink / follow-me / want-play / want-cuddle / purr |
-//! | 39    | Idle |
+//! | 33    | Idle |
+//!
+//! The message head (index 0 = Silent, 1–8 = `HEAD_KINDS` in normative
+//! order) is the only way to meow; `Action::Meow` proposals are
+//! inexpressible here and validate false in the engine.
 //!
 //! **Totality**: every in-range index decodes to a proposal — a vacant or
 //! stale slot decodes to a proposal naming an entity that does not exist,
 //! which the engine lawfully resolves to idle (Article IV); never a decode
 //! error. Every proposable action *expressible through the table* encodes to
 //! an index (`encode` returns None for actions the menu cannot express —
-//! e.g. a target outside every slot, or the retired Purr action).
+//! e.g. a target outside every slot, the retired Purr action, or any Meow).
 //!
 //! **Extensibility**: the menu grows only by codec version bump; indices are
 //! never repurposed; there are no reserved indices.
@@ -41,11 +48,12 @@ use cloudkitty_core::meow::MessageKind;
 use thiserror::Error;
 
 use crate::config::ObservationConfig;
-use crate::observe::{TargetTable, LEARNED_MEOWS};
+use crate::observe::{TargetTable, HEAD_KINDS};
 
 /// Version pinned into policy artifacts (FR-007/FR-016). The mask schema is
-/// versioned with the codec.
-pub const ACTION_SCHEMA_VERSION: u32 = 1;
+/// versioned with the codec. Schema 2 (spec 028): the meow rows left the
+/// menu for the message head.
+pub const ACTION_SCHEMA_VERSION: u32 = 2;
 
 /// The id a vacant slot decodes to. Aliased to the engine's reserved ids
 /// (one definition, owned by core): config validation rejects a kitty with
@@ -77,7 +85,6 @@ pub enum MenuEntry {
     PlaySolo,
     PlayCritter(usize),
     PlayKitty(usize),
-    Meow(MessageKind),
     Idle,
 }
 
@@ -88,13 +95,13 @@ pub struct ActionCodec {
 }
 
 impl ActionCodec {
-    /// Builds menu v1 for the configured slot counts. The default
-    /// configuration yields the normative 40-entry menu.
-    pub fn v1(cfg: &ObservationConfig) -> Self {
+    /// Builds menu v2 for the configured slot counts. The default
+    /// configuration yields the normative 34-entry menu.
+    pub fn v2(cfg: &ObservationConfig) -> Self {
         use MenuEntry::*;
         let k = cfg.kitty_slots;
         let c = cfg.critter_slots;
-        let mut entries = Vec::with_capacity(4 + 3 * (1 + k) + 2 + c + k + 1 + c + k + 7);
+        let mut entries = Vec::with_capacity(4 + 3 * (1 + k) + 2 + c + k + 1 + c + k + 1);
         entries.extend(Direction::ALL.into_iter().map(Move));
         entries.push(RestSolo);
         entries.extend((0..k).map(RestWithKitty));
@@ -109,12 +116,11 @@ impl ActionCodec {
         entries.push(PlaySolo);
         entries.extend((0..c).map(PlayCritter));
         entries.extend((0..k).map(PlayKitty));
-        entries.extend(LEARNED_MEOWS.into_iter().map(Meow));
         entries.push(Idle);
         ActionCodec { entries }
     }
 
-    /// The menu length (40 with default slots).
+    /// The menu length (34 with default slots).
     pub fn len(&self) -> usize {
         self.entries.len()
     }
@@ -171,7 +177,6 @@ impl ActionCodec {
                     id: kitty(s).unwrap_or(VACANT_KITTY),
                 }),
             },
-            MenuEntry::Meow(message) => Action::Meow { message },
             MenuEntry::Idle => Action::Idle,
         })
     }
@@ -179,7 +184,8 @@ impl ActionCodec {
     /// Encodes an engine action back to its menu index, when the table can
     /// express it: targeted actions encode iff their target holds a slot.
     /// Returns None for the inexpressible (a target outside every slot, the
-    /// retired `Purr` action, the engine-reserved wait-for-me meow).
+    /// retired `Purr` action, and — since spec 028 — every `Meow`: the
+    /// message head is the only way to speak).
     pub fn encode(&self, action: &Action, table: &TargetTable) -> Option<usize> {
         let kitty_slot = |id: KittyId| table.kitties.iter().position(|s| *s == Some(id));
         let critter_slot = |id: ElementId| table.critters.iter().position(|s| *s == Some(id));
@@ -205,15 +211,41 @@ impl ActionCodec {
             Action::Play {
                 target: Some(TargetRef::Kitty { id }),
             } => want(MenuEntry::PlayKitty(kitty_slot(id)?)),
-            Action::Meow { message } => {
-                if LEARNED_MEOWS.contains(&message) {
-                    want(MenuEntry::Meow(message))
-                } else {
-                    None
-                }
-            }
+            Action::Meow { .. } => None,
             Action::Purr => None,
             Action::Idle => want(MenuEntry::Idle),
+        }
+    }
+}
+
+/// The fixed-width message head codec (spec 028): index 0 is Silent, index
+/// k+1 is `HEAD_KINDS[k]`. Total decode over `0..LEN`; encode inverts it.
+/// The engine-reserved `wait_for_me` has no index — policies cannot express
+/// it, which is its whole policy-side legality story.
+pub struct MessageCodec;
+
+impl MessageCodec {
+    /// Head width: Silent + the eight head kinds = 9.
+    pub const LEN: usize = 1 + HEAD_KINDS.len();
+
+    /// Decodes a head index. `Ok(None)` is Silent; errors only out of range.
+    pub fn decode(index: usize) -> Result<Option<MessageKind>, CodecError> {
+        match index {
+            0 => Ok(None),
+            i if i <= HEAD_KINDS.len() => Ok(Some(HEAD_KINDS[i - 1])),
+            _ => Err(CodecError::OutOfRange {
+                index,
+                len: Self::LEN,
+            }),
+        }
+    }
+
+    /// Encodes a message to its head index; None for the inexpressible
+    /// (`wait_for_me`).
+    pub fn encode(message: Option<MessageKind>) -> Option<usize> {
+        match message {
+            None => Some(0),
+            Some(kind) => HEAD_KINDS.iter().position(|&k| k == kind).map(|p| p + 1),
         }
     }
 }
@@ -230,9 +262,9 @@ mod tests {
     }
 
     #[test]
-    fn the_default_menu_has_exactly_forty_entries_in_normative_order() {
-        let codec = ActionCodec::v1(&ObservationConfig::default());
-        assert_eq!(codec.len(), 40);
+    fn the_default_menu_has_exactly_thirty_four_entries_in_normative_order() {
+        let codec = ActionCodec::v2(&ObservationConfig::default());
+        assert_eq!(codec.len(), 34);
         let t = table();
         // Spot-check the normative index table.
         assert_eq!(
@@ -267,22 +299,51 @@ mod tests {
         );
         assert_eq!(
             codec.decode(33, &t).unwrap(),
-            Action::Meow {
-                message: MessageKind::WantEat
-            }
+            Action::Idle,
+            "Idle renumbered onto the retired meow block's first row"
+        );
+    }
+
+    #[test]
+    fn the_message_head_decodes_totally_and_encode_inverts() {
+        assert_eq!(MessageCodec::LEN, 9);
+        assert_eq!(MessageCodec::decode(0).unwrap(), None, "0 is Silent");
+        assert_eq!(
+            MessageCodec::decode(1).unwrap(),
+            Some(MessageKind::WantEat),
+            "head order = HEAD_KINDS order"
         );
         assert_eq!(
-            codec.decode(38, &t).unwrap(),
-            Action::Meow {
-                message: MessageKind::Purr
-            }
+            MessageCodec::decode(6).unwrap(),
+            Some(MessageKind::Purr),
+            "the original six keep their positions"
         );
-        assert_eq!(codec.decode(39, &t).unwrap(), Action::Idle);
+        assert_eq!(
+            MessageCodec::decode(7).unwrap(),
+            Some(MessageKind::WantBath)
+        );
+        assert_eq!(
+            MessageCodec::decode(8).unwrap(),
+            Some(MessageKind::WantSleep)
+        );
+        assert!(matches!(
+            MessageCodec::decode(9),
+            Err(CodecError::OutOfRange { index: 9, len: 9 })
+        ));
+        for index in 0..MessageCodec::LEN {
+            let message = MessageCodec::decode(index).unwrap();
+            assert_eq!(MessageCodec::encode(message), Some(index));
+        }
+        assert_eq!(
+            MessageCodec::encode(Some(MessageKind::WaitForMe)),
+            None,
+            "the yield word is policy-inexpressible"
+        );
     }
 
     #[test]
     fn vacant_slots_decode_to_engine_rejectable_proposals_never_errors() {
-        let codec = ActionCodec::v1(&ObservationConfig::default());
+        let codec = ActionCodec::v2(&ObservationConfig::default());
         let t = table();
         // Kitty slot 2 and critter slots 1/2 are vacant.
         assert_eq!(
@@ -297,14 +358,14 @@ mod tests {
         );
         // Out of range is the one caller error.
         assert!(matches!(
-            codec.decode(40, &t),
-            Err(CodecError::OutOfRange { index: 40, len: 40 })
+            codec.decode(34, &t),
+            Err(CodecError::OutOfRange { index: 34, len: 34 })
         ));
     }
 
     #[test]
     fn encode_inverts_decode_for_expressible_actions() {
-        let codec = ActionCodec::v1(&ObservationConfig::default());
+        let codec = ActionCodec::v2(&ObservationConfig::default());
         let t = table();
         for index in 0..codec.len() {
             let action = codec.decode(index, &t).unwrap();
@@ -337,20 +398,15 @@ mod tests {
 
     #[test]
     fn the_inexpressible_encode_to_none() {
-        let codec = ActionCodec::v1(&ObservationConfig::default());
+        let codec = ActionCodec::v2(&ObservationConfig::default());
         let t = table();
         // A target outside every slot.
         assert_eq!(codec.encode(&Action::Rest { with: Some(99) }, &t), None);
-        // The retired action and the engine-reserved meow.
+        // The retired actions: Purr, and (since spec 028) every Meow --
+        // the message head is the only way to speak.
         assert_eq!(codec.encode(&Action::Purr, &t), None);
-        assert_eq!(
-            codec.encode(
-                &Action::Meow {
-                    message: MessageKind::WaitForMe
-                },
-                &t
-            ),
-            None
-        );
+        for message in MessageKind::ALL {
+            assert_eq!(codec.encode(&Action::Meow { message }, &t), None);
+        }
     }
 }

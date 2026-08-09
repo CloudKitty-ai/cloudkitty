@@ -1,5 +1,6 @@
-//! Writes the Arm 0 artifact: an all-zero MLP in the exp-001 shape
-//! (obs→256→256→menu). Constant logits make masked SAMPLING exactly uniform
+//! Writes the Arm 0 artifact: an all-zero MLP in the exp-001 shape, final
+//! layer widened to the spec-028 two-head output (obs→256→256→menu+message).
+//! Constant logits make masked SAMPLING exactly uniform
 //! over legal actions — Arm 0 as pre-registered, seated via
 //! `kitty-eval --artifact <path> --sample` (flag landed in PR #71 /
 //! issue #70). Under greedy selection (the default) the same artifact
@@ -15,7 +16,7 @@
 //!
 //! Usage: zero-artifact <out.ckpolicy>
 
-use cloudkitty_rl::codec::{ActionCodec, ACTION_SCHEMA_VERSION};
+use cloudkitty_rl::codec::{ActionCodec, MessageCodec, ACTION_SCHEMA_VERSION};
 use cloudkitty_rl::config::ObservationConfig;
 use cloudkitty_rl::mask::MASK_SCHEMA_VERSION;
 use cloudkitty_rl::observe::{observation_len, OBSERVATION_SCHEMA_VERSION};
@@ -28,10 +29,11 @@ fn main() {
         .expect("usage: zero-artifact <out.ckpolicy>");
     let obs_cfg = ObservationConfig::default();
     let obs = observation_len(&obs_cfg);
-    let menu = ActionCodec::v1(&obs_cfg).len();
-    let shapes = [[obs, 256], [256, 256], [256, menu]];
+    let menu = ActionCodec::v2(&obs_cfg).len();
+    let out_logits = menu + MessageCodec::LEN;
+    let shapes = [[obs, 256], [256, 256], [256, out_logits]];
     let header = ArtifactHeader {
-        artifact_version: 1,
+        artifact_version: cloudkitty_rl::policy::ARTIFACT_VERSION,
         observation_schema: OBSERVATION_SCHEMA_VERSION,
         action_schema: ACTION_SCHEMA_VERSION,
         mask_schema: MASK_SCHEMA_VERSION,
@@ -43,5 +45,8 @@ fn main() {
         .map(|&[i, o]| (vec![0.0; i * o], vec![0.0; o]))
         .collect();
     write_artifact(Path::new(&out), &header, &layers).expect("writing artifact");
-    println!("wrote {out} ({obs}->256->256->{menu}, all zeros, observation schema {OBSERVATION_SCHEMA_VERSION})");
+    println!(
+        "wrote {out} ({obs}->256->256->{out_logits} [{menu} activity + {} message], all zeros, observation schema {OBSERVATION_SCHEMA_VERSION})",
+        MessageCodec::LEN
+    );
 }

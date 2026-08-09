@@ -32,3 +32,6 @@ worlds.backup/
 experiments/**/target/
 experiments/**/raw/
 experiments/**/artifacts/
+
+# temp work dir (client thread)
+deletemewhendone/

@@ -36,6 +36,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use cloudkitty_core::meow::{freshest_audible, MessageKind};
 use cloudkitty_core::seam::drive_tick;
 use cloudkitty_core::{
     Activity, BehaviorRegistry, Config, ElementType, KittyId, World, WorldSnapshot,
@@ -102,6 +103,62 @@ struct KittyCensus {
     cosleep_episodes: Vec<CosleepEpisode>,
     solo_sleep_lens: Vec<u64>,
     rest_duet_lens: Vec<u64>,
+    /// Meow emissions by wire name (spec 028; the §2 rate anchors).
+    meow_emits: BTreeMap<String, u64>,
+    /// Ticks with any need at or above the distress line (the re-baseline's
+    /// distress-tick anchor, same definition as the landed counter).
+    distress_ticks: u64,
+}
+
+/// FR-019 herding, the three REPORTED metrics registered in PR #160, plus
+/// the raw counts they derive from. One WantBath "episode" per emitter =
+/// the maximal window in which that emitter's ask stays audible, plus one
+/// recent-window of grace for late arrivals.
+#[derive(Serialize, Clone, Default)]
+struct HerdingAgg {
+    episodes: u64,
+    /// Distinct groomers of the emitter, one entry per closed episode.
+    responders_per_episode: Vec<u64>,
+    groom_ticks_on_emitter: u64,
+    /// Groom ticks landing after the emitter's bath fell below the
+    /// announce floor (threshold - hysteresis). NOTE: groom_relief cleans
+    /// a just-legal emitter below the floor in one tick, so most ticks of
+    /// any groom run land "clean" — this is a relief-overpay diagnostic,
+    /// not the herding metric. The registered redundant-groom share is
+    /// START-conditioned, below.
+    redundant_groom_ticks: u64,
+    /// Groom runs begun on this episode's emitter (initiation-conditioned:
+    /// a run starts when an actor transitions into grooming the emitter).
+    groom_starts: u64,
+    /// Groom runs begun when the emitter was ALREADY below the announce
+    /// floor — the registered "late arrival grooms a clean cat" share.
+    redundant_groom_starts: u64,
+    /// A pursuit = a gate-eligible cat closing distance on its freshest
+    /// audible WantBath emitter for >= 2 consecutive ticks (the engine's
+    /// own `freshest_audible` selection rule picks the target).
+    pursuits: u64,
+    /// Pursuits that never landed a groom before the episode closed.
+    abandoned_pursuits: u64,
+}
+
+#[derive(Default)]
+struct Pursuit {
+    closing: u8,
+    pursuing: bool,
+    groomed: bool,
+    grooming_now: bool,
+    prev_dist: Option<u32>,
+}
+
+#[derive(Default)]
+struct BathEpisode {
+    last_audible: u64,
+    responders: std::collections::BTreeSet<KittyId>,
+    groom_ticks: u64,
+    redundant_groom_ticks: u64,
+    groom_starts: u64,
+    redundant_groom_starts: u64,
+    pursuits: BTreeMap<KittyId, Pursuit>,
 }
 
 /// The in-progress episode for one kitty; closed when the (class, partner)
@@ -134,10 +191,21 @@ struct SeedCensus {
     team_reward_sum: f64,
     water_tiles_sum: u64,
     ticks_seen: u64,
+    seen_meows: std::collections::BTreeSet<(KittyId, &'static str, u64)>,
+    /// Bath values from the PREVIOUS observed tick: observe() sees the
+    /// post-tick world, so this tick's groom relief is already applied —
+    /// redundancy must be judged against the bath the groom actually found.
+    prev_bath: BTreeMap<KittyId, f32>,
+    bath_eps: BTreeMap<KittyId, BathEpisode>,
+    herding: HerdingAgg,
+    responder_gate: f32,
+    announce_floor: f32,
+    meow_window: u64,
+    distress_line: f32,
 }
 
 impl SeedCensus {
-    fn new(snap: &WorldSnapshot) -> Self {
+    fn new(snap: &WorldSnapshot, config: &Config) -> Self {
         let ids: Vec<KittyId> = snap.kitties.iter().map(|k| k.id).collect();
         SeedCensus {
             names: snap
@@ -151,7 +219,29 @@ impl SeedCensus {
             team_reward_sum: 0.0,
             water_tiles_sum: 0,
             ticks_seen: 0,
+            seen_meows: Default::default(),
+            prev_bath: BTreeMap::new(),
+            bath_eps: BTreeMap::new(),
+            herding: HerdingAgg::default(),
+            responder_gate: config.behavior.cuddle_real_threshold,
+            announce_floor: config.meow.announce_threshold - config.meow.announce_hysteresis,
+            meow_window: config.meow.recent_window_ticks,
+            distress_line: config.thresholds.distress,
         }
+    }
+
+    fn close_bath_episode(&mut self, emitter: KittyId) {
+        let ep = self.bath_eps.remove(&emitter).unwrap();
+        self.herding
+            .responders_per_episode
+            .push(ep.responders.len() as u64);
+        self.herding.groom_ticks_on_emitter += ep.groom_ticks;
+        self.herding.redundant_groom_ticks += ep.redundant_groom_ticks;
+        self.herding.groom_starts += ep.groom_starts;
+        self.herding.redundant_groom_starts += ep.redundant_groom_starts;
+        let live = ep.pursuits.values().filter(|p| p.pursuing);
+        self.herding.pursuits += live.clone().count() as u64;
+        self.herding.abandoned_pursuits += live.filter(|p| !p.groomed).count() as u64;
     }
 
     fn close(&mut self, id: KittyId, truncated: bool) {
@@ -204,6 +294,10 @@ impl SeedCensus {
             c.activity_ticks[act] += 1;
             if water.contains(&me.pos) {
                 c.on_water_by_activity[act] += 1;
+            }
+            let (_, top_need) = me.needs.highest_pressure();
+            if top_need >= self.distress_line {
+                c.distress_ticks += 1;
             }
             let cuddle = me.needs.cuddle.value();
             c.cuddle_sum += f64::from(cuddle);
@@ -312,11 +406,116 @@ impl SeedCensus {
                 }
             }
         }
+
+        // -- Meow emissions by kind (each meow counted once, on first sight).
+        for m in &snap.recent_meows {
+            if self.seen_meows.insert((m.kitty_id, m.kind.wire_name(), m.tick)) {
+                if let Some(c) = self.kitties.get_mut(&m.kitty_id) {
+                    *c.meow_emits.entry(m.kind.wire_name().to_string()).or_default() += 1;
+                }
+            }
+        }
+        let horizon = snap.tick.saturating_sub(4 * self.meow_window.max(1));
+        self.seen_meows.retain(|&(_, _, t)| t >= horizon);
+
+        // -- FR-019 herding (PR #160): open/refresh WantBath episodes.
+        for m in &snap.recent_meows {
+            if m.kind != MessageKind::WantBath {
+                continue;
+            }
+            if !self.bath_eps.contains_key(&m.kitty_id) {
+                self.herding.episodes += 1;
+                self.bath_eps.insert(m.kitty_id, BathEpisode::default());
+            }
+            let ep = self.bath_eps.get_mut(&m.kitty_id).unwrap();
+            ep.last_audible = ep.last_audible.max(m.tick);
+        }
+
+        let mut grooming_pairs: std::collections::BTreeSet<(KittyId, KittyId)> = Default::default();
+        for k in &snap.kitties {
+            // Grooms landing on an emitter, attributed by actual target.
+            if let Activity::Grooming { target: Some(t) } = k.activity {
+                let clean = self
+                    .prev_bath
+                    .get(&t)
+                    .is_some_and(|&b| b < self.announce_floor);
+                if let Some(ep) = self.bath_eps.get_mut(&t) {
+                    grooming_pairs.insert((t, k.id));
+                    ep.groom_ticks += 1;
+                    ep.responders.insert(k.id);
+                    if clean {
+                        ep.redundant_groom_ticks += 1;
+                    }
+                    let p = ep.pursuits.entry(k.id).or_default();
+                    if !p.grooming_now {
+                        ep.groom_starts += 1;
+                        if clean {
+                            ep.redundant_groom_starts += 1;
+                        }
+                    }
+                    p.grooming_now = true;
+                    p.pursuing = true;
+                    p.groomed = true;
+                }
+            }
+            // Pursuit: a gate-eligible cat closing on ITS freshest audible
+            // emitter -- the engine's own selection rule picks the target.
+            if k.needs.cuddle.value() >= self.responder_gate {
+                if let Some(m) = freshest_audible(&snap.recent_meows, MessageKind::WantBath, k.id)
+                {
+                    let emitter_pos = by_id.get(&m.kitty_id).map(|e| e.pos);
+                    if let (Some(ep), Some(pos)) = (self.bath_eps.get_mut(&m.kitty_id), emitter_pos)
+                    {
+                        let d = k.pos.manhattan_distance(&pos);
+                        let p = ep.pursuits.entry(k.id).or_default();
+                        if let Some(pd) = p.prev_dist {
+                            if d < pd {
+                                p.closing += 1;
+                                if p.closing >= 2 {
+                                    p.pursuing = true;
+                                }
+                            } else {
+                                p.closing = 0;
+                            }
+                        }
+                        p.prev_dist = Some(d);
+                    }
+                }
+            }
+        }
+
+        for k in &snap.kitties {
+            self.prev_bath.insert(k.id, k.needs.bath.value());
+        }
+
+        // A groom run ends the tick its actor stops grooming that emitter.
+        for (&e, ep) in self.bath_eps.iter_mut() {
+            for (&a, p) in ep.pursuits.iter_mut() {
+                if p.grooming_now && !grooming_pairs.contains(&(e, a)) {
+                    p.grooming_now = false;
+                }
+            }
+        }
+
+        // Close episodes one recent-window after the last audible ask.
+        let stale: Vec<KittyId> = self
+            .bath_eps
+            .iter()
+            .filter(|(_, ep)| snap.tick > ep.last_audible + self.meow_window)
+            .map(|(&e, _)| e)
+            .collect();
+        for e in stale {
+            self.close_bath_episode(e);
+        }
     }
 
     fn finish(&mut self) {
         for id in self.ids.clone() {
             self.close(id, true);
+        }
+        let open: Vec<KittyId> = self.bath_eps.keys().copied().collect();
+        for e in open {
+            self.close_bath_episode(e);
         }
     }
 }
@@ -330,6 +529,7 @@ struct SeedRecord {
     mean_water_tiles: f64,
     mean_team_reward: f64,
     kitties: BTreeMap<String, KittyCensus>,
+    herding: HerdingAgg,
 }
 
 struct Args {
@@ -341,6 +541,8 @@ struct Args {
     /// generation — how the policy seats are handed back to a scripted
     /// ladder for a B-geometry run.
     seats: BTreeMap<u32, String>,
+    /// Optional .ckpolicy path; registered as "policy:subject".
+    artifact: Option<String>,
 }
 
 fn parse_args() -> Args {
@@ -350,6 +552,7 @@ fn parse_args() -> Args {
         ticks: 20_000,
         out: PathBuf::from("contact-census-out"),
         seats: BTreeMap::new(),
+        artifact: None,
     };
     let mut it = std::env::args().skip(1);
     while let Some(flag) = it.next() {
@@ -367,6 +570,7 @@ fn parse_args() -> Args {
             }
             "--ticks" => args.ticks = value("--ticks").parse().expect("--ticks: u64"),
             "--out" => args.out = PathBuf::from(value("--out")),
+            "--artifact" => args.artifact = Some(value("--artifact")),
             "--seat" => {
                 for pair in value("--seat").split(',') {
                     let (seat, behavior) = pair
@@ -420,14 +624,27 @@ fn main() {
             .unwrap_or_else(|| panic!("--seat kitty_{id}: no such kitty in the config"));
         kitty.behavior = behavior.clone();
     }
-    // A behavior-driven world can only be driven by built-in scripted
-    // ladders; a policy seat left in place would need an artifact forward
-    // pass this tool deliberately does not have. Fail loudly, not per-tick.
+    // Behavior-driven worlds run built-in ladders — or, since exp-004's
+    // certification battery, a policy artifact registered explicitly
+    // (--artifact PATH registers it as "policy:subject"; seat it with
+    // --seat kitty_N=policy:subject). Any other unresolvable behavior
+    // still fails loudly, not per-tick.
+    let mut registry = BehaviorRegistry::with_builtins();
+    if let Some(artifact) = &args.artifact {
+        let rl_full = cloudkitty_rl::config::RlConfig::from_toml_str(&text)
+            .expect("[rl] blocks parse");
+        let behavior = cloudkitty_rl::behavior::PolicyBehavior::from_artifact_path(
+            artifact, &rl_full, false)
+            .unwrap_or_else(|e| panic!("loading {artifact}: {e:?}"));
+        registry.register("policy:subject", std::sync::Arc::new(behavior));
+    }
     for k in &base_cfg.kitties {
         assert!(
-            k.behavior == "needs_driven" || k.behavior == "playful",
-            "kitty_{} runs {:?}; hand policy seats to a scripted ladder with \
-             --seat kitty_{}=needs_driven",
+            k.behavior == "needs_driven"
+                || k.behavior == "playful"
+                || (args.artifact.is_some() && k.behavior == "policy:subject"),
+            "kitty_{} runs {:?}; hand policy seats to a scripted ladder or \
+             register an artifact and seat --seat kitty_{}=policy:subject",
             k.id,
             k.behavior,
             k.id
@@ -436,7 +653,6 @@ fn main() {
     base_cfg
         .validate()
         .expect("config passes engine validation");
-    let registry = BehaviorRegistry::with_builtins();
     let seat_overrides: BTreeMap<String, String> = args
         .seats
         .iter()
@@ -451,7 +667,7 @@ fn main() {
         cfg.world.seed = seed;
         let config = Arc::new(cfg);
         let mut world = World::generate(&config);
-        let mut census = SeedCensus::new(&world.snapshot());
+        let mut census = SeedCensus::new(&world.snapshot(), &config);
         for _ in 0..args.ticks {
             let _ = drive_tick(&mut world, &registry, &config);
             let snap = world.snapshot();
@@ -472,6 +688,7 @@ fn main() {
                 .iter()
                 .map(|(id, c)| (census.names[id].clone(), c.clone()))
                 .collect(),
+            herding: census.herding.clone(),
         };
         fs::write(
             args.out.join(format!("seed-{seed}.json")),

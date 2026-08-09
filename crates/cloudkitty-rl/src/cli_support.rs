@@ -102,6 +102,28 @@ pub fn print_run_panel(
             kitty.floor_touches
         )?;
     }
+    // The census line (spec 028): one row, only what is nonzero. Printed
+    // BEFORE the distress-age line, whose position anchors the panel's
+    // certification bounds-block contract.
+    let census: Vec<String> = run
+        .report
+        .distress_census
+        .iter()
+        .filter(|k| !k.by_need.is_empty())
+        .map(|k| {
+            let parts: Vec<String> = k
+                .by_need
+                .iter()
+                .map(|(need, c)| format!("{need} {}t/{}e", c.ticks, c.episodes))
+                .collect();
+            format!("{} [{}]", k.name, parts.join(", "))
+        })
+        .collect();
+    if census.is_empty() {
+        writeln!(w, "  distress census clean")?;
+    } else {
+        writeln!(w, "  distress census {}", census.join("; "))?;
+    }
     writeln!(w, "  max distress age {}", run.report.max_distress_age)?;
     if default_world_bounds {
         let violations = run.report.violations();

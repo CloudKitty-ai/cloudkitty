@@ -136,14 +136,10 @@ play_relief_greeble = 27.0
 cuddle_relief = 20.0
 
 [meow]
-# (Keys renamed cooldown_ticks -> courtesy_ticks by spec 023, which retired
-# the old names loudly; values preserved from the 2026-07-18 capture. The
-# stuck state this fixture archives is unrelated to meow timing.)
-# Ticks before a kitty may repeat the same message...
-courtesy_ticks = 15
-# ...unless the related need is urgent, when it may say so more often.
-urgent_courtesy_ticks = 5
-urgent_need_threshold = 75.0
+# (Migrated twice: cooldown_ticks -> courtesy_ticks by spec 023, then the
+# courtesy trio deleted by spec 028, which made message legality engine law.
+# The stuck state this fixture archives is unrelated to meow timing, so the
+# migrations don't touch what it witnesses.)
 # How long a meow stays visible to other kitties and to viewers.
 recent_window_ticks = 10
 

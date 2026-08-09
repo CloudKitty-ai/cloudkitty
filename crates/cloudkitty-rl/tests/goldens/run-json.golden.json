@@ -32,7 +32,24 @@
         }
       ],
       "max_distress_age": 0,
-      "pinned": []
+      "pinned": [],
+      "distress_census": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {}
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {}
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {}
+        }
+      ]
     },
     "aggregates": {
       "team_welfare": 0.8891060059952091,
@@ -75,7 +92,24 @@
         }
       ],
       "max_distress_age": 0,
-      "pinned": []
+      "pinned": [],
+      "distress_census": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {}
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {}
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {}
+        }
+      ]
     },
     "aggregates": {
       "team_welfare": 0.8891060059952091,
@@ -118,7 +152,24 @@
         }
       ],
       "max_distress_age": 0,
-      "pinned": []
+      "pinned": [],
+      "distress_census": [
+        {
+          "kitty_id": 1,
+          "name": "Miso",
+          "by_need": {}
+        },
+        {
+          "kitty_id": 2,
+          "name": "Biscuit",
+          "by_need": {}
+        },
+        {
+          "kitty_id": 3,
+          "name": "Pumpkin",
+          "by_need": {}
+        }
+      ]
     },
     "aggregates": {
       "team_welfare": 0.8756207588276256,

@@ -33,6 +33,44 @@ change.
 
 ## Unreleased
 
+- **e004-a1-s2 takes both policy seats** — the first certified seating:
+  exp-004's winner (grid 15/15 on the settled §9.2 gate, §9.3 welfare
+  +0.0440 over paired baseline) replaces the spec-028 scripted parking on
+  Miso and Kittybear. e003-m0-g998-s3 retires to `policies/retired/` with
+  its record; the seats-a-policy release test returns for its second
+  tour, superseding the generation-gap test per its own instruction.
+- **The Meow Channel** (spec 028) — the generation-3 schema batch, one
+  wall crossed on purpose. `[obs-schema]` `[rng-sequence]` `[stamp]` —
+  deliberately not `[world-fresh]`: pre-028 world snapshots load and run
+  (the committed fixture is the proof); the break is policy-side only.
+  New `engine_defaults_sha256`:
+  `412d00e2a92e4f5a3a4f4e72caa8f0266b18455e331ed41aef3044f05e749c87`
+  (recorded, not triaged — baselines re-derive on this engine).
+  - Every decision is a pair: `(activity, message)`. Announcing rides
+    along and never spends the turn; `Action::Meow` retired by the Purr
+    precedent (parses, validates to Idle). Menu 40 → 34; message head 9
+    (Silent + 8 kinds — WantBath and WantSleep join); observation
+    183 → 197 (digest v3: one coherent freshest emitter, with the
+    stamped intensity); mask wire 43; artifact v2 (one trunk, two heads,
+    one split RNG draw when sampling).
+  - Message legality is engine law: a want-kind needs its need armed
+    (announce_threshold 30 / hysteresis 5, updated beside distress) and
+    its per-kind cooldown clear (= recent_window_ticks); Silent is never
+    masked, structurally. The `[meow]` courtesy trio retired loudly;
+    the sweep gained the pinned-generation exclusion manifest
+    (`config-sweep-exclusions.txt`, decided with Experiments).
+  - Scripted cats are demonstrators now: deterministic announce (the
+    lotteries died), a groom-response rung keyed on the audible
+    `WantBath` alone (imitability — GroomKitty went from 0-in-800k to
+    occurring by construction), cosleep routed to a friend's side when
+    cuddle is real (`cuddle_real_threshold` 15), and cosleep priced by
+    presence (`cosleep_drip_relief`/`cosleep_mutual_relief`, 15/15
+    behavior-preserving until the pilot re-prices them).
+  - The distress-tick census rides every welfare report (instrument
+    convention verbatim; reported, never gated).
+  - The shipped config's policy seats re-parked to scripted across the
+    generation gap (e003 artifacts speak action schema 1); deploy stays
+    gated until a generation-3 artifact certifies.
 - exp-004 design inputs committed (#134): working notes toward making
   the meow carry more signal — explicitly inputs, not yet a design.
 - Findings register housekeeping: archived findings split out, F-017

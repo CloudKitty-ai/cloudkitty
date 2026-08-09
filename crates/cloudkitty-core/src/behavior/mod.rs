@@ -38,11 +38,11 @@ use async_trait::async_trait;
 use futures::future::join_all;
 use futures::FutureExt;
 
-use crate::action::Action;
 use crate::config::Config;
 use crate::kitty::{Kitty, KittyId};
+use crate::meow::MessageKind;
 use crate::rng::DecisionRng;
-use crate::seam::{Provenance, ResolvedDecision};
+use crate::seam::{Decision, Provenance, ResolvedDecision};
 use crate::world::{World, WorldSnapshot};
 
 pub mod needs_driven;
@@ -71,8 +71,10 @@ pub struct DecisionContext {
 
 #[async_trait]
 pub trait Behavior: Send + Sync {
-    /// Propose one action. Never applied directly -- the engine validates first.
-    async fn decide(&self, ctx: &DecisionContext) -> Action;
+    /// Propose one decision -- an activity plus an optional riding message
+    /// (spec 028). Never applied directly: the engine validates the
+    /// activity and enforces message legality separately.
+    async fn decide(&self, ctx: &DecisionContext) -> Decision;
 
     /// Propose one action, or nothing. `None` means the advisor has no
     /// intelligible proposal -- a failed plugin exchange, an unparseable
@@ -87,7 +89,7 @@ pub trait Behavior: Send + Sync {
     /// `decide` -- a decide-only wrapper around an external advisor would
     /// silently convert "no proposal" into whatever `decide` improvises,
     /// bypassing the uniform fallback rule.
-    async fn try_decide(&self, ctx: &DecisionContext) -> Option<Action> {
+    async fn try_decide(&self, ctx: &DecisionContext) -> Option<Decision> {
         Some(self.decide(ctx).await)
     }
 
@@ -272,7 +274,7 @@ pub async fn gather_decisions(
     world: &mut World,
     registry: &BehaviorRegistry,
     config: &Arc<Config>,
-) -> Vec<(KittyId, Action)> {
+) -> Vec<(KittyId, Decision)> {
     let budget = Duration::from_millis(config.behavior.budget_ms(config.world.tick_ms));
     let jobs = decision_jobs(world, registry, config);
 
@@ -300,10 +302,10 @@ pub fn resolve_decisions(
     decision_jobs(world, registry, config)
         .into_iter()
         .map(|job| {
-            let (action, provenance) = resolve_one(job.behavior, &job.ctx, job.seed);
+            let (decision, provenance) = resolve_one(job.behavior, &job.ctx, job.seed);
             ResolvedDecision {
                 kitty_id: job.id,
-                action,
+                decision,
                 seed: job.seed,
                 provenance,
             }
@@ -327,7 +329,7 @@ pub fn resolve_one(
     behavior: Option<Arc<dyn Behavior>>,
     ctx: &DecisionContext,
     seed: u64,
-) -> (Action, Provenance) {
+) -> (Decision, Provenance) {
     match behavior {
         // A name that resolves to nothing is a config error caught at startup;
         // if one somehow reaches here, the kitty still gets a sensible turn --
@@ -340,7 +342,7 @@ pub fn resolve_one(
             )
         }
         Some(b) => match futures::executor::block_on(run_catching(b.as_ref(), ctx)) {
-            Some(action) => (action, Provenance::PolicyMade),
+            Some(decision) => (decision, Provenance::PolicyMade),
             None => {
                 ctx.rng.reseed(seed);
                 (
@@ -352,14 +354,14 @@ pub fn resolve_one(
     }
 }
 
-async fn decide_one(job: DecisionJob, budget: Duration, registry: &BehaviorRegistry) -> Action {
+async fn decide_one(job: DecisionJob, budget: Duration, registry: &BehaviorRegistry) -> Decision {
     match job.behavior {
         // A name that resolves to nothing is a config error caught at startup; if
         // one somehow reaches here, the kitty still gets a sensible turn.
         None => NeedsDriven.decide(&job.ctx).await,
 
         Some(b) if b.is_builtin() => match run_catching(b.as_ref(), &job.ctx).await {
-            Some(action) => action,
+            Some(decision) => decision,
             None => {
                 // The uniform fallback rule (see resolve_one): restart from
                 // the dealt seed, identically on every dispatch path.
@@ -399,9 +401,9 @@ async fn decide_one(job: DecisionJob, budget: Duration, registry: &BehaviorRegis
                 futures::executor::block_on(run_catching(b.as_ref(), &ctx))
             });
             match tokio::time::timeout(budget, handle).await {
-                Ok(Ok(Some(action))) => {
+                Ok(Ok(Some(decision))) => {
                     registry.clear_timeouts(id);
-                    action
+                    decision
                 }
                 // The advisor panicked (or the task was cancelled) but the
                 // thread came back: not a wedge, so the streak clears; the
@@ -443,7 +445,7 @@ async fn fallback_from_seed(
     seed: u64,
     world: Arc<WorldSnapshot>,
     config: Arc<Config>,
-) -> Action {
+) -> Decision {
     let me = world
         .kitty(id)
         .cloned()
@@ -461,7 +463,7 @@ async fn fallback_from_seed(
 /// [`Behavior::try_decide`] -- into `None` rather than unwinding into the
 /// tick loop. Every dispatch path funnels through here, so "no proposal" and
 /// "crashed" are one and the same fallback downstream.
-async fn run_catching(behavior: &dyn Behavior, ctx: &DecisionContext) -> Option<Action> {
+async fn run_catching(behavior: &dyn Behavior, ctx: &DecisionContext) -> Option<Decision> {
     std::panic::AssertUnwindSafe(behavior.try_decide(ctx))
         .catch_unwind()
         .await
@@ -471,8 +473,32 @@ async fn run_catching(behavior: &dyn Behavior, ctx: &DecisionContext) -> Option<
 
 /// `NeedsDriven` is total: it always returns something sensible, so it is the one
 /// behavior the engine can rely on when another fails.
-async fn fallback(ctx: &DecisionContext) -> Action {
+async fn fallback(ctx: &DecisionContext) -> Decision {
     NeedsDriven.decide(ctx).await
+}
+
+/// The deterministic announce rule (spec 028 FR-018), shared by every
+/// scripted decider: say the highest-pressure need whose want-kind is
+/// legal right now -- "meow whenever legal" is the honest broadcast, and
+/// the mask (grounding + per-kind cooldown) is the whole restraint.
+/// Equal pressures tie-break in `NeedKind::ALL` order (the selection
+/// precedent). Computed after and independent of the activity: announcing
+/// never displaces the turn (the imitability principle's source-side
+/// half). No RNG -- the announce lotteries died with the courtesy era.
+pub(crate) fn announce(ctx: &DecisionContext) -> Option<MessageKind> {
+    let mut best: Option<(f32, MessageKind)> = None;
+    for need in crate::needs::NeedKind::ALL {
+        let want = MessageKind::for_need(need);
+        if !crate::meow::message_legal(&ctx.me, want, ctx.world.tick, &ctx.config) {
+            continue;
+        }
+        let pressure = ctx.me.needs.get(need);
+        // Strictly greater: on a tie the earlier kind in ALL order stays.
+        if best.is_none_or(|(top, _)| pressure > top) {
+            best = Some((pressure, want));
+        }
+    }
+    best.map(|(_, want)| want)
 }
 
 #[cfg(test)]
@@ -752,7 +778,7 @@ mod tests {
             gathered,
             resolved
                 .iter()
-                .map(|r| (r.kitty_id, r.action))
+                .map(|r| (r.kitty_id, r.decision))
                 .collect::<Vec<_>>()
         );
         assert_eq!(
@@ -822,7 +848,7 @@ mod tests {
             config: config.clone(),
         };
         let expected = futures::executor::block_on(fallback(&ctx));
-        assert_eq!(broken.action, expected);
+        assert_eq!(broken.decision, expected);
     }
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
@@ -862,9 +888,9 @@ mod tests {
                 rng: DecisionRng::from_seed(r.seed),
                 config: config.clone(),
             };
-            let (action, _) = resolve_one(behavior, &ctx, r.seed);
+            let (decision, _) = resolve_one(behavior, &ctx, r.seed);
             assert_eq!(
-                action, r.action,
+                decision, r.decision,
                 "kitty {} replays its decision",
                 r.kitty_id
             );

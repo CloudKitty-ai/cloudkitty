@@ -1,0 +1,492 @@
+{
+  "all_kitties": {
+    "activity_share": {
+      "Drinking": 0.0165225,
+      "Eating": 0.01908,
+      "Grooming": 0.0518675,
+      "Idle": 0.67416375,
+      "Playing": 0.08371375,
+      "Resting": 0.0815075,
+      "Sleeping": 0.073145
+    },
+    "cosleep": {
+      "contact_runs": {
+        "max": 11,
+        "mean": 2.995127892813642,
+        "median": 2,
+        "n": 1642,
+        "p90": 5
+      },
+      "episodes": {
+        "max": 11,
+        "mean": 3.1559782608695652,
+        "median": 3,
+        "n": 1840,
+        "p90": 5
+      },
+      "episodes_fully_serviced": 999,
+      "episodes_never_serviced": 273,
+      "episodes_partner_left": 489,
+      "mutual_share_of_serviced": 0.27348515656771044,
+      "partner_on_serviced_tick": {
+        "Drinking": 0.015046766978446523,
+        "Eating": 0.009150061000406669,
+        "Grooming": 0.13257421716144774,
+        "Idle": 0.47559983733224886,
+        "Playing": 0.09414396095973973,
+        "Resting": 0.07381049206994714,
+        "Sleeping": 0.19967466449776333
+      },
+      "serviced_share": 0.8469089030480454,
+      "ticks": 5807,
+      "ticks_by_partner": {
+        "Biscuit": 1809,
+        "Kittybear": 1216,
+        "Miso": 1585,
+        "Pumpkin": 1197
+      }
+    },
+    "cuddle_need": {
+      "mean": 11.383062410694025,
+      "share_above": {
+        "30": 0.05716125,
+        "75": 1.25e-6,
+        "90": 0.0
+      },
+      "share_at_floor": 0.0
+    },
+    "groom_actor_ticks": 4539,
+    "mean_happiness": 87.57709887125016,
+    "rest_duet": {
+      "episodes": {
+        "max": 5,
+        "mean": 4.998926709598282,
+        "median": 5,
+        "n": 13044,
+        "p90": 5
+      },
+      "ticks": 65206
+    },
+    "sleep": {
+      "cosleep_share": 0.09923781529837992,
+      "solo_plain_share": 0.38309180395105613,
+      "solo_sunbeam_share": 0.5176703807505639,
+      "ticks": 58516
+    },
+    "solo_sleep_episodes": {
+      "max": 11,
+      "mean": 5.0691479130602035,
+      "median": 5,
+      "n": 10398,
+      "p90": 5
+    },
+    "water": {
+      "by_activity": {
+        "Drinking": 693,
+        "Eating": 138,
+        "Grooming": 7498,
+        "Idle": 13814,
+        "Playing": 1445,
+        "Resting": 1590,
+        "Sleeping": 1266
+      },
+      "inwater_share": 0.033055,
+      "lounge_share": 0.0129425
+    }
+  },
+  "config": "experiments/exp-004-pilot-2026-08-09/configs/d02-mon-c15.toml",
+  "mean_team_reward": 0.8737537536647043,
+  "mean_water_tiles": 7.0,
+  "per_kitty": {
+    "Biscuit": {
+      "activity_share": {
+        "Drinking": 0.007895,
+        "Eating": 0.00855,
+        "Grooming": 0.002115,
+        "Idle": 0.655045,
+        "Playing": 0.21078,
+        "Resting": 0.070785,
+        "Sleeping": 0.04483
+      },
+      "cosleep": {
+        "contact_runs": {
+          "max": 11,
+          "mean": 3.513595166163142,
+          "median": 2,
+          "n": 331,
+          "p90": 8
+        },
+        "episodes": {
+          "max": 11,
+          "mean": 3.675392670157068,
+          "median": 3,
+          "n": 382,
+          "p90": 8
+        },
+        "episodes_fully_serviced": 162,
+        "episodes_never_serviced": 72,
+        "episodes_partner_left": 130,
+        "mutual_share_of_serviced": 0.26139294926913154,
+        "partner_on_serviced_tick": {
+          "Drinking": 0.013757523645743766,
+          "Eating": 0.01117798796216681,
+          "Grooming": 0.20808254514187446,
+          "Idle": 0.4823731728288908,
+          "Playing": 0.023215821152192607,
+          "Resting": 0.12553740326741186,
+          "Sleeping": 0.1358555460017197
+        },
+        "serviced_share": 0.8283475783475783,
+        "ticks": 1404,
+        "ticks_by_partner": {
+          "Kittybear": 366,
+          "Miso": 630,
+          "Pumpkin": 408
+        }
+      },
+      "cuddle_need": {
+        "mean": 17.542625398874282,
+        "share_above": {
+          "30": 0.199545,
+          "75": 5e-6,
+          "90": 0.0
+        },
+        "share_at_floor": 0.0
+      },
+      "groom_actor_ticks": 0,
+      "mean_happiness": 79.26085181453705,
+      "rest_duet": {
+        "episodes": {
+          "max": 5,
+          "mean": 4.998940677966102,
+          "median": 5,
+          "n": 2832,
+          "p90": 5
+        },
+        "ticks": 14157
+      },
+      "sleep": {
+        "cosleep_share": 0.15659156814633057,
+        "solo_plain_share": 0.42583091679678786,
+        "solo_sunbeam_share": 0.41757751505688157,
+        "ticks": 8966
+      },
+      "solo_sleep_episodes": {
+        "max": 11,
+        "mean": 7.384765625,
+        "median": 7,
+        "n": 1024,
+        "p90": 10
+      },
+      "water": {
+        "by_activity": {
+          "Drinking": 33,
+          "Eating": 21,
+          "Grooming": 360,
+          "Idle": 2761,
+          "Playing": 771,
+          "Resting": 335,
+          "Sleeping": 186
+        },
+        "inwater_share": 0.022335,
+        "lounge_share": 0.004405
+      }
+    },
+    "Kittybear": {
+      "activity_share": {
+        "Drinking": 0.01995,
+        "Eating": 0.018455,
+        "Grooming": 0.072035,
+        "Idle": 0.68216,
+        "Playing": 0.03877,
+        "Resting": 0.084575,
+        "Sleeping": 0.084055
+      },
+      "cosleep": {
+        "contact_runs": {
+          "max": 5,
+          "mean": 2.9160671462829737,
+          "median": 2,
+          "n": 417,
+          "p90": 5
+        },
+        "episodes": {
+          "max": 6,
+          "mean": 2.9771784232365146,
+          "median": 3,
+          "n": 482,
+          "p90": 5
+        },
+        "episodes_fully_serviced": 271,
+        "episodes_never_serviced": 83,
+        "episodes_partner_left": 107,
+        "mutual_share_of_serviced": 0.2911184210526316,
+        "partner_on_serviced_tick": {
+          "Drinking": 0.013980263157894737,
+          "Eating": 0.007401315789473684,
+          "Grooming": 0.10444078947368421,
+          "Idle": 0.4613486842105263,
+          "Playing": 0.12171052631578948,
+          "Resting": 0.05263157894736842,
+          "Sleeping": 0.23848684210526316
+        },
+        "serviced_share": 0.8473867595818816,
+        "ticks": 1435,
+        "ticks_by_partner": {
+          "Biscuit": 581,
+          "Miso": 513,
+          "Pumpkin": 341
+        }
+      },
+      "cuddle_need": {
+        "mean": 9.270270173091292,
+        "share_above": {
+          "30": 0.008545,
+          "75": 0.0,
+          "90": 0.0
+        },
+        "share_at_floor": 0.0
+      },
+      "groom_actor_ticks": 1573,
+      "mean_happiness": 90.65021109764099,
+      "rest_duet": {
+        "episodes": {
+          "max": 5,
+          "mean": 5.0,
+          "median": 5,
+          "n": 3383,
+          "p90": 5
+        },
+        "ticks": 16915
+      },
+      "sleep": {
+        "cosleep_share": 0.08536077568258878,
+        "solo_plain_share": 0.38498602105764085,
+        "solo_sunbeam_share": 0.5296532032597704,
+        "ticks": 16811
+      },
+      "solo_sleep_episodes": {
+        "max": 6,
+        "mean": 4.826114249843063,
+        "median": 5,
+        "n": 3186,
+        "p90": 5
+      },
+      "water": {
+        "by_activity": {
+          "Drinking": 263,
+          "Eating": 32,
+          "Grooming": 2735,
+          "Idle": 4078,
+          "Playing": 218,
+          "Resting": 430,
+          "Sleeping": 375
+        },
+        "inwater_share": 0.040655,
+        "lounge_share": 0.0177
+      }
+    },
+    "Miso": {
+      "activity_share": {
+        "Drinking": 0.019985,
+        "Eating": 0.018505,
+        "Grooming": 0.070495,
+        "Idle": 0.67018,
+        "Playing": 0.04675,
+        "Resting": 0.089015,
+        "Sleeping": 0.08507
+      },
+      "cosleep": {
+        "contact_runs": {
+          "max": 6,
+          "mean": 2.748971193415638,
+          "median": 2,
+          "n": 486,
+          "p90": 5
+        },
+        "episodes": {
+          "max": 6,
+          "mean": 2.973333333333333,
+          "median": 3,
+          "n": 525,
+          "p90": 5
+        },
+        "episodes_fully_serviced": 307,
+        "episodes_never_serviced": 59,
+        "episodes_partner_left": 138,
+        "mutual_share_of_serviced": 0.2747005988023952,
+        "partner_on_serviced_tick": {
+          "Drinking": 0.015718562874251496,
+          "Eating": 0.011976047904191617,
+          "Grooming": 0.1122754491017964,
+          "Idle": 0.47155688622754494,
+          "Playing": 0.11377245508982035,
+          "Resting": 0.06437125748502993,
+          "Sleeping": 0.21032934131736528
+        },
+        "serviced_share": 0.8558616271620756,
+        "ticks": 1561,
+        "ticks_by_partner": {
+          "Biscuit": 693,
+          "Kittybear": 420,
+          "Pumpkin": 448
+        }
+      },
+      "cuddle_need": {
+        "mean": 9.01748830497399,
+        "share_above": {
+          "30": 0.009285,
+          "75": 0.0,
+          "90": 0.0
+        },
+        "share_at_floor": 0.0
+      },
+      "groom_actor_ticks": 1429,
+      "mean_happiness": 90.76105588485717,
+      "rest_duet": {
+        "episodes": {
+          "max": 5,
+          "mean": 4.998034811903425,
+          "median": 5,
+          "n": 3562,
+          "p90": 5
+        },
+        "ticks": 17803
+      },
+      "sleep": {
+        "cosleep_share": 0.09174797225814035,
+        "solo_plain_share": 0.3687551428235571,
+        "solo_sunbeam_share": 0.5394968849183026,
+        "ticks": 17014
+      },
+      "solo_sleep_episodes": {
+        "max": 7,
+        "mean": 4.806531881804044,
+        "median": 5,
+        "n": 3215,
+        "p90": 5
+      },
+      "water": {
+        "by_activity": {
+          "Drinking": 261,
+          "Eating": 40,
+          "Grooming": 2527,
+          "Idle": 3954,
+          "Playing": 246,
+          "Resting": 440,
+          "Sleeping": 390
+        },
+        "inwater_share": 0.03929,
+        "lounge_share": 0.016785
+      }
+    },
+    "Pumpkin": {
+      "activity_share": {
+        "Drinking": 0.01826,
+        "Eating": 0.03081,
+        "Grooming": 0.062825,
+        "Idle": 0.68927,
+        "Playing": 0.038555,
+        "Resting": 0.081655,
+        "Sleeping": 0.078625
+      },
+      "cosleep": {
+        "contact_runs": {
+          "max": 7,
+          "mean": 2.948529411764706,
+          "median": 3,
+          "n": 408,
+          "p90": 5
+        },
+        "episodes": {
+          "max": 7,
+          "mean": 3.1197339246119733,
+          "median": 3,
+          "n": 451,
+          "p90": 5
+        },
+        "episodes_fully_serviced": 259,
+        "episodes_never_serviced": 59,
+        "episodes_partner_left": 114,
+        "mutual_share_of_serviced": 0.2660016625103907,
+        "partner_on_serviced_tick": {
+          "Drinking": 0.01662510390689942,
+          "Eating": 0.005818786367414797,
+          "Grooming": 0.11055694098088113,
+          "Idle": 0.48794679966749793,
+          "Playing": 0.11305070656691604,
+          "Resting": 0.05569409808811305,
+          "Sleeping": 0.21030756442227763
+        },
+        "serviced_share": 0.8550106609808102,
+        "ticks": 1407,
+        "ticks_by_partner": {
+          "Biscuit": 535,
+          "Kittybear": 430,
+          "Miso": 442
+        }
+      },
+      "cuddle_need": {
+        "mean": 9.701865765836537,
+        "share_above": {
+          "30": 0.01127,
+          "75": 0.0,
+          "90": 0.0
+        },
+        "share_at_floor": 0.0
+      },
+      "groom_actor_ticks": 1537,
+      "mean_happiness": 89.63627668796539,
+      "rest_duet": {
+        "episodes": {
+          "max": 5,
+          "mean": 4.998775635139271,
+          "median": 5,
+          "n": 3267,
+          "p90": 5
+        },
+        "ticks": 16331
+      },
+      "sleep": {
+        "cosleep_share": 0.08947535771065183,
+        "solo_plain_share": 0.37220985691573927,
+        "solo_sunbeam_share": 0.5383147853736089,
+        "ticks": 15725
+      },
+      "solo_sleep_episodes": {
+        "max": 7,
+        "mean": 4.816010763538514,
+        "median": 5,
+        "n": 2973,
+        "p90": 5
+      },
+      "water": {
+        "by_activity": {
+          "Drinking": 136,
+          "Eating": 45,
+          "Grooming": 1876,
+          "Idle": 3021,
+          "Playing": 210,
+          "Resting": 385,
+          "Sleeping": 315
+        },
+        "inwater_share": 0.02994,
+        "lounge_share": 0.01288
+      }
+    }
+  },
+  "seat_overrides": {},
+  "seeds": [
+    820001,
+    820002,
+    820003,
+    820004,
+    820005,
+    820006,
+    820007,
+    820008,
+    820009,
+    820010
+  ],
+  "ticks": 20000
+}

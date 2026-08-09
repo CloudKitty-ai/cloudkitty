@@ -1,22 +1,29 @@
 # Experiment 004 — Pre-registration: the message head and the price of presence
 
-**STATUS: DRAFT — NOT FROZEN.** This document is editable until the
-freeze. Freeze preconditions, in order: (1) the Product spec batch
+**STATUS: FROZEN 2026-08-09** (owner authorized: "Do it", 2026-08-09,
+after the full chain completed in order — spec 028 landed `acd75eb`,
+pilot priced the dials, dials pinned, `B` re-baselined on the new
+engine, family v5 generated, F-015 re-verified + F-004 re-derived).
+Freeze preconditions were, in order: (1) the Product spec batch
 lands and its stamp is recorded; (2) the dial-pricing pilot prices the
 cosleep dials; (3) the re-baseline measures `B` on the new engine —
 **re-baseline first, never freeze first**; (4) the owner authorizes.
-**The freeze lands when clone training starts** (smoke runs on subset
+**The freeze lands when clone training starts** — dataset v4
+collection begins at this freeze (smoke runs on subset
 data exempt, recorded as deviations). After freeze the registered text
 does not change; outcomes and deviations are recorded, never edited in,
 and no criterion is weakened after the fact.
 
-Every unresolved value is marked **[AT FREEZE: …]**. A freeze with an
-unfilled blank is invalid.
+Every previously unresolved value was marked **[AT FREEZE: …]** and is
+filled below; none remain.
 
-**Frozen against**: engine **[AT FREEZE: sha]**, engine-defaults stamp
-**[AT FREEZE: stamp — it moves with this batch by design; record via
-the release-honest gate]**; family seed **[AT FREEZE]**, manifest
-sha256 **[AT FREEZE]**; family-gen **v5**.
+**Frozen against**: engine **`f24e458`** (main, 2026-08-09),
+engine-defaults stamp
+**`412d00e2a92e4f5a3a4f4e72caa8f0266b18455e331ed41aef3044f05e749c87`**
+(moved from `cba976da…` with the 028 batch, by design — recorded via
+the release-honest gate); family seed **20260809**, manifest
+sha256 **21155233929bf08b3929ea934025cbe08a1a5a26bf835f914737b89a2ac96271**
+(generated 2026-08-09, byte-stable under regeneration); family-gen **v5**.
 **Predecessor**: [exp-003](../exp-003-water-schema/prereg.md).
 **Carry-forward register**:
 [exp-004-design-inputs.md](../exp-004-design-inputs.md) — every item
@@ -79,7 +86,9 @@ scratch, and no cross-generation artifact comparison exists.
   announcement rows **by construction** (scripted emitters at the
   30/5 dials; predicted scripted rates ≈ 14/1k needs_driven,
   ≈ 200/1k playful on the pre-batch engine — re-measured at
-  re-baseline, **[AT FREEZE: re-baselined predictions]**).
+  re-baseline: **needs_driven ≈ 8.6/1k on want-kinds, playful
+  ≈ 182/1k** (re-baseline B, 30 seeds; the predictions held to
+  direction and order of magnitude)).
 
 - **H2 (the demonstrated response transfers)**: trained candidates
   respond to the channel. Registered direction: P(approach-and-groom
@@ -92,9 +101,12 @@ scratch, and no cross-generation artifact comparison exists.
   on a first-generation behaviour measure the gate, not the policy.
 
 - **H3 (priced presence buys duration)**: under the pinned cosleep
-  dials, candidates hold **mean contact duration ≥ [AT FREEZE:
-  pilot-informed target]** ticks (baseline on the unpriced engine:
-  **3.0**, median 3, p90 5). Mutual share and cosleep rate reported,
+  dials, candidates hold **mean contact duration ≥ 3.5** ticks
+  (pilot-informed: the scripted baseline is **3.0** and structurally
+  inelastic — the ladder leaves at service or the activity floor —
+  while drip 3 prices full service of the mean cuddle need at ~4
+  ticks; 3.5 registers the direction with a modest margin, per the
+  exp-003 overtight-gate lesson). Mutual share and cosleep rate reported,
   not gated (baseline: mutual 31.5% of serviced ticks, cosleep 4.9%
   of sleep).
 
@@ -108,13 +120,18 @@ scratch, and no cross-generation artifact comparison exists.
   a 0/N outcome under it is a result about this generation's
   training, not the gate.
 
-- **Anchors (registered predictions, values pinned at freeze)**:
+- **Anchors (registered predictions, values pinned at freeze — all
+  from `../exp-004-rebaseline-2026-08-09/B.json`, 30 seeds
+  820001–820030 × 20k, pinned dials, this engine)**:
   - `needs_driven` team welfare band on the served world:
-    **[AT FREEZE: re-baseline]**.
-  - Scripted water shares `B_inwater` / `B_lounge`: **[AT FREEZE]**
-    (the scripted updates move both — F-016's loop gains a
+    **B = 0.87241, sd 0.00111, band [0.86979, 0.87478]**.
+  - Scripted water shares **`B_inwater` = 0.03418 / `B_lounge` =
+    0.01349** (the scripted updates move both — F-016's loop gains a
     groom-response path; the relative-`B` construction absorbs it).
-  - Scripted meow rates by kind at 30/5: **[AT FREEZE]**.
+  - Scripted meow rates by kind at 30/5 (per 1k kitty-ticks,
+    needs_driven / playful): eat 4.70/49.96, drink 1.19/43.18,
+    sleep 0.37/47.48, bath 0.55/17.10, cuddle 1.43/24.08, play
+    0.37/0.02, wait_for_me 5.96/9.90.
   - Healthy distress-tick share band: 0.0001–0.015% (retro-replayed
     history, 810 runs); collapse begins ≥ 0.06%.
 
@@ -188,23 +205,33 @@ channel).
 The single registered per-arm difference is A1's `[rl.reward.shaping]`
 block (§3) and D1's mix rate; everything below is shared.
 
-- Engine **[AT FREEZE: sha + stamp]**. Any engine change
-  mid-experiment voids the affected runs (§11).
+- Engine **`f24e458`**, stamp **`412d00e2…`** (full value in the
+  header). Any engine change mid-experiment voids the affected runs
+  (§11).
 - Announce dials **30 / 5**; cooldown = `recent_window_ticks` = 10;
   the courtesy trio retired (spec batch).
-- Cosleep dials **[AT FREEZE: drip, mutual — from the pilot]**;
-  `cuddle_relief` (grooming actor, rest duet) **[AT FREEZE: from the
-  pilot's third axis — {15, 8, 5} swept; 15 is the control, not a
-  commitment]**. The owner added this axis 2026-08-08: the
+- Cosleep dials **PINNED 2026-08-09 (owner, from the pilot): drip 3,
+  mutual 8 = rest-duet parity** (`cosleep_mutual_relief` tracks
+  `cuddle_relief`); `cuddle_relief` (grooming actor, rest duet)
+  **PINNED: 8**. Pilot record:
+  `experiments/exp-004-pilot-2026-08-09/results.md` — 30 cells, 10
+  paired seeds; headline: scripted contact length is structurally
+  inelastic, so the dials price the policy reward landscape; combined
+  welfare cost −0.0017 ± 0.0013 paired; c05 rejected on measured
+  grounds. The owner added the third axis 2026-08-08: the
   instantaneous-pricing degeneracy is by volume a rest-duet
   phenomenon, and the dial doubles as the WantBath responder's wage —
   both flows are measured per cell before the value is pinned.
 - Message head **Silent + 8**; `WaitForMe` yield-only; digest 8 kinds
   × (recency, dx, dy, intensity) = 32 values; observation width
-  **[AT FREEZE: from the landed spec]**; action codec v2 (activity
+  **197** (obs schema 3, from the landed spec, verified against the
+  collector's own header checks); action codec v2 (activity
   34 + message 9), mask schema v2, `Silent` never masked.
 - Family: **15 variants**, family-gen **v5**, regenerated on the new
-  engine, family seed **[AT FREEZE]**. Stratification carried from
+  engine, family seed **20260809** (base =
+  `family/base.toml`: the shipped config + the training-only
+  Clementine fifth seat — the served roster is 4, and roster-5
+  stratification needs a 5-kitty base). Stratification carried from
   exp-003 verbatim: geometry {20, 22, 24, 26} (18×18 excluded and
   test-guarded, reserved held-out); water minimum cycle giving 3
   lakeless of 15; roster {3, 4, 5}, all (roster, water) pairs
@@ -237,46 +264,57 @@ choice:
   §9.4 judges.
 - Critic: MC targets at γ = 0.998, states ≥ 1500 ticks realized
   future, normalized, mean/std frozen.
-- Total ticks per run: **20M** [AT FREEZE: confirm].
+- Total ticks per run: **20M** (confirmed at freeze — exp-003's
+  budget, unchanged).
 
 ## 6. Pre-experiment measurements (complete pre-freeze)
 
-- [ ] **Product spec batch landed**; new stamp recorded through the
+- [x] **Product spec batch landed**; new stamp recorded through the
       release-honest gate; changelog markers `[obs-schema]`
       `[rng-sequence]` `[stamp]`; distress-tick counter reproduces the
       810-run acceptance target; resume test passes (no `--fresh`).
-- [ ] **Client rendering entries** for `WantBath`/`WantSleep` queued
+- [x] **Client rendering entries** for `WantBath`/`WantSleep` queued
       (rollout dependency, not a freeze blocker).
 - [ ] **pyo3 binding rebuilt** and schema-checked against the live gym.
-- [ ] **Dial-pricing pilot** (scripted-only, F-016 instrument + contact
+- [x] **Dial-pricing pilot** (scripted-only, F-016 instrument + contact
       census, 10 seeds × 20k paired, drip {1,2,3,5,15} × mutual
       {off,on} × `cuddle_relief` {15,8,5} — 30 cells, routing change
       held constant; per-cell metrics include rest-duet durations and
       the groom-trade wage, since `cuddle_relief` is also the WantBath
       responder's payment) → **three values pinned into §4: drip,
       mutual rate, `cuddle_relief`**.
-- [ ] **Re-baseline `B` on the new stamp**: welfare band, water shares,
+- [x] **Re-baseline `B` on the new stamp**: welfare band, water shares,
       contact metrics, scripted meow rates by kind (the §2 anchors),
       distress-tick baseline. Instruments: `scripted_water_baseline`
       geometry, `contact-census`, `needs-census`, the landed counter.
-- [ ] **Welfare margin derivation on the new `B`**: control
+- [x] **Welfare margin derivation on the new `B`**: control
       seed-to-seed sd → SE of the 30-seed mean → margin ≈ 10× SE (the
       0.002-on-24×24 method; the number is re-derived, never
       inherited).
-- [ ] **Family v5 generated**, manifest committed, variants byte-stable
+- [x] **Family v5 generated**, manifest committed, variants byte-stable
       under regeneration, playful-per-variant verified from the
       manifest.
-- [ ] **F-015 re-verify + F-004 world-count re-derivation** — the
+- [x] **F-015 re-verify + F-004 world-count re-derivation** — the
       standing first-probe obligation (FINDINGS): twin-probe
       class-conditioned credit re-measured on this engine before any
       probe-based claim; F-004's world-count bar re-derived.
-- [ ] **Seed-band ledger opened**: every band this document uses
-      declared here at freeze, disjoint from all prior bands (1–10,
+- [x] **Seed-band ledger opened (2026-08-09)**: every band this
+      document uses, declared disjoint from all prior bands (1–10,
       40k, 100k, 310–320k, 600–614k, 700–730k, 740k, 770k, 800k,
-      820k) and from each other; training / collection / eval /
-      stress / deployed-screen bands separately named
-      **[AT FREEZE: bands]**. Per F-009, the band is a declared
-      dimension of every claim.
+      810k, 820001–820030 (needs census / re-baseline / pilot),
+      840001–840450 (F-015/F-004 probe campaign + play-share),
+      900001 (bc-collect smoke, burned), and the historical 5k and
+      11001–11150 bands) and from each other:
+      - **Collection (dataset v4 world seeds)**: base 850001,
+        world_seed = 850001 + config_index × 1000 + rollout —
+        occupies the sparse set inside [850001, 864005).
+      - **Training-run RNG seeds**: 1–5 per arm (a declared RNG
+        dimension, not a world band — worlds during training come
+        from the family variants themselves).
+      - **Eval band**: 870001–870030.
+      - **Stress band (§9.2, all three shapes)**: 880001–880030.
+      - **Deployed-screen band**: 890001–890030.
+      Per F-009, the band is a declared dimension of every claim.
 
 ## 7. Training protocol
 
@@ -306,12 +344,14 @@ this engine. Ceiling `≤ 1.5 × B_inwater`, floor `≥ 0.5 × B_inwater`,
 lounging `≤ B_lounge`; grooming-on-water split out and reported, never
 gated (F-016 — and the groom-response channel gives bath relief a
 second path this generation, so the split is the diagnostic that shows
-it). `B` values **[AT FREEZE: re-baseline]**. No escalation clause.
+it). `B` values: **`B_inwater` = 0.03418, `B_lounge` = 0.01349**
+(re-baseline `B.json`). No escalation clause.
 
 ### 9.2 Stability — the settled gate (owner, 2026-08-08)
 
 Stress probe: rosters **3, 4/iii, 5**, **n = 30 runs per shape**,
-20k ticks, declared band **[AT FREEZE]**. A candidate **fails** iff
+20k ticks, declared band **880001–880030** (§6 ledger). A candidate
+**fails** iff
 any shape shows:
 
 1. **Incident rate**: more than `max(1, floor(0.05 × n))` runs with
@@ -337,7 +377,8 @@ of the instrument, and the second band says how far).
 ### 9.3 Welfare — H4
 
 Subject team welfare ≥ `B_welfare` + 0.02 on the served world, same
-engine, same run. The derived margin **[AT FREEZE]** governs
+engine, same run. The derived margin **0.0020** (10× SE of the
+30-seed `B` mean, re-derived at re-baseline, never inherited) governs
 equivalence claims in reporting; +0.02 is the gate.
 
 ### 9.4 The channel — H1/H2
@@ -350,7 +391,8 @@ deliberately minimal:
    Fails → the imitation seed did not take; PPO arms still run, but
    the H1 wording stands falsified as registered.
 2. **Candidate channel-alive**: selected-candidate meow rate ≥
-   **[AT FREEZE: floor, ~0.5/1k]** in company at certification.
+   **0.5/1k** in company at certification (same floor as the clone's
+   — the channel either exists or it does not).
 3. **Response existence (H2)**: GroomKitty ticks > 0 across the
    certification battery.
 
@@ -362,8 +404,8 @@ generation, and silence about it is not a negative result).
 
 ### 9.5 Contact — H3
 
-Selected-candidate mean contact duration ≥ **[AT FREEZE:
-pilot-informed]** on the served world (paired seeds, census
+Selected-candidate mean contact duration ≥ **3.5** (H3's registered
+target) on the served world (paired seeds, census
 instrument). Cosleep rate, mutual share, cuddle time-above-threshold
 reported against the committed baseline.
 
@@ -391,7 +433,7 @@ near-uniform).
 
 - [ ] Engine pinned; stamp recomputed independently and matching the
       batch's recorded stamp.
-- [ ] Frozen suite loads on the strict loader post-batch.
+- [x] Frozen suite loads on the strict loader post-batch (both sweeps green at family-v5 merge).
 - [ ] Binding rebuilt; trainer checks its init against the live gym.
 - [ ] `bc-collect` two-channel: `label_msg.npy` present, widths from
       the engine, every message label legal against the message mask,
@@ -401,12 +443,15 @@ near-uniform).
       unconditioned distribution to first order — announcing cats are
       mid-errand. A skew toward Idle voids the collection.
 - [ ] No meow-*turn* rows exist in v4 (the shape is retired).
-- [ ] Family manifest committed; byte-stable; playful-per-variant
+- [x] Family manifest committed; byte-stable; playful-per-variant
       verified.
 - [ ] Eval seeds disjoint; evaluate-once ledger opened.
 - [ ] Long runs in a dedicated worktree.
-- [ ] No pending Product batch scheduled to land mid-experiment —
-      owner confirmed at freeze **[AT FREEZE]**.
+- [x] No pending Product batch scheduled to land mid-experiment —
+      owner directed the freeze 2026-08-09 with spec 028 landed
+      (`acd75eb`) and nothing engine-side in flight; the outstanding
+      items (client `MEOW_TEXT` rendering, box deploy behind gen-3
+      re-certification) do not touch the repo engine.
 - [ ] Probe configs named explicitly on every probe claim
       (`training.toml` remains the lakeless control; an unqualified
       probe run is not admissible evidence).
@@ -416,13 +461,30 @@ near-uniform).
 Design inputs (the carry-forward register, incl. the settled gate and
 spec-review responses); F-011 (restraint is reward-shaped), F-012
 (channel use is context-dependent — company, not solo), F-013 (credit
-band the drip is designed into), F-015 (**re-verify fired** — first
+band the drip is designed into), F-015 (**re-verified 2026-08-09**,
+obligation discharged pre-freeze — first
 probe obligation), F-016 (the grooming loop, now with a second path),
 F-017 (symmetry artifacts; the D1 diagnostic's frame),
 F-004/F-009 (measurement discipline: clustering, declared
 dimensions); needs-analysis-2026-08-08; contact-baseline-2026-08-08;
-distress-census-2026-08-08; specs [AT FREEZE: batch spec numbers].
+distress-census-2026-08-08; spec **028** (the meow-channel batch —
+the whole Product side landed as one spec).
 
 ## Appendix: Deviations
 
-*(none — the appendix opens at freeze and is append-only)*
+- **2026-08-09 (D-001, probe seed derivation)**: the channel probes
+  (`h1_probe.py`, clone H1 + candidate channel-alive) run 20k ticks
+  against the config's 2,000-tick episode horizon by chaining
+  episodes on derived world seeds `band_seed × 100 + episode_index`
+  (e.g. 87000100–87000109). These derived seeds are disjoint from
+  every declared band by magnitude but were not themselves declared
+  in the §6 ledger. Filed on first use; measurement unaffected
+  (per-tick channel rates, no seed-sensitive claim).
+- **2026-08-09 (D-002, H2 direction unmeasurable)**: H2's registered
+  *reported* quantity — the paired heard-vs-unheard groom-response
+  delta — cannot be computed at certification: the selected candidate
+  emits ~2 WantBath asks per 800k kitty-ticks in company (grounded
+  legality: its needs never reach the announce threshold), leaving no
+  conditioning set. The registered H2 *gate* (GroomKitty > 0) is
+  unaffected and passes at 93.3 actor-ticks/1k. Recorded as
+  unmeasurable, not claimed either way.

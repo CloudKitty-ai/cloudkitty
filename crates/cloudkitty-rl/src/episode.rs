@@ -23,10 +23,10 @@ use cloudkitty_core::world::World;
 use cloudkitty_core::Config;
 use thiserror::Error;
 
-use crate::codec::ActionCodec;
+use crate::codec::{ActionCodec, MessageCodec};
 use crate::config::{RewardMode, RlConfig};
 use crate::global_state::encode_global_state;
-use crate::mask::{legal_action_mask, mask_bytes};
+use crate::mask::{legal_action_mask, legal_message_mask, mask_bytes};
 use crate::observe::{encode_observation, Observation, TargetTable};
 use crate::reward::{shaping_potential, team_reward};
 
@@ -42,6 +42,12 @@ pub enum EpisodeError {
     UnknownBehavior { kitty: KittyId, name: String },
     #[error("action index {index} for kitty {kitty} out of range (menu has {len} entries)")]
     ActionOutOfRange {
+        kitty: KittyId,
+        index: usize,
+        len: usize,
+    },
+    #[error("message index {index} for kitty {kitty} out of range (head has {len} entries)")]
+    MessageOutOfRange {
         kitty: KittyId,
         index: usize,
         len: usize,
@@ -71,6 +77,18 @@ pub struct AgentInfo {
     pub applied_action: Option<usize>,
     /// The engine name of the applied action (its wire tag), e.g. "sleep".
     pub applied_action_name: Option<&'static str>,
+    /// The wire name of the message that actually emitted (spec 028), e.g.
+    /// "want_eat"; None at reset or when the applied message was Silent --
+    /// including a proposed message enforcement downgraded.
+    pub applied_message: Option<&'static str>,
+    /// The wire name of the message the agent PROPOSED, before engine
+    /// enforcement; None at reset, for a proposed Silent, or for a
+    /// substituted idle (which never proposed anything -- the same honest
+    /// bookkeeping as `survived`). Some here with `applied_message` None
+    /// is exactly an enforcement downgrade, so quiet-by-choice and
+    /// quiet-by-downgrade separate py-side (F-015's first-probe check and
+    /// D1's channel-collapse diagnosis both read this seam).
+    pub proposed_message: Option<&'static str>,
     /// Whether the proposal survived validation unchanged.
     pub survived: Option<bool>,
     /// The legal-action mask for the *next* decision (0/1 per menu entry).
@@ -156,7 +174,7 @@ impl Episode {
                 }
             }
         }
-        let codec = ActionCodec::v1(&rl.observation);
+        let codec = ActionCodec::v2(&rl.observation);
         let horizon = rl.episode.horizon;
         let core = Arc::new(core);
         let mut episode = Episode {
@@ -286,7 +304,7 @@ impl Episode {
     /// and any reset heals.
     pub fn step(
         &mut self,
-        actions: &BTreeMap<KittyId, usize>,
+        actions: &BTreeMap<KittyId, (usize, usize)>,
     ) -> Result<EpisodeStep, EpisodeError> {
         if let Some(message) = &self.poisoned {
             return Err(EpisodeError::Panicked {
@@ -308,7 +326,7 @@ impl Episode {
 
     fn step_inner(
         &mut self,
-        actions: &BTreeMap<KittyId, usize>,
+        actions: &BTreeMap<KittyId, (usize, usize)>,
     ) -> Result<EpisodeStep, EpisodeError> {
         // Scripted kitties decide against the frozen start-of-tick world;
         // in the common all-external case nobody reads it, so don't take it.
@@ -340,19 +358,26 @@ impl Episode {
                     scripted_marks.insert(id, provenance);
                 }
                 _ => {
-                    if let Some(&index) = actions.get(&id) {
+                    if let Some(&(index, message_index)) = actions.get(&id) {
                         let table = self
                             .last_tables
                             .get(&id)
                             .expect("collect_step keeps a table for every external agent");
-                        let action = self.codec.decode(index, table).map_err(|_| {
+                        let activity = self.codec.decode(index, table).map_err(|_| {
                             EpisodeError::ActionOutOfRange {
                                 kitty: id,
                                 index,
                                 len: self.codec.len(),
                             }
                         })?;
-                        proposals.propose(id, action);
+                        let message = MessageCodec::decode(message_index).map_err(|_| {
+                            EpisodeError::MessageOutOfRange {
+                                kitty: id,
+                                index: message_index,
+                                len: MessageCodec::LEN,
+                            }
+                        })?;
+                        proposals.propose(id, cloudkitty_core::Decision { activity, message });
                     }
                     // A missing entry stays absent: the tick substitutes
                     // idle and marks it honestly.
@@ -420,8 +445,11 @@ impl Episode {
         for &id in &externals {
             let observation =
                 encode_observation(&snapshot, id, &self.core, &self.rl.observation, clock);
-            let mask =
+            // The serialized mask is the two-head concat (mask schema 2):
+            // [activity (menu_len) | message (9)] -- 43 at default slots.
+            let mut mask =
                 legal_action_mask(&snapshot, id, &observation.table, &self.codec, &self.core);
+            mask.extend(legal_message_mask(&snapshot, id, &self.core));
             let record = report.record(id);
             let applied_action = record.and_then(|r| {
                 self.last_tables
@@ -431,6 +459,13 @@ impl Episode {
             let info = AgentInfo {
                 applied_action,
                 applied_action_name: record.map(|r| action_wire_name(&r.applied)),
+                applied_message: record
+                    .and_then(|r| r.applied_message)
+                    .map(|kind| kind.wire_name()),
+                proposed_message: record
+                    .filter(|r| r.provenance != Provenance::SubstitutedIdle)
+                    .and_then(|r| r.proposed_message)
+                    .map(|kind| kind.wire_name()),
                 // Honest bookkeeping: a substituted idle never *proposed*
                 // anything, so it has no survival verdict — None, not a
                 // fabricated true (spec 014 review).
@@ -609,9 +644,16 @@ mod tests {
             let obs = start.observations.get(id).expect("observation");
             assert!(!obs.values.is_empty());
             let info = start.infos.get(id).expect("info");
-            assert_eq!(info.mask.len(), episode.codec().len());
+            // Mask schema 2 (spec 028): [activity (menu) | message (9)].
+            assert_eq!(info.mask.len(), episode.codec().len() + MessageCodec::LEN);
             assert!(info.mask.contains(&1), "mask never all-zero");
+            assert_eq!(
+                info.mask[episode.codec().len()],
+                1,
+                "Silent (message head index 0) is always legal"
+            );
             assert!(info.applied_action.is_none(), "nothing applied at reset");
+            assert!(info.applied_message.is_none(), "no message at reset");
         }
         assert_eq!(start.reward, 0.0);
         assert!(!start.truncated);
@@ -623,10 +665,10 @@ mod tests {
         core.world.seed = 5;
         let rl = RlConfig::from_toml_str("[rl.episode]\nhorizon = 3\n").unwrap();
         let mut episode = Episode::new(core, rl, BTreeMap::new()).unwrap();
-        let idle: BTreeMap<KittyId, usize> = episode
+        let idle: BTreeMap<KittyId, (usize, usize)> = episode
             .external_agents()
             .into_iter()
-            .map(|id| (id, 39))
+            .map(|id| (id, (33, 0))) // (idle, silent), v2 pair
             .collect();
 
         for expect_truncated in [false, false, true] {
@@ -646,16 +688,18 @@ mod tests {
         let mut episode = episode_all_external();
         episode.reset(3);
         let agents = episode.external_agents();
-        let mut actions: BTreeMap<KittyId, usize> = agents.iter().map(|&id| (id, 39)).collect();
-        actions.insert(agents[0], 40);
+        let mut actions: BTreeMap<KittyId, (usize, usize)> =
+            agents.iter().map(|&id| (id, (33, 0))).collect();
+        actions.insert(agents[0], (34, 0));
         assert!(matches!(
             episode.step(&actions),
-            Err(EpisodeError::ActionOutOfRange { index: 40, .. })
+            Err(EpisodeError::ActionOutOfRange { index: 34, .. })
         ));
 
         // In-range indices naming vacant slots decode and lawfully idle.
-        let mut actions: BTreeMap<KittyId, usize> = agents.iter().map(|&id| (id, 39)).collect();
-        actions.insert(agents[0], 7); // rest with kitty slot 2 — vacant on a 3-kitty roster? (2 others)
+        let mut actions: BTreeMap<KittyId, (usize, usize)> =
+            agents.iter().map(|&id| (id, (33, 0))).collect();
+        actions.insert(agents[0], (7, 0)); // rest with kitty slot 2 — vacant on a 3-kitty roster? (2 others)
         let step = episode.step(&actions).unwrap();
         let info = step.infos.get(&agents[0]).unwrap();
         assert_eq!(

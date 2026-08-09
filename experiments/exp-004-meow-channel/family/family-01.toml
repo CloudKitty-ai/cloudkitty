@@ -1,0 +1,174 @@
+[actions]
+cosleep_drip_relief = 3.0
+cosleep_mutual_relief = 8.0
+cuddle_relief = 8.0
+drink_relief = 35.0
+eat_relief = 35.0
+groom_relief = 20.0
+play_relief = 20.0
+sleep_relief = 5.0
+sleep_relief_sunbeam = 8.0
+solo_play_relief = 10.0
+
+[actions.durations.bath]
+max = 8
+min = 4
+
+[actions.durations.cuddle]
+max = 12
+min = 6
+
+[actions.durations.drink]
+max = 3
+min = 2
+
+[actions.durations.eat]
+max = 3
+min = 2
+
+[actions.durations.play]
+max = 5
+min = 2
+
+[actions.durations.sleep]
+max = 12
+min = 6
+
+[behavior]
+budget_fraction_of_tick = 0.5
+chase_exclusion_ticks = 60
+chase_patience_ticks = 10
+cuddle_real_threshold = 15.0
+playful_comfort = 55.0
+solo_play_reach = 8
+sunbeam_reach = 8
+tile_cost = 1.0
+urgency_weight = 2.0
+water_step_cost = 4.0
+worth_a_detour = 30.0
+
+[elements.bug]
+max = 7
+min = 3
+ttl = 300
+
+[elements.chow]
+max = 6
+min = 5
+servings = 5
+
+[elements.greeble]
+max = 3
+min = 1
+ttl = 300
+
+[elements.sunbeam]
+max = 5
+min = 4
+ttl = 300
+
+[elements.water]
+max = 5
+min = 4
+
+[events]
+activity_retention = 1000
+distress_retention = 1000
+
+[happiness]
+floor = 5.0
+
+[happiness.weights]
+bath = 0.15
+cuddle = 0.15
+drink = 0.2
+eat = 0.2
+play = 0.15
+sleep = 0.15
+
+[[kitty]]
+behavior = "needs_driven"
+id = 1
+name = "Miso"
+x = 8
+y = 11
+
+[kitty.needs]
+bath = 0.36
+
+[[kitty]]
+behavior = "playful"
+id = 2
+name = "Biscuit"
+x = 17
+y = 16
+
+[kitty.needs]
+bath = 0.36
+
+[[kitty]]
+behavior = "needs_driven"
+id = 3
+name = "Pumpkin"
+x = 14
+y = 6
+
+[kitty.needs]
+bath = 0.18
+eat = 0.8
+
+[[kitty]]
+behavior = "needs_driven"
+id = 4
+name = "Kittybear"
+x = 4
+y = 4
+
+[kitty.needs]
+bath = 0.18
+
+[meow]
+announce_hysteresis = 5.0
+announce_threshold = 30.0
+recent_window_ticks = 10
+
+[needs]
+bath = 0.18
+cuddle = 0.36
+drink = 0.36
+eat = 0.36
+play = 0.36
+sleep = 0.27
+
+[persistence]
+save_every_ticks = 100
+snapshot_path = "snapshot.json"
+
+[purr]
+announce_probability = 0.0
+cooldown_factor_max = 2.75
+cooldown_factor_min = 1.75
+max_ticks = 13
+min_ticks = 8
+
+[rl.policy.e003-m0-g998-s3]
+artifact = "policies/e003-m0-g998-s3.ckpolicy"
+
+[thresholds]
+distress = 90.0
+purr = 70.0
+safeguard = 75.0
+
+[viewer]
+distress_patience_ticks = 60
+
+[water]
+bath_gain = 3.5
+bath_gain_ceiling = 60.0
+
+[world]
+bind = "127.0.0.1:8090"
+height = 22
+seed = 20260718
+tick_ms = 800
+width = 22

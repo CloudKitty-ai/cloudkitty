@@ -27,10 +27,12 @@ id = 1
 name = "Miso"
 x = 8
 y = 10
-# POLICY SEAT — e003-m0-g998-s3, exp-003's winner and the first schema-2
-# artifact, seated at the 2026-08-07 rollout (superseding e001-a2-s6, retired).
-# Record and provenance: the [rl.policy] block below and policies/README.md.
-behavior = "policy:e003-m0-g998-s3"
+# POLICY SEAT: e004-a1-s2 — exp-004's certified winner (grid 15/15 on the
+# settled §9.2 gate; §9.3 welfare +0.0440 over paired baseline), the first
+# two-head / observation-schema-3 policy to take a seat. Seated 2026-08-09
+# on the owner's word, ending the spec-028 generation wall this seat sat
+# parked behind. Provenance: the [rl.policy] block below and policies/README.md.
+behavior = "policy:e004-a1-s2"
 
 [[kitty]]
 id = 2
@@ -56,10 +58,10 @@ id = 4
 name = "Kittybear"
 x = 4
 y = 4
-# POLICY SEAT — same artifact as Miso's, by design: exp-003's winner took
-# both policy seats at the 2026-08-07 rollout. Its predecessor here,
-# e002-m0-g998-s1, is retired with its record in policies/README.md.
-behavior = "policy:e003-m0-g998-s3"
+# POLICY SEAT: e004-a1-s2 — the same artifact as Miso's, by design: one
+# winner takes both policy seats, as every rollout before it (e003, e002).
+# Seated 2026-08-09 with Miso's; predecessors' records in policies/README.md.
+behavior = "policy:e004-a1-s2"
 
 # How fast each need rises, per tick. Higher means more pressing, more often.
 [needs]
@@ -152,8 +154,19 @@ sleep_relief = 5.0
 sleep_relief_sunbeam = 8.0
 groom_relief = 20.0
 play_relief = 20.0
-# Resting, sleeping or grooming alongside a friend.
-cuddle_relief = 15.0
+# Resting or grooming alongside a friend (the rest duet and the groomer's
+# warmth). Cosleep is priced separately below since spec 028. Re-priced by
+# the exp-004 dial-pricing pilot (2026-08-09, owner-pinned): a minimum-length
+# duet now pays 40 against a mean cuddle need of 11.6, down from 75.
+cuddle_relief = 8.0
+# Cosleeping next to a friend (spec 028), per serviced sleep tick, both
+# parties: the passive tier when the partner is merely present -- priced so
+# a typical 3-tick contact (~9) roughly meets the mean need, not 4x it...
+cosleep_drip_relief = 3.0
+# ...and the mutual tier when the partner is itself sleeping or resting,
+# at rest-duet parity: mutual engagement pays like a duet, one price for
+# "both parties actively resting together" everywhere it happens.
+cosleep_mutual_relief = 8.0
 # Pouncing at nothing, for a kitty with nobody to play with. Must not exceed
 # play_relief -- playing together stays the better deal.
 solo_play_relief = 10.0
@@ -172,17 +185,17 @@ sleep = { min = 6, max = 12 }
 cuddle = { min = 6, max = 12 }
 
 [meow]
-# Manners, not law (spec 023): the engine never blocks a meow -- every one a
-# kitty spends its turn on is heard. Built-in behaviors consult these
-# courtesy values before repeating themselves; learned kitties are governed
-# by the turn cost alone. Base courtesy equals the digest window, so an
-# honest persistent signal refreshes exactly as the old one fades...
-courtesy_ticks = 10
-# ...unless the related need is urgent, when a script may say so sooner.
-urgent_courtesy_ticks = 5
-urgent_need_threshold = 75.0
-# How long a meow stays visible to other kitties and to viewers.
+# Law, not manners (spec 028): a want-kind may be spoken only while its need
+# is armed and that kind's per-cat cooldown has cleared; silence is always
+# legal. The window below is both audibility and the per-kind cooldown, so
+# an honest persistent signal refreshes exactly as the old one fades --
+# one live digest entry per kind per emitter, never sooner.
 recent_window_ticks = 10
+# A want-kind arms at this need level (grounded legality)...
+announce_threshold = 30.0
+# ...and disarms below threshold - hysteresis, so the mask holds steady
+# while an errand is in progress.
+announce_hysteresis = 5.0
 
 [purr]
 # A contented kitty rumbles for a while (a seeded draw between min and max
@@ -205,6 +218,10 @@ announce_probability = 0.0
 # steps in with the default behavior. Built-in behaviors are exempt: they run
 # in-process, so determinism never depends on how fast this machine is.
 budget_fraction_of_tick = 0.5
+# What "real cuddle need" means to the scripted responders (spec 028): at or
+# above this, a cat answers an audible want_bath with grooming and prefers a
+# friend's side to a sunbeam for its nap. One shared gate on purpose.
+cuddle_real_threshold = 15.0
 # The pressure at which a "playful" kitty stops playing and attends to a need.
 # Lower means a better-kept cat; higher means more single-minded fun.
 playful_comfort = 55.0
@@ -272,17 +289,20 @@ distress_patience_ticks = 60
 # Artifacts live in the committed policies/ directory (owner decision
 # 2026-07-31); the README there maps each file to its sha256, its
 # certification record, and the naming convention these keys follow.
-# e003-m0-g998-s3 = exp-003's driest candidate (self-play, γ = 0.998, seed 3),
-# sha256 756aa680… — the first schema-2 policy to reach the served world.
-# Water: 2.79% in-water / 0.62% lounging on the §9.1 instrument, both BELOW the
-# scripted baseline (3.44% / 1.50%) — the behaviour exp-002 proved no dial
-# setting could buy. Welfare +0.0420 vs needs_driven; on this world at roster 4
-# it scores max_distress_age 0 and floor_touches 0 across 30 seeds, both shapes.
-# Seated at both policy seats, superseding e001-a2-s6 and e002-m0-g998-s1
-# (retired to policies/retired/, and unrunnable here in any case — schema 1).
-# Deployed on the owner's judgement, NOT certified: it fails exp-003's §9.2 by
-# 3 ticks of eat-need on one seed of an off-deployment world. The decision and
-# its evidence are in the prereg's Deviations appendix.
+# e004-a1-s2 = exp-004's certified winner (shaped self-play arm A1: distress
+# shaping c = 0.5, γ_Φ = 0.998 pinned; RNG seed 2), sha256 21d19730… — the
+# first two-head, observation-schema-3 policy (v2 artifact) to reach the
+# served world, and the first CERTIFIED seating: 15/15 of its cohort passed
+# the settled §9.2 stress gate (this candidate: worst max_distress_age
+# 46/0/405 across shapes iii/r3/r5, zero floor touches, zero fallbacks in
+# 1,350 stress runs); §9.3 welfare +0.0440 over the paired scripted baseline
+# (0.9500 absolute). Channel: 169.6 meows/1k, Purr-dominant by grounded
+# legality (deviation D-002, registered — not collapse); GroomKitty 93.3/1k
+# where v3 measured 0. Seated at both policy seats 2026-08-09, superseding
+# e003-m0-g998-s3 (retired to policies/retired/ with its record — a v1
+# artifact this binary cannot open in any case).
+# Full certification record: experiments/exp-004-meow-channel/results/
+# grid-2026-08-09.md; ledger + per-run JSONs beside it.
 # Greedy selection (sample = false), matching the measured condition.
-[rl.policy.e003-m0-g998-s3]
-artifact = "policies/e003-m0-g998-s3.ckpolicy"
+[rl.policy.e004-a1-s2]
+artifact = "policies/e004-a1-s2.ckpolicy"

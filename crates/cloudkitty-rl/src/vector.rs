@@ -36,7 +36,7 @@ enum Command {
     /// — the chain has exactly one owner).
     Reset(Vec<Option<u64>>),
     /// One action map per owned world, in chunk order.
-    Step(Vec<BTreeMap<KittyId, usize>>),
+    Step(Vec<BTreeMap<KittyId, (usize, usize)>>),
 }
 
 struct Worker {
@@ -154,7 +154,7 @@ impl VectorizedEnvironment {
     /// failure left the batch desynchronized.
     pub fn step(
         &mut self,
-        actions: &[BTreeMap<KittyId, usize>],
+        actions: &[BTreeMap<KittyId, (usize, usize)>],
     ) -> Vec<Result<EpisodeStep, EpisodeError>> {
         assert_eq!(actions.len(), self.n_worlds, "one action map per world");
         if let Some(reason) = self.needs_reset {

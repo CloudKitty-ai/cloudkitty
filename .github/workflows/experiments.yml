@@ -34,11 +34,29 @@ jobs:
         with:
           workspaces: experiments/tools/twin-probe
 
-      - name: Build twin-probe
+      # Every Rust crate under experiments/tools, not just twin-probe:
+      # spec 028's analyze pass found bc-collect and artifact-tools had
+      # drifted invisibly because they were never in this loop. Still
+      # non-blocking by doctrine (see the header comment); the warning
+      # names exactly which crates drifted.
+      - name: Build tools crates
         id: build
         continue-on-error: true
-        run: cargo build --manifest-path experiments/tools/twin-probe/Cargo.toml
+        run: |
+          failed=""
+          for m in experiments/tools/*/Cargo.toml; do
+            crate=$(basename "$(dirname "$m")")
+            echo "::group::build $crate"
+            if ! cargo build --manifest-path "$m"; then
+              failed="$failed $crate"
+            fi
+            echo "::endgroup::"
+          done
+          if [ -n "$failed" ]; then
+            echo "failed=$failed" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
 
       - name: Surface engine drift
         if: steps.build.outcome == 'failure'
-        run: echo "::warning title=Engine drift::experiments/tools no longer builds against crates/ — non-blocking, see the build log in this run"
+        run: echo "::warning title=Engine drift::experiments/tools crates no longer build against crates/ —${{ steps.build.outputs.failed }} — non-blocking, see the build log in this run"

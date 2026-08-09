@@ -778,3 +778,82 @@ disjoint band reported as a drift alarm.
   v5**: family-gen must emit the NEW `[meow]` surface — a carried-over
   courtesy block refuses to load by design (the intended migration
   signal, not a bug).
+- ~~Groom-responder herding (FR-019, `needs_driven.rs:310`): charming
+  or defect?~~ **EXAMINED 2026-08-08 (owner raised, Experiments
+  assessed, owner accepted): KEEP — measured, not fixed.** No
+  responder dedup: every eligible cat targets the freshest WantBath
+  emitter. Verdict grounds in the implementation (Product's 028
+  worktree): (1) **self-limiting** — `groom_response` re-evaluates
+  each tick against `recent_meows`, so pursuit survives only while a
+  meow is audible; post-relief staleness is ≤ 10 ticks from last
+  emission, shorter than typical 20×20 cross-grid walks — distant
+  responders abandon mid-walk rather than arrive late; redundant
+  grooms are confined to responders within ~10 ticks of arrival at
+  relief time. (2) **Lawful payoff** — a redundant groom pays the
+  groomer real cuddle relief; the clean target loses nothing
+  (spec-021 falsification doctrine, `docs/cuddle-relief-semantics.md`).
+  (3) **Dataset-v4 feature** — rare-class asymmetry wants abundant
+  response rows; demonstrator redundancy also leaves legible
+  coordination headroom (a policy that learns "someone else is
+  already going" beats B in a way that is visibly coordination, not
+  imitation — dedup in the demonstrator would delete that signature).
+  (4) The freshest-emitter collapse (two wet cats → herd to the
+  fresher) is the digest's known occlusion property, inherited
+  deliberately per the imitability principle. **Action: re-baseline B
+  gains three REPORTED (never gated) herding metrics** — responders
+  per meow episode, redundant-groom share (grooms landing on a target
+  already below hysteresis), abandoned-pursuit share — so B's record
+  states how much herding it contains; revisit as a config change
+  only if the redundant share turns out pathological, with data.
+- ~~Spec 028 analyze items 7+8 (Product asked for Experiments'
+  position)~~ **ANSWERED 2026-08-08:**
+  - **Item 7 — message downgrades invisible py-side
+    (`episode.rs:460`): NOD GIVEN, and ask for the VALUE, not a
+    flag.** `survived` compares activity halves only and
+    `proposed_message` never reaches the info dict, so a trainer
+    cannot distinguish downgraded-to-Silent from chose-Silent. Add
+    `proposed_message` (wire name, symmetric with the existing
+    `applied_message`; `None` for `SubstitutedIdle` per the
+    honest-bookkeeping rule) — survival is then derivable py-side and
+    the downgraded KIND is visible. Experiments-side stakes: (1)
+    **F-015's first-probe obligation extends to the message head** —
+    "mask-legal messages never downgrade" must be falsifiable from
+    the trainer, one-line comparison with the field, Rust instrument
+    without it; (2) **D1's interpretability depends on it** —
+    channel-collapse diagnosis requires quiet-by-choice vs
+    quiet-by-downgrade to be separable. Also requested on the batched
+    info-array surface (`lib.rs:760`), the path training loops read.
+  - **Item 8 — WaitForMe seam latitude (`meow.rs:111`): DOC NOTE, no
+    guard.** `message_legal` grants WaitForMe on cooldown alone;
+    only trusted in-process seam callers could exploit it (Python and
+    plugins can't reach it). A guard would make message legality
+    provenance-aware — the first legality rule reading a proposal's
+    source — for zero reachable benefit: head-exclusion already
+    guards the reachable surface exactly as Purr's `purr_earned` gate
+    guards its own (law for reachable surfaces, convention for
+    trusted ones — the recorded pre-028 posture). Load-bearing for
+    us: **replay instruments ARE the in-process caller** — twin-probe
+    re-proposes recorded decisions through the seam, and a
+    source-guard would downgrade a recorded yield-rule WaitForMe and
+    break bit-exact replay (house byte-identical methodology). Ask:
+    one sentence at `message_legal` making the latitude explicit
+    ("convention, not law — guarded at the head, not the seam").
+- ~~Post-028 tools ports~~ **DONE 2026-08-09** (spec 028 merged
+  acd75eb): twin-probe (`ProposalEntry::Decision`), zero-artifact
+  (v2 codec, 43-logit two-head final layer, artifact v2), bc-collect
+  **two-channel collection** — `mask_msg.npy` (engine
+  `legal_message_mask`) + `label_msg.npy` from the APPLIED message,
+  applied-not-proposed doctrine both halves; **the engine-reserved
+  WaitForMe labels as Silent and is counted** (`msg_inexpressible` in
+  meta — structurally legal, teaches quiet-while-yielding, which is
+  the policy-side vocabulary law anyway); message-half mask
+  mismatches counted separately (`msg_mask_mismatch`). Smoke run
+  (root config, 2k ticks, seed 900001): 7,986 rows, obs 197 /
+  mask 34 / msg-mask 9, schemas 3/2/2, **5.0% non-Silent message
+  rows across five kinds (v3: 0.2%)**, msg-mask-mismatch 0 —
+  first empirical support for "mask-legal messages never downgrade."
+  CI's experiments job now builds ALL seven Rust tools crates (was:
+  twin-probe only), still non-blocking by doctrine. Prereg R10
+  wording checked against Product's f64 sampling fix: our text
+  ("one DecisionRng draw split") never described the f32 cast — no
+  change needed.

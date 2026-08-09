@@ -180,7 +180,7 @@ impl World {
 
         // Phases 2-4: one shared pipeline (spec 014 FR-002) -- the seam is a
         // different *source* of proposals, never a different law.
-        self.run_applied_phases(&decisions, config);
+        self.run_applied_phases_from_decisions(&decisions, config);
 
         // Phase 5: publish.
         Arc::new(self.snapshot())
@@ -257,19 +257,22 @@ impl World {
         let mut marks: Vec<Provenance> = Vec::with_capacity(roster.len());
         for &id in &roster {
             match proposals.get(id) {
-                Some(ProposalEntry::Action(action)) => {
-                    decisions.push((id, *action));
+                Some(ProposalEntry::Decision(decision)) => {
+                    decisions.push((id, *decision));
                     marks.push(Provenance::PolicyMade);
                 }
                 Some(ProposalEntry::Malformed) | None => {
-                    decisions.push((id, crate::action::Action::Idle));
+                    decisions.push((
+                        id,
+                        crate::seam::Decision::silent(crate::action::Action::Idle),
+                    ));
                     marks.push(Provenance::SubstitutedIdle);
                 }
             }
         }
         let unconsumed: Vec<KittyId> = proposals.ids().filter(|id| !roster.contains(id)).collect();
 
-        let outcome = self.run_applied_phases(&decisions, config);
+        let outcome = self.run_applied_phases_from_decisions(&decisions, config);
         let records = outcome.records(roster.iter().enumerate().map(|(index, &id)| {
             let (_, proposed) = decisions[index];
             let decision_seed = seeds.seed_for(id).expect(
@@ -294,9 +297,16 @@ impl World {
     /// when the action lands -- so the first cat to reach the last serving
     /// gets it and the second one simply idles; *which* cat is first is a
     /// fresh draw every tick, never a standing privilege of a low id.
-    pub(crate) fn run_applied_phases(
+    ///
+    /// Spec 028: each kitty's turn applies its decision's **activity** first
+    /// (the pipeline above, unchanged) and then its **message** -- ruled by
+    /// `meow::message_legal`; an illegal message downgrades to Silent with
+    /// the paired activity untouched. Message application rides the same
+    /// fair turn order, so digest freshness ties resolve identically on
+    /// every replay of a seed.
+    pub(crate) fn run_applied_phases_from_decisions(
         &mut self,
-        decisions: &[(KittyId, crate::action::Action)],
+        decisions: &[(KittyId, crate::seam::Decision)],
         config: &Config,
     ) -> PhaseOutcome {
         self.pending_endings.clear();
@@ -304,13 +314,14 @@ impl World {
 
         let order = self.draw_turn_order();
         for kitty_id in order {
-            let Some(proposal) = decisions
+            let Some(decision) = decisions
                 .iter()
                 .find(|(id, _)| *id == kitty_id)
-                .map(|&(_, action)| action)
+                .map(|&(_, decision)| decision)
             else {
                 continue;
             };
+            let proposal = decision.activity;
             // An activity whose counterpart is gone ends before anything else
             // happens (spec 006 FR-010): the world moved on, and the kitty's
             // proposal gets its normal hearing.
@@ -328,7 +339,18 @@ impl World {
             }
             action::apply(self, kitty_id, enforced, config);
             self.update_pursuit(kitty_id, enforced, config);
-            per_kitty.push((kitty_id, validated, enforced));
+            // The message half: legality read after the activity landed
+            // (defined order -- activity, then message), enforcement as
+            // downgrade-to-Silent, never an error.
+            let tick = self.tick;
+            let applied_message = decision.message.filter(|&kind| {
+                self.kitty(kitty_id)
+                    .is_some_and(|k| crate::meow::message_legal(k, kind, tick, config))
+            });
+            if let Some(kind) = applied_message {
+                action::apply_message(self, kitty_id, kind, config, tick);
+            }
+            per_kitty.push((kitty_id, validated, enforced, applied_message));
         }
 
         // Phase 2, closing step: activities that finished their job this tick
@@ -338,8 +360,10 @@ impl World {
         // Phase 3: the environment resolves.
         self.environment_phase(config);
 
-        // Phase 4: needs rise, happiness follows, distress is noted, invariants hold.
+        // Phase 4: needs rise, happiness follows, arming and distress are
+        // noted, invariants hold.
         self.advance_needs(config);
+        self.update_announce_arming(config);
         // The honest per-tick capture (spec 014 FR-003): both event kinds are
         // taken at their source, so the report cannot under-report however
         // small the configured retention rings are.
@@ -855,6 +879,27 @@ impl World {
         }
     }
 
+    /// The announce-arming edge rule (spec 028), distress's sibling: a
+    /// want-kind arms at `>= announce_threshold`, disarms below
+    /// `threshold - hysteresis`, and holds anywhere in the band -- so the
+    /// message mask cannot flicker across one errand. No RNG, no events;
+    /// pure state the mask reads.
+    fn update_announce_arming(&mut self, config: &Config) {
+        let arm_at = config.meow.announce_threshold;
+        let disarm_below = arm_at - config.meow.announce_hysteresis;
+        for kitty in &mut self.kitties {
+            for kind in NeedKind::ALL {
+                let value = kitty.needs.get(kind);
+                if value >= arm_at {
+                    kitty.announce_armed.insert(kind);
+                } else if value < disarm_below {
+                    kitty.announce_armed.remove(&kind);
+                }
+                // In the band [disarm_below, arm_at): hold whatever it was.
+            }
+        }
+    }
+
     /// Edge-triggered: a need records one event when it crosses the threshold and
     /// stays quiet until it drops back below and crosses again. Returns the
     /// events this call produced — the tick report's capture (spec 014
@@ -935,6 +980,7 @@ impl World {
                 kitty_id: id,
                 kind: crate::meow::MessageKind::Purr,
                 tick,
+                intensity: 0.0,
             });
         }
     }
@@ -1139,19 +1185,33 @@ enum DurationRuling {
 /// the per-kitty (validated, applied) pairs in this tick's turn order, and
 /// the events the tick produced (spec 014 FR-003).
 pub(crate) struct PhaseOutcome {
-    pub per_kitty: Vec<(KittyId, crate::action::Action, crate::action::Action)>,
+    pub per_kitty: Vec<(
+        KittyId,
+        crate::action::Action,
+        crate::action::Action,
+        Option<crate::meow::MessageKind>,
+    )>,
     pub distress_events: Vec<DistressEvent>,
     pub activity_endings: Vec<ActivityEnd>,
 }
 
 impl PhaseOutcome {
-    /// The (validated, applied) pair per kitty, keyed for record building.
+    /// The (validated, applied, applied_message) triple per kitty, keyed
+    /// for record building.
+    #[allow(clippy::type_complexity)]
     fn applied_by_id(
         &self,
-    ) -> std::collections::BTreeMap<KittyId, (crate::action::Action, crate::action::Action)> {
+    ) -> std::collections::BTreeMap<
+        KittyId,
+        (
+            crate::action::Action,
+            crate::action::Action,
+            Option<crate::meow::MessageKind>,
+        ),
+    > {
         self.per_kitty
             .iter()
-            .map(|&(id, validated, applied)| (id, (validated, applied)))
+            .map(|&(id, validated, applied, message)| (id, (validated, applied, message)))
             .collect()
     }
 
@@ -1163,22 +1223,24 @@ impl PhaseOutcome {
     pub fn records(
         &self,
         decisions: impl IntoIterator<
-            Item = (KittyId, crate::action::Action, crate::seam::Provenance, u64),
+            Item = (KittyId, crate::seam::Decision, crate::seam::Provenance, u64),
         >,
     ) -> Vec<crate::seam::KittyTickRecord> {
         let applied_by_id = self.applied_by_id();
         decisions
             .into_iter()
-            .map(|(kitty_id, proposed, provenance, decision_seed)| {
-                let (validated, applied) = applied_by_id
+            .map(|(kitty_id, decision, provenance, decision_seed)| {
+                let (validated, applied, applied_message) = applied_by_id
                     .get(&kitty_id)
                     .copied()
                     .expect("the phase pipeline hears every kitty that has a decision");
                 crate::seam::KittyTickRecord {
                     kitty_id,
-                    proposed,
+                    proposed: decision.activity,
                     validated,
                     applied,
+                    proposed_message: decision.message,
+                    applied_message,
                     provenance,
                     decision_seed,
                 }
@@ -1501,6 +1563,51 @@ mod tests {
     // ---- sustained purring (spec 011, amended by spec 022) ---------------
 
     #[test]
+    fn announce_arming_rises_holds_and_falls_on_the_hysteresis_edges() {
+        // Spec 028 US2: armed at >= threshold, held anywhere in the band
+        // [threshold - hysteresis, threshold), disarmed only below it. The
+        // three edges of the band, walked explicitly (defaults 30/5).
+        let (mut world, config) = test_world();
+        let idx = world.kitty_index(1).unwrap();
+        let set = |world: &mut World, value: f32| {
+            let current = world.kitties[idx].needs.get(crate::needs::NeedKind::Eat);
+            world.kitties[idx]
+                .needs
+                .add(crate::needs::NeedKind::Eat, value - current);
+        };
+        let armed = |world: &World| {
+            world.kitties[idx]
+                .announce_armed
+                .contains(&crate::needs::NeedKind::Eat)
+        };
+
+        // Rising: just below the threshold stays disarmed...
+        set(&mut world, 29.9);
+        world.update_announce_arming(&config);
+        assert!(!armed(&world), "below threshold never arms");
+        // ...at the threshold arms.
+        set(&mut world, 30.0);
+        world.update_announce_arming(&config);
+        assert!(armed(&world), "the threshold is inclusive");
+
+        // Held: relief into the band keeps the word speakable mid-errand.
+        set(&mut world, 26.0);
+        world.update_announce_arming(&config);
+        assert!(armed(&world), "the band holds an armed kind");
+
+        // Falling: below threshold - hysteresis disarms.
+        set(&mut world, 24.9);
+        world.update_announce_arming(&config);
+        assert!(!armed(&world), "below the band disarms");
+
+        // And a disarmed kind in the band stays disarmed (no re-arm from
+        // below): the band holds state, it never creates it.
+        set(&mut world, 27.0);
+        world.update_announce_arming(&config);
+        assert!(!armed(&world), "the band holds a disarmed kind too");
+    }
+
+    #[test]
     fn no_purr_start_of_either_origin_stamps_meow_bookkeeping() {
         // Spec 023 US3 scenario 3 -- the 022 FR-008 handoff, guarded from
         // this side: motor starts (silent or announcing) and deliberate
@@ -1526,14 +1633,8 @@ mod tests {
         world.tick = 10;
         let idx = world.kitty_index(1).unwrap();
         world.kitties[idx].happiness = 90.0;
-        crate::action::apply(
-            &mut world,
-            1,
-            crate::action::Action::Meow {
-                message: crate::meow::MessageKind::Purr,
-            },
-            &config,
-        );
+        // The deliberate purr rides the message channel since spec 028.
+        crate::action::apply_message(&mut world, 1, crate::meow::MessageKind::Purr, &config, 10);
         let kitty = world.kitty(1).unwrap();
         assert!(kitty.purring_until.is_some(), "the deliberate purr started");
         assert!(
@@ -1557,6 +1658,7 @@ mod tests {
                 kitty_id: 1,
                 kind: crate::meow::MessageKind::WantPlay,
                 tick,
+                intensity: 0.0,
             });
             world.prune_transient(&config);
         }

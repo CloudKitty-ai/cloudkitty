@@ -58,6 +58,18 @@
 //!   Since the sampler's draw sequence changed, v4 does not reproduce a v3
 //!   family byte-for-byte. That is what the version stamp in every
 //!   manifest is for; v3's families remain in the repo as generated.
+//!
+//!   v5 additions (exp-004 prereg §4):
+//!   - **Every variant keeps >= 1 `playful` kitty** — the demonstrator
+//!     emitters (needs analysis: playful produces ~14x the announcement
+//!     traffic) must exist in every training world, or the imitation seed
+//!     thins to needs_driven's near-silence. If the roster shuffle keeps
+//!     none, the last survivor slot is deterministically swapped for the
+//!     base's first playful seat. The manifest records the playful count
+//!     per variant so the prereg checklist verifies from the manifest.
+//!   - The [meow] surface is whatever the base carries — post-028 bases
+//!     emit the announce dials; a carried-over courtesy block refuses to
+//!     load in validation, by design (spec 028's migration signal).
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -70,7 +82,7 @@ use cloudkitty_rl::config::RlConfig;
 use sha2::{Digest, Sha256};
 use toml::Value;
 
-const GENERATOR_VERSION: &str = "family-gen v4 (2026-08-06)";
+const GENERATOR_VERSION: &str = "family-gen v5 (2026-08-09)";
 
 /// World geometries, cycled by variant index so each gets exact coverage
 /// rather than sampled coverage.
@@ -438,6 +450,17 @@ fn family_mode(
             roster_size = ROSTER_SIZES[i % ROSTER_SIZES.len()].min(kitties.len());
             let mut keep = rng.shuffled_indices(kitties.len());
             keep.truncate(roster_size);
+            // v5 (prereg §4): every variant keeps >= 1 playful. If the
+            // shuffle kept none, swap the last survivor slot for the base's
+            // first playful seat — deterministic, roster size preserved.
+            let is_playful = |ix: usize| {
+                kitties[ix].get("behavior").and_then(|b| b.as_str()) == Some("playful")
+            };
+            if !keep.iter().any(|&ix| is_playful(ix)) {
+                if let Some(pix) = (0..kitties.len()).find(|&ix| is_playful(ix)) {
+                    *keep.last_mut().expect("roster sizes are nonzero") = pix;
+                }
+            }
             keep.sort_unstable();
             let mut k = 0usize;
             kitties.retain(|_| {
@@ -452,9 +475,13 @@ fn family_mode(
         // varies 0.5-2x across cats (register §2b: trait->cost must be
         // learnable, not memorizable).
         let mut roster_names = Vec::new();
+        let mut playful_count = 0usize;
         if let Some(kitties) = root["kitty"].as_array_mut() {
             for kitty in kitties.iter_mut() {
                 let name = kitty["name"].as_str().unwrap_or("?").to_string();
+                if kitty.get("behavior").and_then(|b| b.as_str()) == Some("playful") {
+                    playful_count += 1;
+                }
                 if kitty.get("needs").is_none() {
                     kitty
                         .as_table_mut()
@@ -517,11 +544,18 @@ fn family_mode(
         );
         summary.push(format!("lake={lake}"));
         lake_count += usize::from(lake);
+        // v5: playful-per-variant is a registered requirement, asserted at
+        // generation and recorded in the manifest for checklist verification.
+        assert!(
+            playful_count >= 1,
+            "family-{i:02}: no playful kitty survived — the v5 guarantee is broken"
+        );
+        summary.push(format!("playful={playful_count}"));
 
         let path = out_dir.join(format!("family-{i:02}.toml"));
         fs::write(&path, &patched).unwrap_or_else(|e| panic!("writing {}: {e}", path.display()));
         manifest_variants.push(format!(
-            "{{\"file\": \"family-{i:02}.toml\", \"size\": {size}, \"roster\": {roster_size}, \"water_min\": {water_min}, \"lake\": {lake}, \"summary\": \"{}\"}}",
+            "{{\"file\": \"family-{i:02}.toml\", \"size\": {size}, \"roster\": {roster_size}, \"water_min\": {water_min}, \"lake\": {lake}, \"playful\": {playful_count}, \"summary\": \"{}\"}}",
             summary.join(" ")
         ));
         println!("family-{i:02}.toml: {}", summary.join(" "));
