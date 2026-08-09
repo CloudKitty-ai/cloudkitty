@@ -41,9 +41,11 @@ async fn a_pre_028_world_resumes_and_runs() {
         "pre-028 kitties resume disarmed; the first needs phase re-arms"
     );
 
-    // And it RUNS: 200 ticks under the shipped config, scripted-only (the
-    // shipped seats are parked scripted across the generation gap), with
-    // the invariants asserting inside every tick.
+    // And it RUNS: 200 ticks under the shipped config with the builtin
+    // registry -- policy seats lawfully fall back when their behavior is
+    // unregistered (core cannot open artifacts), which is itself the
+    // wall's point: the old world runs whatever the seats say. The
+    // invariants assert inside every tick.
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let text = std::fs::read_to_string(root.join("cloudkitty.toml")).unwrap();
     let config: Config = toml::from_str(&text).unwrap();
