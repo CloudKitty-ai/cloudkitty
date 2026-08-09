@@ -158,15 +158,18 @@ sleep_relief_sunbeam = 8.0
 groom_relief = 20.0
 play_relief = 20.0
 # Resting or grooming alongside a friend (the rest duet and the groomer's
-# warmth). Cosleep is priced separately below since spec 028.
-cuddle_relief = 15.0
+# warmth). Cosleep is priced separately below since spec 028. Re-priced by
+# the exp-004 dial-pricing pilot (2026-08-09, owner-pinned): a minimum-length
+# duet now pays 40 against a mean cuddle need of 11.6, down from 75.
+cuddle_relief = 8.0
 # Cosleeping next to a friend (spec 028), per serviced sleep tick, both
-# parties: the passive tier when the partner is merely present...
-cosleep_drip_relief = 15.0
-# ...and the mutual tier when the partner is itself sleeping or resting.
-# Both launch equal to cuddle_relief -- behavior-preserving until the
-# dial-pricing pilot re-prices presence.
-cosleep_mutual_relief = 15.0
+# parties: the passive tier when the partner is merely present -- priced so
+# a typical 3-tick contact (~9) roughly meets the mean need, not 4x it...
+cosleep_drip_relief = 3.0
+# ...and the mutual tier when the partner is itself sleeping or resting,
+# at rest-duet parity: mutual engagement pays like a duet, one price for
+# "both parties actively resting together" everywhere it happens.
+cosleep_mutual_relief = 8.0
 # Pouncing at nothing, for a kitty with nobody to play with. Must not exceed
 # play_relief -- playing together stays the better deal.
 solo_play_relief = 10.0
