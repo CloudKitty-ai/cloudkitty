@@ -746,3 +746,35 @@ disjoint band reported as a drift alarm.
   registration wording only, plus re-stating the deployed artifact
   under the new gate (it passes; worst 3, zero on iii). Distress-tick
   counter → Product spec batch, reported not gated this generation.
+- ~~Spec 028 × shipped-config sweep: what happens to experiments/
+  TOMLs carrying the retired courtesy trio?~~ **SETTLED 2026-08-08
+  (Experiments' call, relayed to Product direct): exclusion manifest,
+  option (a).** 028 retires `courtesy_ticks` / `urgent_courtesy_ticks`
+  / `urgent_need_threshold` with loud sentinel errors, and the two
+  shipped-config sweep tests walk `experiments/` recursively — 62
+  TOMLs here carry `courtesy_ticks`. All 62 are pinned-generation
+  records, none updatable: exp-002 family (32), exp-003 family (15,
+  byte-frozen by prereg PR #115), exp-003 results-era (2), screens
+  (9), rebaseline-2026-08-06 (3), exp-001 (1). The sweep skips those
+  nine directories via a documented manifest (one rationale line
+  each); **new experiment output stays in scope by default** — family
+  v5 is generated fresh on the new surface and must load through
+  validation. Option (b) degenerates to (a)-with-zero-edits; option
+  (c) forfeits exactly the coverage exp-004 wants. **Sequencing flag
+  sent with it**: the distress-counter acceptance record (810/810 on
+  era config `46b22bc:cloudkitty.toml`) carries all three courtesy
+  fields — post-028 that config refuses to load AND scripted meow
+  semantics change, so era replay on the current binary dies twice
+  over; exp-003 joins exp-002 in the era-engine-rebuild category. The
+  counter's reproduce-the-record check must run pre-028 in Product's
+  batch ordering (post-028 it needs a fresh fixture). **Product's
+  close-out (same day, direct)**: T003 implements the manifest
+  (root-level `config-sweep-exclusions.txt`, both sweeps,
+  pinned-generation-dirs-only rule stated); the counter's acceptance
+  was already convention-agreement on the current engine, never era
+  replay, and the 810/810 record validated pre-028 — ordering
+  satisfied by history, era note added to the task so nobody
+  "re-verifies" against the dead record. **Carry-forward for family
+  v5**: family-gen must emit the NEW `[meow]` surface — a carried-over
+  courtesy block refuses to load by design (the intended migration
+  signal, not a bug).
