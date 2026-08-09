@@ -152,9 +152,14 @@ const SWIM = {
  * the body, so growing it alone is not the whole change.
  */
 const SLEEP = {
-  headR: 0.173, // the outlier; the rest of the vocabulary is 0.215-0.226
-  headX: 0.62, // where the head sits along the curled body
-  headY: 0.68, // and how far down it tucks
+  // Owner-dialled 2026-08-09 against the awake cat drawn beside it, which is
+  // the only way to judge it: 0.173 -> 0.211 is 93% of the base head where it
+  // was 77%, so the sleeper is the same cat now, just a touch foreshortened
+  // by the curl. The head rose 0.1 and came forward 0.075 to sit on the ball
+  // rather than inside it.
+  headR: 0.211, // base head is 0.226; the rest of the vocabulary is 0.215-0.226
+  headX: 0.695, // where the head sits along the curled body
+  headY: 0.58, // and how far down it tucks
 };
 
 /**

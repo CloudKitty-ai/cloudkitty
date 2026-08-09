@@ -1399,6 +1399,24 @@ check('every pose draws a head, and sleep is the only one off the band', () => {
       assert(r >= 0.21 && r <= 0.23, `${pose}: head ${r} left the 0.215-0.226 band`);
     }
   }
+  // Sleep is allowed to sit under the band -- a curl foreshortens -- but not
+  // by so much that it reads as a different, smaller animal. It shipped at
+  // 0.173 (77% of the base) and that was the complaint; it is 0.211 now.
+  const sleep = CatV2.catLayout('sleep-curl', 0.3).head.r;
+  assert(sleep / 0.226 > 0.85, `sleep head is ${(sleep / 0.226 * 100).toFixed(0)}% of the base`);
+});
+
+check('the sleeping head sits ON the curled body, not beside it', () => {
+  // A head whose centre leaves the body ellipse reads as detached, which is
+  // the failure mode of moving it up and forward to make room for a bigger
+  // one. Checked as the ellipse test rather than by eye.
+  const L = CatV2.catLayout('sleep-curl', 0.3);
+  const dx = (L.head.cx - L.body.cx) / L.body.rx;
+  const dy = (L.head.cy - L.body.cy) / L.body.ry;
+  const inside = dx * dx + dy * dy;
+  assert(inside < 1, `head centre is outside the body ellipse (${inside.toFixed(2)})`);
+  // And it must not sink through the ground line the pose is drawn on.
+  assert(L.head.cy + L.head.r <= 0.88, 'the head clears the ground line');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);
