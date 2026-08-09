@@ -443,8 +443,14 @@ naming it. Load a committed pre-batch snapshot fixture → world resumes and tic
   pre-batch world snapshot resumes and runs; a config with any retired key refuses
   to load naming the key; a pre-batch policy artifact refuses to load with a
   schema-generation error.
-- **SC-007**: The distress-tick counter's numbers on a replay of the registered
-  census definition's fixtures agree exactly with the committed census record.
+- **SC-007**: The distress-tick counter agrees exactly with the registered
+  census definition's convention — an independent observer implementing the
+  census closure verbatim over seeded runs on this engine matches the
+  accumulator count for count. (The 810/810 era replay against exp-003's
+  committed record was validated pre-028 and is not reproducible here: the
+  era config carries retired keys and scripted meow semantics change, so
+  exp-003 joins exp-002 in the era-engine-rebuild category. Acceptance is
+  convention-agreement on the current engine, never era replay.)
 - **SC-008**: All constitutional gates stay green: Articles I–III property suites,
   never-all-zero (activity) and never-masked-Silent (message), fairness, and the
   release-honest defaults gate — updated to the new stamp by design, with changelog
