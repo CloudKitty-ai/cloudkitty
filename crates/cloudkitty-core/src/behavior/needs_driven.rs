@@ -299,12 +299,11 @@ fn groom_response(ctx: &DecisionContext) -> Option<Action> {
     if top >= ctx.config.thresholds.safeguard {
         return None;
     }
-    let heard = ctx
-        .world
-        .recent_meows
-        .iter()
-        .filter(|m| m.kind == crate::meow::MessageKind::WantBath && m.kitty_id != me.id)
-        .max_by(|a, b| a.tick.cmp(&b.tick).then(b.kitty_id.cmp(&a.kitty_id)))?;
+    let heard = crate::meow::freshest_audible(
+        &ctx.world.recent_meows,
+        crate::meow::MessageKind::WantBath,
+        me.id,
+    )?;
     let emitter = ctx.world.kitty(heard.kitty_id)?;
     if me.pos.is_adjacent(&emitter.pos) {
         Some(Action::Groom {

@@ -127,9 +127,49 @@ pub struct Meow {
     pub intensity: f32,
 }
 
+/// The audible-emitter selection rule (spec 028), shared by the
+/// observation digest and the scripted groom responder: among meows of
+/// `kind`, the freshest wins (max tick), a tie falls to the LOWER kitty
+/// id -- hence the deliberately reversed id comparison inside the
+/// `max_by` -- and the listener's own emissions are never audible to
+/// itself. FR-019's imitability guarantee (the responder keys on exactly
+/// what the digest shows) holds only while both sides call this one
+/// function; do not re-derive it in place.
+pub fn freshest_audible(meows: &[Meow], kind: MessageKind, listener: KittyId) -> Option<&Meow> {
+    meows
+        .iter()
+        .filter(|m| m.kind == kind && m.kitty_id != listener)
+        .max_by(|a, b| a.tick.cmp(&b.tick).then(b.kitty_id.cmp(&a.kitty_id)))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn freshest_audible_takes_max_tick_ties_to_the_lower_id_and_never_self() {
+        let m = |kitty_id: KittyId, tick: u64| Meow {
+            kitty_id,
+            kind: MessageKind::WantBath,
+            tick,
+            intensity: 0.0,
+        };
+        let meows = vec![
+            m(5, 10),
+            m(2, 12),
+            m(7, 12), // same tick as id 2: the LOWER id must win
+            m(3, 8),
+        ];
+        let picked = freshest_audible(&meows, MessageKind::WantBath, 9).unwrap();
+        assert_eq!((picked.kitty_id, picked.tick), (2, 12), "tie to the lower id");
+
+        // The listener's own freshest emission is inaudible to itself.
+        let picked = freshest_audible(&meows, MessageKind::WantBath, 2).unwrap();
+        assert_eq!(picked.kitty_id, 7, "self excluded, next claimant wins");
+
+        // Kind filter is exact; a different kind hears nothing.
+        assert!(freshest_audible(&meows, MessageKind::WantPlay, 9).is_none());
+    }
 
     #[test]
     fn wait_for_me_is_a_patience_word() {
