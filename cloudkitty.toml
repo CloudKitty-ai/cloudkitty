@@ -27,10 +27,13 @@ id = 1
 name = "Miso"
 x = 8
 y = 10
-# POLICY SEAT — e003-m0-g998-s3, exp-003's winner and the first schema-2
-# artifact, seated at the 2026-08-07 rollout (superseding e001-a2-s6, retired).
+# PARKED POLICY SEAT (spec 028 generation wall): this seat ran
+# e003-m0-g998-s3 — exp-003's winner, seated at the 2026-08-07 rollout —
+# but that artifact speaks action schema 1 and this binary speaks v2, so
+# the seat is re-parked to scripted until a generation-3 artifact
+# certifies (spec 028 rollout notes; deploy is gated on exactly this).
 # Record and provenance: the [rl.policy] block below and policies/README.md.
-behavior = "policy:e003-m0-g998-s3"
+behavior = "needs_driven"
 
 [[kitty]]
 id = 2
@@ -56,10 +59,12 @@ id = 4
 name = "Kittybear"
 x = 4
 y = 4
-# POLICY SEAT — same artifact as Miso's, by design: exp-003's winner took
-# both policy seats at the 2026-08-07 rollout. Its predecessor here,
-# e002-m0-g998-s1, is retired with its record in policies/README.md.
-behavior = "policy:e003-m0-g998-s3"
+# PARKED POLICY SEAT (spec 028 generation wall) — this seat ran the same
+# artifact as Miso's, by design: exp-003's winner took both policy seats at
+# the 2026-08-07 rollout. Re-parked to scripted with Miso's for the same
+# reason; its predecessor, e002-m0-g998-s1, is retired with its record in
+# policies/README.md.
+behavior = "needs_driven"
 
 # How fast each need rises, per tick. Higher means more pressing, more often.
 [needs]

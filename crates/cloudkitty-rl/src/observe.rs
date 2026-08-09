@@ -52,16 +52,20 @@ use crate::config::ObservationConfig;
 /// (spec 026): the self block gained the in-water flag, 182 → 183.
 pub const OBSERVATION_SCHEMA_VERSION: u32 = 2;
 
-/// The meow kinds a policy can hear and speak: every kind except the
-/// engine-reserved `wait_for_me` (spec 012). Order is normative — the meow
-/// digest and the action menu both use it.
-pub const LEARNED_MEOWS: [MessageKind; 6] = [
+/// The message-head kinds (spec 028): every kind a policy can hear and
+/// speak — all but the engine-reserved `wait_for_me` (spec 012). Order is
+/// normative for the digest AND the message head (head index k+1 =
+/// HEAD_KINDS[k]; index 0 = Silent): the original six keep their positions,
+/// the two new want-kinds are appended.
+pub const HEAD_KINDS: [MessageKind; 8] = [
     MessageKind::WantEat,
     MessageKind::WantDrink,
     MessageKind::FollowMe,
     MessageKind::WantPlay,
     MessageKind::WantCuddle,
     MessageKind::Purr,
+    MessageKind::WantBath,
+    MessageKind::WantSleep,
 ];
 
 const SELF_BLOCK: usize = 6 + 1 + 2 + 7 + 1 + 1 + 1 + 1 + 6 + 2 + 6;
@@ -70,7 +74,9 @@ const CHOW_SLOT: usize = 1 + 2 + 1 + 1;
 const WATER_SLOT: usize = 1 + 2 + 1;
 const SUNBEAM_SLOT: usize = 1 + 2 + 1 + 1 + 1;
 const CRITTER_SLOT: usize = 1 + 2 + 1 + 1 + 4 + 1;
-const MEOW_DIGEST: usize = LEARNED_MEOWS.len() * 3;
+// Transitional (T006): the digest still covers the original six kinds,
+// 3 values each; v3 (8 kinds x 4 values, spec 028) lands in T011.
+const MEOW_DIGEST: usize = 6 * 3;
 const CLOCK: usize = 1;
 
 /// The exact observation length for a slot configuration. With the default
@@ -331,7 +337,7 @@ pub fn encode_observation(
     // 4. Meow digest: others' recent meows, recency-weighted, with the
     // nearest emitter's direction.
     let window = core.meow.recent_window_ticks.max(1) as f32;
-    for kind in LEARNED_MEOWS {
+    for kind in HEAD_KINDS.into_iter().take(6) {
         let heard: Vec<_> = snapshot
             .recent_meows
             .iter()

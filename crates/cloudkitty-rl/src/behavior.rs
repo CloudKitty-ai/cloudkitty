@@ -47,7 +47,7 @@ pub struct PolicyBehavior {
 impl PolicyBehavior {
     /// The compiled schema expectations artifacts must match (FR-016).
     pub fn expectations(rl: &RlConfig) -> SchemaExpectations {
-        let codec = ActionCodec::v1(&rl.observation);
+        let codec = ActionCodec::v2(&rl.observation);
         SchemaExpectations {
             observation_schema: OBSERVATION_SCHEMA_VERSION,
             action_schema: ACTION_SCHEMA_VERSION,
@@ -58,7 +58,7 @@ impl PolicyBehavior {
     }
 
     pub fn new(artifact: PolicyArtifact, rl: RlConfig, sample: bool) -> Self {
-        let codec = ActionCodec::v1(&rl.observation);
+        let codec = ActionCodec::v2(&rl.observation);
         PolicyBehavior {
             artifact,
             rl,

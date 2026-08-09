@@ -16,7 +16,7 @@ fn fresh_episode() -> Episode {
 
 fn action_for(step_index: usize, agent_index: usize) -> usize {
     // A deterministic per-agent script over the menu.
-    [39usize, 0, 1, 2, 3, 25, 12, 4][(step_index + agent_index) % 8]
+    [33usize, 0, 1, 2, 3, 25, 12, 4][(step_index + agent_index) % 8]
 }
 
 fn fingerprint(step: &EpisodeStep) -> String {

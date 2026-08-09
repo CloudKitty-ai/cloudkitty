@@ -7,9 +7,10 @@
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use crate::codec::ActionCodec;
+use crate::codec::{ActionCodec, ACTION_SCHEMA_VERSION};
 use crate::config::RlConfig;
 use crate::observe::{observation_len, OBSERVATION_SCHEMA_VERSION};
+use crate::mask::MASK_SCHEMA_VERSION;
 use crate::policy::{write_artifact, ArtifactHeader, ARTIFACT_VERSION};
 
 /// Writes a valid fixture policy artifact shaped for the default schemas
@@ -32,12 +33,12 @@ pub fn write_fixture_artifact_with_output(
 ) {
     let rl = RlConfig::default();
     let input = observation_len(&rl.observation);
-    let menu = ActionCodec::v1(&rl.observation).len();
+    let menu = ActionCodec::v2(&rl.observation).len();
     let header = ArtifactHeader {
         artifact_version: ARTIFACT_VERSION,
         observation_schema: OBSERVATION_SCHEMA_VERSION,
-        action_schema: 1,
-        mask_schema: 1,
+        action_schema: ACTION_SCHEMA_VERSION,
+        mask_schema: MASK_SCHEMA_VERSION,
         layers: vec![[input, hidden], [hidden, menu]],
         activation: "relu".into(),
     };

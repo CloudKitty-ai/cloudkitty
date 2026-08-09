@@ -156,7 +156,7 @@ impl Episode {
                 }
             }
         }
-        let codec = ActionCodec::v1(&rl.observation);
+        let codec = ActionCodec::v2(&rl.observation);
         let horizon = rl.episode.horizon;
         let core = Arc::new(core);
         let mut episode = Episode {
@@ -626,7 +626,7 @@ mod tests {
         let idle: BTreeMap<KittyId, usize> = episode
             .external_agents()
             .into_iter()
-            .map(|id| (id, 39))
+            .map(|id| (id, 33)) // idle, menu v2
             .collect();
 
         for expect_truncated in [false, false, true] {
@@ -646,15 +646,15 @@ mod tests {
         let mut episode = episode_all_external();
         episode.reset(3);
         let agents = episode.external_agents();
-        let mut actions: BTreeMap<KittyId, usize> = agents.iter().map(|&id| (id, 39)).collect();
-        actions.insert(agents[0], 40);
+        let mut actions: BTreeMap<KittyId, usize> = agents.iter().map(|&id| (id, 33)).collect();
+        actions.insert(agents[0], 34);
         assert!(matches!(
             episode.step(&actions),
-            Err(EpisodeError::ActionOutOfRange { index: 40, .. })
+            Err(EpisodeError::ActionOutOfRange { index: 34, .. })
         ));
 
         // In-range indices naming vacant slots decode and lawfully idle.
-        let mut actions: BTreeMap<KittyId, usize> = agents.iter().map(|&id| (id, 39)).collect();
+        let mut actions: BTreeMap<KittyId, usize> = agents.iter().map(|&id| (id, 33)).collect();
         actions.insert(agents[0], 7); // rest with kitty slot 2 — vacant on a 3-kitty roster? (2 others)
         let step = episode.step(&actions).unwrap();
         let info = step.infos.get(&agents[0]).unwrap();

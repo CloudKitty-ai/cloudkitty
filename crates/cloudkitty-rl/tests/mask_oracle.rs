@@ -27,7 +27,7 @@ use proptest::prelude::*;
 fn assert_mask_matches_engine(world: &World, config: &Config) {
     let snapshot = world.snapshot();
     let obs_cfg = ObservationConfig::default();
-    let codec = ActionCodec::v1(&obs_cfg);
+    let codec = ActionCodec::v2(&obs_cfg);
 
     for kitty in &snapshot.kitties {
         let table = TargetTable::build(&snapshot, kitty.id, &obs_cfg);
@@ -280,7 +280,7 @@ fn crowded_base(config: &Config) -> World {
 fn assert_continuation_masked_in(world: &World, config: &Config, expected: &str) {
     let snapshot = world.snapshot();
     let obs_cfg = ObservationConfig::default();
-    let codec = ActionCodec::v1(&obs_cfg);
+    let codec = ActionCodec::v2(&obs_cfg);
     let table = TargetTable::build(&snapshot, 1, &obs_cfg);
     let mask = legal_action_mask(&snapshot, 1, &table, &codec, config);
 

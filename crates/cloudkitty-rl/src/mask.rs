@@ -77,42 +77,16 @@ mod tests {
         let (world, config) = test_world();
         let snapshot = world.snapshot();
         let cfg = ObservationConfig::default();
-        let codec = ActionCodec::v1(&cfg);
+        let codec = ActionCodec::v2(&cfg);
         let table = TargetTable::build(&snapshot, 1, &cfg);
 
         let mask = legal_action_mask(&snapshot, 1, &table, &codec, &config);
-        assert_eq!(mask.len(), 40);
-        assert!(mask[39], "idle is genuinely legal outside an activity");
+        assert_eq!(mask.len(), 34, "menu v2: the meow rows are gone");
+        assert!(mask[33], "idle (renumbered, spec 028) is genuinely legal");
         assert!(mask[4], "solo rest is always legal");
         assert!(mask[12], "self-groom is always legal");
         assert!(mask[25], "solo play is always legal");
         assert!(mask.iter().filter(|&&b| b).count() >= 4);
-    }
-
-    #[test]
-    fn the_meow_rows_are_retired_with_no_mask_side_carve_out() {
-        // Transitional (spec 028 T005, superseded when the rows leave the
-        // menu in T006): the meow left the activity surface, so every meow
-        // row -- the earned purr row included -- masks out through the
-        // ordinary probe of `validate`. No carve-out on the mask side; the
-        // earned purr gate lives on in `message_legal` (T007/T010 wire the
-        // message head).
-        let (mut world, config) = test_world();
-        let cfg = ObservationConfig::default();
-        let codec = ActionCodec::v1(&cfg);
-
-        let idx = world.kitty_index(1).unwrap();
-        world.kitties[idx].happiness = 90.0; // earned -- and still no row
-        let snapshot = world.snapshot();
-        let table = TargetTable::build(&snapshot, 1, &cfg);
-        let mask = legal_action_mask(&snapshot, 1, &table, &codec, &config);
-        for row in 33..=38 {
-            assert!(!mask[row], "retired meow row {row} must mask out");
-        }
-        assert!(
-            mask[39],
-            "idle keeps the mask from ever going all-zero (structural rule)"
-        );
     }
 
     #[test]
@@ -128,7 +102,7 @@ mod tests {
 
         let snapshot = world.snapshot();
         let cfg = ObservationConfig::default();
-        let codec = ActionCodec::v1(&cfg);
+        let codec = ActionCodec::v2(&cfg);
         let table = TargetTable::build(&snapshot, 1, &cfg);
         let mask = legal_action_mask(&snapshot, 1, &table, &codec, &config);
 
@@ -145,7 +119,7 @@ mod tests {
         let (world, config) = test_world();
         let snapshot = world.snapshot();
         let cfg = ObservationConfig::default();
-        let codec = ActionCodec::v1(&cfg);
+        let codec = ActionCodec::v2(&cfg);
         for kitty in &snapshot.kitties {
             let table = TargetTable::build(&snapshot, kitty.id, &cfg);
             let mask = legal_action_mask(&snapshot, kitty.id, &table, &codec, &config);

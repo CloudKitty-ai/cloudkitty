@@ -117,7 +117,7 @@ determinism suites green.
       message downgrades to Silent in the record. Rewrite
       `repeated_meows_all_emit_and_stamp` to the new emission shape; delete the
       urgent-stamp tests (courtesy retired, T003 note).
-- [ ] T006 [US1] Menu v2 + `MessageCodec` in `crates/cloudkitty-rl/src/codec.rs`:
+- [X] T006 [US1] Menu v2 + `MessageCodec` in `crates/cloudkitty-rl/src/codec.rs`:
       drop the meow-row extend (34 rows), fix the stale `+7` capacity hint,
       `ACTION_SCHEMA_VERSION = 2`; define `HEAD_KINDS: [MessageKind; 8]` in
       `observe.rs` (normative appended order, replacing `LEARNED_MEOWS`; the
