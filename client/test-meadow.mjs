@@ -103,7 +103,7 @@ const EXPORTS =
   ';({ get MEADOW() { return MEADOW; }, MEADOW_DAY, MEADOW_DUSK, MEADOW_NIGHT, setMeadowPalette,' +
   ' mixPaletteColor, mixPalettes, parsePaletteColor,' +
   ' MEADOW_DAWN, bushesFor, drawBushAt, drawGroundCover, MEADOW_SALTS, MEADOW_DEFAULTS, tileHash, drawMeadowGround, drawGridOverlay, groupWaterTiles,' +
-  ' buildPondPath, drawPonds, drawSunbeamGlow, drawWornPaths, VIEW, Presentation,' +
+  ' buildPondPath, drawPonds, pondInradius, drawSunbeamGlow, drawWornPaths, VIEW, Presentation,' +
   ' WorldRenderer })';
 const api = eval(src + EXPORTS);
 
@@ -444,6 +444,96 @@ check('palettes blend entry by entry, arrays included', () => {
   assert(Object.isFrozen(mid), 'blended palettes are frozen like the named ones');
 });
 
+/** Perceived lightness (CIE L*). The pond's depth ramp is tuned on this and
+ *  not on WCAG contrast ratio: that measure exists for text legibility, and
+ *  its +0.05 flare term swamps the comparison at night's luminances -- it
+ *  called night's ramp healthy while it was half again too strong. */
+function lstar(color) {
+  const parsed = api.parsePaletteColor(color);
+  assert(parsed, `parseable colour, got ${color}`);
+  const lin = (c) => {
+    const u = c / 255;
+    return u <= 0.03928 ? u / 12.92 : ((u + 0.055) / 1.055) ** 2.4;
+  };
+  const y = 0.2126 * lin(parsed[0]) + 0.7152 * lin(parsed[1]) + 0.0722 * lin(parsed[2]);
+  return y > 0.008856 ? 116 * Math.cbrt(y) - 16 : 903.3 * y;
+}
+
+check('every phase names its own shore and meniscus', () => {
+  // These were derived at draw time as a fixed push toward white, which is a
+  // daylight assumption: on the night palette it put the shore band 43 L*
+  // over the deep water and the meniscus 49 L* over the ground.
+  for (const [name, p] of Object.entries({
+    day: api.MEADOW_DAY,
+    dusk: api.MEADOW_DUSK,
+    night: api.MEADOW_NIGHT,
+    dawn: api.MEADOW_DAWN,
+  })) {
+    assert(typeof p.pondShore === 'string', `${name} names pondShore`);
+    assert(typeof p.pondMeniscus === 'string', `${name} names pondMeniscus`);
+  }
+});
+
+/* The pond's shape in lightness, in the two phases the owner signed off on
+ * (day and dusk) -- everything below is measured against them.
+ *
+ * An earlier version of this check asserted a constant shore-to-deep ramp of
+ * 24-31 L*, fitted across day, dusk AND dawn. That was wrong twice over: the
+ * band was fitted to include dawn, which the owner then called too bright, and
+ * the ramp is an OUTPUT, not an invariant -- it is whatever pondDeep leaves
+ * under a shore that matches the grass, and it legitimately differs per phase.
+ * What day and dusk actually share is the two relationships below. Replaced
+ * rather than widened: a band stretched to admit night's 7 would have asserted
+ * nothing at all. */
+const PHASES = () => ({
+  day: api.MEADOW_DAY,
+  dusk: api.MEADOW_DUSK,
+  night: api.MEADOW_NIGHT,
+  dawn: api.MEADOW_DAWN,
+});
+
+check('the shore band sits at the grass, in every phase', () => {
+  // Day +1.8, dusk -1.8. This is what stops a pond reading as a lit pool
+  // dropped onto the meadow; night was +19 and dawn +12 before they were
+  // named, and both looked exactly as bright as that sounds.
+  for (const [name, p] of Object.entries(PHASES())) {
+    const d = lstar(p.pondShore) - lstar(p.grassTones[0]);
+    assert(Math.abs(d) < 4, `${name}: shore sits ${d.toFixed(1)} L* off the grass, want within 4`);
+    // The meniscus is a small step above the shore band -- never below it,
+    // and never a second ramp. Shipped: 1.3 / 4.0 / 3.3 / 3.3.
+    const step = lstar(p.pondMeniscus) - lstar(p.pondShore);
+    assert(step > 0 && step < 6, `${name}: meniscus is ${step.toFixed(1)} L* over the shore band`);
+  }
+});
+
+check('every phase gives the pond a bottom', () => {
+  // With the shore pinned to the grass, the depth ramp is entirely pondDeep's
+  // doing, so THAT is what has to be checked. Night shipped at 7 L* under the
+  // grass -- no bottom to fade to, which is why its shore had to shout.
+  // Shipped: -24.2 / -28.7 / -25.0 / -16.7.
+  for (const [name, p] of Object.entries(PHASES())) {
+    const below = lstar(p.grassTones[0]) - lstar(p.pondDeep);
+    assert(below > 12, `${name}: deep water is only ${below.toFixed(1)} L* under the grass`);
+    assert(lstar(p.pondShore) > lstar(p.pondDeep), `${name}: the shore band is lighter than the deep`);
+  }
+});
+
+check('a crossfade holds both relationships all the way across', () => {
+  // Interpolated palettes are the ones nobody ever looks at.
+  for (const [from, to, label] of [
+    [api.MEADOW_DUSK, api.MEADOW_NIGHT, 'dusk->night'],
+    [api.MEADOW_NIGHT, api.MEADOW_DAWN, 'night->dawn'],
+  ]) {
+    for (const t of [0.25, 0.5, 0.75]) {
+      const mid = api.mixPalettes(from, to, t);
+      const d = lstar(mid.pondShore) - lstar(mid.grassTones[0]);
+      assert(Math.abs(d) < 4, `${label} at ${t}: shore ${d.toFixed(1)} L* off the grass`);
+      const below = lstar(mid.grassTones[0]) - lstar(mid.pondDeep);
+      assert(below > 12, `${label} at ${t}: deep only ${below.toFixed(1)} L* under the grass`);
+    }
+  }
+});
+
 check('the ends of a blend are exactly the named palettes', () => {
   assert(api.mixPalettes(api.MEADOW_DAY, api.MEADOW_NIGHT, 0) === api.MEADOW_DAY, 't=0 IS day');
   assert(api.mixPalettes(api.MEADOW_DAY, api.MEADOW_NIGHT, 1) === api.MEADOW_NIGHT, 't=1 IS night');
@@ -633,6 +723,48 @@ check('standing styles cast a shadow, flat ones do not', () => {
   }
   for (const flat of ['cover', 'tuft', 'bramble']) {
     assert(shadowsIn(flat) === 0, `${flat} lies on the ground and casts nothing`);
+  }
+});
+
+check('pondInradius measures the circle that fits, not the tile count', () => {
+  const P2 = (x, y) => ({ x, y });
+  const r = (tiles) => api.pondInradius(tiles);
+  const lone = r([P2(0, 0)]);
+  const lake = r([P2(0, 0), P2(1, 0), P2(0, 1), P2(1, 1)]);
+  const river = r([P2(0, 0), P2(1, 0), P2(2, 0), P2(3, 0)]);
+  // Each within a lattice step of the true 0.5 / 1.0 / 0.5.
+  assert(Math.abs(lone - 0.5) < 0.1, `lone tile ${lone}`);
+  assert(Math.abs(lake - 1.0) < 0.1, `2x2 lake ${lake}`);
+  assert(Math.abs(river - 0.5) < 0.1, `river ${river}`);
+  // The one that matters, and the one an area-based estimate gets exactly
+  // backwards: a four-tile river is as tight as a lone tile, not as roomy
+  // as a four-tile lake. Rivers are a sketched future shape.
+  assert(river < lake * 0.7, `a 1-wide river (${river}) must read tighter than a lake (${lake})`);
+  assert(Math.abs(river - lone) < 0.1, 'and about as tight as a lone tile');
+  // A reentrant corner has to count: axis rays alone read an L as 0.88.
+  const ell = r([P2(0, 0), P2(1, 0), P2(1, 1)]);
+  assert(ell < 0.7, `an L is 1-wide everywhere, got ${ell}`);
+});
+
+check('the depth blur is clamped so every pond has a middle', () => {
+  const d = api.MEADOW_DEFAULTS;
+  const depthAt = (tiles) => {
+    const rad = api.pondInradius(tiles);
+    const sigma = Math.min(d.pondDepthBlurTiles, rad / d.pondDepthBlurClamp);
+    return 1 - Math.exp(-(rad * rad) / (2 * sigma * sigma));
+  };
+  const P2 = (x, y) => ({ x, y });
+  const shapes = {
+    'lone tile': [P2(0, 0)],
+    '2x2 lake': [P2(0, 0), P2(1, 0), P2(0, 1), P2(1, 1)],
+    river: [P2(0, 0), P2(1, 0), P2(2, 0), P2(3, 0)],
+  };
+  for (const [name, tiles] of Object.entries(shapes)) {
+    // Unclamped, the spec's 0.95 leaves a lone tile at 18% and even our
+    // 2x2 lake at 49% -- every pond in this world running pale.
+    const bare = 1 - Math.exp(-(api.pondInradius(tiles) ** 2) / (2 * d.pondDepthBlurTiles ** 2));
+    assert(bare < 0.55, `${name} would not need the clamp (${bare})`);
+    assert(depthAt(tiles) > 0.75, `${name} still has no middle (${depthAt(tiles)})`);
   }
 });
 

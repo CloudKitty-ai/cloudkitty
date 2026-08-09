@@ -231,14 +231,26 @@ const VIEW = Object.freeze({
     // rides on the finished curve (meadow.js buildPondPath); before, the
     // wobble subdivided the edges and capped the radius at 0.25 tile
     // whatever this said.
-    shoreRounding: 0.8, // pond corner rounding, in tiles
-    shoreWobble: 0.08, // shoreline undulation depth, in tiles
+    shoreRounding: 0.35, // pond corner rounding, in tiles
+    // 0 since the pond restyle -- see MEADOW_DEFAULTS for why.
+    shoreWobble: 0,
     shoreWobblePeriod: 0.35, // and its wavelength around the perimeter, in tiles
     // Scales the OUTWARD bulges only: bays cut the full `shoreWobble`,
     // headlands reach this share of it. See meadow.js `wobbleAlong`.
     shoreBulgeEase: 0.75,
     shoreOverdraw: 0.1, // push the whole outline out this far, in tiles
     lilyPadMinTiles: 4, // ponds at least this big carry a lily pad
+    // Pond depth (design handoff spec 02). Reasoning lives beside the
+    // originals in meadow.js's MEADOW_DEFAULTS; these must match it.
+    pondDepthBlurTiles: 0.95,
+    pondDepthBlurClamp: 1.8,
+    pondLipBlurTiles: 0.42,
+    pondLipAlpha: 0.8,
+    meniscusWidthTiles: 0.058,
+    causticLinesPerTile: 1.6,
+    causticLinesMax: 4,
+    causticAlpha: 0.055,
+    causticAmplitude: 0.025,
     glowRadiusTiles: 1.4, // sunbeam glow radius, in tiles
     glowAlpha: 0.6, // overall glow strength
     pathHeatCap: 12, // worn-path heat ceiling per tile (memory, not display)

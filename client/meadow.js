@@ -116,6 +116,20 @@ const MEADOW_DAY = Object.freeze({
   // Water, matching the shipped pool hues so ponds read as the same water.
   pondWater: '#bfe3f2',
   pondShallow: '#daf1fb', // the pale band hugging the inside of the shore
+  pondDeep: '#8ab2c7', // the middle, away from any shore
+  // The shallow band the depth field fades into, and the surface line at the
+  // water's edge. Named per theme rather than mixed toward white at draw
+  // time: a fixed push toward white is a daylight assumption, and it made
+  // both of these shout in the dim phases (see MEADOW_NIGHT).
+  //
+  // Day and dusk are the reference, and what they share is NOT a ramp: it is
+  // that the shore band sits AT the grass (+1.8 here, -1.8 at dusk) with the
+  // meniscus a few L* above it. The depth ramp is then whatever pondDeep
+  // leaves underneath. Both carry exactly what the old mixes produced, so
+  // they render unchanged; night and dawn were tuned to match them.
+  pondShore: '#ebf7fd',
+  pondMeniscus: '#f2fafe',
+  pondLip: '#b9b288', // damp earth just outside the water
   pondRim: '#9ccfe6',
   lilyPad: '#9fcf8e',
   lilyPadRim: '#84b877',
@@ -156,6 +170,20 @@ const MEADOW_NIGHT = Object.freeze({
   jitterShade: '#1f2922',
   pondWater: '#2f4a5c',
   pondShallow: '#3c5a6d',
+  // Night's water was the palette's real outlier, and not in the way the
+  // spec feared. Its deep sat 7 L* under the grass where day is 24 under and
+  // dusk 29 -- so the pond had no bottom to speak of, and the shore band and
+  // meniscus were made to carry the whole read by being far too pale. This
+  // is 25 under the grass, day's own relationship.
+  pondDeep: '#0b1216',
+  // Night is why these are named. Derived, they were a fixed push toward
+  // white -- a daylight assumption that put the shore band 19 L* over the
+  // grass and the meniscus 21 over it, where day and dusk both sit their
+  // shore AT the grass (+1.8 / -1.8) and step the meniscus a few L* above.
+  // A pale ring round a dark middle is what "reads as a hole" looks like.
+  pondShore: '#334958',
+  pondMeniscus: '#3a515f',
+  pondLip: '#444134',
   pondRim: '#52748a',
   lilyPad: '#4d6847',
   lilyPadRim: '#3c5439',
@@ -197,6 +225,10 @@ const MEADOW_DUSK = Object.freeze({
   jitterShade: '#8a8a60',
   pondWater: '#9bbdcd', // 75% of the way from night #2f4a5c to day #bfe3f2
   pondShallow: '#b3cbd8', // (owner-tuned, 2026-07-22: evening light lingers
+  pondDeep: '#749cb2',
+  pondShore: '#d5e2ea',
+  pondMeniscus: '#e4edf1',
+  pondLip: '#b69f70',
   pondRim: '#8ab8cf', // on the water)
   lilyPad: '#93b183',
   lilyPadRim: '#79996d',
@@ -248,6 +280,13 @@ const MEADOW_DAWN = Object.freeze({
   jitterShade: '#5f6a5c',
   pondWater: '#8fa3b0', // water still reads as water, just unlit
   pondShallow: '#a6b8c2',
+  pondDeep: '#6d8da1',
+  // Dawn ran bright the same way night did, just less far: shore 12 L* over
+  // the grass rather than 19. Its deep water is left alone -- at 17 under
+  // the grass it still has a bottom, where night's 7 did not.
+  pondShore: '#a4b7c3',
+  pondMeniscus: '#aec0c9',
+  pondLip: '#8b887d',
   pondRim: '#7b8f9c',
   lilyPad: '#7d9184',
   lilyPadRim: '#66786c',
@@ -362,14 +401,53 @@ const MEADOW_DEFAULTS = Object.freeze({
   // The shoreline. Corners are rounded into arcs first and the wobble rides
   // on the finished curve (buildPondPath); before, the wobble subdivided the
   // edges and capped the radius at 0.25 tile whatever this said.
-  shoreRounding: 0.8, // pond corner rounding, in tiles
-  shoreWobble: 0.08, // shoreline undulation depth, in tiles
+  // 0.8 rounded a lone tile into a plain circle: the radius clamps to half
+  // the shortest edge, and a 1x1 pond's edges are one tile, so anything from
+  // 0.5 up was the same circle. 0.35 is back inside the range where the dial
+  // bites, and the shape reads as a pond rather than a coin.
+  shoreRounding: 0.35, // pond corner rounding, in tiles
+  // 0 since the pond restyle: the damp lip and the meniscus took over
+  // softening the edge, and measured at our pond sizes the undulation was
+  // nearly invisible anyway (a lone tile is identical with it on or off).
+  // Not independent of shoreOverdraw -- see wobbleAlong.
+  shoreWobble: 0,
   shoreWobblePeriod: 0.35, // and its wavelength around the perimeter, in tiles
   // Scales the OUTWARD bulges only: bays cut the full `shoreWobble`,
   // headlands reach this share of it. See `wobbleAlong`.
   shoreBulgeEase: 0.75,
   shoreOverdraw: 0.1, // push the whole outline out this far, in tiles
   lilyPadMinTiles: 4, // ponds at least this big carry a lily pad
+  // --- pond depth (design handoff spec 02) ----------------------------
+  // A blurred copy of the pond's own silhouette IS a distance-to-shore
+  // field: near the edge the blur bleeds outward and coverage falls, deep
+  // inside nothing bleeds in and it stays 1. One blur, no distance
+  // transform, and it bakes when buildPondPath is already rebuilding.
+  pondDepthBlurTiles: 0.95, // depth-field blur radius, in tiles (a CEILING)
+  // ...but the blur must not outrun the pond. Depth at a blob's centre is
+  // 1 - exp(-r^2 / 2*sigma^2), so at the shipped 0.95 a lone tile reaches
+  // 18% and even our 2x2 lake only 49% -- every pond in this world would
+  // run pale. Clamping sigma to inradius/1.8 puts all of them at 80%.
+  // The spec was tuned for a fifteen-tile pond; ours are 1 and 4.
+  pondDepthBlurClamp: 1.8, // sigma <= inradius / this
+  pondLipBlurTiles: 0.42, // blur radius of the damp lip
+  pondLipAlpha: 0.8, // how strongly the lip reads
+  meniscusWidthTiles: 0.058, // surface line, replacing pondRim's hardcoded 1.5px
+  // Ripple lines per pond, scaled by blob area rather than flat: the spec's
+  // 8-per-pond costs MORE than the per-tile shimmer it replaces on a world
+  // of small blobs (ours: 14 strokes today against 32 polylines).
+  //
+  // Dialed 2026-08-09: the ceiling now binds at 3 tiles and up, so on every
+  // blob this world has except the lone tile and the pair, the CAP sets the
+  // count and `causticLinesPerTile` is inert. Kept as the dial anyway --
+  // it is what makes a bigger pond busier if the cap is ever raised.
+  causticLinesPerTile: 1.6,
+  causticLinesMax: 4,
+  // Peak white, composited 'lighter'. Landed at well under half the spec's
+  // 0.13 with a third of its wave depth: at a 31px tile a ribbon is only a
+  // couple of pixels wide, so what reads as "a suggestion of moving water"
+  // in a mockup reads as bold white rope in the world.
+  causticAlpha: 0.055,
+  causticAmplitude: 0.025, // wave depth, in tiles
   glowRadiusTiles: 1.4, // sunbeam glow radius, in tiles
   glowAlpha: 0.6, // overall glow strength
   pathHeatCap: 12, // worn-path heat ceiling per tile (memory, not display)
@@ -914,6 +992,58 @@ function drawGridOverlay(ctx, { width, height, tile }) {
 }
 
 /**
+ * The largest circle that fits inside a blob, in tiles.
+ *
+ * Needed because the depth field is a blurred silhouette, and a blur wider
+ * than the pond has nothing to be deep in the middle of: depth at a blob's
+ * centre is `1 - exp(-r^2 / 2*sigma^2)`, so at the spec's 0.95 a lone tile
+ * reaches 18% and a 2x2 lake 49%. Sigma is clamped to this over
+ * `pondDepthBlurClamp`, which puts every shape we have at ~80%.
+ *
+ * Sampled on a half-tile lattice rather than derived from tile COUNT: area
+ * would call a 1-wide four-tile channel (a river, the shape we know is
+ * coming) as roomy as a 2x2 lake, and it is the one blob that most needs a
+ * tight blur. Blobs are a handful of tiles, and this runs once per cache
+ * rebuild, so walking the lattice costs nothing.
+ */
+function pondInradius(tiles) {
+  const inSet = new Set(tiles.map((p) => `${p.x},${p.y}`));
+  const xs = tiles.map((p) => p.x);
+  const ys = tiles.map((p) => p.y);
+  // Every cell that is NOT water, out to a ring around the blob. The
+  // nearest one bounds the circle -- measured as point-to-rectangle, so a
+  // reentrant corner counts. An axis-ray version was tried and cut: it
+  // read an L as 0.88 tiles when the true answer is 0.18, because the
+  // nearest boundary is diagonal and no ray ever meets it.
+  const out = [];
+  for (let x = Math.min(...xs) - 2; x <= Math.max(...xs) + 2; x++) {
+    for (let y = Math.min(...ys) - 2; y <= Math.max(...ys) + 2; y++) {
+      if (!inSet.has(`${x},${y}`)) out.push([x, y]);
+    }
+  }
+  const toCell = (px, py, cx, cy) => {
+    const dx = Math.max(cx - px, 0, px - (cx + 1));
+    const dy = Math.max(cy - py, 0, py - (cy + 1));
+    return Math.hypot(dx, dy);
+  };
+  const STEP = 0.125;
+  let best = 0;
+  for (const { x, y } of tiles) {
+    for (let sx = STEP / 2; sx < 1; sx += STEP) {
+      for (let sy = STEP / 2; sy < 1; sy += STEP) {
+        let d = Infinity;
+        for (const [cx, cy] of out) {
+          d = Math.min(d, toCell(x + sx, y + sy, cx, cy));
+          if (d <= best) break; // cannot beat the incumbent
+        }
+        best = Math.max(best, d);
+      }
+    }
+  }
+  return best || 0.5;
+}
+
+/**
  * Ponds, step one (US2, research R4): group water tile positions into
  * 4-adjacent blobs. Pure data-in data-out; order-independent.
  */
@@ -1251,22 +1381,165 @@ function simplifyLoop(points) {
  * Ponds, step three (US2): fill + rim the cached shoreline paths; larger
  * ponds carry one hash-placed lily pad (FR-005).
  */
-function drawPonds(ctx, { ponds, tile }) {
+/**
+ * The pond's depth field, damp lip and surface, baked into two layers.
+ *
+ * A blurred copy of a pond's own silhouette IS a distance-to-shore field:
+ * near the edge the blur bleeds outward and coverage falls toward a half,
+ * deep inside nothing bleeds in and it stays 1. So one blur buys depth --
+ * no distance transform, no per-pixel loop.
+ *
+ * **Two layers for the whole world, not two per pond.** The spec offered
+ * a pair of offscreens per pond; at our backing-store size that is ~19MB
+ * each, and this world has four blobs -- ~153MB against ~38MB. Each pond
+ * is built in a scratch and composited in, so the buffers are shared while
+ * the CONTENT stays per-pond, which matters because every pond gets its
+ * own blur radius (see `pondInradius`).
+ *
+ * Built where `buildPondPath` is already rebuilding, so per-frame cost is
+ * two `drawImage` calls.
+ */
+function buildPondLayers(ponds, { tile, widthPx, heightPx, dpr }) {
+  const t = meadowTunables();
+  const make = () => {
+    const c = document.createElement('canvas');
+    c.width = widthPx;
+    c.height = heightPx;
+    const g = c.getContext('2d');
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { c, g };
+  };
+  const shore = make();
+  const lip = make();
+  const scratch = make();
+  const mask = make();
+  const cssW = widthPx / dpr;
+  const cssH = heightPx / dpr;
+  const clear = (l) => l.g.clearRect(0, 0, cssW, cssH);
+
+  for (const pond of ponds) {
+    // Sigma is clamped by the pond's own inradius: a blur wider than the
+    // pond has nothing to be deep in the middle of.
+    const radius = pondInradius(pond.tiles);
+    const sigma =
+      Math.min(t.pondDepthBlurTiles, radius / t.pondDepthBlurClamp) * tile;
+
+    clear(mask);
+    mask.g.fillStyle = '#fff';
+    mask.g.fill(pond.path);
+
+    // Shore: pale everywhere the water is, then the blurred silhouette
+    // punched out of it. What survives is strongest where it is shallow.
+    clear(scratch);
+    scratch.g.fillStyle = MEADOW.pondShore;
+    scratch.g.fill(pond.path);
+    scratch.g.save();
+    scratch.g.globalCompositeOperation = 'destination-out';
+    scratch.g.filter = `blur(${sigma}px)`;
+    scratch.g.drawImage(mask.c, 0, 0, cssW, cssH);
+    scratch.g.restore();
+    shore.g.drawImage(scratch.c, 0, 0, cssW, cssH);
+
+    // Lip: the blurred silhouette stamped in damp earth, with the sharp
+    // path punched out -- a soft ring that exists only OUTSIDE the water.
+    clear(scratch);
+    scratch.g.save();
+    scratch.g.filter = `blur(${t.pondLipBlurTiles * tile}px)`;
+    scratch.g.drawImage(mask.c, 0, 0, cssW, cssH);
+    scratch.g.restore();
+    scratch.g.save();
+    scratch.g.globalCompositeOperation = 'source-in';
+    scratch.g.fillStyle = MEADOW.pondLip;
+    scratch.g.fillRect(0, 0, cssW, cssH);
+    scratch.g.globalCompositeOperation = 'destination-out';
+    scratch.g.fill(pond.path);
+    scratch.g.restore();
+    lip.g.drawImage(scratch.c, 0, 0, cssW, cssH);
+  }
+  // The scratches are the peak, not the resting cost; drop them here.
+  return { shore: shore.c, lip: lip.c, dpr };
+}
+
+/**
+ * Ripple lines across a pond, replacing the per-tile shimmer.
+ *
+ * Count scales with the blob rather than being flat: the spec's 8-per-pond
+ * was costed against a fifteen-tile pond, and on a world of small blobs it
+ * comes to MORE work than the shimmer it replaces (ours: 14 strokes today
+ * against 32 polylines). Scaled, a lone tile gets two.
+ */
+function drawCaustics(ctx, pond, tile, now) {
+  const t = meadowTunables();
+  const xs = pond.tiles.map((p) => p.x);
+  const ys = pond.tiles.map((p) => p.y);
+  const x0 = Math.min(...xs) * tile;
+  const x1 = (Math.max(...xs) + 1) * tile;
+  const y0 = Math.min(...ys) * tile;
+  const y1 = (Math.max(...ys) + 1) * tile;
+  const lines = Math.max(
+    1,
+    Math.min(t.causticLinesMax, Math.round(pond.tiles.length * t.causticLinesPerTile)),
+  );
+  const amp = t.causticAmplitude * tile;
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.strokeStyle = `rgba(255, 255, 255, ${t.causticAlpha})`;
+  ctx.lineCap = 'round';
+  for (let i = 0; i < lines; i++) {
+    const seat = (i + 0.5) / lines;
+    const drift = Math.sin(now / 4200 + i * 1.7) * amp * 0.9;
+    ctx.lineWidth = Math.max(0.6, tile * 0.03 * (1 + 0.35 * Math.sin(now / 2600 + i)));
+    ctx.beginPath();
+    for (let k = 0; k <= 12; k++) {
+      const u = k / 12;
+      const px = x0 + (x1 - x0) * u;
+      const py = y0 + (y1 - y0) * seat + drift + Math.sin(now / 1500 + k * 0.9 + i * 2.1) * amp;
+      k ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawPonds(ctx, { ponds, tile, layers = null, now = 0, motion = true }) {
   const t = meadowTunables();
   ctx.save();
+  // The damp ring first: it lives outside the water, on the grass.
+  if (layers) {
+    ctx.globalAlpha = t.pondLipAlpha;
+    ctx.drawImage(layers.lip, 0, 0, layers.lip.width / layers.dpr, layers.lip.height / layers.dpr);
+    ctx.globalAlpha = 1;
+  }
   for (const pond of ponds) {
-    ctx.fillStyle = MEADOW.pondWater;
+    // A deep middle to sit the shore band on. Without the layers (a caller
+    // that has not baked them) this is the flat pond we always had.
+    ctx.fillStyle = layers ? MEADOW.pondDeep : MEADOW.pondWater;
     ctx.fill(pond.path);
-    // Shallows: a pale band hugging the inside of the shore (a wide
-    // stroke clipped to the pond, so only its inner half shows).
-    ctx.save();
-    ctx.clip(pond.path);
-    ctx.strokeStyle = MEADOW.pondShallow;
-    ctx.lineWidth = tile * 0.24;
-    ctx.stroke(pond.path);
-    ctx.restore();
-    ctx.strokeStyle = MEADOW.pondRim;
-    ctx.lineWidth = 1.5;
+  }
+  if (layers) {
+    ctx.drawImage(layers.shore, 0, 0, layers.shore.width / layers.dpr, layers.shore.height / layers.dpr);
+  } else {
+    // Fallback: the one flat shallow band, as before.
+    for (const pond of ponds) {
+      ctx.save();
+      ctx.clip(pond.path);
+      ctx.strokeStyle = MEADOW.pondShallow;
+      ctx.lineWidth = tile * 0.24;
+      ctx.stroke(pond.path);
+      ctx.restore();
+    }
+  }
+  for (const pond of ponds) {
+    if (motion) {
+      ctx.save();
+      ctx.clip(pond.path);
+      drawCaustics(ctx, pond, tile, now);
+      ctx.restore();
+    }
+    // The meniscus, replacing pondRim's hardcoded 1.5px -- the literal that
+    // made the rim vanish at a 44px tile and shout at 14px.
+    ctx.strokeStyle = MEADOW.pondMeniscus;
+    ctx.lineWidth = Math.max(1, tile * t.meniscusWidthTiles);
     ctx.stroke(pond.path);
     if (pond.tiles.length >= t.lilyPadMinTiles) {
       // Anchor on the pond's lowest (x, y) tile so the pad never moves.
@@ -1291,6 +1564,12 @@ function drawLilyPad(ctx, cx, cy, tile) {
   const rx = tile * 0.26;
   const ry = tile * 0.18;
   ctx.save();
+  // A contact shadow, so the pad sits ON the new deep water rather than
+  // floating over it. Offset down and forward, like everything else here.
+  ctx.fillStyle = 'rgba(20, 50, 70, 0.22)';
+  ctx.beginPath();
+  ctx.ellipse(cx + tile * 0.03, cy + tile * 0.05, rx, ry, 0, 0, TAU);
+  ctx.fill();
   ctx.fillStyle = MEADOW.lilyPad;
   ctx.strokeStyle = MEADOW.lilyPadRim;
   ctx.lineWidth = Math.max(0.8, tile * 0.04);
@@ -1298,8 +1577,15 @@ function drawLilyPad(ctx, cx, cy, tile) {
   ctx.ellipse(cx, cy, rx, ry, 0, 0, TAU);
   ctx.fill();
   ctx.stroke();
-  // The notch: a wedge of water reclaiming the pad.
-  ctx.fillStyle = MEADOW.pondWater;
+  // A lit edge on the upper shoulder.
+  ctx.strokeStyle = mixPaletteColor(MEADOW.lilyPad, '#ffffff', 0.6);
+  ctx.lineWidth = Math.max(0.6, tile * 0.028);
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, rx * 0.92, ry * 0.92, 0, Math.PI * 1.15, Math.PI * 1.85);
+  ctx.stroke();
+  // The notch: a wedge of water reclaiming the pad. In pondDeep, not
+  // pondWater -- against the new body the old pale would glow.
+  ctx.fillStyle = MEADOW.pondDeep;
   ctx.beginPath();
   ctx.moveTo(cx, cy);
   ctx.lineTo(cx + rx * 1.1, cy - ry * 0.9);

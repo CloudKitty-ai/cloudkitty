@@ -98,6 +98,28 @@ V/VI, no assets, gallery-meadow as the lab.
    it is almost entirely "shore". **Three of our four ponds are lone tiles.** Judge
    those first, and expect the blur to want clamping by blob size.
 
+4. **Caustic count comes from AREA; the spacing comes from HEIGHT — so a long
+   thin pond is double-dense.** `lines` is
+   `round(tileCount * causticLinesPerTile)`, capped, but the lines are seated at
+   `(i + 0.5) / lines` across the *bounding-box height*. A 4-tile river and a
+   4-tile lake therefore both ask for 6 lines, and the river has half the
+   vertical room. Each line wanders `±1.9 * causticAmplitude` (0.9 drift + 1.0
+   wave), so lines collide once `height / lines` closes on that. Minimum gap
+   between adjacent lines, sampled over 40s at a 31px tile:
+
+   | values | lone 1x1 | 2x2 lake | river 4x1 |
+   |---|---|---|---|
+   | spec (amp 0.08, cap 8) | 6.7px | 1.5px | **-3.7px, crossing** |
+   | shipped (amp 0.025, cap 4) | 11.9px | 11.9px | 4.2px |
+   | shipped amp, cap 6 | 11.9px | 6.7px | 1.6px |
+
+   The owner found this by eye on exactly the two shapes it predicts, and fixed
+   it by lowering the cap. So **`causticLinesMax` is currently standing in for a
+   density rule**: 4 is chosen by the river, the shape with the least height per
+   tile, and it is what holds the lake's count down too. If ponds ever get
+   bigger or longer, scale the count by bounding-box height instead of tile
+   count and let the cap go back to being a safety net.
+
 **Owner decisions already taken, ahead of the work:**
 - **The cat's wet ripple is already off** (`VIEW.ambient.wetRipple`, 2026-08-09).
   The spec proposes keeping and recolouring those rings; we overrode it — two sets

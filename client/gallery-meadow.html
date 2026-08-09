@@ -80,6 +80,40 @@
   <canvas id="occlusion" width="960" height="230"></canvas>
   <div class="styles" id="occ-labels" style="grid-template-columns: repeat(5, 1fr);"></div>
 
+  <h2>Ponds — depth, lip, caustics, meniscus</h2>
+  <p class="note">
+    The three shapes this world actually has, drawn through the shipped
+    <code>buildPondLayers</code> and <code>drawPonds</code>. The blur is
+    <strong>clamped by each pond&rsquo;s own inradius</strong>: a blur wider
+    than the pond has nothing to be deep in the middle of, and at a flat
+    0.95 a lone tile reaches 18% depth and even the 2&times;2 lake only 49%.
+    The number under each shape is what it actually got. The river is here
+    because area-based sizing would call it as roomy as the lake, and it is
+    the blob that most needs a tight blur.
+  </p>
+  <canvas id="ponds" width="960" height="270"></canvas>
+  <div class="styles" id="pond-labels" style="grid-template-columns: repeat(3, 1fr);"></div>
+
+  <p class="note">
+    <strong>The same render at 3&times;</strong> &mdash; a magnifier, not a
+    bigger draw. Every pixel below is a pixel from the strip above, blown up
+    with smoothing off, so the aliasing on a 1.7px meniscus is the aliasing
+    that ships. Drawing at a 3&times; <em>tile</em> would flatter the art: it
+    would show a 93px tile, and the world&rsquo;s largest is 54.
+  </p>
+  <canvas id="ponds-3x" width="960" height="290"></canvas>
+
+  <p class="note">
+    <strong>All four phases at once</strong>, each with a lone tile and the
+    2&times;2 lake, since the phase buttons only ever show you one. Night is
+    the one to look at: measured, its water separates from the ground less
+    than half as well as day&rsquo;s (contrast 1.29 against 1.98), while the
+    shore-to-deep ramp runs more than twice as strong and the meniscus goes
+    from invisible against the ground to a 5.3 rim. The pale ring and dark
+    centre are what &ldquo;reads as a hole&rdquo; looks like.
+  </p>
+  <canvas id="ponds-phases" width="960" height="160"></canvas>
+
   <h2>Ground cover — the four styles, same seed</h2>
   <p class="note">
     All four bake into the ground cache, which sits under everything: nothing
@@ -118,6 +152,25 @@
   <textarea id="readout" readonly></textarea>
 </div>
 
+<script>
+  // A lab that fails silently is worse than no lab: three times in this arc a
+  // broken harness has impersonated a broken FEATURE, and the tell each time
+  // was a blank canvas. Any uncaught error now says so on the page, in front
+  // of the card it killed, instead of hiding in a console nobody has open.
+  // The commonest cause is a stale cached script -- a browser holding the old
+  // meadow.js will throw `buildPondLayers is not defined` right here.
+  addEventListener('error', (e) => {
+    const bar = document.createElement('div');
+    bar.style.cssText =
+      'position:sticky;top:0;z-index:99;background:#7a1420;color:#fff;padding:10px 14px;'
+      + 'font:13px/1.5 ui-monospace,monospace;white-space:pre-wrap';
+    bar.textContent =
+      `⚠ ${e.message}\n${(e.filename || '').split('/').pop()}:${e.lineno}`
+      + `\nIf this names a function that should exist, hard-reload (Cmd+Shift+R) -- `
+      + `the browser is holding a stale script.`;
+    document.body.prepend(bar);
+  });
+</script>
 <script src="cat.js"></script>
 <script src="cat-v2.js"></script>
 <script>
@@ -163,6 +216,22 @@
     bushLift: [0, 2, 0.05],
     bushBase: [0, 1, 0.02],
     bushShadowThrow: [0, 2, 0.05],
+    // Ponds (design handoff spec 02). The card below draws through the
+    // shipped drawPonds/buildPondLayers, so these are the real dials.
+    pondDepthBlurTiles: [0.1, 2, 0.05],
+    pondDepthBlurClamp: [0.8, 4, 0.05],
+    pondLipBlurTiles: [0, 1.2, 0.02],
+    pondLipAlpha: [0, 1, 0.02],
+    meniscusWidthTiles: [0, 0.14, 0.002],
+    causticLinesPerTile: [0, 4, 0.1],
+    causticLinesMax: [1, 20, 1],
+    causticAlpha: [0, 0.4, 0.005],
+    causticAmplitude: [0, 0.25, 0.005],
+    shoreRounding: [0, 1.6, 0.05],
+    shoreWobble: [0, 0.3, 0.005],
+    shoreWobblePeriod: [0.1, 1.5, 0.05],
+    shoreBulgeEase: [0, 1, 0.05],
+    shoreOverdraw: [0, 0.4, 0.01],
   };
 
   /** Tunables that live in MEADOW_DEFAULTS but belong to layers this lab
@@ -170,7 +239,7 @@
    *  which has its own buttons. Dialing them here would do nothing. */
   const ELSEWHERE = new Set([
     'ponds', 'glow', 'paths', 'gridOverlay', 'bushStyle',
-    'shoreRounding', 'shoreWobble', 'lilyPadMinTiles', 'glowRadiusTiles', 'glowAlpha',
+    'lilyPadMinTiles', 'glowRadiusTiles', 'glowAlpha', 'glowRadiusTiles', 'glowAlpha',
     'pathHeatCap', 'pathFullHeat', 'pathHalfLifeMs', 'pathVisibilityFloor', 'pathTintAlpha',
   ]);
 
@@ -222,6 +291,186 @@
     });
   }
 
+  const POND_SHAPES = [
+    ['lone tile', [{ x: 1, y: 1 }]],
+    ['2x2 lake', [{ x: 1, y: 1 }, { x: 2, y: 1 }, { x: 1, y: 2 }, { x: 2, y: 2 }]],
+    ['1-wide river', [{ x: 1, y: 1 }, { x: 2, y: 1 }, { x: 3, y: 1 }, { x: 4, y: 1 }]],
+  ];
+  let pondBake = null; // { key, cells } -- the blur is expensive, the clock is not
+
+  function pondKey() {
+    const d = VIEW.meadow;
+    return [tile, phase, blend, d.pondDepthBlurTiles, d.pondDepthBlurClamp,
+      d.pondLipBlurTiles, d.shoreRounding, d.shoreWobble].join('|');
+  }
+
+  function renderPonds(now = 0) {
+    const c = document.getElementById('ponds');
+    const g = c.getContext('2d');
+    const cw = c.width / POND_SHAPES.length;
+    if (!pondBake || pondBake.key !== pondKey()) {
+      pondBake = {
+        key: pondKey(),
+        cells: POND_SHAPES.map(([, tiles]) => {
+          const ponds = groupWaterTiles(tiles).map((t) => ({
+            tiles: t, path: buildPondPath(t, tile),
+          }));
+          return {
+            ponds,
+            layers: buildPondLayers(ponds, {
+              tile, widthPx: Math.round(cw), heightPx: c.height, dpr: 1,
+            }),
+            radius: pondInradius(tiles),
+          };
+        }),
+      };
+      const d = VIEW.meadow;
+      document.getElementById('pond-labels').innerHTML = POND_SHAPES
+        .map(([name], i) => {
+          const r = pondBake.cells[i].radius;
+          const sigma = Math.min(d.pondDepthBlurTiles, r / d.pondDepthBlurClamp);
+          return `<div>${name}<br><small>${tile}px tile, actual size · inradius `
+            + `${r.toFixed(2)}t · blur ${sigma.toFixed(2)}t</small></div>`;
+        })
+        .join('');
+    }
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.clearRect(0, 0, c.width, c.height);
+    g.fillStyle = MEADOW.grassTones[0];
+    g.fillRect(0, 0, c.width, c.height);
+    pondBake.cells.forEach((cell, i) => {
+      g.save();
+      g.beginPath();
+      g.rect(i * cw, 0, cw, c.height);
+      g.clip();
+      g.translate(i * cw, 0);
+      drawPonds(g, { ponds: cell.ponds, tile, layers: cell.layers, now, motion: true });
+      g.restore();
+    });
+    drawPondLoupe(c);
+    drawPondPhases(now);
+  }
+
+  /** A lone tile and the lake together, so one cell shows both the shape
+   *  three of our four ponds actually are and the one with a middle. Not
+   *  adjacent, so groupWaterTiles returns them as two ponds and they share
+   *  one pair of offscreens -- the same path the renderer takes. */
+  const PHASE_TILES = [
+    { x: 1, y: 1 },
+    { x: 3, y: 1 }, { x: 4, y: 1 }, { x: 3, y: 2 }, { x: 4, y: 2 },
+  ];
+  const PHASES_4 = ['day', 'dusk', 'night', 'dawn'];
+  let phaseBake = null;
+
+  /**
+   * The same two ponds under all four palettes. The phase buttons show one
+   * at a time, which is no way to catch a palette that is an outlier -- and
+   * night is one on every measure we can take.
+   *
+   * The layers bake their colours in (the shore fill and the lip are mixed
+   * at build time), so the palette has to be set before buildPondLayers AND
+   * again before drawPonds, which reads pondDeep and the meniscus live.
+   */
+  function drawPondPhases(now) {
+    const c = document.getElementById('ponds-phases');
+    const g = c.getContext('2d');
+    const cw = c.width / PHASES_4.length;
+    const key = [tile, VIEW.meadow.pondDepthBlurTiles, VIEW.meadow.pondDepthBlurClamp,
+      VIEW.meadow.pondLipBlurTiles, VIEW.meadow.shoreRounding].join('|');
+    if (!phaseBake || phaseBake.key !== key) {
+      phaseBake = {
+        key,
+        cells: PHASES_4.map((ph) => {
+          setMeadowPalette(ph, null, 0);
+          const ponds = groupWaterTiles(PHASE_TILES)
+            .map((t) => ({ tiles: t, path: buildPondPath(t, tile) }));
+          return {
+            ph,
+            ponds,
+            layers: buildPondLayers(ponds, {
+              tile, widthPx: Math.round(cw), heightPx: c.height, dpr: 1,
+            }),
+          };
+        }),
+      };
+    }
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.clearRect(0, 0, c.width, c.height);
+    phaseBake.cells.forEach((cell, i) => {
+      setMeadowPalette(cell.ph, null, 0);
+      g.save();
+      g.beginPath();
+      g.rect(i * cw, 0, cw, c.height);
+      g.clip();
+      g.fillStyle = MEADOW.grassTones[0];
+      g.fillRect(i * cw, 0, cw, c.height);
+      g.translate(i * cw, 0);
+      drawPonds(g, { ponds: cell.ponds, tile, layers: cell.layers, now, motion: true });
+      // Same pill as the loupe labels: the palette has no ink colour, and
+      // black on night grass is barely there.
+      g.setTransform(1, 0, 0, 1, 0, 0);
+      g.font = '12px ui-monospace, monospace';
+      const w = g.measureText(cell.ph).width + 12;
+      g.fillStyle = 'rgba(0,0,0,0.55)';
+      g.fillRect(i * cw, c.height - 20, w, 20);
+      g.fillStyle = '#fff';
+      g.fillText(cell.ph, i * cw + 6, c.height - 6);
+      g.restore();
+    });
+    applyPalette(); // hand the global palette back to the rest of the page
+  }
+
+  /** A fixed WINDOW in source pixels, not a fixed share of each shape: three
+   *  of them tile the 960 exactly (3 x 300 + 2 x 30), and they keep that
+   *  layout at any tile size, where magnifying whole shapes would overflow
+   *  the moment the tile dial passed ~35px. */
+  const LOUPE = { zoom: 3, sw: 100, sh: 95, gap: 30 };
+
+  /**
+   * The 1x strip, magnified. Deliberately a blit rather than a re-draw at
+   * 3x tile: the point is to judge the meniscus and the caustics at the size
+   * they actually ship, and a bigger tile would quietly re-render them
+   * thicker and smoother instead of showing the real aliasing.
+   */
+  function drawPondLoupe(src) {
+    const c = document.getElementById('ponds-3x');
+    const g = c.getContext('2d');
+    const { zoom, sw, sh, gap } = LOUPE;
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.clearRect(0, 0, c.width, c.height);
+    g.imageSmoothingEnabled = false;
+    const cw = src.width / POND_SHAPES.length;
+    POND_SHAPES.forEach(([name, tiles], i) => {
+      const xs = tiles.map((p) => p.x);
+      const ys = tiles.map((p) => p.y);
+      // Centre the window on the shape, then keep it inside its own cell so
+      // it can never pick up the neighbour's water.
+      const mx = i * cw + ((Math.min(...xs) + Math.max(...xs) + 1) / 2) * tile;
+      const my = ((Math.min(...ys) + Math.max(...ys) + 1) / 2) * tile;
+      const sx = Math.max(i * cw, Math.min(mx - sw / 2, (i + 1) * cw - sw));
+      const sy = Math.max(0, Math.min(my - sh / 2, src.height - sh));
+      const dx = i * (sw * zoom + gap);
+      g.drawImage(src, sx, sy, sw, sh, dx, 0, sw * zoom, sh * zoom);
+      // The same window again at 1:1, inset in the corner, so actual size sits
+      // beside its own magnification instead of a scroll away. Top-right is
+      // the cheapest corner to spend: the shoreline runs through the middle.
+      const ix = dx + sw * zoom - sw;
+      g.drawImage(src, sx, sy, sw, sh, ix, 0, sw, sh);
+      g.strokeStyle = 'rgba(0,0,0,0.45)';
+      g.lineWidth = 1;
+      g.strokeRect(ix + 0.5, 0.5, sw - 1, sh - 1);
+      g.strokeStyle = 'rgba(0,0,0,0.25)';
+      g.strokeRect(dx + 0.5, 0.5, sw * zoom - 1, sh * zoom - 1);
+      g.font = '12px ui-monospace, monospace';
+      const label = `${name} · ${sw}x${sh}px at ${zoom}x · inset is 1:1`;
+      const w = g.measureText(label).width + 12;
+      g.fillStyle = 'rgba(0,0,0,0.55)';
+      g.fillRect(dx, sh * zoom - 20, w, 20);
+      g.fillStyle = '#fff';
+      g.fillText(label, dx + 6, sh * zoom - 6);
+    });
+  }
+
   function render() {
     applyPalette();
     const width = Math.ceil(stage.width / tile);
@@ -241,6 +490,7 @@
       + `Demo world today is 31px; WQHD reaches 47px; 20x20 reaches 54px.`;
     renderStyles();
     renderOcclusion();
+    renderPonds(performance.now());
     readout();
   }
 
@@ -412,6 +662,15 @@
   };
 
   render();
+
+  // The caustics are motion, so the pond card gets its own clock. The bake
+  // is keyed on the dials that change the blur, so this repaints without
+  // rebuilding the layers.
+  (function tickPonds() {
+    renderPonds(performance.now());
+    requestAnimationFrame(tickPonds);
+  })();
+
 })();
 </script>
 </body>
