@@ -20,7 +20,9 @@ snapshot_path = "snapshot.json"
 save_every_ticks = 100
 
 # The roster. At least two kitties, always (Article III: kitties cannot be alone).
-# `behavior` picks a strategy: "needs_driven" or "playful".
+# `behavior` picks a strategy: "needs_driven", "playful", or "policy:<name>"
+# via the matching [rl.policy.<name>] block. All four seats run the certified
+# e004-a1-s2 since the 2026-08-09 all-policy rollout.
 
 [[kitty]]
 id = 1
@@ -39,15 +41,23 @@ id = 2
 name = "Biscuit"
 x = 16
 y = 15
-# Biscuit would rather chase a bug than eat a proper meal.
-behavior = "playful"
+# POLICY SEAT: e004-a1-s2 — all-policy rollout 2026-08-09 (owner's word):
+# the 4x deployment screen (deploy-screen-4x, 30 fresh seeds on the reserved
+# band) beat the 2+2 live composition 0.9499 vs 0.8866 — the scripted seats
+# were the live-welfare cap — and removed the one toxic mixed-composition
+# pairing (chatty scripted emitters x policy listeners). Biscuit's playful
+# years (bug-chasing over proper meals, 2026-07 -> 08) end here.
+behavior = "policy:e004-a1-s2"
 
 [[kitty]]
 id = 3
 name = "Pumpkin"
 x = 13
 y = 6
-behavior = "needs_driven"
+# POLICY SEAT: e004-a1-s2 — all-policy rollout 2026-08-09, with Biscuit's.
+# The needs override below is world-law, not behavior: Pumpkin stays snacky
+# under the policy (the deployment screen ran this exact config).
+behavior = "policy:e004-a1-s2"
 # Any kitty may override the global [needs] rise rates; unset needs keep the
 # defaults. Pumpkin is a snacky little cat.
 [kitty.needs]
@@ -298,7 +308,9 @@ distress_patience_ticks = 60
 # 1,350 stress runs); §9.3 welfare +0.0440 over the paired scripted baseline
 # (0.9500 absolute). Channel: 169.6 meows/1k, Purr-dominant by grounded
 # legality (deviation D-002, registered — not collapse); GroomKitty 93.3/1k
-# where v3 measured 0. Seated at both policy seats 2026-08-09, superseding
+# where v3 measured 0. Seated at both policy seats 2026-08-09 and extended to ALL FOUR the same
+# day on the 4x deployment screen (deploy-screen-4x: 0.9499 vs 0.8866 live;
+# §9.1 water bounds PASS at the all-policy composition), superseding
 # e003-m0-g998-s3 (retired to policies/retired/ with its record — a v1
 # artifact this binary cannot open in any case).
 # Full certification record: experiments/exp-004-meow-channel/results/
