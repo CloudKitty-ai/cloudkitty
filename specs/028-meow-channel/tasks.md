@@ -231,7 +231,7 @@ audible meows; announcing cats mid-errand.
       groomed — `a_meow_keyed_groomer_ignores_silent_wet_cats`), ladder position
       (urgent eat still wins), GroomKitty appears in a seeded 20k-tick run
       (SC-002's engine half).
-- [ ] T014 [US4] Cosleep routing in the `ReliefSource::Sunbeam` arm of
+- [X] T014 [US4] Cosleep routing in the `ReliefSource::Sunbeam` arm of
       `crates/cloudkitty-core/src/behavior/needs_driven.rs`: own Cuddle ≥
       `cuddle_real_threshold` → adjacent friend ? `Sleep { with: Some(f) }` :
       reachable friend (within `sunbeam_reach`) ? step toward : existing sunbeam

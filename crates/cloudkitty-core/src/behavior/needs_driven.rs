@@ -143,7 +143,16 @@ pub(crate) fn take_what_is_here(ctx: &DecisionContext) -> Option<Action> {
                 if ctx.world.element_at(me.pos).map(|e| e.element_type())
                     == Some(ElementType::Sunbeam)
                 {
-                    return Some(Action::Sleep { with: None });
+                    // Cosleep routing reaches the opportunism rung too
+                    // (spec 028 FR-020): real cuddle need plus a friend
+                    // already beside the sunbeam means the nap pays both
+                    // currencies -- the sunbeam is not abandoned, the
+                    // friend is simply named.
+                    let with = (ctx.me.needs.get(NeedKind::Cuddle)
+                        >= ctx.config.behavior.cuddle_real_threshold)
+                        .then(|| adjacent_friend(ctx))
+                        .flatten();
+                    return Some(Action::Sleep { with });
                 }
             }
             // A bug within paw's reach gets batted at, whatever the errand was.
@@ -176,6 +185,30 @@ pub(crate) fn pursue(ctx: &DecisionContext, choice: selection::Choice) -> Action
         ReliefSource::InPlace { use_it } => use_it,
 
         ReliefSource::Sunbeam => {
+            // Cosleep routing (spec 028 FR-020): a sleepy cat with real
+            // cuddle need prefers a friend's side to a sunbeam -- the nap
+            // pays both currencies at once, and the companion's behavior is
+            // unchanged (co-sleeping binds nobody). Below the gate, exactly
+            // the pre-028 sunbeam logic, regression-pinned.
+            if me.needs.get(NeedKind::Cuddle) >= ctx.config.behavior.cuddle_real_threshold {
+                if let Some(friend) = adjacent_friend(ctx) {
+                    return Action::Sleep {
+                        with: Some(friend),
+                    };
+                }
+                // A reachable friend is priced like a reachable sunbeam:
+                // worth a walk within sunbeam_reach, never an expedition.
+                let reachable = world
+                    .others(me.id)
+                    .filter(|k| {
+                        me.pos.manhattan_distance(&k.pos)
+                            <= ctx.config.behavior.sunbeam_reach
+                    })
+                    .min_by_key(|k| (me.pos.manhattan_distance(&k.pos), k.id));
+                if let Some(friend) = reachable {
+                    return step_toward(ctx, friend.pos);
+                }
+            }
             // Already in a sunbeam? Perfect.
             if world.element_at(me.pos).map(|e| e.element_type()) == Some(ElementType::Sunbeam) {
                 return Action::Sleep { with: None };
@@ -1344,6 +1377,76 @@ mod tests {
         assert!(
             groomed > 0,
             "kitty-directed grooming must occur once cats can ask for it"
+        );
+    }
+
+    #[tokio::test]
+    async fn a_sleepy_cat_with_real_cuddle_need_naps_beside_a_friend() {
+        // Spec 028 US4 scenario 3 / FR-020: above the gate, an adjacent
+        // friend beats the sunbeam the cat is standing in -- one nap, two
+        // currencies.
+        let ctx = decision_context(|world| {
+            world.elements.clear();
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(4, 4);
+            world.kitties[a].needs.add(NeedKind::Sleep, 99.0);
+            world.kitties[a].needs.add(NeedKind::Cuddle, 40.0);
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(4, 5);
+            world.push_element(Element {
+                id: 900,
+                kind: ElementKind::Sunbeam,
+                pos: Position::new(4, 4),
+                ttl: Some(100),
+            });
+        });
+        assert_eq!(
+            NeedsDriven.decide_action(&ctx),
+            Action::Sleep { with: Some(2) },
+            "the friend's side wins over the sunbeam underfoot"
+        );
+    }
+
+    #[tokio::test]
+    async fn a_sleepy_cat_with_real_cuddle_need_walks_to_a_reachable_friend() {
+        let ctx = decision_context(|world| {
+            world.elements.clear();
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(4, 4);
+            world.kitties[a].needs.add(NeedKind::Sleep, 99.0);
+            world.kitties[a].needs.add(NeedKind::Cuddle, 40.0);
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(9, 4); // within sunbeam_reach (8)
+        });
+        assert!(
+            matches!(NeedsDriven.decide_action(&ctx), Action::Move { .. }),
+            "a friend within reach is worth the walk"
+        );
+    }
+
+    #[tokio::test]
+    async fn below_the_gate_the_sunbeam_logic_is_untouched() {
+        // The regression pin: cuddle below cuddle_real_threshold means
+        // exactly the pre-028 behavior -- the sunbeam underfoot wins.
+        let ctx = decision_context(|world| {
+            world.elements.clear();
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(4, 4);
+            world.kitties[a].needs.add(NeedKind::Sleep, 99.0);
+            // Cuddle stays at its generated default, below the gate.
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(4, 5);
+            world.push_element(Element {
+                id: 901,
+                kind: ElementKind::Sunbeam,
+                pos: Position::new(4, 4),
+                ttl: Some(100),
+            });
+        });
+        assert_eq!(
+            NeedsDriven.decide_action(&ctx),
+            Action::Sleep { with: None },
+            "below the gate: the sunbeam, exactly as before"
         );
     }
 }
