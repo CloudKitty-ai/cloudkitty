@@ -42,7 +42,11 @@ class); groom/sleep/rest 0.0399 → 0.0398 (unmoved to three decimals);
 **play/chase 0.0245 → 0.0125 (halved)** — plausibly the 026/027
 geometry (lake + edge penalty reshaped chase paths) and the smaller
 v5-base world mix, flagged for the §10.1 watchlist, not adjudicated
-here.
+here. *(Adjudicated same day at the owner's ask — WITHDRAWN as a
+batch artifact: the identical-config band-B replication gives 0.0390
+(3.1× band A), and pooling to 300 worlds dissolves significance;
+play/chase sits at the detection floor. See
+[play-share/play-share.md](play-share/play-share.md).)*
 
 ## F-004: the world-count bar, re-derived on this engine
 
