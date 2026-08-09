@@ -90,39 +90,29 @@ mod tests {
     }
 
     #[test]
-    fn the_purr_row_is_earned_gated_with_no_mask_side_carve_out() {
-        // Spec 022 FR-004: row 38 (the purr-meow) is the one earned-gated
-        // meow row. The gate lives in `action::validate`; this test goes
-        // through the ordinary mask path, so it also proves no carve-out
-        // was added on the mask side.
+    fn the_meow_rows_are_retired_with_no_mask_side_carve_out() {
+        // Transitional (spec 028 T005, superseded when the rows leave the
+        // menu in T006): the meow left the activity surface, so every meow
+        // row -- the earned purr row included -- masks out through the
+        // ordinary probe of `validate`. No carve-out on the mask side; the
+        // earned purr gate lives on in `message_legal` (T007/T010 wire the
+        // message head).
         let (mut world, config) = test_world();
         let cfg = ObservationConfig::default();
         let codec = ActionCodec::v1(&cfg);
 
         let idx = world.kitty_index(1).unwrap();
-        world.kitties[idx].happiness = 50.0;
-        world.kitties[idx].happiness_rose = false;
+        world.kitties[idx].happiness = 90.0; // earned -- and still no row
         let snapshot = world.snapshot();
         let table = TargetTable::build(&snapshot, 1, &cfg);
         let mask = legal_action_mask(&snapshot, 1, &table, &codec, &config);
-        assert!(!mask[38], "an unearned kitty cannot choose to purr");
+        for row in 33..=38 {
+            assert!(!mask[row], "retired meow row {row} must mask out");
+        }
         assert!(
             mask[39],
             "idle keeps the mask from ever going all-zero (structural rule)"
         );
-
-        world.kitties[idx].happiness = 90.0;
-        let snapshot = world.snapshot();
-        let table = TargetTable::build(&snapshot, 1, &cfg);
-        let mask = legal_action_mask(&snapshot, 1, &table, &codec, &config);
-        assert!(mask[38], "an earned kitty may choose to purr");
-
-        world.kitties[idx].happiness = 50.0;
-        world.kitties[idx].happiness_rose = true;
-        let snapshot = world.snapshot();
-        let table = TargetTable::build(&snapshot, 1, &cfg);
-        let mask = legal_action_mask(&snapshot, 1, &table, &codec, &config);
-        assert!(mask[38], "a brightening kitty may choose to purr (rose)");
     }
 
     #[test]

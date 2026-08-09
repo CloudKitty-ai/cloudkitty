@@ -58,16 +58,6 @@ impl Decision {
         }
     }
 
-    /// Transitional inverse of `from_legacy`, applied at the engine boundary
-    /// until the message apply path lands (T005): a decision carrying a
-    /// message realizes as the turn-spending meow it always was, so the
-    /// world's evolution is byte-identical across the carrier change.
-    pub(crate) fn transitional_action(self) -> Action {
-        match self.message {
-            Some(message) => Action::Meow { message },
-            None => self.activity,
-        }
-    }
 }
 
 impl From<Action> for Decision {
@@ -276,25 +266,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn the_legacy_mapping_and_its_boundary_inverse_round_trip() {
-        // Transitional pair (spec 028 T004): from_legacy lifts every action
-        // into the two-channel shape injectively, and transitional_action
-        // realizes it back -- which is the whole byte-identity argument for
-        // the carrier change.
-        for action in [
-            Action::Idle,
-            Action::Eat,
-            Action::Meow {
-                message: MessageKind::WantEat,
-            },
-            Action::Meow {
-                message: MessageKind::WaitForMe,
-            },
-        ] {
-            let decision = Decision::from_legacy(action);
-            assert_eq!(decision.transitional_action(), action);
-        }
-        // A meow rides the channel; the turn is idle.
+    fn the_legacy_mapping_rides_the_channel() {
+        // Transitional (spec 028): from_legacy lifts the retiring
+        // turn-spending meow onto the two-channel shape -- the message
+        // rides, the turn is idle -- and leaves everything else silent.
         let d = Decision::from_legacy(Action::Meow {
             message: MessageKind::WantPlay,
         });
@@ -302,7 +277,11 @@ mod tests {
             (d.activity, d.message),
             (Action::Idle, Some(MessageKind::WantPlay))
         );
-        // A bare activity is silent.
+        assert_eq!(
+            Decision::from_legacy(Action::Eat),
+            Decision::silent(Action::Eat)
+        );
+        // A bare activity converts silently -- the typed-driver promise.
         assert_eq!(Decision::from(Action::Eat).message, None);
     }
 }

@@ -322,16 +322,13 @@ pub fn validate(world: &World, kitty_id: KittyId, proposal: Action, config: &Con
     };
 
     let legal = match proposal {
-        // The purr-meow is the deliberate purr since spec 022: only a
-        // content cat may choose to purr -- the motor's earned rule, shared
-        // via `Kitty::purr_earned`. An unearned proposal resolves to
-        // Idle like any other illegal one (Article IV); the RL mask derives
-        // this gate from here (spec 014 encodings: no carve-outs). Every
-        // other meow kind keeps the always-legal doctrine.
-        Action::Meow {
-            message: MessageKind::Purr,
-        } => kitty.purr_earned(config.thresholds.purr),
-        Action::Idle | Action::Meow { .. } => true,
+        // Spec 028: the meow left the activity menu -- the message channel
+        // (`Decision.message`, ruled by `meow::message_legal`) is the only
+        // way to speak, deliberate purr included. A stray Meow proposal
+        // (plugin wire, stale replay) resolves to Idle: the Purr-retirement
+        // precedent, lawful degradation over error.
+        Action::Meow { .. } => false,
+        Action::Idle => true,
 
         // A meow that is on cooldown is still a legal action -- it just produces
         // silence. Purring retired as an action in spec 011: it is engine-owned
@@ -604,14 +601,27 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
         // over the wire-compatible Action surface.
         Action::Purr => {}
 
-        Action::Meow {
-            message: MessageKind::Purr,
-        } => {
-            start_deliberate_purr(world, kitty_id, config, tick);
-        }
-        Action::Meow { message } => {
-            emit_meow(world, kitty_id, message, config, tick);
-        }
+        // Unreachable through validation since spec 028 (the message
+        // channel is the only way to meow); a harmless no-op like Purr,
+        // because `apply` stays total over the wire-compatible surface.
+        Action::Meow { .. } => {}
+    }
+}
+
+/// Applies one kitty's **message** for the tick (spec 028): the second half
+/// of a `Decision`, ruled legal by `meow::message_legal` before this is
+/// called. `Purr` starts the deliberate purr (the same phenomenon the
+/// retired purr-meow row started); every other kind emits.
+pub(crate) fn apply_message(
+    world: &mut World,
+    kitty_id: KittyId,
+    kind: MessageKind,
+    config: &Config,
+    tick: u64,
+) {
+    match kind {
+        MessageKind::Purr => start_deliberate_purr(world, kitty_id, config, tick),
+        _ => emit_message(world, kitty_id, kind, config, tick),
     }
 }
 
@@ -791,20 +801,25 @@ fn apply_sleep_relief(
     }
 }
 
-fn emit_meow(
+fn emit_message(
     world: &mut World,
     kitty_id: KittyId,
     message: MessageKind,
     config: &Config,
     tick: u64,
 ) {
-    if world.kitty(kitty_id).is_none() {
+    let Some(kitty) = world.kitty(kitty_id) else {
         return;
-    }
-    // Spec 028: one uniform stamp -- the audibility window doubles as the
-    // per-kind cooldown, so a signal may refresh exactly as the old one
-    // fades and never sooner. (Interim: still consulted voluntarily via
-    // can_meow until the message mask lands and makes it law.)
+    };
+    // The stamped intensity (spec 028): the grounding need's value at
+    // emission, on [0, 1] -- a listener hears how hungry, not just that.
+    // The social words (FollowMe, WaitForMe) carry 0.0.
+    let intensity = message
+        .related_need()
+        .map(|need| (kitty.needs.get(need) / 100.0).clamp(0.0, 1.0))
+        .unwrap_or(0.0);
+    // One uniform stamp: the audibility window doubles as the per-kind
+    // cooldown -- one live digest entry per kind per emitter, never sooner.
     if let Some(idx) = world.kitty_index(kitty_id) {
         world.kitties[idx].set_meow_cooldown(message, tick + config.meow.recent_window_ticks);
     }
@@ -812,7 +827,7 @@ fn emit_meow(
         kitty_id,
         kind: message,
         tick,
-        intensity: 0.0,
+        intensity,
     });
 }
 
@@ -1096,24 +1111,21 @@ mod tests {
 
     #[test]
     fn a_deliberate_purr_starts_a_real_purr_with_one_announcement() {
-        // Spec 022 US1: the purr-meow row starts a purr phase with the
-        // normal duration draw and exactly one start announcement -- even
-        // under an active motor cooldown (choice beats reflex, FR-005).
+        // Spec 022 US1, carried by the message channel since spec 028: the
+        // purr message starts a purr phase with the normal duration draw and
+        // exactly one start announcement -- even under an active motor
+        // cooldown (choice beats reflex, FR-005).
         let (mut world, config) = test_world();
         world.tick = 50;
         let idx = world.kitty_index(1).unwrap();
         world.kitties[idx].happiness = 90.0; // earned
         world.kitties[idx].purr_cooldown_until = 1_000; // motor deep in rest
 
-        let proposal = Action::Meow {
-            message: MessageKind::Purr,
-        };
-        assert_eq!(
-            validate(&world, 1, proposal, &config),
-            proposal,
-            "an earned purr-meow is legal"
+        assert!(
+            crate::meow::message_legal(world.kitty(1).unwrap(), MessageKind::Purr, 50, &config),
+            "an earned purr message is legal"
         );
-        apply(&mut world, 1, proposal, &config);
+        apply_message(&mut world, 1, MessageKind::Purr, &config, 50);
 
         let kitty = world.kitty(1).unwrap();
         let until = kitty.purring_until.expect("the chosen purr is real");
@@ -1136,24 +1148,47 @@ mod tests {
     }
 
     #[test]
-    fn an_unearned_purr_meow_resolves_to_idle() {
-        // Spec 022 FR-004: the one earned-gated meow row. Well-formed but
-        // illegal resolves to the idle no-op (Article IV).
+    fn an_unearned_purr_message_is_illegal() {
+        // Spec 022 FR-004's earned gate, spoken through the channel since
+        // spec 028: message_legal says no, so enforcement downgrades the
+        // message to Silent (the channel's Article IV).
         let (mut world, config) = test_world();
         let idx = world.kitty_index(1).unwrap();
         world.kitties[idx].happiness = 50.0;
         world.kitties[idx].happiness_rose = false;
-        assert_eq!(
-            validate(
-                &world,
-                1,
-                Action::Meow {
-                    message: MessageKind::Purr,
-                },
-                &config,
-            ),
-            Action::Idle
+        assert!(!crate::meow::message_legal(
+            world.kitty(1).unwrap(),
+            MessageKind::Purr,
+            world.tick,
+            &config
+        ));
+    }
+
+    #[test]
+    fn a_retired_meow_proposal_lawfully_resolves() {
+        // Spec 028 (the Purr-retirement precedent): the meow left the
+        // activity menu. A stray Meow proposal -- plugin wire, stale
+        // replay -- parses, validates to Idle, and applies as a no-op;
+        // never an error, never an emission.
+        let (mut world, config) = test_world();
+        for message in MessageKind::ALL {
+            let proposal = Action::Meow { message };
+            assert_eq!(
+                validate(&world, 1, proposal, &config),
+                Action::Idle,
+                "{message:?} as an activity resolves to Idle"
+            );
+        }
+        let before = world.recent_meows.len();
+        apply(
+            &mut world,
+            1,
+            Action::Meow {
+                message: MessageKind::WantEat,
+            },
+            &config,
         );
+        assert_eq!(world.recent_meows.len(), before, "no emission from apply");
     }
 
     #[test]
@@ -1169,15 +1204,11 @@ mod tests {
         world.kitties[idx].purring_duration = Some(9);
         let twin = world.clone();
 
-        let proposal = Action::Meow {
-            message: MessageKind::Purr,
-        };
-        assert_eq!(
-            validate(&world, 1, proposal, &config),
-            proposal,
-            "legal while purring -- the no-op still costs the turn"
+        assert!(
+            crate::meow::message_legal(world.kitty(1).unwrap(), MessageKind::Purr, 50, &config),
+            "legal while purring -- the no-op is lawful, not masked"
         );
-        apply(&mut world, 1, proposal, &config);
+        apply_message(&mut world, 1, MessageKind::Purr, &config, 50);
 
         assert_eq!(
             serde_json::to_string(&world).unwrap(),
@@ -1229,62 +1260,53 @@ mod tests {
     }
 
     #[test]
-    fn repeated_meows_all_emit_and_stamp() {
-        // Spec 023 (SC-001/SC-007): replaces the retired
-        // `meows_on_cooldown_are_silently_dropped` -- the swallow assertion
-        // is deliberately gone, because the swallow is. Every validated
-        // meow emits; the bookkeeping stamp advances as a record.
+    fn every_emission_stamps_and_is_heard() {
+        // Spec 028 emission shape: apply_message emits (recent_meows push,
+        // audible to everyone) and stamps the per-kind cooldown in the same
+        // breath. Legality is the caller's ruling (message_legal) -- this
+        // path itself never swallows.
         let (mut world, config) = test_world();
-        apply(
-            &mut world,
-            1,
-            Action::Meow {
-                message: MessageKind::FollowMe,
-            },
-            &config,
-        );
+        let tick = world.tick;
+        apply_message(&mut world, 1, MessageKind::FollowMe, &config, tick);
         assert_eq!(world.recent_meows.len(), 1);
         let first_stamp = world.kitty(1).unwrap().meow_cooldowns[&MessageKind::FollowMe];
+        assert_eq!(first_stamp, tick + config.meow.recent_window_ticks);
 
-        // Immediately again: no cooldown, no state can null it -- it emits.
         world.tick += 1;
-        apply(
-            &mut world,
-            1,
-            Action::Meow {
-                message: MessageKind::FollowMe,
-            },
-            &config,
-        );
-        assert_eq!(world.recent_meows.len(), 2, "the second meow is heard too");
+        let tick = world.tick;
+        apply_message(&mut world, 1, MessageKind::FollowMe, &config, tick);
+        assert_eq!(world.recent_meows.len(), 2, "the emit path never swallows");
         let second_stamp = world.kitty(1).unwrap().meow_cooldowns[&MessageKind::FollowMe];
-        assert!(
-            second_stamp > first_stamp,
-            "every emission stamps the bookkeeping record"
-        );
+        assert!(second_stamp > first_stamp, "every emission re-stamps");
     }
 
     #[test]
-    fn the_stamp_is_the_window() {
-        // Spec 028: the urgent carve-out is retired -- every emission stamps
-        // tick + recent_window_ticks, urgent need or not. One live digest
-        // entry per kind is the whole cadence story now.
+    fn the_stamp_is_the_window_and_intensity_is_the_need() {
+        // Spec 028: every emission stamps tick + recent_window_ticks (the
+        // urgent carve-out is gone), and a want-kind stamps the grounding
+        // need's value /100 as its intensity; social words stamp 0.0.
         let (mut world, config) = test_world();
         let idx = world.kitty_index(1).unwrap();
-        world.kitties[idx].needs.add(NeedKind::Eat, 90.0); // urgency changes nothing
+        world.kitties[idx].needs.add(NeedKind::Eat, 90.0);
         let tick = world.tick;
-        apply(
-            &mut world,
-            1,
-            Action::Meow {
-                message: MessageKind::WantEat,
-            },
-            &config,
-        );
+        apply_message(&mut world, 1, MessageKind::WantEat, &config, tick);
         assert_eq!(
             world.kitty(1).unwrap().meow_cooldowns[&MessageKind::WantEat],
             tick + config.meow.recent_window_ticks,
             "uniform stamp: the window is the cooldown"
+        );
+        let meow = world.recent_meows.last().unwrap();
+        assert!(
+            (meow.intensity - 0.9).abs() < 1e-6,
+            "want-kind intensity is need/100, got {}",
+            meow.intensity
+        );
+
+        apply_message(&mut world, 1, MessageKind::FollowMe, &config, tick);
+        assert_eq!(
+            world.recent_meows.last().unwrap().intensity,
+            0.0,
+            "social words carry no intensity"
         );
     }
 

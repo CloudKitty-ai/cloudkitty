@@ -289,23 +289,6 @@ impl World {
         }
     }
 
-    /// The decision-carrying entry to the applied phases (spec 028):
-    /// transitional -- realizes each decision as its legacy action at the
-    /// boundary (a carried message is the turn-spending meow it always was)
-    /// until the message apply path lands (T005), which is what keeps the
-    /// carrier change byte-invisible to the world's evolution.
-    pub(crate) fn run_applied_phases_from_decisions(
-        &mut self,
-        decisions: &[(KittyId, crate::seam::Decision)],
-        config: &Config,
-    ) -> PhaseOutcome {
-        let actions: Vec<(KittyId, crate::action::Action)> = decisions
-            .iter()
-            .map(|&(id, d)| (id, d.transitional_action()))
-            .collect();
-        self.run_applied_phases(&actions, config)
-    }
-
     /// Phases 2-4 of the constitutional tick, shared verbatim by the
     /// behavior-driven tick and the joint-action seam (spec 014 FR-002).
     ///
@@ -314,9 +297,16 @@ impl World {
     /// when the action lands -- so the first cat to reach the last serving
     /// gets it and the second one simply idles; *which* cat is first is a
     /// fresh draw every tick, never a standing privilege of a low id.
-    pub(crate) fn run_applied_phases(
+    ///
+    /// Spec 028: each kitty's turn applies its decision's **activity** first
+    /// (the pipeline above, unchanged) and then its **message** -- ruled by
+    /// `meow::message_legal`; an illegal message downgrades to Silent with
+    /// the paired activity untouched. Message application rides the same
+    /// fair turn order, so digest freshness ties resolve identically on
+    /// every replay of a seed.
+    pub(crate) fn run_applied_phases_from_decisions(
         &mut self,
-        decisions: &[(KittyId, crate::action::Action)],
+        decisions: &[(KittyId, crate::seam::Decision)],
         config: &Config,
     ) -> PhaseOutcome {
         self.pending_endings.clear();
@@ -324,13 +314,14 @@ impl World {
 
         let order = self.draw_turn_order();
         for kitty_id in order {
-            let Some(proposal) = decisions
+            let Some(decision) = decisions
                 .iter()
                 .find(|(id, _)| *id == kitty_id)
-                .map(|&(_, action)| action)
+                .map(|&(_, decision)| decision)
             else {
                 continue;
             };
+            let proposal = decision.activity;
             // An activity whose counterpart is gone ends before anything else
             // happens (spec 006 FR-010): the world moved on, and the kitty's
             // proposal gets its normal hearing.
@@ -348,7 +339,18 @@ impl World {
             }
             action::apply(self, kitty_id, enforced, config);
             self.update_pursuit(kitty_id, enforced, config);
-            per_kitty.push((kitty_id, validated, enforced));
+            // The message half: legality read after the activity landed
+            // (defined order -- activity, then message), enforcement as
+            // downgrade-to-Silent, never an error.
+            let tick = self.tick;
+            let applied_message = decision.message.filter(|&kind| {
+                self.kitty(kitty_id)
+                    .is_some_and(|k| crate::meow::message_legal(k, kind, tick, config))
+            });
+            if let Some(kind) = applied_message {
+                action::apply_message(self, kitty_id, kind, config, tick);
+            }
+            per_kitty.push((kitty_id, validated, enforced, applied_message));
         }
 
         // Phase 2, closing step: activities that finished their job this tick
@@ -1160,19 +1162,33 @@ enum DurationRuling {
 /// the per-kitty (validated, applied) pairs in this tick's turn order, and
 /// the events the tick produced (spec 014 FR-003).
 pub(crate) struct PhaseOutcome {
-    pub per_kitty: Vec<(KittyId, crate::action::Action, crate::action::Action)>,
+    pub per_kitty: Vec<(
+        KittyId,
+        crate::action::Action,
+        crate::action::Action,
+        Option<crate::meow::MessageKind>,
+    )>,
     pub distress_events: Vec<DistressEvent>,
     pub activity_endings: Vec<ActivityEnd>,
 }
 
 impl PhaseOutcome {
-    /// The (validated, applied) pair per kitty, keyed for record building.
+    /// The (validated, applied, applied_message) triple per kitty, keyed
+    /// for record building.
+    #[allow(clippy::type_complexity)]
     fn applied_by_id(
         &self,
-    ) -> std::collections::BTreeMap<KittyId, (crate::action::Action, crate::action::Action)> {
+    ) -> std::collections::BTreeMap<
+        KittyId,
+        (
+            crate::action::Action,
+            crate::action::Action,
+            Option<crate::meow::MessageKind>,
+        ),
+    > {
         self.per_kitty
             .iter()
-            .map(|&(id, validated, applied)| (id, (validated, applied)))
+            .map(|&(id, validated, applied, message)| (id, (validated, applied, message)))
             .collect()
     }
 
@@ -1196,22 +1212,13 @@ impl PhaseOutcome {
         decisions
             .into_iter()
             .map(|(kitty_id, decision, provenance, decision_seed)| {
-                let (validated, applied) = applied_by_id
+                let (validated, applied, applied_message) = applied_by_id
                     .get(&kitty_id)
                     .copied()
                     .expect("the phase pipeline hears every kitty that has a decision");
-                // Transitional (spec 028): the activity triple reports the
-                // realized legacy action, so parity with pre-028 reports
-                // holds; the message columns read the channel. A message
-                // that emitted shows in the applied action's meow-ness
-                // until the split apply path (T005) records it directly.
-                let applied_message = match applied {
-                    crate::action::Action::Meow { message } => Some(message),
-                    _ => None,
-                };
                 crate::seam::KittyTickRecord {
                     kitty_id,
-                    proposed: decision.transitional_action(),
+                    proposed: decision.activity,
                     validated,
                     applied,
                     proposed_message: decision.message,
@@ -1563,13 +1570,13 @@ mod tests {
         world.tick = 10;
         let idx = world.kitty_index(1).unwrap();
         world.kitties[idx].happiness = 90.0;
-        crate::action::apply(
+        // The deliberate purr rides the message channel since spec 028.
+        crate::action::apply_message(
             &mut world,
             1,
-            crate::action::Action::Meow {
-                message: crate::meow::MessageKind::Purr,
-            },
+            crate::meow::MessageKind::Purr,
             &config,
+            10,
         );
         let kitty = world.kitty(1).unwrap();
         assert!(kitty.purring_until.is_some(), "the deliberate purr started");

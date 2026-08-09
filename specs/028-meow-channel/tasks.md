@@ -104,7 +104,7 @@ determinism suites green.
       `wait_for_them` becomes `(Idle, Some(WaitForMe))` (final form) in
       `behavior/selection.rs`; update seam/parity tests
       (`joint_action_parity.rs`, `the_resolver_and_the_served_path_decide_identically`).
-- [ ] T005 [US1] Retire `Action::Meow` and build the message apply path in
+- [X] T005 [US1] Retire `Action::Meow` and build the message apply path in
       `crates/cloudkitty-core/src/action.rs` + `meow.rs`: `validate` → `false`
       for `Meow` (Purr precedent; add `a_retired_meow_proposal_lawfully_resolves`
       beside the purr twins, keep the round-trip corpus green); new
