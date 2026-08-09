@@ -805,3 +805,36 @@ disjoint band reported as a drift alarm.
   already below hysteresis), abandoned-pursuit share — so B's record
   states how much herding it contains; revisit as a config change
   only if the redundant share turns out pathological, with data.
+- ~~Spec 028 analyze items 7+8 (Product asked for Experiments'
+  position)~~ **ANSWERED 2026-08-08:**
+  - **Item 7 — message downgrades invisible py-side
+    (`episode.rs:460`): NOD GIVEN, and ask for the VALUE, not a
+    flag.** `survived` compares activity halves only and
+    `proposed_message` never reaches the info dict, so a trainer
+    cannot distinguish downgraded-to-Silent from chose-Silent. Add
+    `proposed_message` (wire name, symmetric with the existing
+    `applied_message`; `None` for `SubstitutedIdle` per the
+    honest-bookkeeping rule) — survival is then derivable py-side and
+    the downgraded KIND is visible. Experiments-side stakes: (1)
+    **F-015's first-probe obligation extends to the message head** —
+    "mask-legal messages never downgrade" must be falsifiable from
+    the trainer, one-line comparison with the field, Rust instrument
+    without it; (2) **D1's interpretability depends on it** —
+    channel-collapse diagnosis requires quiet-by-choice vs
+    quiet-by-downgrade to be separable. Also requested on the batched
+    info-array surface (`lib.rs:760`), the path training loops read.
+  - **Item 8 — WaitForMe seam latitude (`meow.rs:111`): DOC NOTE, no
+    guard.** `message_legal` grants WaitForMe on cooldown alone;
+    only trusted in-process seam callers could exploit it (Python and
+    plugins can't reach it). A guard would make message legality
+    provenance-aware — the first legality rule reading a proposal's
+    source — for zero reachable benefit: head-exclusion already
+    guards the reachable surface exactly as Purr's `purr_earned` gate
+    guards its own (law for reachable surfaces, convention for
+    trusted ones — the recorded pre-028 posture). Load-bearing for
+    us: **replay instruments ARE the in-process caller** — twin-probe
+    re-proposes recorded decisions through the seam, and a
+    source-guard would downgrade a recorded yield-rule WaitForMe and
+    break bit-exact replay (house byte-identical methodology). Ask:
+    one sentence at `message_legal` making the latitude explicit
+    ("convention, not law — guarded at the head, not the seam").
