@@ -821,6 +821,7 @@ fn emit_meow(
         kitty_id,
         kind: message,
         tick,
+        intensity: 0.0,
     });
 }
 

@@ -36,7 +36,15 @@ impl Behavior for NeedsDriven {
         let (most_pressing, pressure) = ctx.me.needs.highest_pressure();
 
         // Speak up when something is getting urgent -- but not every single tick.
-        if let Some(message) = MessageKind::for_need(most_pressing) {
+        // Transitional (spec 028 T002): `for_need` is total now, but the
+        // lottery keeps its pre-028 vocabulary so the ladder below it is
+        // undisturbed mid-branch; T012 replaces the lottery wholesale with
+        // the deterministic two-channel announce rule.
+        if matches!(
+            most_pressing,
+            NeedKind::Eat | NeedKind::Drink | NeedKind::Play | NeedKind::Cuddle
+        ) {
+            let message = MessageKind::for_need(most_pressing);
             if pressure >= ctx.config.meow.urgent_need_threshold
                 && ctx.me.can_meow(message, ctx.world.tick)
                 && ctx.rng.gen_bool(0.3)

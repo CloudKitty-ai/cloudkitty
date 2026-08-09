@@ -38,7 +38,7 @@ unusual for this house and declared rather than hidden.
 **⚠️ CRITICAL**: Mid-branch behavior is transitional after these tasks (declared
 in each); the branch is judged at its tip, each task still compiles green.
 
-- [ ] T002 Extend the vocabulary in `crates/cloudkitty-core/src/meow.rs`: append
+- [X] T002 Extend the vocabulary in `crates/cloudkitty-core/src/meow.rs`: append
       `WantBath`, `WantSleep` variants; make `for_need`/`related_need` total over
       all six `NeedKind`s; add `Meow.intensity: f32` with `#[serde(default)]`;
       update `need_to_message_mapping_round_trips` to totality and keep

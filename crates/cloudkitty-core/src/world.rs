@@ -935,6 +935,7 @@ impl World {
                 kitty_id: id,
                 kind: crate::meow::MessageKind::Purr,
                 tick,
+                intensity: 0.0,
             });
         }
     }
@@ -1557,6 +1558,7 @@ mod tests {
                 kitty_id: 1,
                 kind: crate::meow::MessageKind::WantPlay,
                 tick,
+                intensity: 0.0,
             });
             world.prune_transient(&config);
         }

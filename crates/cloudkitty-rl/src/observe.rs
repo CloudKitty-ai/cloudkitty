@@ -659,6 +659,7 @@ mod tests {
                 kitty_id: 2,
                 kind: MessageKind::WantEat,
                 tick: t,
+                intensity: 0.0,
             });
         }
         let cfg = ObservationConfig::default();
@@ -670,6 +671,7 @@ mod tests {
             kitty_id: 2,
             kind: MessageKind::WantEat,
             tick: 50,
+            intensity: 0.0,
         });
         let one = encode_observation(&one_world.snapshot(), 1, &config, &cfg, 0.0);
 
