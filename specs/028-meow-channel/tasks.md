@@ -62,12 +62,25 @@ in each); the branch is judged at its tip, each task still compiles green.
       the server integration test
       `the_viewer_config_travels_through_the_config_endpoint` to assert the new
       dials travel through GET /config (FR-025); both
-      shipped-config sweep tests stay green — VERIFIED at analyze: 62
-      `experiments/` TOMLs + `specs/004-fix-happiness-lockin/stuck-state-config.toml`
-      carry `courtesy_ticks` and the sweeps collect those dirs recursively, so
-      this task executes whatever sweep policy the cross-thread C1 decision
-      lands (Experiments-owned files are never edited from here; specs/004's
-      TOML is Product's to migrate or exclude).
+      shipped-config sweep tests stay green under the SETTLED sweep policy
+      (analyze finding C1; decided by Experiments 2026-08-08 — all 62
+      `experiments/` TOMLs carrying `courtesy_ticks` are pinned-generation
+      records, none updatable): add a root-level exclusion manifest
+      `config-sweep-exclusions.txt` read by BOTH sweeps, with directory-level
+      entries + one rationale line each for the nine pinned dirs —
+      `exp-002-mixed-population/family` (32, prereg family record),
+      `exp-003-water-schema/family` (15, byte-frozen prereg, PR #115),
+      `exp-003-water-schema/results` (2, committed-results record),
+      `screens/geometry-20x20-2026-08-07` (3), `screens/geometry-20x20-optE-2026-08-07`
+      (2), `screens/geometry-22x22-2026-08-05` (2), `screens/scarcity-2026-08-05`
+      (2) (measurement records behind registered findings),
+      `rebaseline-2026-08-06/configs` (3, re-baseline record),
+      `exp-001-bc-mappo/configs` (1, historical) — and the stated rule that the
+      manifest only ever names pinned-generation dirs: new experiment output
+      (exp-004's family v5 included) is in sweep scope by default. Migrate
+      `specs/004-fix-happiness-lockin/stuck-state-config.toml` by deleting its
+      three retired `[meow]` keys (Product-owned; its stuck-state semantics
+      don't touch meow). Nothing under `experiments/` is edited.
 
 **Checkpoint**: vocabulary + dials exist; old courtesy machinery gone.
 
@@ -270,7 +283,13 @@ census convention.
       kitty-eval JSON and suite exam outcomes; NO verdict reads it; test
       `distress_census_matches_the_instrument_convention` — an inline
       `run_one_with` observer implementing the census closure verbatim must
-      agree exactly with the accumulator over seeded scripted runs.
+      agree exactly with the accumulator over seeded scripted runs. (Era-record
+      note, per Experiments: the 810/810 retro-replay against exp-003's
+      committed evals was validated PRE-028 and is not reproducible on this
+      engine — the era config at `46b22bc:cloudkitty.toml` carries retired keys
+      and scripted meow semantics change, so exp-003 joins exp-002 in the
+      era-engine-rebuild category. The acceptance check here is
+      convention-agreement on the new engine, never era replay.)
 
 ---
 
