@@ -249,7 +249,7 @@ audible meows; announcing cats mid-errand.
 **Independent Test**: passive vs mutual rates; defaults numerically identical to
 today; duet/groomer unaffected by cosleep dials.
 
-- [ ] T015 [P] [US5] Rework `apply_sleep_relief` in
+- [X] T015 [P] [US5] Rework `apply_sleep_relief` in
       `crates/cloudkitty-core/src/action.rs`: tier = partner activity
       ∈ {Sleeping, Resting} → `cosleep_mutual_relief` else `cosleep_drip_relief`,
       both parties get the tier rate, sleeper's Sleep relief unchanged; duet and

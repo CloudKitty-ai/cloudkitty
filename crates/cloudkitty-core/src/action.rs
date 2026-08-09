@@ -788,18 +788,25 @@ fn apply_sleep_relief(
     };
     lower_need(world, kitty_id, NeedKind::Sleep, relief);
     if let Some(friend) = partner {
-        lower_need(
-            world,
-            kitty_id,
-            NeedKind::Cuddle,
-            config.actions.cuddle_relief,
-        );
-        lower_need(
-            world,
-            friend,
-            NeedKind::Cuddle,
-            config.actions.cuddle_relief,
-        );
+        // Cosleep priced by presence (spec 028 FR-014/FR-015): the mutual
+        // tier when the partner is itself sleeping or resting -- the
+        // contact-census definition -- and the passive drip otherwise.
+        // Both parties receive the tier rate; the sleeper's Sleep relief
+        // above is untouched. The rest duet and the groomer keep the
+        // classic cuddle_relief -- moving these dials never touches them.
+        let mutual = world.kitty(friend).is_some_and(|k| {
+            matches!(
+                k.activity,
+                crate::kitty::Activity::Sleeping { .. } | crate::kitty::Activity::Resting { .. }
+            )
+        });
+        let rate = if mutual {
+            config.actions.cosleep_mutual_relief
+        } else {
+            config.actions.cosleep_drip_relief
+        };
+        lower_need(world, kitty_id, NeedKind::Cuddle, rate);
+        lower_need(world, friend, NeedKind::Cuddle, rate);
     }
 }
 
@@ -1985,8 +1992,11 @@ mod tests {
 #[cfg(test)]
 mod proposal_contract_tests {
     use super::*;
-    use crate::grid::Direction;
+    use crate::grid::{Direction, Position};
+    use crate::kitty::Activity;
     use crate::meow::MessageKind;
+    use crate::needs::NeedKind;
+    use crate::test_support::test_world;
 
     /// Every proposal shape the engine can construct -- the round-trip
     /// corpus. A new `Action` variant that is not added here still fails the
@@ -2141,6 +2151,121 @@ mod proposal_contract_tests {
             parse_proposal(r#"{"action": "move", "direction": "north", "direction": "south"}"#)
                 .unwrap(),
             Action::move_to(Direction::South)
+        );
+    }
+
+    #[test]
+    fn cosleep_pays_the_tier_the_partners_presence_earns() {
+        // Spec 028 US5: a mutually-sleeping partner earns the mutual rate,
+        // a merely-present one the drip -- both parties, both tiers, the
+        // sleeper's own Sleep relief untouched either way.
+        for (partner_activity, expected_dial) in [
+            (
+                Activity::Sleeping {
+                    in_sunbeam: false,
+                    with_friend: None,
+                },
+                "mutual",
+            ),
+            (Activity::Idle, "drip"),
+        ] {
+            let (mut world, mut config) = test_world();
+            // Distinct rates so the tier choice is visible in the arithmetic.
+            config.actions.cosleep_drip_relief = 3.0;
+            config.actions.cosleep_mutual_relief = 11.0;
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(4, 4);
+            world.kitties[a].needs.add(NeedKind::Sleep, 80.0);
+            world.kitties[a].needs.add(NeedKind::Cuddle, 50.0);
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(4, 5);
+            world.kitties[b].activity = partner_activity;
+            if partner_activity.is_in_progress() {
+                world.kitties[b].activity_clock =
+                    Some(crate::kitty::ActivityClock::start(world.tick));
+            }
+            world.kitties[b].needs.add(NeedKind::Cuddle, 50.0);
+
+            apply(&mut world, 1, Action::Sleep { with: Some(2) }, &config);
+
+            let expected = if expected_dial == "mutual" { 11.0 } else { 3.0 };
+            let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+            let b_cuddle = world.kitty(2).unwrap().needs.get(NeedKind::Cuddle);
+            assert!(
+                (a_cuddle - (50.0 - expected)).abs() < 0.01,
+                "{expected_dial}: sleeper got {a_cuddle}"
+            );
+            assert!(
+                (b_cuddle - (50.0 - expected)).abs() < 0.01,
+                "{expected_dial}: partner got {b_cuddle}"
+            );
+        }
+    }
+
+    #[test]
+    fn cosleep_defaults_are_behavior_preserving() {
+        // With all three dials equal at 15.0 (the shipped defaults), one
+        // serviced cosleep tick moves cuddle exactly as the classic
+        // cuddle_relief arithmetic did -- asserted numerically in this one
+        // build, the honest form of "byte-identical to yesterday".
+        let (mut world, config) = test_world();
+        assert_eq!(config.actions.cosleep_drip_relief, 15.0);
+        assert_eq!(config.actions.cosleep_mutual_relief, 15.0);
+        assert_eq!(config.actions.cuddle_relief, 15.0);
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(4, 4);
+        world.kitties[a].needs.add(NeedKind::Sleep, 80.0);
+        world.kitties[a].needs.add(NeedKind::Cuddle, 50.0);
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(4, 5);
+
+        apply(&mut world, 1, Action::Sleep { with: Some(2) }, &config);
+
+        let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+        assert!(
+            (a_cuddle - 35.0).abs() < 0.01,
+            "defaults reproduce yesterday's arithmetic exactly"
+        );
+    }
+
+    #[test]
+    fn cosleep_dials_never_touch_the_duet_or_the_groomer() {
+        // Severing the three-flow coupling (FR-016): move both cosleep
+        // dials to extremes and the rest duet and groom payments hold at
+        // the classic cuddle_relief.
+        let (mut world, mut config) = test_world();
+        config.actions.cosleep_drip_relief = 0.0;
+        config.actions.cosleep_mutual_relief = 99.0;
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(4, 4);
+        world.kitties[a].needs.add(NeedKind::Cuddle, 50.0);
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(4, 5);
+        world.kitties[b].needs.add(NeedKind::Bath, 60.0);
+
+        // The groomer's warmth: classic cuddle_relief (15), not a cosleep tier.
+        apply(&mut world, 1, Action::Groom { target: Some(2) }, &config);
+        let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+        assert!(
+            (a_cuddle - 35.0).abs() < 0.01,
+            "the groomer is paid by cuddle_relief, got {a_cuddle}"
+        );
+
+        // The rest duet: same isolation.
+        let (mut world, mut config) = test_world();
+        config.actions.cosleep_drip_relief = 0.0;
+        config.actions.cosleep_mutual_relief = 99.0;
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(4, 4);
+        world.kitties[a].needs.add(NeedKind::Cuddle, 50.0);
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(4, 5);
+        world.kitties[b].needs.add(NeedKind::Cuddle, 50.0);
+        apply(&mut world, 1, Action::Rest { with: Some(2) }, &config);
+        let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+        assert!(
+            (a_cuddle - 35.0).abs() < 0.01,
+            "the duet is paid by cuddle_relief, got {a_cuddle}"
         );
     }
 }
