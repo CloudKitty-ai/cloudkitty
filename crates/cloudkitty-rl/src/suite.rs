@@ -1264,6 +1264,7 @@ sha256 = "{sha}"
                 }],
                 max_distress_age: 0,
                 pinned: Vec::new(),
+                distress_census: Vec::new(),
             },
             aggregates: WelfareAggregates {
                 team_welfare: welfare,

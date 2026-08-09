@@ -275,7 +275,7 @@ census convention.
       cooldowns intact, new fields defaulted (disarmed, intensity 0.0); plus
       kitty-level JSON compat cases for `announce_armed`/`Meow.intensity`
       following the existing pre-spec fixtures pattern.
-- [ ] T017 [P] [US6] Distress-tick counter in `crates/cloudkitty-rl/src/welfare.rs`
+- [X] T017 [P] [US6] Distress-tick counter in `crates/cloudkitty-rl/src/welfare.rs`
       (+ `harness.rs`, `cli_support.rs`, `suite.rs` JSON): census state in
       `WelfareAccumulator::observe` (post-tick, ≥ `thresholds.distress`, episode
       edge below→at/above — the instrument's verbatim convention),

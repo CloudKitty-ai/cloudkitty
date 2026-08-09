@@ -426,6 +426,7 @@ fn a_negative_host_differential_renders_the_exploitation_signature() {
             ],
             max_distress_age: 0,
             pinned: Vec::new(),
+            distress_census: Vec::new(),
         },
         aggregates: cloudkitty_rl::harness::WelfareAggregates {
             team_welfare: welfare,
