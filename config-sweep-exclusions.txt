@@ -1,0 +1,22 @@
+# config-sweep-exclusions.txt — pinned-generation configs the shipped-TOML
+# sweeps skip (spec 028; policy decided with Experiments 2026-08-08).
+#
+# THE RULE: this manifest only ever names pinned-generation directories —
+# prereg families, configs backing committed results, and measurement
+# records whose bytes must never move. New experiment output (exp-004's
+# family v5 included) is in sweep scope by default and MUST load through
+# validation on the current engine. Do not add a directory here to silence
+# a failure; add it only when its contents are a frozen record of an
+# earlier engine generation.
+#
+# Format: one directory per line (repo-relative), first token is the path;
+# everything after it is the rationale.
+experiments/exp-002-mixed-population/family      exp-002 prereg family record (completed experiment)
+experiments/exp-003-water-schema/family          byte-frozen by exp-003's prereg (PR #115, family seed 20260807)
+experiments/exp-003-water-schema/results         configs backing exp-003's committed results
+experiments/screens/geometry-20x20-2026-08-07    measurement record behind registered findings
+experiments/screens/geometry-20x20-optE-2026-08-07  measurement record behind registered findings
+experiments/screens/geometry-22x22-2026-08-05    measurement record behind registered findings
+experiments/screens/scarcity-2026-08-05          measurement record behind registered findings
+experiments/rebaseline-2026-08-06/configs        the re-baseline record
+experiments/exp-001-bc-mappo/configs             exp-001 historical configs

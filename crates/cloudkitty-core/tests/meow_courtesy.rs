@@ -43,12 +43,10 @@ async fn scripted_meows_keep_courtesy_spacing_without_the_engine_swallow() {
                 let key = (m.kitty_id, m.kind);
                 if let Some(prev) = last_emit.get(&key) {
                     let gap = m.tick.saturating_sub(*prev);
-                    let min_gap = if m.kind.related_need().is_some() {
-                        // Need-backed kinds may stamp the urgent interval.
-                        config.meow.urgent_courtesy_ticks
-                    } else {
-                        config.meow.courtesy_ticks
-                    };
+                    // Spec 028 (transitional, tightened): the urgent
+                    // carve-out is retired -- every kind's floor is the one
+                    // uniform window. T010 makes this law in the mask.
+                    let min_gap = config.meow.recent_window_ticks;
                     assert!(
                         gap >= min_gap,
                         "seed {seed}: kitty {} repeated {:?} after {gap} ticks \

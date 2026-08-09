@@ -45,7 +45,7 @@ impl Behavior for NeedsDriven {
             NeedKind::Eat | NeedKind::Drink | NeedKind::Play | NeedKind::Cuddle
         ) {
             let message = MessageKind::for_need(most_pressing);
-            if pressure >= ctx.config.meow.urgent_need_threshold
+            if pressure >= ctx.config.meow.announce_threshold
                 && ctx.me.can_meow(message, ctx.world.tick)
                 && ctx.rng.gen_bool(0.3)
             {

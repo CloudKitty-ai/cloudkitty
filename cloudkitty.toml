@@ -152,8 +152,16 @@ sleep_relief = 5.0
 sleep_relief_sunbeam = 8.0
 groom_relief = 20.0
 play_relief = 20.0
-# Resting, sleeping or grooming alongside a friend.
+# Resting or grooming alongside a friend (the rest duet and the groomer's
+# warmth). Cosleep is priced separately below since spec 028.
 cuddle_relief = 15.0
+# Cosleeping next to a friend (spec 028), per serviced sleep tick, both
+# parties: the passive tier when the partner is merely present...
+cosleep_drip_relief = 15.0
+# ...and the mutual tier when the partner is itself sleeping or resting.
+# Both launch equal to cuddle_relief -- behavior-preserving until the
+# dial-pricing pilot re-prices presence.
+cosleep_mutual_relief = 15.0
 # Pouncing at nothing, for a kitty with nobody to play with. Must not exceed
 # play_relief -- playing together stays the better deal.
 solo_play_relief = 10.0
@@ -172,17 +180,17 @@ sleep = { min = 6, max = 12 }
 cuddle = { min = 6, max = 12 }
 
 [meow]
-# Manners, not law (spec 023): the engine never blocks a meow -- every one a
-# kitty spends its turn on is heard. Built-in behaviors consult these
-# courtesy values before repeating themselves; learned kitties are governed
-# by the turn cost alone. Base courtesy equals the digest window, so an
-# honest persistent signal refreshes exactly as the old one fades...
-courtesy_ticks = 10
-# ...unless the related need is urgent, when a script may say so sooner.
-urgent_courtesy_ticks = 5
-urgent_need_threshold = 75.0
-# How long a meow stays visible to other kitties and to viewers.
+# Law, not manners (spec 028): a want-kind may be spoken only while its need
+# is armed and that kind's per-cat cooldown has cleared; silence is always
+# legal. The window below is both audibility and the per-kind cooldown, so
+# an honest persistent signal refreshes exactly as the old one fades --
+# one live digest entry per kind per emitter, never sooner.
 recent_window_ticks = 10
+# A want-kind arms at this need level (grounded legality)...
+announce_threshold = 30.0
+# ...and disarms below threshold - hysteresis, so the mask holds steady
+# while an errand is in progress.
+announce_hysteresis = 5.0
 
 [purr]
 # A contented kitty rumbles for a while (a seeded draw between min and max
@@ -205,6 +213,10 @@ announce_probability = 0.0
 # steps in with the default behavior. Built-in behaviors are exempt: they run
 # in-process, so determinism never depends on how fast this machine is.
 budget_fraction_of_tick = 0.5
+# What "real cuddle need" means to the scripted responders (spec 028): at or
+# above this, a cat answers an audible want_bath with grooming and prefers a
+# friend's side to a sunbeam for its nap. One shared gate on purpose.
+cuddle_real_threshold = 15.0
 # The pressure at which a "playful" kitty stops playing and attends to a need.
 # Lower means a better-kept cat; higher means more single-minded fun.
 playful_comfort = 55.0

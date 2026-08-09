@@ -16,7 +16,7 @@ use crate::config::Config;
 use crate::element::{ElementId, ElementKind, ElementType};
 use crate::grid::{Direction, Position};
 use crate::kitty::{Activity, ActivityClock, KittyId};
-use crate::meow::{cooldown_for, Meow, MessageKind};
+use crate::meow::{Meow, MessageKind};
 use crate::needs::NeedKind;
 use crate::world::{PurrOrigin, World};
 
@@ -798,24 +798,15 @@ fn emit_meow(
     config: &Config,
     tick: u64,
 ) {
-    let Some(kitty) = world.kitty(kitty_id) else {
+    if world.kitty(kitty_id).is_none() {
         return;
-    };
-    // Spec 023: the engine never swallows a meow. A validated meow action
-    // always emits -- the turn cost is the only price, which is exactly the
-    // price a learning agent can reason about. The bookkeeping stamp below
-    // is a *record*, consulted voluntarily by the scripted behaviors'
-    // courtesy; it gates nothing here.
-    let need_value = message.related_need().map(|n| kitty.needs.get(n));
-    let cooldown = cooldown_for(
-        message,
-        need_value,
-        config.meow.courtesy_ticks,
-        config.meow.urgent_courtesy_ticks,
-        config.meow.urgent_need_threshold,
-    );
+    }
+    // Spec 028: one uniform stamp -- the audibility window doubles as the
+    // per-kind cooldown, so a signal may refresh exactly as the old one
+    // fades and never sooner. (Interim: still consulted voluntarily via
+    // can_meow until the message mask lands and makes it law.)
     if let Some(idx) = world.kitty_index(kitty_id) {
-        world.kitties[idx].set_meow_cooldown(message, tick + cooldown);
+        world.kitties[idx].set_meow_cooldown(message, tick + config.meow.recent_window_ticks);
     }
     world.recent_meows.push(Meow {
         kitty_id,
@@ -1274,13 +1265,13 @@ mod tests {
     }
 
     #[test]
-    fn the_urgent_rule_applies_at_stamp_time() {
-        // Spec 023 FR-003: the stamp is record-keeping with the urgency
-        // arithmetic intact -- an urgent need stamps the shorter interval
-        // the scripted courtesy will read.
+    fn the_stamp_is_the_window() {
+        // Spec 028: the urgent carve-out is retired -- every emission stamps
+        // tick + recent_window_ticks, urgent need or not. One live digest
+        // entry per kind is the whole cadence story now.
         let (mut world, config) = test_world();
         let idx = world.kitty_index(1).unwrap();
-        world.kitties[idx].needs.add(NeedKind::Eat, 90.0); // >= threshold 75
+        world.kitties[idx].needs.add(NeedKind::Eat, 90.0); // urgency changes nothing
         let tick = world.tick;
         apply(
             &mut world,
@@ -1292,8 +1283,8 @@ mod tests {
         );
         assert_eq!(
             world.kitty(1).unwrap().meow_cooldowns[&MessageKind::WantEat],
-            tick + config.meow.urgent_courtesy_ticks,
-            "urgent need -> urgent stamp"
+            tick + config.meow.recent_window_ticks,
+            "uniform stamp: the window is the cooldown"
         );
     }
 

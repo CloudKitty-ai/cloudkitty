@@ -511,7 +511,19 @@ pub struct ActionEffects {
     /// wire key for zero behavioral gain.
     pub play_relief: f32,
     /// Cuddle relief from resting/sleeping/grooming alongside a friend.
+    /// Since spec 028 this prices the rest duet and the groomer's warmth;
+    /// cosleep has its own pair of dials below.
     pub cuddle_relief: f32,
+    /// Cuddle relief per serviced cosleep tick when the adjacent partner is
+    /// merely present (spec 028's passive tier). Both parties receive it.
+    /// Defaults equal to the classic `cuddle_relief` -- behavior-preserving
+    /// until the dial-pricing pilot moves it.
+    #[serde(default = "default_cosleep_relief")]
+    pub cosleep_drip_relief: f32,
+    /// Cuddle relief per serviced cosleep tick when the partner is itself
+    /// sleeping or resting (the mutual tier). Both parties receive it.
+    #[serde(default = "default_cosleep_relief")]
+    pub cosleep_mutual_relief: f32,
     /// Play relief for pouncing at nothing. Smaller than `play_relief` so a
     /// kitty with company always prefers the real thing. Also the price a
     /// vanished play target drops to (spec 025): the critter is gone, the
@@ -546,6 +558,8 @@ impl Default for ActionEffects {
             groom_relief: 20.0,
             play_relief: 20.0,
             cuddle_relief: 15.0,
+            cosleep_drip_relief: default_cosleep_relief(),
+            cosleep_mutual_relief: default_cosleep_relief(),
             solo_play_relief: default_solo_play_relief(),
             play_relief_bug: default_play_relief_bug(),
             play_relief_greeble: default_play_relief_greeble(),
@@ -616,29 +630,28 @@ impl DurationsConfig {
     }
 }
 
-/// The meow channel's manners (spec 023). The engine enforces nothing here:
-/// every validated meow emits, and a learned agent is governed by the turn
-/// cost alone. The courtesy values are consulted *voluntarily* by the
-/// scripted behaviors before they repeat themselves -- manners, not law.
+/// The meow channel's law (spec 028). The courtesy era (spec 023) is over:
+/// message legality is engine law -- a want-kind may be spoken only while
+/// its need is armed (threshold + hysteresis) and that kind's per-cat
+/// cooldown has cleared. Silence is always legal.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct MeowConfig {
-    /// Scripted courtesy: how long a built-in waits before repeating the
-    /// same message kind. Equal to the digest window by default, so a
-    /// persistent signal refreshes exactly as the old one expires -- no
-    /// dead air, no stacking.
-    #[serde(default = "default_meow_courtesy_ticks")]
-    pub courtesy_ticks: u64,
-    /// The urgent carve-out: at or above `urgent_need_threshold` a scripted
-    /// kitty may repeat sooner. Must be at most `courtesy_ticks`.
-    #[serde(default = "default_meow_urgent_courtesy_ticks")]
-    pub urgent_courtesy_ticks: u64,
-    /// Need level at which the urgent courtesy applies.
-    #[serde(default = "default_meow_urgent_need_threshold")]
-    pub urgent_need_threshold: f32,
-    /// How long a meow stays visible to kitties and viewers.
+    /// How long a meow stays visible to kitties and viewers -- and, since
+    /// spec 028, the per-kind emission cooldown: one live digest entry per
+    /// kind per emitter, so a persistent signal refreshes exactly as the
+    /// old one fades.
     #[serde(default = "default_meow_recent_window_ticks")]
     pub recent_window_ticks: u64,
+    /// A want-kind arms when its need reaches this level; only an armed
+    /// kind may be announced (grounded legality, enforced in the mask).
+    #[serde(default = "default_meow_announce_threshold")]
+    pub announce_threshold: f32,
+    /// An armed kind disarms when its need falls below
+    /// `announce_threshold - announce_hysteresis` -- the band keeps the
+    /// mask from flickering while an errand is in progress.
+    #[serde(default = "default_meow_announce_hysteresis")]
+    pub announce_hysteresis: f32,
     /// RETIRED (spec 023): renamed to `courtesy_ticks` when engine
     /// enforcement ended. Deserialize-only sentinel -- a config naming it
     /// fails validation loudly, never silently shifting semantics.
@@ -647,17 +660,31 @@ pub struct MeowConfig {
     /// RETIRED (spec 023): renamed to `urgent_courtesy_ticks`.
     #[serde(default, skip_serializing)]
     pub urgent_cooldown_ticks: Option<u64>,
+    /// RETIRED (spec 028): the courtesy era ended when legality became
+    /// engine law; the cooldown is `recent_window_ticks`.
+    #[serde(default, skip_serializing)]
+    pub courtesy_ticks: Option<u64>,
+    /// RETIRED (spec 028): urgency no longer shortens the interval --
+    /// grounding (announce_threshold) is the urgency story now.
+    #[serde(default, skip_serializing)]
+    pub urgent_courtesy_ticks: Option<u64>,
+    /// RETIRED (spec 028): replaced by `announce_threshold`, which gates
+    /// legality instead of shortening courtesy.
+    #[serde(default, skip_serializing)]
+    pub urgent_need_threshold: Option<f32>,
 }
 
 impl Default for MeowConfig {
     fn default() -> Self {
         Self {
-            courtesy_ticks: default_meow_courtesy_ticks(),
-            urgent_courtesy_ticks: default_meow_urgent_courtesy_ticks(),
-            urgent_need_threshold: default_meow_urgent_need_threshold(),
             recent_window_ticks: default_meow_recent_window_ticks(),
+            announce_threshold: default_meow_announce_threshold(),
+            announce_hysteresis: default_meow_announce_hysteresis(),
             cooldown_ticks: None,
             urgent_cooldown_ticks: None,
+            courtesy_ticks: None,
+            urgent_courtesy_ticks: None,
+            urgent_need_threshold: None,
         }
     }
 }
@@ -746,6 +773,12 @@ pub struct BehaviorConfig {
     /// transport. Default: 1000.
     #[serde(default = "default_exchange_timeout_ms")]
     pub exchange_timeout_ms: u64,
+    /// What "real cuddle need" means to the scripted responders (spec 028):
+    /// at or above this, a cat answers an audible `WantBath` with grooming
+    /// and prefers a friend's side to a sunbeam for its nap. One shared
+    /// gate on purpose -- the responder economy is priced as a unit.
+    #[serde(default = "default_cuddle_real_threshold")]
+    pub cuddle_real_threshold: f32,
 }
 
 impl Default for BehaviorConfig {
@@ -766,6 +799,7 @@ impl Default for BehaviorConfig {
             reply_max_bytes: default_reply_max_bytes(),
             relaunch_cooldown_ticks: default_relaunch_cooldown_ticks(),
             exchange_timeout_ms: default_exchange_timeout_ms(),
+            cuddle_real_threshold: default_cuddle_real_threshold(),
         }
     }
 }
@@ -1259,26 +1293,74 @@ mod tests {
     }
 
     #[test]
-    fn meow_courtesy_defaults_land_and_the_rows_hold() {
-        // Spec 023 FR-006: an absent [meow] table (or partial one) fills
-        // from defaults -- the [purr] posture, adopted deliberately so an
-        // old-key config reaches validation where the retirement error can
-        // explain itself.
+    fn meow_dial_defaults_land_and_the_rows_hold() {
+        // Spec 028 (keeping 023's posture): an absent [meow] table (or a
+        // partial one) fills from defaults, so an old-key config reaches
+        // validation where the retirement error can explain itself.
         let parsed: MeowConfig = toml::from_str("").expect("an empty meow table parses");
         assert_eq!(
-            (parsed.courtesy_ticks, parsed.urgent_courtesy_ticks),
-            (10, 5)
+            (
+                parsed.recent_window_ticks,
+                parsed.announce_threshold,
+                parsed.announce_hysteresis
+            ),
+            (10, 30.0, 5.0)
         );
         let partial: MeowConfig =
-            toml::from_str("courtesy_ticks = 12").expect("a partial meow table parses");
-        assert_eq!(partial.urgent_courtesy_ticks, 5);
+            toml::from_str("announce_threshold = 40.0").expect("a partial meow table parses");
+        assert_eq!(partial.announce_hysteresis, 5.0);
 
+        // The band rows: hysteresis strictly below threshold, threshold on
+        // the need scale, the window alive.
         let mut c = cfg();
-        c.meow.urgent_courtesy_ticks = c.meow.courtesy_ticks + 1;
+        c.meow.announce_hysteresis = c.meow.announce_threshold;
         let msg = c.validate().unwrap_err().to_string();
-        assert!(msg.contains("[meow] urgent_courtesy_ticks"), "{msg}");
-        c.meow.urgent_courtesy_ticks = c.meow.courtesy_ticks; // equal is legal
+        assert!(msg.contains("[meow] announce_hysteresis"), "{msg}");
+        c.meow.announce_hysteresis = 0.0; // no band is legal
         assert!(c.validate().is_ok());
+        c.meow.announce_threshold = 0.0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[meow] announce_threshold"), "{msg}");
+        c.meow.announce_threshold = 101.0;
+        assert!(c.validate().is_err());
+        c.meow.announce_threshold = 100.0; // the top of the scale is legal
+        assert!(c.validate().is_ok());
+        c.meow.recent_window_ticks = 0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[meow] recent_window_ticks"), "{msg}");
+    }
+
+    #[test]
+    fn the_retired_courtesy_trio_is_rejected_loudly() {
+        // Spec 028 (FR-024, US6 scenario 2): the courtesy-era names fail at
+        // load with migration text naming their successors -- the intended
+        // signal for any config carried across the generation wall.
+        for (toml_line, key, successor) in [
+            (
+                "courtesy_ticks = 10",
+                "[meow] courtesy_ticks",
+                "recent_window_ticks",
+            ),
+            (
+                "urgent_courtesy_ticks = 5",
+                "[meow] urgent_courtesy_ticks",
+                "announce_threshold",
+            ),
+            (
+                "urgent_need_threshold = 75.0",
+                "[meow] urgent_need_threshold",
+                "announce_threshold",
+            ),
+        ] {
+            let parsed: MeowConfig =
+                toml::from_str(toml_line).expect("the retired key still parses");
+            let mut c = cfg();
+            c.meow = parsed;
+            let msg = c.validate().unwrap_err().to_string();
+            assert!(msg.contains(key), "{msg}");
+            assert!(msg.contains("retired by spec 028"), "{msg}");
+            assert!(msg.contains(successor), "{msg}");
+        }
     }
 
     #[test]

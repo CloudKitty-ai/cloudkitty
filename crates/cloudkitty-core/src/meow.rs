@@ -1,11 +1,10 @@
 //! Kitty communication.
 //!
-//! Six fixed messages, visible to every other kitty and to viewers. The engine
-//! never blocks one (spec 023): every meow a kitty spends its turn on is heard.
-//! Each message type keeps a per-kitty *courtesy* record -- an interval that
-//! shortens when the related need gets urgent -- which the scripted behaviors
-//! consult voluntarily before repeating themselves. Manners, not law: learned
-//! agents are governed by the turn cost alone.
+//! Eight announceable kinds plus the engine's patience word, visible to every
+//! other kitty and to viewers. Spec 028 ended the courtesy era: emission
+//! stamps a per-kind cooldown of one audibility window, and (once the message
+//! channel lands) legality is engine law -- a want-kind may be spoken only
+//! while its need is armed and that kind's cooldown has cleared.
 
 use serde::{Deserialize, Serialize};
 
@@ -83,71 +82,19 @@ pub struct Meow {
     pub intensity: f32,
 }
 
-/// The courtesy interval stamped when `kind` is emitted, given how urgent
-/// the related need currently is (spec 023: record-keeping the scripted
-/// behaviors consult -- the engine enforces nothing with it).
-pub fn cooldown_for(
-    kind: MessageKind,
-    need_value: Option<f32>,
-    base_ticks: u64,
-    urgent_ticks: u64,
-    urgent_threshold: f32,
-) -> u64 {
-    match (kind.related_need(), need_value) {
-        (Some(_), Some(value)) if value >= urgent_threshold => urgent_ticks,
-        _ => base_ticks,
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn urgent_needs_shorten_the_cooldown() {
-        // Below the urgency threshold: base cooldown.
-        assert_eq!(
-            cooldown_for(MessageKind::WantEat, Some(50.0), 15, 5, 75.0),
-            15
-        );
-        // At or above it: the shortened one.
-        assert_eq!(
-            cooldown_for(MessageKind::WantEat, Some(75.0), 15, 5, 75.0),
-            5
-        );
-        assert_eq!(
-            cooldown_for(MessageKind::WantEat, Some(99.0), 15, 5, 75.0),
-            5
-        );
-    }
-
-    #[test]
-    fn messages_without_a_related_need_always_use_the_base_cooldown() {
-        assert_eq!(
-            cooldown_for(MessageKind::FollowMe, Some(100.0), 15, 5, 75.0),
-            15
-        );
-        assert_eq!(
-            cooldown_for(MessageKind::Purr, Some(100.0), 15, 5, 75.0),
-            15
-        );
-        assert_eq!(MessageKind::Purr.related_need(), None);
-    }
-
-    #[test]
     fn wait_for_me_is_a_patience_word() {
-        // Spec 012: in the vocabulary, base cooldown class (urgency never
-        // shortens a word whose meaning is patience), wire name stable.
+        // Spec 012: in the vocabulary, no related need (urgency never
+        // touches a word whose meaning is patience), wire name stable.
         assert!(MessageKind::ALL.contains(&MessageKind::WaitForMe));
         assert_eq!(MessageKind::WaitForMe.related_need(), None);
         assert_eq!(
             serde_json::to_string(&MessageKind::WaitForMe).unwrap(),
             "\"wait_for_me\""
-        );
-        assert_eq!(
-            cooldown_for(MessageKind::WaitForMe, None, 15, 5, 75.0),
-            15,
-            "always the base cooldown"
         );
     }
 

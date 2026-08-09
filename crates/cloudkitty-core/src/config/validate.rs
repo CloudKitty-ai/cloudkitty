@@ -410,6 +410,16 @@ impl Config {
                 return Err(ConfigError::invalid(field, "0".to_string(), expected));
             }
         }
+        // Spec 028: the scripted responders' shared cuddle gate lives on the
+        // need scale.
+        let gate = self.behavior.cuddle_real_threshold;
+        if !gate.is_finite() || !(0.0..=100.0).contains(&gate) {
+            return Err(ConfigError::invalid(
+                "[behavior] cuddle_real_threshold",
+                gate.to_string(),
+                "must be a finite number in [0, 100] -- the need scale",
+            ));
+        }
         Ok(())
     }
 
@@ -552,20 +562,40 @@ impl Config {
         Ok(())
     }
 
-    /// `[meow]` courtesy rows (spec 023): urgent at most base, and the
-    /// retired enforcement-era key names rejected loudly.
+    /// `[meow]` law rows (spec 028): the announce band well-formed, the
+    /// window alive, and both retirement eras' key names rejected loudly.
     pub(super) fn validate_meow(&self) -> Result<(), ConfigError> {
-        if self.meow.urgent_courtesy_ticks > self.meow.courtesy_ticks {
+        let m = &self.meow;
+        if m.recent_window_ticks < 1 {
             return Err(ConfigError::invalid(
-                "[meow] urgent_courtesy_ticks",
-                format!(
-                    "{} (courtesy_ticks is {})",
-                    self.meow.urgent_courtesy_ticks, self.meow.courtesy_ticks
-                ),
-                "must be at most courtesy_ticks -- urgency shortens the wait",
+                "[meow] recent_window_ticks",
+                m.recent_window_ticks.to_string(),
+                "must be at least 1 -- the window is both audibility and the \
+                 per-kind cooldown",
             ));
         }
-        if let Some(retired) = self.meow.cooldown_ticks {
+        if !m.announce_threshold.is_finite()
+            || m.announce_threshold <= 0.0
+            || m.announce_threshold > 100.0
+        {
+            return Err(ConfigError::invalid(
+                "[meow] announce_threshold",
+                m.announce_threshold.to_string(),
+                "must be a finite number in (0, 100] -- the need scale",
+            ));
+        }
+        if !m.announce_hysteresis.is_finite()
+            || m.announce_hysteresis < 0.0
+            || m.announce_hysteresis >= m.announce_threshold
+        {
+            return Err(ConfigError::invalid(
+                "[meow] announce_hysteresis",
+                m.announce_hysteresis.to_string(),
+                "must be a finite number of at least 0 and below \
+                 announce_threshold -- disarm happens at threshold - hysteresis",
+            ));
+        }
+        if let Some(retired) = m.cooldown_ticks {
             return Err(ConfigError::invalid(
                 "[meow] cooldown_ticks",
                 retired.to_string(),
@@ -573,11 +603,36 @@ impl Config {
                  cooldowns -- the scripted-courtesy value is courtesy_ticks",
             ));
         }
-        if let Some(retired) = self.meow.urgent_cooldown_ticks {
+        if let Some(retired) = m.urgent_cooldown_ticks {
             return Err(ConfigError::invalid(
                 "[meow] urgent_cooldown_ticks",
                 retired.to_string(),
                 "retired by spec 023: use urgent_courtesy_ticks",
+            ));
+        }
+        if let Some(retired) = m.courtesy_ticks {
+            return Err(ConfigError::invalid(
+                "[meow] courtesy_ticks",
+                retired.to_string(),
+                "retired by spec 028: message legality is engine law now -- \
+                 the per-kind cooldown is recent_window_ticks",
+            ));
+        }
+        if let Some(retired) = m.urgent_courtesy_ticks {
+            return Err(ConfigError::invalid(
+                "[meow] urgent_courtesy_ticks",
+                retired.to_string(),
+                "retired by spec 028: urgency no longer shortens the \
+                 interval -- grounding (announce_threshold) is the urgency \
+                 story",
+            ));
+        }
+        if let Some(retired) = m.urgent_need_threshold {
+            return Err(ConfigError::invalid(
+                "[meow] urgent_need_threshold",
+                retired.to_string(),
+                "retired by spec 028: replaced by announce_threshold, which \
+                 gates legality instead of shortening courtesy",
             ));
         }
         Ok(())
@@ -610,6 +665,8 @@ impl Config {
             ("[actions] sleep_relief_sunbeam", a.sleep_relief_sunbeam),
             ("[actions] groom_relief", a.groom_relief),
             ("[actions] cuddle_relief", a.cuddle_relief),
+            ("[actions] cosleep_drip_relief", a.cosleep_drip_relief),
+            ("[actions] cosleep_mutual_relief", a.cosleep_mutual_relief),
         ] {
             if !value.is_finite() || value < 0.0 {
                 return Err(ConfigError::invalid(

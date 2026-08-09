@@ -44,7 +44,7 @@ in each); the branch is judged at its tip, each task still compiles green.
       update `need_to_message_mapping_round_trips` to totality and keep
       `wait_for_me_is_a_patience_word` green. (Transitional: the urgent lottery
       can now announce Sleep/Bath — superseded in T012.)
-- [ ] T003 Rebuild the config surface (`crates/cloudkitty-core/src/config/mod.rs`,
+- [X] T003 Rebuild the config surface (`crates/cloudkitty-core/src/config/mod.rs`,
       `defaults.rs`, `validate.rs`, root `cloudkitty.toml`): `MeowConfig` → three
       keys (`recent_window_ticks` 10, `announce_threshold` 30.0,
       `announce_hysteresis` 5.0) + retire `courtesy_ticks`/`urgent_courtesy_ticks`/

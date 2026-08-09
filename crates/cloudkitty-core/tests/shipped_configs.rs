@@ -39,6 +39,30 @@ fn collect(dir: &Path, recursive: bool, out: &mut Vec<PathBuf>) {
     }
 }
 
+/// Pinned-generation directories the sweep skips (spec 028): the root
+/// manifest names frozen records of earlier engine generations -- prereg
+/// families, committed-results configs, measurement records. The manifest's
+/// own rule: only pinned-generation dirs may appear there; everything new
+/// is in scope by default.
+fn excluded_dirs(root: &Path) -> Vec<PathBuf> {
+    let manifest = root.join("config-sweep-exclusions.txt");
+    let text = std::fs::read_to_string(&manifest)
+        .unwrap_or_else(|e| panic!("{} unreadable: {e}", manifest.display()));
+    text.lines()
+        .map(str::trim)
+        .filter(|l| !l.is_empty() && !l.starts_with('#'))
+        .map(|l| {
+            let dir = l.split_whitespace().next().unwrap();
+            let path = root.join(dir);
+            assert!(
+                path.is_dir(),
+                "manifest names a directory that does not exist: {dir}"
+            );
+            path
+        })
+        .collect()
+}
+
 #[test]
 fn every_shipped_toml_loads_through_validation() {
     let root = repo_root();
@@ -50,6 +74,8 @@ fn every_shipped_toml_loads_through_validation() {
             collect(&dir, true, &mut files);
         }
     }
+    let excluded = excluded_dirs(&root);
+    files.retain(|f| !excluded.iter().any(|dir| f.starts_with(dir)));
     assert!(
         files.iter().any(|p| p.ends_with("cloudkitty.toml")),
         "the served config is in the sweep"

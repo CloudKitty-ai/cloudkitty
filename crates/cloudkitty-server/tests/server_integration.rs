@@ -375,6 +375,14 @@ async fn the_viewer_config_travels_through_the_config_endpoint() {
     assert_eq!(config["actions"]["play_relief"], 20.0);
     assert_eq!(config["actions"]["play_relief_bug"], 25.0);
     assert_eq!(config["actions"]["play_relief_greeble"], 35.0);
+    // Spec 028 (FR-025), same promise: the new dials ride the same additive
+    // wire -- announce band, cosleep tiers, and the responders' shared gate.
+    assert_eq!(config["meow"]["announce_threshold"], 30.0);
+    assert_eq!(config["meow"]["announce_hysteresis"], 5.0);
+    assert_eq!(config["meow"]["recent_window_ticks"], 10);
+    assert_eq!(config["actions"]["cosleep_drip_relief"], 15.0);
+    assert_eq!(config["actions"]["cosleep_mutual_relief"], 15.0);
+    assert_eq!(config["behavior"]["cuddle_real_threshold"], 15.0);
 
     server.shutdown().await;
 }
