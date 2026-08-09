@@ -95,7 +95,7 @@ determinism holds with one RNG deal per kitty.
 pre-change while messages ride along; `cargo test -p cloudkitty-core` +
 determinism suites green.
 
-- [ ] T004 [US1] Introduce `Decision { activity, message }` across the seam
+- [X] T004 [US1] Introduce `Decision { activity, message }` across the seam
       (`crates/cloudkitty-core/src/seam.rs`, `behavior/mod.rs`): `Behavior::decide`
       → `Decision`; `JointProposal`/`ResolvedDecision` carry it;
       `KittyTickRecord` grows `proposed_message`/`applied_message`; fallback/

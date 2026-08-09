@@ -8,6 +8,7 @@
 use async_trait::async_trait;
 
 use super::{Behavior, DecisionContext};
+use crate::seam::Decision;
 use crate::action::{Action, TargetRef};
 use crate::grid::Direction;
 use crate::meow::MessageKind;
@@ -18,12 +19,12 @@ pub struct AlwaysInvalid;
 
 #[async_trait]
 impl Behavior for AlwaysInvalid {
-    async fn decide(&self, ctx: &DecisionContext) -> Action {
+    async fn decide(&self, ctx: &DecisionContext) -> Decision {
         // Target an element id that cannot exist, and a kitty that is itself.
         if ctx.rng.gen_bool(0.5) {
-            Action::play_with(TargetRef::Element { id: u32::MAX })
+            Action::play_with(TargetRef::Element { id: u32::MAX }).into()
         } else {
-            Action::Chase(TargetRef::Kitty { id: ctx.me.id })
+            Action::Chase(TargetRef::Kitty { id: ctx.me.id }).into()
         }
     }
 }
@@ -33,7 +34,7 @@ pub struct Chaos;
 
 #[async_trait]
 impl Behavior for Chaos {
-    async fn decide(&self, ctx: &DecisionContext) -> Action {
+    async fn decide(&self, ctx: &DecisionContext) -> Decision {
         let pick = ctx.rng.gen_range_usize(0, 11);
         let random_kitty = ctx
             .world
@@ -53,7 +54,7 @@ impl Behavior for Chaos {
             .copied()
             .unwrap_or(Direction::North);
 
-        match pick {
+        let action = match pick {
             0 => Action::move_to(direction),
             1 => Action::Rest {
                 with: Some(random_kitty),
@@ -73,7 +74,8 @@ impl Behavior for Chaos {
                 message: MessageKind::FollowMe,
             },
             _ => Action::Idle,
-        }
+        };
+        action.into()
     }
 }
 
@@ -90,9 +92,9 @@ impl SleepySlow {
 
 #[async_trait]
 impl Behavior for SleepySlow {
-    async fn decide(&self, _ctx: &DecisionContext) -> Action {
+    async fn decide(&self, _ctx: &DecisionContext) -> Decision {
         tokio::time::sleep(std::time::Duration::from_millis(self.delay_ms)).await;
-        Action::Purr
+        Action::Purr.into()
     }
 }
 
@@ -112,12 +114,12 @@ impl BusySpin {
 
 #[async_trait]
 impl Behavior for BusySpin {
-    async fn decide(&self, _ctx: &DecisionContext) -> Action {
+    async fn decide(&self, _ctx: &DecisionContext) -> Decision {
         let start = std::time::Instant::now();
         while start.elapsed() < std::time::Duration::from_millis(self.delay_ms) {
             std::hint::spin_loop();
         }
-        Action::Purr
+        Action::Purr.into()
     }
 }
 
@@ -130,7 +132,7 @@ pub struct DrawsThenPanics;
 
 #[async_trait]
 impl Behavior for DrawsThenPanics {
-    async fn decide(&self, ctx: &DecisionContext) -> Action {
+    async fn decide(&self, ctx: &DecisionContext) -> Decision {
         // Consume a few draws so a fallback on the *consumed* stream would
         // visibly diverge from one restarted at the seed.
         let _ = ctx.rng.gen_bool(0.5);
@@ -144,7 +146,7 @@ pub struct Panicky;
 
 #[async_trait]
 impl Behavior for Panicky {
-    async fn decide(&self, _ctx: &DecisionContext) -> Action {
+    async fn decide(&self, _ctx: &DecisionContext) -> Decision {
         panic!("this behavior is deliberately broken");
     }
 }
@@ -155,8 +157,8 @@ pub struct QuietExternal;
 
 #[async_trait]
 impl Behavior for QuietExternal {
-    async fn decide(&self, _ctx: &DecisionContext) -> Action {
-        Action::Idle
+    async fn decide(&self, _ctx: &DecisionContext) -> Decision {
+        Action::Idle.into()
     }
 }
 
@@ -169,11 +171,11 @@ pub struct Unintelligible;
 
 #[async_trait]
 impl Behavior for Unintelligible {
-    async fn decide(&self, _ctx: &DecisionContext) -> Action {
+    async fn decide(&self, _ctx: &DecisionContext) -> Decision {
         unreachable!("dispatch consults try_decide; Unintelligible never decides")
     }
 
-    async fn try_decide(&self, _ctx: &DecisionContext) -> Option<Action> {
+    async fn try_decide(&self, _ctx: &DecisionContext) -> Option<Decision> {
         None
     }
 }

@@ -180,7 +180,7 @@ impl World {
 
         // Phases 2-4: one shared pipeline (spec 014 FR-002) -- the seam is a
         // different *source* of proposals, never a different law.
-        self.run_applied_phases(&decisions, config);
+        self.run_applied_phases_from_decisions(&decisions, config);
 
         // Phase 5: publish.
         Arc::new(self.snapshot())
@@ -257,19 +257,22 @@ impl World {
         let mut marks: Vec<Provenance> = Vec::with_capacity(roster.len());
         for &id in &roster {
             match proposals.get(id) {
-                Some(ProposalEntry::Action(action)) => {
-                    decisions.push((id, *action));
+                Some(ProposalEntry::Decision(decision)) => {
+                    decisions.push((id, *decision));
                     marks.push(Provenance::PolicyMade);
                 }
                 Some(ProposalEntry::Malformed) | None => {
-                    decisions.push((id, crate::action::Action::Idle));
+                    decisions.push((
+                        id,
+                        crate::seam::Decision::silent(crate::action::Action::Idle),
+                    ));
                     marks.push(Provenance::SubstitutedIdle);
                 }
             }
         }
         let unconsumed: Vec<KittyId> = proposals.ids().filter(|id| !roster.contains(id)).collect();
 
-        let outcome = self.run_applied_phases(&decisions, config);
+        let outcome = self.run_applied_phases_from_decisions(&decisions, config);
         let records = outcome.records(roster.iter().enumerate().map(|(index, &id)| {
             let (_, proposed) = decisions[index];
             let decision_seed = seeds.seed_for(id).expect(
@@ -284,6 +287,23 @@ impl World {
             activity_endings: outcome.activity_endings,
             unconsumed,
         }
+    }
+
+    /// The decision-carrying entry to the applied phases (spec 028):
+    /// transitional -- realizes each decision as its legacy action at the
+    /// boundary (a carried message is the turn-spending meow it always was)
+    /// until the message apply path lands (T005), which is what keeps the
+    /// carrier change byte-invisible to the world's evolution.
+    pub(crate) fn run_applied_phases_from_decisions(
+        &mut self,
+        decisions: &[(KittyId, crate::seam::Decision)],
+        config: &Config,
+    ) -> PhaseOutcome {
+        let actions: Vec<(KittyId, crate::action::Action)> = decisions
+            .iter()
+            .map(|&(id, d)| (id, d.transitional_action()))
+            .collect();
+        self.run_applied_phases(&actions, config)
     }
 
     /// Phases 2-4 of the constitutional tick, shared verbatim by the
@@ -1164,22 +1184,38 @@ impl PhaseOutcome {
     pub fn records(
         &self,
         decisions: impl IntoIterator<
-            Item = (KittyId, crate::action::Action, crate::seam::Provenance, u64),
+            Item = (
+                KittyId,
+                crate::seam::Decision,
+                crate::seam::Provenance,
+                u64,
+            ),
         >,
     ) -> Vec<crate::seam::KittyTickRecord> {
         let applied_by_id = self.applied_by_id();
         decisions
             .into_iter()
-            .map(|(kitty_id, proposed, provenance, decision_seed)| {
+            .map(|(kitty_id, decision, provenance, decision_seed)| {
                 let (validated, applied) = applied_by_id
                     .get(&kitty_id)
                     .copied()
                     .expect("the phase pipeline hears every kitty that has a decision");
+                // Transitional (spec 028): the activity triple reports the
+                // realized legacy action, so parity with pre-028 reports
+                // holds; the message columns read the channel. A message
+                // that emitted shows in the applied action's meow-ness
+                // until the split apply path (T005) records it directly.
+                let applied_message = match applied {
+                    crate::action::Action::Meow { message } => Some(message),
+                    _ => None,
+                };
                 crate::seam::KittyTickRecord {
                     kitty_id,
-                    proposed,
+                    proposed: decision.transitional_action(),
                     validated,
                     applied,
+                    proposed_message: decision.message,
+                    applied_message,
                     provenance,
                     decision_seed,
                 }

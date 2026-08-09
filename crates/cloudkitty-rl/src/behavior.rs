@@ -23,6 +23,7 @@ use std::sync::Mutex;
 use async_trait::async_trait;
 use cloudkitty_core::action::Action;
 use cloudkitty_core::behavior::{Behavior, DecisionContext};
+use cloudkitty_core::Decision;
 use cloudkitty_core::rng::DecisionRng;
 
 use crate::codec::{ActionCodec, ACTION_SCHEMA_VERSION};
@@ -164,8 +165,11 @@ fn select(logits: &[f32], mask: &[bool], sample: bool, rng: &DecisionRng) -> usi
 
 #[async_trait]
 impl Behavior for PolicyBehavior {
-    async fn decide(&self, ctx: &DecisionContext) -> Action {
-        self.decide_sync(ctx)
+    async fn decide(&self, ctx: &DecisionContext) -> Decision {
+        // Transitional (spec 028 T004): a v1 artifact speaks the activity
+        // menu alone; its choice is a silent decision. T007 gives policies
+        // the message head and retires this wrap.
+        Decision::silent(self.decide_sync(ctx))
     }
     // is_builtin stays false: the served world's budget, panic isolation,
     // and fallback all apply (FR-014).

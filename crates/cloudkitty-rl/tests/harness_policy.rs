@@ -69,7 +69,7 @@ struct ExplodingPolicy;
 
 #[async_trait]
 impl Behavior for ExplodingPolicy {
-    async fn decide(&self, _ctx: &DecisionContext) -> Action {
+    async fn decide(&self, _ctx: &DecisionContext) -> cloudkitty_core::Decision {
         panic!("deliberately broken policy");
     }
 }

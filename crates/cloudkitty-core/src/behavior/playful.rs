@@ -16,13 +16,26 @@ use async_trait::async_trait;
 use super::needs_driven::{finish_what_you_started, pursue, take_what_is_here};
 use super::{selection, Behavior, DecisionContext};
 use crate::action::{Action, TargetRef};
+use crate::seam::Decision;
 use crate::meow::MessageKind;
 
 pub struct Playful;
 
 #[async_trait]
 impl Behavior for Playful {
-    async fn decide(&self, ctx: &DecisionContext) -> Action {
+    async fn decide(&self, ctx: &DecisionContext) -> Decision {
+        // Transitional (spec 028 T004): same boundary mapping as
+        // NeedsDriven -- see there; T012 retires it.
+        Decision::from_legacy(self.decide_action(ctx))
+    }
+
+    fn is_builtin(&self) -> bool {
+        true
+    }
+}
+
+impl Playful {
+    fn decide_action(&self, ctx: &DecisionContext) -> Action {
         // Even a playful cat finishes the nap it is in the middle of.
         if let Some(action) = finish_what_you_started(ctx) {
             return action;
@@ -65,10 +78,6 @@ impl Behavior for Playful {
 
         play
     }
-
-    fn is_builtin(&self) -> bool {
-        true
-    }
 }
 
 #[cfg(test)]
@@ -103,7 +112,7 @@ mod tests {
         });
 
         assert_eq!(
-            Playful.decide(&ctx).await,
+            Playful.decide_action(&ctx),
             Action::Chase(TargetRef::Element { id: 601 }),
             "the bug wins over distant food"
         );
@@ -132,7 +141,7 @@ mod tests {
             });
         });
 
-        assert_eq!(Playful.decide(&ctx).await, Action::Eat);
+        assert_eq!(Playful.decide_action(&ctx), Action::Eat);
     }
 
     #[tokio::test]
@@ -158,7 +167,7 @@ mod tests {
             });
         });
 
-        let action = Playful.decide(&ctx).await;
+        let action = Playful.decide_action(&ctx);
         assert!(
             matches!(action, Action::Move { .. } | Action::Meow { .. }),
             "expected a step toward water (or a meow about it), got {action:?}"
@@ -182,7 +191,7 @@ mod tests {
         });
 
         assert_eq!(
-            Playful.decide(&ctx).await,
+            Playful.decide_action(&ctx),
             Action::play_with(TargetRef::Element { id: 602 })
         );
     }
@@ -202,7 +211,7 @@ mod tests {
         ctx.me
             .set_meow_cooldown(crate::meow::MessageKind::WantPlay, u64::MAX);
 
-        assert_eq!(Playful.decide(&ctx).await, Action::play_solo());
+        assert_eq!(Playful.decide_action(&ctx), Action::play_solo());
     }
 
     #[tokio::test]
@@ -226,7 +235,7 @@ mod tests {
             });
         });
 
-        let action = Playful.decide(&ctx).await;
+        let action = Playful.decide_action(&ctx);
         assert!(
             matches!(action, Action::Eat | Action::Meow { .. }),
             "a starving cat eats (or asks for food) rather than plays; got {action:?}"
