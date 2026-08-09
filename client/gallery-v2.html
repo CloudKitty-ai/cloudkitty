@@ -225,6 +225,13 @@
     });
   }
 
+  const BELLY_BAG = {};
+  for (const k of Object.keys(CatV2.BELLY)) {
+    Object.defineProperty(BELLY_BAG, k, {
+      get: () => CatV2.BELLY[k], set: (v) => { CatV2.BELLY[k] = v; }, enumerable: true,
+    });
+  }
+
   const POUNCE_BAG = {};
   for (const k of Object.keys(CatV2.POUNCE)) {
     Object.defineProperty(POUNCE_BAG, k, {
@@ -734,6 +741,52 @@
           ctx.textAlign = 'center';
           ctx.fillText(cat.name, x + SIZE / 2, 14);
         }
+      },
+    },
+    {
+      title: 'Belly',
+      note: 'A pale underside on every soft cat — the only one we had was the tuxedo\'s white bib, which is a pattern on one palette, so the four cats actually on the world were flat single-colour ellipses. Ratios are kitten.me\'s, converted out of their tile units. The tuxedo is skipped on purpose: its bib already is a belly, and both together leave this one poking out behind it. Watch the seal point — lightening an almost-white fur toward white has very little to give, which is the one case that may want a different derivation.',
+      v2Only: true,
+      w: 560,
+      h: 190,
+      bag: BELLY_BAG,
+      dials: [
+        { key: 'lighten', label: 'HOW MUCH PALER THAN THE FUR (0 = invisible)', min: 0, max: 0.8, step: 0.01 },
+        { key: 'alpha', label: 'opacity', min: 0, max: 1, step: 0.02 },
+        { key: 'rx', label: 'width, in body radii', min: 0.2, max: 0.9, step: 0.01 },
+        { key: 'ry', label: 'height, in body radii', min: 0.2, max: 0.9, step: 0.01 },
+        { key: 'x', label: 'forward / back, in body radii', min: -0.3, max: 0.5, step: 0.01 },
+        { key: 'y', label: 'up / down, in body radii', min: 0, max: 0.7, step: 0.01 },
+      ],
+      readout() {
+        const B = CatV2.BELLY;
+        const miso = CatV2.appearanceFor(1);
+        return (
+          `BELLY = { x: ${B.x}, y: ${B.y}, rx: ${B.rx}, ry: ${B.ry}, ` +
+          `lighten: ${B.lighten}, alpha: ${B.alpha} }\n` +
+          `seal point ${miso.furBase} → ${CatV2.lightenHex(miso.furBase, B.lighten)}` +
+          `   storm ${CatV2.appearanceFor(4).furBase} → ` +
+          `${CatV2.lightenHex(CatV2.appearanceFor(4).furBase, B.lighten)}\n` +
+          `derived from the body ellipse, so no per-pose value and nothing for blendLayouts to interpolate`
+        );
+      },
+      draw(ctx, w, h, now) {
+        const S = 104;
+        const y = h - S * 0.92;
+        // Every palette, because the point of a belly is that it works on
+        // all of them -- and the pale ones are where it struggles.
+        [1, 2, 3, 4, 0].forEach((pal, i) => {
+          const x = 14 + i * 108;
+          CatV2.drawCat(ctx, {
+            pose: 'idle',
+            appearance: CatV2.appearanceFor(pal),
+            facing: 'right',
+            size: S,
+            x,
+            y,
+            phase: ((now + pal * 700) % 3400) / 3400,
+          });
+        });
       },
     },
     {
