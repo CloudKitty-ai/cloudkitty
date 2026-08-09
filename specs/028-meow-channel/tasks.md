@@ -268,7 +268,7 @@ today; duet/groomer unaffected by cosleep dials.
 **Independent Test**: fixture resumes; retired keys refuse; counter matches the
 census convention.
 
-- [ ] T016 [US6] Resume + compat tests in
+- [X] T016 [US6] Resume + compat tests in
       `crates/cloudkitty-core/tests/snapshot_resume.rs` (+ kitty.rs test mod):
       `a_pre_028_world_resumes_and_runs` — deserialize T001's fixture as `World`,
       tick 200× under the shipped config, invariants green, old-kind meows and
