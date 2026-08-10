@@ -253,11 +253,17 @@ const VIEW = Object.freeze({
    * it needs short beats that fit in a tick, not a 5.8s chain. */
   cardBlinkWeight: 30,
   cardEarsWeight: 14,
-  cardScanWeight: 12,
+  // 0 (2026-08-10): the gaze is TABLED for a longer session, so the card
+  // does not scan for now. Kept as a weight rather than deleted -- turning
+  // it back on is one number, and the branch stays exercised. See BACKLOG:
+  // the look is one coupled gesture (gaze drives pupils, head and ears) but
+  // only the ears clear the visibility floor at portrait size, so it wants
+  // dialling as a whole rather than switching on as-is.
+  cardScanWeight: 0,
   cardYawnWeight: 5,
   cardSitWeight: 12,
   cardPounceWeight: 7,
-  cardRestWeight: 20,
+  cardRestWeight: 32, // 20 + the scan's 12, so no other beat's rate moved
   // The sit holds, then the cat gets up THROUGH a stretch -- which is what
   // a cat actually does standing up, and the reason `stretch` is authored
   // to leave and return to neutral (it is 0px off a resting cat at both
