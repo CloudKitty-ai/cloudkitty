@@ -42,3 +42,7 @@ want-traffic — ~9× the certification margin, every seed down.
 T15's small scripted-world gain is real but inaccessible while policy
 seats are live. The dataset-v5-at-T15 generation play (train listeners
 on chatty company) remains the route to a lower threshold, if wanted.
+
+*Extended same day to a four-point dose-response (T20/T25 added, same
+seeds and design): `../threshold-curve-2026-08-09/results.md`. The
+curve confirms this verdict and locates the scripted optimum at ~T20.*
