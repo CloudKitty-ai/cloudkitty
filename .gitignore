@@ -33,5 +33,5 @@ experiments/**/target/
 experiments/**/raw/
 experiments/**/artifacts/
 
-# temp work dir (client thread)
-deletemewhendone/
+# handoffs from designer
+design-handoffs/
