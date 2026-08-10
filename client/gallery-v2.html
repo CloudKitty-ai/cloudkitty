@@ -832,7 +832,7 @@
         return (
           `VIEW.playBeatMs = ${PLAY.beatMs}   VIEW.playWiggleHz = ${PLAY.wiggleHz}\n`
           + `POUNCE.wiggleAmp = ${P.wiggleAmp}   POUNCE.wiggleRot = ${P.wiggleRot}   `
-          + `⚠ these two are the map's too\n`
+          + `POUNCE.wiggleSway = ${P.wiggleSway}   ⚠ these three are the map's too\n`
           + `load ${ms(P.hold)}ms → launch ${ms(P.launch)}ms → land ${ms(P.land)}ms `
           + `→ recover ${ms(1 - P.hold - P.launch - P.land)}ms\n`
           + `the wiggle landed on ${cycles} cycles = ${cycles * 2} rocks at ${eff.toFixed(2)}Hz`

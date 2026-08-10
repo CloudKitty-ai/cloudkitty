@@ -1317,7 +1317,7 @@ check('the shipped pounce timing is the one the owner dialled', () => {
   // where "2.5 rocks per load" became 14Hz once the load was 176ms.
   assert(P.wiggleHz > 0 && P.wiggleHz < 6, `wiggleHz ${P.wiggleHz} is outside the readable range`);
   close(P.wiggleHz, 1, 'wiggleHz drifted');
-  close(P.wiggleAmp, 0.022, 'wiggleAmp drifted');
+  close(P.wiggleAmp, 0.002, 'wiggleAmp drifted');
 });
 
 check('the pounce still reaches its crouch and its leap', () => {
@@ -1622,6 +1622,25 @@ check('the pounce readout names every dial it could delete', () => {
   for (const key of Object.keys(CatV2.POUNCE)) {
     assert(card.includes(`${key}: \${P.${key}}`), `the Pounce readout never names ${key}`);
   }
+  // The portrait card too. It offers four POUNCE dials and emitted three,
+  // so an owner paste came back without `wiggleSway` -- the identical
+  // failure this check was written for, on the next card along. A readout
+  // must name every dial it OFFERS, or the paste silently reverts one.
+  const portrait = html.slice(
+    html.indexOf("title: 'Portrait pounce"),
+    html.indexOf("title: 'Hunter\\'s face"),
+  );
+  assert(portrait.length > 0, 'the portrait pounce card is still there');
+  for (const m of portrait.matchAll(/\{ key: '(\w+)'/g)) {
+    const key = m[1];
+    // Matched on the VALUE reference, not the label: the card emits
+    // `VIEW.playBeatMs = ${PLAY.beatMs}`, so the dial key and the name it is
+    // printed under legitimately differ.
+    assert(
+      portrait.includes(`.${key}}`),
+      `the Portrait pounce card dials ${key} but never emits it in the readout`,
+    );
+  }
 });
 
 
@@ -1841,8 +1860,20 @@ check('the portrait beat is long enough for the wiggle to be a wiggle', () => {
     const L = CatV2.catLayout('pouncing', (P.hold * i) / 100, beat);
     swing = Math.max(swing, Math.abs(L.body.cy - rest));
   }
-  const px = swing * 47; // PORTRAIT_CAT
-  assert(px > 0.8, `the rock travels ${px.toFixed(2)}px at portrait size -- under the floor`);
+  // Total travel of the hindquarters, since which axis carries the tread is
+  // a dial -- see 'the tread moves the BUTT'.
+  const rearOf = (L) => [
+    L.body.cx - Math.cos(L.body.rot) * L.body.rx,
+    L.body.cy - Math.sin(L.body.rot) * L.body.rx,
+  ];
+  const [rx0, ry0] = rearOf(CatV2.catLayout('pouncing', 0, beat));
+  let travel = 0;
+  for (let i = 0; i <= 100; i++) {
+    const [rx, ry] = rearOf(CatV2.catLayout('pouncing', (P.hold * i) / 100, beat));
+    travel = Math.max(travel, Math.hypot(rx - rx0, ry - ry0));
+  }
+  const px = travel * 47; // PORTRAIT_CAT
+  assert(px > 0.8, `the tread travels ${px.toFixed(2)}px at portrait size -- under the floor`);
 });
 
 
@@ -1864,69 +1895,57 @@ check('a caller may pick its own wiggle rate without moving the map\'s', () => {
 });
 
 
-check('the butt wiggle moves the BUTT', () => {
+check('the tread moves the BUTT, and only the butt', () => {
   // It shipped moving the chest instead, 27:1 the wrong way, on a pose whose
   // own comment says it "treads its hind feet and rocks its hindquarters".
   // The rock is a cy shift PLUS a rotation about the body's centre, so the
   // two add at one end of the ellipse and cancel at the other -- and with
-  // the signs agreeing they added at the front. Invisible in a still and
-  // easy to miss in motion; the owner caught it by eye against the design's
-  // own build.
+  // the signs agreeing they added at the front.
+  //
+  // Measured as TOTAL travel, not per axis. WHICH axis carries the tread is
+  // a dial: the owner moved it from a vertical bob to a lateral rock
+  // (wiggleAmp 0.022 -> 0.002, the sway doing the work instead), and a
+  // per-axis assertion only encodes whichever choice was current when it was
+  // written. What has to hold either way is that the REAR moves, visibly,
+  // and the chest does not.
   const P = CatV2.POUNCE;
   // The base cat faces right, so the hindquarters sit at cx - rx.
   const ends = (L) => ({
-    rear: L.body.cy - Math.sin(L.body.rot) * L.body.rx,
-    front: L.body.cy + Math.sin(L.body.rot) * L.body.rx,
     rearX: L.body.cx - Math.cos(L.body.rot) * L.body.rx,
+    rearY: L.body.cy - Math.sin(L.body.rot) * L.body.rx,
     frontX: L.body.cx + Math.cos(L.body.rot) * L.body.rx,
+    frontY: L.body.cy + Math.sin(L.body.rot) * L.body.rx,
   });
-  // Both clocks: the map's tick and the portrait's longer beat.
-  for (const beat of [{ beatMs: 800 }, { beatMs: 3200, wiggleHz: 3.4 }]) {
+  for (const [beat, px] of [[{ beatMs: 800 }, 31], [{ beatMs: 1600, wiggleHz: 3.9 }, 47]]) {
     const rest = ends(CatV2.catLayout('pouncing', 0, beat));
     let rear = 0;
     let front = 0;
-    for (let i = 0; i <= 200; i++) {
-      const e = ends(CatV2.catLayout('pouncing', (P.hold * i) / 200, beat));
-      rear = Math.max(rear, Math.abs(e.rear - rest.rear));
-      front = Math.max(front, Math.abs(e.front - rest.front));
-    }
-    assert(rear > front * 4, `beat ${beat.beatMs}: the chest moved ${(front / rear).toFixed(1)}x the butt`);
-    // The planted front is the other half of the read -- a cat gathering
-    // itself keeps its chest still and its eyes on the target.
-    assert(front * 47 < 0.4, `beat ${beat.beatMs}: the chest travels ${(front * 47).toFixed(2)}px`);
-  }
-
-  // The side-to-side tread. A side-profile cat has no lateral axis, so the
-  // weight shift is drawn as DEPTH -- the body narrows and the width comes
-  // off the BACK, keeping the chest planted. Both axes together are what
-  // make the rear trace an ellipse rather than pump along one line.
-  for (const beat of [{ beatMs: 800 }, { beatMs: 3200, wiggleHz: 3.4 }]) {
-    const rest = ends(CatV2.catLayout('pouncing', 0, beat));
-    let rearX = 0;
-    let frontX = 0;
     for (let i = 0; i <= 300; i++) {
       const e = ends(CatV2.catLayout('pouncing', (P.hold * i) / 300, beat));
-      rearX = Math.max(rearX, Math.abs(e.rearX - rest.rearX));
-      frontX = Math.max(frontX, Math.abs(e.frontX - rest.frontX));
+      rear = Math.max(rear, Math.hypot(e.rearX - rest.rearX, e.rearY - rest.rearY));
+      front = Math.max(front, Math.hypot(e.frontX - rest.frontX, e.frontY - rest.frontY));
     }
-    assert(rearX * 31 > 0.8, `beat ${beat.beatMs}: the tread is ${(rearX * 31).toFixed(2)}px on the map -- under the floor`);
-    assert(rearX > frontX * 4, `beat ${beat.beatMs}: the tread slid the chest ${(frontX * 47).toFixed(2)}px`);
+    // Visible at the size it is drawn at: the whiskers died at ~0.8px and the
+    // body bob was reverted at 0.56px peak-to-peak.
+    assert(rear * px > 0.8, `beat ${beat.beatMs}: the tread is ${(rear * px).toFixed(2)}px at ${px}px`);
+    // The planted front is the other half of the read.
+    assert(rear > front * 4, `beat ${beat.beatMs}: the chest moved ${(front / rear).toFixed(2)}x the butt`);
+    assert(front * px < 0.4, `beat ${beat.beatMs}: the chest travels ${(front * px).toFixed(2)}px`);
   }
 
-  // And the sway has to be back at zero when the cat leaves the ground --
-  // the same reason the vertical rock quantises to half-cycles. A body still
-  // swung sideways at the launch takes the swing into the air with it.
-  for (const beat of [{ beatMs: 800 }, { beatMs: 3200, wiggleHz: 3.4 }]) {
+  // And the tread has to be back at rest when the cat leaves the ground --
+  // the same reason the rock quantises to half-cycles. A body still swung at
+  // the launch takes the swing into the air with it. A PIXEL claim, not an
+  // equality: sampling either side of the boundary always differs a little,
+  // and "invisible" is measured in pixels.
+  for (const beat of [{ beatMs: 800 }, { beatMs: 1600, wiggleHz: 3.9 }]) {
     const at = (ph) => CatV2.catLayout('pouncing', ph, beat);
-    // In PIXELS, not in units: sampling either side of the boundary always
-    // differs a little, because the sway is evaluated a hair before the end
-    // rather than at it. What matters is that the step is invisible, and
-    // "invisible" is a pixel claim.
-    const justBefore = at(P.hold - 1e-4);
-    const justAfter = at(P.hold + 1e-4);
+    const before = at(P.hold - 1e-4);
+    const after2 = at(P.hold + 1e-4);
     const jump = Math.max(
-      Math.abs(justBefore.body.cx - justAfter.body.cx),
-      Math.abs(justBefore.body.rx - justAfter.body.rx),
+      Math.abs(before.body.cx - after2.body.cx),
+      Math.abs(before.body.rx - after2.body.rx),
+      Math.abs(before.body.cy - after2.body.cy),
     ) * 47;
     assert(jump < 0.02, `beat ${beat.beatMs}: the tread pops ${jump.toFixed(3)}px at the launch`);
   }

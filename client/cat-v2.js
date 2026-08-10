@@ -748,8 +748,8 @@ const POUNCE = {
   // it is 0.52px / 0.91px -- marginal in the demo world, clear on a large
   // display. NOTE the dial is not the travel: the rock rides an envelope
   // whose peak is ~0.77 of this, so quoting wiggleAmp overstates it.
-  wiggleAmp: 0.022, // vertical, in units
-  wiggleRot: 0.06, // and the lean that comes with it, in radians
+  wiggleAmp: 0.002, // vertical, in units
+  wiggleRot: 0.01, // and the lean that comes with it, in radians
   // The side-to-side half of the tread (2026-08-10, owner's ask). A cat
   // gathering itself shifts its weight between its hind paws, which is a
   // LATERAL motion -- and a side-profile cat has no lateral axis on screen.

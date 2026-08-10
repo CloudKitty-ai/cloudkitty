@@ -242,8 +242,8 @@ const VIEW = Object.freeze({
   // The portrait's own rock rate. The world's `wiggleHz` is tuned against a
   // 192ms load; the same value in a 768ms load is a wallow, so the portrait
   // picks its own rather than dragging the map's with it.
-  playWiggleHz: 3.4,
-  playBeatMs: 3200,
+  playWiggleHz: 3.9,
+  playBeatMs: 1600,
   playPeriodMs: 31000,
   playChance: 0.34,
 
