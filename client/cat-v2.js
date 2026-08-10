@@ -60,7 +60,11 @@ const PALETTES = [
     furBase: '#e3bd8b',
     furShade: '#b9905f',
     pattern: { kind: 'tabby-stripes', color: '#c89a63' },
-    eyeColor: '#8a5f2b',
+    // Green, owner's call 2026-08-10 (was amber #8a5f2b). Gooseberry rather
+    // than the roster's other two greens: 33 degrees of hue off pumpkin's
+    // leaf and 47 off the tuxedo's mint, so three green-eyed cats still
+    // read as three cats. Warm enough to sit with the biscuit fur.
+    eyeColor: '#a8c24e',
     noseColor: '#c98d7b',
   },
   {
