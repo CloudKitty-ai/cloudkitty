@@ -765,7 +765,7 @@ const POUNCE = {
   // A quarter-cycle behind the vertical rock, so the rear traces an ellipse
   // -- up-and-back, down-and-forward -- which is what a weight shift does,
   // rather than pulsing in and out on the same beat.
-  wiggleSway: 0.11, // share of body length the rear swings, in depth
+  wiggleSway: 0.085, // share of body length the rear swings, in depth
   twitch: 0, // tail-tip twitch while loading -- kept, and kept at 0
 };
 
