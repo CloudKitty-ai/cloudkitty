@@ -839,7 +839,7 @@ const PORTRAIT_Y = 0.91;
  * every frame after -- because two of these would drift the day someone
  * tunes one of them.
  */
-function paintPortrait(canvas, kittyId, motion, idle) {
+function paintPortrait(canvas, kittyId, idle) {
   const dpr = window.devicePixelRatio || 1;
   // Re-size the backing store when the display changes under us -- issue
   // #102's bug, in a second place. Dragging a window between a Retina and
@@ -862,17 +862,13 @@ function paintPortrait(canvas, kittyId, motion, idle) {
   // path the eased lid REPLACES the snap-closed eyes, or a blinking cat
   // wears both and the ease never shows. v1 has no lid and keeps the
   // snap, so the toggle still A/Bs the portraits like everything else.
-  let eyes = motion.eyesOverride;
-  let lid;
-  if (typeof drawCatTween === 'function' && motion.blinkLid !== undefined) {
-    lid = motion.blinkLid;
-    if (eyes === 'closed') eyes = undefined;
-  }
-  // The idle POSES (2026-08-10): a portrait may sit, or stretch when its cat
-  // wakes. `idlePoseFor` only ever answers for idle/loaf, so asking it with
-  // 'idle' -- which is all a portrait ever is -- fits its contract unchanged.
+  // The eased lid, when the beat is a blink. v1 has no lid and keeps its
+  // snap, so the footer toggle still A/Bs the portraits like everything
+  // else -- but v1 never gets here, because the whole beat table is v2's.
+  const lid = typeof drawCatTween === 'function' ? idle?.blinkLid : undefined;
+  const eyes = lid === undefined && idle?.blinkLid !== undefined ? 'closed' : undefined;
   const pose = idle?.pose ?? 'idle';
-  const phase = idle?.phase ?? motion.phase ?? 0;
+  const phase = idle?.phase ?? 0;
   const opts = {
     appearance: appearanceFor(kittyId),
     facing: 'right', // toward its own name
@@ -880,8 +876,12 @@ function paintPortrait(canvas, kittyId, motion, idle) {
     x: PORTRAIT_X,
     y: PORTRAIT_Y,
     eyesOverride: eyes,
-    earsBack: motion.earsBack,
     lid,
+    // The ear twitch, the gaze and the jaw all ride the RIG -- they are not
+    // layout fields. Before this the portrait passed none, so scan and yawn
+    // were computed every frame and thrown away, and the ear twitch drew in
+    // its pre-upgrade snap form.
+    rig: idle?.rig,
     // The beat length, for the play-pounce. Off the served tick entirely --
     // which is the point: at 800ms the load is 192ms and the butt wiggle
     // quantises to a single rock, and here it has room to be a wiggle.
@@ -935,7 +935,7 @@ function paintPortraits(world, view) {
   for (const canvas of canvases) {
     const id = Number(canvas.dataset.kitty);
     if (!Number.isFinite(id)) continue;
-    paintPortrait(canvas, id, view.motionFor(id, 'idle'), idlePortraitFor(view, id));
+    paintPortrait(canvas, id, idlePortraitFor(view, id));
   }
 }
 
@@ -950,31 +950,45 @@ function paintPortraits(world, view) {
  * A still frame answers null from both, so the portraits hold their pose
  * along with the meadow.
  */
-function idlePortraitFor(view, id) {
-  if (typeof view.idlePoseFor !== 'function') return null;
-  // A stretch outranks a play-pounce, which outranks a sit. The stretch is
-  // the only one tied to something the engine said (this cat just woke), so
-  // it gets the cat first; the other two are the portrait's own.
+function idlePortraitFor(view, id, now) {
+  if (typeof view.idleCardBeatFor !== 'function') return null;
   // A wake-stretch outranks everything: it is the one idle pose tied to
-  // something the engine actually did (this cat just woke), so it gets the
-  // portrait first. The card's own beats -- sit-then-stretch, or a
-  // play-pounce -- come next, and the map's `sit` last, which in practice
-  // never fires at all: it waits on three consecutive still ticks and a
-  // live cat never manages more than two.
-  const idle = view.idlePoseFor(id, 'idle');
-  const beat = idle?.pose === 'stretch' || typeof view.idleCardBeatFor !== 'function'
-    ? null
-    : view.idleCardBeatFor(id, 'idle');
-  const chosen = idle?.pose === 'stretch' ? idle : (beat ?? idle);
-  const pose = chosen?.pose ?? 'idle';
-  const phase = chosen?.phase ?? 0;
-  const tween = view.tweenFor ? view.tweenFor(`card${id}`, pose, phase) : null;
+  // something the engine actually did (this cat just woke), so it takes the
+  // slot rather than sharing it. Otherwise the portrait's own table decides,
+  // and it decides ONE thing -- a beat is a pose or a blink or a yawn, never
+  // a pose AND a blink. Sequencing rather than layering was the owner's
+  // call: two clocks produced sixteen pose x motion pairs nobody chose,
+  // including a cat yawning mid-pounce.
+  const woke = view.idlePoseFor ? view.idlePoseFor(id, 'idle') : null;
+  const beat = woke?.pose === 'stretch' ? woke : view.idleCardBeatFor(id, 'idle');
+  const pose = beat?.pose ?? 'idle';
+  const tween = view.tweenFor ? view.tweenFor(`card${id}`, pose, beat?.phase ?? 0) : null;
+  // The rig, keyed in the portrait's OWN namespace. `rigFor` INTEGRATES, so
+  // sharing the meadow cat's key would double-step every spring on both.
+  // A portrait has no world velocity, so its rig only ever carries the face
+  // and ear channels -- which is exactly what a portrait wants.
+  const rig = view.rigFor
+    ? view.rigFor(`card${id}`, {
+      vx: 0,
+      vy: 0,
+      facing: 'right',
+      gazeX: beat?.gaze ? beat.gaze.x : 0,
+      gazeY: beat?.gaze ? beat.gaze.y : 0,
+      earTwitch: beat?.earTwitch || 0,
+      earTwitchSide: beat?.earTwitchSide || 1,
+      earsBack: 0,
+      yawn: beat?.yawn || 0,
+      breath: 0,
+    })
+    : null;
   return {
     pose,
-    phase: chosen?.phase,
-    beatMs: chosen?.beatMs,
-    wiggleHz: chosen?.wiggleHz,
-    sway: chosen?.sway,
+    phase: beat?.phase,
+    beatMs: beat?.beatMs,
+    wiggleHz: beat?.wiggleHz,
+    sway: beat?.sway,
+    blinkLid: beat?.blinkLid,
+    rig,
     tween,
   };
 }

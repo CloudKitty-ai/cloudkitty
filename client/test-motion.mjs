@@ -2027,58 +2027,121 @@ check('the portrait sit gets up through a stretch', () => {
   // is a BOUNDED BEAT, where the map's sit is a posture that runs 26-130s
   // and has to coexist with blinks. It is also what a cat actually does
   // standing up.
+  //
+  // Walked as a continuous timeline rather than per slot: the per-cat phase
+  // offset means slot boundaries do not line up with `slot * period`, and
+  // assuming they did made this read the chain as running off the end.
   const p = new api.Presentation();
   p.tickMs = 800;
-  const period = api.VIEW.cardBeatPeriodMs;
   const stretchMs = api.VIEW.stretchTicks * 800;
-  // Find a slot that draws the sit, then walk it.
-  let seen = null;
-  for (let slot = 0; slot < 400 && !seen; slot++) {
-    const base = slot * period;
-    const seq = [];
-    for (let t = 0; t < period; t += 50) {
-      const r = p.idleCardBeatFor(1, 'idle', base + t);
-      seq.push(r ? r.pose : null);
+  const STEP = 50;
+  const seq = [];
+  for (let t = 0; t < 900000; t += STEP) {
+    const r = p.idleCardBeatFor(1, 'idle', t);
+    seq.push(r ? r.pose : null);
+  }
+  // Every run of 'sit' must be followed immediately by a run of 'stretch'.
+  let chains = 0;
+  for (let i = 1; i < seq.length; i++) {
+    if (seq[i - 1] === 'sit' && seq[i] !== 'sit') {
+      assert(seq[i] === 'stretch', `a sit was followed by ${seq[i]}, not a stretch`);
+      chains++;
+      // ...and the stretch by nothing, never straight back to a sit.
+      let j = i;
+      while (seq[j] === 'stretch') j++;
+      assert(seq[j] === null, `the stretch was followed by ${seq[j]}`);
     }
-    if (seq.includes('sit')) seen = seq;
   }
-  assert(seen, 'no slot in 400 ever drew a sit');
-  // Order: a run of sit, then a run of stretch, then nothing. Never the
-  // reverse, and never a gap between them.
-  const runs = [];
-  for (const v of seen) {
-    if (!runs.length || runs[runs.length - 1][0] !== v) runs.push([v, 1]);
-    else runs[runs.length - 1][1]++;
-  }
-  const shape = runs.map((r) => r[0]).filter((v, i, a) => v !== null || i === 0 || a[i - 1] !== null);
-  const sitAt = shape.indexOf('sit');
-  assert(sitAt !== -1, 'the sit never appears');
-  assert(shape[sitAt + 1] === 'stretch', `the sit is followed by ${shape[sitAt + 1]}, not a stretch`);
-  assert(shape[sitAt + 2] === null || shape[sitAt + 2] === undefined, 'something followed the stretch');
-  // And the durations are the dials, within a sample.
-  const sitRun = runs.find((r) => r[0] === 'sit')[1] * 50;
-  const stretchRun = runs.find((r) => r[0] === 'stretch')[1] * 50;
-  assert(Math.abs(sitRun - api.VIEW.sitHoldMs) <= 100, `the sit held ${sitRun}ms, want ${api.VIEW.sitHoldMs}`);
-  assert(Math.abs(stretchRun - stretchMs) <= 100, `the stretch ran ${stretchRun}ms, want ${stretchMs}`);
-  // The stretch carries a phase that sweeps 0..1, so it eases rather than
-  // holding one frame.
+  assert(chains > 5, `only ${chains} sit chains in 900s -- too few to trust`);
+
+  // Durations are the dials, within one sample.
+  const runLen = (want) => {
+    let best = 0;
+    let run = 0;
+    for (const v of seq) {
+      if (v === want) run++;
+      else { best = Math.max(best, run); run = 0; }
+    }
+    return Math.max(best, run) * STEP;
+  };
+  const sitRun = runLen('sit');
+  const stretchRun = runLen('stretch');
+  assert(Math.abs(sitRun - api.VIEW.sitHoldMs) <= STEP, `the sit held ${sitRun}ms, want ${api.VIEW.sitHoldMs}`);
+  assert(Math.abs(stretchRun - stretchMs) <= STEP, `the stretch ran ${stretchRun}ms, want ${stretchMs}`);
+
+  // The stretch carries a phase that sweeps, so it eases rather than holding.
   const phases = [];
-  for (let slot = 0; slot < 400 && phases.length < 3; slot++) {
-    for (let t = 0; t < period; t += 50) {
-      const r = p.idleCardBeatFor(1, 'idle', slot * period + t);
-      if (r?.pose === 'stretch') phases.push(r.phase);
-    }
+  for (let t = 0; t < 900000 && phases.length < 400; t += STEP) {
+    const r = p.idleCardBeatFor(1, 'idle', t);
+    if (r?.pose === 'stretch') phases.push(r.phase);
   }
-  assert(phases.length >= 3, 'the stretch tail is too short to sample');
-  assert(phases[0] < 0.2 && phases[phases.length - 1] > 0.8, 'the stretch phase does not sweep');
+  assert(Math.min(...phases) < 0.2 && Math.max(...phases) > 0.8, 'the stretch phase does not sweep');
 });
 
 check('the card beat weights are a share of 100, like the motion table', () => {
   // The handoff added scan and yawn ON TOP of the rarity budget by
   // declaring a weight twice; the budget only means something if it sums.
-  const w = ['cardSitWeight', 'cardPounceWeight', 'cardRestWeight'].map((k) => api.VIEW[k]);
+  const w = ['cardBlinkWeight', 'cardEarsWeight', 'cardScanWeight', 'cardYawnWeight',
+    'cardSitWeight', 'cardPounceWeight', 'cardRestWeight'].map((k) => api.VIEW[k]);
   const total = w.reduce((a, b) => a + b, 0);
   assert(total === 100, `the card beat weights total ${total}, not 100`);
+});
+
+
+check('a portrait does exactly one thing at a time', () => {
+  // The point of the whole rework. Two clocks -- motion slots plus a pose
+  // clock -- put sixteen pose x motion pairs on screen that nobody chose,
+  // including a cat yawning mid-pounce and blinking while gathering itself
+  // to leap. One table, one beat, and the next beat AFTER it.
+  const p = new api.Presentation();
+  p.tickMs = 800;
+  const channels = ['blinkLid', 'earTwitch', 'gaze', 'yawn'];
+  let beats = 0;
+  for (let t = 0; t < 900000; t += 50) {
+    const r = p.idleCardBeatFor(1, 'idle', t);
+    if (!r) continue;
+    beats++;
+    const live = channels.filter((c) => r[c] !== undefined && r[c] !== 0);
+    const posed = r.pose !== 'idle';
+    assert(live.length <= 1, `${live.join(' + ')} played together`);
+    assert(
+      !(posed && live.length),
+      `a ${r.pose} played with a ${live[0]} -- poses and motions must sequence, not layer`,
+    );
+  }
+  assert(beats > 1000, 'not enough beats sampled to trust this');
+});
+
+check('every portrait beat fits inside its slot', () => {
+  // One-at-a-time only holds if a beat cannot run past its slot into the
+  // next one. The sit chain is the long pole at 5.8s.
+  const V = api.VIEW;
+  const lengths = {
+    blink: V.slowBlinkDownMs + V.slowBlinkHoldMs + V.slowBlinkUpMs,
+    ears: V.idleMotionWindowMs,
+    scan: V.scanMs,
+    yawn: V.yawnOpenMs + V.yawnHoldMs + V.yawnCloseMs,
+    sit: V.sitHoldMs + V.stretchTicks * 800,
+    pounce: V.playBeatMs,
+  };
+  for (const [kind, ms] of Object.entries(lengths)) {
+    assert(ms <= V.cardBeatPeriodMs, `the ${kind} beat is ${ms}ms in a ${V.cardBeatPeriodMs}ms slot`);
+  }
+  // And observed: no two consecutive beats ever touch without a gap.
+  const p = new api.Presentation();
+  p.tickMs = 800;
+  let prev = null;
+  let runs = 0;
+  for (let t = 0; t < 600000; t += 50) {
+    const r = p.idleCardBeatFor(1, 'idle', t);
+    const kind = r ? (r.pose !== 'idle' ? r.pose : 'motion') : null;
+    if (kind && prev && kind !== prev && !(prev === 'sit' && kind === 'stretch')) {
+      assert(false, `a ${prev} ran straight into a ${kind} with no gap`);
+    }
+    if (kind !== prev) runs++;
+    prev = kind;
+  }
+  assert(runs > 20, 'not enough transitions sampled');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);
