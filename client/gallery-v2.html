@@ -266,7 +266,7 @@
       get: () => PLAY[k], set: (v) => { PLAY[k] = v; }, enumerable: true,
     });
   }
-  for (const k of ['wiggleAmp', 'wiggleRot']) {
+  for (const k of ['wiggleAmp', 'wiggleRot', 'wiggleSway']) {
     Object.defineProperty(PLAY_BAG, k, {
       get: () => CatV2.POUNCE[k], set: (v) => { CatV2.POUNCE[k] = v; }, enumerable: true,
     });
@@ -812,6 +812,7 @@
         { key: 'wiggleHz', label: 'rock rate, in Hz — steps, because it quantises', min: 0.5, max: 8, step: 0.1 },
         { key: 'wiggleAmp', label: 'rock depth ⚠ SHARED with the map\'s pounce', min: 0, max: 0.05, step: 0.002 },
         { key: 'wiggleRot', label: 'and its lean ⚠ SHARED with the map\'s pounce', min: 0, max: 0.15, step: 0.005 },
+        { key: 'wiggleSway', label: 'side-to-side tread ⚠ SHARED with the map\'s pounce', min: 0, max: 0.16, step: 0.005 },
       ],
       readout() {
         const P = CatV2.POUNCE;
@@ -1239,6 +1240,7 @@
         { key: 'snap', label: 'how front-loaded the launch is (1 = even, higher = snappier)', min: 1, max: 5, step: 0.1 },
         { key: 'wiggleHz', label: 'pre-launch rock, in Hz (above ~6 reads as a vibration)', min: 0.5, max: 8, step: 0.1 },
         { key: 'wiggleAmp', label: 'and how far it rocks', min: 0, max: 0.05, step: 0.002 },
+        { key: 'wiggleSway', label: 'side-to-side tread (drawn as depth)', min: 0, max: 0.16, step: 0.005 },
         { key: 'twitch', label: 'tail-tip twitch while loading', min: 0, max: 0.06, step: 0.002 },
       ],
       readout() {
@@ -1270,7 +1272,8 @@
         return (
           `POUNCE = { hold: ${P.hold}, launch: ${P.launch}, land: ${P.land}, snap: ${P.snap},\n`
           + `           wiggleHz: ${P.wiggleHz}, wiggleAmp: ${P.wiggleAmp}, `
-          + `wiggleRot: ${P.wiggleRot}, twitch: ${P.twitch} }\n`
+          + `wiggleRot: ${P.wiggleRot},\n           wiggleSway: ${P.wiggleSway}, `
+          + `twitch: ${P.twitch} }\n`
           + `load ${held.toFixed(0)}ms → launch ${out.toFixed(0)}ms → land ${down.toFixed(0)}ms `
           + `→ recover ${back.toFixed(0)}ms  (one 800ms tick)\n`
           + `half the extension is done ${(half * TICK).toFixed(0)}ms in   ·   `

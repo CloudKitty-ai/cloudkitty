@@ -1877,6 +1877,8 @@ check('the butt wiggle moves the BUTT', () => {
   const ends = (L) => ({
     rear: L.body.cy - Math.sin(L.body.rot) * L.body.rx,
     front: L.body.cy + Math.sin(L.body.rot) * L.body.rx,
+    rearX: L.body.cx - Math.cos(L.body.rot) * L.body.rx,
+    frontX: L.body.cx + Math.cos(L.body.rot) * L.body.rx,
   });
   // Both clocks: the map's tick and the portrait's longer beat.
   for (const beat of [{ beatMs: 800 }, { beatMs: 3200, wiggleHz: 3.4 }]) {
@@ -1892,6 +1894,41 @@ check('the butt wiggle moves the BUTT', () => {
     // The planted front is the other half of the read -- a cat gathering
     // itself keeps its chest still and its eyes on the target.
     assert(front * 47 < 0.4, `beat ${beat.beatMs}: the chest travels ${(front * 47).toFixed(2)}px`);
+  }
+
+  // The side-to-side tread. A side-profile cat has no lateral axis, so the
+  // weight shift is drawn as DEPTH -- the body narrows and the width comes
+  // off the BACK, keeping the chest planted. Both axes together are what
+  // make the rear trace an ellipse rather than pump along one line.
+  for (const beat of [{ beatMs: 800 }, { beatMs: 3200, wiggleHz: 3.4 }]) {
+    const rest = ends(CatV2.catLayout('pouncing', 0, beat));
+    let rearX = 0;
+    let frontX = 0;
+    for (let i = 0; i <= 300; i++) {
+      const e = ends(CatV2.catLayout('pouncing', (P.hold * i) / 300, beat));
+      rearX = Math.max(rearX, Math.abs(e.rearX - rest.rearX));
+      frontX = Math.max(frontX, Math.abs(e.frontX - rest.frontX));
+    }
+    assert(rearX * 31 > 0.8, `beat ${beat.beatMs}: the tread is ${(rearX * 31).toFixed(2)}px on the map -- under the floor`);
+    assert(rearX > frontX * 4, `beat ${beat.beatMs}: the tread slid the chest ${(frontX * 47).toFixed(2)}px`);
+  }
+
+  // And the sway has to be back at zero when the cat leaves the ground --
+  // the same reason the vertical rock quantises to half-cycles. A body still
+  // swung sideways at the launch takes the swing into the air with it.
+  for (const beat of [{ beatMs: 800 }, { beatMs: 3200, wiggleHz: 3.4 }]) {
+    const at = (ph) => CatV2.catLayout('pouncing', ph, beat);
+    // In PIXELS, not in units: sampling either side of the boundary always
+    // differs a little, because the sway is evaluated a hair before the end
+    // rather than at it. What matters is that the step is invisible, and
+    // "invisible" is a pixel claim.
+    const justBefore = at(P.hold - 1e-4);
+    const justAfter = at(P.hold + 1e-4);
+    const jump = Math.max(
+      Math.abs(justBefore.body.cx - justAfter.body.cx),
+      Math.abs(justBefore.body.rx - justAfter.body.rx),
+    ) * 47;
+    assert(jump < 0.02, `beat ${beat.beatMs}: the tread pops ${jump.toFixed(3)}px at the launch`);
   }
 });
 
