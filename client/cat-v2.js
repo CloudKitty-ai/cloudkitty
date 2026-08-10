@@ -1467,7 +1467,15 @@ function catLayout(pose, phase, opts = {}) {
       const t = pounceLaunch(phase);
       // opts.beatMs is the served tick length, so the wiggle keeps its
       // real-world speed whatever config.world.tick_ms says.
-      const wig = pounceWiggle(phase, POUNCE, opts.beatMs);
+      // `opts.wiggleHz` lets a caller off the served tick pick its own rock
+      // rate without moving the world's. The card portrait needs it: its
+      // beat is 4x longer, so the SAME Hz that reads as one deliberate rock
+      // in 192ms becomes a slow wallow in 768ms.
+      const wig = pounceWiggle(
+        phase,
+        opts.wiggleHz ? { ...POUNCE, wiggleHz: opts.wiggleHz } : POUNCE,
+        opts.beatMs,
+      );
       const crouch = {
         ...L,
         body: {

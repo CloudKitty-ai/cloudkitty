@@ -255,6 +255,23 @@
   // The hunting face. The variant object is frozen, so the bag writes into a
   // thawed copy and swaps it in -- otherwise every dial would silently no-op,
   // which is exactly the failure mode the handoff warns about for the clamp.
+  // The card portrait's play-pounce. `beatMs` and `wiggleHz` are VIEW values
+  // and VIEW is frozen, so the lab holds its own and the readout emits a
+  // paste; `wiggleAmp` and `wiggleRot` are POUNCE and dial in place -- which
+  // means they move the MAP's pounce too, and the card says so.
+  const PLAY = { beatMs: 3200, wiggleHz: 3.4 };
+  const PLAY_BAG = {};
+  for (const k of ['beatMs', 'wiggleHz']) {
+    Object.defineProperty(PLAY_BAG, k, {
+      get: () => PLAY[k], set: (v) => { PLAY[k] = v; }, enumerable: true,
+    });
+  }
+  for (const k of ['wiggleAmp', 'wiggleRot']) {
+    Object.defineProperty(PLAY_BAG, k, {
+      get: () => CatV2.POUNCE[k], set: (v) => { CatV2.POUNCE[k] = v; }, enumerable: true,
+    });
+  }
+
   const FOCUS_BAG = {};
   for (const k of ['focusLidTilt', 'focusLid', 'focusLowerLid', 'focusPupilBase', 'focusGrow']) {
     Object.defineProperty(FOCUS_BAG, k, {
@@ -781,6 +798,81 @@
           ctx.textAlign = 'center';
           ctx.fillText(cat.name, x + SIZE / 2, 14);
         }
+      },
+    },
+    {
+      title: 'Portrait pounce — the whole beat, off the tick',
+      note: 'The card portrait\'s play-pounce. On the map a pounce gets one 800ms tick, which is why its load is 192ms and the butt wiggle quantises to a single rock — a lean, not a wiggle. A portrait runs on the frame clock and is not tick-bound, so this is the one place the whole beat is legible. TOP is the filmstrip at the real portrait size (47px), sampled evenly, so a crowded run of frames means the cat is moving and a flat run means it is holding. BOTTOM is the same beat live at 3x, looping, which is the only way to judge the wiggle. Note the wiggle rate quantises to HALF-CYCLES so the sine lands on exactly zero at the launch — so this dial steps rather than slides, and the readout gives you the rock count it actually landed on rather than the number you asked for.',
+      v2Only: true,
+      w: 560,
+      h: 250,
+      bag: PLAY_BAG,
+      dials: [
+        { key: 'beatMs', label: 'BEAT LENGTH (the map gets 800ms; this does not)', min: 1000, max: 5000, step: 100 },
+        { key: 'wiggleHz', label: 'rock rate, in Hz — steps, because it quantises', min: 0.5, max: 8, step: 0.1 },
+        { key: 'wiggleAmp', label: 'rock depth ⚠ SHARED with the map\'s pounce', min: 0, max: 0.05, step: 0.002 },
+        { key: 'wiggleRot', label: 'and its lean ⚠ SHARED with the map\'s pounce', min: 0, max: 0.15, step: 0.005 },
+      ],
+      readout() {
+        const P = CatV2.POUNCE;
+        const holdSec = (P.hold * PLAY.beatMs) / 1000;
+        const cycles = Math.max(0.5, Math.round(PLAY.wiggleHz * holdSec * 2) / 2);
+        const eff = cycles / holdSec;
+        // Sampled off the pose, not read off the dial: the rock rides an
+        // envelope, so wiggleAmp overstates the travel by about a quarter.
+        const beat = { beatMs: PLAY.beatMs, wiggleHz: PLAY.wiggleHz };
+        const rest = CatV2.catLayout('pouncing', 0, beat).body.cy;
+        let swing = 0;
+        for (let i = 0; i <= 80; i++) {
+          const L = CatV2.catLayout('pouncing', (P.hold * i) / 80, beat);
+          swing = Math.max(swing, Math.abs(L.body.cy - rest));
+        }
+        const ms = (share) => (share * PLAY.beatMs).toFixed(0);
+        return (
+          `VIEW.playBeatMs = ${PLAY.beatMs}   VIEW.playWiggleHz = ${PLAY.wiggleHz}\n`
+          + `POUNCE.wiggleAmp = ${P.wiggleAmp}   POUNCE.wiggleRot = ${P.wiggleRot}   `
+          + `⚠ these two are the map's too\n`
+          + `load ${ms(P.hold)}ms → launch ${ms(P.launch)}ms → land ${ms(P.land)}ms `
+          + `→ recover ${ms(1 - P.hold - P.launch - P.land)}ms\n`
+          + `the wiggle landed on ${cycles} cycles = ${cycles * 2} rocks at ${eff.toFixed(2)}Hz`
+          + (cycles < 1 ? '  ⚠ half a cycle is ONE rock — a lean, not a wiggle' : '')
+          + `\nrock travels ${(swing * 47).toFixed(2)}px at portrait size`
+          + (swing * 47 < 0.8 ? '  ⚠ under the floor things read at here' : '')
+        );
+      },
+      draw(ctx, w, h, now) {
+        const cat = CatV2.appearanceFor(2);
+        const beat = { beatMs: PLAY.beatMs, wiggleHz: PLAY.wiggleHz };
+        // The filmstrip, at the size it actually ships.
+        const N = 11;
+        const S = 47;
+        const stripY = 6;
+        for (let i = 0; i < N; i++) {
+          CatV2.drawCat(ctx, {
+            pose: 'pouncing', phase: i / (N - 1), appearance: cat, facing: 'right',
+            size: S, x: 8 + i * ((w - 24) / N), y: stripY, layout: beat,
+          });
+        }
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '11px ui-monospace, monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`${S}px — the real portrait size, whole beat`, 8, stripY + S + 4);
+        // And live at 3x, on the dialled beat rather than the served tick.
+        const big = 141;
+        const phase = ((now % PLAY.beatMs) / PLAY.beatMs + 1) % 1;
+        CatV2.drawCat(ctx, {
+          pose: 'pouncing', phase, appearance: cat, facing: 'right',
+          size: big, x: 20, y: h - big * 0.95 - 6, layout: beat,
+        });
+        const P = CatV2.POUNCE;
+        const marks = [
+          ['load', 0, P.hold], ['launch', P.hold, P.hold + P.launch],
+          ['land', P.hold + P.launch, P.hold + P.launch + P.land],
+          ['recover', P.hold + P.launch + P.land, 1],
+        ];
+        const inPhase = marks.find(([, a, b]) => phase >= a && phase < b);
+        ctx.fillStyle = '#6b7280';
+        ctx.fillText(`3x, live — ${inPhase ? inPhase[0] : 'recover'}`, 20, h - 4);
       },
     },
     {

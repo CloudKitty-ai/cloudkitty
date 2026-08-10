@@ -239,6 +239,10 @@ const VIEW = Object.freeze({
    * rather than as a single lean. The step is sharp: 3000 is still one rock,
    * 3200 is two. Lower it and check the rock count, do not just check that
    * it looks shorter. */
+  // The portrait's own rock rate. The world's `wiggleHz` is tuned against a
+  // 192ms load; the same value in a 768ms load is a wallow, so the portrait
+  // picks its own rather than dragging the map's with it.
+  playWiggleHz: 3.4,
   playBeatMs: 3200,
   playPeriodMs: 31000,
   playChance: 0.34,
@@ -992,7 +996,12 @@ class Presentation {
     if (idleHash(id, slot, IDLE_SALTS.play) >= VIEW.playChance) return null;
     const into = clock - slot * VIEW.playPeriodMs;
     if (into >= VIEW.playBeatMs) return null;
-    return { pose: 'pouncing', phase: into / VIEW.playBeatMs, beatMs: VIEW.playBeatMs };
+    return {
+      pose: 'pouncing',
+      phase: into / VIEW.playBeatMs,
+      beatMs: VIEW.playBeatMs,
+      wiggleHz: VIEW.playWiggleHz,
+    };
   }
 
   /**

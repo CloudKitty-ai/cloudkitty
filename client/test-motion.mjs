@@ -1826,11 +1826,15 @@ check('the portrait beat is long enough for the wiggle to be a wiggle', () => {
   // a re-dial can cross it without looking obviously different in a still.
   const P = CatV2.POUNCE;
   const holdSec = (P.hold * api.VIEW.playBeatMs) / 1000;
-  const cycles = Math.max(0.5, Math.round(P.wiggleHz * holdSec * 2) / 2);
+  // VIEW.playWiggleHz, NOT POUNCE.wiggleHz: the portrait picks its own rate,
+  // because the map's is tuned against a 192ms load and the same value in a
+  // 768ms load is a wallow. Computing this from the map's rate would pass
+  // while testing a number the portrait never uses.
+  const cycles = Math.max(0.5, Math.round(api.VIEW.playWiggleHz * holdSec * 2) / 2);
   assert(cycles >= 1, `the portrait load holds ${cycles} cycles -- one rock, not a wiggle`);
   // And the rock has to clear the size things read at here: the whiskers
   // died at ~0.8px and the body bob was reverted at 0.56px.
-  const beat = { beatMs: api.VIEW.playBeatMs };
+  const beat = { beatMs: api.VIEW.playBeatMs, wiggleHz: api.VIEW.playWiggleHz };
   const rest = CatV2.catLayout('pouncing', 0, beat).body.cy;
   let swing = 0;
   for (let i = 0; i <= 100; i++) {
@@ -1839,6 +1843,24 @@ check('the portrait beat is long enough for the wiggle to be a wiggle', () => {
   }
   const px = swing * 47; // PORTRAIT_CAT
   assert(px > 0.8, `the rock travels ${px.toFixed(2)}px at portrait size -- under the floor`);
+});
+
+
+check('a caller may pick its own wiggle rate without moving the map\'s', () => {
+  // The portrait needs a faster rock than the map, and must not get it by
+  // reaching into POUNCE -- that would change the world's pounce as a side
+  // effect of a card dial.
+  const beat = 3200;
+  const slow = CatV2.catLayout('pouncing', 0.1, { beatMs: beat, wiggleHz: 1 });
+  const quick = CatV2.catLayout('pouncing', 0.1, { beatMs: beat, wiggleHz: 3.4 });
+  assert(slow.body.cy !== quick.body.cy, 'the wiggleHz override did not reach the drawing');
+  // Absent, the map's own dial is what applies -- unchanged either way.
+  const before = CatV2.POUNCE.wiggleHz;
+  CatV2.catLayout('pouncing', 0.1, { beatMs: beat, wiggleHz: 7 });
+  assert(CatV2.POUNCE.wiggleHz === before, 'an override mutated the shared dial');
+  const plain = CatV2.catLayout('pouncing', 0.1, { beatMs: beat });
+  const asMap = CatV2.catLayout('pouncing', 0.1, { beatMs: beat, wiggleHz: before });
+  close(plain.body.cy, asMap.body.cy, 'no override should mean the map\'s rate');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);
