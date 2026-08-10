@@ -31,60 +31,99 @@ change.
 
 ---
 
-## Unreleased
+## v2.7 — 2026-08-09 — the meow channel, and the world goes all-policy
 
-- **All-policy roster: e004-a1-s2 takes the remaining two seats** —
-  Biscuit and Pumpkin follow Miso and Kittybear the same day, on the 4x
-  deployment screen (30 fresh seeds, reserved band: 0.9499 vs the live
-  2+2 composition's 0.8866 — the scripted seats were the live-welfare
-  cap; §9.1 water bounds PASS at the all-policy composition). Biscuit's
-  playful era ends; Pumpkin keeps the snacky needs override (world-law,
-  not behavior).
-- **e004-a1-s2 takes both policy seats** — the first certified seating:
-  exp-004's winner (grid 15/15 on the settled §9.2 gate, §9.3 welfare
-  +0.0440 over paired baseline) replaces the spec-028 scripted parking on
-  Miso and Kittybear. e003-m0-g998-s3 retires to `policies/retired/` with
-  its record; the seats-a-policy release test returns for its second
-  tour, superseding the generation-gap test per its own instruction.
-- **The Meow Channel** (spec 028) — the generation-3 schema batch, one
-  wall crossed on purpose. `[obs-schema]` `[rng-sequence]` `[stamp]` —
-  deliberately not `[world-fresh]`: pre-028 world snapshots load and run
-  (the committed fixture is the proof); the break is policy-side only.
-  New `engine_defaults_sha256`:
-  `412d00e2a92e4f5a3a4f4e72caa8f0266b18455e331ed41aef3044f05e749c87`
-  (recorded, not triaged — baselines re-derive on this engine).
-  - Every decision is a pair: `(activity, message)`. Announcing rides
-    along and never spends the turn; `Action::Meow` retired by the Purr
-    precedent (parses, validates to Idle). Menu 40 → 34; message head 9
-    (Silent + 8 kinds — WantBath and WantSleep join); observation
-    183 → 197 (digest v3: one coherent freshest emitter, with the
-    stamped intensity); mask wire 43; artifact v2 (one trunk, two heads,
-    one split RNG draw when sampling).
-  - Message legality is engine law: a want-kind needs its need armed
-    (announce_threshold 30 / hysteresis 5, updated beside distress) and
-    its per-kind cooldown clear (= recent_window_ticks); Silent is never
-    masked, structurally. The `[meow]` courtesy trio retired loudly;
-    the sweep gained the pinned-generation exclusion manifest
-    (`config-sweep-exclusions.txt`, decided with Experiments).
-  - Scripted cats are demonstrators now: deterministic announce (the
-    lotteries died), a groom-response rung keyed on the audible
-    `WantBath` alone (imitability — GroomKitty went from 0-in-800k to
-    occurring by construction), cosleep routed to a friend's side when
-    cuddle is real (`cuddle_real_threshold` 15), and cosleep priced by
-    presence (`cosleep_drip_relief`/`cosleep_mutual_relief`, 15/15
-    behavior-preserving until the pilot re-prices them).
-  - The distress-tick census rides every welfare report (instrument
-    convention verbatim; reported, never gated).
-  - The shipped config's policy seats re-parked to scripted across the
-    generation gap (e003 artifacts speak action schema 1); deploy stays
-    gated until a generation-3 artifact certifies.
+`[obs-schema 2→3]` `[rng-sequence]` `[stamp]` — deliberately **not**
+`[world-fresh]`
+
+The generation-3 release, and the shortest span between tags for the
+largest change of state. Its meaning in one line: **every decision is now
+a pair — an activity, and a message riding along for free — and for the
+first time every seat in the served world runs a learned policy.** Rolled
+out 2026-08-09 via a plain `update.sh`: no `--fresh`, because the schema
+break is policy-side only — the live world *resumed*, history intact,
+soak clock past 215,000 ticks, with cosleeping visible in the first
+snapshot.
+
+### The Meow Channel (spec 028)
+
+One wall crossed on purpose. `Action::Meow` retired by the Purr precedent
+(parses, validates to Idle); announcing stopped costing the turn. Menu
+40 → 34; message head 9 (Silent + 8 want-kinds — WantBath and WantSleep
+join); observation 183 → 197 (digest v3: one coherent freshest audible
+emitter, with the engine-stamped intensity); mask wire 43 = 34 ∥ 9;
+artifact v2 (one trunk, two heads, one split RNG draw when sampling).
+New `engine_defaults_sha256`:
+`412d00e2a92e4f5a3a4f4e72caa8f0266b18455e331ed41aef3044f05e749c87`
+(recorded, not triaged — baselines re-derive on this engine). Pre-028
+world snapshots load and run; the committed fixture is the proof (#163).
+
+- Message legality is engine law: a want-kind needs its need armed
+  (announce_threshold 30 / hysteresis 5, updated beside distress) and
+  its per-kind cooldown clear (= recent_window_ticks); Silent is never
+  masked, structurally. The `[meow]` courtesy trio retired loudly;
+  the sweep gained the pinned-generation exclusion manifest
+  (`config-sweep-exclusions.txt`, decided with Experiments).
+- Scripted cats are demonstrators now: deterministic announce (the
+  lotteries died), a groom-response rung keyed on the audible
+  `WantBath` alone (imitability — GroomKitty went from 0-in-800k to
+  occurring by construction), cosleep routed to a friend's side when
+  cuddle is real (`cuddle_real_threshold` 15), and cosleep priced by
+  presence (`cosleep_drip_relief`/`cosleep_mutual_relief`, 15/15
+  behavior-preserving until the pilot re-prices them).
+- The distress-tick census rides every welfare report (instrument
+  convention verbatim; reported, never gated).
+- The batch briefly re-parked the policy seats to scripted across the
+  generation gap (e003 artifacts speak action schema 1) — a parking
+  that lasted exactly as long as it took a generation-3 artifact to
+  certify (below).
+
+### The first certified seating — then all four seats
+
+exp-004 ran its preregistered arc end to end: freeze (#170), dataset v4
+(#171), behavior cloning (#172), the PPO grid (#173), and the verdict
+(#174) — **e004-a1-s2**, the shaping arm's seed-2 winner: 15/15 on the
+settled §9.2 gate, §9.3 welfare +0.0440 over the paired baseline, zero
+fallbacks under stress. The artifact landed with its certification
+record (#175).
+
+It took Miso's and Kittybear's seats first (#176) — the first certified
+generation-3 seating, retiring e003-m0-g998-s3 to `policies/retired/`;
+the seats-a-policy release test returned for its second tour,
+superseding the generation-gap test per its own instruction. The
+remaining two seats followed the same day (#178), on the 4x deployment
+screen: 30 fresh seeds at 0.9499 reserved-band welfare vs the live 2+2
+composition's 0.8866 — the scripted seats were the live-welfare cap —
+with §9.1 water bounds PASS at the all-policy composition. Biscuit's
+playful era ends; Pumpkin keeps the snacky needs override (world-law,
+not behavior).
+
+### The client: phase-4 cats, deeper ponds, the new vocabulary
+
+The cat learned to move like a body instead of a sprite: legs pivot
+inside the silhouette and the gait rides distance, not the tick clock
+(#137); the pounce launches instead of switching (#152), and a chase
+only draws it once the quarry is within four tiles (#157); body:head
+proportion became a judged dial (#148); every soft cat got a belly
+(#158); the sleep-curl head joined the head-radius band every waking
+pose already kept (#180). The pond gained depth — palette, dials, and
+the blur ceiling (#177), plus the lost `groupWaterTiles` call restored
+(#179) — and the wading cat stopped making its own ripples (#159). The
+client also learned spec 028's language: `MEOW_TEXT` gained want_bath
+and want_sleep (#162).
+
+### Housekeeping
+
+- The changelog itself (#135): the whole story, v1.0 to v2.6, told for
+  a reader — with the compatibility-marker convention this entry uses.
 - exp-004 design inputs committed (#134): working notes toward making
   the meow carry more signal — explicitly inputs, not yet a design.
 - Findings register housekeeping: archived findings split out, F-017
   registered (the multi-copy training collapse is largely a symmetry
   artifact), and exp-003's record corrected from a verification sweep.
-- Operational, post-tag: the 20×20 world went live 2026-08-08 via
-  `update.sh --fresh` — the first world of the canonical generation.
+- Operational, post-v2.6: the 20×20 world went live 2026-08-08 via
+  `update.sh --fresh` — the first world of the canonical generation,
+  and the world this release *resumed* rather than replaced.
 - Refactor, no markers: `[rl]` config defaults collapsed to
   container-level serde defaults and eleven dead accessors deleted
   across core and rl — behavior-identical, stamp verified unchanged;
