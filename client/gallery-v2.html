@@ -272,6 +272,15 @@
     });
   }
 
+  // The look: gaze, and the head and ears it drags with it. All RIG values,
+  // so these are the MAP's too -- the card says so.
+  const LOOK_BAG = {};
+  for (const k of ['gazePupil', 'gazeHead', 'gazeEar', 'gazeOmega', 'gazeZeta']) {
+    Object.defineProperty(LOOK_BAG, k, {
+      get: () => CatV2.RIG[k], set: (v) => { CatV2.RIG[k] = v; }, enumerable: true,
+    });
+  }
+
   const FOCUS_BAG = {};
   for (const k of ['focusLidTilt', 'focusLid', 'focusLowerLid', 'focusPupilBase', 'focusGrow']) {
     Object.defineProperty(FOCUS_BAG, k, {
@@ -699,7 +708,7 @@
         { key: 'replayMs', label: 'replay every (ms) — lab only, never pasted', min: 1200, max: 20000, step: 100 },
       ],
       toggles: [
-        { key: 'trueCadence', label: 'replay at the real interval (idle slot ÷ blink share)' },
+        { key: 'trueCadence', label: 'replay at the real interval (idle slot ÷ blink share) — lab only' },
       ],
       readout() {
         const total = blinkTotal();
@@ -798,6 +807,74 @@
           ctx.textAlign = 'center';
           ctx.fillText(cat.name, x + SIZE / 2, 14);
         }
+      },
+    },
+    {
+      title: 'The look — gaze, and what follows it',
+      note: 'A scan, drawn at the sizes it ships at. The gaze is ONE channel: the pupils, the head and the ears all come off it, which is what makes a look read as a look rather than as eyes sliding in a still head. The dials below are all RIG values, so they are the map\'s as well as the card\'s — judge the 31px cat and the 47px cat together. Measured at the shipped values, the ears carry the gesture at 1.90px while the head follow is 0.53px, under the 0.56px the body bob was reverted at: the cue currently reads as ears turning rather than as a head turn, which is the thing to fix if the look feels flat.',
+      v2Only: true,
+      w: 560,
+      h: 210,
+      bag: LOOK_BAG,
+      dials: [
+        { key: 'gazeHead', label: 'HEAD FOLLOW (head radii) — 0.05 ships, and is sub-pixel', min: 0, max: 0.3, step: 0.005 },
+        { key: 'gazePupil', label: 'pupil travel inside the iris', min: 0, max: 0.8, step: 0.02 },
+        { key: 'gazeEar', label: 'ear turn, in radians', min: 0, max: 0.6, step: 0.01 },
+        { key: 'gazeOmega', label: 'how fast the look springs', min: 2, max: 20, step: 0.5 },
+        { key: 'gazeZeta', label: 'and how it settles (<1 overshoots)', min: 0.3, max: 1.4, step: 0.05 },
+      ],
+      readout() {
+        const R = CatV2.RIG;
+        const L = CatV2.catLayout('idle', 0.3);
+        const headR = L.head.r;
+        const er = headR * CatV2.EYE.scale;
+        // At full deflection, which is where a scan peaks.
+        const pupil = er * R.gazePupil;
+        const head = headR * R.gazeHead;
+        const ear = Math.sin(R.gazeEar) * headR * 0.9;
+        const row = (name, u) => `${name} ${(u * 31).toFixed(2)}px @31 · ${(u * 47).toFixed(2)}px @47`
+          + (u * 47 < 0.56 ? '  ⚠ under the floor' : '');
+        return (
+          `RIG = { gazePupil: ${R.gazePupil}, gazeHead: ${R.gazeHead}, gazeEar: ${R.gazeEar},\n`
+          + `        gazeOmega: ${R.gazeOmega}, gazeZeta: ${R.gazeZeta} }   ⚠ the map's too\n`
+          + `${row('ear tip  ', ear)}\n${row('pupil    ', pupil)}\n${row('head     ', head)}\n`
+          + `for scale: the whiskers died at ~0.8px, the body bob was reverted at 0.56px`
+        );
+      },
+      draw(ctx, w, h, now) {
+        // The shipped scan envelope, driven through the shipped rig, so what
+        // is judged here is what a card actually plays.
+        const SCAN = 1500;
+        const CYCLE = 2600;
+        const t = now % CYCLE;
+        const u = Math.min(1, t / SCAN);
+        const env = t < SCAN
+          ? easeSmooth(Math.min(1, u * 3)) * (1 - easeSmooth(Math.max(0, (u - 0.6) / 0.4)))
+          : 0;
+        if (!this._rig) this._rig = CatV2.createRigState();
+        const dt = Math.min(50, now - (this._last ?? now - 16));
+        this._last = now;
+        const rig = CatV2.stepRig(this._rig, {
+          vx: 0, vy: 0, facing: 'right',
+          gazeX: env, gazeY: -0.35 * env,
+          earTwitch: 0, earTwitchSide: 1, earsBack: 0, yawn: 0, breath: 0,
+        }, dt);
+        const cat = CatV2.appearanceFor(3);
+        let x = 16;
+        for (const size of [31, 47, 141]) {
+          const y = h - size * 0.95 - 20;
+          CatV2.drawCat(ctx, {
+            pose: 'idle', phase: ((now / 3400) % 1 + 1) % 1, appearance: cat,
+            facing: 'right', size, x, y, rig,
+          });
+          ctx.fillStyle = '#6b7280';
+          ctx.font = '11px ui-monospace, monospace';
+          ctx.textAlign = 'left';
+          ctx.fillText(size === 141 ? '3x' : `${size}px`, x, h - 6);
+          x += size + 30;
+        }
+        ctx.fillStyle = '#9ca3af';
+        ctx.fillText(env > 0.02 ? 'looking' : 'back to centre', 16, 14);
       },
     },
     {

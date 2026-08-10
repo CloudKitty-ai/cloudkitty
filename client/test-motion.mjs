@@ -1612,38 +1612,37 @@ check('every block the lab dials is actually writable', () => {
 });
 
 
-check('the pounce readout names every dial it could delete', () => {
-  // A paste came back as the four old keys because the card's readout still
-  // emitted four -- so `land` and the three wiggle dials would have been
-  // silently dropped on the next bake. A readout that does not name a field
-  // is proposing to delete it.
+check('every lab card names, in its readout, every dial it offers', () => {
+  // A readout that does not name a field is quietly proposing to delete it:
+  // the owner pastes back what the card printed, and the missing key reverts
+  // on the next bake. That happened twice -- `land` off the Pounce card and
+  // `wiggleSway` off the Portrait pounce card -- so this checks EVERY card
+  // rather than the two that have already been caught.
   const html = readFileSync(join(here, 'gallery-v2.html'), 'utf8');
-  const card = html.slice(html.indexOf("title: 'Pounce'"), html.indexOf("title: 'Arrive & settle'"));
-  for (const key of Object.keys(CatV2.POUNCE)) {
-    assert(card.includes(`${key}: \${P.${key}}`), `the Pounce readout never names ${key}`);
+  const cards = html.split(/\n      title: '/).slice(1);
+  let checked = 0;
+  for (const card of cards) {
+    const title = card.slice(0, card.indexOf("'"));
+    // A dial whose label says "lab only" is a preview control -- how often
+    // the lab replays a beat, say -- not a value that ever gets pasted back.
+    // The convention already existed in the file; this just honours it.
+    const dials = [...card.matchAll(/\{ key: '(\w+)'[^}]*\}/g)]
+      .filter((m) => !/lab only/i.test(m[0]))
+      .map((m) => m[1]);
+    if (!dials.length) continue;
+    // Matched on the VALUE reference (`${SOMETHING.key}`) rather than the
+    // label, because a card may legitimately print a dial under another
+    // name -- `VIEW.playBeatMs = ${PLAY.beatMs}`.
+    for (const key of dials) {
+      assert(
+        card.includes(`.${key}}`),
+        `the '${title}' card dials ${key} but never emits it in its readout`,
+      );
+    }
+    checked++;
   }
-  // The portrait card too. It offers four POUNCE dials and emitted three,
-  // so an owner paste came back without `wiggleSway` -- the identical
-  // failure this check was written for, on the next card along. A readout
-  // must name every dial it OFFERS, or the paste silently reverts one.
-  const portrait = html.slice(
-    html.indexOf("title: 'Portrait pounce"),
-    html.indexOf("title: 'Hunter\\'s face"),
-  );
-  assert(portrait.length > 0, 'the portrait pounce card is still there');
-  for (const m of portrait.matchAll(/\{ key: '(\w+)'/g)) {
-    const key = m[1];
-    // Matched on the VALUE reference, not the label: the card emits
-    // `VIEW.playBeatMs = ${PLAY.beatMs}`, so the dial key and the name it is
-    // printed under legitimately differ.
-    assert(
-      portrait.includes(`.${key}}`),
-      `the Portrait pounce card dials ${key} but never emits it in the readout`,
-    );
-  }
+  assert(checked >= 6, `only ${checked} dialled cards found -- the parser is probably broken`);
 });
-
-
 check('neither focused lid may eat the pupil (invariant 3)', () => {
   // The handoff's third invariant, and the one whose failure is invisible
   // from the dials: a brow deep enough to read as concentration crops the
