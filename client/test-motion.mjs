@@ -1575,5 +1575,39 @@ check('rigFor rebuilds rather than springing out of a stale moment', () => {
   );
 });
 
+
+check('every block the lab dials is actually writable', () => {
+  // FOCUS_VARIANTS shipped frozen, so every slider on the hunting face was a
+  // silent no-op -- and a dial that has stopped responding is indistinguishable
+  // from a dial that needs turning further, which is the exact trap the
+  // vocabulary's own notes warn about for the lid clamp. The house method is
+  // dial-in-the-lab-then-bake, so a frozen dial block is a broken lab.
+  for (const name of ['SWIM', 'POUNCE', 'GAIT', 'EYE', 'RIG', 'SLEEP', 'BELLY', 'PROPORTION', 'FOCUS_VARIANTS']) {
+    const block = CatV2[name];
+    assert(block, `${name} is exported`);
+    assert(!Object.isFrozen(block), `${name} is frozen -- the lab cannot dial it`);
+  }
+  // And the write has to reach the drawing, not just the export: the module
+  // reads these by reference, so the exported object must BE the live one.
+  const before = CatV2.POUNCE.wiggleHz;
+  try {
+    CatV2.POUNCE.wiggleHz = before + 1;
+    assert(CatV2.POUNCE.wiggleHz === before + 1, 'a write to POUNCE did not stick');
+  } finally {
+    CatV2.POUNCE.wiggleHz = before;
+  }
+  const variant = CatV2.EYE.focusVariant;
+  const tilt = CatV2.FOCUS_VARIANTS[variant].focusLidTilt;
+  try {
+    CatV2.FOCUS_VARIANTS[variant] = { ...CatV2.FOCUS_VARIANTS[variant], focusLidTilt: tilt + 0.1 };
+    assert(
+      Math.abs(CatV2.FOCUS_VARIANTS[variant].focusLidTilt - (tilt + 0.1)) < 1e-9,
+      'a write to the live focus variant did not stick',
+    );
+  } finally {
+    CatV2.FOCUS_VARIANTS[variant] = { ...CatV2.FOCUS_VARIANTS[variant], focusLidTilt: tilt };
+  }
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

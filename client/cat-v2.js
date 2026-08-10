@@ -986,7 +986,13 @@ const PUPIL_DILATE_BY_THEME = Object.freeze({ day: 1, dusk: 1.11, night: 1.22, d
  * ordinary eye with different dials, which is what makes them swappable
  * in one line and comparable in one lab.
  */
-const FOCUS_VARIANTS = Object.freeze({
+/* Mutable, like SWIM / POUNCE / EYE / RIG, and for the same reason: the
+ * gallery dials these in place and the module reads them at call time. Frozen
+ * (as this shipped) every slider on the hunting face is a silent no-op --
+ * which is the exact failure the notes above warn about for the lid clamp,
+ * where a dial that has stopped responding looks like a dial that needs more
+ * turning. The inner takes stay frozen; only the table is writable. */
+const FOCUS_VARIANTS = ({
   wide: Object.freeze({
     focusSquash: 0, // no narrowing whatsoever: this is not a squint
     focusWiden: 0,
