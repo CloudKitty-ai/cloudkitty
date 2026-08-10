@@ -345,8 +345,16 @@ check('no motion ever overruns its slot', () => {
 });
 
 check('the weights are what decides how often each motion lands', () => {
-  const dials = { ...api.VIEW, idleBlinkWeight: 70, idleEarsWeight: 20, idleRestWeight: 10 };
-  const seen = { blink: 0, ears: 0, rest: 0 };
+  // The table is five-way since 2026-08-10 (scan and yawn joined). Every
+  // weight is set explicitly: spreading VIEW and overriding three of them
+  // left scan and yawn at their shipped values, silently diluting the shares
+  // this asserts -- blink came out at 0.599 against an expected 0.70, which
+  // reads as a broken hash rather than an incomplete fixture.
+  const dials = {
+    idleBlinkWeight: 70, idleEarsWeight: 20, idleScanWeight: 0,
+    idleYawnWeight: 0, idleRestWeight: 10,
+  };
+  const seen = { blink: 0, ears: 0, scan: 0, yawn: 0, rest: 0 };
   const N = 4000;
   for (let slot = 0; slot < N; slot++) seen[api.idlePickFor(1, slot, dials)]++;
   // Loose bounds: this is asserting the draw is weighted, not that the
@@ -354,8 +362,16 @@ check('the weights are what decides how often each motion lands', () => {
   assert(Math.abs(seen.blink / N - 0.7) < 0.03, `blink share ${(seen.blink / N).toFixed(3)} ~ 0.70`);
   assert(Math.abs(seen.ears / N - 0.2) < 0.03, `ears share ${(seen.ears / N).toFixed(3)} ~ 0.20`);
   assert(Math.abs(seen.rest / N - 0.1) < 0.03, `rest share ${(seen.rest / N).toFixed(3)} ~ 0.10`);
+  assert(seen.scan === 0 && seen.yawn === 0, 'a zero weight must never be drawn');
+  // And the shipped table still spends its whole budget somewhere.
+  const shipped = ['idleBlinkWeight', 'idleEarsWeight', 'idleScanWeight', 'idleYawnWeight', 'idleRestWeight']
+    .reduce((sum, k) => sum + api.VIEW[k], 0);
+  assert(shipped === 100, `the shipped idle weights should total 100, got ${shipped}`);
   // All the weight on one motion means every slot draws it.
-  const only = { ...api.VIEW, idleBlinkWeight: 0, idleEarsWeight: 1, idleRestWeight: 0 };
+  const only = {
+    idleBlinkWeight: 0, idleEarsWeight: 1, idleScanWeight: 0,
+    idleYawnWeight: 0, idleRestWeight: 0,
+  };
   for (let slot = 0; slot < 50; slot++) {
     assert(api.idlePickFor(1, slot, only) === 'ears', `slot ${slot}: only ears can be drawn`);
   }
@@ -1240,8 +1256,13 @@ check('a grounded foot stays on the ground; the leap’s feet ride the body', ()
   );
   assert(walkShaped.legs[0].top < walk.legs[0].top, 'the pivot must ride the body up with it');
 
-  const leap = CatV2.catLayout('pouncing', 0.8); // phase >= 0.45 is the airborne half
-  const leapShaped = reshaped({ bodyH: 1.2 }, () => CatV2.catLayout('pouncing', 0.8));
+  // Derived from the dials rather than hardcoded: 0.8 used to be airborne and
+  // is now mid-RECOVERY, feet back on the ground, so a re-dial must not be
+  // able to silently point this at the wrong phase again.
+  const P = CatV2.POUNCE;
+  const air = P.hold + P.launch * 0.9;
+  const leap = CatV2.catLayout('pouncing', air);
+  const leapShaped = reshaped({ bodyH: 1.2 }, () => CatV2.catLayout('pouncing', air));
   assert(
     leap.legs.every((leg, i) => leapShaped.legs[i].bottom < leg.bottom - 1e-9),
     'the leap has no ground under it -- holding those feet would detach the limbs mid-air',
@@ -1280,20 +1301,31 @@ check('the head ratio buys headroom, never leg', () => {
 // ---- POUNCE: the launch that replaced a two-position switch ----
 
 check('the shipped pounce timing is the one the owner dialled', () => {
+  // Re-pinned 2026-08-10 for the four-phase beat. The owner's 0.2 / 0.4 were
+  // dialled against a TWO-phase pounce that ended airborne and held there;
+  // the beat now returns to the crouch, so `launch` no longer means "and the
+  // rest is held at full reach" -- the remainder is land + recover.
   const P = CatV2.POUNCE;
-  close(P.hold, 0.2, 'hold drifted');
-  close(P.launch, 0.4, 'launch drifted');
+  close(P.hold, 0.22, 'hold drifted');
+  close(P.launch, 0.26, 'launch drifted');
+  close(P.land, 0.16, 'land drifted');
   close(P.snap, 4, 'snap drifted');
   close(P.twitch, 0, 'twitch drifted');
-  assert(P.hold + P.launch <= 1, 'the launch must finish inside the beat');
+  assert(P.hold + P.launch + P.land <= 1, 'the beat must finish inside the tick');
+  // The wiggle is a real frequency now. Above ~6Hz it reads as a vibration
+  // rather than a cat gathering itself -- which is the bug this replaced,
+  // where "2.5 rocks per load" became 14Hz once the load was 176ms.
+  assert(P.wiggleHz > 0 && P.wiggleHz < 6, `wiggleHz ${P.wiggleHz} is outside the readable range`);
 });
 
-check('the pounce reaches both of its old positions exactly', () => {
-  // The crouch and the leap are the drawings that shipped; only the frames
-  // between them are new. Pinned as literals so an "improvement" to the
-  // launch cannot quietly redraw either end.
-  // Measured on the v1 body: these pin the POSE, not whatever the shape
-  // dials are set to this week.
+check('the pounce still reaches its crouch and its leap', () => {
+  // The crouch and the leap are the drawings that shipped; pinned as literals
+  // so an "improvement" to the timeline cannot quietly redraw either end.
+  //
+  // Rewritten 2026-08-10: the leap is no longer where the beat ENDS. Under
+  // the four-phase timeline it is where the LAUNCH ends, and phase 1 is back
+  // at the crouch. Sampling 0.95 now catches a cat mid-recovery.
+  const P = CatV2.POUNCE;
   const loaded = reshaped(IDENT, () => CatV2.catLayout('pouncing', 0));
   close(loaded.body.cy, 0.68, 'crouch body cy');
   close(loaded.body.ry, 0.17, 'crouch body ry');
@@ -1303,7 +1335,9 @@ check('the pounce reaches both of its old positions exactly', () => {
     'the loaded cat has every foot on the ground',
   );
 
-  const out = reshaped(IDENT, () => CatV2.catLayout('pouncing', 0.95));
+  const out = reshaped(IDENT, () => CatV2.catLayout('pouncing', P.hold + P.launch));
+  // Still exactly the old literals: the four-phase timeline changed WHEN the
+  // leap happens, not what it looks like. Only the sample point moved.
   close(out.body.cy, 0.56, 'leap body cy');
   close(out.body.rot, -0.18, 'leap body rot');
   close(out.head.cx, 0.78, 'leap head cx');
@@ -1327,18 +1361,34 @@ check('the launch is continuous -- no frame jumps', () => {
   assert(worst < 0.01, `the pounce still jumps: biggest single-frame body move ${worst.toFixed(4)}`);
 });
 
-check('the launch only ever extends, and holds at both ends', () => {
-  const at = (p) => CatV2.catLayout('pouncing', p).body.cy;
+check('the pounce is a full beat: load, launch, land, recover', () => {
+  // Replaces "the launch only ever extends, and holds at both ends".
+  // That contract described a TWO-phase pounce which ended airborne and
+  // stayed there, so the body only ever rose. The beat now comes back down,
+  // and monotonicity is the wrong shape to assert -- the interesting
+  // property is that each phase does its own job and the loop closes.
+  const at = (p) => CatV2.catLayout('pouncing', p).body.cy; // smaller cy = higher
   const P = CatV2.POUNCE;
-  close(at(0), at(P.hold), 'the cat must stay loaded until the launch starts');
-  close(at(Math.min(1, P.hold + P.launch)), at(1), 'and hold its reach afterwards');
-  let prev = Infinity;
-  for (let i = 0; i <= 200; i++) {
-    const cy = at(i / 200);
-    assert(cy <= prev + 1e-12, `the body dropped back mid-launch at phase ${i / 200}`);
+  const launchEnd = P.hold + P.launch;
+  const landEnd = launchEnd + P.land;
+
+  // The load holds still. The wiggle is a rock, not a rise, so the body may
+  // move within the load -- but it must not have started climbing.
+  assert(at(P.hold) >= at(0) - 0.02, 'the cat started launching before the load finished');
+  // The launch rises, and rises the whole way.
+  let prev = at(P.hold);
+  for (let i = 1; i <= 60; i++) {
+    const cy = at(P.hold + (P.launch * i) / 60);
+    assert(cy <= prev + 1e-12, 'the body dropped back mid-launch');
     prev = cy;
   }
-  assert(at(1) < at(0) - 0.05, 'the leap must actually rise off the crouch');
+  assert(at(launchEnd) < at(0) - 0.05, 'the leap must actually rise off the crouch');
+  // The landing comes back down and squashes THROUGH the crouch -- absorbing
+  // is the point, so overshooting below the resting height is correct.
+  assert(at(landEnd) > at(0), 'the landing must squash past the resting height');
+  // And the recovery closes the loop. Phase 1 must equal phase 0 exactly or a
+  // cat pouncing twice in a row jumps between beats.
+  close(at(1), at(0), 'the beat does not close: phase 1 != phase 0');
 });
 
 check('pounceLaunch is exact at its ends for any dials', () => {
@@ -1417,6 +1467,112 @@ check('the sleeping head sits ON the curled body, not beside it', () => {
   assert(inside < 1, `head centre is outside the body ellipse (${inside.toFixed(2)})`);
   // And it must not sink through the ground line the pose is drawn on.
   assert(L.head.cy + L.head.r <= 0.88, 'the head clears the ground line');
+});
+
+
+// ---- the rig (animation upgrade, 2026-08-10) ----
+//
+// The two checks the handoff asks for by name, guarding the invariant the
+// whole layer rests on: the rig is an OFFSET, so with nothing driving it the
+// cat must draw exactly as it did before the rig existed. Still frames and
+// reduced motion depend on this without knowing the rig is there -- they
+// simply pass no rig at all.
+
+/** The input shape render.js builds, with every channel at rest. */
+const RIG_REST = {
+  vx: 0, vy: 0, facing: 'left', gazeX: 0, gazeY: 0,
+  earTwitch: 0, earTwitchSide: 1, earsBack: 0, yawn: 0, breath: 0,
+};
+
+check('a rig at rest draws the un-rigged cat', () => {
+  // applyRig adds four channels that the un-rigged layout has no opinion
+  // about; those are compared against their neutral values, and everything
+  // else must be identical geometry.
+  const ADDED = ['earNear', 'earFar', 'gaze', 'yawn'];
+  for (const pose of CatV2.POSES) {
+    for (const phase of [0, 0.25, 0.5, 0.75]) {
+      const plain = CatV2.catLayout(pose, phase);
+      const nulled = CatV2.applyRig(CatV2.catLayout(pose, phase), null);
+      assert(
+        JSON.stringify(plain) === JSON.stringify(nulled),
+        `${pose}@${phase}: applyRig(L, null) is not the identity`,
+      );
+      const rested = CatV2.applyRig(
+        CatV2.catLayout(pose, phase),
+        CatV2.stepRig(CatV2.createRigState(), RIG_REST, 16),
+      );
+      for (const k of ADDED) delete rested[k];
+      assert(
+        JSON.stringify(plain) === JSON.stringify(rested),
+        `${pose}@${phase}: a rig at rest moved the geometry`,
+      );
+    }
+  }
+  // And the neutral values really are neutral.
+  const rest = CatV2.applyRig(CatV2.catLayout('idle', 0.25),
+    CatV2.stepRig(CatV2.createRigState(), RIG_REST, 16));
+  close(rest.earNear, 0, 'near ear at rest');
+  close(rest.earFar, 0, 'far ear at rest');
+  close(rest.yawn, 0, 'jaw at rest');
+  close(rest.gaze.x, 0, 'gaze x at rest');
+  close(rest.gaze.y, 0, 'gaze y at rest');
+});
+
+check('the springs return to rest after being driven', () => {
+  // Underdamped on purpose, so "it settles" is a real claim and not a
+  // restatement of the dials. A shove, then six seconds of nothing.
+  const state = CatV2.createRigState();
+  CatV2.stepRig(state, { ...RIG_REST, vx: 4 }, 16);
+  let out;
+  for (let i = 0; i < 400; i++) out = CatV2.stepRig(state, RIG_REST, 16);
+  const plain = CatV2.catLayout('idle', 0.25);
+  const settled = CatV2.applyRig(CatV2.catLayout('idle', 0.25), out);
+  const drift = Math.abs(settled.tail.x1 - plain.tail.x1)
+    + Math.abs(settled.head.cx - plain.head.cx);
+  assert(drift < 1e-6, `the rig kept ${drift} of offset after settling`);
+});
+
+check('a still frame places the gaze without springing anything', () => {
+  // stillRig is what a paused or reduced-motion frame gets. Looking at
+  // something is STATE, not motion -- the same rule the wet fur and the worn
+  // paths follow -- so the gaze survives a still frame, and the head and ears
+  // lean with it because that is one cue and splitting it would make the
+  // still frame disagree with the moving one. What must NOT survive is the
+  // spring: no drag, no overshoot, nothing carried from a previous moment.
+  const plain = CatV2.catLayout('idle', 0.25);
+  const framed = CatV2.applyRig(
+    CatV2.catLayout('idle', 0.25),
+    CatV2.stillRig({ ...RIG_REST, gazeX: 0.7, gazeY: -0.4 }),
+  );
+  assert(framed.gaze.x !== 0 || framed.gaze.y !== 0, 'the gaze did not reach the pupils');
+  assert(framed.earNear !== 0, 'the ears should turn with the look');
+  // The tail is pure spring, so it is the channel that proves no momentum
+  // leaked in: it must sit exactly where the pose put it.
+  close(framed.tail.x1, plain.tail.x1, 'a still frame swung the tail');
+  close(framed.tail.y1, plain.tail.y1, 'a still frame swung the tail');
+  close(framed.tail.c2x, plain.tail.c2x, 'a still frame swung the tail');
+  // And a cat with nothing to look at is the un-rigged drawing exactly.
+  assert(CatV2.stillRig({ ...RIG_REST }) === null, 'no gaze should mean no rig at all');
+});
+
+check('rigFor rebuilds rather than springing out of a stale moment', () => {
+  // A viewer joining mid-flight, a hidden tab, a spell of reduced motion:
+  // whatever momentum the state held describes a moment this viewer never
+  // saw. Starting at rest is the documented behaviour and the reconnect
+  // safety the whole design is built around.
+  const p = new api.Presentation();
+  const driven = { ...RIG_REST, vx: 4 };
+  p.rigFor('k', driven, 1000);
+  for (let t = 1016; t < 1200; t += 16) p.rigFor('k', driven, t);
+  const moving = p.rigFor('k', driven, 1216);
+  assert(Math.abs(moving.tailTip.x) > 1e-6, 'a driven rig should have carried an offset');
+  // Now leave a gap longer than a tick and come back.
+  const afterGap = p.rigFor('k', RIG_REST, 1216 + 5000);
+  const fresh = CatV2.stepRig(CatV2.createRigState(), RIG_REST, 16);
+  assert(
+    Math.abs(afterGap.tailTip.x - fresh.tailTip.x) < 1e-9,
+    'a rig resumed from a stale moment instead of rebuilding at rest',
+  );
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

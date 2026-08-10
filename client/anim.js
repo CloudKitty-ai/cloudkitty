@@ -69,12 +69,17 @@ const VIEW = Object.freeze({
   // punctuates, so it cannot spend this budget.
   idleScanWeight: 14, // a slow look at something, or nothing
   idleYawnWeight: 6, // rarest on purpose: a yawn you see often is a tic
-  idleRestWeight: 24,
-  // A slot where nothing happens. It is what makes the other two feel
+  // A slot where nothing happens. It is what makes the others feel
   // unscheduled -- and it is a real nothing, not the vestigial tail flick
   // it replaces, which quietly restarted the breathing cycle at 8x speed
   // for a tail-tip sway of 0.4px at a live 33px cat.
-  idleRestWeight: 35,
+  //
+  // 35 -> 24 (2026-08-10): the key was declared TWICE when scan and yawn
+  // landed, 24 above and the old 35 here, and the last one wins. The budget
+  // came to 111, so scan and yawn were added ON TOP of the rarity budget
+  // instead of priced into it -- the one thing the handoff said it had not
+  // done. A test now asserts the five weights total 100.
+  idleRestWeight: 24,
   // 0 = every motion on the beat (the old behaviour), 1 = anywhere in the
   // slot it still fits. The motion can never overrun its slot either way.
   // Half, owner-dialled: enough to break the metronome without letting a
