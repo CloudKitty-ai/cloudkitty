@@ -1483,7 +1483,16 @@ function catLayout(pose, phase, opts = {}) {
           cy: 0.68 + POUNCE.wiggleAmp * wig,
           rx: 0.31,
           ry: 0.17,
-          rot: -0.1 + POUNCE.wiggleRot * wig,
+          // MINUS, not plus (2026-08-10). The rock is a `cy` shift plus a
+          // rotation about the body's centre, so the two ADD at one end of
+          // the ellipse and CANCEL at the other -- and with the signs
+          // agreeing they added at the CHEST. Measured, the front travelled
+          // 1.97px against the hindquarters' 0.07px: a 27:1 ratio, on a pose
+          // whose own comment says it "treads its hind feet and rocks its
+          // hindquarters". Opposed, the cancellation lands on the chest
+          // instead, which is what plants the front while the butt wiggles --
+          // and a planted front is most of why the pose reads as aiming.
+          rot: -0.1 - POUNCE.wiggleRot * wig,
         },
         head: { cx: 0.68, cy: 0.5, r: 0.221 },
         legs: withFarPair([

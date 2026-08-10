@@ -1863,5 +1863,37 @@ check('a caller may pick its own wiggle rate without moving the map\'s', () => {
   close(plain.body.cy, asMap.body.cy, 'no override should mean the map\'s rate');
 });
 
+
+check('the butt wiggle moves the BUTT', () => {
+  // It shipped moving the chest instead, 27:1 the wrong way, on a pose whose
+  // own comment says it "treads its hind feet and rocks its hindquarters".
+  // The rock is a cy shift PLUS a rotation about the body's centre, so the
+  // two add at one end of the ellipse and cancel at the other -- and with
+  // the signs agreeing they added at the front. Invisible in a still and
+  // easy to miss in motion; the owner caught it by eye against the design's
+  // own build.
+  const P = CatV2.POUNCE;
+  // The base cat faces right, so the hindquarters sit at cx - rx.
+  const ends = (L) => ({
+    rear: L.body.cy - Math.sin(L.body.rot) * L.body.rx,
+    front: L.body.cy + Math.sin(L.body.rot) * L.body.rx,
+  });
+  // Both clocks: the map's tick and the portrait's longer beat.
+  for (const beat of [{ beatMs: 800 }, { beatMs: 3200, wiggleHz: 3.4 }]) {
+    const rest = ends(CatV2.catLayout('pouncing', 0, beat));
+    let rear = 0;
+    let front = 0;
+    for (let i = 0; i <= 200; i++) {
+      const e = ends(CatV2.catLayout('pouncing', (P.hold * i) / 200, beat));
+      rear = Math.max(rear, Math.abs(e.rear - rest.rear));
+      front = Math.max(front, Math.abs(e.front - rest.front));
+    }
+    assert(rear > front * 4, `beat ${beat.beatMs}: the chest moved ${(front / rear).toFixed(1)}x the butt`);
+    // The planted front is the other half of the read -- a cat gathering
+    // itself keeps its chest still and its eyes on the target.
+    assert(front * 47 < 0.4, `beat ${beat.beatMs}: the chest travels ${(front * 47).toFixed(2)}px`);
+  }
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);
