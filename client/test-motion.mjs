@@ -1690,5 +1690,41 @@ check('the lid clamp actually bites — a deeper brow changes nothing', () => {
   }
 });
 
+
+check("the hunter's face reaches the cats that hunt", () => {
+  // It shipped UNREACHABLE. `pursuit.target` is a TargetRef object
+  // ({target: 'kitty', id: 2}) and `last_action.target` is a plain string
+  // ('kitty') -- two shapes, one comparison against 'element' -- so every
+  // pursuing cat fell through and 'focused' was never returned at all. The
+  // gallery could not catch it: its card forces the expression with
+  // `eyesOverride` instead of going through here.
+  //
+  // Shapes below are verbatim from the live server.
+  const p = new api.Presentation();
+  const pursuing = (kind, id) => ({
+    pursuit: { target: { target: kind, id }, started: 1, closest: 6, improved_at: 1 },
+    last_action: { action: 'chase', target: kind, id },
+  });
+  assert(p.expressionFor(pursuing('element', 9)) === 'focused', 'a cat hunting a bug has no hunting face');
+  assert(p.expressionFor(pursuing('kitty', 2)) === undefined, 'a cat chasing a kitty wears the hunting face');
+  // Play is a playmate too, whatever the action says.
+  assert(
+    p.expressionFor({ pursuit: { target: { target: 'kitty', id: 3 } }, last_action: { action: 'play', target: 'kitty', id: 3 } }) === undefined,
+    'play on a kitty wore the hunting face',
+  );
+  // Withheld only on POSITIVE evidence, so an unresolvable quarry keeps it.
+  assert(
+    p.expressionFor({ pursuit: { target: null }, last_action: { action: 'chase', target: null } }) === 'focused',
+    'a quarry caught this tick lost the face to a missing field',
+  );
+  // And a cat that is not pursuing at all keeps its ordinary eyes.
+  assert(p.expressionFor({ last_action: { action: 'groom', target: null } }) === undefined, 'an idle cat wore the hunting face');
+  // The string form on its own has to work too -- it is the fallback path.
+  assert(
+    p.expressionFor({ pursuit: { target: undefined }, last_action: { action: 'chase', target: 'element', id: 4 } }) === 'focused',
+    'the last_action string fallback does not resolve',
+  );
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

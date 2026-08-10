@@ -1167,9 +1167,21 @@ class Presentation {
     if (!kitty.pursuit) return undefined;
     // The served pursuit names its quarry when it can; otherwise the
     // applied action does.
-    const target =
-      (kitty.pursuit && kitty.pursuit.target) || kitty.last_action?.target;
-    if (target && target !== 'element') return undefined;
+    // The two sources name the quarry in DIFFERENT shapes, which is what
+    // made this dead on arrival: `pursuit.target` is a TargetRef OBJECT
+    // ({target: 'kitty', id: 2}) while `last_action.target` is a plain
+    // string ('kitty'). Comparing the object against 'element' is never
+    // equal, so every pursuing cat fell through to `undefined` and
+    // 'focused' was unreachable -- the hunter's face never once appeared in
+    // the live world. It looked fine in the gallery because the card forces
+    // it with `eyesOverride: 'focused'` rather than going through here.
+    const ref = (kitty.pursuit && kitty.pursuit.target) || kitty.last_action?.target;
+    const kind = typeof ref === 'string' ? ref : ref?.target;
+    // Withheld only on POSITIVE evidence the quarry is a kitty, the same
+    // rule the pounce gate follows: a quarry that cannot be resolved --
+    // caught or expired this tick -- keeps the face rather than losing it
+    // to a missing field.
+    if (kind && kind !== 'element') return undefined;
     return 'focused';
   }
 
