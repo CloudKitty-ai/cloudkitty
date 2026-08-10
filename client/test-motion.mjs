@@ -1628,15 +1628,21 @@ check('every lab card names, in its readout, every dial it offers', () => {
     // The convention already existed in the file; this just honours it.
     const dials = [...card.matchAll(/\{ key: '(\w+)'[^}]*\}/g)]
       .filter((m) => !/lab only/i.test(m[0]))
-      .map((m) => m[1]);
+      .map((m) => [m[1], m[0]]);
     if (!dials.length) continue;
     // Matched on the VALUE reference (`${SOMETHING.key}`) rather than the
     // label, because a card may legitimately print a dial under another
     // name -- `VIEW.playBeatMs = ${PLAY.beatMs}`.
-    for (const key of dials) {
+    for (const [key, decl] of dials) {
+      // A dial may be an ALIAS -- `stand` writes PROPORTION.lift, because
+      // the bag already has a `lift` from GAIT -- in which case the readout
+      // names the field it writes, not the dial. Declared in the label so
+      // the file says which, rather than this guessing.
+      const alias = /writes \w+\.(\w+)/.exec(decl);
+      const wants = alias ? alias[1] : key;
       assert(
-        card.includes(`.${key}}`),
-        `the '${title}' card dials ${key} but never emits it in its readout`,
+        card.includes(`.${wants}}`),
+        `the '${title}' card dials ${key} but never emits ${wants} in its readout`,
       );
     }
     checked++;
