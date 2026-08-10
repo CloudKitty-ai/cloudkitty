@@ -955,11 +955,17 @@ function idlePortraitFor(view, id) {
   // A stretch outranks a play-pounce, which outranks a sit. The stretch is
   // the only one tied to something the engine said (this cat just woke), so
   // it gets the cat first; the other two are the portrait's own.
+  // A wake-stretch outranks everything: it is the one idle pose tied to
+  // something the engine actually did (this cat just woke), so it gets the
+  // portrait first. The card's own beats -- sit-then-stretch, or a
+  // play-pounce -- come next, and the map's `sit` last, which in practice
+  // never fires at all: it waits on three consecutive still ticks and a
+  // live cat never manages more than two.
   const idle = view.idlePoseFor(id, 'idle');
-  const play = idle?.pose === 'stretch' || typeof view.idlePlayFor !== 'function'
+  const beat = idle?.pose === 'stretch' || typeof view.idleCardBeatFor !== 'function'
     ? null
-    : view.idlePlayFor(id, 'idle');
-  const chosen = idle?.pose === 'stretch' ? idle : (play ?? idle);
+    : view.idleCardBeatFor(id, 'idle');
+  const chosen = idle?.pose === 'stretch' ? idle : (beat ?? idle);
   const pose = chosen?.pose ?? 'idle';
   const phase = chosen?.phase ?? 0;
   const tween = view.tweenFor ? view.tweenFor(`card${id}`, pose, phase) : null;

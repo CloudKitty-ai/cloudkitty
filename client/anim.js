@@ -209,48 +209,48 @@ const VIEW = Object.freeze({
   sitChance: 0.38,
   sitAfterTicks: 3,
 
-  /* The card portrait's play-pounce (2026-08-10). PORTRAITS ONLY -- the
-   * meadow must never call this.
+  /* The card portrait's POSE BEATS (2026-08-10). PORTRAITS ONLY -- the
+   * meadow must never draw these.
    *
    * A pounce in the world is a served fact: the engine says a cat is
    * chasing and the renderer draws it. Inventing one on the map would be
-   * the client asserting something about the world that the world did not
-   * say, which Article V forbids. The portrait is different, and already
-   * documented as different: it is deliberately NOT the cat's real pose
-   * (owner, 2026-08-07) but the cat at rest, which is exactly what lets it
-   * carry idle motion at all. A cat play-pouncing at nothing is a thing
-   * cats do at rest, and it makes no claim about the world.
+   * the client asserting something the world did not say, which Article V
+   * forbids. The portrait is different, and already documented as
+   * different: it is deliberately NOT the cat's real pose (owner,
+   * 2026-08-07) but the cat AT REST, which is what lets it carry idle
+   * motion at all. A cat play-pouncing or sitting down at rest claims
+   * nothing about the world.
    *
-   * The reason it lives here rather than on the map: the beat is not tied
-   * to the served tick. On the map a pounce has one 800ms tick to happen
-   * in, which is why the load is 192ms and the wiggle quantises to a
-   * single rock. A portrait runs on the frame clock and can take as long
-   * as it likes -- so this is the one place the whole beat, wiggle and
-   * all, is actually legible.
+   * Why they live off the served tick: on the map a pounce has one 800ms
+   * tick to happen in, which is why its load is 240ms and the wiggle
+   * quantises to a single rock. A portrait runs on the frame clock, so the
+   * whole beat is legible here and nowhere else.
    *
-   * Priced like `sit`, drawn once per period, and NOT out of the idle
-   * motion weights: those schedule motions inside a 420ms slot, and this
-   * is a pose change lasting seconds.
+   * Why they are NOT gated on stillness the way the map's `sit` is:
+   * measured on the live world, a cat never has nothing to do for more
+   * than 2 consecutive ticks (107 runs of one, 3 of two, none of three) --
+   * so `sitAfterTicks: 3` is unsatisfiable and the map's sit can never
+   * fire. That gate is right for the map, where a busy cat should not sit
+   * down. It is wrong for a portrait, which is at rest BY DEFINITION.
    *
-   * 3200 and not a round 2000: the wiggle quantises to half-cycles so its
-   * sine lands on zero at the launch, and at the shipped `wiggleHz` of 1 a
-   * load shorter than 0.75s holds only half a cycle -- ONE rock. 3200 gives
-   * a 768ms load, a full cycle, and the two rocks that read as a wiggle
-   * rather than as a single lean. The step is sharp: 3000 is still one rock,
-   * 3200 is two. Lower it and check the rock count, do not just check that
-   * it looks shorter. */
-  // The portrait's own rock rate. The world's `wiggleHz` is tuned against a
-  // 192ms load; the same value in a 768ms load is a wallow, so the portrait
-  // picks its own rather than dragging the map's with it.
-  playWiggleHz: 3.9,
-  // The portrait's tread depth. Owner-dialled 0.06 on the portrait card,
-  // where it travels 1.61px; the map keeps its own because the same 0.06
-  // is 0.62px at a 31px tile -- the band the body bob was reverted in for
-  // reading as shimmer rather than life.
-  playSway: 0.06,
+   * One weighted draw per period, so a sit and a pounce can never collide,
+   * and the weights are a share of 100 the way the motion table's are. */
+  cardBeatPeriodMs: 18000,
+  cardSitWeight: 40,
+  cardPounceWeight: 20,
+  cardRestWeight: 40,
+  // The sit holds, then the cat gets up THROUGH a stretch -- which is what
+  // a cat actually does standing up, and the reason `stretch` is authored
+  // to leave and return to neutral (it is 0px off a resting cat at both
+  // ends). The chain is sitHoldMs + one stretch.
+  sitHoldMs: 4200,
+  // The pounce beat, and the two dials it needs that the map's cannot
+  // share: at 4x the map's beat the same rock rate is a wallow, and the
+  // same tread depth that reads at 47px is 0.62px at 31. See
+  // `opts.wiggleHz` / `opts.sway` in cat-v2's catLayout.
   playBeatMs: 1600,
-  playPeriodMs: 31000,
-  playChance: 0.34,
+  playWiggleHz: 3.9,
+  playSway: 0.06,
 
   // Beats (US5).
   // The observed drop is relief minus that tick's need rise, so the
@@ -985,7 +985,7 @@ class Presentation {
 
   /**
    * The card portrait's play-pounce, or null. **Portraits only** -- see
-   * VIEW.playBeatMs for why the meadow must never call this.
+   * VIEW.cardBeatPeriodMs for why the meadow must never call this.
    *
    * Pure in (id, now) like every other idle decision, so a still frame and
    * a test can both ask what a cat is doing at time T. Returns the beat
@@ -993,21 +993,61 @@ class Presentation {
    * real frequency and needs to know how long the beat is -- the whole
    * point of doing this off the served tick.
    */
-  idlePlayFor(id, pose, now) {
+  /**
+   * The card portrait's pose beat, or null. **Portraits only** -- see
+   * VIEW.cardBeatPeriodMs for why the meadow must never call this.
+   *
+   * One weighted draw per period picks a sit-chain, a play-pounce, or
+   * nothing. Pure in (id, now) like every other idle decision, so a still
+   * frame and a test can both ask what a cat is doing at time T.
+   *
+   * The sit chain is sit -> stretch -> gone: the cat sits, holds, then gets
+   * up through a stretch. `stretch` carries its own phase and returns to
+   * neutral at the end, so the tail needs no blend out.
+   */
+  idleCardBeatFor(id, pose, now) {
     if (pose !== 'idle') return null;
-    // Offset per cat so four portraits never pounce together.
-    const clock = now + id * 6151;
-    const slot = Math.floor(clock / VIEW.playPeriodMs);
-    if (idleHash(id, slot, IDLE_SALTS.play) >= VIEW.playChance) return null;
-    const into = clock - slot * VIEW.playPeriodMs;
-    if (into >= VIEW.playBeatMs) return null;
-    return {
-      pose: 'pouncing',
-      phase: into / VIEW.playBeatMs,
-      beatMs: VIEW.playBeatMs,
-      wiggleHz: VIEW.playWiggleHz,
-      sway: VIEW.playSway,
-    };
+    // Offset per cat, HASHED rather than a fixed multiple of the id: at the
+    // old `id * 6151` the offsets landed mod the period, and once the period
+    // came down to 18000 cats 1 and 4 sat 453ms apart -- close enough that
+    // their beats overlapped constantly. A hashed phase spreads them without
+    // depending on how the ids happen to divide into the period.
+    const period = VIEW.cardBeatPeriodMs;
+    const clock = now + idleHash(id, 0, IDLE_SALTS.offset) * period;
+    const slot = Math.floor(clock / period);
+    const into = clock - slot * period;
+    const table = [
+      ['sit', VIEW.cardSitWeight],
+      ['pounce', VIEW.cardPounceWeight],
+      ['rest', VIEW.cardRestWeight],
+    ].map(([kind, w]) => [kind, Math.max(0, w || 0)]);
+    const total = table.reduce((sum, [, w]) => sum + w, 0);
+    if (total <= 0) return null;
+    let draw = idleHash(id, slot, IDLE_SALTS.play) * total;
+    let pick = 'rest';
+    for (const [kind, w] of table) {
+      if (draw < w) { pick = kind; break; }
+      draw -= w;
+    }
+    if (pick === 'pounce') {
+      if (into >= VIEW.playBeatMs) return null;
+      return {
+        pose: 'pouncing',
+        phase: into / VIEW.playBeatMs,
+        beatMs: VIEW.playBeatMs,
+        wiggleHz: VIEW.playWiggleHz,
+        sway: VIEW.playSway,
+      };
+    }
+    if (pick === 'sit') {
+      const stretchMs = VIEW.stretchTicks * this.tickMs;
+      if (into < VIEW.sitHoldMs) return { pose: 'sit' };
+      if (into < VIEW.sitHoldMs + stretchMs) {
+        return { pose: 'stretch', phase: (into - VIEW.sitHoldMs) / stretchMs };
+      }
+      return null;
+    }
+    return null;
   }
 
   /**
@@ -1372,7 +1412,7 @@ class Presentation {
       // A still frame is the served pose, held -- a cat is not caught
       // mid-stretch in a frame that is meant to have no motion in it.
       idlePoseFor: (id, pose) => (still ? null : this.idlePoseFor(id, pose, now)),
-      idlePlayFor: (id, pose) => (still ? null : this.idlePlayFor(id, pose, now)),
+      idleCardBeatFor: (id, pose) => (still ? null : this.idleCardBeatFor(id, pose, now)),
       // Wetness carries state (this cat is in water), not motion, so a
       // still frame gets it at full strength rather than not at all --
       // the worn-paths and focused-eyes rule (FR-012, R6).

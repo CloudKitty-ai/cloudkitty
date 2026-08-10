@@ -21,7 +21,7 @@ const renderSrc = readFileSync(join(here, 'render.js'), 'utf8');
 const api = eval(
   animSrc +
     ';({ VIEW, Presentation, easeSmooth, slowBlinkLid, idleHash, idlePeriodFor,' +
-    ' idlePickFor, idleOffsetFor, anim })',
+    ' idlePickFor, idleOffsetFor, IDLE_SALTS, anim })',
 );
 
 /**
@@ -1803,7 +1803,7 @@ check('every portrait pose fits inside the card chip', () => {
 });
 
 
-check('the portrait play-pounce is portrait-only and pure', () => {
+check('the portrait pose beats are portrait-only and pure', () => {
   const p = new api.Presentation();
   // The meadow must never get one: a pounce on the map is a served fact,
   // and inventing one would be the client asserting something the world did
@@ -1815,26 +1815,39 @@ check('the portrait play-pounce is portrait-only and pure', () => {
   // check still passes. (It did.)
   let live = null;
   for (let t = 0; t < 200000 && live === null; t += 100) {
-    if (p.idlePlayFor(1, 'idle', t)) live = t;
+    if (p.idleCardBeatFor(1, 'idle', t)) live = t;
   }
   assert(live !== null, 'never found a moment the play-pounce was running');
   for (const pose of ['walking', 'pouncing', 'eating', 'loaf', 'sleep-curl', 'swim']) {
-    assert(p.idlePlayFor(1, pose, live) === null, `it answered for ${pose} at a live moment`);
+    assert(p.idleCardBeatFor(1, pose, live) === null, `it answered for ${pose} at a live moment`);
   }
   // Pure in (id, now), like every other idle decision -- a still frame and a
   // test both have to be able to ask what a cat is doing at time T.
   for (const t of [0, 1234, 55555, 999999]) {
     assert(
-      JSON.stringify(p.idlePlayFor(2, 'idle', t)) === JSON.stringify(p.idlePlayFor(2, 'idle', t)),
+      JSON.stringify(p.idleCardBeatFor(2, 'idle', t)) === JSON.stringify(p.idleCardBeatFor(2, 'idle', t)),
       `not pure at ${t}`,
     );
   }
-  // Four portraits must not pounce in unison.
-  let together = 0;
-  for (let t = 0; t < 600000; t += 200) {
-    if ([1, 2, 3, 4].filter((id) => p.idlePlayFor(id, 'idle', t)).length > 1) together++;
+  // Four portraits must not move in UNISON. Not "never at the same time":
+  // each cat is busy ~12% of the time now that the sit chain is 5.8s, so
+  // independent draws coincide ~8% of the time by arithmetic, and asserting
+  // zero would just be asserting the beats are rare. What must hold is that
+  // the cats are not on the same clock -- so it is the phase offsets that
+  // get checked.
+  const period = api.VIEW.cardBeatPeriodMs;
+  const offsets = [1, 2, 3, 4].map((id) => api.idleHash(id, 0, api.IDLE_SALTS.offset) * period);
+  let closest = Infinity;
+  for (let i = 0; i < offsets.length; i++) {
+    for (let j = i + 1; j < offsets.length; j++) {
+      const d = Math.abs(offsets[i] - offsets[j]);
+      closest = Math.min(closest, Math.min(d, period - d));
+    }
   }
-  assert(together === 0, `${together} samples had two cats pouncing at once`);
+  assert(
+    closest > period * 0.04,
+    `two portraits sit only ${(closest / 1000).toFixed(2)}s apart -- they will read as one clock`,
+  );
 });
 
 check('the portrait beat is long enough for the wiggle to be a wiggle', () => {
@@ -2006,6 +2019,66 @@ check("the hunter's face reaches the cats that hunt", () => {
     p.expressionFor({ pursuit: { target: undefined }, last_action: { action: 'chase', target: 'element', id: 4 } }) === 'focused',
     'the last_action string fallback does not resolve',
   );
+});
+
+
+check('the portrait sit gets up through a stretch', () => {
+  // The chain, and the reason sit can be scheduled at all: sit-then-stretch
+  // is a BOUNDED BEAT, where the map's sit is a posture that runs 26-130s
+  // and has to coexist with blinks. It is also what a cat actually does
+  // standing up.
+  const p = new api.Presentation();
+  p.tickMs = 800;
+  const period = api.VIEW.cardBeatPeriodMs;
+  const stretchMs = api.VIEW.stretchTicks * 800;
+  // Find a slot that draws the sit, then walk it.
+  let seen = null;
+  for (let slot = 0; slot < 400 && !seen; slot++) {
+    const base = slot * period;
+    const seq = [];
+    for (let t = 0; t < period; t += 50) {
+      const r = p.idleCardBeatFor(1, 'idle', base + t);
+      seq.push(r ? r.pose : null);
+    }
+    if (seq.includes('sit')) seen = seq;
+  }
+  assert(seen, 'no slot in 400 ever drew a sit');
+  // Order: a run of sit, then a run of stretch, then nothing. Never the
+  // reverse, and never a gap between them.
+  const runs = [];
+  for (const v of seen) {
+    if (!runs.length || runs[runs.length - 1][0] !== v) runs.push([v, 1]);
+    else runs[runs.length - 1][1]++;
+  }
+  const shape = runs.map((r) => r[0]).filter((v, i, a) => v !== null || i === 0 || a[i - 1] !== null);
+  const sitAt = shape.indexOf('sit');
+  assert(sitAt !== -1, 'the sit never appears');
+  assert(shape[sitAt + 1] === 'stretch', `the sit is followed by ${shape[sitAt + 1]}, not a stretch`);
+  assert(shape[sitAt + 2] === null || shape[sitAt + 2] === undefined, 'something followed the stretch');
+  // And the durations are the dials, within a sample.
+  const sitRun = runs.find((r) => r[0] === 'sit')[1] * 50;
+  const stretchRun = runs.find((r) => r[0] === 'stretch')[1] * 50;
+  assert(Math.abs(sitRun - api.VIEW.sitHoldMs) <= 100, `the sit held ${sitRun}ms, want ${api.VIEW.sitHoldMs}`);
+  assert(Math.abs(stretchRun - stretchMs) <= 100, `the stretch ran ${stretchRun}ms, want ${stretchMs}`);
+  // The stretch carries a phase that sweeps 0..1, so it eases rather than
+  // holding one frame.
+  const phases = [];
+  for (let slot = 0; slot < 400 && phases.length < 3; slot++) {
+    for (let t = 0; t < period; t += 50) {
+      const r = p.idleCardBeatFor(1, 'idle', slot * period + t);
+      if (r?.pose === 'stretch') phases.push(r.phase);
+    }
+  }
+  assert(phases.length >= 3, 'the stretch tail is too short to sample');
+  assert(phases[0] < 0.2 && phases[phases.length - 1] > 0.8, 'the stretch phase does not sweep');
+});
+
+check('the card beat weights are a share of 100, like the motion table', () => {
+  // The handoff added scan and yawn ON TOP of the rarity budget by
+  // declaring a weight twice; the budget only means something if it sums.
+  const w = ['cardSitWeight', 'cardPounceWeight', 'cardRestWeight'].map((k) => api.VIEW[k]);
+  const total = w.reduce((a, b) => a + b, 0);
+  assert(total === 100, `the card beat weights total ${total}, not 100`);
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);
