@@ -711,8 +711,8 @@ function liftLayout(L, airborne) {
  * how long the cat stays loaded, how fast it extends, and how sharply.
  */
 const POUNCE = {
-  hold: 0.22, // share of the beat spent loaded and wiggling
-  launch: 0.26, // share spent extending
+  hold: 0.24, // share of the beat spent loaded and wiggling
+  launch: 0.45, // share spent extending
   land: 0.16, // and absorbing the landing; the rest is the recovery
   snap: 4, // >1 front-loads the extension. A cat launches, it does not glide.
   // The wiggle. A cat about to pounce treads its hind feet and rocks its

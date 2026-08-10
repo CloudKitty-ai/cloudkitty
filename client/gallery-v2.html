@@ -1117,7 +1117,7 @@
     },
     {
       title: 'Pounce',
-      note: 'The pounce used to be a two-position switch at phase 0.45 — loaded, then suddenly extended, with nothing in between, which is why it popped. Now it holds the load, launches, and holds the reach. Both ends are the same drawings as before; only the frames between them are new. The filmstrip samples the beat evenly, so a flat run of frames means the cat is holding and a crowded one means it is moving.',
+      note: 'The pounce used to be a two-position switch at phase 0.45 — loaded, then suddenly extended, with nothing in between, which is why it popped. It is now a FULL BEAT: load (with a butt-wiggle), launch, land, recover — so unlike the old version it comes back down and phase 1 lands exactly on phase 0. The crouch and the leap are still the same drawings; only when they happen changed. The filmstrip samples the beat evenly, so a flat run of frames means the cat is holding and a crowded one means it is moving. The wiggle is a real frequency: it was authored as "2.5 rocks per load", which is a share of a beat rather than a speed, so a 176ms load ran it at 14Hz — a vibration. Above ~6Hz it reads as one again.',
       v2Only: true,
       w: 560,
       h: 200,
@@ -1126,23 +1126,39 @@
       dials: [
         { key: 'hold', label: 'time spent LOADED before anything moves', min: 0, max: 0.7, step: 0.01 },
         { key: 'launch', label: 'time spent EXTENDING into the leap', min: 0.04, max: 0.6, step: 0.01 },
+        { key: 'land', label: 'time spent ABSORBING the landing', min: 0.04, max: 0.4, step: 0.01 },
         { key: 'snap', label: 'how front-loaded the launch is (1 = even, higher = snappier)', min: 1, max: 5, step: 0.1 },
+        { key: 'wiggleHz', label: 'pre-launch rock, in Hz (above ~6 reads as a vibration)', min: 0.5, max: 8, step: 0.1 },
+        { key: 'wiggleAmp', label: 'and how far it rocks', min: 0, max: 0.05, step: 0.002 },
         { key: 'twitch', label: 'tail-tip twitch while loading', min: 0, max: 0.06, step: 0.002 },
       ],
       readout() {
+        // Emits ALL EIGHT keys. It used to emit the four it dialled, which is
+        // how a paste came back without `land` or the wiggle -- a readout that
+        // does not name a field silently proposes deleting it.
         const P = CatV2.POUNCE, TICK = 800;
         const held = P.hold * TICK;
         const out = P.launch * TICK;
-        const rest = Math.max(0, TICK - held - out);
+        const down = P.land * TICK;
+        const back = TICK - held - out - down;
         // Where the extension actually happens, as opposed to where the
         // window is: with snap > 1 most of the travel is in its first part.
         const half = P.launch * (1 - 0.5 ** (1 / P.snap));
+        // What the wiggle actually runs at, after the quantiser lands it on
+        // zero at the launch. This is the number that was 14Hz.
+        const holdSec = held / 1000;
+        const cycles = Math.max(0.5, Math.round(P.wiggleHz * holdSec * 2) / 2);
+        const realHz = holdSec > 0 ? cycles / holdSec : 0;
         return (
-          `POUNCE = { hold: ${P.hold}, launch: ${P.launch}, snap: ${P.snap}, twitch: ${P.twitch} }\n` +
-          `loaded ${held.toFixed(0)}ms → extends over ${out.toFixed(0)}ms → reaching for ${rest.toFixed(0)}ms` +
-          ` (one 800ms tick)\n` +
-          `half the extension is done ${(half * TICK).toFixed(0)}ms in` +
-          (rest <= 0 ? '\n⚠ the launch runs past the beat — the cat never reaches full extension' : '')
+          `POUNCE = { hold: ${P.hold}, launch: ${P.launch}, land: ${P.land}, snap: ${P.snap},\n`
+          + `           wiggleHz: ${P.wiggleHz}, wiggleAmp: ${P.wiggleAmp}, `
+          + `wiggleRot: ${P.wiggleRot}, twitch: ${P.twitch} }\n`
+          + `load ${held.toFixed(0)}ms → launch ${out.toFixed(0)}ms → land ${down.toFixed(0)}ms `
+          + `→ recover ${back.toFixed(0)}ms  (one 800ms tick)\n`
+          + `half the extension is done ${(half * TICK).toFixed(0)}ms in   ·   `
+          + `the wiggle runs ${cycles} cycles = ${realHz.toFixed(2)}Hz`
+          + (realHz > 6 ? '  ⚠ reads as a vibration' : '')
+          + (back < 0 ? '\n⚠ the phases overrun the beat — the cat never finishes recovering' : '')
         );
       },
       draw(ctx, w, h, now) {

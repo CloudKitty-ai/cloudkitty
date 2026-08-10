@@ -1306,8 +1306,8 @@ check('the shipped pounce timing is the one the owner dialled', () => {
   // the beat now returns to the crouch, so `launch` no longer means "and the
   // rest is held at full reach" -- the remainder is land + recover.
   const P = CatV2.POUNCE;
-  close(P.hold, 0.22, 'hold drifted');
-  close(P.launch, 0.26, 'launch drifted');
+  close(P.hold, 0.24, 'hold drifted');
+  close(P.launch, 0.45, 'launch drifted');
   close(P.land, 0.16, 'land drifted');
   close(P.snap, 4, 'snap drifted');
   close(P.twitch, 0, 'twitch drifted');
@@ -1606,6 +1606,19 @@ check('every block the lab dials is actually writable', () => {
     );
   } finally {
     CatV2.FOCUS_VARIANTS[variant] = { ...CatV2.FOCUS_VARIANTS[variant], focusLidTilt: tilt };
+  }
+});
+
+
+check('the pounce readout names every dial it could delete', () => {
+  // A paste came back as the four old keys because the card's readout still
+  // emitted four -- so `land` and the three wiggle dials would have been
+  // silently dropped on the next bake. A readout that does not name a field
+  // is proposing to delete it.
+  const html = readFileSync(join(here, 'gallery-v2.html'), 'utf8');
+  const card = html.slice(html.indexOf("title: 'Pounce'"), html.indexOf("title: 'Arrive & settle'"));
+  for (const key of Object.keys(CatV2.POUNCE)) {
+    assert(card.includes(`${key}: \${P.${key}}`), `the Pounce readout never names ${key}`);
   }
 });
 
