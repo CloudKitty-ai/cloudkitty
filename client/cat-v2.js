@@ -138,6 +138,31 @@ const SWIM = {
 };
 
 /**
+ * Sleep-curl tunables, mutable for the lab like SWIM.
+ *
+ * Factored out 2026-08-09 because the head was the one measured outlier in
+ * the whole vocabulary: every other pose sits in a tight 0.215-0.226 band
+ * (idle and swim 0.226, loaf 0.221, pounce 0.215) and sleep alone was
+ * 0.173 -- 23% under the base. A cat's skull does not shrink when it curls
+ * up, so the sleeping cat read as a different, smaller animal.
+ *
+ * `headR` is interpolated by blendLayouts like every other head radius, so
+ * moving it blends rather than pops on the way in and out of sleep.
+ * Position comes with it: a bigger head in a curl sits differently against
+ * the body, so growing it alone is not the whole change.
+ */
+const SLEEP = {
+  // Owner-dialled 2026-08-09 against the awake cat drawn beside it, which is
+  // the only way to judge it: 0.173 -> 0.211 is 93% of the base head where it
+  // was 77%, so the sleeper is the same cat now, just a touch foreshortened
+  // by the curl. The head rose 0.1 and came forward 0.075 to sit on the ball
+  // rather than inside it.
+  headR: 0.211, // base head is 0.226; the rest of the vocabulary is 0.215-0.226
+  headX: 0.695, // where the head sits along the curled body
+  headY: 0.58, // and how far down it tucks
+};
+
+/**
  * Walk-cycle tunables, mutable for the lab like SWIM.
  *
  * The walk this replaces slid both feet along a shared sine at a fixed
@@ -778,7 +803,7 @@ function catLayout(pose, phase) {
     case 'sleep-curl': {
       const slow = Math.sin(phase * TAU * 0.5); // slower breath in sleep
       L.body = { cx: 0.5, cy: 0.64, rx: 0.3, ry: 0.25 + 0.008 * slow, rot: 0 };
-      L.head = { cx: 0.62, cy: 0.68, r: 0.173 };
+      L.head = { cx: SLEEP.headX, cy: SLEEP.headY, r: SLEEP.headR };
       L.earsUpright = false;
       L.eyes = 'closed';
       L.legs = [];
@@ -1388,6 +1413,7 @@ const api = {
   NOSE,
   MOUTH,
   SWIM,
+  SLEEP,
   GAIT,
   POUNCE,
   PROPORTION,

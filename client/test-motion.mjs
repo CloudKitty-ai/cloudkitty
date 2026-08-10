@@ -1362,5 +1362,62 @@ check('the far pair stays behind the body through the whole pounce', () => {
   }
 });
 
+// ---- the sleeping head (2026-08-09) ----
+
+check('the sleep-curl head comes from SLEEP, not a literal', () => {
+  const before = CatV2.SLEEP.headR;
+  try {
+    close(CatV2.catLayout('sleep-curl', 0.3).head.r, before, 'the dial IS the radius');
+    CatV2.SLEEP.headR = 0.21;
+    close(CatV2.catLayout('sleep-curl', 0.3).head.r, 0.21, 'and moving it moves the pose');
+  } finally {
+    CatV2.SLEEP.headR = before; // a mutable tunable must not leak between checks
+  }
+});
+
+check('the sleeping head blends rather than pops', () => {
+  // head.r is interpolated by blendLayouts, so waking up is a ramp. This is
+  // the trap that bit the droplet: a per-pose value that is NOT threaded
+  // through blendLayouts switches at the midpoint instead.
+  const sleep = CatV2.catLayout('sleep-curl', 0);
+  const idle = CatV2.catLayout('idle', 0);
+  assert(sleep.head.r !== idle.head.r, 'the two poses genuinely differ');
+  const mid = CatV2.blendLayouts(sleep, idle, 0.5);
+  const expected = (sleep.head.r + idle.head.r) / 2;
+  close(mid.head.r, expected, 'halfway is halfway, not either end');
+  close(CatV2.blendLayouts(sleep, idle, 0).head.r, sleep.head.r, 't=0 is exactly sleep');
+  close(CatV2.blendLayouts(sleep, idle, 1).head.r, idle.head.r, 't=1 is exactly idle');
+});
+
+check('every pose draws a head, and sleep is the only one off the band', () => {
+  // The band is what makes the cats read as one animal. If a future pose
+  // lands outside it, that is a decision worth making on purpose.
+  for (const pose of CatV2.POSES) {
+    const r = CatV2.catLayout(pose, 0.3).head.r;
+    assert(r > 0.1 && r < 0.3, `${pose}: head radius ${r} is off any plausible scale`);
+    if (pose !== 'sleep-curl') {
+      assert(r >= 0.21 && r <= 0.23, `${pose}: head ${r} left the 0.215-0.226 band`);
+    }
+  }
+  // Sleep is allowed to sit under the band -- a curl foreshortens -- but not
+  // by so much that it reads as a different, smaller animal. It shipped at
+  // 0.173 (77% of the base) and that was the complaint; it is 0.211 now.
+  const sleep = CatV2.catLayout('sleep-curl', 0.3).head.r;
+  assert(sleep / 0.226 > 0.85, `sleep head is ${(sleep / 0.226 * 100).toFixed(0)}% of the base`);
+});
+
+check('the sleeping head sits ON the curled body, not beside it', () => {
+  // A head whose centre leaves the body ellipse reads as detached, which is
+  // the failure mode of moving it up and forward to make room for a bigger
+  // one. Checked as the ellipse test rather than by eye.
+  const L = CatV2.catLayout('sleep-curl', 0.3);
+  const dx = (L.head.cx - L.body.cx) / L.body.rx;
+  const dy = (L.head.cy - L.body.cy) / L.body.ry;
+  const inside = dx * dx + dy * dy;
+  assert(inside < 1, `head centre is outside the body ellipse (${inside.toFixed(2)})`);
+  // And it must not sink through the ground line the pose is drawn on.
+  assert(L.head.cy + L.head.r <= 0.88, 'the head clears the ground line');
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

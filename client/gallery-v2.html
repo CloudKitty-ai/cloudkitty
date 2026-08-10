@@ -232,6 +232,13 @@
     });
   }
 
+  const SLEEP_BAG = {};
+  for (const k of Object.keys(CatV2.SLEEP)) {
+    Object.defineProperty(SLEEP_BAG, k, {
+      get: () => CatV2.SLEEP[k], set: (v) => { CatV2.SLEEP[k] = v; }, enumerable: true,
+    });
+  }
+
   const POUNCE_BAG = {};
   for (const k of Object.keys(CatV2.POUNCE)) {
     Object.defineProperty(POUNCE_BAG, k, {
@@ -740,6 +747,52 @@
           ctx.font = '11px ui-rounded, system-ui, sans-serif';
           ctx.textAlign = 'center';
           ctx.fillText(cat.name, x + SIZE / 2, 14);
+        }
+      },
+    },
+    {
+      title: 'Sleeping head',
+      note: 'The sleeping cat next to the same cat awake, at the live tile size and at 3x. The head radius is the one measured outlier in the vocabulary: idle and swim are 0.226, loaf 0.221, pounce 0.215, and sleep alone was 0.173 — 23% under the base, which is why the sleeper reads as a smaller animal rather than the same one curled up. The awake cat beside it is the reference; the dial is a hit when the two heads look like they belong to one cat. Growing it moves the head against the body, so position is dialled here too. blendLayouts already interpolates head.r, so this blends in and out of sleep rather than popping.',
+      v2Only: true,
+      w: 560,
+      h: 200,
+      bag: SLEEP_BAG,
+      dials: [
+        { key: 'headR', label: 'HEAD RADIUS (rest of the vocabulary: 0.215–0.226)', min: 0.14, max: 0.26, step: 0.001 },
+        { key: 'headX', label: 'along the curled body', min: 0.45, max: 0.8, step: 0.005 },
+        { key: 'headY', label: 'how far down it tucks', min: 0.5, max: 0.85, step: 0.005 },
+      ],
+      readout() {
+        const S = CatV2.SLEEP;
+        const base = 0.226;
+        return (
+          `SLEEP = { headR: ${S.headR}, headX: ${S.headX}, headY: ${S.headY} }\n`
+          + `head:body ${(S.headR / 0.3).toFixed(3)} against the awake cat's `
+          + `${(base / 0.3).toFixed(3)}   ·   ${(S.headR / base * 100).toFixed(0)}% of the base head\n`
+          + `at a 31px tile that is ${(S.headR * 2 * 31).toFixed(1)}px across, at 54px `
+          + `${(S.headR * 2 * 54).toFixed(1)}px`
+        );
+      },
+      draw(ctx, w, h, now) {
+        // Live tile on the left, 3x on the right; sleeping and awake in each
+        // pair, because the judgement is a comparison, not an absolute.
+        const phase = (now / 3400) % 1;
+        const pairs = [
+          { size: 54, x: 30, label: '54px — a large display' },
+          { size: 54 * 3, x: 250, label: '3x' },
+        ];
+        for (const { size, x, label } of pairs) {
+          const y = h - size * 0.95 - 16;
+          CatV2.drawCat(ctx, {
+            x, y, size, pose: 'sleep-curl', phase, appearance: CatV2.appearanceFor(2),
+          });
+          CatV2.drawCat(ctx, {
+            x: x + size * 0.95, y, size, pose: 'idle', phase, appearance: CatV2.appearanceFor(2),
+          });
+          ctx.fillStyle = '#6b7280';
+          ctx.font = '11px ui-monospace, monospace';
+          ctx.textAlign = 'left';
+          ctx.fillText(label, x, h - 4);
         }
       },
     },
