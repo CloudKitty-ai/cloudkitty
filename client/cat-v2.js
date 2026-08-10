@@ -120,6 +120,13 @@ const POSES = [
   'loaf',
   'sleep-curl',
   'swim',
+  // Added 2026-08-10. `sit` is the pose the vocabulary was missing: it is
+  // what a cat does when it has decided to STAY somewhere, and without it
+  // an untasked cat only ever had "standing" to say that with. `stretch`
+  // is the waking one. Both are reachable from state the engine already
+  // serves -- see anim.js's idlePoseFor and wokeAt.
+  'sit',
+  'stretch',
 ];
 
 /**
@@ -163,6 +170,33 @@ const SLEEP = {
 };
 
 /**
+ * The breath, mutable for the lab like SWIM and GAIT.
+ *
+ * A sine is symmetric and a chest is not. The top of an inhale is the
+ * moment a body is most resisted; the bottom of an exhale is the moment
+ * it is least, and a real ribcage sinks a little further than it swells.
+ *
+ * `skew` buys exactly that trade and nothing else: subtracting k*b^2 from
+ * the wave flattens the inhale peak by k and deepens the exhale by the
+ * same k, so the TOTAL travel is untouched -- 0.92 to -1.08 is still a
+ * span of 2. The roundness at the top is spent on squash at the bottom
+ * rather than given up, which is what was asked for (owner, 2026-08-10:
+ * slightly too round at peak, same amount of motion). It is a polynomial,
+ * so there is no kink at the zero crossings the way a two-sided gain has.
+ *
+ * The small side effect is deliberate: the mean of b^2 over a cycle is
+ * one half, so the cat also sits a hair slimmer on average. That is the
+ * same note being answered.
+ */
+const BREATH = { skew: 0.08 };
+
+/** The shaped breath. Feeds every resting pose, so idle, loaf, sit and
+ * the sleeper all breathe with one character rather than three. */
+function breathCurve(b, k = BREATH.skew) {
+  return b - k * b * b;
+}
+
+/**
  * Walk-cycle tunables, mutable for the lab like SWIM.
  *
  * The walk this replaces slid both feet along a shared sine at a fixed
@@ -188,17 +222,73 @@ const GAIT = {
   reach: 0.085, // stride half-width, in tiles either side of the leg's base
   lift: 0.04, // ground clearance at mid-swing
   bob: 0.005, // body rise and fall -- the old 0.008 was 0.48px at tile 60
-  // Body dips per gait cycle. There are FOUR footfalls in a cycle (the
-  // lateral sequence lands a paw every 0.25), so 4 answers every step and
-  // is the only setting where bobPhase has something to line up against:
-  // at 2 the body responds to one pair of legs and ignores the other,
-  // which is why no phase looked right.
-  beats: 2,
+  // Body dips per gait cycle.
+  //
+  // Dropped 2 -> 1 (owner, 2026-08-10: too jiggly, and "part of it is the
+  // pace"). The read is right and the arithmetic says why. For a travel
+  // of A at rate w, peak velocity goes as A*w but peak ACCELERATION goes
+  // as A*w^2 -- and jiggle is an acceleration percept. So halving the
+  // rate takes three quarters of the bounce out while leaving the travel
+  // untouched, which is the part that reads as life. Cutting the
+  // amplitude instead would have traded the two off one for one.
+  //
+  // At `cycles` 2 the old setting put four body dips in every tile, which
+  // at a live walk is about 5Hz -- a shiver, not a gait. One dip per gait
+  // cycle is a cat's weight moving rather than a cat vibrating.
+  beats: 1,
   bobPhase: 0.5, // where in the cycle the body sits lowest (0 = at footfall)
   pivot: 0.62, // where the limb hangs from, inside the body and out of sight
   hip: 0.2, // hind limb's pivot x
   shoulder: 0.66, // fore limb's pivot x
   spread: 0, // how far the far-side pair sits off the near one (depth, not stance)
+  // --- Carriage. One ellipse cannot show a shoulder rising, but it can
+  // LEAN, and the lean says most of what the shoulder was going to.
+  roll: 0.05, // body lean per gait cycle, radians
+  surge: 0.006, // and the small fore/aft shift of weight over the feet
+  // ...at this many per gait cycle. Also halved: a cat shifts its weight
+  // forward and back ONCE per stride. Twice was the "back and forth"
+  // motion that read as fidgeting.
+  surgeBeats: 1,
+  // A walking cat holds its head remarkably level -- one of the strongest
+  // quadruped signatures there is. The cat had this by accident (the walk
+  // set head.cx and left head.cy alone, so the head did not bob AT ALL);
+  // it is now deliberate and partial, because a little float reads alive
+  // where none reads like the head is bolted to a passing rail.
+  //
+  // The rate is the thing, and getting it wrong is unmistakable. Two
+  // mistakes made the cat walk like a bird (owner, 2026-08-10): a fore/aft
+  // nod at the stride rate -- which is exactly the head-thrust a pigeon
+  // walks with, and cats have no equivalent of it at all -- and a vertical
+  // follow keyed to the BODY's bob, which runs at the footfall rate and so
+  // dipped the head twice per stride. Thrust at 1x against dip at 2x
+  // traces a figure-eight, and a figure-eight is a bird.
+  //
+  // A cat's head floats: ONE slow rise and fall per stride, slightly
+  // behind the body, and no fore/aft travel whatsoever.
+  // Kept deliberately UNDER the body's own bob: stabilization means the
+  // head moves less than the shoulders it sits on, and at 0.007 it was
+  // travelling 1.7px against the body's 1.2px at a 120px cat -- floating
+  // more than the thing carrying it, which is a bird again by another
+  // route. Roughly 60% of the body's travel, at half its rate.
+  headLift: 0.003, // one rise and fall per stride, in units
+  headLag: 0.12, // how far behind the body's own cycle it runs
+  // --- Foreshortening, for the walk that runs toward or away from the
+  // camera rather than across it. See the walking case for why these
+  // exist at all; in short, a cat walking north covers no horizontal
+  // ground, so a horizontal stride is 100% skate by construction.
+  // Legs draw UNDER the body, so the body is the only thing hiding how
+  // long they are. Everything here has to respect that: a foot pushed
+  // clear of the silhouette stops being a glimpse of paw and becomes a
+  // whole exposed stick (owner, 2026-08-10).
+  depthNarrow: 0.06, // how much the body narrows head-on -- small, it is cover
+  depthBob: 1.5, // extra bob, as a multiple of the base
+  // With no stride left to spend, the step has to happen VERTICALLY: a
+  // cat walking at you picks its feet up, because up is the only
+  // direction still pointed at the camera.
+  depthLift: 1.8, // extra foot clearance
+  depthGround: 0.028, // how far the pairs part along the GROUND plane
+  depthSwing: 0.018, // and the small sideways pass that goes with it
+  depthTaper: 0.12, // the far pair thins with distance
 };
 
 /**
@@ -239,6 +329,350 @@ const PROPORTION = {
 };
 
 /**
+ * The rig: everything that moves and is NOT a pose.
+ *
+ * The vocabulary's great strength is that a pose is a parameter set, so a
+ * transition is a lerp. That same design is also why the cats read as
+ * drawings being swapped rather than as animals: a pose is a POSITION,
+ * and an animal is mostly the LAG between positions -- the tail that has
+ * not caught up, the head that led the turn, the ears that arrived late.
+ * None of that can live in a pose, because none of it is a function of
+ * the pose. It is a function of what the cat was doing a moment ago.
+ *
+ * So the rig sits AFTER the pose, and after any blend between poses, and
+ * offsets it. Nothing here changes WHICH pose a cat is in; it only
+ * changes how the cat got there. That ordering is the whole trick: it
+ * applies to a blended layout as happily as to a held one, needs no new
+ * entries in blendLayouts, and has nothing that can pop on a pose change.
+ *
+ * Two properties are load-bearing and easy to lose:
+ *
+ *  - The rest state is EXACTLY today's cat. Every channel springs toward
+ *    zero, so a cat standing still with no input draws bit-identically to
+ *    the un-rigged vocabulary. Still frames and reduced motion pass no
+ *    rig at all, which is the same drawing by a shorter route.
+ *  - The state is per-cat and disposable. `createRigState` is cheap and
+ *    `stepRig` is pure in (state, input, dt), so a viewer joining the
+ *    feed mid-flight builds fresh states AT REST rather than inheriting
+ *    momentum that belongs to a moment it never saw. anim.js drops every
+ *    rig on the same discontinuity path that already drops pose memory.
+ */
+const RIG = {
+  // --- The tail. A cat's tail is a counterweight on a slow spring; ours
+  // was a fixed curve per pose, which is why the only tail motion anyone
+  // could find was 0.4px of idle sway and why the tail flick had to be
+  // deleted rather than fixed. Two segments, follow-the-leader: the mid
+  // drags against body motion and the tip inherits the mid's swing and
+  // overshoots it. No flicks -- a flick is a discrete beat and reads as
+  // aggression (owner, 2026-08-09). This is continuous, so it never
+  // punctuates and can never be mistaken for a signal.
+  tailOmega: 8.5, // spring rate, rad/s -- lower is heavier and lazier
+  tailZeta: 0.55, // <1 is underdamped: the settle after a stop IS the point
+  tailDrag: 0.030, // units of trail per tile/s of body speed
+  tailWhip: 1.75, // how much further the tip travels than the mid
+  tailLead: 0.34, // and how much of the mid's swing the first handle takes
+  tailSwayAmp: 0.011, // ambient breath-driven sway at the tip
+  tailMax: 0.11, // hard clamp: a sprinting cat never flings its tail off-box
+
+  // --- The head. Underdamped on purpose: it leads into a move and
+  // overshoots on the stop, which is most of what makes a cat look like
+  // it DECIDED to walk rather than having been translated.
+  headOmega: 13, // faster than the tail: less mass, shorter lever
+  headZeta: 0.52,
+  headDrag: 0.024, // + is forward, in units per tile/s
+  headMax: 0.045,
+
+  // --- Gaze. A cat that never looks at anything is furniture. One unit
+  // vector in the cat's own facing space, sprung so a look travels
+  // instead of snapping, and spent three ways.
+  gazeOmega: 9,
+  gazeZeta: 0.85,
+  gazePupil: 0.36, // pupil travel inside the iris, in iris radii
+  gazeHead: 0.05, // the head follows the eyes, in head radii
+  gazeEar: 0.2, // and the ears turn with it, in radians
+
+  // --- Ears. Light, fast, independent. A real twitch is ONE ear; the
+  // boolean this replaces flipped both for 420ms, which is a switch and
+  // not a motion.
+  earOmega: 24,
+  earZeta: 0.45,
+  earTwitch: 0.42, // radians at full twitch
+  earBackOmega: 12, // how fast ears ease back for a nap or a meal
+  earBackZeta: 1,
+
+  // --- The turn. Facing flips by mirroring, which on its own is a
+  // 180-degree snap on the spot, every time a cat reverses.
+  //
+  // Tried and cut (owner, 2026-08-10): scaling the cat horizontally
+  // through the turn, cos being the honest projection of a flat cat
+  // rotating about its vertical axis. It is arithmetically right and
+  // visually wrong, and no dial reaches it -- the narrowing IS the
+  // reveal. A three-quarter drawing is what a squeeze needs to squeeze
+  // TOWARD, and we do not have one, so the cat can only narrow toward
+  // being a card and duly reads as one. That is a job for 3D cats, not
+  // for a tuning pass.
+  //
+  // What is left carries the turn on WEIGHT instead of width, which is
+  // how sprite animation has always done it: the cat drops onto its
+  // front feet, the facing swaps at the bottom of the dip -- where the
+  // silhouette says least and the eye is least able to catch the swap --
+  // and it rebounds. No horizontal scale at any frame. The mirror is
+  // still instant; it is simply no longer the thing you are looking at.
+  //
+  // Set VIEW.turnMs to 0 in anim.js to go back to the bare instant flip:
+  // turnFor then never returns a turn and none of this runs.
+  turnSquash: 0.09, // how far the cat drops through the pivot
+  turnFlipAt: 0.5, // where in the dip the mirror happens
+  turnWiden: 0.7, // and how much of the lost height goes to width
+
+  // --- The yawn: an idle OVERLAY rather than a pose, so it can happen on
+  // top of whatever the cat is already doing and needs no engine state.
+  yawnMouth: 0.36, // how far the mouth opens, in head radii
+  yawnHeadTilt: -0.03, // and the chin lifts (units; - is up)
+};
+
+const rclamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
+const smooth01 = (t) => {
+  const u = rclamp(t, 0, 1);
+  return u * u * (3 - 2 * u);
+};
+
+/**
+ * One 2-D channel of a damped spring, integrated semi-implicitly.
+ * `omega` is rad/s; `zeta` is the damping ratio -- 1 is critical (no
+ * overshoot at all), and below 1 it rings, which is where the life is.
+ */
+function springStep(s, tx, ty, omega, zeta, dt) {
+  const k = omega * omega;
+  const c = 2 * zeta * omega;
+  s.vx += (-k * (s.x - tx) - c * s.vx) * dt;
+  s.vy += (-k * (s.y - ty) - c * s.vy) * dt;
+  s.x += s.vx * dt;
+  s.y += s.vy * dt;
+}
+
+/** A fresh rig, at rest. Every channel zero, so an un-stepped rig draws
+ * the vocabulary exactly as it was -- which is what a new connection, a
+ * still frame and a reduced-motion frame all get, by construction. */
+function createRigState() {
+  const ch = () => ({ x: 0, y: 0, vx: 0, vy: 0 });
+  return { tailMid: ch(), tailTip: ch(), head: ch(), gaze: ch(), ears: ch() };
+}
+
+/**
+ * Advances one cat's rig and returns the bag `applyRig` consumes.
+ *
+ * `input` is what the world knows about this cat right now:
+ *   vx, vy         body velocity in TILES PER SECOND, screen axes (y down)
+ *   facing         'left' | 'right' -- rig space is the cat's own, so this
+ *                  is what turns screen velocity into forward and back
+ *   gazeX, gazeY   unit-ish vector toward whatever it is attending to, in
+ *                  screen axes, or 0 for "nothing in particular"
+ *   earTwitch      0..1 envelope, with earTwitchSide picking which ear
+ *   earsBack       0..1 target (naps, meals, the sad beat)
+ *   yawn           0..1
+ *   breath         0..1 phase for the ambient sway
+ *
+ * dt is clamped and substepped: a spring integrated across a 300ms
+ * hidden-tab hitch does not ring, it detonates.
+ */
+function stepRig(state, input, dtMs) {
+  const dir = input.facing === 'left' ? -1 : 1;
+  // The rig lives in the cat's OWN space, so the instant a cat mirrors,
+  // every x offset it is carrying means the opposite thing in the world:
+  // a tail trailing west becomes a tail trailing east, in one frame. That
+  // is a pop on every single reversal, and it is there whether the turn
+  // is animated or instant. Negating x and its velocity preserves the
+  // world-space motion across the mirror, so the tail simply keeps
+  // swinging the way it was already going and swings round after.
+  if (state.facing !== undefined && state.facing !== input.facing) {
+    for (const ch of [state.tailMid, state.tailTip, state.head, state.gaze]) {
+      ch.x = -ch.x;
+      ch.vx = -ch.vx;
+    }
+  }
+  state.facing = input.facing;
+  // Forward is along the cat's nose, whichever way it happens to be drawn.
+  const vf = (input.vx || 0) * dir;
+  const vd = input.vy || 0;
+  const gx = (input.gazeX || 0) * dir;
+  const gy = input.gazeY || 0;
+  const twitch = input.earTwitch || 0;
+
+  let left = rclamp(dtMs, 0, 250) / 1000;
+  while (left > 0) {
+    const dt = Math.min(1 / 120, left);
+    left -= dt;
+    // The tail trails: its target is the negation of where the body is
+    // going, so it is always behind -- and it keeps travelling after the
+    // body stops, because the spring still has velocity when the cat
+    // does not. That settle is the single most alive thing here.
+    springStep(
+      state.tailMid,
+      rclamp(-RIG.tailDrag * vf, -RIG.tailMax, RIG.tailMax),
+      rclamp(-RIG.tailDrag * vd * 0.6, -RIG.tailMax, RIG.tailMax),
+      RIG.tailOmega, RIG.tailZeta, dt,
+    );
+    // Follow-the-leader, so the curve BENDS instead of the whole tail
+    // sliding as one rigid stick.
+    springStep(
+      state.tailTip,
+      state.tailMid.x * RIG.tailWhip,
+      state.tailMid.y * RIG.tailWhip,
+      RIG.tailOmega * 0.8, RIG.tailZeta * 0.85, dt,
+    );
+    springStep(
+      state.head,
+      rclamp(RIG.headDrag * vf, -RIG.headMax, RIG.headMax),
+      rclamp(-RIG.headDrag * vd * 0.5, -RIG.headMax, RIG.headMax),
+      RIG.headOmega, RIG.headZeta, dt,
+    );
+    springStep(state.gaze, gx, gy, RIG.gazeOmega, RIG.gazeZeta, dt);
+    springStep(
+      state.ears,
+      twitch * RIG.earTwitch * (input.earTwitchSide || 1),
+      input.earsBack || 0,
+      twitch ? RIG.earOmega : RIG.earBackOmega,
+      twitch ? RIG.earZeta : RIG.earBackZeta,
+      dt,
+    );
+  }
+
+  const sway = RIG.tailSwayAmp * Math.sin((input.breath || 0) * TAU);
+  return {
+    tailMid: { x: state.tailMid.x, y: state.tailMid.y },
+    tailTip: { x: state.tailTip.x, y: state.tailTip.y + sway },
+    head: { x: state.head.x, y: state.head.y },
+    gaze: { x: state.gaze.x, y: state.gaze.y },
+    // The near ear takes the twitch and the far one answers, smaller and
+    // opposite -- which is what stops a twitch reading as a head shake.
+    earNear: state.ears.x + state.gaze.x * RIG.gazeEar,
+    earFar: state.ears.x * -0.35 + state.gaze.x * RIG.gazeEar,
+    earsBack: rclamp(state.ears.y, 0, 1),
+    yawn: input.yawn || 0,
+  };
+}
+
+/**
+ * Lays a rig over a finished (possibly blended) layout.
+ *
+ * Offsets only. Every channel is zero at rest, so `applyRig(L, null)` and
+ * a rig that has never been stepped are the same drawing as no rig at
+ * all -- the property that keeps still frames, reduced motion and a
+ * fresh connection honest without any of them knowing the rig exists.
+ */
+function applyRig(L, rig) {
+  if (!rig) return L;
+  const t = L.tail;
+  // The base stays welded to the rump and the curve bends along its
+  // length, most at the tip. A tail translated bodily reads as a prop
+  // someone is holding next to the cat.
+  t.c1x += rig.tailMid.x * RIG.tailLead;
+  t.c1y += rig.tailMid.y * RIG.tailLead;
+  t.c2x += rig.tailMid.x;
+  t.c2y += rig.tailMid.y;
+  t.x1 += rig.tailTip.x;
+  t.y1 += rig.tailTip.y;
+
+  L.head.cx += rig.head.x + rig.gaze.x * L.head.r * RIG.gazeHead;
+  L.head.cy +=
+    rig.head.y + rig.gaze.y * L.head.r * RIG.gazeHead + rig.yawn * RIG.yawnHeadTilt;
+
+  if (rig.earsBack) L.earsBackAmt = Math.max(L.earsBackAmt || 0, rig.earsBack);
+  L.earNear = rig.earNear;
+  L.earFar = rig.earFar;
+  L.gaze = rig.gaze;
+  L.yawn = rig.yawn;
+  return L;
+}
+
+/**
+ * The rig a STILL frame gets: every spring at rest, and the gaze placed
+ * directly at its target with no travel.
+ *
+ * Gaze is the one channel here that carries INFORMATION rather than
+ * motion. Where a cat is looking is a fact about the served world -- the
+ * same kind of fact as the focused hunting eyes, or a worn path, and both
+ * of those draw in still frames. `wetFor` sets the precedent exactly: a
+ * still frame takes wetness at full strength rather than not at all,
+ * because the fade is the motion and the wetness is the state. Here the
+ * travel is the motion and the direction is the state.
+ *
+ * Without this, a hunting cat under reduced motion kept its focused eyes
+ * but lost the fact that it was looking AT something -- the two halves of
+ * one cue disagreeing.
+ *
+ * Nothing else is populated, so a reduced-motion cat still holds its
+ * pose, its tail, its ears and its breath exactly as it always did; and
+ * because this touches no spring state, a still frame can neither seed
+ * nor disturb a live rig. Pure, like everything else a still frame reads.
+ */
+function stillRig(input) {
+  if (!input) return null;
+  const dir = input.facing === 'left' ? -1 : 1;
+  const gx = (input.gazeX || 0) * dir;
+  const gy = input.gazeY || 0;
+  // Nothing has this cat's attention: the un-rigged drawing, as before.
+  if (!gx && !gy) return null;
+  const zero = { x: 0, y: 0 };
+  return {
+    tailMid: zero,
+    tailTip: zero,
+    head: zero,
+    gaze: { x: gx, y: gy },
+    // The ears turn with the look, as they do live -- it is one cue, and
+    // splitting it would make the still frame disagree with the moving one.
+    earNear: gx * RIG.gazeEar,
+    earFar: gx * RIG.gazeEar,
+    earsBack: 0,
+    yawn: 0,
+  };
+}
+
+/**
+ * The on-the-spot turn, as a canvas transform.
+ *
+ * `t` runs 0..1 and the FACING flips at the midpoint, so both ends are
+ * exactly the mirrored drawings the vocabulary already produced: the
+ * turn only fills in the middle, where there used to be nothing at all.
+ * cos is the honest projection of a flat cat rotating about its own
+ * vertical axis; the floor stops it vanishing at small sizes, and the
+ * lift and stretch are the cat pushing off its front feet.
+ */
+/**
+ * Which way the cat is DRAWN at a point in a turn: still the facing it
+ * had BEFORE the turn until the mirror lands, the served one after.
+ *
+ * Exported because two places need it and they must agree exactly --
+ * paintBox, to draw it, and the rig, which has to flip its world-space
+ * momentum on the same frame the drawing does. Computing it separately
+ * in each is two places to get the polarity wrong, which is precisely
+ * what happened: drawing the served facing immediately and then swapping
+ * at the midpoint gives a flip, a flip back, and a third flip when the
+ * turn ends -- one turn read as two.
+ */
+function turnFacing(facing, turn) {
+  if (turn == null) return facing;
+  if (turnTransform(turn).flipped) return facing;
+  return facing === 'left' ? 'right' : 'left';
+}
+
+function turnTransform(t) {
+  const u = rclamp(t, 0, 1);
+  const dip = Math.sin(Math.PI * u);
+  const sy = 1 - RIG.turnSquash * dip;
+  return {
+    // Widening is safe where narrowing was not: a compressing cat is
+    // expected to spread, and spreading says nothing about whether it
+    // has a third dimension.
+    sx: 1 + (1 - sy) * RIG.turnWiden,
+    sy,
+    lift: 0,
+    flipped: u >= RIG.turnFlipAt,
+  };
+}
+
+/**
  * Applies PROPORTION.lift to a finished layout.
  *
  * `airborne` is the whole point of the signature. A foot on the ground is
@@ -277,11 +711,56 @@ function liftLayout(L, airborne) {
  * how long the cat stays loaded, how fast it extends, and how sharply.
  */
 const POUNCE = {
-  hold: 0.2, // share of the beat spent loaded, before anything moves
-  launch: 0.4, // share spent extending; the rest is held at full reach
+  hold: 0.22, // share of the beat spent loaded and wiggling
+  launch: 0.26, // share spent extending
+  land: 0.16, // and absorbing the landing; the rest is the recovery
   snap: 4, // >1 front-loads the extension. A cat launches, it does not glide.
-  twitch: 0, // tail-tip twitch while loading
+  // The wiggle. A cat about to pounce treads its hind feet and rocks its
+  // hindquarters, and that anticipation is what makes the launch read as
+  // a decision rather than a teleport. From the side it projects as a
+  // small vertical rock plus a lean -- exactly what one ellipse can say.
+  // (Deliberately not a tail flick: flicks read as aggression.)
+  // The wiggle's rate is a real-world FREQUENCY, not a count of rocks
+  // (2026-08-10). It was authored as "2.5 rocks per load", which is a
+  // share of a beat rather than a speed -- so when the pounce was
+  // compressed to one 800ms tick the load became 176ms and those 2.5
+  // rocks became 14Hz. A cat's hindquarters rock at about 3Hz; 14Hz is a
+  // vibration, and it read as one.
+  //
+  // Expressed in Hz it is immune to that: the beat can be any length and
+  // the wiggle still looks like a cat gathering itself. Same class of bug
+  // as the body bob running at twice the gait cycle, and the same lesson --
+  // what reads as "shaking" is almost always rate, not amplitude, because
+  // acceleration goes as the SQUARE of the rate.
+  wiggleHz: 3.2, // rocks per second
+  wiggleAmp: 0.022, // vertical, in units -- up a little, now that it is slow
+  wiggleRot: 0.06, // and the lean that comes with it, in radians
+  twitch: 0, // tail-tip twitch while loading -- kept, and kept at 0
 };
+
+/**
+ * The butt wiggle, 0 outside the load. Grows as the cat commits and
+ * lands on exactly zero at the launch: anticipation that faded out
+ * would read as the cat changing its mind.
+ *
+ * `beatMs` is how long the whole pounce beat lasts -- one served tick, so
+ * 800ms by default. The rock count is derived from it and `wiggleHz`,
+ * which is what keeps the wiggle's SPEED constant across tick lengths.
+ *
+ * Quantised to half a cycle, and never less than half: a half-integer
+ * count is what lands the sine on exactly zero at the launch, and the
+ * floor guarantees at least one visible rock however short the beat gets.
+ * At 800ms this comes out at one rock, around 2.8Hz -- and one deliberate
+ * rock reads far more like a cat gathering itself than two and a half
+ * blurred ones did.
+ */
+function pounceWiggle(phase, dials = POUNCE, beatMs = 800) {
+  if (phase >= dials.hold) return 0;
+  const holdSec = (dials.hold * beatMs) / 1000;
+  const cycles = Math.max(0.5, Math.round(dials.wiggleHz * holdSec * 2) / 2);
+  const u = phase / Math.max(1e-6, dials.hold);
+  return Math.sin(u * Math.PI * 0.5) * Math.sin(u * TAU * cycles);
+}
 
 /**
  * How far through the launch `phase` is: 0 while loaded, 1 once extended.
@@ -451,19 +930,173 @@ function lightenHex(hex, t) {
   return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
 }
 
-/** Memoized per palette entry and factor -- appearances are stable
- * frozen objects, so identity is a sound cache key. */
+/**
+ * How far a cat's pupils are open, by hour (2026-08-10).
+ *
+ * Real pupils open in the dark, and this world already knows what time it
+ * is -- so the cue arrives on the same clock as the fur shading and the
+ * shadow lean, and costs one number. A night cat's wide round pupil is
+ * also, conveniently, the cuter one; a midday cat's narrower one is the
+ * more catlike. The hour gets to choose rather than us.
+ */
+// Re-dialled 2026-08-10 alongside the larger resting pupil: these are set
+// so that every hour lands just UNDER the aperture clamp rather than
+// against it. A clamped value is a dial that silently stops responding,
+// which is the worst thing to hand someone who is tuning.
+const PUPIL_DILATE_BY_THEME = Object.freeze({ day: 1, dusk: 1.11, night: 1.22, dawn: 1.13 });
+
+/**
+ * Takes on the hunter's face, 2026-08-10.
+ *
+ * The brief that finally pinned this down: "an adorable little kitten
+ * pouncing on a toy -- me so fierce!". That reconciles ferocious with
+ * not-cartoony, which sound opposed and are not. The ferocity belongs to
+ * the KITTEN'S EFFORT rather than to any real threat: the eye mechanics
+ * should be a genuine predator's, and the animal wearing them should be
+ * far too small for it. Cartoony is what you get when the mechanics are
+ * fake; evil is what you get when the animal is convincing.
+ *
+ * Each take locates the ferocity somewhere different, which is the only
+ * honest way to offer three of anything:
+ *
+ *   intense  SHIPPED. The first take, revived. Ferocity from a lowered
+ *            brow, which dilation made safe to use again: a big round
+ *            pupil under that brow reads as a kitten concentrating, where
+ *            the slit pupil it originally carried read as a predator. The
+ *            brow keeps its full DEPTH and its angle is eased to 0.20 --
+ *            depth is the effort, angle is the threat.
+ *   wide   pupils DILATE. Owner's correction, 2026-08-10, and it is a
+ *          fact about cats: a hunting pupil opens, it does not narrow --
+ *          narrowing is a bright-light squint. This take is therefore
+ *          1c's aperture and increased tilt (the tilt is what gave the
+ *          original focused face its charm) with a blown round pupil
+ *          instead of a slit. Two things fall out of it for free: a
+ *          dilated pupil is ROUND, so the reptilian look that dogged the
+ *          slit is gone by construction; and it is the largest, darkest
+ *          mark the eye can make, which is exactly what survives at
+ *          31px. Cute and lethal turn out to be the same drawing.
+ *   cheek    the mischief take. Ferocity from the lower lid, eye
+ *            near-round. Kept as the gentlest option on the shelf.
+ *   intense  the first take, revisited: ferocity from a lowered brow
+ *            angled toward the nose, which dilation makes readable as
+ *            concentration rather than as threat.
+ *
+ * Every take keeps the iris, the eye colour and the round-pupil resting
+ * face intact, and none of them adds a drawing -- they are all the
+ * ordinary eye with different dials, which is what makes them swappable
+ * in one line and comparable in one lab.
+ */
+const FOCUS_VARIANTS = Object.freeze({
+  wide: Object.freeze({
+    focusSquash: 0, // no narrowing whatsoever: this is not a squint
+    focusWiden: 0,
+    focusGrow: 0.24, // the eye itself opens, which is where the room comes from
+    focusSpread: 0.1, // ...and the pair moves apart, so the two do not collide
+    focusTilt: 0.24, // strong positive canthal tilt -- the original's charm
+    focusLid: 0.05, // barely a brow
+    focusLidTilt: -0.03, // tilted AWAY from the menace direction
+    focusLidCurve: 0.06,
+    focusLowerLid: 0.1, // a little cheek, to keep the intensity
+    focusLowerTilt: -0.05,
+    focusLowerCurve: -0.16,
+    focusAsym: 0.28,
+    focusPupilW: 1, // ROUND. A dilated pupil has no reason to be a slit.
+    // A LOWER base than the resting eye's 0.78, which is what leaves the
+    // dilation somewhere to go. The resting pupil is already at 0.78 of
+    // its aperture and night takes it to 0.95, a hair under the ceiling --
+    // so a hunting pupil built on that base clamps in three themes out of
+    // four and the hour stops meaning anything. On 0.63, every hour lands
+    // clear of the ceiling and night is visibly wider than day. Paired
+    // with focusGrow's bigger aperture, the absolute pupil still comes out
+    // larger than a resting night pupil, which is the ask.
+    focusPupilBase: 0.63,
+    // Dilation, composed with the hour rather than replacing it -- see the
+    // pupil sizing below for how the two combine.
+    focusDilate: 1.12,
+    limbal: 0.7,
+  }),
+
+  // The very first take, revisited 2026-08-10 at the owner's suggestion.
+  //
+  // Its character was the lowered brow angled toward the nose -- the real
+  // threat signal -- and it was rejected as too evil. The reptilian half
+  // of that verdict belonged to the slit pupil, and dilation has since
+  // solved it: a big round pupil under a lowered brow is a kitten
+  // CONCENTRATING, where a slit under the same brow was a predator. So
+  // the brow comes back at nearly full strength and the pupil carries the
+  // cuteness. Squash is well down from the original 0.3, because a
+  // narrowed eye and a blown pupil cannot both fit in one aperture.
+  intense: Object.freeze({
+    // Squash nearly off and the aperture grown hard (2026-08-10): both
+    // buy the pupil ABSOLUTE size without raising its share of the eye,
+    // which is the only way to get a bigger pupil that does not also
+    // eat the iris. The share stays clear of the ceiling, so the hour
+    // still moves it.
+    focusSquash: 0.06,
+    focusWiden: 0.02,
+    // Grown a little harder than 2a, and on a higher base, so that this
+    // take's pupil comes out the same ABSOLUTE size as 2a's -- otherwise
+    // the two are not a fair comparison and 2b loses on a detail nobody
+    // chose. The brow covers the top of the eye, so the room has to come
+    // from the aperture rather than from the share.
+    focusGrow: 0.34,
+    focusSpread: 0.14,
+    focusTilt: 0.2,
+    focusLid: 0.3, // a real brow, unlike 2a's hint of one -- clamped off the pupil
+    // 0.20, owner-picked 2026-08-10 from a side-by-side against 0.24.
+    // Down from the 0.34 of the original take, which read as evil: the
+    // angle is the menace and the DEPTH is the concentration, so easing
+    // the angle while keeping the depth is what makes this a kitten
+    // frowning in effort rather than a cat about to do harm.
+    focusLidTilt: 0.2,
+    focusLidCurve: 0.04,
+    focusLowerLid: 0.1,
+    focusLowerTilt: -0.05,
+    focusLowerCurve: -0.14,
+    focusAsym: 0.26,
+    focusPupilW: 1,
+    focusPupilBase: 0.64,
+    focusDilate: 1.12,
+    limbal: 0.72,
+  }),
+
+  // The shipped take: whatever EYE already says.
+  cheek: Object.freeze({}),
+
+
+
+});
+
+/** Mix two hexes, `t` of the way from a to b. `shadeHex` multiplies and
+ * `lightenHex` mixes toward white; neither can walk one colour toward
+ * another, which is what a limbal ring is. */
+function mixHex(a, b, t) {
+  const na = parseInt(a.slice(1), 16);
+  const nb = parseInt(b.slice(1), 16);
+  const ch = (sh) => {
+    const x = (na >> sh) & 255;
+    const y = (nb >> sh) & 255;
+    return Math.round(x + (y - x) * t);
+  };
+  return `#${((ch(16) << 16) | (ch(8) << 8) | ch(0)).toString(16).padStart(6, '0')}`;
+}
+
+/** Memoized per palette entry and theme. Keyed on the THEME rather than
+ * on the shade factor since 2026-08-10: two themes with equal factors
+ * would have shared an entry and therefore a pupil, which is a bug that
+ * would only appear the day someone re-tuned a factor. */
 const SHADED_APPEARANCES = new Map();
 
 function shadedAppearanceOf(appearance, theme) {
   const factor = FUR_SHADE_BY_THEME[theme] ?? 1;
-  if (factor === 1) return appearance;
-  let byFactor = SHADED_APPEARANCES.get(appearance);
-  if (!byFactor) {
-    byFactor = new Map();
-    SHADED_APPEARANCES.set(appearance, byFactor);
+  const dilate = PUPIL_DILATE_BY_THEME[theme] ?? 1;
+  if (factor === 1 && dilate === 1) return appearance;
+  let byTheme = SHADED_APPEARANCES.get(appearance);
+  if (!byTheme) {
+    byTheme = new Map();
+    SHADED_APPEARANCES.set(appearance, byTheme);
   }
-  let shaded = byFactor.get(factor);
+  let shaded = byTheme.get(theme);
   if (!shaded) {
     const p = appearance.pattern;
     shaded = {
@@ -471,13 +1104,14 @@ function shadedAppearanceOf(appearance, theme) {
       furBase: shadeHex(appearance.furBase, factor),
       furShade: shadeHex(appearance.furShade, factor),
       noseColor: shadeHex(appearance.noseColor, factor),
+      pupilDilate: dilate,
       pattern: p && {
         ...p,
         ...(p.color ? { color: shadeHex(p.color, factor) } : {}),
         ...(p.color2 ? { color2: shadeHex(p.color2, factor) } : {}),
       },
     };
-    byFactor.set(factor, shaded);
+    byTheme.set(theme, shaded);
   }
   return shaded;
 }
@@ -512,29 +1146,47 @@ function drawCat(ctx, opts) {
     earsBack,
   } = opts;
 
-  const L = catLayout(pose, phase);
-  if (eyesOverride) L.eyes = eyesOverride;
-  if (earsBack) L.earsUpright = false;
-  paintBox(ctx, L, appearance, { facing, size, x, y, lid: opts.lid });
+  const L = applyRig(catLayout(pose, phase, opts.layout), opts.rig);
+  if (eyesOverride) {
+    L.eyes = eyesOverride;
+  }
+  if (earsBack) {
+    L.earsUpright = false;
+    L.earsBackAmt = 1;
+  }
+  paintBox(ctx, L, appearance, { facing, size, x, y, lid: opts.lid, turn: opts.turn });
 }
 
 /** The shared box pipeline: mirror, scale, paint. drawCat and
  * drawCatTween meet here so a blended frame is drawn by exactly the
  * machinery a held pose uses. */
-function paintBox(ctx, L, appearance, { facing, size, x, y, lid = 0 }) {
+function paintBox(ctx, L, appearance, { facing, size, x, y, lid = 0, turn = null }) {
   // v2: `fine` gates only the tabby forehead stripes (sub-pixel noise when
   // small). Eyes, mouth and inner ears draw at every size -- v1's 44px
   // cliff meant no live-world cat ever wore its own face.
   const fine = size >= 44;
+  // The served facing does not take effect until the mirror lands at the
+  // bottom of the dip; before that the cat is still drawn the way it was
+  // going. Both ends of the turn are therefore exactly the held drawings.
+  const tr = turn == null ? null : turnTransform(turn);
+  const dir = turnFacing(facing, turn);
 
   ctx.save();
   ctx.translate(x, y);
-  if (facing === 'left') {
+  if (dir === 'left') {
     // The base cat faces right; a left-facing cat is its mirror.
     ctx.translate(size, 0);
     ctx.scale(-1, 1);
   }
   ctx.scale(size, size);
+  if (tr) {
+    // A cat turns about its own footprint: the paws stay put and the
+    // body swings round them. Anchoring anywhere else slides the cat
+    // sideways through the turn, which reads as a stumble.
+    ctx.translate(0.5, CAT_GROUND - tr.lift);
+    ctx.scale(tr.sx, tr.sy);
+    ctx.translate(-0.5, -CAT_GROUND);
+  }
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
 
@@ -565,10 +1217,13 @@ function blendLayouts(A, B, t) {
         far: t >= 0.5 ? b.far : a.far,
       });
     } else if (a) {
-      const w = a.w * Math.max(0, 1 - 2 * t);
+      // Clamped both ways: an anticipating or overshooting blend hands us
+      // a t a little outside [0,1], and an unclamped share would grow a
+      // vanishing leg back instead of shrinking it.
+      const w = a.w * rclamp(1 - 2 * t, 0, 1);
       if (w > 0.015) legs.push({ ...a, w });
     } else if (b) {
-      const w = b.w * Math.max(0, 2 * t - 1);
+      const w = b.w * rclamp(2 * t - 1, 0, 1);
       if (w > 0.015) legs.push({ ...b, w });
     }
   }
@@ -588,6 +1243,14 @@ function blendLayouts(A, B, t) {
     },
     legs,
     earsUpright: late.earsUpright,
+    // Continuous, unlike `earsUpright`. Ears easing back through a pose
+    // change is a MOTION; a boolean switching at the midpoint is not, and
+    // the switch is what made every nap and every meal start with a
+    // one-frame ear snap.
+    earsBackAmt: n(
+      A.earsBackAmt === undefined ? (A.earsUpright ? 0 : 1) : A.earsBackAmt,
+      B.earsBackAmt === undefined ? (B.earsUpright ? 0 : 1) : B.earsBackAmt,
+    ),
     eyes: late.eyes,
     droplet: late.droplet,
     pawUp: late.pawUp,
@@ -606,10 +1269,26 @@ function drawCatTween(ctx, opts) {
     phaseFrom = 0, phaseTo = 0,
     x = 0, y = 0, eyesOverride, earsBack, lid,
   } = opts;
-  const L = blendLayouts(catLayout(from, phaseFrom), catLayout(to, phaseTo), Math.min(1, Math.max(0, t)));
-  if (eyesOverride) L.eyes = eyesOverride;
-  if (earsBack) L.earsUpright = false;
-  paintBox(ctx, L, appearance, { facing, size, x, y, lid });
+  // Deliberately NOT clamped to [0,1]. Pose space is linear, so a t a
+  // little outside it is a legal pose slightly beyond each end -- which
+  // is precisely what anticipation and overshoot ARE. Bounded so that a
+  // wild t can never turn a cat inside out.
+  const L = applyRig(
+    blendLayouts(
+      catLayout(from, phaseFrom, opts.layoutFrom),
+      catLayout(to, phaseTo, opts.layout),
+      rclamp(t, -0.3, 1.3),
+    ),
+    opts.rig,
+  );
+  if (eyesOverride) {
+    L.eyes = eyesOverride;
+  }
+  if (earsBack) {
+    L.earsUpright = false;
+    L.earsBackAmt = 1;
+  }
+  paintBox(ctx, L, appearance, { facing, size, x, y, lid, turn: opts.turn });
 }
 
 // ---------------------------------------------------------------------------
@@ -619,8 +1298,12 @@ function drawCatTween(ctx, opts) {
 
 const TAU = Math.PI * 2;
 
-function catLayout(pose, phase) {
-  const breathe = Math.sin(phase * TAU);
+/** The cat's own ground line, in its unit box. render.js knows the same
+ * number as CAT_GROUND_Y; the turn transform needs it here too. */
+const CAT_GROUND = 0.88;
+
+function catLayout(pose, phase, opts = {}) {
+  const breathe = breathCurve(Math.sin(phase * TAU));
 
   // The idle standing cat is the reference; poses adjust it. v2: the head
   // grows ~1.05x for kawaii proportion, at v1's exact position -- only the
@@ -631,6 +1314,7 @@ function catLayout(pose, phase) {
     body: { cx: 0.44, cy: 0.64, rx: 0.3, ry: 0.21, rot: 0 },
     head: { cx: 0.7, cy: 0.4, r: 0.226 },
     earsUpright: true, // false = flattened back a touch (naps, meals)
+    earsBackAmt: 0, // ...and the same fact as a 0..1 the rig can ease
     // Tail as a cubic bezier from rump to tip, drawn as an outlined stroke.
     tail: { x0: 0.16, y0: 0.62, c1x: 0.02, c1y: 0.62, c2x: 0.0, c2y: 0.42, x1: 0.05, y1: 0.3 },
     legs: withFarPair([
@@ -651,13 +1335,47 @@ function catLayout(pose, phase) {
       break;
 
     case 'walking': {
-      L.body.rx = 0.32;
-      // `phase` is now TILES COVERED, not time (see Presentation.strideFor),
+      // `phase` is TILES COVERED, not time (see Presentation.strideFor),
       // so `cycles` is steps per tile of ground and may be fractional --
       // there is no tick boundary left for a part-stride to tear against.
       const cycle = phase * GAIT.cycles;
-      L.body.cy += GAIT.bob * Math.cos((cycle - GAIT.bobPhase) * GAIT.beats * TAU);
+
+      // How much of this cat's travel is ACROSS the screen: 1 is a pure
+      // east/west walk (the one that always looked cute), 0 is due north
+      // or south.
+      //
+      // This is the fix for "walking north/south looks unnatural" (owner,
+      // 2026-08-09), and the cause turns out to be arithmetic rather than
+      // taste. `plantedReach` earns its planted foot by sweeping the paw
+      // backward through exactly the ground the cat covers -- but that
+      // sweep is always HORIZONTAL, and a cat walking north covers no
+      // horizontal ground at all. Every foot was therefore skating at
+      // 100% of stride, in every vertical step ever drawn, and no amount
+      // of gait tuning could reach it: the walk was correct only for the
+      // one axis it was derived on.
+      //
+      // The honest answer is foreshortening. As the walk turns toward the
+      // camera the stride collapses, because there is no sideways ground
+      // left to push against -- and what carries the walk instead is
+      // DEPTH: the near and far pairs swing past each other, the body
+      // rocks and narrows, and the whole cat rises and falls more. A cat
+      // walking at you is mostly bob and shoulder; a cat walking across
+      // you is mostly stride. It is now drawn that way, and the two blend
+      // continuously, so a diagonal is a real mixture rather than a
+      // choice between them.
+      const travelH = opts.travelH === undefined ? 1 : rclamp(opts.travelH, 0, 1);
+      const depth = 1 - travelH;
+
+      L.body.rx = 0.32 * (1 - GAIT.depthNarrow * depth);
+      const bob = GAIT.bob * (1 + GAIT.depthBob * depth);
+      const bobOff = bob * Math.cos((cycle - GAIT.bobPhase) * GAIT.beats * TAU);
+      L.body.cy += bobOff;
+      // Weight rolls from one diagonal pair to the other. Stronger
+      // head-on, where the roll is doing the work the lost stride used to.
+      L.body.rot = GAIT.roll * (0.35 + 0.65 * depth) * Math.sin(cycle * TAU);
+      L.body.cx += GAIT.surge * Math.sin(cycle * TAU * GAIT.surgeBeats);
       L.head.cx = 0.72;
+      L.head.cy += GAIT.headLift * Math.sin((cycle - GAIT.headLag) * TAU);
       // Index 0 is the rear leg and index 1 the front, in every pose that
       // has them -- blendLayouts pairs legs BY INDEX, so swapping them
       // here would cross a cat's legs on the way to any other pose.
@@ -668,27 +1386,49 @@ function catLayout(pose, phase) {
       // the stride extremes costs nothing -- which is what lets the stance
       // foot stay honestly planted at y 0.88 while the swing foot arcs.
       const { hip: HIP, shoulder: SHOULDER } = GAIT;
-      const leg = (base, u) => {
+      // The stride is the part that foreshortens away; the lift is the
+      // part that grows to replace it. A cat coming at you picks its feet
+      // UP, because that is the only component of the step still pointed
+      // at the camera.
+      const reach = GAIT.reach * travelH;
+      const lift = GAIT.lift * (1 + GAIT.depthLift * depth);
+      // Depth is said with the GROUND, not with sideways travel. The
+      // first cut moved the two pairs apart horizontally, which pushed
+      // feet clear of the body -- and a leg that clears the body shows
+      // its entire length. A foot that is further away belongs HIGHER on
+      // the ground plane instead, and a little thinner: that is where
+      // depth actually lives, and neither ever leaves the body's cover.
+      const groundSwing = GAIT.depthGround * depth * Math.sin(cycle * TAU);
+      const swing = GAIT.depthSwing * depth * Math.sin(cycle * TAU);
+      const leg = (base, u, far) => {
         const g = gaitStep(((u % 1) + 1) % 1, GAIT.duty);
+        const side = far ? -1 : 1;
         return {
           hx: base,
-          x: base + GAIT.reach * g.x,
+          x: base + reach * g.x + side * swing,
           top: GAIT.pivot,
-          bottom: 0.88 - GAIT.lift * g.lift,
-          w: 0.095,
+          bottom: CAT_GROUND - lift * g.lift + side * groundSwing,
+          w: 0.095 * (far ? 1 - GAIT.depthTaper * depth : 1),
         };
       };
       // The four-beat lateral walk off the owner's footfall chart: left
       // hind, left fore, right hind, right fore, each a quarter cycle
       // apart. Far pair first so it draws behind. Index order is fixed --
       // blendLayouts pairs legs BY INDEX.
+      //
+      // All of it costs exactly nothing at travelH 1 -- every depth term
+      // is multiplied by `depth` -- so the east/west walk the owner
+      // already likes is untouched, byte for byte.
       L.legs = [
-        { ...leg(HIP, cycle - 0.5), far: true },   // right hind
-        { ...leg(SHOULDER, cycle - 0.75), far: true }, // right fore
-        leg(HIP, cycle),                           // left hind
-        leg(SHOULDER, cycle - 0.25),               // left fore
-      ].map((l, i) => (i < 2 ? { ...l, x: l.x + GAIT.spread, hx: l.hx + GAIT.spread } : l));
-      // Tail streams behind, gently lifted.
+        { ...leg(HIP, cycle - 0.5, true), far: true },       // right hind
+        { ...leg(SHOULDER, cycle - 0.75, true), far: true }, // right fore
+        leg(HIP, cycle, false),                              // left hind
+        leg(SHOULDER, cycle - 0.25, false),                  // left fore
+      ].map((l, i) =>
+        i < 2 ? { ...l, x: l.x + GAIT.spread, hx: l.hx + GAIT.spread } : l,
+      );
+      // Tail streams behind, gently lifted. The rig's drag does the rest,
+      // which is why this no longer needs a sway of its own.
       L.tail = { x0: 0.14, y0: 0.58, c1x: 0.04, c1y: 0.56, c2x: 0.0, c2y: 0.5, x1: 0.03, y1: 0.42 };
       break;
     }
@@ -704,9 +1444,18 @@ function catLayout(pose, phase) {
       // drawings they have always been; only the frames between them are
       // new, and there used to be none.
       const t = pounceLaunch(phase);
+      // opts.beatMs is the served tick length, so the wiggle keeps its
+      // real-world speed whatever config.world.tick_ms says.
+      const wig = pounceWiggle(phase, POUNCE, opts.beatMs);
       const crouch = {
         ...L,
-        body: { cx: 0.42, cy: 0.68, rx: 0.31, ry: 0.17, rot: -0.1 },
+        body: {
+          cx: 0.42,
+          cy: 0.68 + POUNCE.wiggleAmp * wig,
+          rx: 0.31,
+          ry: 0.17,
+          rot: -0.1 + POUNCE.wiggleRot * wig,
+        },
         head: { cx: 0.68, cy: 0.5, r: 0.221 },
         legs: withFarPair([
           { x: 0.2, top: 0.78, bottom: 0.88, w: 0.1 },
@@ -739,15 +1488,49 @@ function catLayout(pose, phase) {
         legs: leapLegs,
         tail: { x0: 0.14, y0: 0.6, c1x: 0.02, c1y: 0.6, c2x: 0.0, c2y: 0.46, x1: 0.04, y1: 0.38 },
       };
-      const blended = blendLayouts(crouch, leap, t);
+      // Touchdown: the forelegs take the weight, the body compresses over
+      // them, the rump is still coming down. This is the frame the old
+      // pounce had nowhere to put -- it extended and then HELD full reach
+      // until the tick ended, so every pounce finished frozen at the top
+      // of the leap and the next pose had to blend out of a cat in mid-air.
+      const land = {
+        ...L,
+        body: { cx: 0.47, cy: 0.715, rx: 0.335, ry: 0.15, rot: 0.07 },
+        head: { cx: 0.76, cy: 0.575, r: 0.219 },
+        legs: withFarPair([
+          { x: 0.26, hx: 0.24, top: 0.72, bottom: CAT_GROUND, w: 0.1 },
+          { x: 0.72, hx: 0.68, top: 0.7, bottom: CAT_GROUND, w: 0.095 },
+        ]),
+        tail: { x0: 0.16, y0: 0.64, c1x: 0.04, c1y: 0.68, c2x: 0.0, c2y: 0.54, x1: 0.04, y1: 0.44 },
+      };
+
+      const launchEnd = POUNCE.hold + POUNCE.launch;
+      const landEnd = launchEnd + POUNCE.land;
+      let blended;
+      if (phase < launchEnd) {
+        blended = blendLayouts(crouch, leap, t);
+        // Feet leave the ground the moment the launch starts: past t=0
+        // they are positioned against the BODY, not the ground, so they
+        // have to travel with it. Only the loaded crouch is planted.
+        airborne = t > 0;
+      } else if (phase < landEnd) {
+        blended = blendLayouts(leap, land, smooth01((phase - launchEnd) / POUNCE.land));
+        airborne = false;
+      } else {
+        // ...and back up to a ready crouch. The recovery is the slowest
+        // part of the beat on purpose: a cat that snaps upright the
+        // instant it lands has no weight in it.
+        blended = blendLayouts(
+          land,
+          crouch,
+          smooth01((phase - landEnd) / Math.max(1e-6, 1 - landEnd)),
+        );
+        airborne = false;
+      }
       L.body = blended.body;
       L.head = blended.head;
       L.tail = blended.tail;
       L.legs = blended.legs;
-      // Feet leave the ground the moment the launch starts: past t=0 they
-      // are positioned against the BODY, not the ground, so they have to
-      // travel with it. Only the loaded crouch is planted.
-      airborne = t > 0;
       break;
     }
 
@@ -801,7 +1584,7 @@ function catLayout(pose, phase) {
     }
 
     case 'sleep-curl': {
-      const slow = Math.sin(phase * TAU * 0.5); // slower breath in sleep
+      const slow = breathCurve(Math.sin(phase * TAU * 0.5)); // slower breath in sleep
       L.body = { cx: 0.5, cy: 0.64, rx: 0.3, ry: 0.25 + 0.008 * slow, rot: 0 };
       L.head = { cx: SLEEP.headX, cy: SLEEP.headY, r: SLEEP.headR };
       L.earsUpright = false;
@@ -839,6 +1622,52 @@ function catLayout(pose, phase) {
       break;
     }
 
+    case 'sit': {
+      // Sitting is what a cat does when it has decided to STAY somewhere.
+      // Rump down and back, chest up and forward, forelegs straight, tail
+      // curled round the front paws. It reads at 31px because the
+      // silhouette is unlike anything else in the vocabulary: tall and
+      // narrow where idle is long and low.
+      L.body = { cx: 0.42, cy: 0.665, rx: 0.275, ry: 0.215 + 0.007 * breathe, rot: -0.4 };
+      L.head = { cx: 0.685, cy: 0.325, r: 0.226 };
+      L.legs = withFarPair([
+        { x: 0.27, hx: 0.31, top: 0.74, bottom: CAT_GROUND, w: 0.1 },
+        { x: 0.66, hx: 0.63, top: 0.58, bottom: CAT_GROUND, w: 0.095 },
+      ]);
+      L.tail = { x0: 0.17, y0: 0.79, c1x: 0.34, c1y: 0.93, c2x: 0.62, c2y: 0.93, x1: 0.76, y1: 0.85 };
+      break;
+    }
+
+    case 'stretch': {
+      // The waking stretch. `phase` is the stretch's OWN 0..1: it reaches,
+      // holds, and eases off, so the pose has a shape of its own rather
+      // than being a position the blend happens to arrive at. The pose
+      // tween still handles the edges, so this only has to be the middle.
+      const push = smooth01(phase / 0.3) * (1 - smooth01((phase - 0.72) / 0.28));
+      const k = (rest, full) => rest + (full - rest) * push;
+      L.body = {
+        cx: k(0.44, 0.47),
+        cy: k(0.64, 0.625),
+        rx: k(0.3, 0.345),
+        ry: k(0.21, 0.155),
+        rot: k(0, 0.3),
+      };
+      L.head = { cx: k(0.7, 0.775), cy: k(0.4, 0.655), r: 0.219 };
+      L.eyes = push > 0.4 ? 'closed' : 'half';
+      L.earsBackAmt = push * 0.55;
+      L.legs = withFarPair([
+        { x: k(0.2, 0.215), hx: k(0.2, 0.245), top: k(0.74, 0.6), bottom: CAT_GROUND, w: 0.1 },
+        { x: k(0.7, 0.9), hx: k(0.7, 0.715), top: k(0.74, 0.7), bottom: k(CAT_GROUND, 0.86), w: 0.095 },
+      ]);
+      L.tail = {
+        x0: k(0.16, 0.14), y0: k(0.62, 0.6),
+        c1x: k(0.02, 0.0), c1y: k(0.62, 0.44),
+        c2x: k(0.0, 0.05), c2y: k(0.42, 0.22),
+        x1: k(0.05, 0.17), y1: k(0.3, 0.15),
+      };
+      break;
+    }
+
     default:
       break;
   }
@@ -846,6 +1675,9 @@ function catLayout(pose, phase) {
   // Shape first, then stand height: proportion holds the belly floor and
   // lift moves it, so running them the other way round would have lift's
   // rise silently undone by proportion's floor-restoring step.
+  // Poses still speak in the boolean; the continuous value is derived so
+  // no pose had to be rewritten to gain an eased ear.
+  if (!L.earsUpright) L.earsBackAmt = 1;
   return liftLayout(proportionLayout(L, airborne), airborne);
 }
 
@@ -870,10 +1702,11 @@ function paintCat(ctx, L, a, fine, lid = 0) {
   drawLegs(ctx, L.legs.filter((l) => !l.front), a, p);
   drawBody(ctx, L.body, a, p);
   drawLegs(ctx, L.legs.filter((l) => l.front), a, p);
-  drawEars(ctx, L.head, a, p, L.earsUpright);
+  const back = L.earsBackAmt === undefined ? (L.earsUpright ? 0 : 1) : L.earsBackAmt;
+  drawEars(ctx, L.head, a, p, back, L.earNear || 0, L.earFar || 0);
   drawHead(ctx, L.head, a, p, fine);
-  drawInnerEars(ctx, L.head, a, L.earsUpright);
-  drawFace(ctx, L.head, L.eyes, a, lid);
+  drawInnerEars(ctx, L.head, a, back, L.earNear || 0, L.earFar || 0);
+  drawFace(ctx, L.head, L.eyes, a, lid, L.gaze, L.yawn || 0);
   if (L.pawUp) drawRaisedPaw(ctx, L.head, a);
   if (L.droplet) drawDroplet(ctx, L.head);
 }
@@ -1012,17 +1845,27 @@ function drawLegs(ctx, legs, a, p) {
   }
 }
 
-function earPoints(head, side, back) {
+function earPoints(head, side, back, turn = 0) {
   // side: +1 toward the facing direction, -1 behind. Upright ears sit high;
   // "back" ears (eating, sleeping) flatten outward a touch.
-  const tiltOut = back ? 0.22 : 0.38;
-  const spread = back ? 0.62 : 0.5;
+  //
+  // `back` is a 0..1 amount, not a flag. Ears easing back is a motion and
+  // the boolean it replaces was a switch -- which is why every nap and
+  // every meal used to open with a one-frame ear snap. `turn` swivels the
+  // ear on its base: both ears the same way for a look, one alone for a
+  // twitch. The base is fixed and only the apex travels, which is what an
+  // ear actually does.
+  const b = rclamp(back, 0, 1);
+  const lerp = (lo, hi) => lo + (hi - lo) * b;
+  const tiltOut = lerp(0.38, 0.22);
+  const spread = lerp(0.5, 0.62);
+  const reach = lerp(1.42, 1.28);
   const baseAngle = -Math.PI / 2 + side * spread;
   const bx = head.cx + Math.cos(baseAngle) * head.r * 0.92;
   const by = head.cy + Math.sin(baseAngle) * head.r * 0.92;
-  const apexAngle = baseAngle + side * (back ? 0.3 : 0.12);
-  const ax = head.cx + Math.cos(apexAngle) * head.r * (back ? 1.28 : 1.42);
-  const ay = head.cy + Math.sin(apexAngle) * head.r * (back ? 1.28 : 1.42);
+  const apexAngle = baseAngle + side * lerp(0.12, 0.3) + turn;
+  const ax = head.cx + Math.cos(apexAngle) * head.r * reach;
+  const ay = head.cy + Math.sin(apexAngle) * head.r * reach;
   const halfBase = head.r * tiltOut;
   const perp = baseAngle + Math.PI / 2;
   return {
@@ -1035,10 +1878,10 @@ function earPoints(head, side, back) {
   };
 }
 
-function drawEars(ctx, head, a, p, upright) {
+function drawEars(ctx, head, a, p, back, turnNear = 0, turnFar = 0) {
   const pointMask = p.kind === 'point-mask';
   for (const side of [-1, 1]) {
-    const e = earPoints(head, side, !upright);
+    const e = earPoints(head, side, back, side === 1 ? turnNear : turnFar);
     ctx.beginPath();
     ctx.moveTo(e.b1x, e.b1y);
     ctx.lineTo(e.ax, e.ay);
@@ -1056,11 +1899,11 @@ function drawEars(ctx, head, a, p, upright) {
   }
 }
 
-function drawInnerEars(ctx, head, a, upright) {
+function drawInnerEars(ctx, head, a, back, turnNear = 0, turnFar = 0) {
   // Little pink inner-ear ticks, sized to stay inside the visible ear tips.
   ctx.fillStyle = a.noseColor;
   for (const side of [-1, 1]) {
-    const e = earPoints(head, side, !upright);
+    const e = earPoints(head, side, back, side === 1 ? turnNear : turnFar);
     const mx = (e.b1x + e.b2x) / 2;
     const my = (e.b1y + e.b2y) / 2;
     ctx.beginPath();
@@ -1156,15 +1999,154 @@ const EYE = {
   shift: -0.15, // both eyes together / head.r (+toward nose, -toward back)
   spreadNear: 0.12, // rear eye offset / head.r
   spreadFar: 0.62, // front eye offset / head.r
-  pupil: 0.7, // pupil radius / iris radius
+  // Pupil size as a share of the APERTURE's half-height, not of `er`
+  // (2026-08-10). Measured against er, the aperture dials silently ate
+  // the iris: at apertureH 0.92 the visible coloured ring fell to 1.1px
+  // at a 120px cat by day and 0.28px at night, and that ring is the
+  // per-cat identity signal -- eye colour is how a viewer tells Miso from
+  // Pumpkin. Sized against the aperture, the ring is a fixed share of the
+  // eye whatever shape the eye is, and dilation has honest room to move
+  // instead of hitting the clamp.
+  // 0.78 owner-dialled 2026-08-10: bigger reads cuter, and this is a
+  // little larger than the pupil the vocabulary shipped with (which was
+  // 0.7 of `er`, and worked out at 0.607 once the aperture arrived --
+  // a 13% shrink nobody asked for).
+  //
+  // Note the trade this sets up, because it is physical rather than a
+  // tuning accident: the bigger the resting pupil, the less room is left
+  // above it to dilate into. A large day pupil and a dramatic night one
+  // cannot both be had out of one aperture.
+  pupil: 0.78, // pupil half-height / aperture half-height
   // The hunter's eyes keep v1's smaller radius AND v1's lower vertical
   // position (owner, 2026-07-29: the narrowed look reads worse blown up
   // or raised). Horizontal placement stays v2's shifted-back spread.
+  // Unused since the hunter's eyes were rebuilt out of the ordinary eye
+  // (2026-08-10). Kept only because gallery-v2's dial table names them.
   focusedScale: 0.14,
-  focusedHeight: 0.02, // v1's ey offset / head.r (+down, -up)
+  focusedHeight: 0.02,
+  // --- The hunter's eyes.
+  //
+  // Built FROM the ordinary eye rather than beside it, so a hunting cat
+  // keeps its iris, its colour and its identity. What they replace was a
+  // flat dark ellipse with a straight line struck above it -- readable at
+  // 22px, where the whole eye is three pixels and a dark mark is all
+  // anyone can see, and shapeless the moment there is room for detail.
+  //
+  // Intensity is a lowered lid angled the OTHER way: a sleepy lid droops
+  // at the outer corner, an intense one drops at the inner one. Same lid
+  // drawing, opposite sign.
+  // Re-dialled 2026-08-10: the first cut was intense and also EVIL, and
+  // the fix is structural rather than a matter of degree.
+  //
+  // Anger narrows an eye from ABOVE -- a brow lowered toward the nose is
+  // the threat signal, in cats and in everything else with a face.
+  // Mirth narrows it from BELOW: a raised lower lid is what a hard grin
+  // does to an eye. The two look equally narrowed and mean opposite
+  // things, so the squint can move from the top of the eye to the bottom
+  // and keep every bit of its intensity while losing the menace.
+  //
+  // So the brow is now barely there, the work is done by the lower lid,
+  // and two supporting cues follow: a pupil that stays engaged rather
+  // than reptilian, and a little asymmetry -- a symmetrical stare reads
+  // as threat, a lopsided one as scheming.
+  // Second pass: the first attempt at the cheek squint closed the eye so
+  // far that the pupil filled what was left, which is the flat dark slot
+  // the whole rebuild was meant to escape -- and a slot reads grumpy, not
+  // mischievous. Total closure is now well down and the WORK is done by
+  // the shape of the lower lid's edge rather than by its height.
+  //
+  // `focusLowerCurve` is the expression. Scooping the edge up in the
+  // middle makes the eye's visible underside an arc, which is the same
+  // happy curve the closed eyes are drawn with -- a smile, in the eye.
+  // Both dialled well down on the third pass. Widening the aperture while
+  // narrowing it put the eye at half again as wide as it was tall BEFORE
+  // the lids landed, so whatever they left over came out as a letterbox
+  // slot -- and a slot reads grumpy however it is shaped. A mischievous
+  // squint is not a wide eye, it is a nearly round one with the bottom
+  // pushed up. Keep these small; the lower lid is what should be doing
+  // the work.
+  focusSquash: 0.05, // how far the aperture narrows
+  focusWiden: 0.03, // and widens as it narrows
+  focusTilt: 0.05, // extra tilt on the aperture itself
+  focusLid: 0.05, // the brow: a hint of one, no more
+  focusLidTilt: 0.1, // + drops the inner corner. Was 0.34, which was the menace
+  focusLidCurve: 0.1, // and a soft bow, as the resting lid has
+  // The cheek. This is the expression.
+  focusLowerLid: 0.24, // how far the lower lid rides up
+  focusLowerTilt: -0.05, // a slight outer lift, the way a grin pushes
+  focusLowerCurve: -0.3, // scooped UP in the middle: the smile, in the eye
+  focusAsym: 0.3, // how much less the rear eye squints -- scheming, not menacing
+  focusPupilW: 0.78, // narrower than resting, well short of a reptile's slit
+  // The focused eye needs its own pupil HEIGHT, not just its own width.
+  // At the resting 0.78 of the aperture the pupil filled everything the
+  // lids left over, so a narrowed eye came out dark-green-dark -- a slot
+  // with a bar through it, which is the flat blob the rebuild set out to
+  // escape. Smaller here leaves iris visible above the pupil, which is
+  // what makes a narrowed eye still read as an eye.
+  focusPupilH: 0.58, // pupil half-height / aperture, when focused
+  // Which take of the hunter's face is live. See FOCUS_VARIANTS.
+  // 'intense' shipped 2026-08-10 (owner). The remaining tuning knob, if
+  // anyone wants one, is FOCUS_VARIANTS.intense.focusLidTilt -- the brow's
+  // inward angle, and the whole menace axis: 0.20 ships, 0.34 read as
+  // evil, 0 reads as pure concentration. Nothing else in the take needs
+  // touching to move it along that spectrum.
+  focusVariant: 'intense',
+  // How much the aperture GROWS when focused. The hunting pupil dilates
+  // (see FOCUS_VARIANTS.wide), and it needs somewhere to go.
+  //
+  // Growing the aperture alone does NOT buy the pupil room, which is the
+  // trap the first attempt fell into: the pupil is a fraction OF the
+  // aperture, so scaling the aperture scales the pupil in lockstep and
+  // the relative headroom -- the visible iris -- is unchanged. Room comes
+  // from pairing this with `focusPupilBase`, a lower base share that the
+  // grown aperture then makes absolutely large. The eye gets bigger, the
+  // pupil gets bigger, and the iris survives; all three at once.
+  focusGrow: 0,
+  // How far the two eyes move APART when focused, in head radii, split
+  // evenly either side of the face's midline.
+  //
+  // Needed because `focusGrow` grows each eye about its own centre while
+  // the centres stay put: at 24% growth the two apertures overlapped by
+  // 0.8px on a 120px cat, which is why the hunting face read as one wide
+  // dark band rather than as two eyes. Spreading rather than shrinking,
+  // because the whole point of the dilated take is a big pupil.
+  focusSpread: 0,
+  // How far either lid may crop the pupil, as a share of the pupil's own
+  // height. Both lids lower until they just kiss the pupil and stop --
+  // see the clamps at the lid calls.
+  focusBrowGraze: 0.03,
   // 'half' is a lidded open eye, not v1's flat dash: the same partial
   // lid the slow blink passes through, parked at this coverage. All
   // three lid values BAKED from the lab dials (owner, 2026-07-29).
+  // --- The aperture (2026-08-10). Two concentric circles read as dots.
+  // A cat's eye opening is a rounded almond, a little wider than it is
+  // tall, with the outer corner carried lower than the inner one -- and
+  // because those are whole-eye SHAPE changes they survive the live tile,
+  // where the iris is 1.3px of radius and nothing smaller than itself can
+  // read at all.
+  apertureW: 1.12, // iris half-width / er
+  apertureH: 0.92, // and half-height
+  tilt: 0.15, // outer corner drop, radians; mirrored about the face
+  // --- The pupil.
+  //
+  // ROUND is the shipped starting point (owner, 2026-08-10), and the dial
+  // stays because the argument for narrowing it is real but was not
+  // taken: a vertical pupil is the most catlike mark available, yet this
+  // vocabulary already owns the predatory look in `focused`, so narrowing
+  // the RESTING pupil spends a contrast that is already doing a job. A
+  // world of cats with slit pupils has nothing left to say "hunting".
+  //
+  // What carries the cat reading instead is dilation, below: the pupil
+  // stays round and changes SIZE with the hour, which is what a real
+  // pupil mostly does and what a viewer actually notices.
+  pupilW: 1, // pupil width as a share of its height; below ~0.6 reads as hunting
+  // --- The rim. What this replaces was a hairline in FUR colour, there
+  // so a pale iris held its shape against pale fur. A darkened iris
+  // reads as the limbal ring a real eye has AND does that job better.
+  pupilMax: 0.96, // hard ceiling as a share of the aperture; a guard, not a look
+  limbal: 0.55, // how far the rim walks toward the pupil ink
+  limbalW: 0.17, // and its width, in iris radii
+  irisDepth: 0.2, // a soft darker cap at the top, for roundness
   halfLid: 0.54,
   // Lid edge slope, in iris radii of drop per radius of run. Dialed
   // slightly NEGATIVE: the outer corners droop away from the nose --
@@ -1229,11 +2211,21 @@ const MOUTH = {
   depth: 0.08, // vertical reach: leg drop ('v') or arc bulge ('w')
 };
 
-function drawFace(ctx, head, eyes, a, lid = 0) {
+function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0) {
+  // A yawn squeezes the eyes shut on its way open -- it is the eyes, not
+  // the mouth, that make a yawn read as one at 31px.
+  if (yawn > 0.02) lid = Math.max(lid, smooth01(yawn * 1.1));
   const darkFur = isDarkColor(a.furBase);
   const eyeInk = darkFur ? a.eyeColor : '#453c36';
-  const ex1 = head.cx + head.r * (EYE.spreadNear + EYE.shift);
-  const ex2 = head.cx + head.r * (EYE.spreadFar + EYE.shift);
+  const focus = eyes === 'focused' ? 1 : 0;
+  // The focused eye reads its dials through the live variant; the resting
+  // eye reads EYE itself, unspread and unchanged, so nothing about the
+  // ordinary face can depend on which take of the hunter is selected.
+  const F = focus ? { ...EYE, ...(FOCUS_VARIANTS[EYE.focusVariant] || null) } : EYE;
+  // Half the spread each way, so widening the pair cannot shift the face.
+  const half = (focus * (F.focusSpread || 0)) / 2;
+  const ex1 = head.cx + head.r * (EYE.spreadNear + EYE.shift - half);
+  const ex2 = head.cx + head.r * (EYE.spreadFar + EYE.shift + half);
   const ey = head.cy + head.r * EYE.height;
   const er = head.r * EYE.scale;
   // 'half' rides the open-eye path under a standing lid (v2): the drowsy
@@ -1243,9 +2235,18 @@ function drawFace(ctx, head, eyes, a, lid = 0) {
     eyes = 'open';
     lid = Math.max(lid, EYE.halfLid);
   }
+  // The hunter's eyes are the SAME eyes, narrowed -- not a second
+  // drawing. See EYE.focus* for why that matters.
+  if (focus) {
+    eyes = 'open';
+    // Locked: hunting kitties do not blink (owner, 2026-08-02). The lid
+    // they wear is a brow at a fixed depth, not a blink in progress, so
+    // it is assigned rather than max()'d over whatever was passed in.
+    lid = F.focusLid;
+  }
   // A fully-lowered lid IS the closed eye: blinks that ease the lid down
   // land on the same happy arcs a served 'closed' state draws.
-  if (lid >= 0.97 && eyes !== 'focused') eyes = 'closed';
+  if (lid >= 0.97 && !focus) eyes = 'closed';
 
   if (eyes === 'closed') {
     // Happy little down-curved arcs.
@@ -1256,64 +2257,144 @@ function drawFace(ctx, head, eyes, a, lid = 0) {
       ctx.arc(ex, ey - er * 0.4, er, 0.25 * Math.PI, 0.75 * Math.PI);
       ctx.stroke();
     }
-  } else if (eyes === 'focused') {
-    // The hunter's face (spec 005 US5): v1's shape at v1's size and v1's
-    // lower height (focusedScale/focusedHeight) -- only the horizontal
-    // spread follows the v2 face.
-    const fer = head.r * EYE.focusedScale;
-    const fey = head.cy + head.r * EYE.focusedHeight;
-    for (const ex of [ex1, ex2]) {
-      ctx.fillStyle = eyeInk;
-      ctx.beginPath();
-      ctx.ellipse(ex, fey + fer * 0.15, fer, fer * 0.55, 0, 0, TAU);
-      ctx.fill();
-      ctx.strokeStyle = eyeInk;
-      ctx.lineWidth = OUTLINE_W * 0.9;
-      ctx.beginPath();
-      ctx.moveTo(ex - fer, fey - fer * 0.75);
-      ctx.lineTo(ex + fer, fey - fer * 0.45);
-      ctx.stroke();
-    }
   } else {
-    // Open eyes, fully dressed at every size: iris color, big pupil, one
-    // bright glint. Canvas antialiasing shoulders the tiny sizes -- a
-    // 22px cat keeps a readable spark where v1 drew two flat dots.
+    // Open eyes, fully dressed at every size. Canvas antialiasing
+    // shoulders the tiny sizes -- a 22px cat keeps a readable eye where
+    // v1 drew two flat dots.
+    //
+    // The three changes over the two concentric circles this replaces are
+    // all whole-eye shape, which is the only kind that survives the live
+    // tile: an almond aperture carried at a tilt, a vertical pupil, and a
+    // rim that darkens instead of matching the fur.
+    const mid = (ex1 + ex2) / 2;
     for (const ex of [ex1, ex2]) {
+      // Mirrored about the face's own midline, so the pair reads as a face
+      // rather than as two identical marks. The rotation lifts each eye's
+      // OUTER corner -- positive canthal tilt, the thing that reads as
+      // alert rather than sad. (An earlier comment here claimed the
+      // corners dropped; they do not, and the sign is load-bearing.)
+      const side = ex < mid ? 1 : -1;
+      const rot = side * (F.tilt + focus * F.focusTilt);
+      // Narrower AND a touch wider: a hunting cat's eye is a stare, and a
+      // stare is not a squint. Narrowing alone reads as a cat in bright
+      // sun rather than one that has seen something.
+      const grow = 1 + focus * (F.focusGrow || 0);
+      const rw = er * F.apertureW * (1 + focus * F.focusWiden) * grow;
+      const rh = er * F.apertureH * (1 - focus * F.focusSquash) * grow;
+      const aperture = () => {
+        ctx.beginPath();
+        ctx.ellipse(ex, ey, rw, rh, rot, 0, TAU);
+      };
+      aperture();
       ctx.fillStyle = a.eyeColor;
-      ctx.beginPath();
-      ctx.arc(ex, ey, er, 0, TAU);
       ctx.fill();
-      // A hairline liner so pale irises hold their shape on pale fur.
-      ctx.strokeStyle = a.furShade;
-      ctx.lineWidth = OUTLINE_W * 0.45;
-      ctx.stroke();
+      // A soft darker cap at the top: light comes from above, so the
+      // underside of an iris is the bright part. Clipped, so it can only
+      // ever shade the eye it belongs to.
+      if (EYE.irisDepth > 0) {
+        ctx.save();
+        aperture();
+        ctx.clip();
+        ctx.globalAlpha = EYE.irisDepth;
+        ctx.fillStyle = PUPIL_INK;
+        ctx.beginPath();
+        ctx.ellipse(ex, ey - rh * 0.98, rw * 1.2, rh * 0.85, rot, 0, TAU);
+        ctx.fill();
+        ctx.restore();
+      }
+      // The pupil travels inside the iris toward whatever the cat is
+      // attending to. This is the cheapest aliveness in the entire rig --
+      // a pupil that never moves is a printed dot, and moving it costs
+      // one clip and two additions. Clipped to the aperture so a hard
+      // look can never push the pupil out onto the fur.
+      //
+      // `pupilDilate` arrives on the appearance, set by the hour.
+      //
+      // The clamp is a guard rather than part of the look: no theme should
+      // reach it, because a pupil filling the whole aperture takes the
+      // eye COLOUR with it, and eye colour is how a viewer tells one cat
+      // from another. Every hour keeps a visible ring of iris.
+      const dil = a.pupilDilate || 1;
+      // A hunting pupil DILATES (owner, 2026-08-10). The two dilations
+      // compose rather than one replacing the other: a hunting cat's
+      // pupil is at least as open as a night pupil whatever the hour, and
+      // at night it opens further still, as far as the aperture allows.
+      // Taking the max rather than just multiplying is what guarantees
+      // the floor -- a midday hunt must not come out narrower than an
+      // idle midnight.
+      //
+      // Takes that predate the correction still say focusPupilH and are
+      // drawn as they were reviewed; only a take naming focusDilate goes
+      // through the dilation path.
+      const focusDil = focus && F.focusDilate
+        ? Math.max(PUPIL_DILATE_BY_THEME.night, dil * F.focusDilate)
+        : null;
+      const share = focusDil
+        ? (F.focusPupilBase || F.pupil) * focusDil
+        : focus ? F.focusPupilH : F.pupil * dil;
+      const ph = Math.min(rh * share, rh * F.pupilMax);
+      // The vertical pupil, saved for exactly this moment. It was kept
+      // deliberately out of the resting eye so that narrowing it HERE
+      // would still mean something: a world of slit-pupilled cats has
+      // nothing left to say "hunting" with.
+      const wRatio = focus ? F.focusPupilW : Math.min(1, F.pupilW * dil);
+      const pw = Math.min(ph * wRatio, rw * 0.94);
+      ctx.save();
+      aperture();
+      ctx.clip();
       ctx.fillStyle = PUPIL_INK;
       ctx.beginPath();
-      ctx.arc(ex, ey + er * 0.06, er * EYE.pupil, 0, TAU);
+      ctx.ellipse(
+        ex + (gaze ? gaze.x * er * RIG.gazePupil : 0),
+        ey + er * 0.06 + (gaze ? gaze.y * er * RIG.gazePupil : 0),
+        pw,
+        ph,
+        rot,
+        0,
+        TAU,
+      );
       ctx.fill();
+      ctx.restore();
+      // The limbal ring, struck last so it sits over both iris and pupil
+      // and closes the eye's edge cleanly. Walks the iris colour toward
+      // the pupil ink rather than toward the fur, which is what makes it
+      // read as an eye rather than as an outline round one.
+      if (F.limbalW > 0) {
+        aperture();
+        ctx.strokeStyle = mixHex(a.eyeColor, PUPIL_INK, F.limbal);
+        ctx.lineWidth = er * F.limbalW;
+        ctx.stroke();
+      }
       // (White glint tried and cut, owner 2026-07-29.)
-      if (lid > 0.02) {
-        // A partial lid: fur slides down over the eye, its edge sloping
-        // toward the face's middle (lidTilt), with a soft lash line.
-        // Clipped to the iris so it can never smear.
+      // One lid, drawable from either side of the eye. `dir` is -1 for
+      // the upper lid coming down and +1 for the lower coming up; every
+      // other difference between the two is a dial, which is what lets
+      // the hunting face move its squint from the top of the eye to the
+      // bottom without a second drawing.
+      //
+      // All of it is measured against the APERTURE rather than against
+      // `er`: with a narrowed hunting eye the two differ, and a lid sized
+      // to the wrong one covers the wrong share of it. Clipped to the
+      // aperture so it can never smear onto the fur.
+      const drawLid = (cover, tiltAmt, curveAmt, dir) => {
+        if (!(cover > 0.02)) return;
         ctx.save();
         ctx.beginPath();
-        ctx.arc(ex, ey, er + OUTLINE_W * 0.3, 0, TAU);
+        ctx.ellipse(ex, ey, rw + OUTLINE_W * 0.3, rh + OUTLINE_W * 0.3, rot, 0, TAU);
         ctx.clip();
-        const edge = ey - er + 2 * er * lid;
-        const d = ex < (ex1 + ex2) / 2 ? 1 : -1; // downhill toward middle
-        const run = er * 1.4;
-        const drop = er * EYE.lidTilt;
-        const top = ey - er * 1.4;
-        const y0 = edge - d * drop;
-        const y1 = edge + d * drop;
-        // Quadratic control point: offset 2x sinks the curve's midpoint
-        // by exactly er * lidCurve below the straight chord.
-        const ctrlY = (y0 + y1) / 2 + 2 * er * EYE.lidCurve;
+        const edge = ey + dir * (rh - 2 * rh * cover);
+        const run = rw * 1.3;
+        const drop = er * tiltAmt;
+        const far = ey + dir * rh * 1.7; // past the eye, on the lid's own side
+        const y0 = edge - side * drop;
+        const y1 = edge + side * drop;
+        // Offsetting the control point by 2x sinks the curve's midpoint
+        // by exactly er * curve off the straight chord.
+        const ctrlY = (y0 + y1) / 2 + 2 * er * curveAmt;
         ctx.fillStyle = a.furBase;
         ctx.beginPath();
-        ctx.moveTo(ex - run, top);
-        ctx.lineTo(ex + run, top);
+        ctx.moveTo(ex - run, far);
+        ctx.lineTo(ex + run, far);
         ctx.lineTo(ex + run, y1);
         ctx.quadraticCurveTo(ex, ctrlY, ex - run, y0);
         ctx.closePath();
@@ -1325,6 +2406,62 @@ function drawFace(ctx, head, eyes, a, lid = 0) {
         ctx.quadraticCurveTo(ex, ctrlY, ex + run, y1);
         ctx.stroke();
         ctx.restore();
+      };
+
+      // Neither lid may eat the pupil.
+      //
+      // A brow deep enough to look like concentration was cropping 41% of
+      // the pupil's height, which cost the take the very thing it was
+      // revived for: `focusPupilW: 1` makes a ROUND pupil, and a round
+      // pupil clipped flat across the top is a letterbox. Worse, the
+      // damage was invisible in the dials -- the geometry said the pupil
+      // had grown while the drawing showed it shrinking, so tuning
+      // `focusPupilBase` could never have fixed it.
+      //
+      // So it is an invariant rather than a number: whatever a lid is set
+      // to, it lowers until it just kisses the pupil and stops. It applies
+      // to the cheek as much as to the brow -- the first version of this
+      // clamp only guarded the top, and the lower lid went on quietly
+      // taking a slice off the bottom, which is why the pupil was still
+      // 10% short of its neighbour's. Any variant can now ask for as much
+      // of either lid as it likes and the round pupil survives, which is
+      // the property that makes the takes comparable at all.
+      // The lids are CURVED, and the bow at mid-span reaches deeper into
+      // the eye than the lid's edge height does -- by exactly er * curve,
+      // since a quadratic with its control point offset 2k sits k off the
+      // chord at the midpoint. The first two attempts at this clamp
+      // measured only the edge, so a lid whose cover was legitimately
+      // clear of the pupil still bowed across it, and the numbers refused
+      // to move. The pupil sits at the eye's mid-span, which is precisely
+      // where the bow is deepest, so the curve term is the whole story.
+      const graze = ph * (1 - F.focusBrowGraze);
+      const pupilCy = er * 0.06;
+      const lidRoom = (curveAmt, dir) =>
+        (rh + dir * (pupilCy + er * curveAmt) - graze) / (2 * rh);
+      let effLid = lid;
+      if (focus) effLid = Math.min(lid, lidRoom(-F.focusLidCurve, 1));
+      drawLid(
+        effLid,
+        focus ? F.focusLidTilt : F.lidTilt,
+        focus ? F.focusLidCurve : F.lidCurve,
+        -1,
+      );
+      if (focus) {
+        // The cheek pushing up under the eye. The rear eye squints less,
+        // because a face doing the same thing on both sides reads as a
+        // threat and a face doing it lopsidedly reads as up to something.
+        drawLid(
+          Math.min(
+            F.focusLowerLid * (side === 1 ? 1 - F.focusAsym : 1),
+            // Negated because `dir` already flips the curve term: passing
+            // the raw value flipped it twice and left the cheek MORE room
+            // than it should have had, not less.
+            lidRoom(-F.focusLowerCurve, -1),
+          ),
+          F.focusLowerTilt,
+          F.focusLowerCurve,
+          1,
+        );
       }
     }
   }
@@ -1357,6 +2494,49 @@ function drawFace(ctx, head, eyes, a, lid = 0) {
     ? shadeHex(a.pattern.color, 0.82)
     : a.furShade;
   ctx.lineWidth = OUTLINE_W * 0.55;
+  if (yawn > 0.02) {
+    // The jaw drops UNDER the muzzle mark; the mark itself stays exactly
+    // where it is (owner, 2026-08-10).
+    //
+    // The first cut replaced the omega with the opening, which is what a
+    // human mouth does -- lips part and the line becomes the shape. A
+    // cat's does not: the :3 is not a pair of lips, it is where the
+    // muzzle meets the upper lip, and it stays put while the jaw swings
+    // down beneath it. Deleting it deleted the only mark on the face
+    // saying "cat", which is why the gape read human however the outline
+    // was shaped.
+    //
+    // So this draws the opening first and lets the omega stroke over its
+    // top edge: the mark becomes the upper lip of the open mouth for
+    // free, and the closed and open faces share it rather than
+    // interpolating between two different drawings.
+    const o = smooth01(yawn);
+    const gw = head.r * MOUTH.width * (0.6 + 0.3 * o);
+    const top = my + head.r * MOUTH.depth * 0.5; // just under the omega's bulges
+    const d = head.r * RIG.yawnMouth * o;
+    // The jaw alone, with no top edge -- the omega is the top edge.
+    const jaw = () => {
+      ctx.moveTo(nx - gw, top);
+      ctx.bezierCurveTo(nx - gw * 0.98, top + d * 0.66, nx - gw * 0.52, top + d, nx, top + d);
+      ctx.bezierCurveTo(nx + gw * 0.52, top + d, nx + gw * 0.98, top + d * 0.66, nx + gw, top);
+    };
+    ctx.fillStyle = shadeHex(a.noseColor, 0.5);
+    ctx.beginPath();
+    jaw();
+    ctx.closePath(); // the chord back along `top`, hidden under the omega
+    ctx.fill();
+    if (o > 0.45) {
+      // The tongue. Small, but it is what keeps a gape reading as a yawn
+      // rather than as a hiss -- which is the last thing this world wants.
+      ctx.fillStyle = lightenHex(a.noseColor, 0.22);
+      ctx.beginPath();
+      ctx.ellipse(nx, top + d * 0.72, gw * 0.46, d * 0.2, 0, 0, TAU);
+      ctx.fill();
+    }
+    ctx.beginPath();
+    jaw(); // stroked open, so no line is struck where the omega will go
+    ctx.stroke();
+  }
   ctx.beginPath();
   if (MOUTH.style === 'w') {
     // Each half-ellipse needs its own moveTo: without it, canvas draws a
@@ -1419,7 +2599,26 @@ const api = {
   PROPORTION,
   MAX_LIFT,
   gaitStep,
+  pounceWiggle,
+  FOCUS_VARIANTS,
+  BREATH,
+  breathCurve,
+  // The rig (2026-08-10). Exported so the motion lab can build and drive
+  // its own states without anim.js, and so anim.js can hold per-cat state
+  // without owning any of the motion maths.
+  RIG,
+  createRigState,
+  stepRig,
+  stillRig,
+  applyRig,
+  turnTransform,
+  turnFacing,
+  springStep,
+  smooth01,
+  CAT_GROUND,
   lightenHex,
+  mixHex,
+  PUPIL_DILATE_BY_THEME,
   plantedReach,
   proportionLayout,
   pounceLaunch,
