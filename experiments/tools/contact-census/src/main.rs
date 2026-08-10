@@ -39,7 +39,7 @@ use std::sync::Arc;
 use cloudkitty_core::meow::{freshest_audible, MessageKind};
 use cloudkitty_core::seam::drive_tick;
 use cloudkitty_core::{
-    Activity, BehaviorRegistry, Config, ElementType, KittyId, World, WorldSnapshot,
+    Activity, BehaviorRegistry, Config, ElementType, KittyId, Position, World, WorldSnapshot,
 };
 use cloudkitty_rl::config::RlConfig;
 use cloudkitty_rl::reward::team_reward;
@@ -183,6 +183,50 @@ enum OpenEpisode {
     Other,
 }
 
+/// Deliberate-purr probe (owner's question, 2026-08-10): is the message-head
+/// Purr socially conditioned or a fires-whenever-legal reflex? Emission is
+/// judged against DECISION-TIME state — the previous observed tick — per the
+/// house prev-state rule (observe() sees the post-tick world).
+#[derive(Default)]
+struct PurrProbe {
+    /// Post-previous-tick (pos, purr_earned, cooldown ready_at) per kitty.
+    prev: BTreeMap<KittyId, (Position, bool, u64)>,
+    tick_hist: Vec<u64>,
+    pos_hist: Vec<BTreeMap<KittyId, Position>>,
+    purr_hist: Vec<std::collections::BTreeSet<KittyId>>,
+    legal_company: u64,
+    legal_alone: u64,
+    emit_company: u64,
+    emit_alone: u64,
+    /// Emissions our legality reconstruction calls illegal — stays 0 unless
+    /// the reconstruction drifts from engine law.
+    emit_offwindow: u64,
+    emit_by_activity: BTreeMap<String, u64>,
+    emit_while_cosleep: u64,
+}
+
+#[derive(Default)]
+struct PairAgg {
+    n: u64,
+    adj: u64,
+    step: i64,
+    speaker_step: i64,
+    dist: u64,
+}
+
+impl PairAgg {
+    fn report(&self) -> serde_json::Value {
+        serde_json::json!({
+            "n": self.n,
+            "p_adjacent_within_window": self.adj as f64 / self.n.max(1) as f64,
+            "mean_hearer_step_toward_speaker": -(self.step as f64) / self.n.max(1) as f64,
+            "mean_speaker_step_toward_hearer":
+                -(self.speaker_step as f64) / self.n.max(1) as f64,
+            "mean_distance": self.dist as f64 / self.n.max(1) as f64,
+        })
+    }
+}
+
 struct SeedCensus {
     ids: Vec<KittyId>,
     names: BTreeMap<KittyId, String>,
@@ -202,6 +246,8 @@ struct SeedCensus {
     announce_floor: f32,
     meow_window: u64,
     distress_line: f32,
+    purr_threshold: f32,
+    purr: PurrProbe,
 }
 
 impl SeedCensus {
@@ -227,7 +273,95 @@ impl SeedCensus {
             announce_floor: config.meow.announce_threshold - config.meow.announce_hysteresis,
             meow_window: config.meow.recent_window_ticks,
             distress_line: config.thresholds.distress,
+            purr_threshold: config.thresholds.purr,
+            purr: PurrProbe::default(),
         }
+    }
+
+    /// The deliberate-purr verdict data: the emission 2×2 plus the listener
+    /// scan — for every ordered (speaker, hearer) pair and every non-adjacent
+    /// tick, did a fresh audible purr from the speaker precede the hearer
+    /// stepping toward them / the pair meeting within one audibility window?
+    /// Windows overlap tick-to-tick, so n inflates ~window-fold — rates are
+    /// comparable between the exposed and control rows, not absolute counts.
+    fn purr_report(&self) -> serde_json::Value {
+        let p = &self.purr;
+        let window = self.meow_window.max(1);
+        let t = p.tick_hist.len();
+        // Distance-stratified: exposure correlates with pair distance, and
+        // approach-step size scales with it — compare like with like.
+        let bin = |d: i64| -> &'static str {
+            match d {
+                ..=3 => "d2-3",
+                4..=6 => "d4-6",
+                7..=10 => "d7-10",
+                _ => "d11+",
+            }
+        };
+        let mut exposed: BTreeMap<&'static str, PairAgg> = BTreeMap::new();
+        let mut control: BTreeMap<&'static str, PairAgg> = BTreeMap::new();
+        for a in &self.ids {
+            for b in &self.ids {
+                if a == b {
+                    continue;
+                }
+                for i in 0..t.saturating_sub(1) {
+                    let pa = p.pos_hist[i][a];
+                    let pb = p.pos_hist[i][b];
+                    if pa.is_adjacent(&pb) {
+                        continue;
+                    }
+                    let tick_i = p.tick_hist[i];
+                    let heard = (0..=i)
+                        .rev()
+                        .take_while(|&j| p.tick_hist[j] + window > tick_i)
+                        .any(|j| p.purr_hist[j].contains(a));
+                    let mut adj = false;
+                    let mut k = i + 1;
+                    while k < t && p.tick_hist[k] <= tick_i + window {
+                        if p.pos_hist[k][a].is_adjacent(&p.pos_hist[k][b]) {
+                            adj = true;
+                            break;
+                        }
+                        k += 1;
+                    }
+                    let d0 = pb.manhattan_distance(&pa) as i64;
+                    let d1 = p.pos_hist[i + 1][b].manhattan_distance(&pa) as i64;
+                    let sd1 = p.pos_hist[i + 1][a].manhattan_distance(&pb) as i64;
+                    let side = if heard { &mut exposed } else { &mut control };
+                    let agg = side.entry(bin(d0)).or_default();
+                    agg.n += 1;
+                    agg.adj += adj as u64;
+                    agg.step += d1 - d0;
+                    agg.speaker_step += sd1 - d0;
+                    agg.dist += d0 as u64;
+                }
+            }
+        }
+        serde_json::json!({
+            "emission": {
+                "legal_company": p.legal_company,
+                "legal_alone": p.legal_alone,
+                "emit_company": p.emit_company,
+                "emit_alone": p.emit_alone,
+                "emit_offwindow": p.emit_offwindow,
+                "p_emit_given_legal_company":
+                    p.emit_company as f64 / p.legal_company.max(1) as f64,
+                "p_emit_given_legal_alone":
+                    p.emit_alone as f64 / p.legal_alone.max(1) as f64,
+                "by_activity": p.emit_by_activity,
+                "while_cosleep": p.emit_while_cosleep,
+            },
+            "listener": {
+                "window": window,
+                "purr_heard": exposed.iter()
+                    .map(|(k, v)| (k.to_string(), v.report()))
+                    .collect::<BTreeMap<String, serde_json::Value>>(),
+                "control": control.iter()
+                    .map(|(k, v)| (k.to_string(), v.report()))
+                    .collect::<BTreeMap<String, serde_json::Value>>(),
+            },
+        })
     }
 
     fn close_bath_episode(&mut self, emitter: KittyId) {
@@ -418,6 +552,77 @@ impl SeedCensus {
         let horizon = snap.tick.saturating_sub(4 * self.meow_window.max(1));
         self.seen_meows.retain(|&(_, _, t)| t >= horizon);
 
+        // -- Deliberate-purr probe: this tick's emissions judged against the
+        //    decision-time (previous observed tick) legality and company.
+        //    Meows are stamped with the PRE-increment tick, one behind the
+        //    post-tick snapshot's counter.
+        let purred: std::collections::BTreeSet<KittyId> = snap
+            .recent_meows
+            .iter()
+            .filter(|m| m.kind == MessageKind::Purr && m.tick + 1 == snap.tick)
+            .map(|m| m.kitty_id)
+            .collect();
+        if !self.purr.prev.is_empty() {
+            let decision_tick = *self.purr.tick_hist.last().unwrap();
+            for id in &self.ids {
+                let (pos, earned, ready_at) = self.purr.prev[id];
+                let legal = earned && ready_at <= decision_tick;
+                let company = self
+                    .purr
+                    .prev
+                    .iter()
+                    .any(|(o, (op, _, _))| o != id && pos.is_adjacent(op));
+                let spoke = purred.contains(id);
+                if legal {
+                    if company {
+                        self.purr.legal_company += 1;
+                    } else {
+                        self.purr.legal_alone += 1;
+                    }
+                    if spoke {
+                        if company {
+                            self.purr.emit_company += 1;
+                        } else {
+                            self.purr.emit_alone += 1;
+                        }
+                    }
+                } else if spoke {
+                    self.purr.emit_offwindow += 1;
+                }
+                if spoke {
+                    let act = ACTIVITIES[activity_index(&by_id[id].activity)];
+                    *self.purr.emit_by_activity.entry(act.to_string()).or_default() += 1;
+                    if matches!(
+                        by_id[id].activity,
+                        Activity::Sleeping { with_friend: Some(_), .. }
+                    ) {
+                        self.purr.emit_while_cosleep += 1;
+                    }
+                }
+            }
+        }
+        self.purr.tick_hist.push(snap.tick);
+        self.purr
+            .pos_hist
+            .push(by_id.iter().map(|(id, k)| (*id, k.pos)).collect());
+        self.purr.purr_hist.push(purred);
+        self.purr.prev = by_id
+            .iter()
+            .map(|(id, k)| {
+                (
+                    *id,
+                    (
+                        k.pos,
+                        k.happiness > self.purr_threshold || k.happiness_rose,
+                        k.meow_cooldowns
+                            .get(&MessageKind::Purr)
+                            .copied()
+                            .unwrap_or(0),
+                    ),
+                )
+            })
+            .collect();
+
         // -- FR-019 herding (PR #160): open/refresh WantBath episodes.
         for m in &snap.recent_meows {
             if m.kind != MessageKind::WantBath {
@@ -530,6 +735,7 @@ struct SeedRecord {
     mean_team_reward: f64,
     kitties: BTreeMap<String, KittyCensus>,
     herding: HerdingAgg,
+    purr_context: serde_json::Value,
 }
 
 struct Args {
@@ -689,6 +895,7 @@ fn main() {
                 .map(|(id, c)| (census.names[id].clone(), c.clone()))
                 .collect(),
             herding: census.herding.clone(),
+            purr_context: census.purr_report(),
         };
         fs::write(
             args.out.join(format!("seed-{seed}.json")),

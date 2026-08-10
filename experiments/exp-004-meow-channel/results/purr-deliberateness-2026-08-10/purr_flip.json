@@ -1,0 +1,98 @@
+{
+ "kitty_ticks": 120000,
+ "rows": {
+  "audible": 57017,
+  "silent_ctl": 62983
+ },
+ "purr_audible_share": 0.4751416666666667,
+ "act_flip_rate_audible": 0.06322675693214304,
+ "msg_flip_rate_audible": 0.1564796464212428,
+ "act_flip_rate_silent_sanity": 0.0013495705190289444,
+ "msg_flip_rate_silent_sanity": 0.0005080736071638378,
+ "null_wanteat_act_flip_rate": 0.00014030903063998456,
+ "null_wanteat_msg_flip_rate": 0.0004033884630899556,
+ "top_act_flips": [
+  [
+   "MoveS->MoveW",
+   148
+  ],
+  [
+   "MoveN->MoveE",
+   147
+  ],
+  [
+   "GroomKitty0->SleepWithKitty0",
+   134
+  ],
+  [
+   "MoveN->ChaseKitty0",
+   128
+  ],
+  [
+   "PlaySolo->MoveE",
+   101
+  ],
+  [
+   "MoveN->MoveW",
+   101
+  ],
+  [
+   "PlaySolo->MoveW",
+   94
+  ],
+  [
+   "PlaySolo->MoveN",
+   94
+  ],
+  [
+   "MoveE->MoveS",
+   84
+  ],
+  [
+   "MoveW->MoveS",
+   83
+  ],
+  [
+   "PlaySolo->ChaseKitty0",
+   83
+  ],
+  [
+   "MoveS->MoveE",
+   82
+  ]
+ ],
+ "top_msg_flips": [
+  [
+   "Purr->Silent",
+   8772
+  ],
+  [
+   "Silent->Purr",
+   124
+  ],
+  [
+   "FollowMe->Purr",
+   7
+  ],
+  [
+   "FollowMe->Silent",
+   6
+  ],
+  [
+   "WantCuddle->Silent",
+   6
+  ],
+  [
+   "Purr->WantCuddle",
+   4
+  ],
+  [
+   "Silent->WantCuddle",
+   2
+  ],
+  [
+   "WantEat->Silent",
+   1
+  ]
+ ]
+}
