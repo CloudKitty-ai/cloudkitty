@@ -885,7 +885,9 @@ function paintPortrait(canvas, kittyId, motion, idle) {
     // The beat length, for the play-pounce. Off the served tick entirely --
     // which is the point: at 800ms the load is 192ms and the butt wiggle
     // quantises to a single rock, and here it has room to be a wiggle.
-    layout: idle?.beatMs ? { beatMs: idle.beatMs, wiggleHz: idle.wiggleHz } : undefined,
+    layout: idle?.beatMs
+      ? { beatMs: idle.beatMs, wiggleHz: idle.wiggleHz, sway: idle.sway }
+      : undefined,
   };
   // `sit` arrives as a pose with no ramp of its own -- 27px of movement at
   // portrait size -- so without a blend it would pop in and out on the card.
@@ -966,6 +968,7 @@ function idlePortraitFor(view, id) {
     phase: chosen?.phase,
     beatMs: chosen?.beatMs,
     wiggleHz: chosen?.wiggleHz,
+    sway: chosen?.sway,
     tween,
   };
 }

@@ -259,14 +259,14 @@
   // and VIEW is frozen, so the lab holds its own and the readout emits a
   // paste; `wiggleAmp` and `wiggleRot` are POUNCE and dial in place -- which
   // means they move the MAP's pounce too, and the card says so.
-  const PLAY = { beatMs: 3200, wiggleHz: 3.4 };
+  const PLAY = { beatMs: 1600, wiggleHz: 3.9, sway: 0.06 };
   const PLAY_BAG = {};
-  for (const k of ['beatMs', 'wiggleHz']) {
+  for (const k of ['beatMs', 'wiggleHz', 'sway']) {
     Object.defineProperty(PLAY_BAG, k, {
       get: () => PLAY[k], set: (v) => { PLAY[k] = v; }, enumerable: true,
     });
   }
-  for (const k of ['wiggleAmp', 'wiggleRot', 'wiggleSway']) {
+  for (const k of ['wiggleAmp', 'wiggleRot']) {
     Object.defineProperty(PLAY_BAG, k, {
       get: () => CatV2.POUNCE[k], set: (v) => { CatV2.POUNCE[k] = v; }, enumerable: true,
     });
@@ -812,7 +812,7 @@
         { key: 'wiggleHz', label: 'rock rate, in Hz — steps, because it quantises', min: 0.5, max: 8, step: 0.1 },
         { key: 'wiggleAmp', label: 'rock depth ⚠ SHARED with the map\'s pounce', min: 0, max: 0.05, step: 0.002 },
         { key: 'wiggleRot', label: 'and its lean ⚠ SHARED with the map\'s pounce', min: 0, max: 0.15, step: 0.005 },
-        { key: 'wiggleSway', label: 'side-to-side tread ⚠ SHARED with the map\'s pounce', min: 0, max: 0.16, step: 0.005 },
+        { key: 'sway', label: 'side-to-side tread (the portrait\'s own; the map has its own)', min: 0, max: 0.16, step: 0.005 },
       ],
       readout() {
         const P = CatV2.POUNCE;
@@ -821,7 +821,7 @@
         const eff = cycles / holdSec;
         // Sampled off the pose, not read off the dial: the rock rides an
         // envelope, so wiggleAmp overstates the travel by about a quarter.
-        const beat = { beatMs: PLAY.beatMs, wiggleHz: PLAY.wiggleHz };
+        const beat = { beatMs: PLAY.beatMs, wiggleHz: PLAY.wiggleHz, sway: PLAY.sway };
         const rest = CatV2.catLayout('pouncing', 0, beat).body.cy;
         let swing = 0;
         for (let i = 0; i <= 80; i++) {
@@ -832,7 +832,8 @@
         return (
           `VIEW.playBeatMs = ${PLAY.beatMs}   VIEW.playWiggleHz = ${PLAY.wiggleHz}\n`
           + `POUNCE.wiggleAmp = ${P.wiggleAmp}   POUNCE.wiggleRot = ${P.wiggleRot}   `
-          + `POUNCE.wiggleSway = ${P.wiggleSway}   ⚠ these three are the map's too\n`
+          + `⚠ those two are the map's too\n`
+          + `VIEW.playSway = ${PLAY.sway}   (the map's own is POUNCE.wiggleSway = ${P.wiggleSway})\n`
           + `load ${ms(P.hold)}ms → launch ${ms(P.launch)}ms → land ${ms(P.land)}ms `
           + `→ recover ${ms(1 - P.hold - P.launch - P.land)}ms\n`
           + `the wiggle landed on ${cycles} cycles = ${cycles * 2} rocks at ${eff.toFixed(2)}Hz`
@@ -843,7 +844,7 @@
       },
       draw(ctx, w, h, now) {
         const cat = CatV2.appearanceFor(2);
-        const beat = { beatMs: PLAY.beatMs, wiggleHz: PLAY.wiggleHz };
+        const beat = { beatMs: PLAY.beatMs, wiggleHz: PLAY.wiggleHz, sway: PLAY.sway };
         // The filmstrip, at the size it actually ships.
         const N = 11;
         const S = 47;

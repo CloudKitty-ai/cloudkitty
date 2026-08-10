@@ -243,6 +243,11 @@ const VIEW = Object.freeze({
   // 192ms load; the same value in a 768ms load is a wallow, so the portrait
   // picks its own rather than dragging the map's with it.
   playWiggleHz: 3.9,
+  // The portrait's tread depth. Owner-dialled 0.06 on the portrait card,
+  // where it travels 1.61px; the map keeps its own because the same 0.06
+  // is 0.62px at a 31px tile -- the band the body bob was reverted in for
+  // reading as shimmer rather than life.
+  playSway: 0.06,
   playBeatMs: 1600,
   playPeriodMs: 31000,
   playChance: 0.34,
@@ -1001,6 +1006,7 @@ class Presentation {
       phase: into / VIEW.playBeatMs,
       beatMs: VIEW.playBeatMs,
       wiggleHz: VIEW.playWiggleHz,
+      sway: VIEW.playSway,
     };
   }
 

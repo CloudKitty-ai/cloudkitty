@@ -1524,7 +1524,10 @@ function catLayout(pose, phase, opts = {}) {
       const sway = pounceWiggleSway(phase, opts.wiggleHz
         ? { ...POUNCE, wiggleHz: opts.wiggleHz } : POUNCE, opts.beatMs);
       // Keep the chest (cx + rx) fixed and take the width off the back.
-      const swayK = POUNCE.wiggleSway * sway;
+      // `opts.sway` is the same escape hatch as `opts.wiggleHz`: the depth
+      // of the tread that reads at a 47px portrait is a whisper at a 31px
+      // map cat, so the two pick their own rather than sharing one.
+      const swayK = (opts.sway ?? POUNCE.wiggleSway) * sway;
       const crouch = {
         ...L,
         body: {

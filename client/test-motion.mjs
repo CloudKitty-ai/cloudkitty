@@ -1853,7 +1853,11 @@ check('the portrait beat is long enough for the wiggle to be a wiggle', () => {
   assert(cycles >= 1, `the portrait load holds ${cycles} cycles -- one rock, not a wiggle`);
   // And the rock has to clear the size things read at here: the whiskers
   // died at ~0.8px and the body bob was reverted at 0.56px.
-  const beat = { beatMs: api.VIEW.playBeatMs, wiggleHz: api.VIEW.playWiggleHz };
+  const beat = {
+    beatMs: api.VIEW.playBeatMs,
+    wiggleHz: api.VIEW.playWiggleHz,
+    sway: api.VIEW.playSway,
+  };
   const rest = CatV2.catLayout('pouncing', 0, beat).body.cy;
   let swing = 0;
   for (let i = 0; i <= 100; i++) {
@@ -1916,7 +1920,10 @@ check('the tread moves the BUTT, and only the butt', () => {
     frontX: L.body.cx + Math.cos(L.body.rot) * L.body.rx,
     frontY: L.body.cy + Math.sin(L.body.rot) * L.body.rx,
   });
-  for (const [beat, px] of [[{ beatMs: 800 }, 31], [{ beatMs: 1600, wiggleHz: 3.9 }, 47]]) {
+  for (const [beat, px] of [
+    [{ beatMs: 800 }, 31],
+    [{ beatMs: api.VIEW.playBeatMs, wiggleHz: api.VIEW.playWiggleHz, sway: api.VIEW.playSway }, 47],
+  ]) {
     const rest = ends(CatV2.catLayout('pouncing', 0, beat));
     let rear = 0;
     let front = 0;
@@ -1938,7 +1945,10 @@ check('the tread moves the BUTT, and only the butt', () => {
   // the launch takes the swing into the air with it. A PIXEL claim, not an
   // equality: sampling either side of the boundary always differs a little,
   // and "invisible" is measured in pixels.
-  for (const beat of [{ beatMs: 800 }, { beatMs: 1600, wiggleHz: 3.9 }]) {
+  for (const beat of [
+    { beatMs: 800 },
+    { beatMs: api.VIEW.playBeatMs, wiggleHz: api.VIEW.playWiggleHz, sway: api.VIEW.playSway },
+  ]) {
     const at = (ph) => CatV2.catLayout('pouncing', ph, beat);
     const before = at(P.hold - 1e-4);
     const after2 = at(P.hold + 1e-4);
