@@ -21,7 +21,7 @@ const renderSrc = readFileSync(join(here, 'render.js'), 'utf8');
 const api = eval(
   animSrc +
     ';({ VIEW, Presentation, easeSmooth, slowBlinkLid, idleHash, idlePeriodFor,' +
-    ' idlePickFor, idleOffsetFor, anim })',
+    ' idlePickFor, idleOffsetFor, IDLE_SALTS, anim })',
 );
 
 /**
@@ -1306,9 +1306,9 @@ check('the shipped pounce timing is the one the owner dialled', () => {
   // the beat now returns to the crouch, so `launch` no longer means "and the
   // rest is held at full reach" -- the remainder is land + recover.
   const P = CatV2.POUNCE;
-  close(P.hold, 0.24, 'hold drifted');
-  close(P.launch, 0.45, 'launch drifted');
-  close(P.land, 0.16, 'land drifted');
+  close(P.hold, 0.3, 'hold drifted');
+  close(P.launch, 0.42, 'launch drifted');
+  close(P.land, 0.18, 'land drifted');
   close(P.snap, 4, 'snap drifted');
   close(P.twitch, 0, 'twitch drifted');
   assert(P.hold + P.launch + P.land <= 1, 'the beat must finish inside the tick');
@@ -1317,7 +1317,7 @@ check('the shipped pounce timing is the one the owner dialled', () => {
   // where "2.5 rocks per load" became 14Hz once the load was 176ms.
   assert(P.wiggleHz > 0 && P.wiggleHz < 6, `wiggleHz ${P.wiggleHz} is outside the readable range`);
   close(P.wiggleHz, 1, 'wiggleHz drifted');
-  close(P.wiggleAmp, 0.022, 'wiggleAmp drifted');
+  close(P.wiggleAmp, 0.002, 'wiggleAmp drifted');
 });
 
 check('the pounce still reaches its crouch and its leap', () => {
@@ -1612,19 +1612,43 @@ check('every block the lab dials is actually writable', () => {
 });
 
 
-check('the pounce readout names every dial it could delete', () => {
-  // A paste came back as the four old keys because the card's readout still
-  // emitted four -- so `land` and the three wiggle dials would have been
-  // silently dropped on the next bake. A readout that does not name a field
-  // is proposing to delete it.
+check('every lab card names, in its readout, every dial it offers', () => {
+  // A readout that does not name a field is quietly proposing to delete it:
+  // the owner pastes back what the card printed, and the missing key reverts
+  // on the next bake. That happened twice -- `land` off the Pounce card and
+  // `wiggleSway` off the Portrait pounce card -- so this checks EVERY card
+  // rather than the two that have already been caught.
   const html = readFileSync(join(here, 'gallery-v2.html'), 'utf8');
-  const card = html.slice(html.indexOf("title: 'Pounce'"), html.indexOf("title: 'Arrive & settle'"));
-  for (const key of Object.keys(CatV2.POUNCE)) {
-    assert(card.includes(`${key}: \${P.${key}}`), `the Pounce readout never names ${key}`);
+  const cards = html.split(/\n      title: '/).slice(1);
+  let checked = 0;
+  for (const card of cards) {
+    const title = card.slice(0, card.indexOf("'"));
+    // A dial whose label says "lab only" is a preview control -- how often
+    // the lab replays a beat, say -- not a value that ever gets pasted back.
+    // The convention already existed in the file; this just honours it.
+    const dials = [...card.matchAll(/\{ key: '(\w+)'[^}]*\}/g)]
+      .filter((m) => !/lab only/i.test(m[0]))
+      .map((m) => [m[1], m[0]]);
+    if (!dials.length) continue;
+    // Matched on the VALUE reference (`${SOMETHING.key}`) rather than the
+    // label, because a card may legitimately print a dial under another
+    // name -- `VIEW.playBeatMs = ${PLAY.beatMs}`.
+    for (const [key, decl] of dials) {
+      // A dial may be an ALIAS -- `stand` writes PROPORTION.lift, because
+      // the bag already has a `lift` from GAIT -- in which case the readout
+      // names the field it writes, not the dial. Declared in the label so
+      // the file says which, rather than this guessing.
+      const alias = /writes \w+\.(\w+)/.exec(decl);
+      const wants = alias ? alias[1] : key;
+      assert(
+        card.includes(`.${wants}}`),
+        `the '${title}' card dials ${key} but never emits ${wants} in its readout`,
+      );
+    }
+    checked++;
   }
+  assert(checked >= 6, `only ${checked} dialled cards found -- the parser is probably broken`);
 });
-
-
 check('neither focused lid may eat the pupil (invariant 3)', () => {
   // The handoff's third invariant, and the one whose failure is invisible
   // from the dials: a brow deep enough to read as concentration crops the
@@ -1691,6 +1715,282 @@ check('the lid clamp actually bites — a deeper brow changes nothing', () => {
 });
 
 
+check('every portrait pose fits inside the card chip', () => {
+  // The chip was measured against the resting poses, and the idle vocabulary
+  // has since grown two that are bigger than any of them: `stretch` is the
+  // widest thing drawn anywhere and overran the old 54px chip by 2.2px, and
+  // an idle->sit blend at full overshoot reached 6.6px off the left edge.
+  // Nothing catches a portrait clipping except looking at it, so:
+  const app = readFileSync(join(here, 'app.js'), 'utf8');
+  const num = (name) => {
+    const m = app.match(new RegExp(`const ${name} = ([\\d.]+);`));
+    assert(m, `app.js still declares ${name}`);
+    return Number(m[1]);
+  };
+  const W = num('PORTRAIT_W');
+  const H = num('PORTRAIT_H');
+  const SIZE = num('PORTRAIT_CAT');
+  const X = num('PORTRAIT_X');
+  const Y = num('PORTRAIT_Y');
+
+  const extentOf = (draw) => {
+    const pts = [];
+    let lw = 0;
+    const ctx = new Proxy({}, {
+      get: (t, prop) => {
+        if (prop === 'canvas') return { width: W, height: H };
+        return (...a) => {
+          if (prop === 'ellipse') pts.push([a[0] - a[2], a[1] - a[3]], [a[0] + a[2], a[1] + a[3]]);
+          else if (prop === 'arc') pts.push([a[0] - a[2], a[1] - a[2]], [a[0] + a[2], a[1] + a[2]]);
+          else if (prop === 'moveTo' || prop === 'lineTo') pts.push([a[0], a[1]]);
+          else if (prop === 'quadraticCurveTo') pts.push([a[0], a[1]], [a[2], a[3]]);
+          else if (prop === 'bezierCurveTo') pts.push([a[0], a[1]], [a[2], a[3]], [a[4], a[5]]);
+        };
+      },
+      set: (t, prop, v) => {
+        if (prop === 'lineWidth' && typeof v === 'number') lw = Math.max(lw, v);
+        return true;
+      },
+    });
+    draw(ctx);
+    const xs = pts.filter((q) => Number.isFinite(q[0])).map((q) => q[0]);
+    const ys = pts.filter((q) => Number.isFinite(q[1])).map((q) => q[1]);
+    const pad = lw / 2;
+    return [
+      X + (Math.min(...xs) - pad) * SIZE, X + (Math.max(...xs) + pad) * SIZE,
+      Y + (Math.min(...ys) - pad) * SIZE, Y + (Math.max(...ys) + pad) * SIZE,
+    ];
+  };
+  const base = { appearance: CatV2.appearanceFor(2), facing: 'right', size: SIZE, x: X, y: Y };
+  const fits = (label, [x0, x1, y0, y1]) => {
+    assert(x0 >= 0, `${label}: ${(-x0).toFixed(1)}px off the LEFT of the chip`);
+    assert(x1 <= W, `${label}: ${(x1 - W).toFixed(1)}px off the RIGHT of the chip`);
+    assert(y0 >= 0, `${label}: ${(-y0).toFixed(1)}px off the TOP of the chip`);
+    assert(y1 <= H, `${label}: ${(y1 - H).toFixed(1)}px off the BOTTOM of the chip`);
+  };
+  // The poses a portrait can hold. `idlePoseFor` only ever answers sit or
+  // stretch, and the resting pose is always idle.
+  for (const pose of ['idle', 'sit', 'stretch', 'pouncing']) {
+    for (let i = 0; i <= 8; i++) {
+      fits(pose, extentOf((ctx) => CatV2.drawCat(ctx, { ...base, pose, phase: i / 8 })));
+    }
+  }
+  // And the blends into them. The portrait clamps t to [0,1] where the meadow
+  // lets `easeBack` lean past both ends -- so the clamp has to be asserted
+  // DIRECTLY. Sampling [0,1] here cannot detect its removal, because the
+  // range is this test's own choice, not the code's: measured, an unclamped
+  // idle->sit overshoot reaches 6.6px off the left of the chip and 6.5px off
+  // the bottom.
+  assert(
+    /t: Math\.min\(1, Math\.max\(0, tween\.blend\.t\)\)/.test(app),
+    'the portrait blend is no longer clamped -- the overshoot will leave the chip',
+  );
+  // The wiring itself. Geometry checks pass perfectly well on a portrait that
+  // has quietly gone back to a hardcoded 'idle', so the feature needs saying
+  // out loud.
+  assert(/view\.idlePoseFor\(id, 'idle'\)/.test(app), 'the portrait no longer asks for an idle pose');
+  assert(/idle\?\.pose \?\? 'idle'/.test(app), 'the portrait no longer USES the idle pose it asked for');
+  // And the key namespace, which is the part that breaks something else when
+  // it goes: the presentation layer's pose memory is per-key, so a portrait
+  // sharing the meadow cat's key restarts its blend every frame. Same hazard
+  // rigFor documents, on a different map.
+  assert(
+    /tweenFor\(`card\$\{id\}`/.test(app),
+    "the portrait tween must be keyed 'card' + id, never the bare id",
+  );
+  for (const to of ['sit', 'stretch', 'pouncing']) {
+    for (let i = 0; i <= 16; i++) {
+      const t = i / 16;
+      fits(`idle->${to} @t=${t.toFixed(2)}`, extentOf((ctx) =>
+        CatV2.drawCatTween(ctx, { ...base, from: 'idle', to, t, phaseFrom: 0.3, phaseTo: 0.3 })));
+    }
+  }
+});
+
+
+check('the portrait pose beats are portrait-only and pure', () => {
+  const p = new api.Presentation();
+  // The meadow must never get one: a pounce on the map is a served fact,
+  // and inventing one would be the client asserting something the world did
+  // not say. The guard is that it only ever answers for 'idle'.
+  //
+  // Tested at a moment the beat is actually LIVE. Asserting null at an
+  // arbitrary time proves nothing: most times answer null for every pose
+  // because the beat is not running, so the guard can be deleted and the
+  // check still passes. (It did.)
+  let live = null;
+  for (let t = 0; t < 200000 && live === null; t += 100) {
+    if (p.idleCardBeatFor(1, 'idle', t)) live = t;
+  }
+  assert(live !== null, 'never found a moment the play-pounce was running');
+  for (const pose of ['walking', 'pouncing', 'eating', 'loaf', 'sleep-curl', 'swim']) {
+    assert(p.idleCardBeatFor(1, pose, live) === null, `it answered for ${pose} at a live moment`);
+  }
+  // Pure in (id, now), like every other idle decision -- a still frame and a
+  // test both have to be able to ask what a cat is doing at time T.
+  for (const t of [0, 1234, 55555, 999999]) {
+    assert(
+      JSON.stringify(p.idleCardBeatFor(2, 'idle', t)) === JSON.stringify(p.idleCardBeatFor(2, 'idle', t)),
+      `not pure at ${t}`,
+    );
+  }
+  // Four portraits must not move in UNISON. Not "never at the same time":
+  // each cat is busy ~12% of the time now that the sit chain is 5.8s, so
+  // independent draws coincide ~8% of the time by arithmetic, and asserting
+  // zero would just be asserting the beats are rare. What must hold is that
+  // the cats are not on the same clock -- so it is the phase offsets that
+  // get checked.
+  const period = api.VIEW.cardBeatPeriodMs;
+  const offsets = [1, 2, 3, 4].map((id) => api.idleHash(id, 0, api.IDLE_SALTS.offset) * period);
+  let closest = Infinity;
+  for (let i = 0; i < offsets.length; i++) {
+    for (let j = i + 1; j < offsets.length; j++) {
+      const d = Math.abs(offsets[i] - offsets[j]);
+      closest = Math.min(closest, Math.min(d, period - d));
+    }
+  }
+  assert(
+    closest > period * 0.04,
+    `two portraits sit only ${(closest / 1000).toFixed(2)}s apart -- they will read as one clock`,
+  );
+});
+
+check('the portrait beat is long enough for the wiggle to be a wiggle', () => {
+  // The whole reason this beat is off the served tick. `pounceWiggle`
+  // quantises to half-cycles so its sine lands on zero at the launch, and
+  // half a cycle is ONE rock -- a lean, not a wiggle. The step is sharp: at
+  // the shipped wiggleHz a 3000ms beat gives one rock and 3200 gives two, so
+  // a re-dial can cross it without looking obviously different in a still.
+  const P = CatV2.POUNCE;
+  const holdSec = (P.hold * api.VIEW.playBeatMs) / 1000;
+  // VIEW.playWiggleHz, NOT POUNCE.wiggleHz: the portrait picks its own rate,
+  // because the map's is tuned against a 192ms load and the same value in a
+  // 768ms load is a wallow. Computing this from the map's rate would pass
+  // while testing a number the portrait never uses.
+  const cycles = Math.max(0.5, Math.round(api.VIEW.playWiggleHz * holdSec * 2) / 2);
+  assert(cycles >= 1, `the portrait load holds ${cycles} cycles -- one rock, not a wiggle`);
+  // And the rock has to clear the size things read at here: the whiskers
+  // died at ~0.8px and the body bob was reverted at 0.56px.
+  const beat = {
+    beatMs: api.VIEW.playBeatMs,
+    wiggleHz: api.VIEW.playWiggleHz,
+    sway: api.VIEW.playSway,
+  };
+  const rest = CatV2.catLayout('pouncing', 0, beat).body.cy;
+  let swing = 0;
+  for (let i = 0; i <= 100; i++) {
+    const L = CatV2.catLayout('pouncing', (P.hold * i) / 100, beat);
+    swing = Math.max(swing, Math.abs(L.body.cy - rest));
+  }
+  // Total travel of the hindquarters, since which axis carries the tread is
+  // a dial -- see 'the tread moves the BUTT'.
+  const rearOf = (L) => [
+    L.body.cx - Math.cos(L.body.rot) * L.body.rx,
+    L.body.cy - Math.sin(L.body.rot) * L.body.rx,
+  ];
+  const [rx0, ry0] = rearOf(CatV2.catLayout('pouncing', 0, beat));
+  let travel = 0;
+  for (let i = 0; i <= 100; i++) {
+    const [rx, ry] = rearOf(CatV2.catLayout('pouncing', (P.hold * i) / 100, beat));
+    travel = Math.max(travel, Math.hypot(rx - rx0, ry - ry0));
+  }
+  const px = travel * 47; // PORTRAIT_CAT
+  assert(px > 0.8, `the tread travels ${px.toFixed(2)}px at portrait size -- under the floor`);
+});
+
+
+check('a caller may pick its own wiggle rate without moving the map\'s', () => {
+  // The portrait needs a faster rock than the map, and must not get it by
+  // reaching into POUNCE -- that would change the world's pounce as a side
+  // effect of a card dial.
+  const beat = 3200;
+  // Swept, and over the whole body -- not one field at one phase. Two rates
+  // cross at particular moments (1Hz and 3.4Hz give an identical `cy` at
+  // phase 0.1 while `cx` differs by 0.03), so a single sample can report the
+  // override as dead when it is working perfectly.
+  const differs = (a, b) => a.body.cx !== b.body.cx || a.body.cy !== b.body.cy
+    || a.body.rx !== b.body.rx || a.body.rot !== b.body.rot;
+  let moved = 0;
+  for (let i = 0; i <= 40; i++) {
+    const ph = (CatV2.POUNCE.hold * i) / 40;
+    if (differs(
+      CatV2.catLayout('pouncing', ph, { beatMs: beat, wiggleHz: 1 }),
+      CatV2.catLayout('pouncing', ph, { beatMs: beat, wiggleHz: 3.4 }),
+    )) moved++;
+  }
+  assert(moved > 20, `the wiggleHz override reached the drawing at only ${moved}/41 phases`);
+  // Absent, the map's own dial is what applies -- unchanged either way.
+  const before = CatV2.POUNCE.wiggleHz;
+  CatV2.catLayout('pouncing', 0.1, { beatMs: beat, wiggleHz: 7 });
+  assert(CatV2.POUNCE.wiggleHz === before, 'an override mutated the shared dial');
+  const plain = CatV2.catLayout('pouncing', 0.1, { beatMs: beat });
+  const asMap = CatV2.catLayout('pouncing', 0.1, { beatMs: beat, wiggleHz: before });
+  close(plain.body.cy, asMap.body.cy, 'no override should mean the map\'s rate');
+});
+
+
+check('the tread moves the BUTT, and only the butt', () => {
+  // It shipped moving the chest instead, 27:1 the wrong way, on a pose whose
+  // own comment says it "treads its hind feet and rocks its hindquarters".
+  // The rock is a cy shift PLUS a rotation about the body's centre, so the
+  // two add at one end of the ellipse and cancel at the other -- and with
+  // the signs agreeing they added at the front.
+  //
+  // Measured as TOTAL travel, not per axis. WHICH axis carries the tread is
+  // a dial: the owner moved it from a vertical bob to a lateral rock
+  // (wiggleAmp 0.022 -> 0.002, the sway doing the work instead), and a
+  // per-axis assertion only encodes whichever choice was current when it was
+  // written. What has to hold either way is that the REAR moves, visibly,
+  // and the chest does not.
+  const P = CatV2.POUNCE;
+  // The base cat faces right, so the hindquarters sit at cx - rx.
+  const ends = (L) => ({
+    rearX: L.body.cx - Math.cos(L.body.rot) * L.body.rx,
+    rearY: L.body.cy - Math.sin(L.body.rot) * L.body.rx,
+    frontX: L.body.cx + Math.cos(L.body.rot) * L.body.rx,
+    frontY: L.body.cy + Math.sin(L.body.rot) * L.body.rx,
+  });
+  for (const [beat, px] of [
+    [{ beatMs: 800 }, 31],
+    [{ beatMs: api.VIEW.playBeatMs, wiggleHz: api.VIEW.playWiggleHz, sway: api.VIEW.playSway }, 47],
+  ]) {
+    const rest = ends(CatV2.catLayout('pouncing', 0, beat));
+    let rear = 0;
+    let front = 0;
+    for (let i = 0; i <= 300; i++) {
+      const e = ends(CatV2.catLayout('pouncing', (P.hold * i) / 300, beat));
+      rear = Math.max(rear, Math.hypot(e.rearX - rest.rearX, e.rearY - rest.rearY));
+      front = Math.max(front, Math.hypot(e.frontX - rest.frontX, e.frontY - rest.frontY));
+    }
+    // Visible at the size it is drawn at: the whiskers died at ~0.8px and the
+    // body bob was reverted at 0.56px peak-to-peak.
+    assert(rear * px > 0.8, `beat ${beat.beatMs}: the tread is ${(rear * px).toFixed(2)}px at ${px}px`);
+    // The planted front is the other half of the read.
+    assert(rear > front * 4, `beat ${beat.beatMs}: the chest moved ${(front / rear).toFixed(2)}x the butt`);
+    assert(front * px < 0.4, `beat ${beat.beatMs}: the chest travels ${(front * px).toFixed(2)}px`);
+  }
+
+  // And the tread has to be back at rest when the cat leaves the ground --
+  // the same reason the rock quantises to half-cycles. A body still swung at
+  // the launch takes the swing into the air with it. A PIXEL claim, not an
+  // equality: sampling either side of the boundary always differs a little,
+  // and "invisible" is measured in pixels.
+  for (const beat of [
+    { beatMs: 800 },
+    { beatMs: api.VIEW.playBeatMs, wiggleHz: api.VIEW.playWiggleHz, sway: api.VIEW.playSway },
+  ]) {
+    const at = (ph) => CatV2.catLayout('pouncing', ph, beat);
+    const before = at(P.hold - 1e-4);
+    const after2 = at(P.hold + 1e-4);
+    const jump = Math.max(
+      Math.abs(before.body.cx - after2.body.cx),
+      Math.abs(before.body.rx - after2.body.rx),
+      Math.abs(before.body.cy - after2.body.cy),
+    ) * 47;
+    assert(jump < 0.02, `beat ${beat.beatMs}: the tread pops ${jump.toFixed(3)}px at the launch`);
+  }
+});
+
 check("the hunter's face reaches the cats that hunt", () => {
   // It shipped UNREACHABLE. `pursuit.target` is a TargetRef object
   // ({target: 'kitty', id: 2}) and `last_action.target` is a plain string
@@ -1724,6 +2024,129 @@ check("the hunter's face reaches the cats that hunt", () => {
     p.expressionFor({ pursuit: { target: undefined }, last_action: { action: 'chase', target: 'element', id: 4 } }) === 'focused',
     'the last_action string fallback does not resolve',
   );
+});
+
+
+check('the portrait sit gets up through a stretch', () => {
+  // The chain, and the reason sit can be scheduled at all: sit-then-stretch
+  // is a BOUNDED BEAT, where the map's sit is a posture that runs 26-130s
+  // and has to coexist with blinks. It is also what a cat actually does
+  // standing up.
+  //
+  // Walked as a continuous timeline rather than per slot: the per-cat phase
+  // offset means slot boundaries do not line up with `slot * period`, and
+  // assuming they did made this read the chain as running off the end.
+  const p = new api.Presentation();
+  p.tickMs = 800;
+  const stretchMs = api.VIEW.stretchTicks * 800;
+  const STEP = 50;
+  const seq = [];
+  for (let t = 0; t < 900000; t += STEP) {
+    const r = p.idleCardBeatFor(1, 'idle', t);
+    seq.push(r ? r.pose : null);
+  }
+  // Every run of 'sit' must be followed immediately by a run of 'stretch'.
+  let chains = 0;
+  for (let i = 1; i < seq.length; i++) {
+    if (seq[i - 1] === 'sit' && seq[i] !== 'sit') {
+      assert(seq[i] === 'stretch', `a sit was followed by ${seq[i]}, not a stretch`);
+      chains++;
+      // ...and the stretch by nothing, never straight back to a sit.
+      let j = i;
+      while (seq[j] === 'stretch') j++;
+      assert(seq[j] === null, `the stretch was followed by ${seq[j]}`);
+    }
+  }
+  assert(chains > 5, `only ${chains} sit chains in 900s -- too few to trust`);
+
+  // Durations are the dials, within one sample.
+  const runLen = (want) => {
+    let best = 0;
+    let run = 0;
+    for (const v of seq) {
+      if (v === want) run++;
+      else { best = Math.max(best, run); run = 0; }
+    }
+    return Math.max(best, run) * STEP;
+  };
+  const sitRun = runLen('sit');
+  const stretchRun = runLen('stretch');
+  assert(Math.abs(sitRun - api.VIEW.sitHoldMs) <= STEP, `the sit held ${sitRun}ms, want ${api.VIEW.sitHoldMs}`);
+  assert(Math.abs(stretchRun - stretchMs) <= STEP, `the stretch ran ${stretchRun}ms, want ${stretchMs}`);
+
+  // The stretch carries a phase that sweeps, so it eases rather than holding.
+  const phases = [];
+  for (let t = 0; t < 900000 && phases.length < 400; t += STEP) {
+    const r = p.idleCardBeatFor(1, 'idle', t);
+    if (r?.pose === 'stretch') phases.push(r.phase);
+  }
+  assert(Math.min(...phases) < 0.2 && Math.max(...phases) > 0.8, 'the stretch phase does not sweep');
+});
+
+check('the card beat weights are a share of 100, like the motion table', () => {
+  // The handoff added scan and yawn ON TOP of the rarity budget by
+  // declaring a weight twice; the budget only means something if it sums.
+  const w = ['cardBlinkWeight', 'cardEarsWeight', 'cardScanWeight', 'cardYawnWeight',
+    'cardSitWeight', 'cardPounceWeight', 'cardRestWeight'].map((k) => api.VIEW[k]);
+  const total = w.reduce((a, b) => a + b, 0);
+  assert(total === 100, `the card beat weights total ${total}, not 100`);
+});
+
+
+check('a portrait does exactly one thing at a time', () => {
+  // The point of the whole rework. Two clocks -- motion slots plus a pose
+  // clock -- put sixteen pose x motion pairs on screen that nobody chose,
+  // including a cat yawning mid-pounce and blinking while gathering itself
+  // to leap. One table, one beat, and the next beat AFTER it.
+  const p = new api.Presentation();
+  p.tickMs = 800;
+  const channels = ['blinkLid', 'earTwitch', 'gaze', 'yawn'];
+  let beats = 0;
+  for (let t = 0; t < 900000; t += 50) {
+    const r = p.idleCardBeatFor(1, 'idle', t);
+    if (!r) continue;
+    beats++;
+    const live = channels.filter((c) => r[c] !== undefined && r[c] !== 0);
+    const posed = r.pose !== 'idle';
+    assert(live.length <= 1, `${live.join(' + ')} played together`);
+    assert(
+      !(posed && live.length),
+      `a ${r.pose} played with a ${live[0]} -- poses and motions must sequence, not layer`,
+    );
+  }
+  assert(beats > 1000, 'not enough beats sampled to trust this');
+});
+
+check('every portrait beat fits inside its slot', () => {
+  // One-at-a-time only holds if a beat cannot run past its slot into the
+  // next one. The sit chain is the long pole at 5.8s.
+  const V = api.VIEW;
+  const lengths = {
+    blink: V.slowBlinkDownMs + V.slowBlinkHoldMs + V.slowBlinkUpMs,
+    ears: V.idleMotionWindowMs,
+    scan: V.scanMs,
+    yawn: V.yawnOpenMs + V.yawnHoldMs + V.yawnCloseMs,
+    sit: V.sitHoldMs + V.stretchTicks * 800,
+    pounce: V.playBeatMs,
+  };
+  for (const [kind, ms] of Object.entries(lengths)) {
+    assert(ms <= V.cardBeatPeriodMs, `the ${kind} beat is ${ms}ms in a ${V.cardBeatPeriodMs}ms slot`);
+  }
+  // And observed: no two consecutive beats ever touch without a gap.
+  const p = new api.Presentation();
+  p.tickMs = 800;
+  let prev = null;
+  let runs = 0;
+  for (let t = 0; t < 600000; t += 50) {
+    const r = p.idleCardBeatFor(1, 'idle', t);
+    const kind = r ? (r.pose !== 'idle' ? r.pose : 'motion') : null;
+    if (kind && prev && kind !== prev && !(prev === 'sit' && kind === 'stretch')) {
+      assert(false, `a ${prev} ran straight into a ${kind} with no gap`);
+    }
+    if (kind !== prev) runs++;
+    prev = kind;
+  }
+  assert(runs > 20, 'not enough transitions sampled');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

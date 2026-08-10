@@ -255,6 +255,32 @@
   // The hunting face. The variant object is frozen, so the bag writes into a
   // thawed copy and swaps it in -- otherwise every dial would silently no-op,
   // which is exactly the failure mode the handoff warns about for the clamp.
+  // The card portrait's play-pounce. `beatMs` and `wiggleHz` are VIEW values
+  // and VIEW is frozen, so the lab holds its own and the readout emits a
+  // paste; `wiggleAmp` and `wiggleRot` are POUNCE and dial in place -- which
+  // means they move the MAP's pounce too, and the card says so.
+  const PLAY = { beatMs: 1600, wiggleHz: 3.9, sway: 0.06 };
+  const PLAY_BAG = {};
+  for (const k of ['beatMs', 'wiggleHz', 'sway']) {
+    Object.defineProperty(PLAY_BAG, k, {
+      get: () => PLAY[k], set: (v) => { PLAY[k] = v; }, enumerable: true,
+    });
+  }
+  for (const k of ['wiggleAmp', 'wiggleRot']) {
+    Object.defineProperty(PLAY_BAG, k, {
+      get: () => CatV2.POUNCE[k], set: (v) => { CatV2.POUNCE[k] = v; }, enumerable: true,
+    });
+  }
+
+  // The look: gaze, and the head and ears it drags with it. All RIG values,
+  // so these are the MAP's too -- the card says so.
+  const LOOK_BAG = {};
+  for (const k of ['gazePupil', 'gazeHead', 'gazeEar', 'gazeOmega', 'gazeZeta']) {
+    Object.defineProperty(LOOK_BAG, k, {
+      get: () => CatV2.RIG[k], set: (v) => { CatV2.RIG[k] = v; }, enumerable: true,
+    });
+  }
+
   const FOCUS_BAG = {};
   for (const k of ['focusLidTilt', 'focusLid', 'focusLowerLid', 'focusPupilBase', 'focusGrow']) {
     Object.defineProperty(FOCUS_BAG, k, {
@@ -682,7 +708,7 @@
         { key: 'replayMs', label: 'replay every (ms) — lab only, never pasted', min: 1200, max: 20000, step: 100 },
       ],
       toggles: [
-        { key: 'trueCadence', label: 'replay at the real interval (idle slot ÷ blink share)' },
+        { key: 'trueCadence', label: 'replay at the real interval (idle slot ÷ blink share) — lab only' },
       ],
       readout() {
         const total = blinkTotal();
@@ -781,6 +807,151 @@
           ctx.textAlign = 'center';
           ctx.fillText(cat.name, x + SIZE / 2, 14);
         }
+      },
+    },
+    {
+      title: 'The look — gaze, and what follows it',
+      note: 'A scan, drawn at the sizes it ships at. The gaze is ONE channel: the pupils, the head and the ears all come off it, which is what makes a look read as a look rather than as eyes sliding in a still head. The dials below are all RIG values, so they are the map\'s as well as the card\'s — judge the 31px cat and the 47px cat together. Measured at the shipped values, the ears carry the gesture at 1.90px while the head follow is 0.53px, under the 0.56px the body bob was reverted at: the cue currently reads as ears turning rather than as a head turn, which is the thing to fix if the look feels flat.',
+      v2Only: true,
+      w: 560,
+      h: 210,
+      bag: LOOK_BAG,
+      dials: [
+        { key: 'gazeHead', label: 'HEAD FOLLOW (head radii) — 0.05 ships, and is sub-pixel', min: 0, max: 0.3, step: 0.005 },
+        { key: 'gazePupil', label: 'pupil travel inside the iris', min: 0, max: 0.8, step: 0.02 },
+        { key: 'gazeEar', label: 'ear turn, in radians', min: 0, max: 0.6, step: 0.01 },
+        { key: 'gazeOmega', label: 'how fast the look springs', min: 2, max: 20, step: 0.5 },
+        { key: 'gazeZeta', label: 'and how it settles (<1 overshoots)', min: 0.3, max: 1.4, step: 0.05 },
+      ],
+      readout() {
+        const R = CatV2.RIG;
+        const L = CatV2.catLayout('idle', 0.3);
+        const headR = L.head.r;
+        const er = headR * CatV2.EYE.scale;
+        // At full deflection, which is where a scan peaks.
+        const pupil = er * R.gazePupil;
+        const head = headR * R.gazeHead;
+        const ear = Math.sin(R.gazeEar) * headR * 0.9;
+        const row = (name, u) => `${name} ${(u * 31).toFixed(2)}px @31 · ${(u * 47).toFixed(2)}px @47`
+          + (u * 47 < 0.56 ? '  ⚠ under the floor' : '');
+        return (
+          `RIG = { gazePupil: ${R.gazePupil}, gazeHead: ${R.gazeHead}, gazeEar: ${R.gazeEar},\n`
+          + `        gazeOmega: ${R.gazeOmega}, gazeZeta: ${R.gazeZeta} }   ⚠ the map's too\n`
+          + `${row('ear tip  ', ear)}\n${row('pupil    ', pupil)}\n${row('head     ', head)}\n`
+          + `for scale: the whiskers died at ~0.8px, the body bob was reverted at 0.56px`
+        );
+      },
+      draw(ctx, w, h, now) {
+        // The shipped scan envelope, driven through the shipped rig, so what
+        // is judged here is what a card actually plays.
+        const SCAN = 1500;
+        const CYCLE = 2600;
+        const t = now % CYCLE;
+        const u = Math.min(1, t / SCAN);
+        const env = t < SCAN
+          ? easeSmooth(Math.min(1, u * 3)) * (1 - easeSmooth(Math.max(0, (u - 0.6) / 0.4)))
+          : 0;
+        if (!this._rig) this._rig = CatV2.createRigState();
+        const dt = Math.min(50, now - (this._last ?? now - 16));
+        this._last = now;
+        const rig = CatV2.stepRig(this._rig, {
+          vx: 0, vy: 0, facing: 'right',
+          gazeX: env, gazeY: -0.35 * env,
+          earTwitch: 0, earTwitchSide: 1, earsBack: 0, yawn: 0, breath: 0,
+        }, dt);
+        const cat = CatV2.appearanceFor(3);
+        let x = 16;
+        for (const size of [31, 47, 141]) {
+          const y = h - size * 0.95 - 20;
+          CatV2.drawCat(ctx, {
+            pose: 'idle', phase: ((now / 3400) % 1 + 1) % 1, appearance: cat,
+            facing: 'right', size, x, y, rig,
+          });
+          ctx.fillStyle = '#6b7280';
+          ctx.font = '11px ui-monospace, monospace';
+          ctx.textAlign = 'left';
+          ctx.fillText(size === 141 ? '3x' : `${size}px`, x, h - 6);
+          x += size + 30;
+        }
+        ctx.fillStyle = '#9ca3af';
+        ctx.fillText(env > 0.02 ? 'looking' : 'back to centre', 16, 14);
+      },
+    },
+    {
+      title: 'Portrait pounce — the whole beat, off the tick',
+      note: 'The card portrait\'s play-pounce. On the map a pounce gets one 800ms tick, which is why its load is 192ms and the butt wiggle quantises to a single rock — a lean, not a wiggle. A portrait runs on the frame clock and is not tick-bound, so this is the one place the whole beat is legible. TOP is the filmstrip at the real portrait size (47px), sampled evenly, so a crowded run of frames means the cat is moving and a flat run means it is holding. BOTTOM is the same beat live at 3x, looping, which is the only way to judge the wiggle. Note the wiggle rate quantises to HALF-CYCLES so the sine lands on exactly zero at the launch — so this dial steps rather than slides, and the readout gives you the rock count it actually landed on rather than the number you asked for.',
+      v2Only: true,
+      w: 560,
+      h: 250,
+      bag: PLAY_BAG,
+      dials: [
+        { key: 'beatMs', label: 'BEAT LENGTH (the map gets 800ms; this does not)', min: 1000, max: 5000, step: 100 },
+        { key: 'wiggleHz', label: 'rock rate, in Hz — steps, because it quantises', min: 0.5, max: 8, step: 0.1 },
+        { key: 'wiggleAmp', label: 'rock depth ⚠ SHARED with the map\'s pounce', min: 0, max: 0.05, step: 0.002 },
+        { key: 'wiggleRot', label: 'and its lean ⚠ SHARED with the map\'s pounce', min: 0, max: 0.15, step: 0.005 },
+        { key: 'sway', label: 'side-to-side tread (the portrait\'s own; the map has its own)', min: 0, max: 0.16, step: 0.005 },
+      ],
+      readout() {
+        const P = CatV2.POUNCE;
+        const holdSec = (P.hold * PLAY.beatMs) / 1000;
+        const cycles = Math.max(0.5, Math.round(PLAY.wiggleHz * holdSec * 2) / 2);
+        const eff = cycles / holdSec;
+        // Sampled off the pose, not read off the dial: the rock rides an
+        // envelope, so wiggleAmp overstates the travel by about a quarter.
+        const beat = { beatMs: PLAY.beatMs, wiggleHz: PLAY.wiggleHz, sway: PLAY.sway };
+        const rest = CatV2.catLayout('pouncing', 0, beat).body.cy;
+        let swing = 0;
+        for (let i = 0; i <= 80; i++) {
+          const L = CatV2.catLayout('pouncing', (P.hold * i) / 80, beat);
+          swing = Math.max(swing, Math.abs(L.body.cy - rest));
+        }
+        const ms = (share) => (share * PLAY.beatMs).toFixed(0);
+        return (
+          `VIEW.playBeatMs = ${PLAY.beatMs}   VIEW.playWiggleHz = ${PLAY.wiggleHz}\n`
+          + `POUNCE.wiggleAmp = ${P.wiggleAmp}   POUNCE.wiggleRot = ${P.wiggleRot}   `
+          + `⚠ those two are the map's too\n`
+          + `VIEW.playSway = ${PLAY.sway}   (the map's own is POUNCE.wiggleSway = ${P.wiggleSway})\n`
+          + `load ${ms(P.hold)}ms → launch ${ms(P.launch)}ms → land ${ms(P.land)}ms `
+          + `→ recover ${ms(1 - P.hold - P.launch - P.land)}ms\n`
+          + `the wiggle landed on ${cycles} cycles = ${cycles * 2} rocks at ${eff.toFixed(2)}Hz`
+          + (cycles < 1 ? '  ⚠ half a cycle is ONE rock — a lean, not a wiggle' : '')
+          + `\nrock travels ${(swing * 47).toFixed(2)}px at portrait size`
+          + (swing * 47 < 0.8 ? '  ⚠ under the floor things read at here' : '')
+        );
+      },
+      draw(ctx, w, h, now) {
+        const cat = CatV2.appearanceFor(2);
+        const beat = { beatMs: PLAY.beatMs, wiggleHz: PLAY.wiggleHz, sway: PLAY.sway };
+        // The filmstrip, at the size it actually ships.
+        const N = 11;
+        const S = 47;
+        const stripY = 6;
+        for (let i = 0; i < N; i++) {
+          CatV2.drawCat(ctx, {
+            pose: 'pouncing', phase: i / (N - 1), appearance: cat, facing: 'right',
+            size: S, x: 8 + i * ((w - 24) / N), y: stripY, layout: beat,
+          });
+        }
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '11px ui-monospace, monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`${S}px — the real portrait size, whole beat`, 8, stripY + S + 4);
+        // And live at 3x, on the dialled beat rather than the served tick.
+        const big = 141;
+        const phase = ((now % PLAY.beatMs) / PLAY.beatMs + 1) % 1;
+        CatV2.drawCat(ctx, {
+          pose: 'pouncing', phase, appearance: cat, facing: 'right',
+          size: big, x: 20, y: h - big * 0.95 - 6, layout: beat,
+        });
+        const P = CatV2.POUNCE;
+        const marks = [
+          ['load', 0, P.hold], ['launch', P.hold, P.hold + P.launch],
+          ['land', P.hold + P.launch, P.hold + P.launch + P.land],
+          ['recover', P.hold + P.launch + P.land, 1],
+        ];
+        const inPhase = marks.find(([, a, b]) => phase >= a && phase < b);
+        ctx.fillStyle = '#6b7280';
+        ctx.fillText(`3x, live — ${inPhase ? inPhase[0] : 'recover'}`, 20, h - 4);
       },
     },
     {
@@ -1039,7 +1210,7 @@
       ownShadows: true,
       bag: WALK_BAG,
       dials: [
-        { key: 'stand', label: 'HOW HIGH THE CAT STANDS (0 = today\u2019s cat)', min: 0, max: 0.15, step: 0.005 },
+        { key: 'stand', label: 'HOW HIGH THE CAT STANDS (0 = today\u2019s cat) — writes PROPORTION.lift', min: 0, max: 0.15, step: 0.005 },
         { key: 'bodyH', label: 'BODY HEIGHT \u00d7 (belly floor held \u2014 rounder body = more visible leg)', min: 0.85, max: 1.35, step: 0.002 },
         { key: 'bodyW', label: 'BODY WIDTH \u00d7', min: 0.85, max: 1.35, step: 0.002 },
         { key: 'headR', label: 'HEAD SIZE \u00d7 (buys headroom, never leg)', min: 0.75, max: 1.15, step: 0.002 },
@@ -1137,7 +1308,7 @@
       note: 'The pounce used to be a two-position switch at phase 0.45 — loaded, then suddenly extended, with nothing in between, which is why it popped. It is now a FULL BEAT: load (with a butt-wiggle), launch, land, recover — so unlike the old version it comes back down and phase 1 lands exactly on phase 0. The crouch and the leap are still the same drawings; only when they happen changed. The filmstrip samples the beat evenly, so a flat run of frames means the cat is holding and a crowded one means it is moving. The wiggle is a real frequency: it was authored as "2.5 rocks per load", which is a share of a beat rather than a speed, so a 176ms load ran it at 14Hz — a vibration. Above ~6Hz it reads as one again.',
       v2Only: true,
       w: 560,
-      h: 200,
+      h: 268,
       ownShadows: true,
       bag: POUNCE_BAG,
       dials: [
@@ -1147,6 +1318,7 @@
         { key: 'snap', label: 'how front-loaded the launch is (1 = even, higher = snappier)', min: 1, max: 5, step: 0.1 },
         { key: 'wiggleHz', label: 'pre-launch rock, in Hz (above ~6 reads as a vibration)', min: 0.5, max: 8, step: 0.1 },
         { key: 'wiggleAmp', label: 'and how far it rocks', min: 0, max: 0.05, step: 0.002 },
+        { key: 'wiggleSway', label: 'side-to-side tread (drawn as depth)', min: 0, max: 0.16, step: 0.005 },
         { key: 'twitch', label: 'tail-tip twitch while loading', min: 0, max: 0.06, step: 0.002 },
       ],
       readout() {
@@ -1169,16 +1341,29 @@
         // The rock's real peak, sampled off the shipped pose. Not derived
         // from wiggleAmp: the wiggle rides an envelope, so the dial is not
         // the travel.
-        const rest = CatV2.catLayout('pouncing', 0, { beatMs: TICK }).body.cy;
+        const at0 = CatV2.catLayout('pouncing', 0, { beatMs: TICK });
+        const rest = at0.body.cy;
+        // The tread is the hindquarters' TOTAL travel, both axes. WHICH axis
+        // carries it is a dial, and quoting one alone is how a value that
+        // read at portrait size turned out to be 0.62px on the map.
+        const rearOf = (L) => [
+          L.body.cx - Math.cos(L.body.rot) * L.body.rx,
+          L.body.cy - Math.sin(L.body.rot) * L.body.rx,
+        ];
+        const [r0x, r0y] = rearOf(at0);
         let swing = 0;
+        let tread = 0;
         for (let i = 0; i <= 60; i++) {
           const L = CatV2.catLayout('pouncing', (P.hold * i) / 60, { beatMs: TICK });
           swing = Math.max(swing, Math.abs(L.body.cy - rest));
+          const [rx, ry] = rearOf(L);
+          tread = Math.max(tread, Math.hypot(rx - r0x, ry - r0y));
         }
         return (
           `POUNCE = { hold: ${P.hold}, launch: ${P.launch}, land: ${P.land}, snap: ${P.snap},\n`
           + `           wiggleHz: ${P.wiggleHz}, wiggleAmp: ${P.wiggleAmp}, `
-          + `wiggleRot: ${P.wiggleRot}, twitch: ${P.twitch} }\n`
+          + `wiggleRot: ${P.wiggleRot},\n           wiggleSway: ${P.wiggleSway}, `
+          + `twitch: ${P.twitch} }\n`
           + `load ${held.toFixed(0)}ms → launch ${out.toFixed(0)}ms → land ${down.toFixed(0)}ms `
           + `→ recover ${back.toFixed(0)}ms  (one 800ms tick)\n`
           + `half the extension is done ${(half * TICK).toFixed(0)}ms in   ·   `
@@ -1197,9 +1382,11 @@
           // rock rides an envelope, so its peak is ~0.77 of the dial, and the
           // factor moves with `cycles` -- quoting the dial itself overstates
           // the travel by a quarter.
-          + `body rocks ${(swing * 31).toFixed(2)}px at a 31px tile, `
-          + `${(swing * 54).toFixed(2)}px at 54`
-          + (swing * 54 < 0.6 ? '  ⚠ below the size anything has ever read at here' : '')
+          + `vertical rock ${(swing * 31).toFixed(2)}px at 31px, `
+          + `${(swing * 54).toFixed(2)}px at 54\n`
+          + `TREAD, both axes: ${(tread * 31).toFixed(2)}px at 31px · `
+          + `${(tread * 47).toFixed(2)}px at 47 · ${(tread * 54).toFixed(2)}px at 54`
+          + (tread * 31 < 0.8 ? '  ⚠ under the floor at map size' : '')
           + (realHz > 6 ? '\n⚠ above ~6Hz the rock reads as a vibration' : '')
           + (back < 0 ? '\n⚠ the phases overrun the beat — the cat never finishes recovering' : '')
         );
@@ -1207,7 +1394,7 @@
       draw(ctx, w, h, now) {
         const TICK = 800;
         const phase = (now % TICK) / TICK;
-        const groundY = h - 46;
+        const groundY = h - 60;
 
         ctx.fillStyle = '#cfe0b8';
         ctx.fillRect(0, groundY, w, h - groundY);
@@ -1242,13 +1429,40 @@
           phase,
         });
 
-        // Timeline: loaded | extending | reaching, with a playhead.
+        // The MAP sizes, live, on the served tick -- the whole reason this
+        // card exists is that the tread has to read at 31px, not at the
+        // comfortable size the strip above is drawn at. These are the tile
+        // sizes the world actually reaches: the demo world, a WQHD display,
+        // and a 20x20 world on a large one.
         const P = CatV2.POUNCE;
+        let mx = 10;
+        for (const tile of [31, 47, 54]) {
+          CatV2.drawCat(ctx, {
+            pose: 'pouncing',
+            appearance: CatV2.appearanceFor(STORM),
+            facing: 'right',
+            size: tile,
+            x: mx,
+            y: groundY - tile * 0.88,
+            phase,
+          });
+          ctx.fillStyle = 'rgba(107, 90, 78, 0.75)';
+          ctx.font = '10px ui-monospace, monospace';
+          ctx.textAlign = 'left';
+          ctx.fillText(`${tile}px`, mx, groundY + 12);
+          mx += tile + 26;
+        }
+        ctx.fillStyle = 'rgba(107, 90, 78, 0.55)';
+        ctx.fillText('live, at the sizes the map actually draws', mx + 6, groundY + 12);
+
+        // Timeline: load | launch | land | recover, with a playhead.
         const bar = h - 26, barH = 10, x0 = 8, barW = w - 16;
+        const e1 = P.hold, e2 = e1 + P.launch, e3 = e2 + P.land;
         const seg = [
-          [0, P.hold, 'rgba(107, 90, 78, 0.22)'],
-          [P.hold, Math.min(1, P.hold + P.launch), 'rgba(214, 122, 61, 0.55)'],
-          [Math.min(1, P.hold + P.launch), 1, 'rgba(107, 90, 78, 0.10)'],
+          [0, e1, 'rgba(107, 90, 78, 0.22)'],
+          [e1, Math.min(1, e2), 'rgba(214, 122, 61, 0.55)'],
+          [Math.min(1, e2), Math.min(1, e3), 'rgba(120, 140, 170, 0.45)'],
+          [Math.min(1, e3), 1, 'rgba(107, 90, 78, 0.10)'],
         ];
         for (const [a, b, fill] of seg) {
           if (b <= a) continue;
@@ -1259,8 +1473,10 @@
         ctx.fillRect(x0 + phase * barW - 1, bar - 3, 2, barH + 6);
         ctx.fillStyle = 'rgba(107, 90, 78, 0.75)';
         ctx.font = '10px ui-rounded, system-ui, sans-serif';
-        ctx.fillText('loaded', x0 + 3, bar - 5);
-        if (P.launch > 0.08) ctx.fillText('launch', x0 + (P.hold + 0.01) * barW, bar - 5);
+        ctx.fillText('load', x0 + 3, bar - 5);
+        if (P.launch > 0.08) ctx.fillText('launch', x0 + (e1 + 0.01) * barW, bar - 5);
+        if (P.land > 0.08) ctx.fillText('land', x0 + (e2 + 0.01) * barW, bar - 5);
+        if (1 - e3 > 0.08) ctx.fillText('recover', x0 + (e3 + 0.01) * barW, bar - 5);
       },
     },
     {

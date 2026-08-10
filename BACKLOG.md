@@ -13,6 +13,39 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 <!-- shipped P1 items are removed once merged; see git history -->
 
+### The gaze — TABLED for a longer session (added 2026-08-10; Client thread)
+Owner's call: the look wants a proper sitting, not a dial pass wedged into
+another arc. Turned OFF on the card meanwhile — `VIEW.cardScanWeight: 0`, its
+12 weight parked in `cardRestWeight`, so no other beat's rate moved. Turning it
+back on is one number.
+
+**It is already ONE gesture — do not "merge" it.** `gaze` is a single rig
+channel and the pupils, the head and the ears all come off it
+(`RIG.gazePupil` / `gazeHead` / `gazeEar`). The design intent is intact; what
+is wrong is the magnitude.
+
+**The measurement, at full deflection, so it is not re-derived:**
+
+| channel | @31px (map) | @47px (portrait) | dial |
+| --- | --- | --- | --- |
+| ear tip | 1.25px | **1.90px** | `gazeEar: 0.2` |
+| pupil | 0.48px | 0.73px | `gazePupil: 0.36` |
+| head follow | 0.35px | **0.53px** | `gazeHead: 0.05` |
+
+For scale: the whiskers were cut at ~0.8px and the body bob was reverted at
+0.56px peak-to-peak. So **only the ears clear the floor** — the cue reads as
+ears turning rather than as a head turn, which is the thing to fix.
+`gazeHead` 0.10 gives 1.06px at 47, 0.14 gives 1.48px.
+
+**The lab surface already exists**: `gallery-v2.html`, the card "The look —
+gaze, and what follows it". It draws a real scan (the shipped envelope through
+the shipped rig) at 31px, 47px and 3x together, with the per-channel travel in
+the readout. These are `RIG` values, so they are the MAP's too — the tread
+needed a per-context split for exactly this reason and the gaze may as well.
+
+**Not in scope, and not the same thing:** the separate `ears` beat is a one-ear
+TWITCH (asymmetric, `earFar` at -0.35) — a flick, not a look. It stays.
+
 ### Graphics v2 follow-on: face-group pitch (added 2026-07-29; Client thread)
 The one v2 piece still unbuilt (vocabulary, motion wiring, and swim all
 shipped — see git history / PR #92). Slide eyes+nose+mouth together

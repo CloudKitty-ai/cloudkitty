@@ -715,9 +715,9 @@ function liftLayout(L, airborne) {
  * how long the cat stays loaded, how fast it extends, and how sharply.
  */
 const POUNCE = {
-  hold: 0.24, // share of the beat spent loaded and wiggling
-  launch: 0.45, // share spent extending
-  land: 0.16, // and absorbing the landing; the rest is the recovery
+  hold: 0.3, // share of the beat spent loaded and wiggling
+  launch: 0.42, // share spent extending
+  land: 0.18, // and absorbing the landing; the rest is the recovery
   snap: 4, // >1 front-loads the extension. A cat launches, it does not glide.
   // The wiggle. A cat about to pounce treads its hind feet and rocks its
   // hindquarters, and that anticipation is what makes the launch read as
@@ -748,8 +748,24 @@ const POUNCE = {
   // it is 0.52px / 0.91px -- marginal in the demo world, clear on a large
   // display. NOTE the dial is not the travel: the rock rides an envelope
   // whose peak is ~0.77 of this, so quoting wiggleAmp overstates it.
-  wiggleAmp: 0.022, // vertical, in units
-  wiggleRot: 0.06, // and the lean that comes with it, in radians
+  wiggleAmp: 0.002, // vertical, in units
+  wiggleRot: 0.01, // and the lean that comes with it, in radians
+  // The side-to-side half of the tread (2026-08-10, owner's ask). A cat
+  // gathering itself shifts its weight between its hind paws, which is a
+  // LATERAL motion -- and a side-profile cat has no lateral axis on screen.
+  // So it is drawn the way the walk already draws a cat coming toward the
+  // camera: as depth, by narrowing the body (GAIT.depthNarrow, same idea).
+  //
+  // Anchored at the CHEST, not the centre. Narrowing about the middle would
+  // slide the front, and a planted front is most of why the pose reads as
+  // aiming -- the same thing the rot sign cost us. Holding `cx + rx` fixed
+  // instead means the width comes off the BACK: the hindquarters swing
+  // toward and away while the shoulders stay exactly where they are.
+  //
+  // A quarter-cycle behind the vertical rock, so the rear traces an ellipse
+  // -- up-and-back, down-and-forward -- which is what a weight shift does,
+  // rather than pulsing in and out on the same beat.
+  wiggleSway: 0.085, // share of body length the rear swings, in depth
   twitch: 0, // tail-tip twitch while loading -- kept, and kept at 0
 };
 
@@ -769,6 +785,32 @@ const POUNCE = {
  * rock reads far more like a cat gathering itself than two and a half
  * blurred ones did.
  */
+/**
+ * The lateral half of the tread: the same rock, a quarter-cycle behind, so
+ * the hindquarters trace an ellipse instead of pumping along one axis.
+ *
+ * Shares `pounceWiggle`'s envelope and its half-cycle quantisation, so it
+ * grows with the load and lands on zero at the launch exactly as the
+ * vertical rock does -- if it did not, the body would still be swung
+ * sideways at the moment the cat leaves the ground.
+ */
+function pounceWiggleSway(phase, dials = POUNCE, beatMs = 800) {
+  if (phase >= dials.hold) return 0;
+  const holdSec = (dials.hold * beatMs) / 1000;
+  const cycles = Math.max(0.5, Math.round(dials.wiggleHz * holdSec * 2) / 2);
+  const u = phase / Math.max(1e-6, dials.hold);
+  // `sin(u*PI)` and not the vertical rock's `sin(u*PI/2)` envelope: this one
+  // has to vanish at BOTH ends. A quarter-cycle shift of the rock does not --
+  // sin(u*TAU*c - PI/2) is 1 when u is 1, so the body would still be swung
+  // sideways at the instant the cat leaves the ground, and the launch popped
+  // by 0.5px. Same failure the half-cycle quantisation exists to prevent,
+  // one axis over.
+  //
+  // What it draws, at half a cycle: the rear swings one way, then the other,
+  // while the vertical rock does a single rise and fall. One weight shift.
+  return Math.sin(u * Math.PI) * -Math.cos(u * TAU * cycles);
+}
+
 function pounceWiggle(phase, dials = POUNCE, beatMs = 800) {
   if (phase >= dials.hold) return 0;
   const holdSec = (dials.hold * beatMs) / 1000;
@@ -1467,15 +1509,42 @@ function catLayout(pose, phase, opts = {}) {
       const t = pounceLaunch(phase);
       // opts.beatMs is the served tick length, so the wiggle keeps its
       // real-world speed whatever config.world.tick_ms says.
-      const wig = pounceWiggle(phase, POUNCE, opts.beatMs);
+      // `opts.wiggleHz` lets a caller off the served tick pick its own rock
+      // rate without moving the world's. The card portrait needs it: its
+      // beat is 4x longer, so the SAME Hz that reads as one deliberate rock
+      // in 192ms becomes a slow wallow in 768ms.
+      const wig = pounceWiggle(
+        phase,
+        opts.wiggleHz ? { ...POUNCE, wiggleHz: opts.wiggleHz } : POUNCE,
+        opts.beatMs,
+      );
+      // The lateral tread, a quarter-cycle behind the vertical rock. `wig`
+      // is the rock; `sway` is where that rock is in its own cycle a beat
+      // earlier, which is what puts the two 90 degrees apart.
+      const sway = pounceWiggleSway(phase, opts.wiggleHz
+        ? { ...POUNCE, wiggleHz: opts.wiggleHz } : POUNCE, opts.beatMs);
+      // Keep the chest (cx + rx) fixed and take the width off the back.
+      // `opts.sway` is the same escape hatch as `opts.wiggleHz`: the depth
+      // of the tread that reads at a 47px portrait is a whisper at a 31px
+      // map cat, so the two pick their own rather than sharing one.
+      const swayK = (opts.sway ?? POUNCE.wiggleSway) * sway;
       const crouch = {
         ...L,
         body: {
-          cx: 0.42,
+          cx: 0.42 + 0.31 * swayK,
           cy: 0.68 + POUNCE.wiggleAmp * wig,
-          rx: 0.31,
+          rx: 0.31 * (1 - swayK),
           ry: 0.17,
-          rot: -0.1 + POUNCE.wiggleRot * wig,
+          // MINUS, not plus (2026-08-10). The rock is a `cy` shift plus a
+          // rotation about the body's centre, so the two ADD at one end of
+          // the ellipse and CANCEL at the other -- and with the signs
+          // agreeing they added at the CHEST. Measured, the front travelled
+          // 1.97px against the hindquarters' 0.07px: a 27:1 ratio, on a pose
+          // whose own comment says it "treads its hind feet and rocks its
+          // hindquarters". Opposed, the cancellation lands on the chest
+          // instead, which is what plants the front while the butt wiggles --
+          // and a planted front is most of why the pose reads as aiming.
+          rot: -0.1 - POUNCE.wiggleRot * wig,
         },
         head: { cx: 0.68, cy: 0.5, r: 0.221 },
         legs: withFarPair([
