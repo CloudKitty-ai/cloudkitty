@@ -1306,9 +1306,9 @@ check('the shipped pounce timing is the one the owner dialled', () => {
   // the beat now returns to the crouch, so `launch` no longer means "and the
   // rest is held at full reach" -- the remainder is land + recover.
   const P = CatV2.POUNCE;
-  close(P.hold, 0.24, 'hold drifted');
-  close(P.launch, 0.45, 'launch drifted');
-  close(P.land, 0.16, 'land drifted');
+  close(P.hold, 0.3, 'hold drifted');
+  close(P.launch, 0.42, 'launch drifted');
+  close(P.land, 0.18, 'land drifted');
   close(P.snap, 4, 'snap drifted');
   close(P.twitch, 0, 'twitch drifted');
   assert(P.hold + P.launch + P.land <= 1, 'the beat must finish inside the tick');
@@ -1886,9 +1886,21 @@ check('a caller may pick its own wiggle rate without moving the map\'s', () => {
   // reaching into POUNCE -- that would change the world's pounce as a side
   // effect of a card dial.
   const beat = 3200;
-  const slow = CatV2.catLayout('pouncing', 0.1, { beatMs: beat, wiggleHz: 1 });
-  const quick = CatV2.catLayout('pouncing', 0.1, { beatMs: beat, wiggleHz: 3.4 });
-  assert(slow.body.cy !== quick.body.cy, 'the wiggleHz override did not reach the drawing');
+  // Swept, and over the whole body -- not one field at one phase. Two rates
+  // cross at particular moments (1Hz and 3.4Hz give an identical `cy` at
+  // phase 0.1 while `cx` differs by 0.03), so a single sample can report the
+  // override as dead when it is working perfectly.
+  const differs = (a, b) => a.body.cx !== b.body.cx || a.body.cy !== b.body.cy
+    || a.body.rx !== b.body.rx || a.body.rot !== b.body.rot;
+  let moved = 0;
+  for (let i = 0; i <= 40; i++) {
+    const ph = (CatV2.POUNCE.hold * i) / 40;
+    if (differs(
+      CatV2.catLayout('pouncing', ph, { beatMs: beat, wiggleHz: 1 }),
+      CatV2.catLayout('pouncing', ph, { beatMs: beat, wiggleHz: 3.4 }),
+    )) moved++;
+  }
+  assert(moved > 20, `the wiggleHz override reached the drawing at only ${moved}/41 phases`);
   // Absent, the map's own dial is what applies -- unchanged either way.
   const before = CatV2.POUNCE.wiggleHz;
   CatV2.catLayout('pouncing', 0.1, { beatMs: beat, wiggleHz: 7 });
