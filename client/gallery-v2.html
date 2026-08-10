@@ -1149,6 +1149,15 @@
         const holdSec = held / 1000;
         const cycles = Math.max(0.5, Math.round(P.wiggleHz * holdSec * 2) / 2);
         const realHz = holdSec > 0 ? cycles / holdSec : 0;
+        // The rock's real peak, sampled off the shipped pose. Not derived
+        // from wiggleAmp: the wiggle rides an envelope, so the dial is not
+        // the travel.
+        const rest = CatV2.catLayout('pouncing', 0, { beatMs: TICK }).body.cy;
+        let swing = 0;
+        for (let i = 0; i <= 60; i++) {
+          const L = CatV2.catLayout('pouncing', (P.hold * i) / 60, { beatMs: TICK });
+          swing = Math.max(swing, Math.abs(L.body.cy - rest));
+        }
         return (
           `POUNCE = { hold: ${P.hold}, launch: ${P.launch}, land: ${P.land}, snap: ${P.snap},\n`
           + `           wiggleHz: ${P.wiggleHz}, wiggleAmp: ${P.wiggleAmp}, `
@@ -1166,9 +1175,14 @@
           + `lengthen the load\n`
           // And the amplitude in real pixels, against the floor this project
           // keeps rediscovering: whiskers died at 0.8px, the body bob at 0.56.
-          + `rump travels ~${(P.wiggleAmp * 31).toFixed(2)}px at a 31px tile, `
-          + `~${(P.wiggleAmp * 54).toFixed(2)}px at 54`
-          + (P.wiggleAmp * 54 < 0.6 ? '  ⚠ below the size anything has ever read at here' : '')
+          //
+          // Measured off the pose rather than from wiggleAmp directly. The
+          // rock rides an envelope, so its peak is ~0.77 of the dial, and the
+          // factor moves with `cycles` -- quoting the dial itself overstates
+          // the travel by a quarter.
+          + `body rocks ${(swing * 31).toFixed(2)}px at a 31px tile, `
+          + `${(swing * 54).toFixed(2)}px at 54`
+          + (swing * 54 < 0.6 ? '  ⚠ below the size anything has ever read at here' : '')
           + (realHz > 6 ? '\n⚠ above ~6Hz the rock reads as a vibration' : '')
           + (back < 0 ? '\n⚠ the phases overrun the beat — the cat never finishes recovering' : '')
         );

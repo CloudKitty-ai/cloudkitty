@@ -1317,7 +1317,7 @@ check('the shipped pounce timing is the one the owner dialled', () => {
   // where "2.5 rocks per load" became 14Hz once the load was 176ms.
   assert(P.wiggleHz > 0 && P.wiggleHz < 6, `wiggleHz ${P.wiggleHz} is outside the readable range`);
   close(P.wiggleHz, 1, 'wiggleHz drifted');
-  close(P.wiggleAmp, 0.012, 'wiggleAmp drifted');
+  close(P.wiggleAmp, 0.022, 'wiggleAmp drifted');
 });
 
 check('the pounce still reaches its crouch and its leap', () => {

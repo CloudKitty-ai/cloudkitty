@@ -738,7 +738,13 @@ const POUNCE = {
   // rock genuinely SLOWER than 2.6Hz, lengthen `hold` -- a half cycle over
   // the load is the floor by construction.
   wiggleHz: 1, // rocks per second
-  wiggleAmp: 0.012, // vertical, in units
+  // 0.012 was tried and reverted: the rock came to 0.29px on a 31px tile
+  // and 0.50px at 54, under both floors this project has measured (the
+  // whiskers died at ~0.8px, the body bob was reverted at 0.56px). At 0.022
+  // it is 0.52px / 0.91px -- marginal in the demo world, clear on a large
+  // display. NOTE the dial is not the travel: the rock rides an envelope
+  // whose peak is ~0.77 of this, so quoting wiggleAmp overstates it.
+  wiggleAmp: 0.022, // vertical, in units
   wiggleRot: 0.06, // and the lean that comes with it, in radians
   twitch: 0, // tail-tip twitch while loading -- kept, and kept at 0
 };
