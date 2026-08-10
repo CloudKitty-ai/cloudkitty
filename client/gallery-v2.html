@@ -1231,7 +1231,7 @@
       note: 'The pounce used to be a two-position switch at phase 0.45 — loaded, then suddenly extended, with nothing in between, which is why it popped. It is now a FULL BEAT: load (with a butt-wiggle), launch, land, recover — so unlike the old version it comes back down and phase 1 lands exactly on phase 0. The crouch and the leap are still the same drawings; only when they happen changed. The filmstrip samples the beat evenly, so a flat run of frames means the cat is holding and a crowded one means it is moving. The wiggle is a real frequency: it was authored as "2.5 rocks per load", which is a share of a beat rather than a speed, so a 176ms load ran it at 14Hz — a vibration. Above ~6Hz it reads as one again.',
       v2Only: true,
       w: 560,
-      h: 200,
+      h: 268,
       ownShadows: true,
       bag: POUNCE_BAG,
       dials: [
@@ -1264,11 +1264,23 @@
         // The rock's real peak, sampled off the shipped pose. Not derived
         // from wiggleAmp: the wiggle rides an envelope, so the dial is not
         // the travel.
-        const rest = CatV2.catLayout('pouncing', 0, { beatMs: TICK }).body.cy;
+        const at0 = CatV2.catLayout('pouncing', 0, { beatMs: TICK });
+        const rest = at0.body.cy;
+        // The tread is the hindquarters' TOTAL travel, both axes. WHICH axis
+        // carries it is a dial, and quoting one alone is how a value that
+        // read at portrait size turned out to be 0.62px on the map.
+        const rearOf = (L) => [
+          L.body.cx - Math.cos(L.body.rot) * L.body.rx,
+          L.body.cy - Math.sin(L.body.rot) * L.body.rx,
+        ];
+        const [r0x, r0y] = rearOf(at0);
         let swing = 0;
+        let tread = 0;
         for (let i = 0; i <= 60; i++) {
           const L = CatV2.catLayout('pouncing', (P.hold * i) / 60, { beatMs: TICK });
           swing = Math.max(swing, Math.abs(L.body.cy - rest));
+          const [rx, ry] = rearOf(L);
+          tread = Math.max(tread, Math.hypot(rx - r0x, ry - r0y));
         }
         return (
           `POUNCE = { hold: ${P.hold}, launch: ${P.launch}, land: ${P.land}, snap: ${P.snap},\n`
@@ -1293,9 +1305,11 @@
           // rock rides an envelope, so its peak is ~0.77 of the dial, and the
           // factor moves with `cycles` -- quoting the dial itself overstates
           // the travel by a quarter.
-          + `body rocks ${(swing * 31).toFixed(2)}px at a 31px tile, `
-          + `${(swing * 54).toFixed(2)}px at 54`
-          + (swing * 54 < 0.6 ? '  ⚠ below the size anything has ever read at here' : '')
+          + `vertical rock ${(swing * 31).toFixed(2)}px at 31px, `
+          + `${(swing * 54).toFixed(2)}px at 54\n`
+          + `TREAD, both axes: ${(tread * 31).toFixed(2)}px at 31px · `
+          + `${(tread * 47).toFixed(2)}px at 47 · ${(tread * 54).toFixed(2)}px at 54`
+          + (tread * 31 < 0.8 ? '  ⚠ under the floor at map size' : '')
           + (realHz > 6 ? '\n⚠ above ~6Hz the rock reads as a vibration' : '')
           + (back < 0 ? '\n⚠ the phases overrun the beat — the cat never finishes recovering' : '')
         );
@@ -1303,7 +1317,7 @@
       draw(ctx, w, h, now) {
         const TICK = 800;
         const phase = (now % TICK) / TICK;
-        const groundY = h - 46;
+        const groundY = h - 60;
 
         ctx.fillStyle = '#cfe0b8';
         ctx.fillRect(0, groundY, w, h - groundY);
@@ -1338,13 +1352,40 @@
           phase,
         });
 
-        // Timeline: loaded | extending | reaching, with a playhead.
+        // The MAP sizes, live, on the served tick -- the whole reason this
+        // card exists is that the tread has to read at 31px, not at the
+        // comfortable size the strip above is drawn at. These are the tile
+        // sizes the world actually reaches: the demo world, a WQHD display,
+        // and a 20x20 world on a large one.
         const P = CatV2.POUNCE;
+        let mx = 10;
+        for (const tile of [31, 47, 54]) {
+          CatV2.drawCat(ctx, {
+            pose: 'pouncing',
+            appearance: CatV2.appearanceFor(STORM),
+            facing: 'right',
+            size: tile,
+            x: mx,
+            y: groundY - tile * 0.88,
+            phase,
+          });
+          ctx.fillStyle = 'rgba(107, 90, 78, 0.75)';
+          ctx.font = '10px ui-monospace, monospace';
+          ctx.textAlign = 'left';
+          ctx.fillText(`${tile}px`, mx, groundY + 12);
+          mx += tile + 26;
+        }
+        ctx.fillStyle = 'rgba(107, 90, 78, 0.55)';
+        ctx.fillText('live, at the sizes the map actually draws', mx + 6, groundY + 12);
+
+        // Timeline: load | launch | land | recover, with a playhead.
         const bar = h - 26, barH = 10, x0 = 8, barW = w - 16;
+        const e1 = P.hold, e2 = e1 + P.launch, e3 = e2 + P.land;
         const seg = [
-          [0, P.hold, 'rgba(107, 90, 78, 0.22)'],
-          [P.hold, Math.min(1, P.hold + P.launch), 'rgba(214, 122, 61, 0.55)'],
-          [Math.min(1, P.hold + P.launch), 1, 'rgba(107, 90, 78, 0.10)'],
+          [0, e1, 'rgba(107, 90, 78, 0.22)'],
+          [e1, Math.min(1, e2), 'rgba(214, 122, 61, 0.55)'],
+          [Math.min(1, e2), Math.min(1, e3), 'rgba(120, 140, 170, 0.45)'],
+          [Math.min(1, e3), 1, 'rgba(107, 90, 78, 0.10)'],
         ];
         for (const [a, b, fill] of seg) {
           if (b <= a) continue;
@@ -1355,8 +1396,10 @@
         ctx.fillRect(x0 + phase * barW - 1, bar - 3, 2, barH + 6);
         ctx.fillStyle = 'rgba(107, 90, 78, 0.75)';
         ctx.font = '10px ui-rounded, system-ui, sans-serif';
-        ctx.fillText('loaded', x0 + 3, bar - 5);
-        if (P.launch > 0.08) ctx.fillText('launch', x0 + (P.hold + 0.01) * barW, bar - 5);
+        ctx.fillText('load', x0 + 3, bar - 5);
+        if (P.launch > 0.08) ctx.fillText('launch', x0 + (e1 + 0.01) * barW, bar - 5);
+        if (P.land > 0.08) ctx.fillText('land', x0 + (e2 + 0.01) * barW, bar - 5);
+        if (1 - e3 > 0.08) ctx.fillText('recover', x0 + (e3 + 0.01) * barW, bar - 5);
       },
     },
     {
