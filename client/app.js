@@ -814,7 +814,15 @@ const PORTRAIT_CAT = 47;
 // while the cat grew 42%, which drifts it from "a frame the cat sits in"
 // toward "a shape cut around it" -- the thing the tighter chips were
 // rejected for.
-const PORTRAIT_W = 54;
+// 54 -> 58 (2026-08-10), for the stretch. The chip was measured against the
+// resting poses, and a stretching cat is the widest thing the vocabulary
+// draws: at PORTRAIT_CAT it spans 54.0px, exactly the old chip, so it lost
+// 2.2px of its front to the right edge. Widened rather than shrinking the
+// cat, because the portrait is the one place the fine detail (the tabby
+// stripes, the new eye colour and its limbal ring) has the pixels to read.
+// Costs the name row 4px of its own width, which ellipsises rather than
+// wraps -- checked against the longest name on the roster.
+const PORTRAIT_W = 58;
 const PORTRAIT_H = 48;
 // Not the chip's geometric centre. The ink is not centred in the cat's
 // own box -- the tail reaches past the left edge while the right side
@@ -831,7 +839,7 @@ const PORTRAIT_Y = 0.91;
  * every frame after -- because two of these would drift the day someone
  * tunes one of them.
  */
-function paintPortrait(canvas, kittyId, motion) {
+function paintPortrait(canvas, kittyId, motion, idle) {
   const dpr = window.devicePixelRatio || 1;
   // Re-size the backing store when the display changes under us -- issue
   // #102's bug, in a second place. Dragging a window between a Retina and
@@ -860,18 +868,51 @@ function paintPortrait(canvas, kittyId, motion) {
     lid = motion.blinkLid;
     if (eyes === 'closed') eyes = undefined;
   }
-  drawCat(ctx, {
-    pose: 'idle',
+  // The idle POSES (2026-08-10): a portrait may sit, or stretch when its cat
+  // wakes. `idlePoseFor` only ever answers for idle/loaf, so asking it with
+  // 'idle' -- which is all a portrait ever is -- fits its contract unchanged.
+  const pose = idle?.pose ?? 'idle';
+  const phase = idle?.phase ?? motion.phase ?? 0;
+  const opts = {
     appearance: appearanceFor(kittyId),
     facing: 'right', // toward its own name
     size: PORTRAIT_CAT,
     x: PORTRAIT_X,
     y: PORTRAIT_Y,
-    phase: motion.phase ?? 0,
     eyesOverride: eyes,
     earsBack: motion.earsBack,
     lid,
-  });
+    // The beat length, for the play-pounce. Off the served tick entirely --
+    // which is the point: at 800ms the load is 192ms and the butt wiggle
+    // quantises to a single rock, and here it has room to be a wiggle.
+    layout: idle?.beatMs ? { beatMs: idle.beatMs } : undefined,
+  };
+  // `sit` arrives as a pose with no ramp of its own -- 27px of movement at
+  // portrait size -- so without a blend it would pop in and out on the card.
+  // (`stretch` needs none: it carries a phase and is authored to leave and
+  // return to neutral, 0.4px off a resting cat at both ends.) The meadow's
+  // own blend does the work; the KEY is 'card' + id, never the bare id,
+  // because tweenFor is stateful and sharing a key with the meadow cat would
+  // have each restart the other's blend -- the same trap rigFor documents.
+  const tween = idle?.tween;
+  if (tween?.blend && typeof drawCatTween === 'function') {
+    drawCatTween(ctx, {
+      ...opts,
+      from: tween.blend.from,
+      to: pose,
+      // CLAMPED, unlike the meadow's. `easeBack` leans back before it goes
+      // and drifts past before it settles, which is free on a canvas the
+      // size of the world and is not free in a 58x48 chip: measured, the
+      // overshoot on an idle->sit blend reaches 6.6px off the left edge and
+      // 6.5px off the bottom. The chip cannot afford the anticipation, so
+      // the portraits take the plain ease and the meadow keeps the lean.
+      t: Math.min(1, Math.max(0, tween.blend.t)),
+      phaseFrom: tween.blend.fromPhase,
+      phaseTo: phase,
+    });
+  } else {
+    drawCat(ctx, { ...opts, pose, phase });
+  }
 }
 
 /**
@@ -892,8 +933,35 @@ function paintPortraits(world, view) {
   for (const canvas of canvases) {
     const id = Number(canvas.dataset.kitty);
     if (!Number.isFinite(id)) continue;
-    paintPortrait(canvas, id, view.motionFor(id, 'idle'));
+    paintPortrait(canvas, id, view.motionFor(id, 'idle'), idlePortraitFor(view, id));
   }
+}
+
+/**
+ * The portrait's own idle pose, and the blend into it.
+ *
+ * Everything here is keyed `'card' + id` rather than `id`. The presentation
+ * layer's pose memory is per-key state, so a portrait sharing the meadow
+ * cat's key would restart its blend every frame and vice versa -- the same
+ * hazard `rigFor` documents, on a different map.
+ *
+ * A still frame answers null from both, so the portraits hold their pose
+ * along with the meadow.
+ */
+function idlePortraitFor(view, id) {
+  if (typeof view.idlePoseFor !== 'function') return null;
+  // A stretch outranks a play-pounce, which outranks a sit. The stretch is
+  // the only one tied to something the engine said (this cat just woke), so
+  // it gets the cat first; the other two are the portrait's own.
+  const idle = view.idlePoseFor(id, 'idle');
+  const play = idle?.pose === 'stretch' || typeof view.idlePlayFor !== 'function'
+    ? null
+    : view.idlePlayFor(id, 'idle');
+  const chosen = idle?.pose === 'stretch' ? idle : (play ?? idle);
+  const pose = chosen?.pose ?? 'idle';
+  const phase = chosen?.phase ?? 0;
+  const tween = view.tweenFor ? view.tweenFor(`card${id}`, pose, phase) : null;
+  return { pose, phase: chosen?.phase, beatMs: chosen?.beatMs, tween };
 }
 
 function buildKittyCard(kitty) {

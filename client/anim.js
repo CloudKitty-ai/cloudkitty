@@ -209,6 +209,40 @@ const VIEW = Object.freeze({
   sitChance: 0.38,
   sitAfterTicks: 3,
 
+  /* The card portrait's play-pounce (2026-08-10). PORTRAITS ONLY -- the
+   * meadow must never call this.
+   *
+   * A pounce in the world is a served fact: the engine says a cat is
+   * chasing and the renderer draws it. Inventing one on the map would be
+   * the client asserting something about the world that the world did not
+   * say, which Article V forbids. The portrait is different, and already
+   * documented as different: it is deliberately NOT the cat's real pose
+   * (owner, 2026-08-07) but the cat at rest, which is exactly what lets it
+   * carry idle motion at all. A cat play-pouncing at nothing is a thing
+   * cats do at rest, and it makes no claim about the world.
+   *
+   * The reason it lives here rather than on the map: the beat is not tied
+   * to the served tick. On the map a pounce has one 800ms tick to happen
+   * in, which is why the load is 192ms and the wiggle quantises to a
+   * single rock. A portrait runs on the frame clock and can take as long
+   * as it likes -- so this is the one place the whole beat, wiggle and
+   * all, is actually legible.
+   *
+   * Priced like `sit`, drawn once per period, and NOT out of the idle
+   * motion weights: those schedule motions inside a 420ms slot, and this
+   * is a pose change lasting seconds.
+   *
+   * 3200 and not a round 2000: the wiggle quantises to half-cycles so its
+   * sine lands on zero at the launch, and at the shipped `wiggleHz` of 1 a
+   * load shorter than 0.75s holds only half a cycle -- ONE rock. 3200 gives
+   * a 768ms load, a full cycle, and the two rocks that read as a wiggle
+   * rather than as a single lean. The step is sharp: 3000 is still one rock,
+   * 3200 is two. Lower it and check the rock count, do not just check that
+   * it looks shorter. */
+  playBeatMs: 3200,
+  playPeriodMs: 31000,
+  playChance: 0.34,
+
   // Beats (US5).
   // The observed drop is relief minus that tick's need rise, so the
   // threshold must sit below the smallest sparkle-worthy relief: cuddle at
@@ -356,6 +390,7 @@ const IDLE_SALTS = Object.freeze({
   side: 4, // and which ear a twitch belongs to
   look: 5, // where a scan looks
   sit: 6, // whether an idle cat is sitting this stretch of time
+  play: 7, // and whether a card portrait play-pounces in one
 });
 
 /**
@@ -940,6 +975,27 @@ class Presentation {
   }
 
   /**
+   * The card portrait's play-pounce, or null. **Portraits only** -- see
+   * VIEW.playBeatMs for why the meadow must never call this.
+   *
+   * Pure in (id, now) like every other idle decision, so a still frame and
+   * a test can both ask what a cat is doing at time T. Returns the beat
+   * length with the phase, because the pounce's wiggle is authored as a
+   * real frequency and needs to know how long the beat is -- the whole
+   * point of doing this off the served tick.
+   */
+  idlePlayFor(id, pose, now) {
+    if (pose !== 'idle') return null;
+    // Offset per cat so four portraits never pounce together.
+    const clock = now + id * 6151;
+    const slot = Math.floor(clock / VIEW.playPeriodMs);
+    if (idleHash(id, slot, IDLE_SALTS.play) >= VIEW.playChance) return null;
+    const into = clock - slot * VIEW.playPeriodMs;
+    if (into >= VIEW.playBeatMs) return null;
+    return { pose: 'pouncing', phase: into / VIEW.playBeatMs, beatMs: VIEW.playBeatMs };
+  }
+
+  /**
    * The fall-asleep settle (US4): on the very tick sleep begins, the first
    * half of the tick still shows the loaf, so the curl reads as a
    * transition -- and later sleeping ticks hold the curl without replaying.
@@ -1289,6 +1345,7 @@ class Presentation {
       // A still frame is the served pose, held -- a cat is not caught
       // mid-stretch in a frame that is meant to have no motion in it.
       idlePoseFor: (id, pose) => (still ? null : this.idlePoseFor(id, pose, now)),
+      idlePlayFor: (id, pose) => (still ? null : this.idlePlayFor(id, pose, now)),
       // Wetness carries state (this cat is in water), not motion, so a
       // still frame gets it at full strength rather than not at all --
       // the worn-paths and focused-eyes rule (FR-012, R6).

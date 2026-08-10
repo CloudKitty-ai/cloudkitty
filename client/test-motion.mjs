@@ -1690,5 +1690,156 @@ check('the lid clamp actually bites — a deeper brow changes nothing', () => {
   }
 });
 
+
+check('every portrait pose fits inside the card chip', () => {
+  // The chip was measured against the resting poses, and the idle vocabulary
+  // has since grown two that are bigger than any of them: `stretch` is the
+  // widest thing drawn anywhere and overran the old 54px chip by 2.2px, and
+  // an idle->sit blend at full overshoot reached 6.6px off the left edge.
+  // Nothing catches a portrait clipping except looking at it, so:
+  const app = readFileSync(join(here, 'app.js'), 'utf8');
+  const num = (name) => {
+    const m = app.match(new RegExp(`const ${name} = ([\\d.]+);`));
+    assert(m, `app.js still declares ${name}`);
+    return Number(m[1]);
+  };
+  const W = num('PORTRAIT_W');
+  const H = num('PORTRAIT_H');
+  const SIZE = num('PORTRAIT_CAT');
+  const X = num('PORTRAIT_X');
+  const Y = num('PORTRAIT_Y');
+
+  const extentOf = (draw) => {
+    const pts = [];
+    let lw = 0;
+    const ctx = new Proxy({}, {
+      get: (t, prop) => {
+        if (prop === 'canvas') return { width: W, height: H };
+        return (...a) => {
+          if (prop === 'ellipse') pts.push([a[0] - a[2], a[1] - a[3]], [a[0] + a[2], a[1] + a[3]]);
+          else if (prop === 'arc') pts.push([a[0] - a[2], a[1] - a[2]], [a[0] + a[2], a[1] + a[2]]);
+          else if (prop === 'moveTo' || prop === 'lineTo') pts.push([a[0], a[1]]);
+          else if (prop === 'quadraticCurveTo') pts.push([a[0], a[1]], [a[2], a[3]]);
+          else if (prop === 'bezierCurveTo') pts.push([a[0], a[1]], [a[2], a[3]], [a[4], a[5]]);
+        };
+      },
+      set: (t, prop, v) => {
+        if (prop === 'lineWidth' && typeof v === 'number') lw = Math.max(lw, v);
+        return true;
+      },
+    });
+    draw(ctx);
+    const xs = pts.filter((q) => Number.isFinite(q[0])).map((q) => q[0]);
+    const ys = pts.filter((q) => Number.isFinite(q[1])).map((q) => q[1]);
+    const pad = lw / 2;
+    return [
+      X + (Math.min(...xs) - pad) * SIZE, X + (Math.max(...xs) + pad) * SIZE,
+      Y + (Math.min(...ys) - pad) * SIZE, Y + (Math.max(...ys) + pad) * SIZE,
+    ];
+  };
+  const base = { appearance: CatV2.appearanceFor(2), facing: 'right', size: SIZE, x: X, y: Y };
+  const fits = (label, [x0, x1, y0, y1]) => {
+    assert(x0 >= 0, `${label}: ${(-x0).toFixed(1)}px off the LEFT of the chip`);
+    assert(x1 <= W, `${label}: ${(x1 - W).toFixed(1)}px off the RIGHT of the chip`);
+    assert(y0 >= 0, `${label}: ${(-y0).toFixed(1)}px off the TOP of the chip`);
+    assert(y1 <= H, `${label}: ${(y1 - H).toFixed(1)}px off the BOTTOM of the chip`);
+  };
+  // The poses a portrait can hold. `idlePoseFor` only ever answers sit or
+  // stretch, and the resting pose is always idle.
+  for (const pose of ['idle', 'sit', 'stretch', 'pouncing']) {
+    for (let i = 0; i <= 8; i++) {
+      fits(pose, extentOf((ctx) => CatV2.drawCat(ctx, { ...base, pose, phase: i / 8 })));
+    }
+  }
+  // And the blends into them. The portrait clamps t to [0,1] where the meadow
+  // lets `easeBack` lean past both ends -- so the clamp has to be asserted
+  // DIRECTLY. Sampling [0,1] here cannot detect its removal, because the
+  // range is this test's own choice, not the code's: measured, an unclamped
+  // idle->sit overshoot reaches 6.6px off the left of the chip and 6.5px off
+  // the bottom.
+  assert(
+    /t: Math\.min\(1, Math\.max\(0, tween\.blend\.t\)\)/.test(app),
+    'the portrait blend is no longer clamped -- the overshoot will leave the chip',
+  );
+  // The wiring itself. Geometry checks pass perfectly well on a portrait that
+  // has quietly gone back to a hardcoded 'idle', so the feature needs saying
+  // out loud.
+  assert(/view\.idlePoseFor\(id, 'idle'\)/.test(app), 'the portrait no longer asks for an idle pose');
+  assert(/idle\?\.pose \?\? 'idle'/.test(app), 'the portrait no longer USES the idle pose it asked for');
+  // And the key namespace, which is the part that breaks something else when
+  // it goes: the presentation layer's pose memory is per-key, so a portrait
+  // sharing the meadow cat's key restarts its blend every frame. Same hazard
+  // rigFor documents, on a different map.
+  assert(
+    /tweenFor\(`card\$\{id\}`/.test(app),
+    "the portrait tween must be keyed 'card' + id, never the bare id",
+  );
+  for (const to of ['sit', 'stretch', 'pouncing']) {
+    for (let i = 0; i <= 16; i++) {
+      const t = i / 16;
+      fits(`idle->${to} @t=${t.toFixed(2)}`, extentOf((ctx) =>
+        CatV2.drawCatTween(ctx, { ...base, from: 'idle', to, t, phaseFrom: 0.3, phaseTo: 0.3 })));
+    }
+  }
+});
+
+
+check('the portrait play-pounce is portrait-only and pure', () => {
+  const p = new api.Presentation();
+  // The meadow must never get one: a pounce on the map is a served fact,
+  // and inventing one would be the client asserting something the world did
+  // not say. The guard is that it only ever answers for 'idle'.
+  //
+  // Tested at a moment the beat is actually LIVE. Asserting null at an
+  // arbitrary time proves nothing: most times answer null for every pose
+  // because the beat is not running, so the guard can be deleted and the
+  // check still passes. (It did.)
+  let live = null;
+  for (let t = 0; t < 200000 && live === null; t += 100) {
+    if (p.idlePlayFor(1, 'idle', t)) live = t;
+  }
+  assert(live !== null, 'never found a moment the play-pounce was running');
+  for (const pose of ['walking', 'pouncing', 'eating', 'loaf', 'sleep-curl', 'swim']) {
+    assert(p.idlePlayFor(1, pose, live) === null, `it answered for ${pose} at a live moment`);
+  }
+  // Pure in (id, now), like every other idle decision -- a still frame and a
+  // test both have to be able to ask what a cat is doing at time T.
+  for (const t of [0, 1234, 55555, 999999]) {
+    assert(
+      JSON.stringify(p.idlePlayFor(2, 'idle', t)) === JSON.stringify(p.idlePlayFor(2, 'idle', t)),
+      `not pure at ${t}`,
+    );
+  }
+  // Four portraits must not pounce in unison.
+  let together = 0;
+  for (let t = 0; t < 600000; t += 200) {
+    if ([1, 2, 3, 4].filter((id) => p.idlePlayFor(id, 'idle', t)).length > 1) together++;
+  }
+  assert(together === 0, `${together} samples had two cats pouncing at once`);
+});
+
+check('the portrait beat is long enough for the wiggle to be a wiggle', () => {
+  // The whole reason this beat is off the served tick. `pounceWiggle`
+  // quantises to half-cycles so its sine lands on zero at the launch, and
+  // half a cycle is ONE rock -- a lean, not a wiggle. The step is sharp: at
+  // the shipped wiggleHz a 3000ms beat gives one rock and 3200 gives two, so
+  // a re-dial can cross it without looking obviously different in a still.
+  const P = CatV2.POUNCE;
+  const holdSec = (P.hold * api.VIEW.playBeatMs) / 1000;
+  const cycles = Math.max(0.5, Math.round(P.wiggleHz * holdSec * 2) / 2);
+  assert(cycles >= 1, `the portrait load holds ${cycles} cycles -- one rock, not a wiggle`);
+  // And the rock has to clear the size things read at here: the whiskers
+  // died at ~0.8px and the body bob was reverted at 0.56px.
+  const beat = { beatMs: api.VIEW.playBeatMs };
+  const rest = CatV2.catLayout('pouncing', 0, beat).body.cy;
+  let swing = 0;
+  for (let i = 0; i <= 100; i++) {
+    const L = CatV2.catLayout('pouncing', (P.hold * i) / 100, beat);
+    swing = Math.max(swing, Math.abs(L.body.cy - rest));
+  }
+  const px = swing * 47; // PORTRAIT_CAT
+  assert(px > 0.8, `the rock travels ${px.toFixed(2)}px at portrait size -- under the floor`);
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);
