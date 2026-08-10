@@ -57,13 +57,29 @@ const VIEW = Object.freeze({
   // minutes, the gaps where all four cats are still run 1.79s +/- 1.47s
   // (median 1.54s, p99 6.3s); before any of this it was a flat 0.9s.
   // Anything that makes the meadow busier is trading that feeling away.
-  idleBlinkWeight: 35,
-  idleEarsWeight: 30,
-  // A slot where nothing happens. It is what makes the other two feel
+  idleBlinkWeight: 30,
+  idleEarsWeight: 26,
+  // Added 2026-08-10, on the owner's call that the measured rarity above
+  // was about BEATS -- discrete things that punctuate -- and that
+  // continuous motion is exempt and wanted. These two are still beats, so
+  // they are priced as beats: together they take 20 of the 100 weight,
+  // which lengthens the all-four-cats-still gaps by roughly a fifth
+  // rather than filling them in. The continuous work (tail, head, gaze,
+  // ears) is not scheduled here at all -- it never stops, and it never
+  // punctuates, so it cannot spend this budget.
+  idleScanWeight: 14, // a slow look at something, or nothing
+  idleYawnWeight: 6, // rarest on purpose: a yawn you see often is a tic
+  // A slot where nothing happens. It is what makes the others feel
   // unscheduled -- and it is a real nothing, not the vestigial tail flick
   // it replaces, which quietly restarted the breathing cycle at 8x speed
   // for a tail-tip sway of 0.4px at a live 33px cat.
-  idleRestWeight: 35,
+  //
+  // 35 -> 24 (2026-08-10): the key was declared TWICE when scan and yawn
+  // landed, 24 above and the old 35 here, and the last one wins. The budget
+  // came to 111, so scan and yawn were added ON TOP of the rarity budget
+  // instead of priced into it -- the one thing the handoff said it had not
+  // done. A test now asserts the five weights total 100.
+  idleRestWeight: 24,
   // 0 = every motion on the beat (the old behaviour), 1 = anywhere in the
   // slot it still fits. The motion can never overrun its slot either way.
   // Half, owner-dialled: enough to break the metronome without letting a
@@ -143,6 +159,55 @@ const VIEW = Object.freeze({
   slowBlinkDownMs: 550, // the lid eases down ...
   slowBlinkHoldMs: 550, // ... holds ...
   slowBlinkUpMs: 450, // ... and releases
+
+  // Idle motion durations (2026-08-10). Both comfortably inside the
+  // 4600ms slot, for the same reason the slow blink has to be: `at`
+  // arrives modulo the period, so a motion longer than its own slot
+  // would always be in progress.
+  scanMs: 1500,
+  // The yawn, as three spans rather than one duration (2026-08-10). Same
+  // shape as the slow blink, and for exactly the same reason: the weight
+  // of the gesture is in the HOLD. The first cut had none -- it opened
+  // over 400ms straight into a 600ms close -- and a gape with no pause at
+  // full stretch is a mouth opening and shutting, which reads as eating
+  // rather than yawning (owner, 2026-08-10). 1420ms total, comfortably
+  // inside even the fastest cat's 4420ms slot.
+  yawnOpenMs: 340, // the jaw drops ...
+  yawnHoldMs: 620, // ... and stays down, which is the yawn ...
+  yawnCloseMs: 460, // ... then eases shut
+
+  // The on-the-spot turn (2026-08-10). Short: this is a cat pivoting on
+  // its front feet, not a considered about-face, and anything longer
+  // reads as the cat sliding through a wall.
+  turnMs: 200,
+
+  // Anticipation and overshoot on pose blends (2026-08-10). Dialled well
+  // down from the usual 1.70158 -- see easeBack.
+  blendBack: 0.5,
+
+  // The waking stretch, in TICKS rather than milliseconds (2026-08-10).
+  // tick_ms is served, and a stretch pinned to the wall clock would span
+  // a different number of served DECISIONS on a faster or slower world --
+  // so the one thing that must not drift, how many instructions can land
+  // while the cat is mid-stretch, would be exactly the thing that did.
+  // Two ticks is long enough to read as luxurious and short enough that
+  // the engine's next instruction lands after it, not through it.
+  stretchTicks: 2,
+
+  // How often an idle cat sits down instead of standing. `sitChance` is
+  // drawn once per `sitPeriodMs`, so a cat that stays put long enough
+  // will sit, get up, and sit again -- all of it hashed from (id, slot),
+  // so it stays a pure function of time and the pose blend gives the
+  // sitting-down and standing-up for free.
+  //
+  // `sitAfterTicks` is what makes it look considered. The hash decides
+  // WHETHER a stretch of time is a sitting one; this decides whether the
+  // cat has been still long enough to mean it. Without it, a one-tick
+  // pause mid-walk lands a whole sit-down and stand-up inside 800ms,
+  // which reads as a stumble rather than as a decision.
+  sitPeriodMs: 26000,
+  sitChance: 0.38,
+  sitAfterTicks: 3,
 
   // Beats (US5).
   // The observed drop is relief minus that tick's need rise, so the
@@ -288,6 +353,9 @@ const IDLE_SALTS = Object.freeze({
   tempo: 1, // each cat's own clock speed
   pick: 2, // which motion a slot gets
   offset: 3, // where in the slot it starts
+  side: 4, // and which ear a twitch belongs to
+  look: 5, // where a scan looks
+  sit: 6, // whether an idle cat is sitting this stretch of time
 });
 
 /**
@@ -316,15 +384,25 @@ function idlePeriodFor(id, dials = VIEW) {
   return dials.idleMotionPeriodMs * (1 + spread);
 }
 
-/** Which motion this slot gets, drawn from the weights. */
+/** Which motion this slot gets, drawn from the weights. A table rather
+ * than a chain of ifs since 2026-08-10: adding a fourth motion to the
+ * chain meant restating the running total in three places, which is the
+ * shape of bug that silently reweights everything downstream of it. */
 function idlePickFor(id, slot, dials = VIEW) {
-  const blink = Math.max(0, dials.idleBlinkWeight);
-  const ears = Math.max(0, dials.idleEarsWeight);
-  const total = blink + ears + Math.max(0, dials.idleRestWeight);
+  const table = [
+    ['blink', dials.idleBlinkWeight],
+    ['ears', dials.idleEarsWeight],
+    ['scan', dials.idleScanWeight],
+    ['yawn', dials.idleYawnWeight],
+    ['rest', dials.idleRestWeight],
+  ].map(([kind, w]) => [kind, Math.max(0, w || 0)]);
+  const total = table.reduce((sum, [, w]) => sum + w, 0);
   if (total <= 0) return 'rest';
-  const draw = idleHash(id, slot, IDLE_SALTS.pick) * total;
-  if (draw < blink) return 'blink';
-  if (draw < blink + ears) return 'ears';
+  let draw = idleHash(id, slot, IDLE_SALTS.pick) * total;
+  for (const [kind, w] of table) {
+    if (draw < w) return kind;
+    draw -= w;
+  }
   return 'rest';
 }
 
@@ -364,6 +442,48 @@ function slowBlinkLid(at, dials = VIEW) {
   if (at < down) return easeSmooth(at / down);
   if (at < down + hold) return 1;
   return 1 - easeSmooth((at - down - hold) / up);
+}
+
+/**
+ * A blend that leans back before it goes and drifts past before it
+ * settles: the standard in-out "back" ease, with its constant dialled a
+ * long way down from the usual 1.70158.
+ *
+ * This is only legal because pose space is LINEAR. A t of -0.03 is a real
+ * pose three percent beyond the one the cat is leaving, and 1.04 is three
+ * percent past the one it is arriving at -- so anticipation and overshoot
+ * cost no new poses and no new geometry, only a different curve through
+ * the blend that already existed. The vocabulary's poses are already
+ * extremes, which is exactly why the constant has to be small: at
+ * 1.70158 a pounce crouch overshoots into a cat folded in half.
+ */
+function easeBack(t, s = VIEW.blendBack) {
+  const c = s * 1.525;
+  return t < 0.5
+    ? ((2 * t) ** 2 * ((c + 1) * 2 * t - c)) / 2
+    : ((2 * t - 2) ** 2 * ((c + 1) * (2 * t - 2) + c) + 2) / 2;
+}
+
+/**
+ * The yawn gape at `at` ms into a yawn, or undefined once it is over.
+ *
+ * Open, hold, close -- factored out beside `slowBlinkLid` because it is
+ * the same envelope doing the same job, and because a second home for
+ * values meant to be judged in the lab and pasted back is the one place
+ * drift is guaranteed to start.
+ *
+ * As with the blink, the three spans must stay comfortably under
+ * `idleMotionPeriodMs`: `at` arrives modulo the period, so a yawn longer
+ * than its own slot would always be in progress.
+ */
+function yawnGape(at, dials = VIEW) {
+  const open = dials.yawnOpenMs;
+  const hold = dials.yawnHoldMs;
+  const close = dials.yawnCloseMs;
+  if (at < 0 || at >= open + hold + close) return undefined;
+  if (at < open) return easeSmooth(at / open);
+  if (at < open + hold) return 1;
+  return 1 - easeSmooth((at - open - hold) / close);
 }
 
 /** Where a wetness fade has got to. Resumed from `from` rather than from
@@ -422,6 +542,21 @@ class Presentation {
     // Wetness, kept apart from the pose on purpose: the drawn tile says
     // whether a cat is in water, whatever it happens to be doing there.
     this.wetness = new Map(); // id -> { on, at, from }
+    // The rig (2026-08-10): per-cat spring state for the tail, head, gaze
+    // and ears, plus the clock each was last advanced on.
+    //
+    // This is the one genuinely stateful thing in the layer, and it is
+    // safe for the same reason the pose blend is: it is dropped on every
+    // discontinuity, and `rigFor` also rebuilds any state it has not
+    // touched for a tick. So a viewer joining the feed mid-flight starts
+    // every cat's rig AT REST rather than inheriting momentum from a
+    // moment it never saw -- and a cat drawn out of a hidden tab does the
+    // same, rather than springing violently to catch up.
+    this.rigStates = new Map(); // id -> createRigState()
+    this.rigAt = new Map(); // id -> the now it was last stepped at
+    this.turns = new Map(); // id -> when this cat began turning around
+    this.wokeAt = new Map(); // id -> when it last stopped sleeping
+    this.stillSince = new Map(); // id -> tick it last had nothing to do
   }
 
   /** Reconnects and hidden-tab returns break continuity by definition. */
@@ -489,6 +624,12 @@ class Presentation {
       this.lastPose.clear();
       this.poseTween.clear();
       this.wetness.clear();
+      // Momentum belongs to a moment; a different moment starts still.
+      this.rigStates.clear();
+      this.rigAt.clear();
+      this.turns.clear();
+      this.wokeAt.clear();
+      this.stillSince.clear();
       return;
     }
 
@@ -500,6 +641,14 @@ class Presentation {
     for (const kitty of world.kitties) {
       const was = prev.kitties.find((p) => p.id === kitty.id);
       const dx = kitty.pos.x - was.pos.x;
+      // A reversal is a served fact about the pair, so the turn is
+      // stamped here rather than sniffed at draw time -- which also means
+      // a fresh connection has no turns pending and simply faces the way
+      // it was served, exactly as before.
+      const facing = this.facings.get(kitty.id);
+      if ((dx > 0 && facing === 'left') || (dx < 0 && facing === 'right')) {
+        this.turns.set(kitty.id, now);
+      }
       if (dx > 0) this.facings.set(kitty.id, 'right');
       else if (dx < 0) this.facings.set(kitty.id, 'left');
       this.movedNow.set(kitty.id, dx !== 0 || kitty.pos.y !== was.pos.y);
@@ -508,7 +657,20 @@ class Presentation {
       if (sleepingNow && was.activity?.state !== 'sleeping') {
         this.sleepingSince.set(kitty.id, world.tick);
       } else if (!sleepingNow) {
+        if (was.activity?.state === 'sleeping') this.wokeAt.set(kitty.id, now);
         this.sleepingSince.delete(kitty.id);
+      }
+
+      // How long this kitty has had nothing asked of it, in served ticks:
+      // the gate on sitting down. Movement and any named activity both
+      // count as something to do. A chase or a play needs no entry here,
+      // because those wear their own pose and never reach the idle
+      // vocabulary at all.
+      const activity = kitty.activity?.state;
+      if (this.movedNow.get(kitty.id) || (activity && activity !== 'idle')) {
+        this.stillSince.delete(kitty.id);
+      } else if (!this.stillSince.has(kitty.id)) {
+        this.stillSince.set(kitty.id, world.tick);
       }
 
       // Beats (US5, research R5): derived here, once per served pair, from
@@ -653,6 +815,131 @@ class Presentation {
   }
 
   /**
+   * Body velocity in tiles per second, screen axes (y down).
+   *
+   * Analytic rather than differenced. `posFor` is a known function of
+   * progress, so its derivative is known too -- reading it costs nothing
+   * and cannot jitter the way a frame-to-frame difference does on an
+   * uneven rAF. It is also correct on the FIRST frame after a state
+   * arrives, which a difference is not, and the first frame is exactly
+   * when a tail ought to start moving.
+   */
+  velocityFor(id, now) {
+    if (!this.curr || this.discontinuous) return { x: 0, y: 0 };
+    const is = this.curr.kitties.find((k) => k.id === id);
+    const was = this.prev?.kitties.find((p) => p.id === id);
+    if (!is || !was) return { x: 0, y: 0 };
+    const p = this.progress(now);
+    // d/dp of the blend posFor uses. A cat already walking crosses the
+    // tile linearly (slope 1); one stepping off from rest rides startEase,
+    // whose slope is 4p - 3p^2 -- and which lands at exactly 1, which is
+    // what makes the join between the two invisible.
+    const slope = this.movedBefore.get(id) ? 1 : 4 * p - 3 * p * p;
+    const perSec = 1000 / this.tickMs;
+    return {
+      x: (is.pos.x - was.pos.x) * slope * perSec,
+      y: (is.pos.y - was.pos.y) * slope * perSec,
+    };
+  }
+
+  /**
+   * How much of this cat's travel is ACROSS the screen rather than into
+   * it: 1 for a pure east/west step, 0 for due north or south. Feeds the
+   * walk's foreshortening -- see cat-v2's walking case for why a vertical
+   * walk drawn with a horizontal stride is 100% skate by construction.
+   */
+  travelHFor(id) {
+    const is = this.curr?.kitties.find((k) => k.id === id);
+    const was = this.prev?.kitties.find((p) => p.id === id);
+    if (!is || !was) return 1;
+    const dx = Math.abs(is.pos.x - was.pos.x);
+    const dy = Math.abs(is.pos.y - was.pos.y);
+    if (dx + dy === 0) return 1;
+    return dx / (dx + dy);
+  }
+
+  /** 0..1 through an on-the-spot turn, or null when this cat is not
+   * turning. Stamped from served facing changes in pushState. */
+  turnFor(id, now) {
+    const t0 = this.turns.get(id);
+    if (t0 === undefined) return null;
+    const t = (now - t0) / VIEW.turnMs;
+    if (t >= 1) {
+      this.turns.delete(id);
+      return null;
+    }
+    return t;
+  }
+
+  /**
+   * Advances one cat's rig and hands back the bag cat-v2's `applyRig`
+   * consumes. Must be called at most once per cat per frame: it
+   * integrates, so a second call in the same frame double-steps it.
+   *
+   * The motion maths lives in cat-v2 and the STATE lives here, which is
+   * the split that lets the motion lab drive rigs with no animation layer
+   * at all -- and lets the headless harness run with no cat vocabulary
+   * loaded, since a missing `stepRig` simply means no rig.
+   */
+  rigFor(key, input, now) {
+    if (typeof stepRig !== 'function') return null;
+    const last = this.rigAt.get(key);
+    let state = this.rigStates.get(key);
+    if (!state || last === undefined || now - last > this.tickMs) {
+      // No state, or a gap long enough that whatever we had describes a
+      // different moment -- a hidden tab, a spell of reduced motion, a
+      // fresh connection. Start at rest rather than springing out of
+      // stale momentum. Same rule the pose blend uses, same reason.
+      state = createRigState();
+      this.rigStates.set(key, state);
+    }
+    this.rigAt.set(key, now);
+    return stepRig(state, input, last === undefined ? 16 : Math.min(250, now - last));
+  }
+
+  /**
+   * The pose an idle cat takes on its own initiative, or null to leave
+   * the served pose alone (FR-008: idle motion can never imply an
+   * action, so both of these are things a cat does while doing nothing).
+   *
+   * Returns { pose, phase } so the caller can hand the stretch its own
+   * clock. Everything the pose tween needs comes free: sitting down,
+   * standing up, and the stretch's entry and exit are all just pose
+   * changes, and the blend was already there.
+   */
+  idlePoseFor(id, pose, now) {
+    if (!this.curr) return null;
+    if (pose !== 'idle' && pose !== 'loaf') {
+      // The engine has given this cat something to do. An interrupted
+      // stretch is ABANDONED rather than banked: resuming one later would
+      // start it halfway through, which looks worse than never having
+      // started it at all.
+      this.wokeAt.delete(id);
+      return null;
+    }
+    // A cat that just woke stretches. This is the one place the rarity
+    // budget is not consulted, because it is not scheduled: it happens
+    // exactly as often as cats wake up, which the engine decides.
+    //
+    // It fires on the OBSERVED wake, and cannot be moved to the last tick
+    // of sleep however much better that would look: a tick is not known
+    // to be the last one until the next state arrives, so anticipating it
+    // would mean predicting the world, which this layer never does.
+    const woke = this.wokeAt.get(id);
+    if (woke !== undefined) {
+      const t = (now - woke) / (VIEW.stretchTicks * this.tickMs);
+      if (t < 1) return { pose: 'stretch', phase: t };
+      this.wokeAt.delete(id);
+    }
+    if (pose !== 'idle') return null;
+    const still = this.stillSince.get(id);
+    if (still === undefined || this.curr.tick - still < VIEW.sitAfterTicks) return null;
+    const slot = Math.floor((now + id * 7919) / VIEW.sitPeriodMs);
+    if (idleHash(id, slot, IDLE_SALTS.sit) < VIEW.sitChance) return { pose: 'sit' };
+    return null;
+  }
+
+  /**
    * The fall-asleep settle (US4): on the very tick sleep begins, the first
    * half of the tick still shows the loaf, so the curl reads as a
    * transition -- and later sleeping ticks hold the curl without replaying.
@@ -704,7 +991,11 @@ class Presentation {
       out.blend = {
         from: tw.from,
         fromPhase: tw.fromPhase,
-        t: easeSmooth(elapsed / blendMs),
+        // easeBack, not easeSmooth: the blend now leans back before it
+        // goes and drifts a little past before it settles. Costs nothing
+        // -- pose space is linear, so the over- and under-shoot are real
+        // poses either side of the two ends.
+        t: easeBack(elapsed / blendMs),
       };
     }
     if (arrive && elapsed < VIEW.settleMs) {
@@ -781,15 +1072,56 @@ class Presentation {
 
     const blinkMs =
       dials.slowBlinkDownMs + dials.slowBlinkHoldMs + dials.slowBlinkUpMs;
-    const durationMs = pick === 'blink' ? blinkMs : dials.idleMotionWindowMs;
+    const yawnMs = dials.yawnOpenMs + dials.yawnHoldMs + dials.yawnCloseMs;
+    // Each motion's jitter must be bounded by its OWN length. Sharing the
+    // 420ms window let the two long motions start as late as a short one
+    // may and then run past the end of their slot -- into the next slot,
+    // where the next motion is already playing. Overlapping idle motions
+    // are precisely what the slot machinery exists to prevent.
+    const durationMs =
+      pick === 'blink' ? blinkMs
+        : pick === 'yawn' ? yawnMs
+          : pick === 'scan' ? dials.scanMs
+            : dials.idleMotionWindowMs;
     // Time into the motion itself, which is what every envelope below is
     // measured from -- negative before it starts, past `durationMs` after.
     const t = at - idleOffsetFor(id, slot, period, durationMs, dials);
 
     if (pick === 'ears') {
       if (t >= 0 && t < dials.idleMotionWindowMs) {
-        motion.earsBack = t / dials.idleMotionWindowMs < 0.5; // an ear twitch
+        const u = t / dials.idleMotionWindowMs;
+        // A continuous envelope on ONE ear, replacing a boolean that
+        // flipped BOTH for the whole window. A cat twitches one ear; two
+        // ears going back together is a mood, not a twitch, and the
+        // instant on/off was a switch rather than a motion either way.
+        // `earsBack` is kept for the v1 path, which has no rig to ease.
+        motion.earTwitch = Math.sin(u * Math.PI);
+        motion.earTwitchSide = idleHash(id, slot, IDLE_SALTS.side) < 0.5 ? -1 : 1;
+        motion.earsBack = u < 0.5;
       }
+      return motion;
+    }
+
+    if (pick === 'scan') {
+      // A slow look somewhere and back. The gaze channel is sprung in the
+      // rig, so this only has to say where and for how long.
+      if (t >= 0 && t < dials.scanMs) {
+        const u = t / dials.scanMs;
+        const env = easeSmooth(Math.min(1, u * 3)) * (1 - easeSmooth(Math.max(0, (u - 0.6) / 0.4)));
+        const dir = idleHash(id, slot, IDLE_SALTS.look);
+        motion.gaze = {
+          x: (dir * 2 - 1) * env,
+          y: (idleHash(id, slot + 7, IDLE_SALTS.look) * 1.2 - 0.7) * env,
+        };
+      }
+      return motion;
+    }
+
+    if (pick === 'yawn') {
+      // Opens quicker than it closes: the other way round reads as a
+      // hiss, which is the last thing this world wants.
+      const gape = yawnGape(t, dials);
+      if (gape !== undefined) motion.yawn = gape;
       return motion;
     }
 
@@ -813,10 +1145,32 @@ class Presentation {
     return { kind: beat.kind, t };
   }
 
-  /** Sustained expression, a pure function of the newest state (FR-010):
-   * a cat mid-pursuit wears determined eyes for as long as it hunts. */
+  /**
+   * Sustained expression, a pure function of the newest state (FR-010):
+   * a cat mid-pursuit wears the hunter's eyes for as long as it hunts.
+   *
+   * Hunting, though -- not roughhousing (owner, 2026-08-10). A cat
+   * stalking a bug is doing something predatory and should look it; a cat
+   * pouncing on another cat is playing. The pounce is the SAME pose
+   * either way, so the face is the only thing that can tell them apart --
+   * and the answer is already in the served data: what the quarry is. An
+   * element is prey; a kitty is a playmate.
+   *
+   * The expression is withheld only on positive evidence that the quarry
+   * is a kitty -- the same rule the pounce gate follows, and for the same
+   * reason. A quarry that cannot be resolved (caught or expired this very
+   * tick) keeps the hunter's face rather than losing it to a missing
+   * field, so this can never make a hunting cat look ordinary because
+   * something failed to resolve.
+   */
   expressionFor(kitty) {
-    return kitty.pursuit ? 'focused' : undefined;
+    if (!kitty.pursuit) return undefined;
+    // The served pursuit names its quarry when it can; otherwise the
+    // applied action does.
+    const target =
+      (kitty.pursuit && kitty.pursuit.target) || kitty.last_action?.target;
+    if (target && target !== 'element') return undefined;
+    return 'focused';
   }
 
   /**
@@ -911,6 +1265,30 @@ class Presentation {
       // still frame is the pose, held -- and recording skips with it, so
       // a spell of stillness can never seed a stale blend.
       tweenFor: (id, pose, phase) => (still ? null : this.tweenFor(id, pose, phase, now)),
+      // The rig (2026-08-10). Null in a still frame, which is what makes
+      // reduced motion and the snap after a discontinuity draw the
+      // un-rigged vocabulary exactly as they always did: applyRig(L, null)
+      // is the same drawing as no rig at all.
+      // A still frame gets gaze and nothing else: where a cat is looking is
+      // served state, not motion, so it survives reduced motion for the
+      // same reason the focused eyes and the worn paths do (R6, FR-012).
+      // The idle scan is not included and cannot be -- `motionFor` returns
+      // bare phase 0 in a still frame -- so only a real served target ever
+      // moves a still cat's eyes.
+      rigFor: (key, input) =>
+        still
+          ? (typeof stillRig === 'function' ? stillRig(input) : null)
+          : this.rigFor(key, input, now),
+      velocityFor: (id) => (still ? { x: 0, y: 0 } : this.velocityFor(id, now)),
+      travelHFor: (id) => this.travelHFor(id),
+      // The served beat length, so presentation code whose timing is a
+      // real-world frequency (the pounce wiggle) can derive its rate from
+      // the tick rather than assuming 800ms.
+      tickMs: this.tickMs,
+      turnFor: (id) => (still ? null : this.turnFor(id, now)),
+      // A still frame is the served pose, held -- a cat is not caught
+      // mid-stretch in a frame that is meant to have no motion in it.
+      idlePoseFor: (id, pose) => (still ? null : this.idlePoseFor(id, pose, now)),
       // Wetness carries state (this cat is in water), not motion, so a
       // still frame gets it at full strength rather than not at all --
       // the worn-paths and focused-eyes rule (FR-012, R6).

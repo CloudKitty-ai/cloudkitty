@@ -107,6 +107,34 @@ function chaseDistanceFor(kitty, world) {
   return Math.abs(kitty.pos.x - pos.x) + Math.abs(kitty.pos.y - pos.y);
 }
 
+/**
+ * Where a kitty is looking, as a unit-ish vector in screen axes -- or
+ * null when nothing in the served world has its attention.
+ *
+ * Read off the same served `last_action` reference the pounce gate
+ * already resolves, so this predicts nothing and invents nothing: if the
+ * engine said this cat is chasing that bug, the cat looks at that bug.
+ * When the reference cannot be resolved -- caught, expired, or no target
+ * at all -- the answer is null and the idle scan has the channel instead.
+ *
+ * Vertical travel is damped: eyes move much further side to side than up
+ * and down, and a pupil driven hard vertically reads as alarm.
+ */
+function gazeTargetFor(kitty, world, pos) {
+  const ref = kitty.last_action;
+  if (!ref || ref.id === undefined || ref.id === null) return null;
+  const target =
+    ref.target === 'element'
+      ? world.elements.find((el) => el.id === ref.id)?.pos
+      : world.kitties.find((k) => k.id === ref.id)?.pos;
+  if (!target) return null;
+  const dx = target.x - pos.x;
+  const dy = target.y - pos.y;
+  const m = Math.hypot(dx, dy);
+  if (m < 0.05) return null;
+  return { x: dx / m, y: (dy / m) * 0.6 };
+}
+
 /** The cat's own ground line, in its 0..1 unit space (see cat-v2). */
 const CAT_GROUND_Y = 0.88;
 
@@ -689,15 +717,27 @@ class WorldRenderer {
     // facing from its last horizontal movement, motion from the animation
     // layer -- and the drama layered by the documented rule: pose, then
     // action animation, then expression, then the single one-shot beat.
-    const pose = view.adjustPose(
+    const served = view.adjustPose(
       kitty.id,
       poseFor(kitty, view.movedFor(kitty.id), onWater, chaseDistanceFor(kitty, world)),
     );
+    // A cat with nothing asked of it may sit, or stretch on waking. Both
+    // are things a cat does while doing NOTHING, so neither can imply an
+    // action (FR-008) -- and because both are ordinary poses, the pose
+    // tween gives the sitting-down and the standing-up for free.
+    const own = v2Motion && view.idlePoseFor ? view.idlePoseFor(kitty.id, served) : null;
+    const pose = own ? own.pose : served;
 
     const motion = view.motionFor(kitty.id, pose);
+    if (own && own.phase !== undefined) motion.phase = own.phase;
     const beat = view.oneShotFor(kitty.id);
     let eyes = motion.eyesOverride;
     let ears = motion.earsBack;
+    // Ears held back as a MOOD, as opposed to the transient twitch. Only
+    // the mood goes through the rig, where it eases; the twitch has its
+    // own continuous channel, and letting both drive one input would make
+    // every twitch look like a flinch.
+    let earsHold = false;
     let lid;
     if (v2Motion && motion.blinkLid !== undefined) {
       lid = motion.blinkLid;
@@ -714,10 +754,49 @@ class WorldRenderer {
       // and it outranks a blink in progress, exactly as it did pre-lid
       // (a full lid would promote the droop to the happy closed arcs).
       ears = true;
+      earsHold = true;
       eyes = 'half';
       lid = undefined;
     }
     const tween = v2Motion && view.tweenFor ? view.tweenFor(kitty.id, pose, motion.phase) : null;
+
+    // The rig (2026-08-10): the motion that is not a pose. Velocity comes
+    // from the served pair analytically, gaze from the served action, and
+    // the springs live in the animation layer -- so a still frame passes
+    // no rig at all and draws exactly the vocabulary it always did.
+    const turn = v2Motion && view.turnFor ? view.turnFor(kitty.id) : null;
+    // The facing as DRAWN, which mid-turn is still the pre-turn one. The
+    // rig has to see the same value the drawing does, or it flips its
+    // world-space momentum half a turn early.
+    const drawnFacing =
+      typeof turnFacing === 'function'
+        ? turnFacing(view.facingFor(kitty.id), turn)
+        : view.facingFor(kitty.id);
+    const vel = v2Motion && view.velocityFor ? view.velocityFor(kitty.id) : { x: 0, y: 0 };
+    const gaze = (v2Motion && gazeTargetFor(kitty, world, pos)) || motion.gaze || null;
+    const rig =
+      v2Motion && view.rigFor
+        ? view.rigFor(kitty.id, {
+            vx: vel.x,
+            vy: vel.y,
+            facing: drawnFacing,
+            gazeX: gaze ? gaze.x : 0,
+            gazeY: gaze ? gaze.y : 0,
+            earTwitch: motion.earTwitch || 0,
+            earTwitchSide: motion.earTwitchSide || 1,
+            earsBack: earsHold ? 1 : 0,
+            yawn: motion.yawn || 0,
+            breath: motion.phase || 0,
+          })
+        : null;
+    // Which way this cat is actually travelling, for the walk's
+    // foreshortening. See cat-v2's walking case: a vertical walk drawn
+    // with a horizontal stride is 100% skate, by construction.
+    const layout = {
+      travelH: view.travelHFor ? view.travelHFor(kitty.id) : 1,
+      // How long one beat lasts, for motion authored as a real frequency.
+      beatMs: view.tickMs,
+    };
 
     // Wetness is a fact about the tile, not the pose (owner call,
     // 2026-08-04). `poseFor` lets an activity outrank the wade, so a cat
@@ -806,19 +885,29 @@ class WorldRenderer {
     if (tween?.sy !== undefined) {
       // The landing settle: a soft squash about the ground line, so the
       // feet stay planted (the dispatcher's overdraw anchors feet too).
+      // Volume-preserving since 2026-08-10: a squash that only loses
+      // height reads as the cat shrinking rather than as weight arriving.
+      // Compressed about the ground line so the paws stay planted, and
+      // widened about the cat's own middle so the mass has somewhere to go.
       const groundY = y + 0.88 * this.tile;
+      const midX = x + this.tile / 2;
       ctx.save();
-      ctx.translate(0, groundY);
-      ctx.scale(1, tween.sy);
-      ctx.translate(0, -groundY);
+      ctx.translate(midX, groundY);
+      ctx.scale(1 + (1 - tween.sy) * 0.7, tween.sy);
+      ctx.translate(-midX, -groundY);
     }
     const catOpts = {
       appearance: shadedAppearanceOf(appearanceFor(kitty.id), this.theme),
       facing: view.facingFor(kitty.id),
       size: this.tile,
       eyesOverride: eyes,
-      earsBack: ears,
+      // On the v2 path the rig owns the ears, so the hard boolean (which
+      // sets them fully back in one frame) is left to v1.
+      earsBack: v2Motion ? undefined : ears,
       lid,
+      rig,
+      turn,
+      layout,
       x,
       y,
     };
@@ -830,6 +919,10 @@ class WorldRenderer {
         t: tween.blend.t,
         phaseFrom: tween.blend.fromPhase,
         phaseTo: motion.phase,
+        // The outgoing pose was travelling the same way the incoming one
+        // is: a walk blending out has to keep its foreshortening or the
+        // stride pops back to full width on the way to standing.
+        layoutFrom: layout,
       });
     } else {
       drawCat(ctx, { ...catOpts, pose, phase: motion.phase });

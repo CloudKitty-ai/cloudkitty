@@ -239,6 +239,39 @@
     });
   }
 
+  // The rig's dials, and the walk dials the rig is judged against. One bag,
+  // because you cannot tune a tail's drag without the gait it drags behind.
+  const RIG_BAG = {};
+  for (const [k, src] of [
+    ['tailDrag', 'RIG'], ['tailOmega', 'RIG'], ['tailZeta', 'RIG'], ['tailWhip', 'RIG'],
+    ['tailMax', 'RIG'], ['headDrag', 'RIG'], ['headOmega', 'RIG'], ['headZeta', 'RIG'],
+    ['gazePupil', 'RIG'], ['gazeEar', 'RIG'],
+  ]) {
+    Object.defineProperty(RIG_BAG, k, {
+      get: () => CatV2[src][k], set: (v) => { CatV2[src][k] = v; }, enumerable: true,
+    });
+  }
+
+  // The hunting face. The variant object is frozen, so the bag writes into a
+  // thawed copy and swaps it in -- otherwise every dial would silently no-op,
+  // which is exactly the failure mode the handoff warns about for the clamp.
+  const FOCUS_BAG = {};
+  for (const k of ['focusLidTilt', 'focusLid', 'focusLowerLid', 'focusPupilBase', 'focusGrow']) {
+    Object.defineProperty(FOCUS_BAG, k, {
+      get: () => CatV2.FOCUS_VARIANTS[CatV2.EYE.focusVariant][k],
+      set: (v) => {
+        const name = CatV2.EYE.focusVariant;
+        CatV2.FOCUS_VARIANTS[name] = { ...CatV2.FOCUS_VARIANTS[name], [k]: v };
+      },
+      enumerable: true,
+    });
+  }
+  Object.defineProperty(FOCUS_BAG, 'focusBrowGraze', {
+    get: () => CatV2.EYE.focusBrowGraze,
+    set: (v) => { CatV2.EYE.focusBrowGraze = v; },
+    enumerable: true,
+  });
+
   const POUNCE_BAG = {};
   for (const k of Object.keys(CatV2.POUNCE)) {
     Object.defineProperty(POUNCE_BAG, k, {
@@ -751,6 +784,161 @@
       },
     },
     {
+      title: 'Hunter\'s face — at the size it ships',
+      note: 'The ordinary eye and the hunting eye, at the live tile sizes and at 4x. This is the feature most at risk in the whole upgrade: the eyes are the smallest thing we draw, and the handoff\'s own notes concede that ears-forward "is the one cue still readable at 31px when the eyes are not". So judge the leftmost pair first — if the two faces do not read differently at 31px, the dials below are decoration, however good they look at 4x. focusLidTilt is the menace axis: 0.20 ships, 0.34 read as evil, 0 is pure concentration. The lid clamp (focusBrowGraze) is load-bearing — without it a brow deep enough to read as concentration crops the pupil, and the geometry reports a pupil GROWING while the drawing shrinks, so the dial chases itself forever.',
+      v2Only: true,
+      w: 560,
+      h: 200,
+      bag: FOCUS_BAG,
+      dials: [
+        { key: 'focusLidTilt', label: 'BROW ANGLE — the menace axis (0.34 read as evil)', min: -0.1, max: 0.4, step: 0.01 },
+        { key: 'focusLid', label: 'brow depth', min: 0, max: 0.3, step: 0.01 },
+        { key: 'focusLowerLid', label: 'cheek lift', min: 0, max: 0.4, step: 0.01 },
+        { key: 'focusPupilBase', label: 'pupil base (dilation needs headroom under the ceiling)', min: 0.4, max: 0.95, step: 0.01 },
+        { key: 'focusGrow', label: 'how much the aperture itself opens', min: 0, max: 0.4, step: 0.01 },
+        { key: 'focusBrowGraze', label: 'LID CLAMP — how close a lid may come to the pupil', min: 0, max: 0.1, step: 0.005 },
+      ],
+      readout() {
+        const name = CatV2.EYE.focusVariant;
+        const F0 = CatV2.FOCUS_VARIANTS[name];
+        const F = { ...CatV2.EYE, ...F0 };
+        // The lid clamp, recomputed exactly as drawFace does it, so the
+        // EFFECTIVE lid is on screen next to the asked-for one. Both lids
+        // ship above their room, so the top of each slider's range does
+        // nothing -- and a dial that has stopped responding is the failure
+        // this clamp's own notes warn about.
+        const er = 0.226 * CatV2.EYE.scale;
+        const grow = 1 + (F.focusGrow || 0);
+        const rh = er * F.apertureH * (1 - F.focusSquash) * grow;
+        const focusDil = F.focusDilate ? Math.max(0.95, F.focusDilate) : null;
+        const share = focusDil ? (F.focusPupilBase || F.pupil) * focusDil : F.focusPupilH;
+        const ph = Math.min(rh * share, rh * F.pupilMax);
+        const graze = ph * (1 - F.focusBrowGraze);
+        const room = (curve, dir) => (rh + dir * (er * 0.06 + er * curve) - graze) / (2 * rh);
+        const brow = room(-F.focusLidCurve, 1);
+        const cheek = room(-F.focusLowerCurve, -1);
+        const cap = (asked, avail) =>
+          asked > avail + 1e-9 ? `${asked} → clamped to ${avail.toFixed(3)}` : `${asked}`;
+        return (
+          `EYE.focusVariant = '${name}'   ·   EYE.focusBrowGraze = ${CatV2.EYE.focusBrowGraze}\n`
+          + `FOCUS_VARIANTS.${name} = { focusLidTilt: ${F0.focusLidTilt}, focusLid: ${F0.focusLid}, `
+          + `focusLowerLid: ${F0.focusLowerLid},\n`
+          + `    focusPupilBase: ${F0.focusPupilBase}, focusGrow: ${F0.focusGrow} }\n`
+          + `brow ${cap(F0.focusLid, brow)}   ·   cheek ${cap(F0.focusLowerLid, cheek)}\n`
+          + `the pupil survives at ${(2 * ph * 31).toFixed(2)}px across on a 31px tile, `
+          + `${(2 * ph * 54).toFixed(2)}px at 54 — the whole hunting read rides on that\n`
+          + `for scale: the outline is ${(0.035 * 31).toFixed(2)}px, the cut whiskers were ~0.8px`
+        );
+      },
+      draw(ctx, w, h, now) {
+        const phase = ((now / 3400) % 1 + 1) % 1;
+        const cat = CatV2.appearanceFor(4);
+        const cols = [
+          { size: 31, label: '31px — the demo world' },
+          { size: 54, label: '54px — a large display' },
+          { size: 124, label: '4x' },
+        ];
+        let x = 16;
+        for (const { size, label } of cols) {
+          const y = h - size * 0.95 - 22;
+          // Ordinary, then hunting, drawn through the shipped pose so what is
+          // judged here is what ships.
+          CatV2.drawCat(ctx, {
+            pose: 'pouncing', phase: 0.1, appearance: cat,
+            facing: 'right', size, x, y,
+          });
+          CatV2.drawCat(ctx, {
+            pose: 'pouncing', phase: 0.1, appearance: cat, eyesOverride: 'focused',
+            facing: 'right', size, x: x + size * 1.05, y,
+          });
+          ctx.fillStyle = '#6b7280';
+          ctx.font = '11px ui-monospace, monospace';
+          ctx.textAlign = 'left';
+          ctx.fillText(label, x, h - 6);
+          x += size * 2.2 + 22;
+        }
+        ctx.fillStyle = '#9ca3af';
+        ctx.fillText('each pair: ordinary eye, then hunting eye', 16, 14);
+      },
+    },
+    {
+      title: 'The rig — drag and settle',
+      note: 'The same cat twice, driven by the same motion: LEFT is the un-rigged vocabulary, RIGHT has the rig. It walks, stops, and waits — the stop is the half worth watching, because drag is only half the effect and the settle after it is the other half. Measured at a 31px tile the tail tip carries 2.55px and the head 1.06px, against a 1.09px outline; for scale the whiskers that were cut were 0.8px and the reverted body bob 0.56px. This is the first cat-art feature in the arc that clears that bar. The rig springs toward zero from every channel, so at rest the right-hand cat is drawn bit-identically to the left — if you can see a difference while both are standing still, that is a bug, not a dial.',
+      v2Only: true,
+      w: 560,
+      h: 210,
+      bag: RIG_BAG,
+      dials: [
+        { key: 'tailDrag', label: 'TAIL DRAG (trail per tile/s)', min: 0, max: 0.08, step: 0.002 },
+        { key: 'tailZeta', label: 'tail damping (<1 rings after a stop)', min: 0.2, max: 1.2, step: 0.01 },
+        { key: 'tailOmega', label: 'tail spring rate (lower = heavier)', min: 3, max: 20, step: 0.5 },
+        { key: 'tailWhip', label: 'how much further the tip goes than the mid', min: 1, max: 3, step: 0.05 },
+        { key: 'tailMax', label: 'clamp: the tail never flings off-box', min: 0.04, max: 0.2, step: 0.005 },
+        { key: 'headDrag', label: 'head lead into a move', min: 0, max: 0.06, step: 0.002 },
+        { key: 'headZeta', label: 'head damping (<1 overshoots on the stop)', min: 0.2, max: 1.2, step: 0.01 },
+        { key: 'gazePupil', label: 'how far the pupils travel to a target', min: 0, max: 0.8, step: 0.02 },
+      ],
+      readout() {
+        const R = CatV2.RIG;
+        const px = (u, t) => (u * t).toFixed(2);
+        return (
+          `RIG = { tailDrag: ${R.tailDrag}, tailOmega: ${R.tailOmega}, tailZeta: ${R.tailZeta}, `
+          + `tailWhip: ${R.tailWhip}, tailMax: ${R.tailMax},\n`
+          + `        headDrag: ${R.headDrag}, headOmega: ${R.headOmega}, headZeta: ${R.headZeta}, `
+          + `gazePupil: ${R.gazePupil}, gazeEar: ${R.gazeEar} }\n`
+          + `tail clamp reaches ${px(R.tailMax, 31)}px at a 31px tile, ${px(R.tailMax, 54)}px at 54`
+          + `   ·   outline is ${px(0.035, 31)}px / ${px(0.035, 54)}px\n`
+          + `the cut whiskers were ~0.8px; the reverted body bob 0.56px peak-to-peak`
+        );
+      },
+      draw(ctx, w, h, now) {
+        // One virtual cat, walking and stopping on a loop, so drag and settle
+        // are both on screen. Velocity is the DERIVATIVE of that motion, the
+        // same way the live client derives it analytically rather than
+        // differencing frames.
+        const SIZE = 92;
+        const LOOP = 4200;
+        const t = (now % LOOP) / LOOP;
+        const travel = t < 0.5 ? Math.min(1, t / 0.42) : 1; // walk, then stand
+        const speed = t < 0.42 ? 1 / 0.42 : 0; // tiles per loop-unit
+        const vx = (speed * 1000) / LOOP; // tiles per second
+        const phase = ((now / 800) % 1 + 1) % 1;
+        if (!this._rig) this._rig = CatV2.createRigState();
+        const dt = Math.min(50, now - (this._last ?? now - 16));
+        this._last = now;
+        const rig = CatV2.stepRig(this._rig, {
+          vx, vy: 0, facing: 'right', gazeX: 0, gazeY: 0,
+          earTwitch: 0, earTwitchSide: 1, earsBack: 0, yawn: 0, breath: phase,
+        }, dt);
+        const pose = speed > 0 ? 'walking' : 'idle';
+        const y = h - SIZE * 0.95 - 18;
+        const cat = CatV2.appearanceFor(2);
+        const glide = 40 + travel * 90;
+        for (const [i, useRig] of [[0, false], [1, true]]) {
+          const ox = 20 + i * (w / 2 - 10);
+          // drawCat takes the rig directly, so this card goes through exactly
+          // the entry point the renderer uses -- no second drawing path.
+          CatV2.drawCat(ctx, {
+            pose, phase, appearance: cat, facing: 'right',
+            size: SIZE, x: ox + glide * 0.55, y,
+            rig: useRig ? rig : null,
+          });
+          ctx.fillStyle = '#6b7280';
+          ctx.font = '11px ui-monospace, monospace';
+          ctx.textAlign = 'left';
+          ctx.fillText(useRig ? 'with the rig' : 'un-rigged (today)', ox, h - 4);
+        }
+        // A ground mark, so the stop is legible as a stop.
+        ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+        ctx.beginPath();
+        ctx.moveTo(0, y + SIZE * 0.88);
+        ctx.lineTo(w, y + SIZE * 0.88);
+        ctx.stroke();
+        ctx.fillStyle = '#9ca3af';
+        ctx.fillText(speed > 0 ? 'walking' : 'stopped — watch the tail settle', 20, 14);
+      },
+    },
+    {
       title: 'Sleeping head',
       note: 'The sleeping cat next to the same cat awake, at the live tile size and at 3x. The head radius is the one measured outlier in the vocabulary: idle and swim are 0.226, loaf 0.221, pounce 0.215, and sleep alone was 0.173 — 23% under the base, which is why the sleeper reads as a smaller animal rather than the same one curled up. The awake cat beside it is the reference; the dial is a hit when the two heads look like they belong to one cat. Growing it moves the head against the body, so position is dialled here too. blendLayouts already interpolates head.r, so this blends in and out of sleep rather than popping.',
       v2Only: true,
@@ -946,7 +1134,7 @@
     },
     {
       title: 'Pounce',
-      note: 'The pounce used to be a two-position switch at phase 0.45 — loaded, then suddenly extended, with nothing in between, which is why it popped. Now it holds the load, launches, and holds the reach. Both ends are the same drawings as before; only the frames between them are new. The filmstrip samples the beat evenly, so a flat run of frames means the cat is holding and a crowded one means it is moving.',
+      note: 'The pounce used to be a two-position switch at phase 0.45 — loaded, then suddenly extended, with nothing in between, which is why it popped. It is now a FULL BEAT: load (with a butt-wiggle), launch, land, recover — so unlike the old version it comes back down and phase 1 lands exactly on phase 0. The crouch and the leap are still the same drawings; only when they happen changed. The filmstrip samples the beat evenly, so a flat run of frames means the cat is holding and a crowded one means it is moving. The wiggle is a real frequency: it was authored as "2.5 rocks per load", which is a share of a beat rather than a speed, so a 176ms load ran it at 14Hz — a vibration. Above ~6Hz it reads as one again.',
       v2Only: true,
       w: 560,
       h: 200,
@@ -955,23 +1143,65 @@
       dials: [
         { key: 'hold', label: 'time spent LOADED before anything moves', min: 0, max: 0.7, step: 0.01 },
         { key: 'launch', label: 'time spent EXTENDING into the leap', min: 0.04, max: 0.6, step: 0.01 },
+        { key: 'land', label: 'time spent ABSORBING the landing', min: 0.04, max: 0.4, step: 0.01 },
         { key: 'snap', label: 'how front-loaded the launch is (1 = even, higher = snappier)', min: 1, max: 5, step: 0.1 },
+        { key: 'wiggleHz', label: 'pre-launch rock, in Hz (above ~6 reads as a vibration)', min: 0.5, max: 8, step: 0.1 },
+        { key: 'wiggleAmp', label: 'and how far it rocks', min: 0, max: 0.05, step: 0.002 },
         { key: 'twitch', label: 'tail-tip twitch while loading', min: 0, max: 0.06, step: 0.002 },
       ],
       readout() {
+        // Emits ALL EIGHT keys. It used to emit the four it dialled, which is
+        // how a paste came back without `land` or the wiggle -- a readout that
+        // does not name a field silently proposes deleting it.
         const P = CatV2.POUNCE, TICK = 800;
         const held = P.hold * TICK;
         const out = P.launch * TICK;
-        const rest = Math.max(0, TICK - held - out);
+        const down = P.land * TICK;
+        const back = TICK - held - out - down;
         // Where the extension actually happens, as opposed to where the
         // window is: with snap > 1 most of the travel is in its first part.
         const half = P.launch * (1 - 0.5 ** (1 / P.snap));
+        // What the wiggle actually runs at, after the quantiser lands it on
+        // zero at the launch. This is the number that was 14Hz.
+        const holdSec = held / 1000;
+        const cycles = Math.max(0.5, Math.round(P.wiggleHz * holdSec * 2) / 2);
+        const realHz = holdSec > 0 ? cycles / holdSec : 0;
+        // The rock's real peak, sampled off the shipped pose. Not derived
+        // from wiggleAmp: the wiggle rides an envelope, so the dial is not
+        // the travel.
+        const rest = CatV2.catLayout('pouncing', 0, { beatMs: TICK }).body.cy;
+        let swing = 0;
+        for (let i = 0; i <= 60; i++) {
+          const L = CatV2.catLayout('pouncing', (P.hold * i) / 60, { beatMs: TICK });
+          swing = Math.max(swing, Math.abs(L.body.cy - rest));
+        }
         return (
-          `POUNCE = { hold: ${P.hold}, launch: ${P.launch}, snap: ${P.snap}, twitch: ${P.twitch} }\n` +
-          `loaded ${held.toFixed(0)}ms → extends over ${out.toFixed(0)}ms → reaching for ${rest.toFixed(0)}ms` +
-          ` (one 800ms tick)\n` +
-          `half the extension is done ${(half * TICK).toFixed(0)}ms in` +
-          (rest <= 0 ? '\n⚠ the launch runs past the beat — the cat never reaches full extension' : '')
+          `POUNCE = { hold: ${P.hold}, launch: ${P.launch}, land: ${P.land}, snap: ${P.snap},\n`
+          + `           wiggleHz: ${P.wiggleHz}, wiggleAmp: ${P.wiggleAmp}, `
+          + `wiggleRot: ${P.wiggleRot}, twitch: ${P.twitch} }\n`
+          + `load ${held.toFixed(0)}ms → launch ${out.toFixed(0)}ms → land ${down.toFixed(0)}ms `
+          + `→ recover ${back.toFixed(0)}ms  (one 800ms tick)\n`
+          + `half the extension is done ${(half * TICK).toFixed(0)}ms in   ·   `
+          + `the wiggle runs ${cycles} cycles = ${realHz.toFixed(2)}Hz\n`
+          // The quantiser floors at half a cycle, so below a threshold that
+          // depends on the LOAD length this dial does nothing at all -- and a
+          // dial that has stopped responding looks like one that needs more
+          // turning. Say so rather than let it be rediscovered.
+          + `wiggleHz does nothing below ${(1.5 / holdSec / 2).toFixed(2)}Hz at this load `
+          + `(half a cycle is the floor) — to rock SLOWER than ${(0.5 / holdSec).toFixed(2)}Hz, `
+          + `lengthen the load\n`
+          // And the amplitude in real pixels, against the floor this project
+          // keeps rediscovering: whiskers died at 0.8px, the body bob at 0.56.
+          //
+          // Measured off the pose rather than from wiggleAmp directly. The
+          // rock rides an envelope, so its peak is ~0.77 of the dial, and the
+          // factor moves with `cycles` -- quoting the dial itself overstates
+          // the travel by a quarter.
+          + `body rocks ${(swing * 31).toFixed(2)}px at a 31px tile, `
+          + `${(swing * 54).toFixed(2)}px at 54`
+          + (swing * 54 < 0.6 ? '  ⚠ below the size anything has ever read at here' : '')
+          + (realHz > 6 ? '\n⚠ above ~6Hz the rock reads as a vibration' : '')
+          + (back < 0 ? '\n⚠ the phases overrun the beat — the cat never finishes recovering' : '')
         );
       },
       draw(ctx, w, h, now) {
