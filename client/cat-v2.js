@@ -732,8 +732,13 @@ const POUNCE = {
   // as the body bob running at twice the gait cycle, and the same lesson --
   // what reads as "shaking" is almost always rate, not amplitude, because
   // acceleration goes as the SQUARE of the rate.
-  wiggleHz: 3.2, // rocks per second
-  wiggleAmp: 0.022, // vertical, in units -- up a little, now that it is slow
+  // NOTE the quantiser below floors this at half a cycle, so at the shipped
+  // 192ms load anything under ~3.9 lands on the same 2.60Hz rock. Owner set
+  // 1 (2026-08-10) knowing that: it is the amplitude that moved. To get a
+  // rock genuinely SLOWER than 2.6Hz, lengthen `hold` -- a half cycle over
+  // the load is the floor by construction.
+  wiggleHz: 1, // rocks per second
+  wiggleAmp: 0.012, // vertical, in units
   wiggleRot: 0.06, // and the lean that comes with it, in radians
   twitch: 0, // tail-tip twitch while loading -- kept, and kept at 0
 };

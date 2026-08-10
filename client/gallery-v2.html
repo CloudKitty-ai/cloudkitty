@@ -1156,8 +1156,20 @@
           + `load ${held.toFixed(0)}ms → launch ${out.toFixed(0)}ms → land ${down.toFixed(0)}ms `
           + `→ recover ${back.toFixed(0)}ms  (one 800ms tick)\n`
           + `half the extension is done ${(half * TICK).toFixed(0)}ms in   ·   `
-          + `the wiggle runs ${cycles} cycles = ${realHz.toFixed(2)}Hz`
-          + (realHz > 6 ? '  ⚠ reads as a vibration' : '')
+          + `the wiggle runs ${cycles} cycles = ${realHz.toFixed(2)}Hz\n`
+          // The quantiser floors at half a cycle, so below a threshold that
+          // depends on the LOAD length this dial does nothing at all -- and a
+          // dial that has stopped responding looks like one that needs more
+          // turning. Say so rather than let it be rediscovered.
+          + `wiggleHz does nothing below ${(1.5 / holdSec / 2).toFixed(2)}Hz at this load `
+          + `(half a cycle is the floor) — to rock SLOWER than ${(0.5 / holdSec).toFixed(2)}Hz, `
+          + `lengthen the load\n`
+          // And the amplitude in real pixels, against the floor this project
+          // keeps rediscovering: whiskers died at 0.8px, the body bob at 0.56.
+          + `rump travels ~${(P.wiggleAmp * 31).toFixed(2)}px at a 31px tile, `
+          + `~${(P.wiggleAmp * 54).toFixed(2)}px at 54`
+          + (P.wiggleAmp * 54 < 0.6 ? '  ⚠ below the size anything has ever read at here' : '')
+          + (realHz > 6 ? '\n⚠ above ~6Hz the rock reads as a vibration' : '')
           + (back < 0 ? '\n⚠ the phases overrun the beat — the cat never finishes recovering' : '')
         );
       },
