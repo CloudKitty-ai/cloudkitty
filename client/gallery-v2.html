@@ -799,17 +799,34 @@
         { key: 'focusBrowGraze', label: 'LID CLAMP — how close a lid may come to the pupil', min: 0, max: 0.1, step: 0.005 },
       ],
       readout() {
-        const V = CatV2.EYE.focusVariant;
-        const F = CatV2.FOCUS_VARIANTS[V];
-        const px = (u, t) => (u * CatV2.EYE.scale * t).toFixed(2);
+        const name = CatV2.EYE.focusVariant;
+        const F0 = CatV2.FOCUS_VARIANTS[name];
+        const F = { ...CatV2.EYE, ...F0 };
+        // The lid clamp, recomputed exactly as drawFace does it, so the
+        // EFFECTIVE lid is on screen next to the asked-for one. Both lids
+        // ship above their room, so the top of each slider's range does
+        // nothing -- and a dial that has stopped responding is the failure
+        // this clamp's own notes warn about.
+        const er = 0.226 * CatV2.EYE.scale;
+        const grow = 1 + (F.focusGrow || 0);
+        const rh = er * F.apertureH * (1 - F.focusSquash) * grow;
+        const focusDil = F.focusDilate ? Math.max(0.95, F.focusDilate) : null;
+        const share = focusDil ? (F.focusPupilBase || F.pupil) * focusDil : F.focusPupilH;
+        const ph = Math.min(rh * share, rh * F.pupilMax);
+        const graze = ph * (1 - F.focusBrowGraze);
+        const room = (curve, dir) => (rh + dir * (er * 0.06 + er * curve) - graze) / (2 * rh);
+        const brow = room(-F.focusLidCurve, 1);
+        const cheek = room(-F.focusLowerCurve, -1);
+        const cap = (asked, avail) =>
+          asked > avail + 1e-9 ? `${asked} → clamped to ${avail.toFixed(3)}` : `${asked}`;
         return (
-          `EYE.focusVariant = '${V}'\n`
-          + `FOCUS_VARIANTS.${V} = { focusLidTilt: ${F.focusLidTilt}, focusLid: ${F.focusLid}, `
-          + `focusLowerLid: ${F.focusLowerLid},\n`
-          + `    focusPupilBase: ${F.focusPupilBase}, focusGrow: ${F.focusGrow}, `
-          + `focusBrowGraze: ${CatV2.EYE.focusBrowGraze} }\n`
-          + `one eye spans ${px(1, 31)}px at a 31px tile, ${px(1, 54)}px at 54 — `
-          + `the brow moves ${(F.focusLid * CatV2.EYE.scale * 31).toFixed(2)}px of that at 31px\n`
+          `EYE.focusVariant = '${name}'   ·   EYE.focusBrowGraze = ${CatV2.EYE.focusBrowGraze}\n`
+          + `FOCUS_VARIANTS.${name} = { focusLidTilt: ${F0.focusLidTilt}, focusLid: ${F0.focusLid}, `
+          + `focusLowerLid: ${F0.focusLowerLid},\n`
+          + `    focusPupilBase: ${F0.focusPupilBase}, focusGrow: ${F0.focusGrow} }\n`
+          + `brow ${cap(F0.focusLid, brow)}   ·   cheek ${cap(F0.focusLowerLid, cheek)}\n`
+          + `the pupil survives at ${(2 * ph * 31).toFixed(2)}px across on a 31px tile, `
+          + `${(2 * ph * 54).toFixed(2)}px at 54 — the whole hunting read rides on that\n`
           + `for scale: the outline is ${(0.035 * 31).toFixed(2)}px, the cut whiskers were ~0.8px`
         );
       },

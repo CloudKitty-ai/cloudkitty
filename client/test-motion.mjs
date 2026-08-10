@@ -1624,5 +1624,71 @@ check('the pounce readout names every dial it could delete', () => {
   }
 });
 
+
+check('neither focused lid may eat the pupil (invariant 3)', () => {
+  // The handoff's third invariant, and the one whose failure is invisible
+  // from the dials: a brow deep enough to read as concentration crops the
+  // pupil, and the geometry reports it GROWING while the drawing shrinks.
+  // Both shipped lids ask for more than the clamp allows, so this is not a
+  // hypothetical -- it is load-bearing on every frame of every hunt.
+  for (const name of Object.keys(CatV2.FOCUS_VARIANTS)) {
+    const F = { ...CatV2.EYE, ...CatV2.FOCUS_VARIANTS[name] };
+    const er = 0.226 * CatV2.EYE.scale;
+    const grow = 1 + (F.focusGrow || 0);
+    const rh = er * F.apertureH * (1 - F.focusSquash) * grow;
+    const focusDil = F.focusDilate ? Math.max(0.95, F.focusDilate) : null;
+    const share = focusDil ? (F.focusPupilBase || F.pupil) * focusDil : F.focusPupilH;
+    const ph = Math.min(rh * share, rh * F.pupilMax);
+    const graze = ph * (1 - F.focusBrowGraze);
+    const room = (curve, dir) => (rh + dir * (er * 0.06 + er * curve) - graze) / (2 * rh);
+    // The clamp must leave the lid somewhere to sit: a NEGATIVE room means
+    // even a closed-to-zero lid would cross the pupil, which is unrecoverable.
+    assert(room(-F.focusLidCurve, 1) > 0, `${name}: the brow has no room at all`);
+    assert(room(-F.focusLowerCurve, -1) > 0, `${name}: the cheek has no room at all`);
+    // The pupil has to survive at the size it actually ships at -- but only
+    // the SHIPPING take has to clear that bar. The alternatives exist to be
+    // compared in the lab, and `cheek` is deliberately the gentlest: no
+    // dilation at all, which leaves it a 1.35px pupil at a 31px tile. Worth
+    // knowing before anyone switches to it, not worth failing over.
+    if (name === CatV2.EYE.focusVariant) {
+      assert(
+        2 * ph * 31 > 2,
+        `the shipping take '${name}' has a ${(2 * ph * 31).toFixed(2)}px pupil at a 31px tile`,
+      );
+    }
+  }
+});
+
+check('the lid clamp actually bites — a deeper brow changes nothing', () => {
+  // The check above only proves the clamp has room to work in. THIS proves it
+  // is applied: both shipped lids already ask for more than they can have, so
+  // asking for far more must draw the identical frame. If the clamp were
+  // removed or mis-signed, the extra depth would reach the drawing and the
+  // command streams would diverge.
+  const name = CatV2.EYE.focusVariant;
+  const original = CatV2.FOCUS_VARIANTS[name];
+  const draw = () => {
+    const log = [];
+    CatV2.drawCat(guardCtx(log), {
+      pose: 'pouncing', phase: 0.1, appearance: CatV2.appearanceFor(4),
+      facing: 'right', size: 200, x: 0, y: 0, eyesOverride: 'focused',
+    });
+    return JSON.stringify(log);
+  };
+  try {
+    const asShipped = draw();
+    CatV2.FOCUS_VARIANTS[name] = { ...original, focusLid: original.focusLid * 4 };
+    assert(draw() === asShipped, 'a 4x deeper brow reached the drawing -- the clamp is not biting');
+    CatV2.FOCUS_VARIANTS[name] = { ...original, focusLowerLid: original.focusLowerLid * 4 };
+    assert(draw() === asShipped, 'a 4x deeper cheek reached the drawing -- the clamp is not biting');
+    // And the clamp must not be clamping EVERYTHING: a lid asking for less
+    // than its room has to still move, or the dial is dead in both directions.
+    CatV2.FOCUS_VARIANTS[name] = { ...original, focusLid: 0.02 };
+    assert(draw() !== asShipped, 'a shallow brow changed nothing -- the dial is dead');
+  } finally {
+    CatV2.FOCUS_VARIANTS[name] = original;
+  }
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

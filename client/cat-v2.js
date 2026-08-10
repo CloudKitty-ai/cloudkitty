@@ -1065,7 +1065,7 @@ const FOCUS_VARIANTS = ({
     // angle is the menace and the DEPTH is the concentration, so easing
     // the angle while keeping the depth is what makes this a kitten
     // frowning in effort rather than a cat about to do harm.
-    focusLidTilt: 0.2,
+    focusLidTilt: 0.18, // owner-dialled 2026-08-10, from 0.2
     focusLidCurve: 0.04,
     focusLowerLid: 0.1,
     focusLowerTilt: -0.05,
