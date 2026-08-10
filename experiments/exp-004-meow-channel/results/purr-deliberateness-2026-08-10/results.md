@@ -75,3 +75,8 @@ scratchpad (`purr-probe/`, contact-census `--artifact` at the
 deployed seats); flip test via `purr_flip.py` (run from the exp-004
 trainer dir, exp-001 venv). Numbers here: `purr_flip.json` + the
 per-seed `purr_context` blocks every census run now carries.
+
+*Follow-up same arc: `../purr-semantics-2026-08-10/results.md` — what
+the purr communicates (excursion-apogee contact call, answered in
+chorus, steers listeners away). `purr_flip.py`/`json` here updated
+in place with the directional-steering counters that doc reports.*

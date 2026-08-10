@@ -248,6 +248,9 @@ struct SeedCensus {
     distress_line: f32,
     purr_threshold: f32,
     purr: PurrProbe,
+    /// When set, every observed tick appends one JSONL row of kitty state +
+    /// purr flags (see `--purr-log`).
+    purr_log: Option<std::io::BufWriter<fs::File>>,
 }
 
 impl SeedCensus {
@@ -275,6 +278,7 @@ impl SeedCensus {
             distress_line: config.thresholds.distress,
             purr_threshold: config.thresholds.purr,
             purr: PurrProbe::default(),
+            purr_log: None,
         }
     }
 
@@ -564,6 +568,7 @@ impl SeedCensus {
             .collect();
         if !self.purr.prev.is_empty() {
             let decision_tick = *self.purr.tick_hist.last().unwrap();
+            let mut log_rows: Vec<serde_json::Value> = Vec::new();
             for id in &self.ids {
                 let (pos, earned, ready_at) = self.purr.prev[id];
                 let legal = earned && ready_at <= decision_tick;
@@ -599,6 +604,29 @@ impl SeedCensus {
                         self.purr.emit_while_cosleep += 1;
                     }
                 }
+                if self.purr_log.is_some() {
+                    let k = by_id[id];
+                    let cosleep = matches!(
+                        k.activity,
+                        Activity::Sleeping { with_friend: Some(_), .. }
+                    );
+                    log_rows.push(serde_json::json!([
+                        id, k.pos.x, k.pos.y, k.happiness,
+                        cloudkitty_core::NeedKind::ALL
+                            .map(|n| k.needs.get(n)),
+                        activity_index(&k.activity),
+                        cosleep as u8, spoke as u8, legal as u8,
+                    ]));
+                }
+            }
+            if let Some(w) = &mut self.purr_log {
+                use std::io::Write;
+                writeln!(
+                    w,
+                    "{}",
+                    serde_json::json!({"t": snap.tick, "k": log_rows})
+                )
+                .expect("purr-log write");
             }
         }
         self.purr.tick_hist.push(snap.tick);
@@ -749,6 +777,9 @@ struct Args {
     seats: BTreeMap<u32, String>,
     /// Optional .ckpolicy path; registered as "policy:subject".
     artifact: Option<String>,
+    /// Optional dir for a per-tick JSONL of kitty state + purr events
+    /// (`seed-<n>.jsonl`), for offline purr-semantics analysis.
+    purr_log: Option<PathBuf>,
 }
 
 fn parse_args() -> Args {
@@ -759,6 +790,7 @@ fn parse_args() -> Args {
         out: PathBuf::from("contact-census-out"),
         seats: BTreeMap::new(),
         artifact: None,
+        purr_log: None,
     };
     let mut it = std::env::args().skip(1);
     while let Some(flag) = it.next() {
@@ -777,6 +809,7 @@ fn parse_args() -> Args {
             "--ticks" => args.ticks = value("--ticks").parse().expect("--ticks: u64"),
             "--out" => args.out = PathBuf::from(value("--out")),
             "--artifact" => args.artifact = Some(value("--artifact")),
+            "--purr-log" => args.purr_log = Some(PathBuf::from(value("--purr-log"))),
             "--seat" => {
                 for pair in value("--seat").split(',') {
                     let (seat, behavior) = pair
@@ -874,6 +907,13 @@ fn main() {
         let config = Arc::new(cfg);
         let mut world = World::generate(&config);
         let mut census = SeedCensus::new(&world.snapshot(), &config);
+        if let Some(dir) = &args.purr_log {
+            fs::create_dir_all(dir).expect("creating purr-log directory");
+            census.purr_log = Some(std::io::BufWriter::new(
+                fs::File::create(dir.join(format!("seed-{seed}.jsonl")))
+                    .expect("creating purr-log file"),
+            ));
+        }
         for _ in 0..args.ticks {
             let _ = drive_tick(&mut world, &registry, &config);
             let snap = world.snapshot();

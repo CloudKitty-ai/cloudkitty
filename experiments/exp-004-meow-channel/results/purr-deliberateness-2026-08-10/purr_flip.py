@@ -49,6 +49,16 @@ def main():
     flip_pairs = Counter()
     msg_flip_pairs = Counter()
     kitty_ticks = 0
+    # Directional steering: on audible rows where both decisions are Moves,
+    # does each point toward the purrer (reduce Manhattan distance, using
+    # the digest's emitter-relative dx/dy)? MoveN/E/S/W = 0..3, N = y-1.
+    MOVE_D = {0: (0, -1), 1: (1, 0), 2: (0, 1), 3: (-1, 0)}
+    steer = {"both_move": 0, "base_toward": 0, "cf_toward": 0,
+             "flip_both_move": 0, "flip_base_toward": 0, "flip_cf_toward": 0}
+
+    def toward(action, dx, dy):
+        mx, my = MOVE_D[action]
+        return (mx != 0 and mx * dx > 0) or (my != 0 and my * dy > 0)
 
     for seed in SEEDS:
         env = cloudkitty.ParallelEnv(CONFIG)
@@ -100,6 +110,18 @@ def main():
                 if audible[i]:
                     null_act_flips += a0[i] != a2[i]
                     null_msg_flips += g0[i] != g2[i]
+                    if a0[i] < 4 and a1[i] < 4:
+                        dx = float(ob[i, purr.start + 1])
+                        dy = float(ob[i, purr.start + 2])
+                        bt = toward(int(a0[i]), dx, dy)
+                        ct = toward(int(a1[i]), dx, dy)
+                        steer["both_move"] += 1
+                        steer["base_toward"] += bt
+                        steer["cf_toward"] += ct
+                        if a0[i] != a1[i]:
+                            steer["flip_both_move"] += 1
+                            steer["flip_base_toward"] += bt
+                            steer["flip_cf_toward"] += ct
 
             acts = {a: (int(a0[i]), int(g0[i]))
                     for i, a in enumerate(agents)}
@@ -121,6 +143,15 @@ def main():
                           for (a, b), n in flip_pairs.most_common(12)],
         "top_msg_flips": [(f"{a}->{b}", n)
                           for (a, b), n in msg_flip_pairs.most_common(8)],
+        "steer": steer,
+        "steer_rates": {
+            "p_toward_with_purr": steer["base_toward"] / max(1, steer["both_move"]),
+            "p_toward_without_purr": steer["cf_toward"] / max(1, steer["both_move"]),
+            "flip_p_toward_with_purr":
+                steer["flip_base_toward"] / max(1, steer["flip_both_move"]),
+            "flip_p_toward_without_purr":
+                steer["flip_cf_toward"] / max(1, steer["flip_both_move"]),
+        },
     }
     print(json.dumps(out, indent=1))
     (Path(__file__).parent / "purr_flip.json").write_text(

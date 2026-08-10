@@ -94,5 +94,19 @@
    "WantEat->Silent",
    1
   ]
- ]
+ ],
+ "steer": {
+  "both_move": 17288,
+  "base_toward": 7144,
+  "cf_toward": 7320,
+  "flip_both_move": 815,
+  "flip_base_toward": 254,
+  "flip_cf_toward": 430
+ },
+ "steer_rates": {
+  "p_toward_with_purr": 0.41323461360481256,
+  "p_toward_without_purr": 0.4234150856085146,
+  "flip_p_toward_with_purr": 0.3116564417177914,
+  "flip_p_toward_without_purr": 0.5276073619631901
+ }
 }
