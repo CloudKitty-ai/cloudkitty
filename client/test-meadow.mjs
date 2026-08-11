@@ -1166,6 +1166,42 @@ check('a meadow can grow two kinds of shrub, in any mix', () => {
   api.setMeadowPalette('day', null, 0);
 });
 
+check('the meadow lab dials every tunable the meadow ships', () => {
+  // Spec 03 added eight tunables and no way to judge any of them: the lab
+  // says so at runtime in its own banner, but only if someone opens it.
+  // This is that banner, in CI.
+  //
+  // A dial that exists with no surface to judge it is how art values get
+  // baked from a spec's suggestion rather than from the owner's eye, which
+  // is the one thing the house method exists to prevent.
+  const lab = readFileSync(join(here, 'gallery-meadow.html'), 'utf8');
+  const ranges = lab.match(/const RANGES = \{[\s\S]*?\n {2}\};/);
+  const elsewhere = lab.match(/const ELSEWHERE = new Set\(\[[\s\S]*?\]\);/);
+  assert(ranges && elsewhere, 'could not find the lab\'s dial tables -- has it been restructured?');
+  const dialled = [...ranges[0].matchAll(/^ {4}([A-Za-z_][\w]*):/gm)].map((m) => m[1]);
+  const parked = [...elsewhere[0].matchAll(/'([^']+)'/g)].map((m) => m[1]);
+  assert(dialled.length > 20, `only parsed ${dialled.length} dials -- the parse broke`);
+
+  const keys = Object.keys(api.MEADOW_DEFAULTS);
+  const undialled = keys.filter((k) => !dialled.includes(k) && !parked.includes(k));
+  assert(
+    undialled.length === 0,
+    `shipped with no way to judge them: ${undialled.join(', ')} -- add to RANGES, or to ELSEWHERE if another lab owns them`,
+  );
+  // ...and the reverse, which is how a lab rots: dials for tunables that
+  // no longer exist look fine and silently do nothing.
+  const stale = dialled.filter((k) => !keys.includes(k));
+  assert(stale.length === 0, `the lab dials tunables that no longer exist: ${stale.join(', ')}`);
+
+  // Every shrub silhouette the drawing knows must have a button, or it
+  // cannot be chosen -- including whichever one bushStyleAlt names.
+  const styles = [...(lab.match(/const STYLES = \[[^\]]*\]/) || [''])[0].matchAll(/'([^']+)'/g)]
+    .map((m) => m[1]);
+  for (const named of [api.MEADOW_DEFAULTS.bushStyle, api.MEADOW_DEFAULTS.bushStyleAlt]) {
+    assert(styles.includes(named), `the lab has no button for the shipped style '${named}'`);
+  }
+});
+
 // The summary stays LAST. It sat mid-file once and every check appended
 // after it ran past `process.exit` and was silently never counted -- the
 // suite reported green on tests that had not run. (Cost the motion suite
