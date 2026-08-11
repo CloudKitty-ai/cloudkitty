@@ -20,7 +20,7 @@ const renderSrc = readFileSync(join(here, 'render.js'), 'utf8');
 
 const api = eval(
   animSrc +
-    ';({ VIEW, Presentation, easeSmooth, slowBlinkLid, idleHash, idlePeriodFor,' +
+    ';({ VIEW, Presentation, Pacer, easeSmooth, slowBlinkLid, idleHash, idlePeriodFor,' +
     ' idlePickFor, idleOffsetFor, IDLE_SALTS, anim })',
 );
 
@@ -2677,59 +2677,269 @@ check('card text keeps its contrast THROUGH a phase change, not just at the ends
   }
 });
 
-check('a backlog collapses to one state, and normal running is untouched', () => {
-  // Owner: coming back to a tab left for hours replayed every intervening
-  // tick. The animation layer already snaps on return -- the panel did
-  // not: each of ~9,000 queued messages ran a full `render`, rebuilding
-  // every card. The socket now holds only the NEWEST and processes it once
-  // per frame.
-  //
-  // Both halves matter. Collapsing a backlog is the fix; leaving ordinary
-  // ticks alone is what makes it safe, since at an 800ms tick there is
-  // never a second message in one frame anyway.
-  const src = readFileSync(join(here, 'app.js'), 'utf8');
-  const body = src.slice(src.indexOf('  // LATEST WINS'), src.indexOf("  socket.addEventListener('close'"));
-  assert(body.includes('newest'), 'could not slice the socket handler out of app.js');
+// ---- the delay line (2026-08-11) ----
+//
+// Owner: "a tiny hiccup at the end/beginning of motion between squares",
+// worst north/south, not consistent. Mechanism: a pair used to play over
+// the SERVED tick from the moment it landed, so any arrival that ran late
+// left the cat parked on its tile until the next one came. The pacer holds
+// a buffer and pays states out on its own clock instead.
+//
+// Everything below drives the real classes with an arrival series -- no
+// socket, no frames -- because the whole bug lives in the gap between when
+// states arrive and when they are drawn.
 
-  const handlers = {};
-  const socket = { addEventListener: (k, fn) => { handlers[k] = fn; } };
-  const rendered = [];
+/** A cat walking due east, one tile per tick. Never wraps, so never teleports. */
+const feedWorld = (tick) => ({
+  tick,
+  width: 64,
+  height: 64,
+  elements: [],
+  kitties: [{ id: 1, name: 'K', pos: { x: tick, y: 5 }, needs: {}, happiness: 90 }],
+});
+
+/** Deterministic jitter -- a seeded LCG, so a failure is reproducible. */
+function jitter(seed) {
+  let s = seed;
+  return (spread) => {
+    s = (s * 1103515245 + 12345) & 0x7fffffff;
+    return (s / 0x7fffffff - 0.5) * 2 * spread;
+  };
+}
+
+/**
+ * Drive the pacer and the store the way the browser does: arrivals on one
+ * clock, frames on another. `paced: false` is the OLD path -- push on
+ * arrival, play over the served tick -- kept as the control, because every
+ * claim below is only worth making if the previous code fails it.
+ */
+function runFeed({ arrivals, frameMs = 16, untilMs, dials = api.VIEW, paced = true }) {
+  const pacer = new api.Pacer(dials);
+  const store = new api.Presentation();
+  const samples = [];
+  const promoted = [];
   let snaps = 0;
-  let frame = null;
-  const raf = (fn) => { frame = fn; return 1; };
-  // eslint-disable-next-line no-new-func
-  new Function('socket', 'render', 'requestAnimationFrame', 'anim', `${body}; return null;`)(
-    socket, (w) => rendered.push(w.tick), raf, { bumpGeneration: () => { snaps += 1; } },
+  let next = 0;
+  for (let now = 0; now <= untilMs; now += frameMs) {
+    while (next < arrivals.length && arrivals[next].at <= now) {
+      const { world } = arrivals[next];
+      if (paced) pacer.enqueue(world);
+      else {
+        store.pushState(world, now, store.tickMs);
+        promoted.push({ tick: world.tick, at: now });
+      }
+      next += 1;
+    }
+    if (paced) {
+      const { worlds, snap } = pacer.due(now);
+      if (snap) { store.bumpGeneration(); snaps += 1; }
+      for (const world of worlds) {
+        store.pushState(world, now, pacer.playMs);
+        promoted.push({ tick: world.tick, at: now });
+      }
+    }
+    if (!store.curr) continue;
+    samples.push({
+      now,
+      tick: store.curr.tick,
+      progress: store.progress(now),
+      stalled: !store.discontinuous && store.progress(now) >= 1,
+      playMs: store.currPlayMs,
+    });
+  }
+  return { samples, promoted, snaps, pacer, store };
+}
+
+/** Regular arrivals, plus whatever jitter the caller wants on top. */
+function series(count, periodMs, spreadMs = 0, seed = 7) {
+  const noise = jitter(seed);
+  const out = [];
+  for (let i = 1; i <= count; i += 1) {
+    out.push({ at: Math.max(0, i * periodMs + (spreadMs ? noise(spreadMs) : 0)), world: feedWorld(i) });
+  }
+  return out.sort((a, b) => a.at - b.at);
+}
+
+/** Frames spent parked on a tile with nowhere to go, after the pace settles. */
+const stallFrames = (samples, fromMs) =>
+  samples.filter((s) => s.now >= fromMs && s.stalled).length;
+
+check('the delay line absorbs the jitter that used to park cats on a tile', () => {
+  // The headline. Arrivals wander +/-60ms around an 800ms tick, which is
+  // an ordinary link, not a bad one.
+  const arrivals = series(40, 800, 60);
+  const settled = 8000; // give the pace a few states to find the rate
+
+  const control = runFeed({ arrivals, untilMs: 33000, paced: false });
+  const parked = stallFrames(control.samples, settled);
+  assert(parked > 0, 'the control must reproduce the bug, or this test proves nothing');
+
+  const paced = runFeed({ arrivals, untilMs: 33000 });
+  assert(
+    stallFrames(paced.samples, settled) === 0,
+    `paced feed still parked cats for ${stallFrames(paced.samples, settled)} frames ` +
+      `(control ${parked})`,
   );
-  const send = (t) => handlers.message({ data: JSON.stringify({ tick: t }) });
+});
 
-  for (let t = 1; t <= 9000; t += 1) send(t);
-  assert(rendered.length === 0, `a backlog rendered ${rendered.length} times before a frame ran`);
-  frame();
-  assert(rendered.length === 1, `9000 queued states became ${rendered.length} renders, want 1`);
-  assert(rendered[0] === 9000, `caught up to tick ${rendered[0]}, want the newest (9000)`);
-  assert(snaps === 1, 'a collapsed backlog must bump the generation so the world SNAPS across the gap');
+check('two states landing together are paid out, not shown for no time at all', () => {
+  // The other half of the same bug, and the bigger one on screen: a
+  // stuttered frame lands two messages at once, the first is superseded
+  // before it is ever drawn, and a cat crosses a whole tile instantly.
+  const arrivals = series(12, 800);
+  // Tick 6 arrives with tick 5 rather than 800ms later.
+  arrivals[5].at = arrivals[4].at;
 
-  // Ordinary running: one message per frame, nothing dropped, no snap.
-  rendered.length = 0; snaps = 0;
-  for (let t = 9001; t <= 9005; t += 1) { send(t); frame(); }
-  assert(String(rendered) === '9001,9002,9003,9004,9005', `ticks were dropped: ${rendered}`);
-  assert(snaps === 0, 'ordinary ticks must never snap');
+  const control = runFeed({ arrivals, untilMs: 12000, paced: false });
+  const c5 = control.promoted.find((p) => p.tick === 5);
+  const c6 = control.promoted.find((p) => p.tick === 6);
+  assert(c6.at - c5.at === 0, 'the control must show the doubled arrival, or this proves nothing');
 
-  // And the case that made this a REGRESSION rather than a cleanup: a
-  // stuttered frame lands two ticks together. Dropping one would make a
-  // cat cover two tiles in the time meant for one, which reads as a lurch.
-  rendered.length = 0; snaps = 0;
-  send(9006); send(9007); frame();
-  assert(String(rendered) === '9006,9007', `a stutter dropped a tick: ${rendered}`);
-  assert(snaps === 0, 'a two-tick stutter is not a backlog and must not snap');
+  const paced = runFeed({ arrivals, untilMs: 12000 });
+  const p5 = paced.promoted.find((p) => p.tick === 5);
+  const p6 = paced.promoted.find((p) => p.tick === 6);
+  assert(p5 && p6, 'a doubled arrival must not drop either state');
+  assert(
+    p6.at - p5.at >= api.VIEW.tickMsFallback * api.VIEW.paceRateMin,
+    `a doubled arrival crossed a tile in ${p6.at - p5.at}ms`,
+  );
+  assert(paced.snaps === 0, 'two states at once is a stutter, not a backlog');
+});
 
-  // A few is still a buffer; many is a backlog.
-  rendered.length = 0; snaps = 0;
-  for (let t = 9008; t <= 9011; t += 1) send(t);
-  frame();
-  assert(rendered.length === 4, `4 pending states must all replay, got ${rendered.length}`);
-  assert(snaps === 0, 'four pending states is a buffer, not a backlog');
+check('the pace follows the server that is actually ticking, not its config', () => {
+  // The pacer measures its own promotion interval, and in the long run
+  // that cannot be anything but the rate states are produced at. So a box
+  // whose real tick differs from the tick_ms it serves is absorbed rather
+  // than stalled against -- which the old fixed clock could not do at all.
+  for (const realPeriod of [1000, 650]) {
+    const arrivals = series(60, realPeriod, 25);
+    const untilMs = realPeriod * 62;
+    const paced = runFeed({ arrivals, untilMs });
+    const settled = realPeriod * 20;
+
+    const drift = Math.abs(paced.pacer.playMs - realPeriod) / realPeriod;
+    assert(drift < 0.08, `at a real ${realPeriod}ms tick the pace settled at ${paced.pacer.playMs.toFixed(0)}ms`);
+    assert(
+      stallFrames(paced.samples, settled) === 0,
+      `a ${realPeriod}ms server still parked cats ${stallFrames(paced.samples, settled)} frames`,
+    );
+    assert(paced.snaps === 0, `a steady ${realPeriod}ms server must never look like a backlog`);
+    // And nothing may be lost on the way there.
+    assert(
+      paced.promoted.length >= 55,
+      `only ${paced.promoted.length} of 60 states were ever shown at ${realPeriod}ms`,
+    );
+  }
+});
+
+check('the play clock is frozen for its segment, so no cat steps backwards', () => {
+  // progress divides by this every frame. A denominator that moved under a
+  // running tick would run progress BACKWARDS, so the pace a pair plays at
+  // is stamped when it lands and never read live.
+  const store = new api.Presentation();
+  store.tickMs = 800;
+  store.pushState(feedWorld(1), 0, 1000);
+  store.pushState(feedWorld(2), 1000, 1000);
+  assert(
+    Math.abs(store.progress(1500) - 0.5) < 1e-9,
+    `a pair handed a 1000ms pace read ${store.progress(1500)} at its halfway point ` +
+      '(0.625 means progress is still dividing by the served tick)',
+  );
+
+  // And on a live jittery feed, where the pacer really is moving its clock
+  // about: progress may never fall while the pair on screen is unchanged.
+  const paced = runFeed({ arrivals: series(40, 800, 90), untilMs: 33000 });
+  for (let i = 1; i < paced.samples.length; i += 1) {
+    const a = paced.samples[i - 1];
+    const b = paced.samples[i];
+    if (a.tick !== b.tick) continue;
+    assert(b.progress >= a.progress, `progress fell from ${a.progress} to ${b.progress} within tick ${b.tick}`);
+  }
+});
+
+check('velocity is the derivative of the drawn motion, at whatever pace it plays', () => {
+  // The rig lags the body, so the speed it lags must be the speed the cat
+  // is actually travelling -- the paced one, not the served tick.
+  const store = new api.Presentation();
+  store.tickMs = 800;
+  for (let t = 1; t <= 3; t += 1) store.pushState(feedWorld(t), (t - 1) * 1000, 1000);
+  const at = 1400;
+  const step = 1;
+  const drawn = (now) => store.posFor(store.curr.kitties[0], now);
+  const numeric = ((drawn(at + step).x - drawn(at - step).x) / (2 * step)) * 1000;
+  const analytic = store.velocityFor(1, at).x;
+  assert(
+    Math.abs(numeric - analytic) < 1e-6,
+    `velocity says ${analytic.toFixed(4)} tiles/s, the drawing moves at ${numeric.toFixed(4)} ` +
+      '(1.25x out means it is still dividing by the served tick)',
+  );
+});
+
+check('a backlog collapses to one state, and a stutter never does', () => {
+  // Coming back to a tab left for hours: ~9,000 states arrive at once.
+  // Easing across two hours is a lie at any pace, so this one snaps.
+  const pacer = new api.Pacer();
+  const store = new api.Presentation();
+  for (let t = 1; t <= 9000; t += 1) pacer.enqueue(feedWorld(t));
+  const { worlds, snap } = pacer.due(0);
+  assert(worlds.length === 1, `9000 queued states became ${worlds.length} promotions, want 1`);
+  assert(worlds[0].tick === 9000, `caught up to tick ${worlds[0].tick}, want the newest`);
+  assert(snap, 'a collapsed backlog must break continuity so the world SNAPS across the gap');
+
+  // The snap has to reach the store BEFORE the state does: pushState
+  // decides continuity as it lands.
+  store.pushState(feedWorld(1), 0);
+  store.bumpGeneration();
+  store.pushState(worlds[0], 0, pacer.playMs);
+  assert(store.discontinuous, 'the collapsed state must land as a new moment, not a 9000-tile step');
+
+  // Exactly the ceiling is a buffer, not a backlog: nothing is dropped and
+  // nothing snaps.
+  const easy = new api.Pacer();
+  for (let t = 1; t <= api.VIEW.paceMaxBacklog; t += 1) easy.enqueue(feedWorld(t));
+  const out = [];
+  for (let now = 0; now <= 20000; now += 16) {
+    const due = easy.due(now);
+    assert(!due.snap, `${api.VIEW.paceMaxBacklog} pending states is a buffer, not a backlog`);
+    out.push(...due.worlds.map((w) => w.tick));
+  }
+  assert(
+    String(out) === String(Array.from({ length: api.VIEW.paceMaxBacklog }, (_, i) => i + 1)),
+    `a full buffer replayed as ${out}`,
+  );
+});
+
+check('ordinary running shows every state, in order, exactly once', () => {
+  const paced = runFeed({ arrivals: series(30, 800, 40), untilMs: 30000 });
+  const ticks = paced.promoted.map((p) => p.tick);
+  assert(paced.snaps === 0, 'an ordinary feed must never snap');
+  assert(
+    String(ticks) === String(Array.from({ length: ticks.length }, (_, i) => i + 1)),
+    `states were dropped or reordered: ${ticks}`,
+  );
+  assert(ticks.length >= 26, `only ${ticks.length} of 30 states were shown in 30s`);
+});
+
+check('the socket hands arrivals to the delay line and nothing else', () => {
+  // The queue, the pacing and the backlog collapse all moved into `Pacer`,
+  // where the checks above can reach them. What is left in app.js is
+  // parsing -- and if a future edit puts a second queue back beside it,
+  // there would be two clocks again, which is the whole bug.
+  const src = readFileSync(join(here, 'app.js'), 'utf8');
+  const body = src.slice(
+    src.indexOf('  // ARRIVALS GO TO THE DELAY LINE'),
+    src.indexOf("  socket.addEventListener('close'"),
+  );
+  assert(body.includes('anim.push'), 'could not slice the socket handler out of app.js');
+  assert(
+    !/requestAnimationFrame|setTimeout|pending/.test(body),
+    'the socket handler is queueing or scheduling again -- that belongs to the pacer',
+  );
+  // The panel rides promotion, not arrival, or the cards lead the meadow.
+  assert(
+    /anim\.onPromote\s*=\s*present/.test(src),
+    'the panel must be driven by anim.onPromote, not by the socket',
+  );
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

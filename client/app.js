@@ -44,6 +44,11 @@ anim.init(renderer);
 // ...and the panel's portraits ride the same frames, so the cats on the
 // cards blink on the world's clock rather than a clock of their own.
 anim.onFrame = paintPortraits;
+// Served states reach the panel when the animation layer PROMOTES them,
+// not when they land: the delay line holds a state back by about a tick
+// (see `Pacer` in anim.js), and cards that updated on arrival would run
+// that far ahead of the meadow they describe.
+anim.onPromote = present;
 
 /**
  * The hour themes (design experiment rounds two and three, split four
@@ -187,7 +192,7 @@ let currentTheme = null; // the visual theme actually applied
 let currentBlend = null; // and the quantised blend key it was applied at
 
 /** Applies the mode's theme (auto reads the world clock) and syncs the
- * toggle. Cheap when nothing changed, so render() may call it per tick. */
+ * toggle. Cheap when nothing changed, so present() may call it per tick. */
 /**
  * Every theme's page tokens, read out of the stylesheet once.
  *
@@ -689,13 +694,13 @@ function setStatus(text, connected) {
   statusEl.classList.toggle('disconnected', !connected);
 }
 
-function render(world) {
+/** Everything outside the canvas, for the world that just became current. */
+function present(world) {
   latestWorld = world;
   // The world's sky: on auto, the hour follows the served tick. applyTheme
   // early-returns when the hour hasn't changed, so this is per-tick cheap.
   if (themeMode === 'auto') applyTheme();
   drawSkyDial(world.tick);
-  anim.push(world);
   tickEl.textContent = world.tick;
   renderPanel(world);
 }
@@ -1305,66 +1310,28 @@ function subscribe() {
     setStatus('watching live', true);
   });
 
-  // LATEST WINS, not a queue.
+  // ARRIVALS GO TO THE DELAY LINE, never straight to the screen.
   //
   // A backgrounded tab stops running frames but the socket keeps taking
   // messages, and a frozen one queues them at the OS. Come back after two
-  // hours and ~9,000 world states arrive at once -- and each one used to
-  // run the full `render`: a theme pass, the sky dial, and a complete
-  // rebuild of the cards. That is the "it replays every tick very quickly"
-  // the owner saw. The animation layer was never the problem; it already
-  // snaps on return. The panel was, draining a backlog through the DOM.
+  // hours and ~9,000 world states arrive at once -- each one once running
+  // a full render: a theme pass, the sky dial, and a complete rebuild of
+  // the cards. That is the "it replays every tick very quickly" the owner
+  // saw. The animation layer was never the problem; it already snaps on
+  // return. The panel was, draining a backlog through the DOM.
   //
-  // Processing on a frame rather than on arrival is what saves the tab:
-  // a hidden one runs no frames, so the whole backlog resolves at once the
-  // moment it is looked at again.
-  //
-  // Intermediate states are DISCARDED on a catch-up, which is the point --
-  // the beats derived from them (meow bubbles, purrs) are moments, and
-  // nobody returning to the tab wants two hours of them at once.
-  //
-  // It keeps a small BUFFER rather than only the newest, and that is the
-  // part that matters for smoothness. Dropping a state is not free: the
-  // renderer eases a cat from the previous served position to the current
-  // one over one tick, so a skipped tick makes it cover two tiles in the
-  // time meant for one. That reads as a lurch. Frames stutter, tabs
-  // throttle, and a slow frame longer than a tick is enough for two
-  // messages to land together -- so a strict latest-wins would drop ticks
-  // in ORDINARY running, not just after a backlog (owner spotted this:
-  // "cats are transitioning oddly").
-  //
-  // So: a handful of pending states still replay in order, exactly as they
-  // did when this was synchronous. Only a real backlog collapses, and it
-  // bumps the generation on the way so the animation SNAPS across the gap
-  // instead of easing across two hours of it.
-  const CATCHUP_MAX = 4;
-  let pending = [];
-  let scheduled = 0;
-  const drain = () => {
-    scheduled = 0;
-    if (!pending.length) return;
-    if (pending.length > CATCHUP_MAX) {
-      anim.bumpGeneration();
-      pending = [pending[pending.length - 1]];
-    }
-    const queue = pending;
-    pending = [];
-    for (const world of queue) render(world);
-  };
+  // The queue, the pacing and the backlog collapse all live in `Pacer`
+  // (anim.js), where they can be tested against an arrival series with no
+  // socket and no frames. What is left here is the parsing.
   socket.addEventListener('message', (event) => {
+    let world;
     try {
-      pending.push(JSON.parse(event.data));
+      world = JSON.parse(event.data);
     } catch (err) {
       console.error('could not read a world update', err);
       return;
     }
-    if (scheduled) return;
-    // rAF, so a hidden tab does not process at all and the whole backlog
-    // resolves to one state the moment it is looked at again. The timeout
-    // is the fallback for environments that never fire frames.
-    scheduled = typeof requestAnimationFrame === 'function'
-      ? requestAnimationFrame(drain)
-      : setTimeout(drain, 16);
+    anim.push(world);
   });
 
   socket.addEventListener('close', () => {
@@ -1379,7 +1346,9 @@ async function start() {
   try {
     setStatus('connecting…', false);
     fetchViewerConfig(); // fire-and-forget: the cue threshold tightens when it lands
-    render(await fetchSnapshot());
+    // The first state has no predecessor to ease from, so the pacer hands
+    // it straight through and the panel is up before the socket opens.
+    anim.push(await fetchSnapshot());
     subscribe();
   } catch (err) {
     console.error(err);
