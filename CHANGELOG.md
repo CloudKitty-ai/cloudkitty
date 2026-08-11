@@ -31,6 +31,74 @@ change.
 
 ---
 
+## v2.7.1 — 2026-08-10 — the cat becomes an animal
+
+No compatibility markers: everything here draws pixels or records
+measurements. The engine, the world, and the stamp are exactly v2.7's.
+
+A client-only patch release — the animation handover from Design, applied
+in five rounds (#182–#187), plus the first experiment records taken from
+the all-policy world v2.7 seated.
+
+### The rig (#182)
+
+The idea the whole arc hangs on: **a pose is a position; an animal is
+mostly the lag between positions** — the tail that hasn't caught up, the
+head that led the turn, the ears that arrived late. None of that can live
+in a pose, so a new layer (the rig) sits after the pose and after any
+blend, and offsets it, springing to zero so a cat at rest is exactly the
+un-rigged cat. The handoff landed as a verbatim drop (`73bc715`) with
+every change on top reviewable as one range. With it: a walk that works
+on every axis — closing the north/south foot-slide finding by
+foreshortening, not the piston that was costed — the full pounce beat,
+the hunting face, and a dial pass that baked the owner's judged values
+(pounce hold/launch/land, wiggle, tread depth per context, focusLidTilt).
+Biscuit got green eyes. The tail tip renders at 2.55px on a 31px cat —
+the first cat-art feature to clear the sub-pixel wall.
+
+### Four rounds of making it true
+
+- **The hunter's face was unreachable (#183).** Found by review after
+  the merge: `expressionFor` compared a quarry that arrives as an object
+  (`{target: 'kitty', id}`) against the string `'element'`, so the
+  headline visual of #182 had never once appeared in the live world.
+- **Card portraits got an idle life (#184).** One weighted beat table,
+  one beat at a time, priced *in* like the map's motion table — a
+  portrait now draws nothing 79.8% of the time, and a sit, stretch,
+  pounce, yawn, or ear-flick the rest.
+- **The world's wake-stretch left the portraits (#185).** Owner spotted
+  it by eye against the census; the census was measuring only what the
+  client *schedules*. Live cats nap in exactly-5-tick bouts and wake
+  every ~21s, and every wake fired an unscheduled stretch that
+  out-drew the entire beat table. Portraits now ignore it; the map
+  keeps it.
+- **Water became a place, not a timer (#186); north and south became
+  real drawings (#187).** Submersion by location, one shared surface
+  line with a guarded meniscus, far-side legs, axial facings with a
+  muzzle on the face. Both rounds ported by three-way merge against the
+  previous drop (zero conflicts), because the bundle's `client/` forked
+  before #182 — a straight application would have reverted rounds 1–3
+  and every pasted dial. #187 also caught that `cat-v2.js` installs its
+  namespace by name on the real page and only four symbols were being
+  installed — the whole feature would have shipped inert.
+
+### Records, no code shipped
+
+- First measurements off the all-policy world: **the policies invented a
+  contact call**. A cat drifts away from the pack, purrs at the far
+  point of the excursion, and turns back — an "I'm fine, out here,"
+  not a cuddle invitation — and the purring is deliberate: selective
+  (the head declines ~24 of every 25 legal chances), answered, and
+  load-bearing (erasing the purr digest slot changes downstream
+  decisions; zeroing a null slot doesn't). Records in
+  `experiments/exp-004-meow-channel/results/` (purr-deliberateness +
+  purr-semantics, 2026-08-10); the contact-census tool grew the
+  instruments.
+- Portrait gaze tabled for its own sitting; the ear twitch stays
+  (BACKLOG).
+
+---
+
 ## v2.7 — 2026-08-09 — the meow channel, and the world goes all-policy
 
 `[obs-schema 2→3]` `[rng-sequence]` `[stamp]` — deliberately **not**
