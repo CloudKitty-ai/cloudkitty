@@ -38,9 +38,27 @@
   p.note { margin: 0 0 12px; font-size: 0.8rem; color: #8a7a6c; max-width: 62ch; line-height: 1.5; }
   canvas { border-radius: 10px; display: block; box-shadow: 0 6px 18px rgba(150,125,105,.18); }
   .panel { background: #fffdfa; border-radius: 14px; padding: 14px 16px; box-shadow: 0 6px 18px rgba(150,125,105,.14); }
-  label { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; margin: 5px 0; }
-  label span.name { flex: 1 1 auto; }
-  label output { font-variant-numeric: tabular-nums; min-width: 3.6em; text-align: right; color: #8a7a6c; }
+  /* Name, slider, value -- in that order and on one row, so the label a
+     slider belongs to is the one immediately to its left. `.name` used to
+     be `flex: 1 1 auto`, which stretched it across the whole lab and left
+     every dial's name a screen-width away from the dial (owner). */
+  label {
+    display: grid;
+    grid-template-columns: 13.5em minmax(90px, 1fr) 3.6em;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    margin: 5px 0;
+  }
+  label span.name {
+    overflow-wrap: anywhere;
+    line-height: 1.25;
+  }
+  label output { font-variant-numeric: tabular-nums; text-align: right; color: #8a7a6c; }
+  /* Two columns of dials where there is room: 40-odd of them in one tall
+     stack is its own kind of hard to scan. */
+  #dials { display: grid; grid-template-columns: repeat(auto-fill, minmax(430px, 1fr)); column-gap: 26px; }
+  @media (max-width: 900px) { label { grid-template-columns: 11em minmax(70px, 1fr) 3.4em; } }
   input[type=range] { flex: 0 0 110px; }
   button { font: inherit; font-size: 0.78rem; padding: 5px 10px; border-radius: 8px;
            border: 1px solid #e0d3c2; background: #fffdfa; cursor: pointer; }
@@ -77,7 +95,7 @@
     <code>bushLift</code>. Set <code>bushLift</code> to 0 and nothing
     occludes at all — the shrub no longer leaves its tile.
   </p>
-  <canvas id="occlusion" width="960" height="230"></canvas>
+  <canvas id="occlusion" width="960" height="440"></canvas>
   <div class="styles" id="occ-labels" style="grid-template-columns: repeat(5, 1fr);"></div>
 
   <h2>Ponds — depth, lip, caustics, meniscus</h2>
@@ -124,6 +142,22 @@
     cat over a clump so you can judge that directly.</span>
   </p>
   <div class="styles" id="styles"></div>
+</div>
+
+<div class="panel">
+  <h2>Drifts — the same cover, gathered into places</h2>
+  <p class="note">
+    The left panel is the OLD placement: every tile rolled its own dice, so
+    density looked the same through any window you put over it. The right one
+    is the same world with the fertility field on. <strong>The counts are
+    identical</strong> — the readout under them says so, and if it ever stops
+    saying so that is a bug, not a taste call. What changes is only where cover
+    lands. <span class="warn">If it still looks evenly speckled, raise
+    <code>fertilityCells</code> or the powers.</span>
+  </p>
+  <canvas id="drifts" width="960" height="400"></canvas>
+  <div class="styles" id="drift-labels" style="grid-template-columns: repeat(2, 1fr);"></div>
+  <p class="note mono" id="drift-stats"></p>
 </div>
 
 <div class="panel">
@@ -216,6 +250,23 @@
     bushLift: [0, 2, 0.05],
     bushBase: [0, 1, 0.02],
     bushShadowThrow: [0, 2, 0.05],
+    // Which species, and how much of it (spec 03). 0 is bushStyle alone --
+    // the shipped world -- 1 is bushStyleAlt alone.
+    bushStyleAltShare: [0, 1, 0.05],
+    bushTrunk: [0, 1, 0.05],
+    // Drifts (spec 03 part 1). `fertilityCells` is the size of a good patch
+    // of ground; the powers are how hard each thing concentrates in one.
+    // Counts are CONSERVED whatever these say -- watch the drift card's
+    // readout, which reports the flat scatter beside the clustered one.
+    fertilityCells: [1.5, 16, 0.25],
+    bladeFertPower: [0, 6, 0.25],
+    bloomFertPower: [0, 6, 0.25],
+    bushFertPower: [0, 8, 0.25],
+    // The ground (spec 03 part 2).
+    toneCells2: [1, 16, 0.25],
+    groundBlurTiles: [0, 1.2, 0.02],
+    groundWashSun: [0, 0.8, 0.01],
+    groundWashShade: [0, 0.8, 0.01],
     // Ponds (design handoff spec 02). The card below draws through the
     // shipped drawPonds/buildPondLayers, so these are the real dials.
     pondDepthBlurTiles: [0.1, 2, 0.05],
@@ -238,7 +289,7 @@
    *  does not draw -- ponds, sunbeams, worn paths -- plus the one string,
    *  which has its own buttons. Dialing them here would do nothing. */
   const ELSEWHERE = new Set([
-    'ponds', 'glow', 'paths', 'gridOverlay', 'bushStyle',
+    'ponds', 'glow', 'paths', 'gridOverlay', 'bushStyle', 'bushStyleAlt',
     'lilyPadMinTiles', 'glowRadiusTiles', 'glowAlpha', 'glowRadiusTiles', 'glowAlpha',
     'pathHeatCap', 'pathFullHeat', 'pathHalfLifeMs', 'pathVisibilityFloor', 'pathTintAlpha',
   ]);
@@ -255,7 +306,7 @@
   const STALE = Object.keys(RANGES).filter((k) => !(k in MEADOW_DEFAULTS));
 
   const PHASES = ['day', 'dusk', 'night', 'dawn'];
-  const STYLES = ['cover', 'tuft', 'bramble', 'shrub', 'grown', 'trunk', 'tall'];
+  const STYLES = ['cover', 'tuft', 'bramble', 'shrub', 'grown', 'trunk', 'tall', 'lobed'];
 
   let phase = 'day';
   let blend = 0;
@@ -489,9 +540,117 @@
       `${tile}px tile — ${tile >= 44 ? 'above' : 'below'} the fine-detail threshold (44px). `
       + `Demo world today is 31px; WQHD reaches 47px; 20x20 reaches 54px.`;
     renderStyles();
+    renderDrifts();
     renderOcclusion();
     renderPonds(performance.now());
     readout();
+  }
+
+  /**
+   * The drift card: the old placement beside the new one, same world.
+   *
+   * "Before" is not a mock-up. A fertility field broad enough to be constant
+   * reproduces the flat scatter tile for tile, so both halves come out of the
+   * shipped code path and the comparison cannot drift from what ships.
+   */
+  const FLAT_CELLS = 1e6;
+
+  function renderDrifts() {
+    const c = document.getElementById('drifts');
+    const g = c.getContext('2d');
+    const st = 22; // small enough that a drift is bigger than the panel
+    const half = c.width / 2;
+    const w = Math.ceil(half / st);
+    const h = Math.ceil(c.height / st);
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.clearRect(0, 0, c.width, c.height);
+
+    const real = VIEW.meadow.fertilityCells;
+    const counts = {};
+    [[0, FLAT_CELLS, 'flat'], [half, real, 'drift']].forEach(([x, cells, key]) => {
+      VIEW.meadow.fertilityCells = cells;
+      g.save();
+      g.beginPath();
+      g.rect(x, 0, half, c.height);
+      g.clip();
+      g.translate(x, 0);
+      drawMeadowGround(g, { width: w, height: h, tile: st });
+      g.restore();
+      counts[key] = tally(w, h, VIEW.meadow);
+    });
+    VIEW.meadow.fertilityCells = real;
+
+    // A hairline between the two, so the seam is a decision and not a smudge.
+    g.strokeStyle = 'rgba(0,0,0,0.25)';
+    g.lineWidth = 1;
+    g.beginPath();
+    g.moveTo(half + 0.5, 0);
+    g.lineTo(half + 0.5, c.height);
+    g.stroke();
+
+    const host = document.getElementById('drift-labels');
+    if (host.children.length !== 2) {
+      host.innerHTML = '';
+      for (const label of ['old placement — even static', 'drifts — places']) {
+        const f = document.createElement('figcaption');
+        f.textContent = label;
+        host.appendChild(f);
+      }
+    }
+    const line = (name, key) => {
+      const a = counts.flat[key];
+      const b = counts.drift[key];
+      const delta = a ? Math.round(((b - a) / a) * 100) : 0;
+      const flag = Math.abs(delta) > 10 ? '  <-- NOT CONSERVED' : '';
+      return `${name.padEnd(7)} ${String(a).padStart(4)} -> ${String(b).padStart(4)}`
+        + `  (${delta >= 0 ? '+' : ''}${delta}%)  clumping ${counts.flat[key + 'D'].toFixed(2)}`
+        + ` -> ${counts.drift[key + 'D'].toFixed(2)}${flag}`;
+    };
+    document.getElementById('drift-stats').textContent =
+      [line('grass', 'blade'), line('flowers', 'bloom'), line('shrubs', 'bush'),
+        `bare ground ${counts.flat.bare}% -> ${counts.drift.bare}%`].join('\n');
+  }
+
+  /** Counts and clumping for one tunable set, off the shipped drift field. */
+  function tally(w, h, t) {
+    const field = driftField(w, h, t);
+    const out = {};
+    let anyOn = 0;
+    const grids = {};
+    for (const [key, salt] of [['blade', MEADOW_SALTS.blade], ['bloom', MEADOW_SALTS.bloom],
+      ['bush', MEADOW_SALTS.bush]]) {
+      const grid = [];
+      let n = 0;
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const on = tileHash(x, y, salt) >= 1 - field[key][y * w + x] ? 1 : 0;
+          grid.push(on);
+          n += on;
+        }
+      }
+      grids[key] = grid;
+      out[key] = n;
+      // Index of dispersion over 4x4 windows: ~1 is an even scatter by
+      // construction, higher means gathered.
+      const win = 4;
+      const cs = [];
+      for (let y = 0; y + win <= h; y += win) {
+        for (let x = 0; x + win <= w; x += win) {
+          let c = 0;
+          for (let j = 0; j < win; j++) for (let i = 0; i < win; i++) c += grid[(y + j) * w + x + i];
+          cs.push(c);
+        }
+      }
+      const m = cs.reduce((a, b) => a + b, 0) / (cs.length || 1);
+      out[key + 'D'] = m
+        ? cs.reduce((a, b) => a + (b - m) * (b - m), 0) / cs.length / m
+        : 0;
+    }
+    for (let i = 0; i < w * h; i++) {
+      if (!grids.blade[i] && !grids.bloom[i] && !grids.bush[i]) anyOn++;
+    }
+    out.bare = Math.round((anyOn / (w * h)) * 100);
+    return out;
   }
 
   /** A cat at five depths past one shrub, sorted exactly as the renderer
@@ -511,22 +670,40 @@
     // scatter, so the only growth in each cell is the one placed by hand.
     drawMeadowGround(g, { width: Math.ceil(c.width / st), height: Math.ceil(c.height / st), tile: st, cover: false });
 
-    const theme = blend > 0.5 ? nextPhase(phase) : phase;
-    OCC_OFFSETS.forEach((dy, i) => {
+    // BOTH species, a row each. Cats meet shrubs constantly now that cover
+    // clusters -- at the old flat 1.5% a cat almost never met one, so
+    // bushLift/bushBase/bushShadowThrow were dialled against a case that
+    // barely happened. Whichever silhouette ends up carrying the meadow has
+    // to survive this strip, so both are drawn rather than whichever the
+    // mix happens to pick.
+    const rows = [VIEW.meadow.bushStyle, VIEW.meadow.bushStyleAlt].filter(Boolean);
+    const rh = c.height / rows.length;
+    rows.forEach((style, row) => {
+      const t = { ...VIEW.meadow, bushStyle: style, bushStyleAltShare: 0 };
+      const top = row * rh;
+      OCC_OFFSETS.forEach((dy, i) => {
+        g.save();
+        g.beginPath();
+        g.rect(i * cw, top, cw, rh);
+        g.clip();
+        g.translate(0, top);
+        const bushTile = { x: (i * cw + cw / 2) / st - 0.5, y: 1.1, seed: 0.55 };
+        const catPos = { x: bushTile.x, y: bushTile.y + dy };
+        const items = [
+          { y: coverSortKey(bushTile, t),
+            draw: () => drawBushAt(g, { ...bushTile, tile: st, t }) },
+          { y: catSortKey(catPos),
+            draw: () => drawCatsOn(g, st, [[catPos.x * st, catPos.y * st, 3]]) },
+        ];
+        items.sort((a, b) => a.y - b.y);
+        for (const it of items) it.draw();
+        g.restore();
+      });
       g.save();
-      g.beginPath();
-      g.rect(i * cw, 0, cw, c.height);
-      g.clip();
-      const bushTile = { x: (i * cw + cw / 2) / st - 0.5, y: 1.5, seed: 0.55 };
-      const catPos = { x: bushTile.x, y: bushTile.y + dy };
-      const items = [
-        { y: coverSortKey(bushTile, VIEW.meadow),
-          draw: () => drawBushAt(g, { ...bushTile, tile: st, t: VIEW.meadow }) },
-        { y: catSortKey(catPos),
-          draw: () => drawCatsOn(g, st, [[catPos.x * st, catPos.y * st, 3]]) },
-      ];
-      items.sort((a, b) => a.y - b.y);
-      for (const it of items) it.draw();
+      g.setTransform(1, 0, 0, 1, 0, 0);
+      g.font = '11px ui-monospace, monospace';
+      g.fillStyle = 'rgba(20,24,18,0.75)';
+      g.fillText(style, 6, top + 14);
       g.restore();
     });
 
@@ -576,7 +753,11 @@
   function readout() {
     const lines = ['// paste into BOTH anim.js (VIEW.meadow) and meadow.js (MEADOW_DEFAULTS)'];
     for (const [key] of DIALS) lines.push(`${key}: ${VIEW.meadow[key]},`);
+    // Both style names, not just the primary: the readout is the paste, so
+    // anything it leaves out cannot be baked without hand-editing -- which
+    // is exactly how bushStyleAlt went missing from the first bake.
     lines.push(`bushStyle: '${VIEW.meadow.bushStyle}',`);
+    lines.push(`bushStyleAlt: '${VIEW.meadow.bushStyleAlt}',`);
     document.getElementById('readout').value = lines.join('\n');
   }
 

@@ -135,6 +135,7 @@ const EXPORTS =
   ' mixPaletteColor, mixPalettes, parsePaletteColor,' +
   ' MEADOW_DAWN, bushesFor, drawBushAt, drawGroundCover, MEADOW_SALTS, MEADOW_DEFAULTS, tileHash, drawMeadowGround, drawGridOverlay, groupWaterTiles,' +
   ' buildPondPath, drawPonds, pondInradius, drawSunbeamGlow, drawWornPaths, VIEW, Presentation,' +
+  ' driftField,' +
   ' WorldRenderer })';
 const api = eval(src + EXPORTS);
 
@@ -968,5 +969,279 @@ check('a world with no water clears the cache instead of baking one', () => {
   assert(renderer.pondCache === null, 'and cleared without it');
 });
 
+
+/* ---- spec 03: cover grows in drifts ----
+ *
+ * The acceptance criterion that keeps this honest is the first one: the
+ * drift field REDISTRIBUTES cover, it does not add any. Without it, "the
+ * meadow looks lusher" is indistinguishable from "we quietly grew more
+ * grass", and the whole change becomes unfalsifiable.
+ */
+check('cover clusters WITHOUT changing how much of it there is', () => {
+  const t = api.MEADOW_DEFAULTS;
+  const KINDS = [
+    ['blade', api.MEADOW_SALTS.blade, t.bladeChance, 'blade'],
+    ['bloom', api.MEADOW_SALTS.bloom, t.bloomChance, 'bloom'],
+    ['shrub', api.MEADOW_SALTS.bush, t.bushChance, 'bush'],
+  ];
+  // Several sizes, because the first cut of this normalised to the NOMINAL
+  // rate and looked fine at one size while cutting shrubs by 38% at
+  // another: a few hundred tiles is far too small a sample for the hash to
+  // look uniform at a 1.5% threshold, so the flat scatter's realised count
+  // is not its nominal one. 20x20 is the live world.
+  for (const [w, h] of [[20, 20], [24, 24], [40, 40]]) {
+    const drift = api.driftField(w, h, t);
+    for (const [name, salt, base, key] of KINDS) {
+      let flat = 0;
+      let clustered = 0;
+      let fertHit = 0;
+      let fertAll = 0;
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const i = y * w + x;
+          const hash = api.tileHash(x, y, salt);
+          fertAll += drift.fertility[i];
+          if (hash >= 1 - base) flat++;
+          if (hash >= 1 - drift[key][i]) { clustered++; fertHit += drift.fertility[i]; }
+        }
+      }
+      assert(flat > 0, `${w}x${h} ${name}: nothing to compare against`);
+      const drift10 = Math.max(1, Math.round(flat * 0.1));
+      assert(
+        Math.abs(clustered - flat) <= drift10,
+        `${w}x${h} ${name}: ${flat} -> ${clustered}, outside the +/-10% the spec allows`,
+      );
+      // ...and it must actually CLUSTER. Conserving the count is trivially
+      // satisfied by changing nothing at all, so the pair of assertions is
+      // the check: cover must land on better-than-average ground.
+      const meanAll = fertAll / (w * h);
+      const meanHit = fertHit / clustered;
+      assert(
+        meanHit > meanAll * 1.15,
+        `${w}x${h} ${name}: lands on ground of fertility ${meanHit.toFixed(3)} against a field mean of ${meanAll.toFixed(3)} -- not clustered`,
+      );
+    }
+  }
+});
+
+check('the drift field is a pure function of the world and its dials', () => {
+  const t = api.MEADOW_DEFAULTS;
+  // Cover must be stable across a session -- the whole reason occupiedTiles
+  // was narrowed to water only was to stop scenery flickering.
+  const a = api.driftField(20, 20, t);
+  const b = api.driftField(20, 20, t);
+  assert(a === b, 'the same world should hand back the memoised field');
+  const fresh = api.driftField(20, 20, { ...t });
+  for (let i = 0; i < 400; i++) {
+    assert(fresh.blade[i] === a.blade[i], `blade chance moved at tile ${i}`);
+    assert(fresh.bush[i] === a.bush[i], `bush chance moved at tile ${i}`);
+  }
+  // A re-dial must actually re-solve rather than serve the old field.
+  const broader = api.driftField(20, 20, { ...t, fertilityCells: 11 });
+  let same = 0;
+  for (let i = 0; i < 400; i++) if (broader.blade[i] === a.blade[i]) same++;
+  assert(same < 400, 'a re-dialled fertilityCells returned the cached field');
+});
+
+/* ---- spec 03 part 2: the ground ---- */
+
+/** A ctx that records what it was asked to draw, and hands out a DISTINCT
+ *  recorder for any offscreen made while it is active. */
+function recordingWorld() {
+  const outer = [];
+  const scratches = [];
+  const make = (log) => new Proxy({ filter: 'none' }, {
+    get: (t, k) => {
+      if (k === 'createLinearGradient' || k === 'createRadialGradient') {
+        return (...a) => { log.push([String(k), ...a]); return { addColorStop: (o, c) => log.push(['stop', o, c]) }; };
+      }
+      if (k === 'getTransform') return () => ({ a: 1, d: 1 });
+      if (k === 'canvas') return { width: 1, height: 1 };
+      if (k in t) return t[k];
+      return (...a) => {
+        for (const v of a) {
+          if (typeof v === 'number' && !Number.isFinite(v)) throw new Error(`${String(k)} non-finite: ${a}`);
+        }
+        log.push([String(k), ...a]);
+      };
+    },
+    set: (t, k, v) => { t[k] = v; log.push(['set', String(k), v]); return true; },
+    has: (t, k) => k in t,
+  });
+  const realCreate = globalThis.document.createElement;
+  globalThis.document.createElement = (tag) => {
+    if (tag !== 'canvas') return realCreate(tag);
+    const log = [];
+    scratches.push(log);
+    return { width: 0, height: 0, style: {}, dataset: {}, getContext: () => make(log) };
+  };
+  return { ctx: make(outer), outer, scratches, done: () => { globalThis.document.createElement = realCreate; } };
+}
+
+check('the blur softens the ground and spares what grows on it', () => {
+  const w = recordingWorld();
+  try {
+    api.setMeadowPalette('day', null, 0);
+    api.drawMeadowGround(w.ctx, { width: 12, height: 12, tile: 26, cover: false });
+  } finally {
+    w.done();
+  }
+  const blur = w.outer.find((o) => o[0] === 'set' && o[1] === 'filter' && String(o[2]).startsWith('blur('));
+  assert(blur, 'the tone layer was never blurred');
+  assert(w.outer.some((o) => o[0] === 'drawImage'), 'the blurred layer was never composited back');
+  assert(w.scratches.length > 0, 'no offscreen was made, so nothing was blurred in isolation');
+  // The point of doing it this way: tufts are drawn AFTER the blur, on the
+  // outer ctx. Fold them into the blurred layer and 0.32 tiles does not
+  // soften a blade of grass, it erases it.
+  const tufts = (log) => log.filter((o) => o[0] === 'quadraticCurveTo').length;
+  assert(tufts(w.outer) > 0, 'the grass tufts were not drawn on the un-blurred ctx');
+  for (const scratch of w.scratches) {
+    assert(tufts(scratch) === 0, 'grass was drawn INSIDE the blurred layer and will be erased by it');
+  }
+});
+
+check('the light wash follows shadowLean, so the world agrees where the sun is', () => {
+  const seen = {};
+  for (const theme of ['day', 'dusk', 'night', 'dawn']) {
+    const w = recordingWorld();
+    try {
+      api.setMeadowPalette(theme, null, 0);
+      api.drawMeadowGround(w.ctx, { width: 12, height: 12, tile: 26, cover: false });
+    } finally {
+      w.done();
+    }
+    const grad = w.outer.find((o) => o[0] === 'createLinearGradient');
+    assert(grad, `${theme}: no light wash`);
+    seen[theme] = { x0: grad[1], x1: grad[3], lean: api.MEADOW.shadowLean };
+    assert(typeof api.MEADOW.sunTint === 'string', `${theme} names no sunTint`);
+  }
+  // Dusk and dawn lean hard the opposite way from each other (-0.85 vs
+  // +0.8), so the wash must run across the field in opposite directions.
+  // Asserted as a RELATION, not against a coordinate, so re-dialling the
+  // lean does not need this edited.
+  const duskDir = Math.sign(seen.dusk.x1 - seen.dusk.x0);
+  const dawnDir = Math.sign(seen.dawn.x1 - seen.dawn.x0);
+  assert(duskDir !== 0, 'dusk washes straight down the field despite a hard lean');
+  assert(
+    duskDir === -dawnDir,
+    `dusk (lean ${seen.dusk.lean}) and dawn (lean ${seen.dawn.lean}) must wash from opposite sides`,
+  );
+});
+
+check('a meadow can grow two kinds of shrub, in any mix', () => {
+  const t = api.MEADOW_DEFAULTS;
+  const kindOf = (b, share) =>
+    share > 0 && api.tileHash(b.x, b.y, api.MEADOW_SALTS.bushKind) < share ? 'alt' : 'primary';
+  const shrubs = api.bushesFor(20, 20, t, null);
+  assert(shrubs.length > 4, 'not enough shrubs to say anything about a mix');
+
+  // 0 must be EXACTLY the behaviour that existed before the dial did, or
+  // this is a silent restyle of the live world rather than a new option.
+  assert(t.bushStyleAltShare === 0, 'the alt share must ship at 0');
+  assert(shrubs.every((b) => kindOf(b, 0) === 'primary'), 'share 0 grew an alt');
+  assert(shrubs.every((b) => kindOf(b, 1) === 'alt'), 'share 1 grew a primary');
+
+  // ...and in between, both. Asserted as "some of each" rather than an
+  // exact split: 13 shrubs cannot land on a ratio, and pinning one would
+  // fail the day the world changes size.
+  const half = shrubs.map((b) => kindOf(b, 0.5));
+  assert(half.includes('alt') && half.includes('primary'), 'a 50% mix grew only one kind');
+
+  // A shrub must not change species between frames -- scenery that
+  // flickers is the exact thing occupiedTiles was narrowed to prevent.
+  const again = api.bushesFor(20, 20, t, null).map((b) => kindOf(b, 0.5));
+  assert(String(half) === String(again), 'a shrub changed species between calls');
+
+  // Both silhouettes have to actually draw, in every phase. The guard ctx
+  // throws on non-finite geometry, which is what a mis-scaled lobe or an
+  // undefined palette entry produces.
+  for (const phase of ['day', 'dusk', 'night', 'dawn']) {
+    api.setMeadowPalette(phase, null, 0);
+    for (const style of [t.bushStyle, t.bushStyleAlt]) {
+      for (const b of shrubs) {
+        api.drawBushAt(guardCtx(), { ...b, tile: 48, t: { ...t, bushStyle: style, bushStyleAltShare: 0 } });
+      }
+    }
+  }
+  api.setMeadowPalette('day', null, 0);
+});
+
+check('the meadow lab dials every tunable the meadow ships', () => {
+  // Spec 03 added eight tunables and no way to judge any of them: the lab
+  // says so at runtime in its own banner, but only if someone opens it.
+  // This is that banner, in CI.
+  //
+  // A dial that exists with no surface to judge it is how art values get
+  // baked from a spec's suggestion rather than from the owner's eye, which
+  // is the one thing the house method exists to prevent.
+  const lab = readFileSync(join(here, 'gallery-meadow.html'), 'utf8');
+  const ranges = lab.match(/const RANGES = \{[\s\S]*?\n {2}\};/);
+  const elsewhere = lab.match(/const ELSEWHERE = new Set\(\[[\s\S]*?\]\);/);
+  assert(ranges && elsewhere, 'could not find the lab\'s dial tables -- has it been restructured?');
+  const dialled = [...ranges[0].matchAll(/^ {4}([A-Za-z_][\w]*):/gm)].map((m) => m[1]);
+  const parked = [...elsewhere[0].matchAll(/'([^']+)'/g)].map((m) => m[1]);
+  assert(dialled.length > 20, `only parsed ${dialled.length} dials -- the parse broke`);
+
+  const keys = Object.keys(api.MEADOW_DEFAULTS);
+  const undialled = keys.filter((k) => !dialled.includes(k) && !parked.includes(k));
+  assert(
+    undialled.length === 0,
+    `shipped with no way to judge them: ${undialled.join(', ')} -- add to RANGES, or to ELSEWHERE if another lab owns them`,
+  );
+  // ...and the reverse, which is how a lab rots: dials for tunables that
+  // no longer exist look fine and silently do nothing.
+  const stale = dialled.filter((k) => !keys.includes(k));
+  assert(stale.length === 0, `the lab dials tunables that no longer exist: ${stale.join(', ')}`);
+
+  // Every shrub silhouette the drawing knows must have a button, or it
+  // cannot be chosen -- including whichever one bushStyleAlt names.
+  const styles = [...(lab.match(/const STYLES = \[[^\]]*\]/) || [''])[0].matchAll(/'([^']+)'/g)]
+    .map((m) => m[1]);
+  for (const named of [api.MEADOW_DEFAULTS.bushStyle, api.MEADOW_DEFAULTS.bushStyleAlt]) {
+    assert(styles.includes(named), `the lab has no button for the shipped style '${named}'`);
+  }
+});
+
+check('the stem is a dial, not a decision baked into the drawing', () => {
+  const t = api.MEADOW_DEFAULTS;
+  // Owner-baked 2026-08-11, off the lab: the meadow's shrub is now the
+  // LOBED one, sitting on the ground with no stem (bushLift 0, bushTrunk
+  // 0). Pinned rather than left free, so an accidental edit is still
+  // caught -- this assertion started life as "must ship at 1" for exactly
+  // that reason, and a deliberate change is the one thing allowed to move
+  // it. Anyone re-dialling should paste the lab's readout, not edit here.
+  assert(t.bushStyle === 'lobed', `the shipped shrub moved: ${t.bushStyle}`);
+  assert(t.bushTrunk === 0, `bushTrunk moved off the owner's 0: ${t.bushTrunk}`);
+  assert(t.bushLift === 0, `bushLift moved off the owner's 0: ${t.bushLift}`);
+  // The alt must be a DIFFERENT silhouette, or bushStyleAltShare has
+  // nothing to mix and the dial is quietly inert.
+  assert(
+    t.bushStyleAlt && t.bushStyleAlt !== t.bushStyle,
+    'bushStyleAlt names the same style as bushStyle -- the mix dial does nothing',
+  );
+  // Both stemmed styles honour it, and both reach zero. The lobed shrub
+  // arrived from the spec with a trunk written into it and no way to turn
+  // it off, which is the same fault as a baked art constant: an owner
+  // cannot judge what they cannot move.
+  for (const style of ['trunk', 'lobed']) {
+    const stems = (bushTrunk) => {
+      const log = [];
+      api.drawBushAt(guardCtx(log), {
+        x: 3, y: 3, seed: 0.55, tile: 48,
+        t: { ...t, bushStyle: style, bushStyleAltShare: 0, bushTrunk },
+      });
+      // lobed strokes its stem, trunk fills one; either way it is the only
+      // lineTo/rect the style draws.
+      return log.filter((o) => o[0] === 'lineTo' || o[0] === 'rect').length;
+    };
+    assert(stems(1) > 0, `${style} draws no stem at all`);
+    assert(stems(0) === 0, `${style} still draws a stem at bushTrunk 0`);
+  }
+});
+
+// The summary stays LAST. It sat mid-file once and every check appended
+// after it ran past `process.exit` and was silently never counted -- the
+// suite reported green on tests that had not run. (Cost the motion suite
+// a round of this too.)
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

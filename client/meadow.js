@@ -144,12 +144,18 @@ const MEADOW_DAY = Object.freeze({
   moss: '#cfe0c0',
   bloom: '#fbf7ef',
   bloomHeart: '#f2cf7a',
+  // The second flower colourway (spec 03 part 3), so a drift has
+  // variation inside it rather than one flower repeated.
+  bloomCool: '#e9f4f6',
+  bloomCoolHeart: '#edb88e',
   bush: '#8ab377',
   bushHi: '#a6c78f',
   // The demoted debug lattice (formerly baked into the ground cache).
   gridLine: 'rgba(140, 170, 130, 0.16)',
   // Dust motes circling in the sunbeams (render.js reads this).
   moteColor: 'rgba(255, 236, 170, 0.75)',
+  // The colour the ground takes on the sun's side (spec 03 part 2).
+  sunTint: '#fff4d6',
   // The soft ground shadow that seats a cat on the grass (render.js), and
   // where the sun is putting it (v3): `shadowLean` slides it sideways in
   // half-tile units, `shadowLength` stretches it away from the caster.
@@ -195,10 +201,16 @@ const MEADOW_NIGHT = Object.freeze({
   moss: '#33402f',
   bloom: '#7f8ba0', // moonlit, not white: nothing is lit from above now
   bloomHeart: '#9aa6b8',
+  // The second flower colourway (spec 03 part 3), so a drift has
+  // variation inside it rather than one flower repeated.
+  bloomCool: '#5a7084',
+  bloomCoolHeart: '#c1a4ad',
   bush: '#33422f',
   bushHi: '#41533b',
   gridLine: 'rgba(190, 210, 190, 0.14)',
   moteColor: 'rgba(215, 228, 255, 0.8)',
+  // The colour the ground takes on the sun's side (spec 03 part 2).
+  sunTint: '#d7e4ff',
   // No shadows after dark (owner, 2026-08-05). Expressed as a zero ALPHA
   // rather than a theme special-case, so the shadows fade out as night
   // falls and return with the dawn -- the alpha interpolates along with
@@ -240,10 +252,16 @@ const MEADOW_DUSK = Object.freeze({
   moss: '#cdd0a0',
   bloom: '#fdf0d8',
   bloomHeart: '#e8b45e',
+  // The second flower colourway (spec 03 part 3), so a drift has
+  // variation inside it rather than one flower repeated.
+  bloomCool: '#d4dcd8',
+  bloomCoolHeart: '#e8ab80',
   bush: '#8f9a5f',
   bushHi: '#a9b378',
   gridLine: 'rgba(150, 150, 110, 0.18)',
   moteColor: 'rgba(255, 210, 140, 0.8)',
+  // The colour the ground takes on the sun's side (spec 03 part 2).
+  sunTint: '#ffce8c',
   groundShadow: 'rgba(120, 80, 90, 0.2)', // long violet-warm evening shadows
   // The sun sets on the RIGHT of the sky dial (skyForTick puts it at
   // t~1 as sunset ends), so shadows are thrown LEFT, away from it.
@@ -300,10 +318,16 @@ const MEADOW_DAWN = Object.freeze({
   moss: '#9aa697',
   bloom: '#e8e6df',
   bloomHeart: '#c9bda2',
+  // The second flower colourway (spec 03 part 3), so a drift has
+  // variation inside it rather than one flower repeated.
+  bloomCool: '#c4cdcf',
+  bloomCoolHeart: '#d9afa2',
   bush: '#7e8c79',
   bushHi: '#95a18e',
   gridLine: 'rgba(140, 148, 140, 0.16)',
   moteColor: 'rgba(228, 226, 218, 0.75)',
+  // The colour the ground takes on the sun's side (spec 03 part 2).
+  sunTint: '#eae7de',
   groundShadow: 'rgba(60, 66, 72, 0.24)', // long, cool, but not blue
   // The sun RISES on the left (skyForTick hands the dial t=0 exactly as
   // dawn begins), so shadows are thrown right -- the opposite sign to
@@ -358,6 +382,15 @@ const MEADOW_SALTS = Object.freeze({
   bloomY: 16,
   bush: 19,
   bushShape: 20,
+  // Which SILHOUETTE a shrub takes, when two are mixed. Its own channel on
+  // purpose: sharing `bushShape` would tie the choice to the lobe angles,
+  // so every shrub of one kind would also wear the same shape.
+  bushKind: 22,
+  // How good this patch of ground is (spec 03). Its own channel, sampled
+  // SMOOTH rather than per-tile, and shared by all three scatters -- that
+  // sharing is the point: grass, flowers and shrubs thicken in the same
+  // places, which is what a drift is.
+  fertility: 21,
 });
 
 /**
@@ -373,18 +406,62 @@ const MEADOW_DEFAULTS = Object.freeze({
   toneSteps: 18, // steps in the ramp blended through the grass tones
   toneCells: 3, // tiles per noise cell: how broad a grass blotch is
   jitterCells: 1.7, // and the finer lattice the brightness grain rides
+  toneCells2: 7.5, // a second, broader tone field over the first
+  // The ground softens (spec 03 part 2). The tone mosaic is faint but
+  // still RECTANGULAR at tile size, and it was the one thing left saying
+  // "grid" in a world that otherwise hides its grid. Applied to the tone
+  // layer only -- the tufts and flowers are drawn on top of the blur, or
+  // 0.32 tiles would not soften a blade of grass, it would erase it.
+  groundBlurTiles: 0.32,
+  // ...and the ground learns where the sun is. One field-wide wash keyed
+  // to `shadowLean`, the same number the cat and shrub shadows read, so
+  // the light cannot disagree with itself across the world.
+  groundWashSun: 0.3,
+  groundWashShade: 0.16,
   jitterAlpha: 0.05, // peak alpha of the per-tile brightness jitter
   patchChance: 0.118, // share of tiles carrying a worn-earth or moss patch
   patchEarthAlpha: 0.03,
   patchMossAlpha: 0.05,
+  // Cover grows in DRIFTS (spec 03). The three scatters below used to be
+  // independent per-tile rolls, and independent Bernoulli rolls produce a
+  // field whose density looks the same through any window you put over it:
+  // the eye reads that as texture, never as landscape. There were no
+  // PLACES in the meadow. One low-frequency fertility field now gates all
+  // three, so thick passages and open ground appear at the same average
+  // density -- a redistribution, not more cover.
+  //
+  // Rarer features take a higher power, so they concentrate harder. That
+  // is what makes a thicket read as a thicket rather than as three shrubs
+  // standing near each other.
+  fertilityCells: 5.5, // tiles per fertility blotch; larger = broader passages
+  bladeFertPower: 2,
+  bloomFertPower: 3,
+  bushFertPower: 4,
   bladeChance: 0.55, // tiles with a tuft of grass
   bladeAlpha: 0.38,
   bloomChance: 0.05, // tiles with a flower
   bushChance: 0.015, // tiles with a clump of tufted ground cover
   bushAlpha: 0.9, // and how strongly it reads against the grass
   // 'cover' | 'tuft' | 'bramble' (flat) | 'shrub' | 'grown' | 'trunk' |
-  // 'tall' (standing). Judged in gallery-meadow.html.
-  bushStyle: 'trunk',
+  // 'tall' | 'lobed' (standing). Judged in gallery-meadow.html.
+  bushStyle: 'lobed',
+  // A meadow may grow TWO kinds of shrub. `bushStyleAlt` is the second and
+  // `bushStyleAltShare` is how much of the population it takes: 0 is the
+  // primary alone (and is exactly the behaviour before this existed), 1 is
+  // the alt alone, anything between is a mix. Deterministic per tile, so a
+  // shrub never changes species between frames.
+  //
+  // It exists because 'trunk' and the spec's own lobed shrub are both
+  // defensible and the argument is not settleable on paper -- this lets a
+  // lab session settle it by eye, including at a mix neither side proposed.
+  bushStyleAlt: 'trunk',
+  bushStyleAltShare: 0,
+  // How much of the gap between the ground and the canopy the stem covers,
+  // for the styles that draw one ('trunk', 'lobed'). 1 is a full stem, 0 is
+  // none at all -- and at 0 the canopy is left hanging over its own shadow
+  // unless `bushLift` comes down with it, which is the trade this dial
+  // exists to let someone see rather than argue about.
+  bushTrunk: 0,
   // The shrub's shadow, damped against the cats': a squat canopy sits
   // close to the ground, so it stretches far less and needs no alpha
   // falloff. Only the LENGTH is damped -- the lean also anchors the
@@ -392,7 +469,7 @@ const MEADOW_DEFAULTS = Object.freeze({
   bushShadowLean: 1, // gain on the anchor: 1 keeps the sun-side edge on the shrub
   bushShadowLength: 0.3, // and of its stretch past the caster
   bushShadowAlpha: 1, // no thinning: contact, not a smear
-  bushLift: 1.25, // how far a shrub's canopy stands above its base, in radii
+  bushLift: 0, // how far a shrub's canopy stands above its base, in radii
   bushBase: 0.72, // where it meets the ground, in tiles from the tile's top
   // How far the canopy's height pushes its shadow along the lean. Kept
   // small: a rooted thing's shadow leaves its base, and pushing it far
@@ -555,25 +632,117 @@ function easeCell(t) {
   return t * t * (3 - 2 * t);
 }
 
+/** A colour with a chosen alpha, so a palette entry can be washed at one
+ *  strength in one place and another elsewhere without storing it twice. */
+function withAlpha(color, alpha) {
+  const c = parsePaletteColor(color);
+  if (!c) return color;
+  return formatPaletteColor([c[0], c[1], c[2], c[3] * alpha]);
+}
+
+/**
+ * Lays the tone field into `paint`, blurs it, and returns it to `ctx`.
+ *
+ * The mosaic is the thing being dissolved: `grassTones` walked over a noise
+ * cell is faint, but at tile size it is still visibly RECTANGULAR, and it
+ * was the first thing in the world that said "grid" in a world that
+ * otherwise hides its grid.
+ *
+ * Only the tone layer goes through this. The spec said to blur the whole
+ * ground cache, but the cache also holds the tufts and flowers, and 0.32
+ * tiles of blur does not soften a blade of grass -- it erases it. Blurring
+ * the ground the detail then sits ON is what "the mosaic dissolves into
+ * passages" actually asks for.
+ *
+ * Padded by the blur radius on every side, because a blur reads the
+ * transparent space beyond a canvas as transparency and would draw a
+ * vignette around the whole meadow.
+ */
+function blurredLayer(ctx, w, h, radius, paint) {
+  const canMake = typeof document !== 'undefined' && typeof document.createElement === 'function';
+  if (!(radius > 0.05) || !canMake) {
+    paint(ctx, 0, 0);
+    return;
+  }
+  const m = typeof ctx.getTransform === 'function' ? ctx.getTransform() : null;
+  const sx = m && m.a ? m.a : 1;
+  const sy = m && m.d ? m.d : 1;
+  const pad = Math.ceil(radius) + 2;
+  const scratch = document.createElement('canvas');
+  scratch.width = Math.max(1, Math.ceil((w + pad * 2) * sx));
+  scratch.height = Math.max(1, Math.ceil((h + pad * 2) * sy));
+  const g = scratch.getContext('2d');
+  if (!g) {
+    paint(ctx, 0, 0);
+    return;
+  }
+  g.setTransform(sx, 0, 0, sy, 0, 0);
+  paint(g, pad, pad);
+  ctx.save();
+  // A ctx without filter support (or a harness stand-in) still gets the
+  // ground, just unsoftened -- never a blank meadow.
+  if ('filter' in ctx) ctx.filter = `blur(${radius}px)`;
+  ctx.drawImage(scratch, -pad, -pad, w + pad * 2, h + pad * 2);
+  ctx.restore();
+}
+
 function drawMeadowGround(ctx, { width, height, tile, cover = true }) {
   const t = meadowTunables();
   const ramp = grassRamp(MEADOW.grassTones, t.toneSteps);
   const span = tile + TILE_BLEED * 2;
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const n = smoothNoise(x, y, MEADOW_SALTS.tone, t.toneCells);
-      ctx.fillStyle = ramp[Math.min(ramp.length - 1, Math.floor(n * ramp.length))];
-      ctx.fillRect(x * tile - TILE_BLEED, y * tile - TILE_BLEED, span, span);
-      // The jitter stays finer-grained than the tone -- it is the grass's
-      // own texture rather than the ground's shape -- but smoothed too,
-      // on a tighter lattice, so it grains the meadow instead of tiling it.
-      const j = smoothNoise(x, y, MEADOW_SALTS.jitter, t.jitterCells);
-      ctx.globalAlpha = t.jitterAlpha * Math.abs(j * 2 - 1);
-      ctx.fillStyle = j < 0.5 ? MEADOW.jitterShade : MEADOW.jitterTint;
-      ctx.fillRect(x * tile - TILE_BLEED, y * tile - TILE_BLEED, span, span);
-      ctx.globalAlpha = 1;
+  const w = width * tile;
+  const h = height * tile;
+
+  blurredLayer(ctx, w, h, (t.groundBlurTiles || 0) * tile, (g, ox, oy) => {
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const n = smoothNoise(x, y, MEADOW_SALTS.tone, t.toneCells);
+        g.fillStyle = ramp[Math.min(ramp.length - 1, Math.floor(n * ramp.length))];
+        g.fillRect(ox + x * tile - TILE_BLEED, oy + y * tile - TILE_BLEED, span, span);
+        // A second, BROADER tone field over the first. One grain size blurs
+        // into mush; two keeps the ground reading as painted rather than as
+        // out of focus, which is the failure mode the blur invites.
+        if (t.toneCells2) {
+          const n2 = smoothNoise(x, y, MEADOW_SALTS.tone, t.toneCells2);
+          g.globalAlpha = 0.5;
+          g.fillStyle = ramp[Math.min(ramp.length - 1, Math.floor(n2 * ramp.length))];
+          g.fillRect(ox + x * tile - TILE_BLEED, oy + y * tile - TILE_BLEED, span, span);
+          g.globalAlpha = 1;
+        }
+        // The jitter stays finer-grained than the tone -- it is the grass's
+        // own texture rather than the ground's shape -- but smoothed too,
+        // on a tighter lattice, so it grains the meadow instead of tiling it.
+        const j = smoothNoise(x, y, MEADOW_SALTS.jitter, t.jitterCells);
+        g.globalAlpha = t.jitterAlpha * Math.abs(j * 2 - 1);
+        g.fillStyle = j < 0.5 ? MEADOW.jitterShade : MEADOW.jitterTint;
+        g.fillRect(ox + x * tile - TILE_BLEED, oy + y * tile - TILE_BLEED, span, span);
+        g.globalAlpha = 1;
+      }
     }
+  });
+
+  // One field-wide wash, so the whole meadow knows where the sun is. Keyed
+  // to `shadowLean` -- the same number the cat and shrub shadows read -- so
+  // the light can never disagree with itself across the world. At noon the
+  // lean is near zero and this is a faint top-to-bottom gradient; at dusk
+  // it rakes hard across the field.
+  if (typeof ctx.createLinearGradient === 'function' && (t.groundWashSun || t.groundWashShade)) {
+    const lean = MEADOW.shadowLean || 0;
+    const sun = withAlpha(MEADOW.sunTint || MEADOW.glowCore, t.groundWashSun);
+    const shade = withAlpha(MEADOW.jitterShade, t.groundWashShade);
+    // The sun sits on the side the shadows point AWAY from.
+    const dx = -Math.max(-1, Math.min(1, lean));
+    const wash = ctx.createLinearGradient(
+      w * (0.5 - dx * 0.5), 0,
+      w * (0.5 + dx * 0.5), h,
+    );
+    wash.addColorStop(0, sun);
+    wash.addColorStop(0.55, withAlpha(MEADOW.sunTint || MEADOW.glowCore, 0));
+    wash.addColorStop(1, shade);
+    ctx.fillStyle = wash;
+    ctx.fillRect(0, 0, w, h);
   }
+
   drawGroundDetail(ctx, { width, height, tile, t });
   // Ground cover is drawn here only for callers that are not sorting
   // it themselves (the lab, the harness). render.js passes false and
@@ -597,6 +766,9 @@ function drawMeadowGround(ctx, { width, height, tile, cover = true }) {
  * All of it bakes into the ground cache, so it costs nothing per frame.
  */
 function drawGroundDetail(ctx, { width, height, tile, t }) {
+  // Cover grows in drifts (spec 03): the same fertility field gates the
+  // tufts, the flowers and the shrubs, so they thicken together.
+  const drift = driftField(width, height, t);
   // --- worn earth and moss: broad, soft, crossing tile lines ---
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
@@ -613,28 +785,49 @@ function drawGroundDetail(ctx, { width, height, tile, t }) {
   }
   ctx.globalAlpha = 1;
 
-  // --- grass tufts: one path for the lot, so it is a single stroke ---
-  ctx.lineWidth = Math.max(1, tile * 0.035);
+  // --- grass tufts: three blades each, leaning away from the sun ---
+  //
+  // Everything here is a fraction of a TILE. The old tuft was one stroke at
+  // a fixed pixel length, which is the same fault that retired grass sway
+  // in the first place: fixed-pixel blades read as stray diagonal lines the
+  // moment the tile is small. Being tile-proportional is also the
+  // precondition for bringing sway back -- the drawing that was wrong is
+  // the drawing being replaced.
+  //
+  // Three passes rather than three strokes per tuft: each blade index gets
+  // its own colour and width, so batching by INDEX keeps the whole meadow
+  // to three stroked paths instead of three per tuft.
+  const bladeLean = Math.max(-1, Math.min(1, MEADOW.shadowLean ?? 0));
   ctx.lineCap = 'round';
-  ctx.strokeStyle = MEADOW.moss;
-  ctx.globalAlpha = t.bladeAlpha;
-  ctx.beginPath();
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const n = tileHash(x, y, MEADOW_SALTS.blade);
-      if (n < 1 - t.bladeChance) continue;
-      const bx = (x + tileHash(x, y, MEADOW_SALTS.bladeX)) * tile;
-      const by = (y + tileHash(x, y, MEADOW_SALTS.bladeY)) * tile;
-      ctx.moveTo(bx, by);
-      ctx.quadraticCurveTo(
-        bx + tile * 0.06,
-        by - tile * 0.17,
-        bx + (n - 0.5) * tile * 0.34,
-        by - tile * 0.32,
-      );
+  for (let b = 0; b < 3; b++) {
+    const step = b / 2; // 0 = the near blade, 1 = the far one
+    // Stepping the colour across the three gives the tuft a near and a far
+    // edge, which is what stops it reading as a flat scribble.
+    ctx.strokeStyle = step < 0.5 ? MEADOW.bush : MEADOW.bushHi;
+    ctx.lineWidth = Math.max(0.6, tile * 0.032 * (1 - step * 0.25));
+    ctx.globalAlpha = t.bladeAlpha * (1 - step * 0.2);
+    ctx.beginPath();
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const n = tileHash(x, y, MEADOW_SALTS.blade);
+        if (n < 1 - drift.blade[y * width + x]) continue;
+        const bx = (x + tileHash(x, y, MEADOW_SALTS.bladeX)) * tile;
+        const by = (y + tileHash(x, y, MEADOW_SALTS.bladeY)) * tile;
+        // Fanned around the root, so the three read as one plant.
+        const fan = (b - 1) * 0.5 + (n - 0.5) * 0.4;
+        const high = tile * (0.13 + n * 0.08) * (1 - step * 0.22);
+        const tipX = bx + fan * tile * 0.12 + bladeLean * high * 0.5;
+        ctx.moveTo(bx + fan * tile * 0.03, by);
+        ctx.quadraticCurveTo(
+          bx + fan * tile * 0.06 + bladeLean * high * 0.15,
+          by - high * 0.6,
+          tipX,
+          by - high,
+        );
+      }
     }
+    ctx.stroke();
   }
-  ctx.stroke();
   ctx.globalAlpha = 1;
 
   // --- flowers: five petals and a heart when the tile can carry them,
@@ -643,7 +836,7 @@ function drawGroundDetail(ctx, { width, height, tile, t }) {
   const fine = tile >= 44;
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
-      if (tileHash(x, y, MEADOW_SALTS.bloom) < 1 - t.bloomChance) continue;
+      if (tileHash(x, y, MEADOW_SALTS.bloom) < 1 - drift.bloom[y * width + x]) continue;
       const k = tileHash(x, y, MEADOW_SALTS.bloomX);
       const bx = (x + 0.25 + k * 0.5) * tile;
       // Its own channel, not the tuft's: sharing `blade` tied a flower's
@@ -651,22 +844,47 @@ function drawGroundDetail(ctx, { width, height, tile, t }) {
       // every bloom in the upper part of the band sat on bare ground
       // and every one below it sat in a tuft.
       const by = (y + 0.25 + tileHash(x, y, MEADOW_SALTS.bloomY) * 0.5) * tile;
-      const r = tile * 0.055;
-      ctx.fillStyle = MEADOW.bloom;
+      const r = tile * (0.085 + k * 0.03);
+      // Two colourways off the SAME seed, so a drift has variation inside
+      // it rather than one flower repeated across the whole meadow. The
+      // cool pair is a named palette entry per theme, not a draw-time mix:
+      // mixing toward a fixed colour is the daylight assumption the pond
+      // restyle retired, and it would be wrong at night in exactly the
+      // same way.
+      const cool = tileHash(x, y, MEADOW_SALTS.bloomY) > 0.62;
+      const petal = cool ? MEADOW.bloomCool || MEADOW.bloom : MEADOW.bloom;
+      const heart = cool ? MEADOW.bloomCoolHeart || MEADOW.bloomHeart : MEADOW.bloomHeart;
       if (fine) {
+        // A stem, so the flower grows out of the ground instead of lying
+        // on it. Drawn first and leaning with the light, like the blades.
+        ctx.strokeStyle = MEADOW.bush;
+        ctx.globalAlpha = 0.75;
+        ctx.lineWidth = Math.max(0.6, tile * 0.022);
+        ctx.beginPath();
+        ctx.moveTo(bx - (MEADOW.shadowLean ?? 0) * r * 0.4, by + r * 2.1);
+        ctx.quadraticCurveTo(bx, by + r * 1.1, bx, by + r * 0.5);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
         for (let i = 0; i < 5; i++) {
           const a = (i / 5) * TAU + k * 3;
+          const dy = Math.sin(a);
+          // The lower petals sit in the flower's own shade, which is what
+          // gives it a top and a bottom rather than a flat rosette.
+          ctx.fillStyle = dy > 0.2 && typeof shadeHex === 'function'
+            ? shadeHex(petal, 0.93)
+            : petal;
           ctx.beginPath();
-          ctx.arc(bx + Math.cos(a) * r, by + Math.sin(a) * r, r * 0.85, 0, TAU);
+          ctx.arc(bx + Math.cos(a) * r * 0.78, by + dy * r * 0.78, r * 0.62, 0, TAU);
           ctx.fill();
         }
-        ctx.fillStyle = MEADOW.bloomHeart;
+        ctx.fillStyle = heart;
         ctx.beginPath();
-        ctx.arc(bx, by, r * 0.7, 0, TAU);
+        ctx.arc(bx, by, r * 0.42, 0, TAU);
         ctx.fill();
       } else {
+        ctx.fillStyle = petal;
         ctx.beginPath();
-        ctx.arc(bx, by, r * 1.15, 0, TAU);
+        ctx.arc(bx, by, r * 0.72, 0, TAU);
         ctx.fill();
       }
     }
@@ -704,11 +922,123 @@ function drawGroundCover(ctx, { width, height, tile, t, occupied }) {
  * into the ground cache, and it is what keeps a bowl from sprouting a
  * shrub through it without needing elements in the sort order too.
  */
-function bushesFor(width, height, t, occupied) {
-  const out = [];
+/**
+ * The drift field: per-tile odds for each scatter, clustered but conserving
+ * the flat scatter's average density (spec 03).
+ *
+ * The spec proposed a closed-form normaliser -- `chance = base * (p+1) *
+ * f^p`, from `E[f^p] = 1/(p+1)` for f uniform on 0..1 -- and warned that
+ * value noise is not uniform so the constant would come out low. Measured,
+ * it is worse than low: it is world-size DEPENDENT. A 20x20 world spans
+ * only ~3.6 fertility cells, so the field's mean is whatever that handful
+ * of lattice corners happens to be and never converges. The multiplier
+ * that conserves density measured 29.1 at 20x20, 32.2 at 24x24 and 9.4 at
+ * 64x64 -- so any baked constant is right for exactly one world.
+ *
+ * So it is SOLVED per field instead, by bisection on the one number that
+ * matters: the multiplier k where mean(min(1, k*f^p)) equals the flat
+ * chance it replaces. That makes acceptance criterion 1 -- density is
+ * conserved, this is a redistribution and not a content change -- true by
+ * construction at every world size, and it absorbs the clamp for free.
+ * The clamp is intended: inside a drift every tile has a tuft.
+ *
+ * Memoised because `bushesFor` runs once per FRAME (render.js draws shrubs
+ * in the sorted sprite layer so they y-sort against cats), while this is a
+ * pure function of the world's size and these tunables.
+ */
+const DRIFT_CACHE = new Map();
+
+function driftField(width, height, t) {
+  const key = [
+    width, height, t.fertilityCells,
+    t.bladeChance, t.bladeFertPower,
+    t.bloomChance, t.bloomFertPower,
+    t.bushChance, t.bushFertPower,
+  ].join(':');
+  const hit = DRIFT_CACHE.get(key);
+  if (hit) return hit;
+
+  const n = width * height;
+  const f = new Float64Array(n);
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
-      if (tileHash(x, y, MEADOW_SALTS.bush) < 1 - t.bushChance) continue;
+      f[y * width + x] = smoothNoise(x, y, MEADOW_SALTS.fertility, t.fertilityCells);
+    }
+  }
+
+  const chancesFor = (base, power, salt) => {
+    const out = new Float64Array(n);
+    if (!(base > 0)) return out;
+    // Matched against the count the flat scatter ACTUALLY produced, not
+    // against `base`. Those are not the same number and the gap is not
+    // small: at 20x20 the shrub roll fires on 13 tiles where 0.015 x 400
+    // predicts 6, because a few hundred tiles is far too small a sample
+    // for the hash to look uniform out at a 1.5% threshold. Normalising to
+    // the nominal rate therefore CUT shrubs by 38% while reporting itself
+    // as conserved. Acceptance criterion 1 measures against the current
+    // algorithm's counts, so that is what this solves for.
+    const hash = new Float64Array(n);
+    let target = 0;
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const i = y * width + x;
+        hash[i] = tileHash(x, y, salt);
+        if (hash[i] >= 1 - base) target++;
+      }
+    }
+    if (!target) return out;
+    const countAt = (k) => {
+      let c = 0;
+      for (let i = 0; i < n; i++) {
+        const ch = k * Math.pow(f[i], power);
+        if (hash[i] >= 1 - (ch > 1 ? 1 : ch)) c++;
+      }
+      return c;
+    };
+    // countAt rises monotonically with k and saturates at n, so bracket
+    // then bisect for the smallest k that reaches the target. A degenerate
+    // field (every tile zero) can never get there; fall back to the flat
+    // chance rather than drawing nothing.
+    let hi = 1;
+    while (countAt(hi) < target && hi < 1e12) hi *= 4;
+    if (countAt(hi) < target) {
+      out.fill(base);
+      return out;
+    }
+    let lo = 0;
+    for (let i = 0; i < 60; i++) {
+      const mid = (lo + hi) / 2;
+      if (countAt(mid) < target) lo = mid;
+      else hi = mid;
+    }
+    for (let i = 0; i < n; i++) {
+      const c = hi * Math.pow(f[i], power);
+      out[i] = c > 1 ? 1 : c;
+    }
+    return out;
+  };
+
+  const field = {
+    width,
+    fertility: f,
+    blade: chancesFor(t.bladeChance, t.bladeFertPower, MEADOW_SALTS.blade),
+    bloom: chancesFor(t.bloomChance, t.bloomFertPower, MEADOW_SALTS.bloom),
+    bush: chancesFor(t.bushChance, t.bushFertPower, MEADOW_SALTS.bush),
+  };
+  // Bounded: one entry per world size and dial set, and the dials only move
+  // in the lab. Cleared wholesale rather than aged -- there is never more
+  // than a handful.
+  if (DRIFT_CACHE.size > 24) DRIFT_CACHE.clear();
+  DRIFT_CACHE.set(key, field);
+  return field;
+}
+
+function bushesFor(width, height, t, occupied) {
+  const out = [];
+  const drift = driftField(width, height, t);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (tileHash(x, y, MEADOW_SALTS.bush) < 1 - drift.bush[y * width + x]) continue;
       if (occupied && occupied.has(`${x},${y}`)) continue;
       out.push({ x, y, seed: tileHash(x, y, MEADOW_SALTS.bushShape) });
     }
@@ -739,10 +1069,17 @@ function coverSortKey(bush, t) {
  *  renderer can interleave these with the cats by depth. */
 /** Styles whose silhouette leaves the ground, and so cast a shadow. The
  *  flat ones lie on it and would only look like they stand. */
-const STANDING_COVER = new Set(['shrub', 'grown', 'trunk', 'tall']);
+const STANDING_COVER = new Set(['shrub', 'grown', 'trunk', 'tall', 'lobed']);
 
 function drawBushAt(ctx, { x, y, seed, tile, t }) {
-  const style = t.bushStyle || 'cover';
+  // Which of the two this one is. Drawn from its own channel so the choice
+  // is independent of the shape seed, and from (x, y) so it is stable for
+  // the life of the world -- scenery that changed species between frames
+  // is the flicker `occupiedTiles` was narrowed to avoid.
+  const share = t.bushStyleAltShare || 0;
+  const style = share > 0 && tileHash(x, y, MEADOW_SALTS.bushKind) < share
+    ? t.bushStyleAlt || t.bushStyle || 'cover'
+    : t.bushStyle || 'cover';
   {
     {
       const s = seed;
@@ -863,20 +1200,144 @@ function drawBushAt(ctx, { x, y, seed, tile, t }) {
         const crown = groundY - r * t.bushLift - r * 0.3;
         ctx.globalAlpha = t.bushAlpha;
         ctx.fillStyle = MEADOW.bush;
-        ctx.beginPath();
-        ctx.rect(bx - r * 0.1, crown, r * 0.2, groundY - crown);
-        ctx.fill();
-        for (let i = 0; i < 4; i++) {
-          const a = (i / 4) * TAU + s * 5;
+        const stemShare = t.bushTrunk === undefined ? 1 : t.bushTrunk;
+        if (stemShare > 0) {
+          const top = groundY - (groundY - crown) * stemShare;
           ctx.beginPath();
-          ctx.arc(bx + Math.cos(a) * r * 0.38, crown + Math.sin(a) * r * 0.3, r * 0.55, 0, TAU);
+          ctx.rect(bx - r * 0.1, top, r * 0.2, groundY - top);
           ctx.fill();
         }
-        ctx.globalAlpha = t.bushAlpha * 0.5;
-        ctx.fillStyle = MEADOW.bushHi;
-        ctx.beginPath();
-        ctx.arc(bx - r * 0.2, crown - r * 0.28, r * 0.26, 0, TAU);
-        ctx.fill();
+        // The canopy, then the LIGHT across it (spec 03 part 3). The lobes
+        // and their offsets are unchanged: the spec's own constraint is
+        // that the silhouette and its bounding shape stay put, so
+        // `coverSortKey` keeps answering the same and the occlusion
+        // behaviour dialled in the meadow lab is preserved exactly. Only
+        // the shading is new.
+        //
+        // (The spec described today's shrub as one ellipse plus a
+        // highlight and gave lobe geometry to match. That is the 'cover'
+        // style; 'trunk' is what ships. Replacing this silhouette with
+        // that one would have broken the very thing the spec asked to
+        // preserve, so the lighting is applied to the shipped shape.)
+        const lobes = [];
+        for (let i = 0; i < 4; i++) {
+          const a = (i / 4) * TAU + s * 5;
+          const lx = bx + Math.cos(a) * r * 0.38;
+          const ly = crown + Math.sin(a) * r * 0.3;
+          lobes.push([lx, ly]);
+          ctx.beginPath();
+          ctx.arc(lx, ly, r * 0.55, 0, TAU);
+          ctx.fill();
+        }
+        // Clipped to the canopy's own union, so the gradient cannot spill
+        // past the silhouette and change its shape.
+        const lean = Math.max(-1, Math.min(1, MEADOW.shadowLean ?? 0));
+        const sunX = -lean; // the sun is the side the shadows point away from
+        if (typeof ctx.createLinearGradient === 'function') {
+          ctx.save();
+          ctx.beginPath();
+          for (const [lx, ly] of lobes) {
+            ctx.moveTo(lx + r * 0.55, ly);
+            ctx.arc(lx, ly, r * 0.55, 0, TAU);
+          }
+          ctx.clip();
+          const g = ctx.createLinearGradient(
+            bx + sunX * r, crown - r, bx - sunX * r, crown + r,
+          );
+          g.addColorStop(0, withAlpha(MEADOW.bushHi, 0.95));
+          g.addColorStop(0.5, withAlpha(MEADOW.bushHi, 0.25));
+          g.addColorStop(1, withAlpha(
+            typeof shadeHex === 'function' ? shadeHex(MEADOW.bush, 0.72) : MEADOW.bush, 0.55,
+          ));
+          ctx.globalAlpha = t.bushAlpha;
+          ctx.fillStyle = g;
+          ctx.fillRect(bx - r * 1.2, crown - r * 1.2, r * 2.4, r * 2.4);
+          ctx.restore();
+        }
+        // A few leaf ticks, on the lit side only -- the cheapest thing
+        // that says "leaves" rather than "a green blob with a gradient".
+        ctx.globalAlpha = t.bushAlpha * 0.6;
+        // meadow.js's OWN mixer, not cat-v2's mixHex. cat-v2 leaks nothing
+        // unless it is in drop-in mode, so a bare mixHex here is undefined
+        // in gallery-meadow.html -- guarded, therefore silent, therefore
+        // exactly the trap that had the axial views shipping inert.
+        ctx.fillStyle = mixPaletteColor(MEADOW.bushHi, '#ffffff', 0.35);
+        for (let i = 0; i < 4; i++) {
+          const a = (i / 4) * TAU + s * 9;
+          const lx = bx + sunX * r * 0.3 + Math.cos(a) * r * 0.34;
+          const ly = crown + Math.sin(a) * r * 0.3;
+          ctx.beginPath();
+          ctx.ellipse(lx, ly, r * 0.14, r * 0.08, a, 0, TAU);
+          ctx.fill();
+        }
+      } else if (style === 'lobed') {
+        // The spec's own shrub (03 part 3), built to its numbers: three
+        // overlapping lobes at the offsets and scales it names, clipped to
+        // their union and lit across from the sun's side, with leaf ticks
+        // on the lit side and a short trunk leaning away from the light.
+        //
+        // Offered as a SECOND species rather than as a replacement. The
+        // spec describes the shrub it is redrawing as "one ellipse plus a
+        // highlight", which is the 'cover' style -- but 'trunk' is what
+        // ships, and swapping the silhouette would have broken the one
+        // thing the spec insisted on preserving. Both now exist and
+        // `bushStyleAltShare` decides the mix (owner's call, 2026-08-10).
+        const lift = r * t.bushLift;
+        const crown = groundY - lift - r * 0.3;
+        const lean = Math.max(-1, Math.min(1, MEADOW.shadowLean ?? 0));
+        const sunX = -lean;
+        // A short trunk first, leaning AWAY from the light, so the canopy
+        // has something to stand on and reaches its own shadow.
+        ctx.globalAlpha = t.bushAlpha;
+        const stem = t.bushTrunk === undefined ? 1 : t.bushTrunk;
+        if (stem > 0) {
+          const top = groundY - (groundY - crown) * stem;
+          ctx.strokeStyle = shadeHex(MEADOW.bush, 0.72);
+          ctx.lineWidth = Math.max(1, r * 0.13);
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(bx, groundY);
+          ctx.lineTo(bx + lean * r * 0.14 * stem, top);
+          ctx.stroke();
+        }
+        // The canopy: the spec's three lobes, in canopy radii.
+        const LOBES = [[-0.42, 0.06, 0.62], [0.4, 0.1, 0.58], [-0.02, -0.34, 0.72]];
+        ctx.fillStyle = shadeHex(MEADOW.bush, 0.94);
+        for (const [ox, oy, scale] of LOBES) {
+          ctx.beginPath();
+          ctx.arc(bx + ox * r, crown + oy * r, r * scale, 0, TAU);
+          ctx.fill();
+        }
+        if (typeof ctx.createLinearGradient === 'function') {
+          ctx.save();
+          ctx.beginPath();
+          for (const [ox, oy, scale] of LOBES) {
+            ctx.moveTo(bx + ox * r + r * scale, crown + oy * r);
+            ctx.arc(bx + ox * r, crown + oy * r, r * scale, 0, TAU);
+          }
+          ctx.clip();
+          const g = ctx.createLinearGradient(
+            bx + sunX * r * 1.1, crown - r, bx - sunX * r * 1.1, crown + r,
+          );
+          g.addColorStop(0, withAlpha(MEADOW.bushHi, 0.95));
+          g.addColorStop(0.5, withAlpha(MEADOW.bushHi, 0.25));
+          g.addColorStop(1, withAlpha(shadeHex(MEADOW.bush, 0.72), 0.55));
+          ctx.fillStyle = g;
+          ctx.fillRect(bx - r * 1.6, crown - r * 1.6, r * 3.2, r * 3.2);
+          ctx.restore();
+        }
+        ctx.globalAlpha = t.bushAlpha * 0.6;
+        ctx.fillStyle = mixPaletteColor(MEADOW.bushHi, '#ffffff', 0.35);
+        for (let i = 0; i < 4; i++) {
+          const a = (i / 4) * TAU + s * 9;
+          ctx.beginPath();
+          ctx.ellipse(
+            bx + sunX * r * 0.36 + Math.cos(a) * r * 0.3,
+            crown - r * 0.1 + Math.sin(a) * r * 0.26,
+            r * 0.13, r * 0.075, a, 0, TAU,
+          );
+          ctx.fill();
+        }
       } else if (style === 'tall') {
         // PROPOSAL 3 -- one silhouette, stretched. A single rounded body
         // rising from the ground with lobed bumps on its crown, rather
