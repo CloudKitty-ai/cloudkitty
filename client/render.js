@@ -937,7 +937,12 @@ class WorldRenderer {
     // reason `sideFacingFor` is remembered separately: a cat that walks
     // north and then grooms should face the way it last plausibly did.
     const axialPose = typeof AXIAL_POSES !== 'undefined' && AXIAL_POSES.has(pose);
-    const axial = axialPose && (drawnFacing === 'north' || drawnFacing === 'south');
+    // ...and having an axial drawing is not enough on its own: a cat that
+    // was just turned side-on for wearing a pose without one stays side-on
+    // until it steps again, or it whips ninety degrees every time it
+    // stops drinking. See `axialFor` in anim.js.
+    const axialOk = view.axialFor ? view.axialFor(kitty.id, axialPose) : axialPose;
+    const axial = axialOk && (drawnFacing === 'north' || drawnFacing === 'south');
     const catView = axial ? (drawnFacing === 'north' ? 'back' : 'front') : 'side';
     const paintFacing = axial
       ? drawnFacing

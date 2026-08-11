@@ -804,6 +804,11 @@ class Presentation {
     this.rigStates = new Map(); // id -> createRigState()
     this.rigAt = new Map(); // id -> the now it was last stepped at
     this.turns = new Map(); // id -> when this cat began turning around
+    // Cats being drawn side-on until they next take a step. Only two poses
+    // have an axial drawing, so wearing any other one turns a north/south
+    // cat side-on -- and going back would whip it 90 degrees for a reason
+    // the served world never gave. See `axialFor`.
+    this.axialLocks = new Set(); // ids
     this.wokeAt = new Map(); // id -> when it last stopped sleeping
     this.stillSince = new Map(); // id -> tick it last had nothing to do
   }
@@ -878,6 +883,7 @@ class Presentation {
       this.rigStates.clear();
       this.rigAt.clear();
       this.turns.clear();
+      this.axialLocks.clear();
       this.wokeAt.clear();
       this.stillSince.clear();
       return;
@@ -915,6 +921,9 @@ class Presentation {
         if (horizontal) this.sideFacings.set(kitty.id, next);
       }
       this.movedNow.set(kitty.id, dx !== 0 || kitty.pos.y !== was.pos.y);
+      // A step is the one thing that re-earns an axial drawing: it is the
+      // served evidence that this cat is oriented the way the view claims.
+      if (dx || dy) this.axialLocks.delete(kitty.id);
 
       const sleepingNow = kitty.activity?.state === 'sleeping';
       if (sleepingNow && was.activity?.state !== 'sleeping') {
@@ -1018,6 +1027,37 @@ class Presentation {
   /** The cat's last east/west facing, for poses with no axial drawing. */
   sideFacingFor(id) {
     return this.sideFacings?.get(id) ?? 'left';
+  }
+
+  /**
+   * May this cat be drawn in an axial view right now?
+   *
+   * Only `walking` and `idle` have an axial drawing, so every other pose
+   * turns a north/south cat side-on. Going straight back the moment the
+   * pose changes again is what produced the owner's report (2026-08-11):
+   * a cat facing north at the water, alternating `drinking` and `idle`,
+   * spun ninety degrees and back every tick while standing perfectly
+   * still. Measured on a live feed, 60% of all view changes happened with
+   * the served facing UNCHANGED, and 295 of those reversed inside one
+   * tick.
+   *
+   * So the view is not free to change on a pose alone. Once a cat has
+   * been drawn side-on for want of an axial drawing it stays side-on
+   * until it takes a STEP -- the one piece of served evidence that it is
+   * really oriented the way an axial view would claim. The invariant is
+   * "the drawing turns when the cat turns", and a change of expression is
+   * not a turn.
+   *
+   * Harmless while a cat faces east or west: there is no axial view to
+   * lose, and the only way to start facing north or south is to move,
+   * which lifts the lock in the same breath.
+   */
+  axialFor(id, poseHasAxial) {
+    if (!poseHasAxial) {
+      this.axialLocks.add(id);
+      return false;
+    }
+    return !this.axialLocks.has(id);
   }
 
   movedFor(id) {
@@ -1680,6 +1720,11 @@ class Presentation {
       velocityFor: (id) => (still ? { x: 0, y: 0 } : this.velocityFor(id, now)),
       travelHFor: (id) => this.travelHFor(id),
       sideFacingFor: (id) => this.sideFacingFor(id),
+      // Whether an axial drawing is allowed right now. Applies in still
+      // frames too: reduced motion still receives a state per tick, so
+      // the whip this prevents would be just as visible there -- more so,
+      // with no motion to distract from it.
+      axialFor: (id, poseHasAxial) => this.axialFor(id, poseHasAxial),
       // The served beat length, so presentation code whose timing is a
       // real-world frequency (the pounce wiggle) can derive its rate from
       // the tick rather than assuming 800ms.

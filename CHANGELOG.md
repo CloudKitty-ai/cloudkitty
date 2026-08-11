@@ -74,6 +74,18 @@ change.
   Pressing `b` turns the buffer off for worlds driven far faster than
   production: below about a frame per tick no pace can help, since two
   states cannot both be drawn in one frame (#197).
+- The axial whip: a cat facing north at the water, alternating
+  `drinking` and `idle`, spun ninety degrees and back every tick while
+  standing perfectly still — `AXIAL_POSES` is only `{walking, idle}`, so
+  every other pose drops a north/south cat to a side view and the next
+  pose change snaps it straight back. Measured on a live feed, 60% of
+  all view changes happened with the served facing *unchanged* and 295
+  of those reversed inside one tick. The drawing now turns when the cat
+  turns: once a pose without an axial drawing has turned it side-on it
+  stays there until it takes a step, which is the served evidence that
+  it really is oriented the way an axial view would claim. Flips that
+  reverse within a tick fall 295 → 81, and genuine turns are untouched
+  (#198).
 - Docs: rl-training + howto-rl caught up to spec 028 (two-head wire,
   20×20, certification assumptions rewritten — the channel is
   restrained by law, not economics), and kitty-eval is a pre-seating
