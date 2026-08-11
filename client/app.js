@@ -1305,12 +1305,46 @@ function subscribe() {
     setStatus('watching live', true);
   });
 
+  // LATEST WINS, not a queue.
+  //
+  // A backgrounded tab stops running frames but the socket keeps taking
+  // messages, and a frozen one queues them at the OS. Come back after two
+  // hours and ~9,000 world states arrive at once -- and each one used to
+  // run the full `render`: a theme pass, the sky dial, and a complete
+  // rebuild of the cards. That is the "it replays every tick very quickly"
+  // the owner saw. The animation layer was never the problem; it already
+  // snaps on return. The panel was, draining a backlog through the DOM.
+  //
+  // Holding only the newest and processing it once per frame collapses any
+  // backlog to a single update. In normal running this changes nothing at
+  // all: at an 800ms tick one message arrives about every 48 frames, so
+  // there is never a second one to drop.
+  //
+  // Intermediate states are DISCARDED on a catch-up, which is the point --
+  // the beats derived from them (meow bubbles, purrs) are moments, and
+  // nobody returning to the tab wants two hours of them at once.
+  let newest = null;
+  let scheduled = 0;
+  const drain = () => {
+    scheduled = 0;
+    const world = newest;
+    newest = null;
+    if (world) render(world);
+  };
   socket.addEventListener('message', (event) => {
     try {
-      render(JSON.parse(event.data));
+      newest = JSON.parse(event.data);
     } catch (err) {
       console.error('could not read a world update', err);
+      return;
     }
+    if (scheduled) return;
+    // rAF, so a hidden tab does not process at all and the whole backlog
+    // resolves to one state the moment it is looked at again. The timeout
+    // is the fallback for environments that never fire frames.
+    scheduled = typeof requestAnimationFrame === 'function'
+      ? requestAnimationFrame(drain)
+      : setTimeout(drain, 16);
   });
 
   socket.addEventListener('close', () => {

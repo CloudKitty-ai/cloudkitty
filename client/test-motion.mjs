@@ -2677,5 +2677,44 @@ check('card text keeps its contrast THROUGH a phase change, not just at the ends
   }
 });
 
+check('a backlog collapses to one state, and normal running is untouched', () => {
+  // Owner: coming back to a tab left for hours replayed every intervening
+  // tick. The animation layer already snaps on return -- the panel did
+  // not: each of ~9,000 queued messages ran a full `render`, rebuilding
+  // every card. The socket now holds only the NEWEST and processes it once
+  // per frame.
+  //
+  // Both halves matter. Collapsing a backlog is the fix; leaving ordinary
+  // ticks alone is what makes it safe, since at an 800ms tick there is
+  // never a second message in one frame anyway.
+  const src = readFileSync(join(here, 'app.js'), 'utf8');
+  const body = src.slice(src.indexOf('  // LATEST WINS'), src.indexOf("  socket.addEventListener('close'"));
+  assert(body.includes('newest'), 'could not slice the socket handler out of app.js');
+
+  const handlers = {};
+  const socket = { addEventListener: (k, fn) => { handlers[k] = fn; } };
+  const rendered = [];
+  let frame = null;
+  const raf = (fn) => { frame = fn; return 1; };
+  // eslint-disable-next-line no-new-func
+  new Function('socket', 'render', 'requestAnimationFrame', `${body}; return null;`)(
+    socket, (w) => rendered.push(w.tick), raf,
+  );
+
+  for (let t = 1; t <= 9000; t += 1) handlers.message({ data: JSON.stringify({ tick: t }) });
+  assert(rendered.length === 0, `a backlog rendered ${rendered.length} times before a frame ran`);
+  frame();
+  assert(rendered.length === 1, `9000 queued states became ${rendered.length} renders, want 1`);
+  assert(rendered[0] === 9000, `caught up to tick ${rendered[0]}, want the newest (9000)`);
+
+  rendered.length = 0;
+  for (let t = 9001; t <= 9005; t += 1) {
+    handlers.message({ data: JSON.stringify({ tick: t }) });
+    frame();
+  }
+  assert(rendered.length === 5, `ordinary ticks must all draw, got ${rendered.length} of 5`);
+  assert(String(rendered) === '9001,9002,9003,9004,9005', `ticks were dropped: ${rendered}`);
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);
