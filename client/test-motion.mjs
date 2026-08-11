@@ -2970,6 +2970,67 @@ check('a differently-paced box is reseeded, not walked to', () => {
   assert(wiring.pacer.tickMs === 80 && wiring.pacer.playMs === 80, 'setTickMs did not reach the pacer');
 });
 
+check('every way a state reaches the screen still reaches it', () => {
+  // `anim.push` is the one part of the delay line that reads the DOM, and
+  // it is exactly where a silent failure would live: get its branching
+  // wrong and the page shows NOTHING, with every check above still green.
+  // So it gets a stubbed document rather than being left untested.
+  let hidden = false;
+  let clock = 0;
+  const saved = {
+    document: globalThis.document,
+    performance: globalThis.performance,
+    requestAnimationFrame: globalThis.requestAnimationFrame,
+  };
+  globalThis.document = { get hidden() { return hidden; } };
+  globalThis.performance = { now: () => clock };
+  globalThis.requestAnimationFrame = () => 1;
+  const fresh = () => {
+    const a = Object.create(api.anim);
+    a.presentation = new api.Presentation();
+    a.pacer = new api.Pacer();
+    a.seen = [];
+    a.onPromote = (w) => a.seen.push(w.tick);
+    a.renderer = { draw() {} };
+    return a;
+  };
+  try {
+    // The first state has no predecessor to ease from, so it must not sit
+    // in the buffer -- the panel would be empty until the second tick.
+    let a = fresh();
+    clock = 0; a.push(feedWorld(1));
+    assert(a.seen.join() === '1', `the first state did not reach the screen (saw ${a.seen})`);
+    clock = 100; a.push(feedWorld(2));
+    assert(a.seen.join() === '1', 'the second state jumped the queue instead of waiting for its beat');
+    clock = 900; a.pump(clock);
+    assert(a.seen.join() === '1,2', `the second state never landed (saw ${a.seen})`);
+
+    // Reduced motion runs no frame loop, so nothing would ever pump the
+    // buffer: these have to go straight through or the world freezes.
+    a = fresh();
+    a.reduced = true;
+    for (const t of [1, 2, 3]) { clock = t * 50; a.push(feedWorld(t)); }
+    assert(a.seen.join() === '1,2,3', `reduced motion stopped showing states (saw ${a.seen})`);
+
+    // A hidden tab banks arrivals and does no DOM work at all -- that was
+    // the "it replays every tick very quickly" fix, and it still holds.
+    a = fresh();
+    clock = 0; a.push(feedWorld(1));
+    hidden = true;
+    for (let t = 2; t <= 9000; t += 1) { clock = t; a.push(feedWorld(t)); }
+    assert(a.seen.join() === '1', `a hidden tab rendered ${a.seen.length} states`);
+    hidden = false;
+    clock = 20000; a.pump(clock);
+    assert(a.seen.join() === '1,9000', `the return did not collapse to the newest (saw ${a.seen})`);
+    assert(a.presentation.discontinuous, 'the return must snap, not ease across the gap');
+  } finally {
+    for (const [k, v] of Object.entries(saved)) {
+      if (v === undefined) delete globalThis[k];
+      else globalThis[k] = v;
+    }
+  }
+});
+
 check('the socket hands arrivals to the delay line and nothing else', () => {
   // The queue, the pacing and the backlog collapse all moved into `Pacer`,
   // where the checks above can reach them. What is left in app.js is
