@@ -71,6 +71,9 @@ change.
   socket's queue and the backlog collapse move there too, and the cards
   ride promotion rather than arrival so they cannot lead the meadow.
   Costs about one tick of latency, which at 800ms is invisible (#196).
+  Pressing `b` turns the buffer off for worlds driven far faster than
+  production: below about a frame per tick no pace can help, since two
+  states cannot both be drawn in one frame (#197).
 - The axial whip: a cat facing north at the water, alternating
   `drinking` and `idle`, spun ninety degrees and back every tick while
   standing perfectly still — `AXIAL_POSES` is only `{walking, idle}`, so

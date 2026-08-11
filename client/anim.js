@@ -705,6 +705,7 @@ class Pacer {
     const out = this.queue;
     this.queue = [];
     this.lastPromoteAt = null; // an unpaced promotion teaches the clock nothing
+    this.playMs = this.tickMs; // ...and has no pace of its own to play at
     return out;
   }
 
@@ -1795,6 +1796,12 @@ const anim = {
   renderer: null,
   rafId: 0,
   reduced: false,
+  // The delay line, on by default. Off means states draw as they land, at
+  // the served tick -- which is what a world running far faster than it
+  // will in production wants: at a tick shorter than a frame there is no
+  // pace that helps, since two states cannot both be drawn in one frame,
+  // and the buffer's tick of latency is pure lag on top. See `setPaced`.
+  paced: true,
 
   init(renderer) {
     this.renderer = renderer;
@@ -1838,7 +1845,7 @@ const anim = {
    */
   push(world) {
     this.pacer.enqueue(world);
-    if (this.reduced || !this.presentation.curr) {
+    if (!this.paced || this.reduced || !this.presentation.curr) {
       const now = performance.now();
       for (const queued of this.pacer.drain()) this.promote(queued, now);
       if (this.reduced) this.redraw();
@@ -1919,6 +1926,23 @@ const anim = {
   stopLoop() {
     if (this.rafId) cancelAnimationFrame(this.rafId);
     this.rafId = 0;
+  },
+
+  /**
+   * Turn the delay line off (or back on). A debug switch for driving a
+   * world far faster than it will ever run in production -- flicking
+   * through a day to judge the phase crossfades, say. Unpaced is exactly
+   * the behaviour that shipped before the pacer: each state draws as it
+   * lands, over the served tick.
+   *
+   * Whatever is already buffered goes out at once rather than being
+   * stranded, so turning it off never loses a state.
+   */
+  setPaced(on) {
+    this.paced = Boolean(on);
+    if (this.paced) return;
+    const now = performance.now();
+    for (const world of this.pacer.drain()) this.promote(world, now);
   },
 
   setTickMs(ms) {
