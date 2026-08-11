@@ -382,6 +382,10 @@ const MEADOW_SALTS = Object.freeze({
   bloomY: 16,
   bush: 19,
   bushShape: 20,
+  // Which SILHOUETTE a shrub takes, when two are mixed. Its own channel on
+  // purpose: sharing `bushShape` would tie the choice to the lobe angles,
+  // so every shrub of one kind would also wear the same shape.
+  bushKind: 22,
   // How good this patch of ground is (spec 03). Its own channel, sampled
   // SMOOTH rather than per-tile, and shared by all three scatters -- that
   // sharing is the point: grass, flowers and shrubs thicken in the same
@@ -439,8 +443,19 @@ const MEADOW_DEFAULTS = Object.freeze({
   bushChance: 0.015, // tiles with a clump of tufted ground cover
   bushAlpha: 0.9, // and how strongly it reads against the grass
   // 'cover' | 'tuft' | 'bramble' (flat) | 'shrub' | 'grown' | 'trunk' |
-  // 'tall' (standing). Judged in gallery-meadow.html.
+  // 'tall' | 'lobed' (standing). Judged in gallery-meadow.html.
   bushStyle: 'trunk',
+  // A meadow may grow TWO kinds of shrub. `bushStyleAlt` is the second and
+  // `bushStyleAltShare` is how much of the population it takes: 0 is the
+  // primary alone (and is exactly the behaviour before this existed), 1 is
+  // the alt alone, anything between is a mix. Deterministic per tile, so a
+  // shrub never changes species between frames.
+  //
+  // It exists because 'trunk' and the spec's own lobed shrub are both
+  // defensible and the argument is not settleable on paper -- this lets a
+  // lab session settle it by eye, including at a mix neither side proposed.
+  bushStyleAlt: 'lobed',
+  bushStyleAltShare: 0,
   // The shrub's shadow, damped against the cats': a squat canopy sits
   // close to the ground, so it stretches far less and needs no alpha
   // falloff. Only the LENGTH is damped -- the lean also anchors the
@@ -1048,10 +1063,17 @@ function coverSortKey(bush, t) {
  *  renderer can interleave these with the cats by depth. */
 /** Styles whose silhouette leaves the ground, and so cast a shadow. The
  *  flat ones lie on it and would only look like they stand. */
-const STANDING_COVER = new Set(['shrub', 'grown', 'trunk', 'tall']);
+const STANDING_COVER = new Set(['shrub', 'grown', 'trunk', 'tall', 'lobed']);
 
 function drawBushAt(ctx, { x, y, seed, tile, t }) {
-  const style = t.bushStyle || 'cover';
+  // Which of the two this one is. Drawn from its own channel so the choice
+  // is independent of the shape seed, and from (x, y) so it is stable for
+  // the life of the world -- scenery that changed species between frames
+  // is the flicker `occupiedTiles` was narrowed to avoid.
+  const share = t.bushStyleAltShare || 0;
+  const style = share > 0 && tileHash(x, y, MEADOW_SALTS.bushKind) < share
+    ? t.bushStyleAlt || t.bushStyle || 'cover'
+    : t.bushStyle || 'cover';
   {
     {
       const s = seed;
@@ -1236,6 +1258,70 @@ function drawBushAt(ctx, { x, y, seed, tile, t }) {
           const ly = crown + Math.sin(a) * r * 0.3;
           ctx.beginPath();
           ctx.ellipse(lx, ly, r * 0.14, r * 0.08, a, 0, TAU);
+          ctx.fill();
+        }
+      } else if (style === 'lobed') {
+        // The spec's own shrub (03 part 3), built to its numbers: three
+        // overlapping lobes at the offsets and scales it names, clipped to
+        // their union and lit across from the sun's side, with leaf ticks
+        // on the lit side and a short trunk leaning away from the light.
+        //
+        // Offered as a SECOND species rather than as a replacement. The
+        // spec describes the shrub it is redrawing as "one ellipse plus a
+        // highlight", which is the 'cover' style -- but 'trunk' is what
+        // ships, and swapping the silhouette would have broken the one
+        // thing the spec insisted on preserving. Both now exist and
+        // `bushStyleAltShare` decides the mix (owner's call, 2026-08-10).
+        const lift = r * t.bushLift;
+        const crown = groundY - lift - r * 0.3;
+        const lean = Math.max(-1, Math.min(1, MEADOW.shadowLean ?? 0));
+        const sunX = -lean;
+        // A short trunk first, leaning AWAY from the light, so the canopy
+        // has something to stand on and reaches its own shadow.
+        ctx.globalAlpha = t.bushAlpha;
+        ctx.strokeStyle = shadeHex(MEADOW.bush, 0.72);
+        ctx.lineWidth = Math.max(1, r * 0.13);
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(bx, groundY);
+        ctx.lineTo(bx + lean * r * 0.14, crown);
+        ctx.stroke();
+        // The canopy: the spec's three lobes, in canopy radii.
+        const LOBES = [[-0.42, 0.06, 0.62], [0.4, 0.1, 0.58], [-0.02, -0.34, 0.72]];
+        ctx.fillStyle = shadeHex(MEADOW.bush, 0.94);
+        for (const [ox, oy, scale] of LOBES) {
+          ctx.beginPath();
+          ctx.arc(bx + ox * r, crown + oy * r, r * scale, 0, TAU);
+          ctx.fill();
+        }
+        if (typeof ctx.createLinearGradient === 'function') {
+          ctx.save();
+          ctx.beginPath();
+          for (const [ox, oy, scale] of LOBES) {
+            ctx.moveTo(bx + ox * r + r * scale, crown + oy * r);
+            ctx.arc(bx + ox * r, crown + oy * r, r * scale, 0, TAU);
+          }
+          ctx.clip();
+          const g = ctx.createLinearGradient(
+            bx + sunX * r * 1.1, crown - r, bx - sunX * r * 1.1, crown + r,
+          );
+          g.addColorStop(0, withAlpha(MEADOW.bushHi, 0.95));
+          g.addColorStop(0.5, withAlpha(MEADOW.bushHi, 0.25));
+          g.addColorStop(1, withAlpha(shadeHex(MEADOW.bush, 0.72), 0.55));
+          ctx.fillStyle = g;
+          ctx.fillRect(bx - r * 1.6, crown - r * 1.6, r * 3.2, r * 3.2);
+          ctx.restore();
+        }
+        ctx.globalAlpha = t.bushAlpha * 0.6;
+        ctx.fillStyle = mixPaletteColor(MEADOW.bushHi, '#ffffff', 0.35);
+        for (let i = 0; i < 4; i++) {
+          const a = (i / 4) * TAU + s * 9;
+          ctx.beginPath();
+          ctx.ellipse(
+            bx + sunX * r * 0.36 + Math.cos(a) * r * 0.3,
+            crown - r * 0.1 + Math.sin(a) * r * 0.26,
+            r * 0.13, r * 0.075, a, 0, TAU,
+          );
           ctx.fill();
         }
       } else if (style === 'tall') {

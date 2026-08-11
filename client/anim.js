@@ -390,6 +390,8 @@ const VIEW = Object.freeze({
     // 'cover' | 'tuft' | 'bramble' (flat) | 'shrub' | 'grown' | 'trunk' |
     // 'tall' (standing). Judged in gallery-meadow.html.
     bushStyle: 'trunk',
+    bushStyleAlt: 'lobed', // the second species, when a meadow grows two
+    bushStyleAltShare: 0, // 0 = primary only, 1 = alt only, between = a mix
     // The shrub's shadow, damped against the cats': a squat canopy sits
     // close to the ground, so it stretches far less and needs no alpha
     // falloff. Only the LENGTH is damped -- the lean also anchors the

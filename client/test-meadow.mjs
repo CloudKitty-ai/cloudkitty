@@ -1128,6 +1128,44 @@ check('the light wash follows shadowLean, so the world agrees where the sun is',
   );
 });
 
+check('a meadow can grow two kinds of shrub, in any mix', () => {
+  const t = api.MEADOW_DEFAULTS;
+  const kindOf = (b, share) =>
+    share > 0 && api.tileHash(b.x, b.y, api.MEADOW_SALTS.bushKind) < share ? 'alt' : 'primary';
+  const shrubs = api.bushesFor(20, 20, t, null);
+  assert(shrubs.length > 4, 'not enough shrubs to say anything about a mix');
+
+  // 0 must be EXACTLY the behaviour that existed before the dial did, or
+  // this is a silent restyle of the live world rather than a new option.
+  assert(t.bushStyleAltShare === 0, 'the alt share must ship at 0');
+  assert(shrubs.every((b) => kindOf(b, 0) === 'primary'), 'share 0 grew an alt');
+  assert(shrubs.every((b) => kindOf(b, 1) === 'alt'), 'share 1 grew a primary');
+
+  // ...and in between, both. Asserted as "some of each" rather than an
+  // exact split: 13 shrubs cannot land on a ratio, and pinning one would
+  // fail the day the world changes size.
+  const half = shrubs.map((b) => kindOf(b, 0.5));
+  assert(half.includes('alt') && half.includes('primary'), 'a 50% mix grew only one kind');
+
+  // A shrub must not change species between frames -- scenery that
+  // flickers is the exact thing occupiedTiles was narrowed to prevent.
+  const again = api.bushesFor(20, 20, t, null).map((b) => kindOf(b, 0.5));
+  assert(String(half) === String(again), 'a shrub changed species between calls');
+
+  // Both silhouettes have to actually draw, in every phase. The guard ctx
+  // throws on non-finite geometry, which is what a mis-scaled lobe or an
+  // undefined palette entry produces.
+  for (const phase of ['day', 'dusk', 'night', 'dawn']) {
+    api.setMeadowPalette(phase, null, 0);
+    for (const style of [t.bushStyle, t.bushStyleAlt]) {
+      for (const b of shrubs) {
+        api.drawBushAt(guardCtx(), { ...b, tile: 48, t: { ...t, bushStyle: style, bushStyleAltShare: 0 } });
+      }
+    }
+  }
+  api.setMeadowPalette('day', null, 0);
+});
+
 // The summary stays LAST. It sat mid-file once and every check appended
 // after it ran past `process.exit` and was silently never counted -- the
 // suite reported green on tests that had not run. (Cost the motion suite
