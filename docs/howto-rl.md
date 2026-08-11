@@ -1,8 +1,8 @@
 # HOWTO: give a kitty a trained mind
 
 The start-to-finish path through the RL plumbing: build the Python
-environment, roll it out, improve a policy, export it, score it against
-the bar, and deploy it into the living world. Every command and number
+environment, roll it out, improve a policy, export it, smoke it on the
+served world, and deploy it into the living world. Every command and number
 in this document was run for real; the companion reference —
 [rl-training.md](rl-training.md) — covers the recommended training
 world, the wire formats, and the caveats in depth.
@@ -177,9 +177,13 @@ trainer (anything MAPPO-shaped that consumes the PettingZoo parallel
 convention; actor on observations + mask, critic on `env.state()`) and
 every other line of the pipeline stays the same.
 
-## 4. Score it against the bar
+## 4. Smoke it on the served world
 
-Training return is not the deployment claim — `kitty-eval` is. It runs
+Training return is not a deployment claim — and neither is this step:
+`kitty-eval` is the product-side **smoke test**, the "does this
+artifact run clean on exactly what the server ships" check
+(certification is the experiment pipeline —
+[`experiments/PIPELINE.md`](../experiments/PIPELINE.md)). It runs
 the policy on the **served** world (`./cloudkitty.toml`, the same file
 the server serves; the world is never guessed — a missing file is an
 error, `--config` names another world, `--config compiled` names the
@@ -207,10 +211,17 @@ Negative — a 20-iteration hill-climb loses to the handcrafted
 `needs_driven`, as it should. The run still proves what matters at this
 stage: the artifact validates, loads, and makes **zero fallback-taken
 decisions** (any fallback exits 2 — a broken advisor can never ride the
-fallback through an evaluation unnoticed). A policy is deployable when
-those deltas are ≥ 0 and every welfare bound in the scorecard holds.
+fallback through an evaluation unnoticed). A clean smoke plus deltas
+≥ 0 with every welfare bound holding is what a candidate *worth
+certifying* looks like; seating in the served world takes the full
+pipeline and the owner's word.
 
 ## 5. Deploy it
+
+(A real candidate earns this step through the certification pipeline —
+[`experiments/PIPELINE.md`](../experiments/PIPELINE.md) — and seats in
+the served world only on the owner's word; the mechanics below are the
+same either way.)
 
 Two changes in `cloudkitty.toml`: set `behavior` in the kitty's existing
 `[[kitty]]` entry, and add the policy block.
@@ -253,5 +264,5 @@ living its life — which is the whole idea.
 - **The episode clock is pinned to 0 at deployment.** If training
   performance depends on tick/horizon, re-read the caveat in
   [rl-training.md](rl-training.md) before trusting the curve —
-  `kitty-eval` scores with the deployment pin, which is why its verdict
-  is the one that counts.
+  `kitty-eval` smokes with the deployment pin, which is why it is the
+  right place to catch this failure mode.

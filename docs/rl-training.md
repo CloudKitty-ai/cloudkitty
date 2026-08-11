@@ -98,9 +98,11 @@ scores with the same pin, so evaluation matches deployment. A policy that
 learns strongly clock-conditional behavior (late-episode urgency,
 end-of-episode hoarding) will behave like perpetual tick 0 when deployed.
 If your training curves depend on the clock, either mask it out of your
-network's input, randomize episode phase at reset, or verify with
-`kitty-eval` that the pinned-clock variant still clears the bar — the
-eval score, not the training return, is the deployment claim.
+network's input, randomize episode phase at reset, or check with
+`kitty-eval` that the pinned-clock behavior holds up — it smokes with
+the deployment pin, which is exactly the failure mode it exists to
+catch. The deployment claim itself belongs to the certification
+pipeline (below).
 
 ## Exporting a `.ckpolicy` artifact
 
@@ -154,7 +156,7 @@ export fails startup naming the config field, never mid-tick.
 ## Scoring and deploying
 
 ```bash
-# The bar, before and after training (both roster modes, paired vs baseline):
+# The pre-seating smoke (both roster modes, paired vs baseline):
 cargo run -p cloudkitty-rl --bin kitty-eval -- --artifact policies/trained.ckpolicy
 
 # Deployment: a kitty gets the trained mind (cloudkitty.toml):
@@ -162,35 +164,53 @@ cargo run -p cloudkitty-rl --bin kitty-eval -- --artifact policies/trained.ckpol
 #   [rl.policy.trained]          -> artifact = "policies/trained.ckpolicy"
 ```
 
-`kitty-eval` fails (exit 2) on any fallback-taken decision during policy
-scoring, and the server validates and hash-logs the artifact before the
-first tick. Evaluation runs on the **served** world by default
-(`./cloudkitty.toml`, resolved the way the server resolves it; the world
-is never guessed — a missing file is an error, and every report stamps
-the resolved world identity, issue #76) — the training world is a gym,
-not the bar.
+**`kitty-eval` is the smoke test, not the bar** (role settled
+2026-08-10; the first certified seating, e004-a1-s2, never touched it).
+What it genuinely checks — and it is the only product-side runner, so
+nothing else checks this — is that an artifact runs clean on exactly
+what the server ships: strict validation and hash-logging on the
+shipping binary, exit 2 on any fallback-taken decision, and a paired
+greedy delta on the **served** world by default (`./cloudkitty.toml`,
+resolved the way the server resolves it; the world is never guessed —
+a missing file is an error, and every report stamps the resolved world
+identity, issue #76 — the training world is a gym, not a claim). Run
+it before handing a candidate to the certification pipeline, and again
+after any engine bump. It certifies nothing.
 
-**Match the certified distribution to the deployed one.** `kitty-eval`
+**Certification is the experiment pipeline**, written down as doctrine
+in [`experiments/PIPELINE.md`](../experiments/PIPELINE.md). The bar
+itself is registered per-experiment in the frozen prereg — the §9.2
+stress gate and §9.3 welfare bar, formulas recomputed from frozen
+dials; PIPELINE.md is what preregs copy from, and the §9 harness
+(run_eval + verdicts, evaluate-once ledger) is the instrument.
+Territory, stated exactly: the certification *assets* — `policies/`
+rows, the artifact contract, the frozen prereg record — stay
+product-auditable; the *harness* is trainer tooling whose outputs
+those records cite. A candidate seats in the served world only on the
+owner's word, after that pipeline has run.
+
+**Match the measured distribution to the deployed one.** `kitty-eval`
 seats the artifact greedy unless you pass `--sample`; it never reads
 `[rl.policy.<name>].sample` from a config. If your deployment sets
-`sample = true`, certify with `--sample` — otherwise the certification
-measures a distribution the server will not run. The report labels which
-one it measured (`greedy`/`sampled` in the header and JSON).
+`sample = true`, smoke with `--sample` — otherwise the run measures a
+distribution the server will not run. The report labels which one it
+measured (`greedy`/`sampled` in the header and JSON). The same
+discipline binds certification: what seats is what was measured.
 
 ## The exam suite
 
 ```bash
-# Measurement beside the bar (spec 017): four frozen held-out worlds.
+# Measurement beside the smoke (spec 017): four frozen held-out worlds.
 cargo run -p cloudkitty-rl --bin kitty-eval -- \
   --suite evals/v1 --artifact policies/trained.ckpolicy
 ```
 
 The suite scores across committed exam configs — scale, scarcity,
-heterogeneity, and the mixed-roster composition cells — **in addition to**
-default-world certification, never instead of it: the default world
-remains the sole certification bar. Exam worlds are never judged by the
-bar's welfare bounds (a scarcity-floor world lawfully scores below bounds
-calibrated for abundance); the paired baseline delta is an exam's meaning,
+heterogeneity, and the mixed-roster composition cells — **in addition
+to** the default-world smoke, never instead of it. Exam worlds are
+never judged by the served world's welfare bounds (a scarcity-floor
+world lawfully scores below bounds calibrated for abundance); the
+paired baseline delta is an exam's meaning,
 and the mixed-roster verdict is anchored to its own all-scripted baseline
 (exit 4 when it fails — the exploitation probe caught something). The
 per-kitty **sign test** warns by default: a scripted kitty whose paired
@@ -204,6 +224,13 @@ and nothing can loosen a gate) before quoting the result.
 The held-out doctrine, verbatim: **results against a suite version are
 void if any of its exams appeared in training.** A landed suite version is
 frozen (hash-guarded in CI); evolution is a new `evals/v2/` alongside.
+
+`evals/v1` remains hash-frozen, but its calibrations are **historical**:
+the exams predate the spec 027 world and the spec 028 channel and dials.
+Read suite scores as archaeology until an `evals/v2` recalibrates —
+which schedules with the `FromConfig` refactor at the next harness
+touch, if a second certification instrument is ever wanted; nothing is
+committed now.
 
 ## Certification assumptions
 
