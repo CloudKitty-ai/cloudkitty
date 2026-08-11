@@ -8,9 +8,10 @@ any PettingZoo-compatible cooperative trainer to them; adapt freely.
 
 ## The recommended training world (research.md R11)
 
-The *served* default world stays 32×32 with 4 kitties — its welfare bounds
-are calibrated there and full mutual visibility is the right served
-meadow. Training defaults instead to **5 kitties on a 24×24 world**:
+The *served* world is 20×20 with 4 kitties (spec 027's canonical
+generation, live since 2026-08-08) — its welfare bounds are calibrated
+there and full mutual visibility is the right served meadow. Training
+defaults instead to **5 kitties on a 24×24 world**:
 
 - Five is the smallest roster that turns the machinery on: with 3 kitty
   slots, nearest-K selection genuinely selects, `is-activity-target`
@@ -19,9 +20,10 @@ meadow. Training defaults instead to **5 kitties on a 24×24 world**:
 - An odd roster makes inclusion a learned behavior: cuddling is strictly
   pairwise, so someone is always left out of any pairing — and under Nash
   welfare, turn-taking becomes a necessity the reward genuinely teaches.
-- 576 tiles roughly double encounter and contention frequency over 1024,
-  and cheapen ticks. Floor ~20×20: element minimums, the safeguard
-  spawner, and the pathing/etiquette behaviors want room.
+- 576 tiles cheapen ticks while keeping encounter and contention
+  frequency high. Floor ~20×20 — where the served world now sits:
+  element minimums, the safeguard spawner, and the pathing/etiquette
+  behaviors want room.
 
 The repository ships this world as **`training.toml`** at the repo root —
 the single source of truth, so this page never drifts from the file. It is
@@ -53,27 +55,36 @@ obs, infos = env.reset()
 agents = env.possible_agents          # e.g. ["kitty_1", ..., "kitty_5"]
 
 # obs[agent]:            float32 [N_WORLDS, obs_len]
-# infos[agent]["mask"]:  uint8   [N_WORLDS, 40]  — masked softmax input
+# infos[agent]["mask"]:  uint8   [N_WORLDS, 43] — 34 activity ∥ 9 message
 # env.state():           float32 [N_WORLDS, state_len] — the critic's view
 
-actions = {a: np.zeros(N_WORLDS, dtype=np.int64) for a in agents}
+MENU = env.menu_len                    # 34 at default slots (spec 028)
+actions = {a: np.zeros((N_WORLDS, 2), dtype=np.int64) for a in agents}
 for a in agents:
     for w in range(N_WORLDS):
-        legal = np.flatnonzero(infos[a]["mask"][w])
-        actions[a][w] = np.random.choice(legal)   # your policy goes here
+        mask = infos[a]["mask"][w]
+        actions[a][w] = (np.random.choice(np.flatnonzero(mask[:MENU])),
+                         np.random.choice(np.flatnonzero(mask[MENU:])))
+        # your policy goes here — one [activity, message] pair per world
 obs, rewards, terminations, truncations, infos = env.step(actions)
 # rewards[agent]: float64 [N_WORLDS] — one team scalar, broadcast
 # terminations:   always False (kitties cannot die — Article II)
 # truncations:    all True exactly at the horizon
 ```
 
-Train with any parameter-shared cooperative algorithm that consumes the
-parallel convention (MAPPO-style: actor on observations + mask, critic on
-`state()`). Apply the mask **before** the softmax (set illegal logits to
-−inf); the environment guarantees the mask is never all-zero, so masked
-selection is always well-defined. Mixed control (`control=` on the
-constructor) lets you train one seat among `needs_driven` friends — the
-team reward always counts the full roster either way.
+A decision is a **pair** (spec 028): an activity from the 34-entry menu
+and a message riding along for free — the action space is
+`MultiDiscrete([34, 9])`, and the 43-wide mask is the two heads'
+legality concatenated, activity first. Train with any parameter-shared
+cooperative algorithm that consumes the parallel convention
+(MAPPO-style: actor on observations + mask, critic on `state()`). Apply
+each head's mask slice **before** that head's softmax (set illegal
+logits to −inf); the environment guarantees the activity slice is never
+all-zero and the message slice always admits Silent (index 0,
+structurally unmaskable), so masked selection is always well-defined on
+both heads. Mixed control (`control=` on the constructor) lets you
+train one seat among `needs_driven` friends — the team reward always
+counts the full roster either way.
 
 Unseeded `reset()` advances a deterministic fresh-seed chain: every call
 is a genuinely new episode, and the whole sequence replays exactly from
@@ -93,10 +104,16 @@ eval score, not the training return, is the deployment claim.
 
 ## Exporting a `.ckpolicy` artifact
 
-v1 policies are plain MLPs: observation → hidden ReLU layers → 40 logits.
-The artifact is one file — magic, length-prefixed JSON header, and the
-weights as little-endian f32, per layer **weights row-major [out][in],
-then bias [out]**, in declared layer order:
+Policies are plain MLPs: observation → hidden ReLU layers → **43
+logits** — one trunk, two heads by index convention (spec 028):
+`[0..34)` is the activity head, `[34..43)` the message head. Greedy
+selection is per-head masked argmax; sampled selection draws **one**
+u64 per decision and splits it, hi u32 → activity, lo u32 → message
+(the R10 law — never a second draw). The artifact container is **v2**
+(the version moves with the head convention): one file — magic,
+length-prefixed JSON header, and the weights as little-endian f32, per
+layer **weights row-major [out][in], then bias [out]**, in declared
+layer order:
 
 ```python
 import json
@@ -107,12 +124,11 @@ import cloudkitty
 def export_ckpolicy(path, layers, obs_len):
     """layers: list of (weight_matrix [out,in], bias [out]) numpy arrays."""
     header = {
-        "artifact_version": 1,   # the container format, not a generation:
-                                 # it moves only if the file layout changes
+        "artifact_version": 2,   # spec 028: two heads in one final layer
         # The three SCHEMA fields always come from the binding's constants,
         # never literals: an artifact stamped with a stale generation is
-        # refused at load (observation schema 2 since spec 026 -- the
-        # in-water flag took the vector to 183).
+        # refused at load (observation schema 3 since spec 028 -- the
+        # meow digest rework took the vector to 197).
         "observation_schema": cloudkitty.OBSERVATION_SCHEMA_VERSION,
         "action_schema": cloudkitty.ACTION_SCHEMA_VERSION,
         "mask_schema": cloudkitty.MASK_SCHEMA_VERSION,
@@ -120,7 +136,7 @@ def export_ckpolicy(path, layers, obs_len):
         "activation": "relu",
     }
     assert header["layers"][0][0] == obs_len
-    assert header["layers"][-1][1] == 40
+    assert header["layers"][-1][1] == 43   # 34 activity + 9 message
     header_bytes = (json.dumps(header) + "\n").encode()
     with open(path, "wb") as f:
         f.write(b"CKPOLICY")
@@ -194,10 +210,22 @@ frozen (hash-guarded in CI); evolution is a new `evals/v2/` alongside.
 Standing premises a certification inherits without measuring them. Revisit
 each before training under a design that breaks its "holds because."
 
-- **Meow spam is restrained by economics, not law** (spec 023): the engine
-  never blocks an agent's meow. Holds because every meow spends the whole
-  turn *and* the reward is the cooperative team aggregate, under which
-  misleading teammates is self-defeating. Any per-kitty or competitive
-  reward design voids this premise and must revisit spec 023 before
-  training — an unrestrained channel plus an incentive to misuse it is a
-  different world than the one certified.
+- **The meow channel is restrained by law, not economics** (spec 028,
+  which inverted spec 023's premise on both halves): emission is a free
+  ride-along on the activity — no turn cost, and no reward shaping on
+  the channel (F-011) — and the engine enforces legality instead. A
+  want-kind is unmasked only while its need is armed
+  (`announce_threshold` 30 / hysteresis 5) and its per-cat, per-kind
+  cooldown window is clear (= `recent_window_ticks`); an illegal
+  message downgrades to Silent at apply with the paired activity
+  untouched; Silent itself is never masked. Holds because grounded
+  legality bounds what can be said and when, *and* the reward is still
+  the cooperative team aggregate, under which misleading teammates is
+  self-defeating. A second premise rides with it — **imitability**:
+  responders key on the audible meow itself (the demonstrators'
+  groom-response rung listens for `WantBath`, not for state), so the
+  channel's meaning is carried by emissions, not private knowledge.
+  Any per-kitty or competitive reward design voids the incentive half
+  and must revisit spec 028 before training — a lawful-but-free channel
+  plus an incentive to misuse it is a different world than the one
+  certified.
