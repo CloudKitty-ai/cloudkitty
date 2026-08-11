@@ -280,7 +280,7 @@ flowchart LR
 | `tools/twin-probe` | decision-level scripted-vs-policy diffs | |
 | `tools/world-search` | world-count derivation, cluster-robust stats | F-004's reference implementation |
 | exp-004 `trainer/run_eval_v4.py` + `verdicts_v4.py` | the §9 sweep + mechanical gates | imports exp-002's harness — lineage by import, not copy |
-| `kitty-eval` (product) | legacy bar + exam suite | **not part of certification this generation** — role decision pending Product-side |
+| `kitty-eval` (product) | pre-seating smoke: artifact validation on the shipping binary, zero-fallback (exit 2), paired greedy delta | **demoted from "the bar" 2026-08-10** (Experiments' call, Product concurring): certification runs through the §9 harness + frozen prereg; run the smoke before handing a candidate to the pipeline and after any engine bump |
 
 ## Honest scope
 
