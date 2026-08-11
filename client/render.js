@@ -139,23 +139,110 @@ function gazeTargetFor(kitty, world, pos) {
 const CAT_GROUND_Y = 0.88;
 
 /**
- * Where the pond surface cuts a cat, in the cat's unit space -- or null
- * when nothing should be clipped (BACKLOG P1, the owner's idea).
+ * How much of the cat is in water, 0..1 -- sampled from WHERE IT IS.
  *
- * Pure, and derived from `wet` rather than from the pose, because the
- * pose is exactly what must NOT decide this: `poseFor` lets drinking and
- * grooming outrank the wade, so those cats keep a land pose while
- * standing in a pond and still have to look wet. The one pose exempted
- * is `swim`, which is already drawn sunk and would be submerged twice.
+ * This replaces a 260ms timer keyed on the nearest tile, and the change
+ * of kind is the whole fix. Depth is a fact about a place: the old signal
+ * eased toward a boolean and therefore kept easing for a quarter second
+ * after the cat had left, so a cat standing on grass was still clipped at
+ * a waterline and still missing its ground shadow. No amount of
+ * retuning the fade could fix that -- a timer cannot know where the
+ * shoreline is.
  *
- * The surface travels from the ground line up to the waterline as `wet`
- * eases 0 -> 1, so a shoreline crossing raises the water instead of
- * popping it.
+ * Bilinear over the served water tiles, at the DRAWN (interpolated)
+ * position. That gives three properties for free:
+ *   - exactly 0 once every neighbouring tile is dry, so water cues can
+ *     never appear on grass;
+ *   - exactly 1 in a pond's interior;
+ *   - smooth across the shore, so no fade is needed to avoid a pop --
+ *     the cat wades in and the water rises because it MOVED.
+ * And being a pure function of served data plus the drawn position, it
+ * needs no per-cat state, survives a reconnect by construction, and is
+ * already correct in a still frame.
+ *
+ * Mid-fade water counts at its own alpha, so a pond spawning under a cat
+ * raises the water at the same rate the pond itself arrives.
  */
-function waterlineFor(pose, wet, dials = VIEW) {
-  if (pose === 'swim' || !(wet > 0.01)) return null;
-  return CAT_GROUND_Y - wet * (CAT_GROUND_Y - dials.waterline);
+function submersionFor(pos, world, view) {
+  const depth = new Map();
+  for (const el of world.elements) {
+    if (el.kind !== 'water') continue;
+    const a = view?.elementAlphaFor ? view.elementAlphaFor(el) : 1;
+    if (a > 0) depth.set(`${el.pos.x},${el.pos.y}`, a);
+  }
+  if (!depth.size) return 0;
+  const at = (tx, ty) => depth.get(`${tx},${ty}`) ?? 0;
+  const x0 = Math.floor(pos.x);
+  const y0 = Math.floor(pos.y);
+  const fx = pos.x - x0;
+  const fy = pos.y - y0;
+  return (
+    at(x0, y0) * (1 - fx) * (1 - fy) +
+    at(x0 + 1, y0) * fx * (1 - fy) +
+    at(x0, y0 + 1) * (1 - fx) * fy +
+    at(x0 + 1, y0 + 1) * fx * fy
+  );
 }
+
+/**
+ * The surface height, in the cat's unit space.
+ *
+ * One level for every pose (owner, 2026-08-10): the meadow's water is one
+ * depth everywhere, so every cat in it must meet the surface at the same
+ * height whatever it is doing there. A per-pose level was tried and cut --
+ * it made one pond look like two, and moved the water under a cat that had
+ * only changed pose.
+ *
+ * Kept as a function rather than inlining `VIEW.waterline` so there is
+ * exactly one place that answers "where is the surface", and so the poses
+ * cannot start disagreeing about it again.
+ */
+function surfaceForPose(pose, dials = VIEW) {
+  return dials.waterline;
+}
+
+/**
+ * Where the surface cuts the cat, in its unit space -- or null when
+ * nothing should be clipped (BACKLOG P1, the owner's idea).
+ *
+ * The clip is what makes the water+activity case work without a water
+ * variant of every pose: `poseFor` deliberately lets drinking and
+ * grooming outrank the wade, and occlusion is what makes those cats look
+ * like they are standing in a pond.
+ *
+ * The swim pose is no longer exempt. Exempting it was what made the depth
+ * jump: the surface simply vanished on the frame the pose flipped, so a
+ * cat crossing into deep water changed level in one step. `surface` is
+ * now passed in already blended across the pose change, so the cat sinks
+ * into its swim depth instead of arriving at it.
+ */
+function waterlineFor(submersion, surface) {
+  if (!(submersion > 0.01)) return null;
+  return CAT_GROUND_Y - submersion * (CAT_GROUND_Y - surface);
+}
+
+/**
+ * The meniscus, mutable for a lab like SWIM/GAIT/EYE.
+ *
+ * Toned down and cut to a half-arc 2026-08-10 (owner). Two things were
+ * wrong at camera-mode sizes: it was too bright, and it was a closed
+ * ellipse. The surface is drawn AFTER the cat -- it has to be, or it would
+ * be clipped away with the legs -- so the far half of a closed ring paints
+ * straight over the body it is supposed to be behind, and the whole thing
+ * reads as a plate the cat is standing in rather than as water.
+ *
+ * Only the near half is drawn now: the arc from 0 to PI, which in canvas
+ * angles is the half nearest the viewer. The far half is exactly the part
+ * a real cat's body would hide.
+ */
+const MENISCUS = {
+  fill: 0.16, // displaced water under the line (was 0.3, closed)
+  line: 0.42, // the bright surface itself (was 0.85, closed)
+  ring: 0.1, // the ring spreading off it (was 0.22, closed)
+  rx: 0.38, // radius as a share of the tile
+  ry: 0.052,
+  breathe: 0.012, // how much rx pulses
+};
 
 class WorldRenderer {
   constructor(canvas) {
@@ -516,6 +603,79 @@ class WorldRenderer {
     });
   }
 
+  /**
+   * The surface where it meets a cat (2026-08-10).
+   *
+   * The clip alone says "the bottom of this cat is missing", which is not
+   * the same statement as "this cat is in water" -- a hard edge across a
+   * silhouette reads as a rendering fault before it reads as a pond. What
+   * makes it water is the meniscus: a bright line riding the surface, and
+   * the water darkening where the cat displaces it.
+   *
+   * This is also what makes the two depths legible. A wading cat and a
+   * swimming cat sit at different levels, and until the surface was drawn
+   * there was nothing to tell the viewer that the difference was depth
+   * rather than the cat changing size.
+   *
+   * Gated on `submersion`, so it cannot appear on grass.
+   */
+  drawWaterline(cx, y, cut, submersion, view) {
+    if (!(submersion > 0.01)) return;
+    const ctx = this.ctx;
+    const lineY = y + cut * this.tile;
+    // A slow breath, so the surface is never a frozen decal. Same clock
+    // and same flag as the caustics, so reduced motion stills it too.
+    const now = view?.ambient?.now;
+    const still = now === undefined || !VIEW.ambient.waterShimmer;
+    const pulse = still ? 0 : Math.sin(now / 700 + cx * 0.05);
+    const rx = this.tile * (MENISCUS.rx + MENISCUS.breathe * pulse) * (0.75 + 0.25 * submersion);
+    const ry = Math.max(0.6, this.tile * MENISCUS.ry);
+    // The near half only, 0 to PI: canvas angles run clockwise from +x
+    // with +y downward, so this is the arc between the two ends of the
+    // waterline passing in FRONT of the cat. The far half is the part its
+    // body would hide, and drawing it here -- on top of the cat, since the
+    // surface has to be painted after the clip is released -- is what made
+    // this read as a plate.
+    const nearArc = (radX, radY, dy) => {
+      ctx.beginPath();
+      ctx.ellipse(cx, lineY + dy, radX, radY, 0, 0, Math.PI);
+    };
+
+    ctx.save();
+    // Displaced water: a little pool of shadow hugging the cat, which is
+    // what gives the waterline something to sit ON. Closed along the
+    // waterline itself, so its flat edge IS the surface.
+    ctx.globalAlpha = MENISCUS.fill * submersion;
+    ctx.fillStyle = MEADOW.pondRim;
+    nearArc(rx * 1.12, ry * 1.5, ry * 0.35);
+    ctx.closePath();
+    ctx.fill();
+    // The meniscus itself: brightest right at the cut.
+    ctx.globalAlpha = MENISCUS.line * submersion;
+    // The PER-THEME surface colour, not a fixed mix toward white.
+    //
+    // The handoff lightened `pondWater` 50% toward white, which is the
+    // daylight assumption the pond restyle (#177) was built to retire: a
+    // constant mix is a statement about how much sun there is. Measured in
+    // CIE L*, that expression lands within a few points of this palette
+    // entry by day (94.1 vs 97.8) and dusk (87.5 vs 93.2) -- and 33.5
+    // points too bright at NIGHT (66.7 vs 33.2), where it would paint a
+    // near-daylight line across a cat standing in a pond drawn at L* 33.
+    // Same shape of bug the night shore band had, same fix: the palette
+    // already answers this per theme, so ask it.
+    ctx.strokeStyle = MEADOW.pondMeniscus ?? MEADOW.pondRim;
+    ctx.lineWidth = Math.max(1, this.tile * 0.045);
+    nearArc(rx, ry, 0);
+    ctx.stroke();
+    // ...and one ring spreading off it, faint enough not to fight the
+    // pond's own caustics -- which is what retired the old wetRipple.
+    ctx.globalAlpha = MENISCUS.ring * submersion;
+    ctx.lineWidth = Math.max(1, this.tile * 0.03);
+    nearArc(rx * (1.35 + 0.06 * pulse), ry * 1.7, ry * 0.5);
+    ctx.stroke();
+    ctx.restore();
+  }
+
   /** The shimmer sliding across a water surface (005 US6), shared by the
    * pond body and the standalone pools. */
   drawWaterShimmer(el, view) {
@@ -703,14 +863,12 @@ class WorldRenderer {
     // crosses the shore (mid-tick; the tween machinery blends it there),
     // never a full glide early. The served elements are the truth about
     // where water is, mid-fade or not.
-    const onWater =
-      v2Motion &&
-      world.elements.some(
-        (el) =>
-          el.kind === 'water' &&
-          el.pos.x === Math.round(pos.x) &&
-          el.pos.y === Math.round(pos.y),
-      );
+    // How deep, sampled from the drawn position (see submersionFor). The
+    // pose reads the same number so the wade pose and the water level can
+    // never disagree about where the shoreline is -- they used to be two
+    // separate readings of it.
+    const submersion = v2Motion ? submersionFor(pos, world, view) : 0;
+    const onWater = submersion >= 0.5;
 
     // The approved vector cat (spec 005 US2/US4/US5): identity from the
     // kitty's id, pose from served state (with the fall-asleep settle),
@@ -798,15 +956,12 @@ class WorldRenderer {
       beatMs: view.tickMs,
     };
 
-    // Wetness is a fact about the tile, not the pose (owner call,
-    // 2026-08-04). `poseFor` lets an activity outrank the wade, so a cat
-    // drinking in a pond keeps its drinking pose -- but it is still
-    // standing in water and should look it. One eased signal now drives
-    // both cues, the shadow it loses and the ripple it gains, so the two
-    // can never disagree the way the old pose-derived reading could: that
-    // read `pose === 'swim'`, and therefore dried a grooming cat off
-    // while it stood in the pond.
-    const wet = v2Motion && view.wetFor ? view.wetFor(kitty.id, onWater) : 0;
+    // How damp the COAT is -- and nothing else. This is the one water cue
+    // allowed to outlive the pond, so it may only ever change colour;
+    // every piece of geometry below reads `submersion` instead. Hanging
+    // anything positional off this is precisely how water ended up being
+    // drawn on grass.
+    const furWet = v2Motion && view.wetFor ? view.wetFor(kitty.id, onWater) : 0;
 
     // A soft shadow so cats sit on the grass rather than float above it --
     // and, since v3, one that knows where the sun is. It leans and
@@ -816,7 +971,7 @@ class WorldRenderer {
     // to the OTHER side at dawn, and directionless under the moon.
     // Because both are plain numbers, they interpolate across a phase
     // crossing for free -- the shadow swings round as the light does.
-    const shadowAlpha = 1 - wet;
+    const shadowAlpha = 1 - submersion;
     if (shadowAlpha > 0) {
       const lean = MEADOW.shadowLean ?? 0;
       const length = MEADOW.shadowLength ?? 1;
@@ -850,13 +1005,13 @@ class WorldRenderer {
       ctx.fill();
       ctx.restore();
     }
-    if (wet > 0.01 && VIEW.ambient.wetRipple) {
+    if (submersion > 0.01 && VIEW.ambient.wetRipple) {
       // ...and the water it displaces instead. Ships OFF (VIEW.ambient):
       // the pond restyle owns the water's surface now, and the cat's rings
       // fought the water's own. Kept behind the flag beside its sibling
       // water effect rather than deleted, so the lab can put it back.
       ctx.save();
-      ctx.globalAlpha = wet * 0.55;
+      ctx.globalAlpha = submersion * 0.55;
       ctx.strokeStyle = MEADOW.pondRim;
       ctx.lineWidth = Math.max(1, this.tile * 0.045);
       for (const [rx, ry, dy] of [[0.34, 0.13, 0.3], [0.22, 0.085, 0.36]]) {
@@ -871,7 +1026,10 @@ class WorldRenderer {
     // pose it is wearing. This is what makes the water+activity case work
     // without a second pose per activity -- a cat drinking at the edge of a
     // pond keeps its drinking pose and still reads as standing in water.
-    const cut = waterlineFor(pose, wet);
+    // One level for every pose, so there is nothing to interpolate across
+    // a pose change: a cat starting to paddle meets the water exactly
+    // where it did while standing in it.
+    const cut = waterlineFor(submersion, surfaceForPose(pose));
     const submerged = cut !== null;
     if (submerged) {
       ctx.save();
@@ -897,7 +1055,13 @@ class WorldRenderer {
       ctx.translate(-midX, -groundY);
     }
     const catOpts = {
-      appearance: shadedAppearanceOf(appearanceFor(kitty.id), this.theme),
+      // The damp coat ships OFF (VIEW.ambient.wetCoat). Guarded on the
+      // symbol as well as the flag: it is a v2 vocabulary feature and the
+      // dispatcher can be running v1, whose cat file has no such function.
+      appearance:
+        VIEW.ambient.wetCoat && typeof wetAppearanceOf === 'function'
+          ? wetAppearanceOf(shadedAppearanceOf(appearanceFor(kitty.id), this.theme), furWet)
+          : shadedAppearanceOf(appearanceFor(kitty.id), this.theme),
       facing: view.facingFor(kitty.id),
       size: this.tile,
       eyesOverride: eyes,
@@ -929,6 +1093,9 @@ class WorldRenderer {
     }
     if (tween?.sy !== undefined) ctx.restore();
     if (submerged) ctx.restore();
+    // Drawn after the clip is released, so the surface sits ON the cat
+    // rather than being cut away with its legs.
+    if (submerged) this.drawWaterline(cx, y, cut, submersion, view);
     // The beat, the Zs and the cuddle heart all live ABOVE the water and
     // are drawn after the clip is released -- a thought bubble does not
     // get cut off because the cat it belongs to is standing in a pond.

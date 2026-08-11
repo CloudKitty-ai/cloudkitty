@@ -51,9 +51,11 @@ const CatV2 = globalThis.CatV2;
 // the SAME object anim.js built, so a re-dialled tunable cannot diverge
 // between what the harness tests and what the page draws.
 const VIEW = api.VIEW;
-const { poseFor, WorldRenderer, waterlineFor, chaseDistanceFor } = eval(
-  renderSrc + ';({ poseFor, WorldRenderer, waterlineFor, chaseDistanceFor })',
-);
+const { poseFor, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose } =
+  eval(
+    renderSrc +
+      ';({ poseFor, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose })',
+  );
 
 /** Canvas ctx stand-in: logs every command, throws on non-finite numbers. */
 function guardCtx(log = []) {
@@ -485,9 +487,12 @@ check('the wading cat’s ripple ships off, beside its sibling water effect', ()
   for (const sibling of ['waterShimmer', 'sunbeamPulse', 'dustMotes', 'cloudShadows']) {
     assert(sibling in VIEW.ambient, `ambient lost ${sibling}`);
   }
-  // The cue it replaced is not lost: `wet` still fades the ground shadow,
-  // and the waterline clip still cuts the cat. Both are checked elsewhere.
-  assert(waterlineFor('idle', 1) !== null, 'a soaked cat is still clipped at the waterline');
+  // The cue it replaced is not lost: submersion still fades the ground
+  // shadow and the clip still cuts the cat. Both are checked elsewhere.
+  assert(
+    waterlineFor(1, surfaceForPose('idle')) !== null,
+    'a submerged cat is still clipped at the waterline',
+  );
 });
 
 // ---- the belly: a pale underside on every soft cat ----
@@ -692,22 +697,48 @@ check('first sight settles rather than fading in', () => {
   close(q.wetFor(2, false, 1000), 0, 'seen on land: fully dry at once');
 });
 
-check('a shoreline crossing fades over wetFadeMs, both ways', () => {
+check('a coat wets fast and dries slow -- the two clocks differ on purpose', () => {
+  // Asymmetric since 2026-08-10. A cat is wet the INSTANT it is in water
+  // and dries over furDryMs, which is ~11x longer. Before, one clock ran
+  // both ways, and it had to be short because the geometry rode it too --
+  // now that geometry is spatial, drying is free to take as long as it
+  // really does.
+  const wetMs = api.VIEW.wetFadeMs;
+  const dryMs = api.VIEW.furDryMs;
+  assert(dryMs > wetMs * 4, `drying (${dryMs}ms) must be much slower than wetting (${wetMs}ms)`);
+
   const p = new api.Presentation();
   p.wetFor(1, true, 1000); // settled, in the water
   close(p.wetFor(1, false, 1000), 1, 'still wet at the moment it steps out');
-  close(p.wetFor(1, false, 1130), 0.5, 'half dry a half-fade later');
-  close(p.wetFor(1, false, 1260), 0, 'dry when the fade ends');
-  close(p.wetFor(1, false, 5000), 0, 'and stays dry');
+  close(p.wetFor(1, false, 1000 + dryMs / 2), 0.5, 'half dry a half-DRY later');
+  close(p.wetFor(1, false, 1000 + dryMs), 0, 'dry when the dry ends');
+  close(p.wetFor(1, false, 1000 + dryMs * 3), 0, 'and stays dry');
+
+  // The other direction still runs on the fast clock. Asserted as a pair
+  // with the above, because a single clock would satisfy either one alone.
+  const q = new api.Presentation();
+  q.wetFor(2, false, 1000); // settled, on land
+  q.wetFor(2, true, 1000); // steps in: the wetting starts here
+  close(q.wetFor(2, true, 1000 + wetMs / 2), 0.5, 'half wet a half-WET later');
+  close(q.wetFor(2, true, 1000 + wetMs), 1, 'soaked when the fade ends');
+  // ...and at the drying clock's half-point it is long since soaked, which
+  // is what proves wetting did not quietly inherit furDryMs.
+  const r = new api.Presentation();
+  r.wetFor(3, false, 1000);
+  r.wetFor(3, true, 1000);
+  close(r.wetFor(3, true, 1000 + dryMs / 2), 1, 'wetting must not run on the drying clock');
 });
 
 check('darting in and out resumes from the part-fade, never snapping', () => {
   const p = new api.Presentation();
+  const dryMs = api.VIEW.furDryMs;
+  const wetMs = api.VIEW.wetFadeMs;
   p.wetFor(1, true, 1000); // settled, in the water
-  p.wetFor(1, false, 1000); // steps out: the fade starts here
-  close(p.wetFor(1, false, 1130), 0.5, 'half dry on the way out');
-  close(p.wetFor(1, true, 1130), 0.5, 'turning back does not snap to wet');
-  close(p.wetFor(1, true, 1260), 0.75, 'it re-wets from where it had got to');
+  p.wetFor(1, false, 1000); // steps out: the dry starts here
+  close(p.wetFor(1, false, 1000 + dryMs / 2), 0.5, 'half dry on the way out');
+  close(p.wetFor(1, true, 1000 + dryMs / 2), 0.5, 'turning back does not snap to wet');
+  // Re-wetting from 0.5 covers the remaining half on the FAST clock.
+  close(p.wetFor(1, true, 1000 + dryMs / 2 + wetMs / 2), 0.75, 'it re-wets from where it had got to');
 });
 
 check('still frames carry wetness at full strength', () => {
@@ -828,21 +859,27 @@ check('a dry cat is never clipped, in any pose', () => {
   }
 });
 
-check('the swim pose opts out however wet it is', () => {
-  // It is already drawn sunk (cat-v2's SWIM); clipping would submerge it
-  // a second time.
-  for (const wet of [0.01, 0.3, 0.7, 1]) {
-    assert(waterlineFor('swim', wet) === null, `swim at wet ${wet}`);
+check('the world owns the water level: EVERY pose meets one surface', () => {
+  // The reverse of what this file asserted until 2026-08-10, and the
+  // reversal is the point (handoff invariant 5). `swim` used to be exempt
+  // from the clip because it drew itself sunk -- so the same pond read as
+  // two depths, and a cat crossing into deep water changed level in one
+  // step on the frame the pose flipped. SWIM was raised to sit at the land
+  // poses' height and the CLIP now does the submerging.
+  //
+  // Note the old check passed for a reason that had nothing to do with
+  // swimming: it called waterlineFor('swim', wet), and under the new
+  // signature the string lands in `submersion`, where !('swim' > 0.01) is
+  // true and the answer is null for every pose spelled any way at all.
+  const poses = ['swim', 'grooming', 'drinking', 'eating', 'loaf', 'sleep-curl', 'idle', 'pouncing'];
+  for (const pose of poses) {
+    close(surfaceForPose(pose), api.VIEW.waterline, `${pose} disagrees about the surface`);
+    close(waterlineFor(1, surfaceForPose(pose)), api.VIEW.waterline, `${pose} fully submerged`);
   }
-});
-
-check('a land pose in water is clipped, and the pose does not change where', () => {
-  // The whole point: poseFor lets these outrank the wade, so they must
-  // all meet the same surface.
-  const poses = ['grooming', 'drinking', 'eating', 'loaf', 'sleep-curl', 'idle', 'pouncing'];
-  const at = poses.map((p) => waterlineFor(p, 1));
-  for (let i = 0; i < poses.length; i += 1) {
-    close(at[i], api.VIEW.waterline, `${poses[i]} fully wet`);
+  // ...and no pose may smuggle a level in through a dials object either.
+  const shallow = { waterline: 0.8 };
+  for (const pose of poses) {
+    close(surfaceForPose(pose, shallow), 0.8, `${pose} ignored a re-dialled surface`);
   }
 });
 
@@ -853,29 +890,176 @@ check('the surface rises from the ground line, monotonically', () => {
   // is 0.7199999999999999 in binary floating point, so an exact bound here
   // would fail on arithmetic rather than on behaviour.
   const EPS = 1e-9;
+  const surface = surfaceForPose('grooming');
   let previous = GROUND + 1;
   for (let i = 1; i <= 50; i += 1) {
-    const wet = i / 50;
-    const cut = waterlineFor('grooming', wet);
-    assert(cut < previous, `not monotonic at wet ${wet.toFixed(2)}`);
-    assert(cut <= GROUND + EPS, `above the ground line at ${wet.toFixed(2)}: ${cut}`);
-    assert(cut >= api.VIEW.waterline - EPS, `past the waterline at ${wet.toFixed(2)}: ${cut}`);
+    const submersion = i / 50;
+    const cut = waterlineFor(submersion, surface);
+    assert(cut < previous, `not monotonic at submersion ${submersion.toFixed(2)}`);
+    assert(cut <= GROUND + EPS, `above the ground line at ${submersion.toFixed(2)}: ${cut}`);
+    assert(cut >= api.VIEW.waterline - EPS, `past the waterline at ${submersion.toFixed(2)}: ${cut}`);
     previous = cut;
   }
-  close(waterlineFor('grooming', 1), api.VIEW.waterline, 'fully wet sits exactly on the dial');
-  // Half wet is half way, so the ease in `wetFor` is the only shaping.
-  close(
-    waterlineFor('grooming', 0.5),
-    GROUND - 0.5 * (GROUND - api.VIEW.waterline),
-    'halfway is halfway',
-  );
+  close(waterlineFor(1, surface), api.VIEW.waterline, 'fully submerged sits exactly on the dial');
+  // Half submerged is half way: the geometry does no shaping of its own,
+  // because the shoreline's smoothness now comes from POSITION.
+  close(waterlineFor(0.5, surface), GROUND - 0.5 * (GROUND - surface), 'halfway is halfway');
 });
 
 check('the dial is honoured, not hardcoded', () => {
-  const shallow = { waterline: 0.8 };
-  const deep = { waterline: 0.6 };
-  close(waterlineFor('grooming', 1, shallow), 0.8, 'shallow dial');
-  close(waterlineFor('grooming', 1, deep), 0.6, 'deep dial');
+  close(waterlineFor(1, surfaceForPose('grooming', { waterline: 0.8 })), 0.8, 'shallow dial');
+  close(waterlineFor(1, surfaceForPose('grooming', { waterline: 0.6 })), 0.6, 'deep dial');
+});
+
+// ---- submersion is a PLACE (2026-08-10) ----
+//
+// The bug this replaced: every water cue rode a 260ms ease toward "is the
+// nearest tile water". A timer cannot know where the shoreline is, so how
+// far past the shore a cat carried its water depended on how FAST it was
+// going -- measured by the handoff at x~9.78 at one tile per tick and
+// x~10.08 at two, over ground with no water under it.
+
+/** A two-tile pond at (5,5)-(6,5), everything else dry. */
+const pondWorld = () => ({
+  tick: 1,
+  kitties: [],
+  elements: [
+    { id: 1, kind: 'water', pos: { x: 5, y: 5 } },
+    { id: 2, kind: 'water', pos: { x: 6, y: 5 } },
+    { id: 3, kind: 'chow', pos: { x: 9, y: 9 } },
+  ],
+});
+
+check('submersion is EXACTLY zero on dry ground, at any speed', () => {
+  const w = pondWorld();
+  // Sampled at frame resolution, not per tile. Per-tile sampling is
+  // precisely what hid the old bug: it only ever asked at integers, where
+  // even the timer happened to be right.
+  for (let x = 7; x <= 12; x += 0.01) {
+    const s = submersionFor({ x, y: 5 }, w, null);
+    assert(s === 0, `wet on dry ground at x=${x.toFixed(2)}: ${s}`);
+  }
+  // ...and off the pond's axis too, including the diagonal neighbours the
+  // bilinear sample reaches that a nearest-tile reading never did.
+  for (let y = 7; y <= 9; y += 0.25) {
+    assert(submersionFor({ x: 5, y }, w, null) === 0, `wet at y=${y}`);
+  }
+  // Speed cannot enter into it: this is a pure function of position, so
+  // the same place answers the same number however the cat got there.
+  assert(
+    submersionFor({ x: 8, y: 5 }, w, null) === submersionFor({ x: 8, y: 5 }, w, null),
+    'not a pure function of position',
+  );
+});
+
+check('submersion is exactly 1 in the pond, and rises smoothly across the shore', () => {
+  const w = pondWorld();
+  close(submersionFor({ x: 5, y: 5 }, w, null), 1, 'the pond interior');
+  close(submersionFor({ x: 6, y: 5 }, w, null), 1, 'the other water tile');
+  close(submersionFor({ x: 6.5, y: 5 }, w, null), 0.5, 'halfway to the shore');
+  // Monotonic on the way out, with no step: the smoothness comes from
+  // MOVING, which is why no fade is needed to avoid a pop.
+  let previous = Infinity;
+  for (let x = 6; x <= 7; x += 0.02) {
+    const s = submersionFor({ x, y: 5 }, w, null);
+    assert(s <= previous + 1e-12, `not monotonic leaving the pond at x=${x.toFixed(2)}`);
+    assert(Math.abs(s - previous) < 0.05 || previous === Infinity, `a step at x=${x.toFixed(2)}`);
+    previous = s;
+  }
+  close(previous, 0, 'clear of the water by the next tile');
+  // A world with no water at all short-circuits rather than sampling.
+  assert(submersionFor({ x: 5, y: 5 }, { elements: [] }, null) === 0, 'dry world');
+});
+
+check('a pond fading in raises the water at its own alpha', () => {
+  const w = pondWorld();
+  const half = { elementAlphaFor: (el) => (el.kind === 'water' ? 0.5 : 1) };
+  close(submersionFor({ x: 5, y: 5 }, w, half), 0.5, 'a half-arrived pond is half deep');
+  const gone = { elementAlphaFor: () => 0 };
+  assert(submersionFor({ x: 5, y: 5 }, w, gone) === 0, 'a fully faded pond is not water');
+});
+
+check('geometry reads the PLACE, colour reads the MEMORY -- never the reverse', () => {
+  // The invariant the whole split exists for. A cat that has just left the
+  // pond is still visibly damp AND completely clear of water geometry;
+  // under the old single signal those were the same number, which is how
+  // water came to be drawn on grass.
+  const w = pondWorld();
+  const p = new api.Presentation();
+  p.wetFor(1, true, 1000); // soaked, standing in it
+  const stillDamp = p.wetFor(1, false, 1000 + api.VIEW.furDryMs / 4);
+  assert(stillDamp > 0.5, `a cat should still be damp a moment after leaving: ${stillDamp}`);
+  assert(submersionFor({ x: 8, y: 5 }, w, null) === 0, 'but it is not in any water');
+  assert(waterlineFor(0, surfaceForPose('idle')) === null, 'so nothing may clip it');
+
+  // And the wiring: the draw path must not hand `wetFor`'s answer to any
+  // geometry. Checked in the source because the failure is a substitution
+  // that every geometry test would still pass -- the shapes stay valid,
+  // they just outlive the pond.
+  const geometry = [
+    ['shadowAlpha', /const shadowAlpha = 1 - submersion;/],
+    ['the waterline clip', /waterlineFor\(submersion, surfaceForPose\(pose\)\)/],
+    ['the meniscus', /drawWaterline\(cx, y, cut, submersion, view\)/],
+  ];
+  for (const [what, pattern] of geometry) {
+    assert(pattern.test(renderSrc), `${what} no longer reads submersion`);
+  }
+  assert(
+    /const furWet = /.test(renderSrc) && !/const wet = v2Motion/.test(renderSrc),
+    'the coat signal must be named furWet, so a stray `wet` cannot be geometry by accident',
+  );
+});
+
+check('the meniscus takes its colour from the theme, not from a mix toward white', () => {
+  // The handoff drew it as lightenHex(pondWater, 0.5). That is the daylight
+  // assumption the pond restyle (#177) exists to retire: a constant mix
+  // toward white is a statement about how much sun there is.
+  //
+  // Measured in CIE L*, the two agree where it does not matter and part
+  // where it does -- day 94.1 vs 97.8, dusk 87.5 vs 93.2, dawn 83.3 vs
+  // 76.6, and NIGHT 66.7 vs 33.2. That last one is a near-daylight line
+  // drawn across a cat standing in a pond painted at L* 33.
+  //
+  // Guarded here rather than in test-meadow because the palette is not
+  // what would regress: the per-theme entries are checked there and would
+  // stay perfectly correct while render.js quietly stopped asking for them.
+  assert(
+    /ctx\.strokeStyle = MEADOW\.pondMeniscus/.test(renderSrc),
+    'the meniscus no longer takes the per-theme surface colour',
+  );
+  assert(
+    !/lightenHex\(MEADOW\.pondWater/.test(renderSrc),
+    'the meniscus is back on a fixed mix toward white -- night will read as daylight',
+  );
+});
+
+check('the far pair shows on the two poses that need it, and nowhere else', () => {
+  const FAR = CatV2.FAR_LEGS;
+  assert(FAR && typeof FAR.pounce === 'number', 'FAR_LEGS.pounce missing');
+  assert(FAR.pounce < 0 && FAR.stretch < 0, 'the far pair trails the near one, so both are negative');
+  // Every other pose leaves the far pair flush at GAIT.spread, where it
+  // hides exactly behind the near one. Measured off the drawn legs rather
+  // than the dial: `far` legs are drawn first, so a pose that separates
+  // them puts a shaded leg at a different x from every near leg.
+  const spread = CatV2.GAIT.spread;
+  close(spread, 0, 'GAIT.spread is what keeps the far pair hidden for everything else');
+  // The stretch scales its offset by its own push, so it is flush at both
+  // ends of the pose and widest in the middle -- the depth cue arrives
+  // with the reach.
+  const legsAt = (pose, phase) => CatV2.catLayout(pose, phase, {}).legs.filter((l) => l.far);
+  const atRest = legsAt('stretch', 0);
+  const atFull = legsAt('stretch', 0.5);
+  assert(atRest.length === atFull.length && atRest.length > 0, 'the stretch lost its far pair');
+  const spreadAt = (legs, ref) => Math.abs(legs[0].x - ref[0].x);
+  const near = (pose, phase) => CatV2.catLayout(pose, phase, {}).legs.filter((l) => !l.far);
+  assert(
+    spreadAt(atRest, near('stretch', 0)) < 1e-9,
+    'the stretch shows its far pair before it has begun to reach',
+  );
+  assert(
+    spreadAt(atFull, near('stretch', 0.5)) > 0.01,
+    'the stretch never separates its far pair at full extension',
+  );
 });
 
 // --------------------------------------------------------------- the walk
