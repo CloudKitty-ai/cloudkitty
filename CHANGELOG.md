@@ -71,6 +71,9 @@ change.
   socket's queue and the backlog collapse move there too, and the cards
   ride promotion rather than arrival so they cannot lead the meadow.
   Costs about one tick of latency, which at 800ms is invisible (#196).
+  Pressing `b` turns the buffer off for worlds driven far faster than
+  production: below about a frame per tick no pace can help, since two
+  states cannot both be drawn in one frame (#197).
 - Docs: rl-training + howto-rl caught up to spec 028 (two-head wire,
   20×20, certification assumptions rewritten — the channel is
   restrained by law, not economics), and kitty-eval is a pre-seating

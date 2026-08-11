@@ -3063,9 +3063,25 @@ check('the delay line can be switched off, and is on until it is', () => {
     // tick -- exactly the behaviour that shipped before the pacer.
     for (const t of [3, 4, 5]) { at(100 + t); a.push(feedWorld(t)); }
     assert(a.seen.join() === '1,2,3,4,5', `unpaced states did not draw as they landed (saw ${a.seen})`);
+
+    // ...over the SERVED tick, which needs a pacer whose clock has
+    // actually drifted off it to mean anything. A pacer fresh out of the
+    // constructor is already sitting at the served tick, so asserting it
+    // there proves nothing -- this one has been run against a 1000ms
+    // server until its pace followed.
+    const drifted = runFeed({ arrivals: series(40, 1000, 20), untilMs: 42000 });
     assert(
-      a.presentation.currPlayMs === a.presentation.tickMs,
-      `an unpaced pair plays over ${a.presentation.currPlayMs}ms, want the served ${a.presentation.tickMs}ms`,
+      Math.abs(drifted.pacer.playMs - drifted.store.tickMs) > 100,
+      'guard: the pace should have followed the 1000ms server away from the served 800ms',
+    );
+    const b = env.fresh();
+    b.pacer = drifted.pacer;
+    b.presentation = drifted.store;
+    at(50000); b.setPaced(false);
+    at(50100); b.push(feedWorld(41));
+    assert(
+      b.presentation.currPlayMs === b.presentation.tickMs,
+      `an unpaced pair plays over ${b.presentation.currPlayMs}ms, want the served ${b.presentation.tickMs}ms`,
     );
 
     // And back on: the buffer fills again rather than staying bypassed.
