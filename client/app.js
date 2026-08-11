@@ -16,6 +16,7 @@ const debugNoteEl = document.getElementById('debug-note');
 const gridNoteEl = document.getElementById('grid-note');
 const pathsNoteEl = document.getElementById('paths-note');
 const happyNoteEl = document.getElementById('happy-note');
+const pacedNoteEl = document.getElementById('paced-note');
 
 const NEED_LABELS = {
   eat: 'eat',
@@ -1420,9 +1421,13 @@ new ResizeObserver(() => {
 }).observe(canvas);
 
 // The debug toggles, all in one mold (spec 008 FR-004/FR-009): `g` reveals
-// greebles, `l` the demoted grid lines, `p` the session's worn paths. Each
-// flips a renderer flag, syncs its footer note, and redraws -- and every
-// fresh load starts with all three off.
+// greebles, `l` the demoted grid lines, `p` the session's worn paths, `h`
+// happiness bars. Each flips a flag, syncs its footer note, and redraws --
+// and every fresh load starts from the default.
+//
+// `b` is the odd one out and its note reads the other way round: the delay
+// line is ON by default, so the note appears when it has been turned OFF.
+// A visible note means "not what this normally does" either way.
 window.addEventListener('keydown', (event) => {
   const key = event.key.toLowerCase();
   if (key === 'g') {
@@ -1437,6 +1442,9 @@ window.addEventListener('keydown', (event) => {
   } else if (key === 'h') {
     renderer.showHappiness = !renderer.showHappiness;
     happyNoteEl.hidden = !renderer.showHappiness;
+  } else if (key === 'b') {
+    anim.setPaced(!anim.paced);
+    pacedNoteEl.hidden = anim.paced;
   } else {
     return;
   }
