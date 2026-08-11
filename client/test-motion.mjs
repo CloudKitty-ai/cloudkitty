@@ -3031,6 +3031,135 @@ check('every way a state reaches the screen still reaches it', () => {
   }
 });
 
+// ---- the axial whip (2026-08-11) ----
+//
+// Owner: "occasional fast motions by a cat in place... might be associated
+// with north/south movement". Measured on a live feed: 60% of all view
+// changes happened with the served facing UNCHANGED, and 295 of those
+// reversed inside one tick. `AXIAL_POSES` is only {walking, idle}, so a
+// cat facing north at the water alternating `drinking` and `idle` spun
+// ninety degrees and back every tick while standing perfectly still.
+
+/** A cat that stays exactly where it is, tick after tick. */
+function stillWorld(tick, pos = { x: 5, y: 5 }) {
+  return {
+    tick,
+    width: 64,
+    height: 64,
+    elements: [],
+    kitties: [{ id: 1, name: 'K', pos: { ...pos }, needs: {}, happiness: 90 }],
+  };
+}
+
+check('a cat that has not moved keeps its drawing, whatever it is doing', () => {
+  const store = new api.Presentation();
+  // Walk it north first, so it is genuinely facing north and axial.
+  store.pushState(stillWorld(1, { x: 5, y: 7 }), 0);
+  store.pushState(stillWorld(2, { x: 5, y: 6 }), 800);
+  assert(store.facingFor(1) === 'north', `expected a north-facing cat, got ${store.facingFor(1)}`);
+  assert(store.axialFor(1, true), 'a cat that just stepped north must be drawable axially');
+
+  // Now it stands at the water and alternates drinking / idle, ticking all
+  // the while but never moving. The pose alternates; the DRAWING must not.
+  const poses = ['drinking', 'idle', 'drinking', 'idle', 'drinking', 'idle'];
+  const axialPose = (p) => p === 'walking' || p === 'idle';
+  const seen = [];
+  const control = [];
+  for (let i = 0; i < poses.length; i += 1) {
+    store.pushState(stillWorld(3 + i, { x: 5, y: 6 }), 1600 + i * 800);
+    seen.push(store.axialFor(1, axialPose(poses[i])));
+    control.push(axialPose(poses[i])); // what shipped before: the pose alone
+  }
+  const changes = (xs) => xs.filter((v, i) => i && v !== xs[i - 1]).length;
+  assert(
+    changes(control) === 5,
+    `control: the pose alone should whip the drawing 5 times, got ${changes(control)}`,
+  );
+  assert(
+    changes(seen) === 0,
+    `a stationary cat's drawing changed ${changes(seen)} times: ${seen.join(',')}`,
+  );
+  assert(seen.every((v) => v === false), 'it should have settled side-on, where a drinking cat can be drawn');
+});
+
+check('a step re-earns the axial drawing, and only a step does', () => {
+  const store = new api.Presentation();
+  store.pushState(stillWorld(1, { x: 5, y: 7 }), 0);
+  store.pushState(stillWorld(2, { x: 5, y: 6 }), 800);
+  store.axialFor(1, false); // groomed once: side-on from here
+  store.pushState(stillWorld(3, { x: 5, y: 6 }), 1600);
+  assert(!store.axialFor(1, true), 'standing still must not re-earn the axial drawing');
+
+  store.pushState(stillWorld(4, { x: 5, y: 5 }), 2400); // steps north again
+  assert(
+    store.axialFor(1, true),
+    'a served step is the evidence that re-earns it -- the cat really is facing that way',
+  );
+
+  // And a cat that keeps walking is never held side-on: being locked is
+  // for cats that stopped, not cats that are travelling.
+  for (let t = 5; t < 12; t += 1) {
+    store.pushState(stillWorld(t, { x: 5, y: 10 - t }), t * 800);
+    assert(store.axialFor(1, true), `a walking cat was held side-on at tick ${t}`);
+  }
+});
+
+check('a discontinuity forgets the lock, like every other memory', () => {
+  const store = new api.Presentation();
+  store.pushState(stillWorld(1, { x: 5, y: 7 }), 0);
+  store.pushState(stillWorld(2, { x: 5, y: 6 }), 800);
+  store.axialFor(1, false);
+  assert(!store.axialFor(1, true), 'guard: the cat should be locked side-on');
+  store.bumpGeneration();
+  store.pushState(stillWorld(9, { x: 5, y: 6 }), 1600);
+  assert(store.discontinuous, 'guard: that push should have broken continuity');
+  assert(
+    store.axialFor(1, true),
+    'a new moment of the world starts fresh -- a lock is presentational memory like the rest',
+  );
+});
+
+check('the renderer asks before it draws a cat axially', () => {
+  // The rule is worthless if the draw path still decides on the pose alone.
+  const src = readFileSync(join(here, 'render.js'), 'utf8');
+  const decision = src.slice(src.indexOf('const axialPose ='), src.indexOf('const catView ='));
+  assert(/view\.axialFor/.test(decision), 'render.js decides the axial view without consulting axialFor');
+  assert(
+    /const axial = axialOk &&/.test(decision),
+    'the axial view must be gated by axialFor, not merely informed by it',
+  );
+});
+
+check('every view method the renderer guards for is actually served', () => {
+  // render.js reads most of the view DEFENSIVELY -- `view.axialFor ? ... :
+  // fallback` -- so that a v1 caller or the labs can hand it a smaller
+  // object. The cost is that a method dropped from `viewAt` does not
+  // throw: it silently takes the fallback, which is the OLD behaviour,
+  // and the feature ships inert with every test green. That is exactly
+  // how #182 shipped and how #187 nearly did.
+  //
+  // So the guard is the check: anything render.js is willing to fall back
+  // from must still be there to fall back FROM.
+  const src = readFileSync(join(here, 'render.js'), 'utf8');
+  const guarded = new Set(
+    [...src.matchAll(/view\.(\w+)\s*\?/g)].map((m) => m[1]),
+  );
+  assert(guarded.size >= 5, `only found ${guarded.size} guarded view methods -- the scan is not finding them`);
+
+  const store = new api.Presentation();
+  store.pushState(feedWorld(1), 0);
+  store.pushState(feedWorld(2), 800);
+  for (const still of [false, true]) {
+    const v = store.viewAt(1200, still);
+    const missing = [...guarded].filter((name) => typeof v[name] !== 'function');
+    assert(
+      missing.length === 0,
+      `viewAt(${still ? 'still' : 'moving'}) is missing ${missing.join(', ')} -- ` +
+        'render.js guards for those, so they would silently take the fallback',
+    );
+  }
+});
+
 check('the socket hands arrivals to the delay line and nothing else', () => {
   // The queue, the pacing and the backlog collapse all moved into `Pacer`,
   // where the checks above can reach them. What is left in app.js is
