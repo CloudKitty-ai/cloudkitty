@@ -38,9 +38,27 @@
   p.note { margin: 0 0 12px; font-size: 0.8rem; color: #8a7a6c; max-width: 62ch; line-height: 1.5; }
   canvas { border-radius: 10px; display: block; box-shadow: 0 6px 18px rgba(150,125,105,.18); }
   .panel { background: #fffdfa; border-radius: 14px; padding: 14px 16px; box-shadow: 0 6px 18px rgba(150,125,105,.14); }
-  label { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; margin: 5px 0; }
-  label span.name { flex: 1 1 auto; }
-  label output { font-variant-numeric: tabular-nums; min-width: 3.6em; text-align: right; color: #8a7a6c; }
+  /* Name, slider, value -- in that order and on one row, so the label a
+     slider belongs to is the one immediately to its left. `.name` used to
+     be `flex: 1 1 auto`, which stretched it across the whole lab and left
+     every dial's name a screen-width away from the dial (owner). */
+  label {
+    display: grid;
+    grid-template-columns: 13.5em minmax(90px, 1fr) 3.6em;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    margin: 5px 0;
+  }
+  label span.name {
+    overflow-wrap: anywhere;
+    line-height: 1.25;
+  }
+  label output { font-variant-numeric: tabular-nums; text-align: right; color: #8a7a6c; }
+  /* Two columns of dials where there is room: 40-odd of them in one tall
+     stack is its own kind of hard to scan. */
+  #dials { display: grid; grid-template-columns: repeat(auto-fill, minmax(430px, 1fr)); column-gap: 26px; }
+  @media (max-width: 900px) { label { grid-template-columns: 11em minmax(70px, 1fr) 3.4em; } }
   input[type=range] { flex: 0 0 110px; }
   button { font: inherit; font-size: 0.78rem; padding: 5px 10px; border-radius: 8px;
            border: 1px solid #e0d3c2; background: #fffdfa; cursor: pointer; }
