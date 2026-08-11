@@ -1204,7 +1204,21 @@ check('the meadow lab dials every tunable the meadow ships', () => {
 
 check('the stem is a dial, not a decision baked into the drawing', () => {
   const t = api.MEADOW_DEFAULTS;
-  assert(t.bushTrunk === 1, 'bushTrunk must ship at 1 -- 0 would restyle the live world');
+  // Owner-baked 2026-08-11, off the lab: the meadow's shrub is now the
+  // LOBED one, sitting on the ground with no stem (bushLift 0, bushTrunk
+  // 0). Pinned rather than left free, so an accidental edit is still
+  // caught -- this assertion started life as "must ship at 1" for exactly
+  // that reason, and a deliberate change is the one thing allowed to move
+  // it. Anyone re-dialling should paste the lab's readout, not edit here.
+  assert(t.bushStyle === 'lobed', `the shipped shrub moved: ${t.bushStyle}`);
+  assert(t.bushTrunk === 0, `bushTrunk moved off the owner's 0: ${t.bushTrunk}`);
+  assert(t.bushLift === 0, `bushLift moved off the owner's 0: ${t.bushLift}`);
+  // The alt must be a DIFFERENT silhouette, or bushStyleAltShare has
+  // nothing to mix and the dial is quietly inert.
+  assert(
+    t.bushStyleAlt && t.bushStyleAlt !== t.bushStyle,
+    'bushStyleAlt names the same style as bushStyle -- the mix dial does nothing',
+  );
   // Both stemmed styles honour it, and both reach zero. The lobed shrub
   // arrived from the spec with a trunk written into it and no way to turn
   // it off, which is the same fault as a baked art constant: an owner

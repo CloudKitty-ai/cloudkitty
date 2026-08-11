@@ -444,7 +444,7 @@ const MEADOW_DEFAULTS = Object.freeze({
   bushAlpha: 0.9, // and how strongly it reads against the grass
   // 'cover' | 'tuft' | 'bramble' (flat) | 'shrub' | 'grown' | 'trunk' |
   // 'tall' | 'lobed' (standing). Judged in gallery-meadow.html.
-  bushStyle: 'trunk',
+  bushStyle: 'lobed',
   // A meadow may grow TWO kinds of shrub. `bushStyleAlt` is the second and
   // `bushStyleAltShare` is how much of the population it takes: 0 is the
   // primary alone (and is exactly the behaviour before this existed), 1 is
@@ -454,14 +454,14 @@ const MEADOW_DEFAULTS = Object.freeze({
   // It exists because 'trunk' and the spec's own lobed shrub are both
   // defensible and the argument is not settleable on paper -- this lets a
   // lab session settle it by eye, including at a mix neither side proposed.
-  bushStyleAlt: 'lobed',
+  bushStyleAlt: 'trunk',
   bushStyleAltShare: 0,
   // How much of the gap between the ground and the canopy the stem covers,
   // for the styles that draw one ('trunk', 'lobed'). 1 is a full stem, 0 is
   // none at all -- and at 0 the canopy is left hanging over its own shadow
   // unless `bushLift` comes down with it, which is the trade this dial
   // exists to let someone see rather than argue about.
-  bushTrunk: 1,
+  bushTrunk: 0,
   // The shrub's shadow, damped against the cats': a squat canopy sits
   // close to the ground, so it stretches far less and needs no alpha
   // falloff. Only the LENGTH is damped -- the lean also anchors the
@@ -469,7 +469,7 @@ const MEADOW_DEFAULTS = Object.freeze({
   bushShadowLean: 1, // gain on the anchor: 1 keeps the sun-side edge on the shrub
   bushShadowLength: 0.3, // and of its stretch past the caster
   bushShadowAlpha: 1, // no thinning: contact, not a smear
-  bushLift: 1.25, // how far a shrub's canopy stands above its base, in radii
+  bushLift: 0, // how far a shrub's canopy stands above its base, in radii
   bushBase: 0.72, // where it meets the ground, in tiles from the tile's top
   // How far the canopy's height pushes its shadow along the lean. Kept
   // small: a rooted thing's shadow leaves its base, and pushing it far

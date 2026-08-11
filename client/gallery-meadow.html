@@ -753,7 +753,11 @@
   function readout() {
     const lines = ['// paste into BOTH anim.js (VIEW.meadow) and meadow.js (MEADOW_DEFAULTS)'];
     for (const [key] of DIALS) lines.push(`${key}: ${VIEW.meadow[key]},`);
+    // Both style names, not just the primary: the readout is the paste, so
+    // anything it leaves out cannot be baked without hand-editing -- which
+    // is exactly how bushStyleAlt went missing from the first bake.
     lines.push(`bushStyle: '${VIEW.meadow.bushStyle}',`);
+    lines.push(`bushStyleAlt: '${VIEW.meadow.bushStyleAlt}',`);
     document.getElementById('readout').value = lines.join('\n');
   }
 

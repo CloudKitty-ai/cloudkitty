@@ -389,10 +389,10 @@ const VIEW = Object.freeze({
     bushAlpha: 0.9, // and how strongly it reads against the grass
     // 'cover' | 'tuft' | 'bramble' (flat) | 'shrub' | 'grown' | 'trunk' |
     // 'tall' (standing). Judged in gallery-meadow.html.
-    bushStyle: 'trunk',
-    bushStyleAlt: 'lobed', // the second species, when a meadow grows two
+    bushStyle: 'lobed',
+    bushStyleAlt: 'trunk', // the second species, when a meadow grows two
     bushStyleAltShare: 0, // 0 = primary only, 1 = alt only, between = a mix
-    bushTrunk: 1, // how much stem the stemmed styles draw; 0 is none
+    bushTrunk: 0, // how much stem the stemmed styles draw; 0 is none
     // The shrub's shadow, damped against the cats': a squat canopy sits
     // close to the ground, so it stretches far less and needs no alpha
     // falloff. Only the LENGTH is damped -- the lean also anchors the
@@ -400,7 +400,7 @@ const VIEW = Object.freeze({
     bushShadowLean: 1, // gain on the anchor: 1 keeps the sun-side edge on the shrub
     bushShadowLength: 0.3, // and of its stretch past the caster
     bushShadowAlpha: 1, // no thinning: contact, not a smear
-    bushLift: 1.25, // how far a shrub's canopy stands above its base, in radii
+    bushLift: 0, // how far a shrub's canopy stands above its base, in radii
     bushBase: 0.72, // where it meets the ground, in tiles from the tile's top
     // How far the canopy's height pushes its shadow along the lean. Kept
     // small: a rooted thing's shadow leaves its base, and pushing it far
