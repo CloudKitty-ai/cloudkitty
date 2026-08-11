@@ -3379,6 +3379,40 @@ check('the side swim tail can be pulled upright without re-authoring it', () => 
   );
 });
 
+check('two dials own the side tail height, and the lab says which is live', () => {
+  // `tailLift` sets the TRAILING tip and `AXIAL_SWIM.tailTopY` the raised
+  // one, so whichever is not in charge looks broken when you drag it --
+  // the same "nothing happens" the owner reported for a different reason.
+  // Measured, not assumed: at upright 1 the height is entirely the shared
+  // one, which is what makes the three views agree.
+  const tipAt = (up, lift) => {
+    CatV2.SWIM.tailUpright = up;
+    CatV2.SWIM.tailLift = lift;
+    const y = CatV2.catLayout('swim', 0, { view: 'side' }).tail.y1;
+    CatV2.SWIM.tailUpright = 0;
+    CatV2.SWIM.tailLift = 0.6;
+    return y;
+  };
+  assert(tipAt(0, 0.45) !== tipAt(0, 0.7), 'tailLift must move the trailing tip');
+  assert(
+    tipAt(1, 0.45) === tipAt(1, 0.7),
+    'at upright 1 the tip must come from the SHARED height, or the three views drift apart',
+  );
+  assert(tipAt(0.5, 0.45) !== tipAt(0.5, 0.7), 'part-way, tailLift should still have a say');
+
+  // Since one of them is always inert, the lab has to name the live one
+  // and the label has to warn -- otherwise the next dialling session
+  // rediscovers this the slow way.
+  const html = readFileSync(join(here, 'gallery-v2.html'), 'utf8');
+  const card = html.slice(html.indexOf("title: 'Swimming end-on"));
+  const body = card.slice(0, card.indexOf('\n    },'));
+  assert(/inert at upright 1/.test(body), 'the tail-tip dial must say when it does nothing');
+  assert(/governed by \$\{owner\}/.test(body), 'the readout must name which dial owns the tip height');
+  // ...and warn when the tail is dialled under the water, where the clip
+  // eats it: the top of the range (0.75) is past the waterline (0.72).
+  assert(/BELOW the waterline/.test(body), 'the readout must flag a tail dialled under the surface');
+});
+
 check('a raised tail is drawn where it can be SEEN, in every view', () => {
   // The bug this pins, twice over. A tail that paints behind the body and
   // rises INSIDE the body's own silhouette is not a tail, it is a hidden

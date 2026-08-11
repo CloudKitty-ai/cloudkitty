@@ -1564,7 +1564,7 @@
         { key: 'headDrop', label: 'chin toward the surface', min: 0, max: 0.12, step: 0.005 },
         { key: 'bob', label: 'paddle bob', min: 0, max: 0.03, step: 0.001 },
         { key: 'rock', label: 'paddle roll', min: 0, max: 0.08, step: 0.005 },
-        { key: 'tailTopY', label: 'raised tail — tip height (− up / + down)', min: 0.25, max: 0.66, step: 0.005 },
+        { key: 'tailTopY', label: 'raised tail — tip height, ALL THREE views (− up / + down)', min: 0.25, max: 0.66, step: 0.005 },
         { key: 'tailBaseDrop', label: 'raised tail — how deep the base sits', min: 0, max: 0.14, step: 0.005 },
         // Both of these were pasted sitting exactly ON their old rails
         // (0.52 and 0.8), which is the signal that the dial ran out before
@@ -1582,7 +1582,11 @@
         },
         {
           key: 'tailLift', bag: CatV2.SWIM,
-          label: 'SIDE column — tail-tip height (− up / + down)',
+          // Governs the TRAILING end only. At upright 1 the height comes
+          // from tailTopY above, shared with the end-on views -- so this
+          // slider is inert there, and the label has to say so or it reads
+          // as broken. The readout prints which one is actually live.
+          label: 'SIDE column — tail-tip height when TRAILING (inert at upright 1)',
           min: 0.3, max: 0.75, step: 0.005,
         },
       ],
@@ -1609,6 +1613,24 @@
           `AXIAL_SWIM.tailCurve = ${S.tailCurve}\n` +
           `SWIM.tailUpright = ${CatV2.SWIM.tailUpright}, SWIM.tailLift = ${CatV2.SWIM.tailLift} ` +
           `(upright 0 = the trailing tail that ships)\n` +
+          // Effective-vs-asked. Two dials own the side tail's tip height
+          // at opposite ends of `tailUpright`, so whichever one is not in
+          // charge right now looks broken when you drag it.
+          (() => {
+            const up = CatV2.SWIM.tailUpright;
+            const tip = CatV2.catLayout('swim', 0, { view: 'side' }).tail.y1;
+            const owner =
+              up >= 0.999 ? 'AXIAL_SWIM.tailTopY (shared with the end-on views)'
+              : up <= 0.001 ? 'SWIM.tailLift'
+              : `both, blended ${(100 * up).toFixed(0)}% toward tailTopY`;
+            const drowned = tip > VIEW.waterline;
+            return (
+              `side tail tip rides at ${tip.toFixed(3)} — governed by ${owner}\n` +
+              (drowned
+                ? `  ⚠ that is BELOW the waterline (${VIEW.waterline}): in deep water the clip takes the whole tail\n`
+                : `  ${px(VIEW.waterline - tip)}px of it clears the surface at full submersion\n`)
+            );
+          })() +
           `tail above the waterline: ${px(VIEW.waterline - S.tailTopY)}px\n` +
           `above the waterline at a 31px tile — toward: ${px(VIEW.waterline - headTop(false))}px ` +
           `tall, away: ${px(VIEW.waterline - headTop(true))}px, ` +
