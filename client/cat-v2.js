@@ -287,7 +287,51 @@ const AXIAL_CAMERAS = {
   },
 };
 
-const AXIAL_POSES = new Set(['walking', 'idle']);
+const AXIAL_POSES = new Set(['walking', 'idle', 'swim']);
+
+/**
+ * A swimming cat seen end-on (2026-08-11).
+ *
+ * The world moves cats through water on every axis equally -- measured at
+ * 20 north/south wet steps against 21 east/west -- but `swim` had no axial
+ * drawing, so one was always drawn side-on however it was actually going.
+ *
+ * What makes this pose different from the other two axial ones is that the
+ * waterline does most of the drawing. At full submersion the clip sits at
+ * 0.72, so only about 6px of a 31px cat's body clears the surface and the
+ * rest of what reads as "cat" is the head. That is the whole design
+ * problem: it is a portrait, not a body.
+ *
+ * Which is why the two directions are not equally worth having, and the
+ * lab draws them side by side rather than this file deciding. Coming
+ * TOWARD you the head is the largest in the vocabulary (`headRFront`
+ * 0.232, deliberately, as a depth cue) and carries a full face right at
+ * the waterline. Going AWAY, `paintCat` draws no face at all by design,
+ * so it is a featureless circle and two ears. `VIEW.swimAxial` picks which
+ * of them ships; nothing here assumes the answer.
+ */
+const AXIAL_SWIM = {
+  bodyDrop: 0.012, // below the axial body, the way SWIM sits below idle
+  bodyRy: 0.15, // flattened: a floating back, not a standing barrel
+  bodyRx: 0.2, // a shade narrower than standing -- the flanks are under
+  headDrop: 0.055, // chin toward the surface, the swimming read
+  bob: 0.012, // matches the side pose's paddle bob
+  rock: 0.03, // less than the side view's: an end-on roll shows more
+  // The tail, held UP out of the water (owner, 2026-08-11).
+  //
+  // This is the posture the water we actually built calls for. The
+  // waterline cuts a cat at 0.72 of its box -- its flank, not its neck --
+  // so these are cats wading and paddling in the shallows, and a wading
+  // cat carries its tail clear of the surface. It also happens to be the
+  // one thing that can rescue the away view: everything else above water
+  // there is a circle and two ears, and a raised tail is the only piece of
+  // silhouette left that says CAT rather than otter.
+  tailBaseDrop: 0.06, // where it leaves the body, under the surface
+  tailTopY: 0.42, // ...and where the tip rides, well clear of it
+  tailOutX: 0.52, // owner 2026-08-11: near vertical -- see the note below
+  tailPeekX: 0.8, // owner: pushed wide, so the tail is beside the cat, not behind it
+  tailCurve: 0.05, // how far it bows on the way out and up
+};
 
 const SWIM = {
   // Raised 2026-08-10, when the swim pose started being CLIPPED at the
@@ -309,6 +353,19 @@ const SWIM = {
   bob: 0.012, // vertical bob amplitude (paddle rhythm)
   rock: 0.045, // paddling body rock, radians
   tailLift: 0.6, // where the tail tip rides above the surface
+  tailUpright: 1, // owner 2026-08-11: HELD UP. 0 is the trailing tail v2.7 shipped.
+  // How much TALLER the raised side tail stands than the end-on ones.
+  //
+  // Not a fudge: it is foreshortening. A tail held up and pointing partly
+  // toward or away from the camera is seen at an angle and draws short;
+  // the same tail seen broadside shows its whole length. Drawing all three
+  // at the identical height therefore makes the side view -- the one with
+  // nothing to hide behind -- look stubby, which is what the owner saw.
+  //
+  // So the shared height (AXIAL_SWIM.tailTopY) stays the anchor for all
+  // three, and this is the one declared, dialable difference on top of it.
+  // At 0 the three match exactly again.
+  tailUprightRise: 0.05, // owner: even across all three, allowing for perspective
 };
 
 /**
@@ -868,6 +925,7 @@ function turnTransform(t) {
  */
 function applyAxial(L, pose, phase, view, opts) {
   const back = view === 'back';
+  const swimming = pose === 'swim';
   const walking = pose === 'walking';
   // Distance-keyed like the side walk, so feet still plant against ground
   // covered rather than against time.
@@ -882,6 +940,63 @@ function applyAxial(L, pose, phase, view, opts) {
   // the gait, the tail and the paint order are the same drawing at any
   // angle.
   const C = AXIAL_CAMERAS[(opts && opts.camera) || AXIAL.camera] || AXIAL_CAMERAS.elevation;
+
+  // Swimming end-on: the same camera, but afloat. A slow bob and roll
+  // instead of a gait, a flattened back, the chin down toward the surface
+  // -- and no legs at all, which is the side pose's rule for the same
+  // reason (they are under the water, and the clip would eat them anyway).
+  if (swimming) {
+    const swimBob = AXIAL_SWIM.bob * Math.sin(phase * TAU);
+    const swimRock = AXIAL_SWIM.rock * Math.sin(phase * TAU * 0.5);
+    L.body = {
+      cx: 0.5,
+      cy: C.bodyY + AXIAL_SWIM.bodyDrop + swimBob,
+      rx: AXIAL_SWIM.bodyRx,
+      ry: AXIAL_SWIM.bodyRy,
+      rot: swimRock,
+    };
+    L.head = {
+      cx: 0.5,
+      cy: (back ? C.headYBack : C.headYFront) + AXIAL_SWIM.headDrop + swimBob,
+      r: back ? C.headRBack : C.headRFront,
+    };
+    // Legs are already empty: the side swim pose drew none, and this
+    // branch has no reason to put any back -- they are under water, and
+    // the clip would take them anyway. (Asserted rather than re-assigned,
+    // so if the side pose ever grows legs this is a test failure and not a
+    // silent difference between the two views.)
+    //
+    // Out of the water, not under it. The base stays below the surface --
+    // it leaves a submerged rump -- and everything above the clip is the
+    // raised length, which is the whole point of drawing it.
+    const stern = C.bodyY + AXIAL_SWIM.bodyDrop + AXIAL_SWIM.tailBaseDrop + swimBob;
+    const top = AXIAL_SWIM.tailTopY + swimBob;
+    if (back) {
+      // Swimming away: the tail is the near end, so its whole raised
+      // length is in view. Out from behind the rump, then up.
+      const tip = AXIAL_SWIM.tailOutX;
+      L.tail = {
+        x0: 0.5, y0: stern,
+        c1x: tip - AXIAL_SWIM.tailCurve, c1y: stern - 0.02,
+        c2x: tip + AXIAL_SWIM.tailCurve, c2y: top + 0.16,
+        x1: tip, y1: top,
+      };
+    } else {
+      // Swimming toward you: the tail is the far end and paints behind the
+      // body, so only what clears the flank is seen -- a raised tip over
+      // the shoulder rather than a whole tail.
+      const tip = AXIAL_SWIM.tailPeekX;
+      L.tail = {
+        x0: 0.5, y0: stern,
+        c1x: 0.5 + (tip - 0.5) * 0.5, c1y: stern - 0.02,
+        c2x: tip + AXIAL_SWIM.tailCurve, c2y: top + 0.14,
+        x1: tip, y1: top,
+      };
+    }
+    L.view = view;
+    return L;
+  }
+
   L.body = {
     cx: 0.5 + sway,
     cy: C.bodyY + bob,
@@ -2029,12 +2144,41 @@ function catLayout(pose, phase, opts = {}) {
       L.body = { cx: 0.44, cy: SWIM.bodyY + bob, rx: 0.3, ry: SWIM.bodyRy, rot: rock };
       L.head = { cx: 0.7, cy: SWIM.headY + bob, r: 0.226 };
       L.legs = [];
-      // Tail trailing behind, tip riding above the surface.
+      // The tail, trailing at `tailUpright` 0 and HELD UP at 1.
+      //
+      // The first cut of this only straightened the trail -- it pulled the
+      // x extent toward the base and left the tip at `tailLift`. That
+      // makes a stub, not an upright tail, because a trailing tail gets
+      // nearly all its LENGTH from the horizontal run: tailLift 0.6 is a
+      // bare 0.08 above the body. Straightening it threw the length away.
+      //
+      // So the upright end is authored as its own curve, and it rises to
+      // AXIAL_SWIM.tailTopY -- the SAME height the end-on views use, on
+      // purpose. A cat wading north, east and south is one animal, and
+      // three tail heights that have to be kept in agreement by eye will
+      // drift apart the first time one of them is re-dialled. One value,
+      // three views. (Same argument as the world's single water level.)
+      // The raised end keeps the trailing tail's HORIZONTAL place and
+      // changes only its height. Standing it up over the rump instead put
+      // the tip at x 0.12 against a body edge at x 0.11 -- inside the
+      // silhouette, painted behind the body, so all that showed was a 3px
+      // nub above the back. ("The side tail upright doesn't seem to work",
+      // owner, and it did not.) It is the same rule the toward-facing
+      // axial view already carries: a tail inside the body's own edge is
+      // not a tail, it is a hidden line. A real cat's tail leaves the rump,
+      // sweeps ASTERN, and then rises -- which is both correct and visible.
+      const up = SWIM.tailUpright;
+      const baseY = SWIM.bodyY + bob;
+      // The shared height, plus the side view's declared foreshortening
+      // allowance -- see SWIM.tailUprightRise.
+      const top = AXIAL_SWIM.tailTopY - SWIM.tailUprightRise + bob;
+      const mix = (trail, upright) => trail + (upright - trail) * up;
       L.tail = {
-        x0: 0.16, y0: SWIM.bodyY + bob,
-        c1x: 0.04, c1y: SWIM.bodyY - 0.05,
-        c2x: 0.0, c2y: SWIM.tailLift + 0.08,
-        x1: 0.05, y1: SWIM.tailLift,
+        x0: 0.16, y0: baseY,
+        // Out and back along the water, or back and then up.
+        c1x: mix(0.04, 0.10), c1y: mix(SWIM.bodyY - 0.05, baseY - 0.04),
+        c2x: mix(0.0, 0.03), c2y: mix(SWIM.tailLift + 0.08, top + 0.13),
+        x1: 0.05, y1: mix(SWIM.tailLift, top),
       };
       break;
     }
@@ -3127,6 +3271,7 @@ const api = {
   AXIAL,
   AXIAL_CAMERAS,
   AXIAL_POSES,
+  AXIAL_SWIM,
   applyAxial,
   FOCUS_VARIANTS,
   BREATH,
