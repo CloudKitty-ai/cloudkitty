@@ -3307,12 +3307,24 @@ check('an end-on swimmer is narrower than a side-on one, and not by nothing', ()
   // drawing both: the far head is smaller, which is the depth cue.
   const back = CatV2.catLayout('swim', 0.25, { view: 'back' });
   assert(back.head.r < front.head.r, 'the head going away must read as farther than the one coming toward');
-  // The away view leans hardest on the tail, because it has no face: its
-  // raised length must show MORE than the toward view's, where the tail is
-  // at the far end and mostly hidden by the body.
+  // What the two views owe the tail is NOT the same thing, and the
+  // difference is paint order, not taste.
+  //
+  // (This replaces an assertion that the away view must show MORE tail
+  // than the toward view. That was a hypothesis of mine, not an invariant,
+  // and the owner's dialling falsified it: away reads best with the tail
+  // near vertical out of the centre of the back, toward with it pushed
+  // wide. Only the mechanical constraint below survives.)
+  //
+  // Walking away, the tail paints IN FRONT of the body, so it may rise
+  // from anywhere -- the centre included -- and still be seen. Coming
+  // toward you it paints BEHIND, so anything inside the body's own edge is
+  // hidden by it, and a tail nobody can see is not a tail.
+  const flank = 0.5 + front.body.rx;
   assert(
-    back.tail.x1 - 0.5 > front.tail.x1 - 0.5,
-    'the away view must show more tail than the toward view -- it is all the silhouette it has',
+    Math.abs(front.tail.x1 - 0.5) > front.body.rx,
+    `the toward view's tail tip sits at ${front.tail.x1} and the flank is at ${flank} -- ` +
+      'it paints behind the body, so it would be invisible',
   );
 });
 
@@ -3359,6 +3371,31 @@ check('nothing ships until the swim views are judged', () => {
   // An unknown value is not a licence to draw something nobody picked.
   assert(!swimAxialAllows('south', { swimAxial: 'yes please' }), 'an unrecognised setting must draw side-on');
   assert(!swimAxialAllows('south', {}), 'a missing setting must draw side-on');
+});
+
+check('a dial that names its own block actually writes that block', () => {
+  // The swim card judges the axial views and the SIDE pose's tail
+  // together, and those live in different bags. If the builder ignored
+  // `d.bag`, the SIDE sliders would quietly write a `tailUpright` onto
+  // AXIAL_SWIM instead: the slider moves, the readout prints, the drawing
+  // never changes, and a whole dialling session is wasted. That has
+  // happened before with pasted values, so it gets a guard.
+  const html = readFileSync(join(here, 'gallery-v2.html'), 'utf8');
+  const declared = [...html.matchAll(/bag: CatV2\.(\w+)/g)].map((m) => m[1]);
+  if (!declared.length) return; // no card needs a second block right now
+  const builder = html.slice(html.indexOf('function buildDemoDials'));
+  const body = builder.slice(0, builder.indexOf('\n  }\n'));
+  assert(
+    /const bag = d\.bag \?\? demo\.bag/.test(body),
+    'a dial declares its own bag but buildDemoDials still writes demo.bag',
+  );
+  assert(
+    !/\bdemo\.bag\[d\.key\]/.test(body),
+    'buildDemoDials still reaches demo.bag[d.key] directly somewhere -- a per-dial bag would be ignored there',
+  );
+  for (const name of new Set(declared)) {
+    assert(CatV2[name], `a dial names CatV2.${name}, which the vocabulary does not export`);
+  }
 });
 
 check('the socket hands arrivals to the delay line and nothing else', () => {

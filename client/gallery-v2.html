@@ -1566,9 +1566,25 @@
         { key: 'rock', label: 'paddle roll', min: 0, max: 0.08, step: 0.005 },
         { key: 'tailTopY', label: 'raised tail — tip height (− up / + down)', min: 0.25, max: 0.66, step: 0.005 },
         { key: 'tailBaseDrop', label: 'raised tail — how deep the base sits', min: 0, max: 0.14, step: 0.005 },
-        { key: 'tailOutX', label: 'raised tail — reach, away view', min: 0.52, max: 0.9, step: 0.005 },
-        { key: 'tailPeekX', label: 'raised tail — peek past the flank, toward view', min: 0.5, max: 0.8, step: 0.005 },
+        // Both of these were pasted sitting exactly ON their old rails
+        // (0.52 and 0.8), which is the signal that the dial ran out before
+        // the eye did. Widened past centre and past the flank so the real
+        // value can be found rather than clamped to.
+        { key: 'tailOutX', label: 'raised tail — reach, away view (0.5 = straight up)', min: 0.36, max: 0.9, step: 0.005 },
+        { key: 'tailPeekX', label: 'raised tail — peek past the flank, toward view', min: 0.5, max: 0.98, step: 0.005 },
         { key: 'tailCurve', label: 'raised tail — bow', min: 0, max: 0.12, step: 0.005 },
+        // The side pose's own tail, dialled here so all three columns can
+        // be judged in one place. Different bag: this one writes SWIM.
+        {
+          key: 'tailUpright', bag: CatV2.SWIM,
+          label: 'SIDE column — tail upright (0 = trailing, as shipped)',
+          min: 0, max: 1, step: 0.05,
+        },
+        {
+          key: 'tailLift', bag: CatV2.SWIM,
+          label: 'SIDE column — tail-tip height (− up / + down)',
+          min: 0.3, max: 0.75, step: 0.005,
+        },
       ],
       readout() {
         const S = CatV2.AXIAL_SWIM;
@@ -1591,7 +1607,8 @@
           `AXIAL_SWIM.tailTopY = ${S.tailTopY}, AXIAL_SWIM.tailBaseDrop = ${S.tailBaseDrop}, ` +
           `AXIAL_SWIM.tailOutX = ${S.tailOutX}, AXIAL_SWIM.tailPeekX = ${S.tailPeekX}, ` +
           `AXIAL_SWIM.tailCurve = ${S.tailCurve}\n` +
-          `SWIM.tailUpright = ${CatV2.SWIM.tailUpright} (0 = the trailing tail that ships)\n` +
+          `SWIM.tailUpright = ${CatV2.SWIM.tailUpright}, SWIM.tailLift = ${CatV2.SWIM.tailLift} ` +
+          `(upright 0 = the trailing tail that ships)\n` +
           `tail above the waterline: ${px(VIEW.waterline - S.tailTopY)}px\n` +
           `above the waterline at a 31px tile — toward: ${px(VIEW.waterline - headTop(false))}px ` +
           `tall, away: ${px(VIEW.waterline - headTop(true))}px, ` +
@@ -1721,6 +1738,10 @@
     readout.style.marginTop = '10px';
     const sync = () => { if (demo.readout) readout.textContent = demo.readout(); };
     for (const d of demo.dials ?? []) {
+      // A card usually dials one block, but not always: the swim card
+      // judges the axial views and the SIDE pose's tail together, and
+      // those live in different bags. `d.bag` overrides for that dial only.
+      const bag = d.bag ?? demo.bag;
       const label = document.createElement('label');
       const span = document.createElement('span');
       span.textContent = d.label;
@@ -1729,11 +1750,11 @@
       input.min = d.min;
       input.max = d.max;
       input.step = d.step;
-      input.value = demo.bag[d.key];
+      input.value = bag[d.key];
       const value = document.createElement('b');
-      const show = () => { value.textContent = String(demo.bag[d.key]); };
+      const show = () => { value.textContent = String(bag[d.key]); };
       input.addEventListener('input', () => {
-        demo.bag[d.key] = Number(input.value);
+        bag[d.key] = Number(input.value);
         show();
         sync();
       });

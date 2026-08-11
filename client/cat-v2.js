@@ -328,8 +328,8 @@ const AXIAL_SWIM = {
   // silhouette left that says CAT rather than otter.
   tailBaseDrop: 0.06, // where it leaves the body, under the surface
   tailTopY: 0.42, // ...and where the tip rides, well clear of it
-  tailOutX: 0.72, // out past the body's edge (back view), where it shows
-  tailPeekX: 0.63, // the far side (front view): a hint past the flank
+  tailOutX: 0.52, // owner 2026-08-11: near vertical -- see the note below
+  tailPeekX: 0.8, // owner: pushed wide, so the tail is beside the cat, not behind it
   tailCurve: 0.05, // how far it bows on the way out and up
 };
 
