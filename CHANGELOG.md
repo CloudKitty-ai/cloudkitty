@@ -96,6 +96,8 @@ the first cat-art feature to clear the sub-pixel wall.
   instruments.
 - Portrait gaze tabled for its own sitting; the ear twitch stays
   (BACKLOG).
+- The exp-004 policy pipeline written down as standing doctrine
+  (`experiments/PIPELINE.md`).
 
 ---
 
