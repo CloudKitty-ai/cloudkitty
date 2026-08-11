@@ -1010,6 +1010,29 @@ check('geometry reads the PLACE, colour reads the MEMORY -- never the reverse', 
   );
 });
 
+check('the meniscus takes its colour from the theme, not from a mix toward white', () => {
+  // The handoff drew it as lightenHex(pondWater, 0.5). That is the daylight
+  // assumption the pond restyle (#177) exists to retire: a constant mix
+  // toward white is a statement about how much sun there is.
+  //
+  // Measured in CIE L*, the two agree where it does not matter and part
+  // where it does -- day 94.1 vs 97.8, dusk 87.5 vs 93.2, dawn 83.3 vs
+  // 76.6, and NIGHT 66.7 vs 33.2. That last one is a near-daylight line
+  // drawn across a cat standing in a pond painted at L* 33.
+  //
+  // Guarded here rather than in test-meadow because the palette is not
+  // what would regress: the per-theme entries are checked there and would
+  // stay perfectly correct while render.js quietly stopped asking for them.
+  assert(
+    /ctx\.strokeStyle = MEADOW\.pondMeniscus/.test(renderSrc),
+    'the meniscus no longer takes the per-theme surface colour',
+  );
+  assert(
+    !/lightenHex\(MEADOW\.pondWater/.test(renderSrc),
+    'the meniscus is back on a fixed mix toward white -- night will read as daylight',
+  );
+});
+
 check('the far pair shows on the two poses that need it, and nowhere else', () => {
   const FAR = CatV2.FAR_LEGS;
   assert(FAR && typeof FAR.pounce === 'number', 'FAR_LEGS.pounce missing');
