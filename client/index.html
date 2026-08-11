@@ -772,9 +772,29 @@
         x: (opts.x ?? 0) + opts.size * (1 - OVERDRAW) / 2,
         y: (opts.y ?? 0) + 0.88 * opts.size * (1 - OVERDRAW),
       });
+      // The WHOLE namespace, not a hand-picked four (2026-08-10).
+      //
+      // cat-v2.js leaks its api onto globalThis only in DROP-IN mode --
+      // `if (typeof globalThis.drawCat === 'undefined')` -- and cat.js has
+      // already defined drawCat by the time it runs here, so on this page
+      // it leaks nothing and every symbol has to be installed by name.
+      // Four were. render.js reads more than four.
+      //
+      // The ones that were missing had all been written defensively --
+      // `typeof AXIAL_POSES !== 'undefined'`, `typeof turnFacing ===
+      // 'function'` -- so nothing threw. They just quietly did nothing, in
+      // the browser only: every lab loads cat-v2 WITHOUT cat.js, which is
+      // drop-in mode, where the same code works perfectly. That is the
+      // trap, and it had already swallowed the turn before it swallowed
+      // the axial views.
+      //
+      // So: assign the namespace and let a new export reach the page by
+      // existing. This is what drop-in mode does, and v2 is the default
+      // path; v1 is chosen by not entering this branch at all.
+      Object.assign(window, CatV2);
+      // ...then re-wrap the two entry points that need the overdraw. After
+      // the assign, never before, or the plain versions win.
       window.drawCat = (ctx, opts) => CatV2.drawCat(ctx, overdrawn(opts));
-      window.appearanceFor = CatV2.appearanceFor;
-      window.shadedAppearanceOf = CatV2.shadedAppearanceOf;
       // Installing this is what switches the renderer's live-motion path
       // on (pose blends, eased lids, the landing settle): render.js keys
       // on its presence, so v1 keeps every snap it ships with today.

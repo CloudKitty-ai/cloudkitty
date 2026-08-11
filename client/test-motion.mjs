@@ -2511,5 +2511,69 @@ check('four facings come off the served step, and east/west is remembered', () =
   assert(p.sideFacingFor(1) === 'left', 'but the remembered side facing is unchanged');
 });
 
+check('every cat-v2 symbol the page reads bare is actually installed', () => {
+  // The trap that swallowed two features before anyone noticed.
+  //
+  // cat-v2.js leaks its api onto globalThis only in DROP-IN mode
+  // (`if (typeof globalThis.drawCat === 'undefined')`). Every lab loads
+  // cat-v2 WITHOUT cat.js, so drop-in runs and every symbol is global
+  // there. index.html loads cat.js FIRST, so it never runs, and each
+  // symbol has to be installed by hand.
+  //
+  // render.js reads several of them bare and DEFENSIVELY -- `typeof
+  // AXIAL_POSES !== 'undefined'`, `typeof turnFacing === 'function'` -- so
+  // a missing one throws nothing. It just silently does nothing, in the
+  // browser only. `turnFacing` had been missing since the turn shipped;
+  // `AXIAL_POSES` would have shipped the entire north/south feature inert.
+  //
+  // This harness cannot catch it by running the code, because it evals
+  // every file into ONE scope where the names are simply in scope. So the
+  // check is on the SOURCES: what does the page install, and what do the
+  // page's other scripts ask for?
+  const html = readFileSync(join(here, 'index.html'), 'utf8');
+  const v1 = readFileSync(join(here, 'cat.js'), 'utf8');
+  const exportBlock = catV2Src.match(/const api = \{([\s\S]*?)\n\};/);
+  assert(exportBlock, "could not find cat-v2's api export block");
+  const exported = [...exportBlock[1].matchAll(/^\s{2}([A-Za-z_$][\w$]*)[,:]/gm)].map((m) => m[1]);
+  assert(exported.length > 20, `only found ${exported.length} exports -- the parse broke`);
+
+  // Whole-namespace install counts for everything; otherwise look for the
+  // symbol being assigned by name.
+  const blanket = /Object\.assign\(window, CatV2\)/.test(html);
+  // Comments stripped first: this file talks about its own dials by name
+  // ("mutable for a lab like SWIM/GAIT/EYE"), and matching prose would
+  // report a symbol as missing that nothing actually reads.
+  const code = (src) => src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, ' ');
+  const consumers = {
+    'render.js': code(renderSrc),
+    'app.js': code(readFileSync(join(here, 'app.js'), 'utf8')),
+  };
+  const missing = [];
+  for (const name of exported) {
+    // Only care about symbols the page's own scripts actually reference
+    // bare -- `CatV2.foo` is always fine, and so is anything cat.js
+    // already defines at top level.
+    const bare = new RegExp(`(^|[^.\\w])${name}\\s*[({.\\[]`);
+    const used = Object.entries(consumers).filter(([, src]) => bare.test(src)).map(([f]) => f);
+    if (!used.length) continue;
+    if (new RegExp(`(function|const|let|var)\\s+${name}\\b`).test(v1)) continue; // cat.js provides it
+    const named = new RegExp(`window\\.${name}\\s*=`).test(html);
+    if (!blanket && !named) missing.push(`${name} (read by ${used.join(', ')})`);
+  }
+  assert(
+    missing.length === 0,
+    `index.html never installs: ${missing.join('; ')} -- these are undefined in the BROWSER only`,
+  );
+  // And the overdraw wrappers must be re-applied AFTER any blanket assign,
+  // or the plain versions win and every cat loses its 5% overdraw.
+  if (blanket) {
+    const assignAt = html.indexOf('Object.assign(window, CatV2)');
+    for (const wrapped of ['drawCat', 'drawCatTween']) {
+      const at = html.indexOf(`window.${wrapped} = (ctx, opts) =>`);
+      assert(at > assignAt, `window.${wrapped} is assigned BEFORE the namespace and gets clobbered`);
+    }
+  }
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);
