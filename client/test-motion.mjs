@@ -3339,20 +3339,43 @@ check('the side swim tail can be pulled upright without re-authoring it', () => 
     'at tailUpright 0 the tail must be exactly the trailing shape that shipped',
   );
 
-  // ...and turning it up stands the tail over its own base, without
-  // moving where it leaves the body or how high the tip rides.
-  CatV2.SWIM.tailUpright = 1;
-  const upright = CatV2.catLayout('swim', 0.25, { view: 'side' });
-  CatV2.SWIM.tailUpright = 0;
-  assert(Math.abs(upright.tail.x0 - shipped.tail.x0) < 1e-9, 'the base moved');
-  assert(Math.abs(upright.tail.y1 - shipped.tail.y1) < 1e-9, 'the tip height moved');
-  assert(
-    Math.abs(upright.tail.x1 - upright.tail.x0) < 1e-9,
-    `at 1 the tip should stand over the base, but it is ${(upright.tail.x1 - upright.tail.x0).toFixed(3)} away`,
-  );
   assert(
     Math.abs(shipped.tail.x1 - shipped.tail.x0) > 0.1,
     'guard: at 0 the tail should still be trailing, or this dial does nothing',
+  );
+
+  // At 1 it must MATCH the end-on views, which is the whole ask: a cat
+  // wading north, east and south is one animal. The first cut only
+  // straightened the trail and left the tip at `tailLift`, which is 0.08
+  // above the body -- a stub, because a trailing tail gets its length from
+  // the horizontal run. Height is the thing to assert, not straightness.
+  CatV2.SWIM.tailUpright = 1;
+  const upright = CatV2.catLayout('swim', 0.25, { view: 'side' });
+  CatV2.SWIM.tailUpright = 0;
+  const away = CatV2.catLayout('swim', 0.25, { view: 'back' });
+  assert(Math.abs(upright.tail.x0 - shipped.tail.x0) < 1e-9, 'the base moved');
+  // Agreement is asserted in PIXELS, not exactly, and the slack is
+  // accounted for rather than guessed: `proportionLayout` shifts a whole
+  // layout by ry x (1 - bodyH) so scaling the body keeps the feet on the
+  // floor, and the two swim poses carry slightly different body depths
+  // (0.155 side, 0.15 end-on -- a flank is not a chest). That leaves the
+  // two tips 0.008px apart at the live tile. Anything a re-dial could
+  // actually make visible is a whole pixel away.
+  const apart = Math.abs(upright.tail.y1 - away.tail.y1) * 31;
+  assert(
+    apart < 0.5,
+    `the side tail rides ${apart.toFixed(2)}px from the end-on one -- ` +
+      'one animal, one tail height, or they drift apart on the next re-dial',
+  );
+  const rise = (L) => (L.body.cy - L.tail.y1) * 31;
+  assert(
+    rise(upright) > rise(shipped) + 4,
+    `upright rises ${rise(upright).toFixed(1)}px against the trail's ${rise(shipped).toFixed(1)}px ` +
+      '-- that is a straightened stub, not a raised tail',
+  );
+  assert(
+    upright.tail.y1 < VIEW.waterline - 0.15,
+    'the upright side tail must clear the water by as much as the end-on ones do',
   );
 });
 

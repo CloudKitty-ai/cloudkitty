@@ -2132,19 +2132,30 @@ function catLayout(pose, phase, opts = {}) {
       L.body = { cx: 0.44, cy: SWIM.bodyY + bob, rx: 0.3, ry: SWIM.bodyRy, rot: rock };
       L.head = { cx: 0.7, cy: SWIM.headY + bob, r: 0.226 };
       L.legs = [];
-      // Tail trailing behind, tip riding above the surface -- and
-      // `tailUpright` pulls that trail toward vertical, which is the
-      // posture a cat wading in shallows actually holds (owner,
-      // 2026-08-11). At 0 this is exactly the shape that shipped; at 1 the
-      // tail stands over its own base. Lerping the x extent rather than
-      // re-authoring the curve keeps every value in between drawable.
+      // The tail, trailing at `tailUpright` 0 and HELD UP at 1.
+      //
+      // The first cut of this only straightened the trail -- it pulled the
+      // x extent toward the base and left the tip at `tailLift`. That
+      // makes a stub, not an upright tail, because a trailing tail gets
+      // nearly all its LENGTH from the horizontal run: tailLift 0.6 is a
+      // bare 0.08 above the body. Straightening it threw the length away.
+      //
+      // So the upright end is authored as its own curve, and it rises to
+      // AXIAL_SWIM.tailTopY -- the SAME height the end-on views use, on
+      // purpose. A cat wading north, east and south is one animal, and
+      // three tail heights that have to be kept in agreement by eye will
+      // drift apart the first time one of them is re-dialled. One value,
+      // three views. (Same argument as the world's single water level.)
       const up = SWIM.tailUpright;
-      const tx = (x) => 0.16 + (x - 0.16) * (1 - up);
+      const baseY = SWIM.bodyY + bob;
+      const top = AXIAL_SWIM.tailTopY + bob;
+      const mix = (trail, upright) => trail + (upright - trail) * up;
       L.tail = {
-        x0: 0.16, y0: SWIM.bodyY + bob,
-        c1x: tx(0.04), c1y: SWIM.bodyY - 0.05,
-        c2x: tx(0.0), c2y: SWIM.tailLift + 0.08,
-        x1: tx(0.05), y1: SWIM.tailLift,
+        x0: 0.16, y0: baseY,
+        // Out and back along the water, or up and slightly astern.
+        c1x: mix(0.04, 0.15), c1y: mix(SWIM.bodyY - 0.05, baseY - 0.08),
+        c2x: mix(0.0, 0.10), c2y: mix(SWIM.tailLift + 0.08, top + 0.13),
+        x1: mix(0.05, 0.12), y1: mix(SWIM.tailLift, top),
       };
       break;
     }
