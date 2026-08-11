@@ -3379,6 +3379,35 @@ check('the side swim tail can be pulled upright without re-authoring it', () => 
   );
 });
 
+check('a raised tail is drawn where it can be SEEN, in every view', () => {
+  // The bug this pins, twice over. A tail that paints behind the body and
+  // rises INSIDE the body's own silhouette is not a tail, it is a hidden
+  // line -- all that shows is whatever pokes above the back. The first cut
+  // of the upright side tail stood it over the rump at x 0.12 against a
+  // body edge at x 0.11, and the owner's report was simply that the dial
+  // did nothing.
+  //
+  // Only the away view is exempt, and for a mechanical reason: it paints
+  // the tail IN FRONT of the body (see the paint-order check), so it may
+  // rise from anywhere, the centre included.
+  const cases = [
+    ['side, tail up', () => { CatV2.SWIM.tailUpright = 1; }, { view: 'side' }],
+    ['side, as shipped', () => { CatV2.SWIM.tailUpright = 0; }, { view: 'side' }],
+    ['toward you', () => {}, { view: 'front' }],
+  ];
+  for (const [name, setup, opts] of cases) {
+    setup();
+    const L = CatV2.catLayout('swim', 0, opts);
+    CatV2.SWIM.tailUpright = 0;
+    const clear = Math.abs(L.tail.x1 - L.body.cx) - L.body.rx;
+    assert(
+      clear > 0.01,
+      `${name}: the tail tip is ${(-clear * 31).toFixed(1)}px INSIDE the body's edge, ` +
+        'so it paints behind the body and cannot be seen',
+    );
+  }
+});
+
 check('nothing ships until the swim views are judged', () => {
   // Built, dialled, and drawn in the lab -- but the meadow behaves exactly
   // as it did until the owner has looked. `swimAxial` is the whole switch.

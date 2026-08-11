@@ -2146,16 +2146,25 @@ function catLayout(pose, phase, opts = {}) {
       // three tail heights that have to be kept in agreement by eye will
       // drift apart the first time one of them is re-dialled. One value,
       // three views. (Same argument as the world's single water level.)
+      // The raised end keeps the trailing tail's HORIZONTAL place and
+      // changes only its height. Standing it up over the rump instead put
+      // the tip at x 0.12 against a body edge at x 0.11 -- inside the
+      // silhouette, painted behind the body, so all that showed was a 3px
+      // nub above the back. ("The side tail upright doesn't seem to work",
+      // owner, and it did not.) It is the same rule the toward-facing
+      // axial view already carries: a tail inside the body's own edge is
+      // not a tail, it is a hidden line. A real cat's tail leaves the rump,
+      // sweeps ASTERN, and then rises -- which is both correct and visible.
       const up = SWIM.tailUpright;
       const baseY = SWIM.bodyY + bob;
       const top = AXIAL_SWIM.tailTopY + bob;
       const mix = (trail, upright) => trail + (upright - trail) * up;
       L.tail = {
         x0: 0.16, y0: baseY,
-        // Out and back along the water, or up and slightly astern.
-        c1x: mix(0.04, 0.15), c1y: mix(SWIM.bodyY - 0.05, baseY - 0.08),
-        c2x: mix(0.0, 0.10), c2y: mix(SWIM.tailLift + 0.08, top + 0.13),
-        x1: mix(0.05, 0.12), y1: mix(SWIM.tailLift, top),
+        // Out and back along the water, or back and then up.
+        c1x: mix(0.04, 0.10), c1y: mix(SWIM.bodyY - 0.05, baseY - 0.04),
+        c2x: mix(0.0, 0.03), c2y: mix(SWIM.tailLift + 0.08, top + 0.13),
+        x1: 0.05, y1: mix(SWIM.tailLift, top),
       };
       break;
     }
