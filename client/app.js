@@ -1315,25 +1315,45 @@ function subscribe() {
   // the owner saw. The animation layer was never the problem; it already
   // snaps on return. The panel was, draining a backlog through the DOM.
   //
-  // Holding only the newest and processing it once per frame collapses any
-  // backlog to a single update. In normal running this changes nothing at
-  // all: at an 800ms tick one message arrives about every 48 frames, so
-  // there is never a second one to drop.
+  // Processing on a frame rather than on arrival is what saves the tab:
+  // a hidden one runs no frames, so the whole backlog resolves at once the
+  // moment it is looked at again.
   //
   // Intermediate states are DISCARDED on a catch-up, which is the point --
   // the beats derived from them (meow bubbles, purrs) are moments, and
   // nobody returning to the tab wants two hours of them at once.
-  let newest = null;
+  //
+  // It keeps a small BUFFER rather than only the newest, and that is the
+  // part that matters for smoothness. Dropping a state is not free: the
+  // renderer eases a cat from the previous served position to the current
+  // one over one tick, so a skipped tick makes it cover two tiles in the
+  // time meant for one. That reads as a lurch. Frames stutter, tabs
+  // throttle, and a slow frame longer than a tick is enough for two
+  // messages to land together -- so a strict latest-wins would drop ticks
+  // in ORDINARY running, not just after a backlog (owner spotted this:
+  // "cats are transitioning oddly").
+  //
+  // So: a handful of pending states still replay in order, exactly as they
+  // did when this was synchronous. Only a real backlog collapses, and it
+  // bumps the generation on the way so the animation SNAPS across the gap
+  // instead of easing across two hours of it.
+  const CATCHUP_MAX = 4;
+  let pending = [];
   let scheduled = 0;
   const drain = () => {
     scheduled = 0;
-    const world = newest;
-    newest = null;
-    if (world) render(world);
+    if (!pending.length) return;
+    if (pending.length > CATCHUP_MAX) {
+      anim.bumpGeneration();
+      pending = [pending[pending.length - 1]];
+    }
+    const queue = pending;
+    pending = [];
+    for (const world of queue) render(world);
   };
   socket.addEventListener('message', (event) => {
     try {
-      newest = JSON.parse(event.data);
+      pending.push(JSON.parse(event.data));
     } catch (err) {
       console.error('could not read a world update', err);
       return;

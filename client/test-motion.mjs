@@ -2694,26 +2694,42 @@ check('a backlog collapses to one state, and normal running is untouched', () =>
   const handlers = {};
   const socket = { addEventListener: (k, fn) => { handlers[k] = fn; } };
   const rendered = [];
+  let snaps = 0;
   let frame = null;
   const raf = (fn) => { frame = fn; return 1; };
   // eslint-disable-next-line no-new-func
-  new Function('socket', 'render', 'requestAnimationFrame', `${body}; return null;`)(
-    socket, (w) => rendered.push(w.tick), raf,
+  new Function('socket', 'render', 'requestAnimationFrame', 'anim', `${body}; return null;`)(
+    socket, (w) => rendered.push(w.tick), raf, { bumpGeneration: () => { snaps += 1; } },
   );
+  const send = (t) => handlers.message({ data: JSON.stringify({ tick: t }) });
 
-  for (let t = 1; t <= 9000; t += 1) handlers.message({ data: JSON.stringify({ tick: t }) });
+  for (let t = 1; t <= 9000; t += 1) send(t);
   assert(rendered.length === 0, `a backlog rendered ${rendered.length} times before a frame ran`);
   frame();
   assert(rendered.length === 1, `9000 queued states became ${rendered.length} renders, want 1`);
   assert(rendered[0] === 9000, `caught up to tick ${rendered[0]}, want the newest (9000)`);
+  assert(snaps === 1, 'a collapsed backlog must bump the generation so the world SNAPS across the gap');
 
-  rendered.length = 0;
-  for (let t = 9001; t <= 9005; t += 1) {
-    handlers.message({ data: JSON.stringify({ tick: t }) });
-    frame();
-  }
-  assert(rendered.length === 5, `ordinary ticks must all draw, got ${rendered.length} of 5`);
+  // Ordinary running: one message per frame, nothing dropped, no snap.
+  rendered.length = 0; snaps = 0;
+  for (let t = 9001; t <= 9005; t += 1) { send(t); frame(); }
   assert(String(rendered) === '9001,9002,9003,9004,9005', `ticks were dropped: ${rendered}`);
+  assert(snaps === 0, 'ordinary ticks must never snap');
+
+  // And the case that made this a REGRESSION rather than a cleanup: a
+  // stuttered frame lands two ticks together. Dropping one would make a
+  // cat cover two tiles in the time meant for one, which reads as a lurch.
+  rendered.length = 0; snaps = 0;
+  send(9006); send(9007); frame();
+  assert(String(rendered) === '9006,9007', `a stutter dropped a tick: ${rendered}`);
+  assert(snaps === 0, 'a two-tick stutter is not a backlog and must not snap');
+
+  // A few is still a buffer; many is a backlog.
+  rendered.length = 0; snaps = 0;
+  for (let t = 9008; t <= 9011; t += 1) send(t);
+  frame();
+  assert(rendered.length === 4, `4 pending states must all replay, got ${rendered.length}`);
+  assert(snaps === 0, 'four pending states is a buffer, not a backlog');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);
