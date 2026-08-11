@@ -45,17 +45,35 @@ function slotOf(api, id, want, dials = api.VIEW) {
 }
 eval(catV2Src); // IIFE: registers globalThis.CatV2
 const CatV2 = globalThis.CatV2;
+
+/**
+ * What the art blocks hold as SHIPPED, before any check has run.
+ *
+ * Half the checks here dial a value, draw, and put it back. A check that
+ * forgets -- or that restores to a hardcoded literal after the owner has
+ * re-baked the real one -- leaves every later check drawing a different
+ * cat, silently and in a way no single assertion can see. The last check
+ * in the file compares against this.
+ */
+const SHIPPED_BLOCKS = Object.fromEntries(
+  Object.entries(CatV2)
+    .filter(([, v]) => v && typeof v === 'object' && !Array.isArray(v) && !(v instanceof Set) && !(v instanceof Map))
+    .map(([k, v]) => [k, JSON.stringify(v)]),
+);
 // render.js reads `VIEW` as a global (the browser loads anim.js alongside
 // it); each eval here gets its own scope, so hand it one. Direct eval runs
 // in this scope, so the binding is visible to the code below -- and it is
 // the SAME object anim.js built, so a re-dialled tunable cannot diverge
 // between what the harness tests and what the page draws.
 const VIEW = api.VIEW;
-const { poseFor, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose } =
-  eval(
-    renderSrc +
-      ';({ poseFor, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose })',
-  );
+const {
+  poseFor, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose,
+  swimAxialAllows,
+} = eval(
+  renderSrc +
+    ';({ poseFor, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose,' +
+    ' swimAxialAllows })',
+);
 
 /** Canvas ctx stand-in: logs every command, throws on non-finite numbers. */
 function guardCtx(log = []) {
@@ -2526,15 +2544,15 @@ check('a pose with no axial authoring keeps its side drawing', () => {
   // The fallback is "draw the cat we have", never "draw nothing". Only
   // walking and idle are authored; everything else must be untouched by
   // the view, byte for byte.
-  for (const pose of ['grooming', 'sleep-curl', 'pouncing', 'sit', 'stretch', 'swim']) {
+  for (const pose of ['grooming', 'sleep-curl', 'pouncing', 'sit', 'stretch']) {
     assert(!CatV2.AXIAL_POSES.has(pose), `${pose} gained axial authoring -- update this check`);
     const side = JSON.stringify(CatV2.catLayout(pose, 0.3, { view: 'side' }));
     const back = JSON.stringify(CatV2.catLayout(pose, 0.3, { view: 'back' }));
     assert(side === back, `${pose} changed with the view but has no axial drawing`);
   }
-  // ...and the two that ARE authored must actually differ, or the whole
+  // ...and the ones that ARE authored must actually differ, or the whole
   // feature is a no-op that every other check here would still pass.
-  for (const pose of ['walking', 'idle']) {
+  for (const pose of ['walking', 'idle', 'swim']) {
     const side = CatV2.catLayout(pose, 0.3, { view: 'side' });
     const back = CatV2.catLayout(pose, 0.3, { view: 'back' });
     assert(back.body.rx < side.body.rx, `${pose}: a cat seen end-on must be narrower`);
@@ -3202,6 +3220,13 @@ check('the renderer asks before it draws a cat axially', () => {
     /const axial = axialOk &&/.test(decision),
     'the axial view must be gated by axialFor, not merely informed by it',
   );
+  // ...and the swim views stay gated separately even now that they ship.
+  // cat-v2 can DRAW them; VIEW.swimAxial decides which directions the
+  // meadow asks for, and dropping the gate would take that choice away.
+  assert(
+    /swimAxialAllows\(/.test(decision),
+    'render.js must gate the axial swim on VIEW.swimAxial, whatever it is currently set to',
+  );
 });
 
 check('every view method the renderer guards for is actually served', () => {
@@ -3234,6 +3259,309 @@ check('every view method the renderer guards for is actually served', () => {
   }
 });
 
+// ---- swimming end-on (2026-08-11), built but NOT shipped ----
+
+check('a swimming cat drawn end-on keeps its head out of the water', () => {
+  // The whole judging problem in one assertion. At the live waterline only
+  // a few pixels of body clear the surface, so nearly everything that says
+  // "cat" is the head -- and a head that dips below the clip leaves a
+  // swimming cat as a sliver of back and nothing else.
+  const surface = VIEW.waterline;
+  for (const view of ['front', 'back']) {
+    const L = CatV2.catLayout('swim', 0.25, { view });
+    const headTop = L.head.cy - L.head.r;
+    const headBottom = L.head.cy + L.head.r;
+    assert(headBottom < surface, `${view}: the head dips under the waterline (${headBottom} vs ${surface})`);
+    assert(headTop > 0, `${view}: the head has left the top of the box`);
+
+    // Some back, but not the whole body: a cat sitting entirely above the
+    // surface is a cat standing ON water, which is the bug SWIM's own
+    // comment records being fixed once already.
+    const bodyTop = L.body.cy - L.body.ry;
+    const bodyBottom = L.body.cy + L.body.ry;
+    assert(bodyTop < surface, `${view}: no body clears the surface at all`);
+    assert(bodyBottom > surface, `${view}: the whole body floats above the water`);
+
+    // No legs, like the side pose -- they are under water, and the clip
+    // would take them anyway.
+    assert(L.legs.length === 0, `${view}: a swimming cat is drawing ${L.legs.length} legs`);
+
+    // The tail is HELD UP (owner, 2026-08-11): it leaves a submerged rump
+    // and rides clear of the surface, which is the posture the shallow
+    // water we built calls for -- and in the away view it is the only
+    // piece of silhouette above water that is not a circle or an ear.
+    assert(L.tail && Number.isFinite(L.tail.y0), `${view}: the swim tail is not a drawable tail`);
+    assert(L.tail.y0 > surface, `${view}: the tail's base should leave a submerged rump`);
+    assert(L.tail.y1 < surface, `${view}: the tail tip is under the water, where nobody can see it`);
+    assert(
+      surface - L.tail.y1 > 0.15,
+      `${view}: only ${((surface - L.tail.y1) * 31).toFixed(1)}px of tail clears the water -- ` +
+        'that is not a raised tail, it is a nub',
+    );
+    // ...and it must clear the BODY by enough to SEE, or the raised length
+    // is lost against the very silhouette it is meant to break up.
+    // Clearing by a hair is the same as not clearing: at a 31px tile a
+    // third of a pixel of tail above the back is nothing at all.
+    const overBody = (L.body.cy - L.body.ry - L.tail.y1) * 31;
+    assert(
+      overBody > 2,
+      `${view}: only ${overBody.toFixed(1)}px of tail rises above the body's own top edge`,
+    );
+  }
+});
+
+check('an end-on swimmer is narrower than a side-on one, and not by nothing', () => {
+  const side = CatV2.catLayout('swim', 0.25, { view: 'side' });
+  const front = CatV2.catLayout('swim', 0.25, { view: 'front' });
+  assert(front.body.rx < side.body.rx, 'a cat seen end-on must be narrower than one seen side-on');
+  assert(
+    side.body.rx - front.body.rx > 0.05,
+    `only ${(side.body.rx - front.body.rx).toFixed(3)} narrower -- that is not a different view`,
+  );
+  // The two directions differ from each other too, or there was no point
+  // drawing both: the far head is smaller, which is the depth cue.
+  const back = CatV2.catLayout('swim', 0.25, { view: 'back' });
+  assert(back.head.r < front.head.r, 'the head going away must read as farther than the one coming toward');
+  // What the two views owe the tail is NOT the same thing, and the
+  // difference is paint order, not taste.
+  //
+  // (This replaces an assertion that the away view must show MORE tail
+  // than the toward view. That was a hypothesis of mine, not an invariant,
+  // and the owner's dialling falsified it: away reads best with the tail
+  // near vertical out of the centre of the back, toward with it pushed
+  // wide. Only the mechanical constraint below survives.)
+  //
+  // Walking away, the tail paints IN FRONT of the body, so it may rise
+  // from anywhere -- the centre included -- and still be seen. Coming
+  // toward you it paints BEHIND, so anything inside the body's own edge is
+  // hidden by it, and a tail nobody can see is not a tail.
+  const flank = 0.5 + front.body.rx;
+  assert(
+    Math.abs(front.tail.x1 - 0.5) > front.body.rx,
+    `the toward view's tail tip sits at ${front.tail.x1} and the flank is at ${flank} -- ` +
+      'it paints behind the body, so it would be invisible',
+  );
+});
+
+check('the side swim tail can be pulled upright without re-authoring it', () => {
+  // Owner, 2026-08-11: an upright tail is the posture shallow water calls
+  // for. The dial ships at 0, which must be the shape that shipped -- the
+  // live meadow does not change until it is judged in the lab.
+  // This used to assert the dial SHIPPED at 0, to guarantee the live
+  // meadow could not change before the lab had spoken. It has now spoken
+  // (owner, 2026-08-11: tailUpright 1), so that guard has done its job and
+  // is retired rather than quietly deleted. What survives is the property
+  // that actually keeps the dial honest: its zero end must still reproduce
+  // the trailing tail v2.7 shipped, exactly, so the change is a CHOICE and
+  // not a one-way door.
+  const wasUp = CatV2.SWIM.tailUpright;
+  CatV2.SWIM.tailUpright = 0;
+  const shipped = CatV2.catLayout('swim', 0.25, { view: 'side' });
+  CatV2.SWIM.tailUpright = wasUp;
+  assert(
+    Math.abs(shipped.tail.x1 - 0.05) < 1e-9 && Math.abs(shipped.tail.c2x - 0) < 1e-9,
+    'at tailUpright 0 the tail must be exactly the trailing shape that shipped',
+  );
+
+  assert(
+    Math.abs(shipped.tail.x1 - shipped.tail.x0) > 0.1,
+    'guard: at 0 the tail should still be trailing, or this dial does nothing',
+  );
+
+  // At 1 it must MATCH the end-on views, which is the whole ask: a cat
+  // wading north, east and south is one animal. The first cut only
+  // straightened the trail and left the tip at `tailLift`, which is 0.08
+  // above the body -- a stub, because a trailing tail gets its length from
+  // the horizontal run. Height is the thing to assert, not straightness.
+  CatV2.SWIM.tailUpright = 1;
+  const upright = CatV2.catLayout('swim', 0.25, { view: 'side' });
+  CatV2.SWIM.tailUpright = wasUp; // restore what SHIPS, not a hardcoded 0
+  const away = CatV2.catLayout('swim', 0.25, { view: 'back' });
+  assert(Math.abs(upright.tail.x0 - shipped.tail.x0) < 1e-9, 'the base moved');
+  // The two are tied together by ONE anchor plus ONE declared difference,
+  // never two free numbers: the side tail rides at the shared height
+  // raised by `tailUprightRise`, the foreshortening allowance (a tail seen
+  // broadside shows its whole length; seen end-on it draws short). Set
+  // that to 0 and the three views match exactly.
+  //
+  // Asserted in PIXELS with the slack accounted for rather than guessed:
+  // `proportionLayout` shifts a layout by ry x (1 - bodyH) to keep feet on
+  // the floor, and the two swim poses carry different body depths (0.155
+  // side, 0.15 end-on -- a flank is not a chest), which leaves ~0.008px on
+  // the table.
+  const expected = away.tail.y1 - CatV2.SWIM.tailUprightRise;
+  const apart = Math.abs(upright.tail.y1 - expected) * 31;
+  assert(
+    apart < 0.5,
+    `the side tail rides ${apart.toFixed(2)}px off the shared height plus its allowance -- ` +
+      'one anchor and one declared difference, or they drift apart on the next re-dial',
+  );
+  // The allowance's SIGN is an invariant; its size is the owner's. A tail
+  // seen broadside cannot draw shorter than the same tail seen end-on --
+  // that is foreshortening running backwards -- but 0 is a legitimate
+  // choice (it makes the three views identical, which is where this
+  // started), so the magnitude is deliberately not pinned.
+  assert(
+    CatV2.SWIM.tailUprightRise >= 0,
+    `tailUprightRise is ${CatV2.SWIM.tailUprightRise}: a broadside tail cannot be SHORTER than an end-on one`,
+  );
+
+  // The swimming tail SHIPS held up (owner, 2026-08-11) -- that is a
+  // visible change to the live meadow, not a lab-only value, so a silent
+  // revert to the trailing tail should not pass unremarked. How far up is
+  // still hers: this pins the decision, not the number.
+  assert(
+    CatV2.SWIM.tailUpright > 0,
+    'the swimming tail ships held up; going back to the trailing one is a decision, not a tweak',
+  );
+  const rise = (L) => (L.body.cy - L.tail.y1) * 31;
+  assert(
+    rise(upright) > rise(shipped) + 4,
+    `upright rises ${rise(upright).toFixed(1)}px against the trail's ${rise(shipped).toFixed(1)}px ` +
+      '-- that is a straightened stub, not a raised tail',
+  );
+  assert(
+    upright.tail.y1 < VIEW.waterline - 0.15,
+    'the upright side tail must clear the water by as much as the end-on ones do',
+  );
+});
+
+check('two dials own the side tail height, and the lab says which is live', () => {
+  // `tailLift` sets the TRAILING tip and `AXIAL_SWIM.tailTopY` the raised
+  // one, so whichever is not in charge looks broken when you drag it --
+  // the same "nothing happens" the owner reported for a different reason.
+  // Measured, not assumed: at upright 1 the height is entirely the shared
+  // one, which is what makes the three views agree.
+  // Restore to what SHIPS rather than to a literal: the shipped value is
+  // the owner's and moves, and a test that hardcodes it silently re-dials
+  // the cat for every check that runs after it.
+  const shippedUp = CatV2.SWIM.tailUpright;
+  const shippedLift = CatV2.SWIM.tailLift;
+  const tipAt = (up, lift) => {
+    CatV2.SWIM.tailUpright = up;
+    CatV2.SWIM.tailLift = lift;
+    const y = CatV2.catLayout('swim', 0, { view: 'side' }).tail.y1;
+    CatV2.SWIM.tailUpright = shippedUp;
+    CatV2.SWIM.tailLift = shippedLift;
+    return y;
+  };
+  assert(tipAt(0, 0.45) !== tipAt(0, 0.7), 'tailLift must move the trailing tip');
+  assert(
+    tipAt(1, 0.45) === tipAt(1, 0.7),
+    'at upright 1 the tip must come from the SHARED height, or the three views drift apart',
+  );
+  assert(tipAt(0.5, 0.45) !== tipAt(0.5, 0.7), 'part-way, tailLift should still have a say');
+
+  // Since one of them is always inert, the lab has to name the live one
+  // and the label has to warn -- otherwise the next dialling session
+  // rediscovers this the slow way.
+  const html = readFileSync(join(here, 'gallery-v2.html'), 'utf8');
+  const card = html.slice(html.indexOf("title: 'Swimming end-on"));
+  const body = card.slice(0, card.indexOf('\n    },'));
+  assert(/inert at upright 1/.test(body), 'the tail-tip dial must say when it does nothing');
+  assert(/governed by \$\{owner\}/.test(body), 'the readout must name which dial owns the tip height');
+  // ...and warn when the tail is dialled under the water, where the clip
+  // eats it: the top of the range (0.75) is past the waterline (0.72).
+  assert(/BELOW the waterline/.test(body), 'the readout must flag a tail dialled under the surface');
+});
+
+check('a raised tail is drawn where it can be SEEN, in every view', () => {
+  // The bug this pins, twice over. A tail that paints behind the body and
+  // rises INSIDE the body's own silhouette is not a tail, it is a hidden
+  // line -- all that shows is whatever pokes above the back. The first cut
+  // of the upright side tail stood it over the rump at x 0.12 against a
+  // body edge at x 0.11, and the owner's report was simply that the dial
+  // did nothing.
+  //
+  // Only the away view is exempt, and for a mechanical reason: it paints
+  // the tail IN FRONT of the body (see the paint-order check), so it may
+  // rise from anywhere, the centre included.
+  const ships = CatV2.SWIM.tailUpright;
+  const cases = [
+    ['side, tail up', () => { CatV2.SWIM.tailUpright = 1; }, { view: 'side' }],
+    ['side, trailing', () => { CatV2.SWIM.tailUpright = 0; }, { view: 'side' }],
+    ['side, as shipped', () => {}, { view: 'side' }],
+    ['toward you', () => {}, { view: 'front' }],
+  ];
+  for (const [name, setup, opts] of cases) {
+    setup();
+    const L = CatV2.catLayout('swim', 0, opts);
+    CatV2.SWIM.tailUpright = ships;
+    const clear = Math.abs(L.tail.x1 - L.body.cx) - L.body.rx;
+    assert(
+      clear > 0.01,
+      `${name}: the tail tip is ${(-clear * 31).toFixed(1)}px INSIDE the body's edge, ` +
+        'so it paints behind the body and cannot be seen',
+    );
+  }
+});
+
+check('the swim-view setting is one the code actually recognises', () => {
+  // This check used to assert `swimAxial` shipped as 'none', to prove the
+  // meadow could not change before the lab had spoken. It has spoken
+  // (owner, 2026-08-11: both), so that guard is retired rather than
+  // quietly deleted.
+  //
+  // What replaces it guards the way this particular switch FAILS. It is a
+  // string compared against literals, and anything unrecognised -- 'Both',
+  // a stray space, a rename on one side only -- silently means 'none':
+  // the feature ships inert, the meadow looks exactly as it did, and every
+  // check here still passes. That is the same shape as #182 shipping inert
+  // and #187 nearly doing so, so the shipped value has to be a value the
+  // code can actually act on.
+  const known = ['none', 'toward', 'both'];
+  assert(
+    known.includes(VIEW.swimAxial),
+    `VIEW.swimAxial is '${VIEW.swimAxial}', which no branch matches -- it would silently mean 'none'`,
+  );
+  // The end-on swim SHIPS (owner, 2026-08-11: both). Which directions is
+  // still hers -- 'toward' is a legitimate answer -- but turning it off
+  // altogether removes a drawing from the live meadow, and that is a
+  // decision someone should have to write down, not a value that can
+  // drift back with every test still green.
+  assert(
+    VIEW.swimAxial !== 'none',
+    'the end-on swim ships; switching it off is a decision, not a tweak',
+  );
+  assert(
+    ['north', 'south'].some((f) => swimAxialAllows(f)),
+    `VIEW.swimAxial is '${VIEW.swimAxial}' but no facing is allowed -- the feature is inert`,
+  );
+  // ...and each setting means what it says.
+  assert(swimAxialAllows('south', { swimAxial: 'toward' }), "'toward' must allow a cat swimming at you");
+  assert(!swimAxialAllows('north', { swimAxial: 'toward' }), "'toward' must NOT allow one swimming away");
+  assert(swimAxialAllows('north', { swimAxial: 'both' }), "'both' must allow either");
+  assert(swimAxialAllows('south', { swimAxial: 'both' }), "'both' must allow either");
+  // An unknown value is not a licence to draw something nobody picked.
+  assert(!swimAxialAllows('south', { swimAxial: 'yes please' }), 'an unrecognised setting must draw side-on');
+  assert(!swimAxialAllows('south', {}), 'a missing setting must draw side-on');
+});
+
+check('a dial that names its own block actually writes that block', () => {
+  // The swim card judges the axial views and the SIDE pose's tail
+  // together, and those live in different bags. If the builder ignored
+  // `d.bag`, the SIDE sliders would quietly write a `tailUpright` onto
+  // AXIAL_SWIM instead: the slider moves, the readout prints, the drawing
+  // never changes, and a whole dialling session is wasted. That has
+  // happened before with pasted values, so it gets a guard.
+  const html = readFileSync(join(here, 'gallery-v2.html'), 'utf8');
+  const declared = [...html.matchAll(/bag: CatV2\.(\w+)/g)].map((m) => m[1]);
+  if (!declared.length) return; // no card needs a second block right now
+  const builder = html.slice(html.indexOf('function buildDemoDials'));
+  const body = builder.slice(0, builder.indexOf('\n  }\n'));
+  assert(
+    /const bag = d\.bag \?\? demo\.bag/.test(body),
+    'a dial declares its own bag but buildDemoDials still writes demo.bag',
+  );
+  assert(
+    !/\bdemo\.bag\[d\.key\]/.test(body),
+    'buildDemoDials still reaches demo.bag[d.key] directly somewhere -- a per-dial bag would be ignored there',
+  );
+  for (const name of new Set(declared)) {
+    assert(CatV2[name], `a dial names CatV2.${name}, which the vocabulary does not export`);
+  }
+});
+
 check('the socket hands arrivals to the delay line and nothing else', () => {
   // The queue, the pacing and the backlog collapse all moved into `Pacer`,
   // where the checks above can reach them. What is left in app.js is
@@ -3253,6 +3581,24 @@ check('the socket hands arrivals to the delay line and nothing else', () => {
   assert(
     /anim\.onPromote\s*=\s*present/.test(src),
     'the panel must be driven by anim.onPromote, not by the socket',
+  );
+});
+
+check('no check left a dial moved behind it', () => {
+  // Must be LAST. Half the file dials a value, draws, and puts it back;
+  // one that forgets leaves every later check drawing a different cat,
+  // and nothing else here can see it. It has already nearly happened
+  // twice: a restore written as a literal 0 kept working right up until
+  // the owner baked 1, at which point it would have quietly re-dialled
+  // the swimming tail for the rest of the run.
+  const moved = [];
+  for (const [name, before] of Object.entries(SHIPPED_BLOCKS)) {
+    const now = JSON.stringify(CatV2[name]);
+    if (now !== before) moved.push(`${name}\n     shipped ${before}\n     left as ${now}`);
+  }
+  assert(
+    moved.length === 0,
+    `a check restored something to the wrong value:\n  ${moved.join('\n  ')}`,
   );
 });
 

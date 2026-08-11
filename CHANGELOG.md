@@ -86,6 +86,36 @@ change.
   it really is oriented the way an axial view would claim. Flips that
   reverse within a tick fall 295 → 81, and genuine turns are untouched
   (#198).
+- A swimming cat is drawn end-on now, in both directions — the world
+  swims cats north/south as often as east/west (20 wet steps against
+  21, measured) but `swim` had no axial drawing, so one was always
+  drawn side-on however it was going. Both directions were drawn,
+  dialled and judged side by side at the live tile before either
+  shipped, because they are not equally served by the pose: a swimming
+  cat is mostly head — only ~6px of a 31px cat's body clears the
+  waterline — and coming toward you that is the largest head in the
+  vocabulary plus a whole face, while going away `paintCat` draws no
+  face at all by design. Measured on a live feed after: 1,304 of 3,102
+  swim frames now draw end-on, so the feature reaches the screen rather
+  than shipping inert the way #182 did.
+
+  What carries the away view is the **tail**, now held up clear of the
+  surface in every direction — the posture the shallow water we
+  actually built calls for, since the waterline cuts a cat at its flank
+  rather than its neck. It is the only silhouette a cat swimming away
+  has when everything else above water is a circle and two ears. The
+  side pose changes with it (`SWIM.tailUpright` 1) so the three views
+  read as one animal: a single shared height with one declared
+  difference on top — `tailUprightRise`, a foreshortening allowance,
+  because a tail seen broadside shows its whole length while the same
+  tail end-on draws short. `tailUpright` 0 still reproduces v2.7's
+  trailing tail exactly, so this is a choice and not a one-way door.
+
+  The lab draws all three views side by side under the world's own
+  waterline and clip, prints how much cat clears the water each way,
+  and names which of the two dials owns the tail height at the current
+  blend — one of them is always inert, and saying so is cheaper than
+  rediscovering it (#199).
 - The ground's tone ramp goes from 18 steps to 32, so neighbouring
   tiles differ by less and the last of the mosaic reading goes. It costs
   nothing measurable: the ramp is cached on the tone array's identity,

@@ -538,6 +538,7 @@
     { obj: 'SWIM', key: 'bob', label: 'swim bob amplitude', min: 0, max: 0.03, step: 0.001 },
     { obj: 'SWIM', key: 'rock', label: 'swim paddle rock', min: 0, max: 0.1, step: 0.005 },
     { obj: 'SWIM', key: 'tailLift', label: 'swim tail-tip height (− up / + down)', min: 0.45, max: 0.75, step: 0.005 },
+    { obj: 'SWIM', key: 'tailUpright', label: 'swim tail upright (0 = trailing, as shipped)', min: 0, max: 1, step: 0.05 },
   ];
   const dialRoot = document.getElementById('dials');
   const readout = document.getElementById('eyeReadout');
@@ -1547,6 +1548,165 @@
       },
     },
     {
+      title: 'Swimming end-on — north vs south, to be judged',
+      w: 560,
+      h: 250,
+      ownShadows: true,
+      bag: CatV2.AXIAL_SWIM,
+      note:
+        'The world swims cats north/south exactly as often as east/west (20 wet steps against 21, measured), but `swim` had no axial drawing, so one was always drawn side-on. Both directions now exist; NEITHER ships yet (`VIEW.swimAxial` is "none"). ' +
+        'The judging problem is that a swimming cat is mostly HEAD: at the live waterline only about 6px of a 31px cat\'s body clears the surface. Coming toward you that is the largest head in the vocabulary plus a whole face; going away, `paintCat` draws no face at all by design, so it is a circle and two ears. ' +
+        'The real clip is applied here — the top row is the live tile size, which is the row that decides, and the bottom row is the same three at 3x for the detail. Set VIEW.swimAxial to "toward" or "both" once you have picked.',
+      dials: [
+        { key: 'bodyDrop', label: 'body depth below standing', min: -0.02, max: 0.06, step: 0.002 },
+        { key: 'bodyRy', label: 'body flatness', min: 0.08, max: 0.2, step: 0.005 },
+        { key: 'bodyRx', label: 'body width', min: 0.14, max: 0.26, step: 0.005 },
+        { key: 'headDrop', label: 'chin toward the surface', min: 0, max: 0.12, step: 0.005 },
+        { key: 'bob', label: 'paddle bob', min: 0, max: 0.03, step: 0.001 },
+        { key: 'rock', label: 'paddle roll', min: 0, max: 0.08, step: 0.005 },
+        { key: 'tailTopY', label: 'raised tail — tip height, ALL THREE views (− up / + down)', min: 0.25, max: 0.66, step: 0.005 },
+        { key: 'tailBaseDrop', label: 'raised tail — how deep the base sits', min: 0, max: 0.14, step: 0.005 },
+        // Both of these were pasted sitting exactly ON their old rails
+        // (0.52 and 0.8), which is the signal that the dial ran out before
+        // the eye did. Widened past centre and past the flank so the real
+        // value can be found rather than clamped to.
+        { key: 'tailOutX', label: 'raised tail — reach, away view (0.5 = straight up)', min: 0.36, max: 0.9, step: 0.005 },
+        { key: 'tailPeekX', label: 'raised tail — peek past the flank, toward view', min: 0.5, max: 0.98, step: 0.005 },
+        { key: 'tailCurve', label: 'raised tail — bow', min: 0, max: 0.12, step: 0.005 },
+        // The side pose's own tail, dialled here so all three columns can
+        // be judged in one place. Different bag: this one writes SWIM.
+        {
+          key: 'tailUpright', bag: CatV2.SWIM,
+          label: 'SIDE column — tail upright (0 = trailing, as shipped)',
+          min: 0, max: 1, step: 0.05,
+        },
+        {
+          key: 'tailUprightRise', bag: CatV2.SWIM,
+          label: 'SIDE column — how much taller than the end-on tails (0 = identical)',
+          min: 0, max: 0.16, step: 0.005,
+        },
+        {
+          key: 'tailLift', bag: CatV2.SWIM,
+          // Governs the TRAILING end only. At upright 1 the height comes
+          // from tailTopY above, shared with the end-on views -- so this
+          // slider is inert there, and the label has to say so or it reads
+          // as broken. The readout prints which one is actually live.
+          label: 'SIDE column — tail-tip height when TRAILING (inert at upright 1)',
+          min: 0.3, max: 0.75, step: 0.005,
+        },
+      ],
+      readout() {
+        const S = CatV2.AXIAL_SWIM;
+        // How much cat is actually above the water at the live tile, which
+        // is the number this card exists to answer.
+        const headTop = (back) =>
+          (back ? CatV2.AXIAL_CAMERAS[CatV2.AXIAL.camera].headYBack
+                : CatV2.AXIAL_CAMERAS[CatV2.AXIAL.camera].headYFront) +
+          S.headDrop -
+          (back ? CatV2.AXIAL_CAMERAS[CatV2.AXIAL.camera].headRBack
+                : CatV2.AXIAL_CAMERAS[CatV2.AXIAL.camera].headRFront);
+        const px = (u) => (u * 31).toFixed(1);
+        const bodyTop =
+          CatV2.AXIAL_CAMERAS[CatV2.AXIAL.camera].bodyY + S.bodyDrop - S.bodyRy;
+        return (
+          `AXIAL_SWIM.bodyDrop = ${S.bodyDrop}, AXIAL_SWIM.bodyRy = ${S.bodyRy}, ` +
+          `AXIAL_SWIM.bodyRx = ${S.bodyRx}\n` +
+          `AXIAL_SWIM.headDrop = ${S.headDrop}, AXIAL_SWIM.bob = ${S.bob}, ` +
+          `AXIAL_SWIM.rock = ${S.rock}\n` +
+          `AXIAL_SWIM.tailTopY = ${S.tailTopY}, AXIAL_SWIM.tailBaseDrop = ${S.tailBaseDrop}, ` +
+          `AXIAL_SWIM.tailOutX = ${S.tailOutX}, AXIAL_SWIM.tailPeekX = ${S.tailPeekX}, ` +
+          `AXIAL_SWIM.tailCurve = ${S.tailCurve}\n` +
+          `SWIM.tailUpright = ${CatV2.SWIM.tailUpright}, SWIM.tailLift = ${CatV2.SWIM.tailLift}, ` +
+          `SWIM.tailUprightRise = ${CatV2.SWIM.tailUprightRise} ` +
+          `(upright 0 = the trailing tail that ships)\n` +
+          // Effective-vs-asked. Two dials own the side tail's tip height
+          // at opposite ends of `tailUpright`, so whichever one is not in
+          // charge right now looks broken when you drag it.
+          (() => {
+            const up = CatV2.SWIM.tailUpright;
+            const tip = CatV2.catLayout('swim', 0, { view: 'side' }).tail.y1;
+            const owner =
+              up >= 0.999 ? 'AXIAL_SWIM.tailTopY (shared with the end-on views)'
+              : up <= 0.001 ? 'SWIM.tailLift'
+              : `both, blended ${(100 * up).toFixed(0)}% toward tailTopY`;
+            const drowned = tip > VIEW.waterline;
+            return (
+              `side tail tip rides at ${tip.toFixed(3)} — governed by ${owner}\n` +
+              (drowned
+                ? `  ⚠ that is BELOW the waterline (${VIEW.waterline}): in deep water the clip takes the whole tail\n`
+                : `  ${px(VIEW.waterline - tip)}px of it clears the surface at full submersion\n`)
+            );
+          })() +
+          `tail above the waterline: ${px(VIEW.waterline - S.tailTopY)}px\n` +
+          `above the waterline at a 31px tile — toward: ${px(VIEW.waterline - headTop(false))}px ` +
+          `tall, away: ${px(VIEW.waterline - headTop(true))}px, ` +
+          `of which body is ${px(VIEW.waterline - bodyTop)}px and the rest is head\n` +
+          `width end-on ${px(S.bodyRx * 2)}px, against ${px(0.6)}px side-on`
+        );
+      },
+      draw(ctx, w, h, now, isV2) {
+        const LIVE = 31; // the live tile at a 20x20 world in 620px
+        const BIG = 84;
+        const phase = (now % 3400) / 3400;
+        // The world's own surface level and clip, not an approximation:
+        // how much cat clears the water IS the thing being judged.
+        const cut = VIEW.waterline;
+        const cols = [
+          { view: 'side', facing: 'right', label: 'side (ships today)' },
+          { view: 'front', facing: 'south', label: 'toward you (south)' },
+          { view: 'back', facing: 'north', label: 'away (north)' },
+        ];
+        const one = (size, cx, top) => {
+          const x = cx - size / 2;
+          const surfaceY = top + size * cut;
+          // Water behind, then the cat clipped at the surface, then the
+          // near half of the meniscus over it -- the world's paint order.
+          ctx.fillStyle = '#9ccfe6';
+          ctx.fillRect(cx - size, surfaceY, size * 2, top + size - surfaceY + 6);
+          return { x, surfaceY };
+        };
+        for (let row = 0; row < 2; row++) {
+          const size = row === 0 ? LIVE : BIG;
+          const top = row === 0 ? 34 : 96;
+          for (let i = 0; i < cols.length; i++) {
+            const c = cols[i];
+            const cx = w * (i + 0.5) / cols.length;
+            const { x, surfaceY } = one(size, cx, top);
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(cx - size * 1.5, top - size * 2, size * 3, size * 2 + (surfaceY - top));
+            ctx.clip();
+            const base = {
+              appearance: CatV2.appearanceFor(STORM),
+              facing: c.facing,
+              size,
+              x,
+              y: top,
+            };
+            if (isV2) {
+              CatV2.drawCat(ctx, { ...base, pose: 'swim', phase, layout: { view: c.view } });
+            } else {
+              // v1 has no axial drawing at all and walks through water.
+              drawCat(ctx, { ...base, facing: 'right', pose: 'walking', phase });
+            }
+            ctx.restore();
+            if (row === 0) {
+              ctx.fillStyle = '#3c4a3a';
+              ctx.font = '11px system-ui, sans-serif';
+              ctx.textAlign = 'center';
+              ctx.fillText(c.label, cx, 20);
+            }
+          }
+        }
+        ctx.fillStyle = '#3c4a3a';
+        ctx.font = '10px system-ui, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('live tile (31px) — the row that decides', 6, h - 6);
+        ctx.textAlign = 'right';
+        ctx.fillText('3x, for the detail only', w - 6, h - 6);
+      },
+    },
+    {
       title: 'Shoreline crossing',
       note: 'The full trip on the live wiring’s clocks: walk in, blend to paddling at the shore (260 ms smoothstep, from-phase frozen at the crossing), swim across on the tick clock, blend back out. v1 walks straight through — snapless because it never changes pose at all.',
       draw(ctx, w, h, now, isV2) {
@@ -1606,6 +1766,10 @@
     readout.style.marginTop = '10px';
     const sync = () => { if (demo.readout) readout.textContent = demo.readout(); };
     for (const d of demo.dials ?? []) {
+      // A card usually dials one block, but not always: the swim card
+      // judges the axial views and the SIDE pose's tail together, and
+      // those live in different bags. `d.bag` overrides for that dial only.
+      const bag = d.bag ?? demo.bag;
       const label = document.createElement('label');
       const span = document.createElement('span');
       span.textContent = d.label;
@@ -1614,11 +1778,11 @@
       input.min = d.min;
       input.max = d.max;
       input.step = d.step;
-      input.value = demo.bag[d.key];
+      input.value = bag[d.key];
       const value = document.createElement('b');
-      const show = () => { value.textContent = String(demo.bag[d.key]); };
+      const show = () => { value.textContent = String(bag[d.key]); };
       input.addEventListener('input', () => {
-        demo.bag[d.key] = Number(input.value);
+        bag[d.key] = Number(input.value);
         show();
         sync();
       });
