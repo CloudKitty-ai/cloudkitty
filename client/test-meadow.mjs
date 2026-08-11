@@ -1043,6 +1043,91 @@ check('the drift field is a pure function of the world and its dials', () => {
   assert(same < 400, 'a re-dialled fertilityCells returned the cached field');
 });
 
+/* ---- spec 03 part 2: the ground ---- */
+
+/** A ctx that records what it was asked to draw, and hands out a DISTINCT
+ *  recorder for any offscreen made while it is active. */
+function recordingWorld() {
+  const outer = [];
+  const scratches = [];
+  const make = (log) => new Proxy({ filter: 'none' }, {
+    get: (t, k) => {
+      if (k === 'createLinearGradient' || k === 'createRadialGradient') {
+        return (...a) => { log.push([String(k), ...a]); return { addColorStop: (o, c) => log.push(['stop', o, c]) }; };
+      }
+      if (k === 'getTransform') return () => ({ a: 1, d: 1 });
+      if (k === 'canvas') return { width: 1, height: 1 };
+      if (k in t) return t[k];
+      return (...a) => {
+        for (const v of a) {
+          if (typeof v === 'number' && !Number.isFinite(v)) throw new Error(`${String(k)} non-finite: ${a}`);
+        }
+        log.push([String(k), ...a]);
+      };
+    },
+    set: (t, k, v) => { t[k] = v; log.push(['set', String(k), v]); return true; },
+    has: (t, k) => k in t,
+  });
+  const realCreate = globalThis.document.createElement;
+  globalThis.document.createElement = (tag) => {
+    if (tag !== 'canvas') return realCreate(tag);
+    const log = [];
+    scratches.push(log);
+    return { width: 0, height: 0, style: {}, dataset: {}, getContext: () => make(log) };
+  };
+  return { ctx: make(outer), outer, scratches, done: () => { globalThis.document.createElement = realCreate; } };
+}
+
+check('the blur softens the ground and spares what grows on it', () => {
+  const w = recordingWorld();
+  try {
+    api.setMeadowPalette('day', null, 0);
+    api.drawMeadowGround(w.ctx, { width: 12, height: 12, tile: 26, cover: false });
+  } finally {
+    w.done();
+  }
+  const blur = w.outer.find((o) => o[0] === 'set' && o[1] === 'filter' && String(o[2]).startsWith('blur('));
+  assert(blur, 'the tone layer was never blurred');
+  assert(w.outer.some((o) => o[0] === 'drawImage'), 'the blurred layer was never composited back');
+  assert(w.scratches.length > 0, 'no offscreen was made, so nothing was blurred in isolation');
+  // The point of doing it this way: tufts are drawn AFTER the blur, on the
+  // outer ctx. Fold them into the blurred layer and 0.32 tiles does not
+  // soften a blade of grass, it erases it.
+  const tufts = (log) => log.filter((o) => o[0] === 'quadraticCurveTo').length;
+  assert(tufts(w.outer) > 0, 'the grass tufts were not drawn on the un-blurred ctx');
+  for (const scratch of w.scratches) {
+    assert(tufts(scratch) === 0, 'grass was drawn INSIDE the blurred layer and will be erased by it');
+  }
+});
+
+check('the light wash follows shadowLean, so the world agrees where the sun is', () => {
+  const seen = {};
+  for (const theme of ['day', 'dusk', 'night', 'dawn']) {
+    const w = recordingWorld();
+    try {
+      api.setMeadowPalette(theme, null, 0);
+      api.drawMeadowGround(w.ctx, { width: 12, height: 12, tile: 26, cover: false });
+    } finally {
+      w.done();
+    }
+    const grad = w.outer.find((o) => o[0] === 'createLinearGradient');
+    assert(grad, `${theme}: no light wash`);
+    seen[theme] = { x0: grad[1], x1: grad[3], lean: api.MEADOW.shadowLean };
+    assert(typeof api.MEADOW.sunTint === 'string', `${theme} names no sunTint`);
+  }
+  // Dusk and dawn lean hard the opposite way from each other (-0.85 vs
+  // +0.8), so the wash must run across the field in opposite directions.
+  // Asserted as a RELATION, not against a coordinate, so re-dialling the
+  // lean does not need this edited.
+  const duskDir = Math.sign(seen.dusk.x1 - seen.dusk.x0);
+  const dawnDir = Math.sign(seen.dawn.x1 - seen.dawn.x0);
+  assert(duskDir !== 0, 'dusk washes straight down the field despite a hard lean');
+  assert(
+    duskDir === -dawnDir,
+    `dusk (lean ${seen.dusk.lean}) and dawn (lean ${seen.dawn.lean}) must wash from opposite sides`,
+  );
+});
+
 // The summary stays LAST. It sat mid-file once and every check appended
 // after it ran past `process.exit` and was silently never counted -- the
 // suite reported green on tests that had not run. (Cost the motion suite

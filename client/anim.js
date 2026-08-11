@@ -368,6 +368,10 @@ const VIEW = Object.freeze({
     toneSteps: 18, // steps in the ramp blended through the grass tones
     toneCells: 3, // tiles per noise cell: how broad a grass blotch is
     jitterCells: 1.7, // and the finer lattice the brightness grain rides
+    toneCells2: 7.5, // a second, broader tone field over the first
+    groundBlurTiles: 0.32, // softens the tone mosaic; detail draws on top
+    groundWashSun: 0.3, // the field-wide light wash, keyed to shadowLean
+    groundWashShade: 0.16,
     jitterAlpha: 0.05, // peak alpha of the per-tile brightness jitter
     patchChance: 0.118, // share of tiles carrying a worn-earth or moss patch
     patchEarthAlpha: 0.03,
