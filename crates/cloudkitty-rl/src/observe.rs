@@ -81,8 +81,9 @@ const CRITTER_SLOT: usize = 1 + 2 + 1 + 1 + 4 + 1;
 const MEOW_DIGEST: usize = HEAD_KINDS.len() * 4;
 const CLOCK: usize = 1;
 
-/// The exact observation length for a slot configuration. With the default
-/// slots (3 kitty, 4 critter, 2 chow, 2 water, 2 sunbeam) this is 183.
+/// The exact observation length for a slot configuration -- a function of
+/// the slot config, never a constant to quote (the served config's slot
+/// defaults currently work out to 197; read it from here, don't hardcode).
 pub fn observation_len(cfg: &ObservationConfig) -> usize {
     SELF_BLOCK
         + cfg.kitty_slots * KITTY_SLOT
