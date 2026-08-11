@@ -1,0 +1,246 @@
+{
+ "kitty_ticks": 480000,
+ "head_census": {
+  "Silent": 399205,
+  "Purr": 80489,
+  "FollowMe": 255,
+  "WantCuddle": 26,
+  "WantEat": 15,
+  "WantPlay": 7,
+  "WantSleep": 3
+ },
+ "rows": {
+  "silent_ctl": 475185,
+  "audible": 4815
+ },
+ "fm_per_1k": 0.53125,
+ "act_flip_rate_audible": 0.09740394600207684,
+ "msg_flip_rate_audible": 0.19293873312564902,
+ "null_act_flip_rate": 0.0024922118380062306,
+ "act_flip_n": 469,
+ "audible_rows": 4815,
+ "steer": {
+  "both_move": 1507,
+  "flip_both_move": 110,
+  "base_toward": 502,
+  "flip_base_toward": 43,
+  "flip_cf_toward": 49,
+  "cf_toward": 508
+ },
+ "p_toward_with_fm": 0.33311214333112144,
+ "p_toward_without_fm": 0.33709356337093566,
+ "speaker_move_after_emit": 0.34862745098039216,
+ "speaker_move_after_decl": 0.30402950359365505,
+ "emit_activity": {
+  "ChaseKitty2": 50,
+  "SleepWithKitty0": 34,
+  "Eat": 31,
+  "PlaySolo": 27,
+  "MoveN": 20,
+  "Drink": 20,
+  "MoveW": 18,
+  "MoveE": 14,
+  "MoveS": 12,
+  "GroomKitty0": 10,
+  "GroomKitty1": 4,
+  "ChaseKitty1": 3,
+  "GroomSelf": 3,
+  "PlayKitty1": 3,
+  "PlayKitty0": 2,
+  "ChaseCritter3": 2,
+  "ChaseCritter1": 1,
+  "SleepWithKitty1": 1
+ },
+ "top_act_flips": [
+  [
+   "MoveN->MoveE",
+   23
+  ],
+  [
+   "MoveN->MoveW",
+   16
+  ],
+  [
+   "MoveW->MoveS",
+   14
+  ],
+  [
+   "MoveS->MoveW",
+   14
+  ],
+  [
+   "MoveS->MoveE",
+   13
+  ],
+  [
+   "MoveS->ChaseKitty2",
+   12
+  ],
+  [
+   "Drink->MoveW",
+   12
+  ],
+  [
+   "PlaySolo->ChaseKitty2",
+   9
+  ],
+  [
+   "PlaySolo->MoveN",
+   8
+  ],
+  [
+   "PlaySolo->MoveW",
+   7
+  ],
+  [
+   "MoveE->MoveS",
+   7
+  ],
+  [
+   "SleepWithKitty0->ChaseKitty2",
+   6
+  ],
+  [
+   "ChaseKitty2->ChaseKitty0",
+   6
+  ],
+  [
+   "PlaySolo->MoveS",
+   6
+  ]
+ ],
+ "top_msg_flips": [
+  [
+   "Purr->Silent",
+   634
+  ],
+  [
+   "Silent->Purr",
+   195
+  ],
+  [
+   "FollowMe->Purr",
+   65
+  ],
+  [
+   "FollowMe->Silent",
+   32
+  ],
+  [
+   "Purr->WantCuddle",
+   2
+  ],
+  [
+   "WantCuddle->Silent",
+   1
+  ]
+ ],
+ "hearer_dist_by_age": {
+  "FollowMe": {
+   "1": [
+    5.861,
+    698
+   ],
+   "2": [
+    6.187,
+    573
+   ],
+   "3": [
+    6.079,
+    542
+   ],
+   "4": [
+    5.884,
+    515
+   ],
+   "5": [
+    5.847,
+    502
+   ],
+   "6": [
+    5.767,
+    501
+   ],
+   "7": [
+    5.841,
+    496
+   ],
+   "8": [
+    5.878,
+    494
+   ],
+   "9": [
+    5.862,
+    494
+   ]
+  },
+  "Purr": {
+   "1": [
+    6.975,
+    43473
+   ],
+   "2": [
+    6.991,
+    34713
+   ],
+   "3": [
+    7.036,
+    30419
+   ],
+   "4": [
+    7.098,
+    27295
+   ],
+   "5": [
+    7.115,
+    24812
+   ],
+   "6": [
+    7.165,
+    22697
+   ],
+   "7": [
+    7.225,
+    20823
+   ],
+   "8": [
+    7.258,
+    19197
+   ],
+   "9": [
+    7.313,
+    17608
+   ]
+  }
+ },
+ "gap_delta_per_tick": {
+  "FollowMe": {
+   "move": [
+    0.1322,
+    1377
+   ],
+   "chase": [
+    -0.525,
+    160
+   ],
+   "still": [
+    -0.1593,
+    2580
+   ]
+  },
+  "Purr": {
+   "move": [
+    0.1346,
+    62328
+   ],
+   "chase": [
+    -0.6221,
+    9563
+   ],
+   "still": [
+    -0.0153,
+    125673
+   ]
+  }
+ }
+}
