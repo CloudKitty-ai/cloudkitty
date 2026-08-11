@@ -140,9 +140,22 @@ const POSES = [
  * "underwater" is a reading the low flat silhouette earns, not clipping.
  */
 const SWIM = {
-  bodyY: 0.78, // body center: low, most of the cat under the waterline
-  bodyRy: 0.14, // flattened floating body
-  headY: 0.56, // head held clear of the water
+  // Raised 2026-08-10, when the swim pose started being CLIPPED at the
+  // waterline like every other pose.
+  //
+  // These used to encode depth themselves: the pose sat low in its box and
+  // earned "underwater" from its own silhouette, because it was exempt
+  // from the clip. Once the world owns one water level, a pose that also
+  // sinks itself is submerged twice -- and a swimming cat sat visibly
+  // deeper than a wading one in the same pond.
+  //
+  // So the body now sits at very nearly the land poses' height (idle is
+  // 0.64) and the CLIP does the submerging. What still distinguishes a
+  // swimming cat from a standing one is posture, which is where the
+  // difference belonged all along: a flatter body, a lower chin, no legs.
+  bodyY: 0.68, // body center: just under a standing cat's, not far under
+  bodyRy: 0.155, // flattened floating body (idle is 0.21)
+  headY: 0.47, // chin near the surface -- the swimming read, without sinking
   bob: 0.012, // vertical bob amplitude (paddle rhythm)
   rock: 0.045, // paddling body rock, radians
   tailLift: 0.6, // where the tail tip rides above the surface
@@ -929,6 +942,28 @@ function withFarPair(legs, dx = GAIT.spread) {
 }
 
 /**
+ * How far the far-side pair sits off the near one, for the two poses that
+ * want it -- mutable for the lab like GAIT/SWIM/EYE.
+ *
+ * Every pose already asked for a far pair; `withFarPair` defaulted its
+ * offset to `GAIT.spread`, which is 0, so the far legs drew EXACTLY behind
+ * the near ones and were invisible. That is right for most of the
+ * vocabulary -- a cat standing square shows two legs from the side -- but
+ * wrong for these two, where the body is twisted or extended and the
+ * far-side legs would genuinely come into view.
+ *
+ * Negative, i.e. offset toward the tail: at these attitudes the far side
+ * is the one rotated away from the camera, so its legs trail the near
+ * pair rather than leading it. Small on purpose -- about 3% of a tile, so
+ * it reads as depth at 120px and quietly vanishes at 31px, where a
+ * one-pixel outline would only muddy the silhouette.
+ */
+const FAR_LEGS = {
+  pounce: -0.03,
+  stretch: -0.035,
+};
+
+/**
  * One leg's offset at its own phase `u` in [0,1). Returns a stride
  * position in -1..1 (+1 forward) and a lift in 0..1, both unitless --
  * GAIT scales them. Continuous at u=0/1 and across the stance/swing
@@ -1149,6 +1184,39 @@ function mixHex(a, b, t) {
  * would have shared an entry and therefore a pupil, which is a bug that
  * would only appear the day someone re-tuned a factor. */
 const SHADED_APPEARANCES = new Map();
+
+/**
+ * A damp coat (2026-08-10).
+ *
+ * Wet fur is darker, a little less saturated, and its shading collapses
+ * toward the base as the hairs clump -- which is why a wet cat reads as
+ * flatter as well as darker. `wet` is 0..1.
+ *
+ * This exists so that leaving the water has a cue that is a fact about
+ * the CAT rather than about the place. The bug it answers: every water
+ * cue used to ride one 260ms fade keyed on the tile, so for a quarter
+ * second after the shoreline a cat on grass was still being clipped at a
+ * waterline and still missing its ground shadow -- water geometry, drawn
+ * on land. Submersion is a PLACE and wetness is a MEMORY; they need
+ * opposite timing, so they cannot be the same signal. Geometry now comes
+ * from position and only the COLOUR lingers.
+ *
+ * Not cached: it is three colour ops on a continuous input, so a cache
+ * keyed on `wet` would grow without ever hitting.
+ */
+function wetAppearanceOf(appearance, wet) {
+  if (!(wet > 0.01)) return appearance;
+  const w = wet > 1 ? 1 : wet;
+  const damp = shadeHex(appearance.furBase, 1 - 0.22 * w);
+  return {
+    ...appearance,
+    furBase: damp,
+    // The shade walks toward the (already darkened) base rather than
+    // darkening on its own: clumped fur loses its soft gradient, and
+    // shading them independently would keep a dry cat's contrast.
+    furShade: mixHex(shadeHex(appearance.furShade, 1 - 0.12 * w), damp, 0.35 * w),
+  };
+}
 
 function shadedAppearanceOf(appearance, theme) {
   const factor = FUR_SHADE_BY_THEME[theme] ?? 1;
@@ -1550,7 +1618,7 @@ function catLayout(pose, phase, opts = {}) {
         legs: withFarPair([
           { x: 0.2, top: 0.78, bottom: 0.88, w: 0.1 },
           { x: 0.64, top: 0.78, bottom: 0.88, w: 0.1 },
-        ]),
+        ], FAR_LEGS.pounce),
         // Tail high and twitching with intent.
         tail: {
           x0: 0.14, y0: 0.6, c1x: 0.03, c1y: 0.5, c2x: 0.0, c2y: 0.32,
@@ -1565,7 +1633,7 @@ function catLayout(pose, phase, opts = {}) {
         // the owner singled out as worth protecting. Grooming's raised
         // paw has always been a front element for the same reason.
         { x: 0.74, top: 0.5, bottom: 0.68, w: 0.09, front: true }, // forepaw reaching
-      ]);
+      ], FAR_LEGS.pounce);
       // The far pair belongs behind the body whatever the near one does:
       // a shaded copy drawn in front would read as a second cat's paw.
       leapLegs.forEach((leg, i) => {
@@ -1590,7 +1658,7 @@ function catLayout(pose, phase, opts = {}) {
         legs: withFarPair([
           { x: 0.26, hx: 0.24, top: 0.72, bottom: CAT_GROUND, w: 0.1 },
           { x: 0.72, hx: 0.68, top: 0.7, bottom: CAT_GROUND, w: 0.095 },
-        ]),
+        ], FAR_LEGS.pounce),
         tail: { x0: 0.16, y0: 0.64, c1x: 0.04, c1y: 0.68, c2x: 0.0, c2y: 0.54, x1: 0.04, y1: 0.44 },
       };
 
@@ -1745,10 +1813,14 @@ function catLayout(pose, phase, opts = {}) {
       L.head = { cx: k(0.7, 0.775), cy: k(0.4, 0.655), r: 0.219 };
       L.eyes = push > 0.4 ? 'closed' : 'half';
       L.earsBackAmt = push * 0.55;
+      // The far pair comes into view as the cat extends: at rest it hides
+      // behind the near one exactly as it does in every other pose, and it
+      // slides out only as the stretch pushes. So the depth cue arrives
+      // with the reach rather than sitting there through the whole pose.
       L.legs = withFarPair([
         { x: k(0.2, 0.215), hx: k(0.2, 0.245), top: k(0.74, 0.6), bottom: CAT_GROUND, w: 0.1 },
         { x: k(0.7, 0.9), hx: k(0.7, 0.715), top: k(0.74, 0.7), bottom: k(CAT_GROUND, 0.86), w: 0.095 },
-      ]);
+      ], FAR_LEGS.stretch * push);
       L.tail = {
         x0: k(0.16, 0.14), y0: k(0.62, 0.6),
         c1x: k(0.02, 0.0), c1y: k(0.62, 0.44),
@@ -2690,6 +2762,7 @@ const api = {
   MAX_LIFT,
   gaitStep,
   pounceWiggle,
+  FAR_LEGS,
   FOCUS_VARIANTS,
   BREATH,
   breathCurve,
@@ -2708,6 +2781,7 @@ const api = {
   CAT_GROUND,
   lightenHex,
   mixHex,
+  wetAppearanceOf,
   PUPIL_DILATE_BY_THEME,
   plantedReach,
   proportionLayout,

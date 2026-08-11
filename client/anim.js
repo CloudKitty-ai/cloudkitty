@@ -99,6 +99,30 @@ const VIEW = Object.freeze({
   // same clock as a pose blend so a shoreline crossing does not pop.
   wetFadeMs: 260,
   /**
+   * How long a coat stays visibly damp after leaving the water.
+   *
+   * Asymmetric with `wetFadeMs` on purpose: a cat is wet the instant it
+   * is in water, and dries slowly. This is the ONLY water cue that
+   * outlives the pond -- see `wetFor`, and the invariant recorded there.
+   */
+  furDryMs: 2800,
+  /*
+   * ONE water level, for every pose (owner, 2026-08-10).
+   *
+   * A per-pose surface was tried first -- 0.72 wading, 0.82 floating, on
+   * the reasoning that a cat standing in shallow water and one floating in
+   * deep water do not sit at the same height. That is true of real ponds
+   * and wrong for this one: the meadow's water is one depth everywhere, so
+   * two levels made the same pond look like two, and the level changed
+   * under a cat that had only changed what it was DOING.
+   *
+   * So `waterline` above is now the whole story, and the poses may not
+   * encode depth of their own -- see cat-v2's SWIM, which had to be raised
+   * to sit at the same height as the land poses once it started being
+   * clipped like them. The rule: the WORLD owns the water level, the POSE
+   * owns what the cat is doing at it.
+   */
+  /**
    * Where the pond surface cuts a cat standing in it, in the cat's own
    * unit space (0 top, ground at 0.88) -- BACKLOG P1, the owner's idea.
    *
@@ -295,6 +319,16 @@ const VIEW = Object.freeze({
     // and the waterline clip already reads as submersion. Its own comment
     // always called it a first pass pending exactly this work.
     wetRipple: false,
+    // The damp coat: darker, flatter fur that outlives the pond. Tried
+    // 2026-08-10 and OFF by the owner's call the same day -- the
+    // coloration was not wanted. Kept behind the flag rather than deleted,
+    // beside its sibling water effect, so the lab can put it back.
+    //
+    // Nothing about the water FIX depends on this. Submersion is spatial
+    // and drives every piece of geometry; this was only ever the optional
+    // colour half, and with it off leaving the water simply has no
+    // lingering cue -- which is what shipped before.
+    wetCoat: false,
     sunbeamPulse: true,
     dustMotes: true,
     cloudShadows: true,
@@ -558,7 +592,9 @@ function yawnGape(at, dials = VIEW) {
  * the far end, so a cat darting in and out of the shallows never snaps. */
 function wetValue(w, now) {
   const target = w.on ? 1 : 0;
-  return w.from + (target - w.from) * easeSmooth(Math.min(1, (now - w.at) / VIEW.wetFadeMs));
+  // Wet fast, dry slow.
+  const ms = w.on ? VIEW.wetFadeMs : VIEW.furDryMs;
+  return w.from + (target - w.from) * easeSmooth(Math.min(1, (now - w.at) / ms));
 }
 
 /** A little overshoot-and-settle, for things that pop in (US6 juice). */
@@ -1182,12 +1218,19 @@ class Presentation {
   }
 
   /**
-   * How wet a cat looks, 0..1. Deliberately independent of the pose
-   * (owner call, 2026-08-04): `poseFor` lets an activity outrank the
-   * wade, so a cat drinking in a pond keeps its drinking pose -- but it
-   * is still standing in water, and should look it. Keyed on the tile
-   * under the DRAWN cat, the same reading the swim pose uses, so the
-   * cue turns over at the shoreline the viewer can see.
+   * How wet a cat's COAT is, 0..1 -- a fact about the cat, not the place.
+   *
+   * Still independent of the pose (owner call, 2026-08-04): a cat
+   * drinking in a pond keeps its drinking pose and must still look wet.
+   * What changed on 2026-08-10 is what this drives.
+   *
+   * **The invariant: this may only ever change COLOUR.** Every piece of
+   * water GEOMETRY -- the waterline clip, the meniscus, the lost ground
+   * shadow, the displacement rings -- is driven by `submersionFor`, which
+   * is spatial and is exactly zero the moment the cat is clear of the
+   * water. This signal outlives the pond by design (`furDryMs`), so
+   * anything positional hung off it draws water on grass. That was the
+   * bug; keeping the two apart is the fix.
    */
   wetFor(id, onWater, now) {
     const prev = this.wetness.get(id);
