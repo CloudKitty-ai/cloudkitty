@@ -632,6 +632,23 @@ function easeCell(t) {
   return t * t * (3 - 2 * t);
 }
 
+/**
+ * A darker version of a palette colour, in ANY format the palette uses.
+ *
+ * Not cat.js's `shadeHex`, which is where this went wrong: it does
+ * `parseInt(hex.slice(1), 16)`, so handed the `rgb(140, 169, 109)` that the
+ * palette MIXER emits mid-crossfade it parses garbage, and every channel
+ * comes out 0. The result is pure black -- on the shrubs and the flowers,
+ * during a phase transition only, healing itself the moment the phase
+ * settled back to a hex string (owner, 2026-08-11).
+ *
+ * Nothing in this file may assume a palette entry is a hex string. Between
+ * any two phases it is not.
+ */
+function shadePalette(color, factor) {
+  return mixPaletteColor(color, '#000000', 1 - factor);
+}
+
 /** A colour with a chosen alpha, so a palette entry can be washed at one
  *  strength in one place and another elsewhere without storing it twice. */
 function withAlpha(color, alpha) {
@@ -870,9 +887,7 @@ function drawGroundDetail(ctx, { width, height, tile, t }) {
           const dy = Math.sin(a);
           // The lower petals sit in the flower's own shade, which is what
           // gives it a top and a bottom rather than a flat rosette.
-          ctx.fillStyle = dy > 0.2 && typeof shadeHex === 'function'
-            ? shadeHex(petal, 0.93)
-            : petal;
+          ctx.fillStyle = dy > 0.2 ? shadePalette(petal, 0.93) : petal;
           ctx.beginPath();
           ctx.arc(bx + Math.cos(a) * r * 0.78, by + dy * r * 0.78, r * 0.62, 0, TAU);
           ctx.fill();
@@ -1247,7 +1262,7 @@ function drawBushAt(ctx, { x, y, seed, tile, t }) {
           g.addColorStop(0, withAlpha(MEADOW.bushHi, 0.95));
           g.addColorStop(0.5, withAlpha(MEADOW.bushHi, 0.25));
           g.addColorStop(1, withAlpha(
-            typeof shadeHex === 'function' ? shadeHex(MEADOW.bush, 0.72) : MEADOW.bush, 0.55,
+            shadePalette(MEADOW.bush, 0.72), 0.55,
           ));
           ctx.globalAlpha = t.bushAlpha;
           ctx.fillStyle = g;
@@ -1292,7 +1307,7 @@ function drawBushAt(ctx, { x, y, seed, tile, t }) {
         const stem = t.bushTrunk === undefined ? 1 : t.bushTrunk;
         if (stem > 0) {
           const top = groundY - (groundY - crown) * stem;
-          ctx.strokeStyle = shadeHex(MEADOW.bush, 0.72);
+          ctx.strokeStyle = shadePalette(MEADOW.bush, 0.72);
           ctx.lineWidth = Math.max(1, r * 0.13);
           ctx.lineCap = 'round';
           ctx.beginPath();
@@ -1302,7 +1317,7 @@ function drawBushAt(ctx, { x, y, seed, tile, t }) {
         }
         // The canopy: the spec's three lobes, in canopy radii.
         const LOBES = [[-0.42, 0.06, 0.62], [0.4, 0.1, 0.58], [-0.02, -0.34, 0.72]];
-        ctx.fillStyle = shadeHex(MEADOW.bush, 0.94);
+        ctx.fillStyle = shadePalette(MEADOW.bush, 0.94);
         for (const [ox, oy, scale] of LOBES) {
           ctx.beginPath();
           ctx.arc(bx + ox * r, crown + oy * r, r * scale, 0, TAU);
@@ -1321,7 +1336,7 @@ function drawBushAt(ctx, { x, y, seed, tile, t }) {
           );
           g.addColorStop(0, withAlpha(MEADOW.bushHi, 0.95));
           g.addColorStop(0.5, withAlpha(MEADOW.bushHi, 0.25));
-          g.addColorStop(1, withAlpha(shadeHex(MEADOW.bush, 0.72), 0.55));
+          g.addColorStop(1, withAlpha(shadePalette(MEADOW.bush, 0.72), 0.55));
           ctx.fillStyle = g;
           ctx.fillRect(bx - r * 1.6, crown - r * 1.6, r * 3.2, r * 3.2);
           ctx.restore();

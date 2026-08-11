@@ -1239,6 +1239,69 @@ check('the stem is a dial, not a decision baked into the drawing', () => {
   }
 });
 
+check('nothing turns black mid-crossfade', () => {
+  // The bug this pins (owner, 2026-08-11): shrubs and flowers went BLACK
+  // during a phase transition and healed themselves once the phase
+  // settled. cat.js's shadeHex does `parseInt(hex.slice(1), 16)`, and
+  // between any two phases the palette mixer emits `rgb(...)`, not hex --
+  // so it parsed garbage and every channel came out 0.
+  //
+  // Settled phases were fine, which is why every check here missed it:
+  // they all drew at blend 0. This one drives the crossfades.
+  //
+  // Black is never an authored meadow colour, so "did anything paint pure
+  // black" is a sound proxy for "did a colour helper fail to parse".
+  const BLACK = /^(#000000|#000|rgba?\(\s*0\s*,\s*0\s*,\s*0\b)/i;
+  const t = api.MEADOW_DEFAULTS;
+  // Tile 48, so the FINE detail runs: below 44 the flowers take the
+  // single-dot path and their shaded petals never draw. And BOTH shrub
+  // styles through drawGroundCover, which takes its tunables explicitly --
+  // only the shipped style draws at the shipped dials, and a stem only
+  // draws when bushTrunk is up.
+  const passes = [
+    ['ground + flowers', (g) => api.drawMeadowGround(g, { width: 14, height: 14, tile: 48, cover: false })],
+    ...['lobed', 'trunk'].map((style) => [`shrub:${style}`, (g) =>
+      api.drawGroundCover(g, {
+        width: 14, height: 14, tile: 48,
+        t: { ...t, bushStyle: style, bushStyleAltShare: 0, bushTrunk: 1, bushLift: 1 },
+      })]),
+  ];
+  const phases = ['day', 'dusk', 'night', 'dawn'];
+  for (let i = 0; i < phases.length; i++) {
+    const from = phases[i];
+    const to = phases[(i + 1) % phases.length];
+    for (const blend of [0, 0.15, 0.4, 0.6, 0.85, 1]) {
+      api.setMeadowPalette(from, blend > 0 ? to : null, blend);
+      for (const [what, paint] of passes) {
+        const log = [];
+        paint(guardCtx(log));
+        const where = `${from}->${to} @${blend} ${what}`;
+        const black = log.filter(
+          (o) => o[0] === 'set' && (o[1] === 'fillStyle' || o[1] === 'strokeStyle')
+            && BLACK.test(String(o[2])),
+        );
+        assert(black.length === 0, `${where}: ${black.length} draw(s) went black (${black[0] && black[0][2]})`);
+        // Gradient stops go through the same helpers and never touch fillStyle.
+        const stops = log.filter((o) => o[0] === 'addColorStop' && BLACK.test(String(o[2])));
+        assert(stops.length === 0, `${where}: a gradient stop went black (${stops[0] && stops[0][2]})`);
+      }
+    }
+  }
+  api.setMeadowPalette('day', null, 0);
+});
+
+check('meadow.js never assumes a palette entry is hex', () => {
+  // The rule the bug broke, stated where it can be enforced. Between any
+  // two phases every palette entry is an `rgb(...)` string, so a helper
+  // that slices a '#' off the front is guaranteed to be wrong there -- and
+  // wrong SILENTLY, since it hands back a perfectly valid colour.
+  const src = readFileSync(join(here, 'meadow.js'), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/^\s*\/\/.*$/gm, ' ');
+  assert(!/\bshadeHex\s*\(/.test(src), 'meadow.js calls shadeHex, which only parses hex -- use shadePalette');
+  assert(!/\blightenHex\s*\(/.test(src), 'meadow.js calls lightenHex, which only parses hex -- mix through mixPaletteColor');
+});
+
 // The summary stays LAST. It sat mid-file once and every check appended
 // after it ran past `process.exit` and was silently never counted -- the
 // suite reported green on tests that had not run. (Cost the motion suite
