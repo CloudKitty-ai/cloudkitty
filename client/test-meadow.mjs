@@ -15,6 +15,13 @@ const here = dirname(fileURLToPath(import.meta.url));
 const src =
   readFileSync(join(here, 'cat.js'), 'utf8') +
   ';' +
+  // cat-v2.js is an IIFE that registers globalThis.CatV2 and declares
+  // nothing else, so it is inert here -- but it has to be present or the
+  // renderer's whole v2 branch is dead code in this harness, and the water
+  // path lives inside it (`v2Motion ? submersionFor(...) : 0`). Without it
+  // a full-frame check would draw a v1 cat and prove nothing about water.
+  readFileSync(join(here, 'cat-v2.js'), 'utf8') +
+  ';' +
   readFileSync(join(here, 'meadow.js'), 'utf8') +
   ';' +
   readFileSync(join(here, 'anim.js'), 'utf8') +
@@ -109,7 +116,16 @@ function mockCanvas(width = 640, height = 640) {
 }
 globalThis.document = {
   createElement: (tag) => (tag === 'canvas' ? mockCanvas() : { style: {} }),
+  // `draw` begins with `resizeFor`, which measures the page chrome around
+  // the map. Answering "nothing is there" is the honest headless reading --
+  // no header, no footer, no cards beside it -- so the map gets the whole
+  // budget and the tile comes out at the cap. That the sizing pass runs at
+  // all is worth having: it is on the path to every frame.
+  querySelector: () => null,
+  body: { style: {} },
+  documentElement: { clientWidth: 1280, clientHeight: 900 },
 };
+globalThis.getComputedStyle = () => ({});
 globalThis.window = { devicePixelRatio: 1 };
 
 // MEADOW is a getter, not a value: setMeadowPalette rebinds it, and a
@@ -827,6 +843,64 @@ check('the renderer draws the live world\'s ponds without throwing', () => {
   const sizes = renderer.pondCache.ponds.map((p) => p.tiles.length).sort();
   assert(String(sizes) === '1,1,1,4', `one lake and three lone tiles, got ${sizes}`);
   assert(renderer.pondCache.layers, 'and the depth layers baked');
+});
+
+/* ---- a cat IN the water, drawn as a whole frame ----
+ *
+ * The pond checks above draw the water. Nothing drew a CAT in it, and the
+ * new water model (2026-08-10) lives entirely in the kitty path: the
+ * submersion sample, the waterline clip, and `drawWaterline`, which reaches
+ * outside render.js for `MEADOW.pondMeniscus` and `lightenHex`. A missing
+ * palette key or an undefined helper there is a throw in the middle of the
+ * kitty loop -- and every cat after it would vanish, which is the same
+ * shape of failure the pond regression had.
+ *
+ * So this drives the REAL renderer over the REAL Presentation's view, in
+ * every theme, with a cat at a series of positions from the pond's middle
+ * out onto dry grass. */
+check('the renderer draws a cat in the water, in every theme, without throwing', () => {
+  const themes = ['day', 'dusk', 'night', 'dawn'];
+  for (const theme of themes) {
+    api.setMeadowPalette(theme, null, 0);
+    for (const x of [10, 10.5, 11, 11.5, 12, 13]) {
+      const renderer = new api.WorldRenderer(mockCanvas(640, 640));
+      renderer.tile = 32;
+      renderer.dpr = 1;
+      renderer.cssWidth = 640;
+      renderer.cssHeight = 640;
+      renderer.theme = theme;
+      const elements = LIVE_WATER.map((pos, i) => ({ id: i + 1, kind: 'water', pos }));
+      const kitties = [{ id: 1, name: 'Miso', pos: { x: 10, y: 2 }, needs: {}, happiness: 90 }];
+      const p = new api.Presentation();
+      const at = (tick, pos) => ({ tick, width: 20, height: 20, elements, kitties: [{ ...kitties[0], pos }] });
+      p.pushState(at(1, { x: 10, y: 2 }), 1000);
+      p.pushState(at(2, { x: Math.round(x), y: 2 }), 1800);
+      const view = p.viewAt(2200, false);
+      // The whole frame, not a hand-picked layer: the point is the wiring.
+      renderer.draw(p.curr, view);
+    }
+  }
+  api.setMeadowPalette('day', null, 0);
+});
+
+check('the meniscus colour is a theme’s answer, not a constant', () => {
+  // That every phase NAMES a pondMeniscus is checked above. What matters
+  // for the surface the cat meets is that the values actually differ: the
+  // handoff drew this by lightening pondWater 50% toward white, which is a
+  // constant wearing a palette's clothes and lands 33.5 L* too bright at
+  // night. A palette whose entries had collapsed to one value would pass
+  // the naming check and reintroduce exactly that.
+  const l = (name) => {
+    api.setMeadowPalette(name, null, 0);
+    return lstar(api.MEADOW.pondMeniscus);
+  };
+  const byDay = l('day');
+  const byNight = l('night');
+  assert(
+    byDay - byNight > 40,
+    `night's surface must be far darker than day's: ${byDay.toFixed(1)} vs ${byNight.toFixed(1)}`,
+  );
+  api.setMeadowPalette('day', null, 0);
 });
 
 check('the pond cache rebuilds only when the water moves', () => {
