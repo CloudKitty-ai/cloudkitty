@@ -29,6 +29,18 @@ const VIEW = Object.freeze({
   tickMsFallback: 800, // easing duration <- config.world.tick_ms
   distressPatienceFallback: 60, // thought bubble <- config.viewer.distress_patience_ticks
 
+  // Pacing (2026-08-11). How deep the delay line runs and how hard it
+  // trims itself -- see `Pacer`. The depth is in whole states, so a target
+  // of 1 means one spare arrival in hand at all times, which is a whole
+  // tick of jitter absorbed with nothing visible.
+  paceTargetDepth: 1,
+  paceTrimMs: 60, // how far off the measured interval a full state of depth pulls
+  paceDepthSmoothing: 0.34, // ~3 promotions
+  paceIntervalSmoothing: 0.1, // ~10 promotions: the production rate, not its jitter
+  paceRateMin: 0.5, // the pace may never leave this band around the served tick
+  paceRateMax: 2,
+  paceMaxBacklog: 8, // beyond this it is not a stutter, it is a backlog
+
   // Interpolation & element comings-and-goings (US3).
   elementFadeShare: 0.4, // share of a tick over which spawns/expiries fade
   // Critters (bug/greeble) glide between served states like kitties do
@@ -629,6 +641,119 @@ function startEase(t) {
 }
 
 /**
+ * The delay line: served states in, paced states out.
+ *
+ * States arrive on a socket; frames draw at 60Hz. The renderer eases a cat
+ * from its previous served position to its current one and has to decide
+ * how long that takes. Playing it over the served `tick_ms` assumes the
+ * next state lands exactly one tick later, and it never quite does --
+ * network, GC and a stuttered frame each move an arrival by tens of ms.
+ * Land late and the cat reaches the tile and SITS THERE until the next
+ * state comes: the boundary hiccup the owner reported (2026-08-11). Land
+ * early -- two states drained in one frame -- and the first is superseded
+ * before it is ever drawn, so a cat crosses a whole tile in no time at all.
+ *
+ * So states are not played as they arrive. A small buffer is held and
+ * played out at a paced rate. The buffer IS the jitter budget: one spare
+ * state in hand means an arrival may be a whole tick late with nothing
+ * visible on screen. The pace is then trimmed to keep that budget from
+ * draining away or growing without bound, out of two measurements:
+ *
+ *   - the smoothed interval between PROMOTIONS, which in the long run
+ *     cannot be anything but the rate states are actually produced at
+ *     (you cannot play more states than you receive) -- so this tracks a
+ *     server whose real tick differs from its configured one, and it is
+ *     trustworthy in a way that measuring arrivals is not, because
+ *     promotions are paced and arrivals are bursty;
+ *   - the buffer depth, as a small additive trim: run a touch slow while
+ *     the buffer is shallow, a touch fast while it is deep.
+ *
+ * The cost is latency -- the meadow runs about `paceTargetDepth` ticks
+ * behind live. At an 800ms tick nobody can see it, and it is the whole
+ * reason the hiccup goes away.
+ *
+ * Pure and clock-injected: `due` is handed the frame's `now`, so the
+ * harness drives it with an arrival series and no rAF at all.
+ */
+class Pacer {
+  constructor(dials = VIEW) {
+    this.dials = dials;
+    this.queue = []; // arrivals not yet promoted, oldest first
+    this.tickMs = dials.tickMsFallback;
+    this.intervalMs = this.tickMs; // measured production rate
+    this.playMs = this.tickMs; // what the CURRENT segment plays over
+    this.depth = dials.paceTargetDepth;
+    this.lastPromoteAt = null;
+  }
+
+  enqueue(world) {
+    this.queue.push(world);
+  }
+
+  /** The served tick changed (config landed, or a differently-paced box). */
+  setTickMs(ms) {
+    this.tickMs = ms;
+    this.intervalMs = ms;
+    this.playMs = ms;
+  }
+
+  /**
+   * Everything queued, at once, for the paths that do no interpolation
+   * (reduced motion) or have nothing to interpolate from (the first state).
+   */
+  drain() {
+    const out = this.queue;
+    this.queue = [];
+    this.lastPromoteAt = null; // an unpaced promotion teaches the clock nothing
+    return out;
+  }
+
+  /**
+   * What to promote on this frame: `{ worlds, snap }`, normally zero or
+   * one world. `snap` means the caller must break continuity BEFORE
+   * promoting -- a collapsed backlog is a different moment of the world,
+   * not a long step.
+   */
+  due(now) {
+    if (!this.queue.length) return { worlds: [], snap: false };
+    // A tab left for hours is not a stutter. Collapse to the newest state
+    // and show it at once; easing across two hours would be a lie whatever
+    // pace it ran at.
+    if (this.queue.length > this.dials.paceMaxBacklog) {
+      const newest = this.queue[this.queue.length - 1];
+      this.queue = [];
+      this.lastPromoteAt = now;
+      this.depth = this.dials.paceTargetDepth;
+      this.intervalMs = this.tickMs;
+      this.playMs = this.tickMs;
+      return { worlds: [newest], snap: true };
+    }
+    if (this.lastPromoteAt !== null && now - this.lastPromoteAt < this.playMs) {
+      return { worlds: [], snap: false };
+    }
+    const world = this.queue.shift();
+    if (this.lastPromoteAt !== null) {
+      // Clamped BEFORE it is smoothed: a resumed tab or a paused server
+      // must not teach the clock a rate the world never ran at.
+      const gap = clampRate(now - this.lastPromoteAt, this.tickMs, this.dials);
+      this.intervalMs += (gap - this.intervalMs) * this.dials.paceIntervalSmoothing;
+    }
+    this.lastPromoteAt = now;
+    // Depth is read AFTER the promotion -- what is still in hand, which is
+    // what the next segment actually has to spend.
+    this.depth += (this.queue.length - this.depth) * this.dials.paceDepthSmoothing;
+    const trim = this.dials.paceTrimMs * (this.depth - this.dials.paceTargetDepth);
+    this.playMs = clampRate(this.intervalMs - trim, this.tickMs, this.dials);
+    return { worlds: [world], snap: false };
+  }
+}
+
+/** Keep a duration inside the sane band around the served tick. */
+function clampRate(ms, tickMs, dials = VIEW) {
+  return Math.max(tickMs * dials.paceRateMin, Math.min(tickMs * dials.paceRateMax, ms));
+}
+
+/**
  * The state-pair store plus per-kitty presentational memory. Consumes
  * served worlds; produces the view the renderer draws. No DOM, no fetches.
  */
@@ -641,6 +766,11 @@ class Presentation {
     this.lastPushGeneration = -1;
     this.discontinuous = true;
     this.tickMs = VIEW.tickMsFallback;
+    // What the CURRENT pair plays over, which is the pacer's business and
+    // not the served tick's -- see `Pacer`. Frozen for the whole segment
+    // on purpose: `progress` divides by it every frame, so a denominator
+    // that moved under a running tick would make a cat step BACKWARDS.
+    this.currPlayMs = VIEW.tickMsFallback;
     this.distressPatienceTicks = VIEW.distressPatienceFallback;
     this.facings = new Map(); // id -> 'left' | 'right'
     this.movedNow = new Map(); // id -> bool, for this pair
@@ -682,7 +812,7 @@ class Presentation {
     this.generation += 1;
   }
 
-  pushState(world, now) {
+  pushState(world, now, playMs) {
     const prev = this.curr;
     // Bank the distance the OUTGOING pair covered, so the odometer holds
     // whole ticks and strideFor adds the eased part of the current one.
@@ -700,6 +830,7 @@ class Presentation {
     this.prev = prev;
     this.curr = world;
     this.currArrivedAt = now;
+    this.currPlayMs = Number.isFinite(playMs) && playMs >= 1 ? playMs : this.tickMs;
 
     const rosterChanged =
       prev &&
@@ -838,7 +969,9 @@ class Presentation {
         this.oneShots.set(kitty.id, {
           kind: 'plaything',
           t0: now,
-          duration: this.tickMs,
+          // The pounce it accompanies rides `progress`, so the plaything
+          // has to be on the pace this pair plays at, not the served tick.
+          duration: this.currPlayMs,
         });
       }
     }
@@ -874,7 +1007,7 @@ class Presentation {
   /** 0..1 through the current tick. Clamped: never past the newest state. */
   progress(now) {
     if (!this.curr || this.discontinuous) return 1;
-    return Math.min(1, (now - this.currArrivedAt) / this.tickMs);
+    return Math.min(1, (now - this.currArrivedAt) / this.currPlayMs);
   }
 
   facingFor(id) {
@@ -971,7 +1104,11 @@ class Presentation {
     // whose slope is 4p - 3p^2 -- and which lands at exactly 1, which is
     // what makes the join between the two invisible.
     const slope = this.movedBefore.get(id) ? 1 : 4 * p - 3 * p * p;
-    const perSec = 1000 / this.tickMs;
+    // The pace this pair is actually PLAYING at, not the served tick: this
+    // is the derivative of a position that rides `progress`, so it has to
+    // divide by the same clock progress does or the rig lags a speed the
+    // cat is not travelling at.
+    const perSec = 1000 / this.currPlayMs;
     return {
       x: (is.pos.x - was.pos.x) * slope * perSec,
       y: (is.pos.y - was.pos.y) * slope * perSec,
@@ -1609,6 +1746,7 @@ class Presentation {
  */
 const anim = {
   presentation: new Presentation(),
+  pacer: new Pacer(),
   renderer: null,
   rafId: 0,
   reduced: false,
@@ -1643,12 +1781,49 @@ const anim = {
     });
   },
 
-  /** A served world arrived (first snapshot or WS frame). */
+  /**
+   * A served world arrived (first snapshot or WS frame). It goes into the
+   * delay line rather than straight to the store -- see `Pacer`.
+   *
+   * Two paths skip the pacing, for the same reason: there is no
+   * interpolation to protect. Reduced motion draws each state held and
+   * still, and the very first state has no predecessor to ease from. A
+   * hidden tab does neither: it just banks arrivals, and the backlog
+   * collapses on the first frame after the tab is looked at again.
+   */
   push(world) {
-    this.presentation.pushState(world, performance.now());
+    this.pacer.enqueue(world);
+    if (this.reduced || !this.presentation.curr) {
+      const now = performance.now();
+      for (const queued of this.pacer.drain()) this.promote(queued, now);
+      if (this.reduced) this.redraw();
+      else if (!document.hidden) this.startLoop();
+      return;
+    }
     if (document.hidden) return;
-    if (this.reduced) this.redraw();
-    else this.startLoop();
+    this.startLoop();
+  },
+
+  /**
+   * The delay line pays out, once per frame: a state becomes current at a
+   * paced moment rather than the moment it landed. Kept off the rAF
+   * callback so the harness can drive it on its own clock.
+   */
+  pump(now) {
+    const { worlds, snap } = this.pacer.due(now);
+    // Before the promotion, not after: `pushState` decides continuity as
+    // it lands, so a collapsed backlog has to already be a new moment.
+    if (snap) this.presentation.bumpGeneration();
+    for (const world of worlds) this.promote(world, now);
+  },
+
+  /** A state stops waiting and becomes the world on screen. */
+  promote(world, now) {
+    this.presentation.pushState(world, now, this.pacer.playMs);
+    // Everything outside the canvas that reads the world -- the cards, the
+    // sky dial, the tick counter -- moves on THIS beat rather than on
+    // arrival, so the panel can never lead the meadow by the delay line.
+    if (this.onPromote) this.onPromote(world);
   },
 
   /** One static draw of the newest state (reduced motion, snaps, toggles). */
@@ -1676,12 +1851,16 @@ const anim = {
    */
   onFrame: null,
 
+  /** A world became current. Set by app.js; see `promote`. */
+  onPromote: null,
+
   startLoop() {
     if (this.rafId || this.reduced) return;
     const step = () => {
       this.rafId = 0;
       if (document.hidden || this.reduced) return;
       const p = this.presentation;
+      this.pump(performance.now());
       if (p.curr) {
         const view = p.viewAt(performance.now(), false);
         this.renderer.draw(p.curr, view);
@@ -1698,7 +1877,13 @@ const anim = {
   },
 
   setTickMs(ms) {
-    if (Number.isFinite(ms) && ms >= 1) this.presentation.tickMs = ms;
+    if (Number.isFinite(ms) && ms >= 1) {
+      this.presentation.tickMs = ms;
+      // Reseed rather than let the pacer walk there: /config lands within
+      // the first second, and a box on an 80ms tick would otherwise spend
+      // its first dozen states collapsing a backlog it never really had.
+      this.pacer.setTickMs(ms);
+    }
   },
 
   setDistressPatience(ticks) {
