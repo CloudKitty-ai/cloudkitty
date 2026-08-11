@@ -107,10 +107,20 @@
        between successive blend positions, which land ~600ms apart at the
        live tick rate. Long enough and the page would lag the canvas. */
     --theme-fade: 0.5s;
+    /* The inverting tokens (ink, card) SWAP rather than blend -- see
+       INVERTING_TOKENS in app.js -- so this is how long the swap takes to
+       cross, and it is the whole window in which text sits at low contrast
+       against its own card. Short on purpose. */
+    --theme-swap: 0.18s;
     transition-property: --cream, --cream-deep, --zenith, --grass,
-      --grass-line, --ink, --ink-soft, --patience-ink, --card, --shadow,
-      --rule;
-    transition-duration: var(--theme-fade);
+      --grass-line, --shadow, --rule,
+      --ink, --ink-soft, --patience-ink, --card;
+    /* Positional, matching the list above: the seven that shift take the
+       long fade, the four that INVERT take the short swap. */
+    transition-duration:
+      var(--theme-fade), var(--theme-fade), var(--theme-fade), var(--theme-fade),
+      var(--theme-fade), var(--theme-fade), var(--theme-fade),
+      var(--theme-swap), var(--theme-swap), var(--theme-swap), var(--theme-swap);
     transition-timing-function: ease;
   }
   body.reduced-motion { transition: none; }

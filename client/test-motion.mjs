@@ -2635,5 +2635,86 @@ check('every cat-v2 symbol the page reads bare is actually installed', () => {
   }
 });
 
+check('card text keeps its contrast THROUGH a phase change, not just at the ends', () => {
+  // Owner, live: the card text became hard to read during transitions.
+  // Ink and card both INVERT into night, and both were interpolated
+  // linearly, so they walked toward each other and met -- 1.17:1 at the
+  // midpoint, invisible, for most of the crossfade. Every existing check
+  // looked at settled phases, where it reads perfectly.
+  const themes = {
+    dusk: { ink: '#6b5a4e', soft: '#9c8a7c', card: '#fdf3e6' },
+    night: { ink: '#ece3d4', soft: '#b3a798', card: '#37313f' },
+    dawn: { ink: '#6b5a4e', soft: '#9c8a7c', card: '#f2f1ec' },
+  };
+  const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const lin = (c) => (c / 255 <= 0.04045 ? c / 255 / 12.92 : ((c / 255 + 0.055) / 1.055) ** 2.4);
+  const lum = (c) => 0.2126 * lin(c[0]) + 0.7152 * lin(c[1]) + 0.0722 * lin(c[2]);
+  const ratio = (a, b) => {
+    const [x, y] = [lum(a) + 0.05, lum(b) + 0.05];
+    return x > y ? x / y : y / x;
+  };
+  // The shipped rule: these tokens SWAP at the halfway mark rather than
+  // blending, so at any blend position the pair is one theme's or the
+  // other's -- never a mix of both.
+  const swap = (a, b, t) => (t < 0.5 ? a : b);
+  const appSrc = readFileSync(join(here, 'app.js'), 'utf8');
+  assert(/INVERTING_TOKENS/.test(appSrc), 'app.js no longer names the inverting tokens');
+  assert(
+    /blend\.step < 0\.5 \? from\[name\] : to\[name\]/.test(appSrc),
+    'the inverting tokens are being blended again -- ink and card will meet in the middle',
+  );
+  for (const [from, to] of [['dusk', 'night'], ['night', 'dawn']]) {
+    for (const t of [0, 0.2, 0.35, 0.49, 0.51, 0.65, 0.8, 1]) {
+      const ink = hex(swap(themes[from].ink, themes[to].ink, t));
+      const soft = hex(swap(themes[from].soft, themes[to].soft, t));
+      const card = hex(swap(themes[from].card, themes[to].card, t));
+      const r = ratio(card, ink);
+      assert(r >= 4.5, `${from}->${to} @${t}: card text at ${r.toFixed(2)}:1, under the 4.5:1 floor`);
+      // The muted line is smaller and greyer; hold it to the large-text bar.
+      const rs = ratio(card, soft);
+      assert(rs >= 2.9, `${from}->${to} @${t}: muted text at ${rs.toFixed(2)}:1`);
+    }
+  }
+});
+
+check('a backlog collapses to one state, and normal running is untouched', () => {
+  // Owner: coming back to a tab left for hours replayed every intervening
+  // tick. The animation layer already snaps on return -- the panel did
+  // not: each of ~9,000 queued messages ran a full `render`, rebuilding
+  // every card. The socket now holds only the NEWEST and processes it once
+  // per frame.
+  //
+  // Both halves matter. Collapsing a backlog is the fix; leaving ordinary
+  // ticks alone is what makes it safe, since at an 800ms tick there is
+  // never a second message in one frame anyway.
+  const src = readFileSync(join(here, 'app.js'), 'utf8');
+  const body = src.slice(src.indexOf('  // LATEST WINS'), src.indexOf("  socket.addEventListener('close'"));
+  assert(body.includes('newest'), 'could not slice the socket handler out of app.js');
+
+  const handlers = {};
+  const socket = { addEventListener: (k, fn) => { handlers[k] = fn; } };
+  const rendered = [];
+  let frame = null;
+  const raf = (fn) => { frame = fn; return 1; };
+  // eslint-disable-next-line no-new-func
+  new Function('socket', 'render', 'requestAnimationFrame', `${body}; return null;`)(
+    socket, (w) => rendered.push(w.tick), raf,
+  );
+
+  for (let t = 1; t <= 9000; t += 1) handlers.message({ data: JSON.stringify({ tick: t }) });
+  assert(rendered.length === 0, `a backlog rendered ${rendered.length} times before a frame ran`);
+  frame();
+  assert(rendered.length === 1, `9000 queued states became ${rendered.length} renders, want 1`);
+  assert(rendered[0] === 9000, `caught up to tick ${rendered[0]}, want the newest (9000)`);
+
+  rendered.length = 0;
+  for (let t = 9001; t <= 9005; t += 1) {
+    handlers.message({ data: JSON.stringify({ tick: t }) });
+    frame();
+  }
+  assert(rendered.length === 5, `ordinary ticks must all draw, got ${rendered.length} of 5`);
+  assert(String(rendered) === '9001,9002,9003,9004,9005', `ticks were dropped: ${rendered}`);
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

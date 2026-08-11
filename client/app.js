@@ -249,6 +249,26 @@ function readThemeTokens() {
   return out;
 }
 
+/**
+ * The page tokens that INVERT between phases, rather than shifting.
+ *
+ * Ink goes dark-on-light to light-on-dark at night, and the card goes with
+ * it. Interpolated linearly, as everything else here is, the pair walks
+ * toward each other and MEETS: measured across dusk->night, the card falls
+ * to L* 61 while the ink climbs to L* 66, which is 1.17:1 -- the text is
+ * invisible against its own card for roughly 60% of the crossfade (owner
+ * spotted it live, 2026-08-11).
+ *
+ * A faster easing does not fix it. Any monotonic curve still puts both
+ * tokens at their own midpoint at the same instant, so they still meet --
+ * just more briefly. The fix is not to interpolate them at all: they SWAP
+ * at the halfway mark and the CSS transition does the crossing, which is
+ * short and already tuned. The v3 plan called for exactly this and only
+ * ever got it on the canvas side: "a separate faster curve for the
+ * inverting tokens, because paper/ink blended linearly pass through mud".
+ */
+const INVERTING_TOKENS = new Set(['--ink', '--ink-soft', '--patience-ink', '--card']);
+
 /** Paint the page's tokens at the world's own blend position. */
 function paintThemeTokens(blend) {
   if (!themeTokens) themeTokens = readThemeTokens();
@@ -256,7 +276,12 @@ function paintThemeTokens(blend) {
   const to = themeTokens[blend.next ?? blend.theme];
   if (!from || !to) return;
   for (const name of Object.keys(from)) {
-    const value = blend.next ? mixPaletteColor(from[name], to[name], blend.step) : from[name];
+    const value = !blend.next
+      ? from[name]
+      : INVERTING_TOKENS.has(name)
+        // Swap, never blend -- see INVERTING_TOKENS.
+        ? (blend.step < 0.5 ? from[name] : to[name])
+        : mixPaletteColor(from[name], to[name], blend.step);
     document.body.style.setProperty(name, value);
   }
 }
@@ -1280,12 +1305,46 @@ function subscribe() {
     setStatus('watching live', true);
   });
 
+  // LATEST WINS, not a queue.
+  //
+  // A backgrounded tab stops running frames but the socket keeps taking
+  // messages, and a frozen one queues them at the OS. Come back after two
+  // hours and ~9,000 world states arrive at once -- and each one used to
+  // run the full `render`: a theme pass, the sky dial, and a complete
+  // rebuild of the cards. That is the "it replays every tick very quickly"
+  // the owner saw. The animation layer was never the problem; it already
+  // snaps on return. The panel was, draining a backlog through the DOM.
+  //
+  // Holding only the newest and processing it once per frame collapses any
+  // backlog to a single update. In normal running this changes nothing at
+  // all: at an 800ms tick one message arrives about every 48 frames, so
+  // there is never a second one to drop.
+  //
+  // Intermediate states are DISCARDED on a catch-up, which is the point --
+  // the beats derived from them (meow bubbles, purrs) are moments, and
+  // nobody returning to the tab wants two hours of them at once.
+  let newest = null;
+  let scheduled = 0;
+  const drain = () => {
+    scheduled = 0;
+    const world = newest;
+    newest = null;
+    if (world) render(world);
+  };
   socket.addEventListener('message', (event) => {
     try {
-      render(JSON.parse(event.data));
+      newest = JSON.parse(event.data);
     } catch (err) {
       console.error('could not read a world update', err);
+      return;
     }
+    if (scheduled) return;
+    // rAF, so a hidden tab does not process at all and the whole backlog
+    // resolves to one state the moment it is looked at again. The timeout
+    // is the fallback for environments that never fire frames.
+    scheduled = typeof requestAnimationFrame === 'function'
+      ? requestAnimationFrame(drain)
+      : setTimeout(drain, 16);
   });
 
   socket.addEventListener('close', () => {
