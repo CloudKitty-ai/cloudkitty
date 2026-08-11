@@ -3354,18 +3354,32 @@ check('the side swim tail can be pulled upright without re-authoring it', () => 
   CatV2.SWIM.tailUpright = 0;
   const away = CatV2.catLayout('swim', 0.25, { view: 'back' });
   assert(Math.abs(upright.tail.x0 - shipped.tail.x0) < 1e-9, 'the base moved');
-  // Agreement is asserted in PIXELS, not exactly, and the slack is
-  // accounted for rather than guessed: `proportionLayout` shifts a whole
-  // layout by ry x (1 - bodyH) so scaling the body keeps the feet on the
-  // floor, and the two swim poses carry slightly different body depths
-  // (0.155 side, 0.15 end-on -- a flank is not a chest). That leaves the
-  // two tips 0.008px apart at the live tile. Anything a re-dial could
-  // actually make visible is a whole pixel away.
-  const apart = Math.abs(upright.tail.y1 - away.tail.y1) * 31;
+  // The two are tied together by ONE anchor plus ONE declared difference,
+  // never two free numbers: the side tail rides at the shared height
+  // raised by `tailUprightRise`, the foreshortening allowance (a tail seen
+  // broadside shows its whole length; seen end-on it draws short). Set
+  // that to 0 and the three views match exactly.
+  //
+  // Asserted in PIXELS with the slack accounted for rather than guessed:
+  // `proportionLayout` shifts a layout by ry x (1 - bodyH) to keep feet on
+  // the floor, and the two swim poses carry different body depths (0.155
+  // side, 0.15 end-on -- a flank is not a chest), which leaves ~0.008px on
+  // the table.
+  const expected = away.tail.y1 - CatV2.SWIM.tailUprightRise;
+  const apart = Math.abs(upright.tail.y1 - expected) * 31;
   assert(
     apart < 0.5,
-    `the side tail rides ${apart.toFixed(2)}px from the end-on one -- ` +
-      'one animal, one tail height, or they drift apart on the next re-dial',
+    `the side tail rides ${apart.toFixed(2)}px off the shared height plus its allowance -- ` +
+      'one anchor and one declared difference, or they drift apart on the next re-dial',
+  );
+  // The allowance's SIGN is an invariant; its size is the owner's. A tail
+  // seen broadside cannot draw shorter than the same tail seen end-on --
+  // that is foreshortening running backwards -- but 0 is a legitimate
+  // choice (it makes the three views identical, which is where this
+  // started), so the magnitude is deliberately not pinned.
+  assert(
+    CatV2.SWIM.tailUprightRise >= 0,
+    `tailUprightRise is ${CatV2.SWIM.tailUprightRise}: a broadside tail cannot be SHORTER than an end-on one`,
   );
   const rise = (L) => (L.body.cy - L.tail.y1) * 31;
   assert(

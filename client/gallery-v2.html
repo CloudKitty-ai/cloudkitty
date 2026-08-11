@@ -1581,6 +1581,11 @@
           min: 0, max: 1, step: 0.05,
         },
         {
+          key: 'tailUprightRise', bag: CatV2.SWIM,
+          label: 'SIDE column — how much taller than the end-on tails (0 = identical)',
+          min: 0, max: 0.16, step: 0.005,
+        },
+        {
           key: 'tailLift', bag: CatV2.SWIM,
           // Governs the TRAILING end only. At upright 1 the height comes
           // from tailTopY above, shared with the end-on views -- so this
@@ -1611,7 +1616,8 @@
           `AXIAL_SWIM.tailTopY = ${S.tailTopY}, AXIAL_SWIM.tailBaseDrop = ${S.tailBaseDrop}, ` +
           `AXIAL_SWIM.tailOutX = ${S.tailOutX}, AXIAL_SWIM.tailPeekX = ${S.tailPeekX}, ` +
           `AXIAL_SWIM.tailCurve = ${S.tailCurve}\n` +
-          `SWIM.tailUpright = ${CatV2.SWIM.tailUpright}, SWIM.tailLift = ${CatV2.SWIM.tailLift} ` +
+          `SWIM.tailUpright = ${CatV2.SWIM.tailUpright}, SWIM.tailLift = ${CatV2.SWIM.tailLift}, ` +
+          `SWIM.tailUprightRise = ${CatV2.SWIM.tailUprightRise} ` +
           `(upright 0 = the trailing tail that ships)\n` +
           // Effective-vs-asked. Two dials own the side tail's tip height
           // at opposite ends of `tailUpright`, so whichever one is not in

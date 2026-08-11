@@ -354,6 +354,18 @@ const SWIM = {
   rock: 0.045, // paddling body rock, radians
   tailLift: 0.6, // where the tail tip rides above the surface
   tailUpright: 0, // 0 = the trailing tail that shipped, 1 = held vertical
+  // How much TALLER the raised side tail stands than the end-on ones.
+  //
+  // Not a fudge: it is foreshortening. A tail held up and pointing partly
+  // toward or away from the camera is seen at an angle and draws short;
+  // the same tail seen broadside shows its whole length. Drawing all three
+  // at the identical height therefore makes the side view -- the one with
+  // nothing to hide behind -- look stubby, which is what the owner saw.
+  //
+  // So the shared height (AXIAL_SWIM.tailTopY) stays the anchor for all
+  // three, and this is the one declared, dialable difference on top of it.
+  // At 0 the three match exactly again.
+  tailUprightRise: 0.06,
 };
 
 /**
@@ -2157,7 +2169,9 @@ function catLayout(pose, phase, opts = {}) {
       // sweeps ASTERN, and then rises -- which is both correct and visible.
       const up = SWIM.tailUpright;
       const baseY = SWIM.bodyY + bob;
-      const top = AXIAL_SWIM.tailTopY + bob;
+      // The shared height, plus the side view's declared foreshortening
+      // allowance -- see SWIM.tailUprightRise.
+      const top = AXIAL_SWIM.tailTopY - SWIM.tailUprightRise + bob;
       const mix = (trail, upright) => trail + (upright - trail) * up;
       L.tail = {
         x0: 0.16, y0: baseY,
