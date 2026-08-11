@@ -144,6 +144,10 @@ const MEADOW_DAY = Object.freeze({
   moss: '#cfe0c0',
   bloom: '#fbf7ef',
   bloomHeart: '#f2cf7a',
+  // The second flower colourway (spec 03 part 3), so a drift has
+  // variation inside it rather than one flower repeated.
+  bloomCool: '#e9f4f6',
+  bloomCoolHeart: '#edb88e',
   bush: '#8ab377',
   bushHi: '#a6c78f',
   // The demoted debug lattice (formerly baked into the ground cache).
@@ -197,6 +201,10 @@ const MEADOW_NIGHT = Object.freeze({
   moss: '#33402f',
   bloom: '#7f8ba0', // moonlit, not white: nothing is lit from above now
   bloomHeart: '#9aa6b8',
+  // The second flower colourway (spec 03 part 3), so a drift has
+  // variation inside it rather than one flower repeated.
+  bloomCool: '#5a7084',
+  bloomCoolHeart: '#c1a4ad',
   bush: '#33422f',
   bushHi: '#41533b',
   gridLine: 'rgba(190, 210, 190, 0.14)',
@@ -244,6 +252,10 @@ const MEADOW_DUSK = Object.freeze({
   moss: '#cdd0a0',
   bloom: '#fdf0d8',
   bloomHeart: '#e8b45e',
+  // The second flower colourway (spec 03 part 3), so a drift has
+  // variation inside it rather than one flower repeated.
+  bloomCool: '#d4dcd8',
+  bloomCoolHeart: '#e8ab80',
   bush: '#8f9a5f',
   bushHi: '#a9b378',
   gridLine: 'rgba(150, 150, 110, 0.18)',
@@ -306,6 +318,10 @@ const MEADOW_DAWN = Object.freeze({
   moss: '#9aa697',
   bloom: '#e8e6df',
   bloomHeart: '#c9bda2',
+  // The second flower colourway (spec 03 part 3), so a drift has
+  // variation inside it rather than one flower repeated.
+  bloomCool: '#c4cdcf',
+  bloomCoolHeart: '#d9afa2',
   bush: '#7e8c79',
   bushHi: '#95a18e',
   gridLine: 'rgba(140, 148, 140, 0.16)',
@@ -748,28 +764,49 @@ function drawGroundDetail(ctx, { width, height, tile, t }) {
   }
   ctx.globalAlpha = 1;
 
-  // --- grass tufts: one path for the lot, so it is a single stroke ---
-  ctx.lineWidth = Math.max(1, tile * 0.035);
+  // --- grass tufts: three blades each, leaning away from the sun ---
+  //
+  // Everything here is a fraction of a TILE. The old tuft was one stroke at
+  // a fixed pixel length, which is the same fault that retired grass sway
+  // in the first place: fixed-pixel blades read as stray diagonal lines the
+  // moment the tile is small. Being tile-proportional is also the
+  // precondition for bringing sway back -- the drawing that was wrong is
+  // the drawing being replaced.
+  //
+  // Three passes rather than three strokes per tuft: each blade index gets
+  // its own colour and width, so batching by INDEX keeps the whole meadow
+  // to three stroked paths instead of three per tuft.
+  const bladeLean = Math.max(-1, Math.min(1, MEADOW.shadowLean ?? 0));
   ctx.lineCap = 'round';
-  ctx.strokeStyle = MEADOW.moss;
-  ctx.globalAlpha = t.bladeAlpha;
-  ctx.beginPath();
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const n = tileHash(x, y, MEADOW_SALTS.blade);
-      if (n < 1 - drift.blade[y * width + x]) continue;
-      const bx = (x + tileHash(x, y, MEADOW_SALTS.bladeX)) * tile;
-      const by = (y + tileHash(x, y, MEADOW_SALTS.bladeY)) * tile;
-      ctx.moveTo(bx, by);
-      ctx.quadraticCurveTo(
-        bx + tile * 0.06,
-        by - tile * 0.17,
-        bx + (n - 0.5) * tile * 0.34,
-        by - tile * 0.32,
-      );
+  for (let b = 0; b < 3; b++) {
+    const step = b / 2; // 0 = the near blade, 1 = the far one
+    // Stepping the colour across the three gives the tuft a near and a far
+    // edge, which is what stops it reading as a flat scribble.
+    ctx.strokeStyle = step < 0.5 ? MEADOW.bush : MEADOW.bushHi;
+    ctx.lineWidth = Math.max(0.6, tile * 0.032 * (1 - step * 0.25));
+    ctx.globalAlpha = t.bladeAlpha * (1 - step * 0.2);
+    ctx.beginPath();
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const n = tileHash(x, y, MEADOW_SALTS.blade);
+        if (n < 1 - drift.blade[y * width + x]) continue;
+        const bx = (x + tileHash(x, y, MEADOW_SALTS.bladeX)) * tile;
+        const by = (y + tileHash(x, y, MEADOW_SALTS.bladeY)) * tile;
+        // Fanned around the root, so the three read as one plant.
+        const fan = (b - 1) * 0.5 + (n - 0.5) * 0.4;
+        const high = tile * (0.13 + n * 0.08) * (1 - step * 0.22);
+        const tipX = bx + fan * tile * 0.12 + bladeLean * high * 0.5;
+        ctx.moveTo(bx + fan * tile * 0.03, by);
+        ctx.quadraticCurveTo(
+          bx + fan * tile * 0.06 + bladeLean * high * 0.15,
+          by - high * 0.6,
+          tipX,
+          by - high,
+        );
+      }
     }
+    ctx.stroke();
   }
-  ctx.stroke();
   ctx.globalAlpha = 1;
 
   // --- flowers: five petals and a heart when the tile can carry them,
@@ -786,22 +823,47 @@ function drawGroundDetail(ctx, { width, height, tile, t }) {
       // every bloom in the upper part of the band sat on bare ground
       // and every one below it sat in a tuft.
       const by = (y + 0.25 + tileHash(x, y, MEADOW_SALTS.bloomY) * 0.5) * tile;
-      const r = tile * 0.055;
-      ctx.fillStyle = MEADOW.bloom;
+      const r = tile * (0.085 + k * 0.03);
+      // Two colourways off the SAME seed, so a drift has variation inside
+      // it rather than one flower repeated across the whole meadow. The
+      // cool pair is a named palette entry per theme, not a draw-time mix:
+      // mixing toward a fixed colour is the daylight assumption the pond
+      // restyle retired, and it would be wrong at night in exactly the
+      // same way.
+      const cool = tileHash(x, y, MEADOW_SALTS.bloomY) > 0.62;
+      const petal = cool ? MEADOW.bloomCool || MEADOW.bloom : MEADOW.bloom;
+      const heart = cool ? MEADOW.bloomCoolHeart || MEADOW.bloomHeart : MEADOW.bloomHeart;
       if (fine) {
+        // A stem, so the flower grows out of the ground instead of lying
+        // on it. Drawn first and leaning with the light, like the blades.
+        ctx.strokeStyle = MEADOW.bush;
+        ctx.globalAlpha = 0.75;
+        ctx.lineWidth = Math.max(0.6, tile * 0.022);
+        ctx.beginPath();
+        ctx.moveTo(bx - (MEADOW.shadowLean ?? 0) * r * 0.4, by + r * 2.1);
+        ctx.quadraticCurveTo(bx, by + r * 1.1, bx, by + r * 0.5);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
         for (let i = 0; i < 5; i++) {
           const a = (i / 5) * TAU + k * 3;
+          const dy = Math.sin(a);
+          // The lower petals sit in the flower's own shade, which is what
+          // gives it a top and a bottom rather than a flat rosette.
+          ctx.fillStyle = dy > 0.2 && typeof shadeHex === 'function'
+            ? shadeHex(petal, 0.93)
+            : petal;
           ctx.beginPath();
-          ctx.arc(bx + Math.cos(a) * r, by + Math.sin(a) * r, r * 0.85, 0, TAU);
+          ctx.arc(bx + Math.cos(a) * r * 0.78, by + dy * r * 0.78, r * 0.62, 0, TAU);
           ctx.fill();
         }
-        ctx.fillStyle = MEADOW.bloomHeart;
+        ctx.fillStyle = heart;
         ctx.beginPath();
-        ctx.arc(bx, by, r * 0.7, 0, TAU);
+        ctx.arc(bx, by, r * 0.42, 0, TAU);
         ctx.fill();
       } else {
+        ctx.fillStyle = petal;
         ctx.beginPath();
-        ctx.arc(bx, by, r * 1.15, 0, TAU);
+        ctx.arc(bx, by, r * 0.72, 0, TAU);
         ctx.fill();
       }
     }
@@ -1113,17 +1175,69 @@ function drawBushAt(ctx, { x, y, seed, tile, t }) {
         ctx.beginPath();
         ctx.rect(bx - r * 0.1, crown, r * 0.2, groundY - crown);
         ctx.fill();
+        // The canopy, then the LIGHT across it (spec 03 part 3). The lobes
+        // and their offsets are unchanged: the spec's own constraint is
+        // that the silhouette and its bounding shape stay put, so
+        // `coverSortKey` keeps answering the same and the occlusion
+        // behaviour dialled in the meadow lab is preserved exactly. Only
+        // the shading is new.
+        //
+        // (The spec described today's shrub as one ellipse plus a
+        // highlight and gave lobe geometry to match. That is the 'cover'
+        // style; 'trunk' is what ships. Replacing this silhouette with
+        // that one would have broken the very thing the spec asked to
+        // preserve, so the lighting is applied to the shipped shape.)
+        const lobes = [];
         for (let i = 0; i < 4; i++) {
           const a = (i / 4) * TAU + s * 5;
+          const lx = bx + Math.cos(a) * r * 0.38;
+          const ly = crown + Math.sin(a) * r * 0.3;
+          lobes.push([lx, ly]);
           ctx.beginPath();
-          ctx.arc(bx + Math.cos(a) * r * 0.38, crown + Math.sin(a) * r * 0.3, r * 0.55, 0, TAU);
+          ctx.arc(lx, ly, r * 0.55, 0, TAU);
           ctx.fill();
         }
-        ctx.globalAlpha = t.bushAlpha * 0.5;
-        ctx.fillStyle = MEADOW.bushHi;
-        ctx.beginPath();
-        ctx.arc(bx - r * 0.2, crown - r * 0.28, r * 0.26, 0, TAU);
-        ctx.fill();
+        // Clipped to the canopy's own union, so the gradient cannot spill
+        // past the silhouette and change its shape.
+        const lean = Math.max(-1, Math.min(1, MEADOW.shadowLean ?? 0));
+        const sunX = -lean; // the sun is the side the shadows point away from
+        if (typeof ctx.createLinearGradient === 'function') {
+          ctx.save();
+          ctx.beginPath();
+          for (const [lx, ly] of lobes) {
+            ctx.moveTo(lx + r * 0.55, ly);
+            ctx.arc(lx, ly, r * 0.55, 0, TAU);
+          }
+          ctx.clip();
+          const g = ctx.createLinearGradient(
+            bx + sunX * r, crown - r, bx - sunX * r, crown + r,
+          );
+          g.addColorStop(0, withAlpha(MEADOW.bushHi, 0.95));
+          g.addColorStop(0.5, withAlpha(MEADOW.bushHi, 0.25));
+          g.addColorStop(1, withAlpha(
+            typeof shadeHex === 'function' ? shadeHex(MEADOW.bush, 0.72) : MEADOW.bush, 0.55,
+          ));
+          ctx.globalAlpha = t.bushAlpha;
+          ctx.fillStyle = g;
+          ctx.fillRect(bx - r * 1.2, crown - r * 1.2, r * 2.4, r * 2.4);
+          ctx.restore();
+        }
+        // A few leaf ticks, on the lit side only -- the cheapest thing
+        // that says "leaves" rather than "a green blob with a gradient".
+        ctx.globalAlpha = t.bushAlpha * 0.6;
+        // meadow.js's OWN mixer, not cat-v2's mixHex. cat-v2 leaks nothing
+        // unless it is in drop-in mode, so a bare mixHex here is undefined
+        // in gallery-meadow.html -- guarded, therefore silent, therefore
+        // exactly the trap that had the axial views shipping inert.
+        ctx.fillStyle = mixPaletteColor(MEADOW.bushHi, '#ffffff', 0.35);
+        for (let i = 0; i < 4; i++) {
+          const a = (i / 4) * TAU + s * 9;
+          const lx = bx + sunX * r * 0.3 + Math.cos(a) * r * 0.34;
+          const ly = crown + Math.sin(a) * r * 0.3;
+          ctx.beginPath();
+          ctx.ellipse(lx, ly, r * 0.14, r * 0.08, a, 0, TAU);
+          ctx.fill();
+        }
       } else if (style === 'tall') {
         // PROPOSAL 3 -- one silhouette, stretched. A single rounded body
         // rising from the ground with lobed bumps on its crown, rather
