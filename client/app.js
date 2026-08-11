@@ -952,15 +952,32 @@ function paintPortraits(world, view) {
  */
 function idlePortraitFor(view, id, now) {
   if (typeof view.idleCardBeatFor !== 'function') return null;
-  // A wake-stretch outranks everything: it is the one idle pose tied to
-  // something the engine actually did (this cat just woke), so it takes the
-  // slot rather than sharing it. Otherwise the portrait's own table decides,
-  // and it decides ONE thing -- a beat is a pose or a blink or a yawn, never
-  // a pose AND a blink. Sequencing rather than layering was the owner's
-  // call: two clocks produced sixteen pose x motion pairs nobody chose,
-  // including a cat yawning mid-pounce.
-  const woke = view.idlePoseFor ? view.idlePoseFor(id, 'idle') : null;
-  const beat = woke?.pose === 'stretch' ? woke : view.idleCardBeatFor(id, 'idle');
+  // The portrait's own table decides, and it decides ONE thing -- a beat is
+  // a pose or a blink or a yawn, never a pose AND a blink. Sequencing rather
+  // than layering was the owner's call: two clocks produced sixteen pose x
+  // motion pairs nobody chose, including a cat yawning mid-pounce.
+  //
+  // The WORLD's wake-stretch is deliberately NOT an input here, though
+  // `idlePoseFor` would hand it over for the asking. It used to outrank the
+  // table, on the reasoning that a pose tied to something the engine really
+  // did earns the slot ahead of anything merely scheduled. Measured on the
+  // live box (2026-08-10, 209 wakes), that reasoning did not survive:
+  //
+  //   - cats nap in 5-tick bouts and wake every ~21s, so the wake-stretch
+  //     ALONE out-frequented the slow blink (~23s) and made stretching the
+  //     card's loudest beat rather than its rarest;
+  //   - and it never finished. 98% of cats leave idle on the very next tick,
+  //     and the meadow -- which draws first (anim.js startLoop) -- hands
+  //     idlePoseFor the SERVED pose, which deletes `wokeAt` mid-motion. The
+  //     stretch died at phase 0.49, dead centre of its own hold, so every
+  //     portrait stretch was a half one that snapped back through the blend
+  //     instead of playing the authored release.
+  //
+  // The map cat still stretches when it wakes -- there the pose is answering
+  // for a cat the viewer just watched get up. The card is a portrait, and
+  // keeps its own clock. Its stretch now arrives only as the tail of the sit
+  // chain, which is on that clock and therefore always completes.
+  const beat = view.idleCardBeatFor(id, 'idle');
   const pose = beat?.pose ?? 'idle';
   const tween = view.tweenFor ? view.tweenFor(`card${id}`, pose, beat?.phase ?? 0) : null;
   // The rig, keyed in the portrait's OWN namespace. `rigFor` INTEGRATES, so
