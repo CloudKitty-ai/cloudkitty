@@ -165,7 +165,10 @@ cargo run -p cloudkitty-rl --bin kitty-eval -- --artifact policies/trained.ckpol
 ```
 
 **`kitty-eval` is the smoke test, not the bar** (role settled
-2026-08-10; the first certified seating, e004-a1-s2, never touched it).
+2026-08-10; the first certified seating, e004-a1-s2, was certified
+without it — kitty-eval's one appearance in that campaign was
+precisely this smoke, validating that the clone artifact ran clean,
+zero fallbacks, before PPO began).
 What it genuinely checks — and it is the only product-side runner, so
 nothing else checks this — is that an artifact runs clean on exactly
 what the server ships: strict validation and hash-logging on the
