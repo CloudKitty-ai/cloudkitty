@@ -456,6 +456,12 @@ const MEADOW_DEFAULTS = Object.freeze({
   // lab session settle it by eye, including at a mix neither side proposed.
   bushStyleAlt: 'lobed',
   bushStyleAltShare: 0,
+  // How much of the gap between the ground and the canopy the stem covers,
+  // for the styles that draw one ('trunk', 'lobed'). 1 is a full stem, 0 is
+  // none at all -- and at 0 the canopy is left hanging over its own shadow
+  // unless `bushLift` comes down with it, which is the trade this dial
+  // exists to let someone see rather than argue about.
+  bushTrunk: 1,
   // The shrub's shadow, damped against the cats': a squat canopy sits
   // close to the ground, so it stretches far less and needs no alpha
   // falloff. Only the LENGTH is damped -- the lean also anchors the
@@ -1194,9 +1200,13 @@ function drawBushAt(ctx, { x, y, seed, tile, t }) {
         const crown = groundY - r * t.bushLift - r * 0.3;
         ctx.globalAlpha = t.bushAlpha;
         ctx.fillStyle = MEADOW.bush;
-        ctx.beginPath();
-        ctx.rect(bx - r * 0.1, crown, r * 0.2, groundY - crown);
-        ctx.fill();
+        const stemShare = t.bushTrunk === undefined ? 1 : t.bushTrunk;
+        if (stemShare > 0) {
+          const top = groundY - (groundY - crown) * stemShare;
+          ctx.beginPath();
+          ctx.rect(bx - r * 0.1, top, r * 0.2, groundY - top);
+          ctx.fill();
+        }
         // The canopy, then the LIGHT across it (spec 03 part 3). The lobes
         // and their offsets are unchanged: the spec's own constraint is
         // that the silhouette and its bounding shape stay put, so
@@ -1279,13 +1289,17 @@ function drawBushAt(ctx, { x, y, seed, tile, t }) {
         // A short trunk first, leaning AWAY from the light, so the canopy
         // has something to stand on and reaches its own shadow.
         ctx.globalAlpha = t.bushAlpha;
-        ctx.strokeStyle = shadeHex(MEADOW.bush, 0.72);
-        ctx.lineWidth = Math.max(1, r * 0.13);
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        ctx.moveTo(bx, groundY);
-        ctx.lineTo(bx + lean * r * 0.14, crown);
-        ctx.stroke();
+        const stem = t.bushTrunk === undefined ? 1 : t.bushTrunk;
+        if (stem > 0) {
+          const top = groundY - (groundY - crown) * stem;
+          ctx.strokeStyle = shadeHex(MEADOW.bush, 0.72);
+          ctx.lineWidth = Math.max(1, r * 0.13);
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(bx, groundY);
+          ctx.lineTo(bx + lean * r * 0.14 * stem, top);
+          ctx.stroke();
+        }
         // The canopy: the spec's three lobes, in canopy radii.
         const LOBES = [[-0.42, 0.06, 0.62], [0.4, 0.1, 0.58], [-0.02, -0.34, 0.72]];
         ctx.fillStyle = shadeHex(MEADOW.bush, 0.94);

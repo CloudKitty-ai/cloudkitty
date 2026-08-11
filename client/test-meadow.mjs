@@ -1202,6 +1202,29 @@ check('the meadow lab dials every tunable the meadow ships', () => {
   }
 });
 
+check('the stem is a dial, not a decision baked into the drawing', () => {
+  const t = api.MEADOW_DEFAULTS;
+  assert(t.bushTrunk === 1, 'bushTrunk must ship at 1 -- 0 would restyle the live world');
+  // Both stemmed styles honour it, and both reach zero. The lobed shrub
+  // arrived from the spec with a trunk written into it and no way to turn
+  // it off, which is the same fault as a baked art constant: an owner
+  // cannot judge what they cannot move.
+  for (const style of ['trunk', 'lobed']) {
+    const stems = (bushTrunk) => {
+      const log = [];
+      api.drawBushAt(guardCtx(log), {
+        x: 3, y: 3, seed: 0.55, tile: 48,
+        t: { ...t, bushStyle: style, bushStyleAltShare: 0, bushTrunk },
+      });
+      // lobed strokes its stem, trunk fills one; either way it is the only
+      // lineTo/rect the style draws.
+      return log.filter((o) => o[0] === 'lineTo' || o[0] === 'rect').length;
+    };
+    assert(stems(1) > 0, `${style} draws no stem at all`);
+    assert(stems(0) === 0, `${style} still draws a stem at bushTrunk 0`);
+  }
+});
+
 // The summary stays LAST. It sat mid-file once and every check appended
 // after it ran past `process.exit` and was silently never counted -- the
 // suite reported green on tests that had not run. (Cost the motion suite
