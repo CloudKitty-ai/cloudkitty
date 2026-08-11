@@ -440,6 +440,10 @@ const MEADOW_DEFAULTS = Object.freeze({
   bladeChance: 0.55, // tiles with a tuft of grass
   bladeAlpha: 0.38,
   bloomChance: 0.05, // tiles with a flower
+  // How far the lower petals lean toward the flower's heart. Shading them
+  // toward BLACK instead only greyed them: a near-white petal has no colour
+  // to darken into. Judged in gallery-meadow.html.
+  bloomShade: 0.28,
   bushChance: 0.015, // tiles with a clump of tufted ground cover
   bushAlpha: 0.9, // and how strongly it reads against the grass
   // 'cover' | 'tuft' | 'bramble' (flat) | 'shrub' | 'grown' | 'trunk' |
@@ -887,7 +891,25 @@ function drawGroundDetail(ctx, { width, height, tile, t }) {
           const dy = Math.sin(a);
           // The lower petals sit in the flower's own shade, which is what
           // gives it a top and a bottom rather than a flat rosette.
-          ctx.fillStyle = dy > 0.2 ? shadePalette(petal, 0.93) : petal;
+          // Shaded toward the flower's own HEART, not toward black.
+          //
+          // These petals are near-white -- the warm bloom is L* 97 -- and a
+          // near-white has almost no colour to darken INTO, so mixing it
+          // toward black can only produce grey. That read as a dirty lower
+          // half rather than as a shaded one (owner, 2026-08-11). Same
+          // shape as the seal point's belly: lightening an almost-white fur
+          // toward white has very little to give.
+          //
+          // A real flower's lower petals catch bounce off the centre, so
+          // the heart is both the physically right direction and the one
+          // that keeps some chroma on the way down.
+          // Toward a DARKENED heart, so the lower half loses lightness as
+          // well as gaining colour. Toward the plain heart it only tinted:
+          // the heart is barely darker than the petal, so the flower read
+          // warmer at the bottom without reading shaded.
+          ctx.fillStyle = dy > 0.2
+            ? mixPaletteColor(petal, shadePalette(heart, 0.74), t.bloomShade)
+            : petal;
           ctx.beginPath();
           ctx.arc(bx + Math.cos(a) * r * 0.78, by + dy * r * 0.78, r * 0.62, 0, TAU);
           ctx.fill();
