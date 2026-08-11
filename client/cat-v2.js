@@ -2427,7 +2427,7 @@ function drawHead(ctx, head, a, p, fine, view = 'side') {
     ctx.fillStyle = p.color;
     ctx.globalAlpha = 0.85;
     ctx.beginPath();
-    ctx.ellipse(head.cx + head.r * NOSE.x, head.cy + head.r * (NOSE.y + 0.08), head.r * 0.46, head.r * 0.32, 0, 0, TAU);
+    ctx.ellipse(muzzleX(head, view), head.cy + head.r * (NOSE.y + 0.08), head.r * 0.46, head.r * 0.32, 0, 0, TAU);
     ctx.fill();
     ctx.globalAlpha = 1;
   } else if (p.kind === 'tuxedo-mask' && !rear) {
@@ -2436,7 +2436,7 @@ function drawHead(ctx, head, a, p, fine, view = 'side') {
     // the roster wears it, so this one only shows in the gallery today.
     ctx.fillStyle = p.color;
     ctx.beginPath();
-    ctx.ellipse(head.cx + head.r * NOSE.x, head.cy + head.r * (NOSE.y + 0.14), head.r * 0.5, head.r * 0.4, 0, 0, TAU);
+    ctx.ellipse(muzzleX(head, view), head.cy + head.r * (NOSE.y + 0.14), head.r * 0.5, head.r * 0.4, 0, 0, TAU);
     ctx.fill();
   } else if (p.kind === 'patches') {
     ctx.fillStyle = p.color2 || p.color;
@@ -2686,6 +2686,25 @@ const NOSE = {
   y: 0.29, // below head center / head.r
   size: 0.17, // half-width / head.r
 };
+
+/**
+ * Where the muzzle sits ACROSS the face, in head radii.
+ *
+ * From the side it leads toward the nose; seen front-on there is no
+ * "toward", so it sits on the centreline. One function because three
+ * things have to agree about it -- the nose, the mouth that tracks the
+ * nose, and the muzzle MASK the point and tuxedo colourways paint under
+ * both. They did not: the mask kept the side view's offset while the nose
+ * moved to centre, so a front-on seal point wore her dark muzzle 0.22
+ * head-radii to one side of her own nose (owner spotted it, 2026-08-10).
+ * Measured, the two centres sat 2.40px apart at the 47px card portrait and
+ * 1.58px at a 31px tile. The SIDE view was never wrong -- mask and nose
+ * both read NOSE.x there -- which is why this survived: it is visible only
+ * head-on, the one view that did not exist until this round.
+ */
+function muzzleX(head, view) {
+  return head.cx + head.r * (view === 'front' ? 0 : NOSE.x);
+}
 // A kitten.me-style heart was tried and cut (owner, 2026-08-09): a shallow
 // V over-stroked with round caps and joins, so the caps make the lobes and
 // the join the point. It is a good heart in isolation -- but at our head
@@ -2974,7 +2993,7 @@ function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0, view = 'si
   // eyes (owner call, 2026-07-29) -- v1's skewed profile-leaning triangle
   // read wrong once the face went front-on.
   // ...and the muzzle sits on the centreline for the same reason.
-  const nx = head.cx + head.r * (view === 'front' ? 0 : NOSE.x);
+  const nx = muzzleX(head, view);
   const ny = head.cy + head.r * NOSE.y;
   const ns = head.r * NOSE.size;
   ctx.fillStyle = a.noseColor;

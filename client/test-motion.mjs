@@ -2431,6 +2431,66 @@ check('a muzzle is on the face, so a cat walking away has none', () => {
   }
 });
 
+check('the muzzle mask sits on the nose, in every view', () => {
+  // Owner spotted this on the front view (2026-08-10): the nose moves to
+  // the centreline head-on, and the muzzle MASK did not follow, so a
+  // front-on seal point wore her dark muzzle beside her own nose.
+  //
+  // Both now go through `muzzleX`, so the check is that they COINCIDE
+  // rather than that either is at a particular place -- a re-dialled NOSE.x
+  // must not need this edited, and the side view (where they always did
+  // agree) has to keep agreeing.
+  //
+  // The two are picked out by SIZE, not by colour: the point colour also
+  // paints ears, paws and tail, and noseColor also paints the inner ears,
+  // so a colour match alone measures the wrong shapes. (It did, first try.)
+  const centres = (view, facing) => {
+    const L = CatV2.catLayout('idle', 0.2, { view });
+    const r = L.head.r;
+    const ns = r * CatV2.NOSE.size;
+    let fill = null; const stack = []; let pend = null; let tri = [];
+    let mask = null; let nose = null;
+    const ctx = new Proxy({}, {
+      get: (_t, k) => {
+        if (k === 'save') return () => stack.push(fill);
+        if (k === 'restore') return () => { fill = stack.pop() ?? fill; };
+        if (k === 'ellipse') return (cx, _cy, rx) => { pend = { cx, rx }; };
+        if (k === 'beginPath') return () => { pend = null; tri = []; };
+        if (k === 'moveTo') return (x) => { tri = [x]; };
+        if (k === 'lineTo') return (x) => { tri.push(x); };
+        if (k === 'fill') return () => {
+          if (pend && Math.abs(pend.rx - r * 0.46) < r * 0.02) mask = pend.cx;
+          if (tri.length >= 3 && Math.abs(Math.abs(tri[1] - tri[0]) - 2 * ns) < r * 0.02) {
+            nose = (tri[0] + tri[1]) / 2;
+          }
+        };
+        if (k === 'canvas') return { width: 200, height: 200 };
+        return () => {};
+      },
+      set: (_t, k, v) => { if (k === 'fillStyle') fill = v; return true; },
+    });
+    CatV2.drawCat(ctx, {
+      appearance: CatV2.appearanceFor(1), // Miso, the roster's one seal point
+      facing, size: 1, x: 0, y: 0, pose: 'idle', phase: 0.2, layout: { view },
+    });
+    return { mask, nose };
+  };
+  // Where each view must put it. "Mask equals nose" alone is NOT enough:
+  // both now call muzzleX, so they agree by construction and would go on
+  // agreeing while both drifted. (Checked -- reverting muzzleX to the side
+  // offset left an equality-only version of this passing.) The binding
+  // assertion is the absolute one: front-on it is the centreline.
+  for (const [view, facing] of [['front', 'south'], ['side', 'right']]) {
+    const L = CatV2.catLayout('idle', 0.2, { view });
+    const want = L.head.cx + L.head.r * (view === 'front' ? 0 : CatV2.NOSE.x);
+    const { mask, nose } = centres(view, facing);
+    assert(mask !== null, `${view}: never found the muzzle mask`);
+    assert(nose !== null, `${view}: never found the nose`);
+    close(mask, want, `${view}: the muzzle mask is not where this view puts a muzzle`);
+    close(mask, nose, `${view}: the muzzle mask is off the nose`);
+  }
+});
+
 check('paint order IS depth order: walking away inverts head and tail', () => {
   // Handoff invariant 6. For a cat walking away the head is the furthest
   // part of it and the tail the nearest, so the head draws BEHIND the body
