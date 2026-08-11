@@ -2970,22 +2970,23 @@ check('a differently-paced box is reseeded, not walked to', () => {
   assert(wiring.pacer.tickMs === 80 && wiring.pacer.playMs === 80, 'setTickMs did not reach the pacer');
 });
 
-check('every way a state reaches the screen still reaches it', () => {
-  // `anim.push` is the one part of the delay line that reads the DOM, and
-  // it is exactly where a silent failure would live: get its branching
-  // wrong and the page shows NOTHING, with every check above still green.
-  // So it gets a stubbed document rather than being left untested.
-  let hidden = false;
-  let clock = 0;
+/**
+ * `anim.push` and `anim.setPaced` are the parts of the delay line that read
+ * the DOM, and exactly where a silent failure would live: get the branching
+ * wrong and the page shows NOTHING with every other check still green. So
+ * they get just enough of a document to run against.
+ */
+function withDom(fn) {
+  const env = { hidden: false, clock: 0 };
   const saved = {
     document: globalThis.document,
     performance: globalThis.performance,
     requestAnimationFrame: globalThis.requestAnimationFrame,
   };
-  globalThis.document = { get hidden() { return hidden; } };
-  globalThis.performance = { now: () => clock };
+  globalThis.document = { get hidden() { return env.hidden; } };
+  globalThis.performance = { now: () => env.clock };
   globalThis.requestAnimationFrame = () => 1;
-  const fresh = () => {
+  env.fresh = () => {
     const a = Object.create(api.anim);
     a.presentation = new api.Presentation();
     a.pacer = new api.Pacer();
@@ -2995,40 +2996,97 @@ check('every way a state reaches the screen still reaches it', () => {
     return a;
   };
   try {
-    // The first state has no predecessor to ease from, so it must not sit
-    // in the buffer -- the panel would be empty until the second tick.
-    let a = fresh();
-    clock = 0; a.push(feedWorld(1));
-    assert(a.seen.join() === '1', `the first state did not reach the screen (saw ${a.seen})`);
-    clock = 100; a.push(feedWorld(2));
-    assert(a.seen.join() === '1', 'the second state jumped the queue instead of waiting for its beat');
-    clock = 900; a.pump(clock);
-    assert(a.seen.join() === '1,2', `the second state never landed (saw ${a.seen})`);
-
-    // Reduced motion runs no frame loop, so nothing would ever pump the
-    // buffer: these have to go straight through or the world freezes.
-    a = fresh();
-    a.reduced = true;
-    for (const t of [1, 2, 3]) { clock = t * 50; a.push(feedWorld(t)); }
-    assert(a.seen.join() === '1,2,3', `reduced motion stopped showing states (saw ${a.seen})`);
-
-    // A hidden tab banks arrivals and does no DOM work at all -- that was
-    // the "it replays every tick very quickly" fix, and it still holds.
-    a = fresh();
-    clock = 0; a.push(feedWorld(1));
-    hidden = true;
-    for (let t = 2; t <= 9000; t += 1) { clock = t; a.push(feedWorld(t)); }
-    assert(a.seen.join() === '1', `a hidden tab rendered ${a.seen.length} states`);
-    hidden = false;
-    clock = 20000; a.pump(clock);
-    assert(a.seen.join() === '1,9000', `the return did not collapse to the newest (saw ${a.seen})`);
-    assert(a.presentation.discontinuous, 'the return must snap, not ease across the gap');
+    return fn(env);
   } finally {
     for (const [k, v] of Object.entries(saved)) {
       if (v === undefined) delete globalThis[k];
       else globalThis[k] = v;
     }
   }
+}
+
+check('every way a state reaches the screen still reaches it', () => {
+  withDom((env) => {
+    const at = (ms) => { env.clock = ms; };
+
+    // The first state has no predecessor to ease from, so it must not sit
+    // in the buffer -- the panel would be empty until the second tick.
+    let a = env.fresh();
+    at(0); a.push(feedWorld(1));
+    assert(a.seen.join() === '1', `the first state did not reach the screen (saw ${a.seen})`);
+    at(100); a.push(feedWorld(2));
+    assert(a.seen.join() === '1', 'the second state jumped the queue instead of waiting for its beat');
+    at(900); a.pump(900);
+    assert(a.seen.join() === '1,2', `the second state never landed (saw ${a.seen})`);
+
+    // Reduced motion runs no frame loop, so nothing would ever pump the
+    // buffer: these have to go straight through or the world freezes.
+    a = env.fresh();
+    a.reduced = true;
+    for (const t of [1, 2, 3]) { at(t * 50); a.push(feedWorld(t)); }
+    assert(a.seen.join() === '1,2,3', `reduced motion stopped showing states (saw ${a.seen})`);
+
+    // A hidden tab banks arrivals and does no DOM work at all -- that was
+    // the "it replays every tick very quickly" fix, and it still holds.
+    a = env.fresh();
+    at(0); a.push(feedWorld(1));
+    env.hidden = true;
+    for (let t = 2; t <= 9000; t += 1) { at(t); a.push(feedWorld(t)); }
+    assert(a.seen.join() === '1', `a hidden tab rendered ${a.seen.length} states`);
+    env.hidden = false;
+    at(20000); a.pump(20000);
+    assert(a.seen.join() === '1,9000', `the return did not collapse to the newest (saw ${a.seen})`);
+    assert(a.presentation.discontinuous, 'the return must snap, not ease across the gap');
+  });
+});
+
+check('the delay line can be switched off, and is on until it is', () => {
+  // For driving a world far faster than production -- flicking through a
+  // day to judge the crossfades. At a tick shorter than a frame no pace
+  // helps (two states cannot both be drawn in one frame), so the buffer
+  // would be latency and nothing else.
+  withDom((env) => {
+    const at = (ms) => { env.clock = ms; };
+    assert(api.anim.paced === true, 'the delay line must be ON by default');
+
+    const a = env.fresh();
+    at(0); a.push(feedWorld(1)); // the first state is unpaced either way
+    at(100); a.push(feedWorld(2));
+    assert(a.seen.join() === '1', 'guard: the second state should be buffered while paced');
+
+    // Switching off must not strand what is already buffered.
+    a.setPaced(false);
+    assert(a.seen.join() === '1,2', `switching off lost a buffered state (saw ${a.seen})`);
+    assert(!a.paced, 'setPaced(false) did not take');
+
+    // ...and from then on every state draws as it lands, over the SERVED
+    // tick -- exactly the behaviour that shipped before the pacer.
+    for (const t of [3, 4, 5]) { at(100 + t); a.push(feedWorld(t)); }
+    assert(a.seen.join() === '1,2,3,4,5', `unpaced states did not draw as they landed (saw ${a.seen})`);
+    assert(
+      a.presentation.currPlayMs === a.presentation.tickMs,
+      `an unpaced pair plays over ${a.presentation.currPlayMs}ms, want the served ${a.presentation.tickMs}ms`,
+    );
+
+    // And back on: the buffer fills again rather than staying bypassed.
+    a.setPaced(true);
+    at(200); a.push(feedWorld(6));
+    assert(a.seen.join() === '1,2,3,4,5', `switching back on did not resume buffering (saw ${a.seen})`);
+    at(1400); a.pump(1400);
+    assert(a.seen.join() === '1,2,3,4,5,6', `the buffer never paid out again (saw ${a.seen})`);
+  });
+
+  // The key and its note, in the same mold as the other four -- except the
+  // note reads the other way round, because this one is on by default.
+  const src = readFileSync(join(here, 'app.js'), 'utf8');
+  assert(/key === 'b'/.test(src), "no 'b' key toggles the delay line");
+  assert(
+    /pacedNoteEl\.hidden = anim\.paced/.test(src),
+    'the note must show when the delay line is OFF, which is the non-default state',
+  );
+  const markup = readFileSync(join(here, 'index.html'), 'utf8');
+  assert(markup.includes('id="paced-note"'), 'the footer has no note for the delay line');
+  assert(/<kbd>b<\/kbd>/.test(markup), 'the footer never tells anyone the key exists');
 });
 
 check('the socket hands arrivals to the delay line and nothing else', () => {
