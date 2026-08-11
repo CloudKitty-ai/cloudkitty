@@ -86,32 +86,36 @@ change.
   it really is oriented the way an axial view would claim. Flips that
   reverse within a tick fall 295 → 81, and genuine turns are untouched
   (#198).
-- A swimming cat can be drawn end-on, in both directions — the world
+- A swimming cat is drawn end-on now, in both directions — the world
   swims cats north/south as often as east/west (20 wet steps against
   21, measured) but `swim` had no axial drawing, so one was always
-  drawn side-on however it was going. **Nothing changes in the meadow
-  yet:** `VIEW.swimAxial` ships as `none` until the two directions are
-  judged at the live tile, because they are not equally worth having.
-  A swimming cat is mostly head — only ~6px of a 31px cat's body clears
-  the waterline — and coming toward you that is the largest head in the
+  drawn side-on however it was going. Both directions were drawn,
+  dialled and judged side by side at the live tile before either
+  shipped, because they are not equally served by the pose: a swimming
+  cat is mostly head — only ~6px of a 31px cat's body clears the
+  waterline — and coming toward you that is the largest head in the
   vocabulary plus a whole face, while going away `paintCat` draws no
-  face at all by design. So the tail is now held UP, clear of the
-  surface — the posture the shallow water we actually built calls for
-  (the waterline cuts a cat at its flank, not its neck), and the one
-  piece of silhouette that can carry the away view when everything else
-  above water is a circle and two ears.
+  face at all by design. Measured on a live feed after: 1,304 of 3,102
+  swim frames now draw end-on, so the feature reaches the screen rather
+  than shipping inert the way #182 did.
 
-  **The side pose does change, and it is the only thing here that
-  does:** a cat swimming east or west now carries its tail up too
-  (`SWIM.tailUpright` 1, judged in the lab), so the three views read as
-  one animal. They are anchored to a single height with one declared
+  What carries the away view is the **tail**, now held up clear of the
+  surface in every direction — the posture the shallow water we
+  actually built calls for, since the waterline cuts a cat at its flank
+  rather than its neck. It is the only silhouette a cat swimming away
+  has when everything else above water is a circle and two ears. The
+  side pose changes with it (`SWIM.tailUpright` 1) so the three views
+  read as one animal: a single shared height with one declared
   difference on top — `tailUprightRise`, a foreshortening allowance,
   because a tail seen broadside shows its whole length while the same
   tail end-on draws short. `tailUpright` 0 still reproduces v2.7's
   trailing tail exactly, so this is a choice and not a one-way door.
+
   The lab draws all three views side by side under the world's own
   waterline and clip, prints how much cat clears the water each way,
-  and names which dial owns the tail height at the current blend (#199).
+  and names which of the two dials owns the tail height at the current
+  blend — one of them is always inert, and saying so is cheaper than
+  rediscovering it (#199).
 - Docs: rl-training + howto-rl caught up to spec 028 (two-head wire,
   20×20, certification assumptions rewritten — the channel is
   restrained by law, not economics), and kitty-eval is a pre-seating

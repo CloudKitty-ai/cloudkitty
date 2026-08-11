@@ -3220,12 +3220,12 @@ check('the renderer asks before it draws a cat axially', () => {
     /const axial = axialOk &&/.test(decision),
     'the axial view must be gated by axialFor, not merely informed by it',
   );
-  // ...and the swim views are gated separately, because they are not yet
-  // judged. cat-v2 can DRAW them; only VIEW.swimAxial decides whether the
-  // meadow ever asks for one.
+  // ...and the swim views stay gated separately even now that they ship.
+  // cat-v2 can DRAW them; VIEW.swimAxial decides which directions the
+  // meadow asks for, and dropping the gate would take that choice away.
   assert(
     /swimAxialAllows\(/.test(decision),
-    'the axial swim is authored but unjudged -- render.js must gate it on VIEW.swimAxial',
+    'render.js must gate the axial swim on VIEW.swimAxial, whatever it is currently set to',
   );
 });
 
@@ -3496,13 +3496,37 @@ check('a raised tail is drawn where it can be SEEN, in every view', () => {
   }
 });
 
-check('nothing ships until the swim views are judged', () => {
-  // Built, dialled, and drawn in the lab -- but the meadow behaves exactly
-  // as it did until the owner has looked. `swimAxial` is the whole switch.
-  assert(VIEW.swimAxial === 'none', `VIEW.swimAxial ships as '${VIEW.swimAxial}', want 'none'`);
-  for (const facing of ['north', 'south']) {
-    assert(!swimAxialAllows(facing), `at the default, a cat swimming ${facing} must draw side-on`);
-  }
+check('the swim-view setting is one the code actually recognises', () => {
+  // This check used to assert `swimAxial` shipped as 'none', to prove the
+  // meadow could not change before the lab had spoken. It has spoken
+  // (owner, 2026-08-11: both), so that guard is retired rather than
+  // quietly deleted.
+  //
+  // What replaces it guards the way this particular switch FAILS. It is a
+  // string compared against literals, and anything unrecognised -- 'Both',
+  // a stray space, a rename on one side only -- silently means 'none':
+  // the feature ships inert, the meadow looks exactly as it did, and every
+  // check here still passes. That is the same shape as #182 shipping inert
+  // and #187 nearly doing so, so the shipped value has to be a value the
+  // code can actually act on.
+  const known = ['none', 'toward', 'both'];
+  assert(
+    known.includes(VIEW.swimAxial),
+    `VIEW.swimAxial is '${VIEW.swimAxial}', which no branch matches -- it would silently mean 'none'`,
+  );
+  // The end-on swim SHIPS (owner, 2026-08-11: both). Which directions is
+  // still hers -- 'toward' is a legitimate answer -- but turning it off
+  // altogether removes a drawing from the live meadow, and that is a
+  // decision someone should have to write down, not a value that can
+  // drift back with every test still green.
+  assert(
+    VIEW.swimAxial !== 'none',
+    'the end-on swim ships; switching it off is a decision, not a tweak',
+  );
+  assert(
+    ['north', 'south'].some((f) => swimAxialAllows(f)),
+    `VIEW.swimAxial is '${VIEW.swimAxial}' but no facing is allowed -- the feature is inert`,
+  );
   // ...and each setting means what it says.
   assert(swimAxialAllows('south', { swimAxial: 'toward' }), "'toward' must allow a cat swimming at you");
   assert(!swimAxialAllows('north', { swimAxial: 'toward' }), "'toward' must NOT allow one swimming away");
