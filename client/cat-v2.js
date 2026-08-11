@@ -139,6 +139,156 @@ const POSES = [
  * (0..1 box, ground near y 0.88); the pond draws underneath the cat, so
  * "underwater" is a reading the low flat silhouette earns, not clipping.
  */
+/**
+ * The axial views -- a cat seen head-on or from behind (2026-08-10).
+ *
+ * The vocabulary has been one drawing since it began: a side view, mirrored
+ * for left. That is why a cat walking north had to be faked with
+ * foreshortening, and why the turn-around was cut twice -- a flat side view
+ * has no depth to rotate into, so squashing it reads as a card turning
+ * edge-on rather than an animal turning away.
+ *
+ * These are real drawings instead, and they need no new machinery: the
+ * layout schema (body ellipse, head circle, legs, tail bezier) already
+ * describes a front-on cat perfectly well. What changes is only WHERE the
+ * parts sit, so blends, the rig, the water clip and the pose tween all
+ * keep working untouched.
+ *
+ * The engine moves cats in four directions only (owner, 2026-08-10), so
+ * there are exactly four facings and never a diagonal to resolve.
+ *
+ * Unit space, ground at 0.88, box centred on 0.5 -- unlike the side view,
+ * which is built around a nose at high x.
+ */
+const AXIAL = {
+  bodyY: 0.7, // body centre
+  bodyRx: 0.205, // narrower than the side view's 0.3: this is the chest, not the flank
+  bodyRy: 0.185,
+  // The head is at the FAR end of a cat walking away and the NEAR end of
+  // one walking toward you, so it cannot be one size. Drawing it the same
+  // either way is what made the back view read as a cat facing you with
+  // its face rubbed out -- the depth cue was missing, so the only thing
+  // left to go on was the tail, and the tail then looked like it grew from
+  // the head end.
+  // Which treatment is live. `elevation` owner-picked 2026-08-10 from the
+  // three rendered side by side, at 120px and at the live tile.
+  //
+  // The argument that won: the axial views have to match the SIDE view's
+  // camera, not the ground's. A cat turning from east to north must look
+  // like the same animal one tick later, and the side view -- the one seen
+  // most -- cannot tilt with them, so any tilt makes every turn a camera
+  // move as well as a rotation. The ground being drawn in plan while the
+  // cats are drawn in elevation is the convention every top-down game
+  // uses, and nobody reads it as a mistake.
+  //
+  // `tilt` and `topdown` stay on the shelf: one line switches, and the
+  // Camera Lab compares all three.
+  camera: 'elevation',
+  headYFront: 0.4,
+  headRFront: 0.232, // nearest the camera: a touch larger than the side view
+  // Lowered 0.355 -> 0.425 (owner: "sits too high up the body"). Measured,
+  // the body was hiding only 13% of the back-view head against 28% of the
+  // front-view one -- so the head furthest from the camera was the one
+  // floating clear of the shoulders, which is backwards. A cat's head sits
+  // INTO its shoulders, and more so as it turns away from you; a head
+  // clear of the body reads as a balloon on a string.
+  headYBack: 0.425,
+  headRBack: 0.196, // further away, and the body takes its chin
+  // Legs. The near pair is the one you see: forelegs from the front, hind
+  // legs from behind. The far pair sits wider and draws behind the body.
+  legNear: 0.098, // offset from centre
+  legFar: 0.152,
+  legTop: 0.7,
+  legW: 0.095,
+  // The walk, which in this view is almost all vertical: a cat coming at
+  // you covers no sideways ground, so the stride is invisible and what is
+  // left is the lift, the bob and the sway. (The side view's `depth*`
+  // dials were the fake of exactly this; they stay for graceful
+  // degradation but the live path no longer needs them.)
+  // Dialled right down 2026-08-10: the first cut read as "a horse at a
+  // canter" (owner), and both causes were mine. The legs were on a
+  // DIAGONAL sequence -- the footfall pattern of a trot -- and the body
+  // rocked hard enough to bound. A walking cat is famously level: it
+  // places one foot at a time in a lateral sequence and its shoulders
+  // barely move. So the rock is now a fifth of what it was and the
+  // sequence is the right one; see the leg phases below.
+  lift: 0.042, // how far a foot picks up
+  bob: 0.007, // body rise and fall
+  sway: 0.006, // and its side-to-side shift
+  roll: 0.018, // body lean, radians
+  headFollow: 0.25, // share of the bob the head takes -- a cat holds it level
+  headSway: 0.55, // and of the sway
+  // The tail. From behind it stops being a side detail and becomes most of
+  // the silhouette, which is why it goes straight up (owner's call): at
+  // 31px it is the one part of a walking-away cat that reads.
+  // The raised tail rises BESIDE the cat, not over it.
+  //
+  // Two wrong answers first, both instructive. Drawn behind and vertical
+  // out of the rump, it was hidden completely -- the body and head between
+  // them cover the whole centre of this view. Drawn in front to fix that,
+  // it became a thick diagonal bar laid across the body, which reads as a
+  // stick rather than a tail.
+  //
+  // The answer is neither: put it out past the silhouette's edge (the body
+  // is 0.205 wide, the head 0.222) and it needs no compositing trick at
+  // all. It stays behind the cat like every other tail, its base is hidden
+  // by the rump exactly as it should be, and the raised length is in clear
+  // air. Which is also how the sprite reads in every game that has ever
+  // drawn a cat walking away.
+  tailTopY: 0.33,
+  tailBaseY: 0.8,
+  tailBaseX: 0.55, // at the rump, still inside the body silhouette
+  tailOutX: 0.79, // ...and out past its edge, where the raised length shows
+  tailSway: 0.025, // tip drift across the walk
+  tailCurve: 0.06, // how far it bows on the way out and up
+  // From the front the tail is behind the cat, so only a hint of it clears
+  // the body's edge.
+  tailPeekX: 0.26, // just past the body's 0.205 edge -- a hint, not a shape
+  tailPeekY: 0.66,
+};
+
+/**
+ * Three camera treatments for the axial views (2026-08-10).
+ *
+ * The axial views are the first drawings in this world where the camera
+ * ANGLE is visible. A side view never shows the depth axis, so any camera
+ * height projects to the same silhouette; head-on and from behind, the
+ * depth axis points into the screen and how much of the cat's LENGTH you
+ * see IS the angle.
+ *
+ * Only the body and head change: the further above the horizon the camera
+ * sits, the more spine you see running away up-screen, the smaller the far
+ * end of the cat gets, and the more of the legs the body hides. Nothing
+ * here is new machinery -- it is the same layout with different numbers.
+ */
+const AXIAL_CAMERAS = {
+  // A cat seen from its own eye level. Matches the SIDE view's camera,
+  // which is the argument for it: a cat turning from east to north has to
+  // look like the same animal, and the side view is the one seen most.
+  elevation: {
+    bodyY: 0.7, bodyRx: 0.205, bodyRy: 0.185,
+    headYFront: 0.4, headRFront: 0.232,
+    headYBack: 0.425, headRBack: 0.196,
+  },
+  // Looking down a little -- roughly what the elliptical ground shadows
+  // already imply. Some spine, a slightly smaller far end.
+  tilt: {
+    bodyY: 0.685, bodyRx: 0.195, bodyRy: 0.205,
+    headYFront: 0.375, headRFront: 0.222,
+    headYBack: 0.44, headRBack: 0.176,
+  },
+  // Clearly above: the cat reads as a length running away from you, and
+  // the legs mostly disappear under the body, which is what foreshortening
+  // does to them.
+  topdown: {
+    bodyY: 0.66, bodyRx: 0.185, bodyRy: 0.225,
+    headYFront: 0.335, headRFront: 0.208,
+    headYBack: 0.46, headRBack: 0.152,
+  },
+};
+
+const AXIAL_POSES = new Set(['walking', 'idle']);
+
 const SWIM = {
   // Raised 2026-08-10, when the swim pose started being CLIPPED at the
   // waterline like every other pose.
@@ -494,7 +644,13 @@ function createRigState() {
  * hidden-tab hitch does not ring, it detonates.
  */
 function stepRig(state, input, dtMs) {
-  const dir = input.facing === 'left' ? -1 : 1;
+  // Four facings since 2026-08-10. What matters here is not the direction
+  // but the MIRROR: a side view is drawn mirrored for left, so its forward
+  // is always +x in drawn space and the sign lives in `vf`. An axial view
+  // is not mirrored at all, so its forward really is up or down the screen
+  // and that sign has to survive into the target.
+  const axial = input.facing === 'north' || input.facing === 'south';
+  const dir = input.facing === 'left' || input.facing === 'north' ? -1 : 1;
   // The rig lives in the cat's OWN space, so the instant a cat mirrors,
   // every x offset it is carrying means the opposite thing in the world:
   // a tail trailing west becomes a tail trailing east, in one frame. That
@@ -509,10 +665,13 @@ function stepRig(state, input, dtMs) {
     }
   }
   state.facing = input.facing;
-  // Forward is along the cat's nose, whichever way it happens to be drawn.
-  const vf = (input.vx || 0) * dir;
-  const vd = input.vy || 0;
-  const gx = (input.gazeX || 0) * dir;
+  // Speed along the nose, positive when the cat is going where it faces...
+  const vf = axial ? (input.vy || 0) * dir : (input.vx || 0) * dir;
+  // ...and across it. Cats move on four axes only, so an axial cat has no
+  // sideways travel to speak of.
+  const vd = axial ? 0 : input.vy || 0;
+  // Gaze arrives in screen axes; head-on there is no mirror to undo.
+  const gx = axial ? input.gazeX || 0 : (input.gazeX || 0) * dir;
   const gy = input.gazeY || 0;
   const twitch = input.earTwitch || 0;
 
@@ -524,10 +683,14 @@ function stepRig(state, input, dtMs) {
     // going, so it is always behind -- and it keeps travelling after the
     // body stops, because the spring still has velocity when the cat
     // does not. That settle is the single most alive thing here.
+    // The drag is along the nose either way, but an axial cat's nose points
+    // up or down the screen rather than along +x, so the whole trail moves
+    // onto the y channel.
+    const trail = rclamp(-RIG.tailDrag * vf, -RIG.tailMax, RIG.tailMax);
     springStep(
       state.tailMid,
-      rclamp(-RIG.tailDrag * vf, -RIG.tailMax, RIG.tailMax),
-      rclamp(-RIG.tailDrag * vd * 0.6, -RIG.tailMax, RIG.tailMax),
+      axial ? 0 : trail,
+      axial ? trail * dir : rclamp(-RIG.tailDrag * vd * 0.6, -RIG.tailMax, RIG.tailMax),
       RIG.tailOmega, RIG.tailZeta, dt,
     );
     // Follow-the-leader, so the curve BENDS instead of the whole tail
@@ -538,10 +701,11 @@ function stepRig(state, input, dtMs) {
       state.tailMid.y * RIG.tailWhip,
       RIG.tailOmega * 0.8, RIG.tailZeta * 0.85, dt,
     );
+    const lead = rclamp(RIG.headDrag * vf, -RIG.headMax, RIG.headMax);
     springStep(
       state.head,
-      rclamp(RIG.headDrag * vf, -RIG.headMax, RIG.headMax),
-      rclamp(-RIG.headDrag * vd * 0.5, -RIG.headMax, RIG.headMax),
+      axial ? 0 : lead,
+      axial ? lead * dir : rclamp(-RIG.headDrag * vd * 0.5, -RIG.headMax, RIG.headMax),
       RIG.headOmega, RIG.headZeta, dt,
     );
     springStep(state.gaze, gx, gy, RIG.gazeOmega, RIG.gazeZeta, dt);
@@ -626,8 +790,9 @@ function applyRig(L, rig) {
  */
 function stillRig(input) {
   if (!input) return null;
+  const axial = input.facing === 'north' || input.facing === 'south';
   const dir = input.facing === 'left' ? -1 : 1;
-  const gx = (input.gazeX || 0) * dir;
+  const gx = axial ? input.gazeX || 0 : (input.gazeX || 0) * dir;
   const gy = input.gazeY || 0;
   // Nothing has this cat's attention: the un-rigged drawing, as before.
   if (!gx && !gy) return null;
@@ -687,6 +852,100 @@ function turnTransform(t) {
     lift: 0,
     flipped: u >= RIG.turnFlipAt,
   };
+}
+
+/**
+ * Overwrites a finished side-view layout with its axial equivalent.
+ *
+ * Runs AFTER the pose switch rather than inside it, so a pose with no
+ * axial authoring simply keeps the side drawing it already had -- the
+ * fallback is "draw the cat we have", never "draw nothing".
+ *
+ * `back` is the walking-away view (moving north, up-screen) and `front`
+ * is the walking-toward one (south). The difference between them is small
+ * in the layout and large in the paint: the back view has no face, and its
+ * tail is the whole silhouette.
+ */
+function applyAxial(L, pose, phase, view, opts) {
+  const back = view === 'back';
+  const walking = pose === 'walking';
+  // Distance-keyed like the side walk, so feet still plant against ground
+  // covered rather than against time.
+  const cycle = walking ? phase * GAIT.cycles : 0;
+  const breathe = walking ? 0 : Math.sin(phase * TAU);
+
+  const bob = walking ? AXIAL.bob * Math.cos((cycle - GAIT.bobPhase) * GAIT.beats * TAU) : 0;
+  const sway = walking ? AXIAL.sway * Math.sin(cycle * TAU) : 0;
+  const roll = walking ? AXIAL.roll * Math.sin(cycle * TAU) : 0;
+
+  // The camera treatment moves the body and the head and nothing else --
+  // the gait, the tail and the paint order are the same drawing at any
+  // angle.
+  const C = AXIAL_CAMERAS[(opts && opts.camera) || AXIAL.camera] || AXIAL_CAMERAS.elevation;
+  L.body = {
+    cx: 0.5 + sway,
+    cy: C.bodyY + bob,
+    rx: C.bodyRx,
+    ry: C.bodyRy + (walking ? 0 : 0.006 * breathe),
+    rot: roll,
+  };
+  L.head = {
+    cx: 0.5 + sway * AXIAL.headSway,
+    cy: (back ? C.headYBack : C.headYFront) + bob * AXIAL.headFollow,
+    r: back ? C.headRBack : C.headRFront,
+  };
+
+  // Four legs, on the same diagonal sequence the side walk uses. In this
+  // view a step is a LIFT, because the swing is pointed at the camera.
+  // Walking away, the HIND legs are the near pair; walking toward, the
+  // forelegs are. `far` decides which side of the body a leg is drawn on.
+  const leg = (dx, u, far) => {
+    const g = walking ? gaitStep(((u % 1) + 1) % 1, GAIT.duty) : { x: 0, lift: 0 };
+    const x = 0.5 + dx + sway * 0.4;
+    return {
+      x,
+      hx: 0.5 + dx * 0.6,
+      top: AXIAL.legTop,
+      bottom: CAT_GROUND - AXIAL.lift * g.lift,
+      w: AXIAL.legW,
+      far,
+    };
+  };
+  // The lateral sequence -- hind, then the fore on the SAME side, then
+  // across: left hind, left fore, right hind, right fore, evenly spaced.
+  // The first cut ran left-fore, right-hind, left-hind, right-fore, which
+  // is a diagonal pattern, and a diagonal pattern is a trot. That is most
+  // of what read as a canter.
+  const hind = back ? -AXIAL.legNear : -AXIAL.legFar;
+  const fore = back ? -AXIAL.legFar : -AXIAL.legNear;
+  L.legs = [
+    leg(hind, cycle, !back),
+    leg(fore, cycle - 0.25, back),
+    leg(-hind, cycle - 0.5, !back),
+    leg(-fore, cycle - 0.75, back),
+  ];
+
+  if (back) {
+    // Out from behind the rump, then up: an S that leaves the base hidden
+    // by the body and puts the whole raised length clear of the silhouette.
+    const tip = AXIAL.tailOutX + AXIAL.tailSway * Math.sin(cycle * TAU) + sway;
+    L.tail = {
+      x0: AXIAL.tailBaseX + sway * 0.5, y0: AXIAL.tailBaseY,
+      c1x: AXIAL.tailOutX + AXIAL.tailCurve, c1y: AXIAL.tailBaseY - 0.02,
+      c2x: tip + AXIAL.tailCurve, c2y: AXIAL.tailTopY + 0.16,
+      x1: tip, y1: AXIAL.tailTopY,
+    };
+  } else {
+    // Behind the cat, so only what clears the body's edge is seen.
+    L.tail = {
+      x0: 0.5, y0: AXIAL.tailBaseY,
+      c1x: 0.5 + AXIAL.tailPeekX * 0.5, c1y: AXIAL.tailBaseY + 0.02,
+      c2x: 0.5 + AXIAL.tailPeekX, c2y: AXIAL.tailPeekY + 0.06,
+      x1: 0.5 + AXIAL.tailPeekX * 0.85, y1: AXIAL.tailPeekY,
+    };
+  }
+  L.view = view;
+  return L;
 }
 
 /**
@@ -1837,6 +2096,13 @@ function catLayout(pose, phase, opts = {}) {
   // Shape first, then stand height: proportion holds the belly floor and
   // lift moves it, so running them the other way round would have lift's
   // rise silently undone by proportion's floor-restoring step.
+  // The axial views overwrite the finished layout rather than branching
+  // inside the switch, so a pose with no axial authoring keeps its side
+  // drawing instead of vanishing.
+  const view = opts.view || 'side';
+  L.view = 'side';
+  if (view !== 'side' && AXIAL_POSES.has(pose)) applyAxial(L, pose, phase, view, opts);
+
   // Poses still speak in the boolean; the continuous value is derived so
   // no pose had to be rewritten to gain an eased ear.
   if (!L.earsUpright) L.earsBackAmt = 1;
@@ -1854,7 +2120,29 @@ const WATER_DROPLET = '#9ccfe6'; // matches the world's water rim
 function paintCat(ctx, L, a, fine, lid = 0) {
   const p = a.pattern || { kind: 'solid' };
 
-  drawTail(ctx, L.tail, a, p);
+  // Paint order IS the depth order, and for a cat walking away it inverts:
+  // the head is the furthest part of it and the tail the nearest. Drawing
+  // them in the side view's order put the head on top of the body and the
+  // tail underneath it -- which reads as a cat facing you with its face
+  // missing, because those two are the only depth cues the view has.
+  const rear = L.view === 'back';
+  const earsBack = L.earsBackAmt === undefined ? (L.earsUpright ? 0 : 1) : L.earsBackAmt;
+  const paintHead = () => {
+    drawEars(ctx, L.head, a, p, earsBack, L.earNear || 0, L.earFar || 0);
+    drawHead(ctx, L.head, a, p, fine, L.view);
+    // A cat walking away has the BACKS of its ears toward you and no face
+    // at all. Skipping both is the rest of the back view's difference, and
+    // it is what makes the view read instantly: a faceless head is
+    // unmistakable even at 31px.
+    if (!rear) {
+      drawInnerEars(ctx, L.head, a, earsBack, L.earNear || 0, L.earFar || 0);
+      drawFace(ctx, L.head, L.eyes, a, lid, L.gaze, L.yawn || 0, L.view);
+    }
+  };
+
+  // Furthest first.
+  if (rear) paintHead();
+  else drawTail(ctx, L.tail, a, p);
   // Legs go UNDER the body (owner's idea, 2026-08-08): a limb pivots from
   // high inside the body and only the part below the silhouette is seen,
   // so the visible paw is small while its MOTION is a long lever's. The
@@ -1862,13 +2150,11 @@ function paintCat(ctx, L, a, fine, lid = 0) {
   // order. It also hides changes in limb LENGTH, which is what lets a
   // stance foot stay planted on the ground while a swinging one arcs.
   drawLegs(ctx, L.legs.filter((l) => !l.front), a, p);
-  drawBody(ctx, L.body, a, p);
+  drawBody(ctx, L.body, a, p, L.view);
   drawLegs(ctx, L.legs.filter((l) => l.front), a, p);
-  const back = L.earsBackAmt === undefined ? (L.earsUpright ? 0 : 1) : L.earsBackAmt;
-  drawEars(ctx, L.head, a, p, back, L.earNear || 0, L.earFar || 0);
-  drawHead(ctx, L.head, a, p, fine);
-  drawInnerEars(ctx, L.head, a, back, L.earNear || 0, L.earFar || 0);
-  drawFace(ctx, L.head, L.eyes, a, lid, L.gaze, L.yawn || 0);
+  // ...and nearest last.
+  if (rear) drawTail(ctx, L.tail, a, p);
+  else paintHead();
   if (L.pawUp) drawRaisedPaw(ctx, L.head, a);
   if (L.droplet) drawDroplet(ctx, L.head);
 }
@@ -1895,7 +2181,10 @@ function bodyPath(ctx, b) {
   ctx.ellipse(b.cx, b.cy, b.rx, b.ry, b.rot || 0, 0, TAU);
 }
 
-function drawBody(ctx, b, a, p) {
+function drawBody(ctx, b, a, p, view = 'side') {
+  // Everything below reads `view`; `rear` is the one that suppresses
+  // markings that only exist on a cat's front.
+  const rear = view === 'back';
   bodyPath(ctx, b);
   ctx.fillStyle = a.furBase;
   ctx.fill();
@@ -1912,12 +2201,16 @@ function drawBody(ctx, b, a, p) {
     const sin = Math.sin(rot);
     // The offset is expressed along the body's own axes, so it has to turn
     // with the body -- otherwise the belly slides out of the crouch.
-    const ox = BELLY.x * b.rx;
-    const oy = BELLY.y * b.ry;
+    // A cat walking away shows its BACK, and a back has no pale belly. The
+    // patch is a chest marking seen from the front and a nonsense from
+    // behind -- it was the last thing making the rear view read as a
+    // frontal cat with its face missing.
+    const ox = view === 'side' ? BELLY.x * b.rx : 0;
+    const oy = BELLY.y * b.ry * (view === 'front' ? 0.72 : 1);
     ctx.save();
     bodyPath(ctx, b);
     ctx.clip();
-    ctx.globalAlpha = BELLY.alpha;
+    ctx.globalAlpha = rear ? 0 : BELLY.alpha;
     ctx.fillStyle = lightenHex(a.furBase, BELLY.lighten);
     ctx.beginPath();
     ctx.ellipse(
@@ -1948,13 +2241,29 @@ function drawBody(ctx, b, a, p) {
   ctx.clip();
   if (p.kind === 'tabby-stripes') {
     ctx.fillStyle = p.color;
-    for (const s of [-0.45, 0, 0.45]) {
-      ctx.beginPath();
-      ctx.ellipse(
-        b.cx + s * b.rx, b.cy - b.ry * 0.55,
-        b.rx * 0.075, b.ry * 0.62, s * 0.25, 0, TAU,
-      );
-      ctx.fill();
+    // No body stripes head-on or from behind (owner, 2026-08-10).
+    //
+    // A tabby's bands run AROUND the barrel, so seen end-on they project
+    // to rings hugging the body outline -- not to anything a viewer reads
+    // as fur. Two tries confirmed it: the side bars became neck
+    // striations, and the honest quarter-turn became horizontal bands
+    // across the chest. There is no third orientation to try, because the
+    // problem is not the angle: a band around a cylinder seen down its own
+    // axis has no legible projection at 31px.
+    //
+    // Which turns out to match the animal. A tabby seen head-on wears its
+    // markings on the FACE and the legs, not the chest -- and the forehead
+    // stripes are still drawn (see drawHead), so the front view keeps the
+    // most recognisable tabby marking there is.
+    if (view === 'side') {
+      for (const s of [-0.45, 0, 0.45]) {
+        ctx.beginPath();
+        ctx.ellipse(
+          b.cx + s * b.rx, b.cy - b.ry * 0.55,
+          b.rx * 0.075, b.ry * 0.62, s * 0.25, 0, TAU,
+        );
+        ctx.fill();
+      }
     }
   } else if (p.kind === 'patches') {
     ctx.fillStyle = p.color;
@@ -2083,7 +2392,7 @@ function headPath(ctx, head) {
   ctx.arc(head.cx, head.cy, head.r, 0, TAU);
 }
 
-function drawHead(ctx, head, a, p, fine) {
+function drawHead(ctx, head, a, p, fine, view = 'side') {
   headPath(ctx, head);
   ctx.fillStyle = a.furBase;
   ctx.fill();
@@ -2094,7 +2403,23 @@ function drawHead(ctx, head, a, p, fine) {
   ctx.save();
   headPath(ctx, head);
   ctx.clip();
-  if (p.kind === 'point-mask') {
+  // A MUZZLE is on the face, so a cat walking away does not have one in
+  // view (2026-08-10). `paintCat` already skips drawFace and the inner ears
+  // for exactly this reason -- "a faceless head is unmistakable even at
+  // 31px" -- but the muzzle masks are painted by drawHead, which ran
+  // regardless, so the two disagreed: the face vanished and a dark oval
+  // stayed behind on the back of the skull.
+  //
+  // Only the tabby's forehead stripes checked `view` before this, and they
+  // are the one head marking a cat really does wear where it can still be
+  // seen from behind -- which is why they check for 'back' and keep drawing
+  // head-on. The handoff's own gap list names calico and tuxedo; it does
+  // not name point-mask, and point-mask is the one on the live roster
+  // (Miso). Measured at a 31px tile the stray oval is 3.1 x 2.2px at 85%
+  // alpha against her cream fur -- four times the sub-pixel floor that
+  // killed whiskers, so it reads as a smudge rather than as a marking.
+  const rear = view === 'back';
+  if (p.kind === 'point-mask' && !rear) {
     // The seal-point face: a soft dark oval over the muzzle -- anchored
     // to NOSE.x (v2, owner 2026-07-29) so the mask follows the front-on
     // face instead of v1's profile muzzle at the head's edge. Upright
@@ -2105,9 +2430,10 @@ function drawHead(ctx, head, a, p, fine) {
     ctx.ellipse(head.cx + head.r * NOSE.x, head.cy + head.r * (NOSE.y + 0.08), head.r * 0.46, head.r * 0.32, 0, 0, TAU);
     ctx.fill();
     ctx.globalAlpha = 1;
-  } else if (p.kind === 'tuxedo-mask') {
+  } else if (p.kind === 'tuxedo-mask' && !rear) {
     // The white muzzle that makes the tuxedo, centered under the nose
-    // like the point mask (v2).
+    // like the point mask (v2). Same rule, same reason -- though no cat on
+    // the roster wears it, so this one only shows in the gallery today.
     ctx.fillStyle = p.color;
     ctx.beginPath();
     ctx.ellipse(head.cx + head.r * NOSE.x, head.cy + head.r * (NOSE.y + 0.14), head.r * 0.5, head.r * 0.4, 0, 0, TAU);
@@ -2120,7 +2446,7 @@ function drawHead(ctx, head, a, p, fine) {
     // into a half-hidden sliver. Now it clears the eye and reads whole.
     ctx.ellipse(head.cx - head.r * 0.62, head.cy - head.r * 0.58, head.r * 0.36, head.r * 0.3, -0.35, 0, TAU);
     ctx.fill();
-  } else if (p.kind === 'tabby-stripes' && fine) {
+  } else if (p.kind === 'tabby-stripes' && fine && view !== 'back') {
     // Three tiny forehead stripes, only when they can actually read.
     ctx.strokeStyle = p.color;
     ctx.lineWidth = OUTLINE_W * 0.8;
@@ -2159,6 +2485,11 @@ const EYE = {
   scale: 0.19, // iris radius / head.r
   height: -0.075, // eye center vs head center / head.r (+down, -up)
   shift: -0.15, // both eyes together / head.r (+toward nose, -toward back)
+  // Head-on, both eyes sit this far either side of centre. Wider than half
+  // the side view's spread (0.25 vs 0.35) on purpose: a front-on face reads
+  // cuter with the eyes set a little apart, and it keeps them clear of the
+  // muzzle beneath.
+  frontSpread: 0.25,
   spreadNear: 0.12, // rear eye offset / head.r
   spreadFar: 0.62, // front eye offset / head.r
   // Pupil size as a share of the APERTURE's half-height, not of `er`
@@ -2373,7 +2704,7 @@ const MOUTH = {
   depth: 0.08, // vertical reach: leg drop ('v') or arc bulge ('w')
 };
 
-function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0) {
+function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0, view = 'side') {
   // A yawn squeezes the eyes shut on its way open -- it is the eyes, not
   // the mouth, that make a yawn read as one at 31px.
   if (yawn > 0.02) lid = Math.max(lid, smooth01(yawn * 1.1));
@@ -2386,8 +2717,18 @@ function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0) {
   const F = focus ? { ...EYE, ...(FOCUS_VARIANTS[EYE.focusVariant] || null) } : EYE;
   // Half the spread each way, so widening the pair cannot shift the face.
   const half = (focus * (F.focusSpread || 0)) / 2;
-  const ex1 = head.cx + head.r * (EYE.spreadNear + EYE.shift - half);
-  const ex2 = head.cx + head.r * (EYE.spreadFar + EYE.shift + half);
+  // The side view's eyes are deliberately asymmetric about the head -- one
+  // near, one far, shifted toward the muzzle -- which is what gives that
+  // drawing its three-quarter read. Head-on there is no near and no far,
+  // so they sit symmetric about the centre; keeping the side spread here
+  // would slide the whole face off the middle of a front-on skull.
+  const frontOn = view === 'front';
+  const ex1 = frontOn
+    ? head.cx - head.r * (EYE.frontSpread + half)
+    : head.cx + head.r * (EYE.spreadNear + EYE.shift - half);
+  const ex2 = frontOn
+    ? head.cx + head.r * (EYE.frontSpread + half)
+    : head.cx + head.r * (EYE.spreadFar + EYE.shift + half);
   const ey = head.cy + head.r * EYE.height;
   const er = head.r * EYE.scale;
   // 'half' rides the open-eye path under a standing lid (v2): the drowsy
@@ -2632,7 +2973,8 @@ function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0) {
   // v2: a symmetric upside-down triangle, upright with respect to the
   // eyes (owner call, 2026-07-29) -- v1's skewed profile-leaning triangle
   // read wrong once the face went front-on.
-  const nx = head.cx + head.r * NOSE.x;
+  // ...and the muzzle sits on the centreline for the same reason.
+  const nx = head.cx + head.r * (view === 'front' ? 0 : NOSE.x);
   const ny = head.cy + head.r * NOSE.y;
   const ns = head.r * NOSE.size;
   ctx.fillStyle = a.noseColor;
@@ -2763,6 +3105,10 @@ const api = {
   gaitStep,
   pounceWiggle,
   FAR_LEGS,
+  AXIAL,
+  AXIAL_CAMERAS,
+  AXIAL_POSES,
+  applyAxial,
   FOCUS_VARIANTS,
   BREATH,
   breathCurve,

@@ -930,6 +930,22 @@ class WorldRenderer {
       typeof turnFacing === 'function'
         ? turnFacing(view.facingFor(kitty.id), turn)
         : view.facingFor(kitty.id);
+    // Four facings (2026-08-10). North is walking away, south is walking
+    // toward -- but only poses with an axial DRAWING can wear them, so
+    // anything else falls back to the cat's last east/west facing rather
+    // than to a view that does not exist. That fallback is the whole
+    // reason `sideFacingFor` is remembered separately: a cat that walks
+    // north and then grooms should face the way it last plausibly did.
+    const axialPose = typeof AXIAL_POSES !== 'undefined' && AXIAL_POSES.has(pose);
+    const axial = axialPose && (drawnFacing === 'north' || drawnFacing === 'south');
+    const catView = axial ? (drawnFacing === 'north' ? 'back' : 'front') : 'side';
+    const paintFacing = axial
+      ? drawnFacing
+      : drawnFacing === 'north' || drawnFacing === 'south'
+        ? view.sideFacingFor
+          ? view.sideFacingFor(kitty.id)
+          : 'right'
+        : drawnFacing;
     const vel = v2Motion && view.velocityFor ? view.velocityFor(kitty.id) : { x: 0, y: 0 };
     const gaze = (v2Motion && gazeTargetFor(kitty, world, pos)) || motion.gaze || null;
     const rig =
@@ -954,6 +970,10 @@ class WorldRenderer {
       travelH: view.travelHFor ? view.travelHFor(kitty.id) : 1,
       // How long one beat lasts, for motion authored as a real frequency.
       beatMs: view.tickMs,
+      // Which drawing to use. Resolved above, from the pose AND the facing:
+      // the facing is not settled until the turn has had its say, so this
+      // cannot be computed where the other layout fields are chosen.
+      view: catView,
     };
 
     // How damp the COAT is -- and nothing else. This is the one water cue
@@ -1062,7 +1082,7 @@ class WorldRenderer {
         VIEW.ambient.wetCoat && typeof wetAppearanceOf === 'function'
           ? wetAppearanceOf(shadedAppearanceOf(appearanceFor(kitty.id), this.theme), furWet)
           : shadedAppearanceOf(appearanceFor(kitty.id), this.theme),
-      facing: view.facingFor(kitty.id),
+      facing: paintFacing,
       size: this.tile,
       eyesOverride: eyes,
       // On the v2 path the rig owns the ears, so the hard boolean (which
@@ -1099,7 +1119,7 @@ class WorldRenderer {
     // The beat, the Zs and the cuddle heart all live ABOVE the water and
     // are drawn after the clip is released -- a thought bubble does not
     // get cut off because the cat it belongs to is standing in a pond.
-    if (beat) this.drawBeat(beat, cx, cy, view.facingFor(kitty.id));
+    if (beat) this.drawBeat(beat, cx, cy, paintFacing);
 
     if (state === 'sleeping') {
       // Drawn Zs drift up from the sleeper (spec 007 FR-008), replacing

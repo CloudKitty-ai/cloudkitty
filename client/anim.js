@@ -753,8 +753,21 @@ class Presentation {
       if ((dx > 0 && facing === 'left') || (dx < 0 && facing === 'right')) {
         this.turns.set(kitty.id, now);
       }
-      if (dx > 0) this.facings.set(kitty.id, 'right');
-      else if (dx < 0) this.facings.set(kitty.id, 'left');
+      // Four facings (2026-08-10). The engine moves cats on four axes only,
+      // so exactly one of dx/dy is ever non-zero and there is no diagonal
+      // to resolve -- the dominant-axis test below is a guard, not a rule.
+      const dy = kitty.pos.y - was.pos.y;
+      if (dx || dy) {
+        const horizontal = Math.abs(dx) >= Math.abs(dy);
+        const next = horizontal ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'south' : 'north';
+        this.facings.set(kitty.id, next);
+        // The last EAST/WEST facing, remembered separately. Only some poses
+        // have an axial drawing, so a cat that walks north and then starts
+        // grooming has to be drawn side-on -- and it should face the way it
+        // last plausibly did, not a direction picked at random.
+        if (!this.sideFacings) this.sideFacings = new Map();
+        if (horizontal) this.sideFacings.set(kitty.id, next);
+      }
       this.movedNow.set(kitty.id, dx !== 0 || kitty.pos.y !== was.pos.y);
 
       const sleepingNow = kitty.activity?.state === 'sleeping';
@@ -852,6 +865,11 @@ class Presentation {
 
   facingFor(id) {
     return this.facings.get(id) ?? 'left';
+  }
+
+  /** The cat's last east/west facing, for poses with no axial drawing. */
+  sideFacingFor(id) {
+    return this.sideFacings?.get(id) ?? 'left';
   }
 
   movedFor(id) {
@@ -1509,6 +1527,7 @@ class Presentation {
           : this.rigFor(key, input, now),
       velocityFor: (id) => (still ? { x: 0, y: 0 } : this.velocityFor(id, now)),
       travelHFor: (id) => this.travelHFor(id),
+      sideFacingFor: (id) => this.sideFacingFor(id),
       // The served beat length, so presentation code whose timing is a
       // real-world frequency (the pounce wiggle) can derive its rate from
       // the tick rather than assuming 800ms.
