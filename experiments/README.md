@@ -20,6 +20,10 @@ configs are frozen and versioned; nothing here may train on them.
 
 ## Layout
 
+- `PIPELINE.md` — the policy pipeline as default doctrine: stages,
+  gates (§9.2 stress / §9.3 welfare), seed-band ledger, certification
+  battery, seating and soak protocol, with diagrams. Preregs
+  re-register the gates per experiment and, once frozen, win over it.
 - `FINDINGS.md` — the findings register: distilled, generalizable
   conclusions with statuses, scope, evidence links, and standing
   re-verification triggers. Pre-registrations MUST cite the F-ids they
