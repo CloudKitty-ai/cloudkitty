@@ -317,7 +317,20 @@ const AXIAL_SWIM = {
   headDrop: 0.055, // chin toward the surface, the swimming read
   bob: 0.012, // matches the side pose's paddle bob
   rock: 0.03, // less than the side view's: an end-on roll shows more
-  tailSink: 0.08, // how far under the body the trailing tail sits
+  // The tail, held UP out of the water (owner, 2026-08-11).
+  //
+  // This is the posture the water we actually built calls for. The
+  // waterline cuts a cat at 0.72 of its box -- its flank, not its neck --
+  // so these are cats wading and paddling in the shallows, and a wading
+  // cat carries its tail clear of the surface. It also happens to be the
+  // one thing that can rescue the away view: everything else above water
+  // there is a circle and two ears, and a raised tail is the only piece of
+  // silhouette left that says CAT rather than otter.
+  tailBaseDrop: 0.06, // where it leaves the body, under the surface
+  tailTopY: 0.42, // ...and where the tip rides, well clear of it
+  tailOutX: 0.72, // out past the body's edge (back view), where it shows
+  tailPeekX: 0.63, // the far side (front view): a hint past the flank
+  tailCurve: 0.05, // how far it bows on the way out and up
 };
 
 const SWIM = {
@@ -340,6 +353,7 @@ const SWIM = {
   bob: 0.012, // vertical bob amplitude (paddle rhythm)
   rock: 0.045, // paddling body rock, radians
   tailLift: 0.6, // where the tail tip rides above the surface
+  tailUpright: 0, // 0 = the trailing tail that shipped, 1 = held vertical
 };
 
 /**
@@ -940,18 +954,33 @@ function applyAxial(L, pose, phase, view, opts) {
     // so if the side pose ever grows legs this is a test failure and not a
     // silent difference between the two views.)
     //
-    // Astern and submerged. Not removed -- every consumer of a layout may
-    // read a tail, and a pose that hands back nothing is a crash waiting
-    // for the one caller that forgot to check. It is drawn where it really
-    // is instead: short, centred behind the body, and below the surface,
-    // so the waterline clip is what takes it away.
-    const stern = C.bodyY + AXIAL_SWIM.bodyDrop + AXIAL_SWIM.tailSink;
-    L.tail = {
-      x0: 0.5, y0: stern,
-      c1x: 0.5, c1y: stern + 0.01,
-      c2x: 0.5, c2y: stern + 0.02,
-      x1: 0.5, y1: stern + 0.02,
-    };
+    // Out of the water, not under it. The base stays below the surface --
+    // it leaves a submerged rump -- and everything above the clip is the
+    // raised length, which is the whole point of drawing it.
+    const stern = C.bodyY + AXIAL_SWIM.bodyDrop + AXIAL_SWIM.tailBaseDrop + swimBob;
+    const top = AXIAL_SWIM.tailTopY + swimBob;
+    if (back) {
+      // Swimming away: the tail is the near end, so its whole raised
+      // length is in view. Out from behind the rump, then up.
+      const tip = AXIAL_SWIM.tailOutX;
+      L.tail = {
+        x0: 0.5, y0: stern,
+        c1x: tip - AXIAL_SWIM.tailCurve, c1y: stern - 0.02,
+        c2x: tip + AXIAL_SWIM.tailCurve, c2y: top + 0.16,
+        x1: tip, y1: top,
+      };
+    } else {
+      // Swimming toward you: the tail is the far end and paints behind the
+      // body, so only what clears the flank is seen -- a raised tip over
+      // the shoulder rather than a whole tail.
+      const tip = AXIAL_SWIM.tailPeekX;
+      L.tail = {
+        x0: 0.5, y0: stern,
+        c1x: 0.5 + (tip - 0.5) * 0.5, c1y: stern - 0.02,
+        c2x: tip + AXIAL_SWIM.tailCurve, c2y: top + 0.14,
+        x1: tip, y1: top,
+      };
+    }
     L.view = view;
     return L;
   }
@@ -2103,12 +2132,19 @@ function catLayout(pose, phase, opts = {}) {
       L.body = { cx: 0.44, cy: SWIM.bodyY + bob, rx: 0.3, ry: SWIM.bodyRy, rot: rock };
       L.head = { cx: 0.7, cy: SWIM.headY + bob, r: 0.226 };
       L.legs = [];
-      // Tail trailing behind, tip riding above the surface.
+      // Tail trailing behind, tip riding above the surface -- and
+      // `tailUpright` pulls that trail toward vertical, which is the
+      // posture a cat wading in shallows actually holds (owner,
+      // 2026-08-11). At 0 this is exactly the shape that shipped; at 1 the
+      // tail stands over its own base. Lerping the x extent rather than
+      // re-authoring the curve keeps every value in between drawable.
+      const up = SWIM.tailUpright;
+      const tx = (x) => 0.16 + (x - 0.16) * (1 - up);
       L.tail = {
         x0: 0.16, y0: SWIM.bodyY + bob,
-        c1x: 0.04, c1y: SWIM.bodyY - 0.05,
-        c2x: 0.0, c2y: SWIM.tailLift + 0.08,
-        x1: 0.05, y1: SWIM.tailLift,
+        c1x: tx(0.04), c1y: SWIM.bodyY - 0.05,
+        c2x: tx(0.0), c2y: SWIM.tailLift + 0.08,
+        x1: tx(0.05), y1: SWIM.tailLift,
       };
       break;
     }

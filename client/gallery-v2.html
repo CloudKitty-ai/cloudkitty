@@ -538,6 +538,7 @@
     { obj: 'SWIM', key: 'bob', label: 'swim bob amplitude', min: 0, max: 0.03, step: 0.001 },
     { obj: 'SWIM', key: 'rock', label: 'swim paddle rock', min: 0, max: 0.1, step: 0.005 },
     { obj: 'SWIM', key: 'tailLift', label: 'swim tail-tip height (− up / + down)', min: 0.45, max: 0.75, step: 0.005 },
+    { obj: 'SWIM', key: 'tailUpright', label: 'swim tail upright (0 = trailing, as shipped)', min: 0, max: 1, step: 0.05 },
   ];
   const dialRoot = document.getElementById('dials');
   const readout = document.getElementById('eyeReadout');
@@ -1563,7 +1564,11 @@
         { key: 'headDrop', label: 'chin toward the surface', min: 0, max: 0.12, step: 0.005 },
         { key: 'bob', label: 'paddle bob', min: 0, max: 0.03, step: 0.001 },
         { key: 'rock', label: 'paddle roll', min: 0, max: 0.08, step: 0.005 },
-        { key: 'tailSink', label: 'trailing tail depth', min: 0, max: 0.16, step: 0.005 },
+        { key: 'tailTopY', label: 'raised tail — tip height (− up / + down)', min: 0.25, max: 0.66, step: 0.005 },
+        { key: 'tailBaseDrop', label: 'raised tail — how deep the base sits', min: 0, max: 0.14, step: 0.005 },
+        { key: 'tailOutX', label: 'raised tail — reach, away view', min: 0.52, max: 0.9, step: 0.005 },
+        { key: 'tailPeekX', label: 'raised tail — peek past the flank, toward view', min: 0.5, max: 0.8, step: 0.005 },
+        { key: 'tailCurve', label: 'raised tail — bow', min: 0, max: 0.12, step: 0.005 },
       ],
       readout() {
         const S = CatV2.AXIAL_SWIM;
@@ -1582,7 +1587,12 @@
           `AXIAL_SWIM.bodyDrop = ${S.bodyDrop}, AXIAL_SWIM.bodyRy = ${S.bodyRy}, ` +
           `AXIAL_SWIM.bodyRx = ${S.bodyRx}\n` +
           `AXIAL_SWIM.headDrop = ${S.headDrop}, AXIAL_SWIM.bob = ${S.bob}, ` +
-          `AXIAL_SWIM.rock = ${S.rock}, AXIAL_SWIM.tailSink = ${S.tailSink}\n` +
+          `AXIAL_SWIM.rock = ${S.rock}\n` +
+          `AXIAL_SWIM.tailTopY = ${S.tailTopY}, AXIAL_SWIM.tailBaseDrop = ${S.tailBaseDrop}, ` +
+          `AXIAL_SWIM.tailOutX = ${S.tailOutX}, AXIAL_SWIM.tailPeekX = ${S.tailPeekX}, ` +
+          `AXIAL_SWIM.tailCurve = ${S.tailCurve}\n` +
+          `SWIM.tailUpright = ${CatV2.SWIM.tailUpright} (0 = the trailing tail that ships)\n` +
+          `tail above the waterline: ${px(VIEW.waterline - S.tailTopY)}px\n` +
           `above the waterline at a 31px tile — toward: ${px(VIEW.waterline - headTop(false))}px ` +
           `tall, away: ${px(VIEW.waterline - headTop(true))}px, ` +
           `of which body is ${px(VIEW.waterline - bodyTop)}px and the rest is head\n` +

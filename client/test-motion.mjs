@@ -3271,11 +3271,27 @@ check('a swimming cat drawn end-on keeps its head out of the water', () => {
     // would take them anyway.
     assert(L.legs.length === 0, `${view}: a swimming cat is drawing ${L.legs.length} legs`);
 
-    // The tail trails astern and submerged, so the clip removes it. It is
-    // still a real tail: handing back null crashes any caller that reads
-    // one without checking.
+    // The tail is HELD UP (owner, 2026-08-11): it leaves a submerged rump
+    // and rides clear of the surface, which is the posture the shallow
+    // water we built calls for -- and in the away view it is the only
+    // piece of silhouette above water that is not a circle or an ear.
     assert(L.tail && Number.isFinite(L.tail.y0), `${view}: the swim tail is not a drawable tail`);
-    assert(L.tail.y0 > surface, `${view}: the trailing tail pokes above the water`);
+    assert(L.tail.y0 > surface, `${view}: the tail's base should leave a submerged rump`);
+    assert(L.tail.y1 < surface, `${view}: the tail tip is under the water, where nobody can see it`);
+    assert(
+      surface - L.tail.y1 > 0.15,
+      `${view}: only ${((surface - L.tail.y1) * 31).toFixed(1)}px of tail clears the water -- ` +
+        'that is not a raised tail, it is a nub',
+    );
+    // ...and it must clear the BODY by enough to SEE, or the raised length
+    // is lost against the very silhouette it is meant to break up.
+    // Clearing by a hair is the same as not clearing: at a 31px tile a
+    // third of a pixel of tail above the back is nothing at all.
+    const overBody = (L.body.cy - L.body.ry - L.tail.y1) * 31;
+    assert(
+      overBody > 2,
+      `${view}: only ${overBody.toFixed(1)}px of tail rises above the body's own top edge`,
+    );
   }
 });
 
@@ -3291,6 +3307,41 @@ check('an end-on swimmer is narrower than a side-on one, and not by nothing', ()
   // drawing both: the far head is smaller, which is the depth cue.
   const back = CatV2.catLayout('swim', 0.25, { view: 'back' });
   assert(back.head.r < front.head.r, 'the head going away must read as farther than the one coming toward');
+  // The away view leans hardest on the tail, because it has no face: its
+  // raised length must show MORE than the toward view's, where the tail is
+  // at the far end and mostly hidden by the body.
+  assert(
+    back.tail.x1 - 0.5 > front.tail.x1 - 0.5,
+    'the away view must show more tail than the toward view -- it is all the silhouette it has',
+  );
+});
+
+check('the side swim tail can be pulled upright without re-authoring it', () => {
+  // Owner, 2026-08-11: an upright tail is the posture shallow water calls
+  // for. The dial ships at 0, which must be the shape that shipped -- the
+  // live meadow does not change until it is judged in the lab.
+  assert(CatV2.SWIM.tailUpright === 0, `SWIM.tailUpright ships at ${CatV2.SWIM.tailUpright}, want 0`);
+  const shipped = CatV2.catLayout('swim', 0.25, { view: 'side' });
+  assert(
+    Math.abs(shipped.tail.x1 - 0.05) < 1e-9 && Math.abs(shipped.tail.c2x - 0) < 1e-9,
+    'at tailUpright 0 the tail must be exactly the trailing shape that shipped',
+  );
+
+  // ...and turning it up stands the tail over its own base, without
+  // moving where it leaves the body or how high the tip rides.
+  CatV2.SWIM.tailUpright = 1;
+  const upright = CatV2.catLayout('swim', 0.25, { view: 'side' });
+  CatV2.SWIM.tailUpright = 0;
+  assert(Math.abs(upright.tail.x0 - shipped.tail.x0) < 1e-9, 'the base moved');
+  assert(Math.abs(upright.tail.y1 - shipped.tail.y1) < 1e-9, 'the tip height moved');
+  assert(
+    Math.abs(upright.tail.x1 - upright.tail.x0) < 1e-9,
+    `at 1 the tip should stand over the base, but it is ${(upright.tail.x1 - upright.tail.x0).toFixed(3)} away`,
+  );
+  assert(
+    Math.abs(shipped.tail.x1 - shipped.tail.x0) > 0.1,
+    'guard: at 0 the tail should still be trailing, or this dial does nothing',
+  );
 });
 
 check('nothing ships until the swim views are judged', () => {

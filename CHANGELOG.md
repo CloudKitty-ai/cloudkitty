@@ -86,6 +86,24 @@ change.
   it really is oriented the way an axial view would claim. Flips that
   reverse within a tick fall 295 → 81, and genuine turns are untouched
   (#198).
+- A swimming cat can be drawn end-on, in both directions — the world
+  swims cats north/south as often as east/west (20 wet steps against
+  21, measured) but `swim` had no axial drawing, so one was always
+  drawn side-on however it was going. **Nothing changes in the meadow
+  yet:** `VIEW.swimAxial` ships as `none` until the two directions are
+  judged at the live tile, because they are not equally worth having.
+  A swimming cat is mostly head — only ~6px of a 31px cat's body clears
+  the waterline — and coming toward you that is the largest head in the
+  vocabulary plus a whole face, while going away `paintCat` draws no
+  face at all by design. So the tail is now held UP, clear of the
+  surface — the posture the shallow water we actually built calls for
+  (the waterline cuts a cat at its flank, not its neck), and the one
+  piece of silhouette that can carry the away view when everything else
+  above water is a circle and two ears. `SWIM.tailUpright` offers the
+  same for the side pose, shipping at 0 — exactly today's trailing
+  tail — until it is judged. The lab draws all three views side by side
+  under the world's own waterline and clip, and prints how much cat
+  clears the water each way (#199).
 - Docs: rl-training + howto-rl caught up to spec 028 (two-head wire,
   20×20, certification assumptions rewritten — the channel is
   restrained by law, not economics), and kitty-eval is a pre-seating
