@@ -197,6 +197,24 @@ function submersionFor(pos, world, view) {
  * exactly one place that answers "where is the surface", and so the poses
  * cannot start disagreeing about it again.
  */
+/**
+ * May a swimming cat be drawn end-on, going this way?
+ *
+ * The two directions are judged separately on purpose. Only about 6px of a
+ * 31px cat's body clears the waterline, so a swimming cat is mostly head
+ * -- and `paintCat` draws no face on the back view by design, which makes
+ * a cat swimming AWAY a featureless circle and two ears, while one
+ * swimming TOWARD you wears the largest head in the vocabulary and a whole
+ * face at the surface. `VIEW.swimAxial` is the owner's answer to that, and
+ * 'none' keeps the side drawing that shipped.
+ */
+function swimAxialAllows(facing, dials = VIEW) {
+  const mode = dials.swimAxial ?? 'none';
+  if (mode === 'both') return true;
+  if (mode === 'toward') return facing === 'south';
+  return false;
+}
+
 function surfaceForPose(pose, dials = VIEW) {
   return dials.waterline;
 }
@@ -936,7 +954,10 @@ class WorldRenderer {
     // than to a view that does not exist. That fallback is the whole
     // reason `sideFacingFor` is remembered separately: a cat that walks
     // north and then grooms should face the way it last plausibly did.
-    const axialPose = typeof AXIAL_POSES !== 'undefined' && AXIAL_POSES.has(pose);
+    const axialPose =
+      typeof AXIAL_POSES !== 'undefined' &&
+      AXIAL_POSES.has(pose) &&
+      (pose !== 'swim' || swimAxialAllows(drawnFacing));
     // ...and having an axial drawing is not enough on its own: a cat that
     // was just turned side-on for wearing a pose without one stays side-on
     // until it steps again, or it whips ninety degrees every time it

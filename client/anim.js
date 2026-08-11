@@ -41,6 +41,14 @@ const VIEW = Object.freeze({
   paceRateMax: 2,
   paceMaxBacklog: 8, // beyond this it is not a stutter, it is a backlog
 
+  // Which directions a swimming cat may be drawn end-on (2026-08-11).
+  // 'none' | 'toward' | 'both'. The drawing exists for both (cat-v2's
+  // AXIAL_SWIM) and the lab draws them side by side, because they are not
+  // equally worth having: a swimming cat is mostly head, and the away view
+  // has no face by design. Left at 'none' until that is judged at the live
+  // tile -- the meadow behaves exactly as it did.
+  swimAxial: 'none',
+
   // Interpolation & element comings-and-goings (US3).
   elementFadeShare: 0.4, // share of a tick over which spawns/expiries fade
   // Critters (bug/greeble) glide between served states like kitties do

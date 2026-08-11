@@ -51,11 +51,14 @@ const CatV2 = globalThis.CatV2;
 // the SAME object anim.js built, so a re-dialled tunable cannot diverge
 // between what the harness tests and what the page draws.
 const VIEW = api.VIEW;
-const { poseFor, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose } =
-  eval(
-    renderSrc +
-      ';({ poseFor, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose })',
-  );
+const {
+  poseFor, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose,
+  swimAxialAllows,
+} = eval(
+  renderSrc +
+    ';({ poseFor, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose,' +
+    ' swimAxialAllows })',
+);
 
 /** Canvas ctx stand-in: logs every command, throws on non-finite numbers. */
 function guardCtx(log = []) {
@@ -2526,15 +2529,15 @@ check('a pose with no axial authoring keeps its side drawing', () => {
   // The fallback is "draw the cat we have", never "draw nothing". Only
   // walking and idle are authored; everything else must be untouched by
   // the view, byte for byte.
-  for (const pose of ['grooming', 'sleep-curl', 'pouncing', 'sit', 'stretch', 'swim']) {
+  for (const pose of ['grooming', 'sleep-curl', 'pouncing', 'sit', 'stretch']) {
     assert(!CatV2.AXIAL_POSES.has(pose), `${pose} gained axial authoring -- update this check`);
     const side = JSON.stringify(CatV2.catLayout(pose, 0.3, { view: 'side' }));
     const back = JSON.stringify(CatV2.catLayout(pose, 0.3, { view: 'back' }));
     assert(side === back, `${pose} changed with the view but has no axial drawing`);
   }
-  // ...and the two that ARE authored must actually differ, or the whole
+  // ...and the ones that ARE authored must actually differ, or the whole
   // feature is a no-op that every other check here would still pass.
-  for (const pose of ['walking', 'idle']) {
+  for (const pose of ['walking', 'idle', 'swim']) {
     const side = CatV2.catLayout(pose, 0.3, { view: 'side' });
     const back = CatV2.catLayout(pose, 0.3, { view: 'back' });
     assert(back.body.rx < side.body.rx, `${pose}: a cat seen end-on must be narrower`);
@@ -3202,6 +3205,13 @@ check('the renderer asks before it draws a cat axially', () => {
     /const axial = axialOk &&/.test(decision),
     'the axial view must be gated by axialFor, not merely informed by it',
   );
+  // ...and the swim views are gated separately, because they are not yet
+  // judged. cat-v2 can DRAW them; only VIEW.swimAxial decides whether the
+  // meadow ever asks for one.
+  assert(
+    /swimAxialAllows\(/.test(decision),
+    'the axial swim is authored but unjudged -- render.js must gate it on VIEW.swimAxial',
+  );
 });
 
 check('every view method the renderer guards for is actually served', () => {
@@ -3232,6 +3242,72 @@ check('every view method the renderer guards for is actually served', () => {
         'render.js guards for those, so they would silently take the fallback',
     );
   }
+});
+
+// ---- swimming end-on (2026-08-11), built but NOT shipped ----
+
+check('a swimming cat drawn end-on keeps its head out of the water', () => {
+  // The whole judging problem in one assertion. At the live waterline only
+  // a few pixels of body clear the surface, so nearly everything that says
+  // "cat" is the head -- and a head that dips below the clip leaves a
+  // swimming cat as a sliver of back and nothing else.
+  const surface = VIEW.waterline;
+  for (const view of ['front', 'back']) {
+    const L = CatV2.catLayout('swim', 0.25, { view });
+    const headTop = L.head.cy - L.head.r;
+    const headBottom = L.head.cy + L.head.r;
+    assert(headBottom < surface, `${view}: the head dips under the waterline (${headBottom} vs ${surface})`);
+    assert(headTop > 0, `${view}: the head has left the top of the box`);
+
+    // Some back, but not the whole body: a cat sitting entirely above the
+    // surface is a cat standing ON water, which is the bug SWIM's own
+    // comment records being fixed once already.
+    const bodyTop = L.body.cy - L.body.ry;
+    const bodyBottom = L.body.cy + L.body.ry;
+    assert(bodyTop < surface, `${view}: no body clears the surface at all`);
+    assert(bodyBottom > surface, `${view}: the whole body floats above the water`);
+
+    // No legs, like the side pose -- they are under water, and the clip
+    // would take them anyway.
+    assert(L.legs.length === 0, `${view}: a swimming cat is drawing ${L.legs.length} legs`);
+
+    // The tail trails astern and submerged, so the clip removes it. It is
+    // still a real tail: handing back null crashes any caller that reads
+    // one without checking.
+    assert(L.tail && Number.isFinite(L.tail.y0), `${view}: the swim tail is not a drawable tail`);
+    assert(L.tail.y0 > surface, `${view}: the trailing tail pokes above the water`);
+  }
+});
+
+check('an end-on swimmer is narrower than a side-on one, and not by nothing', () => {
+  const side = CatV2.catLayout('swim', 0.25, { view: 'side' });
+  const front = CatV2.catLayout('swim', 0.25, { view: 'front' });
+  assert(front.body.rx < side.body.rx, 'a cat seen end-on must be narrower than one seen side-on');
+  assert(
+    side.body.rx - front.body.rx > 0.05,
+    `only ${(side.body.rx - front.body.rx).toFixed(3)} narrower -- that is not a different view`,
+  );
+  // The two directions differ from each other too, or there was no point
+  // drawing both: the far head is smaller, which is the depth cue.
+  const back = CatV2.catLayout('swim', 0.25, { view: 'back' });
+  assert(back.head.r < front.head.r, 'the head going away must read as farther than the one coming toward');
+});
+
+check('nothing ships until the swim views are judged', () => {
+  // Built, dialled, and drawn in the lab -- but the meadow behaves exactly
+  // as it did until the owner has looked. `swimAxial` is the whole switch.
+  assert(VIEW.swimAxial === 'none', `VIEW.swimAxial ships as '${VIEW.swimAxial}', want 'none'`);
+  for (const facing of ['north', 'south']) {
+    assert(!swimAxialAllows(facing), `at the default, a cat swimming ${facing} must draw side-on`);
+  }
+  // ...and each setting means what it says.
+  assert(swimAxialAllows('south', { swimAxial: 'toward' }), "'toward' must allow a cat swimming at you");
+  assert(!swimAxialAllows('north', { swimAxial: 'toward' }), "'toward' must NOT allow one swimming away");
+  assert(swimAxialAllows('north', { swimAxial: 'both' }), "'both' must allow either");
+  assert(swimAxialAllows('south', { swimAxial: 'both' }), "'both' must allow either");
+  // An unknown value is not a licence to draw something nobody picked.
+  assert(!swimAxialAllows('south', { swimAxial: 'yes please' }), 'an unrecognised setting must draw side-on');
+  assert(!swimAxialAllows('south', {}), 'a missing setting must draw side-on');
 });
 
 check('the socket hands arrivals to the delay line and nothing else', () => {

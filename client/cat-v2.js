@@ -287,7 +287,38 @@ const AXIAL_CAMERAS = {
   },
 };
 
-const AXIAL_POSES = new Set(['walking', 'idle']);
+const AXIAL_POSES = new Set(['walking', 'idle', 'swim']);
+
+/**
+ * A swimming cat seen end-on (2026-08-11).
+ *
+ * The world moves cats through water on every axis equally -- measured at
+ * 20 north/south wet steps against 21 east/west -- but `swim` had no axial
+ * drawing, so one was always drawn side-on however it was actually going.
+ *
+ * What makes this pose different from the other two axial ones is that the
+ * waterline does most of the drawing. At full submersion the clip sits at
+ * 0.72, so only about 6px of a 31px cat's body clears the surface and the
+ * rest of what reads as "cat" is the head. That is the whole design
+ * problem: it is a portrait, not a body.
+ *
+ * Which is why the two directions are not equally worth having, and the
+ * lab draws them side by side rather than this file deciding. Coming
+ * TOWARD you the head is the largest in the vocabulary (`headRFront`
+ * 0.232, deliberately, as a depth cue) and carries a full face right at
+ * the waterline. Going AWAY, `paintCat` draws no face at all by design,
+ * so it is a featureless circle and two ears. `VIEW.swimAxial` picks which
+ * of them ships; nothing here assumes the answer.
+ */
+const AXIAL_SWIM = {
+  bodyDrop: 0.012, // below the axial body, the way SWIM sits below idle
+  bodyRy: 0.15, // flattened: a floating back, not a standing barrel
+  bodyRx: 0.2, // a shade narrower than standing -- the flanks are under
+  headDrop: 0.055, // chin toward the surface, the swimming read
+  bob: 0.012, // matches the side pose's paddle bob
+  rock: 0.03, // less than the side view's: an end-on roll shows more
+  tailSink: 0.08, // how far under the body the trailing tail sits
+};
 
 const SWIM = {
   // Raised 2026-08-10, when the swim pose started being CLIPPED at the
@@ -868,6 +899,7 @@ function turnTransform(t) {
  */
 function applyAxial(L, pose, phase, view, opts) {
   const back = view === 'back';
+  const swimming = pose === 'swim';
   const walking = pose === 'walking';
   // Distance-keyed like the side walk, so feet still plant against ground
   // covered rather than against time.
@@ -882,6 +914,48 @@ function applyAxial(L, pose, phase, view, opts) {
   // the gait, the tail and the paint order are the same drawing at any
   // angle.
   const C = AXIAL_CAMERAS[(opts && opts.camera) || AXIAL.camera] || AXIAL_CAMERAS.elevation;
+
+  // Swimming end-on: the same camera, but afloat. A slow bob and roll
+  // instead of a gait, a flattened back, the chin down toward the surface
+  // -- and no legs at all, which is the side pose's rule for the same
+  // reason (they are under the water, and the clip would eat them anyway).
+  if (swimming) {
+    const swimBob = AXIAL_SWIM.bob * Math.sin(phase * TAU);
+    const swimRock = AXIAL_SWIM.rock * Math.sin(phase * TAU * 0.5);
+    L.body = {
+      cx: 0.5,
+      cy: C.bodyY + AXIAL_SWIM.bodyDrop + swimBob,
+      rx: AXIAL_SWIM.bodyRx,
+      ry: AXIAL_SWIM.bodyRy,
+      rot: swimRock,
+    };
+    L.head = {
+      cx: 0.5,
+      cy: (back ? C.headYBack : C.headYFront) + AXIAL_SWIM.headDrop + swimBob,
+      r: back ? C.headRBack : C.headRFront,
+    };
+    // Legs are already empty: the side swim pose drew none, and this
+    // branch has no reason to put any back -- they are under water, and
+    // the clip would take them anyway. (Asserted rather than re-assigned,
+    // so if the side pose ever grows legs this is a test failure and not a
+    // silent difference between the two views.)
+    //
+    // Astern and submerged. Not removed -- every consumer of a layout may
+    // read a tail, and a pose that hands back nothing is a crash waiting
+    // for the one caller that forgot to check. It is drawn where it really
+    // is instead: short, centred behind the body, and below the surface,
+    // so the waterline clip is what takes it away.
+    const stern = C.bodyY + AXIAL_SWIM.bodyDrop + AXIAL_SWIM.tailSink;
+    L.tail = {
+      x0: 0.5, y0: stern,
+      c1x: 0.5, c1y: stern + 0.01,
+      c2x: 0.5, c2y: stern + 0.02,
+      x1: 0.5, y1: stern + 0.02,
+    };
+    L.view = view;
+    return L;
+  }
+
   L.body = {
     cx: 0.5 + sway,
     cy: C.bodyY + bob,
@@ -3127,6 +3201,7 @@ const api = {
   AXIAL,
   AXIAL_CAMERAS,
   AXIAL_POSES,
+  AXIAL_SWIM,
   applyAxial,
   FOCUS_VARIANTS,
   BREATH,
