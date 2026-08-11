@@ -1,8 +1,8 @@
 # HOWTO: give a kitty a trained mind
 
 The start-to-finish path through the RL plumbing: build the Python
-environment, roll it out, improve a policy, export it, score it against
-the bar, and deploy it into the living world. Every command and number
+environment, roll it out, improve a policy, export it, smoke it on the
+served world, and deploy it into the living world. Every command and number
 in this document was run for real; the companion reference —
 [rl-training.md](rl-training.md) — covers the recommended training
 world, the wire formats, and the caveats in depth.
@@ -29,20 +29,25 @@ import cloudkitty
 
 env = cloudkitty.ParallelEnv(horizon=100)     # the default world, one episode
 obs, infos = env.reset(seed=7)
+MENU = env.menu_len()                         # 34 at default slots
 for _ in range(100):
     actions = {}
     for agent in env.agents:
-        legal = np.flatnonzero(infos[agent]["mask"])   # never empty
-        actions[agent] = int(np.random.choice(legal))
+        mask = infos[agent]["mask"]           # 43 wide: 34 activity ∥ 9 message
+        actions[agent] = [int(np.random.choice(np.flatnonzero(mask[:MENU]))),
+                          int(np.random.choice(np.flatnonzero(mask[MENU:])))]
     obs, rewards, terminations, truncations, infos = env.step(actions)
 ```
 
 Three things to internalize before training anything:
 
-- **The mask is law.** `infos[agent]["mask"]` marks which of the 40 menu
-  entries would apply as proposed *right now*. Select only among masked-in
-  entries (for a softmax: illegal logits → −inf, *then* normalize). The
-  mask is guaranteed never all-zero.
+- **The mask is law, and a decision is a pair** (spec 028). An action is
+  `[activity, message]` — `MultiDiscrete([34, 9])` — and the 43-wide
+  mask is both heads' legality concatenated: the first 34 entries mark
+  which menu activities would apply as proposed *right now*, the last 9
+  which messages are lawfully expressible (Silent, index 0, always is —
+  structurally). Select each head only among its masked-in entries (for
+  a softmax: illegal logits → −inf per head, *then* normalize).
 - **The reward is one team scalar** — Nash welfare over the *whole*
   roster, broadcast to every agent. There is no per-kitty credit to
   fight over; a policy wins by making every kitty's life good.
@@ -75,12 +80,13 @@ EVAL_SEEDS = list(range(N_WORLDS))
 ITERATIONS = 20
 SIGMA = 0.02
 HIDDEN = 8
-MENU = 40
 
 env = cloudkitty.VectorEnv(N_WORLDS, horizon=HORIZON, workers=N_WORLDS)
 agents = env.possible_agents
 obs0, _ = env.reset(seeds=EVAL_SEEDS)
 OBS_LEN = obs0[agents[0]].shape[1]
+MENU, HEAD = env.menu_len, env.head_len()     # 34 + 9 (spec 028)
+OUT = MENU + HEAD                             # one trunk, 43 logits
 
 rng = np.random.default_rng(0)
 
@@ -89,17 +95,19 @@ def init_params():
     return {
         "w1": rng.normal(0, 0.1, (HIDDEN, OBS_LEN)).astype(np.float32),
         "b1": np.zeros(HIDDEN, dtype=np.float32),
-        "w2": rng.normal(0, 0.1, (MENU, HIDDEN)).astype(np.float32),
-        "b2": np.zeros(MENU, dtype=np.float32),
+        "w2": rng.normal(0, 0.1, (OUT, HIDDEN)).astype(np.float32),
+        "b2": np.zeros(OUT, dtype=np.float32),
     }
 
 
 def act(params, obs, mask):
-    """Masked greedy: the mask goes on BEFORE the argmax, always."""
+    """Masked greedy, one argmax per head: the mask goes on BEFORE both."""
     hidden = np.maximum(obs @ params["w1"].T + params["b1"], 0.0)
     logits = hidden @ params["w2"].T + params["b2"]
     logits[~np.asarray(mask, dtype=bool)] = -np.inf
-    return logits.argmax(axis=1)
+    activity = logits[:, :MENU].argmax(axis=1)
+    message = logits[:, MENU:].argmax(axis=1)
+    return np.stack([activity, message], axis=1)   # [n, 2] pairs
 
 
 def episode_return(params):
@@ -134,11 +142,11 @@ for iteration in range(1, ITERATIONS + 1):
 # length-prefixed JSON header, then per layer weights row-major [out][in]
 # followed by bias, all little-endian f32.
 header = {
-    "artifact_version": 1,
+    "artifact_version": 2,   # spec 028: 43 logits = 34 activity + 9 message
     "observation_schema": cloudkitty.OBSERVATION_SCHEMA_VERSION,
     "action_schema": cloudkitty.ACTION_SCHEMA_VERSION,
     "mask_schema": cloudkitty.MASK_SCHEMA_VERSION,
-    "layers": [[OBS_LEN, HIDDEN], [HIDDEN, MENU]],
+    "layers": [[OBS_LEN, HIDDEN], [HIDDEN, OUT]],
     "activation": "relu",
 }
 header_bytes = (json.dumps(header) + "\n").encode()
@@ -156,10 +164,11 @@ print(f"wrote minimal.ckpolicy (best mean return {best_score:.3f})")
 A real run of exactly this script:
 
 ```
-iteration  0: mean return 162.664 (random init)
-iteration  4: mean return 165.151  (kept)
-iteration  7: mean return 170.254  (kept)
-wrote minimal.ckpolicy (best mean return 170.254)
+iteration  0: mean return 182.879 (random init)
+iteration  3: mean return 191.162  (kept)
+iteration  6: mean return 195.314  (kept)
+iteration 12: mean return 198.647  (kept)
+wrote minimal.ckpolicy (best mean return 198.647)
 ```
 
 It genuinely improves — and it is genuinely not a good policy. That is
@@ -168,9 +177,13 @@ trainer (anything MAPPO-shaped that consumes the PettingZoo parallel
 convention; actor on observations + mask, critic on `env.state()`) and
 every other line of the pipeline stays the same.
 
-## 4. Score it against the bar
+## 4. Smoke it on the served world
 
-Training return is not the deployment claim — `kitty-eval` is. It runs
+Training return is not a deployment claim — and neither is this step:
+`kitty-eval` is the product-side **smoke test**, the "does this
+artifact run clean on exactly what the server ships" check
+(certification is the experiment pipeline —
+[`experiments/PIPELINE.md`](../experiments/PIPELINE.md)). It runs
 the policy on the **served** world (`./cloudkitty.toml`, the same file
 the server serves; the world is never guessed — a missing file is an
 error, `--config` names another world, `--config compiled` names the
@@ -190,18 +203,25 @@ records which one was measured.)
 For the artifact above, honestly:
 
 ```
-aggregate delta [AllSubject] -0.5637 over 10 seeds
-aggregate delta [Mixed]      -0.3353 over 10 seeds
+aggregate delta [AllSubject] -0.5936 over 10 seeds
+aggregate delta [Mixed]      -0.2417 over 10 seeds
 ```
 
 Negative — a 20-iteration hill-climb loses to the handcrafted
 `needs_driven`, as it should. The run still proves what matters at this
 stage: the artifact validates, loads, and makes **zero fallback-taken
 decisions** (any fallback exits 2 — a broken advisor can never ride the
-fallback through an evaluation unnoticed). A policy is deployable when
-those deltas are ≥ 0 and every welfare bound in the scorecard holds.
+fallback through an evaluation unnoticed). A clean smoke plus deltas
+≥ 0 with every welfare bound holding is what a candidate *worth
+certifying* looks like; seating in the served world takes the full
+pipeline and the owner's word.
 
 ## 5. Deploy it
+
+(A real candidate earns this step through the certification pipeline —
+[`experiments/PIPELINE.md`](../experiments/PIPELINE.md) — and seats in
+the served world only on the owner's word; the mechanics below are the
+same either way.)
 
 Two changes in `cloudkitty.toml`: set `behavior` in the kitty's existing
 `[[kitty]]` entry, and add the policy block.
@@ -244,5 +264,5 @@ living its life — which is the whole idea.
 - **The episode clock is pinned to 0 at deployment.** If training
   performance depends on tick/horizon, re-read the caveat in
   [rl-training.md](rl-training.md) before trusting the curve —
-  `kitty-eval` scores with the deployment pin, which is why its verdict
-  is the one that counts.
+  `kitty-eval` smokes with the deployment pin, which is why it is the
+  right place to catch this failure mode.
