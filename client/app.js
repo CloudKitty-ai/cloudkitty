@@ -249,6 +249,26 @@ function readThemeTokens() {
   return out;
 }
 
+/**
+ * The page tokens that INVERT between phases, rather than shifting.
+ *
+ * Ink goes dark-on-light to light-on-dark at night, and the card goes with
+ * it. Interpolated linearly, as everything else here is, the pair walks
+ * toward each other and MEETS: measured across dusk->night, the card falls
+ * to L* 61 while the ink climbs to L* 66, which is 1.17:1 -- the text is
+ * invisible against its own card for roughly 60% of the crossfade (owner
+ * spotted it live, 2026-08-11).
+ *
+ * A faster easing does not fix it. Any monotonic curve still puts both
+ * tokens at their own midpoint at the same instant, so they still meet --
+ * just more briefly. The fix is not to interpolate them at all: they SWAP
+ * at the halfway mark and the CSS transition does the crossing, which is
+ * short and already tuned. The v3 plan called for exactly this and only
+ * ever got it on the canvas side: "a separate faster curve for the
+ * inverting tokens, because paper/ink blended linearly pass through mud".
+ */
+const INVERTING_TOKENS = new Set(['--ink', '--ink-soft', '--patience-ink', '--card']);
+
 /** Paint the page's tokens at the world's own blend position. */
 function paintThemeTokens(blend) {
   if (!themeTokens) themeTokens = readThemeTokens();
@@ -256,7 +276,12 @@ function paintThemeTokens(blend) {
   const to = themeTokens[blend.next ?? blend.theme];
   if (!from || !to) return;
   for (const name of Object.keys(from)) {
-    const value = blend.next ? mixPaletteColor(from[name], to[name], blend.step) : from[name];
+    const value = !blend.next
+      ? from[name]
+      : INVERTING_TOKENS.has(name)
+        // Swap, never blend -- see INVERTING_TOKENS.
+        ? (blend.step < 0.5 ? from[name] : to[name])
+        : mixPaletteColor(from[name], to[name], blend.step);
     document.body.style.setProperty(name, value);
   }
 }
