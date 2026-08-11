@@ -2718,8 +2718,16 @@ function runFeed({ arrivals, frameMs = 16, untilMs, dials = api.VIEW, paced = tr
   const store = new api.Presentation();
   const samples = [];
   const promoted = [];
-  let snaps = 0;
   let next = 0;
+  // The real wiring, on the harness's clock: `pump` is what the rAF
+  // callback calls, so the promotion order is the page's own and not a
+  // second copy of it living in this file.
+  const wiring = Object.create(api.anim);
+  wiring.presentation = store;
+  wiring.pacer = pacer;
+  wiring.onPromote = (world) => promoted.push({ tick: world.tick, at: wiring.at });
+  let snaps = 0;
+  const countSnaps = () => { snaps += 1; };
   for (let now = 0; now <= untilMs; now += frameMs) {
     while (next < arrivals.length && arrivals[next].at <= now) {
       const { world } = arrivals[next];
@@ -2731,12 +2739,10 @@ function runFeed({ arrivals, frameMs = 16, untilMs, dials = api.VIEW, paced = tr
       next += 1;
     }
     if (paced) {
-      const { worlds, snap } = pacer.due(now);
-      if (snap) { store.bumpGeneration(); snaps += 1; }
-      for (const world of worlds) {
-        store.pushState(world, now, pacer.playMs);
-        promoted.push({ tick: world.tick, at: now });
-      }
+      wiring.at = now;
+      const before = store.generation;
+      wiring.pump(now);
+      if (store.generation !== before) countSnaps();
     }
     if (!store.curr) continue;
     samples.push({
@@ -2886,12 +2892,17 @@ check('a backlog collapses to one state, and a stutter never does', () => {
   assert(worlds[0].tick === 9000, `caught up to tick ${worlds[0].tick}, want the newest`);
   assert(snap, 'a collapsed backlog must break continuity so the world SNAPS across the gap');
 
-  // The snap has to reach the store BEFORE the state does: pushState
-  // decides continuity as it lands.
+  // The snap has to reach the store BEFORE the state does -- `pushState`
+  // decides continuity as it lands -- so this drives the real `pump`
+  // rather than restating its order here.
+  const wiring = Object.create(api.anim);
+  wiring.presentation = store;
+  wiring.pacer = new api.Pacer();
   store.pushState(feedWorld(1), 0);
-  store.bumpGeneration();
-  store.pushState(worlds[0], 0, pacer.playMs);
-  assert(store.discontinuous, 'the collapsed state must land as a new moment, not a 9000-tile step');
+  for (let t = 2; t <= 9000; t += 1) wiring.pacer.enqueue(feedWorld(t));
+  wiring.pump(0);
+  assert(store.curr.tick === 9000, `pump promoted tick ${store.curr.tick}, want the newest`);
+  assert(store.discontinuous, 'the collapsed state must land as a new moment, not an 8999-tile step');
 
   // Exactly the ceiling is a buffer, not a backlog: nothing is dropped and
   // nothing snaps.

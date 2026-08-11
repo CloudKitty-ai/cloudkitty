@@ -1804,6 +1804,19 @@ const anim = {
     this.startLoop();
   },
 
+  /**
+   * The delay line pays out, once per frame: a state becomes current at a
+   * paced moment rather than the moment it landed. Kept off the rAF
+   * callback so the harness can drive it on its own clock.
+   */
+  pump(now) {
+    const { worlds, snap } = this.pacer.due(now);
+    // Before the promotion, not after: `pushState` decides continuity as
+    // it lands, so a collapsed backlog has to already be a new moment.
+    if (snap) this.presentation.bumpGeneration();
+    for (const world of worlds) this.promote(world, now);
+  },
+
   /** A state stops waiting and becomes the world on screen. */
   promote(world, now) {
     this.presentation.pushState(world, now, this.pacer.playMs);
@@ -1847,14 +1860,7 @@ const anim = {
       this.rafId = 0;
       if (document.hidden || this.reduced) return;
       const p = this.presentation;
-      const now = performance.now();
-      // The delay line pays out here, on the frame, so a state becomes
-      // current at a paced moment rather than the moment it landed.
-      const { worlds, snap } = this.pacer.due(now);
-      // Before the promotion, not after: `pushState` decides continuity as
-      // it lands, so a collapsed backlog has to already be a new moment.
-      if (snap) p.bumpGeneration();
-      for (const world of worlds) this.promote(world, now);
+      this.pump(performance.now());
       if (p.curr) {
         const view = p.viewAt(performance.now(), false);
         this.renderer.draw(p.curr, view);
