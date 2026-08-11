@@ -353,7 +353,7 @@ const SWIM = {
   bob: 0.012, // vertical bob amplitude (paddle rhythm)
   rock: 0.045, // paddling body rock, radians
   tailLift: 0.6, // where the tail tip rides above the surface
-  tailUpright: 0, // 0 = the trailing tail that shipped, 1 = held vertical
+  tailUpright: 1, // owner 2026-08-11: HELD UP. 0 is the trailing tail v2.7 shipped.
   // How much TALLER the raised side tail stands than the end-on ones.
   //
   // Not a fudge: it is foreshortening. A tail held up and pointing partly
@@ -365,7 +365,7 @@ const SWIM = {
   // So the shared height (AXIAL_SWIM.tailTopY) stays the anchor for all
   // three, and this is the one declared, dialable difference on top of it.
   // At 0 the three match exactly again.
-  tailUprightRise: 0.06,
+  tailUprightRise: 0.05, // owner: even across all three, allowing for perspective
 };
 
 /**

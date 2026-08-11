@@ -99,11 +99,19 @@ change.
   surface — the posture the shallow water we actually built calls for
   (the waterline cuts a cat at its flank, not its neck), and the one
   piece of silhouette that can carry the away view when everything else
-  above water is a circle and two ears. `SWIM.tailUpright` offers the
-  same for the side pose, shipping at 0 — exactly today's trailing
-  tail — until it is judged. The lab draws all three views side by side
-  under the world's own waterline and clip, and prints how much cat
-  clears the water each way (#199).
+  above water is a circle and two ears.
+
+  **The side pose does change, and it is the only thing here that
+  does:** a cat swimming east or west now carries its tail up too
+  (`SWIM.tailUpright` 1, judged in the lab), so the three views read as
+  one animal. They are anchored to a single height with one declared
+  difference on top — `tailUprightRise`, a foreshortening allowance,
+  because a tail seen broadside shows its whole length while the same
+  tail end-on draws short. `tailUpright` 0 still reproduces v2.7's
+  trailing tail exactly, so this is a choice and not a one-way door.
+  The lab draws all three views side by side under the world's own
+  waterline and clip, prints how much cat clears the water each way,
+  and names which dial owns the tail height at the current blend (#199).
 - Docs: rl-training + howto-rl caught up to spec 028 (two-head wire,
   20×20, certification assumptions rewritten — the channel is
   restrained by law, not economics), and kitty-eval is a pre-seating

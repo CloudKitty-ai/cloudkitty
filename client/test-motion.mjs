@@ -45,6 +45,21 @@ function slotOf(api, id, want, dials = api.VIEW) {
 }
 eval(catV2Src); // IIFE: registers globalThis.CatV2
 const CatV2 = globalThis.CatV2;
+
+/**
+ * What the art blocks hold as SHIPPED, before any check has run.
+ *
+ * Half the checks here dial a value, draw, and put it back. A check that
+ * forgets -- or that restores to a hardcoded literal after the owner has
+ * re-baked the real one -- leaves every later check drawing a different
+ * cat, silently and in a way no single assertion can see. The last check
+ * in the file compares against this.
+ */
+const SHIPPED_BLOCKS = Object.fromEntries(
+  Object.entries(CatV2)
+    .filter(([, v]) => v && typeof v === 'object' && !Array.isArray(v) && !(v instanceof Set) && !(v instanceof Map))
+    .map(([k, v]) => [k, JSON.stringify(v)]),
+);
 // render.js reads `VIEW` as a global (the browser loads anim.js alongside
 // it); each eval here gets its own scope, so hand it one. Direct eval runs
 // in this scope, so the binding is visible to the code below -- and it is
@@ -3332,8 +3347,17 @@ check('the side swim tail can be pulled upright without re-authoring it', () => 
   // Owner, 2026-08-11: an upright tail is the posture shallow water calls
   // for. The dial ships at 0, which must be the shape that shipped -- the
   // live meadow does not change until it is judged in the lab.
-  assert(CatV2.SWIM.tailUpright === 0, `SWIM.tailUpright ships at ${CatV2.SWIM.tailUpright}, want 0`);
+  // This used to assert the dial SHIPPED at 0, to guarantee the live
+  // meadow could not change before the lab had spoken. It has now spoken
+  // (owner, 2026-08-11: tailUpright 1), so that guard has done its job and
+  // is retired rather than quietly deleted. What survives is the property
+  // that actually keeps the dial honest: its zero end must still reproduce
+  // the trailing tail v2.7 shipped, exactly, so the change is a CHOICE and
+  // not a one-way door.
+  const wasUp = CatV2.SWIM.tailUpright;
+  CatV2.SWIM.tailUpright = 0;
   const shipped = CatV2.catLayout('swim', 0.25, { view: 'side' });
+  CatV2.SWIM.tailUpright = wasUp;
   assert(
     Math.abs(shipped.tail.x1 - 0.05) < 1e-9 && Math.abs(shipped.tail.c2x - 0) < 1e-9,
     'at tailUpright 0 the tail must be exactly the trailing shape that shipped',
@@ -3351,7 +3375,7 @@ check('the side swim tail can be pulled upright without re-authoring it', () => 
   // the horizontal run. Height is the thing to assert, not straightness.
   CatV2.SWIM.tailUpright = 1;
   const upright = CatV2.catLayout('swim', 0.25, { view: 'side' });
-  CatV2.SWIM.tailUpright = 0;
+  CatV2.SWIM.tailUpright = wasUp; // restore what SHIPS, not a hardcoded 0
   const away = CatV2.catLayout('swim', 0.25, { view: 'back' });
   assert(Math.abs(upright.tail.x0 - shipped.tail.x0) < 1e-9, 'the base moved');
   // The two are tied together by ONE anchor plus ONE declared difference,
@@ -3381,6 +3405,15 @@ check('the side swim tail can be pulled upright without re-authoring it', () => 
     CatV2.SWIM.tailUprightRise >= 0,
     `tailUprightRise is ${CatV2.SWIM.tailUprightRise}: a broadside tail cannot be SHORTER than an end-on one`,
   );
+
+  // The swimming tail SHIPS held up (owner, 2026-08-11) -- that is a
+  // visible change to the live meadow, not a lab-only value, so a silent
+  // revert to the trailing tail should not pass unremarked. How far up is
+  // still hers: this pins the decision, not the number.
+  assert(
+    CatV2.SWIM.tailUpright > 0,
+    'the swimming tail ships held up; going back to the trailing one is a decision, not a tweak',
+  );
   const rise = (L) => (L.body.cy - L.tail.y1) * 31;
   assert(
     rise(upright) > rise(shipped) + 4,
@@ -3399,12 +3432,17 @@ check('two dials own the side tail height, and the lab says which is live', () =
   // the same "nothing happens" the owner reported for a different reason.
   // Measured, not assumed: at upright 1 the height is entirely the shared
   // one, which is what makes the three views agree.
+  // Restore to what SHIPS rather than to a literal: the shipped value is
+  // the owner's and moves, and a test that hardcodes it silently re-dials
+  // the cat for every check that runs after it.
+  const shippedUp = CatV2.SWIM.tailUpright;
+  const shippedLift = CatV2.SWIM.tailLift;
   const tipAt = (up, lift) => {
     CatV2.SWIM.tailUpright = up;
     CatV2.SWIM.tailLift = lift;
     const y = CatV2.catLayout('swim', 0, { view: 'side' }).tail.y1;
-    CatV2.SWIM.tailUpright = 0;
-    CatV2.SWIM.tailLift = 0.6;
+    CatV2.SWIM.tailUpright = shippedUp;
+    CatV2.SWIM.tailLift = shippedLift;
     return y;
   };
   assert(tipAt(0, 0.45) !== tipAt(0, 0.7), 'tailLift must move the trailing tip');
@@ -3438,15 +3476,17 @@ check('a raised tail is drawn where it can be SEEN, in every view', () => {
   // Only the away view is exempt, and for a mechanical reason: it paints
   // the tail IN FRONT of the body (see the paint-order check), so it may
   // rise from anywhere, the centre included.
+  const ships = CatV2.SWIM.tailUpright;
   const cases = [
     ['side, tail up', () => { CatV2.SWIM.tailUpright = 1; }, { view: 'side' }],
-    ['side, as shipped', () => { CatV2.SWIM.tailUpright = 0; }, { view: 'side' }],
+    ['side, trailing', () => { CatV2.SWIM.tailUpright = 0; }, { view: 'side' }],
+    ['side, as shipped', () => {}, { view: 'side' }],
     ['toward you', () => {}, { view: 'front' }],
   ];
   for (const [name, setup, opts] of cases) {
     setup();
     const L = CatV2.catLayout('swim', 0, opts);
-    CatV2.SWIM.tailUpright = 0;
+    CatV2.SWIM.tailUpright = ships;
     const clear = Math.abs(L.tail.x1 - L.body.cx) - L.body.rx;
     assert(
       clear > 0.01,
@@ -3517,6 +3557,24 @@ check('the socket hands arrivals to the delay line and nothing else', () => {
   assert(
     /anim\.onPromote\s*=\s*present/.test(src),
     'the panel must be driven by anim.onPromote, not by the socket',
+  );
+});
+
+check('no check left a dial moved behind it', () => {
+  // Must be LAST. Half the file dials a value, draws, and puts it back;
+  // one that forgets leaves every later check drawing a different cat,
+  // and nothing else here can see it. It has already nearly happened
+  // twice: a restore written as a literal 0 kept working right up until
+  // the owner baked 1, at which point it would have quietly re-dialled
+  // the swimming tail for the rest of the run.
+  const moved = [];
+  for (const [name, before] of Object.entries(SHIPPED_BLOCKS)) {
+    const now = JSON.stringify(CatV2[name]);
+    if (now !== before) moved.push(`${name}\n     shipped ${before}\n     left as ${now}`);
+  }
+  assert(
+    moved.length === 0,
+    `a check restored something to the wrong value:\n  ${moved.join('\n  ')}`,
   );
 });
 
