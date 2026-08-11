@@ -358,6 +358,11 @@ const MEADOW_SALTS = Object.freeze({
   bloomY: 16,
   bush: 19,
   bushShape: 20,
+  // How good this patch of ground is (spec 03). Its own channel, sampled
+  // SMOOTH rather than per-tile, and shared by all three scatters -- that
+  // sharing is the point: grass, flowers and shrubs thicken in the same
+  // places, which is what a drift is.
+  fertility: 21,
 });
 
 /**
@@ -377,6 +382,21 @@ const MEADOW_DEFAULTS = Object.freeze({
   patchChance: 0.118, // share of tiles carrying a worn-earth or moss patch
   patchEarthAlpha: 0.03,
   patchMossAlpha: 0.05,
+  // Cover grows in DRIFTS (spec 03). The three scatters below used to be
+  // independent per-tile rolls, and independent Bernoulli rolls produce a
+  // field whose density looks the same through any window you put over it:
+  // the eye reads that as texture, never as landscape. There were no
+  // PLACES in the meadow. One low-frequency fertility field now gates all
+  // three, so thick passages and open ground appear at the same average
+  // density -- a redistribution, not more cover.
+  //
+  // Rarer features take a higher power, so they concentrate harder. That
+  // is what makes a thicket read as a thicket rather than as three shrubs
+  // standing near each other.
+  fertilityCells: 5.5, // tiles per fertility blotch; larger = broader passages
+  bladeFertPower: 2,
+  bloomFertPower: 3,
+  bushFertPower: 4,
   bladeChance: 0.55, // tiles with a tuft of grass
   bladeAlpha: 0.38,
   bloomChance: 0.05, // tiles with a flower
@@ -597,6 +617,9 @@ function drawMeadowGround(ctx, { width, height, tile, cover = true }) {
  * All of it bakes into the ground cache, so it costs nothing per frame.
  */
 function drawGroundDetail(ctx, { width, height, tile, t }) {
+  // Cover grows in drifts (spec 03): the same fertility field gates the
+  // tufts, the flowers and the shrubs, so they thicken together.
+  const drift = driftField(width, height, t);
   // --- worn earth and moss: broad, soft, crossing tile lines ---
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
@@ -622,7 +645,7 @@ function drawGroundDetail(ctx, { width, height, tile, t }) {
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const n = tileHash(x, y, MEADOW_SALTS.blade);
-      if (n < 1 - t.bladeChance) continue;
+      if (n < 1 - drift.blade[y * width + x]) continue;
       const bx = (x + tileHash(x, y, MEADOW_SALTS.bladeX)) * tile;
       const by = (y + tileHash(x, y, MEADOW_SALTS.bladeY)) * tile;
       ctx.moveTo(bx, by);
@@ -643,7 +666,7 @@ function drawGroundDetail(ctx, { width, height, tile, t }) {
   const fine = tile >= 44;
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
-      if (tileHash(x, y, MEADOW_SALTS.bloom) < 1 - t.bloomChance) continue;
+      if (tileHash(x, y, MEADOW_SALTS.bloom) < 1 - drift.bloom[y * width + x]) continue;
       const k = tileHash(x, y, MEADOW_SALTS.bloomX);
       const bx = (x + 0.25 + k * 0.5) * tile;
       // Its own channel, not the tuft's: sharing `blade` tied a flower's
@@ -704,11 +727,123 @@ function drawGroundCover(ctx, { width, height, tile, t, occupied }) {
  * into the ground cache, and it is what keeps a bowl from sprouting a
  * shrub through it without needing elements in the sort order too.
  */
-function bushesFor(width, height, t, occupied) {
-  const out = [];
+/**
+ * The drift field: per-tile odds for each scatter, clustered but conserving
+ * the flat scatter's average density (spec 03).
+ *
+ * The spec proposed a closed-form normaliser -- `chance = base * (p+1) *
+ * f^p`, from `E[f^p] = 1/(p+1)` for f uniform on 0..1 -- and warned that
+ * value noise is not uniform so the constant would come out low. Measured,
+ * it is worse than low: it is world-size DEPENDENT. A 20x20 world spans
+ * only ~3.6 fertility cells, so the field's mean is whatever that handful
+ * of lattice corners happens to be and never converges. The multiplier
+ * that conserves density measured 29.1 at 20x20, 32.2 at 24x24 and 9.4 at
+ * 64x64 -- so any baked constant is right for exactly one world.
+ *
+ * So it is SOLVED per field instead, by bisection on the one number that
+ * matters: the multiplier k where mean(min(1, k*f^p)) equals the flat
+ * chance it replaces. That makes acceptance criterion 1 -- density is
+ * conserved, this is a redistribution and not a content change -- true by
+ * construction at every world size, and it absorbs the clamp for free.
+ * The clamp is intended: inside a drift every tile has a tuft.
+ *
+ * Memoised because `bushesFor` runs once per FRAME (render.js draws shrubs
+ * in the sorted sprite layer so they y-sort against cats), while this is a
+ * pure function of the world's size and these tunables.
+ */
+const DRIFT_CACHE = new Map();
+
+function driftField(width, height, t) {
+  const key = [
+    width, height, t.fertilityCells,
+    t.bladeChance, t.bladeFertPower,
+    t.bloomChance, t.bloomFertPower,
+    t.bushChance, t.bushFertPower,
+  ].join(':');
+  const hit = DRIFT_CACHE.get(key);
+  if (hit) return hit;
+
+  const n = width * height;
+  const f = new Float64Array(n);
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
-      if (tileHash(x, y, MEADOW_SALTS.bush) < 1 - t.bushChance) continue;
+      f[y * width + x] = smoothNoise(x, y, MEADOW_SALTS.fertility, t.fertilityCells);
+    }
+  }
+
+  const chancesFor = (base, power, salt) => {
+    const out = new Float64Array(n);
+    if (!(base > 0)) return out;
+    // Matched against the count the flat scatter ACTUALLY produced, not
+    // against `base`. Those are not the same number and the gap is not
+    // small: at 20x20 the shrub roll fires on 13 tiles where 0.015 x 400
+    // predicts 6, because a few hundred tiles is far too small a sample
+    // for the hash to look uniform out at a 1.5% threshold. Normalising to
+    // the nominal rate therefore CUT shrubs by 38% while reporting itself
+    // as conserved. Acceptance criterion 1 measures against the current
+    // algorithm's counts, so that is what this solves for.
+    const hash = new Float64Array(n);
+    let target = 0;
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const i = y * width + x;
+        hash[i] = tileHash(x, y, salt);
+        if (hash[i] >= 1 - base) target++;
+      }
+    }
+    if (!target) return out;
+    const countAt = (k) => {
+      let c = 0;
+      for (let i = 0; i < n; i++) {
+        const ch = k * Math.pow(f[i], power);
+        if (hash[i] >= 1 - (ch > 1 ? 1 : ch)) c++;
+      }
+      return c;
+    };
+    // countAt rises monotonically with k and saturates at n, so bracket
+    // then bisect for the smallest k that reaches the target. A degenerate
+    // field (every tile zero) can never get there; fall back to the flat
+    // chance rather than drawing nothing.
+    let hi = 1;
+    while (countAt(hi) < target && hi < 1e12) hi *= 4;
+    if (countAt(hi) < target) {
+      out.fill(base);
+      return out;
+    }
+    let lo = 0;
+    for (let i = 0; i < 60; i++) {
+      const mid = (lo + hi) / 2;
+      if (countAt(mid) < target) lo = mid;
+      else hi = mid;
+    }
+    for (let i = 0; i < n; i++) {
+      const c = hi * Math.pow(f[i], power);
+      out[i] = c > 1 ? 1 : c;
+    }
+    return out;
+  };
+
+  const field = {
+    width,
+    fertility: f,
+    blade: chancesFor(t.bladeChance, t.bladeFertPower, MEADOW_SALTS.blade),
+    bloom: chancesFor(t.bloomChance, t.bloomFertPower, MEADOW_SALTS.bloom),
+    bush: chancesFor(t.bushChance, t.bushFertPower, MEADOW_SALTS.bush),
+  };
+  // Bounded: one entry per world size and dial set, and the dials only move
+  // in the lab. Cleared wholesale rather than aged -- there is never more
+  // than a handful.
+  if (DRIFT_CACHE.size > 24) DRIFT_CACHE.clear();
+  DRIFT_CACHE.set(key, field);
+  return field;
+}
+
+function bushesFor(width, height, t, occupied) {
+  const out = [];
+  const drift = driftField(width, height, t);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (tileHash(x, y, MEADOW_SALTS.bush) < 1 - drift.bush[y * width + x]) continue;
       if (occupied && occupied.has(`${x},${y}`)) continue;
       out.push({ x, y, seed: tileHash(x, y, MEADOW_SALTS.bushShape) });
     }

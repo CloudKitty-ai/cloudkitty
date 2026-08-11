@@ -372,6 +372,12 @@ const VIEW = Object.freeze({
     patchChance: 0.118, // share of tiles carrying a worn-earth or moss patch
     patchEarthAlpha: 0.03,
     patchMossAlpha: 0.05,
+    // Cover grows in DRIFTS (spec 03). Mirrors MEADOW_DEFAULTS -- the
+    // superset assertion in test-meadow.mjs fails on drift.
+    fertilityCells: 5.5, // tiles per fertility blotch; larger = broader passages
+    bladeFertPower: 2,
+    bloomFertPower: 3,
+    bushFertPower: 4,
     bladeChance: 0.55, // tiles with a tuft of grass
     bladeAlpha: 0.38,
     bloomChance: 0.05, // tiles with a flower

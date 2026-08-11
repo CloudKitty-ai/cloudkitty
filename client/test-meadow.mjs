@@ -135,6 +135,7 @@ const EXPORTS =
   ' mixPaletteColor, mixPalettes, parsePaletteColor,' +
   ' MEADOW_DAWN, bushesFor, drawBushAt, drawGroundCover, MEADOW_SALTS, MEADOW_DEFAULTS, tileHash, drawMeadowGround, drawGridOverlay, groupWaterTiles,' +
   ' buildPondPath, drawPonds, pondInradius, drawSunbeamGlow, drawWornPaths, VIEW, Presentation,' +
+  ' driftField,' +
   ' WorldRenderer })';
 const api = eval(src + EXPORTS);
 
@@ -968,5 +969,83 @@ check('a world with no water clears the cache instead of baking one', () => {
   assert(renderer.pondCache === null, 'and cleared without it');
 });
 
+
+/* ---- spec 03: cover grows in drifts ----
+ *
+ * The acceptance criterion that keeps this honest is the first one: the
+ * drift field REDISTRIBUTES cover, it does not add any. Without it, "the
+ * meadow looks lusher" is indistinguishable from "we quietly grew more
+ * grass", and the whole change becomes unfalsifiable.
+ */
+check('cover clusters WITHOUT changing how much of it there is', () => {
+  const t = api.MEADOW_DEFAULTS;
+  const KINDS = [
+    ['blade', api.MEADOW_SALTS.blade, t.bladeChance, 'blade'],
+    ['bloom', api.MEADOW_SALTS.bloom, t.bloomChance, 'bloom'],
+    ['shrub', api.MEADOW_SALTS.bush, t.bushChance, 'bush'],
+  ];
+  // Several sizes, because the first cut of this normalised to the NOMINAL
+  // rate and looked fine at one size while cutting shrubs by 38% at
+  // another: a few hundred tiles is far too small a sample for the hash to
+  // look uniform at a 1.5% threshold, so the flat scatter's realised count
+  // is not its nominal one. 20x20 is the live world.
+  for (const [w, h] of [[20, 20], [24, 24], [40, 40]]) {
+    const drift = api.driftField(w, h, t);
+    for (const [name, salt, base, key] of KINDS) {
+      let flat = 0;
+      let clustered = 0;
+      let fertHit = 0;
+      let fertAll = 0;
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const i = y * w + x;
+          const hash = api.tileHash(x, y, salt);
+          fertAll += drift.fertility[i];
+          if (hash >= 1 - base) flat++;
+          if (hash >= 1 - drift[key][i]) { clustered++; fertHit += drift.fertility[i]; }
+        }
+      }
+      assert(flat > 0, `${w}x${h} ${name}: nothing to compare against`);
+      const drift10 = Math.max(1, Math.round(flat * 0.1));
+      assert(
+        Math.abs(clustered - flat) <= drift10,
+        `${w}x${h} ${name}: ${flat} -> ${clustered}, outside the +/-10% the spec allows`,
+      );
+      // ...and it must actually CLUSTER. Conserving the count is trivially
+      // satisfied by changing nothing at all, so the pair of assertions is
+      // the check: cover must land on better-than-average ground.
+      const meanAll = fertAll / (w * h);
+      const meanHit = fertHit / clustered;
+      assert(
+        meanHit > meanAll * 1.15,
+        `${w}x${h} ${name}: lands on ground of fertility ${meanHit.toFixed(3)} against a field mean of ${meanAll.toFixed(3)} -- not clustered`,
+      );
+    }
+  }
+});
+
+check('the drift field is a pure function of the world and its dials', () => {
+  const t = api.MEADOW_DEFAULTS;
+  // Cover must be stable across a session -- the whole reason occupiedTiles
+  // was narrowed to water only was to stop scenery flickering.
+  const a = api.driftField(20, 20, t);
+  const b = api.driftField(20, 20, t);
+  assert(a === b, 'the same world should hand back the memoised field');
+  const fresh = api.driftField(20, 20, { ...t });
+  for (let i = 0; i < 400; i++) {
+    assert(fresh.blade[i] === a.blade[i], `blade chance moved at tile ${i}`);
+    assert(fresh.bush[i] === a.bush[i], `bush chance moved at tile ${i}`);
+  }
+  // A re-dial must actually re-solve rather than serve the old field.
+  const broader = api.driftField(20, 20, { ...t, fertilityCells: 11 });
+  let same = 0;
+  for (let i = 0; i < 400; i++) if (broader.blade[i] === a.blade[i]) same++;
+  assert(same < 400, 'a re-dialled fertilityCells returned the cached field');
+});
+
+// The summary stays LAST. It sat mid-file once and every check appended
+// after it ran past `process.exit` and was silently never counted -- the
+// suite reported green on tests that had not run. (Cost the motion suite
+// a round of this too.)
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);
