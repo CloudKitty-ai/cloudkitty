@@ -1788,8 +1788,23 @@ check('every portrait pose fits inside the card chip', () => {
   // The wiring itself. Geometry checks pass perfectly well on a portrait that
   // has quietly gone back to a hardcoded 'idle', so the feature needs saying
   // out loud.
-  assert(/view\.idlePoseFor\(id, 'idle'\)/.test(app), 'the portrait no longer asks for an idle pose');
+  assert(
+    /view\.idleCardBeatFor\(id, 'idle'\)/.test(app),
+    'the portrait no longer asks its own beat table for a pose',
+  );
   assert(/idle\?\.pose \?\? 'idle'/.test(app), 'the portrait no longer USES the idle pose it asked for');
+  // ...and the WORLD's wake-stretch stays out of it (2026-08-10). The card
+  // took it until measurement showed cats wake every ~21s, which made the
+  // stretch beat the blink -- and that the meadow, drawing first, deleted
+  // `wokeAt` a tick later, so the portrait only ever got half a stretch.
+  // Asserted as absence because there is no value to compare: re-adding the
+  // call is the regression, and it would look perfectly reasonable in review.
+  // Matched on the CALL, not the name -- the reasoning above has to be free
+  // to talk about `idlePoseFor` without failing the check that enforces it.
+  assert(
+    !/view\.idlePoseFor\s*\(/.test(app),
+    'the portrait is consulting idlePoseFor again -- the world wake-stretch will preempt the card table',
+  );
   // And the key namespace, which is the part that breaks something else when
   // it goes: the presentation layer's pose memory is per-key, so a portrait
   // sharing the meadow cat's key restarts its blend every frame. Same hazard
@@ -1834,6 +1849,29 @@ check('the portrait pose beats are portrait-only and pure', () => {
       `not pure at ${t}`,
     );
   }
+  // A cat waking must not reach the card table (2026-08-10). app.js dropping
+  // its idlePoseFor call is only half the guard -- this is the other half, so
+  // the world cannot get back in by wiring `wokeAt` into the beat itself.
+  //
+  // Driven through a REAL wake rather than by poking the map: pushState is
+  // what sets wokeAt, and a test that set the field by hand would keep
+  // passing if the trigger moved.
+  const woken = new api.Presentation();
+  const before = [];
+  for (let t = 0; t < 40000; t += 250) before.push(JSON.stringify(woken.idleCardBeatFor(1, 'idle', t)));
+  woken.pushState({ tick: 1, elements: [], kitties: [{ ...kitty(1, 2, 2), activity: { state: 'sleeping' } }] }, 1000);
+  woken.pushState({ tick: 2, elements: [], kitties: [{ ...kitty(1, 2, 2), activity: { state: 'idle' } }] }, 1800);
+  assert(woken.wokeAt.has(1), 'the wake was never recorded -- this check is testing nothing');
+  assert(
+    woken.idlePoseFor(1, 'idle', 1800)?.pose === 'stretch',
+    'idlePoseFor no longer offers the wake-stretch, so the card cannot be shown to refuse it',
+  );
+  const after = [];
+  for (let t = 0; t < 40000; t += 250) after.push(JSON.stringify(woken.idleCardBeatFor(1, 'idle', t)));
+  assert(
+    before.join('|') === after.join('|'),
+    'a world wake changed the card beat table -- the portrait is back on the world clock',
+  );
   // Four portraits must not move in UNISON. Not "never at the same time":
   // each cat is busy ~12% of the time now that the sit chain is 5.8s, so
   // independent draws coincide ~8% of the time by arithmetic, and asserting
