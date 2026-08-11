@@ -31,6 +31,47 @@ change.
 
 ---
 
+## Unreleased
+
+- Spec 03: the meadow grows in drifts — one low-frequency fertility
+  field gates all three ground scatters, so grass, flowers and shrubs
+  thicken together and the meadow has *places*, not texture; the
+  density normaliser is bisected per field against the realised count
+  (world-size dependent — a baked constant is right for exactly one
+  world, and normalising to the nominal rate had silently cut shrubs
+  38%); a second shrub species with a mix dial, ground shading that
+  knows where the sun is, and the spec-03 dials in the lab (#189).
+- Crossfade fix: shrubs and flowers went black mid-phase — `shadeHex`
+  parses only hex while the phase mixer emits `rgb()`; the five things
+  spec 03 shades now go through `mixPaletteColor`, which parses both.
+  Forty-odd meadow checks all drew at blend 0; the new one draws the
+  crossfade (#191).
+- Three hygiene fixes: card text keeps contrast through a phase change
+  (`--card`/`--ink` both invert and met at 1.17:1 mid-crossfade; they
+  now swap at the halfway mark on their own 0.18s transition — the v3
+  plan's ask, finally landed on the DOM side); a backgrounded tab's
+  socket is latest-wins, so a two-hour backlog can no longer replay
+  ~9,000 renders through the DOM; flower lower petals shade toward the
+  heart, not toward grey (#193).
+- Catch-up keeps a buffer: strict latest-wins (from #193) dropped
+  ordinary ticks whenever a frame outlasted the 800ms tick, lurching a
+  cat two tiles in one tick's ease — up to 4 pending states now replay
+  in order, and only a genuine backlog collapses, bumping the
+  generation so the world snaps across the gap like the reconnect path
+  already did (#194).
+- Docs: rl-training + howto-rl caught up to spec 028 (two-head wire,
+  20×20, certification assumptions rewritten — the channel is
+  restrained by law, not economics), and kitty-eval is a pre-seating
+  smoke, not the bar: certification is the §9-harness pipeline,
+  written down in `experiments/PIPELINE.md`; every doc number re-run
+  for real (#190).
+- Spec 028 FR-021 amended — the acceptance check evaluates within
+  behavior class where demonstrator composition differs (the v4
+  composition artifact), echo sites tagged; py-binding width accessors
+  became properties and two stale comments were corrected (#192).
+
+---
+
 ## v2.7.1 — 2026-08-10 — the cat becomes an animal
 
 No compatibility markers: everything here draws pixels or records
