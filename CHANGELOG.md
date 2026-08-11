@@ -59,6 +59,18 @@ change.
   in order, and only a genuine backlog collapses, bumping the
   generation so the world snaps across the gap like the reconnect path
   already did (#194).
+- Served states now reach the screen through a delay line: a pair used
+  to play over the *served* tick from the moment it landed, so a late
+  arrival parked the cat on its tile until the next one came, and two
+  arrivals in a stuttered frame crossed a whole tile in no time at all
+  — the clock states were *drawn* on was the clock they *arrived* on.
+  A small buffer is held and paid out on its own pace, trimmed from the
+  smoothed interval between promotions (which in the long run can only
+  be the rate states are produced at, so a box whose real tick differs
+  from its configured one is absorbed rather than stalled against). The
+  socket's queue and the backlog collapse move there too, and the cards
+  ride promotion rather than arrival so they cannot lead the meadow.
+  Costs about one tick of latency, which at 800ms is invisible (#196).
 - Docs: rl-training + howto-rl caught up to spec 028 (two-head wire,
   20×20, certification assumptions rewritten — the channel is
   restrained by law, not economics), and kitty-eval is a pre-seating

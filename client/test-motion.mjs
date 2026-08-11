@@ -2713,9 +2713,10 @@ function jitter(seed) {
  * arrival, play over the served tick -- kept as the control, because every
  * claim below is only worth making if the previous code fails it.
  */
-function runFeed({ arrivals, frameMs = 16, untilMs, dials = api.VIEW, paced = true }) {
+function runFeed({ arrivals, frameMs = 16, untilMs, dials = api.VIEW, paced = true, tickMs }) {
   const pacer = new api.Pacer(dials);
   const store = new api.Presentation();
+  if (tickMs) { pacer.setTickMs(tickMs); store.tickMs = tickMs; }
   const samples = [];
   const promoted = [];
   let next = 0;
@@ -2904,6 +2905,18 @@ check('a backlog collapses to one state, and a stutter never does', () => {
   assert(store.curr.tick === 9000, `pump promoted tick ${store.curr.tick}, want the newest`);
   assert(store.discontinuous, 'the collapsed state must land as a new moment, not an 8999-tile step');
 
+  // ...and the state AFTER it must land normally. This is what pins the
+  // ORDER rather than the fact of the bump: a generation raised after the
+  // promotion instead of before is invisible here (the tick jump alone
+  // already breaks continuity) and then snaps the next, innocent pair.
+  wiring.pacer.enqueue(feedWorld(9001));
+  wiring.pump(5000);
+  assert(store.curr.tick === 9001, `the state after a collapse never landed (got ${store.curr.tick})`);
+  assert(
+    !store.discontinuous,
+    'the pair after a collapsed backlog snapped -- the generation was raised after the promotion, not before',
+  );
+
   // Exactly the ceiling is a buffer, not a backlog: nothing is dropped and
   // nothing snaps.
   const easy = new api.Pacer();
@@ -2929,6 +2942,32 @@ check('ordinary running shows every state, in order, exactly once', () => {
     `states were dropped or reordered: ${ticks}`,
   );
   assert(ticks.length >= 26, `only ${ticks.length} of 30 states were shown in 30s`);
+});
+
+check('a differently-paced box is reseeded, not walked to', () => {
+  // /config lands within the first second and may say 80ms (the fast
+  // server used to judge the time-of-day changes). The pace is clamped to
+  // a band around the SERVED tick, so a pacer left seeded at 800 cannot
+  // play an 80ms feed at all: it drips one state per 400ms, the rest pile
+  // up, and the world snaps through a backlog collapse over and over.
+  const arrivals = series(120, 80, 6);
+  const stale = runFeed({ arrivals, frameMs: 8, untilMs: 11000 });
+  assert(stale.snaps > 0, 'a stale seed must actually break, or reseeding proves nothing');
+
+  const reseeded = runFeed({ arrivals, frameMs: 8, untilMs: 11000, tickMs: 80 });
+  assert(reseeded.snaps === 0, `a reseeded pacer still snapped ${reseeded.snaps} times on an 80ms feed`);
+  assert(
+    reseeded.promoted.length >= 110,
+    `only ${reseeded.promoted.length} of 120 states were shown on an 80ms feed`,
+  );
+
+  // And the wiring actually calls it: `anim.setTickMs` owns both clocks.
+  const wiring = Object.create(api.anim);
+  wiring.presentation = new api.Presentation();
+  wiring.pacer = new api.Pacer();
+  wiring.setTickMs(80);
+  assert(wiring.presentation.tickMs === 80, 'setTickMs did not reach the store');
+  assert(wiring.pacer.tickMs === 80 && wiring.pacer.playMs === 80, 'setTickMs did not reach the pacer');
 });
 
 check('the socket hands arrivals to the delay line and nothing else', () => {
