@@ -883,6 +883,50 @@ check('the renderer draws a cat in the water, in every theme, without throwing',
   api.setMeadowPalette('day', null, 0);
 });
 
+check('the renderer draws a cat walking north and south, in a whole frame', () => {
+  // Covers the served-step half of the chain -- dy -> facingFor -> a whole
+  // frame that does not throw -- and walks the cat through the pond at
+  // (10,2)-(11,3) on the way, so a vertical walk and the waterline clip
+  // land on the same frame.
+  //
+  // It does NOT reach `applyAxial`, and cannot: this harness evals every
+  // file into one scope, where render.js's bare `drawCat` binds to cat.js's
+  // v1 function rather than v2's (cat.js is eval'd first and its function
+  // declaration is in scope). Verified by mutation -- throwing inside
+  // applyAxial does not fail this check. The axial DRAWING is covered by
+  // unit checks in test-motion instead, and the reason it is hard to reach
+  // here is the same globals trap that had the feature shipping inert:
+  // see 'every cat-v2 symbol the page reads bare is actually installed'.
+  const renderer = new api.WorldRenderer(mockCanvas(640, 640));
+  renderer.tile = 32;
+  renderer.dpr = 1;
+  renderer.cssWidth = 640;
+  renderer.cssHeight = 640;
+  const elements = LIVE_WATER.map((pos, i) => ({ id: i + 1, kind: 'water', pos }));
+  const p = new api.Presentation();
+  const at = (tick, x, y) => ({
+    tick,
+    width: 20,
+    height: 20,
+    elements,
+    kitties: [{ id: 1, name: 'Miso', pos: { x, y }, needs: {}, happiness: 90 }],
+  });
+  // North up the pond column, then back south through it.
+  const walk = [[10, 6], [10, 5], [10, 4], [10, 3], [10, 2], [10, 1], [10, 2], [10, 3], [10, 4]];
+  let tick = 1;
+  let now = 1000;
+  p.pushState(at(tick++, 10, 7), now);
+  const seen = new Set();
+  for (const [x, y] of walk) {
+    now += 800;
+    p.pushState(at(tick++, x, y), now);
+    seen.add(p.facingFor(1));
+    renderer.draw(p.curr, p.viewAt(now + 400, false));
+  }
+  assert(seen.has('north'), `never faced north, saw ${[...seen]}`);
+  assert(seen.has('south'), `never faced south, saw ${[...seen]}`);
+});
+
 check('the meniscus colour is a theme’s answer, not a constant', () => {
   // That every phase NAMES a pondMeniscus is checked above. What matters
   // for the surface the cat meets is that the values actually differ: the

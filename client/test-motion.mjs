@@ -2371,5 +2371,269 @@ check('every portrait beat fits inside its slot', () => {
   assert(runs > 20, 'not enough transitions sampled');
 });
 
+// ---- the axial views: north and south are real drawings (2026-08-10) ----
+
+/** Every op a cat draws, so order and colour are both inspectable. */
+function drawLog(id, view, facing, pose = 'walking') {
+  const out = [];
+  const ctx = new Proxy(
+    {},
+    {
+      get: (_t, p) => (...a) => {
+        for (const v of a) {
+          if (typeof v === 'number' && !Number.isFinite(v)) {
+            throw new Error(`ctx.${String(p)} got non-finite args: ${a}`);
+          }
+        }
+        out.push([String(p), ...a]);
+      },
+      set: (_t, p, v) => {
+        out.push(['set', String(p), v]);
+        return true;
+      },
+    },
+  );
+  CatV2.drawCat(ctx, {
+    appearance: CatV2.appearanceFor(id),
+    facing,
+    size: 120,
+    x: 0,
+    y: 0,
+    pose,
+    phase: 0.3,
+    layout: { view },
+  });
+  return out;
+}
+const marks = (log, color) =>
+  log.filter((o) => o[0] === 'set' && o[1] === 'fillStyle' && String(o[2]).toLowerCase() === color)
+    .length;
+
+check('a muzzle is on the face, so a cat walking away has none', () => {
+  // The bug this pins: paintCat deliberately skips drawFace and the inner
+  // ears for the back view -- but the muzzle masks are painted by drawHead,
+  // which ran regardless. The face vanished and a dark oval stayed behind
+  // on the back of the skull. Only the tabby's forehead stripes consulted
+  // `view` before this.
+  //
+  // Asserted as a DIFFERENCE rather than an absolute count: the point
+  // colour also paints ears, paws and tail, and those are all still in view
+  // from behind. Exactly one marking must disappear, and it is the muzzle.
+  for (const [id, label, color] of [
+    [1, 'Miso, seal point (LIVE)', '#986f4e'],
+    [0, 'tuxedo (gallery only)', '#fbf7f0'],
+  ]) {
+    const side = marks(drawLog(id, 'side', 'right'), color);
+    const front = marks(drawLog(id, 'front', 'south'), color);
+    const back = marks(drawLog(id, 'back', 'north'), color);
+    assert(side === front, `${label}: the muzzle must survive the FRONT view (${side} vs ${front})`);
+    assert(back === front - 1, `${label}: expected exactly the muzzle to go, got ${front} -> ${back}`);
+  }
+});
+
+check('the muzzle mask sits on the nose, in every view', () => {
+  // Owner spotted this on the front view (2026-08-10): the nose moves to
+  // the centreline head-on, and the muzzle MASK did not follow, so a
+  // front-on seal point wore her dark muzzle beside her own nose.
+  //
+  // Both now go through `muzzleX`, so the check is that they COINCIDE
+  // rather than that either is at a particular place -- a re-dialled NOSE.x
+  // must not need this edited, and the side view (where they always did
+  // agree) has to keep agreeing.
+  //
+  // The two are picked out by SIZE, not by colour: the point colour also
+  // paints ears, paws and tail, and noseColor also paints the inner ears,
+  // so a colour match alone measures the wrong shapes. (It did, first try.)
+  const centres = (view, facing) => {
+    const L = CatV2.catLayout('idle', 0.2, { view });
+    const r = L.head.r;
+    const ns = r * CatV2.NOSE.size;
+    let fill = null; const stack = []; let pend = null; let tri = [];
+    let mask = null; let nose = null;
+    const ctx = new Proxy({}, {
+      get: (_t, k) => {
+        if (k === 'save') return () => stack.push(fill);
+        if (k === 'restore') return () => { fill = stack.pop() ?? fill; };
+        if (k === 'ellipse') return (cx, _cy, rx) => { pend = { cx, rx }; };
+        if (k === 'beginPath') return () => { pend = null; tri = []; };
+        if (k === 'moveTo') return (x) => { tri = [x]; };
+        if (k === 'lineTo') return (x) => { tri.push(x); };
+        if (k === 'fill') return () => {
+          if (pend && Math.abs(pend.rx - r * 0.46) < r * 0.02) mask = pend.cx;
+          if (tri.length >= 3 && Math.abs(Math.abs(tri[1] - tri[0]) - 2 * ns) < r * 0.02) {
+            nose = (tri[0] + tri[1]) / 2;
+          }
+        };
+        if (k === 'canvas') return { width: 200, height: 200 };
+        return () => {};
+      },
+      set: (_t, k, v) => { if (k === 'fillStyle') fill = v; return true; },
+    });
+    CatV2.drawCat(ctx, {
+      appearance: CatV2.appearanceFor(1), // Miso, the roster's one seal point
+      facing, size: 1, x: 0, y: 0, pose: 'idle', phase: 0.2, layout: { view },
+    });
+    return { mask, nose };
+  };
+  // Where each view must put it. "Mask equals nose" alone is NOT enough:
+  // both now call muzzleX, so they agree by construction and would go on
+  // agreeing while both drifted. (Checked -- reverting muzzleX to the side
+  // offset left an equality-only version of this passing.) The binding
+  // assertion is the absolute one: front-on it is the centreline.
+  for (const [view, facing] of [['front', 'south'], ['side', 'right']]) {
+    const L = CatV2.catLayout('idle', 0.2, { view });
+    const want = L.head.cx + L.head.r * (view === 'front' ? 0 : CatV2.NOSE.x);
+    const { mask, nose } = centres(view, facing);
+    assert(mask !== null, `${view}: never found the muzzle mask`);
+    assert(nose !== null, `${view}: never found the nose`);
+    close(mask, want, `${view}: the muzzle mask is not where this view puts a muzzle`);
+    close(mask, nose, `${view}: the muzzle mask is off the nose`);
+  }
+});
+
+check('paint order IS depth order: walking away inverts head and tail', () => {
+  // Handoff invariant 6. For a cat walking away the head is the furthest
+  // part of it and the tail the nearest, so the head draws BEHIND the body
+  // and the tail in FRONT. Those two are the only depth cues the back view
+  // has, and drawing them in the side view's order reads as a cat facing
+  // you with its face rubbed out.
+  //
+  // Read off the ORDER of the two path builders rather than any coordinate,
+  // because that is the whole claim -- a correct back view drawn in the
+  // wrong order would pass every geometric check there is.
+  // `headPath` is an arc of exactly head.r; the tail is the only bezier.
+  // Both are read from the log rather than from coordinates, because the
+  // claim is about ORDER -- a correct back view drawn in the wrong order
+  // would pass every geometric check there is.
+  for (const [view, facing, headBeforeTail] of [
+    ['side', 'right', false],
+    ['back', 'north', true],
+  ]) {
+    const log = drawLog(1, view, facing);
+    const r = CatV2.catLayout('walking', 0.3, { view }).head.r;
+    const headAt = log.findIndex((o) => o[0] === 'arc' && Math.abs(o[3] - r) < 1e-9);
+    const tailAt = log.findIndex((o) => o[0] === 'bezierCurveTo');
+    assert(headAt >= 0, `${view}: never found the head`);
+    assert(tailAt >= 0, `${view}: never found the tail`);
+    assert(
+      headBeforeTail ? headAt < tailAt : headAt > tailAt,
+      `${view}: head at ${headAt}, tail at ${tailAt} -- depth order is wrong`,
+    );
+  }
+});
+
+check('a pose with no axial authoring keeps its side drawing', () => {
+  // The fallback is "draw the cat we have", never "draw nothing". Only
+  // walking and idle are authored; everything else must be untouched by
+  // the view, byte for byte.
+  for (const pose of ['grooming', 'sleep-curl', 'pouncing', 'sit', 'stretch', 'swim']) {
+    assert(!CatV2.AXIAL_POSES.has(pose), `${pose} gained axial authoring -- update this check`);
+    const side = JSON.stringify(CatV2.catLayout(pose, 0.3, { view: 'side' }));
+    const back = JSON.stringify(CatV2.catLayout(pose, 0.3, { view: 'back' }));
+    assert(side === back, `${pose} changed with the view but has no axial drawing`);
+  }
+  // ...and the two that ARE authored must actually differ, or the whole
+  // feature is a no-op that every other check here would still pass.
+  for (const pose of ['walking', 'idle']) {
+    const side = CatV2.catLayout(pose, 0.3, { view: 'side' });
+    const back = CatV2.catLayout(pose, 0.3, { view: 'back' });
+    assert(back.body.rx < side.body.rx, `${pose}: a cat seen end-on must be narrower`);
+    assert(back.view === 'back' && side.view === 'side', `${pose}: the view is not recorded`);
+  }
+});
+
+check('four facings come off the served step, and east/west is remembered', () => {
+  const p = new api.Presentation();
+  const step = (from, to) => {
+    const q = new api.Presentation();
+    q.pushState(world(1, [kitty(1, from.x, from.y)]), 1000);
+    q.pushState(world(2, [kitty(1, to.x, to.y)]), 1800);
+    return q;
+  };
+  assert(step({ x: 5, y: 5 }, { x: 6, y: 5 }).facingFor(1) === 'right', 'east');
+  assert(step({ x: 5, y: 5 }, { x: 4, y: 5 }).facingFor(1) === 'left', 'west');
+  assert(step({ x: 5, y: 5 }, { x: 5, y: 6 }).facingFor(1) === 'south', 'south');
+  assert(step({ x: 5, y: 5 }, { x: 5, y: 4 }).facingFor(1) === 'north', 'north');
+  // The engine moves cats on four axes only, so a diagonal is a guard
+  // rather than a rule -- but the guard must still answer something drawable.
+  const diag = step({ x: 5, y: 5 }, { x: 6, y: 6 });
+  assert(
+    ['right', 'left', 'north', 'south'].includes(diag.facingFor(1)),
+    'a diagonal must still resolve to a drawable facing',
+  );
+  // A cat that walks north and then grooms is drawn side-on, and should
+  // face the way it last plausibly did rather than snapping to a default.
+  p.pushState(world(1, [kitty(1, 5, 5)]), 1000);
+  p.pushState(world(2, [kitty(1, 4, 5)]), 1800); // west
+  assert(p.sideFacingFor(1) === 'left', 'the side facing is the last east/west step');
+  p.pushState(world(3, [kitty(1, 4, 4)]), 2600); // then north
+  assert(p.facingFor(1) === 'north', 'now facing north');
+  assert(p.sideFacingFor(1) === 'left', 'but the remembered side facing is unchanged');
+});
+
+check('every cat-v2 symbol the page reads bare is actually installed', () => {
+  // The trap that swallowed two features before anyone noticed.
+  //
+  // cat-v2.js leaks its api onto globalThis only in DROP-IN mode
+  // (`if (typeof globalThis.drawCat === 'undefined')`). Every lab loads
+  // cat-v2 WITHOUT cat.js, so drop-in runs and every symbol is global
+  // there. index.html loads cat.js FIRST, so it never runs, and each
+  // symbol has to be installed by hand.
+  //
+  // render.js reads several of them bare and DEFENSIVELY -- `typeof
+  // AXIAL_POSES !== 'undefined'`, `typeof turnFacing === 'function'` -- so
+  // a missing one throws nothing. It just silently does nothing, in the
+  // browser only. `turnFacing` had been missing since the turn shipped;
+  // `AXIAL_POSES` would have shipped the entire north/south feature inert.
+  //
+  // This harness cannot catch it by running the code, because it evals
+  // every file into ONE scope where the names are simply in scope. So the
+  // check is on the SOURCES: what does the page install, and what do the
+  // page's other scripts ask for?
+  const html = readFileSync(join(here, 'index.html'), 'utf8');
+  const v1 = readFileSync(join(here, 'cat.js'), 'utf8');
+  const exportBlock = catV2Src.match(/const api = \{([\s\S]*?)\n\};/);
+  assert(exportBlock, "could not find cat-v2's api export block");
+  const exported = [...exportBlock[1].matchAll(/^\s{2}([A-Za-z_$][\w$]*)[,:]/gm)].map((m) => m[1]);
+  assert(exported.length > 20, `only found ${exported.length} exports -- the parse broke`);
+
+  // Whole-namespace install counts for everything; otherwise look for the
+  // symbol being assigned by name.
+  const blanket = /Object\.assign\(window, CatV2\)/.test(html);
+  // Comments stripped first: this file talks about its own dials by name
+  // ("mutable for a lab like SWIM/GAIT/EYE"), and matching prose would
+  // report a symbol as missing that nothing actually reads.
+  const code = (src) => src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, ' ');
+  const consumers = {
+    'render.js': code(renderSrc),
+    'app.js': code(readFileSync(join(here, 'app.js'), 'utf8')),
+  };
+  const missing = [];
+  for (const name of exported) {
+    // Only care about symbols the page's own scripts actually reference
+    // bare -- `CatV2.foo` is always fine, and so is anything cat.js
+    // already defines at top level.
+    const bare = new RegExp(`(^|[^.\\w])${name}\\s*[({.\\[]`);
+    const used = Object.entries(consumers).filter(([, src]) => bare.test(src)).map(([f]) => f);
+    if (!used.length) continue;
+    if (new RegExp(`(function|const|let|var)\\s+${name}\\b`).test(v1)) continue; // cat.js provides it
+    const named = new RegExp(`window\\.${name}\\s*=`).test(html);
+    if (!blanket && !named) missing.push(`${name} (read by ${used.join(', ')})`);
+  }
+  assert(
+    missing.length === 0,
+    `index.html never installs: ${missing.join('; ')} -- these are undefined in the BROWSER only`,
+  );
+  // And the overdraw wrappers must be re-applied AFTER any blanket assign,
+  // or the plain versions win and every cat loses its 5% overdraw.
+  if (blanket) {
+    const assignAt = html.indexOf('Object.assign(window, CatV2)');
+    for (const wrapped of ['drawCat', 'drawCatTween']) {
+      const at = html.indexOf(`window.${wrapped} = (ctx, opts) =>`);
+      assert(at > assignAt, `window.${wrapped} is assigned BEFORE the namespace and gets clobbered`);
+    }
+  }
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);
