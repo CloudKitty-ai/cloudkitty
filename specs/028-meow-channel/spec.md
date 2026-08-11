@@ -192,7 +192,8 @@ baseline.
 4. **Given** dataset v4 collected from these demonstrators, **Then** GroomKitty
    classes 13–15 and the new message labels are nonzero, and the activity-label
    distribution conditioned on message ≠ Silent matches the unconditioned
-   distribution to first order (announcing cats are mid-errand, not idle).
+   distribution to first order (announcing cats are mid-errand, not idle; judged
+   within behavior class per FR-021).
 
 ---
 
@@ -378,8 +379,11 @@ naming it. Load a committed pre-batch snapshot fixture → world resumes and tic
   the companion's behavior is unchanged.
 - **FR-021**: The dataset collector's registered acceptance check: in dataset v4 the
   activity-label distribution conditioned on message ≠ Silent MUST match the
-  unconditioned distribution to first order. The spec carries the check; Experiments
-  runs it the day collection finishes.
+  unconditioned distribution to first order, evaluated within behavior class wherever
+  demonstrator composition differs across announcers (a pooled read confounds who
+  announces with what announcing changes — the v4 composition artifact,
+  results/dataset-v4-2026-08-09.md). The spec carries the check; Experiments runs it
+  the day collection finishes.
 
 **Compatibility, observability, interfaces**
 
@@ -426,7 +430,8 @@ naming it. Load a committed pre-batch snapshot fixture → world resumes and tic
 
 - **SC-001**: In a scripted-only world at default dials, cats announce while acting:
   the activity distribution conditioned on message ≠ Silent matches the unconditioned
-  distribution to first order, and every one of the six needs is announceable.
+  distribution to first order (judged within behavior class per FR-021), and every one
+  of the six needs is announceable.
 - **SC-002**: GroomKitty happens: scripted-only runs at default dials produce nonzero
   cat-to-cat grooming (against a measured baseline of 0 in 800k kitty-ticks), and
   dataset v4 contains nonzero GroomKitty classes 13–15 and new message labels **by

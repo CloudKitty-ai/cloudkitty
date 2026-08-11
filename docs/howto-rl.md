@@ -29,7 +29,7 @@ import cloudkitty
 
 env = cloudkitty.ParallelEnv(horizon=100)     # the default world, one episode
 obs, infos = env.reset(seed=7)
-MENU = env.menu_len()                         # 34 at default slots
+MENU = env.menu_len                           # 34 at default slots
 for _ in range(100):
     actions = {}
     for agent in env.agents:
@@ -85,7 +85,7 @@ env = cloudkitty.VectorEnv(N_WORLDS, horizon=HORIZON, workers=N_WORLDS)
 agents = env.possible_agents
 obs0, _ = env.reset(seeds=EVAL_SEEDS)
 OBS_LEN = obs0[agents[0]].shape[1]
-MENU, HEAD = env.menu_len, env.head_len()     # 34 + 9 (spec 028)
+MENU, HEAD = env.menu_len, env.head_len       # 34 + 9 (spec 028)
 OUT = MENU + HEAD                             # one trunk, 43 logits
 
 rng = np.random.default_rng(0)

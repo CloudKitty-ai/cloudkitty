@@ -377,11 +377,13 @@ impl ParallelEnv {
     }
 
     /// The activity menu's width (34 at default slots).
+    #[getter]
     fn menu_len(&self) -> usize {
         self.episode.codec().len()
     }
 
     /// The message head's width (spec 028): 9.
+    #[getter]
     fn head_len(&self) -> usize {
         cloudkitty_rl::codec::MessageCodec::LEN
     }
@@ -750,6 +752,7 @@ impl VectorEnv {
     }
 
     /// The message head's width (spec 028): 9.
+    #[getter]
     fn head_len(&self) -> usize {
         self.head_len
     }
@@ -759,7 +762,7 @@ impl VectorEnv {
 
 impl VectorEnv {
     /// Infos stacked on the leading world axis, one entry per agent:
-    /// mask [n, menu] (uint8), decision_seed [n] (uint64), survived [n]
+    /// mask [n, menu ∥ head] (uint8), decision_seed [n] (uint64), survived [n]
     /// (int8: 1 passed validation, 0 rewritten, −1 no proposal — reset or
     /// substituted idle), applied_action [n] (int64, −1 when inexpressible
     /// or at reset), applied_action_name (list of str/None), provenance
