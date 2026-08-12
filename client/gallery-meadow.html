@@ -249,12 +249,14 @@
     bushShadowLength: [0, 1, 0.02],
     bushShadowAlpha: [0, 1, 0.02],
     bushLift: [0, 2, 0.05],
+    bushLiftAlt: [0, 2, 0.05],
     bushBase: [0, 1, 0.02],
     bushShadowThrow: [0, 2, 0.05],
     // Which species, and how much of it (spec 03). 0 is bushStyle alone --
     // the shipped world -- 1 is bushStyleAlt alone.
     bushStyleAltShare: [0, 1, 0.05],
     bushTrunk: [0, 1, 0.05],
+    bushTrunkAlt: [0, 1, 0.05],
     // Drifts (spec 03 part 1). `fertilityCells` is the size of a good patch
     // of ground; the powers are how hard each thing concentrates in one.
     // Counts are CONSERVED whatever these say -- watch the drift card's
@@ -680,7 +682,18 @@
     const rows = [VIEW.meadow.bushStyle, VIEW.meadow.bushStyleAlt].filter(Boolean);
     const rh = c.height / rows.length;
     rows.forEach((style, row) => {
-      const t = { ...VIEW.meadow, bushStyle: style, bushStyleAltShare: 0 };
+      // Each row is drawn as if its style were the ONLY species, so the
+      // alt row has to bring the alt STANCE with it too -- otherwise the
+      // second species is drawn with the first one's lift and trunk, and
+      // the strip shows a tree lying flat (2026-08-11).
+      const alt = row > 0;
+      const t = {
+        ...VIEW.meadow,
+        bushStyle: style,
+        bushStyleAltShare: 0,
+        bushLift: alt ? VIEW.meadow.bushLiftAlt : VIEW.meadow.bushLift,
+        bushTrunk: alt ? VIEW.meadow.bushTrunkAlt : VIEW.meadow.bushTrunk,
+      };
       const top = row * rh;
       OCC_OFFSETS.forEach((dy, i) => {
         g.save();

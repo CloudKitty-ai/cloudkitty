@@ -413,6 +413,7 @@ const VIEW = Object.freeze({
     bushStyleAlt: 'trunk', // the second species, when a meadow grows two
     bushStyleAltShare: 0, // 0 = primary only, 1 = alt only, between = a mix
     bushTrunk: 0, // how much stem the stemmed styles draw; 0 is none
+    bushTrunkAlt: 0, // the same, for the bushStyleAlt species
     // The shrub's shadow, damped against the cats': a squat canopy sits
     // close to the ground, so it stretches far less and needs no alpha
     // falloff. Only the LENGTH is damped -- the lean also anchors the
@@ -421,6 +422,7 @@ const VIEW = Object.freeze({
     bushShadowLength: 0.3, // and of its stretch past the caster
     bushShadowAlpha: 1, // no thinning: contact, not a smear
     bushLift: 0, // how far a shrub's canopy stands above its base, in radii
+    bushLiftAlt: 0, // the same, for the bushStyleAlt species
     bushBase: 0.72, // where it meets the ground, in tiles from the tile's top
     // How far the canopy's height pushes its shadow along the lean. Kept
     // small: a rooted thing's shadow leaves its base, and pushing it far

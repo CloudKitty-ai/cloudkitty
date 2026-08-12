@@ -130,6 +130,17 @@ change.
   followed. Sharing one square the order is kitty, bug, bush, front to
   back, and that comes from a named rank rather than from whichever loop
   happened to push first, which is an ordering decided by accident (#201).
+- The meadow's two ground-cover species can now stand differently, so
+  it can grow small trees among flat cover: `bushLiftAlt` and
+  `bushTrunkAlt` give the second species its own lift and trunk. Style
+  already differed per species; how far it stood *up* did not, so both
+  were flat or both were lifted and "trees among shrubs" was
+  unreachable. Both dials ship equal to the primary's, so nothing
+  changes until they are dialled, and a lifted species still meets the
+  ground where it always did — `coverSortKey` is keyed to the base, not
+  the canopy, or a tree would slide in front of the cats it stands
+  behind. The lab's occlusion strip draws each species in its own
+  stance (#202).
 - Docs: rl-training + howto-rl caught up to spec 028 (two-head wire,
   20×20, certification assumptions rewritten — the channel is
   restrained by law, not economics), and kitty-eval is a pre-seating

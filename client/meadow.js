@@ -466,6 +466,10 @@ const MEADOW_DEFAULTS = Object.freeze({
   // unless `bushLift` comes down with it, which is the trade this dial
   // exists to let someone see rather than argue about.
   bushTrunk: 0,
+  // ...and the SECOND species' own stance, so a meadow can grow small
+  // trees among flat cover. Both start where the primary is, so adding
+  // these changed nothing until they were dialled (owner, 2026-08-11).
+  bushTrunkAlt: 0,
   // The shrub's shadow, damped against the cats': a squat canopy sits
   // close to the ground, so it stretches far less and needs no alpha
   // falloff. Only the LENGTH is damped -- the lean also anchors the
@@ -474,6 +478,7 @@ const MEADOW_DEFAULTS = Object.freeze({
   bushShadowLength: 0.3, // and of its stretch past the caster
   bushShadowAlpha: 1, // no thinning: contact, not a smear
   bushLift: 0, // how far a shrub's canopy stands above its base, in radii
+  bushLiftAlt: 0, // the same, for the bushStyleAlt species
   bushBase: 0.72, // where it meets the ground, in tiles from the tile's top
   // How far the canopy's height pushes its shadow along the lean. Kept
   // small: a rooted thing's shadow leaves its base, and pushing it far
@@ -1134,15 +1139,31 @@ function spriteOrder(items) {
  *  flat ones lie on it and would only look like they stand. */
 const STANDING_COVER = new Set(['shrub', 'grown', 'trunk', 'tall', 'lobed']);
 
-function drawBushAt(ctx, { x, y, seed, tile, t }) {
+function drawBushAt(ctx, { x, y, seed, tile: tileSize, t: tunables }) {
   // Which of the two this one is. Drawn from its own channel so the choice
   // is independent of the shape seed, and from (x, y) so it is stable for
   // the life of the world -- scenery that changed species between frames
   // is the flicker `occupiedTiles` was narrowed to avoid.
-  const share = t.bushStyleAltShare || 0;
-  const style = share > 0 && tileHash(x, y, MEADOW_SALTS.bushKind) < share
-    ? t.bushStyleAlt || t.bushStyle || 'cover'
-    : t.bushStyle || 'cover';
+  const share = tunables.bushStyleAltShare || 0;
+  const isAlt = share > 0 && tileHash(x, y, MEADOW_SALTS.bushKind) < share;
+  const style = isAlt
+    ? tunables.bushStyleAlt || tunables.bushStyle || 'cover'
+    : tunables.bushStyle || 'cover';
+  // The two species carry their OWN stance (owner, 2026-08-11): a meadow
+  // may grow one cover that stands on a trunk and one that lies on the
+  // ground. Style already differed per species; how far it stands up did
+  // not, so both were flat or both were lifted and "trees among shrubs"
+  // was unreachable.
+  //
+  // Applied as an overlay on the tunables rather than threaded through the
+  // eight places the style switch reads `bushLift`/`bushTrunk` -- and the
+  // shadow reads them too, so an overlay is the only way the shadow can
+  // stay honest about the height it is cast by. Same shape the lab already
+  // uses to draw one species at a time.
+  const t = isAlt
+    ? { ...tunables, bushLift: tunables.bushLiftAlt, bushTrunk: tunables.bushTrunkAlt }
+    : tunables;
+  const tile = tileSize;
   {
     {
       const s = seed;

@@ -1463,5 +1463,89 @@ check('a whole frame really draws its critters, live and expiring', () => {
   );
 });
 
+// ---- two species, two stances (2026-08-11) ----
+//
+// Owner wants small trees among flat cover: one ground cover with lift and
+// a trunk, one without. Style already differed per species; how far it
+// STOOD UP did not, so both were flat or both were lifted.
+
+/** Every op drawing one clump, at a tile the alt species owns. */
+function clumpOps(t, { x, y }) {
+  const log = [];
+  api.drawBushAt(guardCtx(log), { x, y, seed: 0.55, tile: 32, t });
+  return log;
+}
+/** A tile the species pick lands on, so the overlay is actually exercised. */
+function tileOfSpecies(t, wantAlt) {
+  for (let y = 0; y < 40; y += 1) {
+    for (let x = 0; x < 40; x += 1) {
+      const isAlt = api.tileHash(x, y, api.MEADOW_SALTS.bushKind) < t.bushStyleAltShare;
+      if (isAlt === wantAlt) return { x, y };
+    }
+  }
+  throw new Error(`no tile found for ${wantAlt ? 'alt' : 'primary'}`);
+}
+
+check('the second species carries its own lift and trunk', () => {
+  // A mixed meadow, both species present.
+  const base = { ...api.MEADOW_DEFAULTS, bushStyleAltShare: 0.5, bushStyle: 'lobed', bushStyleAlt: 'trunk' };
+  const altTile = tileOfSpecies(base, true);
+  const ownTile = tileOfSpecies(base, false);
+
+  // Standing the ALT species up must change the alt tile's drawing...
+  const tree = { ...base, bushLiftAlt: 1.2, bushTrunkAlt: 0.8 };
+  assert(
+    String(clumpOps(base, altTile)) !== String(clumpOps(tree, altTile)),
+    'raising bushLiftAlt/bushTrunkAlt changed nothing on a tile the alt species owns',
+  );
+  // ...and must leave the primary species exactly where it was. This is
+  // the whole point: one stands, the other lies on the ground.
+  assert(
+    String(clumpOps(base, ownTile)) === String(clumpOps(tree, ownTile)),
+    'the alt stance leaked onto the primary species -- both would stand or both would lie',
+  );
+  // And the reverse, so neither dial is quietly driving both.
+  const shrub = { ...base, bushLift: 1.2, bushTrunk: 0.8 };
+  assert(
+    String(clumpOps(base, ownTile)) !== String(clumpOps(shrub, ownTile)),
+    'guard: bushLift should still move the primary species',
+  );
+  assert(
+    String(clumpOps(base, altTile)) === String(clumpOps(shrub, altTile)),
+    'the primary stance leaked onto the alt species',
+  );
+});
+
+check('adding the second stance changed nothing that ships', () => {
+  // The dials arrive equal to the primary's, so the meadow is untouched
+  // until someone dials them. A silent art change is not a free default.
+  const d = api.MEADOW_DEFAULTS;
+  assert(d.bushLiftAlt === d.bushLift, `bushLiftAlt ships at ${d.bushLiftAlt}, want ${d.bushLift}`);
+  assert(d.bushTrunkAlt === d.bushTrunk, `bushTrunkAlt ships at ${d.bushTrunkAlt}, want ${d.bushTrunk}`);
+});
+
+check('a standing species does not move where it meets the ground', () => {
+  // `coverSortKey` is what interleaves cover with the cats, and it is keyed
+  // to the BASE. A tree that sorted by its canopy would slide in front of
+  // cats it is standing behind, which is the bug the sort exists to fix.
+  const flat = { ...api.MEADOW_DEFAULTS, bushLiftAlt: 0, bushTrunkAlt: 0 };
+  const tall = { ...api.MEADOW_DEFAULTS, bushLiftAlt: 1.6, bushTrunkAlt: 1 };
+  assert(
+    api.coverSortKey({ x: 4, y: 9 }, flat) === api.coverSortKey({ x: 4, y: 9 }, tall),
+    'lifting a species changed its ground contact -- it would sort against cats by its canopy',
+  );
+});
+
+check('the occlusion strip draws each species in its own stance', () => {
+  // The strip forces one style at a time as the PRIMARY, so it has to
+  // bring the alt stance with it or it shows a tree lying flat -- and the
+  // strip is the only surface for judging whether a lifted canopy reads at
+  // the live tile.
+  const lab = readFileSync(join(here, 'gallery-meadow.html'), 'utf8');
+  const strip = lab.slice(lab.indexOf('BOTH species, a row each'), lab.indexOf('OCC_OFFSETS.forEach'));
+  assert(/bushLiftAlt/.test(strip) && /bushTrunkAlt/.test(strip),
+    'the occlusion strip still draws both rows with the primary stance');
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);
