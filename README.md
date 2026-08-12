@@ -124,6 +124,9 @@ crates/cloudkitty-rl/       the training layer: observations, action codec + leg
                             the kitty-eval harness, policy artifacts — the engine knows
                             nothing of any of it
 crates/cloudkitty-py/       PyO3 bindings: ParallelEnv / VectorEnv, PettingZoo-style
+crates/clowder/             the viewer load benchmark: how many concurrent watchers a
+                            server sustains and how it fails past that, measured from
+                            outside (spec 029). No server or engine changes
 docs/                       guides: the RL HOWTO (howto-rl.md), the training reference
                             (rl-training.md), the plugin contract (plugins.md) with a
                             worked example under examples/, deployment.md, the viewer

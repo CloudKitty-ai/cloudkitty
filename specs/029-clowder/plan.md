@@ -119,6 +119,10 @@ crates/clowder/
 │   │                    #   log-bucket histograms (FR-007, FR-008, FR-010)
 │   ├── health.rs        # FR-016 step health + degradation signatures (FR-012)
 │   ├── record.rs        # CSV writer: preamble, interval rows, summaries (FR-010)
+│   ├── http.rs          # minimal async HTTP/1.1 GET (first paint, /config,
+│   │                    #   pollers) — added rather than pull in a full client
+│   ├── swarm.rs         # the shared run context + the 1 Hz interval sampler
+│   │                    #   the registry feeds (added: the metrics/mode seam)
 │   └── selfwatch.rs     # generator bottleneck detection: fd headroom via
 │                        #   getrlimit, sampler lag (FR-011)
 └── tests/

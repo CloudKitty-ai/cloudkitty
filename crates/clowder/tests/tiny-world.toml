@@ -1,0 +1,135 @@
+# Disposable target world for Clowder's smoke test (spec 029, T003).
+#
+# Scripted-only on purpose: no [rl.policy.*] blocks and no policy seats, so
+# booting never depends on the working directory or on artifact loading (a
+# load test has no business coupling to that). Small, minimum roster, and a
+# ~200ms tick -- fast enough for a seconds-long run, slack enough that an
+# ordinary scheduler stall on a shared CI runner does not drop an update and
+# flake a skip count. bind = port 0: the test reads the chosen port from the
+# server's startup log line.
+
+[world]
+width = 12
+height = 12
+tick_ms = 200
+seed = 20260812
+bind = "127.0.0.1:0"
+
+[persistence]
+snapshot_path = "clowder-smoke-snapshot.json"
+save_every_ticks = 100
+
+[[kitty]]
+id = 1
+name = "Pilot"
+x = 3
+y = 3
+behavior = "needs_driven"
+
+[[kitty]]
+id = 2
+name = "Copilot"
+x = 8
+y = 8
+behavior = "playful"
+
+[needs]
+eat = 0.4
+drink = 0.4
+sleep = 0.3
+play = 0.4
+cuddle = 0.4
+bath = 0.2
+
+[happiness]
+floor = 5.0
+
+[happiness.weights]
+eat = 0.20
+drink = 0.20
+sleep = 0.15
+play = 0.15
+cuddle = 0.15
+bath = 0.15
+
+[thresholds]
+distress = 90.0
+safeguard = 75.0
+purr = 70.0
+
+# A 12x12 world caps each element type at floor(144 / 32) = 4.
+[elements.water]
+min = 3
+max = 4
+
+[elements.chow]
+min = 2
+max = 4
+servings = 5
+
+[elements.bug]
+min = 2
+max = 4
+ttl = 300
+
+[elements.greeble]
+min = 1
+max = 3
+ttl = 300
+
+[elements.sunbeam]
+min = 2
+max = 4
+ttl = 300
+
+[actions]
+eat_relief = 35.0
+drink_relief = 35.0
+sleep_relief = 5.0
+sleep_relief_sunbeam = 8.0
+groom_relief = 20.0
+play_relief = 20.0
+cuddle_relief = 8.0
+cosleep_drip_relief = 3.0
+cosleep_mutual_relief = 8.0
+solo_play_relief = 10.0
+
+[actions.durations]
+eat = { min = 2, max = 3 }
+drink = { min = 2, max = 3 }
+play = { min = 2, max = 5 }
+bath = { min = 4, max = 8 }
+sleep = { min = 6, max = 12 }
+cuddle = { min = 6, max = 12 }
+
+[meow]
+recent_window_ticks = 10
+announce_threshold = 30.0
+announce_hysteresis = 5.0
+
+[purr]
+min_ticks = 8
+max_ticks = 13
+cooldown_factor_min = 1.75
+cooldown_factor_max = 2.75
+announce_probability = 0.0
+
+[behavior]
+budget_fraction_of_tick = 0.5
+cuddle_real_threshold = 15.0
+playful_comfort = 55.0
+urgency_weight = 2.0
+tile_cost = 1.0
+water_step_cost = 4.0
+worth_a_detour = 30.0
+chase_patience_ticks = 10
+chase_exclusion_ticks = 60
+solo_play_reach = 8
+sunbeam_reach = 8
+
+[events]
+distress_retention = 1000
+activity_retention = 1000
+
+[viewer]
+distress_patience_ticks = 60

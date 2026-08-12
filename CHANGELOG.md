@@ -33,6 +33,18 @@ change.
 
 ## Unreleased
 
+- Clowder, the viewer load benchmark (spec 029): a new `crates/clowder`
+  tool that asks how many concurrent viewers a server sustains and how it
+  fails past that. It drives real viewer traffic in five shapes (ramp,
+  spike, slow-consumer, churn, soak) plus a read-only poller mix, and
+  measures everything from outside — the tick number in every payload
+  gives per-connection skips, lag, and the world's observed cadence, so
+  the tool needs no server or engine change. Runs write one identity-
+  stamped CSV (interval rows on a single schema, derived step and run
+  summaries) and name the ceiling under a configurable health definition,
+  classifying any degradation and blaming the generator when the
+  bottleneck is its own. Local targets by default; the live world is
+  never a permitted target.
 - Spec 03: the meadow grows in drifts — one low-frequency fertility
   field gates all three ground scatters, so grass, flowers and shrubs
   thicken together and the meadow has *places*, not texture; the
