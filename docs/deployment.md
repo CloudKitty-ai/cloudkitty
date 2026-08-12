@@ -46,7 +46,21 @@ to the workspace copy of the viewer and says so in the log.
 
 The world saves itself every `save_every_ticks` ticks and again on
 graceful shutdown, atomically (temp file + rename), so a crash mid-write
-can cost at most one save interval — never the world.
+can cost at most one save interval — never the world. The save includes
+the random state, so a restart continues the same world, not merely a
+similar one.
+
+## Several worlds, and never losing one
+
+The address (and port) comes from `bind` under `[world]` in the config
+file — `bind = "127.0.0.1:8090"` by default. There is no CLI flag for
+it, so running several worlds side by side means one config file per
+world, each with its own `bind` and its own `--snapshot`.
+
+Worlds are never lost by accident: `--fresh` first moves the old save
+aside to `snapshot.json.<timestamp>.bak` (restore it by renaming the
+file back; pass `--no-backup` if you truly want it gone). To keep
+several worlds deliberately, give each its own file with `--snapshot`.
 
 ## Hostnames
 

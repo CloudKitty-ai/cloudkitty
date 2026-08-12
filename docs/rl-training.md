@@ -176,9 +176,11 @@ shipping binary, exit 2 on any fallback-taken decision, and a paired
 greedy delta on the **served** world by default (`./cloudkitty.toml`,
 resolved the way the server resolves it; the world is never guessed —
 a missing file is an error, and every report stamps the resolved world
-identity, issue #76 — the training world is a gym, not a claim). Run
-it before handing a candidate to the certification pipeline, and again
-after any engine bump. It certifies nothing.
+identity, issue #76 — the training world is a gym, not a claim). The
+compiled 3-kitty world stays reachable as `--config compiled`, kept
+deliberately as a roster-out-of-distribution screen. Run it before
+handing a candidate to the certification pipeline, and again after any
+engine bump. It certifies nothing.
 
 **Certification is the experiment pipeline**, written down as doctrine
 in [`experiments/PIPELINE.md`](../experiments/PIPELINE.md). The bar
@@ -210,10 +212,13 @@ cargo run -p cloudkitty-rl --bin kitty-eval -- \
 
 The suite scores across committed exam configs — scale, scarcity,
 heterogeneity, and the mixed-roster composition cells — **in addition
-to** the default-world smoke, never instead of it. Exam worlds are
-never judged by the served world's welfare bounds (a scarcity-floor
-world lawfully scores below bounds calibrated for abundance); the
-paired baseline delta is an exam's meaning,
+to** the default-world smoke, never instead of it. The mixed-roster cells seat the
+candidate among scripted cats in three compositions — a lone guest, an
+even split, a near-full house — and ask whether the *scripted* cats end
+up worse off than they would have been among their own kind. Exam
+worlds are never judged by the served world's welfare bounds (a
+scarcity-floor world lawfully scores below bounds calibrated for
+abundance); the paired baseline delta is an exam's meaning,
 and the mixed-roster verdict is anchored to its own all-scripted baseline
 (exit 4 when it fails — the exploitation probe caught something). The
 per-kitty **sign test** warns by default: a scripted kitty whose paired
@@ -234,6 +239,17 @@ Read suite scores as archaeology until an `evals/v2` recalibrates —
 which schedules with the `FromConfig` refactor at the next harness
 touch, if a second certification instrument is ever wanted; nothing is
 committed now.
+
+The suite fixes its own seeds and tick counts, so `--seeds`, `--ticks`,
+`--config` and `--roster` are refused with `--suite`: an instrument you
+can adjust is not a bar. Exit codes, for scripts and CI: `0` pass ·
+`1` usage or validation · `2` a fallback was taken while scoring a
+policy · `3` a determinism self-check disagreed with itself · `4` the
+mixed-roster verdict failed. Every report stamps the engine defaults
+and the world identity it ran under — config source, kitty count,
+config hash — so results from before a tuning change, or from a
+different world entirely, can't be quietly compared against results
+from after one.
 
 ## Certification assumptions
 
