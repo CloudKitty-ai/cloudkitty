@@ -106,7 +106,10 @@ pub fn evaluate(
         sigs.push(Signature::SkippedUpdates);
     }
 
-    let handshake_fail: u64 = valid.iter().map(|r| r.errors).sum();
+    // Handshake failures are connections that never established (FR-016),
+    // distinct from mid-stream drops and from schema drift -- the raw `errors`
+    // column conflated all three.
+    let handshake_fail: u64 = valid.iter().map(|r| r.handshake_failures).sum();
     if handshake_fail > t.max_handshake_failures {
         sigs.push(Signature::HandshakeFailures);
     }

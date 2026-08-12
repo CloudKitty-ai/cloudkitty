@@ -80,7 +80,9 @@ columns.
 | `gap_p50_ms`, `gap_p99_ms` | inter-update arrival gaps |
 | `cadence_ms` | observed tick cadence (FR-008), from a designated healthy reference connection |
 | `poll_p50_ms`, `poll_p99_ms`, `poll_errors` | poller mix |
-| `errors`, `unexpected_ends` | this interval |
+| `errors` | raw error events this interval (diagnostic; includes mid-stream + drift) |
+| `handshake_failures` | connections that never established this interval (FR-016 gate) |
+| `unexpected_ends` | drops of established streams this interval (FR-012) |
 | `gen_fd_headroom` | remaining descriptors (FR-011) |
 | `gen_lag_ms` | sampler lateness — nonzero means generator strain |
 | `valid` | bool; false when FR-011 invalidates the interval |

@@ -16,11 +16,28 @@ pub struct GetResult {
     pub elapsed_ms: f64,
 }
 
+/// A whole GET (connect + write + read to EOF) must finish inside this bound.
+/// `Connection: close` should make the server close the socket after the body,
+/// but a keep-alive or otherwise misbehaving target would leave `read_to_end`
+/// hanging forever; the timeout turns that into an error the caller counts.
+const GET_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(10);
+
 /// GET `path` from `host:port`. `Connection: close` means the body is
 /// everything after the header terminator until EOF -- no chunked/keep-alive
 /// parsing. Errors are returned as strings; the caller decides how to count
 /// them.
 pub async fn get(host: &str, port: u16, path: &str) -> Result<GetResult, String> {
+    tokio::time::timeout(GET_TIMEOUT, get_inner(host, port, path))
+        .await
+        .map_err(|_| {
+            format!(
+                "timeout after {}s (server not closing the socket?)",
+                GET_TIMEOUT.as_secs()
+            )
+        })?
+}
+
+async fn get_inner(host: &str, port: u16, path: &str) -> Result<GetResult, String> {
     let start = Instant::now();
     let mut stream = TcpStream::connect((host, port))
         .await

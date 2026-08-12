@@ -66,17 +66,17 @@ impl SelfWatch {
 
     /// True when this interval's measurements should be invalidated (FR-011):
     /// we hit EMFILE, or we are within 20% of the descriptor ceiling, or the
-    /// sampler itself ran late (`gen_lag_ms` past a threshold).
-    pub fn interval_invalid(&self, open_conns: u64, gen_lag_ms: f64) -> bool {
+    /// sampler woke late by more than `lag_limit_ms`. The caller passes the
+    /// limit as a fraction of the interval, so the threshold scales with
+    /// `--interval` rather than being fixed at one cadence.
+    pub fn interval_invalid(&self, open_conns: u64, gen_lag_ms: f64, lag_limit_ms: f64) -> bool {
         if self.emfile_hits.load(Ordering::Relaxed) > 0 {
             return true;
         }
         if self.limit != 0 && open_conns as f64 > 0.8 * self.limit as f64 {
             return true;
         }
-        // A sampler that woke more than a quarter-interval late means the
-        // generator's runtime is saturated; its counts undercount reality.
-        gen_lag_ms > 250.0
+        gen_lag_ms > lag_limit_ms
     }
 }
 
@@ -99,15 +99,16 @@ mod tests {
             limit: 100,
             ..Default::default()
         };
-        assert!(!w.interval_invalid(50, 10.0));
-        assert!(w.interval_invalid(85, 10.0)); // >80% of 100
-        assert!(w.interval_invalid(50, 400.0)); // sampler lag
+        assert!(!w.interval_invalid(50, 10.0, 250.0));
+        assert!(w.interval_invalid(85, 10.0, 250.0)); // >80% of 100
+        assert!(w.interval_invalid(50, 400.0, 250.0)); // sampler lag past limit
+        assert!(!w.interval_invalid(50, 400.0, 1250.0)); // same lag, 5s interval
         w = SelfWatch {
             limit: 100,
             ..Default::default()
         };
         w.note_emfile();
-        assert!(w.interval_invalid(1, 0.0)); // any EMFILE poisons the interval
+        assert!(w.interval_invalid(1, 0.0, 250.0)); // any EMFILE poisons the interval
     }
 
     #[test]

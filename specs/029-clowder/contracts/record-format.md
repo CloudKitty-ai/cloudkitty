@@ -34,8 +34,16 @@ One header row, columns exactly as in
 [data-model.md § IntervalRow](../data-model.md): `t, scope, step, class,
 conns_target, conns_open, updates, skips, bytes, handshake_p50_ms,
 handshake_p99_ms, gap_p50_ms, gap_p99_ms, cadence_ms, poll_p50_ms,
-poll_p99_ms, poll_errors, errors, unexpected_ends, gen_fd_headroom,
-gen_lag_ms, valid`.
+poll_p99_ms, poll_errors, errors, handshake_failures, unexpected_ends,
+gen_fd_headroom, gen_lag_ms, valid`.
+
+`handshake_failures` counts connections that never established (a handshake
+failure — FR-016's `max_handshake_failures` gate keys on this); `errors` is
+the raw error-event count including mid-stream and schema-drift errors, kept
+for diagnosis only; `unexpected_ends` counts drops of *established* streams
+(FR-012 `connection_drops`). Latency percentiles (`handshake_*`, `gap_*`,
+`poll_*`) are quantized down to powers of two — a value of 256 means "in
+[256, 512) ms".
 
 - `scope=interval`: one row per interval per active class, in time order.
 - `scope=step`: one row per ramp step per class, aggregated over the

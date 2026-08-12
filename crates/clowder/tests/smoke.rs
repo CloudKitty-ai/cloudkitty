@@ -180,7 +180,7 @@ fn assert_record_parses(body: &str) {
         .find(|l| l.starts_with("t,scope,"))
         .expect("header row");
     let cols = header.split(',').count();
-    assert_eq!(cols, 22, "schema v1 has 22 columns");
+    assert_eq!(cols, 23, "schema v1 has 23 columns");
     for line in body.lines() {
         if line.starts_with('#') || line.starts_with("t,scope,") || line.trim().is_empty() {
             continue;

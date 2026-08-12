@@ -29,23 +29,29 @@ impl Class {
     }
 }
 
-/// Why a connection ended. "Unexpected" for FR-016 = `ServerClosed`, `Error`,
-/// or `Refused`; `ClosedByRun` and `Open` are not.
+/// Why a connection ended. The two failure modes are kept distinct so the
+/// degradation taxonomy does not confuse them (FR-012): `Refused` is a
+/// handshake failure (never established), `ServerClosed` is a drop of an
+/// established stream. `ClosedByRun` (including a schema-drift stop, which the
+/// record explains with a note) and `Open` are neither.
 #[derive(Clone, Debug)]
 pub enum EndReason {
     Open,
     ClosedByRun,
     ServerClosed,
-    Error,
     Refused,
 }
 
 impl EndReason {
-    pub fn is_unexpected(&self) -> bool {
-        matches!(
-            self,
-            EndReason::ServerClosed | EndReason::Error | EndReason::Refused
-        )
+    /// The connection never established (connect, first-paint, or WS upgrade
+    /// failed) — a handshake failure.
+    pub fn is_handshake_failure(&self) -> bool {
+        matches!(self, EndReason::Refused)
+    }
+
+    /// An established stream the server dropped mid-run.
+    pub fn is_drop(&self) -> bool {
+        matches!(self, EndReason::ServerClosed)
     }
 }
 
@@ -72,17 +78,23 @@ impl Default for Histogram {
 
 impl Histogram {
     pub fn record(&mut self, ms: f64) {
+        // Bucket k holds [2^k, 2^(k+1)) ms, so a sample lands in
+        // floor(log2(ms)); `percentile` returns that bucket's lower edge, and
+        // the two must agree (an earlier +1 here reported the upper edge while
+        // the doc claimed the lower, doubling every percentile).
         let bucket = if ms < 1.0 {
             0
         } else {
-            ((ms.log2()) as usize + 1).min(BUCKETS - 1)
+            (ms.log2() as usize).min(BUCKETS - 1)
         };
         self.counts[bucket] += 1;
         self.total += 1;
     }
 
-    /// The lower edge (ms) of the bucket holding the `q` quantile. A
-    /// conservative, monotone readout: percentiles never overstate speed.
+    /// The lower edge (ms) of the bucket holding the `q` quantile: the reported
+    /// latency is quantized down to a power of two. Quantizing down means the
+    /// lag health check (`health.rs`) under-fires at a bucket boundary rather
+    /// than over-fires, so it never falsely lowers the ceiling.
     pub fn percentile(&self, q: f64) -> Option<f64> {
         if self.total == 0 {
             return None;
@@ -237,6 +249,9 @@ pub struct IntervalRow {
     pub poll_p99_ms: Option<f64>,
     pub poll_errors: u64,
     pub errors: u64,
+    /// Handshake failures this interval (connections that never established).
+    pub handshake_failures: u64,
+    /// Drops this interval (established streams the server closed).
     pub unexpected_ends: u64,
     pub gen_fd_headroom: Option<u64>,
     pub gen_lag_ms: Option<f64>,

@@ -12,7 +12,7 @@ use crate::health::HealthThresholds;
 use crate::metrics::IntervalRow;
 use crate::target::TargetIdentity;
 
-/// The 22-column schema v1, append-only (contract). The header row IS the
+/// The 23-column schema v1, append-only (contract). The header row IS the
 /// schema declaration; there is no version key in the preamble.
 pub const COLUMNS: &[&str] = &[
     "t",
@@ -33,6 +33,7 @@ pub const COLUMNS: &[&str] = &[
     "poll_p99_ms",
     "poll_errors",
     "errors",
+    "handshake_failures",
     "unexpected_ends",
     "gen_fd_headroom",
     "gen_lag_ms",
@@ -56,7 +57,7 @@ pub fn row_line(r: &IntervalRow) -> String {
     let mut s = String::new();
     let _ = write!(
         s,
-        "{:.3},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
+        "{:.3},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
         r.t,
         r.scope,
         r.step.map(|x| x.to_string()).unwrap_or_default(),
@@ -75,6 +76,7 @@ pub fn row_line(r: &IntervalRow) -> String {
         opt(r.poll_p99_ms),
         r.poll_errors,
         r.errors,
+        r.handshake_failures,
         r.unexpected_ends,
         opt_u(r.gen_fd_headroom),
         opt(r.gen_lag_ms),

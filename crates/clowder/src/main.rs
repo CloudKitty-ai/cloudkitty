@@ -315,6 +315,7 @@ fn summary_row(scope: &str, step: Option<u32>, conns: u64, rows: &[IntervalRow])
         skips: rows.iter().map(|r| r.skips).sum(),
         bytes: rows.iter().map(|r| r.bytes).sum(),
         errors: rows.iter().map(|r| r.errors).sum(),
+        handshake_failures: rows.iter().map(|r| r.handshake_failures).sum(),
         unexpected_ends: rows.iter().map(|r| r.unexpected_ends).sum(),
         cadence_ms: rows.iter().rev().find_map(|r| r.cadence_ms),
         valid: rows.iter().all(|r| r.valid),

@@ -150,6 +150,7 @@ struct ClassAcc {
     bytes: u64,
     errors: u64,
     conns_open: u64,
+    handshake_failures: u64,
     unexpected_ends: u64,
     handshake: Histogram,
     gap: Histogram,
@@ -183,7 +184,12 @@ pub async fn sample_loop(
         let mut classes: HashMap<&'static str, ClassAcc> = HashMap::new();
         let mut open_total = 0u64;
         {
-            let reg = shared.registry.lock().unwrap();
+            // Prune connections that have closed AND been fully drained (no new
+            // data this interval), so churn and long soaks don't grow the
+            // sampler's per-interval work without bound -- the self-inflicted
+            // overhead FR-011 exists to keep off the server's ledger.
+            let mut prune: Vec<u64> = Vec::new();
+            let mut reg = shared.registry.lock().unwrap();
             for h in reg.iter() {
                 let cls = h.class().label();
                 let acc = classes.entry(cls).or_default();
@@ -222,19 +228,40 @@ pub async fn sample_loop(
                         acc.gap.record(g as f64 / 1000.0);
                     }
                 }
-                // Unexpected ends, counted once.
+                // A closed connection: bucket its end reason once (handshake
+                // failure vs drop are distinct signatures), then prune it once
+                // its final delta has been captured.
                 if !is_open {
-                    let unexpected = h.end.lock().unwrap().is_unexpected();
-                    if unexpected && ends_counted.insert(h.id) {
-                        acc.unexpected_ends += 1;
+                    if ends_counted.insert(h.id) {
+                        let end = h.end.lock().unwrap();
+                        if end.is_handshake_failure() {
+                            acc.handshake_failures += 1;
+                        } else if end.is_drop() {
+                            acc.unexpected_ends += 1;
+                        }
                     }
+                    if du == 0 {
+                        prune.push(h.id);
+                    }
+                }
+            }
+            if !prune.is_empty() {
+                let pset: std::collections::HashSet<u64> = prune.iter().copied().collect();
+                reg.retain(|h| !pset.contains(&h.id));
+                for id in &prune {
+                    prev.remove(id);
+                    handshakes_counted.remove(id);
+                    ends_counted.remove(id);
                 }
             }
         }
 
         shared.selfwatch.observe_conns(open_total);
         let headroom = shared.selfwatch.headroom(open_total);
-        let valid = !shared.selfwatch.interval_invalid(open_total, gen_lag_ms);
+        let lag_limit_ms = interval_s * 1000.0 * 0.25;
+        let valid = !shared
+            .selfwatch
+            .interval_invalid(open_total, gen_lag_ms, lag_limit_ms);
         let cadence_ms = shared.cadence.period_ms();
         let target = shared.conns_target.load(Ordering::Relaxed);
         let step = shared.current_step();
@@ -270,6 +297,7 @@ pub async fn sample_loop(
                 poll_p99_ms: None,
                 poll_errors: 0,
                 errors: acc.errors,
+                handshake_failures: acc.handshake_failures,
                 unexpected_ends: acc.unexpected_ends,
                 gen_fd_headroom: headroom,
                 gen_lag_ms: Some(gen_lag_ms),

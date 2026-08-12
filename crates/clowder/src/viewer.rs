@@ -149,13 +149,14 @@ pub async fn run_viewer(shared: Arc<Shared>, handle: Arc<ConnHandle>, stall_at: 
                                 // A data frame with no parseable tick -- whether
                                 // it is the first frame (not a CloudKitty world
                                 // payload) or a later one (schema drift) -- is a
-                                // payload problem, not a server-side drop. Record
-                                // the drift note in both cases so the record
-                                // explains the ended connection rather than
-                                // silently attributing it to ConnectionDrops.
+                                // payload problem, not a server-side drop or a
+                                // handshake failure. Record the drift note (which
+                                // explains the ended connection) and end as an
+                                // ordinary run-side close so it feeds neither
+                                // degradation signature.
                                 handle.stats.errors.fetch_add(1, Ordering::Relaxed);
                                 shared.note_schema_drift();
-                                handle.finish(EndReason::Error);
+                                handle.finish(EndReason::ClosedByRun);
                                 return;
                             }
                         }
