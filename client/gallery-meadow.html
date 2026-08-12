@@ -29,7 +29,7 @@
     background: #fdf6ec;
     color: #4a4038;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 300px;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
     gap: 20px;
     align-items: start;
   }
@@ -38,6 +38,24 @@
   p.note { margin: 0 0 12px; font-size: 0.8rem; color: #8a7a6c; max-width: 62ch; line-height: 1.5; }
   canvas { border-radius: 10px; display: block; box-shadow: 0 6px 18px rgba(150,125,105,.18); }
   .panel { background: #fffdfa; border-radius: 14px; padding: 14px 16px; box-shadow: 0 6px 18px rgba(150,125,105,.14); }
+  /* Everything reading-shaped stacks down the wide column; the CONTROLS
+     get the narrow one to themselves.
+     Without the explicit placement the grid auto-flowed three blocks into
+     two columns, so the drifts card (960px of canvas) landed in the 300px
+     track and the dials were pushed BELOW every canvas in column one --
+     which is the scrolling the owner hit (2026-08-11). Spanning all rows
+     rather than sitting in row 1 is what gives `sticky` room to travel:
+     a grid item can only stick within its own area. */
+  body > * { grid-column: 1; }
+  body > .controls {
+    grid-column: 2;
+    grid-row: 1 / -1;
+    align-self: start;
+    position: sticky;
+    top: 20px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+  }
   /* Name, slider, value -- in that order and on one row, so the label a
      slider belongs to is the one immediately to its left. `.name` used to
      be `flex: 1 1 auto`, which stretched it across the whole lab and left
@@ -160,7 +178,7 @@
   <p class="note mono" id="drift-stats"></p>
 </div>
 
-<div class="panel">
+<div class="panel controls">
   <h2>Hour</h2>
   <div class="row" id="phases"></div>
   <label><span class="name">blend toward next</span>
