@@ -52,8 +52,10 @@ the 2026-08-12 clarification).
   connection, summed per class per interval (FR-007).
 - `cadence_ms` comes from a designated healthy reference connection
   (FR-008); if the reference is lost, the next healthy viewer is promoted
-  and the promotion tick is noted as a `# note:` preamble-style line
-  appended at run end.
+  and the promotion is recorded as a `# note: cadence reference promoted
+  at t=<secs>` line appended after the last data row. (`#`-prefixed lines
+  may appear both before the header and after the final row; a parser
+  skips every `#` line wherever it sits.)
 - `valid=false` rows are excluded from step/run summaries and from any
   ceiling claim (FR-011); if any step contains an invalid interval, the
   run outcome is `invalidated` unless the step still fails healthily on

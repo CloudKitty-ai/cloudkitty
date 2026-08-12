@@ -123,14 +123,33 @@ verified against `origin/main` on 2026-08-12.
 
 - **Decision**: `crates/clowder/tests/smoke.rs` builds/boots the real
   `cloudkitty-server` binary (via `cargo run -p cloudkitty-server` /
-  `CARGO_BIN_EXE`-style resolution) on an ephemeral port with a committed
-  tiny test config (small world, minimum roster, fast ticks), runs a
-  seconds-long micro-ramp, and asserts: exit code 0, record file parses,
-  zero skips at trivial load. Runtime budget: under ~10 s so it rides the
-  required CI gate.
+  `CARGO_BIN_EXE`-style resolution) with `--config tests/tiny-world.toml
+  --fresh`, binding `127.0.0.1:0`, then **reads the chosen port from the
+  server's startup log line** (`local_addr()` is logged as
+  `http://127.0.0.1:<port>`; there is no address endpoint — verified
+  2026-08-12). It runs a seconds-long micro-ramp and asserts: exit code 0,
+  record file parses per the contract, and outcome `completed`. Runtime
+  budget: under ~10 s so it rides the required CI gate.
 - **Rationale**: the tool's entire value is measuring the real server;
   mocking would test nothing (and Article VI wants real guards). The
-  server binary is exercised unmodified, preserving FR-009.
+  server binary is exercised unmodified, preserving FR-009. Port 0 was
+  confirmed to bind and log correctly, so the test needs no fixed port.
+- **Verified environment facts (2026-08-12)**: (a) the server binds
+  `127.0.0.1:0` and logs the concrete port; (b) `tick` is the third field
+  of the `/world` payload (`{"width":..,"height":..,"tick":..}`), backing
+  R3; (c) the *served* `cloudkitty.toml` seats a policy artifact
+  (`policies/e004-a1-s2.ckpolicy`) and therefore FAILS to boot from a bare
+  checkout with a missing-artifact error — so `tiny-world.toml` MUST be
+  **scripted-only** (no `[rl.policy.*]`, no `behavior = "policy:..."`),
+  not merely a smaller world.
+- **Assertion scope (revised from "zero skips")**: the smoke test asserts
+  exit code, record validity, and `completed` outcome — NOT zero skips. A
+  fast test tick on a shared CI runner can drop an update to an ordinary
+  scheduler stall, which would flake a zero-skip assertion; skip-behavior
+  is exercised deliberately in the slow-consumer path (SC-006), not
+  incidentally here. The test world's tick is set to ~200 ms for the same
+  reason (fast enough for a seconds-long run, slack enough not to flake).
 - **Alternatives considered**: a mock WS server (rejected: tests the mock);
   marking the test `#[ignore]` (rejected: an unexercised tool rots — keep
-  it small instead).
+  it small instead); a fixed port (rejected: port 0 works and avoids
+  collisions on shared runners).

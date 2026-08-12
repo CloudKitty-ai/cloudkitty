@@ -24,7 +24,7 @@ world is committed.
 
 - [ ] T001 Create `crates/clowder/Cargo.toml` (bin crate; deps: workspace `tokio`, `serde`, `serde_json`, `sha2`; new `tokio-tungstenite` with rustls feature; `libc`) and a `src/main.rs` stub that prints usage and exits 1
 - [ ] T002 Add `crates/clowder` to the workspace `members` in root `Cargo.toml` (the only edit outside the new crate) and verify `cargo build -p clowder` and `cargo test --workspace` still pass
-- [ ] T003 [P] Commit the disposable target world `crates/clowder/tests/tiny-world.toml`: minimum roster (2 kitties), small grid, fast tick (`tick_ms` ≈ 50), loopback bind on port 0/ephemeral-friendly setting per server config rules
+- [ ] T003 [P] Commit the disposable target world `crates/clowder/tests/tiny-world.toml`: minimum roster (2 kitties), small grid, **scripted-only cats — no `[rl.policy.*]` blocks and no `behavior = "policy:..."` seats** (the served `cloudkitty.toml` references a committed policy artifact and fails to boot from a bare checkout; verified 2026-08-12), `tick_ms` ≈ 200 (fast enough for a seconds-long run, slack enough not to flake skip counts), loopback `bind = "127.0.0.1:0"` (port 0 confirmed to bind and log the chosen port)
 
 ---
 
@@ -35,7 +35,7 @@ and the record file — everything every mode reuses.
 
 - [ ] T004 [P] Implement `crates/clowder/src/target.rs`: target URL parsing (http→ws derivation), the loopback-only default with `--allow-remote` override (FR-013, research R9), and the identity-stamp fetch — `GET /config` body sha256 + extracted `tick_ms`/roster/dims, first `/world` payload byte length (FR-010, research R5)
 - [ ] T005 [P] Implement `crates/clowder/src/scan.rs`: bounded prefix extraction of `"tick":` (research R3), full-parse validation via a minimal serde struct for a connection's first payload, and the scan-miss → schema-drift abort path
-- [ ] T006 [P] Implement `crates/clowder/src/metrics.rs`: per-connection atomic counters (updates, skips, bytes, last tick), log-spaced bucket histograms with p50/p90/p99 readout (research R4), and the 1 Hz interval sampler emitting `IntervalRow`s per data-model.md, including `gen_lag_ms`
+- [ ] T006 [P] Implement `crates/clowder/src/metrics.rs`: per-connection atomic counters (updates, skips, bytes, last tick), log-spaced bucket histograms with p50/p90/p99 readout (research R4), the 1 Hz interval sampler emitting `IntervalRow`s per data-model.md (including `gen_lag_ms`), and the **cadence reference connection** (FR-008): designate one healthy connection as the `cadence_ms` source, promote the next healthy viewer when it is lost, and emit the `# note: cadence reference promoted at t=...` line per contracts/record-format.md
 - [ ] T007 Implement `crates/clowder/src/viewer.rs` (uses T004/T005/T006): one viewer's lifecycle — first-paint `GET /world`, WS subscribe, read loop feeding metrics, handshake timing split (GET vs upgrade), end-reason classification per data-model.md's `end` enum (FR-001, FR-007)
 - [ ] T008 [P] Implement `crates/clowder/src/selfwatch.rs`: `RLIMIT_NOFILE` via libc at startup and per interval, 80%-headroom flagging, EMFILE and sampler-lag invalidation of intervals (FR-011, research R6)
 - [ ] T009 [P] Implement `crates/clowder/src/record.rs` per contracts/record-format.md: `#` preamble writer (identity, scenario, thresholds with non-default marking), header row, interval/step/run rows with the `scope` column, end-of-run `# outcome:` / `# classification:` lines (FR-010)
@@ -63,7 +63,7 @@ same conclusion recoverable from the record's `scope=step` rows.
 - [ ] T015 [US1] Implement degradation classification (FR-012) in `crates/clowder/src/health.rs`: the closed signature enum from data-model.md, mapped from step/run evidence, `generator_bottleneck` overriding attribution (FR-011)
 - [ ] T016 [US1] Wire ramp end-to-end in `crates/clowder/src/main.rs` + `record.rs`: `scope=step`/`scope=run` summary rows derived from interval rows, human summary naming ceiling and first-degraded measure, stderr per-step progress
 - [ ] T017 [P] [US1] Unit tests for `health.rs`: healthy/unhealthy step tables across each FR-016 threshold, non-default threshold marking, classification mapping including generator-bottleneck override
-- [ ] T018 [US1] Integration test `crates/clowder/tests/smoke.rs` (research R10): boot the real `cloudkitty-server` with `tests/tiny-world.toml` on an ephemeral port, run a micro-ramp (e.g. `--to 20 --step 10 --hold 2`), assert exit 0, record parses per contract, zero skips, outcome `completed` — budget ≤ 10 s
+- [ ] T018 [US1] Integration test `crates/clowder/tests/smoke.rs` (research R10): boot the real `cloudkitty-server` with `--config tests/tiny-world.toml --fresh` binding `127.0.0.1:0`, **read the chosen port from the server's startup log line** (no address endpoint exists), run a micro-ramp (e.g. `--to 20 --step 10 --hold 2`), and assert exit 0, record parses per contract, and outcome `completed` — **not** zero skips (a fast tick on a shared runner can drop an update to a scheduler stall; skip behavior is exercised in the slow-consumer path, not here). Budget ≤ 10 s
 - [ ] T019 [US1] Interrupted-target behavior (quickstart §6): detect tick-number reset and socket loss as target failure, exit 3, `# outcome: interrupted`, rows preserved and valid (edge case + FR-014); covered in `smoke.rs` by killing the server mid-hold
 
 **Checkpoint**: MVP — quickstart §§1–3 work as written.
@@ -102,7 +102,7 @@ scenario carry identical identity stamps (modulo timestamp) and agree on
 outcome; editing the world config visibly changes `config_sha256`.
 
 - [ ] T026 [P] [US3] Complete stamp coverage in `record.rs` + `target.rs`: tool version + git describe when available, `nofile_limit`, effective-scenario echo (every flag, one per line), non-default FR-016 thresholds marked `(non-default)` per contract
-- [ ] T027 [P] [US3] Repeatability support in `main.rs`: a `--repeat <n>` convenience that runs the scenario n times into suffixed records and prints the ceiling agreement check against SC-003's ±10% tolerance
+- [ ] T027 [P] [US3] Repeatability support in `main.rs`: the `--repeat <n>` flag (contracts/cli.md common flags) that runs the scenario n times into `-1`/`-2`/… suffixed records and prints the ceiling agreement check against SC-003's ±10% tolerance
 - [ ] T028 [US3] Unit test for preamble/schema stability in `crates/clowder/src/record.rs` tests: unknown-`#`-key tolerance documented by test, column list asserted against the contract's schema v1 (append-only guard)
 
 **Checkpoint**: SC-003 measurable with one command; records self-describe.

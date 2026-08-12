@@ -8,6 +8,10 @@ subcommand per traffic shape.
 clowder <MODE> --target <URL> [mode flags] [common flags]
 ```
 
+Modes: `ramp`, `spike`, `slow-consumer`, `churn`, `soak`. (`soak` is the
+fixed-concurrency shape; the `--hold` flag under `ramp` is unrelated —
+it is a ramp step's dwell time, not a mode.)
+
 ## Modes and their flags
 
 ### `clowder ramp`
@@ -46,11 +50,11 @@ measured degradation is a successful measurement.
 | `--churn-rate <conns/sec>` | 5 | arrivals (and departures) per second |
 | `--duration <secs>` | 120 | run length |
 
-### `clowder hold`
+### `clowder soak`
 
 | Flag | Default | Meaning |
 |------|---------|---------|
-| `--viewers <N>` | required | fixed concurrency (SC-005 smoke shape) |
+| `--viewers <N>` | required | fixed concurrency held for the duration (SC-005 smoke shape) |
 | `--duration <secs>` | 120 | run length |
 
 ## Common flags (all modes)
@@ -62,7 +66,8 @@ measured degradation is a successful measurement.
 | `--poll-rate <reqs/sec>` | 0 | read-only poller mix alongside viewers (FR-006) |
 | `--poll-endpoints <list>` | `/world,/kitties,/config` | endpoints the pollers rotate through |
 | `--interval <secs>` | 1 | record row granularity |
-| `--out <path>` | `clowder-<mode>-<timestamp>.csv` | record destination |
+| `--repeat <n>` | 1 | run the scenario n times into suffixed records; with n>1, print the ceiling agreement check against SC-003's ±10% tolerance |
+| `--out <path>` | `clowder-<mode>-<timestamp>.csv` | record destination (a `--repeat` run suffixes `-1`, `-2`, …) |
 | `--max-skips <N>` | 0 | FR-016 threshold |
 | `--cadence-tolerance <f>` | 0.05 | FR-016 threshold |
 | `--max-handshake-failures <N>` | 0 | FR-016 threshold |

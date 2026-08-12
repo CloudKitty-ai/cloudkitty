@@ -9,7 +9,7 @@ The complete description of one run (FR-015: same scenario = same config).
 
 | Field | Type | Notes |
 |-------|------|-------|
-| `mode` | enum: `ramp` \| `spike` \| `slow-consumer` \| `churn` \| `hold` | `hold` is the fixed-N shape the poller mix and SC-005 smoke use |
+| `mode` | enum: `ramp` \| `spike` \| `slow-consumer` \| `churn` \| `soak` | `soak` is the fixed-N shape the poller mix and SC-005 smoke use |
 | `target` | URL | server base; local unless `allow_remote` |
 | `allow_remote` | bool | FR-013 acknowledgment flag |
 | `viewers` | u32 | target concurrency (per step-schedule in ramp) |
@@ -19,6 +19,7 @@ The complete description of one run (FR-015: same scenario = same config).
 | `poll_rate`, `poll_endpoints` | reqs/sec, list | poller mix (FR-006) |
 | `duration` | secs | run bound for non-ramp modes |
 | `interval` | secs (default 1) | record row granularity (clarify #2) |
+| `repeat` | u32 (default 1) | scenario repetitions; n>1 emits the SC-003 agreement check |
 | `health` | thresholds struct | FR-016: `max_skips` (0), `cadence_tolerance` (0.05), `max_handshake_failures` (0), `max_unexpected_ends` (0) |
 | `out` | path | record file destination |
 

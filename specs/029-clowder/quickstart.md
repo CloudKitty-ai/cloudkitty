@@ -17,18 +17,21 @@ cargo run --release -p cloudkitty-server -- --config crates/clowder/tests/tiny-w
 ```
 
 `tiny-world.toml` is the committed test config: a small world, minimum
-roster, and a fast tick so runs measure quickly. Note the `bind` it prints;
-the examples below assume `127.0.0.1:8090`.
+roster, **scripted-only cats (no policy seats)** so it boots from a bare
+checkout, and a moderate tick (~200 ms) so a seconds-long run measures
+quickly without flaking on skips. Note the `bind` it prints; the examples
+below assume `127.0.0.1:8090`. (The automated test in step 7 binds
+`127.0.0.1:0` and reads the chosen port from the server's startup log.)
 
 ## 2. The smoke scenario (SC-005)
 
 ```bash
-cargo run --release -p clowder -- hold --viewers 100 --duration 120
+cargo run --release -p clowder -- soak --viewers 100 --duration 120
 ```
 
 Expected: exit 0; summary reports `healthy` under default FR-016
 thresholds — zero skips, cadence within ±5%, zero handshake failures or
-unexpected ends; a record file `clowder-hold-<timestamp>.csv` whose
+unexpected ends; a record file `clowder-soak-<timestamp>.csv` whose
 preamble carries the target's `config_sha256`, `tick_ms`, and roster, and
 whose `scope=run` rows show `valid=true` throughout.
 
@@ -49,7 +52,7 @@ from the record's `scope=step` rows.
 cargo run --release -p clowder -- spike --viewers 1000
 cargo run --release -p clowder -- slow-consumer --viewers 200 --stall-fraction 0.2
 cargo run --release -p clowder -- churn --viewers 200 --churn-rate 20
-cargo run --release -p clowder -- hold --viewers 200 --poll-rate 50
+cargo run --release -p clowder -- soak --viewers 200 --poll-rate 50
 ```
 
 Expected, respectively: a handshake-latency distribution and
@@ -62,21 +65,21 @@ measures.
 ## 5. Guard rails
 
 ```bash
-cargo run -p clowder -- hold --viewers 10 --target http://192.0.2.7:8090
+cargo run -p clowder -- soak --viewers 10 --target http://192.0.2.7:8090
 ```
 
 Expected: refused before any connection, naming `--allow-remote`; usage
 text states the live world is never a permitted target (FR-013).
 
 ```bash
-cargo run -p clowder -- hold --viewers 0
+cargo run -p clowder -- soak --viewers 0
 ```
 
 Expected: rejected at startup naming the flag and allowed range.
 
 ## 6. Interrupted-target behavior
 
-Start a `hold` run, then `Ctrl-C` the server. Expected: Clowder exits 3
+Start a `soak` run, then `Ctrl-C` the server. Expected: Clowder exits 3
 (`interrupted`), the record's `# outcome:` says `interrupted`, and rows up
 to the interruption are preserved and marked valid.
 

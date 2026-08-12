@@ -33,7 +33,8 @@ as every other crate; no nightly features)
 
 **Primary Dependencies**: `tokio` (workspace), `serde`/`serde_json`
 (workspace), `sha2` (already in-tree), `tokio-tungstenite` (new — WS
-client), `libc` (getrlimit; already a transitive dependency). No histogram
+client), `libc` (getrlimit; verified in-tree transitively via
+`cargo tree -i libc`, 2026-08-12). No histogram
 crate: latency distributions use hand-rolled log-spaced buckets (~30 lines)
 per the stdlib-first rule.
 
