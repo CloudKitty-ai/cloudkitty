@@ -121,11 +121,13 @@ crates/cloudkitty-rl/       the training layer: observations, action codec + leg
 crates/cloudkitty-py/       PyO3 bindings: ParallelEnv / VectorEnv, PettingZoo-style
 crates/clowder/             the viewer load benchmark: how many concurrent watchers a
                             server sustains and how it fails past that, measured from
-                            outside (spec 029). No server or engine changes
+                            outside (spec 029; operator guide in docs/clowder.md). No
+                            server or engine changes
 docs/                       guides: the RL HOWTO (howto-rl.md), the training reference
                             (rl-training.md), the plugin contract (plugins.md) with a
                             worked example under examples/, deployment.md, the viewer
-                            tour (viewer.md), and the engine-law note on cuddle relief
+                            tour (viewer.md), the load-benchmark guide (clowder.md),
+                            and the engine-law note on cuddle relief
                             (cuddle-relief-semantics.md)
 client/                     the viewer: vanilla JS on a canvas, no build step — hand-drawn
                             vector cats, props, and meadow; gallery.html is the standalone
