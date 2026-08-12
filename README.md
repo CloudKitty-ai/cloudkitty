@@ -9,10 +9,9 @@ CloudKitty is a 2D tile world that runs on a server and is watched through a bro
 Kitties wander, eat, drink, nap in sunbeams, groom each other, chase bugs, and meow
 about it. Each kitty is driven by a pluggable *behavior*, so different cats can live
 visibly different lives — and a behavior can be a hand-written script, a trained
-neural network, or an external program in any language. Whatever drives a cat, the
-engine treats it as an untrusted advisor: it proposes, the engine decides.
+neural network, or an external program in any language. 
 
-Nothing bad ever happens to a kitty. That is not a design goal, it is a
+Life is good in the meadow. Nothing bad ever happens to a kitty. That is not a design goal, it is a
 [constitution](.specify/memory/constitution.md).
 
 ## The spirit of the thing
@@ -20,14 +19,14 @@ Nothing bad ever happens to a kitty. That is not a design goal, it is a
 The kitties are a team. Every mind here is trained on one shared score —
 everyone's happiness, together — so the only way for a kitty to get ahead is
 to bring the whole meadow along. Their voices are governed by **meow law** (a
-cat may only say what is true, and a purr must be *earned*), and on top of it
-they've built a modest **purr economics** all their own: a round-the-meadow
+cat may only say what is true), and on top of it
+they've built a modest **purr economy** all their own: a round-the-meadow
 chorus of "I'm fine out here" and "stay put, I'm coming" that nobody taught
 them. As time passes, the minds grow up — scripts, then clones of scripts,
 then the reinforcement-learned policies holding every seat today, attention
 next, and someday, maybe, a language model walking through the plugin door.
 Each new mind sits the same frozen exams before it moves in: nobody gets a
-seat unless the neighbors will be happier for it.
+seat unless the neighbors will be happier for it. The kitties learn how to help themselves and each other: the goal of the game is for everyone in the meadow to be happy.  
 
 ## The constitution
 
@@ -42,10 +41,6 @@ merge:
 | IV | **The engine is the law.** Behaviors only *propose*. Every proposal is validated, and anything the engine won't allow resolves one of two safe ways: a malformed or absent answer falls back to the built-in needs-driven behavior; a well-formed but illegal one becomes an idle turn. Never an error, never a reshaped action. |
 | V | **Server-authoritative and deterministic.** All logic server-side, one seeded RNG, fixed tick order — with a fair turn order: every kitty gets an equal, reproducible chance to act first. Same seed → same world, always, for built-in behaviors; an external advisor answers outside the seeded stream, which is why its containment is a deadline. |
 | VI | **Spec-first, test-guarded.** Every constant lives in config; the invariant suite is a required CI gate. |
-
-Distress is a *signal*, never a punishment: when a need crosses the distress threshold
-the world records it and exposes it at `/events/distress`, so a future cooperative game
-can be about keeping every kitty out of distress.
 
 ## Run it
 
