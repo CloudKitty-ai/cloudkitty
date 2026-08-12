@@ -1,0 +1,523 @@
+{
+  "params": 77083,
+  "best_epoch": 20,
+  "val": {
+    "loss": 0.9201501953220786,
+    "act_loss": 0.7443790238801982,
+    "msg_loss": 0.17577117526633004,
+    "act_top1": 0.7992881848714222,
+    "msg_top1": 0.999342072284325,
+    "act_entropy": 0.7411107276757503,
+    "msg_entropy": 0.17659838060018088
+  },
+  "activity_classes": [
+    {
+      "index": 0,
+      "name": "MoveN",
+      "count": 38611,
+      "accuracy": 0.6791587889461552
+    },
+    {
+      "index": 1,
+      "name": "MoveE",
+      "count": 47230,
+      "accuracy": 0.724179546898158
+    },
+    {
+      "index": 2,
+      "name": "MoveS",
+      "count": 38000,
+      "accuracy": 0.6557105263157895
+    },
+    {
+      "index": 3,
+      "name": "MoveW",
+      "count": 47790,
+      "accuracy": 0.733437957731743
+    },
+    {
+      "index": 4,
+      "name": "RestSolo",
+      "count": 0,
+      "accuracy": null
+    },
+    {
+      "index": 5,
+      "name": "RestWithKitty0",
+      "count": 47427,
+      "accuracy": 0.9170725536087039
+    },
+    {
+      "index": 6,
+      "name": "RestWithKitty1",
+      "count": 3838,
+      "accuracy": 0.9046378322042731
+    },
+    {
+      "index": 7,
+      "name": "RestWithKitty2",
+      "count": 105,
+      "accuracy": 0.9142857142857143
+    },
+    {
+      "index": 8,
+      "name": "SleepSolo",
+      "count": 35605,
+      "accuracy": 0.9505406544024716
+    },
+    {
+      "index": 9,
+      "name": "SleepWithKitty0",
+      "count": 5513,
+      "accuracy": 0.7641937239252675
+    },
+    {
+      "index": 10,
+      "name": "SleepWithKitty1",
+      "count": 288,
+      "accuracy": 1.0
+    },
+    {
+      "index": 11,
+      "name": "SleepWithKitty2",
+      "count": 22,
+      "accuracy": 1.0
+    },
+    {
+      "index": 12,
+      "name": "GroomSelf",
+      "count": 31381,
+      "accuracy": 0.9467193524744272
+    },
+    {
+      "index": 13,
+      "name": "GroomKitty0",
+      "count": 3579,
+      "accuracy": 0.892707460184409
+    },
+    {
+      "index": 14,
+      "name": "GroomKitty1",
+      "count": 113,
+      "accuracy": 0.8230088495575221
+    },
+    {
+      "index": 15,
+      "name": "GroomKitty2",
+      "count": 0,
+      "accuracy": null
+    },
+    {
+      "index": 16,
+      "name": "Eat",
+      "count": 16461,
+      "accuracy": 0.9868173258003766
+    },
+    {
+      "index": 17,
+      "name": "Drink",
+      "count": 14618,
+      "accuracy": 0.9512245177178821
+    },
+    {
+      "index": 18,
+      "name": "ChaseCritter0",
+      "count": 25551,
+      "accuracy": 0.8733121991311494
+    },
+    {
+      "index": 19,
+      "name": "ChaseCritter1",
+      "count": 1034,
+      "accuracy": 0.05705996131528046
+    },
+    {
+      "index": 20,
+      "name": "ChaseCritter2",
+      "count": 33,
+      "accuracy": 0.0
+    },
+    {
+      "index": 21,
+      "name": "ChaseCritter3",
+      "count": 3,
+      "accuracy": 0.0
+    },
+    {
+      "index": 22,
+      "name": "ChaseKitty0",
+      "count": 15185,
+      "accuracy": 0.8514981890023049
+    },
+    {
+      "index": 23,
+      "name": "ChaseKitty1",
+      "count": 4500,
+      "accuracy": 0.6417777777777778
+    },
+    {
+      "index": 24,
+      "name": "ChaseKitty2",
+      "count": 1160,
+      "accuracy": 0.5887931034482758
+    },
+    {
+      "index": 25,
+      "name": "PlaySolo",
+      "count": 0,
+      "accuracy": null
+    },
+    {
+      "index": 26,
+      "name": "PlayCritter0",
+      "count": 26207,
+      "accuracy": 0.9818750715457703
+    },
+    {
+      "index": 27,
+      "name": "PlayCritter1",
+      "count": 57,
+      "accuracy": 0.8947368421052632
+    },
+    {
+      "index": 28,
+      "name": "PlayCritter2",
+      "count": 0,
+      "accuracy": null
+    },
+    {
+      "index": 29,
+      "name": "PlayCritter3",
+      "count": 0,
+      "accuracy": null
+    },
+    {
+      "index": 30,
+      "name": "PlayKitty0",
+      "count": 40060,
+      "accuracy": 0.809735396904643
+    },
+    {
+      "index": 31,
+      "name": "PlayKitty1",
+      "count": 2691,
+      "accuracy": 0.8275733927907841
+    },
+    {
+      "index": 32,
+      "name": "PlayKitty2",
+      "count": 53,
+      "accuracy": 0.8301886792452831
+    },
+    {
+      "index": 33,
+      "name": "Idle",
+      "count": 31661,
+      "accuracy": 0.4530810776665298
+    }
+  ],
+  "activity_groups": {
+    "move": {
+      "count": 171631,
+      "accuracy": 0.7014700141582815
+    },
+    "rest/sleep": {
+      "count": 92798,
+      "accuracy": 0.9205909610120908
+    },
+    "groom-self": {
+      "count": 31381,
+      "accuracy": 0.9467193524744272
+    },
+    "groom-kitty": {
+      "count": 3692,
+      "accuracy": 0.8905742145178764
+    },
+    "eat/drink": {
+      "count": 31079,
+      "accuracy": 0.9700762572798353
+    },
+    "play/chase": {
+      "count": 116534,
+      "accuracy": 0.8526781883398836
+    },
+    "idle": {
+      "count": 31661,
+      "accuracy": 0.4530810776665298
+    }
+  },
+  "message_classes": [
+    {
+      "index": 0,
+      "name": "Silent",
+      "count": 451357,
+      "accuracy": 0.9996565911240991
+    },
+    {
+      "index": 1,
+      "name": "WantEat",
+      "count": 8963,
+      "accuracy": 0.99542563873703
+    },
+    {
+      "index": 2,
+      "name": "WantDrink",
+      "count": 6331,
+      "accuracy": 0.9952614120991944
+    },
+    {
+      "index": 3,
+      "name": "FollowMe",
+      "count": 0,
+      "accuracy": null
+    },
+    {
+      "index": 4,
+      "name": "WantPlay",
+      "count": 261,
+      "accuracy": 0.9885057471264368
+    },
+    {
+      "index": 5,
+      "name": "WantCuddle",
+      "count": 3632,
+      "accuracy": 0.9900881057268722
+    },
+    {
+      "index": 6,
+      "name": "Purr",
+      "count": 0,
+      "accuracy": null
+    },
+    {
+      "index": 7,
+      "name": "WantBath",
+      "count": 2478,
+      "accuracy": 0.9830508474576272
+    },
+    {
+      "index": 8,
+      "name": "WantSleep",
+      "count": 5754,
+      "accuracy": 0.9986096628432395
+    }
+  ],
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 1.5279526441759232,
+      "val_loss": 1.350812990906416,
+      "act_top1": 0.6026993834277408,
+      "msg_top1": 0.9991415609805002,
+      "act_entropy": 1.198161026920645,
+      "msg_entropy": 0.18536218407976857,
+      "seconds": 60.17825412750244
+    },
+    {
+      "epoch": 2,
+      "train_loss": 1.2916329209668442,
+      "val_loss": 1.2474171393680173,
+      "act_top1": 0.6417009206810701,
+      "msg_top1": 0.9991896001470416,
+      "act_entropy": 1.0896932777869328,
+      "msg_entropy": 0.17820173629823519,
+      "seconds": 60.386372089385986
+    },
+    {
+      "epoch": 3,
+      "train_loss": 1.1890601251124622,
+      "val_loss": 1.1280380830287988,
+      "act_top1": 0.7121096295553662,
+      "msg_top1": 0.999264791885976,
+      "act_entropy": 0.9443546941675279,
+      "msg_entropy": 0.18017546763965409,
+      "seconds": 61.46910905838013
+    },
+    {
+      "epoch": 4,
+      "train_loss": 1.0918400246977986,
+      "val_loss": 1.0747952332725235,
+      "act_top1": 0.7362378231156115,
+      "msg_top1": 0.9993149197119321,
+      "act_entropy": 0.9012408328010123,
+      "msg_entropy": 0.17302767208159864,
+      "seconds": 60.307491064071655
+    },
+    {
+      "epoch": 5,
+      "train_loss": 1.0461068990474778,
+      "val_loss": 1.0342411331949806,
+      "act_top1": 0.7565187060337193,
+      "msg_top1": 0.9992919444583689,
+      "act_entropy": 0.8694196867779873,
+      "msg_entropy": 0.17428234875583629,
+      "seconds": 60.06035399436951
+    },
+    {
+      "epoch": 6,
+      "train_loss": 1.0186466568288348,
+      "val_loss": 1.013475080626964,
+      "act_top1": 0.766886811368991,
+      "msg_top1": 0.9993065650742727,
+      "act_entropy": 0.8213678965371822,
+      "msg_entropy": 0.18006667441166832,
+      "seconds": 60.749029874801636
+    },
+    {
+      "epoch": 7,
+      "train_loss": 1.000484266188474,
+      "val_loss": 1.001317734411331,
+      "act_top1": 0.7701931592226845,
+      "msg_top1": 0.9993002990960282,
+      "act_entropy": 0.8387397873598242,
+      "msg_entropy": 0.17226811775887785,
+      "seconds": 59.60829997062683
+    },
+    {
+      "epoch": 8,
+      "train_loss": 0.987445033864977,
+      "val_loss": 0.9928954712384119,
+      "act_top1": 0.7732697545407455,
+      "msg_top1": 0.9992982104366134,
+      "act_entropy": 0.8050513657979452,
+      "msg_entropy": 0.17353963086316723,
+      "seconds": 61.343565940856934
+    },
+    {
+      "epoch": 9,
+      "train_loss": 0.9768410128262945,
+      "val_loss": 0.981544624600436,
+      "act_top1": 0.7787817267365115,
+      "msg_top1": 0.9993107423931024,
+      "act_entropy": 0.7961311571910423,
+      "msg_entropy": 0.17539078607227274,
+      "seconds": 60.605308055877686
+    },
+    {
+      "epoch": 10,
+      "train_loss": 0.968172057391672,
+      "val_loss": 0.9693623570799738,
+      "act_top1": 0.7822823199157852,
+      "msg_top1": 0.9993211856901766,
+      "act_entropy": 0.7937924241012548,
+      "msg_entropy": 0.17465034089463993,
+      "seconds": 60.023366928100586
+    },
+    {
+      "epoch": 11,
+      "train_loss": 0.9599188618115304,
+      "val_loss": 0.9627610040089062,
+      "act_top1": 0.784586111250355,
+      "msg_top1": 0.9993086537336876,
+      "act_entropy": 0.7930701069380324,
+      "msg_entropy": 0.1778401230801966,
+      "seconds": 60.338680267333984
+    },
+    {
+      "epoch": 12,
+      "train_loss": 0.953571021535359,
+      "val_loss": 0.959558391552321,
+      "act_top1": 0.7848158637859876,
+      "msg_top1": 0.9993107423931024,
+      "act_entropy": 0.784237139015498,
+      "msg_entropy": 0.17222395820814038,
+      "seconds": 60.421151876449585
+    },
+    {
+      "epoch": 13,
+      "train_loss": 0.9471759730277323,
+      "val_loss": 0.9566596108737648,
+      "act_top1": 0.7870528180192825,
+      "msg_top1": 0.9993211856901766,
+      "act_entropy": 0.7552432291602974,
+      "msg_entropy": 0.1711296926788163,
+      "seconds": 59.524359941482544
+    },
+    {
+      "epoch": 14,
+      "train_loss": 0.9405780609337042,
+      "val_loss": 0.947506809743749,
+      "act_top1": 0.7892417330860361,
+      "msg_top1": 0.9993274516684212,
+      "act_entropy": 0.7648308120407369,
+      "msg_entropy": 0.17551445945760494,
+      "seconds": 59.00673198699951
+    },
+    {
+      "epoch": 15,
+      "train_loss": 0.9358142743638528,
+      "val_loss": 0.9426952566327986,
+      "act_top1": 0.7918421140575134,
+      "msg_top1": 0.9993295403278359,
+      "act_entropy": 0.7603192142825387,
+      "msg_entropy": 0.1761408847084993,
+      "seconds": 61.009795904159546
+    },
+    {
+      "epoch": 16,
+      "train_loss": 0.930531999900805,
+      "val_loss": 0.9376117673986213,
+      "act_top1": 0.7929950540545057,
+      "msg_top1": 0.9993441609437399,
+      "act_entropy": 0.7529491694275872,
+      "msg_entropy": 0.17441275445128618,
+      "seconds": 59.63239288330078
+    },
+    {
+      "epoch": 17,
+      "train_loss": 0.9256856738373642,
+      "val_loss": 0.9311454233337305,
+      "act_top1": 0.7957855030327334,
+      "msg_top1": 0.9993274516684212,
+      "act_entropy": 0.7558712683849502,
+      "msg_entropy": 0.17426846942010316,
+      "seconds": 59.85970878601074
+    },
+    {
+      "epoch": 18,
+      "train_loss": 0.9211105511685588,
+      "val_loss": 0.9287391794409703,
+      "act_top1": 0.7971243337176467,
+      "msg_top1": 0.999342072284325,
+      "act_entropy": 0.7394072378297428,
+      "msg_entropy": 0.1741165953258991,
+      "seconds": 60.03098702430725
+    },
+    {
+      "epoch": 19,
+      "train_loss": 0.9175343675808172,
+      "val_loss": 0.9254417180285979,
+      "act_top1": 0.7972538306013668,
+      "msg_top1": 0.999342072284325,
+      "act_entropy": 0.7372821104005239,
+      "msg_entropy": 0.17366050183125673,
+      "seconds": 59.92966914176941
+    },
+    {
+      "epoch": 20,
+      "train_loss": 0.9129920579144422,
+      "val_loss": 0.9201501953220786,
+      "act_top1": 0.7992881848714222,
+      "msg_top1": 0.999342072284325,
+      "act_entropy": 0.7411107276757503,
+      "msg_entropy": 0.17659838060018088,
+      "seconds": 59.9614200592041
+    }
+  ],
+  "hyperparams": {
+    "data_root": "experiments/exp-004-meow-channel/raw/bc-v4",
+    "out_dir": "/Users/elizabethkelly/ai/cloudkitty/experiments/attn-clone-2026-08-12/artifacts",
+    "epochs": 20,
+    "batch_size": 4096,
+    "lr": 0.0003,
+    "eps": 0.05,
+    "patience": 3,
+    "seed": 20260809,
+    "limit_rollouts": null,
+    "resume": false,
+    "d_model": 64,
+    "heads": 4,
+    "layers": 2,
+    "ffn": 128
+  }
+}
