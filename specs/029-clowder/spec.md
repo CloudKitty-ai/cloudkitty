@@ -8,6 +8,19 @@
 
 **Input**: User description: "Clowder: a load-generation and benchmark tool that measures how many concurrent viewers the CloudKitty server can handle and characterizes its failure behavior under excessive traffic. WebSocket viewer swarm plus REST-poller mix, with ramp, spike, slow-consumer, and churn modes; measures tick-rate stability, per-connection lag, skipped ticks, handshake latency, and error/disconnect rates entirely from outside the server (tick numbers parsed from payloads); CSV and summary output. No engine or server changes. Never run against the live world."
 
+## Clarifications
+
+### Session 2026-08-12
+
+- Q: What makes a ramp step "healthy"? → A: Strict compound default,
+  per-run configurable: zero skipped updates among healthy viewers, observed
+  tick cadence within ±5% of the world's nominal rate, zero handshake
+  failures, and zero unexpected disconnects — sustained for the whole hold
+  (recorded as FR-016).
+- Q: How fine-grained are the run records? → A: Fixed-interval rows
+  (default 1 second) on one schema across all modes; per-step and per-run
+  summaries are derived from the interval rows and included in the record.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Find the ceiling (Priority: P1)
@@ -41,7 +54,8 @@ record.
    handshake failures, or disconnects).
 3. **Given** a completed run, **When** the operator inspects the output,
    **Then** a summary is printed and a machine-readable record exists with
-   one row per step per measure.
+   fixed-interval rows (default 1 second) plus derived per-step and
+   per-run summaries.
 
 ---
 
@@ -146,7 +160,7 @@ confirm the stamp visibly changes.
   every tick.
 - **FR-002**: Clowder MUST provide a ramp mode: concurrency grows by a
   configured step every configured interval, holding each step, up to a
-  target or until a degradation condition is met.
+  target or until a step fails the step-health definition (FR-016).
 - **FR-003**: Clowder MUST provide a spike mode: N connections established as
   fast as the generator can issue them, measuring the handshake path.
 - **FR-004**: Clowder MUST provide a slow-consumer mode: a configured
@@ -173,7 +187,10 @@ confirm the stamp visibly changes.
   machine-readable record (one file per run) carrying: the full scenario
   configuration, the target's served world identity (world config identity,
   roster size, tick rate), the tool version, the generator host's resource
-  limits, and a timestamp.
+  limits, and a timestamp. Measurements are recorded as fixed-interval rows
+  (default 1 second, configurable) on a single schema shared by every mode;
+  per-step and per-run summaries are derived from the interval rows and
+  included.
 - **FR-011**: Clowder MUST detect generator-side bottlenecks (at minimum:
   file-descriptor exhaustion and inability to keep up with arriving data)
   and mark measurements taken under them as invalid in both outputs.
@@ -191,13 +208,20 @@ confirm the stamp visibly changes.
 - **FR-015**: A run MUST be fully described by its configuration: the same
   configuration against the same target and hardware is the same scenario,
   and the record contains everything needed to repeat it.
+- **FR-016**: A ramp step is healthy iff, for the entire hold: healthy
+  viewers record zero skipped updates, the observed tick cadence stays
+  within a tolerance (default ±5%) of the world's nominal rate, no
+  handshake fails, and no connection ends unexpectedly. Every threshold is
+  a run parameter; the defaults define the published ceiling, and a record
+  produced under non-default thresholds says so.
 
 ### Key Entities
 
 - **Scenario**: a complete run configuration — mode, concurrency schedule,
   durations, fractions, poller rates, and target.
-- **Run record**: the machine-readable output of one run — identity stamps
-  plus one row per measurement interval per measure.
+- **Run record**: the machine-readable output of one run — identity stamps,
+  fixed-interval measurement rows (one schema for all modes), and the
+  derived per-step and per-run summaries.
 - **Connection observation**: the per-viewer measurement set (handshake
   latency, updates, skips, lag, bytes, end reason).
 - **Degradation signature**: a named, reportable failure pattern (see
@@ -219,9 +243,9 @@ confirm the stamp visibly changes.
 - **SC-004**: The feature ships with zero changes under `crates/` outside
   its own new code: engine, server, and existing test suites are untouched.
 - **SC-005**: A baseline sanity scenario — 100 concurrent viewers against
-  the default local world for two minutes — completes with zero errors,
-  zero skipped updates, and stable tick cadence on development hardware,
-  and this scenario is documented as the tool's smoke test.
+  the default local world for two minutes — completes healthy under the
+  FR-016 definition at default thresholds on development hardware, and this
+  scenario is documented as the tool's smoke test.
 - **SC-006**: A stalled viewer harms only itself: in the slow-consumer
   scenario at baseline concurrency, healthy viewers show zero skipped
   updates while stalled viewers show skips — demonstrating (or refuting,
