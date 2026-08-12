@@ -146,12 +146,15 @@ pub async fn run_viewer(shared: Arc<Shared>, handle: Arc<ConnHandle>, stall_at: 
                                 }
                             }
                             None => {
-                                // A miss after a good first parse is schema drift:
-                                // record an error and stop this connection.
-                                if first_validated {
-                                    handle.stats.errors.fetch_add(1, Ordering::Relaxed);
-                                    shared.note_schema_drift();
-                                }
+                                // A data frame with no parseable tick -- whether
+                                // it is the first frame (not a CloudKitty world
+                                // payload) or a later one (schema drift) -- is a
+                                // payload problem, not a server-side drop. Record
+                                // the drift note in both cases so the record
+                                // explains the ended connection rather than
+                                // silently attributing it to ConnectionDrops.
+                                handle.stats.errors.fetch_add(1, Ordering::Relaxed);
+                                shared.note_schema_drift();
                                 handle.finish(EndReason::Error);
                                 return;
                             }

@@ -83,9 +83,13 @@ pub async fn ramp(
     ids: &IdGen,
 ) {
     let mut open = 0u64;
+    let mut step_num = 0u32;
     while open < plan.viewers {
+        step_num += 1;
         let want = (open + plan.step).min(plan.viewers);
-        // Establish the new cohort, paced across step_interval.
+        // Establish the new cohort, paced across step_interval. These rows are
+        // NOT part of the step's hold, so the step tag stays None here.
+        shared.set_step(None);
         let cohort = want - open;
         let pace = if cohort > 0 {
             plan.step_interval_s / cohort as f64
@@ -101,7 +105,8 @@ pub async fn ramp(
         open = want;
         shared.set_target_conns(open);
 
-        // Hold and measure.
+        // Hold and measure: tag these interval rows with the step being held.
+        shared.set_step(Some(step_num));
         let hold_start = shared.elapsed_s();
         tokio::time::sleep(Duration::from_secs_f64(plan.hold_s)).await;
 
@@ -158,9 +163,14 @@ pub async fn slow_consumer(shared: Arc<Shared>, plan: &Plan, ids: &IdGen) {
 /// depart at a rate, each arrival paying the full first-paint cost (FR-005).
 pub async fn churn(shared: Arc<Shared>, plan: &Plan, ids: &IdGen) {
     shared.set_target_conns(plan.viewers);
-    // Prime the steady-state population.
-    for _ in 0..plan.viewers {
-        spawn_churned(&shared, ids, plan);
+    // Steady-state lifetime: at rate r, holding N alive means each lives N/r.
+    let full_life = (plan.viewers as f64 / plan.churn_rate.max(0.001)).max(1.0);
+    // Prime the population with STAGGERED lifetimes spread across (0, full_life],
+    // so the primed cohort departs one-at-a-time at the churn rate instead of
+    // all at once -- otherwise concurrency collapses to zero at t=full_life.
+    for i in 0..plan.viewers {
+        let frac = (i + 1) as f64 / plan.viewers as f64;
+        spawn_churned(&shared, ids, full_life * frac);
     }
     let gap = Duration::from_secs_f64(1.0 / plan.churn_rate.max(0.001));
     let mut shutdown = shared.shutdown.subscribe();
@@ -170,18 +180,18 @@ pub async fn churn(shared: Arc<Shared>, plan: &Plan, ids: &IdGen) {
             _ = shutdown.recv() => return,
             _ = tokio::time::sleep(gap) => {
                 if shared.elapsed_s() >= end { return; }
-                spawn_churned(&shared, ids, plan);
+                spawn_churned(&shared, ids, full_life);
             }
         }
     }
 }
 
-/// A churned connection lives for roughly viewers/rate seconds, then departs --
-/// so arrivals and departures balance around the steady-state population.
-fn spawn_churned(shared: &Arc<Shared>, ids: &IdGen, plan: &Plan) {
+/// A churned connection lives for `life_s` seconds, then departs -- so arrivals
+/// and departures balance around the steady-state population.
+fn spawn_churned(shared: &Arc<Shared>, ids: &IdGen, life_s: f64) {
     let handle = ConnHandle::new(ids.next(), Class::Viewer);
     shared.register(handle.clone());
-    let life = Duration::from_secs_f64((plan.viewers as f64 / plan.churn_rate.max(0.001)).max(1.0));
+    let life = Duration::from_secs_f64(life_s);
     let s = shared.clone();
     let done = Arc::new(AtomicBool::new(false));
     let d2 = done.clone();

@@ -127,26 +127,16 @@ async fn run_once(
     let ids = IdGen::default();
     let rows: Arc<Mutex<Vec<IntervalRow>>> = Arc::new(Mutex::new(Vec::new()));
 
-    // The sampler runs concurrently, pushing interval rows into `rows`.
+    // The sampler runs concurrently, pushing interval rows into `rows`. The
+    // ramp scheduler tags the current step on `shared`; the sampler reads it.
     let sink_rows = rows.clone();
-    let plan_hold = cli.plan.hold_s;
-    let step_of = move |t: f64| -> Option<u32> {
-        if plan_hold > 0.0 {
-            Some((t / plan_hold) as u32 + 1)
-        } else {
-            None
-        }
-    };
     let sampler = {
         let s = shared.clone();
         let interval = cli.interval_s;
         tokio::spawn(async move {
-            sample_loop(
-                s,
-                interval,
-                move |batch| sink_rows.lock().unwrap().extend(batch),
-                step_of,
-            )
+            sample_loop(s, interval, move |batch| {
+                sink_rows.lock().unwrap().extend(batch)
+            })
             .await;
         })
     };
@@ -240,6 +230,10 @@ fn finalize(
             all.push(summary_row("step", Some(step), conns, &step_rows));
             if v.healthy {
                 ceiling = Some(conns);
+            } else {
+                // The ceiling is the last healthy step BELOW the first failure;
+                // a later step can never raise it (the live ramp stops here too).
+                break;
             }
         }
     }

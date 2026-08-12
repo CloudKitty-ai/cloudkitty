@@ -27,6 +27,10 @@ pub struct Shared {
     nominal_tick_ms: f64,
     registry: Mutex<Vec<Arc<ConnHandle>>>,
     conns_target: AtomicU64,
+    /// The ramp step currently being HELD (0 = none / establishment). The
+    /// scheduler owns the truth; the sampler reads it rather than guessing the
+    /// step from a time formula, which cannot know the establishment phase.
+    current_step: AtomicU64,
     poll_hist: Mutex<Histogram>,
     poll_errors: AtomicU64,
     schema_drift: AtomicBool,
@@ -44,6 +48,7 @@ impl Shared {
             nominal_tick_ms,
             registry: Mutex::new(Vec::new()),
             conns_target: AtomicU64::new(0),
+            current_step: AtomicU64::new(0),
             poll_hist: Mutex::new(Histogram::default()),
             poll_errors: AtomicU64::new(0),
             schema_drift: AtomicBool::new(false),
@@ -76,12 +81,37 @@ impl Shared {
         self.conns_target.store(n, Ordering::Relaxed);
     }
 
+    /// The ramp scheduler marks the step it is holding (None during cohort
+    /// establishment, so those rows are excluded from per-step summaries).
+    pub fn set_step(&self, step: Option<u32>) {
+        self.current_step
+            .store(step.map(|s| s as u64).unwrap_or(0), Ordering::Relaxed);
+    }
+
+    pub fn current_step(&self) -> Option<u32> {
+        match self.current_step.load(Ordering::Relaxed) {
+            0 => None,
+            s => Some(s as u32),
+        }
+    }
+
     pub fn record_poll(&self, ms: f64, error: bool) {
         if error {
             self.poll_errors.fetch_add(1, Ordering::Relaxed);
         } else {
             self.poll_hist.lock().unwrap().record(ms);
         }
+    }
+
+    /// Take this interval's poller latency distribution, resetting it so each
+    /// interval reports its own samples rather than a lifetime sum (matching
+    /// every other class's per-interval delta).
+    pub fn drain_poll_hist(&self) -> Histogram {
+        std::mem::take(&mut self.poll_hist.lock().unwrap())
+    }
+
+    pub fn poll_errors_total(&self) -> u64 {
+        self.poll_errors.load(Ordering::Relaxed)
     }
 
     pub fn note_schema_drift(&self) {
@@ -131,12 +161,12 @@ pub async fn sample_loop(
     shared: Arc<Shared>,
     interval_s: f64,
     mut sink: impl FnMut(Vec<IntervalRow>),
-    step_of: impl Fn(f64) -> Option<u32>,
 ) {
     let mut shutdown = shared.shutdown.subscribe();
     let mut prev: HashMap<u64, Prev> = HashMap::new();
     let mut handshakes_counted: HashSet<u64> = HashSet::new();
     let mut ends_counted: HashSet<u64> = HashSet::new();
+    let mut prev_poll_errors = 0u64;
     let period = std::time::Duration::from_secs_f64(interval_s);
     let mut next = Instant::now() + period;
 
@@ -207,17 +237,15 @@ pub async fn sample_loop(
         let valid = !shared.selfwatch.interval_invalid(open_total, gen_lag_ms);
         let cadence_ms = shared.cadence.period_ms();
         let target = shared.conns_target.load(Ordering::Relaxed);
-        let step = step_of(t);
+        let step = shared.current_step();
 
-        // Poller class, if any polling has happened.
-        let (poll_p50, poll_p99, poll_err) = {
-            let h = shared.poll_hist.lock().unwrap();
-            (
-                h.percentile(0.5),
-                h.percentile(0.99),
-                shared.poll_errors.load(Ordering::Relaxed),
-            )
-        };
+        // Poller class: this interval's own samples (the histogram is drained
+        // each interval) and this interval's error delta.
+        let poll_this = shared.drain_poll_hist();
+        let poll_total = shared.poll_errors_total();
+        let poll_err = poll_total - prev_poll_errors;
+        prev_poll_errors = poll_total;
+        let (poll_p50, poll_p99) = (poll_this.percentile(0.5), poll_this.percentile(0.99));
 
         let mut rows = Vec::new();
         for (label, acc) in classes.iter() {
