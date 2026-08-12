@@ -122,6 +122,14 @@ change.
   so a settled phase reuses one forever and a crossfade pays 32 colour
   mixes per rebake against a 20×20 world's 400 tiles — the dial was
   always free to be finer (#200).
+- Butterflies join the depth sort. They were drawn in the flat element
+  pass, which runs before the cover, so every bug sat behind every shrub
+  no matter where it was. A critter now takes the *cat's* ground line and
+  sorts with the cats and the cover, so it passes in front of a bush and
+  drops behind it again on the way north — the same rule a kitty already
+  followed. Sharing one square the order is kitty, bug, bush, front to
+  back, and that comes from a named rank rather than from whichever loop
+  happened to push first, which is an ordering decided by accident (#201).
 - Docs: rl-training + howto-rl caught up to spec 028 (two-head wire,
   20×20, certification assumptions rewritten — the channel is
   restrained by law, not economics), and kitty-eval is a pre-seating
