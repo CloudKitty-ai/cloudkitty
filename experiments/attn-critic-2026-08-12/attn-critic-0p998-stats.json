@@ -1,0 +1,93 @@
+{
+  "gamma": 0.998,
+  "target_mean": 431.69146728515625,
+  "target_std": 6.355340003967285,
+  "min_future": 1500,
+  "params": 74561,
+  "train_states": 292545,
+  "val_states": 97515,
+  "best_epoch": 4,
+  "best_val_mse": 0.4481739103794098,
+  "best_val_ev": 0.5549693022703038,
+  "history": [
+    {
+      "epoch": 1,
+      "train_mse": 0.6886390309271537,
+      "val_mse": 0.5069024562835693,
+      "val_ev": 0.49665264180639446,
+      "seconds": 6.424926042556763
+    },
+    {
+      "epoch": 2,
+      "train_mse": 0.4834829541542719,
+      "val_mse": 0.4607448875904083,
+      "val_ev": 0.5424864900632775,
+      "seconds": 6.5251452922821045
+    },
+    {
+      "epoch": 3,
+      "train_mse": 0.4607841884803205,
+      "val_mse": 0.5050373673439026,
+      "val_ev": 0.4985046501739613,
+      "seconds": 6.436187982559204
+    },
+    {
+      "epoch": 4,
+      "train_mse": 0.44527898694501156,
+      "val_mse": 0.4481739103794098,
+      "val_ev": 0.5549693022703038,
+      "seconds": 6.424861907958984
+    },
+    {
+      "epoch": 5,
+      "train_mse": 0.422556457609444,
+      "val_mse": 0.451736718416214,
+      "val_ev": 0.5514314815498749,
+      "seconds": 6.565145969390869
+    },
+    {
+      "epoch": 6,
+      "train_mse": 0.39231084827432694,
+      "val_mse": 0.4547410309314728,
+      "val_ev": 0.5484482394112778,
+      "seconds": 6.411258935928345
+    },
+    {
+      "epoch": 7,
+      "train_mse": 0.36718428268442643,
+      "val_mse": 0.48387411236763,
+      "val_ev": 0.5195194792619571,
+      "seconds": 6.406562089920044
+    },
+    {
+      "epoch": 8,
+      "train_mse": 0.3182041713241536,
+      "val_mse": 0.5175962448120117,
+      "val_ev": 0.4860338528497645,
+      "seconds": 6.399372816085815
+    },
+    {
+      "epoch": 9,
+      "train_mse": 0.25238604556075955,
+      "val_mse": 0.5481815934181213,
+      "val_ev": 0.4556630108278361,
+      "seconds": 6.415554046630859
+    }
+  ],
+  "hyperparams": {
+    "data_root": "experiments/exp-004-meow-channel/raw/bc-v4",
+    "out_dir": "/Users/elizabethkelly/ai/cloudkitty/experiments/attn-critic-2026-08-12/artifacts",
+    "gammas": "0.998",
+    "min_future": 1500,
+    "epochs": 60,
+    "batch_size": 4096,
+    "lr": 0.001,
+    "patience": 5,
+    "seed": 20260729,
+    "limit_rollouts": null,
+    "d_model": 64,
+    "heads": 4,
+    "layers": 2,
+    "ffn": 128
+  }
+}
