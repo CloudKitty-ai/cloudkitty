@@ -17,9 +17,10 @@ cargo run --release -p cloudkitty-server -- --config crates/clowder/tests/tiny-w
 ```
 
 `tiny-world.toml` is the committed test config: a small world, minimum
-roster, **scripted-only cats (no policy seats)** so it boots from a bare
-checkout, and a moderate tick (~200 ms) so a seconds-long run measures
-quickly without flaking on skips. Note the `bind` it prints; the examples
+roster, **scripted-only cats (no policy seats)** so booting never depends
+on the working directory or artifact loading, and a moderate tick
+(~200 ms) so a seconds-long run measures quickly without flaking on
+skips. Note the `bind` it prints; the examples
 below assume `127.0.0.1:8090`. (The automated test in step 7 binds
 `127.0.0.1:0` and reads the chosen port from the server's startup log.)
 

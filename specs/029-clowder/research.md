@@ -137,11 +137,12 @@ verified against `origin/main` on 2026-08-12.
 - **Verified environment facts (2026-08-12)**: (a) the server binds
   `127.0.0.1:0` and logs the concrete port; (b) `tick` is the third field
   of the `/world` payload (`{"width":..,"height":..,"tick":..}`), backing
-  R3; (c) the *served* `cloudkitty.toml` seats a policy artifact
-  (`policies/e004-a1-s2.ckpolicy`) and therefore FAILS to boot from a bare
-  checkout with a missing-artifact error — so `tiny-world.toml` MUST be
-  **scripted-only** (no `[rl.policy.*]`, no `behavior = "policy:..."`),
-  not merely a smaller world.
+  R3; (c) policy seats resolve their artifact path relative to the
+  server's working directory — the served `cloudkitty.toml` boots from
+  the repo root and fails with a missing-artifact error elsewhere — so
+  `tiny-world.toml` MUST be **scripted-only** (no `[rl.policy.*]`, no
+  `behavior = "policy:..."`): the smoke test stays working-directory
+  agnostic, and a load test should not couple to artifact loading at all.
 - **Assertion scope (revised from "zero skips")**: the smoke test asserts
   exit code, record validity, and `completed` outcome — NOT zero skips. A
   fast test tick on a shared CI runner can drop an update to an ordinary

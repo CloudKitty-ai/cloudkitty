@@ -24,7 +24,7 @@ world is committed.
 
 - [ ] T001 Create `crates/clowder/Cargo.toml` (bin crate; deps: workspace `tokio`, `serde`, `serde_json`, `sha2`; new `tokio-tungstenite` with rustls feature; `libc`) and a `src/main.rs` stub that prints usage and exits 1
 - [ ] T002 Add `crates/clowder` to the workspace `members` in root `Cargo.toml` (the only edit outside the new crate) and verify `cargo build -p clowder` and `cargo test --workspace` still pass
-- [ ] T003 [P] Commit the disposable target world `crates/clowder/tests/tiny-world.toml`: minimum roster (2 kitties), small grid, **scripted-only cats — no `[rl.policy.*]` blocks and no `behavior = "policy:..."` seats** (the served `cloudkitty.toml` references a committed policy artifact and fails to boot from a bare checkout; verified 2026-08-12), `tick_ms` ≈ 200 (fast enough for a seconds-long run, slack enough not to flake skip counts), loopback `bind = "127.0.0.1:0"` (port 0 confirmed to bind and log the chosen port)
+- [ ] T003 [P] Commit the disposable target world `crates/clowder/tests/tiny-world.toml`: minimum roster (2 kitties), small grid, **scripted-only cats — no `[rl.policy.*]` blocks and no `behavior = "policy:..."` seats** (policy seats resolve artifact paths relative to the working directory — verified 2026-08-12: the served config boots from the repo root but not elsewhere — and a load test should not couple to artifact loading at all), `tick_ms` ≈ 200 (fast enough for a seconds-long run, slack enough not to flake skip counts), loopback `bind = "127.0.0.1:0"` (port 0 confirmed to bind and log the chosen port)
 
 ---
 
