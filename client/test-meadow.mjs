@@ -24,6 +24,11 @@ const src =
   ';' +
   readFileSync(join(here, 'meadow.js'), 'utf8') +
   ';' +
+  // props.js: the butterfly and the bowl. Needed since critters joined the
+  // depth sort -- a full frame now DRAWS them, and without this the whole
+  // element pass is a ReferenceError waiting to happen in any composed check.
+  readFileSync(join(here, 'props.js'), 'utf8') +
+  ';' +
   readFileSync(join(here, 'anim.js'), 'utf8') +
   ';' +
   // render.js for WorldRenderer.occupiedTiles: it is the other half of the
@@ -135,7 +140,7 @@ const EXPORTS =
   ' mixPaletteColor, mixPalettes, parsePaletteColor,' +
   ' MEADOW_DAWN, bushesFor, drawBushAt, drawGroundCover, MEADOW_SALTS, MEADOW_DEFAULTS, tileHash, drawMeadowGround, drawGridOverlay, groupWaterTiles,' +
   ' buildPondPath, drawPonds, pondInradius, drawSunbeamGlow, drawWornPaths, VIEW, Presentation,' +
-  ' driftField,' +
+  ' driftField, spriteOrder, SPRITE_RANK, coverSortKey, catSortKey,' +
   ' WorldRenderer })';
 const api = eval(src + EXPORTS);
 
@@ -1306,5 +1311,157 @@ check('meadow.js never assumes a palette entry is hex', () => {
 // after it ran past `process.exit` and was silently never counted -- the
 // suite reported green on tests that had not run. (Cost the motion suite
 // a round of this too.)
+// ---- critters join the depth sort (2026-08-11) ----
+//
+// Owner: bugs were drawn behind bushes, and should pass in front of one
+// the way a kitty does -- dropping behind it again when they move north.
+// In one square the order is kitty > bug > bush.
+
+/** The layer as render.js builds it, ordered. */
+const ordered = (items) => api.spriteOrder(items).map((i) => i.kind);
+const coverAt = (y) => ({ kind: 'cover', y: api.coverSortKey({ y }, api.MEADOW_DEFAULTS) });
+const critterAt = (y) => ({ kind: 'critter', y: api.catSortKey({ x: 0, y }) });
+const kittyAt = (y) => ({ kind: 'kitty', y: api.catSortKey({ x: 0, y }) });
+
+check('a bug passes in front of a bush, and behind it once it moves north', () => {
+  const bush = coverAt(5);
+  // Same square: the bug is in front. A butterfly hovering over the same
+  // patch of earth a shrub is rooted in is nearer the viewer, because the
+  // shrub's contact point is higher up the tile than the cat ground line.
+  assert(
+    String(ordered([critterAt(5), bush])) === 'cover,critter',
+    `same tile: got ${ordered([critterAt(5), bush])}`,
+  );
+  // One square north (smaller y): behind it, exactly as a kitty would be.
+  assert(
+    String(ordered([critterAt(4), bush])) === 'critter,cover',
+    `a tile north: got ${ordered([critterAt(4), bush])}`,
+  );
+  // One square south: still in front.
+  assert(
+    String(ordered([critterAt(6), bush])) === 'cover,critter',
+    `a tile south: got ${ordered([critterAt(6), bush])}`,
+  );
+  // And the ordering is the same one a KITTY gets, which is the whole ask
+  // -- a bug should not need its own depth rules.
+  for (const y of [4, 5, 6]) {
+    assert(
+      String(ordered([critterAt(y), bush])) === String(ordered([kittyAt(y), bush]).map((k) => (k === 'kitty' ? 'critter' : k))),
+      `a bug at y=${y} sorts differently from a kitty there`,
+    );
+  }
+});
+
+check('all three in one square go kitty, bug, bush -- front to back', () => {
+  // Drawn back to front, so the array reads cover, critter, kitty.
+  const got = ordered([kittyAt(5), critterAt(5), coverAt(5)]);
+  assert(String(got) === 'cover,critter,kitty', `got ${got}`);
+  // ...whatever order they were pushed in. Before this the tie fell to
+  // insertion order, which is an ordering decided by accident.
+  const shuffled = ordered([coverAt(5), kittyAt(5), critterAt(5)]);
+  assert(String(shuffled) === 'cover,critter,kitty', `push order changed the result: ${shuffled}`);
+  assert(
+    api.SPRITE_RANK.cover < api.SPRITE_RANK.critter && api.SPRITE_RANK.critter < api.SPRITE_RANK.kitty,
+    'the rank table itself must read cover < critter < kitty',
+  );
+});
+
+check('a bug a whole tile away still sorts by the ground, not by rank', () => {
+  // Rank is only ever a TIE-break. A kitty one tile north of a bug must
+  // still be behind it, or the rank has started deciding depth.
+  assert(
+    String(ordered([kittyAt(4), critterAt(5)])) === 'kitty,critter',
+    'a kitty a tile north of a bug must be drawn behind it',
+  );
+  assert(
+    String(ordered([coverAt(6), kittyAt(5)])) === 'kitty,cover',
+    'cover a tile south of a kitty must be drawn in front of it',
+  );
+});
+
+check('the renderer sorts critters instead of stamping them down', () => {
+  // The pure ordering above is worth nothing if render.js still paints
+  // butterflies in the flat element pass, where every shrub covers them.
+  const src = readFileSync(join(here, 'render.js'), 'utf8');
+  assert(/const CRITTER_KINDS = new Set\(\['bug', 'greeble'\]\)/.test(src), 'CRITTER_KINDS is gone or renamed');
+  const pass = src.slice(src.indexOf("for (const el of world.elements) {\n      if (el.kind === 'sunbeam') continue;"));
+  const flat = pass.slice(0, pass.indexOf('// Cats and ground cover'));
+  assert(
+    /CRITTER_KINDS\.has\(el\.kind\)\) continue;/.test(flat),
+    'the flat element pass still draws critters -- they would sit behind every shrub',
+  );
+  // Sorted on the DRAWN position: a gliding critter that sorted by its
+  // served tile would change depth a tick off from when it visibly crosses.
+  assert(
+    /y: catSortKey\(view\.elementPosFor\(el\)\)/.test(src),
+    'critters must sort on their drawn position, not their served tile',
+  );
+  assert(/for \(const item of spriteOrder\(layer\)\) item\.draw\(\)/.test(src), 'the layer is not going through spriteOrder');
+
+  // An expiring critter is still a critter: left in the fade pass it would
+  // pop behind the shrub it was in front of a moment ago. Asserted on the
+  // STRUCTURE of the two regions, not on a comment -- a comment travels
+  // with a bad edit and proves nothing about what runs.
+  const layerStart = src.indexOf('// Cats and ground cover');
+  const fade = src.slice(0, layerStart);
+  const layerRegion = src.slice(layerStart, src.indexOf('for (const item of spriteOrder(layer))'));
+  const expiredFade = fade.slice(fade.indexOf('view.expired.length'));
+  assert(
+    /!CRITTER_KINDS\.has\(el\.kind\)/.test(expiredFade),
+    'the expiry fade pass still draws critters -- they would pop behind cover while fading',
+  );
+  assert(
+    /view\.expired/.test(layerRegion) && /kind: 'critter'/.test(layerRegion),
+    'expired critters never reach the depth layer, so nothing draws them at all',
+  );
+});
+
+check('a whole frame really draws its critters, live and expiring', () => {
+  // The source checks above see that the code is THERE. They cannot see
+  // whether it runs: an unreachable push reads exactly like a live one.
+  // So this draws real frames and counts. No kitties in the world, which
+  // keeps the cat vocabulary out of it -- the question is only whether a
+  // butterfly reaches the canvas.
+  const frame = ({ live = [], expired = [] }) => {
+    const canvas = mockCanvas(640, 640);
+    const log = [];
+    const ctx = guardCtx(log);
+    ctx.canvas = canvas;
+    canvas.getContext = () => ctx;
+    const renderer = new api.WorldRenderer(canvas);
+    renderer.tile = 32;
+    renderer.dpr = 1;
+    renderer.cssWidth = 640;
+    renderer.cssHeight = 640;
+    renderer.theme = 'day';
+    const world = { tick: 5, width: 20, height: 20, kitties: [], elements: live };
+    const view = {
+      now: 0,
+      still: false,
+      progress: 0.5,
+      expired,
+      expiredAlpha: expired.length ? 0.7 : 0,
+      elementAlphaFor: () => 1,
+      elementPosFor: (el) => el.pos,
+      propPhaseFor: () => 0.25,
+      ambient: { now: 0 },
+    };
+    renderer.draw(world, view);
+    return log.length;
+  };
+
+  const bug = { id: 7, kind: 'bug', pos: { x: 6, y: 6 } };
+  const bare = frame({});
+  const withBug = frame({ live: [bug] });
+  assert(withBug > bare, `a live bug drew nothing: ${bare} ops bare, ${withBug} with it`);
+
+  const withExpiring = frame({ expired: [bug] });
+  assert(
+    withExpiring > bare,
+    `an EXPIRING bug drew nothing (${bare} vs ${withExpiring}) -- it vanishes instead of fading, ` +
+      'which is what happens when its push into the depth layer is unreachable',
+  );
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

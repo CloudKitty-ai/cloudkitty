@@ -1105,6 +1105,29 @@ function coverSortKey(bush, t) {
   return bush.y + t.bushBase;
 }
 
+/**
+ * Who wins when two things meet the ground on exactly the same line.
+ *
+ * Ground contact decides depth, but a cat and a butterfly sharing a tile
+ * contact it at the same place, so the key alone leaves them tied and the
+ * order falls to whichever loop happened to push first. That is a real
+ * ordering, decided by accident. This is the same ordering, decided on
+ * purpose: cover is scenery and goes behind, a kitty is the subject and
+ * comes to the front, a critter flies between them (owner, 2026-08-11).
+ */
+const SPRITE_RANK = { cover: 0, critter: 1, kitty: 2 };
+
+/**
+ * The depth layer, ordered. Pure so the ordering can be tested without a
+ * canvas: what goes wrong here is invisible in any single draw call and
+ * only shows as one thing painted over another.
+ */
+function spriteOrder(items) {
+  return [...items].sort(
+    (a, b) => a.y - b.y || (SPRITE_RANK[a.kind] ?? 0) - (SPRITE_RANK[b.kind] ?? 0),
+  );
+}
+
 /** One clump, at tile coordinates. Split out of the scatter so the
  *  renderer can interleave these with the cats by depth. */
 /** Styles whose silhouette leaves the ground, and so cast a shadow. The

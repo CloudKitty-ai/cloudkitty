@@ -139,6 +139,14 @@ function gazeTargetFor(kitty, world, pos) {
 const CAT_GROUND_Y = 0.88;
 
 /**
+ * The things that move under their own steam and are sorted by depth with
+ * the cats, rather than stamped down with the furniture. Named once: the
+ * kind list decides three separate things (glide, depth sorting, and which
+ * pass draws them) and they have to agree.
+ */
+const CRITTER_KINDS = new Set(['bug', 'greeble']);
+
+/**
  * How much of the cat is in water, 0..1 -- sampled from WHERE IT IS.
  *
  * This replaces a 260ms timer keyed on the nearest tile, and the change
@@ -447,11 +455,18 @@ class WorldRenderer {
     if (view.expired.length && view.expiredAlpha > 0) {
       for (const el of view.expired) {
         if (el.kind === 'sunbeam') this.drawSunbeam(el, view.expiredAlpha, view);
-        else this.drawElement(el, view.expiredAlpha, view);
+        // A critter taking its bow is still a critter: it sorts with the
+        // rest, or it would pop behind the shrub it was just in front of
+        // for the length of its fade.
+        else if (!CRITTER_KINDS.has(el.kind)) this.drawElement(el, view.expiredAlpha, view);
       }
     }
     for (const el of world.elements) {
       if (el.kind === 'sunbeam') continue;
+      // Critters are sorted with the cats and the cover instead -- see the
+      // depth layer below. Drawing them here would put every butterfly
+      // behind every shrub, whatever the ground said.
+      if (CRITTER_KINDS.has(el.kind)) continue;
       if (el.kind === 'water' && VIEW.meadow.ponds && view.elementAlphaFor(el) >= 1) {
         // Drawn by the pond body already -- and since the pond restyle its
         // surface motion is the caustic net, one per POND, so a per-tile
@@ -492,18 +507,43 @@ class WorldRenderer {
       // its tile instead put a shrub on top of a cat sharing its tile --
       // the exact bug the sort exists to fix.
       layer.push({
+        kind: 'cover',
         y: coverSortKey(bush, VIEW.meadow),
         draw: () => drawBushAt(this.ctx, { ...bush, tile: this.tile, t: VIEW.meadow }),
       });
     }
+    // Critters join the sort (owner, 2026-08-11). A butterfly stands on
+    // the ground the same way a cat does -- it just hovers a little above
+    // where it stands -- so it takes the CAT's ground line, and the rank
+    // decides the tie: kitty in front of bug in front of bush. Keyed to
+    // the DRAWN position, not the served tile, or a gliding critter would
+    // change depth a tick before or after it visibly crosses the shrub.
+    for (const el of world.elements) {
+      if (!CRITTER_KINDS.has(el.kind)) continue;
+      layer.push({
+        kind: 'critter',
+        y: catSortKey(view.elementPosFor(el)),
+        draw: () => this.drawElement(el, view.elementAlphaFor(el), view),
+      });
+    }
+    if (view.expired.length && view.expiredAlpha > 0) {
+      for (const el of view.expired) {
+        if (!CRITTER_KINDS.has(el.kind)) continue;
+        layer.push({
+          kind: 'critter',
+          y: catSortKey(el.pos),
+          draw: () => this.drawElement(el, view.expiredAlpha, view),
+        });
+      }
+    }
     for (const kitty of world.kitties) {
       layer.push({
+        kind: 'kitty',
         y: catSortKey(view.posFor(kitty)),
         draw: () => this.drawKitty(kitty, world, view),
       });
     }
-    layer.sort((a, b) => a.y - b.y);
-    for (const item of layer) item.draw();
+    for (const item of spriteOrder(layer)) item.draw();
 
     this.drawBubbles(world, view);
     // Thought bubbles sit above speech in the stack (the documented
@@ -802,7 +842,7 @@ class WorldRenderer {
     ctx.globalAlpha = alpha;
     // Critters glide between served states (007 refinement); furniture
     // stands still, as furniture does.
-    const isCritter = el.kind === 'bug' || el.kind === 'greeble';
+    const isCritter = CRITTER_KINDS.has(el.kind);
     const pos = isCritter && view ? view.elementPosFor(el) : el.pos;
     const { x, y } = this.tileOrigin(pos);
 
