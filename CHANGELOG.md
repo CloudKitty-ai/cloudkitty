@@ -116,6 +116,12 @@ change.
   and names which of the two dials owns the tail height at the current
   blend — one of them is always inert, and saying so is cheaper than
   rediscovering it (#199).
+- The ground's tone ramp goes from 18 steps to 32, so neighbouring
+  tiles differ by less and the last of the mosaic reading goes. It costs
+  nothing measurable: the ramp is cached on the tone array's identity,
+  so a settled phase reuses one forever and a crossfade pays 32 colour
+  mixes per rebake against a 20×20 world's 400 tiles — the dial was
+  always free to be finer (#200).
 - Docs: rl-training + howto-rl caught up to spec 028 (two-head wire,
   20×20, certification assumptions rewritten — the channel is
   restrained by law, not economics), and kitty-eval is a pre-seating

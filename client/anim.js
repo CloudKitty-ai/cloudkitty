@@ -384,7 +384,7 @@ const VIEW = Object.freeze({
     glow: true, // sunbeams as radial light (off: plain warm tile)
     paths: true, // whether the worn-paths overlay is available at all
     gridOverlay: true, // whether the grid debug overlay is available at all
-    toneSteps: 18, // steps in the ramp blended through the grass tones
+    toneSteps: 32, // steps in the ramp blended through the grass tones
     toneCells: 3, // tiles per noise cell: how broad a grass blotch is
     jitterCells: 1.7, // and the finer lattice the brightness grain rides
     toneCells2: 7.5, // a second, broader tone field over the first

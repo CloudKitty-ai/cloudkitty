@@ -403,7 +403,7 @@ const MEADOW_DEFAULTS = Object.freeze({
   glow: true, // sunbeams as radial light (off: plain warm tile)
   paths: true, // whether the worn-paths overlay is available at all
   gridOverlay: true, // whether the grid debug overlay is available at all
-  toneSteps: 18, // steps in the ramp blended through the grass tones
+  toneSteps: 32, // steps in the ramp blended through the grass tones
   toneCells: 3, // tiles per noise cell: how broad a grass blotch is
   jitterCells: 1.7, // and the finer lattice the brightness grain rides
   toneCells2: 7.5, // a second, broader tone field over the first
@@ -576,8 +576,11 @@ function tileHash(x, y, salt = 0) {
  *
  * Cached on the tones array's identity: a settled phase reuses one ramp
  * forever, and a blended palette (a fresh frozen array each rebake) pays
- * `toneSteps` mixes rather than one per tile -- 24 instead of 576 on the
- * demo world.
+ * `toneSteps` mixes rather than one per tile -- 32 against a 20x20 world's
+ * 400, so the ramp can be made finer without the rebake noticing. (The
+ * figures here were 24 and 576 when the world was 24x24 and the ramp
+ * coarser; they are the same argument at any size, since one is a dial and
+ * the other is the tile count.)
  */
 let GRASS_RAMP = { source: null, steps: 0, ramp: null };
 
