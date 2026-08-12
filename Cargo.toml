@@ -5,6 +5,7 @@ members = [
     "crates/cloudkitty-server",
     "crates/cloudkitty-rl",
     "crates/cloudkitty-py",
+    "crates/clowder",
 ]
 
 [workspace.package]
