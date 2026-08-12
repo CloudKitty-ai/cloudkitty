@@ -1,6 +1,6 @@
 # ☁️ CloudKitty 🐾
 
-A cute, safe sandbox where kitties frolic and play.
+A cute, safe sandbox where kitties frolic, play, and — lately — learn.
 
 Watch the live world at **[kitties.ai](https://kitties.ai)** (also served at
 [cloudkitty.ai](https://cloudkitty.ai)).
@@ -8,17 +8,44 @@ Watch the live world at **[kitties.ai](https://kitties.ai)** (also served at
 CloudKitty is a 2D tile world that runs on a server and is watched through a browser.
 Kitties wander, eat, drink, nap in sunbeams, groom each other, chase bugs, and meow
 about it. Each kitty is driven by a pluggable *behavior*, so different cats can live
-visibly different lives.
-
-A kitty's mind can be a **trained neural policy** — the world doubles as a multi-agent
-RL environment, and a policy trained in it deploys back as just another behavior — or
-an **external program in any language**, speaking JSON over stdio. Whatever drives a
-cat, the engine treats it as an untrusted advisor: it proposes, the engine decides. And
-before a mind ships, there is an exam room — a frozen, held-out suite that asks not just
-"is this policy good" but "are the *other* cats worse off for living with it."
+visibly different lives — and a behavior can be a hand-written script, a trained
+neural network, or an external program in any language. Whatever drives a cat, the
+engine treats it as an untrusted advisor: it proposes, the engine decides.
 
 Nothing bad ever happens to a kitty. That is not a design goal, it is a
 [constitution](.specify/memory/constitution.md).
+
+## The spirit of the thing
+
+The kitties are a team. Every mind here is trained on one shared score —
+everyone's happiness, together — so the only way for a kitty to get ahead is
+to bring the whole meadow along. Their voices are governed by **meow law** (a
+cat may only say what is true, and a purr must be *earned*), and on top of it
+they've built a modest **purr economics** all their own: a round-the-meadow
+chorus of "I'm fine out here" and "stay put, I'm coming" that nobody taught
+them. As time passes, the minds grow up — scripts, then clones of scripts,
+then the reinforcement-learned policies holding every seat today, attention
+next, and someday, maybe, a language model walking through the plugin door.
+Each new mind sits the same frozen exams before it moves in: nobody gets a
+seat unless the neighbors will be happier for it.
+
+## The constitution
+
+Six articles the code is built to obey, checked by a property suite that runs on every
+merge:
+
+| Article | Guarantee |
+|---------|-----------|
+| I | **Kitties cannot suffer.** Needs are bounded 0–100, happiness has a floor, and when a need gets urgent the world guarantees relief exists. |
+| II | **Kitties cannot die.** There is no health, damage, or despawn concept, and no code path removes a kitty. Only environment elements expire. |
+| III | **Kitties cannot be alone.** Always at least two, rejected at startup and re-asserted every tick. |
+| IV | **The engine is the law.** Behaviors only *propose*. Every proposal is validated, and anything the engine won't allow resolves one of two safe ways: a malformed or absent answer falls back to the built-in needs-driven behavior; a well-formed but illegal one becomes an idle turn. Never an error, never a reshaped action. |
+| V | **Server-authoritative and deterministic.** All logic server-side, one seeded RNG, fixed tick order — with a fair turn order: every kitty gets an equal, reproducible chance to act first. Same seed → same world, always, for built-in behaviors; an external advisor answers outside the seeded stream, which is why its containment is a deadline. |
+| VI | **Spec-first, test-guarded.** Every constant lives in config; the invariant suite is a required CI gate. |
+
+Distress is a *signal*, never a punishment: when a need crosses the distress threshold
+the world records it and exposes it at `/events/distress`, so a future cooperative game
+can be about keeping every kitty out of distress.
 
 ## Run it
 
@@ -72,24 +99,6 @@ a kitty pounce on absolutely nothing. Press <kbd>l</kbd> for the tile grid lines
 (debug), and <kbd>p</kbd> for worn paths — faint trails where the kitties have walked
 this session, fading with time and kept entirely in the browser. All three start
 hidden on every load.
-
-## The constitution
-
-Six articles the code is built to obey, checked by a property suite that runs on every
-merge:
-
-| Article | Guarantee |
-|---------|-----------|
-| I | **Kitties cannot suffer.** Needs are bounded 0–100, happiness has a floor, and when a need gets urgent the world guarantees relief exists. |
-| II | **Kitties cannot die.** There is no health, damage, or despawn concept, and no code path removes a kitty. Only environment elements expire. |
-| III | **Kitties cannot be alone.** Always at least two, rejected at startup and re-asserted every tick. |
-| IV | **The engine is the law.** Behaviors only *propose*. Every proposal is validated, and anything the engine won't allow resolves one of two safe ways: a malformed or absent answer falls back to the built-in needs-driven behavior; a well-formed but illegal one becomes an idle turn. Never an error, never a reshaped action. |
-| V | **Server-authoritative and deterministic.** All logic server-side, one seeded RNG, fixed tick order — with a fair turn order: every kitty gets an equal, reproducible chance to act first. Same seed → same world, always, for built-in behaviors; an external advisor answers outside the seeded stream, which is why its containment is a deadline. |
-| VI | **Spec-first, test-guarded.** Every constant lives in config; the invariant suite is a required CI gate. |
-
-Distress is a *signal*, never a punishment: when a need crosses the distress threshold
-the world records it and exposes it at `/events/distress`, so a future cooperative game
-can be about keeping every kitty out of distress.
 
 ## API
 
