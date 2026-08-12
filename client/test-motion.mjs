@@ -2560,6 +2560,32 @@ check('a pose with no axial authoring keeps its side drawing', () => {
   }
 });
 
+check('a turn only flips a facing that has something to flip through', () => {
+  // `turnFacing` draws the PRE-turn facing for the first half of a turn,
+  // which is what makes the flip land on the squash. It does that with a
+  // left/right ternary, and it has been taking four values since the axial
+  // facings landed: 'north' is not 'left', so it came back as 'left' and
+  // an axial cat was drawn side-on for 100ms and then snapped.
+  //
+  // Unreachable today -- a turn is only stamped on a horizontal step, so
+  // the facing is horizontal for the 200ms it lasts -- so this pins the
+  // behaviour before something makes it reachable, rather than after.
+  for (const facing of ['north', 'south']) {
+    for (const t of [0, 0.1, 0.49, 0.5, 0.9, 1]) {
+      assert(
+        CatV2.turnFacing(facing, t) === facing,
+        `a ${facing}-facing cat was drawn as '${CatV2.turnFacing(facing, t)}' at turn ${t}`,
+      );
+    }
+  }
+  // ...while the horizontal case still does the thing it exists for: the
+  // old facing until the flip point, the new one after.
+  assert(CatV2.turnFacing('right', 0.1) === 'left', 'a turn must show the pre-turn facing first');
+  assert(CatV2.turnFacing('right', 0.9) === 'right', 'and the served one after the flip');
+  assert(CatV2.turnFacing('left', 0.1) === 'right', 'both ways');
+  assert(CatV2.turnFacing('left', null) === 'left', 'no turn, no change');
+});
+
 check('four facings come off the served step, and east/west is remembered', () => {
   const p = new api.Presentation();
   const step = (from, to) => {
