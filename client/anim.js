@@ -414,6 +414,8 @@ const VIEW = Object.freeze({
     bushStyleAltShare: 0, // 0 = primary only, 1 = alt only, between = a mix
     bushTrunk: 0, // how much stem the stemmed styles draw; 0 is none
     bushTrunkAlt: 0, // the same, for the bushStyleAlt species
+    bushTrunkWidth: 1, // stem thickness, as a multiple of each style's own
+    bushTrunkWidthAlt: 1, // the same, for the bushStyleAlt species
     // The shrub's shadow, damped against the cats': a squat canopy sits
     // close to the ground, so it stretches far less and needs no alpha
     // falloff. Only the LENGTH is damped -- the lean also anchors the

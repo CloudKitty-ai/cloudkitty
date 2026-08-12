@@ -1516,6 +1516,62 @@ check('the second species carries its own lift and trunk', () => {
   );
 });
 
+check('trunk width is a multiplier, so 1 is exactly the shipped drawing', () => {
+  // Both styles draw a stem, at different authored widths (the trunk style
+  // at 0.2 canopy radii, the lobed one at 0.13). One absolute dial would
+  // have had to pick a winner and restyle the other; a multiplier keeps
+  // each proportion and makes 1 a no-op by construction.
+  for (const style of ['trunk', 'lobed']) {
+    const base = { ...api.MEADOW_DEFAULTS, bushStyle: style, bushStyleAltShare: 0, bushTrunk: 0.8 };
+    const at = { x: 3, y: 4 };
+    assert(
+      String(clumpOps({ ...base, bushTrunkWidth: 1 }, at)) === String(clumpOps(base, at)),
+      `${style}: a width of 1 must draw exactly what shipped`,
+    );
+    assert(
+      String(clumpOps({ ...base, bushTrunkWidth: 3 }, at)) !== String(clumpOps(base, at)),
+      `${style}: the width dial does nothing -- this style's stem ignores it`,
+    );
+  }
+  const d = api.MEADOW_DEFAULTS;
+  assert(d.bushTrunkWidth === 1 && d.bushTrunkWidthAlt === 1, 'the width dials must ship neutral');
+
+  // ...and it thickens about its own CENTRE. Growing to one side only is
+  // invisible at width 1, where the two forms compute the same number, and
+  // reads as a trunk sliding out from under its canopy once dialled up.
+  const trunkRect = (width) => {
+    const t = { ...api.MEADOW_DEFAULTS, bushStyle: 'trunk', bushStyleAltShare: 0,
+      bushTrunk: 0.8, bushTrunkWidth: width };
+    const rects = clumpOps(t, { x: 3, y: 4 }).filter((o) => o[0] === 'rect');
+    assert(rects.length, 'the trunk style drew no rect at all');
+    const [, x, , w] = rects[0];
+    return { centre: x + w / 2, w };
+  };
+  const thin = trunkRect(1);
+  const fat = trunkRect(3);
+  assert(fat.w > thin.w * 2.5, `the trunk barely thickened: ${thin.w} -> ${fat.w}`);
+  assert(
+    Math.abs(fat.centre - thin.centre) < 1e-9,
+    `the trunk's centre moved as it thickened (${thin.centre} -> ${fat.centre}) -- ` +
+      'it is growing to one side, out from under its own canopy',
+  );
+});
+
+check('the two species carry their own trunk width too', () => {
+  const base = { ...api.MEADOW_DEFAULTS, bushStyleAltShare: 0.5, bushStyle: 'lobed', bushStyleAlt: 'trunk', bushTrunk: 0.8, bushTrunkAlt: 0.8 };
+  const altTile = tileOfSpecies(base, true);
+  const ownTile = tileOfSpecies(base, false);
+  const thick = { ...base, bushTrunkWidthAlt: 3 };
+  assert(
+    String(clumpOps(base, altTile)) !== String(clumpOps(thick, altTile)),
+    'bushTrunkWidthAlt does not reach the alt species',
+  );
+  assert(
+    String(clumpOps(base, ownTile)) === String(clumpOps(thick, ownTile)),
+    'the alt trunk width leaked onto the primary species -- both trunks would thicken together',
+  );
+});
+
 check('adding the second stance changed nothing that ships', () => {
   // The dials arrive equal to the primary's, so the meadow is untouched
   // until someone dials them. A silent art change is not a free default.
@@ -1543,8 +1599,9 @@ check('the occlusion strip draws each species in its own stance', () => {
   // the live tile.
   const lab = readFileSync(join(here, 'gallery-meadow.html'), 'utf8');
   const strip = lab.slice(lab.indexOf('BOTH species, a row each'), lab.indexOf('OCC_OFFSETS.forEach'));
-  assert(/bushLiftAlt/.test(strip) && /bushTrunkAlt/.test(strip),
-    'the occlusion strip still draws both rows with the primary stance');
+  for (const dial of ['bushLiftAlt', 'bushTrunkAlt', 'bushTrunkWidthAlt']) {
+    assert(strip.includes(dial), `the occlusion strip draws both rows without ${dial}`);
+  }
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

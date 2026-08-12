@@ -470,6 +470,13 @@ const MEADOW_DEFAULTS = Object.freeze({
   // trees among flat cover. Both start where the primary is, so adding
   // these changed nothing until they were dialled (owner, 2026-08-11).
   bushTrunkAlt: 0,
+  // How THICK that stem is, as a multiple of the width each style was
+  // drawn with -- the trunk style at 0.2 canopy radii, the lobed one
+  // at 0.13. A multiplier rather than an absolute, so 1 is exactly the
+  // shipped drawing and neither style loses the proportion it was
+  // authored with. A small tree wants this well above 1.
+  bushTrunkWidth: 1,
+  bushTrunkWidthAlt: 1,
   // The shrub's shadow, damped against the cats': a squat canopy sits
   // close to the ground, so it stretches far less and needs no alpha
   // falloff. Only the LENGTH is damped -- the lean also anchors the
@@ -1161,7 +1168,12 @@ function drawBushAt(ctx, { x, y, seed, tile: tileSize, t: tunables }) {
   // stay honest about the height it is cast by. Same shape the lab already
   // uses to draw one species at a time.
   const t = isAlt
-    ? { ...tunables, bushLift: tunables.bushLiftAlt, bushTrunk: tunables.bushTrunkAlt }
+    ? {
+        ...tunables,
+        bushLift: tunables.bushLiftAlt,
+        bushTrunk: tunables.bushTrunkAlt,
+        bushTrunkWidth: tunables.bushTrunkWidthAlt,
+      }
     : tunables;
   const tile = tileSize;
   {
@@ -1288,7 +1300,11 @@ function drawBushAt(ctx, { x, y, seed, tile: tileSize, t: tunables }) {
         if (stemShare > 0) {
           const top = groundY - (groundY - crown) * stemShare;
           ctx.beginPath();
-          ctx.rect(bx - r * 0.1, top, r * 0.2, groundY - top);
+          // Authored at 0.2 radii; the dial scales it rather than
+          // replacing it, so the two styles keep the different trunks
+          // they were drawn with and 1 is exactly today.
+          const w = r * 0.2 * (t.bushTrunkWidth ?? 1);
+          ctx.rect(bx - w / 2, top, w, groundY - top);
           ctx.fill();
         }
         // The canopy, then the LIGHT across it (spec 03 part 3). The lobes
@@ -1377,7 +1393,9 @@ function drawBushAt(ctx, { x, y, seed, tile: tileSize, t: tunables }) {
         if (stem > 0) {
           const top = groundY - (groundY - crown) * stem;
           ctx.strokeStyle = shadePalette(MEADOW.bush, 0.72);
-          ctx.lineWidth = Math.max(1, r * 0.13);
+          // Same multiplier, this style's own 0.13. The 1px floor is a
+          // legibility clamp, so a thin dial stops biting below it.
+          ctx.lineWidth = Math.max(1, r * 0.13 * (t.bushTrunkWidth ?? 1));
           ctx.lineCap = 'round';
           ctx.beginPath();
           ctx.moveTo(bx, groundY);

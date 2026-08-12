@@ -281,6 +281,8 @@
     bushStyleAltShare: [0, 1, 0.05],
     bushTrunk: [0, 1, 0.05],
     bushTrunkAlt: [0, 1, 0.05],
+    bushTrunkWidth: [0.2, 4, 0.05],
+    bushTrunkWidthAlt: [0.2, 4, 0.05],
     // Drifts (spec 03 part 1). `fertilityCells` is the size of a good patch
     // of ground; the powers are how hard each thing concentrates in one.
     // Counts are CONSERVED whatever these say -- watch the drift card's
@@ -717,6 +719,7 @@
         bushStyleAltShare: 0,
         bushLift: alt ? VIEW.meadow.bushLiftAlt : VIEW.meadow.bushLift,
         bushTrunk: alt ? VIEW.meadow.bushTrunkAlt : VIEW.meadow.bushTrunk,
+        bushTrunkWidth: alt ? VIEW.meadow.bushTrunkWidthAlt : VIEW.meadow.bushTrunkWidth,
       };
       const top = row * rh;
       OCC_OFFSETS.forEach((dy, i) => {

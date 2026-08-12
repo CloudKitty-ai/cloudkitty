@@ -136,10 +136,18 @@ change.
   already differed per species; how far it stood *up* did not, so both
   were flat or both were lifted and "trees among shrubs" was
   unreachable. Both dials ship equal to the primary's, so nothing
-  changes until they are dialled, and a lifted species still meets the
-  ground where it always did — `coverSortKey` is keyed to the base, not
-  the canopy, or a tree would slide in front of the cats it stands
-  behind. The lab's occlusion strip draws each species in its own
+  changes until they are dialled. A lifted species still meets the
+  ground where it always did: `coverSortKey` is keyed to the base rather
+  than the canopy, or a tree would slide in front of the cats it stands
+  behind.
+
+  `bushTrunkWidth` sets how thick that stem is, as a multiple of the
+  width each style was drawn with. The trunk style carries 0.2 canopy
+  radii and the lobed one 0.13, so an absolute dial would have had to
+  pick a winner and restyle the other; at 1 the multiplier draws exactly
+  what shipped. It has its own `Alt` for the second species, and the
+  stem thickens about its centre rather than growing out from under its
+  canopy. The lab's occlusion strip draws each species in its own
   stance (#202).
 - Docs: rl-training + howto-rl caught up to spec 028 (two-head wire,
   20×20, certification assumptions rewritten — the channel is
