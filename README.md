@@ -67,26 +67,25 @@ cargo run -- --help
 ```
 
 The world saves itself to `snapshot.json` every 100 ticks and on `Ctrl-C`,
-including its random state — so a restart continues the same world, not merely
-a similar one — and worlds are never lost by accident: `--fresh` moves the old
-save aside before anything else. The mechanics (several worlds side by side,
-backups and restores) and the recommended public shape (Caddy + systemd, and
-what the API deliberately makes public) are both in
+including its random state, so a restart continues the same world. Worlds are
+never lost by accident: `--fresh` moves the old save aside before anything
+else. Running several worlds side by side, backups and restores, and the
+recommended public shape (Caddy + systemd) are all covered in
 [docs/deployment.md](docs/deployment.md).
 
-**In the viewer:** the meadow keeps its own day — day, golden hour, night and
-back, 600 ticks around (eight minutes at the served tick rate). The hour is a
-pure function of the served tick, so every viewer sees the same sky; the
+**In the viewer:** the meadow keeps its own day (day, golden hour, night, and
+back, 600 ticks around, eight minutes at the served tick rate). The hour is a
+pure function of the served tick, so every viewer sees the same sky, and the
 engine knows nothing about any of it (Article V). Footer toggles pin the time
-of day or switch between the two cat-art vocabularies, and a few keyboard
-keys reveal what the renderer normally hides — including the greebles: fast,
+of day or switch between the two cat-art vocabularies. A few keyboard keys
+reveal what the renderer normally hides, including the greebles: fast,
 invisible critters that are always in the world and always in the API, which
 is why you will sometimes see a kitty pounce on absolutely nothing. The full
 tour is in [docs/viewer.md](docs/viewer.md).
 
 ## API
 
-All read-only — the viewer is a window, not a control surface.
+All read-only: the viewer is a window, not a control surface.
 
 | Endpoint | Returns |
 |----------|---------|
@@ -98,8 +97,7 @@ All read-only — the viewer is a window, not a control surface.
 | `GET /config` | The active, validated configuration |
 | `WS /ws` | The full world, pushed after every tick |
 
-Greebles appear in every payload. Their invisibility is a rendering rule in the client,
-never a filter in the API.
+Greebles appear in every payload; the client just declines to draw them.
 
 ## Configuration
 
@@ -149,16 +147,16 @@ training.toml               the gym: the world policies are trained in
 ```
 
 **Three worlds, three jobs.** `training.toml` is the gym. `cloudkitty.toml` is the
-served world — the welfare bounds are calibrated there, and it is where a candidate
-is smoke-tested on exactly what the server ships. `evals/v1/` is the exam room, and
-it is held out: a result claimed against a suite version is void if any of its exams
-were trained on. Certification itself is none of these — it is the experiment
-pipeline's registered gates ([experiments/PIPELINE.md](experiments/PIPELINE.md)).
+served world: welfare bounds are calibrated there, and a candidate is smoke-tested
+there on what the server ships. `evals/v1/` is the exam room, held out — a result
+claimed against a suite version is void if any of its exams were trained on.
+Certification is none of these; it happens in the experiment pipeline's registered
+gates ([experiments/PIPELINE.md](experiments/PIPELINE.md)).
 
 What's next lives in [BACKLOG.md](BACKLOG.md).
 
-`cloudkitty-core` has no HTTP and no filesystem: tests drive thousands of ticks
-headlessly, which is how the constitution is actually enforced.
+`cloudkitty-core` has no HTTP and no filesystem; the constitution is enforced by
+tests driving thousands of headless ticks.
 
 ## Tests
 
@@ -194,8 +192,7 @@ impl Behavior for MyCat {
 
 Register it, name it in a kitty's config, and that is the whole integration. The engine
 validates whatever you return, budgets your time, and falls back to the default
-behavior if you are slow or broken — so a misbehaving advisor can cost a cat a moment
-of cleverness, but never anything more.
+behavior if you are slow or broken.
 
 **Or in any language at all.** A behavior can be an external program: the server keeps
 it alive as a subprocess and speaks newline-delimited JSON over stdio, one request line
@@ -212,21 +209,21 @@ name = "Biscuit"
 behavior = "professor_whiskers"
 ```
 
-The failure ladder is Article IV made concrete — a malformed answer falls back, an
-illegal one idles, a desync or timeout restarts the process, a crash relaunches it
-on a cooldown. A cat advised by a crashing script is a slightly less clever cat, and
-nothing else. The full contract — wire format, resync rules, startup checks, every
-accepted and rejected example (each one enforced by a test) — is in
-[docs/plugins.md](docs/plugins.md). This is also the door a language model walks
+The failure ladder is Article IV made concrete: a malformed answer falls back, an
+illegal one idles, a desync or timeout restarts the process, and a crash relaunches
+it on a cooldown. A cat advised by a crashing script is a slightly less clever cat,
+and nothing else. The full contract (wire format, resync rules, startup checks, and
+every accepted and rejected example, each one enforced by a test) is in
+[docs/plugins.md](docs/plugins.md). It is also the door a language model would walk
 through.
 
-Or skip the writing entirely and train one — see *Training a mind* below.
+Or skip the writing and train one; see *Training a mind* below.
 
 ## Training a mind
 
 The same world that runs the sanctuary can train one. The Python surface speaks the
-PettingZoo parallel convention — cooperative, one team reward (Nash welfare over
-*every* kitty, so a policy can't win by favoring its own cat):
+PettingZoo parallel convention, cooperative, with one team reward: Nash welfare over
+every kitty, so a policy cannot win by favoring its own cat.
 
 ```bash
 cd crates/cloudkitty-py && maturin develop --release
@@ -234,7 +231,7 @@ python examples/random_rollout.py --seed 7    # shapes, masks, rewards — no tr
 ```
 
 Rollouts are bit-reproducible across processes from the same seed. Deployment is two
-lines of config — point a kitty at the policy, and name the artifact:
+lines of config, one to point a kitty at the policy and one to name the artifact:
 
 ```toml
 [[kitty]]
@@ -249,52 +246,50 @@ artifact = "policies/trained.ckpolicy"
 ```
 
 The server validates and hash-logs the artifact before the first tick, and the engine
-treats the policy exactly like any other behavior — proposals only, validated,
-budgeted, benched if it misbehaves. None of this is hypothetical: **all four of the
-served world's kitties run a trained policy** — the same certified artifact on every
-seat since 2026-08-09; the hand-written cats' remaining job is teaching, as
+treats the policy like any other behavior: proposals only, validated, budgeted,
+benched if it misbehaves. None of this is hypothetical. **All four of the served
+world's kitties run a trained policy** — the same certified artifact on every seat
+since 2026-08-09 — and the hand-written cats' remaining job is teaching, as
 demonstrators in the training datasets. [policies/README.md](policies/README.md) is
-the registry — every deployed artifact hash-pinned to its certification record. Start with the HOWTO —
-[docs/howto-rl.md](docs/howto-rl.md), a verified start-to-finish walkthrough with a
-minimal runnable example — then the training reference in
-[docs/rl-training.md](docs/rl-training.md); the contracts live in
+the registry; every deployed artifact is hash-pinned to its certification record.
+
+Start with the HOWTO, [docs/howto-rl.md](docs/howto-rl.md), a verified
+start-to-finish walkthrough with a minimal runnable example. The training reference
+is [docs/rl-training.md](docs/rl-training.md), and the contracts live in
 [specs/014-multi-agent-rl/](specs/014-multi-agent-rl/).
 
 ## Proving a mind is safe
 
 A candidate is measured in three places, each with its own job.
 
-**The smoke** — `kitty-eval` — runs on the served world, resolving
-`cloudkitty.toml` exactly the way the server does. It validates and hash-logs the
-artifact on the shipping binary, fails on any fallback-taken decision (a broken
-advisor never rides the fallback through an evaluation), and scores a paired
-delta against the built-in `needs_driven` baseline, with every constitutional
-welfare bound checked.
+The smoke test is `kitty-eval`. It runs on the served world, resolving
+`cloudkitty.toml` the way the server does, validates and hash-logs the artifact
+on the shipping binary, fails on any fallback-taken decision, and scores a
+paired delta against the built-in `needs_driven` baseline with every
+constitutional welfare bound checked.
 
 ```bash
 kitty-eval --brain needs_driven --seeds 1,2,3 --ticks 20000
 kitty-eval --artifact policies/trained.ckpolicy --roster both --json out.json
 ```
 
-**Certification** is the experiment pipeline: preregistered stress and welfare
-gates, their formulas frozen before training starts, so the bar cannot move to
-meet the candidate. The doctrine is
-[experiments/PIPELINE.md](experiments/PIPELINE.md); a mind seats in the served
-world only after those gates.
+Certification happens in the experiment pipeline: preregistered stress and
+welfare gates whose formulas freeze before training starts, so the bar cannot
+move to meet the candidate. [experiments/PIPELINE.md](experiments/PIPELINE.md)
+is the doctrine. A mind seats in the served world only after those gates.
 
-**The exam suite** runs on frozen, held-out worlds the policy has never seen —
-bigger, leaner, and more heterogeneous than the one it grew up in — including a
-mixed-roster exam that seats the candidate among scripted cats and asks whether
-the *scripted* cats end up worse off, with a per-kitty sign test that catches a
+Last comes the exam suite, run on frozen, held-out worlds the policy has never
+seen: bigger, leaner, and more heterogeneous than the one it grew up in. Its
+mixed-roster exam seats the candidate among scripted cats and asks whether the
+scripted cats end up worse off, with a per-kitty sign test that catches a
 policy doing well on average while quietly exploiting one neighbor.
 
 ```bash
 kitty-eval --suite evals/v1 --artifact policies/trained.ckpolicy
 ```
 
-Every exam config is sha256-pinned and frozen — a landed suite version never
-changes, evolving it means a new `evals/v2/` alongside, and the suite refuses
-every adjustable knob: an instrument you can adjust is not a bar. Nothing can
-loosen a frozen bar — tightening is the only direction that exists. The full
-semantics — exit codes, report stamping, the mixed-roster compositions, what
-each verdict means — are in [docs/rl-training.md](docs/rl-training.md).
+Every exam config is sha256-pinned and frozen. A landed suite version never
+changes (evolving it means a new `evals/v2/` alongside), and the suite refuses
+every adjustable knob: an instrument you can adjust is not a bar. Exit codes,
+report stamping, the mixed-roster compositions, and what each verdict means are
+in [docs/rl-training.md](docs/rl-training.md).
