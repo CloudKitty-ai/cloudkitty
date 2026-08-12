@@ -29,7 +29,7 @@
     background: #fdf6ec;
     color: #4a4038;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 440px);
     gap: 20px;
     align-items: start;
   }
@@ -75,7 +75,13 @@
   label output { font-variant-numeric: tabular-nums; text-align: right; color: #8a7a6c; }
   /* Two columns of dials where there is room: 40-odd of them in one tall
      stack is its own kind of hard to scan. */
-  #dials { display: grid; grid-template-columns: repeat(auto-fill, minmax(430px, 1fr)); column-gap: 26px; }
+  /* Two columns of dials where there is room, ONE where there is not --
+     and never a column wider than the panel. A bare `minmax(430px, 1fr)`
+     keeps its 430px floor in a narrower container, so the track overflows
+     and the value on the right end of every row scrolls out of sight
+     (owner, 2026-08-11: "it's scrolling and i can't see the values").
+     `min(430px, 100%)` is the floor that yields. */
+  #dials { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(430px, 100%), 1fr)); column-gap: 26px; }
   @media (max-width: 900px) { label { grid-template-columns: 11em minmax(70px, 1fr) 3.4em; } }
   input[type=range] { flex: 0 0 110px; }
   button { font: inherit; font-size: 0.78rem; padding: 5px 10px; border-radius: 8px;
