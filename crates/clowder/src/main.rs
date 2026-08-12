@@ -62,10 +62,10 @@ async fn run(args: Vec<String>) -> Result<ExitCode, Usage> {
 
     // Identity stamp: fetch /config and /world once. A target unreachable at
     // the start is a setup error, not a measured interruption.
-    let cfg = http::get(&target.host, target.port, "/config")
+    let cfg = http::get(&target.host, target.port, "/config", target.tls)
         .await
         .map_err(|e| Usage(format!("cannot reach target {}: {e}", cli.target_raw)))?;
-    let world = http::get(&target.host, target.port, "/world")
+    let world = http::get(&target.host, target.port, "/world", target.tls)
         .await
         .map_err(|e| Usage(format!("cannot reach target {}: {e}", cli.target_raw)))?;
     if cfg.status != 200 || world.status != 200 {

@@ -62,7 +62,14 @@ pub async fn run_viewer(shared: Arc<Shared>, handle: Arc<ConnHandle>, stall_at: 
     let connect_start = Instant::now();
 
     // First paint: the real viewer fetches /world once before subscribing.
-    if let Err(e) = http::get(&shared.target.host, shared.target.port, "/world").await {
+    if let Err(e) = http::get(
+        &shared.target.host,
+        shared.target.port,
+        "/world",
+        shared.target.tls,
+    )
+    .await
+    {
         handle.stats.errors.fetch_add(1, Ordering::Relaxed);
         handle.finish(EndReason::Refused);
         if e.contains("Too many open files") {
@@ -180,7 +187,14 @@ pub async fn run_viewer(shared: Arc<Shared>, handle: Arc<ConnHandle>, stall_at: 
 /// One poller request against a read endpoint (FR-006). Records latency into a
 /// shared poller histogram via the swarm.
 pub async fn run_poll(shared: Arc<Shared>, path: String) {
-    match http::get(&shared.target.host, shared.target.port, &path).await {
+    match http::get(
+        &shared.target.host,
+        shared.target.port,
+        &path,
+        shared.target.tls,
+    )
+    .await
+    {
         Ok(r) if (200..300).contains(&r.status) => shared.record_poll(r.elapsed_ms, false),
         Ok(_) => shared.record_poll(0.0, true),
         Err(_) => shared.record_poll(0.0, true),

@@ -1,8 +1,9 @@
 //! A minimal async HTTP/1.1 GET, enough to fetch `/world` and `/config` and to
-//! drive the read-only poller mix. The server is plain loopback HTTP with no
-//! auth (Article V), so a hand-rolled `Connection: close` GET -- send the
-//! request, read to EOF, split on the blank line -- is robust without pulling
-//! a full HTTP client into a load tool.
+//! drive the read-only poller mix. A hand-rolled `Connection: close` GET --
+//! send the request, read to EOF, split on the blank line -- is robust without
+//! pulling a full HTTP client into a load tool. When the target is TLS
+//! (`https`), the same exchange runs over a native-tls stream so we can measure
+//! a server behind a TLS proxy, not only plain-http loopback.
 
 use std::time::Instant;
 
@@ -22,12 +23,12 @@ pub struct GetResult {
 /// hanging forever; the timeout turns that into an error the caller counts.
 const GET_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(10);
 
-/// GET `path` from `host:port`. `Connection: close` means the body is
-/// everything after the header terminator until EOF -- no chunked/keep-alive
-/// parsing. Errors are returned as strings; the caller decides how to count
+/// GET `path` from `host:port`, over TLS when `tls` is set. The body is
+/// everything after the header terminator until EOF (no chunked/keep-alive
+/// parsing). Errors are returned as strings; the caller decides how to count
 /// them.
-pub async fn get(host: &str, port: u16, path: &str) -> Result<GetResult, String> {
-    tokio::time::timeout(GET_TIMEOUT, get_inner(host, port, path))
+pub async fn get(host: &str, port: u16, path: &str, tls: bool) -> Result<GetResult, String> {
+    tokio::time::timeout(GET_TIMEOUT, get_inner(host, port, path, tls))
         .await
         .map_err(|_| {
             format!(
@@ -37,13 +38,43 @@ pub async fn get(host: &str, port: u16, path: &str) -> Result<GetResult, String>
         })?
 }
 
-async fn get_inner(host: &str, port: u16, path: &str) -> Result<GetResult, String> {
+async fn get_inner(host: &str, port: u16, path: &str, tls: bool) -> Result<GetResult, String> {
     let start = Instant::now();
-    let mut stream = TcpStream::connect((host, port))
+    let tcp = TcpStream::connect((host, port))
         .await
         .map_err(|e| format!("connect: {e}"))?;
+    // The Host header must be the bare hostname at the default port, or a
+    // name-based virtual host (Caddy serving kitties.ai) won't match the site
+    // block. Only append :port when it is non-default.
+    let default_port = if tls { 443 } else { 80 };
+    let host_header = if port == default_port {
+        host.to_string()
+    } else {
+        format!("{host}:{port}")
+    };
+
+    let raw = if tls {
+        let connector = native_tls::TlsConnector::new().map_err(|e| format!("tls setup: {e}"))?;
+        let connector = tokio_native_tls::TlsConnector::from(connector);
+        let stream = connector
+            .connect(host, tcp)
+            .await
+            .map_err(|e| format!("tls handshake: {e}"))?;
+        exchange(stream, &host_header, path).await?
+    } else {
+        exchange(tcp, &host_header, path).await?
+    };
+    let elapsed_ms = start.elapsed().as_secs_f64() * 1000.0;
+    parse(raw, elapsed_ms)
+}
+
+/// Send the request over any byte stream and read the whole response.
+async fn exchange<S>(mut stream: S, host_header: &str, path: &str) -> Result<Vec<u8>, String>
+where
+    S: AsyncReadExt + AsyncWriteExt + Unpin,
+{
     let req = format!(
-        "GET {path} HTTP/1.1\r\nHost: {host}:{port}\r\nConnection: close\r\nAccept: */*\r\n\r\n"
+        "GET {path} HTTP/1.1\r\nHost: {host_header}\r\nConnection: close\r\nAccept: */*\r\n\r\n"
     );
     stream
         .write_all(req.as_bytes())
@@ -54,8 +85,10 @@ async fn get_inner(host: &str, port: u16, path: &str) -> Result<GetResult, Strin
         .read_to_end(&mut raw)
         .await
         .map_err(|e| format!("read: {e}"))?;
-    let elapsed_ms = start.elapsed().as_secs_f64() * 1000.0;
+    Ok(raw)
+}
 
+fn parse(raw: Vec<u8>, elapsed_ms: f64) -> Result<GetResult, String> {
     let split = find_subslice(&raw, b"\r\n\r\n")
         .ok_or_else(|| "malformed response: no header terminator".to_string())?;
     let head = &raw[..split];

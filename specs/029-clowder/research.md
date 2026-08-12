@@ -16,15 +16,25 @@ verified against `origin/main` on 2026-08-12.
   weakens the SC-004 boundary); a standalone repo (rejected: the tool must
   track the payload schema and deserves the same CI).
 
-## R2. WebSocket client library
+## R2. WebSocket client library and TLS
 
-- **Decision**: `tokio-tungstenite`, with its rustls feature enabled so
-  `wss://` targets (a local reverse-proxy shape) work.
+- **Decision**: `tokio-tungstenite` for the WS client, with the
+  **`native-tls`** feature for `wss://` targets (behind a TLS proxy such as
+  the deployed Caddy). The first-paint GET and pollers in `http.rs` run the
+  same request over a `tokio-native-tls` stream for `https://` targets.
 - **Rationale**: the workspace already runs on tokio; tungstenite is the
-  de-facto client pairing, small, and maintained.
-- **Alternatives considered**: raw hyper upgrade handling (rejected: hand
-  rolling the WS protocol buys nothing here); `async-tungstenite`
-  (rejected: same library behind a runtime-agnostic wrapper we don't need).
+  de-facto client pairing, small, and maintained. `native-tls` uses the OS
+  trust store (Secure Transport / OpenSSL), which keeps `tokio-tungstenite`
+  at 0.21 and avoids the rustls crypto-provider and multi-version juggling
+  the workspace's mixed rustls tree would otherwise force. The Host header
+  is sent bare at the default port so a name-based virtual host matches.
+- **Note**: an earlier draft of this doc said "rustls," but the shipped
+  first cut omitted any TLS feature (a plain-http-only tool); native-tls was
+  chosen when TLS was added so a served endpoint could be measured.
+- **Alternatives considered**: rustls (rejected: crypto-provider setup and a
+  second rustls version in the tree for no gain here); raw hyper upgrade
+  handling (rejected: hand-rolling the WS protocol buys nothing);
+  `async-tungstenite` (rejected: same library behind a runtime wrapper).
 
 ## R3. Extracting the tick without parsing the world
 

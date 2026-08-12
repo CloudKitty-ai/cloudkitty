@@ -15,7 +15,11 @@ serde_json = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros", "net", "time", "sync", "io-util", "signal", "process"] }
 futures = { workspace = true }
 # The WS client half of the pairing the server's contract tests already use.
-tokio-tungstenite = "0.21"
+# native-tls (OS trust store) enables wss:// so we can point at a served
+# endpoint behind a TLS proxy, not only plain-http loopback.
+tokio-tungstenite = { version = "0.21", features = ["native-tls"] }
+native-tls = "0.2"
+tokio-native-tls = "0.3"
 sha2 = "0.10"
 # RLIMIT_NOFILE (research R6); already in the tree transitively.
 libc = "0.2"

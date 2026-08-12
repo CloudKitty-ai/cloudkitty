@@ -11,13 +11,15 @@ use std::net::{IpAddr, ToSocketAddrs};
 
 use sha2::{Digest, Sha256};
 
-/// A validated target: the base HTTP URL, the derived WS URL, and host/port.
+/// A validated target: the base HTTP URL, the derived WS URL, host/port, and
+/// whether the scheme is TLS (`https`/`wss`).
 #[derive(Clone, Debug)]
 pub struct Target {
     pub http_base: String,
     pub ws_url: String,
     pub host: String,
     pub port: u16,
+    pub tls: bool,
 }
 
 impl Target {
@@ -56,12 +58,14 @@ impl Target {
                  own. The live world is never a permitted target."
             ));
         }
-        let ws_scheme = if scheme == "https" { "wss" } else { "ws" };
+        let tls = scheme == "https";
+        let ws_scheme = if tls { "wss" } else { "ws" };
         Ok(Target {
             http_base: format!("{scheme}://{authority}"),
             ws_url: format!("{ws_scheme}://{authority}/ws"),
             host,
             port,
+            tls,
         })
     }
 }
@@ -147,9 +151,12 @@ mod tests {
     }
 
     #[test]
-    fn https_derives_wss() {
+    fn https_derives_wss_and_sets_tls() {
         let t = Target::parse("https://localhost:8443", false).unwrap();
         assert_eq!(t.ws_url, "wss://localhost:8443/ws");
+        assert!(t.tls);
+        let plain = Target::parse("http://127.0.0.1:8090", false).unwrap();
+        assert!(!plain.tls);
     }
 
     #[test]
