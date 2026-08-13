@@ -8,7 +8,7 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use futures::StreamExt;
-use tokio_tungstenite::connect_async;
+use tokio_tungstenite::{connect_async, connect_async_tls_with_config, Connector};
 
 use crate::http;
 use crate::metrics::{Class, ConnStats, EndReason, TickStep};
@@ -62,24 +62,42 @@ pub async fn run_viewer(shared: Arc<Shared>, handle: Arc<ConnHandle>, stall_at: 
     let connect_start = Instant::now();
 
     // First paint: the real viewer fetches /world once before subscribing.
-    if let Err(e) = http::get(
-        &shared.target.host,
-        shared.target.port,
-        "/world",
-        shared.target.tls,
-    )
-    .await
-    {
-        handle.stats.errors.fetch_add(1, Ordering::Relaxed);
-        handle.finish(EndReason::Refused);
-        if e.contains("Too many open files") {
-            shared.selfwatch.note_emfile();
+    // Skipped when hunting the server's ceiling from a CPU-bound generator --
+    // it halves the per-viewer TLS handshake cost.
+    if !shared.skip_first_paint() {
+        if let Err(e) = http::get(
+            &shared.target.host,
+            shared.target.port,
+            "/world",
+            shared.tls_connector(),
+        )
+        .await
+        {
+            handle.stats.errors.fetch_add(1, Ordering::Relaxed);
+            handle.finish(EndReason::Refused);
+            if e.contains("Too many open files") {
+                shared.selfwatch.note_emfile();
+            }
+            return;
         }
-        return;
     }
 
-    // Subscribe.
-    let ws = match connect_async(&shared.target.ws_url).await {
+    // Subscribe. Pass the run's shared TLS connector for wss:// so tungstenite
+    // does not rebuild one per connection (the same starvation the GET path
+    // had); plain ws:// uses the default path.
+    let connect = match shared.tls_connector() {
+        Some(c) => {
+            connect_async_tls_with_config(
+                &shared.target.ws_url,
+                None,
+                false,
+                Some(Connector::NativeTls(c.clone())),
+            )
+            .await
+        }
+        None => connect_async(&shared.target.ws_url).await,
+    };
+    let ws = match connect {
         Ok((ws, _resp)) => ws,
         Err(e) => {
             handle.stats.errors.fetch_add(1, Ordering::Relaxed);
@@ -191,7 +209,7 @@ pub async fn run_poll(shared: Arc<Shared>, path: String) {
         &shared.target.host,
         shared.target.port,
         &path,
-        shared.target.tls,
+        shared.tls_connector(),
     )
     .await
     {

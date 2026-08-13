@@ -60,12 +60,21 @@ async fn run(args: Vec<String>) -> Result<ExitCode, Usage> {
     let cli = parse(&args)?;
     let target = Target::parse(&cli.target_raw, cli.allow_remote).map_err(Usage)?;
 
+    // Build the one TLS connector for the whole run here (a TLS target only).
+    // Building it per connection reloads the system CA store each time on
+    // Linux, jamming the async runtime -- so it is built once and shared.
+    let tls_connector = if target.tls {
+        Some(native_tls::TlsConnector::new().map_err(|e| Usage(format!("tls setup: {e}")))?)
+    } else {
+        None
+    };
+
     // Identity stamp: fetch /config and /world once. A target unreachable at
     // the start is a setup error, not a measured interruption.
-    let cfg = http::get(&target.host, target.port, "/config", target.tls)
+    let cfg = http::get(&target.host, target.port, "/config", tls_connector.as_ref())
         .await
         .map_err(|e| Usage(format!("cannot reach target {}: {e}", cli.target_raw)))?;
-    let world = http::get(&target.host, target.port, "/world", target.tls)
+    let world = http::get(&target.host, target.port, "/world", tls_connector.as_ref())
         .await
         .map_err(|e| Usage(format!("cannot reach target {}: {e}", cli.target_raw)))?;
     if cfg.status != 200 || world.status != 200 {
@@ -81,7 +90,15 @@ async fn run(args: Vec<String>) -> Result<ExitCode, Usage> {
     let mut worst: u8 = 0;
     for rep in 1..=cli.repeat {
         let out = out_path(&cli, rep);
-        let (code, ceiling) = run_once(&cli, &target, &identity, nominal_tick_ms, &out).await;
+        let (code, ceiling) = run_once(
+            &cli,
+            &target,
+            &identity,
+            nominal_tick_ms,
+            tls_connector.clone(),
+            &out,
+        )
+        .await;
         worst = worst.max(code);
         if let Some(c) = ceiling {
             ceilings.push(c);
@@ -121,9 +138,15 @@ async fn run_once(
     target: &Target,
     identity: &TargetIdentity,
     nominal_tick_ms: f64,
+    tls_connector: Option<native_tls::TlsConnector>,
     out: &str,
 ) -> (u8, Option<u64>) {
-    let shared = Shared::new(target.clone(), nominal_tick_ms);
+    let shared = Shared::new(
+        target.clone(),
+        nominal_tick_ms,
+        tls_connector,
+        cli.plan.skip_first_paint,
+    );
     let ids = IdGen::default();
     let rows: Arc<Mutex<Vec<IntervalRow>>> = Arc::new(Mutex::new(Vec::new()));
 
@@ -398,6 +421,12 @@ fn scenario_lines(cli: &Cli) -> Vec<String> {
             p.poll_endpoints.join("|")
         ));
     }
+    if let Some(md) = p.max_duration_s {
+        v.push(format!("max_duration={md}"));
+    }
+    if p.skip_first_paint {
+        v.push("skip_first_paint=true".into());
+    }
     v
 }
 
@@ -444,6 +473,8 @@ fn parse(args: &[String]) -> Result<Cli, Usage> {
         poll_rate: 0.0,
         poll_endpoints: vec!["/world".into(), "/kitties".into(), "/config".into()],
         thresholds: HealthThresholds::default(),
+        max_duration_s: None,
+        skip_first_paint: false,
     };
     let mut target_raw = "http://127.0.0.1:8090".to_string();
     let mut allow_remote = false;
@@ -489,6 +520,10 @@ fn parse(args: &[String]) -> Result<Cli, Usage> {
             }
             "--target" => target_raw = val("--target")?,
             "--allow-remote" => allow_remote = true,
+            "--max-duration" => {
+                plan.max_duration_s = Some(pfloat(&val("--max-duration")?, "--max-duration")?)
+            }
+            "--skip-first-paint" => plan.skip_first_paint = true,
             "--interval" => interval_s = pfloat(&val("--interval")?, "--interval")?,
             "--out" => out = Some(val("--out")?),
             "--repeat" => repeat = pnum(&val("--repeat")?, "--repeat")? as u32,
@@ -576,7 +611,7 @@ fn usage() -> String {
 clowder <MODE> --target <URL> [flags]   (spec 029)
 
 MODES
-  ramp           --to N [--step 25] [--step-interval 5] [--hold 30]
+  ramp           --to N [--step 25] [--step-interval 5] [--hold 30] [--max-duration S]
   spike          --viewers N [--duration 60]
   slow-consumer  --viewers N [--stall-fraction 0.1] [--stall-after 10] [--duration 120]
   churn          --viewers N [--churn-rate 5] [--duration 120]
@@ -586,6 +621,7 @@ COMMON
   --target URL (default http://127.0.0.1:8090)   --allow-remote
   --poll-rate R  --poll-endpoints /world,/kitties,/config
   --interval 1   --repeat 1   --out PATH
+  --skip-first-paint   (WS only; halves per-viewer TLS cost on a CPU-bound generator)
   --max-skips 0  --cadence-tolerance 0.05  --max-handshake-failures 0  --max-unexpected-ends 0
 
 Targets are LOCAL by default; --allow-remote is for a server you own.
