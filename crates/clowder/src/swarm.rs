@@ -26,6 +26,8 @@ pub struct Shared {
     /// The one TLS connector for the whole run (`Some` iff the target is TLS),
     /// built once and shared -- never rebuilt per connection.
     tls_connector: Option<native_tls::TlsConnector>,
+    /// Viewers skip the first-paint GET and subscribe straight to /ws.
+    skip_first_paint: bool,
     run_start: Instant,
     nominal_tick_ms: f64,
     registry: Mutex<Vec<Arc<ConnHandle>>>,
@@ -44,6 +46,7 @@ impl Shared {
         target: Target,
         nominal_tick_ms: f64,
         tls_connector: Option<native_tls::TlsConnector>,
+        skip_first_paint: bool,
     ) -> Arc<Shared> {
         let (shutdown, _) = broadcast::channel(1);
         Arc::new(Shared {
@@ -52,6 +55,7 @@ impl Shared {
             selfwatch: SelfWatch::new(),
             shutdown,
             tls_connector,
+            skip_first_paint,
             run_start: Instant::now(),
             nominal_tick_ms,
             registry: Mutex::new(Vec::new()),
@@ -84,6 +88,10 @@ impl Shared {
     /// The shared TLS connector, or None for a plain-http target.
     pub fn tls_connector(&self) -> Option<&native_tls::TlsConnector> {
         self.tls_connector.as_ref()
+    }
+
+    pub fn skip_first_paint(&self) -> bool {
+        self.skip_first_paint
     }
 
     pub fn register(&self, handle: Arc<ConnHandle>) {

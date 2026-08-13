@@ -62,20 +62,24 @@ pub async fn run_viewer(shared: Arc<Shared>, handle: Arc<ConnHandle>, stall_at: 
     let connect_start = Instant::now();
 
     // First paint: the real viewer fetches /world once before subscribing.
-    if let Err(e) = http::get(
-        &shared.target.host,
-        shared.target.port,
-        "/world",
-        shared.tls_connector(),
-    )
-    .await
-    {
-        handle.stats.errors.fetch_add(1, Ordering::Relaxed);
-        handle.finish(EndReason::Refused);
-        if e.contains("Too many open files") {
-            shared.selfwatch.note_emfile();
+    // Skipped when hunting the server's ceiling from a CPU-bound generator --
+    // it halves the per-viewer TLS handshake cost.
+    if !shared.skip_first_paint() {
+        if let Err(e) = http::get(
+            &shared.target.host,
+            shared.target.port,
+            "/world",
+            shared.tls_connector(),
+        )
+        .await
+        {
+            handle.stats.errors.fetch_add(1, Ordering::Relaxed);
+            handle.finish(EndReason::Refused);
+            if e.contains("Too many open files") {
+                shared.selfwatch.note_emfile();
+            }
+            return;
         }
-        return;
     }
 
     // Subscribe. Pass the run's shared TLS connector for wss:// so tungstenite

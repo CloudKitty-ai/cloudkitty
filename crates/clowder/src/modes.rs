@@ -24,6 +24,14 @@ pub struct Plan {
     pub poll_rate: f64,
     pub poll_endpoints: Vec<String>,
     pub thresholds: HealthThresholds,
+    /// Stop a ramp after this many seconds even if it has not reached `--to`
+    /// or a degraded step (so a run that outpaces the generator still ends and
+    /// writes its record).
+    pub max_duration_s: Option<f64>,
+    /// Skip the first-paint `GET /world`, subscribing straight to `/ws`. Halves
+    /// the per-viewer TLS handshake cost when the generator is CPU-bound and you
+    /// are hunting the server's ceiling rather than mimicking a browser.
+    pub skip_first_paint: bool,
 }
 
 /// A monotonically increasing connection id.
@@ -85,6 +93,13 @@ pub async fn ramp(
     let mut open = 0u64;
     let mut step_num = 0u32;
     while open < plan.viewers {
+        // Stop if the ramp has run past its time budget (the generator may never
+        // reach `--to`); finalize still writes the record for what it reached.
+        if let Some(max) = plan.max_duration_s {
+            if shared.elapsed_s() >= max {
+                return;
+            }
+        }
         step_num += 1;
         let want = (open + plan.step).min(plan.viewers);
         // Establish the new cohort, paced across step_interval. These rows are
