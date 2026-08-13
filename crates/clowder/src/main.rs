@@ -60,12 +60,21 @@ async fn run(args: Vec<String>) -> Result<ExitCode, Usage> {
     let cli = parse(&args)?;
     let target = Target::parse(&cli.target_raw, cli.allow_remote).map_err(Usage)?;
 
+    // Build the one TLS connector for the whole run here (a TLS target only).
+    // Building it per connection reloads the system CA store each time on
+    // Linux, jamming the async runtime -- so it is built once and shared.
+    let tls_connector = if target.tls {
+        Some(native_tls::TlsConnector::new().map_err(|e| Usage(format!("tls setup: {e}")))?)
+    } else {
+        None
+    };
+
     // Identity stamp: fetch /config and /world once. A target unreachable at
     // the start is a setup error, not a measured interruption.
-    let cfg = http::get(&target.host, target.port, "/config", target.tls)
+    let cfg = http::get(&target.host, target.port, "/config", tls_connector.as_ref())
         .await
         .map_err(|e| Usage(format!("cannot reach target {}: {e}", cli.target_raw)))?;
-    let world = http::get(&target.host, target.port, "/world", target.tls)
+    let world = http::get(&target.host, target.port, "/world", tls_connector.as_ref())
         .await
         .map_err(|e| Usage(format!("cannot reach target {}: {e}", cli.target_raw)))?;
     if cfg.status != 200 || world.status != 200 {
@@ -81,7 +90,15 @@ async fn run(args: Vec<String>) -> Result<ExitCode, Usage> {
     let mut worst: u8 = 0;
     for rep in 1..=cli.repeat {
         let out = out_path(&cli, rep);
-        let (code, ceiling) = run_once(&cli, &target, &identity, nominal_tick_ms, &out).await;
+        let (code, ceiling) = run_once(
+            &cli,
+            &target,
+            &identity,
+            nominal_tick_ms,
+            tls_connector.clone(),
+            &out,
+        )
+        .await;
         worst = worst.max(code);
         if let Some(c) = ceiling {
             ceilings.push(c);
@@ -121,9 +138,10 @@ async fn run_once(
     target: &Target,
     identity: &TargetIdentity,
     nominal_tick_ms: f64,
+    tls_connector: Option<native_tls::TlsConnector>,
     out: &str,
 ) -> (u8, Option<u64>) {
-    let shared = Shared::new(target.clone(), nominal_tick_ms);
+    let shared = Shared::new(target.clone(), nominal_tick_ms, tls_connector);
     let ids = IdGen::default();
     let rows: Arc<Mutex<Vec<IntervalRow>>> = Arc::new(Mutex::new(Vec::new()));
 

@@ -23,12 +23,19 @@ pub struct GetResult {
 /// hanging forever; the timeout turns that into an error the caller counts.
 const GET_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(10);
 
-/// GET `path` from `host:port`, over TLS when `tls` is set. The body is
-/// everything after the header terminator until EOF (no chunked/keep-alive
-/// parsing). Errors are returned as strings; the caller decides how to count
-/// them.
-pub async fn get(host: &str, port: u16, path: &str, tls: bool) -> Result<GetResult, String> {
-    tokio::time::timeout(GET_TIMEOUT, get_inner(host, port, path, tls))
+/// GET `path` from `host:port`. When `connector` is `Some`, the exchange runs
+/// over TLS with that connector (built ONCE by the caller and reused -- building
+/// a fresh native-tls connector per request reloads the system CA store each
+/// time on Linux, blocking the async runtime and starving the whole generator).
+/// The body is everything after the header terminator until EOF (no
+/// chunked/keep-alive parsing). Errors are returned as strings.
+pub async fn get(
+    host: &str,
+    port: u16,
+    path: &str,
+    connector: Option<&native_tls::TlsConnector>,
+) -> Result<GetResult, String> {
+    tokio::time::timeout(GET_TIMEOUT, get_inner(host, port, path, connector))
         .await
         .map_err(|_| {
             format!(
@@ -38,7 +45,12 @@ pub async fn get(host: &str, port: u16, path: &str, tls: bool) -> Result<GetResu
         })?
 }
 
-async fn get_inner(host: &str, port: u16, path: &str, tls: bool) -> Result<GetResult, String> {
+async fn get_inner(
+    host: &str,
+    port: u16,
+    path: &str,
+    connector: Option<&native_tls::TlsConnector>,
+) -> Result<GetResult, String> {
     let start = Instant::now();
     let tcp = TcpStream::connect((host, port))
         .await
@@ -46,16 +58,15 @@ async fn get_inner(host: &str, port: u16, path: &str, tls: bool) -> Result<GetRe
     // The Host header must be the bare hostname at the default port, or a
     // name-based virtual host (Caddy serving kitties.ai) won't match the site
     // block. Only append :port when it is non-default.
-    let default_port = if tls { 443 } else { 80 };
+    let default_port = if connector.is_some() { 443 } else { 80 };
     let host_header = if port == default_port {
         host.to_string()
     } else {
         format!("{host}:{port}")
     };
 
-    let raw = if tls {
-        let connector = native_tls::TlsConnector::new().map_err(|e| format!("tls setup: {e}"))?;
-        let connector = tokio_native_tls::TlsConnector::from(connector);
+    let raw = if let Some(connector) = connector {
+        let connector = tokio_native_tls::TlsConnector::from(connector.clone());
         let stream = connector
             .connect(host, tcp)
             .await

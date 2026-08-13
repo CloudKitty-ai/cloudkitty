@@ -23,6 +23,9 @@ pub struct Shared {
     pub cadence: CadenceReference,
     pub selfwatch: SelfWatch,
     pub shutdown: broadcast::Sender<()>,
+    /// The one TLS connector for the whole run (`Some` iff the target is TLS),
+    /// built once and shared -- never rebuilt per connection.
+    tls_connector: Option<native_tls::TlsConnector>,
     run_start: Instant,
     nominal_tick_ms: f64,
     registry: Mutex<Vec<Arc<ConnHandle>>>,
@@ -37,13 +40,18 @@ pub struct Shared {
 }
 
 impl Shared {
-    pub fn new(target: Target, nominal_tick_ms: f64) -> Arc<Shared> {
+    pub fn new(
+        target: Target,
+        nominal_tick_ms: f64,
+        tls_connector: Option<native_tls::TlsConnector>,
+    ) -> Arc<Shared> {
         let (shutdown, _) = broadcast::channel(1);
         Arc::new(Shared {
             target,
             cadence: CadenceReference::default(),
             selfwatch: SelfWatch::new(),
             shutdown,
+            tls_connector,
             run_start: Instant::now(),
             nominal_tick_ms,
             registry: Mutex::new(Vec::new()),
@@ -71,6 +79,11 @@ impl Shared {
 
     pub fn nominal_tick_ms(&self) -> f64 {
         self.nominal_tick_ms
+    }
+
+    /// The shared TLS connector, or None for a plain-http target.
+    pub fn tls_connector(&self) -> Option<&native_tls::TlsConnector> {
+        self.tls_connector.as_ref()
     }
 
     pub fn register(&self, handle: Arc<ConnHandle>) {
