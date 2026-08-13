@@ -1557,7 +1557,7 @@
         'Ported from kitten.me, which draws whiskers without ever using the word. Its trick is not resolution: the stroke is max(0.8, cat*0.018), so below a 44px cat it is PINNED at the 0.8px floor — kitten.me does not escape the sub-pixel problem, it lives with it at 0.4 opacity, where a hairline reads as a soft hint rather than an aliased dotted line. Our two previous attempts died at "0.8px strokes", which is the same number at full strength. ' +
         'The top row is the LIVE tile, which is the row that decides; the bottom is 3x for seeing what the pixels did. Off on the left, on in the middle and right, so the question is only whether the middle looks better than the left. Cut again is an acceptable answer — it is what happened the first two times.',
       dials: [
-        { key: 'on', label: 'whiskers (0 = off, as shipped)', min: 0, max: 1, step: 0.05 },
+        { key: 'on', label: 'SHIP them? (the card always shows them on)', min: 0, max: 1, step: 0.05 },
         { key: 'alpha', label: 'opacity — the whole trick', min: 0.1, max: 1, step: 0.05 },
         { key: 'widthPx', label: 'stroke floor, in real pixels', min: 0.4, max: 2, step: 0.1 },
         { key: 'widthOfCat', label: '...and its share of the cat above that', min: 0, max: 0.05, step: 0.002 },
@@ -1587,10 +1587,15 @@
         if (!isV2) return; // v1 has no face to hang them on
         const LIVE = 31, BIG = 93;
         const phase = (now % 3400) / 3400;
+        // The two right-hand columns draw at FULL strength whatever the
+        // `on` dial says, or the card shows three identical cats until
+        // someone finds that dial -- and `on` is the ship switch, not a
+        // judging one. Judge with `alpha` and `widthPx`; set `on` when you
+        // have decided.
         const cols = [
           { on: 0, view: 'side', facing: 'right', label: 'off (ships today)' },
-          { on: null, view: 'side', facing: 'right', label: 'on, side' },
-          { on: null, view: 'front', facing: 'south', label: 'on, toward you' },
+          { on: 1, view: 'side', facing: 'right', label: 'on, side' },
+          { on: 1, view: 'front', facing: 'south', label: 'on, toward you' },
         ];
         const was = CatV2.WHISKER.on;
         for (let row = 0; row < 2; row++) {
@@ -1599,7 +1604,7 @@
           for (let i = 0; i < cols.length; i++) {
             const c = cols[i];
             const cx = w * (i + 0.5) / cols.length;
-            CatV2.WHISKER.on = c.on === null ? was : c.on;
+            CatV2.WHISKER.on = c.on;
             CatV2.drawCat(ctx, {
               appearance: CatV2.appearanceFor(STORM),
               facing: c.facing, size, x: cx - size / 2, y: top,

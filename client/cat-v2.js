@@ -2885,7 +2885,13 @@ const WHISKER = {
   tipY: 0.12, // and where it ends up
   rootSpread: 0.1, // fan at the root
   tipSpread: 0.22, // ...and at the tip, so they splay
-  back: 0.45, // how much of the forward length the rear pair gets (side view)
+  // How much of the forward length the REARWARD fan gets, side-on. 0 by
+  // default, and that is geometry rather than taste: our muzzle sits 0.22
+  // head radii forward of the head centre (kitten.me's face is centred),
+  // so a rear fan starts deep inside the skull and would have to be 1.2x
+  // the FORWARD one just to reach the back of the head. Every stroke of it
+  // is buried in fur. Head-on there is no near side, so both fans draw.
+  back: 0,
 };
 
 const NOSE = {
@@ -3321,6 +3327,7 @@ function drawWhiskers(ctx, head, a, view, size) {
   const mid = (W.count - 1) / 2;
   for (const dir of sides) {
     const reach = view === 'front' || dir > 0 ? 1 : W.back;
+    if (reach <= 0) continue; // a zero-length fan is six strokes of nothing
     for (let i = 0; i < W.count; i++) {
       const k = i - mid;
       ctx.beginPath();

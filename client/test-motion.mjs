@@ -2685,13 +2685,14 @@ check('whiskers ship OFF, and a cat walking away never grows any', () => {
     return out.filter((c) => c === 'stroke').length;
   };
 
-  // Two per side per whisker... no: one stroke each, both sides.
-  const want = CatV2.WHISKER.count * 2;
+  // Head-on, both fans draw. Side-on the rearward one is buried in the
+  // skull by our muzzle offset, so `back` ships at 0 and that fan is
+  // skipped rather than drawn at zero length.
+  const per = CatV2.WHISKER.count;
+  const want = { side: CatV2.WHISKER.back > 0 ? per * 2 : per, front: per * 2 };
   for (const [view, facing] of [['side', 'right'], ['front', 'south']]) {
-    assert(
-      strokes(1, 31, view, facing) - strokes(0, 31, view, facing) === want,
-      `${view}: expected ${want} whisker strokes, got ${strokes(1, 31, view, facing) - strokes(0, 31, view, facing)}`,
-    );
+    const got = strokes(1, 31, view, facing) - strokes(0, 31, view, facing);
+    assert(got === want[view], `${view}: expected ${want[view]} whisker strokes, got ${got}`);
   }
   // The rule that costs nothing because of WHERE they are drawn: a cat
   // walking away has no face, so it has no whiskers, and drawWhiskers
@@ -2722,7 +2723,8 @@ check('the whisker stroke is a PIXEL floor, not a unit one', () => {
       get: (_t, p) => (...a) => { if (String(p) === 'stroke') strokes++; return undefined; },
       set: (_t, p, v) => { if (String(p) === 'lineWidth') width = v; return true; },
     });
-    CatV2.drawWhiskers(ctx, { cx: 0.5, cy: 0.4, r: 0.226 }, CatV2.appearanceFor(3), 'side', size);
+    // Head-on, where BOTH fans draw whatever `back` is set to.
+    CatV2.drawWhiskers(ctx, { cx: 0.5, cy: 0.4, r: 0.226 }, CatV2.appearanceFor(3), 'front', size);
     W.on = was.on; W.count = was.count;
     return { px: width * size, strokes };
   };
@@ -2745,8 +2747,9 @@ check('the whisker stroke is a PIXEL floor, not a unit one', () => {
   // sweeping forward off the muzzle -- it is pointing away from the camera.
   // The same argument the swim tail's foreshortening allowance is built on.
   // Read off the drawn segments, not off `W.back`.
-  const spans = (view) => {
-    const was = W.on; W.on = 1;
+  const spans = (view, back = W.back) => {
+    const was = { on: W.on, back: W.back };
+    W.on = 1; W.back = back;
     const segs = []; let from = null;
     const ctx = new Proxy({}, {
       get: (_t, p) => (...a) => {
@@ -2757,17 +2760,26 @@ check('the whisker stroke is a PIXEL floor, not a unit one', () => {
       set: () => true,
     });
     CatV2.drawWhiskers(ctx, { cx: 0.5, cy: 0.4, r: 0.226 }, CatV2.appearanceFor(3), view, 31);
-    W.on = was;
+    W.on = was.on; W.back = was.back;
     return {
       forward: Math.max(...segs.filter((d) => d > 0)),
       back: Math.abs(Math.min(...segs.filter((d) => d < 0))),
     };
   };
-  const side = spans('side');
+  // Side-on the rearward fan ships OFF -- our muzzle sits forward of the
+  // head centre, so it would start inside the skull and every stroke of it
+  // would be buried in fur. Asserted as "not drawn at all" rather than
+  // "drawn short", because a zero-length stroke is still a stroke.
+  assert(W.back === 0, `WHISKER.back ships at ${W.back} -- the rearward fan is buried side-on`);
+  const sideOff = spans('side');
+  assert(!Number.isFinite(sideOff.back), 'side-on, the rearward fan should not be drawn at all');
+  // ...and when it IS dialled up, it is foreshortened: it points away from
+  // the camera, the same argument the axial swim tail is built on.
+  const sideOn = spans('side', 0.5);
   assert(
-    side.back < side.forward - 1e-9,
-    `side-on, the rearward fan spans ${side.back.toFixed(4)} against the forward ${side.forward.toFixed(4)} ` +
-      '-- it points away from the camera, so it cannot be as long',
+    sideOn.back < sideOn.forward - 1e-9,
+    `dialled up, the rearward fan spans ${sideOn.back.toFixed(4)} against the forward ` +
+      `${sideOn.forward.toFixed(4)} -- it cannot be as long`,
   );
   // Head-on there is no near and no far, so both fans match.
   const front = spans('front');
