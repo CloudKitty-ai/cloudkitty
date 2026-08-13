@@ -2710,6 +2710,68 @@ check('whiskers ship OFF, and a cat walking away never grows any', () => {
   );
 });
 
+check('darkening the nose takes the whole muzzle with it', () => {
+  // Owner's ask, 2026-08-13: three hairlines either side of the muzzle
+  // pull the eye off a pale pink nose, so the nose wants its own darkness
+  // dial to hold the middle of the face.
+  //
+  // The trap is that the nose is not one colour. The yawn's jaw is
+  // `shadeHex(nose, 0.5)` and the tongue is `lightenHex(nose, 0.22)`, both
+  // mixed from the same source -- so darkening only the triangle would put
+  // a pale mouth inside a dark muzzle the moment a cat yawns.
+  const yawning = { ...CatV2.stillRig({ facing: 'right', gazeX: 0.1 }), yawn: 1 };
+  const inks = (darken) => {
+    const was = CatV2.NOSE.darken;
+    CatV2.NOSE.darken = darken;
+    const out = [];
+    const ctx = new Proxy({}, {
+      get: () => () => undefined,
+      set: (_t, p, v) => { if (String(p) === 'fillStyle') out.push(v); return true; },
+    });
+    CatV2.drawCat(ctx, {
+      pose: 'resting', appearance: CatV2.appearanceFor(3),
+      facing: 'right', size: 31, rig: yawning,
+    });
+    CatV2.NOSE.darken = was;
+    return out;
+  };
+
+  // Ships neutral: at 0 the drawing is byte-for-byte the one the colorway
+  // authored, so this dial cannot have moved any cat that is already out.
+  assert(CatV2.NOSE.darken === 0, 'the nose darkness dial ships at 0 -- baking one is an owner call');
+  const authored = CatV2.appearanceFor(3).noseColor;
+  const plain = inks(0);
+  assert(plain.includes(authored), 'the yawning cat did not paint its authored nose colour at all');
+
+  const dark = inks(0.6);
+  assert(dark.length === plain.length, 'darkening the nose changed how many fills the cat paints');
+  const lum = (hex) => {
+    const n = parseInt(hex.slice(1), 16);
+    return (n >> 16) + ((n >> 8) & 255) + (n & 255);
+  };
+  // Compared SLOT BY SLOT against the same drawing undarkened, so this
+  // reads off the paint rather than restating the mix -- the whisker width
+  // check first passed while the code multiplied instead of dividing,
+  // because it asserted its own arithmetic.
+  const moved = plain.map((c, i) => [c, dark[i]]).filter(([a, b]) => a !== b);
+  assert(moved.length === 3,
+    `expected the nose, the yawn's jaw and the tongue to move, ${moved.length} fills did`);
+  for (const [was, now] of moved) {
+    assert(lum(now) < lum(was), `${was} -> ${now} is not darker`);
+  }
+  // One of the three IS the triangle: the ears paint the same authored
+  // colour, so a nose that quietly ignored the dial would still leave that
+  // colour on the canvas. Count it instead of looking it up.
+  const count = (list, c) => list.filter((f) => f === c).length;
+  assert(count(plain, authored) - count(dark, authored) === 1,
+    'the nose triangle itself did not darken');
+
+  // Scope, pinned so it does not drift silently: the inner ears are drawn
+  // from `noseColor` too, but they are a different feature and this dial
+  // deliberately leaves them where the colorway put them.
+  assert(dark.includes(authored), 'the inner ears followed the nose dial -- that was not the ask');
+});
+
 check('the whisker stroke is a PIXEL floor, not a unit one', () => {
   // The trap this file already recorded once: the drawing runs in unit
   // space, where a lineWidth of 0.8 is most of a cat. The floor is only
@@ -3832,6 +3894,41 @@ check('a dial that names its own block actually writes that block', () => {
   for (const name of new Set(declared)) {
     assert(CatV2[name], `a dial names CatV2.${name}, which the vocabulary does not export`);
   }
+});
+
+check('every face dial is PRINTED, or a dialling session cannot be baked', () => {
+  // The lab's whole contract: the owner moves sliders, reads the block,
+  // and pastes it back as source. A dial the readout does not print is a
+  // slider whose value is lost the moment the page reloads -- which is
+  // worse than no dial, because the session that spent an hour on it only
+  // finds out at the paste. Whiskers and nose darkness joined the face
+  // card on 2026-08-13 and this is what stops the next pair being added
+  // to the array and forgotten in the readout.
+  const html = readFileSync(join(here, 'gallery-v2.html'), 'utf8');
+  const dials = html.slice(html.indexOf('  const DIALS = ['));
+  const body = dials.slice(0, dials.indexOf('\n  ];'));
+  assert(body.includes("obj: 'EYE'"), 'could not slice the face dials out of the lab');
+
+  const readout = html.slice(html.indexOf('function updateReadout()'));
+  const printed = readout.slice(0, readout.indexOf('\n  }'));
+  // The readout aliases each block (`const n = CatV2.NOSE`), so resolve the
+  // alias rather than guessing at it -- otherwise this passes on any file
+  // that merely happens to contain the key somewhere.
+  const alias = {};
+  for (const m of printed.matchAll(/const (\w+) = CatV2\.(\w+);/g)) alias[m[2]] = m[1];
+
+  const seen = new Set();
+  for (const m of body.matchAll(/obj: '(\w+)', key: '(\w+)'/g)) {
+    const [, obj, key] = m;
+    seen.add(`${obj}.${key}`);
+    assert(CatV2[obj], `a face dial names CatV2.${obj}, which the vocabulary does not export`);
+    assert(CatV2[obj][key] !== undefined, `a face dial names ${obj}.${key}, which does not exist`);
+    assert(alias[obj], `${obj} has dials but the readout never reads CatV2.${obj}`);
+    assert(printed.includes(`\${${alias[obj]}.${key}}`),
+      `${obj}.${key} has a slider but the readout never prints it -- the value cannot be baked`);
+  }
+  assert(seen.has('WHISKER.alpha') && seen.has('NOSE.darken'),
+    'the two dials this check was written for are gone from the face card');
 });
 
 check('the socket hands arrivals to the delay line and nothing else', () => {

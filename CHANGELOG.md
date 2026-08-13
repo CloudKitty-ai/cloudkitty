@@ -240,17 +240,29 @@ change.
   since the seed drives the lobe angles too, the pair ends up differing
   in silhouette as well as size. A tree beside a bush of its own size is
   left alone, because that reads fine (#214).
-- Whiskers, attempt three, built and **off** (`WHISKER.on` 0) pending a
-  look at the live tile — the first two were cut, and the backlog records
-  that cutting again is an acceptable answer. Ported from kitten.me,
-  whose trick turns out not to be resolution: its stroke is
-  `max(0.8, cat × 0.018)`, so below a 44px cat it sits pinned at the
-  0.8px floor exactly as ours would. What makes it read is **0.4
-  opacity**, where a hairline is a soft hint rather than an aliased
-  dotted line, and running from 0.30 to 1.05 head radii so most of the
-  length is against the background rather than against fur. Drawn inside
-  `drawFace`, so a cat walking away has none without the whiskers
-  knowing that rule exists (#215).
+- Whiskers, attempt three, and this one **ships on**. The first two were
+  cut and the backlog recorded that cutting again was an acceptable
+  answer; the owner's read at the live tile was that they carry even at
+  low resolution. Ported from kitten.me, whose trick turns out not to be
+  resolution: its stroke is `max(0.8, cat × 0.018)`, so below a 44px cat
+  it sits pinned at the 0.8px floor exactly as ours would. What makes it
+  read is **opacity**, where a hairline is a soft hint rather than an
+  aliased dotted line, and a length that runs past the head so most of it
+  falls against the background rather than against fur. Baked at 0.25
+  alpha, three a side, 0.2 to 1.25 head radii. Drawn inside `drawFace`,
+  so a cat walking away has none without the whiskers knowing that rule
+  exists. The portrait chip grew 3px because the stretch pose put a tip
+  over its edge (#215).
+- Nose darkness (`NOSE.darken`, 0 = the colorway's own) — a consequence
+  of the whiskers rather than a separate idea, since six hairlines either
+  side of the muzzle pull the eye off a pale pink nose. It resolves one
+  ink for the whole muzzle: the yawn's jaw and the tongue are both mixed
+  from the nose, so darkening only the triangle would have left a pale
+  mouth inside a dark face the moment a cat yawned. The inner ears are
+  drawn from the same colour and deliberately stay put. Both this and the
+  whiskers are on the face card, where a check now proves every slider is
+  printed in the readout — it found `SWIM.tailUpright` had been dialled
+  for a whole session and typed back by hand (#215).
 - Docs: rl-training + howto-rl caught up to spec 028 (two-head wire,
   20×20, certification assumptions rewritten — the channel is
   restrained by law, not economics), and kitty-eval is a pre-seating

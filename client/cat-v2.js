@@ -2902,6 +2902,11 @@ const NOSE = {
   x: 0.22, // nose center from head center / head.r (toward the muzzle)
   y: 0.29, // below head center / head.r
   size: 0.17, // half-width / head.r
+  // 0 leaves each colorway's authored nose alone; 1 takes it to black.
+  // Added when whiskers landed (2026-08-13): three hairlines either side
+  // of the muzzle pull the eye there, and a pale pink nose that read fine
+  // on its own stops holding the middle of the face against them.
+  darken: 0,
 };
 
 /**
@@ -3213,7 +3218,11 @@ function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0, view = 'si
   const nx = muzzleX(head, view);
   const ny = head.cy + head.r * NOSE.y;
   const ns = head.r * NOSE.size;
-  ctx.fillStyle = a.noseColor;
+  // Resolved once: the jaw and the tongue are both mixed FROM the nose, so
+  // darkening only the triangle would leave a pale mouth inside a dark
+  // muzzle the moment a cat yawns.
+  const noseInk = NOSE.darken > 0 ? shadeHex(a.noseColor, 1 - NOSE.darken) : a.noseColor;
+  ctx.fillStyle = noseInk;
   ctx.beginPath();
   ctx.moveTo(nx - ns, ny - ns * 0.6);
   ctx.lineTo(nx + ns, ny - ns * 0.6);
@@ -3260,7 +3269,7 @@ function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0, view = 'si
       ctx.bezierCurveTo(nx - gw * 0.98, top + d * 0.66, nx - gw * 0.52, top + d, nx, top + d);
       ctx.bezierCurveTo(nx + gw * 0.52, top + d, nx + gw * 0.98, top + d * 0.66, nx + gw, top);
     };
-    ctx.fillStyle = shadeHex(a.noseColor, 0.5);
+    ctx.fillStyle = shadeHex(noseInk, 0.5);
     ctx.beginPath();
     jaw();
     ctx.closePath(); // the chord back along `top`, hidden under the omega
@@ -3268,7 +3277,7 @@ function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0, view = 'si
     if (o > 0.45) {
       // The tongue. Small, but it is what keeps a gape reading as a yawn
       // rather than as a hiss -- which is the last thing this world wants.
-      ctx.fillStyle = lightenHex(a.noseColor, 0.22);
+      ctx.fillStyle = lightenHex(noseInk, 0.22);
       ctx.beginPath();
       ctx.ellipse(nx, top + d * 0.72, gw * 0.46, d * 0.2, 0, 0, TAU);
       ctx.fill();

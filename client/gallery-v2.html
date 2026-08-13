@@ -530,6 +530,23 @@
     { obj: 'MOUTH', key: 'gap', label: 'mouth gap (below nose)', min: 0, max: 0.25, step: 0.005 },
     { obj: 'MOUTH', key: 'width', label: 'mouth width (half-span)', min: 0.03, max: 0.3, step: 0.005 },
     { obj: 'MOUTH', key: 'depth', label: 'mouth depth (leg drop)', min: 0, max: 0.25, step: 0.005 },
+    { obj: 'NOSE', key: 'darken', label: 'nose darkness (0 = the colorway\'s own)', min: 0, max: 1, step: 0.02 },
+    // Whiskers on the FACE card too (owner, 2026-08-13): they read well
+    // but pull the eye off the nose, and the two want dialling against
+    // each other rather than one card apart.
+    { obj: 'WHISKER', key: 'on', label: 'whiskers', min: 0, max: 1, step: 0.05 },
+    { obj: 'WHISKER', key: 'alpha', label: 'whisker opacity — the technique', min: 0.05, max: 1, step: 0.05 },
+    { obj: 'WHISKER', key: 'count', label: 'whiskers per side', min: 1, max: 5, step: 1 },
+    { obj: 'WHISKER', key: 'widthPx', label: 'whisker floor, real px', min: 0.4, max: 2, step: 0.1 },
+    { obj: 'WHISKER', key: 'widthOfCat', label: 'whisker width, share of cat', min: 0, max: 0.05, step: 0.002 },
+    { obj: 'WHISKER', key: 'rootX', label: 'whisker root (head radii)', min: 0, max: 0.8, step: 0.02 },
+    { obj: 'WHISKER', key: 'tipX', label: 'whisker tip (1.0 = head edge)', min: 0.6, max: 1.6, step: 0.05 },
+    { obj: 'WHISKER', key: 'offsetY', label: 'whiskers up / down', min: -0.5, max: 0.5, step: 0.01 },
+    { obj: 'WHISKER', key: 'rootY', label: 'whisker droop at the root', min: 0, max: 0.6, step: 0.01 },
+    { obj: 'WHISKER', key: 'tipY', label: 'whisker droop at the tip', min: -0.2, max: 0.6, step: 0.01 },
+    { obj: 'WHISKER', key: 'rootSpread', label: 'whisker fan, root', min: 0, max: 0.3, step: 0.01 },
+    { obj: 'WHISKER', key: 'tipSpread', label: 'whisker fan, tip', min: 0, max: 0.5, step: 0.02 },
+    { obj: 'WHISKER', key: 'back', label: 'rearward fan length (side view)', min: 0, max: 1, step: 0.05 },
     // Swim-pose dials (2026-08-02): first-cut values, judged in the
     // motion lab's swim card below, baked on the owner's paste.
     { obj: 'SWIM', key: 'bodyY', label: 'swim body depth (− up / + down)', min: 0.68, max: 0.86, step: 0.005 },
@@ -584,6 +601,7 @@
     const n = CatV2.NOSE;
     const m = CatV2.MOUTH;
     const s = CatV2.SWIM;
+    const w = CatV2.WHISKER;
     readout.style.whiteSpace = 'pre-line';
     readout.textContent =
       `EYE = { scale: ${e.scale}, height: ${e.height}, shift: ${e.shift}, pupil: ${e.pupil} } · ` +
@@ -592,7 +610,14 @@
       `LID = { halfLid: ${e.halfLid}, lidTilt: ${e.lidTilt}, lidCurve: ${e.lidCurve} } · ` +
       `FOCUSED = { focusedScale: ${e.focusedScale}, focusedHeight: ${e.focusedHeight} }\n` +
       `SWIM = { bodyY: ${s.bodyY}, bodyRy: ${s.bodyRy}, headY: ${s.headY}, ` +
-      `bob: ${s.bob}, rock: ${s.rock}, tailLift: ${s.tailLift} }`;
+      `bob: ${s.bob}, rock: ${s.rock}, tailLift: ${s.tailLift}, ` +
+      `tailUpright: ${s.tailUpright} }\n` +
+      `NOSE.darken = ${n.darken}\n` +
+      `WHISKER = { on: ${w.on}, count: ${w.count}, alpha: ${w.alpha}, widthPx: ${w.widthPx}, ` +
+      `widthOfCat: ${w.widthOfCat},\n` +
+      `  rootX: ${w.rootX}, tipX: ${w.tipX}, rootY: ${w.rootY}, tipY: ${w.tipY}, ` +
+      `offsetY: ${w.offsetY},\n` +
+      `  rootSpread: ${w.rootSpread}, tipSpread: ${w.tipSpread}, back: ${w.back} }`;
   }
 
   // Slider bench: a static standing pair, redrawn live as the dials move.
