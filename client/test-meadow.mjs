@@ -750,7 +750,12 @@ check('standing styles cast a shadow, flat ones do not', () => {
   const shadowsIn = (bushStyle) => {
     const log = [];
     api.drawBushAt(guardCtx(log), {
-      x: 2, y: 2, seed: 0.5, tile: 40, t: { ...api.VIEW.meadow, bushStyle },
+      // `bushStyleAltShare` pinned to 0, or this tile may hash into the
+      // ALT species and the check silently tests a style it did not name.
+      // It shipped at 0 when this was written; the owner's mix (0.7) is
+      // what exposed it.
+      x: 2, y: 2, seed: 0.5, tile: 40,
+      t: { ...api.VIEW.meadow, bushStyle, bushStyleAltShare: 0 },
     });
     return log.filter(([c, p, v]) => c === 'set' && p === 'fillStyle'
       && String(v) === String(api.MEADOW.groundShadow)).length;
@@ -1140,9 +1145,12 @@ check('a meadow can grow two kinds of shrub, in any mix', () => {
   const shrubs = api.bushesFor(20, 20, t, null);
   assert(shrubs.length > 4, 'not enough shrubs to say anything about a mix');
 
-  // 0 must be EXACTLY the behaviour that existed before the dial did, or
-  // this is a silent restyle of the live world rather than a new option.
-  assert(t.bushStyleAltShare === 0, 'the alt share must ship at 0');
+  // Pinned to the owner's bake (2026-08-12: 0.3, so about three clumps in
+  // ten are the small trees and the rest is flat cover). Pinned
+  // rather than freed, per this file's convention for judged art: an
+  // accidental edit is caught, and a deliberate one moves this line. The
+  // assertion below it does not depend on the shipped value.
+  assert(t.bushStyleAltShare === 0.3, `the alt share moved: ${t.bushStyleAltShare}`);
   assert(shrubs.every((b) => kindOf(b, 0) === 'primary'), 'share 0 grew an alt');
   assert(shrubs.every((b) => kindOf(b, 1) === 'alt'), 'share 1 grew a primary');
 
@@ -1209,15 +1217,35 @@ check('the meadow lab dials every tunable the meadow ships', () => {
 
 check('the stem is a dial, not a decision baked into the drawing', () => {
   const t = api.MEADOW_DEFAULTS;
-  // Owner-baked 2026-08-11, off the lab: the meadow's shrub is now the
-  // LOBED one, sitting on the ground with no stem (bushLift 0, bushTrunk
-  // 0). Pinned rather than left free, so an accidental edit is still
-  // caught -- this assertion started life as "must ship at 1" for exactly
-  // that reason, and a deliberate change is the one thing allowed to move
-  // it. Anyone re-dialling should paste the lab's readout, not edit here.
+  // Owner-baked off the lab, re-baked 2026-08-12. The LOBED species is now
+  // the small tree -- lifted, stemmed and thick-trunked -- and the flat
+  // cover is the alt, which takes the larger share. Pinned rather than
+  // left free, so an accidental edit is still caught; this line has moved
+  // twice now, both times because the owner pasted a readout. Anyone
+  // re-dialling should paste the lab's readout, not edit here.
   assert(t.bushStyle === 'lobed', `the shipped shrub moved: ${t.bushStyle}`);
-  assert(t.bushTrunk === 0, `bushTrunk moved off the owner's 0: ${t.bushTrunk}`);
+  assert(t.bushStyleAlt === 'trunk', `the shipped tree moved: ${t.bushStyleAlt}`);
+  // The INTENT first, so a re-dial that swaps which species is the tree
+  // leaves this sentence true and only moves the numbers below it:
+  // exactly one of the two stands up, and it is the minority.
+  const stands = (lift, trunk) => lift > 0 || trunk > 0;
+  const primaryStands = stands(t.bushLift, t.bushTrunk);
+  const altStands = stands(t.bushLiftAlt, t.bushTrunkAlt);
+  assert(
+    primaryStands !== altStands,
+    'both species stand, or neither does -- the meadow is one kind of cover drawn twice',
+  );
+  const treeShare = altStands ? t.bushStyleAltShare : 1 - t.bushStyleAltShare;
+  assert(treeShare < 0.5, `the standing species is ${(treeShare * 100).toFixed(0)}% of cover -- that is a wood, not trees in a meadow`);
+
+  // ...then the numbers, pinned per this file's convention for judged art.
+  // Owner-baked off the lab, 2026-08-12: the TRUNK species is the small
+  // tree, the lobed one lies flat, and the trees are 30% of cover.
   assert(t.bushLift === 0, `bushLift moved off the owner's 0: ${t.bushLift}`);
+  assert(t.bushTrunk === 0, `bushTrunk moved off the owner's 0: ${t.bushTrunk}`);
+  assert(t.bushLiftAlt === 1.55, `bushLiftAlt moved: ${t.bushLiftAlt}`);
+  assert(t.bushTrunkAlt === 1, `bushTrunkAlt moved: ${t.bushTrunkAlt}`);
+  assert(t.bushTrunkWidthAlt === 1.4, `bushTrunkWidthAlt moved: ${t.bushTrunkWidthAlt}`);
   // The alt must be a DIFFERENT silhouette, or bushStyleAltShare has
   // nothing to mix and the dial is quietly inert.
   assert(
@@ -1366,6 +1394,38 @@ check('all three in one square go kitty, bug, bush -- front to back', () => {
   );
 });
 
+check('a bowl is in front of the cover it shares a tile with', () => {
+  // Owner, 2026-08-12. Cover stopped being kept off served elements when
+  // `occupiedTiles` narrowed to water, so a shrub rooted in a bowl's tile
+  // was painting straight over it.
+  const propAt = (y) => ({ kind: 'prop', y: api.catSortKey({ x: 0, y }) });
+  assert(
+    String(ordered([propAt(5), coverAt(5)])) === 'cover,prop',
+    `same tile: got ${ordered([propAt(5), coverAt(5)])}`,
+  );
+  // ...and it still sorts by the ground everywhere else: cover a tile
+  // south of a bowl is nearer the viewer and stays in front of it.
+  assert(
+    String(ordered([propAt(5), coverAt(6)])) === 'prop,cover',
+    'cover a tile south of a bowl must be drawn in front of it',
+  );
+  // The owner's ordering, front to back: cat > butterfly > bowl > shrub
+  // (2026-08-12). A cat walks up to a bowl so it is in front of it, and a
+  // butterfly is in the air over both. Drawn back to front, so the array
+  // reads in reverse.
+  const all = ordered([kittyAt(5), critterAt(5), propAt(5), coverAt(5)]);
+  const frontToBack = [...all].reverse().join(' > ');
+  assert(
+    frontToBack === 'kitty > critter > prop > cover',
+    `front to back is "${frontToBack}", want "kitty > critter > prop > cover" ` +
+      '(cat > butterfly > bowl > shrub)',
+  );
+  assert(
+    api.SPRITE_RANK.cover < api.SPRITE_RANK.prop && api.SPRITE_RANK.prop < api.SPRITE_RANK.kitty,
+    'the rank table must read cover < prop < kitty',
+  );
+});
+
 check('a bug a whole tile away still sorts by the ground, not by rank', () => {
   // Rank is only ever a TIE-break. A kitty one tile north of a bug must
   // still be behind it, or the rank has started deciding depth.
@@ -1387,14 +1447,26 @@ check('the renderer sorts critters instead of stamping them down', () => {
   const pass = src.slice(src.indexOf("for (const el of world.elements) {\n      if (el.kind === 'sunbeam') continue;"));
   const flat = pass.slice(0, pass.indexOf('// Cats and ground cover'));
   assert(
-    /CRITTER_KINDS\.has\(el\.kind\)\) continue;/.test(flat),
+    /CRITTER_KINDS\.has\(el\.kind\)[^\n]*continue;/.test(flat),
     'the flat element pass still draws critters -- they would sit behind every shrub',
+  );
+  assert(
+    /PROP_KINDS\.has\(el\.kind\)[^\n]*continue;/.test(flat),
+    'the flat element pass still draws bowls -- a shrub sharing the tile paints over them',
   );
   // Sorted on the DRAWN position: a gliding critter that sorted by its
   // served tile would change depth a tick off from when it visibly crosses.
   assert(
     /y: catSortKey\(view\.elementPosFor\(el\)\)/.test(src),
     'critters must sort on their drawn position, not their served tile',
+  );
+  // A bowl stands where a cat stands, so it takes the cat's ground line.
+  // Keying it to the cover's would move every bowl-vs-cat crossover by
+  // 0.16 of a tile, which no integer-tile check can see.
+  const propPush = src.slice(src.indexOf("kind: 'prop',"));
+  assert(
+    /^\s*kind: 'prop',\s*\n\s*y: catSortKey\(el\.pos\),/.test(propPush),
+    'a bowl must sort on the cat ground line and its served tile',
   );
   assert(/for \(const item of spriteOrder\(layer\)\) item\.draw\(\)/.test(src), 'the layer is not going through spriteOrder');
 
@@ -1455,12 +1527,191 @@ check('a whole frame really draws its critters, live and expiring', () => {
   const withBug = frame({ live: [bug] });
   assert(withBug > bare, `a live bug drew nothing: ${bare} ops bare, ${withBug} with it`);
 
+  const bowl = { id: 9, kind: 'chow', pos: { x: 9, y: 9 }, servings: 2 };
+  const withBowl = frame({ live: [bowl] });
+  assert(withBowl > bare, `a live bowl drew nothing: ${bare} vs ${withBowl}`);
+  const bowlGoing = frame({ expired: [bowl] });
+  assert(
+    bowlGoing > bare,
+    `an EXPIRING bowl drew nothing (${bare} vs ${bowlGoing}) -- it vanishes instead of fading`,
+  );
+
   const withExpiring = frame({ expired: [bug] });
   assert(
     withExpiring > bare,
     `an EXPIRING bug drew nothing (${bare} vs ${withExpiring}) -- it vanishes instead of fading, ` +
       'which is what happens when its push into the depth layer is unreachable',
   );
+});
+
+// ---- two species, two stances (2026-08-11) ----
+//
+// Owner wants small trees among flat cover: one ground cover with lift and
+// a trunk, one without. Style already differed per species; how far it
+// STOOD UP did not, so both were flat or both were lifted.
+
+/** Every op drawing one clump, at a tile the alt species owns. */
+function clumpOps(t, { x, y }) {
+  const log = [];
+  api.drawBushAt(guardCtx(log), { x, y, seed: 0.55, tile: 32, t });
+  return log;
+}
+/** A tile the species pick lands on, so the overlay is actually exercised. */
+function tileOfSpecies(t, wantAlt) {
+  for (let y = 0; y < 40; y += 1) {
+    for (let x = 0; x < 40; x += 1) {
+      const isAlt = api.tileHash(x, y, api.MEADOW_SALTS.bushKind) < t.bushStyleAltShare;
+      if (isAlt === wantAlt) return { x, y };
+    }
+  }
+  throw new Error(`no tile found for ${wantAlt ? 'alt' : 'primary'}`);
+}
+
+check('the second species carries its own lift and trunk', () => {
+  // A mixed meadow, both species present.
+  const base = { ...api.MEADOW_DEFAULTS, bushStyleAltShare: 0.5, bushStyle: 'lobed', bushStyleAlt: 'trunk' };
+  const altTile = tileOfSpecies(base, true);
+  const ownTile = tileOfSpecies(base, false);
+
+  // Standing the ALT species up must change the alt tile's drawing...
+  const tree = { ...base, bushLiftAlt: 1.2, bushTrunkAlt: 0.8 };
+  assert(
+    String(clumpOps(base, altTile)) !== String(clumpOps(tree, altTile)),
+    'raising bushLiftAlt/bushTrunkAlt changed nothing on a tile the alt species owns',
+  );
+  // ...and must leave the primary species exactly where it was. This is
+  // the whole point: one stands, the other lies on the ground.
+  assert(
+    String(clumpOps(base, ownTile)) === String(clumpOps(tree, ownTile)),
+    'the alt stance leaked onto the primary species -- both would stand or both would lie',
+  );
+  // And the reverse, so neither dial is quietly driving both.
+  const shrub = { ...base, bushLift: 1.2, bushTrunk: 0.8 };
+  assert(
+    String(clumpOps(base, ownTile)) !== String(clumpOps(shrub, ownTile)),
+    'guard: bushLift should still move the primary species',
+  );
+  assert(
+    String(clumpOps(base, altTile)) === String(clumpOps(shrub, altTile)),
+    'the primary stance leaked onto the alt species',
+  );
+});
+
+check('trunk width scales the width each style was authored with', () => {
+  // Both styles draw a stem at different authored widths (the trunk style
+  // at 0.2 canopy radii, the lobed one at 0.13). One absolute dial would
+  // have had to pick a winner and restyle the other, so this one is a
+  // MULTIPLIER on each.
+  //
+  // Asserted against the authored constant rather than against whatever
+  // ships. The first version compared a width of 1 to the shipped default,
+  // which held only while that default WAS 1 -- the owner baked 2.55 on
+  // 2026-08-12 and it failed for a reason unrelated to the mechanism.
+  for (const style of ['trunk', 'lobed']) {
+    const base = { ...api.MEADOW_DEFAULTS, bushStyle: style, bushStyleAltShare: 0, bushTrunk: 0.8 };
+    const at = { x: 3, y: 4 };
+    assert(
+      String(clumpOps({ ...base, bushTrunkWidth: 3 }, at)) !== String(clumpOps(base, at)),
+      `${style}: the width dial does nothing -- this style's stem ignores it`,
+    );
+  }
+  // The trunk style fills a rect, so its width is readable directly.
+  const widthAt = (w) => {
+    const t = { ...api.MEADOW_DEFAULTS, bushStyle: 'trunk', bushStyleAltShare: 0,
+      bushTrunk: 0.8, bushTrunkWidth: w };
+    const rects = clumpOps(t, { x: 3, y: 4 }).filter((o) => o[0] === 'rect');
+    assert(rects.length, 'the trunk style drew no rect at all');
+    return rects[0][3];
+  };
+  const r = (0.26 + 0.55 * 0.18) * 32; // the seed and tile clumpOps uses
+  assert(
+    Math.abs(widthAt(1) - r * 0.2) < 1e-9,
+    `at 1 the trunk should be its authored 0.2 radii (${(r * 0.2).toFixed(3)}), got ${widthAt(1).toFixed(3)}`,
+  );
+  assert(
+    Math.abs(widthAt(2) - 2 * widthAt(1)) < 1e-9,
+    'the multiplier must be linear, or it is not a multiplier',
+  );
+
+  // ...and it thickens about its own CENTRE. Growing to one side only is
+  // invisible at width 1, where the two forms compute the same number, and
+  // reads as a trunk sliding out from under its canopy once dialled up.
+  const trunkRect = (width) => {
+    const t = { ...api.MEADOW_DEFAULTS, bushStyle: 'trunk', bushStyleAltShare: 0,
+      bushTrunk: 0.8, bushTrunkWidth: width };
+    const rects = clumpOps(t, { x: 3, y: 4 }).filter((o) => o[0] === 'rect');
+    assert(rects.length, 'the trunk style drew no rect at all');
+    const [, x, , w] = rects[0];
+    return { centre: x + w / 2, w };
+  };
+  const thin = trunkRect(1);
+  const fat = trunkRect(3);
+  assert(fat.w > thin.w * 2.5, `the trunk barely thickened: ${thin.w} -> ${fat.w}`);
+  assert(
+    Math.abs(fat.centre - thin.centre) < 1e-9,
+    `the trunk's centre moved as it thickened (${thin.centre} -> ${fat.centre}) -- ` +
+      'it is growing to one side, out from under its own canopy',
+  );
+});
+
+check('the two species carry their own trunk width too', () => {
+  const base = { ...api.MEADOW_DEFAULTS, bushStyleAltShare: 0.5, bushStyle: 'lobed', bushStyleAlt: 'trunk', bushTrunk: 0.8, bushTrunkAlt: 0.8 };
+  const altTile = tileOfSpecies(base, true);
+  const ownTile = tileOfSpecies(base, false);
+  const thick = { ...base, bushTrunkWidthAlt: 3 };
+  assert(
+    String(clumpOps(base, altTile)) !== String(clumpOps(thick, altTile)),
+    'bushTrunkWidthAlt does not reach the alt species',
+  );
+  assert(
+    String(clumpOps(base, ownTile)) === String(clumpOps(thick, ownTile)),
+    'the alt trunk width leaked onto the primary species -- both trunks would thicken together',
+  );
+});
+
+check('the two species ship with different stances, or the mix is pointless', () => {
+  // This used to assert the Alt dials arrived EQUAL to the primary's,
+  // proving that adding them left the meadow untouched. That guard is
+  // spent: the owner dialled them on 2026-08-12, making the primary a
+  // small tree and leaving the alt flat.
+  //
+  // What replaces it is the property the mix exists for. Two species that
+  // stand the same way are one species drawn twice, and every dial that
+  // separates them is then dead weight nobody would notice.
+  const d = api.MEADOW_DEFAULTS;
+  const differs =
+    d.bushLiftAlt !== d.bushLift ||
+    d.bushTrunkAlt !== d.bushTrunk ||
+    d.bushTrunkWidthAlt !== d.bushTrunkWidth;
+  assert(differs, 'both species now stand identically -- the per-species stance is inert');
+  assert(
+    d.bushStyleAltShare > 0 && d.bushStyleAltShare < 1,
+    `a share of ${d.bushStyleAltShare} grows only one species, so the stance dials cannot show`,
+  );
+});
+
+check('a standing species does not move where it meets the ground', () => {
+  // `coverSortKey` is what interleaves cover with the cats, and it is keyed
+  // to the BASE. A tree that sorted by its canopy would slide in front of
+  // cats it is standing behind, which is the bug the sort exists to fix.
+  const flat = { ...api.MEADOW_DEFAULTS, bushLiftAlt: 0, bushTrunkAlt: 0 };
+  const tall = { ...api.MEADOW_DEFAULTS, bushLiftAlt: 1.6, bushTrunkAlt: 1 };
+  assert(
+    api.coverSortKey({ x: 4, y: 9 }, flat) === api.coverSortKey({ x: 4, y: 9 }, tall),
+    'lifting a species changed its ground contact -- it would sort against cats by its canopy',
+  );
+});
+
+check('the occlusion strip draws each species in its own stance', () => {
+  // The strip forces one style at a time as the PRIMARY, so it has to
+  // bring the alt stance with it or it shows a tree lying flat -- and the
+  // strip is the only surface for judging whether a lifted canopy reads at
+  // the live tile.
+  const lab = readFileSync(join(here, 'gallery-meadow.html'), 'utf8');
+  const strip = lab.slice(lab.indexOf('BOTH species, a row each'), lab.indexOf('OCC_OFFSETS.forEach'));
+  for (const dial of ['bushLiftAlt', 'bushTrunkAlt', 'bushTrunkWidthAlt']) {
+    assert(strip.includes(dial), `the occlusion strip draws both rows without ${dial}`);
+  }
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

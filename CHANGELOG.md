@@ -142,6 +142,36 @@ change.
   followed. Sharing one square the order is kitty, bug, bush, front to
   back, and that comes from a named rank rather than from whichever loop
   happened to push first, which is an ordering decided by accident (#201).
+  Food bowls joined them (#202): cover stopped being kept off served
+  elements when `occupiedTiles` narrowed to water, so a shrub rooted in a
+  bowl's tile had been painting over it. A bowl takes the cat's ground
+  line, since that is where a cat stands to eat from it. Front to back the
+  meadow now reads cat, butterfly, bowl, shrub.
+- The meadow's two ground-cover species can now stand differently, so
+  it can grow small trees among flat cover: `bushLiftAlt` and
+  `bushTrunkAlt` give the second species its own lift and trunk. Style
+  already differed per species; how far it stood *up* did not, so both
+  were flat or both were lifted and "trees among shrubs" was
+  unreachable. Both dials ship equal to the primary's, so nothing
+  changes until they are dialled. A lifted species still meets the
+  ground where it always did: `coverSortKey` is keyed to the base rather
+  than the canopy, or a tree would slide in front of the cats it stands
+  behind.
+
+  `bushTrunkWidth` sets how thick that stem is, as a multiple of the
+  width each style was drawn with. The trunk style carries 0.2 canopy
+  radii and the lobed one 0.13, so an absolute dial would have had to
+  pick a winner and restyle the other; at 1 the multiplier draws exactly
+  what shipped. It has its own `Alt` for the second species, and the
+  stem thickens about its centre rather than growing out from under its
+  canopy. The lab's occlusion strip draws each species in its own
+  stance (#202).
+- An `about` on the page, folded under the subtitle: what this place is,
+  for anyone curious. A `<details>`, so it opens with no script at all
+  and still works with a dead socket, under reduced motion, or before
+  `app.js` has run. It keeps its colour from the palette rather than a
+  literal, since `--ink-soft` is one of the four tokens that *invert*
+  across a phase (#202).
 - Docs: rl-training + howto-rl caught up to spec 028 (two-head wire,
   20×20, certification assumptions rewritten — the channel is
   restrained by law, not economics), and kitty-eval is a pre-seating

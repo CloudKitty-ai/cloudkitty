@@ -147,6 +147,14 @@ const CAT_GROUND_Y = 0.88;
 const CRITTER_KINDS = new Set(['bug', 'greeble']);
 
 /**
+ * Furniture that stands ON the ground rather than under it: it sorts with
+ * the cats and the cover, but it does not move, so it keeps its served
+ * tile. Water and sunbeams are not here -- they ARE the ground, and are
+ * drawn beneath everything by their own passes.
+ */
+const PROP_KINDS = new Set(['chow']);
+
+/**
  * How much of the cat is in water, 0..1 -- sampled from WHERE IT IS.
  *
  * This replaces a 260ms timer keyed on the nearest tile, and the change
@@ -458,7 +466,9 @@ class WorldRenderer {
         // A critter taking its bow is still a critter: it sorts with the
         // rest, or it would pop behind the shrub it was just in front of
         // for the length of its fade.
-        else if (!CRITTER_KINDS.has(el.kind)) this.drawElement(el, view.expiredAlpha, view);
+        else if (!CRITTER_KINDS.has(el.kind) && !PROP_KINDS.has(el.kind)) {
+          this.drawElement(el, view.expiredAlpha, view);
+        }
       }
     }
     for (const el of world.elements) {
@@ -466,7 +476,7 @@ class WorldRenderer {
       // Critters are sorted with the cats and the cover instead -- see the
       // depth layer below. Drawing them here would put every butterfly
       // behind every shrub, whatever the ground said.
-      if (CRITTER_KINDS.has(el.kind)) continue;
+      if (CRITTER_KINDS.has(el.kind) || PROP_KINDS.has(el.kind)) continue;
       if (el.kind === 'water' && VIEW.meadow.ponds && view.elementAlphaFor(el) >= 1) {
         // Drawn by the pond body already -- and since the pond restyle its
         // surface motion is the caustic net, one per POND, so a per-tile
@@ -519,18 +529,31 @@ class WorldRenderer {
     // the DRAWN position, not the served tile, or a gliding critter would
     // change depth a tick before or after it visibly crosses the shrub.
     for (const el of world.elements) {
-      if (!CRITTER_KINDS.has(el.kind)) continue;
-      layer.push({
-        kind: 'critter',
-        y: catSortKey(view.elementPosFor(el)),
-        draw: () => this.drawElement(el, view.elementAlphaFor(el), view),
-      });
+      if (CRITTER_KINDS.has(el.kind)) {
+        layer.push({
+          kind: 'critter',
+          y: catSortKey(view.elementPosFor(el)),
+          draw: () => this.drawElement(el, view.elementAlphaFor(el), view),
+        });
+      } else if (PROP_KINDS.has(el.kind)) {
+        // A bowl stands where a cat stands, so it takes the cat's ground
+        // line: cover rooted in the same tile meets the earth higher up
+        // and sorts behind it. Owner, 2026-08-12 -- a shrub was painting
+        // over the bowl it shared a tile with, which is the trade
+        // `occupiedTiles` took when it stopped keeping cover off served
+        // elements. It does not glide, so its served tile is its place.
+        layer.push({
+          kind: 'prop',
+          y: catSortKey(el.pos),
+          draw: () => this.drawElement(el, view.elementAlphaFor(el), view),
+        });
+      }
     }
     if (view.expired.length && view.expiredAlpha > 0) {
       for (const el of view.expired) {
-        if (!CRITTER_KINDS.has(el.kind)) continue;
+        if (!CRITTER_KINDS.has(el.kind) && !PROP_KINDS.has(el.kind)) continue;
         layer.push({
-          kind: 'critter',
+          kind: CRITTER_KINDS.has(el.kind) ? 'critter' : 'prop',
           y: catSortKey(el.pos),
           draw: () => this.drawElement(el, view.expiredAlpha, view),
         });

@@ -433,7 +433,7 @@ const MEADOW_DEFAULTS = Object.freeze({
   // Rarer features take a higher power, so they concentrate harder. That
   // is what makes a thicket read as a thicket rather than as three shrubs
   // standing near each other.
-  fertilityCells: 5.5, // tiles per fertility blotch; larger = broader passages
+  fertilityCells: 4.5, // tiles per fertility blotch; larger = broader passages
   bladeFertPower: 2,
   bloomFertPower: 3,
   bushFertPower: 4,
@@ -444,7 +444,7 @@ const MEADOW_DEFAULTS = Object.freeze({
   // toward BLACK instead only greyed them: a near-white petal has no colour
   // to darken into. Judged in gallery-meadow.html.
   bloomShade: 0.28,
-  bushChance: 0.015, // tiles with a clump of tufted ground cover
+  bushChance: 0.02, // tiles with a clump of tufted ground cover
   bushAlpha: 0.9, // and how strongly it reads against the grass
   // 'cover' | 'tuft' | 'bramble' (flat) | 'shrub' | 'grown' | 'trunk' |
   // 'tall' | 'lobed' (standing). Judged in gallery-meadow.html.
@@ -459,13 +459,24 @@ const MEADOW_DEFAULTS = Object.freeze({
   // defensible and the argument is not settleable on paper -- this lets a
   // lab session settle it by eye, including at a mix neither side proposed.
   bushStyleAlt: 'trunk',
-  bushStyleAltShare: 0,
+  bushStyleAltShare: 0.3,
   // How much of the gap between the ground and the canopy the stem covers,
   // for the styles that draw one ('trunk', 'lobed'). 1 is a full stem, 0 is
   // none at all -- and at 0 the canopy is left hanging over its own shadow
   // unless `bushLift` comes down with it, which is the trade this dial
   // exists to let someone see rather than argue about.
   bushTrunk: 0,
+  // ...and the SECOND species' own stance, so a meadow can grow small
+  // trees among flat cover. Both start where the primary is, so adding
+  // these changed nothing until they were dialled (owner, 2026-08-11).
+  bushTrunkAlt: 1,
+  // How THICK that stem is, as a multiple of the width each style was
+  // drawn with -- the trunk style at 0.2 canopy radii, the lobed one
+  // at 0.13. A multiplier rather than an absolute, so 1 is exactly the
+  // shipped drawing and neither style loses the proportion it was
+  // authored with. A small tree wants this well above 1.
+  bushTrunkWidth: 2.55,
+  bushTrunkWidthAlt: 1.4,
   // The shrub's shadow, damped against the cats': a squat canopy sits
   // close to the ground, so it stretches far less and needs no alpha
   // falloff. Only the LENGTH is damped -- the lean also anchors the
@@ -474,6 +485,7 @@ const MEADOW_DEFAULTS = Object.freeze({
   bushShadowLength: 0.3, // and of its stretch past the caster
   bushShadowAlpha: 1, // no thinning: contact, not a smear
   bushLift: 0, // how far a shrub's canopy stands above its base, in radii
+  bushLiftAlt: 1.55, // the same, for the bushStyleAlt species
   bushBase: 0.72, // where it meets the ground, in tiles from the tile's top
   // How far the canopy's height pushes its shadow along the lean. Kept
   // small: a rooted thing's shadow leaves its base, and pushing it far
@@ -1112,10 +1124,11 @@ function coverSortKey(bush, t) {
  * contact it at the same place, so the key alone leaves them tied and the
  * order falls to whichever loop happened to push first. That is a real
  * ordering, decided by accident. This is the same ordering, decided on
- * purpose: cover is scenery and goes behind, a kitty is the subject and
- * comes to the front, a critter flies between them (owner, 2026-08-11).
+ * purpose. Cover is scenery and goes behind. A kitty is the subject and
+ * comes to the front. Between them stand the props a cat walks up to (a
+ * bowl), then the critters, which are in the air over both.
  */
-const SPRITE_RANK = { cover: 0, critter: 1, kitty: 2 };
+const SPRITE_RANK = { cover: 0, prop: 1, critter: 2, kitty: 3 };
 
 /**
  * The depth layer, ordered. Pure so the ordering can be tested without a
@@ -1134,15 +1147,36 @@ function spriteOrder(items) {
  *  flat ones lie on it and would only look like they stand. */
 const STANDING_COVER = new Set(['shrub', 'grown', 'trunk', 'tall', 'lobed']);
 
-function drawBushAt(ctx, { x, y, seed, tile, t }) {
+function drawBushAt(ctx, { x, y, seed, tile: tileSize, t: tunables }) {
   // Which of the two this one is. Drawn from its own channel so the choice
   // is independent of the shape seed, and from (x, y) so it is stable for
   // the life of the world -- scenery that changed species between frames
   // is the flicker `occupiedTiles` was narrowed to avoid.
-  const share = t.bushStyleAltShare || 0;
-  const style = share > 0 && tileHash(x, y, MEADOW_SALTS.bushKind) < share
-    ? t.bushStyleAlt || t.bushStyle || 'cover'
-    : t.bushStyle || 'cover';
+  const share = tunables.bushStyleAltShare || 0;
+  const isAlt = share > 0 && tileHash(x, y, MEADOW_SALTS.bushKind) < share;
+  const style = isAlt
+    ? tunables.bushStyleAlt || tunables.bushStyle || 'cover'
+    : tunables.bushStyle || 'cover';
+  // The two species carry their OWN stance (owner, 2026-08-11): a meadow
+  // may grow one cover that stands on a trunk and one that lies on the
+  // ground. Style already differed per species; how far it stands up did
+  // not, so both were flat or both were lifted and "trees among shrubs"
+  // was unreachable.
+  //
+  // Applied as an overlay on the tunables rather than threaded through the
+  // eight places the style switch reads `bushLift`/`bushTrunk` -- and the
+  // shadow reads them too, so an overlay is the only way the shadow can
+  // stay honest about the height it is cast by. Same shape the lab already
+  // uses to draw one species at a time.
+  const t = isAlt
+    ? {
+        ...tunables,
+        bushLift: tunables.bushLiftAlt,
+        bushTrunk: tunables.bushTrunkAlt,
+        bushTrunkWidth: tunables.bushTrunkWidthAlt,
+      }
+    : tunables;
+  const tile = tileSize;
   {
     {
       const s = seed;
@@ -1267,7 +1301,11 @@ function drawBushAt(ctx, { x, y, seed, tile, t }) {
         if (stemShare > 0) {
           const top = groundY - (groundY - crown) * stemShare;
           ctx.beginPath();
-          ctx.rect(bx - r * 0.1, top, r * 0.2, groundY - top);
+          // Authored at 0.2 radii; the dial scales it rather than
+          // replacing it, so the two styles keep the different trunks
+          // they were drawn with and 1 is exactly today.
+          const w = r * 0.2 * (t.bushTrunkWidth ?? 1);
+          ctx.rect(bx - w / 2, top, w, groundY - top);
           ctx.fill();
         }
         // The canopy, then the LIGHT across it (spec 03 part 3). The lobes
@@ -1356,7 +1394,9 @@ function drawBushAt(ctx, { x, y, seed, tile, t }) {
         if (stem > 0) {
           const top = groundY - (groundY - crown) * stem;
           ctx.strokeStyle = shadePalette(MEADOW.bush, 0.72);
-          ctx.lineWidth = Math.max(1, r * 0.13);
+          // Same multiplier, this style's own 0.13. The 1px floor is a
+          // legibility clamp, so a thin dial stops biting below it.
+          ctx.lineWidth = Math.max(1, r * 0.13 * (t.bushTrunkWidth ?? 1));
           ctx.lineCap = 'round';
           ctx.beginPath();
           ctx.moveTo(bx, groundY);

@@ -2560,6 +2560,32 @@ check('a pose with no axial authoring keeps its side drawing', () => {
   }
 });
 
+check('a turn only flips a facing that has something to flip through', () => {
+  // `turnFacing` draws the PRE-turn facing for the first half of a turn,
+  // which is what makes the flip land on the squash. It does that with a
+  // left/right ternary, and it has been taking four values since the axial
+  // facings landed: 'north' is not 'left', so it came back as 'left' and
+  // an axial cat was drawn side-on for 100ms and then snapped.
+  //
+  // Unreachable today -- a turn is only stamped on a horizontal step, so
+  // the facing is horizontal for the 200ms it lasts -- so this pins the
+  // behaviour before something makes it reachable, rather than after.
+  for (const facing of ['north', 'south']) {
+    for (const t of [0, 0.1, 0.49, 0.5, 0.9, 1]) {
+      assert(
+        CatV2.turnFacing(facing, t) === facing,
+        `a ${facing}-facing cat was drawn as '${CatV2.turnFacing(facing, t)}' at turn ${t}`,
+      );
+    }
+  }
+  // ...while the horizontal case still does the thing it exists for: the
+  // old facing until the flip point, the new one after.
+  assert(CatV2.turnFacing('right', 0.1) === 'left', 'a turn must show the pre-turn facing first');
+  assert(CatV2.turnFacing('right', 0.9) === 'right', 'and the served one after the flip');
+  assert(CatV2.turnFacing('left', 0.1) === 'right', 'both ways');
+  assert(CatV2.turnFacing('left', null) === 'left', 'no turn, no change');
+});
+
 check('four facings come off the served step, and east/west is remembered', () => {
   const p = new api.Presentation();
   const step = (from, to) => {
@@ -3582,6 +3608,39 @@ check('the socket hands arrivals to the delay line and nothing else', () => {
     /anim\.onPromote\s*=\s*present/.test(src),
     'the panel must be driven by anim.onPromote, not by the socket',
   );
+});
+
+check("the about survives a phase change, and the owner's words survive us", () => {
+  const markup = readFileSync(join(here, 'index.html'), 'utf8');
+
+  // A <details>, so it opens with no script at all: it still works with a
+  // dead socket, under reduced motion, and before app.js has run. Wiring
+  // it to a click handler would make "what is this place" the first thing
+  // to break when anything else does.
+  const about = markup.slice(markup.indexOf('<details class="about">'));
+  assert(about.startsWith('<details'), 'the about is gone or is no longer a <details>');
+  assert(/<summary>about<\/summary>/.test(about), 'the about has no summary to click');
+
+  // The owner's copy, verbatim. Ours to lay out, not to edit.
+  const wanted =
+    'CloudKitty is a peaceful meadow where kitties wander, eat, drink, nap in ' +
+    'sunbeams, groom each other, chase bugs, and meow about it. The kitties are ' +
+    'a team. Each kitty is driven by a neural network trained for one objective: ' +
+    'the happiness of all the kitties in the meadow. The kitties look out for ' +
+    'each other, communicate with purrs and meows, and keep each other company ' +
+    'as they frolic and play.';
+  const got = about.slice(about.indexOf('<p>') + 3, about.indexOf('</p>'))
+    .split(/\s+/).join(' ').trim();
+  assert(got === wanted, `the about text has drifted from what the owner wrote:\n  ${got}`);
+
+  // And the trap this page has already fallen into once (#193): the four
+  // inverting tokens SWAP across a phase, so any colour written as a
+  // literal here sits at the wrong end of the palette for half the day.
+  const css = markup.slice(markup.indexOf('.about { margin'), markup.indexOf('</style>'));
+  const block = css.slice(0, css.indexOf('\n\n'));
+  const literals = block.match(/#[0-9a-fA-F]{3,8}|rgba?\(/g);
+  assert(!literals, `the about hardcodes ${literals} instead of using a theme token`);
+  assert(/var\(--ink-soft\)/.test(block), 'the about must take its colour from the palette');
 });
 
 check('no check left a dial moved behind it', () => {

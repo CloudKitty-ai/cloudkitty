@@ -397,7 +397,7 @@ const VIEW = Object.freeze({
     patchMossAlpha: 0.05,
     // Cover grows in DRIFTS (spec 03). Mirrors MEADOW_DEFAULTS -- the
     // superset assertion in test-meadow.mjs fails on drift.
-    fertilityCells: 5.5, // tiles per fertility blotch; larger = broader passages
+    fertilityCells: 4.5, // tiles per fertility blotch; larger = broader passages
     bladeFertPower: 2,
     bloomFertPower: 3,
     bushFertPower: 4,
@@ -405,14 +405,17 @@ const VIEW = Object.freeze({
     bladeAlpha: 0.38,
     bloomChance: 0.05, // tiles with a flower
     bloomShade: 0.28, // how far the lower petals lean toward the heart
-    bushChance: 0.015, // tiles with a clump of tufted ground cover
+    bushChance: 0.02, // tiles with a clump of tufted ground cover
     bushAlpha: 0.9, // and how strongly it reads against the grass
     // 'cover' | 'tuft' | 'bramble' (flat) | 'shrub' | 'grown' | 'trunk' |
     // 'tall' (standing). Judged in gallery-meadow.html.
     bushStyle: 'lobed',
     bushStyleAlt: 'trunk', // the second species, when a meadow grows two
-    bushStyleAltShare: 0, // 0 = primary only, 1 = alt only, between = a mix
+    bushStyleAltShare: 0.3, // 0 = primary only, 1 = alt only, between = a mix
     bushTrunk: 0, // how much stem the stemmed styles draw; 0 is none
+    bushTrunkAlt: 1, // the same, for the bushStyleAlt species
+    bushTrunkWidth: 2.55, // stem thickness, as a multiple of each style's own
+    bushTrunkWidthAlt: 1.4, // the same, for the bushStyleAlt species
     // The shrub's shadow, damped against the cats': a squat canopy sits
     // close to the ground, so it stretches far less and needs no alpha
     // falloff. Only the LENGTH is damped -- the lean also anchors the
@@ -421,6 +424,7 @@ const VIEW = Object.freeze({
     bushShadowLength: 0.3, // and of its stretch past the caster
     bushShadowAlpha: 1, // no thinning: contact, not a smear
     bushLift: 0, // how far a shrub's canopy stands above its base, in radii
+    bushLiftAlt: 1.55, // the same, for the bushStyleAlt species
     bushBase: 0.72, // where it meets the ground, in tiles from the tile's top
     // How far the canopy's height pushes its shadow along the lean. Kept
     // small: a rooted thing's shadow leaves its base, and pushing it far

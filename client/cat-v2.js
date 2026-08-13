@@ -892,6 +892,16 @@ function stillRig(input) {
  */
 function turnFacing(facing, turn) {
   if (turn == null) return facing;
+  // A turn is a horizontal flip, so only a horizontal facing has anything
+  // to turn THROUGH. Without this guard the ternary below reads 'north' as
+  // "not left" and hands back 'left' -- an axial cat drawn side-on for the
+  // first half of a turn, then snapping back. It cannot fire today (a turn
+  // is only stamped on a horizontal step, so the facing is horizontal for
+  // the 200ms it lasts), but this is a two-value function that has been
+  // taking four values since the axial facings landed in #187, and the
+  // gap closes the moment turnMs outgrows a tick or a vertical reversal
+  // starts stamping turns too.
+  if (facing !== 'left' && facing !== 'right') return facing;
   if (turnTransform(turn).flipped) return facing;
   return facing === 'left' ? 'right' : 'left';
 }

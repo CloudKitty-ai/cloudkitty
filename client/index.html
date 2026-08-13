@@ -222,6 +222,35 @@
     font-size: 0.9rem;
   }
 
+  /* "about", folded under the subtitle: the first place a curious visitor
+     looks, and a <details> so it costs nothing until it is opened. No
+     script anywhere in it -- a summary is clickable and focusable on its
+     own, so this keeps working with a dead socket, under reduced motion,
+     and before app.js has run.
+     Both colours are theme TOKENS. `--ink-soft` is one of the four that
+     INVERT across a phase (INVERTING_TOKENS in app.js), so a hardcoded
+     colour here would sit at the wrong end of the palette for half the
+     day -- which is exactly how the cards went unreadable mid-crossfade. */
+  .about { margin: 6px 0 0; font-size: 0.85rem; }
+  .about > summary {
+    display: inline-block;      /* so the label centres with the header */
+    list-style: none;           /* our own marker, below */
+    cursor: pointer;
+    color: var(--ink-soft);
+    border-bottom: 1px dotted currentColor;
+  }
+  .about > summary::-webkit-details-marker { display: none; }
+  .about > summary::after { content: " \25B8"; }
+  .about[open] > summary::after { content: " \25BE"; }
+  .about > summary:hover { color: var(--ink); }
+  .about > p {
+    margin: 8px auto 0;
+    max-width: 56ch;
+    text-align: left;
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+
   /* Narrow first: map, then the cards wrapping underneath, exactly as the
      page has always behaved. `.panel-col` dissolves so the cards remain
      one wrapping row. */
@@ -705,6 +734,10 @@
        to shrink, and they are decoration -- aria-hidden already. */
     .header-kitty { display: none; }
     .subtitle { display: none; }
+    /* The about STAYS: a landscape phone is where a curious visitor is
+       most likely to be, and collapsed it is one line. Shrunk, like the
+       footer, rather than dropped. */
+    .about { font-size: 0.72rem; margin-top: 2px; }
     .keys { display: none; }
     footer { font-size: 0.72rem; }
     .stage { --stage-pad: 4px; border-radius: 16px; }
@@ -716,6 +749,15 @@
   <header>
     <h1><canvas class="header-kitty" data-facing="right" width="32" height="32" aria-hidden="true"></canvas>CloudKitty<canvas class="header-kitty" data-facing="left" width="32" height="32" aria-hidden="true"></canvas></h1>
     <p class="subtitle">a small, safe world where kitties frolic and play</p>
+    <details class="about">
+      <summary>about</summary>
+      <p>CloudKitty is a peaceful meadow where kitties wander, eat, drink, nap
+      in sunbeams, groom each other, chase bugs, and meow about it. The kitties
+      are a team. Each kitty is driven by a neural network trained for one
+      objective: the happiness of all the kitties in the meadow. The kitties
+      look out for each other, communicate with purrs and meows, and keep each
+      other company as they frolic and play.</p>
+    </details>
   </header>
 
   <!-- Wide screens seat the cards in two columns flanking the meadow, so
