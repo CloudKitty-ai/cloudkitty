@@ -130,6 +130,11 @@ change.
   followed. Sharing one square the order is kitty, bug, bush, front to
   back, and that comes from a named rank rather than from whichever loop
   happened to push first, which is an ordering decided by accident (#201).
+  Food bowls joined them (#202): cover stopped being kept off served
+  elements when `occupiedTiles` narrowed to water, so a shrub rooted in a
+  bowl's tile had been painting over it. A bowl takes the cat's ground
+  line, since that is where a cat stands to eat from it. Front to back the
+  meadow now reads cat, butterfly, bowl, shrub.
 - The meadow's two ground-cover species can now stand differently, so
   it can grow small trees among flat cover: `bushLiftAlt` and
   `bushTrunkAlt` give the second species its own lift and trunk. Style

@@ -1366,6 +1366,38 @@ check('all three in one square go kitty, bug, bush -- front to back', () => {
   );
 });
 
+check('a bowl is in front of the cover it shares a tile with', () => {
+  // Owner, 2026-08-12. Cover stopped being kept off served elements when
+  // `occupiedTiles` narrowed to water, so a shrub rooted in a bowl's tile
+  // was painting straight over it.
+  const propAt = (y) => ({ kind: 'prop', y: api.catSortKey({ x: 0, y }) });
+  assert(
+    String(ordered([propAt(5), coverAt(5)])) === 'cover,prop',
+    `same tile: got ${ordered([propAt(5), coverAt(5)])}`,
+  );
+  // ...and it still sorts by the ground everywhere else: cover a tile
+  // south of a bowl is nearer the viewer and stays in front of it.
+  assert(
+    String(ordered([propAt(5), coverAt(6)])) === 'prop,cover',
+    'cover a tile south of a bowl must be drawn in front of it',
+  );
+  // The owner's ordering, front to back: cat > butterfly > bowl > shrub
+  // (2026-08-12). A cat walks up to a bowl so it is in front of it, and a
+  // butterfly is in the air over both. Drawn back to front, so the array
+  // reads in reverse.
+  const all = ordered([kittyAt(5), critterAt(5), propAt(5), coverAt(5)]);
+  const frontToBack = [...all].reverse().join(' > ');
+  assert(
+    frontToBack === 'kitty > critter > prop > cover',
+    `front to back is "${frontToBack}", want "kitty > critter > prop > cover" ` +
+      '(cat > butterfly > bowl > shrub)',
+  );
+  assert(
+    api.SPRITE_RANK.cover < api.SPRITE_RANK.prop && api.SPRITE_RANK.prop < api.SPRITE_RANK.kitty,
+    'the rank table must read cover < prop < kitty',
+  );
+});
+
 check('a bug a whole tile away still sorts by the ground, not by rank', () => {
   // Rank is only ever a TIE-break. A kitty one tile north of a bug must
   // still be behind it, or the rank has started deciding depth.
@@ -1387,14 +1419,26 @@ check('the renderer sorts critters instead of stamping them down', () => {
   const pass = src.slice(src.indexOf("for (const el of world.elements) {\n      if (el.kind === 'sunbeam') continue;"));
   const flat = pass.slice(0, pass.indexOf('// Cats and ground cover'));
   assert(
-    /CRITTER_KINDS\.has\(el\.kind\)\) continue;/.test(flat),
+    /CRITTER_KINDS\.has\(el\.kind\)[^\n]*continue;/.test(flat),
     'the flat element pass still draws critters -- they would sit behind every shrub',
+  );
+  assert(
+    /PROP_KINDS\.has\(el\.kind\)[^\n]*continue;/.test(flat),
+    'the flat element pass still draws bowls -- a shrub sharing the tile paints over them',
   );
   // Sorted on the DRAWN position: a gliding critter that sorted by its
   // served tile would change depth a tick off from when it visibly crosses.
   assert(
     /y: catSortKey\(view\.elementPosFor\(el\)\)/.test(src),
     'critters must sort on their drawn position, not their served tile',
+  );
+  // A bowl stands where a cat stands, so it takes the cat's ground line.
+  // Keying it to the cover's would move every bowl-vs-cat crossover by
+  // 0.16 of a tile, which no integer-tile check can see.
+  const propPush = src.slice(src.indexOf("kind: 'prop',"));
+  assert(
+    /^\s*kind: 'prop',\s*\n\s*y: catSortKey\(el\.pos\),/.test(propPush),
+    'a bowl must sort on the cat ground line and its served tile',
   );
   assert(/for \(const item of spriteOrder\(layer\)\) item\.draw\(\)/.test(src), 'the layer is not going through spriteOrder');
 
@@ -1454,6 +1498,15 @@ check('a whole frame really draws its critters, live and expiring', () => {
   const bare = frame({});
   const withBug = frame({ live: [bug] });
   assert(withBug > bare, `a live bug drew nothing: ${bare} ops bare, ${withBug} with it`);
+
+  const bowl = { id: 9, kind: 'chow', pos: { x: 9, y: 9 }, servings: 2 };
+  const withBowl = frame({ live: [bowl] });
+  assert(withBowl > bare, `a live bowl drew nothing: ${bare} vs ${withBowl}`);
+  const bowlGoing = frame({ expired: [bowl] });
+  assert(
+    bowlGoing > bare,
+    `an EXPIRING bowl drew nothing (${bare} vs ${bowlGoing}) -- it vanishes instead of fading`,
+  );
 
   const withExpiring = frame({ expired: [bug] });
   assert(

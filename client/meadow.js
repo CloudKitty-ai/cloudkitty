@@ -1124,10 +1124,11 @@ function coverSortKey(bush, t) {
  * contact it at the same place, so the key alone leaves them tied and the
  * order falls to whichever loop happened to push first. That is a real
  * ordering, decided by accident. This is the same ordering, decided on
- * purpose: cover is scenery and goes behind, a kitty is the subject and
- * comes to the front, a critter flies between them (owner, 2026-08-11).
+ * purpose. Cover is scenery and goes behind. A kitty is the subject and
+ * comes to the front. Between them stand the props a cat walks up to (a
+ * bowl), then the critters, which are in the air over both.
  */
-const SPRITE_RANK = { cover: 0, critter: 1, kitty: 2 };
+const SPRITE_RANK = { cover: 0, prop: 1, critter: 2, kitty: 3 };
 
 /**
  * The depth layer, ordered. Pure so the ordering can be tested without a
