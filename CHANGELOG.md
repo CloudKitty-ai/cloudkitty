@@ -185,12 +185,17 @@ change.
   stem thickens about its centre rather than growing out from under its
   canopy. The lab's occlusion strip draws each species in its own
   stance (#202).
-- An `about` on the page, folded under the subtitle: what this place is,
-  for anyone curious. A `<details>`, so it opens with no script at all
-  and still works with a dead socket, under reduced motion, or before
-  `app.js` has run. It keeps its colour from the palette rather than a
-  literal, since `--ink-soft` is one of the four tokens that *invert*
-  across a phase (#202).
+- An `about` on the page: what this place is, for anyone curious. A
+  `<details>`, so it opens with no script at all and still works with a
+  dead socket, under reduced motion, or before `app.js` has run. It keeps
+  its colour from the palette rather than a literal, since `--ink-soft`
+  is one of the four tokens that *invert* across a phase (#202). It costs
+  the map nothing in either state: the summary rides the subtitle's line
+  and the panel opens *over* the meadow rather than pushing it down.
+  That is not cosmetic — the map is square and height-bound, and
+  `resizeFor` subtracts the header from its budget, so at a 20-row world
+  every 20px of header is a whole pixel off the tile, and a pixel of tile
+  is 20px off each edge of the map (#213).
 - The face on the back of the head: `blendLayouts` builds a fresh layout
   field by field and never copied `view`, so every pose blend produced a
   layout the painter read as *not back* — and drew a full face onto the

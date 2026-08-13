@@ -3667,7 +3667,18 @@ check("the about survives a phase change, and the owner's words survive us", () 
   // to break when anything else does.
   const about = markup.slice(markup.indexOf('<details class="about">'));
   assert(about.startsWith('<details'), 'the about is gone or is no longer a <details>');
-  assert(/<summary>about<\/summary>/.test(about), 'the about has no summary to click');
+  assert(/<summary>[^<]*about<\/summary>/.test(about), 'the about has no summary to click');
+
+  // It must cost the map NOTHING. The map is height-bound and `resizeFor`
+  // subtracts the header from its budget, so at a 20-row world every 20px
+  // of header is a whole pixel off the tile -- and a pixel of tile is 20px
+  // off each edge of the map. So the summary rides a line that already
+  // exists, and the panel is taken out of flow rather than pushing the
+  // layout down when it opens (owner, 2026-08-13).
+  assert(
+    /<span class="tagline">/.test(markup) && about.indexOf('</div>') > about.indexOf('</details>'),
+    'the about is no longer inside the subtitle line, so it costs the map a row',
+  );
 
   // The owner's copy, verbatim. Ours to lay out, not to edit.
   const wanted =
@@ -3684,8 +3695,28 @@ check("the about survives a phase change, and the owner's words survive us", () 
   // And the trap this page has already fallen into once (#193): the four
   // inverting tokens SWAP across a phase, so any colour written as a
   // literal here sits at the wrong end of the palette for half the day.
-  const css = markup.slice(markup.indexOf('.about { margin'), markup.indexOf('</style>'));
-  const block = css.slice(0, css.indexOf('\n\n'));
+  // Each rule read on its own. A loose search across the whole block is
+  // how the first version of this passed while the panel was back in the
+  // layout: `display: inline` also matches the SUMMARY's rule, and
+  // `position: absolute` was outside the slice entirely.
+  const ruleFor = (selector) => {
+    const at = markup.indexOf(`  ${selector} {`);
+    assert(at > 0, `no CSS rule for ${selector}`);
+    // To the closing brace, not to a newline-plus-brace: `.about` is a
+    // ONE-LINER, so looking for `\n  }` ran straight past it and into the
+    // summary's rule -- which also says `display: inline`, so the check
+    // passed while the about had a row of its own again.
+    return markup.slice(at, markup.indexOf('}', at) + 1);
+  };
+  const container = ruleFor('.about');
+  const panel = ruleFor('.about > p');
+  // The summary rides a line that already exists...
+  assert(/display: inline;/.test(container), 'the about takes a row of its own again');
+  // ...and the panel is out of flow, or opening it shrinks the meadow.
+  assert(/position: absolute;/.test(panel), 'the about panel is back in the layout');
+  assert(/var\(--card\)/.test(panel), 'the panel needs the card background to be readable over the map');
+
+  const block = container + panel + ruleFor('.about > summary');
   const literals = block.match(/#[0-9a-fA-F]{3,8}|rgba?\(/g);
   assert(!literals, `the about hardcodes ${literals} instead of using a theme token`);
   assert(/var\(--ink-soft\)/.test(block), 'the about must take its colour from the palette');

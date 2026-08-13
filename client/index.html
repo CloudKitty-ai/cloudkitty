@@ -231,9 +231,23 @@
      INVERT across a phase (INVERTING_TOKENS in app.js), so a hardcoded
      colour here would sit at the wrong end of the palette for half the
      day -- which is exactly how the cards went unreadable mid-crossfade. */
-  .about { margin: 6px 0 0; font-size: 0.85rem; }
+  /* The summary rides the SUBTITLE'S line and the panel is taken out of
+     flow, so the about costs the map nothing in either state (owner,
+     2026-08-13: "I want to keep the map as large as possible").
+     That is not cosmetic. The map is square and height-bound, and
+     `resizeFor` subtracts the header from the height budget, so at a
+     20-row world every 20px of header is a whole pixel off the tile --
+     and a pixel of tile is 20px off each edge of the map. The about's own
+     row was costing exactly that. */
+  header { position: relative; }
+  .subtitle {
+    margin: 4px 0 0;
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+  }
+  .about { display: inline; font-size: 0.85rem; }
   .about > summary {
-    display: inline-block;      /* so the label centres with the header */
+    display: inline;            /* stays on the subtitle's line */
     list-style: none;           /* our own marker, below */
     cursor: pointer;
     color: var(--ink-soft);
@@ -243,12 +257,27 @@
   .about > summary::after { content: " \25B8"; }
   .about[open] > summary::after { content: " \25BE"; }
   .about > summary:hover { color: var(--ink); }
+  /* Hung from the bottom of the header, so it opens OVER the meadow and
+     the layout never moves. Card colours, because they are the pair
+     already proven to stay legible through a phase crossfade. */
   .about > p {
-    margin: 8px auto 0;
-    max-width: 56ch;
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    margin: 6px 0 0;
+    width: min(56ch, calc(100vw - 32px));
+    box-sizing: border-box;
+    padding: 12px 16px;
     text-align: left;
     line-height: 1.6;
-    color: var(--ink-soft);
+    background: var(--card);
+    color: var(--ink);
+    border-radius: 14px;
+    /* The themed shadow, like the cards use, not a literal: it is in the
+       phase transition list, so it follows the hour with everything else. */
+    box-shadow: 0 8px 24px var(--shadow);
   }
 
   /* Narrow first: map, then the cards wrapping underneath, exactly as the
@@ -733,11 +762,11 @@
     /* The wordmark's loafing cats are 32px each of a header we are trying
        to shrink, and they are decoration -- aria-hidden already. */
     .header-kitty { display: none; }
-    .subtitle { display: none; }
-    /* The about STAYS: a landscape phone is where a curious visitor is
-       most likely to be, and collapsed it is one line. Shrunk, like the
-       footer, rather than dropped. */
-    .about { font-size: 0.72rem; margin-top: 2px; }
+    /* The TAGLINE goes, not the line: the about rides it, and a landscape
+       phone is where a curious visitor is most likely to be. */
+    .tagline { display: none; }
+    .subtitle { margin-top: 2px; }
+    .about { font-size: 0.72rem; }
     .keys { display: none; }
     footer { font-size: 0.72rem; }
     .stage { --stage-pad: 4px; border-radius: 16px; }
@@ -748,16 +777,17 @@
 <body>
   <header>
     <h1><canvas class="header-kitty" data-facing="right" width="32" height="32" aria-hidden="true"></canvas>CloudKitty<canvas class="header-kitty" data-facing="left" width="32" height="32" aria-hidden="true"></canvas></h1>
-    <p class="subtitle">a small, safe world where kitties frolic and play</p>
-    <details class="about">
-      <summary>about</summary>
+    <div class="subtitle">
+      <span class="tagline">a small, safe world where kitties frolic and play</span>
+      <details class="about"><summary>· about</summary>
       <p>CloudKitty is a peaceful meadow where kitties wander, eat, drink, nap
       in sunbeams, groom each other, chase bugs, and meow about it. The kitties
       are a team. Each kitty is driven by a neural network trained for one
       objective: the happiness of all the kitties in the meadow. The kitties
       look out for each other, communicate with purrs and meows, and keep each
       other company as they frolic and play.</p>
-    </details>
+      </details>
+    </div>
   </header>
 
   <!-- Wide screens seat the cards in two columns flanking the meadow, so
