@@ -154,6 +154,12 @@ change.
   stem thickens about its centre rather than growing out from under its
   canopy. The lab's occlusion strip draws each species in its own
   stance (#202).
+- An `about` on the page, folded under the subtitle: what this place is,
+  for anyone curious. A `<details>`, so it opens with no script at all
+  and still works with a dead socket, under reduced motion, or before
+  `app.js` has run. It keeps its colour from the palette rather than a
+  literal, since `--ink-soft` is one of the four tokens that *invert*
+  across a phase (#202).
 - Docs: rl-training + howto-rl caught up to spec 028 (two-head wire,
   20×20, certification assumptions rewritten — the channel is
   restrained by law, not economics), and kitty-eval is a pre-seating

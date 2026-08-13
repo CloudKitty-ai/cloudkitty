@@ -3610,6 +3610,39 @@ check('the socket hands arrivals to the delay line and nothing else', () => {
   );
 });
 
+check("the about survives a phase change, and the owner's words survive us", () => {
+  const markup = readFileSync(join(here, 'index.html'), 'utf8');
+
+  // A <details>, so it opens with no script at all: it still works with a
+  // dead socket, under reduced motion, and before app.js has run. Wiring
+  // it to a click handler would make "what is this place" the first thing
+  // to break when anything else does.
+  const about = markup.slice(markup.indexOf('<details class="about">'));
+  assert(about.startsWith('<details'), 'the about is gone or is no longer a <details>');
+  assert(/<summary>about<\/summary>/.test(about), 'the about has no summary to click');
+
+  // The owner's copy, verbatim. Ours to lay out, not to edit.
+  const wanted =
+    'CloudKitty is a peaceful meadow where kitties wander, eat, drink, nap in ' +
+    'sunbeams, groom each other, chase bugs, and meow about it. The kitties are ' +
+    'a team. Each kitty is driven by a neural network trained for one objective: ' +
+    'the happiness of all the kitties in the meadow. The kitties look out for ' +
+    'each other, communicate with purrs and meows, and keep each other company ' +
+    'as they frolic and play.';
+  const got = about.slice(about.indexOf('<p>') + 3, about.indexOf('</p>'))
+    .split(/\s+/).join(' ').trim();
+  assert(got === wanted, `the about text has drifted from what the owner wrote:\n  ${got}`);
+
+  // And the trap this page has already fallen into once (#193): the four
+  // inverting tokens SWAP across a phase, so any colour written as a
+  // literal here sits at the wrong end of the palette for half the day.
+  const css = markup.slice(markup.indexOf('.about { margin'), markup.indexOf('</style>'));
+  const block = css.slice(0, css.indexOf('\n\n'));
+  const literals = block.match(/#[0-9a-fA-F]{3,8}|rgba?\(/g);
+  assert(!literals, `the about hardcodes ${literals} instead of using a theme token`);
+  assert(/var\(--ink-soft\)/.test(block), 'the about must take its colour from the palette');
+});
+
 check('no check left a dial moved behind it', () => {
   // Must be LAST. Half the file dials a value, draws, and puts it back;
   // one that forgets leaves every later check drawing a different cat,
