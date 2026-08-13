@@ -2883,6 +2883,10 @@ const WHISKER = {
   tipX: 1.05, // ...to past the head's own edge
   rootY: 0.26, // where the middle one leaves the muzzle
   tipY: 0.12, // and where it ends up
+  // The whole set, up or down together, in head radii. Separate from
+  // rootY/tipY on purpose: those two set the DROOP, and nudging the pair
+  // of them in step to move the set is how a droop gets lost by accident.
+  offsetY: 0,
   rootSpread: 0.1, // fan at the root
   tipSpread: 0.22, // ...and at the tip, so they splay
   // How much of the forward length the REARWARD fan gets, side-on. 0 by
@@ -3331,10 +3335,14 @@ function drawWhiskers(ctx, head, a, view, size) {
     for (let i = 0; i < W.count; i++) {
       const k = i - mid;
       ctx.beginPath();
-      ctx.moveTo(cx + dir * r * W.rootX, cy + r * (W.rootY - 0.26) + k * r * W.rootSpread);
+      const dy = r * W.offsetY;
+      ctx.moveTo(
+        cx + dir * r * W.rootX,
+        cy + dy + r * (W.rootY - 0.26) + k * r * W.rootSpread,
+      );
       ctx.lineTo(
         cx + dir * r * (W.rootX + (W.tipX - W.rootX) * reach),
-        cy + r * (W.tipY - 0.26) + k * r * W.tipSpread,
+        cy + dy + r * (W.tipY - 0.26) + k * r * W.tipSpread,
       );
       ctx.stroke();
     }

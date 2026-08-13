@@ -661,6 +661,11 @@
   // Each demo: one drawFrame(ctx, w, h, now, isV2). v1 column shows today's
   // behavior (snaps); v2 shows the prototype (blends, squash, lid, settle).
   const CAT = 84;
+  // Lab-only. The live tile is not one number: a 20x20 world fits its
+  // HEIGHT, so an 800px window gives 32px and a tall display 60px, which is
+  // the MAP_MAX_PX ceiling. Judging whiskers at 31 when the reader's own
+  // page draws 46 would cut them for a size nobody sees.
+  const WHISKER_LAB = { liveTile: 31 };
   // Where the water surface crosses a swimming cat's box (both swim
   // cards share it, so a SWIM re-dial can never leave the two cards'
   // waterlines disagreeing). The -0.02 is the shore margin: the surface
@@ -1568,9 +1573,17 @@
         { key: 'count', label: 'per side', min: 1, max: 5, step: 1 },
         { key: 'rootX', label: 'leaves the muzzle at (head radii)', min: 0, max: 0.8, step: 0.02 },
         { key: 'tipX', label: 'ends at (1.0 is the head edge)', min: 0.6, max: 1.6, step: 0.05 },
+        { key: 'offsetY', label: 'the whole set, up / down', min: -0.5, max: 0.5, step: 0.01 },
+        { key: 'rootY', label: 'droop — where it leaves the muzzle', min: 0, max: 0.6, step: 0.01 },
+        { key: 'tipY', label: 'droop — where it ends up', min: -0.2, max: 0.6, step: 0.01 },
         { key: 'rootSpread', label: 'fan at the root', min: 0, max: 0.3, step: 0.01 },
         { key: 'tipSpread', label: 'fan at the tip', min: 0, max: 0.5, step: 0.02 },
         { key: 'back', label: 'far-side length, side view (foreshortening)', min: 0, max: 1, step: 0.05 },
+        {
+          key: 'liveTile', bag: WHISKER_LAB,
+          label: 'top row size, px — set it to YOUR map (lab only)',
+          min: 22, max: 60, step: 1,
+        },
       ],
       readout() {
         const W = CatV2.WHISKER;
@@ -1579,16 +1592,17 @@
           `WHISKER = { on: ${W.on}, count: ${W.count}, alpha: ${W.alpha}, ` +
           `widthPx: ${W.widthPx}, widthOfCat: ${W.widthOfCat},\n` +
           `  rootX: ${W.rootX}, tipX: ${W.tipX}, rootY: ${W.rootY}, tipY: ${W.tipY},\n` +
+          `  offsetY: ${W.offsetY},\n` +
           `  rootSpread: ${W.rootSpread}, tipSpread: ${W.tipSpread}, back: ${W.back} }\n` +
-          `stroke: ${px(31).toFixed(2)}px at the live 31px tile, ${px(60).toFixed(2)}px at a 60px one ` +
-          `(the MAP_MAX_PX ceiling, and what camera mode would reach)\n` +
-          (px(31) <= W.widthPx + 1e-9
-            ? '  at 31px it is PINNED at the floor — exactly where kitten.me sits, and where both previous attempts died'
-            : '  at 31px it is above the floor')
+          `stroke: ${px(WHISKER_LAB.liveTile).toFixed(2)}px at the ${WHISKER_LAB.liveTile}px tile above, ` +
+          `${px(60).toFixed(2)}px at a 60px one (the MAP_MAX_PX ceiling)\n` +
+          (px(WHISKER_LAB.liveTile) <= W.widthPx + 1e-9
+            ? `  at ${WHISKER_LAB.liveTile}px it is PINNED at the floor — where kitten.me sits too, and where both previous attempts died`
+            : `  at ${WHISKER_LAB.liveTile}px it is above the floor`)
         );
       },
       draw(ctx, w, h, now) {
-        const LIVE = 31, BIG = 93;
+        const LIVE = WHISKER_LAB.liveTile, BIG = LIVE * 3;
         const phase = (now % 3400) / 3400;
         // The two right-hand columns draw at FULL strength whatever the
         // `on` dial says, or the card shows three identical cats until
