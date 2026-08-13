@@ -140,7 +140,7 @@ const EXPORTS =
   ' mixPaletteColor, mixPalettes, parsePaletteColor,' +
   ' MEADOW_DAWN, bushesFor, drawBushAt, drawGroundCover, MEADOW_SALTS, MEADOW_DEFAULTS, tileHash, drawMeadowGround, drawGridOverlay, groupWaterTiles,' +
   ' buildPondPath, drawPonds, pondInradius, drawSunbeamGlow, drawWornPaths, VIEW, Presentation,' +
-  ' driftField, spriteOrder, SPRITE_RANK, coverSortKey, catSortKey,' +
+  ' driftField, spriteOrder, SPRITE_RANK, coverSortKey, catSortKey, coverStands,' +
   ' WorldRenderer })';
 const api = eval(src + EXPORTS);
 
@@ -1712,6 +1712,135 @@ check('the occlusion strip draws each species in its own stance', () => {
   for (const dial of ['bushLiftAlt', 'bushTrunkAlt', 'bushTrunkWidthAlt']) {
     assert(strip.includes(dial), `the occlusion strip draws both rows without ${dial}`);
   }
+});
+
+// ---- where cover stands (2026-08-13) ----
+
+check('the top row grows the species that lies down', () => {
+  // Owner: a tree hung off the top of the map. A standing canopy reaches
+  // about 0.38 tiles above its own tile, and row 0 has no headroom, so the
+  // edge of the world cut it off.
+  const t = api.MEADOW_DEFAULTS;
+  // Named args, not a default parameter: `some`/`every` pass (item, index,
+  // array), so a default second argument silently receives the INDEX.
+  const stands = (b, tt) => api.coverStands(tt || t, b.alt);
+  const all = api.bushesFor(20, 20, t, null);
+  assert(all.some((b) => stands(b)), 'guard: no standing cover at all, so this proves nothing');
+  const row0 = all.filter((b) => b.y === 0);
+  assert(row0.length > 0, 'guard: nothing grew in row 0, so the rule is untested');
+  assert(row0.every((b) => !stands(b)), 'a standing clump is still growing in the top row');
+  // Cover still GROWS there -- the fix is a different species, not a bald
+  // stripe along the top.
+  assert(row0.length === api.bushesFor(20, 20, { ...t, bushStyleAltShare: 0 }, null)
+    .filter((b) => b.y === 0).length, 'the top row lost clumps instead of swapping species');
+
+  // Keyed on which species STANDS, not on "the alt" -- which of the two is
+  // the tree has already flipped once, and would take this rule with it.
+  const flipped = { ...t, bushLift: t.bushLiftAlt, bushTrunk: t.bushTrunkAlt,
+    bushLiftAlt: t.bushLift, bushTrunkAlt: t.bushTrunk };
+  const flippedRow0 = api.bushesFor(20, 20, flipped, null).filter((b) => b.y === 0);
+  assert(
+    flippedRow0.every((b) => !stands(b, flipped)),
+    'with the stances swapped the top row grows a tree again -- the rule is keyed on the wrong thing',
+  );
+
+  // Both standing leaves nothing better to offer, so the roll stands
+  // rather than the world losing its top row of cover.
+  const bothStand = { ...t, bushLift: 1, bushTrunk: 1, bushLiftAlt: 1, bushTrunkAlt: 1 };
+  assert(
+    api.bushesFor(20, 20, bothStand, null).filter((b) => b.y === 0).length === row0.length,
+    'when both species stand the top row should keep its cover, not drop it',
+  );
+});
+
+check('a clump stands slightly off the grid, and never off the map', () => {
+  const t = api.MEADOW_DEFAULTS;
+  const all = api.bushesFor(20, 20, t, null);
+  assert(all.length > 8, 'guard: too few clumps to say anything');
+
+  // It actually moves them, and within the dial.
+  assert(all.every((b) => Math.abs(b.ox) <= t.bushJitterX + 1e-9),
+    `a clump wandered past the dial (${t.bushJitterX})`);
+  assert(all.some((b) => Math.abs(b.ox) > t.bushJitterX * 0.4),
+    'every clump landed near the middle of its tile -- the nudge is not doing anything');
+  assert(all.every((b) => b.ox !== 0), 'a clump is still dead on the grid');
+
+  // Stable for the life of the world: scenery that moves between frames is
+  // the flicker `occupiedTiles` was narrowed to prevent.
+  assert(
+    JSON.stringify(api.bushesFor(20, 20, t, null)) === JSON.stringify(all),
+    'a clump moved between calls',
+  );
+
+  // Clamped at the side edges, or a sideways nudge just reintroduces the
+  // owner's complaint one border over.
+  const wide = api.bushesFor(20, 20, { ...t, bushChance: 0.9, bushJitterX: 0.4 }, null);
+  const left = wide.filter((b) => b.x === 0);
+  const right = wide.filter((b) => b.x === 19);
+  assert(left.length && right.length, 'guard: no edge clumps to check');
+  assert(left.every((b) => b.ox >= 0), 'a clump on the left edge was nudged off the map');
+  assert(right.every((b) => b.ox <= 0), 'a clump on the right edge was nudged off the map');
+
+  // And 0 is exactly the grid that shipped before this existed.
+  assert(
+    api.bushesFor(20, 20, { ...t, bushJitterX: 0 }, null).every((b) => b.ox === 0),
+    'the dial does not switch off',
+  );
+
+  // Its OWN hash channel. Sharing `bushShape` would tie where a clump
+  // stands to how it is shaped, so every clump of a given shape would sit
+  // at the same offset -- a correlation nobody asked for and which the
+  // bounds and determinism checks above cannot see.
+  // Asserted on the OUTPUT, not by comparing the two salt constants: the
+  // salts differing proves nothing about which one `bushesFor` reached
+  // for. If it drew the offset from the shape channel, `ox` would be a
+  // plain function of `seed` for every clump.
+  const fromShape = all.filter(
+    (b) => Math.abs(b.ox - (b.seed - 0.5) * 2 * t.bushJitterX) < 1e-9,
+  ).length;
+  assert(
+    fromShape < all.length / 2,
+    `${fromShape} of ${all.length} clumps have an offset derived from their SHAPE seed -- ` +
+      'place and shape are sharing a hash channel',
+  );
+
+  // ...and the drawing actually MOVES. bushesFor deciding an offset that
+  // drawBushAt then ignores would pass every check above it.
+  const opsAt = (ox) => {
+    const log = [];
+    api.drawBushAt(guardCtx(log), { x: 3, y: 4, ox, alt: false, seed: 0.55, tile: 32, t });
+    return log;
+  };
+  const home = opsAt(0);
+  const moved = opsAt(0.25);
+  assert(String(home) !== String(moved), 'drawBushAt ignores the offset it is handed');
+  // Moved by exactly the offset, in x only: every x coordinate shifts by
+  // 0.25 tiles and nothing vertical changes.
+  const xs = (log) => log.filter((o) => o[0] === 'ellipse' || o[0] === 'arc').map((o) => o[1]);
+  const ys = (log) => log.filter((o) => o[0] === 'ellipse' || o[0] === 'arc').map((o) => o[2]);
+  assert(xs(home).length, 'guard: the clump drew no arcs to measure');
+  assert(
+    xs(home).every((v, i) => Math.abs(xs(moved)[i] - v - 0.25 * 32) < 1e-6),
+    'the offset moved the drawing by something other than itself',
+  );
+  assert(String(ys(home)) === String(ys(moved)), 'a HORIZONTAL nudge moved the clump vertically');
+});
+
+check('the sideways nudge cannot disagree with the depth sort', () => {
+  // The reason this is horizontal ONLY (owner's call, 2026-08-13):
+  // `coverSortKey` is keyed to y, so sliding a clump sideways cannot move
+  // its ground contact. A vertical nudge would have to move the sort key
+  // in the same edit, and getting that wrong puts a cat in front of a
+  // shrub it is standing behind.
+  const t = api.MEADOW_DEFAULTS;
+  const at = { x: 5, y: 7 };
+  const keys = [-0.4, -0.15, 0, 0.15, 0.4].map((ox) => api.coverSortKey({ ...at, ox }, t));
+  assert(new Set(keys).size === 1, `the nudge moved the sort key: ${keys.join(', ')}`);
+  // ...and a clump one tile south still sorts in front, whatever the nudge.
+  assert(
+    api.coverSortKey({ x: 5, y: 8, ox: -0.4 }, t) > api.coverSortKey({ x: 5, y: 7, ox: 0.4 }, t),
+    'depth stopped following the row',
+  );
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);
