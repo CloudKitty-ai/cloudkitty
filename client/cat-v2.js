@@ -2485,7 +2485,6 @@ function drawLegs(ctx, legs, a, p) {
       ctx.stroke();
     }
   }
-  ctx.restore();
 }
 
 function earPoints(head, side, back, turn = 0) {
@@ -3333,6 +3332,7 @@ function drawWhiskers(ctx, head, a, view, size) {
       ctx.stroke();
     }
   }
+  ctx.restore();
 }
 
 function drawRaisedPaw(ctx, head, a) {

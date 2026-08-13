@@ -2608,6 +2608,61 @@ check('a blend from a pose to ITSELF draws exactly that pose', () => {
   }
 });
 
+check('every cat draw leaves the canvas state exactly as it found it', () => {
+  // This suite had 140 checks green while the body and head were INVISIBLE
+  // (2026-08-13). A stray `ctx.restore()` in drawLegs popped the transform
+  // paintBox had pushed, so everything drawn after the legs landed in unit
+  // space at the canvas origin -- a sub-pixel speck. The legs and tail
+  // survived because they draw first.
+  //
+  // Nothing here could see it: every check reads WHICH ops were issued,
+  // and the op list was unchanged. The damage was to the ctx STATE STACK,
+  // which is invisible to a mock that only logs. So this one counts.
+  const depths = (draw) => {
+    let depth = 0;
+    let lowest = 0;
+    const ctx = new Proxy({}, {
+      get: (_t, p) => (...a) => {
+        const op = String(p);
+        if (op === 'save') depth += 1;
+        if (op === 'restore') { depth -= 1; lowest = Math.min(lowest, depth); }
+        if (op === 'measureText') return { width: 10 };
+        return undefined;
+      },
+      set: () => true,
+    });
+    draw(ctx);
+    return { depth, lowest };
+  };
+
+  const POSES = ['idle', 'walking', 'swim', 'loaf', 'sleep-curl', 'drinking',
+    'eating', 'grooming', 'pouncing', 'sit', 'stretch'];
+  const wasOn = CatV2.WHISKER.on;
+  for (const on of [0, 1]) {
+    CatV2.WHISKER.on = on;
+    for (const [view, facing] of [['side', 'right'], ['side', 'left'], ['front', 'south'], ['back', 'north']]) {
+      for (const pose of POSES) {
+        const r = depths((ctx) => CatV2.drawCat(ctx, {
+          appearance: CatV2.appearanceFor(3), facing, size: 31, x: 0, y: 0,
+          pose, phase: 0.4, layout: { view },
+        }));
+        assert(r.depth === 0,
+          `${pose}/${view}${on ? ' (whiskers on)' : ''} left the ctx stack at ${r.depth}, not 0`);
+        assert(r.lowest >= 0,
+          `${pose}/${view}${on ? ' (whiskers on)' : ''} restored past its own saves -- ` +
+            'it is popping state the CALLER pushed, and everything after it draws in the wrong space');
+      }
+    }
+  }
+  // The blend path too: it wraps the draw in its own save for the settle.
+  const t = depths((ctx) => CatV2.drawCatTween(ctx, {
+    appearance: CatV2.appearanceFor(3), facing: 'right', size: 31, x: 0, y: 0,
+    from: 'walking', to: 'idle', t: 0.5, phaseFrom: 0.3, phaseTo: 0.3,
+  }));
+  CatV2.WHISKER.on = wasOn;
+  assert(t.depth === 0 && t.lowest >= 0, `a blended draw left the ctx stack at ${t.depth}`);
+});
+
 check('whiskers ship OFF, and a cat walking away never grows any', () => {
   // Attempt three (2026-08-13), ported from kitten.me. Off until judged --
   // the first two were built and cut, and BACKLOG records that cutting
