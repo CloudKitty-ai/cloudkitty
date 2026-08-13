@@ -1623,7 +1623,12 @@ check('trunk width scales the width each style was authored with', () => {
     assert(rects.length, 'the trunk style drew no rect at all');
     return rects[0][3];
   };
-  const r = (0.26 + 0.55 * 0.18) * 32; // the seed and tile clumpOps uses
+  // Derived from the DIALS, not from a copy of the formula: this line
+  // restated 0.26 + s*0.18 and broke the moment those became
+  // bushSizeMin/bushSizeSpread, on a change that had nothing to do with
+  // trunks.
+  const d = api.MEADOW_DEFAULTS;
+  const r = (d.bushSizeMin + 0.55 * d.bushSizeSpread) * 32; // clumpOps' seed and tile
   assert(
     Math.abs(widthAt(1) - r * 0.2) < 1e-9,
     `at 1 the trunk should be its authored 0.2 radii (${(r * 0.2).toFixed(3)}), got ${widthAt(1).toFixed(3)}`,
@@ -1773,13 +1778,23 @@ check('a clump stands slightly off the grid, and never off the map', () => {
   );
 
   // Clamped at the side edges, or a sideways nudge just reintroduces the
-  // owner's complaint one border over.
-  const wide = api.bushesFor(20, 20, { ...t, bushChance: 0.9, bushJitterX: 0.4 }, null);
-  const left = wide.filter((b) => b.x === 0);
-  const right = wide.filter((b) => b.x === 19);
-  assert(left.length && right.length, 'guard: no edge clumps to check');
-  assert(left.every((b) => b.ox >= 0), 'a clump on the left edge was nudged off the map');
-  assert(right.every((b) => b.ox <= 0), 'a clump on the right edge was nudged off the map');
+  // owner's complaint one border over. Asserted on the CANOPY, not on the
+  // centre: a clump is wider than its tile (the lobes reach ~1.14 radii,
+  // and the widest is 0.57 tiles against a half-tile of 0.5), so holding
+  // the centre inside the outermost tile centres still let the biggest
+  // ones hang off the edge.
+  const WIDE_JITTER = 0.4; // named, so the assertions below cannot read the
+  // SHIPPED jitter while measuring a world built with a different one.
+  const wide = api.bushesFor(20, 20, { ...t, bushChance: 0.9, bushJitterX: WIDE_JITTER }, null);
+  const reach = (b) => 1.14 * (t.bushSizeMin + b.seed * t.bushSizeSpread);
+  assert(wide.some((b) => b.x === 0) && wide.some((b) => b.x === 19), 'guard: no edge clumps to check');
+  const off = wide.filter(
+    (b) => (b.x + 0.5 + b.ox) - reach(b) < -1e-9 || (b.x + 0.5 + b.ox) + reach(b) > 20 + 1e-9,
+  );
+  assert(off.length === 0, `${off.length} clumps have a canopy hanging off the map`);
+  // ...and the clamp only ever pushes INWARD, never past the far side.
+  assert(wide.every((b) => Math.abs(b.ox) <= Math.max(WIDE_JITTER, reach(b)) + 1e-9),
+    'the clamp shoved a clump further than it could possibly need');
 
   // And 0 is exactly the grid that shipped before this existed.
   assert(
