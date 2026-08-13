@@ -444,7 +444,7 @@ const MEADOW_DEFAULTS = Object.freeze({
   // toward BLACK instead only greyed them: a near-white petal has no colour
   // to darken into. Judged in gallery-meadow.html.
   bloomShade: 0.28,
-  bushChance: 0.02, // tiles with a clump of tufted ground cover
+  bushChance: 0.0175, // tiles with a clump of tufted ground cover
   bushAlpha: 0.9, // and how strongly it reads against the grass
   // 'cover' | 'tuft' | 'bramble' (flat) | 'shrub' | 'grown' | 'trunk' |
   // 'tall' | 'lobed' (standing). Judged in gallery-meadow.html.

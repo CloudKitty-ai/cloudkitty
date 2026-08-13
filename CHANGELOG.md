@@ -201,6 +201,11 @@ change.
   not show it. The fix is one field. The check is the general property —
   a blend from a pose to *itself* must draw exactly that pose — so the
   next field dropped from the blend fails whatever it is (#203).
+- Cover density eased back to `bushChance` 0.0175, between where it sat
+  before the tree bake and the 0.02 that bake pushed it to. On the live
+  20×20 world that is 19 clumps down to 16, or 4.8% of tiles down to
+  4.0%, and it keeps all five of the small trees — the drop comes out of
+  the flat cover (#211).
 - Docs: rl-training + howto-rl caught up to spec 028 (two-head wire,
   20×20, certification assumptions rewritten — the channel is
   restrained by law, not economics), and kitty-eval is a pre-seating
