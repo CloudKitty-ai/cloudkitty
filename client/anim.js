@@ -409,6 +409,7 @@ const VIEW = Object.freeze({
     bushJitterX: 0.15, // how far off the grid a clump may stand, sideways, in tiles
     bushSizeMin: 0.2, // the smallest a clump may be, in tiles
     bushSizeSpread: 0.3, // ...and how much the shape seed adds on top
+    bushSizeMinDiff: 0.07, // two of a kind in one row must differ by this much
     bushAlpha: 0.9, // and how strongly it reads against the grass
     // 'cover' | 'tuft' | 'bramble' (flat) | 'shrub' | 'grown' | 'trunk' |
     // 'tall' (standing). Judged in gallery-meadow.html.

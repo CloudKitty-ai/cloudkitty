@@ -459,6 +459,12 @@ const MEADOW_DEFAULTS = Object.freeze({
   // differs in size differs in silhouette with it.
   bushSizeMin: 0.2,
   bushSizeSpread: 0.3,
+  // How far apart two clumps of the same kind must be in radius, in tiles,
+  // before they stop reading as the same clump twice. 0 switches the
+  // repel off. Measured on the world that prompted it: the pair that read
+  // as a repeat differed by 0.01 tiles, the pair the owner was happy with
+  // by 0.09.
+  bushSizeMinDiff: 0.07,
   bushAlpha: 0.9, // and how strongly it reads against the grass
   // 'cover' | 'tuft' | 'bramble' (flat) | 'shrub' | 'grown' | 'trunk' |
   // 'tall' | 'lobed' (standing). Judged in gallery-meadow.html.
@@ -1109,6 +1115,10 @@ function bushesFor(width, height, t, occupied) {
   const drift = driftField(width, height, t);
   const jitter = t.bushJitterX || 0;
   for (let y = 0; y < height; y++) {
+    // The last clump placed in THIS row, for the size-repel below. Reset
+    // per row, and x runs left to right, so "the previous one" is the
+    // neighbour the eye pairs it with.
+    let prev = null;
     for (let x = 0; x < width; x++) {
       if (tileHash(x, y, MEADOW_SALTS.bush) < 1 - drift.bush[y * width + x]) continue;
       if (occupied && occupied.has(`${x},${y}`)) continue;
@@ -1136,7 +1146,29 @@ function bushesFor(width, height, t, occupied) {
       // only the centre inside the outermost tile centres let the biggest
       // clumps hang a couple of pixels off the left and right edges, which
       // is the top-row complaint again at a smaller scale.
-      const seed = tileHash(x, y, MEADOW_SALTS.bushShape);
+      // Two clumps of the SAME kind, near enough in size, read as one
+      // clump stamped twice -- the owner's report (2026-08-13), measured
+      // at two bushes in a row whose radii differed by 0.2px. Widening the
+      // size range does not fix it: two tiles that hash to nearly the same
+      // seed stay nearly the same at any spread.
+      //
+      // So when the previous clump in this row is the same kind and within
+      // `bushSizeMinDiff` of this one, the seed takes a half turn. That is
+      // provably enough -- if |s - p| < T then |s' - p| >= 0.5 - T -- and
+      // one shift always suffices, so there is no loop here. The seed
+      // drives the lobe angles too, so the pair ends up differing in
+      // silhouette as well as in size.
+      //
+      // Same kind only: a tree standing beside a bush of its own size
+      // reads fine, and the owner said so.
+      let seed = tileHash(x, y, MEADOW_SALTS.bushShape);
+      const minDiff = t.bushSizeMinDiff || 0;
+      if (prev && prev.alt === alt
+        && Math.abs(seed - prev.seed) * t.bushSizeSpread < minDiff) {
+        seed = (seed + 0.5) % 1;
+      }
+      prev = { alt, seed };
+
       const reach = 1.14 * (t.bushSizeMin + seed * t.bushSizeSpread);
       let ox = (tileHash(x, y, MEADOW_SALTS.bushX) - 0.5) * 2 * jitter;
       // No `min(0, ...)` on the low end: a clump wider than half a tile

@@ -438,6 +438,45 @@ min; fully deterministic through the seeded RNG; tunables named in
 config (Article VI). **Design not settled — start with an ideation
 conversation, as the 008 direction was.**
 
+### Cover colour variance — wants a full treatment (added 2026-08-13; Client thread)
+
+Every clump takes the same two palette entries, `MEADOW.bush` and
+`MEADOW.bushHi`, so a meadow of sixteen clumps is sixteen copies of one
+colour. Raised while dialling the trees, and **deliberately not done as a
+slight per-clump tint**: the owner's read was that a small lightness jitter
+is a lot of plumbing for very little, and that this is worth doing properly
+or not at all (2026-08-13).
+
+**What "properly" might mean**, none of it decided:
+
+- Colour that means something rather than noise — the drift/fertility field
+  already says where the ground is good, so cover could be greener where it
+  thrives and drier at the edges of a drift. That reads as a meadow with
+  soil in it rather than as randomised shrubs.
+- Per-species palettes, so the trees are their own colour rather than the
+  bushes' colour on a trunk.
+- A second entry per species (body and highlight) so the variance survives
+  the shading, instead of one hue nudged two ways.
+
+**Effort, measured rather than guessed.** The mechanical part is that
+`MEADOW.bush` and `MEADOW.bushHi` appear at about **20 sites** across every
+style branch of `drawBushAt`. A per-clump colour means resolving both once
+at the top and threading them through all of them. The risk is missing one:
+a clump with a tinted canopy and an untinted highlight reads as a seam, and
+nothing in the suite would catch it today. A source check that no raw
+`MEADOW.bush`/`MEADOW.bushHi` survives inside `drawBushAt` makes the
+substitution safe, and is the same shape as the existing check that
+meadow.js never calls `shadeHex`.
+
+**The trap, if this is picked up:** palette entries are `rgb()` strings
+mid-crossfade, not hex, so any tint must go through `mixPaletteColor`.
+`shadePalette` already does. Getting this wrong is what turned the shrubs
+black in #191, and the crossfade check would catch a regression.
+
+About an hour for the slight-tint version that was declined; a full
+treatment is bigger and wants the lab's ground-cover card to show a spread
+of clumps side by side, which it does not today.
+
 ### Meadow finishing touches: grass detail + world edge (deferred from 008; Client thread)
 The meadow itself shipped in 008 (PR #13: organic ground, ponds,
 sunbeam glow, worn paths, grid demoted to `l` toggle). Three pieces

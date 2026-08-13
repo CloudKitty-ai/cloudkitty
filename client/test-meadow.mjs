@@ -1841,6 +1841,59 @@ check('a clump stands slightly off the grid, and never off the map', () => {
   assert(String(ys(home)) === String(ys(moved)), 'a HORIZONTAL nudge moved the clump vertically');
 });
 
+check('two of a kind in one row never read as the same clump twice', () => {
+  // Owner, 2026-08-13. Measured before the fix: two bushes in row 3 whose
+  // radii differed by 0.2px, and widening the size range did not help --
+  // two tiles that hash to nearly the same seed stay nearly the same at
+  // any spread. So the second one's seed takes a half turn.
+  const t = api.MEADOW_DEFAULTS;
+  const radius = (b) => t.bushSizeMin + b.seed * t.bushSizeSpread;
+  const rows = (tt) => {
+    const byRow = {};
+    for (const b of api.bushesFor(20, 20, tt, null)) (byRow[b.y] ||= []).push(b);
+    return Object.values(byRow).map((r) => r.sort((a, c) => a.x - c.x));
+  };
+
+  // The invariant, over a crowded world so there is plenty to check.
+  const crowded = { ...t, bushChance: 0.5 };
+  let pairs = 0;
+  for (const row of rows(crowded)) {
+    for (let i = 1; i < row.length; i++) {
+      if (row[i].alt !== row[i - 1].alt) continue;
+      pairs++;
+      const apart = Math.abs(radius(row[i]) - radius(row[i - 1]));
+      assert(
+        apart >= t.bushSizeMinDiff - 1e-9,
+        `two ${row[i].alt ? 'trees' : 'bushes'} in row ${row[i].y} differ by ${apart.toFixed(4)} ` +
+          `tiles, under the ${t.bushSizeMinDiff} they must clear`,
+      );
+    }
+  }
+  assert(pairs > 12, `only ${pairs} same-kind neighbours to check -- the world is too sparse`);
+
+  // A tree beside a bush of its own size reads fine, and the owner said
+  // so, so the rule must not fire across kinds. Checked by finding a mixed
+  // pair that is closer than the threshold and confirming it was left be.
+  const mixed = rows(crowded).flatMap((row) =>
+    row.slice(1).map((b, i) => [row[i], b]).filter(([a, c]) => a.alt !== c.alt),
+  );
+  assert(mixed.length, 'guard: no mixed neighbours in this world');
+  assert(
+    mixed.some(([a, c]) => Math.abs(radius(a) - radius(c)) < t.bushSizeMinDiff),
+    'no mixed pair is close in size, so nothing here proves the rule spares them',
+  );
+
+  // Off is exactly the placement that existed before the repel.
+  const off = api.bushesFor(20, 20, { ...t, bushSizeMinDiff: 0 }, null);
+  assert(off.some((b, i) => b.seed !== api.bushesFor(20, 20, t, null)[i].seed),
+    'the repel changes nothing at all -- it is not running');
+  // ...and it is stable, like everything else the scenery decides.
+  assert(
+    JSON.stringify(api.bushesFor(20, 20, t, null)) === JSON.stringify(api.bushesFor(20, 20, t, null)),
+    'a clump changed size between calls',
+  );
+});
+
 check('the sideways nudge cannot disagree with the depth sort', () => {
   // The reason this is horizontal ONLY (owner's call, 2026-08-13):
   // `coverSortKey` is keyed to y, so sliding a clump sideways cannot move
