@@ -1548,6 +1548,81 @@
       },
     },
     {
+      title: 'Whiskers, attempt three — does 0.8px at 0.4 alpha read?',
+      w: 560,
+      h: 250,
+      ownShadows: true,
+      bag: CatV2.WHISKER,
+      note:
+        'Ported from kitten.me, which draws whiskers without ever using the word. Its trick is not resolution: the stroke is max(0.8, cat*0.018), so below a 44px cat it is PINNED at the 0.8px floor — kitten.me does not escape the sub-pixel problem, it lives with it at 0.4 opacity, where a hairline reads as a soft hint rather than an aliased dotted line. Our two previous attempts died at "0.8px strokes", which is the same number at full strength. ' +
+        'The top row is the LIVE tile, which is the row that decides; the bottom is 3x for seeing what the pixels did. Off on the left, on in the middle and right, so the question is only whether the middle looks better than the left. Cut again is an acceptable answer — it is what happened the first two times.',
+      dials: [
+        { key: 'on', label: 'whiskers (0 = off, as shipped)', min: 0, max: 1, step: 0.05 },
+        { key: 'alpha', label: 'opacity — the whole trick', min: 0.1, max: 1, step: 0.05 },
+        { key: 'widthPx', label: 'stroke floor, in real pixels', min: 0.4, max: 2, step: 0.1 },
+        { key: 'widthOfCat', label: '...and its share of the cat above that', min: 0, max: 0.05, step: 0.002 },
+        { key: 'count', label: 'per side', min: 1, max: 5, step: 1 },
+        { key: 'rootX', label: 'leaves the muzzle at (head radii)', min: 0, max: 0.8, step: 0.02 },
+        { key: 'tipX', label: 'ends at (1.0 is the head edge)', min: 0.6, max: 1.6, step: 0.05 },
+        { key: 'rootSpread', label: 'fan at the root', min: 0, max: 0.3, step: 0.01 },
+        { key: 'tipSpread', label: 'fan at the tip', min: 0, max: 0.5, step: 0.02 },
+        { key: 'back', label: 'far-side length, side view (foreshortening)', min: 0, max: 1, step: 0.05 },
+      ],
+      readout() {
+        const W = CatV2.WHISKER;
+        const px = (size) => Math.max(W.widthPx / size, W.widthOfCat) * size;
+        return (
+          `WHISKER = { on: ${W.on}, count: ${W.count}, alpha: ${W.alpha}, ` +
+          `widthPx: ${W.widthPx}, widthOfCat: ${W.widthOfCat},\n` +
+          `  rootX: ${W.rootX}, tipX: ${W.tipX}, rootY: ${W.rootY}, tipY: ${W.tipY},\n` +
+          `  rootSpread: ${W.rootSpread}, tipSpread: ${W.tipSpread}, back: ${W.back} }\n` +
+          `stroke: ${px(31).toFixed(2)}px at the live 31px tile, ${px(60).toFixed(2)}px at a 60px one ` +
+          `(the MAP_MAX_PX ceiling, and what camera mode would reach)\n` +
+          (px(31) <= W.widthPx + 1e-9
+            ? '  at 31px it is PINNED at the floor — exactly where kitten.me sits, and where both previous attempts died'
+            : '  at 31px it is above the floor')
+        );
+      },
+      draw(ctx, w, h, now, isV2) {
+        if (!isV2) return; // v1 has no face to hang them on
+        const LIVE = 31, BIG = 93;
+        const phase = (now % 3400) / 3400;
+        const cols = [
+          { on: 0, view: 'side', facing: 'right', label: 'off (ships today)' },
+          { on: null, view: 'side', facing: 'right', label: 'on, side' },
+          { on: null, view: 'front', facing: 'south', label: 'on, toward you' },
+        ];
+        const was = CatV2.WHISKER.on;
+        for (let row = 0; row < 2; row++) {
+          const size = row === 0 ? LIVE : BIG;
+          const top = row === 0 ? 40 : 100;
+          for (let i = 0; i < cols.length; i++) {
+            const c = cols[i];
+            const cx = w * (i + 0.5) / cols.length;
+            CatV2.WHISKER.on = c.on === null ? was : c.on;
+            CatV2.drawCat(ctx, {
+              appearance: CatV2.appearanceFor(STORM),
+              facing: c.facing, size, x: cx - size / 2, y: top,
+              pose: 'idle', phase, layout: { view: c.view },
+            });
+            if (row === 0) {
+              ctx.fillStyle = '#3c4a3a';
+              ctx.font = '11px system-ui, sans-serif';
+              ctx.textAlign = 'center';
+              ctx.fillText(c.label, cx, 24);
+            }
+          }
+        }
+        CatV2.WHISKER.on = was;
+        ctx.fillStyle = '#3c4a3a';
+        ctx.font = '10px system-ui, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('live tile (31px) — the row that decides', 6, h - 6);
+        ctx.textAlign = 'right';
+        ctx.fillText('3x, for the pixels only', w - 6, h - 6);
+      },
+    },
+    {
       title: 'Swimming end-on — north vs south, to be judged',
       w: 560,
       h: 250,

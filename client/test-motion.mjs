@@ -2608,6 +2608,120 @@ check('a blend from a pose to ITSELF draws exactly that pose', () => {
   }
 });
 
+check('whiskers ship OFF, and a cat walking away never grows any', () => {
+  // Attempt three (2026-08-13), ported from kitten.me. Off until judged --
+  // the first two were built and cut, and BACKLOG records that cutting
+  // again is an acceptable outcome.
+  assert(CatV2.WHISKER.on === 0, `whiskers ship at ${CatV2.WHISKER.on}, want 0`);
+
+  const strokes = (on, size, view, facing) => {
+    const was = CatV2.WHISKER.on;
+    CatV2.WHISKER.on = on;
+    const out = [];
+    const ctx = new Proxy({}, {
+      get: (_t, p) => (...a) => out.push(String(p)),
+      set: () => true,
+    });
+    CatV2.drawCat(ctx, {
+      appearance: CatV2.appearanceFor(3), facing, size, x: 0, y: 0,
+      pose: 'idle', phase: 0.3, layout: { view },
+    });
+    CatV2.WHISKER.on = was;
+    return out.filter((c) => c === 'stroke').length;
+  };
+
+  // Two per side per whisker... no: one stroke each, both sides.
+  const want = CatV2.WHISKER.count * 2;
+  for (const [view, facing] of [['side', 'right'], ['front', 'south']]) {
+    assert(
+      strokes(1, 31, view, facing) - strokes(0, 31, view, facing) === want,
+      `${view}: expected ${want} whisker strokes, got ${strokes(1, 31, view, facing) - strokes(0, 31, view, facing)}`,
+    );
+  }
+  // The rule that costs nothing because of WHERE they are drawn: a cat
+  // walking away has no face, so it has no whiskers, and drawWhiskers
+  // never has to know that rule exists.
+  assert(
+    strokes(1, 31, 'back', 'north') === strokes(0, 31, 'back', 'north'),
+    'a cat walking away grew whiskers on the back of its head',
+  );
+});
+
+check('the whisker stroke is a PIXEL floor, not a unit one', () => {
+  // The trap this file already recorded once: the drawing runs in unit
+  // space, where a lineWidth of 0.8 is most of a cat. The floor is only
+  // meaningful in real pixels, which is why `size` is threaded down to the
+  // face at all.
+  //
+  // Read off the DRAWING, not recomputed here. The first version of this
+  // check restated `max(widthPx/size, widthOfCat)` and then asserted its
+  // own arithmetic, so it passed happily while the code multiplied instead
+  // of dividing -- which is a whisker 25 times too thick.
+  const W = CatV2.WHISKER;
+  const drawnPx = (size, count = W.count) => {
+    const was = { on: W.on, count: W.count };
+    W.on = 1; W.count = count;
+    let width = null;
+    let strokes = 0;
+    const ctx = new Proxy({}, {
+      get: (_t, p) => (...a) => { if (String(p) === 'stroke') strokes++; return undefined; },
+      set: (_t, p, v) => { if (String(p) === 'lineWidth') width = v; return true; },
+    });
+    CatV2.drawWhiskers(ctx, { cx: 0.5, cy: 0.4, r: 0.226 }, CatV2.appearanceFor(3), 'side', size);
+    W.on = was.on; W.count = was.count;
+    return { px: width * size, strokes };
+  };
+
+  assert(Math.abs(drawnPx(31).px - W.widthPx) < 1e-9,
+    `at 31px the stroke draws at ${drawnPx(31).px.toFixed(3)}px, want the ${W.widthPx}px floor`);
+  assert(Math.abs(drawnPx(44).px - W.widthPx) < 1e-9, 'at 44px it should still be on the floor -- kitten.me is too');
+  assert(drawnPx(60).px > W.widthPx, 'at a 60px tile it must finally clear the floor, or camera mode buys nothing');
+  // The floor really is in pixels: a smaller cat must not get a thinner one.
+  assert(Math.abs(drawnPx(22).px - drawnPx(31).px) < 1e-9,
+    'the stroke scales with the cat while clamped, so it is not a floor');
+  // ...and above the floor it does scale, or `widthOfCat` is decoration.
+  assert(drawnPx(120).px > drawnPx(60).px, 'past the floor the stroke stops growing with the cat');
+
+  // The count is a dial, not a number written twice.
+  assert(drawnPx(31, 2).strokes === 4, `count 2 drew ${drawnPx(31, 2).strokes} strokes, want 4`);
+  assert(drawnPx(31, 5).strokes === 10, `count 5 drew ${drawnPx(31, 5).strokes} strokes, want 10`);
+
+  // Side-on, the fan sweeping BACK along the cheek is shorter than the one
+  // sweeping forward off the muzzle -- it is pointing away from the camera.
+  // The same argument the swim tail's foreshortening allowance is built on.
+  // Read off the drawn segments, not off `W.back`.
+  const spans = (view) => {
+    const was = W.on; W.on = 1;
+    const segs = []; let from = null;
+    const ctx = new Proxy({}, {
+      get: (_t, p) => (...a) => {
+        if (String(p) === 'moveTo') from = a;
+        if (String(p) === 'lineTo' && from) segs.push(a[0] - from[0]);
+        return undefined;
+      },
+      set: () => true,
+    });
+    CatV2.drawWhiskers(ctx, { cx: 0.5, cy: 0.4, r: 0.226 }, CatV2.appearanceFor(3), view, 31);
+    W.on = was;
+    return {
+      forward: Math.max(...segs.filter((d) => d > 0)),
+      back: Math.abs(Math.min(...segs.filter((d) => d < 0))),
+    };
+  };
+  const side = spans('side');
+  assert(
+    side.back < side.forward - 1e-9,
+    `side-on, the rearward fan spans ${side.back.toFixed(4)} against the forward ${side.forward.toFixed(4)} ` +
+      '-- it points away from the camera, so it cannot be as long',
+  );
+  // Head-on there is no near and no far, so both fans match.
+  const front = spans('front');
+  assert(
+    Math.abs(front.back - front.forward) < 1e-9,
+    'head-on the two fans must match -- neither side is further away',
+  );
+});
+
 check('a turn only flips a facing that has something to flip through', () => {
   // `turnFacing` draws the PRE-turn facing for the first half of a turn,
   // which is what makes the flip land on the squash. It does that with a

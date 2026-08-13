@@ -1705,7 +1705,7 @@ function paintBox(ctx, L, appearance, { facing, size, x, y, lid = 0, turn = null
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
 
-  paintCat(ctx, L, appearance, fine, lid);
+  paintCat(ctx, L, appearance, fine, lid, size);
   ctx.restore();
 }
 
@@ -2288,7 +2288,7 @@ function catLayout(pose, phase, opts = {}) {
 const OUTLINE_W = 0.035;
 const WATER_DROPLET = '#9ccfe6'; // matches the world's water rim
 
-function paintCat(ctx, L, a, fine, lid = 0) {
+function paintCat(ctx, L, a, fine, lid = 0, size = 31) {
   const p = a.pattern || { kind: 'solid' };
 
   // Paint order IS the depth order, and for a cat walking away it inverts:
@@ -2307,7 +2307,7 @@ function paintCat(ctx, L, a, fine, lid = 0) {
     // unmistakable even at 31px.
     if (!rear) {
       drawInnerEars(ctx, L.head, a, earsBack, L.earNear || 0, L.earFar || 0);
-      drawFace(ctx, L.head, L.eyes, a, lid, L.gaze, L.yawn || 0, L.view);
+      drawFace(ctx, L.head, L.eyes, a, lid, L.gaze, L.yawn || 0, L.view, size);
     }
   };
 
@@ -2485,6 +2485,7 @@ function drawLegs(ctx, legs, a, p) {
       ctx.stroke();
     }
   }
+  ctx.restore();
 }
 
 function earPoints(head, side, back, turn = 0) {
@@ -2852,6 +2853,42 @@ const BELLY = {
   alpha: 0.85,
 };
 
+/**
+ * Whiskers, attempt three (2026-08-13). Off by default -- the first two
+ * were built and cut, and BACKLOG says cut again is an acceptable outcome.
+ *
+ * Ported from kitten.me, which draws them without ever using the word, and
+ * whose trick is not resolution but ALPHA. Its stroke is
+ * `max(0.8, cat * 0.018)`, so below a 44px cat it sits pinned at the 0.8px
+ * floor -- kitten.me does not escape the sub-pixel problem, it lives with
+ * it at 0.4 opacity, where a hairline reads as a soft hint instead of an
+ * aliased dotted line. Our two attempts died at "0.8px strokes", which is
+ * the same number drawn at full strength.
+ *
+ * The other half is placement: theirs run from 0.30 to 1.05 head radii, so
+ * they leave the muzzle and finish PAST the head silhouette, and most of
+ * their visible length is against the background rather than against fur.
+ *
+ * `widthPx` is in PIXELS and everything else is in head radii, because a
+ * pixel floor is the whole point. paintCat is handed `size` for it -- the
+ * drawing is otherwise in unit space, where a 0.8 lineWidth would be most
+ * of a cat.
+ */
+const WHISKER = {
+  on: 0, // 0..1, a fade rather than a switch, so the lab can find the edge
+  count: 3, // per side
+  alpha: 0.4, // kitten.me's, and the reason theirs work at all
+  widthPx: 0.8, // the floor, in real pixels
+  widthOfCat: 0.018, // ...and the share of the cat it grows past that
+  rootX: 0.3, // from the muzzle, in head radii
+  tipX: 1.05, // ...to past the head's own edge
+  rootY: 0.26, // where the middle one leaves the muzzle
+  tipY: 0.12, // and where it ends up
+  rootSpread: 0.1, // fan at the root
+  tipSpread: 0.22, // ...and at the tip, so they splay
+  back: 0.45, // how much of the forward length the rear pair gets (side view)
+};
+
 const NOSE = {
   x: 0.22, // nose center from head center / head.r (toward the muzzle)
   y: 0.29, // below head center / head.r
@@ -2894,7 +2931,7 @@ const MOUTH = {
   depth: 0.08, // vertical reach: leg drop ('v') or arc bulge ('w')
 };
 
-function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0, view = 'side') {
+function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0, view = 'side', size = 31) {
   // A yawn squeezes the eyes shut on its way open -- it is the eyes, not
   // the mouth, that make a yawn read as one at 31px.
   if (yawn > 0.02) lid = Math.max(lid, smooth01(yawn * 1.1));
@@ -3248,6 +3285,54 @@ function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0, view = 'si
     ctx.lineTo(nx + head.r * MOUTH.width, my + head.r * MOUTH.depth);
   }
   ctx.stroke();
+
+  drawWhiskers(ctx, head, a, view, size);
+}
+
+/**
+ * Three a side, leaving the muzzle and finishing past the head's own edge.
+ *
+ * Inside `drawFace` on purpose: that is only ever called for a face we can
+ * see, so a cat walking away has no whiskers without this knowing the rule
+ * exists. The same placement is why the muzzle masks moved there in #187.
+ */
+function drawWhiskers(ctx, head, a, view, size) {
+  const W = WHISKER;
+  if (!(W.on > 0)) return;
+  // In PIXELS, then converted: the drawing runs in unit space, where a
+  // lineWidth of 0.8 would be most of a cat. This is the floor kitten.me
+  // pins to below a 44px cat, and the reason its hairlines survive.
+  ctx.save();
+  ctx.lineWidth = Math.max(W.widthPx / size, W.widthOfCat);
+  // Alpha through the context, not baked into a colour string: cat-v2 has
+  // no `withAlpha`, and a whisker has to work over fur AND over grass, so
+  // compositing beats picking one blend.
+  ctx.globalAlpha = W.alpha * W.on;
+  // A pale cat needs a dark hair and a dark cat a pale one, or the whisker
+  // is the one part of the face that vanishes on half the roster.
+  ctx.strokeStyle = isDarkColor(a.furBase) ? '#efe7dd' : '#453c36';
+  ctx.lineCap = 'round';
+  const r = head.r;
+  const cx = muzzleX(head, view);
+  const cy = head.cy + r * NOSE.y;
+  // Front-on there is no near side and no far side, so both fans are the
+  // same length. In the side view the far fan is foreshortened -- the same
+  // argument the axial swim tail is built on.
+  const sides = view === 'front' ? [1, -1] : [1, -1];
+  const mid = (W.count - 1) / 2;
+  for (const dir of sides) {
+    const reach = view === 'front' || dir > 0 ? 1 : W.back;
+    for (let i = 0; i < W.count; i++) {
+      const k = i - mid;
+      ctx.beginPath();
+      ctx.moveTo(cx + dir * r * W.rootX, cy + r * (W.rootY - 0.26) + k * r * W.rootSpread);
+      ctx.lineTo(
+        cx + dir * r * (W.rootX + (W.tipX - W.rootX) * reach),
+        cy + r * (W.tipY - 0.26) + k * r * W.tipSpread,
+      );
+      ctx.stroke();
+    }
+  }
 }
 
 function drawRaisedPaw(ctx, head, a) {
@@ -3299,6 +3384,8 @@ const api = {
   AXIAL_CAMERAS,
   AXIAL_POSES,
   AXIAL_SWIM,
+  WHISKER,
+  drawWhiskers,
   applyAxial,
   FOCUS_VARIANTS,
   BREATH,
