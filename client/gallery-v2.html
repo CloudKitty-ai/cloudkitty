@@ -1593,6 +1593,28 @@
           `widthPx: ${W.widthPx}, widthOfCat: ${W.widthOfCat},\n` +
           `  rootX: ${W.rootX}, tipX: ${W.tipX}, rootY: ${W.rootY}, tipY: ${W.tipY},\n` +
           `  offsetY: ${W.offsetY},\n` +
+          // How much of each fan escapes the head. A fan that does not
+          // clear it is drawn against fur at a quarter opacity, which is
+          // invisible -- the rearward one was entirely buried before
+          // `tipX` grew, and still only just gets out.
+          (() => {
+            const h = { cx: 0.72, cy: 0.399, r: 0.226 };
+            const tips = [];
+            const probe = new Proxy({}, {
+              get: (_t, p) => (...a) => { if (String(p) === 'lineTo') tips.push(a[0]); },
+              set: () => true,
+            });
+            const was = W.on; W.on = 1;
+            CatV2.drawWhiskers(probe, h, CatV2.appearanceFor(3), 'side', WHISKER_LAB.liveTile);
+            W.on = was;
+            const t = WHISKER_LAB.liveTile;
+            const fwd = (Math.max(...tips) - (h.cx + h.r)) * t;
+            const back = ((h.cx - h.r) - Math.min(...tips)) * t;
+            return `clear of the head, side-on: forward ${fwd.toFixed(2)}px` +
+              (W.back > 0
+                ? `, rearward ${back.toFixed(2)}px${back < 1 ? ' — under a pixel, so it is buried in fur' : ''}\n`
+                : ' (rearward fan off)\n');
+          })() +
           `  rootSpread: ${W.rootSpread}, tipSpread: ${W.tipSpread}, back: ${W.back} }\n` +
           `stroke: ${px(WHISKER_LAB.liveTile).toFixed(2)}px at the ${WHISKER_LAB.liveTile}px tile above, ` +
           `${px(60).toFixed(2)}px at a 60px one (the MAP_MAX_PX ceiling)\n` +

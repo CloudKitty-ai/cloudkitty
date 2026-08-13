@@ -2667,7 +2667,14 @@ check('whiskers ship OFF, and a cat walking away never grows any', () => {
   // Attempt three (2026-08-13), ported from kitten.me. Off until judged --
   // the first two were built and cut, and BACKLOG records that cutting
   // again is an acceptable outcome.
-  assert(CatV2.WHISKER.on === 0, `whiskers ship at ${CatV2.WHISKER.on}, want 0`);
+  // This asserted whiskers shipped OFF, which was the point while they were
+  // unjudged. The owner turned them on (2026-08-13) after two previous
+  // attempts were cut, so the guard is retired and what replaces it pins
+  // the DECISION rather than the number: they ship, and going back to no
+  // whiskers is a third cut, not a tweak.
+  assert(CatV2.WHISKER.on > 0, 'whiskers ship on; turning them off is a decision, not a tweak');
+  assert(CatV2.WHISKER.alpha < 1,
+    'the whole technique is a hairline at reduced opacity -- at full alpha it is the aliased line that was cut twice');
 
   const strokes = (on, size, view, facing) => {
     const was = CatV2.WHISKER.on;
@@ -2766,21 +2773,31 @@ check('the whisker stroke is a PIXEL floor, not a unit one', () => {
       back: Math.abs(Math.min(...segs.filter((d) => d < 0))),
     };
   };
-  // Side-on the rearward fan ships OFF -- our muzzle sits forward of the
-  // head centre, so it would start inside the skull and every stroke of it
-  // would be buried in fur. Asserted as "not drawn at all" rather than
-  // "drawn short", because a zero-length stroke is still a stroke.
-  assert(W.back === 0, `WHISKER.back ships at ${W.back} -- the rearward fan is buried side-on`);
-  const sideOff = spans('side');
-  assert(!Number.isFinite(sideOff.back), 'side-on, the rearward fan should not be drawn at all');
-  // ...and when it IS dialled up, it is foreshortened: it points away from
-  // the camera, the same argument the axial swim tail is built on.
+  // `back` shipped at 0 while our muzzle offset buried the rearward fan.
+  // The owner's longer `tipX` reaches past the skull, so it is dialled up
+  // now -- that guard is retired rather than held. What survives is the
+  // mechanism: when `back` is under 1 the rearward fan is SHORTER, because
+  // it points away from the camera. Dialled here rather than read off the
+  // shipped value, so a re-dial cannot make this vacuous.
   const sideOn = spans('side', 0.5);
   assert(
     sideOn.back < sideOn.forward - 1e-9,
-    `dialled up, the rearward fan spans ${sideOn.back.toFixed(4)} against the forward ` +
+    `dialled to 0.5, the rearward fan spans ${sideOn.back.toFixed(4)} against the forward ` +
       `${sideOn.forward.toFixed(4)} -- it cannot be as long`,
   );
+  // The FORWARD fan has to clear the head, or the whiskers are three faint
+  // lines inside a face. This is the one that must hold at any dial.
+  const head = { cx: 0.72, cy: 0.399, r: 0.226 };
+  const tips = [];
+  const probe = new Proxy({}, {
+    get: (_t, p) => (...a) => { if (String(p) === 'lineTo') tips.push(a[0]); },
+    set: () => true,
+  });
+  const wasOn = W.on; W.on = 1;
+  CatV2.drawWhiskers(probe, head, CatV2.appearanceFor(3), 'side', 31);
+  W.on = wasOn;
+  const past = (Math.max(...tips) - (head.cx + head.r)) * 31;
+  assert(past > 2, `the forward fan clears the head by ${past.toFixed(2)}px -- it needs to read against grass, not fur`);
   // Head-on there is no near and no far, so both fans match.
   const front = spans('front');
   assert(

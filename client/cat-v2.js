@@ -2874,28 +2874,28 @@ const BELLY = {
  * of a cat.
  */
 const WHISKER = {
-  on: 0, // 0..1, a fade rather than a switch, so the lab can find the edge
+  on: 1, // owner-baked 2026-08-13, off the lab. 0..1, a fade not a switch.
   count: 3, // per side
-  alpha: 0.4, // kitten.me's, and the reason theirs work at all
+  alpha: 0.25, // kitten.me's, and the reason theirs work at all
   widthPx: 0.8, // the floor, in real pixels
-  widthOfCat: 0.018, // ...and the share of the cat it grows past that
-  rootX: 0.3, // from the muzzle, in head radii
-  tipX: 1.05, // ...to past the head's own edge
-  rootY: 0.26, // where the middle one leaves the muzzle
-  tipY: 0.12, // and where it ends up
+  widthOfCat: 0.016, // ...and the share of the cat it grows past that
+  rootX: 0.2, // from the muzzle, in head radii
+  tipX: 1.25, // ...to past the head's own edge
+  rootY: 0.25, // where the middle one leaves the muzzle
+  tipY: 0.18, // and where it ends up
   // The whole set, up or down together, in head radii. Separate from
   // rootY/tipY on purpose: those two set the DROOP, and nudging the pair
   // of them in step to move the set is how a droop gets lost by accident.
-  offsetY: 0,
+  offsetY: 0.03,
   rootSpread: 0.1, // fan at the root
-  tipSpread: 0.22, // ...and at the tip, so they splay
+  tipSpread: 0.2, // ...and at the tip, so they splay
   // How much of the forward length the REARWARD fan gets, side-on. 0 by
   // default, and that is geometry rather than taste: our muzzle sits 0.22
   // head radii forward of the head centre (kitten.me's face is centred),
   // so a rear fan starts deep inside the skull and would have to be 1.2x
   // the FORWARD one just to reach the back of the head. Every stroke of it
   // is buried in fur. Head-on there is no near side, so both fans draw.
-  back: 0,
+  back: 1,
 };
 
 const NOSE = {

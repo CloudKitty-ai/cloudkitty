@@ -853,7 +853,12 @@ const PORTRAIT_CAT = 47;
 // stripes, the new eye colour and its limbal ring) has the pixels to read.
 // Costs the name row 4px of its own width, which ellipsises rather than
 // wraps -- checked against the longest name on the roster.
-const PORTRAIT_W = 58;
+// 58 -> 61 when whiskers landed (2026-08-13): they reach past the head, so
+// `stretch` -- the widest thing drawn anywhere -- ran 0.8px off the right
+// edge of the chip. Widened rather than shortening the whiskers, since the
+// portrait is where the cat is BIGGEST (47px against the map's 31) and so
+// where the detail reads best. The chip check is what caught it.
+const PORTRAIT_W = 61;
 const PORTRAIT_H = 48;
 // Not the chip's geometric centre. The ink is not centred in the cat's
 // own box -- the tail reaches past the left edge while the right side
