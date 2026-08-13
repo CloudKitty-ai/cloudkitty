@@ -206,6 +206,17 @@ change.
   20×20 world that is 19 clumps down to 16, or 4.8% of tiles down to
   4.0%, and it keeps all five of the small trees — the drop comes out of
   the flat cover (#211).
+- Cover stops looking planted. Two changes to where it grows, both in
+  `bushesFor`, which is the only thing that knows where the map ends.
+  The top row now grows the species that lies down: a standing canopy
+  reaches about 0.38 tiles above its own tile, so a tree in row 0 was cut
+  off by the edge of the world. Cover density there is unchanged — it is
+  a different species, not a bald stripe. And every clump stands a little
+  off the grid, up to `bushJitterX` (0.15 tiles) to either side,
+  deterministic per tile and clamped so it cannot be nudged past the
+  outermost tile centres. Horizontal only, deliberately: `coverSortKey`
+  is keyed to y, so a sideways nudge cannot disagree with the depth sort
+  the way a vertical one would (#212).
 - Docs: rl-training + howto-rl caught up to spec 028 (two-head wire,
   20×20, certification assumptions rewritten — the channel is
   restrained by law, not economics), and kitty-eval is a pre-seating

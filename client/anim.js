@@ -406,6 +406,7 @@ const VIEW = Object.freeze({
     bloomChance: 0.05, // tiles with a flower
     bloomShade: 0.28, // how far the lower petals lean toward the heart
     bushChance: 0.0175, // tiles with a clump of tufted ground cover
+    bushJitterX: 0.15, // how far off the grid a clump may stand, sideways, in tiles
     bushAlpha: 0.9, // and how strongly it reads against the grass
     // 'cover' | 'tuft' | 'bramble' (flat) | 'shrub' | 'grown' | 'trunk' |
     // 'tall' (standing). Judged in gallery-meadow.html.

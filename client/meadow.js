@@ -386,6 +386,9 @@ const MEADOW_SALTS = Object.freeze({
   // purpose: sharing `bushShape` would tie the choice to the lobe angles,
   // so every shrub of one kind would also wear the same shape.
   bushKind: 22,
+  // Where in its tile a clump actually stands. Its own channel so nudging
+  // one does not also reshape it or change its species.
+  bushX: 23,
   // How good this patch of ground is (spec 03). Its own channel, sampled
   // SMOOTH rather than per-tile, and shared by all three scatters -- that
   // sharing is the point: grass, flowers and shrubs thicken in the same
@@ -445,6 +448,12 @@ const MEADOW_DEFAULTS = Object.freeze({
   // to darken into. Judged in gallery-meadow.html.
   bloomShade: 0.28,
   bushChance: 0.0175, // tiles with a clump of tufted ground cover
+  // How far a clump may stand from the middle of its tile, left or right,
+  // in tiles. Cover drawn dead on the grid reads as planted rather than
+  // grown (owner, 2026-08-13). HORIZONTAL ONLY, deliberately: `coverSortKey`
+  // is keyed to y, so sliding a clump sideways cannot disagree with the
+  // depth sort. A vertical nudge would have to move the sort key with it.
+  bushJitterX: 0.15,
   bushAlpha: 0.9, // and how strongly it reads against the grass
   // 'cover' | 'tuft' | 'bramble' (flat) | 'shrub' | 'grown' | 'trunk' |
   // 'tall' | 'lobed' (standing). Judged in gallery-meadow.html.
@@ -1085,14 +1094,40 @@ function driftField(width, height, t) {
   return field;
 }
 
+/** Does this species stand up off the ground, or lie on it? */
+function coverStands(t, alt) {
+  return (alt ? t.bushLiftAlt : t.bushLift) > 0 || (alt ? t.bushTrunkAlt : t.bushTrunk) > 0;
+}
+
 function bushesFor(width, height, t, occupied) {
   const out = [];
   const drift = driftField(width, height, t);
+  const jitter = t.bushJitterX || 0;
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       if (tileHash(x, y, MEADOW_SALTS.bush) < 1 - drift.bush[y * width + x]) continue;
       if (occupied && occupied.has(`${x},${y}`)) continue;
-      out.push({ x, y, seed: tileHash(x, y, MEADOW_SALTS.bushShape) });
+
+      // Which species, decided HERE rather than at draw time, because only
+      // this function knows where the map ends.
+      let alt = (t.bushStyleAltShare || 0) > 0
+        && tileHash(x, y, MEADOW_SALTS.bushKind) < t.bushStyleAltShare;
+      // A standing one needs headroom, and the top row has none: its canopy
+      // reaches about 0.38 tiles above its own tile and is cut off by the
+      // edge of the world (owner, 2026-08-13). So the top row grows the
+      // species that LIES DOWN. Keyed on which one stands rather than on
+      // "the alt", because which of the two is the tree has already flipped
+      // once. If both stand there is nothing better to offer, so the roll
+      // stands.
+      if (y === 0 && coverStands(t, alt) && !coverStands(t, !alt)) alt = !alt;
+
+      // ...and a small sideways nudge off the grid, clamped so it cannot
+      // push a clump past the outermost tile centres -- which is the same
+      // "keep it on the map" rule as the row above, one axis over.
+      let ox = (tileHash(x, y, MEADOW_SALTS.bushX) - 0.5) * 2 * jitter;
+      ox = Math.max(0.5 - (x + 0.5), Math.min(width - 0.5 - (x + 0.5), ox));
+
+      out.push({ x, y, ox, alt, seed: tileHash(x, y, MEADOW_SALTS.bushShape) });
     }
   }
   return out;
@@ -1147,13 +1182,20 @@ function spriteOrder(items) {
  *  flat ones lie on it and would only look like they stand. */
 const STANDING_COVER = new Set(['shrub', 'grown', 'trunk', 'tall', 'lobed']);
 
-function drawBushAt(ctx, { x, y, seed, tile: tileSize, t: tunables }) {
-  // Which of the two this one is. Drawn from its own channel so the choice
-  // is independent of the shape seed, and from (x, y) so it is stable for
-  // the life of the world -- scenery that changed species between frames
-  // is the flicker `occupiedTiles` was narrowed to avoid.
+function drawBushAt(ctx, { x, y, ox, alt, seed, tile: tileSize, t: tunables }) {
+  // Which of the two this one is, and where in its tile it stands. Both are
+  // decided by `bushesFor`, which knows the map's edges; the fallbacks are
+  // for hand-made clumps (the lab draws one at a time, off any map).
+  //
+  // Drawn from their own channels so the choices are independent of the
+  // shape seed, and from (x, y) so they are stable for the life of the
+  // world -- scenery that changed species or place between frames is the
+  // flicker `occupiedTiles` was narrowed to avoid.
   const share = tunables.bushStyleAltShare || 0;
-  const isAlt = share > 0 && tileHash(x, y, MEADOW_SALTS.bushKind) < share;
+  const isAlt = alt === undefined
+    ? share > 0 && tileHash(x, y, MEADOW_SALTS.bushKind) < share
+    : alt;
+  const nudge = ox === undefined ? 0 : ox;
   const style = isAlt
     ? tunables.bushStyleAlt || tunables.bushStyle || 'cover'
     : tunables.bushStyle || 'cover';
@@ -1180,7 +1222,7 @@ function drawBushAt(ctx, { x, y, seed, tile: tileSize, t: tunables }) {
   {
     {
       const s = seed;
-      const bx = (x + 0.5) * tile;
+      const bx = (x + 0.5 + nudge) * tile;
       const by = (y + 0.5) * tile;
       const r = (0.26 + s * 0.18) * tile;
       // Where this thing meets the earth. The shadow is centred here, so
