@@ -251,6 +251,61 @@ piston, damping as the midpoint, judged in the lab on a card that walks a
 cat north and south — with "do nothing" as a fourth thing in the
 comparison, not as the absence of one.
 
+### Stationary poses have no axial drawing (added 2026-08-12; Client thread)
+
+`AXIAL_POSES` is `{walking, idle, swim}`. Every other pose falls back to a
+side view, so a cat facing north that stops to drink is drawn in profile
+for that tick and then faces away again once it steps. A side-on cat shows
+its face, so the excursion reads as the cat turning to look at you and
+turning back. The owner reported it twice, most recently at the waterline
+(2026-08-12).
+
+It concentrates at ponds because that is where cats drink and groom, not
+because water is involved in the mechanism.
+
+**Measured** (668-tick live feed, four cats, driven through the real
+renderer):
+
+- 148 stops after a north/south walk. 130 of them are the cat arriving to
+  do something: eating 47, drinking 42, grooming 22, pouncing 19, loaf 9.
+- Of the genuinely idle stops, 5 of 9 keep the axial view. The #198 lock
+  holds the other 4 side-on, which is that fix working.
+- 170 view changes with the served facing UNCHANGED over the same feed,
+  71 of them reversing inside a tick.
+- `eating` + `drinking` + `grooming` alone would cover 111 of the 148.
+
+**Ruled out, so it is not re-investigated.** It is not the facing memory,
+not the axial lock, not `turnFacing`, and not the swim gate: the drawn view
+never changes between promotions, measured at 0 across 128,260 attributed
+draws with the pacer and arrival jitter in the loop. Poses do change
+mid-tick (162, mostly `swim` to `walking` at the waterline) and the view
+holds through every one. What looks sub-tick is a one-tick excursion.
+
+PR #198 already took the cheap half: once a pose without an axial
+drawing turns a cat side-on it stays there until the cat steps, which cut
+within-a-tick reversals from 295 to 81. What remains has a real pose change
+behind it, so no lock can remove it.
+
+Options, costed:
+
+- **Author axial drawings for the stationary poses** — the true fix, and
+  the only one that does not lie about what the cat is doing. `drinking`,
+  `eating` and `grooming` cover 111 of 148. Design's, roughly the size of
+  the swim pose (#199), and it wants the same treatment: both directions
+  drawn, judged side by side in the lab at the live tile before either
+  ships.
+- **Reuse the axial `idle` with a head dip** for the head-down poses,
+  rather than drawing three new ones. Much cheaper. Risk: at 31px a dipped
+  head may read as a cat staring at the ground in all three cases, which
+  loses the distinction the poses exist for.
+- **Hold the axial view through a short non-axial episode.** Cheap, and
+  wrong in a way worth naming: it draws a swimming or drinking cat in a
+  pose it is not in, and it delays a legitimate turn by a tick. It also
+  contradicts the #198 rule that the drawing turns when the cat turns.
+- **Do nothing.** Ships today, and the owner has accepted it once already
+  (2026-08-12: "I'm ok with that for now, what we have looks way more
+  natural already").
+
 ## P2 — the bigger pieces, for a proper sitting
 
 ### Eval-suite v2: a stronger counterfactual baseline (added 2026-07-25)
