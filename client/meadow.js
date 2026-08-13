@@ -433,7 +433,7 @@ const MEADOW_DEFAULTS = Object.freeze({
   // Rarer features take a higher power, so they concentrate harder. That
   // is what makes a thicket read as a thicket rather than as three shrubs
   // standing near each other.
-  fertilityCells: 5.5, // tiles per fertility blotch; larger = broader passages
+  fertilityCells: 4.5, // tiles per fertility blotch; larger = broader passages
   bladeFertPower: 2,
   bloomFertPower: 3,
   bushFertPower: 4,
@@ -444,7 +444,7 @@ const MEADOW_DEFAULTS = Object.freeze({
   // toward BLACK instead only greyed them: a near-white petal has no colour
   // to darken into. Judged in gallery-meadow.html.
   bloomShade: 0.28,
-  bushChance: 0.015, // tiles with a clump of tufted ground cover
+  bushChance: 0.02, // tiles with a clump of tufted ground cover
   bushAlpha: 0.9, // and how strongly it reads against the grass
   // 'cover' | 'tuft' | 'bramble' (flat) | 'shrub' | 'grown' | 'trunk' |
   // 'tall' | 'lobed' (standing). Judged in gallery-meadow.html.
@@ -459,7 +459,7 @@ const MEADOW_DEFAULTS = Object.freeze({
   // defensible and the argument is not settleable on paper -- this lets a
   // lab session settle it by eye, including at a mix neither side proposed.
   bushStyleAlt: 'trunk',
-  bushStyleAltShare: 0,
+  bushStyleAltShare: 0.3,
   // How much of the gap between the ground and the canopy the stem covers,
   // for the styles that draw one ('trunk', 'lobed'). 1 is a full stem, 0 is
   // none at all -- and at 0 the canopy is left hanging over its own shadow
@@ -469,14 +469,14 @@ const MEADOW_DEFAULTS = Object.freeze({
   // ...and the SECOND species' own stance, so a meadow can grow small
   // trees among flat cover. Both start where the primary is, so adding
   // these changed nothing until they were dialled (owner, 2026-08-11).
-  bushTrunkAlt: 0,
+  bushTrunkAlt: 1,
   // How THICK that stem is, as a multiple of the width each style was
   // drawn with -- the trunk style at 0.2 canopy radii, the lobed one
   // at 0.13. A multiplier rather than an absolute, so 1 is exactly the
   // shipped drawing and neither style loses the proportion it was
   // authored with. A small tree wants this well above 1.
-  bushTrunkWidth: 1,
-  bushTrunkWidthAlt: 1,
+  bushTrunkWidth: 2.55,
+  bushTrunkWidthAlt: 1.4,
   // The shrub's shadow, damped against the cats': a squat canopy sits
   // close to the ground, so it stretches far less and needs no alpha
   // falloff. Only the LENGTH is damped -- the lean also anchors the
@@ -485,7 +485,7 @@ const MEADOW_DEFAULTS = Object.freeze({
   bushShadowLength: 0.3, // and of its stretch past the caster
   bushShadowAlpha: 1, // no thinning: contact, not a smear
   bushLift: 0, // how far a shrub's canopy stands above its base, in radii
-  bushLiftAlt: 0, // the same, for the bushStyleAlt species
+  bushLiftAlt: 1.55, // the same, for the bushStyleAlt species
   bushBase: 0.72, // where it meets the ground, in tiles from the tile's top
   // How far the canopy's height pushes its shadow along the lean. Kept
   // small: a rooted thing's shadow leaves its base, and pushing it far
