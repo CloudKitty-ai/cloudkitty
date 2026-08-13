@@ -1549,6 +1549,10 @@
     },
     {
       title: 'Whiskers, attempt three — does 0.8px at 0.4 alpha read?',
+      // One column, not a v1/v2 pair: v1 has no face to hang whiskers on,
+      // so its half of the card was drawing an empty stage and reading as
+      // "the whiskers are missing" (owner, 2026-08-13).
+      v2Only: true,
       w: 560,
       h: 250,
       ownShadows: true,
@@ -1583,8 +1587,7 @@
             : '  at 31px it is above the floor')
         );
       },
-      draw(ctx, w, h, now, isV2) {
-        if (!isV2) return; // v1 has no face to hang them on
+      draw(ctx, w, h, now) {
         const LIVE = 31, BIG = 93;
         const phase = (now % 3400) / 3400;
         // The two right-hand columns draw at FULL strength whatever the
