@@ -222,6 +222,24 @@ change.
   outermost tile centres. Horizontal only, deliberately: `coverSortKey`
   is keyed to y, so a sideways nudge cannot disagree with the depth sort
   the way a vertical one would (#212).
+- Cover size becomes a dial and widens: `bushSizeMin` 0.2 and
+  `bushSizeSpread` 0.3, so a clump runs 6.2–15.5px at a 31px tile against
+  the old 8.1–13.6. The seed drives the lobe angles too, so a clump that
+  differs in size differs in silhouette with it. The side-edge clamp now
+  holds the *canopy* on the map rather than the centre: lobes reach about
+  1.14 radii, which at the new top size is 0.57 tiles against a half-tile
+  of 0.5, so the biggest clumps had started hanging off the left and
+  right borders — the top-row complaint again, at a smaller scale.
+
+  Widening alone did not fix what prompted it: two tiles that hash to
+  nearly the same seed stay nearly the same at any spread, and the pair
+  that read as one clump twice went from 0.2px apart to 0.4px. So a
+  clump whose radius is within `bushSizeMinDiff` (0.07 tiles) of the
+  previous clump of the *same kind* in its row now takes a half turn in
+  seed space — provably far enough that one shift always suffices, and
+  since the seed drives the lobe angles too, the pair ends up differing
+  in silhouette as well as size. A tree beside a bush of its own size is
+  left alone, because that reads fine (#214).
 - Docs: rl-training + howto-rl caught up to spec 028 (two-head wire,
   20×20, certification assumptions rewritten — the channel is
   restrained by law, not economics), and kitty-eval is a pre-seating

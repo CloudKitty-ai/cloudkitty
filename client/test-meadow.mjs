@@ -1623,7 +1623,12 @@ check('trunk width scales the width each style was authored with', () => {
     assert(rects.length, 'the trunk style drew no rect at all');
     return rects[0][3];
   };
-  const r = (0.26 + 0.55 * 0.18) * 32; // the seed and tile clumpOps uses
+  // Derived from the DIALS, not from a copy of the formula: this line
+  // restated 0.26 + s*0.18 and broke the moment those became
+  // bushSizeMin/bushSizeSpread, on a change that had nothing to do with
+  // trunks.
+  const d = api.MEADOW_DEFAULTS;
+  const r = (d.bushSizeMin + 0.55 * d.bushSizeSpread) * 32; // clumpOps' seed and tile
   assert(
     Math.abs(widthAt(1) - r * 0.2) < 1e-9,
     `at 1 the trunk should be its authored 0.2 radii (${(r * 0.2).toFixed(3)}), got ${widthAt(1).toFixed(3)}`,
@@ -1773,13 +1778,23 @@ check('a clump stands slightly off the grid, and never off the map', () => {
   );
 
   // Clamped at the side edges, or a sideways nudge just reintroduces the
-  // owner's complaint one border over.
-  const wide = api.bushesFor(20, 20, { ...t, bushChance: 0.9, bushJitterX: 0.4 }, null);
-  const left = wide.filter((b) => b.x === 0);
-  const right = wide.filter((b) => b.x === 19);
-  assert(left.length && right.length, 'guard: no edge clumps to check');
-  assert(left.every((b) => b.ox >= 0), 'a clump on the left edge was nudged off the map');
-  assert(right.every((b) => b.ox <= 0), 'a clump on the right edge was nudged off the map');
+  // owner's complaint one border over. Asserted on the CANOPY, not on the
+  // centre: a clump is wider than its tile (the lobes reach ~1.14 radii,
+  // and the widest is 0.57 tiles against a half-tile of 0.5), so holding
+  // the centre inside the outermost tile centres still let the biggest
+  // ones hang off the edge.
+  const WIDE_JITTER = 0.4; // named, so the assertions below cannot read the
+  // SHIPPED jitter while measuring a world built with a different one.
+  const wide = api.bushesFor(20, 20, { ...t, bushChance: 0.9, bushJitterX: WIDE_JITTER }, null);
+  const reach = (b) => 1.14 * (t.bushSizeMin + b.seed * t.bushSizeSpread);
+  assert(wide.some((b) => b.x === 0) && wide.some((b) => b.x === 19), 'guard: no edge clumps to check');
+  const off = wide.filter(
+    (b) => (b.x + 0.5 + b.ox) - reach(b) < -1e-9 || (b.x + 0.5 + b.ox) + reach(b) > 20 + 1e-9,
+  );
+  assert(off.length === 0, `${off.length} clumps have a canopy hanging off the map`);
+  // ...and the clamp only ever pushes INWARD, never past the far side.
+  assert(wide.every((b) => Math.abs(b.ox) <= Math.max(WIDE_JITTER, reach(b)) + 1e-9),
+    'the clamp shoved a clump further than it could possibly need');
 
   // And 0 is exactly the grid that shipped before this existed.
   assert(
@@ -1824,6 +1839,59 @@ check('a clump stands slightly off the grid, and never off the map', () => {
     'the offset moved the drawing by something other than itself',
   );
   assert(String(ys(home)) === String(ys(moved)), 'a HORIZONTAL nudge moved the clump vertically');
+});
+
+check('two of a kind in one row never read as the same clump twice', () => {
+  // Owner, 2026-08-13. Measured before the fix: two bushes in row 3 whose
+  // radii differed by 0.2px, and widening the size range did not help --
+  // two tiles that hash to nearly the same seed stay nearly the same at
+  // any spread. So the second one's seed takes a half turn.
+  const t = api.MEADOW_DEFAULTS;
+  const radius = (b) => t.bushSizeMin + b.seed * t.bushSizeSpread;
+  const rows = (tt) => {
+    const byRow = {};
+    for (const b of api.bushesFor(20, 20, tt, null)) (byRow[b.y] ||= []).push(b);
+    return Object.values(byRow).map((r) => r.sort((a, c) => a.x - c.x));
+  };
+
+  // The invariant, over a crowded world so there is plenty to check.
+  const crowded = { ...t, bushChance: 0.5 };
+  let pairs = 0;
+  for (const row of rows(crowded)) {
+    for (let i = 1; i < row.length; i++) {
+      if (row[i].alt !== row[i - 1].alt) continue;
+      pairs++;
+      const apart = Math.abs(radius(row[i]) - radius(row[i - 1]));
+      assert(
+        apart >= t.bushSizeMinDiff - 1e-9,
+        `two ${row[i].alt ? 'trees' : 'bushes'} in row ${row[i].y} differ by ${apart.toFixed(4)} ` +
+          `tiles, under the ${t.bushSizeMinDiff} they must clear`,
+      );
+    }
+  }
+  assert(pairs > 12, `only ${pairs} same-kind neighbours to check -- the world is too sparse`);
+
+  // A tree beside a bush of its own size reads fine, and the owner said
+  // so, so the rule must not fire across kinds. Checked by finding a mixed
+  // pair that is closer than the threshold and confirming it was left be.
+  const mixed = rows(crowded).flatMap((row) =>
+    row.slice(1).map((b, i) => [row[i], b]).filter(([a, c]) => a.alt !== c.alt),
+  );
+  assert(mixed.length, 'guard: no mixed neighbours in this world');
+  assert(
+    mixed.some(([a, c]) => Math.abs(radius(a) - radius(c)) < t.bushSizeMinDiff),
+    'no mixed pair is close in size, so nothing here proves the rule spares them',
+  );
+
+  // Off is exactly the placement that existed before the repel.
+  const off = api.bushesFor(20, 20, { ...t, bushSizeMinDiff: 0 }, null);
+  assert(off.some((b, i) => b.seed !== api.bushesFor(20, 20, t, null)[i].seed),
+    'the repel changes nothing at all -- it is not running');
+  // ...and it is stable, like everything else the scenery decides.
+  assert(
+    JSON.stringify(api.bushesFor(20, 20, t, null)) === JSON.stringify(api.bushesFor(20, 20, t, null)),
+    'a clump changed size between calls',
+  );
 });
 
 check('the sideways nudge cannot disagree with the depth sort', () => {

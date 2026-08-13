@@ -454,6 +454,17 @@ const MEADOW_DEFAULTS = Object.freeze({
   // is keyed to y, so sliding a clump sideways cannot disagree with the
   // depth sort. A vertical nudge would have to move the sort key with it.
   bushJitterX: 0.15,
+  // How big a clump is, in tiles: the smallest, and how much the shape
+  // seed adds on top. The seed drives the lobe angles too, so a clump that
+  // differs in size differs in silhouette with it.
+  bushSizeMin: 0.2,
+  bushSizeSpread: 0.3,
+  // How far apart two clumps of the same kind must be in radius, in tiles,
+  // before they stop reading as the same clump twice. 0 switches the
+  // repel off. Measured on the world that prompted it: the pair that read
+  // as a repeat differed by 0.01 tiles, the pair the owner was happy with
+  // by 0.09.
+  bushSizeMinDiff: 0.07,
   bushAlpha: 0.9, // and how strongly it reads against the grass
   // 'cover' | 'tuft' | 'bramble' (flat) | 'shrub' | 'grown' | 'trunk' |
   // 'tall' | 'lobed' (standing). Judged in gallery-meadow.html.
@@ -1104,6 +1115,10 @@ function bushesFor(width, height, t, occupied) {
   const drift = driftField(width, height, t);
   const jitter = t.bushJitterX || 0;
   for (let y = 0; y < height; y++) {
+    // The last clump placed in THIS row, for the size-repel below. Reset
+    // per row, and x runs left to right, so "the previous one" is the
+    // neighbour the eye pairs it with.
+    let prev = null;
     for (let x = 0; x < width; x++) {
       if (tileHash(x, y, MEADOW_SALTS.bush) < 1 - drift.bush[y * width + x]) continue;
       if (occupied && occupied.has(`${x},${y}`)) continue;
@@ -1121,13 +1136,49 @@ function bushesFor(width, height, t, occupied) {
       // stands.
       if (y === 0 && coverStands(t, alt) && !coverStands(t, !alt)) alt = !alt;
 
-      // ...and a small sideways nudge off the grid, clamped so it cannot
-      // push a clump past the outermost tile centres -- which is the same
-      // "keep it on the map" rule as the row above, one axis over.
-      let ox = (tileHash(x, y, MEADOW_SALTS.bushX) - 0.5) * 2 * jitter;
-      ox = Math.max(0.5 - (x + 0.5), Math.min(width - 0.5 - (x + 0.5), ox));
+      // ...and a small sideways nudge off the grid, clamped so the clump's
+      // own CANOPY stays on the map -- the same "keep it on the map" rule
+      // as the row above, one axis over.
+      //
+      // Clamped on the canopy rather than the centre because a clump is
+      // wider than its tile: the lobes reach about 1.14 radii, so at the
+      // widest size that is 0.57 tiles against a half-tile of 0.5. Holding
+      // only the centre inside the outermost tile centres let the biggest
+      // clumps hang a couple of pixels off the left and right edges, which
+      // is the top-row complaint again at a smaller scale.
+      // Two clumps of the SAME kind, near enough in size, read as one
+      // clump stamped twice -- the owner's report (2026-08-13), measured
+      // at two bushes in a row whose radii differed by 0.2px. Widening the
+      // size range does not fix it: two tiles that hash to nearly the same
+      // seed stay nearly the same at any spread.
+      //
+      // So when the previous clump in this row is the same kind and within
+      // `bushSizeMinDiff` of this one, the seed takes a half turn. That is
+      // provably enough -- if |s - p| < T then |s' - p| >= 0.5 - T -- and
+      // one shift always suffices, so there is no loop here. The seed
+      // drives the lobe angles too, so the pair ends up differing in
+      // silhouette as well as in size.
+      //
+      // Same kind only: a tree standing beside a bush of its own size
+      // reads fine, and the owner said so.
+      let seed = tileHash(x, y, MEADOW_SALTS.bushShape);
+      const minDiff = t.bushSizeMinDiff || 0;
+      if (prev && prev.alt === alt
+        && Math.abs(seed - prev.seed) * t.bushSizeSpread < minDiff) {
+        seed = (seed + 0.5) % 1;
+      }
+      prev = { alt, seed };
 
-      out.push({ x, y, ox, alt, seed: tileHash(x, y, MEADOW_SALTS.bushShape) });
+      const reach = 1.14 * (t.bushSizeMin + seed * t.bushSizeSpread);
+      let ox = (tileHash(x, y, MEADOW_SALTS.bushX) - 0.5) * 2 * jitter;
+      // No `min(0, ...)` on the low end: a clump wider than half a tile
+      // hangs off the edge at its tile centre, so the clamp has to be able
+      // to push it INWARD, not merely stop it drifting further out.
+      const lo = reach - (x + 0.5);
+      const hi = width - (x + 0.5) - reach;
+      ox = Math.max(lo, Math.min(hi, ox));
+
+      out.push({ x, y, ox, alt, seed });
     }
   }
   return out;
@@ -1224,7 +1275,14 @@ function drawBushAt(ctx, { x, y, ox, alt, seed, tile: tileSize, t: tunables }) {
       const s = seed;
       const bx = (x + 0.5 + nudge) * tile;
       const by = (y + 0.5) * tile;
-      const r = (0.26 + s * 0.18) * tile;
+      // Size, as a dial rather than two constants (owner, 2026-08-13:
+      // "two places where similar sized bushes on the same row look a
+      // little off"). The old 0.26 + s*0.18 gave 8.1 to 13.6px at a 31px
+      // tile, and with a dozen-odd clumps drawn independently from a 5.5px
+      // range, two landing within a pixel of each other is not bad luck --
+      // it is the expected spacing. Widening does not change the collision
+      // RATE, it changes how far apart two colliding clumps look.
+      const r = (t.bushSizeMin + s * t.bushSizeSpread) * tile;
       // Where this thing meets the earth. The shadow is centred here, so
       // anything standing must be planted here too -- drawing from the
       // tile centre instead left the trunk stopping 0.4 radii short of
