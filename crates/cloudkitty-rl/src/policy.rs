@@ -28,10 +28,17 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use thiserror::Error;
 
+use crate::attn::{AttnArtifact, AttnScratch, V3Header};
+use crate::config::ObservationConfig;
+
 pub const ARTIFACT_MAGIC: &[u8; 8] = b"CKPOLICY";
-/// v2 (spec 028): one trunk, two heads -- the final layer's out-width is
-/// menu_len + message_head_len, logits split by index convention.
+/// The v2 artifact format version (spec 028): one trunk, two heads -- the
+/// final layer's out-width is menu_len + message_head_len.
 pub const ARTIFACT_VERSION: u32 = 2;
+/// The artifact versions this build can serve (spec 030 FR-009): v2 (MLP) and
+/// v3 (entity-attention). Any other version is rejected by version, not by a
+/// downstream shape accident.
+pub const SUPPORTED_VERSIONS: &[u32] = &[2, 3];
 
 #[derive(Debug, Error)]
 pub enum ArtifactError {
@@ -42,7 +49,11 @@ pub enum ArtifactError {
     #[error("artifact header does not parse: {0}")]
     Header(String),
     #[error("unsupported artifact version {found} (this build supports {supported})")]
-    UnsupportedVersion { found: u32, supported: u32 },
+    UnsupportedVersion { found: u32, supported: String },
+    #[error("unsupported architecture '{0}' (v3 supports entity_attention)")]
+    Architecture(String),
+    #[error("invalid hyperparameters: {0}")]
+    Hyperparameter(String),
     #[error(
         "{schema} schema mismatch: the artifact was trained for {schema} schema v{found}, \
          this binary speaks v{expected} -- an artifact re-trained for this binary's \
@@ -74,6 +85,9 @@ pub struct SchemaExpectations {
     /// menu_len + message_head_len logits; `[0..menu_len)` is the activity
     /// head, `[menu_len..)` the message head.
     pub message_head_len: usize,
+    /// The slot configuration, so the v3 loader can derive the entity-token
+    /// layout and scatter map (spec 030). `Copy`, so this stays `Copy`.
+    pub observation: ObservationConfig,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -96,24 +110,52 @@ pub struct DenseLayer {
     pub bias: Vec<f32>,
 }
 
-/// A loaded, validated, content-hashed policy.
+/// The v2 MLP body: the validated header and dense layers.
 #[derive(Debug, Clone)]
-pub struct PolicyArtifact {
+pub struct MlpBody {
     pub header: ArtifactHeader,
     pub layers: Vec<DenseLayer>,
+}
+
+/// A loaded artifact's architecture-specific body, keyed on version. The v3
+/// body is boxed: an `AttnArtifact` is much larger than an `MlpBody`, so
+/// boxing keeps `PolicyArtifact` small.
+#[derive(Debug, Clone)]
+pub enum ArtifactBody {
+    V2(MlpBody),
+    V3(Box<AttnArtifact>),
+}
+
+/// A loaded, validated, content-hashed policy. The `sha256` field is common
+/// to both versions (kept a field so the server's startup log is unchanged);
+/// `body` dispatches the forward.
+#[derive(Debug, Clone)]
+pub struct PolicyArtifact {
+    pub body: ArtifactBody,
     /// Hex SHA-256 of the whole file, computed at load (FR-016).
     pub sha256: String,
 }
 
-/// Reused forward-pass buffers: two activation vectors, ping-ponged.
+/// Reused forward-pass buffers. The v2 path ping-pongs `a`/`b`; the v3 path
+/// uses `attn`. One `Scratch` serves both so the behavior seam is unchanged.
 #[derive(Debug, Default, Clone)]
 pub struct Scratch {
     a: Vec<f32>,
     b: Vec<f32>,
+    attn: AttnScratch,
+}
+
+/// Just the version, to dispatch before parsing the full header (the v2 and
+/// v3 headers are different schemas). Serde ignores the other fields.
+#[derive(Deserialize)]
+struct VersionProbe {
+    artifact_version: u32,
 }
 
 impl PolicyArtifact {
-    /// Loads and fully validates an artifact file (FR-016's chain).
+    /// Loads and fully validates an artifact file. Reads the container, then
+    /// dispatches on `artifact_version` to the matching version's validation
+    /// and forward (spec 030 FR-006, FR-009).
     pub fn load(path: &Path, expected: &SchemaExpectations) -> Result<Self, ArtifactError> {
         let bytes = std::fs::read(path)?;
         let sha256 = format!("{:x}", Sha256::digest(&bytes));
@@ -135,132 +177,184 @@ impl PolicyArtifact {
         cursor
             .read_exact(&mut header_bytes)
             .map_err(|_| ArtifactError::Header("truncated header".into()))?;
-        let header: ArtifactHeader = serde_json::from_slice(&header_bytes)
-            .map_err(|e| ArtifactError::Header(e.to_string()))?;
-
-        if header.artifact_version != ARTIFACT_VERSION {
-            return Err(ArtifactError::UnsupportedVersion {
-                found: header.artifact_version,
-                supported: ARTIFACT_VERSION,
-            });
-        }
-        for (schema, found, compiled) in [
-            (
-                "observation",
-                header.observation_schema,
-                expected.observation_schema,
-            ),
-            ("action", header.action_schema, expected.action_schema),
-            ("mask", header.mask_schema, expected.mask_schema),
-        ] {
-            if found != compiled {
-                return Err(ArtifactError::SchemaMismatch {
-                    schema: match schema {
-                        "observation" => "observation",
-                        "action" => "action",
-                        _ => "mask",
-                    },
-                    found,
-                    expected: compiled,
-                });
-            }
-        }
-        if header.activation != "relu" {
-            return Err(ArtifactError::Activation(header.activation.clone()));
-        }
-        if header.layers.is_empty() {
-            return Err(ArtifactError::Shape("no layers declared".into()));
-        }
-        if header.layers[0][0] != expected.observation_len {
-            return Err(ArtifactError::Shape(format!(
-                "input width {} does not match the compiled observation size {} -- \
-                 usually the artifact predates this binary's observation generation, \
-                 and an artifact re-trained for it is required",
-                header.layers[0][0], expected.observation_len
-            )));
-        }
-        let two_head = expected.menu_len + expected.message_head_len;
-        if header.layers.last().unwrap()[1] != two_head {
-            return Err(ArtifactError::Shape(format!(
-                "output width {} does not match the two-head width {} \
-                 (menu {} + message head {})",
-                header.layers.last().unwrap()[1],
-                two_head,
-                expected.menu_len,
-                expected.message_head_len
-            )));
-        }
-        for pair in header.layers.windows(2) {
-            if pair[0][1] != pair[1][0] {
-                return Err(ArtifactError::Shape(format!(
-                    "layer output {} feeds layer input {}",
-                    pair[0][1], pair[1][0]
-                )));
-            }
-        }
-
-        let expected_floats: usize = header
-            .layers
-            .iter()
-            .map(|&[input, output]| input * output + output)
-            .sum();
         let blob = &bytes[8 + 4 + header_len..];
-        if blob.len() != expected_floats * 4 {
-            return Err(ArtifactError::BlobSize {
-                found: blob.len(),
-                expected: expected_floats * 4,
-            });
-        }
 
-        let mut floats = blob
-            .chunks_exact(4)
-            .map(|c| f32::from_le_bytes([c[0], c[1], c[2], c[3]]));
-        let mut layers = Vec::with_capacity(header.layers.len());
-        for &[input, output] in &header.layers {
-            let weights: Vec<f32> = floats.by_ref().take(input * output).collect();
-            let bias: Vec<f32> = floats.by_ref().take(output).collect();
-            layers.push(DenseLayer {
-                input,
-                output,
-                weights,
-                bias,
-            });
-        }
-
-        Ok(PolicyArtifact {
-            header,
-            layers,
-            sha256,
-        })
-    }
-
-    /// The forward pass: ReLU between layers, raw logits out. Fixed
-    /// accumulation order — inputs ascending, bias last — so results are
-    /// bit-exact per platform. Returns a slice of `scratch`.
-    pub fn forward<'s>(&self, input: &[f32], scratch: &'s mut Scratch) -> &'s [f32] {
-        scratch.a.clear();
-        scratch.a.extend_from_slice(input);
-        let layer_count = self.layers.len();
-        for (index, layer) in self.layers.iter().enumerate() {
-            scratch.b.clear();
-            scratch.b.resize(layer.output, 0.0);
-            for out in 0..layer.output {
-                let row = &layer.weights[out * layer.input..(out + 1) * layer.input];
-                let mut sum = 0.0f32;
-                for (weight, value) in row.iter().zip(scratch.a.iter()) {
-                    sum += weight * value;
-                }
-                sum += layer.bias[out];
-                scratch.b[out] = if index + 1 < layer_count {
-                    sum.max(0.0)
-                } else {
-                    sum
-                };
+        let probe: VersionProbe = serde_json::from_slice(&header_bytes)
+            .map_err(|e| ArtifactError::Header(e.to_string()))?;
+        let body = match probe.artifact_version {
+            2 => ArtifactBody::V2(load_mlp(&header_bytes, blob, expected)?),
+            3 => {
+                let header: V3Header = serde_json::from_slice(&header_bytes)
+                    .map_err(|e| ArtifactError::Header(e.to_string()))?;
+                ArtifactBody::V3(Box::new(AttnArtifact::parse(header, blob, expected)?))
             }
-            std::mem::swap(&mut scratch.a, &mut scratch.b);
-        }
-        &scratch.a
+            found => {
+                return Err(ArtifactError::UnsupportedVersion {
+                    found,
+                    supported: SUPPORTED_VERSIONS
+                        .iter()
+                        .map(|v| v.to_string())
+                        .collect::<Vec<_>>()
+                        .join(", "),
+                })
+            }
+        };
+        Ok(PolicyArtifact { body, sha256 })
     }
+
+    /// The observation schema the artifact was trained against.
+    pub fn observation_schema(&self) -> u32 {
+        match &self.body {
+            ArtifactBody::V2(m) => m.header.observation_schema,
+            ArtifactBody::V3(a) => a.header.observation_schema,
+        }
+    }
+
+    /// The action schema the artifact was trained against.
+    pub fn action_schema(&self) -> u32 {
+        match &self.body {
+            ArtifactBody::V2(m) => m.header.action_schema,
+            ArtifactBody::V3(a) => a.header.action_schema,
+        }
+    }
+
+    /// The mask schema the artifact was trained against.
+    pub fn mask_schema(&self) -> u32 {
+        match &self.body {
+            ArtifactBody::V2(m) => m.header.mask_schema,
+            ArtifactBody::V3(a) => a.header.mask_schema,
+        }
+    }
+
+    /// The forward pass. Dispatches on the artifact version; both return the
+    /// `menu_len + message_head_len` logit vector the behavior seam splits.
+    /// Fixed accumulation order; no allocation per decision beyond scratch.
+    pub fn forward<'s>(&self, input: &[f32], scratch: &'s mut Scratch) -> &'s [f32] {
+        match &self.body {
+            ArtifactBody::V2(m) => mlp_forward(m, input, scratch),
+            ArtifactBody::V3(a) => a.forward(input, &mut scratch.attn),
+        }
+    }
+}
+
+/// The v2 validation chain (FR-016), producing the MLP body. Unchanged from
+/// the pre-v3 loader; only relocated behind the version dispatch.
+fn load_mlp(
+    header_bytes: &[u8],
+    blob: &[u8],
+    expected: &SchemaExpectations,
+) -> Result<MlpBody, ArtifactError> {
+    let header: ArtifactHeader =
+        serde_json::from_slice(header_bytes).map_err(|e| ArtifactError::Header(e.to_string()))?;
+    for (schema, found, compiled) in [
+        (
+            "observation",
+            header.observation_schema,
+            expected.observation_schema,
+        ),
+        ("action", header.action_schema, expected.action_schema),
+        ("mask", header.mask_schema, expected.mask_schema),
+    ] {
+        if found != compiled {
+            return Err(ArtifactError::SchemaMismatch {
+                schema: match schema {
+                    "observation" => "observation",
+                    "action" => "action",
+                    _ => "mask",
+                },
+                found,
+                expected: compiled,
+            });
+        }
+    }
+    if header.activation != "relu" {
+        return Err(ArtifactError::Activation(header.activation.clone()));
+    }
+    if header.layers.is_empty() {
+        return Err(ArtifactError::Shape("no layers declared".into()));
+    }
+    if header.layers[0][0] != expected.observation_len {
+        return Err(ArtifactError::Shape(format!(
+            "input width {} does not match the compiled observation size {} -- \
+             usually the artifact predates this binary's observation generation, \
+             and an artifact re-trained for it is required",
+            header.layers[0][0], expected.observation_len
+        )));
+    }
+    let two_head = expected.menu_len + expected.message_head_len;
+    if header.layers.last().unwrap()[1] != two_head {
+        return Err(ArtifactError::Shape(format!(
+            "output width {} does not match the two-head width {} \
+             (menu {} + message head {})",
+            header.layers.last().unwrap()[1],
+            two_head,
+            expected.menu_len,
+            expected.message_head_len
+        )));
+    }
+    for pair in header.layers.windows(2) {
+        if pair[0][1] != pair[1][0] {
+            return Err(ArtifactError::Shape(format!(
+                "layer output {} feeds layer input {}",
+                pair[0][1], pair[1][0]
+            )));
+        }
+    }
+
+    let expected_floats: usize = header
+        .layers
+        .iter()
+        .map(|&[input, output]| input * output + output)
+        .sum();
+    if blob.len() != expected_floats * 4 {
+        return Err(ArtifactError::BlobSize {
+            found: blob.len(),
+            expected: expected_floats * 4,
+        });
+    }
+
+    let mut floats = blob
+        .chunks_exact(4)
+        .map(|c| f32::from_le_bytes([c[0], c[1], c[2], c[3]]));
+    let mut layers = Vec::with_capacity(header.layers.len());
+    for &[input, output] in &header.layers {
+        let weights: Vec<f32> = floats.by_ref().take(input * output).collect();
+        let bias: Vec<f32> = floats.by_ref().take(output).collect();
+        layers.push(DenseLayer {
+            input,
+            output,
+            weights,
+            bias,
+        });
+    }
+    Ok(MlpBody { header, layers })
+}
+
+/// The v2 forward: ReLU between layers, raw logits out. Fixed accumulation
+/// order — inputs ascending, bias last — bit-exact per platform.
+fn mlp_forward<'s>(body: &MlpBody, input: &[f32], scratch: &'s mut Scratch) -> &'s [f32] {
+    scratch.a.clear();
+    scratch.a.extend_from_slice(input);
+    let layer_count = body.layers.len();
+    for (index, layer) in body.layers.iter().enumerate() {
+        scratch.b.clear();
+        scratch.b.resize(layer.output, 0.0);
+        for out in 0..layer.output {
+            let row = &layer.weights[out * layer.input..(out + 1) * layer.input];
+            let mut sum = 0.0f32;
+            for (weight, value) in row.iter().zip(scratch.a.iter()) {
+                sum += weight * value;
+            }
+            sum += layer.bias[out];
+            scratch.b[out] = if index + 1 < layer_count {
+                sum.max(0.0)
+            } else {
+                sum
+            };
+        }
+        std::mem::swap(&mut scratch.a, &mut scratch.b);
+    }
+    &scratch.a
 }
 
 /// Writes an artifact file — the reference exporter's core and the test
@@ -315,7 +409,8 @@ mod tests {
 
     fn expectations(input: usize, output: usize) -> SchemaExpectations {
         // Tests shape the head split as menu = output - 1, message head = 1:
-        // the two-head width is what load checks, not the split itself.
+        // the two-head width is what load checks, not the split itself. The
+        // observation config is unused by the v2 path validated here.
         SchemaExpectations {
             observation_schema: OBSERVATION_SCHEMA_VERSION,
             action_schema: 1,
@@ -323,6 +418,7 @@ mod tests {
             observation_len: input,
             menu_len: output - 1,
             message_head_len: 1,
+            observation: crate::config::ObservationConfig::default(),
         }
     }
 
@@ -339,7 +435,10 @@ mod tests {
         write_artifact(&path, &header, &layers).unwrap();
 
         let artifact = PolicyArtifact::load(&path, &expectations(3, 4)).unwrap();
-        assert_eq!(artifact.header, header);
+        match &artifact.body {
+            ArtifactBody::V2(m) => assert_eq!(m.header, header),
+            _ => panic!("a v2 file loads as a v2 body"),
+        }
         assert_eq!(artifact.sha256.len(), 64);
 
         let mut scratch = Scratch::default();

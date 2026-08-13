@@ -81,6 +81,36 @@ const CRITTER_SLOT: usize = 1 + 2 + 1 + 1 + 4 + 1;
 const MEOW_DIGEST: usize = HEAD_KINDS.len() * 4;
 const CLOCK: usize = 1;
 
+/// Per-type token feature widths — the schema-3 block sizes, exposed for the
+/// v3 entity tokenizer (spec 030 FR-003) so it derives token widths from this
+/// single source rather than restating them. `msg` is one message-kind
+/// digest slot; `msg_count` is the number of kinds.
+pub(crate) struct BlockWidths {
+    pub self_: usize,
+    pub kitty: usize,
+    pub chow: usize,
+    pub water: usize,
+    pub sunbeam: usize,
+    pub critter: usize,
+    pub msg: usize,
+    pub msg_count: usize,
+    pub clock: usize,
+}
+
+pub(crate) const fn block_widths() -> BlockWidths {
+    BlockWidths {
+        self_: SELF_BLOCK,
+        kitty: KITTY_SLOT,
+        chow: CHOW_SLOT,
+        water: WATER_SLOT,
+        sunbeam: SUNBEAM_SLOT,
+        critter: CRITTER_SLOT,
+        msg: MEOW_DIGEST / HEAD_KINDS.len(),
+        msg_count: HEAD_KINDS.len(),
+        clock: CLOCK,
+    }
+}
+
 /// The exact observation length for a slot configuration -- a function of
 /// the slot config, never a constant to quote (the served config's slot
 /// defaults currently work out to 197; read it from here, don't hardcode).

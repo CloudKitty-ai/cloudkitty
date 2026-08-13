@@ -153,6 +153,17 @@ Validation at load is strict: schema versions must match the compiled
 encoders, shapes must chain, and the blob length must be exact — a bad
 export fails startup naming the config field, never mid-tick.
 
+There is also a **v3** artifact format (spec 030): an entity-attention
+transformer over per-entity tokens with pointer action heads, on the same
+observation schema 3. Its header carries the four transformer
+hyperparameters instead of MLP layer shapes, and the loader serves both
+versions in one binary — a v2 artifact loads unchanged, a v3 artifact runs
+the attention forward. The header schema, weight-blob module order, and the
+parity contract are the two contracts under
+[`specs/030-artifact-v3/contracts/`](../specs/030-artifact-v3/contracts/);
+the export path mirrors the v2 writer above with the module order those
+pin.
+
 ## Scoring and deploying
 
 ```bash

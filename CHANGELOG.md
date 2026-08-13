@@ -45,6 +45,25 @@ change.
   classifying any degradation and blaming the generator when the
   bottleneck is its own. Local targets by default; the live world is
   never a permitted target.
+- Policy artifact v3, the entity-attention format (spec 030): a policy
+  can now be a transformer encoder over per-entity tokens with pointer
+  action heads, not just the v2 MLP. The motivation is F-010 — slot-
+  structured encodings extrapolate undefined on rosters they never
+  trained against; content tokens with a padding mask make a vacant slot
+  a masked-out token instead of a novel input region. The loader supports
+  both versions in one binary: a v2 artifact loads and serves byte-for-
+  byte as before, a v3 artifact runs the attention forward, and any other
+  version is refused by version rather than by a downstream shape
+  accident. The v3 header is strict and authoritative — it carries the
+  four transformer hyperparameters and nothing derivable, so a re-tuned
+  model is an artifact swap, not a rebuild. The forward is hand-rolled
+  scalar `f32` with a fixed reduction order, matching v2's no-BLAS
+  doctrine; it is reproducible on a given binary and certified against a
+  numpy oracle at 1e-4, though `exp`/`sqrt` mean cross-platform bit-
+  exactness is no longer promised. No engine, world, config, or behavior
+  change rides along — the observation schema, codecs, masks, and
+  behavior seam are untouched, so existing artifacts and worlds are
+  unaffected.
 - Spec 03: the meadow grows in drifts — one low-frequency fertility
   field gates all three ground scatters, so grass, flowers and shrubs
   thicken together and the meadow has *places*, not texture; the
