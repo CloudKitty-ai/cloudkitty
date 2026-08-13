@@ -9,6 +9,7 @@
 //! behavior. Training, evaluation, and deployment all link this code — a
 //! Python reimplementation of any of it is expressly forbidden.
 
+pub mod attn;
 pub mod behavior;
 pub mod cli_support;
 pub mod codec;

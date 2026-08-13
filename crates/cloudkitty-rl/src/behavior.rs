@@ -53,6 +53,7 @@ impl PolicyBehavior {
             observation_len: observation_len(&rl.observation),
             menu_len: codec.len(),
             message_head_len: MessageCodec::LEN,
+            observation: rl.observation,
         }
     }
 

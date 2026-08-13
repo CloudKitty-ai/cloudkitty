@@ -62,9 +62,10 @@ pub fn register_policy_behaviors(
             policy = name,
             artifact = %policy.artifact,
             sha256 = %artifact.sha256,
-            observation_schema = artifact.header.observation_schema,
-            action_schema = artifact.header.action_schema,
-            mask_schema = artifact.header.mask_schema,
+            observation_schema = artifact.observation_schema(),
+            action_schema = artifact.action_schema(),
+            mask_schema = artifact.mask_schema(),
+            supported_versions = ?cloudkitty_rl::policy::SUPPORTED_VERSIONS,
             // The seated selection mode, so the startup record is never
             // ambiguous about which distribution ran (issue #70 doctrine)
             // and an incident can be reproduced with kitty-eval --sample

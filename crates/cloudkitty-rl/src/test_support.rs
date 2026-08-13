@@ -7,6 +7,7 @@
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
+use crate::attn::{blob_float_count, write_v3_artifact, V3Header, V3_ARCHITECTURE};
 use crate::codec::{ActionCodec, MessageCodec, ACTION_SCHEMA_VERSION};
 use crate::config::RlConfig;
 use crate::mask::MASK_SCHEMA_VERSION;
@@ -64,6 +65,38 @@ pub fn write_fixture_artifact_with_output(
         .expect("fixture artifacts write");
 }
 
+/// The default-hyperparameter v3 header (the step-2 architecture): d_model
+/// 64, 4 heads, 2 encoder layers, FFN 128, at the current compiled schemas.
+pub fn default_v3_header() -> V3Header {
+    V3Header {
+        artifact_version: 3,
+        observation_schema: OBSERVATION_SCHEMA_VERSION,
+        action_schema: ACTION_SCHEMA_VERSION,
+        mask_schema: MASK_SCHEMA_VERSION,
+        architecture: V3_ARCHITECTURE.to_string(),
+        d_model: 64,
+        heads: 4,
+        encoder_layers: 2,
+        ffn: 128,
+    }
+}
+
+/// Writes a valid v3 (entity-attention) fixture artifact at the default
+/// hyperparameters, with deterministic pseudo-weights derived from `pattern`
+/// (no RNG: reproducible bytes). The blob is sized from the module-order
+/// total so it loads and serves.
+pub fn write_v3_fixture_artifact(path: &Path, pattern: u32) {
+    let rl = RlConfig::default();
+    let header = default_v3_header();
+    let n = blob_float_count(&header, &rl.observation);
+    let modulus = (pattern % 17 + 7) as usize;
+    // Small, centered weights keep the forward's activations in a sane range.
+    let blob: Vec<f32> = (0..n)
+        .map(|i| ((i % modulus) as f32 - (modulus as f32 / 2.0)) * 0.02)
+        .collect();
+    write_v3_artifact(path, &header, &blob).expect("v3 fixture artifacts write");
+}
+
 /// [`write_fixture_artifact`] into a namespaced temp directory; returns the
 /// artifact path.
 ///
@@ -74,6 +107,23 @@ pub fn write_fixture_artifact_with_output(
 /// half-written one (the `BadMagic` flake this replaces).
 pub fn fixture_artifact(dir_name: &str, file_name: &str, hidden: usize, pattern: u32) -> PathBuf {
     fixture_artifact_with_output(dir_name, file_name, hidden, pattern, None)
+}
+
+/// [`write_v3_fixture_artifact`] under the same atomic-rename discipline as
+/// [`fixture_artifact`]; returns the artifact path.
+pub fn fixture_v3_artifact(dir_name: &str, file_name: &str, pattern: u32) -> PathBuf {
+    static SCRATCH: AtomicU64 = AtomicU64::new(0);
+    let dir = std::env::temp_dir().join(dir_name);
+    std::fs::create_dir_all(&dir).expect("temp dir");
+    let path = dir.join(format!("{file_name}.ckpolicy"));
+    let scratch = dir.join(format!(
+        "{file_name}.v3.{}.{}.scratch",
+        std::process::id(),
+        SCRATCH.fetch_add(1, Ordering::Relaxed)
+    ));
+    write_v3_fixture_artifact(&scratch, pattern);
+    std::fs::rename(&scratch, &path).expect("v3 fixture artifacts land");
+    path
 }
 
 /// [`fixture_artifact`] with the output layer optionally flooded (see
