@@ -1757,6 +1757,11 @@ function blendLayouts(A, B, t) {
       x1: n(A.tail.x1, B.tail.x1), y1: n(A.tail.y1, B.tail.y1),
     },
     legs,
+    // Carried for completeness only: by the time a layout reaches here
+    // `catLayout` has already derived `earsBackAmt` from it, and the
+    // painter reads the boolean only as a fallback for when that is
+    // missing -- which a blended layout never is. Dropping it changes no
+    // drawing, which is why the check below it cannot see it.
     earsUpright: late.earsUpright,
     // Continuous, unlike `earsUpright`. Ears easing back through a pose
     // change is a MOTION; a boolean switching at the midpoint is not, and
@@ -1769,6 +1774,18 @@ function blendLayouts(A, B, t) {
     eyes: late.eyes,
     droplet: late.droplet,
     pawUp: late.pawUp,
+    // WHICH DRAWING this is. Switched at the midpoint like the other
+    // un-blendable fields, though in practice both sides carry the same
+    // one: render.js hands `layoutFrom` the very object it hands `layout`.
+    //
+    // Dropping it was invisible for a year and then unmistakable. A layout
+    // with no `view` is not "no view" to paintCat, it is NOT BACK -- so
+    // every pose blend on a north-facing cat drew a full face onto the
+    // back of its skull for the length of the blend. Two things hid it:
+    // the blend is 260ms, and until swim became axial (#199) a cat
+    // entering water left the back view anyway, so the commonest blend of
+    // all could not show it.
+    view: late.view,
   };
 }
 

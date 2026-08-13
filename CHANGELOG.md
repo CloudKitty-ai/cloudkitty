@@ -191,6 +191,16 @@ change.
   `app.js` has run. It keeps its colour from the palette rather than a
   literal, since `--ink-soft` is one of the four tokens that *invert*
   across a phase (#202).
+- The face on the back of the head: `blendLayouts` builds a fresh layout
+  field by field and never copied `view`, so every pose blend produced a
+  layout the painter read as *not back* — and drew a full face onto the
+  skull of a cat walking away, for the 260ms the blend lasted. Latent
+  since the axial views landed in #187 and hidden by two things: the
+  blend is brief, and until swimming became axial in #199 a cat entering
+  water left the back view anyway, so the commonest blend of all could
+  not show it. The fix is one field. The check is the general property —
+  a blend from a pose to *itself* must draw exactly that pose — so the
+  next field dropped from the blend fails whatever it is (#203).
 - Docs: rl-training + howto-rl caught up to spec 028 (two-head wire,
   20×20, certification assumptions rewritten — the channel is
   restrained by law, not economics), and kitty-eval is a pre-seating

@@ -2560,6 +2560,54 @@ check('a pose with no axial authoring keeps its side drawing', () => {
   }
 });
 
+/** Every op one cat draws, through whichever entry point is handed in. */
+function opsOf(draw) {
+  const out = [];
+  const ctx = new Proxy({}, {
+    get: (_t, p) => (...a) => out.push([String(p), ...a.map((v) => (typeof v === 'number' ? v.toFixed(6) : String(v)))]),
+    set: (_t, p, v) => { out.push(['set', String(p), String(v)]); return true; },
+  });
+  draw(ctx);
+  return JSON.stringify(out);
+}
+
+check('a blend from a pose to ITSELF draws exactly that pose', () => {
+  // The general form of a bug that hid for a year. `blendLayouts` builds a
+  // fresh layout field by field, so anything it forgets to copy is gone --
+  // and a missing field is not neutral. `view` was the one that bit: a
+  // layout with no view is not "no view" to the painter, it is NOT BACK,
+  // so every pose blend on a north-facing cat painted a full face onto the
+  // back of its skull for 260ms (owner, 2026-08-13: "cat facing north,
+  // with face drawn on back of head").
+  //
+  // Rather than list the fields, this asserts the property: a blend that
+  // goes nowhere must draw what it started as. Any future field dropped
+  // from the blend fails here, whatever it is.
+  for (const view of ['side', 'front', 'back']) {
+    // `drinking` carries the droplet and `grooming` the raised paw. Without
+    // them the property held vacuously for those two fields: nothing in
+    // the list set them, so dropping them from the blend changed nothing.
+    for (const pose of ['walking', 'idle', 'swim', 'loaf', 'sleep-curl', 'drinking', 'grooming']) {
+      const base = {
+        appearance: CatV2.appearanceFor(3),
+        facing: view === 'side' ? 'right' : view === 'back' ? 'north' : 'south',
+        size: 120, x: 0, y: 0, layout: { view },
+      };
+      const plain = opsOf((ctx) => CatV2.drawCat(ctx, { ...base, pose, phase: 0.3 }));
+      for (const t of [0, 0.3, 0.5, 0.7, 1]) {
+        const blended = opsOf((ctx) => CatV2.drawCatTween(ctx, {
+          ...base, from: pose, to: pose, t, phaseFrom: 0.3, phaseTo: 0.3, layoutFrom: base.layout,
+        }));
+        assert(
+          plain === blended,
+          `${pose}/${view} at t=${t}: a blend to the same pose changed the drawing -- ` +
+            'a field the painter reads did not survive blendLayouts',
+        );
+      }
+    }
+  }
+});
+
 check('a turn only flips a facing that has something to flip through', () => {
   // `turnFacing` draws the PRE-turn facing for the first half of a turn,
   // which is what makes the flip land on the squash. It does that with a
