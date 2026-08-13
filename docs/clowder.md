@@ -133,6 +133,10 @@ test. The server's API is read-only (Article V), so a load test cannot corrupt
 a world; the risk `--allow-remote` guards is service degradation for the people
 watching, not data.
 
+Both `http`/`ws` and `https`/`wss` targets work: an `https://` target uses the
+OS trust store, so you can measure a server behind a TLS proxy (the deployed
+Caddy) at its public name rather than only the plain-http origin.
+
 ## Comparing across machines
 
 Because each record stamps the served config's identity, a run on one machine
