@@ -292,6 +292,46 @@ agree: a walking cat's FACING already aligns with its travel, so the lean is
 the forward one that reads as intent; and walking is 28.9% of cat-ticks with
 0% gaze today, the largest pose bucket and the emptiest.
 
+**Measured 2026-08-14, and it reverses the cheap-first instinct.** The
+obvious saving — drive the ears from `velocityFor`, which the client already
+has, and skip the buffer entirely — does not work, and the same numbers size
+the buffer that does:
+
+| driven by | ears dead (no horizontal component) | ear direction flips tick-to-tick |
+| --- | --- | --- |
+| this tick's step (velocity) | 50.2% | 40.8% |
+| position 5 ticks ahead | 29.1% | 27.1% |
+
+Velocity is no better than the parked adjacent sources on the dead axis, and
+it is far worse on noise: cats zigzag, **63% of unbroken runs in one
+direction last a single tick** (median 1, mean 1.7). The rig reaches full
+deflection inside one tick, so a velocity gaze would waggle the ears at up to
+1.25Hz. That is a twitch, not intent. Aiming at a POSITION five ticks ahead
+is better but still flips on 27% of ticks.
+
+**So the target must be the ENTITY the cat arrives at, never a position** —
+an entity is stable until the cat picks a new goal, which is what makes the
+cue read as purpose. Experiments' design already says this ("which element/cat
+they land on"); the measurements say it is not optional.
+
+**Which sizes the buffer.** How often an arrival is inside the horizon, so
+the entity can be named at all:
+
+| buffer depth | foresight | walking ticks with a nameable entity |
+| --- | --- | --- |
+| 3 | 2.4s | 69.9% |
+| **5** | **4.0s** | **85.3%** |
+| 8 | 6.4s | 94.4% |
+| 12 | 9.6s | 97.8% |
+
+Experiments' proposed 5 is a good knee. Going 5 → 8 buys 9 points for 2.4s
+more delay; 8 → 12 buys 3.4 for another 3.2s. Past 8 is waste, and the tail
+belongs to the intent head (Tier 4), not to a deeper buffer.
+
+**The rule that falls out: gaze only when the entity is nameable, otherwise
+nothing.** Never aim at a bare position. That keeps the cue stable, and it
+composes with the owner's no-memory decision rather than fighting it.
+
 The client cannot infer this (Article V) — `move` serves only
 `{action, direction}`. It would need the goal ON THE WIRE, and Product's
 guidance on the analogous eat/drink case applies: the activity payload, not
