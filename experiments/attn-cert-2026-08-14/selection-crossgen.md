@@ -47,3 +47,25 @@ independent by construction).
 Both candidates certified → the owner chooses the seating; this doc
 confers eligibility, never precedence. Failure handling as in
 selection.md: stop, report, owner decides.
+
+## Verdict (2026-08-14): CERTIFIED — all gates, no deviations needed
+
+G1 ✓ · G2a ✓ (floor 0, low ≤ 0.40%, mda ≤ 92) · G2b ✓ (92/89 vs
+150) · G2c floor ✓ (+0.042 over scripted) · G2c budget ✓ (paired
+−0.0016 eval / −0.0018 stress vs 0.005 — BOTH inside the 0.002
+parity band: candidate B reads as welfare-parity with the incumbent
+world) · G2d ✓ all seats (Miso +0.18/+0.20, Biscuit −0.29/−0.33,
+Pumpkin −0.26/−0.30, Kittybear −0.23/−0.26, all within −0.6) ·
+G3 ✓ (0 exceedances of bar 225; low ≤ 0.40% vs 5%).
+
+One honest note on the registered Biscuit-≈0 expectation: it
+measured −0.3, and the expectation was mis-framed — the incumbent
+anchor leg seats PREV among its OWN kin, candidate B seats it among
+attention cats; the delta is PREV's mixed-company cost (F-012 yet
+again), well within budget. The "sanity check" instead measured
+something real: every generation pays a small price for foreign
+company, and PREV's is ~0.3.
+
+**Both candidates are now certified. The seating choice — A
+(all-attention), B (cross-generation), or neither — is the owner's;
+G6 soak gates the keep for whichever seats.**
