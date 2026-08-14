@@ -1,0 +1,145 @@
+[
+ {
+  "case": "end:drink",
+  "kitty": {
+   "activity": {
+    "state": "idle"
+   },
+   "id": 2,
+   "last_action": {
+    "action": "drink"
+   },
+   "name": "Biscuit",
+   "pos": {
+    "x": 12,
+    "y": 3
+   }
+  }
+ },
+ {
+  "case": "end:eat",
+  "kitty": {
+   "activity": {
+    "state": "idle"
+   },
+   "id": 2,
+   "last_action": {
+    "action": "eat"
+   },
+   "name": "Biscuit",
+   "pos": {
+    "x": 17,
+    "y": 5
+   }
+  }
+ },
+ {
+  "case": "end:groom",
+  "kitty": {
+   "activity": {
+    "state": "idle"
+   },
+   "id": 1,
+   "last_action": {
+    "action": "groom",
+    "target": null
+   },
+   "name": "Miso",
+   "pos": {
+    "x": 19,
+    "y": 3
+   }
+  }
+ },
+ {
+  "case": "end:sleep",
+  "kitty": {
+   "activity": {
+    "state": "idle"
+   },
+   "id": 1,
+   "last_action": {
+    "action": "sleep",
+    "with": 3
+   },
+   "name": "Miso",
+   "pos": {
+    "x": 18,
+    "y": 1
+   }
+  }
+ },
+ {
+  "case": "mid:drink",
+  "kitty": {
+   "activity": {
+    "state": "drinking"
+   },
+   "id": 2,
+   "last_action": {
+    "action": "drink"
+   },
+   "name": "Biscuit",
+   "pos": {
+    "x": 12,
+    "y": 3
+   }
+  }
+ },
+ {
+  "case": "mid:eat",
+  "kitty": {
+   "activity": {
+    "state": "eating"
+   },
+   "id": 2,
+   "last_action": {
+    "action": "eat"
+   },
+   "name": "Biscuit",
+   "pos": {
+    "x": 17,
+    "y": 5
+   }
+  }
+ },
+ {
+  "case": "mid:groom",
+  "kitty": {
+   "activity": {
+    "state": "grooming",
+    "target": 2
+   },
+   "id": 4,
+   "last_action": {
+    "action": "groom",
+    "target": 2
+   },
+   "name": "Kittybear",
+   "pos": {
+    "x": 12,
+    "y": 4
+   }
+  }
+ },
+ {
+  "case": "mid:sleep",
+  "kitty": {
+   "activity": {
+    "in_sunbeam": false,
+    "state": "sleeping",
+    "with_friend": 3
+   },
+   "id": 1,
+   "last_action": {
+    "action": "sleep",
+    "with": 3
+   },
+   "name": "Miso",
+   "pos": {
+    "x": 18,
+    "y": 2
+   }
+  }
+ }
+]

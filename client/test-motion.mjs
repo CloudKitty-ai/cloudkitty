@@ -67,11 +67,11 @@ const SHIPPED_BLOCKS = Object.fromEntries(
 // between what the harness tests and what the page draws.
 const VIEW = api.VIEW;
 const {
-  poseFor, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose,
+  poseFor, ACTION_POSE, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose,
   swimAxialAllows,
 } = eval(
   renderSrc +
-    ';({ poseFor, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose,' +
+    ';({ poseFor, ACTION_POSE, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose,' +
     ' swimAxialAllows })',
 );
 
@@ -484,6 +484,91 @@ check('swim is in the v2 vocabulary with the wading silhouette', () => {
   assert(L.earsUpright === true, 'ears dry and up');
 });
 
+check('poseFor: the LAST tick of a scene draws what the cat did, not idle', () => {
+  // The bug, stated against real wire. `activity` is the scene in progress as
+  // of END of tick; `last_action` is what the engine applied DURING it. The
+  // engine acts, then clears scenes that ended, then publishes -- so a
+  // scene's final tick truthfully reports both `last_action: eat` and
+  // `state: idle`, and reading the state drew a cat standing about on 17.4%
+  // of every cat-tick: half of every meal and drink, and a sleeper sitting
+  // bolt upright for the last 600ms of every nap.
+  //
+  // The fixture is eight real cat-ticks lifted from a live capture rather
+  // than hand-built objects, because the thing that was wrong was a belief
+  // about the WIRE, and a hand-built object would just restate the belief.
+  const rows = JSON.parse(readFileSync(join(here, 'fixtures/scene-ends.json'), 'utf8'));
+  const want = {
+    eat: 'eating', drink: 'drinking', groom: 'grooming', sleep: 'sleep-curl',
+  };
+  const seen = new Set();
+  for (const row of rows) {
+    const [when, action] = row.case.split(':');
+    seen.add(row.case);
+    // Not moving and not on water, so nothing below the scene can answer:
+    // whatever comes back came from the action or the scene.
+    const got = poseFor(row.kitty, false, false, null);
+    assert(got === want[action],
+      `${row.case}: served ${JSON.stringify(row.kitty.last_action)} with ` +
+      `${JSON.stringify(row.kitty.activity)} and drew ${got}, wanted ${want[action]}`);
+    if (when === 'end') {
+      assert(row.kitty.activity.state === 'idle',
+        `${row.case} is not a scene END -- the fixture no longer covers the bug`);
+    }
+  }
+  for (const a of Object.keys(want)) {
+    assert(seen.has(`end:${a}`) && seen.has(`mid:${a}`),
+      `the fixture lost its ${a} pair -- both the last tick and a mid-scene one are needed`);
+  }
+});
+
+check('poseFor: the scene still answers for actions that name no pose', () => {
+  // This is what keeps the change additive rather than a rewrite. `Idle`,
+  // `Purr` and `Meow` are real variants of the engine's Action enum and none
+  // of them names a pose, so for those the scene decides exactly as it always
+  // did. Drop the fallback and a purring cat stands up out of its nap.
+  for (const action of ['idle', 'purr', 'meow']) {
+    for (const [state, pose] of [['sleeping', 'sleep-curl'], ['resting', 'loaf'],
+      ['eating', 'eating'], ['drinking', 'drinking'], ['grooming', 'grooming']]) {
+      const k = { id: 1, pos: { x: 1, y: 1 }, last_action: { action }, activity: { state } };
+      assert(poseFor(k, false) === pose,
+        `${action} during a ${state} scene drew ${poseFor(k, false)}, wanted ${pose}`);
+      // ...and it must not be beaten by movement or water either, which is
+      // the precedence the old ordering was really protecting.
+      assert(poseFor(k, true, true) === pose, `${action}/${state} lost to water or walking`);
+    }
+  }
+  // A cat doing nothing in no scene is still just a cat.
+  const bare = { id: 1, pos: { x: 1, y: 1 }, last_action: { action: 'idle' }, activity: { state: 'idle' } };
+  assert(poseFor(bare, false) === 'idle', 'an idle cat in no scene should be idle');
+  assert(poseFor(bare, true) === 'walking', 'an idle action that moved is walking');
+});
+
+check('poseFor: every pose-naming action in the engine enum is mapped', () => {
+  // Read off `crates/cloudkitty-core/src/action.rs` rather than a list kept
+  // here: a variant added there with no mapping falls through to idle, which
+  // is exactly the failure this whole check exists to stop, and it would ship
+  // silently. Only the pose-naming ones are required -- Move, Purr, Meow and
+  // Idle deliberately name none.
+  const src = readFileSync(join(here, '../crates/cloudkitty-core/src/action.rs'), 'utf8');
+  const body = src.slice(src.indexOf('pub enum Action {'));
+  const variants = [...body.slice(0, body.indexOf('\n}')).matchAll(/^ {4}(\w+)/gm)]
+    .map((m) => m[1].replace(/([a-z])([A-Z])/g, '$1_$2').toLowerCase());
+  assert(variants.length > 6, `only parsed ${variants.length} Action variants -- the enum moved`);
+  const namesNoPose = new Set(['move', 'purr', 'meow', 'idle']);
+  const handled = new Set([...Object.keys(ACTION_POSE), 'play', 'chase']);
+  for (const v of variants) {
+    if (namesNoPose.has(v)) {
+      assert(!handled.has(v), `${v} is meant to name no pose but poseFor maps it`);
+    } else {
+      assert(handled.has(v), `the engine can serve ${v} and poseFor has no pose for it`);
+    }
+  }
+  // And nothing mapped that the engine cannot send.
+  for (const k of Object.keys(ACTION_POSE)) {
+    assert(variants.includes(k), `poseFor maps ${k}, which is not an Action variant`);
+  }
+});
+
 check('poseFor: water under movement and idling, never over the rest', () => {
   const k = (extra) => ({ id: 1, pos: { x: 2, y: 2 }, ...extra });
   assert(poseFor(k({}), true, true) === 'swim', 'moving on water swims');
@@ -637,9 +722,23 @@ check('the pounce is gated on how far the quarry is', () => {
   // Order below the gate is unchanged: water still outranks walking.
   assert(poseFor(chasing, true, true, 20) === 'swim', 'a far chase on water wades');
   assert(poseFor(chasing, false, false, 20) === 'idle', 'a far chase that did not move stands');
-  // Activities still outrank the whole branch, near or far.
+  // The APPLIED ACTION outranks the scene now (2026-08-13), which reverses
+  // what this line used to assert. Two things make that safe to reverse
+  // rather than a claim being weakened to pass:
+  //
+  //   - the combination cannot occur. A chase ends any scene on the tick it
+  //     is applied, and the engine clears ended scenes before publishing, so
+  //     `chase` was served with `state: idle` on all 130 of its cat-ticks in
+  //     the live capture and never once alongside a scene;
+  //   - and if it somehow did, the action is what the cat DID this tick,
+  //     which is the whole reason the order changed.
+  //
+  // What the old line was really protecting -- that a busy cat is not
+  // redrawn as walking or wading -- is unaffected, and is asserted directly
+  // in the water check above (`activity outranks water`).
   const busy = { ...chasing, activity: { state: 'grooming' } };
-  assert(poseFor(busy, true, false, 0) === 'grooming', 'activity outranks a near chase');
+  assert(poseFor(busy, true, false, 0) === 'pouncing',
+    'the applied action outranks a scene it cannot actually coexist with');
 });
 
 check('play is never gated -- it is adjacent by lawfulness', () => {
