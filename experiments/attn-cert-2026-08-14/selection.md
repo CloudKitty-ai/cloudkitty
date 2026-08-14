@@ -63,11 +63,26 @@ their all-kin ceiling; channel volume ~3× the incumbent world
     §9.3-lineage battery as the harness encodes it).
   - G2b: **max unresolved distress age == 0 on all 30 runs** (the
     incumbent's record on this band; band-property caveat noted).
-  - G2c: paired team Nash ≥ incumbent − **0.002** (the derived
-    margin; 0.005 is 24× too loose per the 20x20 lessons).
-  - G2d: worst-seat gate — min per-kitty welfare component ≥
-    incumbent's min − 0.002 on paired seeds (protects the s3 seats
-    from being averaged over).
+  - G2c — two layers (the structure, not the numbers, is the
+    standing precedent; owner decision 2026-08-14 with the LLM-seat
+    future explicitly in mind):
+    - **Hard floor (never moves across seatings)**: paired team Nash
+      ≥ the same-battery scripted-baseline anchor (needs_driven at
+      every seat, paired seeds; historical anchor ≈ 0.9069). The
+      durable invariant every future seating — including an eventual
+      LLM cat — must clear: no seating makes the world worse than
+      the sanctuary's scripted guarantee.
+    - **Declared budget (per-seating)**: paired team Nash ≥ incumbent
+      − **0.005** — the price the owner accepts for personality
+      texture, declared before the bill (screens predict ≈ 0.003).
+      Re-declared per seating in its own selection doc; never
+      inherited. Differences within **0.002** read as parity (the
+      derived noise floor) in all reporting.
+  - G2d: worst-seat gate — min per-kitty welfare component ≥ the
+    screen prior for that seat's model (s3 seats: 0.9451) − 0.002
+    noise, AND above the scripted-baseline floor. "The s3 seats must
+    not do worse than the cost the owner accepted," not "must match
+    a cuddler."
 - **G3 — stress** (stress band, 30 seeds × 20k, this seating): the
   settled §9.2 machinery — bar = distress line ÷ fastest rise
   (**225** at 90/0.4); exceedances ≤ max(1, floor(0.05·n)) = 1 of
@@ -122,6 +137,16 @@ The F-015/F-013 standing triggers (class-credit re-measure on any
 engine change) are untouched by this seating. The sunbeam 7-re-pin,
 dataset-v5, threshold re-measure, and estimator-generation work all
 queue behind it exactly as recorded in the roadmap docs.
+
+**Forward note for the LLM-seat era (owner direction, 2026-08-14):**
+G1's zero-fallback rule is correct for in-process artifacts and WRONG
+for a future plugin/LLM seat, where Article IV fallback is an expected
+operating mode, not brokenness. That seating's protocol will replace
+zero-fallbacks with a registered fallback-rate band plus a
+fallback-behavior welfare check — designed then, flagged now so the
+change is anticipated rather than improvised. The G2c two-layer
+structure (scripted-baseline hard floor + per-seating declared
+budget) is what makes such a seat certifiable at all.
 
 ## Deviations
 
