@@ -3967,28 +3967,32 @@ check('the inner ear is a shape, not a sub-pixel needle', () => {
     }
     return inside;
   };
-  // Sampled rather than solved: the visible region is a quad minus a disc,
-  // and the number wanted here is "does this survive the pixel grid", not
-  // an exact area.
+  // Sampled rather than solved: the visible region is a polygon minus a
+  // disc, and the number wanted is "does this survive the pixel grid", not
+  // an exact area. The EAR's visible area comes back too, because the pink
+  // has to be judged against the ear it is in -- see the floor below.
   const seenPx = (r, head) => {
-    const xs = r.pts.map((q) => q[0]); const ys = r.pts.map((q) => q[1]);
+    const xs = r.clip.map((q) => q[0]); const ys = r.clip.map((q) => q[1]);
     const x0 = Math.min(...xs); const x1 = Math.max(...xs);
     const y0 = Math.min(...ys); const y1 = Math.max(...ys);
-    const N = 120; let hit = 0;
+    const N = 160; let pink = 0; let ear = 0;
     for (let i = 0; i < N; i += 1) {
       for (let j = 0; j < N; j += 1) {
         const pt = [x0 + ((x1 - x0) * (i + 0.5)) / N, y0 + ((y1 - y0) * (j + 0.5)) / N];
-        if (inPoly(pt, r.pts) && inPoly(pt, r.clip)
-          && Math.hypot(pt[0] - head.cx, pt[1] - head.cy) > head.r) hit += 1;
+        if (Math.hypot(pt[0] - head.cx, pt[1] - head.cy) <= head.r) continue;
+        if (!inPoly(pt, r.clip)) continue;
+        ear += 1;
+        if (inPoly(pt, r.pts)) pink += 1;
       }
     }
-    return ((hit / (N * N)) * (x1 - x0) * (y1 - y0)) * 31 * 31;
+    const cell = (((x1 - x0) * (y1 - y0)) / (N * N)) * 31 * 31;
+    return { pink: pink * cell, ear: ear * cell };
   };
 
   const up = shapes('idle', 'side', 'right');
   assert(up.pink.length === 2, `expected two inner ears, drew ${up.pink.length}`);
   const head = CatV2.catLayout('idle', 0, { view: 'side' }).head;
-  const seen = seenPx(up.pink[0], head);
+  const seen = seenPx(up.pink[0], head).pink;
   assert(seen > 2, `an inner ear shows ${seen.toFixed(2)}px2 at a 31px cat -- the old needle showed 0.71`);
 
   // Painted WITH the ear, under the head. That is what lets it run the
@@ -4017,6 +4021,24 @@ check('the inner ear is a shape, not a sub-pixel needle', () => {
   const halfPx = Math.hypot(hx, hy) * 31;
   const at = (u, w) => [base[0] + (tip[0] - base[0]) * u + hx * w,
     base[1] + (tip[1] - base[1]) * u + hy * w];
+
+  // EVEN down both sides, which is the fix this shape went through a
+  // second cut for. An ear leans -- `earPoints` swings the tip outward --
+  // so its two slanted edges make different angles with its base, and
+  // insetting by a fixed step ALONG the base gave one edge more fur than
+  // the other: 0.46px against 0.64px, which the owner could see at a 31px
+  // cat. Perpendicular distance is the thing being judged, so it is the
+  // thing measured.
+  const perp = (pt, p, q) => Math.abs((q[0] - p[0]) * (p[1] - pt[1]) - (p[0] - pt[0]) * (q[1] - p[1]))
+    / Math.hypot(q[0] - p[0], q[1] - p[1]);
+  for (const pink of up.pink) {
+    const ear = pink.clip; // [b1, point, b2]
+    const left = Math.min(...pink.pts.map((pt) => perp(pt, ear[0], ear[1]))) * 31;
+    const right = Math.min(...pink.pts.map((pt) => perp(pt, ear[2], ear[1]))) * 31;
+    assert(Math.abs(left - right) < 0.02,
+      `fur is ${left.toFixed(2)}px down one side and ${right.toFixed(2)}px down the other`);
+    assert(left > 0.4, `only ${left.toFixed(2)}px of fur shows beside the pink`);
+  }
 
   // How high the pink actually reaches, read off the shape rather than
   // recomputed from the dials -- restating `1 - sideFur - tipFur` here
@@ -4050,6 +4072,7 @@ check('the inner ear is a shape, not a sub-pixel needle', () => {
   }
 
   let smallest = Infinity;
+  let where = '';
   for (const [pose, view, facing] of [
     ['idle', 'side', 'right'], ['walking', 'side', 'right'],
     ['idle', 'front', 'south'], ['eating', 'side', 'right'],
@@ -4069,14 +4092,25 @@ check('the inner ear is a shape, not a sub-pixel needle', () => {
         JSON.stringify(got.pink[i].clip) === JSON.stringify(ear.pts),
         `${pose}/${view} ear ${i}: the pink is not clipped to the ear it sits in`,
       );
-      smallest = Math.min(smallest, seenPx(got.pink[i], h));
+      const m = seenPx(got.pink[i], h);
+      const share = m.pink / m.ear;
+      if (share < smallest) {
+        smallest = share;
+        where = `${pose}/${view} ear ${i}`;
+      }
     }
   }
-  // Ears laid flat show less of themselves: the ear is shorter, so the
-  // head covers a bigger share of it. A cat with its ears back hiding its
-  // inner ear is the drawing being right, not the dial being small -- so
-  // the floor across every pose is lower than the ears-up one above.
-  assert(smallest > 0.5, `the smallest visible inner ear anywhere is ${smallest.toFixed(2)}px2`);
+  // A SHARE, not an area, and the reason is worth keeping. The first
+  // version of this floor was absolute, and the perpendicular inset above
+  // tripped it: with the ears laid flat the whole visible EAR is 1.65px2,
+  // so a fixed pink area there is really a demand that the pink take up
+  // more of a smaller ear. A cat flattening its ears and hiding the pink
+  // is the drawing being right. What must hold in every pose is that the
+  // pink is a real feature of whatever ear is showing -- which the old
+  // floor never checked, since a pink that shrank while its ear did not
+  // would have passed it.
+  assert(smallest > 0.15,
+    `the pink is only ${(smallest * 100).toFixed(0)}% of the visible ear at ${where}`);
 });
 
 check('every face dial is PRINTED, or a dialling session cannot be baked', () => {

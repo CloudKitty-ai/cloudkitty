@@ -277,7 +277,12 @@ change.
   the fur left around it, so that is what the two dials are now, one for
   the sides and one for the tip. Holding the side gap even the whole way
   up makes the pink a blunt-ended shape rather than a spike, which is
-  also what an ear looks like. It is painted **with** the ear and under
+  also what an ear looks like. Even took a second pass to mean even: an
+  ear *leans*, its tip swung outward, so its two slanted edges meet its
+  base at different angles and a margin stepped along that base left
+  0.46px of fur on one side against 0.64px on the other. Each edge moves
+  perpendicular to itself now, and the two match to within a thousandth
+  of a pixel. It is painted **with** the ear and under
   the head, so it needs no rule about where the skull starts — solving
   for that line got the centre right and still left both base corners
   inside a round skull (#215).

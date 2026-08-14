@@ -2567,52 +2567,89 @@ const INNER_EAR = {
   tipFur: 0.08, // fur left between the pink's end and the ear's point
 };
 
+/** Where two lines, each given as a point and a direction, meet. */
+function lineMeet(l1, l2) {
+  const den = l1.dx * l2.dy - l1.dy * l2.dx;
+  if (Math.abs(den) < 1e-12) return null;
+  const t = ((l2.x - l1.x) * l2.dy - (l2.y - l1.y) * l2.dx) / den;
+  return [l1.x + l1.dx * t, l1.y + l1.dy * t];
+}
+
+/** The line through p and q, moved `d` toward `inner`. */
+function insetEdge(p, q, inner, d) {
+  let nx = -(q[1] - p[1]);
+  let ny = q[0] - p[0];
+  const len = Math.hypot(nx, ny) || 1;
+  nx /= len;
+  ny /= len;
+  if ((inner[0] - p[0]) * nx + (inner[1] - p[1]) * ny < 0) {
+    nx = -nx;
+    ny = -ny;
+  }
+  return { x: p[0] + nx * d, y: p[1] + ny * d, dx: q[0] - p[0], dy: q[1] - p[1] };
+}
+
 function drawInnerEars(ctx, head, a, back, turnNear = 0, turnFar = 0) {
   const E = INNER_EAR;
   ctx.fillStyle = noseInkOf(a);
   for (const side of [-1, 1]) {
     const e = earPoints(head, side, back, side === 1 ? turnNear : turnFar);
+    const b1 = [e.b1x, e.b1y];
+    const b2 = [e.b2x, e.b2y];
+    const apex = [e.ax, e.ay];
     const mx = (e.b1x + e.b2x) / 2;
     const my = (e.b1y + e.b2y) / 2;
-    // The ear in its own frame: `u` runs 0 at the base to 1 at the point
-    // along the spine, `w` is half-widths either side. The ear's own edges
-    // are w = +/-(1 - u), so a pink at w = +/-((1 - u) - sideFur) leaves
-    // the SAME fur all the way up -- which is the thing being dialled.
+
+    // An ear LEANS: `earPoints` swings the tip outward, so the apex does
+    // not sit over the middle of its base and the two slanted edges make
+    // different angles with it. Inset by a fixed step along the base --
+    // which is what "share of the ear's width" first meant -- and the two
+    // edges get different amounts of fur: measured 0.46px against 0.64px,
+    // and the owner could see it (2026-08-13). So each edge is moved
+    // PERPENDICULAR to itself, which is the distance being judged.
+    const dSide = E.sideFur * Math.hypot(e.b1x - e.b2x, e.b1y - e.b2y) * 0.5;
+    const l1 = insetEdge(b1, apex, b2, dSide);
+    const l2 = insetEdge(b2, apex, b1, dSide);
+    // The base needs no inset: the head is painted over it.
+    const base = { x: e.b1x, y: e.b1y, dx: e.b2x - e.b1x, dy: e.b2y - e.b1y };
+    const foot1 = lineMeet(l1, base);
+    const foot2 = lineMeet(l2, base);
+    const point = lineMeet(l1, l2);
+    if (!foot1 || !foot2 || !point) continue;
+
+    // How far up the ear the inset sides meet, and where the tip is cut.
     const sx = e.ax - mx;
     const sy = e.ay - my;
-    const hx = (e.b1x - e.b2x) / 2;
-    const hy = (e.b1y - e.b2y) / 2;
-    const at = (u, w) => [mx + sx * u + hx * w, my + sy * u + hy * w];
+    const spine = sx * sx + sy * sy;
+    const uPoint = ((point[0] - mx) * sx + (point[1] - my) * sy) / spine;
+    const uCut = 1 - E.tipFur;
+    if (uPoint <= 0) continue; // dialled shut
 
-    // There is no bottom dial and no bottom maths: the pink runs the ear's
-    // full height and the HEAD covers what should not show, exactly as it
-    // covers the base of the ear itself. That is the whole reason this is
-    // painted with the ear rather than after the head -- solving for where
-    // the ear leaves the skull got the centre line right and still put the
-    // two base corners inside it, because the skull is round.
-    const wFoot = 1 - E.sideFur;
-    const uTip = 1 - E.sideFur - E.tipFur;
-    // Dialled shut. Drawing the crossed-over shape would paint a bow tie.
-    if (wFoot <= 0 || uTip <= 0) continue;
-
-    // A blunt end, not a point: holding the side gap constant AND leaving
-    // a gap at the tip is a truncated triangle. At tipFur 0 the top edge
-    // has no width and it comes to a point on its own.
     ctx.save();
     ctx.beginPath();
     ctx.moveTo(e.b1x, e.b1y);
     ctx.lineTo(e.ax, e.ay);
     ctx.lineTo(e.b2x, e.b2y);
     ctx.closePath();
-    // Clipped to the ear it sits in. Belt and braces next to the maths
-    // above, and it is what turns an over-dialled value into a filled ear
+    // Clipped to the ear it sits in. Belt and braces beside the maths
+    // above, and it is what turns an over-dialled margin into a filled ear
     // rather than pink smeared across the skull.
     ctx.clip();
     ctx.beginPath();
-    ctx.moveTo(...at(0, -wFoot));
-    ctx.lineTo(...at(uTip, -E.tipFur));
-    ctx.lineTo(...at(uTip, E.tipFur));
-    ctx.lineTo(...at(0, wFoot));
+    ctx.moveTo(foot1[0], foot1[1]);
+    if (uPoint <= uCut) {
+      // The sides met before the cut: it comes to a point on its own.
+      ctx.lineTo(point[0], point[1]);
+    } else {
+      // A blunt end, cut parallel to the base, so the fur at the tip is
+      // dialled without the side gap changing anywhere.
+      const cut = { x: mx + sx * uCut, y: my + sy * uCut, dx: e.b2x - e.b1x, dy: e.b2y - e.b1y };
+      const top1 = lineMeet(l1, cut);
+      const top2 = lineMeet(l2, cut);
+      ctx.lineTo(top1[0], top1[1]);
+      ctx.lineTo(top2[0], top2[1]);
+    }
+    ctx.lineTo(foot2[0], foot2[1]);
     ctx.closePath();
     ctx.fill();
     ctx.restore();
