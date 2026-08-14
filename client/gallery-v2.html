@@ -521,7 +521,8 @@
   const PURR = {
     pick: 1,
     size: 0.34, // share of the tile
-    rise: 0.22, // above the cat's box
+    rise: 0.22, // above the cat's box -- NEGATIVE overlaps the cat
+    offsetX: 0, // left/right of the cat's centre, share of the tile
     alpha: 0.9,
     shakePx: 0.6, shakeHz: 9,      // 1: vibrate
     pulseScale: 0.14, pulseMs: 700, // 2: pulse
@@ -1657,7 +1658,8 @@
       dials: [
         { key: 'pick', label: 'BAKE which one? 1 vibrate · 2 pulse · 3 waves · 4 emoji', min: 1, max: 4, step: 1 },
         { key: 'size', label: 'glyph size, share of the tile', min: 0.15, max: 0.7, step: 0.02 },
-        { key: 'rise', label: 'how far above the cat, share of the tile', min: 0, max: 1, step: 0.02 },
+        { key: 'rise', label: 'height above the cat (negative overlaps it)', min: -0.5, max: 1, step: 0.02 },
+        { key: 'offsetX', label: 'left / right of centre, share of the tile', min: -0.7, max: 0.7, step: 0.02 },
         { key: 'alpha', label: 'opacity', min: 0.2, max: 1, step: 0.05 },
         { key: 'shakePx', label: 'vibrate: travel in real px', min: 0, max: 2, step: 0.05 },
         { key: 'shakeHz', label: 'vibrate: shakes per second', min: 2, max: 16, step: 0.5 },
@@ -1669,10 +1671,12 @@
       readout() {
         const P = PURR;
         return `PURR = { pick: ${P.pick} (${['vibrate', 'pulse', 'waves', 'emoji'][P.pick - 1]}), ` +
-          `size: ${P.size}, rise: ${P.rise}, alpha: ${P.alpha},\n` +
+          `size: ${P.size}, rise: ${P.rise}, offsetX: ${P.offsetX}, alpha: ${P.alpha},\n` +
           `  shakePx: ${P.shakePx}, shakeHz: ${P.shakeHz}, pulseScale: ${P.pulseScale}, pulseMs: ${P.pulseMs},\n` +
           `  waveCount: ${P.waveCount}, waveMs: ${P.waveMs} }\n` +
-          `at the 31px tile the glyph draws ${(PURR.size * 31).toFixed(1)}px across` +
+          `at the 31px tile the glyph draws ${(PURR.size * 31).toFixed(1)}px across, ` +
+          `${(PURR.offsetX * 31).toFixed(1)}px sideways and ${(PURR.rise * 31).toFixed(1)}px up` +
+          (PURR.rise < 0 ? ' (OVERLAPPING the cat)' : '') +
           (PURR.size * 31 < 6 ? ' — under 6px, which is where small props stop reading' : '');
       },
       draw(ctx, w, h, now) {
@@ -1687,7 +1691,8 @@
               pose: 'idle', appearance: CatV2.appearanceFor(3), facing: 'right',
               size: row.tile, x: cx - row.tile / 2, y: catY, phase: (now % 3400) / 3400,
             });
-            drawPurrGlyph(ctx, i + 1, cx, catY - PURR.rise * row.tile, row.tile, now);
+            drawPurrGlyph(ctx, i + 1, cx + PURR.offsetX * row.tile,
+              catY - PURR.rise * row.tile, row.tile, now);
           }
         }
         ctx.fillStyle = 'rgba(107, 90, 78, 0.75)';
