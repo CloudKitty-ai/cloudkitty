@@ -181,12 +181,66 @@ follows `activity.state`. On the last tick of a meal the card says *eating*
 while the cat stands there doing nothing, and a nap ends with the sleeper
 sitting up for 600ms before the next thing starts.
 
-The fix is to derive the pose from `last_action` and treat `activity` as
-"scene ongoing". Not purely mechanical: `loaf` comes from the `resting` state
-and there is a separate `rest` action, and sleep/loaf need to stay distinct —
-so it wants its own pass and its own tests, not a same-day edit to the gaze
-work. Scene spans, if ever needed exactly, are on `GET /events/activity`;
-snapshots cannot show them by construction.
+**The shape, settled with the owner 2026-08-13.** Read the ACTION first for
+the five scene poses, and keep `activity` as the fallback:
+
+```
+action → sleep-curl | loaf | grooming | eating | drinking     (sleep/rest/groom/eat/drink)
+action → pouncing                                             (play, and chase behind its gate)
+else activity.state → the same five                           (covers idle/purr/meow, which name no pose)
+else water → swim, moved → walking, else idle
+```
+
+Keeping the fallback is what makes this **strictly additive**: `Idle`, `Purr`
+and `Meow` name no pose, and for those the scene still decides exactly as
+today. Replayed over the capture, **465 cat-ticks change and nothing else
+does** — all four are `idle → the thing the cat actually did`. A non-scene
+action never once co-occurred with a live scene activity (0 of 2,672), so no
+special case is written for it; if it ever happens the fallback yields today's
+answer, which is the safe direction to fail in.
+
+`rest → loaf` stays in the map on the owner's call even though no `rest`
+action was served in the capture — the `Rest { with }` variant is in the
+engine's enum, and the sunbeam work may start surfacing it.
+
+Not mechanical, so it takes its own pass and its own tests rather than riding
+along with the gaze edit. Scene spans, if ever needed exactly, are on
+`GET /events/activity`; snapshots cannot show them by construction.
+
+#### `gazeTargetFor` measures from two different moments
+
+Found while auditing the above, same family of mistake. The looking cat's
+position is the DRAWN one (passed in as `pos`); the target's is the SERVED
+one, read straight off `world`. So a cat looks at where its quarry will be at
+the end of the tick, which on screen is grass.
+
+Measured: of 133 gaze-firing ticks with a kitty target, the target moved on
+**68** — half. Mid-segment the angular error is a median of **8.1°** and a
+maximum of **26.6°**, and it is worst up close: at two tiles or nearer, median
+18.4°.
+
+Three precedents in the same file say to use the drawn position — the wade
+pose keys on "the tile under the DRAWN cat, not the served destination",
+`submersionFor` is "sampled from WHERE IT IS", and the depth layer sorts
+critters by `elementPosFor`. It is also on the wrong side of the Article V
+line quoted directly above the function: a moving cat's served position IS its
+destination for that tick, so looking at it is the prediction that rule
+forbids. The asymmetry carries no comment in a heavily commented file.
+
+Fix is ~3 lines — pass `view` and use `view.posFor` / `view.elementPosFor`,
+both of which already exist and are what the renderer draws those objects at.
+Still frames are unchanged by construction, since `posFor` returns the served
+position there anyway. **Do it inside the gaze pass, not standalone:** it is
+subtle at today's rate and scales with both things about to change — seven
+times more gaze, and camera zoom, where 26° on a cat two tiles away stops
+being subtle.
+
+#### Order of work, agreed 2026-08-13
+
+1. `poseFor` — the 17.4% correctness bug, on its own, with its own tests.
+2. The gaze sources (groom shape, then eat/drink resolve) with the
+   drawn-position correction folded in — same function, same tests.
+3. Magnitudes stay parked for camera mode.
 
 ### Graphics v2 follow-on: face-group pitch (added 2026-07-29; Client thread)
 The one v2 piece still unbuilt (vocabulary, motion wiring, and swim all
