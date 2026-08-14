@@ -272,6 +272,36 @@ Not to be re-derived: eyes are SHUT during eat and drink and the owner does
 not want that changed, so the pupil channel is unavailable there whatever
 the tile size.
 
+**The most promising way back in is a TRAVEL goal, not more activities**
+(owner, 2026-08-14 — going to Experiments). Upcoming policies may surface
+planning behaviour, and a cat walking toward food, water or a friend has a
+gaze target that fixes exactly what broke this:
+
+| target distance | share with NO horizontal component |
+| --- | --- |
+| adjacent | **58.1%** |
+| 2–3 tiles | 16.8% |
+| 4–7 tiles | 9.7% |
+| 8+ tiles | 4.4% |
+
+Every source parked above is ADJACENT by nature — you groom a cat you are
+touching, you eat from a bowl you stand beside — and a neighbour is due north
+or south more than half the time. A travel goal is far by definition, so the
+same one-axis cue reads 90–96% of the time instead of 42%. Two more things
+agree: a walking cat's FACING already aligns with its travel, so the lean is
+the forward one that reads as intent; and walking is 28.9% of cat-ticks with
+0% gaze today, the largest pose bucket and the emptiest.
+
+The client cannot infer this (Article V) — `move` serves only
+`{action, direction}`. It would need the goal ON THE WIRE, and Product's
+guidance on the analogous eat/drink case applies: the activity payload, not
+`last_action`, which doubles as the plugin proposal wire. Two questions
+decide whether it works: **how stable a goal is tick to tick** (one that
+changes every tick smears through the rig's spring rather than reading as
+purpose), and whether a served goal is the cat's actual destination or a
+step target.
+
+
 #### Order of work, agreed 2026-08-13
 
 1. `poseFor` — the 17.4% correctness bug, on its own, with its own tests.
