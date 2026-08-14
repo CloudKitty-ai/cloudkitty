@@ -68,11 +68,11 @@ const SHIPPED_BLOCKS = Object.fromEntries(
 const VIEW = api.VIEW;
 const {
   poseFor, ACTION_POSE, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose,
-  swimAxialAllows,
+  swimAxialAllows, gazeTargetFor, GAZE_REACH_TILES,
 } = eval(
   renderSrc +
     ';({ poseFor, ACTION_POSE, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose,' +
-    ' swimAxialAllows })',
+    ' swimAxialAllows, gazeTargetFor, GAZE_REACH_TILES })',
 );
 
 /** Canvas ctx stand-in: logs every command, throws on non-finite numbers. */
@@ -526,6 +526,165 @@ check('a nap still ends in a stretch, through the REAL two-layer pipeline', () =
   assert(drawn(busy, p.tickMs * 2.5) === 'eating', 'an interrupted stretch must give way');
   assert(drawn(waking, p.tickMs * 3) === 'sleep-curl',
     'an abandoned stretch must not resume halfway through');
+});
+
+// A world just big enough to look around in: a cat at 5,5 with a friend, a
+// bowl and a puddle around it.
+const gazeWorld = () => ({
+  tick: 1,
+  width: 20,
+  height: 20,
+  kitties: [
+    { id: 1, name: 'A', pos: { x: 5, y: 5 }, activity: { state: 'idle' } },
+    { id: 2, name: 'B', pos: { x: 6, y: 5 }, activity: { state: 'idle' } },
+    { id: 3, name: 'C', pos: { x: 5, y: 9 }, activity: { state: 'idle' } },
+  ],
+  elements: [
+    { id: 40, kind: 'chow', pos: { x: 4, y: 5 } },
+    { id: 41, kind: 'water', pos: { x: 5, y: 6 } },
+    { id: 42, kind: 'chow', pos: { x: 12, y: 12 } },
+  ],
+});
+const looker = (w) => w.kitties[0];
+
+check('the gaze reads all three shapes last_action names a target in', () => {
+  // It read one of them, so it fired on 5.3% of cat-ticks and a cat
+  // grooming its friend a tile away had dead eyes. The shapes are contract
+  // (specs 001/004/006) and the asymmetry is guaranteed at the source:
+  // Chase and Play can name a kitty OR an element so they carry the kind in
+  // `target` and the id in `id`; Groom can name nothing but a kitty, so its
+  // `target` IS the id.
+  const w = gazeWorld();
+  const me = looker(w);
+  const at = (action) => {
+    me.last_action = action;
+    return gazeTargetFor(me, w, me.pos, null);
+  };
+  // The kind-plus-id shape, both kinds.
+  const chased = at({ action: 'chase', target: 'kitty', id: 3 });
+  assert(chased && chased.y > 0.5, `chasing the cat to the south looked ${JSON.stringify(chased)}`);
+  const bug = at({ action: 'chase', target: 'element', id: 42 });
+  assert(bug && bug.x > 0.5, 'chasing an element to the east should look east');
+  // The bare-id shape. This is the one that was silently unread.
+  const groomed = at({ action: 'groom', target: 2 });
+  assert(groomed && groomed.x > 0.9, `grooming the cat to the east looked ${JSON.stringify(groomed)}`);
+  // A self-groom names nobody, and a cat cannot look at itself.
+  assert(at({ action: 'groom', target: null }) === null, 'a self-groom should have no target');
+  assert(at({ action: 'groom' }) === null, 'a groom with no target key should have no target');
+  // ...and an id that names a kitty who is gone resolves to nothing.
+  assert(at({ action: 'groom', target: 99 }) === null, 'grooming a cat who is not served');
+
+  // The reader rule, stated as behaviour: when `id` is present, `target` is
+  // the KIND. Element ids and kitty ids overlap (elements ran 1-233 against
+  // kitties 1-4 in the live world), so reading the wrong one aims at a
+  // different object entirely rather than failing.
+  w.elements.push({ id: 2, kind: 'chow', pos: { x: 5, y: 1 } });
+  const asKitty = at({ action: 'chase', target: 'kitty', id: 2 });
+  const asElement = at({ action: 'chase', target: 'element', id: 2 });
+  assert(asKitty.x > 0.9, 'id 2 as a KITTY is the cat to the east');
+  assert(asElement.y < -0.5, 'the same id as an ELEMENT is the bowl to the north');
+});
+
+check('a cat looks at the bowl it is eating from, resolved not served', () => {
+  // The engine resolves the bowl every tick and does not serialise it
+  // (Product, 2026-08-13: it belongs on the activity payload, not on
+  // last_action, which doubles as the plugin proposal wire). So the client
+  // resolves it the same way the engine does -- nearest of the right kind,
+  // within reach -- which is reading the present, not predicting.
+  const w = gazeWorld();
+  const me = looker(w);
+  const at = (action, pos = me.pos) => {
+    me.last_action = action;
+    return gazeTargetFor(me, w, pos, null);
+  };
+  const eating = at({ action: 'eat' });
+  assert(eating && eating.x < -0.9, `eating should look at the bowl to the west, got ${JSON.stringify(eating)}`);
+  const drinking = at({ action: 'drink' });
+  assert(drinking && drinking.y > 0.5, 'drinking should look at the water to the south');
+
+  // The NEAREST one, not the first in the list: the far bowl must not win.
+  assert(at({ action: 'eat' }).x < 0, 'the far bowl won over the near one');
+
+  // NEAREST, with two in reach to choose between. Reach only spans the
+  // cat's own tile and its neighbours, so the only distinction that exists
+  // is own-tile against adjacent -- which is exactly the engine's own rule
+  // (`adjacent_stocked_chow`: own tile first, then adjacent). A cat standing
+  // ON a bowl is eating from THAT one, and has nowhere to look, even with
+  // another bowl beside it.
+  // Placed FIRST in the list on purpose: if the search keeps the last match
+  // in reach rather than the nearest, it walks past this one to the bowl at
+  // 4,5 and the cat stares west while eating off its own tile.
+  w.elements.unshift({ id: 43, kind: 'chow', pos: { x: 5, y: 5 } });
+  assert(at({ action: 'eat' }) === null,
+    'with a bowl underfoot and another beside it, the cat is eating from the one underfoot');
+  w.elements = w.elements.filter((e) => e.id !== 43);
+
+  // Out of reach is nothing to look at. An emptied bowl despawns the tick
+  // its last serving goes -- 32% of eat ticks in the live capture -- and a
+  // cat licking a bowl that is no longer drawn should not stare at grass.
+  w.elements = w.elements.filter((e) => e.kind !== 'chow' || e.pos.x !== 4);
+  assert(at({ action: 'eat' }) === null, 'a bowl across the map is not what this cat is eating from');
+  assert(GAZE_REACH_TILES >= 1, 'reach must cover the adjacency the engine eats at');
+});
+
+check('the gaze aims where the target is DRAWN, not where it is served', () => {
+  // The same mistake as the pose bug, one function over: the looking cat's
+  // position was already the drawn one and the target's was served, so a cat
+  // looked at where its quarry WILL be -- grass. Half of all gaze-firing
+  // ticks had a moving target, off by a median 8.1 degrees and up to 26.6.
+  //
+  // Three precedents in render.js say drawn: the wade pose keys on "the tile
+  // under the DRAWN cat, not the served destination", submersionFor samples
+  // where the cat visibly is, and the depth layer sorts by elementPosFor.
+  const w = gazeWorld();
+  const me = looker(w);
+  me.last_action = { action: 'chase', target: 'kitty', id: 3 };
+  // The quarry is served to the south but is DRAWN to the east, halfway
+  // through its step. A view that lies this hard is the only way to tell
+  // which end the function read.
+  const view = {
+    posFor: (k) => (k.id === 3 ? { x: 9, y: 5 } : k.pos),
+    elementPosFor: (el) => (el.id === 42 ? { x: 5, y: 1 } : el.pos),
+  };
+  const served = gazeTargetFor(me, w, me.pos, null);
+  const drawn = gazeTargetFor(me, w, me.pos, view);
+  assert(served.y > 0.5, 'sanity: served has the quarry to the south');
+  assert(drawn.x > 0.9 && Math.abs(drawn.y) < 0.2,
+    `the gaze followed the served position, not the drawn one: ${JSON.stringify(drawn)}`);
+
+  // Elements too -- critters glide, and a butterfly is the thing most worth
+  // watching move.
+  me.last_action = { action: 'chase', target: 'element', id: 42 };
+  const el = gazeTargetFor(me, w, me.pos, view);
+  assert(el.y < -0.5, `an element gaze ignored elementPosFor: ${JSON.stringify(el)}`);
+
+  // And with no view at all -- v1 callers, still frames -- it falls back to
+  // the served position rather than throwing.
+  me.last_action = { action: 'groom', target: 2 };
+  assert(gazeTargetFor(me, w, me.pos, null).x > 0.9, 'a missing view must not break the gaze');
+  assert(gazeTargetFor(me, w, me.pos, {}).x > 0.9, 'a view without posFor must not break the gaze');
+});
+
+check('the gaze has NO MEMORY: an action naming nothing looks at nothing', () => {
+  // Owner's decision, 2026-08-13, and it rules an approach OUT. Holding the
+  // last target is the obvious way to raise the fire rate, and it is not
+  // what we want: a cat that has stopped should not still be staring.
+  const w = gazeWorld();
+  const me = looker(w);
+  for (const action of [
+    { action: 'move', direction: 'east' },
+    { action: 'idle' },
+    { action: 'purr' },
+    { action: 'meow', message: 'hello' },
+    { action: 'play' },
+    { action: 'sleep', with: 2 },
+  ]) {
+    me.last_action = action;
+    assert(gazeTargetFor(me, w, me.pos, null) === null,
+      `${action.action} names nothing to look at, so the gaze must be null`);
+  }
+  assert(gazeTargetFor({ ...me, last_action: undefined }, w, me.pos, null) === null,
+    'a cat with no last_action at all looks at nothing');
 });
 
 check('poseFor: the LAST tick of a scene draws what the cat did, not idle', () => {

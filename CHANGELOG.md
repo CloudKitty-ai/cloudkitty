@@ -254,6 +254,33 @@ change.
   since the seed drives the lobe angles too, the pair ends up differing
   in silhouette as well as size. A tree beside a bush of its own size is
   left alone, because that reads fine (#214).
+- **Cats look at what they are doing.** The gaze fired on 5.2% of
+  cat-ticks and now fires on **36.5%**, because `last_action` names a
+  target in three shapes and the client read one. Grooming carries a
+  *bare* kitty id in `target` — `Groom { target: Option<KittyId> }` can
+  name nothing else, so it needs no kind key, where `Chase` and `Play`
+  can name a kitty *or* an element and therefore carry both. A cat
+  grooming its friend one tile away had dead eyes for that reason alone.
+  Eating and drinking name nothing at all, so the client resolves the
+  bowl the way the engine does — nearest of the right kind, within reach,
+  own tile before adjacent. An emptied bowl despawns the tick its last
+  serving goes, and a cat licking one that is no longer drawn looks at
+  nothing, which is the right answer. `sleep.with` names a real
+  co-sleeper and is deliberately left unread: the eyes are shut. The
+  gaze has **no memory** — an action naming nothing looks at nothing,
+  rather than holding a stare at whatever came before (#221).
+- **And it aims where the target is drawn, not where it is served.** The
+  looking cat's position was already the interpolated one while the
+  target's was the served destination, so a cat looked at where its
+  quarry *will* be — on screen, grass. Half of all gaze-firing ticks had
+  a moving target, off by a median 8.1° and up to 26.6°, worst up close.
+  Three rules in the same file already said drawn: the wade pose keys on
+  "the tile under the DRAWN cat, not the served destination",
+  `submersionFor` samples where the cat visibly is, and the depth layer
+  sorts by `elementPosFor`. It also sat directly under the comment
+  invoking Article V — a moving cat's served position *is* its
+  destination, so aiming at it was the prediction that rule forbids
+  (#221).
 - **The cat now does what the panel says it is doing.** `activity.state` and
   `last_action` describe different moments of the same tick — the engine
   applies every action, then clears the scenes that ended, then publishes —
