@@ -254,6 +254,17 @@ change.
   since the seed drives the lobe angles too, the pair ends up differing
   in silhouette as well as size. A tree beside a bush of its own size is
   left alone, because that reads fine (#214).
+- **The hunter's face is gated on how far the quarry is**, the way the
+  pounce pose already was. Measured over 4,604 cat-ticks on the incoming
+  candidate roster: the median hunted quarry was **10 tiles away** and the
+  commonest 12 — so a cat wore a hunting expression for a bug across the
+  meadow while drawing an ordinary walk, and on **85.6%** of the ticks the
+  face was on, the pose and the expression disagreed about whether a hunt
+  was happening. `VIEW.hunterGateTiles` is 8, deliberately wider than the
+  pounce's 4: eyes may lead a pounce, they just may not lead it across the
+  whole map. Owner's number. An unresolvable quarry still keeps the face,
+  the same rule the pounce follows — the gate takes it away only on
+  positive evidence (#223).
 - **A purr is a mood, not a request, and it stops using a speech bubble.**
   Measured on the incoming candidate roster (attn-a1, 246 ticks live):
   **98% of every meow is a purr**, and a bubble sat on screen 50.2% of

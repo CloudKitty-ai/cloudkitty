@@ -476,6 +476,12 @@ const PURR = {
   // the live tile lands at 0.53px peak to peak and disappears under the
   // grid. So the share sets the character and the floor keeps it visible
   // at the tile the world actually draws at.
+  // How many served ticks the glyph lingers. Its own number rather than
+  // the bubbles' BUBBLE_TICKS (3): that was chosen as reading time for a
+  // sentence, and a glyph is noticed rather than read. At 800ms a tick,
+  // 2 is 1.6s -- long enough to catch a buzzing heart, a third less time
+  // on screen than a bubble, which matters when a roster purrs this much.
+  ticks: 2,
   shakeOfGlyph: 0.032,
   shakeMinPx: 0.4,
   shakeHz: 15,

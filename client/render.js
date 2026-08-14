@@ -146,6 +146,26 @@ function chaseDistanceFor(kitty, world) {
 }
 
 /**
+ * Manhattan tiles from a kitty to whatever its PURSUIT names, or null when
+ * it is not pursuing or the quarry is no longer served.
+ *
+ * Deliberately not `chaseDistanceFor`: that one reads `last_action`, which
+ * is this tick's applied action, while the hunter's face is driven by the
+ * pursuit -- a longer-lived thing that survives a cat stopping for a drink
+ * on the way. They can name different quarry on the same tick.
+ */
+function pursuitDistanceFor(kitty, world) {
+  const ref = kitty.pursuit?.target;
+  if (!ref) return null;
+  const pos =
+    ref.target === 'element'
+      ? world.elements.find((el) => el.id === ref.id)?.pos
+      : world.kitties.find((k) => k.id === ref.id)?.pos;
+  if (!pos) return null;
+  return Math.abs(kitty.pos.x - pos.x) + Math.abs(kitty.pos.y - pos.y);
+}
+
+/**
  * Where a served thing is DRAWN, which is where a look should land.
  *
  * Everything else in this file already keys visual relationships to the
@@ -1062,7 +1082,7 @@ class WorldRenderer {
       lid = motion.blinkLid;
       if (eyes === 'closed') eyes = undefined; // the eased lid replaces the snap blink
     }
-    const expression = view.expressionFor(kitty);
+    const expression = view.expressionFor(kitty, pursuitDistanceFor(kitty, world));
     // On the v2 path a pursuit's focused eyes hold through the blink slot
     // -- drawFace exempts 'focused' from the lid, so hunters keep their
     // unbroken stare (v1 still snap-blinks over focused, as it always
@@ -1428,8 +1448,13 @@ class WorldRenderer {
   }
 
   drawBubbles(world, view) {
+    // Widest of the two lives, then each kind is held to its own below --
+    // a purr lingers for PURR.ticks and a request for BUBBLE_TICKS, and
+    // reading the window off the max means neither can be clipped by the
+    // other's number.
+    const window = Math.max(BUBBLE_TICKS, PURR.ticks);
     const recent = (world.recent_meows || []).filter(
-      (m) => m.tick > world.tick - BUBBLE_TICKS,
+      (m) => m.tick > world.tick - window,
     );
     // Requests and purrs part company here (2026-08-14). Nine of the ten
     // kinds are something a viewer can act on; a purr is a mood, and giving
@@ -1438,7 +1463,9 @@ class WorldRenderer {
     const said = new Map();
     const purring = new Map();
     for (const meow of recent) {
-      if (meow.kind === 'purr') purring.set(meow.kitty_id, meow);
+      const purr = meow.kind === 'purr';
+      if (meow.tick <= world.tick - (purr ? PURR.ticks : BUBBLE_TICKS)) continue;
+      if (purr) purring.set(meow.kitty_id, meow);
       else said.set(meow.kitty_id, meow);
     }
 
