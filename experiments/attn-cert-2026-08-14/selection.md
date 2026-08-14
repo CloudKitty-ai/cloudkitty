@@ -1,9 +1,8 @@
 # Selection & certification protocol: the mixed attention roster
 
-**Status: DRAFT for owner review — freezes when the first
-certification instrument runs.** After freeze, edits land append-only
-in the Deviations appendix (D-numbered). Where this doc and PIPELINE.md
-disagree, this doc wins for this certification once frozen.
+**Status: FROZEN 2026-08-14 (owner: "Approved").** Edits from here
+land append-only in the Deviations appendix (D-numbered). Where this
+doc and PIPELINE.md disagree, this doc wins for this certification.
 
 ## 1. The candidate (pinned)
 
@@ -151,3 +150,21 @@ budget) is what makes such a seat certifiable at all.
 ## Deviations
 
 (append-only after freeze)
+
+**D-001 (2026-08-14, instrument).** kitty-eval cannot seat a mixed
+multi-artifact roster (`--brain|--artifact` only), so G2/G3 run
+through `cert_harness.py` — an env-chain harness (deviation-31 replay
+precedent) with welfare.rs metric definitions transcribed (floor ≤
+happiness.floor, low < 45.0, distress-age = per-(kitty,need) flag
+streak) and team Nash read from the engine's own reward. Validation
+cell (attn-A1-s1 ×4, seed 870001 × 20k) vs kitty-eval: structural
+metrics agree (mda 0/0, floor 0/0, low 0/0); trajectories diverge
+slightly via the recorded torch-vs-Rust forward gap (~1.8e-5 logits →
+greedy near-tie flips): |Δnash| = 0.0012, |Δmean-happiness| ≤ 0.13.
+Consequence and mitigation: G2c-budget and G2d are evaluated
+paired SAME-instrument (candidate and incumbent both through the
+harness — forward bias cancels); the scripted hard floor comes from
+kitty-eval natively (fresh anchor: 0.9056 on seed 870001); no gate
+compares across instruments. If any nonzero max_distress_age appears
+in the battery, the streak convention gets cross-checked against a
+kitty-eval homogeneous stress cell before verdicts are read.
