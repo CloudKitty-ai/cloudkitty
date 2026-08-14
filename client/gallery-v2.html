@@ -1624,6 +1624,7 @@
           `widthPx: ${W.widthPx}, widthOfCat: ${W.widthOfCat},\n` +
           `  rootX: ${W.rootX}, tipX: ${W.tipX}, rootY: ${W.rootY}, tipY: ${W.tipY},\n` +
           `  offsetY: ${W.offsetY},\n` +
+          `  rootSpread: ${W.rootSpread}, tipSpread: ${W.tipSpread}, back: ${W.back} }\n` +
           // How much of each fan escapes the head. A fan that does not
           // clear it is drawn against fur at a quarter opacity, which is
           // invisible -- the rearward one was entirely buried before
@@ -1646,7 +1647,6 @@
                 ? `, rearward ${back.toFixed(2)}px${back < 1 ? ' — under a pixel, so it is buried in fur' : ''}\n`
                 : ' (rearward fan off)\n');
           })() +
-          `  rootSpread: ${W.rootSpread}, tipSpread: ${W.tipSpread}, back: ${W.back} }\n` +
           `stroke: ${px(WHISKER_LAB.liveTile).toFixed(2)}px at the ${WHISKER_LAB.liveTile}px tile above, ` +
           `${px(60).toFixed(2)}px at a 60px one (the MAP_MAX_PX ceiling)\n` +
           (px(WHISKER_LAB.liveTile) <= W.widthPx + 1e-9

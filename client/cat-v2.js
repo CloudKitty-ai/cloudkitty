@@ -2919,16 +2919,16 @@ const WHISKER = {
   alpha: 0.25, // kitten.me's, and the reason theirs work at all
   widthPx: 0.8, // the floor, in real pixels
   widthOfCat: 0.016, // ...and the share of the cat it grows past that
-  rootX: 0.2, // from the muzzle, in head radii
+  rootX: 0.34, // from the muzzle, in head radii
   tipX: 1.25, // ...to past the head's own edge
-  rootY: 0.25, // where the middle one leaves the muzzle
-  tipY: 0.18, // and where it ends up
+  rootY: 0.28, // where the middle one leaves the muzzle
+  tipY: 0.17, // and where it ends up
   // The whole set, up or down together, in head radii. Separate from
   // rootY/tipY on purpose: those two set the DROOP, and nudging the pair
   // of them in step to move the set is how a droop gets lost by accident.
-  offsetY: 0.03,
+  offsetY: 0,
   rootSpread: 0.1, // fan at the root
-  tipSpread: 0.2, // ...and at the tip, so they splay
+  tipSpread: 0.24, // ...and at the tip, so they splay
   // How much of the forward length the REARWARD fan gets, side-on. 0 by
   // default, and that is geometry rather than taste: our muzzle sits 0.22
   // head radii forward of the head centre (kitten.me's face is centred),
