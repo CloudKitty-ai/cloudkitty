@@ -2740,9 +2740,21 @@ check('darkening the nose takes the whole muzzle with it', () => {
     return out;
   };
 
-  // Ships neutral: at 0 the drawing is byte-for-byte the one the colorway
-  // authored, so this dial cannot have moved any cat that is already out.
-  assert(CatV2.NOSE.darken === 0, 'the nose darkness dial ships at 0 -- baking one is an owner call');
+  // 0 is neutral, whatever the shipped value happens to be: the dial has
+  // to be able to mean "leave the colorway alone" exactly, or a colorway
+  // can never be seen as it was authored.
+  assert(CatV2.noseInkOf({ noseColor: '#abcdef' }) !== '#abcdef' || CatV2.NOSE.darken === 0,
+    'sanity: noseInkOf disagrees with NOSE.darken');
+  // Owner's call, 2026-08-13: a touch off the authored pink, because the
+  // whiskers widened and took the eye with them. The VALUE is hers to
+  // re-bake; what is pinned is that a call was made, so a revert to
+  // neutral is loud rather than silent.
+  assert(CatV2.NOSE.darken > 0, 'the nose is back to the raw authored pink -- an owner bake was reverted');
+  const wasDark = CatV2.NOSE.darken;
+  CatV2.NOSE.darken = 0;
+  assert(CatV2.noseInkOf({ noseColor: '#abcdef' }) === '#abcdef',
+    'at darken 0 the ink is not the authored colour');
+  CatV2.NOSE.darken = wasDark;
   const authored = CatV2.appearanceFor(3).noseColor;
   const plain = inks(0);
   assert(plain.includes(authored), 'the yawning cat did not paint its authored nose colour at all');
@@ -3907,66 +3919,136 @@ check('a dial that names its own block actually writes that block', () => {
 
 check('the inner ear is a shape, not a sub-pixel needle', () => {
   // Owner, 2026-08-13: "I only see a tiny sliver of pink there anyway."
-  // Measured, she was describing the geometry exactly. The old tick ran
-  // 35%..100% along the ear's spine with a 0.12 nudge sideways at ONE
-  // point, so it was a one-sided needle: 0.71px2 of paint at a 31px cat,
-  // never more than 0.64px across. That is under the 0.8px floor that
+  // Measured, she was describing the geometry exactly. The first tick ran
+  // 35%..100% along the ear's spine with a 0.12 nudge sideways at ONE of
+  // its three points, so it was a one-sided needle: 0.71px2 of paint at a
+  // 31px cat, never more than 0.64px across -- under the 0.8px floor that
   // killed whiskers twice.
   //
-  // Two things are asserted, and neither is a value pin: it has to be big
-  // enough to survive the grid, and it has to stay inside the ear it is
-  // supposed to be inside of.
+  // What is measured here is the pink she can SEE: inside its quad, inside
+  // the ear, and outside the head that paints over its base. Measuring the
+  // drawn shape instead would count paint hidden under the skull, which is
+  // most of it and none of the point.
   const a = CatV2.appearanceFor(3);
   const shapes = (pose, view, facing) => {
     const out = [];
-    let cur = null; let ink = null; let clipped = null; const stack = [];
+    let cur = null; let ink = null; let clip = null; const stack = [];
     const ctx = new Proxy({}, {
       get: (_t, p) => (...g) => {
         const n = String(p);
         if (n === 'beginPath') cur = [];
         else if ((n === 'moveTo' || n === 'lineTo') && cur) cur.push([g[0], g[1]]);
-        else if (n === 'save') stack.push(clipped);
-        else if (n === 'restore') clipped = stack.pop() ?? null;
-        else if (n === 'clip') clipped = cur ? cur.slice() : [];
-        else if (n === 'fill' && cur) out.push({ pts: cur.slice(), ink, clipped });
+        else if (n === 'arc' && cur) cur.arc = { cx: g[0], cy: g[1], r: g[2] };
+        else if (n === 'save') stack.push(clip);
+        else if (n === 'restore') clip = stack.pop() ?? null;
+        else if (n === 'clip') clip = cur ? cur.slice() : [];
+        else if (n === 'fill' && cur) out.push({ pts: cur.slice(), arc: cur.arc, ink, clip });
       },
       set: (_t, p, v) => { if (String(p) === 'fillStyle') ink = v; return true; },
     });
     CatV2.drawCat(ctx, { pose, appearance: a, facing, size: 31, layout: { view } });
-    // The NOSE is a pink triangle too, so colour alone picks up three
-    // shapes and measures the wrong one. (It did, first try -- the same
-    // mistake the muzzle check upstream records having made.) The inner
-    // ears are the pink drawn under a clip, which is what they are.
+    // The NOSE is a pink shape too, so colour alone picks up three and
+    // measures the wrong one. (It did, first try -- the same mistake the
+    // muzzle check upstream records having made.) The inner ears are the
+    // pink drawn under a three-point clip, which is what they are.
     return {
-      pink: out.filter((r) => r.ink === a.noseColor && r.pts.length === 3
-        && r.clipped && r.clipped.length === 3),
+      all: out,
+      pink: out.filter((r) => r.clip && r.clip.length === 3 && r.pts.length >= 3
+        && r.ink === CatV2.noseInkOf(a)),
       ears: out.filter((r) => r.ink === a.furBase && r.pts.length === 3),
     };
   };
-  const areaPx = (pts) => {
-    const q = pts.map(([x, y]) => [x * 31, y * 31]);
-    return Math.abs(q.reduce((sum, [x, y], i) => {
-      const [X, Y] = q[(i + 1) % q.length];
-      return sum + x * Y - X * y;
-    }, 0) / 2);
+  const inPoly = (pt, poly) => {
+    let inside = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i, i += 1) {
+      const [xi, yi] = poly[i]; const [xj, yj] = poly[j];
+      if ((yi > pt[1]) !== (yj > pt[1])
+        && pt[0] < ((xj - xi) * (pt[1] - yi)) / (yj - yi) + xi) inside = !inside;
+    }
+    return inside;
   };
-  const within = (pt, tri) => {
-    const cross = (p1, p2, p3) =>
-      (p1[0] - p3[0]) * (p2[1] - p3[1]) - (p2[0] - p3[0]) * (p1[1] - p3[1]);
-    const d = [cross(pt, tri[0], tri[1]), cross(pt, tri[1], tri[2]), cross(pt, tri[2], tri[0])];
-    return !(d.some((v) => v < 0) && d.some((v) => v > 0));
+  // Sampled rather than solved: the visible region is a quad minus a disc,
+  // and the number wanted here is "does this survive the pixel grid", not
+  // an exact area.
+  const seenPx = (r, head) => {
+    const xs = r.pts.map((q) => q[0]); const ys = r.pts.map((q) => q[1]);
+    const x0 = Math.min(...xs); const x1 = Math.max(...xs);
+    const y0 = Math.min(...ys); const y1 = Math.max(...ys);
+    const N = 120; let hit = 0;
+    for (let i = 0; i < N; i += 1) {
+      for (let j = 0; j < N; j += 1) {
+        const pt = [x0 + ((x1 - x0) * (i + 0.5)) / N, y0 + ((y1 - y0) * (j + 0.5)) / N];
+        if (inPoly(pt, r.pts) && inPoly(pt, r.clip)
+          && Math.hypot(pt[0] - head.cx, pt[1] - head.cy) > head.r) hit += 1;
+      }
+    }
+    return ((hit / (N * N)) * (x1 - x0) * (y1 - y0)) * 31 * 31;
   };
 
-  // Ears up, which is where a cat shows the most of one.
   const up = shapes('idle', 'side', 'right');
   assert(up.pink.length === 2, `expected two inner ears, drew ${up.pink.length}`);
-  const drawn = areaPx(up.pink[0].pts);
-  assert(drawn > 2, `an inner ear paints ${drawn.toFixed(2)}px2 at a 31px cat -- the old needle was 0.71`);
+  const head = CatV2.catLayout('idle', 0, { view: 'side' }).head;
+  const seen = seenPx(up.pink[0], head);
+  assert(seen > 2, `an inner ear shows ${seen.toFixed(2)}px2 at a 31px cat -- the old needle showed 0.71`);
 
-  // ...and it must still be INSIDE its ear. The clip means a bad pair of
-  // dials fills the ear rather than smearing the skull, so the clip is
-  // what this survives on -- which is why the geometry is checked too:
-  // dialling against a clip is dialling blind.
+  // Painted WITH the ear, under the head. That is what lets it run the
+  // ear's full height with no rule of its own about where the skull
+  // begins, and solving for that line instead got the centre right and
+  // still put both base corners inside the head, because the skull is
+  // round. Order is the mechanism, so order is what is asserted.
+  const headFill = up.all.findIndex((r) => r.arc && Math.abs(r.arc.r - head.r) < 1e-9);
+  const pinkFill = up.all.indexOf(up.pink[0]);
+  assert(headFill > 0, 'could not find the head in the paint order');
+  assert(pinkFill < headFill,
+    'the inner ear is painted after the head -- its base will show on the skull');
+
+  // The claim the re-cut was FOR: fur shows down both sides, at every
+  // height, and the gap does not close toward the tip. Three mutations
+  // walked straight through the checks above -- no side margin at all, a
+  // margin dialled outward past the ear, and a tip that ignores the side
+  // margin so the sides converge and the fur runs out at the top. Every
+  // one of them still drew a big enough pink inside a clip.
+  const ear0 = up.ears[0];
+  const base = [(ear0.pts[0][0] + ear0.pts[2][0]) / 2, (ear0.pts[0][1] + ear0.pts[2][1]) / 2];
+  const tip = ear0.pts[1]; // b1, point, b2
+  const hx = (ear0.pts[0][0] - ear0.pts[2][0]) / 2;
+  const hy = (ear0.pts[0][1] - ear0.pts[2][1]) / 2;
+  const spinePx = Math.hypot(tip[0] - base[0], tip[1] - base[1]) * 31;
+  const halfPx = Math.hypot(hx, hy) * 31;
+  const at = (u, w) => [base[0] + (tip[0] - base[0]) * u + hx * w,
+    base[1] + (tip[1] - base[1]) * u + hy * w];
+
+  // How high the pink actually reaches, read off the shape rather than
+  // recomputed from the dials -- restating `1 - sideFur - tipFur` here
+  // would assert this test's own arithmetic.
+  let pinkTop = 0;
+  for (let u = 0; u <= 1; u += 0.002) if (inPoly(at(u, 0), up.pink[0].pts)) pinkTop = u;
+  assert(pinkTop > 0, 'no pink anywhere along the ear');
+  assert((1 - pinkTop) * spinePx > 0.4,
+    `fur at the tip is ${((1 - pinkTop) * spinePx).toFixed(2)}px -- the pink runs into the point`);
+
+  // ...and fur down both sides, at every height the pink reaches. The gap
+  // must not close toward the tip either: three mutations walked straight
+  // through the checks above -- no side margin at all, a margin dialled
+  // OUTWARD past the ear, and a tip that ignores the side margin so the
+  // sides converge and the fur runs out at the top. All three still drew a
+  // big enough pink inside a clip.
+  for (const frac of [0.2, 0.5, 0.85]) {
+    const u = pinkTop * frac;
+    for (const dir of [-1, 1]) {
+      let lastPink = 0; let lastEar = 0;
+      for (let w = 0; w <= 1.4; w += 0.002) {
+        if (inPoly(at(u, w * dir), up.pink[0].pts)) lastPink = w;
+        if (inPoly(at(u, w * dir), ear0.pts)) lastEar = w;
+      }
+      const side = dir < 0 ? 'left' : 'right';
+      assert(lastPink > 0, `${(frac * 100).toFixed(0)}% up the pink there is none on the ${side}`);
+      assert((lastEar - lastPink) * halfPx > 0.4,
+        `${(frac * 100).toFixed(0)}% up the pink, the fur on the ${side} is ` +
+        `${((lastEar - lastPink) * halfPx).toFixed(2)}px -- it should sit inside, evenly, all the way up`);
+    }
+  }
+
   let smallest = Infinity;
   for (const [pose, view, facing] of [
     ['idle', 'side', 'right'], ['walking', 'side', 'right'],
@@ -3975,30 +4057,26 @@ check('the inner ear is a shape, not a sub-pixel needle', () => {
   ]) {
     const got = shapes(pose, view, facing);
     if (!got.pink.length) continue;
+    const h = CatV2.catLayout(pose, 0, { view }).head;
     for (let i = 0; i < got.pink.length; i += 1) {
       const ear = got.ears[i];
       assert(ear, `${pose}/${view}: an inner ear without an ear to sit in`);
-      // The clip is the part that survives a dialling session: it is what
-      // turns an over-dialled width into a filled ear rather than pink
-      // smeared across the skull. At the SHIPPED values the pink is inside
-      // its ear anyway, so nothing about the drawing would notice the clip
-      // going missing -- which is why the mechanism is asserted here and
-      // not its effect.
+      // The clip is what turns an over-dialled margin into a filled ear
+      // rather than pink smeared across the skull. At the SHIPPED values
+      // the pink is inside its ear anyway, so no pixel would notice the
+      // clip going missing -- hence the mechanism, not its effect.
       assert(
-        JSON.stringify(got.pink[i].clipped) === JSON.stringify(ear.pts),
+        JSON.stringify(got.pink[i].clip) === JSON.stringify(ear.pts),
         `${pose}/${view} ear ${i}: the pink is not clipped to the ear it sits in`,
       );
-      for (const pt of got.pink[i].pts) {
-        assert(within(pt, ear.pts),
-          `${pose}/${view} ear ${i}: the pink reaches outside its own ear`);
-      }
-      smallest = Math.min(smallest, areaPx(got.pink[i].pts));
+      smallest = Math.min(smallest, seenPx(got.pink[i], h));
     }
   }
-  // Ears laid flat show less of themselves, so the floor here is lower on
-  // purpose -- a cat with its ears back hiding its inner ear is the
-  // drawing being right, not the dial being small.
-  assert(smallest > 0.8, `the smallest inner ear anywhere is ${smallest.toFixed(2)}px2`);
+  // Ears laid flat show less of themselves: the ear is shorter, so the
+  // head covers a bigger share of it. A cat with its ears back hiding its
+  // inner ear is the drawing being right, not the dial being small -- so
+  // the floor across every pose is lower than the ears-up one above.
+  assert(smallest > 0.5, `the smallest visible inner ear anywhere is ${smallest.toFixed(2)}px2`);
 });
 
 check('every face dial is PRINTED, or a dialling session cannot be baked', () => {

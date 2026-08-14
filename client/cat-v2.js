@@ -2300,13 +2300,16 @@ function paintCat(ctx, L, a, fine, lid = 0, size = 31) {
   const earsBack = L.earsBackAmt === undefined ? (L.earsUpright ? 0 : 1) : L.earsBackAmt;
   const paintHead = () => {
     drawEars(ctx, L.head, a, p, earsBack, L.earNear || 0, L.earFar || 0);
+    // The pink is part of the EAR, so it is painted with the ear and the
+    // head then covers its base -- which is why it needs no rule of its
+    // own about where the skull begins.
+    if (!rear) drawInnerEars(ctx, L.head, a, earsBack, L.earNear || 0, L.earFar || 0);
     drawHead(ctx, L.head, a, p, fine, L.view);
     // A cat walking away has the BACKS of its ears toward you and no face
     // at all. Skipping both is the rest of the back view's difference, and
     // it is what makes the view read instantly: a faceless head is
     // unmistakable even at 31px.
     if (!rear) {
-      drawInnerEars(ctx, L.head, a, earsBack, L.earNear || 0, L.earFar || 0);
       drawFace(ctx, L.head, L.eyes, a, lid, L.gaze, L.yawn || 0, L.view, size);
     }
   };
@@ -2552,17 +2555,16 @@ function noseInkOf(a) {
 }
 
 const INNER_EAR = {
-  // The pink inside the ear, as a triangle nested in the ear's own.
+  // Dialled as FUR SHOWING, because that is what the owner is judging
+  // (2026-08-13). The first cut used positions in the ear's own frame --
+  // base, point, width -- and every one of them moved two things at once:
+  // the ear tapers, so widening the pink also closed the gap at the tip.
   //
-  // It used to be a one-sided needle -- 35% to 100% along the ear's spine
-  // with a 0.12 nudge sideways at one point only. Measured at a 31px cat
-  // that is 0.71px2 of paint in a 1.7 x 1.6px box, at most 0.64px across:
-  // under the 0.8px floor that killed whiskers twice. The owner's report
-  // was that she could see a sliver of pink, which is what a sub-pixel
-  // needle looks like when it lands on the grid.
-  rise: 0.16, // where the pink's base sits along base -> tip
-  tip: 0.82, // where its own point stops, short of the ear's
-  width: 0.52, // its base, as a share of the EAR's base width
+  // Both are shares of the ear's own size rather than absolute distances,
+  // so a laid-back ear (shorter and narrower) keeps its proportions
+  // instead of being eaten by a fixed margin.
+  sideFur: 0.26, // fur left along each slanted side
+  tipFur: 0.08, // fur left between the pink's end and the ear's point
 };
 
 function drawInnerEars(ctx, head, a, back, turnNear = 0, turnFar = 0) {
@@ -2572,26 +2574,45 @@ function drawInnerEars(ctx, head, a, back, turnNear = 0, turnFar = 0) {
     const e = earPoints(head, side, back, side === 1 ? turnNear : turnFar);
     const mx = (e.b1x + e.b2x) / 2;
     const my = (e.b1y + e.b2y) / 2;
-    // Half the base, as a vector, so the shape turns with the ear.
+    // The ear in its own frame: `u` runs 0 at the base to 1 at the point
+    // along the spine, `w` is half-widths either side. The ear's own edges
+    // are w = +/-(1 - u), so a pink at w = +/-((1 - u) - sideFur) leaves
+    // the SAME fur all the way up -- which is the thing being dialled.
+    const sx = e.ax - mx;
+    const sy = e.ay - my;
     const hx = (e.b1x - e.b2x) / 2;
     const hy = (e.b1y - e.b2y) / 2;
-    const at = (t, w) => [mx + (e.ax - mx) * t + hx * w, my + (e.ay - my) * t + hy * w];
-    // Clipped to the ear it sits in. The ear tapers, so any pair of these
-    // dials has some head angle where the pink would cross the edge --
-    // clipping makes an over-dialled value fill the ear, which reads as a
-    // wrong number, instead of smearing pink onto the skull, which reads
-    // as a bug.
+    const at = (u, w) => [mx + sx * u + hx * w, my + sy * u + hy * w];
+
+    // There is no bottom dial and no bottom maths: the pink runs the ear's
+    // full height and the HEAD covers what should not show, exactly as it
+    // covers the base of the ear itself. That is the whole reason this is
+    // painted with the ear rather than after the head -- solving for where
+    // the ear leaves the skull got the centre line right and still put the
+    // two base corners inside it, because the skull is round.
+    const wFoot = 1 - E.sideFur;
+    const uTip = 1 - E.sideFur - E.tipFur;
+    // Dialled shut. Drawing the crossed-over shape would paint a bow tie.
+    if (wFoot <= 0 || uTip <= 0) continue;
+
+    // A blunt end, not a point: holding the side gap constant AND leaving
+    // a gap at the tip is a truncated triangle. At tipFur 0 the top edge
+    // has no width and it comes to a point on its own.
     ctx.save();
     ctx.beginPath();
     ctx.moveTo(e.b1x, e.b1y);
     ctx.lineTo(e.ax, e.ay);
     ctx.lineTo(e.b2x, e.b2y);
     ctx.closePath();
+    // Clipped to the ear it sits in. Belt and braces next to the maths
+    // above, and it is what turns an over-dialled value into a filled ear
+    // rather than pink smeared across the skull.
     ctx.clip();
     ctx.beginPath();
-    ctx.moveTo(...at(E.rise, -E.width));
-    ctx.lineTo(...at(E.tip, 0));
-    ctx.lineTo(...at(E.rise, E.width));
+    ctx.moveTo(...at(0, -wFoot));
+    ctx.lineTo(...at(uTip, -E.tipFur));
+    ctx.lineTo(...at(uTip, E.tipFur));
+    ctx.lineTo(...at(0, wFoot));
     ctx.closePath();
     ctx.fill();
     ctx.restore();
@@ -2946,7 +2967,7 @@ const NOSE = {
   // Added when whiskers landed (2026-08-13): three hairlines either side
   // of the muzzle pull the eye there, and a pale pink nose that read fine
   // on its own stops holding the middle of the face against them.
-  darken: 0,
+  darken: 0.02,
 };
 
 /**
@@ -3448,6 +3469,7 @@ const api = {
   WHISKER,
   drawWhiskers,
   INNER_EAR,
+  noseInkOf,
   applyAxial,
   FOCUS_VARIANTS,
   BREATH,

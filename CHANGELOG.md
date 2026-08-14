@@ -267,11 +267,20 @@ change.
   100% along the ear's spine with a single nudge sideways, which at a
   31px cat is **0.71px² of paint, never wider than 0.64px** — under the
   same floor that killed whiskers twice, and visible only as a sliver of
-  pink. Rebuilt as a triangle nested in the ear's own, dialled by where
-  its base sits, where its point stops, and how much of the ear's width
-  it spans: 3.14px² at the same cat, a third of the ear rather than an
-  eighth. It is clipped to the ear it sits in, so an over-dialled value
-  fills the ear instead of smearing pink across the skull (#215).
+  pink. It shows **3.19px²** at the same cat now, a third of the ear
+  rather than an eighth.
+- It is dialled as *fur showing*, which took two goes. The first cut gave
+  it the obvious knobs — where the pink's base sits, where its point
+  stops, how wide it is — and the owner's read was that they were hard to
+  aim: the ear tapers, so widening the pink also closed the gap at its
+  tip, and every knob moved two things. What she was actually judging was
+  the fur left around it, so that is what the two dials are now, one for
+  the sides and one for the tip. Holding the side gap even the whole way
+  up makes the pink a blunt-ended shape rather than a spike, which is
+  also what an ear looks like. It is painted **with** the ear and under
+  the head, so it needs no rule about where the skull starts — solving
+  for that line got the centre right and still left both base corners
+  inside a round skull (#215).
 - Docs: rl-training + howto-rl caught up to spec 028 (two-head wire,
   20×20, certification assumptions rewritten — the channel is
   restrained by law, not economics), and kitty-eval is a pre-seating
