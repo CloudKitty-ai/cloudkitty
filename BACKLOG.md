@@ -33,9 +33,10 @@ is wrong is the magnitude.
 | head follow | 0.35px | **0.53px** | `gazeHead: 0.05` |
 
 For scale: the body bob was reverted at 0.56px peak-to-peak. (The whiskers
-were cut twice at ~0.8px and then shipped at it — see the closed entry below;
-a stroke width alone does not settle whether a feature reads.) So **only the ears clear the floor** — the cue reads as
-ears turning rather than as a head turn, which is the thing to fix.
+were cut twice at ~0.8px and then shipped at it — see the closed entry
+below; a stroke width alone does not settle whether a feature reads.) So
+**only the ears clear the floor** — the cue reads as ears turning rather
+than as a head turn, which is the thing to fix.
 `gazeHead` 0.10 gives 1.06px at 47, 0.14 gives 1.48px.
 
 **The lab surface already exists**: `gallery-v2.html`, the card "The look —
