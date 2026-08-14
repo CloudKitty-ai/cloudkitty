@@ -68,11 +68,11 @@ const SHIPPED_BLOCKS = Object.fromEntries(
 const VIEW = api.VIEW;
 const {
   poseFor, ACTION_POSE, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose,
-  swimAxialAllows, gazeTargetFor, GAZE_REACH_TILES,
+  swimAxialAllows, gazeTargetFor,
 } = eval(
   renderSrc +
     ';({ poseFor, ACTION_POSE, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose,' +
-    ' swimAxialAllows, gazeTargetFor, GAZE_REACH_TILES })',
+    ' swimAxialAllows, gazeTargetFor })',
 );
 
 /** Canvas ctx stand-in: logs every command, throws on non-finite numbers. */
@@ -547,84 +547,56 @@ const gazeWorld = () => ({
 });
 const looker = (w) => w.kitties[0];
 
-check('the gaze reads all three shapes last_action names a target in', () => {
-  // It read one of them, so it fired on 5.3% of cat-ticks and a cat
-  // grooming its friend a tile away had dead eyes. The shapes are contract
-  // (specs 001/004/006) and the asymmetry is guaranteed at the source:
-  // Chase and Play can name a kitty OR an element so they carry the kind in
-  // `target` and the id in `id`; Groom can name nothing but a kitty, so its
-  // `target` IS the id.
+check('the gaze reads the kind-and-id shape, and reads it the right way round', () => {
   const w = gazeWorld();
   const me = looker(w);
   const at = (action) => {
     me.last_action = action;
     return gazeTargetFor(me, w, me.pos, null);
   };
-  // The kind-plus-id shape, both kinds.
   const chased = at({ action: 'chase', target: 'kitty', id: 3 });
   assert(chased && chased.y > 0.5, `chasing the cat to the south looked ${JSON.stringify(chased)}`);
   const bug = at({ action: 'chase', target: 'element', id: 42 });
   assert(bug && bug.x > 0.5, 'chasing an element to the east should look east');
-  // The bare-id shape. This is the one that was silently unread.
-  const groomed = at({ action: 'groom', target: 2 });
-  assert(groomed && groomed.x > 0.9, `grooming the cat to the east looked ${JSON.stringify(groomed)}`);
-  // A self-groom names nobody, and a cat cannot look at itself.
-  assert(at({ action: 'groom', target: null }) === null, 'a self-groom should have no target');
-  assert(at({ action: 'groom' }) === null, 'a groom with no target key should have no target');
-  // ...and an id that names a kitty who is gone resolves to nothing.
-  assert(at({ action: 'groom', target: 99 }) === null, 'grooming a cat who is not served');
+  assert(at({ action: 'chase', target: 'kitty', id: 99 }) === null, 'a quarry that is not served');
 
-  // The reader rule, stated as behaviour: when `id` is present, `target` is
-  // the KIND. Element ids and kitty ids overlap (elements ran 1-233 against
-  // kitties 1-4 in the live world), so reading the wrong one aims at a
-  // different object entirely rather than failing.
+  // `target` is the KIND here, never the id. Element ids and kitty ids
+  // overlap -- elements ran 1-233 against kitties 1-4 in the live world --
+  // so reading the wrong one aims at a different object rather than failing.
   w.elements.push({ id: 2, kind: 'chow', pos: { x: 5, y: 1 } });
-  const asKitty = at({ action: 'chase', target: 'kitty', id: 2 });
-  const asElement = at({ action: 'chase', target: 'element', id: 2 });
-  assert(asKitty.x > 0.9, 'id 2 as a KITTY is the cat to the east');
-  assert(asElement.y < -0.5, 'the same id as an ELEMENT is the bowl to the north');
+  assert(at({ action: 'chase', target: 'kitty', id: 2 }).x > 0.9, 'id 2 as a KITTY is the cat to the east');
+  assert(at({ action: 'chase', target: 'element', id: 2 }).y < -0.5, 'the same id as an ELEMENT is the bowl north');
 });
 
-check('a cat looks at the bowl it is eating from, resolved not served', () => {
-  // The engine resolves the bowl every tick and does not serialise it
-  // (Product, 2026-08-13: it belongs on the activity payload, not on
-  // last_action, which doubles as the plugin proposal wire). So the client
-  // resolves it the same way the engine does -- nearest of the right kind,
-  // within reach -- which is reading the present, not predicting.
+check('the other target shapes are PARKED, and that is a decision', () => {
+  // Built, measured and taken back out (owner, 2026-08-14). Reading groom's
+  // bare kitty id and resolving eat/drink from the map took the gaze from
+  // 5.2% of cat-ticks to 36.5% -- and it did not read. The only gaze channel
+  // above the pixel floor at this tile is the ear lean, which responds to the
+  // HORIZONTAL component alone, and 54% of the targets those sources add sit
+  // directly north or south of the cat, where `gaze.x` is 0 and the ears do
+  // not move at all. Grooming was worst: cats groom side by side, so 59% of
+  // its ticks moved nothing and 26% leaned the ears the wrong way. Chase and
+  // play, which stay, read at 43%.
+  //
+  // What is missing is a channel for `gaze.y`, not more sources, and it wants
+  // judging at camera zoom where the pupil (0.48px here) and the head follow
+  // (0.35px) are legible. Flipping this check is how they come back.
   const w = gazeWorld();
   const me = looker(w);
-  const at = (action, pos = me.pos) => {
+  const at = (action) => {
     me.last_action = action;
-    return gazeTargetFor(me, w, pos, null);
+    return gazeTargetFor(me, w, me.pos, null);
   };
-  const eating = at({ action: 'eat' });
-  assert(eating && eating.x < -0.9, `eating should look at the bowl to the west, got ${JSON.stringify(eating)}`);
-  const drinking = at({ action: 'drink' });
-  assert(drinking && drinking.y > 0.5, 'drinking should look at the water to the south');
-
-  // The NEAREST one, not the first in the list: the far bowl must not win.
-  assert(at({ action: 'eat' }).x < 0, 'the far bowl won over the near one');
-
-  // NEAREST, with two in reach to choose between. Reach only spans the
-  // cat's own tile and its neighbours, so the only distinction that exists
-  // is own-tile against adjacent -- which is exactly the engine's own rule
-  // (`adjacent_stocked_chow`: own tile first, then adjacent). A cat standing
-  // ON a bowl is eating from THAT one, and has nowhere to look, even with
-  // another bowl beside it.
-  // Placed FIRST in the list on purpose: if the search keeps the last match
-  // in reach rather than the nearest, it walks past this one to the bowl at
-  // 4,5 and the cat stares west while eating off its own tile.
-  w.elements.unshift({ id: 43, kind: 'chow', pos: { x: 5, y: 5 } });
-  assert(at({ action: 'eat' }) === null,
-    'with a bowl underfoot and another beside it, the cat is eating from the one underfoot');
-  w.elements = w.elements.filter((e) => e.id !== 43);
-
-  // Out of reach is nothing to look at. An emptied bowl despawns the tick
-  // its last serving goes -- 32% of eat ticks in the live capture -- and a
-  // cat licking a bowl that is no longer drawn should not stare at grass.
-  w.elements = w.elements.filter((e) => e.kind !== 'chow' || e.pos.x !== 4);
-  assert(at({ action: 'eat' }) === null, 'a bowl across the map is not what this cat is eating from');
-  assert(GAZE_REACH_TILES >= 1, 'reach must cover the adjacency the engine eats at');
+  assert(at({ action: 'groom', target: 2 }) === null,
+    'grooming a friend is parked -- see the gaze entry in BACKLOG.md');
+  assert(at({ action: 'eat' }) === null, 'eating is parked');
+  assert(at({ action: 'drink' }) === null, 'drinking is parked');
+  // The pose already names the activity in all three, which is the part that
+  // reads. What the gaze would have added is WHICH thing, and at this tile
+  // it cannot say it.
+  assert(poseFor({ ...me, last_action: { action: 'groom', target: 2 } }, false) === 'grooming',
+    'the pose still names the activity, which is the part that reads');
 });
 
 check('the gaze aims where the target is DRAWN, not where it is served', () => {
@@ -660,7 +632,7 @@ check('the gaze aims where the target is DRAWN, not where it is served', () => {
 
   // And with no view at all -- v1 callers, still frames -- it falls back to
   // the served position rather than throwing.
-  me.last_action = { action: 'groom', target: 2 };
+  me.last_action = { action: 'chase', target: 'kitty', id: 2 };
   assert(gazeTargetFor(me, w, me.pos, null).x > 0.9, 'a missing view must not break the gaze');
   assert(gazeTargetFor(me, w, me.pos, {}).x > 0.9, 'a view without posFor must not break the gaze');
 });
@@ -678,6 +650,10 @@ check('the gaze has NO MEMORY: an action naming nothing looks at nothing', () =>
     { action: 'meow', message: 'hello' },
     { action: 'play' },
     { action: 'sleep', with: 2 },
+    // These two DO name something resolvable; not looking at them is the
+    // parked decision above, not an absence of data.
+    { action: 'groom', target: 2 },
+    { action: 'eat' },
   ]) {
     me.last_action = action;
     assert(gazeTargetFor(me, w, me.pos, null) === null,

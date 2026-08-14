@@ -143,13 +143,6 @@ function chaseDistanceFor(kitty, world) {
 }
 
 /**
- * How far a cat will look for the bowl or the water it just used. The
- * engine's own eat rule is own tile or adjacent (`adjacent_stocked_chow`);
- * the slack is for a cat still easing into place.
- */
-const GAZE_REACH_TILES = 1.25;
-
-/**
  * Where a served thing is DRAWN, which is where a look should land.
  *
  * Everything else in this file already keys visual relationships to the
@@ -166,22 +159,6 @@ function drawnPosOf(obj, view, isElement) {
   return view?.posFor ? view.posFor(obj) : obj.pos;
 }
 
-/** The nearest drawn element of a kind within reach, or null. */
-function nearestDrawnElement(world, pos, kind, view) {
-  let best = null;
-  let bestD = Infinity;
-  for (const el of world.elements) {
-    if (el.kind !== kind) continue;
-    const at = drawnPosOf(el, view, true);
-    const d = Math.abs(at.x - pos.x) + Math.abs(at.y - pos.y);
-    if (d <= GAZE_REACH_TILES && d < bestD) {
-      bestD = d;
-      best = at;
-    }
-  }
-  return best;
-}
-
 /**
  * Where a kitty is looking, as a unit-ish vector in screen axes -- or
  * null when nothing in the served world has its attention.
@@ -193,24 +170,27 @@ function nearestDrawnElement(world, pos, kind, view) {
  * whose current action names nothing looks at nothing rather than holding a
  * stare at whatever it was doing before.
  *
- * `last_action` names a target in three shapes and this used to read one of
- * them, which is why the gaze fired on 5.3% of cat-ticks and a cat grooming
- * its friend a tile away had dead eyes:
+ * Only the CHASE and PLAY shape is read -- `{target: kind, id: N}`. The other
+ * two shapes the engine serves (`groom`'s bare kitty id, and eat/drink, which
+ * name nothing and would have to be resolved from the map) are PARKED, and
+ * that is a decision rather than an omission.
  *
- *   chase, targeted play  {target: 'kitty'|'element', id: N}
- *   groom                 {target: N}   -- a BARE kitty id, null for self
- *                                       (which resolves to nobody on its own,
- *                                       so it needs no guard of its own)
- *   eat, drink            nothing at all -- resolved here
+ * They were built, measured and taken back out (owner, 2026-08-14). Reading
+ * them took the gaze from 5.2% of cat-ticks to 36.5%, and it did not read:
+ * the only gaze channel above the pixel floor at this tile is the ear lean,
+ * which responds to the HORIZONTAL component alone, and 54% of the targets
+ * those sources add sit directly north or south, where `gaze.x` is 0 and the
+ * ears do not move at all. Grooming was the worst of them -- cats groom side
+ * by side, so 59% of its ticks moved nothing and 26% leaned the ears away
+ * from the cat's facing. Chase and play, which stay, read at 43%.
  *
- * The asymmetry is deliberate and guaranteed at the source (Product,
- * 2026-08-13): `Chase` and `Play` can name a kitty OR an element so they
- * carry the kind, while `Groom { target: Option<KittyId> }` can name nothing
- * but a kitty and so needs none. Reader rule: `id` present means `target` is
- * the kind; otherwise `target` is a kitty id.
+ * The fix is a vertical channel for `gaze.y`, not more sources, and it wants
+ * judging at camera zoom where the pupil (0.48px here) and the head follow
+ * (0.35px) become legible. See the gaze entry in BACKLOG.md; the reader for
+ * the parked shapes is recoverable from PR #221.
  *
- * `sleep.with` names a real co-sleeper and is deliberately NOT read: the
- * eyes are shut and `sleep-curl` skips the idle beats anyway.
+ * `sleep.with` names a real co-sleeper and was never read: the eyes are shut
+ * and `sleep-curl` skips the idle beats anyway.
  *
  * Vertical travel is damped: eyes move much further side to side than up
  * and down, and a pupil driven hard vertically reads as alarm.
@@ -218,22 +198,10 @@ function nearestDrawnElement(world, pos, kind, view) {
 function gazeTargetFor(kitty, world, pos, view = null) {
   const ref = kitty.last_action;
   if (!ref) return null;
-  let at = null;
-  if (ref.id !== undefined && ref.id !== null) {
-    at = ref.target === 'element'
-      ? drawnPosOf(world.elements.find((el) => el.id === ref.id), view, true)
-      : drawnPosOf(world.kitties.find((k) => k.id === ref.id), view, false);
-  } else if (ref.action === 'groom') {
-    at = drawnPosOf(world.kitties.find((k) => k.id === ref.target), view, false);
-  } else if (ref.action === 'eat' || ref.action === 'drink') {
-    // The engine resolves the bowl every tick but does not serialise it, so
-    // the client resolves it the same way -- nearest of the right kind,
-    // within reach. That is reading the present, not predicting it. An
-    // emptied bowl despawns the tick its last serving goes, and the cat
-    // licks it clean for the rest of the scene: there is then nothing drawn
-    // to look at, and nothing is the right answer.
-    at = nearestDrawnElement(world, pos, ref.action === 'eat' ? 'chow' : 'water', view);
-  }
+  if (ref.id === undefined || ref.id === null) return null;
+  const at = ref.target === 'element'
+    ? drawnPosOf(world.elements.find((el) => el.id === ref.id), view, true)
+    : drawnPosOf(world.kitties.find((k) => k.id === ref.id), view, false);
   if (!at) return null;
   const dx = at.x - pos.x;
   const dy = at.y - pos.y;
