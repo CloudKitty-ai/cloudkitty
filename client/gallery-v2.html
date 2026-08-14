@@ -93,24 +93,37 @@
     gap: 10px 26px;
     font-size: 14px;
   }
-  .dials label { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
-  .dials input { flex: 1; min-width: 0; }
-  /* The value has to hold its width or the label re-wraps mid-drag: a digit
-     lost or gained here takes pixels from the text beside it, and a long
-     label sitting on the wrap point flips between one and two lines as you
-     tune. Tabular figures make every digit the same width; the min-width
-     reserves room for the widest any dial can produce -- 6 characters,
-     from the pounce lab's `lift` at its 0.0025 step. */
+  /* Label on its own line, slider and value beneath it. The three used to
+     share one row, which cannot work in a 240px column: a long label
+     squeezed the slider until it was too narrow to drag, and reserving
+     width for the slider instead made the label re-wrap on every value
+     change. Given a row of its own the label wraps on the COLUMN width
+     only -- the same place every time, whatever the number says -- and the
+     slider always spans the column. */
+  .dials label {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas: 'text text' 'range value';
+    align-items: center;
+    gap: 2px 10px;
+  }
+  .dials label > span { grid-area: text; line-height: 1.35; }
+  .dials input { grid-area: range; width: 100%; min-width: 0; }
+  /* The value still has to hold its width: tabular figures so every digit
+     measures the same, and a floor of 6ch, which is the widest reading any
+     dial in this lab can produce (the pounce card's `lift`, 0.0025 step). */
   .dials b {
-    flex: 0 0 auto;
+    grid-area: value;
     min-width: 6ch;
     text-align: right;
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
   }
-  /* And the label keeps a floor of its own, so the row wraps at the same
-     place whatever the value says. */
-  .dials label > span { flex: 1 1 auto; min-width: 0; }
+  .dials label:has(input[type='checkbox']) {
+    grid-template-columns: auto 1fr;
+    grid-template-areas: 'range text';
+  }
+  .dials label input[type='checkbox'] { width: auto; }
   #eyeReadout {
     margin-top: 10px;
     font-size: 13px;
