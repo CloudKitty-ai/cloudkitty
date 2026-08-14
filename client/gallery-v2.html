@@ -94,7 +94,23 @@
     font-size: 14px;
   }
   .dials label { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
-  .dials input { flex: 1; }
+  .dials input { flex: 1; min-width: 0; }
+  /* The value has to hold its width or the label re-wraps mid-drag: a digit
+     lost or gained here takes pixels from the text beside it, and a long
+     label sitting on the wrap point flips between one and two lines as you
+     tune. Tabular figures make every digit the same width; the min-width
+     reserves room for the widest any dial can produce -- 6 characters,
+     from the pounce lab's `lift` at its 0.0025 step. */
+  .dials b {
+    flex: 0 0 auto;
+    min-width: 6ch;
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  /* And the label keeps a floor of its own, so the row wraps at the same
+     place whatever the value says. */
+  .dials label > span { flex: 1 1 auto; min-width: 0; }
   #eyeReadout {
     margin-top: 10px;
     font-size: 13px;
