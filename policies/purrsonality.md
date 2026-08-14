@@ -83,6 +83,18 @@ Loudest measurable roster (~500 meows/1k world-wide, ~3× live).
 Evidence: `experiments/attn-meow-econ-2026-08-14/` (results.md,
 valence-results.md) + `experiments/attn-ppo-2026-08-13/results.md`.
 
+## The deployed world — (reserved, owner's standing ask 2026-08-14)
+
+When a mixed roster seats, this register gains a **world-level
+entry** alongside the per-mind ones: the interaction fabric as it
+actually runs on the box — who piles with whom and how often, the
+directed grooming graph, cross-dialect answer rates, each seat's
+welfare in the live company, and how the fabric drifts (or doesn't)
+over the soak. Measured from live-world census runs at the deployed
+seats plus the soak record, not extrapolated from lab compositions —
+the lab numbers above are its priors, the live entry is its truth.
+Refresh on any seating change.
+
 ---
 
 **Template for new entries**: name + epithet + status (deployed /
