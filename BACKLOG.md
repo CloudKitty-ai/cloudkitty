@@ -32,9 +32,11 @@ is wrong is the magnitude.
 | pupil | 0.48px | 0.73px | `gazePupil: 0.36` |
 | head follow | 0.35px | **0.53px** | `gazeHead: 0.05` |
 
-For scale: the whiskers were cut at ~0.8px and the body bob was reverted at
-0.56px peak-to-peak. So **only the ears clear the floor** — the cue reads as
-ears turning rather than as a head turn, which is the thing to fix.
+For scale: the body bob was reverted at 0.56px peak-to-peak. (The whiskers
+were cut twice at ~0.8px and then shipped at it — see the closed entry
+below; a stroke width alone does not settle whether a feature reads.) So
+**only the ears clear the floor** — the cue reads as ears turning rather
+than as a head turn, which is the thing to fix.
 `gazeHead` 0.10 gives 1.06px at 47, 0.14 gives 1.48px.
 
 **The lab surface already exists**: `gallery-v2.html`, the card "The look —
@@ -187,17 +189,21 @@ the *whole-cat* mechanism from that revert (head, tail and limb pivots riding
 the body, grounded feet held), not as a torso sliding against a welded head —
 and only at an amplitude that clears a pixel.
 
-### Whiskers — deferred to camera mode (2026-08-09; Client thread)
-`cat-v2.js` says "No whiskers — ever" and that stands for now: three per side
-at our cat size land near **0.8px strokes**, which is where the original
-attempt died. The v3 plan's hope was that a bigger tile would fix it; Phase 1
-raised the tile and it is still not enough.
+### Whiskers — CLOSED, they shipped (2026-08-13; Client thread)
+Shipped on in #215 at the whole-world tile, without camera mode and without
+clearing the sub-pixel floor. This entry said the stroke lands near **0.8px**
+and that a bigger tile had not been enough, and both of those are still true —
+the stroke is pinned at exactly the 0.8px floor at the live tile.
 
-**The re-examination trigger is camera mode**, not a date. A camera that zooms
-in is the one change that would move whiskers out of sub-pixel territory, and
-it is already deferred until after the art (see Deferred, below). Judge them
-at the *camera's* cat size, not the gallery's, and treat "cut again" as an
-acceptable outcome — that is what happened the first two times.
+**The premise was wrong, not the measurement.** kitten.me's whiskers sit at
+the same 0.8px below a 44px cat, so stroke width was never what made theirs
+read. What does is **opacity** — at 0.25 a hairline is a soft hint rather than
+an aliased dotted line — and **length**, running past the head so most of the
+whisker falls against background rather than fur. Sub-pixel geometry can carry
+a feature if it is not asked to look solid.
+
+Worth remembering when the next feature is costed at a pixel width: that is
+one of at least three things setting whether it reads.
 
 ### The walk contradicts itself travelling north/south (added 2026-08-08; Client thread)
 Our cat is a **side profile**, so it encodes a heading. The legs sweep
