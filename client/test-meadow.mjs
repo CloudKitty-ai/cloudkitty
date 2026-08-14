@@ -93,6 +93,17 @@ function guardCtx(log = []) {
             };
           };
         }
+        if (prop === 'measureText') {
+          // A real canvas answers with TextMetrics. Nothing here judges
+          // type layout, so a plausible finite width is enough -- but it
+          // has to be an OBJECT, or `drawBubble` throws on `.width` and
+          // takes the whole frame with it. No check drew a speech bubble
+          // until the purr split, which is why this was never needed.
+          return (text) => {
+            log.push(['measureText', text]);
+            return { width: String(text).length * 6 };
+          };
+        }
         return (...args) => {
           guard(prop, args);
           log.push([prop, ...args.map(serialize)]);
@@ -112,9 +123,14 @@ function guardCtx(log = []) {
 /** A canvas stand-in, so code that builds offscreens can run headlessly.
  *  `buildPondLayers` makes four of them, which is exactly why the renderer
  *  path below was never reachable before. */
-function mockCanvas(width = 640, height = 640) {
-  const canvas = { width, height, dataset: {}, style: {} };
-  const ctx = guardCtx([]);
+function mockCanvas(width = 640, height = 640, log = []) {
+  // `clientWidth`/`clientHeight` are what a real canvas reports for its CSS
+  // box, and `drawBubble` clamps against them to keep a bubble on screen --
+  // undefined there is a NaN into moveTo, which the guard catches but only
+  // once something actually draws a bubble. Nothing did until the purr
+  // split. `log` is optional so a check can read back what was drawn.
+  const canvas = { width, height, clientWidth: width, clientHeight: height, dataset: {}, style: {} };
+  const ctx = guardCtx(log);
   ctx.canvas = canvas;
   canvas.getContext = () => ctx;
   return canvas;
@@ -141,7 +157,7 @@ const EXPORTS =
   ' MEADOW_DAWN, bushesFor, drawBushAt, drawGroundCover, MEADOW_SALTS, MEADOW_DEFAULTS, tileHash, drawMeadowGround, drawGridOverlay, groupWaterTiles,' +
   ' buildPondPath, drawPonds, pondInradius, drawSunbeamGlow, drawWornPaths, VIEW, Presentation,' +
   ' driftField, spriteOrder, SPRITE_RANK, coverSortKey, catSortKey, coverStands,' +
-  ' WorldRenderer })';
+  ' WorldRenderer, PURR, drawPurrGlyph })';
 const api = eval(src + EXPORTS);
 
 let passed = 0;
@@ -152,6 +168,7 @@ function check(name, fn) {
     passed += 1;
     console.log(`  ok   ${name}`);
   } catch (err) {
+    if (process.env.SHOWSTACK) console.error(err.stack);
     failed += 1;
     console.error(`  FAIL ${name}: ${err.message}`);
   }
@@ -869,6 +886,111 @@ check('the renderer draws the live world\'s ponds without throwing', () => {
  * So this drives the REAL renderer over the REAL Presentation's view, in
  * every theme, with a cat at a series of positions from the pond's middle
  * out onto dry grass. */
+check('a purr draws its glyph; a request still draws its bubble', () => {
+  // The split, checked through a whole frame rather than by calling
+  // drawBubbles directly -- the glyph reaches for `drawPurrGlyph` and
+  // `PURR` across a file boundary, and props.js is exactly the kind of
+  // dependency that is present in a harness and missing in the browser.
+  const frame = (meows) => {
+    const log = [];
+    const renderer = new api.WorldRenderer(mockCanvas(640, 640, log));
+    renderer.tile = 32;
+    renderer.dpr = 1;
+    renderer.cssWidth = 640;
+    renderer.cssHeight = 640;
+    const kitties = [{ id: 1, name: 'Miso', pos: { x: 5, y: 5 }, needs: {}, happiness: 90 }];
+    const at = (tick) => ({
+      tick, width: 20, height: 20, elements: [], kitties, recent_meows: meows,
+    });
+    const p = new api.Presentation();
+    p.pushState(at(9), 1000);
+    p.pushState(at(10), 1800);
+    renderer.draw(p.curr, p.viewAt(2200, false));
+    return log.filter((e) => e[0] === 'fillText').map((e) => String(e[1]));
+  };
+
+  const purr = frame([{ kitty_id: 1, kind: 'purr', tick: 10 }]);
+  assert(purr.some((t) => t.includes('\u{1F497}')), 'a purring cat should draw the glyph');
+  assert(!purr.some((t) => t.includes('purrrr')),
+    'a purr still drew its speech bubble -- the whole point was to take it out');
+
+  const asks = frame([{ kitty_id: 1, kind: 'want_eat', tick: 10 }]);
+  assert(asks.some((t) => t.includes('I want to eat')), 'a request must keep its bubble');
+  assert(!asks.some((t) => t.includes('\u{1F497}')), 'a request should not summon the purr glyph');
+
+  // Both live at once: they want the same space above the cat, and the
+  // thing a viewer can act on wins.
+  const both = frame([
+    { kitty_id: 1, kind: 'purr', tick: 10 },
+    { kitty_id: 1, kind: 'want_eat', tick: 10 },
+  ]);
+  assert(both.some((t) => t.includes('I want to eat')), 'the request must survive a purr');
+  assert(!both.some((t) => t.includes('\u{1F497}')), 'the mood must give way to the request');
+
+  // And nothing at all when the cat has said nothing.
+  assert(!frame([]).some((t) => t.includes('\u{1F497}')), 'a silent cat should draw no glyph');
+});
+
+check('the purr glyph is actually buzzing in a live frame', () => {
+  // The glyph is only as alive as the phase the RENDERER hands it, and the
+  // two halves are in different files: props.js knows how to shake, and
+  // render.js decides what to shake by. Handing over a constant leaves a
+  // perfectly correct glyph nailed to the spot, and every check that talks
+  // to `drawPurrGlyph` directly still passes. So this asks the frame.
+  const xAt = (nowMs) => {
+    const log = [];
+    const renderer = new api.WorldRenderer(mockCanvas(640, 640, log));
+    renderer.tile = 32;
+    renderer.dpr = 1;
+    renderer.cssWidth = 640;
+    renderer.cssHeight = 640;
+    const kitties = [{ id: 1, name: 'Miso', pos: { x: 5, y: 5 }, needs: {}, happiness: 90 }];
+    const at = (tick) => ({
+      tick, width: 20, height: 20, elements: [], kitties,
+      recent_meows: [{ kitty_id: 1, kind: 'purr', tick: 10 }],
+    });
+    const p = new api.Presentation();
+    p.pushState(at(9), 1000);
+    p.pushState(at(10), 1800);
+    renderer.draw(p.curr, p.viewAt(nowMs, false));
+    return log.filter((e) => e[0] === 'fillText' && String(e[1]).includes('\u{1F497}'))[0][2];
+  };
+  // Half a shake apart at the shipped rate, which is the widest the glyph
+  // ever travels.
+  const half = 500 / api.PURR.shakeHz;
+  const spread = Math.abs(xAt(2000) - xAt(2000 + half));
+  assert(spread > api.PURR.shakePx,
+    `the glyph moved ${spread.toFixed(2)}px across half a shake -- the renderer is feeding it a constant`);
+});
+
+check('the purr vibration is REAL pixels, and a still frame holds it', () => {
+  // The same floor-versus-share trap the whiskers recorded: a vibration is
+  // judged by how far it travels on screen, so it must not grow with the
+  // tile. Read off the drawing at two tile sizes rather than restating the
+  // formula here.
+  const xAt = (tile, phase) => {
+    const log = [];
+    const ctx = guardCtx(log);
+    api.drawPurrGlyph(ctx, 100, 50, tile, phase);
+    return log.filter((e) => e[0] === 'fillText').map((e) => e[2])[0];
+  };
+  const travel = (tile) => xAt(tile, 0.25) - xAt(tile, 0.75);
+  assert(Math.abs(travel(31) - travel(96)) < 1e-9,
+    `the shake grew with the tile: ${travel(31).toFixed(2)}px at 31 against ${travel(96).toFixed(2)}px at 96`);
+  assert(Math.abs(travel(31) - api.PURR.shakePx * 2) < 1e-9,
+    'peak-to-peak travel should be twice the dialled amplitude');
+  assert(api.PURR.shakePx > 0 && api.PURR.shakeHz > 0, 'the owner baked a live vibration');
+
+  // Phase 0 is what a still frame hands over (`propPhaseFor` returns 0
+  // there), and it must still DRAW -- reduced motion keeps the purr, it
+  // just stops it buzzing.
+  const still = [];
+  api.drawPurrGlyph(guardCtx(still), 100, 50, 31, 0);
+  const drawn = still.filter((e) => e[0] === 'fillText');
+  assert(drawn.length === 1, 'a still frame should still draw the glyph');
+  assert(drawn[0][2] === 100 + api.PURR.offsetX * 31, 'at phase 0 the glyph sits at rest');
+});
+
 check('the renderer draws a cat in the water, in every theme, without throwing', () => {
   const themes = ['day', 'dusk', 'night', 'dawn'];
   for (const theme of themes) {

@@ -544,94 +544,6 @@
   }
 
   // -------------------------------------------------------------- eye dials
-  // Purr glyph candidates (2026-08-14). Kept in the LAB, not in props.js:
-  // three of these will be thrown away, and the house rule is to judge
-  // first and bake on the owner's paste.
-  const PURR = {
-    pick: 1,
-    size: 0.34, // share of the tile
-    rise: 0.22, // above the cat's box -- NEGATIVE overlaps the cat
-    offsetX: 0, // left/right of the cat's centre, share of the tile
-    alpha: 0.9,
-    // The vibration, shared by the heart (1) and the emoji (4).
-    shakePx: 0.6, shakeHz: 9,
-    shakeMode: 1, // 1 horizontal · 2 vertical · 3 alternating · 4 combined
-    shakeAltCycles: 2, // mode 3: shakes on one axis before switching
-    shakePhase: 0.25, // mode 4: vertical lag in turns. 0 = diagonal, 0.25 = circular
-    pulseScale: 0.14, pulseMs: 700, // 2: pulse
-    waveCount: 3, waveMs: 1200,     // 3: waves
-  };
-
-  /**
-   * The vibration, in real pixels, as an offset. Shared by the heart and
-   * the emoji so the two are judged on the SHAPE rather than on one of
-   * them having been given better motion.
-   */
-  function purrShake(now) {
-    const turns = (now / 1000) * PURR.shakeHz;
-    const a = Math.sin(turns * Math.PI * 2) * PURR.shakePx;
-    if (PURR.shakeMode === 2) return { dx: 0, dy: a };
-    if (PURR.shakeMode === 3) {
-      // Bursts on one axis, then the other. The switch is on a whole
-      // cycle, so it never cuts a shake off mid-travel.
-      const vertical = Math.floor(turns / PURR.shakeAltCycles) % 2 === 1;
-      return vertical ? { dx: 0, dy: a } : { dx: a, dy: 0 };
-    }
-    if (PURR.shakeMode === 4) {
-      // Both axes at once. The phase offset is what decides the FIGURE:
-      // 0 traces a diagonal line, 0.25 an ellipse.
-      return { dx: a, dy: Math.sin((turns + PURR.shakePhase) * Math.PI * 2) * PURR.shakePx };
-    }
-    return { dx: a, dy: 0 };
-  }
-
-  function drawPurrGlyph(ctx, which, cx, cy, tile, now) {
-    const px = PURR.size * tile;
-    ctx.save();
-    ctx.globalAlpha = PURR.alpha;
-    if (which === 1) {
-      // The vibrating heart: the SHAPE is the shipped cuddle heart, so it
-      // already wears the palette and the world's outline weight. Only the
-      // motion is new -- a fast, small lateral shake, which is what reads
-      // as "vibrating" at a glyph this size.
-      const { dx, dy } = purrShake(now);
-      drawHeart(ctx, { phase: 0, size: px, x: cx - px / 2 + dx, y: cy - px + dy });
-    } else if (which === 2) {
-      // The same heart, swelling instead of shaking. Calmer; the pulse is
-      // drawn here rather than through VIEW.props so it can be dialled
-      // against the others without moving the shipped cuddle heart.
-      const k = 1 + PURR.pulseScale * Math.sin(((now % PURR.pulseMs) / PURR.pulseMs) * Math.PI * 2);
-      ctx.translate(cx, cy - px / 2);
-      ctx.scale(k, k);
-      drawHeart(ctx, { phase: 0, size: px, x: -px / 2, y: -px / 2 });
-    } else if (which === 3) {
-      // Purr waves: sound rather than sentiment. Arcs open from the cat's
-      // head and fade as they go, so the cue is the MOTION and there is no
-      // symbol to read at all.
-      const t = (now % PURR.waveMs) / PURR.waveMs;
-      ctx.strokeStyle = PROPS.blushDeep;
-      ctx.lineWidth = Math.max(0.7, tile * 0.022);
-      ctx.lineCap = 'round';
-      for (let i = 0; i < PURR.waveCount; i += 1) {
-        const u = (t + i / PURR.waveCount) % 1;
-        ctx.globalAlpha = PURR.alpha * (1 - u) * 0.9;
-        const r = px * (0.35 + u * 0.75);
-        ctx.beginPath();
-        ctx.arc(cx, cy, r, -Math.PI * 0.78, -Math.PI * 0.22);
-        ctx.stroke();
-      }
-    } else {
-      // The emoji, for a fair comparison. Note what it cannot do: follow
-      // the day/night palette, or look the same on two machines.
-      ctx.font = `${px}px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'alphabetic';
-      const { dx, dy } = purrShake(now);
-      ctx.fillText('\u{1F497}', cx + dx, cy + dy);
-    }
-    ctx.restore();
-  }
-
   const DIALS = [
     { obj: 'EYE', key: 'scale', label: 'eye size (of head)', min: 0.12, max: 0.26, step: 0.005 },
     { obj: 'EYE', key: 'height', label: 'eye height (− up / + down)', min: -0.16, max: 0.16, step: 0.005 },
@@ -1703,67 +1615,52 @@
       },
     },
     {
-      title: 'A purr is a MOOD, not a request — four glyphs to replace its bubble',
+      title: 'The purr glyph — a mood, not a request',
       v2Only: true,
       w: 620,
       h: 260,
       ownShadows: true,
       bag: PURR,
       note:
-        'Measured on the candidate world (attn-a1, 246 ticks): 98% of all meows are purrs, and a bubble is on screen 50.2% of ticks against 15.1% for the seated policy. Nine of the ten meow kinds are REQUESTS the viewer can act on; a purr is a mood. Same bubble for both means almost every bubble carries no information. Request bubbles are untouched — with purr taken out of them they drop to 1.2% of ticks, which makes a bubble mean something again. ' +
-        'Top row is the LIVE 31px tile, which decides. Bottom is 3x. The emoji is here because it is the obvious answer and deserves a fair look — but it is the one candidate that will NOT follow the day/night palette, and it renders as whatever font the viewer\'s OS ships.',
+        'Measured on the candidate world (attn-a1, 246 ticks): 98% of every meow is a purr, and a bubble was on screen 50.2% of ticks against 15.1% for the seated policy. Nine of the ten kinds are REQUESTS a viewer can act on; a purr is a mood. Same bubble for both meant almost every bubble said nothing. With purr taken out, request bubbles fall to 1.2% of ticks — a bubble means something again. ' +
+        'Judged here against a vibrating heart, a pulsing heart and sound waves; the owner took the emoji (2026-08-14), knowing the two things it cannot do: follow the day/night palette, and look the same on two machines. This dials the SHIPPED glyph — props.js PURR — so there is no second copy to drift.',
       dials: [
-        { key: 'pick', label: 'BAKE which one? 1 vibrate · 2 pulse · 3 waves · 4 emoji', min: 1, max: 4, step: 1 },
-        { key: 'size', label: 'glyph size, share of the tile', min: 0.15, max: 0.7, step: 0.02 },
-        { key: 'rise', label: 'height above the cat (negative overlaps it)', min: -0.5, max: 1, step: 0.02 },
-        { key: 'offsetX', label: 'left / right of centre, share of the tile', min: -0.7, max: 0.7, step: 0.02 },
+        { key: 'size', label: 'glyph size, share of the tile', min: 0.15, max: 0.7, step: 0.01 },
+        { key: 'rise', label: 'height above the cat (negative overlaps)', min: -0.5, max: 1, step: 0.02 },
+        { key: 'offsetX', label: 'left / right of centre, share of tile', min: -0.7, max: 0.7, step: 0.02 },
         { key: 'alpha', label: 'opacity', min: 0.2, max: 1, step: 0.05 },
-        { key: 'shakePx', label: 'vibrate: travel in real px (1 and 4)', min: 0, max: 2, step: 0.05 },
-        { key: 'shakeHz', label: 'vibrate: shakes per second', min: 2, max: 16, step: 0.5 },
-        { key: 'shakeMode', label: 'vibrate: 1 horiz · 2 vert · 3 alternating · 4 combined', min: 1, max: 4, step: 1 },
-        { key: 'shakeAltCycles', label: '...mode 3: shakes before it switches axis', min: 1, max: 6, step: 1 },
-        { key: 'shakePhase', label: '...mode 4: 0 diagonal → 0.25 circular', min: 0, max: 0.5, step: 0.01 },
-        { key: 'pulseScale', label: 'pulse: how much it swells', min: 0, max: 0.4, step: 0.02 },
-        { key: 'pulseMs', label: 'pulse: one beat, ms', min: 300, max: 2000, step: 50 },
-        { key: 'waveCount', label: 'waves: how many arcs', min: 1, max: 4, step: 1 },
-        { key: 'waveMs', label: 'waves: one cycle, ms', min: 400, max: 2400, step: 100 },
+        { key: 'shakePx', label: 'vibrate: travel in REAL px', min: 0, max: 2, step: 0.05 },
+        { key: 'shakeHz', label: 'vibrate: shakes per second', min: 2, max: 20, step: 0.5 },
       ],
       readout() {
         const P = PURR;
-        return `PURR = { pick: ${P.pick} (${['vibrate', 'pulse', 'waves', 'emoji'][P.pick - 1]}), ` +
-          `size: ${P.size}, rise: ${P.rise}, offsetX: ${P.offsetX}, alpha: ${P.alpha},\n` +
-          `  shakePx: ${P.shakePx}, shakeHz: ${P.shakeHz}, shakeMode: ${P.shakeMode} ` +
-          `(${['horizontal', 'vertical', 'alternating', 'combined'][P.shakeMode - 1]}), ` +
-          `shakeAltCycles: ${P.shakeAltCycles}, shakePhase: ${P.shakePhase},\n` +
-          `  pulseScale: ${P.pulseScale}, pulseMs: ${P.pulseMs},\n` +
-          `  waveCount: ${P.waveCount}, waveMs: ${P.waveMs} }\n` +
-          `at the 31px tile the glyph draws ${(PURR.size * 31).toFixed(1)}px across, ` +
-          `${(PURR.offsetX * 31).toFixed(1)}px sideways and ${(PURR.rise * 31).toFixed(1)}px up` +
-          (PURR.rise < 0 ? ' (OVERLAPPING the cat)' : '') +
-          (PURR.size * 31 < 6 ? ' — under 6px, which is where small props stop reading' : '');
+        return `PURR = { size: ${P.size}, rise: ${P.rise}, offsetX: ${P.offsetX}, alpha: ${P.alpha},\n` +
+          `  shakePx: ${P.shakePx}, shakeHz: ${P.shakeHz} }\n` +
+          `at the 31px live tile: ${(P.size * 31).toFixed(1)}px across, ` +
+          `${(P.rise * 31).toFixed(1)}px above the cat, travelling ${(P.shakePx * 2).toFixed(1)}px peak to peak` +
+          (P.size * 31 < 6 ? '\n  under 6px — where small props stop reading' : '');
       },
       draw(ctx, w, h, now) {
         const LIVE = 31;
-        const rows = [{ tile: LIVE, y: 96, label: 'live 31px' }, { tile: LIVE * 3, y: 250, label: '3x' }];
-        const gap = w / 4;
-        for (const row of rows) {
-          for (let i = 0; i < 4; i += 1) {
-            const cx = gap * i + gap / 2;
+        for (const row of [{ tile: LIVE, y: 96 }, { tile: LIVE * 3, y: 250 }]) {
+          for (let i = 0; i < 3; i += 1) {
+            const cx = (w / 3) * i + w / 6;
             const catY = row.y - row.tile;
             CatV2.drawCat(ctx, {
-              pose: 'idle', appearance: CatV2.appearanceFor(3), facing: 'right',
+              pose: 'idle', appearance: CatV2.appearanceFor(i + 2), facing: 'right',
               size: row.tile, x: cx - row.tile / 2, y: catY, phase: (now % 3400) / 3400,
             });
-            drawPurrGlyph(ctx, i + 1, cx + PURR.offsetX * row.tile,
-              catY - PURR.rise * row.tile, row.tile, now);
+            // The SHIPPED glyph, driven the way render.js drives it: a
+            // phase through one shake, offset per cat so no two buzz
+            // together. Nothing about the drawing is restated here.
+            drawPurrGlyph(ctx, cx, catY, row.tile,
+              ((now + (i + 1) * 4241) % (1000 / PURR.shakeHz)) / (1000 / PURR.shakeHz));
           }
         }
         ctx.fillStyle = 'rgba(107, 90, 78, 0.75)';
         ctx.font = '11px ui-rounded, system-ui, sans-serif';
         ctx.textAlign = 'center';
-        ['vibrating heart', 'pulsing heart', 'purr waves', 'the emoji (same shake)'].forEach((n, i) => {
-          ctx.fillText(`${i + 1}. ${n}`, gap * i + gap / 2, 14);
-        });
+        ctx.fillText('live 31px tile — the row that decides', w / 2, 14);
       },
     },
     {

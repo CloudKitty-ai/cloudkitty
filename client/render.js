@@ -38,6 +38,9 @@ const MEOW_TEXT = {
   follow_me: 'Follow me!',
   want_play: 'I want to play!',
   want_cuddle: 'I want to cuddle!',
+  // Kept, but no longer reached: a purr draws a glyph rather than a bubble
+  // (see drawBubbles). A test pins that, so this entry is provably unused
+  // rather than merely believed to be.
   purr: 'purrrr',
   wait_for_me: 'Wait for me!',
   // Spec 028 gave the two silent needs their words. Appended in the engine's
@@ -1428,14 +1431,36 @@ class WorldRenderer {
     const recent = (world.recent_meows || []).filter(
       (m) => m.tick > world.tick - BUBBLE_TICKS,
     );
-    // One bubble per cat: the newest thing they said.
-    const newest = new Map();
-    for (const meow of recent) newest.set(meow.kitty_id, meow);
+    // Requests and purrs part company here (2026-08-14). Nine of the ten
+    // kinds are something a viewer can act on; a purr is a mood, and giving
+    // both the same bubble meant 98% of bubbles said nothing -- see PURR in
+    // props.js for the measurements. One of each per cat, newest wins.
+    const said = new Map();
+    const purring = new Map();
+    for (const meow of recent) {
+      if (meow.kind === 'purr') purring.set(meow.kitty_id, meow);
+      else said.set(meow.kitty_id, meow);
+    }
 
-    for (const meow of newest.values()) {
+    for (const meow of said.values()) {
       const kitty = world.kitties.find((k) => k.id === meow.kitty_id);
       if (!kitty) continue;
       this.drawBubble(kitty, MEOW_TEXT[meow.kind] || '…', view, meow);
+    }
+    for (const [id, meow] of purring) {
+      // A request outranks the mood. They want the same space above the
+      // cat, and the thing the viewer can act on is the one to keep.
+      if (said.has(id)) continue;
+      const kitty = world.kitties.find((k) => k.id === id);
+      if (!kitty) continue;
+      const { x, y } = this.tileOrigin(view.posFor(kitty));
+      drawPurrGlyph(
+        this.ctx,
+        x + this.tile / 2,
+        y,
+        this.tile,
+        view.propPhaseFor(kitty.id, 1000 / PURR.shakeHz),
+      );
     }
   }
 

@@ -444,6 +444,53 @@ function drawSleepZs(ctx, opts) {
   });
 }
 
+/**
+ * The purr glyph (owner's bake, 2026-08-14).
+ *
+ * A purr is a MOOD, not a request, and it used to wear the same speech
+ * bubble as "I want to eat!". Measured on the candidate roster (attn-a1,
+ * 246 ticks) that was 98% of every meow, and a bubble on screen 50.2% of
+ * ticks -- so almost every bubble carried nothing a viewer could act on,
+ * which is what devalues the ones that do. With purr taken out, request
+ * bubbles fall to 1.2% of ticks and a bubble means something again.
+ *
+ * Judged in the lab against a drawn heart (vibrating and pulsing) and
+ * sound waves; the owner took the emoji. Two things it cannot do, chosen
+ * with eyes open: it will not follow the day/night palette, and it renders
+ * as whatever emoji font the viewer's OS ships.
+ */
+const PURR = {
+  size: 0.27, // share of the tile
+  rise: 0.04, // above the cat's box
+  offsetX: 0,
+  alpha: 0.7,
+  // Real pixels, not a share: a vibration is judged by how far it travels
+  // on screen, so it should not grow with the tile. Same reasoning as the
+  // whisker stroke floor.
+  shakePx: 0.8,
+  shakeHz: 15,
+};
+
+/**
+ * `phase` is 0..1 through one shake, and comes from the caller so a still
+ * frame can hand over 0 and get a glyph that holds -- reduced motion keeps
+ * the purr, it just stops it buzzing.
+ */
+function drawPurrGlyph(ctx, cx, topY, tile, phase) {
+  const px = PURR.size * tile;
+  ctx.save();
+  ctx.globalAlpha = PURR.alpha;
+  ctx.font = `${px}px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(
+    '\u{1F497}',
+    cx + PURR.offsetX * tile + Math.sin(phase * TAU) * PURR.shakePx,
+    topY - PURR.rise * tile,
+  );
+  ctx.restore();
+}
+
 function drawHeart(ctx, opts) {
   const { phase = 0, size, x = 0, y = 0 } = opts;
   const t = propTunables();

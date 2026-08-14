@@ -254,6 +254,22 @@ change.
   since the seed drives the lobe angles too, the pair ends up differing
   in silhouette as well as size. A tree beside a bush of its own size is
   left alone, because that reads fine (#214).
+- **A purr is a mood, not a request, and it stops using a speech bubble.**
+  Measured on the incoming candidate roster (attn-a1, 246 ticks live):
+  **98% of every meow is a purr**, and a bubble sat on screen 50.2% of
+  ticks against 15.1% for the seated policy. Nine of the ten meow kinds
+  are things a viewer can act on — *I want to eat!*, *Follow me!* — so
+  giving a mood the same bubble meant almost every bubble carried nothing,
+  which is what devalues the ones that do. Purrs now draw a small
+  vibrating glyph instead, and request bubbles are untouched: they fall to
+  **1.2% of ticks**, which makes a bubble worth reading again. A request
+  outranks the mood where both are live, since they want the same space
+  above the cat. Judged in the lab against a vibrating heart, a pulsing
+  heart and sound waves; the owner took the emoji knowing the two things
+  it cannot do — follow the day/night palette, and look the same on two
+  machines. The vibration is dialled in **real pixels**, not tile shares,
+  because a buzz is judged by how far it travels on screen; reduced motion
+  keeps the glyph and stops the buzz (#223).
 - **The gaze aims at what it can express, and no more.** Reading the two
   target shapes the client had been ignoring — `groom`'s bare kitty id, and
   eat/drink resolved from the map — took the gaze from 5.2% of cat-ticks to
