@@ -130,15 +130,63 @@ through the ears); let camera mode re-judge the three magnitudes, since
 head-follow at 0.35px and pupil at 0.48px only become legible zoomed in.
 Re-dialling them against a tile we are about to change is wasted.
 
-**Blocked on nothing, but waiting on Product** (asked 2026-08-13): whether
-`last_action` is a documented contract; why `target` is a kind string on chase
-and an id on groom; whether `groom.target`/`sleep.with` can ever name an
-element (ids overlap — elements run 1–233, kitties 1–4, so a bare integer is
-not self-describing); and whether `eat`/`drink` should name the element they
-used. Also reported to them, not ours to fix: `activity.state` corroborates
-`last_action.action` on only about half of ticks, in a strict alternation
-(eat 117 `eating` / 117 `idle`), so a two-tick action reports its state on the
-first tick only. Four of the client's seven poses come off `activity.state`.
+**Product answered, 2026-08-13.** All four shapes are contract and documented
+— `specs/001-cloudkitty-mvp/contracts/http-api.md` for the kitty object and
+`last_action` ("the action the engine actually applied last tick,
+post-validation"), `specs/004-fix-happiness-lockin/contracts/http-api-delta.md`
+for the play shapes, `specs/006-action-durations/contracts/http-api-delta.md`
+for multi-tick behaviour. Changes are additive by doctrine and go through a
+spec, so reading them is safe.
+
+- The type asymmetry is deliberate and guaranteed at the source. `Chase` and
+  `Play` can name a kitty OR an element, so they carry the discriminated
+  `{target: kind, id}`. `Groom { target: Option<KittyId> }` can only ever name
+  a kitty, so it is a bare id. **Reader rule: if `id` is present, `target` is
+  the kind; if not, `target` is a kitty id or null.**
+- `groom.target` and `sleep.with` are `Option<KittyId>` — never an element, so
+  the id-overlap worry does not apply. Both serialise `null` (self-groom, solo
+  sleep); expect nulls on `with` even though this capture had none.
+- Eat resolves its bowl through `adjacent_stocked_chow`, so a stocked bowl IS
+  within one tile at scene start. The 159/234 gap is despawn: a bowl's last
+  serving despawns it that same tick, and an emptied bowl leaves the cat
+  licking it clean for the rest of the scene. Water never depletes — hence
+  315/319.
+- Serialising the element id is possible but belongs in the ACTIVITY payload,
+  not `last_action` (which doubles as the plugin proposal wire). Additive, and
+  it needs a spec and the owner's word.
+
+#### The client draws the wrong pose on the last tick of every scene
+
+Not Product's bug — ours, and it was found by asking about theirs. **17.4% of
+every cat-tick draws a cat standing idle when it actually ate, drank, groomed
+or slept that tick.**
+
+`activity.state` is the scene IN PROGRESS as of end-of-tick. The engine applies
+every action, then clears scenes that met their end condition, in that order,
+before the frame publishes. So the final serviced tick of every scene reports
+`last_action` = the action (true, its effects landed) and `state` = idle (also
+true, the scene is over). Both are correct; the client reads the wrong one.
+
+| the cat did | the client draws | | share of that action's ticks |
+| --- | --- | --- | --- |
+| drinking | idle | 159 | 49.8% |
+| eating | idle | 117 | 50.0% |
+| grooming | idle | 85 | 22.1% |
+| sleep-curl | idle | 104 | 16.9% |
+
+**The panel already contradicts the drawing.** `doingFor` in `app.js` follows
+`last_action` (`case 'eat': return 'eating 🍥'`), which is the documented
+pattern — "the doing line follows last_action". `poseFor` in `render.js`
+follows `activity.state`. On the last tick of a meal the card says *eating*
+while the cat stands there doing nothing, and a nap ends with the sleeper
+sitting up for 600ms before the next thing starts.
+
+The fix is to derive the pose from `last_action` and treat `activity` as
+"scene ongoing". Not purely mechanical: `loaf` comes from the `resting` state
+and there is a separate `rest` action, and sleep/loaf need to stay distinct —
+so it wants its own pass and its own tests, not a same-day edit to the gaze
+work. Scene spans, if ever needed exactly, are on `GET /events/activity`;
+snapshots cannot show them by construction.
 
 ### Graphics v2 follow-on: face-group pitch (added 2026-07-29; Client thread)
 The one v2 piece still unbuilt (vocabulary, motion wiring, and swim all
