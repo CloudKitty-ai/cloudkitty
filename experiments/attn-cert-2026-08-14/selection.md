@@ -168,3 +168,36 @@ kitty-eval natively (fresh anchor: 0.9056 on seed 870001); no gate
 compares across instruments. If any nonzero max_distress_age appears
 in the battery, the streak convention gets cross-checked against a
 kitty-eval homogeneous stress cell before verdicts are read.
+
+**D-002 (2026-08-14, owner approved).** G2b's "max distress age == 0"
+was anchored to a stale record: the incumbent's own certification
+carried 46/0/405 across stress shapes, and its fresh paired runs here
+measure 17 (eval) / 3 (stress). The streak convention was verified
+against engine source (in_distress = at-or-above threshold;
+distress_since age ≡ flag-streak length) before any verdict was read.
+G2b re-anchors to the constitutional bound: **max distress age ≤ 150**
+on every run. Candidate: worst 77 (eval) / 88 (stress) → PASS.
+
+**D-003 (2026-08-14, owner approved).** G2d compared fixed seats to a
+rotation-pooled screen prior — an accounting error exposed by the
+battery and explained by the Pumpkin diagnosis (`pumpkin_diag.py` +
+`pumpkin-diag.json`): the eat-0.8 trait taxes ANY occupant ~1 point
+(scripted −0.95, incumbent −1.06, s3 −0.96 vs its own Kittybear
+sibling), the groomer carries that seat cheapest of all three models
+(s1 −1.1, s2 −1.25 with the diagnosis's only distress ticks), the
+candidate seating maximizes roster welfare among the three seatings
+probed, and prosociality survives the hard seat (groom 10.4% vs
+12.2%). G2d re-anchors **seat-paired**: every seat ≥ the incumbent at
+the SAME seat − 0.006. Measured: Miso +0.04, Biscuit +0.15, Pumpkin
+−0.49, Kittybear −0.41 → PASS. Standing consequence (owner's word:
+"let's examine it this way going forward"): seat-paired accounting is
+the norm for trait-differentiated seats in future certifications.
+
+## Verdict (2026-08-14): CERTIFIED
+
+G1 ✓ · G2a ✓ · G2b ✓ (per D-002) · G2c floor ✓ (+0.042 over 0.9058)
+· G2c budget ✓ (−0.0018 eval / −0.0023 stress vs declared 0.005;
+eval reads as parity) · G2d ✓ (per D-003) · G3 ✓ (0 exceedances of
+bar 225; low_share ≤ 0.34% vs 5%). G4/G5 report-only entries and the
+telemetry battery accompany the seating record. **Seating awaits the
+owner's direct word (§5); G6 soak gates the keep thereafter.**
