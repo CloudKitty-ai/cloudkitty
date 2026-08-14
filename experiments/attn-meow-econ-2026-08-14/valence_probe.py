@@ -39,7 +39,11 @@ N_SEEDS = int(os.environ.get("VAL_SEEDS", "5"))
 COMPS = {
     "hom-s1": ["s1"] * 4, "hom-s2": ["s2"] * 4, "hom-s3": ["s3"] * 4,
     "mix": ["s1", "s2", "s3", "s1"],
+    "mix-2s3": ["s1", "s2", "s3", "s3"],  # owner's candidate roster
 }
+if os.environ.get("VAL_COMPS"):
+    keep = os.environ["VAL_COMPS"].split(",")
+    COMPS = {k: v for k, v in COMPS.items() if k in keep}
 
 import tomllib
 with open(CONFIG, "rb") as f:
@@ -135,6 +139,10 @@ def main():
         report[comp]["pairs"] = {"+".join(k): v
                                  for k, v in pair_census.items()}
     out = HERE / "valence-report.json"
+    if out.exists():  # merge: partial runs must not clobber prior comps
+        prior = json.loads(out.read_text())
+        prior.update(report)
+        report = prior
     out.write_text(json.dumps(report, indent=1) + "\n")
     for comp, r in report.items():
         print(f"\n== {comp} ==")

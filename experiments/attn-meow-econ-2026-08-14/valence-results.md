@@ -57,6 +57,37 @@ singletons pair with s1 roughly twice as readily as with each other.
 The cuddler is the social hub; the loner and the groomer tolerate
 each other least.
 
+## Addendum: the owner's candidate roster [s1, s2, s3, s3]
+
+Same instruments on the composition Elizabeth proposed (census from
+the battery's `mix-4th-s3` cell; positioning run `mix-2s3`):
+
+- **s3's culture survives with one sibling**: groom-other holds at
+  12.0% (identical to home), and the quiet cats bank the gift — s1
+  and s2 each cut self-grooming ~25% (11.2→8.8 / 11.4→8.8), freed
+  into chasing and eating. WantBath asks halve vs the lone-s3 mixes.
+- **Welfare**: s1 95.15 · s2 95.17 · s3 94.51 — the sibling recovers
+  ~60% of s3's lone-cat deficit (94.87 home → 94.51 here → 93.93
+  alone); s1/s2 do better than their own homogeneous baselines.
+- **No isolate**: s3 pooled nearest-dist 2.99 (vs 3.50 when alone
+  among quieter cats); contact shares within 0.02 across all three
+  models. Raw pile ticks are the most balanced of any measured
+  composition (8.5–9.7k every edge), and per-dyad the graph resolves
+  into **two natural friendships with strong cross-links**: s3+s3
+  9,311 and s1+s2 8,470 per dyad (the kin pair and the quiet pair),
+  cross-edges ~4.3–4.8k per dyad.
+
+Reading: a viable roster — every seat ≥ 94.5, the grooming economy
+partially self-sustaining, no peripheral cat, and natural social
+texture (a bonded groomer pair, a cuddler–loner friendship,
+cross-visiting). Costs to weigh: s3's residual −0.36 vs home, and
+total channel volume — two 800/1k voices plus 355 and 217 makes this
+the loudest roster measurable here; viewer-facing meow density is a
+product call. Heterogeneous seats also break F-017's symmetry
+deadlock naturally. Certification, if pursued, runs the §9 battery on
+THIS composition (F-009: the roster is a held-fixed dimension — the
+homogeneous numbers do not transfer).
+
 ## Selection texture (adds to the economics doc's read)
 
 s1 isn't just the conservative candidate by dialect and robustness —

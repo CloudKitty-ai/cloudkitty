@@ -87,5 +87,46 @@
    "s2+s3": 5659,
    "s1+s1": 6763
   }
+ },
+ "mix-2s3": {
+  "s1|ticks": 50000,
+  "s1|nearest_sum": 140251,
+  "s1|contact": 21869,
+  "s1|alone": 16616,
+  "s2|ticks": 50000,
+  "s2|nearest_sum": 148265,
+  "s2|contact": 20926,
+  "s2|alone": 17631,
+  "s3|ticks": 100000,
+  "s3|nearest_sum": 298542,
+  "s3|contact": 43603,
+  "s3|alone": 33261,
+  "s1|pair": 22590,
+  "s2|pair": 21978,
+  "s2|sleep": 9068,
+  "s2|in_pile": 8072,
+  "s1|sleep": 11359,
+  "s1|in_pile": 9457,
+  "s3|pair": 44787,
+  "s3|in_pile": 18553,
+  "s3|sleep": 13221,
+  "s3|group": 21952,
+  "s1|group": 10794,
+  "s2|group": 10391,
+  "s3|sleep_own_beam": 123,
+  "s3|cosleep_on_beam": 165,
+  "s3|conducted": 79,
+  "s1|sleep_own_beam": 160,
+  "s1|cosleep_on_beam": 179,
+  "s1|conducted": 43,
+  "s2|sleep_own_beam": 95,
+  "s2|cosleep_on_beam": 116,
+  "s2|conducted": 35,
+  "pairs": {
+   "s1+s2": 8470,
+   "s3+s3": 9311,
+   "s1+s3": 9683,
+   "s2+s3": 8618
+  }
  }
 }
