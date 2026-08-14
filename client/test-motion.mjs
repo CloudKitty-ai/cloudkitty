@@ -484,6 +484,50 @@ check('swim is in the v2 vocabulary with the wading silhouette', () => {
   assert(L.earsUpright === true, 'ears dry and up');
 });
 
+check('a nap still ends in a stretch, through the REAL two-layer pipeline', () => {
+  // This is the check that was missing. When `poseFor` started reading the
+  // applied action, the tick a nap ends began arriving at `idlePoseFor` as
+  // `sleep-curl` instead of `idle` -- and its guard deleted the wake on the
+  // very tick it was recorded, which removed EVERY stretch in the world.
+  // 147 assertions passed while that happened, because each layer was only
+  // ever checked on its own. So this one composes them.
+  const rows = JSON.parse(readFileSync(join(here, 'fixtures/scene-ends.json'), 'utf8'));
+  const asleep = rows.find((r) => r.case === 'mid:sleep').kitty;
+  const waking = rows.find((r) => r.case === 'end:sleep').kitty;
+  assert(asleep.activity.state === 'sleeping' && waking.activity.state !== 'sleeping',
+    'the fixture no longer holds a sleep and the tick it ends on');
+
+  const p = new api.Presentation();
+  const drawn = (kit, now) => {
+    // Exactly what render.js does: the served pose, then the cat's own
+    // idle initiative on top of it.
+    const served = poseFor(kit, false, false, null);
+    const own = p.idlePoseFor(kit.id, served, now);
+    return own ? own.pose : served;
+  };
+  // Ingest through pushState so the wake is recorded the way it is live,
+  // rather than by reaching into `wokeAt` and asserting our own bookkeeping.
+  const at = (tick, kit) => ({ tick, width: 20, height: 20, kitties: [kit], elements: [] });
+  p.pushState(at(1, asleep), 0, p.tickMs);
+  p.pushState(at(2, asleep), p.tickMs, p.tickMs);
+  assert(drawn(asleep, p.tickMs) === 'sleep-curl', 'a cat mid-nap should be curled up');
+
+  p.pushState(at(3, waking), p.tickMs * 2, p.tickMs);
+  assert(drawn(waking, p.tickMs * 2) === 'stretch',
+    `a waking cat drew ${drawn(waking, p.tickMs * 2)} -- a nap ends in a stretch`);
+
+  // ...and the served pose underneath it is the honest one, so the stretch
+  // is an idle overlay rather than a second opinion about what happened.
+  assert(poseFor(waking, false, false, null) === 'sleep-curl',
+    'the wake tick applied sleep, so that is what the served pose must say');
+
+  // The stretch is abandoned, not banked, once the engine asks for something.
+  const busy = { ...waking, last_action: { action: 'eat' } };
+  assert(drawn(busy, p.tickMs * 2.5) === 'eating', 'an interrupted stretch must give way');
+  assert(drawn(waking, p.tickMs * 3) === 'sleep-curl',
+    'an abandoned stretch must not resume halfway through');
+});
+
 check('poseFor: the LAST tick of a scene draws what the cat did, not idle', () => {
   // The bug, stated against real wire. `activity` is the scene in progress as
   // of END of tick; `last_action` is what the engine applied DURING it. The

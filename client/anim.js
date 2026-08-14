@@ -1238,7 +1238,15 @@ class Presentation {
    */
   idlePoseFor(id, pose, now) {
     if (!this.curr) return null;
-    if (pose !== 'idle' && pose !== 'loaf') {
+    // `sleep-curl` has to reach the wake below (2026-08-13). The tick a nap
+    // ends is the tick the engine last APPLIED sleep, so since poseFor
+    // started reading the applied action that tick arrives here as
+    // `sleep-curl` rather than `idle` -- and this guard deleted the wake on
+    // the very tick it was recorded, which silently removed every stretch in
+    // the world. It cannot wait for the next tick either: measured over a
+    // live capture, the tick after a wake is a bare idle stand 3% of the
+    // time, so a deferred stretch is a stretch that never happens.
+    if (pose !== 'idle' && pose !== 'loaf' && pose !== 'sleep-curl') {
       // The engine has given this cat something to do. An interrupted
       // stretch is ABANDONED rather than banked: resuming one later would
       // start it halfway through, which looks worse than never having
