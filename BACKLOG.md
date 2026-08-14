@@ -48,6 +48,200 @@ needed a per-context split for exactly this reason and the gaze may as well.
 **Not in scope, and not the same thing:** the separate `ears` beat is a one-ear
 TWITCH (asymmetric, `earFar` at -0.35) — a flick, not a look. It stays.
 
+#### The SOURCES are a separate axis from the magnitudes (audited 2026-08-13)
+
+Everything above is about how far the gaze moves. This is about how often it
+moves at all, and it is the cheaper half. Measured by running the renderer's
+own logic over a 668-tick capture of the live world — 4 cats, e004-a1-s2,
+2,672 cat-ticks.
+
+**Two independent sources, and they barely overlap.**
+
+- **Served** — `gazeTargetFor` (`render.js`): the cat looks at whatever
+  `last_action` names. Any pose, and it survives reduced motion, because it
+  is served state rather than motion. **5.3%** of cat-ticks.
+- **The idle scan** — one of five beats in `motionFor`'s slot machine
+  (blink 30 / ears 26 / rest 24 / scan 14 / yawn 6). Only `idle` and `loaf`
+  reach it: walking returns early on stride, the four action poses on
+  progress, sleepers just breathe. Weighted by the real pose mix, **2.3%**
+  of frames for the scan and **1.1%** for the ear twitch.
+
+| pose | share of ticks | has a gaze today |
+| --- | --- | --- |
+| walking | 28.9% | 0% |
+| sleep-curl | 19.1% | 0% |
+| idle | 18.7% | 0% |
+| **pouncing** | 11.8% | **44.8%** |
+| grooming | 11.2% | 0% |
+| drinking | 6.0% | 0% |
+| eating | 4.4% | 0% |
+
+Chasing is the only thing that reliably makes a cat look at something.
+
+**Why: `last_action` names a target in three shapes and the client reads one.**
+
+```
+chase / targeted play   {target: 'kitty'|'element', id: 4}   read      5.3%
+groom                   {target: 4}                          IGNORED  14.0%
+sleep                   {with: 3}                            IGNORED  21.1%
+eat / drink             {action: 'eat'}  — no target at all           20.7%
+```
+
+`gazeTargetFor` requires `ref.id` and treats `target` as a KIND string. On a
+groom, `target` IS the id, so it bails at the first guard. Verified against
+the capture: a groom target is always another cat (reciprocal pairs 4↔2 and
+1↔3, never self — a self-groom serves `target: null`), and 350 of 385 are one
+tile away, so it is a strong sideways look.
+
+Ranked by what it would buy:
+1. **Grooming, 14.0%** — a shape fix, not a feature. Roughly triples the
+   served gaze. `target: null` already means "don't".
+2. **Eating and drinking, 20.7%** — needs a client-side resolve of the
+   adjacent element (chow within one tile on 159 of 234 eats, water on 315 of
+   319 drinks). Reading the present, not predicting.
+3. **Sleeping, 21.1%** — skip it. `with` names a real co-sleeper but the eyes
+   are shut and `sleep-curl` returns before the beats.
+
+**There is no staleness to design around, and it was checked because it
+looked like there was.** `last_action` is the action applied on THAT tick, not
+a sticky most-recent: it changes tick to tick, and a two-tick action simply
+repeats. An earlier count of "22% stale, up to 4s of held stare" was measuring
+`last_action.action` disagreeing with `activity.state`, which is a different
+thing (see the note to Product below). The gaze is recomputed per frame from
+live positions, so a quarry is tracked as it moves.
+
+**Owner's decision, 2026-08-13 — the gaze gets NO MEMORY.** When the current
+action names nothing, the cat's gaze goes to its default rather than holding
+the last target. This is worth writing down because it rules out an approach:
+remembering the last target is the obvious way to raise that 5.3%, and it is
+not what we want.
+
+**One refinement to the table above.** Its ear row measures something other
+than the drawn ear tip. Measured off the drawing, a full gaze moves the ear
+**apex 2.30px at 31px and 3.48px at 47px**, against the table's 1.25/1.90 —
+while the head row reproduces exactly (0.35 / 0.53), which is what says the
+difference is specific to the ear row's method rather than a change in the
+code. It strengthens the entry's conclusion rather than softening it: the ears
+are further clear of the floor than recorded, and are carrying the cue almost
+alone at map size.
+
+**Sequencing.** Fix the sources now (cheap, and it pays off at today's tile
+through the ears); let camera mode re-judge the three magnitudes, since
+head-follow at 0.35px and pupil at 0.48px only become legible zoomed in.
+Re-dialling them against a tile we are about to change is wasted.
+
+**Product answered, 2026-08-13.** All four shapes are contract and documented
+— `specs/001-cloudkitty-mvp/contracts/http-api.md` for the kitty object and
+`last_action` ("the action the engine actually applied last tick,
+post-validation"), `specs/004-fix-happiness-lockin/contracts/http-api-delta.md`
+for the play shapes, `specs/006-action-durations/contracts/http-api-delta.md`
+for multi-tick behaviour. Changes are additive by doctrine and go through a
+spec, so reading them is safe.
+
+- The type asymmetry is deliberate and guaranteed at the source. `Chase` and
+  `Play` can name a kitty OR an element, so they carry the discriminated
+  `{target: kind, id}`. `Groom { target: Option<KittyId> }` can only ever name
+  a kitty, so it is a bare id. **Reader rule: if `id` is present, `target` is
+  the kind; if not, `target` is a kitty id or null.**
+- `groom.target` and `sleep.with` are `Option<KittyId>` — never an element, so
+  the id-overlap worry does not apply. Both serialise `null` (self-groom, solo
+  sleep); expect nulls on `with` even though this capture had none.
+- Eat resolves its bowl through `adjacent_stocked_chow`, so a stocked bowl IS
+  within one tile at scene start. The 159/234 gap is despawn: a bowl's last
+  serving despawns it that same tick, and an emptied bowl leaves the cat
+  licking it clean for the rest of the scene. Water never depletes — hence
+  315/319.
+- Serialising the element id is possible but belongs in the ACTIVITY payload,
+  not `last_action` (which doubles as the plugin proposal wire). Additive, and
+  it needs a spec and the owner's word.
+
+#### The client draws the wrong pose on the last tick of every scene
+
+Not Product's bug — ours, and it was found by asking about theirs. **17.4% of
+every cat-tick draws a cat standing idle when it actually ate, drank, groomed
+or slept that tick.**
+
+`activity.state` is the scene IN PROGRESS as of end-of-tick. The engine applies
+every action, then clears scenes that met their end condition, in that order,
+before the frame publishes. So the final serviced tick of every scene reports
+`last_action` = the action (true, its effects landed) and `state` = idle (also
+true, the scene is over). Both are correct; the client reads the wrong one.
+
+| the cat did | the client draws | | share of that action's ticks |
+| --- | --- | --- | --- |
+| drinking | idle | 159 | 49.8% |
+| eating | idle | 117 | 50.0% |
+| grooming | idle | 85 | 22.1% |
+| sleep-curl | idle | 104 | 16.9% |
+
+**The panel already contradicts the drawing.** `doingFor` in `app.js` follows
+`last_action` (`case 'eat': return 'eating 🍥'`), which is the documented
+pattern — "the doing line follows last_action". `poseFor` in `render.js`
+follows `activity.state`. On the last tick of a meal the card says *eating*
+while the cat stands there doing nothing, and a nap ends with the sleeper
+sitting up for 600ms before the next thing starts.
+
+**The shape, settled with the owner 2026-08-13.** Read the ACTION first for
+the five scene poses, and keep `activity` as the fallback:
+
+```
+action → sleep-curl | loaf | grooming | eating | drinking     (sleep/rest/groom/eat/drink)
+action → pouncing                                             (play, and chase behind its gate)
+else activity.state → the same five                           (covers idle/purr/meow, which name no pose)
+else water → swim, moved → walking, else idle
+```
+
+Keeping the fallback is what makes this **strictly additive**: `Idle`, `Purr`
+and `Meow` name no pose, and for those the scene still decides exactly as
+today. Replayed over the capture, **465 cat-ticks change and nothing else
+does** — all four are `idle → the thing the cat actually did`. A non-scene
+action never once co-occurred with a live scene activity (0 of 2,672), so no
+special case is written for it; if it ever happens the fallback yields today's
+answer, which is the safe direction to fail in.
+
+`rest → loaf` stays in the map on the owner's call even though no `rest`
+action was served in the capture — the `Rest { with }` variant is in the
+engine's enum, and the sunbeam work may start surfacing it.
+
+Not mechanical, so it takes its own pass and its own tests rather than riding
+along with the gaze edit. Scene spans, if ever needed exactly, are on
+`GET /events/activity`; snapshots cannot show them by construction.
+
+#### `gazeTargetFor` measures from two different moments
+
+Found while auditing the above, same family of mistake. The looking cat's
+position is the DRAWN one (passed in as `pos`); the target's is the SERVED
+one, read straight off `world`. So a cat looks at where its quarry will be at
+the end of the tick, which on screen is grass.
+
+Measured: of 133 gaze-firing ticks with a kitty target, the target moved on
+**68** — half. Mid-segment the angular error is a median of **8.1°** and a
+maximum of **26.6°**, and it is worst up close: at two tiles or nearer, median
+18.4°.
+
+Three precedents in the same file say to use the drawn position — the wade
+pose keys on "the tile under the DRAWN cat, not the served destination",
+`submersionFor` is "sampled from WHERE IT IS", and the depth layer sorts
+critters by `elementPosFor`. It is also on the wrong side of the Article V
+line quoted directly above the function: a moving cat's served position IS its
+destination for that tick, so looking at it is the prediction that rule
+forbids. The asymmetry carries no comment in a heavily commented file.
+
+Fix is ~3 lines — pass `view` and use `view.posFor` / `view.elementPosFor`,
+both of which already exist and are what the renderer draws those objects at.
+Still frames are unchanged by construction, since `posFor` returns the served
+position there anyway. **Do it inside the gaze pass, not standalone:** it is
+subtle at today's rate and scales with both things about to change — seven
+times more gaze, and camera zoom, where 26° on a cat two tiles away stops
+being subtle.
+
+#### Order of work, agreed 2026-08-13
+
+1. `poseFor` — the 17.4% correctness bug, on its own, with its own tests.
+2. The gaze sources (groom shape, then eat/drink resolve) with the
+   drawn-position correction folded in — same function, same tests.
+3. Magnitudes stay parked for camera mode.
+
 ### Graphics v2 follow-on: face-group pitch (added 2026-07-29; Client thread)
 The one v2 piece still unbuilt (vocabulary, motion wiring, and swim all
 shipped — see git history / PR #92). Slide eyes+nose+mouth together
