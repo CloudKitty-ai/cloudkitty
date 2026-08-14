@@ -94,3 +94,21 @@ compositions, which is why it is stated.
 
 Raw per-composition JSONs regenerable via `mix_meow_probe.py` env
 knobs (MEOW_COMPS/MEOW_TICKS/MEOW_SEEDS).
+
+## Addendum (2026-08-14): want-word pragmatics (owner sighting on :8091)
+
+s3's two rare want-words decode differently (contexts + flips above,
+hom-s3 / mix-4th-s3 cells):
+
+- **WantBath = a working grooming request.** Emitted not on need
+  spikes (33.0 at emit vs 35.3 declined) but when *unattended* —
+  moving 40–53% vs 17% baseline, quiet when settled among
+  companions. Causal effect on kin hearers: SleepWithKitty →
+  GroomKitty is the top non-move flip — the ask recruits a groomer.
+  As intended, policy-to-policy.
+- **WantEat = honest status, not recruitment.** 2.7% of legal
+  windows, at genuine escalation (need 53 vs 37, happiness 79 vs 86,
+  5.5–7.5 tiles from everyone, mid-transit). Hearers barely change
+  course — under global vision a hunger announcement carries no
+  actionable information (everyone sees the chow). The word is
+  truthful and inert: the Gen-C fog thesis, visible in data.
