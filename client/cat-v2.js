@@ -2541,20 +2541,60 @@ function drawEars(ctx, head, a, p, back, turnNear = 0, turnFar = 0) {
   }
 }
 
+/**
+ * One pink for the whole face. A colorway's `noseColor` paints the nose
+ * triangle, the yawn's jaw and tongue mixed from it, and the inner ears --
+ * so `NOSE.darken` has to reach all four or the face disagrees with
+ * itself. Resolved here rather than at each site for that reason.
+ */
+function noseInkOf(a) {
+  return NOSE.darken > 0 ? shadeHex(a.noseColor, 1 - NOSE.darken) : a.noseColor;
+}
+
+const INNER_EAR = {
+  // The pink inside the ear, as a triangle nested in the ear's own.
+  //
+  // It used to be a one-sided needle -- 35% to 100% along the ear's spine
+  // with a 0.12 nudge sideways at one point only. Measured at a 31px cat
+  // that is 0.71px2 of paint in a 1.7 x 1.6px box, at most 0.64px across:
+  // under the 0.8px floor that killed whiskers twice. The owner's report
+  // was that she could see a sliver of pink, which is what a sub-pixel
+  // needle looks like when it lands on the grid.
+  rise: 0.16, // where the pink's base sits along base -> tip
+  tip: 0.82, // where its own point stops, short of the ear's
+  width: 0.52, // its base, as a share of the EAR's base width
+};
+
 function drawInnerEars(ctx, head, a, back, turnNear = 0, turnFar = 0) {
-  // Little pink inner-ear ticks, sized to stay inside the visible ear tips.
-  ctx.fillStyle = a.noseColor;
+  const E = INNER_EAR;
+  ctx.fillStyle = noseInkOf(a);
   for (const side of [-1, 1]) {
     const e = earPoints(head, side, back, side === 1 ? turnNear : turnFar);
     const mx = (e.b1x + e.b2x) / 2;
     const my = (e.b1y + e.b2y) / 2;
+    // Half the base, as a vector, so the shape turns with the ear.
+    const hx = (e.b1x - e.b2x) / 2;
+    const hy = (e.b1y - e.b2y) / 2;
+    const at = (t, w) => [mx + (e.ax - mx) * t + hx * w, my + (e.ay - my) * t + hy * w];
+    // Clipped to the ear it sits in. The ear tapers, so any pair of these
+    // dials has some head angle where the pink would cross the edge --
+    // clipping makes an over-dialled value fill the ear, which reads as a
+    // wrong number, instead of smearing pink onto the skull, which reads
+    // as a bug.
+    ctx.save();
     ctx.beginPath();
-    ctx.moveTo(mx + (e.ax - mx) * 0.35, my + (e.ay - my) * 0.35);
+    ctx.moveTo(e.b1x, e.b1y);
     ctx.lineTo(e.ax, e.ay);
-    ctx.lineTo(mx + (e.ax - mx) * 0.75 + (e.b1x - e.b2x) * 0.12,
-      my + (e.ay - my) * 0.75 + (e.b1y - e.b2y) * 0.12);
+    ctx.lineTo(e.b2x, e.b2y);
+    ctx.closePath();
+    ctx.clip();
+    ctx.beginPath();
+    ctx.moveTo(...at(E.rise, -E.width));
+    ctx.lineTo(...at(E.tip, 0));
+    ctx.lineTo(...at(E.rise, E.width));
     ctx.closePath();
     ctx.fill();
+    ctx.restore();
   }
 }
 
@@ -3218,10 +3258,7 @@ function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0, view = 'si
   const nx = muzzleX(head, view);
   const ny = head.cy + head.r * NOSE.y;
   const ns = head.r * NOSE.size;
-  // Resolved once: the jaw and the tongue are both mixed FROM the nose, so
-  // darkening only the triangle would leave a pale mouth inside a dark
-  // muzzle the moment a cat yawns.
-  const noseInk = NOSE.darken > 0 ? shadeHex(a.noseColor, 1 - NOSE.darken) : a.noseColor;
+  const noseInk = noseInkOf(a);
   ctx.fillStyle = noseInk;
   ctx.beginPath();
   ctx.moveTo(nx - ns, ny - ns * 0.6);
@@ -3410,6 +3447,7 @@ const api = {
   AXIAL_SWIM,
   WHISKER,
   drawWhiskers,
+  INNER_EAR,
   applyAxial,
   FOCUS_VARIANTS,
   BREATH,

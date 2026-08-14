@@ -258,11 +258,20 @@ change.
   side of the muzzle pull the eye off a pale pink nose. It resolves one
   ink for the whole muzzle: the yawn's jaw and the tongue are both mixed
   from the nose, so darkening only the triangle would have left a pale
-  mouth inside a dark face the moment a cat yawned. The inner ears are
-  drawn from the same colour and deliberately stay put. Both this and the
-  whiskers are on the face card, where a check now proves every slider is
-  printed in the readout — it found `SWIM.tailUpright` had been dialled
-  for a whole session and typed back by hand (#215).
+  mouth inside a dark face the moment a cat yawned. The inner ears paint
+  from the same colour and follow it too. Both this and the whiskers are
+  on the face card, where a check now proves every slider is printed in
+  the readout — it found `SWIM.tailUpright` had been dialled for a whole
+  session and typed back by hand (#215).
+- The inner ear is a shape now. It was a one-sided needle running 35% to
+  100% along the ear's spine with a single nudge sideways, which at a
+  31px cat is **0.71px² of paint, never wider than 0.64px** — under the
+  same floor that killed whiskers twice, and visible only as a sliver of
+  pink. Rebuilt as a triangle nested in the ear's own, dialled by where
+  its base sits, where its point stops, and how much of the ear's width
+  it spans: 3.14px² at the same cat, a third of the ear rather than an
+  eighth. It is clipped to the ear it sits in, so an over-dialled value
+  fills the ear instead of smearing pink across the skull (#215).
 - Docs: rl-training + howto-rl caught up to spec 028 (two-head wire,
   20×20, certification assumptions rewritten — the channel is
   restrained by law, not economics), and kitty-eval is a pre-seating

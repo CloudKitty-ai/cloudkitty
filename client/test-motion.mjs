@@ -2724,9 +2724,13 @@ check('darkening the nose takes the whole muzzle with it', () => {
     const was = CatV2.NOSE.darken;
     CatV2.NOSE.darken = darken;
     const out = [];
+    // Recorded at each `fill()`, not at each `fillStyle =`: the two inner
+    // ears are painted from a SINGLE assignment, so counting assignments
+    // counts one ear and cannot tell a pair from a single.
+    let ink = null;
     const ctx = new Proxy({}, {
-      get: () => () => undefined,
-      set: (_t, p, v) => { if (String(p) === 'fillStyle') out.push(v); return true; },
+      get: (_t, p) => () => { if (String(p) === 'fill') out.push(ink); },
+      set: (_t, p, v) => { if (String(p) === 'fillStyle') ink = v; return true; },
     });
     CatV2.drawCat(ctx, {
       pose: 'resting', appearance: CatV2.appearanceFor(3),
@@ -2744,7 +2748,7 @@ check('darkening the nose takes the whole muzzle with it', () => {
   assert(plain.includes(authored), 'the yawning cat did not paint its authored nose colour at all');
 
   const dark = inks(0.6);
-  assert(dark.length === plain.length, 'darkening the nose changed how many fills the cat paints');
+  assert(dark.length === plain.length, 'darkening the nose changed how many shapes the cat paints');
   const lum = (hex) => {
     const n = parseInt(hex.slice(1), 16);
     return (n >> 16) + ((n >> 8) & 255) + (n & 255);
@@ -2754,22 +2758,24 @@ check('darkening the nose takes the whole muzzle with it', () => {
   // check first passed while the code multiplied instead of dividing,
   // because it asserted its own arithmetic.
   const moved = plain.map((c, i) => [c, dark[i]]).filter(([a, b]) => a !== b);
-  assert(moved.length === 3,
-    `expected the nose, the yawn's jaw and the tongue to move, ${moved.length} fills did`);
+  assert(moved.length === 5,
+    'expected the nose, the yawn\'s jaw, the tongue and BOTH inner ears to move, ' +
+    `${moved.length} fills did`);
   for (const [was, now] of moved) {
     assert(lum(now) < lum(was), `${was} -> ${now} is not darker`);
   }
-  // One of the three IS the triangle: the ears paint the same authored
-  // colour, so a nose that quietly ignored the dial would still leave that
-  // colour on the canvas. Count it instead of looking it up.
-  const count = (list, c) => list.filter((f) => f === c).length;
-  assert(count(plain, authored) - count(dark, authored) === 1,
-    'the nose triangle itself did not darken');
+  // Nothing anywhere is still wearing the authored pink, which is the
+  // whole claim: the nose and the ears share one colour, so a site that
+  // quietly ignored the dial would leave that colour on the canvas while
+  // every other site moved.
+  assert(!dark.includes(authored),
+    `${authored} is still on the canvas at darken 0.6 -- some site is not going through noseInkOf`);
 
-  // Scope, pinned so it does not drift silently: the inner ears are drawn
-  // from `noseColor` too, but they are a different feature and this dial
-  // deliberately leaves them where the colorway put them.
-  assert(dark.includes(authored), 'the inner ears followed the nose dial -- that was not the ask');
+  // The inner ears were left out on the first cut and the owner's read was
+  // that the face then disagreed with itself. They paint from `noseColor`,
+  // so they are the same pink and they follow.
+  const ears = inks(1).filter((c) => c === '#000000').length;
+  assert(ears >= 3, 'at full darkness the nose, the ears and the mouth should all be black');
 });
 
 check('the whisker stroke is a PIXEL floor, not a unit one', () => {
@@ -3894,6 +3900,102 @@ check('a dial that names its own block actually writes that block', () => {
   for (const name of new Set(declared)) {
     assert(CatV2[name], `a dial names CatV2.${name}, which the vocabulary does not export`);
   }
+});
+
+check('the inner ear is a shape, not a sub-pixel needle', () => {
+  // Owner, 2026-08-13: "I only see a tiny sliver of pink there anyway."
+  // Measured, she was describing the geometry exactly. The old tick ran
+  // 35%..100% along the ear's spine with a 0.12 nudge sideways at ONE
+  // point, so it was a one-sided needle: 0.71px2 of paint at a 31px cat,
+  // never more than 0.64px across. That is under the 0.8px floor that
+  // killed whiskers twice.
+  //
+  // Two things are asserted, and neither is a value pin: it has to be big
+  // enough to survive the grid, and it has to stay inside the ear it is
+  // supposed to be inside of.
+  const a = CatV2.appearanceFor(3);
+  const shapes = (pose, view, facing) => {
+    const out = [];
+    let cur = null; let ink = null; let clipped = null; const stack = [];
+    const ctx = new Proxy({}, {
+      get: (_t, p) => (...g) => {
+        const n = String(p);
+        if (n === 'beginPath') cur = [];
+        else if ((n === 'moveTo' || n === 'lineTo') && cur) cur.push([g[0], g[1]]);
+        else if (n === 'save') stack.push(clipped);
+        else if (n === 'restore') clipped = stack.pop() ?? null;
+        else if (n === 'clip') clipped = cur ? cur.slice() : [];
+        else if (n === 'fill' && cur) out.push({ pts: cur.slice(), ink, clipped });
+      },
+      set: (_t, p, v) => { if (String(p) === 'fillStyle') ink = v; return true; },
+    });
+    CatV2.drawCat(ctx, { pose, appearance: a, facing, size: 31, layout: { view } });
+    // The NOSE is a pink triangle too, so colour alone picks up three
+    // shapes and measures the wrong one. (It did, first try -- the same
+    // mistake the muzzle check upstream records having made.) The inner
+    // ears are the pink drawn under a clip, which is what they are.
+    return {
+      pink: out.filter((r) => r.ink === a.noseColor && r.pts.length === 3
+        && r.clipped && r.clipped.length === 3),
+      ears: out.filter((r) => r.ink === a.furBase && r.pts.length === 3),
+    };
+  };
+  const areaPx = (pts) => {
+    const q = pts.map(([x, y]) => [x * 31, y * 31]);
+    return Math.abs(q.reduce((sum, [x, y], i) => {
+      const [X, Y] = q[(i + 1) % q.length];
+      return sum + x * Y - X * y;
+    }, 0) / 2);
+  };
+  const within = (pt, tri) => {
+    const cross = (p1, p2, p3) =>
+      (p1[0] - p3[0]) * (p2[1] - p3[1]) - (p2[0] - p3[0]) * (p1[1] - p3[1]);
+    const d = [cross(pt, tri[0], tri[1]), cross(pt, tri[1], tri[2]), cross(pt, tri[2], tri[0])];
+    return !(d.some((v) => v < 0) && d.some((v) => v > 0));
+  };
+
+  // Ears up, which is where a cat shows the most of one.
+  const up = shapes('idle', 'side', 'right');
+  assert(up.pink.length === 2, `expected two inner ears, drew ${up.pink.length}`);
+  const drawn = areaPx(up.pink[0].pts);
+  assert(drawn > 2, `an inner ear paints ${drawn.toFixed(2)}px2 at a 31px cat -- the old needle was 0.71`);
+
+  // ...and it must still be INSIDE its ear. The clip means a bad pair of
+  // dials fills the ear rather than smearing the skull, so the clip is
+  // what this survives on -- which is why the geometry is checked too:
+  // dialling against a clip is dialling blind.
+  let smallest = Infinity;
+  for (const [pose, view, facing] of [
+    ['idle', 'side', 'right'], ['walking', 'side', 'right'],
+    ['idle', 'front', 'south'], ['eating', 'side', 'right'],
+    ['sleeping', 'side', 'right'], ['pouncing', 'side', 'right'],
+  ]) {
+    const got = shapes(pose, view, facing);
+    if (!got.pink.length) continue;
+    for (let i = 0; i < got.pink.length; i += 1) {
+      const ear = got.ears[i];
+      assert(ear, `${pose}/${view}: an inner ear without an ear to sit in`);
+      // The clip is the part that survives a dialling session: it is what
+      // turns an over-dialled width into a filled ear rather than pink
+      // smeared across the skull. At the SHIPPED values the pink is inside
+      // its ear anyway, so nothing about the drawing would notice the clip
+      // going missing -- which is why the mechanism is asserted here and
+      // not its effect.
+      assert(
+        JSON.stringify(got.pink[i].clipped) === JSON.stringify(ear.pts),
+        `${pose}/${view} ear ${i}: the pink is not clipped to the ear it sits in`,
+      );
+      for (const pt of got.pink[i].pts) {
+        assert(within(pt, ear.pts),
+          `${pose}/${view} ear ${i}: the pink reaches outside its own ear`);
+      }
+      smallest = Math.min(smallest, areaPx(got.pink[i].pts));
+    }
+  }
+  // Ears laid flat show less of themselves, so the floor here is lower on
+  // purpose -- a cat with its ears back hiding its inner ear is the
+  // drawing being right, not the dial being small.
+  assert(smallest > 0.8, `the smallest inner ear anywhere is ${smallest.toFixed(2)}px2`);
 });
 
 check('every face dial is PRINTED, or a dialling session cannot be baked', () => {

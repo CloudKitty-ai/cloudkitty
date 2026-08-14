@@ -531,6 +531,10 @@
     { obj: 'MOUTH', key: 'width', label: 'mouth width (half-span)', min: 0.03, max: 0.3, step: 0.005 },
     { obj: 'MOUTH', key: 'depth', label: 'mouth depth (leg drop)', min: 0, max: 0.25, step: 0.005 },
     { obj: 'NOSE', key: 'darken', label: 'nose darkness (0 = the colorway\'s own)', min: 0, max: 1, step: 0.02 },
+    // The same pink as the nose, so it dials beside it.
+    { obj: 'INNER_EAR', key: 'width', label: 'inner ear width (share of the ear)', min: 0, max: 1, step: 0.02 },
+    { obj: 'INNER_EAR', key: 'rise', label: 'inner ear base (up from the ear\'s)', min: 0, max: 0.6, step: 0.02 },
+    { obj: 'INNER_EAR', key: 'tip', label: 'inner ear point (1 = the ear\'s tip)', min: 0.3, max: 1, step: 0.02 },
     // Whiskers on the FACE card too (owner, 2026-08-13): they read well
     // but pull the eye off the nose, and the two want dialling against
     // each other rather than one card apart.
@@ -602,6 +606,7 @@
     const m = CatV2.MOUTH;
     const s = CatV2.SWIM;
     const w = CatV2.WHISKER;
+    const ie = CatV2.INNER_EAR;
     readout.style.whiteSpace = 'pre-line';
     readout.textContent =
       `EYE = { scale: ${e.scale}, height: ${e.height}, shift: ${e.shift}, pupil: ${e.pupil} } · ` +
@@ -612,7 +617,8 @@
       `SWIM = { bodyY: ${s.bodyY}, bodyRy: ${s.bodyRy}, headY: ${s.headY}, ` +
       `bob: ${s.bob}, rock: ${s.rock}, tailLift: ${s.tailLift}, ` +
       `tailUpright: ${s.tailUpright} }\n` +
-      `NOSE.darken = ${n.darken}\n` +
+      `NOSE.darken = ${n.darken} · `+
+      `INNER_EAR = { rise: ${ie.rise}, tip: ${ie.tip}, width: ${ie.width} }\n` +
       `WHISKER = { on: ${w.on}, count: ${w.count}, alpha: ${w.alpha}, widthPx: ${w.widthPx}, ` +
       `widthOfCat: ${w.widthOfCat},\n` +
       `  rootX: ${w.rootX}, tipX: ${w.tipX}, rootY: ${w.rootY}, tipY: ${w.tipY}, ` +
