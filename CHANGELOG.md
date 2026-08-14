@@ -33,6 +33,20 @@ change.
 
 ## Unreleased
 
+- Shared sunbeam warmth (spec 031): warmth conducts through a sleeping
+  pile. A sleeper whose direct cosleep partner is settled in the pile
+  (sleeping or resting, the spec-028 mutual definition) on a sunbeam tile
+  now sleeps at `sleep_relief_sunbeam` — so a pile touching a beam sleeps
+  at sunbeam grade, and the beam becomes a placement target for the
+  cosleep behavior the world already loves instead of a losing
+  competitor (the live policies sleep 21.8% of ticks, 7:1 cosleep, yet
+  deliberate sunbeam sleep was effectively zero). One hop only, never
+  stacked, re-checked every serviced tick; only sleepers receive it —
+  a beam-resting cat warms its friend but takes only its usual cuddle
+  relief. No new dial, no schema or RNG change; the deployed frozen
+  policies won't seek it, so the payoff waits for the next trained
+  generation, and the re-baseline rides the pre-freeze schedule the
+  pipeline already requires.
 - Clowder, the viewer load benchmark (spec 029): a new `crates/clowder`
   tool that asks how many concurrent viewers a server sustains and how it
   fails past that. It drives real viewer traffic in five shapes (ramp,

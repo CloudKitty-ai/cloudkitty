@@ -781,7 +781,31 @@ fn apply_sleep_relief(
     partner: Option<KittyId>,
     config: &Config,
 ) {
-    let relief = if in_sunbeam {
+    // The FR-014/15 mutual predicate -- the partner is itself settled in
+    // the pile (sleeping or resting), the contact-census definition.
+    // Evaluated ONCE, above both uses: it prices the cuddle tier below and
+    // gates warmth conduction in the sleep rate (spec 031), so the two can
+    // never disagree about whether the pile is mutual.
+    let mutual = partner.is_some_and(|friend| {
+        world.kitty(friend).is_some_and(|k| {
+            matches!(
+                k.activity,
+                crate::kitty::Activity::Sleeping { .. } | crate::kitty::Activity::Resting { .. }
+            )
+        })
+    });
+    // Warmth conducts through the pile (spec 031): a mutual partner on a
+    // sunbeam tile gives the sleeper sunbeam-grade sleep. Direct partner
+    // only, and the rate is selected, never stacked -- any combination of
+    // beams pays exactly sleep_relief_sunbeam. A failed lookup is simply
+    // no warmth (the plain rate), never an error.
+    let partner_warm = mutual
+        && partner
+            .and_then(|friend| world.kitty(friend))
+            .is_some_and(|k| {
+                world.element_at(k.pos).map(|e| e.element_type()) == Some(ElementType::Sunbeam)
+            });
+    let relief = if in_sunbeam || partner_warm {
         config.actions.sleep_relief_sunbeam
     } else {
         config.actions.sleep_relief
@@ -789,17 +813,11 @@ fn apply_sleep_relief(
     lower_need(world, kitty_id, NeedKind::Sleep, relief);
     if let Some(friend) = partner {
         // Cosleep priced by presence (spec 028 FR-014/FR-015): the mutual
-        // tier when the partner is itself sleeping or resting -- the
-        // contact-census definition -- and the passive drip otherwise.
-        // Both parties receive the tier rate; the sleeper's Sleep relief
-        // above is untouched. The rest duet and the groomer keep the
-        // classic cuddle_relief -- moving these dials never touches them.
-        let mutual = world.kitty(friend).is_some_and(|k| {
-            matches!(
-                k.activity,
-                crate::kitty::Activity::Sleeping { .. } | crate::kitty::Activity::Resting { .. }
-            )
-        });
+        // tier when the partner is itself sleeping or resting, the passive
+        // drip otherwise. Both parties receive the tier rate; the sleeper's
+        // Sleep relief above is untouched. The rest duet and the groomer
+        // keep the classic cuddle_relief -- moving these dials never
+        // touches them.
         let rate = if mutual {
             config.actions.cosleep_mutual_relief
         } else {
@@ -1266,6 +1284,333 @@ mod tests {
         let sunny = 90.0 - world.kitty(2).unwrap().needs.get(NeedKind::Sleep);
 
         assert!(sunny > plain, "sunbeam {sunny} should beat plain {plain}");
+    }
+
+    #[test]
+    fn warmth_conducts_from_a_mutual_partner_on_a_beam() {
+        // Spec 031 US1 scenarios 1-3: the sleeper is off-beam; its mutual
+        // partner (sleeping, and separately resting -- the FR-014/15
+        // definition) stands on a sunbeam tile; the sleeper sleeps at
+        // sunbeam grade. The beam-resting partner itself receives NO sleep
+        // relief -- only sleep provides sleep relief.
+        for partner_activity in [
+            Activity::Sleeping {
+                in_sunbeam: true,
+                with_friend: Some(1),
+            },
+            Activity::Resting {
+                with_friend: Some(1),
+            },
+        ] {
+            let (mut world, config) = test_world();
+            world.elements.clear();
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(4, 4);
+            world.kitties[a].needs.add(NeedKind::Sleep, 90.0);
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(4, 5);
+            world.kitties[b].activity = partner_activity;
+            world.kitties[b].activity_clock = Some(ActivityClock::start(world.tick));
+            world.kitties[b].needs.add(NeedKind::Sleep, 90.0);
+            world.push_element(Element {
+                id: 903,
+                kind: ElementKind::Sunbeam,
+                pos: Position::new(4, 5),
+                ttl: Some(50),
+            });
+
+            apply(&mut world, 1, Action::Sleep { with: Some(2) }, &config);
+
+            let got = 90.0 - world.kitty(1).unwrap().needs.get(NeedKind::Sleep);
+            assert!(
+                (got - config.actions.sleep_relief_sunbeam).abs() < 0.01,
+                "{partner_activity:?}: conducted warmth pays the sunbeam rate, got {got}"
+            );
+            // The awake (resting) partner gets no sleep relief from the
+            // pile -- neither from A's serviced tick nor from its OWN:
+            // service B's resting tick too and hold the assertion.
+            if matches!(partner_activity, Activity::Resting { .. }) {
+                apply_activity_effects(&mut world, 2, &config);
+                let b_sleep = world.kitty(2).unwrap().needs.get(NeedKind::Sleep);
+                assert!(
+                    (b_sleep - 90.0).abs() < 0.01,
+                    "a resting cat receives no sleep relief, got {b_sleep}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn either_on_beam_warms_both_sleeping_partners() {
+        // Spec 031 US1 scenario 2: the beam is under ONE partner; both
+        // sleeping partners sleep at the sunbeam rate -- the beam-holder by
+        // the own-tile rule, the other by conduction.
+        let (mut world, config) = test_world();
+        world.elements.clear();
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(4, 4);
+        world.kitties[a].needs.add(NeedKind::Sleep, 90.0);
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(4, 5);
+        world.kitties[b].needs.add(NeedKind::Sleep, 90.0);
+        world.push_element(Element {
+            id: 903,
+            kind: ElementKind::Sunbeam,
+            pos: Position::new(4, 4),
+            ttl: Some(50),
+        });
+
+        // A (on the beam) starts the cosleep; B is then put to sleep naming
+        // A and serviced -- each side's relief is its own serviced tick.
+        apply(&mut world, 1, Action::Sleep { with: Some(2) }, &config);
+        let a_got = 90.0 - world.kitty(1).unwrap().needs.get(NeedKind::Sleep);
+        assert!(
+            (a_got - config.actions.sleep_relief_sunbeam).abs() < 0.01,
+            "the beam-holder keeps the own-tile rule, got {a_got}"
+        );
+
+        apply(&mut world, 2, Action::Sleep { with: Some(1) }, &config);
+        let b_got = 90.0 - world.kitty(2).unwrap().needs.get(NeedKind::Sleep);
+        assert!(
+            (b_got - config.actions.sleep_relief_sunbeam).abs() < 0.01,
+            "the off-beam partner is warmed by conduction, got {b_got}"
+        );
+    }
+
+    #[test]
+    fn conducted_warmth_ends_when_the_beam_does() {
+        // Spec 031 US1 scenario 4 / FR-006: conduction re-evaluates every
+        // serviced tick; the beam expiring drops the rate back to plain on
+        // the next service, exactly like the own-tile rule.
+        let (mut world, config) = test_world();
+        world.elements.clear();
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(4, 4);
+        world.kitties[a].needs.add(NeedKind::Sleep, 90.0);
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(4, 5);
+        world.kitties[b].activity = Activity::Sleeping {
+            in_sunbeam: true,
+            with_friend: Some(1),
+        };
+        world.kitties[b].activity_clock = Some(ActivityClock::start(world.tick));
+        world.kitties[b].needs.add(NeedKind::Sleep, 90.0);
+        world.push_element(Element {
+            id: 903,
+            kind: ElementKind::Sunbeam,
+            pos: Position::new(4, 5),
+            ttl: Some(50),
+        });
+
+        apply(&mut world, 1, Action::Sleep { with: Some(2) }, &config);
+        let warm = 90.0 - world.kitty(1).unwrap().needs.get(NeedKind::Sleep);
+        assert!(
+            (warm - config.actions.sleep_relief_sunbeam).abs() < 0.01,
+            "while the beam lives, conduction pays sunbeam grade, got {warm}"
+        );
+
+        // The beam expires; the next serviced tick is back to plain for
+        // BOTH partners -- the conducted sleeper and the (stale-flagged)
+        // former beam-holder alike.
+        world.elements.clear();
+        let a_before = world.kitty(1).unwrap().needs.get(NeedKind::Sleep);
+        let b_before = world.kitty(2).unwrap().needs.get(NeedKind::Sleep);
+        apply_activity_effects(&mut world, 1, &config);
+        apply_activity_effects(&mut world, 2, &config);
+        let a_cooled = a_before - world.kitty(1).unwrap().needs.get(NeedKind::Sleep);
+        let b_cooled = b_before - world.kitty(2).unwrap().needs.get(NeedKind::Sleep);
+        assert!(
+            (a_cooled - config.actions.sleep_relief).abs() < 0.01,
+            "no beam, no warmth: the conducted sleeper is back to plain, got {a_cooled}"
+        );
+        assert!(
+            (b_cooled - config.actions.sleep_relief).abs() < 0.01,
+            "the former beam-holder cools too, stale flag and all, got {b_cooled}"
+        );
+    }
+
+    #[test]
+    fn warmth_never_chains_past_the_direct_partner() {
+        // Spec 031 US2 scenario 1 / FR-002: A sleeps with B (off-beam,
+        // mutual); C stands on a beam cosleeping with B. The beam is two
+        // hops from A -- A gets the plain rate.
+        let mut config = crate::test_support::test_config();
+        config.kitties.push(crate::config::KittyConfig {
+            id: 3,
+            name: "Pumpkin".into(),
+            x: 4,
+            y: 6,
+            behavior: "needs_driven".into(),
+            needs: None,
+        });
+        let mut world = World::generate(&config);
+        world.elements.clear();
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(4, 4);
+        world.kitties[a].needs.add(NeedKind::Sleep, 90.0);
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(4, 5);
+        world.kitties[b].activity = Activity::Sleeping {
+            in_sunbeam: false,
+            with_friend: Some(3),
+        };
+        world.kitties[b].activity_clock = Some(ActivityClock::start(world.tick));
+        let c = world.kitty_index(3).unwrap();
+        world.kitties[c].pos = Position::new(4, 6);
+        world.kitties[c].activity = Activity::Sleeping {
+            in_sunbeam: true,
+            with_friend: Some(2),
+        };
+        world.kitties[c].activity_clock = Some(ActivityClock::start(world.tick));
+        world.push_element(Element {
+            id: 903,
+            kind: ElementKind::Sunbeam,
+            pos: Position::new(4, 6),
+            ttl: Some(50),
+        });
+
+        apply(&mut world, 1, Action::Sleep { with: Some(2) }, &config);
+
+        let got = 90.0 - world.kitty(1).unwrap().needs.get(NeedKind::Sleep);
+        assert!(
+            (got - config.actions.sleep_relief).abs() < 0.01,
+            "a beam under the partner's partner conducts nothing, got {got}"
+        );
+    }
+
+    #[test]
+    fn two_beams_pay_exactly_one_sunbeam_rate() {
+        // Spec 031 US2 scenario 2 / FR-003: both partners on beams -- the
+        // rate is selected, not summed.
+        let (mut world, config) = test_world();
+        world.elements.clear();
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(4, 4);
+        world.kitties[a].needs.add(NeedKind::Sleep, 90.0);
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(4, 5);
+        world.kitties[b].activity = Activity::Sleeping {
+            in_sunbeam: true,
+            with_friend: Some(1),
+        };
+        world.kitties[b].activity_clock = Some(ActivityClock::start(world.tick));
+        for (id, pos) in [(903, Position::new(4, 4)), (904, Position::new(4, 5))] {
+            world.push_element(Element {
+                id,
+                kind: ElementKind::Sunbeam,
+                pos,
+                ttl: Some(50),
+            });
+        }
+
+        apply(&mut world, 1, Action::Sleep { with: Some(2) }, &config);
+
+        let got = 90.0 - world.kitty(1).unwrap().needs.get(NeedKind::Sleep);
+        assert!(
+            (got - config.actions.sleep_relief_sunbeam).abs() < 0.01,
+            "two beams still pay exactly the one sunbeam rate, got {got}"
+        );
+    }
+
+    #[test]
+    fn a_drip_tier_partner_on_a_beam_conducts_nothing() {
+        // Spec 031 US2 scenario 3: the partner stands on a beam but is
+        // neither sleeping nor resting (the drip tier) -- the conduction
+        // source condition is exactly the FR-014/15 mutual definition, so
+        // no warmth flows and the cuddle tier stays the drip.
+        let (mut world, mut config) = test_world();
+        config.actions.cosleep_drip_relief = 3.0;
+        config.actions.cosleep_mutual_relief = 11.0;
+        world.elements.clear();
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(4, 4);
+        world.kitties[a].needs.add(NeedKind::Sleep, 90.0);
+        world.kitties[a].needs.add(NeedKind::Cuddle, 50.0);
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(4, 5);
+        world.kitties[b].activity = Activity::Idle;
+        world.push_element(Element {
+            id: 903,
+            kind: ElementKind::Sunbeam,
+            pos: Position::new(4, 5),
+            ttl: Some(50),
+        });
+
+        apply(&mut world, 1, Action::Sleep { with: Some(2) }, &config);
+
+        let got = 90.0 - world.kitty(1).unwrap().needs.get(NeedKind::Sleep);
+        assert!(
+            (got - config.actions.sleep_relief).abs() < 0.01,
+            "an awake bystander on a beam is not a pile, got {got}"
+        );
+        let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+        assert!(
+            (a_cuddle - 47.0).abs() < 0.01,
+            "the cuddle tier stays the drip -- one mutual evaluation feeds both, got {a_cuddle}"
+        );
+    }
+
+    #[test]
+    fn solo_rates_and_the_conduction_piles_cuddle_are_untouched() {
+        // Spec 031 US2 scenarios 4-5 / FR-007: solo sleep pays exactly
+        // today's rates on and off beams, and a conduction pile's Cuddle
+        // relief is exactly the mutual tier it was before this feature.
+        let (mut world, config) = test_world();
+        world.elements.clear();
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(4, 4);
+        world.kitties[a].needs.add(NeedKind::Sleep, 90.0);
+        apply(&mut world, 1, Action::Sleep { with: None }, &config);
+        let plain = 90.0 - world.kitty(1).unwrap().needs.get(NeedKind::Sleep);
+        assert!(
+            (plain - config.actions.sleep_relief).abs() < 0.01,
+            "solo off-beam is exactly sleep_relief, got {plain}"
+        );
+
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(2, 2);
+        world.kitties[b].needs.add(NeedKind::Sleep, 90.0);
+        world.push_element(Element {
+            id: 903,
+            kind: ElementKind::Sunbeam,
+            pos: Position::new(2, 2),
+            ttl: Some(50),
+        });
+        apply(&mut world, 2, Action::Sleep { with: None }, &config);
+        let sunny = 90.0 - world.kitty(2).unwrap().needs.get(NeedKind::Sleep);
+        assert!(
+            (sunny - config.actions.sleep_relief_sunbeam).abs() < 0.01,
+            "solo on-beam is exactly sleep_relief_sunbeam, got {sunny}"
+        );
+
+        // A conduction pile pays the same mutual cuddle tier as before.
+        let (mut world, config) = test_world();
+        world.elements.clear();
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(4, 4);
+        world.kitties[a].needs.add(NeedKind::Cuddle, 50.0);
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(4, 5);
+        world.kitties[b].activity = Activity::Sleeping {
+            in_sunbeam: true,
+            with_friend: Some(1),
+        };
+        world.kitties[b].activity_clock = Some(ActivityClock::start(world.tick));
+        world.kitties[b].needs.add(NeedKind::Cuddle, 50.0);
+        world.push_element(Element {
+            id: 903,
+            kind: ElementKind::Sunbeam,
+            pos: Position::new(4, 5),
+            ttl: Some(50),
+        });
+        apply(&mut world, 1, Action::Sleep { with: Some(2) }, &config);
+        let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+        let b_cuddle = world.kitty(2).unwrap().needs.get(NeedKind::Cuddle);
+        let expected = 50.0 - config.actions.cosleep_mutual_relief;
+        assert!(
+            (a_cuddle - expected).abs() < 0.01 && (b_cuddle - expected).abs() < 0.01,
+            "conduction never touches the cuddle tier: {a_cuddle} / {b_cuddle}"
+        );
     }
 
     #[test]
