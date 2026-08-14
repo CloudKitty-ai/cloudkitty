@@ -464,12 +464,27 @@ const PURR = {
   rise: 0.04, // above the cat's box
   offsetX: 0,
   alpha: 0.7,
-  // Real pixels, not a share: a vibration is judged by how far it travels
-  // on screen, so it should not grow with the tile. Same reasoning as the
-  // whisker stroke floor.
-  shakePx: 0.8,
+  // A share of the GLYPH, with a pixel floor -- the same shape as the
+  // whisker stroke, and for the opposite reason to the one first written
+  // here. A flat pixel travel was tried and the owner's read (2026-08-14)
+  // was that it looked cute large and frantic small, which is right: the
+  // eye judges the displacement RELATIVE to the thing moving, and 0.8px
+  // against an 8.4px glyph is a 9.6% lurch where the same 0.8px against a
+  // 25px glyph is a 3.2% tremble.
+  //
+  // Pure proportion cannot do it alone either: anchored on the large view,
+  // the live tile lands at 0.53px peak to peak and disappears under the
+  // grid. So the share sets the character and the floor keeps it visible
+  // at the tile the world actually draws at.
+  shakeOfGlyph: 0.032,
+  shakeMinPx: 0.4,
   shakeHz: 15,
 };
+
+/** Half the travel, in real pixels, for a glyph this big. */
+function purrShakeAmp(px) {
+  return Math.max(PURR.shakeMinPx, PURR.shakeOfGlyph * px);
+}
 
 /**
  * `phase` is 0..1 through one shake, and comes from the caller so a still
@@ -485,7 +500,7 @@ function drawPurrGlyph(ctx, cx, topY, tile, phase) {
   ctx.textBaseline = 'alphabetic';
   ctx.fillText(
     '\u{1F497}',
-    cx + PURR.offsetX * tile + Math.sin(phase * TAU) * PURR.shakePx,
+    cx + PURR.offsetX * tile + Math.sin(phase * TAU) * purrShakeAmp(px),
     topY - PURR.rise * tile,
   );
   ctx.restore();

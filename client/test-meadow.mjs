@@ -959,27 +959,50 @@ check('the purr glyph is actually buzzing in a live frame', () => {
   // ever travels.
   const half = 500 / api.PURR.shakeHz;
   const spread = Math.abs(xAt(2000) - xAt(2000 + half));
-  assert(spread > api.PURR.shakePx,
+  assert(spread > api.PURR.shakeMinPx,
     `the glyph moved ${spread.toFixed(2)}px across half a shake -- the renderer is feeding it a constant`);
 });
 
-check('the purr vibration is REAL pixels, and a still frame holds it', () => {
-  // The same floor-versus-share trap the whiskers recorded: a vibration is
-  // judged by how far it travels on screen, so it must not grow with the
-  // tile. Read off the drawing at two tile sizes rather than restating the
-  // formula here.
-  const xAt = (tile, phase) => {
-    const log = [];
-    const ctx = guardCtx(log);
-    api.drawPurrGlyph(ctx, 100, 50, tile, phase);
-    return log.filter((e) => e[0] === 'fillText').map((e) => e[2])[0];
+check('the purr buzz scales with the glyph, with a floor so it survives the tile', () => {
+  // This check asserted the OPPOSITE an hour ago -- a flat pixel travel, on
+  // the argument that a vibration is judged by how far it moves on screen.
+  // The owner watched it and that is wrong: the eye judges displacement
+  // relative to the thing moving, so a flat 0.8px was a 9.6% lurch on the
+  // live glyph against a 3.2% tremble on the big one. Cute large, frantic
+  // small.
+  //
+  // Proportion alone cannot do it either, which is why there are two dials:
+  // anchored on the large view, the live tile lands under a pixel and
+  // disappears. The share sets the character; the floor keeps it visible at
+  // the tile the world actually draws at.
+  const amp = (tile) => {
+    const at = (phase) => {
+      const log = [];
+      api.drawPurrGlyph(guardCtx(log), 100, 50, tile, phase);
+      return log.filter((e) => e[0] === 'fillText')[0][2];
+    };
+    return (at(0.25) - at(0.75)) / 2;
   };
-  const travel = (tile) => xAt(tile, 0.25) - xAt(tile, 0.75);
-  assert(Math.abs(travel(31) - travel(96)) < 1e-9,
-    `the shake grew with the tile: ${travel(31).toFixed(2)}px at 31 against ${travel(96).toFixed(2)}px at 96`);
-  assert(Math.abs(travel(31) - api.PURR.shakePx * 2) < 1e-9,
-    'peak-to-peak travel should be twice the dialled amplitude');
-  assert(api.PURR.shakePx > 0 && api.PURR.shakeHz > 0, 'the owner baked a live vibration');
+  const glyph = (tile) => api.PURR.size * tile;
+  const shareAt = (tile) => amp(tile) / glyph(tile);
+
+  // Above the floor it is pure proportion: double the glyph, double the
+  // travel, and its share of the glyph does not move.
+  assert(Math.abs(shareAt(120) - shareAt(240)) < 1e-9,
+    `not proportional up there: ${(shareAt(120) * 100).toFixed(2)}% against ${(shareAt(240) * 100).toFixed(2)}%`);
+  assert(Math.abs(amp(240) - amp(120) * 2) < 1e-9, 'doubling the glyph should double the travel');
+
+  // At the tile the world draws at, the floor is what holds it up -- and it
+  // still has to be worth drawing.
+  // Compared with a tolerance: the amplitude is read back out of two
+  // absolute x positions, so 100.4 minus 99.6 does not land on 0.4.
+  assert(Math.abs(amp(31) - api.PURR.shakeMinPx) < 1e-9,
+    `the floor should be binding at the live tile, got ${amp(31).toFixed(4)}`);
+  assert(amp(31) * 2 >= 0.75, `only ${(amp(31) * 2).toFixed(2)}px peak to peak at 31px -- invisible`);
+  // ...and calmer than the flat-pixel version the owner rejected, which put
+  // 0.8px of amplitude on an 8.4px glyph.
+  assert(shareAt(31) < 0.08,
+    `the live glyph still lurches ${(shareAt(31) * 100).toFixed(1)}% of its own width`);
 
   // Phase 0 is what a still frame hands over (`propPhaseFor` returns 0
   // there), and it must still DRAW -- reduced motion keeps the purr, it
@@ -990,7 +1013,6 @@ check('the purr vibration is REAL pixels, and a still frame holds it', () => {
   assert(drawn.length === 1, 'a still frame should still draw the glyph');
   assert(drawn[0][2] === 100 + api.PURR.offsetX * 31, 'at phase 0 the glyph sits at rest');
 });
-
 check('the renderer draws a cat in the water, in every theme, without throwing', () => {
   const themes = ['day', 'dusk', 'night', 'dawn'];
   for (const theme of themes) {

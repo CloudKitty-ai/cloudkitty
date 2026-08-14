@@ -267,9 +267,16 @@ change.
   above the cat. Judged in the lab against a vibrating heart, a pulsing
   heart and sound waves; the owner took the emoji knowing the two things
   it cannot do — follow the day/night palette, and look the same on two
-  machines. The vibration is dialled in **real pixels**, not tile shares,
-  because a buzz is judged by how far it travels on screen; reduced motion
-  keeps the glyph and stops the buzz (#223).
+  machines. The buzz is a **share of the glyph with a pixel floor** — the
+  same shape as the whisker stroke. A flat pixel travel was tried first
+  and read cute on a big cat and frantic on a small one, which is right:
+  the eye judges displacement against the thing moving, so 0.8px on an
+  8.4px glyph is a 9.6% lurch where the same 0.8px on a 25px glyph is a
+  3.2% tremble. Pure proportion cannot do it alone either — anchored on
+  the large view the live tile lands at 0.53px peak to peak and vanishes
+  under the grid — so the share sets the character and the floor keeps it
+  visible at the tile the world actually draws at. Reduced motion keeps
+  the glyph and stops the buzz (#223).
 - **The gaze aims at what it can express, and no more.** Reading the two
   target shapes the client had been ignoring — `groom`'s bare kitty id, and
   eat/drink resolved from the map — took the gaze from 5.2% of cat-ticks to

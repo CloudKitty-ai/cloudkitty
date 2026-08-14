@@ -1629,15 +1629,20 @@
         { key: 'rise', label: 'height above the cat (negative overlaps)', min: -0.5, max: 1, step: 0.02 },
         { key: 'offsetX', label: 'left / right of centre, share of tile', min: -0.7, max: 0.7, step: 0.02 },
         { key: 'alpha', label: 'opacity', min: 0.2, max: 1, step: 0.05 },
-        { key: 'shakePx', label: 'vibrate: travel in REAL px', min: 0, max: 2, step: 0.05 },
+        { key: 'shakeOfGlyph', label: 'vibrate: travel as a share of the glyph', min: 0, max: 0.15, step: 0.002 },
+        { key: 'shakeMinPx', label: '...but never less than, in real px', min: 0, max: 1.5, step: 0.05 },
         { key: 'shakeHz', label: 'vibrate: shakes per second', min: 2, max: 20, step: 0.5 },
       ],
       readout() {
         const P = PURR;
         return `PURR = { size: ${P.size}, rise: ${P.rise}, offsetX: ${P.offsetX}, alpha: ${P.alpha},\n` +
-          `  shakePx: ${P.shakePx}, shakeHz: ${P.shakeHz} }\n` +
-          `at the 31px live tile: ${(P.size * 31).toFixed(1)}px across, ` +
-          `${(P.rise * 31).toFixed(1)}px above the cat, travelling ${(P.shakePx * 2).toFixed(1)}px peak to peak` +
+          `  shakeOfGlyph: ${P.shakeOfGlyph}, shakeMinPx: ${P.shakeMinPx}, shakeHz: ${P.shakeHz} }\n` +
+          [31, 93].map((t) => {
+            const g = P.size * t;
+            const a = Math.max(P.shakeMinPx, P.shakeOfGlyph * g);
+            return `  ${t}px tile: glyph ${g.toFixed(1)}px, buzz ${(a * 2).toFixed(2)}px p-p ` +
+              `(${(a / g * 100).toFixed(1)}% of it)${a === P.shakeMinPx ? ' — on the floor' : ''}`;
+          }).join('\n') +
           (P.size * 31 < 6 ? '\n  under 6px — where small props stop reading' : '');
       },
       draw(ctx, w, h, now) {
