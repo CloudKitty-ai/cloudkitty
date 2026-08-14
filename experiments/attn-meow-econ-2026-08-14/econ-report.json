@@ -1,0 +1,3022 @@
+{
+ "hom-s1": {
+  "kitty_ticks": 200000,
+  "emissions_per_1k": {
+   "s1": {
+    "Purr": 191.6,
+    "WantBath": 0.24
+   }
+  },
+  "welfare": {
+   "s1": {
+    "happiness": 95.07,
+    "distress_share": 0.0
+   }
+  },
+  "flips": [
+   {
+    "kind": "Purr",
+    "who": "all",
+    "rows": 125439,
+    "act_flip": 0.0653,
+    "msg_flip": 0.1553,
+    "p_toward_with": 0.407,
+    "p_toward_without": 0.411
+   },
+   {
+    "kind": "Purr",
+    "who": "s1->s1",
+    "rows": 125439,
+    "act_flip": 0.0653,
+    "msg_flip": 0.1553
+   },
+   {
+    "kind": "Purr",
+    "who": "same",
+    "rows": 125439,
+    "act_flip": 0.0653,
+    "msg_flip": 0.1553
+   },
+   {
+    "kind": "WantBath",
+    "who": "all",
+    "rows": 1280,
+    "act_flip": 0.0516,
+    "msg_flip": 0.1008,
+    "p_toward_with": 0.253,
+    "p_toward_without": 0.255
+   },
+   {
+    "kind": "WantBath",
+    "who": "s1->s1",
+    "rows": 1280,
+    "act_flip": 0.0516,
+    "msg_flip": 0.1008
+   },
+   {
+    "kind": "WantBath",
+    "who": "same",
+    "rows": 1280,
+    "act_flip": 0.0516,
+    "msg_flip": 0.1008
+   }
+  ],
+  "context": [
+   {
+    "model": "s1",
+    "kind": "FollowMe",
+    "which": "declined",
+    "n": 200000,
+    "need": 0.0,
+    "hap": 95.1,
+    "dist": 2.59,
+    "moving": 0.355
+   },
+   {
+    "model": "s1",
+    "kind": "Purr",
+    "which": "declined",
+    "n": 161680,
+    "need": 0.0,
+    "hap": 95.2,
+    "dist": 2.53,
+    "moving": 0.343
+   },
+   {
+    "model": "s1",
+    "kind": "Purr",
+    "which": "emit",
+    "n": 38320,
+    "need": 0.0,
+    "hap": 94.7,
+    "dist": 2.87,
+    "moving": 0.407
+   },
+   {
+    "model": "s1",
+    "kind": "WantBath",
+    "which": "declined",
+    "n": 332,
+    "need": 33.9,
+    "hap": 91.0,
+    "dist": 1.3,
+    "moving": 0.102
+   },
+   {
+    "model": "s1",
+    "kind": "WantBath",
+    "which": "emit",
+    "n": 48,
+    "need": 32.8,
+    "hap": 90.9,
+    "dist": 1.17,
+    "moving": 0.042
+   },
+   {
+    "model": "s1",
+    "kind": "WantEat",
+    "which": "declined",
+    "n": 449,
+    "need": 34.1,
+    "hap": 87.4,
+    "dist": 3.41,
+    "moving": 0.773
+   },
+   {
+    "model": "s1",
+    "kind": "WantCuddle",
+    "which": "declined",
+    "n": 39,
+    "need": 31.1,
+    "hap": 88.8,
+    "dist": 4.08,
+    "moving": 0.641
+   },
+   {
+    "model": "s1",
+    "kind": "WantDrink",
+    "which": "declined",
+    "n": 11,
+    "need": 31.2,
+    "hap": 84.0,
+    "dist": 1.73,
+    "moving": 0.727
+   }
+  ],
+  "replies": [
+   {
+    "heard": "s1:Purr",
+    "replied": "s1:Purr",
+    "n": 312337
+   },
+   {
+    "heard": "s1:Purr",
+    "replied": "s1:WantBath",
+    "n": 440
+   },
+   {
+    "heard": "s1:WantBath",
+    "replied": "s1:Purr",
+    "n": 440
+   }
+  ]
+ },
+ "hom-s2": {
+  "kitty_ticks": 200000,
+  "emissions_per_1k": {
+   "s2": {
+    "Purr": 306.12,
+    "WantEat": 0.58,
+    "FollowMe": 0.28,
+    "WantBath": 0.06,
+    "WantCuddle": 0.04,
+    "WantDrink": 0.01
+   }
+  },
+  "welfare": {
+   "s2": {
+    "happiness": 94.99,
+    "distress_share": 2e-05
+   }
+  },
+  "flips": [
+   {
+    "kind": "FollowMe",
+    "who": "all",
+    "rows": 1306,
+    "act_flip": 0.1233,
+    "msg_flip": 0.196,
+    "p_toward_with": 0.282,
+    "p_toward_without": 0.305
+   },
+   {
+    "kind": "FollowMe",
+    "who": "s2->s2",
+    "rows": 1306,
+    "act_flip": 0.1233,
+    "msg_flip": 0.196
+   },
+   {
+    "kind": "FollowMe",
+    "who": "same",
+    "rows": 1306,
+    "act_flip": 0.1233,
+    "msg_flip": 0.196
+   },
+   {
+    "kind": "Purr",
+    "who": "all",
+    "rows": 141808,
+    "act_flip": 0.0793,
+    "msg_flip": 0.2281,
+    "p_toward_with": 0.425,
+    "p_toward_without": 0.431
+   },
+   {
+    "kind": "Purr",
+    "who": "s2->s2",
+    "rows": 141808,
+    "act_flip": 0.0793,
+    "msg_flip": 0.2281
+   },
+   {
+    "kind": "Purr",
+    "who": "same",
+    "rows": 141808,
+    "act_flip": 0.0793,
+    "msg_flip": 0.2281
+   },
+   {
+    "kind": "WantBath",
+    "who": "all",
+    "rows": 324,
+    "act_flip": 0.0525,
+    "msg_flip": 0.0895,
+    "p_toward_with": 0.295,
+    "p_toward_without": 0.295
+   },
+   {
+    "kind": "WantBath",
+    "who": "s2->s2",
+    "rows": 324,
+    "act_flip": 0.0525,
+    "msg_flip": 0.0895
+   },
+   {
+    "kind": "WantBath",
+    "who": "same",
+    "rows": 324,
+    "act_flip": 0.0525,
+    "msg_flip": 0.0895
+   },
+   {
+    "kind": "WantCuddle",
+    "who": "all",
+    "rows": 216,
+    "act_flip": 0.0509,
+    "msg_flip": 0.1065
+   },
+   {
+    "kind": "WantCuddle",
+    "who": "s2->s2",
+    "rows": 216,
+    "act_flip": 0.0509,
+    "msg_flip": 0.1065
+   },
+   {
+    "kind": "WantCuddle",
+    "who": "same",
+    "rows": 216,
+    "act_flip": 0.0509,
+    "msg_flip": 0.1065
+   },
+   {
+    "kind": "WantEat",
+    "who": "all",
+    "rows": 3145,
+    "act_flip": 0.0471,
+    "msg_flip": 0.0541,
+    "p_toward_with": 0.58,
+    "p_toward_without": 0.579
+   },
+   {
+    "kind": "WantEat",
+    "who": "s2->s2",
+    "rows": 3145,
+    "act_flip": 0.0471,
+    "msg_flip": 0.0541
+   },
+   {
+    "kind": "WantEat",
+    "who": "same",
+    "rows": 3145,
+    "act_flip": 0.0471,
+    "msg_flip": 0.0541
+   }
+  ],
+  "context": [
+   {
+    "model": "s2",
+    "kind": "FollowMe",
+    "which": "declined",
+    "n": 199458,
+    "need": 0.0,
+    "hap": 95.0,
+    "dist": 2.9,
+    "moving": 0.355
+   },
+   {
+    "model": "s2",
+    "kind": "Purr",
+    "which": "declined",
+    "n": 138776,
+    "need": 0.0,
+    "hap": 94.9,
+    "dist": 2.93,
+    "moving": 0.375
+   },
+   {
+    "model": "s2",
+    "kind": "Purr",
+    "which": "emit",
+    "n": 61224,
+    "need": 0.0,
+    "hap": 95.1,
+    "dist": 2.84,
+    "moving": 0.309
+   },
+   {
+    "model": "s2",
+    "kind": "WantBath",
+    "which": "declined",
+    "n": 783,
+    "need": 35.6,
+    "hap": 89.9,
+    "dist": 1.56,
+    "moving": 0.179
+   },
+   {
+    "model": "s2",
+    "kind": "WantCuddle",
+    "which": "declined",
+    "n": 111,
+    "need": 35.3,
+    "hap": 88.3,
+    "dist": 12.19,
+    "moving": 0.532
+   },
+   {
+    "model": "s2",
+    "kind": "WantEat",
+    "which": "emit",
+    "n": 117,
+    "need": 33.7,
+    "hap": 87.6,
+    "dist": 4.57,
+    "moving": 0.795
+   },
+   {
+    "model": "s2",
+    "kind": "FollowMe",
+    "which": "emit",
+    "n": 56,
+    "need": 0.0,
+    "hap": 93.5,
+    "dist": 1.34,
+    "moving": 0.393
+   },
+   {
+    "model": "s2",
+    "kind": "WantEat",
+    "which": "declined",
+    "n": 292,
+    "need": 40.3,
+    "hap": 86.6,
+    "dist": 3.4,
+    "moving": 0.534
+   },
+   {
+    "model": "s2",
+    "kind": "WantBath",
+    "which": "emit",
+    "n": 12,
+    "need": 33.9,
+    "hap": 89.6,
+    "dist": 1.08,
+    "moving": 0.167
+   },
+   {
+    "model": "s2",
+    "kind": "WantCuddle",
+    "which": "emit",
+    "n": 8,
+    "need": 32.7,
+    "hap": 88.1,
+    "dist": 4.88,
+    "moving": 0.875
+   },
+   {
+    "model": "s2",
+    "kind": "WantDrink",
+    "which": "emit",
+    "n": 1,
+    "need": 30.4,
+    "hap": 82.2,
+    "dist": 11.0,
+    "moving": 1.0
+   }
+  ],
+  "replies": [
+   {
+    "heard": "s2:Purr",
+    "replied": "s2:Purr",
+    "n": 725298
+   },
+   {
+    "heard": "s2:Purr",
+    "replied": "s2:WantEat",
+    "n": 1272
+   },
+   {
+    "heard": "s2:WantEat",
+    "replied": "s2:Purr",
+    "n": 1137
+   },
+   {
+    "heard": "s2:FollowMe",
+    "replied": "s2:Purr",
+    "n": 936
+   },
+   {
+    "heard": "s2:Purr",
+    "replied": "s2:FollowMe",
+    "n": 747
+   },
+   {
+    "heard": "s2:WantBath",
+    "replied": "s2:Purr",
+    "n": 191
+   },
+   {
+    "heard": "s2:Purr",
+    "replied": "s2:WantBath",
+    "n": 135
+   },
+   {
+    "heard": "s2:Purr",
+    "replied": "s2:WantCuddle",
+    "n": 104
+   },
+   {
+    "heard": "s2:WantCuddle",
+    "replied": "s2:Purr",
+    "n": 58
+   },
+   {
+    "heard": "s2:Purr",
+    "replied": "s2:WantDrink",
+    "n": 20
+   },
+   {
+    "heard": "s2:WantDrink",
+    "replied": "s2:Purr",
+    "n": 20
+   }
+  ]
+ },
+ "hom-s3": {
+  "kitty_ticks": 200000,
+  "emissions_per_1k": {
+   "s3": {
+    "Purr": 793.97,
+    "WantBath": 0.23,
+    "FollowMe": 0.2,
+    "WantEat": 0.11,
+    "WantCuddle": 0.03,
+    "WantPlay": 0.03,
+    "WantDrink": 0.01,
+    "WantSleep": 0.01
+   }
+  },
+  "welfare": {
+   "s3": {
+    "happiness": 94.87,
+    "distress_share": 0.00013
+   }
+  },
+  "flips": [
+   {
+    "kind": "FollowMe",
+    "who": "all",
+    "rows": 849,
+    "act_flip": 0.1684,
+    "msg_flip": 0.2344,
+    "p_toward_with": 0.356,
+    "p_toward_without": 0.363
+   },
+   {
+    "kind": "FollowMe",
+    "who": "s3->s3",
+    "rows": 849,
+    "act_flip": 0.1684,
+    "msg_flip": 0.2344
+   },
+   {
+    "kind": "FollowMe",
+    "who": "same",
+    "rows": 849,
+    "act_flip": 0.1684,
+    "msg_flip": 0.2344
+   },
+   {
+    "kind": "Purr",
+    "who": "all",
+    "rows": 195552,
+    "act_flip": 0.0759,
+    "msg_flip": 0.1435,
+    "p_toward_with": 0.462,
+    "p_toward_without": 0.463
+   },
+   {
+    "kind": "Purr",
+    "who": "s3->s3",
+    "rows": 195552,
+    "act_flip": 0.0759,
+    "msg_flip": 0.1435
+   },
+   {
+    "kind": "Purr",
+    "who": "same",
+    "rows": 195552,
+    "act_flip": 0.0759,
+    "msg_flip": 0.1435
+   },
+   {
+    "kind": "WantBath",
+    "who": "all",
+    "rows": 1197,
+    "act_flip": 0.1119,
+    "msg_flip": 0.1763,
+    "p_toward_with": 0.3,
+    "p_toward_without": 0.313
+   },
+   {
+    "kind": "WantBath",
+    "who": "s3->s3",
+    "rows": 1197,
+    "act_flip": 0.1119,
+    "msg_flip": 0.1763
+   },
+   {
+    "kind": "WantBath",
+    "who": "same",
+    "rows": 1197,
+    "act_flip": 0.1119,
+    "msg_flip": 0.1763
+   },
+   {
+    "kind": "WantEat",
+    "who": "all",
+    "rows": 584,
+    "act_flip": 0.0685,
+    "msg_flip": 0.0668,
+    "p_toward_with": 0.49,
+    "p_toward_without": 0.49
+   },
+   {
+    "kind": "WantEat",
+    "who": "s3->s3",
+    "rows": 584,
+    "act_flip": 0.0685,
+    "msg_flip": 0.0668
+   },
+   {
+    "kind": "WantEat",
+    "who": "same",
+    "rows": 584,
+    "act_flip": 0.0685,
+    "msg_flip": 0.0668
+   }
+  ],
+  "context": [
+   {
+    "model": "s3",
+    "kind": "FollowMe",
+    "which": "declined",
+    "n": 199600,
+    "need": 0.0,
+    "hap": 94.9,
+    "dist": 2.79,
+    "moving": 0.399
+   },
+   {
+    "model": "s3",
+    "kind": "Purr",
+    "which": "declined",
+    "n": 41142,
+    "need": 0.0,
+    "hap": 94.7,
+    "dist": 3.73,
+    "moving": 0.384
+   },
+   {
+    "model": "s3",
+    "kind": "Purr",
+    "which": "emit",
+    "n": 158793,
+    "need": 0.0,
+    "hap": 94.9,
+    "dist": 2.54,
+    "moving": 0.403
+   },
+   {
+    "model": "s3",
+    "kind": "WantBath",
+    "which": "emit",
+    "n": 45,
+    "need": 33.0,
+    "hap": 90.2,
+    "dist": 2.04,
+    "moving": 0.4
+   },
+   {
+    "model": "s3",
+    "kind": "FollowMe",
+    "which": "emit",
+    "n": 40,
+    "need": 0.0,
+    "hap": 93.7,
+    "dist": 2.5,
+    "moving": 0.325
+   },
+   {
+    "model": "s3",
+    "kind": "WantEat",
+    "which": "declined",
+    "n": 789,
+    "need": 37.0,
+    "hap": 86.3,
+    "dist": 4.75,
+    "moving": 0.72
+   },
+   {
+    "model": "s3",
+    "kind": "WantCuddle",
+    "which": "declined",
+    "n": 810,
+    "need": 35.1,
+    "hap": 88.2,
+    "dist": 9.77,
+    "moving": 0.569
+   },
+   {
+    "model": "s3",
+    "kind": "WantBath",
+    "which": "declined",
+    "n": 268,
+    "need": 35.3,
+    "hap": 90.7,
+    "dist": 1.81,
+    "moving": 0.168
+   },
+   {
+    "model": "s3",
+    "kind": "WantEat",
+    "which": "emit",
+    "n": 22,
+    "need": 53.1,
+    "hap": 79.2,
+    "dist": 5.45,
+    "moving": 0.455
+   },
+   {
+    "model": "s3",
+    "kind": "WantCuddle",
+    "which": "emit",
+    "n": 5,
+    "need": 38.3,
+    "hap": 61.7,
+    "dist": 8.8,
+    "moving": 1.0
+   },
+   {
+    "model": "s3",
+    "kind": "WantPlay",
+    "which": "emit",
+    "n": 6,
+    "need": 38.1,
+    "hap": 69.0,
+    "dist": 7.67,
+    "moving": 0.833
+   },
+   {
+    "model": "s3",
+    "kind": "WantDrink",
+    "which": "declined",
+    "n": 11,
+    "need": 33.9,
+    "hap": 58.3,
+    "dist": 8.45,
+    "moving": 1.0
+   },
+   {
+    "model": "s3",
+    "kind": "WantDrink",
+    "which": "emit",
+    "n": 2,
+    "need": 36.0,
+    "hap": 56.0,
+    "dist": 6.0,
+    "moving": 0.5
+   },
+   {
+    "model": "s3",
+    "kind": "WantPlay",
+    "which": "declined",
+    "n": 9,
+    "need": 44.9,
+    "hap": 69.3,
+    "dist": 3.0,
+    "moving": 0.333
+   },
+   {
+    "model": "s3",
+    "kind": "WantSleep",
+    "which": "emit",
+    "n": 2,
+    "need": 32.7,
+    "hap": 62.0,
+    "dist": 6.0,
+    "moving": 1.0
+   },
+   {
+    "model": "s3",
+    "kind": "WantSleep",
+    "which": "declined",
+    "n": 12,
+    "need": 35.2,
+    "hap": 72.6,
+    "dist": 1.25,
+    "moving": 0.333
+   }
+  ],
+  "replies": [
+   {
+    "heard": "s3:Purr",
+    "replied": "s3:Purr",
+    "n": 3675553
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s3:WantBath",
+    "n": 907
+   },
+   {
+    "heard": "s3:WantBath",
+    "replied": "s3:Purr",
+    "n": 838
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s3:FollowMe",
+    "n": 722
+   },
+   {
+    "heard": "s3:FollowMe",
+    "replied": "s3:Purr",
+    "n": 660
+   },
+   {
+    "heard": "s3:WantEat",
+    "replied": "s3:Purr",
+    "n": 417
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s3:WantEat",
+    "n": 379
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s3:WantPlay",
+    "n": 95
+   },
+   {
+    "heard": "s3:WantPlay",
+    "replied": "s3:Purr",
+    "n": 94
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s3:WantCuddle",
+    "n": 77
+   },
+   {
+    "heard": "s3:WantCuddle",
+    "replied": "s3:Purr",
+    "n": 73
+   },
+   {
+    "heard": "s3:WantSleep",
+    "replied": "s3:Purr",
+    "n": 39
+   },
+   {
+    "heard": "s3:WantDrink",
+    "replied": "s3:Purr",
+    "n": 33
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s3:WantDrink",
+    "n": 32
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s3:WantSleep",
+    "n": 29
+   }
+  ]
+ },
+ "mix-4th-s1": {
+  "kitty_ticks": 200000,
+  "emissions_per_1k": {
+   "s2": {
+    "Purr": 339.28,
+    "FollowMe": 0.16,
+    "WantEat": 0.44,
+    "WantCuddle": 0.02,
+    "WantBath": 0.06
+   },
+   "s3": {
+    "Purr": 775.98,
+    "FollowMe": 0.34,
+    "WantBath": 0.86,
+    "WantPlay": 0.02,
+    "WantEat": 0.06
+   },
+   "s1": {
+    "Purr": 216.76,
+    "WantBath": 0.32
+   }
+  },
+  "welfare": {
+   "s1": {
+    "happiness": 95.14,
+    "distress_share": 0.0
+   },
+   "s2": {
+    "happiness": 95.2,
+    "distress_share": 0.0
+   },
+   "s3": {
+    "happiness": 93.93,
+    "distress_share": 0.0
+   }
+  },
+  "flips": [
+   {
+    "kind": "FollowMe",
+    "who": "all",
+    "rows": 675,
+    "act_flip": 0.0859,
+    "msg_flip": 0.1348,
+    "p_toward_with": 0.297,
+    "p_toward_without": 0.293
+   },
+   {
+    "kind": "FollowMe",
+    "who": "cross",
+    "rows": 675,
+    "act_flip": 0.0859,
+    "msg_flip": 0.1348
+   },
+   {
+    "kind": "FollowMe",
+    "who": "s3->s1",
+    "rows": 306,
+    "act_flip": 0.0588,
+    "msg_flip": 0.1373
+   },
+   {
+    "kind": "Purr",
+    "who": "all",
+    "rows": 172299,
+    "act_flip": 0.0737,
+    "msg_flip": 0.1599,
+    "p_toward_with": 0.426,
+    "p_toward_without": 0.429
+   },
+   {
+    "kind": "Purr",
+    "who": "cross",
+    "rows": 159890,
+    "act_flip": 0.0734,
+    "msg_flip": 0.1566
+   },
+   {
+    "kind": "Purr",
+    "who": "s1->s1",
+    "rows": 12409,
+    "act_flip": 0.0777,
+    "msg_flip": 0.2028
+   },
+   {
+    "kind": "Purr",
+    "who": "s1->s2",
+    "rows": 14223,
+    "act_flip": 0.0906,
+    "msg_flip": 0.2514
+   },
+   {
+    "kind": "Purr",
+    "who": "s1->s3",
+    "rows": 18751,
+    "act_flip": 0.0811,
+    "msg_flip": 0.1392
+   },
+   {
+    "kind": "Purr",
+    "who": "s2->s1",
+    "rows": 13442,
+    "act_flip": 0.0751,
+    "msg_flip": 0.1938
+   },
+   {
+    "kind": "Purr",
+    "who": "s2->s3",
+    "rows": 19234,
+    "act_flip": 0.0758,
+    "msg_flip": 0.1368
+   },
+   {
+    "kind": "Purr",
+    "who": "s3->s1",
+    "rows": 64164,
+    "act_flip": 0.067,
+    "msg_flip": 0.1247
+   },
+   {
+    "kind": "Purr",
+    "who": "s3->s2",
+    "rows": 30076,
+    "act_flip": 0.0717,
+    "msg_flip": 0.1867
+   },
+   {
+    "kind": "Purr",
+    "who": "same",
+    "rows": 12409,
+    "act_flip": 0.0777,
+    "msg_flip": 0.2028
+   },
+   {
+    "kind": "WantBath",
+    "who": "all",
+    "rows": 2090,
+    "act_flip": 0.0498,
+    "msg_flip": 0.1177,
+    "p_toward_with": 0.308,
+    "p_toward_without": 0.309
+   },
+   {
+    "kind": "WantBath",
+    "who": "cross",
+    "rows": 1810,
+    "act_flip": 0.053,
+    "msg_flip": 0.1215
+   },
+   {
+    "kind": "WantBath",
+    "who": "s1->s1",
+    "rows": 280,
+    "act_flip": 0.0286,
+    "msg_flip": 0.0929
+   },
+   {
+    "kind": "WantBath",
+    "who": "s1->s2",
+    "rows": 280,
+    "act_flip": 0.0393,
+    "msg_flip": 0.1071
+   },
+   {
+    "kind": "WantBath",
+    "who": "s1->s3",
+    "rows": 288,
+    "act_flip": 0.0694,
+    "msg_flip": 0.2292
+   },
+   {
+    "kind": "WantBath",
+    "who": "s3->s1",
+    "rows": 774,
+    "act_flip": 0.0594,
+    "msg_flip": 0.1008
+   },
+   {
+    "kind": "WantBath",
+    "who": "s3->s2",
+    "rows": 387,
+    "act_flip": 0.0362,
+    "msg_flip": 0.0827
+   },
+   {
+    "kind": "WantBath",
+    "who": "same",
+    "rows": 280,
+    "act_flip": 0.0286,
+    "msg_flip": 0.0929
+   },
+   {
+    "kind": "WantEat",
+    "who": "all",
+    "rows": 665,
+    "act_flip": 0.0797,
+    "msg_flip": 0.0857,
+    "p_toward_with": 0.446,
+    "p_toward_without": 0.456
+   },
+   {
+    "kind": "WantEat",
+    "who": "cross",
+    "rows": 665,
+    "act_flip": 0.0797,
+    "msg_flip": 0.0857
+   },
+   {
+    "kind": "WantEat",
+    "who": "s2->s1",
+    "rows": 396,
+    "act_flip": 0.0682,
+    "msg_flip": 0.0909
+   }
+  ],
+  "context": [
+   {
+    "model": "s1",
+    "kind": "FollowMe",
+    "which": "declined",
+    "n": 100000,
+    "need": 0.0,
+    "hap": 95.1,
+    "dist": 2.81,
+    "moving": 0.363
+   },
+   {
+    "model": "s1",
+    "kind": "Purr",
+    "which": "declined",
+    "n": 78324,
+    "need": 0.0,
+    "hap": 95.2,
+    "dist": 2.74,
+    "moving": 0.351
+   },
+   {
+    "model": "s2",
+    "kind": "FollowMe",
+    "which": "declined",
+    "n": 49920,
+    "need": 0.0,
+    "hap": 95.2,
+    "dist": 2.96,
+    "moving": 0.357
+   },
+   {
+    "model": "s2",
+    "kind": "Purr",
+    "which": "emit",
+    "n": 16964,
+    "need": 0.0,
+    "hap": 95.4,
+    "dist": 3.01,
+    "moving": 0.312
+   },
+   {
+    "model": "s3",
+    "kind": "FollowMe",
+    "which": "declined",
+    "n": 49830,
+    "need": 0.0,
+    "hap": 93.9,
+    "dist": 3.5,
+    "moving": 0.385
+   },
+   {
+    "model": "s3",
+    "kind": "Purr",
+    "which": "emit",
+    "n": 38799,
+    "need": 0.0,
+    "hap": 93.9,
+    "dist": 3.13,
+    "moving": 0.405
+   },
+   {
+    "model": "s1",
+    "kind": "Purr",
+    "which": "emit",
+    "n": 21676,
+    "need": 0.0,
+    "hap": 94.8,
+    "dist": 3.06,
+    "moving": 0.406
+   },
+   {
+    "model": "s2",
+    "kind": "Purr",
+    "which": "declined",
+    "n": 33036,
+    "need": 0.0,
+    "hap": 95.1,
+    "dist": 2.93,
+    "moving": 0.381
+   },
+   {
+    "model": "s3",
+    "kind": "Purr",
+    "which": "declined",
+    "n": 11201,
+    "need": 0.0,
+    "hap": 93.9,
+    "dist": 4.75,
+    "moving": 0.311
+   },
+   {
+    "model": "s3",
+    "kind": "WantEat",
+    "which": "declined",
+    "n": 250,
+    "need": 34.0,
+    "hap": 86.5,
+    "dist": 4.28,
+    "moving": 0.764
+   },
+   {
+    "model": "s1",
+    "kind": "WantBath",
+    "which": "declined",
+    "n": 139,
+    "need": 33.7,
+    "hap": 90.6,
+    "dist": 1.37,
+    "moving": 0.108
+   },
+   {
+    "model": "s3",
+    "kind": "WantBath",
+    "which": "declined",
+    "n": 371,
+    "need": 37.8,
+    "hap": 89.7,
+    "dist": 1.65,
+    "moving": 0.156
+   },
+   {
+    "model": "s3",
+    "kind": "WantCuddle",
+    "which": "declined",
+    "n": 650,
+    "need": 37.8,
+    "hap": 87.5,
+    "dist": 13.74,
+    "moving": 0.469
+   },
+   {
+    "model": "s2",
+    "kind": "WantBath",
+    "which": "declined",
+    "n": 92,
+    "need": 34.5,
+    "hap": 89.7,
+    "dist": 1.99,
+    "moving": 0.283
+   },
+   {
+    "model": "s3",
+    "kind": "FollowMe",
+    "which": "emit",
+    "n": 17,
+    "need": 0.0,
+    "hap": 92.2,
+    "dist": 1.65,
+    "moving": 0.176
+   },
+   {
+    "model": "s1",
+    "kind": "WantBath",
+    "which": "emit",
+    "n": 32,
+    "need": 32.8,
+    "hap": 91.1,
+    "dist": 1.66,
+    "moving": 0.031
+   },
+   {
+    "model": "s3",
+    "kind": "WantBath",
+    "which": "emit",
+    "n": 43,
+    "need": 35.9,
+    "hap": 89.4,
+    "dist": 1.63,
+    "moving": 0.628
+   },
+   {
+    "model": "s1",
+    "kind": "WantEat",
+    "which": "declined",
+    "n": 170,
+    "need": 35.3,
+    "hap": 87.4,
+    "dist": 5.06,
+    "moving": 0.753
+   },
+   {
+    "model": "s3",
+    "kind": "WantPlay",
+    "which": "declined",
+    "n": 1,
+    "need": 30.4,
+    "hap": 86.6,
+    "dist": 3.0,
+    "moving": 0.0
+   },
+   {
+    "model": "s3",
+    "kind": "WantPlay",
+    "which": "emit",
+    "n": 1,
+    "need": 30.8,
+    "hap": 90.5,
+    "dist": 2.0,
+    "moving": 0.0
+   },
+   {
+    "model": "s2",
+    "kind": "FollowMe",
+    "which": "emit",
+    "n": 8,
+    "need": 0.0,
+    "hap": 93.8,
+    "dist": 3.5,
+    "moving": 0.625
+   },
+   {
+    "model": "s3",
+    "kind": "WantEat",
+    "which": "emit",
+    "n": 3,
+    "need": 31.1,
+    "hap": 86.8,
+    "dist": 8.67,
+    "moving": 0.333
+   },
+   {
+    "model": "s2",
+    "kind": "WantEat",
+    "which": "emit",
+    "n": 22,
+    "need": 33.7,
+    "hap": 87.5,
+    "dist": 4.55,
+    "moving": 0.727
+   },
+   {
+    "model": "s1",
+    "kind": "WantCuddle",
+    "which": "declined",
+    "n": 13,
+    "need": 31.0,
+    "hap": 88.8,
+    "dist": 3.38,
+    "moving": 0.692
+   },
+   {
+    "model": "s1",
+    "kind": "WantDrink",
+    "which": "declined",
+    "n": 16,
+    "need": 31.9,
+    "hap": 86.5,
+    "dist": 1.19,
+    "moving": 0.25
+   },
+   {
+    "model": "s2",
+    "kind": "WantEat",
+    "which": "declined",
+    "n": 76,
+    "need": 38.5,
+    "hap": 87.8,
+    "dist": 1.68,
+    "moving": 0.395
+   },
+   {
+    "model": "s2",
+    "kind": "WantCuddle",
+    "which": "declined",
+    "n": 3,
+    "need": 30.6,
+    "hap": 87.5,
+    "dist": 9.67,
+    "moving": 0.667
+   },
+   {
+    "model": "s2",
+    "kind": "WantCuddle",
+    "which": "emit",
+    "n": 1,
+    "need": 31.4,
+    "hap": 86.6,
+    "dist": 7.0,
+    "moving": 1.0
+   },
+   {
+    "model": "s2",
+    "kind": "WantBath",
+    "which": "emit",
+    "n": 3,
+    "need": 35.0,
+    "hap": 87.6,
+    "dist": 1.33,
+    "moving": 0.333
+   },
+   {
+    "model": "s2",
+    "kind": "WantDrink",
+    "which": "declined",
+    "n": 6,
+    "need": 31.4,
+    "hap": 85.3,
+    "dist": 1.17,
+    "moving": 0.167
+   }
+  ],
+  "replies": [
+   {
+    "heard": "s3:Purr",
+    "replied": "s1:Purr",
+    "n": 157517
+   },
+   {
+    "heard": "s1:Purr",
+    "replied": "s3:Purr",
+    "n": 155325
+   },
+   {
+    "heard": "s2:Purr",
+    "replied": "s3:Purr",
+    "n": 125840
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s2:Purr",
+    "n": 116969
+   },
+   {
+    "heard": "s1:Purr",
+    "replied": "s2:Purr",
+    "n": 89256
+   },
+   {
+    "heard": "s2:Purr",
+    "replied": "s1:Purr",
+    "n": 83616
+   },
+   {
+    "heard": "s1:Purr",
+    "replied": "s1:Purr",
+    "n": 59659
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s1:WantBath",
+    "n": 236
+   },
+   {
+    "heard": "s3:WantBath",
+    "replied": "s1:Purr",
+    "n": 235
+   },
+   {
+    "heard": "s1:WantBath",
+    "replied": "s3:Purr",
+    "n": 215
+   },
+   {
+    "heard": "s2:Purr",
+    "replied": "s3:WantBath",
+    "n": 206
+   },
+   {
+    "heard": "s3:WantBath",
+    "replied": "s2:Purr",
+    "n": 193
+   },
+   {
+    "heard": "s1:Purr",
+    "replied": "s3:WantBath",
+    "n": 189
+   },
+   {
+    "heard": "s1:WantBath",
+    "replied": "s2:Purr",
+    "n": 167
+   },
+   {
+    "heard": "s2:WantEat",
+    "replied": "s3:Purr",
+    "n": 146
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s2:WantEat",
+    "n": 145
+   },
+   {
+    "heard": "s3:FollowMe",
+    "replied": "s1:Purr",
+    "n": 123
+   },
+   {
+    "heard": "s2:Purr",
+    "replied": "s1:WantBath",
+    "n": 121
+   },
+   {
+    "heard": "s1:Purr",
+    "replied": "s2:WantEat",
+    "n": 110
+   },
+   {
+    "heard": "s2:WantEat",
+    "replied": "s1:Purr",
+    "n": 109
+   },
+   {
+    "heard": "s1:WantBath",
+    "replied": "s1:Purr",
+    "n": 97
+   },
+   {
+    "heard": "s1:Purr",
+    "replied": "s3:FollowMe",
+    "n": 89
+   },
+   {
+    "heard": "s1:Purr",
+    "replied": "s1:WantBath",
+    "n": 84
+   },
+   {
+    "heard": "s3:FollowMe",
+    "replied": "s2:Purr",
+    "n": 74
+   },
+   {
+    "heard": "s2:Purr",
+    "replied": "s3:FollowMe",
+    "n": 66
+   },
+   {
+    "heard": "s1:Purr",
+    "replied": "s2:FollowMe",
+    "n": 55
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s2:FollowMe",
+    "n": 51
+   },
+   {
+    "heard": "s2:FollowMe",
+    "replied": "s3:Purr",
+    "n": 43
+   },
+   {
+    "heard": "s2:FollowMe",
+    "replied": "s1:Purr",
+    "n": 41
+   },
+   {
+    "heard": "s1:Purr",
+    "replied": "s2:WantBath",
+    "n": 25
+   },
+   {
+    "heard": "s2:WantBath",
+    "replied": "s1:Purr",
+    "n": 21
+   },
+   {
+    "heard": "s2:WantBath",
+    "replied": "s3:Purr",
+    "n": 21
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s2:WantBath",
+    "n": 20
+   }
+  ]
+ },
+ "mix-4th-s2": {
+  "kitty_ticks": 200000,
+  "emissions_per_1k": {
+   "s2": {
+    "Purr": 339.08,
+    "FollowMe": 0.33,
+    "WantEat": 0.51,
+    "WantCuddle": 0.03,
+    "WantBath": 0.04,
+    "WantPlay": 0.05,
+    "WantDrink": 0.04
+   },
+   "s3": {
+    "Purr": 782.88,
+    "WantBath": 0.88,
+    "FollowMe": 0.38,
+    "WantEat": 0.04
+   },
+   "s1": {
+    "Purr": 219.54,
+    "WantBath": 0.34
+   }
+  },
+  "welfare": {
+   "s1": {
+    "happiness": 95.12,
+    "distress_share": 0.0
+   },
+   "s2": {
+    "happiness": 95.13,
+    "distress_share": 0.0
+   },
+   "s3": {
+    "happiness": 93.93,
+    "distress_share": 0.0
+   }
+  },
+  "flips": [
+   {
+    "kind": "FollowMe",
+    "who": "all",
+    "rows": 1269,
+    "act_flip": 0.1017,
+    "msg_flip": 0.1828,
+    "p_toward_with": 0.316,
+    "p_toward_without": 0.325
+   },
+   {
+    "kind": "FollowMe",
+    "who": "cross",
+    "rows": 995,
+    "act_flip": 0.1035,
+    "msg_flip": 0.1789
+   },
+   {
+    "kind": "FollowMe",
+    "who": "s2->s1",
+    "rows": 250,
+    "act_flip": 0.044,
+    "msg_flip": 0.088
+   },
+   {
+    "kind": "FollowMe",
+    "who": "s2->s2",
+    "rows": 274,
+    "act_flip": 0.0949,
+    "msg_flip": 0.1971
+   },
+   {
+    "kind": "FollowMe",
+    "who": "s2->s3",
+    "rows": 266,
+    "act_flip": 0.1617,
+    "msg_flip": 0.2632
+   },
+   {
+    "kind": "FollowMe",
+    "who": "s3->s2",
+    "rows": 325,
+    "act_flip": 0.1108,
+    "msg_flip": 0.1877
+   },
+   {
+    "kind": "FollowMe",
+    "who": "same",
+    "rows": 274,
+    "act_flip": 0.0949,
+    "msg_flip": 0.1971
+   },
+   {
+    "kind": "Purr",
+    "who": "all",
+    "rows": 175453,
+    "act_flip": 0.076,
+    "msg_flip": 0.1805,
+    "p_toward_with": 0.432,
+    "p_toward_without": 0.435
+   },
+   {
+    "kind": "Purr",
+    "who": "cross",
+    "rows": 156139,
+    "act_flip": 0.0744,
+    "msg_flip": 0.1707
+   },
+   {
+    "kind": "Purr",
+    "who": "s1->s2",
+    "rows": 10325,
+    "act_flip": 0.0972,
+    "msg_flip": 0.277
+   },
+   {
+    "kind": "Purr",
+    "who": "s1->s3",
+    "rows": 7755,
+    "act_flip": 0.0814,
+    "msg_flip": 0.1431
+   },
+   {
+    "kind": "Purr",
+    "who": "s2->s1",
+    "rows": 18329,
+    "act_flip": 0.0758,
+    "msg_flip": 0.1914
+   },
+   {
+    "kind": "Purr",
+    "who": "s2->s2",
+    "rows": 19314,
+    "act_flip": 0.0885,
+    "msg_flip": 0.2599
+   },
+   {
+    "kind": "Purr",
+    "who": "s2->s3",
+    "rows": 31870,
+    "act_flip": 0.0744,
+    "msg_flip": 0.1361
+   },
+   {
+    "kind": "Purr",
+    "who": "s3->s1",
+    "rows": 27326,
+    "act_flip": 0.0651,
+    "msg_flip": 0.117
+   },
+   {
+    "kind": "Purr",
+    "who": "s3->s2",
+    "rows": 60534,
+    "act_flip": 0.0734,
+    "msg_flip": 0.1924
+   },
+   {
+    "kind": "Purr",
+    "who": "same",
+    "rows": 19314,
+    "act_flip": 0.0885,
+    "msg_flip": 0.2599
+   },
+   {
+    "kind": "WantBath",
+    "who": "all",
+    "rows": 1755,
+    "act_flip": 0.0484,
+    "msg_flip": 0.11,
+    "p_toward_with": 0.353,
+    "p_toward_without": 0.351
+   },
+   {
+    "kind": "WantBath",
+    "who": "cross",
+    "rows": 1719,
+    "act_flip": 0.0494,
+    "msg_flip": 0.1094
+   },
+   {
+    "kind": "WantBath",
+    "who": "s1->s2",
+    "rows": 306,
+    "act_flip": 0.0392,
+    "msg_flip": 0.1275
+   },
+   {
+    "kind": "WantBath",
+    "who": "s3->s1",
+    "rows": 396,
+    "act_flip": 0.0429,
+    "msg_flip": 0.1162
+   },
+   {
+    "kind": "WantBath",
+    "who": "s3->s2",
+    "rows": 792,
+    "act_flip": 0.0505,
+    "msg_flip": 0.0922
+   },
+   {
+    "kind": "WantEat",
+    "who": "all",
+    "rows": 1361,
+    "act_flip": 0.0691,
+    "msg_flip": 0.0955,
+    "p_toward_with": 0.423,
+    "p_toward_without": 0.428
+   },
+   {
+    "kind": "WantEat",
+    "who": "cross",
+    "rows": 902,
+    "act_flip": 0.0754,
+    "msg_flip": 0.1109
+   },
+   {
+    "kind": "WantEat",
+    "who": "s2->s1",
+    "rows": 426,
+    "act_flip": 0.0751,
+    "msg_flip": 0.1244
+   },
+   {
+    "kind": "WantEat",
+    "who": "s2->s2",
+    "rows": 459,
+    "act_flip": 0.0566,
+    "msg_flip": 0.0654
+   },
+   {
+    "kind": "WantEat",
+    "who": "s2->s3",
+    "rows": 426,
+    "act_flip": 0.0822,
+    "msg_flip": 0.0962
+   },
+   {
+    "kind": "WantEat",
+    "who": "same",
+    "rows": 459,
+    "act_flip": 0.0566,
+    "msg_flip": 0.0654
+   }
+  ],
+  "context": [
+   {
+    "model": "s1",
+    "kind": "FollowMe",
+    "which": "declined",
+    "n": 50000,
+    "need": 0.0,
+    "hap": 95.1,
+    "dist": 2.87,
+    "moving": 0.365
+   },
+   {
+    "model": "s1",
+    "kind": "Purr",
+    "which": "declined",
+    "n": 39023,
+    "need": 0.0,
+    "hap": 95.2,
+    "dist": 2.77,
+    "moving": 0.351
+   },
+   {
+    "model": "s2",
+    "kind": "FollowMe",
+    "which": "declined",
+    "n": 99670,
+    "need": 0.0,
+    "hap": 95.1,
+    "dist": 3.03,
+    "moving": 0.364
+   },
+   {
+    "model": "s2",
+    "kind": "Purr",
+    "which": "emit",
+    "n": 33908,
+    "need": 0.0,
+    "hap": 95.3,
+    "dist": 2.96,
+    "moving": 0.314
+   },
+   {
+    "model": "s3",
+    "kind": "FollowMe",
+    "which": "declined",
+    "n": 49810,
+    "need": 0.0,
+    "hap": 93.9,
+    "dist": 3.29,
+    "moving": 0.386
+   },
+   {
+    "model": "s3",
+    "kind": "Purr",
+    "which": "emit",
+    "n": 39144,
+    "need": 0.0,
+    "hap": 93.9,
+    "dist": 3.05,
+    "moving": 0.406
+   },
+   {
+    "model": "s2",
+    "kind": "Purr",
+    "which": "declined",
+    "n": 66090,
+    "need": 0.0,
+    "hap": 95.0,
+    "dist": 3.06,
+    "moving": 0.39
+   },
+   {
+    "model": "s1",
+    "kind": "Purr",
+    "which": "emit",
+    "n": 10977,
+    "need": 0.0,
+    "hap": 94.8,
+    "dist": 3.21,
+    "moving": 0.414
+   },
+   {
+    "model": "s3",
+    "kind": "Purr",
+    "which": "declined",
+    "n": 10856,
+    "need": 0.0,
+    "hap": 94.1,
+    "dist": 4.12,
+    "moving": 0.312
+   },
+   {
+    "model": "s3",
+    "kind": "WantBath",
+    "which": "emit",
+    "n": 44,
+    "need": 35.0,
+    "hap": 89.5,
+    "dist": 1.68,
+    "moving": 0.545
+   },
+   {
+    "model": "s3",
+    "kind": "WantBath",
+    "which": "declined",
+    "n": 563,
+    "need": 37.9,
+    "hap": 89.4,
+    "dist": 1.79,
+    "moving": 0.199
+   },
+   {
+    "model": "s1",
+    "kind": "WantBath",
+    "which": "declined",
+    "n": 91,
+    "need": 33.4,
+    "hap": 91.4,
+    "dist": 1.14,
+    "moving": 0.011
+   },
+   {
+    "model": "s1",
+    "kind": "WantBath",
+    "which": "emit",
+    "n": 17,
+    "need": 34.8,
+    "hap": 91.0,
+    "dist": 1.24,
+    "moving": 0.0
+   },
+   {
+    "model": "s2",
+    "kind": "WantBath",
+    "which": "declined",
+    "n": 165,
+    "need": 34.0,
+    "hap": 90.4,
+    "dist": 1.74,
+    "moving": 0.23
+   },
+   {
+    "model": "s2",
+    "kind": "FollowMe",
+    "which": "emit",
+    "n": 33,
+    "need": 0.0,
+    "hap": 93.3,
+    "dist": 1.55,
+    "moving": 0.455
+   },
+   {
+    "model": "s3",
+    "kind": "WantEat",
+    "which": "declined",
+    "n": 196,
+    "need": 33.8,
+    "hap": 86.5,
+    "dist": 4.59,
+    "moving": 0.786
+   },
+   {
+    "model": "s3",
+    "kind": "WantCuddle",
+    "which": "declined",
+    "n": 185,
+    "need": 34.8,
+    "hap": 88.1,
+    "dist": 11.18,
+    "moving": 0.573
+   },
+   {
+    "model": "s3",
+    "kind": "FollowMe",
+    "which": "emit",
+    "n": 19,
+    "need": 0.0,
+    "hap": 92.4,
+    "dist": 1.47,
+    "moving": 0.105
+   },
+   {
+    "model": "s2",
+    "kind": "WantCuddle",
+    "which": "declined",
+    "n": 23,
+    "need": 31.5,
+    "hap": 86.9,
+    "dist": 8.39,
+    "moving": 0.87
+   },
+   {
+    "model": "s2",
+    "kind": "WantEat",
+    "which": "declined",
+    "n": 192,
+    "need": 41.8,
+    "hap": 86.4,
+    "dist": 5.07,
+    "moving": 0.604
+   },
+   {
+    "model": "s2",
+    "kind": "WantEat",
+    "which": "emit",
+    "n": 51,
+    "need": 34.9,
+    "hap": 86.3,
+    "dist": 5.0,
+    "moving": 0.569
+   },
+   {
+    "model": "s3",
+    "kind": "WantEat",
+    "which": "emit",
+    "n": 2,
+    "need": 31.6,
+    "hap": 88.7,
+    "dist": 1.0,
+    "moving": 0.0
+   },
+   {
+    "model": "s2",
+    "kind": "WantCuddle",
+    "which": "emit",
+    "n": 3,
+    "need": 31.7,
+    "hap": 86.7,
+    "dist": 4.33,
+    "moving": 1.0
+   },
+   {
+    "model": "s2",
+    "kind": "WantBath",
+    "which": "emit",
+    "n": 4,
+    "need": 42.4,
+    "hap": 87.8,
+    "dist": 1.0,
+    "moving": 0.0
+   },
+   {
+    "model": "s1",
+    "kind": "WantEat",
+    "which": "declined",
+    "n": 81,
+    "need": 35.6,
+    "hap": 87.1,
+    "dist": 3.83,
+    "moving": 0.778
+   },
+   {
+    "model": "s1",
+    "kind": "WantCuddle",
+    "which": "declined",
+    "n": 3,
+    "need": 27.8,
+    "hap": 92.2,
+    "dist": 1.0,
+    "moving": 0.0
+   },
+   {
+    "model": "s2",
+    "kind": "WantPlay",
+    "which": "emit",
+    "n": 5,
+    "need": 38.4,
+    "hap": 75.6,
+    "dist": 1.2,
+    "moving": 0.2
+   },
+   {
+    "model": "s2",
+    "kind": "WantDrink",
+    "which": "emit",
+    "n": 4,
+    "need": 36.4,
+    "hap": 76.5,
+    "dist": 1.0,
+    "moving": 0.0
+   },
+   {
+    "model": "s2",
+    "kind": "WantPlay",
+    "which": "declined",
+    "n": 8,
+    "need": 31.8,
+    "hap": 83.3,
+    "dist": 1.0,
+    "moving": 0.0
+   }
+  ],
+  "replies": [
+   {
+    "heard": "s2:Purr",
+    "replied": "s3:Purr",
+    "n": 246541
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s2:Purr",
+    "n": 244759
+   },
+   {
+    "heard": "s2:Purr",
+    "replied": "s2:Purr",
+    "n": 134214
+   },
+   {
+    "heard": "s1:Purr",
+    "replied": "s2:Purr",
+    "n": 89725
+   },
+   {
+    "heard": "s2:Purr",
+    "replied": "s1:Purr",
+    "n": 84433
+   },
+   {
+    "heard": "s1:Purr",
+    "replied": "s3:Purr",
+    "n": 79796
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s1:Purr",
+    "n": 78834
+   },
+   {
+    "heard": "s3:WantBath",
+    "replied": "s2:Purr",
+    "n": 365
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s2:WantEat",
+    "n": 340
+   },
+   {
+    "heard": "s2:WantEat",
+    "replied": "s3:Purr",
+    "n": 333
+   },
+   {
+    "heard": "s2:Purr",
+    "replied": "s3:WantBath",
+    "n": 321
+   },
+   {
+    "heard": "s3:FollowMe",
+    "replied": "s2:Purr",
+    "n": 205
+   },
+   {
+    "heard": "s2:Purr",
+    "replied": "s2:WantEat",
+    "n": 193
+   },
+   {
+    "heard": "s2:Purr",
+    "replied": "s3:FollowMe",
+    "n": 176
+   },
+   {
+    "heard": "s2:WantEat",
+    "replied": "s1:Purr",
+    "n": 171
+   },
+   {
+    "heard": "s2:FollowMe",
+    "replied": "s3:Purr",
+    "n": 167
+   },
+   {
+    "heard": "s1:WantBath",
+    "replied": "s2:Purr",
+    "n": 164
+   },
+   {
+    "heard": "s2:Purr",
+    "replied": "s2:FollowMe",
+    "n": 163
+   },
+   {
+    "heard": "s2:FollowMe",
+    "replied": "s2:Purr",
+    "n": 159
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s2:FollowMe",
+    "n": 159
+   },
+   {
+    "heard": "s2:Purr",
+    "replied": "s1:WantBath",
+    "n": 157
+   },
+   {
+    "heard": "s1:Purr",
+    "replied": "s2:FollowMe",
+    "n": 145
+   },
+   {
+    "heard": "s1:Purr",
+    "replied": "s2:WantEat",
+    "n": 144
+   },
+   {
+    "heard": "s2:FollowMe",
+    "replied": "s1:Purr",
+    "n": 140
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s1:WantBath",
+    "n": 139
+   },
+   {
+    "heard": "s1:WantBath",
+    "replied": "s3:Purr",
+    "n": 134
+   },
+   {
+    "heard": "s2:WantEat",
+    "replied": "s2:Purr",
+    "n": 126
+   },
+   {
+    "heard": "s3:WantBath",
+    "replied": "s1:Purr",
+    "n": 123
+   },
+   {
+    "heard": "s1:Purr",
+    "replied": "s3:WantBath",
+    "n": 100
+   },
+   {
+    "heard": "s3:FollowMe",
+    "replied": "s1:Purr",
+    "n": 77
+   },
+   {
+    "heard": "s1:Purr",
+    "replied": "s3:FollowMe",
+    "n": 71
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s2:WantPlay",
+    "n": 50
+   },
+   {
+    "heard": "s2:WantPlay",
+    "replied": "s3:Purr",
+    "n": 44
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s2:WantDrink",
+    "n": 40
+   },
+   {
+    "heard": "s2:WantDrink",
+    "replied": "s3:Purr",
+    "n": 35
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s2:WantBath",
+    "n": 30
+   },
+   {
+    "heard": "s2:WantPlay",
+    "replied": "s1:Purr",
+    "n": 28
+   },
+   {
+    "heard": "s2:WantBath",
+    "replied": "s2:Purr",
+    "n": 27
+   },
+   {
+    "heard": "s2:WantCuddle",
+    "replied": "s3:Purr",
+    "n": 26
+   },
+   {
+    "heard": "s2:WantBath",
+    "replied": "s3:Purr",
+    "n": 26
+   },
+   {
+    "heard": "s2:Purr",
+    "replied": "s3:WantEat",
+    "n": 25
+   },
+   {
+    "heard": "s2:Purr",
+    "replied": "s2:WantBath",
+    "n": 25
+   },
+   {
+    "heard": "s1:Purr",
+    "replied": "s2:WantPlay",
+    "n": 25
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s2:WantCuddle",
+    "n": 23
+   },
+   {
+    "heard": "s2:WantCuddle",
+    "replied": "s2:Purr",
+    "n": 23
+   },
+   {
+    "heard": "s2:Purr",
+    "replied": "s2:WantPlay",
+    "n": 20
+   }
+  ]
+ },
+ "mix-4th-s3": {
+  "kitty_ticks": 200000,
+  "emissions_per_1k": {
+   "s2": {
+    "Purr": 358.38,
+    "FollowMe": 0.28,
+    "WantBath": 0.06,
+    "WantCuddle": 0.04,
+    "WantEat": 0.4,
+    "WantSleep": 0.02
+   },
+   "s3": {
+    "Purr": 807.68,
+    "WantBath": 0.7,
+    "FollowMe": 0.33,
+    "WantEat": 0.12,
+    "WantPlay": 0.01
+   },
+   "s1": {
+    "Purr": 216.2,
+    "WantBath": 0.14
+   }
+  },
+  "welfare": {
+   "s1": {
+    "happiness": 95.15,
+    "distress_share": 0.0
+   },
+   "s2": {
+    "happiness": 95.17,
+    "distress_share": 0.00066
+   },
+   "s3": {
+    "happiness": 94.51,
+    "distress_share": 0.0
+   }
+  },
+  "flips": [
+   {
+    "kind": "FollowMe",
+    "who": "all",
+    "rows": 1125,
+    "act_flip": 0.1218,
+    "msg_flip": 0.2187,
+    "p_toward_with": 0.247,
+    "p_toward_without": 0.26
+   },
+   {
+    "kind": "FollowMe",
+    "who": "cross",
+    "rows": 828,
+    "act_flip": 0.0954,
+    "msg_flip": 0.1848
+   },
+   {
+    "kind": "FollowMe",
+    "who": "s2->s3",
+    "rows": 210,
+    "act_flip": 0.1143,
+    "msg_flip": 0.281
+   },
+   {
+    "kind": "FollowMe",
+    "who": "s3->s1",
+    "rows": 261,
+    "act_flip": 0.0575,
+    "msg_flip": 0.0996
+   },
+   {
+    "kind": "FollowMe",
+    "who": "s3->s2",
+    "rows": 261,
+    "act_flip": 0.1264,
+    "msg_flip": 0.1992
+   },
+   {
+    "kind": "FollowMe",
+    "who": "s3->s3",
+    "rows": 297,
+    "act_flip": 0.1953,
+    "msg_flip": 0.3131
+   },
+   {
+    "kind": "FollowMe",
+    "who": "same",
+    "rows": 297,
+    "act_flip": 0.1953,
+    "msg_flip": 0.3131
+   },
+   {
+    "kind": "Purr",
+    "who": "all",
+    "rows": 187710,
+    "act_flip": 0.0753,
+    "msg_flip": 0.1585,
+    "p_toward_with": 0.437,
+    "p_toward_without": 0.44
+   },
+   {
+    "kind": "Purr",
+    "who": "cross",
+    "rows": 121655,
+    "act_flip": 0.0789,
+    "msg_flip": 0.172
+   },
+   {
+    "kind": "Purr",
+    "who": "s1->s2",
+    "rows": 5483,
+    "act_flip": 0.0956,
+    "msg_flip": 0.2769
+   },
+   {
+    "kind": "Purr",
+    "who": "s1->s3",
+    "rows": 9307,
+    "act_flip": 0.0875,
+    "msg_flip": 0.1424
+   },
+   {
+    "kind": "Purr",
+    "who": "s2->s1",
+    "rows": 5011,
+    "act_flip": 0.0822,
+    "msg_flip": 0.2028
+   },
+   {
+    "kind": "Purr",
+    "who": "s2->s3",
+    "rows": 16272,
+    "act_flip": 0.082,
+    "msg_flip": 0.1378
+   },
+   {
+    "kind": "Purr",
+    "who": "s3->s1",
+    "rows": 43152,
+    "act_flip": 0.0733,
+    "msg_flip": 0.1371
+   },
+   {
+    "kind": "Purr",
+    "who": "s3->s2",
+    "rows": 42430,
+    "act_flip": 0.0791,
+    "msg_flip": 0.2098
+   },
+   {
+    "kind": "Purr",
+    "who": "s3->s3",
+    "rows": 66055,
+    "act_flip": 0.0687,
+    "msg_flip": 0.1338
+   },
+   {
+    "kind": "Purr",
+    "who": "same",
+    "rows": 66055,
+    "act_flip": 0.0687,
+    "msg_flip": 0.1338
+   },
+   {
+    "kind": "WantBath",
+    "who": "all",
+    "rows": 2126,
+    "act_flip": 0.0729,
+    "msg_flip": 0.1171,
+    "p_toward_with": 0.351,
+    "p_toward_without": 0.358
+   },
+   {
+    "kind": "WantBath",
+    "who": "cross",
+    "rows": 1507,
+    "act_flip": 0.0624,
+    "msg_flip": 0.1048
+   },
+   {
+    "kind": "WantBath",
+    "who": "s3->s1",
+    "rows": 616,
+    "act_flip": 0.0682,
+    "msg_flip": 0.1201
+   },
+   {
+    "kind": "WantBath",
+    "who": "s3->s2",
+    "rows": 621,
+    "act_flip": 0.0435,
+    "msg_flip": 0.0805
+   },
+   {
+    "kind": "WantBath",
+    "who": "s3->s3",
+    "rows": 619,
+    "act_flip": 0.0985,
+    "msg_flip": 0.147
+   },
+   {
+    "kind": "WantBath",
+    "who": "same",
+    "rows": 619,
+    "act_flip": 0.0985,
+    "msg_flip": 0.147
+   },
+   {
+    "kind": "WantEat",
+    "who": "all",
+    "rows": 864,
+    "act_flip": 0.0822,
+    "msg_flip": 0.0926,
+    "p_toward_with": 0.48,
+    "p_toward_without": 0.502
+   },
+   {
+    "kind": "WantEat",
+    "who": "cross",
+    "rows": 756,
+    "act_flip": 0.0847,
+    "msg_flip": 0.0966
+   },
+   {
+    "kind": "WantEat",
+    "who": "s2->s3",
+    "rows": 360,
+    "act_flip": 0.075,
+    "msg_flip": 0.0611
+   }
+  ],
+  "context": [
+   {
+    "model": "s1",
+    "kind": "FollowMe",
+    "which": "declined",
+    "n": 50000,
+    "need": 0.0,
+    "hap": 95.1,
+    "dist": 2.81,
+    "moving": 0.366
+   },
+   {
+    "model": "s1",
+    "kind": "Purr",
+    "which": "declined",
+    "n": 39190,
+    "need": 0.0,
+    "hap": 95.2,
+    "dist": 2.72,
+    "moving": 0.351
+   },
+   {
+    "model": "s2",
+    "kind": "FollowMe",
+    "which": "declined",
+    "n": 49860,
+    "need": 0.0,
+    "hap": 95.2,
+    "dist": 2.97,
+    "moving": 0.36
+   },
+   {
+    "model": "s2",
+    "kind": "Purr",
+    "which": "emit",
+    "n": 17919,
+    "need": 0.0,
+    "hap": 95.4,
+    "dist": 2.99,
+    "moving": 0.318
+   },
+   {
+    "model": "s3",
+    "kind": "FollowMe",
+    "which": "declined",
+    "n": 99670,
+    "need": 0.0,
+    "hap": 94.5,
+    "dist": 2.99,
+    "moving": 0.393
+   },
+   {
+    "model": "s3",
+    "kind": "Purr",
+    "which": "emit",
+    "n": 80768,
+    "need": 0.0,
+    "hap": 94.5,
+    "dist": 2.79,
+    "moving": 0.405
+   },
+   {
+    "model": "s1",
+    "kind": "Purr",
+    "which": "emit",
+    "n": 10810,
+    "need": 0.0,
+    "hap": 94.8,
+    "dist": 3.11,
+    "moving": 0.423
+   },
+   {
+    "model": "s3",
+    "kind": "Purr",
+    "which": "declined",
+    "n": 19232,
+    "need": 0.0,
+    "hap": 94.5,
+    "dist": 3.82,
+    "moving": 0.344
+   },
+   {
+    "model": "s2",
+    "kind": "Purr",
+    "which": "declined",
+    "n": 32032,
+    "need": 0.0,
+    "hap": 95.1,
+    "dist": 2.94,
+    "moving": 0.383
+   },
+   {
+    "model": "s2",
+    "kind": "WantBath",
+    "which": "declined",
+    "n": 156,
+    "need": 45.1,
+    "hap": 79.8,
+    "dist": 3.8,
+    "moving": 0.282
+   },
+   {
+    "model": "s3",
+    "kind": "WantBath",
+    "which": "emit",
+    "n": 70,
+    "need": 33.5,
+    "hap": 89.9,
+    "dist": 1.66,
+    "moving": 0.529
+   },
+   {
+    "model": "s3",
+    "kind": "WantBath",
+    "which": "declined",
+    "n": 628,
+    "need": 36.0,
+    "hap": 89.9,
+    "dist": 1.77,
+    "moving": 0.174
+   },
+   {
+    "model": "s3",
+    "kind": "WantEat",
+    "which": "declined",
+    "n": 507,
+    "need": 35.9,
+    "hap": 86.7,
+    "dist": 4.27,
+    "moving": 0.763
+   },
+   {
+    "model": "s3",
+    "kind": "FollowMe",
+    "which": "emit",
+    "n": 33,
+    "need": 0.0,
+    "hap": 92.3,
+    "dist": 1.97,
+    "moving": 0.333
+   },
+   {
+    "model": "s1",
+    "kind": "WantBath",
+    "which": "declined",
+    "n": 83,
+    "need": 33.4,
+    "hap": 90.9,
+    "dist": 1.3,
+    "moving": 0.096
+   },
+   {
+    "model": "s3",
+    "kind": "WantEat",
+    "which": "emit",
+    "n": 12,
+    "need": 36.4,
+    "hap": 86.8,
+    "dist": 7.5,
+    "moving": 0.5
+   },
+   {
+    "model": "s3",
+    "kind": "WantCuddle",
+    "which": "declined",
+    "n": 323,
+    "need": 37.2,
+    "hap": 87.3,
+    "dist": 13.05,
+    "moving": 0.498
+   },
+   {
+    "model": "s1",
+    "kind": "WantEat",
+    "which": "declined",
+    "n": 133,
+    "need": 33.8,
+    "hap": 86.4,
+    "dist": 5.21,
+    "moving": 0.729
+   },
+   {
+    "model": "s2",
+    "kind": "FollowMe",
+    "which": "emit",
+    "n": 14,
+    "need": 0.0,
+    "hap": 93.9,
+    "dist": 1.57,
+    "moving": 0.357
+   },
+   {
+    "model": "s2",
+    "kind": "WantBath",
+    "which": "emit",
+    "n": 3,
+    "need": 31.9,
+    "hap": 91.3,
+    "dist": 6.67,
+    "moving": 0.0
+   },
+   {
+    "model": "s2",
+    "kind": "WantCuddle",
+    "which": "declined",
+    "n": 26,
+    "need": 32.5,
+    "hap": 90.2,
+    "dist": 12.46,
+    "moving": 0.654
+   },
+   {
+    "model": "s2",
+    "kind": "WantCuddle",
+    "which": "emit",
+    "n": 2,
+    "need": 31.1,
+    "hap": 89.7,
+    "dist": 3.0,
+    "moving": 0.5
+   },
+   {
+    "model": "s1",
+    "kind": "WantBath",
+    "which": "emit",
+    "n": 7,
+    "need": 32.5,
+    "hap": 90.3,
+    "dist": 1.71,
+    "moving": 0.0
+   },
+   {
+    "model": "s3",
+    "kind": "WantPlay",
+    "which": "declined",
+    "n": 6,
+    "need": 31.4,
+    "hap": 74.8,
+    "dist": 13.0,
+    "moving": 0.333
+   },
+   {
+    "model": "s3",
+    "kind": "WantPlay",
+    "which": "emit",
+    "n": 1,
+    "need": 32.8,
+    "hap": 84.2,
+    "dist": 11.0,
+    "moving": 0.0
+   },
+   {
+    "model": "s3",
+    "kind": "WantSleep",
+    "which": "declined",
+    "n": 5,
+    "need": 29.9,
+    "hap": 89.0,
+    "dist": 1.2,
+    "moving": 0.0
+   },
+   {
+    "model": "s2",
+    "kind": "WantEat",
+    "which": "emit",
+    "n": 20,
+    "need": 36.5,
+    "hap": 86.5,
+    "dist": 2.65,
+    "moving": 0.75
+   },
+   {
+    "model": "s2",
+    "kind": "WantEat",
+    "which": "declined",
+    "n": 115,
+    "need": 64.4,
+    "hap": 75.4,
+    "dist": 5.42,
+    "moving": 0.4
+   },
+   {
+    "model": "s2",
+    "kind": "WantSleep",
+    "which": "declined",
+    "n": 11,
+    "need": 31.0,
+    "hap": 62.2,
+    "dist": 1.82,
+    "moving": 0.818
+   },
+   {
+    "model": "s2",
+    "kind": "WantSleep",
+    "which": "emit",
+    "n": 1,
+    "need": 33.0,
+    "hap": 55.9,
+    "dist": 6.0,
+    "moving": 1.0
+   },
+   {
+    "model": "s2",
+    "kind": "WantPlay",
+    "which": "declined",
+    "n": 8,
+    "need": 31.8,
+    "hap": 85.7,
+    "dist": 1.25,
+    "moving": 0.125
+   }
+  ],
+  "replies": [
+   {
+    "heard": "s3:Purr",
+    "replied": "s3:Purr",
+    "n": 632149
+   },
+   {
+    "heard": "s2:Purr",
+    "replied": "s3:Purr",
+    "n": 274502
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s2:Purr",
+    "n": 262003
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s1:Purr",
+    "n": 161730
+   },
+   {
+    "heard": "s1:Purr",
+    "replied": "s3:Purr",
+    "n": 160564
+   },
+   {
+    "heard": "s1:Purr",
+    "replied": "s2:Purr",
+    "n": 46845
+   },
+   {
+    "heard": "s2:Purr",
+    "replied": "s1:Purr",
+    "n": 42669
+   },
+   {
+    "heard": "s3:WantBath",
+    "replied": "s3:Purr",
+    "n": 423
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s3:WantBath",
+    "n": 403
+   },
+   {
+    "heard": "s3:WantBath",
+    "replied": "s2:Purr",
+    "n": 345
+   },
+   {
+    "heard": "s2:Purr",
+    "replied": "s3:WantBath",
+    "n": 324
+   },
+   {
+    "heard": "s2:WantEat",
+    "replied": "s3:Purr",
+    "n": 320
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s2:WantEat",
+    "n": 273
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s3:FollowMe",
+    "n": 206
+   },
+   {
+    "heard": "s1:Purr",
+    "replied": "s3:WantBath",
+    "n": 196
+   },
+   {
+    "heard": "s3:FollowMe",
+    "replied": "s3:Purr",
+    "n": 194
+   },
+   {
+    "heard": "s2:Purr",
+    "replied": "s3:FollowMe",
+    "n": 191
+   },
+   {
+    "heard": "s3:FollowMe",
+    "replied": "s2:Purr",
+    "n": 186
+   },
+   {
+    "heard": "s3:WantBath",
+    "replied": "s1:Purr",
+    "n": 175
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s2:FollowMe",
+    "n": 153
+   },
+   {
+    "heard": "s2:FollowMe",
+    "replied": "s3:Purr",
+    "n": 146
+   },
+   {
+    "heard": "s3:FollowMe",
+    "replied": "s1:Purr",
+    "n": 113
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s1:WantBath",
+    "n": 111
+   },
+   {
+    "heard": "s1:WantBath",
+    "replied": "s3:Purr",
+    "n": 102
+   },
+   {
+    "heard": "s1:Purr",
+    "replied": "s3:FollowMe",
+    "n": 99
+   },
+   {
+    "heard": "s3:WantEat",
+    "replied": "s3:Purr",
+    "n": 66
+   },
+   {
+    "heard": "s2:FollowMe",
+    "replied": "s1:Purr",
+    "n": 66
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s3:WantEat",
+    "n": 57
+   },
+   {
+    "heard": "s2:WantEat",
+    "replied": "s1:Purr",
+    "n": 55
+   },
+   {
+    "heard": "s1:Purr",
+    "replied": "s2:FollowMe",
+    "n": 47
+   },
+   {
+    "heard": "s3:WantEat",
+    "replied": "s1:Purr",
+    "n": 46
+   },
+   {
+    "heard": "s2:Purr",
+    "replied": "s3:WantEat",
+    "n": 44
+   },
+   {
+    "heard": "s2:WantBath",
+    "replied": "s3:Purr",
+    "n": 42
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s2:WantBath",
+    "n": 41
+   },
+   {
+    "heard": "s1:WantBath",
+    "replied": "s2:Purr",
+    "n": 38
+   },
+   {
+    "heard": "s1:Purr",
+    "replied": "s3:WantEat",
+    "n": 30
+   },
+   {
+    "heard": "s2:WantCuddle",
+    "replied": "s3:Purr",
+    "n": 30
+   },
+   {
+    "heard": "s3:WantEat",
+    "replied": "s2:Purr",
+    "n": 29
+   },
+   {
+    "heard": "s2:Purr",
+    "replied": "s1:WantBath",
+    "n": 29
+   },
+   {
+    "heard": "s3:Purr",
+    "replied": "s2:WantCuddle",
+    "n": 28
+   },
+   {
+    "heard": "s1:Purr",
+    "replied": "s2:WantEat",
+    "n": 26
+   }
+  ]
+ }
+}
