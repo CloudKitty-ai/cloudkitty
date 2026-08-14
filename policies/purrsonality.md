@@ -80,7 +80,7 @@ Artifact: `…/attn-A1-s3.ckpolicy` (v3) · sha256 `dfef0ec2…` · seed 3.
 
 ## Measured roster: [s1, s2, s3, s3] (owner candidate, 2026-08-14)
 
-All seats ≥ 94.5; two natural friendships (kin groomer pair 9.3k
+All seats ≥ 94.5; two natural friendships (kin doter pair 9.3k
 ticks/dyad, quiet pair 8.5k) with strong cross-links; no isolate;
 s1/s2 bank s3's grooming as reclaimed self-care (−25% groom-self).
 Loudest measurable roster (~500 meows/1k world-wide, ~3× live).
