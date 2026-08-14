@@ -254,6 +254,21 @@ change.
   since the seed drives the lobe angles too, the pair ends up differing
   in silhouette as well as size. A tree beside a bush of its own size is
   left alone, because that reads fine (#214).
+- **The cat now does what the panel says it is doing.** `activity.state` and
+  `last_action` describe different moments of the same tick — the engine
+  applies every action, then clears the scenes that ended, then publishes —
+  so a scene's final tick truthfully reports `last_action: eat` *and*
+  `state: idle`. Both fields are right; `poseFor` read the wrong one, and
+  drew a cat standing about on **17.4% of every cat-tick**: half of every
+  meal and drink, 22% of grooming, and a sleeper sitting bolt upright for
+  the last 600ms of every nap. `doingFor` already followed `last_action`,
+  which is the documented pattern, so the card read *eating 🍥* over a cat
+  doing nothing. The applied action speaks first now, with the scene kept as
+  the fallback — `Idle`, `Purr` and `Meow` name no pose of their own, and
+  for those the scene still decides exactly as before, which is what makes
+  this additive rather than a rewrite. Replayed over 2,672 captured
+  cat-ticks: 465 change, every one of them from `idle` to the thing the cat
+  actually did, and nothing else moves (#219).
 - Whiskers, attempt three, and this one **ships on**. The first two were
   cut and the backlog recorded that cutting again was an acceptable
   answer; the owner's read at the live tile was that they carry even at

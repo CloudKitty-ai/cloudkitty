@@ -58,22 +58,55 @@ const GREEBLE_FACE = 'grin';
 const BUBBLE_TICKS = 3;
 
 /**
- * Which pose a served kitty is in (spec 005, data-model table): the activity
- * state speaks first, then the applied action, then movement, then idle --
+ * The pose a served action puts a kitty in. `Rest` is mapped though the live
+ * world has not served one -- the variant is in the engine's `Action` enum
+ * and the sunbeam work may start surfacing it.
+ */
+const ACTION_POSE = {
+  sleep: 'sleep-curl',
+  rest: 'loaf',
+  groom: 'grooming',
+  eat: 'eating',
+  drink: 'drinking',
+};
+
+/** The same poses, named by a scene that is still running. */
+const SCENE_POSE = {
+  sleeping: 'sleep-curl',
+  resting: 'loaf',
+  grooming: 'grooming',
+  eating: 'eating',
+  drinking: 'drinking',
+};
+
+/**
+ * Which pose a served kitty is in (spec 005, data-model table): the applied
+ * ACTION speaks first, then the scene it is in, then movement, then idle --
  * with water under the last two (a wading kitty paddles instead of walking
  * or standing; activities and the pounce keep their poses, spec 010's
  * skirt-the-puddle rule makes all of these rare). Pure function of served
  * data -- nothing here predicts (Article V). `onWater` arrives pre-gated:
  * only the v2 vocabulary owns a swim pose, so v1 callers pass false.
+ *
+ * The action first, and the order is the whole point (2026-08-13).
+ * `activity` is the scene IN PROGRESS as of END of tick, while `last_action`
+ * is what the engine applied DURING it -- the engine acts, then clears scenes
+ * that ended, then publishes. So a scene's final tick truthfully reports
+ * `last_action: eat` AND `state: idle`, and reading the state drew a cat
+ * standing about on 17.4% of all cat-ticks: half of every meal and drink,
+ * and a sleeper sitting bolt upright for the last 600ms of every nap.
+ * `doingFor` in app.js already follows `last_action` -- the documented
+ * pattern, spec 006 -- so the card said "eating" over a cat doing nothing.
+ *
+ * The scene fallback is NOT vestigial: `Idle`, `Purr` and `Meow` name no pose
+ * of their own, and for those the scene still decides exactly as it always
+ * did. That is what makes this change additive rather than a rewrite -- the
+ * only ticks that move are the ones where the action itself names a pose.
  */
 function poseFor(kitty, moved, onWater = false, chaseDist = null, dials = VIEW) {
-  const state = kitty.activity?.state;
-  if (state === 'sleeping') return 'sleep-curl';
-  if (state === 'resting') return 'loaf';
-  if (state === 'eating') return 'eating';
-  if (state === 'drinking') return 'drinking';
-  if (state === 'grooming') return 'grooming';
   const action = kitty.last_action?.action;
+  const acted = ACTION_POSE[action];
+  if (acted) return acted;
   // Play is never gated: every targeted Play is adjacent by lawfulness
   // (the engine requires it), and solo play has no target at all.
   if (action === 'play') return 'pouncing';
@@ -84,6 +117,8 @@ function poseFor(kitty, moved, onWater = false, chaseDist = null, dials = VIEW) 
   if (action === 'chase' && (chaseDist === null || chaseDist <= dials.pounceGateTiles)) {
     return 'pouncing';
   }
+  const scene = SCENE_POSE[kitty.activity?.state];
+  if (scene) return scene;
   if (onWater) return 'swim';
   if (moved) return 'walking';
   return 'idle';
