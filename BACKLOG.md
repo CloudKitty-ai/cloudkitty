@@ -235,6 +235,43 @@ subtle at today's rate and scales with both things about to change — seven
 times more gaze, and camera zoom, where 26° on a cat two tiles away stops
 being subtle.
 
+#### The sources were built and PARKED — the cue is what is missing (2026-08-14)
+
+Everything in the section above was implemented (#221) and taken back out
+(#222) after the owner watched it on a live world. Keep the diagnosis; the
+reader is recoverable from #221.
+
+Reading `groom`'s bare id and resolving eat/drink took the gaze from 5.2% of
+cat-ticks to **36.5%**, and it did not read. **The gaze is a 2-D fact
+delivered through a 1-D channel.** `earNear = ears.x + gaze.x * gazeEar`
+uses the HORIZONTAL component only; `gaze.y` goes to the head (0.35px) and
+the pupil (0.48px, and hidden entirely while a cat eats or drinks with its
+eyes shut). Of the 976 ticks the fuller gaze fired on:
+
+| | | what the ears did |
+| --- | --- | --- |
+| 531 | 54.4% | **nothing** — the target was due north or south |
+| 265 | 27.2% | leaned toward it, the intended read |
+| 180 | 18.4% | leaned away from the cat's facing |
+
+Per action, the share that read as intended: chase **43%**, drink 35%,
+eat 29%, **groom 14%**. Grooming was the largest coverage win and the worst
+legibility — cats groom side by side, so their partner is usually straight
+up or down.
+
+**So more sources cannot help until `gaze.y` has somewhere to go.** That is
+cat art, not plumbing: an ear ROTATION rather than a lean, or a head dip,
+judged at camera zoom where the pupil and head follow stop being sub-pixel.
+Owner's call: a full pass on ear and eye position AFTER camera mode, with
+play and chase left as they are because they already read.
+
+Kept from #221: the gaze aims at where a target is DRAWN. That was a real
+defect in the chase gaze — up to 26.6° off — and it is the one that reads.
+
+Not to be re-derived: eyes are SHUT during eat and drink and the owner does
+not want that changed, so the pupil channel is unavailable there whatever
+the tile size.
+
 #### Order of work, agreed 2026-08-13
 
 1. `poseFor` — the 17.4% correctness bug, on its own, with its own tests.

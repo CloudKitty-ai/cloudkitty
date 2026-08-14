@@ -254,21 +254,19 @@ change.
   since the seed drives the lobe angles too, the pair ends up differing
   in silhouette as well as size. A tree beside a bush of its own size is
   left alone, because that reads fine (#214).
-- **Cats look at what they are doing.** The gaze fired on 5.2% of
-  cat-ticks and now fires on **36.5%**, because `last_action` names a
-  target in three shapes and the client read one. Grooming carries a
-  *bare* kitty id in `target` — `Groom { target: Option<KittyId> }` can
-  name nothing else, so it needs no kind key, where `Chase` and `Play`
-  can name a kitty *or* an element and therefore carry both. A cat
-  grooming its friend one tile away had dead eyes for that reason alone.
-  Eating and drinking name nothing at all, so the client resolves the
-  bowl the way the engine does — nearest of the right kind, within reach,
-  own tile before adjacent. An emptied bowl despawns the tick its last
-  serving goes, and a cat licking one that is no longer drawn looks at
-  nothing, which is the right answer. `sleep.with` names a real
-  co-sleeper and is deliberately left unread: the eyes are shut. The
-  gaze has **no memory** — an action naming nothing looks at nothing,
-  rather than holding a stare at whatever came before (#221).
+- **The gaze aims at what it can express, and no more.** Reading the two
+  target shapes the client had been ignoring — `groom`'s bare kitty id, and
+  eat/drink resolved from the map — took the gaze from 5.2% of cat-ticks to
+  36.5%, and it was built, measured against the live world and taken back
+  out. The cue is the reason: the only gaze channel above the pixel floor
+  at map size is the ear lean, and it responds to the *horizontal*
+  component alone, while **54% of the targets those sources add sit
+  directly north or south**, where the ears do not move at all. Grooming
+  was worst — cats groom side by side, so 59% of its ticks moved nothing
+  and 26% leaned the ears away from where the cat faced. Chase and play,
+  which stay, read at 43%. What is missing is somewhere for `gaze.y` to go,
+  not more things to look at, and that is art to judge at camera zoom where
+  the pupil and the head follow stop being sub-pixel (#221, #222).
 - **And it aims where the target is drawn, not where it is served.** The
   looking cat's position was already the interpolated one while the
   target's was the served destination, so a cat looked at where its
@@ -279,8 +277,9 @@ change.
   `submersionFor` samples where the cat visibly is, and the depth layer
   sorts by `elementPosFor`. It also sat directly under the comment
   invoking Article V — a moving cat's served position *is* its
-  destination, so aiming at it was the prediction that rule forbids
-  (#221).
+  destination, so aiming at it was the prediction that rule forbids. This
+  is the part that stays: it makes the chase gaze — the one that already
+  read well — aim where the quarry is drawn (#221).
 - **The cat now does what the panel says it is doing.** `activity.state` and
   `last_action` describe different moments of the same tick — the engine
   applies every action, then clears the scenes that ended, then publishes —
