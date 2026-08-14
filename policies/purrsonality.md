@@ -53,7 +53,11 @@ Artifact: `…/attn-A1-s2.ckpolicy` (v3) · sha256 `f1a198a0…` · seed 2.
   most readily with s1 (the quiet pair).
 - **Robustness**: composition-robust.
 
-## attn-A1-s3 — "the groomer" (candidate, uncertified)
+## attn-A1-s3 — "the doter" (candidate, uncertified)
+
+*(Renamed from "the groomer" 2026-08-14, owner's call — the older word
+carries baggage the cat doesn't deserve. Earlier results docs keep the
+original term as immutable records.)*
 
 Artifact: `…/attn-A1-s3.ckpolicy` (v3) · sha256 `dfef0ec2…` · seed 3.
 
