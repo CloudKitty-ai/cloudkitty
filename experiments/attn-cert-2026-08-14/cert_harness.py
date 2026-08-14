@@ -45,6 +45,7 @@ SEATINGS = {
     "candidate": ["attn:s1", "attn:s2", "attn:s3", "attn:s3"],
     "incumbent": ["mlp:A1-s2"] * 4,
     "val-s1": ["attn:s1"] * 4,  # validation cell vs kitty-eval only
+    "crossgen": ["attn:s1", "mlp:A1-s2", "attn:s3", "attn:s3"],  # candidate B
 }
 BANDS = {"eval": 870_001, "stress": 880_001}
 
