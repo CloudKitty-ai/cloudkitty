@@ -4040,6 +4040,25 @@ check('the inner ear is a shape, not a sub-pixel needle', () => {
     assert(left > 0.4, `only ${left.toFixed(2)}px of fur shows beside the pink`);
   }
 
+  // The blunt tip, which the owner's bake (tipFur 0, 2026-08-13) does not
+  // take: at 0 the inset sides meet on their own and the pink comes to a
+  // point, so the cut branch stops running and would rot unseen. Dialled
+  // up here to hold it to its claim -- a flat top, and the SIDES
+  // unmoved, which is the whole reason the cut is parallel to the base.
+  const wasTip = CatV2.INNER_EAR.tipFur;
+  CatV2.INNER_EAR.tipFur = 0.2;
+  const blunt = shapes('idle', 'side', 'right');
+  CatV2.INNER_EAR.tipFur = wasTip;
+  assert(blunt.pink.length === 2, 'dialling the tip lost the inner ears');
+  assert(blunt.pink[0].pts.length === 4,
+    `a blunt tip should add a top edge, drew ${blunt.pink[0].pts.length} corners`);
+  const gapOf = (r) => Math.min(...r.pts.map((pt) => perp(pt, r.clip[0], r.clip[1]))) * 31;
+  assert(Math.abs(gapOf(blunt.pink[0]) - gapOf(up.pink[0])) < 0.02,
+    `cutting the tip moved the side gap from ${gapOf(up.pink[0]).toFixed(2)}px ` +
+    `to ${gapOf(blunt.pink[0]).toFixed(2)}px -- the two dials are meant to be independent`);
+  let bluntTop = 0;
+  for (let u = 0; u <= 1; u += 0.002) if (inPoly(at(u, 0), blunt.pink[0].pts)) bluntTop = u;
+
   // How high the pink actually reaches, read off the shape rather than
   // recomputed from the dials -- restating `1 - sideFur - tipFur` here
   // would assert this test's own arithmetic.
@@ -4048,6 +4067,8 @@ check('the inner ear is a shape, not a sub-pixel needle', () => {
   assert(pinkTop > 0, 'no pink anywhere along the ear');
   assert((1 - pinkTop) * spinePx > 0.4,
     `fur at the tip is ${((1 - pinkTop) * spinePx).toFixed(2)}px -- the pink runs into the point`);
+  assert(bluntTop < pinkTop,
+    'dialling tipFur up did not shorten the pink -- the cut is doing nothing');
 
   // ...and fur down both sides, at every height the pink reaches. The gap
   // must not close toward the tip either: three mutations walked straight

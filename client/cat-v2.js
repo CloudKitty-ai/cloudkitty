@@ -2563,8 +2563,8 @@ const INNER_EAR = {
   // Both are shares of the ear's own size rather than absolute distances,
   // so a laid-back ear (shorter and narrower) keeps its proportions
   // instead of being eaten by a fixed margin.
-  sideFur: 0.26, // fur left along each slanted side
-  tipFur: 0.08, // fur left between the pink's end and the ear's point
+  sideFur: 0.28, // fur left along each slanted side
+  tipFur: 0, // fur left between the pink's end and the ear's point
 };
 
 /** Where two lines, each given as a point and a direction, meet. */
@@ -2622,8 +2622,15 @@ function drawInnerEars(ctx, head, a, back, turnNear = 0, turnFar = 0) {
     const sy = e.ay - my;
     const spine = sx * sx + sy * sy;
     const uPoint = ((point[0] - mx) * sx + (point[1] - my) * sy) / spine;
-    const uCut = 1 - E.tipFur;
-    if (uPoint <= 0) continue; // dialled shut
+    // Measured DOWN FROM where the inset sides meet, not down from the
+    // ear's own point. A side margin already pulls the pink's point well
+    // clear of the tip -- at the shipped 0.28 the sides meet at 0.651 up
+    // the ear -- so a tip margin measured from the ear's point does
+    // nothing at all until it passes that, and the threshold moves every
+    // time the side dial does. From here, 0 is the natural point and
+    // every value above it blunts.
+    const uCut = uPoint - E.tipFur;
+    if (uCut <= 0) continue; // dialled shut
 
     ctx.save();
     ctx.beginPath();
@@ -2637,8 +2644,8 @@ function drawInnerEars(ctx, head, a, back, turnNear = 0, turnFar = 0) {
     ctx.clip();
     ctx.beginPath();
     ctx.moveTo(foot1[0], foot1[1]);
-    if (uPoint <= uCut) {
-      // The sides met before the cut: it comes to a point on its own.
+    if (E.tipFur <= 0) {
+      // Nothing asked for: the inset sides meet and it comes to a point.
       ctx.lineTo(point[0], point[1]);
     } else {
       // A blunt end, cut parallel to the base, so the fur at the tip is

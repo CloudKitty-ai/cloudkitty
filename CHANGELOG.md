@@ -267,8 +267,9 @@ change.
   100% along the ear's spine with a single nudge sideways, which at a
   31px cat is **0.71px² of paint, never wider than 0.64px** — under the
   same floor that killed whiskers twice, and visible only as a sliver of
-  pink. It shows **3.19px²** at the same cat now, a third of the ear
-  rather than an eighth.
+  pink. At the owner's bake it shows **2.18px²** at the same cat, a third
+  of the visible ear rather than an eighth, and 8.17px² at the 60px tile
+  camera mode will reach.
 - It is dialled as *fur showing*, which took two goes. The first cut gave
   it the obvious knobs — where the pink's base sits, where its point
   stops, how wide it is — and the owner's read was that they were hard to
@@ -282,7 +283,12 @@ change.
   base at different angles and a margin stepped along that base left
   0.46px of fur on one side against 0.64px on the other. Each edge moves
   perpendicular to itself now, and the two match to within a thousandth
-  of a pixel. It is painted **with** the ear and under
+  of a pixel. The tip dial is measured down from where those inset sides
+  meet rather than down from the ear's own point: a side margin already
+  pulls the pink clear of the tip, so measured the other way the dial did
+  nothing for the first 0.349 of its travel — and that dead zone moved
+  every time the side dial did. Baked at `sideFur` 0.28 and `tipFur` 0,
+  where the sides meet on their own and it comes to a point. It is painted **with** the ear and under
   the head, so it needs no rule about where the skull starts — solving
   for that line got the centre right and still left both base corners
   inside a round skull (#215).
