@@ -132,3 +132,29 @@ design, arms chosen explicitly, everything else inherited. And the
 sunbeam shared-warmth change (design input sent to Product
 2026-08-13) rides whichever pre-generation re-baseline comes first —
 it is independent of all of this.
+
+## Addendum 2026-08-14: gaze/foresight design notes (owner side-thread)
+
+Client wants anticipatory gaze/ear animation ("walking toward X").
+Decisions from the discussion, on record:
+
+- **Foresight source = the CLIENT BUFFER, not server simulation.**
+  Extending the Pacer's buffer to ~5 ticks gives the actual future
+  (exact even under future nondeterministic deciders, zero engine
+  cost) at the price of ~4s uniform viewing delay — fine for a
+  watch-only sanctuary. Server-side k-tick preview (~0.2% tick
+  budget, but a spec + a cloned-RNG correctness trap) stays unbuilt
+  unless a latency-free consumer appears. Client-thread work.
+  Caveat noted: interactive features, if ever, must remember the
+  viewer runs ~4s behind.
+- **Tier 3 (attention gaze)**: spec-030 extension to surface per-cat
+  top-attended entity / pointer logits in the WS frame — covers
+  desire-without-action, ambivalence (near-tied pointers),
+  goal-collapse beats, hearing-without-acting. MUST be validated
+  before animation: does top-attended entity at t predict the entity
+  reached by t+k? (offline probe vs logged rollouts / the buffer
+  stream as ground truth).
+- **Tier 4 (intent head)**: Gen-B rider — hindsight-labeled "which
+  entity will I touch next + confidence"; extends foresight past the
+  buffer horizon probabilistically. Chase targets are already
+  engine-explicit today (tier 1) and need none of this.
