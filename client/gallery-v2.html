@@ -524,10 +524,37 @@
     rise: 0.22, // above the cat's box -- NEGATIVE overlaps the cat
     offsetX: 0, // left/right of the cat's centre, share of the tile
     alpha: 0.9,
-    shakePx: 0.6, shakeHz: 9,      // 1: vibrate
+    // The vibration, shared by the heart (1) and the emoji (4).
+    shakePx: 0.6, shakeHz: 9,
+    shakeMode: 1, // 1 horizontal · 2 vertical · 3 alternating · 4 combined
+    shakeAltCycles: 2, // mode 3: shakes on one axis before switching
+    shakePhase: 0.25, // mode 4: vertical lag in turns. 0 = diagonal, 0.25 = circular
     pulseScale: 0.14, pulseMs: 700, // 2: pulse
     waveCount: 3, waveMs: 1200,     // 3: waves
   };
+
+  /**
+   * The vibration, in real pixels, as an offset. Shared by the heart and
+   * the emoji so the two are judged on the SHAPE rather than on one of
+   * them having been given better motion.
+   */
+  function purrShake(now) {
+    const turns = (now / 1000) * PURR.shakeHz;
+    const a = Math.sin(turns * Math.PI * 2) * PURR.shakePx;
+    if (PURR.shakeMode === 2) return { dx: 0, dy: a };
+    if (PURR.shakeMode === 3) {
+      // Bursts on one axis, then the other. The switch is on a whole
+      // cycle, so it never cuts a shake off mid-travel.
+      const vertical = Math.floor(turns / PURR.shakeAltCycles) % 2 === 1;
+      return vertical ? { dx: 0, dy: a } : { dx: a, dy: 0 };
+    }
+    if (PURR.shakeMode === 4) {
+      // Both axes at once. The phase offset is what decides the FIGURE:
+      // 0 traces a diagonal line, 0.25 an ellipse.
+      return { dx: a, dy: Math.sin((turns + PURR.shakePhase) * Math.PI * 2) * PURR.shakePx };
+    }
+    return { dx: a, dy: 0 };
+  }
 
   function drawPurrGlyph(ctx, which, cx, cy, tile, now) {
     const px = PURR.size * tile;
@@ -538,8 +565,8 @@
       // already wears the palette and the world's outline weight. Only the
       // motion is new -- a fast, small lateral shake, which is what reads
       // as "vibrating" at a glyph this size.
-      const shake = Math.sin((now / 1000) * PURR.shakeHz * Math.PI * 2) * PURR.shakePx;
-      drawHeart(ctx, { phase: 0, size: px, x: cx - px / 2 + shake, y: cy - px });
+      const { dx, dy } = purrShake(now);
+      drawHeart(ctx, { phase: 0, size: px, x: cx - px / 2 + dx, y: cy - px + dy });
     } else if (which === 2) {
       // The same heart, swelling instead of shaking. Calmer; the pulse is
       // drawn here rather than through VIEW.props so it can be dialled
@@ -570,7 +597,8 @@
       ctx.font = `${px}px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'alphabetic';
-      ctx.fillText('\u{1F497}', cx, cy);
+      const { dx, dy } = purrShake(now);
+      ctx.fillText('\u{1F497}', cx + dx, cy + dy);
     }
     ctx.restore();
   }
@@ -1661,8 +1689,11 @@
         { key: 'rise', label: 'height above the cat (negative overlaps it)', min: -0.5, max: 1, step: 0.02 },
         { key: 'offsetX', label: 'left / right of centre, share of the tile', min: -0.7, max: 0.7, step: 0.02 },
         { key: 'alpha', label: 'opacity', min: 0.2, max: 1, step: 0.05 },
-        { key: 'shakePx', label: 'vibrate: travel in real px', min: 0, max: 2, step: 0.05 },
+        { key: 'shakePx', label: 'vibrate: travel in real px (1 and 4)', min: 0, max: 2, step: 0.05 },
         { key: 'shakeHz', label: 'vibrate: shakes per second', min: 2, max: 16, step: 0.5 },
+        { key: 'shakeMode', label: 'vibrate: 1 horiz · 2 vert · 3 alternating · 4 combined', min: 1, max: 4, step: 1 },
+        { key: 'shakeAltCycles', label: '...mode 3: shakes before it switches axis', min: 1, max: 6, step: 1 },
+        { key: 'shakePhase', label: '...mode 4: 0 diagonal → 0.25 circular', min: 0, max: 0.5, step: 0.01 },
         { key: 'pulseScale', label: 'pulse: how much it swells', min: 0, max: 0.4, step: 0.02 },
         { key: 'pulseMs', label: 'pulse: one beat, ms', min: 300, max: 2000, step: 50 },
         { key: 'waveCount', label: 'waves: how many arcs', min: 1, max: 4, step: 1 },
@@ -1672,7 +1703,10 @@
         const P = PURR;
         return `PURR = { pick: ${P.pick} (${['vibrate', 'pulse', 'waves', 'emoji'][P.pick - 1]}), ` +
           `size: ${P.size}, rise: ${P.rise}, offsetX: ${P.offsetX}, alpha: ${P.alpha},\n` +
-          `  shakePx: ${P.shakePx}, shakeHz: ${P.shakeHz}, pulseScale: ${P.pulseScale}, pulseMs: ${P.pulseMs},\n` +
+          `  shakePx: ${P.shakePx}, shakeHz: ${P.shakeHz}, shakeMode: ${P.shakeMode} ` +
+          `(${['horizontal', 'vertical', 'alternating', 'combined'][P.shakeMode - 1]}), ` +
+          `shakeAltCycles: ${P.shakeAltCycles}, shakePhase: ${P.shakePhase},\n` +
+          `  pulseScale: ${P.pulseScale}, pulseMs: ${P.pulseMs},\n` +
           `  waveCount: ${P.waveCount}, waveMs: ${P.waveMs} }\n` +
           `at the 31px tile the glyph draws ${(PURR.size * 31).toFixed(1)}px across, ` +
           `${(PURR.offsetX * 31).toFixed(1)}px sideways and ${(PURR.rise * 31).toFixed(1)}px up` +
@@ -1698,7 +1732,7 @@
         ctx.fillStyle = 'rgba(107, 90, 78, 0.75)';
         ctx.font = '11px ui-rounded, system-ui, sans-serif';
         ctx.textAlign = 'center';
-        ['vibrating heart', 'pulsing heart', 'purr waves', 'the emoji'].forEach((n, i) => {
+        ['vibrating heart', 'pulsing heart', 'purr waves', 'the emoji (same shake)'].forEach((n, i) => {
           ctx.fillText(`${i + 1}. ${n}`, gap * i + gap / 2, 14);
         });
       },
