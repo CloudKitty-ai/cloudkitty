@@ -77,10 +77,19 @@ the battery's `mix-4th-s3` cell; positioning run `mix-2s3`):
   9,311 and s1+s2 8,470 per dyad (the kin pair and the quiet pair),
   cross-edges ~4.3–4.8k per dyad.
 
+- **The s3s groom each other — the kin edge is the rescue.** Directed
+  grooming graph (ticks): s3→s3 **4,745** · s3→s2 2,172 · s3→s1
+  1,991 · everything from s1/s2 combined: 214. The sibling takes 53%
+  of an s3's grooming (2.2× per-cat kin preference), and essentially
+  all grooming an s3 *receives* comes from its sibling — remove that
+  edge (the lone-s3 worlds) and welfare falls 94.51 → 93.93. The
+  pair is not clannish: 47% of its grooming still flows outward to
+  the quiet cats, unreciprocated by their temperament.
+
 Reading: a viable roster — every seat ≥ 94.5, the grooming economy
-partially self-sustaining, no peripheral cat, and natural social
-texture (a bonded groomer pair, a cuddler–loner friendship,
-cross-visiting). Costs to weigh: s3's residual −0.36 vs home, and
+partially self-sustaining through one reciprocal kin bond, no
+peripheral cat, and natural social texture (a bonded groomer pair, a
+cuddler–loner friendship, cross-visiting). Costs to weigh: s3's residual −0.36 vs home, and
 total channel volume — two 800/1k voices plus 355 and 217 makes this
 the loudest roster measurable here; viewer-facing meow density is a
 product call. Heterogeneous seats also break F-017's symmetry

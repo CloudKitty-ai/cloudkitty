@@ -67,6 +67,7 @@ def main():
     for comp, seats in COMPS.items():
         agg = Counter()
         pair_census = Counter()   # (modelA, modelB) contact ticks, sorted
+        groom_census = Counter()  # (groomer model, groomee model) DIRECTED
         for si in range(N_SEEDS):
             seed = 820001 + si
             sm = seats[si:] + seats[:si]
@@ -124,6 +125,8 @@ def main():
                         pj = int(round(float(st[b + PIDX]) * (ROSTER - 1)))
                         agg[(m, "in_pile")] += 1
                         pair_census[tuple(sorted((m, sm[pj])))] += 1
+                        if kact[k] == 6:  # Grooming: k grooms pj
+                            groom_census[(m, sm[pj], k == pj)] += 1
                         if sleeping and (pos[k] in beams
                                          or (pile[pj] and pos[pj] in beams)):
                             agg[(m, "cosleep_on_beam")] += 1
@@ -138,6 +141,8 @@ def main():
             for k, v in agg.items()}
         report[comp]["pairs"] = {"+".join(k): v
                                  for k, v in pair_census.items()}
+        report[comp]["groom_edges"] = {
+            f"{a}->{b}": v for (a, b, _same), v in groom_census.items()}
     out = HERE / "valence-report.json"
     if out.exists():  # merge: partial runs must not clobber prior comps
         prior = json.loads(out.read_text())
