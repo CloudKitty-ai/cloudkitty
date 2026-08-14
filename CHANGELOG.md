@@ -259,16 +259,23 @@ change.
   applies every action, then clears the scenes that ended, then publishes —
   so a scene's final tick truthfully reports `last_action: eat` *and*
   `state: idle`. Both fields are right; `poseFor` read the wrong one, and
-  drew a cat standing about on **17.4% of every cat-tick**: half of every
-  meal and drink, 22% of grooming, and a sleeper sitting bolt upright for
-  the last 600ms of every nap. `doingFor` already followed `last_action`,
-  which is the documented pattern, so the card read *eating 🍥* over a cat
-  doing nothing. The applied action speaks first now, with the scene kept as
-  the fallback — `Idle`, `Purr` and `Meow` name no pose of their own, and
-  for those the scene still decides exactly as before, which is what makes
-  this additive rather than a rewrite. Replayed over 2,672 captured
-  cat-ticks: 465 change, every one of them from `idle` to the thing the cat
-  actually did, and nothing else moves (#219).
+  drew a cat standing about on **13.6% of every cat-tick**: half of every
+  meal and drink, and 22% of grooming. `doingFor` already followed
+  `last_action`, which is the documented pattern, so the card read
+  *eating 🍥* over a cat doing nothing. The applied action speaks first now,
+  with the scene kept as the fallback — `Idle`, `Purr` and `Meow` name no
+  pose of their own, and for those the scene still decides exactly as
+  before, which is what makes this additive rather than a rewrite (#219).
+- **And a nap still ends in a stretch**, which the change above quietly
+  broke and a replay of the drawn pose caught: **105 stretches in a
+  2,672-tick capture became 0**. The tick a nap ends is the tick the engine
+  last applied `sleep`, so it started arriving at `idlePoseFor` as
+  `sleep-curl` rather than `idle` — and that method's opening guard, whose
+  job is to abandon a stretch once the engine asks for something, deleted
+  the wake on the very tick it was recorded. It cannot simply wait for the
+  next tick either: measured, the tick after a wake is a bare idle stand 3%
+  of the time, so a deferred stretch is a stretch that never happens. Two
+  layers, each correct alone (#220).
 - Whiskers, attempt three, and this one **ships on**. The first two were
   cut and the backlog recorded that cutting again was an acceptable
   answer; the owner's read at the live tile was that they carry even at
