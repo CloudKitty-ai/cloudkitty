@@ -2853,8 +2853,11 @@ check('the whisker stroke is a PIXEL floor, not a unit one', () => {
     `dialled to 0.5, the rearward fan spans ${sideOn.back.toFixed(4)} against the forward ` +
       `${sideOn.forward.toFixed(4)} -- it cannot be as long`,
   );
-  // The FORWARD fan has to clear the head, or the whiskers are three faint
-  // lines inside a face. This is the one that must hold at any dial.
+  // The FORWARD fan has to clear the head: it is the one that changes the
+  // cat's silhouette, and it must hold at any dial. Note what this does
+  // NOT claim -- the rearward fan lies almost entirely against fur and the
+  // owner's read is that it carries there, so clearance is a property of
+  // the forward fan alone and not a visibility test for whiskers.
   const head = { cx: 0.72, cy: 0.399, r: 0.226 };
   const tips = [];
   const probe = new Proxy({}, {

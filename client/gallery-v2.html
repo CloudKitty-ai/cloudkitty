@@ -1625,10 +1625,13 @@
           `  rootX: ${W.rootX}, tipX: ${W.tipX}, rootY: ${W.rootY}, tipY: ${W.tipY},\n` +
           `  offsetY: ${W.offsetY},\n` +
           `  rootSpread: ${W.rootSpread}, tipSpread: ${W.tipSpread}, back: ${W.back} }\n` +
-          // How much of each fan escapes the head. A fan that does not
-          // clear it is drawn against fur at a quarter opacity, which is
-          // invisible -- the rearward one was entirely buried before
-          // `tipX` grew, and still only just gets out.
+          // How much of each fan escapes the head. Reported, not judged:
+          // this line used to call a sub-pixel clearance "buried in fur",
+          // and the owner looking at the drawing (2026-08-13) reported the
+          // rearward fan reading fine against fur at 0.21px clear. A
+          // hairline over fur is lower contrast than one over grass, which
+          // is not the same as gone -- and clearance measures the wrong
+          // thing to decide it with.
           (() => {
             const h = { cx: 0.72, cy: 0.399, r: 0.226 };
             const tips = [];
@@ -1644,7 +1647,7 @@
             const back = ((h.cx - h.r) - Math.min(...tips)) * t;
             return `clear of the head, side-on: forward ${fwd.toFixed(2)}px` +
               (W.back > 0
-                ? `, rearward ${back.toFixed(2)}px${back < 1 ? ' — under a pixel, so it is buried in fur' : ''}\n`
+                ? `, rearward ${back.toFixed(2)}px (the rest of that fan reads against fur)\n`
                 : ' (rearward fan off)\n');
           })() +
           `stroke: ${px(WHISKER_LAB.liveTile).toFixed(2)}px at the ${WHISKER_LAB.liveTile}px tile above, ` +
