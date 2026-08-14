@@ -1,137 +1,135 @@
-# Agent roadmap — from two policy seats to a world of personalities
+# Roadmap v2 — the character era
 
-**Written 2026-08-03** (owner-approved direction, post-exp-002). This
-is the standing plan for how the served world's four (later five)
-kitties move from scripted behaviors to learned agents — in what
-order, gated by what, and what we refuse to lose along the way. It is
-direction, not preregistration: each generation still gets its own
-prereg with registered criteria before compute runs.
+**Written 2026-08-14** (owner-approved direction, superseding the
+2026-08-03 roadmap — that version's premises retired when the
+attention generation certified a mixed roster and the character
+system got designed; its text stays in git history). This is
+direction, not preregistration: every generation still freezes its
+own prereg with registered criteria before compute runs.
 
-## Where this starts (exp-002's end state)
+## Where this starts
 
-All exp-002 hypotheses resolved
-([exp-002 grid doc](exp-002-mixed-population/results/grid-2026-08-03.md)):
-H1 not supported, H2 falsified (Deviation 1), H3 confirmed, H4
-17/22. **Winner by registered rule: M0-γ.998-s1** — self-play
-fine-tune from s6, dial 1.5. Key facts the roadmap leans on:
+- **Certified**: the mixed attention roster [s1 cuddler, s2 loner,
+  s3 doter ×2] — `attn-cert-2026-08-14/selection.md`, gates green
+  under D-002/D-003. **Seating awaits the owner's direct word.**
+- **Live machinery**: spec 030 (artifact v3, entity attention, CI
+  parity gate), spec 031 (shared sunbeam warmth), the purrsonality
+  register (`policies/purrsonality.md`), the §9-lineage harnesses,
+  and the seat-paired certification instrument.
+- **Designed, awaiting execution**: the three-layer character system
+  (`character-design-brainstorm-2026-08-14.md`) and the
+  communication generations (`comms-generations-brainstorm-2026-08-13.md`).
 
-- All-policy company is the *easy* regime (shape iii +0.047, the
-  project's largest measured welfare gain); scripted company needs no
-  special training to survive (every cell beat baseline on shape i).
-- The scripted cats are now the welfare bottleneck: 2-policy roster
-  ≈ 0.897 team Nash vs all-policy ≈ 0.954.
-- **But the scripted cats carry the meow economy**: per 200k ticks,
-  Biscuit emits 3,114 and Pumpkin 1,345 vs the winner's 483 and s6's
-  87 (~90% of channel traffic is scripted). Naive full conversion
-  makes the world ~10× quieter — a product regression by the owner's
-  own registered preference.
-- Team Nash has no term for personality. "Biscuit would rather chase
-  a bug than eat a proper meal" is welfare-suboptimal by
-  construction; an unconstrained policy in her seat optimizes the
-  quirk away. Pumpkin's snackiness lives in her `eat = 0.8` trait
-  (observable, must be serviced) and largely survives; Biscuit's
-  character lives in the behavior layer — exactly the thing a policy
-  replaces.
+## Standing principles (apply to every phase)
 
-## Standing principles (apply to every stage)
+Carried forward: trigger conditions, not dates; fingerprint gates
+registered before the candidate exists; scripted behaviors never
+leave the toolbox; the end state is the best world, not the most
+learned one. New, from this era's decisions:
 
-1. **Trigger conditions, not dates.** A seat converts when a
-   candidate (a) beats the incumbent's welfare contribution in the
-   live-roster measurement, (b) matches the seat's registered
-   behavioral fingerprint, (c) for emitter seats, sustains the
-   channel. Plus the usual pair-screen → soak → staged-restart
-   discipline (one seat per restart; soak ≈ 48h minimum ≈ 10×
-   certification horizon at 800ms/tick; rollback = previous behavior
-   kept registered in config).
-2. **Fingerprint gates are registered before the candidate exists.**
-   For a personality seat, define measurably what "still Biscuit"
-   means (play-action share, bug-chase-over-meal rate, duet
-   initiation, emission rate band) and freeze it pre-training. The
-   instruments already exist: chase census, meow attribution screen,
-   forensics probes.
-3. **Scripted behaviors never leave the toolbox.** Whatever the live
-   roster becomes, scripted variants remain the reference instruments
-   (drift detection, baselines, calibration anchors: 0.9069 welfare,
-   0.31%/1.63% water floor). "Replace" always means "in the live
-   world," never "in the instruments."
-4. **The end state is not required to be all-policy.** If a
-   personality-leashed candidate measures as less *itself* than the
-   script, keeping the scripted cat is a legitimate final answer. The
-   goal is the best world, not the most learned one.
+1. **Two-layer welfare gates** (owner, 2026-08-14): the scripted-
+   baseline hard floor never moves; each seating declares its own
+   budget vs the incumbent before instruments run. 0.002 is a noise
+   floor for reading parity, never a pass bar.
+2. **Seat-paired accounting** for trait-differentiated seats: every
+   seat measures against the incumbent at the SAME seat. Absolute
+   welfare comparison across trait structure is an accounting error.
+3. **F-011 guard**: personality never enters the reward. No per-seat
+   reward terms (they void the channel-honesty economics); the leash
+   (a training constraint) is the sanctioned mechanism; team-level
+   potential shaping only.
+4. **Anchors follow surfaces**: lineage demonstrations are collected
+   after trait/surface redesign, in the company where the
+   personality is healthy (F-012). Frozen artifacts replay forever —
+   there is never urgency, only sequencing.
+5. **Say-surface stability**: the action/message codec finalizes at
+   the Phase-1 wall and holds through Phase 2; vocabulary semantics
+   are config-gated legality, so experiments arm words by flag, not
+   by engine fork. Only the observation schema moves at the fog wall.
 
-## The stages
+## Phase 0 — now (three independent tracks, in parallel)
 
-### Now — deploy M0-γ.998-s1 (two restarts, agreed 2026-08-03)
+- **Seat + soak the certified roster** (owner's word → single
+  cutover → ≥48h stage-1 soak → the deployed-world purrsonality
+  entry). Serves under current traits; trait changes wait for the
+  Phase-1 wall (a config change would void the certification).
+- **Trait exchange-rate screen, stages 1–2**: scripted marginal cost
+  curves per need, current-policy bracket, derive-then-verify
+  candidate balanced vectors, team-iso at the 0.002 parity band.
+  Output: the exchange table + Clementine's balanced trait vector.
+- **Leash dose-response (exp-005)**: bc-collect scripted playful-
+  Biscuit; clone; PPO arms differing only in final KL weight
+  β∞ ∈ {0, small, medium}; fingerprint metrics frozen pre-training
+  (play share, bug-over-meal, duet initiation, + trajectory-level
+  time-near-critters for the state-visitation failure mode). Output:
+  the evidence that clone-and-leash preserves visible personality —
+  and the KL-schedule knowledge Phase 2's fog curriculum reuses.
+- Cheap rider when convenient: the purr-digest ablation screen
+  ("does the chorus pay" — the exp-004 arc's open question).
 
-- **Stage 0**: merge the exp-002 branch; artifact cutover PR
-  (winner's `.ckpolicy` into `policies/`, byte-verified sha, config
-  entry — the PR #86 pattern).
-- **Stage 1**: wet-fur binary + winner at **Kittybear** (replaces s3
-  — the measured Seating-B configuration, team reward 0.8976). Boot
-  checks: wet-fur regime line, two artifact hashes, no `--fresh`.
-- **Stage 2** (~1 week later, after clean soak): **Miso** inherits
-  (replaces s6). End state directly measured: Nash 0.8973, lounging
-  1.91% (down from 4.14%), in-water 5.14% (from 9.21%).
+## Phase 1 — the character generation (one re-baseline wall)
 
-### exp-003 — new schema generation (owner-committed 2026-08-03)
+**Substrate, pinned as one batch** (world/config/surface — no arms
+here): Clementine joins (roster 5, cuddle 0.7, trait-balanced from
+the exchange table); the point-buy trait rebalance (Pumpkin gets her
+compensating discount); sunbeam dial re-pins to 7; **the say-surface
+finalizes** — FoundEat/FoundDrink kinds added to head/digest/codec
+with per-kind `[meow]` legality gates (Product spec, 028-shaped;
+dims cost trivial; served world keeps its binary until seating);
+dataset v5 collected at T15 on the final surface; trait spreads
+enter the training family (data-thinning cost priced à la F-014).
 
-In-water observation bit (sunbeam occupancy has a self-block flag;
-water occupancy currently must be inferred — the §4-forbidden schema
-change that voids warm starts, hence a new generation) **plus a
-substantially larger bath penalty**, together. Target: close the gap
-to the falsified H2 gates (1%/3%) that dial-turning alone provably
-cannot reach (F: one dial unit bought −0.84pp lounging; gates
-extrapolate to dial ≈5). Winner refreshes the Miso/Kittybear line.
+**Registered arms**: the estimator aux head on/off (predict every
+cat's need vector — roster 5 makes someone always unslotted, so the
+meow digest finally carries real signal; the continuous
+"does-the-channel-pay" measurement falls out free); lineage-vs-fresh
+seats (anchors chosen per the dose-response — Biscuit 2.0 and/or
+doter 2.0 — collected post-rebalance in healthy company).
 
-### exp-004 — Pumpkin converts (the easy personality)
+**Riders**: threshold dose-response re-measure at T{15,20,25,30}
+(the registered v5-listener prediction); FoundEat side probe
+(enabled in a probe cell, expected inert under global vision — the
+pre-registered baseline fog will overturn).
 
-needs_driven variant, identity in her traits — low character risk,
-mostly the existing playbook plus the first **fingerprint gate**
-(snacky-cat signature: eat-servicing cadence at her 0.8 rise rate).
-Purpose beyond the seat itself: prove the fingerprint-gate
-methodology on a seat where failure is cheap.
+**Outputs**: a roster-5 world of characters, theory-of-mind-capable
+minds, the first production lineages, and the groundwork for the
+certified trait envelope (the serving-time personality dial).
 
-### exp-005 — Biscuit: the "more Biscuit than Biscuit" agent
+## Phase 2 — the fog generation (the schema-4 wall)
 
-The owner's north star (2026-08-03): not a policy that replaces
-Biscuit but one that is *recognizably her, happier*. Training path
-already exists in the codebase: **BC-clone scripted Biscuit**
-(bc-collect labels her decisions today), warm-start from that clone,
-fine-tune on welfare with the **KL-to-her-own-clone leash annealed
-but never to zero** — the personality-preservation mechanism doing
-product work instead of RL stabilization. Gates: her registered
-fingerprint (play share, bug-over-meal rate, duet initiation) AND
-channel sustainment (emission within a band of her 3,114/200k).
-Biscuit converts last among the current four, and only if this
-succeeds.
+Vision radius (hearing stays global — verified: no range gate) +
+variable entity tokens (locality as schema 4's semantics; F-010's
+retest becomes a normal condition) + engine-side memory tokens
+(sight-only, one slot, most-recent-wins). Vocabulary semantics armed
+by config flag — the registered comparison: does grounded reference
+(FoundEat) beat FollowMe-overloading when fog creates the
+information gradient? JEPA/predict-the-neighbors pairs here (the
+estimator head grown up). World-scale/density coupling decided here
+(fog needs sparsity to bite). BC-bootstrap via the curriculum the
+dose-response taught us. Registered prediction: fog is the selection
+pressure under which FollowMe's designed meaning could finally beat
+"I'm coming."
 
-### Roster growth — the fifth cat (owner, 2026-08-03: "later")
+## Parking lot (trigger conditions, not dates)
 
-Clementine (id 5, cuddle 0.7) joins the live world. Groundwork
-already exists: the training family has carried a 5-kitty base since
-exp-002 (§4), every exp-002 candidate passed the roster-5 stability
-gate, and the critic layout is already 5-kitty-padded. Open work:
-client/viewer support, served-config change (Product), and a
-re-baseline (F-014: 5-kitty worlds carry credit later — γ horizon
-choices should be re-examined at that roster).
-
-### Horizon — a personality for every kitty (owner, 2026-08-03)
-
-If "more Biscuit than Biscuit" pans out: per-kitty
-personality-leashed agents — a distinct clone-and-leash lineage per
-seat (Miso, Pumpkin, Kittybear, Clementine each get a defined
-character worth preserving, not just traits). The world becomes
-heterogeneous learned personalities rather than N copies of one
-optimal policy. This is the product vision the fingerprint-gate
-methodology is being built toward; measured criteria to be defined
-per personality when their generations arrive.
+- **Recurrence**: fires only if memory-token probes show cats
+  systematically returning to wrong remembered locations (one slot
+  insufficient). Not before.
+- **LLM plugin cat**: richest after fog (a talking mind entering a
+  world that already negotiates meaning); its certification needs
+  the fallback-rate band + fallback-behavior welfare check flagged
+  in the cert doc's forward note; the two-layer gate philosophy is
+  what makes it seatable at all.
+- **evals/v2**: only-if-wanted, schedules with the 017 FromConfig
+  refactor (unchanged).
+- **Server-side foresight preview**: only if a latency-free consumer
+  appears (client buffer is the standing answer).
 
 ## Reading list for future selves
 
-exp-002 prereg (Deviations 1–2 especially),
-[grid results + winner-vs-deployed addendum](exp-002-mixed-population/results/grid-2026-08-03.md),
-[dial post-mortem](exp-002-mixed-population/results/dial-resolution-2026-08-03.md)
-(why reward gradient, not dials, is what changes behavior — the
-lesson under the whole personality-leash idea), FINDINGS F-010
-(stability gates exist because means hide catastrophes), F-012 (the
-channel question every conversion must answer).
+`attn-cert-2026-08-14/selection.md` (the gate philosophy in action,
+D-002/D-003), `character-design-brainstorm-2026-08-14.md`,
+`comms-generations-brainstorm-2026-08-13.md`, the purrsonality
+register, `PIPELINE.md` (order discipline: re-baseline before
+freeze, groundwork before design), FINDINGS F-010/F-011/F-012 (the
+three findings this whole roadmap is built on).
