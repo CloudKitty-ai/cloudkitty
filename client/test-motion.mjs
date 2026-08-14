@@ -2608,6 +2608,287 @@ check('a blend from a pose to ITSELF draws exactly that pose', () => {
   }
 });
 
+check('every cat draw leaves the canvas state exactly as it found it', () => {
+  // This suite had 140 checks green while the body and head were INVISIBLE
+  // (2026-08-13). A stray `ctx.restore()` in drawLegs popped the transform
+  // paintBox had pushed, so everything drawn after the legs landed in unit
+  // space at the canvas origin -- a sub-pixel speck. The legs and tail
+  // survived because they draw first.
+  //
+  // Nothing here could see it: every check reads WHICH ops were issued,
+  // and the op list was unchanged. The damage was to the ctx STATE STACK,
+  // which is invisible to a mock that only logs. So this one counts.
+  const depths = (draw) => {
+    let depth = 0;
+    let lowest = 0;
+    const ctx = new Proxy({}, {
+      get: (_t, p) => (...a) => {
+        const op = String(p);
+        if (op === 'save') depth += 1;
+        if (op === 'restore') { depth -= 1; lowest = Math.min(lowest, depth); }
+        if (op === 'measureText') return { width: 10 };
+        return undefined;
+      },
+      set: () => true,
+    });
+    draw(ctx);
+    return { depth, lowest };
+  };
+
+  const POSES = ['idle', 'walking', 'swim', 'loaf', 'sleep-curl', 'drinking',
+    'eating', 'grooming', 'pouncing', 'sit', 'stretch'];
+  const wasOn = CatV2.WHISKER.on;
+  for (const on of [0, 1]) {
+    CatV2.WHISKER.on = on;
+    for (const [view, facing] of [['side', 'right'], ['side', 'left'], ['front', 'south'], ['back', 'north']]) {
+      for (const pose of POSES) {
+        const r = depths((ctx) => CatV2.drawCat(ctx, {
+          appearance: CatV2.appearanceFor(3), facing, size: 31, x: 0, y: 0,
+          pose, phase: 0.4, layout: { view },
+        }));
+        assert(r.depth === 0,
+          `${pose}/${view}${on ? ' (whiskers on)' : ''} left the ctx stack at ${r.depth}, not 0`);
+        assert(r.lowest >= 0,
+          `${pose}/${view}${on ? ' (whiskers on)' : ''} restored past its own saves -- ` +
+            'it is popping state the CALLER pushed, and everything after it draws in the wrong space');
+      }
+    }
+  }
+  // The blend path too: it wraps the draw in its own save for the settle.
+  const t = depths((ctx) => CatV2.drawCatTween(ctx, {
+    appearance: CatV2.appearanceFor(3), facing: 'right', size: 31, x: 0, y: 0,
+    from: 'walking', to: 'idle', t: 0.5, phaseFrom: 0.3, phaseTo: 0.3,
+  }));
+  CatV2.WHISKER.on = wasOn;
+  assert(t.depth === 0 && t.lowest >= 0, `a blended draw left the ctx stack at ${t.depth}`);
+});
+
+check('whiskers ship OFF, and a cat walking away never grows any', () => {
+  // Attempt three (2026-08-13), ported from kitten.me. Off until judged --
+  // the first two were built and cut, and BACKLOG records that cutting
+  // again is an acceptable outcome.
+  // This asserted whiskers shipped OFF, which was the point while they were
+  // unjudged. The owner turned them on (2026-08-13) after two previous
+  // attempts were cut, so the guard is retired and what replaces it pins
+  // the DECISION rather than the number: they ship, and going back to no
+  // whiskers is a third cut, not a tweak.
+  assert(CatV2.WHISKER.on > 0, 'whiskers ship on; turning them off is a decision, not a tweak');
+  assert(CatV2.WHISKER.alpha < 1,
+    'the whole technique is a hairline at reduced opacity -- at full alpha it is the aliased line that was cut twice');
+
+  const strokes = (on, size, view, facing) => {
+    const was = CatV2.WHISKER.on;
+    CatV2.WHISKER.on = on;
+    const out = [];
+    const ctx = new Proxy({}, {
+      get: (_t, p) => (...a) => out.push(String(p)),
+      set: () => true,
+    });
+    CatV2.drawCat(ctx, {
+      appearance: CatV2.appearanceFor(3), facing, size, x: 0, y: 0,
+      pose: 'idle', phase: 0.3, layout: { view },
+    });
+    CatV2.WHISKER.on = was;
+    return out.filter((c) => c === 'stroke').length;
+  };
+
+  // Head-on, both fans draw. Side-on the rearward one is buried in the
+  // skull by our muzzle offset, so `back` ships at 0 and that fan is
+  // skipped rather than drawn at zero length.
+  const per = CatV2.WHISKER.count;
+  const want = { side: CatV2.WHISKER.back > 0 ? per * 2 : per, front: per * 2 };
+  for (const [view, facing] of [['side', 'right'], ['front', 'south']]) {
+    const got = strokes(1, 31, view, facing) - strokes(0, 31, view, facing);
+    assert(got === want[view], `${view}: expected ${want[view]} whisker strokes, got ${got}`);
+  }
+  // The rule that costs nothing because of WHERE they are drawn: a cat
+  // walking away has no face, so it has no whiskers, and drawWhiskers
+  // never has to know that rule exists.
+  assert(
+    strokes(1, 31, 'back', 'north') === strokes(0, 31, 'back', 'north'),
+    'a cat walking away grew whiskers on the back of its head',
+  );
+});
+
+check('darkening the nose takes the whole muzzle with it', () => {
+  // Owner's ask, 2026-08-13: three hairlines either side of the muzzle
+  // pull the eye off a pale pink nose, so the nose wants its own darkness
+  // dial to hold the middle of the face.
+  //
+  // The trap is that the nose is not one colour. The yawn's jaw is
+  // `shadeHex(nose, 0.5)` and the tongue is `lightenHex(nose, 0.22)`, both
+  // mixed from the same source -- so darkening only the triangle would put
+  // a pale mouth inside a dark muzzle the moment a cat yawns.
+  const yawning = { ...CatV2.stillRig({ facing: 'right', gazeX: 0.1 }), yawn: 1 };
+  const inks = (darken) => {
+    const was = CatV2.NOSE.darken;
+    CatV2.NOSE.darken = darken;
+    const out = [];
+    // Recorded at each `fill()`, not at each `fillStyle =`: the two inner
+    // ears are painted from a SINGLE assignment, so counting assignments
+    // counts one ear and cannot tell a pair from a single.
+    let ink = null;
+    const ctx = new Proxy({}, {
+      get: (_t, p) => () => { if (String(p) === 'fill') out.push(ink); },
+      set: (_t, p, v) => { if (String(p) === 'fillStyle') ink = v; return true; },
+    });
+    CatV2.drawCat(ctx, {
+      pose: 'resting', appearance: CatV2.appearanceFor(3),
+      facing: 'right', size: 31, rig: yawning,
+    });
+    CatV2.NOSE.darken = was;
+    return out;
+  };
+
+  // 0 is neutral, whatever the shipped value happens to be: the dial has
+  // to be able to mean "leave the colorway alone" exactly, or a colorway
+  // can never be seen as it was authored.
+  assert(CatV2.noseInkOf({ noseColor: '#abcdef' }) !== '#abcdef' || CatV2.NOSE.darken === 0,
+    'sanity: noseInkOf disagrees with NOSE.darken');
+  // Owner's call, 2026-08-13: a touch off the authored pink, because the
+  // whiskers widened and took the eye with them. The VALUE is hers to
+  // re-bake; what is pinned is that a call was made, so a revert to
+  // neutral is loud rather than silent.
+  assert(CatV2.NOSE.darken > 0, 'the nose is back to the raw authored pink -- an owner bake was reverted');
+  const wasDark = CatV2.NOSE.darken;
+  CatV2.NOSE.darken = 0;
+  assert(CatV2.noseInkOf({ noseColor: '#abcdef' }) === '#abcdef',
+    'at darken 0 the ink is not the authored colour');
+  CatV2.NOSE.darken = wasDark;
+  const authored = CatV2.appearanceFor(3).noseColor;
+  const plain = inks(0);
+  assert(plain.includes(authored), 'the yawning cat did not paint its authored nose colour at all');
+
+  const dark = inks(0.6);
+  assert(dark.length === plain.length, 'darkening the nose changed how many shapes the cat paints');
+  const lum = (hex) => {
+    const n = parseInt(hex.slice(1), 16);
+    return (n >> 16) + ((n >> 8) & 255) + (n & 255);
+  };
+  // Compared SLOT BY SLOT against the same drawing undarkened, so this
+  // reads off the paint rather than restating the mix -- the whisker width
+  // check first passed while the code multiplied instead of dividing,
+  // because it asserted its own arithmetic.
+  const moved = plain.map((c, i) => [c, dark[i]]).filter(([a, b]) => a !== b);
+  assert(moved.length === 5,
+    'expected the nose, the yawn\'s jaw, the tongue and BOTH inner ears to move, ' +
+    `${moved.length} fills did`);
+  for (const [was, now] of moved) {
+    assert(lum(now) < lum(was), `${was} -> ${now} is not darker`);
+  }
+  // Nothing anywhere is still wearing the authored pink, which is the
+  // whole claim: the nose and the ears share one colour, so a site that
+  // quietly ignored the dial would leave that colour on the canvas while
+  // every other site moved.
+  assert(!dark.includes(authored),
+    `${authored} is still on the canvas at darken 0.6 -- some site is not going through noseInkOf`);
+
+  // The inner ears were left out on the first cut and the owner's read was
+  // that the face then disagreed with itself. They paint from `noseColor`,
+  // so they are the same pink and they follow.
+  const ears = inks(1).filter((c) => c === '#000000').length;
+  assert(ears >= 3, 'at full darkness the nose, the ears and the mouth should all be black');
+});
+
+check('the whisker stroke is a PIXEL floor, not a unit one', () => {
+  // The trap this file already recorded once: the drawing runs in unit
+  // space, where a lineWidth of 0.8 is most of a cat. The floor is only
+  // meaningful in real pixels, which is why `size` is threaded down to the
+  // face at all.
+  //
+  // Read off the DRAWING, not recomputed here. The first version of this
+  // check restated `max(widthPx/size, widthOfCat)` and then asserted its
+  // own arithmetic, so it passed happily while the code multiplied instead
+  // of dividing -- which is a whisker 25 times too thick.
+  const W = CatV2.WHISKER;
+  const drawnPx = (size, count = W.count) => {
+    const was = { on: W.on, count: W.count };
+    W.on = 1; W.count = count;
+    let width = null;
+    let strokes = 0;
+    const ctx = new Proxy({}, {
+      get: (_t, p) => (...a) => { if (String(p) === 'stroke') strokes++; return undefined; },
+      set: (_t, p, v) => { if (String(p) === 'lineWidth') width = v; return true; },
+    });
+    // Head-on, where BOTH fans draw whatever `back` is set to.
+    CatV2.drawWhiskers(ctx, { cx: 0.5, cy: 0.4, r: 0.226 }, CatV2.appearanceFor(3), 'front', size);
+    W.on = was.on; W.count = was.count;
+    return { px: width * size, strokes };
+  };
+
+  assert(Math.abs(drawnPx(31).px - W.widthPx) < 1e-9,
+    `at 31px the stroke draws at ${drawnPx(31).px.toFixed(3)}px, want the ${W.widthPx}px floor`);
+  assert(Math.abs(drawnPx(44).px - W.widthPx) < 1e-9, 'at 44px it should still be on the floor -- kitten.me is too');
+  assert(drawnPx(60).px > W.widthPx, 'at a 60px tile it must finally clear the floor, or camera mode buys nothing');
+  // The floor really is in pixels: a smaller cat must not get a thinner one.
+  assert(Math.abs(drawnPx(22).px - drawnPx(31).px) < 1e-9,
+    'the stroke scales with the cat while clamped, so it is not a floor');
+  // ...and above the floor it does scale, or `widthOfCat` is decoration.
+  assert(drawnPx(120).px > drawnPx(60).px, 'past the floor the stroke stops growing with the cat');
+
+  // The count is a dial, not a number written twice.
+  assert(drawnPx(31, 2).strokes === 4, `count 2 drew ${drawnPx(31, 2).strokes} strokes, want 4`);
+  assert(drawnPx(31, 5).strokes === 10, `count 5 drew ${drawnPx(31, 5).strokes} strokes, want 10`);
+
+  // Side-on, the fan sweeping BACK along the cheek is shorter than the one
+  // sweeping forward off the muzzle -- it is pointing away from the camera.
+  // The same argument the swim tail's foreshortening allowance is built on.
+  // Read off the drawn segments, not off `W.back`.
+  const spans = (view, back = W.back) => {
+    const was = { on: W.on, back: W.back };
+    W.on = 1; W.back = back;
+    const segs = []; let from = null;
+    const ctx = new Proxy({}, {
+      get: (_t, p) => (...a) => {
+        if (String(p) === 'moveTo') from = a;
+        if (String(p) === 'lineTo' && from) segs.push(a[0] - from[0]);
+        return undefined;
+      },
+      set: () => true,
+    });
+    CatV2.drawWhiskers(ctx, { cx: 0.5, cy: 0.4, r: 0.226 }, CatV2.appearanceFor(3), view, 31);
+    W.on = was.on; W.back = was.back;
+    return {
+      forward: Math.max(...segs.filter((d) => d > 0)),
+      back: Math.abs(Math.min(...segs.filter((d) => d < 0))),
+    };
+  };
+  // `back` shipped at 0 while our muzzle offset buried the rearward fan.
+  // The owner's longer `tipX` reaches past the skull, so it is dialled up
+  // now -- that guard is retired rather than held. What survives is the
+  // mechanism: when `back` is under 1 the rearward fan is SHORTER, because
+  // it points away from the camera. Dialled here rather than read off the
+  // shipped value, so a re-dial cannot make this vacuous.
+  const sideOn = spans('side', 0.5);
+  assert(
+    sideOn.back < sideOn.forward - 1e-9,
+    `dialled to 0.5, the rearward fan spans ${sideOn.back.toFixed(4)} against the forward ` +
+      `${sideOn.forward.toFixed(4)} -- it cannot be as long`,
+  );
+  // The FORWARD fan has to clear the head: it is the one that changes the
+  // cat's silhouette, and it must hold at any dial. Note what this does
+  // NOT claim -- the rearward fan lies almost entirely against fur and the
+  // owner's read is that it carries there, so clearance is a property of
+  // the forward fan alone and not a visibility test for whiskers.
+  const head = { cx: 0.72, cy: 0.399, r: 0.226 };
+  const tips = [];
+  const probe = new Proxy({}, {
+    get: (_t, p) => (...a) => { if (String(p) === 'lineTo') tips.push(a[0]); },
+    set: () => true,
+  });
+  const wasOn = W.on; W.on = 1;
+  CatV2.drawWhiskers(probe, head, CatV2.appearanceFor(3), 'side', 31);
+  W.on = wasOn;
+  const past = (Math.max(...tips) - (head.cx + head.r)) * 31;
+  assert(past > 2, `the forward fan clears the head by ${past.toFixed(2)}px -- it needs to read against grass, not fur`);
+  // Head-on there is no near and no far, so both fans match.
+  const front = spans('front');
+  assert(
+    Math.abs(front.back - front.forward) < 1e-9,
+    'head-on the two fans must match -- neither side is further away',
+  );
+});
+
 check('a turn only flips a facing that has something to flip through', () => {
   // `turnFacing` draws the PRE-turn facing for the first half of a turn,
   // which is what makes the flip land on the squash. It does that with a
@@ -3634,6 +3915,258 @@ check('a dial that names its own block actually writes that block', () => {
   for (const name of new Set(declared)) {
     assert(CatV2[name], `a dial names CatV2.${name}, which the vocabulary does not export`);
   }
+});
+
+check('the inner ear is a shape, not a sub-pixel needle', () => {
+  // Owner, 2026-08-13: "I only see a tiny sliver of pink there anyway."
+  // Measured, she was describing the geometry exactly. The first tick ran
+  // 35%..100% along the ear's spine with a 0.12 nudge sideways at ONE of
+  // its three points, so it was a one-sided needle: 0.71px2 of paint at a
+  // 31px cat, never more than 0.64px across -- under the 0.8px floor that
+  // killed whiskers twice.
+  //
+  // What is measured here is the pink she can SEE: inside its quad, inside
+  // the ear, and outside the head that paints over its base. Measuring the
+  // drawn shape instead would count paint hidden under the skull, which is
+  // most of it and none of the point.
+  const a = CatV2.appearanceFor(3);
+  const shapes = (pose, view, facing) => {
+    const out = [];
+    let cur = null; let ink = null; let clip = null; const stack = [];
+    const ctx = new Proxy({}, {
+      get: (_t, p) => (...g) => {
+        const n = String(p);
+        if (n === 'beginPath') cur = [];
+        else if ((n === 'moveTo' || n === 'lineTo') && cur) cur.push([g[0], g[1]]);
+        else if (n === 'arc' && cur) cur.arc = { cx: g[0], cy: g[1], r: g[2] };
+        else if (n === 'save') stack.push(clip);
+        else if (n === 'restore') clip = stack.pop() ?? null;
+        else if (n === 'clip') clip = cur ? cur.slice() : [];
+        else if (n === 'fill' && cur) out.push({ pts: cur.slice(), arc: cur.arc, ink, clip });
+      },
+      set: (_t, p, v) => { if (String(p) === 'fillStyle') ink = v; return true; },
+    });
+    CatV2.drawCat(ctx, { pose, appearance: a, facing, size: 31, layout: { view } });
+    // The NOSE is a pink shape too, so colour alone picks up three and
+    // measures the wrong one. (It did, first try -- the same mistake the
+    // muzzle check upstream records having made.) The inner ears are the
+    // pink drawn under a three-point clip, which is what they are.
+    return {
+      all: out,
+      pink: out.filter((r) => r.clip && r.clip.length === 3 && r.pts.length >= 3
+        && r.ink === CatV2.noseInkOf(a)),
+      ears: out.filter((r) => r.ink === a.furBase && r.pts.length === 3),
+    };
+  };
+  const inPoly = (pt, poly) => {
+    let inside = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i, i += 1) {
+      const [xi, yi] = poly[i]; const [xj, yj] = poly[j];
+      if ((yi > pt[1]) !== (yj > pt[1])
+        && pt[0] < ((xj - xi) * (pt[1] - yi)) / (yj - yi) + xi) inside = !inside;
+    }
+    return inside;
+  };
+  // Sampled rather than solved: the visible region is a polygon minus a
+  // disc, and the number wanted is "does this survive the pixel grid", not
+  // an exact area. The EAR's visible area comes back too, because the pink
+  // has to be judged against the ear it is in -- see the floor below.
+  const seenPx = (r, head) => {
+    const xs = r.clip.map((q) => q[0]); const ys = r.clip.map((q) => q[1]);
+    const x0 = Math.min(...xs); const x1 = Math.max(...xs);
+    const y0 = Math.min(...ys); const y1 = Math.max(...ys);
+    const N = 160; let pink = 0; let ear = 0;
+    for (let i = 0; i < N; i += 1) {
+      for (let j = 0; j < N; j += 1) {
+        const pt = [x0 + ((x1 - x0) * (i + 0.5)) / N, y0 + ((y1 - y0) * (j + 0.5)) / N];
+        if (Math.hypot(pt[0] - head.cx, pt[1] - head.cy) <= head.r) continue;
+        if (!inPoly(pt, r.clip)) continue;
+        ear += 1;
+        if (inPoly(pt, r.pts)) pink += 1;
+      }
+    }
+    const cell = (((x1 - x0) * (y1 - y0)) / (N * N)) * 31 * 31;
+    return { pink: pink * cell, ear: ear * cell };
+  };
+
+  const up = shapes('idle', 'side', 'right');
+  assert(up.pink.length === 2, `expected two inner ears, drew ${up.pink.length}`);
+  const head = CatV2.catLayout('idle', 0, { view: 'side' }).head;
+  const seen = seenPx(up.pink[0], head).pink;
+  assert(seen > 2, `an inner ear shows ${seen.toFixed(2)}px2 at a 31px cat -- the old needle showed 0.71`);
+
+  // Painted WITH the ear, under the head. That is what lets it run the
+  // ear's full height with no rule of its own about where the skull
+  // begins, and solving for that line instead got the centre right and
+  // still put both base corners inside the head, because the skull is
+  // round. Order is the mechanism, so order is what is asserted.
+  const headFill = up.all.findIndex((r) => r.arc && Math.abs(r.arc.r - head.r) < 1e-9);
+  const pinkFill = up.all.indexOf(up.pink[0]);
+  assert(headFill > 0, 'could not find the head in the paint order');
+  assert(pinkFill < headFill,
+    'the inner ear is painted after the head -- its base will show on the skull');
+
+  // The claim the re-cut was FOR: fur shows down both sides, at every
+  // height, and the gap does not close toward the tip. Three mutations
+  // walked straight through the checks above -- no side margin at all, a
+  // margin dialled outward past the ear, and a tip that ignores the side
+  // margin so the sides converge and the fur runs out at the top. Every
+  // one of them still drew a big enough pink inside a clip.
+  const ear0 = up.ears[0];
+  const base = [(ear0.pts[0][0] + ear0.pts[2][0]) / 2, (ear0.pts[0][1] + ear0.pts[2][1]) / 2];
+  const tip = ear0.pts[1]; // b1, point, b2
+  const hx = (ear0.pts[0][0] - ear0.pts[2][0]) / 2;
+  const hy = (ear0.pts[0][1] - ear0.pts[2][1]) / 2;
+  const spinePx = Math.hypot(tip[0] - base[0], tip[1] - base[1]) * 31;
+  const halfPx = Math.hypot(hx, hy) * 31;
+  const at = (u, w) => [base[0] + (tip[0] - base[0]) * u + hx * w,
+    base[1] + (tip[1] - base[1]) * u + hy * w];
+
+  // EVEN down both sides, which is the fix this shape went through a
+  // second cut for. An ear leans -- `earPoints` swings the tip outward --
+  // so its two slanted edges make different angles with its base, and
+  // insetting by a fixed step ALONG the base gave one edge more fur than
+  // the other: 0.46px against 0.64px, which the owner could see at a 31px
+  // cat. Perpendicular distance is the thing being judged, so it is the
+  // thing measured.
+  const perp = (pt, p, q) => Math.abs((q[0] - p[0]) * (p[1] - pt[1]) - (p[0] - pt[0]) * (q[1] - p[1]))
+    / Math.hypot(q[0] - p[0], q[1] - p[1]);
+  for (const pink of up.pink) {
+    const ear = pink.clip; // [b1, point, b2]
+    const left = Math.min(...pink.pts.map((pt) => perp(pt, ear[0], ear[1]))) * 31;
+    const right = Math.min(...pink.pts.map((pt) => perp(pt, ear[2], ear[1]))) * 31;
+    assert(Math.abs(left - right) < 0.02,
+      `fur is ${left.toFixed(2)}px down one side and ${right.toFixed(2)}px down the other`);
+    assert(left > 0.4, `only ${left.toFixed(2)}px of fur shows beside the pink`);
+  }
+
+  // The blunt tip, which the owner's bake (tipFur 0, 2026-08-13) does not
+  // take: at 0 the inset sides meet on their own and the pink comes to a
+  // point, so the cut branch stops running and would rot unseen. Dialled
+  // up here to hold it to its claim -- a flat top, and the SIDES
+  // unmoved, which is the whole reason the cut is parallel to the base.
+  const wasTip = CatV2.INNER_EAR.tipFur;
+  CatV2.INNER_EAR.tipFur = 0.2;
+  const blunt = shapes('idle', 'side', 'right');
+  CatV2.INNER_EAR.tipFur = wasTip;
+  assert(blunt.pink.length === 2, 'dialling the tip lost the inner ears');
+  assert(blunt.pink[0].pts.length === 4,
+    `a blunt tip should add a top edge, drew ${blunt.pink[0].pts.length} corners`);
+  const gapOf = (r) => Math.min(...r.pts.map((pt) => perp(pt, r.clip[0], r.clip[1]))) * 31;
+  assert(Math.abs(gapOf(blunt.pink[0]) - gapOf(up.pink[0])) < 0.02,
+    `cutting the tip moved the side gap from ${gapOf(up.pink[0]).toFixed(2)}px ` +
+    `to ${gapOf(blunt.pink[0]).toFixed(2)}px -- the two dials are meant to be independent`);
+  let bluntTop = 0;
+  for (let u = 0; u <= 1; u += 0.002) if (inPoly(at(u, 0), blunt.pink[0].pts)) bluntTop = u;
+
+  // How high the pink actually reaches, read off the shape rather than
+  // recomputed from the dials -- restating `1 - sideFur - tipFur` here
+  // would assert this test's own arithmetic.
+  let pinkTop = 0;
+  for (let u = 0; u <= 1; u += 0.002) if (inPoly(at(u, 0), up.pink[0].pts)) pinkTop = u;
+  assert(pinkTop > 0, 'no pink anywhere along the ear');
+  assert((1 - pinkTop) * spinePx > 0.4,
+    `fur at the tip is ${((1 - pinkTop) * spinePx).toFixed(2)}px -- the pink runs into the point`);
+  assert(bluntTop < pinkTop,
+    'dialling tipFur up did not shorten the pink -- the cut is doing nothing');
+
+  // ...and fur down both sides, at every height the pink reaches. The gap
+  // must not close toward the tip either: three mutations walked straight
+  // through the checks above -- no side margin at all, a margin dialled
+  // OUTWARD past the ear, and a tip that ignores the side margin so the
+  // sides converge and the fur runs out at the top. All three still drew a
+  // big enough pink inside a clip.
+  for (const frac of [0.2, 0.5, 0.85]) {
+    const u = pinkTop * frac;
+    for (const dir of [-1, 1]) {
+      let lastPink = 0; let lastEar = 0;
+      for (let w = 0; w <= 1.4; w += 0.002) {
+        if (inPoly(at(u, w * dir), up.pink[0].pts)) lastPink = w;
+        if (inPoly(at(u, w * dir), ear0.pts)) lastEar = w;
+      }
+      const side = dir < 0 ? 'left' : 'right';
+      assert(lastPink > 0, `${(frac * 100).toFixed(0)}% up the pink there is none on the ${side}`);
+      assert((lastEar - lastPink) * halfPx > 0.4,
+        `${(frac * 100).toFixed(0)}% up the pink, the fur on the ${side} is ` +
+        `${((lastEar - lastPink) * halfPx).toFixed(2)}px -- it should sit inside, evenly, all the way up`);
+    }
+  }
+
+  let smallest = Infinity;
+  let where = '';
+  for (const [pose, view, facing] of [
+    ['idle', 'side', 'right'], ['walking', 'side', 'right'],
+    ['idle', 'front', 'south'], ['eating', 'side', 'right'],
+    ['sleeping', 'side', 'right'], ['pouncing', 'side', 'right'],
+  ]) {
+    const got = shapes(pose, view, facing);
+    if (!got.pink.length) continue;
+    const h = CatV2.catLayout(pose, 0, { view }).head;
+    for (let i = 0; i < got.pink.length; i += 1) {
+      const ear = got.ears[i];
+      assert(ear, `${pose}/${view}: an inner ear without an ear to sit in`);
+      // The clip is what turns an over-dialled margin into a filled ear
+      // rather than pink smeared across the skull. At the SHIPPED values
+      // the pink is inside its ear anyway, so no pixel would notice the
+      // clip going missing -- hence the mechanism, not its effect.
+      assert(
+        JSON.stringify(got.pink[i].clip) === JSON.stringify(ear.pts),
+        `${pose}/${view} ear ${i}: the pink is not clipped to the ear it sits in`,
+      );
+      const m = seenPx(got.pink[i], h);
+      const share = m.pink / m.ear;
+      if (share < smallest) {
+        smallest = share;
+        where = `${pose}/${view} ear ${i}`;
+      }
+    }
+  }
+  // A SHARE, not an area, and the reason is worth keeping. The first
+  // version of this floor was absolute, and the perpendicular inset above
+  // tripped it: with the ears laid flat the whole visible EAR is 1.65px2,
+  // so a fixed pink area there is really a demand that the pink take up
+  // more of a smaller ear. A cat flattening its ears and hiding the pink
+  // is the drawing being right. What must hold in every pose is that the
+  // pink is a real feature of whatever ear is showing -- which the old
+  // floor never checked, since a pink that shrank while its ear did not
+  // would have passed it.
+  assert(smallest > 0.15,
+    `the pink is only ${(smallest * 100).toFixed(0)}% of the visible ear at ${where}`);
+});
+
+check('every face dial is PRINTED, or a dialling session cannot be baked', () => {
+  // The lab's whole contract: the owner moves sliders, reads the block,
+  // and pastes it back as source. A dial the readout does not print is a
+  // slider whose value is lost the moment the page reloads -- which is
+  // worse than no dial, because the session that spent an hour on it only
+  // finds out at the paste. Whiskers and nose darkness joined the face
+  // card on 2026-08-13 and this is what stops the next pair being added
+  // to the array and forgotten in the readout.
+  const html = readFileSync(join(here, 'gallery-v2.html'), 'utf8');
+  const dials = html.slice(html.indexOf('  const DIALS = ['));
+  const body = dials.slice(0, dials.indexOf('\n  ];'));
+  assert(body.includes("obj: 'EYE'"), 'could not slice the face dials out of the lab');
+
+  const readout = html.slice(html.indexOf('function updateReadout()'));
+  const printed = readout.slice(0, readout.indexOf('\n  }'));
+  // The readout aliases each block (`const n = CatV2.NOSE`), so resolve the
+  // alias rather than guessing at it -- otherwise this passes on any file
+  // that merely happens to contain the key somewhere.
+  const alias = {};
+  for (const m of printed.matchAll(/const (\w+) = CatV2\.(\w+);/g)) alias[m[2]] = m[1];
+
+  const seen = new Set();
+  for (const m of body.matchAll(/obj: '(\w+)', key: '(\w+)'/g)) {
+    const [, obj, key] = m;
+    seen.add(`${obj}.${key}`);
+    assert(CatV2[obj], `a face dial names CatV2.${obj}, which the vocabulary does not export`);
+    assert(CatV2[obj][key] !== undefined, `a face dial names ${obj}.${key}, which does not exist`);
+    assert(alias[obj], `${obj} has dials but the readout never reads CatV2.${obj}`);
+    assert(printed.includes(`\${${alias[obj]}.${key}}`),
+      `${obj}.${key} has a slider but the readout never prints it -- the value cannot be baked`);
+  }
+  assert(seen.has('WHISKER.alpha') && seen.has('NOSE.darken'),
+    'the two dials this check was written for are gone from the face card');
 });
 
 check('the socket hands arrivals to the delay line and nothing else', () => {

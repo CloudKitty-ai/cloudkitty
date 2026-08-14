@@ -530,6 +530,28 @@
     { obj: 'MOUTH', key: 'gap', label: 'mouth gap (below nose)', min: 0, max: 0.25, step: 0.005 },
     { obj: 'MOUTH', key: 'width', label: 'mouth width (half-span)', min: 0.03, max: 0.3, step: 0.005 },
     { obj: 'MOUTH', key: 'depth', label: 'mouth depth (leg drop)', min: 0, max: 0.25, step: 0.005 },
+    { obj: 'NOSE', key: 'darken', label: 'nose darkness (0 = the colorway\'s own)', min: 0, max: 1, step: 0.02 },
+    // The same pink as the nose, so it dials beside it. Both of these are
+    // FUR SHOWING, not pink placed: the ear tapers, so dialling the pink's
+    // own width and height moved two things at once every time.
+    { obj: 'INNER_EAR', key: 'sideFur', label: 'fur showing down each side', min: 0, max: 0.8, step: 0.02 },
+    { obj: 'INNER_EAR', key: 'tipFur', label: 'blunt the tip (0 = comes to a point)', min: 0, max: 0.4, step: 0.01 },
+    // Whiskers on the FACE card too (owner, 2026-08-13): they read well
+    // but pull the eye off the nose, and the two want dialling against
+    // each other rather than one card apart.
+    { obj: 'WHISKER', key: 'on', label: 'whiskers', min: 0, max: 1, step: 0.05 },
+    { obj: 'WHISKER', key: 'alpha', label: 'whisker opacity — the technique', min: 0.05, max: 1, step: 0.05 },
+    { obj: 'WHISKER', key: 'count', label: 'whiskers per side', min: 1, max: 5, step: 1 },
+    { obj: 'WHISKER', key: 'widthPx', label: 'whisker floor, real px', min: 0.4, max: 2, step: 0.1 },
+    { obj: 'WHISKER', key: 'widthOfCat', label: 'whisker width, share of cat', min: 0, max: 0.05, step: 0.002 },
+    { obj: 'WHISKER', key: 'rootX', label: 'whisker root (head radii)', min: 0, max: 0.8, step: 0.02 },
+    { obj: 'WHISKER', key: 'tipX', label: 'whisker tip (1.0 = head edge)', min: 0.6, max: 1.6, step: 0.05 },
+    { obj: 'WHISKER', key: 'offsetY', label: 'whiskers up / down', min: -0.5, max: 0.5, step: 0.01 },
+    { obj: 'WHISKER', key: 'rootY', label: 'whisker droop at the root', min: 0, max: 0.6, step: 0.01 },
+    { obj: 'WHISKER', key: 'tipY', label: 'whisker droop at the tip', min: -0.2, max: 0.6, step: 0.01 },
+    { obj: 'WHISKER', key: 'rootSpread', label: 'whisker fan, root', min: 0, max: 0.3, step: 0.01 },
+    { obj: 'WHISKER', key: 'tipSpread', label: 'whisker fan, tip', min: 0, max: 0.5, step: 0.02 },
+    { obj: 'WHISKER', key: 'back', label: 'rearward fan length (side view)', min: 0, max: 1, step: 0.05 },
     // Swim-pose dials (2026-08-02): first-cut values, judged in the
     // motion lab's swim card below, baked on the owner's paste.
     { obj: 'SWIM', key: 'bodyY', label: 'swim body depth (− up / + down)', min: 0.68, max: 0.86, step: 0.005 },
@@ -584,6 +606,8 @@
     const n = CatV2.NOSE;
     const m = CatV2.MOUTH;
     const s = CatV2.SWIM;
+    const w = CatV2.WHISKER;
+    const ie = CatV2.INNER_EAR;
     readout.style.whiteSpace = 'pre-line';
     readout.textContent =
       `EYE = { scale: ${e.scale}, height: ${e.height}, shift: ${e.shift}, pupil: ${e.pupil} } · ` +
@@ -592,7 +616,15 @@
       `LID = { halfLid: ${e.halfLid}, lidTilt: ${e.lidTilt}, lidCurve: ${e.lidCurve} } · ` +
       `FOCUSED = { focusedScale: ${e.focusedScale}, focusedHeight: ${e.focusedHeight} }\n` +
       `SWIM = { bodyY: ${s.bodyY}, bodyRy: ${s.bodyRy}, headY: ${s.headY}, ` +
-      `bob: ${s.bob}, rock: ${s.rock}, tailLift: ${s.tailLift} }`;
+      `bob: ${s.bob}, rock: ${s.rock}, tailLift: ${s.tailLift}, ` +
+      `tailUpright: ${s.tailUpright} }\n` +
+      `NOSE.darken = ${n.darken} · `+
+      `INNER_EAR = { sideFur: ${ie.sideFur}, tipFur: ${ie.tipFur} }\n` +
+      `WHISKER = { on: ${w.on}, count: ${w.count}, alpha: ${w.alpha}, widthPx: ${w.widthPx}, ` +
+      `widthOfCat: ${w.widthOfCat},\n` +
+      `  rootX: ${w.rootX}, tipX: ${w.tipX}, rootY: ${w.rootY}, tipY: ${w.tipY}, ` +
+      `offsetY: ${w.offsetY},\n` +
+      `  rootSpread: ${w.rootSpread}, tipSpread: ${w.tipSpread}, back: ${w.back} }`;
   }
 
   // Slider bench: a static standing pair, redrawn live as the dials move.
@@ -661,6 +693,11 @@
   // Each demo: one drawFrame(ctx, w, h, now, isV2). v1 column shows today's
   // behavior (snaps); v2 shows the prototype (blends, squash, lid, settle).
   const CAT = 84;
+  // Lab-only. The live tile is not one number: a 20x20 world fits its
+  // HEIGHT, so an 800px window gives 32px and a tall display 60px, which is
+  // the MAP_MAX_PX ceiling. Judging whiskers at 31 when the reader's own
+  // page draws 46 would cut them for a size nobody sees.
+  const WHISKER_LAB = { liveTile: 31 };
   // Where the water surface crosses a swimming cat's box (both swim
   // cards share it, so a SWIM re-dial can never leave the two cards'
   // waterlines disagreeing). The -0.02 is the shore margin: the surface
@@ -1545,6 +1582,123 @@
         } else {
           drawCat(ctx, { ...base, pose: moving ? 'walking' : 'idle', phase });
         }
+      },
+    },
+    {
+      title: 'Whiskers, attempt three — does 0.8px at 0.4 alpha read?',
+      // One column, not a v1/v2 pair: v1 has no face to hang whiskers on,
+      // so its half of the card was drawing an empty stage and reading as
+      // "the whiskers are missing" (owner, 2026-08-13).
+      v2Only: true,
+      w: 560,
+      h: 250,
+      ownShadows: true,
+      bag: CatV2.WHISKER,
+      note:
+        'Ported from kitten.me, which draws whiskers without ever using the word. Its trick is not resolution: the stroke is max(0.8, cat*0.018), so below a 44px cat it is PINNED at the 0.8px floor — kitten.me does not escape the sub-pixel problem, it lives with it at 0.4 opacity, where a hairline reads as a soft hint rather than an aliased dotted line. Our two previous attempts died at "0.8px strokes", which is the same number at full strength. ' +
+        'The top row is the LIVE tile, which is the row that decides; the bottom is 3x for seeing what the pixels did. Off on the left, on in the middle and right, so the question is only whether the middle looks better than the left. Cut again is an acceptable answer — it is what happened the first two times.',
+      dials: [
+        { key: 'on', label: 'SHIP them? (the card always shows them on)', min: 0, max: 1, step: 0.05 },
+        { key: 'alpha', label: 'opacity — the whole trick', min: 0.1, max: 1, step: 0.05 },
+        { key: 'widthPx', label: 'stroke floor, in real pixels', min: 0.4, max: 2, step: 0.1 },
+        { key: 'widthOfCat', label: '...and its share of the cat above that', min: 0, max: 0.05, step: 0.002 },
+        { key: 'count', label: 'per side', min: 1, max: 5, step: 1 },
+        { key: 'rootX', label: 'leaves the muzzle at (head radii)', min: 0, max: 0.8, step: 0.02 },
+        { key: 'tipX', label: 'ends at (1.0 is the head edge)', min: 0.6, max: 1.6, step: 0.05 },
+        { key: 'offsetY', label: 'the whole set, up / down', min: -0.5, max: 0.5, step: 0.01 },
+        { key: 'rootY', label: 'droop — where it leaves the muzzle', min: 0, max: 0.6, step: 0.01 },
+        { key: 'tipY', label: 'droop — where it ends up', min: -0.2, max: 0.6, step: 0.01 },
+        { key: 'rootSpread', label: 'fan at the root', min: 0, max: 0.3, step: 0.01 },
+        { key: 'tipSpread', label: 'fan at the tip', min: 0, max: 0.5, step: 0.02 },
+        { key: 'back', label: 'far-side length, side view (foreshortening)', min: 0, max: 1, step: 0.05 },
+        {
+          key: 'liveTile', bag: WHISKER_LAB,
+          label: 'top row size, px — set it to YOUR map (lab only)',
+          min: 22, max: 60, step: 1,
+        },
+      ],
+      readout() {
+        const W = CatV2.WHISKER;
+        const px = (size) => Math.max(W.widthPx / size, W.widthOfCat) * size;
+        return (
+          `WHISKER = { on: ${W.on}, count: ${W.count}, alpha: ${W.alpha}, ` +
+          `widthPx: ${W.widthPx}, widthOfCat: ${W.widthOfCat},\n` +
+          `  rootX: ${W.rootX}, tipX: ${W.tipX}, rootY: ${W.rootY}, tipY: ${W.tipY},\n` +
+          `  offsetY: ${W.offsetY},\n` +
+          `  rootSpread: ${W.rootSpread}, tipSpread: ${W.tipSpread}, back: ${W.back} }\n` +
+          // How much of each fan escapes the head. Reported, not judged:
+          // this line used to call a sub-pixel clearance "buried in fur",
+          // and the owner looking at the drawing (2026-08-13) reported the
+          // rearward fan reading fine against fur at 0.21px clear. A
+          // hairline over fur is lower contrast than one over grass, which
+          // is not the same as gone -- and clearance measures the wrong
+          // thing to decide it with.
+          (() => {
+            const h = { cx: 0.72, cy: 0.399, r: 0.226 };
+            const tips = [];
+            const probe = new Proxy({}, {
+              get: (_t, p) => (...a) => { if (String(p) === 'lineTo') tips.push(a[0]); },
+              set: () => true,
+            });
+            const was = W.on; W.on = 1;
+            CatV2.drawWhiskers(probe, h, CatV2.appearanceFor(3), 'side', WHISKER_LAB.liveTile);
+            W.on = was;
+            const t = WHISKER_LAB.liveTile;
+            const fwd = (Math.max(...tips) - (h.cx + h.r)) * t;
+            const back = ((h.cx - h.r) - Math.min(...tips)) * t;
+            return `clear of the head, side-on: forward ${fwd.toFixed(2)}px` +
+              (W.back > 0
+                ? `, rearward ${back.toFixed(2)}px (the rest of that fan reads against fur)\n`
+                : ' (rearward fan off)\n');
+          })() +
+          `stroke: ${px(WHISKER_LAB.liveTile).toFixed(2)}px at the ${WHISKER_LAB.liveTile}px tile above, ` +
+          `${px(60).toFixed(2)}px at a 60px one (the MAP_MAX_PX ceiling)\n` +
+          (px(WHISKER_LAB.liveTile) <= W.widthPx + 1e-9
+            ? `  at ${WHISKER_LAB.liveTile}px it is PINNED at the floor — where kitten.me sits too, and where both previous attempts died`
+            : `  at ${WHISKER_LAB.liveTile}px it is above the floor`)
+        );
+      },
+      draw(ctx, w, h, now) {
+        const LIVE = WHISKER_LAB.liveTile, BIG = LIVE * 3;
+        const phase = (now % 3400) / 3400;
+        // The two right-hand columns draw at FULL strength whatever the
+        // `on` dial says, or the card shows three identical cats until
+        // someone finds that dial -- and `on` is the ship switch, not a
+        // judging one. Judge with `alpha` and `widthPx`; set `on` when you
+        // have decided.
+        const cols = [
+          { on: 0, view: 'side', facing: 'right', label: 'off (ships today)' },
+          { on: 1, view: 'side', facing: 'right', label: 'on, side' },
+          { on: 1, view: 'front', facing: 'south', label: 'on, toward you' },
+        ];
+        const was = CatV2.WHISKER.on;
+        for (let row = 0; row < 2; row++) {
+          const size = row === 0 ? LIVE : BIG;
+          const top = row === 0 ? 40 : 100;
+          for (let i = 0; i < cols.length; i++) {
+            const c = cols[i];
+            const cx = w * (i + 0.5) / cols.length;
+            CatV2.WHISKER.on = c.on;
+            CatV2.drawCat(ctx, {
+              appearance: CatV2.appearanceFor(STORM),
+              facing: c.facing, size, x: cx - size / 2, y: top,
+              pose: 'idle', phase, layout: { view: c.view },
+            });
+            if (row === 0) {
+              ctx.fillStyle = '#3c4a3a';
+              ctx.font = '11px system-ui, sans-serif';
+              ctx.textAlign = 'center';
+              ctx.fillText(c.label, cx, 24);
+            }
+          }
+        }
+        CatV2.WHISKER.on = was;
+        ctx.fillStyle = '#3c4a3a';
+        ctx.font = '10px system-ui, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('live tile (31px) — the row that decides', 6, h - 6);
+        ctx.textAlign = 'right';
+        ctx.fillText('3x, for the pixels only', w - 6, h - 6);
       },
     },
     {

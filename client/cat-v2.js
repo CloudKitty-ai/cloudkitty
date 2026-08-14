@@ -1705,7 +1705,7 @@ function paintBox(ctx, L, appearance, { facing, size, x, y, lid = 0, turn = null
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
 
-  paintCat(ctx, L, appearance, fine, lid);
+  paintCat(ctx, L, appearance, fine, lid, size);
   ctx.restore();
 }
 
@@ -2288,7 +2288,7 @@ function catLayout(pose, phase, opts = {}) {
 const OUTLINE_W = 0.035;
 const WATER_DROPLET = '#9ccfe6'; // matches the world's water rim
 
-function paintCat(ctx, L, a, fine, lid = 0) {
+function paintCat(ctx, L, a, fine, lid = 0, size = 31) {
   const p = a.pattern || { kind: 'solid' };
 
   // Paint order IS the depth order, and for a cat walking away it inverts:
@@ -2300,14 +2300,17 @@ function paintCat(ctx, L, a, fine, lid = 0) {
   const earsBack = L.earsBackAmt === undefined ? (L.earsUpright ? 0 : 1) : L.earsBackAmt;
   const paintHead = () => {
     drawEars(ctx, L.head, a, p, earsBack, L.earNear || 0, L.earFar || 0);
+    // The pink is part of the EAR, so it is painted with the ear and the
+    // head then covers its base -- which is why it needs no rule of its
+    // own about where the skull begins.
+    if (!rear) drawInnerEars(ctx, L.head, a, earsBack, L.earNear || 0, L.earFar || 0);
     drawHead(ctx, L.head, a, p, fine, L.view);
     // A cat walking away has the BACKS of its ears toward you and no face
     // at all. Skipping both is the rest of the back view's difference, and
     // it is what makes the view read instantly: a faceless head is
     // unmistakable even at 31px.
     if (!rear) {
-      drawInnerEars(ctx, L.head, a, earsBack, L.earNear || 0, L.earFar || 0);
-      drawFace(ctx, L.head, L.eyes, a, lid, L.gaze, L.yawn || 0, L.view);
+      drawFace(ctx, L.head, L.eyes, a, lid, L.gaze, L.yawn || 0, L.view, size);
     }
   };
 
@@ -2541,20 +2544,122 @@ function drawEars(ctx, head, a, p, back, turnNear = 0, turnFar = 0) {
   }
 }
 
+/**
+ * One pink for the whole face. A colorway's `noseColor` paints the nose
+ * triangle, the yawn's jaw and tongue mixed from it, and the inner ears --
+ * so `NOSE.darken` has to reach all four or the face disagrees with
+ * itself. Resolved here rather than at each site for that reason.
+ */
+function noseInkOf(a) {
+  return NOSE.darken > 0 ? shadeHex(a.noseColor, 1 - NOSE.darken) : a.noseColor;
+}
+
+const INNER_EAR = {
+  // Dialled as FUR SHOWING, because that is what the owner is judging
+  // (2026-08-13). The first cut used positions in the ear's own frame --
+  // base, point, width -- and every one of them moved two things at once:
+  // the ear tapers, so widening the pink also closed the gap at the tip.
+  //
+  // Both are shares of the ear's own size rather than absolute distances,
+  // so a laid-back ear (shorter and narrower) keeps its proportions
+  // instead of being eaten by a fixed margin.
+  sideFur: 0.28, // fur left along each slanted side
+  tipFur: 0, // fur left between the pink's end and the ear's point
+};
+
+/** Where two lines, each given as a point and a direction, meet. */
+function lineMeet(l1, l2) {
+  const den = l1.dx * l2.dy - l1.dy * l2.dx;
+  if (Math.abs(den) < 1e-12) return null;
+  const t = ((l2.x - l1.x) * l2.dy - (l2.y - l1.y) * l2.dx) / den;
+  return [l1.x + l1.dx * t, l1.y + l1.dy * t];
+}
+
+/** The line through p and q, moved `d` toward `inner`. */
+function insetEdge(p, q, inner, d) {
+  let nx = -(q[1] - p[1]);
+  let ny = q[0] - p[0];
+  const len = Math.hypot(nx, ny) || 1;
+  nx /= len;
+  ny /= len;
+  if ((inner[0] - p[0]) * nx + (inner[1] - p[1]) * ny < 0) {
+    nx = -nx;
+    ny = -ny;
+  }
+  return { x: p[0] + nx * d, y: p[1] + ny * d, dx: q[0] - p[0], dy: q[1] - p[1] };
+}
+
 function drawInnerEars(ctx, head, a, back, turnNear = 0, turnFar = 0) {
-  // Little pink inner-ear ticks, sized to stay inside the visible ear tips.
-  ctx.fillStyle = a.noseColor;
+  const E = INNER_EAR;
+  ctx.fillStyle = noseInkOf(a);
   for (const side of [-1, 1]) {
     const e = earPoints(head, side, back, side === 1 ? turnNear : turnFar);
+    const b1 = [e.b1x, e.b1y];
+    const b2 = [e.b2x, e.b2y];
+    const apex = [e.ax, e.ay];
     const mx = (e.b1x + e.b2x) / 2;
     const my = (e.b1y + e.b2y) / 2;
+
+    // An ear LEANS: `earPoints` swings the tip outward, so the apex does
+    // not sit over the middle of its base and the two slanted edges make
+    // different angles with it. Inset by a fixed step along the base --
+    // which is what "share of the ear's width" first meant -- and the two
+    // edges get different amounts of fur: measured 0.46px against 0.64px,
+    // and the owner could see it (2026-08-13). So each edge is moved
+    // PERPENDICULAR to itself, which is the distance being judged.
+    const dSide = E.sideFur * Math.hypot(e.b1x - e.b2x, e.b1y - e.b2y) * 0.5;
+    const l1 = insetEdge(b1, apex, b2, dSide);
+    const l2 = insetEdge(b2, apex, b1, dSide);
+    // The base needs no inset: the head is painted over it.
+    const base = { x: e.b1x, y: e.b1y, dx: e.b2x - e.b1x, dy: e.b2y - e.b1y };
+    const foot1 = lineMeet(l1, base);
+    const foot2 = lineMeet(l2, base);
+    const point = lineMeet(l1, l2);
+    if (!foot1 || !foot2 || !point) continue;
+
+    // How far up the ear the inset sides meet, and where the tip is cut.
+    const sx = e.ax - mx;
+    const sy = e.ay - my;
+    const spine = sx * sx + sy * sy;
+    const uPoint = ((point[0] - mx) * sx + (point[1] - my) * sy) / spine;
+    // Measured DOWN FROM where the inset sides meet, not down from the
+    // ear's own point. A side margin already pulls the pink's point well
+    // clear of the tip -- at the shipped 0.28 the sides meet at 0.651 up
+    // the ear -- so a tip margin measured from the ear's point does
+    // nothing at all until it passes that, and the threshold moves every
+    // time the side dial does. From here, 0 is the natural point and
+    // every value above it blunts.
+    const uCut = uPoint - E.tipFur;
+    if (uCut <= 0) continue; // dialled shut
+
+    ctx.save();
     ctx.beginPath();
-    ctx.moveTo(mx + (e.ax - mx) * 0.35, my + (e.ay - my) * 0.35);
+    ctx.moveTo(e.b1x, e.b1y);
     ctx.lineTo(e.ax, e.ay);
-    ctx.lineTo(mx + (e.ax - mx) * 0.75 + (e.b1x - e.b2x) * 0.12,
-      my + (e.ay - my) * 0.75 + (e.b1y - e.b2y) * 0.12);
+    ctx.lineTo(e.b2x, e.b2y);
+    ctx.closePath();
+    // Clipped to the ear it sits in. Belt and braces beside the maths
+    // above, and it is what turns an over-dialled margin into a filled ear
+    // rather than pink smeared across the skull.
+    ctx.clip();
+    ctx.beginPath();
+    ctx.moveTo(foot1[0], foot1[1]);
+    if (E.tipFur <= 0) {
+      // Nothing asked for: the inset sides meet and it comes to a point.
+      ctx.lineTo(point[0], point[1]);
+    } else {
+      // A blunt end, cut parallel to the base, so the fur at the tip is
+      // dialled without the side gap changing anywhere.
+      const cut = { x: mx + sx * uCut, y: my + sy * uCut, dx: e.b2x - e.b1x, dy: e.b2y - e.b1y };
+      const top1 = lineMeet(l1, cut);
+      const top2 = lineMeet(l2, cut);
+      ctx.lineTo(top1[0], top1[1]);
+      ctx.lineTo(top2[0], top2[1]);
+    }
+    ctx.lineTo(foot2[0], foot2[1]);
     ctx.closePath();
     ctx.fill();
+    ctx.restore();
   }
 }
 
@@ -2852,10 +2957,61 @@ const BELLY = {
   alpha: 0.85,
 };
 
+/**
+ * Whiskers, attempt three (2026-08-13). Off by default -- the first two
+ * were built and cut, and BACKLOG says cut again is an acceptable outcome.
+ *
+ * Ported from kitten.me, which draws them without ever using the word, and
+ * whose trick is not resolution but ALPHA. Its stroke is
+ * `max(0.8, cat * 0.018)`, so below a 44px cat it sits pinned at the 0.8px
+ * floor -- kitten.me does not escape the sub-pixel problem, it lives with
+ * it at 0.4 opacity, where a hairline reads as a soft hint instead of an
+ * aliased dotted line. Our two attempts died at "0.8px strokes", which is
+ * the same number drawn at full strength.
+ *
+ * The other half is placement: theirs run from 0.30 to 1.05 head radii, so
+ * they leave the muzzle and finish PAST the head silhouette, and most of
+ * their visible length is against the background rather than against fur.
+ *
+ * `widthPx` is in PIXELS and everything else is in head radii, because a
+ * pixel floor is the whole point. paintCat is handed `size` for it -- the
+ * drawing is otherwise in unit space, where a 0.8 lineWidth would be most
+ * of a cat.
+ */
+const WHISKER = {
+  on: 1, // owner-baked 2026-08-13, off the lab. 0..1, a fade not a switch.
+  count: 3, // per side
+  alpha: 0.25, // kitten.me's, and the reason theirs work at all
+  widthPx: 0.8, // the floor, in real pixels
+  widthOfCat: 0.016, // ...and the share of the cat it grows past that
+  rootX: 0.34, // from the muzzle, in head radii
+  tipX: 1.25, // ...to past the head's own edge
+  rootY: 0.28, // where the middle one leaves the muzzle
+  tipY: 0.17, // and where it ends up
+  // The whole set, up or down together, in head radii. Separate from
+  // rootY/tipY on purpose: those two set the DROOP, and nudging the pair
+  // of them in step to move the set is how a droop gets lost by accident.
+  offsetY: 0,
+  rootSpread: 0.1, // fan at the root
+  tipSpread: 0.24, // ...and at the tip, so they splay
+  // How much of the forward length the REARWARD fan gets, side-on. 0 by
+  // default, and that is geometry rather than taste: our muzzle sits 0.22
+  // head radii forward of the head centre (kitten.me's face is centred),
+  // so a rear fan starts deep inside the skull and would have to be 1.2x
+  // the FORWARD one just to reach the back of the head. Every stroke of it
+  // is buried in fur. Head-on there is no near side, so both fans draw.
+  back: 1,
+};
+
 const NOSE = {
   x: 0.22, // nose center from head center / head.r (toward the muzzle)
   y: 0.29, // below head center / head.r
   size: 0.17, // half-width / head.r
+  // 0 leaves each colorway's authored nose alone; 1 takes it to black.
+  // Added when whiskers landed (2026-08-13): three hairlines either side
+  // of the muzzle pull the eye there, and a pale pink nose that read fine
+  // on its own stops holding the middle of the face against them.
+  darken: 0.02,
 };
 
 /**
@@ -2894,7 +3050,7 @@ const MOUTH = {
   depth: 0.08, // vertical reach: leg drop ('v') or arc bulge ('w')
 };
 
-function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0, view = 'side') {
+function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0, view = 'side', size = 31) {
   // A yawn squeezes the eyes shut on its way open -- it is the eyes, not
   // the mouth, that make a yawn read as one at 31px.
   if (yawn > 0.02) lid = Math.max(lid, smooth01(yawn * 1.1));
@@ -3167,7 +3323,8 @@ function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0, view = 'si
   const nx = muzzleX(head, view);
   const ny = head.cy + head.r * NOSE.y;
   const ns = head.r * NOSE.size;
-  ctx.fillStyle = a.noseColor;
+  const noseInk = noseInkOf(a);
+  ctx.fillStyle = noseInk;
   ctx.beginPath();
   ctx.moveTo(nx - ns, ny - ns * 0.6);
   ctx.lineTo(nx + ns, ny - ns * 0.6);
@@ -3214,7 +3371,7 @@ function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0, view = 'si
       ctx.bezierCurveTo(nx - gw * 0.98, top + d * 0.66, nx - gw * 0.52, top + d, nx, top + d);
       ctx.bezierCurveTo(nx + gw * 0.52, top + d, nx + gw * 0.98, top + d * 0.66, nx + gw, top);
     };
-    ctx.fillStyle = shadeHex(a.noseColor, 0.5);
+    ctx.fillStyle = shadeHex(noseInk, 0.5);
     ctx.beginPath();
     jaw();
     ctx.closePath(); // the chord back along `top`, hidden under the omega
@@ -3222,7 +3379,7 @@ function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0, view = 'si
     if (o > 0.45) {
       // The tongue. Small, but it is what keeps a gape reading as a yawn
       // rather than as a hiss -- which is the last thing this world wants.
-      ctx.fillStyle = lightenHex(a.noseColor, 0.22);
+      ctx.fillStyle = lightenHex(noseInk, 0.22);
       ctx.beginPath();
       ctx.ellipse(nx, top + d * 0.72, gw * 0.46, d * 0.2, 0, 0, TAU);
       ctx.fill();
@@ -3248,6 +3405,60 @@ function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0, view = 'si
     ctx.lineTo(nx + head.r * MOUTH.width, my + head.r * MOUTH.depth);
   }
   ctx.stroke();
+
+  drawWhiskers(ctx, head, a, view, size);
+}
+
+/**
+ * Three a side, leaving the muzzle and finishing past the head's own edge.
+ *
+ * Inside `drawFace` on purpose: that is only ever called for a face we can
+ * see, so a cat walking away has no whiskers without this knowing the rule
+ * exists. The same placement is why the muzzle masks moved there in #187.
+ */
+function drawWhiskers(ctx, head, a, view, size) {
+  const W = WHISKER;
+  if (!(W.on > 0)) return;
+  // In PIXELS, then converted: the drawing runs in unit space, where a
+  // lineWidth of 0.8 would be most of a cat. This is the floor kitten.me
+  // pins to below a 44px cat, and the reason its hairlines survive.
+  ctx.save();
+  ctx.lineWidth = Math.max(W.widthPx / size, W.widthOfCat);
+  // Alpha through the context, not baked into a colour string: cat-v2 has
+  // no `withAlpha`, and a whisker has to work over fur AND over grass, so
+  // compositing beats picking one blend.
+  ctx.globalAlpha = W.alpha * W.on;
+  // A pale cat needs a dark hair and a dark cat a pale one, or the whisker
+  // is the one part of the face that vanishes on half the roster.
+  ctx.strokeStyle = isDarkColor(a.furBase) ? '#efe7dd' : '#453c36';
+  ctx.lineCap = 'round';
+  const r = head.r;
+  const cx = muzzleX(head, view);
+  const cy = head.cy + r * NOSE.y;
+  // Front-on there is no near side and no far side, so both fans are the
+  // same length. In the side view the far fan is foreshortened -- the same
+  // argument the axial swim tail is built on.
+  const sides = view === 'front' ? [1, -1] : [1, -1];
+  const mid = (W.count - 1) / 2;
+  for (const dir of sides) {
+    const reach = view === 'front' || dir > 0 ? 1 : W.back;
+    if (reach <= 0) continue; // a zero-length fan is six strokes of nothing
+    for (let i = 0; i < W.count; i++) {
+      const k = i - mid;
+      ctx.beginPath();
+      const dy = r * W.offsetY;
+      ctx.moveTo(
+        cx + dir * r * W.rootX,
+        cy + dy + r * (W.rootY - 0.26) + k * r * W.rootSpread,
+      );
+      ctx.lineTo(
+        cx + dir * r * (W.rootX + (W.tipX - W.rootX) * reach),
+        cy + dy + r * (W.tipY - 0.26) + k * r * W.tipSpread,
+      );
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
 }
 
 function drawRaisedPaw(ctx, head, a) {
@@ -3299,6 +3510,10 @@ const api = {
   AXIAL_CAMERAS,
   AXIAL_POSES,
   AXIAL_SWIM,
+  WHISKER,
+  drawWhiskers,
+  INNER_EAR,
+  noseInkOf,
   applyAxial,
   FOCUS_VARIANTS,
   BREATH,

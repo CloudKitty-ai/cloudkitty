@@ -254,6 +254,58 @@ change.
   since the seed drives the lobe angles too, the pair ends up differing
   in silhouette as well as size. A tree beside a bush of its own size is
   left alone, because that reads fine (#214).
+- Whiskers, attempt three, and this one **ships on**. The first two were
+  cut and the backlog recorded that cutting again was an acceptable
+  answer; the owner's read at the live tile was that they carry even at
+  low resolution. Ported from kitten.me, whose trick turns out not to be
+  resolution: its stroke is `max(0.8, cat × 0.018)`, so below a 44px cat
+  it sits pinned at the 0.8px floor exactly as ours would. What makes it
+  read is **opacity**, where a hairline is a soft hint rather than an
+  aliased dotted line, and a length that runs past the head so most of it
+  falls against the background rather than against fur. Baked at 0.25
+  alpha, three a side, 0.2 to 1.25 head radii. Drawn inside `drawFace`,
+  so a cat walking away has none without the whiskers knowing that rule
+  exists. The portrait chip grew 3px because the stretch pose put a tip
+  over its edge (#215).
+- Nose darkness (`NOSE.darken`, 0 = the colorway's own) — a consequence
+  of the whiskers rather than a separate idea, since six hairlines either
+  side of the muzzle pull the eye off a pale pink nose. It resolves one
+  ink for the whole muzzle: the yawn's jaw and the tongue are both mixed
+  from the nose, so darkening only the triangle would have left a pale
+  mouth inside a dark face the moment a cat yawned. The inner ears paint
+  from the same colour and follow it too. Both this and the whiskers are
+  on the face card, where a check now proves every slider is printed in
+  the readout — it found `SWIM.tailUpright` had been dialled for a whole
+  session and typed back by hand (#215).
+- The inner ear is a shape now. It was a one-sided needle running 35% to
+  100% along the ear's spine with a single nudge sideways, which at a
+  31px cat is **0.71px² of paint, never wider than 0.64px** — under the
+  same floor that killed whiskers twice, and visible only as a sliver of
+  pink. At the owner's bake it shows **2.18px²** at the same cat, a third
+  of the visible ear rather than an eighth, and 8.17px² at the 60px tile
+  camera mode will reach.
+- It is dialled as *fur showing*, which took two goes. The first cut gave
+  it the obvious knobs — where the pink's base sits, where its point
+  stops, how wide it is — and the owner's read was that they were hard to
+  aim: the ear tapers, so widening the pink also closed the gap at its
+  tip, and every knob moved two things. What she was actually judging was
+  the fur left around it, so that is what the two dials are now, one for
+  the sides and one for the tip. Holding the side gap even the whole way
+  up makes the pink a blunt-ended shape rather than a spike, which is
+  also what an ear looks like. Even took a second pass to mean even: an
+  ear *leans*, its tip swung outward, so its two slanted edges meet its
+  base at different angles and a margin stepped along that base left
+  0.46px of fur on one side against 0.64px on the other. Each edge moves
+  perpendicular to itself now, and the two match to within a thousandth
+  of a pixel. The tip dial is measured down from where those inset sides
+  meet rather than down from the ear's own point: a side margin already
+  pulls the pink clear of the tip, so measured the other way the dial did
+  nothing for the first 0.349 of its travel — and that dead zone moved
+  every time the side dial did. Baked at `sideFur` 0.28 and `tipFur` 0,
+  where the sides meet on their own and it comes to a point. It is painted **with** the ear and under
+  the head, so it needs no rule about where the skull starts — solving
+  for that line got the centre right and still left both base corners
+  inside a round skull (#215).
 - Docs: rl-training + howto-rl caught up to spec 028 (two-head wire,
   20×20, certification assumptions rewritten — the channel is
   restrained by law, not economics), and kitty-eval is a pre-seating
