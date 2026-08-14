@@ -1,0 +1,91 @@
+{
+ "hom-s1": {
+  "s1|ticks": 200000,
+  "s1|nearest_sum": 518587,
+  "s1|contact": 95008,
+  "s1|alone": 56179,
+  "s1|pair": 89227,
+  "s1|group": 54594,
+  "s1|sleep": 44166,
+  "s1|in_pile": 36633,
+  "s1|sleep_own_beam": 546,
+  "s1|cosleep_on_beam": 734,
+  "s1|conducted": 273,
+  "pairs": {
+   "s1+s1": 36633
+  }
+ },
+ "hom-s2": {
+  "s2|ticks": 200000,
+  "s2|nearest_sum": 580201,
+  "s2|contact": 83456,
+  "s2|alone": 68918,
+  "s2|pair": 90623,
+  "s2|sleep": 35519,
+  "s2|in_pile": 31937,
+  "s2|group": 40459,
+  "s2|sleep_own_beam": 372,
+  "s2|cosleep_on_beam": 521,
+  "s2|conducted": 204,
+  "pairs": {
+   "s2+s2": 31937
+  }
+ },
+ "hom-s3": {
+  "s3|ticks": 200000,
+  "s3|nearest_sum": 557910,
+  "s3|contact": 94216,
+  "s3|alone": 58966,
+  "s3|pair": 81637,
+  "s3|in_pile": 39468,
+  "s3|group": 59397,
+  "s3|sleep": 28654,
+  "s3|sleep_own_beam": 276,
+  "s3|cosleep_on_beam": 263,
+  "s3|conducted": 84,
+  "pairs": {
+   "s3+s3": 39468
+  }
+ },
+ "mix": {
+  "s1|ticks": 100000,
+  "s1|nearest_sum": 280843,
+  "s1|contact": 44705,
+  "s1|alone": 31954,
+  "s2|ticks": 50000,
+  "s2|nearest_sum": 147902,
+  "s2|contact": 21329,
+  "s2|alone": 17015,
+  "s3|ticks": 50000,
+  "s3|nearest_sum": 174828,
+  "s3|contact": 21242,
+  "s3|alone": 17832,
+  "s1|pair": 45501,
+  "s2|pair": 22063,
+  "s1|sleep": 22858,
+  "s1|in_pile": 19065,
+  "s2|sleep": 9022,
+  "s2|in_pile": 8067,
+  "s3|pair": 21409,
+  "s3|in_pile": 8723,
+  "s3|sleep": 6377,
+  "s3|group": 10759,
+  "s2|group": 10922,
+  "s1|group": 22545,
+  "s1|sleep_own_beam": 220,
+  "s1|cosleep_on_beam": 219,
+  "s3|sleep_own_beam": 41,
+  "s3|cosleep_on_beam": 54,
+  "s1|conducted": 48,
+  "s2|cosleep_on_beam": 113,
+  "s2|conducted": 54,
+  "s2|sleep_own_beam": 75,
+  "s3|conducted": 21,
+  "pairs": {
+   "s1+s2": 11382,
+   "s1+s3": 12051,
+   "s2+s3": 5659,
+   "s1+s1": 6763
+  }
+ }
+}
