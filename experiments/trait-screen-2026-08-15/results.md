@@ -147,7 +147,7 @@ question "before we proceed"; verified, for her review)
 | seat | character | vector | verified |
 |---|---|---|---|
 | Miso | "the deep sleeper" | sleep .6 / drink .2 / play .3 | +0.07 |
-| Biscuit | "the playful one, restored" | play .8 / bath .1 / sleep .225 | +0.03 |
+| Biscuit | "the playful one, restored" | play .8 / **eat .3 / drink .3** (owner's revision: the bowl needs are stationary — discounting them frees chase time, the pair REINFORCES the signature) | **+0.21** |
 | Kittybear | "the immaculate" | bath .4 / drink .3 / play .3 | +0.06 |
 
 All balanced-or-better, zero distress; additivity 8-for-8. Ecology
@@ -160,3 +160,15 @@ seat); seat-true re-verification is one cell per adopted vector.
 Bodies-layer status if adopted: 5/5 seats charactered — the deep
 sleeper, the playful one, the snacky one, the immaculate one, the
 affectionate one. Owner decides at the plan review.
+
+**Owner's Biscuit revision (2026-08-15, late)**: discounts moved to
+eat+drink — "the most stationary needs; play benefits from chasing."
+Verified +0.21 (slight structural sunniness: the bowl pair over-funds
+play-0.8, which cannot rise further — envelope edge; accepted under
+the ceiling-as-anchor rule). Design principle extracted for the
+register: **discounts can REINFORCE the signature, not just fund
+it** — choose the pair that frees time for the character, when the
+budget allows. Kittybear's play-discount confirmed by the owner on
+the same logic (bath time). Miso confirmed as sketched. Roster sheet
+final for the plan review: Miso +0.07 · Biscuit +0.21 · Pumpkin
+−0.11 · Kittybear +0.06 · Clementine −0.07.
