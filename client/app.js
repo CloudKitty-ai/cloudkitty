@@ -17,6 +17,7 @@ const gridNoteEl = document.getElementById('grid-note');
 const pathsNoteEl = document.getElementById('paths-note');
 const happyNoteEl = document.getElementById('happy-note');
 const pacedNoteEl = document.getElementById('paced-note');
+const purrNoteEl = document.getElementById('purr-note');
 
 const NEED_LABELS = {
   eat: 'eat',
@@ -1450,6 +1451,11 @@ window.addEventListener('keydown', (event) => {
   } else if (key === 'b') {
     anim.setPaced(!anim.paced);
     pacedNoteEl.hidden = anim.paced;
+  } else if (key === 'r') {
+    // The purr heart, off by default -- so this note reads the ordinary way
+    // round: it appears when the hearts are showing.
+    PURR.on = PURR.on ? 0 : 1;
+    purrNoteEl.hidden = !PURR.on;
   } else {
     return;
   }

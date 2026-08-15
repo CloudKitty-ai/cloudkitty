@@ -1475,6 +1475,7 @@ class WorldRenderer {
       this.drawBubble(kitty, MEOW_TEXT[meow.kind] || '…', view, meow);
     }
     for (const [id, meow] of purring) {
+      if (!PURR.on) break;
       // A request outranks the mood. They want the same space above the
       // cat, and the thing the viewer can act on is the one to keep.
       if (said.has(id)) continue;

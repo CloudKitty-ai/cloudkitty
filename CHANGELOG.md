@@ -287,7 +287,17 @@ change.
   the large view the live tile lands at 0.53px peak to peak and vanishes
   under the grid — so the share sets the character and the floor keeps it
   visible at the tile the world actually draws at. Reduced motion keeps
-  the glyph and stops the buzz (#223).
+  the glyph and stops the buzz.
+
+  **It ships off.** Watched on the candidate roster, the drawing reads
+  well and the rate does not: a heart popped in somewhere in the meadow
+  **every 3 seconds — 20 a minute** — and that is distracting whatever it
+  looks like. `r` toggles it live. The heart is also up for exactly as
+  long as the cat is purring rather than lingering: a fixed dwell read as
+  *popping*, and 3 ticks read calmer than 2, which says the appearing and
+  disappearing was the distraction rather than the presence. A purr is a
+  one-tick action, so the glyph tracks served state and has one end
+  instead of two (#223).
 - **The gaze aims at what it can express, and no more.** Reading the two
   target shapes the client had been ignoring — `groom`'s bare kitty id, and
   eat/drink resolved from the map — took the gaze from 5.2% of cat-ticks to

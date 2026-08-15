@@ -951,6 +951,8 @@ check("the hunter's gate is WIRED: the renderer measures the quarry", () => {
 });
 
 check('a purr draws its glyph; a request still draws its bubble', () => {
+  const wasOn = api.PURR.on;
+  api.PURR.on = 1;
   // The split, checked through a whole frame rather than by calling
   // drawBubbles directly -- the glyph reaches for `drawPurrGlyph` and
   // `PURR` across a file boundary, and props.js is exactly the kind of
@@ -993,9 +995,48 @@ check('a purr draws its glyph; a request still draws its bubble', () => {
 
   // And nothing at all when the cat has said nothing.
   assert(!frame([]).some((t) => t.includes('\u{1F497}')), 'a silent cat should draw no glyph');
+
+  // The switch itself: off is off, and it is what SHIPS.
+  api.PURR.on = 0;
+  assert(!frame([{ kitty_id: 1, kind: 'purr', tick: 10 }]).some((t) => t.includes('\u{1F497}')),
+    'the purr glyph drew with the switch off');
+  assert(frame([{ kitty_id: 1, kind: 'want_eat', tick: 10 }]).some((t) => t.includes('I want to eat')),
+    'turning purrs off must not touch request bubbles');
+  api.PURR.on = wasOn;
+  assert(api.PURR.on === 0,
+    'the purr glyph ships OFF -- a heart popped in every 3s on the candidate roster, 20 a minute');
+});
+
+check('the heart lasts the PURR, and not a tick longer', () => {
+  // Owner, 2026-08-14: a fixed linger read as distracting, and 3 ticks read
+  // calmer than 2 -- which says the popping in and out was the problem
+  // rather than the dwell. So the glyph tracks served state: up while the
+  // cat is purring, gone the tick it stops.
+  const wasOn = api.PURR.on;
+  api.PURR.on = 1;
+  const shown = [];
+  for (let tick = 10; tick <= 14; tick += 1) {
+    const log = [];
+    const renderer = new api.WorldRenderer(mockCanvas(640, 640, log));
+    renderer.tile = 32; renderer.dpr = 1; renderer.cssWidth = 640; renderer.cssHeight = 640;
+    const kitties = [{ id: 1, name: 'Miso', pos: { x: 5, y: 5 }, needs: {}, happiness: 90 }];
+    const at = (t) => ({ tick: t, width: 20, height: 20, elements: [], kitties,
+      recent_meows: [{ kitty_id: 1, kind: 'purr', tick: 10 }] });
+    const p = new api.Presentation();
+    p.pushState(at(tick - 1), 1000);
+    p.pushState(at(tick), 1800);
+    renderer.draw(p.curr, p.viewAt(2200, false));
+    if (log.some((e) => e[0] === 'fillText' && String(e[1]).includes('\u{1F497}'))) shown.push(tick);
+  }
+  api.PURR.on = wasOn;
+  assert(shown.length === 1 && shown[0] === 10,
+    `a purr on tick 10 showed on ticks ${shown.join(', ')} -- it should be up for the purr and no longer`);
+  assert(api.PURR.ticks === 1, 'the heart tracks the purr rather than running its own dwell');
 });
 
 check('the purr glyph is actually buzzing in a live frame', () => {
+  const wasOn = api.PURR.on;
+  api.PURR.on = 1;
   // The glyph is only as alive as the phase the RENDERER hands it, and the
   // two halves are in different files: props.js knows how to shake, and
   // render.js decides what to shake by. Handing over a constant leaves a
@@ -1023,6 +1064,7 @@ check('the purr glyph is actually buzzing in a live frame', () => {
   // ever travels.
   const half = 500 / api.PURR.shakeHz;
   const spread = Math.abs(xAt(2000) - xAt(2000 + half));
+  api.PURR.on = wasOn;
   assert(spread > api.PURR.shakeMinPx,
     `the glyph moved ${spread.toFixed(2)}px across half a shake -- the renderer is feeding it a constant`);
 });

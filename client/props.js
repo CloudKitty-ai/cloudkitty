@@ -460,10 +460,15 @@ function drawSleepZs(ctx, opts) {
  * as whatever emoji font the viewer's OS ships.
  */
 const PURR = {
+  // OFF by default (owner, 2026-08-14). The glyph itself reads well, but a
+  // heart popped in somewhere in the meadow every 3 seconds -- 20 a minute
+  // on the candidate roster -- and that is distracting whatever it looks
+  // like. Press `r` to see it. Turning it on is a decision, not a tweak.
+  on: 0,
   size: 0.27, // share of the tile
-  rise: -0.04, // NEGATIVE: down onto the cat's body (owner, 2026-08-14)
+  rise: 0, // 0 sits it on the cat's shoulders; negative goes down into the body
   offsetX: 0,
-  alpha: 0.5,
+  alpha: 0.65,
   // A share of the GLYPH, with a pixel floor -- the same shape as the
   // whisker stroke, and for the opposite reason to the one first written
   // here. A flat pixel travel was tried and the owner's read (2026-08-14)
@@ -476,12 +481,14 @@ const PURR = {
   // the live tile lands at 0.53px peak to peak and disappears under the
   // grid. So the share sets the character and the floor keeps it visible
   // at the tile the world actually draws at.
-  // How many served ticks the glyph lingers. Its own number rather than
-  // the bubbles' BUBBLE_TICKS (3): that was chosen as reading time for a
-  // sentence, and a glyph is noticed rather than read. At 800ms a tick,
-  // 2 is 1.6s -- long enough to catch a buzzing heart, a third less time
-  // on screen than a bubble, which matters when a roster purrs this much.
-  ticks: 2,
+  // The heart is up for as long as the cat is PURRING and no longer
+  // (owner, 2026-08-14). A meow is a one-tick action, so a single purr
+  // shows for one tick and a cat purring on consecutive ticks holds the
+  // heart across them -- the glyph tracks served state instead of running
+  // its own dwell timer. Longer read calmer than shorter when this was a
+  // fixed linger, which says the pop in and out was the distraction; not
+  // outliving the purr removes one of the two ends entirely.
+  ticks: 1,
   shakeOfGlyph: 0.032,
   shakeMinPx: 0.4,
   shakeHz: 20,

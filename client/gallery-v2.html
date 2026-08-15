@@ -1623,8 +1623,9 @@
       bag: PURR,
       note:
         'Measured on the candidate world (attn-a1, 246 ticks): 98% of every meow is a purr, and a bubble was on screen 50.2% of ticks against 15.1% for the seated policy. Nine of the ten kinds are REQUESTS a viewer can act on; a purr is a mood. Same bubble for both meant almost every bubble said nothing. With purr taken out, request bubbles fall to 1.2% of ticks — a bubble means something again. ' +
-        'Judged here against a vibrating heart, a pulsing heart and sound waves; the owner took the emoji (2026-08-14), knowing the two things it cannot do: follow the day/night palette, and look the same on two machines. This dials the SHIPPED glyph — props.js PURR — so there is no second copy to drift.',
+        'Judged here against a vibrating heart, a pulsing heart and sound waves; the owner took the emoji (2026-08-14), knowing the two things it cannot do: follow the day/night palette, and look the same on two machines. This dials the SHIPPED glyph — props.js PURR — so there is no second copy to drift. It ships OFF (`r` toggles it live): the drawing reads well, but a heart popped in somewhere in the meadow every 3 seconds on the candidate roster, 20 a minute, and that is distracting whatever it looks like. The heart is up for exactly as long as the cat is purring — a one-tick action — rather than lingering, because a fixed dwell read as popping.',
       dials: [
+        { key: 'on', label: 'SHIP it? (the card always draws it)', min: 0, max: 1, step: 1 },
         { key: 'size', label: 'glyph size, share of the tile', min: 0.15, max: 0.7, step: 0.01 },
         { key: 'rise', label: 'height above the cat (negative = down onto it)', min: -1.2, max: 1, step: 0.02 },
         { key: 'offsetX', label: 'left / right of centre, share of tile', min: -0.7, max: 0.7, step: 0.02 },
@@ -1635,7 +1636,7 @@
       ],
       readout() {
         const P = PURR;
-        return `PURR = { size: ${P.size}, rise: ${P.rise}, offsetX: ${P.offsetX}, alpha: ${P.alpha},\n` +
+        return `PURR = { on: ${P.on}, size: ${P.size}, rise: ${P.rise}, offsetX: ${P.offsetX}, alpha: ${P.alpha},\n` +
           `  shakeOfGlyph: ${P.shakeOfGlyph}, shakeMinPx: ${P.shakeMinPx}, shakeHz: ${P.shakeHz} }\n` +
           [31, 93].map((t) => {
             const g = P.size * t;
