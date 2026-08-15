@@ -4530,6 +4530,22 @@ check('the traits dialog ships OFF, and its stubs are marked as stubs', () => {
   assert(/STUB_TRAITS/.test(app) && /Delete this whole/.test(app),
     'the placeholder table is no longer marked for deletion');
 
+  // The owner's copy, verbatim. Ours to lay out, not to edit -- the same
+  // rule the About card's text lives under.
+  const bios = app.slice(app.indexOf('const KITTY_BIOS'), app.indexOf('/** The bio for a cat'));
+  for (const [name, epithet] of [
+    ['Miso', 'Sleepy Kitty'], ['Biscuit', 'Playful Kitty'], ['Pumpkin', 'Hungry Kitty'],
+    ['Kittybear', 'Tidy Kitty'], ['Clementine', 'Cuddly Kitty'],
+  ]) {
+    assert(bios.includes(`name: '${name}'`), `${name} has lost her bio`);
+    assert(bios.includes(`epithet: '${epithet}'`), `${name}'s epithet has drifted`);
+  }
+  // Keyed by id AND name, so a reseeded roster shows nothing rather than
+  // attaching one cat's life story to another.
+  const bioFn = app.slice(app.indexOf('function bioFor'), app.indexOf('/** One shared scale'));
+  assert(/bio\.name === kitty\.name/.test(bioFn),
+    'the bio is looked up by id alone, so a reseeded roster would mis-attach it');
+
   // A stub must not read as a measurement.
   assert(/\.trait\[data-stub\]/.test(markup), 'stubbed rows look identical to measured ones');
 

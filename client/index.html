@@ -270,6 +270,11 @@
   }
   .traits-head { display: flex; align-items: center; gap: 10px; }
   .traits-head h2 { margin: 0; font-size: 1rem; }
+  .traits-epithet {
+    margin: 1px 0 0;
+    font-size: 0.8rem;
+    color: var(--ink);
+  }
   .traits-mind {
     margin: 1px 0 0;
     font-size: 0.72rem;
@@ -986,12 +991,11 @@
       <canvas width="61" height="47" aria-hidden="true"></canvas>
       <div>
         <h2 class="traits-name"></h2>
+        <p class="traits-epithet" hidden></p>
         <p class="traits-mind"></p>
       </div>
     </div>
-    <p class="traits-prose">Lorem ipsum dolor sit amet, consectetur adipiscing
-    elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-    enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p>
+    <p class="traits-prose" hidden></p>
     <div class="traits-needs"></div>
     <p class="traits-foot">Need rise per tick. The mark is the baseline.</p>
   </dialog>

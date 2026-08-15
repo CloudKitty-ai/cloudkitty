@@ -1341,6 +1341,59 @@ const STUB_TRAITS = {
   4: { drink: 0.54, eat: 0.28, bath: 0.29 },
 };
 
+/**
+ * The owner's copy, verbatim. Ours to lay out, not to edit.
+ *
+ * Keyed by id AND name: a reseeded roster could hand id 3 to a different
+ * cat, and attaching Pumpkin's life story to somebody else is a worse
+ * failure than showing nothing. A mismatch shows nothing.
+ */
+const KITTY_BIOS = {
+  1: {
+    name: 'Miso',
+    epithet: 'Sleepy Kitty',
+    body: 'With Miso, nap time is all the time, and she\u2019s decided naps are '
+      + 'best shared: she sleeps in a pile whenever she can, and everyone wants the '
+      + 'spot beside her. When she wanders off alone, she sends a little purr across '
+      + 'the meadow: I\'m fine, back soon.',
+  },
+  2: {
+    name: 'Biscuit',
+    epithet: 'Playful Kitty',
+    body: 'Born to chase: Biscuit would rather chase a bug than eat dinner. She\'s '
+      + 'also the meadow\'s elder, keeper of the old customs: a purr from far away '
+      + 'means all is well, and when a friend mews for bath time, she\'s the one who '
+      + 'pads over to help wash.',
+  },
+  3: {
+    name: 'Pumpkin',
+    epithet: 'Hungry Kitty',
+    body: 'A snack is never far from her thoughts. In between visits to the food '
+      + 'bowl, her heart is enormous. she spends her days cleaning her friends\' '
+      + 'ears, purring all the while. Bonded with Kittybear.',
+  },
+  4: {
+    name: 'Kittybear',
+    epithet: 'Tidy Kitty',
+    body: 'Setting the record for most baths and most purrs, Kittybear shares '
+      + 'Pumpkin\'s warm idea of the world: caring for someone looks like washing '
+      + 'them. The chattiest pair around, and the kindest. Bonded with Pumpkin.',
+  },
+  // Placeholder until she is seated and has grown into a mind of her own.
+  5: {
+    name: 'Clementine',
+    epithet: 'Cuddly Kitty',
+    body: 'Came into the world wanting to be near somebody. What she\'ll make of the '
+      + 'meadow, nobody knows yet \u2014 she\'s new here.',
+  },
+};
+
+/** The bio for a cat, or null when the roster does not match the copy. */
+function bioFor(kitty) {
+  const bio = KITTY_BIOS[kitty.id];
+  return bio && bio.name === kitty.name ? bio : null;
+}
+
 const NEED_ORDER = ['eat', 'drink', 'sleep', 'play', 'cuddle', 'bath'];
 
 function traitsFor(kittyId) {
@@ -1375,7 +1428,14 @@ function traitScale() {
 function openTraitsDialog(kitty) {
   const dialog = document.getElementById('traits');
   if (!dialog) return;
+  const bio = bioFor(kitty);
   dialog.querySelector('.traits-name').textContent = kitty.name;
+  const epithet = dialog.querySelector('.traits-epithet');
+  epithet.textContent = bio ? bio.epithet : '';
+  epithet.hidden = !bio;
+  const prose = dialog.querySelector('.traits-prose');
+  prose.textContent = bio ? bio.body : '';
+  prose.hidden = !bio;
   const behavior = kitty.behavior ?? '';
   dialog.querySelector('.traits-mind').textContent = behavior.startsWith('policy:')
     ? behavior.slice('policy:'.length)
