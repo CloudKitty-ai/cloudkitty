@@ -139,7 +139,13 @@ Procedure, in order:
 3. Budget B = the two discounts' combined measured welfare gain
    (current bracket's exchange table).
 4. The signature trait's CEILING = where its measured cost curve
-   equals B; set it at or below, never above.
+   equals B. The ceiling is an ANCHOR, not a wall (owner
+   clarification, same day): a LITTLE above is fine — welfare need
+   not balance perfectly; small measured residuals are carried by
+   seat-paired accounting (07-narrow's −0.27 is the calibration
+   example of acceptable). The hard outer line stays the seat-paired
+   gate budget, and every residual is measured and recorded, never
+   estimated.
 5. Direct verification of the pinned vector, always (additivity is
    4-for-4 across verified vectors but remains a hypothesis, not a
    law).
