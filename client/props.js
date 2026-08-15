@@ -481,13 +481,17 @@ const PURR = {
   // the live tile lands at 0.53px peak to peak and disappears under the
   // grid. So the share sets the character and the floor keeps it visible
   // at the tile the world actually draws at.
-  // The heart is up for as long as the cat is PURRING and no longer
-  // (owner, 2026-08-14). A meow is a one-tick action, so a single purr
-  // shows for one tick and a cat purring on consecutive ticks holds the
-  // heart across them -- the glyph tracks served state instead of running
-  // its own dwell timer. Longer read calmer than shorter when this was a
-  // fixed linger, which says the pop in and out was the distraction; not
-  // outliving the purr removes one of the two ends entirely.
+  // Ticks ON SCREEN, which is not the same as ticks of world: a meow is
+  // never served on the tick it happened -- measured, the freshest entry in
+  // `recent_meows` is always exactly one tick old -- so this counts display
+  // ticks and 1 means one, 800ms. (It first shipped as a window on the
+  // meow's AGE, where 1 meant "younger than one tick" and drew nothing at
+  // all, ever.)
+  //
+  // 1 is the duration of the purr itself (owner, 2026-08-14). A fixed
+  // linger read as distracting and three ticks read calmer than two, which
+  // points at the popping in and out rather than the time on screen -- so
+  // the glyph tracks served state and has one end instead of two.
   ticks: 1,
   shakeOfGlyph: 0.032,
   shakeMinPx: 0.4,

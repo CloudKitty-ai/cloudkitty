@@ -1452,7 +1452,16 @@ class WorldRenderer {
     // a purr lingers for PURR.ticks and a request for BUBBLE_TICKS, and
     // reading the window off the max means neither can be clipped by the
     // other's number.
-    const window = Math.max(BUBBLE_TICKS, PURR.ticks);
+    // A meow is NEVER served on the tick it happened: measured against the
+    // live world, the freshest entry in `recent_meows` is always exactly one
+    // tick old. So an age of 0 does not exist, and a window expressed as
+    // `age < n` is really `n - 1` ticks of screen time -- which is how
+    // `PURR.ticks: 1` shipped drawing nothing at all.
+    //
+    // The purr therefore counts in DISPLAY ticks (`age <= ticks`), so 1 is
+    // one tick on screen. `BUBBLE_TICKS` keeps its original comparison
+    // rather than being quietly redefined under the speech bubbles.
+    const window = Math.max(BUBBLE_TICKS, PURR.ticks + 1);
     const recent = (world.recent_meows || []).filter(
       (m) => m.tick > world.tick - window,
     );
@@ -1464,7 +1473,7 @@ class WorldRenderer {
     const purring = new Map();
     for (const meow of recent) {
       const purr = meow.kind === 'purr';
-      if (meow.tick <= world.tick - (purr ? PURR.ticks : BUBBLE_TICKS)) continue;
+      if (purr ? meow.tick < world.tick - PURR.ticks : meow.tick <= world.tick - BUBBLE_TICKS) continue;
       if (purr) purring.set(meow.kitty_id, meow);
       else said.set(meow.kitty_id, meow);
     }

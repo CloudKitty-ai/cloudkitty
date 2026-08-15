@@ -297,7 +297,15 @@ change.
   *popping*, and 3 ticks read calmer than 2, which says the appearing and
   disappearing was the distraction rather than the presence. A purr is a
   one-tick action, so the glyph tracks served state and has one end
-  instead of two (#223).
+  instead of two.
+
+  One measurement worth keeping: **a meow is never served on the tick it
+  happened.** The freshest entry in `recent_meows` is always exactly one
+  tick old, so an age of 0 does not exist — and a dwell expressed as a
+  window on that age is off by one, which is how a one-tick heart first
+  shipped drawing nothing at all. The purr counts ticks *on screen* now,
+  and every fixture was rebuilt around ages the wire can actually produce
+  (#223).
 - **The gaze aims at what it can express, and no more.** Reading the two
   target shapes the client had been ignoring — `groom`'s bare kitty id, and
   eat/drink resolved from the map — took the gaze from 5.2% of cat-ticks to
