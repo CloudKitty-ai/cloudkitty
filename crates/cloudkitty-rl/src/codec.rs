@@ -26,9 +26,9 @@
 //! | 30–32 | Play with kitty slot 0 / 1 / 2 |
 //! | 33    | Idle |
 //!
-//! The message head (index 0 = Silent, 1–8 = `HEAD_KINDS` in normative
-//! order) is the only way to meow; `Action::Meow` proposals are
-//! inexpressible here and validate false in the engine.
+//! The message head (index 0 = Silent, 1–15 = `HEAD_KINDS` in normative
+//! order since spec 033) is the only way to meow; `Action::Meow`
+//! proposals are inexpressible here and validate false in the engine.
 //!
 //! **Totality**: every in-range index decodes to a proposal — a vacant or
 //! stale slot decodes to a proposal naming an entity that does not exist,
@@ -52,8 +52,11 @@ use crate::observe::{TargetTable, HEAD_KINDS};
 
 /// Version pinned into policy artifacts (FR-007/FR-016). The mask schema is
 /// versioned with the codec. Schema 2 (spec 028): the meow rows left the
-/// menu for the message head.
-pub const ACTION_SCHEMA_VERSION: u32 = 2;
+/// menu for the message head. Schema 3 (spec 033): the head widened
+/// 9 → 16 (the say-surface finalized); the 34-entry activity menu did NOT
+/// move -- this pin versions the full decision encoding, and the head is
+/// what changed. Frozen through the fog era (ROADMAP principle 5).
+pub const ACTION_SCHEMA_VERSION: u32 = 3;
 
 /// The id a vacant slot decodes to. Aliased to the engine's reserved ids
 /// (one definition, owned by core): config validation rejects a kitty with
@@ -306,7 +309,7 @@ mod tests {
 
     #[test]
     fn the_message_head_decodes_totally_and_encode_inverts() {
-        assert_eq!(MessageCodec::LEN, 9);
+        assert_eq!(MessageCodec::LEN, 16); // schema 3 (spec 033): Silent + 15
         assert_eq!(MessageCodec::decode(0).unwrap(), None, "0 is Silent");
         assert_eq!(
             MessageCodec::decode(1).unwrap(),
@@ -326,9 +329,19 @@ mod tests {
             MessageCodec::decode(8).unwrap(),
             Some(MessageKind::WantSleep)
         );
+        assert_eq!(
+            MessageCodec::decode(9).unwrap(),
+            Some(MessageKind::HereFood),
+            "spec 033: the Here family starts at head index 9"
+        );
+        assert_eq!(
+            MessageCodec::decode(15).unwrap(),
+            Some(MessageKind::Ekekek),
+            "the head's last word is the second reserve"
+        );
         assert!(matches!(
-            MessageCodec::decode(9),
-            Err(CodecError::OutOfRange { index: 9, len: 9 })
+            MessageCodec::decode(16),
+            Err(CodecError::OutOfRange { index: 16, len: 16 })
         ));
         for index in 0..MessageCodec::LEN {
             let message = MessageCodec::decode(index).unwrap();

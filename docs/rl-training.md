@@ -55,10 +55,10 @@ obs, infos = env.reset()
 agents = env.possible_agents          # e.g. ["kitty_1", ..., "kitty_5"]
 
 # obs[agent]:            float32 [N_WORLDS, obs_len]
-# infos[agent]["mask"]:  uint8   [N_WORLDS, 43] — 34 activity ∥ 9 message
+# infos[agent]["mask"]:  uint8   [N_WORLDS, 50] — 34 activity ∥ 16 message
 # env.state():           float32 [N_WORLDS, state_len] — the critic's view
 
-MENU = env.menu_len                    # 34 at default slots (spec 028)
+MENU = env.menu_len                    # 34 at default slots (unchanged by 033)
 actions = {a: np.zeros((N_WORLDS, 2), dtype=np.int64) for a in agents}
 for a in agents:
     for w in range(N_WORLDS):
@@ -74,7 +74,8 @@ obs, rewards, terminations, truncations, infos = env.step(actions)
 
 A decision is a **pair** (spec 028): an activity from the 34-entry menu
 and a message riding along for free — the action space is
-`MultiDiscrete([34, 9])`, and the 43-wide mask is the two heads'
+`MultiDiscrete([34, 16])` (the head widened to Silent + 15 at the spec-033
+say-surface freeze; the menu did not move), and the 50-wide mask is the two heads'
 legality concatenated, activity first. Train with any parameter-shared
 cooperative algorithm that consumes the parallel convention
 (MAPPO-style: actor on observations + mask, critic on `state()`). Apply
@@ -106,9 +107,10 @@ pipeline (below).
 
 ## Exporting a `.ckpolicy` artifact
 
-Policies are plain MLPs: observation → hidden ReLU layers → **43
-logits** — one trunk, two heads by index convention (spec 028):
-`[0..34)` is the activity head, `[34..43)` the message head. Greedy
+Policies are plain MLPs: observation → hidden ReLU layers → **50
+logits** — one trunk, two heads by index convention (spec 028, widths
+per spec 033): `[0..34)` is the activity head, `[34..50)` the message
+head. Greedy
 selection is per-head masked argmax; sampled selection draws **one**
 u64 per decision and splits it, hi u32 → activity, lo u32 → message
 (the R10 law — never a second draw). The artifact container is **v2**
@@ -129,8 +131,9 @@ def export_ckpolicy(path, layers, obs_len):
         "artifact_version": 2,   # spec 028: two heads in one final layer
         # The three SCHEMA fields always come from the binding's constants,
         # never literals: an artifact stamped with a stale generation is
-        # refused at load (observation schema 3 since spec 028 -- the
-        # meow digest rework took the vector to 197).
+        # refused at load (observation schema 4 since spec 033 -- the
+        # say-surface freeze took the digest to 15 kinds, the vector
+        # to 225).
         "observation_schema": cloudkitty.OBSERVATION_SCHEMA_VERSION,
         "action_schema": cloudkitty.ACTION_SCHEMA_VERSION,
         "mask_schema": cloudkitty.MASK_SCHEMA_VERSION,
@@ -138,7 +141,7 @@ def export_ckpolicy(path, layers, obs_len):
         "activation": "relu",
     }
     assert header["layers"][0][0] == obs_len
-    assert header["layers"][-1][1] == 43   # 34 activity + 9 message
+    assert header["layers"][-1][1] == 50   # 34 activity + 16 message
     header_bytes = (json.dumps(header) + "\n").encode()
     with open(path, "wb") as f:
         f.write(b"CKPOLICY")

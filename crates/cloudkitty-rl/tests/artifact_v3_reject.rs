@@ -96,6 +96,27 @@ fn each_rejection_class_fails_by_name_before_any_tick() {
         "{err}"
     );
 
+    // Spec 033 (T019): the GENERATION gate, pin by pin -- an artifact from
+    // the pre-wall generation carries observation 3 / action 2 / mask 2,
+    // and each stale pin is refused independently, naming itself. This is
+    // how the wall refuses by version and never by shape accident.
+    for (key, stale, schema) in [
+        ("observation_schema", 3, "observation"),
+        ("action_schema", 2, "action"),
+        ("mask_schema", 2, "mask"),
+    ] {
+        let p = dir.join(format!("stale-{schema}.ckpolicy"));
+        craft(&p, &header_json_with(|v| v[key] = stale.into()), floats);
+        let err = PolicyArtifact::load(&p, &expect).unwrap_err();
+        match err {
+            ArtifactError::SchemaMismatch { schema: named, .. } => assert_eq!(
+                named, schema,
+                "the pre-wall {schema} pin is refused naming its own schema"
+            ),
+            other => panic!("stale {schema} pin: wrong error class: {other}"),
+        }
+    }
+
     // Unrecognized architecture.
     let p = dir.join("arch.ckpolicy");
     craft(

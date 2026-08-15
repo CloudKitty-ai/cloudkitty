@@ -406,6 +406,17 @@ async fn activity_durations_travel_through_the_config_endpoint() {
     assert_eq!(durations["cuddle"]["max"], 8);
     assert_eq!(durations["bath"]["min"], 2);
 
+    // Spec 033 (T018): the vocabulary flags travel too, defaults intact --
+    // an experimenter (or a curious viewer) reads the armed words here.
+    let vocabulary = &config["meow"]["vocabulary"];
+    assert_eq!(vocabulary["here_food"], true);
+    assert_eq!(vocabulary["chirp"], true);
+    assert_eq!(
+        vocabulary["trill"], false,
+        "reserves echo their off default"
+    );
+    assert_eq!(vocabulary["ekekek"], false);
+
     server.shutdown().await;
 }
 

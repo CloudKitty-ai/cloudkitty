@@ -13,7 +13,7 @@ def make_env(horizon=25):
     return cloudkitty.ParallelEnv(horizon=horizon)
 
 
-MENU = 34  # menu v2 (spec 028); the mask concat is [activity 34 | message 9]
+MENU = 34  # menu v2 (spec 028); the mask concat is [activity 34 | message 16] since spec 033
 IDLE = [33, 0]  # (idle, silent) — the v2 no-op pair
 
 
@@ -51,7 +51,7 @@ def test_reset_shapes_and_bounds():
             "provenance",
         }
         mask = info["mask"]
-        assert mask.dtype == np.uint8 and mask.shape == (43,)
+        assert mask.dtype == np.uint8 and mask.shape == (50,)
         assert mask[MENU] == 1, "Silent (head index 0) is always legal"
         assert mask.any(), "never all-zero"
         assert info["applied_action"] is None, "nothing applied at reset"
@@ -101,12 +101,12 @@ def test_out_of_range_raises_vacant_slots_do_not():
     with pytest.raises(IndexError):
         env.step({agents[0]: [34, 0], **{a: IDLE for a in agents[1:]}})
 
-    # The message half gets the identical treatment (head has 9 entries)
-    # and the identical exception type — one fault class, one exception,
-    # matching VectorEnv's pre-check.
+    # The message half gets the identical treatment (head has 16 entries
+    # since spec 033) and the identical exception type — one fault class,
+    # one exception, matching VectorEnv's pre-check.
     env.reset(seed=5)
     with pytest.raises(IndexError):
-        env.step({agents[0]: [33, 9], **{a: IDLE for a in agents[1:]}})
+        env.step({agents[0]: [33, 16], **{a: IDLE for a in agents[1:]}})
 
     # Rest-with-kitty-slot-2 is vacant on the default roster (2 others):
     # decodes and lawfully resolves to idle — never a raise.
@@ -170,11 +170,11 @@ def test_spaces_are_described():
     try:
         import gymnasium
 
-        assert list(act_space.nvec) == [34, 9], "MultiDiscrete pair (spec 028)"
+        assert list(act_space.nvec) == [34, 16], "MultiDiscrete pair (spec 028; head 16 since 033)"
         assert obs_space.shape[0] > 100
     except ImportError:
         assert act_space["type"] == "multi_discrete"
-        assert list(act_space["nvec"]) == [34, 9]
+        assert list(act_space["nvec"]) == [34, 16]
         assert obs_space["shape"][0] > 100
 
 
@@ -228,8 +228,8 @@ def test_vector_env_bad_index_leaves_the_batch_in_sync():
     with pytest.raises(IndexError):
         env.step(bad)
 
-    # Same guard, message half: index 9 is off the head's end.
-    bad[agents[0]] = [[33, 9], IDLE]
+    # Same guard, message half: index 16 is off the head's end (spec 033).
+    bad[agents[0]] = [[33, 16], IDLE]
     with pytest.raises(IndexError):
         env.step(bad)
 

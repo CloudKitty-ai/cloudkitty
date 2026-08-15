@@ -98,14 +98,21 @@ fn serving_cost_is_negligible_against_the_tick() {
     );
 }
 
-/// The real-checkpoint parity gate (spec 030 T020, SC-002): the step-2
-/// attention checkpoint exported to `tests/fixtures/oracle.ckpolicy`
-/// (sha256 48773196…) against 144 expected-logit rows in
-/// `tests/fixtures/oracle.parity` (sha256 5b3a9af3…) — 128 real validation
-/// rows plus 16 derived vacancy-stress rows, down to the self+clock-only
-/// extreme. Fixtures exported by
-/// `experiments/attn-clone-2026-08-12/export_oracle_v3.py` (main @ 8281c07);
-/// the reusable numpy reference forward lives beside it.
+/// The real-checkpoint parity gate (spec 030 T020; schema-4 fixtures per
+/// spec 033 FR-013): oracle expanded from the spec-030 oracle's source
+/// checkpoint — the v4-BC attention clone (train_attn_clone.py, torch seed
+/// 20260809; its v3 export was the prior oracle.ckpolicy, sha 48773196…) —
+/// with extension rows (type-embedding rows 14–20, message-head rows 9–15)
+/// initialized at torch.manual_seed(20260815) and parity rows drawn at
+/// numpy seed 20260815. `tests/fixtures/oracle.ckpolicy` sha256 be74c4df…,
+/// `tests/fixtures/oracle.parity` sha256 b70f3e0f… — 144 rows at 225/50:
+/// 112 plausible (~35% per-block vacancy) plus stress (per-class
+/// all-vacant, digest-silent, self+clock-only, 8 rows with NONZERO
+/// trill/ekekek digest slots — never-legal kinds present in obs — and 4
+/// rows with chirp + all four Here* audible). Fully regenerable via
+/// `experiments/attn-oracle-2026-08-15/make_oracle_v4.py`; the numpy
+/// reference forward (`numpy_forward_v4.py`, self-check 2.86e-06) lives
+/// beside it.
 #[test]
 fn the_forward_matches_the_numpy_oracle_within_1e_4() {
     let rl = RlConfig::default();

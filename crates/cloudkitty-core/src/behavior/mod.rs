@@ -489,7 +489,13 @@ pub(crate) fn announce(ctx: &DecisionContext) -> Option<MessageKind> {
     let mut best: Option<(f32, MessageKind)> = None;
     for need in crate::needs::NeedKind::ALL {
         let want = MessageKind::for_need(need);
-        if !crate::meow::message_legal(&ctx.me, want, ctx.world.tick, &ctx.config) {
+        if !crate::meow::message_legal(
+            &ctx.me,
+            want,
+            ctx.world.tick,
+            &ctx.config,
+            &ctx.world.elements,
+        ) {
             continue;
         }
         let pressure = ctx.me.needs.get(need);

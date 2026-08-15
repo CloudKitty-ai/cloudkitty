@@ -58,7 +58,7 @@ One JSON object per line, with exactly these fields:
 
 | Field | What it is |
 |---|---|
-| `v` | Wire version, currently `1`. Refuse versions you don't understand — your failed reply just falls back, which is safe. |
+| `v` | Wire version, currently `2` (spec 033: the vocabulary finalized). Refuse versions you don't understand — your failed reply just falls back, which is safe. |
 | `tick` | The deciding tick. Echo it back. |
 | `kitty_id` | Whose turn this is — one process may advise several kitties. Echo it back. |
 | `me` | Your kitty's full state (position, needs, activity, and so on). |
@@ -113,11 +113,20 @@ Every accepted shape:
 {"action": "play", "target": "kitty", "id": 2}
 {"action": "meow", "message": "want_eat"}
 {"action": "meow", "message": "want_drink"}
-{"action": "meow", "message": "follow_me"}
+{"action": "meow", "message": "mew"}
 {"action": "meow", "message": "want_play"}
 {"action": "meow", "message": "want_cuddle"}
 {"action": "meow", "message": "purr"}
 {"action": "meow", "message": "wait_for_me"}
+{"action": "meow", "message": "want_bath"}
+{"action": "meow", "message": "want_sleep"}
+{"action": "meow", "message": "here_food"}
+{"action": "meow", "message": "here_water"}
+{"action": "meow", "message": "here_critter"}
+{"action": "meow", "message": "here_sunbeam"}
+{"action": "meow", "message": "chirp"}
+{"action": "meow", "message": "trill"}
+{"action": "meow", "message": "ekekek"}
 {"action": "purr"}
 {"action": "idle"}
 ```
@@ -130,14 +139,36 @@ any strict check — standard JSON semantics.
 
 Two purrs, two fates. The purr **meow** is the deliberate purr (spec 022):
 proposed by a content cat — happiness above the purr threshold, or rising —
-it starts a real purr; proposed unearned, it resolves to an idle turn, the
-one meow kind that is not always legal. The bare `purr` **action** still
+it starts a real purr; proposed unearned, it resolves to an idle turn --
+law-named kinds are only legal when their claim is true. The bare `purr` **action** still
 parses (it was retired as an action in spec 011) but always validates down
 to an idle turn: a stale advisor is not a parse error.
 
-And a meow, once validated, always sounds: since spec 023 there is no
-engine meow cooldown and nothing is ever swallowed — every legal meow
-emits, every time, and the turn spent is the only cost.
+The vocabulary is two-tier since spec 033 (proposal wire v2; the full
+language reference is `docs/meows.md`). LAW-NAMED kinds carry enforced
+meaning: a want-kind needs its need armed, `purr` needs contentment
+earned, and a `here_*` kind needs its referent adjacent — a cat can only
+announce food it could itself eat. SOUND-NAMED kinds (`mew`, `chirp`,
+`trill`, `ekekek` — the free register) have no grounding at all; what they
+mean is the cats' business. Every kind obeys the per-kind cooldown, and
+every kind can be disabled by the world's `[meow.vocabulary]` config.
+Note `follow_me` no longer parses: it was renamed `mew` when the cats'
+usage overwrote its designed meaning — the name now denotes the sound, as
+all free-register names do.
+
+**An honest limitation of this wire (since spec 028, stated plainly
+here since spec 033): a plugin's meow proposal never sounds.** Decisions
+are two-channel inside the engine — an activity plus a riding message —
+but this wire carries one action, and a meow arriving as the *activity*
+validates to an idle turn (the meow rows left the activity space when
+the message channel was born). The accepted shapes above parse, cost
+nothing to send, and spend the turn idling. The full vocabulary is
+listed because the parse contract is real and because a future wire
+version is expected to carry the message channel to plugins; until it
+does, plugin cats are mute on the meow channel and the words above are
+what the in-process minds (policies and built-ins) speak. This also
+retires the older claim that a purr-meow "starts a real purr" via this
+wire — it does not; only the in-process message channel can.
 
 And a gallery of rejections — each of these fails parsing and costs the
 proposing kitty its tick (fallback decides):
@@ -154,6 +185,7 @@ proposing kitty its tick (fallback decides):
 {"action": "play", "id": 2}
 {"action": "play", "target": "kitty"}
 {"action": "meow", "message": "want_snacks"}
+{"action": "meow", "message": "follow_me"}
 {"action": "idle", "why": "sleepy"}
 "idle"
 ```
@@ -161,7 +193,8 @@ proposing kitty its tick (fallback decides):
 (In order: unknown action kind; missing required field; unrecognized
 direction; unknown extra field; ids are unsigned; ids are numbers, not
 names; incomplete chase target; unknown target kind; partial play target,
-twice; unknown meow kind; extra field on a bare action; not an object.)
+twice; unknown meow kind; the pre-033 name a rename retired; extra field
+on a bare action; not an object.)
 
 ## What happens to your proposal
 

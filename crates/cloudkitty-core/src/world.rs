@@ -344,8 +344,9 @@ impl World {
             // downgrade-to-Silent, never an error.
             let tick = self.tick;
             let applied_message = decision.message.filter(|&kind| {
-                self.kitty(kitty_id)
-                    .is_some_and(|k| crate::meow::message_legal(k, kind, tick, config))
+                self.kitty(kitty_id).is_some_and(|k| {
+                    crate::meow::message_legal(k, kind, tick, config, &self.elements)
+                })
             });
             if let Some(kind) = applied_message {
                 action::apply_message(self, kitty_id, kind, config, tick);
@@ -1077,23 +1078,30 @@ impl World {
 
     /// The nearest element of `kind` on or beside `pos`, preferring the closest.
     pub fn adjacent_element(&self, pos: Position, kind: ElementType) -> Option<&Element> {
-        self.elements
-            .iter()
-            .filter(|e| e.element_type() == kind && pos.is_adjacent(&e.pos))
-            .min_by_key(|e| (pos.manhattan_distance(&e.pos), e.id))
+        adjacent_element_in(&self.elements, pos, kind)
     }
 
     /// The bowl a kitty at `pos` would eat from, if it still holds a serving.
     ///
-    /// One predicate, three consumers -- validation of an `Eat` proposal, the
-    /// per-tick meal continuation, and the end-of-meal rule -- so "which bowl,
-    /// and is it usable" can never quietly mean three different things.
-    /// Deliberately the *nearest* adjacent bowl filtered for servings, not
-    /// the nearest stocked one: a cat at an empty bowl beside a fuller one
-    /// pauses (and then ends) rather than stretching across.
+    /// One predicate, FOUR consumers -- validation of an `Eat` proposal, the
+    /// per-tick meal continuation, the end-of-meal rule, and (spec 033)
+    /// HereFood's grounding -- so "which bowl, and is it usable" can never
+    /// quietly mean different things, and a cat can never announce food it
+    /// could not itself eat. Deliberately the *nearest* adjacent bowl
+    /// filtered for servings, not the nearest stocked one: a cat at an empty
+    /// bowl beside a fuller one pauses (and then ends) rather than
+    /// stretching across.
     pub fn adjacent_stocked_chow(&self, pos: Position) -> Option<&Element> {
-        self.adjacent_element(pos, ElementType::Chow)
-            .filter(|e| matches!(e.kind, ElementKind::Chow { servings } if servings > 0))
+        adjacent_stocked_chow_in(&self.elements, pos)
+    }
+
+    /// Whether any live critter stands on or beside `pos` -- the
+    /// existential lift of Play-critter's validate arm (`is_critter() &&
+    /// is_adjacent`, spec 033 FR-002): HereCritter is legal exactly when
+    /// SOME target would make `Play(critter)` legal. Deliberately not
+    /// Chase's predicate, which is distance-unbounded.
+    pub fn adjacent_critter(&self, pos: Position) -> bool {
+        adjacent_critter_in(&self.elements, pos)
     }
 
     pub fn count_of(&self, kind: ElementType) -> u32 {
@@ -1278,6 +1286,42 @@ impl WorldSnapshot {
         self.others(me)
             .min_by_key(|k| (pos.manhattan_distance(&k.pos), k.id))
     }
+}
+
+// The adjacency predicates as free functions over an element slice (spec
+// 033): `message_legal` rules on the same predicates the actions use, but
+// its callers hold a `World` in one place and a `WorldSnapshot` in another
+// -- one body here, thin delegating methods above, so the predicate can
+// never fork. `is_adjacent` is manhattan <= 1: the speaker's own tile
+// counts, uniformly, for every predicate below.
+
+/// The nearest element of `kind` on or beside `pos` (ties broken by id).
+pub fn adjacent_element_in(
+    elements: &[Element],
+    pos: Position,
+    kind: ElementType,
+) -> Option<&Element> {
+    elements
+        .iter()
+        .filter(|e| e.element_type() == kind && pos.is_adjacent(&e.pos))
+        .min_by_key(|e| (pos.manhattan_distance(&e.pos), e.id))
+}
+
+/// Eat's predicate (and HereFood's): the nearest adjacent bowl, if it
+/// still holds a serving. See `World::adjacent_stocked_chow` for the
+/// nearest-not-nearest-stocked reasoning.
+pub fn adjacent_stocked_chow_in(elements: &[Element], pos: Position) -> Option<&Element> {
+    adjacent_element_in(elements, pos, ElementType::Chow)
+        .filter(|e| matches!(e.kind, ElementKind::Chow { servings } if servings > 0))
+}
+
+/// HereCritter's predicate: some live critter on or beside `pos` -- the
+/// existential lift of Play-critter's validate arm. See
+/// `World::adjacent_critter`.
+pub fn adjacent_critter_in(elements: &[Element], pos: Position) -> bool {
+    elements
+        .iter()
+        .any(|e| e.element_type().is_critter() && pos.is_adjacent(&e.pos))
 }
 
 #[cfg(test)]

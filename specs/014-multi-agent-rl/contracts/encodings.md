@@ -1,5 +1,12 @@
 # Contract: Encodings — Observation v1, Action Menu v1, Mask v1, Global State v1
 
+> **Frozen at its v1 vintage.** This contract describes the spec-014
+> generation (182-wide observation, 40-entry menu) and stays as history —
+> datasets and retired artifacts from that era read against it. The
+> LIVING encodings contract, current for every generation since and
+> updated as a required deliverable of every schema-moving spec, is
+> [`docs/encodings.md`](../../../docs/encodings.md) (spec 033 FR-018/19).
+
 The single Rust implementation (FR-007), `cloudkitty-rl`. All four carry
 schema versions; artifacts pin the versions they were trained against and
 mismatches fail loudly at startup. A Python reimplementation of any of

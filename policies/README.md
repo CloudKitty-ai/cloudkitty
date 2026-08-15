@@ -90,6 +90,19 @@ feature is specced, in a served field on `[rl.policy.*]`. Don't add a
 unspecced key refuses to load outright — the config that names it
 never boots.
 
+> **Generation gap, third tour (spec 033 wall, 2026-08-15 — OPEN).**
+> The say-surface finalization turned all three schema pins (observation
+> 3→4, action 2→3, mask 2→3); every artifact below pins the previous
+> generation and cannot open on the post-wall binary. The repo config
+> seats no policy for the window; the SERVED BOX stays on its pre-wall
+> binary and world, still driving the candidate-B roster named below —
+> which is why these artifacts remain at top level rather than moving to
+> `retired/`: the top-level rule binds files to what the *served* config
+> names, and the box's config still names all three. Only
+> `update.sh --client-only` deploys are safe until the phase-1 (schema-4)
+> generation certifies and seats; retirement happens at that rollout,
+> exactly as e003's did at the spec-028 gap's close.
+
 ## Active
 
 | File | sha256 | Provenance | Certification |

@@ -33,10 +33,12 @@ use crate::observe::{TargetTable, HEAD_KINDS};
 
 /// Versioned with the codec. Schema 2 (spec 028, encodings-v2.md): the
 /// serialized wire is one vector, `[activity mask (menu_len) | message
-/// mask (9)]` -- 43 at default slots. Both halves are pure oracles over
-/// engine law; neither is ever all-zero (activity: FR-018 structural;
-/// message: Silent always legal).
-pub const MASK_SCHEMA_VERSION: u32 = 2;
+/// mask]` -- both halves pure oracles over engine law; neither is ever
+/// all-zero (activity: FR-018 structural; message: Silent always legal).
+/// Schema 3 (spec 033): the message half widened 9 → 16 with the
+/// say-surface (50 total at default slots); the activity half is
+/// unchanged.
+pub const MASK_SCHEMA_VERSION: u32 = 3;
 
 /// Computes the legal-action mask for `kitty_id` against the frozen
 /// snapshot. One bool per menu entry, in menu order.
@@ -77,7 +79,7 @@ pub fn legal_message_mask(
     mask[0] = true; // Silence is always legal -- structural, never all-zero.
     if let Some(kitty) = snapshot.kitty(kitty_id) {
         for (k, &kind) in HEAD_KINDS.iter().enumerate() {
-            mask[k + 1] = message_legal(kitty, kind, snapshot.tick, config);
+            mask[k + 1] = message_legal(kitty, kind, snapshot.tick, config, &snapshot.elements);
         }
     }
     mask
