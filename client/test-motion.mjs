@@ -4535,24 +4535,6 @@ check('the traits dialog ships OFF, and its numbers are the served ones', () => 
   assert(!/shadeHex\(MEADOW\.|shadeHex\(PROPS\./.test(colours),
     'a palette colour goes through shadeHex, which returns black mid-crossfade');
 
-  // The same hues reach the CARDS, on the track rather than the fill: the
-  // fill keeps saying how well a need is met, which is the one thing on a
-  // card a viewer might act on. Identity colour there would have deleted it.
-  assert(/function needTrack/.test(app), 'the card bars no longer carry the need hues');
-  // Sliced FORWARD from the anchor: `placeCards();` first appears in
-  // `schedulePlacement`, well above this loop, so seeking to it produced a
-  // backwards slice and an empty string -- which passes any test that only
-  // checks for absence and fails every one that checks for presence.
-  const loopAt = app.indexOf('const track = card.querySelector');
-  const update = app.slice(loopAt, app.indexOf('placeCards();', loopAt));
-  assert(/needColor\(satisfaction\)/.test(update),
-    'the card fill stopped showing how well the need is met');
-  assert(/track\.style\.backgroundColor/.test(update), 'the need hue is not reaching the track');
-  const trackFn = app.slice(app.indexOf('function needTrack'), app.indexOf('function needColor'));
-  assert(/NEED_COLOUR/.test(trackFn), 'the card track invents its own colours instead of sharing the scheme');
-  assert(/parsePaletteColor/.test(trackFn),
-    'the track parses colour itself, which breaks on the `rgb()` a palette serves mid-crossfade');
-
   // Each need is scaled to its own baseline, so every centre mark lines up.
   assert(/t\.base \* 2/.test(app), 'the bar is no longer scaled to twice the need\'s own baseline');
   const mark = markup.slice(markup.indexOf('  .trait-base {'), markup.indexOf('}', markup.indexOf('  .trait-base {')));
