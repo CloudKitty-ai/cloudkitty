@@ -195,3 +195,8 @@ memory tokens are PAST-TENSE and honest-about-staleness ("I saw it
 there"), and never the twain — reference-at-a-distance can only ever
 enter the language as a distinct, explicitly stale-marked form. The
 fog prereg's vocab-fork comparison inherits this grounding pinned.
+
+**Rename note (owner, 2026-08-15): the Found* family shipped as
+HERE* (HereFood/HereWater/HereCritter/HereSunbeam) — 'here' is the
+adjacency invariant as a word. Earlier mentions of Found*/FoundEat in
+this doc refer to the same kinds under their draft name.**

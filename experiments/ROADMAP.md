@@ -73,7 +73,7 @@ learned one. New, from this era's decisions:
 here): Clementine joins (roster 5, cuddle 0.7, trait-balanced from
 the exchange table); the point-buy trait rebalance (Pumpkin gets her
 compensating discount); sunbeam dial re-pins to 7; **the say-surface
-finalizes** — FoundEat/FoundDrink kinds added to head/digest/codec
+finalizes** — Here* kinds added to head/digest/codec
 with per-kind `[meow]` legality gates (Product spec, 028-shaped;
 dims cost trivial; served world keeps its binary until seating);
 dataset v5 collected at T15 on the final surface; trait spreads
@@ -87,7 +87,7 @@ seats (anchors chosen per the dose-response — Biscuit 2.0 and/or
 doter 2.0 — collected post-rebalance in healthy company).
 
 **Riders**: threshold dose-response re-measure at T{15,20,25,30}
-(the registered v5-listener prediction); FoundEat side probe
+(the registered v5-listener prediction); HereFood side probe
 (enabled in a probe cell, expected inert under global vision — the
 pre-registered baseline fog will overturn).
 
@@ -102,7 +102,7 @@ variable entity tokens (locality as schema 4's semantics; F-010's
 retest becomes a normal condition) + engine-side memory tokens
 (sight-only, one slot, most-recent-wins). Vocabulary semantics armed
 by config flag — the registered comparison: does grounded reference
-(FoundEat) beat FollowMe-overloading when fog creates the
+(HereFood) beat FollowMe-overloading when fog creates the
 information gradient? JEPA/predict-the-neighbors pairs here (the
 estimator head grown up). World-scale/density coupling decided here
 (fog needs sparsity to bite) — **under the owner's standing world-size
@@ -152,7 +152,7 @@ before any tag).**
   roster, the purrsonality register, this roadmap. Tagged after the
   candidate-B soak verdict.
 - **v2.9** — the phase-1 wall generation: spec 033 (the vocabulary
-  freeze: FoundEat/FoundDrink/FoundCritter/FoundSunbeam), the five
+  freeze: HereFood/HereWater/HereCritter/HereSunbeam (renamed from Found*, owner 2026-08-15)), the five
   bodies (Sleepy/Playful/Hungry/Fastidious/Cuddly), Clementine, the
   roster-5 world, the character/estimator/lineage generation.
 - **v3.0** — the release about SEEING: fog (schema 4 — the cats'

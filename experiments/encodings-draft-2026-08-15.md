@@ -15,8 +15,9 @@ Shared orderings (normative, used everywhere below):
 - Activity one-hot = Idle, Resting, Sleeping, Eating, Drinking,
   Playing, Grooming
 - `HEAD_KINDS` = WantEat, WantDrink, FollowMe, WantPlay, WantCuddle,
-  Purr, WantBath, WantSleep (033, owner-locked final: + FoundEat,
-  FoundDrink, FoundCritter, FoundSunbeam appended — indices 9–12;
+  Purr, WantBath, WantSleep (033, owner-locked final: + HereFood,
+  HereWater, HereCritter, HereSunbeam appended — indices 9–12 (owner
+  rename from Found*, 2026-08-15: 'here' IS the adjacency invariant);
   the vocabulary FREEZE through the fog era)
 
 ## Observation v3 (`observe.rs`, schema 3, served slots → 197)
@@ -115,7 +116,7 @@ encoding (menu + head), menu itself unchanged across it.)
 | 30–32 | PlayKitty0–2 | play/chase (slot k) |
 | 33 | Idle | idle |
 
-**Message head (9; 033 → 13: FoundEat=9, FoundDrink=10, FoundCritter=11, FoundSunbeam=12)**: index 0 = Silent; k+1 = HEAD_KINDS[k].
+**Message head (9; 033 → 13: HereFood=9, HereWater=10, HereCritter=11, HereSunbeam=12)**: index 0 = Silent; k+1 = HEAD_KINDS[k].
 
 **Mask**: one row `[menu 34 ∥ head 9]` (033: [34 ∥ 13]),
 u8/bool; Silent always legal; never-all-zero per head. Oracle-proven
