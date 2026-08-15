@@ -1081,15 +1081,15 @@ function buildKittyCard(kitty) {
   name.appendChild(document.createElement('span'));
   card.appendChild(name);
 
-  // Opens this cat's traits. Its own button rather than a click on the
-  // card, which already means "collapse them all" -- the owner's
-  // all-or-none rule, and a second meaning on the same target would break
-  // it. Hidden entirely until TRAITS.on.
+  // Opens this cat's about. Its own button rather than a click on the card,
+  // which already means "collapse them all" -- the owner's all-or-none rule,
+  // and a second meaning on the same target would break it. Hidden entirely
+  // until TRAITS.on.
   const more = document.createElement('button');
-  more.className = 'kitty-traits';
+  more.className = 'kitty-about';
   more.type = 'button';
-  more.textContent = 'traits';
-  more.setAttribute('aria-label', `${kitty.name}'s traits`);
+  more.textContent = 'about';
+  more.setAttribute('aria-label', `about ${kitty.name}`);
   more.addEventListener('click', (event) => {
     event.stopPropagation();
     const live = latestWorld?.kitties.find((k) => k.id === kitty.id) ?? kitty;

@@ -4510,9 +4510,15 @@ check('the traits dialog ships OFF, and its stubs are marked as stubs', () => {
   const markup = readFileSync(join(here, 'index.html'), 'utf8');
 
   assert(/const TRAITS = \{ on: 0 \}/.test(app), 'the traits affordance no longer ships off');
-  assert(/\.kitty-traits \{[^}]*display: none/.test(markup),
-    'the traits button is visible without the toggle');
-  assert(/body\.show-traits \.kitty-traits/.test(markup), 'nothing reveals the traits button');
+  assert(/\.kitty-about \{[^}]*display: none/.test(markup),
+    'the per-kitty about link is visible without the toggle');
+  assert(/body\.show-traits \.kitty-about/.test(markup), 'nothing reveals the about link');
+  // The footnote has to fit its line: the dialog is 360px with 20px padding
+  // either side, and at 0.68rem that is about 60 characters. It shipped at
+  // 70 and wrapped; dropping "world's" alone only reached 62.
+  const foot = markup.slice(markup.indexOf('<p class="traits-foot">') + 23);
+  const text = foot.slice(0, foot.indexOf('</p>')).split(/\s+/).join(' ').trim();
+  assert(text.length <= 58, `the traits footnote is ${text.length} characters and will wrap`);
 
   // Served rates must beat the placeholder table, or a real trait would be
   // hidden behind a stand-in the day it lands.
