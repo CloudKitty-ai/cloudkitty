@@ -1521,9 +1521,13 @@ function openTraitsDialog(kitty) {
     value.className = 'trait-value';
     value.textContent = t.rate.toFixed(2);
 
+    // Nothing at all when a cat is ordinary for this need (owner,
+    // 2026-08-15). The em dash was a value in a column of values, and six
+    // rows of it said only that most cats are unremarkable, loudly. Silence
+    // says the same thing and lets the exceptions carry the eye.
     const delta = document.createElement('span');
     delta.className = 'trait-delta';
-    delta.textContent = t.pct === 0 ? '—' : `${t.pct > 0 ? '+' : ''}${t.pct}%`;
+    delta.textContent = t.pct === 0 ? '' : `(${t.pct > 0 ? '+' : ''}${t.pct}%)`;
 
     row.append(label, track, value, delta);
     list.appendChild(row);

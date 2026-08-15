@@ -4596,13 +4596,22 @@ check('the traits dialog ships OFF, and its numbers are the served ones', () => 
   const digit = rowSize * 0.6;
   const cols = row.match(/grid-template-columns: [\d.]+rem 1fr ([\d.]+)rem ([\d.]+)rem/);
   assert(cols, 'could not read the trait row columns');
-  for (const [i, sample] of [[1, '0.80'], [2, '+100%']]) {
+  for (const [i, sample] of [[1, '0.80'], [2, '(+100%)']]) {
     const have = parseFloat(cols[i]) * 16;
     assert(have >= sample.length * digit,
       `the ${i === 1 ? 'value' : 'delta'} column is ${have.toFixed(0)}px and "${sample}" needs ${(sample.length * digit).toFixed(0)}px`);
   }
   assert(/white-space: nowrap/.test(markup.slice(markup.indexOf('  .trait-value,'), markup.indexOf('}', markup.indexOf('  .trait-value,')))),
     'a tight number column can wrap, which pushes the row height instead of looking cramped');
+
+  // An ordinary cat shows nothing rather than an em dash, and a deviation
+  // reads as part of its own number: "0.50 (+25%)".
+  const dialogFn = app.slice(app.indexOf('function openTraitsDialog'), app.indexOf('function initTraitsDialog'));
+  assert(/pct === 0 \? ''/.test(dialogFn), 'a cat with no deviation still prints a placeholder');
+  assert(/\(\$\{t\.pct > 0 \? '\+' : ''\}\$\{t\.pct\}%\)/.test(dialogFn),
+    'the deviation is not parenthesised beside its number');
+  assert(/\.trait-delta \{ text-align: left/.test(markup),
+    'the deviation is right-aligned, so it floats away from the number it belongs to');
 
   // Each need is scaled to its own baseline, so every centre mark lines up.
   assert(/t\.base \* 2/.test(app), 'the bar is no longer scaled to twice the need\'s own baseline');

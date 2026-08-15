@@ -304,8 +304,13 @@
        needs 29px and "+100%" needs 36px. 2rem and 2.5rem leave each a few
        pixels of air and hand the rest back to the bar. A trait past +999%
        would outgrow the delta column, which is why it does not wrap -- it
-       would push the row's height instead of just looking cramped. */
-    grid-template-columns: 3.6rem 1fr 2rem 2.5rem;
+       would push the row's height instead of just looking cramped.
+
+       The delta is LEFT aligned and the wider of the two: it reads as part
+       of the number beside it -- "0.50 (+25%)" -- rather than as a column of
+       its own, so it has to start where the value ends. It holds "(+100%)",
+       which is 51px. */
+    grid-template-columns: 3.6rem 1fr 2rem 3.2rem;
     align-items: center;
     gap: 6px;
     font-size: 0.76rem;
@@ -343,9 +348,12 @@
   .trait-value,
   .trait-delta {
     font-variant-numeric: tabular-nums;
-    text-align: right;
     white-space: nowrap;
   }
+  .trait-value { text-align: right; }
+  /* Left, so it follows its number rather than floating off at the card's
+     edge. Empty for an ordinary cat, and an empty cell should look empty. */
+  .trait-delta { text-align: left; padding-left: 2px; }
   .trait-delta { color: var(--ink-soft); }
   .traits-foot {
     margin: 12px 0 0;
