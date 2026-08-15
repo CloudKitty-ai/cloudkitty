@@ -4535,6 +4535,27 @@ check('the traits dialog ships OFF, and its numbers are the served ones', () => 
   assert(!/shadeHex\(MEADOW\.|shadeHex\(PROPS\./.test(colours),
     'a palette colour goes through shadeHex, which returns black mid-crossfade');
 
+  // The owner's copy, verbatim. This check was DROPPED in the same edit that
+  // deleted the copy -- the slice that removed the stub table ran through
+  // `KITTY_BIOS` and `bioFor` as well, and the assertions that would have
+  // caught it were rewritten out in the same commit. Both are back.
+  const bios = app.slice(app.indexOf('const KITTY_BIOS'), app.indexOf('/** The bio for a cat'));
+  for (const [name, epithet] of [
+    ['Miso', 'Sleepy Kitty'], ['Biscuit', 'Playful Kitty'], ['Pumpkin', 'Hungry Kitty'],
+    ['Kittybear', 'Tidy Kitty'], ['Clementine', 'Cuddly Kitty'],
+  ]) {
+    assert(bios.includes(`name: '${name}'`), `${name} has lost her bio`);
+    assert(bios.includes(`epithet: '${epithet}'`), `${name}'s epithet has drifted`);
+  }
+  assert(/enormous: she/.test(bios), "Pumpkin's colon fix has been lost");
+  // Keyed by id AND name, so a reseeded roster shows nothing rather than
+  // attaching one cat's life story to another.
+  const bioFn = app.slice(app.indexOf('function bioFor'), app.indexOf('function traitsFor'));
+  assert(/bio\.name === kitty\.name/.test(bioFn),
+    'the bio is looked up by id alone, so a reseeded roster would mis-attach it');
+  // And the dialog must actually reach for it.
+  assert(/bioFor\(kitty\)/.test(app), 'nothing calls bioFor, so no cat has a bio on screen');
+
   // Each need is scaled to its own baseline, so every centre mark lines up.
   assert(/t\.base \* 2/.test(app), 'the bar is no longer scaled to twice the need\'s own baseline');
   const mark = markup.slice(markup.indexOf('  .trait-base {'), markup.indexOf('}', markup.indexOf('  .trait-base {')));
