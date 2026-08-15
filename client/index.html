@@ -293,11 +293,13 @@
      figures that jitters is unreadable at this size. */
   .trait {
     display: grid;
-    /* `auto` for the label, not a fixed 3.6rem: it sizes to the longest word
-       and no wider, which hands the slack to the bar. With the label RIGHT
-       aligned inside it every name ends at the same x, hard against its own
-       bar, instead of floating a word's width away from it. */
-    grid-template-columns: auto 1fr 2.4rem 2.9rem;
+    /* A FIXED label column, and it has to be: every `.trait` is its own grid
+       container, so `auto` sized each row's column to that row's own word --
+       "eat" got a narrow one and a wide bar, "cuddle" the reverse, and the
+       bars stopped lining up (owner spotted it). Right-aligning inside a
+       fixed column gets what `auto` was reaching for -- every name ending
+       hard against its bar -- while the bars all start at the same x. */
+    grid-template-columns: 3.6rem 1fr 2.4rem 2.9rem;
     align-items: center;
     gap: 6px 8px;
     font-size: 0.76rem;

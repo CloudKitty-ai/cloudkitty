@@ -4580,6 +4580,15 @@ check('the traits dialog ships OFF, and its numbers are the served ones', () => 
   assert(/initTraitsDialog\(\);/.test(app.slice(app.lastIndexOf('initCards();'))),
     'initTraitsDialog is never called, so the backdrop does nothing');
 
+  // Every bar starts at the same x. `.trait` is one grid PER ROW, so an
+  // `auto` label column sizes to that row's own word and the bars come out
+  // ragged -- the labels are right-aligned in a fixed column instead.
+  const row = markup.slice(markup.indexOf('  .trait {'), markup.indexOf('}', markup.indexOf('  .trait {')));
+  assert(/grid-template-columns: [\d.]+rem/.test(row),
+    'the label column is content-sized again, so the bars will not line up');
+  const need = markup.slice(markup.indexOf('  .trait-need {'), markup.indexOf('}', markup.indexOf('  .trait-need {')));
+  assert(/text-align: right/.test(need), 'the labels no longer sit against their bars');
+
   // Each need is scaled to its own baseline, so every centre mark lines up.
   assert(/t\.base \* 2/.test(app), 'the bar is no longer scaled to twice the need\'s own baseline');
   const mark = markup.slice(markup.indexOf('  .trait-base {'), markup.indexOf('}', markup.indexOf('  .trait-base {')));
