@@ -937,34 +937,37 @@
     </div>
     <section class="panel" id="panel">
       <div class="panel-col"></div>
-      <div class="panel-col"></div>
-      <!-- About is a card in the panel (owner, 2026-08-14/15). In the header
-           it either cost the map a row or had to overlay it; down here it
-           costs nothing, AND the header loses its second line, which is
-           about a pixel of tile at a 20-row world.
+      <div class="panel-col">
+        <!-- About is a card in the panel (owner, 2026-08-14/15). In the header
+             it either cost the map a row or had to overlay it; down here it
+             costs nothing, AND the header loses its second line, which is
+             about a pixel of tile at a 20-row world.
 
-           STATIC markup, and a <details> rather than a script: it collapses
-           on its own, independently of the kitty cards, with no JS and no
-           state to remember. The open state deliberately does not persist
-           (owner) -- a returning visitor should not reopen to a wall of
-           text they have already read. "What is this place" should be the
-           last thing on the page to break, not the first.
+             STATIC markup, and a <details> rather than a script: it collapses
+             on its own, independently of the kitty cards, with no JS and no
+             state to remember. The open state deliberately does not persist
+             (owner) -- a returning visitor should not reopen to a wall of
+             text they have already read. "What is this place" should be the
+             last thing on the page to break, not the first.
 
-           Outside the panel columns on purpose: `renderPanel` clears them
-           on a roster change and `placeCards` carries their `.kitty-card`s
-           between sides. -->
-      <aside class="about-card">
-        <h2>About CloudKitty</h2>
-        <details>
-          <summary>a small, safe world where kitties frolic and play</summary>
-          <p>CloudKitty is a peaceful meadow where kitties wander, eat, drink, nap
-          in sunbeams, groom each other, chase bugs, and meow about it. The kitties
-          are a team. Each kitty is driven by a neural network trained for one
-          objective: the happiness of all the kitties in the meadow. The kitties
-          look out for each other, communicate with purrs and meows, and keep each
-          other company as they frolic and play.</p>
-        </details>
-      </aside>
+             It lives INSIDE the last column, at the top of the stack the cards
+             are appended to (owner, 2026-08-15) -- which is why `renderPanel`
+             removes the kitty cards one by one on a roster change instead of
+             emptying the column, and why `placeCards` counts and carries only
+             `.kitty-card`s. Both would otherwise take this with them. -->
+        <aside class="about-card">
+          <h2>About CloudKitty</h2>
+          <details>
+            <summary>a small, safe world where kitties frolic and play</summary>
+            <p>CloudKitty is a peaceful meadow where kitties wander, eat, drink, nap
+            in sunbeams, groom each other, chase bugs, and meow about it. The kitties
+            are a team. Each kitty is driven by a neural network trained for one
+            objective: the happiness of all the kitties in the meadow. The kitties
+            look out for each other, communicate with purrs and meows, and keep each
+            other company as they frolic and play.</p>
+          </details>
+        </aside>
+      </div>
     </section>
   </div>
 

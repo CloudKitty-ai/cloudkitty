@@ -722,7 +722,12 @@ function renderPanel(world) {
   const cards = () => panelEl.querySelectorAll('.kitty-card');
   const needsRebuild = cards().length !== world.kitties.length;
   if (needsRebuild) {
-    for (const column of columns) column.innerHTML = '';
+    // Remove the kitty cards, not everything: the About card lives at the
+    // top of the second column and emptying it would take About with it on
+    // every roster change.
+    for (const column of columns) {
+      for (const card of column.querySelectorAll('.kitty-card')) card.remove();
+    }
     for (const kitty of world.kitties) {
       columns[columns.length - 1].appendChild(buildKittyCard(kitty));
     }

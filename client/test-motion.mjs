@@ -4575,12 +4575,31 @@ check("the about survives a phase change, and the owner's words survive us", () 
   assert(!/class="subtitle"|class="tagline"/.test(markup),
     'the tagline is still in the header, so the header still has a second line');
 
-  // OUTSIDE the panel columns, and both halves matter: `renderPanel` clears
-  // the columns on a roster change, and `placeCards` carries their
-  // `.kitty-card`s between sides.
+  // At the TOP of the stack the cards are appended to (owner, 2026-08-15).
+  // The previous version of this asserted the opposite -- that About sat
+  // outside the columns -- by checking it came after the last column's
+  // opening tag. That is also true when it is INSIDE that column, so the
+  // check went on passing through the move without noticing. Position is
+  // asserted against the column's closing tag now, which cannot be read
+  // both ways.
   const panel = markup.slice(markup.indexOf('<section class="panel"'), markup.indexOf('</section>'));
-  assert(panel.indexOf('about-card') > panel.lastIndexOf('<div class="panel-col">'),
-    'the about card is inside a panel column, where the roster rebuild will wipe it');
+  const lastCol = panel.lastIndexOf('<div class="panel-col">');
+  const aboutAt = panel.indexOf('about-card');
+  assert(aboutAt > lastCol && aboutAt < panel.indexOf('</div>', lastCol),
+    'the about card is no longer inside the last panel column');
+
+  // Which puts it in the way of two things that manage that column, and
+  // both have to spare it. A roster change must not empty the column out
+  // from under it, and the side-to-side carry must move only cats.
+  const app = readFileSync(join(here, 'app.js'), 'utf8');
+  const rebuild = app.slice(app.indexOf('if (needsRebuild) {'), app.indexOf('const built = cards();'));
+  assert(!/innerHTML = ''/.test(rebuild),
+    'the roster rebuild empties the column, which deletes the about card with it');
+  assert(/querySelectorAll\('\.kitty-card'\)/.test(rebuild),
+    'the roster rebuild no longer removes the kitty cards specifically');
+  const place = app.slice(app.indexOf('function placeCards'), app.indexOf('// Sized for the GESTURE'));
+  assert(!/children\.length/.test(place),
+    'placeCards counts every child again, so the about card corrupts its split');
 
   // The owner's copy, verbatim. Ours to lay out, not to edit -- both the
   // line that shows closed and the paragraph behind it.
