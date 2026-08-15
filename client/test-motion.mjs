@@ -4502,19 +4502,22 @@ check('the socket hands arrivals to the delay line and nothing else', () => {
   );
 });
 
-check('the traits dialog ships OFF, and its numbers are the served ones', () => {
-  // Unfinished on purpose (owner, 2026-08-15): `t` reveals it. The rates are
-  // no longer part placeholder -- the owner asked for exactly what the config
-  // says, baseline included -- so the stub table and its quieter styling are
-  // gone with it.
+check('the per-kitty about ships, and its numbers are the served ones', () => {
+  // Shipped visible (owner, 2026-08-15). It was gated behind `t` while the
+  // rates were part placeholder; they are the served ones now -- exactly
+  // what the config says, baseline included -- so both the stub table and
+  // the gate are gone.
   const app = readFileSync(join(here, 'app.js'), 'utf8');
   const markup = readFileSync(join(here, 'index.html'), 'utf8');
 
-  assert(/const TRAITS = \{ on: 0 \}/.test(app), 'the traits affordance no longer ships off');
   assert(!/STUB_TRAITS/.test(app), 'the placeholder rate table is back');
-  assert(/\.kitty-about \{[^}]*display: none/.test(markup),
-    'the per-kitty about link is visible without the toggle');
-  assert(/body\.show-traits \.kitty-about/.test(markup), 'nothing reveals the about link');
+  assert(!/show-traits|traits-note|const TRAITS/.test(app + markup),
+    'the gate is back, so the about link is hidden again');
+  const link = markup.slice(markup.indexOf('  .kitty-about {'), markup.indexOf('}', markup.indexOf('  .kitty-about {')));
+  assert(!/display: none/.test(link), 'the about link is hidden');
+  // It has to be built, and it has to open the dialog.
+  assert(/className = 'kitty-about'/.test(app), 'no about link is built on the cards');
+  assert(/openTraitsDialog\(live\)/.test(app), 'the about link does not open the dialog');
 
   // The bar colours are checked as COLOURS, not by where they came from.
   // The first version read them live from the meadow's palette and asserted

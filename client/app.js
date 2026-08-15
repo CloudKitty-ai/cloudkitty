@@ -18,7 +18,6 @@ const pathsNoteEl = document.getElementById('paths-note');
 const happyNoteEl = document.getElementById('happy-note');
 const pacedNoteEl = document.getElementById('paced-note');
 const purrNoteEl = document.getElementById('purr-note');
-const traitsNoteEl = document.getElementById('traits-note');
 
 const NEED_LABELS = {
   eat: 'eat',
@@ -1083,8 +1082,7 @@ function buildKittyCard(kitty) {
 
   // Opens this cat's about. Its own button rather than a click on the card,
   // which already means "collapse them all" -- the owner's all-or-none rule,
-  // and a second meaning on the same target would break it. Hidden entirely
-  // until TRAITS.on.
+  // and a second meaning on the same target would break it.
   const more = document.createElement('button');
   more.className = 'kitty-about';
   more.type = 'button';
@@ -1321,90 +1319,6 @@ async function fetchSnapshot() {
  * presentational invention.
  */
 let traitConfig = null;
-
-/**
- * OFF until the trait plumbing is in place (owner, 2026-08-15). `t` reveals
- * the per-card `about` link that opens the dialog; nothing else changes, so
- * a viewer who never presses it sees the site exactly as it ships.
- */
-const TRAITS = { on: 0 };
-
-/**
- * The owner's copy, verbatim. Ours to lay out, not to edit.
- *
- * Keyed by id AND name: a reseeded roster could hand id 3 to a different
- * cat, and attaching Pumpkin's life story to somebody else is a worse
- * failure than showing nothing. A mismatch shows nothing.
- *
- * **This copy has two halves with different lifetimes** (Experiments'
- * template, 2026-08-15), which matters because the workflow reruns at every
- * generation and roster change:
- *
- *   - the TITLE and the first sentence describe the BODY -- the trait -- and
- *     are durable. They survive a mind swap, and the trait titles are locked
- *     in the policy registry.
- *   - the rest is the MIND: observed narrative about the policy currently
- *     seated. It is rewritten at every seating, from the new generation's
- *     measurements.
- *   - an optional closer is a relationship hook ("Bonded with...").
- *
- * Kept as ONE string per cat rather than split into those halves on purpose.
- * The boundary is a judgement about someone else's prose -- Kittybear's first
- * sentence carries both halves at once -- and guessing it wrong would be a
- * silent edit. A seating refresh replaces the whole entry.
- *
- * "Tidy Kitty" is a deliberate display translation of the registry's
- * canonical FASTIDIOUS, owner-approved for visitors. Not a typo; do not
- * "correct" it back.
- */
-const KITTY_BIOS = {
-  1: {
-    name: 'Miso',
-    epithet: 'Sleepy Kitty',
-    body: 'With Miso, nap time is all the time, and she\u2019s decided naps are '
-      + 'best shared: she sleeps in a pile whenever she can, and everyone wants the '
-      + 'spot beside her. When she wanders off alone, she sends a little purr across '
-      + 'the meadow: I\'m fine, back soon.',
-  },
-  2: {
-    name: 'Biscuit',
-    epithet: 'Playful Kitty',
-    body: 'Born to chase: Biscuit would rather chase a bug than eat dinner. She\'s '
-      + 'also the meadow\'s elder, keeper of the old customs: a purr from far away '
-      + 'means all is well, and when a friend mews for bath time, she\'s the one who '
-      + 'pads over to help wash.',
-  },
-  3: {
-    name: 'Pumpkin',
-    epithet: 'Hungry Kitty',
-    body: 'A snack is never far from her thoughts. In between visits to the food '
-      + 'bowl, her heart is enormous: she spends her days cleaning her friends\' '
-      + 'ears, purring all the while. Bonded with Kittybear.',
-  },
-  4: {
-    name: 'Kittybear',
-    epithet: 'Tidy Kitty',
-    body: 'Setting the record for most baths and most purrs, Kittybear shares '
-      + 'Pumpkin\'s warm idea of the world: caring for someone looks like washing '
-      + 'them. The chattiest pair around, and the kindest. Bonded with Pumpkin.',
-  },
-  // Placeholder until she is seated and has grown into a mind of her own.
-  // Sent by the owner directly, 2026-08-15. Experiments' relay believed this
-  // one was still being held, so if a second version arrives, hers is the
-  // one that was written later.
-  5: {
-    name: 'Clementine',
-    epithet: 'Cuddly Kitty',
-    body: 'Came into the world wanting to be near somebody. What she\'ll make of the '
-      + 'meadow, nobody knows yet \u2014 she\'s new here.',
-  },
-};
-
-/** The bio for a cat, or null when the roster does not match the copy. */
-function bioFor(kitty) {
-  const bio = KITTY_BIOS[kitty.id];
-  return bio && bio.name === kitty.name ? bio : null;
-}
 
 const NEED_ORDER = ['eat', 'drink', 'sleep', 'play', 'cuddle', 'bath'];
 
@@ -1729,10 +1643,6 @@ window.addEventListener('keydown', (event) => {
   } else if (key === 'b') {
     anim.setPaced(!anim.paced);
     pacedNoteEl.hidden = anim.paced;
-  } else if (key === 't') {
-    TRAITS.on = TRAITS.on ? 0 : 1;
-    document.body.classList.toggle('show-traits', !!TRAITS.on);
-    traitsNoteEl.hidden = !TRAITS.on;
   } else if (key === 'r') {
     // Off by default, so this note reads the ordinary way round: it
     // appears when the hearts are showing. The key itself is in the

@@ -363,10 +363,9 @@
 
   /* About's own type, not a kitty card's (owner, 2026-08-15): the card
      layout is built around a portrait chip, and About has no face. */
-  /* The per-card about link, hidden until `t`. Not shipped: the data behind
-     it is part stub. */
+  /* The per-card about link. Ships visible (owner, 2026-08-15): the rates
+     behind it are the served ones now, so there is nothing left to hide. */
   .kitty-about {
-    display: none;
     margin-left: auto;
     border: none;
     background: none;
@@ -377,7 +376,6 @@
     cursor: pointer;
     border-bottom: 1px dotted currentColor;
   }
-  body.show-traits .kitty-about { display: inline; }
   .kitty-about:hover { color: var(--ink); }
 
   .about-card {
@@ -1040,7 +1038,6 @@
     <span id="happy-note" hidden>· 💚 happiness bars visible</span>
     <span id="paced-note" hidden>· ⏩ unbuffered — states draw as they land</span>
     <span id="purr-note" hidden>· 💗 purr hearts visible — <kbd>r</kbd> to hide</span>
-    <span id="traits-note" hidden>· 🧬 per-kitty about (unfinished) — <kbd>t</kbd> to hide</span>
     · <span class="theme-control">kitties
       <button id="vocab-toggle" aria-label="switch kitty vocabulary">v2</button></span>
     · <span class="theme-control">cards
