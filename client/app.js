@@ -721,7 +721,12 @@ function renderPanel(world) {
   const cards = () => panelEl.querySelectorAll('.kitty-card');
   const needsRebuild = cards().length !== world.kitties.length;
   if (needsRebuild) {
-    for (const column of columns) column.innerHTML = '';
+    // Remove the kitty cards, not everything: the About card lives at the
+    // top of the second column and emptying it would take About with it on
+    // every roster change.
+    for (const column of columns) {
+      for (const card of column.querySelectorAll('.kitty-card')) card.remove();
+    }
     for (const kitty of world.kitties) {
       columns[columns.length - 1].appendChild(buildKittyCard(kitty));
     }
@@ -809,7 +814,10 @@ function placeCards() {
   // Appending a card that is already in place would restart its transitions,
   // so only touch the DOM when the split actually changes. The count is
   // enough to tell: the order within a placement is always roster order.
-  if (columns[0].children.length === onLeft) return;
+  // Count the KITTY cards, not every child: the About card lives in a
+  // column too, and counting it made this early-return lie about where the
+  // split currently is.
+  if (columns[0].querySelectorAll('.kitty-card').length === onLeft) return;
   cards.forEach((card, index) => columns[index < onLeft ? 0 : 1].appendChild(card));
 }
 
@@ -1072,6 +1080,21 @@ function buildKittyCard(kitty) {
   name.appendChild(document.createElement('span'));
   card.appendChild(name);
 
+  // Opens this cat's about. Its own button rather than a click on the card,
+  // which already means "collapse them all" -- the owner's all-or-none rule,
+  // and a second meaning on the same target would break it.
+  const more = document.createElement('button');
+  more.className = 'kitty-about';
+  more.type = 'button';
+  more.textContent = 'about';
+  more.setAttribute('aria-label', `about ${kitty.name}`);
+  more.addEventListener('click', (event) => {
+    event.stopPropagation();
+    const live = latestWorld?.kitties.find((k) => k.id === kitty.id) ?? kitty;
+    openTraitsDialog(live);
+  });
+  name.appendChild(more);
+
   const doing = document.createElement('div');
   doing.className = 'doing';
   card.appendChild(doing);
@@ -1287,6 +1310,169 @@ async function fetchSnapshot() {
   return response.json();
 }
 
+/**
+ * Per-cat need rates, and how far each sits from the world's baseline.
+ *
+ * The engine calls this a trait in so many words -- `observe.rs` builds its
+ * observation from `need_rate_for(id, kind) / reference_need_rate` -- so the
+ * card is showing the same quantity the minds are trained against, not a
+ * presentational invention.
+ */
+let traitConfig = null;
+
+const NEED_ORDER = ['eat', 'drink', 'sleep', 'play', 'cuddle', 'bath'];
+
+/**
+ * A colour per need. Each is the colour of the thing in the MEADOW that
+ * answers it -- the bowl's clay, the pond, the bloom's gold, the lily pads,
+ * the cuddle heart, and lavender for the soap.
+ *
+ * **Fixed values, deliberately, and this was tried the other way first.**
+ * Reading them live from `PROPS`/`MEADOW` sounds obviously right -- the
+ * dialog would wear the current hour like everything else -- and it fails,
+ * because the meadow's palette is lit for the MEADOW's ground and these sit
+ * on a CARD. At night `pondDeep` is #0b1216 against a #37313f card: nearly
+ * black on dark, 16 points of lightness apart. `lilyPadRim` was worse, at
+ * 12. And only half the palette moves at all, so three bars swung with the
+ * hour while three sat still, which reads as breakage rather than as time
+ * passing (owner spotted it on the night cards).
+ *
+ * So the identity is borrowed from the meadow once and then held. Every one
+ * clears 25 points of L* against both the light card (L* 99) and the night
+ * card (L* 21), and the six hues are at least 18 degrees apart -- both
+ * asserted against the values themselves rather than against where they
+ * came from.
+ */
+const NEED_COLOUR = {
+  eat: '#cf8a5e', // the bowl's clay
+  drink: '#8ab2c7', // the pond
+  sleep: '#c6aa64', // the bloom's gold, shaded to read on a light card
+  play: '#84b877', // a lily pad
+  cuddle: '#d97f95', // the cuddle heart
+  bath: '#8f7bb8', // lavender, for the soap
+};
+
+function traitsFor(kittyId) {
+  if (!traitConfig) return [];
+  const base = traitConfig.base;
+  const served = traitConfig.kitty.find((k) => k.id === kittyId)?.needs ?? {};
+  return NEED_ORDER.filter((need) => Number.isFinite(base[need])).map((need) => {
+    // Served first, stub second, baseline last: a real trait always wins.
+    const rate = Number.isFinite(served[need]) ? served[need] : base[need];
+    return {
+      need,
+      rate,
+      base: base[need],
+      pct: Math.round(((rate - base[need]) / base[need]) * 100),
+    };
+  });
+}
+
+/**
+ * Where a rate sits on its own bar, 0..1.
+ *
+ * Each need is scaled to ITS OWN baseline (owner, 2026-08-15): 0 at the
+ * left, the baseline dead centre, twice the baseline at the right. Every
+ * row's centre mark therefore lines up down the card, which is what makes a
+ * deviation readable at a glance -- the thing a traits view is actually for.
+ *
+ * The cost, taken knowingly: bars no longer compare BETWEEN needs. A bath
+ * rising at 0.20 and an appetite at 0.40 both sit at centre. The raw number
+ * beside each bar carries that, and the shared-scale version buried the
+ * deviation, which is the more important of the two readings here.
+ */
+function traitFill(t) {
+  return Math.max(0, Math.min(1, t.rate / (t.base * 2)));
+}
+
+function openTraitsDialog(kitty) {
+  const dialog = document.getElementById('traits');
+  if (!dialog) return;
+  const bio = bioFor(kitty);
+  dialog.querySelector('.traits-name').textContent = kitty.name;
+  const epithet = dialog.querySelector('.traits-epithet');
+  epithet.textContent = bio ? bio.epithet : '';
+  epithet.hidden = !bio;
+  const prose = dialog.querySelector('.traits-prose');
+  prose.textContent = bio ? bio.body : '';
+  prose.hidden = !bio;
+  const behavior = kitty.behavior ?? '';
+  dialog.querySelector('.traits-mind').textContent = behavior.startsWith('policy:')
+    ? behavior.slice('policy:'.length)
+    : behavior || 'no policy seated';
+
+  const portrait = dialog.querySelector('canvas');
+  const dpr = window.devicePixelRatio || 1;
+  portrait.width = PORTRAIT_W * dpr;
+  portrait.height = PORTRAIT_H * dpr;
+  portrait.style.width = `${PORTRAIT_W}px`;
+  portrait.style.height = `${PORTRAIT_H}px`;
+  paintPortrait(portrait, kitty.id, { phase: 0 });
+
+  const list = dialog.querySelector('.traits-needs');
+  list.innerHTML = '';
+  for (const t of traitsFor(kitty.id)) {
+    const row = document.createElement('div');
+    row.className = 'trait';
+
+    const label = document.createElement('span');
+    label.className = 'trait-need';
+    label.textContent = t.need;
+
+    const track = document.createElement('span');
+    track.className = 'trait-track';
+    const fill = document.createElement('span');
+    fill.className = 'trait-fill';
+    fill.style.width = `${traitFill(t) * 100}%`;
+    fill.style.background = NEED_COLOUR[t.need] ?? 'var(--ink-soft)';
+    // Dead centre on every row, so the marks line up as one rule down the
+    // card and a deviation is the only thing that breaks the line.
+    const mark = document.createElement('span');
+    mark.className = 'trait-base';
+    track.append(fill, mark);
+
+    const value = document.createElement('span');
+    value.className = 'trait-value';
+    value.textContent = t.rate.toFixed(2);
+
+    // Nothing at all when a cat is ordinary for this need (owner,
+    // 2026-08-15). The em dash was a value in a column of values, and six
+    // rows of it said only that most cats are unremarkable, loudly. Silence
+    // says the same thing and lets the exceptions carry the eye.
+    const delta = document.createElement('span');
+    delta.className = 'trait-delta';
+    delta.textContent = t.pct === 0 ? '' : `(${t.pct > 0 ? '+' : ''}${t.pct}%)`;
+
+    row.append(label, track, value, delta);
+    list.appendChild(row);
+  }
+  dialog.showModal();
+}
+
+/**
+ * A modal <dialog> does not close on a backdrop click by default, so this
+ * adds it beside the × (owner, 2026-08-15).
+ *
+ * Tested against the dialog's own RECTANGLE rather than `event.target ===
+ * dialog`, which is the usual shorthand: the target is also the dialog when
+ * the click lands on its own padding, so the shorthand closes the card when
+ * someone clicks the quiet strip just inside its edge. Both conditions
+ * together mean only the backdrop closes it -- and requiring the target
+ * keeps a keyboard-fired click, which reports (0, 0), from reading as a
+ * click in the top-left corner of the screen.
+ */
+function initTraitsDialog() {
+  const dialog = document.getElementById('traits');
+  if (!dialog) return;
+  dialog.addEventListener('click', (event) => {
+    if (event.target !== dialog) return;
+    const r = dialog.getBoundingClientRect();
+    const outside = event.clientX < r.left || event.clientX > r.right
+      || event.clientY < r.top || event.clientY > r.bottom;
+    if (outside) dialog.close();
+  });
+}
+
 /** Pick up viewer tunables from the server; keep the stand-ins if unavailable. */
 async function fetchViewerConfig() {
   try {
@@ -1301,6 +1487,12 @@ async function fetchViewerConfig() {
     // The easing duration is the served tick interval (FR-005) -- already
     // in /config as world.tick_ms, so no server change was ever needed.
     anim.setTickMs(config?.world?.tick_ms);
+    // The trait source. `config.needs` is the baseline rise rate per need
+    // and `config.kitty[].needs` overrides it for one cat -- which is
+    // already how the engine reads it (`need_rate_for`), and already how
+    // the RL side defines a trait: `rate / reference_need_rate`
+    // (observe.rs). So this is the real number, not a stand-in.
+    if (config?.needs) traitConfig = { base: config.needs, kitty: config.kitty ?? [] };
   } catch {
     // The stand-ins in VIEW carry an older or unreachable server (FR-018).
   }
@@ -1465,5 +1657,6 @@ window.addEventListener('keydown', (event) => {
 
 initTheme();
 initCards();
+initTraitsDialog();
 drawHeaderKitties();
 start();

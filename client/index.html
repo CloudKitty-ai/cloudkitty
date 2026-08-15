@@ -245,8 +245,187 @@
     color: var(--ink-soft);
     font-size: 0.9rem;
   }
-  .about { display: inline; font-size: 0.85rem; }
-  .about > summary {
+  /* The traits dialog. Its own small type scale -- it is a reference sheet,
+     not a card, and everything in it is a number or a label for one. */
+  #traits {
+    border: none;
+    border-radius: 18px;
+    background: var(--card);
+    color: var(--ink);
+    padding: 18px 20px 16px;
+    max-width: 360px;
+    width: calc(100% - 32px);
+    box-shadow: 0 18px 48px var(--shadow);
+  }
+  #traits::backdrop { background: rgba(0, 0, 0, 0.28); }
+  .traits-close {
+    float: right;
+    border: none;
+    background: none;
+    color: var(--ink-soft);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 2px;
+  }
+  .traits-head { display: flex; align-items: center; gap: 10px; }
+  .traits-head h2 { margin: 0; font-size: 1rem; }
+  .traits-epithet {
+    margin: 1px 0 0;
+    font-size: 0.8rem;
+    color: var(--ink);
+  }
+  .traits-mind {
+    margin: 1px 0 0;
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .traits-prose {
+    margin: 10px 0 12px;
+    font-size: 0.8rem;
+    line-height: 1.45;
+    color: var(--ink-soft);
+  }
+  .traits-needs { display: grid; gap: 5px; }
+  /* Label, bar, value, delta. The two number columns are fixed and tabular
+     so the decimal points and the signs line up down the card -- a column of
+     figures that jitters is unreadable at this size. */
+  .trait {
+    display: grid;
+    /* A FIXED label column, and it has to be: every `.trait` is its own grid
+       container, so `auto` sized each row's column to that row's own word --
+       "eat" got a narrow one and a wide bar, "cuddle" the reverse, and the
+       bars stopped lining up (owner spotted it). Right-aligning inside a
+       fixed column gets what `auto` was reaching for -- every name ending
+       hard against its bar -- while the bars all start at the same x. */
+    /* The two right-hand columns are sized to what they HOLD, not rounded
+       up: at 0.76rem with tabular figures a digit is about 7.3px, so "0.80"
+       needs 29px and "+100%" needs 36px. 2rem and 2.5rem leave each a few
+       pixels of air and hand the rest back to the bar. A trait past +999%
+       would outgrow the delta column, which is why it does not wrap -- it
+       would push the row's height instead of just looking cramped.
+
+       The delta is LEFT aligned and the wider of the two: it reads as part
+       of the number beside it -- "0.50 (+25%)" -- rather than as a column of
+       its own, so it has to start where the value ends. It holds "(+100%)",
+       which is 51px. */
+    grid-template-columns: 3.6rem 1fr 2rem 3.2rem;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.76rem;
+  }
+  .trait-need {
+    color: var(--ink-soft);
+    text-align: right;
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+  .trait-track {
+    position: relative;
+    height: 7px;
+    border-radius: 4px;
+    background: var(--rule);
+  }
+  /* The fill's colour is set per need in app.js, from the meadow's own
+     palette -- see NEED_COLOUR. */
+  .trait-fill {
+    display: block;
+    height: 100%;
+    border-radius: 4px;
+  }
+  /* The baseline, dead centre on every row: each need is scaled to twice
+     its own baseline, so the marks line up as one rule down the card. */
+  .trait-base {
+    position: absolute;
+    left: 50%;
+    top: -2px;
+    width: 1px;
+    height: 11px;
+    background: var(--ink);
+    opacity: 0.55;
+  }
+  .trait-value,
+  .trait-delta {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .trait-value { text-align: right; }
+  /* Left, so it follows its number rather than floating off at the card's
+     edge. Empty for an ordinary cat, and an empty cell should look empty. */
+  .trait-delta { text-align: left; padding-left: 2px; }
+  .trait-delta { color: var(--ink-soft); }
+  .traits-foot {
+    margin: 12px 0 0;
+    font-size: 0.68rem;
+    color: var(--ink-soft);
+  }
+
+  /* About's own type, not a kitty card's (owner, 2026-08-15): the card
+     layout is built around a portrait chip, and About has no face. */
+  /* The per-card about link. Ships visible (owner, 2026-08-15): the rates
+     behind it are the served ones now, so there is nothing left to hide. */
+  .kitty-about {
+    margin-left: auto;
+    border: none;
+    background: none;
+    padding: 0;
+    font: inherit;
+    font-size: 0.68rem;
+    color: var(--ink-soft);
+    cursor: pointer;
+    border-bottom: 1px dotted currentColor;
+  }
+  .kitty-about:hover { color: var(--ink); }
+
+  .about-card {
+    background: var(--card);
+    border-radius: 18px;
+    padding: 10px 14px 12px;
+    /* The cards' own token, not a copy of its value: --card-width is what
+       the panel's max-width is derived from too. */
+    max-width: var(--card-width);
+  }
+  /* An h2 for the page outline -- CloudKitty is the h1 and this is a real
+     section, unlike a kitty card's `.name`, which is a data chip. Sized
+     down to the card's own scale: the heading LEVEL is for structure and
+     the size is for the eye, and they do not have to agree. */
+  /* Title row: the name at the left, the affordance right-justified on the
+     same line. It used to sit under the lede on a row of its own, which
+     cost the card vertical space for one word. */
+  .about-card h2 {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    margin: 0 0 4px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: var(--ink-soft);
+  }
+  .about-card h2::after {
+    content: 'more…';
+    font-weight: 500;
+    letter-spacing: 0;
+    border-bottom: 1px dotted currentColor;
+  }
+  .about-card details[open] h2::after { content: 'less…'; }
+  .about-card summary {
+    list-style: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    line-height: 1.35;
+    color: var(--ink);
+  }
+  .about-card summary::-webkit-details-marker { display: none; }
+  .about-card summary:hover h2::after { color: var(--ink); }
+  .about-card p {
+    margin: 8px 0 0;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: var(--ink-soft);
+  }  .about > summary {
     display: inline;            /* stays on the subtitle's line */
     list-style: none;           /* our own marker, below */
     cursor: pointer;
@@ -764,8 +943,6 @@
     .header-kitty { display: none; }
     /* The TAGLINE goes, not the line: the about rides it, and a landscape
        phone is where a curious visitor is most likely to be. */
-    .tagline { display: none; }
-    .subtitle { margin-top: 2px; }
     .about { font-size: 0.72rem; }
     .keys { display: none; }
     footer { font-size: 0.72rem; }
@@ -777,17 +954,6 @@
 <body>
   <header>
     <h1><canvas class="header-kitty" data-facing="right" width="32" height="32" aria-hidden="true"></canvas>CloudKitty<canvas class="header-kitty" data-facing="left" width="32" height="32" aria-hidden="true"></canvas></h1>
-    <div class="subtitle">
-      <span class="tagline">a small, safe world where kitties frolic and play</span>
-      <details class="about"><summary>· about</summary>
-      <p>CloudKitty is a peaceful meadow where kitties wander, eat, drink, nap
-      in sunbeams, groom each other, chase bugs, and meow about it. The kitties
-      are a team. Each kitty is driven by a neural network trained for one
-      objective: the happiness of all the kitties in the meadow. The kitties
-      look out for each other, communicate with purrs and meows, and keep each
-      other company as they frolic and play.</p>
-      </details>
-    </div>
   </header>
 
   <!-- Wide screens seat the cards in two columns flanking the meadow, so
@@ -804,9 +970,61 @@
     </div>
     <section class="panel" id="panel">
       <div class="panel-col"></div>
-      <div class="panel-col"></div>
+      <div class="panel-col">
+        <!-- About is a card in the panel (owner, 2026-08-14/15). In the header
+             it either cost the map a row or had to overlay it; down here it
+             costs nothing, and the header loses its second line, which is
+             worth about a pixel of tile at a 20-row world.
+
+             STATIC markup, and a <details> rather than a script: it collapses
+             on its own, independently of the kitty cards, with no JS and no
+             state to remember. The open state deliberately does not persist
+             (owner) -- a returning visitor should not reopen to a wall of text
+             they have already read. "What is this place" should be the last
+             thing on the page to break, not the first.
+
+             It lives INSIDE this column, at the top of the stack the cards are
+             appended to, which is why `renderPanel` removes the kitty cards one
+             by one on a roster change instead of emptying the column, and why
+             `placeCards` counts and carries only `.kitty-card`s. Either would
+             otherwise take About with them. -->
+        <aside class="about-card">
+          <details>
+            <!-- The heading rides INSIDE the summary so `more…` can share its
+                 line, which saves the card a row. A <summary> may hold heading
+                 content by spec, and it makes the whole title clickable, which
+                 is a bigger target than the word alone. -->
+            <summary><h2>About CloudKitty</h2>a small, safe world where kitties frolic and play</summary>
+            <p>CloudKitty is a peaceful meadow where kitties wander, eat, drink,
+            nap in sunbeams, groom each other, chase bugs, and meow about it. The
+            kitties are a team. Each kitty is driven by a neural network trained
+            for one objective: the happiness of all the kitties in the meadow.
+            The kitties look out for each other, communicate with purrs and
+            meows, and keep each other company as they frolic and play.</p>
+          </details>
+        </aside>
+      </div>
     </section>
   </div>
+
+  <!-- The traits dialog: one element, repopulated per cat. A native
+       <dialog> so it costs the layout nothing, closes on Esc, and traps
+       focus without a line of our own script. OFF until the trait plumbing
+       lands (owner) -- `t` reveals the per-card affordance that opens it. -->
+  <dialog id="traits">
+    <form method="dialog"><button class="traits-close" aria-label="close">×</button></form>
+    <div class="traits-head">
+      <canvas width="61" height="47" aria-hidden="true"></canvas>
+      <div>
+        <h2 class="traits-name"></h2>
+        <p class="traits-epithet" hidden></p>
+        <p class="traits-mind"></p>
+      </div>
+    </div>
+    <p class="traits-prose" hidden></p>
+    <div class="traits-needs"></div>
+    <p class="traits-foot">Need rise per tick. The mark is the baseline.</p>
+  </dialog>
 
   <footer>
     <span id="status">connecting…</span> ·

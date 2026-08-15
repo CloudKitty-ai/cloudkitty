@@ -368,6 +368,27 @@ change.
   of that. The engine documents `purring_until` as the viewer's "rumbling
   now" signal; reading it retires the dwell constant and every off-by-one
   that came with it (#223).
+- **A card per kitty, and an about for each of them.** The site's About
+  moved out of the header into a card of its own: in the header it either
+  cost the map a row or had to overlay it, and down here it costs nothing
+  — the header lost its second line entirely, which is worth about a pixel
+  of tile at a 20-row world. It is static markup and a `<details>`, so it
+  still works with no script at all and collapses independently of the
+  kitty cards.
+- Each cat now has an **about** of her own: her portrait, her name and
+  epithet, the policy driving her, the owner's copy, and a row per need
+  showing the rate as a bar, the number, and how far it sits from the
+  world's baseline. The rates are not a presentational invention — the
+  engine reads `config.kitty[].needs` over `config.needs` through
+  `need_rate_for`, and the training side defines a trait as exactly
+  `rate / reference_need_rate`, so the card shows the quantity the minds
+  are trained against. Each need is scaled to **its own** baseline, so
+  every centre mark lines up down the card and a deviation is the only
+  thing that breaks the line. Bars wear the colour of the thing in the
+  meadow that answers them — the bowl's clay, the pond, the bloom's gold,
+  a lily pad, the cuddle heart, lavender for the soap — held fixed rather
+  than read live from the palette, because the meadow's night colours are
+  lit for its own ground and went invisible on a card (#225).
 - **The gaze aims at what it can express, and no more.** Reading the two
   target shapes the client had been ignoring — `groom`'s bare kitty id, and
   eat/drink resolved from the map — took the gaze from 5.2% of cat-ticks to

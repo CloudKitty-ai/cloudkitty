@@ -4502,29 +4502,201 @@ check('the socket hands arrivals to the delay line and nothing else', () => {
   );
 });
 
+check('the per-kitty about ships, and its numbers are the served ones', () => {
+  // Shipped visible (owner, 2026-08-15). It was gated behind `t` while the
+  // rates were part placeholder; they are the served ones now -- exactly
+  // what the config says, baseline included -- so both the stub table and
+  // the gate are gone.
+  const app = readFileSync(join(here, 'app.js'), 'utf8');
+  const markup = readFileSync(join(here, 'index.html'), 'utf8');
+
+  assert(!/STUB_TRAITS/.test(app), 'the placeholder rate table is back');
+  assert(!/show-traits|traits-note|const TRAITS/.test(app + markup),
+    'the gate is back, so the about link is hidden again');
+  const link = markup.slice(markup.indexOf('  .kitty-about {'), markup.indexOf('}', markup.indexOf('  .kitty-about {')));
+  assert(!/display: none/.test(link), 'the about link is hidden');
+  // It has to be built, and it has to open the dialog.
+  assert(/className = 'kitty-about'/.test(app), 'no about link is built on the cards');
+  assert(/openTraitsDialog\(live\)/.test(app), 'the about link does not open the dialog');
+
+  // The bar colours are checked as COLOURS, not by where they came from.
+  // The first version read them live from the meadow's palette and asserted
+  // that fact -- which passed while `pondDeep` went to #0b1216 on a #37313f
+  // night card, 16 points of lightness apart and invisible. The palette is
+  // lit for the meadow's ground; these sit on a card. So the property that
+  // matters is contrast against both cards, and that is what is measured.
+  // Sliced FORWARD from the table, not to the next symbol that happens to
+  // be named: `const TRAITS` sits ABOVE this one, so seeking to it produced
+  // a backwards slice and an empty string -- which finds no colours and
+  // reports every need missing. Third time today; the endpoints get checked
+  // now rather than assumed.
+  const colourAt = app.indexOf('const NEED_COLOUR');
+  const colours = app.slice(colourAt, app.indexOf('};', colourAt));
+  assert(colourAt > 0 && colours.length > 40, 'could not slice the colour table out of app.js');
+  const hexes = {};
+  for (const m of colours.matchAll(/(\w+): '(#[0-9a-f]{6})'/gi)) hexes[m[1]] = m[2];
+  const needs = ['eat', 'drink', 'sleep', 'play', 'cuddle', 'bath'];
+  for (const n of needs) assert(hexes[n], `${n} has no colour`);
+
+  const rgb = (v) => [1, 3, 5].map((i) => parseInt(v.slice(i, i + 2), 16));
+  const lum = (v) => {
+    const [r, g, b] = rgb(v).map((c) => {
+      const x = c / 255;
+      return x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4;
+    });
+    const y = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    return y <= 0.008856 ? 903.3 * y : 116 * y ** (1 / 3) - 16;
+  };
+  const hue = (v) => {
+    const [r, g, b] = rgb(v).map((c) => c / 255);
+    const mx = Math.max(r, g, b); const mn = Math.min(r, g, b); const d = mx - mn;
+    if (!d) return 0;
+    const x = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    return (Math.round(x * 60) + 360) % 360;
+  };
+  // The two card colours the bars ever sit on, read out of the stylesheet
+  // rather than restated here.
+  const cardOf = (block) => markup.slice(markup.indexOf(block)).match(/--card: (#[0-9a-f]{6})/i)[1];
+  for (const card of [cardOf('  :root {'), cardOf('  body.night {')]) {
+    for (const n of needs) {
+      const gap = Math.abs(lum(hexes[n]) - lum(card));
+      assert(gap >= 25, `${n} (${hexes[n]}) is ${gap.toFixed(0)} from the ${card} card -- invisible on it`);
+    }
+  }
+  // ...and distinguishable from each other, which is the whole point.
+  for (let i = 0; i < needs.length; i += 1) {
+    for (let j = i + 1; j < needs.length; j += 1) {
+      const d = Math.abs(hue(hexes[needs[i]]) - hue(hexes[needs[j]]));
+      assert(Math.min(d, 360 - d) >= 18,
+        `${needs[i]} and ${needs[j]} are ${Math.min(d, 360 - d)} degrees apart and will read as one colour`);
+    }
+  }
+
+  // The backdrop closes it, beside the ×. Asserted as the RECT test rather
+  // than the `target === dialog` shorthand: the target is also the dialog
+  // when the click lands on its own padding, so the shorthand shuts the card
+  // on a click just inside its own edge.
+  const init = app.slice(app.indexOf('function initTraitsDialog'), app.indexOf('function ', app.indexOf('function initTraitsDialog') + 10));
+  assert(/getBoundingClientRect/.test(init), 'the backdrop click closes on target alone, so the padding closes it too');
+  assert(/event\.target !== dialog/.test(init), 'a keyboard-fired click at (0, 0) will read as a backdrop click');
+  assert(/dialog\.close\(\)/.test(init), 'nothing closes the dialog on a backdrop click');
+  assert(/initTraitsDialog\(\);/.test(app.slice(app.lastIndexOf('initCards();'))),
+    'initTraitsDialog is never called, so the backdrop does nothing');
+
+  // Every bar starts at the same x. `.trait` is one grid PER ROW, so an
+  // `auto` label column sizes to that row's own word and the bars come out
+  // ragged -- the labels are right-aligned in a fixed column instead.
+  const row = markup.slice(markup.indexOf('  .trait {'), markup.indexOf('}', markup.indexOf('  .trait {')));
+  assert(/grid-template-columns: [\d.]+rem/.test(row),
+    'the label column is content-sized again, so the bars will not line up');
+  const need = markup.slice(markup.indexOf('  .trait-need {'), markup.indexOf('}', markup.indexOf('  .trait-need {')));
+  assert(/text-align: right/.test(need), 'the labels no longer sit against their bars');
+
+  // The number columns hold their widest reading without wrapping. Checked
+  // as arithmetic rather than by eye: tabular figures at the row's own size,
+  // against "0.80" and "+100%".
+  const rowSize = parseFloat(row.match(/font-size: ([\d.]+)rem/)[1]) * 16;
+  const digit = rowSize * 0.6;
+  const cols = row.match(/grid-template-columns: [\d.]+rem 1fr ([\d.]+)rem ([\d.]+)rem/);
+  assert(cols, 'could not read the trait row columns');
+  for (const [i, sample] of [[1, '0.80'], [2, '(+100%)']]) {
+    const have = parseFloat(cols[i]) * 16;
+    assert(have >= sample.length * digit,
+      `the ${i === 1 ? 'value' : 'delta'} column is ${have.toFixed(0)}px and "${sample}" needs ${(sample.length * digit).toFixed(0)}px`);
+  }
+  assert(/white-space: nowrap/.test(markup.slice(markup.indexOf('  .trait-value,'), markup.indexOf('}', markup.indexOf('  .trait-value,')))),
+    'a tight number column can wrap, which pushes the row height instead of looking cramped');
+
+  // An ordinary cat shows nothing rather than an em dash, and a deviation
+  // reads as part of its own number: "0.50 (+25%)".
+  const dialogFn = app.slice(app.indexOf('function openTraitsDialog'), app.indexOf('function initTraitsDialog'));
+  assert(/pct === 0 \? ''/.test(dialogFn), 'a cat with no deviation still prints a placeholder');
+  assert(/\(\$\{t\.pct > 0 \? '\+' : ''\}\$\{t\.pct\}%\)/.test(dialogFn),
+    'the deviation is not parenthesised beside its number');
+  assert(/\.trait-delta \{ text-align: left/.test(markup),
+    'the deviation is right-aligned, so it floats away from the number it belongs to');
+
+  // Each need is scaled to its own baseline, so every centre mark lines up.
+  assert(/t\.base \* 2/.test(app), 'the bar is no longer scaled to twice the need\'s own baseline');
+  const mark = markup.slice(markup.indexOf('  .trait-base {'), markup.indexOf('}', markup.indexOf('  .trait-base {')));
+  assert(/left: 50%/.test(mark), 'the baseline mark is not at the centre of the track');
+
+  // The footnote has to fit its line: the dialog is 360px with 20px padding
+  // either side, and at 0.68rem that is about 60 characters.
+  const foot = markup.slice(markup.indexOf('<p class="traits-foot">') + 23);
+  const text = foot.slice(0, foot.indexOf('</p>')).split(/\s+/).join(' ').trim();
+  assert(text.length <= 58, `the traits footnote is ${text.length} characters and will wrap`);
+});
 check("the about survives a phase change, and the owner's words survive us", () => {
   const markup = readFileSync(join(here, 'index.html'), 'utf8');
 
-  // A <details>, so it opens with no script at all: it still works with a
-  // dead socket, under reduced motion, and before app.js has run. Wiring
-  // it to a click handler would make "what is this place" the first thing
-  // to break when anything else does.
-  const about = markup.slice(markup.indexOf('<details class="about">'));
-  assert(about.startsWith('<details'), 'the about is gone or is no longer a <details>');
-  assert(/<summary>[^<]*about<\/summary>/.test(about), 'the about has no summary to click');
+  // A card in the panel with its own type (owner, 2026-08-14/15), not a
+  // <details> in the header and not a kitty card. Two properties carried
+  // over from the header version, and both are the reason it is static
+  // markup rather than a built card:
+  //   - it works with NO SCRIPT. A dead socket, reduced motion, before
+  //     app.js runs or after it throws. "What is this place" should be the
+  //     last thing on the page to break, not the first.
+  //   - it collapses on its own, independently of the kitty cards, which a
+  //     <details> gives for free with no state to remember.
+  assert(!/<details class="about"/.test(markup), 'the about went back into the header');
+  assert(!/buildAboutCard/.test(readFileSync(join(here, 'app.js'), 'utf8')),
+    'the about card is built in JS, so it vanishes whenever app.js does');
+  const at = markup.indexOf('<aside class="about-card">');
+  assert(at > 0, 'the about card is gone');
+  const card = markup.slice(at, markup.indexOf('</aside>', at));
+  assert(/<details>/.test(card) && /<summary>/.test(card),
+    'the about no longer collapses without script');
+  assert(!/cards-collapsed/.test(card), 'the about was tied to the kitty cards\' collapse');
 
-  // It must cost the map NOTHING. The map is height-bound and `resizeFor`
-  // subtracts the header from its budget, so at a 20-row world every 20px
-  // of header is a whole pixel off the tile -- and a pixel of tile is 20px
-  // off each edge of the map. So the summary rides a line that already
-  // exists, and the panel is taken out of flow rather than pushing the
-  // layout down when it opens (owner, 2026-08-13).
-  assert(
-    /<span class="tagline">/.test(markup) && about.indexOf('</div>') > about.indexOf('</details>'),
-    'the about is no longer inside the subtitle line, so it costs the map a row',
-  );
+  // The h2 is for the page OUTLINE -- CloudKitty is the h1 and this is a
+  // real section, unlike a kitty card's `.name`, which is a data chip. Its
+  // size is a separate question and lives in CSS.
+  assert(/<h2>/.test(card), 'the about card has no heading, so the page has no outline for it');
 
-  // The owner's copy, verbatim. Ours to lay out, not to edit.
+  // It must cost the map NOTHING, and the header lost its second line
+  // entirely: `resizeFor` subtracts `boxOf('header')` from the map's height
+  // budget, and at a 20-row world ~20px of header is a whole pixel off the
+  // tile -- which is 20px off each edge of the map.
+  const header = markup.slice(markup.indexOf('<header'), markup.indexOf('</header>'));
+  assert(!/about/i.test(header), 'the about is back in the header, where it costs the map a row');
+  assert(!/class="subtitle"|class="tagline"/.test(markup),
+    'the tagline is still in the header, so the header still has a second line');
+
+  // At the TOP of the stack the cards are appended to (owner, 2026-08-15).
+  // The previous version of this asserted the opposite -- that About sat
+  // outside the columns -- by checking it came after the last column's
+  // opening tag. That is also true when it is INSIDE that column, so the
+  // check went on passing through the move without noticing. Position is
+  // asserted against the column's closing tag now, which cannot be read
+  // both ways.
+  const panel = markup.slice(markup.indexOf('<section class="panel"'), markup.indexOf('</section>'));
+  const lastCol = panel.lastIndexOf('<div class="panel-col">');
+  const aboutAt = panel.indexOf('about-card');
+  assert(aboutAt > lastCol && aboutAt < panel.indexOf('</div>', lastCol),
+    'the about card is no longer inside the last panel column');
+
+  // Which puts it in the way of two things that manage that column, and
+  // both have to spare it. A roster change must not empty the column out
+  // from under it, and the side-to-side carry must move only cats.
+  const app = readFileSync(join(here, 'app.js'), 'utf8');
+  const rebuild = app.slice(app.indexOf('if (needsRebuild) {'), app.indexOf('const built = cards();'));
+  assert(!/innerHTML = ''/.test(rebuild),
+    'the roster rebuild empties the column, which deletes the about card with it');
+  assert(/querySelectorAll\('\.kitty-card'\)/.test(rebuild),
+    'the roster rebuild no longer removes the kitty cards specifically');
+  const place = app.slice(app.indexOf('function placeCards'), app.indexOf('// Sized for the GESTURE'));
+  assert(!/children\.length/.test(place),
+    'placeCards counts every child again, so the about card corrupts its split');
+
+  // The owner's copy, verbatim. Ours to lay out, not to edit -- both the
+  // line that shows closed and the paragraph behind it.
+  const lede = 'a small, safe world where kitties frolic and play';
+  // The heading now rides inside the summary so `more…` can share its line,
+  // so the lede is the summary's text rather than its whole content.
+  const summary = card.slice(card.indexOf('<summary>'), card.indexOf('</summary>'));
+  assert(summary.includes(lede), 'the closed line has drifted from the owner\'s');
+  assert(summary.includes('<h2>'), 'the heading left the summary, so `more…` has no line to share');
   const wanted =
     'CloudKitty is a peaceful meadow where kitties wander, eat, drink, nap in ' +
     'sunbeams, groom each other, chase bugs, and meow about it. The kitties are ' +
@@ -4532,40 +4704,22 @@ check("the about survives a phase change, and the owner's words survive us", () 
     'the happiness of all the kitties in the meadow. The kitties look out for ' +
     'each other, communicate with purrs and meows, and keep each other company ' +
     'as they frolic and play.';
-  const got = about.slice(about.indexOf('<p>') + 3, about.indexOf('</p>'))
-    .split(/\s+/).join(' ').trim();
+  const got = card.slice(card.indexOf('<p>') + 3, card.indexOf('</p>')).split(/\s+/).join(' ').trim();
   assert(got === wanted, `the about text has drifted from what the owner wrote:\n  ${got}`);
 
   // And the trap this page has already fallen into once (#193): the four
   // inverting tokens SWAP across a phase, so any colour written as a
   // literal here sits at the wrong end of the palette for half the day.
-  // Each rule read on its own. A loose search across the whole block is
-  // how the first version of this passed while the panel was back in the
-  // layout: `display: inline` also matches the SUMMARY's rule, and
-  // `position: absolute` was outside the slice entirely.
-  const ruleFor = (selector) => {
-    const at = markup.indexOf(`  ${selector} {`);
-    assert(at > 0, `no CSS rule for ${selector}`);
-    // To the closing brace, not to a newline-plus-brace: `.about` is a
-    // ONE-LINER, so looking for `\n  }` ran straight past it and into the
-    // summary's rule -- which also says `display: inline`, so the check
-    // passed while the about had a row of its own again.
-    return markup.slice(at, markup.indexOf('}', at) + 1);
-  };
-  const container = ruleFor('.about');
-  const panel = ruleFor('.about > p');
-  // The summary rides a line that already exists...
-  assert(/display: inline;/.test(container), 'the about takes a row of its own again');
-  // ...and the panel is out of flow, or opening it shrinks the meadow.
-  assert(/position: absolute;/.test(panel), 'the about panel is back in the layout');
-  assert(/var\(--card\)/.test(panel), 'the panel needs the card background to be readable over the map');
-
-  const block = container + panel + ruleFor('.about > summary');
-  const literals = block.match(/#[0-9a-fA-F]{3,8}|rgba?\(/g);
-  assert(!literals, `the about hardcodes ${literals} instead of using a theme token`);
-  assert(/var\(--ink-soft\)/.test(block), 'the about must take its colour from the palette');
+  for (const selector of ['.about-card', '.about-card h2', '.about-card summary', '.about-card p']) {
+    const start = markup.indexOf(`  ${selector} {`);
+    assert(start > 0, `no CSS rule for ${selector}`);
+    const rule = markup.slice(start, markup.indexOf('}', start) + 1);
+    const colours = rule.match(/(?:^|[^-])(?:color|background)\s*:\s*([^;]+);/g) || [];
+    for (const c of colours) {
+      assert(/var\(--/.test(c), `${selector} names a colour literal (${c.trim()}), wrong for half the day`);
+    }
+  }
 });
-
 check('no check left a dial moved behind it', () => {
   // Must be LAST. Half the file dials a value, draws, and puts it back;
   // one that forgets leaves every later check drawing a different cat,
