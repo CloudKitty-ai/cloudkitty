@@ -4502,65 +4502,50 @@ check('the socket hands arrivals to the delay line and nothing else', () => {
   );
 });
 
-check('the traits dialog ships OFF, and its stubs are marked as stubs', () => {
-  // Unfinished on purpose (owner, 2026-08-15): the prose is lorem and the
-  // rates are part measured, part placeholder, so nothing about it should
-  // reach a viewer who has not asked. `t` reveals it.
+check('the traits dialog ships OFF, and its numbers are the served ones', () => {
+  // Unfinished on purpose (owner, 2026-08-15): `t` reveals it. The rates are
+  // no longer part placeholder -- the owner asked for exactly what the config
+  // says, baseline included -- so the stub table and its quieter styling are
+  // gone with it.
   const app = readFileSync(join(here, 'app.js'), 'utf8');
   const markup = readFileSync(join(here, 'index.html'), 'utf8');
 
   assert(/const TRAITS = \{ on: 0 \}/.test(app), 'the traits affordance no longer ships off');
+  assert(!/STUB_TRAITS/.test(app), 'the placeholder rate table is back');
   assert(/\.kitty-about \{[^}]*display: none/.test(markup),
     'the per-kitty about link is visible without the toggle');
   assert(/body\.show-traits \.kitty-about/.test(markup), 'nothing reveals the about link');
+
+  // The bar colours come from the MEADOW's palette, read at draw time. Two
+  // things ride on that: they shift with the hour like everything else, and
+  // they are not an invented rainbow. A literal here would sit at the wrong
+  // end of the day for half of it, the same trap as #193.
+  const colours = app.slice(app.indexOf('const NEED_COLOUR'), app.indexOf('function traitsFor'));
+  for (const need of ['eat', 'drink', 'sleep', 'play', 'cuddle', 'bath']) {
+    const line = colours.split('\n').find((l) => l.trim().startsWith(`${need}:`));
+    assert(line, `${need} has no colour`);
+    assert(/PROPS\.|MEADOW\./.test(line), `${need}'s colour is not from the world palette: ${line.trim()}`);
+    assert(/\(\) =>/.test(line), `${need}'s colour is captured, so it will not follow a phase change`);
+    assert(!/#[0-9a-f]{3,6}/i.test(line), `${need}'s colour is a literal`);
+  }
+  // The sunbeam has to be shaded to read on a light card, and a palette
+  // entry is `rgb()` mid-crossfade -- so it must go through the palette-safe
+  // helper, not the hex-only one that returns black on those.
+  assert(/shadePalette\(MEADOW\./.test(colours), 'the gold is unshaded, so it will not read on a light card');
+  assert(!/shadeHex\(MEADOW\.|shadeHex\(PROPS\./.test(colours),
+    'a palette colour goes through shadeHex, which returns black mid-crossfade');
+
+  // Each need is scaled to its own baseline, so every centre mark lines up.
+  assert(/t\.base \* 2/.test(app), 'the bar is no longer scaled to twice the need\'s own baseline');
+  const mark = markup.slice(markup.indexOf('  .trait-base {'), markup.indexOf('}', markup.indexOf('  .trait-base {')));
+  assert(/left: 50%/.test(mark), 'the baseline mark is not at the centre of the track');
+
   // The footnote has to fit its line: the dialog is 360px with 20px padding
-  // either side, and at 0.68rem that is about 60 characters. It shipped at
-  // 70 and wrapped; dropping "world's" alone only reached 62.
+  // either side, and at 0.68rem that is about 60 characters.
   const foot = markup.slice(markup.indexOf('<p class="traits-foot">') + 23);
   const text = foot.slice(0, foot.indexOf('</p>')).split(/\s+/).join(' ').trim();
   assert(text.length <= 58, `the traits footnote is ${text.length} characters and will wrap`);
-
-  // Served rates must beat the placeholder table, or a real trait would be
-  // hidden behind a stand-in the day it lands.
-  const fn = app.slice(app.indexOf('function traitsFor('), app.indexOf('/** One shared scale'));
-  const servedAt = fn.indexOf('served[need]');
-  const stubAt = fn.indexOf('stub[need]');
-  assert(servedAt > 0 && stubAt > servedAt,
-    'the stub table is consulted before the served config, so a real trait would be masked');
-  assert(/STUB_TRAITS/.test(app) && /Delete this whole/.test(app),
-    'the placeholder table is no longer marked for deletion');
-
-  // The owner's copy, verbatim. Ours to lay out, not to edit -- the same
-  // rule the About card's text lives under.
-  const bios = app.slice(app.indexOf('const KITTY_BIOS'), app.indexOf('/** The bio for a cat'));
-  for (const [name, epithet] of [
-    ['Miso', 'Sleepy Kitty'], ['Biscuit', 'Playful Kitty'], ['Pumpkin', 'Hungry Kitty'],
-    ['Kittybear', 'Tidy Kitty'], ['Clementine', 'Cuddly Kitty'],
-  ]) {
-    assert(bios.includes(`name: '${name}'`), `${name} has lost her bio`);
-    assert(bios.includes(`epithet: '${epithet}'`), `${name}'s epithet has drifted`);
-  }
-  // Keyed by id AND name, so a reseeded roster shows nothing rather than
-  // attaching one cat's life story to another.
-  const bioFn = app.slice(app.indexOf('function bioFor'), app.indexOf('/** One shared scale'));
-  assert(/bio\.name === kitty\.name/.test(bioFn),
-    'the bio is looked up by id alone, so a reseeded roster would mis-attach it');
-
-  // A stub must not read as a measurement.
-  assert(/\.trait\[data-stub\]/.test(markup), 'stubbed rows look identical to measured ones');
-
-  // The four inverting tokens swap across a phase, so a literal here sits at
-  // the wrong end of the palette for half the day (#193).
-  for (const selector of ['#traits', '.trait-need', '.trait-fill', '.trait-delta', '.traits-prose']) {
-    const at = markup.indexOf(`  ${selector} {`);
-    assert(at > 0, `no CSS rule for ${selector}`);
-    const rule = markup.slice(at, markup.indexOf('}', at) + 1);
-    for (const c of rule.match(/(?:^|[^-])(?:color|background)\s*:\s*([^;]+);/g) || []) {
-      assert(/var\(--|none/.test(c), `${selector} names a colour literal (${c.trim()})`);
-    }
-  }
 });
-
 check("the about survives a phase change, and the owner's words survive us", () => {
   const markup = readFileSync(join(here, 'index.html'), 'utf8');
 

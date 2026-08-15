@@ -1323,130 +1323,70 @@ async function fetchSnapshot() {
 let traitConfig = null;
 
 /**
- * Placeholder rates for the cats that have none yet, so the dialog can be
- * judged full rather than as one bar and five baselines. **Delete this whole
- * table when real traits land**; anything a cat actually has already wins,
- * because the served config is read first.
- */
-/**
  * OFF until the trait plumbing is in place (owner, 2026-08-15). `t` reveals
- * the per-card affordance that opens the dialog; nothing else changes, so a
- * viewer who never presses it sees the site exactly as it ships.
+ * the per-card `about` link that opens the dialog; nothing else changes, so
+ * a viewer who never presses it sees the site exactly as it ships.
  */
 const TRAITS = { on: 0 };
 
-const STUB_TRAITS = {
-  1: { play: 0.56, sleep: 0.21, cuddle: 0.48 },
-  2: { cuddle: 0.58, bath: 0.12, drink: 0.32 },
-  4: { drink: 0.54, eat: 0.28, bath: 0.29 },
-};
+const NEED_ORDER = ['eat', 'drink', 'sleep', 'play', 'cuddle', 'bath'];
 
 /**
- * The owner's copy, verbatim. Ours to lay out, not to edit.
+ * A colour per need, taken from the thing in the MEADOW that answers it, so
+ * the bars are not an invented rainbow: the bowl's clay, the pond, the
+ * sunbeam, the lily pads, the cuddle heart, the soap.
  *
- * Keyed by id AND name: a reseeded roster could hand id 3 to a different
- * cat, and attaching Pumpkin's life story to somebody else is a worse
- * failure than showing nothing. A mismatch shows nothing.
+ * Read as functions rather than captured, because `PROPS` and `MEADOW` are
+ * rebound on every phase change -- the dialog opened at dusk should wear
+ * dusk's colours like everything else.
  *
- * **This copy has two halves with different lifetimes** (Experiments'
- * template, 2026-08-15), which matters because the workflow reruns at every
- * generation and roster change:
- *
- *   - the TITLE and the first sentence describe the BODY -- the trait -- and
- *     are durable. They survive a mind swap, and the trait titles are locked
- *     in the policy registry.
- *   - the rest is the MIND: observed narrative about the policy currently
- *     seated. It is rewritten at every seating, from the new generation's
- *     measurements.
- *   - an optional closer is a relationship hook ("Bonded with...").
- *
- * Kept as ONE string per cat rather than split into those halves on purpose.
- * The boundary is a judgement about someone else's prose -- Kittybear's first
- * sentence carries both halves at once -- and guessing it wrong would be a
- * silent edit. A seating refresh replaces the whole entry.
- *
- * "Tidy Kitty" is a deliberate display translation of the registry's
- * canonical FASTIDIOUS, owner-approved for visitors. Not a typo; do not
- * "correct" it back.
+ * Drink and bath share the water family on purpose, separated by depth
+ * rather than by hue. They are both water; giving bath an unrelated colour
+ * to force six hues would be decoration pretending to be meaning. The
+ * sunbeam is shaded because at L* 96 it is invisible on a light card --
+ * `shadePalette` rather than `shadeHex`, since a palette entry is `rgb()`
+ * mid-crossfade and the hex-only helpers return black on those.
  */
-const KITTY_BIOS = {
-  1: {
-    name: 'Miso',
-    epithet: 'Sleepy Kitty',
-    body: 'With Miso, nap time is all the time, and she\u2019s decided naps are '
-      + 'best shared: she sleeps in a pile whenever she can, and everyone wants the '
-      + 'spot beside her. When she wanders off alone, she sends a little purr across '
-      + 'the meadow: I\'m fine, back soon.',
-  },
-  2: {
-    name: 'Biscuit',
-    epithet: 'Playful Kitty',
-    body: 'Born to chase: Biscuit would rather chase a bug than eat dinner. She\'s '
-      + 'also the meadow\'s elder, keeper of the old customs: a purr from far away '
-      + 'means all is well, and when a friend mews for bath time, she\'s the one who '
-      + 'pads over to help wash.',
-  },
-  3: {
-    name: 'Pumpkin',
-    epithet: 'Hungry Kitty',
-    body: 'A snack is never far from her thoughts. In between visits to the food '
-      + 'bowl, her heart is enormous: she spends her days cleaning her friends\' '
-      + 'ears, purring all the while. Bonded with Kittybear.',
-  },
-  4: {
-    name: 'Kittybear',
-    epithet: 'Tidy Kitty',
-    body: 'Setting the record for most baths and most purrs, Kittybear shares '
-      + 'Pumpkin\'s warm idea of the world: caring for someone looks like washing '
-      + 'them. The chattiest pair around, and the kindest. Bonded with Pumpkin.',
-  },
-  // Placeholder until she is seated and has grown into a mind of her own.
-  // Sent by the owner directly, 2026-08-15. Experiments' relay believed this
-  // one was still being held, so if a second version arrives, hers is the
-  // one that was written later.
-  5: {
-    name: 'Clementine',
-    epithet: 'Cuddly Kitty',
-    body: 'Came into the world wanting to be near somebody. What she\'ll make of the '
-      + 'meadow, nobody knows yet \u2014 she\'s new here.',
-  },
+const NEED_COLOUR = {
+  eat: () => PROPS.bowlClay,
+  drink: () => MEADOW.pondDeep,
+  sleep: () => shadePalette(MEADOW.bloomHeart, 0.82),
+  play: () => MEADOW.lilyPadRim,
+  cuddle: () => PROPS.blushDeep,
+  bath: () => PROPS.soapRim,
 };
-
-/** The bio for a cat, or null when the roster does not match the copy. */
-function bioFor(kitty) {
-  const bio = KITTY_BIOS[kitty.id];
-  return bio && bio.name === kitty.name ? bio : null;
-}
-
-const NEED_ORDER = ['eat', 'drink', 'sleep', 'play', 'cuddle', 'bath'];
 
 function traitsFor(kittyId) {
   if (!traitConfig) return [];
   const base = traitConfig.base;
   const served = traitConfig.kitty.find((k) => k.id === kittyId)?.needs ?? {};
-  const stub = STUB_TRAITS[kittyId] ?? {};
   return NEED_ORDER.filter((need) => Number.isFinite(base[need])).map((need) => {
     // Served first, stub second, baseline last: a real trait always wins.
-    const rate = Number.isFinite(served[need]) ? served[need]
-      : Number.isFinite(stub[need]) ? stub[need]
-        : base[need];
+    const rate = Number.isFinite(served[need]) ? served[need] : base[need];
     return {
       need,
       rate,
       base: base[need],
       pct: Math.round(((rate - base[need]) / base[need]) * 100),
-      stubbed: !Number.isFinite(served[need]) && Number.isFinite(stub[need]),
     };
   });
 }
 
-/** One shared scale, so bars compare across needs AND across cats. */
-function traitScale() {
-  let max = 0;
-  for (const kitty of latestWorld?.kitties ?? []) {
-    for (const t of traitsFor(kitty.id)) max = Math.max(max, t.rate, t.base);
-  }
-  return Math.max(0.1, Math.ceil(max * 10) / 10);
+/**
+ * Where a rate sits on its own bar, 0..1.
+ *
+ * Each need is scaled to ITS OWN baseline (owner, 2026-08-15): 0 at the
+ * left, the baseline dead centre, twice the baseline at the right. Every
+ * row's centre mark therefore lines up down the card, which is what makes a
+ * deviation readable at a glance -- the thing a traits view is actually for.
+ *
+ * The cost, taken knowingly: bars no longer compare BETWEEN needs. A bath
+ * rising at 0.20 and an appetite at 0.40 both sit at centre. The raw number
+ * beside each bar carries that, and the shared-scale version buried the
+ * deviation, which is the more important of the two readings here.
+ */
+function traitFill(t) {
+  return Math.max(0, Math.min(1, t.rate / (t.base * 2)));
 }
 
 function openTraitsDialog(kitty) {
@@ -1475,11 +1415,9 @@ function openTraitsDialog(kitty) {
 
   const list = dialog.querySelector('.traits-needs');
   list.innerHTML = '';
-  const scale = traitScale();
   for (const t of traitsFor(kitty.id)) {
     const row = document.createElement('div');
     row.className = 'trait';
-    if (t.stubbed) row.dataset.stub = '1';
 
     const label = document.createElement('span');
     label.className = 'trait-need';
@@ -1489,12 +1427,12 @@ function openTraitsDialog(kitty) {
     track.className = 'trait-track';
     const fill = document.createElement('span');
     fill.className = 'trait-fill';
-    fill.style.width = `${(t.rate / scale) * 100}%`;
-    // Where the baseline sits, so the percentage is visible in the bar and
-    // not only in the number beside it.
+    fill.style.width = `${traitFill(t) * 100}%`;
+    fill.style.background = NEED_COLOUR[t.need]?.() ?? 'var(--ink-soft)';
+    // Dead centre on every row, so the marks line up as one rule down the
+    // card and a deviation is the only thing that breaks the line.
     const mark = document.createElement('span');
     mark.className = 'trait-base';
-    mark.style.left = `${(t.base / scale) * 100}%`;
     track.append(fill, mark);
 
     const value = document.createElement('span');

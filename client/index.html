@@ -305,15 +305,18 @@
     border-radius: 4px;
     background: var(--rule);
   }
+  /* The fill's colour is set per need in app.js, from the meadow's own
+     palette -- see NEED_COLOUR. */
   .trait-fill {
     display: block;
     height: 100%;
     border-radius: 4px;
-    background: var(--ink-soft);
   }
-  /* The baseline mark: where this need sits for a cat with no trait at all. */
+  /* The baseline, dead centre on every row: each need is scaled to twice
+     its own baseline, so the marks line up as one rule down the card. */
   .trait-base {
     position: absolute;
+    left: 50%;
     top: -2px;
     width: 1px;
     height: 11px;
@@ -323,10 +326,6 @@
   .trait-value,
   .trait-delta { font-variant-numeric: tabular-nums; text-align: right; }
   .trait-delta { color: var(--ink-soft); }
-  /* Placeholder rows read quieter than real ones, so a stub is never
-     mistaken for a measurement. Goes when STUB_TRAITS does. */
-  .trait[data-stub] .trait-fill { opacity: 0.45; }
-  .trait[data-stub] .trait-value { opacity: 0.6; }
   .traits-foot {
     margin: 12px 0 0;
     font-size: 0.68rem;
