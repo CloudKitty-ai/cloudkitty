@@ -194,3 +194,16 @@ to 3.0 as a deliberate sparsity redesign (fog) paired with camera
 contention (F-017) is mitigated by heterogeneous seats and gated by
 §9.2, with 22×22-rerun as the priced fallback. Both candidate
 configs committed under configs/.
+
+## POST-WALL SCRIPTED ANCHOR (2026-08-15, stamp 5d293c67…, re-baseline
+step 1)
+
+Five bodies + sunbeam 7 + Clementine, needs_driven ×5, eval band ×
+20k: **team welfare 0.9086** (min .9067 / max .9100), worst mda 0,
+zero floor touches. Per-seat: Pumpkin 91.10 (rebalance working — the
+happiest scripted seat), Miso 90.94, Biscuit 90.92, Kittybear 90.86,
+**Clementine 90.61 — her first welfare reading** (lowest, healthy;
+cuddle-0.7 is scripted-expensive by the exchange table, and cheap in
+policy company — her design bet awaits the phase-1 minds). This
+anchor (0.9086) is the two-layer gates' hard floor for every phase-1
+certification. Raw: results-raw/scripted-anchor-postwall.json.
