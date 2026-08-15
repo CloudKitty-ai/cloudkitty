@@ -48,3 +48,45 @@ vectors (additivity is a hypothesis), then the exchange table
 freezes into the phase-1 design inputs. Scope stamps: engine
 412d00e2…, served 20×20 geometry, scripted company; all rates mortal
 on any of those moving.
+
+## Stage 2 (same day): the policy bracket — the price order INVERTS
+
+Same grid under the deployed roster B (greedy; Miso's cuddler
+carrying — rates are carrier-conditional, stamped). Control: carrier
+95.49, team 95.18. Raw: `results-raw-policy/screen.json`. Zero
+distress in all 250 runs again.
+
+| need | 2× cost, scripted | 2× cost, policy | shift |
+|---|---|---|---|
+| eat | −1.03 | **−1.07** | unchanged — physics |
+| drink | −0.75 | **−0.87** | slightly pricier (contested water) |
+| sleep | −0.85 | −0.56 | −35% |
+| cuddle | **−1.20 (priciest)** | −0.51 | **−58%** |
+| play | −0.79 | −0.38 | −51% |
+| bath | −0.53 | −0.35 | −34% |
+
+**Trait prices are social prices.** In company that reciprocates,
+the social needs (cuddle, play) cost roughly half; the consumable
+needs (eat, drink) cost the same or more — resource physics does not
+adapt, affection economics does. Scripted's priciest trait (cuddle)
+is policy's second-cheapest; eat takes the crown it was always
+assumed to hold. Discounts also BUY less under policy (adapted cats
+are already efficient — less slack to harvest: sleep 0.5× buys
++0.62 scripted but only +0.28 policy).
+
+Revised provisional vectors (policy rates; direct verification still
+required before any pin):
+
+- **Clementine** cuddle 0.7 ≈ −0.37 (vs −0.88 scripted-derived —
+  the over-compensation stage 1 warned about). Balanced candidate:
+  cuddle 0.7 + play 0.3 (+0.13) + bath 0.10 (+0.28) ≈ +0.04.
+  "Affectionate, mellow at play, always tidy."
+- **Pumpkin**: the stage-1 vector UNDER-compensates under policy
+  rates (sleep/bath discounts shrink): eat 0.8 + sleep 0.15 + bath
+  0.10 nets ≈ −0.51. Either widen the compensation basket (add play
+  and/or drink discounts) or accept partial compensation under
+  seat-paired accounting — a phase-1 design choice, not made here.
+
+Stamps: engine 412d00e2…, served geometry, roster-B company,
+cuddler-carrier. Stage 3 (re-derive under the spread-trained
+generation) remains registered in the roadmap.
