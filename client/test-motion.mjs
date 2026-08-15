@@ -4589,6 +4589,21 @@ check('the traits dialog ships OFF, and its numbers are the served ones', () => 
   const need = markup.slice(markup.indexOf('  .trait-need {'), markup.indexOf('}', markup.indexOf('  .trait-need {')));
   assert(/text-align: right/.test(need), 'the labels no longer sit against their bars');
 
+  // The number columns hold their widest reading without wrapping. Checked
+  // as arithmetic rather than by eye: tabular figures at the row's own size,
+  // against "0.80" and "+100%".
+  const rowSize = parseFloat(row.match(/font-size: ([\d.]+)rem/)[1]) * 16;
+  const digit = rowSize * 0.6;
+  const cols = row.match(/grid-template-columns: [\d.]+rem 1fr ([\d.]+)rem ([\d.]+)rem/);
+  assert(cols, 'could not read the trait row columns');
+  for (const [i, sample] of [[1, '0.80'], [2, '+100%']]) {
+    const have = parseFloat(cols[i]) * 16;
+    assert(have >= sample.length * digit,
+      `the ${i === 1 ? 'value' : 'delta'} column is ${have.toFixed(0)}px and "${sample}" needs ${(sample.length * digit).toFixed(0)}px`);
+  }
+  assert(/white-space: nowrap/.test(markup.slice(markup.indexOf('  .trait-value,'), markup.indexOf('}', markup.indexOf('  .trait-value,')))),
+    'a tight number column can wrap, which pushes the row height instead of looking cramped');
+
   // Each need is scaled to its own baseline, so every centre mark lines up.
   assert(/t\.base \* 2/.test(app), 'the bar is no longer scaled to twice the need\'s own baseline');
   const mark = markup.slice(markup.indexOf('  .trait-base {'), markup.indexOf('}', markup.indexOf('  .trait-base {')));

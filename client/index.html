@@ -299,9 +299,15 @@
        bars stopped lining up (owner spotted it). Right-aligning inside a
        fixed column gets what `auto` was reaching for -- every name ending
        hard against its bar -- while the bars all start at the same x. */
-    grid-template-columns: 3.6rem 1fr 2.4rem 2.9rem;
+    /* The two right-hand columns are sized to what they HOLD, not rounded
+       up: at 0.76rem with tabular figures a digit is about 7.3px, so "0.80"
+       needs 29px and "+100%" needs 36px. 2rem and 2.5rem leave each a few
+       pixels of air and hand the rest back to the bar. A trait past +999%
+       would outgrow the delta column, which is why it does not wrap -- it
+       would push the row's height instead of just looking cramped. */
+    grid-template-columns: 3.6rem 1fr 2rem 2.5rem;
     align-items: center;
-    gap: 6px 8px;
+    gap: 6px;
     font-size: 0.76rem;
   }
   .trait-need {
@@ -335,7 +341,11 @@
     opacity: 0.55;
   }
   .trait-value,
-  .trait-delta { font-variant-numeric: tabular-nums; text-align: right; }
+  .trait-delta {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+  }
   .trait-delta { color: var(--ink-soft); }
   .traits-foot {
     margin: 12px 0 0;
