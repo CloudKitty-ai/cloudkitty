@@ -93,8 +93,37 @@
     gap: 10px 26px;
     font-size: 14px;
   }
-  .dials label { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
-  .dials input { flex: 1; }
+  /* Label on its own line, slider and value beneath it. The three used to
+     share one row, which cannot work in a 240px column: a long label
+     squeezed the slider until it was too narrow to drag, and reserving
+     width for the slider instead made the label re-wrap on every value
+     change. Given a row of its own the label wraps on the COLUMN width
+     only -- the same place every time, whatever the number says -- and the
+     slider always spans the column. */
+  .dials label {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas: 'text text' 'range value';
+    align-items: center;
+    gap: 2px 10px;
+  }
+  .dials label > span { grid-area: text; line-height: 1.35; }
+  .dials input { grid-area: range; width: 100%; min-width: 0; }
+  /* The value still has to hold its width: tabular figures so every digit
+     measures the same, and a floor of 6ch, which is the widest reading any
+     dial in this lab can produce (the pounce card's `lift`, 0.0025 step). */
+  .dials b {
+    grid-area: value;
+    min-width: 6ch;
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .dials label:has(input[type='checkbox']) {
+    grid-template-columns: auto 1fr;
+    grid-template-areas: 'range text';
+  }
+  .dials label input[type='checkbox'] { width: auto; }
   #eyeReadout {
     margin-top: 10px;
     font-size: 13px;
@@ -191,6 +220,7 @@
 
 <script src="cat.js"></script>
 <script src="cat-v2.js"></script>
+<script src="props.js"></script>
 <!-- For VIEW (the shipped motion values) and slowBlinkLid (the shipped
      envelope). Nothing in anim.js runs until `anim.init`, which the lab
      never calls, so loading it here costs a parse and no behaviour. -->
@@ -1582,6 +1612,71 @@
         } else {
           drawCat(ctx, { ...base, pose: moving ? 'walking' : 'idle', phase });
         }
+      },
+    },
+    {
+      title: 'The purr glyph — a mood, not a request',
+      v2Only: true,
+      w: 620,
+      h: 274,
+      ownShadows: true,
+      bag: PURR,
+      note:
+        'Measured on the candidate world (attn-a1, 246 ticks): 98% of every meow is a purr, and a bubble was on screen 50.2% of ticks against 15.1% for the seated policy. Nine of the ten kinds are REQUESTS a viewer can act on; a purr is a mood. Same bubble for both meant almost every bubble said nothing. With purr taken out, request bubbles fall to 1.2% of ticks — a bubble means something again. ' +
+        'Judged here against a vibrating heart, a pulsing heart and sound waves; the owner took the emoji (2026-08-14), knowing the two things it cannot do: follow the day/night palette, and look the same on two machines. This dials the SHIPPED glyph — props.js PURR — so there is no second copy to drift. It ships OFF (`r` toggles it live): the drawing reads well, but a heart popped in somewhere in the meadow every 3 seconds on the candidate roster, 20 a minute, and that is distracting whatever it looks like. The heart is up for exactly as long as the cat is purring — a one-tick action — rather than lingering, because a fixed dwell read as popping.',
+      dials: [
+        { key: 'on', label: 'SHIP it? (the card always draws it)', min: 0, max: 1, step: 1 },
+        { key: 'size', label: 'glyph size, share of the tile', min: 0.15, max: 0.7, step: 0.01 },
+        { key: 'rise', label: 'height above the cat (negative = down onto it)', min: -1.2, max: 1, step: 0.02 },
+        { key: 'offsetX', label: 'left / right of centre, share of tile', min: -0.7, max: 0.7, step: 0.02 },
+        { key: 'alpha', label: 'opacity', min: 0.2, max: 1, step: 0.05 },
+        { key: 'shakeOfGlyph', label: 'vibrate: travel as a share of the glyph', min: 0, max: 0.15, step: 0.002 },
+        { key: 'shakeMinPx', label: '...but never less than, in real px', min: 0, max: 1.5, step: 0.05 },
+        { key: 'shakeHz', label: 'vibrate: shakes per second', min: 2, max: 20, step: 0.5 },
+      ],
+      readout() {
+        const P = PURR;
+        return `PURR = { on: ${P.on}, size: ${P.size}, rise: ${P.rise}, offsetX: ${P.offsetX}, alpha: ${P.alpha},\n` +
+          `  shakeOfGlyph: ${P.shakeOfGlyph}, shakeMinPx: ${P.shakeMinPx}, shakeHz: ${P.shakeHz} }\n` +
+          [31, 93].map((t) => {
+            const g = P.size * t;
+            const a = Math.max(P.shakeMinPx, P.shakeOfGlyph * g);
+            return `  ${t}px tile: glyph ${g.toFixed(1)}px, buzz ${(a * 2).toFixed(2)}px p-p ` +
+              `(${(a / g * 100).toFixed(1)}% of it)${a === P.shakeMinPx ? ' — on the floor' : ''}`;
+          }).join('\n') +
+          (P.size * 31 < 6 ? '\n  under 6px — where small props stop reading' : '');
+      },
+      draw(ctx, w, h, now) {
+        const LIVE = 31;
+        // Side, away and toward. A glyph dialled down onto the body has to
+        // work against all three silhouettes: the away view has no face to
+        // avoid and the toward view has the whole of one.
+        const CASTS = [
+          { facing: 'right', view: 'side', name: 'side-on' },
+          { facing: 'north', view: 'back', name: 'facing north (away)' },
+          { facing: 'south', view: 'front', name: 'facing south (toward)' },
+        ];
+        for (const row of [{ tile: LIVE, y: 100 }, { tile: LIVE * 3, y: 254 }]) {
+          CASTS.forEach((cast, i) => {
+            const cx = (w / 3) * i + w / 6;
+            const catY = row.y - row.tile;
+            CatV2.drawCat(ctx, {
+              pose: 'idle', appearance: CatV2.appearanceFor(3), facing: cast.facing,
+              size: row.tile, x: cx - row.tile / 2, y: catY, phase: (now % 3400) / 3400,
+              layout: { view: cast.view },
+            });
+            // The SHIPPED glyph, driven the way render.js drives it: a
+            // phase through one shake, offset per cat so no two buzz
+            // together. Nothing about the drawing is restated here.
+            drawPurrGlyph(ctx, cx, catY, row.tile,
+              ((now + (i + 1) * 4241) % (1000 / PURR.shakeHz)) / (1000 / PURR.shakeHz));
+          });
+        }
+        ctx.fillStyle = 'rgba(107, 90, 78, 0.75)';
+        ctx.font = '11px ui-rounded, system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        CASTS.forEach((cast, i) => ctx.fillText(cast.name, (w / 3) * i + w / 6, 14));
+        ctx.fillText('top row is the live 31px tile — the row that decides', w / 2, h - 4);
       },
     },
     {

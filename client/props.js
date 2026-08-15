@@ -444,6 +444,77 @@ function drawSleepZs(ctx, opts) {
   });
 }
 
+/**
+ * The purr glyph (owner's bake, 2026-08-14).
+ *
+ * A purr is a MOOD, not a request, and it used to wear the same speech
+ * bubble as "I want to eat!". Measured on the candidate roster (attn-a1,
+ * 246 ticks) that was 98% of every meow, and a bubble on screen 50.2% of
+ * ticks -- so almost every bubble carried nothing a viewer could act on,
+ * which is what devalues the ones that do. With purr taken out, request
+ * bubbles fall to 1.2% of ticks and a bubble means something again.
+ *
+ * Judged in the lab against a drawn heart (vibrating and pulsing) and
+ * sound waves; the owner took the emoji. Two things it cannot do, chosen
+ * with eyes open: it will not follow the day/night palette, and it renders
+ * as whatever emoji font the viewer's OS ships.
+ */
+const PURR = {
+  // OFF by default (owner, 2026-08-14). The glyph itself reads well, but a
+  // heart popped in somewhere in the meadow every 3 seconds -- 20 a minute
+  // on the candidate roster -- and that is distracting whatever it looks
+  // like. Press `r` to see it. Turning it on is a decision, not a tweak.
+  on: 0,
+  // There is no duration dial: the heart is up exactly while the served
+  // `purring_until` says the cat is rumbling, which the engine already
+  // publishes as the viewer's signal. A purr runs 9-13 ticks; its meow is
+  // a one-tick announcement, and keying the heart to that drew a flash.
+  size: 0.27, // share of the tile
+  rise: 0, // 0 sits it on the cat's shoulders; negative goes down into the body
+  offsetX: 0,
+  alpha: 0.65,
+  // A share of the GLYPH, with a pixel floor -- the same shape as the
+  // whisker stroke, and for the opposite reason to the one first written
+  // here. A flat pixel travel was tried and the owner's read (2026-08-14)
+  // was that it looked cute large and frantic small, which is right: the
+  // eye judges the displacement RELATIVE to the thing moving, and 0.8px
+  // against an 8.4px glyph is a 9.6% lurch where the same 0.8px against a
+  // 25px glyph is a 3.2% tremble.
+  //
+  // Pure proportion cannot do it alone either: anchored on the large view,
+  // the live tile lands at 0.53px peak to peak and disappears under the
+  // grid. So the share sets the character and the floor keeps it visible
+  // at the tile the world actually draws at.
+  shakeOfGlyph: 0.04,
+  shakeMinPx: 0.5,
+  shakeHz: 20,
+};
+
+/** Half the travel, in real pixels, for a glyph this big. */
+function purrShakeAmp(px) {
+  return Math.max(PURR.shakeMinPx, PURR.shakeOfGlyph * px);
+}
+
+/**
+ * `phase` is 0..1 through one shake, and comes from the caller so a still
+ * frame can hand over 0 and get a glyph that holds -- reduced motion keeps
+ * the purr, it just stops it buzzing.
+ */
+function drawPurrGlyph(ctx, cx, topY, tile, phase) {
+  const px = PURR.size * tile;
+  ctx.save();
+  ctx.globalAlpha = PURR.alpha;
+  ctx.font = `${px}px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(
+    '\u{1F497}',
+    cx + PURR.offsetX * tile + Math.sin(phase * TAU) * purrShakeAmp(px),
+    topY - PURR.rise * tile,
+  );
+  ctx.restore();
+}
+
 function drawHeart(ctx, opts) {
   const { phase = 0, size, x = 0, y = 0 } = opts;
   const t = propTunables();

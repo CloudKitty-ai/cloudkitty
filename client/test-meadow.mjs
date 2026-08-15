@@ -93,6 +93,17 @@ function guardCtx(log = []) {
             };
           };
         }
+        if (prop === 'measureText') {
+          // A real canvas answers with TextMetrics. Nothing here judges
+          // type layout, so a plausible finite width is enough -- but it
+          // has to be an OBJECT, or `drawBubble` throws on `.width` and
+          // takes the whole frame with it. No check drew a speech bubble
+          // until the purr split, which is why this was never needed.
+          return (text) => {
+            log.push(['measureText', text]);
+            return { width: String(text).length * 6 };
+          };
+        }
         return (...args) => {
           guard(prop, args);
           log.push([prop, ...args.map(serialize)]);
@@ -112,9 +123,14 @@ function guardCtx(log = []) {
 /** A canvas stand-in, so code that builds offscreens can run headlessly.
  *  `buildPondLayers` makes four of them, which is exactly why the renderer
  *  path below was never reachable before. */
-function mockCanvas(width = 640, height = 640) {
-  const canvas = { width, height, dataset: {}, style: {} };
-  const ctx = guardCtx([]);
+function mockCanvas(width = 640, height = 640, log = []) {
+  // `clientWidth`/`clientHeight` are what a real canvas reports for its CSS
+  // box, and `drawBubble` clamps against them to keep a bubble on screen --
+  // undefined there is a NaN into moveTo, which the guard catches but only
+  // once something actually draws a bubble. Nothing did until the purr
+  // split. `log` is optional so a check can read back what was drawn.
+  const canvas = { width, height, clientWidth: width, clientHeight: height, dataset: {}, style: {} };
+  const ctx = guardCtx(log);
   ctx.canvas = canvas;
   canvas.getContext = () => ctx;
   return canvas;
@@ -141,7 +157,7 @@ const EXPORTS =
   ' MEADOW_DAWN, bushesFor, drawBushAt, drawGroundCover, MEADOW_SALTS, MEADOW_DEFAULTS, tileHash, drawMeadowGround, drawGridOverlay, groupWaterTiles,' +
   ' buildPondPath, drawPonds, pondInradius, drawSunbeamGlow, drawWornPaths, VIEW, Presentation,' +
   ' driftField, spriteOrder, SPRITE_RANK, coverSortKey, catSortKey, coverStands,' +
-  ' WorldRenderer })';
+  ' WorldRenderer, PURR, drawPurrGlyph })';
 const api = eval(src + EXPORTS);
 
 let passed = 0;
@@ -152,6 +168,7 @@ function check(name, fn) {
     passed += 1;
     console.log(`  ok   ${name}`);
   } catch (err) {
+    if (process.env.SHOWSTACK) console.error(err.stack);
     failed += 1;
     console.error(`  FAIL ${name}: ${err.message}`);
   }
@@ -869,6 +886,259 @@ check('the renderer draws the live world\'s ponds without throwing', () => {
  * So this drives the REAL renderer over the REAL Presentation's view, in
  * every theme, with a cat at a series of positions from the pond's middle
  * out onto dry grass. */
+check("the hunter's gate is WIRED: the renderer measures the quarry", () => {
+  // The gate lives in anim.js; the distance that feeds it is measured in
+  // render.js. Either half is right on its own while the pair does nothing,
+  // and every unit check stays green -- so this asks what the RENDERER
+  // hands over, from a real world, for a real pursuit.
+  //
+  // Asserted at the seam rather than in the pixels: cat-v2 is inert in this
+  // harness (it registers CatV2 and declares nothing else), so a frame here
+  // draws a V1 cat, which has no focused eyes to compare. That is a real
+  // limit of this harness, not of the feature.
+  const seen = [];
+  const p = new api.Presentation();
+  const realExpression = p.expressionFor.bind(p);
+  p.expressionFor = (kitty, quarryDist) => {
+    seen.push(quarryDist);
+    return realExpression(kitty, quarryDist);
+  };
+  const renderer = new api.WorldRenderer(mockCanvas(640, 640, []));
+  renderer.tile = 32; renderer.dpr = 1; renderer.cssWidth = 640; renderer.cssHeight = 640;
+  const at = (bugX) => ({
+    tick: 10, width: 20, height: 20,
+    elements: [{ id: 9, kind: 'bug', pos: { x: bugX, y: 2 } }],
+    kitties: [{
+      id: 1, name: 'Miso', pos: { x: 2, y: 2 }, needs: {}, happiness: 90,
+      pursuit: { target: { target: 'element', id: 9 }, started: 1, closest: 3, improved_at: 1 },
+      last_action: { action: 'chase', target: 'element', id: 9 },
+    }],
+  });
+  p.pushState(at(9), 1000);
+  p.pushState(at(9), 1800);
+  renderer.draw(p.curr, p.viewAt(2200, false));
+  assert(seen.length === 1, `expressionFor was called ${seen.length} times, want 1`);
+  assert(seen[0] === 7, `the renderer measured ${seen[0]} tiles to a bug 7 away`);
+
+  // The pursuit and the applied action name DIFFERENT things all the time
+  // -- this shape is verbatim from the candidate world, a cat that stopped
+  // for a drink without giving up on its bug. Measuring `last_action` here
+  // would read null and hand the face back at any distance.
+  const seen2 = [];
+  p.expressionFor = (kitty, quarryDist) => {
+    seen2.push(quarryDist);
+    return realExpression(kitty, quarryDist);
+  };
+  const distracted = {
+    tick: 11, width: 20, height: 20,
+    elements: [{ id: 9, kind: 'bug', pos: { x: 9, y: 2 } }],
+    kitties: [{
+      id: 1, name: 'Miso', pos: { x: 2, y: 2 }, needs: {}, happiness: 90,
+      pursuit: { target: { target: 'element', id: 9 }, started: 1, closest: 3, improved_at: 1 },
+      last_action: { action: 'drink' },
+    }],
+  };
+  p.pushState(distracted, 2600);
+  renderer.draw(p.curr, p.viewAt(3000, false));
+  assert(seen2[0] === 7,
+    `a cat drinking mid-pursuit measured ${seen2[0]} -- the distance is coming off last_action, not the pursuit`);
+
+  // ...and the value it hands over is the one the gate then acts on.
+  const gate = api.VIEW.hunterGateTiles;
+  const hunting = at(9).kitties[0];
+  assert(realExpression(hunting, gate) === 'focused', 'at the gate the face is on');
+  assert(realExpression(hunting, gate + 1) === undefined, 'past the gate the face is off');
+});
+
+check('a purr draws its glyph; a request still draws its bubble', () => {
+  const wasOn = api.PURR.on;
+  api.PURR.on = 1;
+  // The split, checked through a whole frame rather than by calling
+  // drawBubbles directly -- the glyph reaches for `drawPurrGlyph` and
+  // `PURR` across a file boundary, and props.js is exactly the kind of
+  // dependency that is present in a harness and missing in the browser.
+  const frame = (meows, purringUntil = undefined) => {
+    const log = [];
+    const renderer = new api.WorldRenderer(mockCanvas(640, 640, log));
+    renderer.tile = 32;
+    renderer.dpr = 1;
+    renderer.cssWidth = 640;
+    renderer.cssHeight = 640;
+    const kitties = [{
+      id: 1, name: 'Miso', pos: { x: 5, y: 5 }, needs: {}, happiness: 90,
+      purring_until: purringUntil,
+    }];
+    const at = (tick) => ({
+      tick, width: 20, height: 20, elements: [], kitties, recent_meows: meows,
+    });
+    const p = new api.Presentation();
+    p.pushState(at(9), 1000);
+    p.pushState(at(10), 1800);
+    renderer.draw(p.curr, p.viewAt(2200, false));
+    return log.filter((e) => e[0] === 'fillText').map((e) => String(e[1]));
+  };
+
+  // The heart is state-driven: `purring_until` is what says a cat is
+  // rumbling. Its meow is only the announcement, and carries no duration.
+  const purr = frame([{ kitty_id: 1, kind: 'purr', tick: 9 }], 14);
+  assert(purr.some((t) => t.includes('\u{1F497}')), 'a purring cat should draw the glyph');
+  assert(!purr.some((t) => t.includes('purrrr')),
+    'a purr still drew its speech bubble -- the whole point was to take it out');
+
+  const asks = frame([{ kitty_id: 1, kind: 'want_eat', tick: 9 }]);
+  assert(asks.some((t) => t.includes('I want to eat')), 'a request must keep its bubble');
+  assert(!asks.some((t) => t.includes('\u{1F497}')), 'a request should not summon the purr glyph');
+
+  // Both live at once: they want the same space above the cat, and the
+  // thing a viewer can act on wins.
+  const both = frame([{ kitty_id: 1, kind: 'want_eat', tick: 9 }], 14);
+  assert(both.some((t) => t.includes('I want to eat')), 'the request must survive a purr');
+  assert(!both.some((t) => t.includes('\u{1F497}')), 'the mood must give way to the request');
+
+  // And nothing at all when the cat has said nothing.
+  assert(!frame([]).some((t) => t.includes('\u{1F497}')), 'a silent cat should draw no glyph');
+  // A cat whose purr has ENDED is silent, even though its meow is still in
+  // the recent window -- which is the whole point of reading the state.
+  assert(!frame([{ kitty_id: 1, kind: 'purr', tick: 9 }], 9).some((t) => t.includes('\u{1F497}')),
+    'a finished purr still drew a heart');
+
+  // The switch itself: off is off, and it is what SHIPS.
+  api.PURR.on = 0;
+  assert(!frame([], 14).some((t) => t.includes('\u{1F497}')),
+    'the purr glyph drew with the switch off');
+  assert(frame([{ kitty_id: 1, kind: 'want_eat', tick: 9 }]).some((t) => t.includes('I want to eat')),
+    'turning purrs off must not touch request bubbles');
+  api.PURR.on = wasOn;
+  assert(api.PURR.on === 0,
+    'the purr glyph ships OFF -- a heart popped in every 3s on the candidate roster, 20 a minute');
+});
+
+check('the heart is up for the whole purr, because it reads the purr', () => {
+  // Two wrong answers preceded this one, both from keying the heart to the
+  // MEOW. A purr is background state that runs 9-13 ticks; its meow is a
+  // one-tick announcement -- so the heart flashed where a cat was rumbling
+  // for the better part of ten seconds. And a meow is never served on the
+  // tick it happened, so a dwell counted off its age was off by one too.
+  //
+  // `purring_until` is the engine's own answer, documented as the viewer's
+  // "rumbling now" signal. Reading it retires the dwell constant and every
+  // off-by-one that came with it.
+  const wasOn = api.PURR.on;
+  api.PURR.on = 1;
+  const drawnAt = (tick, until) => {
+    const log = [];
+    const renderer = new api.WorldRenderer(mockCanvas(640, 640, log));
+    renderer.tile = 32; renderer.dpr = 1; renderer.cssWidth = 640; renderer.cssHeight = 640;
+    const kitties = [{
+      id: 1, name: 'Miso', pos: { x: 5, y: 5 }, needs: {}, happiness: 90,
+      purring_until: until,
+    }];
+    const at = (t) => ({ tick: t, width: 20, height: 20, elements: [], kitties, recent_meows: [] });
+    const p = new api.Presentation();
+    p.pushState(at(tick - 1), 1000);
+    p.pushState(at(tick), 1800);
+    renderer.draw(p.curr, p.viewAt(2200, false));
+    return log.some((e) => e[0] === 'fillText' && String(e[1]).includes('\u{1F497}'));
+  };
+  // A ten-tick purr, from its first tick to its last and one past.
+  const on = [];
+  for (let t = 10; t <= 21; t += 1) if (drawnAt(t, 20)) on.push(t);
+  api.PURR.on = wasOn;
+  assert(on.length === 11, `a purr ending at 20 showed on ${on.length} ticks, want 11`);
+  assert(on[0] === 10 && on[on.length - 1] === 20,
+    `showed ${on[0]}..${on[on.length - 1]} -- the purr ends AT purring_until, inclusive`);
+  assert(!drawnAt(21, 20), 'the heart outlived the purr');
+  assert(api.PURR.ticks === undefined,
+    'a dwell constant is back -- the served state is the duration, there is nothing to dial');
+});
+check('the purr glyph is actually buzzing in a live frame', () => {
+  const wasOn = api.PURR.on;
+  api.PURR.on = 1;
+  // The glyph is only as alive as the phase the RENDERER hands it, and the
+  // two halves are in different files: props.js knows how to shake, and
+  // render.js decides what to shake by. Handing over a constant leaves a
+  // perfectly correct glyph nailed to the spot, and every check that talks
+  // to `drawPurrGlyph` directly still passes. So this asks the frame.
+  const xAt = (nowMs) => {
+    const log = [];
+    const renderer = new api.WorldRenderer(mockCanvas(640, 640, log));
+    renderer.tile = 32;
+    renderer.dpr = 1;
+    renderer.cssWidth = 640;
+    renderer.cssHeight = 640;
+    const kitties = [{
+      id: 1, name: 'Miso', pos: { x: 5, y: 5 }, needs: {}, happiness: 90,
+      purring_until: 20,
+    }];
+    const at = (tick) => ({
+      tick, width: 20, height: 20, elements: [], kitties,
+      recent_meows: [],
+    });
+    const p = new api.Presentation();
+    p.pushState(at(9), 1000);
+    p.pushState(at(10), 1800);
+    renderer.draw(p.curr, p.viewAt(nowMs, false));
+    return log.filter((e) => e[0] === 'fillText' && String(e[1]).includes('\u{1F497}'))[0][2];
+  };
+  // Half a shake apart at the shipped rate, which is the widest the glyph
+  // ever travels.
+  const half = 500 / api.PURR.shakeHz;
+  const spread = Math.abs(xAt(2000) - xAt(2000 + half));
+  api.PURR.on = wasOn;
+  assert(spread > api.PURR.shakeMinPx,
+    `the glyph moved ${spread.toFixed(2)}px across half a shake -- the renderer is feeding it a constant`);
+});
+
+check('the purr buzz scales with the glyph, with a floor so it survives the tile', () => {
+  // This check asserted the OPPOSITE an hour ago -- a flat pixel travel, on
+  // the argument that a vibration is judged by how far it moves on screen.
+  // The owner watched it and that is wrong: the eye judges displacement
+  // relative to the thing moving, so a flat 0.8px was a 9.6% lurch on the
+  // live glyph against a 3.2% tremble on the big one. Cute large, frantic
+  // small.
+  //
+  // Proportion alone cannot do it either, which is why there are two dials:
+  // anchored on the large view, the live tile lands under a pixel and
+  // disappears. The share sets the character; the floor keeps it visible at
+  // the tile the world actually draws at.
+  const amp = (tile) => {
+    const at = (phase) => {
+      const log = [];
+      api.drawPurrGlyph(guardCtx(log), 100, 50, tile, phase);
+      return log.filter((e) => e[0] === 'fillText')[0][2];
+    };
+    return (at(0.25) - at(0.75)) / 2;
+  };
+  const glyph = (tile) => api.PURR.size * tile;
+  const shareAt = (tile) => amp(tile) / glyph(tile);
+
+  // Above the floor it is pure proportion: double the glyph, double the
+  // travel, and its share of the glyph does not move.
+  assert(Math.abs(shareAt(120) - shareAt(240)) < 1e-9,
+    `not proportional up there: ${(shareAt(120) * 100).toFixed(2)}% against ${(shareAt(240) * 100).toFixed(2)}%`);
+  assert(Math.abs(amp(240) - amp(120) * 2) < 1e-9, 'doubling the glyph should double the travel');
+
+  // At the tile the world draws at, the floor is what holds it up -- and it
+  // still has to be worth drawing.
+  // Compared with a tolerance: the amplitude is read back out of two
+  // absolute x positions, so 100.4 minus 99.6 does not land on 0.4.
+  assert(Math.abs(amp(31) - api.PURR.shakeMinPx) < 1e-9,
+    `the floor should be binding at the live tile, got ${amp(31).toFixed(4)}`);
+  assert(amp(31) * 2 >= 0.75, `only ${(amp(31) * 2).toFixed(2)}px peak to peak at 31px -- invisible`);
+  // ...and calmer than the flat-pixel version the owner rejected, which put
+  // 0.8px of amplitude on an 8.4px glyph.
+  assert(shareAt(31) < 0.08,
+    `the live glyph still lurches ${(shareAt(31) * 100).toFixed(1)}% of its own width`);
+
+  // Phase 0 is what a still frame hands over (`propPhaseFor` returns 0
+  // there), and it must still DRAW -- reduced motion keeps the purr, it
+  // just stops it buzzing.
+  const still = [];
+  api.drawPurrGlyph(guardCtx(still), 100, 50, 31, 0);
+  const drawn = still.filter((e) => e[0] === 'fillText');
+  assert(drawn.length === 1, 'a still frame should still draw the glyph');
+  assert(drawn[0][2] === 100 + api.PURR.offsetX * 31, 'at phase 0 the glyph sits at rest');
+});
 check('the renderer draws a cat in the water, in every theme, without throwing', () => {
   const themes = ['day', 'dusk', 'night', 'dawn'];
   for (const theme of themes) {

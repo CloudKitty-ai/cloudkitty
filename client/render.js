@@ -38,6 +38,9 @@ const MEOW_TEXT = {
   follow_me: 'Follow me!',
   want_play: 'I want to play!',
   want_cuddle: 'I want to cuddle!',
+  // Kept, but no longer reached: a purr draws a glyph rather than a bubble
+  // (see drawBubbles). A test pins that, so this entry is provably unused
+  // rather than merely believed to be.
   purr: 'purrrr',
   wait_for_me: 'Wait for me!',
   // Spec 028 gave the two silent needs their words. Appended in the engine's
@@ -134,6 +137,26 @@ function poseFor(kitty, moved, onWater = false, chaseDist = null, dials = VIEW) 
 function chaseDistanceFor(kitty, world) {
   const ref = kitty.last_action;
   if (ref?.action !== 'chase') return null;
+  const pos =
+    ref.target === 'element'
+      ? world.elements.find((el) => el.id === ref.id)?.pos
+      : world.kitties.find((k) => k.id === ref.id)?.pos;
+  if (!pos) return null;
+  return Math.abs(kitty.pos.x - pos.x) + Math.abs(kitty.pos.y - pos.y);
+}
+
+/**
+ * Manhattan tiles from a kitty to whatever its PURSUIT names, or null when
+ * it is not pursuing or the quarry is no longer served.
+ *
+ * Deliberately not `chaseDistanceFor`: that one reads `last_action`, which
+ * is this tick's applied action, while the hunter's face is driven by the
+ * pursuit -- a longer-lived thing that survives a cat stopping for a drink
+ * on the way. They can name different quarry on the same tick.
+ */
+function pursuitDistanceFor(kitty, world) {
+  const ref = kitty.pursuit?.target;
+  if (!ref) return null;
   const pos =
     ref.target === 'element'
       ? world.elements.find((el) => el.id === ref.id)?.pos
@@ -1059,7 +1082,7 @@ class WorldRenderer {
       lid = motion.blinkLid;
       if (eyes === 'closed') eyes = undefined; // the eased lid replaces the snap blink
     }
-    const expression = view.expressionFor(kitty);
+    const expression = view.expressionFor(kitty, pursuitDistanceFor(kitty, world));
     // On the v2 path a pursuit's focused eyes hold through the blink slot
     // -- drawFace exempts 'focused' from the lid, so hunters keep their
     // unbroken stare (v1 still snap-blinks over focused, as it always
@@ -1428,14 +1451,42 @@ class WorldRenderer {
     const recent = (world.recent_meows || []).filter(
       (m) => m.tick > world.tick - BUBBLE_TICKS,
     );
-    // One bubble per cat: the newest thing they said.
-    const newest = new Map();
-    for (const meow of recent) newest.set(meow.kitty_id, meow);
-
-    for (const meow of newest.values()) {
+    // A purr never gets a speech bubble (2026-08-14). Nine of the ten meow
+    // kinds are things a viewer can act on; a purr is a mood, and the same
+    // bubble for both meant 98% of bubbles said nothing -- see PURR in
+    // props.js. One bubble per cat, newest wins.
+    const said = new Map();
+    for (const meow of recent) {
+      if (meow.kind === 'purr') continue;
+      said.set(meow.kitty_id, meow);
+    }
+    for (const meow of said.values()) {
       const kitty = world.kitties.find((k) => k.id === meow.kitty_id);
       if (!kitty) continue;
       this.drawBubble(kitty, MEOW_TEXT[meow.kind] || '…', view, meow);
+    }
+
+    if (!PURR.on) return;
+    // The mood is drawn from `purring_until`, NOT from the meow. A purr is
+    // background state that runs 9-13 ticks; the meow is only its
+    // announcement, one tick long, and keying the heart to that showed a
+    // flash where a cat was rumbling for the better part of ten seconds.
+    // The engine calls this field "the viewer's rumbling now signal" in so
+    // many words. Reading it also retires a dwell constant and the
+    // off-by-one that came with it -- there is no duration to get wrong.
+    for (const kitty of world.kitties) {
+      if (!(kitty.purring_until >= world.tick)) continue;
+      // A request outranks the mood: they want the same space above the
+      // cat, and the thing the viewer can act on is the one to keep.
+      if (said.has(kitty.id)) continue;
+      const { x, y } = this.tileOrigin(view.posFor(kitty));
+      drawPurrGlyph(
+        this.ctx,
+        x + this.tile / 2,
+        y,
+        this.tile,
+        view.propPhaseFor(kitty.id, 1000 / PURR.shakeHz),
+      );
     }
   }
 

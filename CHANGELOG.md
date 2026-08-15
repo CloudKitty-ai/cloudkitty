@@ -268,6 +268,59 @@ change.
   since the seed drives the lobe angles too, the pair ends up differing
   in silhouette as well as size. A tree beside a bush of its own size is
   left alone, because that reads fine (#214).
+- **The hunter's face is gated on how far the quarry is**, the way the
+  pounce pose already was. Measured over 4,604 cat-ticks on the incoming
+  candidate roster: the median hunted quarry was **10 tiles away** and the
+  commonest 12 — so a cat wore a hunting expression for a bug across the
+  meadow while drawing an ordinary walk, and on **85.6%** of the ticks the
+  face was on, the pose and the expression disagreed about whether a hunt
+  was happening. `VIEW.hunterGateTiles` is 8, deliberately wider than the
+  pounce's 4: eyes may lead a pounce, they just may not lead it across the
+  whole map. Owner's number. An unresolvable quarry still keeps the face,
+  the same rule the pounce follows — the gate takes it away only on
+  positive evidence (#223).
+- **A purr is a mood, not a request, and it stops using a speech bubble.**
+  Measured on the incoming candidate roster (attn-a1, 246 ticks live):
+  **98% of every meow is a purr**, and a bubble sat on screen 50.2% of
+  ticks against 15.1% for the seated policy. Nine of the ten meow kinds
+  are things a viewer can act on — *I want to eat!*, *Follow me!* — so
+  giving a mood the same bubble meant almost every bubble carried nothing,
+  which is what devalues the ones that do. Purrs now draw a small
+  vibrating glyph instead, and request bubbles are untouched: they fall to
+  **1.2% of ticks**, which makes a bubble worth reading again. A request
+  outranks the mood where both are live, since they want the same space
+  above the cat. Judged in the lab against a vibrating heart, a pulsing
+  heart and sound waves; the owner took the emoji knowing the two things
+  it cannot do — follow the day/night palette, and look the same on two
+  machines. The buzz is a **share of the glyph with a pixel floor** — the
+  same shape as the whisker stroke. A flat pixel travel was tried first
+  and read cute on a big cat and frantic on a small one, which is right:
+  the eye judges displacement against the thing moving, so 0.8px on an
+  8.4px glyph is a 9.6% lurch where the same 0.8px on a 25px glyph is a
+  3.2% tremble. Pure proportion cannot do it alone either — anchored on
+  the large view the live tile lands at 0.53px peak to peak and vanishes
+  under the grid — so the share sets the character and the floor keeps it
+  visible at the tile the world actually draws at. Reduced motion keeps
+  the glyph and stops the buzz.
+
+  **It ships off.** Watched on the candidate roster, the drawing reads
+  well and the rate does not: a heart popped in somewhere in the meadow
+  **every 3 seconds — 20 a minute** — and that is distracting whatever it
+  looks like. `r` toggles it live. The heart is also up for exactly as
+  long as the cat is purring rather than lingering: a fixed dwell read as
+  *popping*, and 3 ticks read calmer than 2, which says the appearing and
+  disappearing was the distraction rather than the presence. A purr is a
+  one-tick action, so the glyph tracks served state and has one end
+  instead of two.
+
+  The heart reads **`purring_until`**, the served state, not the meow. A
+  purr runs 9–13 ticks and its meow is a one-tick announcement, so keying
+  the glyph to the announcement drew a flash where a cat was rumbling for
+  the better part of ten seconds — and since a meow is never served on
+  the tick it happened, a dwell counted off its age was off by one on top
+  of that. The engine documents `purring_until` as the viewer's "rumbling
+  now" signal; reading it retires the dwell constant and every off-by-one
+  that came with it (#223).
 - **The gaze aims at what it can express, and no more.** Reading the two
   target shapes the client had been ignoring — `groom`'s bare kitty id, and
   eat/drink resolved from the map — took the gaze from 5.2% of cat-ticks to

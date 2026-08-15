@@ -2509,6 +2509,39 @@ check('the tread moves the BUTT, and only the butt', () => {
   }
 });
 
+check("the hunter's face is gated on how far the quarry is", () => {
+  // Measured on the candidate roster, 4,604 cat-ticks: the median quarry
+  // was 10 tiles away and the commonest 12, so an ungated face put a
+  // hunting expression on a cat walking normally after a bug across the
+  // meadow -- 85.6% of hunter faces were outside the 4-tile gate the POSE
+  // uses, meaning the pose and the expression disagreed about whether a
+  // hunt was on. Owner gated it at 8 (2026-08-14): wider than the pounce,
+  // because eyes may lead a pounce, but not across the whole map.
+  const p = new api.Presentation();
+  const hunting = { pursuit: { target: { target: 'element', id: 9 } },
+    last_action: { action: 'chase', target: 'element', id: 9 } };
+  const gate = VIEW.hunterGateTiles;
+  assert(p.expressionFor(hunting, gate) === 'focused', `at ${gate} tiles the face should still be on`);
+  assert(p.expressionFor(hunting, gate - 1) === 'focused', 'inside the gate the face should be on');
+  assert(p.expressionFor(hunting, gate + 1) === undefined, `at ${gate + 1} tiles the face should be gone`);
+  assert(p.expressionFor(hunting, 20) === undefined, 'across the map it should be gone');
+  assert(p.expressionFor(hunting, 0) === 'focused', 'on top of the quarry it should be on');
+
+  // `null` is not "far". An unresolvable quarry -- caught or expired this
+  // very tick -- keeps the face, which is the rule the pounce gate follows
+  // too: take it away only on positive evidence.
+  assert(p.expressionFor(hunting, null) === 'focused', 'an unresolved quarry lost its face to the gate');
+  assert(p.expressionFor(hunting) === 'focused', 'a caller passing no distance must be unaffected');
+
+  // The gate cannot GRANT a face: a kitty quarry has none at any distance.
+  const social = { pursuit: { target: { target: 'kitty', id: 2 } },
+    last_action: { action: 'chase', target: 'kitty', id: 2 } };
+  for (const d of [0, gate, gate + 5, null]) {
+    assert(p.expressionFor(social, d) === undefined, `chasing a kitty at ${d} wore the hunting face`);
+  }
+  assert(gate > VIEW.pounceGateTiles, 'the eyes are meant to reach further than the pounce');
+});
+
 check("the hunter's face reaches the cats that hunt", () => {
   // It shipped UNREACHABLE. `pursuit.target` is a TargetRef object
   // ({target: 'kitty', id: 2}) and `last_action.target` is a plain string
@@ -2523,8 +2556,8 @@ check("the hunter's face reaches the cats that hunt", () => {
     pursuit: { target: { target: kind, id }, started: 1, closest: 6, improved_at: 1 },
     last_action: { action: 'chase', target: kind, id },
   });
-  assert(p.expressionFor(pursuing('element', 9)) === 'focused', 'a cat hunting a bug has no hunting face');
-  assert(p.expressionFor(pursuing('kitty', 2)) === undefined, 'a cat chasing a kitty wears the hunting face');
+  assert(p.expressionFor(pursuing('element', 9)) === 'focused', 'a cat hunting a bug should wear the hunting face');
+  assert(p.expressionFor(pursuing('kitty', 2)) === undefined, 'a cat chasing a kitty should NOT wear it');
   // Play is a playmate too, whatever the action says.
   assert(
     p.expressionFor({ pursuit: { target: { target: 'kitty', id: 3 } }, last_action: { action: 'play', target: 'kitty', id: 3 } }) === undefined,

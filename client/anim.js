@@ -190,6 +190,15 @@ const VIEW = Object.freeze({
    * callers, who pass no distance at all, drawing exactly as before.
    */
   pounceGateTiles: 4,
+  // ...and how far the hunter's FACE carries. Measured on the candidate
+  // roster over 4,604 cat-ticks: the median quarry was 10 tiles off and the
+  // most common 12, so an ungated face meant a cat wearing a hunting
+  // expression for a bug across the meadow while drawing an ordinary walk
+  // -- the pose and the expression disagreeing about whether a hunt was
+  // happening, on 85.6% of the ticks the face was on. Wider than the pounce
+  // on purpose (owner, 2026-08-14): the eyes may lead the pounce, they just
+  // may not lead it across the whole map. 8 keeps 39% of them.
+  hunterGateTiles: 8,
   arriveBlendMs: 340, // the walking -> standing blend, paired with the settle
   settleMs: 400, // landing squash, concurrent with the arrive blend
   settleDip: 0.05, // peak vertical squash of the settle
@@ -1612,8 +1621,13 @@ class Presentation {
    * field, so this can never make a hunting cat look ordinary because
    * something failed to resolve.
    */
-  expressionFor(kitty) {
+  expressionFor(kitty, quarryDist = null, dials = VIEW) {
     if (!kitty.pursuit) return undefined;
+    // Too far to be hunting anything the viewer can see. `null` is not
+    // "far": an unresolvable quarry -- caught or expired this very tick --
+    // KEEPS the face, the same rule the pounce gate follows, so the gate
+    // only ever takes the face away on positive evidence.
+    if (quarryDist !== null && quarryDist > dials.hunterGateTiles) return undefined;
     // The served pursuit names its quarry when it can; otherwise the
     // applied action does.
     // The two sources name the quarry in DIFFERENT shapes, which is what
@@ -1771,7 +1785,7 @@ class Presentation {
       // reduced motion gets static props with full state (FR-013).
       propPhaseFor: (id, periodMs) =>
         still ? 0 : ((now + id * 4241) % periodMs) / periodMs,
-      expressionFor: (kitty) => this.expressionFor(kitty),
+      expressionFor: (kitty, quarryDist) => this.expressionFor(kitty, quarryDist),
       thoughtFor: (kitty) => this.thoughtFor(kitty),
       elementAlphaFor: (el) => (still ? 1 : this.elementAlphaFor(el, now)),
       elementPosFor: (el) =>
