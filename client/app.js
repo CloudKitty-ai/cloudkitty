@@ -1409,28 +1409,33 @@ function bioFor(kitty) {
 const NEED_ORDER = ['eat', 'drink', 'sleep', 'play', 'cuddle', 'bath'];
 
 /**
- * A colour per need, taken from the thing in the MEADOW that answers it, so
- * the bars are not an invented rainbow: the bowl's clay, the pond, the
- * sunbeam, the lily pads, the cuddle heart, the soap.
+ * A colour per need. Each is the colour of the thing in the MEADOW that
+ * answers it -- the bowl's clay, the pond, the bloom's gold, the lily pads,
+ * the cuddle heart, and lavender for the soap.
  *
- * Read as functions rather than captured, because `PROPS` and `MEADOW` are
- * rebound on every phase change -- the dialog opened at dusk should wear
- * dusk's colours like everything else.
+ * **Fixed values, deliberately, and this was tried the other way first.**
+ * Reading them live from `PROPS`/`MEADOW` sounds obviously right -- the
+ * dialog would wear the current hour like everything else -- and it fails,
+ * because the meadow's palette is lit for the MEADOW's ground and these sit
+ * on a CARD. At night `pondDeep` is #0b1216 against a #37313f card: nearly
+ * black on dark, 16 points of lightness apart. `lilyPadRim` was worse, at
+ * 12. And only half the palette moves at all, so three bars swung with the
+ * hour while three sat still, which reads as breakage rather than as time
+ * passing (owner spotted it on the night cards).
  *
- * Drink and bath share the water family on purpose, separated by depth
- * rather than by hue. They are both water; giving bath an unrelated colour
- * to force six hues would be decoration pretending to be meaning. The
- * sunbeam is shaded because at L* 96 it is invisible on a light card --
- * `shadePalette` rather than `shadeHex`, since a palette entry is `rgb()`
- * mid-crossfade and the hex-only helpers return black on those.
+ * So the identity is borrowed from the meadow once and then held. Every one
+ * clears 25 points of L* against both the light card (L* 99) and the night
+ * card (L* 21), and the six hues are at least 18 degrees apart -- both
+ * asserted against the values themselves rather than against where they
+ * came from.
  */
 const NEED_COLOUR = {
-  eat: () => PROPS.bowlClay,
-  drink: () => MEADOW.pondDeep,
-  sleep: () => shadePalette(MEADOW.bloomHeart, 0.82),
-  play: () => MEADOW.lilyPadRim,
-  cuddle: () => PROPS.blushDeep,
-  bath: () => PROPS.soapRim,
+  eat: '#cf8a5e', // the bowl's clay
+  drink: '#8ab2c7', // the pond
+  sleep: '#c6aa64', // the bloom's gold, shaded to read on a light card
+  play: '#84b877', // a lily pad
+  cuddle: '#d97f95', // the cuddle heart
+  bath: '#8f7bb8', // lavender, for the soap
 };
 
 function traitsFor(kittyId) {
@@ -1505,7 +1510,7 @@ function openTraitsDialog(kitty) {
     const fill = document.createElement('span');
     fill.className = 'trait-fill';
     fill.style.width = `${traitFill(t) * 100}%`;
-    fill.style.background = NEED_COLOUR[t.need]?.() ?? 'var(--ink-soft)';
+    fill.style.background = NEED_COLOUR[t.need] ?? 'var(--ink-soft)';
     // Dead centre on every row, so the marks line up as one rule down the
     // card and a deviation is the only thing that breaks the line.
     const mark = document.createElement('span');

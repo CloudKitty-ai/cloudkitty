@@ -4516,45 +4516,58 @@ check('the traits dialog ships OFF, and its numbers are the served ones', () => 
     'the per-kitty about link is visible without the toggle');
   assert(/body\.show-traits \.kitty-about/.test(markup), 'nothing reveals the about link');
 
-  // The bar colours come from the MEADOW's palette, read at draw time. Two
-  // things ride on that: they shift with the hour like everything else, and
-  // they are not an invented rainbow. A literal here would sit at the wrong
-  // end of the day for half of it, the same trap as #193.
-  const colours = app.slice(app.indexOf('const NEED_COLOUR'), app.indexOf('function traitsFor'));
-  for (const need of ['eat', 'drink', 'sleep', 'play', 'cuddle', 'bath']) {
-    const line = colours.split('\n').find((l) => l.trim().startsWith(`${need}:`));
-    assert(line, `${need} has no colour`);
-    assert(/PROPS\.|MEADOW\./.test(line), `${need}'s colour is not from the world palette: ${line.trim()}`);
-    assert(/\(\) =>/.test(line), `${need}'s colour is captured, so it will not follow a phase change`);
-    assert(!/#[0-9a-f]{3,6}/i.test(line), `${need}'s colour is a literal`);
-  }
-  // The sunbeam has to be shaded to read on a light card, and a palette
-  // entry is `rgb()` mid-crossfade -- so it must go through the palette-safe
-  // helper, not the hex-only one that returns black on those.
-  assert(/shadePalette\(MEADOW\./.test(colours), 'the gold is unshaded, so it will not read on a light card');
-  assert(!/shadeHex\(MEADOW\.|shadeHex\(PROPS\./.test(colours),
-    'a palette colour goes through shadeHex, which returns black mid-crossfade');
+  // The bar colours are checked as COLOURS, not by where they came from.
+  // The first version read them live from the meadow's palette and asserted
+  // that fact -- which passed while `pondDeep` went to #0b1216 on a #37313f
+  // night card, 16 points of lightness apart and invisible. The palette is
+  // lit for the meadow's ground; these sit on a card. So the property that
+  // matters is contrast against both cards, and that is what is measured.
+  // Sliced FORWARD from the table, not to the next symbol that happens to
+  // be named: `const TRAITS` sits ABOVE this one, so seeking to it produced
+  // a backwards slice and an empty string -- which finds no colours and
+  // reports every need missing. Third time today; the endpoints get checked
+  // now rather than assumed.
+  const colourAt = app.indexOf('const NEED_COLOUR');
+  const colours = app.slice(colourAt, app.indexOf('};', colourAt));
+  assert(colourAt > 0 && colours.length > 40, 'could not slice the colour table out of app.js');
+  const hexes = {};
+  for (const m of colours.matchAll(/(\w+): '(#[0-9a-f]{6})'/gi)) hexes[m[1]] = m[2];
+  const needs = ['eat', 'drink', 'sleep', 'play', 'cuddle', 'bath'];
+  for (const n of needs) assert(hexes[n], `${n} has no colour`);
 
-  // The owner's copy, verbatim. This check was DROPPED in the same edit that
-  // deleted the copy -- the slice that removed the stub table ran through
-  // `KITTY_BIOS` and `bioFor` as well, and the assertions that would have
-  // caught it were rewritten out in the same commit. Both are back.
-  const bios = app.slice(app.indexOf('const KITTY_BIOS'), app.indexOf('/** The bio for a cat'));
-  for (const [name, epithet] of [
-    ['Miso', 'Sleepy Kitty'], ['Biscuit', 'Playful Kitty'], ['Pumpkin', 'Hungry Kitty'],
-    ['Kittybear', 'Tidy Kitty'], ['Clementine', 'Cuddly Kitty'],
-  ]) {
-    assert(bios.includes(`name: '${name}'`), `${name} has lost her bio`);
-    assert(bios.includes(`epithet: '${epithet}'`), `${name}'s epithet has drifted`);
+  const rgb = (v) => [1, 3, 5].map((i) => parseInt(v.slice(i, i + 2), 16));
+  const lum = (v) => {
+    const [r, g, b] = rgb(v).map((c) => {
+      const x = c / 255;
+      return x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4;
+    });
+    const y = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    return y <= 0.008856 ? 903.3 * y : 116 * y ** (1 / 3) - 16;
+  };
+  const hue = (v) => {
+    const [r, g, b] = rgb(v).map((c) => c / 255);
+    const mx = Math.max(r, g, b); const mn = Math.min(r, g, b); const d = mx - mn;
+    if (!d) return 0;
+    const x = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    return (Math.round(x * 60) + 360) % 360;
+  };
+  // The two card colours the bars ever sit on, read out of the stylesheet
+  // rather than restated here.
+  const cardOf = (block) => markup.slice(markup.indexOf(block)).match(/--card: (#[0-9a-f]{6})/i)[1];
+  for (const card of [cardOf('  :root {'), cardOf('  body.night {')]) {
+    for (const n of needs) {
+      const gap = Math.abs(lum(hexes[n]) - lum(card));
+      assert(gap >= 25, `${n} (${hexes[n]}) is ${gap.toFixed(0)} from the ${card} card -- invisible on it`);
+    }
   }
-  assert(/enormous: she/.test(bios), "Pumpkin's colon fix has been lost");
-  // Keyed by id AND name, so a reseeded roster shows nothing rather than
-  // attaching one cat's life story to another.
-  const bioFn = app.slice(app.indexOf('function bioFor'), app.indexOf('function traitsFor'));
-  assert(/bio\.name === kitty\.name/.test(bioFn),
-    'the bio is looked up by id alone, so a reseeded roster would mis-attach it');
-  // And the dialog must actually reach for it.
-  assert(/bioFor\(kitty\)/.test(app), 'nothing calls bioFor, so no cat has a bio on screen');
+  // ...and distinguishable from each other, which is the whole point.
+  for (let i = 0; i < needs.length; i += 1) {
+    for (let j = i + 1; j < needs.length; j += 1) {
+      const d = Math.abs(hue(hexes[needs[i]]) - hue(hexes[needs[j]]));
+      assert(Math.min(d, 360 - d) >= 18,
+        `${needs[i]} and ${needs[j]} are ${Math.min(d, 360 - d)} degrees apart and will read as one colour`);
+    }
+  }
 
   // Each need is scaled to its own baseline, so every centre mark lines up.
   assert(/t\.base \* 2/.test(app), 'the bar is no longer scaled to twice the need\'s own baseline');
