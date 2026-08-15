@@ -180,3 +180,17 @@ minds are epithets — a served cat is both (deployed Miso today: the
 sleepy cuddler; Kittybear: the fastidious doter). Display/config
 naming mechanics are a wall-time Client/Product detail; these five
 words are the source of truth.
+
+## World-size screen (2026-08-15: 5 cats, final vectors, sunbeam 7)
+
+20×20: team 90.750, ZERO distress in 1M kitty-ticks. 22×22 (elements
+scaled ∝): 90.686 (a small travel tax), zero distress. Densification
+to 80 tiles/cat costs scripted welfare nothing; Pumpkin's balanced
+vector reads happiest seat (91.06). Note: proportional element
+scaling keeps DENSITY identical — this 22×22 is not a sparsity step.
+**Recommendation to owner: keep 20×20 at phase 1; the resize belongs
+to 3.0 as a deliberate sparsity redesign (fog) paired with camera
+(watchability).** F-016 caveat: scripted screen — policy-era
+contention (F-017) is mitigated by heterogeneous seats and gated by
+§9.2, with 22×22-rerun as the priced fallback. Both candidate
+configs committed under configs/.
