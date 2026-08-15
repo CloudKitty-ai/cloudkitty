@@ -172,3 +172,11 @@ budget allows. Kittybear's play-discount confirmed by the owner on
 the same logic (bath time). Miso confirmed as sketched. Roster sheet
 final for the plan review: Miso +0.07 · Biscuit +0.21 · Pumpkin
 −0.11 · Kittybear +0.06 · Clementine −0.07.
+
+**Canonical body names (owner, 2026-08-15 — the client-facing
+summaries): Miso = SLEEPY · Biscuit = PLAYFUL · Pumpkin = HUNGRY ·
+Kittybear = FASTIDIOUS · Clementine = CUDDLY.** Bodies are adjectives,
+minds are epithets — a served cat is both (deployed Miso today: the
+sleepy cuddler; Kittybear: the fastidious doter). Display/config
+naming mechanics are a wall-time Client/Product detail; these five
+words are the source of truth.
