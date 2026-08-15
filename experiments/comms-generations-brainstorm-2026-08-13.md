@@ -181,3 +181,17 @@ prereg items this creates:
   food the only way the word stays useful).
 - 033 spec text should state the emission-time-truth-only guarantee
   explicitly (the F-011 docs pattern).
+
+## Addendum 2026-08-15 (final): the adjacency invariant (owner ruling)
+
+Spec 033 FR-002 carries the owner's family-wide invariant, binding on
+all Found* kinds including future amendments: **a Found expression
+requires ADJACENCY to its referent; visibility, under any vision
+regime present or future, is never sufficient grounding.** This
+pre-answers the fog-era loosening question (Found* does NOT relax to
+sight) and fixes the semantic architecture of the whole channel:
+Found-words are PRESENT-TENSE and PROXIMATE ("here, with me"),
+memory tokens are PAST-TENSE and honest-about-staleness ("I saw it
+there"), and never the twain — reference-at-a-distance can only ever
+enter the language as a distinct, explicitly stale-marked form. The
+fog prereg's vocab-fork comparison inherits this grounding pinned.
