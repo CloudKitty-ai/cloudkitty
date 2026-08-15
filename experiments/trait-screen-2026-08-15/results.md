@@ -131,3 +131,12 @@ Verified (policy company, 10 paired seeds):
 All three are certified-adjacent choices; the trade is snackiness
 (+50% / +50% / +75% hunger) vs balance quality vs discount depth.
 Owner picks at the plan review.
+
+## OWNER'S PICK (2026-08-15): Pumpkin = eat 0.6 / sleep 0.2 / bath 0.1
+
+Verified directly: **−0.11** vs trait-flat under policy company
+(prediction −0.06; zero distress) — inside the parity-adjacent band,
+sleep above the floor at ⅔× base. Owner's note recorded with it:
+these rates are re-derived in the new world/next generation
+regardless (stage-3 mortality) — this pin is for the phase-1
+config-rider PR. Additivity now 5-for-5 within 0.1.
