@@ -90,3 +90,21 @@ required before any pin):
 Stamps: engine 412d00e2…, served geometry, roster-B company,
 cuddler-carrier. Stage 3 (re-derive under the spread-trained
 generation) remains registered in the roadmap.
+
+## Direct verification (2026-08-15, policy company, 10 paired seeds)
+
+| vector | predicted (marginal sum) | measured d-carrier | verdict |
+|---|---|---|---|
+| pumpkin-balanced (eat .8, sleep .15, bath .1) | ≈ −0.51 | −0.42 | under-compensates, as stage 2 predicted |
+| **pumpkin-widened** (+ play .2, drink .3) | ≈ 0 | **−0.01** | **balanced** |
+| **clementine-sketch** (cuddle .7, play .3, bath .1) | ≈ +0.04 | **−0.07** | **balanced** (parity band) |
+
+**Additivity holds** at these magnitudes: all three vectors land
+within ~0.1 happiness of their marginal-sum predictions — the
+derive-then-verify loop closes on its first pass, and the exchange
+table is usable as a design tool. Two production-ready balanced
+vectors now exist for the phase-1 wall (Pumpkin's five-axis widened
+basket, or the narrow one with its −0.42 residual absorbed by
+seat-paired accounting — an owner taste call; and Clementine's
+sketch, to be re-verified on her actual seat in the roster-5 world).
+Zero distress in all verification cells.
