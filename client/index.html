@@ -245,8 +245,108 @@
     color: var(--ink-soft);
     font-size: 0.9rem;
   }
+  /* The traits dialog. Its own small type scale -- it is a reference sheet,
+     not a card, and everything in it is a number or a label for one. */
+  #traits {
+    border: none;
+    border-radius: 18px;
+    background: var(--card);
+    color: var(--ink);
+    padding: 18px 20px 16px;
+    max-width: 360px;
+    width: calc(100% - 32px);
+    box-shadow: 0 18px 48px var(--shadow);
+  }
+  #traits::backdrop { background: rgba(0, 0, 0, 0.28); }
+  .traits-close {
+    float: right;
+    border: none;
+    background: none;
+    color: var(--ink-soft);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 2px;
+  }
+  .traits-head { display: flex; align-items: center; gap: 10px; }
+  .traits-head h2 { margin: 0; font-size: 1rem; }
+  .traits-mind {
+    margin: 1px 0 0;
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .traits-prose {
+    margin: 10px 0 12px;
+    font-size: 0.8rem;
+    line-height: 1.45;
+    color: var(--ink-soft);
+  }
+  .traits-needs { display: grid; gap: 5px; }
+  /* Label, bar, value, delta. The two number columns are fixed and tabular
+     so the decimal points and the signs line up down the card -- a column of
+     figures that jitters is unreadable at this size. */
+  .trait {
+    display: grid;
+    grid-template-columns: 3.6rem 1fr 2.4rem 2.9rem;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.76rem;
+  }
+  .trait-need { color: var(--ink-soft); }
+  .trait-track {
+    position: relative;
+    height: 7px;
+    border-radius: 4px;
+    background: var(--rule);
+  }
+  .trait-fill {
+    display: block;
+    height: 100%;
+    border-radius: 4px;
+    background: var(--ink-soft);
+  }
+  /* The baseline mark: where this need sits for a cat with no trait at all. */
+  .trait-base {
+    position: absolute;
+    top: -2px;
+    width: 1px;
+    height: 11px;
+    background: var(--ink);
+    opacity: 0.55;
+  }
+  .trait-value,
+  .trait-delta { font-variant-numeric: tabular-nums; text-align: right; }
+  .trait-delta { color: var(--ink-soft); }
+  /* Placeholder rows read quieter than real ones, so a stub is never
+     mistaken for a measurement. Goes when STUB_TRAITS does. */
+  .trait[data-stub] .trait-fill { opacity: 0.45; }
+  .trait[data-stub] .trait-value { opacity: 0.6; }
+  .traits-foot {
+    margin: 12px 0 0;
+    font-size: 0.68rem;
+    color: var(--ink-soft);
+  }
+
   /* About's own type, not a kitty card's (owner, 2026-08-15): the card
      layout is built around a portrait chip, and About has no face. */
+  /* The per-card traits button, hidden until `t`. Not shipped: the data
+     behind it is part stub. */
+  .kitty-traits {
+    display: none;
+    margin-left: auto;
+    border: none;
+    background: none;
+    padding: 0;
+    font: inherit;
+    font-size: 0.68rem;
+    color: var(--ink-soft);
+    cursor: pointer;
+    border-bottom: 1px dotted currentColor;
+  }
+  body.show-traits .kitty-traits { display: inline; }
+  .kitty-traits:hover { color: var(--ink); }
+
   .about-card {
     background: var(--card);
     border-radius: 18px;
@@ -866,6 +966,27 @@
     </section>
   </div>
 
+  <!-- The traits dialog: one element, repopulated per cat. A native
+       <dialog> so it costs the layout nothing, closes on Esc, and traps
+       focus without a line of our own script. OFF until the trait plumbing
+       lands (owner) -- `t` reveals the per-card affordance that opens it. -->
+  <dialog id="traits">
+    <form method="dialog"><button class="traits-close" aria-label="close">×</button></form>
+    <div class="traits-head">
+      <canvas width="61" height="47" aria-hidden="true"></canvas>
+      <div>
+        <h2 class="traits-name"></h2>
+        <p class="traits-mind"></p>
+      </div>
+    </div>
+    <p class="traits-prose">Lorem ipsum dolor sit amet, consectetur adipiscing
+    elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+    enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p>
+    <div class="traits-needs"></div>
+    <p class="traits-foot">Rates are need per tick. The mark on each bar is the
+    world's baseline.</p>
+  </dialog>
+
   <footer>
     <span id="status">connecting…</span> ·
     tick <span id="tick">0</span><span class="keys"> ·
@@ -878,6 +999,7 @@
     <span id="happy-note" hidden>· 💚 happiness bars visible</span>
     <span id="paced-note" hidden>· ⏩ unbuffered — states draw as they land</span>
     <span id="purr-note" hidden>· 💗 purr hearts visible — <kbd>r</kbd> to hide</span>
+    <span id="traits-note" hidden>· 🧬 traits visible (unfinished) — <kbd>t</kbd> to hide</span>
     · <span class="theme-control">kitties
       <button id="vocab-toggle" aria-label="switch kitty vocabulary">v2</button></span>
     · <span class="theme-control">cards

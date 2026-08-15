@@ -18,6 +18,7 @@ const pathsNoteEl = document.getElementById('paths-note');
 const happyNoteEl = document.getElementById('happy-note');
 const pacedNoteEl = document.getElementById('paced-note');
 const purrNoteEl = document.getElementById('purr-note');
+const traitsNoteEl = document.getElementById('traits-note');
 
 const NEED_LABELS = {
   eat: 'eat',
@@ -1075,6 +1076,22 @@ function buildKittyCard(kitty) {
   name.appendChild(document.createElement('span'));
   card.appendChild(name);
 
+  // Opens this cat's traits. Its own button rather than a click on the
+  // card, which already means "collapse them all" -- the owner's
+  // all-or-none rule, and a second meaning on the same target would break
+  // it. Hidden entirely until TRAITS.on.
+  const more = document.createElement('button');
+  more.className = 'kitty-traits';
+  more.type = 'button';
+  more.textContent = 'traits';
+  more.setAttribute('aria-label', `${kitty.name}'s traits`);
+  more.addEventListener('click', (event) => {
+    event.stopPropagation();
+    const live = latestWorld?.kitties.find((k) => k.id === kitty.id) ?? kitty;
+    openTraitsDialog(live);
+  });
+  name.appendChild(more);
+
   const doing = document.createElement('div');
   doing.className = 'doing';
   card.appendChild(doing);
@@ -1290,6 +1307,121 @@ async function fetchSnapshot() {
   return response.json();
 }
 
+/**
+ * Per-cat need rates, and how far each sits from the world's baseline.
+ *
+ * The engine calls this a trait in so many words -- `observe.rs` builds its
+ * observation from `need_rate_for(id, kind) / reference_need_rate` -- so the
+ * card is showing the same quantity the minds are trained against, not a
+ * presentational invention.
+ */
+let traitConfig = null;
+
+/**
+ * Placeholder rates for the cats that have none yet, so the dialog can be
+ * judged full rather than as one bar and five baselines. **Delete this whole
+ * table when real traits land**; anything a cat actually has already wins,
+ * because the served config is read first.
+ */
+/**
+ * OFF until the trait plumbing is in place (owner, 2026-08-15). `t` reveals
+ * the per-card affordance that opens the dialog; nothing else changes, so a
+ * viewer who never presses it sees the site exactly as it ships.
+ */
+const TRAITS = { on: 0 };
+
+const STUB_TRAITS = {
+  1: { play: 0.56, sleep: 0.21, cuddle: 0.48 },
+  2: { cuddle: 0.58, bath: 0.12, drink: 0.32 },
+  4: { drink: 0.54, eat: 0.28, bath: 0.29 },
+};
+
+const NEED_ORDER = ['eat', 'drink', 'sleep', 'play', 'cuddle', 'bath'];
+
+function traitsFor(kittyId) {
+  if (!traitConfig) return [];
+  const base = traitConfig.base;
+  const served = traitConfig.kitty.find((k) => k.id === kittyId)?.needs ?? {};
+  const stub = STUB_TRAITS[kittyId] ?? {};
+  return NEED_ORDER.filter((need) => Number.isFinite(base[need])).map((need) => {
+    // Served first, stub second, baseline last: a real trait always wins.
+    const rate = Number.isFinite(served[need]) ? served[need]
+      : Number.isFinite(stub[need]) ? stub[need]
+        : base[need];
+    return {
+      need,
+      rate,
+      base: base[need],
+      pct: Math.round(((rate - base[need]) / base[need]) * 100),
+      stubbed: !Number.isFinite(served[need]) && Number.isFinite(stub[need]),
+    };
+  });
+}
+
+/** One shared scale, so bars compare across needs AND across cats. */
+function traitScale() {
+  let max = 0;
+  for (const kitty of latestWorld?.kitties ?? []) {
+    for (const t of traitsFor(kitty.id)) max = Math.max(max, t.rate, t.base);
+  }
+  return Math.max(0.1, Math.ceil(max * 10) / 10);
+}
+
+function openTraitsDialog(kitty) {
+  const dialog = document.getElementById('traits');
+  if (!dialog) return;
+  dialog.querySelector('.traits-name').textContent = kitty.name;
+  const behavior = kitty.behavior ?? '';
+  dialog.querySelector('.traits-mind').textContent = behavior.startsWith('policy:')
+    ? behavior.slice('policy:'.length)
+    : behavior || 'no policy seated';
+
+  const portrait = dialog.querySelector('canvas');
+  const dpr = window.devicePixelRatio || 1;
+  portrait.width = PORTRAIT_W * dpr;
+  portrait.height = PORTRAIT_H * dpr;
+  portrait.style.width = `${PORTRAIT_W}px`;
+  portrait.style.height = `${PORTRAIT_H}px`;
+  paintPortrait(portrait, kitty.id, { phase: 0 });
+
+  const list = dialog.querySelector('.traits-needs');
+  list.innerHTML = '';
+  const scale = traitScale();
+  for (const t of traitsFor(kitty.id)) {
+    const row = document.createElement('div');
+    row.className = 'trait';
+    if (t.stubbed) row.dataset.stub = '1';
+
+    const label = document.createElement('span');
+    label.className = 'trait-need';
+    label.textContent = t.need;
+
+    const track = document.createElement('span');
+    track.className = 'trait-track';
+    const fill = document.createElement('span');
+    fill.className = 'trait-fill';
+    fill.style.width = `${(t.rate / scale) * 100}%`;
+    // Where the baseline sits, so the percentage is visible in the bar and
+    // not only in the number beside it.
+    const mark = document.createElement('span');
+    mark.className = 'trait-base';
+    mark.style.left = `${(t.base / scale) * 100}%`;
+    track.append(fill, mark);
+
+    const value = document.createElement('span');
+    value.className = 'trait-value';
+    value.textContent = t.rate.toFixed(2);
+
+    const delta = document.createElement('span');
+    delta.className = 'trait-delta';
+    delta.textContent = t.pct === 0 ? '—' : `${t.pct > 0 ? '+' : ''}${t.pct}%`;
+
+    row.append(label, track, value, delta);
+    list.appendChild(row);
+  }
+  dialog.showModal();
+}
+
 /** Pick up viewer tunables from the server; keep the stand-ins if unavailable. */
 async function fetchViewerConfig() {
   try {
@@ -1304,6 +1436,12 @@ async function fetchViewerConfig() {
     // The easing duration is the served tick interval (FR-005) -- already
     // in /config as world.tick_ms, so no server change was ever needed.
     anim.setTickMs(config?.world?.tick_ms);
+    // The trait source. `config.needs` is the baseline rise rate per need
+    // and `config.kitty[].needs` overrides it for one cat -- which is
+    // already how the engine reads it (`need_rate_for`), and already how
+    // the RL side defines a trait: `rate / reference_need_rate`
+    // (observe.rs). So this is the real number, not a stand-in.
+    if (config?.needs) traitConfig = { base: config.needs, kitty: config.kitty ?? [] };
   } catch {
     // The stand-ins in VIEW carry an older or unreachable server (FR-018).
   }
@@ -1454,6 +1592,10 @@ window.addEventListener('keydown', (event) => {
   } else if (key === 'b') {
     anim.setPaced(!anim.paced);
     pacedNoteEl.hidden = anim.paced;
+  } else if (key === 't') {
+    TRAITS.on = TRAITS.on ? 0 : 1;
+    document.body.classList.toggle('show-traits', !!TRAITS.on);
+    traitsNoteEl.hidden = !TRAITS.on;
   } else if (key === 'r') {
     // Off by default, so this note reads the ordinary way round: it
     // appears when the hearts are showing. The key itself is in the

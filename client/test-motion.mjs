@@ -4502,6 +4502,43 @@ check('the socket hands arrivals to the delay line and nothing else', () => {
   );
 });
 
+check('the traits dialog ships OFF, and its stubs are marked as stubs', () => {
+  // Unfinished on purpose (owner, 2026-08-15): the prose is lorem and the
+  // rates are part measured, part placeholder, so nothing about it should
+  // reach a viewer who has not asked. `t` reveals it.
+  const app = readFileSync(join(here, 'app.js'), 'utf8');
+  const markup = readFileSync(join(here, 'index.html'), 'utf8');
+
+  assert(/const TRAITS = \{ on: 0 \}/.test(app), 'the traits affordance no longer ships off');
+  assert(/\.kitty-traits \{[^}]*display: none/.test(markup),
+    'the traits button is visible without the toggle');
+  assert(/body\.show-traits \.kitty-traits/.test(markup), 'nothing reveals the traits button');
+
+  // Served rates must beat the placeholder table, or a real trait would be
+  // hidden behind a stand-in the day it lands.
+  const fn = app.slice(app.indexOf('function traitsFor('), app.indexOf('/** One shared scale'));
+  const servedAt = fn.indexOf('served[need]');
+  const stubAt = fn.indexOf('stub[need]');
+  assert(servedAt > 0 && stubAt > servedAt,
+    'the stub table is consulted before the served config, so a real trait would be masked');
+  assert(/STUB_TRAITS/.test(app) && /Delete this whole/.test(app),
+    'the placeholder table is no longer marked for deletion');
+
+  // A stub must not read as a measurement.
+  assert(/\.trait\[data-stub\]/.test(markup), 'stubbed rows look identical to measured ones');
+
+  // The four inverting tokens swap across a phase, so a literal here sits at
+  // the wrong end of the palette for half the day (#193).
+  for (const selector of ['#traits', '.trait-need', '.trait-fill', '.trait-delta', '.traits-prose']) {
+    const at = markup.indexOf(`  ${selector} {`);
+    assert(at > 0, `no CSS rule for ${selector}`);
+    const rule = markup.slice(at, markup.indexOf('}', at) + 1);
+    for (const c of rule.match(/(?:^|[^-])(?:color|background)\s*:\s*([^;]+);/g) || []) {
+      assert(/var\(--|none/.test(c), `${selector} names a colour literal (${c.trim()})`);
+    }
+  }
+});
+
 check("the about survives a phase change, and the owner's words survive us", () => {
   const markup = readFileSync(join(here, 'index.html'), 'utf8');
 
