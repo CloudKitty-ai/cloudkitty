@@ -806,12 +806,12 @@ mod tests {
         let token_count: usize = groups.iter().map(|g| g.count).sum();
         assert_eq!(width_sum, crate::observe::observation_len(&cfg));
         assert_eq!(
-            token_count, 23,
-            "1 self + 3 kitty + 2 chow + 2 water + 2 sun + 4 critter + 8 msg + 1 clock"
+            token_count, 30,
+            "1 self + 3 kitty + 2 chow + 2 water + 2 sun + 4 critter + 15 msg + 1 clock"
         );
         assert_eq!(
-            type_rows, 15,
-            "6 singleton/shared + 8 message kinds + clock"
+            type_rows, 22,
+            "6 singleton/shared + 15 message kinds + clock (schema 4)"
         );
     }
 }

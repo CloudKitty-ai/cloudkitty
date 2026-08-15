@@ -71,7 +71,7 @@ impl Behavior for Chaos {
             7 => Action::play_with(TargetRef::Element { id: random_element }),
             8 => Action::Purr,
             9 => Action::Meow {
-                message: MessageKind::FollowMe,
+                message: MessageKind::Mew,
             },
             _ => Action::Idle,
         };

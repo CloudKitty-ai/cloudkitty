@@ -490,7 +490,7 @@ mod tests {
             ["config", "kitty_id", "me", "seed", "tick", "v", "world"],
             "the request carries the documented fields"
         );
-        assert_eq!(object["v"], 1);
+        assert_eq!(object["v"], 2); // spec 033: mew rename + 7 kinds (D4)
         assert_eq!(object["tick"], 7);
         assert_eq!(object["seed"], 42);
         assert!(!line.contains('\n'), "one request means one line");

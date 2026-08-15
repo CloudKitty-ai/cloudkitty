@@ -21,45 +21,44 @@ save_every_ticks = 100
 
 # The roster. At least two kitties, always (Article III: kitties cannot be alone).
 # `behavior` picks a strategy: "needs_driven", "playful", or "policy:<name>"
-# via the matching [rl.policy.<name>] block. Since the 2026-08-14 cutover the
-# roster is CROSS-GENERATION (certified candidate B): three seats run the
-# attention (v3) generation, Biscuit keeps the incumbent e004-a1-s2 (v2) —
-# spec 030 serves both artifact versions side by side.
+# via the matching [rl.policy.<name>] block. WALL WINDOW (spec 033): every
+# seat is parked scripted — the schema pins turned (obs 4 / action 3 /
+# mask 3) and every committed artifact speaks the previous generation, so
+# none can open on this binary. The served box stays on its pre-wall binary
+# and world (only client-only deploys are safe there until the phase-1
+# generation certifies and seats). The [rl.policy.*] blocks below stay for
+# provenance; unreferenced blocks are never opened (the generation-gap
+# test proves it, second tour: spec 026 US4, spec 028 precedent).
 
 [[kitty]]
 id = 1
 name = "Miso"
 x = 8
 y = 10
-# POLICY SEAT: attn-a1-s1 "the cuddler" — attention-PPO (spec 030 v3
-# artifact), certified in candidate B's cross-generation battery (all gates,
-# no deviations). Seated 2026-08-14 on the owner's word, succeeding
-# e004-a1-s2 at this seat (seat-paired delta +0.18/+0.20 vs the incumbent).
-# Provenance: the [rl.policy] block below and policies/README.md.
-behavior = "policy:attn-a1-s1"
+# SEAT PARKED (spec 033 wall): was policy:attn-a1-s1 "the cuddler"
+# (candidate B, seated 2026-08-14 — the record stays in policies/README.md
+# and the block below). Scripted until the phase-1 generation seats.
+behavior = "needs_driven"
 
 [[kitty]]
 id = 2
 name = "Biscuit"
 x = 16
 y = 15
-# POLICY SEAT: e004-a1-s2 — THE INCUMBENT STAYS (cross-generation cutover,
-# 2026-08-14): the previous generation grooms the new doters back (~8.7% of
-# its decisions) — the trained responder culture the attention lottery lost —
-# which is why the owner chose candidate B. Originally seated in the
-# 2026-08-09 all-policy rollout; that record stays in policies/README.md.
-behavior = "policy:e004-a1-s2"
+# SEAT PARKED (spec 033 wall): was policy:e004-a1-s2, the cross-generation
+# incumbent (its responder culture is why candidate B kept it; records in
+# policies/README.md). Scripted until the phase-1 generation seats.
+behavior = "needs_driven"
 
 [[kitty]]
 id = 3
 name = "Pumpkin"
 x = 13
 y = 6
-# POLICY SEAT: attn-a1-s3 "the doter" — attention-PPO (spec 030 v3 artifact),
-# certified in candidate B's cross-generation battery; seated 2026-08-14.
-# The needs override below is world-law, not behavior: Pumpkin stays snacky
-# under the policy (the certification battery ran this exact composition).
-behavior = "policy:attn-a1-s3"
+# SEAT PARKED (spec 033 wall): was policy:attn-a1-s3 "the doter" (candidate
+# B, seated 2026-08-14). Scripted until the phase-1 generation seats. The
+# needs override below is world-law, not behavior — it stays.
+behavior = "needs_driven"
 # Any kitty may override the global [needs] rise rates; unset needs keep the
 # defaults. Pumpkin is a snacky little cat.
 [kitty.needs]
@@ -70,10 +69,9 @@ id = 4
 name = "Kittybear"
 x = 4
 y = 4
-# POLICY SEAT: attn-a1-s3 — the same artifact as Pumpkin's, by design (the
-# multi-seat pattern every rollout has used: one artifact, several bodies).
-# Seated 2026-08-14 with Pumpkin's; predecessors' records in policies/README.md.
-behavior = "policy:attn-a1-s3"
+# SEAT PARKED (spec 033 wall): was policy:attn-a1-s3 (Pumpkin's artifact,
+# the multi-seat pattern). Scripted until the phase-1 generation seats.
+behavior = "needs_driven"
 
 # How fast each need rises, per tick. Higher means more pressing, more often.
 [needs]
@@ -208,6 +206,32 @@ announce_threshold = 30.0
 # ...and disarms below threshold - hysteresis, so the mask holds steady
 # while an errand is in progress.
 announce_hysteresis = 5.0
+
+# The vocabulary (spec 033): one flag per speakable kind. Flags gate
+# LEGALITY only — every layout (digest, head, mask, observation) is
+# identical whatever they say, so experiments arm words by config, never
+# by engine fork. Law-named kinds (want_*, purr, here_*) mean what their
+# grounding predicate enforces; sound-named kinds (mew, chirp, trill,
+# ekekek — the free register) mean whatever the cats decide. trill and
+# ekekek are RESERVES: in every layout, legal in none, until the post-fog
+# language-capacity experiment arms them. The full language reference is
+# docs/meows.md.
+[meow.vocabulary]
+want_eat = true
+want_drink = true
+mew = true
+want_play = true
+want_cuddle = true
+purr = true
+want_bath = true
+want_sleep = true
+here_food = true
+here_water = true
+here_critter = true
+here_sunbeam = true
+chirp = true
+trill = false
+ekekek = false
 
 [purr]
 # A contented kitty rumbles for a while (a seeded draw between min and max

@@ -65,7 +65,7 @@ fn assert_mask_matches_engine(world: &World, config: &Config) {
             kitty.id
         );
         for (k, &kind) in HEAD_KINDS.iter().enumerate() {
-            let engine_says = message_legal(kitty, kind, snapshot.tick, config);
+            let engine_says = message_legal(kitty, kind, snapshot.tick, config, &snapshot.elements);
             assert_eq!(
                 message_mask[k + 1],
                 engine_says,

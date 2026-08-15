@@ -49,25 +49,37 @@ use cloudkitty_core::Config;
 use crate::config::ObservationConfig;
 
 /// Version pinned into policy artifacts (FR-007/FR-016). Schema 3
-/// (spec 028): the meow digest became coherent -- 8 kinds x 4 values
+/// (spec 028): the meow digest became coherent -- kinds x 4 values
 /// describing the single freshest emitter (recency, dx, dy, intensity),
-/// 183 → 197.
-pub const OBSERVATION_SCHEMA_VERSION: u32 = 3;
+/// 183 → 197. Schema 4 (spec 033): the say-surface finalized -- the digest
+/// widened to 15 kinds (the Here family, chirp, and the two reserves),
+/// 197 → 225.
+pub const OBSERVATION_SCHEMA_VERSION: u32 = 4;
 
-/// The message-head kinds (spec 028): every kind a policy can hear and
-/// speak — all but the engine-reserved `wait_for_me` (spec 012). Order is
-/// normative for the digest AND the message head (head index k+1 =
-/// HEAD_KINDS[k]; index 0 = Silent): the original six keep their positions,
-/// the two new want-kinds are appended.
-pub const HEAD_KINDS: [MessageKind; 8] = [
+/// The message-head kinds (spec 028, finalized by spec 033): every kind a
+/// policy can hear and speak — all but the engine-reserved `wait_for_me`
+/// (spec 012). Order is normative for the digest AND the message head
+/// (head index k+1 = HEAD_KINDS[k]; index 0 = Silent): existing kinds keep
+/// their positions forever (mew inherits follow_me's, name only), new
+/// kinds append. This array is FROZEN through the fog era (ROADMAP
+/// principle 5): the reserves (trill, ekekek) exist so future vocabulary
+/// experiments are flag flips, never layout moves.
+pub const HEAD_KINDS: [MessageKind; 15] = [
     MessageKind::WantEat,
     MessageKind::WantDrink,
-    MessageKind::FollowMe,
+    MessageKind::Mew,
     MessageKind::WantPlay,
     MessageKind::WantCuddle,
     MessageKind::Purr,
     MessageKind::WantBath,
     MessageKind::WantSleep,
+    MessageKind::HereFood,
+    MessageKind::HereWater,
+    MessageKind::HereCritter,
+    MessageKind::HereSunbeam,
+    MessageKind::Chirp,
+    MessageKind::Trill,
+    MessageKind::Ekekek,
 ];
 
 const SELF_BLOCK: usize = 6 + 1 + 2 + 7 + 1 + 1 + 1 + 1 + 6 + 2 + 6;
@@ -584,7 +596,7 @@ mod tests {
 
     #[test]
     fn social_words_carry_zero_intensity_in_the_digest() {
-        // Purr and FollowMe stamp 0.0 at emission (FR-010); the digest
+        // Purr and Mew stamp 0.0 at emission (FR-010); the digest
         // reports the stamp verbatim.
         use cloudkitty_core::meow::{Meow, MessageKind};
         let (mut world, config) = test_world();
@@ -597,14 +609,14 @@ mod tests {
         });
         world.recent_meows.push(Meow {
             kitty_id: 2,
-            kind: MessageKind::FollowMe,
+            kind: MessageKind::Mew,
             tick: 50,
             intensity: 0.0,
         });
         let cfg = ObservationConfig::default();
         let obs = encode_observation(&world.snapshot(), 1, &config, &cfg, 0.0);
         let digest_start = observation_len(&cfg) - MEOW_DIGEST - CLOCK;
-        // Purr is HEAD_KINDS[5], FollowMe HEAD_KINDS[2]; intensity is +3.
+        // Purr is HEAD_KINDS[5], Mew HEAD_KINDS[2]; intensity is +3.
         for slot in [5usize, 2] {
             let base = digest_start + slot * 4;
             assert!(obs.values[base] > 0.0, "the word is audible");
@@ -613,9 +625,10 @@ mod tests {
     }
 
     #[test]
-    fn the_default_layout_is_197_values() {
-        // Schema 3 (spec 028): 183 + the digest's growth (6x3 -> 8x4).
-        assert_eq!(observation_len(&ObservationConfig::default()), 197);
+    fn the_default_layout_is_225_values() {
+        // Schema 3 (spec 028): 183 + the digest's growth (6x3 -> 8x4) = 197.
+        // Schema 4 (spec 033): + 7 new digest kinds x 4 = 225.
+        assert_eq!(observation_len(&ObservationConfig::default()), 225);
     }
 
     #[test]
@@ -629,7 +642,7 @@ mod tests {
             kitty_slots: ObservationConfig::default().kitty_slots + 2,
             ..ObservationConfig::default()
         };
-        assert_eq!(observation_len(&cfg), 197 + 2 * KITTY_SLOT);
+        assert_eq!(observation_len(&cfg), 225 + 2 * KITTY_SLOT);
     }
 
     /// The in-water flag's fixed self-block index: needs (6) + happiness +
@@ -829,6 +842,102 @@ mod tests {
             assert!(
                 (-1.0..=4.0).contains(value),
                 "value {value} at index {i} outside documented bounds"
+            );
+        }
+    }
+
+    // ---- spec 033 (T013): the new kinds ride the digest whole ----
+
+    /// The digest offset of `kind`'s 4-float slot within an observation.
+    fn digest_slot(cfg: &ObservationConfig, kind: MessageKind) -> usize {
+        let col = HEAD_KINDS.iter().position(|&k| k == kind).unwrap();
+        observation_len(cfg) - MEOW_DIGEST - CLOCK + col * 4
+    }
+
+    #[test]
+    fn a_here_announcement_tracks_the_speaker_not_the_referent() {
+        // FR-005 in one observable: the speaker announces, then WALKS AWAY
+        // from the bowl -- the digest's direction follows the speaker.
+        use cloudkitty_core::meow::{Meow, MessageKind};
+        let (mut world, config) = test_world();
+        world.tick = 50;
+        let me = world.kitties[world.kitty_index(1).unwrap()].pos;
+        let speaker = world.kitty_index(2).unwrap();
+        world.kitties[speaker].pos = Position::new(me.x + 2, me.y);
+        world.recent_meows.push(Meow {
+            kitty_id: 2,
+            kind: MessageKind::HereFood,
+            tick: 50,
+            intensity: 0.0,
+        });
+        let cfg = ObservationConfig::default();
+        let slot = digest_slot(&cfg, MessageKind::HereFood);
+        let width = world.width as f32;
+
+        let obs = encode_observation(&world.snapshot(), 1, &config, &cfg, 0.0);
+        assert!((obs.values[slot] - 1.0).abs() < 1e-6, "fresh: recency 1.0");
+        assert!(
+            (obs.values[slot + 1] - 2.0 / width).abs() < 1e-6,
+            "dx points at the speaker"
+        );
+        assert_eq!(obs.values[slot + 3], 0.0, "Here* intensity is 0.0, always");
+
+        // The speaker moves; the beacon moves with them -- live position,
+        // never a stamped coordinate (the staleness-lie prevention).
+        world.kitties[speaker].pos = Position::new(me.x + 5, me.y);
+        let obs = encode_observation(&world.snapshot(), 1, &config, &cfg, 0.0);
+        assert!(
+            (obs.values[slot + 1] - 5.0 / width).abs() < 1e-6,
+            "the digest tracks the SPEAKER's live offset"
+        );
+    }
+
+    #[test]
+    fn all_five_active_new_kinds_ride_the_digest_at_their_contract_columns() {
+        // SC-001's breadth: four Here* + chirp, each lands whole at its
+        // own column with intensity 0.0; the reserve columns stay zero.
+        use cloudkitty_core::meow::{Meow, MessageKind};
+        let (mut world, config) = test_world();
+        world.tick = 50;
+        let me = world.kitties[world.kitty_index(1).unwrap()].pos;
+        let speaker = world.kitty_index(2).unwrap();
+        world.kitties[speaker].pos = Position::new(me.x + 3, me.y);
+        let five = [
+            MessageKind::HereFood,
+            MessageKind::HereWater,
+            MessageKind::HereCritter,
+            MessageKind::HereSunbeam,
+            MessageKind::Chirp,
+        ];
+        for kind in five {
+            world.recent_meows.push(Meow {
+                kitty_id: 2,
+                kind,
+                tick: 50,
+                intensity: 0.0,
+            });
+        }
+        let cfg = ObservationConfig::default();
+        let obs = encode_observation(&world.snapshot(), 1, &config, &cfg, 0.0);
+        let width = world.width as f32;
+        for kind in five {
+            let slot = digest_slot(&cfg, kind);
+            assert!(
+                (obs.values[slot] - 1.0).abs() < 1e-6,
+                "{kind:?}: fresh at its own column"
+            );
+            assert!(
+                (obs.values[slot + 1] - 3.0 / width).abs() < 1e-6,
+                "{kind:?}: direction whole"
+            );
+            assert_eq!(obs.values[slot + 3], 0.0, "{kind:?}: intensity 0.0");
+        }
+        for kind in [MessageKind::Trill, MessageKind::Ekekek] {
+            let slot = digest_slot(&cfg, kind);
+            assert_eq!(
+                &obs.values[slot..slot + 4],
+                &[0.0; 4],
+                "{kind:?}: a reserve column is all-zero in every world"
             );
         }
     }

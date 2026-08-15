@@ -33,6 +33,37 @@ change.
 
 ## Unreleased
 
+- **The say-surface, finalized** (spec 033) **[obs-schema] [stamp]**: the
+  meow channel closes its vocabulary as a two-tier language, and the codec
+  makes its last move before the character-era freeze. Law-named words
+  mean what their predicate enforces — the six wants, the purr, and the
+  new **Here family** (`here_food`, `here_water`, `here_critter`,
+  `here_sunbeam`), legal exactly when the referent stands adjacent to the
+  speaker, so a cat can only announce what it could itself use. The free
+  register is sound-named and means nothing until the cats decide
+  otherwise: `follow_me` becomes **mew** (its designed meaning died on
+  contact with the cats years ago in cat time; the name now denotes the
+  sound, same head index, same law), **chirp** joins active, and **trill**
+  and **ekekek** enter as flag-off reserves so the post-fog
+  language-capacity experiments are config flips, never codec moves.
+  Every speakable kind gains a `[meow.vocabulary]` flag — legality only,
+  never layout. The digest widens to 15 kinds (observation 197 → 225,
+  message head 9 → 16, menu untouched at 34), all three schema pins turn
+  (observation 4, action 3, mask 3), and the plugin proposal wire moves
+  to v2. The engine guarantees emission-time truth only: announcing food
+  and then eating the last serving is lawful, and whether hosting beats
+  abandoning is the cats' economy to settle. Two living documents are
+  born at the freeze: `docs/encodings.md` (the field tables, now a
+  required deliverable of every schema-moving spec) and `docs/meows.md`
+  (the language reference — law, intent, and observed meaning per word,
+  with the Here-family cells honestly awaiting their speakers). The
+  generation wall reopens with this entry: every committed artifact pins
+  the previous schemas, the repo seats run scripted, the served box holds
+  its pre-wall binary and world, and only client-only deploys are safe
+  until the phase-1 generation certifies. Parity gate re-anchored at the
+  new layout (oracle expanded from the certified attention clone;
+  3.3e-6 over 144 rows, exact argmax).
+
 - The cross-generation roster seated: three seats hand over to the
   attention generation — Miso to `attn-a1-s1` "the cuddler", Pumpkin and
   Kittybear to `attn-a1-s3` "the doter" — the first spec-030 v3

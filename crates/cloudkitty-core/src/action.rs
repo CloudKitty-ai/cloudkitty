@@ -126,8 +126,12 @@ impl Action {
 }
 
 /// The proposal wire's version, carried in every plugin decision request.
-/// Bump on any breaking change to the accepted proposal shapes.
-pub const PROPOSAL_WIRE_VERSION: u32 = 1;
+/// Bump on any breaking change to the accepted proposal shapes. Version 2
+/// (spec 033): `follow_me` stopped parsing as a message kind (renamed
+/// `mew` -- no alias, a lying name is what the rename removed) and seven
+/// kinds joined the accepted set (here_food, here_water, here_critter,
+/// here_sunbeam, chirp, trill, ekekek).
+pub const PROPOSAL_WIRE_VERSION: u32 = 2;
 
 /// Why a proposal failed to parse (spec 016). Every kind resolves the same
 /// way downstream -- the fallback decides, per amended Article IV's default --
@@ -840,7 +844,9 @@ fn emit_message(
     };
     // The stamped intensity (spec 028): the grounding need's value at
     // emission, on [0, 1] -- a listener hears how hungry, not just that.
-    // The social words (FollowMe, WaitForMe) carry 0.0.
+    // Every non-want kind carries 0.0 (spec 033 clarify verdict: intensity
+    // means need pressure, exclusively -- a Here* richness stamp would rot
+    // anti-conservatively, overstating as servings fall).
     let intensity = message
         .related_need()
         .map(|need| (kitty.needs.get(need) / 100.0).clamp(0.0, 1.0))
@@ -1149,7 +1155,13 @@ mod tests {
         world.kitties[idx].purr_cooldown_until = 1_000; // motor deep in rest
 
         assert!(
-            crate::meow::message_legal(world.kitty(1).unwrap(), MessageKind::Purr, 50, &config),
+            crate::meow::message_legal(
+                world.kitty(1).unwrap(),
+                MessageKind::Purr,
+                50,
+                &config,
+                &world.elements
+            ),
             "an earned purr message is legal"
         );
         apply_message(&mut world, 1, MessageKind::Purr, &config, 50);
@@ -1187,7 +1199,8 @@ mod tests {
             world.kitty(1).unwrap(),
             MessageKind::Purr,
             world.tick,
-            &config
+            &config,
+            &world.elements
         ));
     }
 
@@ -1232,7 +1245,13 @@ mod tests {
         let twin = world.clone();
 
         assert!(
-            crate::meow::message_legal(world.kitty(1).unwrap(), MessageKind::Purr, 50, &config),
+            crate::meow::message_legal(
+                world.kitty(1).unwrap(),
+                MessageKind::Purr,
+                50,
+                &config,
+                &world.elements
+            ),
             "legal while purring -- the no-op is lawful, not masked"
         );
         apply_message(&mut world, 1, MessageKind::Purr, &config, 50);
@@ -1621,16 +1640,16 @@ mod tests {
         // path itself never swallows.
         let (mut world, config) = test_world();
         let tick = world.tick;
-        apply_message(&mut world, 1, MessageKind::FollowMe, &config, tick);
+        apply_message(&mut world, 1, MessageKind::Mew, &config, tick);
         assert_eq!(world.recent_meows.len(), 1);
-        let first_stamp = world.kitty(1).unwrap().meow_cooldowns[&MessageKind::FollowMe];
+        let first_stamp = world.kitty(1).unwrap().meow_cooldowns[&MessageKind::Mew];
         assert_eq!(first_stamp, tick + config.meow.recent_window_ticks);
 
         world.tick += 1;
         let tick = world.tick;
-        apply_message(&mut world, 1, MessageKind::FollowMe, &config, tick);
+        apply_message(&mut world, 1, MessageKind::Mew, &config, tick);
         assert_eq!(world.recent_meows.len(), 2, "the emit path never swallows");
-        let second_stamp = world.kitty(1).unwrap().meow_cooldowns[&MessageKind::FollowMe];
+        let second_stamp = world.kitty(1).unwrap().meow_cooldowns[&MessageKind::Mew];
         assert!(second_stamp > first_stamp, "every emission re-stamps");
     }
 
@@ -1656,7 +1675,7 @@ mod tests {
             meow.intensity
         );
 
-        apply_message(&mut world, 1, MessageKind::FollowMe, &config, tick);
+        apply_message(&mut world, 1, MessageKind::Mew, &config, tick);
         assert_eq!(
             world.recent_meows.last().unwrap().intensity,
             0.0,
@@ -2612,5 +2631,89 @@ mod proposal_contract_tests {
             (a_cuddle - 35.0).abs() < 0.01,
             "the duet is paid by cuddle_relief, got {a_cuddle}"
         );
+    }
+
+    /// Spec 033 US1/AC6 (FR-016 + FR-005): announce-then-consume is LAWFUL.
+    /// The engine guarantees emission-time truth only -- a speaker may
+    /// honestly say "food here" and then eat the last serving, and the
+    /// announcement is never retracted when the referent dies. This test
+    /// exists so a future "fairness" mechanism (a reservation, a lock, a
+    /// penalty) fails loudly against the spec's stated boundary.
+    #[test]
+    fn announcing_food_and_eating_it_all_is_lawful() {
+        use crate::element::{Element, ElementKind};
+        use crate::meow::{message_legal, MessageKind};
+        let (mut world, config) = test_world();
+        world.tick = 50;
+        world.elements.clear();
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].pos = crate::grid::Position::new(8, 8);
+        let base = world.kitties[idx].needs.get(NeedKind::Eat);
+        world.kitties[idx].needs.add(NeedKind::Eat, 60.0 - base);
+        world.push_element(Element {
+            id: 950,
+            kind: ElementKind::Chow { servings: 1 },
+            pos: crate::grid::Position::new(8, 9),
+            ttl: None,
+        });
+
+        // The announcement is true and accepted.
+        assert!(message_legal(
+            world.kitty(1).unwrap(),
+            MessageKind::HereFood,
+            50,
+            &config,
+            &world.elements
+        ));
+        apply_message(&mut world, 1, MessageKind::HereFood, &config, 50);
+        assert!(
+            world
+                .recent_meows
+                .iter()
+                .any(|m| m.kind == MessageKind::HereFood && m.kitty_id == 1),
+            "the announcement sounded"
+        );
+        let meow = world
+            .recent_meows
+            .iter()
+            .find(|m| m.kind == MessageKind::HereFood)
+            .unwrap();
+        assert_eq!(meow.intensity, 0.0, "Here* stamps 0.0 (clarify verdict)");
+
+        // The speaker eats the last serving: the ORDINARY eat path, no
+        // downgrade, no penalty, relief granted in full.
+        let eat_before = world.kitty(1).unwrap().needs.get(NeedKind::Eat);
+        apply(&mut world, 1, Action::Eat, &config);
+        let eat_after = world.kitty(1).unwrap().needs.get(NeedKind::Eat);
+        assert!(
+            (eat_before - eat_after - config.actions.eat_relief).abs() < 0.01,
+            "relief granted in full: {eat_before} -> {eat_after}"
+        );
+        let bowl = world.element(950).unwrap();
+        assert!(
+            matches!(bowl.kind, ElementKind::Chow { servings: 0 }),
+            "the last serving is gone"
+        );
+        assert!(bowl.is_expired(), "an empty bowl despawns at env resolve");
+
+        // The announcement persists, un-retracted: the digest tracks the
+        // SPEAKER, so it can never point at the dead bowl anyway -- that is
+        // emitter-tracking and emission-time truth in one observable.
+        assert!(
+            world
+                .recent_meows
+                .iter()
+                .any(|m| m.kind == MessageKind::HereFood && m.kitty_id == 1),
+            "announcements are never retracted when the referent dies"
+        );
+        // And the WORD is now ungrounded for the next attempt: an empty
+        // bowl is not food here.
+        assert!(!message_legal(
+            world.kitty(1).unwrap(),
+            MessageKind::HereFood,
+            51,
+            &config,
+            &world.elements
+        ));
     }
 }

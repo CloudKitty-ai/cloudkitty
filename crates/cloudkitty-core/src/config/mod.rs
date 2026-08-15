@@ -672,6 +672,11 @@ pub struct MeowConfig {
     /// legality instead of shortening courtesy.
     #[serde(default, skip_serializing)]
     pub urgent_need_threshold: Option<f32>,
+    /// Per-kind enable flags (spec 033): vocabulary is armed by config,
+    /// never by engine fork. Flags gate LEGALITY ONLY -- every layout
+    /// (digest, head, mask, observation) is identical whatever they say.
+    #[serde(default)]
+    pub vocabulary: VocabularyConfig,
 }
 
 impl Default for MeowConfig {
@@ -685,8 +690,106 @@ impl Default for MeowConfig {
             courtesy_ticks: None,
             urgent_courtesy_ticks: None,
             urgent_need_threshold: None,
+            vocabulary: VocabularyConfig::default(),
         }
     }
+}
+
+/// `[meow.vocabulary]` (spec 033 FR-006): one named flag per speakable
+/// kind, so a misspelled kind refuses to boot (the PR-114 posture) and an
+/// omitted table means the documented defaults. Active-vs-reserve is
+/// nothing but the default value: `trill` and `ekekek` ship off (in every
+/// layout, in no training run) until an experiment arms them -- the
+/// post-fog language-capacity arms are pure config. WaitForMe is absent by
+/// design: the engine's word is not speakable and not gateable.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct VocabularyConfig {
+    #[serde(default = "default_true")]
+    pub want_eat: bool,
+    #[serde(default = "default_true")]
+    pub want_drink: bool,
+    #[serde(default = "default_true")]
+    pub mew: bool,
+    #[serde(default = "default_true")]
+    pub want_play: bool,
+    #[serde(default = "default_true")]
+    pub want_cuddle: bool,
+    #[serde(default = "default_true")]
+    pub purr: bool,
+    #[serde(default = "default_true")]
+    pub want_bath: bool,
+    #[serde(default = "default_true")]
+    pub want_sleep: bool,
+    #[serde(default = "default_true")]
+    pub here_food: bool,
+    #[serde(default = "default_true")]
+    pub here_water: bool,
+    #[serde(default = "default_true")]
+    pub here_critter: bool,
+    #[serde(default = "default_true")]
+    pub here_sunbeam: bool,
+    #[serde(default = "default_true")]
+    pub chirp: bool,
+    /// Reserve: default off.
+    #[serde(default)]
+    pub trill: bool,
+    /// Reserve: default off.
+    #[serde(default)]
+    pub ekekek: bool,
+}
+
+impl Default for VocabularyConfig {
+    fn default() -> Self {
+        Self {
+            want_eat: true,
+            want_drink: true,
+            mew: true,
+            want_play: true,
+            want_cuddle: true,
+            purr: true,
+            want_bath: true,
+            want_sleep: true,
+            here_food: true,
+            here_water: true,
+            here_critter: true,
+            here_sunbeam: true,
+            chirp: true,
+            trill: false,
+            ekekek: false,
+        }
+    }
+}
+
+impl VocabularyConfig {
+    /// The flag for a speakable kind. WaitForMe reaches here only from a
+    /// trusted in-process caller (see `message_legal`'s doc) and is always
+    /// enabled -- it is the engine's word, outside the vocabulary system.
+    pub fn enabled(&self, kind: crate::meow::MessageKind) -> bool {
+        use crate::meow::MessageKind::*;
+        match kind {
+            WantEat => self.want_eat,
+            WantDrink => self.want_drink,
+            Mew => self.mew,
+            WantPlay => self.want_play,
+            WantCuddle => self.want_cuddle,
+            Purr => self.purr,
+            WaitForMe => true,
+            WantBath => self.want_bath,
+            WantSleep => self.want_sleep,
+            HereFood => self.here_food,
+            HereWater => self.here_water,
+            HereCritter => self.here_critter,
+            HereSunbeam => self.here_sunbeam,
+            Chirp => self.chirp,
+            Trill => self.trill,
+            Ekekek => self.ekekek,
+        }
+    }
+}
+
+fn default_true() -> bool {
+    true
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -2033,5 +2136,42 @@ mod tests {
             !obj.contains_key("plugins"),
             "plugins leaked into serialization"
         );
+    }
+
+    // ---- spec 033 (T017): the vocabulary table's config law ----
+
+    #[test]
+    fn an_omitted_vocabulary_table_means_the_documented_defaults() {
+        // US3/AC3: thirteen active kinds on, the two reserves off.
+        let config = crate::test_support::test_config();
+        let v = config.meow.vocabulary;
+        assert!(v.want_eat && v.mew && v.purr && v.here_food && v.chirp);
+        assert!(!v.trill && !v.ekekek, "reserves ship off");
+        // And a bare [meow] table parses to the same defaults.
+        let meow: MeowConfig = toml::from_str("").unwrap();
+        assert_eq!(meow.vocabulary, VocabularyConfig::default());
+    }
+
+    #[test]
+    fn a_misspelled_vocabulary_key_refuses_to_boot_naming_the_field() {
+        // US3/AC4 (the PR-114 posture): strictness catches the typo.
+        let err = toml::from_str::<VocabularyConfig>("here_fud = true").unwrap_err();
+        assert!(
+            err.to_string().contains("here_fud"),
+            "the error names the offending field: {err}"
+        );
+    }
+
+    #[test]
+    fn a_partial_vocabulary_table_fills_the_rest_with_defaults() {
+        let v: VocabularyConfig = toml::from_str(
+            "chirp = false
+trill = true",
+        )
+        .unwrap();
+        assert!(!v.chirp, "the stated flag holds");
+        assert!(v.trill, "a reserve can be armed by config alone");
+        assert!(v.want_eat && v.here_sunbeam, "unstated kinds keep defaults");
+        assert!(!v.ekekek, "unstated reserves keep their off default");
     }
 }
