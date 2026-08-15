@@ -762,8 +762,13 @@ function renderPanel(world) {
     happinessBar.style.backgroundColor = happinessColor(kitty.happiness);
 
     for (const [need, value] of Object.entries(kitty.needs)) {
-      const bar = card.querySelector(`[data-need="${need}"] > span`);
+      const track = card.querySelector(`[data-need="${need}"]`);
+      const bar = track?.querySelector(':scope > span');
       if (!bar) continue;
+      // Set once per update rather than at build: the hue follows the hour,
+      // like everything else the meadow's palette touches.
+      const tint = needTrack(need);
+      if (tint) track.style.backgroundColor = tint;
       // The engine sends pressure -- how much the cat wants this. The card
       // shows the other side of it, how well the need is MET, so that every
       // bar on the card fills the same way. Two bars 8px apart reading in
@@ -1300,6 +1305,25 @@ function clampPercent(value) {
  * full bars in the headline green would out-shout the happiness bar right
  * above them, and happiness is the summary the eye should land on first.
  */
+/**
+ * The need's own hue, faint, for the TRACK behind a card's bar.
+ *
+ * The fill keeps saying how well the need is met (`needColor`) -- red,
+ * amber, green -- because that is the one thing on a card a viewer might
+ * need to act on, and identity colour would have deleted it. So the hue
+ * goes behind: the track tells you WHICH need, the fill tells you HOW it is
+ * doing, and six rows stop reading as one grey stack.
+ *
+ * Faint on purpose. At full strength a saturated track fights the fill it
+ * sits under, which is the opposite of the problem being solved.
+ */
+function needTrack(need) {
+  const colour = NEED_COLOUR[need]?.();
+  const rgb = colour && typeof parsePaletteColor === 'function' ? parsePaletteColor(colour) : null;
+  if (!rgb) return '';
+  return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 0.28)`;
+}
+
 function needColor(satisfaction) {
   if (satisfaction <= 25) return '#efa98b';
   if (satisfaction <= 55) return '#f3cf7a';
