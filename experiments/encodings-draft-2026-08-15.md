@@ -67,7 +67,7 @@ only; sunbeam (6): +ttl fraction (left/total, 1.0 if untimed),
 target. Chow/water/sunbeam are pure nearest-K; critters use the
 target-priority fill.
 
-**Meow digest (8×4 = 32; 033 → 12×4 = 48, obs 197→213)** — per HEAD_KINDS kind,
+**Meow digest (8×4 = 32; 033 → 15×4 = 60, obs 197→225)** — per HEAD_KINDS kind,
 the single freshest audible emitter (max tick, tie to LOWER kitty id,
 self excluded — `freshest_audible`, one shared implementation):
 
@@ -116,9 +116,9 @@ encoding (menu + head), menu itself unchanged across it.)
 | 30–32 | PlayKitty0–2 | play/chase (slot k) |
 | 33 | Idle | idle |
 
-**Message head (9; 033 → 13: HereFood=9, HereWater=10, HereCritter=11, HereSunbeam=12)**: index 0 = Silent; k+1 = HEAD_KINDS[k].
+**Message head (9; 033 → 16: Here* 9–12, chirp 13, trill 14, ekekek 15; Mew at 3)**: index 0 = Silent; k+1 = HEAD_KINDS[k].
 
-**Mask**: one row `[menu 34 ∥ head 9]` (033: [34 ∥ 13]),
+**Mask**: one row `[menu 34 ∥ head 9]` (033: [34 ∥ 16]),
 u8/bool; Silent always legal; never-all-zero per head. Oracle-proven
 against engine legality (mask_oracle tests).
 

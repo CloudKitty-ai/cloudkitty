@@ -200,3 +200,13 @@ fog prereg's vocab-fork comparison inherits this grounding pinned.
 HERE* (HereFood/HereWater/HereCritter/HereSunbeam) — 'here' is the
 adjacency invariant as a word. Earlier mentions of Found*/FoundEat in
 this doc refer to the same kinds under their draft name.**
+
+**Final vocabulary architecture (owner, 2026-08-15): two-tier naming
+— law-named grounded words (Want*/Here*/Purr) vs SOUND-NAMED free
+register (mew = renamed follow_me; chirp active at phase 1;
+trill + ekekek reserved, config-OFF). The post-fog
+LANGUAGE-CAPACITY experiment (marginal value of a word) runs as pure
+config over the reserves — arms enable 2/3/4 free words, measuring
+semantic differentiation (distinct contexts/flip-signatures) and
+welfare. The fog FollowMe-revival prediction re-registers under MEW.
+Client renders sound-words as-is (owner: 'that's cute').**

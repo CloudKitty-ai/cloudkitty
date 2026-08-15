@@ -152,7 +152,7 @@ before any tag).**
   roster, the purrsonality register, this roadmap. Tagged after the
   candidate-B soak verdict.
 - **v2.9** — the phase-1 wall generation: spec 033 (the vocabulary
-  freeze: HereFood/HereWater/HereCritter/HereSunbeam (renamed from Found*, owner 2026-08-15)), the five
+  freeze: HereFood/HereWater/HereCritter/HereSunbeam + the sound-named free register (mew — renamed follow_me — chirp active, trill/ekekek reserved for the post-fog language-capacity experiment)), the five
   bodies (Sleepy/Playful/Hungry/Fastidious/Cuddly), Clementine, the
   roster-5 world, the character/estimator/lineage generation.
 - **v3.0** — the release about SEEING: fog (schema 4 — the cats'

@@ -1,0 +1,502 @@
+[
+ {
+  "cell": "trait-flat-control",
+  "seed": 1,
+  "hap": [
+   95.4397,
+   95.1454,
+   95.0709,
+   95.2308
+  ],
+  "distress": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "carrier_acts": {
+   "Idle": 11527,
+   "Resting": 0,
+   "Sleeping": 4771,
+   "Eating": 964,
+   "Drinking": 887,
+   "Playing": 858,
+   "Grooming": 993
+  }
+ },
+ {
+  "cell": "trait-flat-control",
+  "seed": 2,
+  "hap": [
+   95.4284,
+   95.0144,
+   95.0906,
+   95.0161
+  ],
+  "distress": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "carrier_acts": {
+   "Idle": 11391,
+   "Resting": 0,
+   "Sleeping": 4975,
+   "Eating": 929,
+   "Drinking": 886,
+   "Playing": 804,
+   "Grooming": 1015
+  }
+ },
+ {
+  "cell": "trait-flat-control",
+  "seed": 3,
+  "hap": [
+   95.6255,
+   95.1435,
+   95.1858,
+   95.1461
+  ],
+  "distress": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "carrier_acts": {
+   "Idle": 11404,
+   "Resting": 0,
+   "Sleeping": 4970,
+   "Eating": 1039,
+   "Drinking": 873,
+   "Playing": 823,
+   "Grooming": 891
+  }
+ },
+ {
+  "cell": "trait-flat-control",
+  "seed": 4,
+  "hap": [
+   95.5763,
+   95.0837,
+   94.95,
+   94.7535
+  ],
+  "distress": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "carrier_acts": {
+   "Idle": 11052,
+   "Resting": 0,
+   "Sleeping": 5115,
+   "Eating": 908,
+   "Drinking": 1005,
+   "Playing": 810,
+   "Grooming": 1110
+  }
+ },
+ {
+  "cell": "trait-flat-control",
+  "seed": 5,
+  "hap": [
+   95.6453,
+   94.9757,
+   95.1878,
+   95.1948
+  ],
+  "distress": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "carrier_acts": {
+   "Idle": 11175,
+   "Resting": 10,
+   "Sleeping": 5055,
+   "Eating": 934,
+   "Drinking": 961,
+   "Playing": 844,
+   "Grooming": 1021
+  }
+ },
+ {
+  "cell": "trait-flat-control",
+  "seed": 6,
+  "hap": [
+   95.4807,
+   95.1023,
+   95.2039,
+   95.0583
+  ],
+  "distress": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "carrier_acts": {
+   "Idle": 11317,
+   "Resting": 5,
+   "Sleeping": 4920,
+   "Eating": 988,
+   "Drinking": 931,
+   "Playing": 812,
+   "Grooming": 1027
+  }
+ },
+ {
+  "cell": "trait-flat-control",
+  "seed": 7,
+  "hap": [
+   95.4377,
+   94.9717,
+   95.1399,
+   95.058
+  ],
+  "distress": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "carrier_acts": {
+   "Idle": 11522,
+   "Resting": 0,
+   "Sleeping": 4790,
+   "Eating": 934,
+   "Drinking": 923,
+   "Playing": 812,
+   "Grooming": 1019
+  }
+ },
+ {
+  "cell": "trait-flat-control",
+  "seed": 8,
+  "hap": [
+   95.3538,
+   95.0596,
+   95.1815,
+   95.1267
+  ],
+  "distress": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "carrier_acts": {
+   "Idle": 11606,
+   "Resting": 0,
+   "Sleeping": 4620,
+   "Eating": 980,
+   "Drinking": 901,
+   "Playing": 842,
+   "Grooming": 1051
+  }
+ },
+ {
+  "cell": "trait-flat-control",
+  "seed": 9,
+  "hap": [
+   95.4329,
+   94.9336,
+   95.0273,
+   95.0112
+  ],
+  "distress": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "carrier_acts": {
+   "Idle": 11534,
+   "Resting": 0,
+   "Sleeping": 4850,
+   "Eating": 948,
+   "Drinking": 865,
+   "Playing": 833,
+   "Grooming": 970
+  }
+ },
+ {
+  "cell": "trait-flat-control",
+  "seed": 10,
+  "hap": [
+   95.5198,
+   94.8943,
+   95.1915,
+   95.1629
+  ],
+  "distress": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "carrier_acts": {
+   "Idle": 11471,
+   "Resting": 0,
+   "Sleeping": 4837,
+   "Eating": 914,
+   "Drinking": 923,
+   "Playing": 856,
+   "Grooming": 999
+  }
+ },
+ {
+  "cell": "vector-miso-sleeper-v2",
+  "seed": 1,
+  "hap": [
+   95.342,
+   95.024,
+   95.1489,
+   95.1577
+  ],
+  "distress": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "carrier_acts": {
+   "Idle": 10808,
+   "Resting": 0,
+   "Sleeping": 5735,
+   "Eating": 913,
+   "Drinking": 822,
+   "Playing": 576,
+   "Grooming": 1146
+  }
+ },
+ {
+  "cell": "vector-miso-sleeper-v2",
+  "seed": 2,
+  "hap": [
+   95.4215,
+   95.0057,
+   95.1947,
+   95.0984
+  ],
+  "distress": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "carrier_acts": {
+   "Idle": 10672,
+   "Resting": 0,
+   "Sleeping": 5900,
+   "Eating": 877,
+   "Drinking": 871,
+   "Playing": 545,
+   "Grooming": 1135
+  }
+ },
+ {
+  "cell": "vector-miso-sleeper-v2",
+  "seed": 3,
+  "hap": [
+   95.4548,
+   95.0621,
+   95.0941,
+   95.0175
+  ],
+  "distress": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "carrier_acts": {
+   "Idle": 10755,
+   "Resting": 0,
+   "Sleeping": 5931,
+   "Eating": 932,
+   "Drinking": 803,
+   "Playing": 547,
+   "Grooming": 1032
+  }
+ },
+ {
+  "cell": "vector-miso-sleeper-v2",
+  "seed": 4,
+  "hap": [
+   95.2623,
+   94.9692,
+   94.8595,
+   94.8872
+  ],
+  "distress": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "carrier_acts": {
+   "Idle": 10662,
+   "Resting": 0,
+   "Sleeping": 5993,
+   "Eating": 877,
+   "Drinking": 844,
+   "Playing": 556,
+   "Grooming": 1068
+  }
+ },
+ {
+  "cell": "vector-miso-sleeper-v2",
+  "seed": 5,
+  "hap": [
+   95.4707,
+   95.0421,
+   95.2164,
+   95.2977
+  ],
+  "distress": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "carrier_acts": {
+   "Idle": 10614,
+   "Resting": 0,
+   "Sleeping": 6016,
+   "Eating": 825,
+   "Drinking": 879,
+   "Playing": 568,
+   "Grooming": 1098
+  }
+ },
+ {
+  "cell": "vector-miso-sleeper-v2",
+  "seed": 6,
+  "hap": [
+   95.4098,
+   95.0818,
+   95.063,
+   95.2116
+  ],
+  "distress": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "carrier_acts": {
+   "Idle": 10728,
+   "Resting": 0,
+   "Sleeping": 5898,
+   "Eating": 961,
+   "Drinking": 828,
+   "Playing": 552,
+   "Grooming": 1033
+  }
+ },
+ {
+  "cell": "vector-miso-sleeper-v2",
+  "seed": 7,
+  "hap": [
+   95.3011,
+   95.0587,
+   95.201,
+   95.1547
+  ],
+  "distress": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "carrier_acts": {
+   "Idle": 10706,
+   "Resting": 0,
+   "Sleeping": 5863,
+   "Eating": 893,
+   "Drinking": 842,
+   "Playing": 543,
+   "Grooming": 1153
+  }
+ },
+ {
+  "cell": "vector-miso-sleeper-v2",
+  "seed": 8,
+  "hap": [
+   95.2995,
+   95.039,
+   95.1666,
+   95.0697
+  ],
+  "distress": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "carrier_acts": {
+   "Idle": 10965,
+   "Resting": 0,
+   "Sleeping": 5662,
+   "Eating": 916,
+   "Drinking": 807,
+   "Playing": 578,
+   "Grooming": 1072
+  }
+ },
+ {
+  "cell": "vector-miso-sleeper-v2",
+  "seed": 9,
+  "hap": [
+   95.341,
+   95.0905,
+   95.1319,
+   95.0653
+  ],
+  "distress": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "carrier_acts": {
+   "Idle": 10884,
+   "Resting": 0,
+   "Sleeping": 5635,
+   "Eating": 942,
+   "Drinking": 814,
+   "Playing": 570,
+   "Grooming": 1155
+  }
+ },
+ {
+  "cell": "vector-miso-sleeper-v2",
+  "seed": 10,
+  "hap": [
+   95.3395,
+   95.0121,
+   95.0752,
+   95.0992
+  ],
+  "distress": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "carrier_acts": {
+   "Idle": 10879,
+   "Resting": 0,
+   "Sleeping": 5631,
+   "Eating": 874,
+   "Drinking": 839,
+   "Playing": 563,
+   "Grooming": 1214
+  }
+ }
+]
