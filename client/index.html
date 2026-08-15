@@ -293,12 +293,21 @@
      figures that jitters is unreadable at this size. */
   .trait {
     display: grid;
-    grid-template-columns: 3.6rem 1fr 2.4rem 2.9rem;
+    /* `auto` for the label, not a fixed 3.6rem: it sizes to the longest word
+       and no wider, which hands the slack to the bar. With the label RIGHT
+       aligned inside it every name ends at the same x, hard against its own
+       bar, instead of floating a word's width away from it. */
+    grid-template-columns: auto 1fr 2.4rem 2.9rem;
     align-items: center;
-    gap: 8px;
+    gap: 6px 8px;
     font-size: 0.76rem;
   }
-  .trait-need { color: var(--ink-soft); }
+  .trait-need {
+    color: var(--ink-soft);
+    text-align: right;
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
   .trait-track {
     position: relative;
     height: 7px;

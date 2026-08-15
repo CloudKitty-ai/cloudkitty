@@ -1531,6 +1531,30 @@ function openTraitsDialog(kitty) {
   dialog.showModal();
 }
 
+/**
+ * A modal <dialog> does not close on a backdrop click by default, so this
+ * adds it beside the × (owner, 2026-08-15).
+ *
+ * Tested against the dialog's own RECTANGLE rather than `event.target ===
+ * dialog`, which is the usual shorthand: the target is also the dialog when
+ * the click lands on its own padding, so the shorthand closes the card when
+ * someone clicks the quiet strip just inside its edge. Both conditions
+ * together mean only the backdrop closes it -- and requiring the target
+ * keeps a keyboard-fired click, which reports (0, 0), from reading as a
+ * click in the top-left corner of the screen.
+ */
+function initTraitsDialog() {
+  const dialog = document.getElementById('traits');
+  if (!dialog) return;
+  dialog.addEventListener('click', (event) => {
+    if (event.target !== dialog) return;
+    const r = dialog.getBoundingClientRect();
+    const outside = event.clientX < r.left || event.clientX > r.right
+      || event.clientY < r.top || event.clientY > r.bottom;
+    if (outside) dialog.close();
+  });
+}
+
 /** Pick up viewer tunables from the server; keep the stand-ins if unavailable. */
 async function fetchViewerConfig() {
   try {
@@ -1719,5 +1743,6 @@ window.addEventListener('keydown', (event) => {
 
 initTheme();
 initCards();
+initTraitsDialog();
 drawHeaderKitties();
 start();
