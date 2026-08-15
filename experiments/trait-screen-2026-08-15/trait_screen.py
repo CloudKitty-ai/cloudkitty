@@ -134,11 +134,26 @@ def run_cell(args):
     }
 
 
+def make_vector_config(name, vector):
+    t = flat_base_text()
+    first = t.index("[[kitty]]")
+    second = t.index("[[kitty]]", first + 1)
+    lines = "".join(f"{n} = {v}\n" for n, v in vector.items())
+    t = t[:second] + f"[kitty.needs]\n{lines}\n" + t[second:]
+    out = HERE / "configs" / f"vector-{name}.toml"
+    out.write_text(t)
+    return f"vector-{name}", out
+
+
 def main():
     cells = [make_config(None, None)]
-    for need in NEEDS:
-        for f_ in FACTORS:
-            cells.append(make_config(need, f_))
+    vectors = json.loads(os.environ.get("TRAIT_VECTORS", "{}"))
+    if vectors:
+        cells += [make_vector_config(n, v) for n, v in vectors.items()]
+    else:
+        for need in NEEDS:
+            for f_ in FACTORS:
+                cells.append(make_config(need, f_))
     jobs = [(name, path, 1 + i) for (name, path) in cells
             for i in range(N_SEEDS)]
     out_dir = HERE / ("results-raw-policy" if MODE == "policy"
@@ -157,15 +172,12 @@ def main():
     print(f"control: carrier {st.mean(ctl_carrier.values()):.3f} team "
           f"{st.mean(ctl_team.values()):.3f}")
     print(f"{'cell':24s} {'d-carrier':>10s} {'d-team':>8s} {'dist':>6s}")
-    for need in NEEDS:
-        for f_ in FACTORS:
-            cs = [r for r in rows if r["cell"] == f"trait-{need}-{f_}"]
-            dc = st.mean(r["hap"][0] - ctl_carrier[r["seed"]] for r in cs)
-            dt_ = st.mean(st.mean(r["hap"]) - ctl_team[r["seed"]]
-                          for r in cs)
-            dd = sum(r["distress"][0] for r in cs)
-            print(f"trait-{need}-{f_:<17} {dc:>+10.3f} {dt_:>+8.4f} "
-                  f"{dd:>6d}")
+    for cname in [c[0] for c in cells if c[0] != "trait-flat-control"]:
+        cs = [r for r in rows if r["cell"] == cname]
+        dc = st.mean(r["hap"][0] - ctl_carrier[r["seed"]] for r in cs)
+        dt_ = st.mean(st.mean(r["hap"]) - ctl_team[r["seed"]] for r in cs)
+        dd = sum(r["distress"][0] for r in cs)
+        print(f"{cname:24s} {dc:>+10.3f} {dt_:>+8.4f} {dd:>6d}")
 
 
 if __name__ == "__main__":
