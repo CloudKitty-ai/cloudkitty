@@ -1390,7 +1390,7 @@ const KITTY_BIOS = {
     name: 'Pumpkin',
     epithet: 'Hungry Kitty',
     body: 'A snack is never far from her thoughts. In between visits to the food '
-      + 'bowl, her heart is enormous. she spends her days cleaning her friends\' '
+      + 'bowl, her heart is enormous: she spends her days cleaning her friends\' '
       + 'ears, purring all the while. Bonded with Kittybear.',
   },
   4: {
