@@ -105,7 +105,14 @@ by config flag — the registered comparison: does grounded reference
 (FoundEat) beat FollowMe-overloading when fog creates the
 information gradient? JEPA/predict-the-neighbors pairs here (the
 estimator head grown up). World-scale/density coupling decided here
-(fog needs sparsity to bite). BC-bootstrap via the curriculum the
+(fog needs sparsity to bite) — **under the owner's standing world-size
+rule (2026-08-15): 20×20 is the aesthetic default, at fog included;
+sparsity is pursued by DECLUTTERING first (fewer elements, same
+meadow — noting the old declutter screen's small welfare cost,
+−0.0038, to re-measure); growth beyond 20×20 only on a MEASURED
+benefit to the world's character.** Phase-1 world-size screen
+(2026-08-15): 20×20 carries five cats with zero distress; the
+proportional 22×22 bought nothing and taxed travel. BC-bootstrap via the curriculum the
 dose-response taught us. Registered prediction: fog is the selection
 pressure under which FollowMe's designed meaning could finally beat
 "I'm coming."
