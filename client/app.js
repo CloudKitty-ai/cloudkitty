@@ -1347,6 +1347,27 @@ const STUB_TRAITS = {
  * Keyed by id AND name: a reseeded roster could hand id 3 to a different
  * cat, and attaching Pumpkin's life story to somebody else is a worse
  * failure than showing nothing. A mismatch shows nothing.
+ *
+ * **This copy has two halves with different lifetimes** (Experiments'
+ * template, 2026-08-15), which matters because the workflow reruns at every
+ * generation and roster change:
+ *
+ *   - the TITLE and the first sentence describe the BODY -- the trait -- and
+ *     are durable. They survive a mind swap, and the trait titles are locked
+ *     in the policy registry.
+ *   - the rest is the MIND: observed narrative about the policy currently
+ *     seated. It is rewritten at every seating, from the new generation's
+ *     measurements.
+ *   - an optional closer is a relationship hook ("Bonded with...").
+ *
+ * Kept as ONE string per cat rather than split into those halves on purpose.
+ * The boundary is a judgement about someone else's prose -- Kittybear's first
+ * sentence carries both halves at once -- and guessing it wrong would be a
+ * silent edit. A seating refresh replaces the whole entry.
+ *
+ * "Tidy Kitty" is a deliberate display translation of the registry's
+ * canonical FASTIDIOUS, owner-approved for visitors. Not a typo; do not
+ * "correct" it back.
  */
 const KITTY_BIOS = {
   1: {
@@ -1380,6 +1401,9 @@ const KITTY_BIOS = {
       + 'them. The chattiest pair around, and the kindest. Bonded with Pumpkin.',
   },
   // Placeholder until she is seated and has grown into a mind of her own.
+  // Sent by the owner directly, 2026-08-15. Experiments' relay believed this
+  // one was still being held, so if a second version arrives, hers is the
+  // one that was written later.
   5: {
     name: 'Clementine',
     epithet: 'Cuddly Kitty',
