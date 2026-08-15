@@ -359,13 +359,27 @@
      section, unlike a kitty card's `.name`, which is a data chip. Sized
      down to the card's own scale: the heading LEVEL is for structure and
      the size is for the eye, and they do not have to agree. */
+  /* Title row: the name at the left, the affordance right-justified on the
+     same line. It used to sit under the lede on a row of its own, which
+     cost the card vertical space for one word. */
   .about-card h2 {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
     margin: 0 0 4px;
     font-size: 0.78rem;
     font-weight: 600;
     letter-spacing: 0.3px;
     color: var(--ink-soft);
   }
+  .about-card h2::after {
+    content: 'more…';
+    font-weight: 500;
+    letter-spacing: 0;
+    border-bottom: 1px dotted currentColor;
+  }
+  .about-card details[open] h2::after { content: 'less…'; }
   .about-card summary {
     list-style: none;
     cursor: pointer;
@@ -374,19 +388,7 @@
     color: var(--ink);
   }
   .about-card summary::-webkit-details-marker { display: none; }
-  /* The affordance sits UNDER the line it opens, and swaps its own word on
-     open -- CSS content, so the toggle needs no script either. */
-  .about-card summary::after {
-    content: 'more…';
-    display: block;
-    margin-top: 3px;
-    font-size: 0.75rem;
-    color: var(--ink-soft);
-    border-bottom: 1px dotted currentColor;
-    width: max-content;
-  }
-  .about-card details[open] summary::after { content: 'less…'; }
-  .about-card summary:hover::after { color: var(--ink); }
+  .about-card summary:hover h2::after { color: var(--ink); }
   .about-card p {
     margin: 8px 0 0;
     font-size: 0.82rem;
@@ -940,31 +942,34 @@
       <div class="panel-col">
         <!-- About is a card in the panel (owner, 2026-08-14/15). In the header
              it either cost the map a row or had to overlay it; down here it
-             costs nothing, AND the header loses its second line, which is
-             about a pixel of tile at a 20-row world.
+             costs nothing, and the header loses its second line, which is
+             worth about a pixel of tile at a 20-row world.
 
              STATIC markup, and a <details> rather than a script: it collapses
              on its own, independently of the kitty cards, with no JS and no
              state to remember. The open state deliberately does not persist
-             (owner) -- a returning visitor should not reopen to a wall of
-             text they have already read. "What is this place" should be the
-             last thing on the page to break, not the first.
+             (owner) -- a returning visitor should not reopen to a wall of text
+             they have already read. "What is this place" should be the last
+             thing on the page to break, not the first.
 
-             It lives INSIDE the last column, at the top of the stack the cards
-             are appended to (owner, 2026-08-15) -- which is why `renderPanel`
-             removes the kitty cards one by one on a roster change instead of
-             emptying the column, and why `placeCards` counts and carries only
-             `.kitty-card`s. Both would otherwise take this with them. -->
+             It lives INSIDE this column, at the top of the stack the cards are
+             appended to, which is why `renderPanel` removes the kitty cards one
+             by one on a roster change instead of emptying the column, and why
+             `placeCards` counts and carries only `.kitty-card`s. Either would
+             otherwise take About with them. -->
         <aside class="about-card">
-          <h2>About CloudKitty</h2>
           <details>
-            <summary>a small, safe world where kitties frolic and play</summary>
-            <p>CloudKitty is a peaceful meadow where kitties wander, eat, drink, nap
-            in sunbeams, groom each other, chase bugs, and meow about it. The kitties
-            are a team. Each kitty is driven by a neural network trained for one
-            objective: the happiness of all the kitties in the meadow. The kitties
-            look out for each other, communicate with purrs and meows, and keep each
-            other company as they frolic and play.</p>
+            <!-- The heading rides INSIDE the summary so `more…` can share its
+                 line, which saves the card a row. A <summary> may hold heading
+                 content by spec, and it makes the whole title clickable, which
+                 is a bigger target than the word alone. -->
+            <summary><h2>About CloudKitty</h2>a small, safe world where kitties frolic and play</summary>
+            <p>CloudKitty is a peaceful meadow where kitties wander, eat, drink,
+            nap in sunbeams, groom each other, chase bugs, and meow about it. The
+            kitties are a team. Each kitty is driven by a neural network trained
+            for one objective: the happiness of all the kitties in the meadow.
+            The kitties look out for each other, communicate with purrs and
+            meows, and keep each other company as they frolic and play.</p>
           </details>
         </aside>
       </div>

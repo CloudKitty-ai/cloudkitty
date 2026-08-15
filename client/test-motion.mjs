@@ -4604,7 +4604,11 @@ check("the about survives a phase change, and the owner's words survive us", () 
   // The owner's copy, verbatim. Ours to lay out, not to edit -- both the
   // line that shows closed and the paragraph behind it.
   const lede = 'a small, safe world where kitties frolic and play';
-  assert(card.includes(`<summary>${lede}</summary>`), 'the closed line has drifted from the owner\'s');
+  // The heading now rides inside the summary so `more…` can share its line,
+  // so the lede is the summary's text rather than its whole content.
+  const summary = card.slice(card.indexOf('<summary>'), card.indexOf('</summary>'));
+  assert(summary.includes(lede), 'the closed line has drifted from the owner\'s');
+  assert(summary.includes('<h2>'), 'the heading left the summary, so `more…` has no line to share');
   const wanted =
     'CloudKitty is a peaceful meadow where kitties wander, eat, drink, nap in ' +
     'sunbeams, groom each other, chase bugs, and meow about it. The kitties are ' +
