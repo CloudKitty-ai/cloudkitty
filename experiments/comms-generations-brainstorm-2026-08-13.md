@@ -158,3 +158,26 @@ Decisions from the discussion, on record:
   entity will I touch next + confidence"; extends foresight past the
   buffer horizon probabilistically. Chase targets are already
   engine-explicit today (tier 1) and need none of this.
+
+## Addendum 2026-08-15: Found-word honesty is emission-time only
+(owner's insight during the 033 review)
+
+Bowls despawn when drained and respawn elsewhere — so "announce then
+eat the rest" leaves hearers trekking to bare grass. Registered
+framing: this is F-011's SIBLING — the engine guarantees the word was
+true when spoken, never that the speaker preserves the referent;
+"don't announce what you'll devour" is a team-reward equilibrium to
+be LEARNED, per generation, and fingerprint-measurable. Fog-era
+prereg items this creates:
+- Measure announcement courtesy: P(speaker consumes final serving |
+  announced within window, hearer en route); does it fall with
+  training?
+- Watch for HOSTING (the positive form): announce + stay by the bowl
+  while others eat. Digest semantics make this structurally favored —
+  Found* entries keep standard emitter-tracking (decision for spec
+  033: NO pinned-location variant; a pinned waypoint can point at a
+  despawned bowl — the staleness lie through the back door — while
+  emitter-tracking degrades gracefully and makes staying-near-the-
+  food the only way the word stays useful).
+- 033 spec text should state the emission-time-truth-only guarantee
+  explicitly (the F-011 docs pattern).
