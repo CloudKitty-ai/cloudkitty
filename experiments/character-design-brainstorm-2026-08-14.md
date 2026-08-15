@@ -155,3 +155,46 @@ Worked reference (policy bracket, 2026-08-15): sleep+bath floor pair
 budgets +0.56 → eat ceiling ≈ 0.6 (verified: 06-floor balances to
 −0.02). The PAIR sets the ceiling: drink+bath would budget +0.85 →
 eat ceiling ≈ 0.72. Choosing the pair IS choosing the character.
+
+## Addendum 2026-08-15 (late): the need-structure taxonomy (owner's,
+verified against the engine)
+
+Classify needs STRUCTURALLY so design survives rate re-derivation:
+
+- **Travel needs — eat, drink** (solo, consumable, travel-priced).
+  Asymmetry = SOURCE DYNAMICS, verified: water is permanent + fixed
+  (no drain/ttl; spec-027 lake) → position-optimizable but
+  contention-CONCENTRATING (explains stage-2 drink getting pricier
+  under heavy-drinking policy company); chow churns (drains →
+  despawns → respawns) → travel cost position-IRREDUCIBLE but
+  contention-spreading. Hence eat discounts free more stationarity
+  than drink (owner's call, both brackets agree: eat pricier).
+- **Pack needs — cuddle > bath > sleep** (relief optimally social;
+  gradation): cuddle strictly-pack (partner required by law); bath
+  pack-optimal (gift economy — received grooming is free relief;
+  empirical: doter recipients cut self-groom 25%); sleep pack-optimal
+  ONLY since spec 031's shared warmth (owner's own rule made the
+  sunny pile the best sleep).
+- **Chase need — play** (hybrid): solo floor, MOBILE targets
+  (critters churn/roam), social option, target-graded relief
+  (spec 025). Half-pack by price behavior (−51% scripted→policy).
+
+**The payoff — volatility forecasting**: pack-need rates are
+SOCIETY-mortal (moved 35–58% between brackets; will move each
+generation); travel-need rates are PHYSICS-stable (eat unchanged;
+drink moves only via contention). Re-measure pack rows first at each
+re-derive; travel rows and all PAIRINGS carry.
+
+**Pairing rule, rate-free**: match discount structure to signature
+structure — mobile signature → discount stationary needs (Biscuit:
+play up, bowls down); stationary signature → discount travel needs,
+eat before drink (Miso v2); pack signature → discount solo/mobile
+needs (Clementine). Rates set values; structure sets pairs.
+
+**FINAL FIVE SHEETS (owner-locked 2026-08-15)**: Miso SLEEPY sleep
+.6/eat .3/play .3 (−0.13) · Biscuit PLAYFUL play .8/eat .3/drink .3
+(+0.21) · Pumpkin HUNGRY eat .6/sleep .2/bath .1 (−0.11) · Kittybear
+FASTIDIOUS bath .4/drink .3/play .3 (+0.06) · Clementine CUDDLY
+cuddle .7/play .3/bath .1 (−0.07). Roster ecology audited: drink
+−10% (v2 fix), play concentrated at Biscuit, bath concentrated at
+the doter seat, eat contention net down.
