@@ -4502,6 +4502,37 @@ check('the socket hands arrivals to the delay line and nothing else', () => {
   );
 });
 
+check("the owner's kitty copy is present, verbatim", () => {
+  // ITS OWN CHECK, deliberately. This lived inside the traits check twice and
+  // was deleted twice by slices aimed at something else in that block -- and
+  // the second time the copy itself went three commits later with nothing
+  // left to catch it. A guard nested inside a region under active edit is a
+  // guard with a short life.
+  const app = readFileSync(join(here, 'app.js'), 'utf8');
+  const at = app.indexOf('const KITTY_BIOS');
+  assert(at > 0, 'the kitty bios are gone from app.js');
+  const bios = app.slice(at, app.indexOf('/** The bio for a cat', at));
+  assert(bios.length > 500, 'the bio table is empty or the slice is wrong');
+
+  for (const [name, epithet] of [
+    ['Miso', 'Sleepy Kitty'], ['Biscuit', 'Playful Kitty'], ['Pumpkin', 'Hungry Kitty'],
+    ['Kittybear', 'Tidy Kitty'], ['Clementine', 'Cuddly Kitty'],
+  ]) {
+    assert(bios.includes(`name: '${name}'`), `${name} has lost her bio`);
+    assert(bios.includes(`epithet: '${epithet}'`), `${name}'s epithet has drifted`);
+  }
+  // The owner's own correction, which has been lost with the table before.
+  assert(/enormous: she/.test(bios), "Pumpkin's colon fix has been lost");
+
+  // Keyed by id AND name, so a reseeded roster shows nothing rather than
+  // attaching one cat's life story to another.
+  const fnAt = app.indexOf('function bioFor');
+  assert(fnAt > 0, 'bioFor is gone, so nothing resolves a cat to her copy');
+  assert(/bio\.name === kitty\.name/.test(app.slice(fnAt, fnAt + 400)),
+    'the bio is looked up by id alone, so a reseeded roster would mis-attach it');
+  assert(/bioFor\(kitty\)/.test(app), 'nothing calls bioFor, so no cat has a bio on screen');
+});
+
 check('the per-kitty about ships, and its numbers are the served ones', () => {
   // Shipped visible (owner, 2026-08-15). It was gated behind `t` while the
   // rates were part placeholder; they are the served ones now -- exactly
