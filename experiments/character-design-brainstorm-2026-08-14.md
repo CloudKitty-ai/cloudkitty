@@ -126,3 +126,26 @@ exchange-rate screen (stages 1–2); leash dose-response (exp-005 /
 Biscuit 2.0 proving run); the Clementine/estimator generation; the
 fog generation; the standing riders. Sequencing question put by the
 owner: personality before or after fog + theory of mind.
+
+## Addendum 2026-08-15: the 3-dial balancing procedure (owner's
+standing rule)
+
+A trait character = ONE raised signature trait + TWO discounts.
+Procedure, in order:
+1. Choose the signature trait and the two discount traits —
+   character decisions, made before any arithmetic.
+2. Discount depths respect the ≥0.5× floor (the measured envelope's
+   edge; owner rule, same day).
+3. Budget B = the two discounts' combined measured welfare gain
+   (current bracket's exchange table).
+4. The signature trait's CEILING = where its measured cost curve
+   equals B; set it at or below, never above.
+5. Direct verification of the pinned vector, always (additivity is
+   4-for-4 across verified vectors but remains a hypothesis, not a
+   law).
+6. All rates are bracket- and generation-mortal (stage-3 re-derive).
+
+Worked reference (policy bracket, 2026-08-15): sleep+bath floor pair
+budgets +0.56 → eat ceiling ≈ 0.6 (verified: 06-floor balances to
+−0.02). The PAIR sets the ceiling: drink+bath would budget +0.85 →
+eat ceiling ≈ 0.72. Choosing the pair IS choosing the character.
