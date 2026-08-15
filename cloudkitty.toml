@@ -60,9 +60,15 @@ y = 6
 # needs override below is world-law, not behavior — it stays.
 behavior = "needs_driven"
 # Any kitty may override the global [needs] rise rates; unset needs keep the
-# defaults. Pumpkin is a snacky little cat.
+# defaults. Pumpkin is a snacky little cat -- the 3-dial character vector
+# (owner-final at the spec-033 wall, verified -0.11 vs trait-flat under
+# policy company, zero distress): hungrier, and lighter on sleep and bath
+# to pay for it. Rates are stage-3 mortal: re-derived under the phase-1
+# world, a pin rather than a forever number.
 [kitty.needs]
-eat = 0.8
+eat = 0.6
+sleep = 0.2
+bath = 0.1
 
 [[kitty]]
 id = 4
@@ -72,6 +78,25 @@ y = 4
 # SEAT PARKED (spec 033 wall): was policy:attn-a1-s3 (Pumpkin's artifact,
 # the multi-seat pattern). Scripted until the phase-1 generation seats.
 behavior = "needs_driven"
+
+[[kitty]]
+id = 5
+name = "Clementine"
+x = 10
+y = 16
+# THE FIFTH CAT (spec 033 wall rider; comms Gen-B thesis: with five cats
+# and three observation slots, someone is always unslotted -- want-meows
+# carry real signal). Scripted until the phase-1 generation seats her;
+# adding this id moves the world fingerprint, so the rollout that first
+# serves this roster is a --fresh. Her look (the designed white cat) is a
+# client-side palette override. Trait vector owner-final, 3-dial: cuddlier,
+# lighter on play and bath (verified -0.07 vs trait-flat under policy
+# company -- the parity band); stage-3 mortal like Pumpkin's.
+behavior = "needs_driven"
+[kitty.needs]
+cuddle = 0.7
+play = 0.3
+bath = 0.1
 
 # How fast each need rises, per tick. Higher means more pressing, more often.
 [needs]
@@ -160,8 +185,10 @@ ttl = 300
 eat_relief = 35.0
 drink_relief = 35.0
 sleep_relief = 5.0
-# Sleeping in a sunbeam is properly restorative.
-sleep_relief_sunbeam = 8.0
+# Sleeping in a sunbeam is properly restorative. Re-pinned 8.0 -> 7.0 at
+# the spec-033 wall (owner preference, screened welfare-indistinguishable;
+# conducts to adjacent sleepers per spec 031 either way).
+sleep_relief_sunbeam = 7.0
 groom_relief = 20.0
 play_relief = 20.0
 # Resting or grooming alongside a friend (the rest duet and the groomer's

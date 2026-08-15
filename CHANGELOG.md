@@ -33,6 +33,22 @@ change.
 
 ## Unreleased
 
+- **The wall's config rider** (spec 033 window) **[stamp]**: the roster
+  gains its fifth cat — **Clementine** (`[[kitty]] id 5`), the comms
+  generation's always-someone-unslotted thesis made flesh, scripted until
+  the phase-1 generation seats her; her white coat arrives as a
+  client-side palette override. Pumpkin's character becomes a proper
+  3-dial vector (eat 0.6, sleep 0.2, bath 0.1 — verified −0.11 vs
+  trait-flat under policy company, zero distress), and
+  `sleep_relief_sunbeam` re-pins 8.0 → 7.0 (owner preference, screened
+  welfare-indistinguishable). Trait rates are stage-3 mortal: re-derived
+  under the phase-1 world, pins rather than forever numbers. The new
+  kitty id moves the world fingerprint, so the rollout that first serves
+  this roster is a `--fresh` — the fifth cat costs the old world, and the
+  owner accepted that price knowingly. (The **[world-fresh]** consequence
+  lands at that future rollout, not at this merge: the served box stays
+  on its pre-wall binary and world throughout the window.)
+
 - **The say-surface, finalized** (spec 033) **[obs-schema] [stamp]**: the
   meow channel closes its vocabulary as a two-tier language, and the codec
   makes its last move before the character-era freeze. Law-named words
