@@ -4539,7 +4539,12 @@ check('the traits dialog ships OFF, and its numbers are the served ones', () => 
   // fill keeps saying how well a need is met, which is the one thing on a
   // card a viewer might act on. Identity colour there would have deleted it.
   assert(/function needTrack/.test(app), 'the card bars no longer carry the need hues');
-  const update = app.slice(app.indexOf('const track = card.querySelector'), app.indexOf('placeCards();'));
+  // Sliced FORWARD from the anchor: `placeCards();` first appears in
+  // `schedulePlacement`, well above this loop, so seeking to it produced a
+  // backwards slice and an empty string -- which passes any test that only
+  // checks for absence and fails every one that checks for presence.
+  const loopAt = app.indexOf('const track = card.querySelector');
+  const update = app.slice(loopAt, app.indexOf('placeCards();', loopAt));
   assert(/needColor\(satisfaction\)/.test(update),
     'the card fill stopped showing how well the need is met');
   assert(/track\.style\.backgroundColor/.test(update), 'the need hue is not reaching the track');
