@@ -33,6 +33,20 @@ change.
 
 ## Unreleased
 
+- The cross-generation roster seated: three seats hand over to the
+  attention generation — Miso to `attn-a1-s1` "the cuddler", Pumpkin and
+  Kittybear to `attn-a1-s3` "the doter" — the first spec-030 v3
+  (entity-attention) artifacts to reach the served world, running beside
+  the v2 incumbent through the version dispatch built for exactly this.
+  Biscuit keeps `e004-a1-s2`, and not as a courtesy: the previous
+  generation grooms the new doters back (~8.7% of its decisions), the
+  trained responder culture meeting cats that finally ask, and that is
+  why the owner chose the mixed composition over the all-attention one.
+  Certified as candidate B (all gates, no deviations; paired team Nash
+  within the 0.002 parity band of the incumbent world) in
+  `experiments/attn-cert-2026-08-14/selection-crossgen.md`; the world
+  continues on its snapshot — new minds wake in old bodies.
+
 - Shared sunbeam warmth (spec 031): warmth conducts through a sleeping
   pile. A sleeper whose direct cosleep partner is settled in the pile
   (sleeping or resting, the spec-028 mutual definition) on a sunbeam tile
