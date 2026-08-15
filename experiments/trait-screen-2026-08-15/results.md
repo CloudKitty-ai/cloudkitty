@@ -108,3 +108,26 @@ basket, or the narrow one with its −0.42 residual absorbed by
 seat-paired accounting — an owner taste call; and Clementine's
 sketch, to be re-verified on her actual seat in the roster-5 world).
 Zero distress in all verification cells.
+
+## Owner's ≥0.5× floor rule + the eat-0.6 candidates (2026-08-15)
+
+**Standing design rule (owner)**: compensating discounts never go
+below 0.5× the default — which is also the measured envelope's lower
+edge (below it = unscreened territory; an F-009 validity rule, not
+just taste) and protects character coherence (a barely-sleeping cat
+is its own distortion). Consequence: with 3 dials at the floor, the
+compensation budget caps at ≈ +0.56 (policy rates) — so narrow
+full-balance is achievable only for eat ≤ ~0.75; the old 0.8's
+residual was structural.
+
+Verified (policy company, 10 paired seeds):
+
+| vector | d-carrier | note |
+|---|---|---|
+| eat .6 / sleep .15 / bath .1 ("06-floor") | **−0.02** | perfectly balanced; both discounts AT the floor |
+| eat .6 / sleep .225 / bath .1 ("06-light") | −0.14 | in-band; sleep only 0.75×, gentler character cost |
+| eat .7 / sleep .15 / bath .1 ("07-narrow") | −0.27 | snackier; residual on seat-paired accounting |
+
+All three are certified-adjacent choices; the trade is snackiness
+(+50% / +50% / +75% hunger) vs balance quality vs discount depth.
+Owner picks at the plan review.
