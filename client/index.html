@@ -351,7 +351,9 @@
     background: var(--card);
     border-radius: 18px;
     padding: 10px 14px 12px;
-    max-width: 226px;
+    /* The cards' own token, not a copy of its value: --card-width is what
+       the panel's max-width is derived from too. */
+    max-width: var(--card-width);
   }
   /* An h2 for the page outline -- CloudKitty is the h1 and this is a real
      section, unlike a kitty card's `.name`, which is a data chip. Sized
