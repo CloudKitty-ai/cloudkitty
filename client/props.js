@@ -485,8 +485,8 @@ const PURR = {
   // the live tile lands at 0.53px peak to peak and disappears under the
   // grid. So the share sets the character and the floor keeps it visible
   // at the tile the world actually draws at.
-  shakeOfGlyph: 0.032,
-  shakeMinPx: 0.4,
+  shakeOfGlyph: 0.04,
+  shakeMinPx: 0.5,
   shakeHz: 20,
 };
 
