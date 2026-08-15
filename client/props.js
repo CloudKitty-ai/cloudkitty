@@ -461,9 +461,9 @@ function drawSleepZs(ctx, opts) {
  */
 const PURR = {
   size: 0.27, // share of the tile
-  rise: 0.04, // above the cat's box
+  rise: -0.04, // NEGATIVE: down onto the cat's body (owner, 2026-08-14)
   offsetX: 0,
-  alpha: 0.7,
+  alpha: 0.5,
   // A share of the GLYPH, with a pixel floor -- the same shape as the
   // whisker stroke, and for the opposite reason to the one first written
   // here. A flat pixel travel was tried and the owner's read (2026-08-14)
@@ -484,7 +484,7 @@ const PURR = {
   ticks: 2,
   shakeOfGlyph: 0.032,
   shakeMinPx: 0.4,
-  shakeHz: 15,
+  shakeHz: 20,
 };
 
 /** Half the travel, in real pixels, for a glyph this big. */
