@@ -299,13 +299,14 @@ change.
   one-tick action, so the glyph tracks served state and has one end
   instead of two.
 
-  One measurement worth keeping: **a meow is never served on the tick it
-  happened.** The freshest entry in `recent_meows` is always exactly one
-  tick old, so an age of 0 does not exist — and a dwell expressed as a
-  window on that age is off by one, which is how a one-tick heart first
-  shipped drawing nothing at all. The purr counts ticks *on screen* now,
-  and every fixture was rebuilt around ages the wire can actually produce
-  (#223).
+  The heart reads **`purring_until`**, the served state, not the meow. A
+  purr runs 9–13 ticks and its meow is a one-tick announcement, so keying
+  the glyph to the announcement drew a flash where a cat was rumbling for
+  the better part of ten seconds — and since a meow is never served on
+  the tick it happened, a dwell counted off its age was off by one on top
+  of that. The engine documents `purring_until` as the viewer's "rumbling
+  now" signal; reading it retires the dwell constant and every off-by-one
+  that came with it (#223).
 - **The gaze aims at what it can express, and no more.** Reading the two
   target shapes the client had been ignoring — `groom`'s bare kitty id, and
   eat/drink resolved from the map — took the gaze from 5.2% of cat-ticks to

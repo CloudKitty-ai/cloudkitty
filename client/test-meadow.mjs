@@ -957,14 +957,17 @@ check('a purr draws its glyph; a request still draws its bubble', () => {
   // drawBubbles directly -- the glyph reaches for `drawPurrGlyph` and
   // `PURR` across a file boundary, and props.js is exactly the kind of
   // dependency that is present in a harness and missing in the browser.
-  const frame = (meows) => {
+  const frame = (meows, purringUntil = undefined) => {
     const log = [];
     const renderer = new api.WorldRenderer(mockCanvas(640, 640, log));
     renderer.tile = 32;
     renderer.dpr = 1;
     renderer.cssWidth = 640;
     renderer.cssHeight = 640;
-    const kitties = [{ id: 1, name: 'Miso', pos: { x: 5, y: 5 }, needs: {}, happiness: 90 }];
+    const kitties = [{
+      id: 1, name: 'Miso', pos: { x: 5, y: 5 }, needs: {}, happiness: 90,
+      purring_until: purringUntil,
+    }];
     const at = (tick) => ({
       tick, width: 20, height: 20, elements: [], kitties, recent_meows: meows,
     });
@@ -975,9 +978,9 @@ check('a purr draws its glyph; a request still draws its bubble', () => {
     return log.filter((e) => e[0] === 'fillText').map((e) => String(e[1]));
   };
 
-  // Age 1, not 0: a meow is never served on the tick it happened, so a
-  // fixture using the drawn tick tests a state the wire cannot produce.
-  const purr = frame([{ kitty_id: 1, kind: 'purr', tick: 9 }]);
+  // The heart is state-driven: `purring_until` is what says a cat is
+  // rumbling. Its meow is only the announcement, and carries no duration.
+  const purr = frame([{ kitty_id: 1, kind: 'purr', tick: 9 }], 14);
   assert(purr.some((t) => t.includes('\u{1F497}')), 'a purring cat should draw the glyph');
   assert(!purr.some((t) => t.includes('purrrr')),
     'a purr still drew its speech bubble -- the whole point was to take it out');
@@ -988,19 +991,20 @@ check('a purr draws its glyph; a request still draws its bubble', () => {
 
   // Both live at once: they want the same space above the cat, and the
   // thing a viewer can act on wins.
-  const both = frame([
-    { kitty_id: 1, kind: 'purr', tick: 9 },
-    { kitty_id: 1, kind: 'want_eat', tick: 9 },
-  ]);
+  const both = frame([{ kitty_id: 1, kind: 'want_eat', tick: 9 }], 14);
   assert(both.some((t) => t.includes('I want to eat')), 'the request must survive a purr');
   assert(!both.some((t) => t.includes('\u{1F497}')), 'the mood must give way to the request');
 
   // And nothing at all when the cat has said nothing.
   assert(!frame([]).some((t) => t.includes('\u{1F497}')), 'a silent cat should draw no glyph');
+  // A cat whose purr has ENDED is silent, even though its meow is still in
+  // the recent window -- which is the whole point of reading the state.
+  assert(!frame([{ kitty_id: 1, kind: 'purr', tick: 9 }], 9).some((t) => t.includes('\u{1F497}')),
+    'a finished purr still drew a heart');
 
   // The switch itself: off is off, and it is what SHIPS.
   api.PURR.on = 0;
-  assert(!frame([{ kitty_id: 1, kind: 'purr', tick: 9 }]).some((t) => t.includes('\u{1F497}')),
+  assert(!frame([], 14).some((t) => t.includes('\u{1F497}')),
     'the purr glyph drew with the switch off');
   assert(frame([{ kitty_id: 1, kind: 'want_eat', tick: 9 }]).some((t) => t.includes('I want to eat')),
     'turning purrs off must not touch request bubbles');
@@ -1009,54 +1013,43 @@ check('a purr draws its glyph; a request still draws its bubble', () => {
     'the purr glyph ships OFF -- a heart popped in every 3s on the candidate roster, 20 a minute');
 });
 
-check('the heart lasts the PURR, counted in ticks that can actually happen', () => {
-  // The bug this pins, and it shipped: `PURR.ticks` was a window on the
-  // meow's AGE, so 1 meant "younger than one tick old". Measured against
-  // the live world, a meow is NEVER served on the tick it happened -- the
-  // freshest entry in `recent_meows` is always exactly one tick old -- so
-  // age 0 does not exist and the heart drew nothing at all, ever.
+check('the heart is up for the whole purr, because it reads the purr', () => {
+  // Two wrong answers preceded this one, both from keying the heart to the
+  // MEOW. A purr is background state that runs 9-13 ticks; its meow is a
+  // one-tick announcement -- so the heart flashed where a cat was rumbling
+  // for the better part of ten seconds. And a meow is never served on the
+  // tick it happened, so a dwell counted off its age was off by one too.
   //
-  // The number counts DISPLAY ticks now, and the fixture only uses ages the
-  // wire can produce. A test built on age 0 would have passed the whole way
-  // through, which is how this got out.
+  // `purring_until` is the engine's own answer, documented as the viewer's
+  // "rumbling now" signal. Reading it retires the dwell constant and every
+  // off-by-one that came with it.
   const wasOn = api.PURR.on;
   api.PURR.on = 1;
-  const drawnAtAge = (age) => {
+  const drawnAt = (tick, until) => {
     const log = [];
     const renderer = new api.WorldRenderer(mockCanvas(640, 640, log));
     renderer.tile = 32; renderer.dpr = 1; renderer.cssWidth = 640; renderer.cssHeight = 640;
-    const kitties = [{ id: 1, name: 'Miso', pos: { x: 5, y: 5 }, needs: {}, happiness: 90 }];
-    const at = (t) => ({ tick: t, width: 20, height: 20, elements: [], kitties,
-      recent_meows: [{ kitty_id: 1, kind: 'purr', tick: 20 - age }] });
+    const kitties = [{
+      id: 1, name: 'Miso', pos: { x: 5, y: 5 }, needs: {}, happiness: 90,
+      purring_until: until,
+    }];
+    const at = (t) => ({ tick: t, width: 20, height: 20, elements: [], kitties, recent_meows: [] });
     const p = new api.Presentation();
-    p.pushState(at(19), 1000);
-    p.pushState(at(20), 1800);
+    p.pushState(at(tick - 1), 1000);
+    p.pushState(at(tick), 1800);
     renderer.draw(p.curr, p.viewAt(2200, false));
     return log.some((e) => e[0] === 'fillText' && String(e[1]).includes('\u{1F497}'));
   };
-  const on = [1, 2, 3, 4].filter(drawnAtAge);
-  assert(on.length === api.PURR.ticks,
-    `PURR.ticks is ${api.PURR.ticks} but the heart drew at ages ${on.join(', ') || '(none)'}`);
-  assert(on[0] === 1, 'the heart must be up on the tick the purr first reaches the client');
-  assert(!drawnAtAge(api.PURR.ticks + 1), 'the heart outlived its dwell');
-
-  // The dial must still work if it is ever turned UP. The outer window that
-  // gathers candidate meows is shared with the speech bubbles, and a purr
-  // asking for more ticks than a bubble gets silently clipped by it -- the
-  // same shape of failure as the age-0 bug, latent instead of live.
-  const wasTicks = api.PURR.ticks;
-  api.PURR.ticks = 5;
-  const wide = [1, 2, 3, 4, 5, 6].filter(drawnAtAge);
-  api.PURR.ticks = wasTicks;
+  // A ten-tick purr, from its first tick to its last and one past.
+  const on = [];
+  for (let t = 10; t <= 21; t += 1) if (drawnAt(t, 20)) on.push(t);
   api.PURR.on = wasOn;
-  assert(wide.length === 5,
-    `dialled to 5 the heart drew at ages ${wide.join(', ')} -- the shared window is clipping it`);
-
-  // Owner's call, 2026-08-14: the heart is up for the purr and no longer. A
-  // fixed linger read as distracting, and three ticks read CALMER than two,
-  // which points at the popping rather than the dwell. The value is pinned
-  // because it is a judgement, and the check above adapts to it.
-  assert(api.PURR.ticks === 1, 'the heart is meant to last exactly the purr');
+  assert(on.length === 11, `a purr ending at 20 showed on ${on.length} ticks, want 11`);
+  assert(on[0] === 10 && on[on.length - 1] === 20,
+    `showed ${on[0]}..${on[on.length - 1]} -- the purr ends AT purring_until, inclusive`);
+  assert(!drawnAt(21, 20), 'the heart outlived the purr');
+  assert(api.PURR.ticks === undefined,
+    'a dwell constant is back -- the served state is the duration, there is nothing to dial');
 });
 check('the purr glyph is actually buzzing in a live frame', () => {
   const wasOn = api.PURR.on;
@@ -1073,10 +1066,13 @@ check('the purr glyph is actually buzzing in a live frame', () => {
     renderer.dpr = 1;
     renderer.cssWidth = 640;
     renderer.cssHeight = 640;
-    const kitties = [{ id: 1, name: 'Miso', pos: { x: 5, y: 5 }, needs: {}, happiness: 90 }];
+    const kitties = [{
+      id: 1, name: 'Miso', pos: { x: 5, y: 5 }, needs: {}, happiness: 90,
+      purring_until: 20,
+    }];
     const at = (tick) => ({
       tick, width: 20, height: 20, elements: [], kitties,
-      recent_meows: [{ kitty_id: 1, kind: 'purr', tick: 9 }],
+      recent_meows: [],
     });
     const p = new api.Presentation();
     p.pushState(at(9), 1000);

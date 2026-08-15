@@ -1448,48 +1448,37 @@ class WorldRenderer {
   }
 
   drawBubbles(world, view) {
-    // Widest of the two lives, then each kind is held to its own below --
-    // a purr lingers for PURR.ticks and a request for BUBBLE_TICKS, and
-    // reading the window off the max means neither can be clipped by the
-    // other's number.
-    // A meow is NEVER served on the tick it happened: measured against the
-    // live world, the freshest entry in `recent_meows` is always exactly one
-    // tick old. So an age of 0 does not exist, and a window expressed as
-    // `age < n` is really `n - 1` ticks of screen time -- which is how
-    // `PURR.ticks: 1` shipped drawing nothing at all.
-    //
-    // The purr therefore counts in DISPLAY ticks (`age <= ticks`), so 1 is
-    // one tick on screen. `BUBBLE_TICKS` keeps its original comparison
-    // rather than being quietly redefined under the speech bubbles.
-    const window = Math.max(BUBBLE_TICKS, PURR.ticks + 1);
     const recent = (world.recent_meows || []).filter(
-      (m) => m.tick > world.tick - window,
+      (m) => m.tick > world.tick - BUBBLE_TICKS,
     );
-    // Requests and purrs part company here (2026-08-14). Nine of the ten
-    // kinds are something a viewer can act on; a purr is a mood, and giving
-    // both the same bubble meant 98% of bubbles said nothing -- see PURR in
-    // props.js for the measurements. One of each per cat, newest wins.
+    // A purr never gets a speech bubble (2026-08-14). Nine of the ten meow
+    // kinds are things a viewer can act on; a purr is a mood, and the same
+    // bubble for both meant 98% of bubbles said nothing -- see PURR in
+    // props.js. One bubble per cat, newest wins.
     const said = new Map();
-    const purring = new Map();
     for (const meow of recent) {
-      const purr = meow.kind === 'purr';
-      if (purr ? meow.tick < world.tick - PURR.ticks : meow.tick <= world.tick - BUBBLE_TICKS) continue;
-      if (purr) purring.set(meow.kitty_id, meow);
-      else said.set(meow.kitty_id, meow);
+      if (meow.kind === 'purr') continue;
+      said.set(meow.kitty_id, meow);
     }
-
     for (const meow of said.values()) {
       const kitty = world.kitties.find((k) => k.id === meow.kitty_id);
       if (!kitty) continue;
       this.drawBubble(kitty, MEOW_TEXT[meow.kind] || '…', view, meow);
     }
-    for (const [id, meow] of purring) {
-      if (!PURR.on) break;
-      // A request outranks the mood. They want the same space above the
+
+    if (!PURR.on) return;
+    // The mood is drawn from `purring_until`, NOT from the meow. A purr is
+    // background state that runs 9-13 ticks; the meow is only its
+    // announcement, one tick long, and keying the heart to that showed a
+    // flash where a cat was rumbling for the better part of ten seconds.
+    // The engine calls this field "the viewer's rumbling now signal" in so
+    // many words. Reading it also retires a dwell constant and the
+    // off-by-one that came with it -- there is no duration to get wrong.
+    for (const kitty of world.kitties) {
+      if (!(kitty.purring_until >= world.tick)) continue;
+      // A request outranks the mood: they want the same space above the
       // cat, and the thing the viewer can act on is the one to keep.
-      if (said.has(id)) continue;
-      const kitty = world.kitties.find((k) => k.id === id);
-      if (!kitty) continue;
+      if (said.has(kitty.id)) continue;
       const { x, y } = this.tileOrigin(view.posFor(kitty));
       drawPurrGlyph(
         this.ctx,

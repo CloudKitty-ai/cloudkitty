@@ -1452,11 +1452,11 @@ window.addEventListener('keydown', (event) => {
     anim.setPaced(!anim.paced);
     pacedNoteEl.hidden = anim.paced;
   } else if (key === 'r') {
-    // The purr heart, off by default. Unlike the other toggles this note is
-    // always up: off is the shipped state, so a hidden note would leave no
-    // way to discover the key at all.
+    // Off by default, so this note reads the ordinary way round: it
+    // appears when the hearts are showing. The key itself is in the
+    // legend beside the others, which is where it is discoverable.
     PURR.on = PURR.on ? 0 : 1;
-    purrNoteEl.textContent = PURR.on ? '· 💗 purr hearts visible' : '· [r] enable purrs';
+    purrNoteEl.hidden = !PURR.on;
   } else {
     return;
   }
