@@ -140,3 +140,23 @@ sleep above the floor at ⅔× base. Owner's note recorded with it:
 these rates are re-derived in the new world/next generation
 regardless (stage-3 mortality) — this pin is for the phase-1
 config-rider PR. Additivity now 5-for-5 within 0.1.
+
+## First-pass trait sheets for the flat seats (2026-08-15, owner's
+question "before we proceed"; verified, for her review)
+
+| seat | character | vector | verified |
+|---|---|---|---|
+| Miso | "the deep sleeper" | sleep .6 / drink .2 / play .3 | +0.07 |
+| Biscuit | "the playful one, restored" | play .8 / bath .1 / sleep .225 | +0.03 |
+| Kittybear | "the immaculate" | bath .4 / drink .3 / play .3 | +0.06 |
+
+All balanced-or-better, zero distress; additivity 8-for-8. Ecology
+rationale recorded in the review thread: sleep-demand feeds cosleep
+(the cuddler's economy), play-demand pre-builds the social-play
+market for the Biscuit-2.0 lineage (its exact fingerprint),
+bath-demand gives the doter kin pair a service axis. Instrument
+caveat: measured with the cuddler carrying (the screen's carrier
+seat); seat-true re-verification is one cell per adopted vector.
+Bodies-layer status if adopted: 5/5 seats charactered — the deep
+sleeper, the playful one, the snacky one, the immaculate one, the
+affectionate one. Owner decides at the plan review.
