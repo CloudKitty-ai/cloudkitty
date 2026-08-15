@@ -4505,24 +4505,33 @@ check('the socket hands arrivals to the delay line and nothing else', () => {
 check("the about survives a phase change, and the owner's words survive us", () => {
   const markup = readFileSync(join(here, 'index.html'), 'utf8');
 
-  // A <details>, so it opens with no script at all: it still works with a
-  // dead socket, under reduced motion, and before app.js has run. Wiring
-  // it to a click handler would make "what is this place" the first thing
-  // to break when anything else does.
-  const about = markup.slice(markup.indexOf('<details class="about">'));
-  assert(about.startsWith('<details'), 'the about is gone or is no longer a <details>');
-  assert(/<summary>[^<]*about<\/summary>/.test(about), 'the about has no summary to click');
+  // A CARD in the panel now (owner, 2026-08-14), not a <details> in the
+  // header. What did NOT change is why it is static markup: it still has to
+  // work with no script at all -- a dead socket, reduced motion, before
+  // app.js runs, or after it throws. "What is this place" should be the
+  // last thing on the page to break, not the first, and a JS-built card
+  // would go exactly when everything else did.
+  assert(!/<details class="about"/.test(markup), 'the about went back into the header');
+  assert(!/buildAboutCard/.test(readFileSync(join(here, 'app.js'), 'utf8')),
+    'the about card is built in JS, so it vanishes whenever app.js does');
+  const at = markup.indexOf('<div class="kitty-card about-card">');
+  assert(at > 0, 'the about card is gone');
 
   // It must cost the map NOTHING. The map is height-bound and `resizeFor`
   // subtracts the header from its budget, so at a 20-row world every 20px
   // of header is a whole pixel off the tile -- and a pixel of tile is 20px
-  // off each edge of the map. So the summary rides a line that already
-  // exists, and the panel is taken out of flow rather than pushing the
-  // layout down when it opens (owner, 2026-08-13).
-  assert(
-    /<span class="tagline">/.test(markup) && about.indexOf('</div>') > about.indexOf('</details>'),
-    'the about is no longer inside the subtitle line, so it costs the map a row',
-  );
+  // off each edge of the map. In the panel it costs nothing at all, which
+  // is what the header version could never quite manage.
+  const header = markup.slice(markup.indexOf('<header'), markup.indexOf('</header>'));
+  assert(!/about/i.test(header), 'the about is back in the header, where it costs the map a row');
+
+  // OUTSIDE the columns, and both halves of that matter: `renderPanel`
+  // clears the columns on a roster change, and `placeCards` carries their
+  // `.kitty-card`s between sides. A card living in a column has to survive
+  // both, and this one would survive neither.
+  const panel = markup.slice(markup.indexOf('<section class="panel"'), markup.indexOf('</section>'));
+  assert(panel.indexOf('about-card') > panel.lastIndexOf('<div class="panel-col">'),
+    'the about card is inside a panel column, where the roster rebuild will wipe it');
 
   // The owner's copy, verbatim. Ours to lay out, not to edit.
   const wanted =
@@ -4532,40 +4541,19 @@ check("the about survives a phase change, and the owner's words survive us", () 
     'the happiness of all the kitties in the meadow. The kitties look out for ' +
     'each other, communicate with purrs and meows, and keep each other company ' +
     'as they frolic and play.';
-  const got = about.slice(about.indexOf('<p>') + 3, about.indexOf('</p>'))
-    .split(/\s+/).join(' ').trim();
+  const body = markup.slice(markup.indexOf('<p class="about-body">') + 22);
+  const got = body.slice(0, body.indexOf('</p>')).split(/\s+/).join(' ').trim();
   assert(got === wanted, `the about text has drifted from what the owner wrote:\n  ${got}`);
 
   // And the trap this page has already fallen into once (#193): the four
   // inverting tokens SWAP across a phase, so any colour written as a
   // literal here sits at the wrong end of the palette for half the day.
-  // Each rule read on its own. A loose search across the whole block is
-  // how the first version of this passed while the panel was back in the
-  // layout: `display: inline` also matches the SUMMARY's rule, and
-  // `position: absolute` was outside the slice entirely.
-  const ruleFor = (selector) => {
-    const at = markup.indexOf(`  ${selector} {`);
-    assert(at > 0, `no CSS rule for ${selector}`);
-    // To the closing brace, not to a newline-plus-brace: `.about` is a
-    // ONE-LINER, so looking for `\n  }` ran straight past it and into the
-    // summary's rule -- which also says `display: inline`, so the check
-    // passed while the about had a row of its own again.
-    return markup.slice(at, markup.indexOf('}', at) + 1);
-  };
-  const container = ruleFor('.about');
-  const panel = ruleFor('.about > p');
-  // The summary rides a line that already exists...
-  assert(/display: inline;/.test(container), 'the about takes a row of its own again');
-  // ...and the panel is out of flow, or opening it shrinks the meadow.
-  assert(/position: absolute;/.test(panel), 'the about panel is back in the layout');
-  assert(/var\(--card\)/.test(panel), 'the panel needs the card background to be readable over the map');
-
-  const block = container + panel + ruleFor('.about > summary');
-  const literals = block.match(/#[0-9a-fA-F]{3,8}|rgba?\(/g);
-  assert(!literals, `the about hardcodes ${literals} instead of using a theme token`);
-  assert(/var\(--ink-soft\)/.test(block), 'the about must take its colour from the palette');
+  const at2 = markup.indexOf('  .about-body {');
+  assert(at2 > 0, 'no CSS rule for .about-body');
+  const rule = markup.slice(at2, markup.indexOf('}', at2) + 1);
+  assert(/color: var\(--ink-soft\)/.test(rule),
+    'the about body names a colour literal, which is wrong for half the day');
 });
-
 check('no check left a dial moved behind it', () => {
   // Must be LAST. Half the file dials a value, draws, and puts it back;
   // one that forgets leaves every later check drawing a different cat,

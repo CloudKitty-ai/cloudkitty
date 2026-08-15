@@ -245,7 +245,17 @@
     color: var(--ink-soft);
     font-size: 0.9rem;
   }
-  .about { display: inline; font-size: 0.85rem; }
+  /* About is a CARD now (2026-08-14). In the header it either cost the map
+     a row or had to overlay it; in the panel it costs nothing and reads as
+     part of the world's furniture. `.about` and its summary rules went with
+     the markup. */
+  .about-card .name { margin-bottom: 6px; }
+  .about-body {
+    margin: 0;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: var(--ink-soft);
+  }
   .about > summary {
     display: inline;            /* stays on the subtitle's line */
     list-style: none;           /* our own marker, below */
@@ -779,14 +789,6 @@
     <h1><canvas class="header-kitty" data-facing="right" width="32" height="32" aria-hidden="true"></canvas>CloudKitty<canvas class="header-kitty" data-facing="left" width="32" height="32" aria-hidden="true"></canvas></h1>
     <div class="subtitle">
       <span class="tagline">a small, safe world where kitties frolic and play</span>
-      <details class="about"><summary>· about</summary>
-      <p>CloudKitty is a peaceful meadow where kitties wander, eat, drink, nap
-      in sunbeams, groom each other, chase bugs, and meow about it. The kitties
-      are a team. Each kitty is driven by a neural network trained for one
-      objective: the happiness of all the kitties in the meadow. The kitties
-      look out for each other, communicate with purrs and meows, and keep each
-      other company as they frolic and play.</p>
-      </details>
     </div>
   </header>
 
@@ -805,6 +807,24 @@
     <section class="panel" id="panel">
       <div class="panel-col"></div>
       <div class="panel-col"></div>
+      <!-- About is a card in the panel now (owner, 2026-08-14): in the header
+           it either cost the map a row or had to overlay it. It is STATIC
+           markup and sits OUTSIDE the columns on purpose -- `renderPanel`
+           clears the columns on a roster change and `placeCards` carries
+           their `.kitty-card`s between sides, so anything living in one has
+           to survive both. Out here it survives neither problem, and it
+           still works with no script at all, which is the property the
+           <details> version had and the reason it is not built in JS: "what
+           is this place" should be the last thing to break, not the first. -->
+      <div class="kitty-card about-card">
+        <div class="name"><span>About CloudKitty</span></div>
+        <p class="about-body">CloudKitty is a peaceful meadow where kitties
+        wander, eat, drink, nap in sunbeams, groom each other, chase bugs, and
+        meow about it. The kitties are a team. Each kitty is driven by a neural
+        network trained for one objective: the happiness of all the kitties in
+        the meadow. The kitties look out for each other, communicate with purrs
+        and meows, and keep each other company as they frolic and play.</p>
+      </div>
     </section>
   </div>
 

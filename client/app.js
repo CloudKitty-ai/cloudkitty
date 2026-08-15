@@ -809,7 +809,10 @@ function placeCards() {
   // Appending a card that is already in place would restart its transitions,
   // so only touch the DOM when the split actually changes. The count is
   // enough to tell: the order within a placement is always roster order.
-  if (columns[0].children.length === onLeft) return;
+  // Count the KITTY cards, not every child: the About card lives in a
+  // column too, and counting it made this early-return lie about where the
+  // split currently is.
+  if (columns[0].querySelectorAll('.kitty-card').length === onLeft) return;
   cards.forEach((card, index) => columns[index < onLeft ? 0 : 1].appendChild(card));
 }
 
