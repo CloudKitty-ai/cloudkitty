@@ -133,3 +133,25 @@ D-002/D-003), `character-design-brainstorm-2026-08-14.md`,
 register, `PIPELINE.md` (order discipline: re-baseline before
 freeze, groundwork before design), FINDINGS F-010/F-011/F-012 (the
 three findings this whole roadmap is built on).
+
+## Version ladder (owner-locked, 2026-08-15)
+
+**Strategy: minors = generations; majors = ontology changes; patches
+= presentation-only; tags touch only verified (soaked) states; the
+CHANGELOG hard rule stands (Unreleased expands into the release entry
+before any tag).**
+
+- **v2.8** — the attention era: specs 030/031, the cross-generation
+  roster, the purrsonality register, this roadmap. Tagged after the
+  candidate-B soak verdict.
+- **v2.9** — the phase-1 wall generation: spec 033 (the vocabulary
+  freeze: FoundEat/FoundDrink/FoundCritter/FoundSunbeam), the five
+  bodies (Sleepy/Playful/Hungry/Fastidious/Cuddly), Clementine, the
+  roster-5 world, the character/estimator/lineage generation.
+- **v3.0** — the release about SEEING: fog (schema 4 — the cats'
+  vision narrows) + client camera mode (the viewer's vision deepens).
+- **v4.0** — the plugin era: HttpBehavior / the LLM door — minds
+  living outside the process (containment, fallback-band
+  certification, the determinism asterisk). Moved from 3.0 by the
+  owner: external minds are an ontology change, and the roadmap
+  between here and there earned its own major.
