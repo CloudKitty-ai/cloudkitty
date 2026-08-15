@@ -245,18 +245,52 @@
     color: var(--ink-soft);
     font-size: 0.9rem;
   }
-  /* About is a CARD now (2026-08-14). In the header it either cost the map
-     a row or had to overlay it; in the panel it costs nothing and reads as
-     part of the world's furniture. `.about` and its summary rules went with
-     the markup. */
-  .about-card .name { margin-bottom: 6px; }
-  .about-body {
-    margin: 0;
+  /* About's own type, not a kitty card's (owner, 2026-08-15): the card
+     layout is built around a portrait chip, and About has no face. */
+  .about-card {
+    background: var(--card);
+    border-radius: 18px;
+    padding: 10px 14px 12px;
+    max-width: 226px;
+  }
+  /* An h2 for the page outline -- CloudKitty is the h1 and this is a real
+     section, unlike a kitty card's `.name`, which is a data chip. Sized
+     down to the card's own scale: the heading LEVEL is for structure and
+     the size is for the eye, and they do not have to agree. */
+  .about-card h2 {
+    margin: 0 0 4px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: var(--ink-soft);
+  }
+  .about-card summary {
+    list-style: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    line-height: 1.35;
+    color: var(--ink);
+  }
+  .about-card summary::-webkit-details-marker { display: none; }
+  /* The affordance sits UNDER the line it opens, and swaps its own word on
+     open -- CSS content, so the toggle needs no script either. */
+  .about-card summary::after {
+    content: 'more…';
+    display: block;
+    margin-top: 3px;
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+    border-bottom: 1px dotted currentColor;
+    width: max-content;
+  }
+  .about-card details[open] summary::after { content: 'less…'; }
+  .about-card summary:hover::after { color: var(--ink); }
+  .about-card p {
+    margin: 8px 0 0;
     font-size: 0.82rem;
     line-height: 1.45;
     color: var(--ink-soft);
-  }
-  .about > summary {
+  }  .about > summary {
     display: inline;            /* stays on the subtitle's line */
     list-style: none;           /* our own marker, below */
     cursor: pointer;
@@ -774,8 +808,6 @@
     .header-kitty { display: none; }
     /* The TAGLINE goes, not the line: the about rides it, and a landscape
        phone is where a curious visitor is most likely to be. */
-    .tagline { display: none; }
-    .subtitle { margin-top: 2px; }
     .about { font-size: 0.72rem; }
     .keys { display: none; }
     footer { font-size: 0.72rem; }
@@ -787,9 +819,6 @@
 <body>
   <header>
     <h1><canvas class="header-kitty" data-facing="right" width="32" height="32" aria-hidden="true"></canvas>CloudKitty<canvas class="header-kitty" data-facing="left" width="32" height="32" aria-hidden="true"></canvas></h1>
-    <div class="subtitle">
-      <span class="tagline">a small, safe world where kitties frolic and play</span>
-    </div>
   </header>
 
   <!-- Wide screens seat the cards in two columns flanking the meadow, so
@@ -807,24 +836,33 @@
     <section class="panel" id="panel">
       <div class="panel-col"></div>
       <div class="panel-col"></div>
-      <!-- About is a card in the panel now (owner, 2026-08-14): in the header
-           it either cost the map a row or had to overlay it. It is STATIC
-           markup and sits OUTSIDE the columns on purpose -- `renderPanel`
-           clears the columns on a roster change and `placeCards` carries
-           their `.kitty-card`s between sides, so anything living in one has
-           to survive both. Out here it survives neither problem, and it
-           still works with no script at all, which is the property the
-           <details> version had and the reason it is not built in JS: "what
-           is this place" should be the last thing to break, not the first. -->
-      <div class="kitty-card about-card">
-        <div class="name"><span>About CloudKitty</span></div>
-        <p class="about-body">CloudKitty is a peaceful meadow where kitties
-        wander, eat, drink, nap in sunbeams, groom each other, chase bugs, and
-        meow about it. The kitties are a team. Each kitty is driven by a neural
-        network trained for one objective: the happiness of all the kitties in
-        the meadow. The kitties look out for each other, communicate with purrs
-        and meows, and keep each other company as they frolic and play.</p>
-      </div>
+      <!-- About is a card in the panel (owner, 2026-08-14/15). In the header
+           it either cost the map a row or had to overlay it; down here it
+           costs nothing, AND the header loses its second line, which is
+           about a pixel of tile at a 20-row world.
+
+           STATIC markup, and a <details> rather than a script: it collapses
+           on its own, independently of the kitty cards, with no JS and no
+           state to remember. The open state deliberately does not persist
+           (owner) -- a returning visitor should not reopen to a wall of
+           text they have already read. "What is this place" should be the
+           last thing on the page to break, not the first.
+
+           Outside the panel columns on purpose: `renderPanel` clears them
+           on a roster change and `placeCards` carries their `.kitty-card`s
+           between sides. -->
+      <aside class="about-card">
+        <h2>About CloudKitty</h2>
+        <details>
+          <summary>a small, safe world where kitties frolic and play</summary>
+          <p>CloudKitty is a peaceful meadow where kitties wander, eat, drink, nap
+          in sunbeams, groom each other, chase bugs, and meow about it. The kitties
+          are a team. Each kitty is driven by a neural network trained for one
+          objective: the happiness of all the kitties in the meadow. The kitties
+          look out for each other, communicate with purrs and meows, and keep each
+          other company as they frolic and play.</p>
+        </details>
+      </aside>
     </section>
   </div>
 

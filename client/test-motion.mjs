@@ -4505,35 +4505,50 @@ check('the socket hands arrivals to the delay line and nothing else', () => {
 check("the about survives a phase change, and the owner's words survive us", () => {
   const markup = readFileSync(join(here, 'index.html'), 'utf8');
 
-  // A CARD in the panel now (owner, 2026-08-14), not a <details> in the
-  // header. What did NOT change is why it is static markup: it still has to
-  // work with no script at all -- a dead socket, reduced motion, before
-  // app.js runs, or after it throws. "What is this place" should be the
-  // last thing on the page to break, not the first, and a JS-built card
-  // would go exactly when everything else did.
+  // A card in the panel with its own type (owner, 2026-08-14/15), not a
+  // <details> in the header and not a kitty card. Two properties carried
+  // over from the header version, and both are the reason it is static
+  // markup rather than a built card:
+  //   - it works with NO SCRIPT. A dead socket, reduced motion, before
+  //     app.js runs or after it throws. "What is this place" should be the
+  //     last thing on the page to break, not the first.
+  //   - it collapses on its own, independently of the kitty cards, which a
+  //     <details> gives for free with no state to remember.
   assert(!/<details class="about"/.test(markup), 'the about went back into the header');
   assert(!/buildAboutCard/.test(readFileSync(join(here, 'app.js'), 'utf8')),
     'the about card is built in JS, so it vanishes whenever app.js does');
-  const at = markup.indexOf('<div class="kitty-card about-card">');
+  const at = markup.indexOf('<aside class="about-card">');
   assert(at > 0, 'the about card is gone');
+  const card = markup.slice(at, markup.indexOf('</aside>', at));
+  assert(/<details>/.test(card) && /<summary>/.test(card),
+    'the about no longer collapses without script');
+  assert(!/cards-collapsed/.test(card), 'the about was tied to the kitty cards\' collapse');
 
-  // It must cost the map NOTHING. The map is height-bound and `resizeFor`
-  // subtracts the header from its budget, so at a 20-row world every 20px
-  // of header is a whole pixel off the tile -- and a pixel of tile is 20px
-  // off each edge of the map. In the panel it costs nothing at all, which
-  // is what the header version could never quite manage.
+  // The h2 is for the page OUTLINE -- CloudKitty is the h1 and this is a
+  // real section, unlike a kitty card's `.name`, which is a data chip. Its
+  // size is a separate question and lives in CSS.
+  assert(/<h2>/.test(card), 'the about card has no heading, so the page has no outline for it');
+
+  // It must cost the map NOTHING, and the header lost its second line
+  // entirely: `resizeFor` subtracts `boxOf('header')` from the map's height
+  // budget, and at a 20-row world ~20px of header is a whole pixel off the
+  // tile -- which is 20px off each edge of the map.
   const header = markup.slice(markup.indexOf('<header'), markup.indexOf('</header>'));
   assert(!/about/i.test(header), 'the about is back in the header, where it costs the map a row');
+  assert(!/class="subtitle"|class="tagline"/.test(markup),
+    'the tagline is still in the header, so the header still has a second line');
 
-  // OUTSIDE the columns, and both halves of that matter: `renderPanel`
-  // clears the columns on a roster change, and `placeCards` carries their
-  // `.kitty-card`s between sides. A card living in a column has to survive
-  // both, and this one would survive neither.
+  // OUTSIDE the panel columns, and both halves matter: `renderPanel` clears
+  // the columns on a roster change, and `placeCards` carries their
+  // `.kitty-card`s between sides.
   const panel = markup.slice(markup.indexOf('<section class="panel"'), markup.indexOf('</section>'));
   assert(panel.indexOf('about-card') > panel.lastIndexOf('<div class="panel-col">'),
     'the about card is inside a panel column, where the roster rebuild will wipe it');
 
-  // The owner's copy, verbatim. Ours to lay out, not to edit.
+  // The owner's copy, verbatim. Ours to lay out, not to edit -- both the
+  // line that shows closed and the paragraph behind it.
+  const lede = 'a small, safe world where kitties frolic and play';
+  assert(card.includes(`<summary>${lede}</summary>`), 'the closed line has drifted from the owner\'s');
   const wanted =
     'CloudKitty is a peaceful meadow where kitties wander, eat, drink, nap in ' +
     'sunbeams, groom each other, chase bugs, and meow about it. The kitties are ' +
@@ -4541,18 +4556,21 @@ check("the about survives a phase change, and the owner's words survive us", () 
     'the happiness of all the kitties in the meadow. The kitties look out for ' +
     'each other, communicate with purrs and meows, and keep each other company ' +
     'as they frolic and play.';
-  const body = markup.slice(markup.indexOf('<p class="about-body">') + 22);
-  const got = body.slice(0, body.indexOf('</p>')).split(/\s+/).join(' ').trim();
+  const got = card.slice(card.indexOf('<p>') + 3, card.indexOf('</p>')).split(/\s+/).join(' ').trim();
   assert(got === wanted, `the about text has drifted from what the owner wrote:\n  ${got}`);
 
   // And the trap this page has already fallen into once (#193): the four
   // inverting tokens SWAP across a phase, so any colour written as a
   // literal here sits at the wrong end of the palette for half the day.
-  const at2 = markup.indexOf('  .about-body {');
-  assert(at2 > 0, 'no CSS rule for .about-body');
-  const rule = markup.slice(at2, markup.indexOf('}', at2) + 1);
-  assert(/color: var\(--ink-soft\)/.test(rule),
-    'the about body names a colour literal, which is wrong for half the day');
+  for (const selector of ['.about-card', '.about-card h2', '.about-card summary', '.about-card p']) {
+    const start = markup.indexOf(`  ${selector} {`);
+    assert(start > 0, `no CSS rule for ${selector}`);
+    const rule = markup.slice(start, markup.indexOf('}', start) + 1);
+    const colours = rule.match(/(?:^|[^-])(?:color|background)\s*:\s*([^;]+);/g) || [];
+    for (const c of colours) {
+      assert(/var\(--/.test(c), `${selector} names a colour literal (${c.trim()}), wrong for half the day`);
+    }
+  }
 });
 check('no check left a dial moved behind it', () => {
   // Must be LAST. Half the file dials a value, draws, and puts it back;
