@@ -551,7 +551,7 @@ impl Default for ActionEffects {
             eat_relief: 40.0,
             drink_relief: 40.0,
             sleep_relief: 5.0,
-            sleep_relief_sunbeam: 8.0,
+            sleep_relief_sunbeam: 7.0,
             // Groom/play/cuddle lowered (owner tuning, 2026-07-27): scenes
             // clear less per tick, so the cats spend more of their lives
             // being playful and cuddly -- the point of the retune.
