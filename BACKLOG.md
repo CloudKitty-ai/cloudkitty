@@ -490,6 +490,53 @@ the *whole-cat* mechanism from that revert (head, tail and limb pivots riding
 the body, grounded feet held), not as a torso sliding against a welded head —
 and only at an amplitude that clears a pixel.
 
+### Animation handoff — the residue, re-reviewed 2026-08-14 (Client thread)
+
+Re-read `design-handoffs/design_handoff_animation_upgrade/README.md` against
+the shipped code. The handoff itself is landed; what follows is what it
+listed as not-done and nobody wrote down, plus two things the review turned
+up that it did not.
+
+**Done, so not carried:** both tests it asked for exist (rig at rest, still
+frame gaze); the test-pass list is worked through; card portraits got the
+idle vocabulary AND the rig, with the world's wake-stretch deliberately
+excluded and the measurement for that written at the call site; invariants
+1, 2, 4, 5 and 6 have coverage.
+
+**Its three optional follow-ups, none done, none previously recorded:**
+
+1. **Ears forward on the hunt.** The handoff's own words: "the one cue still
+   readable at 31px when the eyes are not. The rig already has the channel."
+   That is exactly what this session measured from the other end — at a 31px
+   cat the ear tip travels 2.30px against 0.83px of pupil and 0.35px of head,
+   so the ears are the only visible channel. **Do this with the ear/eye pass
+   after camera mode, not before**; it wants judging beside the vertical ear
+   response below.
+2. **Gradual pupil dilation.** Instant with the pose today. Needs a spring
+   channel, so it is larger than it sounds — and it is a camera-mode feature,
+   since the pupil is 0.83px at the live tile.
+3. **Irregular groom and drink rhythms.** Both still nod on a single sine
+   (`0.008 * Math.sin(phase * 3 * TAU)` for drinking). Real lapping comes in
+   bursts with pauses. Cheap to author, and unlike the other two it reads at
+   map scale, because it moves the whole head.
+
+**Two the review found:**
+
+4. **`EYE.focusedScale` and `EYE.focusedHeight` are dead dials, and they are
+   still on the Face card with their own `FOCUSED = {...}` readout block.**
+   Measured: moving them 0.5 → 2.0 changes not one drawing operation. The
+   handoff flagged them as dead and kept them *because* the lab named them,
+   which is backwards — a live slider over dead code is the same trap as
+   `SWIM.tailUpright` (dialled a whole session, never printed) and `tipFur`
+   (inert over 70% of its travel). Either wire them to the `EYE.focus*` set
+   that replaced them or take them off the card; do not leave them dialable.
+5. **Invariant 3 — "neither focused lid may cross the pupil" — has no
+   explicit guard**, and it governs `FOCUS_VARIANTS.intense.focusLidTilt`,
+   which the handoff calls "the one knob the owner expects to revisit"
+   (0.20 ships, 0.34 read as evil). The tests around it prove the variants
+   are no longer frozen; none proves the lid stays clear of the pupil. Worth
+   adding before that dial is next touched, not after.
+
 ### Whiskers — CLOSED, they shipped (2026-08-13; Client thread)
 Shipped on in #215 at the whole-world tile, without camera mode and without
 clearing the sub-pixel floor. This entry said the stroke lands near **0.8px**
