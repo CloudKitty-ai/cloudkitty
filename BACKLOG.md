@@ -13,6 +13,20 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 <!-- shipped P1 items are removed once merged; see git history -->
 
+### Connect-time frame backlog — SPEC PARKED (added 2026-08-15; Product thread)
+Spec 032 is written, decisions settled, implementation deliberately parked
+(owner). The live socket gains an opt-in connect-time backlog of recent
+frames so the viewer's deepened delay line — the anticipatory-gaze lookahead —
+is full at first paint instead of after ~15s of visible slow motion, and
+reconnects heal at full depth. **Do not re-derive the design**: every settled
+call (socket over `/history`, opt-in default-0, ring inside `Published`
+sharing the once-per-tick serialization, strictly-increasing ticks,
+empty-after-restart, cap 16 as a config dial) plus the quantified costs and
+the client-boot simplification live in `specs/032-ws-backlog/spec.md` +
+`design-inputs.md`. Pickup = `/speckit-plan` from there. Related demand
+logged there too: a served travel goal (Client should wire gaze to the
+existing `pursuit` field first).
+
 ### The gaze — TABLED for a longer session (added 2026-08-10; Client thread)
 Owner's call: the look wants a proper sitting, not a dial pass wedged into
 another arc. Turned OFF on the card meanwhile — `VIEW.cardScanWeight: 0`, its
