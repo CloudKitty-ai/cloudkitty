@@ -88,11 +88,13 @@ ElementType::ALL order): count/hard_max + 2 center-nearest ×
 clock. 5×32 + 5×7 + 2 = 197 (numeric coincidence with obs width,
 nothing shared).
 
-## Action menu v2 (`codec.rs`, 34; 033 → 36 with FoundEat/FoundDrink
-appended to the MESSAGE head, menu indices unchanged — verify: the
-head is the codec's message side; menu 34→36 applies only if the two
-kinds also become menu actions, which they do NOT — Product: state
-the final numbers authoritatively)
+## Action menu v2 (`codec.rs`, 34 — UNCHANGED by 033; Product
+reconciled 2026-08-15: messages live on the ride-along head, never
+the menu. 033 moves the HEAD 9→11 (FoundEat=9, FoundDrink=10,
+append-at-end per the spec-028 pattern), digest 32→40, obs 197→205,
+v3 policy output 43→45 logits. All three schema pins bump (obs 3→4,
+action 2→3, mask 2→3) — the action bump versions the full decision
+encoding (menu + head), menu itself unchanged across it.)
 
 | idx | action | group |
 |---|---|---|
@@ -111,9 +113,9 @@ the final numbers authoritatively)
 | 30–32 | PlayKitty0–2 | play/chase (slot k) |
 | 33 | Idle | idle |
 
-**Message head (9; 033 → 11)**: index 0 = Silent; k+1 = HEAD_KINDS[k].
+**Message head (9; 033 → 11: FoundEat=9, FoundDrink=10)**: index 0 = Silent; k+1 = HEAD_KINDS[k].
 
-**Mask**: one row `[menu 34 ∥ head 9]` (033: [36-or-34 ∥ 11]),
+**Mask**: one row `[menu 34 ∥ head 9]` (033: [34 ∥ 11]),
 u8/bool; Silent always legal; never-all-zero per head. Oracle-proven
 against engine legality (mask_oracle tests).
 
