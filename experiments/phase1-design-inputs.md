@@ -146,11 +146,26 @@ sampler.
 - **Post-wall python binding venv**: built at current main (surface
   225/34/16), pinned and printing its engine commit per the exp-005
   lesson. Lives with the phase-1 experiment dir when that opens.
-- **family-gen v5**: implement stratified trait spreads + the
-  playful/roster guarantees per PIPELINE. Tool change, Experiments'
-  own; the sampler-sequence caveat from v4 applies again (v5 will
-  not reproduce a v4 family byte-for-byte — version stamp carries
-  it).
+- **family-gen v6** (the tool was already at v5 — playful guarantee;
+  earlier docs' "v5" label for this work was stale): **BUILT
+  2026-08-16** per the decided §3 design — trait plans
+  canonical/spread/corner cycled on the roster-decorrelated block,
+  triangular-at-the-sheet sampling in factor space, `--traits
+  pinned` for the price probe's cell A, base-must-carry-a-playful
+  assert. Sampler-sequence caveat applies (v6 ≠ v5 byte-for-byte;
+  manifest stamp carries it).
+- **Collection-base fact found by the v6 smoke test**: the served
+  `cloudkitty.toml` carries only Pumpkin's and Clementine's sheets —
+  the Miso/Biscuit/Kittybear sheets are owner-locked design
+  (2026-08-15) that deliberately did NOT ship in the wall rider
+  (trait changes void the soaking world's certification; they land
+  at the phase-1 cutover). Consequence: the phase-1 collection base
+  = served config + the three locked sheets + demonstrator
+  behavior(s); a committed collect-config lands with the collection
+  work, and §1's "served cloudkitty.toml is the source of truth for
+  the vectors" holds only after the phase-1 seating rider. Without
+  the sheets, spread sampling centers Biscuit's play on 1.0 instead
+  of her signature 2.0 (verified both ways in the smoke test).
 - **Class-credit re-baseline, remaining steps** (F-013/F-015
   standing trigger; scripted anchor already banked): class-
   conditioned probe batches on the post-wall engine. Compute-shaped;
