@@ -15,24 +15,30 @@
 #
 # Values that are NOT rows (documentation only, spec 034 FR-002):
 #   - "Scripted" is fixed in code for built-in behaviors; no registry row.
-#   - Phase-1 lineage seats are expected to arrive as
-#     "Transformer · BC+PPO+leash" if the leash doctrine lands — the row
-#     appears when the artifact does.
+#   - Phase-1 lineage seats are expected to arrive as "Transformer" — the
+#     row appears when the artifact does.
+#
+# Display style (owner ruling 2026-08-16, superseding the launch format):
+# the display line is the architecture alone, spelled out for a general
+# audience ("Transformer", "Multi-Layer Perceptron") — training recipe
+# stays in the `recipe` field as provenance but is not served. Display
+# amendments on the owner's word are the one sanctioned row change;
+# sha and architecture/recipe provenance stay immutable.
 
 [artifact."21d197307a475b3ee8f71ffb98d5af275d8374283244314010a0741229b84277"]
 # e004-a1-s2.ckpolicy — exp-004 shaped self-play, the v2 two-head MLP.
 architecture = "MLP"
 recipe = "BC+PPO"
-display = "MLP · BC+PPO"
+display = "Multi-Layer Perceptron"
 
 [artifact."d8e310215d7dd095e9d3f4a59d03d62e012bb677d4141cd2c45e3b5d86569c32"]
 # attn-a1-s1.ckpolicy — "the cuddler", entity-attention v3.
 architecture = "Transformer"
 recipe = "BC+PPO"
-display = "Transformer · BC+PPO"
+display = "Transformer"
 
 [artifact."dfef0ec29161f93bded92c3a6e8b89cc1db92d9b3e478edd35a3d31e25941b46"]
 # attn-a1-s3.ckpolicy — "the doter", entity-attention v3.
 architecture = "Transformer"
 recipe = "BC+PPO"
-display = "Transformer · BC+PPO"
+display = "Transformer"
