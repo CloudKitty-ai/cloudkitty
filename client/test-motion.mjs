@@ -4568,13 +4568,16 @@ check('the per-kitty about ships, and its numbers are the served ones', () => {
   // rather than the padding literal -- the circle has been dialled once
   // already, and a padding of 3px means something different around a 13px
   // ring than around a 15px one.
-  const pad = ring.match(/padding: (\d+)px/);
-  const box = ring.match(/width: (\d+)px/);
+  const pad = ring.match(/padding: ([\d.]+)px/);
+  const box = ring.match(/width: ([\d.]+)px/);
   assert(pad && box, 'the about control no longer states a width and a padding');
   assert(/box-sizing: content-box/.test(ring),
     'the padding now grows the RING instead of the hit area');
   const target = Number(box[1]) + 2 * Number(pad[1]) + 2;  // +2 for the border
-  assert(target >= 21, `the about control's touch target is only ${target}px`);
+  // 23px is the size the owner signed off on, so it is pinned rather than
+  // floored: the ring inside it is still being dialled, and each turn of that
+  // dial has to be paid for out of the padding, not out of the target.
+  assert(target === 23, `the about control's touch target is ${target}px, not 23px`);
   // And the glyph has to be the thing that reads, so it may not shrink back
   // under the ring it sits in.
   const glyph = ring.match(/font-size: ([\d.]+)rem/);

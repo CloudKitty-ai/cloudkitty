@@ -380,12 +380,14 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 13px;
-    height: 13px;
+    width: 12px;
+    height: 12px;
     /* content-box, so the padding grows the TARGET without growing the ring:
-       13px of circle inside a 21px hit area. The padding absorbs the ring's
-       2px so the target is unchanged by the tighter circle. */
-    padding: 4px;
+       12px of circle inside a 23px hit area. The padding carries whatever the
+       ring gives up, so dialling the circle never costs the touch target --
+       the 23px is owner-approved and the ring has now been tightened twice
+       underneath it. */
+    padding: 4.5px;
     box-sizing: content-box;
     border: 1px solid currentColor;
     border-radius: 50%;
