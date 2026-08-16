@@ -375,38 +375,43 @@
      Sized against the touch target rather than the ink: the ring is 15px
      but the button keeps 3px of padding all round, so the hit area stays
      over 20px on a phone where the ring alone would be a poke test. */
+  /* THE BORDER BOX IS THE RING. `border-radius: 50%` resolves against the
+     border box and the border is painted at its edge, so any padding here
+     grows the CIRCLE -- it cannot buy a bigger touch target. An earlier cut
+     of this rule used content-box padding to do exactly that and drew a 23px
+     ring around an 11px box for three rounds of dialling. The target is a
+     transparent ::after instead, which is the only way to have both. */
   .kitty-about {
     margin-left: auto;
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    /* 11px is the tightest this goes. Measured against Nunito's own outline
-       at weight 700: the ? clears the ring by 0.52px here, by 0.02px at 10px
-       -- touching it -- so 10 is the floor and 11 is the last size with any
-       clearance left. What still looks like air is at the SIDES (2.07px
-       against 0.53px top): a ? is 1.6x taller than it is wide and a circle
-       is 1:1, so the side gap outruns the top gap by half that difference no
-       matter what size either one is. It cannot be dialled out. */
-    width: 11px;
-    height: 11px;
-    /* content-box, so the padding grows the TARGET without growing the ring:
-       11px of circle inside a 23px hit area. The padding carries whatever the
-       ring gives up, so dialling the circle never costs the touch target --
-       the 23px is owner-approved and the ring has now been tightened three
-       times underneath it. */
-    padding: 5px;
-    box-sizing: content-box;
+    box-sizing: border-box;
+    /* 13px of ring holds the ? at 72% of its inner height. The measured
+       floor is 12px, where the ink clears the circle by 0.74px; at 10px it
+       touches. Whatever air is left is at the SIDES -- a ? is 1.6x taller
+       than it is wide inside a 1:1 circle, so the side gap outruns the top
+       gap by half that difference at every size, and no dial removes it. */
+    width: 13px;
+    height: 13px;
+    padding: 0;
     border: 1px solid currentColor;
     border-radius: 50%;
     background: none;
     color: var(--ink-soft);
     font: inherit;
-    /* A tighter ring around a LARGER glyph: the ? carries the meaning and the
-       circle only frames it, so the legibility budget goes to the character. */
     font-size: 0.69rem;
     font-weight: 700;
     line-height: 1;
     cursor: pointer;
+  }
+  /* Draws nothing; it is the touch target only. -5px a side takes the 13px
+     ring to a 23px target, which is the size the ring itself used to be. */
+  .kitty-about::after {
+    content: '';
+    position: absolute;
+    inset: -5px;
   }
   .kitty-about:hover,
   .kitty-about:focus-visible { color: var(--ink); }

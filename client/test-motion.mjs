@@ -4564,32 +4564,42 @@ check('the per-kitty about ships, and its numbers are the served ones', () => {
   assert(/border-radius: 50%/.test(ring), 'the about control is no longer a circle');
   assert(/border: 1px solid currentColor/.test(ring),
     'the ring is not drawn in the text colour, so it will not follow a phase change');
-  // The ring is small; the hit area must not be. Measure the COMPOSED target
-  // rather than the padding literal -- the circle has been dialled once
-  // already, and a padding of 3px means something different around a 13px
-  // ring than around a 15px one.
-  const pad = ring.match(/padding: ([\d.]+)px/);
+  // THE DRAWN RING IS THE BORDER BOX. `border-radius: 50%` resolves against
+  // it, so `width` is only the ring's diameter when the box sizes that way
+  // and carries no padding. The rule this replaces used content-box padding
+  // to grow what it called the touch target, and drew a 23px circle around
+  // an 11px box -- three rounds of "shrinking" that changed nothing on
+  // screen, because each one was cancelled by the padding added to hold the
+  // total. Both halves of that mistake are guarded here.
   const box = ring.match(/width: ([\d.]+)px/);
-  assert(pad && box, 'the about control no longer states a width and a padding');
-  assert(/box-sizing: content-box/.test(ring),
-    'the padding now grows the RING instead of the hit area');
-  const target = Number(box[1]) + 2 * Number(pad[1]) + 2;  // +2 for the border
-  // 23px is the size the owner signed off on, so it is pinned rather than
-  // floored: the ring inside it is still being dialled, and each turn of that
-  // dial has to be paid for out of the padding, not out of the target.
-  assert(target === 23, `the about control's touch target is ${target}px, not 23px`);
+  assert(box, 'the about control no longer states a width');
+  assert(/box-sizing: border-box/.test(ring),
+    'the ring is not sized by its border box, so `width` is not its diameter');
+  assert(/padding: 0/.test(ring),
+    'the ring has padding, which grows the CIRCLE and not the touch target');
+  // The ring has a measured floor, not a taste one. Nunito's own `?` outline
+  // at weight 700 and 0.69rem was flattened to points and tested against the
+  // inscribed circle: the ink clears it by 0.74px at a 12px ring and by
+  // 0.02px at 10px, where the glyph touches the circle it sits in.
+  assert(Number(box[1]) >= 12,
+    `a ${box[1]}px ring puts the question mark against the circle`);
   // And the glyph has to be the thing that reads, so it may not shrink back
   // under the ring it sits in.
   const glyph = ring.match(/font-size: ([\d.]+)rem/);
   assert(glyph && Number(glyph[1]) >= 0.69,
     'the question mark is smaller than the size it was dialled to');
-  // The ring has a measured floor, not a taste one. Against Nunito's own `?`
-  // outline at weight 700 and 0.69rem, the ink clears the ring by 0.52px at
-  // 11px and by 0.02px at 10px -- i.e. at 10px the glyph touches the circle
-  // it sits in. Guarded because this pair has been dialled three times and
-  // the next turn of it is off the end.
-  assert(Number(box[1]) >= 11,
-    `an ${box[1]}px ring puts the question mark against the circle`);
+
+  // The ring is small; the hit area must not be. It comes from a pseudo
+  // element that draws nothing, because the ring cannot supply it.
+  const after = markup.slice(markup.indexOf('  .kitty-about::after {'),
+    markup.indexOf('}', markup.indexOf('  .kitty-about::after {')));
+  assert(after.length, 'the about control has no ::after, so it has no touch target');
+  assert(/position: absolute/.test(after),
+    'the touch target is in flow, so it moves the name row');
+  const inset = after.match(/inset: (-?[\d.]+)px/);
+  assert(inset, 'the touch target states no inset');
+  const target = Number(box[1]) - 2 * Number(inset[1]);
+  assert(target >= 23, `the about control's touch target is only ${target}px`);
 
   // The bar colours are checked as COLOURS, not by where they came from.
   // The first version read them live from the meadow's palette and asserted
