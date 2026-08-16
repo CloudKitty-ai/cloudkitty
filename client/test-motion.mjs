@@ -4583,11 +4583,14 @@ check('the per-kitty about ships, and its numbers are the served ones', () => {
   // 0.02px at 10px, where the glyph touches the circle it sits in.
   assert(Number(box[1]) >= 12,
     `a ${box[1]}px ring puts the question mark against the circle`);
-  // And the glyph has to be the thing that reads, so it may not shrink back
-  // under the ring it sits in.
+  // And the glyph has to be the thing that reads, so it may neither shrink
+  // nor lighten back under the ring it sits in. Both are dialled values.
   const glyph = ring.match(/font-size: ([\d.]+)rem/);
   assert(glyph && Number(glyph[1]) >= 0.69,
     'the question mark is smaller than the size it was dialled to');
+  const wght = ring.match(/font-weight: (\d+)/);
+  assert(wght && Number(wght[1]) >= 900,
+    'the question mark is lighter than the weight it was dialled to');
 
   // The ring is small; the hit area must not be. It comes from a pseudo
   // element that draws nothing, because the ring cannot supply it.

@@ -388,13 +388,13 @@
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
-    /* 13px of ring holds the ? at 72% of its inner height. The measured
+    /* 14px of ring holds the ? at 66% of its inner height. The measured
        floor is 12px, where the ink clears the circle by 0.74px; at 10px it
        touches. Whatever air is left is at the SIDES -- a ? is 1.6x taller
        than it is wide inside a 1:1 circle, so the side gap outruns the top
        gap by half that difference at every size, and no dial removes it. */
-    width: 13px;
-    height: 13px;
+    width: 14px;
+    height: 14px;
     padding: 0;
     border: 1px solid currentColor;
     border-radius: 50%;
@@ -402,16 +402,20 @@
     color: var(--ink-soft);
     font: inherit;
     font-size: 0.69rem;
-    font-weight: 700;
+    /* Nunito is variable over 200-1000, so this is a real weight and not a
+       synthesised one. 900 rather than the 700 it sat at: the strokes come
+       out 5% wider and the clearance only falls 0.03px, because weight moves
+       a `?` sideways far more than it moves its height. */
+    font-weight: 900;
     line-height: 1;
     cursor: pointer;
   }
-  /* Draws nothing; it is the touch target only. -5px a side takes the 13px
+  /* Draws nothing; it is the touch target only. -4.5px a side takes the 14px
      ring to a 23px target, which is the size the ring itself used to be. */
   .kitty-about::after {
     content: '';
     position: absolute;
-    inset: -5px;
+    inset: -4.5px;
   }
   .kitty-about:hover,
   .kitty-about:focus-visible { color: var(--ink); }
