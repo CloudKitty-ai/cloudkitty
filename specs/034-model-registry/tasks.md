@@ -9,7 +9,7 @@ source of truth (P2), US3 = enforcement (P2).
 
 ## Phase 1: Setup
 
-- [ ] T001 Create `policies/registry.toml` with the three ship rows exactly per contracts/registry-and-serving.md §1–2 (sha-keyed tables, header comment block stating the born-in-the-artifact-PR / never-changes rules)
+- [ ] T001 Create `policies/registry.toml` with the three ship rows exactly per contracts/registry-and-serving.md §1–2 (sha-keyed tables, header comment block stating the born-in-the-artifact-PR / never-changes rules, plus the FR-002 anticipated forward values as comments — `"Scripted"` is fixed in code, `"Transformer · BC+PPO+leash"` expected for phase-1 lineage seats if the leash doctrine lands — documentation, not rows)
 
 ## Phase 2: Foundational (blocking prerequisites)
 
@@ -25,10 +25,10 @@ for builtins, absent for plugins.
 **Independent test**: quickstart §2–3 — boot the shipped config and see
 `"Scripted"` ×5; boot a fixture-seated config and see the row's display line.
 
-- [ ] T004 [US1] Failing-first integration tests in crates/cloudkitty-server/tests/server_integration.rs: (a) shipped wall-window config serves `behavior_description == "Scripted"` for all kitties on `GET /kitties`; (b) a fixture temp-dir artifact + beside-it registry.toml seated on one kitty serves that row's `display` verbatim on `/kitties`, `/kitties/:id`, and `/world`; (c) a plugin-driven kitty's JSON has no `behavior_description` key; (d) `behavior` string unchanged in all cases (FR-009)
+- [ ] T004 [US1] Failing-first integration tests in crates/cloudkitty-server/tests/server_integration.rs: (a) shipped wall-window config serves `behavior_description == "Scripted"` for all kitties on `GET /kitties`; (b) a fixture temp-dir artifact + beside-it registry.toml seated on one kitty serves that row's `display` verbatim on `/kitties`, `/kitties/:id`, and `/world`; (c) a plugin-driven kitty's JSON has no `behavior_description` key; (d) `behavior` string unchanged in all cases (FR-009); (e) one WS message read asserting the field arrives identically over the socket (direct check on the payload-identical doctrine)
 - [ ] T005 [US1] Extend `register_policy_behaviors` in crates/cloudkitty-server/src/lib.rs to resolve each seated artifact's sha256 against `load_registry_beside`, returning a `BTreeMap<String, String>` of `policy:<name>` → display; add `display = %…` to the existing `policy artifact validated` log line (research D4). Refusal wording is finalized in T009's contract — here just bail with context naming `[rl.policy.<name>]`, the artifact path, and the sha
 - [ ] T006 [US1] Stamp function in crates/cloudkitty-server/src/lib.rs (`policy:*` → map lookup; `Behavior::is_builtin` → `"Scripted"`; plugin → `None`) and call it on the freshly generated world in crates/cloudkitty-server/src/main.rs before the sim task starts
-- [ ] T007 [US1] Resume re-stamp in crates/cloudkitty-server/src/persist.rs, in the same loop that re-stamps `behavior` (registry authoritative over snapshot, research D3); extend the existing resume test module: a snapshot with a stale/absent description resumes with the freshly stamped value, and a pre-034 snapshot (field missing entirely) loads then stamps
+- [ ] T007 [US1] Resume re-stamp in crates/cloudkitty-server/src/persist.rs, in the same loop that re-stamps `behavior` (registry authoritative over snapshot, research D3) — this threads the name→display map into the persist load path (signature change to the loader), and the re-stamp OVERWRITES unconditionally, including to `None` for plugin seats (a stale frozen description must not survive); extend the existing resume test module: a snapshot with a stale/absent description resumes with the freshly stamped value, a plugin-seated kitty's stale description clears to `None`, and a pre-034 snapshot (field missing entirely) loads then stamps
 
 **Checkpoint**: quickstart §2–3 pass; US1 acceptance scenarios 1–3 green.
 
@@ -61,7 +61,7 @@ layers fail loudly (quickstart §5).
 ## Phase 6: Polish & cross-cutting
 
 - [ ] T011 [P] CHANGELOG.md one-liner under `## Unreleased` (no `[stamp]`/`[obs-schema]` markers — research D7): registry + served behavior descriptions, spec 034
-- [ ] T012 Full validation: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace` green with zero pre-existing assertions modified (SC-003); then quickstart §2 eyes-on boot (all "Scripted", `behavior` untouched)
+- [ ] T012 Full validation: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace` green with zero pre-existing assertions modified (SC-003) — confirm during the run that no golden/exact-shape fixture pins kitty JSON (analysis A1 found none in the Rust suites; verify the claim holds once the field serializes); then quickstart §2 eyes-on boot (all "Scripted", `behavior` untouched)
 
 ## Dependencies & execution order
 

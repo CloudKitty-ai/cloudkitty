@@ -173,7 +173,8 @@ observe the failure naming the file and its sha.
 - **FR-004**: At startup, for each seated policy artifact, the server MUST
   resolve the artifact's sha256 against the registry and attach the row's
   display line to every kitty driven by that artifact, as a new field on the
-  served kitty object (working name `behavior_description`), on **every**
+  served kitty object, `behavior_description` (name finalized — plan research
+  D6), on **every**
   surface that serves kitty objects carrying `behavior` today (read API and
   live stream alike). The `behavior` string itself is unchanged (FR-009).
 - **FR-005**: Kitties on built-in behaviors (`needs_driven` and the scripted
@@ -254,8 +255,9 @@ observe the failure naming the file and its sha.
 
 ## Assumptions
 
-- Field name `behavior_description` (naming delegated to Product; it extends
-  the existing `behavior` field naturally). Rename freely at plan review.
+- Field name `behavior_description` — final (naming was delegated to Product
+  in the owner-approved shape; settled at plan review, research D6). It
+  extends the existing `behavior` field it rides beside.
 - Plugin-driven kitties serve no description rather than a false "Scripted"
   (no certification record exists for an external process); the client's
   existing fallback covers them.

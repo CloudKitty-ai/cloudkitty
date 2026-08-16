@@ -17,7 +17,7 @@ plugin absence, startup refusal).
 
 ```sh
 cargo run --bin cloudkitty-server -- --config cloudkitty.toml &
-curl -s localhost:8420/kitties | jq '.[].behavior_description'
+curl -s localhost:8090/kitties | jq '.[].behavior_description'
 ```
 
 Expected: `"Scripted"` five times (all seats parked `needs_driven` in the
