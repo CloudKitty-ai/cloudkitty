@@ -4816,6 +4816,31 @@ check("the about survives a phase change, and the owner's words survive us", () 
     }
   }
 });
+check('every cat on the roster wears her own coat', () => {
+  // The index IS the kitty id, so re-ordering PALETTES re-coats a cat and
+  // nothing else complains. That is how Clementine came to be dark: she was
+  // added to the config as id 5 and the array's index 5 held 'midnight',
+  // while the white 'cloud' written for her sat unused at 6.
+  //
+  // Pinned by NAME, per id, because the failure mode is positional. An
+  // assertion written as PALETTES[5] would move along with the bug.
+  for (const [id, coat] of [[1, 'seal point'], [2, 'biscuit tabby'],
+    [3, 'pumpkin tabby'], [4, 'storm'], [5, 'cloud']]) {
+    assert(CatV2.appearanceFor(id).name === coat,
+      `kitty ${id} wears "${CatV2.appearanceFor(id).name}", not "${coat}"`);
+  }
+  // And the one that would have caught it without knowing the coat's name:
+  // she is the white cat, so hers must be the lightest coat on the roster.
+  const lum = (hex) => {
+    const n = parseInt(hex.slice(1), 16);
+    return 0.2126 * ((n >> 16) & 255) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255);
+  };
+  const clementine = lum(CatV2.appearanceFor(5).furBase);
+  for (const id of [1, 2, 3, 4]) {
+    assert(clementine > lum(CatV2.appearanceFor(id).furBase),
+      `kitty ${id} has a lighter coat than the white cat`);
+  }
+});
 check('every word the engine can say has a bubble', () => {
   // Read the vocabulary from the ENGINE, not from a list restated here. The
   // spec-033 gap this guards was exactly a restatement going stale: the

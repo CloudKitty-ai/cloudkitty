@@ -33,6 +33,13 @@
  * kitty's look is stable across frames, sessions and restarts. Indices 1-3
  * are the shipped defaults -- Miso the seal-point, Biscuit the warm solid,
  * Pumpkin the orange tabby -- tuned to be told apart at 22px.
+ *
+ * THE ORDER IS THE ROSTER. Because the index is the kitty id, moving an entry
+ * re-coats a cat, and 'cloud' and 'midnight' were swapped for exactly that
+ * reason (spec 033): the fifth cat is id 5, and she is the white one. Nothing
+ * indexes this array by hand -- appearanceFor is the one door, and app.js
+ * looks its portrait palette up by name -- so the swap was the whole change.
+ * A test pins every roster id to the colorway it is meant to wear.
  */
 const PALETTES = [
   {
@@ -84,20 +91,20 @@ const PALETTES = [
     noseColor: '#b58a94',
   },
   {
+    name: 'cloud', // Clementine
+    furBase: '#f7f3ec',
+    furShade: '#c6b9a6',
+    pattern: { kind: 'solid' },
+    eyeColor: '#84b6d8',
+    noseColor: '#e8a1a1',
+  },
+  {
     name: 'midnight',
     furBase: '#4d4752',
     furShade: '#332e3b',
     pattern: { kind: 'solid' },
     eyeColor: '#e3b341',
     noseColor: '#8f7482',
-  },
-  {
-    name: 'cloud',
-    furBase: '#f7f3ec',
-    furShade: '#c6b9a6',
-    pattern: { kind: 'solid' },
-    eyeColor: '#84b6d8',
-    noseColor: '#e8a1a1',
   },
   {
     name: 'calico',
