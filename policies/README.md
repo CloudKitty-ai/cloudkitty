@@ -28,11 +28,15 @@ it collides with the gitignored `experiments/**/artifacts/` vocabulary.
   longer matches) is a deployment error.
 - **Every top-level file also gets a `registry.toml` row** (spec 034),
   keyed by the same sha256: architecture (spelled out), recipe, and the
-  display line the server serves as each kitty's `behavior_description`.
-  The row lands **in the same PR as the artifact** — Experiments authors
-  it at certification time — and never changes or leaves afterward:
-  retirement and renames keep their rows, because sha is identity. This
-  is machine-enforced twice: `registry_integrity` fails CI on a rowless
+  display line the server serves as each kitty's `behavior_description`
+  (the architecture alone, general-audience wording — owner ruling
+  2026-08-16; recipe is provenance, never served). The row lands **in
+  the same PR as the artifact** — Experiments authors it at
+  certification time — and never leaves: retirement and renames keep
+  their rows, because sha is identity. The sha key and the
+  architecture/recipe provenance are immutable; a display amendment on
+  the owner's word is the one sanctioned row change. This is
+  machine-enforced twice: `registry_integrity` fails CI on a rowless
   top-level artifact, and the server refuses to seat one (FR-007, no
   warn mode).
 - **Top level holds exactly what the served config may name.** A
