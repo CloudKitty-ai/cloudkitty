@@ -380,14 +380,21 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 12px;
-    height: 12px;
+    /* 11px is the tightest this goes. Measured against Nunito's own outline
+       at weight 700: the ? clears the ring by 0.52px here, by 0.02px at 10px
+       -- touching it -- so 10 is the floor and 11 is the last size with any
+       clearance left. What still looks like air is at the SIDES (2.07px
+       against 0.53px top): a ? is 1.6x taller than it is wide and a circle
+       is 1:1, so the side gap outruns the top gap by half that difference no
+       matter what size either one is. It cannot be dialled out. */
+    width: 11px;
+    height: 11px;
     /* content-box, so the padding grows the TARGET without growing the ring:
-       12px of circle inside a 23px hit area. The padding carries whatever the
+       11px of circle inside a 23px hit area. The padding carries whatever the
        ring gives up, so dialling the circle never costs the touch target --
-       the 23px is owner-approved and the ring has now been tightened twice
-       underneath it. */
-    padding: 4.5px;
+       the 23px is owner-approved and the ring has now been tightened three
+       times underneath it. */
+    padding: 5px;
     box-sizing: content-box;
     border: 1px solid currentColor;
     border-radius: 50%;

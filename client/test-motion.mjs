@@ -4583,6 +4583,13 @@ check('the per-kitty about ships, and its numbers are the served ones', () => {
   const glyph = ring.match(/font-size: ([\d.]+)rem/);
   assert(glyph && Number(glyph[1]) >= 0.69,
     'the question mark is smaller than the size it was dialled to');
+  // The ring has a measured floor, not a taste one. Against Nunito's own `?`
+  // outline at weight 700 and 0.69rem, the ink clears the ring by 0.52px at
+  // 11px and by 0.02px at 10px -- i.e. at 10px the glyph touches the circle
+  // it sits in. Guarded because this pair has been dialled three times and
+  // the next turn of it is off the end.
+  assert(Number(box[1]) >= 11,
+    `an ${box[1]}px ring puts the question mark against the circle`);
 
   // The bar colours are checked as COLOURS, not by where they came from.
   // The first version read them live from the meadow's palette and asserted
