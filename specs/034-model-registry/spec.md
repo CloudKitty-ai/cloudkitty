@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-15
 
-**Status**: Draft — one owner question open (FR-007, warn vs refuse)
+**Status**: Ready for planning — clarifications resolved
 
 **Input**: Owner-approved shape relayed from Experiments 2026-08-15: replace the
 raw model id shown on kitty cards (e.g. "e004-a1-s2") with a terse, human-readable
@@ -26,6 +26,15 @@ specced, [the human-readable description belongs] in a served field" — and
 warned that a `description =` config key must not be added before a spec exists
 because `PolicyConfig` refuses unknown fields. This is that spec, and it
 supersedes the README's suggested placement (see Rejected Alternatives).
+
+## Clarifications
+
+### Session 2026-08-15
+
+- Q: When the server is asked to seat an artifact whose sha256 has no
+  registry row, should it refuse to start or warn and boot anyway? → A:
+  **Refuse** — startup error naming the artifact path + sha, same doctrine
+  as every other config validation failure. (Owner, direct.)
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -105,15 +114,15 @@ forget the update.
 hand-sync failure mode the owner explicitly rejected.
 
 **Independent Test**: Point a config at a valid artifact deliberately absent
-from the registry; boot; observe the specced startup behavior (FR-007). Run
-the repo test with a top-level artifact missing its row; observe the failure
-naming the file and its sha.
+from the registry; boot; observe the refusal naming the artifact and sha
+(FR-007). Run the repo test with a top-level artifact missing its row;
+observe the failure naming the file and its sha.
 
 **Acceptance Scenarios**:
 
 1. **Given** a config seating an artifact with no registry row, **When** the
-   server starts, **Then** the startup outcome follows FR-007 and names the
-   artifact path and sha256 either way.
+   server starts, **Then** startup fails with an error naming the artifact
+   path and sha256 (FR-007).
 2. **Given** a `.ckpolicy` at `policies/` top level with no registry row (or a
    row whose sha matches no file and no retired row), **When** the test suite
    runs, **Then** a test fails naming the mismatch.
@@ -175,17 +184,15 @@ naming the file and its sha.
   and the client contract is render-verbatim with fallback to the model id
   when the field is absent. (Client-side rendering is the Client thread's
   work; this spec defines only the served contract.)
-- **FR-007**: Seating an artifact whose sha256 has no registry row MUST NOT
-  pass silently at startup. [NEEDS CLARIFICATION: owner's taste — **warn**
-  (log loudly, serve no description, boot anyway) or **refuse** (startup
-  error, same doctrine as every other config validation failure)?
-  Recommendation: refuse — `policies/README.md` already rules "a file without
-  a row … is a deployment error," and every comparable validation here
-  (unknown behavior name, missing artifact, schema mismatch, missing plugin
-  binary) stops startup with an error naming the field. A warning in a log
-  nobody reads is how the registry rots. Refusal is safe for the frozen box:
-  the new binary reaches it only at the phase-1 rollout, whose artifacts get
-  rows at certification per FR-003.]
+- **FR-007**: Seating an artifact whose sha256 has no registry row MUST
+  **refuse startup** with an error naming the artifact path and sha256
+  (owner ruling, 2026-08-15) — the same doctrine as every other config
+  validation failure here (unknown behavior name, missing artifact, schema
+  mismatch, missing plugin binary), and the enforcement arm of
+  `policies/README.md`'s existing rule that a file without a row is a
+  deployment error. No warn mode, no opt-out. Refusal cannot strand the
+  frozen box: the new binary reaches it only at the phase-1 rollout, whose
+  artifacts get rows at certification per FR-003.
 - **FR-008**: A repository test MUST enforce registry integrity independent of
   any seating: the registry parses, rows carry all required fields, no
   duplicate keys, and every `.ckpolicy` at `policies/` top level has a row

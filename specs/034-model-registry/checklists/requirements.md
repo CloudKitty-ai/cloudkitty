@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain (FR-007: warn vs refuse — owner's question, flagged as such in the relayed shape)
+- [x] No [NEEDS CLARIFICATION] markers remain (FR-007 resolved: refuse — owner ruling 2026-08-15)
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -25,12 +25,12 @@
 ## Feature Readiness
 
 - [x] All functional requirements have clear acceptance criteria
-- [ ] User scenarios cover primary flows (US3 acceptance scenario 1 resolves with FR-007)
+- [x] User scenarios cover primary flows
 - [x] Feature meets measurable outcomes defined in Success Criteria
 - [x] No implementation details leak into specification
 
 ## Notes
 
-- The single open item is the owner-taste question the shape itself flagged:
-  FR-007 warn-vs-refuse. Spec recommends refuse. Resolves at `/speckit-clarify`
-  or by direct owner word; everything else is plan-ready.
+- 16/16. The one owner-taste question the shape flagged (FR-007
+  warn-vs-refuse) was answered directly by the owner 2026-08-15: refuse.
+  Recorded in the spec's Clarifications section. Plan-ready.
