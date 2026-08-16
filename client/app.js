@@ -1476,18 +1476,21 @@ function traitFill(t) {
  * every artifact's own filename. Scripted seats take no parenthetical
  * because they have no artifact to name.
  *
- * `behavior_description` is ABSENT rather than empty in two cases that mean
- * opposite things, and a kitty alone cannot tell them apart:
+ * `behavior_description` is ABSENT rather than empty in cases that mean
+ * opposite things, and they are separated in two steps.
  *
- *   - a PLUGIN seat, post-034: an external process has no certification
- *     record. A plugin also names itself exactly like a builtin, with no
- *     prefix, so there is no clue in `behavior` either.
- *   - ANY kitty on a pre-034 engine -- which is what the served box runs
- *     for the whole wall window.
+ * A POLICY seat is unambiguous, because of an engine-side invariant (owner,
+ * 2026-08-16): a 034 engine refuses to start when a seated policy has no
+ * registry row, so an artifact cannot run until it is recertified and
+ * described. A policy seat with no description therefore can only be an
+ * OLDER ENGINE -- which is what the served box runs for the whole wall
+ * window -- and it keeps the pre-034 rendering. It is never a plugin.
  *
- * So the question is asked of the WORLD, not the cat: if any kitty carries a
- * description, the engine stamps them, and absence can only be a plugin.
- * Otherwise this is an old engine and the pre-034 rendering is still right.
+ * A BARE name is the ambiguous one, because a plugin names itself exactly
+ * like a builtin, with no prefix. On a pre-034 engine it is a builtin with
+ * nothing stamped; on a 034 engine every builtin says "Scripted", so what is
+ * left can only be a plugin. That question is asked of the WORLD rather than
+ * the cat: if any kitty carries a description, the engine stamps them.
  * Reading absence alone would have relabelled every cat on the live box
  * "Plugin" the moment this shipped.
  *
@@ -1500,9 +1503,10 @@ function mindTextFor(kitty, world = latestWorld) {
   const id = behavior.startsWith('policy:') ? behavior.slice('policy:'.length) : '';
   const kind = kitty.behavior_description;
   if (kind) return id ? `${kind} (${id})` : kind;
+  if (id) return id;
   const engineDescribes = (world?.kitties ?? []).some((k) => k.behavior_description);
   if (engineDescribes) return 'Plugin';
-  return id || behavior || 'no policy seated';
+  return behavior || 'no policy seated';
 }
 
 function openTraitsDialog(kitty) {

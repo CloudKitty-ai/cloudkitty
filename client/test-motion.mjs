@@ -4883,6 +4883,13 @@ check('the about names the kind of mind, and which one', () => {
   const pre = seat('policy:attn-a1-s1', undefined);
   assert(mindTextFor(pre, world(pre, seat('policy:attn-a1-s3', undefined))) === 'attn-a1-s1',
     `a pre-034 policy seat reads "${mindTextFor(pre, world(pre))}"`);
+  // A described policy seat NEVER falls to "Plugin", even sitting in a world
+  // that describes others. A 034 engine refuses to start an undescribed
+  // policy (the artifact has to be recertified first), so this state can
+  // only be an old engine -- and calling it a plugin would be the one thing
+  // it definitely is not.
+  assert(mindTextFor(pre, world(miso, pre)) === 'attn-a1-s1',
+    `an undescribed policy seat reads "${mindTextFor(pre, world(miso, pre))}"`);
   assert(mindTextFor({}, world()) === 'no policy seated', 'an unseated cat says nothing sensible');
 });
 check('every cat on the roster wears her own coat', () => {
