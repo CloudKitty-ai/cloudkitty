@@ -32,9 +32,25 @@ const MAP_MAX_PX = 1200;
  * phones may scroll for the cards). */
 const VERTICAL_SLACK = 30;
 
+/* The free register (spec 033). These are SOUND-named, not law-named: the
+ * word denotes the noise and means nothing until the cats decide otherwise,
+ * so the viewer is shown the sound itself. Glossing `mew` as "Follow me!"
+ * would reassert exactly the meaning its rename stripped, and FR-002b makes
+ * that a naming-law violation -- a bubble is a name the viewer reads.
+ * Owner's ruling, 2026-08-15: the client renders sound-words AS-IS.
+ *
+ * `trill` and `ekekek` are config-off reserves. They are written here anyway
+ * so that arming them for the post-fog language-capacity work stays a pure
+ * config flip with no client change, which is the point of holding them. */
+const SOUND_WORDS = ['mew', 'chirp', 'trill', 'ekekek'];
+
 const MEOW_TEXT = {
   want_eat: 'I want to eat!',
   want_drink: 'I want to drink!',
+  // Pre-wall only. The served box still runs its pre-wall binary and emits
+  // this, so it is load-bearing until the phase-1 --fresh; the engine has no
+  // FollowMe variant after that, so it simply stops arriving and this line
+  // becomes housekeeping. Both keys carry the same copy across the cutover.
   follow_me: 'Follow me!',
   want_play: 'I want to play!',
   want_cuddle: 'I want to cuddle!',
@@ -48,7 +64,16 @@ const MEOW_TEXT = {
   // so the only symptom would have been a bubble with nothing to say.
   want_bath: 'Bath time!',
   want_sleep: 'I’m sleepy!',
+  // The Here family (spec 033), owner's copy, verbatim. Law-named, and the
+  // law is ADJACENCY: the cat is standing beside the thing it announces, so
+  // these read as "right here" rather than as a report from across the
+  // meadow. here_critter is play-predicate only.
+  here_food: 'Here food!',
+  here_water: 'Here drink!',
+  here_critter: 'Here bug!',
+  here_sunbeam: 'Here warm!',
 };
+for (const word of SOUND_WORDS) MEOW_TEXT[word] = word;
 
 /** The greeble wisp's face -- decided at the 007 gallery gate (2026-07-20):
  * the tiny grin of a creature that knows exactly what it's doing. */

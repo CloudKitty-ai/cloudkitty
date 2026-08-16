@@ -9,7 +9,7 @@
  * be command-for-command the held pose) through a guarding mock ctx that
  * throws on any non-finite numeric argument.
  */
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -68,11 +68,11 @@ const SHIPPED_BLOCKS = Object.fromEntries(
 const VIEW = api.VIEW;
 const {
   poseFor, ACTION_POSE, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose,
-  swimAxialAllows, gazeTargetFor,
+  swimAxialAllows, gazeTargetFor, MEOW_TEXT, SOUND_WORDS,
 } = eval(
   renderSrc +
     ';({ poseFor, ACTION_POSE, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose,' +
-    ' swimAxialAllows, gazeTargetFor })',
+    ' swimAxialAllows, gazeTargetFor, MEOW_TEXT, SOUND_WORDS })',
 );
 
 /** Canvas ctx stand-in: logs every command, throws on non-finite numbers. */
@@ -4815,6 +4815,53 @@ check("the about survives a phase change, and the owner's words survive us", () 
       assert(/var\(--/.test(c), `${selector} names a colour literal (${c.trim()}), wrong for half the day`);
     }
   }
+});
+check('every word the engine can say has a bubble', () => {
+  // Read the vocabulary from the ENGINE, not from a list restated here. The
+  // spec-033 gap this guards was exactly a restatement going stale: the
+  // client's map still said `follow_me` months after the engine renamed it
+  // to `mew`, and all four Here words plus chirp fell through to the '…'
+  // fallback -- graceful, silent, and wrong in every bubble.
+  //
+  // Coupling to a Rust path is deliberate. It is the only thing that would
+  // have caught this, and if the file moves, this failing is the correct
+  // outcome: the vocabulary's home changed and the client's copy needs a
+  // human look. A skip here would pass while saying nothing.
+  const meowRs = join(here, '..', 'crates', 'cloudkitty-core', 'src', 'meow.rs');
+  assert(existsSync(meowRs), `the engine vocabulary moved from ${meowRs}`);
+  const rust = readFileSync(meowRs, 'utf8');
+  const body = rust.slice(rust.indexOf('pub fn wire_name'));
+  const kinds = [...body.slice(0, body.indexOf('\n    }')).matchAll(/=>\s*"([a-z_]+)"/g)]
+    .map((m) => m[1]);
+  assert(kinds.length >= 15, `only parsed ${kinds.length} kinds out of meow.rs`);
+
+  // Read the EVALUATED table, not the source text. The first cut of this
+  // check sliced the object literal, and a mutation that glossed `mew` on
+  // the line after it sailed straight through -- the table is built in two
+  // steps and only the finished value is what a bubble reads.
+  for (const kind of kinds) {
+    assert(typeof MEOW_TEXT[kind] === 'string' && MEOW_TEXT[kind],
+      `the engine can say "${kind}" and the client draws '…' for it`);
+  }
+  // The free register is shown as the sound itself. Glossing one would put a
+  // meaning on a word whose predicate does not carry it (FR-002b), so the
+  // rule is asserted rather than the presence of an entry.
+  assert(SOUND_WORDS.length === 4, `expected 4 sound-words, found ${SOUND_WORDS.length}`);
+  for (const word of SOUND_WORDS) {
+    assert(MEOW_TEXT[word] === word,
+      `${word} is a sound-word but renders as "${MEOW_TEXT[word]}"`);
+  }
+  // The owner's copy ships verbatim, and each Here word must land on the
+  // kind whose law it describes -- warm is the sunbeam, bug is the critter.
+  // Mapping these by the order she wrote them would have crossed both.
+  for (const [kind, copy] of [['here_food', 'Here food!'], ['here_water', 'Here drink!'],
+    ['here_critter', 'Here bug!'], ['here_sunbeam', 'Here warm!']]) {
+    assert(MEOW_TEXT[kind] === copy,
+      `${kind} reads "${MEOW_TEXT[kind]}", not "${copy}"`);
+  }
+  // Pre-wall the served box still emits follow_me; dropping it before the
+  // cutover deletes the only bubble that word draws today.
+  assert(MEOW_TEXT.follow_me, 'follow_me is gone, and the pre-wall box still emits it');
 });
 check('no check left a dial moved behind it', () => {
   // Must be LAST. Half the file dials a value, draws, and puts it back;
