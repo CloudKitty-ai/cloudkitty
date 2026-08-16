@@ -45,13 +45,22 @@ evidence; this register is the evolving knowledge layer on top of them.
 | F-008 | superseded → F-010 | All-policy collapse read as long-horizon coordination instability |
 | F-009 | active · **promoted** | Every dimension an instrument holds fixed bounds the failures it can detect |
 | F-010 | active | Roster-OOD fragility: an empty kitty slot can collapse an exp-001 policy |
-| F-011 | active | Meow restraint is a reward-structure equilibrium, not an engine guarantee |
+| F-011 | superseded → F-018 | Meow restraint is a reward-structure equilibrium, not an engine guarantee |
 | F-012 | active | Channel use is context-dependent; measure in policy company, not solo |
 | F-013 | active | The 024 batch rewired the credit landscape; the served world gained a cooperative band |
 | F-014 | active | Post-024 world search: the served world wins as it stands; knob landscape flat |
 | F-015 | active | Pooled probes dilute under heterogeneous class amplitudes; condition by class |
 | F-016 | active | Raising bath_gain increases scripted on-water time via the grooming channel |
 | F-017 | active | The multi-copy collapse is largely a symmetry artifact; sampling dissolves it |
+| F-018 | active | The channel is two-layer: legality is engine law, meaning is reward economics |
+| F-019 | active | Clone-then-leash preserves visible personality; unleashed welfare-RL erases it |
+| F-020 | active | Trait prices are social prices: the cost order inverts between scripted and policy company |
+| F-021 | active | Seeing beats pricing: one observation bit bought the water behavior no reward dial could |
+| F-022 | active | The channel comes alive through demonstration, then the policies author its meanings |
+| F-023 | active | Channel dials are listener-population properties; no composition-free optimum exists |
+| F-024 | active | Entity attention: welfare parity, 40% fewer params, structural robustness, wider expression space |
+| F-025 | active | Same recipe, different seed: dialects and cultures, mutually intelligible, welfare-coupled |
+| F-026 | active | Under global vision the channel is welfare-redundant — the measured baseline fog must overturn |
 
 ---
 
@@ -336,40 +345,23 @@ implicate something beyond slot support).
 **Re-verify when**: exp-002 candidates reach screening; any change to
 the obs slot encoding or slot count.
 
-## F-011 · active · Design premise: meow restraint is a reward-structure equilibrium, not an engine guarantee (spec 023)
+*(Trigger FIRED at the attention generation, 2026-08-13/14: the
+encoding changed (entity tokens, spec 030). Addressed operationally,
+not by a dedicated retest — the certification battery's stress shapes
+(iii/r3/r5, the §9.2 bar-225 gate) bake vacancy patterns into every
+candidate screen, and the attention-era candidates passed with no
+catatonia; roster 5 with `kitty_slots` 3 makes someone-always-unslotted
+a *designed* condition of the phase-1 world. The encoding-level retest
+proper folds into phase 2, where variable entity tokens make absence a
+normal input (ROADMAP).)*
 
-Spec 023 retired the engine-enforced meow cooldown ("manners, not
-law"): learned agents face no rate limit on the channel. The spam
-backstop is now *economics under the cooperative team reward* — a
-meow costs a turn, misleading teammates lowers the shared objective,
-and an always-on signal devalues its own contrast in the presence
-digest. Evidence the equilibrium is real: s6 settled at ~0.1% meow
-rate with functional listening on the receiving end, under no
-compulsion beyond the (old) cooldown.
+## F-011 · superseded by F-018 · Meow restraint is a reward-structure equilibrium, not an engine guarantee
 
-**Scope**: any training or serving configuration using CloudKitty's
-cooperative team reward. The premise is the *reward structure*, not
-the policy class.
-
-**Evidence**: issue #84 (design record); spec 023;
-[meow-listening probe](exp-001-bc-mappo/results/meow-listening-2026-07-31.md);
-[s6 promotion record](exp-001-bc-mappo/results/s6-promotion-2026-07-30.md).
-
-**Implications**:
-- **Any per-kitty or competitive reward design voids the premise.**
-  Revisit spec 023 before training under such a reward — a
-  self-interested agent may find channel manipulation or saturation
-  profitable, and the engine will not stop it.
-- Scripted behaviors are not covered by the economics; their restraint
-  is the behavior-level courtesy values (`[meow] courtesy_ticks`),
-  which any new scripted behavior must also consult.
-
-**Would invalidate**: a cooperative-reward policy learning sustained
-channel saturation that survives training (would show the economic
-argument insufficient even under shared reward).
-
-**Re-verify when**: any reward-structure change; exp-002 candidate
-screening (check channel-use rates alongside welfare).
+Held from spec 023 (no engine rate limit; restraint priced by the
+turn cost and team reward) until spec 028 removed the turn cost
+(ride-along head) and returned the cooldown as mask legality — law,
+not manners. The reward-structure half survives in F-018. Full text:
+[FINDINGS-ARCHIVE.md](FINDINGS-ARCHIVE.md).
 
 ## F-012 · active · Channel use is context-dependent: solo probes underestimate a policy's meow behavior
 
@@ -476,6 +468,16 @@ mortality as its predecessors).
 first exp-002 policy artifact reaches candidate stage (policy-seated
 probe, both worlds, per the F-001→F-003 standing trigger).
 
+*(Trigger FIRED repeatedly since: the served world moved to 20×20
+(PR #127, 2026-08-08) and the engine stamp through `cba976da…` →
+`412d00e2…` → `5d293c67…` (026/027, 028, the 031+033 wall). The band
+quantities and the 24×24 location claims above are historical; the
+class-conditioned re-measurements of 2026-08-09 (see F-015's note) are
+the most recent credit reference, and a full re-baseline on the
+post-wall stamp is queued as phase-1 re-baseline work
+(phase1-design-inputs.md §4). The two-channel structure has
+re-confirmed at every re-measurement.)*
+
 ## F-014 · active · Post-024 world search: the served world wins as it stands; the knob landscape is flat at 100-world power
 
 Measured 2026-08-02 (F-013's recommended slimmed search, executed:
@@ -521,6 +523,14 @@ landscape (the standing caveat everywhere).
 **Re-verify when**: any engine-defaults or served-config change;
 exp-002 candidate stage (policy-seated probe re-ranks the worlds that
 matter).
+
+*(Same fired-trigger status as F-013 — served config and engine both
+moved (20×20, stamps through `5d293c67…`). The search's negative
+result (no knob beats the served shape) was re-affirmed in spirit by
+the 2026-08-15 world-size screen (proportional 22×22 bought nothing,
+zero-distress at 20×20 with five bodies; trait-screen results.md),
+but trait spreads — explicitly unsearched above — enter the phase-1
+family per its design inputs.)*
 
 ## F-015 · active · Pooled all-action probes dilute under heterogeneous class amplitudes; class-conditioned batches carry the credit signal
 
@@ -590,6 +600,11 @@ credit is below reliable measurement at standard batch sizes on this
 engine
 ([play-share.md](exp-004-rebaseline-2026-08-09/play-share/play-share.md)).)*
 
+*(Trigger FIRED AGAIN, 2026-08-16 review: the 031+033 wall moved the
+stamp to `5d293c67…` with no class-credit re-measurement since. Queued
+as the phase-1 class-credit re-baseline (phase1-design-inputs.md §4);
+the dilution mechanism itself is instrument-generic and stands.)*
+
 ---
 
 ## F-016 · active · The wet-fur dial subsidises the behaviour it prices: raising bath_gain increases scripted on-water time through the grooming channel
@@ -649,6 +664,12 @@ grooming loop re-arms) rather than the gain.
 happiness weight, or the wet-fur charge move; and — first opportunity —
 when a schema-2 policy exists, since point 3 predicts it will not
 follow the scripted direction.
+
+*(Status note, 2026-08-16 review: the bath dials themselves are
+unchanged through the 033 wall (the stamp moves came from other
+fields), and the point-3 prediction remains unmeasured — schema-2+
+policies have existed since exp-003, but no paired policy-side dial
+measurement has run. Standing, not fired.)*
 
 ---
 
@@ -723,3 +744,502 @@ assumption.
 effect depends on distributions being sharp); a policy trained with any
 explicit symmetry-breaking or coordination mechanism exists; or the
 action menu changes such that resource targets stop being indivisible.
+
+*(Trigger FIRED and absorbed into operating practice, 2026-08-08/09:
+the exp-004 groundwork closed sampled selection for the served world
+(greedy stays), and the §9.2 respec this finding demanded became the
+bar-225 gate (max(1, floor(0.05n)) exceedances, stress shapes
+iii/r3/r5) — the identical-copies stress is now a standing battery
+condition rather than a disqualifying surprise. The "principled
+resolution" implication came true: exp-004-era policies are
+meow-equipped and use the channel (~100/1k vs the 0.01–0.41 measured
+above), and the attention-era candidates pass the iii shape within the
+bar. Heterogeneous per-seat traits (phase 1) de-symmetrize the roster
+further by construction.)*
+
+---
+
+## F-018 · active · The channel is two-layer by design: legality is engine law, meaning is reward economics (supersedes F-011)
+
+Settled across specs 028 and 033 (2026-08-09 → 2026-08-15) and
+measured through exp-004 and the attention generation. The channel's
+architecture split F-011's single "economics" story into two layers
+with different guarantors:
+
+1. **The legality floor is law.** The cooldown lives in the mask
+   (per-cat-per-kind — an illegal meow cannot be selected, not
+   merely discouraged); law-named kinds (Purr, Here* 9–12) carry
+   grounded predicates the engine verifies at emission (adjacency
+   family-wide, purr_earned); the naming law (033 FR-002b) forbids a
+   kind's name asserting meaning its predicate doesn't enforce. spec
+   028 also removed F-011's central cost mechanism: the ride-along
+   head means a meow no longer costs a turn, and measured channel
+   rates rose accordingly (~100/1k vs the old ~0.1% — the turn-cost
+   economics F-011 leaned on are gone).
+2. **Everything above the floor is still equilibrium.** The engine
+   guarantees EMISSION-TIME truth only (owner pin, spec 033):
+   referent preservation, listening, restraint beyond the cooldown,
+   and the meaning of the sound-named free register (mew, chirp,
+   trill, ekekek) are learned team-reward equilibria with no engine
+   mechanism — docs/meows.md carries this as its non-guarantees
+   section. F-011's surviving clause carries forward verbatim: **any
+   per-kitty or competitive reward term voids this layer** (this is
+   why exp-004 used team-level potential shaping only, and why the
+   leash is a constraint, never an objective — F-019).
+
+**Scope**: the post-028 two-head decision surface, any policy class;
+layer 1 is engine law wherever the mask/legality path is used
+(bc-collect, PPO env, serving); layer 2 assumes the cooperative team
+reward.
+
+**Evidence**: spec 028 + exp-004 results (rates, responder gate,
+imitability design records); spec 033 (naming law, grounded
+predicates, emission-time-truth pin); docs/meows.md non-guarantees;
+F-011's archived record for the pre-028 world.
+
+**Implications**: channel claims must name their layer — "cats can't
+spam HereFood at a bare tile" is law; "cats don't announce food they
+intend to abandon" is an equilibrium to *measure*, never assume
+(hosting/courtesy measurement duties are registered for the fog era).
+Certification watches layer-2 quantities (channel rates, listening)
+because nothing else enforces them.
+
+**Would invalidate**: an engine mechanism that enforces meaning
+(would collapse the layers — flagged in 033 as deliberately rejected:
+pinned coordinates were refused to keep emitter-tracking honest); a
+cooperative-reward policy sustaining channel saturation *within*
+legality (would show the floor too low, echoing F-011's original
+invalidation clause).
+
+**Re-verify when**: any reward-structure change; any legality-flag or
+vocabulary change (the reserves arming, fog-era Here* activation);
+the first plugin/LLM seat (whose proposals bypass training economics
+entirely — only layer 1 constrains it).
+
+## F-019 · active · Clone-then-leash preserves visible personality; unleashed welfare-RL erases it (exp-005, the dose-response)
+
+Measured 2026-08-16 on the frozen exp-005 design (β∞ ∈ {0, 0.05,
+0.2} × 2 seeds, A1 recipe, playful-Biscuit clone as init AND anchor,
+fingerprints in the demonstration composition per F-012).
+
+1. **The erosion is real and total at β∞=0**: both control seeds
+   collapse the fingerprint (play_share −68%/−61% relative,
+   bug_over_meal → 0, duets → 5%, near-critters → a quarter) while
+   gaining ~14 happiness — the sunbeam/want-word pattern, now
+   measured end to end on a registered design.
+2. **A held KL floor stops it**: at β∞=0.05 the fingerprint is
+   substantially anchor-grade and welfare still recovers +5–7; at
+   0.2 the fingerprint is anchor-grade and welfare recovers ZERO —
+   the strong leash is expensive cloning. The knee of the trade is
+   at-or-below 0.05; decision metrics saturate between 0.05 and 0.2.
+3. **The leash bound trajectories, not just decisions** (the
+   registered H4 risk did NOT materialize): time_near_critters stays
+   anchor-grade at both doses under global vision.
+4. **The most welfare-expensive expression erodes first, with seed
+   lottery**: duet initiation is the most eroded and most
+   seed-variable metric at every dose (−56/−42% at 0.05, −54/−20% at
+   0.2). A dose alone cannot secure a social-play identity claim;
+   the fingerprint gate needs a floor on the specific expression,
+   and candidates will vary against it seed to seed.
+
+**Scope**: EntityPolicy on the pre-wall 197 surface, global vision,
+the A1 recipe with β0=0.5 annealed over 20% then held, one
+personality (playful) and one methodological anchor at pre-rebalance
+traits. Dose numbers are recipe- and personality-conditional; the
+qualitative structure (collapse at zero, knee near the low end,
+first-eroded = most-expensive expression) is the claim.
+
+**Evidence**: [dose-response](exp-005-leash/results/dose-response-2026-08-16.md);
+[clone + probe](exp-005-leash/results/clone-2026-08-15.md); prereg
+with D-001 extension (β∞ 0.03/0.04, descriptive, pending at
+registration of this finding).
+
+**Implications**: the lineage doctrine for phase 1 — clone from
+healthy-composition demonstrations, PPO with a held-β∞ leash chosen
+from this curve's low end, fingerprint-gate every candidate
+per-expression (duet floors explicitly), expect and budget for seed
+lottery (train several, gate, keep the passers). H4's trajectory
+concern stays registered for the fog era, where the information
+geometry changes.
+
+**Would invalidate**: a personality whose fingerprint collapses at
+doses that preserve this one (would make the curve
+personality-specific in structure, not just magnitude); trajectory
+collapse at a fingerprint-preserving dose under fog (H4's return).
+
+**Re-verify when**: phase-1 lineage arms (production anchors,
+post-rebalance traits, roster-5 world); any recipe change to the
+anneal shape; the fog generation.
+
+## F-020 · active · Trait prices are social prices: the cost order inverts between scripted and policy company (the exchange table)
+
+Measured 2026-08-15 (trait-screen stages 1–2 + direct verifications:
+6 needs × 4 factors, 10 paired seeds × 20k per cell, carrier-seat
+design, scripted company then deployed roster-B company).
+
+1. **The whole [0.5×, 2×] envelope is constitution-safe** in both
+   companies (zero distress in 250+ runs) — the measured floor
+   behind the ≥0.5× discount rule.
+2. **The price order inverts with company.** Scripted: cuddle is the
+   priciest axis (relief needs a willing adjacent partner; scripted
+   cats rarely cosleep). Policy: the social needs halve (cuddle
+   −58%, play −51%, sleep/bath −34/35%) while the consumables hold
+   or rise (eat unchanged, drink +16% — contested water). Resource
+   physics does not adapt; affection economics does. Discounts also
+   buy less under policy (adapted cats have less slack to harvest).
+3. **Additivity holds at design magnitudes**: 8-for-8 verified
+   vectors within ~0.1 happiness of their marginal-sum predictions —
+   the exchange table works as a design tool, derive-then-verify.
+4. **Volatility is forecastable by need structure**: pack-need rates
+   (cuddle/bath/sleep) are society-mortal — they move with who's
+   seated; travel-need rates (eat/drink) are physics-stable, moved
+   only by contention. Re-measure pack rows first at each
+   re-derivation; travel rows and all structural PAIRINGS carry.
+
+**Scope**: served 20×20 geometry, engine `412d00e2…`, carrier-seat
+instrument (rates are carrier-conditional — measured with the
+cuddler carrying), scripted and roster-B policy brackets. All rates
+are bracket- and generation-mortal by design (stage 3 re-derives
+under the spread-trained generation); the structural claims (2) and
+(4) are the durable layer.
+
+**Evidence**: [trait-screen results](trait-screen-2026-08-15/results.md)
+(both brackets, verification tables, the five locked sheets);
+character-design brainstorm (need-structure taxonomy, verified
+against engine source).
+
+**Implications**: trait characters are designed from the CURRENT
+bracket's table and re-derived each generation (the config rider's
+pins carry the owner's stage-3-mortality note); pairing rules are
+rate-free and survive re-derivation (match discount structure to
+signature structure); Clementine's cuddle-0.7 design is a bet on
+policy-company prices — her scripted reading is expected-low
+(confirmed: 90.61, lowest healthy seat in the post-wall anchor).
+
+**Would invalidate**: additivity breaking at larger dial magnitudes
+or higher dial counts; a policy bracket where consumable prices
+adapt (would show the physics/economics split is company-specific,
+not structural).
+
+**Re-verify when**: any generation change (stage-3 re-derive, pack
+rows first); world geometry or element-economy changes; the fog era
+(vision changes the partner-finding economics that price pack
+needs).
+
+---
+
+## F-021 · active · Seeing beats pricing: a single self-observation bit bought the water behavior no reward dial could (exp-003)
+
+Measured 2026-08-07 on the post-026/027 engine (stamp `cba976da…`).
+exp-002 falsified the pricing route: no wet-fur dial setting bought
+deployed water avoidance at welfare-neutral cost (its gates
+extrapolated to dial 4.8–5.6, 3–4× shipped). exp-003 fixed the dial
+at 3.5/60, added ONE bit — the in-water self-observation flag (obs
+182→183, schema 1→2) — and registered no dial arm and no escalation
+clause.
+
+1. **The bit worked where the dial could not**: 7/9 candidates
+   inside the registered water band, 9/9 under the in-water ceiling
+   (1.5×B = 5.15%), 9/9 above the drink floor; both misses were
+   lounging only. The selected candidate is *drier than scripted* —
+   in-water 2.79% vs B 3.44%, lounging 0.62% vs 1.50% — at +0.042
+   welfare over needs_driven.
+2. **The F-016 loop dissolves under observability**: scripted cats
+   groom *more* on water as the dial rises (wetness raises Bath, a
+   needs_driven cat bathes where it stands); policy candidates
+   groom-on-water at 0.12–0.75% — a policy that can see it is wet
+   does not do that. F-016 point 3's prediction (scripted and
+   learned move oppositely on this channel), confirmed.
+3. **Routing, not luck**: the lake-retrofit accident enlarged served
+   water 8→11 tiles; scripted B *rose* 3.44→3.66% while the policy
+   *fell* 2.91→2.83% — policy water use is insensitive to water
+   availability.
+4. Methodology that carried: band bounds registered as MULTIPLES of
+   the same-engine scripted baseline B, never absolutes — B is
+   re-measured whenever the stamp moves, so thresholds keep their
+   meaning across engines.
+
+**Scope**: MLP policy class on obs schema 2, served world, dials
+fixed at 3.5/60; 10 seeds × 20k (band), 30 × 20k (welfare). The
+principle — make the cost observable rather than raising it — is
+the generalizable claim; the shares are engine-mortal.
+
+**Evidence**:
+[grid-2026-08-07.md](exp-003-water-schema/results/grid-2026-08-07.md)
+(§9.1, the standout, the lake section);
+[water-band summary](exp-003-water-schema/results/water-band-2026-08-07/);
+exp-003 prereg §1–§3 (the registered refusal to escalate the dial).
+
+**Implications**: when a behavior needs steering, reach for
+observability before reward surgery — the bit is schema-versioned,
+priced once, and F-011-safe, where a dial fights adaptation forever.
+(exp-003's other headline — H5's 0/9 zero gate — is not a finding
+about these policies: F-017 showed the gate conflated coordination
+with competence, and its respec became the bar-225 battery.)
+
+**Would invalidate**: a dial setting matching the bit's water profile
+at welfare-neutral cost; a schema bit failing to move a behavior the
+policy demonstrably attends to.
+
+**Re-verify when**: B re-measures on any stamp move (standing, by
+construction); fog-era vision changes what "observable" means.
+
+## F-022 · active · The channel comes alive through demonstration, then the policies author its meanings (exp-004)
+
+Measured 2026-08-09/11 on the 028 surface (197 obs, ride-along head,
+stamp `412d00e2…`). All five registered hypotheses supported; 15/15
+runs passed the respecified §9.2 gate (vs exp-003's 0/9 under the
+overtight zero gate).
+
+1. **Demonstrations seed the channel; exploration does not.**
+   exp-003's near-empty channel (0.2% of dataset decisions, three of
+   six kinds; clone predicted meows at 0.0000 accuracy) never came
+   alive — greedy meow/1k 0.01–0.41 after 20M PPO ticks. exp-004's
+   purr-rich v4 demonstrations cloned at 104.66/1k and certified at
+   ~170/1k. Same recipe family, same reward; the difference was
+   what the clone had seen.
+2. **Once seeded, the policies author meanings.** Purr: deliberate
+   on both ends (declines ~24 of 25 legal chances; erasing it flips
+   6.3% of hearer activity decisions, 450× the null; answered
+   society-wide +21pp within 10 ticks) and semantically a CONTACT
+   CALL — emitted at excursion apogee, redirecting approach *away*
+   ("I'm fine out here"), with the meet-lift speaker-driven.
+   FollowMe: **zero demonstrations, pure RL invention** — 255
+   emissions whose erasure flips 9.7%/19.3% of hearer decisions
+   (39× null), with semantics inverted from the spec's name to "I'm
+   coming" (speaker closes the gap; hearers are *released* from
+   approaching). The policies re-derived WaitForMe's designed
+   meaning — the one word spec 012 excluded — on a free label.
+3. **The channel needs no scripted anchor** (D1 diagnostic):
+   self-play arms kept it alive; mixing bought only its usual
+   welfare cost. And team-potential shaping (A1, c=0.5,
+   F-011/F-018-compliant) neither helped nor hurt — a registered
+   tie at the 0.002 margin, safe but not necessary at this budget.
+4. **Grounded legality makes the channel need-state-honest**: at
+   0.95 welfare the want-words go dormant (needs never reach the
+   announce threshold) and the hum that remains is Purr — "dormant,
+   not dead," with the census-first rule registered before any
+   threshold-lowering rollout.
+
+**Scope**: MLP on the 028 surface, cooperative team reward,
+20M-tick runs; purr/FollowMe pragmatics are screen-grade probes
+(F-004/F-009 bounds; FollowMe subgroup rows are dozens). Meanings
+are per-generation equilibria (see F-025), never engine guarantees
+(F-018 layer 2).
+
+**Evidence**:
+[grid + verdicts](exp-004-meow-channel/results/grid-2026-08-09.md);
+[purr-deliberateness](exp-004-meow-channel/results/purr-deliberateness-2026-08-10/results.md);
+[purr-semantics](exp-004-meow-channel/results/purr-semantics-2026-08-10/results.md);
+[followme](exp-004-meow-channel/results/followme-2026-08-11/results.md);
+exp-003's null: [grid-2026-08-07.md](exp-003-water-schema/results/grid-2026-08-07.md)
++ [bc-clone-2026-08-06.md](exp-003-water-schema/results/bc-clone-2026-08-06.md).
+
+**Implications**: lineage anchors are also *channel* anchors — what
+a generation's demonstrations speak is what its clones will speak
+(the imitability principle, operating); a vocabulary word's designed
+meaning is a hypothesis the cats may overturn (mew's history made
+this law-visible: the wall renamed it to a sound). Free-register
+words are cheap experiments — RL fills them.
+
+**Would invalidate**: a channel coming alive from exploration alone
+under this reward class; an authored meaning failing to replicate in
+its own generation's re-probe.
+
+**Re-verify when**: each new generation (meanings are equilibria —
+re-probe, don't assume); the fog era (F-026's condition changes the
+channel's payoff landscape entirely).
+
+## F-023 · active · Channel dials are listener-population properties; no composition-free optimum exists (the threshold curve)
+
+Measured 2026-08-09, four announce thresholds T ∈ {15, 20, 25, 30}
+under three listener populations (same engine, same worlds).
+
+1. Scripted company: lowering T *helps* (+0.0018 ± 0.0004 at the
+   T20 nominal peak; 9/10 seeds).
+2. All-policy company: flat at zero for T ≥ 20; T15 −0.0011.
+3. **Mixed 2+2 (the deployed shape): smooth convex HARM** —
+   −0.0010 → −0.0067 → −0.0187 as T drops, every seed down at T15,
+   ~9× the certification margin, distress ticks 88 → 3,833.
+4. Want-traffic scales near-identically in all three (scripted
+   59→214/1k, policy 0.7→10.8) — the harm is not the traffic, it is
+   what each listener class *does* with it: scripted listeners
+   respond usefully, mistrained-on-quiet policy listeners respond
+   badly, and mixed company compounds both.
+
+The registered insight: **the optimal threshold is a property of
+the listener population, not the channel** — F-012's lesson
+(measure in the company you deploy) promoted from measurement to
+dial-setting.
+
+**Scope**: e004-era policies + scripted needs_driven, 10 seeds ×
+20k per cell, engine `412d00e2…`. The curve's numbers are
+generation-mortal; the composition-dependence structure is the
+claim.
+
+**Evidence**:
+[threshold-15-probe](exp-004-meow-channel/results/threshold-15-probe/results.md);
+[threshold-curve](exp-004-meow-channel/results/threshold-curve-2026-08-09/results.md).
+
+**Implications**: serving keeps T30 while dataset v5 collects at
+T15 — collection-time and serving-time dials may legitimately
+differ, because the collection's listeners are future (trained on
+the chatty data) while serving's listeners are present. Any dial
+whose effect routes through other agents' responses gets this
+treatment: set per composition, never globally.
+
+**Would invalidate / registered prediction**: v5-trained listeners
+(raised on chatty company) should FLATTEN the mixed/policy curves
+toward the scripted shape — re-measure at exactly T {15,20,25,30}
+when they exist. If the curves don't flatten, listener mistraining
+was the wrong mechanism.
+
+**Re-verify when**: the v5-listener generation (the registered
+prediction above); any announce-dial or cooldown change.
+
+## F-024 · active · Entity attention: welfare parity, 40% fewer parameters, structural robustness, and a wider expression space (the architecture arc)
+
+Measured 2026-08-12/13, all three stages recipe-identical to their
+MLP baselines with only the model swapped.
+
+1. **Critic**: EntityCritic val EV 0.555 vs MLP 0.53 at −36% params
+   (74.6k vs ~117k) — read as parity-at-least (one run each).
+2. **Clone**: activity top-1 79.9% vs 72.7% (+7.2pp) at −40% params
+   (77,083 vs ~128k), message head parity. The gain concentrates in
+   the multimodal classes (move 55.3→70.1, idle 39.3→45.3) — where
+   a dense head has to average, attention can attend.
+3. **PPO**: welfare parity — both classes saturate the ~0.95 band
+   this world supports. **The architectural difference is the
+   communication space**: five MLP seeds converged into a tight
+   86–154 meow/1k band; three attention seeds spread 167/355/808 at
+   no welfare cost — the class supports a much wider family of
+   channel equilibria (the raw material of F-025's cultures).
+4. **The F-010 answer, by construction**: identity lives in content
+   (shared type embeddings), never slot position; permutation
+   equivariance exact (8.3e-07 float noise); vacancy handled by
+   key-padding mask, shifting value smoothly instead of
+   extrapolating on an unseen zero pattern. Pointer heads (per-slot
+   menu logits from that slot's embedding) carry to schema 4's
+   variable rosters unchanged.
+
+**Scope**: obs schema 3 / 197 surface, A1 recipe, d64/4h/2L; critic
+and clone are single runs (no seed replication — margins are one
+draw), PPO three seeds. F-007's mask-violation fingerprint reads
+differently for pointer heads (vacant-slot logits are mask-owned).
+
+**Evidence**:
+[attn-critic results](attn-critic-2026-08-12/results.md);
+[attn-clone results](attn-clone-2026-08-12/results.md);
+[attn-ppo results](attn-ppo-2026-08-13/results.md).
+
+**Implications**: the attention generation seats on merit (certified
+2026-08-14) and phase 1 trains EntityPolicy by default; the
+schema-4/fog design leans on properties this arc demonstrated
+(vacancy-by-mask, variable tokens) rather than hoping for them.
+
+**Would invalidate**: seed replication erasing the clone margin; a
+schema-4 world where the pointer-head design fails to transfer.
+
+**Re-verify when**: schema 4 lands (the variable-roster claim meets
+reality); any trunk change.
+
+## F-025 · active · Same recipe, different seed: dialects and cultures — mutually intelligible, kin-biased, welfare-coupled (the meow economies)
+
+Measured 2026-08-14 across homogeneous and mixed rosters of the
+three attention seeds (probe band, seat-rotation so traits never
+confound model identity).
+
+1. **Dialects**: s1 purrs at above-baseline separation (2.87 emit
+   vs 2.53 declined — a contact call at excursion apogee, the
+   deployed generation's dialect); s3 at below-baseline (2.54 vs
+   3.73 — a proximity hum). Same word, opposite spatial deixis,
+   both stable equilibria differing only in RNG seed.
+2. **No devaluation at volume**: s3 purrs 4× as often as s1 (794 vs
+   192/1k) with undiminished per-purr causal potency (7.6% vs 6.5%
+   act-flip) — the channel does not saturate at measured volumes
+   (79% duty cycle).
+3. **Mutual intelligibility with kin bias**: cross-model act-flip
+   7.3–7.4% vs same-model 7.8–8.9% (action semantics transfer);
+   answering is kin-biased (same-model echo 20–26% vs cross 16–18%);
+   voices stable in mixed company.
+4. **Culture, welfare-coupled**: s3 is a groomer culture (GroomKitty
+   12.0% of decisions vs 0.14/0.45% siblings — an 85× spread on
+   classes dead in every pre-v4 generation). In mixed company it
+   keeps giving unreciprocated, asks quadruple, drifts peripheral —
+   and its welfare tracks its audience: 94.87 among kin → 93.93
+   alone (−0.94), with kin recovering ~60% of the deficit. F-012's
+   audience-dependence, surfacing at the welfare level for the
+   first time.
+
+**Scope**: three seeds of one recipe on one surface; screen-grade
+(pooled probe seeds, no per-world clustering; the dose-response is
+stated because it is consistent across all three mixed compositions
+and both instruments). Certification of a heterogeneous roster must
+run the battery on THAT composition — the homogeneous numbers do
+not transfer (F-009).
+
+**Evidence**:
+[meow economies](attn-meow-econ-2026-08-14/results.md);
+[valence results](attn-meow-econ-2026-08-14/valence-results.md).
+
+**Implications**: seating is culture-pairing, not just
+skill-selection — roster composition is a welfare variable for
+cultured policies (the cross-gen roster's seat-paired accounting
+absorbs this; the doter kin pair exists because of it). The
+purrsonality register documents dialects per generation; lineage
+work (F-019) is how a chosen culture survives one.
+
+**Would invalidate**: dialects failing to replicate within their
+own generation's re-probe; per-purr potency collapsing at higher
+duty cycles.
+
+**Re-verify when**: each generation (dialects are seed-born — new
+seeds, new dialects); any roster/seating change involving a
+culture-carrying policy.
+
+## F-026 · active · Under global vision the channel is welfare-redundant — the measured baseline the fog generation must overturn
+
+Measured 2026-08-15 (digest ablation, deployed roster B, hearer-side
+per-kind digest zeroing, 4 arms × 10 seeds × 10k).
+
+1. **Deafening moves nothing**: team happiness intact 94.887,
+   purr-deaf 94.876, followme-deaf 94.873, both-deaf 94.900 — flat
+   within ±0.015, an order of magnitude inside the parity band.
+   Contact, cosleep, and grooming rates unmoved. The channel has
+   measured *function* (deafening removes the answer-driven ~15% of
+   purr volume — the chorus dies) without measurable *fitness*.
+2. The mechanism was already visible in the want-words: WantEat is
+   honest but inert (emitted 5.5–7.5 tiles from everyone —
+   under global vision it tells hearers nothing their eyes don't).
+   Everything a purr tells a hearer, the hearer already sees.
+3. **The registered whisper, not a claim**: distress ticks double
+   purr-deaf (37 → 78, 0.02% absolute). If fog-era ablations
+   reproduce it at scale, the purr's value was tail-risk insurance,
+   not mean welfare — the thing to look for first.
+
+**Scope**: frozen minds (a generation *trained* deaf could differ —
+the ablation removes input, not the training pressure);
+screen-grade, 10 seeds, global vision, 0.95-welfare abundance.
+This finding is deliberately a BASELINE: ROADMAP phase 2's
+registered comparison (does grounded reference beat
+FollowMe-overloading when fog creates an information gradient)
+is powered by having this null on record first.
+
+**Evidence**:
+[digest-ablation results](digest-ablation-2026-08-15/results.md);
+[meow economies addendum](attn-meow-econ-2026-08-14/results.md)
+(want-word pragmatics).
+
+**Implications**: no channel-value claims for the current
+generation beyond culture and welfare-neutrality (client-facing
+copy included); the Here* family's expected pre-fog inertness
+(phase-1 rider) is this finding's prediction, not a surprise;
+fog-era experiments inherit a clean before/after design.
+
+**Would invalidate**: a same-generation composition where deafening
+moves welfare outside the parity band (would mean the ablation
+missed a load-bearing path).
+
+**Re-verify when**: the fog generation (the entire point); any
+same-generation ablation at scale that can power the
+distress-doubling whisper.

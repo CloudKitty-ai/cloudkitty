@@ -51,7 +51,40 @@ decisions per trait condition at fixed collection budget. The design
 question is where between those poles phase 1 sits, and what the
 thinning actually costs.
 
-## 3. The five spread decisions (owner input wanted)
+## 3. The five spread decisions — ALL DECIDED (owner, 2026-08-16)
+
+Verdicts, recorded for the prereg to adopt-and-cite:
+
+- **3a — FULL ENVELOPE, distribution-shaped**: per-dial triangular
+  distribution, mode at the seat's served value, endpoints at the
+  measured envelope bounds (0.5×–2× of default). Full corner-to-
+  corner support with mass concentrated on the served sheets
+  (owner: "full coverage, centered on our served distribution,
+  proportionally less at the extremes"). Collection budget RAISED
+  for v5 to offset density loss (multiplier proposed at prereg
+  with cost numbers). Biscuit's play dial is one-sided by
+  construction (mode on the envelope edge).
+- **3b — OFF-RAIL** (free box; welfare safety lives at the cert
+  envelope corners, not in per-world balance).
+- **3c — canonical share 1-in-3**, movable by the 3e probe.
+- **3d — INDEPENDENT per-seat draws + a small CORNER STRATUM**
+  (a few worlds where each seat's dials draw from the envelope
+  extremes) — combination coverage for the estimator without
+  spurious correlations, plus guaranteed in-distribution support
+  for the certification corners.
+- **3e — the price probe ADOPTED** (pinned vs spread cells at
+  matched budget, v4 clone battery, per-class with play/chase
+  canary). Decision-rule thresholds set at prereg freeze.
+- **Roster-3 — RANDOM TRIOS STAY; the audit RECORDS, never
+  excludes.** Owner: lower welfare in odd trios "isn't even a
+  cost, it will help us identify stress points in the kitty
+  ecosystem." Trio QA cells become findings material (F-020's
+  predictions in the wild); exclusion only for catatonia-grade
+  breakage, with recorded reason. The gym is not the sanctuary.
+
+Original decision write-ups follow (rationale record):
+
+## 3-orig. The five spread decisions (as posed)
 
 **3a. Spread region.** Proposal: a per-seat box centered on the
 served vector, each dial sampled within the measured envelope
@@ -113,11 +146,26 @@ sampler.
 - **Post-wall python binding venv**: built at current main (surface
   225/34/16), pinned and printing its engine commit per the exp-005
   lesson. Lives with the phase-1 experiment dir when that opens.
-- **family-gen v5**: implement stratified trait spreads + the
-  playful/roster guarantees per PIPELINE. Tool change, Experiments'
-  own; the sampler-sequence caveat from v4 applies again (v5 will
-  not reproduce a v4 family byte-for-byte — version stamp carries
-  it).
+- **family-gen v6** (the tool was already at v5 — playful guarantee;
+  earlier docs' "v5" label for this work was stale): **BUILT
+  2026-08-16** per the decided §3 design — trait plans
+  canonical/spread/corner cycled on the roster-decorrelated block,
+  triangular-at-the-sheet sampling in factor space, `--traits
+  pinned` for the price probe's cell A, base-must-carry-a-playful
+  assert. Sampler-sequence caveat applies (v6 ≠ v5 byte-for-byte;
+  manifest stamp carries it).
+- **Collection-base fact found by the v6 smoke test**: the served
+  `cloudkitty.toml` carries only Pumpkin's and Clementine's sheets —
+  the Miso/Biscuit/Kittybear sheets are owner-locked design
+  (2026-08-15) that deliberately did NOT ship in the wall rider
+  (trait changes void the soaking world's certification; they land
+  at the phase-1 cutover). Consequence: the phase-1 collection base
+  = served config + the three locked sheets + demonstrator
+  behavior(s); a committed collect-config lands with the collection
+  work, and §1's "served cloudkitty.toml is the source of truth for
+  the vectors" holds only after the phase-1 seating rider. Without
+  the sheets, spread sampling centers Biscuit's play on 1.0 instead
+  of her signature 2.0 (verified both ways in the smoke test).
 - **Class-credit re-baseline, remaining steps** (F-013/F-015
   standing trigger; scripted anchor already banked): class-
   conditioned probe batches on the post-wall engine. Compute-shaped;
@@ -144,6 +192,30 @@ negligible, it stays a documented asymmetry; if not, the phase-1
 prereg decides what to do with it. (Do not conflate with exp-005's
 0.207% probe-band mask-mismatch — that band predates the Here*
 surface; its cause is cooldown-timing, not element state.)
+
+## 4c. Estimator-arm riders for the care-coupling program (owner
+direction 2026-08-16 — cheap now, load-bearing two generations out)
+
+The registered estimator aux head is also the future care-coupling
+experiment's instrument (ROADMAP parking lot: the interiority axis).
+Two near-free riders to write into the phase-1 prereg:
+
+- **Per-pair calibration logging, banked.** The aux head's
+  prediction error is logged anyway; log it PER (estimator, target)
+  PAIR and commit the curves — they are the pre-fog calibration
+  baseline for the eventual C-grounded/C-free comparison, and the
+  per-pair breakdown is mandatory there (a wireheader can stay
+  calibrated on cats it ignores; never read only the average).
+- **Aux-head weights stay in checkpoints.** The belief-intervention
+  diagnostic runs on torch checkpoints in the python harness (no
+  artifact/schema change ever needed for it) — so export can strip
+  the head from .ckpolicy, but checkpoint retention must not.
+
+Estimator progression, for orientation: phase 1 = the one unslotted
+cat (roster 5, kitty_slots 3 — real signal for exactly one seat at
+a time); fog = the out-of-view set, dynamic; interiority = everyone
+(trainer-side obs masking for research arms, engine wall only on
+seating).
 
 ## 5. Interactions worth remembering at prereg time
 

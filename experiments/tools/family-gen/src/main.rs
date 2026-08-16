@@ -70,6 +70,32 @@
 //!   - The [meow] surface is whatever the base carries — post-028 bases
 //!     emit the announce dials; a carried-over courtesy block refuses to
 //!     load in validation, by design (spec 028's migration signal).
+//!
+//!   v6 additions (phase-1 spread design, owner-decided 2026-08-16 —
+//!   `experiments/phase1-design-inputs.md` §3):
+//!   - **Trait spreads replace the old ±0.1 jitter and the bath ladder.**
+//!     Every surviving kitty gets a full six-need override vector, sampled
+//!     per the variant's TRAIT PLAN (cycled by the roster-decorrelated
+//!     block i/3): **canonical** worlds serve the base's exact sheets at
+//!     rate multiplier 1.0 (the fidelity core and the price probe's pinned
+//!     reference); **spread** worlds draw each dial from a triangular
+//!     distribution in factor-of-default space — mode at the seat's served
+//!     factor, endpoints at the measured envelope [0.5x, 2x] (full
+//!     corner-to-corner support, mass at the sheets; a sheet dial already
+//!     on the edge samples one-sided); **corner** worlds draw each dial
+//!     from the envelope extremes {0.5x, 2x} (in-distribution support for
+//!     the certified-envelope corners). Exact shares realize at N % 18 == 0
+//!     (canonical 1/3, spread 1/2, corner 1/6); the manifest records the
+//!     per-variant plan and every sampled vector, factors included.
+//!   - **`--traits pinned`** forces every variant canonical — the price
+//!     probe's cell A (3e) is a regeneration flag, not a code edit.
+//!     Default is the decided plan cycle.
+//!   - Random trios stay random (owner: stress cells are data, not
+//!     defects — the audit records, never excludes).
+//!   - The bath_ratio validator bound still holds at the envelope edge
+//!     (60 + 3.5 x 2.0 = 67 < 75, unchanged from the v3 ladder's worst
+//!     case). Draw sequence changed again: v6 does not reproduce a v5
+//!     family byte-for-byte (the manifest version stamp carries it).
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -82,7 +108,7 @@ use cloudkitty_rl::config::RlConfig;
 use sha2::{Digest, Sha256};
 use toml::Value;
 
-const GENERATOR_VERSION: &str = "family-gen v5 (2026-08-09)";
+const GENERATOR_VERSION: &str = "family-gen v6 (2026-08-16)";
 
 /// World geometries, cycled by variant index so each gets exact coverage
 /// rather than sampled coverage.
@@ -134,19 +160,48 @@ const WATER_STRATA: [WaterPlan; 5] = [
     WaterPlan::Offset(1),
 ];
 
-/// Per-kitty bath-rise multipliers over the variant's global bath rate.
-/// The multiplier IS the engine's `bath_ratio`, so it must stay inside the
-/// validator's bound: `ceiling + gain x max_ratio < safeguard (75)`.
+/// Trait-spread envelope, in factor-of-default space (trait screen
+/// 2026-08-15: every need at [0.5x, 2x] of its default is zero-distress
+/// in both scripted and policy company; the owner's >=0.5x floor rule is
+/// the measured lower edge, an F-009 validity line — below it is
+/// unscreened territory).
 ///
-/// Re-checked for the shipped 3.5/60 dial (exp-003 design inputs §1): the
-/// worst case is 60 + 3.5 x 2.0 = 67 < 75, so the ladder still fits — but
-/// the headroom is much tighter than it was at 1.5/50 (53 < 75). The
-/// admissible ratio is now (75 - 60) / 3.5 = 4.28x, where it used to be
-/// 16.7x. Anyone widening this ladder past 4x must re-derive it against
-/// the dial in force, and past 4.28x it cannot be done at all without
-/// lowering the ceiling. Every variant is validated on its way out, so a
-/// violation is a generation failure rather than a training surprise.
-const BATH_MULTS: [f64; 5] = [0.5, 0.75, 1.0, 1.5, 2.0];
+/// The factor is relative to the variant's global rate, so it IS the
+/// engine's `bath_ratio` on the bath axis and must stay inside the
+/// validator's bound `ceiling + gain x max_ratio < safeguard (75)`:
+/// 60 + 3.5 x 2.0 = 67 < 75, the same worst case the v3 ladder carried.
+/// Every variant is validated on its way out, so a violation is a
+/// generation failure rather than a training surprise.
+const TRAIT_FACTOR_MIN: f64 = 0.5;
+const TRAIT_FACTOR_MAX: f64 = 2.0;
+
+/// How a variant treats trait vectors (phase-1 spread design §3,
+/// owner-decided 2026-08-16). Cycled by the block index i/3 — NOT i —
+/// because roster size cycles on i % 3, and a plan cycle sharing that
+/// modulus would alias (every canonical world would be roster-3). One
+/// block spans all three roster sizes, so each plan sees each roster.
+#[derive(Clone, Copy, PartialEq, Debug)]
+enum TraitPlan {
+    /// The base's exact sheets, rate multiplier pinned 1.0 — the served
+    /// distribution itself. 1/3 of blocks: the fidelity core, and the
+    /// price probe's pinned reference cell.
+    Canonical,
+    /// Triangular draw per dial: mode at the seat's served factor,
+    /// endpoints at the envelope — full support, mass at the sheets.
+    Spread,
+    /// Every dial at an envelope extreme {0.5x, 2x} — in-distribution
+    /// support for the certified-envelope corners. 1/6 of blocks.
+    Corner,
+}
+
+const TRAIT_PLANS: [TraitPlan; 6] = [
+    TraitPlan::Canonical,
+    TraitPlan::Spread,
+    TraitPlan::Corner,
+    TraitPlan::Canonical,
+    TraitPlan::Spread,
+    TraitPlan::Spread,
+];
 
 /// Roster sizes cycled per variant index — exact coverage, F-010.
 const ROSTER_SIZES: [usize; 3] = [3, 4, 5];
@@ -170,6 +225,25 @@ impl SplitMix {
 
     fn pick<'a, T>(&mut self, options: &'a [T]) -> &'a T {
         &options[(self.next() % options.len() as u64) as usize]
+    }
+
+    /// Uniform in [0, 1) from the top 53 bits.
+    fn uniform(&mut self) -> f64 {
+        (self.next() >> 11) as f64 / (1u64 << 53) as f64
+    }
+
+    /// Triangular draw on [a, b] with mode c (inverse-CDF). A mode on
+    /// either endpoint degenerates cleanly to the one-sided case — which
+    /// is exactly Biscuit's play dial, whose served factor sits on the
+    /// envelope edge.
+    fn triangular(&mut self, a: f64, c: f64, b: f64) -> f64 {
+        let u = self.uniform();
+        let fc = (c - a) / (b - a);
+        if u < fc {
+            a + (u * (b - a) * (c - a)).sqrt()
+        } else {
+            b - ((1.0 - u) * (b - a) * (b - c)).sqrt()
+        }
     }
 
     /// Fisher-Yates over 0..n — the roster-survivor draw.
@@ -383,12 +457,33 @@ fn family_mode(
     out_dir: &Path,
     water_gain: f64,
     water_ceiling: f64,
+    pinned_traits: bool,
 ) {
     let text =
         fs::read_to_string(base).unwrap_or_else(|e| panic!("reading {}: {e}", base.display()));
     let base_sha = format!("{:x}", Sha256::digest(text.as_bytes()));
     let base_root: Value = text.parse().expect("base parses as TOML");
     fs::create_dir_all(out_dir).expect("creating output directory");
+
+    // The v5 demonstrator guarantee needs something to guarantee: a base
+    // with no playful seat at all cannot seed the channel (F-022 —
+    // demonstrations seed it, exploration does not), and the per-variant
+    // swap below would fail one world at a time with a misleading
+    // message. A parked serving config (all seats scripted needs_driven,
+    // the wall's resting state) is a SERVING base, not a collection base —
+    // fail here, loudly, before any variant is written.
+    assert!(
+        base_root["kitty"]
+            .as_array()
+            .map(|ks| ks
+                .iter()
+                .any(|k| k.get("behavior").and_then(|b| b.as_str()) == Some("playful")))
+            .unwrap_or(false),
+        "base {} has no playful kitty: a training family without a \
+         demonstrator seat cannot seed the channel (F-022). Point --base \
+         at a collection config with >= 1 behavior = \"playful\" seat.",
+        base.display()
+    );
 
     let mut rng = SplitMix(family_seed);
     let mut manifest_variants = Vec::new();
@@ -432,13 +527,33 @@ fn family_mode(
         set_i64(&mut root, &["elements", "sunbeam", "max"], sun + 1);
         summary.push(format!("sunbeam={sun}-{}", sun + 1));
 
-        let mult = *rng.pick(&[0.9f64, 1.0, 1.1]);
+        // Trait plan (v6): cycled by the block index i/3 so it cannot
+        // alias the roster stratum (i % 3) — one block spans all three
+        // roster sizes, so each plan sees each roster. Canonical worlds
+        // pin the rate multiplier to 1.0: they ARE the served
+        // distribution, traits and tempo both.
+        let plan = if pinned_traits {
+            TraitPlan::Canonical
+        } else {
+            TRAIT_PLANS[(i / ROSTER_SIZES.len()) % TRAIT_PLANS.len()]
+        };
+        let plan_str = match plan {
+            TraitPlan::Canonical => "canonical",
+            TraitPlan::Spread => "spread",
+            TraitPlan::Corner => "corner",
+        };
+        summary.push(format!("traits={plan_str}"));
+
+        let mult = if plan == TraitPlan::Canonical {
+            1.0
+        } else {
+            *rng.pick(&[0.9f64, 1.0, 1.1])
+        };
         for need in ["eat", "drink", "sleep", "play", "cuddle", "bath"] {
             let v = get_f64(&base_root, &["needs", need]) * mult;
             set_f64(&mut root, &["needs", need], v);
         }
         summary.push(format!("rates=x{mult}"));
-        let global_bath = get_f64(&root, &["needs", "bath"]);
 
         // Roster stratification (F-010): keep [3,4,5][i % 3] rng-shuffled
         // survivors, base order preserved — roster-3 variants are the only
@@ -453,9 +568,8 @@ fn family_mode(
             // v5 (prereg §4): every variant keeps >= 1 playful. If the
             // shuffle kept none, swap the last survivor slot for the base's
             // first playful seat — deterministic, roster size preserved.
-            let is_playful = |ix: usize| {
-                kitties[ix].get("behavior").and_then(|b| b.as_str()) == Some("playful")
-            };
+            let is_playful =
+                |ix: usize| kitties[ix].get("behavior").and_then(|b| b.as_str()) == Some("playful");
             if !keep.iter().any(|&ix| is_playful(ix)) {
                 if let Some(pix) = (0..kitties.len()).find(|&ix| is_playful(ix)) {
                     *keep.last_mut().expect("roster sizes are nonzero") = pix;
@@ -469,11 +583,11 @@ fn family_mode(
             });
         }
 
-        // Per-kitty traits: jitter every declared override (v1 behavior),
-        // then give EVERY survivor an explicit bath override — the
-        // multiplier is the engine's `bath_ratio`, so the wet-fur charge
-        // varies 0.5-2x across cats (register §2b: trait->cost must be
-        // learnable, not memorizable).
+        // Per-kitty traits (v6): full six-need vectors per the variant's
+        // plan. Factors are relative to the base default for each need, so
+        // the bath factor IS the engine's `bath_ratio` and the envelope
+        // respects its validator bound (see TRAIT_FACTOR_*). Canonical
+        // worlds keep the base's sheets verbatim — no draw at all.
         let mut roster_names = Vec::new();
         let mut playful_count = 0usize;
         if let Some(kitties) = root["kitty"].as_array_mut() {
@@ -481,6 +595,10 @@ fn family_mode(
                 let name = kitty["name"].as_str().unwrap_or("?").to_string();
                 if kitty.get("behavior").and_then(|b| b.as_str()) == Some("playful") {
                     playful_count += 1;
+                }
+                if plan == TraitPlan::Canonical {
+                    roster_names.push(name);
+                    continue;
                 }
                 if kitty.get("needs").is_none() {
                     kitty
@@ -492,18 +610,29 @@ fn family_mode(
                     .get_mut("needs")
                     .and_then(|n| n.as_table_mut())
                     .expect("[kitty.needs] is a table");
-                let keys: Vec<String> = needs.keys().filter(|k| *k != "bath").cloned().collect();
-                for key in keys {
-                    let base_v = needs[&key].as_float().expect("trait overrides are floats");
-                    let jitter = *rng.pick(&[-0.1f64, 0.0, 0.1]);
-                    let v = ((base_v + jitter).clamp(0.1, 1.0) * 10_000.0).round() / 10_000.0;
-                    needs[&key] = Value::Float(v);
-                    summary.push(format!("{name}.{key}={v}"));
+                for need in ["eat", "drink", "sleep", "play", "cuddle", "bath"] {
+                    let default = get_f64(&base_root, &["needs", need]);
+                    // The mode is the seat's served factor: its sheet
+                    // override where one exists, else the global rate
+                    // (factor 1.0). A sheet on the envelope edge samples
+                    // one-sided by construction.
+                    let mode = needs
+                        .get(need)
+                        .and_then(|v| v.as_float())
+                        .map(|sheet| (sheet / default).clamp(TRAIT_FACTOR_MIN, TRAIT_FACTOR_MAX))
+                        .unwrap_or(1.0);
+                    let factor = match plan {
+                        TraitPlan::Spread => {
+                            rng.triangular(TRAIT_FACTOR_MIN, mode, TRAIT_FACTOR_MAX)
+                        }
+                        TraitPlan::Corner => *rng.pick(&[TRAIT_FACTOR_MIN, TRAIT_FACTOR_MAX]),
+                        TraitPlan::Canonical => unreachable!("canonical short-circuits above"),
+                    };
+                    let v =
+                        ((factor * default * mult).clamp(0.1, 1.0) * 10_000.0).round() / 10_000.0;
+                    needs.insert(need.into(), Value::Float(v));
+                    summary.push(format!("{name}.{need}={v}(x{factor:.2})"));
                 }
-                let bath_mult = *rng.pick(&BATH_MULTS);
-                let v = ((global_bath * bath_mult).clamp(0.1, 1.0) * 10_000.0).round() / 10_000.0;
-                needs.insert("bath".into(), Value::Float(v));
-                summary.push(format!("{name}.bath={v}(x{bath_mult})"));
                 roster_names.push(name);
             }
         }
@@ -555,15 +684,16 @@ fn family_mode(
         let path = out_dir.join(format!("family-{i:02}.toml"));
         fs::write(&path, &patched).unwrap_or_else(|e| panic!("writing {}: {e}", path.display()));
         manifest_variants.push(format!(
-            "{{\"file\": \"family-{i:02}.toml\", \"size\": {size}, \"roster\": {roster_size}, \"water_min\": {water_min}, \"lake\": {lake}, \"playful\": {playful_count}, \"summary\": \"{}\"}}",
+            "{{\"file\": \"family-{i:02}.toml\", \"size\": {size}, \"roster\": {roster_size}, \"water_min\": {water_min}, \"lake\": {lake}, \"playful\": {playful_count}, \"trait_plan\": \"{plan_str}\", \"summary\": \"{}\"}}",
             summary.join(" ")
         ));
         println!("family-{i:02}.toml: {}", summary.join(" "));
     }
 
     let manifest = format!(
-        "{{\n  \"generator\": \"{GENERATOR_VERSION}\",\n  \"base\": \"{}\",\n  \"base_sha256\": \"{base_sha}\",\n  \"family_seed\": {family_seed},\n  \"water_gain\": {water_gain},\n  \"water_gain_ceiling\": {water_ceiling},\n  \"lake_variants\": {lake_count},\n  \"lakeless_variants\": {},\n  \"variants\": [\n    {}\n  ]\n}}\n",
+        "{{\n  \"generator\": \"{GENERATOR_VERSION}\",\n  \"base\": \"{}\",\n  \"base_sha256\": \"{base_sha}\",\n  \"family_seed\": {family_seed},\n  \"traits_mode\": \"{}\",\n  \"water_gain\": {water_gain},\n  \"water_gain_ceiling\": {water_ceiling},\n  \"lake_variants\": {lake_count},\n  \"lakeless_variants\": {},\n  \"variants\": [\n    {}\n  ]\n}}\n",
         base.display(),
+        if pinned_traits { "pinned" } else { "spread" },
         n - lake_count,
         manifest_variants.join(",\n    ")
     );
@@ -580,6 +710,7 @@ fn main() {
         let shipped = WaterConfig::default();
         let mut water_gain = shipped.bath_gain as f64;
         let mut water_ceiling = shipped.bath_gain_ceiling as f64;
+        let mut pinned_traits = false;
         let mut it = args.iter();
         while let Some(flag) = it.next() {
             let mut value = |name: &str| {
@@ -601,13 +732,28 @@ fn main() {
                         .parse()
                         .expect("--water-ceiling: f64")
                 }
+                "--traits" => {
+                    pinned_traits = match value("--traits").as_str() {
+                        "pinned" => true,
+                        "spread" => false,
+                        other => panic!("--traits expects pinned|spread, got {other:?}"),
+                    }
+                }
                 other => panic!("unknown flag in family mode: {other}"),
             }
         }
         assert!(n > 0, "--family must be > 0");
         let base = base.expect(REQUIRE_BASE);
         let out_dir = out_dir.expect("--out-dir is required in family mode");
-        family_mode(&base, n, seed, &out_dir, water_gain, water_ceiling);
+        family_mode(
+            &base,
+            n,
+            seed,
+            &out_dir,
+            water_gain,
+            water_ceiling,
+            pinned_traits,
+        );
         return;
     }
 
@@ -715,5 +861,70 @@ mod tests {
             GEOMETRIES.contains(&20),
             "20x20 is the deployment candidate"
         );
+    }
+
+    /// The envelope is the measured zero-distress region; a draw outside
+    /// it is unscreened territory (F-009), so the sampler must never
+    /// leave it — including when the mode sits ON an endpoint (Biscuit's
+    /// play dial).
+    #[test]
+    fn triangular_draws_stay_inside_the_envelope() {
+        let mut rng = SplitMix(20260816);
+        for mode in [TRAIT_FACTOR_MIN, 0.75, 1.0, 1.5, TRAIT_FACTOR_MAX] {
+            for _ in 0..10_000 {
+                let x = rng.triangular(TRAIT_FACTOR_MIN, mode, TRAIT_FACTOR_MAX);
+                assert!(
+                    (TRAIT_FACTOR_MIN..=TRAIT_FACTOR_MAX).contains(&x),
+                    "mode {mode}: draw {x} escaped the envelope"
+                );
+            }
+        }
+    }
+
+    /// Mass concentrates at the mode: with the mode at the envelope's
+    /// lower edge, draws skew low; at the upper edge, high. (The
+    /// one-sided cases are exactly the sheet-on-the-edge dials.)
+    #[test]
+    fn triangular_mass_follows_the_mode() {
+        let mut rng = SplitMix(7);
+        let mean = |rng: &mut SplitMix, mode: f64| {
+            (0..20_000)
+                .map(|_| rng.triangular(TRAIT_FACTOR_MIN, mode, TRAIT_FACTOR_MAX))
+                .sum::<f64>()
+                / 20_000.0
+        };
+        let low = mean(&mut rng, TRAIT_FACTOR_MIN);
+        let mid = mean(&mut rng, 1.0);
+        let high = mean(&mut rng, TRAIT_FACTOR_MAX);
+        assert!(low < mid && mid < high, "means {low} {mid} {high}");
+        // Triangular mean = (a + b + c) / 3, so the edges pin these.
+        assert!((low - 1.0).abs() < 0.02, "low-mode mean {low}");
+        assert!((high - 1.5).abs() < 0.02, "high-mode mean {high}");
+    }
+
+    /// The trait-plan cycle must not alias the roster stratum: canonical
+    /// worlds have to span every roster size, or the fidelity core would
+    /// be (say) all-roster-3 by accident of shared modulus.
+    #[test]
+    fn trait_plans_span_every_roster_size() {
+        let mut seen: Vec<(TraitPlan, usize)> = Vec::new();
+        for i in 0..18 {
+            let plan = TRAIT_PLANS[(i / ROSTER_SIZES.len()) % TRAIT_PLANS.len()];
+            let roster = ROSTER_SIZES[i % ROSTER_SIZES.len()];
+            seen.push((plan, roster));
+        }
+        for plan in [TraitPlan::Canonical, TraitPlan::Spread, TraitPlan::Corner] {
+            for roster in ROSTER_SIZES {
+                assert!(
+                    seen.contains(&(plan, roster)),
+                    "{plan:?} never got roster {roster} in a full cycle"
+                );
+            }
+        }
+        // The decided shares, exact over one full 18-variant cycle.
+        let count = |p: TraitPlan| seen.iter().filter(|(q, _)| *q == p).count();
+        assert_eq!(count(TraitPlan::Canonical), 6, "canonical is 1/3");
+        assert_eq!(count(TraitPlan::Spread), 9, "spread is 1/2");
+        assert_eq!(count(TraitPlan::Corner), 3, "corner is 1/6");
     }
 }
