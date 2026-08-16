@@ -207,3 +207,27 @@ cuddle-0.7 is scripted-expensive by the exchange table, and cheap in
 policy company — her design bet awaits the phase-1 minds). This
 anchor (0.9086) is the two-layer gates' hard floor for every phase-1
 certification. Raw: results-raw/scripted-anchor-postwall.json.
+
+## CORRECTION (2026-08-16): the post-wall anchor is the CURRENT-config
+floor, not the phase-1 floor
+
+Provenance check (prompted by the family-gen v6 smoke test): the
+anchor's config sha `e87779cd…` is the served `cloudkitty.toml`, which
+carries ONLY Pumpkin's and Clementine's sheets — Miso, Biscuit, and
+Kittybear ran trait-flat. "Five bodies" in the paragraph above meant
+five seats, not five characters. The 0.9086 anchor is therefore the
+scripted floor of the CURRENT world (valid for that purpose, e.g.
+against the soaking incumbent), **not** the hard floor for phase-1
+certification, whose world updates all five trait sheets. The
+world-size screen above — which DID run the full five sheets
+(`configs/phase1-20x20.toml`) — reads team 90.750, ~0.11 below the
+mislabeled anchor: the three added characters' net scripted cost, and
+the scale of the error a candidate would have been held to.
+
+**Re-baseline step 1 is therefore re-opened**: the anchor instrument
+re-runs on `configs/phase1-20x20.toml` (the five-sheet world) at the
+eval band, and THAT number becomes the phase-1 two-layer hard floor.
+Queued behind the exp-005 extension arms for cores. Standing lesson,
+same family as the exp-005 binding skew: an anchor's record must
+carry — and a reader must CHECK — the config sha it was measured
+under; a label like "five bodies" is not provenance.
