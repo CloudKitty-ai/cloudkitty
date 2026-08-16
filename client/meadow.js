@@ -501,11 +501,14 @@ const MEADOW_DEFAULTS = Object.freeze({
   // canopy radii per unit of `shadowLean`. They mark the lit side, but the
   // lobes and the trunk do not move with them, so past a point the motif
   // stops reading as light and starts reading as a part that came loose:
-  // at 0.36 it travels 0.29 radii between dawn and noon, and the owner
-  // caught it as "off centre left" at dawn and "off centre right" at dusk
-  // without knowing the two were the same dial. The gradient follows the
-  // sun regardless, so this can go to 0 and the shrub is still lit.
-  bushLeafSwing: 0.36,
+  // at the shipped 0.36 it travelled 0.29 radii between dawn and noon, and
+  // the owner caught it as "off centre left" at dawn and "off centre right"
+  // at dusk without knowing the two were the same dial. The gradient follows
+  // the sun regardless, so this can go to 0 and the shrub is still lit.
+  // Judged in the lab's four-phase strip and pasted by the owner
+  // (2026-08-16): 0.1, which is about a pixel either side of centre at the
+  // live tile -- present as a cue, gone as a displacement.
+  bushLeafSwing: 0.1,
   // The shrub's shadow, damped against the cats': a squat canopy sits
   // close to the ground, so it stretches far less and needs no alpha
   // falloff. Only the LENGTH is damped -- the lean also anchors the
