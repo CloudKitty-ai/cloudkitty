@@ -12,8 +12,14 @@ use cloudkitty_rl::config::RlConfig;
 use cloudkitty_rl::test_support;
 use cloudkitty_server::register_policy_behaviors;
 
-fn fixture_artifact(name: &str) -> PathBuf {
-    test_support::fixture_artifact("ck-server-policy", name, 8, 11)
+/// A registerable fixture: the artifact plus its spec-034 registry row —
+/// since the wall's registry gate (FR-007), an artifact without a row
+/// beside it refuses to seat, so the pair is the unit. Per-test `dir` keeps
+/// parallel tests from merging the same registry file.
+fn fixture_artifact(dir: &str, name: &str) -> PathBuf {
+    let artifact = test_support::fixture_artifact(dir, name, 8, 11);
+    test_support::registry_row_beside(&artifact, "Test · fixture");
+    artifact
 }
 
 fn policy_config_text(artifact: &std::path::Path) -> String {
@@ -55,7 +61,7 @@ artifact = "{}"
 
 #[test]
 fn startup_validates_and_registers_the_policy_before_any_tick() {
-    let artifact = fixture_artifact("good");
+    let artifact = fixture_artifact("ck-server-policy-good", "good");
     let text = policy_config_text(&artifact);
     let config: Config = toml::from_str(&text).unwrap();
     config.validate().unwrap();
@@ -143,7 +149,7 @@ fn the_shipped_config_boots_scripted_across_the_generation_gap() {
 
 #[tokio::test]
 async fn a_policy_kitty_is_viewer_indistinguishable_from_a_built_in() {
-    let artifact = fixture_artifact("served");
+    let artifact = fixture_artifact("ck-server-policy-served", "served");
     let text = policy_config_text(&artifact);
     let config: Config = toml::from_str(&text).unwrap();
     config.validate().unwrap();

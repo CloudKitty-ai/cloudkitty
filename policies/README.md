@@ -26,6 +26,15 @@ it collides with the gitignored `experiments/**/artifacts/` vocabulary.
 - Every file gets a row here: filename → sha256 → provenance →
   certification record. A file without a row (or a row whose hash no
   longer matches) is a deployment error.
+- **Every top-level file also gets a `registry.toml` row** (spec 034),
+  keyed by the same sha256: architecture (spelled out), recipe, and the
+  display line the server serves as each kitty's `behavior_description`.
+  The row lands **in the same PR as the artifact** — Experiments authors
+  it at certification time — and never changes or leaves afterward:
+  retirement and renames keep their rows, because sha is identity. This
+  is machine-enforced twice: `registry_integrity` fails CI on a rowless
+  top-level artifact, and the server refuses to seat one (FR-007, no
+  warn mode).
 - **Top level holds exactly what the served config may name.** A
   `.ckpolicy` beside this README that no `[rl.policy.*]` block points
   at is a deployment error, and so is a config block pointing at a
@@ -83,12 +92,16 @@ model" (reasoned out 2026-08-04):
 Names are a public interface: `GET /config` serializes each kitty's
 `behavior` string verbatim, so `policy:<name>` is already visible to
 every client. Pick a name once; don't churn it. The human-readable
-description belongs in the tables below — and, when a "show brain"
-feature is specced, in a served field on `[rl.policy.*]`. Don't add a
-`description =` key before then: since the strictness pass (PR #114,
-2026-08-06) `PolicyConfig` carries `deny_unknown_fields`, so an
-unspecced key refuses to load outright — the config that names it
-never boots.
+description lives in two places with two jobs: the tables below carry
+the full provenance record, and `registry.toml` carries the terse
+display line the server serves as each kitty's `behavior_description`
+(the "show brain" feature, specced as spec 034 — a config-side
+`description =` key was considered there and rejected: presentation
+strings drift when they live apart from the artifact they describe).
+Don't add a `description =` key to `[rl.policy.*]`: since the
+strictness pass (PR #114, 2026-08-06) `PolicyConfig` carries
+`deny_unknown_fields`, so an unspecced key refuses to load outright —
+the config that names it never boots.
 
 > **Generation gap, third tour (spec 033 wall, 2026-08-15 — OPEN).**
 > The say-surface finalization turned all three schema pins (observation

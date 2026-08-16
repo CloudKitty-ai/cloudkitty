@@ -54,8 +54,12 @@ artifact = "{}"
 
 #[test]
 fn a_v3_and_a_v2_policy_seat_boot_together_before_any_tick() {
-    let v3 = test_support::fixture_v3_artifact("ck-server-policy-v3", "attn", 3);
-    let v2 = test_support::fixture_artifact("ck-server-policy-v3", "mlp", 8, 11);
+    let v3 = test_support::fixture_v3_artifact("ck-server-policy-v3-boot", "attn", 3);
+    let v2 = test_support::fixture_artifact("ck-server-policy-v3-boot", "mlp", 8, 11);
+    // Since the spec-034 gate, seating requires a registry row per artifact
+    // (both live in one directory, so one registry carries both rows).
+    test_support::registry_row_beside(&v3, "Transformer · fixture");
+    test_support::registry_row_beside(&v2, "MLP · fixture");
     let text = config_text(&v3, &v2);
     let config: Config = toml::from_str(&text).unwrap();
     config.validate().unwrap();
@@ -77,8 +81,10 @@ fn a_v3_and_a_v2_policy_seat_boot_together_before_any_tick() {
 
 #[tokio::test]
 async fn the_world_ticks_with_a_v3_and_a_v2_seat() {
-    let v3 = test_support::fixture_v3_artifact("ck-server-policy-v3", "attn-served", 5);
-    let v2 = test_support::fixture_artifact("ck-server-policy-v3", "mlp-served", 8, 11);
+    let v3 = test_support::fixture_v3_artifact("ck-server-policy-v3-served", "attn-served", 5);
+    let v2 = test_support::fixture_artifact("ck-server-policy-v3-served", "mlp-served", 8, 11);
+    test_support::registry_row_beside(&v3, "Transformer · fixture");
+    test_support::registry_row_beside(&v2, "MLP · fixture");
     let text = config_text(&v3, &v2);
     let config: Config = toml::from_str(&text).unwrap();
     config.validate().unwrap();

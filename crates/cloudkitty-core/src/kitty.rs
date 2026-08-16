@@ -249,6 +249,16 @@ pub struct Kitty {
     /// re-stamps it from the config's roster — never trust a snapshot's
     /// behavior string over the config.
     pub behavior: String,
+    /// Human-readable summary of what drives this kitty (spec 034), served
+    /// verbatim beside `behavior`: the model registry's display line for a
+    /// policy seat, `"Scripted"` for a builtin, absent for a plugin.
+    ///
+    /// Server-stamped presentation, never read by the engine. The registry
+    /// (like the config for `behavior`) is authoritative on resume: the
+    /// server re-stamps every kitty after load, so a snapshot's value —
+    /// including its absence in pre-034 saves — is informational only.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub behavior_description: Option<String>,
     /// Earliest tick at which each message kind may be used again.
     #[serde(default)]
     pub meow_cooldowns: BTreeMap<MessageKind, u64>,
@@ -331,6 +341,7 @@ impl Kitty {
             happiness: 100.0,
             activity: Activity::Idle,
             behavior: behavior.into(),
+            behavior_description: None,
             meow_cooldowns: BTreeMap::new(),
             in_distress: BTreeSet::new(),
             happiness_rose: false,

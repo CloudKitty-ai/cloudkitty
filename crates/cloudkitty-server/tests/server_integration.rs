@@ -107,16 +107,27 @@ impl TestServer {
 async fn start_server() -> TestServer {
     let config = test_config();
     config.validate().expect("the test config is valid");
-    let config = Arc::new(config);
-
-    let world = World::generate(&config);
-    // No snapshot path: this world lives and dies with the test.
-    let sim = sim_task::spawn(
-        world,
-        config.clone(),
+    start_server_with(
+        Arc::new(config),
         BehaviorRegistry::with_builtins(),
-        None,
-    );
+        &std::collections::BTreeMap::new(),
+    )
+    .await
+}
+
+/// [`start_server`] with a caller-built behavior registry and the spec-034
+/// policy display map: the world is stamped exactly as `main.rs` stamps it,
+/// so the served payloads carry `behavior_description` the way production
+/// serves it.
+async fn start_server_with(
+    config: Arc<cloudkitty_core::Config>,
+    registry: BehaviorRegistry,
+    policy_displays: &std::collections::BTreeMap<String, String>,
+) -> TestServer {
+    let mut world = World::generate(&config);
+    cloudkitty_server::stamp_behavior_descriptions(&mut world, &registry, policy_displays);
+    // No snapshot path: this world lives and dies with the test.
+    let sim = sim_task::spawn(world, config.clone(), registry, None);
 
     let state = AppState {
         published: sim.receiver.clone(),
@@ -523,4 +534,213 @@ async fn the_viewer_is_served_at_the_root() {
     assert!(body.contains("CloudKitty"), "and it should be the viewer");
 
     server.shutdown().await;
+}
+
+// ---------------------------------------------------------------------------
+// Spec 034: behavior descriptions on every serving surface.
+
+/// One config that exercises all three seat kinds (spec 034 FR-005): a
+/// policy seat (fixture artifact + its registry row), a builtin, a plugin.
+fn describe_config_text(artifact: &std::path::Path) -> String {
+    format!(
+        r#"
+[world]
+# 32x32: the default element counts validate against floor(area / 32),
+# which a 16x16 world is too small for.
+width = 32
+height = 32
+tick_ms = 200
+seed = 4242
+
+[[kitty]]
+id = 1
+name = "Miso"
+x = 4
+y = 4
+behavior = "policy:trained"
+
+[[kitty]]
+id = 2
+name = "Biscuit"
+x = 11
+y = 11
+behavior = "needs_driven"
+
+[[kitty]]
+id = 3
+name = "Pumpkin"
+x = 8
+y = 8
+behavior = "advisor"
+
+[rl.policy.trained]
+artifact = "{}"
+
+[plugins.advisor]
+command = "/bin/echo"
+"#,
+        artifact.display()
+    )
+}
+
+#[tokio::test]
+async fn behavior_descriptions_serve_per_seat_kind_on_every_surface() {
+    // US1 scenarios 1–3 end to end: registry display for the policy seat,
+    // "Scripted" for the builtin, absent for the plugin — on /kitties,
+    // /kitties/:id, /world, and the websocket — with `behavior` itself
+    // byte-identical to config (FR-009).
+    let artifact =
+        cloudkitty_rl::test_support::fixture_artifact("ck-si-describe", "trained", 8, 11);
+    cloudkitty_rl::test_support::registry_row_beside(&artifact, "Test · BC+PPO");
+    let text = describe_config_text(&artifact);
+    let (config, rl) =
+        cloudkitty_rl::config::load_configs_from_str(&text).expect("test config loads");
+    config.validate().unwrap();
+    let plugins: cloudkitty_server::PluginsConfig = toml::from_str(&text).unwrap();
+
+    let mut registry = BehaviorRegistry::with_builtins();
+    let displays =
+        cloudkitty_server::register_policy_behaviors(&mut registry, &config, &rl).unwrap();
+    cloudkitty_server::register_plugin_behaviors(&mut registry, &plugins).unwrap();
+    config.validate_behavior_names(&registry.names()).unwrap();
+
+    let server = start_server_with(Arc::new(config), registry, &displays).await;
+
+    let expect = |kitty: &Value| {
+        let desc = kitty.get("behavior_description");
+        match kitty["behavior"].as_str().unwrap() {
+            "policy:trained" => assert_eq!(desc.unwrap(), "Test · BC+PPO"),
+            "needs_driven" => assert_eq!(desc.unwrap(), "Scripted"),
+            "advisor" => assert!(
+                desc.is_none(),
+                "a plugin seat serves no description: {kitty}"
+            ),
+            other => panic!("unexpected behavior {other}"),
+        }
+    };
+
+    let kitties: Vec<Value> = reqwest::get(server.url("/kitties"))
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    assert_eq!(kitties.len(), 3);
+    for kitty in &kitties {
+        expect(kitty);
+    }
+
+    let one: Value = reqwest::get(server.url("/kitties/1"))
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    expect(&one);
+
+    let world: Value = reqwest::get(server.url("/world"))
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    for kitty in world["kitties"].as_array().unwrap() {
+        expect(kitty);
+    }
+
+    // T004e: the field arrives identically over the socket — a direct check
+    // on ws.rs's payloads-identical-to-/world doctrine, not an inference.
+    let (mut socket, _) = tokio_tungstenite::connect_async(server.ws_url())
+        .await
+        .expect("websocket upgrade");
+    let frame = tokio::time::timeout(std::time::Duration::from_secs(5), socket.next())
+        .await
+        .expect("a frame arrived in time")
+        .expect("the stream is open")
+        .expect("a valid frame");
+    let live: Value = serde_json::from_str(frame.to_text().unwrap()).unwrap();
+    for kitty in live["kitties"].as_array().unwrap() {
+        expect(kitty);
+    }
+    let _ = socket.close(None).await;
+
+    server.shutdown().await;
+}
+
+#[tokio::test]
+async fn the_shipped_config_serves_a_description_for_every_kitty() {
+    // US1 scenario 2 against the real cloudkitty.toml: in the wall window
+    // every seat is parked scripted, so every kitty reads "Scripted". The
+    // assertion is written to survive the phase-1 re-seating: builtins say
+    // "Scripted", policy seats say their registry line (non-empty by
+    // registration), and nobody serves nothing.
+    let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../cloudkitty.toml");
+    let text = std::fs::read_to_string(&root).expect("the shipped config is readable");
+    let (config, rl) =
+        cloudkitty_rl::config::load_configs_from_str(&text).expect("the shipped config loads");
+    config.validate().unwrap();
+    let mut registry = BehaviorRegistry::with_builtins();
+    let displays =
+        cloudkitty_server::register_policy_behaviors(&mut registry, &config, &rl).unwrap();
+
+    let server = start_server_with(Arc::new(config), registry, &displays).await;
+    let kitties: Vec<Value> = reqwest::get(server.url("/kitties"))
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    assert!(kitties.len() >= 2, "Article III floor");
+    for kitty in &kitties {
+        let behavior = kitty["behavior"].as_str().unwrap();
+        let desc = kitty["behavior_description"].as_str();
+        if behavior.starts_with("policy:") {
+            assert!(
+                desc.is_some_and(|d| !d.is_empty()),
+                "a policy seat serves its registry line: {kitty}"
+            );
+        } else {
+            assert_eq!(desc, Some("Scripted"), "{kitty}");
+        }
+    }
+    server.shutdown().await;
+}
+
+#[tokio::test]
+async fn seating_an_artifact_without_a_registry_row_refuses_startup() {
+    // US3 scenario 1 (FR-007, owner ruling: refuse — no warn mode, no
+    // opt-out). Both shapes of the miss: a registry with no row for this
+    // sha, and no registry file at all. The error names the config field,
+    // the artifact path, and the sha256 (contract §4).
+    use sha2::{Digest, Sha256};
+
+    // Shape 1: the registry exists but carries a different artifact's row.
+    let artifact = cloudkitty_rl::test_support::fixture_artifact("ck-si-norow", "unlisted", 8, 11);
+    let other = cloudkitty_rl::test_support::fixture_artifact("ck-si-norow", "listed", 8, 12);
+    cloudkitty_rl::test_support::registry_row_beside(&other, "Test · other");
+    let sha = format!("{:x}", Sha256::digest(std::fs::read(&artifact).unwrap()));
+    let text = describe_config_text(&artifact);
+    let (config, rl) = cloudkitty_rl::config::load_configs_from_str(&text).unwrap();
+    let mut registry = BehaviorRegistry::with_builtins();
+    let err =
+        cloudkitty_server::register_policy_behaviors(&mut registry, &config, &rl).unwrap_err();
+    let msg = format!("{err:#}");
+    assert!(msg.contains("[rl.policy.trained]"), "{msg}");
+    assert!(msg.contains("unlisted.ckpolicy"), "{msg}");
+    assert!(msg.contains(&sha), "the refusal names the sha256: {msg}");
+    assert!(msg.contains("no row"), "{msg}");
+
+    // Shape 2: no registry.toml beside the artifact at all.
+    let bare = cloudkitty_rl::test_support::fixture_artifact("ck-si-noregistry", "bare", 8, 11);
+    let sha = format!("{:x}", Sha256::digest(std::fs::read(&bare).unwrap()));
+    let text = describe_config_text(&bare);
+    let (config, rl) = cloudkitty_rl::config::load_configs_from_str(&text).unwrap();
+    let mut registry = BehaviorRegistry::with_builtins();
+    let err =
+        cloudkitty_server::register_policy_behaviors(&mut registry, &config, &rl).unwrap_err();
+    let msg = format!("{err:#}");
+    assert!(msg.contains("[rl.policy.trained]"), "{msg}");
+    assert!(msg.contains("bare.ckpolicy"), "{msg}");
+    assert!(msg.contains(&sha), "the refusal names the sha256: {msg}");
+    assert!(msg.contains("no model registry"), "{msg}");
 }

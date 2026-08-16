@@ -271,6 +271,47 @@ mod tests {
     }
 
     #[test]
+    fn resume_restamps_descriptions_the_registry_stays_authoritative() {
+        // Spec 034: `behavior_description` follows the spec-014 re-stamp
+        // doctrine — the registry (via the server's post-load stamp), never
+        // the snapshot, owns the value on resume. A save may carry stale
+        // words; pre-034 saves carry nothing at all (the field is
+        // skip-if-none, so absent-on-disk and `None` are one case). Both
+        // resolve at the stamp.
+        let dir = temp_dir("desc-restamp");
+        let path = dir.join("snapshot.json");
+        let config = test_config();
+        let mut world = World::generate(&config);
+        world.kitties[0].behavior_description = Some("stale words from an old registry".into());
+        save(&world, &path).expect("save");
+
+        let mut loaded = load_and_validate(&path, &config).expect("load");
+        // The load preserves the informational value...
+        assert_eq!(
+            loaded.kitties[0].behavior_description.as_deref(),
+            Some("stale words from an old registry")
+        );
+        // ...and the stamp overwrites it unconditionally.
+        let registry = cloudkitty_core::BehaviorRegistry::with_builtins();
+        let no_policies = std::collections::BTreeMap::new();
+        crate::stamp_behavior_descriptions(&mut loaded, &registry, &no_policies);
+        for kitty in &loaded.kitties {
+            assert_eq!(
+                kitty.behavior_description.as_deref(),
+                Some("Scripted"),
+                "builtin seats read Scripted after the stamp (kitty {})",
+                kitty.id
+            );
+        }
+        // A plugin seat (any behavior the registry doesn't know as builtin)
+        // clears back to None — stale words must not survive a seat change.
+        loaded.kitties[0].behavior = "some_plugin".into();
+        loaded.kitties[0].behavior_description = Some("stale".into());
+        crate::stamp_behavior_descriptions(&mut loaded, &registry, &no_policies);
+        assert_eq!(loaded.kitties[0].behavior_description, None);
+    }
+
+    #[test]
     fn a_snapshot_from_another_world_shape_is_refused() {
         let dir = temp_dir("incompatible");
         let path = dir.join("snapshot.json");

@@ -97,6 +97,54 @@ pub fn write_v3_fixture_artifact(path: &Path, pattern: u32) {
     write_v3_artifact(path, &header, &blob).expect("v3 fixture artifacts write");
 }
 
+/// Writes (idempotently merges) a spec-034 model-registry row beside
+/// `artifact`, keyed by the file's actual sha256; returns that sha. The
+/// server refuses to seat an artifact without a row (FR-007), so every
+/// fixture that registers must carry one. Rows already present in the
+/// directory's `registry.toml` are preserved (map-merge by sha), and the
+/// write lands by atomic rename per this module's discipline. Tests that
+/// would merge concurrently should use per-test `dir_name`s.
+pub fn registry_row_beside(artifact: &Path, display: &str) -> String {
+    use sha2::{Digest, Sha256};
+    static SCRATCH: AtomicU64 = AtomicU64::new(0);
+    let bytes = std::fs::read(artifact).expect("fixture artifact readable");
+    let sha = format!("{:x}", Sha256::digest(&bytes));
+    let dir = artifact
+        .parent()
+        .expect("fixture artifacts have a parent dir");
+    let registry = dir.join("registry.toml");
+    let mut rows: std::collections::BTreeMap<String, String> = std::fs::read_to_string(&registry)
+        .ok()
+        .and_then(|text| toml::from_str::<toml::Value>(&text).ok())
+        .and_then(|v| v.get("artifact").and_then(|a| a.as_table()).cloned())
+        .map(|table| {
+            table
+                .into_iter()
+                .filter_map(|(key, row)| {
+                    row.get("display")
+                        .and_then(|d| d.as_str())
+                        .map(|d| (key, d.to_string()))
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+    rows.insert(sha.clone(), display.to_string());
+    let mut text = String::from("# fixture model registry (spec 034)\n\n");
+    for (key, row_display) in &rows {
+        text.push_str(&format!(
+            "[artifact.\"{key}\"]\narchitecture = \"Test\"\nrecipe = \"fixture\"\ndisplay = \"{row_display}\"\n\n"
+        ));
+    }
+    let scratch = dir.join(format!(
+        "registry.{}.{}.scratch",
+        std::process::id(),
+        SCRATCH.fetch_add(1, Ordering::Relaxed)
+    ));
+    std::fs::write(&scratch, text).expect("registry fixture writes");
+    std::fs::rename(&scratch, &registry).expect("registry fixture lands");
+    sha
+}
+
 /// [`write_fixture_artifact`] into a namespaced temp directory; returns the
 /// artifact path.
 ///

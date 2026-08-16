@@ -8,6 +8,7 @@ pub mod persist;
 pub mod sim_task;
 pub mod ws;
 
+use std::collections::BTreeMap;
 use std::path::Path;
 use std::sync::Arc;
 
@@ -27,27 +28,113 @@ use tower_http::set_header::SetResponseHeaderLayer;
 
 use crate::api::AppState;
 
-/// Registers every policy behavior the config names (spec 014 FR-016).
+/// One row of the model registry (spec 034): what a certified artifact is,
+/// in words a viewer can read. Keyed by sha256 in `registry.toml`; the
+/// `display` line is served verbatim as each kitty's `behavior_description`.
+#[derive(Debug, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RegistryRow {
+    pub architecture: String,
+    pub recipe: String,
+    pub display: String,
+}
+
+#[derive(Debug, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RegistryFile {
+    #[serde(default)]
+    artifact: BTreeMap<String, RegistryRow>,
+}
+
+/// Loads the model registry that lives beside an artifact (spec 034, research
+/// D2): `registry.toml` in the artifact's parent directory — `policies/
+/// registry.toml` in this repository, a fixture's own file in tests. The
+/// registry travels with the artifacts it describes; a missing file, a parse
+/// failure, or an empty required field is an error naming exactly what was
+/// looked for and where.
+pub fn load_registry_beside(artifact: &Path) -> anyhow::Result<BTreeMap<String, RegistryRow>> {
+    let dir = artifact.parent().unwrap_or_else(|| Path::new("."));
+    let registry_path = dir.join("registry.toml");
+    let text = std::fs::read_to_string(&registry_path).with_context(|| {
+        format!(
+            "no model registry at {} (spec 034: every certified artifact's directory \
+             carries a registry.toml, and every artifact gets a row in the PR that lands it)",
+            registry_path.display()
+        )
+    })?;
+    let parsed: RegistryFile = toml::from_str(&text)
+        .with_context(|| format!("could not parse {}", registry_path.display()))?;
+    for (sha, row) in &parsed.artifact {
+        for (field, value) in [
+            ("architecture", &row.architecture),
+            ("recipe", &row.recipe),
+            ("display", &row.display),
+        ] {
+            if value.trim().is_empty() {
+                anyhow::bail!(
+                    "{}: row {sha} has an empty {field} — every registry field is required",
+                    registry_path.display()
+                );
+            }
+        }
+    }
+    Ok(parsed.artifact)
+}
+
+/// Stamps `behavior_description` onto every kitty (spec 034): the registry
+/// display line for a policy seat, `"Scripted"` for a builtin, `None` for a
+/// plugin (an external process has no certification record). Called once on
+/// the world the server is about to run — fresh or resumed alike, so the
+/// registry stays authoritative over whatever a snapshot froze. Overwrites
+/// unconditionally, including back to `None`: a stale description must not
+/// survive a seat change.
+pub fn stamp_behavior_descriptions(
+    world: &mut cloudkitty_core::World,
+    registry: &BehaviorRegistry,
+    policy_displays: &BTreeMap<String, String>,
+) {
+    for kitty in &mut world.kitties {
+        kitty.behavior_description = if kitty.behavior.starts_with("policy:") {
+            // Registration refused startup unless every seated policy had a
+            // registry row, so this lookup only misses for a behavior name
+            // the config validation would already have rejected.
+            policy_displays.get(&kitty.behavior).cloned()
+        } else if registry
+            .get(&kitty.behavior)
+            .is_some_and(|b| b.is_builtin())
+        {
+            Some("Scripted".to_string())
+        } else {
+            None
+        };
+    }
+}
+
+/// Registers every policy behavior the config names (spec 014 FR-016) and
+/// returns the served display line per registered behavior (spec 034).
 ///
 /// A kitty whose behavior is `policy:<name>` resolves through the
 /// `[rl.policy.<name>]` block in the same TOML text: the artifact is
 /// loaded, fully validated against the compiled schema versions, and
 /// content-hashed — logged here, before any tick — and the behavior is
-/// registered under its full `policy:<name>`. Any failure stops startup
-/// with an error naming the config field, the same doctrine as an unknown
-/// behavior name.
+/// registered under its full `policy:<name>`. The artifact's sha256 must
+/// also have a row in the model registry beside it, whose `display` line is
+/// what viewers read (spec 034 FR-007: no row, no boot — the registry
+/// cannot be silently skipped). Any failure stops startup with an error
+/// naming the config field, the same doctrine as an unknown behavior name.
 pub fn register_policy_behaviors(
     registry: &mut BehaviorRegistry,
     config: &Config,
     rl: &RlConfig,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<BTreeMap<String, String>> {
+    let mut displays = BTreeMap::new();
     let policy_names: std::collections::BTreeSet<&str> = config
         .kitties
         .iter()
         .filter_map(|k| k.behavior.strip_prefix("policy:"))
         .collect();
     if policy_names.is_empty() {
-        return Ok(());
+        return Ok(displays);
     }
     for name in policy_names {
         let policy = rl.policy.get(name).ok_or_else(|| {
@@ -58,10 +145,30 @@ pub fn register_policy_behaviors(
         let expectations = PolicyBehavior::expectations(rl);
         let artifact = PolicyArtifact::load(Path::new(&policy.artifact), &expectations)
             .with_context(|| format!("[rl.policy.{name}].artifact ({})", policy.artifact))?;
+        let rows = load_registry_beside(Path::new(&policy.artifact)).with_context(|| {
+            // The full refusal contract (spec 034 §4): config field, artifact
+            // path, sha256 — in the missing-file shape too, not just the
+            // missing-row one.
+            format!(
+                "[rl.policy.{name}].artifact ({}) sha256 {}",
+                policy.artifact, artifact.sha256
+            )
+        })?;
+        let row = rows.get(&artifact.sha256).ok_or_else(|| {
+            anyhow::anyhow!(
+                "[rl.policy.{name}].artifact ({}): sha256 {} has no row in the model \
+                 registry beside it — a certified artifact gets its registry row in the \
+                 PR that lands it, and seating one without a row refuses startup \
+                 (spec 034 FR-007)",
+                policy.artifact,
+                artifact.sha256
+            )
+        })?;
         tracing::info!(
             policy = name,
             artifact = %policy.artifact,
             sha256 = %artifact.sha256,
+            display = %row.display,
             observation_schema = artifact.observation_schema(),
             action_schema = artifact.action_schema(),
             mask_schema = artifact.mask_schema(),
@@ -74,10 +181,11 @@ pub fn register_policy_behaviors(
             sample = policy.sample,
             "policy artifact validated"
         );
+        displays.insert(format!("policy:{name}"), row.display.clone());
         let behavior = PolicyBehavior::new(artifact, rl.clone(), policy.sample);
         registry.register(format!("policy:{name}"), Arc::new(behavior));
     }
-    Ok(())
+    Ok(displays)
 }
 
 /// External plugin declarations — `[plugins.<name>]` blocks parsed from the
@@ -265,6 +373,83 @@ mod plugin_registration_tests {
         assert!(msg.contains("not executable"), "{msg}");
 
         std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn a_row_resolves_beside_the_artifact() {
+        let dir = fixture_dir("registry-happy");
+        std::fs::write(
+            dir.join("registry.toml"),
+            "[artifact.\"abc123\"]\narchitecture = \"MLP\"\nrecipe = \"BC+PPO\"\ndisplay = \"MLP · BC+PPO\"\n",
+        )
+        .unwrap();
+        let rows = load_registry_beside(&dir.join("model.ckpolicy")).unwrap();
+        assert_eq!(rows.get("abc123").unwrap().display, "MLP · BC+PPO");
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn a_missing_registry_names_the_looked_for_path() {
+        let dir = fixture_dir("registry-missing");
+        let err = load_registry_beside(&dir.join("model.ckpolicy")).unwrap_err();
+        let msg = format!("{err:#}");
+        assert!(msg.contains("no model registry"), "{msg}");
+        assert!(msg.contains("registry.toml"), "{msg}");
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn an_unknown_registry_field_is_refused() {
+        // The PR #114 strictness doctrine: an unspecced key refuses to load.
+        let dir = fixture_dir("registry-unknown");
+        std::fs::write(
+            dir.join("registry.toml"),
+            "[artifact.\"abc\"]\narchitecture = \"MLP\"\nrecipe = \"BC\"\ndisplay = \"x\"\nnickname = \"y\"\n",
+        )
+        .unwrap();
+        let err = load_registry_beside(&dir.join("model.ckpolicy")).unwrap_err();
+        assert!(format!("{err:#}").contains("could not parse"), "{err:#}");
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn an_empty_registry_field_is_refused_naming_row_and_field() {
+        let dir = fixture_dir("registry-empty-field");
+        std::fs::write(
+            dir.join("registry.toml"),
+            "[artifact.\"abc\"]\narchitecture = \"MLP\"\nrecipe = \"BC\"\ndisplay = \"  \"\n",
+        )
+        .unwrap();
+        let err = load_registry_beside(&dir.join("model.ckpolicy")).unwrap_err();
+        let msg = format!("{err:#}");
+        assert!(msg.contains("abc") && msg.contains("display"), "{msg}");
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn the_stamp_maps_every_seat_kind() {
+        // Spec 034 FR-005: policy → the registry's display line, builtin →
+        // "Scripted", plugin/unknown → None (overwriting anything stale).
+        let config = cloudkitty_core::test_support::test_config();
+        let mut world = cloudkitty_core::World::generate(&config);
+        world.kitties[0].behavior = "policy:trained".into();
+        world.kitties[1].behavior = "needs_driven".into();
+        world.kitties[1].behavior_description = Some("stale".into());
+        let registry = BehaviorRegistry::with_builtins();
+        let displays: std::collections::BTreeMap<String, String> =
+            [("policy:trained".to_string(), "Test · BC+PPO".to_string())].into();
+        stamp_behavior_descriptions(&mut world, &registry, &displays);
+        assert_eq!(
+            world.kitties[0].behavior_description.as_deref(),
+            Some("Test · BC+PPO")
+        );
+        assert_eq!(
+            world.kitties[1].behavior_description.as_deref(),
+            Some("Scripted")
+        );
+        world.kitties[1].behavior = "advisor".into();
+        stamp_behavior_descriptions(&mut world, &registry, &displays);
+        assert_eq!(world.kitties[1].behavior_description, None);
     }
 
     #[test]
