@@ -33,6 +33,13 @@
  * kitty's look is stable across frames, sessions and restarts. Indices 1-3
  * are the shipped defaults -- Miso the seal-point, Biscuit the warm solid,
  * Pumpkin the orange tabby -- tuned to be told apart at 22px.
+ *
+ * THE ORDER IS THE ROSTER. Because the index is the kitty id, moving an entry
+ * re-coats a cat, and 'cloud' and 'midnight' were swapped for exactly that
+ * reason (spec 033): the fifth cat is id 5, and she is the white one. Nothing
+ * indexes this array by hand -- appearanceFor is the one door, and app.js
+ * looks its portrait palette up by name -- so the swap was the whole change.
+ * A test pins every roster id to the colorway it is meant to wear.
  */
 const PALETTES = [
   {
@@ -84,20 +91,20 @@ const PALETTES = [
     noseColor: '#b58a94',
   },
   {
+    name: 'cloud', // Clementine
+    furBase: '#f7f3ec',
+    furShade: '#c6b9a6',
+    pattern: { kind: 'solid' },
+    eyeColor: '#84b6d8',
+    noseColor: '#e8a1a1',
+  },
+  {
     name: 'midnight',
     furBase: '#4d4752',
     furShade: '#332e3b',
     pattern: { kind: 'solid' },
     eyeColor: '#e3b341',
     noseColor: '#8f7482',
-  },
-  {
-    name: 'cloud',
-    furBase: '#f7f3ec',
-    furShade: '#c6b9a6',
-    pattern: { kind: 'solid' },
-    eyeColor: '#84b6d8',
-    noseColor: '#e8a1a1',
   },
   {
     name: 'calico',
@@ -1563,6 +1570,43 @@ function mixHex(a, b, t) {
   return `#${((ch(16) << 16) | (ch(8) << 8) | ch(0)).toString(16).padStart(6, '0')}`;
 }
 
+/** CIE L*, 0..100. The house unit for "can the eye tell these apart", set
+ * during the pond restyle: sRGB channel values are gamma-encoded, so their
+ * arithmetic difference is not a perceived one, and a fixed mix ratio buys
+ * far less separation at the light end than at the dark. */
+function lstar(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  const lin = (v) => {
+    const c = v / 255;
+    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  };
+  const y =
+    0.2126 * lin((n >> 16) & 255) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255);
+  return y > 0.008856 ? 116 * y ** (1 / 3) - 16 : 903.3 * y;
+}
+
+/**
+ * The one ink for a belly, the way `noseInkOf` is the one ink for a nose.
+ *
+ * A belly is PALER than the back on most cats, which is why this was a
+ * lighten -- but a lighten is a claim about headroom, and a near-white coat
+ * has none. Measured on the shipped palettes: 26.2 L* of separation on the
+ * tuxedo, 9.9 on storm, and 1.4 on 'cloud', which is Clementine. At 1.4 the
+ * belly is not faint, it is absent.
+ *
+ * So the rule is stated as the thing being judged -- how far the belly must
+ * sit from the coat -- and the DIRECTION follows the room available. Where
+ * lightening reaches `minSeparation` nothing changes, which is every cat
+ * that shipped before this. Where it cannot, the belly goes the other way,
+ * toward the coat's own shade: a white cat's underside reads as shadow
+ * rather than as a paler patch, which is what it is on a real one.
+ */
+function bellyInkOf(appearance) {
+  const lit = lightenHex(appearance.furBase, BELLY.lighten);
+  if (lstar(lit) - lstar(appearance.furBase) >= BELLY.minSeparation) return lit;
+  return mixHex(appearance.furBase, appearance.furShade, BELLY.darken);
+}
+
 /** Memoized per palette entry and theme. Keyed on the THEME rather than
  * on the shade factor since 2026-08-10: two themes with equal factors
  * would have shared an entry and therefore a pupil, which is a bug that
@@ -2385,7 +2429,7 @@ function drawBody(ctx, b, a, p, view = 'side') {
     bodyPath(ctx, b);
     ctx.clip();
     ctx.globalAlpha = rear ? 0 : BELLY.alpha;
-    ctx.fillStyle = lightenHex(a.furBase, BELLY.lighten);
+    ctx.fillStyle = bellyInkOf(a);
     ctx.beginPath();
     ctx.ellipse(
       b.cx + ox * cos - oy * sin,
@@ -2954,6 +2998,22 @@ const BELLY = {
   rx: 0.62, // half-width, in body rx
   ry: 0.42, // half-height, in body ry
   lighten: 0.35, // how far the fur base is mixed toward white
+  // The least a belly may differ from its coat, in CIE L*. Below this the
+  // lighten has run out of headroom and `bellyInkOf` shades instead.
+  //
+  // The window is narrow and worth knowing before touching this: Clementine
+  // separates by 1.4 and MUST flip; Miso, the seal point, separates by only
+  // 3.0 and must NOT, because her belly shipped with the owner's approval.
+  // Everyone else is 7.4 or better. 2.2 sits between the two, so this is a
+  // strict no-op for every coat that shipped before the fifth cat.
+  //
+  // That Miso is at 3.0 is a finding, not a comfort -- her belly is nearly
+  // as faint as the one being fixed here. Raising this dial past 3.0 brings
+  // her in too, which is a live option and the owner's call, not a bug.
+  minSeparation: 2.2,
+  // ...and how far toward furShade it goes when it does. Judged on Clementine
+  // in the lab and pasted by the owner, 2026-08-16.
+  darken: 0.35,
   alpha: 0.85,
 };
 
@@ -3533,6 +3593,8 @@ const api = {
   CAT_GROUND,
   lightenHex,
   mixHex,
+  lstar,
+  bellyInkOf,
   wetAppearanceOf,
   PUPIL_DILATE_BY_THEME,
   plantedReach,

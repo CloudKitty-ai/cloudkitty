@@ -33,6 +33,34 @@ change.
 
 ## Unreleased
 
+- **The viewer learns the new language, and meets the fifth cat.** The
+  client half of specs 033 and 034, shipped ahead of the phase-1 seating
+  so none of it has to land on the same day the world turns over. Every
+  word of the finalized say-surface now draws a bubble: the owner's copy
+  for the Here family ("Here food!", "Here drink!", "Here warm!",
+  "Here bug!"), mapped by the law each word describes rather than the
+  order it was written, and the sound-named free register rendered
+  as-is — `mew` says *mew*, because glossing it would reassert the
+  meaning its rename stripped (FR-002b holds for a bubble as much as for
+  a wire name). The reserves are written in too, so arming `trill` and
+  `ekekek` stays a pure config flip. Clementine gets her white coat: the
+  index into the palette table is the kitty id, so the fifth cat had been
+  rendering "midnight" while the "cloud" written for her sat unused one
+  slot along, and swapping the two entries was the whole fix. Her belly
+  needed more: it was derived by lightening the coat toward white, which
+  is a claim about headroom a near-white cat has none of, and it
+  separated by 1.4 L\* — absent rather than faint. A belly is now stated
+  as a separation and the direction follows the room available, so she is
+  shaded toward her own furShade at 6.9 L\* while the four coats that
+  shipped before her keep the exact ink they were approved with. And the
+  about names the mind: "Transformer (attn-a1-s1)", composed client-side
+  from the registry's architecture and the config's id, since without the
+  id both attention seats read identically. Nothing here is visible on
+  the served world — the box runs its pre-wall binary, so the new words
+  are unreachable, no cat has id 5, and the four seated cats paint
+  byte-identically (28/28 across seven poses). It is in place for the
+  cutover instead of racing it (#234).
+
 - **033 review remediation** (owner-directed medium code review of the
   wall merges; engine-side findings 3–8): pre-wall saves carrying live
   `follow_me` state now *parse* — deserialize-only serde alias, Experiments

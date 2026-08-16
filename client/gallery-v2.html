@@ -1225,13 +1225,15 @@
     },
     {
       title: 'Belly',
-      note: 'A pale underside on every soft cat — the only one we had was the tuxedo\'s white bib, which is a pattern on one palette, so the four cats actually on the world were flat single-colour ellipses. Ratios are kitten.me\'s, converted out of their tile units. The tuxedo is skipped on purpose: its bib already is a belly, and both together leave this one poking out behind it. Watch the seal point — lightening an almost-white fur toward white has very little to give, which is the one case that may want a different derivation.',
+      note: 'A pale underside on every soft cat — the only one we had was the tuxedo\'s white bib, which is a pattern on one palette, so the four cats actually on the world were flat single-colour ellipses. Ratios are kitten.me\'s, converted out of their tile units. The tuxedo is skipped on purpose: its bib already is a belly, and both together leave this one poking out behind it. THE DIFFERENT DERIVATION THIS CARD PREDICTED HAS ARRIVED: lightening an almost-white coat toward white has nothing to give, and Clementine\'s separated by 1.4 L* against 26.2 on the tuxedo — absent rather than faint. So the belly is now stated as a separation and the direction follows the room available: a coat that cannot be lightened far enough is shaded toward its own furShade instead, which is what a white cat\'s underside actually is. Judge the leftmost cat, and watch that the four beside her do not move — minSeparation 8 is chosen to leave every coat that shipped before her exactly as approved, and the readout names which rule each one is on.',
       v2Only: true,
       w: 560,
       h: 190,
       bag: BELLY_BAG,
       dials: [
         { key: 'lighten', label: 'HOW MUCH PALER THAN THE FUR (0 = invisible)', min: 0, max: 0.8, step: 0.01 },
+        { key: 'darken', label: 'WHITE CATS ONLY: how far toward the coat\'s shade', min: 0, max: 0.8, step: 0.01 },
+        { key: 'minSeparation', label: 'least separation allowed, CIE L* (raise past a coat\'s number below and that coat flips to shading)', min: 0, max: 30, step: 0.5 },
         { key: 'alpha', label: 'opacity', min: 0, max: 1, step: 0.02 },
         { key: 'rx', label: 'width, in body radii', min: 0.2, max: 0.9, step: 0.01 },
         { key: 'ry', label: 'height, in body radii', min: 0.2, max: 0.9, step: 0.01 },
@@ -1240,22 +1242,37 @@
       ],
       readout() {
         const B = CatV2.BELLY;
-        const miso = CatV2.appearanceFor(1);
+        // Per coat: what it separates by NOW, and which rule got it there.
+        // The flip is the thing being judged, so it is printed rather than
+        // left to be inferred from the drawing.
+        const rows = [1, 2, 3, 4, 5].map((pal) => {
+          const a = CatV2.appearanceFor(pal);
+          const ink = CatV2.bellyInkOf(a);
+          const d = CatV2.lstar(ink) - CatV2.lstar(a.furBase);
+          const lit = CatV2.lightenHex(a.furBase, B.lighten);
+          const shaded = CatV2.lstar(lit) - CatV2.lstar(a.furBase) < B.minSeparation;
+          return (
+            `  ${a.name.padEnd(14)} ${a.furBase} → ${ink}  ` +
+            `${d >= 0 ? '+' : ''}${d.toFixed(1)} L*  ${shaded ? 'SHADED' : 'lightened'}`
+          );
+        });
         return (
           `BELLY = { x: ${B.x}, y: ${B.y}, rx: ${B.rx}, ry: ${B.ry}, ` +
-          `lighten: ${B.lighten}, alpha: ${B.alpha} }\n` +
-          `seal point ${miso.furBase} → ${CatV2.lightenHex(miso.furBase, B.lighten)}` +
-          `   storm ${CatV2.appearanceFor(4).furBase} → ` +
-          `${CatV2.lightenHex(CatV2.appearanceFor(4).furBase, B.lighten)}\n` +
-          `derived from the body ellipse, so no per-pose value and nothing for blendLayouts to interpolate`
+          `lighten: ${B.lighten}, darken: ${B.darken}, ` +
+          `minSeparation: ${B.minSeparation}, alpha: ${B.alpha} }\n` +
+          rows.join('\n') +
+          `\nderived from the body ellipse, so no per-pose value and nothing for blendLayouts to interpolate`
         );
       },
       draw(ctx, w, h, now) {
         const S = 104;
         const y = h - S * 0.92;
         // Every palette, because the point of a belly is that it works on
-        // all of them -- and the pale ones are where it struggles.
-        [1, 2, 3, 4, 0].forEach((pal, i) => {
+        // all of them -- and the pale ones are where it struggles. Clementine
+        // (5, the white 'cloud') leads, since she is the coat this dial
+        // exists for and the one whose flip has to be judged against the
+        // four beside her that must NOT move.
+        [5, 1, 2, 3, 4].forEach((pal, i) => {
           const x = 14 + i * 108;
           CatV2.drawCat(ctx, {
             pose: 'idle',

@@ -9,7 +9,7 @@
  * be command-for-command the held pose) through a guarding mock ctx that
  * throws on any non-finite numeric argument.
  */
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -68,11 +68,11 @@ const SHIPPED_BLOCKS = Object.fromEntries(
 const VIEW = api.VIEW;
 const {
   poseFor, ACTION_POSE, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose,
-  swimAxialAllows, gazeTargetFor,
+  swimAxialAllows, gazeTargetFor, MEOW_TEXT, SOUND_WORDS,
 } = eval(
   renderSrc +
     ';({ poseFor, ACTION_POSE, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose,' +
-    ' swimAxialAllows, gazeTargetFor })',
+    ' swimAxialAllows, gazeTargetFor, MEOW_TEXT, SOUND_WORDS })',
 );
 
 /** Canvas ctx stand-in: logs every command, throws on non-finite numbers. */
@@ -820,14 +820,42 @@ function fillStyles(palette) {
 
 check('every soft cat gets a belly; the tuxedo keeps its bib instead', () => {
   // Palette 0 is the tuxedo, whose white bib already is an underside.
-  for (const pal of [1, 2, 3, 4]) {
-    const want = CatV2.lightenHex(CatV2.appearanceFor(pal).furBase, CatV2.BELLY.lighten);
+  // Through bellyInkOf, not lightenHex: the derivation has two directions
+  // now, and restating one of them here would only pin half the cats.
+  for (const pal of [1, 2, 3, 4, 5]) {
+    const want = CatV2.bellyInkOf(CatV2.appearanceFor(pal));
     assert(fillStyles(pal).includes(want), `palette ${pal} has no belly (${want})`);
   }
   const tuxedo = CatV2.appearanceFor(0);
-  const wouldBe = CatV2.lightenHex(tuxedo.furBase, CatV2.BELLY.lighten);
-  assert(!fillStyles(0).includes(wouldBe), 'the tuxedo drew a belly behind its bib');
+  assert(!fillStyles(0).includes(CatV2.bellyInkOf(tuxedo)), 'the tuxedo drew a belly behind its bib');
   assert(fillStyles(0).includes(tuxedo.pattern.color), 'the tuxedo still draws its bib');
+});
+
+check('a belly is visible on every coat, including the white one', () => {
+  // The bug this replaces was silent because the belly was still PAINTED --
+  // it just matched the fur. So the property is separation, not presence.
+  for (const pal of [1, 2, 3, 4, 5]) {
+    const a = CatV2.appearanceFor(pal);
+    const sep = Math.abs(CatV2.lstar(CatV2.bellyInkOf(a)) - CatV2.lstar(a.furBase));
+    assert(sep >= CatV2.BELLY.minSeparation,
+      `${a.name}'s belly is ${sep.toFixed(1)} L* from its coat, under the ${CatV2.BELLY.minSeparation} floor`);
+  }
+  // The white cat is the one that cannot be lightened, so she must be the
+  // one going the other way. If she ever comes out paler than her coat, the
+  // headroom test has stopped biting and she is flat again.
+  const her = CatV2.appearanceFor(5);
+  assert(CatV2.lstar(CatV2.bellyInkOf(her)) < CatV2.lstar(her.furBase),
+    'the white cat is still being lightened, which is what made her flat');
+  // And the four that shipped before her must be untouched: their approved
+  // ink is a lighten, and this dial was added on the promise it is a no-op
+  // for them. MISO is the canary, at 3.0 L* -- not storm at 9.9, which is
+  // what a regex that skipped the commented palettes first suggested. The
+  // usable window for minSeparation is only (1.4, 3.0].
+  for (const pal of [1, 2, 3, 4]) {
+    const a = CatV2.appearanceFor(pal);
+    assert(CatV2.bellyInkOf(a) === CatV2.lightenHex(a.furBase, CatV2.BELLY.lighten),
+      `${a.name} changed ink, and it shipped with the owner's approval`);
+  }
 });
 
 check('the body outline is struck on the BODY, and lands on top of the belly', () => {
@@ -4815,6 +4843,126 @@ check("the about survives a phase change, and the owner's words survive us", () 
       assert(/var\(--/.test(c), `${selector} names a colour literal (${c.trim()}), wrong for half the day`);
     }
   }
+});
+check('the about names the kind of mind, and which one', () => {
+  // Evaluated, not regexed. This function's whole job is to pick between
+  // four outcomes, and a source match cannot tell which one it picks -- the
+  // same mistake that let a glossed `mew` through the first meow check.
+  // It closes over nothing but its own arguments, so it lifts out cleanly.
+  const app = readFileSync(join(here, 'app.js'), 'utf8');
+  const start = app.indexOf('function mindTextFor(');
+  assert(start > 0, 'mindTextFor is gone');
+  const end = app.indexOf('\n}', start);
+  assert(end > start, 'could not find the end of mindTextFor');
+  const src = app.slice(start, end + 2);
+  assert(/behavior_description/.test(src), 'the extracted source is not the right function');
+  const mindTextFor = eval(`(${src})`);
+
+  const seat = (behavior, behavior_description) => ({ behavior, behavior_description });
+  const world = (...ks) => ({ kitties: ks });
+
+  // A policy seat post-034: the registry says WHAT, the config says WHICH.
+  const miso = seat('policy:attn-a1-s1', 'Transformer');
+  assert(mindTextFor(miso, world(miso)) === 'Transformer (attn-a1-s1)',
+    `policy seat reads "${mindTextFor(miso, world(miso))}"`);
+  // A scripted seat takes no parenthetical -- there is no artifact to name.
+  const clem = seat('needs_driven', 'Scripted');
+  assert(mindTextFor(clem, world(clem)) === 'Scripted',
+    `scripted seat reads "${mindTextFor(clem, world(clem))}"`);
+  // A plugin, told apart from an old engine by its NEIGHBOURS carrying
+  // descriptions. This is the assertion that stops "Plugin" from being
+  // printed over every cat on a pre-034 world.
+  const plug = seat('my_plugin', undefined);
+  assert(mindTextFor(plug, world(miso, plug)) === 'Plugin',
+    `plugin reads "${mindTextFor(plug, world(miso, plug))}"`);
+  // ...and the same kitty shape on a pre-034 world is NOT a plugin.
+  assert(mindTextFor(plug, world(plug, seat('needs_driven', undefined))) === 'my_plugin',
+    'a pre-034 world was read as plugins');
+  // The live box today: policy seats, no descriptions anywhere. Must still
+  // render the id exactly as it does before this change ships.
+  const pre = seat('policy:attn-a1-s1', undefined);
+  assert(mindTextFor(pre, world(pre, seat('policy:attn-a1-s3', undefined))) === 'attn-a1-s1',
+    `a pre-034 policy seat reads "${mindTextFor(pre, world(pre))}"`);
+  // A described policy seat NEVER falls to "Plugin", even sitting in a world
+  // that describes others. A 034 engine refuses to start an undescribed
+  // policy (the artifact has to be recertified first), so this state can
+  // only be an old engine -- and calling it a plugin would be the one thing
+  // it definitely is not.
+  assert(mindTextFor(pre, world(miso, pre)) === 'attn-a1-s1',
+    `an undescribed policy seat reads "${mindTextFor(pre, world(miso, pre))}"`);
+  assert(mindTextFor({}, world()) === 'no policy seated', 'an unseated cat says nothing sensible');
+});
+check('every cat on the roster wears her own coat', () => {
+  // The index IS the kitty id, so re-ordering PALETTES re-coats a cat and
+  // nothing else complains. That is how Clementine came to be dark: she was
+  // added to the config as id 5 and the array's index 5 held 'midnight',
+  // while the white 'cloud' written for her sat unused at 6.
+  //
+  // Pinned by NAME, per id, because the failure mode is positional. An
+  // assertion written as PALETTES[5] would move along with the bug.
+  for (const [id, coat] of [[1, 'seal point'], [2, 'biscuit tabby'],
+    [3, 'pumpkin tabby'], [4, 'storm'], [5, 'cloud']]) {
+    assert(CatV2.appearanceFor(id).name === coat,
+      `kitty ${id} wears "${CatV2.appearanceFor(id).name}", not "${coat}"`);
+  }
+  // And the one that would have caught it without knowing the coat's name:
+  // she is the white cat, so hers must be the lightest coat on the roster.
+  const lum = (hex) => {
+    const n = parseInt(hex.slice(1), 16);
+    return 0.2126 * ((n >> 16) & 255) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255);
+  };
+  const clementine = lum(CatV2.appearanceFor(5).furBase);
+  for (const id of [1, 2, 3, 4]) {
+    assert(clementine > lum(CatV2.appearanceFor(id).furBase),
+      `kitty ${id} has a lighter coat than the white cat`);
+  }
+});
+check('every word the engine can say has a bubble', () => {
+  // Read the vocabulary from the ENGINE, not from a list restated here. The
+  // spec-033 gap this guards was exactly a restatement going stale: the
+  // client's map still said `follow_me` months after the engine renamed it
+  // to `mew`, and all four Here words plus chirp fell through to the '…'
+  // fallback -- graceful, silent, and wrong in every bubble.
+  //
+  // Coupling to a Rust path is deliberate. It is the only thing that would
+  // have caught this, and if the file moves, this failing is the correct
+  // outcome: the vocabulary's home changed and the client's copy needs a
+  // human look. A skip here would pass while saying nothing.
+  const meowRs = join(here, '..', 'crates', 'cloudkitty-core', 'src', 'meow.rs');
+  assert(existsSync(meowRs), `the engine vocabulary moved from ${meowRs}`);
+  const rust = readFileSync(meowRs, 'utf8');
+  const body = rust.slice(rust.indexOf('pub fn wire_name'));
+  const kinds = [...body.slice(0, body.indexOf('\n    }')).matchAll(/=>\s*"([a-z_]+)"/g)]
+    .map((m) => m[1]);
+  assert(kinds.length >= 15, `only parsed ${kinds.length} kinds out of meow.rs`);
+
+  // Read the EVALUATED table, not the source text. The first cut of this
+  // check sliced the object literal, and a mutation that glossed `mew` on
+  // the line after it sailed straight through -- the table is built in two
+  // steps and only the finished value is what a bubble reads.
+  for (const kind of kinds) {
+    assert(typeof MEOW_TEXT[kind] === 'string' && MEOW_TEXT[kind],
+      `the engine can say "${kind}" and the client draws '…' for it`);
+  }
+  // The free register is shown as the sound itself. Glossing one would put a
+  // meaning on a word whose predicate does not carry it (FR-002b), so the
+  // rule is asserted rather than the presence of an entry.
+  assert(SOUND_WORDS.length === 4, `expected 4 sound-words, found ${SOUND_WORDS.length}`);
+  for (const word of SOUND_WORDS) {
+    assert(MEOW_TEXT[word] === word,
+      `${word} is a sound-word but renders as "${MEOW_TEXT[word]}"`);
+  }
+  // The owner's copy ships verbatim, and each Here word must land on the
+  // kind whose law it describes -- warm is the sunbeam, bug is the critter.
+  // Mapping these by the order she wrote them would have crossed both.
+  for (const [kind, copy] of [['here_food', 'Here food!'], ['here_water', 'Here drink!'],
+    ['here_critter', 'Here bug!'], ['here_sunbeam', 'Here warm!']]) {
+    assert(MEOW_TEXT[kind] === copy,
+      `${kind} reads "${MEOW_TEXT[kind]}", not "${copy}"`);
+  }
+  // Pre-wall the served box still emits follow_me; dropping it before the
+  // cutover deletes the only bubble that word draws today.
+  assert(MEOW_TEXT.follow_me, 'follow_me is gone, and the pre-wall box still emits it');
 });
 check('no check left a dial moved behind it', () => {
   // Must be LAST. Half the file dials a value, draws, and puts it back;
