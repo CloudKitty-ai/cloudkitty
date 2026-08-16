@@ -51,7 +51,40 @@ decisions per trait condition at fixed collection budget. The design
 question is where between those poles phase 1 sits, and what the
 thinning actually costs.
 
-## 3. The five spread decisions (owner input wanted)
+## 3. The five spread decisions — ALL DECIDED (owner, 2026-08-16)
+
+Verdicts, recorded for the prereg to adopt-and-cite:
+
+- **3a — FULL ENVELOPE, distribution-shaped**: per-dial triangular
+  distribution, mode at the seat's served value, endpoints at the
+  measured envelope bounds (0.5×–2× of default). Full corner-to-
+  corner support with mass concentrated on the served sheets
+  (owner: "full coverage, centered on our served distribution,
+  proportionally less at the extremes"). Collection budget RAISED
+  for v5 to offset density loss (multiplier proposed at prereg
+  with cost numbers). Biscuit's play dial is one-sided by
+  construction (mode on the envelope edge).
+- **3b — OFF-RAIL** (free box; welfare safety lives at the cert
+  envelope corners, not in per-world balance).
+- **3c — canonical share 1-in-3**, movable by the 3e probe.
+- **3d — INDEPENDENT per-seat draws + a small CORNER STRATUM**
+  (a few worlds where each seat's dials draw from the envelope
+  extremes) — combination coverage for the estimator without
+  spurious correlations, plus guaranteed in-distribution support
+  for the certification corners.
+- **3e — the price probe ADOPTED** (pinned vs spread cells at
+  matched budget, v4 clone battery, per-class with play/chase
+  canary). Decision-rule thresholds set at prereg freeze.
+- **Roster-3 — RANDOM TRIOS STAY; the audit RECORDS, never
+  excludes.** Owner: lower welfare in odd trios "isn't even a
+  cost, it will help us identify stress points in the kitty
+  ecosystem." Trio QA cells become findings material (F-020's
+  predictions in the wild); exclusion only for catatonia-grade
+  breakage, with recorded reason. The gym is not the sanctuary.
+
+Original decision write-ups follow (rationale record):
+
+## 3-orig. The five spread decisions (as posed)
 
 **3a. Spread region.** Proposal: a per-seat box centered on the
 served vector, each dial sampled within the measured envelope
