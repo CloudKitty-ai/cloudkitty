@@ -751,6 +751,55 @@ check('the cover the renderer computes is the cover bushesFor honours', () => {
   assert(!left.some((b) => b.x === spot.x && b.y === spot.y), 'and it is the water tile that went');
 });
 
+check('the lobed shrub\'s leaf ticks swing with the sun, and only as far as the dial', () => {
+  // The owner saw these "off centre left" at dawn and "off centre right" at
+  // dusk and reported them as two separate oddities. They are one term:
+  // the four ticks are evenly spaced, so their cos offsets cancel exactly
+  // and the motif's CENTRE is purely -shadowLean * r * bushLeafSwing. The
+  // lobes and trunk do not move with it, which is why a large swing reads
+  // as a part coming loose rather than as light.
+  const centreOf = (swing, theme) => {
+    api.setMeadowPalette(theme);
+    const xs = [];
+    const tile = 40;
+    let r = 0;
+    const ctx = new Proxy({}, {
+      get: (_t, k) => {
+        if (k === 'createLinearGradient') return () => ({ addColorStop() {} });
+        // The ticks are the only ellipses drawn at this radius pair.
+        if (k === 'ellipse') {
+          return (x, _y, rx, ry) => { if (rx > 0 && Math.abs(ry / rx - 0.075 / 0.13) < 1e-6) { xs.push(x); r = rx / 0.13; } };
+        }
+        return () => {};
+      },
+      set: () => true,
+    });
+    const t = { ...api.VIEW.meadow, bushStyle: 'lobed', bushStyleAltShare: 0, bushLeafSwing: swing };
+    api.drawBushAt(ctx, { x: 3, y: 4, seed: 0.42, tile, t });
+    assert(xs.length === 4, `expected 4 leaf ticks, captured ${xs.length}`);
+    return { centre: xs.reduce((s, v) => s + v, 0) / 4, r };
+  };
+
+  // At zero the motif is pinned to the crown in EVERY phase -- that is the
+  // whole point of the dial, so it is the property worth guarding.
+  const pinned = ['day', 'dusk', 'night', 'dawn'].map((ph) => centreOf(0, ph).centre);
+  for (const c of pinned) {
+    assert(Math.abs(c - pinned[0]) < 1e-9, 'swing 0 still moves the ticks between phases');
+  }
+  // And the swing is signed and proportional: dawn leans one way, dusk the
+  // other. If these ever share a sign the cue has stopped tracking the sun.
+  const r = centreOf(0.36, 'day').r;
+  const dawn = centreOf(0.36, 'dawn').centre - pinned[0];
+  const dusk = centreOf(0.36, 'dusk').centre - pinned[0];
+  assert(dawn < 0 && dusk > 0, `dawn ${dawn.toFixed(2)} and dusk ${dusk.toFixed(2)} do not straddle`);
+  // Magnitude follows the dial linearly, so halving it halves the travel.
+  const half = centreOf(0.18, 'dawn').centre - pinned[0];
+  assert(Math.abs(half - dawn / 2) < 1e-9, 'the swing is no longer linear in the dial');
+  // Scale check in the units the owner sees: 0.29 canopy radii at dawn.
+  assert(Math.abs(Math.abs(dawn) / r - 0.288) < 0.01,
+    `dawn travel is ${(Math.abs(dawn) / r).toFixed(3)} radii, not the 0.288 measured`);
+});
+
 check('drawBushAt sweeps clean in every style, at every size', () => {
   for (const bushStyle of ['cover', 'tuft', 'bramble', 'shrub']) {
     for (const tile of [8, 22, 54]) {

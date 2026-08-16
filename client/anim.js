@@ -19,6 +19,40 @@
  * query, page visibility).
  */
 
+/** The element each feeding action consumes, and so the thing to face. */
+const FEEDING_KIND = Object.freeze({ eat: 'chow', drink: 'water' });
+
+/**
+ * The element the engine would have picked for a feeding action at `pos`.
+ *
+ * A port of `adjacent_element_in`, plus the serving filter that
+ * `adjacent_stocked_chow_in` puts on top of it: adjacency is manhattan
+ * distance <= 1 (the cat's OWN tile included), and among the candidates the
+ * nearest wins with ties broken by lowest id. Both halves matter -- a cat
+ * between two ponds faces the one the engine chose, not whichever the
+ * elements array happened to list first.
+ *
+ * Deliberately mirrors the engine rather than approximating it. If the
+ * predicate there ever changes, this silently disagrees, which is why a
+ * test pins the tie-break rather than only the happy path.
+ */
+function nearestAdjacentOf(elements, pos, kind) {
+  let best = null;
+  let bestKey = null;
+  for (const el of elements ?? []) {
+    if (el.kind !== kind || !el.pos) continue;
+    if (kind === 'chow' && !(el.servings > 0)) continue;
+    const d = Math.abs(el.pos.x - pos.x) + Math.abs(el.pos.y - pos.y);
+    if (d > 1) continue;
+    const key = d * 1e9 + el.id;
+    if (bestKey === null || key < bestKey) {
+      best = el;
+      bestKey = key;
+    }
+  }
+  return best;
+}
+
 /**
  * Every new visual tunable, named in one place (FR-017, Article VI). The
  * two `*Fallback` values are stand-ins for served configuration and are
@@ -429,6 +463,10 @@ const VIEW = Object.freeze({
     bushTrunkAlt: 1, // the same, for the bushStyleAlt species
     bushTrunkWidth: 2.55, // stem thickness, as a multiple of each style's own
     bushTrunkWidthAlt: 1.4, // the same, for the bushStyleAlt species
+    // How far the lobed shrub's four leaf ticks slide toward the sun, in
+    // canopy radii per unit of shadowLean. 0 pins them to the crown and
+    // lets the gradient carry the light on its own.
+    bushLeafSwing: 0.1,
     // The shrub's shadow, damped against the cats': a squat canopy sits
     // close to the ground, so it stretches far less and needs no alpha
     // falloff. Only the LENGTH is damped -- the lean also anchors the
@@ -943,6 +981,40 @@ class Presentation {
         // last plausibly did, not a direction picked at random.
         if (!this.sideFacings) this.sideFacings = new Map();
         if (horizontal) this.sideFacings.set(kitty.id, next);
+      }
+      // A cat eats and drinks from a tile BESIDE it, so it can be served
+      // mid-meal facing away from the bowl -- owner, 2026-08-16: "pond is
+      // to the left, cat is drinking facing right".
+      //
+      // `last_action` names no element for eat or drink (verified on the
+      // live feed: the payload is a bare `{"action":"eat"}`), so which one
+      // it is has to be worked out here. That is not a guess: the engine
+      // picks by a predicate this can reproduce exactly -- the nearest
+      // adjacent element of the kind, ties broken by lowest id, and for
+      // chow only bowls that still hold a serving. Every field it needs is
+      // served. See `adjacent_element_in` / `adjacent_stocked_chow_in`.
+      //
+      // Adjacency there is manhattan <= 1, which INCLUDES the cat's own
+      // tile, so a cat drinking while standing in the pond resolves to
+      // distance 0 and gets left alone -- as does a bowl directly north or
+      // south. Neither carries any left-right information to face.
+      // The INCOMING state's action: `last_action` is what happened during
+      // the tick being ingested, so the meal is on `kitty`, not on `was`.
+      const feeding = FEEDING_KIND[kitty.last_action?.action];
+      if (feeding && !dx && !dy) {
+        const at = nearestAdjacentOf(world.elements, kitty.pos, feeding);
+        const towards = at && at.pos.x > kitty.pos.x ? 'right' : at && at.pos.x < kitty.pos.x ? 'left' : null;
+        // Only ever writes when the facing is WRONG, so a meal that is
+        // already facing its bowl stamps no turn and the cat does not
+        // twitch once per tick of it. The write goes through the same
+        // facings map as a step, so it then persists exactly as a step's
+        // would -- until the next move re-faces it.
+        if (towards && this.facings.get(kitty.id) !== towards) {
+          this.turns.set(kitty.id, now);
+          this.facings.set(kitty.id, towards);
+          if (!this.sideFacings) this.sideFacings = new Map();
+          this.sideFacings.set(kitty.id, towards);
+        }
       }
       this.movedNow.set(kitty.id, dx !== 0 || kitty.pos.y !== was.pos.y);
       // A step is the one thing that re-earns an axial drawing: it is the

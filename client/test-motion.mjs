@@ -21,7 +21,7 @@ const renderSrc = readFileSync(join(here, 'render.js'), 'utf8');
 const api = eval(
   animSrc +
     ';({ VIEW, Presentation, Pacer, easeSmooth, slowBlinkLid, idleHash, idlePeriodFor,' +
-    ' idlePickFor, idleOffsetFor, IDLE_SALTS, anim })',
+    ' idlePickFor, idleOffsetFor, IDLE_SALTS, anim, nearestAdjacentOf })',
 );
 
 /**
@@ -4964,6 +4964,108 @@ check('every word the engine can say has a bubble', () => {
   // cutover deletes the only bubble that word draws today.
   assert(MEOW_TEXT.follow_me, 'follow_me is gone, and the pre-wall box still emits it');
 });
+check('a cat turns to the bowl it is drinking from, and then stays put', () => {
+  // Owner, 2026-08-16: a cat drank from a pond on its left while facing
+  // right. Two halves to the fix and the second is the one with teeth --
+  // turning must not buy more flipping.
+  const P = api.Presentation;
+  const pres = new P();
+  const el = (id, kind, x, y, extra = {}) => ({ id, kind, pos: { x, y }, ...extra });
+  const elements = [el(1, 'water', 4, 5), el(2, 'chow', 9, 9, { servings: 3 })];
+  const at = (x, y, action) => ({
+    tick: 1, width: 20, height: 20, elements,
+    kitties: [{ id: 1, pos: { x, y }, needs: {}, last_action: { action } }],
+  });
+  const feed = (w, t) => { w.tick = t; pres.pushState(w, t * 1000); };
+
+  // Walk east so the cat is genuinely facing away, then drink from a pond
+  // one tile to its WEST.
+  feed(at(4, 5, 'move'), 1);
+  feed(at(5, 5, 'move'), 2);
+  assert(pres.facingFor(1) === 'right', `walked east but faces ${pres.facingFor(1)}`);
+  feed(at(5, 5, 'drink'), 3);
+  assert(pres.facingFor(1) === 'left', `did not turn to the pond: ${pres.facingFor(1)}`);
+
+  // ...and it STAYS. Nine more ticks of the same meal must not flip it,
+  // and must not restamp a turn -- a re-turn every tick is exactly the
+  // flipping the owner asked us not to add.
+  const turnAt = pres.turns.get(1);
+  for (let t = 4; t < 13; t++) {
+    feed(at(5, 5, 'drink'), t);
+    assert(pres.facingFor(1) === 'left', `flipped mid-meal at tick ${t}`);
+  }
+  assert(pres.turns.get(1) === turnAt, 'the meal restamped the turn, so the cat re-pivots every tick');
+  // Idling afterward keeps it too: only a move may re-face a cat.
+  feed(at(5, 5, 'idle'), 13);
+  assert(pres.facingFor(1) === 'left', 'the facing did not survive the end of the meal');
+
+  // A served STEP outranks the meal. The engine applies one action a tick,
+  // so a cat cannot really move and drink at once -- but the precedence is
+  // stated in code and is worth stating here too, because the day it stops
+  // holding, a walking cat starts being aimed at furniture it passed.
+  // The step has to land the cat STILL BESIDE the pond, or both branches
+  // agree by default and the case proves nothing -- the first version
+  // walked out of range and passed whatever the code did.
+  const pres3 = new P();
+  const step = (x, action, t) => pres3.pushState({
+    tick: t, width: 20, height: 20, elements,
+    kitties: [{ id: 1, pos: { x, y: 5 }, needs: {}, last_action: { action } }],
+  }, t * 1000);
+  step(4, 'move', 1); // stood in the pond at (4,5)
+  step(5, 'drink', 2); // stepped EAST out of it, pond now one tile west
+  assert(pres3.facingFor(1) === 'right', `a served step lost to the bowl: ${pres3.facingFor(1)}`);
+
+  // A bowl straight above carries no left-right information, so the cat is
+  // left exactly as it was rather than being turned to an invented side.
+  const pres2 = new P();
+  const above = [el(3, 'chow', 5, 4, { servings: 1 })];
+  const w = (action) => ({
+    tick: 1, width: 20, height: 20, elements: above,
+    kitties: [{ id: 1, pos: { x: 5, y: 5 }, needs: {}, last_action: { action } }],
+  });
+  pres2.pushState({ ...w('move'), kitties: [{ id: 1, pos: { x: 4, y: 5 }, needs: {}, last_action: { action: 'move' } }] }, 1000);
+  pres2.pushState({ ...w('move'), tick: 2 }, 2000);
+  const before = pres2.facingFor(1);
+  pres2.pushState({ ...w('eat'), tick: 3 }, 3000);
+  assert(pres2.facingFor(1) === before, `a bowl due north turned the cat ${pres2.facingFor(1)}`);
+});
+
+check('which bowl a cat turns to is the engine\'s choice, not the array\'s order', () => {
+  // The engine picks the NEAREST adjacent element of the kind, ties broken
+  // by lowest id, and for chow only bowls that still hold a serving. This
+  // is a port of that predicate, so it is pinned against the rule rather
+  // than against one happy case -- a disagreement here aims a cat at a
+  // bowl it is not eating from.
+  const pick = api.nearestAdjacentOf;
+  const at = (id, kind, x, y, extra = {}) => ({ id, kind, pos: { x, y }, ...extra });
+  const me = { x: 5, y: 5 };
+
+  // Out of range: manhattan 2 is not adjacent, even diagonally.
+  assert(!pick([at(1, 'water', 7, 5)], me, 'water'), 'reached a tile two away');
+  assert(!pick([at(1, 'water', 6, 6)], me, 'water'), 'reached diagonally');
+  // The cat's own tile counts -- that is a cat drinking while stood in it.
+  assert(pick([at(1, 'water', 5, 5)], me, 'water')?.id === 1, 'its own tile did not count');
+  // Nearest wins, and the ids are deliberately set AGAINST it: the nearer
+  // tile carries the higher id, so a sort key that forgot distance would
+  // pick the other one. Written the obvious way round first, it passed
+  // that mutation by coincidence.
+  const far = at(2, 'water', 4, 5); // distance 1
+  const near = at(9, 'water', 5, 5); // distance 0, higher id
+  assert(pick([far, near], me, 'water').id === 9, 'distance 0 lost to distance 1');
+  assert(pick([near, far], me, 'water').id === 9, 'and it depends on array order');
+  // Ties break by LOWEST id, whichever way the array is written.
+  const l = at(9, 'water', 4, 5);
+  const r = at(3, 'water', 6, 5);
+  assert(pick([l, r], me, 'water').id === 3, 'tie did not break to the lowest id');
+  assert(pick([r, l], me, 'water').id === 3, 'the tie-break depends on array order');
+  // An empty bowl is not a meal, so it is not the thing to face.
+  assert(!pick([at(1, 'chow', 4, 5, { servings: 0 })], me, 'chow'), 'faced an empty bowl');
+  assert(pick([at(1, 'chow', 4, 5, { servings: 0 }), at(2, 'chow', 6, 5, { servings: 2 })], me, 'chow').id === 2,
+    'the empty bowl beat the stocked one');
+  // Water has no servings field at all; requiring one would break drinking.
+  assert(pick([at(1, 'water', 4, 5)], me, 'water')?.id === 1, 'water needed a servings field');
+});
+
 check('no check left a dial moved behind it', () => {
   // Must be LAST. Half the file dials a value, draws, and puts it back;
   // one that forgets leaves every later check drawing a different cat,

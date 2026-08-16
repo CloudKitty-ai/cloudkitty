@@ -156,6 +156,26 @@
   </p>
   <canvas id="ponds-phases" width="960" height="160"></canvas>
 
+  <h2>Leaf swing — the same shrub, right through the day</h2>
+  <p class="note">
+    The lobed shrub's four leaf ticks mark the lit side, so they slide with
+    the sun: their centre is <code>&minus;shadowLean &times; r &times;
+    bushLeafSwing</code>, and because the four are evenly spaced their own
+    offsets cancel exactly, leaving a clean sideways displacement. Only
+    <strong>dawn and dusk lean far</strong> (+0.8 and &minus;0.85); day and
+    night sit near zero, so the dial looks dead there and this strip is the
+    only place to judge it. The owner saw these as two separate faults a day
+    apart — &ldquo;off centre left&rdquo; one evening, &ldquo;off centre
+    right&rdquo; the next — which is one dial seen from both ends.
+    <span class="warn">The lobes and the trunk do NOT move with the ticks</span>,
+    so past some swing the motif stops reading as light and starts reading as
+    a part that came loose. The hairline is the crown's centre and the dot is
+    the ticks' measured centre — measured off the actual draw, not recomputed,
+    so this cannot drift from what ships. At 0 the dot sits on the line in
+    every phase and the gradient carries the light alone.
+  </p>
+  <canvas id="leaf-swing" width="960" height="230"></canvas>
+
   <h2>Ground cover — the four styles, same seed</h2>
   <p class="note">
     All four bake into the ground cache, which sits under everything: nothing
@@ -287,6 +307,10 @@
     bushTrunkAlt: [0, 1, 0.05],
     bushTrunkWidth: [0.2, 4, 0.05],
     bushTrunkWidthAlt: [0.2, 4, 0.05],
+    // 0 pins the leaf ticks to the crown; 0.36 is what shipped. Judge it
+    // at dawn and dusk -- day and night barely lean, so the dial looks
+    // dead there.
+    bushLeafSwing: [0, 0.6, 0.01],
     // Drifts (spec 03 part 1). `fertilityCells` is the size of a good patch
     // of ground; the powers are how hard each thing concentrates in one.
     // Counts are CONSERVED whatever these say -- watch the drift card's
@@ -455,6 +479,91 @@
    * at build time), so the palette has to be set before buildPondLayers AND
    * again before drawPonds, which reads pondDeep and the meniscus live.
    */
+  /**
+   * The leaf-swing strip: one shrub, four phases, the motif's travel drawn
+   * and measured. The measurement wraps the REAL context rather than
+   * recomputing the formula, so if the drawing changes the card follows it
+   * instead of confidently reporting the old arithmetic.
+   */
+  function drawLeafSwing() {
+    const c = document.getElementById('leaf-swing');
+    if (!c) return;
+    const g = c.getContext('2d');
+    const cw = c.width / PHASES_4.length;
+    const st = 84; // a generous tile: this is a shape to judge, not a map
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.clearRect(0, 0, c.width, c.height);
+
+    const t = {
+      ...VIEW.meadow,
+      bushStyle: 'lobed',
+      bushStyleAltShare: 0,
+      bushLeafSwing: VIEW.meadow.bushLeafSwing,
+    };
+    PHASES_4.forEach((ph, i) => {
+      setMeadowPalette(ph, null, 0);
+      g.save();
+      g.beginPath();
+      g.rect(i * cw, 0, cw, c.height);
+      g.clip();
+      g.fillStyle = MEADOW.grassTones[0];
+      g.fillRect(i * cw, 0, cw, c.height);
+
+      const bx = i * cw + cw / 2;
+      // Capture the ticks as they are painted. They are the only ellipses
+      // the lobed style draws at this aspect (0.075 / 0.13), and the radius
+      // comes back with them, so nothing here assumes a canopy size.
+      const xs = [];
+      let r = 0;
+      const probe = new Proxy(g, {
+        get(target, key) {
+          const v = target[key];
+          if (key === 'ellipse') {
+            return (...args) => {
+              const [x, , rx, ry] = args;
+              if (rx > 0 && Math.abs(ry / rx - 0.075 / 0.13) < 1e-6) { xs.push(x); r = rx / 0.13; }
+              return v.apply(target, args);
+            };
+          }
+          return typeof v === 'function' ? v.bind(target) : v;
+        },
+        set(target, key, value) { target[key] = value; return true; },
+      });
+      drawBushAt(probe, {
+        x: bx / st - 0.5, y: (c.height - 46) / st - 0.9, ox: 0, alt: false,
+        seed: 0.42, tile: st, t,
+      });
+
+      g.setTransform(1, 0, 0, 1, 0, 0);
+      // The crown's centre, and where the motif actually landed.
+      g.strokeStyle = 'rgba(200,40,40,0.75)';
+      g.lineWidth = 1;
+      g.beginPath();
+      g.moveTo(bx + 0.5, 24);
+      g.lineTo(bx + 0.5, c.height - 30);
+      g.stroke();
+      const centre = xs.length ? xs.reduce((s, v) => s + v, 0) / xs.length : bx;
+      const travel = r ? (centre - bx) / r : 0;
+      g.fillStyle = 'rgba(200,40,40,0.95)';
+      g.beginPath();
+      g.arc(centre, c.height - 44, 3, 0, Math.PI * 2);
+      g.fill();
+
+      g.font = '12px ui-monospace, monospace';
+      g.textAlign = 'center';
+      g.fillStyle = 'rgba(0,0,0,0.55)';
+      g.fillRect(i * cw + 8, c.height - 26, cw - 16, 20);
+      g.fillStyle = '#fff';
+      g.fillText(
+        `${ph}  lean ${MEADOW.shadowLean}  ${travel >= 0 ? '+' : ''}${travel.toFixed(3)} r`,
+        bx, c.height - 12,
+      );
+      g.restore();
+    });
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.textAlign = 'left';
+  }
+
   function drawPondPhases(now) {
     const c = document.getElementById('ponds-phases');
     const g = c.getContext('2d');
@@ -576,6 +685,10 @@
     renderDrifts();
     renderOcclusion();
     renderPonds(performance.now());
+    // Both of these walk the palette through all four phases, so the live
+    // one has to be put back or every card drawn after them is lit for dawn.
+    drawLeafSwing();
+    applyPalette();
     readout();
   }
 
@@ -724,6 +837,7 @@
         bushLift: alt ? VIEW.meadow.bushLiftAlt : VIEW.meadow.bushLift,
         bushTrunk: alt ? VIEW.meadow.bushTrunkAlt : VIEW.meadow.bushTrunk,
         bushTrunkWidth: alt ? VIEW.meadow.bushTrunkWidthAlt : VIEW.meadow.bushTrunkWidth,
+        bushLeafSwing: VIEW.meadow.bushLeafSwing,
       };
       const top = row * rh;
       OCC_OFFSETS.forEach((dy, i) => {

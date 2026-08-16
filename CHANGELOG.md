@@ -33,6 +33,31 @@ change.
 
 ## Unreleased
 
+- **A cat faces what it is eating, and the shrubs stop drifting.** Two
+  things the owner saw in the live meadow on the same evening. Eating and
+  drinking both take from a tile *beside* the cat — the engine's predicate
+  is manhattan distance ≤ 1 — so a cat could be served mid-meal facing
+  away from the pond it was drinking out of. `last_action` names no
+  element for either action (the payload is a bare `{"action":"eat"}`), so
+  the client works out which one by porting the engine's own predicate
+  rather than guessing: nearest adjacent element of the kind, ties broken
+  by lowest id, empty bowls excluded. A cat between two ponds faces the
+  one the engine chose. Turning must not buy more flipping, and it does
+  not: the write happens only when the facing is wrong, and then persists
+  through the same memory a step uses, so a meal already facing its bowl
+  stamps nothing and a served step still outranks the meal. Drinking while
+  stood *in* the pond has no left-right component and is left alone.
+  Separately, the lobed shrub's four leaf ticks mark the lit side, and
+  they were sliding 0.29 canopy radii between dawn and dusk while the
+  lobes and trunk stayed put — reported as two different faults a day
+  apart, "off centre left" one evening and "off centre right" the next,
+  which is one dial seen from both ends. `bushLeafSwing` exposes it and
+  the owner dialled it to 0.1: about a pixel either side of centre at the
+  live tile, present as a cue and gone as a displacement. The gradient was
+  always carrying the direction anyway. A lab card draws one shrub through
+  all four phases and measures the travel off the actual paint, since the
+  dial is dead at noon and there was nowhere to judge it (#235).
+
 - **The viewer learns the new language, and meets the fifth cat.** The
   client half of specs 033 and 034, shipped ahead of the phase-1 seating
   so none of it has to land on the same day the world turns over. Every
