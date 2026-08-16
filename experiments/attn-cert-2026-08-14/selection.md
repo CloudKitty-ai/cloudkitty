@@ -147,6 +147,21 @@ change is anticipated rather than improvised. The G2c two-layer
 structure (scripted-baseline hard floor + per-seating declared
 budget) is what makes such a seat certifiable at all.
 
+**Forward note on instrument engine versions (exp-005 finding,
+2026-08-15):** the shared harness venv's cloudkitty binding was built
+2026-08-09, five days before spec 031 (shared sunbeam warmth) merged —
+so every python-harness run in this battery computed sleep relief on
+pre-031 conduction rules. No verdict changes: D-001 already registers
+the harness as an instrument distinct from the production engine, and
+every gate that used it compared candidate and incumbent through the
+SAME binding (the bias cancels), while the scripted hard floor came
+from kitty-eval natively. Recorded because the discovery mechanism
+matters: exp-005's fingerprint probe caught the skew as an exact
+`sleep_relief_sunbeam − sleep_relief` divergence in a state-trace
+stitch. Standing practice going forward: instrument venvs pin and
+print their engine commit (exp-005's own venv, built at pre-wall
+89b720a, is the first to comply).
+
 ## Deviations
 
 (append-only after freeze)
