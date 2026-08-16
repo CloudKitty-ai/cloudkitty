@@ -3011,7 +3011,9 @@ const BELLY = {
   // as faint as the one being fixed here. Raising this dial past 3.0 brings
   // her in too, which is a live option and the owner's call, not a bug.
   minSeparation: 2.2,
-  darken: 0.3, // ...and how far toward furShade it goes when it does
+  // ...and how far toward furShade it goes when it does. Judged on Clementine
+  // in the lab and pasted by the owner, 2026-08-16.
+  darken: 0.35,
   alpha: 0.85,
 };
 
