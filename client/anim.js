@@ -231,8 +231,14 @@ const VIEW = Object.freeze({
   // -- the pose and the expression disagreeing about whether a hunt was
   // happening, on 85.6% of the ticks the face was on. Wider than the pounce
   // on purpose (owner, 2026-08-14): the eyes may lead the pounce, they just
-  // may not lead it across the whole map. 8 keeps 39% of them.
-  hunterGateTiles: 8,
+  // may not lead it across the whole map.
+  //
+  // 8 -> 6 (owner, 2026-08-16), after "hunter eyes with no bug in
+  // proximity". 8 is manhattan, and on a 20x20 world that is most of the
+  // way across it -- the quarry was on screen but nowhere the eye would
+  // call near. 6 is still wider than the 4-tile pounce gate, so the eyes
+  // keep the lead they were given.
+  hunterGateTiles: 6,
   arriveBlendMs: 340, // the walking -> standing blend, paired with the settle
   settleMs: 400, // landing squash, concurrent with the arrive blend
   settleDip: 0.05, // peak vertical squash of the settle

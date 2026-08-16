@@ -171,22 +171,41 @@ function chaseDistanceFor(kitty, world) {
 }
 
 /**
- * Manhattan tiles from a kitty to whatever its PURSUIT names, or null when
- * it is not pursuing or the quarry is no longer served.
+ * Manhattan tiles from a kitty to whatever its PURSUIT names.
  *
  * Deliberately not `chaseDistanceFor`: that one reads `last_action`, which
  * is this tick's applied action, while the hunter's face is driven by the
  * pursuit -- a longer-lived thing that survives a cat stopping for a drink
  * on the way. They can name different quarry on the same tick.
+ *
+ * THREE outcomes, and the difference between the last two is the whole
+ * point (owner, 2026-08-16: "hunter eyes with no bug in proximity"):
+ *
+ *   - a number, when the quarry is served and can be measured;
+ *   - `null` when there is nothing to measure -- no pursuit, or a target
+ *     whose shape this does not recognise. The caller gives `null` the
+ *     benefit of the doubt and keeps the hunter's face, so a field that
+ *     goes missing can never make a hunting cat look ordinary;
+ *   - `Infinity` when the target is WELL-FORMED and names something the
+ *     world does not contain. That is not a failure to resolve, it is the
+ *     quarry being gone -- caught or expired -- and the payload carries
+ *     the whole world, so absence is evidence rather than ignorance.
+ *
+ * Both of the last two used to return `null`, which meant the tick where a
+ * bug expired was served as pursuit-present-quarry-absent and drew the
+ * hunter's face at nothing. Infinity gates on any finite threshold, so the
+ * caller needs no special case.
  */
 function pursuitDistanceFor(kitty, world) {
   const ref = kitty.pursuit?.target;
   if (!ref) return null;
+  const named = ref.target === 'element' || ref.target === 'kitty';
+  if (!named || typeof ref.id !== 'number') return null;
   const pos =
     ref.target === 'element'
       ? world.elements.find((el) => el.id === ref.id)?.pos
       : world.kitties.find((k) => k.id === ref.id)?.pos;
-  if (!pos) return null;
+  if (!pos) return Infinity;
   return Math.abs(kitty.pos.x - pos.x) + Math.abs(kitty.pos.y - pos.y);
 }
 

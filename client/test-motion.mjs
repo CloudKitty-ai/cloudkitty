@@ -68,11 +68,11 @@ const SHIPPED_BLOCKS = Object.fromEntries(
 const VIEW = api.VIEW;
 const {
   poseFor, ACTION_POSE, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose,
-  swimAxialAllows, gazeTargetFor, MEOW_TEXT, SOUND_WORDS,
+  swimAxialAllows, gazeTargetFor, MEOW_TEXT, SOUND_WORDS, pursuitDistanceFor,
 } = eval(
   renderSrc +
     ';({ poseFor, ACTION_POSE, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose,' +
-    ' swimAxialAllows, gazeTargetFor, MEOW_TEXT, SOUND_WORDS })',
+    ' swimAxialAllows, gazeTargetFor, MEOW_TEXT, SOUND_WORDS, pursuitDistanceFor })',
 );
 
 /** Canvas ctx stand-in: logs every command, throws on non-finite numbers. */
@@ -5064,6 +5064,48 @@ check('which bowl a cat turns to is the engine\'s choice, not the array\'s order
     'the empty bowl beat the stocked one');
   // Water has no servings field at all; requiring one would break drinking.
   assert(pick([at(1, 'water', 4, 5)], me, 'water')?.id === 1, 'water needed a servings field');
+});
+
+check('a hunt whose quarry is gone is over, but a missing field is not', () => {
+  // Owner, 2026-08-16: hunter eyes with no bug anywhere near. The gate reads
+  // `dist !== null && dist > gate`, so null never gates -- and BOTH "I do
+  // not understand this target" and "that bug no longer exists" used to
+  // return null. Only the first deserves the benefit of the doubt.
+  const bug = { id: 7, kind: 'bug', pos: { x: 5, y: 5 } };
+  const world = (els) => ({ tick: 1, width: 20, height: 20, elements: els, kitties: [] });
+  const cat = (target) => ({ id: 1, pos: { x: 5, y: 5 }, pursuit: target ? { target } : undefined });
+
+  const measured = pursuitDistanceFor(cat({ target: 'element', id: 7 }), world([bug]));
+  assert(measured === 0, `a served quarry measured ${measured}`);
+  // The one that matters: well-formed, and names something the world does
+  // not have. The payload IS the whole world, so this is evidence.
+  const gone = pursuitDistanceFor(cat({ target: 'element', id: 7 }), world([]));
+  assert(gone === Infinity, `a vanished quarry gave ${gone}, so the gate cannot fire`);
+  // Shapes this does not understand keep their benefit of the doubt.
+  assert(pursuitDistanceFor(cat(null), world([bug])) === null, 'no pursuit is not null');
+  assert(pursuitDistanceFor(cat({ target: 'element' }), world([])) === null,
+    'a target with no id was treated as a vanished quarry');
+  assert(pursuitDistanceFor(cat({ target: 'wat', id: 7 }), world([])) === null,
+    'an unrecognised target kind was treated as a vanished quarry');
+
+  // Composed through the face, which is what the viewer sees.
+  const P = api.Presentation;
+  const pres = new P();
+  const faceFor = (els, at) => {
+    const k = { id: 1, pos: { x: 5, y: 5 }, pursuit: { target: { target: 'element', id: 7 } } };
+    const w = world(els);
+    return pres.expressionFor(k, pursuitDistanceFor(k, w));
+  };
+  assert(faceFor([bug]) === 'focused', 'a real hunt lost its face');
+  assert(faceFor([]) === undefined, 'THE BUG: the face survives its quarry vanishing');
+  // And the gate itself, at the owner's 6.
+  assert(api.VIEW.hunterGateTiles === 6, `the gate is ${api.VIEW.hunterGateTiles}, not 6`);
+  assert(faceFor([{ ...bug, pos: { x: 11, y: 5 } }]) === 'focused', 'a quarry exactly 6 tiles off lost the face');
+  assert(faceFor([{ ...bug, pos: { x: 12, y: 5 } }]) === undefined, 'a quarry 7 tiles off kept the face');
+  // A malformed target still keeps it -- the defensive half is intact.
+  const odd = { id: 1, pos: { x: 5, y: 5 }, pursuit: { target: { target: 'element' } } };
+  assert(pres.expressionFor(odd, pursuitDistanceFor(odd, world([]))) === 'focused',
+    'a missing field now costs a hunting cat its face');
 });
 
 check('no check left a dial moved behind it', () => {
