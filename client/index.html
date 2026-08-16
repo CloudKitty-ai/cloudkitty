@@ -363,20 +363,72 @@
 
   /* About's own type, not a kitty card's (owner, 2026-08-15): the card
      layout is built around a portrait chip, and About has no face. */
-  /* The per-card about link. Ships visible (owner, 2026-08-15): the rates
-     behind it are the served ones now, so there is nothing left to hide. */
+  /* The per-card about, a `?` in a circle. Drawn rather than a glyph:
+     Unicode's circled question mark (U+2370) is poorly covered, so it would
+     render as a box on some machines -- and a drawn circle themes with the
+     tokens and scales with the type, which a font character does not.
+
+     The visible label is now one character, so the ACCESSIBLE name carries
+     the whole meaning: every one of these is `aria-label="about <name>"`,
+     set where the button is built. Without it a screen reader hears "?".
+
+     Sized against the touch target rather than the ink: the ring is 15px
+     but the button keeps 3px of padding all round, so the hit area stays
+     over 20px on a phone where the ring alone would be a poke test. */
+  /* THE BORDER BOX IS THE RING. `border-radius: 50%` resolves against the
+     border box and the border is painted at its edge, so any padding here
+     grows the CIRCLE -- it cannot buy a bigger touch target. An earlier cut
+     of this rule used content-box padding to do exactly that and drew a 23px
+     ring around an 11px box for three rounds of dialling. The target is a
+     transparent ::after instead, which is the only way to have both. */
   .kitty-about {
     margin-left: auto;
-    border: none;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    /* 14px of ring holds the ? at 66% of its inner height. The measured
+       floor is 12px, where the ink clears the circle by 0.74px; at 10px it
+       touches. Whatever air is left is at the SIDES -- a ? is 1.6x taller
+       than it is wide inside a 1:1 circle, so the side gap outruns the top
+       gap by half that difference at every size, and no dial removes it. */
+    width: 14px;
+    height: 14px;
+    /* Optical centring, and the ONLY safe use of padding here: with the box
+       sized by its border box the ring stays 14px, so this shifts the glyph
+       inside the circle instead of growing it.
+       A ? sits almost entirely above its baseline, and the flex centring
+       centres the LINE BOX, whose middle is 0.29px above the ink's. That
+       rides the glyph high on every card by the same amount -- but it is
+       0.58 device px at 2x, so it rounds away on a card at one y offset and
+       up to a whole visible pixel on a card at another. It read as centred
+       on one cat and a pixel high on the other three. Twice the bias as
+       padding-top lands the ink centre 0.0006px off the ring's. */
+    padding: 0.58px 0 0;
+    border: 1px solid currentColor;
+    border-radius: 50%;
     background: none;
-    padding: 0;
-    font: inherit;
-    font-size: 0.68rem;
     color: var(--ink-soft);
+    font: inherit;
+    font-size: 0.69rem;
+    /* Nunito is variable over 200-1000, so this is a real weight and not a
+       synthesised one. 900 rather than the 700 it sat at: the strokes come
+       out 5% wider and the clearance only falls 0.03px, because weight moves
+       a `?` sideways far more than it moves its height. */
+    font-weight: 900;
+    line-height: 1;
     cursor: pointer;
-    border-bottom: 1px dotted currentColor;
   }
-  .kitty-about:hover { color: var(--ink); }
+  /* Draws nothing; it is the touch target only. -4.5px a side takes the 14px
+     ring to a 23px target, which is the size the ring itself used to be. */
+  .kitty-about::after {
+    content: '';
+    position: absolute;
+    inset: -4.5px;
+  }
+  .kitty-about:hover,
+  .kitty-about:focus-visible { color: var(--ink); }
 
   .about-card {
     background: var(--card);

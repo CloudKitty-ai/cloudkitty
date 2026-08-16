@@ -4550,6 +4550,71 @@ check('the per-kitty about ships, and its numbers are the served ones', () => {
   assert(/className = 'kitty-about'/.test(app), 'no about link is built on the cards');
   assert(/openTraitsDialog\(live\)/.test(app), 'the about link does not open the dialog');
 
+  // Its visible label is a single `?` now, so the ACCESSIBLE name carries the
+  // whole meaning -- without it a screen reader hears "?" and nothing else.
+  const build = app.slice(app.indexOf("more.className = 'kitty-about'"));
+  const built = build.slice(0, build.indexOf('name.appendChild(more)'));
+  assert(/textContent = '\?'/.test(built), 'the about control is no longer the question mark');
+  assert(/aria-label', `about \$\{kitty\.name\}`/.test(built),
+    'the about control has no accessible name, so it announces as "?"');
+
+  // Drawn as a circle rather than set as a glyph: Unicode's circled question
+  // mark is poorly covered and would box on some machines.
+  const ring = markup.slice(markup.indexOf('  .kitty-about {'), markup.indexOf('}', markup.indexOf('  .kitty-about {')));
+  assert(/border-radius: 50%/.test(ring), 'the about control is no longer a circle');
+  assert(/border: 1px solid currentColor/.test(ring),
+    'the ring is not drawn in the text colour, so it will not follow a phase change');
+  // THE DRAWN RING IS THE BORDER BOX. `border-radius: 50%` resolves against
+  // it, so `width` is only the ring's diameter when the box sizes that way
+  // and carries no padding. The rule this replaces used content-box padding
+  // to grow what it called the touch target, and drew a 23px circle around
+  // an 11px box -- three rounds of "shrinking" that changed nothing on
+  // screen, because each one was cancelled by the padding added to hold the
+  // total. Both halves of that mistake are guarded here.
+  const box = ring.match(/width: ([\d.]+)px/);
+  assert(box, 'the about control no longer states a width');
+  assert(/box-sizing: border-box/.test(ring),
+    'the ring is not sized by its border box, so `width` is not its diameter');
+  // border-box is what makes the padding below safe, and it is the whole
+  // guard against the original bug: under content-box that padding would go
+  // straight back into the circle's diameter.
+  //
+  // The padding is optical centring. Flex centres the LINE box and a `?` is
+  // nearly all above its baseline, so the ink centre sits 0.29px above the
+  // box centre -- 0.58 device px at 2x, which rounds away on a card at one y
+  // offset and up to a full pixel on a card at another. Twice the bias, as
+  // padding-top, cancels it. Only the top may carry any.
+  const padTop = ring.match(/padding: ([\d.]+)px 0 0/);
+  assert(padTop, 'the ring no longer states a top-only padding, so the glyph is off centre');
+  assert(Math.abs(Number(padTop[1]) - 0.58) < 0.02,
+    `padding-top ${padTop[1]}px does not cancel the 0.29px the glyph rides high`);
+  // The ring has a measured floor, not a taste one. Nunito's own `?` outline
+  // at weight 700 and 0.69rem was flattened to points and tested against the
+  // inscribed circle: the ink clears it by 0.74px at a 12px ring and by
+  // 0.02px at 10px, where the glyph touches the circle it sits in.
+  assert(Number(box[1]) >= 12,
+    `a ${box[1]}px ring puts the question mark against the circle`);
+  // And the glyph has to be the thing that reads, so it may neither shrink
+  // nor lighten back under the ring it sits in. Both are dialled values.
+  const glyph = ring.match(/font-size: ([\d.]+)rem/);
+  assert(glyph && Number(glyph[1]) >= 0.69,
+    'the question mark is smaller than the size it was dialled to');
+  const wght = ring.match(/font-weight: (\d+)/);
+  assert(wght && Number(wght[1]) >= 900,
+    'the question mark is lighter than the weight it was dialled to');
+
+  // The ring is small; the hit area must not be. It comes from a pseudo
+  // element that draws nothing, because the ring cannot supply it.
+  const after = markup.slice(markup.indexOf('  .kitty-about::after {'),
+    markup.indexOf('}', markup.indexOf('  .kitty-about::after {')));
+  assert(after.length, 'the about control has no ::after, so it has no touch target');
+  assert(/position: absolute/.test(after),
+    'the touch target is in flow, so it moves the name row');
+  const inset = after.match(/inset: (-?[\d.]+)px/);
+  assert(inset, 'the touch target states no inset');
+  const target = Number(box[1]) - 2 * Number(inset[1]);
+  assert(target >= 23, `the about control's touch target is only ${target}px`);
+
   // The bar colours are checked as COLOURS, not by where they came from.
   // The first version read them live from the meadow's palette and asserted
   // that fact -- which passed while `pondDeep` went to #0b1216 on a #37313f
