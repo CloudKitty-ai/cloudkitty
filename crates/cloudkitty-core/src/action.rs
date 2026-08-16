@@ -232,7 +232,25 @@ mod proposal_wire {
     #[derive(Deserialize)]
     #[serde(deny_unknown_fields)]
     pub(super) struct MeowWire {
+        #[serde(deserialize_with = "wire_message_kind")]
         pub message: MessageKind,
+    }
+
+    /// The wire's own vocabulary: exactly the `wire_name()` spellings,
+    /// never serde's — the snapshot-facing `follow_me` alias on `Mew`
+    /// (033 review Finding 3) is a persistence affordance, and wire v2
+    /// dropped `follow_me` deliberately (spec 033 D4, no alias). Routing
+    /// the wire through `wire_name()` keeps that ruling standing no matter
+    /// what aliases persistence grows.
+    fn wire_message_kind<'de, D>(deserializer: D) -> Result<MessageKind, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let spelling = String::deserialize(deserializer)?;
+        MessageKind::ALL
+            .into_iter()
+            .find(|kind| kind.wire_name() == spelling)
+            .ok_or_else(|| serde::de::Error::custom(format!("unknown message kind `{spelling}`")))
     }
 }
 

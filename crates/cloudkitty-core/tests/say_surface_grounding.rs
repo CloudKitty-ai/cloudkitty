@@ -9,30 +9,18 @@
 use cloudkitty_core::element::ElementType;
 use cloudkitty_core::grid::Position;
 use cloudkitty_core::meow::{message_legal, MessageKind};
+use cloudkitty_core::rng::SimRng;
 use cloudkitty_core::test_support::test_config;
 use cloudkitty_core::world::{
     adjacent_critter_in, adjacent_element_in, adjacent_stocked_chow_in, World,
 };
 
-/// Deterministic xorshift so the property run replays exactly.
-struct Rng(u64);
-impl Rng {
-    fn next(&mut self) -> u64 {
-        let mut x = self.0;
-        x ^= x << 13;
-        x ^= x >> 7;
-        x ^= x << 17;
-        self.0 = x;
-        x
-    }
-    fn below(&mut self, n: u64) -> u64 {
-        self.next() % n
-    }
-}
-
 #[test]
 fn here_legality_is_exactly_predicate_and_cooldown_and_flag() {
-    let mut rng = Rng(0x2026_0815_0033);
+    // The crate's own seeded RNG (033 review Finding 7): the same exact
+    // replayability the hand-rolled xorshift was for, without its modulo
+    // bias or all-zero-seed fixed point.
+    let mut rng = SimRng::from_seed(0x2026_0815_0033);
     let mut probes = 0u32;
     let mut legal_seen = 0u32;
 
@@ -44,10 +32,10 @@ fn here_legality_is_exactly_predicate_and_cooldown_and_flag() {
 
         // Randomize the vocabulary flags sometimes (flags are part of the
         // invariant, not a fixed backdrop).
-        config.meow.vocabulary.here_food = rng.below(4) != 0;
-        config.meow.vocabulary.here_water = rng.below(4) != 0;
-        config.meow.vocabulary.here_critter = rng.below(4) != 0;
-        config.meow.vocabulary.here_sunbeam = rng.below(4) != 0;
+        config.meow.vocabulary.here_food = rng.gen_range_u32(0, 4) != 0;
+        config.meow.vocabulary.here_water = rng.gen_range_u32(0, 4) != 0;
+        config.meow.vocabulary.here_critter = rng.gen_range_u32(0, 4) != 0;
+        config.meow.vocabulary.here_sunbeam = rng.gen_range_u32(0, 4) != 0;
 
         for _ in 0..60 {
             // Advance the clock so stamped cooldowns expire between probes
@@ -56,15 +44,16 @@ fn here_legality_is_exactly_predicate_and_cooldown_and_flag() {
             // Teleport kitty 1: half the time uniformly, half the time
             // BESIDE a random element so the legal side is well-exercised.
             let idx = world.kitty_index(1).unwrap();
-            let pos = if rng.below(2) == 0 || world.elements.is_empty() {
+            let pos = if rng.gen_bool(0.5) || world.elements.is_empty() {
                 Position::new(
-                    rng.below(world.width as u64) as u32,
-                    rng.below(world.height as u64) as u32,
+                    rng.gen_range_u32(0, world.width),
+                    rng.gen_range_u32(0, world.height),
                 )
             } else {
-                let e = &world.elements[rng.below(world.elements.len() as u64) as usize];
-                let dx = [0i64, 1, -1, 0][rng.below(4) as usize];
-                let dy = [1i64, 0, 0, -1][rng.below(4) as usize];
+                let e = rng.gen_range_u32(0, world.elements.len() as u32) as usize;
+                let e = &world.elements[e];
+                let dx = [0i64, 1, -1, 0][rng.gen_range_u32(0, 4) as usize];
+                let dy = [1i64, 0, 0, -1][rng.gen_range_u32(0, 4) as usize];
                 Position::new(
                     (e.pos.x as i64 + dx).clamp(0, world.width as i64 - 1) as u32,
                     (e.pos.y as i64 + dy).clamp(0, world.height as i64 - 1) as u32,
@@ -77,7 +66,7 @@ fn here_legality_is_exactly_predicate_and_cooldown_and_flag() {
                 MessageKind::HereCritter,
                 MessageKind::HereSunbeam,
             ] {
-                if rng.below(3) == 0 {
+                if rng.gen_range_u32(0, 3) == 0 {
                     world.kitties[idx].set_meow_cooldown(kind, world.tick + 5);
                 }
             }
@@ -135,19 +124,19 @@ fn here_legality_is_exactly_predicate_and_cooldown_and_flag() {
 fn the_free_register_is_refused_only_by_cooldown_or_flag() {
     // SC-002's second clause, for the sound-named tier: no world state can
     // refuse a free word -- only its cooldown or its flag.
-    let mut rng = Rng(0xE4E4 ^ 0x2026_0815); // ekekek, as close as hex allows
+    let mut rng = SimRng::from_seed(0xE4E4 ^ 0x2026_0815); // ekekek, as close as hex allows
     for world_seed in 0..10u64 {
         let mut config = test_config();
         config.world.seed = 30260815 + world_seed;
-        config.meow.vocabulary.trill = rng.below(2) == 0;
-        config.meow.vocabulary.ekekek = rng.below(2) == 0;
+        config.meow.vocabulary.trill = rng.gen_bool(0.5);
+        config.meow.vocabulary.ekekek = rng.gen_bool(0.5);
         let mut world = World::generate(&config);
         world.tick = 100;
         for _ in 0..40 {
             let idx = world.kitty_index(1).unwrap();
             world.kitties[idx].pos = Position::new(
-                rng.below(world.width as u64) as u32,
-                rng.below(world.height as u64) as u32,
+                rng.gen_range_u32(0, world.width),
+                rng.gen_range_u32(0, world.height),
             );
             for kind in [
                 MessageKind::Mew,

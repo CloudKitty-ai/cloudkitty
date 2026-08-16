@@ -382,7 +382,8 @@ impl ParallelEnv {
         self.episode.codec().len()
     }
 
-    /// The message head's width (spec 028): 9.
+    /// The width of the message head's logit/mask segment (spec 033):
+    /// Silent + the 15 head kinds = 16.
     #[getter]
     fn head_len(&self) -> usize {
         cloudkitty_rl::codec::MessageCodec::LEN
@@ -751,7 +752,8 @@ impl VectorEnv {
         self.menu_len
     }
 
-    /// The message head's width (spec 028): 9.
+    /// The width of the message head's logit/mask segment (spec 033):
+    /// Silent + the 15 head kinds = 16.
     #[getter]
     fn head_len(&self) -> usize {
         self.head_len

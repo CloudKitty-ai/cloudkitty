@@ -445,8 +445,8 @@ impl Episode {
         for &id in &externals {
             let observation =
                 encode_observation(&snapshot, id, &self.core, &self.rl.observation, clock);
-            // The serialized mask is the two-head concat (mask schema 2):
-            // [activity (menu_len) | message (9)] -- 43 at default slots.
+            // The serialized mask is the two-head concat (mask schema 3):
+            // [activity (menu_len) | message (16)] -- 50 at default slots.
             let mut mask =
                 legal_action_mask(&snapshot, id, &observation.table, &self.codec, &self.core);
             mask.extend(legal_message_mask(&snapshot, id, &self.core));
@@ -644,7 +644,7 @@ mod tests {
             let obs = start.observations.get(id).expect("observation");
             assert!(!obs.values.is_empty());
             let info = start.infos.get(id).expect("info");
-            // Mask schema 2 (spec 028): [activity (menu) | message (9)].
+            // Mask schema 3 (spec 033): [activity (menu) | message (16)].
             assert_eq!(info.mask.len(), episode.codec().len() + MessageCodec::LEN);
             assert!(info.mask.contains(&1), "mask never all-zero");
             assert_eq!(

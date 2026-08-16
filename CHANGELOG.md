@@ -33,6 +33,27 @@ change.
 
 ## Unreleased
 
+- **033 review remediation** (owner-directed medium code review of the
+  wall merges; engine-side findings 3–8): pre-wall saves carrying live
+  `follow_me` state now *parse* — deserialize-only serde alias, Experiments
+  blessed — so the fingerprint/schema gates refuse them with the guided
+  `Incompatible` error instead of a corruption-flavored parse failure
+  (amends the 033 recorded consequence, which said such saves "don't
+  parse"). The plugin proposal wire keeps refusing `follow_me` — wire v2
+  dropped it deliberately, and the docs-examples gate caught the alias
+  leaking there — so the wire now parses its own `wire_name()` vocabulary,
+  immune to any persistence alias, present or future.
+  `message_legal` enumerates the Want tier so an untiered future
+  kind is a compile error, never a silently-dead word; the "mask and
+  enforcement agree by construction" comment corrected for the Here family
+  (they share the rule, not the moment — the divergence is spec-deliberate
+  and only ever silences; Experiments registered the QA measurement);
+  vocabulary defaults collapse to one source (container-level serde
+  default), pinned by an exhaustive one-source test; the grounding
+  property tests adopt the crate's `SimRng`; seven stale schema-2/3 width
+  comments corrected to the schema-4 numbers. No behavior, wire, schema,
+  or stamp movement.
+
 - **The model registry** (spec 034): kitty cards can finally say what
   drives the cat. A sha256-keyed `policies/registry.toml` maps each
   certified artifact to a spelled-out display line ("Transformer ·
