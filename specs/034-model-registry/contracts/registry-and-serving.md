@@ -2,6 +2,15 @@
 
 Normative. A change to anything in this file is a spec amendment.
 
+> **Amendment 2026-08-16 (owner, via Experiments):** the display line is
+> the **architecture alone, general-audience wording** ("Transformer",
+> "Multi-Layer Perceptron") — recipe stays provenance, never served.
+> §2's table and the §1 example are the launch content, kept as the
+> historical record; the row-immutability rule is precisely: sha key and
+> architecture/recipe never change, and a display amendment on the
+> owner's word is the one sanctioned row change. Everything else below
+> stands.
+
 ## 1. Registry file
 
 Location: `registry.toml` in the same directory as the artifacts it
