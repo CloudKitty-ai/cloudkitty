@@ -33,6 +33,18 @@ change.
 
 ## Unreleased
 
+- **The model registry** (spec 034): kitty cards can finally say what
+  drives the cat. A sha256-keyed `policies/registry.toml` maps each
+  certified artifact to a spelled-out display line ("Transformer ·
+  BC+PPO"), served verbatim as a new `behavior_description` field beside
+  `behavior` on every kitty payload — "Scripted" for builtin seats, absent
+  for plugins, with the raw model id still served and merely demoted in
+  presentation. The registry row lands in the same PR as its artifact and
+  the process can't skip it: CI fails a rowless artifact and the server
+  refuses to seat one. Deliberately moves no marker: no schema pin, no
+  fingerprint, no stamp — the field is additive and the registry lives
+  outside the config.
+
 - **The wall's config rider** (spec 033 window) **[stamp]**: the roster
   gains its fifth cat — **Clementine** (`[[kitty]] id 5`), the comms
   generation's always-someone-unslotted thesis made flesh, scripted until

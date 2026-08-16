@@ -201,8 +201,10 @@ async fn run() -> Result<()> {
     let mut registry = BehaviorRegistry::with_builtins();
     // Policy and plugin behaviors register before name validation, exactly
     // like built-ins: an invalid artifact or a missing plugin program fails
-    // startup before any tick (spec 014 FR-016; spec 016 FR-011).
-    cloudkitty_server::register_policy_behaviors(&mut registry, &config, &rl_config)?;
+    // startup before any tick (spec 014 FR-016; spec 016 FR-011) — and so
+    // does a seated artifact without a model-registry row (spec 034 FR-007).
+    let policy_displays =
+        cloudkitty_server::register_policy_behaviors(&mut registry, &config, &rl_config)?;
     cloudkitty_server::register_plugin_behaviors(&mut registry, &plugins_config)?;
     config.validate_behavior_names(&registry.names())?;
 
@@ -212,7 +214,12 @@ async fn run() -> Result<()> {
         .clone()
         .unwrap_or_else(|| PathBuf::from(&config.persistence.snapshot_path));
 
-    let world = load_or_generate_world(&args, &config, &snapshot_path)?;
+    let mut world = load_or_generate_world(&args, &config, &snapshot_path)?;
+    // Fresh or resumed alike: the registry, like the config, is authoritative
+    // over anything a snapshot froze (spec 034; the spec-014 re-stamp
+    // doctrine applied to presentation).
+    cloudkitty_server::stamp_behavior_descriptions(&mut world, &registry, &policy_displays);
+    let world = world;
 
     tracing::info!(
         tick = world.tick,

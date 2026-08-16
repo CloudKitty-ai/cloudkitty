@@ -1,0 +1,38 @@
+# policies/registry.toml — the model registry (spec 034).
+#
+# One row per certified artifact, keyed by sha256 — the same identity the
+# README ledgers and the server logs at startup. The `display` line is what
+# viewers read on a kitty's card, served verbatim; `architecture` is always
+# spelled out ("Transformer", "MLP" — never internal shorthand).
+#
+# Rules (spec 034 FR-003, enforced by tests/registry_integrity.rs and by
+# startup refusal):
+#   - A row is born in the same PR that lands its .ckpolicy at top level —
+#     Experiments authors it at certification time.
+#   - Rows never change and never leave: sha is identity, so renames and
+#     retirement don't touch this file.
+#   - Seating an artifact whose sha has no row refuses startup.
+#
+# Values that are NOT rows (documentation only, spec 034 FR-002):
+#   - "Scripted" is fixed in code for built-in behaviors; no registry row.
+#   - Phase-1 lineage seats are expected to arrive as
+#     "Transformer · BC+PPO+leash" if the leash doctrine lands — the row
+#     appears when the artifact does.
+
+[artifact."21d197307a475b3ee8f71ffb98d5af275d8374283244314010a0741229b84277"]
+# e004-a1-s2.ckpolicy — exp-004 shaped self-play, the v2 two-head MLP.
+architecture = "MLP"
+recipe = "BC+PPO"
+display = "MLP · BC+PPO"
+
+[artifact."d8e310215d7dd095e9d3f4a59d03d62e012bb677d4141cd2c45e3b5d86569c32"]
+# attn-a1-s1.ckpolicy — "the cuddler", entity-attention v3.
+architecture = "Transformer"
+recipe = "BC+PPO"
+display = "Transformer · BC+PPO"
+
+[artifact."dfef0ec29161f93bded92c3a6e8b89cc1db92d9b3e478edd35a3d31e25941b46"]
+# attn-a1-s3.ckpolicy — "the doter", entity-attention v3.
+architecture = "Transformer"
+recipe = "BC+PPO"
+display = "Transformer · BC+PPO"

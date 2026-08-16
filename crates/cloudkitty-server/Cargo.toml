@@ -29,3 +29,4 @@ cloudkitty-rl = { path = "../cloudkitty-rl" }
 reqwest = { version = "0.12", features = ["json"] }
 tokio-tungstenite = "0.21"
 futures = { workspace = true }
+sha2 = "0.10"
