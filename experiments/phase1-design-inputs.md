@@ -123,6 +123,28 @@ sampler.
   conditioned probe batches on the post-wall engine. Compute-shaped;
   waits for PPO cores to free.
 
+## 4b. Here*-family mask/enforcement divergence (033 review finding,
+2026-08-15 — measurement rides dataset-v5 QA)
+
+Here* legality is the first message law that reads mid-tick element
+state, so the RL mask (frozen pre-tick snapshot) and enforcement
+(live elements after earlier activities apply) can disagree within a
+tick: a mask-legal HereFood off a servings-1 bowl silently downgrades
+to Silent if an earlier-turn Eat empties it. The ordering is the
+spec's deliberate emission-time-truth design (rots in the safe
+direction), and only Here* diverges (Want*/Purr state mutates in
+phase 4). Consequence for us: a mask-legal head choice can be voided
+at apply time — a small bias in action-selection statistics that
+mask_oracle structurally cannot catch (it probes both sides against
+the same frozen snapshot). Registered bookkeeping item: during
+dataset-v5 collection QA, measure the mask-legal-but-voided Here*
+rate directly (decisions vs emissions on replay) and report it with
+the acceptance record, alongside the usual mask-mismatch stat. If
+negligible, it stays a documented asymmetry; if not, the phase-1
+prereg decides what to do with it. (Do not conflate with exp-005's
+0.207% probe-band mask-mismatch — that band predates the Here*
+surface; its cause is cooldown-timing, not element state.)
+
 ## 5. Interactions worth remembering at prereg time
 
 - The estimator arm (registered, ROADMAP) and spread training are
