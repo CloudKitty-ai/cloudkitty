@@ -4575,8 +4575,19 @@ check('the per-kitty about ships, and its numbers are the served ones', () => {
   assert(box, 'the about control no longer states a width');
   assert(/box-sizing: border-box/.test(ring),
     'the ring is not sized by its border box, so `width` is not its diameter');
-  assert(/padding: 0/.test(ring),
-    'the ring has padding, which grows the CIRCLE and not the touch target');
+  // border-box is what makes the padding below safe, and it is the whole
+  // guard against the original bug: under content-box that padding would go
+  // straight back into the circle's diameter.
+  //
+  // The padding is optical centring. Flex centres the LINE box and a `?` is
+  // nearly all above its baseline, so the ink centre sits 0.29px above the
+  // box centre -- 0.58 device px at 2x, which rounds away on a card at one y
+  // offset and up to a full pixel on a card at another. Twice the bias, as
+  // padding-top, cancels it. Only the top may carry any.
+  const padTop = ring.match(/padding: ([\d.]+)px 0 0/);
+  assert(padTop, 'the ring no longer states a top-only padding, so the glyph is off centre');
+  assert(Math.abs(Number(padTop[1]) - 0.58) < 0.02,
+    `padding-top ${padTop[1]}px does not cancel the 0.29px the glyph rides high`);
   // The ring has a measured floor, not a taste one. Nunito's own `?` outline
   // at weight 700 and 0.69rem was flattened to points and tested against the
   // inscribed circle: the ink clears it by 0.74px at a 12px ring and by

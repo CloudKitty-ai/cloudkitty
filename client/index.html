@@ -395,7 +395,17 @@
        gap by half that difference at every size, and no dial removes it. */
     width: 14px;
     height: 14px;
-    padding: 0;
+    /* Optical centring, and the ONLY safe use of padding here: with the box
+       sized by its border box the ring stays 14px, so this shifts the glyph
+       inside the circle instead of growing it.
+       A ? sits almost entirely above its baseline, and the flex centring
+       centres the LINE BOX, whose middle is 0.29px above the ink's. That
+       rides the glyph high on every card by the same amount -- but it is
+       0.58 device px at 2x, so it rounds away on a card at one y offset and
+       up to a whole visible pixel on a card at another. It read as centred
+       on one cat and a pixel high on the other three. Twice the bias as
+       padding-top lands the ink centre 0.0006px off the ring's. */
+    padding: 0.58px 0 0;
     border: 1px solid currentColor;
     border-radius: 50%;
     background: none;
