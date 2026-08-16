@@ -24,6 +24,15 @@ pub enum MessageKind {
     /// whose designed meaning ("come along") the cats overwrote ("I'm
     /// coming, stay put"). Same position, same cooldown-only law; only the
     /// name moved, because a sound-name cannot lie.
+    ///
+    /// The alias is DESERIALIZE-ONLY (033 review Finding 3, Experiments
+    /// blessed 2026-08-15): pre-wall saves carrying live `follow_me`
+    /// cooldowns now parse, so the fingerprint/schema gates refuse them
+    /// with the guided `Incompatible` error instead of a
+    /// corruption-flavored parse failure. Emission never writes the old
+    /// name -- the round-trip test below keeps the alias from ever
+    /// becoming a serialization path.
+    #[serde(alias = "follow_me")]
     Mew,
     WantPlay,
     WantCuddle,
@@ -150,8 +159,15 @@ impl MessageKind {
 /// `tick`, standing among `elements`? Silence is the absence of a message
 /// and needs no ruling -- this covers the spoken kinds. The RL message
 /// mask derives from here by probing, exactly as the activity mask probes
-/// `validate` (the no-carve-outs doctrine), which is what keeps mask and
-/// enforcement agreeing by construction.
+/// `validate` (the no-carve-outs doctrine): one rule, no parallel
+/// definition. Probing shares the RULE, not the MOMENT (033 review
+/// Finding 5): the mask probes the frozen start-of-tick snapshot while
+/// enforcement reads live elements after earlier turns apply, so a
+/// Here-kind -- the one tier whose law reads element state -- can be
+/// mask-legal yet downgrade to Silent within the tick (an earlier turn
+/// ate the last serving). Spec-deliberate and rot-safe: emission-time
+/// truth, and the divergence only ever silences, never falsely speaks.
+/// Want*/Purr state mutates in phase 4 only, so no other tier diverges.
 ///
 /// The tiers (spec 033 FR-002/FR-002b): a WANT-kind needs its grounding
 /// need armed (threshold + hysteresis) and its cooldown clear. PURR is
@@ -212,13 +228,22 @@ pub fn message_legal(
             adjacent_element_in(elements, kitty.pos, ElementType::Sunbeam).is_some()
                 && kitty.can_meow(kind, tick)
         }
-        want => match want.related_need() {
-            Some(need) => kitty.announce_armed.contains(&need) && kitty.can_meow(want, tick),
-            // Every kind without a need is matched above; the compiler
-            // keeps this arm unreachable by construction, and a new kind
-            // added without a tier fails HERE at review, not at runtime.
-            None => false,
-        },
+        // The six law-named requests: grounding need armed, cooldown clear.
+        // Enumerated -- never a catch-all -- so a future kind added without
+        // a legality tier is a non-exhaustive-match COMPILE error at this
+        // function, not a silently never-legal word (033 review Finding 4).
+        MessageKind::WantEat
+        | MessageKind::WantDrink
+        | MessageKind::WantPlay
+        | MessageKind::WantCuddle
+        | MessageKind::WantBath
+        | MessageKind::WantSleep => {
+            let need = kind
+                .related_need()
+                .expect("every Want kind names its grounding need");
+            kitty.announce_armed.contains(&need) && kitty.can_meow(kind, tick)
+        }
+        MessageKind::WaitForMe => unreachable!("handled before the flag gate above"),
     }
 }
 
@@ -299,6 +324,20 @@ mod tests {
             let tag = serde_json::to_value(kind).unwrap();
             assert_eq!(tag.as_str().unwrap(), kind.wire_name(), "{kind:?}");
         }
+    }
+
+    #[test]
+    fn the_follow_me_alias_reads_old_saves_and_never_writes() {
+        // 033 review Finding 3 (Experiments blessed 2026-08-15): a pre-wall
+        // save's live follow_me cooldown parses as Mew, so the
+        // fingerprint/schema gates get to refuse the save with the guided
+        // Incompatible error instead of a corruption-flavored parse failure.
+        let old: MessageKind = serde_json::from_str("\"follow_me\"").unwrap();
+        assert_eq!(old, MessageKind::Mew);
+        // Deserialize-only, per the blessing's condition: emission writes
+        // the new name, always — the alias must never become a
+        // serialization path.
+        assert_eq!(serde_json::to_string(&MessageKind::Mew).unwrap(), "\"mew\"");
     }
 
     #[test]

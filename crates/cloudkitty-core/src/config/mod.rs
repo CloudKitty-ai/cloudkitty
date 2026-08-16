@@ -702,43 +702,37 @@ impl Default for MeowConfig {
 /// layout, in no training run) until an experiment arms them -- the
 /// post-fog language-capacity arms are pure config. WaitForMe is absent by
 /// design: the engine's word is not speakable and not gateable.
+// The container-level `#[serde(default)]` fills every omitted field from
+// the ONE `Default` impl below (it composes with `deny_unknown_fields`),
+// so a flag's default lives in exactly one place. It used to live in two —
+// per-field attributes serving the partial-table parse path, the impl
+// serving the omitted-table path — which is a drift trap armed exactly
+// when a default flips (arming trill/ekekek post-fog): flip one list and
+// the two config shapes silently disagree (033 review Finding 6).
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[serde(default, deny_unknown_fields)]
 pub struct VocabularyConfig {
-    #[serde(default = "default_true")]
     pub want_eat: bool,
-    #[serde(default = "default_true")]
     pub want_drink: bool,
-    #[serde(default = "default_true")]
     pub mew: bool,
-    #[serde(default = "default_true")]
     pub want_play: bool,
-    #[serde(default = "default_true")]
     pub want_cuddle: bool,
-    #[serde(default = "default_true")]
     pub purr: bool,
-    #[serde(default = "default_true")]
     pub want_bath: bool,
-    #[serde(default = "default_true")]
     pub want_sleep: bool,
-    #[serde(default = "default_true")]
     pub here_food: bool,
-    #[serde(default = "default_true")]
     pub here_water: bool,
-    #[serde(default = "default_true")]
     pub here_critter: bool,
-    #[serde(default = "default_true")]
     pub here_sunbeam: bool,
-    #[serde(default = "default_true")]
     pub chirp: bool,
     /// Reserve: default off.
-    #[serde(default)]
     pub trill: bool,
     /// Reserve: default off.
-    #[serde(default)]
     pub ekekek: bool,
 }
 
+/// The single source of every vocabulary default (spec 033 FR-006):
+/// active kinds true, reserves false.
 impl Default for VocabularyConfig {
     fn default() -> Self {
         Self {
@@ -786,10 +780,6 @@ impl VocabularyConfig {
             Ekekek => self.ekekek,
         }
     }
-}
-
-fn default_true() -> bool {
-    true
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -2173,5 +2163,47 @@ trill = true",
         assert!(v.trill, "a reserve can be armed by config alone");
         assert!(v.want_eat && v.here_sunbeam, "unstated kinds keep defaults");
         assert!(!v.ekekek, "unstated reserves keep their off default");
+    }
+
+    #[test]
+    fn every_vocabulary_default_has_exactly_one_source() {
+        // 033 review Finding 6: the defaults used to be encoded twice
+        // (per-field serde attributes for partial tables, the Default impl
+        // for omitted ones) with no cross-check — flipping one list, which
+        // is exactly what arming a reserve will do, made the two parse
+        // paths silently disagree. Now the container-level
+        // #[serde(default)] routes BOTH paths through the one impl; this
+        // pins that, exhaustively, by comparing a stated-flag parse
+        // against the impl for every kind.
+        let default = VocabularyConfig::default();
+        for kind in crate::meow::MessageKind::ALL {
+            if kind == crate::meow::MessageKind::WaitForMe {
+                continue; // not a vocabulary flag
+            }
+            let flipped: VocabularyConfig = toml::from_str(&format!(
+                "{} = {}",
+                kind.wire_name(),
+                !default.enabled(kind)
+            ))
+            .unwrap();
+            for other in crate::meow::MessageKind::ALL {
+                if other == crate::meow::MessageKind::WaitForMe {
+                    continue;
+                }
+                let expected = if other == kind {
+                    !default.enabled(kind)
+                } else {
+                    default.enabled(other)
+                };
+                assert_eq!(
+                    flipped.enabled(other),
+                    expected,
+                    "stating {} must change {} alone; every other flag \
+                     fills from the single Default impl",
+                    kind.wire_name(),
+                    kind.wire_name()
+                );
+            }
+        }
     }
 }

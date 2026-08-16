@@ -228,7 +228,7 @@ impl ActionCodec {
 pub struct MessageCodec;
 
 impl MessageCodec {
-    /// Head width: Silent + the eight head kinds = 9.
+    /// Head width: Silent + the fifteen head kinds = 16 (spec 033).
     pub const LEN: usize = 1 + HEAD_KINDS.len();
 
     /// Decodes a head index. `Ok(None)` is Silent; errors only out of range.

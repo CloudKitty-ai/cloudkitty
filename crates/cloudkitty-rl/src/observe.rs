@@ -125,7 +125,7 @@ pub(crate) const fn block_widths() -> BlockWidths {
 
 /// The exact observation length for a slot configuration -- a function of
 /// the slot config, never a constant to quote (the served config's slot
-/// defaults currently work out to 197; read it from here, don't hardcode).
+/// defaults currently work out to 225; read it from here, don't hardcode).
 pub fn observation_len(cfg: &ObservationConfig) -> usize {
     SELF_BLOCK
         + cfg.kitty_slots * KITTY_SLOT

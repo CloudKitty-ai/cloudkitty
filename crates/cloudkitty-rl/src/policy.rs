@@ -81,9 +81,10 @@ pub struct SchemaExpectations {
     pub mask_schema: u32,
     pub observation_len: usize,
     pub menu_len: usize,
-    /// Spec 028: the message head's width (9). The final layer emits
-    /// menu_len + message_head_len logits; `[0..menu_len)` is the activity
-    /// head, `[menu_len..)` the message head.
+    /// The message head's width — Silent + the head kinds, 16 since spec
+    /// 033 (`MessageCodec::LEN`; never a constant to quote). The final
+    /// layer emits menu_len + message_head_len logits; `[0..menu_len)` is
+    /// the activity head, `[menu_len..)` the message head.
     pub message_head_len: usize,
     /// The slot configuration, so the v3 loader can derive the entity-token
     /// layout and scatter map (spec 030). `Copy`, so this stays `Copy`.
