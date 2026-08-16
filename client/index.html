@@ -363,20 +363,41 @@
 
   /* About's own type, not a kitty card's (owner, 2026-08-15): the card
      layout is built around a portrait chip, and About has no face. */
-  /* The per-card about link. Ships visible (owner, 2026-08-15): the rates
-     behind it are the served ones now, so there is nothing left to hide. */
+  /* The per-card about, a `?` in a circle. Drawn rather than a glyph:
+     Unicode's circled question mark (U+2370) is poorly covered, so it would
+     render as a box on some machines -- and a drawn circle themes with the
+     tokens and scales with the type, which a font character does not.
+
+     The visible label is now one character, so the ACCESSIBLE name carries
+     the whole meaning: every one of these is `aria-label="about <name>"`,
+     set where the button is built. Without it a screen reader hears "?".
+
+     Sized against the touch target rather than the ink: the ring is 15px
+     but the button keeps 3px of padding all round, so the hit area stays
+     over 20px on a phone where the ring alone would be a poke test. */
   .kitty-about {
     margin-left: auto;
-    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 15px;
+    height: 15px;
+    /* content-box, so the padding grows the TARGET without growing the ring:
+       15px of circle inside a 21px hit area. */
+    padding: 3px;
+    box-sizing: content-box;
+    border: 1px solid currentColor;
+    border-radius: 50%;
     background: none;
-    padding: 0;
-    font: inherit;
-    font-size: 0.68rem;
     color: var(--ink-soft);
+    font: inherit;
+    font-size: 0.62rem;
+    font-weight: 700;
+    line-height: 1;
     cursor: pointer;
-    border-bottom: 1px dotted currentColor;
   }
-  .kitty-about:hover { color: var(--ink); }
+  .kitty-about:hover,
+  .kitty-about:focus-visible { color: var(--ink); }
 
   .about-card {
     background: var(--card);

@@ -1086,8 +1086,11 @@ function buildKittyCard(kitty) {
   const more = document.createElement('button');
   more.className = 'kitty-about';
   more.type = 'button';
-  more.textContent = 'about';
+  // One character on screen, so the accessible name carries the meaning --
+  // a screen reader would otherwise hear "?" and nothing else.
+  more.textContent = '?';
   more.setAttribute('aria-label', `about ${kitty.name}`);
+  more.title = `about ${kitty.name}`;
   more.addEventListener('click', (event) => {
     event.stopPropagation();
     const live = latestWorld?.kitties.find((k) => k.id === kitty.id) ?? kitty;

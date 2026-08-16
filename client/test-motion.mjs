@@ -4550,6 +4550,24 @@ check('the per-kitty about ships, and its numbers are the served ones', () => {
   assert(/className = 'kitty-about'/.test(app), 'no about link is built on the cards');
   assert(/openTraitsDialog\(live\)/.test(app), 'the about link does not open the dialog');
 
+  // Its visible label is a single `?` now, so the ACCESSIBLE name carries the
+  // whole meaning -- without it a screen reader hears "?" and nothing else.
+  const build = app.slice(app.indexOf("more.className = 'kitty-about'"));
+  const built = build.slice(0, build.indexOf('name.appendChild(more)'));
+  assert(/textContent = '\?'/.test(built), 'the about control is no longer the question mark');
+  assert(/aria-label', `about \$\{kitty\.name\}`/.test(built),
+    'the about control has no accessible name, so it announces as "?"');
+
+  // Drawn as a circle rather than set as a glyph: Unicode's circled question
+  // mark is poorly covered and would box on some machines.
+  const ring = markup.slice(markup.indexOf('  .kitty-about {'), markup.indexOf('}', markup.indexOf('  .kitty-about {')));
+  assert(/border-radius: 50%/.test(ring), 'the about control is no longer a circle');
+  assert(/border: 1px solid currentColor/.test(ring),
+    'the ring is not drawn in the text colour, so it will not follow a phase change');
+  // The ring is small; the hit area must not be.
+  const pad = ring.match(/padding: (\d+)px/);
+  assert(pad && Number(pad[1]) >= 3, 'the about control has no padding, so its touch target is 15px');
+
   // The bar colours are checked as COLOURS, not by where they came from.
   // The first version read them live from the meadow's palette and asserted
   // that fact -- which passed while `pondDeep` went to #0b1216 on a #37313f
