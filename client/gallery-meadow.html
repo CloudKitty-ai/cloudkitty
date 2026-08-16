@@ -287,6 +287,10 @@
     bushTrunkAlt: [0, 1, 0.05],
     bushTrunkWidth: [0.2, 4, 0.05],
     bushTrunkWidthAlt: [0.2, 4, 0.05],
+    // 0 pins the leaf ticks to the crown; 0.36 is what shipped. Judge it
+    // at dawn and dusk -- day and night barely lean, so the dial looks
+    // dead there.
+    bushLeafSwing: [0, 0.6, 0.01],
     // Drifts (spec 03 part 1). `fertilityCells` is the size of a good patch
     // of ground; the powers are how hard each thing concentrates in one.
     // Counts are CONSERVED whatever these say -- watch the drift card's
@@ -724,6 +728,7 @@
         bushLift: alt ? VIEW.meadow.bushLiftAlt : VIEW.meadow.bushLift,
         bushTrunk: alt ? VIEW.meadow.bushTrunkAlt : VIEW.meadow.bushTrunk,
         bushTrunkWidth: alt ? VIEW.meadow.bushTrunkWidthAlt : VIEW.meadow.bushTrunkWidth,
+        bushLeafSwing: VIEW.meadow.bushLeafSwing,
       };
       const top = row * rh;
       OCC_OFFSETS.forEach((dy, i) => {

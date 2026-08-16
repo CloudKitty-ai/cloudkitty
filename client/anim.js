@@ -429,6 +429,10 @@ const VIEW = Object.freeze({
     bushTrunkAlt: 1, // the same, for the bushStyleAlt species
     bushTrunkWidth: 2.55, // stem thickness, as a multiple of each style's own
     bushTrunkWidthAlt: 1.4, // the same, for the bushStyleAlt species
+    // How far the lobed shrub's four leaf ticks slide toward the sun, in
+    // canopy radii per unit of shadowLean. 0 pins them to the crown and
+    // lets the gradient carry the light on its own.
+    bushLeafSwing: 0.36,
     // The shrub's shadow, damped against the cats': a squat canopy sits
     // close to the ground, so it stretches far less and needs no alpha
     // falloff. Only the LENGTH is damped -- the lean also anchors the

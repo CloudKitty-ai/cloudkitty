@@ -497,6 +497,15 @@ const MEADOW_DEFAULTS = Object.freeze({
   // authored with. A small tree wants this well above 1.
   bushTrunkWidth: 2.55,
   bushTrunkWidthAlt: 1.4,
+  // How far the lobed shrub's four leaf ticks slide toward the sun, in
+  // canopy radii per unit of `shadowLean`. They mark the lit side, but the
+  // lobes and the trunk do not move with them, so past a point the motif
+  // stops reading as light and starts reading as a part that came loose:
+  // at 0.36 it travels 0.29 radii between dawn and noon, and the owner
+  // caught it as "off centre left" at dawn and "off centre right" at dusk
+  // without knowing the two were the same dial. The gradient follows the
+  // sun regardless, so this can go to 0 and the shrub is still lit.
+  bushLeafSwing: 0.36,
   // The shrub's shadow, damped against the cats': a squat canopy sits
   // close to the ground, so it stretches far less and needs no alpha
   // falloff. Only the LENGTH is damped -- the lean also anchors the
@@ -1531,11 +1540,15 @@ function drawBushAt(ctx, { x, y, ox, alt, seed, tile: tileSize, t: tunables }) {
         }
         ctx.globalAlpha = t.bushAlpha * 0.6;
         ctx.fillStyle = mixPaletteColor(MEADOW.bushHi, '#ffffff', 0.35);
+        // Four ticks, evenly spaced, so their cos terms cancel exactly and
+        // the motif's centre is purely the swing term -- which is why it
+        // reads as a clean sideways displacement rather than a rotation.
+        const swing = t.bushLeafSwing ?? 0.36;
         for (let i = 0; i < 4; i++) {
           const a = (i / 4) * TAU + s * 9;
           ctx.beginPath();
           ctx.ellipse(
-            bx + sunX * r * 0.36 + Math.cos(a) * r * 0.3,
+            bx + sunX * r * swing + Math.cos(a) * r * 0.3,
             crown - r * 0.1 + Math.sin(a) * r * 0.26,
             r * 0.13, r * 0.075, a, 0, TAU,
           );
