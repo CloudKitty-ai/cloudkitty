@@ -36,6 +36,21 @@ supersedes the README's suggested placement (see Rejected Alternatives).
   **Refuse** — startup error naming the artifact path + sha, same doctrine
   as every other config validation failure. (Owner, direct.)
 
+### Session 2026-08-16 (post-merge amendment)
+
+- Q: What does the display line say? → A: **The architecture alone,
+  worded for a general audience** — "Transformer",
+  "Multi-Layer Perceptron" (owner, via Experiments, after Client
+  feedback: "BC+PPO is a little too much for our target end user
+  language"). Recipe stays a registry provenance field, never served;
+  the launch style ruling (spelled out, never internal shorthand) still
+  binds. Registry content amended on main @ 58f9a55. This narrows the
+  FR-003 immutability rule to its real invariants: the sha key and the
+  architecture/recipe provenance never change — a display amendment on
+  the owner's word is the one sanctioned row change. Display strings in
+  the examples below are the launch format, kept as the historical
+  record.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A viewer learns what kind of mind drives each cat (Priority: P1)
