@@ -75,3 +75,21 @@ train_attn_clone, train_attn_ppo fork (β∞ patch), fingerprint probe
 ## Deviations
 
 (append-only after freeze)
+
+**D-001 (2026-08-16, owner-directed extension).** Two additional
+dose arms, β∞ ∈ {0.03, 0.04}: recipe, anchor, seeds {1, 2}, and
+fingerprint probe identical to the frozen arms — only the held β∞
+differs. Motivation, recorded before any extension arm runs: the
+seed-1 curve showed a strongly favorable exchange from 0.2 down to
+0.05 (+6.5 subject happiness for flat decision metrics), and the
+owner directed sampling just below 0.05 to test whether the trend
+continues ("B<0.05 may continue the trend of elevated welfare for
+disproportionately low character trade off"). Scope guard: the
+frozen arms, hypotheses, and metrics are untouched; H1–H4 verdicts
+are computed on the original {0, 0.05, 0.2} × 2-seed design, and
+the extension arms enter the dose-response curve descriptively.
+Known limit, stated at registration: {0.03, 0.04} samples only the
+top of the (0, 0.05) interval — if character holds there, the
+collapse boundary remains unlocated (acceptable: the objective is
+choosing an operating dose, not mapping the cliff). Queued behind
+wave 2 on the same machine.
