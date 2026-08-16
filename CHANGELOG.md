@@ -389,6 +389,16 @@ change.
   a lily pad, the cuddle heart, lavender for the soap — held fixed rather
   than read live from the palette, because the meadow's night colours are
   lit for its own ground and went invisible on a card (#225).
+- It opens from a `?` in a ring, drawn in CSS rather than set as a glyph:
+  Unicode's circled question mark is poorly covered and would box on some
+  machines, and a drawn ring follows the day's ink where an emoji could
+  not. The ring is 14px and its touch target is 23px, which one box cannot
+  hold at once, because `border-radius: 50%` resolves against the border
+  box and padding there grows the circle rather than the target. The
+  target is a transparent pseudo-element instead. The `?` is nudged down
+  0.58px: flex centres the line box, a `?` is nearly all above its
+  baseline, and the resulting 0.29px bias was a whole device pixel on some
+  cards and none on others (#230).
 - **The gaze aims at what it can express, and no more.** Reading the two
   target shapes the client had been ignoring — `groom`'s bare kitty id, and
   eat/drink resolved from the map — took the gaze from 5.2% of cat-ticks to
