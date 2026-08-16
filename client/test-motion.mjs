@@ -820,14 +820,42 @@ function fillStyles(palette) {
 
 check('every soft cat gets a belly; the tuxedo keeps its bib instead', () => {
   // Palette 0 is the tuxedo, whose white bib already is an underside.
-  for (const pal of [1, 2, 3, 4]) {
-    const want = CatV2.lightenHex(CatV2.appearanceFor(pal).furBase, CatV2.BELLY.lighten);
+  // Through bellyInkOf, not lightenHex: the derivation has two directions
+  // now, and restating one of them here would only pin half the cats.
+  for (const pal of [1, 2, 3, 4, 5]) {
+    const want = CatV2.bellyInkOf(CatV2.appearanceFor(pal));
     assert(fillStyles(pal).includes(want), `palette ${pal} has no belly (${want})`);
   }
   const tuxedo = CatV2.appearanceFor(0);
-  const wouldBe = CatV2.lightenHex(tuxedo.furBase, CatV2.BELLY.lighten);
-  assert(!fillStyles(0).includes(wouldBe), 'the tuxedo drew a belly behind its bib');
+  assert(!fillStyles(0).includes(CatV2.bellyInkOf(tuxedo)), 'the tuxedo drew a belly behind its bib');
   assert(fillStyles(0).includes(tuxedo.pattern.color), 'the tuxedo still draws its bib');
+});
+
+check('a belly is visible on every coat, including the white one', () => {
+  // The bug this replaces was silent because the belly was still PAINTED --
+  // it just matched the fur. So the property is separation, not presence.
+  for (const pal of [1, 2, 3, 4, 5]) {
+    const a = CatV2.appearanceFor(pal);
+    const sep = Math.abs(CatV2.lstar(CatV2.bellyInkOf(a)) - CatV2.lstar(a.furBase));
+    assert(sep >= CatV2.BELLY.minSeparation,
+      `${a.name}'s belly is ${sep.toFixed(1)} L* from its coat, under the ${CatV2.BELLY.minSeparation} floor`);
+  }
+  // The white cat is the one that cannot be lightened, so she must be the
+  // one going the other way. If she ever comes out paler than her coat, the
+  // headroom test has stopped biting and she is flat again.
+  const her = CatV2.appearanceFor(5);
+  assert(CatV2.lstar(CatV2.bellyInkOf(her)) < CatV2.lstar(her.furBase),
+    'the white cat is still being lightened, which is what made her flat');
+  // And the four that shipped before her must be untouched: their approved
+  // ink is a lighten, and this dial was added on the promise it is a no-op
+  // for them. MISO is the canary, at 3.0 L* -- not storm at 9.9, which is
+  // what a regex that skipped the commented palettes first suggested. The
+  // usable window for minSeparation is only (1.4, 3.0].
+  for (const pal of [1, 2, 3, 4]) {
+    const a = CatV2.appearanceFor(pal);
+    assert(CatV2.bellyInkOf(a) === CatV2.lightenHex(a.furBase, CatV2.BELLY.lighten),
+      `${a.name} changed ink, and it shipped with the owner's approval`);
+  }
 });
 
 check('the body outline is struck on the BODY, and lands on top of the belly', () => {
