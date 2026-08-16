@@ -1465,6 +1465,46 @@ function traitFill(t) {
   return Math.max(0, Math.min(1, t.rate / (t.base * 2)));
 }
 
+/**
+ * What the about says is driving a cat (spec 034).
+ *
+ * The registry names the KIND of mind and the config names WHICH one, and
+ * they arrive as separate fields, so the composition is ours: the owner's
+ * shape is "Transformer (attn-a1-s1)". The registry's display stays
+ * architecture-only on purpose -- putting the id there would bake a
+ * presentation choice into a machine-readable identity file and duplicate
+ * every artifact's own filename. Scripted seats take no parenthetical
+ * because they have no artifact to name.
+ *
+ * `behavior_description` is ABSENT rather than empty in two cases that mean
+ * opposite things, and a kitty alone cannot tell them apart:
+ *
+ *   - a PLUGIN seat, post-034: an external process has no certification
+ *     record. A plugin also names itself exactly like a builtin, with no
+ *     prefix, so there is no clue in `behavior` either.
+ *   - ANY kitty on a pre-034 engine -- which is what the served box runs
+ *     for the whole wall window.
+ *
+ * So the question is asked of the WORLD, not the cat: if any kitty carries a
+ * description, the engine stamps them, and absence can only be a plugin.
+ * Otherwise this is an old engine and the pre-034 rendering is still right.
+ * Reading absence alone would have relabelled every cat on the live box
+ * "Plugin" the moment this shipped.
+ *
+ * The one case this still reads as pre-034 is a post-034 world in which
+ * EVERY seat is a plugin, so nothing is stamped. Those cats show their
+ * plugin names, which is the honest degradation.
+ */
+function mindTextFor(kitty, world = latestWorld) {
+  const behavior = kitty.behavior ?? '';
+  const id = behavior.startsWith('policy:') ? behavior.slice('policy:'.length) : '';
+  const kind = kitty.behavior_description;
+  if (kind) return id ? `${kind} (${id})` : kind;
+  const engineDescribes = (world?.kitties ?? []).some((k) => k.behavior_description);
+  if (engineDescribes) return 'Plugin';
+  return id || behavior || 'no policy seated';
+}
+
 function openTraitsDialog(kitty) {
   const dialog = document.getElementById('traits');
   if (!dialog) return;
@@ -1476,10 +1516,7 @@ function openTraitsDialog(kitty) {
   const prose = dialog.querySelector('.traits-prose');
   prose.textContent = bio ? bio.body : '';
   prose.hidden = !bio;
-  const behavior = kitty.behavior ?? '';
-  dialog.querySelector('.traits-mind').textContent = behavior.startsWith('policy:')
-    ? behavior.slice('policy:'.length)
-    : behavior || 'no policy seated';
+  dialog.querySelector('.traits-mind').textContent = mindTextFor(kitty);
 
   const portrait = dialog.querySelector('canvas');
   const dpr = window.devicePixelRatio || 1;

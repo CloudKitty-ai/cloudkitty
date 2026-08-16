@@ -4844,6 +4844,47 @@ check("the about survives a phase change, and the owner's words survive us", () 
     }
   }
 });
+check('the about names the kind of mind, and which one', () => {
+  // Evaluated, not regexed. This function's whole job is to pick between
+  // four outcomes, and a source match cannot tell which one it picks -- the
+  // same mistake that let a glossed `mew` through the first meow check.
+  // It closes over nothing but its own arguments, so it lifts out cleanly.
+  const app = readFileSync(join(here, 'app.js'), 'utf8');
+  const start = app.indexOf('function mindTextFor(');
+  assert(start > 0, 'mindTextFor is gone');
+  const end = app.indexOf('\n}', start);
+  assert(end > start, 'could not find the end of mindTextFor');
+  const src = app.slice(start, end + 2);
+  assert(/behavior_description/.test(src), 'the extracted source is not the right function');
+  const mindTextFor = eval(`(${src})`);
+
+  const seat = (behavior, behavior_description) => ({ behavior, behavior_description });
+  const world = (...ks) => ({ kitties: ks });
+
+  // A policy seat post-034: the registry says WHAT, the config says WHICH.
+  const miso = seat('policy:attn-a1-s1', 'Transformer');
+  assert(mindTextFor(miso, world(miso)) === 'Transformer (attn-a1-s1)',
+    `policy seat reads "${mindTextFor(miso, world(miso))}"`);
+  // A scripted seat takes no parenthetical -- there is no artifact to name.
+  const clem = seat('needs_driven', 'Scripted');
+  assert(mindTextFor(clem, world(clem)) === 'Scripted',
+    `scripted seat reads "${mindTextFor(clem, world(clem))}"`);
+  // A plugin, told apart from an old engine by its NEIGHBOURS carrying
+  // descriptions. This is the assertion that stops "Plugin" from being
+  // printed over every cat on a pre-034 world.
+  const plug = seat('my_plugin', undefined);
+  assert(mindTextFor(plug, world(miso, plug)) === 'Plugin',
+    `plugin reads "${mindTextFor(plug, world(miso, plug))}"`);
+  // ...and the same kitty shape on a pre-034 world is NOT a plugin.
+  assert(mindTextFor(plug, world(plug, seat('needs_driven', undefined))) === 'my_plugin',
+    'a pre-034 world was read as plugins');
+  // The live box today: policy seats, no descriptions anywhere. Must still
+  // render the id exactly as it does before this change ships.
+  const pre = seat('policy:attn-a1-s1', undefined);
+  assert(mindTextFor(pre, world(pre, seat('policy:attn-a1-s3', undefined))) === 'attn-a1-s1',
+    `a pre-034 policy seat reads "${mindTextFor(pre, world(pre))}"`);
+  assert(mindTextFor({}, world()) === 'no policy seated', 'an unseated cat says nothing sensible');
+});
 check('every cat on the roster wears her own coat', () => {
   // The index IS the kitty id, so re-ordering PALETTES re-coats a cat and
   // nothing else complains. That is how Clementine came to be dark: she was
