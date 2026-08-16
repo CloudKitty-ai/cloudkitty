@@ -4564,9 +4564,22 @@ check('the per-kitty about ships, and its numbers are the served ones', () => {
   assert(/border-radius: 50%/.test(ring), 'the about control is no longer a circle');
   assert(/border: 1px solid currentColor/.test(ring),
     'the ring is not drawn in the text colour, so it will not follow a phase change');
-  // The ring is small; the hit area must not be.
+  // The ring is small; the hit area must not be. Measure the COMPOSED target
+  // rather than the padding literal -- the circle has been dialled once
+  // already, and a padding of 3px means something different around a 13px
+  // ring than around a 15px one.
   const pad = ring.match(/padding: (\d+)px/);
-  assert(pad && Number(pad[1]) >= 3, 'the about control has no padding, so its touch target is 15px');
+  const box = ring.match(/width: (\d+)px/);
+  assert(pad && box, 'the about control no longer states a width and a padding');
+  assert(/box-sizing: content-box/.test(ring),
+    'the padding now grows the RING instead of the hit area');
+  const target = Number(box[1]) + 2 * Number(pad[1]) + 2;  // +2 for the border
+  assert(target >= 21, `the about control's touch target is only ${target}px`);
+  // And the glyph has to be the thing that reads, so it may not shrink back
+  // under the ring it sits in.
+  const glyph = ring.match(/font-size: ([\d.]+)rem/);
+  assert(glyph && Number(glyph[1]) >= 0.69,
+    'the question mark is smaller than the size it was dialled to');
 
   // The bar colours are checked as COLOURS, not by where they came from.
   // The first version read them live from the meadow's palette and asserted

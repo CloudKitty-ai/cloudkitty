@@ -380,18 +380,21 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 15px;
-    height: 15px;
+    width: 13px;
+    height: 13px;
     /* content-box, so the padding grows the TARGET without growing the ring:
-       15px of circle inside a 21px hit area. */
-    padding: 3px;
+       13px of circle inside a 21px hit area. The padding absorbs the ring's
+       2px so the target is unchanged by the tighter circle. */
+    padding: 4px;
     box-sizing: content-box;
     border: 1px solid currentColor;
     border-radius: 50%;
     background: none;
     color: var(--ink-soft);
     font: inherit;
-    font-size: 0.62rem;
+    /* A tighter ring around a LARGER glyph: the ? carries the meaning and the
+       circle only frames it, so the legibility budget goes to the character. */
+    font-size: 0.69rem;
     font-weight: 700;
     line-height: 1;
     cursor: pointer;
