@@ -33,6 +33,23 @@ change.
 
 ## Unreleased
 
+- **The hunter's face stops outliving its quarry.** Reported as "hunter
+  eyes with no bug in proximity", and it was two things at once. The
+  distance gate reads , so a null never gates -- and both
+  "I do not recognise this target" and "that bug no longer exists"
+  returned null, when only the first deserves the benefit of the doubt.
+  The served payload carries the whole world, so an element missing from
+  it is gone rather than unresolved; and because the engine clears a stale
+  pursuit at the start of the cat's next update, the tick a bug expires on
+  arrives as pursuit-present-quarry-absent and drew the face at nothing.
+  Every chase ending in an expiry produced one.  now
+  answers  for a well-formed target the world does not contain,
+  which gates on any finite threshold, while a shape it cannot read still
+  keeps the face. Separately the gate goes 8 tiles to 6: 8 is manhattan on
+  a 20x20 world, most of the way across it, so the quarry was on screen
+  but nowhere the eye would call near. Still wider than the 4-tile pounce
+  gate, so the eyes keep the lead they were given (#236).
+
 - **A cat faces what it is eating, and the shrubs stop drifting.** Two
   things the owner saw in the live meadow on the same evening. Eating and
   drinking both take from a tile *beside* the cat — the engine's predicate
