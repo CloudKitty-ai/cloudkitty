@@ -145,6 +145,30 @@ prereg decides what to do with it. (Do not conflate with exp-005's
 0.207% probe-band mask-mismatch — that band predates the Here*
 surface; its cause is cooldown-timing, not element state.)
 
+## 4c. Estimator-arm riders for the care-coupling program (owner
+direction 2026-08-16 — cheap now, load-bearing two generations out)
+
+The registered estimator aux head is also the future care-coupling
+experiment's instrument (ROADMAP parking lot: the interiority axis).
+Two near-free riders to write into the phase-1 prereg:
+
+- **Per-pair calibration logging, banked.** The aux head's
+  prediction error is logged anyway; log it PER (estimator, target)
+  PAIR and commit the curves — they are the pre-fog calibration
+  baseline for the eventual C-grounded/C-free comparison, and the
+  per-pair breakdown is mandatory there (a wireheader can stay
+  calibrated on cats it ignores; never read only the average).
+- **Aux-head weights stay in checkpoints.** The belief-intervention
+  diagnostic runs on torch checkpoints in the python harness (no
+  artifact/schema change ever needed for it) — so export can strip
+  the head from .ckpolicy, but checkpoint retention must not.
+
+Estimator progression, for orientation: phase 1 = the one unslotted
+cat (roster 5, kitty_slots 3 — real signal for exactly one seat at
+a time); fog = the out-of-view set, dynamic; interiority = everyone
+(trainer-side obs masking for research arms, engine wall only on
+seating).
+
 ## 5. Interactions worth remembering at prereg time
 
 - The estimator arm (registered, ROADMAP) and spread training are

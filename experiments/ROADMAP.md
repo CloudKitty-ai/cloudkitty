@@ -127,6 +127,31 @@ pressure under which FollowMe's designed meaning could finally beat
   the fallback-rate band + fallback-behavior welfare check flagged
   in the cert doc's forward note; the two-layer gate philosophy is
   what makes it seatable at all.
+- **The interiority axis + care-coupling generation** (owner
+  direction 2026-08-16; sited from the care-coupling handover):
+  hide peers' INTERNAL state even in view, so estimation runs on
+  behavior + meows alone — a distinct observability axis from fog
+  (fog = where you can see; interiority = what seeing tells you),
+  sequenced strictly AFTER the fog wall so the registered fog
+  comparison stays unconfounded (one observability axis per
+  generation). The estimator progression is already laid: phase 1
+  estimates the one unslotted cat, fog makes the out-of-view set
+  dynamic, interiority makes it everyone. **Research arms need no
+  engine wall**: trainer-side obs masking (zero peer-need features
+  in the env wrapper) gives interiority to the care-coupling arms
+  (imposed-vs-internalized welfare: B incumbent / C-grounded /
+  C-free / A / D per the handover doc) with no schema move; the
+  engine wall (schema bump, re-baseline) fires only if an
+  interiority-trained mind earns a seat. Reward-side arms need a
+  registered F-018 layer-2 exception (owner's word + prereg'd
+  scope) before compute. The want-words stay law-grounded — they
+  are the hard-to-fake calibration channel (F-018 layer 1), not a
+  leak to plug; the ANNOUNCE THRESHOLD is the information-economy
+  dial (lower T for the interiority bracket so cries exist outside
+  distress — composition-dependent per F-023, a prereg decision).
+  Digest intensity stays value-carrying unless the prereg
+  registers otherwise. Relies on F-018/F-019/F-023/F-025/F-026;
+  F-026 is the pre-registered null this program builds on.
 - **evals/v2**: only-if-wanted, schedules with the 017 FromConfig
   refactor (unchanged).
 - **Server-side foresight preview**: only if a latency-free consumer
