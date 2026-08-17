@@ -557,10 +557,11 @@
        than repeating the number, so "exact" survives any breakpoint
        that changes the mat. */
     bottom: calc(100% - var(--stage-pad));
-    /* Slid left from 5% to clear a seat for the camera control (owner,
+    /* Slid left to clear a seat for the camera control (owner,
        2026-08-16). The three numbers are one sum: the control's own
-       margin (5%), its width (5.25%) and the gap between them (2.5%). */
-    right: 12.75%;
+       margin (1.5%), its width (5.25%) and the gap between them (1.65%,
+       a third off the 2.5% first tried -- owner's dial). */
+    right: 8.4%;
     width: 10.5%;
     pointer-events: none;
     /* Opt out of the global canvas rounding: 18px radius on a canvas
@@ -579,7 +580,11 @@
   #camera-toggle {
     position: absolute;
     bottom: calc(100% - var(--stage-pad));
-    right: 5%;
+    /* Nearly on the map's right edge (owner, 2026-08-16). The stage's own
+       padding is the last 6px of that gap, so the drawn edge is closer
+       than this reads; `var(--stage-pad)` would sit the control exactly
+       in the map's corner if flush is ever wanted. */
+    right: 1.5%;
     width: 5.25%;
     aspect-ratio: 1;
     box-sizing: border-box;
@@ -610,15 +615,27 @@
   }
 
   /* Same lesson the about ring taught: the drawing may be small, the hit
-     area may not. Asymmetric on purpose -- above the horizon is empty
-     page, so the target grows upward for nothing, while below it is the
-     meadow, where every pixel is taken from the top-right tile. At the
-     phone's ~18px square this comes out 44px; the 6px that reaches into
-     the map is under a fifth of a tile, in the one corner. */
+     area may not. All four sides differ, and each one is bounded by what
+     it would otherwise reach into:
+
+       up    -22px  empty page above the stage -- the only free direction,
+                    so the height is bought entirely here (44px+ even on a
+                    320px phone, where the square is 16px)
+       right  -4px  less than the control's own 1.5% margin, or the target
+                    hangs past the stage and a phone scrolls sideways
+       down   -6px  the meadow; under a fifth of a tile, in the one corner
+       left   -5px  less than the 1.65% gap, so the target stops short of
+                    the dial -- the dial is pointer-events: none, so any
+                    overlap would silently turn taps on the sun into taps
+                    on the camera
+
+     Width lands near 27px on a phone rather than 44. That is deliberate:
+     the two directions that would buy the rest are the two that break
+     something, and 27px still clears the 23px the about ring set. */
   #camera-toggle::after {
     content: '';
     position: absolute;
-    inset: -20px -13px -6px -13px;
+    inset: -22px -4px -6px -5px;
   }
 
   canvas { border-radius: 18px; }

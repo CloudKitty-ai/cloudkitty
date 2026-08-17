@@ -4802,13 +4802,36 @@ check('the camera control seats beside the dial and scales with it', () => {
   assert(/position: absolute/.test(after), 'the camera target is in flow and will move the map');
   const inset = after.match(/inset: (-?[\d.]+)px (-?[\d.]+)px (-?[\d.]+)px (-?[\d.]+)px/);
   assert(inset, 'the camera control states no four-sided inset');
-  const [top, side, bottom] = [Number(inset[1]), Number(inset[2]), Number(inset[3])];
-  // At the phone's ~348px stage the square is 5.25% = 18.3px, which is the
-  // size the target has to be built up from -- not the desktop's 38px.
-  const small = 348 * (Number(camW[1]) / 100);
-  assert(small - side * 2 >= 44, `the camera target is ${(small - side * 2).toFixed(1)}px wide on a phone`);
-  assert(small - top - bottom >= 44, `the camera target is ${(small - top - bottom).toFixed(1)}px tall on a phone`);
-  assert(bottom >= -8, `the target reaches ${-bottom}px into the meadow and steals the corner tile`);
+  // Every side is read separately because every side is bounded by a
+  // DIFFERENT thing, and three of the four bounds are real bugs.
+  const grow = inset.slice(1, 5).map((n) => -Number(n)); // top, right, bottom, left
+  const [up, out, down, back] = grow;
+  // The narrowest stage the phone rule has to hold at: a 320px viewport.
+  // Sizing off the desktop's 38px square is how a target that reads fine
+  // on a laptop ships 25px on a phone.
+  const stage = 310;
+  const square = stage * (Number(camW[1]) / 100);
+  assert(square + up + down >= 44,
+    `the camera target is ${(square + up + down).toFixed(1)}px tall on a 320px phone`);
+  // Height comes from ABOVE, which is empty page. The about ring's 23px is
+  // the house floor for a width, and the sides here cannot reach 44 without
+  // breaking one of the two rules below.
+  assert(square + out + back >= 23,
+    `the camera target is ${(square + out + back).toFixed(1)}px wide on a 320px phone`);
+  assert(down <= 8, `the target reaches ${down}px into the meadow and steals the corner tile`);
+  // THE TWO BOUNDS THE SLIDE-RIGHT CREATED. Neither shows up on a laptop.
+  //
+  // Rightward: the control now sits 1.5% off the stage edge, so a target
+  // wider than that margin hangs off the page and a phone gets a sideways
+  // scroll -- from an element that draws nothing.
+  assert(out <= stage * (camR / 100),
+    `the target hangs ${(out - stage * (camR / 100)).toFixed(1)}px past the stage and will scroll a phone`);
+  // Leftward: the dial is pointer-events: none, so it cannot refuse a tap
+  // the camera's target has already claimed. Cross the gap and tapping the
+  // sun silently toggles the camera.
+  const gap = stage * ((dialR - camR - Number(camW[1])) / 100);
+  assert(back <= gap,
+    `the target crosses the ${gap.toFixed(1)}px gap and turns taps on the dial into taps on the camera`);
 
   // It is a button, it says what it is, and it carries its state where a
   // screen reader can read it -- the icon alone announces as nothing.

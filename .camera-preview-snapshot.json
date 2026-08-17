@@ -1,0 +1,2763 @@
+{
+  "width": 20,
+  "height": 20,
+  "tick": 400,
+  "kitties": [
+    {
+      "id": 1,
+      "name": "Miso",
+      "pos": {
+        "x": 15,
+        "y": 16
+      },
+      "needs": {
+        "eat": 6.400001,
+        "drink": 15.599994,
+        "sleep": 0.90000004,
+        "play": 0.4,
+        "cuddle": 10.399999,
+        "bath": 6.399998
+      },
+      "happiness": 92.885,
+      "activity": {
+        "state": "idle"
+      },
+      "behavior": "needs_driven",
+      "behavior_description": "Scripted",
+      "meow_cooldowns": {},
+      "in_distress": [],
+      "happiness_rose": false,
+      "last_action": {
+        "action": "play",
+        "target": "kitty",
+        "id": 5
+      },
+      "abandoned_chases": [
+        {
+          "target": {
+            "target": "kitty",
+            "id": 3
+          },
+          "until": 409
+        }
+      ],
+      "last_relief": {
+        "eat": 384,
+        "drink": 361,
+        "sleep": 397,
+        "play": 399,
+        "cuddle": 374,
+        "bath": 368
+      },
+      "purr_cooldown_until": 401
+    },
+    {
+      "id": 2,
+      "name": "Biscuit",
+      "pos": {
+        "x": 16,
+        "y": 15
+      },
+      "needs": {
+        "eat": 4.0000005,
+        "drink": 13.999995,
+        "sleep": 17.700003,
+        "play": 1.2,
+        "cuddle": 0.4,
+        "bath": 7.6999965
+      },
+      "happiness": 92.35,
+      "activity": {
+        "state": "resting",
+        "with_friend": 4
+      },
+      "behavior": "needs_driven",
+      "behavior_description": "Scripted",
+      "meow_cooldowns": {},
+      "in_distress": [],
+      "happiness_rose": false,
+      "last_action": {
+        "action": "rest",
+        "with": 4
+      },
+      "pursuit": {
+        "target": {
+          "target": "kitty",
+          "id": 3
+        },
+        "started": 394,
+        "closest": 1,
+        "improved_at": 395
+      },
+      "last_relief": {
+        "eat": 390,
+        "drink": 365,
+        "sleep": 341,
+        "play": 397,
+        "cuddle": 399,
+        "bath": 379
+      },
+      "activity_clock": {
+        "started": 398,
+        "applied": 399
+      },
+      "purr_cooldown_until": 404
+    },
+    {
+      "id": 3,
+      "name": "Pumpkin",
+      "pos": {
+        "x": 17,
+        "y": 16
+      },
+      "needs": {
+        "eat": 4.2,
+        "drink": 12.799996,
+        "sleep": 13.399992,
+        "play": 1.2,
+        "cuddle": 10.399999,
+        "bath": 3.9999983
+      },
+      "happiness": 92.25,
+      "activity": {
+        "state": "idle"
+      },
+      "behavior": "needs_driven",
+      "behavior_description": "Scripted",
+      "meow_cooldowns": {},
+      "in_distress": [],
+      "happiness_rose": false,
+      "last_action": {
+        "action": "move",
+        "direction": "east"
+      },
+      "abandoned_chases": [
+        {
+          "target": {
+            "target": "element",
+            "id": 34
+          },
+          "until": 431
+        }
+      ],
+      "last_relief": {
+        "eat": 393,
+        "drink": 368,
+        "sleep": 333,
+        "play": 397,
+        "cuddle": 374,
+        "bath": 360
+      },
+      "purr_cooldown_until": 416
+    },
+    {
+      "id": 4,
+      "name": "Kittybear",
+      "pos": {
+        "x": 16,
+        "y": 14
+      },
+      "needs": {
+        "eat": 7.6000013,
+        "drink": 15.599994,
+        "sleep": 14.400006,
+        "play": 1.2,
+        "cuddle": 7.999987,
+        "bath": 5.399999
+      },
+      "happiness": 91.01,
+      "activity": {
+        "state": "resting",
+        "with_friend": 2
+      },
+      "behavior": "needs_driven",
+      "behavior_description": "Scripted",
+      "meow_cooldowns": {
+        "wait_for_me": 402
+      },
+      "in_distress": [],
+      "happiness_rose": true,
+      "last_action": {
+        "action": "rest",
+        "with": 2
+      },
+      "last_relief": {
+        "eat": 381,
+        "drink": 361,
+        "sleep": 352,
+        "play": 397,
+        "cuddle": 399,
+        "bath": 373
+      },
+      "activity_clock": {
+        "started": 398,
+        "applied": 399
+      },
+      "purring_until": 403,
+      "purring_duration": 12,
+      "purr_cooldown_until": 391
+    },
+    {
+      "id": 5,
+      "name": "Clementine",
+      "pos": {
+        "x": 15,
+        "y": 17
+      },
+      "needs": {
+        "eat": 19.59999,
+        "drink": 9.2,
+        "sleep": 3.2999997,
+        "play": 0.3,
+        "cuddle": 17.499998,
+        "bath": 4.499998
+      },
+      "happiness": 90.4,
+      "activity": {
+        "state": "idle"
+      },
+      "behavior": "needs_driven",
+      "behavior_description": "Scripted",
+      "meow_cooldowns": {
+        "wait_for_me": 402
+      },
+      "in_distress": [],
+      "happiness_rose": false,
+      "last_action": {
+        "action": "play",
+        "target": "kitty",
+        "id": 1
+      },
+      "last_relief": {
+        "eat": 351,
+        "drink": 377,
+        "sleep": 389,
+        "play": 399,
+        "cuddle": 375,
+        "bath": 355
+      },
+      "purr_cooldown_until": 420
+    }
+  ],
+  "elements": [
+    {
+      "id": 1,
+      "kind": "water",
+      "pos": {
+        "x": 10,
+        "y": 2
+      }
+    },
+    {
+      "id": 2,
+      "kind": "water",
+      "pos": {
+        "x": 11,
+        "y": 2
+      }
+    },
+    {
+      "id": 3,
+      "kind": "water",
+      "pos": {
+        "x": 10,
+        "y": 3
+      }
+    },
+    {
+      "id": 4,
+      "kind": "water",
+      "pos": {
+        "x": 11,
+        "y": 3
+      }
+    },
+    {
+      "id": 5,
+      "kind": "water",
+      "pos": {
+        "x": 3,
+        "y": 18
+      }
+    },
+    {
+      "id": 6,
+      "kind": "water",
+      "pos": {
+        "x": 12,
+        "y": 13
+      }
+    },
+    {
+      "id": 7,
+      "kind": "water",
+      "pos": {
+        "x": 19,
+        "y": 1
+      }
+    },
+    {
+      "id": 10,
+      "kind": "chow",
+      "servings": 5,
+      "pos": {
+        "x": 2,
+        "y": 19
+      }
+    },
+    {
+      "id": 12,
+      "kind": "chow",
+      "servings": 3,
+      "pos": {
+        "x": 4,
+        "y": 11
+      }
+    },
+    {
+      "id": 27,
+      "kind": "greeble",
+      "heading": "south",
+      "pos": {
+        "x": 9,
+        "y": 19
+      },
+      "ttl": 84
+    },
+    {
+      "id": 28,
+      "kind": "sunbeam",
+      "pos": {
+        "x": 18,
+        "y": 0
+      },
+      "ttl": 205
+    },
+    {
+      "id": 29,
+      "kind": "sunbeam",
+      "pos": {
+        "x": 15,
+        "y": 16
+      },
+      "ttl": 40
+    },
+    {
+      "id": 31,
+      "kind": "chow",
+      "servings": 3,
+      "pos": {
+        "x": 4,
+        "y": 4
+      }
+    },
+    {
+      "id": 33,
+      "kind": "bug",
+      "pos": {
+        "x": 2,
+        "y": 6
+      },
+      "ttl": 229
+    },
+    {
+      "id": 34,
+      "kind": "bug",
+      "pos": {
+        "x": 6,
+        "y": 19
+      },
+      "ttl": 227
+    },
+    {
+      "id": 35,
+      "kind": "bug",
+      "pos": {
+        "x": 19,
+        "y": 5
+      },
+      "ttl": 276
+    },
+    {
+      "id": 37,
+      "kind": "chow",
+      "servings": 5,
+      "pos": {
+        "x": 10,
+        "y": 6
+      }
+    },
+    {
+      "id": 38,
+      "kind": "sunbeam",
+      "pos": {
+        "x": 0,
+        "y": 1
+      },
+      "ttl": 315
+    },
+    {
+      "id": 39,
+      "kind": "chow",
+      "servings": 5,
+      "pos": {
+        "x": 10,
+        "y": 11
+      }
+    },
+    {
+      "id": 40,
+      "kind": "chow",
+      "servings": 1,
+      "pos": {
+        "x": 16,
+        "y": 15
+      }
+    },
+    {
+      "id": 41,
+      "kind": "sunbeam",
+      "pos": {
+        "x": 2,
+        "y": 16
+      },
+      "ttl": 339
+    }
+  ],
+  "recent_meows": [
+    {
+      "kitty_id": 4,
+      "kind": "wait_for_me",
+      "tick": 392,
+      "intensity": 0.0
+    },
+    {
+      "kitty_id": 5,
+      "kind": "wait_for_me",
+      "tick": 392,
+      "intensity": 0.0
+    }
+  ],
+  "distress": {
+    "events": [],
+    "capacity": 1000
+  },
+  "activity_log": {
+    "events": [
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 0,
+        "ended": 3
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 0,
+        "ended": 3
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 0,
+        "ended": 3
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 1,
+        "ended": 4
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 2,
+        "ended": 5
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 4,
+        "ended": 7
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 5,
+        "ended": 8
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 5,
+        "ended": 8
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 6,
+        "ended": 9
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": false
+        },
+        "started": 5,
+        "ended": 10
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 8,
+        "ended": 11
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 9,
+        "ended": 12
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "element",
+            "id": 17
+          }
+        },
+        "started": 12,
+        "ended": 12
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 11,
+        "ended": 14
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 5
+          }
+        },
+        "started": 16,
+        "ended": 17
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 2
+          }
+        },
+        "started": 16,
+        "ended": 17
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 20,
+        "ended": 21
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "element",
+            "id": 16
+          }
+        },
+        "started": 21,
+        "ended": 22
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 26,
+        "ended": 27
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 28,
+        "ended": 29
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "resting",
+          "with_friend": 5
+        },
+        "started": 24,
+        "ended": 29
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "resting",
+          "with_friend": 2
+        },
+        "started": 24,
+        "ended": 29
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 28,
+        "ended": 29
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 33,
+        "ended": 34
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "element",
+            "id": 14
+          }
+        },
+        "started": 34,
+        "ended": 34
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 37,
+        "ended": 38
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": true
+        },
+        "started": 35,
+        "ended": 40
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": true
+        },
+        "started": 36,
+        "ended": 41
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 44,
+        "ended": 45
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "element",
+            "id": 15
+          }
+        },
+        "started": 45,
+        "ended": 45
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "resting",
+          "with_friend": 4
+        },
+        "started": 41,
+        "ended": 46
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "resting",
+          "with_friend": 3
+        },
+        "started": 41,
+        "ended": 46
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 51,
+        "ended": 52
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 52,
+        "ended": 53
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 54,
+        "ended": 57
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 56,
+        "ended": 57
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 59,
+        "ended": 60
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": false
+        },
+        "started": 55,
+        "ended": 60
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "resting",
+          "with_friend": 5
+        },
+        "started": 61,
+        "ended": 66
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "resting",
+          "with_friend": 2
+        },
+        "started": 61,
+        "ended": 66
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": false
+        },
+        "started": 61,
+        "ended": 66
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "element",
+            "id": 16
+          }
+        },
+        "started": 70,
+        "ended": 71
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 71,
+        "ended": 72
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "element",
+            "id": 16
+          }
+        },
+        "started": 73,
+        "ended": 74
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 73,
+        "ended": 74
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": true
+        },
+        "started": 69,
+        "ended": 74
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 2
+          }
+        },
+        "started": 74,
+        "ended": 75
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 1
+          }
+        },
+        "started": 74,
+        "ended": 75
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 75,
+        "ended": 78
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 76,
+        "ended": 79
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 5
+          }
+        },
+        "started": 79,
+        "ended": 80
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 1
+          }
+        },
+        "started": 79,
+        "ended": 80
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "resting",
+          "with_friend": 5
+        },
+        "started": 81,
+        "ended": 86
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "resting",
+          "with_friend": 1
+        },
+        "started": 81,
+        "ended": 86
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 88,
+        "ended": 89
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 90,
+        "ended": 91
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 90,
+        "ended": 91
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 91,
+        "ended": 94
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 94,
+        "ended": 95
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 93,
+        "ended": 96
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 97,
+        "ended": 98
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 97,
+        "ended": 98
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": true
+        },
+        "started": 96,
+        "ended": 101
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 100,
+        "ended": 101
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": false
+        },
+        "started": 97,
+        "ended": 102
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 99,
+        "ended": 102
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 105,
+        "ended": 106
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": true
+        },
+        "started": 105,
+        "ended": 110
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 107,
+        "ended": 110
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 114,
+        "ended": 117
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "resting",
+          "with_friend": 4
+        },
+        "started": 112,
+        "ended": 117
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "resting",
+          "with_friend": 3
+        },
+        "started": 112,
+        "ended": 117
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "element",
+            "id": 15
+          }
+        },
+        "started": 117,
+        "ended": 117
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 118,
+        "ended": 119
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 4
+          }
+        },
+        "started": 120,
+        "ended": 121
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 3
+          }
+        },
+        "started": 120,
+        "ended": 121
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 5
+          }
+        },
+        "started": 121,
+        "ended": 122
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 1
+          }
+        },
+        "started": 121,
+        "ended": 122
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 122,
+        "ended": 123
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 123,
+        "ended": 124
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 125,
+        "ended": 126
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "resting",
+          "with_friend": 5
+        },
+        "started": 123,
+        "ended": 128
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "resting",
+          "with_friend": 1
+        },
+        "started": 123,
+        "ended": 128
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": false
+        },
+        "started": 127,
+        "ended": 132
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 135,
+        "ended": 136
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "resting",
+          "with_friend": 5
+        },
+        "started": 131,
+        "ended": 136
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "resting",
+          "with_friend": 2
+        },
+        "started": 131,
+        "ended": 136
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 141,
+        "ended": 142
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 141,
+        "ended": 142
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 142,
+        "ended": 143
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 144,
+        "ended": 147
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 146,
+        "ended": 149
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": true
+        },
+        "started": 144,
+        "ended": 149
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": false
+        },
+        "started": 148,
+        "ended": 153
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 158,
+        "ended": 159
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": true
+        },
+        "started": 154,
+        "ended": 159
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "element",
+            "id": 15
+          }
+        },
+        "started": 159,
+        "ended": 159
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": true
+        },
+        "started": 162,
+        "ended": 167
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "resting",
+          "with_friend": 5
+        },
+        "started": 162,
+        "ended": 167
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "resting",
+          "with_friend": 3
+        },
+        "started": 162,
+        "ended": 167
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 5
+          }
+        },
+        "started": 168,
+        "ended": 169
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 3
+          }
+        },
+        "started": 168,
+        "ended": 169
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 171,
+        "ended": 172
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 174,
+        "ended": 175
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 3
+          }
+        },
+        "started": 176,
+        "ended": 177
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 2
+          }
+        },
+        "started": 176,
+        "ended": 177
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 177,
+        "ended": 178
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 178,
+        "ended": 179
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 179,
+        "ended": 182
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "resting",
+          "with_friend": 4
+        },
+        "started": 178,
+        "ended": 183
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "resting",
+          "with_friend": 2
+        },
+        "started": 178,
+        "ended": 183
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 180,
+        "ended": 183
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": false
+        },
+        "started": 180,
+        "ended": 185
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 186,
+        "ended": 187
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 4
+          }
+        },
+        "started": 186,
+        "ended": 187
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 2
+          }
+        },
+        "started": 186,
+        "ended": 187
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 188,
+        "ended": 191
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 193,
+        "ended": 194
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 194,
+        "ended": 195
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 195,
+        "ended": 196
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 196,
+        "ended": 197
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 196,
+        "ended": 199
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 197,
+        "ended": 200
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 206,
+        "ended": 207
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": false
+        },
+        "started": 202,
+        "ended": 207
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 208,
+        "ended": 211
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": false
+        },
+        "started": 208,
+        "ended": 213
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "resting",
+          "with_friend": 2
+        },
+        "started": 212,
+        "ended": 217
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "resting",
+          "with_friend": 1
+        },
+        "started": 212,
+        "ended": 217
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 2
+          }
+        },
+        "started": 218,
+        "ended": 219
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 1
+          }
+        },
+        "started": 218,
+        "ended": 219
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "resting",
+          "with_friend": 5
+        },
+        "started": 215,
+        "ended": 220
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "resting",
+          "with_friend": 3
+        },
+        "started": 215,
+        "ended": 220
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 219,
+        "ended": 220
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 5
+          }
+        },
+        "started": 224,
+        "ended": 225
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 3
+          }
+        },
+        "started": 224,
+        "ended": 225
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "element",
+            "id": 16
+          }
+        },
+        "started": 224,
+        "ended": 225
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 230,
+        "ended": 231
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": true
+        },
+        "started": 227,
+        "ended": 232
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "resting",
+          "with_friend": 5
+        },
+        "started": 234,
+        "ended": 239
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "resting",
+          "with_friend": 4
+        },
+        "started": 234,
+        "ended": 239
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": true
+        },
+        "started": 235,
+        "ended": 240
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": false
+        },
+        "started": 235,
+        "ended": 240
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 241,
+        "ended": 242
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 246,
+        "ended": 247
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 247,
+        "ended": 248
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 249,
+        "ended": 250
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 247,
+        "ended": 250
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 249,
+        "ended": 250
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 250,
+        "ended": 251
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 249,
+        "ended": 252
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 253,
+        "ended": 254
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 252,
+        "ended": 255
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 255,
+        "ended": 256
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 257,
+        "ended": 258
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "element",
+            "id": 16
+          }
+        },
+        "started": 262,
+        "ended": 263
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": true
+        },
+        "started": 258,
+        "ended": 263
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "resting",
+          "with_friend": 2
+        },
+        "started": 261,
+        "ended": 266
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "resting",
+          "with_friend": 1
+        },
+        "started": 261,
+        "ended": 266
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 2
+          }
+        },
+        "started": 267,
+        "ended": 268
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 1
+          }
+        },
+        "started": 267,
+        "ended": 268
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 270,
+        "ended": 271
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 270,
+        "ended": 271
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 271,
+        "ended": 274
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "resting",
+          "with_friend": 5
+        },
+        "started": 272,
+        "ended": 277
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "resting",
+          "with_friend": 4
+        },
+        "started": 272,
+        "ended": 277
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "element",
+            "id": 16
+          }
+        },
+        "started": 278,
+        "ended": 279
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": true
+        },
+        "started": 276,
+        "ended": 281
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 281,
+        "ended": 284
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": true
+        },
+        "started": 282,
+        "ended": 287
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 287,
+        "ended": 288
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 287,
+        "ended": 288
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 288,
+        "ended": 291
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 291,
+        "ended": 292
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 293,
+        "ended": 294
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": true
+        },
+        "started": 290,
+        "ended": 295
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "resting",
+          "with_friend": 3
+        },
+        "started": 293,
+        "ended": 298
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "resting",
+          "with_friend": 1
+        },
+        "started": 293,
+        "ended": 298
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 3
+          }
+        },
+        "started": 299,
+        "ended": 300
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 1
+          }
+        },
+        "started": 299,
+        "ended": 300
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "element",
+            "id": 16
+          }
+        },
+        "started": 299,
+        "ended": 300
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 302,
+        "ended": 303
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 303,
+        "ended": 304
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "resting",
+          "with_friend": 5
+        },
+        "started": 301,
+        "ended": 306
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "resting",
+          "with_friend": 4
+        },
+        "started": 301,
+        "ended": 306
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 306,
+        "ended": 309
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "resting",
+          "with_friend": 3
+        },
+        "started": 305,
+        "ended": 310
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "resting",
+          "with_friend": 2
+        },
+        "started": 305,
+        "ended": 310
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 310,
+        "ended": 311
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 313,
+        "ended": 314
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "element",
+            "id": 16
+          }
+        },
+        "started": 313,
+        "ended": 314
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 315,
+        "ended": 318
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 318,
+        "ended": 319
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": true
+        },
+        "started": 315,
+        "ended": 320
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 323,
+        "ended": 324
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": true
+        },
+        "started": 320,
+        "ended": 325
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 3
+          }
+        },
+        "started": 325,
+        "ended": 326
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 2
+          }
+        },
+        "started": 325,
+        "ended": 326
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 327,
+        "ended": 330
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 329,
+        "ended": 332
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 332,
+        "ended": 333
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": true
+        },
+        "started": 328,
+        "ended": 333
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 333,
+        "ended": 334
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 339,
+        "ended": 340
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "resting",
+          "with_friend": 5
+        },
+        "started": 335,
+        "ended": 340
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "resting",
+          "with_friend": 4
+        },
+        "started": 335,
+        "ended": 340
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": true
+        },
+        "started": 336,
+        "ended": 341
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "element",
+            "id": 35
+          }
+        },
+        "started": 342,
+        "ended": 343
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 343,
+        "ended": 344
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "resting",
+          "with_friend": 3
+        },
+        "started": 346,
+        "ended": 351
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "resting",
+          "with_friend": 1
+        },
+        "started": 346,
+        "ended": 351
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 350,
+        "ended": 351
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": true
+        },
+        "started": 347,
+        "ended": 352
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 2
+          }
+        },
+        "started": 352,
+        "ended": 353
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 1
+          }
+        },
+        "started": 352,
+        "ended": 353
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 352,
+        "ended": 355
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 355,
+        "ended": 356
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "resting",
+          "with_friend": 2
+        },
+        "started": 354,
+        "ended": 359
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "resting",
+          "with_friend": 1
+        },
+        "started": 354,
+        "ended": 359
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 357,
+        "ended": 360
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 360,
+        "ended": 361
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 360,
+        "ended": 361
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 3
+          }
+        },
+        "started": 362,
+        "ended": 363
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 1
+          }
+        },
+        "started": 362,
+        "ended": 363
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 360,
+        "ended": 363
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 364,
+        "ended": 365
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "element",
+            "id": 35
+          }
+        },
+        "started": 367,
+        "ended": 367
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 365,
+        "ended": 368
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 367,
+        "ended": 368
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 366,
+        "ended": 369
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 370,
+        "ended": 373
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "resting",
+          "with_friend": 3
+        },
+        "started": 369,
+        "ended": 374
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "resting",
+          "with_friend": 1
+        },
+        "started": 369,
+        "ended": 374
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "resting",
+          "with_friend": 5
+        },
+        "started": 370,
+        "ended": 375
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "resting",
+          "with_friend": 2
+        },
+        "started": 370,
+        "ended": 375
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "drinking"
+        },
+        "started": 376,
+        "ended": 377
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "grooming"
+        },
+        "started": 376,
+        "ended": 379
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 381,
+        "ended": 382
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 384,
+        "ended": 385
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": true
+        },
+        "started": 384,
+        "ended": 389
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 389,
+        "ended": 390
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "eating"
+        },
+        "started": 392,
+        "ended": 393
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "sleeping",
+          "in_sunbeam": true
+        },
+        "started": 392,
+        "ended": 397
+      },
+      {
+        "kitty_id": 2,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 4
+          }
+        },
+        "started": 396,
+        "ended": 397
+      },
+      {
+        "kitty_id": 4,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 2
+          }
+        },
+        "started": 396,
+        "ended": 397
+      },
+      {
+        "kitty_id": 3,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 5
+          }
+        },
+        "started": 396,
+        "ended": 397
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 3
+          }
+        },
+        "started": 396,
+        "ended": 397
+      },
+      {
+        "kitty_id": 1,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 5
+          }
+        },
+        "started": 398,
+        "ended": 399
+      },
+      {
+        "kitty_id": 5,
+        "activity": {
+          "state": "playing",
+          "target": {
+            "target": "kitty",
+            "id": 1
+          }
+        },
+        "started": 398,
+        "ended": 399
+      }
+    ],
+    "capacity": 1000
+  },
+  "rng": {
+    "inner": {
+      "seed": [
+        184,
+        191,
+        89,
+        218,
+        100,
+        176,
+        5,
+        139,
+        93,
+        79,
+        250,
+        30,
+        90,
+        137,
+        39,
+        252,
+        147,
+        33,
+        0,
+        44,
+        113,
+        216,
+        6,
+        74,
+        208,
+        172,
+        184,
+        47,
+        102,
+        112,
+        64,
+        11
+      ],
+      "stream": 0,
+      "word_pos": 12482
+    }
+  },
+  "config_fingerprint": "w20h20s20260718k1.2.3.4.5",
+  "next_element_id": 42
+}
