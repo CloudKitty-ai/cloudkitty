@@ -88,12 +88,31 @@ per-kitty reward terms anywhere (F-011 archived clause via F-018).
 
 Product's surface-expansion export (spec requested 2026-08-17) takes
 attn-a1-s1, attn-a1-s3, and e004-a1-s2 onto the 225 surface. The
-behavioral invariant is registered here as a gate input: forward
-parity on old dims ≤ ~1e-5 logits vs the source artifact, and new
-message-kind head columns initialized so no new kind is ever
-spuriously selected (deaf until taught, never babbling). Expanded
-artifacts are candidates like any other: new shas, registry rows
-same-PR, full battery.
+behavioral invariant is registered here as a gate input, in two
+halves with two instruments (settled with Product 2026-08-17):
+
+- **Structural, in the tool**: bijective weight placement (every
+  source float provably at its mapped position), new head columns
+  at-or-below the negative floor (never spuriously selected — mask
+  legality cannot be the silencer, chirp and Here* are legal
+  post-cutover), and ALL new input-side parameters exactly ZERO
+  (type embeddings, digest-slot embeddings — deafness as a provable
+  invariant, not an accident of seed; a future finetune that wants
+  otherwise re-inits explicitly as a registered act).
+- **Behavioral, in the battery**: forward parity on old dims ≤
+  ~1e-5 logits vs the source, run in Experiments' numpy harness
+  (independent reimplementation of both layouts — catches a wrong
+  token map that a bijection check would bless), obs rows sampled
+  from the archived pre-wall datasets. This parity leg is what
+  licenses §7's identification of "expanded artifact" with "the
+  source, embedded in the new surface."
+
+Expanded artifacts are candidates like any other: new shas,
+`-o4`-suffixed names, registry rows same-PR (provenance in the
+recipe field; display unchanged), full battery. At cutover, sources
+retire to policies/retired/ with rows kept, Superseded-by pointing
+source → expanded successor (artifact lineage, not seat
+inheritance — e004-a1-s2's successor seats at Clementine).
 
 ## 6. Seating plan (registered intent — seating itself awaits the
 owner's direct word, as always)
@@ -121,12 +140,19 @@ consequence; the current world ends at seating).
   the four expanded incumbents at their §6 seats + scripted
   needs_driven at Clementine's, same instrument, paired seeds.
 - **G2d** seat-paired (D-003 norm), per-seat asymmetric
-  (owner-declared):
-  - carried seats (Miso/Pumpkin/Kittybear): ≥ own expanded self at
-    the same seat − 0.006;
+  (owner-declared). The pre-expansion selves never run in the
+  battery: by §5's parity invariant the expanded artifacts ARE
+  their sources on this surface, so every leg runs expanded
+  artifacts natively, same-instrument, and "vs self" is realized
+  as the G2c REFERENCE COMPOSITION — what the gate measures per
+  seat is the company change, which is what actually varies:
+  - carried seats (Miso/Pumpkin/Kittybear): welfare in the
+    candidate roster ≥ same mind, same seat, in the reference
+    composition − 0.006;
   - Clementine: ≥ scripted needs_driven at her seat − 0.006 (no
     incumbent — scripted-anchored by owner ruling);
-  - **Biscuit: ≥ expanded e004-a1-s2 at Biscuit's seat − 0.030**
+  - **Biscuit: ≥ expanded e004-a1-s2 at Biscuit's seat (its
+    reference-composition reading) − 0.030**
     (the owner's character budget: "we are EXPLICITLY trading
     welfare-optimal behavior for Biscuit behavior") — VALID ONLY
     WITH A G3 FINGERPRINT PASS. Budget without character is
