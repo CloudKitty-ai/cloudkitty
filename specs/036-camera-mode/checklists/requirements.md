@@ -57,11 +57,10 @@ Out of Scope and Dependencies sections and neither reaching a requirement:
 2. **The inert control is named by file.** It is a real dependency that has to
    be found, and naming it is how the plan finds it.
 
-One requirement is inferred rather than stated by the owner: **FR-012**, that
-clicking a kitty while camera mode is off turns camera mode on. The reasoning is
-in the Assumptions section. It is the only interaction rule here that was not
-settled out loud, and it is worth a sentence of confirmation before the plan is
-built on it.
+**FR-012 was the one inferred requirement** — that clicking a kitty while camera
+mode is off turns camera mode on and follows her. The owner confirmed it on
+2026-08-17, so it moved out of Assumptions and into the requirement itself.
+Every rule in this spec is now settled rather than deduced.
 
 SC-010 is a judgement criterion rather than a measurement, which is correct for
 an art feature but means it cannot be automated. It needs the owner's eye at

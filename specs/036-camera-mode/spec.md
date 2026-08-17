@@ -220,7 +220,7 @@ marked.
 - **FR-011**: Clicking or tapping a kitty MUST follow her. Clicking or tapping
   the followed kitty again MUST release her.
 - **FR-012**: Clicking a kitty while camera mode is off MUST turn camera mode on
-  and follow her.
+  and follow that kitty. Confirmed by the owner on 2026-08-17.
 - **FR-013**: Releasing a followed kitty MUST leave camera mode on, holding the
   group. The control is the only way back to the whole world.
 - **FR-014**: Following MUST change only where the camera aims. The nominal
@@ -319,11 +319,6 @@ marked.
 
 ## Assumptions
 
-- **Clicking a kitty while camera mode is off turns camera mode on.** Assumed
-  from the owner's stated intent rather than confirmed in so many words:
-  following without the camera means nothing, and making the viewer operate two
-  controls to follow one kitty would be a small cruelty. This is the one
-  interaction rule in the feature that was inferred.
 - **The nominal width is 10 tiles on every device**, phone included. kitten.me
   narrows to 8 tiles on phones; we do not, because one layout rule for both was
   already settled for the control and the same reasoning applies here. On a
