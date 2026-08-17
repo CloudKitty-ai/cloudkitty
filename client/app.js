@@ -379,6 +379,26 @@ function initTheme() {
 }
 
 /**
+ * The camera control, PLACEMENT ONLY. Clicking flips how the button looks
+ * and nothing else: camera mode itself is spec 035 and unbuilt, and the
+ * button exists now so its seat beside the dial can be judged on a real
+ * page at real sizes rather than argued about on paper.
+ *
+ * Deliberately not persisted yet. The settled design says the mode and the
+ * followed cat both survive a reload, but storing a flag that drives
+ * nothing would leave a key to migrate when 035 gives it a meaning.
+ */
+function initCameraControl() {
+  const button = document.getElementById('camera-toggle');
+  button?.addEventListener('click', () => {
+    button.setAttribute(
+      'aria-pressed',
+      button.getAttribute('aria-pressed') === 'true' ? 'false' : 'true',
+    );
+  });
+}
+
+/**
  * Collapsed cards: portrait, name, what the cat is doing, its mood in
  * words -- and the distress cue, which never hides. The bars are what go.
  *
@@ -1778,6 +1798,7 @@ window.addEventListener('keydown', (event) => {
 
 initTheme();
 initCards();
+initCameraControl();
 initTraitsDialog();
 drawHeaderKitties();
 start();

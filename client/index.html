@@ -557,12 +557,68 @@
        than repeating the number, so "exact" survives any breakpoint
        that changes the mat. */
     bottom: calc(100% - var(--stage-pad));
-    right: 5%;
+    /* Slid left from 5% to clear a seat for the camera control (owner,
+       2026-08-16). The three numbers are one sum: the control's own
+       margin (5%), its width (5.25%) and the gap between them (2.5%). */
+    right: 12.75%;
     width: 10.5%;
     pointer-events: none;
     /* Opt out of the global canvas rounding: 18px radius on a canvas
        this small clips the dome's lower corners clean off. */
     border-radius: 0;
+  }
+
+  /* The camera control takes the space the dial left, sitting on the same
+     horizon (owner, 2026-08-16). Sized as a FRACTION of the stage exactly
+     as the dial is, which is what lets one rule serve the phone and the
+     desktop: the pair scales together, so the two layouts never diverge.
+
+     5.25% is not a taste value -- it is the dial's own height, since the
+     dial is 10.5% wide at the canvas's 2:1 ratio. The square and the dome
+     therefore stand the same height on the line, at every stage size. */
+  #camera-toggle {
+    position: absolute;
+    bottom: calc(100% - var(--stage-pad));
+    right: 5%;
+    width: 5.25%;
+    aspect-ratio: 1;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: none;
+    color: var(--ink-soft);
+    line-height: 0;
+    cursor: pointer;
+  }
+
+  /* On reads as a lit chip rather than a different drawing: the icon is
+     already the noun, so the state only has to say "active". */
+  #camera-toggle[aria-pressed='true'] {
+    background: var(--cream-deep);
+    color: var(--ink);
+  }
+
+  #camera-toggle svg { width: 76%; height: 76%; display: block; }
+
+  #camera-toggle:focus-visible {
+    outline: 2px solid var(--ink-soft);
+    outline-offset: 2px;
+  }
+
+  /* Same lesson the about ring taught: the drawing may be small, the hit
+     area may not. Asymmetric on purpose -- above the horizon is empty
+     page, so the target grows upward for nothing, while below it is the
+     meadow, where every pixel is taken from the top-right tile. At the
+     phone's ~18px square this comes out 44px; the 6px that reaches into
+     the map is under a fifth of a tile, in the one corner. */
+  #camera-toggle::after {
+    content: '';
+    position: absolute;
+    inset: -20px -13px -6px -13px;
   }
 
   canvas { border-radius: 18px; }
@@ -1018,6 +1074,19 @@
       <div class="stage">
         <canvas id="world" width="720" height="720"></canvas>
         <canvas id="sky-dial" width="78" height="39" aria-hidden="true"></canvas>
+        <!-- A CINE camera, not a stills one: a shutter button beside a live
+             meadow reads as "take a photo of this", which is not what the
+             control does. The wedge viewfinder is what says "filming". -->
+        <button id="camera-toggle" type="button" aria-pressed="false"
+                aria-label="camera mode: follow the kitties" title="camera mode">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"
+               focusable="false">
+            <rect x="1.6" y="6.6" width="14.4" height="10.8" rx="2.6"/>
+            <path d="M16 10.4 L21.8 7.2 V16.8 L16 13.6 Z"/>
+            <circle cx="8.8" cy="12" r="2.9"/>
+          </svg>
+        </button>
       </div>
     </div>
     <section class="panel" id="panel">
