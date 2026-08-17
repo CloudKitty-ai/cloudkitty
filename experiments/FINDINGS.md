@@ -46,7 +46,7 @@ evidence; this register is the evolving knowledge layer on top of them.
 | F-009 | active · **promoted** | Every dimension an instrument holds fixed bounds the failures it can detect |
 | F-010 | active | Roster-OOD fragility: an empty kitty slot can collapse an exp-001 policy |
 | F-011 | superseded → F-018 | Meow restraint is a reward-structure equilibrium, not an engine guarantee |
-| F-012 | active | Channel use is context-dependent; measure in policy company, not solo |
+| F-012 | active · **promoted** | Channel use is context-dependent; measure in policy company, not solo |
 | F-013 | active | The 024 batch rewired the credit landscape; the served world gained a cooperative band |
 | F-014 | active | Post-024 world search: the served world wins as it stands; knob landscape flat |
 | F-015 | active | Pooled probes dilute under heterogeneous class amplitudes; condition by class |
@@ -153,6 +153,12 @@ swings 3.1× between disjoint 150-world bands and dissolves when pooled
 to 300. Small-amplitude class claims require disjoint-band agreement
 before they are claims at all.)*
 
+*(Bar status, 2026-08-16 review: the engine-indexed world-count bar is
+UNMEASURED on the post-wall stamp `5d293c67…` — the 150+/truncated-S
+bar above is a 028-engine number. Re-derive it as part of the phase-1
+class-credit re-baseline (queued, phase1-design-inputs.md §4) before
+any post-wall probe claim leans on it.)*
+
 **Would invalidate**: a demonstration that within-world sample
 correlation is negligible at some horizon (it is not, at k > ~50, on
 current evidence).
@@ -222,6 +228,18 @@ larger budget or a different algorithm (that would narrow this to
 **Re-verify when**: any exp-002 arm changes the training algorithm or
 raises the budget ≥ 5×; then one from-scratch control seed is cheap
 insurance against over-crediting BC.
+
+*(Trigger status, 2026-08-16 review: FIRED in spirit at the attention
+generation — the policy class changed (EntityPolicy, spec 030) with
+recipe and budget held — and the from-scratch control seed has never
+run on the new class: BC-necessity is carried as a recipe default, not
+re-established. Two reasons it likely still holds, neither a
+measurement: the budget is unchanged (the claim is budget-indexed),
+and F-022 adds an independent necessity argument (the channel only
+comes alive through demonstrations — a scratch policy would be mute
+regardless of welfare). The control seed remains cheap (~one PPO run)
+if the phase-1 prereg wants the register claim re-established on the
+current class; owner's call, flagged not queued.)*
 
 ---
 
@@ -405,6 +423,15 @@ which *is* that control: same seats, scripted neighbors, no meows).
 
 **Re-verify when**: exp-002 candidate screening; any channel-use
 selection measurement.
+
+*(Promoted 2026-08-16 → [README.md § Measurement
+discipline](README.md): measure social behavior in the deployment
+composition. The trigger wording above is era-stale — the discipline
+has re-confirmed at every level since: selection (exp-003/004
+screens), the dial level (F-023), the welfare level (F-025), and the
+exp-005 fingerprint probes measure in the demonstration composition
+by prereg rule. The standing form binds all future measurement; this
+entry stays as provenance.)*
 
 ## F-013 · active · The 024 batch rewired the credit landscape: the served world gained a cooperative band, the frozen gym lost its edge (supersedes F-003/F-005/F-006 quantities)
 
