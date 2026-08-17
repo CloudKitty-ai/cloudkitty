@@ -33,6 +33,21 @@ change.
 
 ## Unreleased
 
+- **The surface-expansion export** (spec 035): certified minds can now
+  cross a generation wall. `ckpolicy-expand` carries a pre-wall artifact
+  onto the current surface deterministically — every value moved, zeroed,
+  or set to the constant floor, never computed — with a structural
+  attestation (bijective placement, provably-zero new inputs,
+  provably-floored new head outputs) re-derived from the raw bytes before
+  anything touches disk. Expanded minds are mute in the new vocabulary by
+  construction (the mask cannot silence mask-legal words; the −1e4 floor
+  does) and deaf per family: the MLP fully, the entity-attention family
+  to kind identity (it hears "a meow," never which new word — the
+  measured 1.17× residual is registered in Experiments' acceptance QA,
+  exp-006 D-001). The three phase-1 candidates are generated on demand
+  and land in `policies/` only at the seating PR. No behavior, schema,
+  config, or stamp movement.
+
 - **The hunter's face stops outliving its quarry.** Reported as "hunter
   eyes with no bug in proximity", and it was two things at once. The
   distance gate reads `dist !== null`, so a null never gates — and both

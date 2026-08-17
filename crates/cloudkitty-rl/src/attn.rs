@@ -37,8 +37,8 @@ use crate::policy::{ArtifactError, SchemaExpectations};
 pub const V3_ARCHITECTURE: &str = "entity_attention";
 /// Pointer verb counts, fixed by the menu contract: a kitty can be the
 /// target of rest/sleep/groom/chase/play (5), a critter of chase/play (2).
-const KITTY_VERBS: usize = 5;
-const CRIT_VERBS: usize = 2;
+pub(crate) const KITTY_VERBS: usize = 5;
+pub(crate) const CRIT_VERBS: usize = 2;
 const LN_EPS: f32 = 1e-5;
 
 /// The v3 header. Strict: an unknown or misspelled key fails loading
@@ -63,19 +63,19 @@ pub struct V3Header {
 /// type-embedding row, and whether each token steps to its own row (message
 /// kinds do; every other group shares one row).
 #[derive(Debug, Clone)]
-struct Group {
-    emb: usize,
-    width: usize,
-    count: usize,
-    type_row0: usize,
-    per_token_row: bool,
-    always_present: bool,
+pub(crate) struct Group {
+    pub(crate) emb: usize,
+    pub(crate) width: usize,
+    pub(crate) count: usize,
+    pub(crate) type_row0: usize,
+    pub(crate) per_token_row: bool,
+    pub(crate) always_present: bool,
 }
 
 /// The token layout for a slot configuration, derived from the `observe.rs`
 /// block widths — never hardcoded (spec 030 FR-003). Returns the groups in
 /// sequence order and the total type-embedding row count.
-fn token_layout(cfg: &ObservationConfig) -> (Vec<Group>, usize) {
+pub(crate) fn token_layout(cfg: &ObservationConfig) -> (Vec<Group>, usize) {
     let w = block_widths();
     // emb indices: self 0, kitty 1, chow 2, water 3, sunbeam 4, critter 5,
     // msg 6, clock 7. type rows: self 0, kitty 1, chow 2, water 3, sunbeam 4,
@@ -213,7 +213,7 @@ pub struct AttnArtifact {
 /// used to validate the blob length and slice it. `dense_n` is the number of
 /// non-entity menu indices; `msg_len` the message head width.
 #[allow(clippy::too_many_arguments)]
-fn tensor_sizes(
+pub(crate) fn tensor_sizes(
     d: usize,
     heads: usize,
     layers: usize,
