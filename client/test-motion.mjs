@@ -4959,7 +4959,7 @@ check('the camera control seats beside the dial and scales with it', () => {
   assert(/aria-hidden="true"/.test(tag), 'the icon is not hidden from the reader, so it doubles the label');
   assert(/\[aria-pressed='true'\]/.test(markup), 'the pressed state has no look, so the toggle is invisible');
 
-  // Placement only until spec 035. The click may change how the button
+  // Placement only until spec 036. The click may change how the button
   // LOOKS and nothing else -- no stored key that would need migrating, and
   // no camera behaviour smuggled in ahead of the spec.
   const init = app.slice(app.indexOf('function initCameraControl()'));

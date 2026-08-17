@@ -1,7 +1,10 @@
 # Camera mode — design notes
 
 Working notes, not a spec. Written to be argued with before `speckit.specify`
-turns it into spec 035.
+turns it into spec 036. 035 is already claimed by another thread for surface
+expansion. That claim is unpushed as of 2026-08-17, so it will not show up in
+`specs/` on `main` until they merge, and the highest number there still reads
+034.
 
 Sources: kitten.me's camera (`meadow.js` ~735–805, `site.js` 14–30), read
 2026-08-16; the owner's calls in session the same day; and the numbers in our
@@ -267,7 +270,7 @@ in `index.html`, `initCameraControl` in `app.js`, geometry pinned by
 `test-motion.mjs`. Clicking it flips its own look and drives nothing —
 it is there so the seat could be judged on a real page at real sizes.
 
-**Spec 035 inherits the seat and owes it behaviour, not placement.**
+**Spec 036 inherits the seat and owes it behaviour, not placement.**
 
 What the dialling settled, and what the spec should not re-derive:
 
