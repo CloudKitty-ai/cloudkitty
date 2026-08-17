@@ -5091,8 +5091,13 @@ check('a hunt whose quarry is gone is over, but a missing field is not', () => {
   // Composed through the face, which is what the viewer sees.
   const P = api.Presentation;
   const pres = new P();
+  // The applied action is part of the shape now (a pursuit on file is not a
+  // pursuit in progress), and every served kitty carries one -- so a fixture
+  // without it tests a cat the server cannot produce. This check is about
+  // the DISTANCE gate, so the action is held at a hunting one throughout.
+  const chasing = { action: 'chase', target: 'element', id: 7 };
   const faceFor = (els, at) => {
-    const k = { id: 1, pos: { x: 5, y: 5 }, pursuit: { target: { target: 'element', id: 7 } } };
+    const k = { id: 1, pos: { x: 5, y: 5 }, pursuit: { target: { target: 'element', id: 7 } }, last_action: chasing };
     const w = world(els);
     return pres.expressionFor(k, pursuitDistanceFor(k, w));
   };
@@ -5103,7 +5108,7 @@ check('a hunt whose quarry is gone is over, but a missing field is not', () => {
   assert(faceFor([{ ...bug, pos: { x: 11, y: 5 } }]) === 'focused', 'a quarry exactly 6 tiles off lost the face');
   assert(faceFor([{ ...bug, pos: { x: 12, y: 5 } }]) === undefined, 'a quarry 7 tiles off kept the face');
   // A malformed target still keeps it -- the defensive half is intact.
-  const odd = { id: 1, pos: { x: 5, y: 5 }, pursuit: { target: { target: 'element' } } };
+  const odd = { id: 1, pos: { x: 5, y: 5 }, pursuit: { target: { target: 'element' } }, last_action: chasing };
   assert(pres.expressionFor(odd, pursuitDistanceFor(odd, world([]))) === 'focused',
     'a missing field now costs a hunting cat its face');
 });

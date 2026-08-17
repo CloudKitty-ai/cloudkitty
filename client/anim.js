@@ -23,6 +23,34 @@
 const FEEDING_KIND = Object.freeze({ eat: 'chow', drink: 'water' });
 
 /**
+ * The applied actions that ARE a pursuit happening right now, as against
+ * a pursuit merely being on file.
+ *
+ * `pursuit` is an intention and outlives the acts that serve it -- its own
+ * documentation says it "survives a cat stopping for a drink on the way".
+ * So it answers "what is this cat after", never "is she after it this
+ * tick", and the hunter's face was reading it as if it answered both.
+ *
+ * Measured on the live world, 945 kitty-ticks (2026-08-16): of the ticks
+ * that drew the hunting face, 27 were `chase` and 19 `move` -- the cat
+ * going after something -- and 6 were `idle`, a cat standing still wearing
+ * a hunter's eyes. Owner saw the same thing while resting and while
+ * grooming; those are rarer than the sample was long, but they are this
+ * list's absence, not a separate fault.
+ *
+ * `play` is here because it is how a hunt ENDS: a cat that reaches its bug
+ * pounces with Play, and leaving it out would take the face away at the
+ * one moment the hunt is most obviously a hunt.
+ *
+ * An allow-list, not a deny-list of the sitting-still actions, because the
+ * owner's ask was that the face trigger "only when in active pursuit" -- so
+ * an action nobody has thought about yet should read as not-hunting. Note
+ * this does NOT touch the rule that an unresolvable QUARRY keeps the face:
+ * different field, different question, still benefit of the doubt.
+ */
+const PURSUING_ACTIONS = Object.freeze(['chase', 'move', 'play']);
+
+/**
  * The element the engine would have picked for a feeding action at `pos`.
  *
  * A port of `adjacent_element_in`, plus the serving filter that
@@ -1685,6 +1713,11 @@ class Presentation {
    * Sustained expression, a pure function of the newest state (FR-010):
    * a cat mid-pursuit wears the hunter's eyes for as long as it hunts.
    *
+   * "As long as it hunts" means while it is hunting, which is not the same
+   * as while it has a hunt on file -- see PURSUING_ACTIONS. Three things
+   * must agree before the face goes on: a pursuit exists, the applied
+   * action is one that pursues, and the quarry is prey and close enough.
+   *
    * Hunting, though -- not roughhousing (owner, 2026-08-10). A cat
    * stalking a bug is doing something predatory and should look it; a cat
    * pouncing on another cat is playing. The pounce is the SAME pose
@@ -1701,6 +1734,11 @@ class Presentation {
    */
   expressionFor(kitty, quarryDist = null, dials = VIEW) {
     if (!kitty.pursuit) return undefined;
+    // ...and the cat has to be DOING it, not merely have it on file. See
+    // PURSUING_ACTIONS: the served pursuit outlives the acts that serve
+    // it, so on its own it puts the hunter's face on a cat that has sat
+    // down to groom (owner, 2026-08-16).
+    if (!PURSUING_ACTIONS.includes(kitty.last_action?.action)) return undefined;
     // Too far to be hunting anything the viewer can see. `null` is not
     // "far": an unresolvable quarry -- caught or expired this very tick --
     // KEEPS the face, the same rule the pounce gate follows, so the gate
