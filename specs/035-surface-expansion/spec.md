@@ -74,10 +74,12 @@ artifact in, behaviorally-identical new-surface artifact out.
   Mean-of-legacy type-row init measured no better (12.9%), so zero
   stands with its provability. Per-artifact residual numbers join
   Experiments' acceptance-record QA; a speaking-neighbor battery leg is
-  conditional on the battery's new-kind emission census (owner sets the
-  trigger). Engine-side versioned tokenization was rejected (first-class
-  artifacts, FR-007). Tool mechanics unchanged: zero init, structural
-  checks as settled.
+  conditional on the battery's new-kind emission census — trigger pinned
+  by the owner at > 5 per 1k decisions in any lineage candidate's G5
+  census (exp-006 D-001 @ 0edad5b; below it, closed-loop measurement
+  belongs to the fog battery). Engine-side versioned tokenization was
+  rejected (first-class artifacts, FR-007). Tool mechanics unchanged:
+  zero init, structural checks as settled.
 
 ## User Scenarios & Testing *(mandatory)*
 
