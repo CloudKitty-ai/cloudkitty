@@ -1,7 +1,7 @@
 # exp-006: the character generation (pre-registration)
 
-**Status: DRAFT for owner review — freezes when phase-1 training
-collection starts** (smoke runs on subset data exempt, exp-004
+**Status: FROZEN 2026-08-18 at collection start** (owner approved
+the draft same day; smoke runs on subset data exempt, exp-004
 precedent). Deviations append-only, D-numbered, after freeze.
 `[AT FREEZE]` marks values pinned when their measurements exist.
 
@@ -40,18 +40,19 @@ triangular-at-the-sheet sampling, off-rail, canonical share 1-in-3,
 independent per-seat draws + corner stratum, random trios with
 record-never-exclude QA (stress cells are data). Collection base =
 served config + the three locked sheets (Miso/Biscuit/Kittybear) +
-demonstrator seat(s); committed as `collect-config.toml` `[AT
-FREEZE]`. Family size N ≡ 0 mod 18 (exact plan shares); N `[AT
-FREEZE]`. Announce threshold T15 at collection (F-023: serving stays
-T30). Collection budget: `[AT FREEZE]` — raised vs v4 per the 3a
-verdict, multiplier proposed with measured collection costs.
+demonstrator seat(s); committed as `collect-config.toml` (ec2d8ee). Family size **N = 18**
+(one exact plan cycle), family seed **20260818**. Announce threshold T15 at collection (F-023: serving stays
+T30). Collection budget: **6 rollouts × 8,000 ticks per variant per cell**
+(108 rollouts/cell ≈ 4.3M decisions at 5 deciders/tick — ~2.2× the
+v4 row count, the 3a raise; measured cost ~40s/rollout, ~75 min per
+cell).
 
 **Price probe (3e)**: cell A pinned (`--traits pinned`), cell B the
 spread design, matched budget; v4-battery clone recipe on each;
 per-class fidelity, play/chase the canary (F-015 conditioning).
-Decision rule `[AT FREEZE]`, proposal: spread may cost ≤ 2pp overall
-masked act@1 and ≤ 4pp on play/chase vs cell A, else canonical share
-rises (first fallback) or the box narrows (second).
+Decision rule (pinned): spread may cost ≤ 2pp overall masked act@1
+and ≤ 4pp on play/chase vs cell A, else canonical share rises (first
+fallback) or the box narrows (second).
 
 QA riders: Here* mask-legal-but-voided rate measured during
 collection (design-inputs §4b), reported with the acceptance record;
@@ -159,8 +160,9 @@ consequence; the current world ends at seating).
     failure.
 - **G3** lineage fingerprint gate (Biscuit candidates only),
   measured by the exp-005 probe ported to this surface, in the
-  demonstration composition, ratios to the production anchor
-  `[AT FREEZE]`, proposals from the measured 0.04 band:
+  demonstration composition, ratios to the production anchor's
+  measured fingerprint (anchor numbers land when the clone exists;
+  the ratios pin now, from the measured 0.04 band):
   play_share ≥ 0.80×, time_near_critters ≥ 0.70×, bug_over_meal ≥
   0.70×, duet_initiation ≥ 0.50× (the lottery metric — gate
   per-candidate, F-019). The near-critters and bug floors exist
@@ -174,8 +176,10 @@ consequence; the current world ends at seating).
 
 ## 8. Bands & instruments
 
-Collection band `[AT FREEZE]` (fresh, above all prior bands);
-fingerprint probe band `[AT FREEZE]` (fresh — 820k belongs to
+Collection bands (fresh, above all prior 6-digit bands): dataset v5
+cell B (spread) seed-base **910001**, cell A (pinned) **940001**,
+anchor demonstrations **970001** (collect-config composition, 100 ×
+8k); fingerprint probe band **985001–985010** (820k belongs to
 exp-005's world); eval/stress bands per battery convention, declared
 in the battery doc before verdicts. Instruments: family-gen v6,
 bc-collect (post-wall build), the exp-006 venv binding, kitty-eval,
