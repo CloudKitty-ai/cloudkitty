@@ -57,7 +57,7 @@ Ours differ enough that theirs cannot be copied across.
 | | kitten.me | CloudKitty |
 | --- | --- | --- |
 | World | 24×24 | 20×20 |
-| Cats | 4 | 5 at the phase-1 seating |
+| Cats | 4 | 3–5 (5 at the phase-1 seating) |
 | Whole-world view | not offered | the default today |
 | Nominal camera width | 12 tiles (8 on phone) | **10 tiles** (owner: 2× zoom) |
 | Zoom-out ceiling | 1.5× nominal = 18 tiles | **1.5× nominal = 15 tiles** |
@@ -229,23 +229,37 @@ it needs review:
 - **The `fine` pop on 1080p ships as-is**, revisited once it can be judged in
   motion.
 
-### Kitty ids are safe to persist, and safer than assumed
+### Persisting the followed id needs no guard beyond "is she here?"
 
-The owner's instinct was right and the mechanism is stronger than she
-described. Ids are not derived from spawn order or array position — they are
-**authored by hand in `cloudkitty.toml`** as an `id` field per `[[kitty]]`,
-and `World::generate` copies `kc.id` straight through. `sort_by_key(|k| k.id)`
-orders the vector afterwards but assigns nothing.
+Ids are not derived from spawn order or array position — they are **authored
+by hand in `cloudkitty.toml`** as an `id` field per `[[kitty]]`, and
+`World::generate` copies `kc.id` straight through. `sort_by_key(|k| k.id)`
+orders the vector afterwards but assigns nothing. The live roster is
+**1-based**: Miso 1, Biscuit 2, Pumpkin 3, Kittybear 4, Clementine 5.
 
-The live roster is **1-based, not 0-based**: Miso 1, Biscuit 2, Pumpkin 3,
-Kittybear 4, Clementine 5.
+Owner's constraint, and it is the one that matters: **the roster only ever
+grows or shrinks at the top end.** Clementine's addition is the only
+substantial change there has been, and it appended. Testing runs 3-, 4- and
+5-cat rosters, which are prefixes of the same list.
 
-So an id survives restarts, reseeds and `--fresh` — everything except an
-owner editing the roster. That is the one case worth guarding, and it is the
-likely one, since roster changes are a recurring task. Persist `{id, name}`
-and restore the follow only if that id still carries that name; drop it
-silently otherwise. The client needs the "followed id is not in the world"
-path anyway, because a cat can leave the roster while the page is open.
+Append-only means an id can never come to mean a *different* cat — it is
+either present or absent. So an earlier draft's `{id, name}` guard is
+unnecessary: restore the id, and if no kitty in the world carries it, drop
+the follow and hold the group. That path has to exist regardless, since a
+cat can leave the roster while the page is open.
+
+**This invariant is already load-bearing in shipped client code**, which is
+the strongest evidence for it. `appearanceFor(kittyId)` is
+`PALETTES[kittyId % PALETTES.length]` (`cat-v2.js:1379`), so a cat's coat is
+keyed to her id and nothing else — Clementine is `cloud` because she is 5. If
+ids could be renumbered, the visible bug would be cats changing colour, not a
+stale camera follow.
+
+One consequence for the camera itself: it has to read well at **3 to 5
+cats**, not only at the phase-1 five. A smaller group fits at nominal more
+often, so the ceiling binds less and the anchor path runs less — the 5-cat
+case is the one that exercises the hysteresis, and the 3-cat case is the one
+that will sit at the zoom floor and reveal whether 10 tiles is right.
 
 ## Open questions for the owner
 
