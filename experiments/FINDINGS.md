@@ -913,6 +913,22 @@ collapse at a fingerprint-preserving dose under fog (H4's return).
 post-rebalance traits, roster-5 world); any recipe change to the
 anneal shape; the fog generation.
 
+*(D-001 extension measured, 2026-08-17 — claim 3 NARROWED and the
+entry's most important nuance found below the frozen doses: H4's
+failure mode is REAL and dose-located. At β∞=0.03, both seeds hold
+decision-level play (play_share .54–.56, duets near-anchor at
+159–167/1k) while time_near_critters collapses to 55–63% of anchor
+and bug_over_meal erodes — the personality RELOCATES to the
+welfare-cheaper venue (kitty play by the pile) rather than fading:
+every decision metric can pass while the visible character changes.
+The trajectory cliff sits in (0.03, 0.04); β∞=0.04 is the measured
+knee (trajectory held .35–.39, decisions anchor-adjacent with the
+curve's tightest seed agreement, +8.2/+8.3 happiness) and is the
+lineage-dose recommendation. Consequence for gates: lineage
+fingerprints carry time_near_critters AND bug_over_meal floors, not
+just decision shares. Full table:
+[dose-response extension](exp-005-leash/results/dose-response-2026-08-16.md).)*
+
 ## F-020 · active · Trait prices are social prices: the cost order inverts between scripted and policy company (the exchange table)
 
 Measured 2026-08-15 (trait-screen stages 1–2 + direct verifications:
