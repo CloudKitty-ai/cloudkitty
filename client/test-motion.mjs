@@ -4814,8 +4814,15 @@ check('the camera control seats beside the dial and scales with it', () => {
   const markup = readFileSync(join(here, 'index.html'), 'utf8');
   const app = readFileSync(join(here, 'app.js'), 'utf8');
 
-  const dial = markup.slice(markup.indexOf('  #sky-dial {'), markup.indexOf('}', markup.indexOf('  #sky-dial {')));
-  const cam = markup.slice(markup.indexOf('  #camera-toggle {'), markup.indexOf('}', markup.indexOf('  #camera-toggle {')));
+  // Comments are stripped before anything is matched. These rules DOCUMENT
+  // the values they must not have -- the vanished-control comment quotes
+  // `padding: 8%` verbatim -- and a text check that reads its own prose
+  // reports the bug it was written to catch, on a file that does not have
+  // it. Every slice below is comment-free.
+  const strip = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
+  const ruleFor = (sel) => strip(markup.slice(markup.indexOf(sel), markup.indexOf('}', markup.indexOf(sel))));
+  const dial = ruleFor('  #sky-dial {');
+  const cam = ruleFor('  #camera-toggle {');
   assert(cam.length, 'the camera control has no rule');
 
   // THE PIN IS THE POINT. Both sit ON the horizon, and the horizon is the
@@ -4845,24 +4852,49 @@ check('the camera control seats beside the dial and scales with it', () => {
   // works while the pressed background is clipped to the CONTENT box --
   // the `background` shorthand resets that to border-box, which would put
   // the circle straight back on the border with nothing else changing.
-  const pad = cam.match(/padding: ([\d.]+)%/);
-  assert(pad, 'the camera control no longer holds its chip off the map border');
-  const pressed = markup.slice(markup.indexOf("  #camera-toggle[aria-pressed='true'] {"),
-    markup.indexOf('}', markup.indexOf("  #camera-toggle[aria-pressed='true'] {")));
-  assert(/content-box/.test(pressed),
-    'the lit chip is clipped to the border box again, so it sits on the map border');
+  const chip = ruleFor('  .camera-chip {');
+  assert(chip.length, 'the camera control has no chip, so its circle sits on the map border');
+  const chipW = chip.match(/width: ([\d.]+)%/);
+  assert(chipW, 'the chip no longer states a width');
+
+  // A PERCENTAGE PADDING ON THE CONTROL IS THE BUG THAT ATE IT. Percentage
+  // padding resolves against the CONTAINING BLOCK's width -- the stage --
+  // and never the element's own. `padding: 8%` was written meaning "8% of
+  // this 38px control" and got 8% of a 732px stage: 58px a side, inside a
+  // 38px border box. Under border-box the content collapsed to zero and
+  // the control vanished on reload (owner, 2026-08-16).
+  //
+  // Asserted by MODELLING the rule rather than banning the property, so a
+  // padding that genuinely fits still passes -- and so this check fails for
+  // the reason the bug actually had.
+  const padPct = cam.match(/padding: ([\d.]+)%/);
+  if (padPct) {
+    const stageW = 732; // desktop stage, where the ratio is worst
+    const eaten = 2 * stageW * (Number(padPct[1]) / 100);
+    const boxW = stageW * (Number(camW[1]) / 100);
+    assert(eaten < boxW,
+      `padding: ${padPct[1]}% is ${eaten.toFixed(0)}px against a ${boxW.toFixed(0)}px control -- it resolves against the STAGE, and the control collapses`);
+  }
+  // The chip is a CHILD for exactly that reason: as a flex item its width
+  // resolves against the control's own content box.
+  assert(/flex: none/.test(chip), 'the chip can shrink, so its size is no longer the one stated');
+
   // Clearance is measured at the small end, where a fraction is worth least.
-  const clear = 310 * (Number(camW[1]) / 100) * (Number(pad[1]) / 100);
+  const clear = 310 * (Number(camW[1]) / 100) * ((100 - Number(chipW[1])) / 200);
   assert(clear >= 1, `the chip clears the map border by ${clear.toFixed(2)}px on a 320px phone`);
 
-  // And the shrink was the CIRCLE's, not the camera's. The svg is a
-  // fraction of the content box, so the padding would quietly take the
-  // icon down with it unless the percentage compensates.
+  // And the shrink was the CIRCLE's, not the camera's: the svg is a
+  // fraction of the CHIP, so a smaller chip takes the icon with it unless
+  // the percentage compensates.
   const svg = markup.match(/#camera-toggle svg \{ width: ([\d.]+)%/);
   assert(svg, 'the camera icon no longer states a width');
-  const ofBox = (Number(svg[1]) / 100) * (1 - 2 * (Number(pad[1]) / 100));
+  const ofBox = (Number(svg[1]) / 100) * (Number(chipW[1]) / 100);
   assert(Math.abs(ofBox - 0.76) < 0.01,
     `the icon is ${(ofBox * 100).toFixed(1)}% of the control, not the 76% it was dialled to`);
+
+  // The lit state has to reach the chip, which is where the circle is now.
+  assert(/#camera-toggle\[aria-pressed='true'\] \.camera-chip \{ background/.test(markup),
+    'the pressed state no longer paints the chip, so the toggle has no visible state');
 
   // The dial has to have actually MOVED, and by the full width of what now
   // sits beside it. Their margins are the same 5%, so the dial's offset is
@@ -4881,8 +4913,7 @@ check('the camera control seats beside the dial and scales with it', () => {
   // Small drawing, large hit area -- the about ring's lesson. Asymmetric on
   // purpose: upward is empty page, downward is the meadow, so the bottom
   // inset is the one that must stay shallow.
-  const after = markup.slice(markup.indexOf('  #camera-toggle::after {'),
-    markup.indexOf('}', markup.indexOf('  #camera-toggle::after {')));
+  const after = ruleFor('  #camera-toggle::after {');
   assert(/position: absolute/.test(after), 'the camera target is in flow and will move the map');
   const inset = after.match(/inset: (-?[\d.]+)px (-?[\d.]+)px (-?[\d.]+)px (-?[\d.]+)px/);
   assert(inset, 'the camera control states no four-sided inset');

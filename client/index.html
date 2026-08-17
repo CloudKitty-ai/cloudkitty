@@ -591,17 +591,15 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    /* The BOX stays on the horizon; the drawn chip is held off it. The
-       control's bottom edge is exactly the map's top edge, so a chip at
-       the full width of the box is tangent to the border and reads as
-       biting into it (owner, 2026-08-16). The padding is what clears it
-       -- 8% is ~3px on a desktop stage and ~1.5px on a phone, which is
-       3 device pixels at 2x. Kept as a fraction so the clearance scales
-       with everything else here rather than vanishing on a big screen.
-
-       Nothing about the LAYOUT moves: the box is still 5.25% and still
-       pinned, so the control still stands level with the dome. */
-    padding: 8%;
+    /* NEVER a percentage padding here. Percentage padding resolves against
+       the CONTAINING BLOCK's width -- the stage, ~732px -- not the
+       element's own. A first attempt at holding the chip off the map
+       border used `padding: 8%` meaning "8% of this 38px control" and got
+       8% of the stage: 58px a side, inside a 38px border box. The content
+       box collapsed to zero and the whole control vanished (owner,
+       2026-08-16, on reload). The chip is a child now, where a percentage
+       resolves against the control -- see .camera-chip. */
+    padding: 0;
     border: none;
     border-radius: 50%;
     background: none;
@@ -610,20 +608,33 @@
     cursor: pointer;
   }
 
-  /* On reads as a lit chip rather than a different drawing: the icon is
-     already the noun, so the state only has to say "active".
+  /* The drawn circle, held off the map border. The control's bottom edge
+     IS the map's top edge, so a circle at the full width of it is tangent
+     to the border and reads as biting in (owner, 2026-08-16).
 
-     `content-box` in the shorthand is what shrinks the circle. Under a
-     50% radius the inner corner reduces by exactly the padding, so the
-     clipped background is still a true circle, just a smaller one. */
-  #camera-toggle[aria-pressed='true'] {
-    background: var(--cream-deep) content-box;
-    color: var(--ink);
+     A CHILD, not padding on the control: as a flex item its `width: 84%`
+     resolves against the control's own content box, which is what the
+     percentage was meant to say all along. The 8% left over on each side
+     is the clearance -- ~3px on a desktop stage, ~1.5px on a phone, which
+     is 3 device pixels at 2x -- and it scales with everything else here
+     rather than being a fixed number that vanishes on a big screen. */
+  .camera-chip {
+    flex: none;
+    width: 84%;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
   }
 
-  /* 90% OF THE CONTENT BOX, not the border box: 0.9 x 0.84 = 75.6%, which
-     is the 76% the icon was drawn at before the padding existed. The
-     circle shrank; the camera did not. */
+  /* On reads as a lit chip rather than a different drawing: the icon is
+     already the noun, so the state only has to say "active". */
+  #camera-toggle[aria-pressed='true'] { color: var(--ink); }
+  #camera-toggle[aria-pressed='true'] .camera-chip { background: var(--cream-deep); }
+
+  /* 90% OF THE CHIP: 0.9 x 0.84 = 75.6%, which is the 76% the icon was
+     drawn at before any of this. The circle shrank; the camera did not. */
   #camera-toggle svg { width: 90%; height: 90%; display: block; }
 
   #camera-toggle:focus-visible {
@@ -1113,13 +1124,15 @@
              control does. The wedge viewfinder is what says "filming". -->
         <button id="camera-toggle" type="button" aria-pressed="false"
                 aria-label="camera mode: follow the kitties" title="camera mode">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"
-               focusable="false">
-            <rect x="1.6" y="6.6" width="14.4" height="10.8" rx="2.6"/>
-            <path d="M16 10.4 L21.8 7.2 V16.8 L16 13.6 Z"/>
-            <circle cx="8.8" cy="12" r="2.9"/>
-          </svg>
+          <span class="camera-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"
+                 focusable="false">
+              <rect x="1.6" y="6.6" width="14.4" height="10.8" rx="2.6"/>
+              <path d="M16 10.4 L21.8 7.2 V16.8 L16 13.6 Z"/>
+              <circle cx="8.8" cy="12" r="2.9"/>
+            </svg>
+          </span>
         </button>
       </div>
     </div>
