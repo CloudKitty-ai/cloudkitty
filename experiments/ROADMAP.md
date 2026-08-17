@@ -113,9 +113,18 @@ meadow — noting the old declutter screen's small welfare cost,
 benefit to the world's character.** Phase-1 world-size screen
 (2026-08-15): 20×20 carries five cats with zero distress; the
 proportional 22×22 bought nothing and taxed travel. BC-bootstrap via the curriculum the
-dose-response taught us. Registered prediction: fog is the selection
-pressure under which FollowMe's designed meaning could finally beat
-"I'm coming."
+dose-response taught us. **Bootstrap doctrine (owner-settled
+2026-08-18, comms brainstorm addendum): lineage BC carries culture
+(collected post-cutover from the expanded minds); a Here*-TEACHER
+scripted behavior (Product spec, this window — law-named words only,
+grounded-predicate emission, courtesy dials per F-023; the free
+register is never scripted) contributes vocabulary rows; delivery is
+registered as arms — mixed-corpus vs the vocabulary lesson
+(head-selective message-head finetune, smoke-tested in phase 1) vs
+no-seeding control — which upgrades the registered comparison to
+seeded-vs-invented-vs-overloaded grounded reference.** Registered
+prediction: fog is the selection pressure under which FollowMe's
+designed meaning could finally beat "I'm coming."
 
 ## Parking lot (trigger conditions, not dates)
 

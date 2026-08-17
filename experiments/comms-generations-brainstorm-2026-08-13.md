@@ -210,3 +210,73 @@ config over the reserves — arms enable 2/3/4 free words, measuring
 semantic differentiation (distinct contexts/flip-signatures) and
 welfare. The fog FollowMe-revival prediction re-registers under MEW.
 Client renders sound-words as-is (owner: 'that's cute').**
+
+## Addendum 2026-08-18: the bootstrap doctrine for new communication
+behaviors (owner design session, settled)
+
+The question: how do NEW words come alive — continue BC from
+previous-gen lineages we like, or found a fresh lineage from an
+enhanced scripted demonstrator? The answer fell out of the two-tier
+vocabulary doctrine itself; the two options serve different halves.
+
+**The facts the strategy respects**: demonstrations seed the channel,
+exploration doesn't — but channel-ALIVENESS transfers and specific
+words can be born later (F-022: exp-003's channel-empty minds stayed
+mute; e004's channel-alive minds invented FollowMe on a free label
+from zero demonstrations). Culture is unreproducible from scripted
+(F-025). Nobody currently speaks Here* or chirp, and the expansion
+design makes the carried minds provably mute in them; pre-fog the
+new words are welfare-inert (F-026), so RL has no adoption gradient
+until fog creates one.
+
+**The doctrine split**:
+- **Law-named words (Here*) are scripted-seedable, cleanly** — the
+  law IS the meaning, so a scripted behavior emitting under the
+  grounded predicate demonstrates the true meaning by construction
+  (the engine enforces honesty at emission). Every word that ever
+  came alive started as a scripted seed (purr, the want-words).
+- **Sound-named words (chirp/trill/ekekek) must NEVER be scripted**
+  — scripting imposes meaning on a word designed for the cats to
+  author (law by the back door). Their bootstrap IS the lineage:
+  RL filling free labels inside channel-alive cultures (the
+  mew/FollowMe precedent).
+
+**The settled strategy (owner-approved 2026-08-18)**:
+1. **Lineage BC for culture** — the house default for personalities
+   and cultures we like: collect from the minds themselves (frozen
+   artifacts replay forever), clone-and-leash per F-019. Fog-gen
+   collection happens POST-cutover from the EXPANDED minds on the
+   new surface (expansion preserves minds exactly — new-surface
+   demonstrations with culture intact, nothing to collect before
+   cutover).
+2. **The enhanced scripted is a TEACHER SEAT, not an ancestor** — a
+   Product-specced behavior (fog-window work) speaking Here* under
+   the grounded predicates, courtesy dials designed per F-023 (the
+   teacher's chattiness is a listener-population choice). It
+   contributes vocabulary rows to the corpus; it founds nothing.
+3. **Delivery mechanisms become fog-prereg ARMS, not arguments**:
+   (i) mixed-corpus BC (teacher rows + lineage rows, one clone;
+   risk: averaging two demonstrators), (ii) **the vocabulary
+   lesson** — clone the lineage wholesale, then a head-selective
+   second BC stage: trunk + activity head FROZEN, message head
+   finetuned on teacher rows only (the ride-along architecture
+   exists to allow exactly this), (iii) the no-seeding control
+   (pure lineage; RL must invent under fog). This upgrades the
+   registered fog comparison to: seeded grounded words vs invented
+   grounded words vs FollowMe-overloading, one information
+   gradient.
+
+**The vocabulary-lesson SMOKE EXPERIMENT (registered intent — runs
+before the fog prereg commits to mechanism ii)**: no teacher
+behavior needed — construct a SYNTHETIC teacher corpus from already-
+collected states by relabeling rows where the grounded predicate
+holds (the mask itself says where here_* is legal), then run the
+head-selective finetune on a phase-1 clone and measure (a) Here*
+acquisition on held-out legal contexts, (b) activity-policy
+invariance (frozen-trunk parity on the action head), (c) whether the
+frozen trunk carries the features the message head needs — the one
+real technical risk. Cheap (one BC-stage run), zero engine work,
+zero Product dependency.
+
+Division of labor: teacher-behavior spec = Product, fog window (no
+action now); corpus construction, lessons, arms, smoke = Experiments.

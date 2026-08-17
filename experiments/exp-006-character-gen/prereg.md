@@ -195,6 +195,17 @@ Every instrument prints its engine commit.
   before fog overturns it).
 - F-016 stays open-not-served (dials unchanged; noted per the
   register review).
+- **Fog-gen bootstrap pointer** (owner-settled 2026-08-18,
+  comms-generations-brainstorm addendum): E-arm minds are
+  scripted-cloned BY DESIGN — they are the estimator research
+  cohort, not culture carriers (culture rides the expansions);
+  fog-gen lineage collection happens post-cutover from the expanded
+  minds. The **vocabulary-lesson smoke** (head-selective message-
+  head finetune on a synthetic Here*-teacher corpus relabeled from
+  mask-legal rows; measures acquisition, activity-invariance, and
+  trunk-feature sufficiency) runs on a phase-1 clone BEFORE the fog
+  prereg commits to the mechanism — cheap, no engine work, no
+  Product dependency.
 
 ## 10. Stop rules & discipline
 
