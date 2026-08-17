@@ -60,7 +60,7 @@ Ours differ enough that theirs cannot be copied across.
 | Cats | 4 | 5 at the phase-1 seating |
 | Whole-world view | not offered | the default today |
 | Nominal camera width | 12 tiles (8 on phone) | **10 tiles** (owner: 2× zoom) |
-| Zoom-out ceiling | 1.5× nominal = 18 tiles | **open** — see below |
+| Zoom-out ceiling | 1.5× nominal = 18 tiles | **1.5× nominal = 15 tiles** |
 
 Our map is `tile × 20` CSS pixels, where `tile = floor(min(widthBudget/20,
 heightBudget/20, 1200/20))`. Live it lands at **31px**, so the map is about
@@ -69,27 +69,29 @@ heightBudget/20, 1200/20))`. Live it lands at **31px**, so the map is about
 At 2× zoom the camera shows 10 tiles across the same 620px, so **the tile
 becomes about 62px**.
 
-### The ceiling is the one number still open
+### The ceiling: 1.5× nominal, and the whole world is the *off* state
 
-The owner set the *zoom* at 2× and asked to revisit once it is live. The
-*zoom-out ceiling* is a separate dial and this note recommends leaving it
-until then too, but the shape matters now because it decides how often the
-anchor path runs:
+Owner's call, 2026-08-16: the ceiling is **1.5× nominal**, kitten.me's own
+ratio — 15 tiles across, tile ~41px on the live map. And **turning camera
+mode off returns the whole-world view**.
 
-- **Ceiling at 1.5× nominal** (kitten.me's ratio) = 15 tiles across, tile
-  ~41px. Below the `fine` threshold — see the hazard below.
-- **Ceiling at the whole world** = 20 tiles, tile 31px, i.e. the camera can
-  always fall back to exactly the view we ship today. Tidy, and it means
-  camera mode never shows the viewer anything less than the current default.
+That second half is what makes the first half safe. This note had argued for
+a whole-world ceiling on a "never worse than today" property; the toggle
+delivers that property better, because the whole-world view becomes something
+the viewer *chooses* rather than something the camera falls into when the
+cats scatter. Camera mode stays a window at all times, the existing render
+path stays the off path, and there is no intermediate scale that exists only
+as a failure mode.
 
-The second is more attractive than it first looks: it makes camera mode a
-*strict improvement* on the existing view, with the whole-world view as its
-own floor. It also means a scattered group degrades to something already
-judged and shipped, rather than to a new intermediate scale nobody has seen.
+It also keeps the frame worth looking at. A ceiling at the whole world would
+mean one wanderer in a corner silently cancels the zoom for everyone; at 1.5×
+the wanderer leaves the frame and the roster accounts for her, which is the
+call kitten.me made and the reason their camera feels deliberate.
 
 Our ceiling will bind **more often than theirs**: a tighter world with more
-cats. So the anchor path is the common case, not the fallback, and its
-hysteresis matters proportionally more.
+cats, and a tighter ratio band (10–15 tiles, not 12–18). So the anchor path
+is the common case, not the fallback, and its hysteresis matters
+proportionally more.
 
 ## The `fine` threshold is already crossed, and that is good news
 
@@ -128,6 +130,30 @@ Two consequences for the plan:
   tile per frame is less of a departure than it sounds, because nothing in
   the renderer has ever been entitled to assume a fixed tile.
 
+### One consequence of a fixed ceiling: `fine` can now toggle mid-session
+
+With the band pinned at 10–15 tiles, `fine` is no longer just on or off per
+display — on some displays the camera crosses it while running. The canvas
+keeps its size; the camera tile is `mapWidth / tilesAcross`, so `fine`
+(`size >= 44`) flips at `mapWidth / 44` tiles across:
+
+| display | map | flips at | across the 10–15 band |
+| --- | ---: | ---: | --- |
+| laptop, 900px tall | 420–520px | 9.5–11.8 tiles | off nearly throughout |
+| 1080p | 600–700px | 13.6–15.9 tiles | **crosses mid-band** |
+| WQHD 1440 | 960–1060px | 21.8–24 tiles | on throughout |
+| 4K | 1200px | 27 tiles | on throughout |
+
+So on a 1080p display the fine detail switches on and off as the group
+gathers and scatters. What actually pops is small — in v2 `fine` gates the
+tabby forehead stripes (two of the eight palettes), the bowl's fish decal,
+and the butterfly antennae. Worth knowing about, not worth pre-solving:
+hysteresis on the threshold is four lines if it reads badly, and it may well
+not read at all at 44px. Judge it in motion.
+
+Note the 1.5× ceiling *narrows* this compared with a whole-world ceiling,
+which would have swept 10–20 tiles and crossed on every display.
+
 What *is* still parked and genuinely unjudged: the ear and eye magnitudes
 (head-follow 0.35px, pupil 0.48px at a 31px tile), the parked gaze sources,
 the `MENISCUS` dials, and the whiskers. Those were deferred to this moment
@@ -158,25 +184,38 @@ it needs review:
   so phones get follow for free — no pinch, no pan, no gesture conflict with
   page scrolling.
 - **A camera-mode toggle** that follows the group organically, in kitten.me's
-  manner. Sits **right of the sky dial** on desktop. Mobile placement is
-  open; the dial is pinned to the map's top edge with an exact `bottom:
-  calc(100% - 16px)` that a previous session already found is load-bearing,
-  so anything placed beside it inherits that constraint.
+  manner. **Off is the whole-world view we ship today** — the same fixed
+  tile, no easing, no anchor. Sits **right of the sky dial** on desktop.
+  Mobile placement is open; the dial is pinned to the map's top edge with an
+  exact `bottom: calc(100% - 16px)` that a previous session already found is
+  load-bearing, so anything placed beside it inherits that constraint.
+- **Clicking a cat while camera mode is off turns it on.** Assumed, not yet
+  confirmed: following without the camera is meaningless, and making the
+  viewer flip two controls to follow a cat would be a small cruelty.
+  Unfollowing leaves camera mode *on*, holding the group; the toggle is the
+  only way back to the whole world.
 - **A followed cat is marked on her card**: an indicator around the card plus
   *following* in italics beside or beneath her name. Which of the two
   positions reads better is a layout judgement, to be tried both ways.
 - No free pan or zoom. Not ruled out forever; simply not this.
 
+## Settled
+
+- **Zoom-out ceiling: 1.5× nominal.** Off returns the whole world.
+- **Sleep needs no special handling.** Owner: sleep is never more than a few
+  ticks, and a bored viewer clicks another cat. So following has exactly one
+  rule — aim at the followed cat — with no idle timeout, no drift-away, and
+  no auto-unfollow. That also means the *anchor* hysteresis is group-mode
+  only; a followed cat is the anchor unconditionally.
+- **Following does not tighten the frame.** Same nominal width, same
+  ceiling; follow moves the anchor and nothing else, so nearby cats stay in
+  shot.
+
 ## Open questions for the owner
 
-1. **The zoom-out ceiling** — 1.5× nominal, or the whole world? This note
-   leans to the whole world, for the "never worse than today" property.
-2. **What does following do when the followed cat sleeps for 200 ticks?**
-   Nothing, presumably — but a camera locked on a curled cat for three
-   minutes is a different experience from one that drifts.
-3. **Does the toggle survive a reload?** The theme toggle persists; this
-   could reasonably go either way.
-4. **Does following imply a tighter frame?** The owner's call is that seeing
-   nearby cats is a benefit even when following, which is why follow only
-   moves the anchor. Worth confirming that also means follow uses the *same*
-   nominal width, with no extra zoom-in on the subject.
+1. **Mobile placement of the camera toggle.** Desktop is settled (right of
+   the sky dial). Phone is not, and the dial's exact pin makes the space
+   beside it the awkward option.
+2. **Does the toggle survive a reload?** The theme toggle persists; this
+   could reasonably go either way. If it does persist, the *followed cat*
+   probably should not — a cat id is not stable across a world reset.
