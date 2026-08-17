@@ -222,3 +222,26 @@ the owner's direct word in the acting session.
 ## Deviations
 
 (append-only after freeze)
+
+**D-001 (2026-08-18, U1 amendment + residual measured).** Spec 035's
+analyze pass proved §5's "ALL new input-side parameters zero =
+deafness" over-claims for the v3 family: the shared digest embedding
+plus recency-gated masking means a spoken new kind is AUDIBLE but
+kind-anonymous (zero type row). Ruling (owner + Experiments, with
+Product): §5's v3 invariant is REDEFINED as muteness +
+kind-identity insensitivity (relabeling equivalence — provable);
+v2's full deafness stands; versioned tokenization rejected
+(first-class artifacts). RESIDUAL MEASURED before any trigger was
+set (`residual_audibility.py`, expanded attn-A1-s1 per the amended
+rule, 10k dataset-v5 rows, realistic tuple injection): new-kind
+audibility flips 13.1% of activity decisions vs 11.2% for the SAME
+tuple as a known legacy kind — 1.17× the mind's natural response to
+any meow, i.e. the anonymous word is heard as roughly "a meow."
+Mean-of-legacy type rows measured as an alternative init: no
+improvement (12.9%) — zero stays. Consequences: the offline
+injection delta joins the acceptance-record QA beside the §4b
+measurement; the closed-loop speaking-neighbor battery leg is
+CONDITIONAL on G5's new-kind emission census (trigger value set by
+the owner with this data in hand); the clone reads 5.4% on the same
+measurement (per-model sensitivity varies — each expanded artifact
+gets its own number in the acceptance record).
