@@ -231,3 +231,20 @@ Queued behind the exp-005 extension arms for cores. Standing lesson,
 same family as the exp-005 binding skew: an anchor's record must
 carry — and a reader must CHECK — the config sha it was measured
 under; a label like "five bodies" is not provenance.
+
+## PHASE-1 SCRIPTED ANCHOR, CORRECTED (2026-08-16, re-baseline step 1
+re-done)
+
+kitty-eval, needs_driven ×5, `configs/phase1-20x20.toml` (config sha
+`3e688673…`, all five sheets), stamp `5d293c67…`, eval band 870001–030
+× 20k: **team welfare 0.9076** (min .9064 / max .9089), zero distress,
+zero floor touches, low_share 0. Per-seat: Pumpkin 91.09 · Kittybear
+90.80 · Miso 90.68 · Biscuit 90.64 · Clementine 90.59. Against the
+two-sheet mislabel (0.9086): the correction is 0.10 happiness points,
+carried almost entirely by Miso (−0.26) and Biscuit (−0.28) picking up
+their characters' scripted cost. **0.9076 is the phase-1 planning
+floor.** Cert-time practice unchanged: the battery re-derives the
+anchor against the actual cutover config (attn-cert precedent — its
+fresh anchor was one run away), so a behaviors/seating diff in the
+final served file cannot silently stale this number either. Raw:
+results-raw/scripted-anchor-phase1.json.

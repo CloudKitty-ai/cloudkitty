@@ -58,6 +58,14 @@ measurement in this directory — screens, probes, preregs.
   seed band is a property of policy × world × band, not of the policy.
   When a shorter or cheaper instrument is used for economy, record what
   it cannot see and gate the decision on the full-length instrument.
+- **Measure social behavior in the deployment composition (F-012).**
+  Solo and homogeneous probes under-count company-dependent behavior;
+  the lesson has since re-confirmed at the dial level (F-023: channel
+  dials are listener-population properties) and the welfare level
+  (F-025: cultured policies' welfare tracks their audience). Any
+  channel-use, welfare, or certification claim names the composition it
+  was measured in, and selection/certification measurements run in the
+  composition that will actually be seated.
 
 ## Build relationship
 

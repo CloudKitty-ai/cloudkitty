@@ -46,7 +46,7 @@ evidence; this register is the evolving knowledge layer on top of them.
 | F-009 | active · **promoted** | Every dimension an instrument holds fixed bounds the failures it can detect |
 | F-010 | active | Roster-OOD fragility: an empty kitty slot can collapse an exp-001 policy |
 | F-011 | superseded → F-018 | Meow restraint is a reward-structure equilibrium, not an engine guarantee |
-| F-012 | active | Channel use is context-dependent; measure in policy company, not solo |
+| F-012 | active · **promoted** | Channel use is context-dependent; measure in policy company, not solo |
 | F-013 | active | The 024 batch rewired the credit landscape; the served world gained a cooperative band |
 | F-014 | active | Post-024 world search: the served world wins as it stands; knob landscape flat |
 | F-015 | active | Pooled probes dilute under heterogeneous class amplitudes; condition by class |
@@ -153,6 +153,12 @@ swings 3.1× between disjoint 150-world bands and dissolves when pooled
 to 300. Small-amplitude class claims require disjoint-band agreement
 before they are claims at all.)*
 
+*(Bar status, 2026-08-16 review: the engine-indexed world-count bar is
+UNMEASURED on the post-wall stamp `5d293c67…` — the 150+/truncated-S
+bar above is a 028-engine number. Re-derive it as part of the phase-1
+class-credit re-baseline (queued, phase1-design-inputs.md §4) before
+any post-wall probe claim leans on it.)*
+
 **Would invalidate**: a demonstration that within-world sample
 correlation is negligible at some horizon (it is not, at k > ~50, on
 current evidence).
@@ -222,6 +228,33 @@ larger budget or a different algorithm (that would narrow this to
 **Re-verify when**: any exp-002 arm changes the training algorithm or
 raises the budget ≥ 5×; then one from-scratch control seed is cheap
 insurance against over-crediting BC.
+
+*(Trigger status, 2026-08-16 review: FIRED in spirit at the attention
+generation — the policy class changed (EntityPolicy, spec 030) with
+recipe and budget held — and the from-scratch control seed has never
+run on the new class: BC-necessity is carried as a recipe default, not
+re-established. Two reasons it likely still holds, neither a
+measurement: the budget is unchanged (the claim is budget-indexed),
+and F-022 adds an independent necessity argument (the channel only
+comes alive through demonstrations — a scratch policy would be mute
+regardless of welfare). The control seed remains cheap (~one PPO run)
+if the phase-1 prereg wants the register claim re-established on the
+current class; owner's call, flagged not queued.)*
+
+*(RE-ESTABLISHED on the attention class, 2026-08-16 — in a STRONGER
+form than the original claim. The scratch control (`--scratch`: random
+init, KL identically 0, recipe otherwise held; exp-005 trainer commit
+89594c4, trip recorded as its D-002) collapsed below the recipe's
+§9.6 welfare stop within 149 of 6,510 updates: probe nash 0.70 at
+init → 0.36 and falling, entropy RISING 1.69 → 1.90 (drifting toward
+noise, not learning). The matched clone-init run at the same beta
+endpoint (exp-005 β∞=0) trains cleanly to nash 0.953. So at this
+recipe and budget, BC init is not merely necessary to beat the
+baseline — it is necessary for the run to survive its own safety
+rule. Channel note: the scratch policy emitted 300–500 meows/1k of
+mask-random babble — volume without meaning, which is F-022's
+distinction, not a counterexample to it. One seed; the collapse
+margin (0.36 vs 0.95) is far past any seed-noise reading.)*
 
 ---
 
@@ -405,6 +438,15 @@ which *is* that control: same seats, scripted neighbors, no meows).
 
 **Re-verify when**: exp-002 candidate screening; any channel-use
 selection measurement.
+
+*(Promoted 2026-08-16 → [README.md § Measurement
+discipline](README.md): measure social behavior in the deployment
+composition. The trigger wording above is era-stale — the discipline
+has re-confirmed at every level since: selection (exp-003/004
+screens), the dial level (F-023), the welfare level (F-025), and the
+exp-005 fingerprint probes measure in the demonstration composition
+by prereg rule. The standing form binds all future measurement; this
+entry stays as provenance.)*
 
 ## F-013 · active · The 024 batch rewired the credit landscape: the served world gained a cooperative band, the frozen gym lost its edge (supersedes F-003/F-005/F-006 quantities)
 
@@ -870,6 +912,22 @@ collapse at a fingerprint-preserving dose under fog (H4's return).
 **Re-verify when**: phase-1 lineage arms (production anchors,
 post-rebalance traits, roster-5 world); any recipe change to the
 anneal shape; the fog generation.
+
+*(D-001 extension measured, 2026-08-17 — claim 3 NARROWED and the
+entry's most important nuance found below the frozen doses: H4's
+failure mode is REAL and dose-located. At β∞=0.03, both seeds hold
+decision-level play (play_share .54–.56, duets near-anchor at
+159–167/1k) while time_near_critters collapses to 55–63% of anchor
+and bug_over_meal erodes — the personality RELOCATES to the
+welfare-cheaper venue (kitty play by the pile) rather than fading:
+every decision metric can pass while the visible character changes.
+The trajectory cliff sits in (0.03, 0.04); β∞=0.04 is the measured
+knee (trajectory held .35–.39, decisions anchor-adjacent with the
+curve's tightest seed agreement, +8.2/+8.3 happiness) and is the
+lineage-dose recommendation. Consequence for gates: lineage
+fingerprints carry time_near_critters AND bug_over_meal floors, not
+just decision shares. Full table:
+[dose-response extension](exp-005-leash/results/dose-response-2026-08-16.md).)*
 
 ## F-020 · active · Trait prices are social prices: the cost order inverts between scripted and policy company (the exchange table)
 

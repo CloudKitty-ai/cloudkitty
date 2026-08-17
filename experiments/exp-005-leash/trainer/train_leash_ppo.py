@@ -106,6 +106,11 @@ def schedules(update, total_updates, args):
     kl_beta = args.kl_beta_final + (
         (args.kl_beta - args.kl_beta_final)
         * max(0.0, 1.0 - progress / 0.2))
+    # F-007 re-verification: a scratch run has no reference to leash to —
+    # beta is identically 0 (never annealed; the anchor is a frozen copy
+    # of the RANDOM init and must carry no gradient pressure).
+    if getattr(args, "scratch", False):
+        kl_beta = 0.0
     return progress, lr, ent, kl_beta
 
 
@@ -330,13 +335,22 @@ def main():
                     # (repo root cloudkitty.toml is post-wall now and the
                     # frozen binding refuses it, by design)
     ap.add_argument("--out-dir", type=Path, default=None)
+    ap.add_argument("--scratch", action="store_true",
+                    help="F-007 re-verification control: random policy "
+                         "init (clone read for architecture only), KL "
+                         "identically 0. Pass --kl-beta-final 0.")
     ap.add_argument("--horizon", type=int, default=None,
                     help="smoke only; real runs keep the config's 2000")
     args = ap.parse_args()
 
     mix, family_sub = ARMS[args.arm]
     btag = f"{args.kl_beta_final}".replace("0.", "0p").replace(".", "p")
-    arm = f"leash-{args.arm}-b{btag}-s{args.seed}"
+    if args.scratch:
+        assert args.kl_beta_final == 0.0, \
+            "--scratch means no leash: pass --kl-beta-final 0"
+        arm = f"scratch-{args.arm}-s{args.seed}"
+    else:
+        arm = f"leash-{args.arm}-b{btag}-s{args.seed}"
     out = args.out_dir or EXP005 / f"artifacts/{arm}"
     out.mkdir(parents=True, exist_ok=True)
     t_start = time.time()
@@ -346,8 +360,15 @@ def main():
 
     ck = torch.load(args.clone, map_location="cpu", weights_only=True)
     policy = EntityPolicy(**ck["hyper"])
-    policy.load_state_dict(ck["state_dict"])
-    anchor_sha = sha256(args.clone)
+    if args.scratch:
+        # Architecture from the clone checkpoint, weights random (the
+        # torch.manual_seed above makes the init reproducible). The
+        # anchor becomes a frozen copy of this random net; schedules()
+        # holds beta at 0 so it never binds.
+        anchor_sha = None
+    else:
+        policy.load_state_dict(ck["state_dict"])
+        anchor_sha = sha256(args.clone)
     anchor = EntityPolicy(**ck["hyper"])
     anchor.load_state_dict(policy.state_dict())
     anchor.eval()
@@ -406,7 +427,9 @@ def main():
     (out / "run-manifest.json").write_text(json.dumps({
         "arm": arm, "mix": mix, "gamma": args.gamma, "seed": args.seed,
         "segment": segment, "seed_base": seed_base, "git_head": git_head,
-        "init": "attn-clone-2026-08-12", "init_sha256": anchor_sha,
+        "init": ("scratch (random, hyper from attn-clone)" if args.scratch
+                 else "attn-clone-2026-08-12"),
+        "init_sha256": anchor_sha,
         "critic": str(critic_path), "critic_sha256": sha256(critic_path),
         "family_dir": str(family_dir),
         "family_manifest_sha256": sha256(

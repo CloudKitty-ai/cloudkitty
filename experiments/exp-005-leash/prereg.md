@@ -93,3 +93,18 @@ top of the (0, 0.05) interval — if character holds there, the
 collapse boundary remains unlocated (acceptable: the objective is
 choosing an operating dose, not mapping the cliff). Queued behind
 wave 2 on the same machine.
+
+**D-002 (2026-08-16, instrument use outside the design + §9.6 trip).**
+The exp-005 trainer gained a `--scratch` mode (random init, KL
+identically 0, recipe otherwise held) and ran ONE seed as the F-007
+re-verification control on the owner's word. NOT an exp-005 arm: no
+exp-005 hypothesis reads it, and it enters no dose-response table.
+Recorded here because the trainer is this experiment's registered
+instrument and the run tripped the recipe's §9.6 stop rule, which
+demands an entry: welfare < 0.5 on three consecutive probes at update
+149/6510 (nash 0.70 at init → 0.36, entropy rising 1.69 → 1.90),
+checkpointed and stopped. Disposition: the trip IS the result —
+finding recorded under F-007 in FINDINGS.md; no rerun, no stop-rule
+override, checkpoint retained at artifacts/scratch-A1-s1/ (local). No
+fingerprint probe (there is no final artifact; the collapse is the
+evidence).

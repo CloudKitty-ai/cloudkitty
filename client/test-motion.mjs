@@ -2617,6 +2617,9 @@ check('the hunter is hunting, not merely holding a grudge', () => {
   // Live sample, 945 kitty-ticks: of the ticks drawing the face, 27 were
   // `chase`, 19 `move` -- and 6 were `idle`, a cat standing perfectly still
   // in a hunter's face. The owner's groom and rest are the same absence.
+  //
+  // The fix shipped in #237 with only a fixture repair beside it; this is
+  // its coverage, split out at the owner's request.
   const p = new api.Presentation();
   const hunting = (action) => ({
     pos: { x: 5, y: 5 },

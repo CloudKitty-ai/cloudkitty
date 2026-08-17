@@ -187,6 +187,23 @@ change.
   new layout (oracle expanded from the certified attention clone;
   3.3e-6 over 144 rows, exact argmax).
 
+## v2.8 — 2026-08-17 — the attention era seats a cross-generation roster
+
+`[stamp]` (spec 031) — deliberately **not** `[world-fresh]`: the cutover
+continued the served world's history.
+
+The generation-4 release. Its meaning in one line: **the minds became
+entity-attention transformers — identity by content, never by slot —
+and the world they joined kept three generations of memory, because the
+new serving machinery can run old and new artifact formats side by
+side.** Candidate B (the cross-generation roster below) was certified
+under the two-layer gates, seated on the owner's word at tick 790,166,
+and held its 48-hour G6 soak clean: one in-band distress event in
+216,000+ ticks, zero alerts on the distribution-calibrated watch, the
+verdict crossed at tick 1,006,166. The tail of this entry is the
+client's own era: the animation rig, the depth layer, the meadow
+drifts, and the long war with the sub-pixel.
+
 - The cross-generation roster seated: three seats hand over to the
   attention generation — Miso to `attn-a1-s1` "the cuddler", Pumpkin and
   Kittybear to `attn-a1-s3` "the doter" — the first spec-030 v3
