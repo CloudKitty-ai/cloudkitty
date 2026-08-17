@@ -91,22 +91,47 @@ Our ceiling will bind **more often than theirs**: a tighter world with more
 cats. So the anchor path is the common case, not the fallback, and its
 hysteresis matters proportionally more.
 
-## The hazard nobody has looked at yet
+## The `fine` threshold is already crossed, and that is good news
 
-**At a 62px tile the cats cross the `fine` threshold** (`cat-v2.js`: `const
-fine = size >= 44`). That gate has never once been true in production — the
-whole-world tile has always been below it. Crossing it switches on the tabby
-forehead stripes and the bowl's fish decal, which are effectively **dead code
-that has never been seen live**.
+A first draft of this note claimed the 62px tile would cross `fine`
+(`cat-v2.js`: `const fine = size >= 44`) for the first time, and called it a
+hazard: unjudged art switching itself on. **The owner fact-checked it and it
+was wrong twice over.**
 
-That is mostly upside: it is detail already paid for. But it is unjudged at
-this scale, and it arrives automatically rather than by choice. Camera mode
-should treat "what `fine` turns on" as art to be reviewed, not as a free win.
+**The card portraits have always been above it.** `PORTRAIT_CAT` is 47 and is
+passed straight to `drawCat` as `size`. Four portraits, every frame, in
+production. The comment beside `PORTRAIT_W` says as much: the portrait is
+"the one place the fine detail (the tabby stripes, the new eye colour and its
+limbal ring) has the pixels to read".
 
-The same applies to everything parked behind camera mode: the ear and eye
-magnitudes (head-follow 0.35px and pupil 0.48px at the current tile), the
-parked gaze sources, the `MENISCUS` dials, and the whiskers. All of them were
-deferred *to* this moment and all of them want judging at 62px.
+**And the meadow crosses it on large displays.** The tile is
+`floor(min(widthBudget/20, heightBudget/20, 60))`, so it varies by viewport:
+
+| display | tile | `fine` |
+| --- | ---: | --- |
+| laptop, 900px tall | 21–26px | off |
+| 1080p | 30–35px | off |
+| WQHD 1440 | 48–53px | **on** |
+| 4K | 60px (capped by `MAP_MAX_PX`) | **on** |
+
+So the fine detail is not dead code and camera mode is not a frontier. At
+62px it brings the meadow to a scale the portraits have been at all along,
+and one the meadow itself already reaches on a WQHD monitor. That art has
+been looked at, on this project, at this size.
+
+Two consequences for the plan:
+
+- **Camera mode owes no art review for what `fine` reveals.** That work is
+  done. It should still be *looked at* in motion, but as confirmation.
+- **The tile already varies by a factor of nearly three across viewports**
+  (21px to 60px), which is worth holding on to: a camera that recomputes the
+  tile per frame is less of a departure than it sounds, because nothing in
+  the renderer has ever been entitled to assume a fixed tile.
+
+What *is* still parked and genuinely unjudged: the ear and eye magnitudes
+(head-follow 0.35px, pupil 0.48px at a 31px tile), the parked gaze sources,
+the `MENISCUS` dials, and the whiskers. Those were deferred to this moment
+and want judging at the camera's scale.
 
 ## What the camera changes underneath
 
