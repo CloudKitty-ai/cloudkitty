@@ -245,3 +245,11 @@ CONDITIONAL on G5's new-kind emission census (trigger value set by
 the owner with this data in hand); the clone reads 5.4% on the same
 measurement (per-model sensitivity varies — each expanded artifact
 gets its own number in the acceptance record).
+
+**D-001 trigger pinned (owner, 2026-08-18):** the conditional
+speaking-neighbor battery leg fires at new-kind emission
+**> 5/1k decisions** in any lineage candidate's G5 census — an order
+of magnitude above the FollowMe invention precedent (0.53/1k), the
+level where a word is part of a candidate's voice rather than an
+occasional experiment. Below it, closed-loop measurement belongs to
+the fog battery.
