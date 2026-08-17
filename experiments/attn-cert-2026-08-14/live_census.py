@@ -70,6 +70,7 @@ def main():
     names = {k["id"]: k["name"] for k in polls[0]["kitties"]}
     budget = defaultdict(Counter)
     groom = Counter()
+    play = defaultdict(Counter)
     for e in events.values():
         act = e["activity"]
         state = act.get("state", "?")
@@ -79,6 +80,18 @@ def main():
             # id-present => element kind; bare int/None => kitty id
             if isinstance(tgt, int):
                 groom[(e["kitty_id"], tgt)] += 1
+        elif state == "playing":
+            # Reader rule (specs/001 contracts): `id` present => `target`
+            # is the element KIND; bare target => kitty id; neither =>
+            # solo. Added 2026-08-18 (owner ask): the bug-play baseline
+            # for the post-seating Biscuit-2.0 comparison.
+            tgt = act.get("target")
+            if act.get("id") is not None:
+                play[e["kitty_id"]][str(tgt)] += 1
+            elif tgt is not None:
+                play[e["kitty_id"]]["kitty"] += 1
+            else:
+                play[e["kitty_id"]]["solo"] += 1
 
     cosleep = Counter()
     near = defaultdict(list)
@@ -105,6 +118,7 @@ def main():
         "tick_range": [polls[0]["tick"], polls[-1]["tick"]],
         "unique_activity_events": len(events),
         "activity_budget": {names[k]: dict(c) for k, c in budget.items()},
+        "play_targets": {names[k]: dict(c) for k, c in play.items()},
         "grooming_graph": {f"{names[a]}->{names[b]}": n
                            for (a, b), n in groom.items()},
         "cosleep_pair_polls": {f"{names[a]}+{names[b]}": n
@@ -127,7 +141,7 @@ def main():
 
     print(f"census: ticks {out['tick_range'][0]}-{out['tick_range'][1]}, "
           f"{len(polls)} polls, {len(events)} unique activity events")
-    for section in ("activity_budget", "grooming_graph",
+    for section in ("activity_budget", "play_targets", "grooming_graph",
                     "cosleep_pair_polls", "mean_nearest",
                     "share_within_2", "happiness"):
         print(f"{section}: {json.dumps(out[section])}")
