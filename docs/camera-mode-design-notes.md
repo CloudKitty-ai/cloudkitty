@@ -147,9 +147,21 @@ keeps its size; the camera tile is `mapWidth / tilesAcross`, so `fine`
 So on a 1080p display the fine detail switches on and off as the group
 gathers and scatters. What actually pops is small — in v2 `fine` gates the
 tabby forehead stripes (two of the eight palettes), the bowl's fish decal,
-and the butterfly antennae. Worth knowing about, not worth pre-solving:
-hysteresis on the threshold is four lines if it reads badly, and it may well
-not read at all at 44px. Judge it in motion.
+and the butterfly antennae.
+
+**Owner's call: ship with it.** Accepted for now, to be revisited once the
+camera is live and the pop can be judged in motion rather than predicted.
+
+Her proposed long-term fix is to drop the threshold and draw the detail at
+every size. Worth recording what that runs into, so the investigation starts
+in the right place: the threshold is not a performance guard, it is a
+legibility one. `cat-v2.js:1723` calls the stripes "sub-pixel noise when
+small", and v1's mistake was the *opposite* error — a 44px cliff on the eyes
+and mouth, so "no live-world cat ever wore its own face". Drawn unconditionally,
+a 21px tabby gets a grey smear on the forehead rather than stripes. The fix
+that actually removes the pop is therefore to make detail *ramp* with size —
+alpha or stroke width as a function of `size` — rather than to switch it,
+which costs more than deleting a comparison but leaves nothing to pop.
 
 Note the 1.5× ceiling *narrows* this compared with a whole-world ceiling,
 which would have swept 10–20 tiles and crossed on every display.
@@ -210,12 +222,33 @@ it needs review:
 - **Following does not tighten the frame.** Same nominal width, same
   ceiling; follow moves the anchor and nothing else, so nearby cats stay in
   shot.
+- **Both the mode and the followed cat persist across a reload**, on or off.
+  Follow `THEME_KEY` / `CARDS_KEY` (`app.js:73`, `app.js:394`): a
+  `cloudkitty-`-prefixed `localStorage` key, read once at startup, written on
+  change.
+- **The `fine` pop on 1080p ships as-is**, revisited once it can be judged in
+  motion.
+
+### Kitty ids are safe to persist, and safer than assumed
+
+The owner's instinct was right and the mechanism is stronger than she
+described. Ids are not derived from spawn order or array position — they are
+**authored by hand in `cloudkitty.toml`** as an `id` field per `[[kitty]]`,
+and `World::generate` copies `kc.id` straight through. `sort_by_key(|k| k.id)`
+orders the vector afterwards but assigns nothing.
+
+The live roster is **1-based, not 0-based**: Miso 1, Biscuit 2, Pumpkin 3,
+Kittybear 4, Clementine 5.
+
+So an id survives restarts, reseeds and `--fresh` — everything except an
+owner editing the roster. That is the one case worth guarding, and it is the
+likely one, since roster changes are a recurring task. Persist `{id, name}`
+and restore the follow only if that id still carries that name; drop it
+silently otherwise. The client needs the "followed id is not in the world"
+path anyway, because a cat can leave the roster while the page is open.
 
 ## Open questions for the owner
 
 1. **Mobile placement of the camera toggle.** Desktop is settled (right of
    the sky dial). Phone is not, and the dial's exact pin makes the space
    beside it the awkward option.
-2. **Does the toggle survive a reload?** The theme toggle persists; this
-   could reasonably go either way. If it does persist, the *followed cat*
-   probably should not — a cat id is not stable across a world reset.
