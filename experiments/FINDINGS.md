@@ -241,12 +241,20 @@ regardless of welfare). The control seed remains cheap (~one PPO run)
 if the phase-1 prereg wants the register claim re-established on the
 current class; owner's call, flagged not queued.)*
 
-*(Control RUNNING on the owner's word, 2026-08-16: `--scratch` mode
-added to the exp-005 trainer (random init, KL identically 0, recipe
-otherwise held — commit 89594c4), one seed, ~9h alongside the D-001
-extension arms. Comparison targets: exp-005's β∞=0 control
-(clone-init, same beta schedule endpoint — trainer-probe nash 0.953)
-and the needs_driven baseline. Outcome lands here when it does.)*
+*(RE-ESTABLISHED on the attention class, 2026-08-16 — in a STRONGER
+form than the original claim. The scratch control (`--scratch`: random
+init, KL identically 0, recipe otherwise held; exp-005 trainer commit
+89594c4, trip recorded as its D-002) collapsed below the recipe's
+§9.6 welfare stop within 149 of 6,510 updates: probe nash 0.70 at
+init → 0.36 and falling, entropy RISING 1.69 → 1.90 (drifting toward
+noise, not learning). The matched clone-init run at the same beta
+endpoint (exp-005 β∞=0) trains cleanly to nash 0.953. So at this
+recipe and budget, BC init is not merely necessary to beat the
+baseline — it is necessary for the run to survive its own safety
+rule. Channel note: the scratch policy emitted 300–500 meows/1k of
+mask-random babble — volume without meaning, which is F-022's
+distinction, not a counterexample to it. One seed; the collapse
+margin (0.36 vs 0.95) is far past any seed-noise reading.)*
 
 ---
 
