@@ -197,10 +197,9 @@ it needs review:
   page scrolling.
 - **A camera-mode toggle** that follows the group organically, in kitten.me's
   manner. **Off is the whole-world view we ship today** — the same fixed
-  tile, no easing, no anchor. Sits **right of the sky dial** on desktop.
-  Mobile placement is open; the dial is pinned to the map's top edge with an
-  exact `bottom: calc(100% - 16px)` that a previous session already found is
-  load-bearing, so anything placed beside it inherits that constraint.
+  tile, no easing, no anchor. **Its seat is already built** — see below —
+  and one rule serves the phone and the desktop, so mobile placement is no
+  longer an open question.
 - **Clicking a cat while camera mode is off turns it on.** Assumed, not yet
   confirmed: following without the camera is meaningless, and making the
   viewer flip two controls to follow a cat would be a small cruelty.
@@ -261,8 +260,43 @@ often, so the ceiling binds less and the anchor path runs less — the 5-cat
 case is the one that exercises the hysteresis, and the 3-cat case is the one
 that will sit at the zoom floor and reveal whether 10 tiles is right.
 
+## The control already exists, inert
+
+Built and dialled with the owner on 2026-08-16, on this branch: `#camera-toggle`
+in `index.html`, `initCameraControl` in `app.js`, geometry pinned by
+`test-motion.mjs`. Clicking it flips its own look and drives nothing —
+it is there so the seat could be judged on a real page at real sizes.
+
+**Spec 035 inherits the seat and owes it behaviour, not placement.**
+
+What the dialling settled, and what the spec should not re-derive:
+
+- The dial slid to `right: 8.4%`, the control sits at `1.5%`, gap `1.65%`.
+  Those three are one sum, so moving any of them moves the dial.
+- Both the dial and the control are **fractions of the stage**, and both pin
+  to `calc(100% - var(--stage-pad))`. That is what makes one rule serve
+  phone and desktop: the pair scales together and the layouts never
+  diverge. A pixel width on either makes them drift apart on resize.
+- The control's box is `5.25%` because that is the dial's own height (the
+  dial is `10.5%` wide at the canvas's 2:1 ratio), so the square and the
+  dome stand level at every size.
+
+Three traps, each of which cost a round:
+
+- **Percentage padding resolves against the CONTAINING BLOCK's width** — the
+  stage, ~732px — never the element's own. `padding: 8%` on a 38px control
+  came out 58px a side and collapsed it to nothing; the control vanished.
+  The drawn circle is a child (`.camera-chip`) for exactly this reason.
+- **The hit area is bounded on all four sides, and every bound is a
+  different bug.** Rightward past the control's own margin hangs off the
+  stage and scrolls a phone sideways. Leftward past the gap steals taps
+  from the dial, which is `pointer-events: none` and so cannot refuse
+  them. Downward is the meadow. Only upward is free, which is where the
+  height comes from.
+- **A text-matching test can match its own documentation.** The rule
+  comments quote the bad values verbatim; slices are stripped of comments
+  before matching.
+
 ## Open questions for the owner
 
-1. **Mobile placement of the camera toggle.** Desktop is settled (right of
-   the sky dial). Phone is not, and the dial's exact pin makes the space
-   beside it the awkward option.
+None blocking. The four that were open are settled above.
