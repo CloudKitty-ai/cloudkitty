@@ -55,6 +55,30 @@ artifact in, behaviorally-identical new-surface artifact out.
   seat inheritance**: the exp-004 mind's successor seats at Clementine (a
   different seat), and Biscuit's new lineage mind supersedes nothing.
 
+### Session 2026-08-17 (analyze finding U1 — ruled with measurement)
+
+- Q: Is full input-side deafness achievable for the v3 family? → A: **No,
+  and the invariant is amended per family** (owner + Experiments ruling,
+  exp-006 D-001 @ 89cf3aa). The v3 msg embed is one shared projection
+  across all digest tokens (per-kind identity is only the type row), and
+  a digest token unmasks the moment its kind is spoken — so weight-only
+  expansion cannot silence a spoken new kind's token, only strip its
+  identity. Ruling: **v2 keeps full deafness** (per-kind input columns
+  zeroed: decisions identical, presence vs absence); **v3's deaf
+  invariant is kind-identity insensitivity** (zero type rows: logits
+  identical under any relabeling of new kinds — the mind hears "someone
+  meowed at (dx,dy)," never which word). The residual anonymous
+  audibility is MEASURED, not assumed: injections flip 13.1% of activity
+  decisions vs 11.2% for the same tuple as a known legacy kind — 1.17×
+  the mind's natural response to any meow ("heard as roughly 'a meow'").
+  Mean-of-legacy type-row init measured no better (12.9%), so zero
+  stands with its provability. Per-artifact residual numbers join
+  Experiments' acceptance-record QA; a speaking-neighbor battery leg is
+  conditional on the battery's new-kind emission census (owner sets the
+  trigger). Engine-side versioned tokenization was rejected (first-class
+  artifacts, FR-007). Tool mechanics unchanged: zero init, structural
+  checks as settled.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A certified mind crosses the generation wall unchanged (Priority: P1)
@@ -104,8 +128,9 @@ arbitrary untrained parameters.
 
 **Independent Test**: Seat an expanded fixture mind in a test world with the
 full vocabulary enabled and a neighbor emitting new kinds; observe zero
-new-kind emissions from the expanded mind, and identical decisions with the
-new-kind observation inputs present versus absent.
+new-kind emissions from the expanded mind, and the per-family deaf property
+(v2: identical decisions with new-kind inputs present versus absent; v3:
+identical logits under any relabeling of the new kinds).
 
 **Acceptance Scenarios**:
 
@@ -114,9 +139,11 @@ new-kind observation inputs present versus absent.
    any post-wall kind (mute invariant: new head outputs pinned below a
    stated negative floor).
 2. **Given** an expanded mind whose neighbor emits post-wall kinds,
-   **When** its decisions are compared against the same world state with
-   those signals zeroed, **Then** the decisions are identical (deaf
-   invariant: all new input-side parameters exactly zero).
+   **When** its decisions are compared per the family's deaf property
+   (U1 ruling: v2 presence-vs-absence identity; v3 relabeling identity —
+   the mind hears "a meow," never which word), **Then** the property
+   holds exactly (all new input-side parameters exactly zero; the v3
+   residual is Experiments' registered measurement, not this test's).
 
 ---
 
@@ -185,11 +212,17 @@ does it display.
   that kind — pinned below a stated negative floor, never zero-initialized.
   Rationale, binding: chirp and the Here* kinds are mask-legal, so the mask
   cannot be the silencer for words the mind never learned.
-- **FR-005** (deaf invariant): every new input-side parameter (post-wall
-  message-kind type rows and new digest-slot parameters) MUST be exactly
-  zero, so new-kind observation tokens contribute nothing to the forward.
-  Both invariants are part of the FR-003 attestation ("provably zero,
-  provably floored").
+- **FR-005** (deaf invariant, per family — U1 ruling): every new
+  input-side parameter MUST be exactly zero. For the **v2 MLP** (per-kind
+  input columns) this yields full deafness: decisions identical with
+  new-kind inputs present versus absent. For the **v3 entity-attention**
+  family (shared msg embed; per-kind identity is the type row) zero type
+  rows yield **kind-identity insensitivity**: logits identical under any
+  relabeling of new kinds — a spoken new kind is heard as "a meow at
+  (dx,dy)," never as a word. The residual anonymous audibility is
+  registered per-artifact in Experiments' acceptance-record QA (exp-006
+  D-001). Both invariants are part of the FR-003 attestation ("provably
+  zero, provably floored").
 - **FR-006**: Behavioral parity on the old dimensions is certification's
   leg, not the tool's: Experiments' independent harness reimplements both
   layouts and measures parity (exp-006 prereg §5, house tolerance bar);
@@ -243,10 +276,12 @@ does it display.
   a kitty in a running test world.
 - **SC-002**: Re-running any expansion reproduces the identical artifact
   (same sha256), across runs and machines.
-- **SC-003**: An expanded fixture mind, seated with the full vocabulary
-  enabled and a new-kind-speaking neighbor, emits zero post-wall-kind
-  messages over an extended run, and its decision stream is identical with
-  the new-kind inputs present versus zeroed.
+- **SC-003** (per family — U1 ruling): an expanded fixture mind, seated
+  with the full vocabulary enabled and a new-kind-speaking neighbor,
+  emits zero post-wall-kind messages over an extended run (both
+  families); a **v2** mind's decision stream is bit-identical with
+  new-kind inputs present versus zeroed; a **v3** mind's logits are
+  identical under any relabeling of the new kinds in its digest.
 - **SC-004**: The structural attestation for each expanded artifact is
   machine-checkable and reproducible: bijective placement, all new input
   parameters exactly zero, all new head outputs at or below the stated

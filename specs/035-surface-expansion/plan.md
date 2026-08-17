@@ -101,10 +101,8 @@ crates/cloudkitty-rl/tests/
 └── expansion.rs                       # NEW — determinism, bijection, refusals,
                                        #   fixture round-trip through the SERVING loader
 
-crates/cloudkitty-server/tests/
-└── server_integration.rs              # + SC-003: expanded fixture mind seated,
-                                       #   full vocabulary, speaking neighbor —
-                                       #   mute + deaf A/B assertions
+# (SC-003's deaf/mute tests live in crates/cloudkitty-rl/tests/expansion.rs —
+#  behavior-level, no server boot needed; analyze finding I1 aligned this)
 
 policies/README.md                     # Naming section: the `-o4` convention (FR-008)
 CHANGELOG.md                           # one-liner, ## Unreleased, no markers
