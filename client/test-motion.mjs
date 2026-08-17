@@ -2606,6 +2606,68 @@ check("the hunter's face reaches the cats that hunt", () => {
 });
 
 
+check('the hunter is hunting, not merely holding a grudge', () => {
+  // Owner, 2026-08-16: hunter eyes on a cat RESTING beside another cat, and
+  // again while GROOMING with a bug nearby. Both are the same fault, and it
+  // is not the distance gate that let them through -- the bug really was
+  // close. `pursuit` is an intention that outlives the acts serving it (its
+  // own doc: it "survives a cat stopping for a drink"), so asking only
+  // whether one exists asks what the cat WANTS, never what she is doing.
+  //
+  // Live sample, 945 kitty-ticks: of the ticks drawing the face, 27 were
+  // `chase`, 19 `move` -- and 6 were `idle`, a cat standing perfectly still
+  // in a hunter's face. The owner's groom and rest are the same absence.
+  //
+  // The fix shipped in #237 with only a fixture repair beside it; this is
+  // its coverage, split out at the owner's request.
+  const p = new api.Presentation();
+  const hunting = (action) => ({
+    pos: { x: 5, y: 5 },
+    pursuit: { target: { target: 'element', id: 9 }, started: 1, closest: 3, improved_at: 2 },
+    last_action: { action, target: 'element', id: 9 },
+  });
+
+  // Going after it -- both shapes seen live, plus the pounce that ends a
+  // hunt. Losing the face at the pounce would take it away at the one
+  // moment the hunt is most plainly a hunt.
+  for (const action of ['chase', 'move', 'play']) {
+    assert(p.expressionFor(hunting(action), 2) === 'focused',
+      `a cat mid-hunt applying '${action}' lost the hunting face`);
+  }
+
+  // Sitting still with it on file. Every one of these is a cat the viewer
+  // sees doing something else entirely.
+  for (const action of ['groom', 'rest', 'sleep', 'eat', 'drink', 'purr', 'meow', 'idle']) {
+    assert(p.expressionFor(hunting(action), 2) === undefined,
+      `THE BUG: a cat applying '${action}' wore the hunting face`);
+  }
+
+  // The owner's two reports, built as served: the quarry is genuinely near,
+  // so nothing else in the chain can be what withholds the face.
+  const resting = hunting('rest');
+  resting.activity = { state: 'resting' };
+  assert(p.expressionFor(resting, 1) === undefined,
+    'a cat resting next to a friend, bug one tile away, still hunted');
+  const grooming = hunting('groom');
+  grooming.activity = { state: 'grooming' };
+  assert(p.expressionFor(grooming, 0) === undefined,
+    'a cat grooming on top of a bug still hunted');
+
+  // An action nobody has thought of yet reads as not-hunting: the owner
+  // asked for the face "only when in active pursuit", so the list is an
+  // allow-list and a new stationary action cannot inherit the face.
+  assert(p.expressionFor(hunting('sunbathe'), 2) === undefined,
+    'an unknown action inherited the hunting face');
+  assert(p.expressionFor({ pursuit: { target: { target: 'element', id: 9 } } }, 2) === undefined,
+    'a kitty with no applied action at all wore the hunting face');
+
+  // And this must not have eaten the OTHER benefit of the doubt, which is
+  // about a different field: an unresolvable QUARRY still keeps the face,
+  // so long as the cat is actually pursuing.
+  assert(p.expressionFor({ ...hunting('chase'), pursuit: { target: null } }, null) === 'focused',
+    'a quarry caught this very tick lost the face while the cat was still chasing');
+});
+
 check('the portrait sit gets up through a stretch', () => {
   // The chain, and the reason sit can be scheduled at all: sit-then-stretch
   // is a BOUNDED BEAT, where the map's sit is a posture that runs 26-130s
