@@ -4780,6 +4780,31 @@ check('the camera control seats beside the dial and scales with it', () => {
     `the camera control is ${camW[1]}% against a dial ${Number(dialW[1]) / 2}% tall -- they no longer stand level`);
   assert(/aspect-ratio: 1/.test(cam), 'the camera control is no longer square');
 
+  // THE DRAWN CHIP IS NOT THE BOX. The box's bottom edge IS the map's top
+  // edge, so a chip drawn at the full width of it is tangent to the border
+  // and reads as biting into it. The padding is the clearance, and it only
+  // works while the pressed background is clipped to the CONTENT box --
+  // the `background` shorthand resets that to border-box, which would put
+  // the circle straight back on the border with nothing else changing.
+  const pad = cam.match(/padding: ([\d.]+)%/);
+  assert(pad, 'the camera control no longer holds its chip off the map border');
+  const pressed = markup.slice(markup.indexOf("  #camera-toggle[aria-pressed='true'] {"),
+    markup.indexOf('}', markup.indexOf("  #camera-toggle[aria-pressed='true'] {")));
+  assert(/content-box/.test(pressed),
+    'the lit chip is clipped to the border box again, so it sits on the map border');
+  // Clearance is measured at the small end, where a fraction is worth least.
+  const clear = 310 * (Number(camW[1]) / 100) * (Number(pad[1]) / 100);
+  assert(clear >= 1, `the chip clears the map border by ${clear.toFixed(2)}px on a 320px phone`);
+
+  // And the shrink was the CIRCLE's, not the camera's. The svg is a
+  // fraction of the content box, so the padding would quietly take the
+  // icon down with it unless the percentage compensates.
+  const svg = markup.match(/#camera-toggle svg \{ width: ([\d.]+)%/);
+  assert(svg, 'the camera icon no longer states a width');
+  const ofBox = (Number(svg[1]) / 100) * (1 - 2 * (Number(pad[1]) / 100));
+  assert(Math.abs(ofBox - 0.76) < 0.01,
+    `the icon is ${(ofBox * 100).toFixed(1)}% of the control, not the 76% it was dialled to`);
+
   // The dial has to have actually MOVED, and by the full width of what now
   // sits beside it. Their margins are the same 5%, so the dial's offset is
   // that margin plus the control plus the gap; if the dial were left where

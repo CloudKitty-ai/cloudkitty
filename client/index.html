@@ -591,7 +591,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0;
+    /* The BOX stays on the horizon; the drawn chip is held off it. The
+       control's bottom edge is exactly the map's top edge, so a chip at
+       the full width of the box is tangent to the border and reads as
+       biting into it (owner, 2026-08-16). The padding is what clears it
+       -- 8% is ~3px on a desktop stage and ~1.5px on a phone, which is
+       3 device pixels at 2x. Kept as a fraction so the clearance scales
+       with everything else here rather than vanishing on a big screen.
+
+       Nothing about the LAYOUT moves: the box is still 5.25% and still
+       pinned, so the control still stands level with the dome. */
+    padding: 8%;
     border: none;
     border-radius: 50%;
     background: none;
@@ -601,13 +611,20 @@
   }
 
   /* On reads as a lit chip rather than a different drawing: the icon is
-     already the noun, so the state only has to say "active". */
+     already the noun, so the state only has to say "active".
+
+     `content-box` in the shorthand is what shrinks the circle. Under a
+     50% radius the inner corner reduces by exactly the padding, so the
+     clipped background is still a true circle, just a smaller one. */
   #camera-toggle[aria-pressed='true'] {
-    background: var(--cream-deep);
+    background: var(--cream-deep) content-box;
     color: var(--ink);
   }
 
-  #camera-toggle svg { width: 76%; height: 76%; display: block; }
+  /* 90% OF THE CONTENT BOX, not the border box: 0.9 x 0.84 = 75.6%, which
+     is the 76% the icon was drawn at before the padding existed. The
+     circle shrank; the camera did not. */
+  #camera-toggle svg { width: 90%; height: 90%; display: block; }
 
   #camera-toggle:focus-visible {
     outline: 2px solid var(--ink-soft);
