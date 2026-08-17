@@ -241,6 +241,13 @@ regardless of welfare). The control seed remains cheap (~one PPO run)
 if the phase-1 prereg wants the register claim re-established on the
 current class; owner's call, flagged not queued.)*
 
+*(Control RUNNING on the owner's word, 2026-08-16: `--scratch` mode
+added to the exp-005 trainer (random init, KL identically 0, recipe
+otherwise held — commit 89594c4), one seed, ~9h alongside the D-001
+extension arms. Comparison targets: exp-005's β∞=0 control
+(clone-init, same beta schedule endpoint — trainer-probe nash 0.953)
+and the needs_driven baseline. Outcome lands here when it does.)*
+
 ---
 
 ## F-008 · superseded by F-010 (2026-07-30) · A long-horizon all-policy instability mode exists that short probes cannot detect; scripted teammates arrest it
