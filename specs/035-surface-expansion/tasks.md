@@ -64,9 +64,17 @@ already in force; scenario 2 executes at the seating PR per FR-011.
 - [X] T011 [P] CHANGELOG.md one-liner under `## Unreleased` (no markers — FR-012): the expansion tool, spec 035
 - [X] T012 Full validation: `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace` green with zero pre-existing assertions modified (SC-005); quickstart §2–3 eyes-on (expand attn-a1-s1, verify attestation + repeated-run sha); quickstart §6 — expand all three, record the three output sha256s in the completion report for the Experiments handoff
 
-## Deviations
+## Deviations (recorded at implement time)
 
-*(record at implement time if any)*
+- **T001/T002 merged into one entry**: the container format is shared, so a
+  single `split_container_for_expansion` in policy.rs serves both families
+  (per-family parsing lives in expand.rs); the serving-refusal assertions
+  cover both committed families as specced. Smaller surface than two
+  parallel entries.
+- **T008(a) argmax clause strengthened**: instead of "argmax is never a new
+  kind," the tests assert every new-kind logit is the CONSTANT floor,
+  bit-exact — a strictly stronger property the zero-weight construction
+  makes available.
 
 ## Dependencies & execution order
 

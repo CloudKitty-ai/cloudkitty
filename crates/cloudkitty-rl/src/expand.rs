@@ -474,6 +474,9 @@ fn expand_v3_bytes(
         let src = &floats[cursor..cursor + old_n];
         cursor += old_n;
         if idx == type_emb_idx {
+            // Mapping verified against the proven oracle recipe
+            // (experiments/attn-oracle-2026-08-15/model_v4.py +
+            // make_oracle_v4.py::expanded_checkpoint) per plan D3.
             // [15][d] -> [22][d]: entity rows 0..5 and legacy message-kind
             // rows 6..13 keep their rows; the clock moves 14 -> 21; the
             // seven new-kind rows are exactly zero (the U1-ruled deaf
