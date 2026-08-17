@@ -87,16 +87,47 @@ Loudest measurable roster (~500 meows/1k world-wide, ~3× live).
 Evidence: `experiments/attn-meow-econ-2026-08-14/` (results.md,
 valence-results.md) + `experiments/attn-ppo-2026-08-13/results.md`.
 
-## The deployed world — (reserved, owner's standing ask 2026-08-14)
+## The deployed world — candidate B, first live census (2026-08-17)
 
-When a mixed roster seats, this register gains a **world-level
-entry** alongside the per-mind ones: the interaction fabric as it
-actually runs on the box — who piles with whom and how often, the
-directed grooming graph, cross-dialect answer rates, each seat's
-welfare in the live company, and how the fabric drifts (or doesn't)
-over the soak. Measured from live-world census runs at the deployed
-seats plus the soak record, not extrapolated from lab compositions —
-the lab numbers above are its priors, the live entry is its truth.
+Measured on the box, ticks 1,023,004–1,024,817 (25 polls x 60s,
+2,508 unique activity events; instrument
+`experiments/attn-cert-2026-08-14/live_census.py`, raw
+`results-raw/live-census-1023004.json`), immediately after the G6
+soak verdict. Seats: Miso=attn-a1-s1 (the cuddler) ·
+Biscuit=e004-a1-s2 (the founding purr culture) · Pumpkin &
+Kittybear=attn-a1-s3 (the doters, kin pair). Lab entries above are
+the priors; this is the live truth.
+
+- **The doter kin pair is real on the box.** Pumpkin<->Kittybear is
+  the strongest and most reciprocal grooming edge (36 + 41 events) —
+  the valence lab's 2.2x kin preference, confirmed in production.
+- **The cuddler is groomed, and is the pile.** Miso gave 3 grooming
+  events and received 73 — the one-way service edge the s1 culture
+  predicted — and sits in 8 of the 10 cosleep pair-observations
+  (Miso+Biscuit 4, Miso+Pumpkin 2, Miso+Kittybear 2): the sleepy
+  cuddler is the pile's nucleus.
+- **Everyone else grooms everyone.** Biscuit 83 given / Kittybear 94
+  / Pumpkin 85 — the responder culture generalized across dialects;
+  no isolated seat.
+- **Proximity fabric**: Pumpkin lives closest to the others (mean
+  nearest 2.08 tiles, 84% of polls within 2) — the eat-0.8 seat's
+  bowl-anchored orbit; Kittybear reads most peripheral (3.24, 64%) —
+  the lab's s3 peripheral drift expressed by ONE of the two doters,
+  the one without the trait pressure. Same mind, different body,
+  different orbit: the bodies layer visibly steering a shared
+  culture.
+- **Welfare, live vs certified priors** (eval-band means in parens):
+  Miso 95.44 (95.49) · Biscuit 95.20 (94.98) · Pumpkin 94.32 (93.95)
+  · Kittybear 95.35 (95.03) — every seat at or above its prior,
+  ordering preserved, Pumpkin lowest as certified. Soak context: one
+  in-band distress event in 216k+ ticks (the soak record's verdict).
+- **Voice**: not in this census (the REST surface carries no meow
+  stream). The meow-economy lab numbers stand as priors — a ws-tap
+  census is the noted extension if the live voice question opens.
+- Method note: activity budgets in the raw JSON are event COUNTS
+  (short activities over-represented vs tick-shares); the graph and
+  pile readings above are count-safe.
+
 Refresh on any seating change.
 
 ---
