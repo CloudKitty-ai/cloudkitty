@@ -5889,6 +5889,42 @@ check('the followed card is marked, and only hers', () => {
     'the follow mark uses border, which reflows the card');
 });
 
+check('the pond layers are bounded tighter than the ground, being four of them', () => {
+  // buildPondLayers allocates four canvases where the ground allocates
+  // one. Bounding each canvas's side while the count quadrupled guards
+  // the wrong quantity, and mobile Safari caps TOTAL canvas memory and
+  // returns a blank canvas rather than failing.
+  const world = camWorld();
+  const cam = new api.Camera();
+  cam.on = true;
+  // Backed by the real prototype: pondBakeTileFor calls its sibling, and
+  // a bare object stub cannot reach it.
+  const r = Object.assign(Object.create(WorldRenderer.prototype), {
+    cssWidth: 1200, dpr: 2, camera: cam,
+  });
+  const ground = r.bakeTileFor(world);
+  const pond = r.pondBakeTileFor(world);
+  assert(pond <= ground, `pond bakes larger than the ground: ${pond} > ${ground}`);
+  const side = pond * Math.max(world.width, world.height) * r.dpr;
+  assert(side <= 2048, `each pond layer would be ${Math.round(side)} device px a side`);
+  // Four of them must not cost more than one ground bake.
+  const groundSide = ground * Math.max(world.width, world.height) * r.dpr;
+  assert(4 * side * side <= 4 * groundSide * groundSide,
+    'four pond layers outweigh the ground bake they were bounded against');
+});
+
+check('the pond layers blit only what is on screen', () => {
+  // They are baked at WORLD size, which under a camera is several times
+  // the canvas. blitGround was given a source rect for this; these were
+  // left without one.
+  const meadowSrc = readFileSync(join(here, 'meadow.js'), 'utf8');
+  const from = meadowSrc.indexOf('function drawPonds(');
+  const fn = meadowSrc.slice(from, meadowSrc.indexOf('\n}\n', from));
+  assert(/window = null/.test(fn), 'drawPonds takes no visible window');
+  assert(/drawImage\(layer, sx \* layers\.dpr/.test(fn), 'the layer blit has no source rect');
+  assert(!/drawImage\(layers\.(lip|shore), 0, 0,/.test(fn), 'a layer still blits the whole world');
+});
+
 check('aim settles faster than width, so the zoom lags the pan', () => {
   assert(api.VIEW.camera.panRate > api.VIEW.camera.zoomRate,
     'the zoom is not slower than the pan');

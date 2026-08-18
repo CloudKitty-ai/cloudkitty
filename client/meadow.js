@@ -2181,13 +2181,33 @@ function drawCaustics(ctx, pond, tile, now) {
   ctx.restore();
 }
 
-function drawPonds(ctx, { ponds, tile, layers = null, now = 0, motion = true }) {
+function drawPonds(ctx, { ponds, tile, layers = null, now = 0, motion = true, window = null }) {
   const t = meadowTunables();
   ctx.save();
+  // `window` is the visible rectangle in this layer's own pixel space,
+  // or null for "all of it" (spec 036). The layers are baked at world
+  // size, which under a camera is several times the canvas -- blitting
+  // the whole thing every frame means scaling an image of which most
+  // pixels fall outside the frame. `blitGround` was given a source rect
+  // for exactly this reason; these had been left without one.
+  const blit = (layer) => {
+    const w = layer.width / layers.dpr;
+    const h = layer.height / layers.dpr;
+    if (!window) {
+      ctx.drawImage(layer, 0, 0, w, h);
+      return;
+    }
+    const sx = Math.max(0, Math.min(window.x, w));
+    const sy = Math.max(0, Math.min(window.y, h));
+    const sw = Math.min(window.w, w - sx);
+    const sh = Math.min(window.h, h - sy);
+    if (sw <= 0 || sh <= 0) return;
+    ctx.drawImage(layer, sx * layers.dpr, sy * layers.dpr, sw * layers.dpr, sh * layers.dpr, sx, sy, sw, sh);
+  };
   // The damp ring first: it lives outside the water, on the grass.
   if (layers) {
     ctx.globalAlpha = t.pondLipAlpha;
-    ctx.drawImage(layers.lip, 0, 0, layers.lip.width / layers.dpr, layers.lip.height / layers.dpr);
+    blit(layers.lip);
     ctx.globalAlpha = 1;
   }
   for (const pond of ponds) {
@@ -2197,7 +2217,7 @@ function drawPonds(ctx, { ponds, tile, layers = null, now = 0, motion = true }) 
     ctx.fill(pond.path);
   }
   if (layers) {
-    ctx.drawImage(layers.shore, 0, 0, layers.shore.width / layers.dpr, layers.shore.height / layers.dpr);
+    blit(layers.shore);
   } else {
     // Fallback: the one flat shallow band, as before.
     for (const pond of ponds) {

@@ -20,6 +20,14 @@ const MAP_MAX_PX = 1200;
 // it the ground magnifies slightly, which is the graceful failure; an
 // empty meadow is not.
 const GROUND_BAKE_MAX_PX = 4096;
+// The pond layers get a tighter bound than the ground, because
+// `buildPondLayers` allocates FOUR canvases where the ground allocates
+// one -- two that persist and two scratch. Bounding each canvas's side
+// while the feature multiplied the canvas COUNT is guarding the wrong
+// quantity, and mobile Safari caps total canvas memory and hands back a
+// blank canvas rather than an error. Halving the side quarters the area,
+// which is what brings four layers back to roughly one ground bake.
+const POND_BAKE_MAX_PX = 2048;
 
 /** Slack for the margins between header, map and footer, which are not
  * worth measuring individually. Too small and the page gains a scrollbar;
@@ -850,6 +858,20 @@ class WorldRenderer {
    * With the camera off this returns the whole-world tile, so the bake is
    * pixel-for-pixel the one that shipped before this feature.
    */
+  /**
+   * The pond layers' bake tile: the ground's, held under a tighter bound.
+   * Past the bound the shorelines are drawn at a coarser tile and scaled
+   * up, which a blurred band and a damp lip carry far better than the
+   * ground's grass and flowers would.
+   */
+  pondBakeTileFor(world) {
+    const bakeTile = this.bakeTileFor(world);
+    const dpr = this.dpr || window.devicePixelRatio || 1;
+    const widest = Math.max(world.width, world.height);
+    const maxSide = POND_BAKE_MAX_PX / dpr;
+    return Math.max(1, bakeTile * widest > maxSide ? maxSide / widest : bakeTile);
+  }
+
   bakeTileFor(world) {
     // Camera off: the whole-world tile, unclamped, which is byte-for-byte
     // the bake that shipped before this feature -- an offscreen the size
@@ -910,12 +932,21 @@ class WorldRenderer {
     const top = cam ? cam.top : 0;
     const across = cam ? cam.across : world.width;
     const down = across * (this.cssHeight / this.cssWidth);
+    // The source rect is clamped to the cache it reads from. The bake's
+    // dimensions are rounded and this rect is not, so on a fractional dpr
+    // the source could run a fraction of a pixel past the image -- and
+    // drawImage clips source and destination TOGETHER, which paints the
+    // ground a hair narrow and leaves an unpainted strip down the right
+    // edge. The old 5-argument blit had no source rect and could not
+    // disagree with itself this way.
+    const sx = Math.min(left * bakeTile * dpr, bakeW);
+    const sy = Math.min(top * bakeTile * dpr, bakeH);
     this.ctx.drawImage(
       this.groundCache,
-      left * bakeTile * dpr,
-      top * bakeTile * dpr,
-      across * bakeTile * dpr,
-      down * bakeTile * dpr,
+      sx,
+      sy,
+      Math.min(across * bakeTile * dpr, bakeW - sx),
+      Math.min(down * bakeTile * dpr, bakeH - sy),
       left * this.tile,
       top * this.tile,
       across * this.tile,
@@ -959,7 +990,7 @@ class WorldRenderer {
     // one cause: a cache keyed on a subset of what it bakes is only ever
     // safe because something else invalidates it.
     const dpr = this.dpr || window.devicePixelRatio || 1;
-    const bakeTile = this.bakeTileFor(world);
+    const bakeTile = this.pondBakeTileFor(world);
     const water = stable.map((p) => `${p.x},${p.y}`).sort().join(';');
     const signature = `${this.paletteKey}|${bakeTile}|${water}`;
     if (!this.pondCache || this.pondCache.signature !== signature) {
@@ -990,10 +1021,21 @@ class WorldRenderer {
       this.ctx.save();
       this.ctx.scale(scale, scale);
     }
+    const cam = this.camera;
     drawPonds(this.ctx, {
       ponds: this.pondCache.ponds,
       tile: bakeTile,
       layers: this.pondCache.layers,
+      // Only the visible slice of the world-sized layers. In bake-tile
+      // pixels, because that is the space this call draws in.
+      window: cam
+        ? {
+            x: cam.left * bakeTile,
+            y: cam.top * bakeTile,
+            w: cam.across * bakeTile,
+            h: cam.across * (this.cssHeight / this.cssWidth) * bakeTile,
+          }
+        : null,
       // Same clock and same flag the per-tile shimmer used, since the
       // caustics replace it: reduced motion still stills the water.
       now: view?.ambient?.now ?? 0,
