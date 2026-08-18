@@ -430,10 +430,10 @@ function waterlineFor(submersion, surface) {
 const MENISCUS = {
   fill: 0.16, // displaced water under the line (was 0.3, closed)
   line: 0.42, // the bright surface itself (was 0.85, closed)
-  ring: 0.1, // the ring spreading off it (was 0.22, closed)
+  ring: 0.2, // the ring spreading off it (was 0.22 closed, then 0.1)
   rx: 0.38, // radius as a share of the tile
-  ry: 0.052,
-  breathe: 0.012, // how much rx pulses
+  ry: 0.062,
+  breathe: 0.015, // how much rx pulses
 };
 
 class WorldRenderer {
@@ -1607,7 +1607,17 @@ class WorldRenderer {
     if (submerged) ctx.restore();
     // Drawn after the clip is released, so the surface sits ON the cat
     // rather than being cut away with its legs.
-    if (submerged) this.drawWaterline(cx, y, cut, submersion, view);
+    if (submerged) {
+      // Centred on her BODY, not her box. She is not symmetric about her
+      // own box -- the body sits behind the head at BODY_CX and mirrors
+      // with the facing -- so a box-centred waterline lands about 6% of a
+      // tile toward the head. At a camera tile that is 6px, which the
+      // owner saw as "a few pixels too far to the right" on a
+      // right-facing cat. `drawCat` mirrors on 'left' alone, and this
+      // follows it rather than restating the rule.
+      const bodyCx = drawnFacing === 'left' ? 1 - BODY_CX : BODY_CX;
+      this.drawWaterline(x + this.tile * bodyCx, y, cut, submersion, view);
+    }
     // The beat, the Zs and the cuddle heart all live ABOVE the water and
     // are drawn after the clip is released -- a thought bubble does not
     // get cut off because the cat it belongs to is standing in a pond.
