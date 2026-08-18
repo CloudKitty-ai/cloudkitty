@@ -157,7 +157,7 @@ const EXPORTS =
   ' MEADOW_DAWN, bushesFor, drawBushAt, drawGroundCover, MEADOW_SALTS, MEADOW_DEFAULTS, tileHash, drawMeadowGround, drawGridOverlay, groupWaterTiles,' +
   ' buildPondPath, drawPonds, pondInradius, drawSunbeamGlow, drawWornPaths, VIEW, Presentation,' +
   ' driftField, spriteOrder, SPRITE_RANK, coverSortKey, catSortKey, coverStands,' +
-  ' WorldRenderer, PURR, drawPurrGlyph })';
+  ' WorldRenderer, PURR, drawPurrGlyph, Camera })';
 const api = eval(src + EXPORTS);
 
 let passed = 0;
@@ -2279,6 +2279,166 @@ check('applyTheme publishes the palette key the pond layers key on', () => {
     /const signature = `\$\{this\.paletteKey\}\|/.test(render),
     'the pond signature no longer carries the palette key',
   );
+});
+
+/* ---- spec 036: what camera movement must NOT cost (SC-003, SC-012) ---- */
+
+const camRenderer = () => {
+  const r = new api.WorldRenderer(mockCanvas(620, 620));
+  r.cssWidth = 620;
+  r.cssHeight = 620;
+  r.dpr = 1;
+  r.camera = new api.Camera();
+  return r;
+};
+const camWorldFor = (kitties = 5) => ({
+  width: 20,
+  height: 20,
+  tick: 0,
+  kitties: Array.from({ length: kitties }, (_, i) => ({ id: i + 1, pos: { x: 4 + i * 3, y: 10 } })),
+  elements: [
+    { kind: 'water', id: 90, pos: { x: 6, y: 6 } },
+    { kind: 'water', id: 91, pos: { x: 7, y: 6 } },
+    { kind: 'water', id: 92, pos: { x: 6, y: 7 } },
+  ],
+});
+/** Sweep the camera across its whole band and back, panning as it goes. */
+const sweep = (r, world, each) => {
+  const D = api.VIEW.camera;
+  for (let i = 0; i <= 120; i += 1) {
+    const t = i / 120;
+    r.camera.across = D.nominalAcross + (D.nominalAcross * D.ceilingFactor - D.nominalAcross) * Math.sin(t * Math.PI);
+    r.camera.left = (20 - r.camera.across) * t;
+    r.camera.top = (20 - r.camera.across) * (1 - t);
+    r.tile = r.cssWidth / r.camera.across;
+    each();
+  }
+};
+
+check('camera movement never rebakes the ground', () => {
+  // The quickstart says to instrument this BEFORE trusting a frame-rate
+  // reading, because a bake count is diagnostic where fps is only a
+  // symptom -- and render.js has already shipped a guard that mismatched
+  // every frame and rebaked the whole ground at 60fps.
+  const r = camRenderer();
+  r.camera.on = true;
+  const world = camWorldFor();
+  let bakes = 0;
+  let last = null;
+  sweep(r, world, () => {
+    r.blitGround(world);
+    if (r.groundCache !== last) {
+      bakes += 1;
+      last = r.groundCache;
+    }
+  });
+  assert(bakes === 1, `the ground rebaked ${bakes} times across a zoom sweep`);
+});
+
+check('camera movement never rebuilds the pond layers', () => {
+  // Same claim for the water, which costs more: buildPondLayers blurs
+  // four canvases where the ground bakes one.
+  const r = camRenderer();
+  r.camera.on = true;
+  const world = camWorldFor();
+  const view = { elementAlphaFor: () => 1, ambient: { now: 0 } };
+  let builds = 0;
+  let last = null;
+  sweep(r, world, () => {
+    r.drawPondLayer(world, view);
+    if (r.pondCache !== last) {
+      builds += 1;
+      last = r.pondCache;
+    }
+  });
+  assert(builds === 1, `the pond layers rebuilt ${builds} times across a zoom sweep`);
+});
+
+check('the ground the camera bakes is the WORLD, at every zoom', () => {
+  // FR-024 / SC-012: decoration density is a property of the world, so
+  // drawMeadowGround must keep receiving world dimensions no matter how
+  // little of the world is on screen. Handing it the visible window
+  // instead would thin the flowers out as the camera closed in.
+  const seen = [];
+  const realCreate = globalThis.document.createElement;
+  globalThis.document.createElement = (tag) => {
+    const el = realCreate(tag);
+    if (tag === 'canvas') el.getContext = () => new Proxy({}, {
+      get: (_t, k) => (k === 'createLinearGradient'
+        ? () => ({ addColorStop() {} })
+        : () => {}),
+      set: () => true,
+    });
+    return el;
+  };
+  try {
+    const r = camRenderer();
+    r.camera.on = true;
+    const world = camWorldFor();
+    const realGround = globalThis.drawMeadowGround;
+    void realGround;
+    sweep(r, world, () => {
+      r.groundCache = null; // force the bake so its arguments can be read
+      r.blitGround(world);
+      seen.push({ w: r.groundCache.width, h: r.groundCache.height, tile: Number(r.groundCache.dataset.bakeTile) });
+    });
+  } finally {
+    globalThis.document.createElement = realCreate;
+  }
+  // Every bake covers the whole world: width = world.width * bakeTile.
+  for (const s of seen) {
+    assert(Math.abs(s.w - 20 * s.tile) < 1, `a bake covered ${s.w / s.tile} tiles, not 20`);
+    assert(Math.abs(s.h - 20 * s.tile) < 1, `a bake covered ${s.h / s.tile} tiles vertically`);
+  }
+  // And the bake tile itself never moved, which is why nothing rebaked.
+  const tiles = new Set(seen.map((s) => s.tile));
+  assert(tiles.size === 1, `the bake tile took ${tiles.size} values across a zoom sweep`);
+});
+
+check('a thought bubble stays with its kitty when the camera has panned', () => {
+  // Reported by the owner as "detached want bubbles appearing over empty
+  // squares". The bubble clamped itself inside `canvas.clientWidth` --
+  // the canvas BOX, in untranslated coordinates -- while its x came from
+  // tileOrigin, which is world space that the camera now pans. Before a
+  // camera existed the two were the same number, so the clamp read as
+  // correct for years.
+  const arcs = [];
+  const ctx = new Proxy({}, {
+    get: (_t, k) => {
+      if (k === 'canvas') return { clientWidth: 620, clientHeight: 620 };
+      if (k === 'measureText') return () => ({ width: 20 });
+      if (k === 'arc') return (x, y) => { arcs.push({ x, y }); };
+      if (k === 'createLinearGradient' || k === 'createRadialGradient')
+        return () => ({ addColorStop() {} });
+      return () => {};
+    },
+    set: () => true,
+  });
+  const r = new api.WorldRenderer({ getContext: () => ctx, clientWidth: 620, clientHeight: 620 });
+  r.cssWidth = 620;
+  r.cssHeight = 620;
+  r.dpr = 1;
+  r.camera = new api.Camera();
+  r.camera.on = true;
+  r.camera.across = 10;
+  r.camera.left = 10; // panned to the world's right half
+  r.camera.top = 0;
+  r.tile = 62; // 620 / 10 across
+
+  // A kitty at world x=15: comfortably inside the frame [10, 20).
+  const kitty = { id: 1, pos: { x: 15, y: 4 }, needs: {} };
+  const view = { posFor: (k) => k.pos };
+  r.drawThought(kitty, 'eat', view);
+
+  assert(arcs.length > 0, 'the bubble drew nothing');
+  const bubble = arcs[0];
+  const her = 15 * 62;
+  // Inside the visible frame, in world pixels...
+  assert(bubble.x >= 10 * 62 && bubble.x <= 20 * 62,
+    `the bubble landed at ${bubble.x}, outside the visible frame ${10 * 62}..${20 * 62}`);
+  // ...and beside HER, not dragged to the canvas box's edge at 620.
+  assert(Math.abs(bubble.x - her) < 2 * 62,
+    `the bubble sat ${Math.abs(bubble.x - her).toFixed(0)}px from its kitty at ${her}`);
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

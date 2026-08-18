@@ -385,6 +385,209 @@ function initTheme() {
 }
 
 /**
+ * The camera control (spec 036 US1). Clicking turns camera mode on and
+ * off; the camera itself does the rest.
+ *
+ * The toggle governs SCALE ALONE. It never releases a followed kitty --
+ * toggle off and on again and the camera comes back to the same cat
+ * (FR-027). Following is US2; until then there is nothing to release.
+ *
+ * `anim.redraw()` rather than waiting for the next animation frame,
+ * because reduced motion never runs the loop at all: without this the
+ * control would appear dead to exactly the viewers who most need it to
+ * respond immediately.
+ */
+/**
+ * Which kitty is under a click, if any (spec 036 US2).
+ *
+ * Two things make this less obvious than a rectangle test.
+ *
+ * Kitties are depth-sorted sprites and overlap freely, so a click inside
+ * two of them belongs to the one the viewer can SEE -- the one drawn
+ * last, which is the one further down the meadow.
+ *
+ * And a kitty is one tile, which at the zoom ceiling on a phone is about
+ * 23px of moving target. The radius has a floor in CSS pixels so she stays
+ * catchable at every scale; `hitRadiusFloorPx` is that floor.
+ */
+function kittyAtPoint(point, world, view) {
+  const tile = renderer.tile || 1;
+  const radius = Math.max(0.5, anim.camera.dials.hitRadiusFloorPx / tile);
+  let best = null;
+  for (const kitty of world.kitties) {
+    // The DRAWN position, not the served one: a kitty glides between
+    // tiles over a tick, and at camera scale a tile is 60-odd pixels, so
+    // clicking where she is drawn and testing where she was served misses
+    // her by most of her own body.
+    const pos = view && view.posFor ? view.posFor(kitty) : kitty.pos;
+    const dx = point.x - (pos.x + 0.5);
+    const dy = point.y - (pos.y + 0.5);
+    if (Math.abs(dx) > radius || Math.abs(dy) > radius) continue;
+    // Later in depth order wins, which is what "the one on top" means.
+    if (!best || pos.y > best.y) best = { id: kitty.id, y: pos.y };
+  }
+  return best ? best.id : null;
+}
+
+/**
+ * Click to follow, click again to let go (spec 036 US2).
+ *
+ * The whole lifecycle lives here because it is one table, and splitting
+ * it across handlers is how a table grows a hole:
+ *
+ *   - a kitty, while the camera is off  -> camera on, follow her (FR-012)
+ *   - a kitty, nobody followed          -> follow her
+ *   - the followed kitty                -> let go (FR-011)
+ *   - a different kitty                 -> follow the new one
+ *   - anything that is not a kitty      -> let go (FR-026)
+ *
+ * That last row is why this exists at all: clicking her again is the
+ * fiddliest gesture in the feature, since she is small and moving, and it
+ * was the only way out. Clicking the meadow is a target you cannot miss.
+ * It is not conditioned on camera mode -- releasing is releasing.
+ */
+function initCameraClicks() {
+  canvas.addEventListener('click', (event) => {
+    const world = latestWorld;
+    if (!world) return;
+    const point = renderer.toWorld(event.clientX, event.clientY);
+    if (!point) return;
+    // The SAME stillness the renderer drew with, not a literal `true`.
+    // `viewAt(now, still)` sets `progress: still ? 1 : progress(now)`, so a
+    // still view reports where a kitty is ARRIVING rather than where she
+    // is drawn -- up to a whole tile ahead, in her direction of travel.
+    // Clicking a walking kitty then missed her about half the time, and
+    // worst along her long axis, where an off-centre click on her flank
+    // was already spending some of the margin before the lead was added.
+    //
+    // Under reduced motion the frame really is still, so the flag has to
+    // follow the renderer rather than be pinned either way.
+    const view = anim.presentation.curr
+      ? anim.presentation.viewAt(performance.now(), anim.reduced)
+      : null;
+    const hit = kittyAtPoint(point, world, view);
+
+    if (hit === null) {
+      setFollow(null);
+      return;
+    }
+    if (anim.camera.followId === hit) {
+      setFollow(null);
+      return;
+    }
+    setFollow(hit);
+    if (!anim.camera.on) setCameraMode(true);
+  });
+}
+
+// Spec 036 US3. Same shape as THEME_KEY and CARDS_KEY: read once at
+// startup inside a try, written on change. `localStorage` THROWS rather
+// than returning null in some privacy modes, so an unreadable store has
+// to leave the feature working rather than take the page down with it.
+const CAMERA_KEY = 'cloudkitty-camera';
+const FOLLOW_KEY = 'cloudkitty-follow';
+
+function storeCamera() {
+  try {
+    localStorage.setItem(CAMERA_KEY, anim.camera.on ? 'on' : 'off');
+    if (anim.camera.followId === null) localStorage.removeItem(FOLLOW_KEY);
+    else localStorage.setItem(FOLLOW_KEY, String(anim.camera.followId));
+  } catch {
+    /* a store that will not hold a preference is not a reason to stop */
+  }
+}
+
+/**
+ * Restore both, independently (FR-018, FR-019).
+ *
+ * A followed id that names nobody is dropped by the camera on its first
+ * update (FR-020) rather than checked here, because the roster is not
+ * known yet at startup -- and that path has to exist anyway, for a kitty
+ * who leaves while the page is open.
+ */
+function initCameraState() {
+  let mode = null;
+  let follow = null;
+  try {
+    mode = localStorage.getItem(CAMERA_KEY);
+    follow = localStorage.getItem(FOLLOW_KEY);
+  } catch {
+    /* defaults are fine */
+  }
+  if (follow !== null && follow !== '') {
+    const id = Number(follow);
+    if (Number.isFinite(id)) anim.camera.followId = id;
+  }
+  setCameraMode(mode === 'on');
+  markFollowedCard(anim.camera.followId);
+}
+
+/**
+ * Camera mode on or off. The toggle governs SCALE ALONE and never
+ * releases a followed kitty -- turn it off and on again and the camera
+ * comes back to the same cat (FR-027).
+ */
+function setCameraMode(on) {
+  anim.camera.on = on;
+  const button = document.getElementById('camera-toggle');
+  if (button) button.setAttribute('aria-pressed', on ? 'true' : 'false');
+  storeCamera();
+  anim.redraw();
+}
+
+/**
+ * Mark the followed kitty's card, and only hers (spec 036 US4, FR-017).
+ *
+ * The card carries the mark even while camera mode is OFF. A follow held
+ * across the toggle is real -- turning the camera back on returns to her
+ * -- so hiding the mark would mean the viewer has no way to know which
+ * cat the camera is about to jump to.
+ */
+function markFollowedCard(id) {
+  for (const card of document.querySelectorAll('.kitty-card')) {
+    card.classList.toggle('followed', Number(card.dataset.kitty) === id);
+  }
+}
+
+/** Follow a kitty, or nobody. */
+function setFollow(id) {
+  if (anim.camera.followId === id) return;
+  anim.camera.followId = id;
+  markedFollow = id;
+  markFollowedCard(id);
+  storeCamera();
+  anim.redraw();
+}
+
+/**
+ * Keep the page in step with a follow the CAMERA ended.
+ *
+ * `targetFor` drops a followed kitty who is no longer in the roster
+ * (FR-020), which is the right place for it -- the same path serves a
+ * kitty who leaves while the page is open and an id restored from
+ * storage that no longer names anyone. But the camera cannot mark a card
+ * or write to storage, so without this the mark stayed on a departed
+ * kitty's card and the dead id stayed in `FOLLOW_KEY` for the rest of the
+ * session.
+ */
+let markedFollow = null;
+function syncFollowMark() {
+  const id = anim.camera.followId;
+  if (id === markedFollow) return;
+  markedFollow = id;
+  markFollowedCard(id);
+  storeCamera();
+}
+
+function initCameraControl() {
+  const button = document.getElementById('camera-toggle');
+  if (!button) return;
+  button.addEventListener('click', () => {
+    setCameraMode(button.getAttribute('aria-pressed') !== 'true');
+  });
+}
+
+/**
  * Collapsed cards: portrait, name, what the cat is doing, its mood in
  * words -- and the distress cue, which never hides. The bars are what go.
  *
@@ -705,6 +908,9 @@ function setStatus(text, connected) {
 /** Everything outside the canvas, for the world that just became current. */
 function present(world) {
   latestWorld = world;
+  // The camera may have dropped a follow since the last state, and a card
+  // rebuild may have discarded the mark. One reconcile covers both.
+  syncFollowMark();
   // The world's sky: on auto, the hour follows the served tick. applyTheme
   // early-returns when the hour hasn't changed, so this is per-tick cheap.
   if (themeMode === 'auto') applyTheme();
@@ -733,6 +939,12 @@ function renderPanel(world) {
     for (const column of columns) {
       for (const card of column.querySelectorAll('.kitty-card')) card.remove();
     }
+    // A rebuild throws away the follow mark with the cards, and there is
+    // no card at all when the page first restores a follow from storage
+    // -- `initCameraState` runs before the first world arrives. Both are
+    // repaired by re-applying after the build rather than by trying to
+    // remember it during one.
+    markedFollow = null;
     for (const kitty of world.kitties) {
       columns[columns.length - 1].appendChild(buildKittyCard(kitty));
     }
@@ -1064,6 +1276,7 @@ function idlePortraitFor(view, id, now) {
 function buildKittyCard(kitty) {
   const card = document.createElement('div');
   card.className = 'kitty-card';
+  card.dataset.kitty = kitty.id; // so the follow mark can find her card
 
   const name = document.createElement('div');
   name.className = 'name';
@@ -1784,6 +1997,9 @@ window.addEventListener('keydown', (event) => {
 
 initTheme();
 initCards();
+initCameraControl();
+initCameraClicks();
+initCameraState();
 initTraitsDialog();
 drawHeaderKitties();
 start();

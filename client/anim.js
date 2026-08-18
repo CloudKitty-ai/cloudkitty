@@ -103,6 +103,35 @@ const VIEW = Object.freeze({
   paceRateMax: 2,
   paceMaxBacklog: 8, // beyond this it is not a stutter, it is a backlog
 
+  // Camera mode (spec 036). The camera holds the group at a legible scale
+  // and following a kitty changes only where it AIMS, never how wide it
+  // sits -- so hold-the-group and follow-one are one path differing by a
+  // single value, the anchor.
+  //
+  // Every number here is a starting point to be judged in motion at the
+  // live size, not a result. The rates are kitten.me's.
+  camera: Object.freeze({
+    nominalAcross: 10, // tiles across at the narrowest -- 2x on a 20-tile world
+    ceilingFactor: 1.5, // may widen to 15 tiles, then it stops fitting
+    fitMarginTiles: 2.6, // clear space beyond the outermost kitty
+    panRate: 0.06, // per-frame at 60Hz, corrected for real frame rate
+    zoomRate: 0.05, // slower than the pan, so width lags the aim slightly
+    hysteresis: 1.5, // another kitty must be 1.5x more central to take the anchor
+    // How far the group may drift before the camera moves at all. Without
+    // this the aim tracks a statistic that changes every tick, so the
+    // camera is never once still -- it pans, reverses, and pans again as
+    // first one kitty then another takes the edge of the group. Measured
+    // against the live world, 2026-08-17: at 0 the camera holds for 19% of
+    // ticks, at 1.5 for 78%, and containment stays at 100% throughout,
+    // because `fitMarginTiles` was already buying the slack this spends.
+    aimDeadzoneTiles: 1.5,
+    hitRadiusFloorPx: 22, // a kitty stays tappable at ~23px on a phone at the ceiling
+    // A backgrounded tab returns with a vast dt. Uncorrected that eases to
+    // 1, which is the cut FR-008 forbids -- so the correction is clamped
+    // rather than the easing being special-cased on return.
+    maxFrameMs: 100,
+  }),
+
   // Which directions a swimming cat may be drawn end-on (2026-08-11).
   // 'none' | 'toward' | 'both'. Both directions were drawn, dialled and
   // judged side by side in the lab at the live tile; owner took both
@@ -1939,6 +1968,308 @@ class Presentation {
 }
 
 /**
+ * Where a frame of the given span sits, in world tiles, once it is held
+ * inside the world.
+ *
+ * A frame WIDER than the world centres it instead of clamping, because
+ * clamping to a range whose minimum exceeds its maximum is how you get a
+ * frame pinned to one edge with void on the other. That case is not
+ * hypothetical: it is every frame the camera draws while it is off, where
+ * the frame is exactly the world.
+ */
+function clampFrame(edge, worldSpan, frameSpan) {
+  if (frameSpan >= worldSpan) return (worldSpan - frameSpan) / 2;
+  return Math.min(Math.max(edge, 0), worldSpan - frameSpan);
+}
+
+/**
+ * The camera (spec 036): a window over the world rather than a map of it.
+ *
+ * It reports where to look in WORLD TILES and how many of them fit across.
+ * The renderer turns that into a tile size and a pan -- see `draw`. Scale
+ * arrives by moving `renderer.tile`, never by scaling the context, because
+ * `tile` is the size every art threshold reads (`fine = size >= 44` above
+ * all) and camera mode exists to cross exactly that threshold.
+ *
+ * `update` is called from inside `renderer.draw`, which is what makes the
+ * reduced-motion path safe: `startLoop` is skipped entirely when reduced
+ * motion is set, so a camera advanced from the rAF callback would be
+ * frozen for those viewers while testing perfectly. Both the loop and the
+ * served-tick `redraw` go through `draw`, so there is one call site and it
+ * cannot be half-wired.
+ *
+ * While `on` is false this is an identity: the frame is the whole world,
+ * `left`/`top` are 0, and `cssWidth / across` is the tile `resizeFor`
+ * already computed. That is the off state FR-002 requires, and it is the
+ * same code path rather than a bypass around it.
+ */
+class Camera {
+  constructor(dials = VIEW.camera) {
+    this.dials = dials;
+    /** Camera mode. app.js owns the flag; everything here just reads it. */
+    this.on = false;
+    /**
+     * Whether the viewer asked for reduced motion. Kept in step by
+     * `anim.init`, because the camera cannot tell from a view alone: a
+     * still frame means "arrive" for a reduced-motion viewer and "this is
+     * the same moment again" for everyone else, and those are opposites.
+     */
+    this.reduced = false;
+    /** The kitty the viewer chose, or null. Survives `on` going false. */
+    this.followId = null;
+    /** The kitty being aimed at this frame. Never a computed midpoint. */
+    this.anchorId = null;
+    /** Frame width in world tiles. */
+    this.across = 0;
+    /** Aim point in world tiles. */
+    this.aimX = 0;
+    this.aimY = 0;
+    /** Frame origin in world tiles, held inside the world. */
+    this.left = 0;
+    this.top = 0;
+    /**
+     * Previous frame's clock reading. NULL, not 0, because 0 is a
+     * legitimate reading -- `performance.now()` is near zero at page load,
+     * and a 0 sentinel silently drops the first frames of easing.
+     */
+    this.lastAt = null;
+  }
+
+  /**
+   * Where the camera wants to be, before easing. Split out so the wanting
+   * and the getting-there stay separately testable.
+   */
+  targetFor(world, view, aspect = 1) {
+    const whole = {
+      across: world.width,
+      aimX: world.width / 2,
+      aimY: world.height / 2,
+      anchorId: null,
+    };
+    if (!this.on) return whole;
+    const kitties = world.kitties || [];
+    if (!kitties.length) return whole;
+
+    const d = this.dials;
+    // Positions come from the DRAWN view, never the served snapshot. The
+    // pacer eases between states, so a camera aiming at served positions
+    // jumps a tick ahead and eases back once per tick -- the camera
+    // leading the cats it is supposed to be following.
+    const at = (k) => {
+      const p = view && view.posFor ? view.posFor(k) : k.pos;
+      // A tile coordinate addresses the tile's ORIGIN; a cat is drawn at
+      // its centre. Half a tile is a quarter of a cat at camera scale.
+      return { x: p.x + 0.5, y: p.y + 0.5 };
+    };
+
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minY = Infinity;
+    let maxY = -Infinity;
+    let sumX = 0;
+    let sumY = 0;
+    for (const k of kitties) {
+      const p = at(k);
+      if (p.x < minX) minX = p.x;
+      if (p.x > maxX) maxX = p.x;
+      if (p.y < minY) minY = p.y;
+      if (p.y > maxY) maxY = p.y;
+      sumX += p.x;
+      sumY += p.y;
+    }
+
+    const spanX = maxX - minX + 2 * d.fitMarginTiles;
+    // The frame carries the canvas's aspect, so fitting the vertical costs
+    // MORE width than the vertical span itself on a wide canvas.
+    const spanY = (maxY - minY + 2 * d.fitMarginTiles) / (aspect || 1);
+    // Nominal is a floor, so a huddled group does not zoom past comfort;
+    // the ceiling is where the camera stops fitting and lets a wanderer
+    // leave, rather than shrinking everyone to keep her.
+    const across = Math.min(
+      Math.max(spanX, spanY, d.nominalAcross),
+      d.nominalAcross * d.ceilingFactor,
+    );
+
+    const com = { x: sumX / kitties.length, y: sumY / kitties.length };
+
+    // A followed kitty is the anchor unconditionally -- no hysteresis,
+    // no centrality, no ceiling test (FR-015). She was chosen; that is
+    // the whole of the rule.
+    //
+    // If she is not in the roster the follow is dropped here rather than
+    // remembered, which covers both a kitty leaving while the page is
+    // open and an id restored from storage that no longer names anyone
+    // (FR-020). Camera mode itself is untouched either way.
+    let followed = null;
+    if (this.followId !== null) {
+      followed = kitties.find((k) => k.id === this.followId) || null;
+      if (!followed) this.followId = null;
+    }
+    const anchorId = followed ? followed.id : this.anchorFor(kitties, at, com);
+
+    // Where to aim depends on whether the fit got what it asked for.
+    //
+    // While the fit governs, the frame is sized to hold the whole
+    // bounding box -- so it has to be CENTRED on that box, or the width
+    // that was computed to contain everyone stops containing them. Aiming
+    // at the anchor here would push a kitty out of the frame that the fit
+    // had just widened to include.
+    //
+    // Once the ceiling binds, the camera has stopped trying to fit and
+    // needs a point instead. That point is the anchor: an occupied tile,
+    // inside the largest cluster, because the box's midpoint and the
+    // centre of mass are both usually empty grass (FR-006).
+    const bound = Math.max(spanX, spanY) > d.nominalAcross * d.ceilingFactor;
+    const anchor = kitties.find((k) => k.id === anchorId);
+    // Below the ceiling, the CENTRE OF MASS rather than the bounding box's
+    // midpoint. A box midpoint is set by whichever two kitties are
+    // currently extreme, so it lurches every time a different one takes
+    // the edge and lurches back when she turns around -- measured at 0.44
+    // tiles of target movement per tick against 0.25 for the centre of
+    // mass, which averages all five and so is moved a fifth as far by any
+    // one of them.
+    // Following changes only WHERE the camera aims (FR-014). The width is
+    // whatever the fit asked for, so the kitties around her stay in shot
+    // rather than being cropped away to centre her.
+    const p = followed ? at(followed) : bound && anchor ? at(anchor) : com;
+    return { across, aimX: p.x, aimY: p.y, anchorId, bound, following: !!followed };
+  }
+
+  /**
+   * The kitty nearest the group's centre of mass: an OCCUPIED spot, and
+   * inside the largest cluster when there is one. Neither the bounding
+   * box's midpoint nor the centre of mass itself will do, because both are
+   * usually empty grass -- which is the whole reason this is a separate
+   * choice rather than a bit of arithmetic on the fit.
+   *
+   * Held by hysteresis or the camera flicks between kitties at opposite
+   * ends of the meadow. The comparison is squared, so the dial is squared
+   * with it and stays a plain 1.5x in real distance.
+   */
+  anchorFor(kitties, at, com) {
+    const d2 = (k) => {
+      const p = at(k);
+      return (p.x - com.x) ** 2 + (p.y - com.y) ** 2;
+    };
+    let best = null;
+    let bestD = Infinity;
+    for (const k of kitties) {
+      const dist = d2(k);
+      // Ties break on id, not array order, so a reordered roster cannot
+      // make the camera choose differently from one frame to the next.
+      if (dist < bestD || (dist === bestD && best !== null && k.id < best)) {
+        bestD = dist;
+        best = k.id;
+      }
+    }
+    const held = kitties.find((k) => k.id === this.anchorId);
+    if (held && best !== this.anchorId && d2(held) < bestD * this.dials.hysteresis ** 2) {
+      return this.anchorId;
+    }
+    return best;
+  }
+
+  /**
+   * The gap since the last timed frame, clamped -- pure, so the clamp can
+   * be tested without driving a whole frame.
+   *
+   * `viewAt` publishes `ambient: still ? null : { now }`, so a STILL frame
+   * carries no clock at all. Reading that as 0 and storing it wiped
+   * `lastAt` with the very value that means "never ran", and every palette
+   * step, tab return and reduced-motion frame is a still frame. It also
+   * put the `maxFrameMs` clamp out of reach of the case it exists for: a
+   * returning tab calls `redraw()` (still) before `startLoop()`, so the
+   * vast gap was swallowed by a clockless frame before any easing saw it.
+   */
+  dtFor(view) {
+    const now = view?.ambient?.now;
+    if (typeof now !== 'number' || this.lastAt === null) return 0;
+    return Math.min(now - this.lastAt, this.dials.maxFrameMs);
+  }
+
+  /**
+   * The aim, held inside a deadzone: the target stops being a point and
+   * becomes a circle the group is allowed to wander around inside.
+   *
+   * This is what makes the camera capable of being STILL. A meadow whose
+   * camera adjusts every single tick reads as drifting even when each
+   * adjustment is small, and small adjustments that reverse read as
+   * snapping. Inside the deadzone the camera does not move at all;
+   * outside it, it moves only as far as the deadzone's edge, so it comes
+   * to rest rather than centring and immediately being nudged again.
+   */
+  aimGoalFor(want) {
+    const dead = this.dials.aimDeadzoneTiles;
+    const dx = want.aimX - this.aimX;
+    const dy = want.aimY - this.aimY;
+    const off = Math.hypot(dx, dy);
+    if (off <= dead) return { x: this.aimX, y: this.aimY };
+    const k = (off - dead) / off;
+    return { x: this.aimX + dx * k, y: this.aimY + dy * k };
+  }
+
+  /**
+   * Advance one frame. `view.still` covers reduced motion and post-snap
+   * frames alike, and both want arrival rather than easing.
+   */
+  update(world, view, opts = {}) {
+    const aspect = opts.aspect || 1; // cssHeight / cssWidth
+    const now = view?.ambient?.now;
+    const dt = this.dtFor(view);
+    // A frame with no clock leaves the clock alone. See `dtFor`.
+    if (typeof now === 'number') this.lastAt = now;
+
+    const want = this.targetFor(world, view, aspect);
+    // Arrive rather than ease on the first frame, on a still frame
+    // (reduced motion and post-snap alike), and whenever the camera is
+    // off. That last one is a deliberate cut and the only one here: the
+    // off state must BE the whole-world view, not approach it, or the
+    // ground would bake at the whole-world tile while the frame was still
+    // mid-zoom and magnify to fill it.
+    if (!this.across || !this.on) {
+      // No history to ease from, or no camera to ease: arrive.
+      this.across = want.across;
+      this.aimX = want.aimX;
+      this.aimY = want.aimY;
+    } else if (this.reduced) {
+      // No easing at all for a viewer who asked for none (FR-010), but
+      // still through the deadzone -- the deadzone is not motion, it is
+      // the camera declining to care about a fidget.
+      const goal = this.aimGoalFor(want);
+      this.across = want.across;
+      this.aimX = goal.x;
+      this.aimY = goal.y;
+    } else if (view?.still) {
+      // A still frame is the SAME MOMENT drawn again -- a palette step, a
+      // toggle, a tab coming back -- not a step forward in time. Holding
+      // is the whole of the correct behaviour here.
+      //
+      // Treating it as "arrive" instead is what made the camera jerk: a
+      // palette crossfade alone fires up to BLEND_STEPS of these, and
+      // every follow, unfollow and toggle fires one, so the camera
+      // teleported to its target several times a minute and eased the
+      // rest of the time. Reported as intermittent jerking, 2026-08-17.
+    } else {
+      // Corrected for frame rate: a rate written per frame at 60Hz eases
+      // twice as fast at 120Hz. `dt` is already clamped, so a tab
+      // returning after a minute still eases rather than cutting.
+      const ease = (rate) => 1 - (1 - rate) ** (dt / 16.67);
+      const pan = ease(this.dials.panRate);
+      const zoom = ease(this.dials.zoomRate);
+      const goal = this.aimGoalFor(want);
+      this.aimX += (goal.x - this.aimX) * pan;
+      this.aimY += (goal.y - this.aimY) * pan;
+      this.across += (want.across - this.across) * zoom;
+    }
+    this.anchorId = want.anchorId;
+
+    const down = this.across * aspect;
+    this.left = clampFrame(this.aimX - this.across / 2, world.width, this.across);
+    this.top = clampFrame(this.aimY - down / 2, world.height, down);
+  }
+}
+
+/**
  * The browser side: one rAF loop, stopped whenever it has no business
  * running (hidden page, reduced motion). Everything here is wiring; the
  * decisions above stay pure.
@@ -1946,6 +2277,7 @@ class Presentation {
 const anim = {
   presentation: new Presentation(),
   pacer: new Pacer(),
+  camera: new Camera(),
   renderer: null,
   rafId: 0,
   reduced: false,
@@ -1958,10 +2290,18 @@ const anim = {
 
   init(renderer) {
     this.renderer = renderer;
+    // Handed over rather than reached for: the renderer drives the camera
+    // from inside `draw`, so both the rAF loop and the still redraw
+    // advance it without either knowing the other exists.
+    renderer.camera = this.camera;
 
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
     const applyMotionPreference = () => {
       this.reduced = media.matches;
+      // The camera needs this in its own right: a still frame means
+      // "arrive" to a reduced-motion viewer and "the same moment again"
+      // to everyone else, and it cannot tell them apart from the view.
+      this.camera.reduced = this.reduced;
       // The panel's CSS transitions go still with the canvas (FR-015).
       document.body.classList.toggle('reduced-motion', this.reduced);
       if (this.reduced) this.stopLoop();
@@ -1970,6 +2310,7 @@ const anim = {
     };
     media.addEventListener('change', applyMotionPreference);
     this.reduced = media.matches;
+    this.camera.reduced = this.reduced;
     document.body.classList.toggle('reduced-motion', this.reduced);
 
     document.addEventListener('visibilitychange', () => {

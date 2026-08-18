@@ -557,12 +557,113 @@
        than repeating the number, so "exact" survives any breakpoint
        that changes the mat. */
     bottom: calc(100% - var(--stage-pad));
-    right: 5%;
+    /* Slid left to clear a seat for the camera control (owner,
+       2026-08-16). The three numbers are one sum: the control's own
+       margin (1.5%), its width (5.25%) and the gap between them (1.65%,
+       a third off the 2.5% first tried -- owner's dial). */
+    right: 8.4%;
     width: 10.5%;
     pointer-events: none;
     /* Opt out of the global canvas rounding: 18px radius on a canvas
        this small clips the dome's lower corners clean off. */
     border-radius: 0;
+  }
+
+  /* The camera control takes the space the dial left, sitting on the same
+     horizon (owner, 2026-08-16). Sized as a FRACTION of the stage exactly
+     as the dial is, which is what lets one rule serve the phone and the
+     desktop: the pair scales together, so the two layouts never diverge.
+
+     5.25% is not a taste value -- it is the dial's own height, since the
+     dial is 10.5% wide at the canvas's 2:1 ratio. The square and the dome
+     therefore stand the same height on the line, at every stage size. */
+  #camera-toggle {
+    position: absolute;
+    bottom: calc(100% - var(--stage-pad));
+    /* Nearly on the map's right edge (owner, 2026-08-16). The stage's own
+       padding is the last 6px of that gap, so the drawn edge is closer
+       than this reads; `var(--stage-pad)` would sit the control exactly
+       in the map's corner if flush is ever wanted. */
+    right: 1.5%;
+    width: 5.25%;
+    aspect-ratio: 1;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* NEVER a percentage padding here. Percentage padding resolves against
+       the CONTAINING BLOCK's width -- the stage, ~732px -- not the
+       element's own. A first attempt at holding the chip off the map
+       border used `padding: 8%` meaning "8% of this 38px control" and got
+       8% of the stage: 58px a side, inside a 38px border box. The content
+       box collapsed to zero and the whole control vanished (owner,
+       2026-08-16, on reload). The chip is a child now, where a percentage
+       resolves against the control -- see .camera-chip. */
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: none;
+    color: var(--ink-soft);
+    line-height: 0;
+    cursor: pointer;
+  }
+
+  /* The drawn circle, held off the map border. The control's bottom edge
+     IS the map's top edge, so a circle at the full width of it is tangent
+     to the border and reads as biting in (owner, 2026-08-16).
+
+     A CHILD, not padding on the control: as a flex item its `width: 84%`
+     resolves against the control's own content box, which is what the
+     percentage was meant to say all along. The 8% left over on each side
+     is the clearance -- ~3px on a desktop stage, ~1.5px on a phone, which
+     is 3 device pixels at 2x -- and it scales with everything else here
+     rather than being a fixed number that vanishes on a big screen. */
+  .camera-chip {
+    flex: none;
+    width: 84%;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
+
+  /* On reads as a lit chip rather than a different drawing: the icon is
+     already the noun, so the state only has to say "active". */
+  #camera-toggle[aria-pressed='true'] { color: var(--ink); }
+  #camera-toggle[aria-pressed='true'] .camera-chip { background: var(--cream-deep); }
+
+  /* 90% OF THE CHIP: 0.9 x 0.84 = 75.6%, which is the 76% the icon was
+     drawn at before any of this. The circle shrank; the camera did not. */
+  #camera-toggle svg { width: 90%; height: 90%; display: block; }
+
+  #camera-toggle:focus-visible {
+    outline: 2px solid var(--ink-soft);
+    outline-offset: 2px;
+  }
+
+  /* Same lesson the about ring taught: the drawing may be small, the hit
+     area may not. All four sides differ, and each one is bounded by what
+     it would otherwise reach into:
+
+       up    -22px  empty page above the stage -- the only free direction,
+                    so the height is bought entirely here (44px+ even on a
+                    320px phone, where the square is 16px)
+       right  -4px  less than the control's own 1.5% margin, or the target
+                    hangs past the stage and a phone scrolls sideways
+       down   -6px  the meadow; under a fifth of a tile, in the one corner
+       left   -5px  less than the 1.65% gap, so the target stops short of
+                    the dial -- the dial is pointer-events: none, so any
+                    overlap would silently turn taps on the sun into taps
+                    on the camera
+
+     Width lands near 27px on a phone rather than 44. That is deliberate:
+     the two directions that would buy the rest are the two that break
+     something, and 27px still clears the 23px the about ring set. */
+  #camera-toggle::after {
+    content: '';
+    position: absolute;
+    inset: -22px -4px -6px -5px;
   }
 
   canvas { border-radius: 18px; }
@@ -629,6 +730,26 @@
     .panel-col:nth-of-type(1) { grid-column: 1; grid-row: 1; }
     .stage-cell { grid-column: 2; grid-row: 1; width: 100%; }
     .panel-col:nth-of-type(2) { grid-column: 3; grid-row: 1; }
+  }
+
+  /* The followed kitty's card (spec 036 US4, FR-017). An outline rather
+     than a fill: the card already carries a portrait, a name, need bars
+     and a distress line, and a background change would fight all four.
+     `outline` and not `border`, so the mark cannot reflow the card and
+     nudge every card below it down the column when a follow starts.
+
+     Shown even while camera mode is OFF, because a follow held across the
+     toggle is real -- see markFollowedCard. */
+  .kitty-card.followed {
+    outline: 2px solid var(--ink-soft);
+    outline-offset: 2px;
+  }
+  .kitty-card.followed .name::after {
+    content: ' following';
+    font-style: italic;
+    font-weight: 400;
+    color: var(--ink-soft);
+    font-size: 0.82em;
   }
 
   .kitty-card {
@@ -1018,6 +1139,21 @@
       <div class="stage">
         <canvas id="world" width="720" height="720"></canvas>
         <canvas id="sky-dial" width="78" height="39" aria-hidden="true"></canvas>
+        <!-- A CINE camera, not a stills one: a shutter button beside a live
+             meadow reads as "take a photo of this", which is not what the
+             control does. The wedge viewfinder is what says "filming". -->
+        <button id="camera-toggle" type="button" aria-pressed="false"
+                aria-label="camera mode: follow the kitties" title="camera mode">
+          <span class="camera-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"
+                 focusable="false">
+              <rect x="1.6" y="6.6" width="14.4" height="10.8" rx="2.6"/>
+              <path d="M16 10.4 L21.8 7.2 V16.8 L16 13.6 Z"/>
+              <circle cx="8.8" cy="12" r="2.9"/>
+            </svg>
+          </span>
+        </button>
       </div>
     </div>
     <section class="panel" id="panel">

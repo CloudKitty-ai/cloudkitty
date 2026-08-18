@@ -21,7 +21,7 @@ const renderSrc = readFileSync(join(here, 'render.js'), 'utf8');
 const api = eval(
   animSrc +
     ';({ VIEW, Presentation, Pacer, easeSmooth, slowBlinkLid, idleHash, idlePeriodFor,' +
-    ' idlePickFor, idleOffsetFor, IDLE_SALTS, anim, nearestAdjacentOf })',
+    ' idlePickFor, idleOffsetFor, IDLE_SALTS, anim, nearestAdjacentOf, Camera, clampFrame })',
 );
 
 /**
@@ -4813,6 +4813,180 @@ check('the per-kitty about ships, and its numbers are the served ones', () => {
   const text = foot.slice(0, foot.indexOf('</p>')).split(/\s+/).join(' ').trim();
   assert(text.length <= 58, `the traits footnote is ${text.length} characters and will wrap`);
 });
+check('the camera control seats beside the dial and scales with it', () => {
+  const markup = readFileSync(join(here, 'index.html'), 'utf8');
+  const app = readFileSync(join(here, 'app.js'), 'utf8');
+
+  // Comments are stripped before anything is matched. These rules DOCUMENT
+  // the values they must not have -- the vanished-control comment quotes
+  // `padding: 8%` verbatim -- and a text check that reads its own prose
+  // reports the bug it was written to catch, on a file that does not have
+  // it. Every slice below is comment-free.
+  const strip = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
+  const ruleFor = (sel) => strip(markup.slice(markup.indexOf(sel), markup.indexOf('}', markup.indexOf(sel))));
+  const dial = ruleFor('  #sky-dial {');
+  const cam = ruleFor('  #camera-toggle {');
+  assert(cam.length, 'the camera control has no rule');
+
+  // THE PIN IS THE POINT. Both sit ON the horizon, and the horizon is the
+  // stage padding read from the variable -- never a repeated number, or a
+  // breakpoint that changes the mat leaves one of them floating.
+  for (const [name, rule] of [['dial', dial], ['camera control', cam]]) {
+    assert(/bottom: calc\(100% - var\(--stage-pad\)\)/.test(rule),
+      `the ${name} no longer pins to the stage padding, so it has left the horizon`);
+  }
+
+  // One layout for phone and desktop was the owner's whole reason for this
+  // seat, and it only holds while BOTH are fractions of the stage. A pixel
+  // width on either one makes the pair drift apart as the map resizes --
+  // exactly the bug the dial's own width was changed to fix in 2026-07.
+  const dialW = dial.match(/width: ([\d.]+)%/);
+  const camW = cam.match(/width: ([\d.]+)%/);
+  assert(dialW && camW, 'the dial and the camera control are no longer both sized in %');
+  // The square stands as tall as the dome: the dial canvas is 2:1, so its
+  // height is half its width, and that is what the control matches.
+  assert(Math.abs(Number(camW[1]) - Number(dialW[1]) / 2) < 0.01,
+    `the camera control is ${camW[1]}% against a dial ${Number(dialW[1]) / 2}% tall -- they no longer stand level`);
+  assert(/aspect-ratio: 1/.test(cam), 'the camera control is no longer square');
+
+  // THE DRAWN CHIP IS NOT THE BOX. The box's bottom edge IS the map's top
+  // edge, so a chip drawn at the full width of it is tangent to the border
+  // and reads as biting into it. The padding is the clearance, and it only
+  // works while the pressed background is clipped to the CONTENT box --
+  // the `background` shorthand resets that to border-box, which would put
+  // the circle straight back on the border with nothing else changing.
+  const chip = ruleFor('  .camera-chip {');
+  assert(chip.length, 'the camera control has no chip, so its circle sits on the map border');
+  const chipW = chip.match(/width: ([\d.]+)%/);
+  assert(chipW, 'the chip no longer states a width');
+
+  // A PERCENTAGE PADDING ON THE CONTROL IS THE BUG THAT ATE IT. Percentage
+  // padding resolves against the CONTAINING BLOCK's width -- the stage --
+  // and never the element's own. `padding: 8%` was written meaning "8% of
+  // this 38px control" and got 8% of a 732px stage: 58px a side, inside a
+  // 38px border box. Under border-box the content collapsed to zero and
+  // the control vanished on reload (owner, 2026-08-16).
+  //
+  // Asserted by MODELLING the rule rather than banning the property, so a
+  // padding that genuinely fits still passes -- and so this check fails for
+  // the reason the bug actually had.
+  const padPct = cam.match(/padding: ([\d.]+)%/);
+  if (padPct) {
+    const stageW = 732; // desktop stage, where the ratio is worst
+    const eaten = 2 * stageW * (Number(padPct[1]) / 100);
+    const boxW = stageW * (Number(camW[1]) / 100);
+    assert(eaten < boxW,
+      `padding: ${padPct[1]}% is ${eaten.toFixed(0)}px against a ${boxW.toFixed(0)}px control -- it resolves against the STAGE, and the control collapses`);
+  }
+  // The chip is a CHILD for exactly that reason: as a flex item its width
+  // resolves against the control's own content box.
+  assert(/flex: none/.test(chip), 'the chip can shrink, so its size is no longer the one stated');
+
+  // Clearance is measured at the small end, where a fraction is worth least.
+  const clear = 310 * (Number(camW[1]) / 100) * ((100 - Number(chipW[1])) / 200);
+  assert(clear >= 1, `the chip clears the map border by ${clear.toFixed(2)}px on a 320px phone`);
+
+  // And the shrink was the CIRCLE's, not the camera's: the svg is a
+  // fraction of the CHIP, so a smaller chip takes the icon with it unless
+  // the percentage compensates.
+  const svg = markup.match(/#camera-toggle svg \{ width: ([\d.]+)%/);
+  assert(svg, 'the camera icon no longer states a width');
+  const ofBox = (Number(svg[1]) / 100) * (Number(chipW[1]) / 100);
+  assert(Math.abs(ofBox - 0.76) < 0.01,
+    `the icon is ${(ofBox * 100).toFixed(1)}% of the control, not the 76% it was dialled to`);
+
+  // The lit state has to reach the chip, which is where the circle is now.
+  assert(/#camera-toggle\[aria-pressed='true'\] \.camera-chip \{ background/.test(markup),
+    'the pressed state no longer paints the chip, so the toggle has no visible state');
+
+  // The dial has to have actually MOVED, and by the full width of what now
+  // sits beside it. Their margins are the same 5%, so the dial's offset is
+  // that margin plus the control plus the gap; if the dial were left where
+  // it was, the two would overlap and the icon would sit on the dome.
+  const dialR = Number(dial.match(/right: ([\d.]+)%/)[1]);
+  const camR = Number(cam.match(/right: ([\d.]+)%/)[1]);
+  assert(dialR >= camR + Number(camW[1]),
+    `the dial at right ${dialR}% overlaps a control spanning ${camR}-${camR + Number(camW[1])}%`);
+
+  // The dial is `pointer-events: none` and must stay so; a control that
+  // cannot be clicked is not a control.
+  assert(/pointer-events: none/.test(dial), 'the dial has become clickable');
+  assert(!/pointer-events: none/.test(cam), 'the camera control cannot be clicked');
+
+  // Small drawing, large hit area -- the about ring's lesson. Asymmetric on
+  // purpose: upward is empty page, downward is the meadow, so the bottom
+  // inset is the one that must stay shallow.
+  const after = ruleFor('  #camera-toggle::after {');
+  assert(/position: absolute/.test(after), 'the camera target is in flow and will move the map');
+  const inset = after.match(/inset: (-?[\d.]+)px (-?[\d.]+)px (-?[\d.]+)px (-?[\d.]+)px/);
+  assert(inset, 'the camera control states no four-sided inset');
+  // Every side is read separately because every side is bounded by a
+  // DIFFERENT thing, and three of the four bounds are real bugs.
+  const grow = inset.slice(1, 5).map((n) => -Number(n)); // top, right, bottom, left
+  const [up, out, down, back] = grow;
+  // The narrowest stage the phone rule has to hold at: a 320px viewport.
+  // Sizing off the desktop's 38px square is how a target that reads fine
+  // on a laptop ships 25px on a phone.
+  const stage = 310;
+  const square = stage * (Number(camW[1]) / 100);
+  assert(square + up + down >= 44,
+    `the camera target is ${(square + up + down).toFixed(1)}px tall on a 320px phone`);
+  // Height comes from ABOVE, which is empty page. The about ring's 23px is
+  // the house floor for a width, and the sides here cannot reach 44 without
+  // breaking one of the two rules below.
+  assert(square + out + back >= 23,
+    `the camera target is ${(square + out + back).toFixed(1)}px wide on a 320px phone`);
+  assert(down <= 8, `the target reaches ${down}px into the meadow and steals the corner tile`);
+  // THE TWO BOUNDS THE SLIDE-RIGHT CREATED. Neither shows up on a laptop.
+  //
+  // Rightward: the control now sits 1.5% off the stage edge, so a target
+  // wider than that margin hangs off the page and a phone gets a sideways
+  // scroll -- from an element that draws nothing.
+  assert(out <= stage * (camR / 100),
+    `the target hangs ${(out - stage * (camR / 100)).toFixed(1)}px past the stage and will scroll a phone`);
+  // Leftward: the dial is pointer-events: none, so it cannot refuse a tap
+  // the camera's target has already claimed. Cross the gap and tapping the
+  // sun silently toggles the camera.
+  const gap = stage * ((dialR - camR - Number(camW[1])) / 100);
+  assert(back <= gap,
+    `the target crosses the ${gap.toFixed(1)}px gap and turns taps on the dial into taps on the camera`);
+
+  // It is a button, it says what it is, and it carries its state where a
+  // screen reader can read it -- the icon alone announces as nothing.
+  const tag = markup.slice(markup.indexOf('<button id="camera-toggle"'), markup.indexOf('</button>', markup.indexOf('<button id="camera-toggle"')));
+  assert(/aria-pressed="false"/.test(tag), 'the camera control ships without a pressed state');
+  assert(/aria-label="[^"]+"/.test(tag), 'the camera control has no accessible name');
+  assert(/aria-hidden="true"/.test(tag), 'the icon is not hidden from the reader, so it doubles the label');
+  assert(/\[aria-pressed='true'\]/.test(markup), 'the pressed state has no look, so the toggle is invisible');
+
+  // This check has now been wrong twice in one day, both times by pinning
+  // WHERE the behaviour lived rather than WHAT it does. It read
+  // "placement only" after the behaviour landed, then read
+  // `initCameraControl`'s body after the behaviour moved into
+  // `setCameraMode`. Pin the contract, and slice the function that owns
+  // each half of it.
+  const fn = (name) => {
+    const from = app.indexOf(`function ${name}(`);
+    assert(from >= 0, `${name} no longer exists`);
+    return app.slice(from, app.indexOf('\n}\n', from));
+  };
+  const mode = fn('setCameraMode');
+  assert(/anim\.camera\.on = on/.test(mode), 'the toggle no longer drives the camera');
+  assert(/setAttribute\(\s*'aria-pressed'/.test(mode), 'the pressed state is no longer kept in step');
+  // Reduced motion never runs the rAF loop, so without an explicit redraw
+  // the button is dead to the viewers likeliest to notice.
+  assert(/anim\.redraw\(\)/.test(mode), 'the toggle waits for a frame that may never come');
+  assert(/storeCamera\(\)/.test(mode), 'camera mode is not persisted (FR-018)');
+  assert(/storeCamera\(\)/.test(fn('setFollow')), 'the followed kitty is not persisted (FR-019)');
+  assert(/setCameraMode\(/.test(fn('initCameraControl')), 'the control is not wired to the toggle');
+  // FR-027 at the level where it would actually be broken. The Camera
+  // class is checked separately, but the toggle lives HERE, and a mutation
+  // clearing the follow inside setCameraMode passed the whole suite until
+  // this line existed.
+  assert(!/followId/.test(mode),
+    'setCameraMode touches the follow -- the toggle governs scale alone (FR-027)');
+  assert(/initCameraControl\(\);/.test(app), 'the camera control is never wired up');
+});
 check("the about survives a phase change, and the owner's words survive us", () => {
   const markup = readFileSync(join(here, 'index.html'), 'utf8');
 
@@ -5191,6 +5365,765 @@ check('no check left a dial moved behind it', () => {
     moved.length === 0,
     `a check restored something to the wrong value:\n  ${moved.join('\n  ')}`,
   );
+});
+
+/* ---------------------------------------------------------------------
+ * Camera mode (spec 036), Foundational phase.
+ *
+ * The claim this phase has to earn is that NOTHING MOVED: the whole
+ * mechanism is in, and with the camera off the client draws exactly what
+ * it drew before. Pixel-for-pixel proof needs a browser we do not have
+ * here, so what these checks pin is the layer above it -- the numbers that
+ * decide the pixels. If `across` is the world, `left`/`top` are zero, the
+ * derived tile equals the tile `resizeFor` computes, and the ground bakes
+ * at that same tile, then the drawing cannot differ.
+ * ------------------------------------------------------------------- */
+
+const camWorld = (width = 20, height = 20) => ({
+  width,
+  height,
+  tick: 0,
+  kitties: [
+    { id: 1, pos: { x: 3, y: 4 } },
+    { id: 2, pos: { x: 15, y: 12 } },
+  ],
+  elements: [],
+});
+
+/**
+ * A view like the one anim hands the renderer, without standing one up.
+ *
+ * `ambient` is null on still frames because `viewAt` makes it null there
+ * (anim.js, `ambient: still ? null : { now }`). The first cut of this
+ * helper always supplied it, which is a shape the client cannot produce --
+ * and that single divergence is what let the camera's clock bug pass a
+ * green suite. A fixture that is easier than production tests nothing at
+ * the seam.
+ */
+const camView = (still = false, now = 1000) => ({ still, ambient: still ? null : { now } });
+
+check('the camera off frames the whole world and nothing else', () => {
+  const world = camWorld();
+  const cam = new api.Camera();
+  cam.update(world, camView(), { aspect: 1 });
+  assert(cam.across === world.width, `across is ${cam.across}, not the world's ${world.width}`);
+  assert(cam.left === 0 && cam.top === 0, `origin moved to ${cam.left},${cam.top}`);
+  assert(cam.anchorId === null, 'the off camera picked an anchor it has no use for');
+
+  // The identity claim, in the one number that decides it. `resizeFor`
+  // computes tile = floor(budget / world.width) and cssWidth = tile *
+  // world.width, so cssWidth / across must give that tile back exactly.
+  const tile = 31;
+  const cssWidth = tile * world.width;
+  assert(cssWidth / cam.across === tile, `the off camera would draw at ${cssWidth / cam.across}px, not ${tile}px`);
+});
+
+check('a non-square world keeps its shape through the camera', () => {
+  const world = camWorld(24, 16);
+  const cam = new api.Camera();
+  // The canvas is world-aspect, so the vertical span follows from it.
+  cam.update(world, camView(), { aspect: 16 / 24 });
+  assert(cam.across === 24, `across is ${cam.across}`);
+  assert(cam.left === 0 && cam.top === 0, `origin moved to ${cam.left},${cam.top} on a wide world`);
+});
+
+check('a frame wider than its world centres, and one inside it is held', () => {
+  // Wider than the world: clamping to a range whose min exceeds its max
+  // would pin the frame to an edge and put void on the other side. This
+  // is every frame the camera draws while it is off, so it is not a
+  // corner case.
+  assert(api.clampFrame(-5, 20, 20) === 0, 'a frame exactly its world did not sit at the origin');
+  assert(api.clampFrame(3, 20, 30) === -5, 'a frame wider than its world did not centre');
+  // Inside the world: held, so a kitty in the corner never shows void.
+  assert(api.clampFrame(-4, 20, 10) === 0, 'the frame escaped past the left edge');
+  assert(api.clampFrame(18, 20, 10) === 10, 'the frame escaped past the right edge');
+  assert(api.clampFrame(4, 20, 10) === 4, 'a frame already inside the world was moved');
+});
+
+check('the ground bakes at the whole-world tile while the camera is off', () => {
+  const world = camWorld();
+  const tile = 31;
+  // Called on a stand-in rather than a real renderer: the method reads
+  // four fields and the harness has no DOM to build the rest.
+  const off = { cssWidth: tile * world.width, dpr: 2, camera: { on: false } };
+  const baked = WorldRenderer.prototype.bakeTileFor.call(off, world);
+  assert(baked === tile, `the off camera bakes at ${baked}px, not the ${tile}px it draws at`);
+});
+
+check('the ground bake is bounded, because an over-budget canvas comes back blank', () => {
+  const world = camWorld();
+  // A real Camera, not a stand-in with an `on` flag: `bakeTileFor` reads
+  // the camera's OWN dials, and a stub without them is a world where the
+  // two can disagree without anything noticing.
+  const cam = new api.Camera();
+  cam.on = true;
+  const on = { cssWidth: 1200, dpr: 2, camera: cam };
+  const baked = WorldRenderer.prototype.bakeTileFor.call(on, world);
+  const side = baked * Math.max(world.width, world.height) * on.dpr;
+  assert(side <= 4096, `the bake would be ${Math.round(side)} device px a side`);
+  assert(baked > 0, 'the clamp collapsed the bake');
+  // And it follows the camera's dials rather than the module's.
+  const tight = new api.Camera({ ...api.VIEW.camera, nominalAcross: 5 });
+  tight.on = true;
+  const tighter = WorldRenderer.prototype.bakeTileFor.call(
+    { cssWidth: 400, dpr: 1, camera: tight },
+    world,
+  );
+  assert(tighter === 400 / 5, `a tighter camera baked at ${tighter}, not its own nominal`);
+});
+
+check('the camera-off bake is what shipped, at every dpr', () => {
+  // The budget clamp used to apply to the off path too. On a dpr-4
+  // display that magnified the ground AND made `this.tile / bakeTile`
+  // differ from 1, which pushes the off-state pond path through the
+  // ctx.scale branch its own comment promises it never takes. "Nothing
+  // moved" has to hold at every dpr, not the ones I thought of.
+  const world = camWorld();
+  const tile = 60;
+  for (const dpr of [1, 2, 3, 4, 5]) {
+    const off = { cssWidth: tile * world.width, dpr, camera: new api.Camera() };
+    const baked = WorldRenderer.prototype.bakeTileFor.call(off, world);
+    assert(baked === tile, `at dpr ${dpr} the off camera bakes at ${baked}, not ${tile}`);
+  }
+});
+
+check('screen to world inverts the frame the camera laid down', () => {
+  const world = camWorld();
+  const tile = 62; // camera scale, 10 across on a 620px map
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(world, camView(), { aspect: 1 });
+  // The display scale is the trap here: the canvas's measured size is not
+  // its drawing size, so a conversion through cssWidth rather than the
+  // measured rect lands on the wrong kitty at some viewports.
+  const stub = {
+    cssWidth: 620,
+    cssHeight: 620,
+    tile,
+    camera: cam,
+    canvas: { getBoundingClientRect: () => ({ left: 10, top: 20, width: 310, height: 310 }) },
+  };
+  const hit = WorldRenderer.prototype.toWorld.call(stub, 10 + 155, 20 + 155);
+  // Halfway across a half-scale canvas is halfway across the frame.
+  const wantX = cam.left + 620 / 2 / tile;
+  assert(Math.abs(hit.x - wantX) < 1e-9, `x came back ${hit.x}, wanted ${wantX}`);
+  assert(Math.abs(hit.y - (cam.top + 620 / 2 / tile)) < 1e-9, `y came back ${hit.y}`);
+});
+
+check('the camera reads the world and never writes to it', () => {
+  // Article V is the constitution's one article this feature engages, and
+  // it is cheaper to assert than to remember.
+  const world = camWorld();
+  const before = JSON.stringify(world);
+  const cam = new api.Camera();
+  cam.on = true;
+  for (let i = 0; i < 5; i += 1) cam.update(world, camView(false, 1000 + i * 16), { aspect: 1 });
+  assert(JSON.stringify(world) === before, 'the camera mutated the world it was handed');
+});
+
+check('a still view arrives, and leaves the clock where it found it', () => {
+  const world = camWorld();
+  const cam = new api.Camera();
+  cam.on = true;
+
+  cam.update(world, camView(false, 5000), { aspect: 1 });
+  assert(cam.lastAt === 5000, 'an animated frame did not set the clock');
+
+  // A still frame carries no clock. It must arrive at its target AND
+  // leave `lastAt` alone -- storing 0 here is storing the sentinel that
+  // means "never ran", so the next animated frame loses its dt.
+  cam.update(world, camView(true), { aspect: 1 });
+  assert(cam.lastAt === 5000, `a still frame moved the clock to ${cam.lastAt}`);
+});
+
+check('the camera reaches the renderer by the tile, never by a context scale', () => {
+  const body = renderSrc.slice(renderSrc.indexOf('applyCamera(world, view, dpr)'));
+  const fn = body.slice(0, body.indexOf('\n  }'));
+  assert(/this\.tile = this\.cssWidth \/ cam\.across/.test(fn), 'applyCamera no longer sets the tile');
+  assert(/setTransform\(/.test(fn), 'applyCamera no longer lays down the pan');
+  // `this.tile` is what `fine = size >= 44` reads. Scaling the context
+  // would magnify the small-size drawing and leave `fine` reading the old
+  // number: bigger cats still wearing their 31px detail.
+  assert(!/ctx\.scale\(/.test(fn), 'applyCamera scales the context, which leaves `fine` blind to the zoom');
+});
+
+check('the wiring that would ship inert is asserted, not assumed', () => {
+  // A renderer with no camera falls back to the whole-world view, which
+  // is indistinguishable from a correct off state -- so a dropped
+  // assignment in anim.init would ship silently. render.js has done this
+  // before (the axial whip shipped inert for exactly this reason).
+  const init = animSrc.slice(animSrc.indexOf('init(renderer) {'));
+  assert(
+    /renderer\.camera = this\.camera/.test(init.slice(0, init.indexOf('\n  },'))),
+    'anim.init no longer hands the renderer its camera',
+  );
+  // And the camera must be advanced from draw, not from the rAF loop:
+  // startLoop is skipped entirely under reduced motion, so a camera
+  // driven from there is frozen for those viewers while testing fine.
+  const drawBody = renderSrc.slice(renderSrc.indexOf('  draw(world, view) {'));
+  assert(
+    /this\.applyCamera\(world, view, dpr\)/.test(drawBody.slice(0, drawBody.indexOf('\n    this.blitGround'))),
+    'draw no longer advances the camera, so reduced motion would freeze it',
+  );
+  assert(
+    !/camera\.update\(/.test(animSrc.slice(animSrc.indexOf('startLoop() {'), animSrc.indexOf('stopLoop() {'))),
+    'the camera is advanced from the rAF loop, which reduced motion never runs',
+  );
+});
+
+check('the pond cache keys on everything it bakes', () => {
+  // Two independent staleness bugs, found a day apart. The PALETTE is
+  // baked into the shore and lip layers (fixed on main); the TILE is what
+  // the paths are built at (the camera's doing). Either one missing from
+  // the key is a silent wrong-looking pond, so both are pinned here --
+  // and a merge that keeps one side of this line is exactly how one of
+  // them would get dropped.
+  const body = renderSrc.slice(renderSrc.indexOf('drawPondLayer(world, view) {'));
+  const fn = body.slice(0, body.indexOf('\n  }'));
+  const sig = fn.match(/const signature = `([^`]*)`/);
+  assert(sig, 'the pond signature is no longer a template literal');
+  assert(/\$\{this\.paletteKey\}/.test(sig[1]), 'the pond signature dropped the palette');
+  assert(/\$\{bakeTile\}/.test(sig[1]), 'the pond signature dropped the tile');
+  assert(/buildPondPath\(tiles, bakeTile\)/.test(fn), 'pond paths are not built at the bake tile');
+});
+
+/* ---- US1: the camera holds the group (spec 036 FR-003..FR-010, FR-029) ---- */
+
+/** A world with the kitties placed exactly where a case needs them. */
+const camAt = (...spots) => ({
+  width: 20,
+  height: 20,
+  kitties: spots.map(([x, y], i) => ({ id: i + 1, pos: { x, y } })),
+  elements: [],
+});
+const onCam = (world, view = camView()) => {
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(world, view, { aspect: 1 });
+  return cam;
+};
+
+check('nominal is a floor a huddled group cannot push through', () => {
+  // Everyone on one tile: the fit collapses and nominal has to hold, or a
+  // gathered clowder zooms until the meadow is two cats and a bowl.
+  const cam = onCam(camAt([10, 10], [10, 10], [10, 10]));
+  assert(cam.across === api.VIEW.camera.nominalAcross, `huddled group sat at ${cam.across}`);
+});
+
+check('the ceiling binds, and the wanderer is let go', () => {
+  // Opposite corners of a 20-tile world: fitting both needs ~25 tiles.
+  const cam = onCam(camAt([0, 0], [19, 19]));
+  const ceiling = api.VIEW.camera.nominalAcross * api.VIEW.camera.ceilingFactor;
+  assert(cam.across === ceiling, `scattered group sat at ${cam.across}, ceiling ${ceiling}`);
+  // And the frame really is smaller than the world, which is what "let
+  // her leave" means -- the roster accounts for whoever is off-screen.
+  assert(cam.across < 20, 'the ceiling did not actually crop the world');
+});
+
+check('a fit that binds keeps every kitty clear of the frame edge', () => {
+  // Between the floor and the ceiling the fit governs, and FR-004 says
+  // nobody is drawn flush against the edge.
+  const world = camAt([7, 9], [13, 11]);
+  const cam = onCam(world);
+  const ceiling = api.VIEW.camera.nominalAcross * api.VIEW.camera.ceilingFactor;
+  assert(cam.across > api.VIEW.camera.nominalAcross && cam.across < ceiling,
+    `wanted the fit to govern, got ${cam.across}`);
+  for (const k of world.kitties) {
+    const x = k.pos.x + 0.5;
+    const y = k.pos.y + 0.5;
+    assert(x > cam.left && x < cam.left + cam.across, `${k.id} is outside the frame in x`);
+    assert(y > cam.top && y < cam.top + cam.across, `${k.id} is outside the frame in y`);
+  }
+});
+
+check('the frame always holds somebody, even at the world\'s corner', () => {
+  // SC-005, as reworded 2026-08-18. When the ceiling binds the camera
+  // aims at the anchor, and the clamp can only push the frame until it
+  // meets the world's edge -- the anchor is a kitty AT a real tile, so
+  // she cannot be clamped out of shot. Worth asserting rather than
+  // reasoning about, since the clamp and the aim are computed apart.
+  for (const spot of [[0, 0], [19, 0], [0, 19], [19, 19]]) {
+    const world = camAt(spot, [10, 10], [11, 10], [12, 10], [13, 10]);
+    const cam = new api.Camera();
+    cam.on = true;
+    cam.followId = 1; // force the corner kitty to be the aim
+    cam.update(world, camView(), { aspect: 1 });
+    const held = world.kitties.filter((k) => {
+      const x = k.pos.x + 0.5;
+      const y = k.pos.y + 0.5;
+      return x >= cam.left && x <= cam.left + cam.across
+        && y >= cam.top && y <= cam.top + cam.across;
+    });
+    assert(held.length > 0, `following a kitty at ${spot} left an empty frame`);
+    assert(held.some((k) => k.id === 1), `the followed kitty at ${spot} is not in her own frame`);
+  }
+});
+
+check('the frame never shows ground the world does not have', () => {
+  // FR-029. A kitty in the corner is the case: aiming at her would put
+  // several tiles of void on screen, which reads as a rendering fault.
+  for (const spot of [[0, 0], [19, 0], [0, 19], [19, 19], [10, 10]]) {
+    const cam = onCam(camAt(spot, spot));
+    assert(cam.left >= 0, `left ${cam.left} at ${spot}`);
+    assert(cam.top >= 0, `top ${cam.top} at ${spot}`);
+    assert(cam.left + cam.across <= 20 + 1e-9, `right edge ${cam.left + cam.across} at ${spot}`);
+    assert(cam.top + cam.across <= 20 + 1e-9, `bottom edge ${cam.top + cam.across} at ${spot}`);
+  }
+});
+
+check('the camera aims at a kitty, never at the grass between them', () => {
+  // Two kitties far apart: the midpoint and the centre of mass are the
+  // same empty tile, and aiming there is the thing FR-006 forbids.
+  const world = camAt([2, 10], [18, 10]);
+  const cam = onCam(world);
+  assert(cam.anchorId !== null, 'no anchor was chosen');
+  const anchor = world.kitties.find((k) => k.id === cam.anchorId);
+  assert(anchor, `anchor ${cam.anchorId} is not a kitty in the roster`);
+  assert(
+    cam.aimX === anchor.pos.x + 0.5 && cam.aimY === anchor.pos.y + 0.5,
+    'the aim is not on the anchor',
+  );
+  assert(cam.aimX !== 10.5, 'the camera aimed at the empty midpoint');
+});
+
+check('the anchor is the kitty inside the cluster, not the outlier', () => {
+  // Three together, one away. The centre of mass is pulled toward the
+  // cluster, so the nearest kitty to it is one of the three.
+  const world = camAt([9, 10], [10, 10], [11, 10], [19, 10]);
+  const cam = onCam(world);
+  assert(cam.anchorId !== 4, 'the camera anchored on the outlier');
+});
+
+check('ties break on id, so a reordered roster cannot change the pick', () => {
+  // The SAME kitties -- same ids, same tiles -- handed over in opposite
+  // array order. Their distances to the centre of mass are identical, so
+  // without a rule the winner is whichever the loop met first, and the
+  // camera would pick differently depending on serialisation order.
+  const kitties = [
+    { id: 1, pos: { x: 9, y: 10 } },
+    { id: 2, pos: { x: 11, y: 10 } },
+  ];
+  const forward = { width: 20, height: 20, elements: [], kitties };
+  const reversed = { width: 20, height: 20, elements: [], kitties: [...kitties].reverse() };
+  const a = onCam(forward);
+  const b = onCam(reversed);
+  assert(a.anchorId === b.anchorId, `same world, different order: ${a.anchorId} vs ${b.anchorId}`);
+  assert(a.anchorId === 1, `expected the lower id to win the tie, got ${a.anchorId}`);
+  assert(a.aimX === b.aimX && a.aimY === b.aimY, 'the aim moved with the array order');
+});
+
+check('the anchor holds until another kitty is clearly more central', () => {
+  // Without hysteresis this walk flips the anchor every frame it crosses
+  // the midpoint, which is the flicker kitten.me deleted a snap rule over.
+  const cam = new api.Camera();
+  cam.on = true;
+  let flips = 0;
+  let last = null;
+  for (let step = 0; step <= 20; step += 1) {
+    // Two kitties drifting past each other through the centre of mass.
+    const world = camAt([10 - step * 0.0, 10], [10, 10]);
+    world.kitties[0].pos = { x: 9 + step * 0.1, y: 10 };
+    cam.update(world, camView(false, 1000 + step * 16), { aspect: 1 });
+    if (last !== null && cam.anchorId !== last) flips += 1;
+    last = cam.anchorId;
+  }
+  assert(flips <= 1, `the anchor changed ${flips} times crossing one midpoint`);
+});
+
+check('easing settles at the same real speed on 60Hz and 120Hz', () => {
+  // A rate written per-frame eases twice as fast at 120Hz uncorrected,
+  // which is the bug kitten.me's own comment calls out.
+  const world = camAt([3, 3], [4, 4]);
+  const run = (frameMs) => {
+    const cam = new api.Camera();
+    cam.on = true;
+    cam.update(world, camView(false, 0), { aspect: 1 }); // first frame arrives
+    cam.aimX = 15; // shove it away, then let it come back
+    let t = 0;
+    for (let i = 0; i < Math.round(500 / frameMs); i += 1) {
+      t += frameMs;
+      cam.update(world, camView(false, t), { aspect: 1 });
+    }
+    return cam.aimX;
+  };
+  const at60 = run(16.67);
+  const at120 = run(8.33);
+  assert(Math.abs(at60 - at120) < 0.05, `after 500ms: 60Hz ${at60}, 120Hz ${at120}`);
+});
+
+check('the camera never cuts, however far the target jumps', () => {
+  // FR-008. A kitty teleporting across the meadow (a reseed, a snap)
+  // must not drag the camera with her in one frame.
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(camAt([2, 2], [3, 3]), camView(false, 0), { aspect: 1 });
+  const before = cam.aimX;
+  cam.update(camAt([18, 18], [17, 17]), camView(false, 16.67), { aspect: 1 });
+  const moved = Math.abs(cam.aimX - before);
+  assert(moved > 0, 'the camera did not follow at all');
+  assert(moved < 3, `the camera jumped ${moved.toFixed(1)} tiles in one frame`);
+});
+
+check('the camera holds still while the group only fidgets', () => {
+  // The complaint this answers, verbatim: "repeatedly panning in a
+  // direction and snapping back". The aim tracked a statistic that moves
+  // every tick, so the camera never once came to rest.
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(camAt([9, 10], [11, 10], [10, 11]), camView(false, 0), { aspect: 1 });
+  const settled = { x: cam.aimX, y: cam.aimY };
+  // A kitty shuffles a tile and back, twice. Inside the deadzone this is
+  // beneath the camera's notice.
+  let t = 0;
+  for (const spots of [[[9, 10], [11, 10], [10, 12]], [[9, 10], [11, 10], [10, 11]],
+                       [[9, 11], [11, 10], [10, 11]], [[9, 10], [11, 10], [10, 11]]]) {
+    t += 16.67;
+    cam.update(camAt(...spots), camView(false, t), { aspect: 1 });
+  }
+  assert(cam.aimX === settled.x && cam.aimY === settled.y,
+    `the camera chased a fidget from ${settled.x},${settled.y} to ${cam.aimX},${cam.aimY}`);
+});
+
+check('but it follows the group when the group actually goes somewhere', () => {
+  // The deadzone must not become a cage: a real move has to move the camera.
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(camAt([3, 3], [4, 4], [3, 4]), camView(false, 0), { aspect: 1 });
+  const from = cam.aimX;
+  let t = 0;
+  for (let i = 0; i < 200; i += 1) {
+    t += 16.67;
+    cam.update(camAt([15, 15], [16, 16], [15, 16]), camView(false, t), { aspect: 1 });
+  }
+  assert(cam.aimX > from + 8, `the camera only reached ${cam.aimX.toFixed(1)} from ${from.toFixed(1)}`);
+});
+
+check('the aim is the centre of mass, not the box the extremes describe', () => {
+  // Four kitties together and one far off: the box midpoint sits in the
+  // grass between them, the centre of mass sits with the four.
+  const world = camAt([9, 10], [10, 10], [11, 10], [10, 11], [19, 10]);
+  const cam = onCam(world);
+  const boxMid = (9.5 + 19.5) / 2;
+  assert(Math.abs(cam.aimX - boxMid) > 1.5,
+    `the aim sat at ${cam.aimX}, which is the box midpoint ${boxMid}`);
+  assert(cam.aimX < 13, `the aim did not stay with the cluster: ${cam.aimX}`);
+});
+
+check('a followed kitty is the anchor, whatever the group is doing', () => {
+  // FR-015: unconditional. No hysteresis, no centrality, no ceiling test.
+  const world = camAt([2, 2], [10, 10], [11, 10], [12, 10]);
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.followId = 1; // the outlier, the anchor rule would never pick her
+  cam.update(world, camView(), { aspect: 1 });
+  assert(cam.anchorId === 1, `anchor is ${cam.anchorId}, not the followed kitty`);
+  assert(cam.aimX === 2.5 && cam.aimY === 2.5, `aim sat at ${cam.aimX},${cam.aimY}`);
+});
+
+check('following moves the aim and nothing else', () => {
+  // FR-014. The frame must not tighten around her, or the neighbours she
+  // is sitting with get cropped away to centre her.
+  const world = camAt([9, 10], [10, 10], [11, 10]);
+  const loose = onCam(world);
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.followId = 1;
+  cam.update(world, camView(), { aspect: 1 });
+  assert(cam.across === loose.across, `following changed the width ${loose.across} -> ${cam.across}`);
+});
+
+check('a followed kitty who leaves the roster is let go, camera untouched', () => {
+  // FR-020. The same path serves a restored id that names nobody and a
+  // kitty who leaves while the page is open -- which is why it lives in
+  // the camera and not in the startup restore.
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.followId = 99;
+  cam.update(camAt([10, 10], [11, 11]), camView(), { aspect: 1 });
+  assert(cam.followId === null, 'a follow on a kitty who is not here survived');
+  assert(cam.on === true, 'dropping the follow turned the camera off');
+  assert(cam.anchorId !== null, 'the camera failed to fall back to the group');
+});
+
+check('the toggle never releases a follow', () => {
+  // FR-027, and the one rule clarify had to settle. Off and on again
+  // returns to the same cat rather than to the group.
+  const world = camAt([3, 3], [10, 10], [11, 10]);
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.followId = 1;
+  cam.update(world, camView(false, 0), { aspect: 1 });
+  cam.on = false;
+  cam.update(world, camView(false, 16), { aspect: 1 });
+  assert(cam.followId === 1, 'turning the camera off released the follow');
+  cam.on = true;
+  cam.update(world, camView(false, 32), { aspect: 1 });
+  assert(cam.anchorId === 1, 'turning the camera back on lost the followed kitty');
+});
+
+check('the click lifecycle is one table, and every row is here', () => {
+  // Spread across handlers this grows a hole; the hole clarify found was
+  // the toggle's effect on a live follow.
+  const app = readFileSync(join(here, 'app.js'), 'utf8');
+  const from = app.indexOf('function initCameraClicks(');
+  const body = app.slice(from, app.indexOf('\n}\n', from));
+  assert(/setFollow\(null\)/.test(body), 'nothing releases a follow');
+  assert(/anim\.camera\.followId === hit/.test(body), 'clicking the followed kitty does not release her');
+  assert(/if \(!anim\.camera\.on\) setCameraMode\(true\)/.test(body),
+    'clicking a kitty while the camera is off no longer turns it on (FR-012)');
+  // FR-026: anything that is not a kitty releases, and it is NOT gated on
+  // camera mode -- releasing is releasing.
+  assert(/hit === null/.test(body), 'clicking away from the kitties does nothing');
+
+  const hitFn = app.slice(app.indexOf('function kittyAtPoint('));
+  const hit = hitFn.slice(0, hitFn.indexOf('\n}\n'));
+  assert(/hitRadiusFloorPx/.test(hit), 'the hit radius has no floor, so a phone at the ceiling cannot catch a kitty');
+  assert(/view\.posFor/.test(hit), 'the hit test reads served positions, not drawn ones');
+  assert(/pos\.y > best\.y/.test(hit), 'overlapping kitties do not resolve to the one on top');
+});
+
+check('the hit test reads the frame that was drawn, not the one arriving', () => {
+  // `viewAt(now, still)` sets `progress: still ? 1 : progress(now)`. A
+  // still view therefore reports a walking kitty at her DESTINATION,
+  // which mid-tick is up to a whole tile from where she is drawn. First
+  // shown by the owner as "issues clicking on moving cats".
+  const p = new api.Presentation();
+  // Consecutive ticks and a single tile: anything else is a
+  // discontinuity, which `pushState` correctly snaps rather than glides,
+  // and there would be nothing to measure.
+  const state = (tick, x) => ({ width: 20, height: 20, tick, kitties: [{ id: 1, pos: { x, y: 5 } }], elements: [] });
+  p.pushState(state(0, 5), 0, 800);
+  p.pushState(state(1, 6), 0, 800);
+  const kitty = { id: 1, pos: { x: 6, y: 5 } };
+  const mid = p.viewAt(400, false).posFor(kitty);
+  const arrived = p.viewAt(400, true).posFor(kitty);
+  assert(arrived.x === 6, `a still view should report the destination, got ${arrived.x}`);
+  assert(mid.x < arrived.x - 0.3,
+    `mid-glide should trail the destination: ${mid.x} vs ${arrived.x}`);
+
+  const app = readFileSync(join(here, 'app.js'), 'utf8');
+  const from = app.indexOf('function initCameraClicks(');
+  const body = app.slice(from, app.indexOf('\n}\n', from));
+  assert(/viewAt\(performance\.now\(\), anim\.reduced\)/.test(body),
+    'the hit test does not use the same stillness the renderer drew with');
+  assert(!/viewAt\([^)]*,\s*true\)/.test(body),
+    'the hit test pins still to true, so it tests where a kitty is going');
+});
+
+check('the followed card is marked, and only hers', () => {
+  const app = readFileSync(join(here, 'app.js'), 'utf8');
+  const markup = readFileSync(join(here, 'index.html'), 'utf8');
+  const mark = app.slice(app.indexOf('function markFollowedCard('));
+  const body = mark.slice(0, mark.indexOf('\n}\n'));
+  assert(/classList\.toggle\('followed'/.test(body), 'no card mark');
+  assert(/=== id/.test(body), 'the mark is not restricted to the followed kitty');
+  assert(/\.kitty-card\.followed/.test(markup), 'the followed card has no style');
+
+  // The mark has to SURVIVE, which is where it actually broke: nothing
+  // owns a card at the moment the follow is restored (initCameraState
+  // runs before the first world arrives), and renderPanel throws every
+  // card away when the roster size changes. Both were invisible to the
+  // assertions above, which only ask whether the marking code exists.
+  //
+  // These are still source-shape checks -- app.js has no DOM in this
+  // harness, so a real one would mean standing up a document here. That
+  // is worth doing when app.js next needs behavioural coverage; it is not
+  // worth pretending these are equivalent.
+  // Scoped to the rebuild block: a bare /markedFollow = null/ also
+  // matches the declaration, so removing the reset left the check green.
+  const panel = app.slice(app.indexOf('function renderPanel('));
+  const rebuild = panel.slice(panel.indexOf('if (needsRebuild)'), panel.indexOf('buildKittyCard(kitty)'));
+  assert(/markedFollow = null;/.test(rebuild), 'a card rebuild no longer invalidates the mark');
+  assert(/syncFollowMark\(\);/.test(app), 'nothing reconciles a follow the camera ended');
+  const sync = app.slice(app.indexOf('function syncFollowMark('));
+  const syncBody = sync.slice(0, sync.indexOf('\n}\n'));
+  assert(/storeCamera\(\)/.test(syncBody), 'a dropped follow never reaches storage (FR-020)');
+  assert(/markFollowedCard\(/.test(syncBody), 'a dropped follow never clears its card');
+  // An outline cannot reflow the column; a border would nudge every card
+  // below it the moment a follow started.
+  assert(!/\.kitty-card\.followed\s*\{[^}]*border:/.test(markup),
+    'the follow mark uses border, which reflows the card');
+});
+
+check('the pond layers are bounded tighter than the ground, being four of them', () => {
+  // buildPondLayers allocates four canvases where the ground allocates
+  // one. Bounding each canvas's side while the count quadrupled guards
+  // the wrong quantity, and mobile Safari caps TOTAL canvas memory and
+  // returns a blank canvas rather than failing.
+  const world = camWorld();
+  const cam = new api.Camera();
+  cam.on = true;
+  // Backed by the real prototype: pondBakeTileFor calls its sibling, and
+  // a bare object stub cannot reach it.
+  const r = Object.assign(Object.create(WorldRenderer.prototype), {
+    cssWidth: 1200, dpr: 2, camera: cam,
+  });
+  const ground = r.bakeTileFor(world);
+  const pond = r.pondBakeTileFor(world);
+  assert(pond <= ground, `pond bakes larger than the ground: ${pond} > ${ground}`);
+  const side = pond * Math.max(world.width, world.height) * r.dpr;
+  assert(side <= 2048, `each pond layer would be ${Math.round(side)} device px a side`);
+  // Four of them must not cost more than one ground bake.
+  const groundSide = ground * Math.max(world.width, world.height) * r.dpr;
+  assert(4 * side * side <= 4 * groundSide * groundSide,
+    'four pond layers outweigh the ground bake they were bounded against');
+});
+
+check('the pond bake leaves the camera-off state alone, at every dpr', () => {
+  // The ground bake skips its clamp when the camera is off so the off
+  // state is byte-for-byte what shipped. The pond bound then undid that
+  // for the water: on a 5K display the tile reaches ~59 and the bound
+  // dropped the bake to 51.2, softening shore, lip, meniscus and pads --
+  // and making `this.tile / bakeTile` differ from 1, which pushes the
+  // off-state pond path through a ctx.scale it is documented never to
+  // take. An identity claim has to hold for every layer.
+  const world = camWorld();
+  for (const [tile, dpr] of [[31, 1], [48, 2], [59, 2], [60, 3], [60, 4]]) {
+    const r = Object.assign(Object.create(WorldRenderer.prototype), {
+      cssWidth: tile * world.width, dpr, camera: new api.Camera(),
+    });
+    const pond = r.pondBakeTileFor(world);
+    assert(pond === tile, `off at tile ${tile} dpr ${dpr}: pond bakes at ${pond}`);
+    assert(pond === r.bakeTileFor(world), 'the pond and ground bakes disagree while off');
+  }
+  // With the camera ON the bound applies, which is the whole point of it.
+  const cam = new api.Camera();
+  cam.on = true;
+  const on = Object.assign(Object.create(WorldRenderer.prototype), {
+    cssWidth: 1200, dpr: 2, camera: cam,
+  });
+  assert(on.pondBakeTileFor(world) < on.bakeTileFor(world),
+    'the pond bound does nothing when the camera is on');
+});
+
+check('the pond layers blit only what is on screen', () => {
+  // They are baked at WORLD size, which under a camera is several times
+  // the canvas. blitGround was given a source rect for this; these were
+  // left without one.
+  const meadowSrc = readFileSync(join(here, 'meadow.js'), 'utf8');
+  const from = meadowSrc.indexOf('function drawPonds(');
+  const fn = meadowSrc.slice(from, meadowSrc.indexOf('\n}\n', from));
+  assert(/clip = null/.test(fn), 'drawPonds takes no visible clip rect');
+  // Not `window`: a parameter of that name shadows the global for the
+  // whole function body, so a later `window.devicePixelRatio` in here
+  // would silently read a rectangle.
+  assert(!/\bwindow = null/.test(fn), 'the clip parameter shadows the global `window`');
+  assert(/drawImage\(layer, sx \* layers\.dpr/.test(fn), 'the layer blit has no source rect');
+  assert(!/drawImage\(layers\.(lip|shore), 0, 0,/.test(fn), 'a layer still blits the whole world');
+});
+
+check('a still frame is the same moment again, not a jump forward', () => {
+  // Every palette step, follow, unfollow, toggle and tab-return draws a
+  // still frame. Treating those as "arrive" teleported the camera several
+  // times a minute and eased the rest of the time -- reported as
+  // intermittent jerking. A crossfade alone fires up to BLEND_STEPS.
+  const near = camAt([9, 10], [11, 10]);
+  const far = camAt([2, 2], [3, 3]);
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(near, camView(false, 0), { aspect: 1 });
+  cam.update(far, camView(false, 16.67), { aspect: 1 }); // one eased step toward far
+  const mid = { x: cam.aimX, y: cam.aimY, across: cam.across };
+
+  cam.update(far, camView(true), { aspect: 1 });
+  assert(cam.aimX === mid.x && cam.aimY === mid.y,
+    `a still frame moved the aim from ${mid.x},${mid.y} to ${cam.aimX},${cam.aimY}`);
+  assert(cam.across === mid.across, `a still frame moved the width to ${cam.across}`);
+
+  // And it must still be mid-journey, or the assertion above is vacuous.
+  const want = cam.targetFor(far, null, 1);
+  assert(Math.abs(cam.aimX - want.aimX) > 0.5, 'the camera had already arrived, so nothing was proved');
+});
+
+check('reduced motion arrives instead, because it gets no other frames', () => {
+  // FR-010, SC-009. The same `still` flag means the opposite thing here,
+  // which is exactly why the camera cannot read it from the view alone.
+  const world = camAt([2, 2], [3, 3]);
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.reduced = true;
+  cam.update(camAt([15, 15], [16, 16]), camView(true), { aspect: 1 });
+  cam.update(world, camView(true), { aspect: 1 });
+  const want = cam.targetFor(world, null, 1);
+  // Through the deadzone -- declining to chase a fidget is not motion.
+  assert(Math.hypot(cam.aimX - want.aimX, cam.aimY - want.aimY) <= api.VIEW.camera.aimDeadzoneTiles + 1e-9,
+    `reduced motion did not arrive: ${cam.aimX},${cam.aimY} vs ${want.aimX},${want.aimY}`);
+});
+
+check('a tab returning after a minute cannot cut', () => {
+  // The path is: hidden tab banks arrivals -> visibilitychange calls
+  // redraw() (STILL, no clock) -> startLoop() draws animated. So the vast
+  // gap reaches the animated frame, and only the clamp stands between it
+  // and an easing factor of 1, which is the cut FR-008 forbids.
+  const world = camWorld();
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(world, camView(false, 1000), { aspect: 1 });
+  cam.update(world, camView(true), { aspect: 1 }); // the redraw on return
+  assert(cam.lastAt === 1000, 'the still redraw swallowed the gap');
+
+  const dt = cam.dtFor(camView(false, 61_000));
+  assert(dt === api.VIEW.camera.maxFrameMs, `dt came back ${dt}, not the clamp`);
+  assert(dt < 61_000 - 1000, 'a minute-long gap reached the easing uncorrected');
+});
+
+check('every camera requirement holds at 3, 4 and 5 kitties', () => {
+  // FR-022. The aesthetic half (SC-010) needs the owner's eye; the
+  // REQUIREMENTS are arithmetic and can be swept here. A 3-kitty roster
+  // sits at the zoom floor most of the time and a 5-kitty one is what
+  // exercises the ceiling, so a bug that only shows at one size is
+  // exactly what this is for.
+  const D = api.VIEW.camera;
+  const CEIL = D.nominalAcross * D.ceilingFactor;
+  let checked = 0;
+  for (const count of [3, 4, 5]) {
+    // Deterministic pseudo-random walks: same worlds every run, so a
+    // failure is reproducible rather than a story about last Tuesday.
+    let seed = 1234 + count;
+    const rnd = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+    const cam = new api.Camera();
+    cam.on = true;
+    const kitties = Array.from({ length: count }, (_, i) => ({
+      id: i + 1, pos: { x: Math.floor(rnd() * 20), y: Math.floor(rnd() * 20) },
+    }));
+    for (let step = 0; step < 300; step += 1) {
+      for (const k of kitties) {
+        // One tile a tick, which is what the engine allows.
+        k.pos.x = Math.max(0, Math.min(19, k.pos.x + Math.round(rnd() * 2 - 1)));
+        k.pos.y = Math.max(0, Math.min(19, k.pos.y + Math.round(rnd() * 2 - 1)));
+      }
+      const world = { width: 20, height: 20, elements: [], kitties };
+      cam.update(world, camView(false, step * 16.67), { aspect: 1 });
+      checked += 1;
+
+      assert(cam.across >= D.nominalAcross - 1e-9, `${count} kitties: across ${cam.across} below the floor`);
+      assert(cam.across <= CEIL + 1e-9, `${count} kitties: across ${cam.across} above the ceiling`);
+      assert(Number.isFinite(cam.aimX) && Number.isFinite(cam.aimY), `${count} kitties: aim went non-finite`);
+      // FR-029: never a pixel of ground the world does not have.
+      assert(cam.left >= -1e-9 && cam.top >= -1e-9, `${count} kitties: frame at ${cam.left},${cam.top}`);
+      assert(cam.left + cam.across <= 20 + 1e-9, `${count} kitties: frame right edge ${cam.left + cam.across}`);
+      assert(cam.top + cam.across <= 20 + 1e-9, `${count} kitties: frame bottom edge ${cam.top + cam.across}`);
+      assert(kitties.some((k) => k.id === cam.anchorId), `${count} kitties: anchor ${cam.anchorId} is nobody`);
+      // SC-005 as the owner reworded it (2026-08-18): not every kitty --
+      // the ceiling deliberately lets a wanderer go (FR-005) -- but NEVER
+      // a frame with nobody in it. An empty meadow reads as broken, and
+      // it is the failure the original "the aim always rests on a kitty"
+      // was reaching for without saying so.
+      const inFrame = kitties.filter((k) => {
+        const x = k.pos.x + 0.5;
+        const y = k.pos.y + 0.5;
+        return x >= cam.left && x <= cam.left + cam.across
+          && y >= cam.top && y <= cam.top + cam.across;
+      });
+      assert(inFrame.length > 0, `${count} kitties: the frame at ${cam.left.toFixed(1)},${cam.top.toFixed(1)} holds nobody`);
+    }
+  }
+  assert(checked === 900, `swept ${checked} states, expected 900`);
+});
+
+check('aim settles faster than width, so the zoom lags the pan', () => {
+  assert(api.VIEW.camera.panRate > api.VIEW.camera.zoomRate,
+    'the zoom is not slower than the pan');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);
