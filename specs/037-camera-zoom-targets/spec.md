@@ -33,7 +33,7 @@ rules are still what the client does.
 
 Camera mode frames a fixed number of **tiles** — 10 at its floor, 15 at its
 ceiling. A tile's size in pixels is therefore whatever the map's width divides
-to, and the map varies by display:
+to, and the map varies by viewport:
 
 | CSS viewport | map | camera tile at floor | at ceiling | crosses 44px? |
 |---|---:|---:|---:|---|
@@ -145,12 +145,12 @@ target would have asked for.
 ### User Story 3 - Fine detail stops appearing and disappearing (Priority: P3)
 
 The tabby forehead stripes, the bowl's fish decal and the butterfly antennae
-are either there or not, for a given display, and do not flicker in and out as
+are either there or not, for a given viewport, and do not flicker in and out as
 the clowder gathers and scatters.
 
 **Why this priority**: 036 accepted this pop deliberately, to be judged in
 motion. Judged, it is a distraction, and this feature removes its cause rather
-than tuning around it — a floor above the threshold on every display means the
+than tuning around it — a floor above the threshold on every viewport means the
 band can never straddle it.
 
 **Independent Test**: On a 27-inch 1080p viewport, watch a full session at 5
@@ -181,7 +181,14 @@ kitties through gathering and scattering. The fine detail never switches state.
   leave.
 - **The window is resized across a boundary mid-session**, so the governing
   rule changes from the pixel target to a clamp. The frame changes width; it
-  must not jump, since 036's FR-008 forbids cuts.
+  must not jump, since 036's FR-008 forbids cuts. There are **two** such
+  boundaries, not one: the minimum tile count at the small end and the world
+  clamp at the large.
+- **The window is resized while the camera is mid-movement.** The target moves
+  under an easing already in progress. The easing continues toward the new
+  target rather than restarting, which is 036's behaviour for any moving target
+  and needs nothing new — but it is the case most likely to be missed, because
+  it requires two things to happen at once.
 - **A world that is not 20 tiles.** The minimum is a count, so a small world
   could make it exceed the world itself; the frame can never be wider than the
   world (036 FR-029). A *larger* world is the expected direction — see the Fog
@@ -198,19 +205,40 @@ kitties through gathering and scattering. The fine detail never switches state.
   smallest tile it will widen to. **Supersedes 036 FR-005**, which set the
   ceiling as a multiple of the floor.
 - **FR-003**: The zoom range MUST therefore be the same on every viewport that
-  can reach the pixel target, since it is the ratio of the two.
+  can reach the pixel target, since it is the ratio of the two. **The two
+  targets are consequently not independent**: the range is their quotient, so
+  moving either one moves it. They are dialled as a pair, and a change to the
+  floor that leaves the ceiling alone is a change to how far the camera zooms,
+  whether or not that was the intent.
 - **FR-004**: Both ends of the band MUST sit above the fine-detail threshold,
   with margin, so that detail is drawn at every point in the camera's range and
-  cannot flicker as the camera moves.
+  cannot flicker as the camera moves. **The margin is at the ceiling end and is
+  what makes the guarantee hold** — the floor clears the threshold by a wide
+  distance, so the binding constraint is `ceilingPx` against the 44px threshold.
+  At the owner's 50px that margin is 6px; a ceiling set at the threshold itself
+  would reintroduce the flicker at the wide end rather than remove it.
 - **FR-005**: The number of tiles the floor frames MUST NOT fall below a
   minimum, so a small viewport shows a scene rather than a keyhole. No maximum
   applies: a larger viewport framing more tiles at the same legible size is the
   wanted behaviour.
 - **FR-006**: Where the minimum tile count binds, the kitties MUST be drawn
   smaller than the target rather than the world being cropped further.
+- **FR-011**: Where holding the minimum tile count would put a tile below the
+  fine-detail threshold, **the minimum wins and the threshold is given up**.
+  Framing is protected ahead of legibility at the smallest sizes, because the
+  alternative is a camera showing almost no meadow, and pinch zoom is the
+  viewer's remedy there. This is the one place FR-004's guarantee does not
+  hold, and it is deliberate.
 - **FR-007**: The ceiling MUST never frame more of the world than the world has,
   so the camera still crops and 036's FR-005 behaviour — letting a wanderer leave
-  rather than shrinking everyone — is preserved.
+  rather than shrinking everyone — is preserved. This is a **separate** constraint
+  from 036's FR-029: FR-029 keeps the frame from showing ground outside the world
+  once its width is decided, while this decides that width. Both bind against the
+  world's edge and neither replaces the other.
+- **FR-012**: Where the world clamp binds, that viewport's zoom range MUST be
+  smaller than the constant the band otherwise guarantees, and this is accepted
+  rather than compensated for. Widening the floor to restore the range would give
+  up the apparent-size consistency the feature exists for.
 - **FR-008**: Camera dials denominated in tiles that govern a *distance* — the
   aim deadzone and the fit margin — MUST have a consistent effect in pixels
   across viewports, or be re-expressed so that they do. A fix that made apparent
@@ -220,6 +248,15 @@ kitties through gathering and scattering. The fine detail never switches state.
   today. This feature changes only the camera's limits.
 - **FR-010**: The limits MUST be verified across the full range of supported
   viewports, from the smallest phone to the 1200px map cap.
+- **FR-013**: The floor MUST NOT exceed the ceiling. On a viewport small enough
+  that the minimum tile count reaches where the ceiling target falls, the two may
+  MEET — leaving that viewport no zoom range at all, which is acceptable — but
+  they may never cross, which would ask the camera to widen past its own floor.
+- **FR-014**: A viewport measurement of zero or otherwise not a finite number
+  MUST produce a usable frame rather than an undefined one. The map has no width
+  until the page has laid out, and every limit in this feature is derived by
+  dividing that width by a pixel target, so the first frame of every session
+  meets this case.
 
 ### Key Entities
 
@@ -255,8 +292,13 @@ kitties through gathering and scattering. The fine detail never switches state.
   the build shipped today.
 - **SC-008**: The aim deadzone and the fit margin have the same effect in
   pixels, within 25%, across the supported viewport range.
-- **SC-009**: A window resized across the point where the minimum tile count
-  starts or stops binding produces no visible jump in the frame's width.
+- **SC-009**: A window resized across either boundary — where the minimum tile
+  count starts or stops binding, and where the world clamp starts or stops
+  binding — produces no visible jump in the frame's width. Continuous resizing
+  produces continuous change, not merely an absence of jumps at the two crossings.
+- **SC-010**: A resize that lands while the camera is already easing toward a
+  target changes what it is easing toward, without restarting or cutting the
+  movement in progress.
 
 ## Out of Scope
 
@@ -268,7 +310,7 @@ kitties through gathering and scattering. The fine detail never switches state.
   This spec fixes what they mean, not what they are.
 - **The whole-world view's own scale.** Camera mode off is untouched; a kitty
   is 17px on a phone there and that is a separate question.
-- **Making small displays legible by other means.** If the minimum tile count
+- **Making small viewports legible by other means.** If the minimum tile count
   still leaves a phone too small to read, the answer is a different feature.
 
 ## Assumptions
@@ -276,6 +318,12 @@ kitties through gathering and scattering. The fine detail never switches state.
 - **The supported viewport range runs from a ~340px map to the ~1200px cap.**
   Those are the measured extremes: a phone at the low end and the largest map
   the client will draw at the high end. The cap is a shipped constant.
+- **The minimum tile count starts at 6, and it is the one deferred number with
+  a real conflict behind it.** Lowering it buys apparent size and zoom range on
+  small viewports and costs framing; raising it does the reverse. At 6 a 340px
+  map gives a 57px tile, which clears the 44px threshold by 13px, and a zoom
+  range of about 1.13×. Unlike the band, it cannot be judged from a table — it
+  is a question about how much meadow is worth looking at.
 - **The band is 100px down to 50px, for now.** 100 is what a large monitor
   already shows at 036's full zoom, so that viewport's behaviour does not change
   and every value dialled against it stays valid; 50 sits above the 44px

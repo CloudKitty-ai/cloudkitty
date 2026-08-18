@@ -99,6 +99,20 @@ be settled is complete; one that simply omits it is not.
     rather than narrowed, since editing a criterion so the implementation passes
     is what rule 4 forbids
 - Items are numbered sequentially for easy reference
+- **2026-08-18 — reviewed against the spec; 12 items produced spec edits.**
+  CHK008, CHK009, CHK010, CHK014, CHK021, CHK027, CHK029, CHK030, CHK031,
+  CHK032, CHK034, CHK035, CHK036 and CHK038 are now addressed: the spec gained
+  FR-011 (the minimum wins over the threshold, deliberately), FR-012 (the world
+  clamp's cost is accepted, not compensated), FR-013 (floor may meet the ceiling,
+  never cross it), FR-014 (a zero viewport measurement must still produce a
+  usable frame), SC-010 (a resize mid-easing), a quantified margin on FR-004, the
+  ratio warning on FR-003, both resize boundaries on SC-009, and a starting value
+  and trade for the minimum tile count. **CHK021 was the worst of them**: the
+  spec said "the map varies by display" in the sentence immediately before the
+  paragraph explaining that it varies by viewport and not by display.
+- **Still unticked and still the reviewer's**: everything above, plus the four
+  below that need a decision rather than an edit — CHK017, CHK020, CHK039,
+  CHK041.
 - **2026-08-18 — the amendment surface was repaired, not just found.** All ten
   `nominal` sites in 036 now carry a pointer to 037: a banner at the top, and an
   inline note at FR-003, FR-004, FR-005, FR-014, SC-001, the User Story 1
