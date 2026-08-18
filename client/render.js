@@ -840,6 +840,29 @@ class WorldRenderer {
   }
 
   /**
+   * The pond layers' bake tile: the ground's, held under a tighter bound.
+   * Past the bound the shorelines are drawn at a coarser tile and scaled
+   * up, which a blurred band and a damp lip carry far better than the
+   * ground's grass and flowers would.
+   */
+  pondBakeTileFor(world) {
+    const bakeTile = this.bakeTileFor(world);
+    // Camera off is camera off. `bakeTileFor` deliberately skips its own
+    // clamp there so the ground is byte-for-byte what shipped, and a
+    // clamp here would undo that for the ponds: on a 5K display the tile
+    // reaches ~59 and the bound would drop the bake to 51.2, softening
+    // the shore, lip, meniscus and lily pads AND pushing the off-state
+    // pond path through the ctx.scale branch its comment promises it
+    // never takes. The claim has to hold for every layer, not the one I
+    // happened to be looking at.
+    if (!this.camera || !this.camera.on) return bakeTile;
+    const dpr = this.dpr || window.devicePixelRatio || 1;
+    const widest = Math.max(world.width, world.height);
+    const maxSide = POND_BAKE_MAX_PX / dpr;
+    return Math.max(1, bakeTile * widest > maxSide ? maxSide / widest : bakeTile);
+  }
+
+  /**
    * The tile the ground bakes at: the one the camera produces at its
    * NARROWEST frame, which is the largest it can ever ask for.
    *
@@ -858,20 +881,6 @@ class WorldRenderer {
    * With the camera off this returns the whole-world tile, so the bake is
    * pixel-for-pixel the one that shipped before this feature.
    */
-  /**
-   * The pond layers' bake tile: the ground's, held under a tighter bound.
-   * Past the bound the shorelines are drawn at a coarser tile and scaled
-   * up, which a blurred band and a damp lip carry far better than the
-   * ground's grass and flowers would.
-   */
-  pondBakeTileFor(world) {
-    const bakeTile = this.bakeTileFor(world);
-    const dpr = this.dpr || window.devicePixelRatio || 1;
-    const widest = Math.max(world.width, world.height);
-    const maxSide = POND_BAKE_MAX_PX / dpr;
-    return Math.max(1, bakeTile * widest > maxSide ? maxSide / widest : bakeTile);
-  }
-
   bakeTileFor(world) {
     // Camera off: the whole-world tile, unclamped, which is byte-for-byte
     // the bake that shipped before this feature -- an offscreen the size
@@ -1028,7 +1037,7 @@ class WorldRenderer {
       layers: this.pondCache.layers,
       // Only the visible slice of the world-sized layers. In bake-tile
       // pixels, because that is the space this call draws in.
-      window: cam
+      clip: cam
         ? {
             x: cam.left * bakeTile,
             y: cam.top * bakeTile,

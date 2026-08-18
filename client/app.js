@@ -553,9 +553,30 @@ function markFollowedCard(id) {
 function setFollow(id) {
   if (anim.camera.followId === id) return;
   anim.camera.followId = id;
+  markedFollow = id;
   markFollowedCard(id);
   storeCamera();
   anim.redraw();
+}
+
+/**
+ * Keep the page in step with a follow the CAMERA ended.
+ *
+ * `targetFor` drops a followed kitty who is no longer in the roster
+ * (FR-020), which is the right place for it -- the same path serves a
+ * kitty who leaves while the page is open and an id restored from
+ * storage that no longer names anyone. But the camera cannot mark a card
+ * or write to storage, so without this the mark stayed on a departed
+ * kitty's card and the dead id stayed in `FOLLOW_KEY` for the rest of the
+ * session.
+ */
+let markedFollow = null;
+function syncFollowMark() {
+  const id = anim.camera.followId;
+  if (id === markedFollow) return;
+  markedFollow = id;
+  markFollowedCard(id);
+  storeCamera();
 }
 
 function initCameraControl() {
@@ -887,6 +908,9 @@ function setStatus(text, connected) {
 /** Everything outside the canvas, for the world that just became current. */
 function present(world) {
   latestWorld = world;
+  // The camera may have dropped a follow since the last state, and a card
+  // rebuild may have discarded the mark. One reconcile covers both.
+  syncFollowMark();
   // The world's sky: on auto, the hour follows the served tick. applyTheme
   // early-returns when the hour hasn't changed, so this is per-tick cheap.
   if (themeMode === 'auto') applyTheme();
@@ -915,6 +939,12 @@ function renderPanel(world) {
     for (const column of columns) {
       for (const card of column.querySelectorAll('.kitty-card')) card.remove();
     }
+    // A rebuild throws away the follow mark with the cards, and there is
+    // no card at all when the page first restores a follow from storage
+    // -- `initCameraState` runs before the first world arrives. Both are
+    // repaired by re-applying after the build rather than by trying to
+    // remember it during one.
+    markedFollow = null;
     for (const kitty of world.kitties) {
       columns[columns.length - 1].appendChild(buildKittyCard(kitty));
     }

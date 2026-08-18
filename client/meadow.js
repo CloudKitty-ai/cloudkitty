@@ -2181,10 +2181,13 @@ function drawCaustics(ctx, pond, tile, now) {
   ctx.restore();
 }
 
-function drawPonds(ctx, { ponds, tile, layers = null, now = 0, motion = true, window = null }) {
+function drawPonds(ctx, { ponds, tile, layers = null, now = 0, motion = true, clip = null }) {
   const t = meadowTunables();
   ctx.save();
-  // `window` is the visible rectangle in this layer's own pixel space,
+  // `clip` is the visible rectangle in this layer's own pixel space --
+  // NOT named `window`, which would shadow the global for the whole
+  // function body and hand a silent rect to anyone later reaching for
+  // `window.devicePixelRatio` in here.
   // or null for "all of it" (spec 036). The layers are baked at world
   // size, which under a camera is several times the canvas -- blitting
   // the whole thing every frame means scaling an image of which most
@@ -2193,14 +2196,14 @@ function drawPonds(ctx, { ponds, tile, layers = null, now = 0, motion = true, wi
   const blit = (layer) => {
     const w = layer.width / layers.dpr;
     const h = layer.height / layers.dpr;
-    if (!window) {
+    if (!clip) {
       ctx.drawImage(layer, 0, 0, w, h);
       return;
     }
-    const sx = Math.max(0, Math.min(window.x, w));
-    const sy = Math.max(0, Math.min(window.y, h));
-    const sw = Math.min(window.w, w - sx);
-    const sh = Math.min(window.h, h - sy);
+    const sx = Math.max(0, Math.min(clip.x, w));
+    const sy = Math.max(0, Math.min(clip.y, h));
+    const sw = Math.min(clip.w, w - sx);
+    const sh = Math.min(clip.h, h - sy);
     if (sw <= 0 || sh <= 0) return;
     ctx.drawImage(layer, sx * layers.dpr, sy * layers.dpr, sw * layers.dpr, sh * layers.dpr, sx, sy, sw, sh);
   };

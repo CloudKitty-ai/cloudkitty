@@ -5895,6 +5895,23 @@ check('the followed card is marked, and only hers', () => {
   assert(/classList\.toggle\('followed'/.test(body), 'no card mark');
   assert(/=== id/.test(body), 'the mark is not restricted to the followed kitty');
   assert(/\.kitty-card\.followed/.test(markup), 'the followed card has no style');
+
+  // The mark has to SURVIVE, which is where it actually broke: nothing
+  // owns a card at the moment the follow is restored (initCameraState
+  // runs before the first world arrives), and renderPanel throws every
+  // card away when the roster size changes. Both were invisible to the
+  // assertions above, which only ask whether the marking code exists.
+  //
+  // These are still source-shape checks -- app.js has no DOM in this
+  // harness, so a real one would mean standing up a document here. That
+  // is worth doing when app.js next needs behavioural coverage; it is not
+  // worth pretending these are equivalent.
+  assert(/markedFollow = null;/.test(app), 'a card rebuild no longer invalidates the mark');
+  assert(/syncFollowMark\(\);/.test(app), 'nothing reconciles a follow the camera ended');
+  const sync = app.slice(app.indexOf('function syncFollowMark('));
+  const syncBody = sync.slice(0, sync.indexOf('\n}\n'));
+  assert(/storeCamera\(\)/.test(syncBody), 'a dropped follow never reaches storage (FR-020)');
+  assert(/markFollowedCard\(/.test(syncBody), 'a dropped follow never clears its card');
   // An outline cannot reflow the column; a border would nudge every card
   // below it the moment a follow started.
   assert(!/\.kitty-card\.followed\s*\{[^}]*border:/.test(markup),
@@ -5932,7 +5949,11 @@ check('the pond layers blit only what is on screen', () => {
   const meadowSrc = readFileSync(join(here, 'meadow.js'), 'utf8');
   const from = meadowSrc.indexOf('function drawPonds(');
   const fn = meadowSrc.slice(from, meadowSrc.indexOf('\n}\n', from));
-  assert(/window = null/.test(fn), 'drawPonds takes no visible window');
+  assert(/clip = null/.test(fn), 'drawPonds takes no visible clip rect');
+  // Not `window`: a parameter of that name shadows the global for the
+  // whole function body, so a later `window.devicePixelRatio` in here
+  // would silently read a rectangle.
+  assert(!/\bwindow = null/.test(fn), 'the clip parameter shadows the global `window`');
   assert(/drawImage\(layer, sx \* layers\.dpr/.test(fn), 'the layer blit has no source rect');
   assert(!/drawImage\(layers\.(lip|shore), 0, 0,/.test(fn), 'a layer still blits the whole world');
 });
