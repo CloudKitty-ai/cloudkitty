@@ -104,3 +104,32 @@ The one thing it does reach is the About card, which is a
 and it is identical before and after 036; nothing here introduced it, and
 the markup is a real `<button type="button">` with no tabindex override,
 `aria-pressed`, `aria-label` and a `:focus-visible` outline.
+
+## Invisible bowls: what has already been ruled out (2026-08-18)
+
+Owner reported sporadic invisible entities including food, and "only one
+food bowl visible on the entire map, even disabling camera". **No drawing
+fault was reproducible.** Against the live world, with 6 chow served:
+
+| suspect | finding |
+|---|---|
+| not served | 6 chow in `/world` |
+| dropped before drawing | all 6 reach `drawElement` in a full frame |
+| faded out | alpha 1.00 for every bowl across 51 ticks |
+| hidden under cover | 0 cover pieces over any bowl tile |
+| mid-crossfade black | `props.js` uses no hex-only helpers |
+| `spriteOrder` filtering | pure sort, drops nothing |
+
+Do not re-run these. Start from what they leave standing.
+
+**Two pre-existing explanations fit without any bug.** A bowl draws at 66%
+of a tile — about 20px with the camera off, 41px with it on — which is the
+"too small and hard to see" item written up in the v3 plan's Phase 5 and
+never built; camera mode doubles it, so the off state can read as a
+regression when it is the old baseline. And a bowl despawns the tick its
+last serving goes (BACKLOG ~line 179), so bowls wink out and respawn
+constantly: their ids ran 4586 to 4663 in about two minutes here.
+
+**What would prove a real bug**: an EMPTY tile where `/world` says a bowl
+is. Fetch `/world`, take the chow positions, and look at those exact
+tiles with the camera off.
