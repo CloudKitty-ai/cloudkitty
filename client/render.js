@@ -633,6 +633,31 @@ class WorldRenderer {
    * `resizeFor` applies a display scale, so the canvas's layout size and
    * its drawing size differ whenever the map is wider than its budget.
    */
+  /**
+   * The visible rectangle in WORLD pixels -- the space everything is
+   * drawn in, offset by the camera's pan.
+   *
+   * Anything that keeps itself on screen has to clamp against THIS, not
+   * against the canvas box. The canvas box is 620px while the world under
+   * a camera is 1240px wide, and the two used to be the same number, so a
+   * clamp written against `canvas.clientWidth` looked right for years and
+   * became a bug the moment a pan existed (spec 036): a bubble belonging
+   * to a kitty out at x=18 was yanked to a coordinate with no relation to
+   * her, and drew over empty grass while she was off-frame.
+   *
+   * `cssWidth` rather than `clientWidth` on purpose. `resizeFor` applies a
+   * display scale, so the canvas's CSS box is smaller than its drawing
+   * space whenever the map outgrows its budget -- which means the old
+   * clamp also fired early on a narrow viewport, before the camera
+   * existed. Same fix covers both.
+   */
+  viewportRect() {
+    const cam = this.camera;
+    const left = cam ? cam.left * this.tile : 0;
+    const top = cam ? cam.top * this.tile : 0;
+    return { left, top, right: left + this.cssWidth, bottom: top + this.cssHeight };
+  }
+
   toWorld(clientX, clientY) {
     const rect = this.canvas.getBoundingClientRect();
     if (!rect.width || !rect.height) return null;
@@ -1681,9 +1706,11 @@ class WorldRenderer {
     const ctx = this.ctx;
     const { x, y } = this.tileOrigin(view.posFor(kitty));
     const r = this.tile * 0.34;
+    const vp = this.viewportRect();
     let bx = x + this.tile * 1.05;
-    bx = Math.min(bx, this.canvas.clientWidth - r - 2);
-    const by = Math.max(r + 2, y - this.tile * 0.55);
+    bx = Math.min(bx, vp.right - r - 2);
+    bx = Math.max(vp.left + r + 2, bx);
+    const by = Math.max(vp.top + r + 2, y - this.tile * 0.55);
 
     ctx.save();
     ctx.fillStyle = 'rgba(255, 253, 250, 0.92)';
@@ -1778,7 +1805,8 @@ class WorldRenderer {
 
     // Keep the bubble on screen even for cats hugging the edges.
     let bx = x + this.tile / 2 - width / 2;
-    bx = Math.max(2, Math.min(bx, this.canvas.clientWidth - width - 2));
+    const vp = this.viewportRect();
+    bx = Math.max(vp.left + 2, Math.min(bx, vp.right - width - 2));
     const by = Math.max(2, y - height - 4);
 
     // A fresh meow pops in with a small settle (US6); older bubbles and

@@ -2395,5 +2395,51 @@ check('the ground the camera bakes is the WORLD, at every zoom', () => {
   assert(tiles.size === 1, `the bake tile took ${tiles.size} values across a zoom sweep`);
 });
 
+check('a thought bubble stays with its kitty when the camera has panned', () => {
+  // Reported by the owner as "detached want bubbles appearing over empty
+  // squares". The bubble clamped itself inside `canvas.clientWidth` --
+  // the canvas BOX, in untranslated coordinates -- while its x came from
+  // tileOrigin, which is world space that the camera now pans. Before a
+  // camera existed the two were the same number, so the clamp read as
+  // correct for years.
+  const arcs = [];
+  const ctx = new Proxy({}, {
+    get: (_t, k) => {
+      if (k === 'canvas') return { clientWidth: 620, clientHeight: 620 };
+      if (k === 'measureText') return () => ({ width: 20 });
+      if (k === 'arc') return (x, y) => { arcs.push({ x, y }); };
+      if (k === 'createLinearGradient' || k === 'createRadialGradient')
+        return () => ({ addColorStop() {} });
+      return () => {};
+    },
+    set: () => true,
+  });
+  const r = new api.WorldRenderer({ getContext: () => ctx, clientWidth: 620, clientHeight: 620 });
+  r.cssWidth = 620;
+  r.cssHeight = 620;
+  r.dpr = 1;
+  r.camera = new api.Camera();
+  r.camera.on = true;
+  r.camera.across = 10;
+  r.camera.left = 10; // panned to the world's right half
+  r.camera.top = 0;
+  r.tile = 62; // 620 / 10 across
+
+  // A kitty at world x=15: comfortably inside the frame [10, 20).
+  const kitty = { id: 1, pos: { x: 15, y: 4 }, needs: {} };
+  const view = { posFor: (k) => k.pos };
+  r.drawThought(kitty, 'eat', view);
+
+  assert(arcs.length > 0, 'the bubble drew nothing');
+  const bubble = arcs[0];
+  const her = 15 * 62;
+  // Inside the visible frame, in world pixels...
+  assert(bubble.x >= 10 * 62 && bubble.x <= 20 * 62,
+    `the bubble landed at ${bubble.x}, outside the visible frame ${10 * 62}..${20 * 62}`);
+  // ...and beside HER, not dragged to the canvas box's edge at 620.
+  assert(Math.abs(bubble.x - her) < 2 * 62,
+    `the bubble sat ${Math.abs(bubble.x - her).toFixed(0)}px from its kitty at ${her}`);
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);
