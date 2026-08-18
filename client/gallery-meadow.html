@@ -169,12 +169,22 @@
     which is why the palette is asked rather than told.
   </p>
   <p class="note">
-    <strong>Drawn at the CAMERA tile, twice the world tile</strong> — the
-    camera shows 10 tiles across where the whole-world view shows 20. That
-    is not decoration: <code>MENISCUS</code> was parked until camera mode
-    existed precisely because a 1.7px line cannot be judged at the world
-    tile. The <em>Scale</em> dial still drives it, and this card doubles
-    whatever it says.
+    <strong>Drawn at the camera tile a WQHD display produces</strong> —
+    about 100px, from a ~1000px map divided by the 10 tiles the camera
+    frames. Deliberately <em>not</em> the <em>Scale</em> dial: that dial
+    describes the WHOLE-WORLD tile, and its default of 31 is a laptop's.
+    Doubling it gave 62px, which on a WQHD display is barely above the
+    48–53px that display already shows without a camera at all — so the
+    card was judging the meniscus at almost exactly the size it was parked
+    for being too small to judge at.
+  </p>
+  <p class="note">
+    Every <code>MENISCUS</code> value is a FRACTION of the tile, so what
+    changes between displays is only how many pixels the line gets: the
+    stroke is <code>tile × 0.045</code>, which is 4.5px here and about 2px
+    on a laptop's ~45px camera tile. Dial it here, then sanity-check it
+    against the 3× magnifier strip above, which is where sub-pixel
+    aliasing shows.
   </p>
   <p class="note">
     Each cell is the same cat standing in the middle of the same 2&times;2
@@ -182,8 +192,9 @@
     is the palette. The row beneath repeats it at <strong>the deepest
     wade</strong>, where the fill and the ring have the most to do.
   </p>
-  <canvas id="meniscus-phases" width="960" height="440"></canvas>
+  <canvas id="meniscus-phases" width="960" height="500"></canvas>
   <div class="styles" id="meniscus-labels" style="grid-template-columns: repeat(4, 1fr);"></div>
+  <p class="note" id="meniscus-size"></p>
 
   <h2>Leaf swing — the same shrub, right through the day</h2>
   <p class="note">
@@ -645,7 +656,16 @@
     // The CAMERA tile: camera mode frames 10 tiles across where the
     // whole-world view frames 20, so it is exactly twice. Judging the
     // meniscus at the world tile is what this card exists to stop.
-    const mTile = tile * 2;
+    // The camera tile, filling the cell: the biggest the card can show,
+    // which lands near 100px and is what a WQHD display's camera actually
+    // produces (a ~1000px map over the 10 tiles the camera frames).
+    //
+    // NOT the Scale dial. That dial is the whole-world tile and defaults
+    // to a laptop's 31; doubling it gave 62px, under what a WQHD display
+    // shows with no camera at all -- so the card judged the meniscus at
+    // the very size it was parked for being unjudgeable at.
+    const PAD = 20;
+    const mTile = Math.floor(Math.min(cw - PAD * 2, rowH - PAD * 2) / 2);
     const pond = mTile * 2; // the 2x2 lake, in pixels
     const padX = (cw - pond) / 2;
     const padY = (rowH - pond) / 2;
@@ -723,8 +743,14 @@
     });
 
     const labels = document.getElementById('meniscus-labels');
-    if (labels && labels.childElementCount !== PHASES_4.length) {
-      labels.innerHTML = PHASES_4.map((ph) => `<span>${ph}</span>`).join('');
+    const want = PHASES_4.map((ph) => `<span>${ph}</span>`).join('');
+    if (labels && labels.innerHTML !== want) labels.innerHTML = want;
+    const size = document.getElementById('meniscus-size');
+    if (size) {
+      size.textContent =
+        `${mTile}px camera tile — stroke ${(mTile * 0.045).toFixed(1)}px, `
+        + `meniscus half-width ${(mTile * MENISCUS.rx).toFixed(0)}px. `
+        + `A WQHD camera tile is ~100px; a laptop's is ~45px.`;
     }
   }
 
