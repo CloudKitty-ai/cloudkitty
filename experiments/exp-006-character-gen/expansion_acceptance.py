@@ -125,18 +125,21 @@ def load_prewall_rows():
                     dtype=np.float32)
 
 
-def load_v5_rows():
+def load_v5_rows(full=False):
     # Collection may still be running; skip in-flight files (headers are
     # pre-sized, so a partial obs.npy mmaps short). Same loader shape as
     # residual_audibility.py for comparability with the banked numbers.
+    # --full-cell (post-collection): first 500 rows of ALL 108 dirs, so
+    # the 10k sample spans every family and roster stratum.
+    per = 500 if full else 2000
     chunks = []
     for d in sorted((HERE / "raw" / "v5-spread").glob("config-*/")):
         try:
             chunks.append(np.array(np.load(d / "obs.npy",
-                                           mmap_mode="r")[:2000]))
+                                           mmap_mode="r")[:per]))
         except (ValueError, FileNotFoundError):
             continue
-        if len(chunks) >= 8:
+        if not full and len(chunks) >= 8:
             break
     obs = np.concatenate(chunks)
     assert obs.shape[1] == D4, obs.shape
@@ -187,8 +190,10 @@ def main():
         assert worst <= 1e-5, f"{name} parity gate FAILED"
         assert floor_hi <= FLOOR + 1.0, f"{name} floor breached"
 
-    print("\n== per-artifact U1 residual (D-001 method, v5 rows) ==")
-    rows = load_v5_rows()
+    full = "--full-cell" in sys.argv
+    print("\n== per-artifact U1 residual (D-001 method, v5 rows"
+          + (", FULL cell) ==" if full else ") =="))
+    rows = load_v5_rows(full)
     msg = rows[:, A4:B4E].reshape(-1, N4, F4)
     assert float(np.abs(msg[:, 8:, :]).max()) == 0.0, \
         "expected silent new kinds in v5 rows"
@@ -229,7 +234,9 @@ def main():
                      for k, v in residual.items()},
     }
     (HERE / "results-raw").mkdir(exist_ok=True)
-    p = HERE / "results-raw" / "expansion-acceptance.json"
+    p = HERE / "results-raw" / (
+        "expansion-acceptance-full.json" if full
+        else "expansion-acceptance.json")
     p.write_text(json.dumps(out, indent=1) + "\n")
     print(f"\n-> {p}")
 

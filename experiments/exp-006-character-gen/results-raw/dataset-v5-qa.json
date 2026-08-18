@@ -1,0 +1,1495 @@
+{
+ "pinned": {
+  "aggregate": {
+   "decisions": 3447547,
+   "dropped": 1327,
+   "mask_mismatch": 7126,
+   "msg_mask_mismatch": 0,
+   "msg_inexpressible": 23967
+  },
+  "configs": {
+   "00": {
+    "experts": {
+     "1": "needs_driven",
+     "2": "playful",
+     "3": "needs_driven"
+    },
+    "roster_size": 3,
+    "state_width": 133,
+    "decisions": 143718,
+    "reward_per_tick": 0.8625,
+    "reward_min": 0.7491,
+    "happiness_mean": 86.52,
+    "seat_happiness": {
+     "1": 90.48,
+     "2": 78.33,
+     "3": 90.77
+    },
+    "distress_row_share": 0.0,
+    "distress_by_need": {},
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0177,
+     "want_drink": 0.0155,
+     "mew": 1.0,
+     "want_play": 0.0008,
+     "want_cuddle": 0.0114,
+     "purr": 0.9745,
+     "want_bath": 0.0078,
+     "want_sleep": 0.0176,
+     "here_food": 0.1053,
+     "here_water": 0.1426,
+     "here_critter": 0.1448,
+     "here_sunbeam": 0.1262,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "01": {
+    "experts": {
+     "2": "playful",
+     "3": "needs_driven",
+     "4": "needs_driven",
+     "5": "needs_driven"
+    },
+    "roster_size": 4,
+    "state_width": 165,
+    "decisions": 191575,
+    "reward_per_tick": 0.8748,
+    "reward_min": 0.7329,
+    "happiness_mean": 87.68,
+    "seat_happiness": {
+     "2": 79.24,
+     "3": 90.72,
+     "4": 90.46,
+     "5": 90.34
+    },
+    "distress_row_share": 0.0,
+    "distress_by_need": {},
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.016,
+     "want_drink": 0.0127,
+     "mew": 1.0,
+     "want_play": 0.0006,
+     "want_cuddle": 0.0059,
+     "purr": 0.9871,
+     "want_bath": 0.005,
+     "want_sleep": 0.0122,
+     "here_food": 0.1004,
+     "here_water": 0.2067,
+     "here_critter": 0.0968,
+     "here_sunbeam": 0.0994,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "02": {
+    "experts": {
+     "1": "needs_driven",
+     "2": "playful",
+     "3": "needs_driven",
+     "4": "needs_driven",
+     "5": "needs_driven"
+    },
+    "roster_size": 5,
+    "state_width": 197,
+    "decisions": 239187,
+    "reward_per_tick": 0.8776,
+    "reward_min": 0.792,
+    "happiness_mean": 87.94,
+    "seat_happiness": {
+     "1": 89.92,
+     "2": 79.14,
+     "3": 90.41,
+     "4": 90.25,
+     "5": 89.97
+    },
+    "distress_row_share": 5.9e-05,
+    "distress_by_need": {
+     "bath": 14
+    },
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0138,
+     "want_drink": 0.0107,
+     "mew": 1.0,
+     "want_play": 0.0006,
+     "want_cuddle": 0.0059,
+     "purr": 0.9887,
+     "want_bath": 0.0039,
+     "want_sleep": 0.011,
+     "here_food": 0.0926,
+     "here_water": 0.1754,
+     "here_critter": 0.083,
+     "here_sunbeam": 0.1372,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "03": {
+    "experts": {
+     "1": "needs_driven",
+     "2": "playful",
+     "5": "needs_driven"
+    },
+    "roster_size": 3,
+    "state_width": 133,
+    "decisions": 143707,
+    "reward_per_tick": 0.8581,
+    "reward_min": 0.674,
+    "happiness_mean": 86.04,
+    "seat_happiness": {
+     "1": 89.85,
+     "2": 78.68,
+     "5": 89.62
+    },
+    "distress_row_share": 0.0,
+    "distress_by_need": {},
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0193,
+     "want_drink": 0.0164,
+     "mew": 1.0,
+     "want_play": 0.0013,
+     "want_cuddle": 0.0124,
+     "purr": 0.9782,
+     "want_bath": 0.0064,
+     "want_sleep": 0.0176,
+     "here_food": 0.0792,
+     "here_water": 0.146,
+     "here_critter": 0.1121,
+     "here_sunbeam": 0.1491,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "04": {
+    "experts": {
+     "2": "playful",
+     "3": "needs_driven",
+     "4": "needs_driven",
+     "5": "needs_driven"
+    },
+    "roster_size": 4,
+    "state_width": 165,
+    "decisions": 191611,
+    "reward_per_tick": 0.8789,
+    "reward_min": 0.7172,
+    "happiness_mean": 88.08,
+    "seat_happiness": {
+     "2": 79.85,
+     "3": 91.06,
+     "4": 90.82,
+     "5": 90.6
+    },
+    "distress_row_share": 0.0,
+    "distress_by_need": {},
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0137,
+     "want_drink": 0.0103,
+     "mew": 1.0,
+     "want_play": 0.0005,
+     "want_cuddle": 0.0064,
+     "purr": 0.9906,
+     "want_bath": 0.0046,
+     "want_sleep": 0.0124,
+     "here_food": 0.115,
+     "here_water": 0.195,
+     "here_critter": 0.1202,
+     "here_sunbeam": 0.1081,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "05": {
+    "experts": {
+     "1": "needs_driven",
+     "2": "playful",
+     "3": "needs_driven",
+     "4": "needs_driven",
+     "5": "needs_driven"
+    },
+    "roster_size": 5,
+    "state_width": 197,
+    "decisions": 239291,
+    "reward_per_tick": 0.88,
+    "reward_min": 0.7797,
+    "happiness_mean": 88.19,
+    "seat_happiness": {
+     "1": 90.32,
+     "2": 79.18,
+     "3": 90.68,
+     "4": 90.7,
+     "5": 90.07
+    },
+    "distress_row_share": 0.0,
+    "distress_by_need": {},
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0132,
+     "want_drink": 0.0103,
+     "mew": 1.0,
+     "want_play": 0.0005,
+     "want_cuddle": 0.0053,
+     "purr": 0.9896,
+     "want_bath": 0.0034,
+     "want_sleep": 0.0107,
+     "here_food": 0.101,
+     "here_water": 0.1595,
+     "here_critter": 0.0887,
+     "here_sunbeam": 0.1316,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "06": {
+    "experts": {
+     "1": "needs_driven",
+     "2": "playful",
+     "4": "needs_driven"
+    },
+    "roster_size": 3,
+    "state_width": 133,
+    "decisions": 143763,
+    "reward_per_tick": 0.8561,
+    "reward_min": 0.5878,
+    "happiness_mean": 85.88,
+    "seat_happiness": {
+     "1": 89.87,
+     "2": 77.69,
+     "4": 90.09
+    },
+    "distress_row_share": 0.0,
+    "distress_by_need": {},
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0186,
+     "want_drink": 0.0175,
+     "mew": 1.0,
+     "want_play": 0.0016,
+     "want_cuddle": 0.0125,
+     "purr": 0.97,
+     "want_bath": 0.0087,
+     "want_sleep": 0.0176,
+     "here_food": 0.0791,
+     "here_water": 0.1742,
+     "here_critter": 0.127,
+     "here_sunbeam": 0.1145,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "07": {
+    "experts": {
+     "1": "needs_driven",
+     "2": "playful",
+     "3": "needs_driven",
+     "4": "needs_driven"
+    },
+    "roster_size": 4,
+    "state_width": 165,
+    "decisions": 191639,
+    "reward_per_tick": 0.8679,
+    "reward_min": 0.6394,
+    "happiness_mean": 87.02,
+    "seat_happiness": {
+     "1": 89.64,
+     "2": 78.22,
+     "3": 90.21,
+     "4": 90.02
+    },
+    "distress_row_share": 0.0,
+    "distress_by_need": {},
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0172,
+     "want_drink": 0.0134,
+     "mew": 1.0,
+     "want_play": 0.0014,
+     "want_cuddle": 0.0082,
+     "purr": 0.9809,
+     "want_bath": 0.0053,
+     "want_sleep": 0.0135,
+     "here_food": 0.0864,
+     "here_water": 0.1532,
+     "here_critter": 0.0961,
+     "here_sunbeam": 0.1345,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "08": {
+    "experts": {
+     "1": "needs_driven",
+     "2": "playful",
+     "3": "needs_driven",
+     "4": "needs_driven",
+     "5": "needs_driven"
+    },
+    "roster_size": 5,
+    "state_width": 197,
+    "decisions": 239303,
+    "reward_per_tick": 0.8816,
+    "reward_min": 0.7904,
+    "happiness_mean": 88.34,
+    "seat_happiness": {
+     "1": 90.26,
+     "2": 79.81,
+     "3": 90.83,
+     "4": 90.61,
+     "5": 90.17
+    },
+    "distress_row_share": 0.0,
+    "distress_by_need": {},
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0108,
+     "want_drink": 0.0093,
+     "mew": 1.0,
+     "want_play": 0.0004,
+     "want_cuddle": 0.0055,
+     "purr": 0.9916,
+     "want_bath": 0.0035,
+     "want_sleep": 0.0111,
+     "here_food": 0.113,
+     "here_water": 0.1817,
+     "here_critter": 0.1004,
+     "here_sunbeam": 0.2069,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "09": {
+    "experts": {
+     "1": "needs_driven",
+     "2": "playful",
+     "3": "needs_driven"
+    },
+    "roster_size": 3,
+    "state_width": 133,
+    "decisions": 143728,
+    "reward_per_tick": 0.863,
+    "reward_min": 0.7126,
+    "happiness_mean": 86.54,
+    "seat_happiness": {
+     "1": 90.26,
+     "2": 78.79,
+     "3": 90.6
+    },
+    "distress_row_share": 0.0,
+    "distress_by_need": {},
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0178,
+     "want_drink": 0.0145,
+     "mew": 1.0,
+     "want_play": 0.0008,
+     "want_cuddle": 0.0118,
+     "purr": 0.9784,
+     "want_bath": 0.0072,
+     "want_sleep": 0.0174,
+     "here_food": 0.1004,
+     "here_water": 0.157,
+     "here_critter": 0.1407,
+     "here_sunbeam": 0.1683,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "10": {
+    "experts": {
+     "1": "needs_driven",
+     "2": "playful",
+     "3": "needs_driven",
+     "4": "needs_driven"
+    },
+    "roster_size": 4,
+    "state_width": 165,
+    "decisions": 191628,
+    "reward_per_tick": 0.8706,
+    "reward_min": 0.7325,
+    "happiness_mean": 87.27,
+    "seat_happiness": {
+     "1": 90.03,
+     "2": 78.71,
+     "3": 90.25,
+     "4": 90.13
+    },
+    "distress_row_share": 2.1e-05,
+    "distress_by_need": {
+     "bath": 4
+    },
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0157,
+     "want_drink": 0.0121,
+     "mew": 1.0,
+     "want_play": 0.0008,
+     "want_cuddle": 0.0079,
+     "purr": 0.9832,
+     "want_bath": 0.0047,
+     "want_sleep": 0.0132,
+     "here_food": 0.0918,
+     "here_water": 0.1376,
+     "here_critter": 0.0981,
+     "here_sunbeam": 0.1498,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "11": {
+    "experts": {
+     "1": "needs_driven",
+     "2": "playful",
+     "3": "needs_driven",
+     "4": "needs_driven",
+     "5": "needs_driven"
+    },
+    "roster_size": 5,
+    "state_width": 197,
+    "decisions": 239148,
+    "reward_per_tick": 0.8749,
+    "reward_min": 0.7763,
+    "happiness_mean": 87.69,
+    "seat_happiness": {
+     "1": 89.93,
+     "2": 78.69,
+     "3": 90.12,
+     "4": 89.88,
+     "5": 89.8
+    },
+    "distress_row_share": 0.0,
+    "distress_by_need": {},
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0172,
+     "want_drink": 0.0128,
+     "mew": 1.0,
+     "want_play": 0.0009,
+     "want_cuddle": 0.0055,
+     "purr": 0.9869,
+     "want_bath": 0.0043,
+     "want_sleep": 0.0106,
+     "here_food": 0.0871,
+     "here_water": 0.2167,
+     "here_critter": 0.0685,
+     "here_sunbeam": 0.1049,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "12": {
+    "experts": {
+     "2": "playful",
+     "3": "needs_driven",
+     "4": "needs_driven"
+    },
+    "roster_size": 3,
+    "state_width": 133,
+    "decisions": 143758,
+    "reward_per_tick": 0.8642,
+    "reward_min": 0.622,
+    "happiness_mean": 86.67,
+    "seat_happiness": {
+     "2": 78.67,
+     "3": 90.8,
+     "4": 90.57
+    },
+    "distress_row_share": 0.0,
+    "distress_by_need": {},
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.017,
+     "want_drink": 0.0145,
+     "mew": 1.0,
+     "want_play": 0.0006,
+     "want_cuddle": 0.0115,
+     "purr": 0.9787,
+     "want_bath": 0.008,
+     "want_sleep": 0.0163,
+     "here_food": 0.116,
+     "here_water": 0.1613,
+     "here_critter": 0.1464,
+     "here_sunbeam": 0.1258,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "13": {
+    "experts": {
+     "1": "needs_driven",
+     "2": "playful",
+     "3": "needs_driven",
+     "5": "needs_driven"
+    },
+    "roster_size": 4,
+    "state_width": 165,
+    "decisions": 191603,
+    "reward_per_tick": 0.8745,
+    "reward_min": 0.7826,
+    "happiness_mean": 87.66,
+    "seat_happiness": {
+     "1": 90.45,
+     "2": 79.14,
+     "3": 90.8,
+     "5": 90.26
+    },
+    "distress_row_share": 0.0,
+    "distress_by_need": {},
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0155,
+     "want_drink": 0.0115,
+     "mew": 1.0,
+     "want_play": 0.0006,
+     "want_cuddle": 0.0075,
+     "purr": 0.9875,
+     "want_bath": 0.0045,
+     "want_sleep": 0.0132,
+     "here_food": 0.1006,
+     "here_water": 0.1712,
+     "here_critter": 0.1101,
+     "here_sunbeam": 0.1032,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "14": {
+    "experts": {
+     "1": "needs_driven",
+     "2": "playful",
+     "3": "needs_driven",
+     "4": "needs_driven",
+     "5": "needs_driven"
+    },
+    "roster_size": 5,
+    "state_width": 197,
+    "decisions": 239293,
+    "reward_per_tick": 0.8775,
+    "reward_min": 0.7182,
+    "happiness_mean": 87.94,
+    "seat_happiness": {
+     "1": 90.05,
+     "2": 79.01,
+     "3": 90.37,
+     "4": 90.42,
+     "5": 89.84
+    },
+    "distress_row_share": 0.0,
+    "distress_by_need": {},
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0151,
+     "want_drink": 0.0096,
+     "mew": 1.0,
+     "want_play": 0.0009,
+     "want_cuddle": 0.0065,
+     "purr": 0.9884,
+     "want_bath": 0.0035,
+     "want_sleep": 0.0109,
+     "here_food": 0.0946,
+     "here_water": 0.1676,
+     "here_critter": 0.0815,
+     "here_sunbeam": 0.1358,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "15": {
+    "experts": {
+     "2": "playful",
+     "3": "needs_driven",
+     "5": "needs_driven"
+    },
+    "roster_size": 3,
+    "state_width": 133,
+    "decisions": 143714,
+    "reward_per_tick": 0.8622,
+    "reward_min": 0.7328,
+    "happiness_mean": 86.46,
+    "seat_happiness": {
+     "2": 78.85,
+     "3": 90.47,
+     "5": 90.08
+    },
+    "distress_row_share": 0.0,
+    "distress_by_need": {},
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0206,
+     "want_drink": 0.0167,
+     "mew": 1.0,
+     "want_play": 0.0012,
+     "want_cuddle": 0.0107,
+     "purr": 0.9792,
+     "want_bath": 0.0061,
+     "want_sleep": 0.0161,
+     "here_food": 0.0992,
+     "here_water": 0.1391,
+     "here_critter": 0.114,
+     "here_sunbeam": 0.0824,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "16": {
+    "experts": {
+     "1": "needs_driven",
+     "2": "playful",
+     "3": "needs_driven",
+     "4": "needs_driven"
+    },
+    "roster_size": 4,
+    "state_width": 165,
+    "decisions": 191585,
+    "reward_per_tick": 0.871,
+    "reward_min": 0.7074,
+    "happiness_mean": 87.32,
+    "seat_happiness": {
+     "1": 90.06,
+     "2": 78.52,
+     "3": 90.57,
+     "4": 90.14
+    },
+    "distress_row_share": 0.0,
+    "distress_by_need": {},
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0151,
+     "want_drink": 0.0134,
+     "mew": 1.0,
+     "want_play": 0.0006,
+     "want_cuddle": 0.0073,
+     "purr": 0.9834,
+     "want_bath": 0.0057,
+     "want_sleep": 0.0135,
+     "here_food": 0.0963,
+     "here_water": 0.1915,
+     "here_critter": 0.112,
+     "here_sunbeam": 0.1542,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "17": {
+    "experts": {
+     "1": "needs_driven",
+     "2": "playful",
+     "3": "needs_driven",
+     "4": "needs_driven",
+     "5": "needs_driven"
+    },
+    "roster_size": 5,
+    "state_width": 197,
+    "decisions": 239296,
+    "reward_per_tick": 0.8808,
+    "reward_min": 0.7801,
+    "happiness_mean": 88.27,
+    "seat_happiness": {
+     "1": 90.31,
+     "2": 79.34,
+     "3": 90.75,
+     "4": 90.57,
+     "5": 90.37
+    },
+    "distress_row_share": 0.0,
+    "distress_by_need": {},
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0133,
+     "want_drink": 0.01,
+     "mew": 1.0,
+     "want_play": 0.0004,
+     "want_cuddle": 0.0052,
+     "purr": 0.9895,
+     "want_bath": 0.0038,
+     "want_sleep": 0.0106,
+     "here_food": 0.1013,
+     "here_water": 0.1896,
+     "here_critter": 0.0875,
+     "here_sunbeam": 0.1194,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   }
+  },
+  "rates": {
+   "dropped": 0.000385,
+   "mask_mismatch": 0.002067,
+   "msg_inexpressible": 0.006952
+  }
+ },
+ "spread": {
+  "aggregate": {
+   "decisions": 3447175,
+   "dropped": 1708,
+   "mask_mismatch": 7117,
+   "msg_mask_mismatch": 0,
+   "msg_inexpressible": 23016
+  },
+  "configs": {
+   "00": {
+    "experts": {
+     "1": "needs_driven",
+     "2": "playful",
+     "3": "needs_driven"
+    },
+    "roster_size": 3,
+    "state_width": 133,
+    "decisions": 143758,
+    "reward_per_tick": 0.8623,
+    "reward_min": 0.6874,
+    "happiness_mean": 86.5,
+    "seat_happiness": {
+     "1": 90.41,
+     "2": 78.31,
+     "3": 90.79
+    },
+    "distress_row_share": 0.0,
+    "distress_by_need": {},
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0184,
+     "want_drink": 0.0153,
+     "mew": 1.0,
+     "want_play": 0.0009,
+     "want_cuddle": 0.0118,
+     "purr": 0.9736,
+     "want_bath": 0.0073,
+     "want_sleep": 0.0176,
+     "here_food": 0.1006,
+     "here_water": 0.1432,
+     "here_critter": 0.1397,
+     "here_sunbeam": 0.1335,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "01": {
+    "experts": {
+     "2": "playful",
+     "3": "needs_driven",
+     "4": "needs_driven",
+     "5": "needs_driven"
+    },
+    "roster_size": 4,
+    "state_width": 165,
+    "decisions": 191568,
+    "reward_per_tick": 0.8756,
+    "reward_min": 0.7793,
+    "happiness_mean": 87.75,
+    "seat_happiness": {
+     "2": 79.63,
+     "3": 90.67,
+     "4": 90.46,
+     "5": 90.26
+    },
+    "distress_row_share": 0.0,
+    "distress_by_need": {},
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0154,
+     "want_drink": 0.0126,
+     "mew": 1.0,
+     "want_play": 0.0006,
+     "want_cuddle": 0.0058,
+     "purr": 0.9898,
+     "want_bath": 0.0052,
+     "want_sleep": 0.012,
+     "here_food": 0.1004,
+     "here_water": 0.2147,
+     "here_critter": 0.0911,
+     "here_sunbeam": 0.0945,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "02": {
+    "experts": {
+     "1": "needs_driven",
+     "2": "playful",
+     "3": "needs_driven",
+     "4": "needs_driven",
+     "5": "needs_driven"
+    },
+    "roster_size": 5,
+    "state_width": 197,
+    "decisions": 239264,
+    "reward_per_tick": 0.8787,
+    "reward_min": 0.7828,
+    "happiness_mean": 88.05,
+    "seat_happiness": {
+     "1": 90.11,
+     "2": 79.35,
+     "3": 90.53,
+     "4": 90.24,
+     "5": 90.02
+    },
+    "distress_row_share": 0.0,
+    "distress_by_need": {},
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0137,
+     "want_drink": 0.0102,
+     "mew": 1.0,
+     "want_play": 0.0006,
+     "want_cuddle": 0.0057,
+     "purr": 0.9895,
+     "want_bath": 0.004,
+     "want_sleep": 0.0107,
+     "here_food": 0.0978,
+     "here_water": 0.1894,
+     "here_critter": 0.0773,
+     "here_sunbeam": 0.1362,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "03": {
+    "experts": {
+     "2": "playful",
+     "3": "needs_driven",
+     "5": "needs_driven"
+    },
+    "roster_size": 3,
+    "state_width": 133,
+    "decisions": 143796,
+    "reward_per_tick": 0.8442,
+    "reward_min": 0.6633,
+    "happiness_mean": 84.7,
+    "seat_happiness": {
+     "2": 76.79,
+     "3": 89.06,
+     "5": 88.26
+    },
+    "distress_row_share": 0.000118,
+    "distress_by_need": {
+     "eat": 10,
+     "bath": 7
+    },
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0271,
+     "want_drink": 0.0194,
+     "mew": 1.0,
+     "want_play": 0.0034,
+     "want_cuddle": 0.0162,
+     "purr": 0.9627,
+     "want_bath": 0.0067,
+     "want_sleep": 0.0175,
+     "here_food": 0.0979,
+     "here_water": 0.1372,
+     "here_critter": 0.1056,
+     "here_sunbeam": 0.1047,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "04": {
+    "experts": {
+     "2": "playful",
+     "3": "needs_driven",
+     "4": "needs_driven",
+     "5": "needs_driven"
+    },
+    "roster_size": 4,
+    "state_width": 165,
+    "decisions": 191589,
+    "reward_per_tick": 0.87,
+    "reward_min": 0.7384,
+    "happiness_mean": 87.2,
+    "seat_happiness": {
+     "2": 79.02,
+     "3": 90.11,
+     "4": 89.41,
+     "5": 90.27
+    },
+    "distress_row_share": 0.0,
+    "distress_by_need": {},
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0167,
+     "want_drink": 0.0123,
+     "mew": 1.0,
+     "want_play": 0.0007,
+     "want_cuddle": 0.0079,
+     "purr": 0.9863,
+     "want_bath": 0.0056,
+     "want_sleep": 0.0125,
+     "here_food": 0.126,
+     "here_water": 0.2098,
+     "here_critter": 0.1218,
+     "here_sunbeam": 0.0924,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "05": {
+    "experts": {
+     "1": "needs_driven",
+     "2": "playful",
+     "3": "needs_driven",
+     "4": "needs_driven",
+     "5": "needs_driven"
+    },
+    "roster_size": 5,
+    "state_width": 197,
+    "decisions": 239114,
+    "reward_per_tick": 0.8599,
+    "reward_min": 0.7606,
+    "happiness_mean": 86.17,
+    "seat_happiness": {
+     "1": 89.29,
+     "2": 78.44,
+     "3": 88.53,
+     "4": 87.74,
+     "5": 86.85
+    },
+    "distress_row_share": 7.5e-05,
+    "distress_by_need": {
+     "eat": 18
+    },
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0228,
+     "want_drink": 0.0142,
+     "mew": 1.0,
+     "want_play": 0.0035,
+     "want_cuddle": 0.007,
+     "purr": 0.9857,
+     "want_bath": 0.0046,
+     "want_sleep": 0.0119,
+     "here_food": 0.1132,
+     "here_water": 0.1409,
+     "here_critter": 0.0826,
+     "here_sunbeam": 0.1601,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "06": {
+    "experts": {
+     "2": "playful",
+     "3": "needs_driven",
+     "5": "needs_driven"
+    },
+    "roster_size": 3,
+    "state_width": 133,
+    "decisions": 143793,
+    "reward_per_tick": 0.8752,
+    "reward_min": 0.7333,
+    "happiness_mean": 87.82,
+    "seat_happiness": {
+     "2": 78.94,
+     "3": 92.21,
+     "5": 92.31
+    },
+    "distress_row_share": 0.0,
+    "distress_by_need": {},
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0167,
+     "want_drink": 0.0161,
+     "mew": 1.0,
+     "want_play": 0.0,
+     "want_cuddle": 0.0061,
+     "purr": 0.9777,
+     "want_bath": 0.0095,
+     "want_sleep": 0.0189,
+     "here_food": 0.0635,
+     "here_water": 0.2665,
+     "here_critter": 0.1173,
+     "here_sunbeam": 0.0742,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "07": {
+    "experts": {
+     "1": "needs_driven",
+     "2": "playful",
+     "3": "needs_driven",
+     "5": "needs_driven"
+    },
+    "roster_size": 4,
+    "state_width": 165,
+    "decisions": 191430,
+    "reward_per_tick": 0.8714,
+    "reward_min": 0.746,
+    "happiness_mean": 87.31,
+    "seat_happiness": {
+     "1": 89.4,
+     "2": 80.64,
+     "3": 87.17,
+     "5": 92.07
+    },
+    "distress_row_share": 0.0,
+    "distress_by_need": {},
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0174,
+     "want_drink": 0.0185,
+     "mew": 1.0,
+     "want_play": 0.0026,
+     "want_cuddle": 0.0046,
+     "purr": 0.9933,
+     "want_bath": 0.0074,
+     "want_sleep": 0.0139,
+     "here_food": 0.0863,
+     "here_water": 0.1881,
+     "here_critter": 0.0779,
+     "here_sunbeam": 0.113,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "08": {
+    "experts": {
+     "1": "needs_driven",
+     "2": "playful",
+     "3": "needs_driven",
+     "4": "needs_driven",
+     "5": "needs_driven"
+    },
+    "roster_size": 5,
+    "state_width": 197,
+    "decisions": 239264,
+    "reward_per_tick": 0.8716,
+    "reward_min": 0.7685,
+    "happiness_mean": 87.4,
+    "seat_happiness": {
+     "1": 89.49,
+     "2": 77.29,
+     "3": 91.41,
+     "4": 88.44,
+     "5": 90.35
+    },
+    "distress_row_share": 0.000706,
+    "distress_by_need": {
+     "eat": 76,
+     "drink": 78,
+     "play": 20
+    },
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0137,
+     "want_drink": 0.0148,
+     "mew": 1.0,
+     "want_play": 0.0025,
+     "want_cuddle": 0.005,
+     "purr": 0.9806,
+     "want_bath": 0.0026,
+     "want_sleep": 0.0164,
+     "here_food": 0.0887,
+     "here_water": 0.1866,
+     "here_critter": 0.0928,
+     "here_sunbeam": 0.2449,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "09": {
+    "experts": {
+     "2": "playful",
+     "4": "needs_driven",
+     "5": "needs_driven"
+    },
+    "roster_size": 3,
+    "state_width": 133,
+    "decisions": 143736,
+    "reward_per_tick": 0.8627,
+    "reward_min": 0.7529,
+    "happiness_mean": 86.49,
+    "seat_happiness": {
+     "2": 79.09,
+     "4": 90.46,
+     "5": 89.95
+    },
+    "distress_row_share": 0.0,
+    "distress_by_need": {},
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0184,
+     "want_drink": 0.0147,
+     "mew": 1.0,
+     "want_play": 0.0009,
+     "want_cuddle": 0.0106,
+     "purr": 0.9841,
+     "want_bath": 0.0062,
+     "want_sleep": 0.0163,
+     "here_food": 0.0891,
+     "here_water": 0.1545,
+     "here_critter": 0.1404,
+     "here_sunbeam": 0.1286,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "10": {
+    "experts": {
+     "2": "playful",
+     "3": "needs_driven",
+     "4": "needs_driven",
+     "5": "needs_driven"
+    },
+    "roster_size": 4,
+    "state_width": 165,
+    "decisions": 191605,
+    "reward_per_tick": 0.8712,
+    "reward_min": 0.7754,
+    "happiness_mean": 87.33,
+    "seat_happiness": {
+     "2": 79.02,
+     "3": 90.42,
+     "4": 90.18,
+     "5": 89.71
+    },
+    "distress_row_share": 0.0,
+    "distress_by_need": {},
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0164,
+     "want_drink": 0.0134,
+     "mew": 1.0,
+     "want_play": 0.0009,
+     "want_cuddle": 0.0074,
+     "purr": 0.9858,
+     "want_bath": 0.0043,
+     "want_sleep": 0.0122,
+     "here_food": 0.095,
+     "here_water": 0.1324,
+     "here_critter": 0.0968,
+     "here_sunbeam": 0.1201,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "11": {
+    "experts": {
+     "1": "needs_driven",
+     "2": "playful",
+     "3": "needs_driven",
+     "4": "needs_driven",
+     "5": "needs_driven"
+    },
+    "roster_size": 5,
+    "state_width": 197,
+    "decisions": 239087,
+    "reward_per_tick": 0.8768,
+    "reward_min": 0.7745,
+    "happiness_mean": 87.87,
+    "seat_happiness": {
+     "1": 90.04,
+     "2": 79.0,
+     "3": 90.31,
+     "4": 90.01,
+     "5": 89.94
+    },
+    "distress_row_share": 0.0,
+    "distress_by_need": {},
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0158,
+     "want_drink": 0.0115,
+     "mew": 1.0,
+     "want_play": 0.0007,
+     "want_cuddle": 0.0048,
+     "purr": 0.99,
+     "want_bath": 0.0045,
+     "want_sleep": 0.0106,
+     "here_food": 0.0887,
+     "here_water": 0.2163,
+     "here_critter": 0.0595,
+     "here_sunbeam": 0.1097,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "12": {
+    "experts": {
+     "2": "playful",
+     "3": "needs_driven",
+     "4": "needs_driven"
+    },
+    "roster_size": 3,
+    "state_width": 133,
+    "decisions": 143710,
+    "reward_per_tick": 0.8466,
+    "reward_min": 0.6403,
+    "happiness_mean": 84.92,
+    "seat_happiness": {
+     "2": 77.18,
+     "3": 89.11,
+     "4": 88.49
+    },
+    "distress_row_share": 6.3e-05,
+    "distress_by_need": {
+     "bath": 9
+    },
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0214,
+     "want_drink": 0.0207,
+     "mew": 1.0,
+     "want_play": 0.0013,
+     "want_cuddle": 0.0168,
+     "purr": 0.9673,
+     "want_bath": 0.0083,
+     "want_sleep": 0.0182,
+     "here_food": 0.0984,
+     "here_water": 0.1631,
+     "here_critter": 0.1251,
+     "here_sunbeam": 0.1512,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "13": {
+    "experts": {
+     "1": "needs_driven",
+     "2": "playful",
+     "4": "needs_driven",
+     "5": "needs_driven"
+    },
+    "roster_size": 4,
+    "state_width": 165,
+    "decisions": 191670,
+    "reward_per_tick": 0.8696,
+    "reward_min": 0.7536,
+    "happiness_mean": 87.16,
+    "seat_happiness": {
+     "1": 89.26,
+     "2": 79.05,
+     "4": 90.22,
+     "5": 90.13
+    },
+    "distress_row_share": 0.0,
+    "distress_by_need": {},
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0164,
+     "want_drink": 0.0126,
+     "mew": 1.0,
+     "want_play": 0.0009,
+     "want_cuddle": 0.0094,
+     "purr": 0.9867,
+     "want_bath": 0.0042,
+     "want_sleep": 0.0127,
+     "here_food": 0.1087,
+     "here_water": 0.1708,
+     "here_critter": 0.1069,
+     "here_sunbeam": 0.1331,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "14": {
+    "experts": {
+     "1": "needs_driven",
+     "2": "playful",
+     "3": "needs_driven",
+     "4": "needs_driven",
+     "5": "needs_driven"
+    },
+    "roster_size": 5,
+    "state_width": 197,
+    "decisions": 239238,
+    "reward_per_tick": 0.8679,
+    "reward_min": 0.7679,
+    "happiness_mean": 86.98,
+    "seat_happiness": {
+     "1": 87.99,
+     "2": 79.06,
+     "3": 90.96,
+     "4": 89.68,
+     "5": 87.19
+    },
+    "distress_row_share": 1.7e-05,
+    "distress_by_need": {
+     "eat": 4
+    },
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0192,
+     "want_drink": 0.0134,
+     "mew": 1.0,
+     "want_play": 0.0019,
+     "want_cuddle": 0.0067,
+     "purr": 0.9892,
+     "want_bath": 0.0043,
+     "want_sleep": 0.0113,
+     "here_food": 0.0942,
+     "here_water": 0.212,
+     "here_critter": 0.0775,
+     "here_sunbeam": 0.0932,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "15": {
+    "experts": {
+     "2": "playful",
+     "3": "needs_driven",
+     "5": "needs_driven"
+    },
+    "roster_size": 3,
+    "state_width": 133,
+    "decisions": 143661,
+    "reward_per_tick": 0.8231,
+    "reward_min": 0.6006,
+    "happiness_mean": 82.53,
+    "seat_happiness": {
+     "2": 76.55,
+     "3": 86.48,
+     "5": 84.58
+    },
+    "distress_row_share": 1.4e-05,
+    "distress_by_need": {
+     "bath": 2
+    },
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.036,
+     "want_drink": 0.0299,
+     "mew": 1.0,
+     "want_play": 0.0042,
+     "want_cuddle": 0.0194,
+     "purr": 0.9533,
+     "want_bath": 0.0082,
+     "want_sleep": 0.0245,
+     "here_food": 0.0915,
+     "here_water": 0.1109,
+     "here_critter": 0.0955,
+     "here_sunbeam": 0.1272,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "16": {
+    "experts": {
+     "2": "playful",
+     "3": "needs_driven",
+     "4": "needs_driven",
+     "5": "needs_driven"
+    },
+    "roster_size": 4,
+    "state_width": 165,
+    "decisions": 191625,
+    "reward_per_tick": 0.8521,
+    "reward_min": 0.7499,
+    "happiness_mean": 85.44,
+    "seat_happiness": {
+     "2": 77.18,
+     "3": 90.35,
+     "4": 87.67,
+     "5": 86.57
+    },
+    "distress_row_share": 4.7e-05,
+    "distress_by_need": {
+     "eat": 9
+    },
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0251,
+     "want_drink": 0.0176,
+     "mew": 1.0,
+     "want_play": 0.002,
+     "want_cuddle": 0.0119,
+     "purr": 0.9753,
+     "want_bath": 0.0059,
+     "want_sleep": 0.0149,
+     "here_food": 0.1196,
+     "here_water": 0.1826,
+     "here_critter": 0.0939,
+     "here_sunbeam": 0.1563,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   },
+   "17": {
+    "experts": {
+     "1": "needs_driven",
+     "2": "playful",
+     "3": "needs_driven",
+     "4": "needs_driven",
+     "5": "needs_driven"
+    },
+    "roster_size": 5,
+    "state_width": 197,
+    "decisions": 239267,
+    "reward_per_tick": 0.8767,
+    "reward_min": 0.7784,
+    "happiness_mean": 87.87,
+    "seat_happiness": {
+     "1": 90.46,
+     "2": 78.52,
+     "3": 90.65,
+     "4": 89.96,
+     "5": 89.76
+    },
+    "distress_row_share": 0.0,
+    "distress_by_need": {},
+    "msg_mask_legal_share": {
+     "silent": 1.0,
+     "want_eat": 0.0138,
+     "want_drink": 0.0095,
+     "mew": 1.0,
+     "want_play": 0.0009,
+     "want_cuddle": 0.0092,
+     "purr": 0.9858,
+     "want_bath": 0.0051,
+     "want_sleep": 0.0098,
+     "here_food": 0.113,
+     "here_water": 0.1686,
+     "here_critter": 0.0891,
+     "here_sunbeam": 0.139,
+     "chirp": 1.0,
+     "trill": 0.0,
+     "ekekek": 0.0
+    }
+   }
+  },
+  "rates": {
+   "dropped": 0.000495,
+   "mask_mismatch": 0.002065,
+   "msg_inexpressible": 0.006677
+  }
+ }
+}

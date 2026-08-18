@@ -86,6 +86,14 @@ Reading:
   consistent. The residual leg re-runs on the complete spread cell
   at acceptance QA; those are the final acceptance-record numbers.
 
+**Final numbers landed** (collection complete, 10k rows spanning
+all 108 spread dirs — `--full-cell`, raw in
+`results-raw/expansion-acceptance-full.json`): attn-a1-s1-o4
+19.61% / 14.10% (1.39x); attn-a1-s3-o4 17.85% / 12.16% (1.47x);
+e004-a1-s2-o4 0.00% / 19.12% (structural deafness confirmed on the
+full sample). See `dataset-v5-qa-2026-08-17.md` for the QA record
+these join.
+
 ## 4. Standing
 
 Battery unblocked: the -o4 candidates are §5 candidates like any
