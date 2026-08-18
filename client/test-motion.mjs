@@ -5751,6 +5751,51 @@ check('the camera never cuts, however far the target jumps', () => {
   assert(moved < 3, `the camera jumped ${moved.toFixed(1)} tiles in one frame`);
 });
 
+check('the camera holds still while the group only fidgets', () => {
+  // The complaint this answers, verbatim: "repeatedly panning in a
+  // direction and snapping back". The aim tracked a statistic that moves
+  // every tick, so the camera never once came to rest.
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(camAt([9, 10], [11, 10], [10, 11]), camView(false, 0), { aspect: 1 });
+  const settled = { x: cam.aimX, y: cam.aimY };
+  // A kitty shuffles a tile and back, twice. Inside the deadzone this is
+  // beneath the camera's notice.
+  let t = 0;
+  for (const spots of [[[9, 10], [11, 10], [10, 12]], [[9, 10], [11, 10], [10, 11]],
+                       [[9, 11], [11, 10], [10, 11]], [[9, 10], [11, 10], [10, 11]]]) {
+    t += 16.67;
+    cam.update(camAt(...spots), camView(false, t), { aspect: 1 });
+  }
+  assert(cam.aimX === settled.x && cam.aimY === settled.y,
+    `the camera chased a fidget from ${settled.x},${settled.y} to ${cam.aimX},${cam.aimY}`);
+});
+
+check('but it follows the group when the group actually goes somewhere', () => {
+  // The deadzone must not become a cage: a real move has to move the camera.
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(camAt([3, 3], [4, 4], [3, 4]), camView(false, 0), { aspect: 1 });
+  const from = cam.aimX;
+  let t = 0;
+  for (let i = 0; i < 200; i += 1) {
+    t += 16.67;
+    cam.update(camAt([15, 15], [16, 16], [15, 16]), camView(false, t), { aspect: 1 });
+  }
+  assert(cam.aimX > from + 8, `the camera only reached ${cam.aimX.toFixed(1)} from ${from.toFixed(1)}`);
+});
+
+check('the aim is the centre of mass, not the box the extremes describe', () => {
+  // Four kitties together and one far off: the box midpoint sits in the
+  // grass between them, the centre of mass sits with the four.
+  const world = camAt([9, 10], [10, 10], [11, 10], [10, 11], [19, 10]);
+  const cam = onCam(world);
+  const boxMid = (9.5 + 19.5) / 2;
+  assert(Math.abs(cam.aimX - boxMid) > 1.5,
+    `the aim sat at ${cam.aimX}, which is the box midpoint ${boxMid}`);
+  assert(cam.aimX < 13, `the aim did not stay with the cluster: ${cam.aimX}`);
+});
+
 check('aim settles faster than width, so the zoom lags the pan', () => {
   assert(api.VIEW.camera.panRate > api.VIEW.camera.zoomRate,
     'the zoom is not slower than the pan');

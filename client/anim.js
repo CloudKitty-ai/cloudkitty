@@ -117,6 +117,14 @@ const VIEW = Object.freeze({
     panRate: 0.06, // per-frame at 60Hz, corrected for real frame rate
     zoomRate: 0.05, // slower than the pan, so width lags the aim slightly
     hysteresis: 1.5, // another kitty must be 1.5x more central to take the anchor
+    // How far the group may drift before the camera moves at all. Without
+    // this the aim tracks a statistic that changes every tick, so the
+    // camera is never once still -- it pans, reverses, and pans again as
+    // first one kitty then another takes the edge of the group. Measured
+    // against the live world, 2026-08-17: at 0 the camera holds for 19% of
+    // ticks, at 1.5 for 78%, and containment stays at 100% throughout,
+    // because `fitMarginTiles` was already buying the slack this spends.
+    aimDeadzoneTiles: 1.5,
     hitRadiusFloorPx: 22, // a kitty stays tappable at ~23px on a phone at the ceiling
     // A backgrounded tab returns with a vast dt. Uncorrected that eases to
     // 1, which is the cut FR-008 forbids -- so the correction is clamped
@@ -2092,7 +2100,14 @@ class Camera {
     // centre of mass are both usually empty grass (FR-006).
     const bound = Math.max(spanX, spanY) > d.nominalAcross * d.ceilingFactor;
     const anchor = kitties.find((k) => k.id === anchorId);
-    const p = bound && anchor ? at(anchor) : { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
+    // Below the ceiling, the CENTRE OF MASS rather than the bounding box's
+    // midpoint. A box midpoint is set by whichever two kitties are
+    // currently extreme, so it lurches every time a different one takes
+    // the edge and lurches back when she turns around -- measured at 0.44
+    // tiles of target movement per tick against 0.25 for the centre of
+    // mass, which averages all five and so is moved a fifth as far by any
+    // one of them.
+    const p = bound && anchor ? at(anchor) : com;
     return { across, aimX: p.x, aimY: p.y, anchorId, bound };
   }
 
@@ -2149,6 +2164,27 @@ class Camera {
   }
 
   /**
+   * The aim, held inside a deadzone: the target stops being a point and
+   * becomes a circle the group is allowed to wander around inside.
+   *
+   * This is what makes the camera capable of being STILL. A meadow whose
+   * camera adjusts every single tick reads as drifting even when each
+   * adjustment is small, and small adjustments that reverse read as
+   * snapping. Inside the deadzone the camera does not move at all;
+   * outside it, it moves only as far as the deadzone's edge, so it comes
+   * to rest rather than centring and immediately being nudged again.
+   */
+  aimGoalFor(want) {
+    const dead = this.dials.aimDeadzoneTiles;
+    const dx = want.aimX - this.aimX;
+    const dy = want.aimY - this.aimY;
+    const off = Math.hypot(dx, dy);
+    if (off <= dead) return { x: this.aimX, y: this.aimY };
+    const k = (off - dead) / off;
+    return { x: this.aimX + dx * k, y: this.aimY + dy * k };
+  }
+
+  /**
    * Advance one frame. `view.still` covers reduced motion and post-snap
    * frames alike, and both want arrival rather than easing.
    */
@@ -2166,10 +2202,19 @@ class Camera {
     // off state must BE the whole-world view, not approach it, or the
     // ground would bake at the whole-world tile while the frame was still
     // mid-zoom and magnify to fill it.
-    if (!this.across || view?.still || !this.on) {
+    if (!this.across || !this.on) {
+      // No history to ease from, or no camera to ease: arrive.
       this.across = want.across;
       this.aimX = want.aimX;
       this.aimY = want.aimY;
+    } else if (view?.still) {
+      // Reduced motion and post-snap frames arrive rather than ease -- but
+      // through the deadzone, or a still frame would jerk the camera to a
+      // centre the deadzone exists to let it ignore.
+      const goal = this.aimGoalFor(want);
+      this.across = want.across;
+      this.aimX = goal.x;
+      this.aimY = goal.y;
     } else {
       // Corrected for frame rate: a rate written per frame at 60Hz eases
       // twice as fast at 120Hz. `dt` is already clamped, so a tab
@@ -2177,8 +2222,9 @@ class Camera {
       const ease = (rate) => 1 - (1 - rate) ** (dt / 16.67);
       const pan = ease(this.dials.panRate);
       const zoom = ease(this.dials.zoomRate);
-      this.aimX += (want.aimX - this.aimX) * pan;
-      this.aimY += (want.aimY - this.aimY) * pan;
+      const goal = this.aimGoalFor(want);
+      this.aimX += (goal.x - this.aimX) * pan;
+      this.aimY += (goal.y - this.aimY) * pan;
       this.across += (want.across - this.across) * zoom;
     }
     this.anchorId = want.anchorId;
