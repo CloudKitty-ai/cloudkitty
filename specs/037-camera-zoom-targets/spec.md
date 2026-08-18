@@ -21,6 +21,14 @@ FR-005 and SC-001. Everything else in 036 stands: the fit, the anchor, the
 hysteresis, the deadzone, following, persistence and the card mark are all
 untouched.
 
+**"Everything else" was too blunt, and 036 now says so at each site.** The word
+*nominal* is FR-003's, and it is load-bearing in seven other places: FR-004 and
+FR-014, User Story 1's second acceptance scenario, two edge cases, an
+Assumption, and SC-001's own wording. Each carries a pointer to this spec rather
+than being rewritten, following the precedent set when 006 superseded 004's
+floors — 036 is the record of what shipped, and until this feature is built its
+rules are still what the client does.
+
 ## Overview
 
 Camera mode frames a fixed number of **tiles** — 10 at its floor, 15 at its

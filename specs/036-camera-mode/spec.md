@@ -17,6 +17,17 @@ survived. Where the two disagree, this spec wins.
 worktree that is unpushed as of 2026-08-17, so `specs/` on `main` still tops out
 at 034 and sequential numbering would have collided.
 
+> **Amended by spec 037** (camera zoom targets, 2026-08-18). It replaces
+> **FR-003** (the 10-tile floor), **FR-005** (the 1.5× ceiling) and **SC-001**
+> (size as a multiple of the whole-world view) with a pixel band: the camera
+> zooms in until a tile is ~100px and widens until one would fall below ~50px.
+>
+> **Until 037 ships, everything below is what the client does.** The term
+> *nominal* is FR-003's and 037 removes it; it also appears in FR-004, FR-014,
+> User Story 1's second acceptance scenario, two edge cases and an Assumption.
+> Each is marked, or should be read through
+> [037 spec.md](../037-camera-zoom-targets/spec.md).
+
 ## Overview
 
 Today the client draws the whole 20×20 world at once. Every kitty is on screen
@@ -73,7 +84,8 @@ motion never cuts. Turning the control off returns the view shipped today.
    and scale is eased rather than cut.
 2. **Given** camera mode is on and the kitties are huddled together, **When**
    the fit would narrow the view below the nominal width, **Then** the camera
-   stops at nominal and does not zoom further in.
+   stops at nominal and does not zoom further in. *(Under 037, "nominal" is the
+   pixel floor; the scenario is otherwise unchanged.)*
 3. **Given** camera mode is on and one kitty wanders to the far edge, **When**
    fitting everyone would exceed the ceiling, **Then** the camera holds at the
    ceiling, aims at a kitty inside the main group, and lets the wanderer leave
@@ -184,7 +196,8 @@ marked.
   square in tiles and the map is square, so the wider dimension governs; the
   ceiling binds on the larger spread.
 - **Every kitty is on the same tile.** The fit collapses to nothing and the
-  nominal width applies as the floor, so the camera sits at nominal.
+  nominal width applies as the floor, so the camera sits at nominal. *(Under
+  037, at the pixel floor.)*
 - **A kitty in the world's corner is followed.** The frame clamps to the world
   and she sits off-centre. Every pixel is meadow and none is void (FR-029).
 - **Two kitties are equally central.** The anchor rule must resolve
@@ -208,6 +221,7 @@ marked.
   immediately with no easing, at every scale and on every anchor change.
 - **The roster is at its 3-kitty minimum.** A small group fits at nominal most
   of the time, so the camera rarely widens and mostly sits at the zoom floor.
+  *(Unchanged under 037 — "the zoom floor" is already the term this uses.)*
 
 ## Requirements *(mandatory)*
 
@@ -223,12 +237,17 @@ marked.
   and the viewport, with no easing and no anchor.
 - **FR-003**: With camera mode on, the camera's nominal frame MUST be 10 tiles
   across, which is twice today's scale on a 20-tile world.
+  *(Replaced by 037 FR-001: a ~100px tile target. This is the definition of
+  "nominal" that every other use below inherits.)*
 - **FR-004**: The camera MUST try to hold every kitty in frame, and MUST NOT
-  narrow below the nominal width. Nominal is a floor, so a huddled group does
+  narrow below the nominal width. *(Still current. "Nominal" is FR-003's term;
+  under 037 read it as the pixel floor, which serves the same role.)* Nominal is a floor, so a huddled group does
   not zoom past comfort. When the fit is what binds, no kitty may be drawn
   touching the frame's edge: a margin holds the outermost clear of it.
 - **FR-005**: The camera MUST NOT widen beyond 1.5× nominal, that is 15 tiles.
   Past that it stops trying to fit and allows kitties to leave the frame.
+  *(Replaced by 037 FR-002: a ~50px tile floor. The BEHAVIOUR here — stopping
+  rather than shrinking everyone — is preserved by 037 FR-007.)*
 - **FR-029**: The frame MUST stay inside the world. Where aiming at the anchor
   would show ground beyond the world's edge, the frame is clamped to the world
   and the anchor sits off-centre rather than centred against void. The anchor is
@@ -270,7 +289,9 @@ marked.
   group. The control is the only way back to the whole world.
 - **FR-014**: Following MUST change only where the camera aims. The nominal
   width and the ceiling are unchanged, so kitties near the followed one stay in
-  shot.
+  shot. *(Still current under 037. Read "nominal width and the ceiling" as
+  whatever the limits are — the requirement is that FOLLOWING does not move
+  them, which 037 does not change.)*
 - **FR-015**: A followed kitty MUST be the anchor unconditionally. The
   hysteresis of FR-007 applies to group mode only.
 - **FR-016**: Following MUST have no timeout, no drift-away, and no
@@ -321,7 +342,9 @@ marked.
 
 - **SC-001**: With camera mode on, a kitty is drawn at least 1.3× her
   whole-world size at the widest the camera goes, and about 2× at nominal, on
-  the same display.
+  the same display. *(Replaced by 037 SC-001. This expressed size as a MULTIPLE
+  of the whole-world view, which is why it varied 3.5× across viewports — 037
+  states it as an absolute band instead.)*
 - **SC-002**: Across a full observed session at 5 kitties, the camera never
   cuts: aim and width change continuously in every frame, with no visible jump
   at any group spread.
@@ -392,7 +415,11 @@ marked.
 
 ## Assumptions
 
-- **The nominal width is 10 tiles on every device**, phone included. kitten.me
+- **The nominal width is 10 tiles on every device**, phone included.
+  *(**Reversed by 037.** This assumption is the direct cause of the 3.5× size
+  spread it was meant to avoid: one tile count on every viewport means a
+  different tile SIZE on each. 037 keeps one rule for all viewports but
+  expresses it in pixels.)* The original reasoning follows. kitten.me
   narrows to 8 tiles on phones; we do not, because one layout rule for both was
   already settled for the control and the same reasoning applies here. On a
   narrow phone this yields a smaller pixel tile than on a desktop, still roughly

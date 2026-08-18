@@ -99,3 +99,11 @@ be settled is complete; one that simply omits it is not.
     rather than narrowed, since editing a criterion so the implementation passes
     is what rule 4 forbids
 - Items are numbered sequentially for easy reference
+- **2026-08-18 — the amendment surface was repaired, not just found.** All ten
+  `nominal` sites in 036 now carry a pointer to 037: a banner at the top, and an
+  inline note at FR-003, FR-004, FR-005, FR-014, SC-001, the User Story 1
+  scenario, both edge cases and the Assumption. **Annotated, not rewritten**,
+  following 004→006: 036 records what shipped, and until 037 is built its rules
+  are what the client actually does. 037's header no longer claims "everything
+  else stands" without saying what else there is. **CHK001–CHK004 and CHK007 are
+  now answerable — left unticked, because the checkbox is the reviewer's.**
