@@ -6044,6 +6044,49 @@ check('a tab returning after a minute cannot cut', () => {
   assert(dt < 61_000 - 1000, 'a minute-long gap reached the easing uncorrected');
 });
 
+check('every camera requirement holds at 3, 4 and 5 kitties', () => {
+  // FR-022. The aesthetic half (SC-010) needs the owner's eye; the
+  // REQUIREMENTS are arithmetic and can be swept here. A 3-kitty roster
+  // sits at the zoom floor most of the time and a 5-kitty one is what
+  // exercises the ceiling, so a bug that only shows at one size is
+  // exactly what this is for.
+  const D = api.VIEW.camera;
+  const CEIL = D.nominalAcross * D.ceilingFactor;
+  let checked = 0;
+  for (const count of [3, 4, 5]) {
+    // Deterministic pseudo-random walks: same worlds every run, so a
+    // failure is reproducible rather than a story about last Tuesday.
+    let seed = 1234 + count;
+    const rnd = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+    const cam = new api.Camera();
+    cam.on = true;
+    const kitties = Array.from({ length: count }, (_, i) => ({
+      id: i + 1, pos: { x: Math.floor(rnd() * 20), y: Math.floor(rnd() * 20) },
+    }));
+    for (let step = 0; step < 300; step += 1) {
+      for (const k of kitties) {
+        // One tile a tick, which is what the engine allows.
+        k.pos.x = Math.max(0, Math.min(19, k.pos.x + Math.round(rnd() * 2 - 1)));
+        k.pos.y = Math.max(0, Math.min(19, k.pos.y + Math.round(rnd() * 2 - 1)));
+      }
+      const world = { width: 20, height: 20, elements: [], kitties };
+      cam.update(world, camView(false, step * 16.67), { aspect: 1 });
+      checked += 1;
+
+      assert(cam.across >= D.nominalAcross - 1e-9, `${count} kitties: across ${cam.across} below the floor`);
+      assert(cam.across <= CEIL + 1e-9, `${count} kitties: across ${cam.across} above the ceiling`);
+      assert(Number.isFinite(cam.aimX) && Number.isFinite(cam.aimY), `${count} kitties: aim went non-finite`);
+      // FR-029: never a pixel of ground the world does not have.
+      assert(cam.left >= -1e-9 && cam.top >= -1e-9, `${count} kitties: frame at ${cam.left},${cam.top}`);
+      assert(cam.left + cam.across <= 20 + 1e-9, `${count} kitties: frame right edge ${cam.left + cam.across}`);
+      assert(cam.top + cam.across <= 20 + 1e-9, `${count} kitties: frame bottom edge ${cam.top + cam.across}`);
+      // SC-005's surviving half: the anchor is always a real kitty.
+      assert(kitties.some((k) => k.id === cam.anchorId), `${count} kitties: anchor ${cam.anchorId} is nobody`);
+    }
+  }
+  assert(checked === 900, `swept ${checked} states, expected 900`);
+});
+
 check('aim settles faster than width, so the zoom lags the pan', () => {
   assert(api.VIEW.camera.panRate > api.VIEW.camera.zoomRate,
     'the zoom is not slower than the pan');
