@@ -448,6 +448,10 @@ class WorldRenderer {
     this.cssHeight = 0;
     this.groundCache = null;
     this.pondCache = null; // { signature, ponds } -- rebuilt on water change
+    // Handed over by anim.init (spec 036). Undefined for a renderer used
+    // without anim -- the lab, the harness -- which draws the whole world,
+    // the same frame the camera reports while it is off.
+    this.camera = null;
     // The devicePixelRatio the backing store was actually sized with, not
     // whatever the display reports right now (issue #102). Null until the
     // first fit.
@@ -843,8 +847,20 @@ class WorldRenderer {
    * pixel-for-pixel the one that shipped before this feature.
    */
   bakeTileFor(world) {
-    const on = !!(this.camera && this.camera.on);
-    const narrowest = on ? Math.min(VIEW.camera.nominalAcross, world.width) : world.width;
+    // Camera off: the whole-world tile, unclamped, which is byte-for-byte
+    // the bake that shipped before this feature -- an offscreen the size
+    // of the canvas. Clamping here too would have magnified the ground on
+    // a dpr-4 display and, worse, made `this.tile / bakeTile` differ from
+    // 1, pushing the off-state pond path through a scale it is documented
+    // never to take. The claim "nothing moved" has to survive every dpr,
+    // not the ones I happened to think of.
+    if (!this.camera || !this.camera.on) return this.cssWidth / world.width;
+
+    // Camera on: the tile at the narrowest frame, read from the camera's
+    // OWN dials. Reaching for the module global instead would let a Camera
+    // built with different dials ask for a tile larger than the bake, and
+    // every blit would silently become the upscale this exists to prevent.
+    const narrowest = Math.min(this.camera.dials.nominalAcross, world.width);
     const dpr = this.dpr || window.devicePixelRatio || 1;
     const widest = Math.max(world.width, world.height);
     const bakeTile = this.cssWidth / narrowest;

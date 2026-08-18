@@ -5371,8 +5371,17 @@ const camWorld = (width = 20, height = 20) => ({
   elements: [],
 });
 
-/** A view like the one anim hands the renderer, without standing one up. */
-const camView = (still = false, now = 1000) => ({ still, ambient: { now } });
+/**
+ * A view like the one anim hands the renderer, without standing one up.
+ *
+ * `ambient` is null on still frames because `viewAt` makes it null there
+ * (anim.js, `ambient: still ? null : { now }`). The first cut of this
+ * helper always supplied it, which is a shape the client cannot produce --
+ * and that single divergence is what let the camera's clock bug pass a
+ * green suite. A fixture that is easier than production tests nothing at
+ * the seam.
+ */
+const camView = (still = false, now = 1000) => ({ still, ambient: still ? null : { now } });
 
 check('the camera off frames the whole world and nothing else', () => {
   const world = camWorld();
@@ -5424,14 +5433,39 @@ check('the ground bakes at the whole-world tile while the camera is off', () => 
 
 check('the ground bake is bounded, because an over-budget canvas comes back blank', () => {
   const world = camWorld();
-  // A 4K map with the camera at its narrowest wants a bake twice the
-  // map's width at dpr 2, which is past what mobile Safari will hand
-  // back. Over budget it must magnify, never exceed.
-  const on = { cssWidth: 1200, dpr: 2, camera: { on: true } };
+  // A real Camera, not a stand-in with an `on` flag: `bakeTileFor` reads
+  // the camera's OWN dials, and a stub without them is a world where the
+  // two can disagree without anything noticing.
+  const cam = new api.Camera();
+  cam.on = true;
+  const on = { cssWidth: 1200, dpr: 2, camera: cam };
   const baked = WorldRenderer.prototype.bakeTileFor.call(on, world);
   const side = baked * Math.max(world.width, world.height) * on.dpr;
   assert(side <= 4096, `the bake would be ${Math.round(side)} device px a side`);
   assert(baked > 0, 'the clamp collapsed the bake');
+  // And it follows the camera's dials rather than the module's.
+  const tight = new api.Camera({ ...api.VIEW.camera, nominalAcross: 5 });
+  tight.on = true;
+  const tighter = WorldRenderer.prototype.bakeTileFor.call(
+    { cssWidth: 400, dpr: 1, camera: tight },
+    world,
+  );
+  assert(tighter === 400 / 5, `a tighter camera baked at ${tighter}, not its own nominal`);
+});
+
+check('the camera-off bake is what shipped, at every dpr', () => {
+  // The budget clamp used to apply to the off path too. On a dpr-4
+  // display that magnified the ground AND made `this.tile / bakeTile`
+  // differ from 1, which pushes the off-state pond path through the
+  // ctx.scale branch its own comment promises it never takes. "Nothing
+  // moved" has to hold at every dpr, not the ones I thought of.
+  const world = camWorld();
+  const tile = 60;
+  for (const dpr of [1, 2, 3, 4, 5]) {
+    const off = { cssWidth: tile * world.width, dpr, camera: new api.Camera() };
+    const baked = WorldRenderer.prototype.bakeTileFor.call(off, world);
+    assert(baked === tile, `at dpr ${dpr} the off camera bakes at ${baked}, not ${tile}`);
+  }
 });
 
 check('screen to world inverts the frame the camera laid down', () => {
@@ -5468,20 +5502,37 @@ check('the camera reads the world and never writes to it', () => {
   assert(JSON.stringify(world) === before, 'the camera mutated the world it was handed');
 });
 
-check('a still view arrives, and a returning tab cannot cut', () => {
+check('a still view arrives, and leaves the clock where it found it', () => {
   const world = camWorld();
   const cam = new api.Camera();
   cam.on = true;
+
+  cam.update(world, camView(false, 5000), { aspect: 1 });
+  assert(cam.lastAt === 5000, 'an animated frame did not set the clock');
+
+  // A still frame carries no clock. It must arrive at its target AND
+  // leave `lastAt` alone -- storing 0 here is storing the sentinel that
+  // means "never ran", so the next animated frame loses its dt.
   cam.update(world, camView(true), { aspect: 1 });
   assert(cam.across === world.width, 'a still frame did not arrive at its target');
+  assert(cam.lastAt === 5000, `a still frame moved the clock to ${cam.lastAt}`);
+});
 
-  // Reduced motion never runs the rAF loop, so the camera's clock jumps
-  // by whatever the gap between served ticks was. Uncorrected that eases
-  // to 1, which is the cut FR-008 forbids.
-  cam.lastAt = 1000;
-  cam.update(world, camView(false, 1000 + 30_000), { aspect: 1 });
-  assert(cam.lastAt === 31_000, 'the camera lost track of its own clock');
-  assert(api.VIEW.camera.maxFrameMs > 0, 'there is no clamp on the frame gap');
+check('a tab returning after a minute cannot cut', () => {
+  // The path is: hidden tab banks arrivals -> visibilitychange calls
+  // redraw() (STILL, no clock) -> startLoop() draws animated. So the vast
+  // gap reaches the animated frame, and only the clamp stands between it
+  // and an easing factor of 1, which is the cut FR-008 forbids.
+  const world = camWorld();
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(world, camView(false, 1000), { aspect: 1 });
+  cam.update(world, camView(true), { aspect: 1 }); // the redraw on return
+  assert(cam.lastAt === 1000, 'the still redraw swallowed the gap');
+
+  const dt = cam.dtFor(camView(false, 61_000));
+  assert(dt === api.VIEW.camera.maxFrameMs, `dt came back ${dt}, not the clamp`);
+  assert(dt < 61_000 - 1000, 'a minute-long gap reached the easing uncorrected');
 });
 
 check('the camera reaches the renderer by the tile, never by a context scale', () => {

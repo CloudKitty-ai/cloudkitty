@@ -2041,14 +2041,33 @@ class Camera {
   }
 
   /**
+   * The gap since the last timed frame, clamped -- pure, so the clamp can
+   * be tested without driving a whole frame.
+   *
+   * `viewAt` publishes `ambient: still ? null : { now }`, so a STILL frame
+   * carries no clock at all. Reading that as 0 and storing it wiped
+   * `lastAt` with the very value that means "never ran", and every palette
+   * step, tab return and reduced-motion frame is a still frame. It also
+   * put the `maxFrameMs` clamp out of reach of the case it exists for: a
+   * returning tab calls `redraw()` (still) before `startLoop()`, so the
+   * vast gap was swallowed by a clockless frame before any easing saw it.
+   */
+  dtFor(view) {
+    const now = view?.ambient?.now;
+    if (typeof now !== 'number' || !this.lastAt) return 0;
+    return Math.min(now - this.lastAt, this.dials.maxFrameMs);
+  }
+
+  /**
    * Advance one frame. `view.still` covers reduced motion and post-snap
    * frames alike, and both want arrival rather than easing.
    */
   update(world, view, opts = {}) {
     const aspect = opts.aspect || 1; // cssHeight / cssWidth
-    const now = view?.ambient?.now ?? 0;
-    const dt = this.lastAt ? Math.min(now - this.lastAt, this.dials.maxFrameMs) : 0;
-    this.lastAt = now;
+    const now = view?.ambient?.now;
+    const dt = this.dtFor(view);
+    // A frame with no clock leaves the clock alone. See `dtFor`.
+    if (typeof now === 'number') this.lastAt = now;
 
     const want = this.targetFor(world, view);
     const first = !this.across;
