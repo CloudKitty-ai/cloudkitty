@@ -169,12 +169,20 @@
     which is why the palette is asked rather than told.
   </p>
   <p class="note">
-    Each cell is the same cat at the same submersion, so the only thing
-    varying across the strip is the palette. The row beneath repeats it at
-    <strong>the deepest wade</strong>, where the fill and the ring have the
-    most to do.
+    <strong>Drawn at the CAMERA tile, twice the world tile</strong> — the
+    camera shows 10 tiles across where the whole-world view shows 20. That
+    is not decoration: <code>MENISCUS</code> was parked until camera mode
+    existed precisely because a 1.7px line cannot be judged at the world
+    tile. The <em>Scale</em> dial still drives it, and this card doubles
+    whatever it says.
   </p>
-  <canvas id="meniscus-phases" width="960" height="300"></canvas>
+  <p class="note">
+    Each cell is the same cat standing in the middle of the same 2&times;2
+    lake at the same submersion, so the only thing varying across the strip
+    is the palette. The row beneath repeats it at <strong>the deepest
+    wade</strong>, where the fill and the ring have the most to do.
+  </p>
+  <canvas id="meniscus-phases" width="960" height="440"></canvas>
   <div class="styles" id="meniscus-labels" style="grid-template-columns: repeat(4, 1fr);"></div>
 
   <h2>Leaf swing — the same shrub, right through the day</h2>
@@ -620,9 +628,11 @@
     ['standing', 0.45],
     ['deepest wade', 0.95],
   ];
+  // A 2x2 lake: big enough that a cat drawn at one tile stands IN it
+  // rather than on its lip, which is the whole point of the card.
   const MENISCUS_TILES = [
-    { x: 0, y: 0 }, { x: 1, y: 0 }, { x: 2, y: 0 },
-    { x: 0, y: 1 }, { x: 1, y: 1 }, { x: 2, y: 1 },
+    { x: 0, y: 0 }, { x: 1, y: 0 },
+    { x: 0, y: 1 }, { x: 1, y: 1 },
   ];
   let meniscusBake = null;
 
@@ -632,12 +642,18 @@
     const g = c.getContext('2d');
     const cw = c.width / PHASES_4.length;
     const rowH = c.height / MENISCUS_DEPTHS.length;
-    // The pond bake is palette-independent, so it survives a dial change
-    // that only moves MENISCUS -- which is most of them.
-    const key = [tile, VIEW.meadow.pondDepthBlurTiles, VIEW.meadow.shoreRounding].join('|');
+    // The CAMERA tile: camera mode frames 10 tiles across where the
+    // whole-world view frames 20, so it is exactly twice. Judging the
+    // meniscus at the world tile is what this card exists to stop.
+    const mTile = tile * 2;
+    const pond = mTile * 2; // the 2x2 lake, in pixels
+    const padX = (cw - pond) / 2;
+    const padY = (rowH - pond) / 2;
+
+    const key = [mTile, VIEW.meadow.pondDepthBlurTiles, VIEW.meadow.shoreRounding].join('|');
     if (!meniscusBake || meniscusBake.key !== key) {
       const ponds = groupWaterTiles(MENISCUS_TILES)
-        .map((t) => ({ tiles: t, path: buildPondPath(t, tile) }));
+        .map((t) => ({ tiles: t, path: buildPondPath(t, mTile) }));
       meniscusBake = {
         key,
         cells: PHASES_4.map((ph) => {
@@ -646,7 +662,7 @@
             ph,
             ponds,
             layers: buildPondLayers(ponds, {
-              tile, widthPx: Math.round(cw), heightPx: Math.round(rowH), dpr: 1,
+              tile: mTile, widthPx: Math.ceil(cw), heightPx: Math.ceil(rowH), dpr: 1,
             }),
           };
         }),
@@ -656,8 +672,8 @@
     g.setTransform(1, 0, 0, 1, 0, 0);
     g.clearRect(0, 0, c.width, c.height);
     // The stub carries exactly what drawWaterline touches. A whole
-    // WorldRenderer would need a canvas it can measure the page with.
-    const surface = { ctx: g, tile };
+    // WorldRenderer would want a canvas it can measure the page with.
+    const surface = { ctx: g, tile: mTile };
     const view = { ambient: { now } };
 
     meniscusBake.cells.forEach((cell, col) => {
@@ -670,20 +686,24 @@
         g.translate(col * cw, row * rowH);
         g.fillStyle = MEADOW.grassTones[0];
         g.fillRect(0, 0, cw, rowH);
-        drawPonds(g, { ponds: cell.ponds, tile, layers: cell.layers, now, motion: true });
 
-        // The cat, standing in the middle of the lake.
-        const cx = tile * 1.5;
-        const x = cx - tile / 2;
-        const y = rowH / 2 - tile * 0.35;
+        g.translate(padX, padY); // the lake, centred in its cell
+        drawPonds(g, { ponds: cell.ponds, tile: mTile, layers: cell.layers, now, motion: true });
+
+        // Her BOX, placed so her ground line lands in the lake's middle.
+        // drawCat takes the box's top-left and stands the cat on 0.88 of
+        // it -- the same ground line the depth sort and the settle use.
+        const x = mTile / 2;
+        const y = mTile - 0.88 * mTile;
+        const cx = x + mTile / 2;
         const pose = 'idle';
         const cut = waterlineFor(submersion, surfaceForPose(pose));
-        if (cut !== null) {
+        if (cut !== null && Number.isFinite(cut)) {
           g.save();
           g.beginPath();
           // render.js's own clip, verbatim: generous sideways and upward,
           // cutting only the bottom.
-          g.rect(x - tile, y - tile * 2, tile * 3, tile * (2 + cut));
+          g.rect(x - mTile, y - mTile * 2, mTile * 3, mTile * (2 + cut));
           g.clip();
         }
         drawCat(g, {
@@ -691,9 +711,9 @@
           appearance: typeof shadedAppearanceOf === 'function'
             ? shadedAppearanceOf(appearanceFor(2), cell.ph)
             : appearanceFor(2),
-          facing: 'right', size: tile, x, y, phase: 0.3,
+          facing: 'right', size: mTile, x, y, phase: 0.3,
         });
-        if (cut !== null) {
+        if (cut !== null && Number.isFinite(cut)) {
           g.restore();
           // After the clip is released: the surface is painted ON the cat.
           WorldRenderer.prototype.drawWaterline.call(surface, cx, y, cut, submersion, view);
