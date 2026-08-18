@@ -2012,32 +2012,122 @@ class Camera {
     /** Frame origin in world tiles, held inside the world. */
     this.left = 0;
     this.top = 0;
-    /** Previous frame's clock reading, for the frame-rate correction. */
-    this.lastAt = 0;
+    /**
+     * Previous frame's clock reading. NULL, not 0, because 0 is a
+     * legitimate reading -- `performance.now()` is near zero at page load,
+     * and a 0 sentinel silently drops the first frames of easing.
+     */
+    this.lastAt = null;
   }
 
   /**
    * Where the camera wants to be, before easing. Split out so the wanting
    * and the getting-there stay separately testable.
    */
-  targetFor(world, _view) {
-    if (!this.on) {
-      return {
-        across: world.width,
-        aimX: world.width / 2,
-        aimY: world.height / 2,
-        anchorId: null,
-      };
-    }
-    // US1 fills in fit, ceiling and anchor here. Until then camera mode
-    // frames the whole world too, so turning it on is visibly a no-op
-    // rather than a broken view.
-    return {
+  targetFor(world, view, aspect = 1) {
+    const whole = {
       across: world.width,
       aimX: world.width / 2,
       aimY: world.height / 2,
       anchorId: null,
     };
+    if (!this.on) return whole;
+    const kitties = world.kitties || [];
+    if (!kitties.length) return whole;
+
+    const d = this.dials;
+    // Positions come from the DRAWN view, never the served snapshot. The
+    // pacer eases between states, so a camera aiming at served positions
+    // jumps a tick ahead and eases back once per tick -- the camera
+    // leading the cats it is supposed to be following.
+    const at = (k) => {
+      const p = view && view.posFor ? view.posFor(k) : k.pos;
+      // A tile coordinate addresses the tile's ORIGIN; a cat is drawn at
+      // its centre. Half a tile is a quarter of a cat at camera scale.
+      return { x: p.x + 0.5, y: p.y + 0.5 };
+    };
+
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minY = Infinity;
+    let maxY = -Infinity;
+    let sumX = 0;
+    let sumY = 0;
+    for (const k of kitties) {
+      const p = at(k);
+      if (p.x < minX) minX = p.x;
+      if (p.x > maxX) maxX = p.x;
+      if (p.y < minY) minY = p.y;
+      if (p.y > maxY) maxY = p.y;
+      sumX += p.x;
+      sumY += p.y;
+    }
+
+    const spanX = maxX - minX + 2 * d.fitMarginTiles;
+    // The frame carries the canvas's aspect, so fitting the vertical costs
+    // MORE width than the vertical span itself on a wide canvas.
+    const spanY = (maxY - minY + 2 * d.fitMarginTiles) / (aspect || 1);
+    // Nominal is a floor, so a huddled group does not zoom past comfort;
+    // the ceiling is where the camera stops fitting and lets a wanderer
+    // leave, rather than shrinking everyone to keep her.
+    const across = Math.min(
+      Math.max(spanX, spanY, d.nominalAcross),
+      d.nominalAcross * d.ceilingFactor,
+    );
+
+    const com = { x: sumX / kitties.length, y: sumY / kitties.length };
+    const anchorId = this.anchorFor(kitties, at, com);
+
+    // Where to aim depends on whether the fit got what it asked for.
+    //
+    // While the fit governs, the frame is sized to hold the whole
+    // bounding box -- so it has to be CENTRED on that box, or the width
+    // that was computed to contain everyone stops containing them. Aiming
+    // at the anchor here would push a kitty out of the frame that the fit
+    // had just widened to include.
+    //
+    // Once the ceiling binds, the camera has stopped trying to fit and
+    // needs a point instead. That point is the anchor: an occupied tile,
+    // inside the largest cluster, because the box's midpoint and the
+    // centre of mass are both usually empty grass (FR-006).
+    const bound = Math.max(spanX, spanY) > d.nominalAcross * d.ceilingFactor;
+    const anchor = kitties.find((k) => k.id === anchorId);
+    const p = bound && anchor ? at(anchor) : { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
+    return { across, aimX: p.x, aimY: p.y, anchorId, bound };
+  }
+
+  /**
+   * The kitty nearest the group's centre of mass: an OCCUPIED spot, and
+   * inside the largest cluster when there is one. Neither the bounding
+   * box's midpoint nor the centre of mass itself will do, because both are
+   * usually empty grass -- which is the whole reason this is a separate
+   * choice rather than a bit of arithmetic on the fit.
+   *
+   * Held by hysteresis or the camera flicks between kitties at opposite
+   * ends of the meadow. The comparison is squared, so the dial is squared
+   * with it and stays a plain 1.5x in real distance.
+   */
+  anchorFor(kitties, at, com) {
+    const d2 = (k) => {
+      const p = at(k);
+      return (p.x - com.x) ** 2 + (p.y - com.y) ** 2;
+    };
+    let best = null;
+    let bestD = Infinity;
+    for (const k of kitties) {
+      const dist = d2(k);
+      // Ties break on id, not array order, so a reordered roster cannot
+      // make the camera choose differently from one frame to the next.
+      if (dist < bestD || (dist === bestD && best !== null && k.id < best)) {
+        bestD = dist;
+        best = k.id;
+      }
+    }
+    const held = kitties.find((k) => k.id === this.anchorId);
+    if (held && best !== this.anchorId && d2(held) < bestD * this.dials.hysteresis ** 2) {
+      return this.anchorId;
+    }
+    return best;
   }
 
   /**
@@ -2054,7 +2144,7 @@ class Camera {
    */
   dtFor(view) {
     const now = view?.ambient?.now;
-    if (typeof now !== 'number' || !this.lastAt) return 0;
+    if (typeof now !== 'number' || this.lastAt === null) return 0;
     return Math.min(now - this.lastAt, this.dials.maxFrameMs);
   }
 
@@ -2069,20 +2159,27 @@ class Camera {
     // A frame with no clock leaves the clock alone. See `dtFor`.
     if (typeof now === 'number') this.lastAt = now;
 
-    const want = this.targetFor(world, view);
-    const first = !this.across;
-    if (first || view?.still || !this.on) {
+    const want = this.targetFor(world, view, aspect);
+    // Arrive rather than ease on the first frame, on a still frame
+    // (reduced motion and post-snap alike), and whenever the camera is
+    // off. That last one is a deliberate cut and the only one here: the
+    // off state must BE the whole-world view, not approach it, or the
+    // ground would bake at the whole-world tile while the frame was still
+    // mid-zoom and magnify to fill it.
+    if (!this.across || view?.still || !this.on) {
       this.across = want.across;
       this.aimX = want.aimX;
       this.aimY = want.aimY;
     } else {
-      // US1 replaces this with the frame-rate corrected ease. `dt` is
-      // already clamped and already derived, so the ease has everything
-      // it needs and nothing to re-measure.
-      void dt;
-      this.across = want.across;
-      this.aimX = want.aimX;
-      this.aimY = want.aimY;
+      // Corrected for frame rate: a rate written per frame at 60Hz eases
+      // twice as fast at 120Hz. `dt` is already clamped, so a tab
+      // returning after a minute still eases rather than cutting.
+      const ease = (rate) => 1 - (1 - rate) ** (dt / 16.67);
+      const pan = ease(this.dials.panRate);
+      const zoom = ease(this.dials.zoomRate);
+      this.aimX += (want.aimX - this.aimX) * pan;
+      this.aimY += (want.aimY - this.aimY) * pan;
+      this.across += (want.across - this.across) * zoom;
     }
     this.anchorId = want.anchorId;
 

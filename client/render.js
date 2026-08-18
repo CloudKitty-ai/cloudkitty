@@ -1115,11 +1115,20 @@ class WorldRenderer {
       // Two soft shadows drifting slowly across the meadow.
       ctx.save();
       ctx.fillStyle = 'rgba(120, 140, 110, 0.05)';
+      // The world's drawn extent, NOT the canvas's. Before camera mode the
+      // two were the same number and these read `cssWidth`/`cssHeight`;
+      // under the camera the world spans `world.width * tile` while the
+      // canvas stays put, so the old reads crowded both shadows into the
+      // top third of the meadow and drifted them across the wrong width.
+      // This is the one place the "everything downstream goes through
+      // this.tile" audit was wrong.
+      const worldW = world.width * this.tile;
+      const worldH = world.height * this.tile;
       for (const [speed, cy, ry] of [[1, 0.28, 3.2], [1.35, 0.72, 2.4]]) {
-        const span = this.cssWidth + this.tile * 12;
+        const span = worldW + this.tile * 12;
         const cx = ((t * speed) / VIEW.cloudPeriodMs) * span % span - this.tile * 6;
         ctx.beginPath();
-        ctx.ellipse(cx, cy * this.cssHeight, this.tile * 5, this.tile * ry, 0.3, 0, Math.PI * 2);
+        ctx.ellipse(cx, cy * worldH, this.tile * 5, this.tile * ry, 0.3, 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.restore();

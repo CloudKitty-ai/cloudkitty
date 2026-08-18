@@ -4959,13 +4959,20 @@ check('the camera control seats beside the dial and scales with it', () => {
   assert(/aria-hidden="true"/.test(tag), 'the icon is not hidden from the reader, so it doubles the label');
   assert(/\[aria-pressed='true'\]/.test(markup), 'the pressed state has no look, so the toggle is invisible');
 
-  // Placement only until spec 036. The click may change how the button
-  // LOOKS and nothing else -- no stored key that would need migrating, and
-  // no camera behaviour smuggled in ahead of the spec.
+  // The control drives the camera (US1) and nothing else yet. This check
+  // read "placement only" until 2026-08-17 and kept passing after the
+  // behaviour landed, because every assertion under it happened to stay
+  // true -- a comment describing the opposite of the code, holding a
+  // green tick. Pin what it does now.
   const init = app.slice(app.indexOf('function initCameraControl()'));
-  const body = init.slice(0, init.indexOf('\n}'));
+  const body = init.slice(0, init.indexOf('\n}\n'));
   assert(/setAttribute\(\s*'aria-pressed'/.test(body), 'the camera control does not toggle its own state');
-  assert(!/localStorage/.test(body), 'the camera control persists a flag that drives nothing yet');
+  assert(/anim\.camera\.on = /.test(body), 'the control no longer drives the camera');
+  // Reduced motion never runs the rAF loop, so without an explicit redraw
+  // the button is dead to the viewers likeliest to be watching for it.
+  assert(/anim\.redraw\(\)/.test(body), 'the toggle waits for a frame that may never come');
+  // Persistence is US3. A key stored now would be a key to migrate later.
+  assert(!/localStorage/.test(body), 'the camera control persists a flag ahead of US3');
   assert(/initCameraControl\(\);/.test(app), 'the camera control is never wired up');
 });
 check("the about survives a phase change, and the owner's words survive us", () => {
@@ -5514,7 +5521,11 @@ check('a still view arrives, and leaves the clock where it found it', () => {
   // leave `lastAt` alone -- storing 0 here is storing the sentinel that
   // means "never ran", so the next animated frame loses its dt.
   cam.update(world, camView(true), { aspect: 1 });
-  assert(cam.across === world.width, 'a still frame did not arrive at its target');
+  // Arrives at whatever the target IS, which with the camera on is the
+  // fit rather than the whole world -- assert against the target, not
+  // against a number that was only ever true before US1.
+  const want = cam.targetFor(world, camView(true), 1);
+  assert(cam.across === want.across, `still frame sat at ${cam.across}, target ${want.across}`);
   assert(cam.lastAt === 5000, `a still frame moved the clock to ${cam.lastAt}`);
 });
 
@@ -5584,6 +5595,165 @@ check('the pond cache keys on everything it bakes', () => {
   assert(/\$\{this\.paletteKey\}/.test(sig[1]), 'the pond signature dropped the palette');
   assert(/\$\{bakeTile\}/.test(sig[1]), 'the pond signature dropped the tile');
   assert(/buildPondPath\(tiles, bakeTile\)/.test(fn), 'pond paths are not built at the bake tile');
+});
+
+/* ---- US1: the camera holds the group (spec 036 FR-003..FR-010, FR-029) ---- */
+
+/** A world with the kitties placed exactly where a case needs them. */
+const camAt = (...spots) => ({
+  width: 20,
+  height: 20,
+  kitties: spots.map(([x, y], i) => ({ id: i + 1, pos: { x, y } })),
+  elements: [],
+});
+const onCam = (world, view = camView()) => {
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(world, view, { aspect: 1 });
+  return cam;
+};
+
+check('nominal is a floor a huddled group cannot push through', () => {
+  // Everyone on one tile: the fit collapses and nominal has to hold, or a
+  // gathered clowder zooms until the meadow is two cats and a bowl.
+  const cam = onCam(camAt([10, 10], [10, 10], [10, 10]));
+  assert(cam.across === api.VIEW.camera.nominalAcross, `huddled group sat at ${cam.across}`);
+});
+
+check('the ceiling binds, and the wanderer is let go', () => {
+  // Opposite corners of a 20-tile world: fitting both needs ~25 tiles.
+  const cam = onCam(camAt([0, 0], [19, 19]));
+  const ceiling = api.VIEW.camera.nominalAcross * api.VIEW.camera.ceilingFactor;
+  assert(cam.across === ceiling, `scattered group sat at ${cam.across}, ceiling ${ceiling}`);
+  // And the frame really is smaller than the world, which is what "let
+  // her leave" means -- the roster accounts for whoever is off-screen.
+  assert(cam.across < 20, 'the ceiling did not actually crop the world');
+});
+
+check('a fit that binds keeps every kitty clear of the frame edge', () => {
+  // Between the floor and the ceiling the fit governs, and FR-004 says
+  // nobody is drawn flush against the edge.
+  const world = camAt([7, 9], [13, 11]);
+  const cam = onCam(world);
+  const ceiling = api.VIEW.camera.nominalAcross * api.VIEW.camera.ceilingFactor;
+  assert(cam.across > api.VIEW.camera.nominalAcross && cam.across < ceiling,
+    `wanted the fit to govern, got ${cam.across}`);
+  for (const k of world.kitties) {
+    const x = k.pos.x + 0.5;
+    const y = k.pos.y + 0.5;
+    assert(x > cam.left && x < cam.left + cam.across, `${k.id} is outside the frame in x`);
+    assert(y > cam.top && y < cam.top + cam.across, `${k.id} is outside the frame in y`);
+  }
+});
+
+check('the frame never shows ground the world does not have', () => {
+  // FR-029. A kitty in the corner is the case: aiming at her would put
+  // several tiles of void on screen, which reads as a rendering fault.
+  for (const spot of [[0, 0], [19, 0], [0, 19], [19, 19], [10, 10]]) {
+    const cam = onCam(camAt(spot, spot));
+    assert(cam.left >= 0, `left ${cam.left} at ${spot}`);
+    assert(cam.top >= 0, `top ${cam.top} at ${spot}`);
+    assert(cam.left + cam.across <= 20 + 1e-9, `right edge ${cam.left + cam.across} at ${spot}`);
+    assert(cam.top + cam.across <= 20 + 1e-9, `bottom edge ${cam.top + cam.across} at ${spot}`);
+  }
+});
+
+check('the camera aims at a kitty, never at the grass between them', () => {
+  // Two kitties far apart: the midpoint and the centre of mass are the
+  // same empty tile, and aiming there is the thing FR-006 forbids.
+  const world = camAt([2, 10], [18, 10]);
+  const cam = onCam(world);
+  assert(cam.anchorId !== null, 'no anchor was chosen');
+  const anchor = world.kitties.find((k) => k.id === cam.anchorId);
+  assert(anchor, `anchor ${cam.anchorId} is not a kitty in the roster`);
+  assert(
+    cam.aimX === anchor.pos.x + 0.5 && cam.aimY === anchor.pos.y + 0.5,
+    'the aim is not on the anchor',
+  );
+  assert(cam.aimX !== 10.5, 'the camera aimed at the empty midpoint');
+});
+
+check('the anchor is the kitty inside the cluster, not the outlier', () => {
+  // Three together, one away. The centre of mass is pulled toward the
+  // cluster, so the nearest kitty to it is one of the three.
+  const world = camAt([9, 10], [10, 10], [11, 10], [19, 10]);
+  const cam = onCam(world);
+  assert(cam.anchorId !== 4, 'the camera anchored on the outlier');
+});
+
+check('ties break on id, so a reordered roster cannot change the pick', () => {
+  // The SAME kitties -- same ids, same tiles -- handed over in opposite
+  // array order. Their distances to the centre of mass are identical, so
+  // without a rule the winner is whichever the loop met first, and the
+  // camera would pick differently depending on serialisation order.
+  const kitties = [
+    { id: 1, pos: { x: 9, y: 10 } },
+    { id: 2, pos: { x: 11, y: 10 } },
+  ];
+  const forward = { width: 20, height: 20, elements: [], kitties };
+  const reversed = { width: 20, height: 20, elements: [], kitties: [...kitties].reverse() };
+  const a = onCam(forward);
+  const b = onCam(reversed);
+  assert(a.anchorId === b.anchorId, `same world, different order: ${a.anchorId} vs ${b.anchorId}`);
+  assert(a.anchorId === 1, `expected the lower id to win the tie, got ${a.anchorId}`);
+  assert(a.aimX === b.aimX && a.aimY === b.aimY, 'the aim moved with the array order');
+});
+
+check('the anchor holds until another kitty is clearly more central', () => {
+  // Without hysteresis this walk flips the anchor every frame it crosses
+  // the midpoint, which is the flicker kitten.me deleted a snap rule over.
+  const cam = new api.Camera();
+  cam.on = true;
+  let flips = 0;
+  let last = null;
+  for (let step = 0; step <= 20; step += 1) {
+    // Two kitties drifting past each other through the centre of mass.
+    const world = camAt([10 - step * 0.0, 10], [10, 10]);
+    world.kitties[0].pos = { x: 9 + step * 0.1, y: 10 };
+    cam.update(world, camView(false, 1000 + step * 16), { aspect: 1 });
+    if (last !== null && cam.anchorId !== last) flips += 1;
+    last = cam.anchorId;
+  }
+  assert(flips <= 1, `the anchor changed ${flips} times crossing one midpoint`);
+});
+
+check('easing settles at the same real speed on 60Hz and 120Hz', () => {
+  // A rate written per-frame eases twice as fast at 120Hz uncorrected,
+  // which is the bug kitten.me's own comment calls out.
+  const world = camAt([3, 3], [4, 4]);
+  const run = (frameMs) => {
+    const cam = new api.Camera();
+    cam.on = true;
+    cam.update(world, camView(false, 0), { aspect: 1 }); // first frame arrives
+    cam.aimX = 15; // shove it away, then let it come back
+    let t = 0;
+    for (let i = 0; i < Math.round(500 / frameMs); i += 1) {
+      t += frameMs;
+      cam.update(world, camView(false, t), { aspect: 1 });
+    }
+    return cam.aimX;
+  };
+  const at60 = run(16.67);
+  const at120 = run(8.33);
+  assert(Math.abs(at60 - at120) < 0.05, `after 500ms: 60Hz ${at60}, 120Hz ${at120}`);
+});
+
+check('the camera never cuts, however far the target jumps', () => {
+  // FR-008. A kitty teleporting across the meadow (a reseed, a snap)
+  // must not drag the camera with her in one frame.
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(camAt([2, 2], [3, 3]), camView(false, 0), { aspect: 1 });
+  const before = cam.aimX;
+  cam.update(camAt([18, 18], [17, 17]), camView(false, 16.67), { aspect: 1 });
+  const moved = Math.abs(cam.aimX - before);
+  assert(moved > 0, 'the camera did not follow at all');
+  assert(moved < 3, `the camera jumped ${moved.toFixed(1)} tiles in one frame`);
+});
+
+check('aim settles faster than width, so the zoom lags the pan', () => {
+  assert(api.VIEW.camera.panRate > api.VIEW.camera.zoomRate,
+    'the zoom is not slower than the pan');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

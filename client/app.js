@@ -385,24 +385,36 @@ function initTheme() {
 }
 
 /**
- * The camera control, PLACEMENT ONLY. Clicking flips how the button looks
- * and nothing else. The camera exists (spec 036 Foundational) but frames
- * the whole world until US1 gives it a fit, and the button is here so its
- * seat beside the dial could be judged on a real page at real sizes
- * rather than argued about on paper.
+ * The camera control (spec 036 US1). Clicking turns camera mode on and
+ * off; the camera itself does the rest.
  *
- * Deliberately not persisted yet. The settled design says the mode and the
- * followed cat both survive a reload, but storing a flag that drives
- * nothing would leave a key to migrate when US1 gives it a meaning.
+ * The toggle governs SCALE ALONE. It never releases a followed kitty --
+ * toggle off and on again and the camera comes back to the same cat
+ * (FR-027). Following is US2; until then there is nothing to release.
+ *
+ * `anim.redraw()` rather than waiting for the next animation frame,
+ * because reduced motion never runs the loop at all: without this the
+ * control would appear dead to exactly the viewers who most need it to
+ * respond immediately.
  */
 function initCameraControl() {
   const button = document.getElementById('camera-toggle');
-  button?.addEventListener('click', () => {
+  if (!button) return;
+  const apply = () => {
+    anim.camera.on = button.getAttribute('aria-pressed') === 'true';
+    anim.redraw();
+  };
+  button.addEventListener('click', () => {
     button.setAttribute(
       'aria-pressed',
       button.getAttribute('aria-pressed') === 'true' ? 'false' : 'true',
     );
+    apply();
   });
+  // The markup's own `aria-pressed` is the source of truth for the
+  // starting state, so the button and the camera cannot disagree from the
+  // first frame. Persistence is US3; this reads whatever the page ships.
+  apply();
 }
 
 /**
