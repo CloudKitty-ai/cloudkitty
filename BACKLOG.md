@@ -13,6 +13,21 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 <!-- shipped P1 items are removed once merged; see git history -->
 
+### One palette key for every cache that bakes one (added 2026-08-17; Client thread)
+`applyTheme` now publishes `renderer.paletteKey`, and the pond layers carry it
+in their own signature. The ground cache is still invalidated the other way,
+by an explicit `renderer.groundCache = null` in that same function. Both are
+correct; together they are two mechanisms for one rule, and the next cache
+that bakes a palette colour gets forgotten exactly as the pond layers were.
+
+End state: both caches carry `paletteKey` in their own staleness check and
+`applyTheme` stops nulling anything. **Deliberately not done alongside the
+pond fix**, because it rewrites a working ground cache to repair a broken
+pond one, and `render.js` has already shipped an incident where a cache guard
+mismatched every frame and rebaked the whole ground at 60fps (the note lives
+in `resizeFor`). Pick it up when the ground cache is open anyway — camera
+mode (spec 036) reworks it to bake at a camera tile.
+
 ### Connect-time frame backlog — SPEC PARKED (added 2026-08-15; Product thread)
 Spec 032 is written, decisions settled, implementation deliberately parked
 (owner). The live socket gains an opt-in connect-time backlog of recent
