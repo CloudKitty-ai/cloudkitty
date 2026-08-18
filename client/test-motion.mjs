@@ -4813,6 +4813,161 @@ check('the per-kitty about ships, and its numbers are the served ones', () => {
   const text = foot.slice(0, foot.indexOf('</p>')).split(/\s+/).join(' ').trim();
   assert(text.length <= 58, `the traits footnote is ${text.length} characters and will wrap`);
 });
+check('the camera control seats beside the dial and scales with it', () => {
+  const markup = readFileSync(join(here, 'index.html'), 'utf8');
+  const app = readFileSync(join(here, 'app.js'), 'utf8');
+
+  // Comments are stripped before anything is matched. These rules DOCUMENT
+  // the values they must not have -- the vanished-control comment quotes
+  // `padding: 8%` verbatim -- and a text check that reads its own prose
+  // reports the bug it was written to catch, on a file that does not have
+  // it. Every slice below is comment-free.
+  const strip = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
+  const ruleFor = (sel) => strip(markup.slice(markup.indexOf(sel), markup.indexOf('}', markup.indexOf(sel))));
+  const dial = ruleFor('  #sky-dial {');
+  const cam = ruleFor('  #camera-toggle {');
+  assert(cam.length, 'the camera control has no rule');
+
+  // THE PIN IS THE POINT. Both sit ON the horizon, and the horizon is the
+  // stage padding read from the variable -- never a repeated number, or a
+  // breakpoint that changes the mat leaves one of them floating.
+  for (const [name, rule] of [['dial', dial], ['camera control', cam]]) {
+    assert(/bottom: calc\(100% - var\(--stage-pad\)\)/.test(rule),
+      `the ${name} no longer pins to the stage padding, so it has left the horizon`);
+  }
+
+  // One layout for phone and desktop was the owner's whole reason for this
+  // seat, and it only holds while BOTH are fractions of the stage. A pixel
+  // width on either one makes the pair drift apart as the map resizes --
+  // exactly the bug the dial's own width was changed to fix in 2026-07.
+  const dialW = dial.match(/width: ([\d.]+)%/);
+  const camW = cam.match(/width: ([\d.]+)%/);
+  assert(dialW && camW, 'the dial and the camera control are no longer both sized in %');
+  // The square stands as tall as the dome: the dial canvas is 2:1, so its
+  // height is half its width, and that is what the control matches.
+  assert(Math.abs(Number(camW[1]) - Number(dialW[1]) / 2) < 0.01,
+    `the camera control is ${camW[1]}% against a dial ${Number(dialW[1]) / 2}% tall -- they no longer stand level`);
+  assert(/aspect-ratio: 1/.test(cam), 'the camera control is no longer square');
+
+  // THE DRAWN CHIP IS NOT THE BOX. The box's bottom edge IS the map's top
+  // edge, so a chip drawn at the full width of it is tangent to the border
+  // and reads as biting into it. The padding is the clearance, and it only
+  // works while the pressed background is clipped to the CONTENT box --
+  // the `background` shorthand resets that to border-box, which would put
+  // the circle straight back on the border with nothing else changing.
+  const chip = ruleFor('  .camera-chip {');
+  assert(chip.length, 'the camera control has no chip, so its circle sits on the map border');
+  const chipW = chip.match(/width: ([\d.]+)%/);
+  assert(chipW, 'the chip no longer states a width');
+
+  // A PERCENTAGE PADDING ON THE CONTROL IS THE BUG THAT ATE IT. Percentage
+  // padding resolves against the CONTAINING BLOCK's width -- the stage --
+  // and never the element's own. `padding: 8%` was written meaning "8% of
+  // this 38px control" and got 8% of a 732px stage: 58px a side, inside a
+  // 38px border box. Under border-box the content collapsed to zero and
+  // the control vanished on reload (owner, 2026-08-16).
+  //
+  // Asserted by MODELLING the rule rather than banning the property, so a
+  // padding that genuinely fits still passes -- and so this check fails for
+  // the reason the bug actually had.
+  const padPct = cam.match(/padding: ([\d.]+)%/);
+  if (padPct) {
+    const stageW = 732; // desktop stage, where the ratio is worst
+    const eaten = 2 * stageW * (Number(padPct[1]) / 100);
+    const boxW = stageW * (Number(camW[1]) / 100);
+    assert(eaten < boxW,
+      `padding: ${padPct[1]}% is ${eaten.toFixed(0)}px against a ${boxW.toFixed(0)}px control -- it resolves against the STAGE, and the control collapses`);
+  }
+  // The chip is a CHILD for exactly that reason: as a flex item its width
+  // resolves against the control's own content box.
+  assert(/flex: none/.test(chip), 'the chip can shrink, so its size is no longer the one stated');
+
+  // Clearance is measured at the small end, where a fraction is worth least.
+  const clear = 310 * (Number(camW[1]) / 100) * ((100 - Number(chipW[1])) / 200);
+  assert(clear >= 1, `the chip clears the map border by ${clear.toFixed(2)}px on a 320px phone`);
+
+  // And the shrink was the CIRCLE's, not the camera's: the svg is a
+  // fraction of the CHIP, so a smaller chip takes the icon with it unless
+  // the percentage compensates.
+  const svg = markup.match(/#camera-toggle svg \{ width: ([\d.]+)%/);
+  assert(svg, 'the camera icon no longer states a width');
+  const ofBox = (Number(svg[1]) / 100) * (Number(chipW[1]) / 100);
+  assert(Math.abs(ofBox - 0.76) < 0.01,
+    `the icon is ${(ofBox * 100).toFixed(1)}% of the control, not the 76% it was dialled to`);
+
+  // The lit state has to reach the chip, which is where the circle is now.
+  assert(/#camera-toggle\[aria-pressed='true'\] \.camera-chip \{ background/.test(markup),
+    'the pressed state no longer paints the chip, so the toggle has no visible state');
+
+  // The dial has to have actually MOVED, and by the full width of what now
+  // sits beside it. Their margins are the same 5%, so the dial's offset is
+  // that margin plus the control plus the gap; if the dial were left where
+  // it was, the two would overlap and the icon would sit on the dome.
+  const dialR = Number(dial.match(/right: ([\d.]+)%/)[1]);
+  const camR = Number(cam.match(/right: ([\d.]+)%/)[1]);
+  assert(dialR >= camR + Number(camW[1]),
+    `the dial at right ${dialR}% overlaps a control spanning ${camR}-${camR + Number(camW[1])}%`);
+
+  // The dial is `pointer-events: none` and must stay so; a control that
+  // cannot be clicked is not a control.
+  assert(/pointer-events: none/.test(dial), 'the dial has become clickable');
+  assert(!/pointer-events: none/.test(cam), 'the camera control cannot be clicked');
+
+  // Small drawing, large hit area -- the about ring's lesson. Asymmetric on
+  // purpose: upward is empty page, downward is the meadow, so the bottom
+  // inset is the one that must stay shallow.
+  const after = ruleFor('  #camera-toggle::after {');
+  assert(/position: absolute/.test(after), 'the camera target is in flow and will move the map');
+  const inset = after.match(/inset: (-?[\d.]+)px (-?[\d.]+)px (-?[\d.]+)px (-?[\d.]+)px/);
+  assert(inset, 'the camera control states no four-sided inset');
+  // Every side is read separately because every side is bounded by a
+  // DIFFERENT thing, and three of the four bounds are real bugs.
+  const grow = inset.slice(1, 5).map((n) => -Number(n)); // top, right, bottom, left
+  const [up, out, down, back] = grow;
+  // The narrowest stage the phone rule has to hold at: a 320px viewport.
+  // Sizing off the desktop's 38px square is how a target that reads fine
+  // on a laptop ships 25px on a phone.
+  const stage = 310;
+  const square = stage * (Number(camW[1]) / 100);
+  assert(square + up + down >= 44,
+    `the camera target is ${(square + up + down).toFixed(1)}px tall on a 320px phone`);
+  // Height comes from ABOVE, which is empty page. The about ring's 23px is
+  // the house floor for a width, and the sides here cannot reach 44 without
+  // breaking one of the two rules below.
+  assert(square + out + back >= 23,
+    `the camera target is ${(square + out + back).toFixed(1)}px wide on a 320px phone`);
+  assert(down <= 8, `the target reaches ${down}px into the meadow and steals the corner tile`);
+  // THE TWO BOUNDS THE SLIDE-RIGHT CREATED. Neither shows up on a laptop.
+  //
+  // Rightward: the control now sits 1.5% off the stage edge, so a target
+  // wider than that margin hangs off the page and a phone gets a sideways
+  // scroll -- from an element that draws nothing.
+  assert(out <= stage * (camR / 100),
+    `the target hangs ${(out - stage * (camR / 100)).toFixed(1)}px past the stage and will scroll a phone`);
+  // Leftward: the dial is pointer-events: none, so it cannot refuse a tap
+  // the camera's target has already claimed. Cross the gap and tapping the
+  // sun silently toggles the camera.
+  const gap = stage * ((dialR - camR - Number(camW[1])) / 100);
+  assert(back <= gap,
+    `the target crosses the ${gap.toFixed(1)}px gap and turns taps on the dial into taps on the camera`);
+
+  // It is a button, it says what it is, and it carries its state where a
+  // screen reader can read it -- the icon alone announces as nothing.
+  const tag = markup.slice(markup.indexOf('<button id="camera-toggle"'), markup.indexOf('</button>', markup.indexOf('<button id="camera-toggle"')));
+  assert(/aria-pressed="false"/.test(tag), 'the camera control ships without a pressed state');
+  assert(/aria-label="[^"]+"/.test(tag), 'the camera control has no accessible name');
+  assert(/aria-hidden="true"/.test(tag), 'the icon is not hidden from the reader, so it doubles the label');
+  assert(/\[aria-pressed='true'\]/.test(markup), 'the pressed state has no look, so the toggle is invisible');
+
+  // Placement only until spec 036. The click may change how the button
+  // LOOKS and nothing else -- no stored key that would need migrating, and
+  // no camera behaviour smuggled in ahead of the spec.
+  const init = app.slice(app.indexOf('function initCameraControl()'));
+  const body = init.slice(0, init.indexOf('\n}'));
+  assert(/setAttribute\(\s*'aria-pressed'/.test(body), 'the camera control does not toggle its own state');
+  assert(!/localStorage/.test(body), 'the camera control persists a flag that drives nothing yet');
+  assert(/initCameraControl\(\);/.test(app), 'the camera control is never wired up');
+});
 check("the about survives a phase change, and the owner's words survive us", () => {
   const markup = readFileSync(join(here, 'index.html'), 'utf8');
 
