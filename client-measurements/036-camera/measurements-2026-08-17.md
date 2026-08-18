@@ -133,3 +133,33 @@ constantly: their ids ran 4586 to 4663 in about two minutes here.
 **What would prove a real bug**: an EMPTY tile where `/world` says a bowl
 is. Fetch `/world`, take the chow positions, and look at those exact
 tiles with the camera off.
+
+### Round two: reload fixes it (owner, 2026-08-18)
+
+New facts: a reload clears it, it happens with the camera both on and
+off, and bugs and some water go missing alongside the bowls.
+
+Camera-independent plus reload-fixable rules out the camera and points at
+long-lived client state. Two more suspects fell:
+
+- **The fade bookkeeping is sound.** `newElementIds` is cleared outright
+  on a discontinuity (so everything draws at alpha 1) and recomputed on
+  every other push. There is no path that leaves it stale.
+- **No pacing mismatch.** The served tick measures 800ms against a
+  `tickMsFallback` of 800ms, so `progress` cannot be stuck low and new
+  elements cannot be trapped part-way through their fade.
+
+**What that leaves is the state pipeline, not the drawing.** If states
+stop arriving or stop being promoted, everything that SPAWNED since never
+appears — new bowls, new bugs, newly-spawned water — while what is
+already on screen stays put. A reload re-fetches and re-subscribes. This
+area has stalled before (#196, the tile-boundary stall).
+
+**The one question to ask before reloading next time: is the tick counter
+still advancing, and are the cats still moving?**
+
+- Tick frozen → the stream stalled; not a drawing bug, camera innocent.
+- Tick advancing but entities missing → a real render/alpha bug, and a
+  far narrower target than anything above.
+
+Nothing measurable from outside the browser separates those two.
