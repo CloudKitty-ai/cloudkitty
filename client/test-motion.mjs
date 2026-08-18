@@ -5881,6 +5881,34 @@ check('the click lifecycle is one table, and every row is here', () => {
   assert(/pos\.y > best\.y/.test(hit), 'overlapping kitties do not resolve to the one on top');
 });
 
+check('the hit test reads the frame that was drawn, not the one arriving', () => {
+  // `viewAt(now, still)` sets `progress: still ? 1 : progress(now)`. A
+  // still view therefore reports a walking kitty at her DESTINATION,
+  // which mid-tick is up to a whole tile from where she is drawn. First
+  // shown by the owner as "issues clicking on moving cats".
+  const p = new api.Presentation();
+  // Consecutive ticks and a single tile: anything else is a
+  // discontinuity, which `pushState` correctly snaps rather than glides,
+  // and there would be nothing to measure.
+  const state = (tick, x) => ({ width: 20, height: 20, tick, kitties: [{ id: 1, pos: { x, y: 5 } }], elements: [] });
+  p.pushState(state(0, 5), 0, 800);
+  p.pushState(state(1, 6), 0, 800);
+  const kitty = { id: 1, pos: { x: 6, y: 5 } };
+  const mid = p.viewAt(400, false).posFor(kitty);
+  const arrived = p.viewAt(400, true).posFor(kitty);
+  assert(arrived.x === 6, `a still view should report the destination, got ${arrived.x}`);
+  assert(mid.x < arrived.x - 0.3,
+    `mid-glide should trail the destination: ${mid.x} vs ${arrived.x}`);
+
+  const app = readFileSync(join(here, 'app.js'), 'utf8');
+  const from = app.indexOf('function initCameraClicks(');
+  const body = app.slice(from, app.indexOf('\n}\n', from));
+  assert(/viewAt\(performance\.now\(\), anim\.reduced\)/.test(body),
+    'the hit test does not use the same stillness the renderer drew with');
+  assert(!/viewAt\([^)]*,\s*true\)/.test(body),
+    'the hit test pins still to true, so it tests where a kitty is going');
+});
+
 check('the followed card is marked, and only hers', () => {
   const app = readFileSync(join(here, 'app.js'), 'utf8');
   const markup = readFileSync(join(here, 'index.html'), 'utf8');

@@ -452,8 +452,18 @@ function initCameraClicks() {
     if (!world) return;
     const point = renderer.toWorld(event.clientX, event.clientY);
     if (!point) return;
+    // The SAME stillness the renderer drew with, not a literal `true`.
+    // `viewAt(now, still)` sets `progress: still ? 1 : progress(now)`, so a
+    // still view reports where a kitty is ARRIVING rather than where she
+    // is drawn -- up to a whole tile ahead, in her direction of travel.
+    // Clicking a walking kitty then missed her about half the time, and
+    // worst along her long axis, where an off-centre click on her flank
+    // was already spending some of the margin before the lead was added.
+    //
+    // Under reduced motion the frame really is still, so the flag has to
+    // follow the renderer rather than be pinned either way.
     const view = anim.presentation.curr
-      ? anim.presentation.viewAt(performance.now(), true)
+      ? anim.presentation.viewAt(performance.now(), anim.reduced)
       : null;
     const hit = kittyAtPoint(point, world, view);
 
