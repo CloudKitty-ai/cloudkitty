@@ -77,6 +77,28 @@ had missed and closed it, and added one requirement that needed a criterion:
 - **FR-028 arrived without a criterion**, which would have regressed "all
   functional requirements have clear acceptance criteria". Added SC-014.
 
+### Re-validated after /speckit-analyze remediation, 2026-08-17
+
+All 16 items still pass. The analysis pass found six issues at MEDIUM or above
+across spec, plan and tasks; all six were remediated. Two changed the spec:
+
+- **FR-029 was missing entirely.** The frame clamps to the world so a kitty
+  followed into a corner is never shown against void — a decision taken in
+  `data-model.md` during planning and never promoted to a requirement. An
+  implementer reading only this spec would have built an unclamped camera and
+  passed every stated criterion. Requirements-completeness passed before this
+  and should not have, for the same reason it passed over the follow-lifecycle
+  hole at clarify time: a decision recorded in a downstream artifact reads as
+  settled without being *required*.
+- **FR-017 did not say what the build does.** The card marking shows a dormant
+  follow, which was a plan-level call. Now stated, with T045 free to overturn it.
+
+The remaining four were task-coverage rather than spec defects: reduced motion
+had an implementation task and no verification, three success criteria were
+named in no task, Article V was verified only in the final phase, and the
+Foundational gate depended half on a screenshot comparison this environment
+cannot run.
+
 One question in the queue was dissolved by reading the client rather than by
 asking. SC-007 promises the restored view is in place before the first painted
 frame, which looked unsatisfiable because there is nothing to aim at before the

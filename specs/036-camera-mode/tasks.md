@@ -41,7 +41,7 @@ conflicts.
 criteria are measured against.
 
 - [ ] T001 Merge `origin/client-camera-notes` into `036-camera-mode` to bring the inert control (`#camera-toggle` and `.camera-chip` in `client/index.html`, `initCameraControl` in `client/app.js`, its geometry checks in `client/test-motion.mjs`). Merge, never rebase. Without it the toggle has no seat.
-- [ ] T002 Record the pre-change baseline for SC-003 and SC-004: sustained frame rate on a fixed viewport, a full-day ground-cache bake count, and reference screenshots of the whole-world view. Store under `client-measurements/036-camera-baseline/`. **Capture this before any code changes** — both criteria are comparisons against today, and today stops existing after T004.
+- [ ] T002 Record the pre-change baseline for SC-003 and SC-004: sustained frame rate on a fixed viewport, a full-day ground-cache bake count, and reference screenshots of the whole-world view. Store under `client-measurements/036-camera-baseline/`. **Capture this before any code changes** — both criteria are comparisons against today, and today stops existing after T004. The frame rate and bake count are machine-readable and gate T022; the screenshots are the owner's reference for SC-004 and gate nothing automatically, since the draw-call check in T012 is the real guarantee there.
 - [ ] T003 [P] Confirm the harness baseline: `node client/test-motion.mjs` (163 checks) and `node client/test-meadow.mjs` (78 checks) both green on the merged branch.
 
 **Checkpoint**: Seat present, baselines banked, suites green.
@@ -65,7 +65,8 @@ arc: land the mechanism first and prove it inert, then give it behaviour.
 - [ ] T009 Clamp `bakeTile` by a device-pixel budget in `client/render.js` so the offscreen stays under mobile Safari's canvas area cap, accepting magnification past the clamp. An unclamped bake is a blank canvas on an iPad, not a slow one.
 - [ ] T010 Fix the pond cache in `client/render.js` `drawPondLayer`: add `bakeTile` to `signature`, and bake paths and layers at `bakeTile`. Today the signature is the water tile positions alone and is safe only because `resizeFor` nulls the cache on canvas resize — a camera changes the tile with no resize, so ponds would draw at the previous zoom's geometry, silently.
 - [ ] T011 Update `buildPondLayers` in `client/meadow.js` to take the bake dimensions rather than reading `canvas.width` / `canvas.height`, since the bake is larger than the canvas. Leave `driftField(width, height, t)` receiving **world** dimensions — window dimensions there would change decoration density with zoom (FR-024).
-- [ ] T012 Add the identity-camera checks to `client/test-motion.mjs` and `client/test-meadow.mjs`: with the identity camera, the draw-call sequence is command-for-command what it was before this phase, the ground bakes once, and the pond cache invalidates on a `bakeTile` change. Compare rendered output against the T002 screenshots.
+- [ ] T012 **The gate, mechanical.** Add the identity-camera checks to `client/test-motion.mjs` and `client/test-meadow.mjs`: with the identity camera the draw-call sequence is command-for-command what it was before this phase, the ground bakes once over a full world day, the pond cache invalidates on a `bakeTile` change, and `world` is never mutated (Article V, FR-021). All four run in the existing harnesses, and all four block.
+- [ ] T012a **Confirmation, owner-run, does not block.** Compare the rendered page against the T002 reference screenshots. No headless browser is available here, so this is the owner's eye. Keep it out of the gate — the draw-call check in T012 is the stronger guarantee anyway, since command-for-command identity implies pixel identity.
 
 **Checkpoint**: The client looks and performs exactly as it did at T003, with a
 camera underneath it. If anything moved, stop here — every later phase assumes
@@ -84,10 +85,10 @@ cuts, and turning it off returns the view from T002.
 
 ### Tests for User Story 1
 
-- [ ] T013 [P] [US1] Frame geometry checks in `client/test-motion.mjs`: nominal is a floor a huddled group cannot pass (FR-004), the ceiling binds at 1.5× nominal (FR-005), no kitty is drawn touching the frame edge when the fit binds (FR-004), and the frame clamps to the world so no void is ever shown.
+- [ ] T013 [P] [US1] Frame geometry checks in `client/test-motion.mjs`: nominal is a floor a huddled group cannot pass (FR-004), the ceiling binds at 1.5× nominal (FR-005), no kitty is drawn touching the frame edge when the fit binds (FR-004), and the frame clamps to the world so no void is ever shown, including a kitty followed into a corner (FR-029).
 - [ ] T014 [P] [US1] Anchor checks in `client/test-motion.mjs`: the anchor is always a kitty id present in the roster and never a computed midpoint (FR-006, SC-005), it is the kitty nearest the centre of mass, and ties resolve deterministically rather than alternating between frames.
 - [ ] T015 [P] [US1] Hysteresis check in `client/test-motion.mjs`: the anchor changes only when another kitty is at least 1.5× more central (FR-007), driven by a scripted 5-kitty walk that would flick without it.
-- [ ] T016 [P] [US1] Easing checks in `client/test-motion.mjs`: with a synthetic `dt`, a 120Hz frame sequence settles in the same real time as a 60Hz one (FR-009), aim settles slightly faster than width, no frame moves further than the rate allows (SC-002), and a clamped huge `dt` still does not cut.
+- [ ] T016 [P] [US1] Easing checks in `client/test-motion.mjs`: with a synthetic `dt`, a 120Hz frame sequence settles in the same real time as a 60Hz one (FR-009), aim settles slightly faster than width, no frame moves further than the rate allows (SC-002), and a clamped huge `dt` still does not cut. With `reduced` set, the camera reaches its target in a single update with no intermediate frames (FR-010, SC-009). Add a **source-shape assertion that `camera.update` is reached from the redraw path and not only from the rAF callback** — this is the one failure in the feature that looks perfect in testing and is frozen for every reduced-motion viewer, and the harness already catches dropped wiring this way.
 
 ### Implementation for User Story 1
 
@@ -176,7 +177,7 @@ marked and it is the right one. Release, confirm none is.
 
 ## Phase 7: Polish & Cross-Cutting
 
-- [ ] T040 Run the full `quickstart.md` validation sweep at 3, 4 and 5 kitties (FR-022, SC-010), recording results per roster size rather than in aggregate.
+- [ ] T040 Run the full `quickstart.md` validation sweep at 3, 4 and 5 kitties (FR-022, SC-010), recording results per roster size rather than in aggregate, and explicitly sweeping SC-001 (apparent size at nominal and at the ceiling, measured against the T002 baseline) and SC-008 (one action from the whole-world view to following a chosen kitty).
 - [ ] T041 [P] Verify SC-011 and SC-012: two browsers on one world at different zooms show identical positions, activities and needs at the same tick, and ground decoration is identical tile for tile at every camera width.
 - [ ] T042 [P] Verify SC-014 and FR-028: the control is reachable and operable by keyboard alone with a visible focus state. Following stays pointer-only by decision, so this is the accessibility property that must not regress.
 - [ ] T043 [P] Check the phone at the zoom ceiling, the worst case for every interaction number in the feature: a kitty near 23px, moving, possibly overlapped. SC-013 exists because of it.
@@ -185,6 +186,7 @@ marked and it is the right one. Release, confirm none is.
 - [ ] T046 Judge the `fine` pop in motion on a 1080p display, where the camera crosses the 44px threshold within the 10–15 tile band. The owner accepted it for this release specifically so it could be judged rather than predicted; record the verdict for the follow-up rather than acting on it here.
 - [ ] T047 Deploy, then verify from the running system: fetch `render.js` and `anim.js` from both `kitties.ai` and `cloudkitty.ai` and confirm the bytes. Never take the deploy report's word for it.
 - [ ] T048 [P] Update `BACKLOG.md` with what this arc parked: the ear and eye magnitudes, the gaze sources, the `MENISCUS` dials, and whiskers at camera scale — all deferred to this moment and now judgeable at the camera's size.
+- [ ] T049 Measure SC-006: run 5 kitties for 10 minutes with camera mode on and count anchor changes, which must be at most 3 a minute. Instrument the count rather than watching for it — a restless camera is easier to measure than to notice — and judge the hysteresis dial from T045 against this number.
 
 ---
 
@@ -193,7 +195,7 @@ marked and it is the right one. Release, confirm none is.
 ### Phase dependencies
 
 - **Setup (T001–T003)**: no dependencies. T002 must precede any code change.
-- **Foundational (T004–T012)**: blocks every story. T012 is the gate.
+- **Foundational (T004–T012a)**: blocks every story. **T012 is the gate; T012a is confirmation and does not block** — it needs a browser this environment does not have.
 - **US1 (T013–T022)**: needs Foundational. No story dependencies.
 - **US2 (T023–T031)**: needs Foundational. Independently testable, though in
   practice it is judged with US1 running.
@@ -201,13 +203,13 @@ marked and it is the right one. Release, confirm none is.
   is testable with US1 alone if US2 has not landed.
 - **US4 (T036–T039)**: needs US2, since there is nothing to mark without a
   follow. The one genuine cross-story dependency.
-- **Polish (T040–T048)**: after the stories being shipped.
+- **Polish (T040–T049)**: after the stories being shipped. T049 needs US1 only, so it can run early if the hysteresis dial wants evidence sooner.
 
 ### Within Foundational
 
 T004 and T005 are independent. T006 needs both. T007 needs T006. T008 and T010
 both touch `render.js` and should be sequential. T011 pairs with T010. T012 gates
-everything.
+everything; T012a runs alongside it without blocking.
 
 ### Parallel opportunities
 

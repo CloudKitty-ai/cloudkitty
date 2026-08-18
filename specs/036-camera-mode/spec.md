@@ -185,6 +185,8 @@ marked.
   ceiling binds on the larger spread.
 - **Every kitty is on the same tile.** The fit collapses to nothing and the
   nominal width applies as the floor, so the camera sits at nominal.
+- **A kitty in the world's corner is followed.** The frame clamps to the world
+  and she sits off-centre. Every pixel is meadow and none is void (FR-029).
 - **Two kitties are equally central.** The anchor rule must resolve
   deterministically rather than alternating between them from frame to frame.
 - **The viewer clicks empty ground, an element, or a decoration.** Anything that
@@ -227,6 +229,12 @@ marked.
   touching the frame's edge: a margin holds the outermost clear of it.
 - **FR-005**: The camera MUST NOT widen beyond 1.5× nominal, that is 15 tiles.
   Past that it stops trying to fit and allows kitties to leave the frame.
+- **FR-029**: The frame MUST stay inside the world. Where aiming at the anchor
+  would show ground beyond the world's edge, the frame is clamped to the world
+  and the anchor sits off-centre rather than centred against void. The anchor is
+  still a kitty, so SC-005 holds; the clamp is a later step that may offset the
+  frame's centre from it. On a 20-tile world with a 10 to 15 tile frame the
+  clamp is active often rather than rarely.
 - **FR-006**: When the camera cannot fit every kitty, it MUST aim at the kitty
   nearest the group's centre of mass. It MUST NOT aim at the bounding-box
   midpoint or at the centre of mass itself, because both are usually empty
@@ -268,7 +276,9 @@ marked.
 - **FR-016**: Following MUST have no timeout, no drift-away, and no
   auto-release. A sleeping kitty is followed exactly like a moving one.
 - **FR-017**: The followed kitty MUST be marked on her card, and no other card
-  may carry that marking.
+  may carry that marking. The marking also shows while camera mode is off, so a
+  follow held across the toggle is visible rather than surprising the viewer
+  when the camera comes back on.
 
 **Persistence**
 
