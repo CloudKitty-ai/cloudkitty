@@ -77,8 +77,9 @@ Every prereg pins, before freeze:
   into every run manifest.
 - Gates and decision rules with their numbers AND the comparison
   each is measured against. A gate compared to the wrong reference
-  is vacuous, and "vs own pre-change self at the same seat"
-  measures nothing when the change is the company, not the mind.
+  is vacuous (the seen-it-red rule's wrong-layer lie at experiment
+  scale), and "vs own pre-change self at the same seat" measures
+  nothing when the change is the company, not the mind.
 - QA riders: what gets measured during collection and reported
   with the acceptance record.
 - A deviations appendix, empty at freeze.
@@ -94,9 +95,10 @@ Every prereg pins, before freeze:
   dilution, not signal.
 - Measure in the deployment composition (F-012). A number measured
   in the wrong company describes a world that will not be served.
-- Read the counts, not the exit codes. A pipeline that "completed"
-  proves nothing about what it wrote; count output rows or dirs
-  against the registered expectation.
+- Read the counts, not the exit codes (the seen-it-red rule at
+  pipeline scale). A pipeline that "completed" proves nothing about
+  what it wrote; count output rows or dirs against the registered
+  expectation.
 
 ## Baselines and anchors
 
@@ -112,7 +114,7 @@ Every prereg pins, before freeze:
 - Every instrument prints its engine commit.
 - Smoke on a subset before any full run. The smoke validates
   asserts and output shape, not just "it ran": a green run that
-  could not have gone red proves nothing.
+  could not have gone red proves nothing (the seen-it-red rule).
 - A ported instrument proves itself against the previous
   instrument's data before measuring anything new (replay-equality
   stitch asserts, or a fixture the old version blessed).
