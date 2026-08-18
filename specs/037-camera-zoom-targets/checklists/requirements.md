@@ -60,6 +60,30 @@ baking values nobody has looked at yet — and the checklist item this most risk
 against the fine-detail threshold and the measured display range rather than
 against invented constants.
 
+### Re-validated after clarification, 2026-08-18
+
+All 16 items still pass. The clarification changed the feature's shape rather
+than filling a gap, and three things in the spec contradicted it afterwards:
+
+- **The Overview still said the ceiling was an absolute tile count**, which is
+  the opposite of what was settled. Rewritten, and the Input line is annotated
+  rather than edited — it records what was asked for, not what was decided.
+- **A maximum tile count existed and no longer should.** With the ceiling
+  expressed in pixels, a larger viewport framing more tiles at the same legible
+  size is the *wanted* answer, not a case to guard. The requirement, the user
+  story scenario and the edge case all went.
+- **An Assumption argued against exactly what was chosen** — that the ceiling
+  should stay a tile count because "how much world to keep does not depend on
+  pixels". Replaced with why that reasoning failed: once range became the
+  priority, the ceiling's job is to widen until the kitties stop being legible,
+  which is a pixel question.
+
+Also added a Fog Generation dependency. On today's 20×20 world the largest
+viewports clamp the ceiling against the world's edge and lose part of their
+range; at 40×40 nothing clamps. The feature is still worth shipping first —
+it improves on 3.5× either way — but that is a conditional benefit and the spec
+now says so rather than quietly assuming the world grows.
+
 **One item is a qualified pass.** "No implementation details" — the Overview
 carries a table of measured pixel sizes per display. Those are the evidence the
 feature exists at all, and without them the problem statement is an assertion.
