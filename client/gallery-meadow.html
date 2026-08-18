@@ -156,6 +156,27 @@
   </p>
   <canvas id="ponds-phases" width="960" height="160"></canvas>
 
+  <h2>Meniscus — where a cat meets the water, right through the day</h2>
+  <p class="note">
+    The <code>MENISCUS</code> dials, drawn through the shipped
+    <code>drawWaterline</code> and the shipped clip — the same
+    <code>waterlineFor</code> / <code>surfaceForPose</code> the renderer
+    uses, so what is cut here is what is cut live. Four phases because the
+    line takes its colour from <code>pondMeniscus</code>, which is a
+    per-theme entry: this is the card that catches a value tuned at noon
+    and unreadable at midnight. <strong>Night is the one to judge</strong>
+    — a fixed mix toward white measured 33 points of L* too bright there,
+    which is why the palette is asked rather than told.
+  </p>
+  <p class="note">
+    Each cell is the same cat at the same submersion, so the only thing
+    varying across the strip is the palette. The row beneath repeats it at
+    <strong>the deepest wade</strong>, where the fill and the ring have the
+    most to do.
+  </p>
+  <canvas id="meniscus-phases" width="960" height="300"></canvas>
+  <div class="styles" id="meniscus-labels" style="grid-template-columns: repeat(4, 1fr);"></div>
+
   <h2>Leaf swing — the same shrub, right through the day</h2>
   <p class="note">
     The lobed shrub's four leaf ticks mark the lit side, so they slide with
@@ -258,10 +279,30 @@
   // A MUTABLE stand-in for anim.js's frozen VIEW. meadow.js reads
   // `VIEW.meadow` at call time and prefers it over MEADOW_DEFAULTS, so
   // everything the dials touch reaches the shipped drawing code.
-  var VIEW = { meadow: {} };
+  // The fields beyond `meadow` are here because render.js reads them, and
+  // this lab does not load anim.js -- it cannot, since anim.js declares
+  // `const VIEW` and would collide with this stand-in.
+  //
+  // A stand-in that is missing a field the shipped code reads does not
+  // fail loudly: `surfaceForPose` returns `VIEW.waterline`, and without it
+  // `waterlineFor` yields NaN, the clip becomes `tile * (2 + NaN)`, and
+  // the cat is clipped to nothing. An invisible cat in a lab reads as
+  // broken ART. Caught here before it shipped, and
+  // `test-meadow.mjs` now fails if any of these drift from anim.js.
+  var VIEW = {
+    meadow: {},
+    waterline: 0.72,
+    swimAxial: 'both',
+    cloudPeriodMs: 60000,
+    ambient: { waterShimmer: true },
+  };
 </script>
 <script src="props.js"></script>
 <script src="meadow.js"></script>
+<!-- For MENISCUS and the shipped drawWaterline. render.js reads VIEW and
+     MEADOW at call time, never at load, so it is safe after meadow.js
+     even though the real page loads anim.js between them. -->
+<script src="render.js"></script>
 <script>
 (() => {
   // Seed the mutable tunables from the file's own defaults, so the lab
@@ -457,6 +498,7 @@
     });
     drawPondLoupe(c);
     drawPondPhases(now);
+    drawMeniscusPhases(now);
   }
 
   /** A lone tile and the lake together, so one cell shows both the shape
@@ -562,6 +604,108 @@
     });
     g.setTransform(1, 0, 0, 1, 0, 0);
     g.textAlign = 'left';
+  }
+
+  /**
+   * The meniscus strip: one cell per phase, two submersion depths.
+   *
+   * Everything that decides the picture is the SHIPPED code -- the clip
+   * rectangle from render.js's own drawKitty, `waterlineFor` for where the
+   * surface crosses, and `drawWaterline` itself called on a stub carrying
+   * the two fields it reads. Replicating any of that here would mean the
+   * lab could agree with itself while disagreeing with the meadow, which
+   * is the one thing a lab must not do.
+   */
+  const MENISCUS_DEPTHS = [
+    ['standing', 0.45],
+    ['deepest wade', 0.95],
+  ];
+  const MENISCUS_TILES = [
+    { x: 0, y: 0 }, { x: 1, y: 0 }, { x: 2, y: 0 },
+    { x: 0, y: 1 }, { x: 1, y: 1 }, { x: 2, y: 1 },
+  ];
+  let meniscusBake = null;
+
+  function drawMeniscusPhases(now) {
+    const c = document.getElementById('meniscus-phases');
+    if (!c || typeof WorldRenderer !== 'function') return;
+    const g = c.getContext('2d');
+    const cw = c.width / PHASES_4.length;
+    const rowH = c.height / MENISCUS_DEPTHS.length;
+    // The pond bake is palette-independent, so it survives a dial change
+    // that only moves MENISCUS -- which is most of them.
+    const key = [tile, VIEW.meadow.pondDepthBlurTiles, VIEW.meadow.shoreRounding].join('|');
+    if (!meniscusBake || meniscusBake.key !== key) {
+      const ponds = groupWaterTiles(MENISCUS_TILES)
+        .map((t) => ({ tiles: t, path: buildPondPath(t, tile) }));
+      meniscusBake = {
+        key,
+        cells: PHASES_4.map((ph) => {
+          setMeadowPalette(ph, null, 0);
+          return {
+            ph,
+            ponds,
+            layers: buildPondLayers(ponds, {
+              tile, widthPx: Math.round(cw), heightPx: Math.round(rowH), dpr: 1,
+            }),
+          };
+        }),
+      };
+    }
+
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.clearRect(0, 0, c.width, c.height);
+    // The stub carries exactly what drawWaterline touches. A whole
+    // WorldRenderer would need a canvas it can measure the page with.
+    const surface = { ctx: g, tile };
+    const view = { ambient: { now } };
+
+    meniscusBake.cells.forEach((cell, col) => {
+      setMeadowPalette(cell.ph, null, 0);
+      MENISCUS_DEPTHS.forEach(([, submersion], row) => {
+        g.save();
+        g.beginPath();
+        g.rect(col * cw, row * rowH, cw, rowH);
+        g.clip();
+        g.translate(col * cw, row * rowH);
+        g.fillStyle = MEADOW.grassTones[0];
+        g.fillRect(0, 0, cw, rowH);
+        drawPonds(g, { ponds: cell.ponds, tile, layers: cell.layers, now, motion: true });
+
+        // The cat, standing in the middle of the lake.
+        const cx = tile * 1.5;
+        const x = cx - tile / 2;
+        const y = rowH / 2 - tile * 0.35;
+        const pose = 'idle';
+        const cut = waterlineFor(submersion, surfaceForPose(pose));
+        if (cut !== null) {
+          g.save();
+          g.beginPath();
+          // render.js's own clip, verbatim: generous sideways and upward,
+          // cutting only the bottom.
+          g.rect(x - tile, y - tile * 2, tile * 3, tile * (2 + cut));
+          g.clip();
+        }
+        drawCat(g, {
+          pose,
+          appearance: typeof shadedAppearanceOf === 'function'
+            ? shadedAppearanceOf(appearanceFor(2), cell.ph)
+            : appearanceFor(2),
+          facing: 'right', size: tile, x, y, phase: 0.3,
+        });
+        if (cut !== null) {
+          g.restore();
+          // After the clip is released: the surface is painted ON the cat.
+          WorldRenderer.prototype.drawWaterline.call(surface, cx, y, cut, submersion, view);
+        }
+        g.restore();
+      });
+    });
+
+    const labels = document.getElementById('meniscus-labels');
+    if (labels && labels.childElementCount !== PHASES_4.length) {
+      labels.innerHTML = PHASES_4.map((ph) => `<span>${ph}</span>`).join('');
+    }
   }
 
   function drawPondPhases(now) {
@@ -917,6 +1061,15 @@
     // is exactly how bushStyleAlt went missing from the first bake.
     lines.push(`bushStyle: '${VIEW.meadow.bushStyle}',`);
     lines.push(`bushStyleAlt: '${VIEW.meadow.bushStyleAlt}',`);
+    // MENISCUS has ONE home, and it is not either of the two above --
+    // saying so in the paste is what stops it being pasted into them.
+    if (MENISCUS_DIALS.length) {
+      lines.push('');
+      lines.push('// paste into render.js (MENISCUS) -- one home, not the two above');
+      lines.push('const MENISCUS = {');
+      for (const key of MENISCUS_DIALS) lines.push(`  ${key}: ${MENISCUS[key]},`);
+      lines.push('};');
+    }
     document.getElementById('readout').value = lines.join('\n');
   }
 
@@ -957,6 +1110,57 @@
   }
 
   const dialHost = document.getElementById('dials');
+
+  // MENISCUS lives in render.js, not in MEADOW_DEFAULTS, so it gets its
+  // own group and its own paste block. The object is a `const` but its
+  // PROPERTIES are not, which is what lets the dials reach the shipped
+  // drawing code rather than a copy of it.
+  const MENISCUS_RANGES = {
+    fill: [0, 0.6, 0.005],
+    line: [0, 1, 0.01],
+    ring: [0, 0.5, 0.005],
+    rx: [0.15, 0.6, 0.005],
+    ry: [0.01, 0.12, 0.002],
+    breathe: [0, 0.05, 0.001],
+  };
+  const MENISCUS_DIALS = typeof MENISCUS === 'object'
+    ? Object.keys(MENISCUS_RANGES).filter((k) => k in MENISCUS)
+    : [];
+  // Say it out loud rather than dialling a field that no longer exists,
+  // which is how a lab starts lying about what ships.
+  const MENISCUS_STALE = typeof MENISCUS === 'object'
+    ? Object.keys(MENISCUS).filter((k) => !(k in MENISCUS_RANGES))
+    : [];
+  if (MENISCUS_DIALS.length) {
+    const head = document.createElement('p');
+    head.className = 'note';
+    head.innerHTML = '<strong>MENISCUS</strong> (render.js) — the cat waterline.'
+      + (MENISCUS_STALE.length
+        ? ` <span class="warn">Undialed here: ${MENISCUS_STALE.join(', ')}.</span>`
+        : '');
+    dialHost.appendChild(head);
+    for (const key of MENISCUS_DIALS) {
+      const [min, max, step] = MENISCUS_RANGES[key];
+      const l = document.createElement('label');
+      l.innerHTML = `<span class="name">MENISCUS.${key}</span>`;
+      const input = document.createElement('input');
+      Object.assign(input, { type: 'range', min, max, step, value: MENISCUS[key] });
+      const out = document.createElement('output');
+      out.textContent = MENISCUS[key];
+      input.oninput = () => {
+        MENISCUS[key] = parseFloat(input.value);
+        out.textContent = input.value;
+        render();
+      };
+      l.append(input, out);
+      dialHost.appendChild(l);
+    }
+    const head2 = document.createElement('p');
+    head2.className = 'note';
+    head2.innerHTML = '<strong>MEADOW</strong> — everything else.';
+    dialHost.appendChild(head2);
+  }
+
   for (const [key, min, max, step] of DIALS) {
     const l = document.createElement('label');
     l.innerHTML = `<span class="name">${key}</span>`;

@@ -2441,5 +2441,42 @@ check('a thought bubble stays with its kitty when the camera has panned', () => 
     `the bubble sat ${Math.abs(bubble.x - her).toFixed(0)}px from its kitty at ${her}`);
 });
 
+check("the meadow lab's VIEW stand-in matches the VIEW that ships", () => {
+  // gallery-meadow.html cannot load anim.js -- anim.js declares `const
+  // VIEW` and the lab needs a MUTABLE one for its dials -- so it
+  // hand-writes a stand-in. A hand-written fixture drifts, and this one
+  // drifts SILENTLY: a missing field makes `surfaceForPose` return
+  // undefined, `waterlineFor` return NaN, and the clip swallow the whole
+  // cat. That reads as broken art, not as a broken lab.
+  const lab = readFileSync(join(here, 'gallery-meadow.html'), 'utf8');
+  const render = readFileSync(join(here, 'render.js'), 'utf8');
+  const animSrc = readFileSync(join(here, 'anim.js'), 'utf8');
+
+  // Every VIEW field render.js reads, except `meadow` (the lab owns that
+  // one deliberately) and `props` (props.js keeps its own palette).
+  const read = new Set(
+    [...render.matchAll(/VIEW\.([a-zA-Z]+)/g)].map((m) => m[1]),
+  );
+  read.delete('meadow');
+  read.delete('props');
+  assert(read.size > 0, 'found no VIEW reads in render.js -- the scan broke');
+
+  const block = lab.slice(lab.indexOf('var VIEW = {'), lab.indexOf('</script>', lab.indexOf('var VIEW = {')));
+  for (const field of read) {
+    assert(new RegExp(`\\b${field}\\s*:`).test(block),
+      `the lab's VIEW stand-in is missing \`${field}\`, which render.js reads`);
+  }
+
+  // And the values have to agree, not merely exist.
+  for (const [field, re] of [['waterline', /^  waterline: ([\d.]+),/m], ['cloudPeriodMs', /^  cloudPeriodMs: (\d+),/m]]) {
+    const shipped = animSrc.match(re);
+    assert(shipped, `could not read VIEW.${field} out of anim.js`);
+    const labValue = block.match(new RegExp(`${field}:\\s*([\\d.]+)`));
+    assert(labValue, `the lab does not set ${field}`);
+    assert(labValue[1] === shipped[1],
+      `the lab has ${field} ${labValue[1]}, anim.js ships ${shipped[1]}`);
+  }
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);
