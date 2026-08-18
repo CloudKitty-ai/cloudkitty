@@ -348,7 +348,13 @@ function applyTheme() {
 
   setMeadowPalette(blend.theme, blend.next, blend.step);
   setPropPalette(blend.theme, blend.next, blend.step);
+  // Both caches bake palette colours into themselves. The ground is
+  // nulled outright; the pond layers carry this key in their own
+  // signature instead, so they cannot go stale by someone forgetting a
+  // line here -- which is how they held daylight shore paint through
+  // dusk and night until 2026-08-17.
   renderer.groundCache = null; // the cache bakes the palette; rebake
+  renderer.paletteKey = key;
   anim.redraw(); // safe pre-world: redraw no-ops until a state exists
 }
 

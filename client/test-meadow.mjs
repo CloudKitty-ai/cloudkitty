@@ -2230,5 +2230,56 @@ check('the sideways nudge cannot disagree with the depth sort', () => {
   );
 });
 
+check('the pond layers rebuild when the palette steps, not only when the water moves', () => {
+  // `buildPondLayers` bakes MEADOW.pondShore and MEADOW.pondLip INTO the
+  // shore and lip canvases, but the cache used to key on the water tiles
+  // alone -- and `applyTheme` nulls only the ground cache. So a world
+  // running from day into night kept its shore band and damp lip in
+  // daylight paint while the grass, the pond body and the meniscus all
+  // crossed. Reported by review, 2026-08-17; shipped that way since the
+  // layers were introduced.
+  const renderer = new api.WorldRenderer(mockCanvas(640, 640));
+  renderer.tile = 32;
+  renderer.cssWidth = 640;
+  renderer.cssHeight = 640;
+  renderer.dpr = 1;
+  const world = {
+    width: 20,
+    height: 20,
+    elements: [
+      { kind: 'water', id: 1, pos: { x: 5, y: 5 } },
+      { kind: 'water', id: 2, pos: { x: 6, y: 5 } },
+    ],
+  };
+  const view = { elementAlphaFor: () => 1, ambient: { now: 0 } };
+
+  renderer.paletteKey = 'day>dusk@0';
+  renderer.drawPondLayer(world, view);
+  const first = renderer.pondCache;
+  assert(first, 'no pond cache was built at all');
+
+  // Nothing moved: the cache is the whole point, so it must survive.
+  renderer.drawPondLayer(world, view);
+  assert(renderer.pondCache === first, 'the cache rebuilt with nothing changed');
+
+  // The palette steps. `applyTheme` publishes the key it already computes
+  // for its own early-return, and the layers key on it.
+  renderer.paletteKey = 'day>dusk@0.5';
+  renderer.drawPondLayer(world, view);
+  assert(renderer.pondCache !== first, 'the pond layers survived a palette step');
+});
+
+check('applyTheme publishes the palette key the pond layers key on', () => {
+  // Two halves in two files, and the failure mode if they drift is silent
+  // -- the layers simply never rebuild. Worth pinning the join.
+  const app = readFileSync(join(here, 'app.js'), 'utf8');
+  assert(/renderer\.paletteKey = key;/.test(app), 'applyTheme no longer publishes the palette key');
+  const render = readFileSync(join(here, 'render.js'), 'utf8');
+  assert(
+    /const signature = `\$\{this\.paletteKey\}\|/.test(render),
+    'the pond signature no longer carries the palette key',
+  );
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);
