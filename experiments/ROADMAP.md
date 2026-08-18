@@ -112,7 +112,19 @@ meadow — noting the old declutter screen's small welfare cost,
 −0.0038, to re-measure); growth beyond 20×20 only on a MEASURED
 benefit to the world's character.** Phase-1 world-size screen
 (2026-08-15): 20×20 carries five cats with zero distress; the
-proportional 22×22 bought nothing and taxed travel. BC-bootstrap via the curriculum the
+proportional 22×22 bought nothing and taxed travel. *(Owner update
+2026-08-17: Client's camera mode (spec 036) is on track, so a
+larger map is no longer an aesthetic blocker by fog time. The
+measured-benefit requirement stands unchanged — what changes is
+that the fog prereg may now screen larger worlds as live options.
+Fog-relevant mechanism to test then: on 20×20 a vision radius
+barely binds, so fog's information gradient — the selection
+pressure the whole generation is built on, and F-026's overturn
+condition — may need either aggressive radius or a bigger world to
+exist at all. A world-size × vision-radius screen belongs in the
+fog prereg's design pass, with the re-baselines it implies: world
+tuning, anchors, and F-023's threshold economics are all
+20×20-composition numbers.)* BC-bootstrap via the curriculum the
 dose-response taught us. **Bootstrap doctrine (owner-settled
 2026-08-18, comms brainstorm addendum): lineage BC carries culture
 (collected post-cutover from the expanded minds); a Here*-TEACHER
