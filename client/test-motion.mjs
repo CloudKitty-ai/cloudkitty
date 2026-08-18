@@ -5906,7 +5906,11 @@ check('the followed card is marked, and only hers', () => {
   // harness, so a real one would mean standing up a document here. That
   // is worth doing when app.js next needs behavioural coverage; it is not
   // worth pretending these are equivalent.
-  assert(/markedFollow = null;/.test(app), 'a card rebuild no longer invalidates the mark');
+  // Scoped to the rebuild block: a bare /markedFollow = null/ also
+  // matches the declaration, so removing the reset left the check green.
+  const panel = app.slice(app.indexOf('function renderPanel('));
+  const rebuild = panel.slice(panel.indexOf('if (needsRebuild)'), panel.indexOf('buildKittyCard(kitty)'));
+  assert(/markedFollow = null;/.test(rebuild), 'a card rebuild no longer invalidates the mark');
   assert(/syncFollowMark\(\);/.test(app), 'nothing reconciles a follow the camera ended');
   const sync = app.slice(app.indexOf('function syncFollowMark('));
   const syncBody = sync.slice(0, sync.indexOf('\n}\n'));
@@ -5940,6 +5944,33 @@ check('the pond layers are bounded tighter than the ground, being four of them',
   const groundSide = ground * Math.max(world.width, world.height) * r.dpr;
   assert(4 * side * side <= 4 * groundSide * groundSide,
     'four pond layers outweigh the ground bake they were bounded against');
+});
+
+check('the pond bake leaves the camera-off state alone, at every dpr', () => {
+  // The ground bake skips its clamp when the camera is off so the off
+  // state is byte-for-byte what shipped. The pond bound then undid that
+  // for the water: on a 5K display the tile reaches ~59 and the bound
+  // dropped the bake to 51.2, softening shore, lip, meniscus and pads --
+  // and making `this.tile / bakeTile` differ from 1, which pushes the
+  // off-state pond path through a ctx.scale it is documented never to
+  // take. An identity claim has to hold for every layer.
+  const world = camWorld();
+  for (const [tile, dpr] of [[31, 1], [48, 2], [59, 2], [60, 3], [60, 4]]) {
+    const r = Object.assign(Object.create(WorldRenderer.prototype), {
+      cssWidth: tile * world.width, dpr, camera: new api.Camera(),
+    });
+    const pond = r.pondBakeTileFor(world);
+    assert(pond === tile, `off at tile ${tile} dpr ${dpr}: pond bakes at ${pond}`);
+    assert(pond === r.bakeTileFor(world), 'the pond and ground bakes disagree while off');
+  }
+  // With the camera ON the bound applies, which is the whole point of it.
+  const cam = new api.Camera();
+  cam.on = true;
+  const on = Object.assign(Object.create(WorldRenderer.prototype), {
+    cssWidth: 1200, dpr: 2, camera: cam,
+  });
+  assert(on.pondBakeTileFor(world) < on.bakeTileFor(world),
+    'the pond bound does nothing when the camera is on');
 });
 
 check('the pond layers blit only what is on screen', () => {
