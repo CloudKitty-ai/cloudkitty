@@ -94,6 +94,12 @@ Nothing in the frozen prereg blocks training on this: the rider
 promised a measurement with the acceptance record, and this section
 is that report.
 
+**Owner ruling (2026-08-17): option 1.** The asymmetry stays a
+documented property (it rots in the safe direction by design); the
+shadow-replay census is built only if a candidate's G5 census shows
+real Here* speech. The 5/1k new-kind trigger already watches that
+behavior.
+
 ## Final expansion-residual numbers
 
 The D-001 per-artifact residual re-ran on the complete spread cell
