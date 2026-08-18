@@ -188,9 +188,19 @@
   </p>
   <p class="note">
     Each cell is the same cat standing in the middle of the same 2&times;2
-    lake at the same submersion, so the only thing varying across the strip
-    is the palette. The row beneath repeats it at <strong>the deepest
-    wade</strong>, where the fill and the ring have the most to do.
+    lake, so the only thing varying <em>across</em> the strip is the
+    palette. <strong>Down</strong> it, only the submersion changes: 0.45 on
+    the top row, 0.95 on the bottom.
+  </p>
+  <p class="note">
+    That difference is <strong>almost entirely alpha, not height</strong>,
+    which is worth knowing before dialling. The waterline sits 81px down
+    her 100px box at 0.45 and 73px at 0.95 — barely 8px apart, because
+    <code>waterline</code> (0.72) and her ground line (0.88) are only 0.16
+    of a box apart. What submersion really drives is strength: the line
+    goes 0.19&nbsp;&rarr;&nbsp;0.40 and the fill 0.07&nbsp;&rarr;&nbsp;0.15,
+    a little over double each. So a value that reads well on the bottom row
+    can be invisible on the top one, and the top row is the harder test.
   </p>
   <canvas id="meniscus-phases" width="960" height="500"></canvas>
   <div class="styles" id="meniscus-labels" style="grid-template-columns: repeat(4, 1fr);"></div>
@@ -698,7 +708,7 @@
 
     meniscusBake.cells.forEach((cell, col) => {
       setMeadowPalette(cell.ph, null, 0);
-      MENISCUS_DEPTHS.forEach(([, submersion], row) => {
+      MENISCUS_DEPTHS.forEach(([depthName, submersion], row) => {
         g.save();
         g.beginPath();
         g.rect(col * cw, row * rowH, cw, rowH);
@@ -739,6 +749,21 @@
           WorldRenderer.prototype.drawWaterline.call(surface, cx, y, cut, submersion, view);
         }
         g.restore();
+
+        // The row's name, on the canvas rather than under it: the two
+        // rows differ mostly in ALPHA (0.19 against 0.40 on the line) and
+        // only 8px in height, so without a label the reader is left
+        // guessing whether the difference is the dial or the depth.
+        // Drawn after the cell's restore, so the lake's clip cannot eat it.
+        if (col === 0) {
+          g.save();
+          g.setTransform(1, 0, 0, 1, 0, 0);
+          g.fillStyle = '#8a7a6c';
+          g.font = '600 12px ui-sans-serif, system-ui, sans-serif';
+          g.textAlign = 'left';
+          g.fillText(`${depthName} — submersion ${submersion}`, 8, row * rowH + 16);
+          g.restore();
+        }
       });
     });
 
