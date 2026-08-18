@@ -455,3 +455,86 @@ async fn a_seated_expanded_v2_mind_stays_mute_and_deaf_in_a_running_world() {
         "needs trajectory unchanged — full v2 deafness at world level"
     );
 }
+
+// ---- 035-review remediation: the verifier's independence, proven ----
+
+#[test]
+fn the_verifier_rejects_what_construction_never_produces() {
+    // The medium review's empirical finding: the verifier must be
+    // independent of construction. Each scenario here is a "regressed
+    // tool" output that the old verifier blessed or panicked on.
+    let dir = temp_dir("verifier-independence");
+    let source = dir.join("old.ckpolicy");
+    write_old_v2_fixture(&source, 8, 11);
+    let output = dir.join("old-o4.ckpolicy");
+    expand_file(&source, &output).expect("expands");
+    let (header, blob, _) = split_container_for_expansion(&source).unwrap();
+    let good = std::fs::read(&output).unwrap();
+    let cfg = RlConfig::default().observation;
+
+    // (a) The source itself claimed as "output": old pins, never-widened
+    // head — the exact regression the review confirmed attesting PASS.
+    let source_bytes = std::fs::read(&source).unwrap();
+    let err = verify_expansion(&header, &blob, &source_bytes, &cfg).unwrap_err();
+    assert!(
+        err.contains("not the current surface"),
+        "an unexpanded output must fail on its pins: {err}"
+    );
+
+    // (b) A truncated output names the corruption instead of panicking.
+    let err = verify_expansion(&header, &blob, &good[..good.len() / 2], &cfg).unwrap_err();
+    assert!(
+        err.contains("truncated") || err.contains("floats"),
+        "truncation is named, not panicked on: {err}"
+    );
+    let err = verify_expansion(&header, &blob, &good[..10], &cfg).unwrap_err();
+    assert!(err.contains("container"), "{err}");
+
+    // (c) A sign-flipped -0.0 in a zeroed position is different bytes and
+    // must fail the bit-exact zero check.
+    let hlen = u32::from_le_bytes([good[8], good[9], good[10], good[11]]) as usize;
+    let body = 12 + hlen;
+    let mut negzero = good.clone();
+    let new_len = observation_len(&cfg);
+    let at = body + (new_len - 2) * 4; // row 0, a new digest column
+    negzero[at..at + 4].copy_from_slice(&(-0.0f32).to_le_bytes());
+    let err = verify_expansion(&header, &blob, &negzero, &cfg).unwrap_err();
+    assert!(err.contains("not 0.0"), "-0.0 is not provably zero: {err}");
+
+    // (d) A dropped source parameter cannot attest (T009's restored
+    // criterion): shorten the source blob by one float.
+    let err = verify_expansion(&header, &blob[..blob.len() - 4], &good, &cfg).unwrap_err();
+    assert!(
+        err.contains("dropped or extra source parameter"),
+        "a dropped source parameter is named: {err}"
+    );
+}
+
+#[test]
+fn a_malformed_v3_header_is_refused_not_panicked_on() {
+    // Review finding: d_model=0 reached a divide-by-zero; encoder_layers=0
+    // could attest an artifact the serving loader refuses. Both now earn
+    // the named refusal.
+    let dir = temp_dir("v3-hyper-guard");
+    for (field, value) in [("d_model", 0u32), ("encoder_layers", 0u32), ("heads", 3u32)] {
+        let source = dir.join(format!("bad-{field}.ckpolicy"));
+        let header_json = format!(
+            r#"{{"artifact_version":3,"observation_schema":3,"action_schema":2,"mask_schema":2,"architecture":"entity_attention","d_model":{},"heads":{},"encoder_layers":{},"ffn":{}}}"#,
+            if field == "d_model" { value } else { 16 },
+            if field == "heads" { value } else { 2 },
+            if field == "encoder_layers" { value } else { 1 },
+            32
+        );
+        let mut bytes = Vec::new();
+        bytes.extend_from_slice(cloudkitty_rl::policy::ARTIFACT_MAGIC);
+        bytes.extend_from_slice(&(header_json.len() as u32).to_le_bytes());
+        bytes.extend_from_slice(header_json.as_bytes());
+        std::fs::write(&source, bytes).unwrap();
+        let err = expand_file(&source, &dir.join("out.ckpolicy")).unwrap_err();
+        let msg = format!("{err}");
+        assert!(
+            msg.contains("positive") || msg.contains("divisible"),
+            "{field}: named refusal, not a panic: {msg}"
+        );
+    }
+}

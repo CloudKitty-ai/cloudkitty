@@ -200,6 +200,14 @@ pub fn expand_file(source: &Path, output: &Path) -> Result<Attestation, ExpandEr
     let counts = verify_expansion(&header_bytes, &blob, &out_bytes, cfg)
         .map_err(ExpandError::Attestation)?;
 
+    // The totals come from the raw byte lengths, never from the counts they
+    // are asserted against — a tautological total would make the round-trip
+    // test's bijection assertion unfalsifiable (033-style review finding).
+    let total_source = blob.len() / 4;
+    let out_hlen =
+        u32::from_le_bytes([out_bytes[8], out_bytes[9], out_bytes[10], out_bytes[11]]) as usize;
+    let total_output = (out_bytes.len() - 12 - out_hlen) / 4;
+
     std::fs::write(output, &out_bytes).map_err(ExpandError::Write)?;
     use sha2::Digest;
     let output_sha = format!("{:x}", sha2::Sha256::digest(&out_bytes));
@@ -216,8 +224,8 @@ pub fn expand_file(source: &Path, output: &Path) -> Result<Attestation, ExpandEr
         mapped: counts.0,
         zeroed: counts.1,
         floored: counts.2,
-        total_source: counts.0,
-        total_output: counts.0 + counts.1 + counts.2,
+        total_source,
+        total_output,
     })
 }
 
@@ -357,48 +365,53 @@ fn expand_v2_bytes(
         layers: new_layers_decl,
         activation: header.activation,
     };
-    Ok(v2_container_bytes(&new_header, &out_layers))
+    // THE writer's own serialization core (plan D1) — never a
+    // byte-compatible copy that could drift.
+    crate::policy::artifact_bytes(&new_header, &out_layers)
+        .map_err(|e| malformed(format!("serialize: {e}")))
 }
 
-/// The v2 container serialization, byte-compatible with
-/// `policy::write_artifact` (same header serde, same little-endian layout),
-/// kept in-memory so the attestation verifies BEFORE anything touches disk.
-fn v2_container_bytes(header: &ArtifactHeader, layers: &[(Vec<f32>, Vec<f32>)]) -> Vec<u8> {
-    let header_json = serde_json::to_string(header).expect("header serializes") + "\n";
-    let mut bytes = Vec::new();
-    bytes.extend_from_slice(ARTIFACT_MAGIC);
-    bytes.extend_from_slice(&(header_json.len() as u32).to_le_bytes());
-    bytes.extend_from_slice(header_json.as_bytes());
-    for (w, b) in layers {
-        for v in w {
-            bytes.extend_from_slice(&v.to_le_bytes());
-        }
-        for v in b {
-            bytes.extend_from_slice(&v.to_le_bytes());
-        }
+/// The serving loader's hyperparameter guard, mirrored: a malformed v3
+/// header earns the named refusal, never a panic (divide-by-zero at
+/// d_model 0) or a PASS the serving loader would refuse (encoder_layers 0).
+fn check_v3_hyper(header: &V3Header) -> Result<(), String> {
+    let (d, heads, layers, ffn) = (
+        header.d_model,
+        header.heads,
+        header.encoder_layers,
+        header.ffn,
+    );
+    if d == 0 || heads == 0 || layers == 0 || ffn == 0 {
+        return Err(format!(
+            "d_model/heads/encoder_layers/ffn must all be positive (got {d}/{heads}/{layers}/{ffn})"
+        ));
     }
-    bytes
+    if !d.is_multiple_of(heads) {
+        return Err(format!("d_model {d} is not divisible by heads {heads}"));
+    }
+    Ok(())
 }
 
-/// The v3 tensor-size lists for the OLD (schema-3) and NEW (current)
-/// surfaces. Only two blocks differ: the type-embedding table and the two
-/// message-head tensors; everything else must match size-for-size.
-fn v3_sizes(header: &V3Header, cfg: &ObservationConfig) -> (Vec<usize>, Vec<usize>, usize, usize) {
+/// The v3 LABELED tensor-size lists for the OLD (schema-3) and NEW
+/// (current) surfaces. Labels come from `attn::labeled_tensor_sizes` — the
+/// one function that owns the module order — so tensor positions are looked
+/// up by name here, never re-encoded as arithmetic that could drift.
+/// Only the type table and the message head differ; everything else must
+/// match size-for-size.
+type LabeledSizes = Vec<(&'static str, usize)>;
+
+fn v3_sizes(header: &V3Header, cfg: &ObservationConfig) -> (LabeledSizes, LabeledSizes) {
     let (new_groups, new_type_rows) = attn::token_layout(cfg);
     let mut old_groups = new_groups.clone();
     for g in &mut old_groups {
-        if g.emb == 6 {
+        // The message group is the one with per-token type rows — its own
+        // defining property, not a positional index.
+        if g.per_token_row {
             g.count = OLD_MSG_COUNT;
         }
     }
-    let dense_n = {
-        let codec = ActionCodec::v2(cfg);
-        // The dense count is layout-stable across the wall (menu unchanged).
-        codec.entries().len()
-            - cfg.kitty_slots * attn::KITTY_VERBS
-            - cfg.critter_slots * attn::CRIT_VERBS
-    };
-    let old = attn::tensor_sizes(
+    let dense_n = attn::dense_menu_count(cfg);
+    let old = attn::labeled_tensor_sizes(
         header.d_model,
         header.heads,
         header.encoder_layers,
@@ -408,7 +421,7 @@ fn v3_sizes(header: &V3Header, cfg: &ObservationConfig) -> (Vec<usize>, Vec<usiz
         dense_n,
         OLD_MSG_HEAD_LEN,
     );
-    let new = attn::tensor_sizes(
+    let new = attn::labeled_tensor_sizes(
         header.d_model,
         header.heads,
         header.encoder_layers,
@@ -418,13 +431,14 @@ fn v3_sizes(header: &V3Header, cfg: &ObservationConfig) -> (Vec<usize>, Vec<usiz
         dense_n,
         MessageCodec::LEN,
     );
-    // Tensor indices that differ (forward-v3.md module order): the
-    // type-embedding table sits after the 8 embedding linears (16 tensors);
-    // the message head's weight/bias sit after the encoder stack, the
-    // summary norm pair, and the dense head pair.
-    let type_emb_idx = 16;
-    let msg_w_idx = 16 + 1 + 12 * header.encoder_layers + 2 + 2;
-    (old, new, type_emb_idx, msg_w_idx)
+    (old, new)
+}
+
+fn tensor_index(sizes: &LabeledSizes, label: &str) -> usize {
+    sizes
+        .iter()
+        .position(|(l, _)| *l == label)
+        .expect("attn's labeled module order names the tensor")
 }
 
 /// The schema-3 v3 blob float count for `header` — what an old-generation
@@ -432,7 +446,7 @@ fn v3_sizes(header: &V3Header, cfg: &ObservationConfig) -> (Vec<usize>, Vec<usiz
 /// fixture builders (a synthetic pre-wall v3 artifact needs an old-shape
 /// blob).
 pub fn old_v3_blob_float_count(header: &V3Header, cfg: &ObservationConfig) -> usize {
-    v3_sizes(header, cfg).0.iter().sum()
+    v3_sizes(header, cfg).0.iter().map(|(_, n)| n).sum()
 }
 
 fn expand_v3_bytes(
@@ -453,9 +467,12 @@ fn expand_v3_bytes(
     if header.architecture != V3_ARCHITECTURE {
         return Err(malformed(format!("architecture {:?}", header.architecture)));
     }
+    check_v3_hyper(&header).map_err(malformed)?;
     let d = header.d_model;
-    let (old_sizes, new_sizes, type_emb_idx, msg_w_idx) = v3_sizes(&header, cfg);
-    let old_floats: usize = old_sizes.iter().sum();
+    let (old_sizes, new_sizes) = v3_sizes(&header, cfg);
+    let type_emb_idx = tensor_index(&new_sizes, "type_emb");
+    let msg_w_idx = tensor_index(&new_sizes, "msg_w");
+    let old_floats: usize = old_sizes.iter().map(|(_, n)| n).sum();
     if blob.len() != old_floats * 4 {
         return Err(malformed(format!(
             "blob is {} bytes, the schema-3 layout needs {}",
@@ -468,9 +485,9 @@ fn expand_v3_bytes(
         .map(|c| f32::from_le_bytes([c[0], c[1], c[2], c[3]]))
         .collect();
 
-    let mut out: Vec<f32> = Vec::with_capacity(new_sizes.iter().sum());
+    let mut out: Vec<f32> = Vec::with_capacity(new_sizes.iter().map(|(_, n)| n).sum());
     let mut cursor = 0usize;
-    for (idx, (&old_n, &new_n)) in old_sizes.iter().zip(new_sizes.iter()).enumerate() {
+    for (idx, (&(_, old_n), &(_, new_n))) in old_sizes.iter().zip(new_sizes.iter()).enumerate() {
         let src = &floats[cursor..cursor + old_n];
         cursor += old_n;
         if idx == type_emb_idx {
@@ -516,15 +533,9 @@ fn expand_v3_bytes(
         mask_schema: MASK_SCHEMA_VERSION,
         ..header
     };
-    let header_json = serde_json::to_string(&new_header).expect("header serializes") + "\n";
-    let mut bytes = Vec::new();
-    bytes.extend_from_slice(ARTIFACT_MAGIC);
-    bytes.extend_from_slice(&(header_json.len() as u32).to_le_bytes());
-    bytes.extend_from_slice(header_json.as_bytes());
-    for f in &out {
-        bytes.extend_from_slice(&f.to_le_bytes());
-    }
-    Ok(bytes)
+    // THE writer's own serialization core (plan D1) — never a
+    // byte-compatible copy that could drift.
+    attn::v3_artifact_bytes(&new_header, &out).map_err(|e| malformed(format!("serialize: {e}")))
 }
 
 /// Re-derives the attestation from the raw bytes of BOTH artifacts,
@@ -556,6 +567,14 @@ pub fn verify_expansion(
         output_bytes[10],
         output_bytes[11],
     ]) as usize;
+    // Truncation is a corruption class this verifier exists to NAME, never
+    // to panic on (review finding): bound every slice.
+    if output_bytes.len() < 12 + hlen {
+        return Err(format!(
+            "output container: truncated ({} bytes cannot hold a {hlen}-byte header)",
+            output_bytes.len()
+        ));
+    }
     let out_header = &output_bytes[12..12 + hlen];
     let out_blob = &output_bytes[12 + hlen..];
     let src: Vec<f32> = source_blob
@@ -568,6 +587,14 @@ pub fn verify_expansion(
         .collect();
 
     let eq_bits = |a: f32, b: f32| a.to_bits() == b.to_bits();
+    // "Provably zero" is bit-exact +0.0 — a sign-flipped -0.0 is different
+    // bytes and a different sha, so it must fail like any other mutation.
+    let is_zero = |v: f32| v.to_bits() == 0.0f32.to_bits();
+    let current_pins = (
+        OBSERVATION_SCHEMA_VERSION,
+        ACTION_SCHEMA_VERSION,
+        MASK_SCHEMA_VERSION,
+    );
     let mut mapped = 0usize;
     let mut zeroed = 0usize;
     let mut floored = 0usize;
@@ -579,12 +606,60 @@ pub fn verify_expansion(
                 serde_json::from_slice(source_header).map_err(|e| format!("source: {e}"))?;
             let oh: ArtifactHeader =
                 serde_json::from_slice(out_header).map_err(|e| format!("output: {e}"))?;
+            // The output header is CHECKED against a derivation from the
+            // source, never trusted (review finding: an output whose head
+            // was never widened, or one still carrying old pins, must fail
+            // HERE — independence from construction is the whole point).
+            if sh.layers.is_empty() {
+                return fail("source declares no layers".into());
+            }
             let m = obs_map(cfg);
             let last = sh.layers.len() - 1;
+            if sh.layers[0][0] != m.old_len
+                || sh.layers[last][1] != ActionCodec::v2(cfg).len() + OLD_MSG_HEAD_LEN
+            {
+                return fail(format!(
+                    "source layer shapes {:?} are not the schema-3 surface",
+                    sh.layers
+                ));
+            }
+            if (oh.observation_schema, oh.action_schema, oh.mask_schema) != current_pins {
+                return fail(format!(
+                    "output pins obs {}/act {}/mask {} are not the current surface",
+                    oh.observation_schema, oh.action_schema, oh.mask_schema
+                ));
+            }
+            if oh.artifact_version != sh.artifact_version || oh.activation != sh.activation {
+                return fail("output family/activation differs from the source".into());
+            }
+            let mut expected_layers = sh.layers.clone();
+            expected_layers[0][0] = m.new_len;
+            expected_layers[last][1] = ActionCodec::v2(cfg).len() + MessageCodec::LEN;
+            if oh.layers != expected_layers {
+                return fail(format!(
+                    "output layer shapes {:?} are not the derived expansion {:?}",
+                    oh.layers, expected_layers
+                ));
+            }
+            let src_expected: usize = sh.layers.iter().map(|&[i, o]| i * o + o).sum();
+            if src.len() != src_expected {
+                return fail(format!(
+                    "source blob holds {} floats but its header declares {src_expected} — \
+                     a dropped or extra source parameter cannot attest",
+                    src.len()
+                ));
+            }
+            let out_expected: usize = expected_layers.iter().map(|&[i, o]| i * o + o).sum();
+            if out.len() != out_expected {
+                return fail(format!(
+                    "output blob holds {} floats, the derived shapes need {out_expected}",
+                    out.len()
+                ));
+            }
             let mut s_cursor = 0usize;
             let mut o_cursor = 0usize;
             for (index, (&[si, so], &[oi, oo])) in
-                sh.layers.iter().zip(oh.layers.iter()).enumerate()
+                sh.layers.iter().zip(expected_layers.iter()).enumerate()
             {
                 let sw = &src[s_cursor..s_cursor + si * so];
                 let sb = &src[s_cursor + si * so..s_cursor + si * so + so];
@@ -623,7 +698,7 @@ pub fn verify_expansion(
                                 mapped += 1;
                             }
                             (true, None) => {
-                                if v != 0.0 {
+                                if !is_zero(v) {
                                     return fail(format!(
                                         "layer {index} [{row},{col}]: new input column is {v}, not 0.0"
                                     ));
@@ -631,7 +706,7 @@ pub fn verify_expansion(
                                 zeroed += 1;
                             }
                             (false, _) => {
-                                if v != 0.0 {
+                                if !is_zero(v) {
                                     return fail(format!(
                                         "layer {index} [{row},{col}]: new head weight is {v}, not 0.0"
                                     ));
@@ -671,11 +746,51 @@ pub fn verify_expansion(
         3 => {
             let sh: V3Header =
                 serde_json::from_slice(source_header).map_err(|e| format!("source: {e}"))?;
+            check_v3_hyper(&sh)?;
+            let oh: V3Header =
+                serde_json::from_slice(out_header).map_err(|e| format!("output: {e}"))?;
+            // Independence from construction: pins current, every
+            // hyperparameter equal to the source's — checked, not trusted.
+            if (oh.observation_schema, oh.action_schema, oh.mask_schema) != current_pins {
+                return fail(format!(
+                    "output pins obs {}/act {}/mask {} are not the current surface",
+                    oh.observation_schema, oh.action_schema, oh.mask_schema
+                ));
+            }
+            if oh.artifact_version != sh.artifact_version
+                || oh.architecture != sh.architecture
+                || oh.d_model != sh.d_model
+                || oh.heads != sh.heads
+                || oh.encoder_layers != sh.encoder_layers
+                || oh.ffn != sh.ffn
+            {
+                return fail("output hyperparameters differ from the source's".into());
+            }
             let d = sh.d_model;
-            let (old_sizes, new_sizes, type_emb_idx, msg_w_idx) = v3_sizes(&sh, cfg);
+            let (old_sizes, new_sizes) = v3_sizes(&sh, cfg);
+            let type_emb_idx = tensor_index(&new_sizes, "type_emb");
+            let msg_w_idx = tensor_index(&new_sizes, "msg_w");
+            let msg_b_idx = tensor_index(&new_sizes, "msg_b");
+            let src_expected: usize = old_sizes.iter().map(|(_, n)| n).sum();
+            if src.len() != src_expected {
+                return fail(format!(
+                    "source blob holds {} floats but the schema-3 layout needs {src_expected} — \
+                     a dropped or extra source parameter cannot attest",
+                    src.len()
+                ));
+            }
+            let out_expected: usize = new_sizes.iter().map(|(_, n)| n).sum();
+            if out.len() != out_expected {
+                return fail(format!(
+                    "output blob holds {} floats, the current layout needs {out_expected}",
+                    out.len()
+                ));
+            }
             let mut s_cursor = 0usize;
             let mut o_cursor = 0usize;
-            for (idx, (&old_n, &new_n)) in old_sizes.iter().zip(new_sizes.iter()).enumerate() {
+            for (idx, (&(_, old_n), &(_, new_n))) in
+                old_sizes.iter().zip(new_sizes.iter()).enumerate()
+            {
                 let s = &src[s_cursor..s_cursor + old_n];
                 s_cursor += old_n;
                 let o = &out[o_cursor..o_cursor + new_n];
@@ -697,7 +812,7 @@ pub fn verify_expansion(
                             }
                             mapped += 1;
                         } else {
-                            if o[i] != 0.0 {
+                            if !is_zero(o[i]) {
                                 return fail(format!(
                                     "new-kind type row {row} carries {}, not 0.0",
                                     o[i]
@@ -714,13 +829,13 @@ pub fn verify_expansion(
                             }
                             mapped += 1;
                         } else {
-                            if o[i] != 0.0 {
+                            if !is_zero(o[i]) {
                                 return fail(format!("new msg head weight is {}, not 0.0", o[i]));
                             }
                             floored += 1;
                         }
                     }
-                } else if idx == msg_w_idx + 1 {
+                } else if idx == msg_b_idx {
                     for i in 0..new_n {
                         if i < old_n {
                             if !eq_bits(o[i], s[i]) {

@@ -71,6 +71,13 @@ already in force; scenario 2 executes at the seating PR per FR-011.
   (per-family parsing lives in expand.rs); the serving-refusal assertions
   cover both committed families as specced. Smaller surface than two
   parallel entries.
+- **T009 third criterion, weakened then RESTORED (medium review, finding 6)**:
+  the implementation first substituted "a mapped value shifted" for the
+  task's "one source parameter dropped" without recording it — a CLAUDE.md
+  rule-4 violation the review caught. Both mutations now exist: the
+  shifted value exercises the bit-equality branch, and the dropped source
+  parameter exercises the source-length gate
+  (`the_verifier_rejects_what_construction_never_produces`, leg d).
 - **T008(a) argmax clause strengthened**: instead of "argmax is never a new
   kind," the tests assert every new-kind logit is the CONSTANT floor,
   bit-exact — a strictly stronger property the zero-weight construction

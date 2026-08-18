@@ -223,6 +223,29 @@ pub(crate) fn tensor_sizes(
     dense_n: usize,
     msg_len: usize,
 ) -> Vec<usize> {
+    labeled_tensor_sizes(d, heads, layers, ffn, groups, type_rows, dense_n, msg_len)
+        .into_iter()
+        .map(|(_, size)| size)
+        .collect()
+}
+
+/// [`tensor_sizes`] with a label per tensor, so a consumer that needs a
+/// tensor's POSITION (the spec-035 expansion tool needs `type_emb`,
+/// `msg_w`, `msg_b`) looks it up by name from the one function that owns
+/// the module order — never by re-encoding this list's arithmetic
+/// elsewhere. Labels within the encoder stack repeat per layer; the
+/// tensors the expansion moves are unique.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn labeled_tensor_sizes(
+    d: usize,
+    heads: usize,
+    layers: usize,
+    ffn: usize,
+    groups: &[Group],
+    type_rows: usize,
+    dense_n: usize,
+    msg_len: usize,
+) -> Vec<(&'static str, usize)> {
     let _ = heads;
     let mut s = Vec::new();
     // 1. embedding linears, in group order (emb 0..7 by first appearance).
@@ -232,39 +255,50 @@ pub(crate) fn tensor_sizes(
             .find(|g| g.emb == emb)
             .map(|g| g.width)
             .unwrap_or(0);
-        s.push(d * width); // weight
-        s.push(d); // bias
+        s.push(("emb_w", d * width));
+        s.push(("emb_b", d));
     }
     // 2. type-embedding table.
-    s.push(type_rows * d);
+    s.push(("type_emb", type_rows * d));
     // 3. encoder layers.
     for _ in 0..layers {
-        s.push(d); // norm1 w
-        s.push(d); // norm1 b
-        s.push(3 * d * d); // in_proj w
-        s.push(3 * d); // in_proj b
-        s.push(d * d); // out w
-        s.push(d); // out b
-        s.push(d); // norm2 w
-        s.push(d); // norm2 b
-        s.push(ffn * d); // lin1 w
-        s.push(ffn); // lin1 b
-        s.push(d * ffn); // lin2 w
-        s.push(d); // lin2 b
+        s.push(("norm1_w", d));
+        s.push(("norm1_b", d));
+        s.push(("in_proj_w", 3 * d * d));
+        s.push(("in_proj_b", 3 * d));
+        s.push(("out_w", d * d));
+        s.push(("out_b", d));
+        s.push(("norm2_w", d));
+        s.push(("norm2_b", d));
+        s.push(("lin1_w", ffn * d));
+        s.push(("lin1_b", ffn));
+        s.push(("lin2_w", d * ffn));
+        s.push(("lin2_b", d));
     }
     // 4. summary LayerNorm.
-    s.push(2 * d);
-    s.push(2 * d);
+    s.push(("summ_w", 2 * d));
+    s.push(("summ_b", 2 * d));
     // 5. heads.
-    s.push(dense_n * 2 * d);
-    s.push(dense_n);
-    s.push(msg_len * 2 * d);
-    s.push(msg_len);
-    s.push(KITTY_VERBS * d);
-    s.push(KITTY_VERBS);
-    s.push(CRIT_VERBS * d);
-    s.push(CRIT_VERBS);
+    s.push(("dense_w", dense_n * 2 * d));
+    s.push(("dense_b", dense_n));
+    s.push(("msg_w", msg_len * 2 * d));
+    s.push(("msg_b", msg_len));
+    s.push(("kptr_w", KITTY_VERBS * d));
+    s.push(("kptr_b", KITTY_VERBS));
+    s.push(("cptr_w", CRIT_VERBS * d));
+    s.push(("cptr_b", CRIT_VERBS));
     s
+}
+
+/// The dense (non-entity) menu-entry count for a slot configuration — the
+/// same `is_dense` rule the parser's scatter map uses, exposed so the
+/// spec-035 expansion tool never derives it by subtraction.
+pub(crate) fn dense_menu_count(cfg: &ObservationConfig) -> usize {
+    ActionCodec::v2(cfg)
+        .entries()
+        .iter()
+        .filter(|e| is_dense(e))
+        .count()
 }
 
 impl AttnArtifact {
@@ -700,6 +734,14 @@ pub fn write_v3_artifact(
     header: &V3Header,
     blob: &[f32],
 ) -> Result<(), ArtifactError> {
+    std::fs::write(path, v3_artifact_bytes(header, blob)?)?;
+    Ok(())
+}
+
+/// [`write_v3_artifact`]'s serialization core, exposed so the expansion
+/// tool (spec 035) emits bytes through THE writer rather than a
+/// byte-compatible copy — one serialization, no drift by construction.
+pub fn v3_artifact_bytes(header: &V3Header, blob: &[f32]) -> Result<Vec<u8>, ArtifactError> {
     let header_json =
         serde_json::to_string(header).map_err(|e| ArtifactError::Header(e.to_string()))? + "\n";
     let mut bytes = Vec::new();
@@ -709,8 +751,7 @@ pub fn write_v3_artifact(
     for f in blob {
         bytes.extend_from_slice(&f.to_le_bytes());
     }
-    std::fs::write(path, bytes)?;
-    Ok(())
+    Ok(bytes)
 }
 
 fn is_dense(e: &MenuEntry) -> bool {

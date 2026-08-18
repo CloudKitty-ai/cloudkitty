@@ -392,6 +392,17 @@ pub fn write_artifact(
     header: &ArtifactHeader,
     layers: &[(Vec<f32>, Vec<f32>)],
 ) -> Result<(), ArtifactError> {
+    std::fs::write(path, artifact_bytes(header, layers)?)?;
+    Ok(())
+}
+
+/// [`write_artifact`]'s serialization core, exposed so the expansion tool
+/// (spec 035) emits bytes through THE writer rather than a byte-compatible
+/// copy — one serialization, no drift by construction.
+pub fn artifact_bytes(
+    header: &ArtifactHeader,
+    layers: &[(Vec<f32>, Vec<f32>)],
+) -> Result<Vec<u8>, ArtifactError> {
     assert_eq!(
         header.layers.len(),
         layers.len(),
@@ -413,8 +424,7 @@ pub fn write_artifact(
             bytes.extend_from_slice(&b.to_le_bytes());
         }
     }
-    std::fs::write(path, bytes)?;
-    Ok(())
+    Ok(bytes)
 }
 
 #[cfg(test)]
