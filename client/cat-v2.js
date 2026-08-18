@@ -1692,6 +1692,18 @@ function shadedAppearanceOf(appearance, theme) {
  *               the same happy arcs as 'closed', so eased blinks work
  * }
  */
+/**
+ * Where the body sits across the box, as a share of it.
+ *
+ * The cat is NOT symmetric about her own box: the body sits behind the
+ * head, so at 0.44 she leans away from the direction she faces, and
+ * `drawCat` mirrors that to 0.56 when facing left. Exported because
+ * anything drawing AROUND her -- the waterline most of all -- has to
+ * centre on her body rather than on her box, and a copy of this number
+ * living in render.js would be a copy that drifts.
+ */
+const BODY_CX = 0.44;
+
 function drawCat(ctx, opts) {
   const {
     pose = 'idle',
@@ -1887,7 +1899,7 @@ function catLayout(pose, phase, opts = {}) {
   // so any silhouette difference is size alone. The body is deliberately
   // v1's: "rounder cat", never "different cat".
   const L = {
-    body: { cx: 0.44, cy: 0.64, rx: 0.3, ry: 0.21, rot: 0 },
+    body: { cx: BODY_CX, cy: 0.64, rx: 0.3, ry: 0.21, rot: 0 },
     head: { cx: 0.7, cy: 0.4, r: 0.226 },
     earsUpright: true, // false = flattened back a touch (naps, meals)
     earsBackAmt: 0, // ...and the same fact as a 0..1 the rig can ease
@@ -3550,6 +3562,7 @@ const api = {
   drawCat,
   drawCatTween,
   blendLayouts,
+  BODY_CX,
   appearanceFor,
   shadedAppearanceOf,
   catLayout,

@@ -6126,5 +6126,61 @@ check('aim settles faster than width, so the zoom lags the pan', () => {
     'the zoom is not slower than the pan');
 });
 
+check('the waterline is centred on the cat\'s body, not on her box', () => {
+  // Owner, 2026-08-18: "a few pixels too far to the right on the
+  // right-facing cat". She is not symmetric about her own box -- the body
+  // sits behind the head -- so a box-centred meniscus is offset toward the
+  // head by however far BODY_CX is from 0.5.
+  //
+  // This measures where cat-v2 ACTUALLY puts the body and checks
+  // render.js's assumption against it, so it fails if either side moves.
+  const T = 100;
+  const bodyCentre = (facing) => {
+    let m = [1, 0, 0, 1, 0, 0];
+    const stack = [];
+    const marks = [];
+    const mul = (a, b) => [
+      a[0] * b[0] + a[2] * b[1], a[1] * b[0] + a[3] * b[1],
+      a[0] * b[2] + a[2] * b[3], a[1] * b[2] + a[3] * b[3],
+      a[0] * b[4] + a[2] * b[5] + a[4], a[1] * b[4] + a[3] * b[5] + a[5],
+    ];
+    const ctx = new Proxy({}, {
+      get: (_t, k) => {
+        if (k === 'createLinearGradient' || k === 'createRadialGradient') return () => ({ addColorStop() {} });
+        if (k === 'measureText') return () => ({ width: 10 });
+        if (k === 'save') return () => stack.push([...m]);
+        if (k === 'restore') return () => { m = stack.pop() || [1, 0, 0, 1, 0, 0]; };
+        if (k === 'translate') return (x, y) => { m = mul(m, [1, 0, 0, 1, x, y]); };
+        if (k === 'scale') return (x, y) => { m = mul(m, [x, 0, 0, y, 0, 0]); };
+        if (k === 'rotate') return (a) => { m = mul(m, [Math.cos(a), Math.sin(a), -Math.sin(a), Math.cos(a), 0, 0]); };
+        if (k === 'ellipse') return (x, y, rx) => marks.push({ x: m[0] * x + m[2] * y + m[4], rx: Math.abs(rx * m[0]) });
+        return () => {};
+      },
+      set: () => true,
+    });
+    CatV2.drawCat(ctx, { pose: 'idle', appearance: CatV2.appearanceFor(2), facing, size: T, x: 0, y: 0, phase: 0.3 });
+    // The body is the widest ellipse she draws.
+    return marks.sort((a, b) => b.rx - a.rx)[0].x;
+  };
+
+  const expected = (facing) => T * (facing === 'left' ? 1 - CatV2.BODY_CX : CatV2.BODY_CX);
+  for (const facing of ['right', 'left', 'north', 'south']) {
+    const drawn = bodyCentre(facing);
+    assert(Math.abs(drawn - expected(facing)) < 0.5,
+      `${facing}: body drawn at ${drawn.toFixed(1)}, BODY_CX says ${expected(facing).toFixed(1)}`);
+  }
+  // And she really is off-centre, or the whole check is vacuous.
+  assert(Math.abs(bodyCentre('right') - T / 2) > 3,
+    'the body sits on the box centre, so this check proves nothing');
+
+  // render.js must USE that, not the box centre.
+  // NB there are two `if (submerged)` blocks -- the clip is the other one.
+  assert(/const bodyCx = drawnFacing === 'left' \? 1 - BODY_CX : BODY_CX;/.test(renderSrc),
+    'the waterline no longer centres on the body');
+  assert(/drawWaterline\(x \+ this\.tile \* bodyCx,/.test(renderSrc),
+    'the waterline is not drawn at the body centre');
+  assert(!/this\.drawWaterline\(cx,/.test(renderSrc), 'the waterline is back on the box centre');
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

@@ -725,7 +725,11 @@
         // it -- the same ground line the depth sort and the settle use.
         const x = mTile / 2;
         const y = mTile - 0.88 * mTile;
-        const cx = x + mTile / 2;
+        // Her BODY's centre, not her box's -- the same rule render.js
+        // uses, from the same exported constant. A lab that centred the
+        // meniscus differently from the meadow would be dialling a
+        // number that means something else when it ships.
+        const cx = x + mTile * (BODY_CX ?? 0.44);
         const pose = 'idle';
         const cut = waterlineFor(submersion, surfaceForPose(pose));
         if (cut !== null && Number.isFinite(cut)) {
