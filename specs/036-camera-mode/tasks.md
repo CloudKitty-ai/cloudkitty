@@ -183,13 +183,13 @@ marked and it is the right one. Release, confirm none is.
 
 - [X] T040 Run the full `quickstart.md` validation sweep at 3, 4 and 5 kitties (FR-022, SC-010), recording results per roster size rather than in aggregate, and explicitly sweeping SC-001 (apparent size at nominal and at the ceiling, measured against the T002 baseline) and SC-008 (one action from the whole-world view to following a chosen kitty).
 - [X] T041 [P] Verify SC-011 and SC-012: two browsers on one world at different zooms show identical positions, activities and needs at the same tick, and ground decoration is identical tile for tile at every camera width.
-- [ ] T042 [P] Verify SC-014 and FR-028: the control is reachable and operable by keyboard alone with a visible focus state. Following stays pointer-only by decision, so this is the accessibility property that must not regress.
+- [X] T042 [P] Verify SC-014 and FR-028: the control is reachable and operable by keyboard alone with a visible focus state. Following stays pointer-only by decision, so this is the accessibility property that must not regress.
 - [X] T043 [P] Check the phone at the zoom ceiling, the worst case for every interaction number in the feature: a kitty near 23px, moving, possibly overlapped. SC-013 exists because of it.
 - [ ] T044 [P] Add the `## Unreleased` CHANGELOG entry in `CHANGELOG.md`, in the register that file keeps.
 - [ ] T045 Dialling session with the owner on the values this plan deliberately left open: easing rates, fit margin, hysteresis margin, the card indicator's position beside or beneath the name, and whether the dormant-follow marking from T039 is right. Judge in motion, at the live size — not in the gallery, and not from screenshots.
 - [ ] T046 Judge the `fine` pop in motion on a 1080p display, where the camera crosses the 44px threshold within the 10–15 tile band. The owner accepted it for this release specifically so it could be judged rather than predicted; record the verdict for the follow-up rather than acting on it here.
 - [ ] T047 Deploy, then verify from the running system: fetch `render.js` and `anim.js` from both `kitties.ai` and `cloudkitty.ai` and confirm the bytes. Never take the deploy report's word for it.
-- [ ] T048 [P] Update `BACKLOG.md` with what this arc parked: the ear and eye magnitudes, the gaze sources, the `MENISCUS` dials, and whiskers at camera scale — all deferred to this moment and now judgeable at the camera's size.
+- [X] T048 [P] Update `BACKLOG.md` with what this arc parked: the ear and eye magnitudes, the gaze sources, the `MENISCUS` dials, and whiskers at camera scale — all deferred to this moment and now judgeable at the camera's size.
 - [X] T049 Measure SC-006: run 5 kitties for 10 minutes with camera mode on and count anchor changes, which must be at most 3 a minute. Instrument the count rather than watching for it — a restless camera is easier to measure than to notice — and judge the hysteresis dial from T045 against this number.
 
 ---

@@ -294,6 +294,14 @@ judged at camera zoom where the pupil and head follow stop being sub-pixel.
 Owner's call: a full pass on ear and eye position AFTER camera mode, with
 play and chase left as they are because they already read.
 
+**Camera mode is now built (spec 036), so the "after" has arrived.** The
+condition these were parked on was a tile big enough to judge them at, and
+the camera holds a nominal 10 tiles across on a 20-tile world, which puts
+the tile near 62px against the 31px they were measured at. The magnitudes
+that read as sub-pixel then — head-follow 0.35px, pupil 0.48px — are
+roughly double now, and the `MENISCUS` dials and the whiskers were parked
+on the same condition. Judge them at the camera's scale, not the gallery's.
+
 Kept from #221: the gaze aims at where a target is DRAWN. That was a real
 defect in the chase gaze — up to 26.6° off — and it is the one that reads.
 

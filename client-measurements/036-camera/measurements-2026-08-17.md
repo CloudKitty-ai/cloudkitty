@@ -90,3 +90,17 @@ thing that actually matters: never a frame with NOBODY in it. That now
 holds by construction (the aim is a kitty whenever the ceiling binds, and
 the clamp can only push the frame to the world's edge, not past her) and
 is asserted across all 900 swept roster states.
+
+## SC-014 — keyboard (2026-08-18, owner)
+
+Passes. With macOS keyboard navigation ON: the camera control is reachable
+by Tab, the focus ring is visible, and Space and Enter both toggle it.
+Also verified alongside the per-card `?` and the card expand/collapse.
+
+**With keyboard navigation OFF, Safari reaches no button on the page at
+all** — not the camera control, not the theme toggle, not expand/collapse.
+The one thing it does reach is the About card, which is a
+`<details>`/`<summary>` rather than a `<button>`. That is Safari's default
+and it is identical before and after 036; nothing here introduced it, and
+the markup is a real `<button type="button">` with no tabindex override,
+`aria-pressed`, `aria-label` and a `:focus-visible` outline.
