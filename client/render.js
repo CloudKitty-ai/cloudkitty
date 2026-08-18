@@ -442,6 +442,10 @@ class WorldRenderer {
     this.cssHeight = 0;
     this.groundCache = null;
     this.pondCache = null; // { signature, ponds } -- rebuilt on water change
+    // Set by applyTheme. The pond layers bake palette colours, so the
+    // palette belongs in their key rather than in a null someone has to
+    // remember to write.
+    this.paletteKey = '';
     // The devicePixelRatio the backing store was actually sized with, not
     // whatever the display reports right now (issue #102). Null until the
     // first fit.
@@ -799,7 +803,16 @@ class WorldRenderer {
       this.pondCache = null;
       return;
     }
-    const signature = stable.map((p) => `${p.x},${p.y}`).sort().join(';');
+    // The palette belongs in the key because `buildPondLayers` bakes
+    // MEADOW.pondShore and MEADOW.pondLip INTO the shore and lip
+    // canvases. Keyed on the water tiles alone, the layers survived
+    // every palette step: the grass, the pond body and the meniscus all
+    // crossed into night while the shore band and the damp lip stayed in
+    // daylight paint, for the rest of the session.
+    //
+    // A cache keyed on a subset of what it bakes is only ever safe
+    // because something else invalidates it. This one had nothing.
+    const signature = `${this.paletteKey}|${stable.map((p) => `${p.x},${p.y}`).sort().join(';')}`;
     if (!this.pondCache || this.pondCache.signature !== signature) {
       const groups = groupWaterTiles(stable);
       const ponds = groups.map((tiles) => ({ tiles, path: buildPondPath(tiles, this.tile) }));

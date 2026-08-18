@@ -33,6 +33,14 @@ change.
 
 ## Unreleased
 
+- **The ponds were still wearing daylight at midnight.** A pond's
+  shoreline band and its damp lip are blurred once and kept, because
+  blurring them on every frame is not affordable. What was kept included
+  their colour, and the cache holding them asked only whether the water
+  had moved. So the grass, the pond body and the meniscus all crossed
+  into night on the world clock while the shore stayed in the afternoon,
+  and stayed there. The cache now knows which sky it was painted under.
+
 - **The surface-expansion export** (spec 035): certified minds can now
   cross a generation wall. `ckpolicy-expand` carries a pre-wall artifact
   onto the current surface deterministically — every value moved, zeroed,
