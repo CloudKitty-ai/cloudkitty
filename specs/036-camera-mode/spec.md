@@ -331,10 +331,23 @@ marked.
   regardless of how it looks when still.
 - **SC-004**: With camera mode off, the rendered view is indistinguishable from
   the build shipped today.
-- **SC-005**: The camera's aim always rests on a kitty. It never settles on
-  empty ground.
+- **SC-005**: The camera never draws a frame with no kitty in it. Not every
+  kitty — once the ceiling binds it deliberately lets a wanderer leave
+  (FR-005), and the roster accounts for her — but an empty meadow is never
+  shown. *Reworded by the owner 2026-08-18. It previously read "the camera's
+  aim always rests on a kitty", which contradicted FR-006: below the ceiling
+  the aim is the group's centre of mass, and a frame sized to hold the whole
+  group but centred on one kitty drops somebody the fit had just widened to
+  include. The empty frame was the failure the original wording was reaching
+  for.*
 - **SC-006**: With 5 kitties, the anchor changes no more than 3 times per minute
   in ordinary play, so the camera reads as deliberate rather than restless.
+  **This counts every anchor change, not only the ones that move the aim.**
+  Below the ceiling the anchor drives nothing, so most changes are invisible
+  today — but the bar is held against all of them deliberately (owner,
+  2026-08-18): anything that later makes the anchor drive the aim more often
+  would turn a silent count into visible restlessness, arriving as a
+  regression with no obvious cause.
 - **SC-007**: After a reload, the restored view is in place before the first
   painted frame. The viewer never sees the camera travel from a default position
   to the restored one.

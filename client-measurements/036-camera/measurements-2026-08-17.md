@@ -32,9 +32,13 @@ window, the visible rate scales to roughly 4.9/min and fails.
 | 3.0 | 1.20 | 0.80 |
 | 4.0 | 0.80 | 0.40 |
 
-The shipped value lands exactly ON the bar with no margin. 2.0-2.5 is
-where the margin is. **Not changed: it is a dial, and dials are dialled
-with the owner.**
+The shipped value landed exactly ON the bar with no margin. **Raised to
+2.0 by the owner, 2026-08-18**, which takes the LITERAL count to 2.40/min
+and the visible count to 1.40/min. Her reasoning is worth keeping: an
+invisible anchor change today becomes a visible one the moment something
+makes the anchor drive the aim more often, and that regression would
+arrive with no obvious cause. So SC-006 is held against all changes, not
+only the ones that currently show.
 
 ## How often the ceiling binds
 
@@ -73,3 +77,16 @@ which is what SC-003 needs. **The frame-rate half still needs a browser.**
 zoom floor, the ceiling, finite aim, the world clamp (FR-029) and a real
 anchor hold at every one. SC-010's aesthetic judgement still needs the
 owner's eye.
+
+## Containment, with the centre-of-mass aim (2026-08-18)
+
+301 ticks. While the FIT governs, **100%** of ticks hold every kitty, with
+a worst overhang of 0.00 tiles. While the CEILING binds, 11.4% hold
+everyone — which is FR-005 working, not failing: past the ceiling the
+camera stops fitting and lets the wanderer go.
+
+This is what sent SC-005 back to the owner, and she reworded it to the
+thing that actually matters: never a frame with NOBODY in it. That now
+holds by construction (the aim is a kitty whenever the ceiling binds, and
+the clamp can only push the frame to the world's edge, not past her) and
+is asserted across all 900 swept roster states.

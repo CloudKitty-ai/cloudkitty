@@ -5636,6 +5636,29 @@ check('a fit that binds keeps every kitty clear of the frame edge', () => {
   }
 });
 
+check('the frame always holds somebody, even at the world\'s corner', () => {
+  // SC-005, as reworded 2026-08-18. When the ceiling binds the camera
+  // aims at the anchor, and the clamp can only push the frame until it
+  // meets the world's edge -- the anchor is a kitty AT a real tile, so
+  // she cannot be clamped out of shot. Worth asserting rather than
+  // reasoning about, since the clamp and the aim are computed apart.
+  for (const spot of [[0, 0], [19, 0], [0, 19], [19, 19]]) {
+    const world = camAt(spot, [10, 10], [11, 10], [12, 10], [13, 10]);
+    const cam = new api.Camera();
+    cam.on = true;
+    cam.followId = 1; // force the corner kitty to be the aim
+    cam.update(world, camView(), { aspect: 1 });
+    const held = world.kitties.filter((k) => {
+      const x = k.pos.x + 0.5;
+      const y = k.pos.y + 0.5;
+      return x >= cam.left && x <= cam.left + cam.across
+        && y >= cam.top && y <= cam.top + cam.across;
+    });
+    assert(held.length > 0, `following a kitty at ${spot} left an empty frame`);
+    assert(held.some((k) => k.id === 1), `the followed kitty at ${spot} is not in her own frame`);
+  }
+});
+
 check('the frame never shows ground the world does not have', () => {
   // FR-029. A kitty in the corner is the case: aiming at her would put
   // several tiles of void on screen, which reads as a rendering fault.
@@ -6080,8 +6103,19 @@ check('every camera requirement holds at 3, 4 and 5 kitties', () => {
       assert(cam.left >= -1e-9 && cam.top >= -1e-9, `${count} kitties: frame at ${cam.left},${cam.top}`);
       assert(cam.left + cam.across <= 20 + 1e-9, `${count} kitties: frame right edge ${cam.left + cam.across}`);
       assert(cam.top + cam.across <= 20 + 1e-9, `${count} kitties: frame bottom edge ${cam.top + cam.across}`);
-      // SC-005's surviving half: the anchor is always a real kitty.
       assert(kitties.some((k) => k.id === cam.anchorId), `${count} kitties: anchor ${cam.anchorId} is nobody`);
+      // SC-005 as the owner reworded it (2026-08-18): not every kitty --
+      // the ceiling deliberately lets a wanderer go (FR-005) -- but NEVER
+      // a frame with nobody in it. An empty meadow reads as broken, and
+      // it is the failure the original "the aim always rests on a kitty"
+      // was reaching for without saying so.
+      const inFrame = kitties.filter((k) => {
+        const x = k.pos.x + 0.5;
+        const y = k.pos.y + 0.5;
+        return x >= cam.left && x <= cam.left + cam.across
+          && y >= cam.top && y <= cam.top + cam.across;
+      });
+      assert(inFrame.length > 0, `${count} kitties: the frame at ${cam.left.toFixed(1)},${cam.top.toFixed(1)} holds nobody`);
     }
   }
   assert(checked === 900, `swept ${checked} states, expected 900`);
