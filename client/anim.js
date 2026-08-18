@@ -2008,6 +2008,13 @@ class Camera {
     this.dials = dials;
     /** Camera mode. app.js owns the flag; everything here just reads it. */
     this.on = false;
+    /**
+     * Whether the viewer asked for reduced motion. Kept in step by
+     * `anim.init`, because the camera cannot tell from a view alone: a
+     * still frame means "arrive" for a reduced-motion viewer and "this is
+     * the same moment again" for everyone else, and those are opposites.
+     */
+    this.reduced = false;
     /** The kitty the viewer chose, or null. Survives `on` going false. */
     this.followId = null;
     /** The kitty being aimed at this frame. Never a computed midpoint. */
@@ -2224,14 +2231,24 @@ class Camera {
       this.across = want.across;
       this.aimX = want.aimX;
       this.aimY = want.aimY;
-    } else if (view?.still) {
-      // Reduced motion and post-snap frames arrive rather than ease -- but
-      // through the deadzone, or a still frame would jerk the camera to a
-      // centre the deadzone exists to let it ignore.
+    } else if (this.reduced) {
+      // No easing at all for a viewer who asked for none (FR-010), but
+      // still through the deadzone -- the deadzone is not motion, it is
+      // the camera declining to care about a fidget.
       const goal = this.aimGoalFor(want);
       this.across = want.across;
       this.aimX = goal.x;
       this.aimY = goal.y;
+    } else if (view?.still) {
+      // A still frame is the SAME MOMENT drawn again -- a palette step, a
+      // toggle, a tab coming back -- not a step forward in time. Holding
+      // is the whole of the correct behaviour here.
+      //
+      // Treating it as "arrive" instead is what made the camera jerk: a
+      // palette crossfade alone fires up to BLEND_STEPS of these, and
+      // every follow, unfollow and toggle fires one, so the camera
+      // teleported to its target several times a minute and eased the
+      // rest of the time. Reported as intermittent jerking, 2026-08-17.
     } else {
       // Corrected for frame rate: a rate written per frame at 60Hz eases
       // twice as fast at 120Hz. `dt` is already clamped, so a tab
@@ -2281,6 +2298,10 @@ const anim = {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
     const applyMotionPreference = () => {
       this.reduced = media.matches;
+      // The camera needs this in its own right: a still frame means
+      // "arrive" to a reduced-motion viewer and "the same moment again"
+      // to everyone else, and it cannot tell them apart from the view.
+      this.camera.reduced = this.reduced;
       // The panel's CSS transitions go still with the canvas (FR-015).
       document.body.classList.toggle('reduced-motion', this.reduced);
       if (this.reduced) this.stopLoop();
@@ -2289,6 +2310,7 @@ const anim = {
     };
     media.addEventListener('change', applyMotionPreference);
     this.reduced = media.matches;
+    this.camera.reduced = this.reduced;
     document.body.classList.toggle('reduced-motion', this.reduced);
 
     document.addEventListener('visibilitychange', () => {

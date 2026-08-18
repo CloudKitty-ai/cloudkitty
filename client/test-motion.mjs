@@ -5533,29 +5533,7 @@ check('a still view arrives, and leaves the clock where it found it', () => {
   // leave `lastAt` alone -- storing 0 here is storing the sentinel that
   // means "never ran", so the next animated frame loses its dt.
   cam.update(world, camView(true), { aspect: 1 });
-  // Arrives at whatever the target IS, which with the camera on is the
-  // fit rather than the whole world -- assert against the target, not
-  // against a number that was only ever true before US1.
-  const want = cam.targetFor(world, camView(true), 1);
-  assert(cam.across === want.across, `still frame sat at ${cam.across}, target ${want.across}`);
   assert(cam.lastAt === 5000, `a still frame moved the clock to ${cam.lastAt}`);
-});
-
-check('a tab returning after a minute cannot cut', () => {
-  // The path is: hidden tab banks arrivals -> visibilitychange calls
-  // redraw() (STILL, no clock) -> startLoop() draws animated. So the vast
-  // gap reaches the animated frame, and only the clamp stands between it
-  // and an easing factor of 1, which is the cut FR-008 forbids.
-  const world = camWorld();
-  const cam = new api.Camera();
-  cam.on = true;
-  cam.update(world, camView(false, 1000), { aspect: 1 });
-  cam.update(world, camView(true), { aspect: 1 }); // the redraw on return
-  assert(cam.lastAt === 1000, 'the still redraw swallowed the gap');
-
-  const dt = cam.dtFor(camView(false, 61_000));
-  assert(dt === api.VIEW.camera.maxFrameMs, `dt came back ${dt}, not the clamp`);
-  assert(dt < 61_000 - 1000, 'a minute-long gap reached the easing uncorrected');
 });
 
 check('the camera reaches the renderer by the tile, never by a context scale', () => {
@@ -5957,6 +5935,61 @@ check('the pond layers blit only what is on screen', () => {
   assert(/window = null/.test(fn), 'drawPonds takes no visible window');
   assert(/drawImage\(layer, sx \* layers\.dpr/.test(fn), 'the layer blit has no source rect');
   assert(!/drawImage\(layers\.(lip|shore), 0, 0,/.test(fn), 'a layer still blits the whole world');
+});
+
+check('a still frame is the same moment again, not a jump forward', () => {
+  // Every palette step, follow, unfollow, toggle and tab-return draws a
+  // still frame. Treating those as "arrive" teleported the camera several
+  // times a minute and eased the rest of the time -- reported as
+  // intermittent jerking. A crossfade alone fires up to BLEND_STEPS.
+  const near = camAt([9, 10], [11, 10]);
+  const far = camAt([2, 2], [3, 3]);
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(near, camView(false, 0), { aspect: 1 });
+  cam.update(far, camView(false, 16.67), { aspect: 1 }); // one eased step toward far
+  const mid = { x: cam.aimX, y: cam.aimY, across: cam.across };
+
+  cam.update(far, camView(true), { aspect: 1 });
+  assert(cam.aimX === mid.x && cam.aimY === mid.y,
+    `a still frame moved the aim from ${mid.x},${mid.y} to ${cam.aimX},${cam.aimY}`);
+  assert(cam.across === mid.across, `a still frame moved the width to ${cam.across}`);
+
+  // And it must still be mid-journey, or the assertion above is vacuous.
+  const want = cam.targetFor(far, null, 1);
+  assert(Math.abs(cam.aimX - want.aimX) > 0.5, 'the camera had already arrived, so nothing was proved');
+});
+
+check('reduced motion arrives instead, because it gets no other frames', () => {
+  // FR-010, SC-009. The same `still` flag means the opposite thing here,
+  // which is exactly why the camera cannot read it from the view alone.
+  const world = camAt([2, 2], [3, 3]);
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.reduced = true;
+  cam.update(camAt([15, 15], [16, 16]), camView(true), { aspect: 1 });
+  cam.update(world, camView(true), { aspect: 1 });
+  const want = cam.targetFor(world, null, 1);
+  // Through the deadzone -- declining to chase a fidget is not motion.
+  assert(Math.hypot(cam.aimX - want.aimX, cam.aimY - want.aimY) <= api.VIEW.camera.aimDeadzoneTiles + 1e-9,
+    `reduced motion did not arrive: ${cam.aimX},${cam.aimY} vs ${want.aimX},${want.aimY}`);
+});
+
+check('a tab returning after a minute cannot cut', () => {
+  // The path is: hidden tab banks arrivals -> visibilitychange calls
+  // redraw() (STILL, no clock) -> startLoop() draws animated. So the vast
+  // gap reaches the animated frame, and only the clamp stands between it
+  // and an easing factor of 1, which is the cut FR-008 forbids.
+  const world = camWorld();
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(world, camView(false, 1000), { aspect: 1 });
+  cam.update(world, camView(true), { aspect: 1 }); // the redraw on return
+  assert(cam.lastAt === 1000, 'the still redraw swallowed the gap');
+
+  const dt = cam.dtFor(camView(false, 61_000));
+  assert(dt === api.VIEW.camera.maxFrameMs, `dt came back ${dt}, not the clamp`);
+  assert(dt < 61_000 - 1000, 'a minute-long gap reached the easing uncorrected');
 });
 
 check('aim settles faster than width, so the zoom lags the pan', () => {
