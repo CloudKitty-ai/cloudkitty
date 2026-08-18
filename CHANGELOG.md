@@ -33,6 +33,17 @@ change.
 
 ## Unreleased
 
+- **The meadow can be a window now, not only a map.** Camera mode holds
+  the clowder at roughly twice the old scale and follows them about;
+  turning it off returns the whole world exactly as before. It aims at
+  the group's centre of mass, or at the kitty nearest it once the frame
+  stops being able to hold everyone, and it declines to move at all
+  while they only fidget, so it comes to rest instead of drifting.
+  Clicking a kitty follows her, clicking her again or clicking the grass
+  lets her go, and her card says so. The camera and the chosen kitty both
+  survive a reload. Nothing about the world changes: two viewers watching
+  at different zooms see the same meadow at the same tick.
+
 - **The ponds were still wearing daylight at midnight.** A pond's
   shoreline band and its damp lip are blurred once and kept, because
   blurring them on every frame is not affordable. What was kept included
