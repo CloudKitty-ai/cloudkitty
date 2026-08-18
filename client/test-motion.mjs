@@ -4979,6 +4979,12 @@ check('the camera control seats beside the dial and scales with it', () => {
   assert(/storeCamera\(\)/.test(mode), 'camera mode is not persisted (FR-018)');
   assert(/storeCamera\(\)/.test(fn('setFollow')), 'the followed kitty is not persisted (FR-019)');
   assert(/setCameraMode\(/.test(fn('initCameraControl')), 'the control is not wired to the toggle');
+  // FR-027 at the level where it would actually be broken. The Camera
+  // class is checked separately, but the toggle lives HERE, and a mutation
+  // clearing the follow inside setCameraMode passed the whole suite until
+  // this line existed.
+  assert(!/followId/.test(mode),
+    'setCameraMode touches the follow -- the toggle governs scale alone (FR-027)');
   assert(/initCameraControl\(\);/.test(app), 'the camera control is never wired up');
 });
 check("the about survives a phase change, and the owner's words survive us", () => {
