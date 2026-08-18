@@ -1,0 +1,7 @@
+raw/
+__pycache__/
+.venv/
+artifacts/
+expanded-candidates/
+family-spread/
+family-pinned/
