@@ -1,7 +1,7 @@
 # exp-006: the character generation (pre-registration)
 
-**Status: DRAFT for owner review — freezes when phase-1 training
-collection starts** (smoke runs on subset data exempt, exp-004
+**Status: FROZEN 2026-08-18 at collection start** (owner approved
+the draft same day; smoke runs on subset data exempt, exp-004
 precedent). Deviations append-only, D-numbered, after freeze.
 `[AT FREEZE]` marks values pinned when their measurements exist.
 
@@ -40,18 +40,19 @@ triangular-at-the-sheet sampling, off-rail, canonical share 1-in-3,
 independent per-seat draws + corner stratum, random trios with
 record-never-exclude QA (stress cells are data). Collection base =
 served config + the three locked sheets (Miso/Biscuit/Kittybear) +
-demonstrator seat(s); committed as `collect-config.toml` `[AT
-FREEZE]`. Family size N ≡ 0 mod 18 (exact plan shares); N `[AT
-FREEZE]`. Announce threshold T15 at collection (F-023: serving stays
-T30). Collection budget: `[AT FREEZE]` — raised vs v4 per the 3a
-verdict, multiplier proposed with measured collection costs.
+demonstrator seat(s); committed as `collect-config.toml` (ec2d8ee). Family size **N = 18**
+(one exact plan cycle), family seed **20260818**. Announce threshold T15 at collection (F-023: serving stays
+T30). Collection budget: **6 rollouts × 8,000 ticks per variant per cell**
+(108 rollouts/cell ≈ 4.3M decisions at 5 deciders/tick — ~2.2× the
+v4 row count, the 3a raise; measured cost ~40s/rollout, ~75 min per
+cell).
 
 **Price probe (3e)**: cell A pinned (`--traits pinned`), cell B the
 spread design, matched budget; v4-battery clone recipe on each;
 per-class fidelity, play/chase the canary (F-015 conditioning).
-Decision rule `[AT FREEZE]`, proposal: spread may cost ≤ 2pp overall
-masked act@1 and ≤ 4pp on play/chase vs cell A, else canonical share
-rises (first fallback) or the box narrows (second).
+Decision rule (pinned): spread may cost ≤ 2pp overall masked act@1
+and ≤ 4pp on play/chase vs cell A, else canonical share rises (first
+fallback) or the box narrows (second).
 
 QA riders: Here* mask-legal-but-voided rate measured during
 collection (design-inputs §4b), reported with the acceptance record;
@@ -159,8 +160,9 @@ consequence; the current world ends at seating).
     failure.
 - **G3** lineage fingerprint gate (Biscuit candidates only),
   measured by the exp-005 probe ported to this surface, in the
-  demonstration composition, ratios to the production anchor
-  `[AT FREEZE]`, proposals from the measured 0.04 band:
+  demonstration composition, ratios to the production anchor's
+  measured fingerprint (anchor numbers land when the clone exists;
+  the ratios pin now, from the measured 0.04 band):
   play_share ≥ 0.80×, time_near_critters ≥ 0.70×, bug_over_meal ≥
   0.70×, duet_initiation ≥ 0.50× (the lottery metric — gate
   per-candidate, F-019). The near-critters and bug floors exist
@@ -174,8 +176,10 @@ consequence; the current world ends at seating).
 
 ## 8. Bands & instruments
 
-Collection band `[AT FREEZE]` (fresh, above all prior bands);
-fingerprint probe band `[AT FREEZE]` (fresh — 820k belongs to
+Collection bands (fresh, above all prior 6-digit bands): dataset v5
+cell B (spread) seed-base **910001**, cell A (pinned) **940001**,
+anchor demonstrations **970001** (collect-config composition, 100 ×
+8k); fingerprint probe band **985001–985010** (820k belongs to
 exp-005's world); eval/stress bands per battery convention, declared
 in the battery doc before verdicts. Instruments: family-gen v6,
 bc-collect (post-wall build), the exp-006 venv binding, kitty-eval,
@@ -218,3 +222,34 @@ the owner's direct word in the acting session.
 ## Deviations
 
 (append-only after freeze)
+
+**D-001 (2026-08-18, U1 amendment + residual measured).** Spec 035's
+analyze pass proved §5's "ALL new input-side parameters zero =
+deafness" over-claims for the v3 family: the shared digest embedding
+plus recency-gated masking means a spoken new kind is AUDIBLE but
+kind-anonymous (zero type row). Ruling (owner + Experiments, with
+Product): §5's v3 invariant is REDEFINED as muteness +
+kind-identity insensitivity (relabeling equivalence — provable);
+v2's full deafness stands; versioned tokenization rejected
+(first-class artifacts). RESIDUAL MEASURED before any trigger was
+set (`residual_audibility.py`, expanded attn-A1-s1 per the amended
+rule, 10k dataset-v5 rows, realistic tuple injection): new-kind
+audibility flips 13.1% of activity decisions vs 11.2% for the SAME
+tuple as a known legacy kind — 1.17× the mind's natural response to
+any meow, i.e. the anonymous word is heard as roughly "a meow."
+Mean-of-legacy type rows measured as an alternative init: no
+improvement (12.9%) — zero stays. Consequences: the offline
+injection delta joins the acceptance-record QA beside the §4b
+measurement; the closed-loop speaking-neighbor battery leg is
+CONDITIONAL on G5's new-kind emission census (trigger value set by
+the owner with this data in hand); the clone reads 5.4% on the same
+measurement (per-model sensitivity varies — each expanded artifact
+gets its own number in the acceptance record).
+
+**D-001 trigger pinned (owner, 2026-08-18):** the conditional
+speaking-neighbor battery leg fires at new-kind emission
+**> 5/1k decisions** in any lineage candidate's G5 census — an order
+of magnitude above the FollowMe invention precedent (0.53/1k), the
+level where a word is part of a candidate's voice rather than an
+occasional experiment. Below it, closed-loop measurement belongs to
+the fog battery.

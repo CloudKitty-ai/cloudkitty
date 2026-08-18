@@ -48,6 +48,26 @@ change.
   and land in `policies/` only at the seating PR. No behavior, schema,
   config, or stamp movement.
 
+- **And it needs the cat to be hunting.** The same face, a second fault,
+  surfaced the moment the first was fixed. `pursuit` is an intention, and
+  it outlives the acts that serve it; its own documentation says it
+  survives a cat stopping for a drink on the way. Asking only whether one
+  exists therefore asks what the cat wants and never what she is doing,
+  which the owner saw twice in an evening: a hunter's eyes on a cat
+  resting beside a friend, and again on a cat grooming with a bug nearby.
+  Neither was the distance gate. Both quarry really were close. Sampled
+  against the running world over 945 kitty-ticks, the ticks that drew the
+  face were 27 `chase` and 19 `move`, and then 6 `idle` — a cat standing
+  perfectly still wearing a hunting expression. The face now needs an
+  applied action that is itself a pursuit: `chase`, `move` or `play`.
+  `play` earns its place because it is how a hunt ends, a cat that reaches
+  its bug pouncing with it, and omitting it would strip the face at the
+  moment the hunt is most plainly a hunt. The list is an allow-list rather
+  than a deny-list of the sitting-still actions, so an action nobody has
+  thought of yet reads as not-hunting. What it does not touch is the rule
+  that an unresolvable *quarry* keeps the face, that being a different
+  field and a different question (#237, with its coverage in #238).
+
 - **The hunter's face stops outliving its quarry.** Reported as "hunter
   eyes with no bug in proximity", and it was two things at once. The
   distance gate reads `dist !== null`, so a null never gates — and both
