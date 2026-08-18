@@ -119,18 +119,18 @@ Release both ways.
 
 ### Tests for User Story 2
 
-- [ ] T023 [P] [US2] Transform round-trip check in `client/test-motion.mjs`: `toWorld(forward(p)) === p` across the whole zoom range and at several pan offsets. This is the highest-value new check — it is what stops the forward and inverse transforms drifting apart, whose only symptom is clicks landing on the wrong kitty at some zooms.
-- [ ] T024 [P] [US2] Follow lifecycle checks in `client/test-motion.mjs` covering every row of the table in `data-model.md`, including the two that are decisions rather than restatements: the toggle never releases a follow (FR-027), and release works whenever a follow exists regardless of camera mode.
-- [ ] T025 [P] [US2] Hit-test checks in `client/test-motion.mjs`: overlapping kitties resolve to the frontmost in depth order, the hit radius floor keeps a kitty selectable at the zoom ceiling on a phone-sized canvas, and anything that is not a kitty counts as a release.
-- [ ] T026 [P] [US2] Follow-behaviour checks in `client/test-motion.mjs`: a followed kitty is the anchor unconditionally with no hysteresis (FR-015), following does not narrow the frame (FR-014), and a sleeping followed kitty is never auto-released (FR-016).
+- [X] T023 [P] [US2] Transform round-trip check in `client/test-motion.mjs`: `toWorld(forward(p)) === p` across the whole zoom range and at several pan offsets. This is the highest-value new check — it is what stops the forward and inverse transforms drifting apart, whose only symptom is clicks landing on the wrong kitty at some zooms.
+- [X] T024 [P] [US2] Follow lifecycle checks in `client/test-motion.mjs` covering every row of the table in `data-model.md`, including the two that are decisions rather than restatements: the toggle never releases a follow (FR-027), and release works whenever a follow exists regardless of camera mode.
+- [X] T025 [P] [US2] Hit-test checks in `client/test-motion.mjs`: overlapping kitties resolve to the frontmost in depth order, the hit radius floor keeps a kitty selectable at the zoom ceiling on a phone-sized canvas, and anything that is not a kitty counts as a release.
+- [X] T026 [P] [US2] Follow-behaviour checks in `client/test-motion.mjs`: a followed kitty is the anchor unconditionally with no hysteresis (FR-015), following does not narrow the frame (FR-014), and a sleeping followed kitty is never auto-released (FR-016).
 
 ### Implementation for User Story 2
 
-- [ ] T027 [US2] Implement `camera.toWorld` in `client/anim.js` as the derived inverse of the draw transform, not a separately written one. Divide by the measured `rect.width`, never `this.cssWidth` — `resizeFor` applies a display scale, so the canvas's layout size and drawing size differ.
-- [ ] T028 [US2] Add the canvas pointer handler in `client/app.js`. No click handling exists on the canvas today, so this is new: convert to world coordinates, pick the frontmost kitty within the hit radius, and treat everything else as a release.
-- [ ] T029 [US2] Implement the follow state and its full lifecycle in `client/app.js` per the `data-model.md` table, including FR-012 (a click while off enables and follows) and FR-026 (clicking away releases).
-- [ ] T030 [US2] Make the followed kitty the unconditional anchor in `client/anim.js`, bypassing the hysteresis that governs group mode.
-- [ ] T031 [US2] Drop the follow when the followed kitty leaves the roster while the page is open, holding the group and leaving camera mode untouched (FR-020). This path is needed here, not only at restore.
+- [X] T027 [US2] Implement `camera.toWorld` in `client/anim.js` as the derived inverse of the draw transform, not a separately written one. Divide by the measured `rect.width`, never `this.cssWidth` — `resizeFor` applies a display scale, so the canvas's layout size and drawing size differ.
+- [X] T028 [US2] Add the canvas pointer handler in `client/app.js`. No click handling exists on the canvas today, so this is new: convert to world coordinates, pick the frontmost kitty within the hit radius, and treat everything else as a release.
+- [X] T029 [US2] Implement the follow state and its full lifecycle in `client/app.js` per the `data-model.md` table, including FR-012 (a click while off enables and follows) and FR-026 (clicking away releases).
+- [X] T030 [US2] Make the followed kitty the unconditional anchor in `client/anim.js`, bypassing the hysteresis that governs group mode.
+- [X] T031 [US2] Drop the follow when the followed kitty leaves the roster while the page is open, holding the group and leaving camera mode untouched (FR-020). This path is needed here, not only at restore.
 
 **Checkpoint**: US1 and US2 both work independently.
 
@@ -146,13 +146,13 @@ holding the group.
 
 ### Tests for User Story 3
 
-- [ ] T032 [P] [US3] Persistence checks in `client/test-motion.mjs`: both keys round-trip, a restored id matching no kitty is dropped while camera mode is unaffected (FR-020), and an unreadable store falls back to defaults with the feature still working.
+- [X] T032 [P] [US3] Persistence checks in `client/test-motion.mjs`: both keys round-trip, a restored id matching no kitty is dropped while camera mode is unaffected (FR-020), and an unreadable store falls back to defaults with the feature still working.
 
 ### Implementation for User Story 3
 
-- [ ] T033 [US3] Add `cloudkitty-camera` and `cloudkitty-follow` to `client/app.js` following the `THEME_KEY` / `CARDS_KEY` pattern: read once at startup inside a `try`, write on change. `localStorage` throws rather than returning null in some privacy modes.
-- [ ] T034 [US3] Restore both at startup in `client/app.js`, dropping a followed id that matches no kitty in the world.
-- [ ] T035 [US3] Confirm SC-007 by inspection and by reload: the restored view is in place on the first painted frame. The meadow already paints nothing until a world state exists (`anim.js` guards redraw on `presentation.curr`), so there is no default position to travel from — verify that guard still holds rather than adding a second one.
+- [X] T033 [US3] Add `cloudkitty-camera` and `cloudkitty-follow` to `client/app.js` following the `THEME_KEY` / `CARDS_KEY` pattern: read once at startup inside a `try`, write on change. `localStorage` throws rather than returning null in some privacy modes.
+- [X] T034 [US3] Restore both at startup in `client/app.js`, dropping a followed id that matches no kitty in the world.
+- [X] T035 [US3] Confirm SC-007 by inspection and by reload: the restored view is in place on the first painted frame. The meadow already paints nothing until a world state exists (`anim.js` guards redraw on `presentation.curr`), so there is no default position to travel from — verify that guard still holds rather than adding a second one.
 
 **Checkpoint**: All three states survive a reload.
 
@@ -167,13 +167,13 @@ marked and it is the right one. Release, confirm none is.
 
 ### Tests for User Story 4
 
-- [ ] T036 [P] [US4] Card marking checks in `client/test-motion.mjs`: exactly one card carries the marking while a kitty is followed, none after release, and the marking survives a card rebuild.
+- [X] T036 [P] [US4] Card marking checks in `client/test-motion.mjs`: exactly one card carries the marking while a kitty is followed, none after release, and the marking survives a card rebuild.
 
 ### Implementation for User Story 4
 
-- [ ] T037 [US4] Add the follow marking to the card build in `client/app.js`: an indicator around the card plus *following* in italics near the name.
-- [ ] T038 [US4] Add the marking's styles to `client/index.html`, both themes, respecting `prefers-reduced-motion` on any transition.
-- [ ] T039 [US4] Show the marking for a dormant follow — one held while camera mode is off. This is the plan's call rather than the spec's: hiding it would mean toggling camera mode on jumps to a kitty the viewer had no way to know was still selected. Flag it to the owner at T045; it is cheap to reverse.
+- [X] T037 [US4] Add the follow marking to the card build in `client/app.js`: an indicator around the card plus *following* in italics near the name.
+- [X] T038 [US4] Add the marking's styles to `client/index.html`, both themes, respecting `prefers-reduced-motion` on any transition.
+- [X] T039 [US4] Show the marking for a dormant follow — one held while camera mode is off. This is the plan's call rather than the spec's: hiding it would mean toggling camera mode on jumps to a kitty the viewer had no way to know was still selected. Flag it to the owner at T045; it is cheap to reverse.
 
 **Checkpoint**: All four stories independently functional.
 

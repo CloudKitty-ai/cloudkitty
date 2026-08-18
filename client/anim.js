@@ -2084,7 +2084,21 @@ class Camera {
     );
 
     const com = { x: sumX / kitties.length, y: sumY / kitties.length };
-    const anchorId = this.anchorFor(kitties, at, com);
+
+    // A followed kitty is the anchor unconditionally -- no hysteresis,
+    // no centrality, no ceiling test (FR-015). She was chosen; that is
+    // the whole of the rule.
+    //
+    // If she is not in the roster the follow is dropped here rather than
+    // remembered, which covers both a kitty leaving while the page is
+    // open and an id restored from storage that no longer names anyone
+    // (FR-020). Camera mode itself is untouched either way.
+    let followed = null;
+    if (this.followId !== null) {
+      followed = kitties.find((k) => k.id === this.followId) || null;
+      if (!followed) this.followId = null;
+    }
+    const anchorId = followed ? followed.id : this.anchorFor(kitties, at, com);
 
     // Where to aim depends on whether the fit got what it asked for.
     //
@@ -2107,8 +2121,11 @@ class Camera {
     // tiles of target movement per tick against 0.25 for the centre of
     // mass, which averages all five and so is moved a fifth as far by any
     // one of them.
-    const p = bound && anchor ? at(anchor) : com;
-    return { across, aimX: p.x, aimY: p.y, anchorId, bound };
+    // Following changes only WHERE the camera aims (FR-014). The width is
+    // whatever the fit asked for, so the kitties around her stay in shot
+    // rather than being cropped away to centre her.
+    const p = followed ? at(followed) : bound && anchor ? at(anchor) : com;
+    return { across, aimX: p.x, aimY: p.y, anchorId, bound, following: !!followed };
   }
 
   /**

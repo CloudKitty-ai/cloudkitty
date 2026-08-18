@@ -4959,20 +4959,26 @@ check('the camera control seats beside the dial and scales with it', () => {
   assert(/aria-hidden="true"/.test(tag), 'the icon is not hidden from the reader, so it doubles the label');
   assert(/\[aria-pressed='true'\]/.test(markup), 'the pressed state has no look, so the toggle is invisible');
 
-  // The control drives the camera (US1) and nothing else yet. This check
-  // read "placement only" until 2026-08-17 and kept passing after the
-  // behaviour landed, because every assertion under it happened to stay
-  // true -- a comment describing the opposite of the code, holding a
-  // green tick. Pin what it does now.
-  const init = app.slice(app.indexOf('function initCameraControl()'));
-  const body = init.slice(0, init.indexOf('\n}\n'));
-  assert(/setAttribute\(\s*'aria-pressed'/.test(body), 'the camera control does not toggle its own state');
-  assert(/anim\.camera\.on = /.test(body), 'the control no longer drives the camera');
+  // This check has now been wrong twice in one day, both times by pinning
+  // WHERE the behaviour lived rather than WHAT it does. It read
+  // "placement only" after the behaviour landed, then read
+  // `initCameraControl`'s body after the behaviour moved into
+  // `setCameraMode`. Pin the contract, and slice the function that owns
+  // each half of it.
+  const fn = (name) => {
+    const from = app.indexOf(`function ${name}(`);
+    assert(from >= 0, `${name} no longer exists`);
+    return app.slice(from, app.indexOf('\n}\n', from));
+  };
+  const mode = fn('setCameraMode');
+  assert(/anim\.camera\.on = on/.test(mode), 'the toggle no longer drives the camera');
+  assert(/setAttribute\(\s*'aria-pressed'/.test(mode), 'the pressed state is no longer kept in step');
   // Reduced motion never runs the rAF loop, so without an explicit redraw
-  // the button is dead to the viewers likeliest to be watching for it.
-  assert(/anim\.redraw\(\)/.test(body), 'the toggle waits for a frame that may never come');
-  // Persistence is US3. A key stored now would be a key to migrate later.
-  assert(!/localStorage/.test(body), 'the camera control persists a flag ahead of US3');
+  // the button is dead to the viewers likeliest to notice.
+  assert(/anim\.redraw\(\)/.test(mode), 'the toggle waits for a frame that may never come');
+  assert(/storeCamera\(\)/.test(mode), 'camera mode is not persisted (FR-018)');
+  assert(/storeCamera\(\)/.test(fn('setFollow')), 'the followed kitty is not persisted (FR-019)');
+  assert(/setCameraMode\(/.test(fn('initCameraControl')), 'the control is not wired to the toggle');
   assert(/initCameraControl\(\);/.test(app), 'the camera control is never wired up');
 });
 check("the about survives a phase change, and the owner's words survive us", () => {
@@ -5794,6 +5800,93 @@ check('the aim is the centre of mass, not the box the extremes describe', () => 
   assert(Math.abs(cam.aimX - boxMid) > 1.5,
     `the aim sat at ${cam.aimX}, which is the box midpoint ${boxMid}`);
   assert(cam.aimX < 13, `the aim did not stay with the cluster: ${cam.aimX}`);
+});
+
+check('a followed kitty is the anchor, whatever the group is doing', () => {
+  // FR-015: unconditional. No hysteresis, no centrality, no ceiling test.
+  const world = camAt([2, 2], [10, 10], [11, 10], [12, 10]);
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.followId = 1; // the outlier, the anchor rule would never pick her
+  cam.update(world, camView(), { aspect: 1 });
+  assert(cam.anchorId === 1, `anchor is ${cam.anchorId}, not the followed kitty`);
+  assert(cam.aimX === 2.5 && cam.aimY === 2.5, `aim sat at ${cam.aimX},${cam.aimY}`);
+});
+
+check('following moves the aim and nothing else', () => {
+  // FR-014. The frame must not tighten around her, or the neighbours she
+  // is sitting with get cropped away to centre her.
+  const world = camAt([9, 10], [10, 10], [11, 10]);
+  const loose = onCam(world);
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.followId = 1;
+  cam.update(world, camView(), { aspect: 1 });
+  assert(cam.across === loose.across, `following changed the width ${loose.across} -> ${cam.across}`);
+});
+
+check('a followed kitty who leaves the roster is let go, camera untouched', () => {
+  // FR-020. The same path serves a restored id that names nobody and a
+  // kitty who leaves while the page is open -- which is why it lives in
+  // the camera and not in the startup restore.
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.followId = 99;
+  cam.update(camAt([10, 10], [11, 11]), camView(), { aspect: 1 });
+  assert(cam.followId === null, 'a follow on a kitty who is not here survived');
+  assert(cam.on === true, 'dropping the follow turned the camera off');
+  assert(cam.anchorId !== null, 'the camera failed to fall back to the group');
+});
+
+check('the toggle never releases a follow', () => {
+  // FR-027, and the one rule clarify had to settle. Off and on again
+  // returns to the same cat rather than to the group.
+  const world = camAt([3, 3], [10, 10], [11, 10]);
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.followId = 1;
+  cam.update(world, camView(false, 0), { aspect: 1 });
+  cam.on = false;
+  cam.update(world, camView(false, 16), { aspect: 1 });
+  assert(cam.followId === 1, 'turning the camera off released the follow');
+  cam.on = true;
+  cam.update(world, camView(false, 32), { aspect: 1 });
+  assert(cam.anchorId === 1, 'turning the camera back on lost the followed kitty');
+});
+
+check('the click lifecycle is one table, and every row is here', () => {
+  // Spread across handlers this grows a hole; the hole clarify found was
+  // the toggle's effect on a live follow.
+  const app = readFileSync(join(here, 'app.js'), 'utf8');
+  const from = app.indexOf('function initCameraClicks(');
+  const body = app.slice(from, app.indexOf('\n}\n', from));
+  assert(/setFollow\(null\)/.test(body), 'nothing releases a follow');
+  assert(/anim\.camera\.followId === hit/.test(body), 'clicking the followed kitty does not release her');
+  assert(/if \(!anim\.camera\.on\) setCameraMode\(true\)/.test(body),
+    'clicking a kitty while the camera is off no longer turns it on (FR-012)');
+  // FR-026: anything that is not a kitty releases, and it is NOT gated on
+  // camera mode -- releasing is releasing.
+  assert(/hit === null/.test(body), 'clicking away from the kitties does nothing');
+
+  const hitFn = app.slice(app.indexOf('function kittyAtPoint('));
+  const hit = hitFn.slice(0, hitFn.indexOf('\n}\n'));
+  assert(/hitRadiusFloorPx/.test(hit), 'the hit radius has no floor, so a phone at the ceiling cannot catch a kitty');
+  assert(/view\.posFor/.test(hit), 'the hit test reads served positions, not drawn ones');
+  assert(/pos\.y > best\.y/.test(hit), 'overlapping kitties do not resolve to the one on top');
+});
+
+check('the followed card is marked, and only hers', () => {
+  const app = readFileSync(join(here, 'app.js'), 'utf8');
+  const markup = readFileSync(join(here, 'index.html'), 'utf8');
+  const mark = app.slice(app.indexOf('function markFollowedCard('));
+  const body = mark.slice(0, mark.indexOf('\n}\n'));
+  assert(/classList\.toggle\('followed'/.test(body), 'no card mark');
+  assert(/=== id/.test(body), 'the mark is not restricted to the followed kitty');
+  assert(/\.kitty-card\.followed/.test(markup), 'the followed card has no style');
+  // An outline cannot reflow the column; a border would nudge every card
+  // below it the moment a follow started.
+  assert(!/\.kitty-card\.followed\s*\{[^}]*border:/.test(markup),
+    'the follow mark uses border, which reflows the card');
 });
 
 check('aim settles faster than width, so the zoom lags the pan', () => {

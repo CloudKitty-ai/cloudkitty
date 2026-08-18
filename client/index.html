@@ -732,6 +732,26 @@
     .panel-col:nth-of-type(2) { grid-column: 3; grid-row: 1; }
   }
 
+  /* The followed kitty's card (spec 036 US4, FR-017). An outline rather
+     than a fill: the card already carries a portrait, a name, need bars
+     and a distress line, and a background change would fight all four.
+     `outline` and not `border`, so the mark cannot reflow the card and
+     nudge every card below it down the column when a follow starts.
+
+     Shown even while camera mode is OFF, because a follow held across the
+     toggle is real -- see markFollowedCard. */
+  .kitty-card.followed {
+    outline: 2px solid var(--ink-soft);
+    outline-offset: 2px;
+  }
+  .kitty-card.followed .name::after {
+    content: ' following';
+    font-style: italic;
+    font-weight: 400;
+    color: var(--ink-soft);
+    font-size: 0.82em;
+  }
+
   .kitty-card {
     background: var(--card);
     border-radius: 18px;
