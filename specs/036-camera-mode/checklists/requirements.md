@@ -62,6 +62,28 @@ mode is off turns camera mode on and follows her. The owner confirmed it on
 2026-08-17, so it moved out of Assumptions and into the requirement itself.
 Every rule in this spec is now settled rather than deduced.
 
+### Re-validated after clarification, 2026-08-17
+
+All 16 items still pass. The clarification session found one hole this checklist
+had missed and closed it, and added one requirement that needed a criterion:
+
+- **The follow lifecycle had a hole.** FR-011 through FR-020 said how a follow
+  begins, how it is released by clicking the kitty again, and how it survives a
+  reload, but never what the camera-mode control does to a live follow. Both
+  readings were defensible and they ship different behaviour. Now closed by
+  FR-027, with FR-026 adding a second release gesture so the control never needs
+  to serve as one. "Requirements are testable and unambiguous" passed before
+  this and should not have.
+- **FR-028 arrived without a criterion**, which would have regressed "all
+  functional requirements have clear acceptance criteria". Added SC-014.
+
+One question in the queue was dissolved by reading the client rather than by
+asking. SC-007 promises the restored view is in place before the first painted
+frame, which looked unsatisfiable because there is nothing to aim at before the
+first world update. The meadow already paints nothing until a world state exists
+(`anim.js:2036` guards on `presentation.curr`), so the first painted frame has
+kitties in it. The criterion stands and the edge case now records why.
+
 SC-010 is a judgement criterion rather than a measurement, which is correct for
 an art feature but means it cannot be automated. It needs the owner's eye at
 each of the three roster sizes.

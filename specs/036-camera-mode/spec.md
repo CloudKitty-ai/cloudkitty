@@ -33,6 +33,20 @@ collapses what looked like two features into one. Hold-the-group and follow-one
 differ by a single value, the anchor, so there is one path through the code and
 no handoff between modes to get wrong.
 
+## Clarifications
+
+### Session 2026-08-17
+
+- Q: When the viewer turns camera mode off while following a kitty, and later
+  turns it back on, should the camera resume following that kitty? → A: Yes. The
+  control governs scale only and never releases a follow. Releasing needs its
+  own gesture, so clicking the meadow away from any kitty now releases her:
+  turning the camera off and on again to deselect would be cumbersome and
+  unintuitive.
+- Q: Should a viewer be able to follow a kitty using the keyboard, and if so,
+  how? → A: Out of scope for this release. The camera-mode control stays
+  keyboard-operable; following stays pointer-only.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - See the kitties at a size worth looking at (Priority: P1)
@@ -100,6 +114,11 @@ sleep. Click her again and confirm the camera returns to the group.
 5. **Given** a kitty is followed and another kitty is beside her, **When** the
    camera aims at the followed kitty, **Then** the frame is no narrower than it
    would be holding the group, so the neighbour stays in shot.
+6. **Given** a kitty is followed, **When** the viewer clicks the meadow away
+   from any kitty, **Then** she is released and the camera holds the group,
+   with camera mode still on.
+7. **Given** a kitty is followed, **When** the viewer turns camera mode off and
+   then on again, **Then** the same kitty is still followed.
 
 ---
 
@@ -168,13 +187,21 @@ marked.
   nominal width applies as the floor, so the camera sits at nominal.
 - **Two kitties are equally central.** The anchor rule must resolve
   deterministically rather than alternating between them from frame to frame.
-- **The viewer clicks empty ground, an element, or a decoration.** Nothing
-  happens; the current follow is left alone. Only a kitty toggles a follow.
+- **The viewer clicks empty ground, an element, or a decoration.** Anything that
+  is not a kitty counts the same way: it releases a followed kitty, and does
+  nothing when none is followed. Grass and a food bowl behave alike, so there is
+  no rule about which scenery is clickable to learn. Camera mode is never
+  changed by such a click.
 - **The viewer clicks where two kitties overlap.** Kitties overlap freely
   because they are depth-sorted sprites, so the click resolves to exactly one of
   them and never to both.
 - **The window is resized, or a phone is rotated, while camera mode is on.** The
   frame keeps its width in tiles; the tile's pixel size changes with the canvas.
+- **The page loads before the first world update arrives.** The meadow already
+  paints nothing until a world state exists, so the first painted frame has
+  kitties in it and can be framed correctly from the start. There is no
+  whole-world flash for the camera to ease away from, which is what makes SC-007
+  achievable rather than aspirational.
 - **A viewer has reduced motion set.** The camera arrives at its target
   immediately with no easing, at every scale and on every anchor change.
 - **The roster is at its 3-kitty minimum.** A small group fits at nominal most
@@ -219,6 +246,16 @@ marked.
 
 - **FR-011**: Clicking or tapping a kitty MUST follow her. Clicking or tapping
   the followed kitty again MUST release her.
+- **FR-026**: Clicking or tapping the meadow anywhere that is not a kitty MUST
+  release a followed kitty, leaving camera mode on and holding the group. With
+  no kitty followed it does nothing. This is the second release gesture, and the
+  one that does not require hitting a moving target.
+- **FR-027**: Turning camera mode off MUST NOT release a followed kitty.
+  Turning camera mode back on MUST resume following her. The control governs
+  scale alone.
+- **FR-028**: The camera-mode control MUST remain reachable and operable by
+  keyboard, with a visible focus state, as it is today. Following is pointer-only
+  by decision; the control must not lose keyboard access along with it.
 - **FR-012**: Clicking a kitty while camera mode is off MUST turn camera mode on
   and follow that kitty. Confirmed by the owner on 2026-08-17.
 - **FR-013**: Releasing a followed kitty MUST leave camera mode on, holding the
@@ -254,7 +291,8 @@ marked.
 - **FR-024**: Ground decoration density MUST remain a property of the world, not
   of the frame. Scenery does not thicken or thin as the camera zooms.
 - **FR-025**: The camera MUST NOT offer free panning or free zooming. The only
-  controls are the toggle and the click-to-follow.
+  controls are the toggle, clicking a kitty to follow, and clicking away from
+  the kitties to release.
 
 ### Key Entities
 
@@ -301,6 +339,11 @@ marked.
   the same tick. The camera changes what is seen, never what happens.
 - **SC-012**: Ground decoration is identical, tile for tile, at every camera
   width and between camera mode on and off.
+- **SC-013**: Releasing a followed kitty takes one action, and at least one
+  release gesture works without hitting a moving target. Measured at the zoom
+  ceiling on a phone, where a kitty is at her smallest.
+- **SC-014**: The camera-mode control can be reached and operated using the
+  keyboard alone, and shows a visible focus state when it is reached that way.
 
 ## Out of Scope
 
@@ -316,6 +359,13 @@ marked.
   for now; see Assumptions.
 - **A separate phone layout.** One rule serves both, which was settled when the
   control was built.
+- **Keyboard and screen-reader access to following.** Following is a click on
+  the canvas, and canvas contents cannot be reached by keyboard. The owner's
+  call is to ship without it. This is a known gap rather than an oversight: the
+  camera-mode control itself stays keyboard-operable (FR-028), and the kitty
+  cards are where the gap would be closed if it is taken up later, since they
+  are already per-kitty DOM that builds real buttons and already has to show
+  which kitty is followed.
 
 ## Assumptions
 
