@@ -14,6 +14,12 @@
  * display does not blow the meadow up past the art's comfortable range.
  * On any normal screen the viewport height binds long before this does. */
 const MAP_MAX_PX = 1200;
+// The ground bake's ceiling, in DEVICE pixels per side (spec 036). Mobile
+// Safari caps total canvas area and hands back a BLANK canvas rather than
+// a slow one, so this is a correctness bound and not a tuning knob. Past
+// it the ground magnifies slightly, which is the graceful failure; an
+// empty meadow is not.
+const GROUND_BAKE_MAX_PX = 4096;
 
 /** Slack for the margins between header, map and footer, which are not
  * worth measuring individually. Too small and the page gains a scrollbar;
@@ -567,6 +573,61 @@ class WorldRenderer {
   }
 
   /**
+   * The camera (spec 036) reaches the drawing code through exactly two
+   * values: the tile, which is the scale, and a translate, which is the
+   * pan. Everything downstream then draws at camera scale untouched --
+   * the 80-odd `this.tile` reads in this file, the 150-odd in meadow.js,
+   * `tileOrigin`, and the handful of places that multiply by the tile
+   * inline without going through it.
+   *
+   * Deliberately NOT `ctx.scale`. `this.tile` is the number every art
+   * decision keyed to apparent size reads, `fine = size >= 44` above all,
+   * and camera mode exists to cross that threshold. Scaling the finished
+   * picture would magnify the SMALL-size drawing instead: bigger cats
+   * still wearing their 31px detail.
+   *
+   * No camera means the whole-world view with the tile `resizeFor`
+   * computed, which is also exactly what the camera returns while it is
+   * off. The two agree on purpose. `anim.init` does the wiring and a
+   * check in test-motion.mjs holds it there, because a dropped assignment
+   * here would ship inert rather than loudly.
+   */
+  applyCamera(world, view, dpr) {
+    const cam = this.camera;
+    if (!cam) return;
+    cam.update(world, view, { aspect: this.cssHeight / this.cssWidth });
+    this.tile = this.cssWidth / cam.across;
+    this.ctx.setTransform(
+      dpr,
+      0,
+      0,
+      dpr,
+      -cam.left * this.tile * dpr,
+      -cam.top * this.tile * dpr,
+    );
+  }
+
+  /**
+   * Screen to world, derived from the transform `applyCamera` just laid
+   * down rather than written a second time. Two hand-written transforms
+   * drift, and the only symptom is clicks landing on the wrong kitty at
+   * some zooms and not others.
+   *
+   * `rect` is the canvas's MEASURED size, which is not `cssWidth`:
+   * `resizeFor` applies a display scale, so the canvas's layout size and
+   * its drawing size differ whenever the map is wider than its budget.
+   */
+  toWorld(clientX, clientY) {
+    const rect = this.canvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) return null;
+    const cssX = (clientX - rect.left) * (this.cssWidth / rect.width);
+    const cssY = (clientY - rect.top) * (this.cssHeight / rect.height);
+    const left = this.camera ? this.camera.left : 0;
+    const top = this.camera ? this.camera.top : 0;
+    return { x: left + cssX / this.tile, y: top + cssY / this.tile };
+  }
+
+  /**
    * Draws one frame: `world` is the newest served state, `view` the
    * presentational lens from anim.js (eased positions, fades, phases).
    * The same path serves animated and still frames -- a still frame is
@@ -575,7 +636,13 @@ class WorldRenderer {
   draw(world, view) {
     this.resizeFor(world);
     const ctx = this.ctx;
+    // The pan is an absolute transform, re-set every frame rather than
+    // accumulated -- and reset BEFORE the clear, or a panned frame clears
+    // the wrong rectangle and leaves the previous one smeared at the edge.
+    const dpr = this.dpr || window.devicePixelRatio || 1;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, this.cssWidth, this.cssHeight);
+    this.applyCamera(world, view, dpr);
 
     // Which elements are being hunted right now (spec 007 FR-006): a pure
     // per-frame read of served pursuits, consumed by the butterfly's
@@ -756,31 +823,84 @@ class WorldRenderer {
     return taken;
   }
 
+  /**
+   * The tile the ground bakes at: the one the camera produces at its
+   * NARROWEST frame, which is the largest it can ever ask for.
+   *
+   * Baking there is what makes camera mode affordable. Every per-frame
+   * blit is then a downscale, so the ground is never magnified into
+   * softness under crisp vector cats, and -- the part that matters for
+   * SC-003 -- zooming and panning change only the SOURCE RECTANGLE. The
+   * rebake triggers stay exactly what they were before the camera: dpr,
+   * canvas resize, palette step, world change.
+   *
+   * That is not a small distinction. render.js has already shipped a bug
+   * where a guard mismatched every frame and rebaked the whole ground at
+   * 60fps (see the note in resizeFor); a bake keyed to a per-frame tile
+   * would reproduce it by design rather than by accident.
+   *
+   * With the camera off this returns the whole-world tile, so the bake is
+   * pixel-for-pixel the one that shipped before this feature.
+   */
+  bakeTileFor(world) {
+    const on = !!(this.camera && this.camera.on);
+    const narrowest = on ? Math.min(VIEW.camera.nominalAcross, world.width) : world.width;
+    const dpr = this.dpr || window.devicePixelRatio || 1;
+    const widest = Math.max(world.width, world.height);
+    const bakeTile = this.cssWidth / narrowest;
+    const maxSide = GROUND_BAKE_MAX_PX / dpr;
+    return Math.max(1, bakeTile * widest > maxSide ? maxSide / widest : bakeTile);
+  }
+
   blitGround(world) {
     // The cache's transform must be the ratio the canvas was SIZED with,
-    // never a freshly-read devicePixelRatio (issue #102): the offscreen is
-    // sized from `this.canvas.width`, so reading the display's current dpr
-    // here straddles the two and paints the meadow into a corner of its
-    // own cache. Belt and braces on top of the resize guard -- the stamp
-    // catches any future path that clears the cache without a resize.
+    // never a freshly-read devicePixelRatio (issue #102): reading the
+    // display's current dpr here straddles the two and paints the meadow
+    // into a corner of its own cache. Belt and braces on top of the
+    // resize guard -- the stamp catches any future path that clears the
+    // cache without a resize.
     const dpr = this.dpr || window.devicePixelRatio || 1;
+    const bakeTile = this.bakeTileFor(world);
+    const bakeW = Math.round(world.width * bakeTile * dpr);
+    const bakeH = Math.round(world.height * bakeTile * dpr);
     const stale =
       !this.groundCache ||
       this.groundCache.dataset.dpr !== String(dpr) ||
-      this.groundCache.width !== this.canvas.width;
+      this.groundCache.dataset.bakeTile !== String(bakeTile) ||
+      this.groundCache.width !== bakeW;
     if (stale) {
       const off = document.createElement('canvas');
-      off.width = this.canvas.width;
-      off.height = this.canvas.height;
+      off.width = bakeW;
+      off.height = bakeH;
       const g = off.getContext('2d');
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
       // `cover: false` -- ground cover is drawn per frame instead, sorted
       // against the cats so they can pass behind it (see draw()).
-      drawMeadowGround(g, { width: world.width, height: world.height, tile: this.tile, cover: false });
+      drawMeadowGround(g, { width: world.width, height: world.height, tile: bakeTile, cover: false });
       off.dataset.dpr = String(dpr);
+      off.dataset.bakeTile = String(bakeTile);
       this.groundCache = off;
     }
-    this.ctx.drawImage(this.groundCache, 0, 0, this.cssWidth, this.cssHeight);
+    // Source rect in bake pixels, destination in world pixels -- the
+    // context is panned, so the destination is where the frame sits in
+    // the world, not at the canvas origin. With the camera off this is
+    // the whole cache onto the whole canvas, exactly as before.
+    const cam = this.camera;
+    const left = cam ? cam.left : 0;
+    const top = cam ? cam.top : 0;
+    const across = cam ? cam.across : world.width;
+    const down = across * (this.cssHeight / this.cssWidth);
+    this.ctx.drawImage(
+      this.groundCache,
+      left * bakeTile * dpr,
+      top * bakeTile * dpr,
+      across * bakeTile * dpr,
+      down * bakeTile * dpr,
+      left * this.tile,
+      top * this.tile,
+      across * this.tile,
+      down * this.tile,
+    );
   }
 
   /**
@@ -799,33 +919,57 @@ class WorldRenderer {
       this.pondCache = null;
       return;
     }
-    const signature = stable.map((p) => `${p.x},${p.y}`).sort().join(';');
+    // The tile belongs in the key (spec 036). Paths and layers are BUILT
+    // at a tile but the signature used to carry only the water positions,
+    // which was safe for one reason and not the obvious one: `resizeFor`
+    // nulls this cache on canvas resize, and every way the tile could
+    // change went through a resize. A camera changes the tile with no
+    // resize at all, so the guard never fired, the signature matched, and
+    // the ponds drew at the previous zoom's geometry with no error
+    // anywhere. A cache keyed on a subset of its inputs is only ever safe
+    // because of an invalidation somewhere else; this feature removes the
+    // somewhere else.
+    const dpr = this.dpr || window.devicePixelRatio || 1;
+    const bakeTile = this.bakeTileFor(world);
+    const signature = `${bakeTile}|${stable.map((p) => `${p.x},${p.y}`).sort().join(';')}`;
     if (!this.pondCache || this.pondCache.signature !== signature) {
       const groups = groupWaterTiles(stable);
-      const ponds = groups.map((tiles) => ({ tiles, path: buildPondPath(tiles, this.tile) }));
+      const ponds = groups.map((tiles) => ({ tiles, path: buildPondPath(tiles, bakeTile) }));
       this.pondCache = {
         signature,
         ponds,
         // Depth and lip bake here, where the paths are already being
         // rebuilt -- so the blur is paid once per water change, not once
         // per frame. Two layers for the whole world, not two per pond.
+        // Built at the bake tile like the ground, so camera movement
+        // never reaches this blur.
         layers: buildPondLayers(ponds, {
-          tile: this.tile,
-          widthPx: this.canvas.width,
-          heightPx: this.canvas.height,
-          dpr: this.dpr || window.devicePixelRatio || 1,
+          tile: bakeTile,
+          widthPx: Math.round(world.width * bakeTile * dpr),
+          heightPx: Math.round(world.height * bakeTile * dpr),
+          dpr,
         }),
       };
     }
+    // Bake geometry drawn at camera scale. The factor is 1 whenever the
+    // camera is off, and the guard keeps the no-op transform out of the
+    // draw log so the off state stays command-for-command what it was.
+    const scale = this.tile / bakeTile;
+    const scaled = scale !== 1;
+    if (scaled) {
+      this.ctx.save();
+      this.ctx.scale(scale, scale);
+    }
     drawPonds(this.ctx, {
       ponds: this.pondCache.ponds,
-      tile: this.tile,
+      tile: bakeTile,
       layers: this.pondCache.layers,
       // Same clock and same flag the per-tile shimmer used, since the
       // caustics replace it: reduced motion still stills the water.
       now: view?.ambient?.now ?? 0,
       motion: view?.ambient?.now !== undefined && VIEW.ambient.waterShimmer,
     });
+    if (scaled) this.ctx.restore();
   }
 
   /**

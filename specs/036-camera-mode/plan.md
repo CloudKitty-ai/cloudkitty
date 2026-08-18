@@ -38,7 +38,7 @@ a deliberate property of this client rather than an accident.
 **Storage**: `localStorage`, following the existing `THEME_KEY` / `CARDS_KEY`
 pattern. Two new keys.
 
-**Testing**: `node client/test-motion.mjs` (163 checks) and `node
+**Testing**: `node client/test-motion.mjs` (164 checks) and `node
 client/test-meadow.mjs` (78 checks). Both eval the plain scripts into one shared
 scope and assert against a mock context that throws on non-finite draw
 arguments. Extend these; do not add a third harness.

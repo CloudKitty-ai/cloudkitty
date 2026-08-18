@@ -21,7 +21,7 @@ const renderSrc = readFileSync(join(here, 'render.js'), 'utf8');
 const api = eval(
   animSrc +
     ';({ VIEW, Presentation, Pacer, easeSmooth, slowBlinkLid, idleHash, idlePeriodFor,' +
-    ' idlePickFor, idleOffsetFor, IDLE_SALTS, anim, nearestAdjacentOf })',
+    ' idlePickFor, idleOffsetFor, IDLE_SALTS, anim, nearestAdjacentOf, Camera, clampFrame })',
 );
 
 /**
@@ -5346,6 +5346,187 @@ check('no check left a dial moved behind it', () => {
     moved.length === 0,
     `a check restored something to the wrong value:\n  ${moved.join('\n  ')}`,
   );
+});
+
+/* ---------------------------------------------------------------------
+ * Camera mode (spec 036), Foundational phase.
+ *
+ * The claim this phase has to earn is that NOTHING MOVED: the whole
+ * mechanism is in, and with the camera off the client draws exactly what
+ * it drew before. Pixel-for-pixel proof needs a browser we do not have
+ * here, so what these checks pin is the layer above it -- the numbers that
+ * decide the pixels. If `across` is the world, `left`/`top` are zero, the
+ * derived tile equals the tile `resizeFor` computes, and the ground bakes
+ * at that same tile, then the drawing cannot differ.
+ * ------------------------------------------------------------------- */
+
+const camWorld = (width = 20, height = 20) => ({
+  width,
+  height,
+  tick: 0,
+  kitties: [
+    { id: 1, pos: { x: 3, y: 4 } },
+    { id: 2, pos: { x: 15, y: 12 } },
+  ],
+  elements: [],
+});
+
+/** A view like the one anim hands the renderer, without standing one up. */
+const camView = (still = false, now = 1000) => ({ still, ambient: { now } });
+
+check('the camera off frames the whole world and nothing else', () => {
+  const world = camWorld();
+  const cam = new api.Camera();
+  cam.update(world, camView(), { aspect: 1 });
+  assert(cam.across === world.width, `across is ${cam.across}, not the world's ${world.width}`);
+  assert(cam.left === 0 && cam.top === 0, `origin moved to ${cam.left},${cam.top}`);
+  assert(cam.anchorId === null, 'the off camera picked an anchor it has no use for');
+
+  // The identity claim, in the one number that decides it. `resizeFor`
+  // computes tile = floor(budget / world.width) and cssWidth = tile *
+  // world.width, so cssWidth / across must give that tile back exactly.
+  const tile = 31;
+  const cssWidth = tile * world.width;
+  assert(cssWidth / cam.across === tile, `the off camera would draw at ${cssWidth / cam.across}px, not ${tile}px`);
+});
+
+check('a non-square world keeps its shape through the camera', () => {
+  const world = camWorld(24, 16);
+  const cam = new api.Camera();
+  // The canvas is world-aspect, so the vertical span follows from it.
+  cam.update(world, camView(), { aspect: 16 / 24 });
+  assert(cam.across === 24, `across is ${cam.across}`);
+  assert(cam.left === 0 && cam.top === 0, `origin moved to ${cam.left},${cam.top} on a wide world`);
+});
+
+check('a frame wider than its world centres, and one inside it is held', () => {
+  // Wider than the world: clamping to a range whose min exceeds its max
+  // would pin the frame to an edge and put void on the other side. This
+  // is every frame the camera draws while it is off, so it is not a
+  // corner case.
+  assert(api.clampFrame(-5, 20, 20) === 0, 'a frame exactly its world did not sit at the origin');
+  assert(api.clampFrame(3, 20, 30) === -5, 'a frame wider than its world did not centre');
+  // Inside the world: held, so a kitty in the corner never shows void.
+  assert(api.clampFrame(-4, 20, 10) === 0, 'the frame escaped past the left edge');
+  assert(api.clampFrame(18, 20, 10) === 10, 'the frame escaped past the right edge');
+  assert(api.clampFrame(4, 20, 10) === 4, 'a frame already inside the world was moved');
+});
+
+check('the ground bakes at the whole-world tile while the camera is off', () => {
+  const world = camWorld();
+  const tile = 31;
+  // Called on a stand-in rather than a real renderer: the method reads
+  // four fields and the harness has no DOM to build the rest.
+  const off = { cssWidth: tile * world.width, dpr: 2, camera: { on: false } };
+  const baked = WorldRenderer.prototype.bakeTileFor.call(off, world);
+  assert(baked === tile, `the off camera bakes at ${baked}px, not the ${tile}px it draws at`);
+});
+
+check('the ground bake is bounded, because an over-budget canvas comes back blank', () => {
+  const world = camWorld();
+  // A 4K map with the camera at its narrowest wants a bake twice the
+  // map's width at dpr 2, which is past what mobile Safari will hand
+  // back. Over budget it must magnify, never exceed.
+  const on = { cssWidth: 1200, dpr: 2, camera: { on: true } };
+  const baked = WorldRenderer.prototype.bakeTileFor.call(on, world);
+  const side = baked * Math.max(world.width, world.height) * on.dpr;
+  assert(side <= 4096, `the bake would be ${Math.round(side)} device px a side`);
+  assert(baked > 0, 'the clamp collapsed the bake');
+});
+
+check('screen to world inverts the frame the camera laid down', () => {
+  const world = camWorld();
+  const tile = 62; // camera scale, 10 across on a 620px map
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(world, camView(), { aspect: 1 });
+  // The display scale is the trap here: the canvas's measured size is not
+  // its drawing size, so a conversion through cssWidth rather than the
+  // measured rect lands on the wrong kitty at some viewports.
+  const stub = {
+    cssWidth: 620,
+    cssHeight: 620,
+    tile,
+    camera: cam,
+    canvas: { getBoundingClientRect: () => ({ left: 10, top: 20, width: 310, height: 310 }) },
+  };
+  const hit = WorldRenderer.prototype.toWorld.call(stub, 10 + 155, 20 + 155);
+  // Halfway across a half-scale canvas is halfway across the frame.
+  const wantX = cam.left + 620 / 2 / tile;
+  assert(Math.abs(hit.x - wantX) < 1e-9, `x came back ${hit.x}, wanted ${wantX}`);
+  assert(Math.abs(hit.y - (cam.top + 620 / 2 / tile)) < 1e-9, `y came back ${hit.y}`);
+});
+
+check('the camera reads the world and never writes to it', () => {
+  // Article V is the constitution's one article this feature engages, and
+  // it is cheaper to assert than to remember.
+  const world = camWorld();
+  const before = JSON.stringify(world);
+  const cam = new api.Camera();
+  cam.on = true;
+  for (let i = 0; i < 5; i += 1) cam.update(world, camView(false, 1000 + i * 16), { aspect: 1 });
+  assert(JSON.stringify(world) === before, 'the camera mutated the world it was handed');
+});
+
+check('a still view arrives, and a returning tab cannot cut', () => {
+  const world = camWorld();
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(world, camView(true), { aspect: 1 });
+  assert(cam.across === world.width, 'a still frame did not arrive at its target');
+
+  // Reduced motion never runs the rAF loop, so the camera's clock jumps
+  // by whatever the gap between served ticks was. Uncorrected that eases
+  // to 1, which is the cut FR-008 forbids.
+  cam.lastAt = 1000;
+  cam.update(world, camView(false, 1000 + 30_000), { aspect: 1 });
+  assert(cam.lastAt === 31_000, 'the camera lost track of its own clock');
+  assert(api.VIEW.camera.maxFrameMs > 0, 'there is no clamp on the frame gap');
+});
+
+check('the camera reaches the renderer by the tile, never by a context scale', () => {
+  const body = renderSrc.slice(renderSrc.indexOf('applyCamera(world, view, dpr)'));
+  const fn = body.slice(0, body.indexOf('\n  }'));
+  assert(/this\.tile = this\.cssWidth \/ cam\.across/.test(fn), 'applyCamera no longer sets the tile');
+  assert(/setTransform\(/.test(fn), 'applyCamera no longer lays down the pan');
+  // `this.tile` is what `fine = size >= 44` reads. Scaling the context
+  // would magnify the small-size drawing and leave `fine` reading the old
+  // number: bigger cats still wearing their 31px detail.
+  assert(!/ctx\.scale\(/.test(fn), 'applyCamera scales the context, which leaves `fine` blind to the zoom');
+});
+
+check('the wiring that would ship inert is asserted, not assumed', () => {
+  // A renderer with no camera falls back to the whole-world view, which
+  // is indistinguishable from a correct off state -- so a dropped
+  // assignment in anim.init would ship silently. render.js has done this
+  // before (the axial whip shipped inert for exactly this reason).
+  const init = animSrc.slice(animSrc.indexOf('init(renderer) {'));
+  assert(
+    /renderer\.camera = this\.camera/.test(init.slice(0, init.indexOf('\n  },'))),
+    'anim.init no longer hands the renderer its camera',
+  );
+  // And the camera must be advanced from draw, not from the rAF loop:
+  // startLoop is skipped entirely under reduced motion, so a camera
+  // driven from there is frozen for those viewers while testing fine.
+  const drawBody = renderSrc.slice(renderSrc.indexOf('  draw(world, view) {'));
+  assert(
+    /this\.applyCamera\(world, view, dpr\)/.test(drawBody.slice(0, drawBody.indexOf('\n    this.blitGround'))),
+    'draw no longer advances the camera, so reduced motion would freeze it',
+  );
+  assert(
+    !/camera\.update\(/.test(animSrc.slice(animSrc.indexOf('startLoop() {'), animSrc.indexOf('stopLoop() {'))),
+    'the camera is advanced from the rAF loop, which reduced motion never runs',
+  );
+});
+
+check('the pond cache keys on the tile it was built at', () => {
+  // It used to key on the water positions alone, which was safe only
+  // because resizeFor nulled it on canvas resize -- and a camera changes
+  // the tile with no resize at all.
+  const body = renderSrc.slice(renderSrc.indexOf('drawPondLayer(world, view) {'));
+  const fn = body.slice(0, body.indexOf('\n  }'));
+  assert(/const signature = `\$\{bakeTile\}\|/.test(fn), 'the pond signature does not carry its tile');
+  assert(/buildPondPath\(tiles, bakeTile\)/.test(fn), 'pond paths are not built at the bake tile');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

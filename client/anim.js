@@ -103,6 +103,27 @@ const VIEW = Object.freeze({
   paceRateMax: 2,
   paceMaxBacklog: 8, // beyond this it is not a stutter, it is a backlog
 
+  // Camera mode (spec 036). The camera holds the group at a legible scale
+  // and following a kitty changes only where it AIMS, never how wide it
+  // sits -- so hold-the-group and follow-one are one path differing by a
+  // single value, the anchor.
+  //
+  // Every number here is a starting point to be judged in motion at the
+  // live size, not a result. The rates are kitten.me's.
+  camera: Object.freeze({
+    nominalAcross: 10, // tiles across at the narrowest -- 2x on a 20-tile world
+    ceilingFactor: 1.5, // may widen to 15 tiles, then it stops fitting
+    fitMarginTiles: 2.6, // clear space beyond the outermost kitty
+    panRate: 0.06, // per-frame at 60Hz, corrected for real frame rate
+    zoomRate: 0.05, // slower than the pan, so width lags the aim slightly
+    hysteresis: 1.5, // another kitty must be 1.5x more central to take the anchor
+    hitRadiusFloorPx: 22, // a kitty stays tappable at ~23px on a phone at the ceiling
+    // A backgrounded tab returns with a vast dt. Uncorrected that eases to
+    // 1, which is the cut FR-008 forbids -- so the correction is clamped
+    // rather than the easing being special-cased on return.
+    maxFrameMs: 100,
+  }),
+
   // Which directions a swimming cat may be drawn end-on (2026-08-11).
   // 'none' | 'toward' | 'both'. Both directions were drawn, dialled and
   // judged side by side in the lab at the live tile; owner took both
@@ -1939,6 +1960,120 @@ class Presentation {
 }
 
 /**
+ * Where a frame of the given span sits, in world tiles, once it is held
+ * inside the world.
+ *
+ * A frame WIDER than the world centres it instead of clamping, because
+ * clamping to a range whose minimum exceeds its maximum is how you get a
+ * frame pinned to one edge with void on the other. That case is not
+ * hypothetical: it is every frame the camera draws while it is off, where
+ * the frame is exactly the world.
+ */
+function clampFrame(edge, worldSpan, frameSpan) {
+  if (frameSpan >= worldSpan) return (worldSpan - frameSpan) / 2;
+  return Math.min(Math.max(edge, 0), worldSpan - frameSpan);
+}
+
+/**
+ * The camera (spec 036): a window over the world rather than a map of it.
+ *
+ * It reports where to look in WORLD TILES and how many of them fit across.
+ * The renderer turns that into a tile size and a pan -- see `draw`. Scale
+ * arrives by moving `renderer.tile`, never by scaling the context, because
+ * `tile` is the size every art threshold reads (`fine = size >= 44` above
+ * all) and camera mode exists to cross exactly that threshold.
+ *
+ * `update` is called from inside `renderer.draw`, which is what makes the
+ * reduced-motion path safe: `startLoop` is skipped entirely when reduced
+ * motion is set, so a camera advanced from the rAF callback would be
+ * frozen for those viewers while testing perfectly. Both the loop and the
+ * served-tick `redraw` go through `draw`, so there is one call site and it
+ * cannot be half-wired.
+ *
+ * While `on` is false this is an identity: the frame is the whole world,
+ * `left`/`top` are 0, and `cssWidth / across` is the tile `resizeFor`
+ * already computed. That is the off state FR-002 requires, and it is the
+ * same code path rather than a bypass around it.
+ */
+class Camera {
+  constructor(dials = VIEW.camera) {
+    this.dials = dials;
+    /** Camera mode. app.js owns the flag; everything here just reads it. */
+    this.on = false;
+    /** The kitty the viewer chose, or null. Survives `on` going false. */
+    this.followId = null;
+    /** The kitty being aimed at this frame. Never a computed midpoint. */
+    this.anchorId = null;
+    /** Frame width in world tiles. */
+    this.across = 0;
+    /** Aim point in world tiles. */
+    this.aimX = 0;
+    this.aimY = 0;
+    /** Frame origin in world tiles, held inside the world. */
+    this.left = 0;
+    this.top = 0;
+    /** Previous frame's clock reading, for the frame-rate correction. */
+    this.lastAt = 0;
+  }
+
+  /**
+   * Where the camera wants to be, before easing. Split out so the wanting
+   * and the getting-there stay separately testable.
+   */
+  targetFor(world, _view) {
+    if (!this.on) {
+      return {
+        across: world.width,
+        aimX: world.width / 2,
+        aimY: world.height / 2,
+        anchorId: null,
+      };
+    }
+    // US1 fills in fit, ceiling and anchor here. Until then camera mode
+    // frames the whole world too, so turning it on is visibly a no-op
+    // rather than a broken view.
+    return {
+      across: world.width,
+      aimX: world.width / 2,
+      aimY: world.height / 2,
+      anchorId: null,
+    };
+  }
+
+  /**
+   * Advance one frame. `view.still` covers reduced motion and post-snap
+   * frames alike, and both want arrival rather than easing.
+   */
+  update(world, view, opts = {}) {
+    const aspect = opts.aspect || 1; // cssHeight / cssWidth
+    const now = view?.ambient?.now ?? 0;
+    const dt = this.lastAt ? Math.min(now - this.lastAt, this.dials.maxFrameMs) : 0;
+    this.lastAt = now;
+
+    const want = this.targetFor(world, view);
+    const first = !this.across;
+    if (first || view?.still || !this.on) {
+      this.across = want.across;
+      this.aimX = want.aimX;
+      this.aimY = want.aimY;
+    } else {
+      // US1 replaces this with the frame-rate corrected ease. `dt` is
+      // already clamped and already derived, so the ease has everything
+      // it needs and nothing to re-measure.
+      void dt;
+      this.across = want.across;
+      this.aimX = want.aimX;
+      this.aimY = want.aimY;
+    }
+    this.anchorId = want.anchorId;
+
+    const down = this.across * aspect;
+    this.left = clampFrame(this.aimX - this.across / 2, world.width, this.across);
+    this.top = clampFrame(this.aimY - down / 2, world.height, down);
+  }
+}
+
+/**
  * The browser side: one rAF loop, stopped whenever it has no business
  * running (hidden page, reduced motion). Everything here is wiring; the
  * decisions above stay pure.
@@ -1946,6 +2081,7 @@ class Presentation {
 const anim = {
   presentation: new Presentation(),
   pacer: new Pacer(),
+  camera: new Camera(),
   renderer: null,
   rafId: 0,
   reduced: false,
@@ -1958,6 +2094,10 @@ const anim = {
 
   init(renderer) {
     this.renderer = renderer;
+    // Handed over rather than reached for: the renderer drives the camera
+    // from inside `draw`, so both the rAF loop and the still redraw
+    // advance it without either knowing the other exists.
+    renderer.camera = this.camera;
 
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
     const applyMotionPreference = () => {
