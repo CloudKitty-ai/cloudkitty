@@ -102,3 +102,8 @@ and outputs first-class artifacts. US2 makes the invariants behavioral
 truth; US3 is one README amendment. Single-session scope; one PR; merge on
 the owner's word. The three real expanded artifacts are generated at T012
 and handed to Experiments — committed only at the seating PR (research D7).
+
+## Phase 7: Convergence
+
+- [X] T013 Extend `all_three_committed_artifacts_expand_and_load_first_class` in crates/cloudkitty-rl/tests/expansion.rs so each real expanded output also DRIVES a kitty: seat it as a policy behavior in a small test world and tick forward, per SC-001 / US1-AC2 (partial)
+- [X] T014 Pin the three known output sha256s (attn-a1-s1-o4 `61d6d7cc…`, attn-a1-s3-o4 `d6f60818…`, e004-a1-s2-o4 `b6293849…`, full 64-hex in the test) as constants asserted by the expansion round-trip test in crates/cloudkitty-rl/tests/expansion.rs, per SC-002's across-machines clause (partial) — mechanically-checked duplication (README doctrine); a tool-version bump correctly forces these constants to move in the same change

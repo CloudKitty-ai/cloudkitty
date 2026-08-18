@@ -109,12 +109,33 @@ fn the_serving_loader_still_refuses_what_the_tool_reads() {
     }
 }
 
-// ---- T007: all three committed artifacts round-trip ----
+// ---- T007 + convergence T013/T014: all three committed artifacts ----
 
-#[test]
-fn all_three_committed_artifacts_expand_and_load_first_class() {
+/// The three phase-1 candidates' output shas, pinned (convergence T014,
+/// SC-002's across-machines clause): CI — a different machine — must
+/// reproduce these exact bytes from the committed sources, or determinism
+/// is broken. Mechanically-checked duplication per the policies/README
+/// doctrine; an `EXPANSION_TOOL_VERSION` bump moves these in the same
+/// change, which is precisely what keying determinism to the version means.
+const EXPECTED_O4_SHAS: [(&str, &str); 3] = [
+    (
+        "attn-a1-s1",
+        "61d6d7cc699f1de303b4fb661a77380bf56b5d69e76db3eac5bd316b38ed604a",
+    ),
+    (
+        "attn-a1-s3",
+        "d6f60818ad0516445367a3cdbca2a7df24a36886ed457e3ee1c8fe06004569ad",
+    ),
+    (
+        "e004-a1-s2",
+        "b6293849a63bd2f8b915080e74a20a5dd5f539eb48911bece3d4e23876588b09",
+    ),
+];
+
+#[tokio::test]
+async fn all_three_committed_artifacts_expand_load_and_drive_a_kitty() {
     let dir = temp_dir("roundtrip");
-    for name in ["e004-a1-s2", "attn-a1-s1", "attn-a1-s3"] {
+    for (name, expected_sha) in EXPECTED_O4_SHAS {
         let source = policies_dir().join(format!("{name}.ckpolicy"));
         let output = dir.join(format!("{name}-o4.ckpolicy"));
         let attestation =
@@ -128,10 +149,40 @@ fn all_three_committed_artifacts_expand_and_load_first_class() {
             attestation.total_output,
             "{name}: counts partition the output"
         );
+        assert_eq!(
+            attestation.output_sha256, expected_sha,
+            "{name}: SC-002 across machines — this machine reproduced \
+             different bytes than the pinned expansion"
+        );
         // First-class: the UNTOUCHED serving loader opens the output.
         let loaded = PolicyArtifact::load(&output, &expectations())
             .unwrap_or_else(|e| panic!("{name}-o4 loads first-class: {e}"));
         assert_eq!(loaded.sha256, attestation.output_sha256);
+
+        // ...and DRIVES a kitty (convergence T013, SC-001/US1-AC2): the
+        // real expanded mind decides in a ticking world, not just a loader.
+        let mut config = cloudkitty_core::test_support::test_config();
+        config.kitties[0].behavior = "policy:crossed".into();
+        let config = std::sync::Arc::new(config);
+        let mut registry = cloudkitty_core::BehaviorRegistry::with_builtins();
+        registry.register(
+            "policy:crossed",
+            std::sync::Arc::new(PolicyBehavior::new(
+                loaded.clone(),
+                RlConfig::default(),
+                false,
+            )),
+        );
+        let mut world = cloudkitty_core::World::generate(&config);
+        for _ in 0..10 {
+            world.tick(&registry, &config).await;
+        }
+        assert_eq!(
+            world.kitties.len(),
+            config.kitties.len(),
+            "{name}-o4 drove its kitty for 10 ticks (Article II intact)"
+        );
+        assert_eq!(world.tick, 10, "{name}-o4: the world really ticked");
     }
 }
 
