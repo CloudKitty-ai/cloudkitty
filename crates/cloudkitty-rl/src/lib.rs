@@ -15,6 +15,7 @@ pub mod cli_support;
 pub mod codec;
 pub mod config;
 pub mod episode;
+pub mod expand;
 pub mod global_state;
 pub mod harness;
 pub mod mask;

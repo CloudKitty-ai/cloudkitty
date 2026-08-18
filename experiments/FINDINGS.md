@@ -159,6 +159,17 @@ bar above is a 028-engine number. Re-derive it as part of the phase-1
 class-credit re-baseline (queued, phase1-design-inputs.md §4) before
 any post-wall probe claim leans on it.)*
 
+*(RE-DERIVED 2026-08-17 on the post-wall stamp, phase-1 collection
+base —
+[class-credit-2026-08-17.md](exp-006-character-gen/results/class-credit-2026-08-17.md):
+eat/drink S(.998)≤600 replicates within **1.28×** across three
+disjoint 150-world bands (875k seeds); the bar stands as 150+
+worlds / ≤600 truncated S. The floor-class warning re-fired in the
+same campaign: play/chase batch A read 4–9× above its own B/C
+replications (late-k peaks, diffusion tail) — the second
+single-batch play/chase excursion withdrawn by replication, now a
+standing presumption for that class.)*
+
 **Would invalidate**: a demonstration that within-world sample
 correlation is negligible at some horizon (it is not, at k > ~50, on
 current evidence).
@@ -646,6 +657,19 @@ engine
 stamp to `5d293c67…` with no class-credit re-measurement since. Queued
 as the phase-1 class-credit re-baseline (phase1-design-inputs.md §4);
 the dilution mechanism itself is instrument-generic and stands.)*
+
+*(RE-VERIFIED 2026-08-17 on the post-wall stamp, phase-1 collection
+base (sheets + playful demonstrator) —
+[class-credit-2026-08-17.md](exp-006-character-gen/results/class-credit-2026-08-17.md):
+pooled all-action at the floor again (64 sig ticks, fp = 60, ≤600 S
+0.0124) while eat/drink carries 0.0391 and groom/sleep/rest 0.0419
+on the truncated statistic; densities match the 028-era table to
+two decimals, so the wall + composition change moved amplitudes,
+not decision frequencies — and the stable classes barely at that
+(eat/drink ≤600 within 11% of its 028-era band values). Play/chase
+produced its second single-batch excursion, withdrawn by B/C
+replication (see the F-004 annotation). The flag clears; triggers
+stand.)*
 
 ---
 

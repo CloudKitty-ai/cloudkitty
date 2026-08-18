@@ -33,6 +33,29 @@ change.
 
 ## Unreleased
 
+- **The ponds were still wearing daylight at midnight.** A pond's
+  shoreline band and its damp lip are blurred once and kept, because
+  blurring them on every frame is not affordable. What was kept included
+  their colour, and the cache holding them asked only whether the water
+  had moved. So the grass, the pond body and the meniscus all crossed
+  into night on the world clock while the shore stayed in the afternoon,
+  and stayed there. The cache now knows which sky it was painted under.
+
+- **The surface-expansion export** (spec 035): certified minds can now
+  cross a generation wall. `ckpolicy-expand` carries a pre-wall artifact
+  onto the current surface deterministically — every value moved, zeroed,
+  or set to the constant floor, never computed — with a structural
+  attestation (bijective placement, provably-zero new inputs,
+  provably-floored new head outputs) re-derived from the raw bytes before
+  anything touches disk. Expanded minds are mute in the new vocabulary by
+  construction (the mask cannot silence mask-legal words; the −1e4 floor
+  does) and deaf per family: the MLP fully, the entity-attention family
+  to kind identity (it hears "a meow," never which new word — the
+  measured 1.17× residual is registered in Experiments' acceptance QA,
+  exp-006 D-001). The three phase-1 candidates are generated on demand
+  and land in `policies/` only at the seating PR. No behavior, schema,
+  config, or stamp movement.
+
 - **And it needs the cat to be hunting.** The same face, a second fault,
   surfaced the moment the first was fixed. `pursuit` is an intention, and
   it outlives the acts that serve it; its own documentation says it

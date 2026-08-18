@@ -5570,13 +5570,19 @@ check('the wiring that would ship inert is asserted, not assumed', () => {
   );
 });
 
-check('the pond cache keys on the tile it was built at', () => {
-  // It used to key on the water positions alone, which was safe only
-  // because resizeFor nulled it on canvas resize -- and a camera changes
-  // the tile with no resize at all.
+check('the pond cache keys on everything it bakes', () => {
+  // Two independent staleness bugs, found a day apart. The PALETTE is
+  // baked into the shore and lip layers (fixed on main); the TILE is what
+  // the paths are built at (the camera's doing). Either one missing from
+  // the key is a silent wrong-looking pond, so both are pinned here --
+  // and a merge that keeps one side of this line is exactly how one of
+  // them would get dropped.
   const body = renderSrc.slice(renderSrc.indexOf('drawPondLayer(world, view) {'));
   const fn = body.slice(0, body.indexOf('\n  }'));
-  assert(/const signature = `\$\{bakeTile\}\|/.test(fn), 'the pond signature does not carry its tile');
+  const sig = fn.match(/const signature = `([^`]*)`/);
+  assert(sig, 'the pond signature is no longer a template literal');
+  assert(/\$\{this\.paletteKey\}/.test(sig[1]), 'the pond signature dropped the palette');
+  assert(/\$\{bakeTile\}/.test(sig[1]), 'the pond signature dropped the tile');
   assert(/buildPondPath\(tiles, bakeTile\)/.test(fn), 'pond paths are not built at the bake tile');
 });
 

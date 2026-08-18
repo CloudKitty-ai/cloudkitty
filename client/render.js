@@ -452,6 +452,10 @@ class WorldRenderer {
     // without anim -- the lab, the harness -- which draws the whole world,
     // the same frame the camera reports while it is off.
     this.camera = null;
+    // Set by applyTheme. The pond layers bake palette colours, so the
+    // palette belongs in their key rather than in a null someone has to
+    // remember to write.
+    this.paletteKey = '';
     // The devicePixelRatio the backing store was actually sized with, not
     // whatever the display reports right now (issue #102). Null until the
     // first fit.
@@ -935,19 +939,29 @@ class WorldRenderer {
       this.pondCache = null;
       return;
     }
-    // The tile belongs in the key (spec 036). Paths and layers are BUILT
-    // at a tile but the signature used to carry only the water positions,
-    // which was safe for one reason and not the obvious one: `resizeFor`
-    // nulls this cache on canvas resize, and every way the tile could
-    // change went through a resize. A camera changes the tile with no
-    // resize at all, so the guard never fired, the signature matched, and
-    // the ponds drew at the previous zoom's geometry with no error
-    // anywhere. A cache keyed on a subset of its inputs is only ever safe
-    // because of an invalidation somewhere else; this feature removes the
-    // somewhere else.
+    // This cache is built from three things and used to key on one.
+    //
+    // The PALETTE, because `buildPondLayers` bakes MEADOW.pondShore and
+    // MEADOW.pondLip into the shore and lip canvases. Keyed on the water
+    // tiles alone, the layers survived every palette step: the grass, the
+    // pond body and the meniscus all crossed into night while the shore
+    // band and the damp lip stayed in daylight paint, for the rest of the
+    // session. Fixed on main, 2026-08-17.
+    //
+    // The TILE, because the paths and layers are built at one. That was
+    // safe for a reason that is not the obvious one -- `resizeFor` nulls
+    // this cache on canvas resize, and before the camera every way the
+    // tile could change went through a resize. A camera changes the tile
+    // with no resize at all, so nothing would fire, the signature would
+    // match, and the ponds would draw at the previous zoom's geometry.
+    //
+    // Two independent staleness bugs in one cache, found a day apart, from
+    // one cause: a cache keyed on a subset of what it bakes is only ever
+    // safe because something else invalidates it.
     const dpr = this.dpr || window.devicePixelRatio || 1;
     const bakeTile = this.bakeTileFor(world);
-    const signature = `${bakeTile}|${stable.map((p) => `${p.x},${p.y}`).sort().join(';')}`;
+    const water = stable.map((p) => `${p.x},${p.y}`).sort().join(';');
+    const signature = `${this.paletteKey}|${bakeTile}|${water}`;
     if (!this.pondCache || this.pondCache.signature !== signature) {
       const groups = groupWaterTiles(stable);
       const ponds = groups.map((tiles) => ({ tiles, path: buildPondPath(tiles, bakeTile) }));

@@ -78,6 +78,18 @@ model" (reasoned out 2026-08-04):
   of brain is this" is answerable without a type token. Everything
   through exp-002 is a 182→256→256→40 ReLU MLP because that is what
   those experiments trained, and the prereg says so.
+- **A surface-expanded artifact keeps its source's name plus a surface
+  token** (spec 035): `attn-a1-s1-o4.ckpolicy` is `attn-a1-s1` carried
+  onto the observation-schema-4 surface by `ckpolicy-expand` — same
+  run, same mind (the tool's structural attestation and the
+  certification parity leg jointly prove it), and the surface is the
+  one distinguishing axis, so it enters the name by the same rule as
+  any varied axis. Provenance rides the registry row's recipe field:
+  `"<recipe>, expanded from <source sha256> by ckpolicy-expand v1"`.
+  At the cutover the source retires with its row kept and Superseded-by
+  pointing source → expanded successor — **artifact lineage, not seat
+  inheritance** (the exp-004 mind's successor seats at Clementine, a
+  different seat; a brand-new lineage mind supersedes nothing).
 - **When an experiment varies architecture, architecture enters the
   name by this same rule** — an MLP arm against an LSTM arm in exp-007
   yields `e007-mlp-s1` and `e007-lstm-s1`, with no convention change

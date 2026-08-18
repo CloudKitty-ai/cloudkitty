@@ -1,0 +1,37 @@
+{
+ "rows": {
+  "parity": 10000,
+  "residual": 10000
+ },
+ "parity": {
+  "attn-a1-s1": {
+   "max_dlogit": 0.0,
+   "new_head_max": -10000.0,
+   "greedy_agree": 1.0
+  },
+  "attn-a1-s3": {
+   "max_dlogit": 0.0,
+   "new_head_max": -10000.0,
+   "greedy_agree": 1.0
+  },
+  "e004-a1-s2": {
+   "max_dlogit": 0.0,
+   "new_head_max": -10000.0,
+   "greedy_agree": 1.0
+  }
+ },
+ "residual": {
+  "attn-a1-s1": {
+   "new_kind_flip": 0.1961,
+   "legacy_ref_flip": 0.141
+  },
+  "attn-a1-s3": {
+   "new_kind_flip": 0.1785,
+   "legacy_ref_flip": 0.1216
+  },
+  "e004-a1-s2": {
+   "new_kind_flip": 0.0,
+   "legacy_ref_flip": 0.1912
+  }
+ }
+}

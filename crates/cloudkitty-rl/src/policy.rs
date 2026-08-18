@@ -331,6 +331,32 @@ fn load_mlp(
     Ok(MlpBody { header, layers })
 }
 
+/// TOOLING ONLY (spec 035): splits an artifact container of ANY generation
+/// into (header JSON bytes, weight-blob bytes) plus the file's sha256,
+/// without consulting the compiled schema pins. The serving loader above is
+/// byte-untouched and still refuses old generations — only
+/// `ckpolicy-expand` and its tests read past the pins, and only to expand
+/// (spec 035 FR-002: the generation gate's guarantee is not weakened).
+pub fn split_container_for_expansion(
+    path: &Path,
+) -> Result<(Vec<u8>, Vec<u8>, String), ArtifactError> {
+    let bytes = std::fs::read(path)?;
+    let sha256 = format!("{:x}", Sha256::digest(&bytes));
+    if bytes.len() < 12 || &bytes[..8] != ARTIFACT_MAGIC {
+        return Err(ArtifactError::BadMagic);
+    }
+    let header_len = u32::from_le_bytes([bytes[8], bytes[9], bytes[10], bytes[11]]) as usize;
+    let body_start = 12 + header_len;
+    if bytes.len() < body_start {
+        return Err(ArtifactError::Header("truncated header".into()));
+    }
+    Ok((
+        bytes[12..body_start].to_vec(),
+        bytes[body_start..].to_vec(),
+        sha256,
+    ))
+}
+
 /// The v2 forward: ReLU between layers, raw logits out. Fixed accumulation
 /// order — inputs ascending, bias last — bit-exact per platform.
 fn mlp_forward<'s>(body: &MlpBody, input: &[f32], scratch: &'s mut Scratch) -> &'s [f32] {
@@ -366,6 +392,17 @@ pub fn write_artifact(
     header: &ArtifactHeader,
     layers: &[(Vec<f32>, Vec<f32>)],
 ) -> Result<(), ArtifactError> {
+    std::fs::write(path, artifact_bytes(header, layers)?)?;
+    Ok(())
+}
+
+/// [`write_artifact`]'s serialization core, exposed so the expansion tool
+/// (spec 035) emits bytes through THE writer rather than a byte-compatible
+/// copy — one serialization, no drift by construction.
+pub fn artifact_bytes(
+    header: &ArtifactHeader,
+    layers: &[(Vec<f32>, Vec<f32>)],
+) -> Result<Vec<u8>, ArtifactError> {
     assert_eq!(
         header.layers.len(),
         layers.len(),
@@ -387,8 +424,7 @@ pub fn write_artifact(
             bytes.extend_from_slice(&b.to_le_bytes());
         }
     }
-    std::fs::write(path, bytes)?;
-    Ok(())
+    Ok(bytes)
 }
 
 #[cfg(test)]

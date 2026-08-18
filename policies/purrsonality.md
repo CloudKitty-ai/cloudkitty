@@ -128,6 +128,15 @@ the priors; this is the live truth.
   (short activities over-represented vs tick-shares); the graph and
   pile readings above are count-safe.
 
+**Bug-play baseline (2026-08-18, owner ask — the Biscuit-2.0
+"before" picture)**: census ticks 1,082,536–1,084,348, play targets
+across all four seats: solo 473 · kitty 17 · **bug 0 · greeble 0**.
+Zero critter play in the deployed world — F-019's erosion signature
+live (these minds trained under the annealed-to-zero leash era). The
+post-seating comparison point: the 0.04-dose lineage arms measure
+bug_over_meal 0.25–0.30 and time-near-critters 0.35–0.39 in probe
+composition. Raw: results-raw/live-census-1082536.json.
+
 Refresh on any seating change.
 
 ---
