@@ -70,6 +70,36 @@ whichever way this goes it wants a check that varies dpr.
 Found in review of PR #246. Not a 037 remediation — it spans 036's cache design
 and 037's floor, and the fix is a decision rather than a repair.
 
+**SETTLED 2026-08-19 — "measure F, accept C."** The owner took the third option
+now and asked for a measurement before spending anything on the first two.
+
+- **C is DONE.** `render.js` and `specs/037-camera-zoom-targets/contracts/zoom.md`
+  both state the caveat instead of the promise. Nothing is blocked on what
+  follows; this is an optimisation on a working, honestly-documented state.
+- **F is the fourth option, and measuring first narrowed it sharply:**
+  **camera-OFF can never blow the budget** — it bakes at the whole-world tile,
+  so the offscreen is exactly `cssWidth`, capped at 1200. Every clamped case is
+  camera-ON. So F is *"keep the bake for camera-off, draw the ground live only
+  in camera mode"*, and the identity path 036 worked so hard for is untouched.
+- **The measurement is `client/bench-ground.html`** (this PR). Headless says the
+  JS side is free at 0.10ms, but it **cannot** measure rasterisation, and 3,529
+  draw ops per frame is the open question.
+
+**Run it on the PHONE first, not the laptop.** The budget is `4096 / dpr`
+against a need of `floorTile × world.width`; at `floorPx` 113 that is 2260 CSS
+px, so it clamps above **dpr 1.81**. A dpr-2 laptop therefore sits barely
+inside it while a dpr-3 phone is the worst case in the table — the phone is
+where the question actually lives.
+
+**On running it under load** (the box carries two PPO waves, ~30h, to
+2026-08-20): the honest reading is **asymmetric, so a contended run is still
+worth doing**. A result comfortably inside the frame budget while the machine
+is busy is trustworthy — idle can only be faster. A result *near or over* the
+budget is inconclusive, because the threat on a laptop is thermal throttling
+and memory bandwidth rather than free core count, and a median of seven runs
+smooths noise but not a sustained clock drop. So: run it, and only re-run on a
+quiet box if it comes back marginal.
+
 ### Camera logic: what it aims at, and the trip in between (added 2026-08-18; Client thread)
 
 Owner's call, 2026-08-18: **accepted as-is for spec 037, dialled when camera
@@ -102,9 +132,142 @@ Owner's directions, to investigate rather than take as settled:
   Whoever picks this up should amend FR-008 with the exception rather than
   quietly ship a cut against it.
 
+  **Refined by the owner, 2026-08-19:** "must not cut" was right for the
+  baseline, and the exception is narrow — **a deliberate, occasional transition
+  to recentre on a larger out-of-frame group**. The MECHANISM is open: "could be
+  a fast pan instead". A fast pan is probably the better answer — it keeps
+  continuity, and it makes FR-008 an easing-RATE exception rather than a hole in
+  "never cut", which is a far smaller amendment to defend.
+- **Close in when nobody is on the periphery — SETTLED 2026-08-19, and it is
+  the highest-value item here.** The owner's evidence: "zooming out to the
+  ceiling to show a 4th cat if 3 are already in frame is probably not ideal",
+  and "multiple instances where zoom was at or near ceiling with two cats in
+  frame, and the composition would have been much better zoomed in".
+
+  **Measured on the recorded world at a 1100px map, and it is worse than it
+  sounds:** the camera is at its ceiling **76% of ticks**; while there it shows
+  **3.53 of 5** kitties and is down to **one or two 10% of the time**; and it
+  spends **13.3 tiles to frame cats that span only 10.8** — it could zoom to
+  **81% of the width and lose nobody**, making those cats ~23% bigger.
+
+  **The mechanism, which makes the rule obvious:** once `bound` is true the fit
+  has ALREADY failed — the frame cannot hold everyone whatever it does — but the
+  width stays pinned at the ceiling, because `across = min(max(fit…), ceiling)`
+  and the fit is enormous. The camera pays the full zoom-out price for a fit it
+  never achieved.
+
+      while the fit governs, size to everyone, as now.
+      once it CANNOT, stop trying — size to the group the camera actually chose.
+
+  That is the "ignore the outliers" reading, not a feedback loop on the frame.
+  It delivers all three of her observations at once, and it needs no new dial —
+  the anchor choice already exists and simply starts carrying the WIDTH decision
+  as well as the aim.
+
+  **PR #247 made this the main case, not a corner:** tightening the ceiling took
+  `bound` from 19% of ticks to 76%, so "what should the camera do when it cannot
+  fit everyone" is now three-quarters of the experience.
+
+**These three are one feature, not three.** Aiming at the largest group and
+sizing to the cluster are the same decision seen from the aim and the width;
+cutting is what makes that decision affordable, because a cluster-aimed camera
+moves further when it moves at all. Speccing them separately would produce
+three dials that fight.
+
 Not to be confused with the anchor **hysteresis**, which was a different
 small-viewport fault (restlessness, 036 SC-006) and is fixed — 1.5 → 2.5 in
 PR #245.
+
+### Phone portrait: the horizontal gap beside the map — SHIPPED (PR #248, 2026-08-19; Client thread)
+
+Owner, 2026-08-19: "a bit of a horizontal gap around the map in portrait that
+could get us another free tile or so." **Shipped the same day as option F —
+body sides 10px → 2px, mat 5px → 4px, 12px of total chrome.** The measurement
+is kept below because the `minTiles` decision still ahead reads it, and
+because the step arithmetic outlives these particular numbers. Measured, not
+estimated — and it is **two gaps, only one of which is anyone's to reclaim.**
+
+On a phone `body` pays `padding: … 10px` and `.stage` a 5px mat, so the width
+budget is `viewport − 30`. Then `resizeFor` floors the tile, and a 20-tile
+world throws away everything the budget carries past a multiple of 20. The
+stage is `width: max-content`, so that remainder does not sit inside the mat —
+it appears as extra cream **outside** the stage's rounded edge, which is why it
+reads as one gap rather than as rounding.
+
+On the owner's 16 Pro (402 CSS px): **16px of cream each side — 10 of padding
+and 6 of quantisation.**
+
+Chrome is the reclaimable half; the quantisation is not, and cutting chrome
+**moves pixels into it** until the budget crosses the next multiple of 20:
+
+| viewport | budget now | tile | map | slack | body 10→6 | body+mat → 8px |
+|---|---|---:|---:|---:|---:|---:|
+| 360 small Android | 330 | 16 | 320 | 10 | 320 | **340** |
+| 375 SE / 8 | 345 | 17 | 340 | 5 | 340 | **360** |
+| 393 iPhone 12–15 Pro | 363 | 18 | 360 | 3 | 360 | **380** |
+| **402 iPhone 16 Pro** | 372 | 18 | 360 | **12** | **380** | 380 |
+| 412 Pixel / Galaxy | 382 | 19 | 380 | 2 | 380 | **400** |
+
+So the free tile the owner saw **is real and is specific to her handset**: the
+16 Pro is the one width whose budget sits just under a multiple of 20, and
+trimming the body padding to 6 takes it 360 → 380 (+5.6%) with the slack going
+to zero. **No other listed handset gains anything from that same edit.** The
+360px Android snaps at 20px total chrome (body 6 + mat 4); 375, 393 and 412 all
+need the map taken to the screen edge before they move at all.
+
+**Why it is worth more than 5.6%: it lands on the `minTiles` decision.** The
+camera's floor tile is `cssWidth / minTiles` once `minTiles` binds, so the map
+width is the phone's cat size, one for one:
+
+| map | `minTiles` 6 | `minTiles` 7 |
+|---|---:|---:|
+| 320 | 53.3 | 45.7 |
+| 340 (today, SE) | 56.7 | **48.6** |
+| 360 (today, 16 Pro) | 60.0 | **51.4** |
+| 380 | 63.3 | 54.3 |
+
+The 48.6px that makes `minTiles: 7` cost the 50px bar **is the 340px map, not
+"the phone"** — on the 16 Pro `minTiles: 7` already clears 50 today. Reclaim
+the gap and a 375 viewport reaches 360 too, at 51.4px. So the question changes
+shape: not "state a phone exception to the 50px rule" but "keep 50 with no
+exception on every listed handset except the 360px Android, and pay for it out
+of the bezel". **Do the two together**, or `minTiles` gets decided against a
+floor that was about to move.
+
+Note the same 340 is written into 037's **SC-001** — "the smallest cat in the
+range is fixed at 340/`minTiles` = 56.7px … so the spread is simply
+`floorPx / 56.7`", which is what caps `floorPx` at 113. At a 360px map that
+becomes 60px and the cap moves to 120. SC-001 is being discarded (owner,
+2026-08-19), so this is not a reason to act — but it is the second criterion
+found resting on an undeclared 340, and if anything ever re-derives a floor
+target from "the smallest supported map", **that number is a measurement of the
+CSS, not a constant.**
+
+**The decision this needs, which is the owner's:** the body padding is shared —
+`body` is the flex column, so zeroing its sides pushes the *cards* to the screen
+edge as well. Reclaiming it for the map alone means moving that padding onto
+`header`/`.panel`/`footer` and letting the stage run to the edge, which is a
+look, not a refactor. The mat itself is already an owner-set number (16 → 6 on
+2026-08-05, "6px is kitten.me's mat width exactly"), and `#sky-dial` pins to
+`--stage-pad`, so changing the mat moves the horizon with it — by design, and
+worth re-checking by eye at the new value rather than trusting the variable.
+
+**What shipped, and what is still open.** Option F (12px chrome) was chosen
+over the cheaper 20px step because **it is the only one that moves the 50px
+bar**: at `minTiles` 7 the 20px step clears 50 on 3 of 5 handsets, exactly as
+today, while 12px clears it on 4 of 5. The 16px option is **strictly
+dominated** — identical maps to 20px everywhere. Still open: whether the
+CARDS should keep an inset while the map runs to the edge, which needs the
+padding moved onto `header`/`.panel`/`footer` and is a look, not a refactor.
+**No automated guard exists** — neither harness runs `resizeFor`, both set
+`cssWidth` directly.
+
+**Durable vs perishable:** the arithmetic
+is durable — the wasted remainder is `budget mod world.width`, and the phone's
+cat size is `map / minTiles`. **Every number in both tables is perishable**: they
+assume the 20-tile served world (`cloudkitty.toml`), and a wider world under Fog
+re-rolls which handsets sit just under a boundary. Re-run the arithmetic against
+the world that is actually served before spending a design decision on it.
 
 ### Connect-time frame backlog — SPEC PARKED (added 2026-08-15; Product thread)
 Spec 032 is written, decisions settled, implementation deliberately parked

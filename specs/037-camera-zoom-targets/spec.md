@@ -235,9 +235,11 @@ kitties through gathering and scattering. The fine detail never switches state.
   it requires two things to happen at once.
 - **A world that is not 20 tiles.** The minimum is a count, so a small world
   could make it exceed the world itself; the frame can never be wider than the
-  world (036 FR-029). A *larger* world is the expected direction — see the Fog
-  dependency — and it only helps: the ceiling stops meeting the world's edge, so
-  the range holds everywhere.
+  world (036 FR-029). A *larger* world would only help — the ceiling stops
+  meeting the world's edge, so the range holds everywhere — but **it is not the
+  expected direction, merely a possible one** (corrected 2026-08-19; see the Fog
+  dependency). The world could equally stay 20 tiles or shrink, which is why the
+  small-world case is guarded rather than assumed away.
 
 ## Requirements *(mandatory)*
 
@@ -304,9 +306,11 @@ kitties through gathering and scattering. The fine detail never switches state.
   `cssWidth` cancels out of `cssWidth/ceilTiles ≥ k · cssWidth/world`, so this
   is a pure tile cap of `world / k` — 13.3 tiles on a 20-tile world. It
   therefore binds only where the pixel ceiling would have overshot, which is
-  the large maps, and leaves the small ones to the pixel target. **It also
-  retires itself as the world grows**: at 40×40 it allows 26.7 tiles and the
-  50px target only asks for 24, so Fog removes it without anyone editing it.
+  the large maps, and leaves the small ones to the pixel target. **It would
+  retire itself if the world grew**: at 40×40 it allows 26.7 tiles and the 50px
+  target only asks for 24. *Whether the world ever grows is an open question —
+  see the Fog dependency — so treat that as a property worth having rather than
+  a plan.*
 
 - **FR-007**: The ceiling MUST never frame more of the world than the world has,
   so the camera still crops and 036's FR-005 behaviour — letting a wanderer leave
@@ -508,13 +512,26 @@ kitties through gathering and scattering. The fine detail never switches state.
   and amends three of its requirements.
 - **The meadow lab's phase and scale cards**, which are where the numbers get
   dialled and where a strip showing each viewport's camera tile would live.
-- **Fog Generation — an influence, not a dependency** (owner, 2026-08-18). On
-  today's 20×20 world the 50px ceiling wants 20 tiles on a 1000px map and 24 on
-  a 1200px one, so the largest viewports clamp against the world's own edge and
-  lose part of their range. A larger world removes that clamp.
-  **Nothing here is conditional on Fog landing, and no acceptance criterion
-  waits for it.** The point of naming it is that the camera should be built so
-  a bigger world needs no rework — expressing the limits in pixels is exactly
-  what makes the world's size stop mattering to them. How the camera should
-  behave in a much larger world is a question to reopen when Fog drops, with
-  whatever it actually turns out to be, rather than one to guess at now.
+- **Fog Generation — an influence, not a dependency** (owner, 2026-08-18).
+  **Corrected 2026-08-19, because this spec had Fog wrong.** Fog is not a map
+  change. **It restricts what the KITTIES can see**: today they have global
+  awareness, the coming generation is the first that must *infer* another
+  kitty's state rather than reading it, and Fog limits what they can see of the
+  map on top of that — the aim being more robust communication. Whether the
+  world grows, and what size is even optimal, is **an open research question
+  downstream of that**, not a planned change. Earlier text here assumed
+  "Fog ⇒ bigger world" and reasoned from it.
+
+  **What that means for the camera is narrow and worth stating: Fog changes
+  what the kitties see, not what the viewer sees.** It touches no geometry in
+  this spec. Its entire effect arrives through CLUSTERING BEHAVIOUR — and so
+  through exactly the measured figures that were read off one generation
+  (how often the ceiling binds, how many kitties are in frame, the anchor-change
+  rates that set `hysteresis`). The arithmetic — the band, the ratio,
+  `world / minZoomVsBase` — is untouched by it.
+
+  On today's 20×20 world the 50px ceiling wants 20 tiles on a 1000px map and 24
+  on a 1200px one, so the largest viewports clamp against the world's edge. A
+  larger world would remove that clamp; **it is no longer safe to assume one is
+  coming.** Nothing here is conditional on Fog landing and no acceptance
+  criterion waits for it.
