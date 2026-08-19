@@ -179,8 +179,9 @@ Chrome is the reclaimable half; the quantisation is not, and cutting chrome
 So the free tile the owner saw **is real and is specific to her handset**: the
 16 Pro is the one width whose budget sits just under a multiple of 20, and
 trimming the body padding to 6 takes it 360 → 380 (+5.6%) with the slack going
-to zero. Every other phone needs the chrome down near 8px total before it
-snaps, and gains nothing at all in between.
+to zero. **No other listed handset gains anything from that same edit.** The
+360px Android snaps at 20px total chrome (body 6 + mat 4); 375, 393 and 412 all
+need the map taken to the screen edge before they move at all.
 
 **Why it is worth more than 5.6%: it lands on the `minTiles` decision.** The
 camera's floor tile is `cssWidth / minTiles` once `minTiles` binds, so the map
