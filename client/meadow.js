@@ -898,8 +898,7 @@ function drawGroundDetail(ctx, { width, height, tile, t }) {
   }
   ctx.globalAlpha = 1;
 
-  // --- flowers: five petals and a heart when the tile can carry them,
-  //     a single dot when it cannot.
+  // --- flowers: five petals and a heart, at every tile size.
   //
   //     The 44px gate is GONE, 2026-08-18, along with the one the cats and
   //     the bowl's decal carried. The owner judged fine detail legible at

@@ -6417,7 +6417,14 @@ check('a still frame is the same moment again, not a jump forward', () => {
   assert(cam.across === mid.across, `a still frame moved the width to ${cam.across}`);
 
   // And it must still be mid-journey, or the assertion above is vacuous.
-  const want = cam.targetFor(far, null, 1);
+  // cssWidth MUST match what drove the camera: without it `limitsFor` reads
+  // the missing value as "not laid out yet" and `want` comes back derived
+  // from the WHOLE-WORLD limits (20 tiles) instead of 10/19. Harmless today
+  // -- both worlds are compact enough that `bound` is false either way, so
+  // the aim is the centre of mass regardless -- but the aim switches to the
+  // anchor once `bound` flips, and a looser world would make this compare
+  // against the wrong target in silence.
+  const want = cam.targetFor(far, null, 1, 1000);
   assert(Math.abs(cam.aimX - want.aimX) > 0.5, 'the camera had already arrived, so nothing was proved');
 });
 
@@ -6430,7 +6437,7 @@ check('reduced motion arrives instead, because it gets no other frames', () => {
   cam.reduced = true;
   cam.update(camAt([15, 15], [16, 16]), camView(true), { aspect: 1, cssWidth: 1000 });
   cam.update(world, camView(true), { aspect: 1, cssWidth: 1000 });
-  const want = cam.targetFor(world, null, 1);
+  const want = cam.targetFor(world, null, 1, 1000);
   // Through the deadzone -- declining to chase a fidget is not motion.
   assert(Math.hypot(cam.aimX - want.aimX, cam.aimY - want.aimY) <= api.VIEW.camera.aimDeadzoneTiles + 1e-9,
     `reduced motion did not arrive: ${cam.aimX},${cam.aimY} vs ${want.aimX},${want.aimY}`);

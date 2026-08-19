@@ -54,8 +54,9 @@ change.
   pixels and widens until she would drop below 50, whatever the window is
   doing, and the spread across every supported size is down to 1.76×. Small
   screens keep a minimum amount of meadow in shot rather than becoming a
-  keyhole, and pay for it in size — the one place the rule bends. The ground
-  is also cached at a size that no longer grows with the display.
+  keyhole, and pay for it in size — the one place the rule bends. Above a
+  600-pixel map the ground is also cached at a size that no longer grows with
+  the display; below it the minimum-tiles rule still moves it.
 
 - **The camera was flicking between kitties more than it should.** Once
   the frame stops being able to hold everyone it aims at an anchor kitty,

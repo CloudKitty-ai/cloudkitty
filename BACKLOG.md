@@ -28,6 +28,48 @@ mismatched every frame and rebaked the whole ground at 60fps (the note lives
 in `resizeFor`). Pick it up when the ground cache is open anyway — camera
 mode (spec 036) reworks it to bake at a camera tile.
 
+### The ground bake outruns its budget at high dpr (added 2026-08-18; Client thread)
+
+`bakeTileFor`'s comment and 037's contract invariant 6 both promise every
+per-frame ground blit is a downscale. **It is not, above dpr ~2.05**, and it
+was not before 037 either. `GROUND_BAKE_MAX_PX` is 4096 **device** px, so the
+budget is `4096 / dpr`; a 100px floor tile on a 20-tile world wants a 2000 CSS
+px bake and gets clamped to 1365 at dpr 3, leaving `this.tile / bakeTile` at
+1.46x — a magnified ground under crisp vector cats, in steady state at the zoom
+floor.
+
+`tile / bakeTile`, main → this branch:
+
+| map | dpr 2 | dpr 2.625 | dpr 3 |
+|---|---|---|---|
+| 620px | 1.00 → 1.00 | 1.00 → **1.28** | 1.00 → **1.46** |
+| 1000px | 1.00 → 1.00 | 1.28 → 1.28 | 1.46 → 1.46 |
+| 1200px | **1.17 → 1.00** | **1.54 → 1.28** | **1.76 → 1.46** |
+
+037 **improves the worst case** (1.76 → 1.46, because the floor tile stops
+growing with the display) and **widens the affected band downward** — from maps
+≥800px to ≥460px at dpr 3. Offscreen memory grows with it: a 620px map at dpr 2
+goes 25 MB → 64 MB.
+
+Three ways out, none of them free:
+
+- **Cap the camera's floor by the bake budget** — never zoom in past the tile
+  the cache can carry at this dpr. Keeps the invariant honest at the cost of a
+  little zoom on high-dpr displays, and couples two things that are currently
+  independent.
+- **Raise `GROUND_BAKE_MAX_PX`.** 4096 is a conservative texture bound; the
+  memory is the real cost, and 64 MB of offscreen is already sizeable.
+- **Accept it and say so.** The clamp's own comment already budgeted for
+  "magnifies slightly" — this is that, at a magnitude nobody measured. Both
+  docs now state the caveat rather than the promise.
+
+**No camera-on test exercises dpr > 2** (`test-motion.mjs` pins dpr 2 at
+cssWidth 1200, which is the one combination that just clears the budget), so
+whichever way this goes it wants a check that varies dpr.
+
+Found in review of PR #246. Not a 037 remediation — it spans 036's cache design
+and 037's floor, and the fix is a decision rather than a repair.
+
 ### Camera logic: what it aims at, and the trip in between (added 2026-08-18; Client thread)
 
 Owner's call, 2026-08-18: **accepted as-is for spec 037, dialled when camera

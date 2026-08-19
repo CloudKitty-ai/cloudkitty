@@ -936,7 +936,15 @@ class WorldRenderer {
     // `bound` read, so the bake and the frame can never disagree about the
     // band.
     //
-    // The downscale is a STEADY-STATE claim, not a per-frame one. `cssWidth`
+    // And it is a downscale only while GROUND_BAKE_MAX_PX does not bind. That
+    // budget is in DEVICE px (4096 / dpr), so above dpr ~2.05 a 100px floor
+    // tile on a 20-tile world wants a 2000 CSS px bake and is clamped to
+    // 1365 -- a 1.46x UPSCALE at the zoom floor, in steady state. It predates
+    // 037 (a 1200px map at dpr 2 was already 1.17x on the old fixed floor);
+    // 037 improves the worst case and widens the band. Parked in BACKLOG.md,
+    // because the fix couples the camera's floor to this budget.
+    //
+    // The downscale is also a STEADY-STATE claim in TIME. `cssWidth`
     // changes the instant a window is resized while `across` EASES toward
     // its new floor at zoomRate, so widening 700px -> 1200px with the group
     // huddled leaves `this.tile` above `bakeTile` for about a second and the

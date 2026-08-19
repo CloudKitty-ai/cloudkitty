@@ -898,8 +898,11 @@
       [tile * 15, tile * 4, 4],
     ]);
     document.getElementById('scale-note').textContent =
-      `${tile}px tile — ${tile >= 44 ? 'above' : 'below'} the fine-detail threshold (44px). `
-      + `Demo world today is 31px; WQHD reaches 47px; 20x20 reaches 54px.`;
+      `${tile}px tile. There is no fine-detail threshold any more — the 44px `
+      + `gate went from the cats, the props and the flowers on 2026-08-18, so `
+      + `everything draws its full detail at every size. `
+      + `Camera off, a 20x20 world runs about 17px on a phone to 60px at the `
+      + `1200px map cap; camera ON, spec 037 holds the tile between 50 and 100px.`;
     renderStyles();
     renderDrifts();
     renderOcclusion();

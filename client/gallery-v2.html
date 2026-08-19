@@ -766,8 +766,9 @@
   // tiles; the implementation clamps it one tile BELOW, so the camera still
   // crops (FR-007). The lab was reporting 2.00x at 1000px where the client
   // gives 1.90x, and the ceiling cat 50px where the client draws 52.6px.
-  // `limitsFor` is pure, so one instance serves every call rather than one
-  // per row per frame. Card 2 below deliberately does build a fresh one each
+  // `limitsFor` is pure, so the instance is disposable -- this is a factory
+  // and every call gets a fresh one. That is fine in a gallery and would not
+  // be in the renderer. Card 2 below also builds a fresh one each
   // frame -- it needs a camera with no history, so `update` ARRIVES at the
   // frame instead of easing toward it from wherever the last frame left it.
   const zoomProbe = () => new Camera({ ...VIEW.camera, ...ZOOM });
