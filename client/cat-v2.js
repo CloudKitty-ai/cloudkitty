@@ -10,7 +10,7 @@
  *    recognizably themselves.
  *  - Cuter eyes: larger, repositionable (CatV2.EYE dials), and always
  *    fully drawn -- iris color, dark pupil -- at every size. v1 gated eye
- *    detail behind `fine` (>= 44px), which no live-world cat ever
+ *    detail behind a 44px threshold, which no live-world cat ever
  *    reached. The white glint was tried and cut (owner, 2026-07-29). The
  *    narrowed 'focused' hunting eyes are kept exactly as v1 drew them.
  *  - Face under live revision (owner, 2026-07-29): symmetric front-on
@@ -1731,23 +1731,18 @@ function drawCat(ctx, opts) {
 /** The shared box pipeline: mirror, scale, paint. drawCat and
  * drawCatTween meet here so a blended frame is drawn by exactly the
  * machinery a held pose uses. */
-/**
- * Where fine detail switches on, mutable for a lab like SWIM/GAIT/EYE.
- *
- * 44 is a PRE-CAMERA number: it was chosen when a live tile ran 21-60px and
- * the question was whether detail would ever be drawn at all. Camera mode
- * changed that question -- the camera's band sits above it at both ends --
- * so what the threshold now produces is a DISCONTINUITY between camera-off
- * and camera-on rather than a legibility guard. Set `floorPx` to 0 to draw
- * fine detail at every size and see what that costs (owner asked, 2026-08-18).
- */
-const FINE = { floorPx: 44 };
-
 function paintBox(ctx, L, appearance, { facing, size, x, y, lid = 0, turn = null }) {
-  // v2: `fine` gates only the tabby forehead stripes (sub-pixel noise when
-  // small). Eyes, mouth and inner ears draw at every size -- v1's 44px
-  // cliff meant no live-world cat ever wore its own face.
-  const fine = size >= FINE.floorPx;
+  // The 44px fine-detail threshold is GONE (owner, 2026-08-18, judged at 21px
+  // on three monitors). It was a pre-camera number, chosen when a live tile
+  // ran 21-60px and the question was whether detail would ever be drawn at
+  // all. Camera mode answered that: the camera's band sits above it at both
+  // ends, so all the threshold produced was a discontinuity between
+  // camera-off and camera-on. v1 made the same mistake harder -- a 44px cliff
+  // on eyes and mouth, so no live-world cat ever wore its own face -- and v2
+  // fixed that half. This is the rest of it.
+  //
+  // Deliberately not a dial. A tunable threshold is an invitation to
+  // re-litigate a resolution question that no longer exists.
   // The served facing does not take effect until the mirror lands at the
   // bottom of the dip; before that the cat is still drawn the way it was
   // going. Both ends of the turn are therefore exactly the held drawings.
@@ -1773,7 +1768,7 @@ function paintBox(ctx, L, appearance, { facing, size, x, y, lid = 0, turn = null
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
 
-  paintCat(ctx, L, appearance, fine, lid, size);
+  paintCat(ctx, L, appearance, lid, size);
   ctx.restore();
 }
 
@@ -2356,7 +2351,7 @@ function catLayout(pose, phase, opts = {}) {
 const OUTLINE_W = 0.035;
 const WATER_DROPLET = '#9ccfe6'; // matches the world's water rim
 
-function paintCat(ctx, L, a, fine, lid = 0, size = 31) {
+function paintCat(ctx, L, a, lid = 0, size = 31) {
   const p = a.pattern || { kind: 'solid' };
 
   // Paint order IS the depth order, and for a cat walking away it inverts:
@@ -2372,7 +2367,7 @@ function paintCat(ctx, L, a, fine, lid = 0, size = 31) {
     // head then covers its base -- which is why it needs no rule of its
     // own about where the skull begins.
     if (!rear) drawInnerEars(ctx, L.head, a, earsBack, L.earNear || 0, L.earFar || 0);
-    drawHead(ctx, L.head, a, p, fine, L.view);
+    drawHead(ctx, L.head, a, p, L.view);
     // A cat walking away has the BACKS of its ears toward you and no face
     // at all. Skipping both is the rest of the back view's difference, and
     // it is what makes the view read instantly: a faceless head is
@@ -2736,7 +2731,7 @@ function headPath(ctx, head) {
   ctx.arc(head.cx, head.cy, head.r, 0, TAU);
 }
 
-function drawHead(ctx, head, a, p, fine, view = 'side') {
+function drawHead(ctx, head, a, p, view = 'side') {
   headPath(ctx, head);
   ctx.fillStyle = a.furBase;
   ctx.fill();
@@ -2790,7 +2785,7 @@ function drawHead(ctx, head, a, p, fine, view = 'side') {
     // into a half-hidden sliver. Now it clears the eye and reads whole.
     ctx.ellipse(head.cx - head.r * 0.62, head.cy - head.r * 0.58, head.r * 0.36, head.r * 0.3, -0.35, 0, TAU);
     ctx.fill();
-  } else if (p.kind === 'tabby-stripes' && fine && view !== 'back') {
+  } else if (p.kind === 'tabby-stripes' && view !== 'back') {
     // Three tiny forehead stripes, only when they can actually read.
     ctx.strokeStyle = p.color;
     ctx.lineWidth = OUTLINE_W * 0.8;
@@ -3575,7 +3570,6 @@ const api = {
   drawCatTween,
   blendLayouts,
   BODY_CX,
-  FINE,
   appearanceFor,
   shadedAppearanceOf,
   catLayout,

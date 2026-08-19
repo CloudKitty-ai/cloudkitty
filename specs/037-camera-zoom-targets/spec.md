@@ -149,9 +149,10 @@ are either there or not, for a given viewport, and do not flicker in and out as
 the clowder gathers and scatters.
 
 **Why this priority**: 036 accepted this pop deliberately, to be judged in
-motion. Judged, it is a distraction, and this feature removes its cause rather
-than tuning around it — a floor above the threshold on every viewport means the
-band can never straddle it.
+motion. Judged, it is a distraction. **Delivered 2026-08-18 by deleting the
+threshold outright** rather than by keeping the band clear of it — the owner
+judged fine detail at 21px on three monitors and found it good, so the gate
+went. That also frees `ceilingPx`, which had been set to clear 44 with margin.
 
 **Independent Test**: On a 27-inch 1080p viewport, watch a full session at 5
 kitties through gathering and scattering. The fine detail never switches state.
@@ -210,13 +211,13 @@ kitties through gathering and scattering. The fine detail never switches state.
   moving either one moves it. They are dialled as a pair, and a change to the
   floor that leaves the ceiling alone is a change to how far the camera zooms,
   whether or not that was the intent.
-- **FR-004**: Both ends of the band MUST sit above the fine-detail threshold,
-  with margin, so that detail is drawn at every point in the camera's range and
-  cannot flicker as the camera moves. **The margin is at the ceiling end and is
-  what makes the guarantee hold** — the floor clears the threshold by a wide
-  distance, so the binding constraint is `ceilingPx` against the 44px threshold.
-  At the owner's 50px that margin is 6px; a ceiling set at the threshold itself
-  would reintroduce the flicker at the wide end rather than remove it.
+- **FR-004**: *Withdrawn 2026-08-18 — the threshold it constrained no longer
+  exists.* The owner judged fine detail at 21px on three monitors and had it
+  drawn at every size, removing the 44px gate from `cat-v2.js` and `props.js`
+  outright. There is now no threshold for the band to clear, and `ceilingPx` is
+  free of it. 50 stays on its own merit: `PORTRAIT_CAT` is 47, so the cards the
+  art is tuned against sit just below the camera's smallest tile, and nothing in
+  the meadow is ever smaller than what was dialled.
 - **FR-005**: The number of tiles the floor frames MUST NOT fall below a
   minimum, so a small viewport shows a scene rather than a keyhole. No maximum
   applies: a larger viewport framing more tiles at the same legible size is the
@@ -239,11 +240,15 @@ kitties through gathering and scattering. The fine detail never switches state.
   smaller than the constant the band otherwise guarantees, and this is accepted
   rather than compensated for. Widening the floor to restore the range would give
   up the apparent-size consistency the feature exists for.
-- **FR-008**: Camera dials denominated in tiles that govern a *distance* — the
-  aim deadzone and the fit margin — MUST have a consistent effect in pixels
-  across viewports, or be re-expressed so that they do. A fix that made apparent
-  size consistent while making the camera's responsiveness inconsistent would
-  only move the problem.
+- **FR-008**: The camera dials that measure a *distance* — the aim deadzone and
+  the fit margin — MUST stay denominated in tiles. They describe how far the
+  clowder moves in the WORLD, not how far the image moves on a screen: the
+  deadzone exists to ignore a kitty shuffling a tile. Re-expressing them in
+  pixels would make the camera ignore more world on a small viewport, which is
+  backwards. Their pixel effect is already constant wherever the pixel target is
+  reachable, because the tile is — that falls out of the scheme rather than
+  needing to be required.
+
 - **FR-009**: With camera mode off, the view MUST remain exactly what it is
   today. This feature changes only the camera's limits.
 - **FR-010**: The limits MUST be verified across the full range of supported
@@ -276,12 +281,12 @@ kitties through gathering and scattering. The fine detail never switches state.
   zoom floor varies by no more than a factor of 2 — measured at 1.76× for a
   100px target with a 6-tile minimum, against 3.50× today. **Supersedes 036
   SC-001.**
-- **SC-002**: On every supported viewport, a kitty is at or above the
-  fine-detail threshold at BOTH ends of the camera's range, not only at the
-  floor.
-- **SC-003**: On every supported viewport, fine detail never changes state while
-  the camera moves within its range, observed across a full session at 5
-  kitties.
+- **SC-002**: *Withdrawn 2026-08-18.* There is no threshold to be above.
+- **SC-003**: **Met by construction rather than by measurement.** Fine detail
+  cannot change state at any size, on any viewport, in camera mode or out of
+  it, because the gate that could change it has been deleted. What US3 asked
+  for is delivered by removing the cause rather than by keeping the band clear
+  of it.
 - **SC-004**: *Withdrawn by the owner, 2026-08-18.* It required the zoom range to
   be identical across viewports, which follows from the construction rather than
   needing to be asserted — and pinning it would have to be renegotiated the
@@ -293,8 +298,10 @@ kitties through gathering and scattering. The fine detail never switches state.
   the world has, so the camera always crops.
 - **SC-007**: With camera mode off, the rendered view is indistinguishable from
   the build shipped today.
-- **SC-008**: The aim deadzone and the fit margin have the same effect in
-  pixels, within 25%, across the supported viewport range.
+- **SC-008**: *Withdrawn 2026-08-18.* Its "within 25%" was an invented constant
+  with no reasoning behind it, and the property it measured follows from the
+  scheme rather than needing a bar — see FR-008, which now records the decision
+  instead of demanding the consistency.
 - **SC-009**: A window resized across either boundary — where the minimum tile
   count starts or stops binding, and where the world clamp starts or stops
   binding — produces no visible jump in the frame's width. Continuous resizing
