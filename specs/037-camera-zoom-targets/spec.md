@@ -288,9 +288,33 @@ kitties through gathering and scattering. The fine detail never switches state.
   below the fine-detail threshold. With no threshold there is nothing left for
   it to outrank that FR-006 does not already say: the minimum wins over the
   pixel target, and the kitties are drawn smaller.
+- **FR-020**: The camera MUST always draw a kitty at least **`minZoomVsBase`
+  times** the size the whole-world view would draw her at. **Added 2026-08-19
+  after the first deploy**, at 1.5×.
+
+  This is the job 036 did for free and this spec dropped. `nominalAcross: 10`
+  on a 20-tile world is exactly half of it, so 036's floor was 2.00× the
+  whole-world tile on *every* display — which is why its SC-001 could say
+  "about 2× at nominal". Replacing that with a pixel target made apparent SIZE
+  consistent and silently let the zoom BENEFIT vary: 3.33× base on a phone
+  against **1.05× on WQHD**, where the camera at its widest was five percent
+  bigger than no camera at all. Reported from a 1100px map, and FR-007's
+  `world - 1` clamp is what let it happen.
+
+  `cssWidth` cancels out of `cssWidth/ceilTiles ≥ k · cssWidth/world`, so this
+  is a pure tile cap of `world / k` — 13.3 tiles on a 20-tile world. It
+  therefore binds only where the pixel ceiling would have overshot, which is
+  the large maps, and leaves the small ones to the pixel target. **It also
+  retires itself as the world grows**: at 40×40 it allows 26.7 tiles and the
+  50px target only asks for 24, so Fog removes it without anyone editing it.
+
 - **FR-007**: The ceiling MUST never frame more of the world than the world has,
   so the camera still crops and 036's FR-005 behaviour — letting a wanderer leave
-  rather than shrinking everyone — is preserved. This is a **separate** constraint
+  rather than shrinking everyone — is preserved. **Demoted to a backstop,
+  2026-08-19**: as the *only* bound it was not an answer, because on a 20-tile
+  world the pixel ceiling asks for 24 tiles and one tile of crop is
+  indistinguishable from camera-off. FR-020 is what governs now; this survives
+  for worlds too small for FR-020's cap to bite. This is a **separate** constraint
   from 036's FR-029: FR-029 keeps the frame from showing ground outside the world
   once its width is decided, while this decides that width. Both bind against the
   world's edge and neither replaces the other.
@@ -365,9 +389,16 @@ kitties through gathering and scattering. The fine detail never switches state.
 ### Measurable Outcomes
 
 - **SC-001**: Across the supported viewport range, a kitty's drawn size at the
-  zoom floor varies by no more than a factor of 2 — measured at 1.76× for a
-  100px target with a 6-tile minimum, against 3.50× today. **Supersedes 036
-  SC-001.**
+  zoom floor varies by no more than a factor of 2 — measured at **1.994× for a
+  113px target with a 6-tile minimum**, against 3.53× before this feature.
+  **Supersedes 036 SC-001.**
+
+  *The margin is now thin on purpose, and the arithmetic is worth keeping: the
+  smallest cat in the range is fixed at 340/`minTiles` = 56.7px and does not
+  move with `floorPx`, so the spread is simply `floorPx / 56.7`. The bar puts a
+  hard ceiling on the floor target at 113px — 114 measures 2.01× and fails.
+  Raising it further means lowering `minTiles` and paying for it in phone
+  framing.*
 - **SC-002**: *Withdrawn 2026-08-18.* There is no threshold to be above.
 - **SC-003**: **Met by construction rather than by measurement.** Fine detail
   cannot change state at any size, on any viewport, in camera mode or out of
@@ -424,6 +455,13 @@ kitties through gathering and scattering. The fine detail never switches state.
   map gives a 57px tile — larger than the 47px portrait cards — and a zoom
   range of about 1.13×. Unlike the band, it cannot be judged from a table — it
   is a question about how much meadow is worth looking at.
+- **The band is 113px down to 50px, with a 1.5× floor against the whole-world
+  view** (owner, 2026-08-19, after seeing the first deploy on a 1100px map).
+  113 restores 036's close-up — its floor was 110px on that display — and takes
+  everything SC-001's factor-of-2 allows. The 1.5× rule is what stops the
+  ceiling drifting out to 95% of the world. *The text below is the original
+  100/50 reasoning, kept because the argument for the ceiling still stands.*
+
 - **The band is 100px down to 50px, for now.** 100 is what a large monitor
   already shows at 036's full zoom, so that viewport's behaviour does not change
   and every value dialled against it stays valid. 50 was originally chosen to

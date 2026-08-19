@@ -747,6 +747,7 @@
     floorPx: VIEW.camera.floorPx,
     ceilingPx: VIEW.camera.ceilingPx,
     minTiles: VIEW.camera.minTiles,
+    minZoomVsBase: VIEW.camera.minZoomVsBase,
   };
   const ZOOM_WORLD = 20;
   // The viewports 037 is verified across (its Key Entities define the range).
@@ -809,13 +810,19 @@
         { key: 'floorPx', label: 'floorPx — tile size the camera zooms IN to', min: 60, max: 130, step: 2 },
         { key: 'ceilingPx', label: 'ceilingPx — smallest tile it will widen to', min: 30, max: 90, step: 2 },
         { key: 'minTiles', label: 'minTiles — fewest tiles the floor may frame', min: 3, max: 12, step: 0.5 },
+        { key: 'minZoomVsBase', label: 'minZoomVsBase — smallest zoom vs the whole-world view', min: 1, max: 2.5, step: 0.05 },
       ],
       readout() {
         const rows = ZOOM_VIEWPORTS.map(([px, name]) => {
           const L = zoomLimitsFor(px);
+          // x BASE is the axis that went unwatched until the first deploy:
+          // 037 made apparent SIZE consistent and let the zoom BENEFIT vary,
+          // and a ceiling at 1.05x base is a camera that is not a camera.
+          const base = px / ZOOM_WORLD;
           return `  ${String(px).padStart(4)}px  ${name.padEnd(18)} `
-            + `floor ${L.floorTile.toFixed(0).padStart(3)}px (${L.floorTiles.toFixed(1)} tiles)  `
-            + `ceiling ${L.ceilingTile.toFixed(0).padStart(3)}px (${L.ceilingTiles.toFixed(1)} tiles)  `
+            + `floor ${L.floorTile.toFixed(0).padStart(3)}px (${(L.floorTile / base).toFixed(2)}× base)  `
+            + `ceiling ${L.ceilingTile.toFixed(0).padStart(3)}px (${(L.ceilingTile / base).toFixed(2)}× base)  `
+            + `${L.ceilingTiles.toFixed(1)} tiles = ${(100 * L.ceilingTiles / ZOOM_WORLD).toFixed(0)}% of the world  `
             + `range ${L.range.toFixed(2)}×`;
         });
         const tiles = ZOOM_VIEWPORTS.map(([px]) => zoomLimitsFor(px).floorTile);
@@ -823,7 +830,7 @@
         const ranges = ZOOM_VIEWPORTS.map(([px]) => zoomLimitsFor(px).range);
         const constant = ranges.filter((r) => Math.abs(r - ZOOM.floorPx / ZOOM.ceilingPx) < 0.01).length;
         return (
-          `floorPx: ${ZOOM.floorPx}, ceilingPx: ${ZOOM.ceilingPx}, minTiles: ${ZOOM.minTiles}\n`
+          `floorPx: ${ZOOM.floorPx}, ceilingPx: ${ZOOM.ceilingPx}, minTiles: ${ZOOM.minTiles}, minZoomVsBase: ${ZOOM.minZoomVsBase}\n`
           + `${rows.join('\n')}\n`
           + `SC-001 size spread across the range: ${spread.toFixed(2)}× `
           + `(bar is under 2; today is 3.50×)${spread < 2 ? '' : '  ⚠ OVER THE BAR'}\n`
@@ -890,7 +897,7 @@
           // The whole paste, not just this card's two dials: the readout IS
           // the paste, and a card that emitted a subset would hand back a
           // block that silently drops whatever was dialled on the other one.
-          `floorPx: ${ZOOM.floorPx}, ceilingPx: ${ZOOM.ceilingPx}, minTiles: ${ZOOM.minTiles}\n`
+          `floorPx: ${ZOOM.floorPx}, ceilingPx: ${ZOOM.ceilingPx}, minTiles: ${ZOOM.minTiles}, minZoomVsBase: ${ZOOM.minZoomVsBase}\n`
           + `at a 340px map the floor frames `
           + `${L.floorTiles.toFixed(1)} tiles at ${L.floorTile.toFixed(0)}px\n`
           + (binds

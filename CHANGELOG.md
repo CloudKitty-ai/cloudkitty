@@ -44,6 +44,17 @@ change.
   survive a reload. Nothing about the world changes: two viewers watching
   at different zooms see the same meadow at the same tick.
 
+- **The camera's widest view was barely a camera.** Expressing both zoom
+  limits in pixels made a kitty the same size everywhere, and quietly gave up
+  something the old rule had held for free: how much the camera zooms *at all*.
+  On a large monitor its widest view had drifted out to 95% of the meadow — a
+  kitty five percent bigger than with no camera on. The camera now guarantees
+  it always draws her at least half again the size the whole-world view would,
+  which on today's meadow means it never shows more than about two-thirds of
+  it, and it closes in a little further than before at its tightest. Small
+  screens are untouched: the rule only bites where the view was drifting too
+  wide, and it retires itself once the world grows.
+
 - **A kitty was three and a half times bigger on one screen than another,
   at the same "zoom".** The camera framed a fixed count of tiles, so how big
   she actually came out depended entirely on how wide the map happened to
