@@ -1591,6 +1591,28 @@ check('the stem is a dial, not a decision baked into the drawing', () => {
   }
 });
 
+check('a flower is the same flower at every tile size', () => {
+  // The 44px flower gate went 2026-08-18, on the same argument as the cats':
+  // fine detail reads at 21px, so stop making it a resolution question.
+  // Removing it broke NOTHING in either suite, which is the whole reason
+  // this exists -- the gate was unguarded, so it could have come back by
+  // accident and no check would have said so.
+  //
+  // Asserted on the SHAPE of the command stream, not on pixels: a flower is
+  // a stem, five petals and a heart at any size, so the sequence of drawing
+  // commands must match and only the coordinates may differ.
+  const shapeAt = (tile) => {
+    const log = [];
+    api.drawMeadowGround(guardCtx(log), { width: 8, height: 8, tile, cover: false });
+    return log.map((o) => o[0]).join(',');
+  };
+  const small = shapeAt(20);
+  const large = shapeAt(48);
+  assert(small.length > 0, 'nothing was drawn at all');
+  assert(small === large,
+    'the flowers draw a different SHAPE at 20px than at 48px -- a size gate is back');
+});
+
 check('nothing turns black mid-crossfade', () => {
   // The bug this pins (owner, 2026-08-11): shrubs and flowers went BLACK
   // during a phase transition and healed themselves once the phase
@@ -1605,8 +1627,10 @@ check('nothing turns black mid-crossfade', () => {
   // black" is a sound proxy for "did a colour helper fail to parse".
   const BLACK = /^(#000000|#000|rgba?\(\s*0\s*,\s*0\s*,\s*0\b)/i;
   const t = api.MEADOW_DEFAULTS;
-  // Tile 48, so the FINE detail runs: below 44 the flowers take the
-  // single-dot path and their shaded petals never draw. And BOTH shrub
+  // Tile 48 is now only a comfortable size to read at: the flowers used to
+  // take a single-dot path below 44 and never draw their shaded petals, and
+  // that gate was deleted 2026-08-18. The shaded petals -- the thing this
+  // check is actually about -- now draw at every tile. And BOTH shrub
   // styles through drawGroundCover, which takes its tunables explicitly --
   // only the shipped style draws at the shipped dials, and a stem only
   // draws when bushTrunk is up.
