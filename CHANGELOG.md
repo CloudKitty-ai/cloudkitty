@@ -33,6 +33,18 @@ change.
 
 ## Unreleased
 
+- **The meadow was giving away a strip of itself on every phone.** The page
+  held the map off the screen edge, and then — because a tile has to be a
+  whole number of pixels — threw away whatever was left over, which came back
+  as a second margin outside the frame. Sixteen pixels a side on a recent
+  iPhone, most of it not doing anything. The page now keeps the barest inset
+  in portrait, and the map takes the rest: a phone that showed a 360-pixel
+  meadow shows a 380-pixel one, and a kitty grows with it. How much any given
+  handset gains is a step, not a slope — the map can only widen a whole tile
+  at a time — so some phones gain a tile and some gain nothing but a tidier
+  edge. The cards come to the edge with the map. Landscape is untouched; its
+  problem is a different one.
+
 - **The meadow can be a window now, not only a map.** Camera mode holds
   the clowder at roughly twice the old scale and follows them about;
   turning it off returns the whole world exactly as before. It aims at

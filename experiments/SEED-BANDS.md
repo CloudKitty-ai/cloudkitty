@@ -13,6 +13,7 @@ before trusting a gap here, then add what you find.
 | band | owner | purpose |
 |---|---|---|
 | 1–1000 | legacy kitty-eval | small-seed evals (`--seeds 1,2,3` era); treat as burned |
+| 40001–40003 | PPO probe trio | greedy welfare-probe seeds, every PPO arc since exp-002 (reconstruction gap, added 2026-08-19) |
 | 800001–800010 | exp-003 | sampled-selection eval seeds |
 | 820001–820030 | exp-005 | fingerprint probe 820001–010; eval band to 030 |
 | 840001–840450 | exp-004 re-baseline | class-credit batches A/B/C, 028 engine (F-004) |
@@ -26,3 +27,4 @@ before trusting a gap here, then add what you find.
 | 970001–970100 | exp-006 | anchor demonstrations (100 rollouts) |
 | 985001–985010 | exp-006 | fingerprint probe band (post-wall instrument) |
 | 1000000+ | training | per-run PPO/BC training seeds; each prereg declares its sub-band |
+| 100000000–259999999 | exp-006 | PPO episode seeds: base 100M + run_index×20M + segment×1k, worlds striding w×1M inside (train_ppo6.py). Sits above the 1M+ pool because the runner's per-world 1M stride makes 1M-scale sub-bands collide across arcs — exp-004/exp-005 chains already interleave there |
