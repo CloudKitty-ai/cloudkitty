@@ -1094,9 +1094,46 @@
        come to the edge with the map. That was the accepted trade; separating
        them means moving this rule onto header/.panel/footer. */
     body { padding: 16px 2px 28px; }
-    /* Thinner mat on a phone; the horizon follows it via --stage-pad. The
-       5 -> 4 is the other half of the 12px above. */
-    .stage { --stage-pad: 4px; border-radius: 20px; }
+    /* The mat retires on a phone; a hairline does its job (owner,
+       2026-08-19, judged in a to-scale lab against all four hour
+       palettes).
+
+       WHY A LINE AND NOT NOTHING. How strongly the meadow separates from
+       the page on its own is not a constant -- it swings from ΔL* 0.1 at
+       dusk to 18.5 at dawn, a factor of 180 across one day. The 4px mat
+       answered that with a steady 6-7 whatever the hour, which is why it
+       worked and also why it was doing four different jobs. Dropping it
+       outright would have been fine at dawn and would have deleted the
+       edge entirely at golden hour, when grass and paper are the same
+       lightness to within 0.1.
+
+       --grass-line is the answer because it is ALREADY themed per hour
+       and already sits 2-6 L* off the grass in every phase, so the edge
+       varies with the light instead of fighting it. Measured in CIE L*,
+       not WCAG contrast -- house rule from the pond restyle, and the only
+       reason the dusk case showed up at all.
+
+       0px, not 0: --stage-pad is consumed by `calc(100% - var(--stage-pad))`
+       in the #sky-dial and #camera-toggle pins below, and a unitless zero
+       makes that calc invalid. At 0px the pin resolves to 100%, which is
+       the padding box's top edge -- inside the border, and therefore still
+       exactly the map's top edge. "Exact wins" survives.
+
+       NO SHADOW, deliberately: the lab card the owner picked had none, so
+       shipping the base rule's `box-shadow` would be shipping something
+       she did not judge. One line to put back if the map reads unseated.
+
+       Radii are 13/12: the outer must exceed the inner by the border
+       width or the corners cut. And no background -- with zero padding the
+       card fill is covered everywhere except a sub-pixel corner sliver,
+       where it would read as a second, paler edge outside the real one. */
+    .stage {
+      --stage-pad: 0px;
+      background: none;
+      border: 1px solid var(--grass-line);
+      border-radius: 13px;
+      box-shadow: none;
+    }
     canvas { border-radius: 12px; }
     .panel {
       display: grid;

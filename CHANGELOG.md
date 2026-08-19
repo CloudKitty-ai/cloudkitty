@@ -33,6 +33,17 @@ change.
 
 ## Unreleased
 
+- **The frame around the meadow was answering four different questions with
+  one number.** On a phone the map sat on a small white mat, which separated it
+  from the page — but how much separation the meadow needs turns out to depend
+  entirely on the hour. At dawn the grass is already far darker than the paper
+  and the mat is nearly redundant; at golden hour the two are the same
+  lightness to within a rounding error and the mat is the only thing making an
+  edge exist at all. It is now a hairline in the same colour the meadow already
+  uses for its own soft rules, which is themed by the hour like everything else
+  — so the edge strengthens and softens with the light instead of holding
+  steady against it. The cards below the map also gained a little air.
+
 - **The meadow was giving away a strip of itself on every phone.** The page
   held the map off the screen edge, and then — because a tile has to be a
   whole number of pixels — threw away whatever was left over, which came back
