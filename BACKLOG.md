@@ -101,14 +101,42 @@ Owner's directions, to investigate rather than take as settled:
   >1-tile move or a non-consecutive tick as a jump rather than easing a lie.
   Whoever picks this up should amend FR-008 with the exception rather than
   quietly ship a cut against it.
-- **Close in when nobody is on the periphery.** Her third item, and the one
-  that needs pinning down before it is built — two readings, and they are
-  different features. It could mean *ignore the outliers*: size the frame to
-  the cluster rather than to the bounding box of everyone, so one wanderer
-  stops holding the whole view wide. Or it could mean *react to the frame*:
-  when the outer band of the current frame is empty, tighten until it is not.
-  The first is a change to what the fit measures; the second is a feedback
-  loop on top of the fit. Ask before choosing.
+
+  **Refined by the owner, 2026-08-19:** "must not cut" was right for the
+  baseline, and the exception is narrow — **a deliberate, occasional transition
+  to recentre on a larger out-of-frame group**. The MECHANISM is open: "could be
+  a fast pan instead". A fast pan is probably the better answer — it keeps
+  continuity, and it makes FR-008 an easing-RATE exception rather than a hole in
+  "never cut", which is a far smaller amendment to defend.
+- **Close in when nobody is on the periphery — SETTLED 2026-08-19, and it is
+  the highest-value item here.** The owner's evidence: "zooming out to the
+  ceiling to show a 4th cat if 3 are already in frame is probably not ideal",
+  and "multiple instances where zoom was at or near ceiling with two cats in
+  frame, and the composition would have been much better zoomed in".
+
+  **Measured on the recorded world at a 1100px map, and it is worse than it
+  sounds:** the camera is at its ceiling **76% of ticks**; while there it shows
+  **3.53 of 5** kitties and is down to **one or two 10% of the time**; and it
+  spends **13.3 tiles to frame cats that span only 10.8** — it could zoom to
+  **81% of the width and lose nobody**, making those cats ~23% bigger.
+
+  **The mechanism, which makes the rule obvious:** once `bound` is true the fit
+  has ALREADY failed — the frame cannot hold everyone whatever it does — but the
+  width stays pinned at the ceiling, because `across = min(max(fit…), ceiling)`
+  and the fit is enormous. The camera pays the full zoom-out price for a fit it
+  never achieved.
+
+      while the fit governs, size to everyone, as now.
+      once it CANNOT, stop trying — size to the group the camera actually chose.
+
+  That is the "ignore the outliers" reading, not a feedback loop on the frame.
+  It delivers all three of her observations at once, and it needs no new dial —
+  the anchor choice already exists and simply starts carrying the WIDTH decision
+  as well as the aim.
+
+  **PR #247 made this the main case, not a corner:** tightening the ceiling took
+  `bound` from 19% of ticks to 76%, so "what should the camera do when it cannot
+  fit everyone" is now three-quarters of the experience.
 
 **These three are one feature, not three.** Aiming at the largest group and
 sizing to the cluster are the same decision seen from the aim and the width;
