@@ -101,6 +101,20 @@ Owner's directions, to investigate rather than take as settled:
   >1-tile move or a non-consecutive tick as a jump rather than easing a lie.
   Whoever picks this up should amend FR-008 with the exception rather than
   quietly ship a cut against it.
+- **Close in when nobody is on the periphery.** Her third item, and the one
+  that needs pinning down before it is built — two readings, and they are
+  different features. It could mean *ignore the outliers*: size the frame to
+  the cluster rather than to the bounding box of everyone, so one wanderer
+  stops holding the whole view wide. Or it could mean *react to the frame*:
+  when the outer band of the current frame is empty, tighten until it is not.
+  The first is a change to what the fit measures; the second is a feedback
+  loop on top of the fit. Ask before choosing.
+
+**These three are one feature, not three.** Aiming at the largest group and
+sizing to the cluster are the same decision seen from the aim and the width;
+cutting is what makes that decision affordable, because a cluster-aimed camera
+moves further when it moves at all. Speccing them separately would produce
+three dials that fight.
 
 Not to be confused with the anchor **hysteresis**, which was a different
 small-viewport fault (restlessness, 036 SC-006) and is fixed — 1.5 → 2.5 in
