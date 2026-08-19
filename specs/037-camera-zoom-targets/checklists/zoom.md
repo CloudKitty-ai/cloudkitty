@@ -158,3 +158,14 @@ be settled is complete; one that simply omits it is not.
   **SC-006** fails on small viewports under 037 — measured, see
   `client-measurements/037-zoom/sc006-2026-08-18.md`. CHK005 and CHK007 stay open
   pending the owner's decision on the ceiling.
+- **2026-08-18 — CHK005 and CHK007 are closed, and with them the last open
+  item.** CHK005's walk is now written into 037's header: of 036's thirteen
+  surviving success criteria, eleven pass through untouched because none reads
+  a tile count, and the two that did not are handled — **SC-006 by raising the
+  anchor hysteresis 1.5 → 2.5 (PR #245, merged `fa66916`)**, which puts every
+  viewport inside the bar without the ceiling moving at all, and **SC-010 by an
+  annotation at its site**. CHK007's recorded answer of "seven sites" is
+  corrected to eight: SC-010 says "10 tiles" outright, so a search for
+  *nominal* could never have found it.
+- **All 42 items are now answerable. None is blocked, and none is waiting on a
+  decision.** What remains is the reviewer reading and ticking.

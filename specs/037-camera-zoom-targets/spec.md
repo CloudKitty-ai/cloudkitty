@@ -29,6 +29,31 @@ than being rewritten, following the precedent set when 006 superseded 004's
 floors — 036 is the record of what shipped, and until this feature is built its
 rules are still what the client does.
 
+**036's success criteria were walked on 2026-08-18.** SC-001 is superseded
+here; of the thirteen that remain, eleven are untouched by this feature and two
+needed work:
+
+- **SC-006** (no more than 3 anchor changes a minute) is the one this feature
+  endangered, and it was not obvious. The anchor drives the aim only while the
+  ceiling BINDS — 19% of the time on a large viewport, ~100% on a phone once the
+  ceiling is viewport-dependent — so 037 would have turned a mostly-invisible
+  count into a visible one on exactly the screens least able to absorb it.
+  **Settled ahead of implementation** by raising the anchor hysteresis from 1.5
+  to 2.5 (PR #245): every viewport now measures inside the bar, and the ceiling
+  did not have to move. See `client-measurements/037-zoom/sc006-2026-08-18.md`.
+- **SC-010** names "10 tiles" outright and is annotated at its site in 036.
+- **SC-013** is measured "at the zoom ceiling on a phone, where a kitty is at
+  her smallest". Still valid, and the case gets easier: that tile goes from
+  23px to 50px.
+- **SC-003** (frame rate within 10%) survives, and moves the right way — the
+  ground bake gets *smaller* under a pixel floor.
+- **SC-004** and **SC-012** (camera off unchanged; ground decoration identical
+  at every width) are restated here as SC-007 and re-run by this feature's tasks.
+- The remaining seven — SC-002, SC-005, SC-007, SC-008, SC-009, SC-011 and
+  SC-014 — govern cuts, the empty frame, restore, following, reduced motion,
+  view-independence and keyboard access. **None of them reads a tile count**,
+  which is why they pass through untouched.
+
 ## Overview
 
 Camera mode frames a fixed number of **tiles** — 10 at its floor, 15 at its

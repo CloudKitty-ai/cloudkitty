@@ -385,6 +385,12 @@ marked.
 - **SC-010**: The camera is judged acceptable at 3, 4, and 5 kitties
   independently, with the 3-kitty case confirming that 10 tiles is the right
   floor and the 5-kitty case exercising the anchor hysteresis.
+  *"10 tiles" is FR-003's floor, superseded by 037 — see the banner. **This is
+  the eighth site that depends on it**, missed by the pass that found seven
+  because that pass searched for "nominal" and this one says the number
+  outright. Under 037 the 3-kitty case confirms the PIXEL floor instead, and it
+  is worth re-judging rather than inheriting: the floor is no longer the same
+  width on every viewport.*
 - **SC-011**: The same world observed by one viewer with camera mode on and
   another with it off shows identical kitty positions, activities, and needs at
   the same tick. The camera changes what is seen, never what happens.
