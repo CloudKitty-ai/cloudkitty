@@ -1,0 +1,129 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Ground bake vs live draw — measuring option F</title>
+<style>
+  body { font: 14px/1.6 ui-sans-serif, system-ui, sans-serif; margin: 24px; max-width: 780px;
+         color: #3b3128; background: #f6f1e8; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  p.sub { color: #6b5a4e; margin: 0 0 18px; }
+  button { font: inherit; padding: 8px 16px; border-radius: 8px; border: 1px solid #c3b3a3;
+           background: #fff; cursor: pointer; }
+  table { border-collapse: collapse; margin: 16px 0; width: 100%; }
+  th, td { text-align: right; padding: 5px 10px; border-bottom: 1px solid #e3d9cc; }
+  th:first-child, td:first-child { text-align: left; }
+  .v { font: 13px/1.5 ui-monospace, monospace; white-space: pre-wrap; background: #fff;
+       border: 1px solid #e3d9cc; border-radius: 8px; padding: 12px; }
+  canvas { display: none; }
+</style>
+<h1>Ground: baked-and-blitted vs drawn live</h1>
+<p class="sub">
+  Option F from the high-dpr bake question. The camera never shows more than
+  about two-thirds of the meadow, so the whole-world bake — the thing that
+  blows <code>GROUND_BAKE_MAX_PX</code> at dpr&nbsp;2 and above — may not be
+  needed in camera mode at all. This measures whether drawing the visible
+  ground <em>every frame</em> is affordable. Shipped <code>meadow.js</code>,
+  real canvas, real rasterisation.
+</p>
+<button id="run">Run the measurement</button>
+<div id="out"></div>
+
+<script src="cat.js"></script>
+<script src="cat-v2.js"></script>
+<script>
+  if (typeof CatV2 !== 'undefined') Object.assign(globalThis, CatV2);
+  var VIEW = { meadow: {}, waterline: 0.72, swimAxial: 'both', cloudPeriodMs: 60000,
+               ambient: { waterShimmer: true } };
+</script>
+<script src="props.js"></script>
+<script src="meadow.js"></script>
+<script>
+(() => {
+  const dpr = window.devicePixelRatio || 1;
+  const out = document.getElementById('out');
+  const WORLD = 20;
+  // The camera's floor and ceiling in tiles, for a given map, from spec 037's
+  // shipped dials. Kept in one place so this benchmark cannot drift from them.
+  const D = { floorPx: 113, ceilingPx: 50, minTiles: 6, minZoomVsBase: 1.5 };
+  const limits = (map) => {
+    const edge = Math.min(WORLD - 1, WORLD / D.minZoomVsBase);
+    const floor = Math.min(Math.max(map / D.floorPx, D.minTiles), edge);
+    return { floor, ceil: Math.max(Math.min(map / D.ceilingPx, edge), floor) };
+  };
+
+  const mkCanvas = (cssW, cssH) => {
+    const c = document.createElement('canvas');
+    c.width = Math.floor(cssW * dpr); c.height = Math.floor(cssH * dpr);
+    document.body.appendChild(c);
+    const g = c.getContext('2d');
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { c, g };
+  };
+
+  // Median of repeated timings: one slow frame from a GC pause should not
+  // decide a design question.
+  const timeMs = (fn, iters) => {
+    for (let i = 0; i < 5; i += 1) fn();          // warm
+    const runs = [];
+    for (let r = 0; r < 7; r += 1) {
+      const t0 = performance.now();
+      for (let i = 0; i < iters; i += 1) fn();
+      runs.push((performance.now() - t0) / iters);
+    }
+    runs.sort((a, b) => a - b);
+    return runs[3];
+  };
+
+  document.getElementById('run').addEventListener('click', () => {
+    out.innerHTML = '<p>measuring…</p>';
+    setTimeout(() => {
+      setMeadowPalette('day', null, 0);
+      const rows = [];
+      for (const map of [640, 840, 1000, 1200]) {
+        const L = limits(map);
+        const tileAtFloor = map / L.floor;
+
+        // TODAY: bake the whole world at the floor tile, then blit per frame.
+        const bakeSide = tileAtFloor * WORLD;
+        const bake = mkCanvas(bakeSide, bakeSide);
+        const bakeMs = timeMs(() => {
+          drawMeadowGround(bake.g, { width: WORLD, height: WORLD, tile: tileAtFloor, cover: true });
+        }, 3);
+        const view = mkCanvas(map, map);
+        const blitMs = timeMs(() => {
+          view.g.drawImage(bake.c, 0, 0, bake.c.width / 2, bake.c.height / 2, 0, 0, map, map);
+        }, 60);
+
+        // OPTION F: draw only what the camera can see, every frame. Measured at
+        // the CEILING, which is the most tiles the camera ever shows.
+        const tileAtCeil = map / L.ceil;
+        const visible = Math.ceil(L.ceil) + 1; // +1 for the partial tiles at the edges
+        const liveMs = timeMs(() => {
+          drawMeadowGround(view.g, { width: visible, height: visible, tile: tileAtCeil, cover: true });
+        }, 20);
+
+        bake.c.remove(); view.c.remove();
+        rows.push({ map, visible, bakeMs, blitMs, liveMs });
+      }
+
+      const budget = 16.67;
+      out.innerHTML =
+        `<div class="v">device pixel ratio: ${dpr}\nframe budget at 60fps: ${budget}ms</div>`
+        + '<table><tr><th>map</th><th>bake (once)</th><th>blit /frame</th>'
+        + '<th>live /frame</th><th>live share of frame</th><th>verdict</th></tr>'
+        + rows.map((r) => {
+          const share = 100 * r.liveMs / budget;
+          const ok = share < 30;
+          return `<tr><td>${r.map}px (${r.visible}×${r.visible} visible)</td>`
+            + `<td>${r.bakeMs.toFixed(1)}ms</td><td>${r.blitMs.toFixed(2)}ms</td>`
+            + `<td><b>${r.liveMs.toFixed(2)}ms</b></td><td>${share.toFixed(0)}%</td>`
+            + `<td>${ok ? 'affordable' : share < 60 ? 'tight' : 'too slow'}</td></tr>`;
+        }).join('')
+        + '</table>'
+        + '<p class="sub">Live drawing replaces the blit, not the bake — so the'
+        + ' honest comparison is the <b>live</b> column against the <b>blit</b>'
+        + ' column, plus never paying the bake again in camera mode. Under 30% of'
+        + ' a frame leaves room for the cats, props and water that draw on top.</p>';
+    }, 30);
+  });
+})();
+</script>
