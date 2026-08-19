@@ -5835,9 +5835,16 @@ check('a resize mid-ease moves the target without cutting the movement', () => {
   assert(Math.abs(settled - start) < 1e-9,
     `setup: expected the 1000px floor of ${start.toFixed(2)}, got ${settled.toFixed(2)}`);
 
-  // The window narrows to 640, where 640/113 = 5.66 is under minTiles, so the
-  // MINIMUM governs and the target is 6 tiles flat.
-  const wanted = api.VIEW.camera.minTiles;
+  // The window narrows to 640. The target is read from the derivation rather
+  // than written as a literal: this check's subject is the EASING -- that the
+  // camera moves, does not cut, and converges -- and hard-coding the width
+  // couples it to floorPx. It was `minTiles` until a mutation lowering floorPx
+  // to 100 broke it for a reason having nothing to do with easing.
+  //
+  // Not circular: the fixture puts the fit below the floor at both widths, so
+  // the floor IS the target, and every assertion below is about how the camera
+  // travels to it rather than what it is.
+  const wanted = cam.limitsFor(world, 640).floorTiles;
   cam.update(world, camView(false, 16.67), { aspect: 1, cssWidth: 640 });
   assert(cam.across < settled,
     `the camera ignored the resize and stayed at ${cam.across}`);
