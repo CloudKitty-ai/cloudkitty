@@ -242,6 +242,11 @@ marked.
 - **FR-007**: In group mode the anchor kitty MUST change only when another kitty
   is clearly more central, by a margin of at least 1.5× in distance, so the
   camera does not flick between kitties at opposite ends of the meadow.
+  *The margin is **2.5× since 2026-08-18**. 1.5 shipped at 4.50 anchor changes
+  per minute against SC-006's bar of 3 — the criterion was already failing on
+  its literal reading, and 037's viewport-dependent ceiling would have made
+  those changes visible almost all the time on a small viewport. The rule is
+  unchanged; only the margin moved.*
 - **FR-008**: The camera MUST NOT cut. Every change of aim and of width is
   eased, however far the target moves between frames.
 - **FR-009**: Easing MUST be corrected for frame rate, so the camera settles at
