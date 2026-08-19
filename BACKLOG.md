@@ -199,7 +199,38 @@ budget and raising `GROUND_BAKE_MAX_PX` are both **moot** — F costs a tenth of
 frame and removes the magnification instead of trading against it. C stays as the
 honest description of what ships until F does.
 
-**The laptop leg came in at 0.4ms peak** — four times faster than the phone,
+**THE dpr-2 LEG, 2026-08-19 — the one that actually decides this, because it
+is the only hardware where the defect exists:**
+
+| map | visible | bake (once) | live /frame | share of 16.67ms |
+|---|---|---|---|---|
+| 640px | 14x14 | 0.3ms | 0.10ms | 1% |
+| **840px** | 15x15 | 0.7ms | **0.35ms** | **2%** |
+| 1000px | 15x15 | 0.7ms | 0.35ms | 2% |
+| 1200px | 15x15 | 0.7ms | 0.40ms | 2% |
+
+**Read the 840 row: the owner's desktop lays out a 760px map** (recorded, not
+assumed — `client-measurements`). So the fix costs **2% of a frame exactly
+where the softness is**.
+
+**And it refutes the prediction that sent us looking for this number.** I
+argued the phone's 1.6ms would not transfer, because a dpr-2 desktop at a
+large map rasterises 5.76 Mpx against the phone's 1.3 — 4.4x the pixels. It
+transfers the other way: the desktop is **4x CHEAPER than the phone despite
+4.4x the pixel load.** Hardware dominates pixel count, and a Mac is simply not
+an iPhone. Pixel-count arithmetic predicts the ORDER of cost within one
+device; it says nothing useful across devices, and I used it as though it did.
+
+Note also this run is clean where the phone's was not: 0.10 / 0.35 / 0.35 /
+0.40 rises monotonically with map size, against the phone's 1.45 / 0.65 / 1.30
+on identical op counts. The phone's spread was thermal, not measurement error
+in the harness.
+
+**So F is settled on both legs: it costs 2% of a frame on the hardware that
+needs it, and the hardware that would cost most to draw (the phone, 1.6ms)
+never clamps and does not need it at all.**
+
+**The earlier laptop figure came in at 0.4ms peak** — four times faster than the phone,
 and that is the number that retires the whole "wait for a quiet box" concern.
 The laptop IS the box carrying the four PPO arms; the phone carries none. So
 the slower device was slower on hardware, not on contention, and the contended
