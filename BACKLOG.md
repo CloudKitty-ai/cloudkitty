@@ -251,6 +251,16 @@ been the dpr-1 WQHD, which is the one display with nothing wrong with it.
 Owner's call, 2026-08-18: **accepted as-is for spec 037, dialled when camera
 logic is improved.** Not to be implemented alongside 037.
 
+**Every "of 5" below is the roster AFTER the cutover, not the one serving
+today.** The trace was recorded against a 5-kitty world; the live world runs
+**four** until the exp-006 certification run passes and the config goes to five
+(owner, 2026-08-19). That is not an error in the measurements — it is the
+roster they will be true of — but it has a direction worth knowing: fewer
+kitties means a smaller spread, so the camera is bound LESS often today than
+the 76% measured, and this problem gets **worse at cutover, not better**.
+Anyone comparing these figures against the live world will find them
+pessimistic until Clementine is seated.
+
 Under 037's pixel ceiling a 340px map frames ~6.8 tiles while the clowder
 spans a median 16.2, so a phone shows **2.81 of 5 kitties** against 4.12
 today, and sees all five 5% of the time against 44%. It also draws **3 empty
