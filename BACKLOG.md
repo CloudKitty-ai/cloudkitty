@@ -209,10 +209,17 @@ to spend Experiments' campaign on it.
 
 **Why the phone was the right leg to run first.** The budget is `4096 / dpr`
 against a need of `floorTile × world.width`; at `floorPx` 113 that is 2260 CSS
-px, so the clamp binds above **dpr 1.81**. A dpr-2 laptop sits just inside it
-and magnifies about 1.10x; the dpr-3 phone magnifies **1.46x**. Both are
-defects F removes, but the phone is where it is visible, and the phone is the
-primary consumption path.
+px, so the clamp binds above **dpr 1.81**.
+
+**CORRECTED 2026-08-19: the owner's desktop reports `devicePixelRatio: 1`, not
+2.** So on that machine the clamp never binds at all, there is no magnification,
+and the 0.4ms bench figure was timing a case with nothing wrong with it. **The
+defect F fixes is PHONE-ONLY on the hardware we actually have** — the dpr-3
+handset magnifies **1.46x** and the desktop magnifies not at all. That does not
+change the decision, because the phone is the primary consumption path, but it
+does mean F buys nothing on the desktop and a dpr-2 machine (magnifying ~1.10x)
+is hypothetical here rather than owned. Read dpr off the running device, never
+off an assumption about the hardware — that is what the recorder is for.
 
 ### Camera logic: what it aims at, and the trip in between (added 2026-08-18; Client thread)
 

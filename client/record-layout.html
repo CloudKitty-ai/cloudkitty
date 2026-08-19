@@ -30,8 +30,10 @@
 </p>
 
 <button id="run">Record</button>
+<p id="status" style="font-size:.85rem;margin-top:10px"></p>
 <textarea id="out" readonly placeholder="the recording lands here"></textarea>
-<iframe id="frame" src="index.html" style="position:absolute;left:-9999px;top:0;border:0"></iframe>
+<iframe id="frame" src="index.html" title="the live page, measured"
+        style="position:absolute;left:-9999px;top:0;border:0;width:402px;height:874px"></iframe>
 
 <script>
 // Sizes worth recording: the two phone widths that bracket the breakpoint, a
@@ -79,23 +81,71 @@ function readOne(doc, win) {
   };
 }
 
-document.getElementById('run').addEventListener('click', async () => {
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const twoFrames = () =>
+  new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+/**
+ * Wait until the framed page is BOTH loaded and built.
+ *
+ * The first version of this waited for neither and read `contentDocument`
+ * 250ms after a resize, which on Safari is null for the whole of the initial
+ * navigation -- every case came back
+ * "TypeError: null is not an object (evaluating 'doc.querySelector')".
+ * `load` alone is not enough either: index.html builds the stage and the cards
+ * from app.js, so the document can be complete while `.stage` does not exist
+ * yet. Poll for the element we actually need.
+ */
+async function frameReady(frame, timeoutMs = 15000) {
+  const deadline = Date.now() + timeoutMs;
+  if (frame.contentDocument === null || frame.contentDocument.readyState !== 'complete') {
+    await new Promise((resolve) => {
+      if (frame.contentDocument && frame.contentDocument.readyState === 'complete') return resolve();
+      frame.addEventListener('load', resolve, { once: true });
+      setTimeout(resolve, timeoutMs); // never hang on a frame that will not load
+    });
+  }
+  while (Date.now() < deadline) {
+    const doc = frame.contentDocument;
+    if (doc && doc.querySelector('.stage') && doc.querySelector('#world')) return doc;
+    await sleep(100);
+  }
+  throw new Error(
+    'the framed page never produced a .stage -- is index.html being served from '
+    + 'the same origin as this file? (a file:// path or a raw.githubusercontent '
+    + 'URL will fail here, and so will a 404)',
+  );
+}
+
+document.getElementById('run').addEventListener('click', async (ev) => {
   const frame = document.getElementById('frame');
   const out = document.getElementById('out');
+  const status = document.getElementById('status');
+  ev.target.disabled = true;
   const rec = { recordedOn: navigator.userAgent, dpr: window.devicePixelRatio || 1, cases: {} };
-  out.value = 'recording…';
-  for (const c of CASES) {
-    frame.style.width = c.w + 'px';
-    frame.style.height = c.h + 'px';
-    // Two frames: one for layout, one for the page's own rAF resize to settle.
-    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-    await new Promise((r) => setTimeout(r, 250));
-    try {
-      rec.cases[c.name] = { viewport: c, ...readOne(frame.contentDocument, frame.contentWindow) };
-    } catch (e) {
-      rec.cases[c.name] = { error: String(e) };
+  try {
+    status.textContent = 'waiting for the page to load and build…';
+    await frameReady(frame);
+    for (const c of CASES) {
+      status.textContent = `measuring ${c.name} (${c.w}x${c.h})…`;
+      frame.style.width = c.w + 'px';
+      frame.style.height = c.h + 'px';
+      // A resize does not reload, so the document stays valid -- but the page
+      // re-fits on its own rAF loop, and resizeFor nulls the ground cache and
+      // rebakes. Two frames for layout, then room for the rebake to land.
+      await twoFrames();
+      await sleep(400);
+      const doc = frame.contentDocument;
+      rec.cases[c.name] = doc
+        ? { viewport: c, ...readOne(doc, frame.contentWindow) }
+        : { viewport: c, error: 'contentDocument went null mid-run' };
     }
+    status.textContent = 'done — copy the box below.';
+  } catch (e) {
+    status.textContent = 'failed: ' + e.message;
+    rec.fatal = String(e);
   }
+  ev.target.disabled = false;
   out.value = JSON.stringify(rec, null, 2);
   out.select();
 });
