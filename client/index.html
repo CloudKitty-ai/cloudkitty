@@ -519,21 +519,50 @@
   .panel-col { display: contents; }
 
   .stage {
-    /* The mat, 16px -> 6px (owner, 2026-08-05). Height is what limits how
-       big a cat can be, so the bezel is budget: 6px is kitten.me's mat
-       width exactly, which keeps a frame between the meadow's green and
-       the page's cream while reading as a mounted picture rather than a
-       rounded device.
+    /* THE MAT IS RETIRED. A hairline does its job, at every size (owner,
+       2026-08-19 -- shipped to the phone first, judged live, then extended
+       here). History, because the numbers were hard-won: it was 16px, then
+       6px on 2026-08-05 ("6px is kitten.me's mat width exactly"), reading
+       as a mounted picture rather than a rounded device.
+
+       What replaced it, and why a line rather than nothing: how strongly
+       the meadow separates from the page ON ITS OWN is not a constant. In
+       CIE L*, off the shipped grass tones and page creams, it swings from
+       0.1 at dusk to 18.5 at dawn -- a factor of 180 across one day. A mat
+       answered that with a steady 6-7 whatever the hour, which is why it
+       worked and also why it was doing four different jobs. Dropping it
+       outright is free at dawn and deletes the edge entirely at golden
+       hour, where grass and paper are the same lightness to within 0.1.
+       --grass-line is already themed per hour, so the edge now varies with
+       the light instead of holding steady against it.
+
+       0px, not 0: --stage-pad is consumed by `calc(100% - var(--stage-pad))`
+       in the #sky-dial and #camera-toggle pins, and a unitless zero makes
+       that calc invalid. At 0px it resolves to 100% -- the padding box's
+       top edge, inside the border, and therefore still exactly the map's
+       top edge. "Exact wins" (owner, 2026-07-23) survives untouched.
 
        ONE source of truth: #sky-dial pins to this same variable. The pin
        and the mat used to be two hardcoded numbers kept in step by hand,
        in two rules each (here and the phone breakpoint). Override
-       --stage-pad and the horizon follows on its own. */
-    --stage-pad: 6px;
-    background: var(--card);
-    border-radius: 28px;
+       --stage-pad and the horizon follows on its own.
+
+       THE RADIUS IS NOW DERIVED, not dialled: with no padding the border
+       hugs the canvas, so the outer radius must be the canvas's plus the
+       border width or the corners cut. 18 + 1 here; every breakpoint that
+       changes the canvas radius changes this one with it. The old 28 was
+       an eye-dialled number against a 6px mat and has no successor.
+
+       No background and no shadow. The fill is covered everywhere except a
+       sub-pixel corner sliver, where it reads as a second, paler edge
+       outside the real one; the shadow is what the owner judged without,
+       on the phone, before asking for this. */
+    --stage-pad: 0px;
+    background: none;
+    border: 1px solid var(--grass-line);
+    border-radius: 19px;
     padding: var(--stage-pad);
-    box-shadow: 0 12px 30px var(--shadow);
+    box-shadow: none;
     line-height: 0;
     position: relative; /* anchors the sky dial to the map's corner */
     width: max-content;
@@ -1127,13 +1156,9 @@
        width or the corners cut. And no background -- with zero padding the
        card fill is covered everywhere except a sub-pixel corner sliver,
        where it would read as a second, paler edge outside the real one. */
-    .stage {
-      --stage-pad: 0px;
-      background: none;
-      border: 1px solid var(--grass-line);
-      border-radius: 13px;
-      box-shadow: none;
-    }
+    /* Only the radius: the hairline itself, the retired mat and the absent
+       background and shadow all live in the base rule now. 12 + 1. */
+    .stage { border-radius: 13px; }
     canvas { border-radius: 12px; }
     .panel {
       display: grid;
@@ -1200,7 +1225,12 @@
     .about { font-size: 0.72rem; }
     .keys { display: none; }
     footer { font-size: 0.72rem; }
-    .stage { --stage-pad: 4px; border-radius: 16px; }
+    /* The 4px mat had to go with the rest of them, and not only for
+       consistency: with the base's background gone, 4px of padding is no
+       longer a mat, it is a 4px TRANSPARENT GAP between the hairline and
+       the meadow -- a frame standing off the picture. The radius is 10 + 1;
+       16 was dialled against the mat this rule no longer has. */
+    .stage { border-radius: 11px; }
     canvas { border-radius: 10px; }
   }
 </style>

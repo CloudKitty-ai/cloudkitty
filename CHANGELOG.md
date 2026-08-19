@@ -42,7 +42,10 @@ change.
   edge exist at all. It is now a hairline in the same colour the meadow already
   uses for its own soft rules, which is themed by the hour like everything else
   — so the edge strengthens and softens with the light instead of holding
-  steady against it. The cards below the map also gained a little air.
+  steady against it. The cards below the map also gained a little air. The mat
+  is gone at every size now, not only on phones, and on a desktop that quietly
+  hands the meadow back the twelve pixels of height the frame was holding —
+  which is often a whole extra tile of cat.
 
 - **The meadow was giving away a strip of itself on every phone.** The page
   held the map off the screen edge, and then — because a tile has to be a
