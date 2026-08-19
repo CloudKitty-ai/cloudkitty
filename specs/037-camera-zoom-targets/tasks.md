@@ -14,11 +14,13 @@ CLAUDE.md rule 6 requires every new check to be watched failing before it is
 trusted — predict the assertion and the reason, break the thing it guards,
 confirm both, then undo.
 
-**⚠️ Checklist gate**: `checklists/zoom.md` carries **42 unchecked items**, and
-`/speckit-implement` reads that state as a gate. Four are already known-live
-(CHK001–CHK004, CHK007 were repaired in the 036 annotation pass; CHK020 is the
-SC-004/SC-008 scope mismatch, still open). Work or consciously waive the
-checklist before implementing.
+**⚠️ Checklist gate**: `checklists/zoom.md` carries **42 items, none ticked** —
+deliberately, since the checkbox is the reviewer's — and `/speckit-implement`
+reads that state as a gate. The substance behind them is worked: 14 became spec
+edits, 5 were repaired by the 036 annotation pass, and the 4 that needed a
+decision rather than an edit (CHK017, CHK020, CHK039, CHK041) were all settled
+by the owner on 2026-08-18. **Nothing is blocked on an answer.** What remains
+is the reviewer ticking, or a conscious waive.
 
 **Organization**: Tasks are grouped by user story so each ships independently.
 
@@ -72,7 +74,7 @@ the target has the same zoom range.
 band, and `ceiling ÷ floor` is equal wherever neither clamp binds.
 
 - [ ] T010 [P] [US1] Size-band check in `client/test-motion.mjs`: sweep `cssWidth` 340→1200 in 20px steps and assert the largest floor tile over the smallest is under 2 (SC-001). Report the measured figure so a regression shows as a number, not a boolean.
-- [ ] T011 [P] [US1] Constant-range check in `client/test-motion.mjs`: at every swept width where neither clamp binds, `ceilingTiles / floorTiles` is equal within 1% (SC-004).
+- [ ] T011 [P] [US1] Record — do not assert — the zoom range at every swept width, into `client-measurements/037-zoom-baseline/`. **SC-004 was withdrawn by the owner**: a constant range follows from the construction, and pinning it in a test would have to be renegotiated the moment anything widens the range deliberately (manual zoom, a wider band). A recorded number still shows a regression; an assertion would forbid a change she has already said she may want.
 - [ ] T012 [P] [US1] Ceiling-crops check in `client/test-motion.mjs`: at every swept width the ceiling frames fewer tiles than the world (SC-006). **Expect this to bind at 1000 and 1200 on a 20-tile world** — that is the Fog dependency, so the check asserts the clamp holds, not that it never fires.
 - [ ] T013 [US1] Implement the floor in `client/anim.js`: `cssWidth / floorPx`, feeding the fit's lower clamp.
 - [ ] T014 [US1] Implement the ceiling in `client/anim.js`: `cssWidth / ceilingPx`, clamped below the world so the camera always crops (FR-007).
@@ -97,23 +99,26 @@ whatever the pixel target asked for.
 
 ---
 
-## Phase 5: User Story 3 — Fine detail stops flickering (P3)
+## Phase 5: User Story 3 — Fine detail stops flickering (P3) — **DELIVERED**
 
 **Goal**: detail state is constant for a given viewport.
 
-**Independent Test**: at a 640px map — the width that used to straddle the
-threshold — the camera's whole range sits above it.
+**Delivered 2026-08-18 at `f34fd1c`, before implementation started** — by
+deleting the 44px threshold from `cat-v2.js` and `props.js`, not by keeping the
+band clear of it. There is no gate left to change state, so this phase has
+nothing to build and a sweep has nothing to assert. SC-002 is withdrawn; SC-003
+is met by construction.
 
-- [ ] T019 [P] [US3] Threshold check in `client/test-motion.mjs`: at every swept width, both the floor tile and the ceiling tile are at or above the fine-detail threshold, with the margin the band is meant to provide (SC-002, SC-003).
-- [ ] T020 [US3] Confirm no code change is needed for this story beyond the band itself, and say so in the test's comment. The pop is removed by the band being entirely above the threshold, not by anything detecting or suppressing it — a reader who later "fixes" the flicker elsewhere should find this note first.
+- [x] T019 [US3] ~~Threshold check~~ — **not applicable, and deliberately not written.** A sweep asserting every tile clears a threshold is vacuous when no threshold exists: it would pass on an empty premise, which is exactly the green that proves nothing (rule 6). Verified at the source instead — 26 stroke calls at 21px, 43px and 100px alike.
+- [x] T020 [US3] The note a later reader needs lives in the code rather than a test comment: `props.js` carries `// was gated at 44px until 2026-08-18; the threshold is gone` at both former gate sites.
 
-**Checkpoint**: all three stories hold.
+**Checkpoint**: US1 and US2 remain; US3 needs no code.
 
 ---
 
 ## Phase 6: Polish & Cross-Cutting
 
-- [ ] T021 Confirm the tile-denominated distance dials: sweep `aimDeadzoneTiles × tile` across the range and record the figures. Research R5 predicts they are *identical* wherever the target is reachable and vary only where `minTiles` binds. **SC-008 as written cannot pass** — its scope includes the clamped viewports while SC-004's does not. Record the measurement and take it to the owner; do not narrow the criterion to fit.
+- [ ] T021 Record the tile-denominated distance dials: sweep `aimDeadzoneTiles × tile` across the range and store the figures. Research R5 predicts they are *identical* wherever the pixel target is reachable, varying only where `minTiles` binds. **SC-008 was withdrawn rather than narrowed** — the owner's call, since its "within 25%" was an invented constant. FR-008 now records the decision to keep both dials in tiles, so this is a measurement that confirms the reasoning, not a criterion that can fail.
 - [ ] T022 [P] Verify the ground bake against T003: it should be smaller at `cssWidth` 1200 and display-independent. If it grew, the bake tile stopped being the floor tile.
 - [ ] T023 [P] Re-run 036's identity checks in `client/test-meadow.mjs` — the ground still bakes once across a zoom sweep, and the pond layers once (SC-007).
 - [ ] T024 [P] Resize-continuity check in `client/test-motion.mjs`: sweep `cssWidth` in 1px steps across both boundaries — where `minTiles` starts binding and where the world clamp starts binding — and assert `across` is continuous (SC-009, checklist CHK031).
@@ -122,7 +127,7 @@ threshold — the camera's whole range sits above it.
 - [ ] T027 [P] Update the `## Unreleased` CHANGELOG entry in `CHANGELOG.md`, in that file's register.
 - [ ] T028 Re-check the 036 annotations after dialling: the banner and the ten inline pointers quote "~100px" and "~50px", and would be stale if the session moves them.
 - [ ] T029 Deploy, then verify from the running system: fetch `anim.js` and `render.js` from both hosts and confirm the bytes.
-- [ ] T030 [P] Work or consciously waive `checklists/zoom.md`. CHK020 (the SC-004/SC-008 scope mismatch) and CHK036 (the dials are a ratio) are the two that change what gets built.
+- [ ] T030 [P] Tick or consciously waive `checklists/zoom.md` — the reviewer's call, not the implementer's. The only item left that changes what gets built is **CHK036** (the two targets are a ratio, so they dial as a pair); CHK020's two criteria were both withdrawn, and CHK017 and CHK041 went with the threshold.
 
 ---
 
@@ -132,7 +137,7 @@ threshold — the camera's whole range sits above it.
 - **Foundational (T004–T009)**: blocks every story. T004 first (nothing else has pixels without it), then T005–T008 in any order, T009 last.
 - **US1 (T010–T015)**: needs Foundational. No story dependencies.
 - **US2 (T016–T018)**: needs Foundational. Independently testable, though in practice judged with US1.
-- **US3 (T019–T020)**: needs US1's band to exist; it asserts a property of it rather than adding behaviour. The one real cross-story dependency.
+- **US3 (T019–T020)**: delivered ahead of implementation by deleting the threshold, so it no longer depends on US1's band. There is now no cross-story dependency.
 - **Polish (T021–T030)**: after the stories being shipped. T026 gates T028.
 
 ### Parallel opportunities
@@ -147,9 +152,8 @@ Not parallel: anything touching `anim.js` during Foundational, which is most of 
 
 ### MVP
 
-Phases 1–3. The band and the constant range are the feature; the minimum clamp
-protects small viewports and the flicker story asserts a property the band
-already provides.
+Phases 1–3. The band is the feature; the minimum clamp protects small
+viewports. The flicker story is already delivered, so Phase 5 costs nothing.
 
 ### The risk to watch
 

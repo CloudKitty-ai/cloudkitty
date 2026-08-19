@@ -60,6 +60,11 @@ fine-detail threshold at all, so it never shows the detail the camera exists to
 reveal. And 1080p crosses that threshold *inside* the band, which is the
 detail-pop 036 accepted for now.
 
+*Both of those were settled on 2026-08-18 — not by moving the band, but by
+deleting the threshold outright (see User Story 3). The final column above is
+kept as the record of the fault; there is no 44px line in the client any more.
+The 3.5× spread, which is the feature's actual subject, is untouched by that.*
+
 This feature expresses **both** limits in pixels: the camera zooms in until a
 tile is about 100px and widens until a tile would fall below about 50px. The
 range between them is then `floor ÷ ceiling` — a constant **2.00×** on every
@@ -108,8 +113,8 @@ same wherever the target is reachable.
 1. **Given** camera mode is on, **When** a kitty is measured at the zoom floor
    on any supported viewport, **Then** she is inside the size band.
 2. **Given** camera mode is on, **When** the camera is at its ceiling on any
-   supported viewport, **Then** a kitty is still at or above the fine-detail
-   threshold.
+   supported viewport, **Then** a kitty is no smaller than the ceiling target —
+   the bar the art is dialled against, since the portrait cards are 47px.
 3. **Given** two viewports that both reach the pixel target, **When** each
    camera moves from its floor to its ceiling, **Then** both travel the same
    ratio.
@@ -224,12 +229,11 @@ kitties through gathering and scattering. The fine detail never switches state.
   wanted behaviour.
 - **FR-006**: Where the minimum tile count binds, the kitties MUST be drawn
   smaller than the target rather than the world being cropped further.
-- **FR-011**: Where holding the minimum tile count would put a tile below the
-  fine-detail threshold, **the minimum wins and the threshold is given up**.
-  Framing is protected ahead of legibility at the smallest sizes, because the
-  alternative is a camera showing almost no meadow, and pinch zoom is the
-  viewer's remedy there. This is the one place FR-004's guarantee does not
-  hold, and it is deliberate.
+- **FR-011**: *Withdrawn 2026-08-18, with the threshold it arbitrated.* It
+  ruled that the minimum tile count wins where holding it would push a tile
+  below the fine-detail threshold. With no threshold there is nothing left for
+  it to outrank that FR-006 does not already say: the minimum wins over the
+  pixel target, and the kitties are drawn smaller.
 - **FR-007**: The ceiling MUST never frame more of the world than the world has,
   so the camera still crops and 036's FR-005 behaviour — letting a wanderer leave
   rather than shrinking everyone — is preserved. This is a **separate** constraint
@@ -331,17 +335,21 @@ kitties through gathering and scattering. The fine detail never switches state.
 - **The minimum tile count starts at 6, and it is the one deferred number with
   a real conflict behind it.** Lowering it buys apparent size and zoom range on
   small viewports and costs framing; raising it does the reverse. At 6 a 340px
-  map gives a 57px tile, which clears the 44px threshold by 13px, and a zoom
+  map gives a 57px tile — larger than the 47px portrait cards — and a zoom
   range of about 1.13×. Unlike the band, it cannot be judged from a table — it
   is a question about how much meadow is worth looking at.
 - **The band is 100px down to 50px, for now.** 100 is what a large monitor
   already shows at 036's full zoom, so that viewport's behaviour does not change
-  and every value dialled against it stays valid; 50 sits above the 44px
-  fine-detail threshold with enough margin that detail cannot flicker at the
-  ceiling. Owner's call, 2026-08-18, explicitly to be tuned later.
-- **The fine-detail threshold is the right legibility bar.** It is the line the
-  client already draws between detail that reads and detail that becomes noise,
-  and it is documented as a legibility guard rather than a performance one.
+  and every value dialled against it stays valid. 50 was originally chosen to
+  sit above the 44px fine-detail threshold with margin; with that threshold
+  deleted it stands on its own — `PORTRAIT_CAT` is 47, so the camera's smallest
+  tile is never smaller than the cards the art is tuned against. Owner's call,
+  2026-08-18, explicitly to be tuned later.
+- **~~The fine-detail threshold is the right legibility bar.~~** *Withdrawn
+  2026-08-18.* It was never validated, only inherited from 036 — and when it was
+  finally looked at, it failed: fine detail read at 21px on three monitors, so
+  the gate was deleted and the detail is drawn at every size. The legibility bar
+  is now a judgement made by eye, not a constant in the source.
 - **A factor of 2 is a reasonable bar for the size band.** The scheme measures
   1.76×, and the whole of the excess is the smallest viewports, where the
   minimum tile count deliberately wins.
@@ -354,9 +362,10 @@ kitties through gathering and scattering. The fine detail never switches state.
   wrong once the zoom range became the priority: the ceiling's real job is to
   widen until the kitties stop being legible, which is a pixel question, and
   making it one is what turns the range into a constant.
-- **The pop is worth removing rather than tuning.** 036 shipped it so it could
-  be judged in motion; a band entirely above the threshold removes its cause for
-  nothing extra.
+- **The pop is worth removing rather than tuning — and it was removed at the
+  source.** 036 shipped it so it could be judged in motion. Judged, the answer
+  was not a band that clears the threshold but no threshold at all, which costs
+  this feature nothing and frees `ceilingPx` of a constraint it was carrying.
 
 ## Dependencies
 

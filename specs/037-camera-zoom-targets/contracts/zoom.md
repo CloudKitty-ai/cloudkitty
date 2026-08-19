@@ -31,9 +31,11 @@ large low-resolution monitor.
    clamp, the `bound` predicate and the ground bake must read the same pair, or
    the anchor engages at a width the camera never reaches and the bake is keyed
    to a tile that is never drawn.
-3. **Every drawable tile lies in `[ceilingPx, floorPx]`**, and both ends clear
-   the fine-detail threshold with margin. A ceiling *at* the threshold
-   reintroduces the pop at the wide end.
+3. **Every drawable tile lies in `[ceilingPx, floorPx]`.** The band originally
+   had to clear the 44px fine-detail threshold with margin; that threshold was
+   deleted on 2026-08-18, so the lower end now rests on the 47px portrait cards
+   the art is tuned against — the camera's smallest tile is never smaller than
+   what was dialled.
 4. **The ceiling always frames less than the world.** Otherwise camera-on and
    camera-off are identical at full zoom-out and 036's FR-005 is silently
    retired.

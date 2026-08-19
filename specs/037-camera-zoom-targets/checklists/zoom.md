@@ -121,3 +121,24 @@ be settled is complete; one that simply omits it is not.
   are what the client actually does. 037's header no longer claims "everything
   else stands" without saying what else there is. **CHK001–CHK004 and CHK007 are
   now answerable — left unticked, because the checkbox is the reviewer's.**
+- **2026-08-18 — the four decision items are all decided, so nothing here is
+  waiting on an answer.** CHK017 and CHK020 are moot: **SC-008 was withdrawn**
+  (its 25% was invented, not proposed) and **SC-004 with it** (an unnecessary
+  constraint that follows from the construction and would need renegotiating the
+  moment anything widens the range on purpose). CHK041 is answered the hard way —
+  the assumption it questioned was **false**: fine detail read at 21px on three
+  monitors, so the 44px threshold was deleted from `cat-v2.js` and `props.js`
+  rather than cleared by the band. CHK039 is answered by the owner making Fog an
+  **influence, not a dependency**: nothing here is conditional on it and no
+  acceptance criterion waits for it.
+- **2026-08-18 — the threshold's deletion was propagated.** It had been applied
+  to `spec.md` only, leaving `tasks.md`, `quickstart.md`, `data-model.md`,
+  `contracts/zoom.md` and `research.md` still asserting a band that clears 44px —
+  including a Phase 5 sweep check that would have passed vacuously on a premise
+  that no longer exists. Also withdrawn as consequences: **FR-011** (it arbitrated
+  minimum-versus-threshold; with no threshold FR-006 already covers it) and the
+  Assumption "the fine-detail threshold is the right legibility bar". `ceilingPx`
+  now rests on `PORTRAIT_CAT = 47` alone.
+- **Status: 42 items, 0 ticked, 0 blocked.** 14 became spec edits, 5 were
+  repaired by the 036 annotation pass, 4 were owner decisions, and the rest were
+  reviewed as already satisfied. The ticking is the reviewer's.

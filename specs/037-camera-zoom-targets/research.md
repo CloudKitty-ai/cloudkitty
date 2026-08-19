@@ -115,6 +115,14 @@ rather than edited**: narrowing a criterion so the implementation passes is what
 rule 4 forbids, and this is the third time in this arc that a criterion has
 turned out to be scoped differently from its sibling.
 
+> **Settled 2026-08-18 — the owner withdrew both criteria.** SC-008's "within
+> 25%" was an invented constant with no reasoning behind it; SC-004 was judged
+> an unnecessary constraint that follows from the construction and would have to
+> be renegotiated the moment anything widens the range deliberately. FR-008 now
+> records the decision to leave both dials in tiles instead of demanding a
+> consistency bar. **The finding above stands as the measurement** — only the
+> criteria it was measured against are gone.
+
 ---
 
 ## R6 — The minimum tile count has no value yet
@@ -123,7 +131,8 @@ turned out to be scoped differently from its sibling.
 band is 100/50 with the minimum left open. The modelling used 6.
 
 **Decision**: carry 6 as the starting value and dial it. At 6 a phone's 340px
-map gives a 57px tile — above the 44px threshold with 13px of margin — and a
+map gives a 57px tile — above the 47px portrait cards the art is tuned against
+(the 44px threshold this originally cited was deleted 2026-08-18) — and a
 1.13× range. Lowering it buys range and costs framing; raising it does the
 reverse. It is the one number in the band with a genuine trade behind it, and
 the lab is where that gets seen.
@@ -161,6 +170,6 @@ Dialling questions, each with a starting value and a way to judge it.
 | Item | Start from | Judged by |
 |---|---|---|
 | Floor pixel target | 100 — what a large monitor shows today at 036's full zoom | SC-001, and every art value already dialled against it |
-| Ceiling pixel target | 50 — above the 44px threshold with margin | SC-002, SC-003: detail must not flicker at the widest |
+| Ceiling pixel target | 50 — the portrait cards the art is tuned against are 47px | The owner's eye. The 44px threshold this originally cleared is deleted, so 50 stands on its own |
 | Minimum tile count | 6 | US2: a phone still shows a scene |
-| Whether SC-008 keeps its scope | unchanged | The owner's call, not the plan's |
+| ~~Whether SC-008 keeps its scope~~ | — | **Settled 2026-08-18: SC-008 withdrawn, and SC-004 with it** |

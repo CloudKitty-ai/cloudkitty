@@ -37,9 +37,12 @@ nothing downstream of the tile changes.
 **Three properties fall out, and each is a success criterion:**
 
 - **The zoom range is `floorPx ÷ ceilingPx`** — a constant 2.00×, on every
-  viewport where neither clamp binds (SC-004).
-- **Every tile the camera can draw lies in `[ceilingPx, floorPx]`**, so both ends
-  clear the fine-detail threshold and detail cannot flicker (SC-002, SC-003).
+  viewport where neither clamp binds. SC-004 asserted this and was withdrawn; it
+  is still true, and still worth recording as a number.
+- **Every tile the camera can draw lies in `[ceilingPx, floorPx]`.** This used to
+  be how detail was kept from flickering. Since 2026-08-18 there is no threshold
+  to flicker across, and the band's lower end rests on the 47px portrait cards
+  instead (SC-003).
 - **`floorTiles ≤ ceilingTiles` must hold.** With `floorPx > ceilingPx` it does
   wherever the minimum does not bind; where it does, the two can meet on a very
   small viewport and the camera simply has no zoom range. It must never invert.
