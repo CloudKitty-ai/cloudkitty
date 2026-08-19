@@ -5730,6 +5730,41 @@ check('the anchor holds until another kitty is clearly more central', () => {
   assert(flips <= 1, `the anchor changed ${flips} times crossing one midpoint`);
 });
 
+check('the anchor survives a challenger twice as central', () => {
+  // `flips <= 1` above holds at ANY hysteresis, so until this check nothing
+  // in the suite went red when the dial moved. This one pins it: the rule is
+  // `d2(held) < bestD * h**2`, squared on both sides, so the dial is a ratio
+  // of REAL distances from the centre of mass and the anchor survives a
+  // challenger up to `h` times more central.
+  //
+  //   frame 1   A x=10  B x=7  C x=13   com x=10   A is 0 away -> A anchors
+  //   frame 2   A x=12  B x=9  C x=9    com x=10   A is 2 away, B and C are 1
+  //
+  // Built at a ratio of exactly 2.0, which sits between the 1.5 this suite
+  // shipped with and the 2.5 measured for SC-006 on 2026-08-18. It goes red
+  // for any dial at or below 2.0 -- including the 2.0 that was decided and
+  // never landed.
+  const world = (ax, bx, cx) => ({
+    width: 20,
+    height: 20,
+    elements: [],
+    kitties: [
+      { id: 1, pos: { x: ax, y: 10 } },
+      { id: 2, pos: { x: bx, y: 10 } },
+      { id: 3, pos: { x: cx, y: 10 } },
+    ],
+  });
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(world(10, 7, 13), camView(false, 1000), { aspect: 1 });
+  assert(cam.anchorId === 1, `setup: expected kitty 1 to anchor, got ${cam.anchorId}`);
+  cam.update(world(12, 9, 9), camView(false, 1016), { aspect: 1 });
+  assert(
+    cam.anchorId === 1,
+    `the anchor jumped to ${cam.anchorId} against a challenger only 2x more central`,
+  );
+});
+
 check('easing settles at the same real speed on 60Hz and 120Hz', () => {
   // A rate written per-frame eases twice as fast at 120Hz uncorrected,
   // which is the bug kitten.me's own comment calls out.
