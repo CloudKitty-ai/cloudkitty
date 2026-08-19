@@ -169,3 +169,11 @@ be settled is complete; one that simply omits it is not.
   *nominal* could never have found it.
 - **All 42 items are now answerable. None is blocked, and none is waiting on a
   decision.** What remains is the reviewer reading and ticking.
+- **2026-08-18 — CHK005 carries a knowing deviation, not a clean pass.** 036
+  **SC-005** does not survive 037 at the smallest viewport: a ~6.8-tile frame
+  draws empty frames while easing between anchors. The owner accepted it as-is
+  for this spec and deferred the remedy to camera logic (`BACKLOG.md`), on the
+  grounds that the fix is behaviour — aim at the largest group, cut rather than
+  pan between them — not a limit. Both 037 and 036 record it at the site. **A
+  reviewer ticking CHK005 is ticking "the surviving criteria are now stated,
+  including the one deviated from", not "all of them pass".**

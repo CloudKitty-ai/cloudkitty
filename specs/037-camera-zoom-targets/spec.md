@@ -41,6 +41,16 @@ needed work:
   **Settled ahead of implementation** by raising the anchor hysteresis from 1.5
   to 2.5 (PR #245): every viewport now measures inside the bar, and the ceiling
   did not have to move. See `client-measurements/037-zoom/sc006-2026-08-18.md`.
+- **SC-005** (the camera never draws a frame with no kitty in it) **does not
+  survive at the smallest viewport, and this is accepted rather than fixed**
+  (owner, 2026-08-18). At a 340px map the frame is ~6.8 tiles and the camera
+  draws 3 empty frames per 1500 ticks. The target is never empty; the easing
+  is — 036's anchor guarantees a kitty where the camera is heading and its
+  FR-008 forbids cutting, so a trip between two anchors can cross more empty
+  grass than a small frame is wide. **The remedy is camera behaviour, not a
+  limit**, and it is deferred to the camera-logic work rather than solved by
+  widening the band: see `BACKLOG.md`. Recorded here so the criterion is
+  knowingly deviated from rather than quietly failed.
 - **SC-010** names "10 tiles" outright and is annotated at its site in 036.
 - **SC-013** is measured "at the zoom ceiling on a phone, where a kitty is at
   her smallest". Still valid, and the case gets easier: that tile goes from

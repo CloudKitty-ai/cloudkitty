@@ -359,7 +359,11 @@ marked.
   regardless of how it looks when still.
 - **SC-004**: With camera mode off, the rendered view is indistinguishable from
   the build shipped today.
-- **SC-005**: The camera never draws a frame with no kitty in it. Not every
+- **SC-005**: The camera never draws a frame with no kitty in it. *(**037
+  deviates from this at the smallest viewport**, knowingly: a ~6.8-tile frame
+  on a 340px map draws 3 empty frames per 1500 ticks while EASING between two
+  anchors — the target is never empty. Accepted by the owner 2026-08-18 and
+  deferred to the camera-logic work; see 037 and `BACKLOG.md`.)* Not every
   kitty — once the ceiling binds it deliberately lets a wanderer leave
   (FR-005), and the roster accounts for her — but an empty meadow is never
   shown. *Reworded by the owner 2026-08-18. It previously read "the camera's
