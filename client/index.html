@@ -1421,6 +1421,18 @@
     }
   </script>
   <script src="app.js"></script>
+  <!-- The layout recorder, for the resizeFor fixture. Injected only when the
+       URL carries #record, so a normal visit pays one string comparison and
+       loads nothing. It cannot be a separate page that frames this one: Caddy
+       sends x-frame-options: DENY, which is correct and worth more than a lab
+       convenience. -->
+  <script>
+    if (location.hash === '#record') {
+      document.head.appendChild(Object.assign(
+        document.createElement('script'), { src: 'record-layout.js', defer: true },
+      ));
+    }
+  </script>
   <script>
     // The footer toggle: flip, persist, reload. The title only gains a
     // suffix off the default, so the everyday tab stays plain CloudKitty.
