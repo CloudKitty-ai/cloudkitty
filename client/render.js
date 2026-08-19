@@ -611,7 +611,14 @@ class WorldRenderer {
   applyCamera(world, view, dpr) {
     const cam = this.camera;
     if (!cam) return;
-    cam.update(world, view, { aspect: this.cssHeight / this.cssWidth });
+    cam.update(world, view, {
+      aspect: this.cssHeight / this.cssWidth,
+      // The camera's only new input (spec 037). It works in tiles and the
+      // renderer turns those into a tile size; give it the pixels and it
+      // can decide the tile count FROM the size instead. The line below is
+      // unchanged, and evaluates to the pixel target exactly.
+      cssWidth: this.cssWidth,
+    });
     this.tile = this.cssWidth / cam.across;
     this.ctx.setTransform(
       dpr,
@@ -916,11 +923,16 @@ class WorldRenderer {
     // not the ones I happened to think of.
     if (!this.camera || !this.camera.on) return this.cssWidth / world.width;
 
-    // Camera on: the tile at the narrowest frame, read from the camera's
-    // OWN dials. Reaching for the module global instead would let a Camera
+    // Camera on: the tile at the narrowest frame, from the camera's OWN
+    // derivation. Reaching for the module global instead would let a Camera
     // built with different dials ask for a tile larger than the bake, and
     // every blit would silently become the upscale this exists to prevent.
-    const narrowest = Math.min(this.camera.dials.nominalAcross, world.width);
+    //
+    // Under 037 this is the camera's FLOOR, which is the pixel target
+    // wherever it is reachable -- so the bake stops scaling with the display
+    // and gets SMALLER on a large one (research R3). Same pair the fit and
+    // `bound` read, so the bake can never key to a tile that is never drawn.
+    const narrowest = this.camera.limitsFor(world, this.cssWidth).floorTiles;
     const dpr = this.dpr || window.devicePixelRatio || 1;
     const widest = Math.max(world.width, world.height);
     const bakeTile = this.cssWidth / narrowest;
