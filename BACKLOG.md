@@ -70,6 +70,36 @@ whichever way this goes it wants a check that varies dpr.
 Found in review of PR #246. Not a 037 remediation — it spans 036's cache design
 and 037's floor, and the fix is a decision rather than a repair.
 
+**SETTLED 2026-08-19 — "measure F, accept C."** The owner took the third option
+now and asked for a measurement before spending anything on the first two.
+
+- **C is DONE.** `render.js` and `specs/037-camera-zoom-targets/contracts/zoom.md`
+  both state the caveat instead of the promise. Nothing is blocked on what
+  follows; this is an optimisation on a working, honestly-documented state.
+- **F is the fourth option, and measuring first narrowed it sharply:**
+  **camera-OFF can never blow the budget** — it bakes at the whole-world tile,
+  so the offscreen is exactly `cssWidth`, capped at 1200. Every clamped case is
+  camera-ON. So F is *"keep the bake for camera-off, draw the ground live only
+  in camera mode"*, and the identity path 036 worked so hard for is untouched.
+- **The measurement is `client/bench-ground.html`** (this PR). Headless says the
+  JS side is free at 0.10ms, but it **cannot** measure rasterisation, and 3,529
+  draw ops per frame is the open question.
+
+**Run it on the PHONE first, not the laptop.** The budget is `4096 / dpr`
+against a need of `floorTile × world.width`; at `floorPx` 113 that is 2260 CSS
+px, so it clamps above **dpr 1.81**. A dpr-2 laptop therefore sits barely
+inside it while a dpr-3 phone is the worst case in the table — the phone is
+where the question actually lives.
+
+**On running it under load** (the box carries two PPO waves, ~30h, to
+2026-08-20): the honest reading is **asymmetric, so a contended run is still
+worth doing**. A result comfortably inside the frame budget while the machine
+is busy is trustworthy — idle can only be faster. A result *near or over* the
+budget is inconclusive, because the threat on a laptop is thermal throttling
+and memory bandwidth rather than free core count, and a median of seven runs
+smooths noise but not a sustained clock drop. So: run it, and only re-run on a
+quiet box if it comes back marginal.
+
 ### Camera logic: what it aims at, and the trip in between (added 2026-08-18; Client thread)
 
 Owner's call, 2026-08-18: **accepted as-is for spec 037, dialled when camera
