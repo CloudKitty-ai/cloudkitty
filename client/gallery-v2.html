@@ -735,13 +735,19 @@
   const waterlineAt = (y) =>
     y + CAT * (CatV2.SWIM.bodyY - CatV2.SWIM.bodyRy - 0.02);
   // ---- spec 037: the zoom band ------------------------------------------
-  // The three numbers 037 defers to a dialling session. They are NOT in
-  // VIEW.camera yet: anim.js freezes that object and the feature is not
-  // implemented, so unlike MENISCUS these dials cannot reach into shipped
-  // code. THE LAB OWNS THEM until tasks T005 bakes the pasted values. Said
-  // out loud because a lab that looks like it is driving the client when it
-  // is not is how a dialling session ends in a number nobody can find.
-  const ZOOM = { floorPx: 100, ceilingPx: 50, minTiles: 6 };
+  // The band, SEEDED FROM THE SHIPPED DIALS rather than hand-copied, so a
+  // re-dial of VIEW.camera cannot leave this card quietly showing last
+  // week's numbers while claiming to be the shipped derivation. It is still
+  // a mutable copy -- VIEW.camera is frozen, and these have to be draggable.
+  //
+  // They no longer merely stand in for the client: 037 is implemented and
+  // VIEW.camera carries floorPx/ceilingPx/minTiles. What the sliders move is
+  // this copy; what ships is whatever gets pasted back into anim.js.
+  const ZOOM = {
+    floorPx: VIEW.camera.floorPx,
+    ceilingPx: VIEW.camera.ceilingPx,
+    minTiles: VIEW.camera.minTiles,
+  };
   const ZOOM_WORLD = 20;
   // The viewports 037 is verified across (its Key Entities define the range).
   const ZOOM_VIEWPORTS = [
@@ -898,11 +904,10 @@
         if (typeof Camera !== 'function') return;
         const L = zoomLimitsFor(340);
         const world = zoomFixtureWorld();
-        // The shipped Camera, with the band expressed the only way today's
-        // dials can express it: nominalAcross IS the floor, and the ceiling
-        // is their product. Exactly the substitution the measurements used.
-        // The shipped dials, dialled. No nominalAcross/ceilingFactor
-        // substitution any more -- the camera takes pixels now.
+        // The shipped Camera with the dialled band. It takes pixels directly
+        // now, so there is no nominalAcross/ceilingFactor substitution to
+        // make -- the measurements needed one only because they ran before
+        // the feature existed.
         const cam = new Camera({ ...VIEW.camera, ...ZOOM });
         cam.on = true;
         cam.update(world, { ambient: { now } }, { aspect: 1, cssWidth: 340 });

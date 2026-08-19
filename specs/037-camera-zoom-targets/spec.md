@@ -436,6 +436,13 @@ kitties through gathering and scattering. The fine detail never switches state.
   finally looked at, it failed: fine detail read at 21px on three monitors, so
   the gate was deleted and the detail is drawn at every size. The legibility bar
   is now a judgement made by eye, not a constant in the source.
+  **The argument recorded here was camera-ON only, and the smaller case is the
+  default one** (raised in review of PR #246). Camera mode starts OFF, where the
+  tile is `cssWidth / world.width` — **17px on a 340px phone map**, below the
+  21px that was judged. The owner's decision was explicitly to draw fine detail
+  at every size and stop gating on resolution, so this is inside it rather than
+  a gap in it; but "the band clears the threshold at both ends" was never the
+  whole reason, and the number nobody looked at is 17, not 21.
 - **A factor of 2 is a reasonable bar for the size band.** The scheme measures
   1.76×, and the whole of the excess is the smallest viewports, where the
   minimum tile count deliberately wins.

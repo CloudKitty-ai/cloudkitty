@@ -597,7 +597,9 @@ class WorldRenderer {
    * inline without going through it.
    *
    * Deliberately NOT `ctx.scale`. `this.tile` is the number every art
-   * decision keyed to apparent size reads, `fine = size >= 44` above all,
+   * decision keyed to apparent size reads -- `fine = size >= 44` was the
+   * headline example until it was deleted 2026-08-18, and every remaining
+   * art dial is still a fraction of it --
    * and camera mode exists to cross that threshold. Scaling the finished
    * picture would magnify the SMALL-size drawing instead: bigger cats
    * still wearing their 31px detail.
@@ -931,7 +933,17 @@ class WorldRenderer {
     // Under 037 this is the camera's FLOOR, which is the pixel target
     // wherever it is reachable -- so the bake stops scaling with the display
     // and gets SMALLER on a large one (research R3). Same pair the fit and
-    // `bound` read, so the bake can never key to a tile that is never drawn.
+    // `bound` read, so the bake and the frame can never disagree about the
+    // band.
+    //
+    // The downscale is a STEADY-STATE claim, not a per-frame one. `cssWidth`
+    // changes the instant a window is resized while `across` EASES toward
+    // its new floor at zoomRate, so widening 700px -> 1200px with the group
+    // huddled leaves `this.tile` above `bakeTile` for about a second and the
+    // ground blit is briefly an upscale. Soft, not broken, and it ends when
+    // the ease does. Worth knowing before anyone reads "always a downscale"
+    // and trusts it mid-resize -- under the old fixed nominalAcross this
+    // could not happen, because the floor did not move with the viewport.
     const narrowest = this.camera.limitsFor(world, this.cssWidth).floorTiles;
     const dpr = this.dpr || window.devicePixelRatio || 1;
     const widest = Math.max(world.width, world.height);

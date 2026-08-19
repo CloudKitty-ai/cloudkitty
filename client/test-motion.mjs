@@ -5546,7 +5546,8 @@ check('the camera reaches the renderer by the tile, never by a context scale', (
   const fn = body.slice(0, body.indexOf('\n  }'));
   assert(/this\.tile = this\.cssWidth \/ cam\.across/.test(fn), 'applyCamera no longer sets the tile');
   assert(/setTransform\(/.test(fn), 'applyCamera no longer lays down the pan');
-  // `this.tile` is what `fine = size >= 44` reads. Scaling the context
+  // `this.tile` is what every art dial is a fraction of -- it was also what
+  // the 44px `fine` gate read, until that was deleted. Scaling the context
   // would magnify the small-size drawing and leave `fine` reading the old
   // number: bigger cats still wearing their 31px detail.
   assert(!/ctx\.scale\(/.test(fn), 'applyCamera scales the context, which leaves `fine` blind to the zoom');
@@ -5654,6 +5655,36 @@ check('apparent size varies by less than a factor of 2 across the range', () => 
   assert(spread < 2,
     `floor tile spread is ${spread.toFixed(2)}x (${Math.min(...tiles).toFixed(1)}px to `
     + `${Math.max(...tiles).toFixed(1)}px) -- the bar is under 2, and it was 3.53x before 037`);
+});
+
+check('the ceiling still crops on a world smaller than today\'s', () => {
+  // Every other sweep here varies cssWidth against a fixed 20-tile world, so
+  // nothing exercised the OTHER clamp. Found in review of PR #246: the floor
+  // was capped at world.width while the ceiling was capped one tile below,
+  // and the ceiling is then raised back to meet the floor -- so on a small
+  // enough world the floor saturates at the world's own width and drags the
+  // ceiling up with it. The camera then frames the whole world at every
+  // zoom, camera-on becomes pixel-identical to camera-off, and 036 FR-005
+  // and 037 FR-007 are both silently retired.
+  //
+  // Not reachable on today's 20x20 map -- MAP_MAX_PX caps cssWidth at 1200,
+  // so the floor tops out at 12 tiles -- which is exactly why no existing
+  // check saw it. Fog is expected to make the world BIGGER, but a spec that
+  // says "a world that is not 20 tiles" in its edge cases should hold in
+  // both directions.
+  const cam = new api.Camera();
+  for (const size of [6, 8, 10, 12, 14, 20, 40]) {
+    const small = { width: size, height: size };
+    for (const w of [340, 640, 1000, 1200]) {
+      const { floorTiles, ceilingTiles } = cam.limitsFor(small, w);
+      assert(ceilingTiles < size,
+        `a ${size}-tile world at ${w}px frames ${ceilingTiles} of ${size} -- the camera stopped cropping`);
+      assert(floorTiles <= ceilingTiles + 1e-9,
+        `a ${size}-tile world at ${w}px inverted: floor ${floorTiles}, ceiling ${ceilingTiles}`);
+      assert(floorTiles > 0 && Number.isFinite(floorTiles),
+        `a ${size}-tile world at ${w}px gave a floor of ${floorTiles}`);
+    }
+  }
 });
 
 check('the ceiling always crops, on every supported viewport', () => {

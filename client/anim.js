@@ -2001,7 +2001,9 @@ function clampFrame(edge, worldSpan, frameSpan) {
  * It reports where to look in WORLD TILES and how many of them fit across.
  * The renderer turns that into a tile size and a pan -- see `draw`. Scale
  * arrives by moving `renderer.tile`, never by scaling the context, because
- * `tile` is the size every art threshold reads (`fine = size >= 44` above
+ * `tile` is the size every art value is a fraction of (it was also what the
+ * 44px `fine` gate read, until that gate was deleted 2026-08-18 -- the
+ * invariant outlived its most-cited example and still holds, above
  * all) and camera mode exists to cross exactly that threshold.
  *
  * `update` is called from inside `renderer.draw`, which is what makes the
@@ -2081,10 +2083,16 @@ class Camera {
     // The minimum raises the floor; the world caps it. Both clamps are
     // continuous in cssWidth, which is what makes a resize across either
     // boundary produce no jump (FR-017, SC-009).
-    const floorTiles = Math.min(
-      Math.max(cssWidth / d.floorPx, d.minTiles),
-      world.width,
-    );
+    //
+    // The floor is capped one tile below the world for the SAME reason the
+    // ceiling is, and it has to be: the ceiling is raised back to meet the
+    // floor (FR-013), so a floor allowed to reach the world's width drags
+    // the ceiling with it and the camera stops cropping at every zoom.
+    // Capping only the ceiling looked sufficient and was not -- on a
+    // 10-tile world both limits came back at 10. Found in review of PR
+    // #246; unreachable on today's 20x20 map, which is why no sweep saw it.
+    const edge = Math.max(world.width - 1, 1);
+    const floorTiles = Math.min(Math.max(cssWidth / d.floorPx, d.minTiles), edge);
     // Strictly BELOW the world, so the camera always crops and 036's FR-005
     // -- let a wanderer leave rather than shrink everyone -- survives. The
     // spec's data model writes this bound as `world.width - epsilon` and
@@ -2093,7 +2101,7 @@ class Camera {
     // meaning nothing. Only binds on a world this small: at 40x40 the
     // ceiling target never reaches the edge.
     const ceilingTiles = Math.max(
-      Math.min(cssWidth / d.ceilingPx, Math.max(world.width - 1, 1)),
+      Math.min(cssWidth / d.ceilingPx, edge),
       floorTiles, // may MEET the floor on a tiny viewport, never cross it (FR-013)
     );
     return { floorTiles, ceilingTiles };

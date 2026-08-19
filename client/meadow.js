@@ -899,8 +899,16 @@ function drawGroundDetail(ctx, { width, height, tile, t }) {
   ctx.globalAlpha = 1;
 
   // --- flowers: five petals and a heart when the tile can carry them,
-  //     a single dot when it cannot. The same `fine` threshold the cats
-  //     and the bowl's decal use, so detail arrives everywhere at once. ---
+  //     a single dot when it cannot.
+  //
+  //     NO LONGER shared. The cats and the bowl's decal had this same 44px
+  //     gate until 2026-08-18, when the owner judged fine detail legible at
+  //     21px and had it drawn at every size. This is the last threshold
+  //     standing, so detail no longer "arrives everywhere at once": with the
+  //     camera off at a 32px tile the cats wear full face detail while every
+  //     flower is a bare dot. Left deliberately rather than deleted to
+  //     match -- flower density is dialled art and the owner's call, not a
+  //     consequence of the cat change. Raised in review of PR #246. ---
   const fine = tile >= 44;
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
