@@ -54,12 +54,12 @@ Every user story is arithmetic on what this phase produces.
 
 **⚠️ CRITICAL**: no user story starts until T009 passes.
 
-- [ ] T004 Add `cssWidth` to the options `render.js` passes into `camera.update`, alongside the existing `aspect`. This is the feature's only structural change — the camera has no pixel input today (research R1).
-- [ ] T005 Replace the `VIEW.camera` dials in `client/anim.js`: `nominalAcross` and `ceilingFactor` out; `floorPx: 100`, `ceilingPx: 50`, `minTiles: 6` in. Comment that the first two are a **ratio, not two independent numbers** — the zoom range is `floorPx / ceilingPx`, so moving one moves it (checklist CHK036).
-- [ ] T006 In `Camera.targetFor` (`client/anim.js`), derive the floor and ceiling tile counts once per frame from `cssWidth` and the dials, and have the fit clamp, the `bound` predicate and the returned frame all read that one pair. Contract invariant 2: if `bound` compares against a different ceiling than the fit clamps to, the anchor engages at a width the camera never reaches.
-- [ ] T007 Guard degenerate viewport measurements in `Camera.targetFor`: a `cssWidth` of zero or non-finite must not produce a non-finite frame. This is not hypothetical — the map is zero-width before first layout, and every formula here divides by or multiplies against it (checklist CHK029).
-- [ ] T008 Point `bakeTileFor` in `client/render.js` at the camera's floor tile instead of `nominalAcross`. It is the largest tile the camera can ask for, which is what keeps every per-frame blit a downscale (036 research R2).
-- [ ] T009 **The gate.** Add checks to `client/test-motion.mjs`: at `cssWidth` 1000 the floor is 10 tiles — *identical* to today's `nominalAcross` — so the floor's arithmetic reproduces the shipped behaviour at that one width. Assert the frame stays finite at `cssWidth` 0, and that the fit, `bound` and bake all read the same derived pair.
+- [x] T004 Add `cssWidth` to the options `render.js` passes into `camera.update`, alongside the existing `aspect`. This is the feature's only structural change — the camera has no pixel input today (research R1).
+- [x] T005 Replace the `VIEW.camera` dials in `client/anim.js`: `nominalAcross` and `ceilingFactor` out; `floorPx: 100`, `ceilingPx: 50`, `minTiles: 6` in. Comment that the first two are a **ratio, not two independent numbers** — the zoom range is `floorPx / ceilingPx`, so moving one moves it (checklist CHK036).
+- [x] T006 In `Camera.targetFor` (`client/anim.js`), derive the floor and ceiling tile counts once per frame from `cssWidth` and the dials, and have the fit clamp, the `bound` predicate and the returned frame all read that one pair. Contract invariant 2: if `bound` compares against a different ceiling than the fit clamps to, the anchor engages at a width the camera never reaches.
+- [x] T007 Guard degenerate viewport measurements in `Camera.targetFor`: a `cssWidth` of zero or non-finite must not produce a non-finite frame. This is not hypothetical — the map is zero-width before first layout, and every formula here divides by or multiplies against it (checklist CHK029).
+- [x] T008 Point `bakeTileFor` in `client/render.js` at the camera's floor tile instead of `nominalAcross`. It is the largest tile the camera can ask for, which is what keeps every per-frame blit a downscale (036 research R2).
+- [x] T009 **The gate.** Add checks to `client/test-motion.mjs`: at `cssWidth` 1000 the floor is 10 tiles — *identical* to today's `nominalAcross` — so the floor's arithmetic reproduces the shipped behaviour at that one width. Assert the frame stays finite at `cssWidth` 0, and that the fit, `bound` and bake all read the same derived pair.
 
 **Checkpoint**: the camera takes pixels and derives tiles from them. **Note the anchor is floor-only**: at 1000px the new ceiling is 20 tiles against today's 15, so this phase is *not* a no-op the way 036's Foundational was. Do not expect an identity gate here — expect the floor to match and the ceiling to have deliberately moved.
 
@@ -73,12 +73,12 @@ the target has the same zoom range.
 **Independent Test**: sweep `cssWidth` 340→1200; every floor tile is inside the
 band, and `ceiling ÷ floor` is equal wherever neither clamp binds.
 
-- [ ] T010 [P] [US1] Size-band check in `client/test-motion.mjs`: sweep `cssWidth` 340→1200 in 20px steps and assert the largest floor tile over the smallest is under 2 (SC-001). Report the measured figure so a regression shows as a number, not a boolean.
-- [ ] T011 [P] [US1] Record — do not assert — the zoom range at every swept width, into `client-measurements/037-zoom-baseline/`. **SC-004 was withdrawn by the owner**: a constant range follows from the construction, and pinning it in a test would have to be renegotiated the moment anything widens the range deliberately (manual zoom, a wider band). A recorded number still shows a regression; an assertion would forbid a change she has already said she may want.
-- [ ] T012 [P] [US1] Ceiling-crops check in `client/test-motion.mjs`: at every swept width the ceiling frames fewer tiles than the world (SC-006). **Expect this to bind at 1000 and 1200 on a 20-tile world** — that is the Fog dependency, so the check asserts the clamp holds, not that it never fires.
-- [ ] T013 [US1] Implement the floor in `client/anim.js`: `cssWidth / floorPx`, feeding the fit's lower clamp.
-- [ ] T014 [US1] Implement the ceiling in `client/anim.js`: `cssWidth / ceilingPx`, clamped below the world so the camera always crops (FR-007).
-- [ ] T015 [US1] Verify against T001's baseline that the spread moved from 3.50× to under 2, and record the measured value in `client-measurements/037-zoom-baseline/`.
+- [x] T010 [P] [US1] Size-band check in `client/test-motion.mjs`: sweep `cssWidth` 340→1200 in 20px steps and assert the largest floor tile over the smallest is under 2 (SC-001). Report the measured figure so a regression shows as a number, not a boolean.
+- [x] T011 [P] [US1] Record — do not assert — the zoom range at every swept width, into `client-measurements/037-zoom-baseline/`. **SC-004 was withdrawn by the owner**: a constant range follows from the construction, and pinning it in a test would have to be renegotiated the moment anything widens the range deliberately (manual zoom, a wider band). A recorded number still shows a regression; an assertion would forbid a change she has already said she may want.
+- [x] T012 [P] [US1] Ceiling-crops check in `client/test-motion.mjs`: at every swept width the ceiling frames fewer tiles than the world (SC-006). **Expect this to bind at 1000 and 1200 on a 20-tile world** — that is the Fog dependency, so the check asserts the clamp holds, not that it never fires.
+- [x] T013 [US1] Implement the floor in `client/anim.js`: `cssWidth / floorPx`, feeding the fit's lower clamp.
+- [x] T014 [US1] Implement the ceiling in `client/anim.js`: `cssWidth / ceilingPx`, clamped below the world so the camera always crops (FR-007).
+- [x] T015 [US1] Verify against T001's baseline that the spread moved from 3.50× to under 2, and record the measured value in `client-measurements/037-zoom-baseline/`.
 
 **Checkpoint**: MVP. Size is banded and the range is constant. Deployable.
 
@@ -91,9 +91,9 @@ band, and `ceiling ÷ floor` is equal wherever neither clamp binds.
 **Independent Test**: at `cssWidth` 340 the floor frames at least `minTiles`,
 whatever the pixel target asked for.
 
-- [ ] T016 [P] [US2] Minimum-tiles check in `client/test-motion.mjs`: at every swept width the floor frames at least `minTiles`, and where the minimum binds the tile is *smaller* than the target rather than the world being cropped further (FR-006, SC-005).
-- [ ] T017 [P] [US2] Inversion check in `client/test-motion.mjs`: `floorTiles ≤ ceilingTiles` at every swept width. They may meet on a tiny viewport; they may never invert (contract invariant 5, checklist CHK030).
-- [ ] T018 [US2] Implement the minimum clamp in `client/anim.js`, applied to the floor before the fit reads it.
+- [x] T016 [P] [US2] Minimum-tiles check in `client/test-motion.mjs`: at every swept width the floor frames at least `minTiles`, and where the minimum binds the tile is *smaller* than the target rather than the world being cropped further (FR-006, SC-005).
+- [x] T017 [P] [US2] Inversion check in `client/test-motion.mjs`: `floorTiles ≤ ceilingTiles` at every swept width. They may meet on a tiny viewport; they may never invert (contract invariant 5, checklist CHK030).
+- [x] T018 [US2] Implement the minimum clamp in `client/anim.js`, applied to the floor before the fit reads it.
 
 **Checkpoint**: US1 and US2 both hold across the sweep.
 
@@ -118,16 +118,16 @@ is met by construction.
 
 ## Phase 6: Polish & Cross-Cutting
 
-- [ ] T021 Record the tile-denominated distance dials: sweep `aimDeadzoneTiles × tile` across the range and store the figures. Research R5 predicts they are *identical* wherever the pixel target is reachable, varying only where `minTiles` binds. **SC-008 was withdrawn rather than narrowed** — the owner's call, since its "within 25%" was an invented constant. FR-008 now records the decision to keep both dials in tiles, so this is a measurement that confirms the reasoning, not a criterion that can fail.
-- [ ] T022 [P] Verify the ground bake against T003: it should be smaller at `cssWidth` 1200 and display-independent. If it grew, the bake tile stopped being the floor tile.
-- [ ] T023 [P] Re-run 036's identity checks in `client/test-meadow.mjs` — the ground still bakes once across a zoom sweep, and the pond layers once (SC-007).
-- [ ] T024 [P] Resize-continuity check in `client/test-motion.mjs`: sweep `cssWidth` in 1px steps across both boundaries — where `minTiles` starts binding and where the world clamp starts binding — and assert `across` is continuous (SC-009, checklist CHK031).
+- [x] T021 Record the tile-denominated distance dials: sweep `aimDeadzoneTiles × tile` across the range and store the figures. Research R5 predicts they are *identical* wherever the pixel target is reachable, varying only where `minTiles` binds. **SC-008 was withdrawn rather than narrowed** — the owner's call, since its "within 25%" was an invented constant. FR-008 now records the decision to keep both dials in tiles, so this is a measurement that confirms the reasoning, not a criterion that can fail.
+- [x] T022 [P] Verify the ground bake against T003: it should be smaller at `cssWidth` 1200 and display-independent. If it grew, the bake tile stopped being the floor tile.
+- [x] T023 [P] Re-run 036's identity checks in `client/test-meadow.mjs` — the ground still bakes once across a zoom sweep, and the pond layers once (SC-007).
+- [x] T024 [P] Resize-continuity check in `client/test-motion.mjs`: sweep `cssWidth` in 1px steps across both boundaries — where `minTiles` starts binding and where the world clamp starts binding — and assert `across` is continuous (SC-009, checklist CHK031).
 - [x] T025 Add a viewport strip to `client/gallery-v2.html`: the same cat at each viewport's camera tile, floor and ceiling, so the band is dialled against something visible rather than a table. Follow the meniscus card's pattern — shipped code, real `Camera`, no replica. **Landed in `gallery-v2.html`, not `gallery-meadow.html`**: the meadow lab cannot load `anim.js` (it declares `const VIEW` and would collide with that lab's mutable stand-in), so it has no `Camera` to be real. `gallery-v2.html` loads the shipped `anim.js` already. Two cards — the band at true pixel size across all five viewports, and the 340px frame driven by a real `Camera` instance over a recorded tick. **Pulled ahead of implementation** at the owner's request, since dialling gates everything else.
-- [ ] T026 Dialling session with the owner on `floorPx`, `ceilingPx` and `minTiles`. **They are not three independent dials**: the range is the ratio of the first two, so moving one moves the range. Judge in motion at the live size.
-- [ ] T027 [P] Update the `## Unreleased` CHANGELOG entry in `CHANGELOG.md`, in that file's register.
-- [ ] T028 Re-check the 036 annotations after dialling: the banner and the ten inline pointers quote "~100px" and "~50px", and would be stale if the session moves them.
+- [x] T026 Dialling session with the owner on `floorPx`, `ceilingPx` and `minTiles`. **They are not three independent dials**: the range is the ratio of the first two, so moving one moves the range. Judge in motion at the live size.
+- [x] T027 [P] Update the `## Unreleased` CHANGELOG entry in `CHANGELOG.md`, in that file's register.
+- [x] T028 Re-check the 036 annotations after dialling: the banner and the ten inline pointers quote "~100px" and "~50px". **Still accurate** — the dialling session kept 100/50/6, so all three sites (the banner, FR-003's pointer, FR-005's pointer) match what shipped. Nothing to update.
 - [ ] T029 Deploy, then verify from the running system: fetch `anim.js` and `render.js` from both hosts and confirm the bytes.
-- [ ] T030 [P] Tick or consciously waive `checklists/zoom.md` — the reviewer's call, not the implementer's. The only item left that changes what gets built is **CHK036** (the two targets are a ratio, so they dial as a pair); CHK020's two criteria were both withdrawn, and CHK017 and CHK041 went with the threshold.
+- [x] T030 [P] **WAIVED by the owner, 2026-08-18**, at the `/speckit-implement` gate: 3 of 42 ticked (CHK005, CHK036, CHK042 — the three carrying real decisions), the rest waived. The unticked boxes stand as the honest record that the review stopped there rather than that the questions are open. Original note: tick or waive `checklists/zoom.md` — the reviewer's call, not the implementer's. The only item left that changes what gets built is **CHK036** (the two targets are a ratio, so they dial as a pair); CHK020's two criteria were both withdrawn, and CHK017 and CHK041 went with the threshold.
 
 ---
 

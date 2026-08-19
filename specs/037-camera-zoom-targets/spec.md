@@ -105,8 +105,8 @@ tile is about 100px and widens until a tile would fall below about 50px. The
 range between them is then `floor ÷ ceiling` — **2.00× on any viewport that
 reaches both targets**, rather than a number that varies arbitrarily with the
 window. Two of the five candidate viewports actually do: the range measures
-1.13× at 340px, 1.53× at 460px, 2.00× at 640px and 1000px, and 1.67× at 1200px
-where the world clamps the ceiling. The gain over today is real but it is a
+1.13× at 340px, 1.53× at 460px, 2.00× at 640px, 1.90× at 1000px and 1.58× at
+1200px — the last two clamped by the world's own edge. The gain over today is real but it is a
 *narrower* spread, not a constant. A minimum tile count protects the smallest viewports from becoming a
 keyhole; nothing caps the top, because a larger viewport simply frames more
 tiles at the same legible size, which is the correct answer.
@@ -263,10 +263,13 @@ kitties through gathering and scattering. The fine detail never switches state.
   improvement, not a regression against this requirement.**
 
   **The claim is also narrower than it reads.** Only two of the five candidate
-  viewports reach both targets. Measured: **1.13× at 340px, 1.53× at 460px,
-  2.00× at 640px and 1000px, 1.67× at 1200px** where the world clamps the
-  ceiling. "Constant" describes the middle of the supported range, not its ends,
-  and the ends are where the interesting devices are.
+  viewports reach both targets. **Measured on the implementation, 2026-08-18:
+  1.13× at 340px, 1.53× at 460px, 2.00× at 640px, 1.90× at 1000px, 1.58× at
+  1200px.** Only 640px comes out at the nominal 2.00×: the small end is held by
+  `minTiles` and the large end by the world's edge, which the ceiling must stay
+  one tile inside so the camera still crops (FR-007). "Constant" describes the
+  middle of the supported range, not its ends, and the ends are where the
+  interesting devices are.
 - **FR-004**: *Withdrawn 2026-08-18 — the threshold it constrained no longer
   exists.* The owner judged fine detail at 21px on three monitors and had it
   drawn at every size, removing the 44px gate from `cat-v2.js` and `props.js`

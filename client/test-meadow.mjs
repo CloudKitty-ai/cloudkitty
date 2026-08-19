@@ -2304,10 +2304,15 @@ const camWorldFor = (kitties = 5) => ({
 });
 /** Sweep the camera across its whole band and back, panning as it goes. */
 const sweep = (r, world, each) => {
-  const D = api.VIEW.camera;
+  // The band is derived from the viewport now (spec 037), so the sweep asks
+  // the camera for its own limits rather than reading two dials that no
+  // longer exist. At this harness's 620px map that is 6.2 tiles to 12.4 --
+  // a wider sweep than the old flat 10-to-15, so the bake-once claim is
+  // tested harder than before, not less.
+  const { floorTiles, ceilingTiles } = r.camera.limitsFor(world, r.cssWidth);
   for (let i = 0; i <= 120; i += 1) {
     const t = i / 120;
-    r.camera.across = D.nominalAcross + (D.nominalAcross * D.ceilingFactor - D.nominalAcross) * Math.sin(t * Math.PI);
+    r.camera.across = floorTiles + (ceilingTiles - floorTiles) * Math.sin(t * Math.PI);
     r.camera.left = (20 - r.camera.across) * t;
     r.camera.top = (20 - r.camera.across) * (1 - t);
     r.tile = r.cssWidth / r.camera.across;

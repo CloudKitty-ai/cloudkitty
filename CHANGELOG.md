@@ -44,6 +44,19 @@ change.
   survive a reload. Nothing about the world changes: two viewers watching
   at different zooms see the same meadow at the same tick.
 
+- **A kitty was three and a half times bigger on one screen than another,
+  at the same "zoom".** The camera framed a fixed count of tiles, so how big
+  she actually came out depended entirely on how wide the map happened to
+  be — 34 pixels on a phone, 120 on a large monitor. Every piece of art in
+  the client is a fraction of a tile, so a whisker dialled until it read at
+  120px was a third of that on a phone, and no single dialling pass could be
+  right in both places. The camera now zooms until a kitty is about 100
+  pixels and widens until she would drop below 50, whatever the window is
+  doing, and the spread across every supported size is down to 1.76×. Small
+  screens keep a minimum amount of meadow in shot rather than becoming a
+  keyhole, and pay for it in size — the one place the rule bends. The ground
+  is also cached at a size that no longer grows with the display.
+
 - **The camera was flicking between kitties more than it should.** Once
   the frame stops being able to hold everyone it aims at an anchor kitty,
   and that anchor changes only when another is clearly more central —
