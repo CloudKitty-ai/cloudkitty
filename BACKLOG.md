@@ -211,15 +211,40 @@ to spend Experiments' campaign on it.
 against a need of `floorTile × world.width`; at `floorPx` 113 that is 2260 CSS
 px, so the clamp binds above **dpr 1.81**.
 
-**CORRECTED 2026-08-19: the owner's desktop reports `devicePixelRatio: 1`, not
-2.** So on that machine the clamp never binds at all, there is no magnification,
-and the 0.4ms bench figure was timing a case with nothing wrong with it. **The
-defect F fixes is PHONE-ONLY on the hardware we actually have** — the dpr-3
-handset magnifies **1.46x** and the desktop magnifies not at all. That does not
-change the decision, because the phone is the primary consumption path, but it
-does mean F buys nothing on the desktop and a dpr-2 machine (magnifying ~1.10x)
-is hypothetical here rather than owned. Read dpr off the running device, never
-off an assumption about the hardware — that is what the recorder is for.
+**CORRECTED TWICE, 2026-08-19. Both earlier readings were wrong; this one is
+computed from `bakeTileFor` and `limitsFor` directly, not from the dpr
+threshold.** The clamp does not key on dpr alone — it keys on
+`bakeTile x 20 > 4096 / dpr`, and `bakeTile` is `cssWidth / floorTiles`, so the
+MAP SIZE is half the condition. Where it actually binds:
+
+| dpr | binds from a map of |
+|---|---|
+| 1 | never, at any map up to the 1200 cap |
+| 2 | **615px upward** |
+| 3 | 410px upward |
+
+**On the hardware the owner actually has:**
+
+| device | dpr | map | magnification |
+|---|---|---|---|
+| phone 16 Pro | 3 | 380 | **1.00x — clean** |
+| WQHD | 1 | 1200 | **1.00x — clean** |
+| laptop retina | 2 | 1200 | **1.10x — soft** |
+| 4K at 2x | 2 | 1200 | **1.10x — soft** |
+
+**So the defect is dpr-2-DESKTOP-only, not phone-only.** The phone never reaches
+the clamp because `minTiles` holds its floor at 6 tiles, which keeps the bake
+tile small: a 380px map wants 1267 CSS px of bake against a 1365 budget. It
+fits — but only by 7%, and a 420px map would not. **`minTiles` is therefore a
+hidden input to this clamp**: raising it to 7 widens the margin (1086 of 1365),
+lowering it to 5 would push the phone over.
+
+**And it moves where the BENCHMARK has to be run.** Live-draw cost scales with
+device pixels rasterised, `(map x dpr)^2`: the phone is 1140^2 = 1.3 Mpx, a
+dpr-2 desktop at a 1200px map is 2400^2 = **5.76 Mpx, 4.4x the phone**. The
+1.6ms phone figure does not transfer. **The binding measurement is dpr 2 with a
+large map, and we do not have it yet** — the 0.4ms "laptop" run may well have
+been the dpr-1 WQHD, which is the one display with nothing wrong with it.
 
 ### Camera logic: what it aims at, and the trip in between (added 2026-08-18; Client thread)
 
