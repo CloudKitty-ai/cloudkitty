@@ -116,7 +116,7 @@ const VIEW = Object.freeze({
     fitMarginTiles: 2.6, // clear space beyond the outermost kitty
     panRate: 0.06, // per-frame at 60Hz, corrected for real frame rate
     zoomRate: 0.05, // slower than the pan, so width lags the aim slightly
-    hysteresis: 1.5, // another kitty must be 1.5x more central to take the anchor
+    hysteresis: 2.5, // another kitty must be 2.5x more central to take the anchor
     // How far the group may drift before the camera moves at all. Without
     // this the aim tracks a statistic that changes every tick, so the
     // camera is never once still -- it pans, reverses, and pans again as
@@ -2144,7 +2144,15 @@ class Camera {
    *
    * Held by hysteresis or the camera flicks between kitties at opposite
    * ends of the meadow. The comparison is squared, so the dial is squared
-   * with it and stays a plain 1.5x in real distance.
+   * with it and stays a plain multiple of real distance.
+   *
+   * 2.5 since 2026-08-18, from 1.5. Measured over 20 served minutes at 5
+   * kitties: 1.5 gives 4.50 anchor changes/min and 2.0 gives 3.40, both
+   * over 036 SC-006's bar of 3; 2.5 gives 2.70. The bar only bites where
+   * the ceiling BINDS, because that is the only time the anchor drives the
+   * aim -- 19% of the time on a large viewport and ~100% on a phone, which
+   * is why spec 037 made this urgent. See
+   * client-measurements/037-zoom/sc006-2026-08-18.md.
    */
   anchorFor(kitties, at, com) {
     const d2 = (k) => {

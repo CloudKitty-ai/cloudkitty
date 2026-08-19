@@ -44,6 +44,17 @@ change.
   survive a reload. Nothing about the world changes: two viewers watching
   at different zooms see the same meadow at the same tick.
 
+- **The camera was flicking between kitties more than it should.** Once
+  the frame stops being able to hold everyone it aims at an anchor kitty,
+  and that anchor changes only when another is clearly more central —
+  where "clearly" meant 1.5× the distance. Measured against a live world
+  at five kitties that gave 4.5 anchor changes a minute against a bar of
+  3, so the camera read as restless rather than deliberate. It is 2.5×
+  now, which measures 2.7. Almost all of those changes were invisible
+  while the frame could still hold the group, which is why the fault was
+  hard to see; they stop being invisible the moment the frame is smaller,
+  so this is a debt settled before it came due.
+
 - **The ponds were still wearing daylight at midnight.** A pond's
   shoreline band and its damp lip are blurred once and kept, because
   blurring them on every frame is not affordable. What was kept included
