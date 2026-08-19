@@ -42,8 +42,8 @@ needed work:
   to 2.5 (PR #245): every viewport now measures inside the bar, and the ceiling
   did not have to move. See `client-measurements/037-zoom/sc006-2026-08-18.md`.
 - **SC-005** (the camera never draws a frame with no kitty in it) **does not
-  survive at the smallest viewport, and this is accepted rather than fixed**
-  (owner, 2026-08-18). At a 340px map the frame is ~6.8 tiles and the camera
+  survive at the smallest viewport. It is WAIVED for this spec** (owner,
+  2026-08-18) — knowingly, with a recorded remedy, not quietly failed. At a 340px map the frame is ~6.8 tiles and the camera
   draws 3 empty frames per 1500 ticks. The target is never empty; the easing
   is — 036's anchor guarantees a kitty where the camera is heading and its
   FR-008 forbids cutting, so a trip between two anchors can cross more empty
@@ -102,9 +102,12 @@ The 3.5× spread, which is the feature's actual subject, is untouched by that.*
 
 This feature expresses **both** limits in pixels: the camera zooms in until a
 tile is about 100px and widens until a tile would fall below about 50px. The
-range between them is then `floor ÷ ceiling` — a constant **2.00×** on every
-viewport that can reach the target, rather than a number that varies with the
-window. A minimum tile count protects the smallest viewports from becoming a
+range between them is then `floor ÷ ceiling` — **2.00× on any viewport that
+reaches both targets**, rather than a number that varies arbitrarily with the
+window. Two of the five candidate viewports actually do: the range measures
+1.13× at 340px, 1.53× at 460px, 2.00× at 640px and 1000px, and 1.67× at 1200px
+where the world clamps the ceiling. The gain over today is real but it is a
+*narrower* spread, not a constant. A minimum tile count protects the smallest viewports from becoming a
 keyhole; nothing caps the top, because a larger viewport simply frames more
 tiles at the same legible size, which is the correct answer.
 
@@ -245,12 +248,25 @@ kitties through gathering and scattering. The fine detail never switches state.
 - **FR-002**: The camera's zoom ceiling MUST also be expressed in pixels, as the
   smallest tile it will widen to. **Supersedes 036 FR-005**, which set the
   ceiling as a multiple of the floor.
-- **FR-003**: The zoom range MUST therefore be the same on every viewport that
-  can reach the pixel target, since it is the ratio of the two. **The two
-  targets are consequently not independent**: the range is their quotient, so
-  moving either one moves it. They are dialled as a pair, and a change to the
-  floor that leaves the ceiling alone is a change to how far the camera zooms,
-  whether or not that was the intent.
+- **FR-003**: The zoom range MUST be the same on every viewport that can reach
+  **both** pixel targets, since it is then the ratio of the two. Where both are
+  reachable the two targets are consequently **not independent**: the range is
+  their quotient, so moving either one moves it. They are dialled as a pair, and
+  a change to the floor that leaves the ceiling alone is a change to how far the
+  camera zooms, whether or not that was the intent.
+
+  **That coupling is a property of this stage of the build, not a principle to
+  preserve** (owner, 2026-08-18). The two limits *should* be independent: a
+  per-platform deviation is already visible at the small end, and a
+  client-controlled zoom — or any deliberate widening of the range — would need
+  them to move separately. **Anything later that decouples them is an
+  improvement, not a regression against this requirement.**
+
+  **The claim is also narrower than it reads.** Only two of the five candidate
+  viewports reach both targets. Measured: **1.13× at 340px, 1.53× at 460px,
+  2.00× at 640px and 1000px, 1.67× at 1200px** where the world clamps the
+  ceiling. "Constant" describes the middle of the supported range, not its ends,
+  and the ends are where the interesting devices are.
 - **FR-004**: *Withdrawn 2026-08-18 — the threshold it constrained no longer
   exists.* The owner judged fine detail at 21px on three monitors and had it
   drawn at every size, removing the 44px gate from `cat-v2.js` and `props.js`
@@ -423,7 +439,11 @@ kitties through gathering and scattering. The fine detail never switches state.
 - **The smallest viewports may fall below the target, and that is accepted.**
   Pinch zoom is the escape hatch on a phone and is already the accepted answer
   for short viewports in this client, so the minimum tile count needs no
-  further protection.
+  further protection. **Tested, not assumed** (owner, 2026-08-18): pinch zoom
+  and panning were tried on a phone with camera mode on and work well. This
+  carries more weight than it was written for — the small end also gives up
+  framing (2.81 of 5 kitties at 340px) and the odd empty frame, and the owner's
+  judgement is that the gesture covers those deficiencies too.
 - **Expressing the ceiling in pixels is a reversal, and deliberate.** An earlier
   draft argued that how much world to keep does not depend on pixels. That was
   wrong once the zoom range became the priority: the ceiling's real job is to

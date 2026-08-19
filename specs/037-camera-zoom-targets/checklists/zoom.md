@@ -20,7 +20,7 @@ be settled is complete; one that simply omits it is not.
 - [ ] CHK002 Is 036's FR-004 still coherent once FR-003 is superseded? It reads "MUST NOT narrow below the **nominal** width", and "nominal" is the term FR-003 defined and 037 removes. [Conflict, Spec §FR-001]
 - [ ] CHK003 Are 036's User Story 1 acceptance scenarios still valid? Scenario 2 turns on "below the nominal width" and scenario 3 on the camera holding "at the ceiling" as a multiple. [Conflict]
 - [ ] CHK004 Does the spec state HOW the supersession is recorded — whether 036 is amended in place or left as shipped — so that someone reading 036 alone is not misled by a rule that no longer holds? [Gap, Traceability]
-- [ ] CHK005 Are 036's remaining success criteria confirmed as still valid, given only SC-001 is named as superseded? [Completeness, Spec §SC-001]
+- [x] CHK005 Are 036's remaining success criteria confirmed as still valid, given only SC-001 is named as superseded? [Completeness, Spec §SC-001]
 - [ ] CHK006 Is 036's FR-005 behaviour (letting a wanderer leave rather than shrinking everyone) restated as preserved, given the requirement expressing it is the one being replaced? [Consistency, Spec §FR-007]
 - [ ] CHK007 Does any 036 requirement outside the three named ones depend numerically on "10 tiles" or "1.5×"? [Gap, Conflict]
 - [ ] CHK008 Is the relationship between 036's FR-029 (frame stays inside the world) and 037's FR-007 (ceiling narrower than the world) defined, given both constrain the frame against the world's edge? [Consistency, Spec §FR-007]
@@ -69,7 +69,7 @@ be settled is complete; one that simply omits it is not.
 ## Deferred Decisions — is each deferral complete?
 
 - [ ] CHK035 Does each deferred number carry a starting value, a rationale, and a stated way to judge it? [Completeness, Spec §Assumptions]
-- [ ] CHK036 Is it documented that the floor and ceiling targets cannot be dialled independently, since the zoom range is their ratio and moving one moves it? [Gap, Spec §FR-003]
+- [x] CHK036 Is it documented that the floor and ceiling targets cannot be dialled independently, since the zoom range is their ratio and moving one moves it? [Gap, Spec §FR-003]
 - [ ] CHK037 Is the point at which deferral must end identified — which activity or gate requires the numbers to be settled? [Gap, Traceability]
 - [ ] CHK038 Is the minimum tile count's trade documented, given it is the one deferred number with a genuine conflict behind it (framing against size and range)? [Completeness, Spec §FR-005]
 
@@ -78,7 +78,7 @@ be settled is complete; one that simply omits it is not.
 - [ ] CHK039 Is the Fog Generation dependency's effect on acceptance stated as a requirement, given SC-006 is expected to bind on today's world? [Consistency, Spec §Dependencies]
 - [ ] CHK040 Is it unambiguous whether 037 may ship before Fog, and what is given up by doing so? [Clarity, Spec §Dependencies]
 - [ ] CHK041 Is the assumption that the fine-detail threshold is the right legibility bar validated, or carried forward from 036 without re-examination at the new sizes? [Assumption, Spec §Assumptions]
-- [ ] CHK042 Is the assumption that pinch zoom adequately covers small viewports supported by anything beyond precedent elsewhere in the client? [Assumption, Spec §Assumptions]
+- [x] CHK042 Is the assumption that pinch zoom adequately covers small viewports supported by anything beyond precedent elsewhere in the client? [Assumption, Spec §Assumptions]
 
 ## Notes
 
@@ -177,3 +177,19 @@ be settled is complete; one that simply omits it is not.
   pan between them — not a limit. Both 037 and 036 record it at the site. **A
   reviewer ticking CHK005 is ticking "the surviving criteria are now stated,
   including the one deviated from", not "all of them pass".**
+- **2026-08-18 — three items determined by the reviewer and ticked on her word.**
+  - **CHK005** — confirmed on all counts, including that 036 SC-005 is **waived
+    for now** rather than passing. The spec says "waived" in her word.
+  - **CHK036** — the coupling is documented, but she rejected it as a
+    *principle*: **the two limits should be independent**, per-platform
+    deviation is already visible at the small end, and a client-controlled zoom
+    would need them to move separately. FR-003 now says the coupling is a
+    property of THIS STAGE and that decoupling it later is an improvement, not
+    a regression. It also states the measured ranges — **only two of five
+    candidate viewports reach 2.00×** (1.13× / 1.53× / 2.00× / 2.00× / 1.67×),
+    so "constant" describes the middle of the supported range and not its ends.
+    The Overview claim was overstated and is now scoped.
+  - **CHK042** — **no longer an assumption resting on precedent.** She tested
+    pinch zoom and panning on a phone with camera mode on; both work well, and
+    her judgement is that the gesture also covers the framing loss and the rare
+    empty frame at the small end.
