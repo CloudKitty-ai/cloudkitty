@@ -6643,5 +6643,144 @@ check('the waterline is centred on the cat\'s body, not on her box', () => {
   assert(!/this\.drawWaterline\(cx,/.test(renderSrc), 'the waterline is back on the box centre');
 });
 
+/* ── resizeFor, against four RECORDED layouts ───────────────────────────
+ *
+ * The one function in the client with no coverage, and six layout changes
+ * have now shipped through it (#248, #250, #251, #252, the card gap, the
+ * hairline). Nothing could drive it: it reads documentElement,
+ * getComputedStyle, getBoundingClientRect and matchMedia, while every other
+ * check here sets `cssWidth` on a stub.
+ *
+ * The obvious fix is an invented DOM, which is the hand-written-fixture lie.
+ * These four cases are RECORDED off the owner's real devices with
+ * record-layout.js (2026-08-19) and pasted in verbatim -- and crucially each
+ * one carries `canvasCssWidth`, what the BROWSER actually laid out. So the
+ * assertion compares resizeFor against Safari, not against my arithmetic.
+ * A harness that replayed these inputs and checked them against a number
+ * resizeFor produced would agree with itself and prove nothing.
+ *
+ * What the four are for, because none of them is decoration:
+ *   1728x919@2  desktop, cards BESIDE the map -- the only case exercising
+ *               besideWidth and columnGap. Height-bound.
+ *   752x919@2   mid-range, cards below. Width-bound AND sitting 2px past a
+ *               tile boundary, which is the ONLY case where the 1px stage
+ *               border is worth a whole tile. Without it nothing guards the
+ *               border term at all -- the other three floor to the same tile
+ *               with or without it. Its footer WRAPS to 54px, which no
+ *               invented fixture would have thought to do.
+ *   402x654@3   the phone. dpr 3, width-bound, `.panel-col` collapsed to
+ *               zero width so besideWidth is 0 -- the branch the desktop
+ *               case cannot reach. Note 654, not the nominal 874: Safari's
+ *               chrome is real and a guessed viewport would have missed it.
+ * ── */
+const RECORDED_LAYOUTS = [
+  { name: '1728x919 @2 — desktop, cards beside the map',
+    docClientWidth: 1728, docClientHeight: 919, headerHeight: 51, footerHeight: 20,
+    bodyPadY: 48, stageFrameX: 2, stageFrameY: 2, layoutClientWidth: 1696,
+    besideWidth: 452, columnGap: 16, panelColCount: 2, shortBranch: false,
+    dpr: 2, canvasCssWidth: 760, canvasBackingWidth: 1520 },
+  { name: '752x919 @2 — mid-range, and the only border witness',
+    docClientWidth: 752, docClientHeight: 919, headerHeight: 51, footerHeight: 54,
+    bodyPadY: 48, stageFrameX: 2, stageFrameY: 2, layoutClientWidth: 720,
+    besideWidth: 0, columnGap: 0, panelColCount: 2, shortBranch: false,
+    dpr: 2, canvasCssWidth: 700, canvasBackingWidth: 1400 },
+  { name: '761x919 @2 — mid-range, one tile up',
+    docClientWidth: 761, docClientHeight: 919, headerHeight: 51, footerHeight: 54,
+    bodyPadY: 48, stageFrameX: 2, stageFrameY: 2, layoutClientWidth: 729,
+    besideWidth: 0, columnGap: 0, panelColCount: 2, shortBranch: false,
+    dpr: 2, canvasCssWidth: 720, canvasBackingWidth: 1440 },
+  { name: '402x654 @3 — the phone',
+    docClientWidth: 402, docClientHeight: 654, headerHeight: 52, footerHeight: 40,
+    bodyPadY: 44, stageFrameX: 2, stageFrameY: 2, layoutClientWidth: 398,
+    besideWidth: 0, columnGap: 0, panelColCount: 2, shortBranch: false,
+    dpr: 3, canvasCssWidth: 380, canvasBackingWidth: 1140 },
+];
+
+/**
+ * Replays one recording through the REAL resizeFor and returns what it sized
+ * the canvas to. The stubs answer only what resizeFor asks for; anything it
+ * grew a dependency on would throw here rather than silently read undefined.
+ */
+function replayLayout(rec, world = { width: 20, height: 20 }) {
+  const saved = {
+    document: globalThis.document, window: globalThis.window,
+    getComputedStyle: globalThis.getComputedStyle, matchMedia: globalThis.matchMedia,
+  };
+  const half = (n) => `${n / 2}px`;
+  const box = (h) => ({ getBoundingClientRect: () => ({ height: h, width: 0 }) });
+  const cols = Array.from({ length: rec.panelColCount }, () => ({
+    getBoundingClientRect: () => ({ width: rec.besideWidth / rec.panelColCount, height: 0 }),
+  }));
+  const layout = {
+    clientWidth: rec.layoutClientWidth,
+    querySelectorAll: () => (rec.besideWidth > 0 ? cols : cols.map(() => ({
+      getBoundingClientRect: () => ({ width: 0, height: 0 }),
+    }))),
+  };
+  const cell = { parentElement: layout };
+  const stage = { parentElement: cell, __stage: true };
+  const body = { __body: true };
+  const canvas = { parentElement: stage, style: {}, width: 0, height: 0 };
+  const ctx = { setTransform() {} };
+
+  globalThis.document = {
+    documentElement: { clientWidth: rec.docClientWidth, clientHeight: rec.docClientHeight },
+    body,
+    querySelector: (sel) => (sel === 'header' ? box(rec.headerHeight)
+      : sel === 'footer' ? box(rec.footerHeight) : null),
+    createElement: () => ({ getContext: () => null, dataset: {}, style: {} }),
+  };
+  globalThis.window = { devicePixelRatio: rec.dpr };
+  // The frame goes in the BORDER, not the padding, because that is where the
+  // shipped CSS puts it: `--stage-pad: 0px` and a 1px --grass-line hairline.
+  // The recording reports the two summed and cannot tell them apart, so this
+  // is the one place the fixture has to know something the recording does not
+  // -- and it matters. Putting the frame in padding here would leave the
+  // border term unread by resizeFor and unguarded by this test, which is the
+  // exact hole the 752 case was recorded to close.
+  globalThis.getComputedStyle = (el) => (el === stage ? {
+    paddingLeft: '0px', paddingRight: '0px', paddingTop: '0px', paddingBottom: '0px',
+    borderLeftWidth: half(rec.stageFrameX), borderRightWidth: half(rec.stageFrameX),
+    borderTopWidth: half(rec.stageFrameY), borderBottomWidth: half(rec.stageFrameY),
+  } : el === body ? {
+    paddingTop: half(rec.bodyPadY), paddingBottom: half(rec.bodyPadY),
+    paddingLeft: '0px', paddingRight: '0px',
+  } : { columnGap: `${rec.columnGap}px` });
+  globalThis.matchMedia = () => ({ matches: rec.shortBranch });
+
+  try {
+    const r = Object.create(WorldRenderer.prototype);
+    r.canvas = canvas; r.ctx = ctx; r.dpr = null;
+    r.resizeFor(world);
+    return { cssWidth: r.cssWidth, tile: r.tile, backing: canvas.width };
+  } finally {
+    Object.assign(globalThis, saved);
+  }
+}
+
+for (const rec of RECORDED_LAYOUTS) {
+  check(`resizeFor reproduces the browser: ${rec.name}`, () => {
+    const got = replayLayout(rec);
+    assert(got.cssWidth === rec.canvasCssWidth,
+      `sized the map to ${got.cssWidth}px; Safari laid out ${rec.canvasCssWidth}px`);
+    assert(got.backing === rec.canvasBackingWidth,
+      `backing store ${got.backing}; the browser made ${rec.canvasBackingWidth}`);
+  });
+}
+
+check('the stage FRAME is measured, not just its padding', () => {
+  // The witness case, and the reason it was recorded at 752 and not a round
+  // number: its width budget lands 2px past a tile boundary, so the 1px
+  // hairline each side is worth a whole tile. On every other recording the
+  // budget floors to the same tile with the border or without it, which is
+  // exactly how this term could have gone unguarded while looking covered.
+  const witness = RECORDED_LAYOUTS.find((r) => r.docClientWidth === 752);
+  assert(replayLayout(witness).cssWidth === 700, 'the witness no longer reproduces');
+  const borderless = { ...witness, stageFrameX: 0, stageFrameY: 0 };
+  assert(replayLayout(borderless).cssWidth === 720,
+    'dropping the stage frame changed nothing here, so this case no longer '
+    + 'witnesses the border and the term is unguarded');
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);
