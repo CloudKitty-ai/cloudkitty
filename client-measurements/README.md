@@ -24,6 +24,27 @@ step, matching the client's own no-build-step house style.
   stale the moment the world moves on, and any of them can be regenerated with
   one command. Findings worth keeping go in this README, with the sample size
   and the date beside them.
+- **`test-camera-preview.json` is the one exception, and the exception proves
+  the rule.** It is committed because it fails the clause that justifies
+  ignoring everything else: it **cannot be regenerated**. It is a single tick
+  of the served world — tick 306000, fingerprint
+  `w20h20s20260718k1.2.3.4.5` — and that world has since run past 1.29M ticks
+  and will be retired outright at the next `--fresh`.
+
+  It is also not a sample but a **seed**. It carries the engine's RNG state, so
+  resuming from it replays forward deterministically: it *generates* samples
+  rather than being one. That inverts the usual argument — keeping this 183KB
+  file is what makes the large `.jsonl` samples safely disposable, because they
+  can be re-derived from it rather than re-collected from a world that no
+  longer exists.
+
+  It is the trace basis for every "of 5" figure in `BACKLOG.md`'s camera-logic
+  entry, and it carries the **five-kitty roster** (Clementine included) that
+  the served world adopts once the exp-006 certification run passes — so those
+  measurements describe the world after the cutover, not the four-kitty one
+  running today. Named `test-` rather than `snapshot-` on purpose: the root
+  `.gitignore` sweeps `snapshot*.json` as runtime state, and this is a fixture,
+  not state.
 - Anything that reads the live site does so **read-only** (`GET` alone) and
   polls at a rate a small axum server will not notice.
 - When a tool models a change to shipped code, it should **replay the shipped
