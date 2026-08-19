@@ -376,28 +376,6 @@ actually true rather than what is convenient.
   question (see the high-dpr bake above); drawn as a CSS mask it forces a
   compositing layer. Neither is free and neither is measured.
 
-### `resizeFor` has no test harness, and that has now cost three changes (added 2026-08-19; Client thread)
-
-PRs #248, #250 and the hairline all changed what the map measures itself
-against, and **not one of them could be guarded.** Neither harness runs
-`resizeFor` — both set `cssWidth` directly on a renderer stub — so the entire
-viewport-to-tile derivation is untested, including the branch that decides a
-short window fits to width instead of height.
-
-Each time the honest options have been a real DOM fixture or a string match on
-the declared CSS, and a string match is the lie rule 5 names: it passes on the
-wording and says nothing about the state. So each change shipped with the
-handset as its only verification. That is acceptable once and a pattern three
-times.
-
-**What it would take:** a mock `document.documentElement`, `getComputedStyle`
-and `getBoundingClientRect` faithful enough to drive the real `resizeFor` —
-which is exactly the hand-written fixture rule 5 warns about, so the values
-have to be RECORDED off a real page rather than invented. Pick it up the next
-time `resizeFor` is open anyway. The bug it would have caught most recently is
-real and shipped in this PR's own change: a border the padding-only measurement
-could not see.
-
 ### Phone portrait: the horizontal gap beside the map — SHIPPED (PR #248, 2026-08-19; Client thread)
 
 Owner, 2026-08-19: "a bit of a horizontal gap around the map in portrait that
