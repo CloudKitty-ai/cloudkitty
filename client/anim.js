@@ -120,8 +120,26 @@ const VIEW = Object.freeze({
     // is already visible at the small end and a client-controlled zoom would
     // need them to move separately (037 FR-003). Anything that later
     // decouples them is an improvement, not a regression.
-    floorPx: 100, // zoom IN until a tile is about this big
+    floorPx: 113, // zoom IN until a tile is about this big
     ceilingPx: 50, // widen until a tile would fall below this
+    // ...and never widen so far that camera mode stops being worth having.
+    // The camera must always draw a kitty at least this many times the size
+    // the WHOLE-WORLD view would draw her at (owner, 2026-08-19).
+    //
+    // This is the job 036 did for free and 037 dropped: `nominalAcross: 10`
+    // on a 20-tile world is exactly half of it, so 036's floor was 2.00x the
+    // whole-world tile on EVERY display. Replacing it with a pixel target
+    // made apparent size consistent and quietly made the zoom BENEFIT vary --
+    // 3.33x on a phone against 1.05x on WQHD, where the camera at its widest
+    // was 5% bigger than no camera at all.
+    //
+    // `cssWidth` cancels out of `cssWidth/ceilTiles >= k * cssWidth/world`,
+    // so this is a pure tile cap of `world / k` -- 13.3 tiles on a 20-tile
+    // world. It therefore binds only where the pixel ceiling would have
+    // overshot, which is the large maps, and leaves small ones alone. It also
+    // RETIRES ITSELF as the world grows: at 40x40 it allows 26.7 tiles and
+    // the 50px target only asks for 24.
+    minZoomVsBase: 1.5,
     minTiles: 6, // ...but never frame fewer tiles than this, so a small
     // viewport shows a scene rather than a keyhole. Where it binds the
     // kitties are drawn SMALLER than floorPx rather than the world being
@@ -2091,15 +2109,25 @@ class Camera {
     // Capping only the ceiling looked sufficient and was not -- on a
     // 10-tile world both limits came back at 10. Found in review of PR
     // #246; unreachable on today's 20x20 map, which is why no sweep saw it.
-    const edge = Math.max(world.width - 1, 1);
+    const edge = Math.max(
+      Math.min(world.width - 1, world.width / d.minZoomVsBase),
+      1,
+    );
     const floorTiles = Math.min(Math.max(cssWidth / d.floorPx, d.minTiles), edge);
-    // Strictly BELOW the world, so the camera always crops and 036's FR-005
-    // -- let a wanderer leave rather than shrink everyone -- survives. The
-    // spec's data model writes this bound as `world.width - epsilon` and
-    // leaves epsilon unset; one whole tile is the smallest crop anybody can
-    // see, and a sub-tile crop would satisfy the letter of SC-006 while
-    // meaning nothing. Only binds on a world this small: at 40x40 the
-    // ceiling target never reaches the edge.
+    // How wide the camera may ever go, in tiles. TWO bounds, and the tighter
+    // wins:
+    //
+    //   world/minZoomVsBase -- the camera must stay at least that many times
+    //     zoomed in versus the whole-world view, or it is not a camera. This
+    //     is what governs on a 20-tile world.
+    //   world - 1 -- a backstop so the frame always crops at all, which is
+    //     what keeps 036's FR-005 (let a wanderer leave rather than shrink
+    //     everyone) alive on worlds too small for the first bound to bite.
+    //
+    // `world - 1` used to be the ONLY bound, and it was not an answer: at a
+    // 1200px map the pixel ceiling asks for 24 tiles of a 20-tile world, so
+    // the clamp decided everything at the large end and one tile of crop is
+    // indistinguishable from camera-off. Reported from WQHD, 2026-08-19.
     const ceilingTiles = Math.max(
       Math.min(cssWidth / d.ceilingPx, edge),
       floorTiles, // may MEET the floor on a tiny viewport, never cross it (FR-013)
