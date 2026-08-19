@@ -39,9 +39,9 @@ marked only where it is real.
 
 ## Phase 1: Setup
 
-- [ ] T001 Record the pre-change baseline: sweep the current camera across `cssWidth` 340→1200 and record the floor tile at each, so SC-001's "against 3.50× today" has a measured before rather than a quoted one. Store under `client-measurements/037-zoom-baseline/`.
-- [ ] T002 [P] Confirm the harness baseline: `node client/test-motion.mjs` (206) and `node client/test-meadow.mjs` (85) green on the branch.
-- [ ] T003 [P] Record the current ground-bake size at `cssWidth` 1200 in the same measurements file. Research R3 predicts this feature makes it *smaller*; a prediction written down before the change is worth more than one recalled after.
+- [x] T001 Record the pre-change baseline: sweep the current camera across `cssWidth` 340→1200 and record the floor tile at each, so SC-001's "against 3.50× today" has a measured before rather than a quoted one. Store under `client-measurements/037-zoom-baseline/`.
+- [x] T002 [P] Confirm the harness baseline: `node client/test-motion.mjs` (206) and `node client/test-meadow.mjs` (85) green on the branch.
+- [x] T003 [P] Record the current ground-bake size at `cssWidth` 1200 in the same measurements file. Research R3 predicts this feature makes it *smaller*; a prediction written down before the change is worth more than one recalled after.
 
 **Checkpoint**: baselines banked, suites green.
 
