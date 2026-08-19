@@ -148,6 +148,84 @@ Not to be confused with the anchor **hysteresis**, which was a different
 small-viewport fault (restlessness, 036 SC-006) and is fixed — 1.5 → 2.5 in
 PR #245.
 
+### Phone portrait: the horizontal gap beside the map (added 2026-08-19; Client thread)
+
+Owner, 2026-08-19: "a bit of a horizontal gap around the map in portrait that
+could get us another free tile or so." Queued with the phone viewport work
+(letterbox, `minTiles`). Measured, not estimated — and it is **two gaps, only
+one of which is anyone's to reclaim.**
+
+On a phone `body` pays `padding: … 10px` and `.stage` a 5px mat, so the width
+budget is `viewport − 30`. Then `resizeFor` floors the tile, and a 20-tile
+world throws away everything the budget carries past a multiple of 20. The
+stage is `width: max-content`, so that remainder does not sit inside the mat —
+it appears as extra cream **outside** the stage's rounded edge, which is why it
+reads as one gap rather than as rounding.
+
+On the owner's 16 Pro (402 CSS px): **16px of cream each side — 10 of padding
+and 6 of quantisation.**
+
+Chrome is the reclaimable half; the quantisation is not, and cutting chrome
+**moves pixels into it** until the budget crosses the next multiple of 20:
+
+| viewport | budget now | tile | map | slack | body 10→6 | body+mat → 8px |
+|---|---|---:|---:|---:|---:|---:|
+| 360 small Android | 330 | 16 | 320 | 10 | 320 | **340** |
+| 375 SE / 8 | 345 | 17 | 340 | 5 | 340 | **360** |
+| 393 iPhone 12–15 Pro | 363 | 18 | 360 | 3 | 360 | **380** |
+| **402 iPhone 16 Pro** | 372 | 18 | 360 | **12** | **380** | 380 |
+| 412 Pixel / Galaxy | 382 | 19 | 380 | 2 | 380 | **400** |
+
+So the free tile the owner saw **is real and is specific to her handset**: the
+16 Pro is the one width whose budget sits just under a multiple of 20, and
+trimming the body padding to 6 takes it 360 → 380 (+5.6%) with the slack going
+to zero. Every other phone needs the chrome down near 8px total before it
+snaps, and gains nothing at all in between.
+
+**Why it is worth more than 5.6%: it lands on the `minTiles` decision.** The
+camera's floor tile is `cssWidth / minTiles` once `minTiles` binds, so the map
+width is the phone's cat size, one for one:
+
+| map | `minTiles` 6 | `minTiles` 7 |
+|---|---:|---:|
+| 320 | 53.3 | 45.7 |
+| 340 (today, SE) | 56.7 | **48.6** |
+| 360 (today, 16 Pro) | 60.0 | **51.4** |
+| 380 | 63.3 | 54.3 |
+
+The 48.6px that makes `minTiles: 7` cost the 50px bar **is the 340px map, not
+"the phone"** — on the 16 Pro `minTiles: 7` already clears 50 today. Reclaim
+the gap and a 375 viewport reaches 360 too, at 51.4px. So the question changes
+shape: not "state a phone exception to the 50px rule" but "keep 50 with no
+exception on every listed handset except the 360px Android, and pay for it out
+of the bezel". **Do the two together**, or `minTiles` gets decided against a
+floor that was about to move.
+
+Note the same 340 is written into 037's **SC-001** — "the smallest cat in the
+range is fixed at 340/`minTiles` = 56.7px … so the spread is simply
+`floorPx / 56.7`", which is what caps `floorPx` at 113. At a 360px map that
+becomes 60px and the cap moves to 120. SC-001 is being discarded (owner,
+2026-08-19), so this is not a reason to act — but it is the second criterion
+found resting on an undeclared 340, and if anything ever re-derives a floor
+target from "the smallest supported map", **that number is a measurement of the
+CSS, not a constant.**
+
+**The decision this needs, which is the owner's:** the body padding is shared —
+`body` is the flex column, so zeroing its sides pushes the *cards* to the screen
+edge as well. Reclaiming it for the map alone means moving that padding onto
+`header`/`.panel`/`footer` and letting the stage run to the edge, which is a
+look, not a refactor. The mat itself is already an owner-set number (16 → 6 on
+2026-08-05, "6px is kitten.me's mat width exactly"), and `#sky-dial` pins to
+`--stage-pad`, so changing the mat moves the horizon with it — by design, and
+worth re-checking by eye at the new value rather than trusting the variable.
+
+**Durable vs perishable:** the arithmetic
+is durable — the wasted remainder is `budget mod world.width`, and the phone's
+cat size is `map / minTiles`. **Every number in both tables is perishable**: they
+assume the 20-tile served world (`cloudkitty.toml`), and a wider world under Fog
+re-rolls which handsets sit just under a boundary. Re-run the arithmetic against
+the world that is actually served before spending a design decision on it.
+
 ### Connect-time frame backlog — SPEC PARKED (added 2026-08-15; Product thread)
 Spec 032 is written, decisions settled, implementation deliberately parked
 (owner). The live socket gains an opt-in connect-time backlog of recent
