@@ -85,20 +85,57 @@ now and asked for a measurement before spending anything on the first two.
   JS side is free at 0.10ms, but it **cannot** measure rasterisation, and 3,529
   draw ops per frame is the open question.
 
-**Run it on the PHONE first, not the laptop.** The budget is `4096 / dpr`
-against a need of `floorTile × world.width`; at `floorPx` 113 that is 2260 CSS
-px, so it clamps above **dpr 1.81**. A dpr-2 laptop therefore sits barely
-inside it while a dpr-3 phone is the worst case in the table — the phone is
-where the question actually lives.
+**MEASURED 2026-08-19 — F PASSES on BOTH legs, and by an order of magnitude.**
+Owner ran `bench-ground.html` on the dpr-3 handset, the worst case in the table:
 
-**On running it under load** (the box carries two PPO waves, ~30h, to
-2026-08-20): the honest reading is **asymmetric, so a contended run is still
-worth doing**. A result comfortably inside the frame budget while the machine
-is busy is trustworthy — idle can only be faster. A result *near or over* the
-budget is inconclusive, because the threat on a laptop is thermal throttling
-and memory bandwidth rather than free core count, and a median of seven runs
-smooths noise but not a sustained clock drop. So: run it, and only re-run on a
-quiet box if it comes back marginal.
+| map | visible | bake (once) | blit /frame | live /frame | share of 16.67ms |
+|---|---|---|---|---|---|
+| 640px | 14x14 | 0.7ms | 0.00ms | 0.20ms | 1% |
+| 840px | 15x15 | 1.3ms | 0.00ms | 1.45ms | 9% |
+| 1000px | 15x15 | 1.7ms | 0.00ms | 0.65ms | 4% |
+| 1200px | 15x15 | 1.0ms | 0.00ms | 1.30ms | 8% |
+
+Highest across several runs: **1.6ms**. Every reason to trust it points the same
+way:
+
+- **dpr 3 is the worst case.** The clamp binds above dpr 1.81; a dpr-2 laptop is
+  barely inside it.
+- **Measured at the CEILING**, which is the most tiles the camera ever shows —
+  ~15x15 = 225 tiles against the floor's 6x6 = 36. Same rasterised area, six
+  times the ops.
+- **Run on a contended box** (four PPO arms). Per the asymmetric reading, a fast
+  result under load is trustworthy: idle can only be faster.
+- **The live number OVERSTATES the delta.** The bench draws `cover: true`, but
+  the real bake is `cover: false` — ground cover is already drawn per frame,
+  sorted against the cats. So part of what was timed is work today already pays,
+  and the true marginal cost is *below* the figure above.
+
+**One caveat, which does not threaten the conclusion.** The 840/1000/1200 rows
+have IDENTICAL op counts (all 15x15) and should rise monotonically with tile
+size; they came back 1.45 / 0.65 / 1.30, a 2.2x spread on identical work. That
+is noise, consistent with the contended machine. It is far smaller than the ~10x
+margin to the frame budget, so the magnitude is robust even though the individual
+rows are not.
+
+**Where that leaves the four options:** capping the camera's floor by the bake
+budget and raising `GROUND_BAKE_MAX_PX` are both **moot** — F costs a tenth of a
+frame and removes the magnification instead of trading against it. C stays as the
+honest description of what ships until F does.
+
+**The laptop leg came in at 0.4ms peak** — four times faster than the phone,
+and that is the number that retires the whole "wait for a quiet box" concern.
+The laptop IS the box carrying the four PPO arms; the phone carries none. So
+the slower device was slower on hardware, not on contention, and the contended
+machine turned in the better figure. The asymmetric reading held: a fast result
+under load is trustworthy because idle can only be faster, and we never needed
+to spend Experiments' campaign on it.
+
+**Why the phone was the right leg to run first.** The budget is `4096 / dpr`
+against a need of `floorTile × world.width`; at `floorPx` 113 that is 2260 CSS
+px, so the clamp binds above **dpr 1.81**. A dpr-2 laptop sits just inside it
+and magnifies about 1.10x; the dpr-3 phone magnifies **1.46x**. Both are
+defects F removes, but the phone is where it is visible, and the phone is the
+primary consumption path.
 
 ### Camera logic: what it aims at, and the trip in between (added 2026-08-18; Client thread)
 
