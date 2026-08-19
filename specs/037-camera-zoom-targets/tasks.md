@@ -168,3 +168,16 @@ the camera never reaches. T006 and T009 exist for it.
   failing for the predicted reason — and note that a *sweep* check can pass
   vacuously if the sweep is empty, so assert the sample count too.
 - The numbers are dialled with the owner and pasted, per house practice.
+
+---
+
+## Phase 7: Convergence
+
+Appended by `/speckit-converge`, 2026-08-18. All three are the same shape —
+**the code satisfies the requirement and nothing guards it** — so each is a
+check to add, not behaviour to change. No constitution finding; no
+`missing`, `contradicts` or `unrequested` gap.
+
+- [ ] T031 Add a check that a viewport change landing mid-ease moves the target without restarting or cutting the movement, per SC-010 (partial). The behaviour is inherited from 036's easing, but 037 is what makes the target depend on `cssWidth`, so the criterion only became reachable with this feature and has never been exercised. Drive `update` to a settled state, change `cssWidth`, and assert `across` continues from where it was rather than snapping to the new limit.
+- [ ] T032 Add a shape-invariance check for the cat and prop draw paths, per SC-003 (partial). SC-003 claims fine detail cannot change state at any size because the gate was deleted — but of the three sites that carried it (`cat-v2.js`, `props.js`, `meadow.js`) only the flowers gained a guard. Follow `test-meadow.mjs`'s "a flower is the same flower at every tile size": assert the command-stream SHAPE matches at a small and a large size, so a returning gate fires a check instead of shipping quietly.
+- [ ] T033 Add a check driving ONE `Camera` instance across two viewport widths, per FR-015 (partial). `limitsFor` derives per call and its own comment warns against caching on the instance, but `zoomLimits` builds a fresh `Camera` for every width, so a per-instance cache would pass every existing check. Assert the same instance reports different limits before and after a `cssWidth` change.
