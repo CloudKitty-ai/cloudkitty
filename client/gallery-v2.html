@@ -734,7 +734,247 @@
   // sits just above the floating body's top edge.
   const waterlineAt = (y) =>
     y + CAT * (CatV2.SWIM.bodyY - CatV2.SWIM.bodyRy - 0.02);
+  // ---- spec 037: the zoom band ------------------------------------------
+  // The band, SEEDED FROM THE SHIPPED DIALS rather than hand-copied, so a
+  // re-dial of VIEW.camera cannot leave this card quietly showing last
+  // week's numbers while claiming to be the shipped derivation. It is still
+  // a mutable copy -- VIEW.camera is frozen, and these have to be draggable.
+  //
+  // They no longer merely stand in for the client: 037 is implemented and
+  // VIEW.camera carries floorPx/ceilingPx/minTiles. What the sliders move is
+  // this copy; what ships is whatever gets pasted back into anim.js.
+  const ZOOM = {
+    floorPx: VIEW.camera.floorPx,
+    ceilingPx: VIEW.camera.ceilingPx,
+    minTiles: VIEW.camera.minTiles,
+  };
+  const ZOOM_WORLD = 20;
+  // The viewports 037 is verified across (its Key Entities define the range).
+  const ZOOM_VIEWPORTS = [
+    [340, 'phone'],
+    [460, 'laptop / Retina'],
+    [640, '1080p 27in'],
+    [1000, 'large monitor'],
+    [1200, 'at the 1200px cap'],
+  ];
+  // The SHIPPED derivation, not a copy of it. When this card was first built
+  // `limitsFor` did not exist and the lab had to replicate the arithmetic;
+  // now it exists, so the card asks the real Camera and a divergence between
+  // what is dialled here and what the client does becomes impossible.
+  //
+  // This is not cosmetic. The replica clamped the ceiling at the world's 20
+  // tiles; the implementation clamps it one tile BELOW, so the camera still
+  // crops (FR-007). The lab was reporting 2.00x at 1000px where the client
+  // gives 1.90x, and the ceiling cat 50px where the client draws 52.6px.
+  // `limitsFor` is pure, so the instance is disposable -- this is a factory
+  // and every call gets a fresh one. That is fine in a gallery and would not
+  // be in the renderer. Card 2 below also builds a fresh one each
+  // frame -- it needs a camera with no history, so `update` ARRIVES at the
+  // frame instead of easing toward it from wherever the last frame left it.
+  const zoomProbe = () => new Camera({ ...VIEW.camera, ...ZOOM });
+  const zoomLimitsFor = (cssWidth) => {
+    const world = { width: ZOOM_WORLD, height: ZOOM_WORLD };
+    const { floorTiles, ceilingTiles } = zoomProbe().limitsFor(world, cssWidth);
+    return {
+      floorTiles, ceilingTiles,
+      floorTile: cssWidth / floorTiles,
+      ceilingTile: cssWidth / ceilingTiles,
+      range: ceilingTiles / floorTiles,
+    };
+  };
+  // A REAL sampled tick, not invented positions: the median-spread frame
+  // (16.2 tiles) of a 1500-tick capture of the served world at five kitties,
+  // tick 1681. See client-measurements/037-zoom/sc006-2026-08-18.md. Hand-
+  // placed cats would have made the framing look like whatever the framing
+  // needed to look like.
+  const ZOOM_FIXTURE = [
+    { id: 1, x: 14, y: 13 }, { id: 2, x: 18, y: 2 }, { id: 3, x: 17, y: 2 },
+    { id: 4, x: 10, y: 7 }, { id: 5, x: 8, y: 9 },
+  ];
+  const zoomFixtureWorld = () => ({
+    width: ZOOM_WORLD, height: ZOOM_WORLD, elements: [],
+    kitties: ZOOM_FIXTURE.map((k) => ({ id: k.id, pos: { x: k.x, y: k.y } })),
+  });
+
   const DEMOS = [
+    {
+      title: 'Zoom band — the size a kitty actually lands at (spec 037)',
+      note: 'Every row is one of the five viewports 037 is verified across, and BOTH cats in it are drawn at true pixel size — a 100px cat here is exactly what a 1000px map draws. Left is the zoom FLOOR (most zoomed in), right is the CEILING (widest). The gap between them is that viewport\'s whole zoom range. Watch the phone row: its floor cannot reach the target, which is why its two cats are nearly the same size and its range collapses to 1.13×. Dialling floorPx and ceilingPx moves the range as a pair — they are a ratio, not two independent numbers (FR-003).',
+      v2Only: true,
+      w: 940,
+      h: 880,
+      ownShadows: true,
+      bag: ZOOM,
+      dials: [
+        { key: 'floorPx', label: 'floorPx — tile size the camera zooms IN to', min: 60, max: 130, step: 2 },
+        { key: 'ceilingPx', label: 'ceilingPx — smallest tile it will widen to', min: 30, max: 90, step: 2 },
+        { key: 'minTiles', label: 'minTiles — fewest tiles the floor may frame', min: 3, max: 12, step: 0.5 },
+      ],
+      readout() {
+        const rows = ZOOM_VIEWPORTS.map(([px, name]) => {
+          const L = zoomLimitsFor(px);
+          return `  ${String(px).padStart(4)}px  ${name.padEnd(18)} `
+            + `floor ${L.floorTile.toFixed(0).padStart(3)}px (${L.floorTiles.toFixed(1)} tiles)  `
+            + `ceiling ${L.ceilingTile.toFixed(0).padStart(3)}px (${L.ceilingTiles.toFixed(1)} tiles)  `
+            + `range ${L.range.toFixed(2)}×`;
+        });
+        const tiles = ZOOM_VIEWPORTS.map(([px]) => zoomLimitsFor(px).floorTile);
+        const spread = Math.max(...tiles) / Math.min(...tiles);
+        const ranges = ZOOM_VIEWPORTS.map(([px]) => zoomLimitsFor(px).range);
+        const constant = ranges.filter((r) => Math.abs(r - ZOOM.floorPx / ZOOM.ceilingPx) < 0.01).length;
+        return (
+          `floorPx: ${ZOOM.floorPx}, ceilingPx: ${ZOOM.ceilingPx}, minTiles: ${ZOOM.minTiles}\n`
+          + `${rows.join('\n')}\n`
+          + `SC-001 size spread across the range: ${spread.toFixed(2)}× `
+          + `(bar is under 2; today is 3.50×)${spread < 2 ? '' : '  ⚠ OVER THE BAR'}\n`
+          + `the ${(ZOOM.floorPx / ZOOM.ceilingPx).toFixed(2)}× range is reached on `
+          + `${constant} of ${ZOOM_VIEWPORTS.length} viewports — the others are clamped by `
+          + `minTiles at the small end or the world at the large`
+        );
+      },
+      draw(ctx, w, h, now) {
+        const rowH = h / ZOOM_VIEWPORTS.length;
+        const phase = (now % 3400) / 3400;
+        ZOOM_VIEWPORTS.forEach(([px, name], i) => {
+          const L = zoomLimitsFor(px);
+          const top = i * rowH;
+          const groundY = top + rowH - 26;
+          if (i) {
+            ctx.strokeStyle = 'rgba(107, 90, 78, 0.14)';
+            ctx.beginPath(); ctx.moveTo(0, top); ctx.lineTo(w, top); ctx.stroke();
+          }
+          ctx.fillStyle = 'rgba(107, 90, 78, 0.8)';
+          ctx.font = '600 12px ui-sans-serif, system-ui, sans-serif';
+          ctx.textAlign = 'left';
+          ctx.fillText(`${px}px map — ${name}`, 10, top + 18);
+          ctx.font = '11px ui-monospace, monospace';
+          ctx.fillStyle = 'rgba(107, 90, 78, 0.6)';
+          ctx.fillText(`range ${L.range.toFixed(2)}×`, 10, top + 34);
+
+          let cx = 150;
+          for (const [tile, what] of [[L.floorTile, 'floor'], [L.ceilingTile, 'ceiling']]) {
+            CatV2.drawCat(ctx, {
+              pose: 'idle',
+              appearance: CatV2.appearanceFor(PUMPKIN),
+              facing: 'right',
+              size: tile,
+              x: cx,
+              y: groundY - tile * 0.88,
+              phase,
+            });
+            ctx.fillStyle = 'rgba(107, 90, 78, 0.75)';
+            ctx.font = '11px ui-monospace, monospace';
+            ctx.textAlign = 'left';
+            ctx.fillText(`${what} ${tile.toFixed(0)}px`, cx, groundY + 14);
+            cx += tile + 46;
+          }
+        });
+      },
+    },
+    {
+      title: 'The minimum — what a phone actually frames (spec 037)',
+      note: 'The 340px map at TRUE size, so this box is the phone. The frame, the width and the aim all come from the shipped `Camera` — a real instance, updated with the dials above, not a replica of its arithmetic. The five kitties are a real sampled tick: the median-spread frame of a 1500-tick capture of the served world, so the framing is as hard as the meadow actually makes it. This is the card for minTiles, which research called the one deferred number with a genuine trade behind it: lower buys apparent size and zoom range, higher buys meadow. It cannot be judged from a table.',
+      v2Only: true,
+      w: 940,
+      h: 400,
+      ownShadows: true,
+      bag: ZOOM,
+      dials: [
+        { key: 'minTiles', label: 'minTiles — fewest tiles the floor may frame', min: 3, max: 12, step: 0.5 },
+        { key: 'floorPx', label: 'floorPx — tile size the camera zooms IN to', min: 60, max: 130, step: 2 },
+      ],
+      readout() {
+        const L = zoomLimitsFor(340);
+        const binds = 340 / ZOOM.floorPx < ZOOM.minTiles;
+        return (
+          // The whole paste, not just this card's two dials: the readout IS
+          // the paste, and a card that emitted a subset would hand back a
+          // block that silently drops whatever was dialled on the other one.
+          `floorPx: ${ZOOM.floorPx}, ceilingPx: ${ZOOM.ceilingPx}, minTiles: ${ZOOM.minTiles}\n`
+          + `at a 340px map the floor frames `
+          + `${L.floorTiles.toFixed(1)} tiles at ${L.floorTile.toFixed(0)}px\n`
+          + (binds
+            ? `the minimum BINDS here: the pixel target alone would frame `
+              + `${(340 / ZOOM.floorPx).toFixed(1)} tiles, and the kitties are drawn smaller `
+              + `than the target rather than the world being cropped further (FR-006)`
+            : `the minimum does NOT bind here — the pixel target alone already frames `
+              + `${(340 / ZOOM.floorPx).toFixed(1)} tiles, so this dial is doing nothing at 340px`)
+        );
+      },
+      draw(ctx, w, h, now) {
+        if (typeof Camera !== 'function') return;
+        const L = zoomLimitsFor(340);
+        const world = zoomFixtureWorld();
+        // The shipped Camera with the dialled band. It takes pixels directly
+        // now, so there is no nominalAcross/ceilingFactor substitution to
+        // make -- the measurements needed one only because they ran before
+        // the feature existed.
+        const cam = new Camera({ ...VIEW.camera, ...ZOOM });
+        cam.on = true;
+        cam.update(world, { ambient: { now } }, { aspect: 1, cssWidth: 340 });
+
+        const BOX = 340;
+        const x0 = 20, y0 = 34;
+        const tile = BOX / cam.across;
+
+        ctx.save();
+        ctx.beginPath(); ctx.rect(x0, y0, BOX, BOX); ctx.clip();
+        ctx.fillStyle = '#cfe0b8';
+        ctx.fillRect(x0, y0, BOX, BOX);
+        // The tile grid, so "how much world" is countable rather than felt.
+        ctx.strokeStyle = 'rgba(107, 90, 78, 0.10)';
+        for (let gx = Math.ceil(cam.left); gx < cam.left + cam.across; gx += 1) {
+          const sx = x0 + (gx - cam.left) * tile;
+          ctx.beginPath(); ctx.moveTo(sx, y0); ctx.lineTo(sx, y0 + BOX); ctx.stroke();
+        }
+        for (let gy = Math.ceil(cam.top); gy < cam.top + cam.across; gy += 1) {
+          const sy = y0 + (gy - cam.top) * tile;
+          ctx.beginPath(); ctx.moveTo(x0, sy); ctx.lineTo(x0 + BOX, sy); ctx.stroke();
+        }
+        let inShot = 0;
+        for (const k of [...world.kitties].sort((a, b) => a.pos.y - b.pos.y)) {
+          const sx = x0 + (k.pos.x - cam.left) * tile;
+          const sy = y0 + (k.pos.y - cam.top) * tile;
+          if (sx > x0 - tile && sx < x0 + BOX && sy > y0 - tile && sy < y0 + BOX) inShot += 1;
+          CatV2.drawCat(ctx, {
+            pose: 'idle',
+            appearance: CatV2.appearanceFor(k.id),
+            facing: 'right',
+            size: tile,
+            x: sx,
+            y: sy,
+            phase: (now % 3400) / 3400,
+          });
+        }
+        ctx.restore();
+        ctx.strokeStyle = 'rgba(107, 90, 78, 0.5)';
+        ctx.strokeRect(x0 + 0.5, y0 + 0.5, BOX, BOX);
+
+        ctx.fillStyle = 'rgba(107, 90, 78, 0.85)';
+        ctx.font = '600 12px ui-sans-serif, system-ui, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('340px map, at true size — this box is the phone', x0, 22);
+
+        const tx = x0 + BOX + 28;
+        ctx.font = '12px ui-monospace, monospace';
+        ctx.fillStyle = 'rgba(107, 90, 78, 0.8)';
+        const lines = [
+          `frames   ${cam.across.toFixed(1)} tiles of ${ZOOM_WORLD}`,
+          `tile     ${tile.toFixed(0)}px`,
+          `in shot  ${inShot} of 5 kitties`,
+          '',
+          `floor    ${L.floorTiles.toFixed(1)} tiles`,
+          `ceiling  ${L.ceilingTiles.toFixed(1)} tiles`,
+          `range    ${L.range.toFixed(2)}×`,
+          '',
+          'the clowder spans a median',
+          '16.2 tiles, so a frame under',
+          'that cannot hold them all —',
+          'measured, not assumed',
+        ];
+        lines.forEach((t, i) => ctx.fillText(t, tx, y0 + 16 + i * 18));
+      },
+    },
     {
       title: 'Pose flow',
       note: 'idle → walking → loaf → sleep-curl. v1 snaps at each boundary; v2 blends over 260 ms (pose-space lerp).',

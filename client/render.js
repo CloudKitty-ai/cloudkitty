@@ -597,7 +597,9 @@ class WorldRenderer {
    * inline without going through it.
    *
    * Deliberately NOT `ctx.scale`. `this.tile` is the number every art
-   * decision keyed to apparent size reads, `fine = size >= 44` above all,
+   * decision keyed to apparent size reads -- `fine = size >= 44` was the
+   * headline example until it was deleted 2026-08-18, and every remaining
+   * art dial is still a fraction of it --
    * and camera mode exists to cross that threshold. Scaling the finished
    * picture would magnify the SMALL-size drawing instead: bigger cats
    * still wearing their 31px detail.
@@ -611,7 +613,14 @@ class WorldRenderer {
   applyCamera(world, view, dpr) {
     const cam = this.camera;
     if (!cam) return;
-    cam.update(world, view, { aspect: this.cssHeight / this.cssWidth });
+    cam.update(world, view, {
+      aspect: this.cssHeight / this.cssWidth,
+      // The camera's only new input (spec 037). It works in tiles and the
+      // renderer turns those into a tile size; give it the pixels and it
+      // can decide the tile count FROM the size instead. The line below is
+      // unchanged, and evaluates to the pixel target exactly.
+      cssWidth: this.cssWidth,
+    });
     this.tile = this.cssWidth / cam.across;
     this.ctx.setTransform(
       dpr,
@@ -916,11 +925,34 @@ class WorldRenderer {
     // not the ones I happened to think of.
     if (!this.camera || !this.camera.on) return this.cssWidth / world.width;
 
-    // Camera on: the tile at the narrowest frame, read from the camera's
-    // OWN dials. Reaching for the module global instead would let a Camera
+    // Camera on: the tile at the narrowest frame, from the camera's OWN
+    // derivation. Reaching for the module global instead would let a Camera
     // built with different dials ask for a tile larger than the bake, and
     // every blit would silently become the upscale this exists to prevent.
-    const narrowest = Math.min(this.camera.dials.nominalAcross, world.width);
+    //
+    // Under 037 this is the camera's FLOOR, which is the pixel target
+    // wherever it is reachable -- so the bake stops scaling with the display
+    // and gets SMALLER on a large one (research R3). Same pair the fit and
+    // `bound` read, so the bake and the frame can never disagree about the
+    // band.
+    //
+    // And it is a downscale only while GROUND_BAKE_MAX_PX does not bind. That
+    // budget is in DEVICE px (4096 / dpr), so above dpr ~2.05 a 100px floor
+    // tile on a 20-tile world wants a 2000 CSS px bake and is clamped to
+    // 1365 -- a 1.46x UPSCALE at the zoom floor, in steady state. It predates
+    // 037 (a 1200px map at dpr 2 was already 1.17x on the old fixed floor);
+    // 037 improves the worst case and widens the band. Parked in BACKLOG.md,
+    // because the fix couples the camera's floor to this budget.
+    //
+    // The downscale is also a STEADY-STATE claim in TIME. `cssWidth`
+    // changes the instant a window is resized while `across` EASES toward
+    // its new floor at zoomRate, so widening 700px -> 1200px with the group
+    // huddled leaves `this.tile` above `bakeTile` for about a second and the
+    // ground blit is briefly an upscale. Soft, not broken, and it ends when
+    // the ease does. Worth knowing before anyone reads "always a downscale"
+    // and trusts it mid-resize -- under the old fixed nominalAcross this
+    // could not happen, because the floor did not move with the viewport.
+    const narrowest = this.camera.limitsFor(world, this.cssWidth).floorTiles;
     const dpr = this.dpr || window.devicePixelRatio || 1;
     const widest = Math.max(world.width, world.height);
     const bakeTile = this.cssWidth / narrowest;

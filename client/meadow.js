@@ -898,10 +898,15 @@ function drawGroundDetail(ctx, { width, height, tile, t }) {
   }
   ctx.globalAlpha = 1;
 
-  // --- flowers: five petals and a heart when the tile can carry them,
-  //     a single dot when it cannot. The same `fine` threshold the cats
-  //     and the bowl's decal use, so detail arrives everywhere at once. ---
-  const fine = tile >= 44;
+  // --- flowers: five petals and a heart, at every tile size.
+  //
+  //     The 44px gate is GONE, 2026-08-18, along with the one the cats and
+  //     the bowl's decal carried. The owner judged fine detail legible at
+  //     21px and chose to draw it at every size rather than keep a
+  //     resolution threshold anyone has to reason about again. Raised in
+  //     review of PR #246, where this was the last one standing: the cats
+  //     had stopped gating, so with the camera off at a 32px tile they wore
+  //     full face detail while every flower was a bare dot. ---
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       if (tileHash(x, y, MEADOW_SALTS.bloom) < 1 - drift.bloom[y * width + x]) continue;
@@ -922,7 +927,7 @@ function drawGroundDetail(ctx, { width, height, tile, t }) {
       const cool = tileHash(x, y, MEADOW_SALTS.bloomY) > 0.62;
       const petal = cool ? MEADOW.bloomCool || MEADOW.bloom : MEADOW.bloom;
       const heart = cool ? MEADOW.bloomCoolHeart || MEADOW.bloomHeart : MEADOW.bloomHeart;
-      if (fine) {
+      {
         // A stem, so the flower grows out of the ground instead of lying
         // on it. Drawn first and leaning with the light, like the blades.
         ctx.strokeStyle = MEADOW.bush;
@@ -964,11 +969,6 @@ function drawGroundDetail(ctx, { width, height, tile, t }) {
         ctx.fillStyle = heart;
         ctx.beginPath();
         ctx.arc(bx, by, r * 0.42, 0, TAU);
-        ctx.fill();
-      } else {
-        ctx.fillStyle = petal;
-        ctx.beginPath();
-        ctx.arc(bx, by, r * 0.72, 0, TAU);
         ctx.fill();
       }
     }

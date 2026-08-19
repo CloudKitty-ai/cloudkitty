@@ -5405,7 +5405,7 @@ const camView = (still = false, now = 1000) => ({ still, ambient: still ? null :
 check('the camera off frames the whole world and nothing else', () => {
   const world = camWorld();
   const cam = new api.Camera();
-  cam.update(world, camView(), { aspect: 1 });
+  cam.update(world, camView(), { aspect: 1, cssWidth: 1000 });
   assert(cam.across === world.width, `across is ${cam.across}, not the world's ${world.width}`);
   assert(cam.left === 0 && cam.top === 0, `origin moved to ${cam.left},${cam.top}`);
   assert(cam.anchorId === null, 'the off camera picked an anchor it has no use for');
@@ -5422,7 +5422,7 @@ check('a non-square world keeps its shape through the camera', () => {
   const world = camWorld(24, 16);
   const cam = new api.Camera();
   // The canvas is world-aspect, so the vertical span follows from it.
-  cam.update(world, camView(), { aspect: 16 / 24 });
+  cam.update(world, camView(), { aspect: 16 / 24, cssWidth: 1000 });
   assert(cam.across === 24, `across is ${cam.across}`);
   assert(cam.left === 0 && cam.top === 0, `origin moved to ${cam.left},${cam.top} on a wide world`);
 });
@@ -5462,14 +5462,19 @@ check('the ground bake is bounded, because an over-budget canvas comes back blan
   const side = baked * Math.max(world.width, world.height) * on.dpr;
   assert(side <= 4096, `the bake would be ${Math.round(side)} device px a side`);
   assert(baked > 0, 'the clamp collapsed the bake');
-  // And it follows the camera's dials rather than the module's.
-  const tight = new api.Camera({ ...api.VIEW.camera, nominalAcross: 5 });
+  // And it follows the camera's dials rather than the module's. Under 037
+  // a "tighter" camera is one with a BIGGER pixel floor -- it zooms in
+  // further, so it frames fewer tiles and bakes a larger tile.
+  const tight = new api.Camera({ ...api.VIEW.camera, floorPx: 80, minTiles: 4 });
   tight.on = true;
   const tighter = WorldRenderer.prototype.bakeTileFor.call(
     { cssWidth: 400, dpr: 1, camera: tight },
     world,
   );
-  assert(tighter === 400 / 5, `a tighter camera baked at ${tighter}, not its own nominal`);
+  // 400 / 80 = 5 tiles, which clears its own minTiles of 4, so the floor is
+  // 5 tiles and the bake tile is 80px -- the pixel target exactly, which is
+  // the property that makes the bake stop scaling with the display.
+  assert(tighter === 80, `a tighter camera baked at ${tighter}, not its own 80px floor`);
 });
 
 check('the camera-off bake is what shipped, at every dpr', () => {
@@ -5492,7 +5497,7 @@ check('screen to world inverts the frame the camera laid down', () => {
   const tile = 62; // camera scale, 10 across on a 620px map
   const cam = new api.Camera();
   cam.on = true;
-  cam.update(world, camView(), { aspect: 1 });
+  cam.update(world, camView(), { aspect: 1, cssWidth: 1000 });
   // The display scale is the trap here: the canvas's measured size is not
   // its drawing size, so a conversion through cssWidth rather than the
   // measured rect lands on the wrong kitty at some viewports.
@@ -5517,7 +5522,7 @@ check('the camera reads the world and never writes to it', () => {
   const before = JSON.stringify(world);
   const cam = new api.Camera();
   cam.on = true;
-  for (let i = 0; i < 5; i += 1) cam.update(world, camView(false, 1000 + i * 16), { aspect: 1 });
+  for (let i = 0; i < 5; i += 1) cam.update(world, camView(false, 1000 + i * 16), { aspect: 1, cssWidth: 1000 });
   assert(JSON.stringify(world) === before, 'the camera mutated the world it was handed');
 });
 
@@ -5526,13 +5531,13 @@ check('a still view arrives, and leaves the clock where it found it', () => {
   const cam = new api.Camera();
   cam.on = true;
 
-  cam.update(world, camView(false, 5000), { aspect: 1 });
+  cam.update(world, camView(false, 5000), { aspect: 1, cssWidth: 1000 });
   assert(cam.lastAt === 5000, 'an animated frame did not set the clock');
 
   // A still frame carries no clock. It must arrive at its target AND
   // leave `lastAt` alone -- storing 0 here is storing the sentinel that
   // means "never ran", so the next animated frame loses its dt.
-  cam.update(world, camView(true), { aspect: 1 });
+  cam.update(world, camView(true), { aspect: 1, cssWidth: 1000 });
   assert(cam.lastAt === 5000, `a still frame moved the clock to ${cam.lastAt}`);
 });
 
@@ -5541,7 +5546,8 @@ check('the camera reaches the renderer by the tile, never by a context scale', (
   const fn = body.slice(0, body.indexOf('\n  }'));
   assert(/this\.tile = this\.cssWidth \/ cam\.across/.test(fn), 'applyCamera no longer sets the tile');
   assert(/setTransform\(/.test(fn), 'applyCamera no longer lays down the pan');
-  // `this.tile` is what `fine = size >= 44` reads. Scaling the context
+  // `this.tile` is what every art dial is a fraction of -- it was also what
+  // the 44px `fine` gate read, until that was deleted. Scaling the context
   // would magnify the small-size drawing and leave `fine` reading the old
   // number: bigger cats still wearing their 31px detail.
   assert(!/ctx\.scale\(/.test(fn), 'applyCamera scales the context, which leaves `fine` blind to the zoom');
@@ -5599,7 +5605,7 @@ const camAt = (...spots) => ({
 const onCam = (world, view = camView()) => {
   const cam = new api.Camera();
   cam.on = true;
-  cam.update(world, view, { aspect: 1 });
+  cam.update(world, view, { aspect: 1, cssWidth: 1000 });
   return cam;
 };
 
@@ -5607,17 +5613,361 @@ check('nominal is a floor a huddled group cannot push through', () => {
   // Everyone on one tile: the fit collapses and nominal has to hold, or a
   // gathered clowder zooms until the meadow is two cats and a bowl.
   const cam = onCam(camAt([10, 10], [10, 10], [10, 10]));
-  assert(cam.across === api.VIEW.camera.nominalAcross, `huddled group sat at ${cam.across}`);
+  // The floor is now derived from the viewport: 1000 / floorPx(100) = 10
+  // tiles, which is EXACTLY the nominalAcross this test was written against.
+  // Asserted as the number rather than by calling limitsFor, so a change to
+  // the arithmetic goes red instead of agreeing with itself.
+  assert(cam.across === 10, `huddled group sat at ${cam.across}, not the 10-tile floor`);
 });
 
 check('the ceiling binds, and the wanderer is let go', () => {
   // Opposite corners of a 20-tile world: fitting both needs ~25 tiles.
   const cam = onCam(camAt([0, 0], [19, 19]));
-  const ceiling = api.VIEW.camera.nominalAcross * api.VIEW.camera.ceilingFactor;
-  assert(cam.across === ceiling, `scattered group sat at ${cam.across}, ceiling ${ceiling}`);
+  // 1000 / ceilingPx(50) = 20 tiles, clamped one tile below the 20-tile
+  // world so the camera still crops. That clamp is the whole of 037 FR-007:
+  // a ceiling AT the world would make camera-on and camera-off identical at
+  // full zoom-out and silently retire 036's FR-005.
+  assert(cam.across === 19, `scattered group sat at ${cam.across}, not the 19-tile ceiling`);
   // And the frame really is smaller than the world, which is what "let
   // her leave" means -- the roster accounts for whoever is off-screen.
   assert(cam.across < 20, 'the ceiling did not actually crop the world');
+});
+
+// The supported viewport range, swept the way FR-010 requires: 20px steps
+// from the smallest phone map to the 1200px cap, plus the widths the spec's
+// own Overview table names. One sweep, shared by every criterion below, so
+// they cannot silently disagree about what "supported" means.
+const ZOOM_SWEEP = (() => {
+  const widths = [];
+  for (let w = 340; w <= 1200; w += 20) widths.push(w);
+  for (const named of [460, 640, 1000]) if (!widths.includes(named)) widths.push(named);
+  return widths.sort((a, b) => a - b);
+})();
+const zoomWorld = { width: 20, height: 20, elements: [], kitties: [] };
+const zoomLimits = (w) => new api.Camera().limitsFor(zoomWorld, w);
+
+check('apparent size varies by less than a factor of 2 across the range', () => {
+  // SC-001, and the whole reason 037 exists. Reported as a NUMBER so a
+  // regression shows as a figure rather than a boolean.
+  const tiles = ZOOM_SWEEP.map((w) => w / zoomLimits(w).floorTiles);
+  assert(tiles.length >= 40, `the sweep only sampled ${tiles.length} widths`);
+  const spread = Math.max(...tiles) / Math.min(...tiles);
+  assert(spread < 2,
+    `floor tile spread is ${spread.toFixed(2)}x (${Math.min(...tiles).toFixed(1)}px to `
+    + `${Math.max(...tiles).toFixed(1)}px) -- the bar is under 2, and it was 3.53x before 037`);
+});
+
+check('the ceiling still crops on a world smaller than today\'s', () => {
+  // Every other sweep here varies cssWidth against a fixed 20-tile world, so
+  // nothing exercised the OTHER clamp. Found in review of PR #246: the floor
+  // was capped at world.width while the ceiling was capped one tile below,
+  // and the ceiling is then raised back to meet the floor -- so on a small
+  // enough world the floor saturates at the world's own width and drags the
+  // ceiling up with it. The camera then frames the whole world at every
+  // zoom, camera-on becomes pixel-identical to camera-off, and 036 FR-005
+  // and 037 FR-007 are both silently retired.
+  //
+  // Not reachable on today's 20x20 map -- MAP_MAX_PX caps cssWidth at 1200,
+  // so the floor tops out at 12 tiles -- which is exactly why no existing
+  // check saw it. Fog is expected to make the world BIGGER, but a spec that
+  // says "a world that is not 20 tiles" in its edge cases should hold in
+  // both directions.
+  const cam = new api.Camera();
+  for (const size of [6, 8, 10, 12, 14, 20, 40]) {
+    const small = { width: size, height: size };
+    for (const w of [340, 640, 1000, 1200]) {
+      const { floorTiles, ceilingTiles } = cam.limitsFor(small, w);
+      assert(ceilingTiles < size,
+        `a ${size}-tile world at ${w}px frames ${ceilingTiles} of ${size} -- the camera stopped cropping`);
+      assert(floorTiles <= ceilingTiles + 1e-9,
+        `a ${size}-tile world at ${w}px inverted: floor ${floorTiles}, ceiling ${ceilingTiles}`);
+      assert(floorTiles > 0 && Number.isFinite(floorTiles),
+        `a ${size}-tile world at ${w}px gave a floor of ${floorTiles}`);
+    }
+  }
+});
+
+check('the ceiling always crops, on every supported viewport', () => {
+  // SC-006. Expected to BIND at the large end on today's 20-tile world --
+  // that is the Fog dependency -- so this asserts the clamp holds, not that
+  // it never fires.
+  let clamped = 0;
+  for (const w of ZOOM_SWEEP) {
+    const { ceilingTiles } = zoomLimits(w);
+    assert(ceilingTiles < zoomWorld.width,
+      `at ${w}px the ceiling frames ${ceilingTiles} of a ${zoomWorld.width}-tile world`);
+    if (w / api.VIEW.camera.ceilingPx > ceilingTiles + 1e-9) clamped += 1;
+  }
+  // The clamp firing is expected; it firing NOWHERE would mean the world
+  // stopped being the binding constraint and this check went vacuous.
+  assert(clamped > 0, 'the world clamp never fired anywhere in the sweep');
+});
+
+check('the floor never frames fewer tiles than the minimum', () => {
+  // FR-005/FR-006/SC-005. Where the minimum binds, the kitties must be drawn
+  // SMALLER than the pixel target rather than the world being cropped
+  // further -- so the tile is under floorPx exactly where the clamp is on.
+  let bound = 0;
+  for (const w of ZOOM_SWEEP) {
+    const { floorTiles } = zoomLimits(w);
+    assert(floorTiles >= api.VIEW.camera.minTiles - 1e-9,
+      `at ${w}px the floor frames ${floorTiles}, under the ${api.VIEW.camera.minTiles}-tile minimum`);
+    if (floorTiles > w / api.VIEW.camera.floorPx + 1e-9) {
+      bound += 1;
+      assert(w / floorTiles < api.VIEW.camera.floorPx,
+        `at ${w}px the minimum binds but the tile is ${(w / floorTiles).toFixed(1)}px, `
+        + `not under the ${api.VIEW.camera.floorPx}px target`);
+    }
+  }
+  assert(bound > 0, 'the minimum never bound anywhere in the sweep');
+});
+
+check('the floor never crosses the ceiling', () => {
+  // FR-013 and contract invariant 5. They may MEET -- that viewport simply
+  // has no zoom range -- but an inversion would ask the camera to widen past
+  // its own floor.
+  //
+  // Swept with the SHIPPED dials this cannot fail: 100/50/6 keeps the two
+  // far apart everywhere in the supported range, so a check that only swept
+  // them would be green for a reason unrelated to the guard. Caught by
+  // mutation -- swapping the two pixel targets left this check silent while
+  // seven others fired. So it is asserted where the clamp is actually
+  // load-bearing: a minimum that reaches past the ceiling's own target.
+  for (const w of ZOOM_SWEEP) {
+    const { floorTiles, ceilingTiles } = zoomLimits(w);
+    assert(floorTiles <= ceilingTiles + 1e-9,
+      `at ${w}px the floor (${floorTiles}) is wider than the ceiling (${ceilingTiles})`);
+  }
+  // minTiles 12 with a 100px ceiling target: the floor is held at 12 tiles
+  // while the ceiling target asks for 4. Without the clamp the ceiling would
+  // come back NARROWER than the floor.
+  const squeezed = new api.Camera({ ...api.VIEW.camera, floorPx: 100, ceilingPx: 100, minTiles: 12 });
+  let met = 0;
+  for (const w of ZOOM_SWEEP) {
+    const { floorTiles, ceilingTiles } = squeezed.limitsFor(zoomWorld, w);
+    assert(floorTiles <= ceilingTiles + 1e-9,
+      `squeezed at ${w}px: floor ${floorTiles} is wider than ceiling ${ceilingTiles}`);
+    if (Math.abs(floorTiles - ceilingTiles) < 1e-9) met += 1;
+  }
+  assert(met > 0, 'the squeezed case never made the two meet, so the clamp was never exercised');
+});
+
+check('a resize produces continuous limits, with no jump at either boundary', () => {
+  // SC-009, swept in 1px steps across BOTH boundaries -- where minTiles
+  // starts binding and where the world clamp does. A jump here is a visible
+  // cut on a window drag, which 036 FR-008 forbids outright.
+  let prev = null;
+  let steps = 0;
+  for (let w = 300; w <= 1250; w += 1) {
+    const { floorTiles, ceilingTiles } = zoomLimits(w);
+    if (prev) {
+      // 1px of viewport can never move a limit by more than a small
+      // fraction of a tile; anything larger is a discontinuity.
+      assert(Math.abs(floorTiles - prev.floorTiles) < 0.05,
+        `the floor jumped ${Math.abs(floorTiles - prev.floorTiles).toFixed(3)} tiles at ${w}px`);
+      assert(Math.abs(ceilingTiles - prev.ceilingTiles) < 0.05,
+        `the ceiling jumped ${Math.abs(ceilingTiles - prev.ceilingTiles).toFixed(3)} tiles at ${w}px`);
+    }
+    prev = { floorTiles, ceilingTiles };
+    steps += 1;
+  }
+  assert(steps > 900, `the resize sweep only took ${steps} steps`);
+});
+
+check('applyCamera actually hands the camera its pixels', () => {
+  // The feature's ONE structural change is that render.js passes cssWidth
+  // into cam.update. Deleting that line is SILENT: `limitsFor` reads the
+  // missing value as "not laid out yet", returns the whole world, and the
+  // camera renders camera-off while claiming to be on. Verified by
+  // mutation, 2026-08-18 -- with the line removed, all 300 checks passed.
+  //
+  // This client has shipped inert wiring before (see the note in
+  // `applyCamera` about the tile assignment, and 036's axial-whip fix), so
+  // the guard is behavioural rather than a source-text match: a regex would
+  // pass on a line that computed the wrong number.
+  const cam = new api.Camera();
+  cam.on = true;
+  const world = camAt([9, 10], [10, 10], [11, 10]); // huddled: the fit sits ON the floor
+  const stub = {
+    camera: cam,
+    cssWidth: 1000,
+    cssHeight: 1000,
+    ctx: { setTransform() {} },
+  };
+  WorldRenderer.prototype.applyCamera.call(stub, world, camView(false, 1000), 1);
+  assert(cam.across === 10,
+    `applyCamera left the camera at ${cam.across} tiles, not the 10-tile floor a `
+    + `1000px map derives -- ${cam.across === world.width ? 'it framed the WHOLE WORLD, '
+      + 'which is what a dropped cssWidth looks like' : 'the derivation is wrong'}`);
+  // And the tile it hands the renderer really is the pixel target.
+  assert(stub.tile === api.VIEW.camera.floorPx,
+    `the renderer got a ${stub.tile}px tile, not the ${api.VIEW.camera.floorPx}px target`);
+});
+
+check('a resize mid-ease moves the target without cutting the movement', () => {
+  // SC-010. The easing itself is 036's and unchanged -- but 037 is what makes
+  // the TARGET depend on cssWidth, so this case only became reachable with
+  // this feature and had never been exercised (found by /speckit-converge).
+  //
+  // The failure it guards is a CUT: 036 FR-008 forbids the camera jumping,
+  // and a resize is the one event that can move the width target by several
+  // tiles at once.
+  const cam = new api.Camera();
+  cam.on = true;
+  // Two kitties on adjacent tiles: the fit asks for 6.2 tiles, which is under
+  // the floor at BOTH widths, so the floor is what governs and the target is
+  // a clean function of cssWidth. A looser group makes the FIT govern at the
+  // narrow end (7.2 tiles at 640px) and the test measures the wrong thing --
+  // which is exactly what the first draft of this check did.
+  const world = camAt([10, 10], [10, 11]);
+  cam.update(world, camView(false, 0), { aspect: 1, cssWidth: 1000 });
+  const settled = cam.across;
+  assert(settled === 10, `setup: expected the 1000px floor of 10, got ${settled}`);
+
+  // The window narrows to 640: the floor becomes max(6.4, 6) = 6.4.
+  const wanted = 6.4;
+  cam.update(world, camView(false, 16.67), { aspect: 1, cssWidth: 640 });
+  assert(cam.across < settled,
+    `the camera ignored the resize and stayed at ${cam.across}`);
+  assert(cam.across > wanted,
+    `the camera CUT to ${cam.across} instead of easing toward ${wanted}`);
+
+  // And it does arrive, rather than easing toward it forever.
+  for (let i = 2; i < 400; i += 1) {
+    cam.update(world, camView(false, i * 16.67), { aspect: 1, cssWidth: 640 });
+  }
+  assert(Math.abs(cam.across - wanted) < 0.01,
+    `after 400 frames the camera sat at ${cam.across}, not the new ${wanted} floor`);
+});
+
+check('the limits follow the viewport on the SAME camera, not just a fresh one', () => {
+  // FR-015: derived from the viewport as it is when the camera decides a
+  // frame, never from a measurement taken earlier. `limitsFor`'s own comment
+  // warns against caching the pair on the instance -- and every other check
+  // here builds a FRESH Camera per width, so a per-instance cache would
+  // satisfy all of them (found by /speckit-converge).
+  const cam = new api.Camera();
+  const world = { width: 20, height: 20 };
+  const wide = cam.limitsFor(world, 1000);
+  const narrow = cam.limitsFor(world, 640);
+  assert(wide.floorTiles !== narrow.floorTiles,
+    `the same camera reported floor ${wide.floorTiles} at both 1000px and 640px -- the pair is cached`);
+  assert(wide.ceilingTiles !== narrow.ceilingTiles,
+    `the same camera reported ceiling ${wide.ceilingTiles} at both widths -- the pair is cached`);
+  // Back again, so a cache that merely lags by one call is caught too.
+  const again = cam.limitsFor(world, 1000);
+  assert(again.floorTiles === wide.floorTiles && again.ceilingTiles === wide.ceilingTiles,
+    'the same viewport gave different limits on a second ask');
+});
+
+check('a cat is the same cat at every size', () => {
+  // SC-003: fine detail cannot change state at any size, because the 44px
+  // gate was deleted. Three files carried that gate -- cat-v2.js, props.js,
+  // meadow.js -- and only the flowers were guarded (test-meadow). This is the
+  // cats' half; the props' half is in test-meadow beside the flowers'.
+  //
+  // Asserted on the SHAPE of the command stream: same sequence of operations
+  // at any size, only the coordinates differing. A returning gate changes the
+  // shape and fires here instead of shipping quietly.
+  const shapeAt = (size) => {
+    const log = [];
+    CatV2.drawCat(guardCtx(log), {
+      pose: 'idle',
+      appearance: CatV2.appearanceFor(3),
+      facing: 'right',
+      size,
+      phase: 0.3,
+    });
+    return log.map((e) => (e[0] === 'set' ? `set:${e[1]}` : e[0])).join(',');
+  };
+  const small = shapeAt(20);
+  assert(small.length > 0, 'nothing was drawn at all');
+  for (const size of [21, 43, 44, 100]) {
+    assert(shapeAt(size) === small,
+      `a cat draws a different SHAPE at ${size}px than at 20px -- a size gate is back`);
+  }
+});
+
+check('the 1000px floor is the 10 tiles that shipped', () => {
+  // 037's Foundational is NOT an identity change -- the ceiling moves on
+  // purpose. But the FLOOR must reproduce the shipped behaviour at the one
+  // width where the old constant and the new target agree: 1000 / 100 = 10,
+  // which is exactly the nominalAcross that shipped. If the floor's
+  // arithmetic is wrong this is where it shows, uncontaminated by the
+  // ceiling deliberately moving.
+  const cam = new api.Camera();
+  const { floorTiles, ceilingTiles } = cam.limitsFor({ width: 20, height: 20 }, 1000);
+  assert(floorTiles === 10, `floor is ${floorTiles} tiles at a 1000px map, not 10`);
+  assert(ceilingTiles === 19, `ceiling is ${ceilingTiles}, not the world's 20 less one`);
+  // And the floor really is the pixel target, which is the whole point.
+  assert(1000 / floorTiles === api.VIEW.camera.floorPx,
+    `the floor tile is ${1000 / floorTiles}px, not the ${api.VIEW.camera.floorPx}px target`);
+});
+
+check('a viewport of zero still produces a usable frame', () => {
+  // FR-014, and not hypothetical: the map has no width until the page has
+  // laid out, so the FIRST FRAME of every session arrives here. Every limit
+  // divides by or multiplies against cssWidth, so an unguarded zero makes
+  // the whole frame non-finite and the canvas transform throws.
+  const cam = new api.Camera();
+  cam.on = true;
+  const world = camAt([9, 9], [11, 11]);
+  for (const bad of [0, -1, NaN, Infinity, undefined, null]) {
+    const { floorTiles, ceilingTiles } = cam.limitsFor(world, bad);
+    assert(Number.isFinite(floorTiles) && floorTiles > 0,
+      `cssWidth ${bad} gave a floor of ${floorTiles}`);
+    assert(Number.isFinite(ceilingTiles) && ceilingTiles > 0,
+      `cssWidth ${bad} gave a ceiling of ${ceilingTiles}`);
+    const fresh = new api.Camera();
+    fresh.on = true;
+    fresh.update(world, camView(false, 1000), { aspect: 1, cssWidth: bad });
+    assert(Number.isFinite(fresh.across) && fresh.across > 0,
+      `cssWidth ${bad} gave across ${fresh.across}`);
+    assert(Number.isFinite(fresh.left) && Number.isFinite(fresh.top),
+      `cssWidth ${bad} put the frame at ${fresh.left},${fresh.top}`);
+  }
+});
+
+check('the fit, the anchor and the bake read ONE derivation', () => {
+  // contracts/zoom.md invariant 2. If `bound` compared against a different
+  // ceiling than the fit clamps to, the anchor would take over at a width
+  // the camera never reaches: invisible to the eye, and the aim would jump
+  // to one kitty while the frame was still sized to hold everybody.
+  //
+  // Asserted as an IMPLICATION rather than by recomputing the span here --
+  // duplicating the span maths would just agree with a broken copy of it.
+  const cam = new api.Camera();
+  cam.on = true;
+  const world = { width: 20, height: 20, elements: [], kitties: [] };
+  const { floorTiles, ceilingTiles } = cam.limitsFor(world, 1000);
+  let sawBound = 0;
+  let sawFree = 0;
+  for (let gap = 0; gap <= 19; gap += 1) {
+    const w = camAt([Math.max(0, 10 - Math.floor(gap / 2)), 10],
+                    [Math.min(19, 10 + Math.ceil(gap / 2)), 10]);
+    const want = cam.targetFor(w, null, 1, 1000);
+    if (want.bound) {
+      sawBound += 1;
+      assert(Math.abs(want.across - ceilingTiles) < 1e-9,
+        `bound at gap ${gap} but the fit sat at ${want.across}, not the ${ceilingTiles} ceiling`);
+    } else {
+      sawFree += 1;
+      assert(want.across <= ceilingTiles + 1e-9 && want.across >= floorTiles - 1e-9,
+        `unbound at gap ${gap} with across ${want.across} outside [${floorTiles}, ${ceilingTiles}]`);
+    }
+  }
+  // A sweep that never reached either state would pass while proving
+  // nothing, which is the vacuous green rule 6 names.
+  assert(sawBound > 0 && sawFree > 0,
+    `the sweep only ever saw one state: ${sawFree} free, ${sawBound} bound`);
+
+  // And the ground bake keys on that same floor, so it can never be keyed
+  // to a tile the camera never draws.
+  const baked = WorldRenderer.prototype.bakeTileFor.call(
+    { cssWidth: 1000, dpr: 1, camera: cam }, world,
+  );
+  assert(baked === 1000 / floorTiles,
+    `the bake used ${baked}px, not the floor's ${1000 / floorTiles}px`);
 });
 
 check('a fit that binds keeps every kitty clear of the frame edge', () => {
@@ -5625,9 +5975,10 @@ check('a fit that binds keeps every kitty clear of the frame edge', () => {
   // nobody is drawn flush against the edge.
   const world = camAt([7, 9], [13, 11]);
   const cam = onCam(world);
-  const ceiling = api.VIEW.camera.nominalAcross * api.VIEW.camera.ceilingFactor;
-  assert(cam.across > api.VIEW.camera.nominalAcross && cam.across < ceiling,
-    `wanted the fit to govern, got ${cam.across}`);
+  // Floor 10 (1000/100), ceiling 19 (1000/50 = 20, clamped one tile below
+  // the 20-tile world so the camera still crops -- 037 FR-007).
+  assert(cam.across > 10 && cam.across < 19,
+    `wanted the fit to govern between 10 and 19, got ${cam.across}`);
   for (const k of world.kitties) {
     const x = k.pos.x + 0.5;
     const y = k.pos.y + 0.5;
@@ -5647,7 +5998,7 @@ check('the frame always holds somebody, even at the world\'s corner', () => {
     const cam = new api.Camera();
     cam.on = true;
     cam.followId = 1; // force the corner kitty to be the aim
-    cam.update(world, camView(), { aspect: 1 });
+    cam.update(world, camView(), { aspect: 1, cssWidth: 1000 });
     const held = world.kitties.filter((k) => {
       const x = k.pos.x + 0.5;
       const y = k.pos.y + 0.5;
@@ -5723,7 +6074,7 @@ check('the anchor holds until another kitty is clearly more central', () => {
     // Two kitties drifting past each other through the centre of mass.
     const world = camAt([10 - step * 0.0, 10], [10, 10]);
     world.kitties[0].pos = { x: 9 + step * 0.1, y: 10 };
-    cam.update(world, camView(false, 1000 + step * 16), { aspect: 1 });
+    cam.update(world, camView(false, 1000 + step * 16), { aspect: 1, cssWidth: 1000 });
     if (last !== null && cam.anchorId !== last) flips += 1;
     last = cam.anchorId;
   }
@@ -5756,9 +6107,9 @@ check('the anchor survives a challenger twice as central', () => {
   });
   const cam = new api.Camera();
   cam.on = true;
-  cam.update(world(10, 7, 13), camView(false, 1000), { aspect: 1 });
+  cam.update(world(10, 7, 13), camView(false, 1000), { aspect: 1, cssWidth: 1000 });
   assert(cam.anchorId === 1, `setup: expected kitty 1 to anchor, got ${cam.anchorId}`);
-  cam.update(world(12, 9, 9), camView(false, 1016), { aspect: 1 });
+  cam.update(world(12, 9, 9), camView(false, 1016), { aspect: 1, cssWidth: 1000 });
   assert(
     cam.anchorId === 1,
     `the anchor jumped to ${cam.anchorId} against a challenger only 2x more central`,
@@ -5772,12 +6123,12 @@ check('easing settles at the same real speed on 60Hz and 120Hz', () => {
   const run = (frameMs) => {
     const cam = new api.Camera();
     cam.on = true;
-    cam.update(world, camView(false, 0), { aspect: 1 }); // first frame arrives
+    cam.update(world, camView(false, 0), { aspect: 1, cssWidth: 1000 }); // first frame arrives
     cam.aimX = 15; // shove it away, then let it come back
     let t = 0;
     for (let i = 0; i < Math.round(500 / frameMs); i += 1) {
       t += frameMs;
-      cam.update(world, camView(false, t), { aspect: 1 });
+      cam.update(world, camView(false, t), { aspect: 1, cssWidth: 1000 });
     }
     return cam.aimX;
   };
@@ -5791,9 +6142,9 @@ check('the camera never cuts, however far the target jumps', () => {
   // must not drag the camera with her in one frame.
   const cam = new api.Camera();
   cam.on = true;
-  cam.update(camAt([2, 2], [3, 3]), camView(false, 0), { aspect: 1 });
+  cam.update(camAt([2, 2], [3, 3]), camView(false, 0), { aspect: 1, cssWidth: 1000 });
   const before = cam.aimX;
-  cam.update(camAt([18, 18], [17, 17]), camView(false, 16.67), { aspect: 1 });
+  cam.update(camAt([18, 18], [17, 17]), camView(false, 16.67), { aspect: 1, cssWidth: 1000 });
   const moved = Math.abs(cam.aimX - before);
   assert(moved > 0, 'the camera did not follow at all');
   assert(moved < 3, `the camera jumped ${moved.toFixed(1)} tiles in one frame`);
@@ -5805,7 +6156,7 @@ check('the camera holds still while the group only fidgets', () => {
   // every tick, so the camera never once came to rest.
   const cam = new api.Camera();
   cam.on = true;
-  cam.update(camAt([9, 10], [11, 10], [10, 11]), camView(false, 0), { aspect: 1 });
+  cam.update(camAt([9, 10], [11, 10], [10, 11]), camView(false, 0), { aspect: 1, cssWidth: 1000 });
   const settled = { x: cam.aimX, y: cam.aimY };
   // A kitty shuffles a tile and back, twice. Inside the deadzone this is
   // beneath the camera's notice.
@@ -5813,7 +6164,7 @@ check('the camera holds still while the group only fidgets', () => {
   for (const spots of [[[9, 10], [11, 10], [10, 12]], [[9, 10], [11, 10], [10, 11]],
                        [[9, 11], [11, 10], [10, 11]], [[9, 10], [11, 10], [10, 11]]]) {
     t += 16.67;
-    cam.update(camAt(...spots), camView(false, t), { aspect: 1 });
+    cam.update(camAt(...spots), camView(false, t), { aspect: 1, cssWidth: 1000 });
   }
   assert(cam.aimX === settled.x && cam.aimY === settled.y,
     `the camera chased a fidget from ${settled.x},${settled.y} to ${cam.aimX},${cam.aimY}`);
@@ -5823,12 +6174,12 @@ check('but it follows the group when the group actually goes somewhere', () => {
   // The deadzone must not become a cage: a real move has to move the camera.
   const cam = new api.Camera();
   cam.on = true;
-  cam.update(camAt([3, 3], [4, 4], [3, 4]), camView(false, 0), { aspect: 1 });
+  cam.update(camAt([3, 3], [4, 4], [3, 4]), camView(false, 0), { aspect: 1, cssWidth: 1000 });
   const from = cam.aimX;
   let t = 0;
   for (let i = 0; i < 200; i += 1) {
     t += 16.67;
-    cam.update(camAt([15, 15], [16, 16], [15, 16]), camView(false, t), { aspect: 1 });
+    cam.update(camAt([15, 15], [16, 16], [15, 16]), camView(false, t), { aspect: 1, cssWidth: 1000 });
   }
   assert(cam.aimX > from + 8, `the camera only reached ${cam.aimX.toFixed(1)} from ${from.toFixed(1)}`);
 });
@@ -5850,7 +6201,7 @@ check('a followed kitty is the anchor, whatever the group is doing', () => {
   const cam = new api.Camera();
   cam.on = true;
   cam.followId = 1; // the outlier, the anchor rule would never pick her
-  cam.update(world, camView(), { aspect: 1 });
+  cam.update(world, camView(), { aspect: 1, cssWidth: 1000 });
   assert(cam.anchorId === 1, `anchor is ${cam.anchorId}, not the followed kitty`);
   assert(cam.aimX === 2.5 && cam.aimY === 2.5, `aim sat at ${cam.aimX},${cam.aimY}`);
 });
@@ -5863,7 +6214,7 @@ check('following moves the aim and nothing else', () => {
   const cam = new api.Camera();
   cam.on = true;
   cam.followId = 1;
-  cam.update(world, camView(), { aspect: 1 });
+  cam.update(world, camView(), { aspect: 1, cssWidth: 1000 });
   assert(cam.across === loose.across, `following changed the width ${loose.across} -> ${cam.across}`);
 });
 
@@ -5874,7 +6225,7 @@ check('a followed kitty who leaves the roster is let go, camera untouched', () =
   const cam = new api.Camera();
   cam.on = true;
   cam.followId = 99;
-  cam.update(camAt([10, 10], [11, 11]), camView(), { aspect: 1 });
+  cam.update(camAt([10, 10], [11, 11]), camView(), { aspect: 1, cssWidth: 1000 });
   assert(cam.followId === null, 'a follow on a kitty who is not here survived');
   assert(cam.on === true, 'dropping the follow turned the camera off');
   assert(cam.anchorId !== null, 'the camera failed to fall back to the group');
@@ -5887,12 +6238,12 @@ check('the toggle never releases a follow', () => {
   const cam = new api.Camera();
   cam.on = true;
   cam.followId = 1;
-  cam.update(world, camView(false, 0), { aspect: 1 });
+  cam.update(world, camView(false, 0), { aspect: 1, cssWidth: 1000 });
   cam.on = false;
-  cam.update(world, camView(false, 16), { aspect: 1 });
+  cam.update(world, camView(false, 16), { aspect: 1, cssWidth: 1000 });
   assert(cam.followId === 1, 'turning the camera off released the follow');
   cam.on = true;
-  cam.update(world, camView(false, 32), { aspect: 1 });
+  cam.update(world, camView(false, 32), { aspect: 1, cssWidth: 1000 });
   assert(cam.anchorId === 1, 'turning the camera back on lost the followed kitty');
 });
 
@@ -6056,17 +6407,24 @@ check('a still frame is the same moment again, not a jump forward', () => {
   const far = camAt([2, 2], [3, 3]);
   const cam = new api.Camera();
   cam.on = true;
-  cam.update(near, camView(false, 0), { aspect: 1 });
-  cam.update(far, camView(false, 16.67), { aspect: 1 }); // one eased step toward far
+  cam.update(near, camView(false, 0), { aspect: 1, cssWidth: 1000 });
+  cam.update(far, camView(false, 16.67), { aspect: 1, cssWidth: 1000 }); // one eased step toward far
   const mid = { x: cam.aimX, y: cam.aimY, across: cam.across };
 
-  cam.update(far, camView(true), { aspect: 1 });
+  cam.update(far, camView(true), { aspect: 1, cssWidth: 1000 });
   assert(cam.aimX === mid.x && cam.aimY === mid.y,
     `a still frame moved the aim from ${mid.x},${mid.y} to ${cam.aimX},${cam.aimY}`);
   assert(cam.across === mid.across, `a still frame moved the width to ${cam.across}`);
 
   // And it must still be mid-journey, or the assertion above is vacuous.
-  const want = cam.targetFor(far, null, 1);
+  // cssWidth MUST match what drove the camera: without it `limitsFor` reads
+  // the missing value as "not laid out yet" and `want` comes back derived
+  // from the WHOLE-WORLD limits (20 tiles) instead of 10/19. Harmless today
+  // -- both worlds are compact enough that `bound` is false either way, so
+  // the aim is the centre of mass regardless -- but the aim switches to the
+  // anchor once `bound` flips, and a looser world would make this compare
+  // against the wrong target in silence.
+  const want = cam.targetFor(far, null, 1, 1000);
   assert(Math.abs(cam.aimX - want.aimX) > 0.5, 'the camera had already arrived, so nothing was proved');
 });
 
@@ -6077,9 +6435,9 @@ check('reduced motion arrives instead, because it gets no other frames', () => {
   const cam = new api.Camera();
   cam.on = true;
   cam.reduced = true;
-  cam.update(camAt([15, 15], [16, 16]), camView(true), { aspect: 1 });
-  cam.update(world, camView(true), { aspect: 1 });
-  const want = cam.targetFor(world, null, 1);
+  cam.update(camAt([15, 15], [16, 16]), camView(true), { aspect: 1, cssWidth: 1000 });
+  cam.update(world, camView(true), { aspect: 1, cssWidth: 1000 });
+  const want = cam.targetFor(world, null, 1, 1000);
   // Through the deadzone -- declining to chase a fidget is not motion.
   assert(Math.hypot(cam.aimX - want.aimX, cam.aimY - want.aimY) <= api.VIEW.camera.aimDeadzoneTiles + 1e-9,
     `reduced motion did not arrive: ${cam.aimX},${cam.aimY} vs ${want.aimX},${want.aimY}`);
@@ -6093,8 +6451,8 @@ check('a tab returning after a minute cannot cut', () => {
   const world = camWorld();
   const cam = new api.Camera();
   cam.on = true;
-  cam.update(world, camView(false, 1000), { aspect: 1 });
-  cam.update(world, camView(true), { aspect: 1 }); // the redraw on return
+  cam.update(world, camView(false, 1000), { aspect: 1, cssWidth: 1000 });
+  cam.update(world, camView(true), { aspect: 1, cssWidth: 1000 }); // the redraw on return
   assert(cam.lastAt === 1000, 'the still redraw swallowed the gap');
 
   const dt = cam.dtFor(camView(false, 61_000));
@@ -6108,8 +6466,11 @@ check('every camera requirement holds at 3, 4 and 5 kitties', () => {
   // sits at the zoom floor most of the time and a 5-kitty one is what
   // exercises the ceiling, so a bug that only shows at one size is
   // exactly what this is for.
-  const D = api.VIEW.camera;
-  const CEIL = D.nominalAcross * D.ceilingFactor;
+  // Derived from cssWidth 1000 on a 20-tile world: floor 1000/100 = 10,
+  // ceiling min(1000/50, 20-1) = 19. Written out rather than read back from
+  // limitsFor, so the sweep cannot agree with a broken derivation.
+  const FLOOR = 10;
+  const CEIL = 19;
   let checked = 0;
   for (const count of [3, 4, 5]) {
     // Deterministic pseudo-random walks: same worlds every run, so a
@@ -6128,10 +6489,10 @@ check('every camera requirement holds at 3, 4 and 5 kitties', () => {
         k.pos.y = Math.max(0, Math.min(19, k.pos.y + Math.round(rnd() * 2 - 1)));
       }
       const world = { width: 20, height: 20, elements: [], kitties };
-      cam.update(world, camView(false, step * 16.67), { aspect: 1 });
+      cam.update(world, camView(false, step * 16.67), { aspect: 1, cssWidth: 1000 });
       checked += 1;
 
-      assert(cam.across >= D.nominalAcross - 1e-9, `${count} kitties: across ${cam.across} below the floor`);
+      assert(cam.across >= FLOOR - 1e-9, `${count} kitties: across ${cam.across} below the floor`);
       assert(cam.across <= CEIL + 1e-9, `${count} kitties: across ${cam.across} above the ceiling`);
       assert(Number.isFinite(cam.aimX) && Number.isFinite(cam.aimY), `${count} kitties: aim went non-finite`);
       // FR-029: never a pixel of ground the world does not have.

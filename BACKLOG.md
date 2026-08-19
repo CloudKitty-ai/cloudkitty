@@ -28,6 +28,84 @@ mismatched every frame and rebaked the whole ground at 60fps (the note lives
 in `resizeFor`). Pick it up when the ground cache is open anyway — camera
 mode (spec 036) reworks it to bake at a camera tile.
 
+### The ground bake outruns its budget at high dpr (added 2026-08-18; Client thread)
+
+`bakeTileFor`'s comment and 037's contract invariant 6 both promise every
+per-frame ground blit is a downscale. **It is not, above dpr ~2.05**, and it
+was not before 037 either. `GROUND_BAKE_MAX_PX` is 4096 **device** px, so the
+budget is `4096 / dpr`; a 100px floor tile on a 20-tile world wants a 2000 CSS
+px bake and gets clamped to 1365 at dpr 3, leaving `this.tile / bakeTile` at
+1.46x — a magnified ground under crisp vector cats, in steady state at the zoom
+floor.
+
+`tile / bakeTile`, main → this branch:
+
+| map | dpr 2 | dpr 2.625 | dpr 3 |
+|---|---|---|---|
+| 620px | 1.00 → 1.00 | 1.00 → **1.28** | 1.00 → **1.46** |
+| 1000px | 1.00 → 1.00 | 1.28 → 1.28 | 1.46 → 1.46 |
+| 1200px | **1.17 → 1.00** | **1.54 → 1.28** | **1.76 → 1.46** |
+
+037 **improves the worst case** (1.76 → 1.46, because the floor tile stops
+growing with the display) and **widens the affected band downward** — from maps
+≥800px to ≥460px at dpr 3. Offscreen memory grows with it: a 620px map at dpr 2
+goes 25 MB → 64 MB.
+
+Three ways out, none of them free:
+
+- **Cap the camera's floor by the bake budget** — never zoom in past the tile
+  the cache can carry at this dpr. Keeps the invariant honest at the cost of a
+  little zoom on high-dpr displays, and couples two things that are currently
+  independent.
+- **Raise `GROUND_BAKE_MAX_PX`.** 4096 is a conservative texture bound; the
+  memory is the real cost, and 64 MB of offscreen is already sizeable.
+- **Accept it and say so.** The clamp's own comment already budgeted for
+  "magnifies slightly" — this is that, at a magnitude nobody measured. Both
+  docs now state the caveat rather than the promise.
+
+**No camera-on test exercises dpr > 2** (`test-motion.mjs` pins dpr 2 at
+cssWidth 1200, which is the one combination that just clears the budget), so
+whichever way this goes it wants a check that varies dpr.
+
+Found in review of PR #246. Not a 037 remediation — it spans 036's cache design
+and 037's floor, and the fix is a decision rather than a repair.
+
+### Camera logic: what it aims at, and the trip in between (added 2026-08-18; Client thread)
+
+Owner's call, 2026-08-18: **accepted as-is for spec 037, dialled when camera
+logic is improved.** Not to be implemented alongside 037.
+
+Under 037's pixel ceiling a 340px map frames ~6.8 tiles while the clowder
+spans a median 16.2, so a phone shows **2.81 of 5 kitties** against 4.12
+today, and sees all five 5% of the time against 44%. It also draws **3 empty
+frames per 1500 ticks**, which 036 SC-005 says never happens. Measured in
+`client-measurements/037-zoom/sc006-2026-08-18.md`.
+
+The cause is precise and worth not re-deriving: **the target frame is never
+empty — the easing is.** 0 empty targets against 3 empty eased frames. The
+anchor guarantees a kitty where the camera is heading, and 036 FR-008 forbids
+cutting so it must travel there; once the frame is ~7 tiles the trip between
+two anchors crosses more empty grass than the frame is wide.
+
+Owner's directions, to investigate rather than take as settled:
+
+- **Aim at the largest group when not following**, rather than at the kitty
+  nearest the centre of mass. Today's anchor is a centrality choice
+  (`anchorFor`), not a cluster choice, and on a split clowder the most central
+  kitty can be the one standing alone between two groups.
+- **Cut, rather than pan, between groups.** This is the easy fix for the empty
+  frame — and note it **contradicts 036 FR-008 as written** ("The camera MUST
+  NOT cut. Every change of aim and of width is eased"). That is not a blocker,
+  it is a requirement to amend deliberately: the client already has precedent
+  for a deliberate discontinuity in `Presentation.pushState`, which treats a
+  >1-tile move or a non-consecutive tick as a jump rather than easing a lie.
+  Whoever picks this up should amend FR-008 with the exception rather than
+  quietly ship a cut against it.
+
+Not to be confused with the anchor **hysteresis**, which was a different
+small-viewport fault (restlessness, 036 SC-006) and is fixed — 1.5 → 2.5 in
+PR #245.
+
 ### Connect-time frame backlog — SPEC PARKED (added 2026-08-15; Product thread)
 Spec 032 is written, decisions settled, implementation deliberately parked
 (owner). The live socket gains an opt-in connect-time backlog of recent

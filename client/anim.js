@@ -111,8 +111,21 @@ const VIEW = Object.freeze({
   // Every number here is a starting point to be judged in motion at the
   // live size, not a result. The rates are kitten.me's.
   camera: Object.freeze({
-    nominalAcross: 10, // tiles across at the narrowest -- 2x on a 20-tile world
-    ceilingFactor: 1.5, // may widen to 15 tiles, then it stops fitting
+    // The zoom band, in PIXELS (spec 037). These two are a RATIO, not two
+    // independent numbers: the zoom range is floorPx / ceilingPx, so moving
+    // either one moves it and they are dialled as a pair. Judged in the
+    // gallery-v2.html band card and pasted by the owner 2026-08-18.
+    //
+    // They SHOULD be independent, and are not yet -- per-platform deviation
+    // is already visible at the small end and a client-controlled zoom would
+    // need them to move separately (037 FR-003). Anything that later
+    // decouples them is an improvement, not a regression.
+    floorPx: 100, // zoom IN until a tile is about this big
+    ceilingPx: 50, // widen until a tile would fall below this
+    minTiles: 6, // ...but never frame fewer tiles than this, so a small
+    // viewport shows a scene rather than a keyhole. Where it binds the
+    // kitties are drawn SMALLER than floorPx rather than the world being
+    // cropped further (037 FR-006).
     fitMarginTiles: 2.6, // clear space beyond the outermost kitty
     panRate: 0.06, // per-frame at 60Hz, corrected for real frame rate
     zoomRate: 0.05, // slower than the pan, so width lags the aim slightly
@@ -1988,7 +2001,9 @@ function clampFrame(edge, worldSpan, frameSpan) {
  * It reports where to look in WORLD TILES and how many of them fit across.
  * The renderer turns that into a tile size and a pan -- see `draw`. Scale
  * arrives by moving `renderer.tile`, never by scaling the context, because
- * `tile` is the size every art threshold reads (`fine = size >= 44` above
+ * `tile` is the size every art value is a fraction of (it was also what the
+ * 44px `fine` gate read, until that gate was deleted 2026-08-18 -- the
+ * invariant outlived its most-cited example and still holds, above
  * all) and camera mode exists to cross exactly that threshold.
  *
  * `update` is called from inside `renderer.draw`, which is what makes the
@@ -2036,10 +2051,67 @@ class Camera {
   }
 
   /**
+   * The two limits, in TILES, derived from the viewport (spec 037).
+   *
+   * ONE derivation, deliberately: the fit clamps to this pair, the `bound`
+   * predicate compares against this ceiling, and the ground bake keys on
+   * this floor. If `bound` compared against a different ceiling than the fit
+   * clamped to, the anchor would engage at a width the camera never reaches
+   * -- invisible to the eye (contracts/zoom.md invariant 2).
+   *
+   * One FUNCTION, not one call: `targetFor` and `bakeTileFor` each ask, so
+   * this runs twice a frame. That is deliberate and safe because it is pure
+   * in (world.width, cssWidth, dials) -- two callers cannot disagree. Do not
+   * "optimise" it into cached state on the instance: a cache would have to
+   * be invalidated on resize, and a stale one reintroduces exactly the
+   * disagreement the single derivation exists to prevent.
+   *
+   * The floor is the tile size the camera zooms IN to; the ceiling is the
+   * smallest tile it will widen to. Expressed in pixels, the zoom range
+   * becomes their ratio and stops varying with the window.
+   */
+  limitsFor(world, cssWidth) {
+    const d = this.dials;
+    // A viewport of zero or NaN must still produce a usable frame (FR-014).
+    // This is not hypothetical: the map has no width until the page has laid
+    // out, so the FIRST FRAME of every session arrives here, and every limit
+    // below divides by or multiplies against it. The whole world is the
+    // honest answer -- it is what the camera shows while it is off.
+    if (!Number.isFinite(cssWidth) || cssWidth <= 0) {
+      return { floorTiles: world.width, ceilingTiles: world.width };
+    }
+    // The minimum raises the floor; the world caps it. Both clamps are
+    // continuous in cssWidth, which is what makes a resize across either
+    // boundary produce no jump (FR-017, SC-009).
+    //
+    // The floor is capped one tile below the world for the SAME reason the
+    // ceiling is, and it has to be: the ceiling is raised back to meet the
+    // floor (FR-013), so a floor allowed to reach the world's width drags
+    // the ceiling with it and the camera stops cropping at every zoom.
+    // Capping only the ceiling looked sufficient and was not -- on a
+    // 10-tile world both limits came back at 10. Found in review of PR
+    // #246; unreachable on today's 20x20 map, which is why no sweep saw it.
+    const edge = Math.max(world.width - 1, 1);
+    const floorTiles = Math.min(Math.max(cssWidth / d.floorPx, d.minTiles), edge);
+    // Strictly BELOW the world, so the camera always crops and 036's FR-005
+    // -- let a wanderer leave rather than shrink everyone -- survives. The
+    // spec's data model writes this bound as `world.width - epsilon` and
+    // leaves epsilon unset; one whole tile is the smallest crop anybody can
+    // see, and a sub-tile crop would satisfy the letter of SC-006 while
+    // meaning nothing. Only binds on a world this small: at 40x40 the
+    // ceiling target never reaches the edge.
+    const ceilingTiles = Math.max(
+      Math.min(cssWidth / d.ceilingPx, edge),
+      floorTiles, // may MEET the floor on a tiny viewport, never cross it (FR-013)
+    );
+    return { floorTiles, ceilingTiles };
+  }
+
+  /**
    * Where the camera wants to be, before easing. Split out so the wanting
    * and the getting-there stay separately testable.
    */
-  targetFor(world, view, aspect = 1) {
+  targetFor(world, view, aspect = 1, cssWidth = null) {
     const whole = {
       across: world.width,
       aimX: world.width / 2,
@@ -2082,13 +2154,12 @@ class Camera {
     // The frame carries the canvas's aspect, so fitting the vertical costs
     // MORE width than the vertical span itself on a wide canvas.
     const spanY = (maxY - minY + 2 * d.fitMarginTiles) / (aspect || 1);
-    // Nominal is a floor, so a huddled group does not zoom past comfort;
-    // the ceiling is where the camera stops fitting and lets a wanderer
-    // leave, rather than shrinking everyone to keep her.
-    const across = Math.min(
-      Math.max(spanX, spanY, d.nominalAcross),
-      d.nominalAcross * d.ceilingFactor,
-    );
+    // The floor stops a huddled group zooming past comfort; the ceiling is
+    // where the camera stops fitting and lets a wanderer leave, rather than
+    // shrinking everyone to keep her. Both come from the viewport now, not
+    // from a tile count -- "nominal" was FR-003's word and 037 removed it.
+    const { floorTiles, ceilingTiles } = this.limitsFor(world, cssWidth);
+    const across = Math.min(Math.max(spanX, spanY, floorTiles), ceilingTiles);
 
     const com = { x: sumX / kitties.length, y: sumY / kitties.length };
 
@@ -2119,7 +2190,8 @@ class Camera {
     // needs a point instead. That point is the anchor: an occupied tile,
     // inside the largest cluster, because the box's midpoint and the
     // centre of mass are both usually empty grass (FR-006).
-    const bound = Math.max(spanX, spanY) > d.nominalAcross * d.ceilingFactor;
+    // The SAME ceiling the fit was clamped to, from the same derivation.
+    const bound = Math.max(spanX, spanY) > ceilingTiles;
     const anchor = kitties.find((k) => k.id === anchorId);
     // Below the ceiling, the CENTRE OF MASS rather than the bounding box's
     // midpoint. A box midpoint is set by whichever two kitties are
@@ -2227,7 +2299,7 @@ class Camera {
     // A frame with no clock leaves the clock alone. See `dtFor`.
     if (typeof now === 'number') this.lastAt = now;
 
-    const want = this.targetFor(world, view, aspect);
+    const want = this.targetFor(world, view, aspect, opts.cssWidth);
     // Arrive rather than ease on the first frame, on a still frame
     // (reduced motion and post-snap alike), and whenever the camera is
     // off. That last one is a deliberate cut and the only one here: the

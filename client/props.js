@@ -5,7 +5,7 @@
  * and the live renderer both call exactly these functions, so what gets
  * approved is what ships. Shares cat.js's conventions through plain script
  * scope -- unit-box geometry (0..1, y down) scaled by `size`, outline-first
- * (`OUTLINE_W`), `TAU`, and the `fine = size >= 44` detail threshold.
+ * (`OUTLINE_W`) and `TAU`. The 44px detail threshold is gone (2026-08-18).
  *
  * Pure drawing: no DOM beyond the ctx argument, no fetches. Timing periods
  * live in anim.js's `VIEW.props`; the *drawing-side* numbers (amplitudes,
@@ -172,7 +172,6 @@ const KIBBLE_MOUNDS = [
 function drawBowl(ctx, opts) {
   const { servings, size, x = 0, y = 0 } = opts;
   const level = Math.max(0, Math.min(5, servings ?? 0));
-  const fine = size >= 44;
 
   propBox(ctx, size, x, y, () => {
     const rimY = 0.58;
@@ -190,7 +189,7 @@ function drawBowl(ctx, opts) {
     ctx.lineWidth = OUTLINE_W;
     ctx.stroke();
 
-    if (fine) {
+    {  // was gated at 44px until 2026-08-18; the threshold is gone
       // The little fish decal every cat bowl is legally required to have --
       // filled glaze-blue and low on the belly, where it reads against the
       // clay (gallery revisions 1-2, 2026-07-20).
@@ -246,7 +245,6 @@ function drawButterfly(ctx, opts) {
     y = 0,
   } = opts;
   const t = propTunables();
-  const fine = size >= 44;
   // A hunted butterfly beats its wings faster; the rate lives on the
   // already-supplied phase so timing stays the animation layer's business.
   const flapPhase = agitated ? (phase * t.panicMultiplier) % 1 : phase;
@@ -337,7 +335,7 @@ function drawButterfly(ctx, opts) {
       ctx.fill();
     }
 
-    if (fine) {
+    {  // was gated at 44px until 2026-08-18; the threshold is gone
       // Thread antennae with ball tips.
       ctx.strokeStyle = colorway.body;
       ctx.lineWidth = OUTLINE_W * 0.5;

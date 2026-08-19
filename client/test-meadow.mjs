@@ -157,7 +157,7 @@ const EXPORTS =
   ' MEADOW_DAWN, bushesFor, drawBushAt, drawGroundCover, MEADOW_SALTS, MEADOW_DEFAULTS, tileHash, drawMeadowGround, drawGridOverlay, groupWaterTiles,' +
   ' buildPondPath, drawPonds, pondInradius, drawSunbeamGlow, drawWornPaths, VIEW, Presentation,' +
   ' driftField, spriteOrder, SPRITE_RANK, coverSortKey, catSortKey, coverStands,' +
-  ' WorldRenderer, PURR, drawPurrGlyph, Camera })';
+  ' WorldRenderer, PURR, drawPurrGlyph, Camera, drawBowl, drawButterfly, butterflyColorwayFor })';
 const api = eval(src + EXPORTS);
 
 let passed = 0;
@@ -1591,6 +1591,56 @@ check('the stem is a dial, not a decision baked into the drawing', () => {
   }
 });
 
+check('a bowl and a butterfly are the same at every size', () => {
+  // SC-003, the props' half -- the cats' is in test-motion and the flowers'
+  // is below. props.js carried the 44px gate at two sites (the bowl's fish
+  // decal and the butterfly's antennae) and both were deleted 2026-08-18.
+  // Nothing guarded either until /speckit-converge pointed it out.
+  const shapeOf = (draw) => (size) => {
+    const log = [];
+    draw(guardCtx(log), size);
+    return log.map((e) => (e[0] === 'set' ? `set:${e[1]}` : e[0])).join(',');
+  };
+  const subjects = [
+    ['bowl', shapeOf((ctx, size) => api.drawBowl(ctx, { servings: 3, size, x: 0, y: 0 }))],
+    ['butterfly', shapeOf((ctx, size) => api.drawButterfly(ctx, {
+      // A real colorway, from the shipped chooser: `drawButterfly` reads
+      // `colorway.wing` and a bare stub would throw rather than draw.
+      colorway: api.butterflyColorwayFor(2), size, x: 0, y: 0, phase: 0.3,
+    }))],
+  ];
+  for (const [what, shapeAt] of subjects) {
+    const small = shapeAt(20);
+    assert(small.length > 0, `${what} drew nothing at all`);
+    for (const size of [21, 43, 44, 100]) {
+      assert(shapeAt(size) === small,
+        `the ${what} draws a different SHAPE at ${size}px than at 20px -- a size gate is back`);
+    }
+  }
+});
+
+check('a flower is the same flower at every tile size', () => {
+  // The 44px flower gate went 2026-08-18, on the same argument as the cats':
+  // fine detail reads at 21px, so stop making it a resolution question.
+  // Removing it broke NOTHING in either suite, which is the whole reason
+  // this exists -- the gate was unguarded, so it could have come back by
+  // accident and no check would have said so.
+  //
+  // Asserted on the SHAPE of the command stream, not on pixels: a flower is
+  // a stem, five petals and a heart at any size, so the sequence of drawing
+  // commands must match and only the coordinates may differ.
+  const shapeAt = (tile) => {
+    const log = [];
+    api.drawMeadowGround(guardCtx(log), { width: 8, height: 8, tile, cover: false });
+    return log.map((o) => o[0]).join(',');
+  };
+  const small = shapeAt(20);
+  const large = shapeAt(48);
+  assert(small.length > 0, 'nothing was drawn at all');
+  assert(small === large,
+    'the flowers draw a different SHAPE at 20px than at 48px -- a size gate is back');
+});
+
 check('nothing turns black mid-crossfade', () => {
   // The bug this pins (owner, 2026-08-11): shrubs and flowers went BLACK
   // during a phase transition and healed themselves once the phase
@@ -1605,8 +1655,10 @@ check('nothing turns black mid-crossfade', () => {
   // black" is a sound proxy for "did a colour helper fail to parse".
   const BLACK = /^(#000000|#000|rgba?\(\s*0\s*,\s*0\s*,\s*0\b)/i;
   const t = api.MEADOW_DEFAULTS;
-  // Tile 48, so the FINE detail runs: below 44 the flowers take the
-  // single-dot path and their shaded petals never draw. And BOTH shrub
+  // Tile 48 is now only a comfortable size to read at: the flowers used to
+  // take a single-dot path below 44 and never draw their shaded petals, and
+  // that gate was deleted 2026-08-18. The shaded petals -- the thing this
+  // check is actually about -- now draw at every tile. And BOTH shrub
   // styles through drawGroundCover, which takes its tunables explicitly --
   // only the shipped style draws at the shipped dials, and a stem only
   // draws when bushTrunk is up.
@@ -2304,10 +2356,15 @@ const camWorldFor = (kitties = 5) => ({
 });
 /** Sweep the camera across its whole band and back, panning as it goes. */
 const sweep = (r, world, each) => {
-  const D = api.VIEW.camera;
+  // The band is derived from the viewport now (spec 037), so the sweep asks
+  // the camera for its own limits rather than reading two dials that no
+  // longer exist. At this harness's 620px map that is 6.2 tiles to 12.4 --
+  // a wider sweep than the old flat 10-to-15, so the bake-once claim is
+  // tested harder than before, not less.
+  const { floorTiles, ceilingTiles } = r.camera.limitsFor(world, r.cssWidth);
   for (let i = 0; i <= 120; i += 1) {
     const t = i / 120;
-    r.camera.across = D.nominalAcross + (D.nominalAcross * D.ceilingFactor - D.nominalAcross) * Math.sin(t * Math.PI);
+    r.camera.across = floorTiles + (ceilingTiles - floorTiles) * Math.sin(t * Math.PI);
     r.camera.left = (20 - r.camera.across) * t;
     r.camera.top = (20 - r.camera.across) * (1 - t);
     r.tile = r.cssWidth / r.camera.across;
