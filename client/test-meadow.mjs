@@ -157,7 +157,7 @@ const EXPORTS =
   ' MEADOW_DAWN, bushesFor, drawBushAt, drawGroundCover, MEADOW_SALTS, MEADOW_DEFAULTS, tileHash, drawMeadowGround, drawGridOverlay, groupWaterTiles,' +
   ' buildPondPath, drawPonds, pondInradius, drawSunbeamGlow, drawWornPaths, VIEW, Presentation,' +
   ' driftField, spriteOrder, SPRITE_RANK, coverSortKey, catSortKey, coverStands,' +
-  ' WorldRenderer, PURR, drawPurrGlyph, Camera })';
+  ' WorldRenderer, PURR, drawPurrGlyph, Camera, drawBowl, drawButterfly, butterflyColorwayFor })';
 const api = eval(src + EXPORTS);
 
 let passed = 0;
@@ -1588,6 +1588,34 @@ check('the stem is a dial, not a decision baked into the drawing', () => {
     };
     assert(stems(1) > 0, `${style} draws no stem at all`);
     assert(stems(0) === 0, `${style} still draws a stem at bushTrunk 0`);
+  }
+});
+
+check('a bowl and a butterfly are the same at every size', () => {
+  // SC-003, the props' half -- the cats' is in test-motion and the flowers'
+  // is below. props.js carried the 44px gate at two sites (the bowl's fish
+  // decal and the butterfly's antennae) and both were deleted 2026-08-18.
+  // Nothing guarded either until /speckit-converge pointed it out.
+  const shapeOf = (draw) => (size) => {
+    const log = [];
+    draw(guardCtx(log), size);
+    return log.map((e) => (e[0] === 'set' ? `set:${e[1]}` : e[0])).join(',');
+  };
+  const subjects = [
+    ['bowl', shapeOf((ctx, size) => api.drawBowl(ctx, { servings: 3, size, x: 0, y: 0 }))],
+    ['butterfly', shapeOf((ctx, size) => api.drawButterfly(ctx, {
+      // A real colorway, from the shipped chooser: `drawButterfly` reads
+      // `colorway.wing` and a bare stub would throw rather than draw.
+      colorway: api.butterflyColorwayFor(2), size, x: 0, y: 0, phase: 0.3,
+    }))],
+  ];
+  for (const [what, shapeAt] of subjects) {
+    const small = shapeAt(20);
+    assert(small.length > 0, `${what} drew nothing at all`);
+    for (const size of [21, 43, 44, 100]) {
+      assert(shapeAt(size) === small,
+        `the ${what} draws a different SHAPE at ${size}px than at 20px -- a size gate is back`);
+    }
   }
 });
 

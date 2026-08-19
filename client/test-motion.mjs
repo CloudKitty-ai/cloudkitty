@@ -5804,6 +5804,90 @@ check('applyCamera actually hands the camera its pixels', () => {
     `the renderer got a ${stub.tile}px tile, not the ${api.VIEW.camera.floorPx}px target`);
 });
 
+check('a resize mid-ease moves the target without cutting the movement', () => {
+  // SC-010. The easing itself is 036's and unchanged -- but 037 is what makes
+  // the TARGET depend on cssWidth, so this case only became reachable with
+  // this feature and had never been exercised (found by /speckit-converge).
+  //
+  // The failure it guards is a CUT: 036 FR-008 forbids the camera jumping,
+  // and a resize is the one event that can move the width target by several
+  // tiles at once.
+  const cam = new api.Camera();
+  cam.on = true;
+  // Two kitties on adjacent tiles: the fit asks for 6.2 tiles, which is under
+  // the floor at BOTH widths, so the floor is what governs and the target is
+  // a clean function of cssWidth. A looser group makes the FIT govern at the
+  // narrow end (7.2 tiles at 640px) and the test measures the wrong thing --
+  // which is exactly what the first draft of this check did.
+  const world = camAt([10, 10], [10, 11]);
+  cam.update(world, camView(false, 0), { aspect: 1, cssWidth: 1000 });
+  const settled = cam.across;
+  assert(settled === 10, `setup: expected the 1000px floor of 10, got ${settled}`);
+
+  // The window narrows to 640: the floor becomes max(6.4, 6) = 6.4.
+  const wanted = 6.4;
+  cam.update(world, camView(false, 16.67), { aspect: 1, cssWidth: 640 });
+  assert(cam.across < settled,
+    `the camera ignored the resize and stayed at ${cam.across}`);
+  assert(cam.across > wanted,
+    `the camera CUT to ${cam.across} instead of easing toward ${wanted}`);
+
+  // And it does arrive, rather than easing toward it forever.
+  for (let i = 2; i < 400; i += 1) {
+    cam.update(world, camView(false, i * 16.67), { aspect: 1, cssWidth: 640 });
+  }
+  assert(Math.abs(cam.across - wanted) < 0.01,
+    `after 400 frames the camera sat at ${cam.across}, not the new ${wanted} floor`);
+});
+
+check('the limits follow the viewport on the SAME camera, not just a fresh one', () => {
+  // FR-015: derived from the viewport as it is when the camera decides a
+  // frame, never from a measurement taken earlier. `limitsFor`'s own comment
+  // warns against caching the pair on the instance -- and every other check
+  // here builds a FRESH Camera per width, so a per-instance cache would
+  // satisfy all of them (found by /speckit-converge).
+  const cam = new api.Camera();
+  const world = { width: 20, height: 20 };
+  const wide = cam.limitsFor(world, 1000);
+  const narrow = cam.limitsFor(world, 640);
+  assert(wide.floorTiles !== narrow.floorTiles,
+    `the same camera reported floor ${wide.floorTiles} at both 1000px and 640px -- the pair is cached`);
+  assert(wide.ceilingTiles !== narrow.ceilingTiles,
+    `the same camera reported ceiling ${wide.ceilingTiles} at both widths -- the pair is cached`);
+  // Back again, so a cache that merely lags by one call is caught too.
+  const again = cam.limitsFor(world, 1000);
+  assert(again.floorTiles === wide.floorTiles && again.ceilingTiles === wide.ceilingTiles,
+    'the same viewport gave different limits on a second ask');
+});
+
+check('a cat is the same cat at every size', () => {
+  // SC-003: fine detail cannot change state at any size, because the 44px
+  // gate was deleted. Three files carried that gate -- cat-v2.js, props.js,
+  // meadow.js -- and only the flowers were guarded (test-meadow). This is the
+  // cats' half; the props' half is in test-meadow beside the flowers'.
+  //
+  // Asserted on the SHAPE of the command stream: same sequence of operations
+  // at any size, only the coordinates differing. A returning gate changes the
+  // shape and fires here instead of shipping quietly.
+  const shapeAt = (size) => {
+    const log = [];
+    CatV2.drawCat(guardCtx(log), {
+      pose: 'idle',
+      appearance: CatV2.appearanceFor(3),
+      facing: 'right',
+      size,
+      phase: 0.3,
+    });
+    return log.map((e) => (e[0] === 'set' ? `set:${e[1]}` : e[0])).join(',');
+  };
+  const small = shapeAt(20);
+  assert(small.length > 0, 'nothing was drawn at all');
+  for (const size of [21, 43, 44, 100]) {
+    assert(shapeAt(size) === small,
+      `a cat draws a different SHAPE at ${size}px than at 20px -- a size gate is back`);
+  }
+});
+
 check('the 1000px floor is the 10 tiles that shipped', () => {
   // 037's Foundational is NOT an identity change -- the ceiling moves on
   // purpose. But the FLOOR must reproduce the shipped behaviour at the one
