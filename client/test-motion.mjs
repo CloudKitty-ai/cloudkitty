@@ -6701,7 +6701,7 @@ const RECORDED_LAYOUTS = [
  * the canvas to. The stubs answer only what resizeFor asks for; anything it
  * grew a dependency on would throw here rather than silently read undefined.
  */
-function replayLayout(rec, world = { width: 20, height: 20 }) {
+function replayLayout(rec, world = { width: 20, height: 20 }, camera = null, reuse = null) {
   const saved = {
     document: globalThis.document, window: globalThis.window,
     getComputedStyle: globalThis.getComputedStyle, matchMedia: globalThis.matchMedia,
@@ -6749,10 +6749,16 @@ function replayLayout(rec, world = { width: 20, height: 20 }) {
   globalThis.matchMedia = () => ({ matches: rec.shortBranch });
 
   try {
-    const r = Object.create(WorldRenderer.prototype);
-    r.canvas = canvas; r.ctx = ctx; r.dpr = null;
+    const r = reuse || Object.create(WorldRenderer.prototype);
+    if (!reuse) { r.canvas = canvas; r.ctx = ctx; r.dpr = null; }
+    r.camera = camera;
     r.resizeFor(world);
-    return { cssWidth: r.cssWidth, tile: r.tile, backing: canvas.width };
+    return {
+      cssWidth: r.cssWidth, cssHeight: r.cssHeight, tile: r.tile,
+      backing: r.canvas.width, backingH: r.canvas.height,
+      styleW: r.canvas.style.width, styleH: r.canvas.style.height,
+      renderer: r,
+    };
   } finally {
     Object.assign(globalThis, saved);
   }
@@ -6780,6 +6786,93 @@ check('the stage FRAME is measured, not just its padding', () => {
   assert(replayLayout(borderless).cssWidth === 720,
     'dropping the stage frame changed nothing here, so this case no longer '
     + 'witnesses the border and the term is unguarded');
+});
+
+/* ── The letterbox: a short window gets a canvas shaped like the WINDOW ──
+ *
+ * CONSTRUCTED, not recorded, and the distinction is deliberate. The four
+ * cases above are real layouts because they pin real ARITHMETIC. This one
+ * pins a RELATIONSHIP -- that a wide short window produces a wide short
+ * canvas -- and a relationship does not need a device to be true. The chrome
+ * heights are lifted from the owner's real phone recording so the numbers are
+ * at least plausible; no assertion below depends on their exact values.
+ * ── */
+const LANDSCAPE = {
+  name: 'phone held sideways',
+  docClientWidth: 874, docClientHeight: 402, headerHeight: 40, footerHeight: 28,
+  bodyPadY: 14, stageFrameX: 2, stageFrameY: 2, layoutClientWidth: 854,
+  besideWidth: 0, columnGap: 0, panelColCount: 2, shortBranch: true, dpr: 3,
+};
+const cameraOn = (on) => ({ on });
+
+check('a short window with the camera ON gets a canvas shaped like the window', () => {
+  const got = replayLayout(LANDSCAPE, { width: 20, height: 20 }, cameraOn(true));
+  assert(got.cssHeight < got.cssWidth,
+    `letterboxed canvas is ${got.cssWidth}x${got.cssHeight} -- still not wider than tall`);
+  // The whole point: it must FIT, because a square one did not and the page
+  // scrolled past the bottom of the map.
+  const heightBudget = LANDSCAPE.docClientHeight
+    - (LANDSCAPE.headerHeight + LANDSCAPE.footerHeight + LANDSCAPE.bodyPadY
+       + LANDSCAPE.stageFrameY + 30);
+  assert(got.cssHeight <= heightBudget,
+    `canvas is ${got.cssHeight} tall in a ${heightBudget} budget -- the page still scrolls`);
+  // And the camera must be TOLD, which is the only reason any of this works.
+  // It reads aspect as cssHeight/cssWidth; at 1.0 it frames a square.
+  assert(got.cssHeight / got.cssWidth < 0.6,
+    `aspect ${(got.cssHeight / got.cssWidth).toFixed(2)} still reads as roughly square`);
+});
+
+check('camera OFF keeps the square-and-scroll, untouched (036 SC-007)', () => {
+  const off = replayLayout(LANDSCAPE, { width: 20, height: 20 }, cameraOn(false));
+  const none = replayLayout(LANDSCAPE, { width: 20, height: 20 }, null);
+  assert(off.cssHeight === off.cssWidth,
+    `camera-off canvas is ${off.cssWidth}x${off.cssHeight}; the off state must stay square`);
+  assert(none.cssHeight === none.cssWidth, 'no camera at all must behave as camera-off');
+  assert(off.cssWidth === none.cssWidth, 'an off camera changed the width');
+});
+
+check('a tall window is unaffected -- and the `short` guard is belt-and-braces', () => {
+  // This check was written expecting to guard the `short &&` half of the
+  // condition. It CANNOT, and finding that out is more useful than the check
+  // was: when the viewport is not short, `tile` is already
+  // min(width/20, height/20), so `tile * world.height` never exceeds the
+  // height budget and `Math.min(heightBudget, tile * height)` is a no-op by
+  // construction. Removing `short &&` changes no output anywhere.
+  //
+  // So the guard is DEFENSIVE, not load-bearing, and it is kept for intent
+  // and against the tile arithmetic changing under it -- not because a test
+  // holds it in place. Saying so here beats a green check that implies
+  // otherwise.
+  const rec = RECORDED_LAYOUTS.find((r) => r.docClientWidth === 1728);
+  const on = replayLayout(rec, { width: 20, height: 20 }, cameraOn(true));
+  assert(on.cssHeight === on.cssWidth && on.cssWidth === rec.canvasCssWidth,
+    `a tall window got a ${on.cssWidth}x${on.cssHeight} canvas with the camera on`);
+});
+
+check('the resize guard watches HEIGHT, not only width', () => {
+  // Two resizes on ONE renderer, which is the only way a guard can be seen at
+  // all: a fresh canvas has no previous size, so its style is undefined and
+  // the guard fires no matter what it watches. The first version of this
+  // check replayed twice from scratch and stayed green with the height
+  // condition deleted -- it was witnessing nothing.
+  //
+  // The scenario is real: a phone sideways with the browser bar sliding into
+  // view keeps its width and loses height. Before the letterbox, height was a
+  // pure function of width and a width that had not moved proved a height
+  // that had not moved. That implication is now false.
+  const world = { width: 20, height: 20 };
+  const first = replayLayout(LANDSCAPE, world, cameraOn(true));
+  const second = replayLayout(
+    { ...LANDSCAPE, docClientHeight: LANDSCAPE.docClientHeight - 60 },
+    world, cameraOn(true), first.renderer,
+  );
+  assert(first.cssWidth === second.cssWidth,
+    'the fixture no longer holds width constant, so it cannot witness this');
+  assert(first.cssHeight !== second.cssHeight, 'the height budget never reached the canvas');
+  assert(second.styleH === `${second.cssHeight}px`,
+    `CSS height stuck at ${second.styleH} for a ${second.cssHeight}px canvas -- guard never fired`);
+  assert(second.backingH === Math.floor(second.cssHeight * LANDSCAPE.dpr),
+    `backing store is ${second.backingH}, not ${Math.floor(second.cssHeight * LANDSCAPE.dpr)}`);
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);
