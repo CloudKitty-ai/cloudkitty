@@ -253,3 +253,42 @@ of magnitude above the FollowMe invention precedent (0.53/1k), the
 level where a word is part of a candidate's voice rather than an
 occasional experiment. Below it, closed-loop measurement belongs to
 the fog battery.
+
+**D-002 (2026-08-19, pre-training note — the exp-001 precedent).**
+Values §4's "A1 recipe" left unpinned, recorded before any wave
+launches; no registered criterion changes. Trainer:
+`trainer/train_ppo6.py` (forked from exp-005's train_leash_ppo.py;
+smoke runs on subset ticks exempt per the freeze note).
+
+- **E-arm init** = `clone-spread`: the §3e price-probe spread clone
+  resumed past its 20-epoch budget cap to the patience-3 plateau
+  under the identical recipe, data, and seed (the budget cap was a
+  price-probe fairness device, not a recipe term; extension per the
+  clone-anchor/exp-005 precedent). L-arm init = `clone-anchor`, as
+  registered. Each arm's leash anchor is its own init clone.
+- **Critic** = the attn-critic recipe retrained on dataset v5 cell B
+  (`trainer/train_critic6.py`: EntityCritic d64/4h/2L, γ 0.998,
+  censored MC targets min_future 1500, val = rollout index ending
+  in 3, seed 20260818). Measured val EV 0.727 (the pre-wall
+  comparable on record: 0.53).
+- **Estimator aux head (E1)**: one nn.Linear on the trunk summary
+  (2·d_model = 128) → 5 kitty blocks × 6 needs, masked MSE against
+  the padded global state's kitty-block needs (CTDE; vacant blocks
+  and absent observers masked out), joint gradient with the PPO
+  loss at **aux_coef 0.5**; per-(observer, target) MAE logged every
+  update in metrics.jsonl; head weights retained in checkpoint.pt
+  AND policy-final.pt (§4c). Export to .ckpolicy may strip the head;
+  checkpoints never do.
+- **Training-seed arithmetic**: episode seed base = 100,000,000 +
+  run_index × 20,000,000 + segment × 1,000, run_index = arm_index ×
+  2 + (seed − 1), arm order (E1, E0, L-04, L-05); the runner strides
+  worlds at w × 1,000,000 inside. Claimed in SEED-BANDS.md; sits
+  above the 1M+ pool because the per-world stride makes 1M-scale
+  sub-bands collide across arcs.
+- **Verbatim recipe terms restated for the record**: fragment 256,
+  n_worlds 12, GAE λ 0.95, clip 0.2, entropy 0.01→0.001, 4 epochs ×
+  4 minibatches, lr 3e-4 with 2% warmup, vf_coef 0.5, grad clip 0.5,
+  probe trio 40001–3 every 50 updates (2,000 ticks, greedy, on
+  collect-config.toml), §10 stop rule as frozen, β0 = 0.5 annealed
+  over the first 20% to the arm's held β∞ (0 for E arms = the exact
+  A1 expression). Torch/numpy seeds 20260818 + run_index.
