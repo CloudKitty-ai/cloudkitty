@@ -357,10 +357,13 @@ kitties through gathering and scattering. The fine detail never switches state.
   and amends three of its requirements.
 - **The meadow lab's phase and scale cards**, which are where the numbers get
   dialled and where a strip showing each viewport's camera tile would live.
-- **Fog Generation, for the clean version.** On today's 20×20 world the 50px
-  ceiling wants 20 tiles on a 1000px map and 24 on a 1200px one, so the largest
-  viewports clamp against the world's own edge and lose part of their range.
-  Fog is expected to grow the world substantially; at 40×40 nothing clamps and
-  the range holds everywhere. **This feature is worth shipping before Fog** —
-  it strictly improves on the current 3.5× spread either way — but its full
-  benefit on the largest viewports arrives with the bigger world.
+- **Fog Generation — an influence, not a dependency** (owner, 2026-08-18). On
+  today's 20×20 world the 50px ceiling wants 20 tiles on a 1000px map and 24 on
+  a 1200px one, so the largest viewports clamp against the world's own edge and
+  lose part of their range. A larger world removes that clamp.
+  **Nothing here is conditional on Fog landing, and no acceptance criterion
+  waits for it.** The point of naming it is that the camera should be built so
+  a bigger world needs no rework — expressing the limits in pixels is exactly
+  what makes the world's size stop mattering to them. How the camera should
+  behave in a much larger world is a question to reopen when Fog drops, with
+  whatever it actually turns out to be, rather than one to guess at now.

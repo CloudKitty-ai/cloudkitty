@@ -737,6 +737,14 @@
   const DEMOS = [
     {
       title: 'Fine detail — the 44px threshold, and life without it',
+      // Its own stage: the eight cats total 374px, and the stock 180px one
+      // drove the gap negative so they marched off the left edge. `v2Only`
+      // because this compares v2 against ITSELF with the gate on and off --
+      // a v1 column would be answering a different question.
+      w: 620,
+      h: 250,
+      v2Only: true,
+      ownShadows: true,
       note: 'Same tabby at eight sizes. TOP: as shipped, stripes appear at 44px. '
         + 'BOTTOM: FINE.floorPx = 0, drawn at every size. 44 is a PRE-CAMERA number — '
         + 'the camera band (50–100px) sits above it at both ends, so today the threshold '
@@ -747,14 +755,21 @@
         if (!CatV2.FINE) return;
         const SIZES = [21, 26, 31, 40, 44, 50, 62, 100];
         const total = SIZES.reduce((a, b) => a + b, 0);
-        const gap = (w - total) / (SIZES.length + 1);
-        const rowY = [h * 0.46, h * 0.97];
+        // Floored: a stage too narrow for the row should crowd, never invert.
+        // At the stock 180px width this went to -21 and the cats overlapped
+        // leftward off the canvas.
+        const gap = Math.max(4, (w - total) / (SIZES.length + 1));
+        const rowY = [h * 0.44, h * 0.93];
         const shipped = CatV2.FINE.floorPx;
         for (let row = 0; row < 2; row += 1) {
           // Row 1 forces the threshold off. Restored below, always.
           CatV2.FINE.floorPx = row === 0 ? shipped : 0;
           let x = gap;
           for (const size of SIZES) {
+            ctx.fillStyle = SHADOW;
+            ctx.beginPath();
+            ctx.ellipse(x + size * 0.44, rowY[row] - size * 0.12, size * 0.32, size * 0.09, 0, 0, Math.PI * 2);
+            ctx.fill();
             CatV2.drawCat(ctx, {
               pose: 'idle', appearance: CatV2.appearanceFor(BISCUIT),
               facing: 'right', size, x, y: rowY[row] - size, phase: 0.3,
@@ -773,7 +788,7 @@
         ctx.font = '600 11px ui-sans-serif, system-ui, sans-serif';
         ctx.textAlign = 'left';
         ctx.fillText('as shipped (44px gate)', 6, 12);
-        ctx.fillText('always drawn', 6, h * 0.52);
+        ctx.fillText('always drawn', 6, h * 0.50);
       },
     },
     {
