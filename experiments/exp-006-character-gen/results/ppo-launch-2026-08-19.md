@@ -18,10 +18,30 @@ restates them). Committed at `f3b813e`.
 dataset v5 cell B (the training family's data). γ 0.998, censored MC
 targets (min_future 1500), 585,090 train / 117,018 val states.
 Result: **best epoch 2, val EV 0.7271** (pre-wall comparables on
-record: MLP 0.53, attn 0.555 — this is the strongest critic fit we
-have banked; plausibly the roster-strata padding plus trait spreads
-make value more state-identifiable, but that reading is unverified).
-Artifact
+record: MLP 0.53, attn 0.555).
+
+*Correction, same day (the first draft of this paragraph called the
+0.727 "the strongest critic fit we have banked" and guessed at why —
+measured, that framing is wrong).* Decomposing each era's val-target
+variance into within-rollout and between-rollout parts:
+
+| val set | total var | within-rollout | world-mean oracle EV | critic EV |
+|---|---|---|---|---|
+| bc-v4 (pre-wall) | 40.68 | 18.21 | 0.5524 | 0.555 |
+| v5-spread | 66.01 | 18.58 | 0.7186 | 0.727 |
+
+Both critics sit essentially exactly at the world-mean oracle: they
+capture the between-world variance (world identity is readable off
+the state — traits and roster padding live in the kitty blocks) plus
+a sliver of within-rollout structure, and the within-rollout
+residual (~18, seed luck and temporal events) is era-invariant and
+essentially unexplained in both. The EV jump is denominator growth:
+the spread family's worlds differ more from each other (trait
+spreads, roster strata, stress cells), so the same skill level
+scores higher. For PPO this is still exactly what the recipe needs —
+per-world baselining keeps advantages unbiased across a
+heterogeneous family — but it predicts gradient quality comparable
+to exp-004/005, not better. Artifact
 `critic6-0p998.pt` sha256 `29348315…`; stats committed at
 `results-raw/critic6-0p998-stats.json`. The fast convergence then
 overfit (val MSE rises after epoch 2) is best-state-saved; the PPO
