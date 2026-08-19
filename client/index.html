@@ -1102,6 +1102,22 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       width: 100%;
+      /* Hold the cards off the map (owner, 2026-08-19). `.layout` is a plain
+         block on a phone -- it only becomes a grid at 1100px -- so there is no
+         `gap` to set here and the cards otherwise start 4px below the meadow,
+         the mat being the only thing between them.
+
+         12px because that is ALREADY the gap between the cards themselves
+         (inherited from the base `.panel`; this override sets display and
+         columns but not gap), so the map is spaced from the cards exactly as
+         the cards are spaced from each other, and the page keeps one vertical
+         rhythm instead of gaining a second number.
+
+         Costs no tile size. `resizeFor` does not measure this margin, but it
+         does not need to: the phone map is WIDTH-bound with a wide margin --
+         402px gives 19.5 tiles across against 39 down -- so height has room to
+         spare and the whole 12px comes out of that slack, not out of the cat. */
+      margin-top: 12px;
     }
     .kitty-card {
       width: auto;
