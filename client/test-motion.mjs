@@ -5743,6 +5743,36 @@ check('a resize produces continuous limits, with no jump at either boundary', ()
   assert(steps > 900, `the resize sweep only took ${steps} steps`);
 });
 
+check('applyCamera actually hands the camera its pixels', () => {
+  // The feature's ONE structural change is that render.js passes cssWidth
+  // into cam.update. Deleting that line is SILENT: `limitsFor` reads the
+  // missing value as "not laid out yet", returns the whole world, and the
+  // camera renders camera-off while claiming to be on. Verified by
+  // mutation, 2026-08-18 -- with the line removed, all 300 checks passed.
+  //
+  // This client has shipped inert wiring before (see the note in
+  // `applyCamera` about the tile assignment, and 036's axial-whip fix), so
+  // the guard is behavioural rather than a source-text match: a regex would
+  // pass on a line that computed the wrong number.
+  const cam = new api.Camera();
+  cam.on = true;
+  const world = camAt([9, 10], [10, 10], [11, 10]); // huddled: the fit sits ON the floor
+  const stub = {
+    camera: cam,
+    cssWidth: 1000,
+    cssHeight: 1000,
+    ctx: { setTransform() {} },
+  };
+  WorldRenderer.prototype.applyCamera.call(stub, world, camView(false, 1000), 1);
+  assert(cam.across === 10,
+    `applyCamera left the camera at ${cam.across} tiles, not the 10-tile floor a `
+    + `1000px map derives -- ${cam.across === world.width ? 'it framed the WHOLE WORLD, '
+      + 'which is what a dropped cssWidth looks like' : 'the derivation is wrong'}`);
+  // And the tile it hands the renderer really is the pixel target.
+  assert(stub.tile === api.VIEW.camera.floorPx,
+    `the renderer got a ${stub.tile}px tile, not the ${api.VIEW.camera.floorPx}px target`);
+});
+
 check('the 1000px floor is the 10 tiles that shipped', () => {
   // 037's Foundational is NOT an identity change -- the ceiling moves on
   // purpose. But the FLOOR must reproduce the shipped behaviour at the one

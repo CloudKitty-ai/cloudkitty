@@ -2055,8 +2055,14 @@ class Camera {
    * predicate compares against this ceiling, and the ground bake keys on
    * this floor. If `bound` compared against a different ceiling than the fit
    * clamped to, the anchor would engage at a width the camera never reaches
-   * -- invisible to the eye and cheap to prevent by not computing it twice
-   * (contracts/zoom.md invariant 2).
+   * -- invisible to the eye (contracts/zoom.md invariant 2).
+   *
+   * One FUNCTION, not one call: `targetFor` and `bakeTileFor` each ask, so
+   * this runs twice a frame. That is deliberate and safe because it is pure
+   * in (world.width, cssWidth, dials) -- two callers cannot disagree. Do not
+   * "optimise" it into cached state on the instance: a cache would have to
+   * be invalidated on resize, and a stale one reintroduces exactly the
+   * disagreement the single derivation exists to prevent.
    *
    * The floor is the tile size the camera zooms IN to; the ceiling is the
    * smallest tile it will widen to. Expressed in pixels, the zoom range
@@ -2140,9 +2146,10 @@ class Camera {
     // The frame carries the canvas's aspect, so fitting the vertical costs
     // MORE width than the vertical span itself on a wide canvas.
     const spanY = (maxY - minY + 2 * d.fitMarginTiles) / (aspect || 1);
-    // Nominal is a floor, so a huddled group does not zoom past comfort;
-    // the ceiling is where the camera stops fitting and lets a wanderer
-    // leave, rather than shrinking everyone to keep her.
+    // The floor stops a huddled group zooming past comfort; the ceiling is
+    // where the camera stops fitting and lets a wanderer leave, rather than
+    // shrinking everyone to keep her. Both come from the viewport now, not
+    // from a tile count -- "nominal" was FR-003's word and 037 removed it.
     const { floorTiles, ceilingTiles } = this.limitsFor(world, cssWidth);
     const across = Math.min(Math.max(spanX, spanY, floorTiles), ceilingTiles);
 
