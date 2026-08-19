@@ -148,12 +148,14 @@ Not to be confused with the anchor **hysteresis**, which was a different
 small-viewport fault (restlessness, 036 SC-006) and is fixed — 1.5 → 2.5 in
 PR #245.
 
-### Phone portrait: the horizontal gap beside the map (added 2026-08-19; Client thread)
+### Phone portrait: the horizontal gap beside the map — SHIPPED (PR #248, 2026-08-19; Client thread)
 
 Owner, 2026-08-19: "a bit of a horizontal gap around the map in portrait that
-could get us another free tile or so." Queued with the phone viewport work
-(letterbox, `minTiles`). Measured, not estimated — and it is **two gaps, only
-one of which is anyone's to reclaim.**
+could get us another free tile or so." **Shipped the same day as option F —
+body sides 10px → 2px, mat 5px → 4px, 12px of total chrome.** The measurement
+is kept below because the `minTiles` decision still ahead reads it, and
+because the step arithmetic outlives these particular numbers. Measured, not
+estimated — and it is **two gaps, only one of which is anyone's to reclaim.**
 
 On a phone `body` pays `padding: … 10px` and `.stage` a 5px mat, so the width
 budget is `viewport − 30`. Then `resizeFor` floors the tile, and a 20-tile
@@ -219,6 +221,16 @@ look, not a refactor. The mat itself is already an owner-set number (16 → 6 on
 2026-08-05, "6px is kitten.me's mat width exactly"), and `#sky-dial` pins to
 `--stage-pad`, so changing the mat moves the horizon with it — by design, and
 worth re-checking by eye at the new value rather than trusting the variable.
+
+**What shipped, and what is still open.** Option F (12px chrome) was chosen
+over the cheaper 20px step because **it is the only one that moves the 50px
+bar**: at `minTiles` 7 the 20px step clears 50 on 3 of 5 handsets, exactly as
+today, while 12px clears it on 4 of 5. The 16px option is **strictly
+dominated** — identical maps to 20px everywhere. Still open: whether the
+CARDS should keep an inset while the map runs to the edge, which needs the
+padding moved onto `header`/`.panel`/`footer` and is a look, not a refactor.
+**No automated guard exists** — neither harness runs `resizeFor`, both set
+`cssWidth` directly.
 
 **Durable vs perishable:** the arithmetic
 is durable — the wasted remainder is `budget mod world.width`, and the phone's
