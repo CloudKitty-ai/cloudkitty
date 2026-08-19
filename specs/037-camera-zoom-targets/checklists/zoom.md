@@ -142,3 +142,19 @@ be settled is complete; one that simply omits it is not.
 - **Status: 42 items, 0 ticked, 0 blocked.** 14 became spec edits, 5 were
   repaired by the 036 annotation pass, 4 were owner decisions, and the rest were
   reviewed as already satisfied. The ticking is the reviewer's.
+- **2026-08-18 — the eight mechanical items are cleared in the spec.** CHK011 →
+  FR-015 (limits derive from the viewport as it is each frame), CHK012 → FR-016
+  (the fit is free anywhere between the limits), CHK026 → FR-017 (the two rules
+  meeting at a regime boundary give the same width), CHK028 → FR-018 (past the
+  map cap the camera behaves as the cap does), CHK033 → FR-019 (no branch of its
+  own for orientation or a short viewport), CHK019 → FR-010 now names its sample
+  (20px sweep + the Overview widths), CHK018 → "supported viewport range" is
+  defined once in Key Entities, CHK037 → the deferral ends at the dialling
+  session, which gates deploy. **Still unticked — the checkbox is the reviewer's.**
+- **2026-08-18 — CHK005 was walked, and it was load-bearing.** 036's other 13
+  success criteria had never been checked against 037. Two do not survive:
+  **SC-010** names "10 tiles is the right floor" (an eighth site depending on the
+  superseded FR-003, which CHK007's recorded answer of *seven* missed), and
+  **SC-006** fails on small viewports under 037 — measured, see
+  `client-measurements/037-zoom/sc006-2026-08-18.md`. CHK005 and CHK007 stay open
+  pending the owner's decision on the ceiling.

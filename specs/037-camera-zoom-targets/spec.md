@@ -255,12 +255,37 @@ kitties through gathering and scattering. The fine detail never switches state.
 
 - **FR-009**: With camera mode off, the view MUST remain exactly what it is
   today. This feature changes only the camera's limits.
-- **FR-010**: The limits MUST be verified across the full range of supported
-  viewports, from the smallest phone to the 1200px map cap.
+- **FR-010**: The limits MUST be verified across the supported viewport range
+  by a sweep at no coarser than 20px steps, together with the specific widths
+  named in the Overview table. "The full range" is not something an
+  implementation can be shown to have met; a stated sample is.
 - **FR-013**: The floor MUST NOT exceed the ceiling. On a viewport small enough
   that the minimum tile count reaches where the ceiling target falls, the two may
   MEET — leaving that viewport no zoom range at all, which is acceptable — but
   they may never cross, which would ask the camera to widen past its own floor.
+- **FR-015**: The floor and the ceiling MUST be derived from the viewport as it
+  is when the camera decides a frame, never from a measurement taken earlier in
+  the session. A viewport can change at any moment, and a limit computed once at
+  startup would leave the camera obeying a window that no longer exists.
+- **FR-016**: Between the floor and the ceiling the camera MUST be free to sit
+  at any width. The limits bound the fit; they do not replace it. 036's fit —
+  the clowder's bounding box plus its margin — still chooses the width whenever
+  it falls between them, which is what keeps the camera answerable to the group
+  rather than snapping between two positions.
+- **FR-017**: At each boundary between regimes — where the minimum tile count
+  starts binding, and where the world clamp starts binding — the two rules that
+  meet there MUST give the same width, so there is no viewport width at which
+  the answer switches. This is what makes SC-009's continuity a property of the
+  scheme rather than something to be tuned into it.
+- **FR-018**: A viewport larger than the map cap MUST behave exactly as the cap
+  does. Past the cap the map stops growing, so the limits stop changing with it.
+  This is why no maximum tile count is needed, and why a later change to the cap
+  would change the widest frame the camera can produce.
+- **FR-019**: The camera MUST consume the map's width as the layout produced it,
+  with no branch of its own for orientation or for a short viewport. The client
+  already fits the map to its width and lets the page scroll when the viewport
+  is under 500px tall; that branch decides how large the map is, and the camera
+  only asks how large it turned out.
 - **FR-014**: A viewport measurement of zero or otherwise not a finite number
   MUST produce a usable frame rather than an undefined one. The map has no width
   until the page has laid out, and every limit in this feature is derived by
@@ -276,6 +301,10 @@ kitties through gathering and scattering. The fine detail never switches state.
   the viewport, which is the whole point of expressing both in pixels.
 - **Minimum tile count**: the fewest tiles the floor may frame, protecting the
   scene on the smallest viewports at the cost of their size and range.
+- **Supported viewport range**: the span this feature is verified across — a
+  ~340px map at the small end, the ~1200px cap at the large. **Defined here
+  once**: wherever FR-010 or SC-001 say "the supported viewport range" they mean
+  this and nothing else.
 
 ## Success Criteria *(mandatory)*
 
@@ -321,7 +350,10 @@ kitties through gathering and scattering. The fine detail never switches state.
   clamp are all 036's and unchanged. Only the two limits move.
 - **Choosing the final numbers.** The target, the band and the ceiling are
   dialled with the owner against the lab, as every art value in this client is.
-  This spec fixes what they mean, not what they are.
+  This spec fixes what they mean, not what they are. **The deferral ends at the
+  dialling session**, which gates both deployment and the refresh of 036's
+  pointers: nothing ships carrying an undialled number, and every figure quoted
+  in this spec is provisional until that session settles it.
 - **The whole-world view's own scale.** Camera mode off is untouched; a kitty
   is 17px on a phone there and that is a separate question.
 - **Making small viewports legible by other means.** If the minimum tile count
@@ -329,9 +361,9 @@ kitties through gathering and scattering. The fine detail never switches state.
 
 ## Assumptions
 
-- **The supported viewport range runs from a ~340px map to the ~1200px cap.**
-  Those are the measured extremes: a phone at the low end and the largest map
-  the client will draw at the high end. The cap is a shipped constant.
+- **The supported viewport range is the one defined in Key Entities**, and its
+  ends are measured rather than chosen: a phone at the low end, and at the high
+  end the largest map the client will draw. The cap is a shipped constant.
 - **The minimum tile count starts at 6, and it is the one deferred number with
   a real conflict behind it.** Lowering it buys apparent size and zoom range on
   small viewports and costs framing; raising it does the reverse. At 6 a 340px
