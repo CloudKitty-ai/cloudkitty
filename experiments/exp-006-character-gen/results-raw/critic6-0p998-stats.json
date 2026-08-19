@@ -1,0 +1,76 @@
+{
+  "gamma": 0.998,
+  "target_mean": 430.303466796875,
+  "target_std": 8.40106201171875,
+  "min_future": 1500,
+  "params": 74561,
+  "train_states": 585090,
+  "val_states": 117018,
+  "best_epoch": 2,
+  "best_val_mse": 0.25525879859924316,
+  "best_val_ev": 0.7270820235864373,
+  "history": [
+    {
+      "epoch": 1,
+      "train_mse": 0.3694318646217917,
+      "val_mse": 0.264034628868103,
+      "val_ev": 0.7176990685170357,
+      "seconds": 16.25350022315979
+    },
+    {
+      "epoch": 2,
+      "train_mse": 0.2531186863239333,
+      "val_mse": 0.25525879859924316,
+      "val_ev": 0.7270820235864373,
+      "seconds": 16.732099771499634
+    },
+    {
+      "epoch": 3,
+      "train_mse": 0.24017609412289864,
+      "val_mse": 0.2587624490261078,
+      "val_ev": 0.7233359854878185,
+      "seconds": 18.061461925506592
+    },
+    {
+      "epoch": 4,
+      "train_mse": 0.226959687064154,
+      "val_mse": 0.26811882853507996,
+      "val_ev": 0.7133323179309754,
+      "seconds": 17.98457098007202
+    },
+    {
+      "epoch": 5,
+      "train_mse": 0.2109830202155415,
+      "val_mse": 0.3094538152217865,
+      "val_ev": 0.6691377162814989,
+      "seconds": 17.593310117721558
+    },
+    {
+      "epoch": 6,
+      "train_mse": 0.18939553802043224,
+      "val_mse": 0.31525176763534546,
+      "val_ev": 0.6629386530220381,
+      "seconds": 17.637643814086914
+    },
+    {
+      "epoch": 7,
+      "train_mse": 0.1608446047023018,
+      "val_mse": 0.32965031266212463,
+      "val_ev": 0.6475439955466746,
+      "seconds": 18.66198706626892
+    }
+  ],
+  "hyperparams": {
+    "data_root": "/Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/raw/v5-spread",
+    "out_dir": "/Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/artifacts/critic6",
+    "gamma": 0.998,
+    "min_future": 1500,
+    "epochs": 60,
+    "batch_size": 4096,
+    "lr": 0.001,
+    "patience": 5,
+    "seed": 20260818,
+    "limit_rollouts": null,
+    "threads": 6
+  }
+}
