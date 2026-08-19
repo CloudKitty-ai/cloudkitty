@@ -703,6 +703,22 @@
     gap: 12px;
     justify-content: center;
     max-width: 940px;
+    /* Hold the cards off the map, at every width that stacks them under it
+       (owner, 2026-08-19 -- shipped to the phone first, then here). `.layout`
+       is a plain block below 1100px, so there is no `gap` to set and the
+       space has to come from a margin; the mat used to supply a few pixels
+       of it by accident and the hairline supplies none.
+
+       12px is not a new number: it is the `gap` two lines up, which is
+       already the distance between the cards. The map is spaced from the
+       cards exactly as the cards are spaced from each other, so the page
+       keeps ONE vertical rhythm rather than gaining a second number that has
+       to be kept in step with the first.
+
+       Above 1100px this rule does nothing and should not: `.panel` becomes
+       `display: contents` there, the cards move BESIDE the map, and a margin
+       on a box that generates none is ignored. */
+    margin-top: 12px;
   }
 
   /* Roomy screens seat the cards either side of the meadow (owner,
@@ -1160,26 +1176,13 @@
        background and shadow all live in the base rule now. 12 + 1. */
     .stage { border-radius: 13px; }
     canvas { border-radius: 12px; }
+    /* Two columns instead of a wrapping row. The top margin that holds the
+       cards off the map is the base rule's job now -- it was here first,
+       before the mid-range turned out to have the same gap. */
     .panel {
       display: grid;
       grid-template-columns: 1fr 1fr;
       width: 100%;
-      /* Hold the cards off the map (owner, 2026-08-19). `.layout` is a plain
-         block on a phone -- it only becomes a grid at 1100px -- so there is no
-         `gap` to set here and the cards otherwise start 4px below the meadow,
-         the mat being the only thing between them.
-
-         12px because that is ALREADY the gap between the cards themselves
-         (inherited from the base `.panel`; this override sets display and
-         columns but not gap), so the map is spaced from the cards exactly as
-         the cards are spaced from each other, and the page keeps one vertical
-         rhythm instead of gaining a second number.
-
-         Costs no tile size. `resizeFor` does not measure this margin, but it
-         does not need to: the phone map is WIDTH-bound with a wide margin --
-         402px gives 19.5 tiles across against 39 down -- so height has room to
-         spare and the whole 12px comes out of that slack, not out of the cat. */
-      margin-top: 12px;
     }
     .kitty-card {
       width: auto;
