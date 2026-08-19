@@ -751,15 +751,19 @@
     [1000, 'large monitor'],
     [1200, 'at the 1200px cap'],
   ];
-  // The spec's arithmetic, in ONE place so the two cards cannot drift apart
-  // from each other or from FR-001/FR-002/FR-005.
+  // The SHIPPED derivation, not a copy of it. When this card was first built
+  // `limitsFor` did not exist and the lab had to replicate the arithmetic;
+  // now it exists, so the card asks the real Camera and a divergence between
+  // what is dialled here and what the client does becomes impossible.
+  //
+  // This is not cosmetic. The replica clamped the ceiling at the world's 20
+  // tiles; the implementation clamps it one tile BELOW, so the camera still
+  // crops (FR-007). The lab was reporting 2.00x at 1000px where the client
+  // gives 1.90x, and the ceiling cat 50px where the client draws 52.6px.
   const zoomLimitsFor = (cssWidth) => {
-    const floorTiles = Math.min(
-      Math.max(cssWidth / ZOOM.floorPx, ZOOM.minTiles), ZOOM_WORLD,
-    );
-    const ceilingTiles = Math.max(
-      Math.min(cssWidth / ZOOM.ceilingPx, ZOOM_WORLD), floorTiles,
-    );
+    const cam = new Camera({ ...VIEW.camera, ...ZOOM });
+    const world = { width: ZOOM_WORLD, height: ZOOM_WORLD };
+    const { floorTiles, ceilingTiles } = cam.limitsFor(world, cssWidth);
     return {
       floorTiles, ceilingTiles,
       floorTile: cssWidth / floorTiles,
@@ -893,13 +897,11 @@
         // The shipped Camera, with the band expressed the only way today's
         // dials can express it: nominalAcross IS the floor, and the ceiling
         // is their product. Exactly the substitution the measurements used.
-        const cam = new Camera(Object.freeze({
-          ...VIEW.camera,
-          nominalAcross: L.floorTiles,
-          ceilingFactor: L.ceilingTiles / L.floorTiles,
-        }));
+        // The shipped dials, dialled. No nominalAcross/ceilingFactor
+        // substitution any more -- the camera takes pixels now.
+        const cam = new Camera({ ...VIEW.camera, ...ZOOM });
         cam.on = true;
-        cam.update(world, { ambient: { now } }, { aspect: 1 });
+        cam.update(world, { ambient: { now } }, { aspect: 1, cssWidth: 340 });
 
         const BOX = 340;
         const x0 = 20, y0 = 34;

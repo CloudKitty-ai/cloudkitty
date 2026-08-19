@@ -5632,6 +5632,117 @@ check('the ceiling binds, and the wanderer is let go', () => {
   assert(cam.across < 20, 'the ceiling did not actually crop the world');
 });
 
+// The supported viewport range, swept the way FR-010 requires: 20px steps
+// from the smallest phone map to the 1200px cap, plus the widths the spec's
+// own Overview table names. One sweep, shared by every criterion below, so
+// they cannot silently disagree about what "supported" means.
+const ZOOM_SWEEP = (() => {
+  const widths = [];
+  for (let w = 340; w <= 1200; w += 20) widths.push(w);
+  for (const named of [460, 640, 1000]) if (!widths.includes(named)) widths.push(named);
+  return widths.sort((a, b) => a - b);
+})();
+const zoomWorld = { width: 20, height: 20, elements: [], kitties: [] };
+const zoomLimits = (w) => new api.Camera().limitsFor(zoomWorld, w);
+
+check('apparent size varies by less than a factor of 2 across the range', () => {
+  // SC-001, and the whole reason 037 exists. Reported as a NUMBER so a
+  // regression shows as a figure rather than a boolean.
+  const tiles = ZOOM_SWEEP.map((w) => w / zoomLimits(w).floorTiles);
+  assert(tiles.length >= 40, `the sweep only sampled ${tiles.length} widths`);
+  const spread = Math.max(...tiles) / Math.min(...tiles);
+  assert(spread < 2,
+    `floor tile spread is ${spread.toFixed(2)}x (${Math.min(...tiles).toFixed(1)}px to `
+    + `${Math.max(...tiles).toFixed(1)}px) -- the bar is under 2, and it was 3.53x before 037`);
+});
+
+check('the ceiling always crops, on every supported viewport', () => {
+  // SC-006. Expected to BIND at the large end on today's 20-tile world --
+  // that is the Fog dependency -- so this asserts the clamp holds, not that
+  // it never fires.
+  let clamped = 0;
+  for (const w of ZOOM_SWEEP) {
+    const { ceilingTiles } = zoomLimits(w);
+    assert(ceilingTiles < zoomWorld.width,
+      `at ${w}px the ceiling frames ${ceilingTiles} of a ${zoomWorld.width}-tile world`);
+    if (w / api.VIEW.camera.ceilingPx > ceilingTiles + 1e-9) clamped += 1;
+  }
+  // The clamp firing is expected; it firing NOWHERE would mean the world
+  // stopped being the binding constraint and this check went vacuous.
+  assert(clamped > 0, 'the world clamp never fired anywhere in the sweep');
+});
+
+check('the floor never frames fewer tiles than the minimum', () => {
+  // FR-005/FR-006/SC-005. Where the minimum binds, the kitties must be drawn
+  // SMALLER than the pixel target rather than the world being cropped
+  // further -- so the tile is under floorPx exactly where the clamp is on.
+  let bound = 0;
+  for (const w of ZOOM_SWEEP) {
+    const { floorTiles } = zoomLimits(w);
+    assert(floorTiles >= api.VIEW.camera.minTiles - 1e-9,
+      `at ${w}px the floor frames ${floorTiles}, under the ${api.VIEW.camera.minTiles}-tile minimum`);
+    if (floorTiles > w / api.VIEW.camera.floorPx + 1e-9) {
+      bound += 1;
+      assert(w / floorTiles < api.VIEW.camera.floorPx,
+        `at ${w}px the minimum binds but the tile is ${(w / floorTiles).toFixed(1)}px, `
+        + `not under the ${api.VIEW.camera.floorPx}px target`);
+    }
+  }
+  assert(bound > 0, 'the minimum never bound anywhere in the sweep');
+});
+
+check('the floor never crosses the ceiling', () => {
+  // FR-013 and contract invariant 5. They may MEET -- that viewport simply
+  // has no zoom range -- but an inversion would ask the camera to widen past
+  // its own floor.
+  //
+  // Swept with the SHIPPED dials this cannot fail: 100/50/6 keeps the two
+  // far apart everywhere in the supported range, so a check that only swept
+  // them would be green for a reason unrelated to the guard. Caught by
+  // mutation -- swapping the two pixel targets left this check silent while
+  // seven others fired. So it is asserted where the clamp is actually
+  // load-bearing: a minimum that reaches past the ceiling's own target.
+  for (const w of ZOOM_SWEEP) {
+    const { floorTiles, ceilingTiles } = zoomLimits(w);
+    assert(floorTiles <= ceilingTiles + 1e-9,
+      `at ${w}px the floor (${floorTiles}) is wider than the ceiling (${ceilingTiles})`);
+  }
+  // minTiles 12 with a 100px ceiling target: the floor is held at 12 tiles
+  // while the ceiling target asks for 4. Without the clamp the ceiling would
+  // come back NARROWER than the floor.
+  const squeezed = new api.Camera({ ...api.VIEW.camera, floorPx: 100, ceilingPx: 100, minTiles: 12 });
+  let met = 0;
+  for (const w of ZOOM_SWEEP) {
+    const { floorTiles, ceilingTiles } = squeezed.limitsFor(zoomWorld, w);
+    assert(floorTiles <= ceilingTiles + 1e-9,
+      `squeezed at ${w}px: floor ${floorTiles} is wider than ceiling ${ceilingTiles}`);
+    if (Math.abs(floorTiles - ceilingTiles) < 1e-9) met += 1;
+  }
+  assert(met > 0, 'the squeezed case never made the two meet, so the clamp was never exercised');
+});
+
+check('a resize produces continuous limits, with no jump at either boundary', () => {
+  // SC-009, swept in 1px steps across BOTH boundaries -- where minTiles
+  // starts binding and where the world clamp does. A jump here is a visible
+  // cut on a window drag, which 036 FR-008 forbids outright.
+  let prev = null;
+  let steps = 0;
+  for (let w = 300; w <= 1250; w += 1) {
+    const { floorTiles, ceilingTiles } = zoomLimits(w);
+    if (prev) {
+      // 1px of viewport can never move a limit by more than a small
+      // fraction of a tile; anything larger is a discontinuity.
+      assert(Math.abs(floorTiles - prev.floorTiles) < 0.05,
+        `the floor jumped ${Math.abs(floorTiles - prev.floorTiles).toFixed(3)} tiles at ${w}px`);
+      assert(Math.abs(ceilingTiles - prev.ceilingTiles) < 0.05,
+        `the ceiling jumped ${Math.abs(ceilingTiles - prev.ceilingTiles).toFixed(3)} tiles at ${w}px`);
+    }
+    prev = { floorTiles, ceilingTiles };
+    steps += 1;
+  }
+  assert(steps > 900, `the resize sweep only took ${steps} steps`);
+});
+
 check('the 1000px floor is the 10 tiles that shipped', () => {
   // 037's Foundational is NOT an identity change -- the ceiling moves on
   // purpose. But the FLOOR must reproduce the shipped behaviour at the one
