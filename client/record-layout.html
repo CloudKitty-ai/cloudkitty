@@ -1,0 +1,102 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Record the layout — resizeFor fixture</title>
+<style>
+  body { font: 15px/1.6 system-ui, sans-serif; margin: 0; padding: 20px 16px 60px;
+         background: #fdf6ec; color: #6b5a4e; }
+  h1 { font-size: 1.15rem; margin: 0 0 6px; }
+  p { max-width: 40rem; margin: 0 0 12px; font-size: .9rem; }
+  button { font: inherit; padding: 8px 16px; border-radius: 8px; border: 1px solid #c3b3a3;
+           background: #fffdfa; cursor: pointer; }
+  textarea { width: 100%; min-height: 20rem; margin-top: 14px; font-family: ui-monospace, monospace;
+             font-size: 12px; border: 1px solid #c3b3a3; border-radius: 8px; padding: 10px; }
+  .note { background: #fff; border-left: 3px solid #b0876a; padding: 9px 12px; border-radius: 0 6px 6px 0; }
+</style>
+
+<h1>Record the layout</h1>
+<p>
+  <code>resizeFor</code> has no test harness because nothing can drive it headlessly.
+  This records the numbers a fixture needs <strong>off the real page</strong> rather
+  than inventing them — the difference between a test that guards something and one
+  that agrees with itself.
+</p>
+<p class="note">
+  It loads the live page in a frame at several viewport sizes and reads what the
+  browser actually computed. Nothing is sent anywhere; copy the box and paste it back.
+  <strong>Run it once per device</strong> — the values that matter most (header and
+  footer heights) depend on font rendering, so they differ between your phone and
+  your laptop.
+</p>
+
+<button id="run">Record</button>
+<textarea id="out" readonly placeholder="the recording lands here"></textarea>
+<iframe id="frame" src="index.html" style="position:absolute;left:-9999px;top:0;border:0"></iframe>
+
+<script>
+// Sizes worth recording: the two phone widths that bracket the breakpoint, a
+// mid-range window (600-1100, where .layout is a block and the cards wrap), a
+// desktop above the 1100px grid switch, and a short window for the landscape
+// branch. Heights are the CSS viewport, not the screen.
+const CASES = [
+  { name: 'phone-narrow',  w: 360,  h: 800 },
+  { name: 'phone-16pro',   w: 402,  h: 874 },
+  { name: 'phone-land',    w: 874,  h: 402 },
+  { name: 'midrange',      w: 800,  h: 900 },
+  { name: 'desktop',       w: 1440, h: 900 },
+];
+
+const px = (cs, ...sides) => sides.reduce((s, k) => s + (parseFloat(cs[k]) || 0), 0);
+
+function readOne(doc, win) {
+  const q = (s) => doc.querySelector(s);
+  const stage = q('.stage');
+  const cell = stage && stage.parentElement;
+  const layout = cell && cell.parentElement;
+  const cols = layout ? layout.querySelectorAll('.panel-col') : [];
+  const cs = (el) => win.getComputedStyle(el);
+  const boxH = (s) => (q(s) ? q(s).getBoundingClientRect().height : 0);
+  let beside = 0;
+  for (const c of cols) beside += c.getBoundingClientRect().width;
+  return {
+    docClientWidth:  doc.documentElement.clientWidth,
+    docClientHeight: doc.documentElement.clientHeight,
+    headerHeight: +boxH('header').toFixed(2),
+    footerHeight: +boxH('footer').toFixed(2),
+    bodyPadY: px(cs(doc.body), 'paddingTop', 'paddingBottom'),
+    bodyPadX: px(cs(doc.body), 'paddingLeft', 'paddingRight'),
+    stageFrameX: px(cs(stage), 'paddingLeft', 'paddingRight', 'borderLeftWidth', 'borderRightWidth'),
+    stageFrameY: px(cs(stage), 'paddingTop', 'paddingBottom', 'borderTopWidth', 'borderBottomWidth'),
+    layoutClientWidth: layout ? layout.clientWidth : null,
+    besideWidth: +beside.toFixed(2),
+    columnGap: layout ? (parseFloat(cs(layout).columnGap) || 0) : 0,
+    panelColCount: cols.length,
+    shortBranch: win.matchMedia('(max-height: 500px)').matches,
+    // What the page ACTUALLY ended up drawing, so the fixture has an answer
+    // to check itself against rather than only inputs.
+    canvasCssWidth: q('#world') ? q('#world').style.width : null,
+    dpr: win.devicePixelRatio || 1,
+  };
+}
+
+document.getElementById('run').addEventListener('click', async () => {
+  const frame = document.getElementById('frame');
+  const out = document.getElementById('out');
+  const rec = { recordedOn: navigator.userAgent, dpr: window.devicePixelRatio || 1, cases: {} };
+  out.value = 'recording…';
+  for (const c of CASES) {
+    frame.style.width = c.w + 'px';
+    frame.style.height = c.h + 'px';
+    // Two frames: one for layout, one for the page's own rAF resize to settle.
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    await new Promise((r) => setTimeout(r, 250));
+    try {
+      rec.cases[c.name] = { viewport: c, ...readOne(frame.contentDocument, frame.contentWindow) };
+    } catch (e) {
+      rec.cases[c.name] = { error: String(e) };
+    }
+  }
+  out.value = JSON.stringify(rec, null, 2);
+  out.select();
+});
+</script>
