@@ -1072,9 +1072,31 @@
      `min-width: 0` is what lets it (a grid item's default min-width is
      its content, which would defeat the ellipsis and stretch the track). */
   @media (max-width: 600px) {
-    body { padding: 16px 10px 28px; }
-    /* Thinner mat on a phone; the horizon follows it via --stage-pad. */
-    .stage { --stage-pad: 5px; border-radius: 20px; }
+    /* Sides 10px -> 2px (owner, 2026-08-19). The map's width budget is the
+       viewport less the body's side padding and the stage's mat, and
+       `resizeFor` then FLOORS the tile -- so on a 20-tile world every pixel
+       past a multiple of 20 is thrown away and reappears as cream OUTSIDE the
+       mat (`.stage` is `width: max-content`). That is the gap: on a 402px
+       handset it was 16px each side, 10 of padding and 6 of remainder.
+
+       Map width is therefore a STEP function of the total horizontal chrome,
+       not a smooth one, and it has exactly two steps in the phone range.
+       These two numbers put us on the lower one: 12px total takes 375 ->
+       360px, 393 -> 380px and 412 -> 400px, and no further trim buys anything
+       until the mat is gone altogether. 20px total (body 6 + mat 4) is the
+       other step and moves only the 360px handset.
+
+       Vertical is untouched: 16/28 is the height budget, a different
+       constraint with its own dialling history, and height is not what this
+       was about.
+
+       The cards ride the same padding -- `body` is the flex column -- so they
+       come to the edge with the map. That was the accepted trade; separating
+       them means moving this rule onto header/.panel/footer. */
+    body { padding: 16px 2px 28px; }
+    /* Thinner mat on a phone; the horizon follows it via --stage-pad. The
+       5 -> 4 is the other half of the 12px above. */
+    .stage { --stage-pad: 4px; border-radius: 20px; }
     canvas { border-radius: 12px; }
     .panel {
       display: grid;
@@ -1109,6 +1131,12 @@
      mode, which would spend the 844px of width that is sitting idle.
      Pinch-zoom covers the gap in the meantime (owner call). */
   @media (max-height: 500px) {
+    /* The sides stay 10px here while portrait went to 2px, and the
+       divergence is deliberate: this block wins on a narrow SHORT window
+       (equal specificity, later in the file), and landscape's real problem is
+       that `resizeFor` builds a square canvas the window then scrolls -- not
+       the horizontal chrome. Whoever letterboxes the canvas decides this
+       number; trimming it first would spend the change on the wrong axis. */
     body { padding: 6px 10px 8px; }
     h1 { font-size: 1.25rem; }
     /* The wordmark's loafing cats are 32px each of a header we are trying
