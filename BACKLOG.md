@@ -117,6 +117,83 @@ is noise, consistent with the contended machine. It is far smaller than the ~10x
 margin to the frame budget, so the magnitude is robust even though the individual
 rows are not.
 
+**HOW TO BUILD F — read this before picking it up; it is NOT a flag.**
+Investigated 2026-08-19 by reading the drawing path, after the measurement
+passed and before any code was written. The plan implied a switch in
+`render.js`; there isn't one.
+
+**Two things make `drawMeadowGround` world-anchored, and both bite.**
+
+1. **It hashes on its loop indices.** `smoothNoise(x, y, salt, cells)` and every
+   `tileHash(x, y, …)` in `drawGroundDetail` take the loop counters, which ARE
+   world coordinates. Call it with a smaller `width`/`height` to draw "just the
+   visible part" and it draws tiles 0..n of the WRONG PART OF THE WORLD, anchored
+   to the viewport. The meadow's tone, jitter, patches, tufts, flowers and shrubs
+   would then slide underneath the camera as it pans. Very visible, and it would
+   not show up in a still screenshot.
+2. **`blurredLayer` allocates a scratch canvas sized to the whole field**
+   whenever the radius clears 0.05 — and the radius is
+   `groundBlurTiles * tile` with `groundBlurTiles: 0.32`, so it always does.
+   Drawing the world live at the camera's floor tile means
+   **113 x 20 = 2260 CSS px, x dpr 3 = 6780 device px square, ~184 MB, every
+   frame** — and it blows the same 4096 bound this whole entry is about. A naive
+   live draw is strictly WORSE than the bake it replaces.
+
+**So the irreducible core of F is a world-coordinate REGION parameter** on
+`drawMeadowGround`, e.g. `view = {x0, y0, x1, y1}` in integer world tiles,
+defaulting to the whole world so today's callers are byte-identical. The
+benchmark already assumed this — it passed `visible x visible`, which is why
+**1.6ms is a faithful target and not an optimistic one**.
+
+**Four things have to be threaded, and the last two are the easy ones to get
+wrong:**
+
+- **The tone loop** — bound to the region, still hashing on world `(x, y)`.
+- **`blurredLayer`** — sized to the REGION, not the field, with the `paint`
+  callback offset by `-x0 * tile` / `-y0 * tile` so world coordinates still land
+  correctly inside the smaller scratch. This is the change that actually buys
+  the memory back; getting the offset wrong shifts the whole mosaic.
+- **The field-wide sun wash** — its gradient MUST stay anchored to the world
+  field (`w`, `h` from world dims), because it is keyed to `shadowLean` so the
+  light cannot disagree with itself across the map. Only the `fillRect` narrows
+  to the region. Re-anchoring the gradient to the region would make the sun
+  move with the camera.
+- **`drawGroundDetail` and `driftField`** — same region bounds, same world-coord
+  hashing. `driftField` builds a `width x height` field; it must stay
+  world-sized (it is only ~400 entries) or the drifts re-roll as the camera
+  moves.
+
+**The invariant to protect above all else: camera-OFF must stay byte-identical.**
+036 SC-007 and SC-012 say the camera-off view is indistinguishable from the
+build before camera mode existed, and the whole bake path is what they were
+written against. F keeps the cache for camera-off and draws live ONLY in camera
+mode; the default-region path must produce the same pixels it does today.
+
+**A cheaper variant that needs the SAME region parameter**, if per-frame ever
+proves too dear: cache the visible WINDOW instead of the world and re-bake only
+when the integer tile window changes (roughly once per tile crossed, ~1/s while
+panning). The scratch is then viewport-sized rather than world-sized, so the
+4096 bound is never in play. Not needed at 1.6ms, but it means the region
+parameter is not wasted work under either design.
+
+**No existing helper to reuse.** `bushesFor` builds a whole-world list every
+frame, which is cheap because it is list-building rather than rasterisation, so
+it is not the region pattern F needs.
+
+**Test plan, at the layer each bug actually occurs:**
+
+- A region draw and a full draw must paint the SAME TILES THE SAME WAY — draw
+  both, compare the ops for the overlapping tiles. This is the check that
+  catches the sliding-mosaic bug, and it must be seen red by hashing on loop
+  index instead of world coordinate.
+- The offscreen must never exceed the viewport in camera mode. Assert on the
+  scratch canvas's dimensions, not on a timing.
+- Camera-off must still bake, and bake the same thing. The existing identity
+  checks cover the second half; the first needs asserting explicitly or F could
+  silently switch camera-off to the live path and still look right.
+- **Do this in the same pass as the `resizeFor` fixture below.** F opens exactly
+  that neighbourhood, and the two are one careful sitting rather than two.
+
 **Where that leaves the four options:** capping the camera's floor by the bake
 budget and raising `GROUND_BAKE_MAX_PX` are both **moot** — F costs a tenth of a
 frame and removes the magnification instead of trading against it. C stays as the
