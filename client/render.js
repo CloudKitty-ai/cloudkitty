@@ -501,14 +501,35 @@ class WorldRenderer {
       return el ? el.getBoundingClientRect().height : 0;
     };
 
-    const stagePadX = px(stage, 'paddingLeft', 'paddingRight');
-    const stagePadY = px(stage, 'paddingTop', 'paddingBottom');
+    // The stage's FRAME, not just its padding: everything of the stage's own
+    // box that sits between the viewport edge and the canvas. The phone
+    // breakpoint retired the mat for a 1px hairline border (2026-08-19), and
+    // a border a padding-only measurement cannot see is 2px the budget thinks
+    // it has and does not -- the stage comes out wider than the width it was
+    // sized against and the document scrolls sideways by two pixels.
+    //
+    // Harmless on every handset we fit, where the integer-tile slack is 8px
+    // or more, and exactly the kind of thing that surfaces on the one
+    // viewport whose slack is zero. Same class as the bake clamp measured in
+    // CSS px against a budget in device px: the arithmetic was right and the
+    // units were not.
+    //
+    // An `outline` with a negative offset was the alternative -- it draws
+    // inside the border box and costs no layout at all, so this measurement
+    // could have stayed padding-only. Rejected because it makes the box model
+    // lie in the other direction: the line would be real to the eye and
+    // invisible to every measurement, and a later change that thickened it
+    // would silently eat the meadow instead of resizing the map.
+    const stageFrameX = px(stage, 'paddingLeft', 'paddingRight',
+      'borderLeftWidth', 'borderRightWidth');
+    const stageFrameY = px(stage, 'paddingTop', 'paddingBottom',
+      'borderTopWidth', 'borderBottomWidth');
     // Everything the map is not: header, footer, the body's own padding,
     // the stage's padding, and a little slack for the margins between.
     const chromeY =
       boxOf('header') + boxOf('footer') +
       px(document.body, 'paddingTop', 'paddingBottom') +
-      stagePadY + VERTICAL_SLACK;
+      stageFrameY + VERTICAL_SLACK;
 
     // Width the map may have: the layout's full width less whatever the
     // card columns take beside it. Measured from `.layout` rather than
@@ -525,7 +546,7 @@ class WorldRenderer {
       (layout ? layout.clientWidth : doc.clientWidth) -
       besideWidth -
       (besideWidth > 0 ? gap * columns.length : 0) -
-      stagePadX;
+      stageFrameX;
     // Floored, and not only for tidiness: chromeY can exceed the viewport
     // on a very short window, and a negative budget used to reach `scale`
     // below and produce a negative CSS width. The CSSOM rejects that, so

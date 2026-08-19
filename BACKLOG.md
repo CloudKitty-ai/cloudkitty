@@ -178,6 +178,70 @@ Not to be confused with the anchor **hysteresis**, which was a different
 small-viewport fault (restlessness, 036 SC-006) and is fixed — 1.5 → 2.5 in
 PR #245.
 
+### Dissolve the map's edge in CAMERA MODE ONLY (added 2026-08-19; Client thread)
+
+Owner's call after the edge-treatment lab, 2026-08-19: **the hairline ships now
+(phone), the dissolve is a later item.** Not a rejection — a deferral with a
+reason worth keeping.
+
+**The idea.** Fade the meadow's outermost ~14px to transparent instead of
+ending it on a line. The map keeps every pixel of its size; only the last band
+stops being opaque.
+
+**Why it is a camera-mode question and not a styling one.** The edge means
+different things in the two modes, and only one of them is a lie:
+
+- **Camera off**, the edge IS the world boundary. The meadow really does stop
+  there. A hard edge is the truth, and dissolving it would say "there is more
+  beyond" about a world that has no more.
+- **Camera on**, the edge is an arbitrary crop and there IS more meadow past
+  it. A hard line there says the world ends where the viewport does.
+
+Same reasoning that made the letterbox right: tell the renderer what is
+actually true rather than what is convenient.
+
+**What the lab settled, so it is not re-derived:**
+
+- The natural edge is **not a constant** — grass-to-page swings from **ΔL* 0.1
+  at dusk to 18.5 at dawn**, a factor of 180 across one day. So a dissolve does
+  its most visible work at dawn, where the edge is already loud, and is a
+  **no-op at dusk**, where grass and paper are the same lightness. Any dissolve
+  that ships needs a per-hour answer, not one radius.
+- It **softens the horizon the sky dial pins to** (`bottom: calc(100% -
+  var(--stage-pad))`, owner 2026-07-23: "exact wins"). The dial has to be
+  settled first; the owner sequenced it that way deliberately.
+
+**Open, and not answerable from a still frame:**
+
+- **Motion.** A kitty walking through a fading band is a different question
+  from a fading band holding still. A half-faded cat at the boundary may read
+  as a bug rather than an effect.
+- **Cost.** Drawn in-canvas it is per-frame work on a budget already under
+  question (see the high-dpr bake above); drawn as a CSS mask it forces a
+  compositing layer. Neither is free and neither is measured.
+
+### `resizeFor` has no test harness, and that has now cost three changes (added 2026-08-19; Client thread)
+
+PRs #248, #250 and the hairline all changed what the map measures itself
+against, and **not one of them could be guarded.** Neither harness runs
+`resizeFor` — both set `cssWidth` directly on a renderer stub — so the entire
+viewport-to-tile derivation is untested, including the branch that decides a
+short window fits to width instead of height.
+
+Each time the honest options have been a real DOM fixture or a string match on
+the declared CSS, and a string match is the lie rule 5 names: it passes on the
+wording and says nothing about the state. So each change shipped with the
+handset as its only verification. That is acceptable once and a pattern three
+times.
+
+**What it would take:** a mock `document.documentElement`, `getComputedStyle`
+and `getBoundingClientRect` faithful enough to drive the real `resizeFor` —
+which is exactly the hand-written fixture rule 5 warns about, so the values
+have to be RECORDED off a real page rather than invented. Pick it up the next
+time `resizeFor` is open anyway. The bug it would have caught most recently is
+real and shipped in this PR's own change: a border the padding-only measurement
+could not see.
+
 ### Phone portrait: the horizontal gap beside the map — SHIPPED (PR #248, 2026-08-19; Client thread)
 
 Owner, 2026-08-19: "a bit of a horizontal gap around the map in portrait that
