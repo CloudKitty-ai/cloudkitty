@@ -282,8 +282,11 @@ kitties through gathering and scattering. The fine detail never switches state.
 - **SC-003**: On every supported viewport, fine detail never changes state while
   the camera moves within its range, observed across a full session at 5
   kitties.
-- **SC-004**: Every viewport that reaches the pixel target has the same zoom
-  range, within 1%.
+- **SC-004**: *Withdrawn by the owner, 2026-08-18.* It required the zoom range to
+  be identical across viewports, which follows from the construction rather than
+  needing to be asserted — and pinning it would have to be renegotiated the
+  moment anything widens the range deliberately, such as manual zoom. The number
+  is kept unused so references elsewhere stay valid.
 - **SC-005**: No supported viewport frames fewer than the minimum tiles at the
   zoom floor.
 - **SC-006**: On every supported viewport, the ceiling frames fewer tiles than

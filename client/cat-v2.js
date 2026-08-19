@@ -1731,11 +1731,23 @@ function drawCat(ctx, opts) {
 /** The shared box pipeline: mirror, scale, paint. drawCat and
  * drawCatTween meet here so a blended frame is drawn by exactly the
  * machinery a held pose uses. */
+/**
+ * Where fine detail switches on, mutable for a lab like SWIM/GAIT/EYE.
+ *
+ * 44 is a PRE-CAMERA number: it was chosen when a live tile ran 21-60px and
+ * the question was whether detail would ever be drawn at all. Camera mode
+ * changed that question -- the camera's band sits above it at both ends --
+ * so what the threshold now produces is a DISCONTINUITY between camera-off
+ * and camera-on rather than a legibility guard. Set `floorPx` to 0 to draw
+ * fine detail at every size and see what that costs (owner asked, 2026-08-18).
+ */
+const FINE = { floorPx: 44 };
+
 function paintBox(ctx, L, appearance, { facing, size, x, y, lid = 0, turn = null }) {
   // v2: `fine` gates only the tabby forehead stripes (sub-pixel noise when
   // small). Eyes, mouth and inner ears draw at every size -- v1's 44px
   // cliff meant no live-world cat ever wore its own face.
-  const fine = size >= 44;
+  const fine = size >= FINE.floorPx;
   // The served facing does not take effect until the mirror lands at the
   // bottom of the dip; before that the cat is still drawn the way it was
   // going. Both ends of the turn are therefore exactly the held drawings.
@@ -3563,6 +3575,7 @@ const api = {
   drawCatTween,
   blendLayouts,
   BODY_CX,
+  FINE,
   appearanceFor,
   shadedAppearanceOf,
   catLayout,
