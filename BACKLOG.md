@@ -13,6 +13,53 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 <!-- shipped P1 items are removed once merged; see git history -->
 
+### The cat's eyes and Clementine's coat (added 2026-08-20; owner's queue)
+
+Four items the owner queued after the landscape arc, in her order. They are
+listed together because three of them are the same underlying cause: **the art
+was dialled when a cat was ~31px and camera mode now draws her at 57–103px**,
+so decisions that were invisible economies at low resolution are legible
+choices at high one.
+
+1. **Clementine's fur dial — TOMORROW'S first item, and the only one with a
+   deadline.** She is the designed WHITE cat via a per-cat palette override,
+   and the override was never written; the hard deadline is the phase-1
+   `--fresh`, because that is the generation that seats her. Owner: the belly
+   "needs to be dialled just a little bit" for contrast. A white cat is the one
+   coat where the belly's lighter underside has nothing to be lighter *than*,
+   so this is a contrast problem, not a colour one.
+
+2. **Deprecate the hunter eyes.** Owner, 2026-08-20: *"they don't read well any
+   more and we've seen repeated behavioural issues so we'll just disable them
+   going forward."* Two independent reasons, and the second is the load-bearing
+   one — this is not a rendering tweak, it is a decision to stop drawing a
+   state. `FOCUS_VARIANTS` is the dial block; the hunter face already has
+   checks pinning that it does not outlive its quarry, so expect guards to go
+   red and point them at the new behaviour rather than deleting them.
+
+3. **Replace the half-closed eyes in RESTING poses** (drinking, and its
+   siblings). Owner: they *"read fine during transitions — slow blink, falling
+   asleep — but don't look great as a resting pose at our new higher
+   resolution."* So the lid position is not wrong, its PERSISTENCE is: a
+   half-lid passed through in 200ms reads as a blink, held indefinitely it
+   reads as a sleepy or unwell cat. The fix is per-pose, not per-lid, and the
+   transitions must keep what they have.
+
+4. **Design output for the settle-in-place and north/south walk animations.**
+   Both are with the Design thread as of 2026-08-19. The north/south work has a
+   measured, costed entry in this file — read it before accepting any proposal,
+   because "do nothing" is a legitimate answer there and the owner has already
+   chosen it once.
+
+   4a. **The ear and tail outlines vanish and reappear during the settle.**
+   Owner believes it was deliberate and read acceptably at very low resolution;
+   at the new size it does not. **Sequenced behind 4**: if the Design output
+   fixes it as a side effect, nothing more is needed. If it does not, it
+   becomes its own investigation — and the first question is whether the
+   disappearance is an outline-width floor dropping below a pixel, a z-order
+   flip, or an alpha term, because those look identical at 31px and nothing
+   alike at 103px.
+
 ### One palette key for every cache that bakes one (added 2026-08-17; Client thread)
 `applyTheme` now publishes `renderer.paletteKey`, and the pond layers carry it
 in their own signature. The ground cache is still invalidated the other way,
@@ -368,7 +415,18 @@ Not to be confused with the anchor **hysteresis**, which was a different
 small-viewport fault (restlessness, 036 SC-006) and is fixed — 1.5 → 2.5 in
 PR #245.
 
-### Dissolve the map's edge in CAMERA MODE ONLY (added 2026-08-19; Client thread)
+### ~~Dissolve the map's edge in CAMERA MODE ONLY~~ — DROPPED 2026-08-20
+
+**Owner: "we can forget about the camera edge dissolve for the foreseeable
+future, our recent map border/landscape changes make it moot."** Deferred on
+2026-08-19, dropped the next day, and the reason is the interesting part: the
+question it existed to answer was *what should the map's edge be when the
+camera is cropping an arbitrary window rather than showing the world's
+boundary*. The hairline answered it by being thin enough not to assert
+anything, and the landscape work then made the edge mostly leave the screen —
+the canvas fills the viewport, so on a phone the top and bottom edges are
+scrolled past rather than looked at. The original reasoning is kept below in
+case Fog or a resizable window brings the question back.
 
 Owner's call after the edge-treatment lab, 2026-08-19: **the hairline ships now
 (phone), the dissolve is a later item.** Not a rejection — a deferral with a

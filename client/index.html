@@ -572,8 +572,13 @@
        outside the real one; the shadow is what the owner judged without,
        on the phone, before asking for this. */
     --stage-pad: 0px;
+    /* The hairline that replaced the mat, as a variable for the same reason
+       --stage-pad is one: the sky dial sits ON it and has to know how thick
+       it is. A repeated `1px` in the dial's calc would drift the moment this
+       line changed weight. */
+    --stage-line: 1px;
     background: none;
-    border: 1px solid var(--grass-line);
+    border: var(--stage-line) solid var(--grass-line);
     border-radius: 19px;
     padding: var(--stage-pad);
     box-shadow: none;
@@ -593,13 +598,19 @@
      2:1 ratio. */
   #sky-dial {
     position: absolute;
-    /* Exactly the stage padding: the dial's bottom edge sits on the
-       map's top border. (A 1px overlap was tried against fractional-
-       pixel seams and read as the dial cutting into the tiles --
-       owner call, 2026-07-23: exact wins.) Reads the variable rather
-       than repeating the number, so "exact" survives any breakpoint
-       that changes the mat. */
-    bottom: calc(100% - var(--stage-pad));
+    /* ON TOP OF THE LINE, not behind it (owner, 2026-08-20).
+       `bottom: 100%` puts the dial's bottom edge on the PADDING box's top
+       edge -- and the hairline is drawn outside that box, so the dial's last
+       row of pixels shared the line's row and the dome sat a hair low. Adding
+       the border width lifts it clear, so the dial rests on the line the way
+       it used to rest on the mat.
+       Not the 1px overlap that was tried and rejected in 2026-07: that was an
+       overlap INTO the tiles, and the owner's "exact wins" was about the map's
+       edge. There was no border then -- the edge and the padding box were the
+       same line. Now they are 1px apart and "exact" has to say which.
+       Both terms are variables, never repeated numbers, so a breakpoint that
+       changes the mat or the line's weight carries the dial with it. */
+    bottom: calc(100% - var(--stage-pad) + var(--stage-line));
     /* Slid left to clear a seat for the camera control (owner,
        2026-08-16). The three numbers are one sum: the control's own
        margin (1.5%), its width (5.25%) and the gap between them (1.65%,
@@ -623,7 +634,11 @@
   #camera-toggle {
     position: absolute;
     bottom: calc(100% - var(--stage-pad));
-    /* Nearly on the map's right edge (owner, 2026-08-16). The stage's own
+    /* Deliberately NOT lifted by --stage-line with the dial (owner,
+       2026-08-20: "camera is fine as is"). The 1px divergence between these
+       two pins is a judgement, not drift -- the wedge reads as sitting on the
+       corner where the dome reads as sitting low.
+       Nearly on the map's right edge (owner, 2026-08-16). The stage's own
        padding is the last 6px of that gap, so the drawn edge is closer
        than this reads; `var(--stage-pad)` would sit the control exactly
        in the map's corner if flush is ever wanted. */
