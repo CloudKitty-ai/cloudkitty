@@ -606,9 +606,22 @@ class WorldRenderer {
     // it to WIDTH, so on a phone held sideways the map is as tall as it is
     // wide and the page scrolls past the bottom of it. The camera is then
     // handed `aspect = cssHeight / cssWidth` = 1.0 and dutifully frames a
-    // square, in a window that is nothing like square. Told the truth
-    // (~0.37 on a 16 Pro) it frames 13x5 tiles where it framed 7x7, with no
-    // scroll and no dial touched.
+    // square, in a window that is nothing like square.
+    //
+    // MEASURED 2026-08-20, and the tile size is NOT what this buys -- it is
+    // 54px either way. On the owner's handset held sideways (750x285, a 720px
+    // canvas) the camera frames 13.3 tiles across in both cases. Square, that
+    // is 13.3 rows down a 720px-tall canvas of which the window shows 206px,
+    // and the frame is CENTRED on the canvas -- so the kitties the camera is
+    // aiming at sit ~360px down a 285px window, off screen, and the user
+    // scrolls to find the thing that is already being followed. Letterboxed,
+    // the same 13.3 across becomes 3.8 rows and the strip the camera aims IS
+    // the strip you can see.
+    //
+    // So the win is aim, not size, and the row count is set by
+    // `heightBudget / tilePx` -- canvas width cancels out of it entirely.
+    // Which is why the footer that `chromeY` used to charge below the fold
+    // was worth a third of the frame: 2.85 rows against 3.81.
     //
     // Camera OFF is untouched, and that is the whole reason for the
     // condition: 036 SC-007 says the off state is indistinguishable from the

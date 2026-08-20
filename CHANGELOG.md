@@ -56,13 +56,25 @@ change.
   standing in for — nothing in the meadow is drawn smaller than the character
   cards the art was dialled against.
 
-- **A landscape phone was being shown a square.** With the camera on, a short
-  window built a square canvas and let the page scroll, and — more to the point —
-  told the camera the shape it was filling was square. The camera dutifully
-  framed a square. Told the truth about the window instead, it spreads out: the
-  same scene goes from seven tiles by three to thirteen by five, with nothing to
-  scroll and no dial touched. The camera was never wrong; it was being
-  misinformed.
+- **A landscape phone was being shown a square, and then charged rent on a
+  footer it could not see.** With the camera on, a short window built a square
+  canvas and let the page scroll, and — more to the point — told the camera the
+  shape it was filling was square, so the camera framed a square. The kitties it
+  was busy following therefore sat in the middle of a canvas more than twice as
+  tall as the window, which is to say off screen: you had to scroll to find the
+  thing that was already being followed. Told the truth about the window, the
+  strip the camera aims at is the strip you can actually see. Cats are exactly
+  the same size either way — that was never what this was about.
+
+  How tall that strip is turned out to be a second, separate problem. The map's
+  share of the screen was calculated by subtracting the header, the footer and
+  the page margins from the window — but on a phone the cards sit between the
+  map and the footer, so the footer is hundreds of pixels below the fold and was
+  never competing for that space. On a sideways handset it wraps to 52 pixels of
+  a 285-pixel screen: eighteen percent of everything, held back for something
+  nobody can see. The map now keeps it, and the visible band grows by a third.
+  Where the cards genuinely do sit beside the map — a wide desktop — the footer
+  is the next thing underneath and is still counted.
 
 - **The frame around the meadow was answering four different questions with
   one number.** On a phone the map sat on a small white mat, which separated it
