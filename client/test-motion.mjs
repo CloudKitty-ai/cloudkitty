@@ -7127,7 +7127,7 @@ check('the letterbox fills the LARGE viewport, not the layout one', () => {
   }
 });
 
-check('the recorded landscape phone frames six rows at a 67px tile', () => {
+check('the recorded landscape phone frames seven rows at a 57px tile', () => {
   // The whole landscape arc of 2026-08-20, end to end, against one recorded
   // device rather than the four different estimates it took to get here. Every
   // input is measured: 750x285 layout viewport, 402 large viewport, 33px
@@ -7147,8 +7147,8 @@ check('the recorded landscape phone frames six rows at a 67px tile', () => {
 
   assert(Math.abs(rows - api.VIEW.camera.ceilingRows) < 1e-9,
     `the widest frame is ${rows.toFixed(2)} rows, not the ${api.VIEW.camera.ceilingRows} the cap allows`);
-  assert(Math.abs(tile - 66.7) < 0.1,
-    `a kitty draws at ${tile.toFixed(1)}px; the measured device gives 66.7`);
+  assert(Math.abs(tile - 57.1) < 0.1,
+    `a kitty draws at ${tile.toFixed(1)}px; the measured device gives 57.1`);
   assert(tile > api.VIEW.camera.ceilingPx,
     `${tile.toFixed(1)}px is under the ${api.VIEW.camera.ceilingPx}px target, so landscape `
     + 'is now the smallest cat anywhere rather than the biggest');
