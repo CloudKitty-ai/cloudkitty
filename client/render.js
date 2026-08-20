@@ -575,7 +575,27 @@ class WorldRenderer {
       ),
     );
     const cssWidth = this.tile * world.width;
-    const cssHeight = this.tile * world.height;
+    // LETTERBOX (2026-08-19). A short viewport with the camera ON gets a
+    // canvas the shape of the WINDOW, not the shape of the world.
+    //
+    // The landscape complaint was never the tile count. `resizeFor` builds a
+    // SQUARE canvas -- the world is 20x20 -- and the short branch above fits
+    // it to WIDTH, so on a phone held sideways the map is as tall as it is
+    // wide and the page scrolls past the bottom of it. The camera is then
+    // handed `aspect = cssHeight / cssWidth` = 1.0 and dutifully frames a
+    // square, in a window that is nothing like square. Told the truth
+    // (~0.37 on a 16 Pro) it frames 13x5 tiles where it framed 7x7, with no
+    // scroll and no dial touched.
+    //
+    // Camera OFF is untouched, and that is the whole reason for the
+    // condition: 036 SC-007 says the off state is indistinguishable from the
+    // build before camera mode existed, and the square-plus-scroll IS that
+    // build. Owner's call, 2026-08-07: "if they want to scroll they can pinch
+    // zoom." Letterboxing the off state would silently crop the world instead.
+    const letterbox = short && !!(this.camera && this.camera.on);
+    const cssHeight = letterbox
+      ? Math.max(this.tile, Math.min(heightBudget, this.tile * world.height))
+      : this.tile * world.height;
     // Integer tiles keep the art crisp, but the 8px floor means a wide
     // enough world (45+ tiles) is irreducibly wider than a phone. The
     // display scale absorbs the difference: the canvas still renders at
@@ -585,6 +605,7 @@ class WorldRenderer {
       Math.min(1, widthBudget / cssWidth, short ? Infinity : heightBudget / cssHeight),
     );
     const displayWidth = `${cssWidth * scale}px`;
+    const displayHeight = `${cssHeight * scale}px`;
     const dpr = window.devicePixelRatio || 1;
 
     // The guard watches dpr as well as CSS width (issue #102). Dragging a
@@ -595,9 +616,18 @@ class WorldRenderer {
     // The damage surfaced minutes later, when the day->dusk->night change
     // nulled the ground cache and it rebaked at the old size with a fresh
     // dpr, putting the meadow in the upper-left quarter of the map.
-    if (this.canvas.style.width !== displayWidth || this.dpr !== dpr) {
+    // HEIGHT is in the guard now, and the letterbox is why. Before it, height
+    // was a pure function of width -- one tile count set both -- so a width
+    // that had not moved proved a height that had not moved. Under the
+    // letterbox they are independent: rotating a phone, or the browser bar
+    // sliding away, changes the height budget while the width holds, and a
+    // width-only guard would leave the backing store and the transform at the
+    // old shape. That is issue #102 again, arrived at from the other axis.
+    if (this.canvas.style.width !== displayWidth
+      || this.canvas.style.height !== displayHeight
+      || this.dpr !== dpr) {
       this.canvas.style.width = displayWidth;
-      this.canvas.style.height = `${cssHeight * scale}px`;
+      this.canvas.style.height = displayHeight;
       this.canvas.width = Math.floor(cssWidth * dpr);
       this.canvas.height = Math.floor(cssHeight * dpr);
       this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
