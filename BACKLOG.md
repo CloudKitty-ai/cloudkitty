@@ -100,14 +100,43 @@ choices at high one.
    `HANDOVER.md` in it. Ask Design for it before starting, or work from
    `README.md` and `SETTLE-EDITS.md` and expect to be missing the *why*.
 
-   4a. **The ear and tail outlines vanish and reappear during the settle.**
-   Owner believes it was deliberate and read acceptably at very low resolution;
-   at the new size it does not. **Sequenced behind 4**: if the Design output
-   fixes it as a side effect, nothing more is needed. If it does not, it
-   becomes its own investigation — and the first question is whether the
-   disappearance is an outline-width floor dropping below a pixel, a z-order
-   flip, or an alpha term, because those look identical at 31px and nothing
-   alike at 103px.
+   4a. **The ear and tail outlines vanish and reappear during the settle —
+   an ACCEPTANCE CRITERION of 4, not a follow-on.** Owner, 2026-08-20: *"we
+   need to verify that is squashed when we implement the new settle."* So the
+   settle does not land until this is checked; it is not something to notice
+   afterwards.
+
+   **It is almost certainly NOT deliberate**, which the owner suspected it was.
+   The mechanism is `render.js:1729`:
+
+   ```js
+   ctx.scale(1 + (1 - tween.sy) * 0.7, tween.sy);
+   ```
+
+   An **anisotropic canvas transform** wrapped around the whole cat drawing.
+   Canvas2D scales STROKE WIDTHS with the transform, so compressing vertically
+   (`sy < 1`) thins horizontal strokes — a hairline ear or tail outline falls
+   under a device pixel, disappears, and returns as `sy` relaxes. That is a
+   side effect of the cheat, not a choice. It read acceptably at a 22px tile
+   because the outlines were already sub-pixel there and the silhouette carried
+   the shape; at 103px the outline IS the drawing.
+
+   **The new settle removes the mechanism by construction rather than tuning
+   it**: the canvas squash runs on the v1 path only (`canvasSettle = !v2Motion
+   && …`) and v2 deforms in pose space. So the expected outcome is that this
+   is already fixed — which is exactly why it needs asserting rather than
+   assuming.
+
+   **The check, at the cheapest layer:** drive a v2 settle through the harness
+   at rest and at the curve's peak, and assert the outline stroke widths are
+   IDENTICAL — the mock ctx already records every draw argument. Equivalent and
+   simpler: assert no `scale` is applied on the v2 path at all during a settle.
+   Assert on the stroke width, not on the absence of a call, if only one can be
+   had: the width is the thing that vanished.
+
+   If it somehow survives the rework, the remaining candidates are a z-order
+   flip or an alpha term — they look identical at 31px and nothing alike at
+   103px, so judge at the large size.
 
 ### One palette key for every cache that bakes one (added 2026-08-17; Client thread)
 `applyTheme` now publishes `renderer.paletteKey`, and the pond layers carry it
