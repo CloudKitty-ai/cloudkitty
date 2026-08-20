@@ -524,24 +524,47 @@ class WorldRenderer {
       'borderLeftWidth', 'borderRightWidth');
     const stageFrameY = px(stage, 'paddingTop', 'paddingBottom',
       'borderTopWidth', 'borderBottomWidth');
-    // Everything the map is not: header, footer, the body's own padding,
-    // the stage's padding, and a little slack for the margins between.
-    const chromeY =
-      boxOf('header') + boxOf('footer') +
-      px(document.body, 'paddingTop', 'paddingBottom') +
-      stageFrameY + VERTICAL_SLACK;
-
     // Width the map may have: the layout's full width less whatever the
     // card columns take beside it. Measured from `.layout` rather than
     // from the map's own cell, because a content-sized cell is exactly as
     // wide as the canvas already in it -- ask that and the map can never
     // grow. When the cards are stacked below, the columns are
     // `display: contents` and measure zero, which is the right answer.
+    //
+    // Measured BEFORE the vertical chrome because it decides part of it:
+    // whether the footer is under the map or under the cards.
     const layout = cell ? cell.parentElement : null;
     const columns = layout ? layout.querySelectorAll('.panel-col') : [];
     let besideWidth = 0;
     for (const column of columns) besideWidth += column.getBoundingClientRect().width;
     const gap = layout ? parseFloat(getComputedStyle(layout).columnGap) || 0 : 0;
+
+    // Everything the map is not: header, the body's own padding, the stage's
+    // frame, a little slack for the margins between -- and the footer, but
+    // ONLY where the footer is the next thing under the map.
+    //
+    // It is not, below the 1100px breakpoint. There the columns dissolve
+    // (`display: contents`) and the cards stack between the map and the
+    // footer, so the page already scrolls to reach either of them -- accepted
+    // outright (owner, 2026-08-05: phones may scroll for the cards), and
+    // VERTICAL_SLACK's own comment says the fit invariant is narrower than it
+    // reads for exactly this reason. Charging the map for a footer that is
+    // hundreds of pixels below the fold buys nothing and costs a real tile.
+    //
+    // Measured, and it is not a rounding error: on a 16 Pro held sideways the
+    // footer WRAPS to 52px of a 285px viewport. That is 18% of the entire
+    // screen reserved for something off it -- the letterbox came out 2.85
+    // world-rows tall where the same window affords 3.81. The landscape frame
+    // is the one place this could ever have been visible, because everywhere
+    // else the map is bound by WIDTH and the height budget is slack anyway.
+    //
+    // Where the cards DO sit beside the map, the footer really is next and is
+    // still charged; the 1728x919 recording in test-motion.mjs is height-bound
+    // and guards that branch.
+    const chromeY =
+      boxOf('header') + (besideWidth > 0 ? boxOf('footer') : 0) +
+      px(document.body, 'paddingTop', 'paddingBottom') +
+      stageFrameY + VERTICAL_SLACK;
     const widthBudget =
       (layout ? layout.clientWidth : doc.clientWidth) -
       besideWidth -
@@ -583,9 +606,22 @@ class WorldRenderer {
     // it to WIDTH, so on a phone held sideways the map is as tall as it is
     // wide and the page scrolls past the bottom of it. The camera is then
     // handed `aspect = cssHeight / cssWidth` = 1.0 and dutifully frames a
-    // square, in a window that is nothing like square. Told the truth
-    // (~0.37 on a 16 Pro) it frames 13x5 tiles where it framed 7x7, with no
-    // scroll and no dial touched.
+    // square, in a window that is nothing like square.
+    //
+    // MEASURED 2026-08-20, and the tile size is NOT what this buys -- it is
+    // 54px either way. On the owner's handset held sideways (750x285, a 720px
+    // canvas) the camera frames 13.3 tiles across in both cases. Square, that
+    // is 13.3 rows down a 720px-tall canvas of which the window shows 206px,
+    // and the frame is CENTRED on the canvas -- so the kitties the camera is
+    // aiming at sit ~360px down a 285px window, off screen, and the user
+    // scrolls to find the thing that is already being followed. Letterboxed,
+    // the same 13.3 across becomes 3.8 rows and the strip the camera aims IS
+    // the strip you can see.
+    //
+    // So the win is aim, not size, and the row count is set by
+    // `heightBudget / tilePx` -- canvas width cancels out of it entirely.
+    // Which is why the footer that `chromeY` used to charge below the fold
+    // was worth a third of the frame: 2.85 rows against 3.81.
     //
     // Camera OFF is untouched, and that is the whole reason for the
     // condition: 036 SC-007 says the off state is indistinguishable from the

@@ -6735,6 +6735,14 @@ const RECORDED_LAYOUTS = [
     bodyPadY: 44, stageFrameX: 2, stageFrameY: 2, layoutClientWidth: 398,
     besideWidth: 0, columnGap: 0, panelColCount: 2, shortBranch: false,
     dpr: 3, canvasCssWidth: 380, canvasBackingWidth: 1140 },
+  // The only recording that takes the SHORT branch, so it is the only one
+  // where `matchMedia` is load-bearing: replayed as not-short its width
+  // collapses from 720 to 140, because the height would bind instead.
+  { name: '750x285 @3 — the phone held sideways',
+    docClientWidth: 750, docClientHeight: 285, headerHeight: 33, footerHeight: 52,
+    bodyPadY: 14, stageFrameX: 2, stageFrameY: 2, layoutClientWidth: 730,
+    besideWidth: 0, columnGap: 0, panelColCount: 2, shortBranch: true,
+    dpr: 3, canvasCssWidth: 720, canvasBackingWidth: 2160 },
 ];
 
 /**
@@ -6831,19 +6839,21 @@ check('the stage FRAME is measured, not just its padding', () => {
 
 /* ── The letterbox: a short window gets a canvas shaped like the WINDOW ──
  *
- * CONSTRUCTED, not recorded, and the distinction is deliberate. The four
- * cases above are real layouts because they pin real ARITHMETIC. This one
- * pins a RELATIONSHIP -- that a wide short window produces a wide short
- * canvas -- and a relationship does not need a device to be true. The chrome
- * heights are lifted from the owner's real phone recording so the numbers are
- * at least plausible; no assertion below depends on their exact values.
+ * RECORDED, as of 2026-08-20. It was CONSTRUCTED, on the argument that these
+ * checks pin a RELATIONSHIP -- a wide short window makes a wide short canvas
+ * -- and a relationship does not need a device to be true. The relationship
+ * held. The numbers did not, and they were the ones being reasoned FROM:
+ *
+ *   guessed 874x402, footer 28   ->   real 750x285, footer 52
+ *
+ * A 41% over-estimate of the height a landscape phone actually has, and a
+ * footer nearly double. Predictions made against it were wrong by about 2x
+ * (13x5 tiles predicted, 13x2.85 delivered), and the footer waste this file
+ * now guards was invisible while the fixture said the footer was 28px of a
+ * roomy 402. A fixture that is "at least plausible" is a fixture that agrees
+ * with whatever you already believed.
  * ── */
-const LANDSCAPE = {
-  name: 'phone held sideways',
-  docClientWidth: 874, docClientHeight: 402, headerHeight: 40, footerHeight: 28,
-  bodyPadY: 14, stageFrameX: 2, stageFrameY: 2, layoutClientWidth: 854,
-  besideWidth: 0, columnGap: 0, panelColCount: 2, shortBranch: true, dpr: 3,
-};
+const LANDSCAPE = RECORDED_LAYOUTS.find((r) => r.shortBranch);
 const cameraOn = (on) => ({ on });
 
 check('a short window with the camera ON gets a canvas shaped like the window', () => {
@@ -6851,16 +6861,53 @@ check('a short window with the camera ON gets a canvas shaped like the window', 
   assert(got.cssHeight < got.cssWidth,
     `letterboxed canvas is ${got.cssWidth}x${got.cssHeight} -- still not wider than tall`);
   // The whole point: it must FIT, because a square one did not and the page
-  // scrolled past the bottom of the map.
-  const heightBudget = LANDSCAPE.docClientHeight
-    - (LANDSCAPE.headerHeight + LANDSCAPE.footerHeight + LANDSCAPE.bodyPadY
-       + LANDSCAPE.stageFrameY + 30);
-  assert(got.cssHeight <= heightBudget,
-    `canvas is ${got.cssHeight} tall in a ${heightBudget} budget -- the page still scrolls`);
+  // scrolled past the bottom of the map. Asserted against the VIEWPORT and
+  // the chrome that is genuinely above the map, NOT by rebuilding resizeFor's
+  // budget here -- a duplicated formula only ever agrees with a broken copy of
+  // itself, and this one did: it hard-coded the footer and VERTICAL_SLACK, so
+  // it went red when resizeFor stopped charging a footer that sits below the
+  // cards. It was the copy that was wrong.
+  const aboveTheMap = LANDSCAPE.headerHeight + LANDSCAPE.bodyPadY + LANDSCAPE.stageFrameY;
+  assert(aboveTheMap + got.cssHeight <= LANDSCAPE.docClientHeight,
+    `${got.cssHeight}px of map under ${aboveTheMap}px of chrome does not fit `
+    + `${LANDSCAPE.docClientHeight}px of viewport -- the page still scrolls`);
   // And the camera must be TOLD, which is the only reason any of this works.
   // It reads aspect as cssHeight/cssWidth; at 1.0 it frames a square.
   assert(got.cssHeight / got.cssWidth < 0.6,
     `aspect ${(got.cssHeight / got.cssWidth).toFixed(2)} still reads as roughly square`);
+});
+
+check('the footer is charged to the map only when it is the next thing under it', () => {
+  // The letterbox shipped 2.85 world-rows tall on the owner's handset where
+  // the same window affords 3.81, and the missing 52px was a footer that is
+  // nowhere near the map. Below the 1100px breakpoint the card columns
+  // dissolve and the cards stack BETWEEN the map and the footer, so the page
+  // already scrolls to reach either -- charging the map for the footer buys
+  // nothing and costs a real tile. 52px of a 285px viewport is 18% of the
+  // whole screen.
+  //
+  // Invisible everywhere else, which is why it survived: every other recorded
+  // layout is bound by WIDTH, so its height budget has slack to waste. Only a
+  // short window is height-bound with the cards stacked.
+  const world = { width: 20, height: 20 };
+  const got = replayLayout(LANDSCAPE, world, cameraOn(true));
+  const across = new api.Camera().limitsFor(world, got.cssWidth).ceilingTiles;
+  assert(got.cssHeight === 206,
+    `the landscape canvas is ${got.cssHeight} tall, not the 206 the viewport affords `
+    + `(154 before this fix) -- that is ${(across * got.cssHeight / got.cssWidth).toFixed(2)} `
+    + `world-rows in frame against 3.81`);
+
+  // The other branch, and it is load-bearing rather than hypothetical: the
+  // 1728 desktop recording IS height-bound, and there the cards sit beside the
+  // map so the footer really is the next thing under it. Dropping the footer
+  // unconditionally would take that map from 760px to 780px.
+  const beside = RECORDED_LAYOUTS.find((r) => r.besideWidth > 0);
+  assert(beside.docClientHeight - (beside.headerHeight + beside.footerHeight
+    + beside.bodyPadY + beside.stageFrameY + 30) < beside.layoutClientWidth - beside.besideWidth,
+    'the flanking recording stopped being height-bound, so it no longer guards the footer');
+  assert(replayLayout(beside, world).cssWidth === beside.canvasCssWidth,
+    `the flanking layout sized to ${replayLayout(beside, world).cssWidth}px, not its recorded `
+    + `${beside.canvasCssWidth}px -- the footer stopped being charged where it should be`);
 });
 
 check('camera OFF keeps the square-and-scroll, untouched (036 SC-007)', () => {
