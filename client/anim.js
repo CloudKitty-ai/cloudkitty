@@ -154,8 +154,14 @@ const VIEW = Object.freeze({
     // `minZoomVsBase` 1.82 would take a 1200px desktop from 13.3 tiles to
     // 11.0. Measured 2026-08-20, both.
     //
-    // 6 rows on the owner's handset is roughly a 65px tile against 54 -- about
-    // 20% more cat -- and costs two of the 13 tiles across.
+    // 6 rows on the owner's handset is a 66.7px tile against 54 -- about 20%
+    // more cat -- and costs two of the 13 tiles across. **JUDGED LIVE ON THE
+    // HANDSET AND KEPT (owner, 2026-08-20): "it looks great on the phone".**
+    // Worth the emphasis because 6 was originally a pick, not a measurement --
+    // there is no landscape lab card, and the portrait zoom cards run at
+    // aspect 1 where this dial does nothing by design. It is a judged number
+    // now; 7 (57.1px, 12.6 across) and 5 (80px, 9.0 across) were the
+    // alternatives costed at the time.
     //
     // What it fixes is not the tile, which still scales with the canvas
     // (`tile = cssHeight / ceilingRows`), but the FRAMING: how much world is
