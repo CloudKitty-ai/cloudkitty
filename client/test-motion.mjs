@@ -5775,10 +5775,18 @@ check('a letterboxed canvas is capped in ROWS, and a square one is not', () => {
   }
 
   // ...and where the cap is genuinely the tightest of the three, it is the one
-  // deciding the width. Below aspect 6/13.33 = 0.45 the min-zoom cap is
-  // tighter and this dial does nothing, which is correct and worth knowing.
+  // deciding the width. WHICH aspects those are is derived from the dial, not
+  // listed: the crossover is `ceilingRows / wide`, so a hardcoded list silently
+  // stops testing the cap the moment the dial moves. Found by mutation --
+  // `ceilingRows: 7` failed this check for bookkeeping rather than for a
+  // defect, which is the shape of a test that will be edited to pass one day.
   const wide = cam.limitsFor(zoomWorld, 720).ceilingTiles;
-  for (const aspect of [0.50, 0.545, 0.75]) {
+  const crossover = d.ceilingRows / wide;
+  const binding = [0.30, 0.40, 0.50, 0.545, 0.75].filter((a) => a > crossover);
+  assert(binding.length >= 2,
+    `only ${binding.length} sampled aspects put the row cap in charge (crossover `
+    + `${crossover.toFixed(2)}), so this witnesses almost nothing`);
+  for (const aspect of binding) {
     const { ceilingTiles } = cam.limitsFor(zoomWorld, 720, aspect);
     assert(Math.abs(ceilingTiles - d.ceilingRows / aspect) < 1e-9,
       `at aspect ${aspect} the ceiling is ${ceilingTiles.toFixed(2)} tiles, not the `
@@ -5786,8 +5794,11 @@ check('a letterboxed canvas is capped in ROWS, and a square one is not', () => {
     assert(ceilingTiles < wide,
       `the cap did not tighten anything at aspect ${aspect}, so this proves nothing`);
   }
-  assert(Math.abs(cam.limitsFor(zoomWorld, 720, 0.40).ceilingTiles - wide) < 1e-9,
-    'at aspect 0.40 the row cap bound before the min-zoom cap did, so the two have swapped');
+  // Below the crossover the min-zoom cap is tighter and this dial does nothing,
+  // which is correct and worth pinning so the two cannot quietly swap.
+  const below = crossover / 2;
+  assert(Math.abs(cam.limitsFor(zoomWorld, 720, below).ceilingTiles - wide) < 1e-9,
+    `at aspect ${below.toFixed(2)} the row cap bound before the min-zoom cap did`);
 
   // A SQUARE canvas is every viewport but a letterboxed one, and there rows
   // and across are the same number -- so an uncapped row limit would quietly
@@ -6820,7 +6831,11 @@ const RECORDED_LAYOUTS = [
     docClientWidth: 402, docClientHeight: 654, headerHeight: 52, footerHeight: 40,
     bodyPadY: 44, stageFrameX: 2, stageFrameY: 2, layoutClientWidth: 398,
     besideWidth: 0, columnGap: 0, panelColCount: 2, shortBranch: false,
-    dpr: 3, canvasCssWidth: 380, canvasBackingWidth: 1140 },
+    // `probeLvh` is 100px over clientHeight even upright -- and `innerHeight`
+    // and `visualViewport.height` BOTH agree with clientHeight at 654, so
+    // `lvh` is the only one of the four that can see the retractable bar.
+    // Inert here: portrait is not short, so the letterbox never asks.
+    probeLvh: 754, dpr: 3, canvasCssWidth: 380, canvasBackingWidth: 1140 },
   // The only recording that takes the SHORT branch, so it is the only one
   // where `matchMedia` is load-bearing: replayed as not-short its width
   // collapses from 720 to 140, because the height would bind instead.
@@ -6828,7 +6843,13 @@ const RECORDED_LAYOUTS = [
     docClientWidth: 750, docClientHeight: 285, headerHeight: 33, footerHeight: 52,
     bodyPadY: 14, stageFrameX: 2, stageFrameY: 2, layoutClientWidth: 730,
     besideWidth: 0, columnGap: 0, panelColCount: 2, shortBranch: true,
-    dpr: 3, canvasCssWidth: 720, canvasBackingWidth: 2160 },
+    // THE FOUR VIEWPORT HEIGHTS, and they disagree by 126px. The layout
+    // viewport is 285 and holds still by design; `innerHeight` and
+    // `visualViewport.height` were 276 with the bar shown; `lvh` is 402 --
+    // the whole screen, because in landscape the bar retracts completely.
+    // Sizing to anything but `lvh` leaves a third of the screen showing card.
+    probeLvh: 402,
+    dpr: 3, canvasCssWidth: 720, canvasCssHeight: 400, canvasBackingWidth: 2160 },
 ];
 
 /**
@@ -6964,10 +6985,18 @@ check('a short window with the camera ON gets a canvas shaped like the window', 
   // is meant to be scrolled AWAY. So the assertion is the screen, not the
   // budget -- and deliberately not a rebuild of resizeFor's own arithmetic,
   // which is how the previous version of this line went wrong.
-  assert(got.cssHeight === LANDSCAPE.docClientHeight - LANDSCAPE.stageFrameY,
-    `the canvas is ${got.cssHeight} tall in a ${LANDSCAPE.docClientHeight}px viewport; `
-    + `filling it, less the ${LANDSCAPE.stageFrameY}px hairline, is `
-    + `${LANDSCAPE.docClientHeight - LANDSCAPE.stageFrameY}`);
+  assert(got.cssHeight === LANDSCAPE.canvasCssHeight,
+    `the canvas is ${got.cssHeight} tall; Safari laid out ${LANDSCAPE.canvasCssHeight} `
+    + `from a ${LANDSCAPE.probeLvh}px large viewport`);
+  assert(got.cssHeight === LANDSCAPE.probeLvh - LANDSCAPE.stageFrameY,
+    'the recorded height is no longer the large viewport less the hairline, so one of '
+    + 'the two stopped being what this thinks it is');
+  // 126px of it -- a third of the screen -- is invisible to every other
+  // measurement the page can take: `clientHeight` says 285, `innerHeight` and
+  // `visualViewport.height` both said 276 with the bar showing.
+  assert(got.cssHeight > LANDSCAPE.docClientHeight,
+    `the canvas (${got.cssHeight}) did not exceed the layout viewport `
+    + `(${LANDSCAPE.docClientHeight}), so it is still sized to the wrong one`);
   // And it therefore OVERFLOWS the fold on purpose: that overflow is the
   // feature, not a defect. Scroll once and the header, sky dial and camera
   // control are gone and the screen is meadow.
@@ -7042,8 +7071,14 @@ check('a height-only resize keeps the baked ground; a width change still drops i
   r.groundCache = baked.ground;
   r.pondCache = baked.pond;
 
-  // The toolbar slides away: taller viewport, same width.
-  const taller = replayLayout({ ...LANDSCAPE, docClientHeight: 320 }, world, cameraOn(true), r);
+  // A taller large viewport at the same width -- a short desktop window
+  // dragged down, or a device with less browser chrome. NOT the toolbar
+  // sliding away, which is what this used to model: `lvh` is measured with
+  // the retractable UI already gone, so it does not move during a scroll and
+  // the canvas no longer resizes mid-gesture at all. The skip below still
+  // matters for every other height change.
+  const taller = replayLayout({ ...LANDSCAPE, probeLvh: LANDSCAPE.probeLvh + 40 },
+    world, cameraOn(true), r);
   assert(taller.cssHeight !== first.cssHeight,
     `the height did not move (${taller.cssHeight}), so this proves nothing`);
   assert(taller.cssWidth === first.cssWidth, 'the width moved too -- not a height-only resize');
@@ -7092,6 +7127,38 @@ check('the letterbox fills the LARGE viewport, not the layout one', () => {
   }
 });
 
+check('the recorded landscape phone frames six rows at a 67px tile', () => {
+  // The whole landscape arc of 2026-08-20, end to end, against one recorded
+  // device rather than the four different estimates it took to get here. Every
+  // input is measured: 750x285 layout viewport, 402 large viewport, 33px
+  // header, a footer that wraps to 52.
+  //
+  // Worth stating as the OUTCOME and not the arithmetic, because each of the
+  // four changes moved a different term and only the product is visible: the
+  // footer stopped being charged, the map went from the fold to the screen,
+  // the screen became the large viewport, and the row cap decided how much
+  // world goes in it.
+  const world = { width: 20, height: 20 };
+  const got = replayLayout(LANDSCAPE, world, cameraOn(true));
+  const { ceilingTiles: across, floorTiles } =
+    new api.Camera().limitsFor(world, got.cssWidth, got.cssHeight / got.cssWidth);
+  const tile = got.cssWidth / across;
+  const rows = across * (got.cssHeight / got.cssWidth);
+
+  assert(Math.abs(rows - api.VIEW.camera.ceilingRows) < 1e-9,
+    `the widest frame is ${rows.toFixed(2)} rows, not the ${api.VIEW.camera.ceilingRows} the cap allows`);
+  assert(Math.abs(tile - 66.7) < 0.1,
+    `a kitty draws at ${tile.toFixed(1)}px; the measured device gives 66.7`);
+  assert(tile > api.VIEW.camera.ceilingPx,
+    `${tile.toFixed(1)}px is under the ${api.VIEW.camera.ceilingPx}px target, so landscape `
+    + 'is now the smallest cat anywhere rather than the biggest');
+  // And it has a zoom range again. It had NONE this morning on the smallest
+  // map -- floor and ceiling met -- which was the accepted cost of minTiles 7.
+  assert(across > floorTiles + 1e-9,
+    `landscape floor ${floorTiles} and ceiling ${across.toFixed(2)} have met, so the camera `
+    + 'pans without ever zooming');
+});
+
 check('camera OFF keeps the square-and-scroll, untouched (036 SC-007)', () => {
   const off = replayLayout(LANDSCAPE, { width: 20, height: 20 }, cameraOn(false));
   const none = replayLayout(LANDSCAPE, { width: 20, height: 20 }, null);
@@ -7133,7 +7200,7 @@ check('the resize guard watches HEIGHT, not only width', () => {
   const world = { width: 20, height: 20 };
   const first = replayLayout(LANDSCAPE, world, cameraOn(true));
   const second = replayLayout(
-    { ...LANDSCAPE, docClientHeight: LANDSCAPE.docClientHeight - 60 },
+    { ...LANDSCAPE, probeLvh: LANDSCAPE.probeLvh - 60 },
     world, cameraOn(true), first.renderer,
   );
   assert(first.cssWidth === second.cssWidth,
