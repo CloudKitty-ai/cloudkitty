@@ -6800,6 +6800,13 @@ function replayLayout(rec, world = { width: 20, height: 20 }, camera = null, reu
   try {
     const r = reuse || Object.create(WorldRenderer.prototype);
     if (!reuse) { r.canvas = canvas; r.ctx = ctx; r.dpr = null; }
+    // A reused renderer keeps its canvas -- as the real one does across a
+    // resize -- but its ANCESTORS must be the freshly measured stubs, because
+    // `resizeFor` reaches the layout through `canvas.parentElement`. Without
+    // this, a reuse could only ever vary what comes off the globals
+    // (clientHeight, dpr) and silently ignored a new layoutClientWidth: a
+    // width-change test would pass while measuring no width change at all.
+    else r.canvas.parentElement = stage;
     r.camera = camera;
     r.resizeFor(world);
     return {
@@ -6860,17 +6867,22 @@ check('a short window with the camera ON gets a canvas shaped like the window', 
   const got = replayLayout(LANDSCAPE, { width: 20, height: 20 }, cameraOn(true));
   assert(got.cssHeight < got.cssWidth,
     `letterboxed canvas is ${got.cssWidth}x${got.cssHeight} -- still not wider than tall`);
-  // The whole point: it must FIT, because a square one did not and the page
-  // scrolled past the bottom of the map. Asserted against the VIEWPORT and
-  // the chrome that is genuinely above the map, NOT by rebuilding resizeFor's
-  // budget here -- a duplicated formula only ever agrees with a broken copy of
-  // itself, and this one did: it hard-coded the footer and VERTICAL_SLACK, so
-  // it went red when resizeFor stopped charging a footer that sits below the
-  // cards. It was the copy that was wrong.
+  // It FILLS the screen (owner, 2026-08-20), which is a different target from
+  // the one this check used to hold. It asked that the map fit the fold
+  // alongside the header; the map now takes the whole viewport and the header
+  // is meant to be scrolled AWAY. So the assertion is the screen, not the
+  // budget -- and deliberately not a rebuild of resizeFor's own arithmetic,
+  // which is how the previous version of this line went wrong.
+  assert(got.cssHeight === LANDSCAPE.docClientHeight - LANDSCAPE.stageFrameY,
+    `the canvas is ${got.cssHeight} tall in a ${LANDSCAPE.docClientHeight}px viewport; `
+    + `filling it, less the ${LANDSCAPE.stageFrameY}px hairline, is `
+    + `${LANDSCAPE.docClientHeight - LANDSCAPE.stageFrameY}`);
+  // And it therefore OVERFLOWS the fold on purpose: that overflow is the
+  // feature, not a defect. Scroll once and the header, sky dial and camera
+  // control are gone and the screen is meadow.
   const aboveTheMap = LANDSCAPE.headerHeight + LANDSCAPE.bodyPadY + LANDSCAPE.stageFrameY;
-  assert(aboveTheMap + got.cssHeight <= LANDSCAPE.docClientHeight,
-    `${got.cssHeight}px of map under ${aboveTheMap}px of chrome does not fit `
-    + `${LANDSCAPE.docClientHeight}px of viewport -- the page still scrolls`);
+  assert(aboveTheMap + got.cssHeight > LANDSCAPE.docClientHeight,
+    'the map no longer overflows the fold, so there is nothing to scroll the header away with');
   // And the camera must be TOLD, which is the only reason any of this works.
   // It reads aspect as cssHeight/cssWidth; at 1.0 it frames a square.
   assert(got.cssHeight / got.cssWidth < 0.6,
@@ -6890,12 +6902,23 @@ check('the footer is charged to the map only when it is the next thing under it'
   // layout is bound by WIDTH, so its height budget has slack to waste. Only a
   // short window is height-bound with the cards stacked.
   const world = { width: 20, height: 20 };
-  const got = replayLayout(LANDSCAPE, world, cameraOn(true));
-  const across = new api.Camera().limitsFor(world, got.cssWidth).ceilingTiles;
-  assert(got.cssHeight === 206,
-    `the landscape canvas is ${got.cssHeight} tall, not the 206 the viewport affords `
-    + `(154 before this fix) -- that is ${(across * got.cssHeight / got.cssWidth).toFixed(2)} `
-    + `world-rows in frame against 3.81`);
+
+  // THE LETTERBOX NO LONGER READS THE HEIGHT BUDGET -- it fills the screen
+  // (2026-08-20) -- so the landscape case can no longer witness this, and no
+  // recorded layout can: all five are bound by WIDTH or take the letterbox
+  // path. The branch is still live for any window under 1100px whose HEIGHT
+  // binds with the cards stacked, e.g. a 900x600 browser window.
+  //
+  // So it is exercised here by replaying the real landscape measurements with
+  // the media query answered the other way. That is a BRANCH PROBE, not a
+  // device: no 750x285 viewport is "not short". Every number in it is still
+  // measured -- only the one input `replayLayout` exists to parameterise is
+  // varied. Owed a real recording of a short-and-wide desktop window, which
+  // would retire this.
+  const asTall = replayLayout({ ...LANDSCAPE, shortBranch: false }, world);
+  assert(asTall.cssWidth === 200,
+    `the height-bound stacked case sized to ${asTall.cssWidth}px, not 200 -- with the `
+    + `footer charged it is 160, so this no longer witnesses the footer at all`);
 
   // The other branch, and it is load-bearing rather than hypothetical: the
   // 1728 desktop recording IS height-bound, and there the cards sit beside the
@@ -6908,6 +6931,44 @@ check('the footer is charged to the map only when it is the next thing under it'
   assert(replayLayout(beside, world).cssWidth === beside.canvasCssWidth,
     `the flanking layout sized to ${replayLayout(beside, world).cssWidth}px, not its recorded `
     + `${beside.canvasCssWidth}px -- the footer stopped being charged where it should be`);
+});
+
+check('a height-only resize keeps the baked ground; a width change still drops it', () => {
+  // iOS collapses its toolbar AS YOU SCROLL, and `resizeFor` runs every frame,
+  // so a screen-filling map means a stream of frames each reporting a
+  // different clientHeight. Nulling the caches on any of them would re-bake
+  // the whole ground and every shoreline mid-scroll, on the one device that
+  // can least afford it.
+  //
+  // Safe to skip because neither cache is keyed on the canvas: the ground
+  // checks `dpr|bakeTile|width` against its own dataset, the ponds sign
+  // `paletteKey|bakeTile|water`. This asserts the SKIP, which is the half a
+  // mutation can reach -- their own signatures already have their own checks.
+  const world = { width: 20, height: 20 };
+  const first = replayLayout(LANDSCAPE, world, cameraOn(true));
+  const r = first.renderer;
+  const baked = { ground: 'ground-bake', pond: 'pond-bake' };
+  r.groundCache = baked.ground;
+  r.pondCache = baked.pond;
+
+  // The toolbar slides away: taller viewport, same width.
+  const taller = replayLayout({ ...LANDSCAPE, docClientHeight: 320 }, world, cameraOn(true), r);
+  assert(taller.cssHeight !== first.cssHeight,
+    `the height did not move (${taller.cssHeight}), so this proves nothing`);
+  assert(taller.cssWidth === first.cssWidth, 'the width moved too -- not a height-only resize');
+  assert(r.groundCache === baked.ground,
+    'a height-only resize threw the baked ground away -- that is a full re-bake per scroll frame');
+  assert(r.pondCache === baked.pond, 'a height-only resize threw the shorelines away');
+  assert(r.canvas.height === Math.floor(taller.cssHeight * LANDSCAPE.dpr),
+    `the backing store stayed at ${r.canvas.height} while the canvas grew -- issue #102 again`);
+
+  // But a WIDTH change must still drop them: the tile moves, and everything
+  // both caches bake is keyed to the tile.
+  const narrower = replayLayout(
+    { ...LANDSCAPE, docClientWidth: 600, layoutClientWidth: 580 }, world, cameraOn(true), r);
+  assert(narrower.cssWidth !== first.cssWidth, 'the width did not move, so this proves nothing');
+  assert(r.groundCache === null && r.pondCache === null,
+    'a width change kept the caches, so the ground is baked at the previous tile');
 });
 
 check('camera OFF keeps the square-and-scroll, untouched (036 SC-007)', () => {

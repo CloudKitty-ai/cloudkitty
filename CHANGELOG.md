@@ -72,9 +72,22 @@ change.
   map and the footer, so the footer is hundreds of pixels below the fold and was
   never competing for that space. On a sideways handset it wraps to 52 pixels of
   a 285-pixel screen: eighteen percent of everything, held back for something
-  nobody can see. The map now keeps it, and the visible band grows by a third.
-  Where the cards genuinely do sit beside the map — a wide desktop — the footer
-  is the next thing underneath and is still counted.
+  nobody can see. Where the cards genuinely do sit beside the map — a wide
+  desktop — the footer is the next thing underneath and is still counted.
+
+  And then the strip stopped trying to share the screen at all. **A sideways
+  phone now gets a mapful of screen rather than a map that fits above the
+  fold**: the canvas is the full height of the window, so one scroll takes the
+  header, the sundial and the camera button away and leaves nothing but meadow,
+  and a second scroll reaches the cards. Five and a quarter rows of world where
+  the first version of this managed under three.
+
+  One consequence had to be handled for it to be usable at all: the map
+  re-measures the window on every single frame, and a phone browser slides its
+  own toolbar away *as you scroll* — which is precisely the gesture this
+  invites. Every frame of that would have thrown away the baked ground and
+  every shoreline and drawn them again. They are keyed to the tile, which a
+  taller window does not change, so they now survive it.
 
 - **The frame around the meadow was answering four different questions with
   one number.** On a phone the map sat on a small white mat, which separated it

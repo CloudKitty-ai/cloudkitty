@@ -628,9 +628,22 @@ class WorldRenderer {
     // build before camera mode existed, and the square-plus-scroll IS that
     // build. Owner's call, 2026-08-07: "if they want to scroll they can pinch
     // zoom." Letterboxing the off state would silently crop the world instead.
+    //
+    // FILLS THE SCREEN, not the fold (owner, 2026-08-20). It used to be the
+    // height BUDGET -- the viewport less header, padding and slack -- so the
+    // whole map sat above the fold with the header, and the strip was as short
+    // as the chrome left it. The asked-for behaviour is the other one: a
+    // screenful of map. Scroll once and the header, the sky dial and the
+    // camera control go (all three sit ABOVE the canvas -- the dial and the
+    // control are pinned `bottom: calc(100% - var(--stage-pad))`), leaving
+    // nothing but meadow; scroll again for the cards.
+    //
+    // Less `stageFrameY`, so the STAGE is the screen and the hairline is on it
+    // rather than a pixel past it.
     const letterbox = short && !!(this.camera && this.camera.on);
+    const screenHeight = (doc.clientHeight || 800) - stageFrameY;
     const cssHeight = letterbox
-      ? Math.max(this.tile, Math.min(heightBudget, this.tile * world.height))
+      ? Math.max(this.tile, Math.min(screenHeight, this.tile * world.height))
       : this.tile * world.height;
     // Integer tiles keep the art crisp, but the 8px floor means a wide
     // enough world (45+ tiles) is irreducibly wider than a phone. The
@@ -659,15 +672,31 @@ class WorldRenderer {
     // sliding away, changes the height budget while the width holds, and a
     // width-only guard would leave the backing store and the transform at the
     // old shape. That is issue #102 again, arrived at from the other axis.
-    if (this.canvas.style.width !== displayWidth
-      || this.canvas.style.height !== displayHeight
-      || this.dpr !== dpr) {
+    //
+    // A HEIGHT-ONLY change does not touch the caches, and that distinction is
+    // now load-bearing rather than an optimisation. `resizeFor` runs every
+    // frame, and iOS collapses its toolbar AS YOU SCROLL -- which is exactly
+    // the gesture a screen-filling map invites. Every one of those frames
+    // reports a different `clientHeight`, so nulling the caches here would
+    // re-bake the entire ground and every shoreline repeatedly, mid-scroll,
+    // on the one device that can least afford it.
+    //
+    // Safe because neither cache is keyed on the canvas at all: the ground
+    // bake checks `dpr|bakeTile|width` against its own dataset and the pond
+    // cache signs `paletteKey|bakeTile|water`. Both rebuild themselves when
+    // something they actually bake moves. The nulling here is belt to their
+    // braces, and belt is only wanted where the braces could slip -- a width
+    // or dpr change, not a taller window.
+    const shapeChanged = this.canvas.style.width !== displayWidth || this.dpr !== dpr;
+    if (shapeChanged || this.canvas.style.height !== displayHeight) {
       this.canvas.style.width = displayWidth;
       this.canvas.style.height = displayHeight;
       this.canvas.width = Math.floor(cssWidth * dpr);
       this.canvas.height = Math.floor(cssHeight * dpr);
       this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       this.dpr = dpr;
+    }
+    if (shapeChanged) {
       this.groundCache = null; // new size, new ground
       this.pondCache = null; // and shorelines rebuilt at the new tile size
     }
