@@ -676,6 +676,54 @@ the client-boot simplification live in `specs/032-ws-backlog/spec.md` +
 logged there too: a served travel goal (Client should wire gaze to the
 existing `pursuit` field first).
 
+### Lookahead for the camera — spec 032, revisited 2026-08-20 (Client thread)
+
+**The idea (owner):** use 032's buffer for smoother camera pan and zoom, not
+just for the gaze. Render frame n−10 while holding the newer 10, and the
+camera has a 10-frame lookahead.
+
+**Why it fits the camera better than it fits the gaze.** The camera eases at
+`panRate` 0.06 / `zoomRate` 0.05, so it structurally LAGS the group, and the
+only lever today is raising those rates — which trades lag for jumpiness. A
+lookahead breaks that trade: aim where the group WILL be and the camera arrives
+WITH the cats at the same easing rate. It lands directly on the queued
+"transition fast between groups — a fast pan may beat a cut", because knowing
+the destination early is what lets a pan start early and finish on time.
+
+**LATENCY IS NOT A COST, and two sessions have now got this wrong in a row.**
+Every pixel is derived from the frame being rendered — meows, need bars, the
+tick readout, and `drawSkyDial(world.tick)`, which is the frame's tick and not
+a wall clock. A deeper line moves all of it together, so there is no reference
+left to notice it against. At depth 10 the meadow runs 8s behind live and
+nobody can tell. **Do not re-raise a latency objection**; the reasoning and its
+one boundary condition live at `paceTargetDepth` in `anim.js`, which is where
+the decision is actually made.
+
+**So the cost is the FILL, and 032 is exactly that.** A deep line fills by
+running slow — ~14.6s of visible slow motion at depth 5 — on every page load
+AND every reconnect. That is not a cold-start footnote at these depths; it is
+the whole user experience of the feature, which makes **032 required to ship a
+lookahead camera, not an optimisation on top of one.** 032's ring is
+server-side (inside `Published`, cap 16); the delay line is client-side. Both
+pieces are needed, and a 10-frame lookahead fits under the cap with headroom.
+
+**Sequencing, and it matters.** The camera's measured defect is a SIZING
+decision — bound 76% of ticks, 13.3 tiles for cats spanning 10.8 — not lag, and
+lookahead does not help pick a better subject. Do the camera-logic work first,
+lookahead second, or the judging is confounded: a lookahead will want
+`aimDeadzoneTiles` and `panRate` re-dialled and you cannot dial those against a
+camera whose aim is still changing.
+
+**Judging is client-only; shipping is not.** `paceTargetDepth` is a client dial,
+so the question "does lookahead visibly improve the pan" can be answered by
+raising it, waiting out the fill once, and watching — no Product cycle, no
+reviving a parked spec. Worth testing 5 as well as 10: the lag being fixed is
+about one easing time-constant, which may not need ten ticks of warning.
+
+**Blocked on the wall either way.** 032 is a socket change, and only
+`update.sh --client-only` deploys are safe until phase 1 certifies and seats —
+the same gate as Clementine's palette.
+
 ### The gaze — TABLED for a longer session (added 2026-08-10; Client thread)
 Owner's call: the look wants a proper sitting, not a dial pass wedged into
 another arc. Turned OFF on the card meanwhile — `VIEW.cardScanWeight: 0`, its
