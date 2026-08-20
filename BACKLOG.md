@@ -29,13 +29,30 @@ choices at high one.
    coat where the belly's lighter underside has nothing to be lighter *than*,
    so this is a contrast problem, not a colour one.
 
-2. **Deprecate the hunter eyes.** Owner, 2026-08-20: *"they don't read well any
-   more and we've seen repeated behavioural issues so we'll just disable them
-   going forward."* Two independent reasons, and the second is the load-bearing
-   one — this is not a rendering tweak, it is a decision to stop drawing a
-   state. `FOCUS_VARIANTS` is the dial block; the hunter face already has
-   checks pinning that it does not outlive its quarry, so expect guards to go
-   red and point them at the new behaviour rather than deleting them.
+2. **Deprecate the hunter eyes — a SUBSTITUTION, not a deletion.** Owner,
+   2026-08-20: *"they don't read well any more and we've seen repeated
+   behavioural issues so we'll just disable them going forward"*, then, asked
+   whether the hunt should become invisible: *"the ear/gaze of play/chase
+   kitties looks good, so we should keep that for chasing prey — i.e. same
+   behaviour for chasing prey as for chasing kitties."*
+
+   So the rule is **one chase expression, not two**. What goes is the
+   hunter-specific eye variant (`FOCUS_VARIANTS`); what a cat chasing a bug
+   does instead is exactly what a cat chasing a kitty already does. That is a
+   unification, and it is worth more than the deprecation: the two cases were
+   the same behaviour wearing different faces, which is how one of them got to
+   be wrong without the other noticing.
+
+   **This resolves the conflict with the animation residue's follow-up 1**
+   ("ears forward on the hunt", below). Ears-forward is NOT deprecated — the
+   chase expression already carries it, and unifying the two cases delivers it
+   for prey without a new channel. Do not implement follow-up 1 separately;
+   check whether this item has already done it.
+
+   The hunter face has checks pinning that it does not outlive its quarry.
+   Expect them red, and point them at the chase expression rather than
+   deleting them — the invariant they encode still holds, it just has one
+   subject now instead of two.
 
 3. **Replace the half-closed eyes in RESTING poses** (drinking, and its
    siblings). Owner: they *"read fine during transitions — slow blink, falling
@@ -45,20 +62,81 @@ choices at high one.
    reads as a sleepy or unwell cat. The fix is per-pose, not per-lid, and the
    transitions must keep what they have.
 
-4. **Design output for the settle-in-place and north/south walk animations.**
-   Both are with the Design thread as of 2026-08-19. The north/south work has a
-   measured, costed entry in this file — read it before accepting any proposal,
-   because "do nothing" is a legitimate answer there and the owner has already
-   chosen it once.
+4. **Design output for the settle-in-place and north/south walk animations —
+   DELIVERED, and queued for tomorrow.** Both are done and owner-approved, in
+   `design-handoffs/design_handoff_camera_pass/`. The third item of that brief
+   (four legs on groom/stand) is specified but **not started**, so it stays
+   with item 3 of the eye work rather than arriving with these two.
 
-   4a. **The ear and tail outlines vanish and reappear during the settle.**
-   Owner believes it was deliberate and read acceptably at very low resolution;
-   at the new size it does not. **Sequenced behind 4**: if the Design output
-   fixes it as a side effect, nothing more is needed. If it does not, it
-   becomes its own investigation — and the first question is whether the
-   disappearance is an outline-width floor dropping below a pixel, a z-order
-   flip, or an alpha term, because those look identical at 31px and nothing
-   alike at 103px.
+   The bundle's `client/` files are our own sources edited in place, not mocks
+   to reimplement, and the dialled values in `AXIAL`, `AXIAL_ENDS.back` and
+   `AXIAL_CAMERAS.elevation` are **owner-approved shipped values, not
+   starting points**. `review/` is not for the repo. `SETTLE-EDITS.md` carries
+   the settle as a standalone edit list.
+
+   **THE MERGE HAZARD, and it is not hypothetical.** The bundle forks from
+   `main` at **`95958ca`** (PR #266). We have landed #267–#270 since, and they
+   touch two of the five files it ships:
+
+   - `client/anim.js` — +64 lines. Their copy has no `ceilingRows` at all, so a
+     wholesale copy silently reverts the landscape row cap to nothing.
+   - `client/test-motion.mjs` — +197 lines. Their copy predates the row-cap
+     guards, the recorded landscape layout, the outcome check and the
+     control-pin check.
+
+   Their README says it outright — *"diff against that commit rather than
+   against tip before copying"* — and that is the instruction to follow:
+   `git diff 95958ca <bundle>/client/<file>` gives THEIR delta; apply that,
+   never the file. `index.html` is not in the bundle, so the sundial work is
+   not at risk.
+
+   The north/south work still has a measured, costed entry in this file. Read
+   it before accepting the proposal, not because the proposal is suspect but
+   because "do nothing" was a legitimate answer there and the owner chose it
+   once — the entry says what changed her mind is worth knowing.
+
+   **Missing from the bundle:** `NEXT-SESSION.md` opens *"`HANDOVER.md` is the
+   reference for the vocabulary itself … Read it first"*, and there is no
+   `HANDOVER.md` in it. Ask Design for it before starting, or work from
+   `README.md` and `SETTLE-EDITS.md` and expect to be missing the *why*.
+
+   4a. **The ear and tail outlines vanish and reappear during the settle —
+   an ACCEPTANCE CRITERION of 4, not a follow-on.** Owner, 2026-08-20: *"we
+   need to verify that is squashed when we implement the new settle."* So the
+   settle does not land until this is checked; it is not something to notice
+   afterwards.
+
+   **It is almost certainly NOT deliberate**, which the owner suspected it was.
+   The mechanism is `render.js:1729`:
+
+   ```js
+   ctx.scale(1 + (1 - tween.sy) * 0.7, tween.sy);
+   ```
+
+   An **anisotropic canvas transform** wrapped around the whole cat drawing.
+   Canvas2D scales STROKE WIDTHS with the transform, so compressing vertically
+   (`sy < 1`) thins horizontal strokes — a hairline ear or tail outline falls
+   under a device pixel, disappears, and returns as `sy` relaxes. That is a
+   side effect of the cheat, not a choice. It read acceptably at a 22px tile
+   because the outlines were already sub-pixel there and the silhouette carried
+   the shape; at 103px the outline IS the drawing.
+
+   **The new settle removes the mechanism by construction rather than tuning
+   it**: the canvas squash runs on the v1 path only (`canvasSettle = !v2Motion
+   && …`) and v2 deforms in pose space. So the expected outcome is that this
+   is already fixed — which is exactly why it needs asserting rather than
+   assuming.
+
+   **The check, at the cheapest layer:** drive a v2 settle through the harness
+   at rest and at the curve's peak, and assert the outline stroke widths are
+   IDENTICAL — the mock ctx already records every draw argument. Equivalent and
+   simpler: assert no `scale` is applied on the v2 path at all during a settle.
+   Assert on the stroke width, not on the absence of a call, if only one can be
+   had: the width is the thing that vanished.
+
+   If it somehow survives the rework, the remaining candidates are a z-order
+   flip or an alpha term — they look identical at 31px and nothing alike at
+   103px, so judge at the large size.
 
 ### One palette key for every cache that bakes one (added 2026-08-17; Client thread)
 `applyTheme` now publishes `renderer.paletteKey`, and the pond layers carry it
@@ -597,6 +675,54 @@ the client-boot simplification live in `specs/032-ws-backlog/spec.md` +
 `design-inputs.md`. Pickup = `/speckit-plan` from there. Related demand
 logged there too: a served travel goal (Client should wire gaze to the
 existing `pursuit` field first).
+
+### Lookahead for the camera — spec 032, revisited 2026-08-20 (Client thread)
+
+**The idea (owner):** use 032's buffer for smoother camera pan and zoom, not
+just for the gaze. Render frame n−10 while holding the newer 10, and the
+camera has a 10-frame lookahead.
+
+**Why it fits the camera better than it fits the gaze.** The camera eases at
+`panRate` 0.06 / `zoomRate` 0.05, so it structurally LAGS the group, and the
+only lever today is raising those rates — which trades lag for jumpiness. A
+lookahead breaks that trade: aim where the group WILL be and the camera arrives
+WITH the cats at the same easing rate. It lands directly on the queued
+"transition fast between groups — a fast pan may beat a cut", because knowing
+the destination early is what lets a pan start early and finish on time.
+
+**LATENCY IS NOT A COST, and two sessions have now got this wrong in a row.**
+Every pixel is derived from the frame being rendered — meows, need bars, the
+tick readout, and `drawSkyDial(world.tick)`, which is the frame's tick and not
+a wall clock. A deeper line moves all of it together, so there is no reference
+left to notice it against. At depth 10 the meadow runs 8s behind live and
+nobody can tell. **Do not re-raise a latency objection**; the reasoning and its
+one boundary condition live at `paceTargetDepth` in `anim.js`, which is where
+the decision is actually made.
+
+**So the cost is the FILL, and 032 is exactly that.** A deep line fills by
+running slow — ~14.6s of visible slow motion at depth 5 — on every page load
+AND every reconnect. That is not a cold-start footnote at these depths; it is
+the whole user experience of the feature, which makes **032 required to ship a
+lookahead camera, not an optimisation on top of one.** 032's ring is
+server-side (inside `Published`, cap 16); the delay line is client-side. Both
+pieces are needed, and a 10-frame lookahead fits under the cap with headroom.
+
+**Sequencing, and it matters.** The camera's measured defect is a SIZING
+decision — bound 76% of ticks, 13.3 tiles for cats spanning 10.8 — not lag, and
+lookahead does not help pick a better subject. Do the camera-logic work first,
+lookahead second, or the judging is confounded: a lookahead will want
+`aimDeadzoneTiles` and `panRate` re-dialled and you cannot dial those against a
+camera whose aim is still changing.
+
+**Judging is client-only; shipping is not.** `paceTargetDepth` is a client dial,
+so the question "does lookahead visibly improve the pan" can be answered by
+raising it, waiting out the fill once, and watching — no Product cycle, no
+reviving a parked spec. Worth testing 5 as well as 10: the lag being fixed is
+about one easing time-constant, which may not need ten ticks of warning.
+
+**Blocked on the wall either way.** 032 is a socket change, and only
+`update.sh --client-only` deploys are safe until phase 1 certifies and seats —
+the same gate as Clementine's palette.
 
 ### The gaze — TABLED for a longer session (added 2026-08-10; Client thread)
 Owner's call: the look wants a proper sitting, not a dial pass wedged into

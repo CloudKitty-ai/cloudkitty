@@ -95,6 +95,30 @@ const VIEW = Object.freeze({
   // trims itself -- see `Pacer`. The depth is in whole states, so a target
   // of 1 means one spare arrival in hand at all times, which is a whole
   // tick of jitter absorbed with nothing visible.
+  //
+  // DEEPENING THIS IS FREE TODAY, AND WHY IT IS FREE IS THE PART TO KEEP.
+  // Every pixel the viewer sees is derived from the frame being rendered --
+  // the meows, the need bars, the tick readout, and the sky dial, which takes
+  // `world.tick` and not a wall clock. So a deeper line moves ALL of it
+  // together and there is no reference left to notice the delay against. At
+  // depth 10 the meadow runs 8s behind live and nobody can tell, because
+  // nothing on screen disagrees with anything else on screen.
+  //
+  // That holds only while the viewer is a WINDOW. The moment anything reaches
+  // the simulation -- a "pet the cat" control, any round trip -- the delay
+  // stops being invisible and becomes the whole feel of it: you would act on a
+  // frame N ticks old and wait N more to see it land, at 800ms a tick. The
+  // owner does not anticipate that (2026-08-20: this is a front end for an AI
+  // experimentation engine, not a game), so this is a constraint on a future
+  // feature rather than a caveat on this dial -- but it is the kind that gets
+  // discovered as "why does the button feel broken" months later, by someone
+  // who has no reason to suspect a buffer.
+  //
+  // The real cost of depth is the FILL, not the latency: a deep line fills by
+  // running slow, measured at ~14.6s of visible slow motion at depth 5, on
+  // every page load and every reconnect. Spec 032 is what removes that, which
+  // is why a lookahead camera needs 032 to ship rather than merely to be
+  // judged (BACKLOG, camera-logic entry).
   paceTargetDepth: 1,
   paceTrimMs: 60, // how far off the measured interval a full state of depth pulls
   paceDepthSmoothing: 0.34, // ~3 promotions
