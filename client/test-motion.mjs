@@ -4834,13 +4834,29 @@ check('the camera control seats beside the dial and scales with it', () => {
   const cam = ruleFor('  #camera-toggle {');
   assert(cam.length, 'the camera control has no rule');
 
-  // THE PIN IS THE POINT. Both sit ON the horizon, and the horizon is the
-  // stage padding read from the variable -- never a repeated number, or a
-  // breakpoint that changes the mat leaves one of them floating.
+  // THE PIN IS THE POINT, and the two now pin one pixel apart on purpose
+  // (owner, 2026-08-20). `bottom: 100%` lands on the PADDING box's top edge
+  // and the hairline is drawn outside that box, so an unlifted control shares
+  // its last row with the line: the dial reads low there and is lifted by the
+  // border width, the camera control reads right and was left alone.
+  //
+  // What both must keep is the rule that made the pin work at all: every term
+  // is a VARIABLE. A repeated number leaves one of them floating the moment a
+  // breakpoint changes the mat or the line's weight -- and there are three
+  // breakpoints now.
+  assert(/bottom: calc\(100% - var\(--stage-pad\) \+ var\(--stage-line\)\)/.test(dial),
+    'the dial no longer sits on the line: it must clear the padding box by the border width');
+  assert(/bottom: calc\(100% - var\(--stage-pad\)\)/.test(cam),
+    'the camera control no longer pins to the stage padding, so it has left the horizon');
   for (const [name, rule] of [['dial', dial], ['camera control', cam]]) {
-    assert(/bottom: calc\(100% - var\(--stage-pad\)\)/.test(rule),
-      `the ${name} no longer pins to the stage padding, so it has left the horizon`);
+    assert(!/bottom:[^;]*\d+px/.test(rule),
+      `the ${name} pins with a literal pixel value; both terms must stay variables`);
   }
+  // And the line the dial is lifted by must be the one the stage actually
+  // draws, or the dial clears a border that is not there.
+  const stageRule = ruleFor('  .stage {');
+  assert(/border: var\(--stage-line\) solid/.test(stageRule),
+    'the stage border no longer reads --stage-line, so the dial is clearing a guess');
 
   // One layout for phone and desktop was the owner's whole reason for this
   // seat, and it only holds while BOTH are fractions of the stage. A pixel
