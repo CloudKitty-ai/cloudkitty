@@ -18,47 +18,47 @@ This skill owns process. `experiments/FINDINGS.md` owns facts. Cite
 findings by number (F-004, F-012, F-015); never restate their values,
 here or in a prereg, because the values are engine-indexed and get
 re-derived — apply every cited finding as the register states it today,
-not as remembered. The one deliberate exception is the results layout
-below: paths are process, so they live here. Read FINDINGS.md before
-designing anything (CLAUDE.md rule); read the current experiment's
-prereg before touching its work.
+not as remembered. Read FINDINGS.md before designing anything
+(CLAUDE.md rule); read the current experiment's prereg before touching
+its work.
 
-## Lifecycle
+Reading order under a budget: the object a design makes claims about —
+the trainer, the config, the instrument source, the live register —
+outranks a third process document read for style.
 
-1. Design-inputs doc: options and tradeoffs per decision, written
-   for the owner to rule on.
-2. Prereg draft against the checklist below.
-3. Freeze on the owner's direct word, every blank filled. After
-   freeze the prereg is append-only: changes become D-numbered
-   deviations with dates, rulings, and consequences.
-4. Collect, then acceptance QA (its own results doc) before
-   anything trains on the data. A pass requires: every registered
-   dir present and correctly indexed against the registered budget
-   (count them); the seed formula and per-dir config shas verified;
-   schemas and widths as registered; loader invariants (label
-   legality) holding; drop and mismatch rates at their known-cause
-   levels, with anything unexplained adjudicated before training.
-   Structural defects (wrong indexing, missing or clobbered cells,
-   seed or config drift) force a re-collect: the data is
-   regenerable, and wrong data costs more than late data. Lawful
-   surprises (a vacuous registered rider, an unexpected but valid
-   distribution) become D-numbered deviations, and owner forks
-   where they touch the design.
-5. Train, gate, adjudicate. Verdict docs quote the frozen rule they
-   apply.
-6. Update the register (new findings, fired-trigger annotations)
-   and the experiment's state file in the session's persistent
-   memory: one `<experiment>-status` file (frozen values, running
-   tasks with IDs, the remaining queue, what's pending on whom)
-   plus its one-line MEMORY.md index entry. A fresh session resumes
-   from that file; write it for a reader who saw none of this
-   session.
+Pattern-match the newest frozen prereg and its results docs: they are
+the canonical examples of the lifecycle (design-inputs doc → prereg →
+freeze → collect → acceptance QA → train, gate, adjudicate → register
+update), of the checklist below in practice, and of the verdict
+grammar. The measurement discipline (clustering, replication,
+composition, class conditioning) lives in README.md § Measurement
+discipline and the F-numbers it cites; apply it from there, not from
+memory. The register's own rules (supersession, stubs, triggers) are
+stated in its header; follow them there. This skill states what no
+artifact can teach.
 
-Abandonment is a step, not an exit. An arm killed mid-run (bad
-instrument, exhausted budget, a premise that dissolved at hour three)
-gets its D-numbered deviation *and* a register entry. A run that was
-never finished is a finding about the design, and an unrecorded one
-gets re-run by the next session at full cost.
+## Ground truth
+
+- The running system's state is read off the running system — the live
+  census, the purrsonality register, the box itself. Checked-in config
+  describes the *next* deploy, not the current one; during a freeze
+  window the two diverge by design, and a design built on the wrong
+  one measures a world that is not running.
+- A claim about code behavior is verified against the code before it
+  bears load in a design. A doc, an older prereg, or memory of the
+  code is a lead, not a verification. A design that cites a file it
+  has not read says so.
+
+## Named steps are not plans
+
+"QA per house practice" pins nothing. A design carries the
+instantiated rule — the counted expectation, the declared band, the
+numbered threshold — or explicitly defers it to a named document and
+owner. This includes quick diagnostics: any instrument output that
+feeds a decision gets counted against its expectation before the
+comparison, not just collection campaigns. Read the counts, not the
+exit codes: a pipeline that "completed" proves nothing about what it
+wrote.
 
 ## Prereg checklist
 
@@ -84,21 +84,27 @@ Every prereg pins, before freeze:
   with the acceptance record.
 - A deviations appendix, empty at freeze.
 
-## Statistics discipline
+## Freeze and change control
 
-- Apply the current F-004 bar: world counts, truncated statistic.
-- No ranking, verdict, or status update leaves the analysis on a
-  single batch. Disjoint-band replication first; this includes
-  informal reporting to the owner, where a batch-A excursion
-  narrated early reads as a result.
-- Class-conditioned probes per F-015; pooled all-action reads are
-  dilution, not signal.
-- Measure in the deployment composition (F-012). A number measured
-  in the wrong company describes a world that will not be served.
-- Read the counts, not the exit codes (the seen-it-red rule at
-  pipeline scale). A pipeline that "completed" proves nothing about
-  what it wrote; count output rows or dirs against the registered
-  expectation.
+- Freeze on the owner's direct word, every blank filled. After freeze
+  the prereg is append-only: changes become D-numbered deviations with
+  dates, rulings, and consequences.
+- Acceptance QA (its own results doc) passes before anything trains on
+  collected data. Structural defects (wrong indexing, missing or
+  clobbered cells, seed or config drift) force a re-collect: the data
+  is regenerable, and wrong data costs more than late data. Lawful
+  surprises become D-numbered deviations, owner forks where they touch
+  the design.
+- Abandonment is a step, not an exit. An arm killed mid-run (bad
+  instrument, exhausted budget, a premise that dissolved at hour
+  three) gets its D-numbered deviation *and* a register entry. A run
+  that was never finished is a finding about the design, and an
+  unrecorded one gets re-run by the next session at full cost.
+- After adjudication, update the register and the experiment's state
+  file in the session's persistent memory: one `<experiment>-status`
+  file (frozen values, running tasks with IDs, the remaining queue,
+  what's pending on whom) plus its one-line MEMORY.md index entry,
+  written for a reader who saw none of this session.
 
 ## Baselines and anchors
 
@@ -126,29 +132,19 @@ Every prereg pins, before freeze:
 - Commit working code before destructive checks or long runs; if a
   mutation loop ran, re-run the suite and read the count.
 
-## Verdicts and results docs
+## Results docs
 
-- Quote the frozen rule, show the measured numbers beside it, state
-  the verdict in one line. Fallbacks not taken are named as not
-  taken.
-- Exact regeneration commands, actually run, including any platform
-  traps they hit.
-- Under `experiments/<experiment>/`: raw traces live gitignored in
-  `raw/`; small metrics JSONs are committed under `results-raw/`;
-  prose verdicts under `results/`.
+- Paths are process, so they live here: under
+  `experiments/<experiment>/`, raw traces live gitignored in `raw/`;
+  small metrics JSONs are committed under `results-raw/`; prose
+  verdicts under `results/`. Verdicts quote the frozen rule, show the
+  measured numbers beside it, and state the verdict in one line;
+  fallbacks not taken are named as not taken; regeneration commands
+  are exact and actually run.
 - When final numbers replace provisional ones, the provisional doc
   gains a dated supersede note pointing forward. Corrections are
   stated plainly in the next report to the owner, never silently
   overwritten.
-
-## Register hygiene
-
-- A new finding carries: evidence links, implications, what would
-  invalidate it, and re-verify-when triggers.
-- When a trigger fires, annotate the finding in place, dated, with
-  a link to the re-measurement. Withdrawn claims stay visible with
-  their withdrawal; the register records the excursion as well as
-  the correction.
 
 ## Ownership
 
