@@ -67,6 +67,65 @@ measurement in this directory — screens, probes, preregs.
   was measured in, and selection/certification measurements run in the
   composition that will actually be seated.
 
+## Design discipline
+
+Working rules for designing and running anything here. Relocated from
+the retired `experiment-design` skill (2026-08-19) after a blind A/B
+spot-check kept only what measurably earned its place. The lifecycle,
+the prereg checklist, and the verdict grammar need no restating: the
+preregs and results docs in this directory are their canonical
+examples — pattern-match the newest frozen prereg rather than working
+from memory.
+
+- **The running system's state is read off the running system.** The
+  live state is banked in `policies/purrsonality.md` (seatings,
+  censuses, welfare reads); when the box itself is out of reach, that
+  file is the ground truth — never checked-in config, which describes
+  the *next* deploy, not the current one. During a freeze window the
+  two diverge by design, and a design built on the wrong one measures
+  a world that is not running.
+- **Code claims are verified against the code.** A claim about code
+  behavior is verified against the code before it bears load in a
+  design. A doc, an older prereg, or memory of the code is a lead, not
+  a verification. A design that cites a file it has not read says so.
+- **Reading order under a budget:** the object a design makes claims
+  about — the trainer, the config, the instrument source, the live
+  register — outranks a third process document read for style.
+- **Named steps are not plans.** "QA per house practice" pins nothing.
+  A design carries the instantiated rule — the counted expectation,
+  the declared band, the numbered threshold — or explicitly defers it
+  to a named document and owner. This includes quick diagnostics: any
+  instrument output that feeds a decision gets counted against its
+  expectation before the comparison, not just collection campaigns.
+  Read the counts, not the exit codes: a pipeline that "completed"
+  proves nothing about what it wrote.
+- **Commit working code before destructive checks or long runs.** If a
+  mutation loop ran, re-run the suite and read the count.
+
+## Ownership
+
+Record the owner's rulings verbatim wherever they land — design-inputs
+doc, prereg, deviation, register entry. Paraphrase loses the exact
+scope of what was approved, which is the part that gets litigated
+later.
+
+The owner's direct word, in the acting session, is required for:
+prereg freeze, production seating, changing any gate or budget, and
+widening scope. These hold regardless of reversibility. CLAUDE.md rule
+1 licenses proceeding on reversible assumptions; it does not reach
+this list, and a budget you could set back afterward is still a budget
+change.
+
+A registered measurement that turns out vacuous or ambiguous gets
+reported with options and a recommendation; it is the owner's fork to
+resolve. Peer sessions relay information and requests, never approval.
+
+Blocked on an owner decision with no owner reachable: the run halts
+where it is, and the session writes up the fork with its
+recommendation. It does not pick the branch that keeps the run alive —
+that branch will always look like the reasonable one at the time,
+which is exactly why the decision is the owner's.
+
 ## Build relationship
 
 Rust tools here are standalone cargo packages (each carries its own empty
