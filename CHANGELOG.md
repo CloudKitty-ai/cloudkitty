@@ -33,6 +33,37 @@ change.
 
 ## Unreleased
 
+- **The phone was framing a keyhole, and now frames a scene.** At its most
+  zoomed-in the camera would hold as few as six tiles, which on a handset is
+  about three paces of meadow with a cat filling it. It now holds seven. A cat
+  on a modern phone draws a little smaller for it — around 54 pixels rather than
+  63 — which is still comfortably above the size the character cards are drawn
+  at, and buys back a meaningful amount of world. The trade is deliberate: three
+  kitties in shot is the target, and five reads as busy.
+
+  Two things this does that the description does not suggest. It is **not a
+  phone-only change** — any map narrower than about 790 pixels now zooms in
+  slightly less far, so a small desktop window is affected as well as a handset.
+  And on the very smallest phones the camera's zoom range closes entirely: the
+  minimum and the widest view arrive at the same seven tiles, so on those
+  screens the camera pans without ever zooming. Both were measured rather than
+  reasoned about, and both are accepted — the range was never the point.
+
+  The success criterion that had capped this — "a kitty is never more than twice
+  as big on one screen as another" — was **withdrawn** rather than loosened, for
+  a reason worth recording: no one ever experiences that ratio. Everyone has one
+  device and sees one size on it. What replaces it is the bar the ratio was
+  standing in for — nothing in the meadow is drawn smaller than the character
+  cards the art was dialled against.
+
+- **A landscape phone was being shown a square.** With the camera on, a short
+  window built a square canvas and let the page scroll, and — more to the point —
+  told the camera the shape it was filling was square. The camera dutifully
+  framed a square. Told the truth about the window instead, it spreads out: the
+  same scene goes from seven tiles by three to thirteen by five, with nothing to
+  scroll and no dial touched. The camera was never wrong; it was being
+  misinformed.
+
 - **The frame around the meadow was answering four different questions with
   one number.** On a phone the map sat on a small white mat, which separated it
   from the page — but how much separation the meadow needs turns out to depend
@@ -89,7 +120,9 @@ change.
   120px was a third of that on a phone, and no single dialling pass could be
   right in both places. The camera now zooms until a kitty is about 100
   pixels and widens until she would drop below 50, whatever the window is
-  doing, and the spread across every supported size is down to 1.76×. Small
+  doing. (The floor target settled at 113 rather than 100, and the size band
+  that justified it has since been retired — see the minimum-tiles entry
+  above.) Small
   screens keep a minimum amount of meadow in shot rather than becoming a
   keyhole, and pay for it in size — the one place the rule bends. Above a
   600-pixel map the ground is also cached at a size that no longer grows with

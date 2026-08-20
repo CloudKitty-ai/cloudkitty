@@ -3438,7 +3438,6 @@ check('card text keeps its contrast THROUGH a phase change, not just at the ends
   // blending, so at any blend position the pair is one theme's or the
   // other's -- never a mix of both.
   const swap = (a, b, t) => (t < 0.5 ? a : b);
-  const appSrc = readFileSync(join(here, 'app.js'), 'utf8');
   assert(/INVERTING_TOKENS/.test(appSrc), 'app.js no longer names the inverting tokens');
   assert(
     /blend\.step < 0\.5 \? from\[name\] : to\[name\]/.test(appSrc),

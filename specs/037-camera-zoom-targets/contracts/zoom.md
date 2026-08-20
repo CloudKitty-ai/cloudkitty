@@ -36,9 +36,14 @@ large low-resolution monitor.
    fine-detail threshold with margin; that threshold was deleted on 2026-08-18,
    so the lower end now rests on the 47px portrait cards the art is tuned
    against. **The scope is load-bearing and was missing until review of PR
-   #246**: below about a 300px map the `minTiles` clamp forces both limits
-   together and the tile falls under `ceilingPx` — 46.7px at a 280px map — which
-   is FR-006 working as specified, not a violation. Nothing in the code enforces
+   #246**: below a `minTiles × ceilingPx` map the `minTiles` clamp forces both
+   limits together and the tile falls under `ceilingPx` — which is FR-006
+   working as specified, not a violation. **That threshold is 350px as of
+   `minTiles: 7` (2026-08-19), against 300px before**, so it now reaches inside
+   the verified range: a **340px map has no zoom range at all**, floor and
+   ceiling both at 7 tiles and a 48.6px tile. That map pans and never zooms.
+   Accepted — the owner's ruling of 2026-08-19 is that zoom range is
+   instrumental, not a goal. Nothing in the code enforces
    the 340px lower bound; the range is where the feature is *verified*, not a
    gate it refuses to run below.
 4. **The ceiling always frames less than the world.** Otherwise camera-on and

@@ -24,7 +24,7 @@ target, and whether detail actually holds at the widest.
 
 | criterion | how |
 |---|---|
-| **SC-001** size band ≤ 2× | Sweep `cssWidth` from 340 to 1200; the largest floor tile over the smallest is under 2. Expect ~1.76. |
+| **SC-001** ~~size band ≤ 2×~~ | *Withdrawn by the owner, 2026-08-19* — no user experiences the ratio; everyone has one device and sees one size. Replaced by a per-device bar: sweep 340 to 1200 and assert the SMALLEST floor tile is at least `PORTRAIT_CAT` (47px). Expect 48.6px at the 340px map. |
 | **SC-002** ~~fine at both ends~~ | *Withdrawn.* The 44px threshold was deleted on 2026-08-18; there is no line left for the band to clear. |
 | **SC-003** no flicker | Met by construction — the gate that could change state no longer exists. Confirmed at the source: 26 stroke calls at 21px, 43px and 100px alike. |
 | **SC-004** ~~constant range~~ | *Withdrawn by the owner.* Record `ceilingTiles / floorTiles` across the sweep as a number; do not assert it. |

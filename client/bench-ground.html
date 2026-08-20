@@ -43,7 +43,7 @@
   const WORLD = 20;
   // The camera's floor and ceiling in tiles, for a given map, from spec 037's
   // shipped dials. Kept in one place so this benchmark cannot drift from them.
-  const D = { floorPx: 113, ceilingPx: 50, minTiles: 6, minZoomVsBase: 1.5 };
+  const D = { floorPx: 113, ceilingPx: 50, minTiles: 7, minZoomVsBase: 1.5 };
   const limits = (map) => {
     const edge = Math.min(WORLD - 1, WORLD / D.minZoomVsBase);
     const floor = Math.min(Math.max(map / D.floorPx, D.minTiles), edge);
