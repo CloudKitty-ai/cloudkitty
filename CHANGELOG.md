@@ -96,6 +96,15 @@ change.
   for the height it will have once the bar is gone, rather than trying to model
   a toolbar it cannot see, and fills that instead.
 
+  With the screen finally full, how much world to put in it became a choice
+  rather than a leftover — so the camera gained its first limit expressed in
+  **rows**. Every other limit it has is stated in tiles across, which is fine
+  until you want a sideways phone to come in closer: tightening those would
+  have zoomed in every other screen too, and one of them would have taken the
+  upright phone's zoom range back to nothing. Stated on the vertical, the rule
+  applies only where height is the scarce axis, which is a phone on its side
+  and nowhere else. Six rows of meadow, and about twenty percent more cat.
+
 - **The frame around the meadow was answering four different questions with
   one number.** On a phone the map sat on a small white mat, which separated it
   from the page — but how much separation the meadow needs turns out to depend

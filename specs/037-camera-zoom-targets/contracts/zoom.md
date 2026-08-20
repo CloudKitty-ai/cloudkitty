@@ -46,6 +46,19 @@ large low-resolution monitor.
    instrumental, not a goal. Nothing in the code enforces
    the 340px lower bound; the range is where the feature is *verified*, not a
    gate it refuses to run below.
+3b. **The ceiling has THREE bounds and the tightest wins** (2026-08-20):
+   `cssWidth / ceilingPx`, `world / minZoomVsBase`, and — only where the canvas
+   is letterboxed (`aspect < 1`) — `ceilingRows / aspect`. The third is the only
+   one stated on the vertical, and it exists because the other two are stated
+   ACROSS: tightening either to zoom a sideways phone in also zooms in every
+   viewport where it binds. All three are still outranked by the floor, so a
+   nearly-square short window can exceed `ceilingRows` when `minTiles` demands
+   more tiles across than it allows.
+
+   The cap is **ceiling-only by construction**, which is what keeps invariant 2
+   intact: `bakeTileFor` asks for the FLOOR and passes no aspect, so it cannot
+   disagree with the fit about anything it reads.
+
 4. **The ceiling always frames less than the world.** Otherwise camera-on and
    camera-off are identical at full zoom-out and 036's FR-005 is silently
    retired.

@@ -5746,6 +5746,92 @@ check('the floor never frames fewer tiles than the minimum', () => {
   assert(bound > 0, 'the minimum never bound anywhere in the sweep');
 });
 
+check('a letterboxed canvas is capped in ROWS, and a square one is not', () => {
+  // The landscape-only zoom limit (owner, 2026-08-20). `rows = across *
+  // aspect`, so the cap in across is `ceilingRows / aspect`.
+  //
+  // Parametric on the aspect rather than pinned to a device: the large
+  // viewport of a 16 Pro sideways still has not been measured, and the point
+  // of stating the limit in ROWS is that the answer stops depending on it.
+  const d = api.VIEW.camera;
+  const cam = new api.Camera();
+
+  // It is a MAXIMUM, not a target, and it is the WEAKEST of the limits rather
+  // than an override. Two ways it legitimately does not hold:
+  //
+  //   below aspect 0.45, `minZoomVsBase` is tighter and the frame comes in
+  //     UNDER the cap of its own accord;
+  //   above aspect 6/7, `minTiles` demands more tiles across than 6 rows
+  //     allows, and the FLOOR wins -- ceiling raised to meet it (FR-013),
+  //     because "never frame fewer than 7 tiles" outranks "never more than 6
+  //     rows". A nearly-square short window is the only place that happens.
+  for (const aspect of [0.30, 0.40, 0.50, 0.545, 0.75, 0.95]) {
+    const { floorTiles, ceilingTiles } = cam.limitsFor(zoomWorld, 720, aspect);
+    assert(ceilingTiles * aspect <= d.ceilingRows + 1e-9
+      || Math.abs(ceilingTiles - floorTiles) < 1e-9,
+      `at aspect ${aspect} the ceiling frames ${(ceilingTiles * aspect).toFixed(2)} rows, `
+      + `over the ${d.ceilingRows} allowed, and the floor (${floorTiles}) is not what is `
+      + 'holding it there');
+  }
+
+  // ...and where the cap is genuinely the tightest of the three, it is the one
+  // deciding the width. Below aspect 6/13.33 = 0.45 the min-zoom cap is
+  // tighter and this dial does nothing, which is correct and worth knowing.
+  const wide = cam.limitsFor(zoomWorld, 720).ceilingTiles;
+  for (const aspect of [0.50, 0.545, 0.75]) {
+    const { ceilingTiles } = cam.limitsFor(zoomWorld, 720, aspect);
+    assert(Math.abs(ceilingTiles - d.ceilingRows / aspect) < 1e-9,
+      `at aspect ${aspect} the ceiling is ${ceilingTiles.toFixed(2)} tiles, not the `
+      + `${(d.ceilingRows / aspect).toFixed(2)} the row cap allows`);
+    assert(ceilingTiles < wide,
+      `the cap did not tighten anything at aspect ${aspect}, so this proves nothing`);
+  }
+  assert(Math.abs(cam.limitsFor(zoomWorld, 720, 0.40).ceilingTiles - wide) < 1e-9,
+    'at aspect 0.40 the row cap bound before the min-zoom cap did, so the two have swapped');
+
+  // A SQUARE canvas is every viewport but a letterboxed one, and there rows
+  // and across are the same number -- so an uncapped row limit would quietly
+  // become an across limit and zoom in everywhere. Portrait is the case that
+  // matters: it must be untouched.
+  for (const aspect of [1, 1.2, null, undefined, NaN]) {
+    for (const w of [380, 720, 1200]) {
+      assert(cam.limitsFor(zoomWorld, w, aspect).ceilingTiles
+        === cam.limitsFor(zoomWorld, w).ceilingTiles,
+        `aspect ${aspect} moved the ceiling at ${w}px -- the row cap escaped the letterbox`);
+    }
+  }
+});
+
+check('the row cap reaches the camera, not just the derivation', () => {
+  // The dial is computed in `limitsFor` and only bites if `update` hands it
+  // the aspect. That argument is the whole feature and nothing else would
+  // notice it going missing: `bakeTileFor` asks for the FLOOR and passes no
+  // aspect at all, quite correctly, so a call site that forgot would look
+  // exactly like a call site that should not pass it.
+  const aspect = 0.545;
+  const cam = new api.Camera();
+  cam.on = true;
+  // Spread far enough that the FIT wants more than the ceiling, so the camera
+  // is pinned at its widest and the cap is what decides the width.
+  const world = camAt([2, 2], [18, 18], [10, 3]);
+  for (let i = 0; i < 400; i += 1) {
+    cam.update(world, camView(false, i * 16.67), { aspect, cssWidth: 720 });
+  }
+  const rows = cam.across * aspect;
+  assert(rows <= api.VIEW.camera.ceilingRows + 1e-6,
+    `the camera settled at ${cam.across.toFixed(2)} tiles across = ${rows.toFixed(2)} rows, `
+    + `over the ${api.VIEW.camera.ceilingRows} allowed -- update is not passing the aspect`);
+  // And it is genuinely the cap doing it, not the fit happening to be small.
+  const uncapped = new api.Camera({ ...api.VIEW.camera, ceilingRows: 0 });
+  uncapped.on = true;
+  for (let i = 0; i < 400; i += 1) {
+    uncapped.update(world, camView(false, i * 16.67), { aspect, cssWidth: 720 });
+  }
+  assert(uncapped.across > cam.across + 0.01,
+    `without the cap the camera settled at the same ${uncapped.across.toFixed(2)} tiles, `
+    + 'so the fixture never reached the ceiling and this witnesses nothing');
+});
+
 check('the floor never crosses the ceiling', () => {
   // FR-013 and contract invariant 5. They may MEET -- that viewport simply
   // has no zoom range -- but an inversion would ask the camera to widen past
