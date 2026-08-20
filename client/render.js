@@ -640,8 +640,23 @@ class WorldRenderer {
     //
     // Less `stageFrameY`, so the STAGE is the screen and the hairline is on it
     // rather than a pixel past it.
+    //
+    // And it is the LARGE viewport, not `clientHeight`. A phone browser
+    // retracts its toolbar as you scroll -- the very gesture this sizing
+    // invites -- and `documentElement.clientHeight` does NOT follow: it stayed
+    // pinned at 285px on a 16 Pro sideways while the visible screen grew to
+    // ~400. That is not a stale read this loop could fix by measuring again;
+    // it is the LAYOUT viewport, and it is supposed to hold still. Sized to
+    // it, the map stops two tiles short and a band of card sits under it once
+    // the bar is gone -- reported by the owner, 2026-08-20.
+    //
+    // `#vh-probe` is `height: 100lvh`, so the browser answers this rather than
+    // us modelling a toolbar we cannot see. `max` with clientHeight because a
+    // browser that does not know `lvh` measures the probe at 0, and because
+    // the large viewport can never honestly be the smaller of the two.
     const letterbox = short && !!(this.camera && this.camera.on);
-    const screenHeight = (doc.clientHeight || 800) - stageFrameY;
+    const screenHeight =
+      Math.max(boxOf('#vh-probe'), doc.clientHeight || 800) - stageFrameY;
     const cssHeight = letterbox
       ? Math.max(this.tile, Math.min(screenHeight, this.tile * world.height))
       : this.tile * world.height;

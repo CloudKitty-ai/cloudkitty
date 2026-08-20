@@ -6775,8 +6775,13 @@ function replayLayout(rec, world = { width: 20, height: 20 }, camera = null, reu
   globalThis.document = {
     documentElement: { clientWidth: rec.docClientWidth, clientHeight: rec.docClientHeight },
     body,
+    // `probeLvh` absent means the recording predates the probe, and 0 is the
+    // honest answer for that: render.js reads it as "no answer" and falls back
+    // to clientHeight, which is exactly what those four layouts were recorded
+    // under. It is NOT a stand-in for a large viewport nobody measured.
     querySelector: (sel) => (sel === 'header' ? box(rec.headerHeight)
-      : sel === 'footer' ? box(rec.footerHeight) : null),
+      : sel === 'footer' ? box(rec.footerHeight)
+      : sel === '#vh-probe' ? box(rec.probeLvh || 0) : null),
     createElement: () => ({ getContext: () => null, dataset: {}, style: {} }),
   };
   globalThis.window = { devicePixelRatio: rec.dpr };
@@ -6969,6 +6974,36 @@ check('a height-only resize keeps the baked ground; a width change still drops i
   assert(narrower.cssWidth !== first.cssWidth, 'the width did not move, so this proves nothing');
   assert(r.groundCache === null && r.pondCache === null,
     'a width change kept the caches, so the ground is baked at the previous tile');
+});
+
+check('the letterbox fills the LARGE viewport, not the layout one', () => {
+  // A phone browser retracts its toolbar as you scroll and `clientHeight` does
+  // not follow -- it is the LAYOUT viewport and holds still by design. Sized
+  // to it, the map stops short of the screen you can actually see once the bar
+  // is gone, which is what the owner reported: a band of card under the map.
+  //
+  // PARAMETRIC ON PURPOSE. The real `lvh` of a 16 Pro sideways has not been
+  // measured yet -- the recorder only started reporting it in this change --
+  // so this asserts that the canvas TRACKS the probe rather than asserting any
+  // particular device's number. Inventing that number is exactly how the
+  // constructed landscape fixture went wrong, and this is the same axis.
+  const world = { width: 20, height: 20 };
+  const frame = LANDSCAPE.stageFrameY;
+  for (const lvh of [LANDSCAPE.docClientHeight + 60, LANDSCAPE.docClientHeight + 106]) {
+    const got = replayLayout({ ...LANDSCAPE, probeLvh: lvh }, world, cameraOn(true));
+    assert(got.cssHeight === lvh - frame,
+      `a ${lvh}px large viewport gave a ${got.cssHeight}px canvas, not ${lvh - frame}`);
+  }
+
+  // A probe that reports SMALLER than the layout viewport is not an answer --
+  // a browser that does not understand `lvh` drops the declaration and the
+  // empty div measures 0. That must not shrink the map to nothing.
+  for (const lvh of [0, 40]) {
+    const got = replayLayout({ ...LANDSCAPE, probeLvh: lvh }, world, cameraOn(true));
+    assert(got.cssHeight === LANDSCAPE.docClientHeight - frame,
+      `a ${lvh}px probe gave a ${got.cssHeight}px canvas instead of falling back to `
+      + `${LANDSCAPE.docClientHeight - frame}`);
+  }
 });
 
 check('camera OFF keeps the square-and-scroll, untouched (036 SC-007)', () => {

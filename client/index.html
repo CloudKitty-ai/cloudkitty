@@ -197,6 +197,20 @@
     min-height: 100vh;
   }
 
+  /* See the element's own comment. `lvh` is Safari 15.4+/Chrome 108+; where it
+     is not understood the declaration is dropped, the div is auto-height with
+     no content, and the probe measures 0 -- which render.js reads as "no
+     answer" and falls back to clientHeight. */
+  #vh-probe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 100lvh;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
   header { text-align: center; }
 
   /* The wordmark: the one place the display face appears, with the world's
@@ -1239,6 +1253,17 @@
 </style>
 </head>
 <body>
+  <!-- The LARGE viewport, which is the only way to ask for it. A phone browser
+       retracts its toolbar as you scroll, and `documentElement.clientHeight`
+       does not follow: it stays pinned at the height WITH the bar (285px on a
+       16 Pro sideways, recorded 2026-08-20) while the screen you can see grows
+       to ~400. Sizing the landscape map to clientHeight therefore leaves a
+       band of card showing under a map that stopped short.
+       `100lvh` is the browser's own answer for "height once the retractable UI
+       is gone", so this reads it rather than guessing at the bar's size. Zero
+       width and hidden, so it costs a measurement and nothing else. -->
+  <div id="vh-probe" aria-hidden="true"></div>
+
   <header>
     <h1><canvas class="header-kitty" data-facing="right" width="32" height="32" aria-hidden="true"></canvas>CloudKitty<canvas class="header-kitty" data-facing="left" width="32" height="32" aria-hidden="true"></canvas></h1>
   </header>
