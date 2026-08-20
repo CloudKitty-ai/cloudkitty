@@ -89,6 +89,13 @@ change.
   every shoreline and drawn them again. They are keyed to the tile, which a
   taller window does not change, so they now survive it.
 
+  And filling "the window" turned out to need saying more precisely. When a
+  phone browser retracts its toolbar, the height the page is *laid out* against
+  deliberately does not move — so a map sized to it stops short of the screen
+  you can now see, leaving a stripe of card below it. The page asks the browser
+  for the height it will have once the bar is gone, rather than trying to model
+  a toolbar it cannot see, and fills that instead.
+
 - **The frame around the meadow was answering four different questions with
   one number.** On a phone the map sat on a small white mat, which separated it
   from the page — but how much separation the meadow needs turns out to depend

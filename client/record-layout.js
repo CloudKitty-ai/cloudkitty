@@ -39,6 +39,14 @@
     return {
       docClientWidth: document.documentElement.clientWidth,
       docClientHeight: document.documentElement.clientHeight,
+      // The three viewport heights, because on a phone they disagree and the
+      // disagreement is the whole problem: clientHeight stays at the SMALL
+      // one while the visible screen grows to the LARGE one as the toolbar
+      // retracts. `lvh` is what a landscape map should fill.
+      probeLvh: +boxH('#vh-probe').toFixed(2),
+      visualViewportHeight: window.visualViewport
+        ? +window.visualViewport.height.toFixed(2) : null,
+      innerHeight: window.innerHeight,
       headerHeight: +boxH('header').toFixed(2),
       footerHeight: +boxH('footer').toFixed(2),
       bodyPadY: px(getComputedStyle(document.body), 'paddingTop', 'paddingBottom'),
