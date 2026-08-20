@@ -264,11 +264,14 @@ MAP SIZE is half the condition. Where it actually binds:
 | 4K at 2x | 2 | 1200 | **1.10x — soft** |
 
 **So the defect is dpr-2-DESKTOP-only, not phone-only.** The phone never reaches
-the clamp because `minTiles` holds its floor at 6 tiles, which keeps the bake
-tile small: a 380px map wants 1267 CSS px of bake against a 1365 budget. It
-fits — but only by 7%, and a 420px map would not. **`minTiles` is therefore a
-hidden input to this clamp**: raising it to 7 widens the margin (1086 of 1365),
-lowering it to 5 would push the phone over.
+the clamp because `minTiles` holds the floor, which keeps the bake tile small.
+**`minTiles` is therefore a hidden input to this clamp**, and it has since
+moved: at 6 a 380px map wanted 1267 CSS px of bake against a 1365 budget — a 7%
+margin, and a 420px map would not have fitted at all. **At `minTiles: 7`
+(shipped 2026-08-19) the same map wants 1086 of 1365, a 20% margin, and the
+420px case now fits too** (1200 of 1365). Lowering it to 5 would push the phone
+over. The direction is worth remembering: **more tiles means a smaller bake**,
+so the dial that costs apparent size buys bake headroom.
 
 **And it moves where the BENCHMARK has to be run.** Live-draw cost scales with
 device pixels rasterised, `(map x dpr)^2`: the phone is 1140^2 = 1.3 Mpx, a
@@ -488,8 +491,33 @@ today, while 12px clears it on 4 of 5. The 16px option is **strictly
 dominated** — identical maps to 20px everywhere. Still open: whether the
 CARDS should keep an inset while the map runs to the edge, which needs the
 padding moved onto `header`/`.panel`/`footer` and is a look, not a refactor.
-**No automated guard exists** — neither harness runs `resizeFor`, both set
-`cssWidth` directly.
+**A guard exists as of PR #260**: `client/test-motion.mjs` drives the real
+`resizeFor` against four layouts recorded off real devices, so the chrome
+arithmetic is no longer only checked by eye. It does not cover the *choice* of
+chrome, only that the measurement is faithful.
+
+**RESOLVED 2026-08-19 — `minTiles: 7` shipped.** The pairing worked as the
+entry argued: with the gap reclaimed first, 7 clears the 50px bar on 4 of 5
+listed handsets (the 360px Android is the one exception, at 48.6px) rather than
+being decided against a floor that was about to move. Two consequences that the
+tables above do NOT show, both measured off the shipped `Camera` rather than
+derived:
+
+- **It is not a phone-only dial.** The break-even is `minTiles × floorPx` =
+  791px, so every map *below* that loses apparent size at full zoom — a 640px
+  map goes 106.7px → 91.4px per tile, a 760px map 113px → 108.6px. Maps at or
+  above 791px do not move at all.
+- **At 340px the zoom range goes to nothing.** The floor asks for 7 tiles while
+  the ceiling's own 50px target asks for 6.8, so the ceiling is raised to meet
+  the floor and that map pans without ever zooming. Zoom range first appears at
+  a 351px map, against 301px before. Accepted under the ruling that zoom range
+  is instrumental, not a goal.
+
+037's **SC-001 was the casualty**, and it fired rather than failed — its own
+margin note had predicted this exact trade. Withdrawn on the owner's 2026-08-19
+call and replaced by the per-device bar it stood in for; see the spec. Note the
+knock-on: SC-001 was what capped `floorPx` at 113, and **that cap is gone with
+it**.
 
 **Durable vs perishable:** the arithmetic
 is durable — the wasted remainder is `budget mod world.width`, and the phone's

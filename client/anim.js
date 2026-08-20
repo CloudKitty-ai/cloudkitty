@@ -140,10 +140,27 @@ const VIEW = Object.freeze({
     // RETIRES ITSELF as the world grows: at 40x40 it allows 26.7 tiles and
     // the 50px target only asks for 24.
     minZoomVsBase: 1.5,
-    minTiles: 6, // ...but never frame fewer tiles than this, so a small
+    minTiles: 7, // ...but never frame fewer tiles than this, so a small
     // viewport shows a scene rather than a keyhole. Where it binds the
     // kitties are drawn SMALLER than floorPx rather than the world being
     // cropped further (037 FR-006).
+    //
+    // 6 until 2026-08-19. The phone is the primary consumption path and
+    // ~3 kitties in frame is the target, so the phone buys meadow here and
+    // pays for it in apparent size: on a 380px map the floor tile goes
+    // 63.3px -> 54.3px, still clear of the 50px `ceilingPx` bar.
+    //
+    // It is NOT a phone-only dial, which is the part that misleads. The
+    // break-even is `minTiles * floorPx` = 791px, so every map below that
+    // loses size at full zoom -- a 640px map goes 106.7px -> 91.4px. Maps
+    // at or above 791px do not move at all.
+    //
+    // And on the smallest supported map it takes the zoom range to
+    // NOTHING: at 340px the floor asks for 7 tiles and the ceiling's own
+    // target asks for 6.8, so the ceiling is raised to meet the floor
+    // (FR-013) and the camera pans without ever zooming. Zoom range first
+    // appears at a 351px map, against 301px before. Accepted: the owner's
+    // ruling of 2026-08-19 is that zoom range is instrumental, not a goal.
     fitMarginTiles: 2.6, // clear space beyond the outermost kitty
     panRate: 0.06, // per-frame at 60Hz, corrected for real frame rate
     zoomRate: 0.05, // slower than the pan, so width lags the aim slightly

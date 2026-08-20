@@ -392,17 +392,32 @@ kitties through gathering and scattering. The fine detail never switches state.
 
 ### Measurable Outcomes
 
-- **SC-001**: Across the supported viewport range, a kitty's drawn size at the
-  zoom floor varies by no more than a factor of 2 — measured at **1.994× for a
-  113px target with a 6-tile minimum**, against 3.53× before this feature.
-  **Supersedes 036 SC-001.**
+- **SC-001**: *Withdrawn by the owner, 2026-08-19.* It read: across the
+  supported viewport range, a kitty's drawn size at the zoom floor varies by no
+  more than a factor of 2 — measured at 1.994× for a 113px target with a 6-tile
+  minimum, against 3.53× before this feature. It superseded 036 SC-001.
 
-  *The margin is now thin on purpose, and the arithmetic is worth keeping: the
-  smallest cat in the range is fixed at 340/`minTiles` = 56.7px and does not
-  move with `floorPx`, so the spread is simply `floorPx / 56.7`. The bar puts a
-  hard ceiling on the floor target at 113px — 114 measures 2.01× and fails.
-  Raising it further means lowering `minTiles` and paying for it in phone
-  framing.*
+  *Withdrawn because **no user ever experiences the ratio**: everyone has one
+  device and sees one size on it. The band compared two different people's
+  screens and called the difference a defect, which made it a proxy for a bar
+  that is really per-device.*
+
+  *It fired on the way out, exactly where its own margin note said it would.
+  That note read: "the smallest cat in the range is fixed at 340/`minTiles` =
+  56.7px … raising it further means lowering `minTiles` and paying for it in
+  phone framing." Raising `minTiles` to 7 on 2026-08-19 took the smallest cat to
+  48.6px and the band to **2.33×** — the criterion working, not failing, and it
+  was already retired when it did.*
+
+  *Replaced by the per-device bar it was standing in for: **no viewport draws a
+  kitty smaller than the 47px portrait cards** the art is dialled against, which
+  is where `ceilingPx: 50` came from in the first place. Guarded in
+  `client/test-motion.mjs`, reading `PORTRAIT_CAT` from `app.js` rather than a
+  copy. The measured floor is 48.6px at the 340px map.*
+
+  *Second-order consequence worth keeping: SC-001 was what capped `floorPx` at
+  113 (114 measured 2.01× and failed). **That cap is gone with it** — `floorPx`
+  is now held only by judgement and by the `minZoomVsBase` cap at the wide end.*
 - **SC-002**: *Withdrawn 2026-08-18.* There is no threshold to be above.
 - **SC-003**: **Met by construction rather than by measurement.** Fine detail
   cannot change state at any size, on any viewport, in camera mode or out of

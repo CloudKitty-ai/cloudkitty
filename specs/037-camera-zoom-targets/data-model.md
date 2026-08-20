@@ -13,7 +13,7 @@ frame; 036's two `localStorage` keys are untouched.
 | `ceilingFactor` | 1.5× the floor | **gone** — replaced by `ceilingPx` |
 | `floorPx` | — | 100. The tile size the camera zooms in to. |
 | `ceilingPx` | — | 50. The smallest tile it will widen to. |
-| `minTiles` | — | 6. The fewest tiles the floor may frame. |
+| `minTiles` | — | 7. The fewest tiles the floor may frame. **6 as shipped in #246; raised 2026-08-19** so the phone frames more meadow. |
 | `fitMarginTiles` | 2.6 tiles | unchanged, and still in tiles (research R5) |
 | `aimDeadzoneTiles` | 1.5 tiles | unchanged, and still in tiles (research R5) |
 | `hysteresis`, `panRate`, `zoomRate`, `maxFrameMs`, `hitRadiusFloorPx` | — | untouched |

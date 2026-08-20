@@ -17,6 +17,19 @@ const here = dirname(fileURLToPath(import.meta.url));
 const animSrc = readFileSync(join(here, 'anim.js'), 'utf8');
 const catV2Src = readFileSync(join(here, 'cat-v2.js'), 'utf8');
 const renderSrc = readFileSync(join(here, 'render.js'), 'utf8');
+const appSrc = readFileSync(join(here, 'app.js'), 'utf8');
+
+/**
+ * A `const NAME = <number>;` declared in app.js, read from the SHIPPED
+ * source rather than copied. Two checks want the portrait dials now -- the
+ * card geometry, and the camera's own size floor -- and a copy in either
+ * would drift silently the moment the owner re-dials the cards.
+ */
+const appNum = (name) => {
+  const m = appSrc.match(new RegExp(`const ${name} = ([\\d.]+);`));
+  assert(m, `app.js still declares ${name}`);
+  return Number(m[1]);
+};
 
 const api = eval(
   animSrc +
@@ -2229,17 +2242,11 @@ check('every portrait pose fits inside the card chip', () => {
   // widest thing drawn anywhere and overran the old 54px chip by 2.2px, and
   // an idle->sit blend at full overshoot reached 6.6px off the left edge.
   // Nothing catches a portrait clipping except looking at it, so:
-  const app = readFileSync(join(here, 'app.js'), 'utf8');
-  const num = (name) => {
-    const m = app.match(new RegExp(`const ${name} = ([\\d.]+);`));
-    assert(m, `app.js still declares ${name}`);
-    return Number(m[1]);
-  };
-  const W = num('PORTRAIT_W');
-  const H = num('PORTRAIT_H');
-  const SIZE = num('PORTRAIT_CAT');
-  const X = num('PORTRAIT_X');
-  const Y = num('PORTRAIT_Y');
+  const W = appNum('PORTRAIT_W');
+  const H = appNum('PORTRAIT_H');
+  const SIZE = appNum('PORTRAIT_CAT');
+  const X = appNum('PORTRAIT_X');
+  const Y = appNum('PORTRAIT_Y');
 
   const extentOf = (draw) => {
     const pts = [];
@@ -2290,17 +2297,17 @@ check('every portrait pose fits inside the card chip', () => {
   // idle->sit overshoot reaches 6.6px off the left of the chip and 6.5px off
   // the bottom.
   assert(
-    /t: Math\.min\(1, Math\.max\(0, tween\.blend\.t\)\)/.test(app),
+    /t: Math\.min\(1, Math\.max\(0, tween\.blend\.t\)\)/.test(appSrc),
     'the portrait blend is no longer clamped -- the overshoot will leave the chip',
   );
   // The wiring itself. Geometry checks pass perfectly well on a portrait that
   // has quietly gone back to a hardcoded 'idle', so the feature needs saying
   // out loud.
   assert(
-    /view\.idleCardBeatFor\(id, 'idle'\)/.test(app),
+    /view\.idleCardBeatFor\(id, 'idle'\)/.test(appSrc),
     'the portrait no longer asks its own beat table for a pose',
   );
-  assert(/idle\?\.pose \?\? 'idle'/.test(app), 'the portrait no longer USES the idle pose it asked for');
+  assert(/idle\?\.pose \?\? 'idle'/.test(appSrc), 'the portrait no longer USES the idle pose it asked for');
   // ...and the WORLD's wake-stretch stays out of it (2026-08-10). The card
   // took it until measurement showed cats wake every ~21s, which made the
   // stretch beat the blink -- and that the meadow, drawing first, deleted
@@ -2310,7 +2317,7 @@ check('every portrait pose fits inside the card chip', () => {
   // Matched on the CALL, not the name -- the reasoning above has to be free
   // to talk about `idlePoseFor` without failing the check that enforces it.
   assert(
-    !/view\.idlePoseFor\s*\(/.test(app),
+    !/view\.idlePoseFor\s*\(/.test(appSrc),
     'the portrait is consulting idlePoseFor again -- the world wake-stretch will preempt the card table',
   );
   // And the key namespace, which is the part that breaks something else when
@@ -2318,7 +2325,7 @@ check('every portrait pose fits inside the card chip', () => {
   // sharing the meadow cat's key restarts its blend every frame. Same hazard
   // rigFor documents, on a different map.
   assert(
-    /tweenFor\(`card\$\{id\}`/.test(app),
+    /tweenFor\(`card\$\{id\}`/.test(appSrc),
     "the portrait tween must be keyed 'card' + id, never the bare id",
   );
   for (const to of ['sit', 'stretch', 'pouncing']) {
@@ -3431,7 +3438,6 @@ check('card text keeps its contrast THROUGH a phase change, not just at the ends
   // blending, so at any blend position the pair is one theme's or the
   // other's -- never a mix of both.
   const swap = (a, b, t) => (t < 0.5 ? a : b);
-  const appSrc = readFileSync(join(here, 'app.js'), 'utf8');
   assert(/INVERTING_TOKENS/.test(appSrc), 'app.js no longer names the inverting tokens');
   assert(
     /blend\.step < 0\.5 \? from\[name\] : to\[name\]/.test(appSrc),
@@ -5648,15 +5654,31 @@ const ZOOM_SWEEP = (() => {
 const zoomWorld = { width: 20, height: 20, elements: [], kitties: [] };
 const zoomLimits = (w) => new api.Camera().limitsFor(zoomWorld, w);
 
-check('apparent size varies by less than a factor of 2 across the range', () => {
-  // SC-001, and the whole reason 037 exists. Reported as a NUMBER so a
-  // regression shows as a figure rather than a boolean.
+check('no viewport draws a kitty smaller than the portrait cards', () => {
+  // This replaces SC-001's factor-of-2 size band, WITHDRAWN by the owner on
+  // 2026-08-19. The band capped the largest floor tile over the smallest
+  // ACROSS ALL VIEWPORTS, and the reason it went is that no user ever
+  // experiences that ratio -- everyone has one device and sees one size.
+  //
+  // Its last act was to forbid `minTiles: 7`, which its own margin note had
+  // predicted in as many words: "raising it further means lowering minTiles
+  // and paying for it in phone framing". At 7 the band measures 2.33x. So
+  // the criterion did not fail here, it fired -- and it was already retired.
+  //
+  // What survives is the per-device bar the ratio was standing in for.
+  // PORTRAIT_CAT is the size the cat art is actually dialled against, and it
+  // is where `ceilingPx: 50` came from in the first place, so the honest
+  // invariant is that nothing in the meadow is drawn smaller than the cards.
+  //
+  // Reported as NUMBERS, as SC-001 was, so a regression reads as a figure
+  // rather than a boolean.
+  const bar = appNum('PORTRAIT_CAT');
   const tiles = ZOOM_SWEEP.map((w) => w / zoomLimits(w).floorTiles);
   assert(tiles.length >= 40, `the sweep only sampled ${tiles.length} widths`);
-  const spread = Math.max(...tiles) / Math.min(...tiles);
-  assert(spread < 2,
-    `floor tile spread is ${spread.toFixed(2)}x (${Math.min(...tiles).toFixed(1)}px to `
-    + `${Math.max(...tiles).toFixed(1)}px) -- the bar is under 2, and it was 3.53x before 037`);
+  const smallest = Math.min(...tiles);
+  assert(smallest >= bar,
+    `the smallest floor tile is ${smallest.toFixed(1)}px, under the ${bar}px portrait cards `
+    + `-- the range runs to ${Math.max(...tiles).toFixed(1)}px`);
 });
 
 check('the ceiling still crops on a world smaller than today\'s', () => {
@@ -5930,11 +5952,30 @@ check('the floor is the pixel target and the ceiling is the min-zoom cap', () =>
   const base = 1000 / world.width;
   assert((1000 / ceilingTiles) / base >= D.minZoomVsBase - 1e-9,
     `at its widest a kitty is ${((1000 / ceilingTiles) / base).toFixed(2)}x base, under the ${D.minZoomVsBase}x floor`);
-  // And on a 340px map the cap does NOT bind -- the pixel target gets there
-  // first, which is what keeps small screens untouched by this rule.
-  const small = cam.limitsFor(world, 340);
-  assert(Math.abs(340 / small.ceilingTiles - D.ceilingPx) < 1e-9,
-    `on a phone the ceiling tile is ${(340 / small.ceilingTiles).toFixed(1)}px, not the ${D.ceilingPx}px target`);
+  // And on a phone the cap does NOT bind -- something else gets there first,
+  // which is what keeps small screens untouched by THIS rule. WHICH
+  // something else depends on the width, and `minTiles: 7` moved that
+  // boundary, so both sides of it are pinned here.
+  //
+  // At a 380px map -- the owner's handset after the portrait-gap work -- the
+  // ceiling is still the 50px pixel target.
+  const phone = cam.limitsFor(world, 380);
+  assert(phone.ceilingTiles < world.width / D.minZoomVsBase - 1e-9,
+    `on a 380px map the min-zoom cap bound at ${phone.ceilingTiles.toFixed(2)} tiles`);
+  assert(Math.abs(380 / phone.ceilingTiles - D.ceilingPx) < 1e-9,
+    `on a 380px map the ceiling tile is ${(380 / phone.ceilingTiles).toFixed(1)}px, not the ${D.ceilingPx}px target`);
+
+  // At 340px -- the smallest map the feature is verified across -- the floor
+  // now asks for more tiles than the ceiling's own target does, so the
+  // ceiling is raised to MEET the floor (FR-013) and that map has no zoom
+  // range at all. contracts/zoom.md invariant 3 names this case: both limits
+  // together, the tile under `ceilingPx`, FR-006 working rather than a
+  // violation. It moved from "below about 300px" to 350px with minTiles 7.
+  const smallest = cam.limitsFor(world, 340);
+  assert(Math.abs(smallest.floorTiles - smallest.ceilingTiles) < 1e-9,
+    `at 340px the floor (${smallest.floorTiles}) and ceiling (${smallest.ceilingTiles}) no longer meet`);
+  assert(340 / smallest.ceilingTiles < D.ceilingPx,
+    `at 340px the tile is ${(340 / smallest.ceilingTiles).toFixed(1)}px, not under the ${D.ceilingPx}px target`);
 });
 
 check('a viewport of zero still produces a usable frame', () => {
