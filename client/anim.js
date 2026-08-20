@@ -140,6 +140,29 @@ const VIEW = Object.freeze({
     // RETIRES ITSELF as the world grows: at 40x40 it allows 26.7 tiles and
     // the 50px target only asks for 24.
     minZoomVsBase: 1.5,
+    // The most world-ROWS the camera may show, and the only limit here stated
+    // on the vertical. It binds ONLY on a letterboxed canvas (aspect < 1),
+    // which is a phone held sideways and nothing else -- everywhere else the
+    // canvas is square, height is not the scarce axis, and `ceilingPx` already
+    // governs.
+    //
+    // Landscape needed its own limit because the others cannot express one.
+    // `ceilingPx` and `minZoomVsBase` are both stated ACROSS, so tightening
+    // either to zoom a sideways phone in also zooms in every viewport where it
+    // binds: `ceilingPx` 66 would re-close the PORTRAIT phone's zoom range to
+    // nothing (7.60 tiles to 7.00, the defect spotted on the 340px map), and
+    // `minZoomVsBase` 1.82 would take a 1200px desktop from 13.3 tiles to
+    // 11.0. Measured 2026-08-20, both.
+    //
+    // 6 rows on the owner's handset is roughly a 65px tile against 54 -- about
+    // 20% more cat -- and costs two of the 13 tiles across.
+    //
+    // What it fixes is not the tile, which still scales with the canvas
+    // (`tile = cssHeight / ceilingRows`), but the FRAMING: how much world is
+    // in shot vertically is now a decision instead of a remainder. It used to
+    // fall out of the large-viewport height, which is the one number in this
+    // arc that has been guessed twice and measured never.
+    ceilingRows: 6,
     minTiles: 7, // ...but never frame fewer tiles than this, so a small
     // viewport shows a scene rather than a keyhole. Where it binds the
     // kitties are drawn SMALLER than floorPx rather than the world being
@@ -2105,7 +2128,7 @@ class Camera {
    * smallest tile it will widen to. Expressed in pixels, the zoom range
    * becomes their ratio and stops varying with the window.
    */
-  limitsFor(world, cssWidth) {
+  limitsFor(world, cssWidth, aspect = null) {
     const d = this.dials;
     // A viewport of zero or NaN must still produce a usable frame (FR-014).
     // This is not hypothetical: the map has no width until the page has laid
@@ -2145,8 +2168,25 @@ class Camera {
     // 1200px map the pixel ceiling asks for 24 tiles of a 20-tile world, so
     // the clamp decided everything at the large end and one tile of crop is
     // indistinguishable from camera-off. Reported from WQHD, 2026-08-19.
+    // THE THIRD BOUND, and the only one stated on the vertical: at most
+    // `ceilingRows` rows of world. `rows = across * aspect`, so the cap in
+    // across is `ceilingRows / aspect`.
+    //
+    // Gated on `aspect < 1` because that is what "the height is the scarce
+    // axis" means. On a square canvas -- every viewport but a letterboxed one
+    // -- rows and across are the same number, so a row cap would silently
+    // become an across cap and zoom in everywhere. That is not a defensive
+    // guard; it is the whole scope of the dial.
+    //
+    // Ceiling-only by construction, which is what keeps `bakeTileFor` honest:
+    // it asks for the FLOOR and passes no aspect, so it cannot disagree with
+    // the fit about anything it reads (contracts/zoom.md invariant 2).
+    const rowCap =
+      Number.isFinite(aspect) && aspect > 0 && aspect < 1 && d.ceilingRows > 0
+        ? d.ceilingRows / aspect
+        : Infinity;
     const ceilingTiles = Math.max(
-      Math.min(cssWidth / d.ceilingPx, edge),
+      Math.min(cssWidth / d.ceilingPx, edge, rowCap),
       floorTiles, // may MEET the floor on a tiny viewport, never cross it (FR-013)
     );
     return { floorTiles, ceilingTiles };
@@ -2203,7 +2243,7 @@ class Camera {
     // where the camera stops fitting and lets a wanderer leave, rather than
     // shrinking everyone to keep her. Both come from the viewport now, not
     // from a tile count -- "nominal" was FR-003's word and 037 removed it.
-    const { floorTiles, ceilingTiles } = this.limitsFor(world, cssWidth);
+    const { floorTiles, ceilingTiles } = this.limitsFor(world, cssWidth, aspect);
     const across = Math.min(Math.max(spanX, spanY, floorTiles), ceilingTiles);
 
     const com = { x: sumX / kitties.length, y: sumY / kitties.length };
