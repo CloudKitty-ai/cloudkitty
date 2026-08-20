@@ -939,8 +939,11 @@ floods 4-adjacent only. Both are recorded in the v3 plan's Phase 5.
 
 ### Pond restyle — give the pond a bottom (added 2026-08-09; Client thread)
 The design handoff's **spec 02**, plus the deltas we measured against it. The
-bundle itself lives at `deletemewhendone/design_handoff_art_uplevel/` and is
-gitignored and temporary — everything below is the part worth keeping.
+bundle was gitignored and temporary, as its original `deletemewhendone/` name
+said, and the owner **deleted it on 2026-08-20** — so everything below is no
+longer "the part worth keeping", it is the only record. Do not go looking for
+`design_handoff_art_uplevel/`; nothing in it was tracked, so it is not in the
+history either.
 
 **The proposal, in one line:** a blurred copy of the pond's own silhouette is a
 distance-to-shore field, so one blur buys depth without a distance transform.
@@ -1007,7 +1010,17 @@ V/VI, no assets, gallery-meadow as the lab.
 **Also in the bundle:** spec 03 (meadow drifts — clustered cover instead of
 independent per-tile rolls, and the `grassTones` lattice), and a parked spec 01
 (cat lighting) the owner deferred. Recommended order 02 then 03; 03 is the one
-that needs the lab's occlusion strip.
+that needs the lab's occlusion strip. **02 and 03 both shipped** (#177, and
+#189/#191).
+
+**Spec 01 is CLOSED, not parked (owner, 2026-08-20):** *"I didn't actually like
+the way that lighting pass looked, we'd be better off just starting from
+scratch."* The document went with the bundle. What it was reaching for is still
+a real gap and is worth restating in one line, because the observation outlives
+the proposal: `MEADOW.shadowLean` and `shadowLength` swing the ground shadows
+through the day, and the cats standing in that light never answer it — flat
+`furBase` inside a `furShade` outline, every pose, every hour. Any future
+attempt starts from the meadow's own sun, not from that draft.
 
 ### Ambient whole-body float — CLOSED, not doing (2026-08-09; Client thread)
 Graphics v3 Phase 4 listed a slow whole-body y-bob for every cat, borrowed
@@ -1028,7 +1041,12 @@ and only at an amplitude that clears a pixel.
 ### Animation handoff — the residue, re-reviewed 2026-08-14 (Client thread)
 
 Re-read `design-handoffs/design_handoff_animation_upgrade/README.md` against
-the shipped code. The handoff itself is landed; what follows is what it
+the shipped code. That bundle survives (gitignored, 2026-08-20) and its
+`support.js` now sits at its root rather than in the art bundle that was
+deleted — the review labs load `./support.js`, so they need it beside them, and
+their other paths assume the HTML sits at the handoff root rather than in
+`review/`. `MANIFEST.json` lists the labs and `cat-v2-baseline.js` as
+`notForRepo`. The handoff itself is landed; what follows is what it
 listed as not-done and nobody wrote down, plus two things the review turned
 up that it did not.
 

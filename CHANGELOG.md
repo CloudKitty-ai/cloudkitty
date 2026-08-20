@@ -103,7 +103,13 @@ change.
   have zoomed in every other screen too, and one of them would have taken the
   upright phone's zoom range back to nothing. Stated on the vertical, the rule
   applies only where height is the scarce axis, which is a phone on its side
-  and nowhere else. Six rows of meadow, and about twenty percent more cat.
+  and nowhere else.
+
+  It is set to seven rows, which is a bound rather than a magnification: it
+  barely moves the phone it was measured on, and exists so that a roomier
+  landscape screen cannot quietly drift to showing eight or nine. How close the
+  camera actually gets is a question about what it chooses to follow, and that
+  is the next piece of work rather than a number to turn up here.
 
 - **The frame around the meadow was answering four different questions with
   one number.** On a phone the map sat on a small white mat, which separated it

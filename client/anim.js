@@ -154,15 +154,33 @@ const VIEW = Object.freeze({
     // `minZoomVsBase` 1.82 would take a 1200px desktop from 13.3 tiles to
     // 11.0. Measured 2026-08-20, both.
     //
-    // 6 rows on the owner's handset is roughly a 65px tile against 54 -- about
-    // 20% more cat -- and costs two of the 13 tiles across.
+    // SETTLED AT 7 (owner, 2026-08-20), and the reasoning is the useful part.
+    // 6 was judged live first and looked good -- but the ceiling is the WIDEST
+    // the camera goes, not a midpoint, so capping at 6 makes 66.7px the
+    // SMALLEST a kitty is ever drawn in landscape and leaves the meadow no
+    // room. The camera also sits at its ceiling most of the time today, which
+    // makes the widest end the one you actually see. So: keep the wide end
+    // wide, and earn the zoom-in with better camera logic rather than forcing
+    // it with a dial. That is the queued camera-logic work, which sizes to the
+    // chosen group once the fit can no longer hold everyone -- it moves the
+    // camera INSIDE this range.
+    //
+    // At 7 the cap barely touches this handset: 7.41 rows uncapped to 7.00,
+    // a 5.5% narrowing, 54.0px to 57.1px. **It is a bound, not a zoom
+    // decision**, and it earns its place across devices rather than on this
+    // one -- a taller landscape screen drifts past 8 rows uncapped, and this
+    // holds every landscape screen at 7.
+    //
+    // Costed at the time, for whoever moves it: 6 = 66.7px at 10.8 across,
+    // 5 = 80px at 9.0 across. Both make the widest view NARROWER, which is
+    // the opposite of what landscape wanted.
     //
     // What it fixes is not the tile, which still scales with the canvas
     // (`tile = cssHeight / ceilingRows`), but the FRAMING: how much world is
     // in shot vertically is now a decision instead of a remainder. It used to
     // fall out of the large-viewport height, which is the one number in this
     // arc that has been guessed twice and measured never.
-    ceilingRows: 6,
+    ceilingRows: 7,
     minTiles: 7, // ...but never frame fewer tiles than this, so a small
     // viewport shows a scene rather than a keyhole. Where it binds the
     // kitties are drawn SMALLER than floorPx rather than the world being
