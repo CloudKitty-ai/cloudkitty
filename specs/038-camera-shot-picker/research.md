@@ -156,6 +156,10 @@ pursuit) keeps motion episodic.
 
 **Alternatives**: a full interrupt queue — rejected: nothing in the grammar
 generates bursts (events measured ≤1.7/min).
+**Known and accepted**: a pan's goal latches at start, so the destination
+group walks ~1.4 tiles during `panMs` and arrival may earn one immediate
+correction — a counted, deliberate move inside SC-003's budget. The
+eventual remover is spec 032 pre-framing (D10), not a smarter pan.
 
 ## D10 — The evidence function (the 032 seam)
 

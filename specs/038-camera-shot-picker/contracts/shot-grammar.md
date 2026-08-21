@@ -16,7 +16,9 @@ synthetic worlds; every clause below lands with a mutation-verified check.
 
 ## 2. Decision order (once per world tick, camera on)
 
-1. **Follow pin** — `followId` set: subject = her chain; skip 5–6.
+1. **Follow pin** — `followId` set: subject = her chain; skip step 6
+   only — admissions (step 5) still apply, so her companions join the
+   shot; far rivals never steal a follow (spec FR-014).
 2. **Membership follow** — shot = union of chains holding shot members.
 3. **Shed** — if that union no longer fits: keep the maximal-count fitting
    subset (incumbency tiebreak), one `shed` episode.

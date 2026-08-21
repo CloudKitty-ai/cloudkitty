@@ -57,10 +57,12 @@ P1), US3 finds-the-action, US4 following (both P2).
       `left/top/across`; mutation: keep exponential pursuit), still-frame
       no-progress, reduced-motion instant
 - [ ] T007 Split decide-on-ticks from move-on-frames in `client/anim.js`
-      (research D2): `world.tick` edge detection in `update`, decision steps
-      run once per tick in contract §2 order; check: dwell counters advance
-      once per tick when the harness draws 8 frames per tick (mutation:
-      decide per frame)
+      (research D2): `world.tick` edge detection in `update` — no previous
+      tick COUNTS as an edge, so the very first update decides (SC-009) —
+      decision steps run once per tick in contract §2 order, consuming the
+      aspect/cssWidth of the frame they run in; check: dwell counters
+      advance once per tick when the harness draws 8 frames per tick
+      (mutation: decide per frame)
 - [ ] T008 Implement cold-start shot selection in `client/anim.js`: greedy
       maximal-count window of groups that fits, lowest-kitty-id tiebreak,
       incumbent-keeps-ties thereafter (research D6); first decided shot
@@ -96,8 +98,9 @@ pressing the edge produces exactly one correction episode ending in rest.
       goal exactly once (mutation: continuous goal tracking)
 - [ ] T012 [US1] US1 acceptance sweep in `client/test-motion.mjs`: scripted
       drive (group walks a straight line across the map at cat speed)
-      asserting rest on ≥60% of frames (SC-001's bar, harness edition) and
-      zero motion after each episode's arrival
+      asserting rest on ≥60% of ticks — the harness PROXY for SC-001,
+      whose authoritative measure is T025's live capture — and zero
+      motion after each episode's arrival
 
 **Checkpoint**: MVP — the calm hold is real and measured in the harness
 
@@ -112,7 +115,9 @@ the camera frames fewer than two while a pair could share the widest frame.
 - [ ] T013 [US2] Minimum-two + closest-pair fallback (FR-004) in
       `client/anim.js`: when no window of ≥2 fits, frame the closest pair at
       the ceiling and tolerate partial visibility; checks: all-scattered
-      fixture (mutation: permit a singleton window)
+      fixture (mutation: permit a singleton window), plus a 3-kitty
+      roster variant where the biggest group is a pair — SC-010's
+      tightest case in the harness
 - [ ] T014 [US2] Membership follow + shed (FR-008/FR-010) in
       `client/anim.js`: shot = union of chains holding shot members; when
       the union stops fitting, keep the maximal-count fitting subset
@@ -197,8 +202,10 @@ for pin, solo, and suppressed rivals pass.
 - [ ] T025 Acceptance measurement per quickstart §4: capture a local
       five-kitty session with `client-measurements/camera-aim/camera-sample.mjs`,
       replay through the harness event counters, and record rest %,
-      events/min, pans/min, at-ceiling %, ≥2-framed % against SC-001…SC-005
-      in `specs/038-camera-shot-picker/acceptance-2026-08-21.md`
+      events/min, pans/min, at-ceiling %, ≥2-framed %, median frame width
+      (→ kitty-size ratio vs the pinned-wide camera, SC-004), mean framed
+      and maximal-or-tied % (SC-005) against SC-001…SC-005 in
+      `specs/038-camera-shot-picker/acceptance-2026-08-21.md`
 - [ ] T026 Stand up the local five-kitty world (quickstart §3) for the
       owner's live judgement and the dial pass (SC-010; dials bake only on
       her paste, house method) — owner-gated, the arc's final gate
