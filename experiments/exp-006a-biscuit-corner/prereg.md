@@ -95,14 +95,33 @@ same-instrument, paired seeds.
   is CHECKED against the intended world, not just stamped).
 - **G2c** candidate-roster team ≥ reference composition − 0.005.
 - **G2d** per-seat, paired, G3-coupled:
-  - **Biscuit (the owner's uplift bar)**: candidate ≥ the
-    playful-behavior scripted anchor at the Biscuit seat, freshly
-    derived at battery time on the certification config, **+ 10.0
-    happiness**. (Today that anchor reads 79.72 → bar ≈ 89.7. The
-    uplift form is deliberately world-portable: when bugs 2.0
-    re-prices the world, the anchor moves with it and the bar
-    follows — the owner's stated reason for rejecting a fixed
-    parity number.) Valid only with the candidate's G3 pass.
+  - **Biscuit (the owner's uplift bar — 006a-LOCAL, not a standing
+    formula)**: candidate ≥ the playful-behavior scripted anchor at
+    the Biscuit seat, freshly derived at battery time on the
+    certification config, **+ 10.0 happiness**. Today that anchor
+    reads 79.72 → bar ≈ 89.7, deliberately just under thermostat
+    parity (90.64). Valid only with the candidate's G3 pass.
+
+    **Scope ruling (owner, 2026-08-21, verbatim)**: "+10 happiness
+    makes sense NOW, but we need to see what bug 2.0 does to biscuit
+    before we commit (it could end up putting biscuit+10 above
+    scripted). We still don't know what the theoretical welfare
+    ceiling for a 'still biscuit biscuit' is, so I want to be
+    cautious about setting a bar so high that our only viable
+    personality is welfare optimized to the point that individual
+    character is minimal (if that's where we end up after more
+    testing then so be it, but I don't think we're there yet)."
+    Operationalized: (a) the +10 does NOT auto-carry across world
+    changes — at bugs 2.0 (or any re-priced world) the Biscuit bar
+    is RE-DECIDED by the owner with fresh anchors in hand, never
+    inherited as a formula; (b) standing cap pending that decision:
+    no future Biscuit bar sits above the same world's thermostat
+    (needs_driven) parity reading; (c) standing design principle:
+    the welfare bar must never be positioned such that only
+    minimal-character minds can pass — G3 protects character from
+    the welfare gate as much as the reverse, and if testing ever
+    shows the two cannot coexist, that conclusion is the owner's to
+    draw explicitly, not a gate's to impose silently.
   - Carried seats (Miso, Pumpkin) and Kittybear (E1-s1): ≥ their
     reference-composition readings − 0.006. (E1-s1's comparator is
     s3-at-Kittybear in the reference composition — the seat's
