@@ -179,8 +179,26 @@ check('arriving (walking -> stand) settles, concurrent with its blend', () => {
     const t0 = p.tweenFor(1, stand, 0.1, 1080);
     assert(t0.blend && t0.sy !== undefined, `${stand}: blend and settle together`);
     close(t0.sy, 1, `${stand}: settle starts flat`);
-    const t200 = p.tweenFor(1, stand, 0.1, 1280); // 200/400: sin(pi * smoothstep(1/2)) = 1
-    close(t200.sy, 1 - api.VIEW.settleDip, `${stand}: peak squash is exactly the dip`);
+    // The peak is DERIVED, not a sampled literal. This read `1280` -- 200ms
+    // of the old 400ms span, where `sin(pi * smoothstep(1/2))` happened to be
+    // 1 -- and the 2026-08-19 settle changed both the span (460) and the
+    // curve, so that sample landed at 0.12 of the peak and the check failed
+    // for a reason that had nothing to do with the settle being wrong.
+    const peakAt = 1080 + api.VIEW.settleMs * CatV2.SETTLE.attack;
+    const tPeak = p.tweenFor(1, stand, 0.1, peakAt);
+    close(tPeak.sy, 1 - api.VIEW.settleDip, `${stand}: peak squash is exactly the dip`);
+    // The v2 amount is the same instant, at full strength. Both are emitted
+    // because v1 reads `sy` and v2 reads `settle`; if they ever disagree
+    // about WHEN the peak is, one vocabulary lands out of time with the other.
+    close(tPeak.settle, 1, `${stand}: the v2 deformation is not at its peak here`);
+    // And the rebound is real: the curve dips PAST neutral once on recovery,
+    // which is the whole difference between a landing and a fade-out.
+    let rebounded = false;
+    for (let ms = 1; ms < api.VIEW.settleMs; ms += 5) {
+      const r = p.tweenFor(1, stand, 0.1, 1080 + ms);
+      if (r && r.settle < -0.01) rebounded = true;
+    }
+    assert(rebounded, `${stand}: the settle never dips past neutral, so it has no rebound`);
     const tail = p.tweenFor(1, stand, 0.1, 1080 + api.VIEW.arriveBlendMs + 10);
     assert(!tail.blend && tail.sy !== undefined, `${stand}: settle outlives the blend`);
     assert(p.tweenFor(1, stand, 0.1, 1080 + api.VIEW.settleMs) === null, `${stand}: settle ends on time`);
@@ -2294,6 +2312,68 @@ check('an axial cat paints its far legs first', () => {
         `${view} at phase ${i}/24 paints [${legs.map((l) => (l.far ? 'F' : 'n')).join(',')}] -- `
         + 'a far leg after a near one is a dark limb painted over a lit one');
     }
+  }
+});
+
+check('the settle deforms the cat and never touches the transform', () => {
+  // BACKLOG 4a, and the owner's gate on this work: "we need to verify that is
+  // squashed when we implement the new settle."
+  //
+  // The old settle was `ctx.scale(1 + (1 - sy) * 0.7, sy)` around the whole
+  // drawing. Canvas2D scales STROKE WIDTHS with the transform, so compressing
+  // vertically thinned horizontal strokes -- a hairline ear or tail outline
+  // fell under a device pixel, vanished, and came back as the squash relaxed.
+  // The owner believed it was deliberate; it was a side effect of the cheat,
+  // invisible at a 22px tile because the outlines were already sub-pixel.
+  //
+  // ASSERTED ON THE TRANSFORM, not on `lineWidth`. A scale leaves lineWidth's
+  // VALUE untouched and changes what it renders as, so comparing widths would
+  // have passed against the very bug this exists to catch.
+  const cap = (settle) => {
+    const log = [];
+    CatV2.drawCat(guardCtx(log), {
+      pose: 'idle',
+      appearance: CatV2.appearanceFor(5), // Clementine: a white coat shows a thin outline
+      facing: 'right',
+      size: 103, // camera size, where the outline IS the drawing
+      x: 0,
+      y: 0,
+      phase: 0.3,
+      settle,
+    });
+    return log.map((c) => JSON.stringify(c));
+  };
+  const isTransform = (c) => /^\["(scale|setTransform|transform|translate|rotate)"/.test(c);
+
+  const rest = cap(0);
+  const peak = cap(1); // settleCurve's maximum, see SETTLE.attack
+  assert(JSON.stringify(rest.filter(isTransform)) === JSON.stringify(peak.filter(isTransform)),
+    'the settle changed the canvas transform -- that is the mechanism that thinned the ear '
+    + 'and tail outlines until they vanished');
+  // The control: if the settle drew nothing different, the equality above is
+  // satisfied by a settle that does not exist.
+  assert(JSON.stringify(rest) !== JSON.stringify(peak),
+    'a cat at full settle draws exactly as one at rest, so this proves nothing');
+
+  // WHAT THIS CANNOT REACH, and it is worth knowing rather than assuming.
+  // This proves the v2 VOCABULARY's settle is transform-free. It cannot prove
+  // render.js does not wrap a v2 cat in a canvas squash on the way -- that
+  // wrapper is outside `drawCat`, and NEITHER harness drives the v2 path
+  // through the renderer: test-meadow binds render.js's bare `drawCat` to
+  // cat.js's v1, so `v2Motion` is false there and the `!v2Motion` guard on
+  // `canvasSettle` is vacuous in that harness. Mutating that guard away
+  // changes nothing in either suite.
+  //
+  // That gap is structural, not an oversight here, and it is the same one
+  // that let the axial feature ship inert once before. Recorded in BACKLOG.
+  //
+  // Swept, because the curve passes through a rebound PAST neutral and a
+  // negative amount is the one most likely to be handled by a different code
+  // path than the positive one.
+  for (let i = 0; i <= 20; i += 1) {
+    const k = CatV2.settleCurve(i / 20);
+    assert(JSON.stringify(cap(k).filter(isTransform)) === JSON.stringify(rest.filter(isTransform)),
+      `at settle ${k.toFixed(3)} the transform moved`);
   }
 });
 

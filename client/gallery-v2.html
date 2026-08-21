@@ -259,6 +259,13 @@
     });
   }
 
+  const SETTLE_BAG = {};
+  for (const k of Object.keys(CatV2.SETTLE)) {
+    Object.defineProperty(SETTLE_BAG, k, {
+      get: () => CatV2.SETTLE[k], set: (v) => { CatV2.SETTLE[k] = v; }, enumerable: true,
+    });
+  }
+
   const BELLY_BAG = {};
   for (const k of Object.keys(CatV2.BELLY)) {
     Object.defineProperty(BELLY_BAG, k, {
@@ -1472,6 +1479,102 @@
           ctx.textAlign = 'left';
           ctx.fillText(label, x, h - 4);
         }
+      },
+    },
+    {
+      title: 'The landing settle',
+      note: 'A cat arriving from a walk. THE SETTLE IS RARE IN THE WILD — the owner had to watch a test server to catch one — so this loops it on demand at camera size, where it now lives. It was a canvas squash: scale(1.7 x lost height, sy) about the ground line, applied to the whole drawing. That is the right cheat at a 22px tile and states itself out loud at 103px — the head becomes an ellipse, the eyes and nose go with it, the ears shear, and the paws widen at the same rate as the ribcage. It also scaled STROKE WIDTHS, which is what made the ear and tail outlines vanish and reappear (the owner thought that was deliberate; it was not). It is now a pose-space deformation: the body flattens about its own belly, the legs compress because their pivot drops while the feet stay planted, the head MOVES and never scales, the tail whips up, the ears recoil. Watch the outlines through the whole curve — they must not thin. Clementine leads because a white coat shows a hairline outline better than any other cat. EACH CAT ARRIVES rather than being handed a settle amount: drawCat runs applyRig(applySettle(layout, settle), rig), so the head lag and the tail follow-through come from the RIG reacting to the stop, not from applySettle — which only drops the head 0.04 of a box. A first version of this card drew a static cat with no rig, and it read far more dramatic and had no head motion, which is what a deformation with nothing riding it looks like.',
+      v2Only: true,
+      w: 560,
+      h: 190,
+      ownShadows: true,
+      bag: SETTLE_BAG,
+      dials: [
+        { key: 'attack', label: 'HOW FAST THE WEIGHT ARRIVES (share of the span)', min: 0.05, max: 0.6, step: 0.01 },
+        { key: 'decay', label: 'how hard the rebound is damped', min: 1, max: 12, step: 0.25 },
+        { key: 'bounces', label: 'how many times it crosses back', min: 0.5, max: 4, step: 0.25 },
+        { key: 'bodyFlat', label: 'body flatten', min: 0, max: 0.08, step: 0.002 },
+        { key: 'bodyDrop', label: 'body drop', min: 0, max: 0.08, step: 0.002 },
+        { key: 'headDrop', label: 'head drop (it MOVES, never scales)', min: 0, max: 0.1, step: 0.002 },
+        { key: 'tailWhip', label: 'tail whip', min: 0, max: 0.15, step: 0.005 },
+        { key: 'earsBack', label: 'ear recoil', min: 0, max: 0.6, step: 0.02 },
+        { key: 'pawSplay', label: 'paw splay', min: 0, max: 0.3, step: 0.01 },
+      ],
+      readout() {
+        const S = CatV2.SETTLE;
+        let peak = { k: -9, u: 0 };
+        let dip = { k: 9, u: 0 };
+        for (let i = 0; i <= 400; i++) {
+          const u = i / 400;
+          const k = CatV2.settleCurve(u);
+          if (k > peak.k) peak = { k, u };
+          if (k < dip.k) dip = { k, u };
+        }
+        return (
+          `SETTLE = { attack: ${S.attack}, decay: ${S.decay}, bounces: ${S.bounces}, `
+          + `bodyFlat: ${S.bodyFlat}, bodyDrop: ${S.bodyDrop}, bodySpread: ${S.bodySpread}, `
+          + `headDrop: ${S.headDrop}, headBack: ${S.headBack}, tailWhip: ${S.tailWhip}, `
+          + `earsBack: ${S.earsBack}, pawSplay: ${S.pawSplay} }\n`
+          + `  span ${VIEW.settleMs}ms   peak ${peak.k.toFixed(3)} at `
+          + `${(peak.u * VIEW.settleMs).toFixed(0)}ms   rebound ${dip.k.toFixed(3)} at `
+          + `${(dip.u * VIEW.settleMs).toFixed(0)}ms\n`
+          + `  the rebound crossing neutral is the difference between a landing and a fade`
+        );
+      },
+      draw(ctx, w, h, now) {
+        const S = 118;
+        const y = h - S * 0.92;
+        // THE CAT MUST ARRIVE, not just be handed a settle amount. `drawCat`
+        // runs `applyRig(applySettle(layout, settle), rig)`, and the head lag
+        // and tail follow-through come from the RIG reacting to the stop --
+        // not from `applySettle`, which only drops the head 0.04 of a box.
+        //
+        // The first version of this card drew a static cat with a settle
+        // number and no rig at all. It read far more dramatic than the real
+        // thing and had no head motion, which is exactly what a deformation
+        // with nothing riding it looks like. So this walks each cat, stops
+        // her, and fires the settle on the same frame as the stop.
+        const SPAN = VIEW.settleMs;
+        const WALK = 1500;
+        const REST = 700;
+        const CYCLE = WALK + SPAN + REST;
+        if (!this._rigs) { this._rigs = {}; this._last = now; }
+        const dt = Math.min(50, Math.max(0, now - this._last));
+        this._last = now;
+        [5, 1, 2, 3].forEach((pal, i) => {
+          const t = (now + i * 900) % CYCLE;
+          const walking = t < WALK;
+          const since = t - WALK;
+          const k = !walking && since < SPAN ? CatV2.settleCurve(since / SPAN) : 0;
+          if (!this._rigs[pal]) this._rigs[pal] = CatV2.createRigState();
+          // Velocity goes to zero the instant she arrives; the rig's own
+          // damping turns that step into the lag you are meant to see.
+          const rig = CatV2.stepRig(this._rigs[pal], {
+            vx: walking ? 2.4 : 0,
+            vy: 0,
+            facing: 'right',
+            gazeX: 0,
+            gazeY: 0,
+            earTwitch: 0,
+            earTwitchSide: 1,
+            earsBack: 0,
+            yawn: 0,
+            breath: ((now + pal * 700) % 3400) / 3400,
+          }, dt);
+          CatV2.drawCat(ctx, {
+            pose: walking ? 'walking' : 'idle',
+            appearance: CatV2.appearanceFor(pal),
+            facing: 'right',
+            size: S,
+            x: 12 + i * 136,
+            y,
+            phase: walking
+              ? ((now + pal * 700) % 900) / 900
+              : ((now + pal * 700) % 3400) / 3400,
+            settle: k,
+            rig,
+          });
+        });
       },
     },
     {
