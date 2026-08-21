@@ -17,6 +17,22 @@ means a duet always pays more, so making hunts cheap cannot overshoot
 into bug-grinding. The full brainstorm-and-review record lives in the
 input document and the chase census beside it.
 
+## Clarifications
+
+### Session 2026-08-21
+
+- Q: Should this arc's PR itself flip the served world's configuration
+  to the ratified package, or merge config-neutral with a separate
+  flip at deploy time? → A: Same PR — capability and served
+  configuration (cell 4, bug lifetime 600) merge together once the
+  acceptance grid passes on the branch; the deploy stays separately
+  owner-gated.
+- Q: Should greeble lifetime also change to 600, or stay at 300 while
+  only bugs get the longer lifetime? → A: Symmetry — greebles also
+  move to 600. Both critter lifetimes change together; this also
+  stands as the owner's formality confirmation of the 600 value
+  itself (the input doc's outstanding spec-review item).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A bug keeps to its patch (Priority: P1)
@@ -100,9 +116,10 @@ world adopts 4×4, the acceptance grid needs arms with 3×3 cells, other
 lifetimes, and no tether at all, and training worlds will want the
 same choices. The operator sets the bug roam-cell size in the world's
 configuration; leaving it unset means bugs roam free exactly as they
-do today. In the same package, the served world's bug lifetime rises
-from 300 to 600 ticks, so patches relocate on a calm cadence (roughly
-every eight real-world minutes) instead of churning.
+do today. In the same package, the served world's critter lifetimes
+(bugs and greebles alike) rise from 300 to 600 ticks, so patches
+relocate on a calm cadence (roughly every eight real-world minutes)
+instead of churning.
 
 **Why this priority**: Without the configuration surface, the
 acceptance grid cannot run its arms, and the served world cannot adopt
@@ -119,11 +136,11 @@ value named.
 1. **Given** a configuration that sets a bug roam-cell size, **When**
    the world boots, **Then** bugs obey that cell size; **Given** the
    key is absent, **Then** bugs roam free (today's behavior, exactly).
-2. **Given** a configuration setting the served package (cell 4, bug
-   lifetime 600), **When** the world runs, **Then** bug expiry and
-   respawn behave exactly as today except the lifetime — the respawn
-   machinery, placement preferences, and lifetime jitter are
-   untouched.
+2. **Given** a configuration setting the served package (cell 4,
+   critter lifetimes 600), **When** the world runs, **Then** critter
+   expiry and respawn behave exactly as today except the lifetime —
+   the respawn machinery, placement preferences, and lifetime jitter
+   are untouched.
 3. **Given** a configuration with a nonsensical cell size (zero, one,
    or negative), **When** the world loads, **Then** it is refused
    with a message naming the field and the offending value — a cell
@@ -183,10 +200,10 @@ value named.
   that is zero, one, or negative, naming the field and the value —
   a one-tile cell silently immobilizes every bug and is refused
   rather than served.
-- **FR-006**: The served world's bug lifetime MUST change from 300 to
-  600 ticks. Expiry, respawn to minimums, spawn placement, and
-  lifetime jitter MUST be otherwise untouched. Greeble lifetime is
-  unchanged this arc.
+- **FR-006**: The served world's critter lifetimes — bugs AND
+  greebles — MUST change from 300 to 600 ticks (clarified 2026-08-21:
+  symmetry, owner's ruling). Expiry, respawn to minimums, spawn
+  placement, and lifetime jitter MUST be otherwise untouched.
 - **FR-007**: The change MUST introduce no new persisted world state:
   saved worlds from before the change load without migration, their
   bugs adopting the tether at load position, and the world
@@ -248,14 +265,12 @@ value named.
 
 ## Assumptions
 
-- **Greeble lifetime stays 300.** The ratified lifetime discussion
-  (ruin, patch relocation) is about bugs; nothing in the package
-  needs greeble expiry to change, so it doesn't. Flag at spec review
-  if the owner intended symmetry.
-- **Lifetime 600 is confirmed as a formality at spec review** (the
-  input doc's own instruction): the derivation says anything in
-  [450, 900] plateaus, the census verifies, and 600 rode the ratified
-  package unobjected.
+- **Both critter lifetimes move to 600 and the value is confirmed**
+  (clarified 2026-08-21, closing both flagged review items): the
+  owner ruled symmetry — greebles join bugs at 600 — which also
+  confirms the 600 value the input doc left as a review formality
+  (derivation: everything measurable plateaus in [450, 900]; the
+  census verifies).
 - **The cell grid is world-aligned, not bug-centered** — cells are
   fixed regions of the map (per the owner's "4x4 grid" framing and
   the review's statelessness grounds), so a bug born near a cell edge
@@ -269,8 +284,10 @@ value named.
   bar in the acceptance criteria is the check on that acceptance).
 - **Sequencing**: this arc merges only after the phase-1 world is
   serving (the --fresh has run) and its acceptance grid has passed on
-  the branch; the served world adopts the package by configuration at
-  a deploy the owner gates, as always. Downstream (re-evaluating
+  the branch. The merge carries the served configuration flip (cell 4,
+  bug lifetime 600) in the same PR — clarified 2026-08-21 — so
+  "merged" and "adopted in the repo" are one event; the deploy to the
+  box remains a separate act the owner gates, as always. Downstream (re-evaluating
   incumbents, corpus re-collection, next-generation training on the
   post-change world) belongs to Experiments per the D-003 sequencing
   rule and is out of this arc's scope beyond SC-005's re-baseline

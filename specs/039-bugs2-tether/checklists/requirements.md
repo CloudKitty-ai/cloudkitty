@@ -37,7 +37,10 @@
   recorded as flagged assumptions rather than clarifications: greeble
   lifetime stays 300 (flag if symmetry was intended), and lifetime 600
   is confirmed as a formality at spec review per the input doc's own
-  instruction.
+  instruction. **Both closed by the 2026-08-21 clarify session**: the
+  owner ruled symmetry (greebles join bugs at 600), which also
+  confirms the 600 value; the same session fixed the same-PR
+  served-config adoption. See the spec's Clarifications section.
 - SC-004 and SC-005 are cross-team gates (Experiments' pre-registered
   census grid and re-baseline schedule); the spec records the division
   of proof in FR-010 following the house pattern from spec 035.
