@@ -68,3 +68,16 @@ confound note for the fog before/after. Then the exp-006a sequence
 resumes: re-evaluate incumbents → corpus re-collection → training.
 Sequencing rule (D-003's lesson): the next lineage generation is
 grown and certified entirely on the post-change world.
+
+## Spec-039 clarify rulings (owner, via Product — recorded 2026-08-21)
+
+1. **The 039 PR carries the served-config flip in the same merge**;
+   the acceptance grid runs on the branch BEFORE merge, so grid-pass
+   licenses both. Deploy separately gated, as always.
+2. **Lifetime symmetry: greebles also move to ttl 600** — the owner
+   chose symmetry, which doubles as the formality confirmation of
+   the 600 value this doc left open. Census criteria untouched
+   (greebles are not hunted to success); the served package under
+   re-baseline is: tether 4×4 + BOTH critter lifetimes 600.
+   Division of proof per the 035 pattern (spec FR-010): engine
+   proves confinement/inertness, the grid proves economics.
