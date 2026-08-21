@@ -20,10 +20,10 @@ P1), US3 finds-the-action, US4 following (both P2).
 
 ## Phase 1: Setup
 
-- [ ] T001 Verify baseline: `node client/test-motion.mjs` and
+- [x] T001 Verify baseline: `node client/test-motion.mjs` and
       `node client/test-meadow.mjs` green on branch `038-camera-shot-picker`;
       record both check counts (the rule-6 must-pass pile baseline)
-- [ ] T002 Sort the changed behaviour's checks (house rule 6): inventory every
+- [x] T002 Sort the changed behaviour's checks (house rule 6): inventory every
       camera assertion in `client/test-motion.mjs`, classify **must-go-red**
       (fit-everyone width, anchor hysteresis, continuous-ease expectations)
       vs **must-stay-green** (`limitsFor` bounds, camera-off identity,
