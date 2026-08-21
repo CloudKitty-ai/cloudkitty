@@ -29,7 +29,28 @@ choices at high one.
    coat where the belly's lighter underside has nothing to be lighter *than*,
    so this is a contrast problem, not a colour one.
 
-2. **Deprecate the hunter eyes — a SUBSTITUTION, not a deletion.** Owner,
+2. **~~Deprecate the hunter eyes~~ — SHIPPED 2026-08-20 as a substitution.**
+   The reason is better than "it did not read", and worth keeping: *"the v1
+   hunter eyes read cute at low res, but as we get higher and higher res the
+   'fierce' hunting behaviour is not the chill cute vibe we're going for — I'm
+   fine with the chasing kitties behaviour being the default for everything."*
+   The face was not drawn badly; it was **off-brief, and low resolution had
+   been hiding it.**
+
+   Gone: `expressionFor`, `PURSUING_ACTIONS`, `hunterGateTiles`, the view
+   passthrough and the renderer's expression term — all of which existed for
+   this and nothing else. Kept: `pursuitDistanceFor` (tested, three separated
+   outcomes, and the queued gaze work wants it) and the DRAWING —
+   `FOCUS_VARIANTS` plus `eyesOverride: 'focused'` are still dialled and still
+   exercised by the gallery and by v1. **Retiring the world's route to a face
+   is not the same as deleting the vocabulary**; those 79 lines of owner-judged
+   values are a separate decision.
+
+   It also drops "hunting kitties do not blink" (owner, 2026-08-02),
+   deliberately — the point is that a hunt is drawn the way play already is,
+   and players blink.
+
+   Superseded original entry: **a SUBSTITUTION, not a deletion.** Owner,
    2026-08-20: *"they don't read well any more and we've seen repeated
    behavioural issues so we'll just disable them going forward"*, then, asked
    whether the hunt should become invisible: *"the ear/gaze of play/chase

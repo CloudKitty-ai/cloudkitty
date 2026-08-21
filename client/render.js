@@ -187,10 +187,16 @@ function chaseDistanceFor(kitty, world) {
 /**
  * Manhattan tiles from a kitty to whatever its PURSUIT names.
  *
+ * NO CALLER IN THE WORLD AS OF 2026-08-20: this drove the hunter's face,
+ * which is retired. Kept deliberately rather than deleted -- it is a tested
+ * utility with three carefully separated outcomes, and the queued gaze work
+ * wants exactly this (wire the gaze to the served `pursuit` field). If that
+ * lands somewhere else, delete this with it.
+ *
  * Deliberately not `chaseDistanceFor`: that one reads `last_action`, which
- * is this tick's applied action, while the hunter's face is driven by the
- * pursuit -- a longer-lived thing that survives a cat stopping for a drink
- * on the way. They can name different quarry on the same tick.
+ * is this tick's applied action, while a pursuit is a longer-lived thing
+ * that survives a cat stopping for a drink on the way. They can name
+ * different quarry on the same tick.
  *
  * THREE outcomes, and the difference between the last two is the whole
  * point (owner, 2026-08-16: "hunter eyes with no bug in proximity"):
@@ -1548,12 +1554,6 @@ class WorldRenderer {
       lid = motion.blinkLid;
       if (eyes === 'closed') eyes = undefined; // the eased lid replaces the snap blink
     }
-    const expression = view.expressionFor(kitty, pursuitDistanceFor(kitty, world));
-    // On the v2 path a pursuit's focused eyes hold through the blink slot
-    // -- drawFace exempts 'focused' from the lid, so hunters keep their
-    // unbroken stare (v1 still snap-blinks over focused, as it always
-    // has). Locked (owner, 2026-08-02): hunting kitties do not blink.
-    if (expression && !eyes) eyes = expression;
     if (beat?.kind === 'sad') {
       // The give-up droop wears on the cat itself: ears back, eyes low --
       // and it outranks a blink in progress, exactly as it did pre-lid

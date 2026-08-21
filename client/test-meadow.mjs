@@ -935,68 +935,36 @@ check('the renderer draws the live world\'s ponds without throwing', () => {
  * So this drives the REAL renderer over the REAL Presentation's view, in
  * every theme, with a cat at a series of positions from the pond's middle
  * out onto dry grass. */
-check("the hunter's gate is WIRED: the renderer measures the quarry", () => {
-  // The gate lives in anim.js; the distance that feeds it is measured in
-  // render.js. Either half is right on its own while the pair does nothing,
-  // and every unit check stays green -- so this asks what the RENDERER
-  // hands over, from a real world, for a real pursuit.
-  //
-  // Asserted at the seam rather than in the pixels: cat-v2 is inert in this
-  // harness (it registers CatV2 and declares nothing else), so a frame here
-  // draws a V1 cat, which has no focused eyes to compare. That is a real
-  // limit of this harness, not of the feature.
-  const seen = [];
+check("the renderer asks the view for no expression at all", () => {
+  // WAS "the hunter's gate is WIRED: the renderer measures the quarry".
+  // The hunter's face is retired (owner, 2026-08-20) and the seam it guarded
+  // is gone, so the check is inverted rather than deleted: this harness is
+  // the only one that drives a REAL frame through WorldRenderer, which makes
+  // it the only place that can prove the renderer does not reach for an
+  // expression -- a unit check on Presentation cannot see the call site.
   const p = new api.Presentation();
-  const realExpression = p.expressionFor.bind(p);
-  p.expressionFor = (kitty, quarryDist) => {
-    seen.push(quarryDist);
-    return realExpression(kitty, quarryDist);
-  };
+  let asked = 0;
+  const view = p.viewAt(0, false);
+  // THE TRAP GOES ON THE VIEW, not on the Presentation. render.js reads the
+  // view object, and the passthrough that used to connect the two is exactly
+  // what was removed -- so a trap on `p` can never fire, which is how the
+  // first version of this check passed while proving nothing.
+  view.expressionFor = () => { asked += 1; return 'focused'; };
   const renderer = new api.WorldRenderer(mockCanvas(640, 640, []));
   renderer.tile = 32; renderer.dpr = 1; renderer.cssWidth = 640; renderer.cssHeight = 640;
-  const at = (bugX) => ({
+  const world = {
     tick: 10, width: 20, height: 20,
-    elements: [{ id: 9, kind: 'bug', pos: { x: bugX, y: 2 } }],
+    elements: [{ id: 9, kind: 'bug', pos: { x: 4, y: 2 } }],
     kitties: [{
-      id: 1, name: 'Miso', pos: { x: 2, y: 2 }, needs: {}, happiness: 90,
-      pursuit: { target: { target: 'element', id: 9 }, started: 1, closest: 3, improved_at: 1 },
+      id: 1, name: 'Miso', pos: { x: 2, y: 2 }, happiness: 0.8, needs: {},
+      pursuit: { target: { target: 'element', id: 9 } },
       last_action: { action: 'chase', target: 'element', id: 9 },
     }],
-  });
-  p.pushState(at(9), 1000);
-  p.pushState(at(9), 1800);
-  renderer.draw(p.curr, p.viewAt(2200, false));
-  assert(seen.length === 1, `expressionFor was called ${seen.length} times, want 1`);
-  assert(seen[0] === 7, `the renderer measured ${seen[0]} tiles to a bug 7 away`);
-
-  // The pursuit and the applied action name DIFFERENT things all the time
-  // -- this shape is verbatim from the candidate world, a cat that stopped
-  // for a drink without giving up on its bug. Measuring `last_action` here
-  // would read null and hand the face back at any distance.
-  const seen2 = [];
-  p.expressionFor = (kitty, quarryDist) => {
-    seen2.push(quarryDist);
-    return realExpression(kitty, quarryDist);
   };
-  const distracted = {
-    tick: 11, width: 20, height: 20,
-    elements: [{ id: 9, kind: 'bug', pos: { x: 9, y: 2 } }],
-    kitties: [{
-      id: 1, name: 'Miso', pos: { x: 2, y: 2 }, needs: {}, happiness: 90,
-      pursuit: { target: { target: 'element', id: 9 }, started: 1, closest: 3, improved_at: 1 },
-      last_action: { action: 'drink' },
-    }],
-  };
-  p.pushState(distracted, 2600);
-  renderer.draw(p.curr, p.viewAt(3000, false));
-  assert(seen2[0] === 7,
-    `a cat drinking mid-pursuit measured ${seen2[0]} -- the distance is coming off last_action, not the pursuit`);
-
-  // ...and the value it hands over is the one the gate then acts on.
-  const gate = api.VIEW.hunterGateTiles;
-  const hunting = at(9).kitties[0];
-  assert(realExpression(hunting, gate) === 'focused', 'at the gate the face is on');
-  assert(realExpression(hunting, gate + 1) === undefined, 'past the gate the face is off');
+  renderer.draw(world, view);
+  assert(asked === 0,
+    `the renderer asked for an expression ${asked} time(s); the hunter's face is retired `
+    + 'and nothing in the world should be reaching for one');
 });
 
 check('a purr draws its glyph; a request still draws its bubble', () => {
