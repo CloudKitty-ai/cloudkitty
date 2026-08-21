@@ -144,11 +144,13 @@ def load_model(spec):
     if kind == "ppo":
         import torch
         from model_v4 import EntityPolicyV4
-        # "ppo:<dir>" -> artifacts/<dir>/policy-final.pt;
-        # "ppo:<dir>/<file>.pt" -> that file (the clone checkpoints)
-        rel = name if "/" in name else f"{name}/policy-final.pt"
-        ck = torch.load(HERE / "artifacts" / rel,
-                        map_location="cpu", weights_only=True)
+        # "ppo:<path>" under artifacts/: a directory means its
+        # policy-final.pt; a file path (the clone checkpoints) loads
+        # directly
+        p = HERE / "artifacts" / name
+        if p.is_dir():
+            p = p / "policy-final.pt"
+        ck = torch.load(p, map_location="cpu", weights_only=True)
         m = EntityPolicyV4(**ck["hyper"])
         m.load_state_dict(ck["state_dict"])
         m.eval()
