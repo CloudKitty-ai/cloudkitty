@@ -40,7 +40,10 @@ complete the arc.
       Generate the constant by running the same harness against main
       @ 87236c5 in a scratch worktree; pin it with a provenance
       comment (research D6). The test must pass on this branch before
-      any behavior change lands — that green is the baseline claim
+      any behavior change lands — that green is the baseline claim.
+      Test fn name MUST contain `golden_evolution` (e.g.
+      `golden_evolution_flag_absent_10k_ticks`) so quickstart §2's
+      filter finds it (analyze C1)
 
 ## Phase 3: User Story 1 — A bug keeps to its patch (P1) 🎯 MVP
 
@@ -56,7 +59,11 @@ inertness throughout.
       `roam_cell = Some(4)`, ≥10 seeds, every bug's position checked
       against its birth cell every tick over full lifetimes — zero
       violations (SC-001). Run it and OBSERVE IT RED (the mechanism
-      does not exist yet); record the failure line in the task notes
+      does not exist yet); record the failure line in the task notes.
+      Every test fn in this file carries a `roam_` prefix (e.g.
+      `roam_tether_confines_bugs_for_life`) so quickstart §1's `roam`
+      filter matches — cargo test filters match fn names, not file
+      names (analyze C1)
 - [ ] T006 [US1] Implement the tether in
       crates/cloudkitty-core/src/world.rs `move_critters`, Bug arm
       only: after the existing direction draw, compute the
@@ -71,7 +78,9 @@ inertness throughout.
       losses, no redraws; (b) greebles under a bug tether visit tiles
       outside any single 4×4 cell (free-range preserved); (c) seed
       determinism — same seed + tether config twice → identical world
-      state after 5,000 ticks
+      state after 5,000 ticks. Names: (a) contains `cadence` (e.g.
+      `roam_cadence_attempts_match_schedule`) for quickstart §3's
+      filter; (b)/(c) keep the `roam_` prefix (analyze C1)
 - [ ] T008 [US1] Rule-6 mutation pass, aimed and verified: (1) invert
       `same_roam_cell` → T005 fails and names the violation (that
       assertion, not a neighbour); (2) delete the Bug-arm check →
@@ -117,7 +126,9 @@ served world adopts the ratified package.
       deliberate divergence from the silent `servings` precedent).
       Tests red-first in config/mod.rs's test module: each refusal
       observed failing before the validation exists, message content
-      asserted, and legal values (2, 4, 64) observed loading
+      asserted, and legal values (2, 4, 64) observed loading. Test fn
+      names contain `roam_cell_validation` (quickstart §4's filter,
+      analyze C1)
 - [ ] T011 [US3] The served package in cloudkitty.toml:
       `[elements.bug]` gains `roam_cell = 4` and `ttl` 300 → 600;
       `[elements.greeble]` `ttl` 300 → 600 (owner's symmetry ruling,
@@ -148,13 +159,21 @@ a guarding test.
 - [ ] T014 Full gate: `cargo test --workspace --release` (read the
       count) and `cargo clippy --workspace --release --all-targets`
       clean; walk quickstart §§1–6 end to end and fix any drift
-      between the guide and reality
+      between the guide and reality. This gate IS FR-008's guard
+      (analyze E1): the untouched existing suite staying green —
+      scripted-behavior anchors, schema pins, reward-shape tests —
+      is the assertion that nothing outside the tether moved; a
+      dedicated "nothing changed" test would just duplicate it
 - [ ] T015 Handoff per FR-010/SC-004: send Experiments the branch
       head for the pre-registered acceptance grid (their census tool
       with expiry-abandon tagging landed at e39079e). Record in the
       message: merge waits on grid-pass AND the phase-1 --fresh
       having run, then carries the served package per the same-PR
-      clarification; the deploy remains separately owner-gated
+      clarification; the deploy remains separately owner-gated. Name
+      SC-005's definition-of-done in the message (anchors, zero-play
+      baseline, divergence + confound notes): it is Experiments' work
+      by the spec's own scoping and deliberately has no Product task
+      (analyze E2)
 
 ## Dependencies
 
