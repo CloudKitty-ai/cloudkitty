@@ -107,3 +107,22 @@ cell exists:
   and no chase-mechanics lever reaches it (the next levers would be
   training-side: corpus isolation cells, shaping — already in the
   006a design space).
+
+## Sticker sweep declaration (owner's ask pre-merge; declared before
+## any swept cell exists)
+
+Owner, 2026-08-21: "Before we merge, can we try a small increase to
+bug play value and see if that gets us there?" Config-side dial
+([actions] play_relief_bug, serde-default 25, no engine change).
+Sweep on the BOTH-package: play_relief_bug ∈ {26, 28, 30} ×
+{needs_driven, playful} × pile × {g20, g26} — 12 cells, same seeds.
+Greeble sticker untouched. Decision rule, pre-registered: adopt the
+SMALLEST sticker clearing bar 1 (unskilled bug EV > 10) on BOTH
+geometries with bar 2 (skilled in corridor) still passing; if none
+clears, report and stop. Linear-scaling predictions on the record:
+26 → 9.9/9.5 (fails g26), 28 → 10.6/10.2 (clears both), 30 →
+11.4/10.9 (clears with slack; corridor check: skilled ≈ 21.2–22.7,
+ceiling 23.1–25.1 — tightest at g26/30). Expect the realized values
+near-linear; a super-linear response (F-016-class feedback: higher
+value → more hunting → more skill practice within the window) would
+land ABOVE these numbers and is the thing to watch.
