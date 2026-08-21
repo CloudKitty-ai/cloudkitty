@@ -67,6 +67,22 @@ can simply be admitted.
   mind? → A: Working camera logic comes first, but the design should be able
   to use up to 15 future frames later if that buys something substantial.
 
+### Session 2026-08-21
+
+- Q: When a single group is too spread to fit even the widest frame (42–61%
+  of phone ticks in the sim), should the camera frame it partially or shed
+  kitties until the rest fit fully? → A: Partial framing — centre the group
+  and hold on its centre with a drift deadband; edge kitties may be
+  half-visible and wander in and out of frame.
+- Q: While following a kitty who has wandered off alone, should the camera
+  show just her, or widen toward the nearest other kitty to keep two in
+  frame? → A: Just her. Minimum-two is a group-mode rule; a follow is the
+  viewer's explicit choice and exempts it.
+- Q: If the destination group dissolves or shrinks while a far pan is in
+  flight, should the camera commit and finish the pan, or abort and
+  re-evaluate mid-flight? → A: Commit. Finish the pan, then let the normal
+  grammar act from the destination.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A camera calm enough to leave open (Priority: P1)
@@ -196,6 +212,9 @@ gathering elsewhere does not move the camera.
 3. **Given** a followed kitty is released, **When** the camera returns to
    group mode, **Then** it re-enters the grammar at the best current shot,
    eased, without a cut.
+4. **Given** a followed kitty wanders off alone, **When** the camera frames
+   her, **Then** the shot is her alone at the zoom-in floor — the frame does
+   not stretch toward any other kitty.
 
 ---
 
@@ -206,8 +225,10 @@ gathering elsewhere does not move the camera.
   calmest case.
 - **A single group wider than the widest frame.** The shot holds the group;
   the frame goes to its widest and centres the group, tolerating partially
-  visible members at its edges. Measured on the phone-width frame this is
-  common (42–61% of ticks), so it is a first-class state, not an error.
+  visible members at its edges, and the hold follows FR-007a (centre-drift,
+  not member containment — the camera never chases edge kitties). Measured
+  on the phone-width frame this is common (42–61% of ticks), so it is a
+  first-class state, not an error.
 - **Two equal-size groups, no incumbent (cold start).** The tie must resolve
   deterministically (not alternate); the first framed shot is in place before
   the first painted frame (036 SC-007's spirit — no travel from a default).
@@ -227,6 +248,9 @@ gathering elsewhere does not move the camera.
 - **A far pan crosses empty meadow.** The frame may briefly hold no kitty
   mid-flight; the pan is fast enough that this reads as a camera move, not an
   empty scene. Outside a pan's middle, a zero-kitty frame never occurs.
+- **The destination dissolves mid-pan.** The pan commits and completes; on
+  arrival the ordinary grammar takes over (widen, shed, or break-reframe
+  from the destination). The camera never swerves mid-flight.
 
 ## Requirements *(mandatory)*
 
@@ -243,10 +267,12 @@ gathering elsewhere does not move the camera.
   survives minutes and the phone re-frames least.
 - **FR-003**: The shot MUST hold the largest number of kitties whose groups
   can share a frame within the zoom bounds. Ties keep the incumbent shot.
-- **FR-004**: At least two kitties MUST be in the shot whenever any two could
-  share the widest frame. When they cannot, the camera MUST frame the closest
-  pair at its widest and tolerate partial visibility rather than framing a
-  single kitty.
+- **FR-004**: In group mode, at least two kitties MUST be in the shot
+  whenever any two could share the widest frame. When they cannot, the
+  camera MUST frame the closest pair at its widest and tolerate partial
+  visibility rather than framing a single kitty. A follow exempts this rule
+  (see FR-014): the viewer's explicit choice outranks the group-mode
+  default.
 - **FR-005**: The frame MUST be sized to the shot with breathing room that
   scales with the frame's width — a proportion of it, not a fixed world
   distance. (The shipped absolute margin is 68% of the phone's frame, which
@@ -263,6 +289,12 @@ gathering elsewhere does not move the camera.
   MUST make one eased correction that restores comfortable room and then
   return to rest. Corrections use gentle easing, frame-rate corrected
   (036 FR-009 unchanged).
+- **FR-007a**: When the shot cannot fully fit the frame (an overflow shot —
+  common on the phone), the hold applies to the shot's CENTRE instead of to
+  member containment: the camera is still while the centre stays within a
+  drift tolerance, and makes one eased correction when it drifts past.
+  Kitties at the edges may be half-visible and wander in and out of frame;
+  the camera MUST NOT chase them (owner, 2026-08-21).
 
 **Membership**
 
@@ -287,15 +319,19 @@ gathering elsewhere does not move the camera.
 - **FR-013**: The far transition is a fast pan: a single continuous eased
   move on a visibly quicker profile than corrections. The camera MUST NOT cut
   (036 FR-008 upheld); a faster easing profile for this one move is the only
-  amendment to easing behaviour. Dissolve-style transitions are out of scope
-  (held in reserve).
+  amendment to easing behaviour. A pan, once begun, MUST run to completion
+  even if the destination group changes mid-flight; the normal grammar
+  resumes from the destination (owner, 2026-08-21). Dissolve-style
+  transitions are out of scope (held in reserve).
 
 **Composition with 036**
 
 - **FR-014**: While a kitty is followed (036 US2), the shot MUST be pinned to
   her group: she is unconditionally in the shot, FR-008–FR-011 apply to her
-  group, and FR-012 transitions are suspended. All 036 following, release,
-  persistence, and card-marking requirements are unchanged.
+  group, and FR-012 transitions are suspended. If she is solitary, the shot
+  is her alone — the camera does not widen toward other kitties to satisfy
+  FR-004 (owner, 2026-08-21). All 036 following, release, persistence, and
+  card-marking requirements are unchanged.
 - **FR-015**: With camera mode off, the client MUST render the whole world
   exactly as today (036 FR-002 unchanged). The control, its keyboard access,
   and camera-mode persistence are untouched.
