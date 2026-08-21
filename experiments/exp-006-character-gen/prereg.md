@@ -292,3 +292,31 @@ smoke runs on subset ticks exempt per the freeze note).
   collect-config.toml), §10 stop rule as frozen, β0 = 0.5 annealed
   over the first 20% to the arm's held β∞ (0 for E arms = the exact
   A1 expression). Torch/numpy seeds 20260818 + run_index.
+
+**D-003 (2026-08-20, certification-world resolution error; owner
+approved re-run: "No problem! I'm just glad we caught it now. You
+have my approval to proceed").** The battery's cutover-config legs
+resolved "the actual cutover config" to the served `cloudkitty.toml`
+(sha `e87779cd…`), which carries only 2 of the 5 owner-locked trait
+sheets; the phase-1 world adds Sleepy Miso, Playful Biscuit, and
+Fastidious Kittybear (trait-screen CORRECTION 2026-08-16, source of
+the §7 planning floor 0.9076). Discovered by the owner's trait
+question after verdicts were read. Consequences: G2b/G2c/G2d and
+shape iii readings of 2026-08-20 are void as phase-1 claims (they
+measured the current world); r3/r5 verdicts stand (family worlds
+embed the full sheets — the G2a/r5 FAIL and stop rule are
+unaffected). Second finding: the committed five-sheet config
+(`trait-screen-2026-08-15/configs/phase1-20x20.toml`, the planning
+floor's world) is STALE against the wall rider — no [meow.vocabulary]
+say-surface block, Clementine at pre-rider y=10 — so the
+certification world is CONSTRUCTED instead: the served toml plus
+exactly the three sheets, nothing else
+(`exp-006-character-gen/configs/phase1-cutover.toml`, sha
+`64ca2b9a840e…`, semantic-diff verified). All voided legs re-run
+there; the fresh G2b anchor re-derives there (the 0.9076 planning
+floor was measured on the stale config and remains planning-only).
+The 2026-08-20 report-only cells (solo-s3 family, seat-swap, mew
+function) are demoted to directional; re-measured on the
+certification world as needed. Flag to Product: the cutover PR
+should ship the constructed config's kitty blocks, not
+phase1-20x20.toml.
