@@ -52,7 +52,7 @@ change.
   for its stronger successor: the shipped config now proves every
   named artifact opens, rather than proving none does. The rollout
   serving this roster is the `--fresh` the wall rider promised when
-  Clementine's id moved the fingerprint (#pending).
+  Clementine's id moved the fingerprint (#280).
 
 - **The phone was framing a keyhole, and now frames a scene.** At its most
   zoomed-in the camera would hold as few as six tiles, which on a handset is
