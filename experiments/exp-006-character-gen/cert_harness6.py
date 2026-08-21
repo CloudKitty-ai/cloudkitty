@@ -104,6 +104,18 @@ SEATINGS = {
     "solo-s3-e1s1-swap": ["v4:attn-a1-s1", "ppo:ppo-L-04-s1",
                           "ppo:ppo-E1-s1-stripped", "v4:attn-a1-s3",
                           "mlp:e004-a1-s2"],
+    # report-only L-scan (owner, post-D-003): every lineage candidate
+    # through the Biscuit seat, all other seats §6-constant, on the
+    # certification world — the play/welfare tradeoff curve
+    "candidate-L04s2": ["v4:attn-a1-s1", "ppo:ppo-L-04-s2",
+                        "v4:attn-a1-s3", "v4:attn-a1-s3",
+                        "mlp:e004-a1-s2"],
+    "candidate-L05s1": ["v4:attn-a1-s1", "ppo:ppo-L-05-s1",
+                        "v4:attn-a1-s3", "v4:attn-a1-s3",
+                        "mlp:e004-a1-s2"],
+    "candidate-L05s2": ["v4:attn-a1-s1", "ppo:ppo-L-05-s2",
+                        "v4:attn-a1-s3", "v4:attn-a1-s3",
+                        "mlp:e004-a1-s2"],
 }
 BANDS = {"eval": 870_001, "stress": 880_001}
 
