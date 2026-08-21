@@ -314,8 +314,10 @@ fn expand_v2_bytes(
         )));
     }
     let floats: Vec<f32> = blob
-        .chunks_exact(4)
-        .map(|c| f32::from_le_bytes([c[0], c[1], c[2], c[3]]))
+        .as_chunks::<4>()
+        .0
+        .iter()
+        .map(|c| f32::from_le_bytes(*c))
         .collect();
 
     // New shapes: first layer widens its input, last layer widens its
@@ -481,8 +483,10 @@ fn expand_v3_bytes(
         )));
     }
     let floats: Vec<f32> = blob
-        .chunks_exact(4)
-        .map(|c| f32::from_le_bytes([c[0], c[1], c[2], c[3]]))
+        .as_chunks::<4>()
+        .0
+        .iter()
+        .map(|c| f32::from_le_bytes(*c))
         .collect();
 
     let mut out: Vec<f32> = Vec::with_capacity(new_sizes.iter().map(|(_, n)| n).sum());
@@ -578,12 +582,16 @@ pub fn verify_expansion(
     let out_header = &output_bytes[12..12 + hlen];
     let out_blob = &output_bytes[12 + hlen..];
     let src: Vec<f32> = source_blob
-        .chunks_exact(4)
-        .map(|c| f32::from_le_bytes([c[0], c[1], c[2], c[3]]))
+        .as_chunks::<4>()
+        .0
+        .iter()
+        .map(|c| f32::from_le_bytes(*c))
         .collect();
     let out: Vec<f32> = out_blob
-        .chunks_exact(4)
-        .map(|c| f32::from_le_bytes([c[0], c[1], c[2], c[3]]))
+        .as_chunks::<4>()
+        .0
+        .iter()
+        .map(|c| f32::from_le_bytes(*c))
         .collect();
 
     let eq_bits = |a: f32, b: f32| a.to_bits() == b.to_bits();
