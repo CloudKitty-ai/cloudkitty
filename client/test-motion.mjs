@@ -2236,6 +2236,67 @@ check('the lid clamp actually bites — a deeper brow changes nothing', () => {
 });
 
 
+check('the axial views share one lens; only leg POSITION may differ', () => {
+  // Round 3 of the owner's review, and the conclusion the whole per-view
+  // argument arrived at: "the leg proportion/perspective should look the same
+  // as south". `AXIAL_ENDS` exists so the two ends of a cat can differ
+  // ANATOMICALLY -- but perspective belongs to the camera, and the camera does
+  // not change when the cat turns round. Overriding `farTaper`, `farGround` or
+  // `stepScale` per view made a cat walking away a different LENS.
+  //
+  // Guarded as a whitelist rather than a blacklist: a future dial nobody has
+  // thought of is a perspective dial until someone says otherwise, which is
+  // the safe default for a rule that was arrived at the hard way.
+  const positional = new Set(['legNear', 'legFar', 'legTop', 'legW', 'legPivotIn']);
+  for (const [view, over] of Object.entries(CatV2.AXIAL_ENDS)) {
+    for (const key of Object.keys(over)) {
+      assert(positional.has(key),
+        `AXIAL_ENDS.${view} overrides '${key}', which is not leg POSITION -- the two views `
+        + 'would be drawn through different lenses, which is what round 3 undid');
+    }
+  }
+
+  // And the back view's own values landed IDENTICAL to the shared ones, which
+  // the source calls a deliberate no-op rather than an oversight. Pinned so
+  // that if someone re-splits them it is a decision, not a drift.
+  for (const key of Object.keys(CatV2.AXIAL_ENDS.back)) {
+    assert(CatV2.AXIAL_ENDS.back[key] === CatV2.AXIAL[key],
+      `AXIAL_ENDS.back.${key} is ${CatV2.AXIAL_ENDS.back[key]} against AXIAL's `
+      + `${CatV2.AXIAL[key]} -- the away view is being drawn differently again`);
+    }
+});
+
+check('an axial cat paints its far legs first', () => {
+  // Round 4 of the review, and a real paint-order bug: the renderer gives a
+  // far leg the darker `furShade`, but the axial array was built in GAIT order
+  // (near/far/near/far) and never depth-sorted, so a shadowed limb painted
+  // over a lit one. The side view had always sorted -- `withFarPair` returns
+  // far first -- and this view simply never did.
+  //
+  // Swept across the gait cycle, because the order is rebuilt every phase and
+  // a single sample can be right by luck.
+  //
+  // WHAT THIS DOES NOT GUARD, measured rather than assumed: the `.sort()` that
+  // round 4 added is a NO-OP today. Deleting it, or inverting it, leaves the
+  // order FFnn at every phase in both views -- the array is already built
+  // far-first, and the sort is belt to that brace. So this check pins the
+  // observable PROPERTY, which is the thing that was visibly wrong, and cannot
+  // tell you whether the sort survives. Worth knowing before someone tidies
+  // the sort away believing it load-bearing, or keeps it believing it is
+  // tested.
+  for (const view of ['back', 'front']) {
+    for (let i = 0; i < 24; i += 1) {
+      const legs = CatV2.catLayout('walking', i / 24, { axial: view }).legs || [];
+      assert(legs.length === 4, `${view} at phase ${i}/24 drew ${legs.length} legs, not 4`);
+      const firstNear = legs.findIndex((l) => !l.far);
+      const lastFar = legs.map((l) => !!l.far).lastIndexOf(true);
+      assert(lastFar < firstNear,
+        `${view} at phase ${i}/24 paints [${legs.map((l) => (l.far ? 'F' : 'n')).join(',')}] -- `
+        + 'a far leg after a near one is a dark limb painted over a lit one');
+    }
+  }
+});
+
 check('a resting pose closes its eyes rather than holding a half-lid', () => {
   // Owner, 2026-08-20: the half-lid "reads fine during transitions -- slow
   // blink, falling asleep -- but doesn't look great as a resting pose at our

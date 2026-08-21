@@ -168,9 +168,14 @@ const POSES = [
  * which is built around a nose at high x.
  */
 const AXIAL = {
-  bodyY: 0.7, // body centre
-  bodyRx: 0.205, // narrower than the side view's 0.3: this is the chest, not the flank
-  bodyRy: 0.185,
+  // The body's own geometry lives on the CAMERA preset
+  // (`AXIAL_CAMERAS[AXIAL.camera]`), not here. Dead `bodyY`/`bodyRx`/`bodyRy`
+  // keys sat at this spot until 2026-08-19, left behind when the presets
+  // were split out; nothing read them, but the lab's paste-back readout
+  // did, so the chest dial showed one number on its slider and a different,
+  // frozen one in the line you were meant to paste. Two numbers on screen
+  // for one dial is exactly the failure that has already cost a session --
+  // so the stale copy is gone rather than worked around.
   // The head is at the FAR end of a cat walking away and the NEAR end of
   // one walking toward you, so it cannot be one size. Drawing it the same
   // either way is what made the back view read as a cat facing you with
@@ -202,16 +207,85 @@ const AXIAL = {
   headYBack: 0.425,
   headRBack: 0.196, // further away, and the body takes its chin
   // Legs. The near pair is the one you see: forelegs from the front, hind
-  // legs from behind. The far pair sits wider and draws behind the body.
-  legNear: 0.098, // offset from centre
-  legFar: 0.152,
+  // legs from behind.
+  //
+  // The two offsets were the wrong way round until 2026-08-19: the NEAR
+  // pair sat at 0.098 and the FAR pair at 0.152, so the legs furthest
+  // from the camera were the ones splayed widest. That is inverted
+  // perspective, and it is most of why a cat walking at you read as an
+  // insect -- the silhouette was a body with its back legs stuck out
+  // sideways past its front ones. The far pair was pushed wide for a
+  // reason (it was the only way it cleared the body at all), but the real
+  // problem was underneath: see the elevation camera's body, which used to
+  // sit with its underside ON the ground line.
+  //
+  // Now the near pair is wider, as perspective requires -- but only just.
+  //
+  // Second pass, 2026-08-19 (owner: "reads centipede"). The first cut put
+  // the near pair at 0.15 and the far pair at 0.105, and four legs at four
+  // distinct x positions, evenly spaced across the bottom of a wide body,
+  // moving in a travelling wave, IS a centipede -- that is the animal, drawn
+  // correctly. The error was treating the fore/hind difference as a LATERAL
+  // one. A cat's shoulders and hips are about the same width, so head-on its
+  // hind legs stand almost directly behind its front ones; what separates
+  // them is depth, which this projection already says with height, size and
+  // shade. Two legs and two hints, not four legs in a row.
+  // Owner's dialled values, 2026-08-19. The far pair is NARROWER than the
+  // near pair here, and the gap is wide (0.085 / 0.06) -- read together
+  // with `legPivotIn: 1` that is a cat whose hips sit directly over its
+  // paws, so the legs drop straight rather than splaying, and the far pair
+  // tucks well inside the near one. The centipede read came from four legs
+  // evenly spread under a wide flat body; this is the opposite of that
+  // spread.
+  legNear: 0.085, // the pair closest to the camera
+  legFar: 0.06, // ...and the far pair, tucked well inside it
   legTop: 0.7,
   legW: 0.095,
-  // The walk, which in this view is almost all vertical: a cat coming at
-  // you covers no sideways ground, so the stride is invisible and what is
-  // left is the lift, the bob and the sway. (The side view's `depth*`
-  // dials were the fake of exactly this; they stay for graceful
-  // degradation but the live path no longer needs them.)
+  legPivotIn: 1, // owner: hip directly over the paw, so the leg drops straight
+  // Depth, which is where this walk's step actually happens.
+  //
+  // A cat walking at the camera covers no sideways ground, so the stride
+  // has nowhere to go on screen -- that much was already known, and the
+  // answer was to throw the stride away and keep only the LIFT. Four legs
+  // going up and down in place is what that produces, and at 22px it
+  // passed. At the camera's 50-120px it reads as four pistons.
+  //
+  // The stride did not actually vanish; it rotated into the depth axis,
+  // and this projection has two honest ways to say depth. A paw further
+  // from the camera stands HIGHER on the ground plane and looks SMALLER;
+  // a paw nearer stands lower and looks bigger. So `gaitStep`'s x -- the
+  // same planted-then-swung curve the side walk uses, unchanged -- now
+  // drives ground height and size instead of horizontal travel, and the
+  // stance foot sweeps backward through real ground again rather than
+  // hovering. That is the same argument `plantedReach` makes for the side
+  // view, taken round one axis.
+  stepGround: 0.016, // how far a step carries the paw up and down the ground plane
+  stepScale: 0.2, // and how much nearer/further reads as bigger/smaller
+  stepPass: 0.012, // the inward swing as a paw passes under the body
+  farGround: 0.014, // the far pair stands this much further off, always
+  farTaper: 0.22, // ...and draws that much thinner for it
+  // The far pair's foot lifts LESS -- which is both perspective (a step
+  // further away subtends a smaller angle) and a fix. `farGround`, the
+  // swing's own depth travel and the lift all subtract from the same
+  // foot's height, and they were stacking on the pair already tucked
+  // under the fattest part of the chest: the far legs were fully
+  // swallowed by the body for about a third of every cycle, popping in
+  // and out of existence. See `clampAxialLegs` for the guard that makes
+  // it impossible rather than merely unlikely.
+  farLift: 0.55, // share of the near pair's lift
+  // The least visible leg this view will ever draw, measured from the
+  // body's own silhouette edge. 1.5px at a 50px tile, 3.6px at 120 --
+  // enough to read as a paw, small enough that a clamped foot is not
+  // obviously standing on something.
+  minStub: 0.03,
+  // The far pair is never wider than this share of the thinnest the near
+  // pair gets. Just under 1: enough that the depth ordering is never
+  // ambiguous, small enough that it only bites when the dials would
+  // otherwise have crossed.
+  pairMargin: 0.96,
+  // The carriage. (The side view's `depth*` dials were a fake of the same
+  // thing; they stay for graceful degradation but the live path no longer
+  // needs them.)
   // Dialled right down 2026-08-10: the first cut read as "a horse at a
   // canter" (owner), and both causes were mine. The legs were on a
   // DIAGONAL sequence -- the footfall pattern of a trot -- and the body
@@ -220,9 +294,18 @@ const AXIAL = {
   // barely move. So the rock is now a fifth of what it was and the
   // sequence is the right one; see the leg phases below.
   lift: 0.042, // how far a foot picks up
-  bob: 0.007, // body rise and fall
-  sway: 0.006, // and its side-to-side shift
-  roll: 0.018, // body lean, radians
+  // Owner's values, 2026-08-19. All three came down together, which is the
+  // point: the carriage is one thing, not three, and the narrowed chest
+  // shows every part of it more than the old wide body did.
+  bob: 0.006, // body rise and fall
+  sway: 0.005, // and its side-to-side shift
+  // Brought back down 2026-08-19 with the narrowed chest, and the dial is
+  // not what changed -- the shape it acts on is. A wide flat ellipse barely
+  // alters its silhouette when you rotate it; a tall narrow one visibly
+  // tips. So the same 0.018 that read as a level walk on the old body reads
+  // as a rock on this one. Same lesson as the pounce wiggle: what looks
+  // like too much amplitude is often the thing the amplitude is applied to.
+  roll: 0.01, // body lean, radians
   headFollow: 0.25, // share of the bob the head takes -- a cat holds it level
   headSway: 0.55, // and of the sway
   // The tail. From behind it stops being a side detail and becomes most of
@@ -242,16 +325,27 @@ const AXIAL = {
   // by the rump exactly as it should be, and the raised length is in clear
   // air. Which is also how the sprite reads in every game that has ever
   // drawn a cat walking away.
-  tailTopY: 0.33,
-  tailBaseY: 0.8,
-  tailBaseX: 0.55, // at the rump, still inside the body silhouette
-  tailOutX: 0.79, // ...and out past its edge, where the raised length shows
+  // Shortened, then re-judged: 0.33 -> 0.43 -> 0.3 with the reach pulled in
+  // to 0.7 (owner, 2026-08-19). The away tail now stands taller and swings
+  // out less -- a raised tail closer to vertical rather than a long diagonal,
+  // which is what shortened the VISIBLE run without spending the depth cue
+  // that run exists to carry. The first attempt did it by dropping the tip,
+  // which flattened the tail instead.
+  tailTopY: 0.3,
+  tailBaseY: 0.65, // owner: raised well up the rump. Read by BOTH views.
+  tailBaseX: 0.525, // owner: nearly centred -- see the note below
+  tailOutX: 0.7, // ...and out past its edge, where the raised length shows
   tailSway: 0.025, // tip drift across the walk
   tailCurve: 0.06, // how far it bows on the way out and up
   // From the front the tail is behind the cat, so only a hint of it clears
-  // the body's edge.
-  tailPeekX: 0.26, // just past the body's 0.205 edge -- a hint, not a shape
-  tailPeekY: 0.66,
+  // the body's edge. Measured from the FLANK since 2026-08-19, not from the
+  // centre line: as an absolute it was silently coupled to the chest's
+  // width, so narrowing the body turned the hint into a handle and widening
+  // it back turned the tail into another body segment -- which is the
+  // owner's read on what actually looked like a centipede. A tail that is
+  // not clearly a tail is just one more lump on the side of the animal.
+  tailPeekOut: 0.165, // this much tail clear of the flank, whatever the width
+  tailPeekY: 0.57, // owner: the hook restored, base 0.65 -> tip 0.57
 };
 
 /**
@@ -272,13 +366,50 @@ const AXIAL_CAMERAS = {
   // A cat seen from its own eye level. Matches the SIDE view's camera,
   // which is the argument for it: a cat turning from east to north has to
   // look like the same animal, and the side view is the one seen most.
+  //
+  // Raised 2026-08-19, and it is the fix the axial walk actually needed.
+  // At bodyY 0.7 / bodyRy 0.185 the chest's underside sat at 0.885 --
+  // BELOW the ground line at 0.88. There was no daylight under this cat
+  // at all: measured at the near pair's old offset, 0.018 of a box, which
+  // is 2px at a 120px tile. So the legs had nowhere to be, and every
+  // gait note written for this view was decoration on legs nobody could
+  // see.
+  //
+  // The target is not a taste call. Measure the SIDE view -- body cy 0.64,
+  // ry 0.21, foreleg at x 0.2 -- and the ellipse edge above that paw sits
+  // at 0.766, which is 0.114 of visible leg. These numbers put the axial
+  // cat's clearance at 0.103 under the near pair: the same animal, seen
+  // end-on, with the same length of leg. That is the whole argument for
+  // them, and it is also why they were not just nudged until it looked
+  // better -- a cat that turns from east to north must not change breed.
+  //
+  // The head is untouched, so the camera is the same camera it was
+  // judged as.
+  //
+  // Second pass, same day: the chest also got NARROWER and DEEPER. Raising
+  // a 0.205-wide, 0.165-tall oval off the ground did buy leg, and it also
+  // exposed the shape -- a wide flat body on short legs, which is the other
+  // half of the centipede. A cat seen end-on is the slimmest it ever looks:
+  // narrow chest, deep ribcage, taller than wide. This is that, and it
+  // costs no clearance, because narrowing the ellipse raises its edge over
+  // the paws by as much as deepening it lowers the middle.
+  //
+  // Third pass (owner: "reads a little too narrow now"): back out to 0.185.
+  // 0.165 was over-corrected -- it is still comfortably narrower than the
+  // old 0.205 and still taller than wide, but it no longer reads as a cat
+  // seen through a doorway. Safe to move now that the tail peek is measured
+  // from the flank rather than the centre, so widening the chest no longer
+  // eats the one cue that says "this is a tail".
   elevation: {
-    bodyY: 0.7, bodyRx: 0.205, bodyRy: 0.185,
+    bodyY: 0.665, bodyRx: 0.185, bodyRy: 0.18,
     headYFront: 0.4, headRFront: 0.232,
     headYBack: 0.425, headRBack: 0.196,
   },
   // Looking down a little -- roughly what the elliptical ground shadows
-  // already imply. Some spine, a slightly smaller far end.
+  // already imply. Some spine, a slightly smaller far end. Deliberately
+  // NOT given the elevation camera's clearance: these two are shelved
+  // comparisons, and topdown in particular is SUPPOSED to swallow the
+  // legs -- that is what looking down at a cat does to them.
   tilt: {
     bodyY: 0.685, bodyRx: 0.195, bodyRy: 0.205,
     headYFront: 0.375, headRFront: 0.222,
@@ -295,6 +426,181 @@ const AXIAL_CAMERAS = {
 };
 
 const AXIAL_POSES = new Set(['walking', 'idle', 'swim']);
+
+/**
+ * Per-view leg and step overrides (2026-08-19, owner: "south looks good,
+ * north looks weird -- back legs too small, front legs too large").
+ *
+ * One dial set served both axial views, on the assumption that they are
+ * the same drawing from opposite ends. They are not. Walking TOWARD you a
+ * cat shows its chest: narrow, forelegs close together under it, and the
+ * hind pair genuinely hidden behind. Walking AWAY it shows its
+ * hindquarters: hips wider than shoulders, thighs that are the heavy pair
+ * on the animal, and the forelegs peeking out beside them rather than
+ * disappearing.
+ *
+ * The size falloff was the specific error. Depth cues that read as
+ * perspective on the chest view are simply too strong from behind, because
+ * a cat is about half a metre long and the apparent size difference
+ * between its hind and fore paws at any sane viewing distance is small.
+ * Taper, standing depth and the per-step size swing are all dialled down
+ * for the away view; what carries the depth there instead is the tail,
+ * which that view has and the other does not.
+ *
+ * `front` is deliberately EMPTY. It is the owner-approved view, and an
+ * empty override is the only way to guarantee it cannot drift while the
+ * other one is tuned -- there is no second copy of its numbers to fall out
+ * of step with AXIAL.
+ */
+/**
+ * Per-view leg overrides (2026-08-19).
+ *
+ * The two axial views are not one drawing from opposite ends: toward you a
+ * cat shows its chest, away it shows its hindquarters. But that difference
+ * is ANATOMY -- where the legs stand -- and not perspective. The depth
+ * treatment (how much a far leg thins, how far it stands off, how much a
+ * step swings its size) is a property of the camera, and the camera does
+ * not change when the cat turns round.
+ *
+ * `farTaper`, `farGround` and `stepScale` were briefly overridden here on
+ * the argument that the falloff reads too strong from behind. That was
+ * wrong, and the owner caught it: it made a cat walking away a different
+ * lens from the same cat walking toward, and the mismatch is visible in the
+ * one thing both views share -- the size relationship between the pairs. So\n * the depth dials now fall through to AXIAL in both views, and this block
+ * holds only what is genuinely different about the two ends of a cat.
+ *
+ * `front` is empty on purpose: it is the owner-approved view, and an empty
+ * override is the only way to guarantee it cannot drift while the other is
+ * tuned -- there is no second copy of its numbers to fall out of step.
+ */
+const AXIAL_ENDS = {
+  front: {},
+  back: {
+    // Owner's values, 2026-08-19 -- and they are now IDENTICAL to AXIAL's
+    // own `legNear`/`legFar`, which makes this block a deliberate no-op
+    // rather than an oversight.
+    //
+    // That is the conclusion of the whole per-view argument: the two ends of
+    // a cat differ anatomically by a couple of centimetres, and depth swamps
+    // it. Once position and size were made to agree, the same numbers were
+    // right for both views. Kept explicit rather than deleted so the next
+    // person sees that the away view WAS judged separately and landed here,
+    // instead of assuming nobody looked.
+    legNear: 0.085, // hind legs -- closest to the camera, so outboard and larger
+    legFar: 0.06, // forelegs, tucked inside them
+    // Nothing about DEPTH belongs here -- see the note above.
+  },
+};
+
+/**
+ * The landing settle -- the weight arriving when a walking cat stops
+ * (2026-08-19, camera mode).
+ *
+ * What this replaces, and why. The settle used to be a canvas transform:
+ * scale(1.7x lost height, sy) about the ground line, applied to the whole
+ * drawing. That is the right cheat at a 22px tile, where the cat is a
+ * thumbnail and nobody can see what is being scaled. The camera's band is
+ * 50-120px, and at 120px the cheat states itself out loud -- the HEAD
+ * becomes an ellipse, the eyes and nose go with it, the ears shear, and
+ * the paws widen at the same rate as the ribcage. A cat made of rubber.
+ *
+ * Nothing about a real landing scales uniformly. The mass drops, the
+ * ribcage flattens under it, the legs take the compression, and the skull
+ * -- the one rigid thing in the animal -- keeps its shape and simply gets
+ * lower. So this is a pose-space deformation instead of a transform: the
+ * head MOVES and never scales, the body squashes about its own belly, the
+ * legs compress because their pivot comes down while their feet stay
+ * planted, and the tail whips up on the impact because it is the only
+ * part with nothing holding it.
+ *
+ * Two properties worth keeping:
+ *
+ *  - k = 0 is EXACTLY the un-settled cat (`applySettle` returns early), so
+ *    every pose, still frame and reduced-motion draw is untouched.
+ *  - k is SIGNED. The curve rebounds past neutral, and a negative k is
+ *    that rebound drawn honestly: the body lifts and narrows, the head
+ *    rises, the tail dips. It is the same deformation run backwards, so
+ *    the recovery costs no second set of dials.
+ */
+const SETTLE = {
+  // Curve. Fast down, slow up -- a landing is not symmetric, and the old
+  // sin(pi*t) hump was. The compression arrives in the first fifth of the
+  // span and the rest is the recovery, with one small rebound in it.
+  attack: 0.2,
+  decay: 5, // how fast the rebound dies; on v^2, so the reversal is smooth
+  bounces: 1.5, // half-cycles after the attack: down, through, and out at 0
+
+  // Amplitudes, in the cat's unit box.
+  bodyFlat: 0.028, // ribcage loses this much ry...
+  bodyDrop: 0.026, // ...and the centre comes down nearly as far, so the
+  //                  BELLY stays put and the back does the travelling
+  bodySpread: 0.02, // and the mass goes sideways: volume, roughly, preserved
+  headDrop: 0.04, // the skull drops further than the body -- the neck folds
+  headBack: 0.01, // and a little into the shoulders
+  tailWhip: 0.05, // tip flicks UP on impact: the weight cue that sells it
+  earsBack: 0.25, // a touch of ear recoil, released on the way out
+  pawSplay: 0.1, // paws widen by this SHARE of their own width, not the body's
+};
+
+/**
+ * The settle's shape over its own 0..1 span. Returns a signed amount:
+ * 1 at full compression, a small negative through the rebound, 0 at both
+ * ends.
+ *
+ * The attack eases OUT (fast, then arriving) and the release is a damped
+ * cosine on v^2, which matters for one reason: both pieces have zero
+ * slope where they meet, so the bottom of the compression is a real
+ * reversal instead of a corner. A corner there reads as a dropped frame.
+ */
+function settleCurve(t) {
+  const u = rclamp(t, 0, 1);
+  if (u <= 0 || u >= 1) return 0;
+  if (u < SETTLE.attack) {
+    const a = u / SETTLE.attack;
+    return 1 - (1 - a) * (1 - a);
+  }
+  const v = (u - SETTLE.attack) / (1 - SETTLE.attack);
+  return Math.exp(-SETTLE.decay * v * v) * Math.cos(v * Math.PI * SETTLE.bounces);
+}
+
+/**
+ * Applies a settle amount to a finished layout. Runs before `applyRig`,
+ * so the rig's tail spring and head lag ride ON the settle rather than
+ * fighting it -- the tail whip gets its follow-through for free.
+ */
+function applySettle(L, amount) {
+  const k = amount || 0;
+  if (!k) return L; // the untouched cat, bit for bit
+  const S = SETTLE;
+  const drop = S.bodyDrop * k;
+  L.body = {
+    ...L.body,
+    cy: L.body.cy + drop,
+    ry: Math.max(0.04, L.body.ry - S.bodyFlat * k),
+    rx: L.body.rx + S.bodySpread * k,
+  };
+  // Moved, never scaled. The head is the one part of this animal with a
+  // skull in it, and a squashed circle is what made the old settle read
+  // as rubber at camera sizes.
+  L.head = { ...L.head, cx: L.head.cx - S.headBack * k, cy: L.head.cy + S.headDrop * k };
+  const t = L.tail;
+  L.tail = {
+    ...t,
+    y0: t.y0 + drop, // the base is attached to the rump, so it goes with it
+    c1y: t.c1y + drop * 0.4 - S.tailWhip * 0.35 * k,
+    c2y: t.c2y - S.tailWhip * 0.8 * k,
+    y1: t.y1 - S.tailWhip * k,
+  };
+  // The pivot comes down and the foot does not: that IS the compression,
+  // and it is why the legs bend instead of shrinking.
+  L.legs = L.legs.map((leg) => ({
+    ...leg,
+    top: leg.top + drop,
+    w: leg.w * (1 + S.pawSplay * k),
+  }));
+  L.earsBackAmt = rclamp((L.earsBackAmt || 0) + S.earsBack * k, 0, 1);
+  return L;
+}
 
 /**
  * A swimming cat seen end-on (2026-08-11).
@@ -318,9 +624,36 @@ const AXIAL_POSES = new Set(['walking', 'idle', 'swim']);
  * of them ships; nothing here assumes the answer.
  */
 const AXIAL_SWIM = {
-  bodyDrop: 0.012, // below the axial body, the way SWIM sits below idle
-  bodyRy: 0.15, // flattened: a floating back, not a standing barrel
-  bodyRx: 0.2, // a shade narrower than standing -- the flanks are under
+  // Held against the axial body, which rose 0.035 on 2026-08-19 to buy
+  // the walk some leg. This absorbs that rise exactly, so a wading cat
+  // sits at the waterline it was judged at -- the water work does not get
+  // re-opened by a change to the walk.
+  bodyDrop: 0.047, // below the axial body, the way SWIM sits below idle
+  // Every geometry number below is a DELTA from the camera preset, not an
+  // absolute (2026-08-19 sweep).
+  //
+  // The absolutes were the bug, four times over in one session:
+  // `tailPeekX`, then `AXIAL_SWIM.bodyRx`, then `bodyRy`, each found only
+  // when something made the divergence reachable. They all shared one
+  // shape -- a number that IS an offset from the camera's body, written as
+  // though it stood alone, and therefore correct at exactly one camera
+  // and wrong at every other. Hand-keeping them in step works until the
+  // hand stops, and a lab slider over the camera means it stops
+  // immediately. So the whole block is converted at once rather than
+  // one defect at a time.
+  //
+  // The invariant this protects is stated in NEXT-SESSION.md: a cat wading
+  // north and the same cat walking north out of the pond have to be one
+  // animal.
+  bodyNarrow: 0.005, // narrower than the standing chest: the flanks are under
+  //                    water. Sign restored to upstream's -- it flipped to
+  //                    +0.003 during this session's hand-updates, which had
+  //                    a wading cat BROADER than a standing one while the
+  //                    comment argued the opposite.
+  bodyFlatten: 0.03, // and flatter: a floating back, not a standing barrel.
+  //                    0.03 rather than upstream's 0.035 so the wading body
+  //                    keeps the exact ry (0.15) the waterline was judged
+  //                    against, now that the camera's depth has moved.
   headDrop: 0.055, // chin toward the surface, the swimming read
   bob: 0.012, // matches the side pose's paddle bob
   rock: 0.03, // less than the side view's: an end-on roll shows more
@@ -336,7 +669,11 @@ const AXIAL_SWIM = {
   tailBaseDrop: 0.06, // where it leaves the body, under the surface
   tailTopY: 0.42, // ...and where the tip rides, well clear of it
   tailOutX: 0.52, // owner 2026-08-11: near vertical -- see the note below
-  tailPeekX: 0.8, // owner: pushed wide, so the tail is beside the cat, not behind it
+  tailPeekOut: 0.615, // owner: pushed wide, so the tail is beside the cat,
+  //                     not behind it. Measured out from the flank like the
+  //                     standing view's, so it cannot drift against the
+  //                     chest -- same conversion, applied before a slider
+  //                     found this one too.
   tailCurve: 0.05, // how far it bows on the way out and up
 };
 
@@ -968,8 +1305,8 @@ function applyAxial(L, pose, phase, view, opts) {
     L.body = {
       cx: 0.5,
       cy: C.bodyY + AXIAL_SWIM.bodyDrop + swimBob,
-      rx: AXIAL_SWIM.bodyRx,
-      ry: AXIAL_SWIM.bodyRy,
+      rx: C.bodyRx - AXIAL_SWIM.bodyNarrow,
+      ry: C.bodyRy - AXIAL_SWIM.bodyFlatten,
       rot: swimRock,
     };
     L.head = {
@@ -1002,7 +1339,7 @@ function applyAxial(L, pose, phase, view, opts) {
       // Swimming toward you: the tail is the far end and paints behind the
       // body, so only what clears the flank is seen -- a raised tip over
       // the shoulder rather than a whole tail.
-      const tip = AXIAL_SWIM.tailPeekX;
+      const tip = C.bodyRx + AXIAL_SWIM.tailPeekOut;
       L.tail = {
         x0: 0.5, y0: stern,
         c1x: 0.5 + (tip - 0.5) * 0.5, c1y: stern - 0.02,
@@ -1027,19 +1364,61 @@ function applyAxial(L, pose, phase, view, opts) {
     r: back ? C.headRBack : C.headRFront,
   };
 
-  // Four legs, on the same diagonal sequence the side walk uses. In this
-  // view a step is a LIFT, because the swing is pointed at the camera.
-  // Walking away, the HIND legs are the near pair; walking toward, the
-  // forelegs are. `far` decides which side of the body a leg is drawn on.
+  // Four legs, on the same lateral sequence the side walk uses. In this
+  // view a step travels in DEPTH, so it is said with the ground plane and
+  // with size -- see the AXIAL.step* note. `far` decides which side of
+  // the body a leg is drawn on and which pair is further from the camera:
+  // walking away, the HIND legs are the near pair; walking toward, the
+  // forelegs are.
+  //
+  // `ds` is which way "forward" points in depth. Walking toward the
+  // camera, a paw swung forward comes NEARER, so it lands lower on screen
+  // and reads bigger; walking away, forward is further, and the signs
+  // flip. One number, and the two views stop needing separate gaits.
+  const ds = back ? -1 : 1;
+  // Per-view overrides, falling through to AXIAL. See AXIAL_ENDS: the two
+  // ends of a cat are different shapes, and `front` is empty on purpose.
+  const E = AXIAL_ENDS[back ? 'back' : 'front'] || {};
+  const D = (k) => (E[k] === undefined ? AXIAL[k] : E[k]);
   const leg = (dx, u, far) => {
     const g = walking ? gaitStep(((u % 1) + 1) % 1, GAIT.duty) : { x: 0, lift: 0 };
-    const x = 0.5 + dx + sway * 0.4;
+    // Where this paw is along the depth axis, -1 (furthest) .. 1 (nearest).
+    // During stance this runs +1 -> -1 linearly, which is the planted foot
+    // sweeping backward through the ground the cat covers -- the same
+    // thing `plantedReach` earns for the side view, one axis over.
+    const dep = ds * g.x;
+    const ground = CAT_GROUND - (far ? D('farGround') : 0) + AXIAL.stepGround * dep;
+    // Width: the pair's own base, swung by the step's depth.
+    //
+    // These two used to multiply one shared base, and at equal magnitudes
+    // (taper 0.1, stepScale 0.1 in the away view) the swing simply
+    // overwhelmed the pair separation: a far leg at the near end of its
+    // step measured 0.099 against a near leg at the far end of its own at
+    // 0.0945. The pairs crossed over for much of the cycle, so the taper
+    // read as thinning the REAR legs going away -- which is the pair
+    // closest to the camera, and exactly backwards.
+    //
+    // The ordering is not something to tune the two dials until it holds.
+    // A far leg is further away, so it is thinner, always -- so the far
+    // pair's swung width is capped just under the thinnest the near pair
+    // ever gets. Same discipline as `clampAxialLegs`: state the invariant,
+    // do not hope for it.
+    const swing = 1 + D('stepScale') * dep;
+    let w = D('legW') * swing;
+    if (far) {
+      const nearThinnest = D('legW') * (1 - Math.abs(D('stepScale')));
+      w = Math.min(w * (1 - D('farTaper')), nearThinnest * AXIAL.pairMargin);
+    }    // A walking cat places its feet nearly on one line, and the swing is
+    // where that happens: the paw passes INWARD under the body and comes
+    // back out to stand. Without it the four legs track four parallel
+    // rails, which is the other half of what read as pistons.
+    const pass = AXIAL.stepPass * g.lift * (dx < 0 ? 1 : -1);
     return {
-      x,
-      hx: 0.5 + dx * 0.6,
+      x: 0.5 + dx + sway * 0.4 + pass,
+      hx: 0.5 + dx * AXIAL.legPivotIn + sway * 0.55,
       top: AXIAL.legTop,
-      bottom: CAT_GROUND - AXIAL.lift * g.lift,
-      w: AXIAL.legW,
+      bottom: ground - AXIAL.lift * (far ? AXIAL.farLift : 1) * g.lift,
+      w,
       far,
     };
   };
@@ -1048,14 +1427,26 @@ function applyAxial(L, pose, phase, view, opts) {
   // The first cut ran left-fore, right-hind, left-hind, right-fore, which
   // is a diagonal pattern, and a diagonal pattern is a trot. That is most
   // of what read as a canter.
-  const hind = back ? -AXIAL.legNear : -AXIAL.legFar;
-  const fore = back ? -AXIAL.legFar : -AXIAL.legNear;
+  const hind = back ? -D('legNear') : -D('legFar');
+  const fore = back ? -D('legFar') : -D('legNear');
+  // Built in gait order, then DEPTH-SORTED for painting. The renderer draws
+  // this array front-to-back and gives a far leg the darker `furShade`, so
+  // the two have to agree: interleaved near/far/near/far meant a dark far
+  // leg painted on top of a light near one, and a shadowed limb in front of
+  // a lit one reads as the pairs being swapped -- which is what the owner
+  // saw. The side view has always sorted (`withFarPair` returns far first);
+  // this view simply never did.
+  //
+  // Stable, so the lateral footfall sequence within each pair is untouched,
+  // and blendLayouts pairs legs by index -- with both layouts sorted the
+  // same way, a blend now interpolates far-to-far and near-to-near instead
+  // of across depth.
   L.legs = [
     leg(hind, cycle, !back),
     leg(fore, cycle - 0.25, back),
     leg(-hind, cycle - 0.5, !back),
     leg(-fore, cycle - 0.75, back),
-  ];
+  ].sort((p, q) => (p.far === q.far ? 0 : p.far ? -1 : 1));
 
   if (back) {
     // Out from behind the rump, then up: an S that leaves the base hidden
@@ -1069,14 +1460,53 @@ function applyAxial(L, pose, phase, view, opts) {
     };
   } else {
     // Behind the cat, so only what clears the body's edge is seen.
+    // Measured out from the FLANK, so the chest's width and the size of the
+    // peek are independent dials. As an absolute this silently traded one
+    // against the other.
+    const peek = C.bodyRx + AXIAL.tailPeekOut;
     L.tail = {
       x0: 0.5, y0: AXIAL.tailBaseY,
-      c1x: 0.5 + AXIAL.tailPeekX * 0.5, c1y: AXIAL.tailBaseY + 0.02,
-      c2x: 0.5 + AXIAL.tailPeekX, c2y: AXIAL.tailPeekY + 0.06,
-      x1: 0.5 + AXIAL.tailPeekX * 0.85, y1: AXIAL.tailPeekY,
+      c1x: 0.5 + peek * 0.5, c1y: AXIAL.tailBaseY + 0.02,
+      c2x: 0.5 + peek, c2y: AXIAL.tailPeekY + 0.06,
+      x1: 0.5 + peek * 0.85, y1: AXIAL.tailPeekY,
     };
   }
   L.view = view;
+  return L;
+}
+
+/**
+ * Guarantees every axial leg keeps a visible stub below the body.
+ *
+ * The end-on views are the only ones where a leg can be swallowed whole,
+ * because they are the only ones where the legs stand UNDER the widest
+ * part of the silhouette rather than off its ends. Three terms subtract
+ * from a far foot's height -- its standing depth, the swing's depth
+ * travel and the lift -- and while each is small, together they took the
+ * far pair inside the chest's outline for about a third of every cycle.
+ * A limb that pops out of existence and back is the worst artefact this
+ * vocabulary can produce: it does not read as occlusion, it reads as a
+ * dropped frame.
+ *
+ * Dialling the three down was the first fix and is not enough on its own,
+ * because "enough" depends on the camera preset, the pose's body and
+ * whatever anyone types into the lab next. So this is a floor rather than
+ * a tuning: whatever the numbers say, a foot may not rise above its own
+ * body edge plus `minStub`.
+ *
+ * Runs LAST -- after proportion and lift -- so it measures the ellipse
+ * that will actually be painted. Measured against the un-rotated ellipse;
+ * the axial roll is 0.018rad, which moves the edge by well under a
+ * tenth of the stub it is protecting.
+ */
+function clampAxialLegs(L) {
+  const b = L.body;
+  if (!b.rx || !b.ry) return L;
+  L.legs = L.legs.map((leg) => {
+    const t = Math.min(1, Math.abs(leg.x - b.cx) / b.rx);
+    const floor = b.cy + b.ry * Math.sqrt(1 - t * t) + AXIAL.minStub;
+    return leg.bottom < floor ? { ...leg, bottom: floor } : leg;
+  });
   return L;
 }
 
@@ -1746,7 +2176,7 @@ function drawCat(ctx, opts) {
     earsBack,
   } = opts;
 
-  const L = applyRig(catLayout(pose, phase, opts.layout), opts.rig);
+  const L = applyRig(applySettle(catLayout(pose, phase, opts.layout), opts.settle), opts.rig);
   if (eyesOverride) {
     L.eyes = eyesOverride;
   }
@@ -1898,10 +2328,13 @@ function drawCatTween(ctx, opts) {
   // is precisely what anticipation and overshoot ARE. Bounded so that a
   // wild t can never turn a cat inside out.
   const L = applyRig(
-    blendLayouts(
-      catLayout(from, phaseFrom, opts.layoutFrom),
-      catLayout(to, phaseTo, opts.layout),
-      rclamp(t, -0.3, 1.3),
+    applySettle(
+      blendLayouts(
+        catLayout(from, phaseFrom, opts.layoutFrom),
+        catLayout(to, phaseTo, opts.layout),
+        rclamp(t, -0.3, 1.3),
+      ),
+      opts.settle,
     ),
     opts.rig,
   );
@@ -2378,7 +2811,11 @@ function catLayout(pose, phase, opts = {}) {
   // Poses still speak in the boolean; the continuous value is derived so
   // no pose had to be rewritten to gain an eased ear.
   if (!L.earsUpright) L.earsBackAmt = 1;
-  return liftLayout(proportionLayout(L, airborne), airborne);
+  const out = liftLayout(proportionLayout(L, airborne), airborne);
+  // The axial stub guard measures the finished ellipse, so it has to be
+  // the last thing that touches a leg. Side-view cats never reach it and
+  // are byte-identical.
+  return out.view === 'side' ? out : clampAxialLegs(out);
 }
 
 // ---------------------------------------------------------------------------
@@ -3637,7 +4074,9 @@ const api = {
   AXIAL,
   AXIAL_CAMERAS,
   AXIAL_POSES,
+  AXIAL_ENDS,
   AXIAL_SWIM,
+  clampAxialLegs,
   WHISKER,
   drawWhiskers,
   INNER_EAR,
@@ -3649,6 +4088,12 @@ const api = {
   // The rig (2026-08-10). Exported so the motion lab can build and drive
   // its own states without anim.js, and so anim.js can hold per-cat state
   // without owning any of the motion maths.
+  // The landing settle (2026-08-19): amplitudes, curve and deformation,
+  // exported so the labs can drive it and anim.js can read the curve
+  // without owning the shape.
+  SETTLE,
+  settleCurve,
+  applySettle,
   RIG,
   createRigState,
   stepRig,
