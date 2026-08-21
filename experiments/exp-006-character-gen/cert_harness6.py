@@ -116,6 +116,25 @@ SEATINGS = {
     "candidate-L05s2": ["v4:attn-a1-s1", "ppo:ppo-L-05-s2",
                         "v4:attn-a1-s3", "v4:attn-a1-s3",
                         "mlp:e004-a1-s2"],
+    # THE DEPLOY ROSTER (owner-ruled 2026-08-21): reference with
+    # E1-s1 replacing one s3 twin at Kittybear — the phase-1 interim
+    # seating while Biscuit 2.0 waits for bugs 2.0. Gate legs on the
+    # certification world; r3 = kitty IDs 1-3 on family-00; r5 on
+    # family-11 is REPORT-ONLY (tail benchmark)
+    "deploy-ref-e1": ["v4:attn-a1-s1", "mlp:e004-a1-s2",
+                      "v4:attn-a1-s3", "ppo:ppo-E1-s1-stripped",
+                      "scripted"],
+    "deploy-r3": ["v4:attn-a1-s1", "mlp:e004-a1-s2",
+                  "v4:attn-a1-s3"],
+    # report-only body-price cells (budget re-derivation, owner
+    # 2026-08-21): mind CLASSES at the Biscuit seat, run paired on
+    # phase1-cutover vs phase1-cutover-flatbiscuit configs
+    "candidate-clone": ["v4:attn-a1-s1", "ppo:clone-anchor/clone-anchor.pt",
+                        "v4:attn-a1-s3", "v4:attn-a1-s3",
+                        "mlp:e004-a1-s2"],
+    "candidate-attn": ["v4:attn-a1-s1", "v4:attn-a1-s1",
+                       "v4:attn-a1-s3", "v4:attn-a1-s3",
+                       "mlp:e004-a1-s2"],
 }
 BANDS = {"eval": 870_001, "stress": 880_001}
 
@@ -135,8 +154,13 @@ def load_model(spec):
     if kind == "ppo":
         import torch
         from model_v4 import EntityPolicyV4
-        ck = torch.load(HERE / "artifacts" / name / "policy-final.pt",
-                        map_location="cpu", weights_only=True)
+        # "ppo:<path>" under artifacts/: a directory means its
+        # policy-final.pt; a file path (the clone checkpoints) loads
+        # directly
+        p = HERE / "artifacts" / name
+        if p.is_dir():
+            p = p / "policy-final.pt"
+        ck = torch.load(p, map_location="cpu", weights_only=True)
         m = EntityPolicyV4(**ck["hyper"])
         m.load_state_dict(ck["state_dict"])
         m.eval()
@@ -149,7 +173,8 @@ def load_model(spec):
 
 
 def run_one(args):
-    seating_name, seed, ticks, config_path = args
+    seating_name, seed, ticks, config_path, biscuit_override = (
+        args if len(args) == 5 else (*args, None))
     import cloudkitty
     import numpy as np
 
@@ -158,7 +183,11 @@ def run_one(args):
     floor = cfg["happiness"]["floor"]
     kitties = cfg["kitty"]
     roster = len(kitties)
-    seats = SEATINGS[seating_name]
+    seats = list(SEATINGS[seating_name])
+    if biscuit_override:
+        # report-only sweep support (weight blends): swap the Biscuit
+        # seat's spec; the override lands in the output filename
+        seats[1] = biscuit_override
     assert len(seats) == roster, (seating_name, roster)
 
     control = {f"kitty_{k['id']}": "needs_driven"
@@ -251,13 +280,16 @@ def main():
     ap.add_argument("--config", type=Path, default=REPO / "cloudkitty.toml")
     ap.add_argument("--workers", type=int, default=6)
     ap.add_argument("--out-dir", type=Path, default=HERE / "results-raw")
+    ap.add_argument("--biscuit", default=None,
+                    help="override the Biscuit seat's spec (report-only "
+                         "sweeps, e.g. ppo:blends/anchor-L04s1-a50)")
     args = ap.parse_args()
 
     prov = provenance(args.config)
     print("provenance:", json.dumps(prov))
     seed0 = args.seed0 if args.seed0 is not None else BANDS[args.band]
-    jobs = [(args.seating, seed0 + i, args.ticks, args.config)
-            for i in range(args.seeds)]
+    jobs = [(args.seating, seed0 + i, args.ticks, args.config,
+             args.biscuit) for i in range(args.seeds)]
     args.out_dir.mkdir(exist_ok=True)
     rows = []
     with ProcessPoolExecutor(max_workers=args.workers) as px:
@@ -267,7 +299,10 @@ def main():
             print(f"{r['seating']} {args.band} seed {r['seed']}: "
                   f"nash {nash} mda {r['max_distress_age']} "
                   f"ft {sum(r['floor_touches'])}", flush=True)
-    out = args.out_dir / f"battery-{args.seating}--{args.band}.json"
+    tag = ""
+    if args.biscuit:
+        tag = "+" + args.biscuit.split(":", 1)[-1].replace("/", "-")
+    out = args.out_dir / f"battery-{args.seating}{tag}--{args.band}.json"
     out.write_text(json.dumps({"provenance": prov, "rows": rows},
                               indent=1) + "\n")
     import numpy as np

@@ -111,20 +111,22 @@ fn a_corrupted_artifact_fails_startup_naming_the_config_field() {
 }
 
 #[test]
-fn the_shipped_config_boots_scripted_across_the_generation_gap() {
-    // Third tour, restored per its successor's own instruction (spec 033
-    // wall): the seats are parked again. Spec 026 US4's guarantee: main
-    // must stay runnable while the committed policy artifacts are a
-    // generation behind the binary. The shipped cloudkitty.toml seats no
-    // policy — every committed artifact pins observation schema 3 /
-    // action 2 / mask 2 and this binary speaks 4/3/3 — yet the
-    // [rl.policy.*] blocks still name the artifacts for provenance. Ok
-    // here is the whole proof: had registration opened an artifact, the
-    // schema gate would refuse it; success means unreferenced blocks are
-    // never followed. When a phase-1 (schema-4) artifact certifies and
-    // takes the seats back, swap this test for its successor
-    // (`the_shipped_config_seats_a_policy_this_binary_can_open`, last in
-    // git history on the 033 branch) exactly as before.
+fn the_shipped_config_seats_a_policy_this_binary_can_open() {
+    // Supersedes `the_shipped_config_boots_scripted_across_the_generation_gap`
+    // (third tour, spec 033 wall), which asserted every seat stayed parked
+    // until a schema-4 artifact certified. Four have: the three
+    // surface-expanded incumbents (spec 035) plus e006-E1-s1, certified as
+    // a composition 2026-08-21, so the parked assertion has expired by its
+    // own terms — exactly as it did at the spec-026 and spec-028 gaps.
+    //
+    // What replaces it is strictly stronger. The parked test proved
+    // unreferenced blocks are never opened; this one proves every
+    // referenced artifact IS opened and survives the schema gate. It
+    // therefore catches a seat naming a missing artifact, a
+    // stale-generation artifact, or a policy with no [rl.policy.*] block —
+    // none of which the parked version could see. If the seats ever park
+    // again (a fourth tour), restore the generation-gap test from git
+    // history instead of deleting this one.
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../cloudkitty.toml");
     let text = std::fs::read_to_string(&root).expect("the shipped config is readable");
     let config: Config = toml::from_str(&text).unwrap();
@@ -133,17 +135,24 @@ fn the_shipped_config_boots_scripted_across_the_generation_gap() {
         config
             .kitties
             .iter()
-            .all(|k| !k.behavior.starts_with("policy:")),
-        "the spec 033 wall parks every policy seat until a schema-4 artifact certifies"
+            .any(|k| k.behavior.starts_with("policy:")),
+        "the shipped config seats at least one policy now that the phase-1 \
+         generation is certified; if the seats are parked again, restore \
+         the generation-gap test instead of deleting this one"
     );
-    let rl = RlConfig::from_toml_str(&text).unwrap();
-    assert!(
-        !rl.policy.is_empty(),
-        "the provenance [rl.policy.*] blocks stay in the shipped config"
-    );
+    let mut rl = RlConfig::from_toml_str(&text).unwrap();
+    // Artifact paths in the shipped config are relative to the repo root (the
+    // server's working directory); a test's is the crate root, so resolve them
+    // before opening anything.
+    let repo = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    for policy in rl.policy.values_mut() {
+        policy.artifact = repo.join(&policy.artifact).to_string_lossy().into_owned();
+    }
     let mut registry = BehaviorRegistry::with_builtins();
+    // The proof: registration opens every named artifact and runs it through
+    // the schema gate. A pre-wall artifact would be refused here.
     register_policy_behaviors(&mut registry, &config, &rl)
-        .expect("no seat references a policy, so no artifact is ever opened");
+        .expect("every seated policy resolves to an artifact this binary can open");
     config.validate_behavior_names(&registry.names()).unwrap();
 }
 

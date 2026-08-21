@@ -32,6 +32,13 @@ struct TypeTally {
     pounce_starts: u64,
     scene_starts: u64,
     scene_ticks: u64,
+    /// Abandons where the quarry no longer existed at the next pre-tick
+    /// snapshot: the chase died to TTL, not to patience (the ruin term,
+    /// bugs-2.0 acceptance criterion 3).
+    expiry_abandons: u64,
+    /// Play scenes ended by the target vanishing mid-scene (the other
+    /// half of ruin: prune_dead_activity ends the scene where it stands).
+    scene_expiries: u64,
 }
 
 #[derive(Default)]
@@ -48,7 +55,7 @@ struct Tally {
 #[derive(Default, Clone)]
 struct KittyState {
     pursuit: Option<(u32, &'static str)>,
-    playing_element: Option<u32>,
+    playing_element: Option<(u32, &'static str)>,
     playing_duet: bool,
     playing_solo: bool,
 }
@@ -130,6 +137,16 @@ fn main() {
                     _ => None,
                 };
 
+                // Mid-scene ruin: the element scene ended this tick AND
+                // its target is gone from the pre-tick snapshot -- TTL
+                // took it, the cat did not leave (spec 006 FR-010's
+                // "a vanished critter ends play where it stands").
+                if let Some((prev, pty)) = st.playing_element {
+                    if playing_el != Some(prev) && !type_of.contains_key(&prev) {
+                        tally.by_type.entry(pty).or_default().scene_expiries += 1;
+                    }
+                }
+
                 let mut caught_this_tick = false;
                 match (st.pursuit, chasing_el, playing_el) {
                     (Some((p, ty)), Some(el), _) if el == p => {
@@ -142,8 +159,15 @@ fn main() {
                         st.pursuit = None;
                         caught_this_tick = true;
                     }
-                    (Some((_, ty)), _, _) => {
-                        tally.by_type.entry(ty).or_default().abandons += 1;
+                    (Some((p, ty)), _, _) => {
+                        let t = tally.by_type.entry(ty).or_default();
+                        t.abandons += 1;
+                        // Quarry absent from this tick's pre-snapshot:
+                        // it expired under the chase (ruin), as opposed
+                        // to patience/switching (skill).
+                        if !type_of.contains_key(&p) {
+                            t.expiry_abandons += 1;
+                        }
                         st.pursuit = None;
                     }
                     (None, _, _) => {}
@@ -169,14 +193,14 @@ fn main() {
                         let ty = type_of.get(el).copied().unwrap_or("bug");
                         let t = tally.by_type.entry(ty).or_default();
                         t.scene_ticks += 1;
-                        if st.playing_element != Some(*el) {
+                        if st.playing_element.map(|(id, _)| id) != Some(*el) {
                             t.scene_starts += 1;
                             if !caught_this_tick {
                                 // Reached without a recorded pursuit tick.
                                 t.pounce_starts += 1;
                             }
                         }
-                        st.playing_element = Some(*el);
+                        st.playing_element = Some((*el, ty));
                         st.playing_duet = false;
                         st.playing_solo = false;
                     }
@@ -226,7 +250,7 @@ fn main() {
             println!(
                 "  {ty}: pursuits {} | chase ticks {} | catches {} | abandons {} | \
                  chase-ticks/catch {per_catch} | catch-rate {:.1}% | pounce starts {} | \
-                 play scenes {} (mean len {:.1})",
+                 play scenes {} (mean len {:.1}) | expiry: chase {} scene {}",
                 tt.pursuits,
                 tt.chase_ticks,
                 tt.catches,
@@ -235,6 +259,8 @@ fn main() {
                 tt.pounce_starts,
                 tt.scene_starts,
                 tt.scene_ticks as f64 / tt.scene_starts.max(1) as f64,
+                tt.expiry_abandons,
+                tt.scene_expiries,
             );
         }
         println!(

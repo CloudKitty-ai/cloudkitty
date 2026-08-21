@@ -1,0 +1,6 @@
+config configs/phase1-cutover.toml | 10 seeds x 20000 ticks | mean critters on field: bug 3.0, greeble 1.0
+
+[needs_driven] (per-kitty-tick basis over 200000 world ticks)
+  bug: pursuits 8674 | chase ticks 18186 | catches 3375 | abandons 5299 | chase-ticks/catch 5.4 | catch-rate 38.9% | pounce starts 1845 | play scenes 5220 (mean len 1.6)
+  greeble: pursuits 2561 | chase ticks 5381 | catches 743 | abandons 1818 | chase-ticks/catch 7.2 | catch-rate 29.0% | pounce starts 617 | play scenes 1360 (mean len 1.5)
+  kitty-chase ticks 23368 | duets: 19589 starts, 38319 ticks (mean 2.0) | solo: 0 starts, 0 ticks (mean 0.0)

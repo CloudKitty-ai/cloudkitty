@@ -42,3 +42,27 @@ display = "Transformer"
 architecture = "Transformer"
 recipe = "BC+PPO"
 display = "Transformer"
+
+[artifact."61d6d7cc699f1de303b4fb661a77380bf56b5d69e76db3eac5bd316b38ed604a"]
+# attn-a1-s1-o4.ckpolicy — "the cuddler" carried onto the schema-4 surface.
+architecture = "Transformer"
+recipe = "BC+PPO, expanded from d8e310215d7dd095e9d3f4a59d03d62e012bb677d4141cd2c45e3b5d86569c32 by ckpolicy-expand v1"
+display = "Transformer"
+
+[artifact."d6f60818ad0516445367a3cdbca2a7df24a36886ed457e3ee1c8fe06004569ad"]
+# attn-a1-s3-o4.ckpolicy — "the doter" carried onto the schema-4 surface.
+architecture = "Transformer"
+recipe = "BC+PPO, expanded from dfef0ec29161f93bded92c3a6e8b89cc1db92d9b3e478edd35a3d31e25941b46 by ckpolicy-expand v1"
+display = "Transformer"
+
+[artifact."b6293849a63bd2f8b915080e74a20a5dd5f539eb48911bece3d4e23876588b09"]
+# e004-a1-s2-o4.ckpolicy — the exp-004 MLP carried onto the schema-4 surface.
+architecture = "MLP"
+recipe = "BC+PPO, expanded from 21d197307a475b3ee8f71ffb98d5af275d8374283244314010a0741229b84277 by ckpolicy-expand v1"
+display = "Multi-Layer Perceptron"
+
+[artifact."a7ea333824b2a2742f4ea71f15f301775ef6ca167e291c72a22d0bb6cf7b8e3a"]
+# e006-E1-s1.ckpolicy — exp-006 E arm (PPO from the Biscuit-clone init, actor-only export); "here"-word dialect, the mew.
+architecture = "Transformer"
+recipe = "BC+PPO"
+display = "Transformer"

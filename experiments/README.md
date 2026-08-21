@@ -101,6 +101,12 @@ from memory.
   proves nothing about what it wrote.
 - **Commit working code before destructive checks or long runs.** If a
   mutation loop ran, re-run the suite and read the count.
+- **Two extremes, then sweep.** When a tradeoff has two trained
+  endpoints, survey the line between them before paying for points on
+  it — method and first application in
+  [blend-sweep-pattern.md](blend-sweep-pattern.md) (owner-flagged
+  2026-08-21; every outcome class is informative, including "the
+  basin isn't connected").
 
 ## Ownership
 

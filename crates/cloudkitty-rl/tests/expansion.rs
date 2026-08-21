@@ -1,7 +1,9 @@
 //! Spec 035: the surface-expansion export, end to end.
 //!
-//! The three committed pre-wall artifacts in `policies/` are the real
-//! old-generation fixtures (read-only); synthetic small ones are written
+//! The three committed pre-wall artifacts in `policies/retired/` (moved
+//! there at the phase-1 cutover, rows kept per the README's retirement
+//! rule) are the real old-generation fixtures (read-only); synthetic
+//! small ones are written
 //! with old-pin headers where cheap shapes are needed. The deaf/mute tests
 //! implement the U1 per-family split: v2 full presence-vs-absence deafness,
 //! v3 kind-identity insensitivity (relabeling equivalence).
@@ -22,7 +24,7 @@ use cloudkitty_rl::policy::{
 };
 
 fn policies_dir() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../policies")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../policies/retired")
 }
 
 fn temp_dir(label: &str) -> PathBuf {
