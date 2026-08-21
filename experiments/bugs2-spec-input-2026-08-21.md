@@ -230,3 +230,49 @@ not-this-generation. (b) Ask of Product: gate it like the rest of
 true for flag-ON; house preservation methodology still wants the
 off-state exact. (c) Known costs acknowledged (golden digest,
 cadence tests, Client's 3-tile dash-vs-teleport Pacer check).
+
+## THE RULING (owner, 2026-08-21) — fork resolved
+
+Owner verbatim: "We can also reduce greeble reward a little if we
+need to. I do like the idea of cats randomly pouncing at thin air,
+and would like greebles priced as an opportunistic target. We can
+bake these as is, run the numbers, and adjust reward values if
+needed to keep behavior opportunistic + not crushingly expensive
+for Biscuit."
+
+The thin-air line exposed a build fork (amendment 3's gate makes
+every pounce land — no whiffs ever; b044827's ungated pounce
+whiffs when the target moves, which IS the thin-air pounce), so it
+was put to her directly. Her answer: **Ungated.**
+
+What this resolves:
+- **Amendment 3 (parity gate) is DROPPED.** b044827's pounce ships
+  as measured — thin-air whiffs are kept deliberately, as charm.
+- **The greeble schedule is ADOPTED**: rest ticks via the shared
+  critter schedule ((tick+id)%2), per-moving-tick step uniform 1–3,
+  heading-persistence draw unchanged, flag-gated with the off-state
+  byte-identical. The only build delta atop b044827.
+- **The {25,26} parity sweep pre-registration DID NOT FIRE** — its
+  condition was the parity ruling, which was not given. Void, no
+  cell ever run. Bug sticker stays 28 as measured.
+- **The greeble conditional pre-registration FIRES, amended to the
+  actual build** (b044827 + greeble schedule, no gate): greeble
+  bars G1 (skilled greeble EV < team-duet, both geometries), G2
+  (greeble ruin ≤ ~1%, both skill rows), bug-vs-greeble ordering
+  report-and-escalate, sticker ladder {32, 30} largest-clearing if
+  G1 fails — her ruling pre-authorizes the reduction ("reduce
+  greeble reward a little if we need to"). Additionally the three
+  BUG bars re-verify at 28 on the amended build (easier greebles
+  can shift playful's chase allocation; b044827's bug numbers are
+  not assumed to carry). If bar 1 regresses below 10 at 28,
+  escalate to her — reward adjustment is now on the table by her
+  own word, but the number is hers to move.
+- **"Not crushingly expensive for Biscuit"** is a recorded
+  criterion with two adjudication points: the playful skill row of
+  this census (the Biscuit-character proxy — chase-tick spend and
+  EV vs b044827's readings), and the post-merge playful-anchor
+  re-baseline that SC-005 already owes.
+
+Sequence: Product builds the greeble schedule on 039-bugs2-tether →
+Experiments runs the amended acceptance census → numbers to the
+owner → her merge word → re-baseline per the definition of done.
