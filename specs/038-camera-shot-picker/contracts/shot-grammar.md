@@ -49,12 +49,13 @@ synthetic worlds; every clause below lands with a mutation-verified check.
   EQUAL the latched goal — no residual easing, no epsilon drift after.
 - **Pan commits**: once begun, decision steps 2–6 do not run until arrival
   (FR-013) — with ONE exception: a viewer follow change redirects
-  immediately (owner ruling 2026-08-21). Other episodes RE-LATCH through a
-  hysteresis: a fresh goal ≥ `relatchTiles` from the latched one starts a
-  NEW episode from the current frame (position-continuous by
-  construction); sub-threshold drift lets the episode complete and step
-  again from rest (re-amended 2026-08-21, high review — a mutated
-  in-flight goal was a single-frame cut past the aim-lead pin).
+  immediately (owner ruling 2026-08-21). Other episodes RE-LATCH whenever
+  their latched goal is violated and stale — per frame if needed — and
+  every re-latch CARRIES the running episode's velocity (Hermite, landing
+  at rest): motion between two rest states never passes through a stop
+  while its cause persists (owner ruling at live judging, 2026-08-21),
+  position can never jump (the mutated-goal cut), and a walker is one
+  continuous tracked move that still snaps exactly when she rests.
 - **Decisions read the DRAWN world**: still frames make no decisions and
   run no hold — a still view publishes served positions. Exemptions where
   served IS drawn: reduced motion, and the never-decided first paint

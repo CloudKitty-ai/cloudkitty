@@ -5583,6 +5583,15 @@ const camWorld = (width = 20, height = 20) => ({
  */
 const camView = (still = false, now = 1000) => ({ still, ambient: still ? null : { now } });
 
+/**
+ * Frames enough to complete one move (or pan) at the CURRENT dials, plus
+ * slack. Arrival drives must follow the dials, not remember old ones --
+ * the 2026-08-21 dial pass more than doubled both durations and every
+ * hardcoded 80-frame loop quietly stopped reaching arrival.
+ */
+const MOVE_FRAMES = Math.ceil(api.VIEW.camera.moveMs / 16.67) + 12;
+const PAN_FRAMES = Math.ceil(api.VIEW.camera.panMs / 16.67) + 12;
+
 check('the camera off frames the whole world and nothing else', () => {
   const world = camWorld();
   const cam = new api.Camera();
@@ -6631,7 +6640,7 @@ check('the toggle never releases a follow', () => {
   // holds. The field itself is deleted -- no production reader survived
   // the shot picker.
   let t = 32;
-  for (let i = 0; i < 80; i += 1) {
+  for (let i = 0; i < MOVE_FRAMES; i += 1) {
     cam.update(world, camView(false, (t += 16.67)), { aspect: 1, cssWidth: 1000 });
     if (!cam.episode && i > 0) break;
   }
@@ -7058,7 +7067,7 @@ check('an episode ends in an EXACT snap, and rest is bit-still', () => {
   cam.update(before, camView(false, 0), { aspect: 1, cssWidth: 1000 });
   // The pair teleports: the hold trips, one correction runs its course.
   let t = 0;
-  for (let i = 0; i < 60; i += 1) {
+  for (let i = 0; i < MOVE_FRAMES; i += 1) {
     t += 16.67;
     cam.update(after, camView(false, t), { aspect: 1, cssWidth: 1000 });
   }
@@ -7125,7 +7134,7 @@ check('toggling the camera ON narrows in one eased episode, never a cut', () => 
   let t = 0;
   let prev = cam.across;
   let shrank = false;
-  for (let i = 0; i < 80; i += 1) {
+  for (let i = 0; i < MOVE_FRAMES; i += 1) {
     t += 16.67;
     cam.update(world, camView(false, t), { aspect: 1, cssWidth: 1000 });
     assert(Math.abs(cam.across - prev) < 3,
@@ -7167,7 +7176,7 @@ check('a member pressing the safe-zone earns ONE correction, then rest', () => {
   }
   assert(episodes === 0, `an episode started while everyone was inside (${episodes})`);
   // One long stride past the boundary. ONE correction, run to rest.
-  for (let i = 0; i < 60; i += 1) step(8.4);
+  for (let i = 0; i < MOVE_FRAMES; i += 1) step(8.4);
   assert(episodes === 1, `${episodes} corrections for one press`);
   assert(cam.episode === null, 'the correction never came to rest');
   assert(cam.aimX === (3.5 + 8.9) / 2,
@@ -7204,7 +7213,7 @@ check('an overflow shot holds on its CENTRE and never chases edge kitties', () =
   }
   // The pair walks 3 tiles: the centre clears the 1.5-tile deadzone and
   // earns exactly one correction, to the NEW centre, exactly.
-  for (let i = 0; i < 60; i += 1) {
+  for (let i = 0; i < MOVE_FRAMES; i += 1) {
     t += 16.67;
     cam.update(spot(5, 19), camView(false, t), { aspect: 1, cssWidth: 1000 });
   }
@@ -7232,7 +7241,7 @@ check('a mid-episode press re-latches the goal ONCE, and still arrives', () => {
   // even the latched goal's safe zone.
   for (let i = 0; i < 10; i += 1) step(8.4);
   const goals = new Set([g1]);
-  for (let i = 0; i < 80; i += 1) {
+  for (let i = 0; i < MOVE_FRAMES; i += 1) {
     step(12.4);
     if (cam.episode) goals.add(cam.episode.goal.aimX);
   }
@@ -7424,7 +7433,7 @@ check('a dissolved shot re-frames through an eased break, never a cut', () => {
     t += 800;
     cam.update(world(tick), camView(false, t), { aspect: 1, cssWidth: 1000 });
   }
-  for (let i = 0; i < 120; i += 1) {
+  for (let i = 0; i < MOVE_FRAMES; i += 1) {
     t += 16.67;
     cam.update(world(api.VIEW.camera.shedDwellTicks + 1), camView(false, t), { aspect: 1, cssWidth: 1000 });
     const dx = Math.hypot(cam.aimX - prev.x, cam.aimY - prev.y);
@@ -7535,7 +7544,7 @@ check('a pan commits: the destination dissolving mid-flight changes nothing', ()
   // The destination scatters to the winds ON THE NEXT TICK, mid-pan.
   let t = 15 * 800;
   let arrived = false;
-  for (let i = 0; i < 80 && !arrived; i += 1) {
+  for (let i = 0; i < PAN_FRAMES && !arrived; i += 1) {
     t += 16.67;
     cam.update(world(16, true), camView(false, t), { aspect: 1, cssWidth: 1000 });
     if (cam.episode && cam.episode.committed) {
@@ -7683,7 +7692,13 @@ check('sixty RECORDED seconds where the flap LIVES: two events, no more', () => 
   assert(events <= 2,
     `${events} re-framing events in 60 recorded seconds -- this window produces 2 (SC-003)`);
   const rest = still / frames;
-  assert(rest >= 0.6, `at rest ${(100 * rest).toFixed(0)}% of the window -- measured 82%`);
+  // 53% at the owner's 2000ms moves (2026-08-21 dial pass) -- this
+  // window over-represents motion BY CONSTRUCTION (chosen for flap
+  // density), so SC-001's 60% bar does not apply to it: the full-capture
+  // replay owns that bar and reads 66% desktop / 71% phone at these
+  // dials. The window's rest assert exists so motion cannot quietly
+  // become perpetual here; it is pinned just under its measured value.
+  assert(rest >= 0.5, `at rest ${(100 * rest).toFixed(0)}% of the window -- measured 53%`);
 });
 
 /* ---- 038 US4: following composes with the grammar (T019-T020) ------ */
@@ -7786,7 +7801,7 @@ check('releasing a follow re-enters the grammar eased, never a cut', () => {
   let t = 0;
   let prev = { x: cam.aimX, y: cam.aimY };
   let arrived = false;
-  for (let i = 0; i < 120 && !arrived; i += 1) {
+  for (let i = 0; i < MOVE_FRAMES && !arrived; i += 1) {
     t += 16.67;
     cam.update(world(0), camView(false, t), { aspect: 1, cssWidth: 1000 });
     const d = Math.hypot(cam.aimX - prev.x, cam.aimY - prev.y);
@@ -7815,7 +7830,7 @@ check('a huddling shot breathes in: the frame eases tighter on its own', () => {
   const wide = cam.across;
   assert(wide > 11, `setup: the spread pair should sit wide, got ${wide.toFixed(2)}`);
   let t = 0;
-  for (let i = 0; i < 80; i += 1) {
+  for (let i = 0; i < MOVE_FRAMES; i += 1) {
     t += 16.67;
     cam.update(huddled, camView(false, t), { aspect: 1, cssWidth: 1000 });
   }
@@ -7918,7 +7933,7 @@ check('an emptied roster eases home to the whole world, never freezes', () => {
   assert(cam.episode !== null && cam.episode.goal.across === 20,
     `an empty roster left the camera ${cam.episode ? 'heading elsewhere' : 'frozen'} at ${cam.across} tiles`);
   // ONE episode, not a per-frame re-latch: it must actually ARRIVE.
-  for (let i = 0; i < 80 && cam.episode; i += 1) {
+  for (let i = 0; i < MOVE_FRAMES && cam.episode; i += 1) {
     cam.update(empty(2 + i), camView(false, (t += 16.67)), { aspect: 1, cssWidth: 1000 });
   }
   assert(cam.across === 20 && cam.left === 0 && cam.top === 0,
@@ -8251,14 +8266,14 @@ check('a mid-flight goal JUMP re-latches a fresh ease -- never a cut', () => {
     if (d > worst) worst = d;
     prev = { x: cam.aimX, y: cam.aimY, a: cam.across };
   };
-  for (let i = 0; i < 36; i += 1) stepFrame(1);
+  for (let i = 0; i < Math.ceil(0.86 * api.VIEW.camera.moveMs / 16.67); i += 1) stepFrame(1);
   assert(cam.episode !== null, 'setup: the correction should still be in flight');
   // A generation snap drops the far pair beside them -- one group now,
   // absorbed by membership follow with no grammar event; the goal jumps
   // ~2.3 tiles while the episode is nearly done.
   spots.set(3, { x: 13, y: 10 });
   spots.set(4, { x: 14, y: 10 });
-  for (let i = 0; i < 120; i += 1) stepFrame(2);
+  for (let i = 0; i < MOVE_FRAMES; i += 1) stepFrame(2);
   assert(worst <= 0.5,
     `the camera moved ${worst.toFixed(2)} tiles in ONE frame -- a cut (036 FR-008)`);
   assert(cam.episode === null, 'the re-latched ease never arrived');
@@ -8376,6 +8391,71 @@ check('a ghost tap is still a follow CHANGE: one owner for the edge', () => {
   assert(cam.followId === null, 'setup: the ghost follow should be dropped (FR-020)');
   assert(cam.unfitTicks === 0,
     `a follow change must reset the shed clock; it stands at ${cam.unfitTicks}`);
+});
+
+check('tracking a walker never passes through a stop: velocity is carried', () => {
+  // Owner, 2026-08-21 live judging: "fits and starts" -- the camera
+  // surged and stopped following a walker at the frame edge. Mechanism:
+  // every episode eased rest-to-rest, so a walker who re-violates on
+  // arrival got a CHAIN of S-curves, each decelerating to zero mid-chase.
+  // The amendment: episodes carry velocity -- a re-latch interpolates
+  // from the current position AND current velocity (Hermite), so motion
+  // between two rest states never passes through a stop while its cause
+  // persists. Arrival still snaps exactly; rest is still bit-still.
+  const drawn = new Map();
+  const view = (now) => ({ still: false, ambient: { now }, posFor: (k) => drawn.get(k.id) });
+  const worldAt = (t) => ({
+    width: 20,
+    height: 20,
+    tick: t,
+    elements: [],
+    kitties: [
+      { id: 1, pos: { x: Math.round(drawn.get(1).x), y: 0 } },
+      { id: 2, pos: { x: 5, y: 0 } },
+    ],
+  });
+  const cam = new api.Camera();
+  cam.on = true;
+  drawn.set(1, { x: 2, y: 0 });
+  drawn.set(2, { x: 5, y: 0 });
+  cam.update(worldAt(0), view(0), { aspect: 1, cssWidth: 390 });
+  // She walks the fence for five seconds at 1.5 tiles/s -- long enough
+  // for a sustained chase, short enough that the pair still FITS when
+  // she rests (a longer walk ends in an overflow pair, where FR-007a
+  // deliberately holds the centre and lets her ride half-out of frame).
+  let now = 0;
+  let moving = false;
+  let stops = 0;
+  let prevAim = cam.aimX;
+  for (let i = 0; i < 300; i += 1) {
+    now += 16.67;
+    drawn.set(1, { x: 2 + Math.min(1.5 * (now / 1000), 16), y: 0 });
+    cam.update(worldAt(Math.floor(now / 800)), view(now), { aspect: 1, cssWidth: 390 });
+    const speed = Math.abs(cam.aimX - prevAim) / 16.67;
+    prevAim = cam.aimX;
+    // Once the chase is underway, a frame at near-zero aim speed while
+    // the camera is ACTIVELY pursuing is a stop -- the surge boundary the
+    // owner can see. "Actively pursuing" = the episode was (re)latched
+    // recently (elapsed in its first half): during a live chase the goal
+    // re-latches every frame and elapsed stays near zero, while an
+    // episode running out its clock UN-violated is the aim legitimately
+    // parked (it lands at AIM_LEAD) while the width finishes -- an
+    // arrival, not a stall.
+    if (moving && cam.episode !== null
+      && cam.episode.elapsed < cam.episode.duration / 2 && speed < 2e-5) stops += 1;
+    if (speed > 2e-4) moving = true;
+  }
+  assert(stops === 0,
+    `the chase passed through ${stops} near-stop frames -- the surge-stop rhythm`);
+  // And when she rests, the camera still ARRIVES and goes bit-still.
+  for (let i = 0; i < MOVE_FRAMES * 2 && cam.episode; i += 1) {
+    now += 16.67;
+    cam.update(worldAt(Math.floor(now / 800)), view(now), { aspect: 1, cssWidth: 390 });
+  }
+  assert(cam.episode === null, 'the chase never resolved to rest after she stopped');
+  const wx = drawn.get(1).x + 0.5;
+  assert(wx > cam.left && wx < cam.left + cam.across,
+    `at rest the walker (x ${wx.toFixed(1)}) is outside the frame`);
 });
 
 check('the waterline is centred on the cat\'s body, not on her box', () => {

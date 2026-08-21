@@ -258,19 +258,6 @@ const VIEW = Object.freeze({
     // so a 1.3 threshold never fired at the median and the width never
     // moved -- the dial must sit BELOW the drift it is meant to catch.
     tightenFrac: 1.15,
-    // Mid-episode re-latch hysteresis, in tiles (review 2026-08-21,
-    // finding 1). A fresh goal at least this far from the LATCHED one
-    // (aim distance or width change) starts a NEW episode from the
-    // camera's current position; anything closer lets the latched episode
-    // complete and step again from rest. The band is what separates the
-    // two failure modes on either side of it: per-frame drawn drift is
-    // <= ~0.03 tiles (1.5 tiles/s at 60fps), so continuous walkers can
-    // never re-latch every frame (the zero-slope crawl), while membership
-    // absorptions and generation snaps move goals whole tiles and MUST
-    // re-latch rather than warp the in-flight interpolation (the cut).
-    // Sits well under aimDeadzoneTiles (1.5), so overflow corrections
-    // still respond long before their deadzone would re-arm.
-    relatchTiles: 0.5,
     // The inner region of the frame the shot may wander inside without the
     // camera moving AT ALL. A member pressing past it earns one eased
     // correction, then stillness again (038 FR-006/FR-007).
@@ -278,8 +265,8 @@ const VIEW = Object.freeze({
     // Episode durations. Every camera-mode move latches a goal, eases over
     // one of these, snaps EXACTLY on arrival and returns to rest -- there
     // is no per-frame pursuit left to trail off (038 FR-006, research D7).
-    moveMs: 700, // corrections, widens, sheds, break re-frames
-    panMs: 1100, // the one committed fast move (038 FR-013)
+    moveMs: 2000, // corrections, widens, sheds, break re-frames (owner-judged live, 2026-08-21; was 700)
+    panMs: 3000, // the one committed fast move, 038 FR-013 (owner-judged live, 2026-08-21; was 1100)
     // Breathing room around the shot, per side, as a FRACTION of the frame
     // -- 0.195 is today's 2.6 tiles over the 13.33-tile desktop ceiling,
     // so desktop framing is unchanged while the phone margin finally
@@ -2779,9 +2766,29 @@ class Camera {
       kind,
       from: { aimX: this.aimX, aimY: this.aimY, across: this.across },
       goal,
+      // The velocity this move INHERITS (per-ms, zeros from rest). A
+      // re-latch mid-flight hands its momentum to the next curve, so
+      // motion between two rest states never passes through a stop while
+      // its cause persists -- the owner's "fits and starts", resolved
+      // structurally (2026-08-21).
+      v0: this.episodeVelocity(),
       elapsed: 0,
       duration: kind === 'pan' ? this.dials.panMs : this.dials.moveMs,
       committed: kind === 'pan',
+    };
+  }
+
+  /** The running episode's current per-ms velocity, or zeros at rest. */
+  episodeVelocity() {
+    const ep = this.episode;
+    if (!ep) return { ax: 0, ay: 0, ac: 0 };
+    const lead = ep.duration * Camera.AIM_LEAD;
+    const tA = Math.min(1, ep.elapsed / lead);
+    const tW = Math.min(1, ep.elapsed / ep.duration);
+    return {
+      ax: hermiteVel(ep.from.aimX, ep.goal.aimX, ep.v0.ax * lead, tA) / lead,
+      ay: hermiteVel(ep.from.aimY, ep.goal.aimY, ep.v0.ay * lead, tA) / lead,
+      ac: hermiteVel(ep.from.across, ep.goal.across, ep.v0.ac * ep.duration, tW) / ep.duration,
     };
   }
 
@@ -2915,11 +2922,11 @@ class Camera {
 
     // -- The hold -------------------------------------------------------
     // At REST, a violation of the CURRENT frame starts one correction; mid
-    // NON-PAN episode, a violation of the LATCHED GOAL re-latches a fresh
-    // episode from the current position ONLY when the goal has moved >=
-    // relatchTiles (research D9, re-amended 2026-08-21) -- evaluated
-    // against the goal, not the moving frame. A pan is committed and
-    // looks at nothing.
+    // NON-PAN episode, a violation of the LATCHED GOAL re-latches a
+    // velocity-carrying episode from the current state whenever the goal
+    // has actually moved (research D9, re-amended 2026-08-21 twice) --
+    // evaluated against the goal, not the moving frame. A pan is
+    // committed and looks at nothing.
     //
     // NEVER on a still frame: `viewAt(now, true)` publishes SERVED
     // positions (posFor is `kitty.pos`), up to a tile ahead of the drawn
@@ -2942,32 +2949,24 @@ class Camera {
         const violated = this.holdViolated(probe, shotCats, at, aspect, world, ceilingTiles);
         const slack = violated ? 0 : probe.across / Math.max(1e-6, goal.across);
         if (violated || slack > this.dials.tightenFrac) {
-          if (!this.episode) {
-            // At REST, move only when moving HELPS. Near the world's edge
-            // the clamp can leave a member outside ANY legal frame's safe
-            // zone -- a kitty sleeping against the fence -- and for her
-            // the fresh goal is IDENTICAL, so it must trigger nothing or
-            // the hold restarts the same episode forever: a crawl, the
-            // exact busyness this grammar exists to kill.
-            const same = Math.abs(goal.aimX - probe.aimX) < 1e-6
-              && Math.abs(goal.aimY - probe.aimY) < 1e-6
-              && Math.abs(goal.across - probe.across) < 1e-6;
-            if (!same) this.startEpisode('correction', goal);
-          } else if (Math.hypot(goal.aimX - probe.aimX, goal.aimY - probe.aimY)
-              >= this.dials.relatchTiles
-            || Math.abs(goal.across - probe.across) >= this.dials.relatchTiles) {
-            // Mid-flight the goal has moved MATERIALLY (a membership
-            // absorption, a generation snap): re-latch a FRESH episode
-            // from the camera's current position -- continuous by
-            // construction, eased from rest (review 2026-08-21, finding
-            // 1: mutating the in-flight goal moved position by
-            // ease(t) x delta in ONE frame, a literal teleport past the
-            // aim-lead pin). Sub-threshold drift -- a walking member --
-            // deliberately does nothing here: the latched episode
-            // completes on its own clock and the hold steps again from
-            // rest, which is what tracks a fence walker without the
-            // per-frame clock restarts that caused the crawl.
-            this.startEpisode(this.episode.kind, goal);
+          // Move only when moving HELPS. Near the world's edge the clamp
+          // can leave a member outside ANY legal frame's safe zone -- a
+          // kitty sleeping against the fence -- and for her the fresh
+          // goal is IDENTICAL, so it must trigger nothing or the hold
+          // restarts the same episode forever. When the goal HAS moved, a
+          // re-latch is free at any cadence: the new episode inherits the
+          // old one's position AND velocity (Hermite), so a walker is one
+          // continuous tracked move -- no zero-slope crawl (the restart
+          // bug), no single-frame warp (the goal-mutation bug), and no
+          // surge-stop rhythm at episode seams (the owner's ruling,
+          // 2026-08-21) -- and a fidgeting shot still ARRIVES, because an
+          // un-violated goal never re-latches and the last episode runs
+          // out its clock and snaps.
+          const same = Math.abs(goal.aimX - probe.aimX) < 1e-6
+            && Math.abs(goal.aimY - probe.aimY) < 1e-6
+            && Math.abs(goal.across - probe.across) < 1e-6;
+          if (!same) {
+            this.startEpisode(this.episode ? this.episode.kind : 'correction', goal);
           }
         }
       }
@@ -2989,12 +2988,24 @@ class Camera {
       } else {
         // The aim settles slightly faster than the width (036 FR-009,
         // kept through the episode model): it finishes its travel at
-        // AIM_LEAD of the duration, on the same curve.
-        const wT = easeInOutCubic(t);
-        const aT = easeInOutCubic(Math.min(1, t / Camera.AIM_LEAD));
-        this.aimX = ep.from.aimX + (ep.goal.aimX - ep.from.aimX) * aT;
-        this.aimY = ep.from.aimY + (ep.goal.aimY - ep.from.aimY) * aT;
-        this.across = ep.from.across + (ep.goal.across - ep.from.across) * wT;
+        // AIM_LEAD of the duration. Each channel rides a Hermite that
+        // starts at the INHERITED velocity and lands at rest.
+        const lead = ep.duration * Camera.AIM_LEAD;
+        const tA = Math.min(1, ep.elapsed / lead);
+        this.aimX = hermite(ep.from.aimX, ep.goal.aimX, ep.v0.ax * lead, tA);
+        this.aimY = hermite(ep.from.aimY, ep.goal.aimY, ep.v0.ay * lead, tA);
+        // Carried momentum can OVERSHOOT the width a hair past the 037
+        // band, and the band is a hard invariant -- but a transit that
+        // legitimately STARTS outside it (toggling on from the
+        // whole-world 20 tiles) must pass through smoothly, so the clip
+        // widens to admit the start point. Aim overshoot stays unclipped:
+        // a slight swing-through reads as momentum, and clampFrame keeps
+        // the frame inside the world regardless.
+        this.across = Math.min(
+          Math.max(hermite(ep.from.across, ep.goal.across, ep.v0.ac * ep.duration, t),
+            Math.min(floorTiles, ep.from.across)),
+          Math.max(ceilingTiles, ep.from.across),
+        );
       }
     }
     // A still frame (dt 0) is the same moment drawn again: the episode
@@ -3011,6 +3022,23 @@ class Camera {
 /** The aim's head start inside an episode: it finishes at this fraction of
  *  the duration, so the zoom lags the pan slightly (036 FR-009). */
 Camera.AIM_LEAD = 0.85;
+
+/**
+ * Cubic Hermite on [0,1] with an INITIAL tangent and a rest landing --
+ * the curve that lets an episode inherit the previous episode's momentum
+ * (owner, 2026-08-21: chained rest-to-rest S-curves read as fits and
+ * starts on a walker). m0 is the start tangent in unit time (per-ms
+ * velocity x the channel's own duration); the end tangent is always 0,
+ * so every episode still lands at rest and snaps exactly. With m0 = 0
+ * this is a plain smoothstep -- a fresh move from rest is unchanged in
+ * character.
+ */
+const hermite = (p0, p1, m0, t) => p0 * (2 * t ** 3 - 3 * t * t + 1)
+  + m0 * (t ** 3 - 2 * t * t + t) + p1 * (-2 * t ** 3 + 3 * t * t);
+
+/** Its velocity, in the same unit time (divide by the duration for per-ms). */
+const hermiteVel = (p0, p1, m0, t) => p0 * (6 * t * t - 6 * t)
+  + m0 * (3 * t * t - 4 * t + 1) + p1 * (6 * t - 6 * t * t);
 
 /** Two id-sets with the same members. */
 const setsEqual = (a, b) => a.size === b.size && [...a].every((id) => b.has(id));

@@ -148,19 +148,19 @@ wander before the camera cares."
 **pan** (committed: runs to completion, no re-decision until arrival, spec
 FR-013) > **break re-frame** > **shed** > **widen** > **correction**. A
 fresh trigger at REST starts one episode; mid-episode (except mid-pan) a
-goal that has moved ≥ `relatchTiles` from the latched one RE-LATCHES a
-fresh episode from the camera's CURRENT position; sub-threshold drift lets
-the latched episode complete and step again from rest. (Twice amended
-2026-08-21. First cut: restarting the clock per frame pinned the ease at
-its zero-slope start — a fence walker was crawled after, not tracked.
-Second cut re-AIMED the in-flight goal with the clock intact — smooth for
-drift, but a membership absorption or generation snap moved the goal tiles
-at once and position jumped ease(t)×delta in ONE frame, a cut past the
-aim-lead pin. The hysteresis separates the two regimes: drawn drift is
-≤ ~0.03 tiles/frame and can never re-latch per frame; discontinuous moves
-exceed the band and get a fresh eased episode, continuous by
-construction.) The pan's commitment has one exception: a viewer follow
-change redirects immediately (owner ruling 2026-08-21).
+moved goal RE-LATCHES a new episode that inherits the old one's position
+AND VELOCITY (a cubic Hermite with the carried tangent, landing at rest),
+at any cadence — per frame during a live chase. (Thrice amended
+2026-08-21, each cut teaching the next: restarting the clock at zero
+velocity per frame was the crawl; mutating the in-flight goal was a
+single-frame cut past the aim-lead pin; a hysteresis band between the two
+produced rest-to-rest S-curve CHAINS that the owner judged live as "fits
+and starts". Velocity carry dissolves the trilemma: restarts are free, so
+a walker is ONE continuous tracked move that still ends in an exact snap
+when its cause clears, and rest remains bit-still. The `relatchTiles`
+band was retired the day it was born.) The pan's commitment has one
+exception: a viewer follow change redirects immediately (owner ruling
+2026-08-21).
 
 **Rationale**: the spec makes pan the only committed move; everything else
 may be superseded by fresher geometry, but episodic re-aiming (not
@@ -224,10 +224,10 @@ decide step choosing the subject chain.
 | `farDwellTicks` | 15 | new — the owner's number |
 | `shedDwellTicks` | 3 | new — added at acceptance (shed flap, see acceptance-2026-08-21.md) |
 | `tightenFrac` | 1.15 | new — added at acceptance (stale-wide frames) |
-| `relatchTiles` | 0.5 | new — added at high review (finding 1): mid-episode re-latch hysteresis; sits 20× above per-frame drawn drift and ⅓ of aimDeadzoneTiles |
+| ~~`relatchTiles`~~ | — | retired same-day (2026-08-21): the hysteresis existed only because re-latches zeroed velocity; velocity carry (D9) made it moot |
 | `safeZoneFrac` | 0.80 | new — lab-judged |
-| `moveMs` | 700 | new — gentle episode duration, lab-judged |
-| `panMs` | 1100 | new — fast episode duration, lab-judged |
+| `moveMs` | 2000 | owner-judged LIVE at the T026 dial pass (2026-08-21; 700 and 1000 both read too fast) |
+| `panMs` | 3000 | owner-judged live with moveMs, same session (was 1100) |
 | `fitMarginFrac` | 0.195 | new — replaces `fitMarginTiles` (D4) |
 | `aimDeadzoneTiles` | 1.5 | kept — new role: overflow centre tolerance (D8) |
 | `floorPx ceilingPx minTiles minZoomVsBase ceilingRows maxFrameMs` | as shipped | kept — 037 bounds, out of scope |

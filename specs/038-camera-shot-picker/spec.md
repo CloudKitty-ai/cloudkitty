@@ -301,7 +301,11 @@ gathering elsewhere does not move the camera.
 - **FR-007**: When a shot member presses the safe-zone boundary, the camera
   MUST make one eased correction that restores comfortable room and then
   return to rest. Corrections use gentle easing, frame-rate corrected
-  (036 FR-009 unchanged).
+  (036 FR-009 unchanged). Chained corrections are VELOCITY-CONTINUOUS
+  (owner, 2026-08-21, live judging): while a correction's cause persists —
+  a walking kitty re-pressing the frame — successive moves inherit their
+  momentum and read as one continuous follow, never as surge-and-stop;
+  the final move still ends in an exact snap and full rest.
 - **FR-007a**: When the shot cannot fully fit the frame (an overflow shot —
   common on the phone), the hold applies to the shot's CENTRE instead of to
   member containment: the camera is still while the centre stays within a

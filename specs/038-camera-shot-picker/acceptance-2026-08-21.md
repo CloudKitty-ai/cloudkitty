@@ -119,6 +119,24 @@ window ties, strict-majority chains, and a second recorded harness
 window (ticks 164–238) chosen because the dwell demonstrably has teeth
 there — the first SC-003 guard that can fail on real data in CI.
 
+## T026 dial pass, first live session — 2026-08-21
+
+The owner judged the live world: framing "much better", but chained
+corrections read as "fits and starts" and both speeds too fast. Her
+rulings, all implemented: **moveMs 2000 / panMs 3000** (judged live
+through 700 → 1000 → 2000), and the **velocity-carry amendment** (FR-007
+dated note): re-latches inherit momentum on a Hermite, so a tracked
+walker never passes through a stop; `relatchTiles` retired same-day.
+
+Full-capture replay at her dials: **desktop rest 66%, re-framing
+2.79/min (OFF the line at last), corrections 5.14/min (was 9.0) —
+chained pursuits now count once; at-ceiling 1%, size 1.36×, maximal 90%
+/ 3.29. Phone rest 71%, re-framing 2.36/min, size 1.85×.** Every SC
+passes both viewports; SC-001 dropped 86→66 desktop (the price of 2s
+moves, well above the 60% bar). The flap-window harness check re-pinned
+at its measured 53% rest (motion-heavy by construction; the full capture
+owns SC-001).
+
 ## Open for T026 (owner's live gate)
 
 - Judge the feel at 3/4/5 kitties and on the handset (SC-010).
