@@ -161,7 +161,8 @@ def load_model(spec):
 
 
 def run_one(args):
-    seating_name, seed, ticks, config_path = args
+    seating_name, seed, ticks, config_path, biscuit_override = (
+        args if len(args) == 5 else (*args, None))
     import cloudkitty
     import numpy as np
 
@@ -170,7 +171,11 @@ def run_one(args):
     floor = cfg["happiness"]["floor"]
     kitties = cfg["kitty"]
     roster = len(kitties)
-    seats = SEATINGS[seating_name]
+    seats = list(SEATINGS[seating_name])
+    if biscuit_override:
+        # report-only sweep support (weight blends): swap the Biscuit
+        # seat's spec; the override lands in the output filename
+        seats[1] = biscuit_override
     assert len(seats) == roster, (seating_name, roster)
 
     control = {f"kitty_{k['id']}": "needs_driven"
@@ -263,13 +268,16 @@ def main():
     ap.add_argument("--config", type=Path, default=REPO / "cloudkitty.toml")
     ap.add_argument("--workers", type=int, default=6)
     ap.add_argument("--out-dir", type=Path, default=HERE / "results-raw")
+    ap.add_argument("--biscuit", default=None,
+                    help="override the Biscuit seat's spec (report-only "
+                         "sweeps, e.g. ppo:blends/anchor-L04s1-a50)")
     args = ap.parse_args()
 
     prov = provenance(args.config)
     print("provenance:", json.dumps(prov))
     seed0 = args.seed0 if args.seed0 is not None else BANDS[args.band]
-    jobs = [(args.seating, seed0 + i, args.ticks, args.config)
-            for i in range(args.seeds)]
+    jobs = [(args.seating, seed0 + i, args.ticks, args.config,
+             args.biscuit) for i in range(args.seeds)]
     args.out_dir.mkdir(exist_ok=True)
     rows = []
     with ProcessPoolExecutor(max_workers=args.workers) as px:
@@ -279,7 +287,10 @@ def main():
             print(f"{r['seating']} {args.band} seed {r['seed']}: "
                   f"nash {nash} mda {r['max_distress_age']} "
                   f"ft {sum(r['floor_touches'])}", flush=True)
-    out = args.out_dir / f"battery-{args.seating}--{args.band}.json"
+    tag = ""
+    if args.biscuit:
+        tag = "+" + args.biscuit.split(":", 1)[-1].replace("/", "-")
+    out = args.out_dir / f"battery-{args.seating}{tag}--{args.band}.json"
     out.write_text(json.dumps({"provenance": prov, "rows": rows},
                               indent=1) + "\n")
     import numpy as np
