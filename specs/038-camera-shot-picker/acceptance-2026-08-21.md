@@ -97,6 +97,28 @@ guard, follow-companion dwell, follow-tap-overrides-pan (owner ruling),
 one-heir evidence chains. Full list: commit 8cffb3f and the amended
 contract.
 
+## Second re-measurement — 2026-08-21, commit a7c0dcc (high review)
+
+A high-effort review of the remediated branch confirmed 10 further
+findings (edge-transition and guard-strength class); all fixed red-first
+(harness 268 → 276). Same capture, same replay:
+
+- **Desktop: bit-identical on every number** — rest 86%, re-framing
+  3.00/min, at-ceiling 3%, size 1.36×, maximal-or-tied 90% / 3.29.
+- **Phone: every bar still passes**, slightly better where it moved —
+  re-framing 2.36/min unchanged, rest 90% unchanged, median width
+  7.80 → 7.00 (the floor; the shed licence and re-latch hysteresis stop
+  frames idling wide), size 1.75× → 1.9×, at-ceiling 51 → 48%.
+
+Behavioural deltas folded in: re-latch hysteresis (`relatchTiles` 0.5 —
+no single-frame cut on membership absorptions or generation snaps),
+decisions gated off still frames (taps/toggles read the drawn world),
+reduced-motion mid-episode arrival, the shed licence (a shed that cannot
+restore fit never fires), one shed clock for both modes, order-proof
+window ties, strict-majority chains, and a second recorded harness
+window (ticks 164–238) chosen because the dwell demonstrably has teeth
+there — the first SC-003 guard that can fail on real data in CI.
+
 ## Open for T026 (owner's live gate)
 
 - Judge the feel at 3/4/5 kitties and on the handset (SC-010).
