@@ -183,7 +183,7 @@ for pin, solo, and suppressed rivals pass.
 
 ## Phase 7: Polish & Cross-Cutting
 
-- [ ] T021 Delete the dead machinery from `client/anim.js`: `anchorFor`, the
+- [x] T021 Delete the dead machinery from `client/anim.js`: `anchorFor`, the
       `hysteresis` dial, camera-mode `panRate`/`zoomRate` use,
       `fitMarginTiles`; resolve T002's must-go-red pile (each red check
       replaced by its 038 successor or deleted with a pointer to the

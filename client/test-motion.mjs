@@ -6396,13 +6396,12 @@ check('a pair too far to fit becomes a centred overflow shot, not a chase', () =
   }
 });
 
-check('the anchor is the kitty inside the cluster, not the outlier', () => {
-  // Three together, one away. The centre of mass is pulled toward the
-  // cluster, so the nearest kitty to it is one of the three.
-  const world = camAt([9, 10], [10, 10], [11, 10], [19, 10]);
-  const cam = onCam(world);
-  assert(cam.anchorId !== 4, 'the camera anchored on the outlier');
-});
+/* Two anchor-era checks stood here -- 'the anchor is the kitty inside the
+ * cluster' and 'the anchor holds until another kitty is clearly more
+ * central'. The 038 shot picker has no group-mode anchor, so both went
+ * VACUOUS (anchorId is null in group mode and never flips). Their jobs
+ * live on in 'a cold-start tie between equal windows breaks on id' and
+ * 'an equal-size rival never takes the shot from the incumbent'. */
 
 check('a cold-start tie between equal windows breaks on id, not array order', () => {
   // Two pairs, equally big, too far apart to share a frame: the maximal
@@ -6426,24 +6425,6 @@ check('a cold-start tie between equal windows breaks on id, not array order', ()
   assert(a.shotIds.has(1) && a.shotIds.has(2),
     `expected the lowest-id group to win the tie, got {${[...a.shotIds]}}`);
   assert(a.aimX === b.aimX && a.aimY === b.aimY, 'the aim moved with the array order');
-});
-
-check('the anchor holds until another kitty is clearly more central', () => {
-  // Without hysteresis this walk flips the anchor every frame it crosses
-  // the midpoint, which is the flicker kitten.me deleted a snap rule over.
-  const cam = new api.Camera();
-  cam.on = true;
-  let flips = 0;
-  let last = null;
-  for (let step = 0; step <= 20; step += 1) {
-    // Two kitties drifting past each other through the centre of mass.
-    const world = camAt([10 - step * 0.0, 10], [10, 10]);
-    world.kitties[0].pos = { x: 9 + step * 0.1, y: 10 };
-    cam.update(world, camView(false, 1000 + step * 16), { aspect: 1, cssWidth: 1000 });
-    if (last !== null && cam.anchorId !== last) flips += 1;
-    last = cam.anchorId;
-  }
-  assert(flips <= 1, `the anchor changed ${flips} times crossing one midpoint`);
 });
 
 check('an equal-size rival never takes the shot from the incumbent', () => {
@@ -7696,8 +7677,36 @@ check('releasing a follow re-enters the grammar eased, never a cut', () => {
 });
 
 check('aim settles faster than width, so the zoom lags the pan', () => {
-  assert(api.VIEW.camera.panRate > api.VIEW.camera.zoomRate,
-    'the zoom is not slower than the pan');
+  // 036 FR-009's ordering, kept through the episode model: within one
+  // episode the aim finishes its travel at AIM_LEAD of the duration.
+  // Mid-flight the aim's progress fraction strictly leads the width's;
+  // at arrival both snap exactly (the snap check owns that half).
+  const before = camAt([3, 3], [4, 3]);
+  // The destination SPREADS the pair (two groups, one window), so the
+  // episode travels in BOTH aim and width -- a huddled destination left
+  // the width delta at zero and the first cut of this check measured
+  // nothing (caught by its own AIM_LEAD mutation staying green).
+  const after = camAt([12, 12], [19, 12]);
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(before, camView(false, 0), { aspect: 1, cssWidth: 1000 });
+  const from = { x: cam.aimX, a: cam.across };
+  let t = 0;
+  let sawLead = false;
+  for (let i = 0; i < 20; i += 1) {
+    t += 16.67;
+    cam.update(after, camView(false, t), { aspect: 1, cssWidth: 1000 });
+    if (!cam.episode) break;
+    const g = cam.episode.goal;
+    const aimProg = Math.abs(cam.aimX - from.x) / Math.abs(g.aimX - from.x);
+    const widthProg = Math.abs(cam.across - from.a) / Math.max(1e-9, Math.abs(g.across - from.a));
+    if (aimProg > 0.05 && aimProg < 0.95) {
+      assert(aimProg > widthProg,
+        `mid-episode the aim (${aimProg.toFixed(3)}) does not lead the width (${widthProg.toFixed(3)})`);
+      sawLead = true;
+    }
+  }
+  assert(sawLead, 'the drive never sampled mid-episode, so this witnessed nothing');
 });
 
 check('the waterline is centred on the cat\'s body, not on her box', () => {

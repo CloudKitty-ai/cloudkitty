@@ -225,10 +225,9 @@ const VIEW = Object.freeze({
     // (FR-013) and the camera pans without ever zooming. Zoom range first
     // appears at a 351px map, against 301px before. Accepted: the owner's
     // ruling of 2026-08-19 is that zoom range is instrumental, not a goal.
-    fitMarginTiles: 2.6, // clear space beyond the outermost kitty
-    panRate: 0.06, // per-frame at 60Hz, corrected for real frame rate
-    zoomRate: 0.05, // slower than the pan, so width lags the aim slightly
-    hysteresis: 2.5, // another kitty must be 2.5x more central to take the anchor
+    // fitMarginTiles, panRate, zoomRate and hysteresis died with the
+    // aim-chase model (spec 038): the margin is fitMarginFrac below, the
+    // rates became episode durations, and incumbency replaced hysteresis.
     // The shot grammar (spec 038). Groups are connected components at this
     // link radius; measured (client-measurements/camera-aim): identity
     // survives a median 88s at 5, the phone re-frames least, 4 is twitchy
@@ -257,13 +256,12 @@ const VIEW = Object.freeze({
     // so desktop framing is unchanged while the phone margin finally
     // scales down (2.6 absolute tiles was 68% of its 7.6-tile frame).
     fitMarginFrac: 0.195,
-    // How far the group may drift before the camera moves at all. Without
-    // this the aim tracks a statistic that changes every tick, so the
-    // camera is never once still -- it pans, reverses, and pans again as
-    // first one kitty then another takes the edge of the group. Measured
-    // against the live world, 2026-08-17: at 0 the camera holds for 19% of
-    // ticks, at 1.5 for 78%, and containment stays at 100% throughout,
-    // because `fitMarginTiles` was already buying the slack this spends.
+    // How far an OVERFLOW shot's box centre may drift before the camera
+    // moves at all (038 FR-007a). Its old job -- damping the aim-chase --
+    // died with the chase; what survives is the judged distance at which
+    // "the subject wandered" starts to be true. Measured against the live
+    // world, 2026-08-17: at 0 the camera holds for 19% of ticks, at 1.5
+    // for 78%.
     aimDeadzoneTiles: 1.5,
     hitRadiusFloorPx: 22, // a kitty stays tappable at ~23px on a phone at the ceiling
     // A backgrounded tab returns with a vast dt. Uncorrected that eases to
@@ -2803,10 +2801,20 @@ class Camera {
           ? { aimX: this.aimX, aimY: this.aimY, across: this.across }
           : null;
       if (probe && this.holdViolated(probe, shotCats, at, aspect, world, ceilingTiles)) {
-        this.startEpisode(
-          this.episode ? this.episode.kind : 'correction',
-          this.goalFrameFor(shotCats, at, aspect, floorTiles, ceilingTiles),
-        );
+        // Move only when moving HELPS. Near the world's edge the clamp can
+        // leave a member outside ANY legal frame's safe zone -- a kitty
+        // sleeping against the fence, a spread shot pushed off-centre.
+        // Without this guard the hold re-latches the SAME goal every frame
+        // and the episode's clock restarts forever: a crawl, the exact
+        // busyness this grammar exists to kill. Found by the aim-lead
+        // check refusing to sample a crawling episode.
+        const goal = this.goalFrameFor(shotCats, at, aspect, floorTiles, ceilingTiles);
+        const same = Math.abs(goal.aimX - probe.aimX) < 1e-6
+          && Math.abs(goal.aimY - probe.aimY) < 1e-6
+          && Math.abs(goal.across - probe.across) < 1e-6;
+        if (!same) {
+          this.startEpisode(this.episode ? this.episode.kind : 'correction', goal);
+        }
       }
     }
 
