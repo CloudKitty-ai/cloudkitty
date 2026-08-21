@@ -335,7 +335,13 @@ gathering elsewhere does not move the camera.
   licence to shed is RESTORING fit: when no shed can bring the remainder
   under the ceiling (the followed kitty's own group past it, say), nothing
   is shed and the overflow centre-hold (FR-007a) governs (2026-08-21,
-  high review).
+  high review). A shed or break with an established in-band frame
+  re-centres at HELD width — the pan and the zoom decompose, and the
+  standing breathe-in owns the zoom, from rest, slowly (owner, 2026-08-21
+  live judging: the combined pan+zoom re-frames were the visible
+  "substantial moves"). Widens keep their width change; a re-frame from
+  outside the zoom band (toggling on from the whole world) keeps its
+  single narrowing ease.
 - **FR-011**: If the shot falls below two kitties, it breaks: the camera MUST
   re-frame per FR-003/FR-004, eased, without a cut.
 

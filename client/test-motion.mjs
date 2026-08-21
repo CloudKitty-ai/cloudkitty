@@ -8458,6 +8458,68 @@ check('tracking a walker never passes through a stop: velocity is carried', () =
     `at rest the walker (x ${wx.toFixed(1)}) is outside the frame`);
 });
 
+check('a shed is a PAN at held width; the breathe-in owns the zoom', () => {
+  // Owner, 2026-08-21 live judging (T026): membership re-frames read as
+  // the "substantial moves" -- one motion carrying ~5 tiles of travel AND
+  // ~3 tiles of zoom. FR-010 as amended: the shed re-centres at HELD
+  // width, then the standing breathe-in tightens from rest, slowly. The
+  // rest-gate on the tighten is load-bearing: without it the hold
+  // re-latches the tight goal one frame after the shed latches and the
+  // decomposition vanishes (measured, not assumed).
+  const world = (t, bx) => ({
+    width: 20,
+    height: 20,
+    tick: t,
+    elements: [],
+    kitties: [
+      { id: 1, pos: { x: 3, y: 10 } },
+      { id: 2, pos: { x: 4, y: 10 } },
+      { id: 3, pos: { x: bx, y: 10 } },
+      { id: 4, pos: { x: bx + 1, y: 10 } },
+    ],
+  });
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(world(0, 10), camView(false, 0), { aspect: 1, cssWidth: 1000 });
+  assert(cam.shotIds.size === 4, 'setup: the four should share the frame');
+  let t = 0;
+  let tick = 0;
+  const step = (bx) => {
+    t += 16.67;
+    cam.update(world(tick, bx), camView(false, t), { aspect: 1, cssWidth: 1000 });
+  };
+  // The far pair walks out of fit; the dwell runs; the shed fires.
+  const dwell = api.VIEW.camera.shedDwellTicks;
+  for (tick = 1; tick <= dwell; tick += 1) {
+    t = tick * 800;
+    cam.update(world(tick, 14), camView(false, t), { aspect: 1, cssWidth: 1000 });
+  }
+  assert(cam.episode !== null && cam.episode.kind === 'shed', 'setup: the shed never fired');
+  const held = cam.episode.goal.across;
+  assert(held > 12,
+    `the shed latched at ${held.toFixed(2)} tiles -- it zoomed with the pan instead of holding width`);
+  // Mid-flight the goal stays held: the tighten must not collapse it.
+  tick = dwell + 1;
+  for (let i = 0; i < 30; i += 1) {
+    step(14);
+    if (cam.episode) {
+      assert(cam.episode.goal.across > 12,
+        `frame ${i}: the tighten re-latched mid-flight to ${cam.episode.goal.across.toFixed(2)}`);
+    }
+  }
+  // Then it arrives, rests a beat, and the breathe-in tightens -- as a
+  // CORRECTION, the calm kind -- down to the pair's own fit.
+  for (let i = 0; i < MOVE_FRAMES * 3 && !(cam.episode === null && cam.across < 9.5); i += 1) {
+    step(14);
+    if (cam.episode && cam.episode.kind !== 'shed') {
+      assert(cam.episode.kind === 'correction',
+        `the zoom arrived as '${cam.episode.kind}', not the breathe-in`);
+    }
+  }
+  assert(cam.across < 9.5,
+    `the breathe-in never brought the frame to the pair's fit (across ${cam.across.toFixed(2)})`);
+});
+
 check('the waterline is centred on the cat\'s body, not on her box', () => {
   // Owner, 2026-08-18: "a few pixels too far to the right on the
   // right-facing cat". She is not symmetric about her own box -- the body

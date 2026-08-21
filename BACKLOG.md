@@ -798,6 +798,26 @@ the client-boot simplification live in `specs/032-ws-backlog/spec.md` +
 logged there too: a served travel goal (Client should wire gaze to the
 existing `pursuit` field first).
 
+### Manual pan/zoom controls for camera mode (added 2026-08-21; owner's ask at the T026 judging; Client thread)
+
+The owner, on shipping spec 038: "later on I'd like to add manual
+pan/zoom controls." Scope sketch, to be specced when picked up:
+
+- **Interacts with the shot grammar**: a manual gesture must suspend the
+  grammar (a viewer override, like the follow pin) and hand back cleanly
+  — the release path is the design's hard part, not the gesture.
+- **Standing rulings that bear on it**: pinch zoom is a FALLBACK, never
+  the default requirement (owner, 2026-08-19); zoom range is
+  instrumental and becomes a scored feature only if manual zoom lands
+  (same ruling); the 037 band should probably still clamp manual zoom's
+  extremes.
+- **Prior art in-repo**: the follow pin (FR-014) is the template for a
+  viewer override with camera-owned state; `limitsFor` already provides
+  the legal zoom band; wheel/pinch/drag listeners would be app.js's
+  first camera gestures (the cards' tap plumbing is the nearest code).
+- Spec-first when picked up (engine untouched; client-only, but it is a
+  public interaction surface — new spec, not an 038 amendment).
+
 ### Lookahead for the camera — spec 032, revisited 2026-08-20 (Client thread)
 
 **The idea (owner):** use 032's buffer for smoother camera pan and zoom, not

@@ -206,7 +206,7 @@ for pin, solo, and suppressed rivals pass.
       (→ kitty-size ratio vs the pinned-wide camera, SC-004), mean framed
       and maximal-or-tied % (SC-005) against SC-001…SC-005 in
       `specs/038-camera-shot-picker/acceptance-2026-08-21.md`
-- [ ] T026 Stand up the local five-kitty world (quickstart §3) for the
+- [x] T026 Stand up the local five-kitty world (quickstart §3) for the
       owner's live judgement and the dial pass (SC-010; dials bake only on
       her paste, house method) — owner-gated, the arc's final gate
 

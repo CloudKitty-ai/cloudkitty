@@ -29,7 +29,10 @@ synthetic worlds; every clause below lands with a mutation-verified check.
    banks NO dwell, and a shed that cannot RESTORE fit never fires — the
    licence to shed is restoring fit; otherwise the overflow centre-hold
    governs (2026-08-21, both clauses). One `shedGate` owns the clock for
-   group and follow mode alike.
+   group and follow mode alike. A shed/break from an in-band frame lands
+   at HELD width; the breathe-in zooms afterward, from rest (owner,
+   2026-08-21 — and the rest-gate on the tighten is what keeps the
+   decomposition from collapsing one frame after it latches).
 4. **Break** — if the shot (group mode) holds <2: re-pick maximal-count
    window (ties prefer overlap with the dying shot, then lowest id —
    "ties keep the incumbent" applies here too; amended 2026-08-21, the

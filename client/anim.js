@@ -2706,6 +2706,20 @@ class Camera {
     if (!shot.size) return;
 
     const goal = this.goalFrameFor(catsOf(shot), at, aspect, floorTiles, ceilingTiles);
+    // A shed or break re-centres at HELD width; the standing breathe-in
+    // owns the zoom, later and slowly (owner, 2026-08-21 live judging:
+    // membership re-frames were the "substantial moves" -- median 4.8
+    // tiles of travel WITH 3.3 tiles of zoom in one motion. Decomposed,
+    // the same event is a modest pan, a beat of rest, then a calm
+    // tighten). Widens keep their width change -- admitting IS widening
+    // -- and so does a re-frame whose CURRENT width sits outside the 037
+    // band: toggling the camera on from the whole-world view has no
+    // established framing to preserve, and holds its one-ease narrowing
+    // (036 continuity, 'toggling ON narrows in one eased episode').
+    if ((kind === 'shed' || kind === 'break')
+      && this.across && this.across <= ceilingTiles + 1e-9) {
+      goal.across = Math.max(goal.across, Math.min(this.across, ceilingTiles));
+    }
     if (kind === 'pan') {
       this.startEpisode('pan', goal);
     } else if (kind) {
@@ -2947,7 +2961,13 @@ class Camera {
         // first cut ran ~6 (high review 2026-08-21, below-cap).
         const goal = this.goalFrameFor(shotCats, at, aspect, floorTiles, ceilingTiles);
         const violated = this.holdViolated(probe, shotCats, at, aspect, world, ceilingTiles);
-        const slack = violated ? 0 : probe.across / Math.max(1e-6, goal.across);
+        // The breathe-in fires from REST only: mid-episode, slack alone
+        // never re-latches. Without this gate the held-width shed above
+        // collapses back into pan+zoom-together ONE FRAME after it
+        // latches -- the hold would immediately re-latch the tight goal
+        // (found by measurement: the first cut of the decomposition
+        // changed nothing at all).
+        const slack = violated || this.episode ? 0 : probe.across / Math.max(1e-6, goal.across);
         if (violated || slack > this.dials.tightenFrac) {
           // Move only when moving HELPS. Near the world's edge the clamp
           // can leave a member outside ANY legal frame's safe zone -- a
