@@ -80,23 +80,23 @@ visible reason; no easing tail.
 milling-inside group leaves the camera bit-still indefinitely; a member
 pressing the edge produces exactly one correction episode ending in rest.
 
-- [ ] T009 [US1] Hold + correction for fitting shots in `client/anim.js`:
+- [x] T009 [US1] Hold + correction for fitting shots in `client/anim.js`:
       inner `safeZoneFrac` rect test on members' drawn positions; press →
       one `correction` episode latched to the re-centred bbox at current fit
       width (clamped); checks: milling fixture (bit-still), press fixture
       (exactly one episode; mutations: threshold sign flip, per-frame
       re-latch)
-- [ ] T010 [US1] Overflow centre-hold (FR-007a) in `client/anim.js`:
+- [x] T010 [US1] Overflow centre-hold (FR-007a) in `client/anim.js`:
       overflow = unclamped `widthNeeded` > ceiling; trigger = bbox centre
       drift > `aimDeadzoneTiles`; member positions NEVER trigger in
       overflow; checks: contract §5 overflow fixture (members exit frame →
       still; centre drifts past deadzone → one correction; mutation: member
       trigger in overflow mode)
-- [ ] T011 [US1] Non-pan re-latch discipline in `client/anim.js` (research
+- [x] T011 [US1] Non-pan re-latch discipline in `client/anim.js` (research
       D9): a fresh trigger mid-episode re-latches the goal once (a counted
       event), never per frame; check: second press mid-correction moves the
       goal exactly once (mutation: continuous goal tracking)
-- [ ] T012 [US1] US1 acceptance sweep in `client/test-motion.mjs`: scripted
+- [x] T012 [US1] US1 acceptance sweep in `client/test-motion.mjs`: scripted
       drive (group walks a straight line across the map at cat speed)
       asserting rest on ≥60% of ticks — the harness PROXY for SC-001,
       whose authoritative measure is T025's live capture — and zero

@@ -7105,6 +7105,155 @@ check('toggling the camera ON narrows in one eased episode, never a cut', () => 
     `after the ease the camera sits at ${cam.across.toFixed(2)}, not the ${goal.toFixed(2)} floor`);
 });
 
+/* ---- 038 US1: the calm hold (T009-T012) --------------------------- */
+
+check('a member pressing the safe-zone earns ONE correction, then rest', () => {
+  // 038 FR-006/FR-007: inside the inner safe-zone the camera is inert;
+  // pressing past it earns a single eased correction that ends in rest.
+  const spot = (x) => camAt([3, 10], [x, 10]);
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(spot(4), camView(false, 0), { aspect: 1, cssWidth: 1000 });
+  const rest = { x: cam.aimX, a: cam.across };
+  // The frame is 8.85 tiles at the floor; the safe inset is 10% a side.
+  // Walk the second kitty outward in small steps: while she stays inside
+  // the safe zone, NOTHING moves and no episode exists.
+  let t = 0;
+  let episodes = 0;
+  let inEpisode = false;
+  const step = (x) => {
+    t += 16.67;
+    cam.update(spot(x), camView(false, t), { aspect: 1, cssWidth: 1000 });
+    if (cam.episode && !inEpisode) episodes += 1;
+    inEpisode = !!cam.episode;
+  };
+  for (let x = 4; x <= 6.2; x += 0.2) {
+    step(x);
+    assert(cam.aimX === rest.x && cam.across === rest.a,
+      `the camera moved at x=${x.toFixed(1)}, inside the safe zone`);
+  }
+  assert(episodes === 0, `an episode started while everyone was inside (${episodes})`);
+  // One long stride past the boundary. ONE correction, run to rest.
+  for (let i = 0; i < 60; i += 1) step(8.4);
+  assert(episodes === 1, `${episodes} corrections for one press`);
+  assert(cam.episode === null, 'the correction never came to rest');
+  assert(cam.aimX === (3.5 + 8.9) / 2,
+    `rest is not centred on the pair: aim ${cam.aimX}`);
+});
+
+check('an overflow shot holds on its CENTRE and never chases edge kitties', () => {
+  // 038 FR-007a (owner, 2026-08-21): when the fit cannot contain the shot
+  // -- 42-61% of phone ticks -- member containment is meaningless. The
+  // camera sits until the box centre drifts past the deadzone, and
+  // half-visible kitties at the frame edge trigger NOTHING.
+  const spot = (x1, x2) => camAt([x1, 10], [x2, 10]);
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(spot(2, 18), camView(false, 0), { aspect: 1, cssWidth: 1000 });
+  assert(Math.abs(cam.across - 20 / api.VIEW.camera.minZoomVsBase) < 1e-9,
+    'setup: the far pair should sit at the widest');
+  const rest = { x: cam.aimX, y: cam.aimY };
+  // Both members sit OUTSIDE the frame's safe zone -- outside the frame's
+  // edge margin entirely -- yet the camera must not move: the centre is
+  // where it aimed it.
+  let t = 0;
+  for (let i = 0; i < 20; i += 1) {
+    t += 16.67;
+    cam.update(spot(2, 18), camView(false, t), { aspect: 1, cssWidth: 1000 });
+    assert(cam.aimX === rest.x && cam.aimY === rest.y && cam.episode === null,
+      `frame ${i}: the overflow hold moved with everyone at the edges`);
+  }
+  // The pair shuffles inside the deadzone: still nothing.
+  for (let i = 0; i < 10; i += 1) {
+    t += 16.67;
+    cam.update(spot(2.6, 18.6), camView(false, t), { aspect: 1, cssWidth: 1000 });
+    assert(cam.episode === null, 'a sub-deadzone drift started a correction');
+  }
+  // The pair walks 3 tiles: the centre clears the 1.5-tile deadzone and
+  // earns exactly one correction, to the NEW centre, exactly.
+  for (let i = 0; i < 60; i += 1) {
+    t += 16.67;
+    cam.update(spot(5, 19), camView(false, t), { aspect: 1, cssWidth: 1000 });
+  }
+  assert(cam.episode === null, 'the overflow correction never completed');
+  assert(cam.aimX === (5.5 + 19.5) / 2, `the correction missed the centre: ${cam.aimX}`);
+});
+
+check('a mid-episode press re-latches the goal ONCE, and still arrives', () => {
+  // Research D9: a fresh trigger during a non-pan episode re-latches once
+  // -- judged against the LATCHED GOAL, never the moving frame, or a
+  // walking group re-latches every frame and the episode never ends.
+  const spot = (x) => camAt([3, 10], [x, 10]);
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(spot(4), camView(false, 0), { aspect: 1, cssWidth: 1000 });
+  let t = 0;
+  const step = (x) => {
+    t += 16.67;
+    cam.update(spot(x), camView(false, t), { aspect: 1, cssWidth: 1000 });
+  };
+  step(8.4); // past the boundary: correction one starts
+  assert(cam.episode !== null, 'setup: no correction started');
+  const g1 = cam.episode.goal.aimX;
+  // Ten frames in -- mid-flight -- she strides again, far enough to leave
+  // even the latched goal's safe zone.
+  for (let i = 0; i < 10; i += 1) step(8.4);
+  const goals = new Set([g1]);
+  for (let i = 0; i < 80; i += 1) {
+    step(12.4);
+    if (cam.episode) goals.add(cam.episode.goal.aimX);
+  }
+  assert(goals.size === 2,
+    `${goals.size} distinct goals for two presses -- ${goals.size > 2
+      ? 'the goal is tracking per frame' : 're-latch never happened'}`);
+  assert(cam.episode === null, 'the re-latched correction never arrived');
+  assert(cam.aimX === (3.5 + 12.9) / 2, `rest missed the pair's centre: ${cam.aimX}`);
+});
+
+check('ordinary play leaves the camera at rest most of the time', () => {
+  // SC-001's harness PROXY (the authoritative number is the live capture):
+  // a walk-and-rest cadence -- 3 ticks walking, 5 resting, the owner's
+  // "activities last under 10 ticks" -- at production frame pacing. REST
+  // means bit-identical fields frame over frame, not merely no episode.
+  const cam = new api.Camera();
+  cam.on = true;
+  const kitties = [
+    { id: 1, pos: { x: 4, y: 10 } },
+    { id: 2, pos: { x: 5, y: 10 } },
+    { id: 3, pos: { x: 5, y: 11 } },
+  ];
+  let clock = 0;
+  let still = 0;
+  let frames = 0;
+  let prev = null;
+  let dir = 1;
+  for (let tick = 0; tick < 100; tick += 1) {
+    // The cadence PERSISTS: the group bounces between x=4 and x=15 for the
+    // whole sweep. The first cut walked one way and stopped at 15, so 70
+    // of 100 ticks were a static tail -- the sweep read 98% shipped and
+    // 79% under a pursuit mutation, both over the bar, measuring nothing.
+    if (tick % 8 < 3) {
+      if (kitties[0].pos.x >= 15) dir = -1;
+      else if (kitties[0].pos.x <= 4) dir = 1;
+      for (const k of kitties) k.pos = { x: k.pos.x + dir, y: k.pos.y };
+    }
+    const world = { width: 20, height: 20, tick, elements: [], kitties };
+    for (let f = 0; f < 8; f += 1) {
+      clock += 100;
+      cam.update(world, camView(false, clock), { aspect: 1, cssWidth: 1000 });
+      const now = `${cam.left},${cam.top},${cam.across},${cam.aimX},${cam.aimY}`;
+      if (prev !== null) {
+        frames += 1;
+        if (now === prev) still += 1;
+      }
+      prev = now;
+    }
+  }
+  const restFrac = still / frames;
+  assert(restFrac >= 0.6,
+    `the camera was at rest ${(100 * restFrac).toFixed(0)}% of ordinary play, under the 60% bar`);
+});
+
 check('aim settles faster than width, so the zoom lags the pan', () => {
   assert(api.VIEW.camera.panRate > api.VIEW.camera.zoomRate,
     'the zoom is not slower than the pan');
