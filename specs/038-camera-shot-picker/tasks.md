@@ -139,18 +139,18 @@ rivals need strict superiority sustained 15 ticks and get one committed pan.
 **Independent Test**: contract §5 near-widen / far-pan / mid-pan fixtures
 fire on their exact ticks and profiles.
 
-- [ ] T016 [US3] Admission (FR-009) in `client/anim.js`: disjoint chain
+- [x] T016 [US3] Admission (FR-009) in `client/anim.js`: disjoint chain
       admissible-near with `nearTicks ≥ nearDwellTicks` → one `widen`
       episode admitting it; checks: near-widen fixture fires on the 5th
       qualifying tick, not the 4th or 6th (mutations: off-by-one, `>` for
       `≥`)
-- [ ] T017 [US3] Far pan (FR-012/FR-013) in `client/anim.js`: strictly
+- [x] T017 [US3] Far pan (FR-012/FR-013) in `client/anim.js`: strictly
       bigger + not admissible + `farTicks ≥ farDwellTicks` → committed `pan`
       episode on the `panMs` profile; decision steps 2–6 suspended until
       arrival; equal counts never fire; checks: far-pan fixture (15th tick
       exact; equal-never with a same-size rival; mutation: `≥` on count),
       mid-pan commit fixture (destination dissolves; latched goal unchanged)
-- [ ] T018 [US3] Recorded-sample parity in `client/test-motion.mjs`: embed a
+- [x] T018 [US3] Recorded-sample parity in `client/test-motion.mjs`: embed a
       50-tick REAL excerpt of `client-measurements/camera-aim/sample.jsonl`
       (house rule 5: recorded payloads, not hand-written), drive the real
       `Camera` tick-by-tick, assert event counts within the reference

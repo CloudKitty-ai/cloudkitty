@@ -7392,6 +7392,194 @@ check('a dissolved shot re-frames through an eased break, never a cut', () => {
     `the break landed at ${cam.aimX},${cam.aimY}, not exactly the pair's centre`);
 });
 
+/* ---- 038 US3: the camera finds the action (T016-T018) -------------- */
+
+check('admission widens on the FIFTH qualifying tick, not the fourth or sixth', () => {
+  // 038 FR-009: a disjoint group that could share the frame is admitted --
+  // by widening, never by switching -- once it has persisted nearDwellTicks.
+  // The rival pair arrives in admissible range at tick 1, so its 5th
+  // qualifying tick is tick 5 exactly.
+  const world = (t) => ({
+    width: 20,
+    height: 20,
+    tick: t,
+    elements: [],
+    kitties: [
+      { id: 1, pos: { x: 4, y: 10 } },
+      { id: 2, pos: { x: 5, y: 10 } },
+      { id: 3, pos: t === 0 ? { x: 14, y: 10 } : { x: 11, y: 10 } },
+      { id: 4, pos: t === 0 ? { x: 15, y: 10 } : { x: 12, y: 10 } },
+    ],
+  });
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(world(0), camView(false, 0), { aspect: 1, cssWidth: 1000 });
+  assert(cam.shotIds.size === 2, 'setup: the rival begins beyond window range');
+  for (let t = 1; t <= 4; t += 1) {
+    cam.update(world(t), camView(false, t * 800), { aspect: 1, cssWidth: 1000 });
+    assert(cam.shotIds.size === 2, `admitted at tick ${t}, before the dwell`);
+  }
+  cam.update(world(5), camView(false, 5 * 800), { aspect: 1, cssWidth: 1000 });
+  assert(cam.shotIds.size === 4, `tick 5: the shot holds ${cam.shotIds.size}, not the admitted four`);
+  assert(cam.episode && cam.episode.kind === 'widen' && !cam.episode.committed,
+    `the admission is a '${cam.episode && cam.episode.kind}' episode`);
+});
+
+check('the far pan fires on tick 15 exactly, committed, on the fast profile', () => {
+  // 038 FR-012/FR-013: strictly bigger, unreachable by widening, sustained
+  // farDwellTicks -- then ONE committed pan on panMs.
+  const world = (t) => ({
+    width: 20,
+    height: 20,
+    tick: t,
+    elements: [],
+    kitties: [
+      { id: 1, pos: { x: 2, y: 2 } },
+      { id: 2, pos: { x: 3, y: 2 } },
+      { id: 3, pos: { x: 17, y: 16 } },
+      { id: 4, pos: { x: 18, y: 16 } },
+      // (17,7): one tile farther than windowable with the far pair.
+      { id: 5, pos: t === 0 ? { x: 17, y: 7 } : { x: 17, y: 17 } },
+    ],
+  });
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(world(0), camView(false, 0), { aspect: 1, cssWidth: 1000 });
+  assert(cam.shotIds.has(1) && cam.shotIds.has(2), 'setup: the shot starts on the near pair');
+  for (let t = 1; t <= 14; t += 1) {
+    cam.update(world(t), camView(false, t * 800), { aspect: 1, cssWidth: 1000 });
+    assert(!cam.shotIds.has(3), `the pan fired at tick ${t}, before the owner's 15`);
+  }
+  cam.update(world(15), camView(false, 15 * 800), { aspect: 1, cssWidth: 1000 });
+  assert(cam.shotIds.has(3) && cam.shotIds.has(4) && cam.shotIds.has(5),
+    `tick 15: the shot is {${[...cam.shotIds]}}, not the rival triple`);
+  assert(cam.episode && cam.episode.kind === 'pan' && cam.episode.committed,
+    'the far transition is not a committed pan');
+  assert(cam.episode.duration === api.VIEW.camera.panMs,
+    `the pan runs on ${cam.episode.duration}ms, not the ${api.VIEW.camera.panMs}ms fast profile`);
+});
+
+check('a pan commits: the destination dissolving mid-flight changes nothing', () => {
+  // 038 FR-013 (owner, 2026-08-21): once begun, a pan runs to completion;
+  // the grammar resumes from the destination. No mid-flight swerve, ever.
+  const world = (t, scattered) => ({
+    width: 20,
+    height: 20,
+    tick: t,
+    elements: [],
+    kitties: [
+      { id: 1, pos: { x: 2, y: 2 } },
+      { id: 2, pos: { x: 3, y: 2 } },
+      { id: 3, pos: scattered ? { x: 2, y: 17 } : { x: 17, y: 16 } },
+      { id: 4, pos: scattered ? { x: 18, y: 2 } : { x: 18, y: 16 } },
+      { id: 5, pos: t === 0 ? { x: 17, y: 7 } : scattered ? { x: 10, y: 10 } : { x: 17, y: 17 } },
+    ],
+  });
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(world(0, false), camView(false, 0), { aspect: 1, cssWidth: 1000 });
+  for (let t = 1; t <= 15; t += 1) {
+    cam.update(world(t, false), camView(false, t * 800), { aspect: 1, cssWidth: 1000 });
+  }
+  assert(cam.episode && cam.episode.committed, 'setup: no committed pan in flight');
+  const goal = { x: cam.episode.goal.aimX, y: cam.episode.goal.aimY, a: cam.episode.goal.across };
+  const target = new Set(cam.shotIds);
+  // The destination scatters to the winds ON THE NEXT TICK, mid-pan.
+  let t = 15 * 800;
+  let arrived = false;
+  for (let i = 0; i < 80 && !arrived; i += 1) {
+    t += 16.67;
+    cam.update(world(16, true), camView(false, t), { aspect: 1, cssWidth: 1000 });
+    if (cam.episode && cam.episode.committed) {
+      assert(cam.episode.goal.aimX === goal.x && cam.episode.goal.aimY === goal.y
+        && cam.episode.goal.across === goal.a,
+        `frame ${i}: the pan's latched goal moved`);
+      assert([...cam.shotIds].sort().join() === [...target].sort().join(),
+        `frame ${i}: the grammar re-decided mid-pan`);
+    } else {
+      // Arrival must mean ARRIVAL: the camera sits exactly on the pan's
+      // latched goal. Mutation found the first cut vacuous -- with the
+      // commit gate removed, the grammar replaced the pan mid-flight with
+      // a break episode, and 'no longer committed' read as 'arrived'.
+      assert(cam.aimX === goal.x && cam.aimY === goal.y,
+        `the pan 'completed' at ${cam.aimX},${cam.aimY}, not its goal ${goal.x},${goal.y}`);
+      arrived = true;
+    }
+  }
+  assert(arrived, 'the pan never completed');
+  // On arrival the ordinary grammar takes over and re-frames to at least
+  // two kitties -- the break path, from the destination.
+  for (let tick = 17; tick <= 19; tick += 1) {
+    t += 800;
+    cam.update(world(tick, true), camView(false, t), { aspect: 1, cssWidth: 1000 });
+  }
+  assert(cam.shotIds.size >= 2, `after arrival the grammar left ${cam.shotIds.size} framed`);
+});
+
+check('fifty RECORDED ticks: no pan, few widens, never fewer than two', () => {
+  // Parity with the reference model (client-measurements/camera-aim):
+  // ticks 17-66 of the live five-kitty sample, embedded per house rule 5
+  // -- a recorded payload, not a hand-written one. The model's bands at
+  // L=5 on the desktop ceiling: pans 0/min, widens ~1.3/min, >=2 framed
+  // on every tick. Fifty ticks is 40s: expect 0 pans, at most 2 widens.
+  const SAMPLE = [[17,6,13,13,14,15,7,6,5,12,14],[18,5,13,13,14,16,7,7,5,12,14],[19,5,14,13,14,16,6,8,5,12,13],[20,5,13,12,14,16,7,9,5,13,13],[21,6,13,12,14,16,8,8,5,13,14],[22,5,13,12,14,16,7,8,5,14,14],[23,5,12,13,14,16,8,8,5,15,14],[24,5,13,14,14,16,7,9,5,15,14],[25,5,12,14,14,16,6,9,4,15,14],[26,4,12,14,14,17,6,10,4,15,14],[27,4,11,14,14,17,7,10,4,15,14],[28,5,11,14,14,17,6,10,4,15,14],[29,5,11,14,14,17,6,11,4,15,14],[30,5,11,14,14,17,6,11,5,15,14],[31,4,11,14,15,17,7,12,5,14,14],[32,3,11,15,15,17,8,13,5,13,14],[33,2,11,14,15,17,9,14,5,12,14],[34,2,10,14,16,17,10,15,5,12,14],[35,1,10,14,17,17,10,15,4,12,14],[36,2,10,14,17,17,10,16,4,12,15],[37,2,10,14,17,17,9,17,4,11,15],[38,2,10,14,17,17,8,17,4,12,15],[39,2,10,14,17,17,9,17,4,13,15],[40,2,10,14,17,17,8,17,5,13,14],[41,2,10,14,17,17,7,17,6,12,14],[42,2,10,15,17,17,7,17,6,11,14],[43,2,11,16,17,17,7,17,6,12,14],[44,2,12,17,17,17,7,17,6,13,14],[45,2,13,17,17,17,7,17,6,14,14],[46,2,13,17,17,17,7,17,6,15,14],[47,2,13,16,17,17,7,17,6,16,14],[48,2,14,16,16,18,7,17,6,16,15],[49,2,15,15,16,17,7,17,6,17,15],[50,2,16,16,16,18,7,17,6,17,16],[51,2,17,16,16,18,6,17,6,18,16],[52,3,17,17,16,18,5,17,6,18,16],[53,3,17,17,15,18,4,17,6,18,16],[54,3,17,18,15,18,3,17,5,17,16],[55,3,17,17,15,18,2,17,4,16,16],[56,3,17,17,14,19,2,17,4,15,16],[57,3,17,16,14,19,2,17,4,16,16],[58,3,17,16,15,19,2,17,4,16,16],[59,4,17,15,15,18,2,17,4,16,16],[60,5,17,14,15,18,2,17,4,15,16],[61,6,17,14,16,18,2,17,4,15,16],[62,7,17,14,16,18,2,16,4,15,16],[63,7,16,14,16,18,2,15,4,15,16],[64,7,15,14,16,18,2,14,4,15,16],[65,7,14,14,16,18,2,13,4,15,16],[66,7,13,14,16,18,2,13,3,15,16]];
+  const cam = new api.Camera();
+  cam.on = true;
+  let clock = 0;
+  let widens = 0;
+  let pans = 0;
+  let breaks = 0;
+  let sheds = 0;
+  let still = 0;
+  let frames = 0;
+  let prevPose = null;
+  let lastKind = null;
+  for (const row of SAMPLE) {
+    const world = {
+      width: 20,
+      height: 20,
+      tick: row[0],
+      elements: [],
+      kitties: [1, 2, 3, 4, 5].map((id) => ({
+        id, pos: { x: row[id * 2 - 1], y: row[id * 2] },
+      })),
+    };
+    for (let f = 0; f < 8; f += 1) {
+      clock += 100;
+      cam.update(world, camView(false, clock), { aspect: 1, cssWidth: 1000 });
+      const kind = cam.episode ? cam.episode.kind : null;
+      if (kind !== lastKind && kind !== null) {
+        if (kind === 'widen') widens += 1;
+        if (kind === 'pan') pans += 1;
+        if (kind === 'break') breaks += 1;
+        if (kind === 'shed') sheds += 1;
+      }
+      lastKind = kind;
+      const pose = `${cam.left},${cam.top},${cam.across},${cam.aimX},${cam.aimY}`;
+      if (prevPose !== null) {
+        frames += 1;
+        if (pose === prevPose) still += 1;
+      }
+      prevPose = pose;
+    }
+    assert(cam.shotIds && cam.shotIds.size >= 2,
+      `tick ${row[0]}: only ${cam.shotIds ? cam.shotIds.size : 0} framed`);
+  }
+  // Measured on this excerpt when the check was built: widens 2, sheds 2,
+  // pans 0, breaks 0, rest 91%. The dwell mutations CANNOT trip the pan
+  // band here -- the excerpt genuinely holds no strictly-bigger
+  // unwindowable rival, which corroborates the model (the far band is
+  // structurally rare) -- so the discriminating teeth on real data are
+  // the rest fraction and the event bands.
+  assert(pans === 0, `${pans} pans in 40 recorded seconds -- the model says none`);
+  assert(widens <= 2, `${widens} widens in 40s, over the model's band`);
+  assert(breaks <= 2, `${breaks} breaks in 40s -- the model saw none at L=5`);
+  assert(sheds <= 3, `${sheds} sheds in 40s -- this excerpt produces 2`);
+  const rest = still / frames;
+  assert(rest >= 0.6,
+    `at rest ${(100 * rest).toFixed(0)}% of the recorded drive -- this excerpt rests 91% shipped`);
+});
+
 check('aim settles faster than width, so the zoom lags the pan', () => {
   assert(api.VIEW.camera.panRate > api.VIEW.camera.zoomRate,
     'the zoom is not slower than the pan');
