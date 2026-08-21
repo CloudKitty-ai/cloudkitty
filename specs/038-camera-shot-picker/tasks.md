@@ -167,13 +167,13 @@ her alone; rivals never steal a follow.
 **Independent Test**: existing 036 follow checks stay green; new fixtures
 for pin, solo, and suppressed rivals pass.
 
-- [ ] T019 [US4] Follow pin (FR-014, research D12) in `client/anim.js`:
+- [x] T019 [US4] Follow pin (FR-014, research D12) in `client/anim.js`:
       subject = followed kitty's chain (+ admissions per FR-008–FR-011);
       far-rival evidence not evaluated; solitary follow frames her alone at
       the floor (min-two exempt); checks: contract §5 solo-follow fixture,
       bigger-group-elsewhere fixture (mutation: evaluate far evidence while
       following)
-- [ ] T020 [US4] Release re-entry + 036 regression in `client/anim.js` and
+- [x] T020 [US4] Release re-entry + 036 regression in `client/anim.js` and
       `client/test-motion.mjs`: release → group grammar re-entered through
       one eased episode (no cut); re-run AND re-read the must-stay-green
       pile from T002 (follow click/release/persistence/FR-020) — reading is

@@ -7580,6 +7580,121 @@ check('fifty RECORDED ticks: no pan, few widens, never fewer than two', () => {
     `at rest ${(100 * rest).toFixed(0)}% of the recorded drive -- this excerpt rests 91% shipped`);
 });
 
+/* ---- 038 US4: following composes with the grammar (T019-T020) ------ */
+
+check('a solitary followed kitty is framed alone, at the floor', () => {
+  // 038 FR-014 as clarified 2026-08-21: minimum-two is a group-mode rule;
+  // a follow is the viewer's explicit choice and exempts it. The frame
+  // must NOT stretch toward unrelated kitties to make a quorum.
+  const world = (t) => ({
+    width: 20,
+    height: 20,
+    tick: t,
+    elements: [],
+    kitties: [
+      { id: 1, pos: { x: 2, y: 2 } },
+      { id: 2, pos: { x: 10, y: 10 } },
+      { id: 3, pos: { x: 11, y: 10 } },
+      { id: 4, pos: { x: 11, y: 11 } },
+    ],
+  });
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.followId = 1;
+  for (let t = 0; t <= 10; t += 1) {
+    cam.update(world(t), camView(false, t * 800), { aspect: 1, cssWidth: 1000 });
+    assert(cam.shotIds.size === 1 && cam.shotIds.has(1),
+      `tick ${t}: the solo follow framed {${[...cam.shotIds]}}`);
+    assert(cam.aimX === 2.5 && cam.aimY === 2.5,
+      `tick ${t}: the frame stretched to ${cam.aimX},${cam.aimY}`);
+  }
+  assert(Math.abs(cam.across - 1000 / api.VIEW.camera.floorPx) < 1e-9,
+    `a lone kitty sits at ${cam.across.toFixed(2)} tiles, not the floor`);
+});
+
+check('a follow admits her group\'s visitors but never pans away', () => {
+  // FR-014 both ways: admissions still apply while following (her
+  // companions join the shot -- the I1 contract fix), and far rivals are
+  // NEVER evaluated -- a bigger gathering cannot steal a followed camera.
+  const world = (t) => ({
+    width: 20,
+    height: 20,
+    tick: t,
+    elements: [],
+    kitties: [
+      { id: 1, pos: { x: 4, y: 10 } },
+      { id: 2, pos: { x: 5, y: 10 } },
+      // A pair that becomes admissible only at t=20 -- AFTER the far
+      // trio has out-waited the whole 15-tick dwell against a 2-shot.
+      // (The first cut admitted them at t=5, the shot grew to 4, and the
+      // trio stopped being strictly bigger -- the rival leak this check
+      // exists to catch became unreachable. Caught by its own mutation.)
+      { id: 3, pos: t < 20 ? { x: 14, y: 10 } : { x: 11, y: 10 } },
+      { id: 4, pos: t < 20 ? { x: 15, y: 10 } : { x: 12, y: 10 } },
+      // ...and a far TRIO no follow may pan to, however long it persists.
+      { id: 5, pos: { x: 2, y: 19 } },
+      { id: 6, pos: { x: 3, y: 19 } },
+      { id: 7, pos: { x: 2, y: 18 } },
+    ],
+  });
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.followId = 1;
+  cam.update(world(0), camView(false, 0), { aspect: 1, cssWidth: 1000 });
+  assert(cam.shotIds.size === 2, 'setup: the follow starts on her pair');
+  for (let t = 1; t <= 30; t += 1) {
+    cam.update(world(t), camView(false, t * 800), { aspect: 1, cssWidth: 1000 });
+    assert(!cam.shotIds.has(5), `tick ${t}: a far trio stole a followed camera`);
+    if (t < 20) {
+      assert(cam.shotIds.size === 2, `tick ${t}: the shot grew before anyone was admissible`);
+    }
+    if (t >= 24) {
+      assert(cam.shotIds.size === 4,
+        `tick ${t}: the admissible pair was never admitted during the follow`);
+    }
+  }
+  assert(cam.followId === 1 && cam.anchorId === 1, 'the follow itself was lost');
+});
+
+check('releasing a follow re-enters the grammar eased, never a cut', () => {
+  // 038 US4 scenario 3. From a solo follow in the far corner, release:
+  // the camera travels to the best window -- continuously -- and lands
+  // exactly on its centre.
+  const world = (t) => ({
+    width: 20,
+    height: 20,
+    tick: t,
+    elements: [],
+    kitties: [
+      { id: 1, pos: { x: 2, y: 2 } },
+      { id: 2, pos: { x: 10, y: 10 } },
+      { id: 3, pos: { x: 11, y: 10 } },
+      { id: 4, pos: { x: 11, y: 11 } },
+    ],
+  });
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.followId = 1;
+  cam.update(world(0), camView(false, 0), { aspect: 1, cssWidth: 1000 });
+  cam.followId = null; // the release gesture
+  let t = 0;
+  let prev = { x: cam.aimX, y: cam.aimY };
+  let arrived = false;
+  for (let i = 0; i < 120 && !arrived; i += 1) {
+    t += 16.67;
+    cam.update(world(0), camView(false, t), { aspect: 1, cssWidth: 1000 });
+    const d = Math.hypot(cam.aimX - prev.x, cam.aimY - prev.y);
+    assert(d < 3, `the release CUT ${d.toFixed(1)} tiles in one frame`);
+    prev = { x: cam.aimX, y: cam.aimY };
+    if (cam.episode === null && cam.shotIds.size > 1) arrived = true;
+  }
+  assert(arrived, 'the release never re-framed the group');
+  assert(cam.shotIds.size === 3 && !cam.shotIds.has(1),
+    `after release the shot is {${[...cam.shotIds]}}, not the trio`);
+  assert(cam.aimX === 11 && cam.aimY === 11,
+    `the re-entry landed at ${cam.aimX},${cam.aimY}, not the trio's centre`);
+});
+
 check('aim settles faster than width, so the zoom lags the pan', () => {
   assert(api.VIEW.camera.panRate > api.VIEW.camera.zoomRate,
     'the zoom is not slower than the pan');
