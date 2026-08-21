@@ -2236,6 +2236,57 @@ check('the lid clamp actually bites — a deeper brow changes nothing', () => {
 });
 
 
+check('a belly never changes direction with the hour or the weather', () => {
+  // Found 2026-08-20 by the owner asking to see the new belly value AT NIGHT.
+  // `bellyInkOf` decided lighten-vs-shade from the DRAWN appearance, and
+  // darkening a coat hands the lighten its headroom back -- so Clementine was
+  // a shadow by day and a pale patch at dusk, night and dawn:
+  //
+  //   before: day D 6.9 | dusk l 2.7 | night l 4.8 | dawn l 3.2
+  //
+  // Not merely inconsistent: themes CROSSFADE, so the belly swung through the
+  // coat colour and out the other side at every phase boundary, on the most
+  // visible part of a white cat at 103px.
+  //
+  // Only the two near-white coats can reach the branch, which is exactly why
+  // a sweep of all eight is the check -- the other six are the control, and
+  // they prove the fix did not simply pin everything to one direction.
+  const themes = ['day', 'dusk', 'night', 'dawn'];
+  const lstar = (hex) => {
+    const n = parseInt(hex.slice(1), 16);
+    const lin = (v) => { const c = v / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+    const y = 0.2126 * lin((n >> 16) & 255) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255);
+    return y > 0.008856 ? 116 * y ** (1 / 3) - 16 : 903.3 * y;
+  };
+  // Darker-than-coat is the flipped branch. Read off the drawing, not off the
+  // dial, so this still describes the cat if the derivation is rewritten.
+  const darkens = (a) => lstar(a.furBase) - lstar(CatV2.bellyInkOf(a)) > 0;
+
+  let flipped = 0;
+  for (let id = 0; id < 8; id += 1) {
+    const root = CatV2.appearanceFor(id);
+    const want = darkens(root);
+    if (want) flipped += 1;
+    for (const theme of themes) {
+      const shaded = CatV2.shadedAppearanceOf(root, theme);
+      assert(darkens(shaded) === want,
+        `${root.name} flips direction at ${theme}: the coat is ${want ? 'shaded' : 'lightened'} `
+        + 'in daylight and the other way here');
+      // Wet darkens by up to 0.22 on its own, so it is the second axis that
+      // could reach the branch -- and it stacks on top of the theme.
+      for (const wet of [0.5, 1]) {
+        assert(darkens(CatV2.wetAppearanceOf(shaded, wet)) === want,
+          `${root.name} flips direction when wet ${wet} at ${theme}`);
+      }
+    }
+  }
+  // The control: if nothing flips, the sweep proves only that one branch is
+  // reachable. Both near-white coats must still be on the shaded branch.
+  assert(flipped === 2,
+    `${flipped} coats take the shaded branch, not the 2 near-white ones -- either the `
+    + 'palettes changed or minSeparation no longer separates them');
+});
+
 check('every portrait pose fits inside the card chip', () => {
   // The chip was measured against the resting poses, and the idle vocabulary
   // has since grown two that are bigger than any of them: `stretch` is the

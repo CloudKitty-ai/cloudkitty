@@ -1600,10 +1600,33 @@ function lstar(hex) {
  * that shipped before this. Where it cannot, the belly goes the other way,
  * toward the coat's own shade: a white cat's underside reads as shadow
  * rather than as a paler patch, which is what it is on a real one.
+ *
+ * THE DIRECTION IS DECIDED FROM THE UNSHADED PALETTE, and that is the whole
+ * of the 2026-08-20 fix. Asking the DRAWN appearance leaves the direction at
+ * the mercy of anything that darkens a coat, because darkening hands the
+ * lighten its headroom back:
+ *
+ *   Clementine, before: day D 6.9 | dusk l 2.7 | night l 4.8 | dawn l 3.2
+ *
+ * A shadow by day and a pale patch for the other three, flipping at every
+ * phase boundary -- and since themes crossfade, flipping THROUGH the coat
+ * colour on the way. `FUR_SHADE_BY_THEME` runs 1 / 0.96 / 0.89 / 0.94, and
+ * `wetAppearanceOf` darkens by up to 0.22, so a wet white cat did it too.
+ * Only the two near-white coats can reach the branch at all; everyone else
+ * clears `minSeparation` by a mile in every theme.
+ *
+ * A belly's direction is a fact about the CAT, not about the hour. So the
+ * decision reads `bellySource` -- the root palette entry, which both
+ * derivations carry forward -- while the PAINT still comes from the drawn
+ * appearance, so the belly darkens with the coat as night falls.
  */
 function bellyInkOf(appearance) {
-  const lit = lightenHex(appearance.furBase, BELLY.lighten);
-  if (lstar(lit) - lstar(appearance.furBase) >= BELLY.minSeparation) return lit;
+  // The root palette for the DECISION; the drawn appearance for the paint.
+  const root = appearance.bellySource ?? appearance;
+  const rootLit = lightenHex(root.furBase, BELLY.lighten);
+  if (lstar(rootLit) - lstar(root.furBase) >= BELLY.minSeparation) {
+    return lightenHex(appearance.furBase, BELLY.lighten);
+  }
   return mixHex(appearance.furBase, appearance.furShade, BELLY.darken);
 }
 
@@ -1638,6 +1661,10 @@ function wetAppearanceOf(appearance, wet) {
   const damp = shadeHex(appearance.furBase, 1 - 0.22 * w);
   return {
     ...appearance,
+    // The root palette, so `bellyInkOf` decides the belly's DIRECTION from a
+    // dry, unshaded coat. Resolves to the root through any chain: whichever
+    // derivation runs first stamps it and the rest spread it forward.
+    bellySource: appearance.bellySource ?? appearance,
     furBase: damp,
     // The shade walks toward the (already darkened) base rather than
     // darkening on its own: clumped fur loses its soft gradient, and
@@ -1660,6 +1687,8 @@ function shadedAppearanceOf(appearance, theme) {
     const p = appearance.pattern;
     shaded = {
       ...appearance,
+      // See `wetAppearanceOf`: the root palette, for the belly's direction.
+      bellySource: appearance.bellySource ?? appearance,
       furBase: shadeHex(appearance.furBase, factor),
       furShade: shadeHex(appearance.furShade, factor),
       noseColor: shadeHex(appearance.noseColor, factor),
@@ -3030,9 +3059,19 @@ const BELLY = {
   // as faint as the one being fixed here. Raising this dial past 3.0 brings
   // her in too, which is a live option and the owner's call, not a bug.
   minSeparation: 2.2,
-  // ...and how far toward furShade it goes when it does. Judged on Clementine
-  // in the lab and pasted by the owner, 2026-08-16.
-  darken: 0.35,
+  // ...and how far toward furShade it goes when it does.
+  //
+  // 0.24, re-judged by the owner 2026-08-20 on the four-hour belly card, at
+  // camera size. The 0.35 it replaces was pasted 2026-08-16, when a cat drew
+  // at ~31px; camera mode now draws her at 57-103px and the shadow read heavy
+  // there. Clementine sits 4.8 L* under her coat by day and 4.3 at night, the
+  // thinnest hour -- still twice `minSeparation`.
+  //
+  // It does NOT touch the direction: that decision reads `lighten` against the
+  // unshaded coat, so this dial only moves coats already on the shaded branch.
+  // Today that is Clementine and calico, and calico is not seated yet -- so a
+  // future eighth cat inherits this number without anyone re-judging it.
+  darken: 0.24,
   alpha: 0.85,
 };
 
