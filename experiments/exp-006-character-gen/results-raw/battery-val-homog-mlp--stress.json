@@ -1,0 +1,38 @@
+{
+ "provenance": {
+  "git_head": "8f614e2e5b40bf2314780ecb548299813f44ebb8",
+  "config_sha256": "e87779cd306416889981f9b3c06315142f6cd511ed1bcc6f06098adfab357294",
+  "binding": "unknown",
+  "binding_engine": null
+ },
+ "rows": [
+  {
+   "seating": "val-homog-mlp",
+   "seed": 880013,
+   "ticks": 20000,
+   "nash": 0.9526643638486793,
+   "mean_happiness": [
+    95.3632,
+    95.3416,
+    95.154,
+    95.2544,
+    95.2721
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  }
+ ]
+}

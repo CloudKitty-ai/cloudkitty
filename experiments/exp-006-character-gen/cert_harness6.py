@@ -64,6 +64,20 @@ SEATINGS = {
                   "v4:attn-a1-s3", "scripted"],
     "val-scripted": ["scripted"] * 5,
     "val-homog": ["v4:attn-a1-s1"] * 5,
+    # validation-only cell for the D-001 nonzero-streak cross-check;
+    # never a gate leg
+    "val-homog-mlp": ["mlp:e004-a1-s2"] * 5,
+    # r3/r5 stress shapes — owner's seat rule: candidate minds by
+    # kitty ID order (run with --config pointing at the family world)
+    "candidate-r3": ["v4:attn-a1-s1", "ppo:ppo-L-04-s1",
+                     "v4:attn-a1-s3"],
+    "candidate-r5": ["v4:attn-a1-s1", "ppo:ppo-L-04-s1",
+                     "v4:attn-a1-s3", "v4:attn-a1-s3",
+                     "mlp:e004-a1-s2"],
+    # localization cell for the r5 failure write-up (owner's ID rule
+    # applied to the reference composition); never a gate leg
+    "reference-r5": ["v4:attn-a1-s1", "mlp:e004-a1-s2",
+                     "v4:attn-a1-s3", "v4:attn-a1-s3", "scripted"],
 }
 BANDS = {"eval": 870_001, "stress": 880_001}
 
@@ -192,6 +206,9 @@ def main():
     ap.add_argument("seating", choices=list(SEATINGS))
     ap.add_argument("band", choices=list(BANDS))
     ap.add_argument("--seeds", type=int, default=30)
+    ap.add_argument("--seed0", type=int, default=None,
+                    help="override the band's first seed (validation "
+                         "cells targeting a specific seed)")
     ap.add_argument("--ticks", type=int, default=20_000)
     ap.add_argument("--config", type=Path, default=REPO / "cloudkitty.toml")
     ap.add_argument("--workers", type=int, default=6)
@@ -200,7 +217,7 @@ def main():
 
     prov = provenance(args.config)
     print("provenance:", json.dumps(prov))
-    seed0 = BANDS[args.band]
+    seed0 = args.seed0 if args.seed0 is not None else BANDS[args.band]
     jobs = [(args.seating, seed0 + i, args.ticks, args.config)
             for i in range(args.seeds)]
     args.out_dir.mkdir(exist_ok=True)
