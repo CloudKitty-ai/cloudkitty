@@ -99,6 +99,11 @@ SEATINGS = {
     "solo-s3-e1s2": ["v4:attn-a1-s1", "ppo:ppo-L-04-s1",
                      "v4:attn-a1-s3", "ppo:ppo-E1-s2-stripped",
                      "mlp:e004-a1-s2"],
+    # report-only seat-swap: E1-s1 in Pumpkin's eat-hungry body, s3 in
+    # Kittybear's neutral one (owner's behavior comparison, 2026-08-20)
+    "solo-s3-e1s1-swap": ["v4:attn-a1-s1", "ppo:ppo-L-04-s1",
+                          "ppo:ppo-E1-s1-stripped", "v4:attn-a1-s3",
+                          "mlp:e004-a1-s2"],
 }
 BANDS = {"eval": 870_001, "stress": 880_001}
 
