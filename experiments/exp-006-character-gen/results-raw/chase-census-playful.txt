@@ -1,0 +1,11 @@
+config configs/phase1-cutover-playfulbiscuit.toml | 10 seeds x 20000 ticks | mean critters on field: bug 3.0, greeble 1.0
+
+[needs_driven] (per-kitty-tick basis over 200000 world ticks)
+  bug: pursuits 5379 | chase ticks 10327 | catches 1771 | abandons 3608 | chase-ticks/catch 5.8 | catch-rate 32.9% | pounce starts 1216 | play scenes 2987 (mean len 1.6)
+  greeble: pursuits 1629 | chase ticks 3190 | catches 383 | abandons 1246 | chase-ticks/catch 8.3 | catch-rate 23.5% | pounce starts 360 | play scenes 743 (mean len 1.5)
+  kitty-chase ticks 12171 | duets: 18336 starts, 50152 ticks (mean 2.7) | solo: 0 starts, 0 ticks (mean 0.0)
+
+[playful] (per-kitty-tick basis over 200000 world ticks)
+  bug: pursuits 13425 | chase ticks 22470 | catches 10458 | abandons 2967 | chase-ticks/catch 2.1 | catch-rate 77.9% | pounce starts 1369 | play scenes 11827 (mean len 3.3)
+  greeble: pursuits 2013 | chase ticks 5300 | catches 849 | abandons 1164 | chase-ticks/catch 6.2 | catch-rate 42.2% | pounce starts 604 | play scenes 1453 (mean len 2.1)
+  kitty-chase ticks 22388 | duets: 8550 starts, 36132 ticks (mean 4.2) | solo: 0 starts, 0 ticks (mean 0.0)
