@@ -127,11 +127,18 @@ async fn start_server_with(
     let mut world = World::generate(&config);
     cloudkitty_server::stamp_behavior_descriptions(&mut world, &registry, policy_displays);
     // No snapshot path: this world lives and dies with the test.
-    let sim = sim_task::spawn(world, config.clone(), registry, None);
+    let sim = sim_task::spawn(
+        world,
+        config.clone(),
+        registry,
+        None,
+        cloudkitty_server::watchdog::Watchdog::new(Default::default()),
+    );
 
     let state = AppState {
         published: sim.receiver.clone(),
         config: config.clone(),
+        welfare: sim.welfare.clone(),
     };
     let app = build_router(state, std::path::Path::new("../../client"));
 
@@ -299,10 +306,12 @@ async fn distress_ages_appear_in_the_payload_once_a_distress_exists() {
         config.clone(),
         BehaviorRegistry::with_builtins(),
         None,
+        cloudkitty_server::watchdog::Watchdog::new(Default::default()),
     );
     let state = AppState {
         published: sim.receiver.clone(),
         config: config.clone(),
+        welfare: sim.welfare.clone(),
     };
     let app = build_router(state, std::path::Path::new("../../client"));
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
@@ -751,4 +760,61 @@ async fn seating_an_artifact_without_a_registry_row_refuses_startup() {
     assert!(msg.contains("bare.ckpolicy"), "{msg}");
     assert!(msg.contains(&sha), "the refusal names the sha256: {msg}");
     assert!(msg.contains("no model registry"), "{msg}");
+}
+
+/// Spec 040 US2: the welfare endpoint's two shapes.
+#[tokio::test]
+async fn welfare_endpoint_serves_healthy_and_distressed_shapes() {
+    // Healthy: a fresh world, nothing in distress.
+    let server = start_server().await;
+    let healthy: serde_json::Value = reqwest::get(server.url("/welfare"))
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    assert_eq!(healthy["threshold"], 150);
+    assert_eq!(healthy["alarm_live"], false);
+    assert_eq!(healthy["entries"], serde_json::json!([]));
+    server.shutdown().await;
+
+    // Distressed: a world whose first kitty carries a long-lived streak;
+    // the watchdog's spawn-time observation must surface it immediately
+    // (the restart edge case: re-announced beats forgotten).
+    let arc = Arc::new(test_config());
+    let mut world = World::generate(&arc);
+    world.tick = 500;
+    world.kitties[0]
+        .distress_since
+        .insert(cloudkitty_core::NeedKind::Play, 100);
+    let sim = sim_task::spawn(
+        world,
+        arc.clone(),
+        BehaviorRegistry::with_builtins(),
+        None,
+        cloudkitty_server::watchdog::Watchdog::new(Default::default()),
+    );
+    let state = AppState {
+        published: sim.receiver.clone(),
+        config: arc.clone(),
+        welfare: sim.welfare.clone(),
+    };
+    let app = build_router(state, std::path::Path::new("../../client"));
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = listener.local_addr().unwrap();
+    tokio::spawn(async move {
+        axum::serve(listener, app).await.unwrap();
+    });
+    let distressed: serde_json::Value =
+        reqwest::get(format!("http://{addr}/welfare"))
+            .await
+            .unwrap()
+            .json()
+            .await
+            .unwrap();
+    assert_eq!(distressed["alarm_live"], true);
+    let entries = distressed["entries"].as_array().unwrap();
+    assert!(!entries.is_empty(), "the streak is on the surface");
+    assert_eq!(entries[0]["age"], 400);
+    sim.shutdown().await;
 }
