@@ -90,6 +90,15 @@ SEATINGS = {
     # estimator strip); never a gate leg
     "solo-s3-e0": ["v4:attn-a1-s1", "ppo:ppo-L-04-s1", "v4:attn-a1-s3",
                    "ppo:ppo-E0-s1", "mlp:e004-a1-s2"],
+    # report-only dialect census: E1 seeds as the fill (estimator-
+    # stripped copies — the artifact contract drops the head at export
+    # anyway, so the stripped actor IS the seatable object)
+    "solo-s3-e1s1": ["v4:attn-a1-s1", "ppo:ppo-L-04-s1",
+                     "v4:attn-a1-s3", "ppo:ppo-E1-s1-stripped",
+                     "mlp:e004-a1-s2"],
+    "solo-s3-e1s2": ["v4:attn-a1-s1", "ppo:ppo-L-04-s1",
+                     "v4:attn-a1-s3", "ppo:ppo-E1-s2-stripped",
+                     "mlp:e004-a1-s2"],
 }
 BANDS = {"eval": 870_001, "stress": 880_001}
 
