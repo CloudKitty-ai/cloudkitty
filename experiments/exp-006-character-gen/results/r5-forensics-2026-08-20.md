@@ -224,6 +224,41 @@ the reason to prefer an E1 seed is fog-era analysis value, not served
 behavior. Harness note: seating an E1 requires the estimator-stripped
 copy (commands in fingerprints-2026-08-20.md).
 
+## E1 dialect census (owner's question; report-only)
+
+Measured in the seat under consideration: each E1 seed
+(estimator-stripped actor — the exportable object) at Kittybear in
+the solo-s3 fill composition, cutover config, eval seeds
+870001–870003 × 20k, every meow counted by emitter from the engine's
+own log.
+
+| word | E1-s1 | E1-s2 |
+|---|---|---|
+| rate | **34.8/1k** (32.8/31.6/40.0) | **59.0/1k** (54.6/59.8/62.5) |
+| purr | 859 (41.2%) | 3143 (88.8%) |
+| mew | 858 (41.1%) | 99 (2.8%) |
+| here_water | 256 (12.3%) | 126 (3.6%) |
+| here_critter | 80 (3.8%) | 148 (4.2%) |
+| here_sunbeam | 9 (0.4%) | 5 (0.1%) |
+| want_* (all six) | 25 (1.2%) | 18 (0.5%) |
+| here_food | 0 | 0 |
+
+Readings:
+
+- **E1-s1 is a conversationalist**: purr and mew in even measure
+  (41/41) with a real here_water habit — one meow in eight announces
+  water. **E1-s2 is a purrbox**: 89% purr, mew nearly absent.
+- **Company reshapes volume (F-012 on display)**: E1-s2 ran 178.7/1k
+  in its training environment and 59.0/1k in this composition;
+  E1-s1's 42.3 → 34.8 barely moved. The dialect *mix* is the stable
+  signature; the volume is contextual.
+- **Spontaneous here_water is notable for the fog program**: the
+  Here* register is never scripted (§4b), and here-words are
+  mask-legal only near the referent, so these are grounded
+  announcements. E1-s1 carries the strongest spontaneous
+  grounded-reference habit measured in the pool — under global
+  vision, where F-026 says it earns nothing.
+
 ## Regeneration
 
 Traces are deterministic and gitignored (`traces/`):
