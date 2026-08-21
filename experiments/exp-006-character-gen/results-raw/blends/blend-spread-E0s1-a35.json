@@ -1,0 +1,172 @@
+{
+ "subject": "artifacts/blends/spread-E0s1-a35/policy-final.pt",
+ "config": "experiments/exp-006-character-gen/collect-config.toml",
+ "band": [
+  985001,
+  985010
+ ],
+ "ticks": 10000,
+ "near_metric": "manhattan<=2",
+ "play_share": {
+  "mean": 0.11186,
+  "sd": 0.002534640013887573,
+  "n_seeds": 10
+ },
+ "bug_over_meal": {
+  "mean": 8.710801393728223e-05,
+  "sd": 0.0002613240418118467,
+  "n_seeds": 10
+ },
+ "duet_initiation_per_1k": {
+  "mean": 6.839999999999999,
+  "sd": 0.7445804187594515,
+  "n_seeds": 10
+ },
+ "time_near_critters": {
+  "mean": 0.1113,
+  "sd": 0.010882830514163121,
+  "n_seeds": 10
+ },
+ "subject_happiness": {
+  "mean": 94.21881451624633,
+  "sd": 0.10355507221436498,
+  "n_seeds": 10
+ },
+ "team_happiness": {
+  "mean": 91.4348599918723,
+  "sd": 0.08477012882356157,
+  "n_seeds": 10
+ },
+ "per_seed": [
+  {
+   "seed": 985001,
+   "subject_happiness": 94.11112027108669,
+   "team_happiness": 91.44066647338867,
+   "time_near_critters": 0.1135,
+   "decision": {
+    "decisions": 10000,
+    "play_share": 0.1131,
+    "bug_over_meal": 0.0,
+    "bug_over_meal_n": 1050,
+    "duet_initiation_per_1k": 6.2
+   }
+  },
+  {
+   "seed": 985002,
+   "subject_happiness": 94.34275140821934,
+   "team_happiness": 91.46955691707134,
+   "time_near_critters": 0.0915,
+   "decision": {
+    "decisions": 10000,
+    "play_share": 0.1112,
+    "bug_over_meal": 0.0,
+    "bug_over_meal_n": 1088,
+    "duet_initiation_per_1k": 7.3
+   }
+  },
+  {
+   "seed": 985003,
+   "subject_happiness": 94.18380716085434,
+   "team_happiness": 91.41024341499805,
+   "time_near_critters": 0.1266,
+   "decision": {
+    "decisions": 10000,
+    "play_share": 0.1058,
+    "bug_over_meal": 0.0,
+    "bug_over_meal_n": 1113,
+    "duet_initiation_per_1k": 6.2
+   }
+  },
+  {
+   "seed": 985004,
+   "subject_happiness": 94.09462115705013,
+   "team_happiness": 91.434215077281,
+   "time_near_critters": 0.1225,
+   "decision": {
+    "decisions": 10000,
+    "play_share": 0.1119,
+    "bug_over_meal": 0.0,
+    "bug_over_meal_n": 1068,
+    "duet_initiation_per_1k": 7.6
+   }
+  },
+  {
+   "seed": 985005,
+   "subject_happiness": 94.32172300696374,
+   "team_happiness": 91.34079386842251,
+   "time_near_critters": 0.1156,
+   "decision": {
+    "decisions": 10000,
+    "play_share": 0.1124,
+    "bug_over_meal": 0.0,
+    "bug_over_meal_n": 1099,
+    "duet_initiation_per_1k": 5.8999999999999995
+   }
+  },
+  {
+   "seed": 985006,
+   "subject_happiness": 94.24759906589985,
+   "team_happiness": 91.40141249907016,
+   "time_near_critters": 0.1014,
+   "decision": {
+    "decisions": 10000,
+    "play_share": 0.1134,
+    "bug_over_meal": 0.0,
+    "bug_over_meal_n": 1091,
+    "duet_initiation_per_1k": 7.8
+   }
+  },
+  {
+   "seed": 985007,
+   "subject_happiness": 94.10720955908299,
+   "team_happiness": 91.36981196427345,
+   "time_near_critters": 0.1128,
+   "decision": {
+    "decisions": 10000,
+    "play_share": 0.1131,
+    "bug_over_meal": 0.0,
+    "bug_over_meal_n": 1084,
+    "duet_initiation_per_1k": 7.4
+   }
+  },
+  {
+   "seed": 985008,
+   "subject_happiness": 94.10842463612556,
+   "team_happiness": 91.33904826283455,
+   "time_near_critters": 0.1081,
+   "decision": {
+    "decisions": 10000,
+    "play_share": 0.1109,
+    "bug_over_meal": 0.0,
+    "bug_over_meal_n": 1038,
+    "duet_initiation_per_1k": 6.4
+   }
+  },
+  {
+   "seed": 985009,
+   "subject_happiness": 94.32196782648563,
+   "team_happiness": 91.63975237560273,
+   "time_near_critters": 0.0983,
+   "decision": {
+    "decisions": 10000,
+    "play_share": 0.1162,
+    "bug_over_meal": 0.0008710801393728223,
+    "bug_over_meal_n": 1148,
+    "duet_initiation_per_1k": 5.8999999999999995
+   }
+  },
+  {
+   "seed": 985010,
+   "subject_happiness": 94.34892107069493,
+   "team_happiness": 91.50309906578065,
+   "time_near_critters": 0.1227,
+   "decision": {
+    "decisions": 10000,
+    "play_share": 0.1106,
+    "bug_over_meal": 0.0,
+    "bug_over_meal_n": 1113,
+    "duet_initiation_per_1k": 7.7
+   }
+  }
+ ]
+}

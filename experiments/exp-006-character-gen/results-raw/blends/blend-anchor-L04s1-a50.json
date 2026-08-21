@@ -1,0 +1,172 @@
+{
+ "subject": "artifacts/blends/anchor-L04s1-a50/policy-final.pt",
+ "config": "experiments/exp-006-character-gen/collect-config.toml",
+ "band": [
+  985001,
+  985010
+ ],
+ "ticks": 10000,
+ "near_metric": "manhattan<=2",
+ "play_share": {
+  "mean": 0.6015900000000001,
+  "sd": 0.013237707505455776,
+  "n_seeds": 10
+ },
+ "bug_over_meal": {
+  "mean": 0.41632405932247013,
+  "sd": 0.052346762635136525,
+  "n_seeds": 10
+ },
+ "duet_initiation_per_1k": {
+  "mean": 32.230000000000004,
+  "sd": 3.143898853334821,
+  "n_seeds": 10
+ },
+ "time_near_critters": {
+  "mean": 0.62679,
+  "sd": 0.0325021060856062,
+  "n_seeds": 10
+ },
+ "subject_happiness": {
+  "mean": 81.41754057979584,
+  "sd": 0.20524567244021935,
+  "n_seeds": 10
+ },
+ "team_happiness": {
+  "mean": 88.86842239499092,
+  "sd": 0.09316903546533367,
+  "n_seeds": 10
+ },
+ "per_seed": [
+  {
+   "seed": 985001,
+   "subject_happiness": 81.63896956324578,
+   "team_happiness": 89.07569044744969,
+   "time_near_critters": 0.5975,
+   "decision": {
+    "decisions": 10000,
+    "play_share": 0.5906,
+    "bug_over_meal": 0.3729166666666667,
+    "bug_over_meal_n": 480,
+    "duet_initiation_per_1k": 33.2
+   }
+  },
+  {
+   "seed": 985002,
+   "subject_happiness": 81.19991247057915,
+   "team_happiness": 88.84654663670064,
+   "time_near_critters": 0.6196,
+   "decision": {
+    "decisions": 10000,
+    "play_share": 0.5983,
+    "bug_over_meal": 0.4552380952380952,
+    "bug_over_meal_n": 525,
+    "duet_initiation_per_1k": 36.0
+   }
+  },
+  {
+   "seed": 985003,
+   "subject_happiness": 81.37860610485077,
+   "team_happiness": 88.89535483539105,
+   "time_near_critters": 0.6034,
+   "decision": {
+    "decisions": 10000,
+    "play_share": 0.6111,
+    "bug_over_meal": 0.41723356009070295,
+    "bug_over_meal_n": 441,
+    "duet_initiation_per_1k": 33.2
+   }
+  },
+  {
+   "seed": 985004,
+   "subject_happiness": 81.01224536001682,
+   "team_happiness": 88.76711000084877,
+   "time_near_critters": 0.6376,
+   "decision": {
+    "decisions": 10000,
+    "play_share": 0.6076,
+    "bug_over_meal": 0.4547413793103448,
+    "bug_over_meal_n": 464,
+    "duet_initiation_per_1k": 30.8
+   }
+  },
+  {
+   "seed": 985005,
+   "subject_happiness": 81.26419104218483,
+   "team_happiness": 88.80153482258319,
+   "time_near_critters": 0.5758,
+   "decision": {
+    "decisions": 10000,
+    "play_share": 0.5799,
+    "bug_over_meal": 0.42475728155339804,
+    "bug_over_meal_n": 412,
+    "duet_initiation_per_1k": 36.900000000000006
+   }
+  },
+  {
+   "seed": 985006,
+   "subject_happiness": 81.50450015306473,
+   "team_happiness": 88.72495460164546,
+   "time_near_critters": 0.6809,
+   "decision": {
+    "decisions": 10000,
+    "play_share": 0.6171,
+    "bug_over_meal": 0.4177215189873418,
+    "bug_over_meal_n": 474,
+    "duet_initiation_per_1k": 28.1
+   }
+  },
+  {
+   "seed": 985007,
+   "subject_happiness": 81.46471410810948,
+   "team_happiness": 88.86429286170006,
+   "time_near_critters": 0.6038,
+   "decision": {
+    "decisions": 10000,
+    "play_share": 0.584,
+    "bug_over_meal": 0.289738430583501,
+    "bug_over_meal_n": 497,
+    "duet_initiation_per_1k": 33.4
+   }
+  },
+  {
+   "seed": 985008,
+   "subject_happiness": 81.44598926484585,
+   "team_happiness": 88.8739172617197,
+   "time_near_critters": 0.666,
+   "decision": {
+    "decisions": 10000,
+    "play_share": 0.6198,
+    "bug_over_meal": 0.49504950495049505,
+    "bug_over_meal_n": 505,
+    "duet_initiation_per_1k": 26.1
+   }
+  },
+  {
+   "seed": 985009,
+   "subject_happiness": 81.75964381456374,
+   "team_happiness": 88.95257175886631,
+   "time_near_critters": 0.6635,
+   "decision": {
+    "decisions": 10000,
+    "play_share": 0.6119,
+    "bug_over_meal": 0.42857142857142855,
+    "bug_over_meal_n": 406,
+    "duet_initiation_per_1k": 31.099999999999998
+   }
+  },
+  {
+   "seed": 985010,
+   "subject_happiness": 81.50663391649724,
+   "team_happiness": 88.88225072300435,
+   "time_near_critters": 0.6198,
+   "decision": {
+    "decisions": 10000,
+    "play_share": 0.5956,
+    "bug_over_meal": 0.4072727272727273,
+    "bug_over_meal_n": 550,
+    "duet_initiation_per_1k": 33.5
+   }
+  }
+ ]
+}
