@@ -167,3 +167,66 @@ certain lunges (≤1 tick patience cost); net sign on unskilled EV
 plausibly positive but NOT assured — a wash or small loss vs the
 always-fire pounce is a live outcome, and greeble EV gives back
 ~1.5 (skilled) by construction.
+
+## Greeble-schedule proposal — review + conditional extension
+## (2026-08-21; declared before any greeble-schedule number exists)
+
+Product's proposal, brought at the owner's request for Experiments
+review before her determination; nothing authorized to build.
+Proposal: greebles join the critter rest-tick schedule
+((tick+id)%2), per-moving-tick step draw widened to uniform 1–3
+(heading-persistence draw unchanged). Verified against main
+(world.rs:781–801, element.rs:126): current greeble = every tick,
+1-or-2 tiles 50/50, 60% heading re-roll, mean 1.5 tiles/tick; bug =
+0.5 tiles/tick. Proposed greeble mean 1.0 tiles/tick — Product's
+arithmetic checks, and the 2× bug-diffusion identity survives.
+
+**Design read.** The change dissolves the parity lever's one
+recorded narrowing: with rest ticks, greebles re-enter the pounce on
+identical terms to bugs, and bug_moves_this_tick generalizes to one
+critter-schedule method with no bug-only carve-out. It also crosses
+a qualitative line the arithmetic understates: old greebles outrun a
+1-tile/tick chaser in the open (catches were corner-and-collision
+luck); at mean parity with guaranteed closing on rest ticks plus the
+pounce, greebles become catchable BY TIMING. Three channels stack —
+plausibly a larger catchability lift than tether+pounce gave bugs —
+and the 35 sticker was priced against near-uncatchable prey. The
+single-payer-35 vs team-40 structural ceiling still bounds runaway,
+but the margin to the corridor ceiling (23.0 at the tightest, g26)
+is now an unmeasured quantity. Both grids and the sticker sweep ran
+on old-greeble mechanics; none of their greeble readings carry over.
+
+**Conditional pre-registration (operative only if the owner adopts
+the greeble schedule alongside parity):** the parity sweep above
+runs unchanged on the doubly-amended branch — same 8 cells, same
+{25, 26} decision rule (both amendments must be in the same build:
+easier greebles can shift playful's chase allocation, so bug
+numbers are only valid measured together). Greeble bars, declared
+now, read from the same cells at sticker 35:
+- **G1 (predominance)**: skilled greeble EV < team-duet EV on both
+  geometries — partnered play stays on top.
+- **G2 (ruin)**: greeble ruin ≤ ~1% at ttl 600, both skill rows.
+- **Report-and-escalate (no auto-bar — the owner has not ruled an
+  ordering intent)**: bug-vs-greeble EV ordering, both skill rows.
+  Old world: greeble below bug everywhere. If either row flips —
+  especially unskilled, where a greeble-first gradient would aim
+  the unpracticed learner at the 35 sticker — the numbers go to
+  her, not to a rule.
+- **Sticker ladder, conditional on G1 failing**: greeble sticker
+  ∈ {32, 30}, largest value clearing G1 on both geometries
+  (smallest intervention from 35); if neither clears, escalate.
+  Gradient ordering (bug sticker < greeble sticker < 40) must
+  survive any rung adopted.
+
+**Process claims, checked**: (a) marginal sequencing cost ≈ zero is
+CONFIRMED IF BUNDLED — the tether already forces corpus
+re-collection + world re-baseline and this rides the same window;
+my measurement wall-clock grows by hours (greeble EV falls out of
+the same census cells; only a G1-failure ladder adds runs). The
+converse is the real content: adopted later instead, it forces a
+second world change and second re-baseline — effectively
+not-this-generation. (b) Ask of Product: gate it like the rest of
+039 (flag-off byte-identical) — "RNG reshape is deliberate" is
+true for flag-ON; house preservation methodology still wants the
+off-state exact. (c) Known costs acknowledged (golden digest,
+cadence tests, Client's 3-tile dash-vs-teleport Pacer check).
