@@ -1555,13 +1555,29 @@ class WorldRenderer {
       if (eyes === 'closed') eyes = undefined; // the eased lid replaces the snap blink
     }
     if (beat?.kind === 'sad') {
-      // The give-up droop wears on the cat itself: ears back, eyes low --
-      // and it outranks a blink in progress, exactly as it did pre-lid
-      // (a full lid would promote the droop to the happy closed arcs).
+      // The give-up droop wears on the cat itself: EARS BACK, and only the
+      // ears (owner, 2026-08-20: "keep the ears, drop the half-lid").
+      //
+      // It used to set `eyes = 'half'` as well, and that is what the owner
+      // was seeing as half-closed eyes on a WALKING cat: this beat is applied
+      // AFTER the pose, so it overrode a walk, and `sadBeatMs` is 1600 -- two
+      // full ticks. A cat that abandons a chase is usually still moving, so it
+      // landed exactly where it was most visible. Nothing in the pose system
+      // could produce it, which is why every other path came back clean: the
+      // walk layout is always 'open', `motionFor` returns before the blink for
+      // 'walking', and the tween switches eyes at the midpoint.
+      //
+      // Same story as the belly, the resting lids and the hunter's face: at a
+      // 31px cat a half-lid and flattened ears were a couple of pixels, and at
+      // 57-103px they are a visibly dejected cat for 1.6 seconds. The ears
+      // alone say "gave up" -- which is the hunter-eyes decision again, that
+      // the ear channel carries what the eyes were being asked to.
+      //
+      // `lid = undefined` went with it. It existed only so a deep blink could
+      // not promote the FORCED half-lid into the happy closed arcs; with the
+      // eyes untouched, a blink during a droop is simply a blink.
       ears = true;
       earsHold = true;
-      eyes = 'half';
-      lid = undefined;
     }
     const tween = v2Motion && view.tweenFor ? view.tweenFor(kitty.id, pose, motion.phase) : null;
 

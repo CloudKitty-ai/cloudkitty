@@ -13,6 +13,38 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 <!-- shipped P1 items are removed once merged; see git history -->
 
+### The give-up droop is EARS ONLY — SHIPPED 2026-08-20
+
+Owner reported half-closed eyes on cats that were **walking**, in every
+direction, lasting longer than a tick — then, decisively: *"ears go down with
+the half closed eyes as well."* That pairing is the signature.
+
+`render.js`'s `sad` beat set `ears`, `earsHold` AND `eyes = 'half'`. It is
+applied **after** the pose, so it overrode a walk, and `sadBeatMs` is **1600 —
+two full ticks**. It fires when a cat abandons a chase, and such a cat is
+usually still moving, so it landed exactly where it was most visible.
+
+**Nothing in the pose system could produce it**, which is why four separate
+paths came back clean and cost an hour: the walk layout is always `'open'` in
+all three views (proven by draw-log identity against a forced-open cat),
+`motionFor` returns before the blink block for `'walking'` (0 lids in 400
+samples, against 7.8% for idle), and the tween switches eyes at the midpoint so
+a blend gives closed or open, never half. **A beat painted over the pose is
+invisible to every question you can ask the pose.**
+
+Owner: *"keep the ears, drop the half-lid."* Which is the hunter-eyes decision
+again — the ear channel carries what the eyes were being asked to. `lid =
+undefined` went with it: it existed only so a deep blink could not promote the
+FORCED half-lid into the happy closed arcs.
+
+**The guard is blunt on purpose.** `test-meadow` binds render.js's bare
+`drawCat` to cat.js's **v1**, so the opts cannot be intercepted — but v1 draws a
+half-lidded eye with fewer primitives than an open one (118 vs 128), so op
+count discriminates. It needs a POSITIVE CONTROL to mean anything: op count
+cannot see the ears, so "droop fired, eyes untouched" and "no droop at all" are
+the same number. Verified by renaming the beat's kind, which passed until the
+control existed.
+
 ### The cat's eyes and Clementine's coat (added 2026-08-20; owner's queue)
 
 Four items the owner queued after the landscape arc, in her order. They are

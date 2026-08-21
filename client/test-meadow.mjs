@@ -935,6 +935,62 @@ check('the renderer draws the live world\'s ponds without throwing', () => {
  * So this drives the REAL renderer over the REAL Presentation's view, in
  * every theme, with a cat at a series of positions from the pond's middle
  * out onto dry grass. */
+check('the give-up droop moves the EARS and leaves the eyes alone', () => {
+  // Owner, 2026-08-20, and it took her ears detail to find: a walking cat
+  // with half-closed eyes for longer than a tick. The droop is applied AFTER
+  // the pose, so it overrode a walk, and it lasts `sadBeatMs` = 1600 -- two
+  // ticks. Nothing in the pose system could do it, which is why every other
+  // path came back clean.
+  //
+  // Asserted by OP COUNT, which is blunt on purpose: this harness binds
+  // render.js's bare `drawCat` to cat.js's v1 (see the axial note above), so
+  // the opts cannot be intercepted. But v1 draws a half-lidded eye with fewer
+  // primitives than an open one -- 118 against 128 on a walking cat -- so a
+  // frame that forces the lid cannot have the same op count as one that does
+  // not. Verified before being relied on, rather than assumed.
+  const frame = (gaveUp) => {
+    const log = [];
+    const renderer = new api.WorldRenderer(mockCanvas(640, 640, log));
+    renderer.tile = 32; renderer.dpr = 1; renderer.cssWidth = 640; renderer.cssHeight = 640;
+    const p = new api.Presentation();
+    const base = {
+      tick: 10, width: 20, height: 20, elements: [],
+      kitties: [{
+        id: 1, name: 'Miso', pos: { x: 4, y: 4 }, happiness: 0.8, needs: {},
+        last_action: { action: 'move' }, abandoned_chases: [],
+      }],
+    };
+    // Both states carry a `now`, and the frame is drawn at the SECOND one --
+    // `viewAt(0)` against states pushed at a later clock eases from nowhere
+    // and the shadow lands at NaN, which the guarding ctx catches. The first
+    // version of this check did exactly that.
+    p.pushState(base, 1000);
+    // A NEW abandoned chase between two states is what fires the beat.
+    const next = JSON.parse(JSON.stringify(base));
+    next.tick = 11;
+    if (gaveUp) next.kitties[0].abandoned_chases = [{ target: { target: 'kitty', id: 2 }, until: 99 }];
+    p.pushState(next, 1800);
+    renderer.draw(next, p.viewAt(1900, false));
+    return { ops: log.length, beat: p.oneShotFor(1, 1900) };
+  };
+
+  const plain = frame(false).ops;
+  const droop = frame(true);
+  const drooping = droop.ops;
+  assert(plain > 0 && drooping > 0, 'the harness drew nothing, so this compares two blanks');
+  // THE POSITIVE CONTROL, and it is not optional: op count cannot see the
+  // EARS -- they move coordinates, not primitives -- so "the droop fired and
+  // left the eyes alone" and "no droop fired at all" are the same number.
+  // Renaming the beat's kind so it never fires left this check green until
+  // this line existed.
+  assert(droop.beat && droop.beat.kind === 'sad',
+    'the sad beat never fired, so the equality below compares two ordinary cats');
+  assert(frame(false).beat == null, 'a cat that abandoned nothing is drooping anyway');
+  assert(plain === drooping,
+    `a drooping cat drew ${drooping} ops against ${plain} for an ordinary one -- the counts `
+    + 'differ, which is what forcing the eyes to half-lid does. The droop is the EARS only.');
+});
+
 check("the renderer asks the view for no expression at all", () => {
   // WAS "the hunter's gate is WIRED: the renderer measures the quarry".
   // The hunter's face is retired (owner, 2026-08-20) and the seam it guarded
