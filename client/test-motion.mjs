@@ -2595,136 +2595,9 @@ check('the tread moves the BUTT, and only the butt', () => {
   }
 });
 
-check("the hunter's face is gated on how far the quarry is", () => {
-  // Measured on the candidate roster, 4,604 cat-ticks: the median quarry
-  // was 10 tiles away and the commonest 12, so an ungated face put a
-  // hunting expression on a cat walking normally after a bug across the
-  // meadow -- 85.6% of hunter faces were outside the 4-tile gate the POSE
-  // uses, meaning the pose and the expression disagreed about whether a
-  // hunt was on. Owner gated it at 8 (2026-08-14): wider than the pounce,
-  // because eyes may lead a pounce, but not across the whole map.
-  const p = new api.Presentation();
-  const hunting = { pursuit: { target: { target: 'element', id: 9 } },
-    last_action: { action: 'chase', target: 'element', id: 9 } };
-  const gate = VIEW.hunterGateTiles;
-  assert(p.expressionFor(hunting, gate) === 'focused', `at ${gate} tiles the face should still be on`);
-  assert(p.expressionFor(hunting, gate - 1) === 'focused', 'inside the gate the face should be on');
-  assert(p.expressionFor(hunting, gate + 1) === undefined, `at ${gate + 1} tiles the face should be gone`);
-  assert(p.expressionFor(hunting, 20) === undefined, 'across the map it should be gone');
-  assert(p.expressionFor(hunting, 0) === 'focused', 'on top of the quarry it should be on');
-
-  // `null` is not "far". An unresolvable quarry -- caught or expired this
-  // very tick -- keeps the face, which is the rule the pounce gate follows
-  // too: take it away only on positive evidence.
-  assert(p.expressionFor(hunting, null) === 'focused', 'an unresolved quarry lost its face to the gate');
-  assert(p.expressionFor(hunting) === 'focused', 'a caller passing no distance must be unaffected');
-
-  // The gate cannot GRANT a face: a kitty quarry has none at any distance.
-  const social = { pursuit: { target: { target: 'kitty', id: 2 } },
-    last_action: { action: 'chase', target: 'kitty', id: 2 } };
-  for (const d of [0, gate, gate + 5, null]) {
-    assert(p.expressionFor(social, d) === undefined, `chasing a kitty at ${d} wore the hunting face`);
-  }
-  assert(gate > VIEW.pounceGateTiles, 'the eyes are meant to reach further than the pounce');
-});
-
-check("the hunter's face reaches the cats that hunt", () => {
-  // It shipped UNREACHABLE. `pursuit.target` is a TargetRef object
-  // ({target: 'kitty', id: 2}) and `last_action.target` is a plain string
-  // ('kitty') -- two shapes, one comparison against 'element' -- so every
-  // pursuing cat fell through and 'focused' was never returned at all. The
-  // gallery could not catch it: its card forces the expression with
-  // `eyesOverride` instead of going through here.
-  //
-  // Shapes below are verbatim from the live server.
-  const p = new api.Presentation();
-  const pursuing = (kind, id) => ({
-    pursuit: { target: { target: kind, id }, started: 1, closest: 6, improved_at: 1 },
-    last_action: { action: 'chase', target: kind, id },
-  });
-  assert(p.expressionFor(pursuing('element', 9)) === 'focused', 'a cat hunting a bug should wear the hunting face');
-  assert(p.expressionFor(pursuing('kitty', 2)) === undefined, 'a cat chasing a kitty should NOT wear it');
-  // Play is a playmate too, whatever the action says.
-  assert(
-    p.expressionFor({ pursuit: { target: { target: 'kitty', id: 3 } }, last_action: { action: 'play', target: 'kitty', id: 3 } }) === undefined,
-    'play on a kitty wore the hunting face',
-  );
-  // Withheld only on POSITIVE evidence, so an unresolvable quarry keeps it.
-  assert(
-    p.expressionFor({ pursuit: { target: null }, last_action: { action: 'chase', target: null } }) === 'focused',
-    'a quarry caught this tick lost the face to a missing field',
-  );
-  // And a cat that is not pursuing at all keeps its ordinary eyes.
-  assert(p.expressionFor({ last_action: { action: 'groom', target: null } }) === undefined, 'an idle cat wore the hunting face');
-  // The string form on its own has to work too -- it is the fallback path.
-  assert(
-    p.expressionFor({ pursuit: { target: undefined }, last_action: { action: 'chase', target: 'element', id: 4 } }) === 'focused',
-    'the last_action string fallback does not resolve',
-  );
-});
 
 
-check('the hunter is hunting, not merely holding a grudge', () => {
-  // Owner, 2026-08-16: hunter eyes on a cat RESTING beside another cat, and
-  // again while GROOMING with a bug nearby. Both are the same fault, and it
-  // is not the distance gate that let them through -- the bug really was
-  // close. `pursuit` is an intention that outlives the acts serving it (its
-  // own doc: it "survives a cat stopping for a drink"), so asking only
-  // whether one exists asks what the cat WANTS, never what she is doing.
-  //
-  // Live sample, 945 kitty-ticks: of the ticks drawing the face, 27 were
-  // `chase`, 19 `move` -- and 6 were `idle`, a cat standing perfectly still
-  // in a hunter's face. The owner's groom and rest are the same absence.
-  //
-  // The fix shipped in #237 with only a fixture repair beside it; this is
-  // its coverage, split out at the owner's request.
-  const p = new api.Presentation();
-  const hunting = (action) => ({
-    pos: { x: 5, y: 5 },
-    pursuit: { target: { target: 'element', id: 9 }, started: 1, closest: 3, improved_at: 2 },
-    last_action: { action, target: 'element', id: 9 },
-  });
 
-  // Going after it -- both shapes seen live, plus the pounce that ends a
-  // hunt. Losing the face at the pounce would take it away at the one
-  // moment the hunt is most plainly a hunt.
-  for (const action of ['chase', 'move', 'play']) {
-    assert(p.expressionFor(hunting(action), 2) === 'focused',
-      `a cat mid-hunt applying '${action}' lost the hunting face`);
-  }
-
-  // Sitting still with it on file. Every one of these is a cat the viewer
-  // sees doing something else entirely.
-  for (const action of ['groom', 'rest', 'sleep', 'eat', 'drink', 'purr', 'meow', 'idle']) {
-    assert(p.expressionFor(hunting(action), 2) === undefined,
-      `THE BUG: a cat applying '${action}' wore the hunting face`);
-  }
-
-  // The owner's two reports, built as served: the quarry is genuinely near,
-  // so nothing else in the chain can be what withholds the face.
-  const resting = hunting('rest');
-  resting.activity = { state: 'resting' };
-  assert(p.expressionFor(resting, 1) === undefined,
-    'a cat resting next to a friend, bug one tile away, still hunted');
-  const grooming = hunting('groom');
-  grooming.activity = { state: 'grooming' };
-  assert(p.expressionFor(grooming, 0) === undefined,
-    'a cat grooming on top of a bug still hunted');
-
-  // An action nobody has thought of yet reads as not-hunting: the owner
-  // asked for the face "only when in active pursuit", so the list is an
-  // allow-list and a new stationary action cannot inherit the face.
-  assert(p.expressionFor(hunting('sunbathe'), 2) === undefined,
-    'an unknown action inherited the hunting face');
-  assert(p.expressionFor({ pursuit: { target: { target: 'element', id: 9 } } }, 2) === undefined,
-    'a kitty with no applied action at all wore the hunting face');
-
-  // And this must not have eaten the OTHER benefit of the doubt, which is
-  // about a different field: an unresolvable QUARRY still keeps the face,
-  // so long as the cat is actually pursuing.
-  assert(p.expressionFor({ ...hunting('chase'), pursuit: { target: null } }, null) === 'focused',
-    'a quarry caught this very tick lost the face while the cat was still chasing');
-});
 
 check('the portrait sit gets up through a stretch', () => {
   // The chain, and the reason sit can be scheduled at all: sit-then-stretch
@@ -5397,29 +5270,48 @@ check('a hunt whose quarry is gone is over, but a missing field is not', () => {
   assert(pursuitDistanceFor(cat({ target: 'wat', id: 7 }), world([])) === null,
     'an unrecognised target kind was treated as a vanished quarry');
 
-  // Composed through the face, which is what the viewer sees.
-  const P = api.Presentation;
-  const pres = new P();
-  // The applied action is part of the shape now (a pursuit on file is not a
-  // pursuit in progress), and every served kitty carries one -- so a fixture
-  // without it tests a cat the server cannot produce. This check is about
-  // the DISTANCE gate, so the action is held at a hunting one throughout.
-  const chasing = { action: 'chase', target: 'element', id: 7 };
-  const faceFor = (els, at) => {
-    const k = { id: 1, pos: { x: 5, y: 5 }, pursuit: { target: { target: 'element', id: 7 } }, last_action: chasing };
-    const w = world(els);
-    return pres.expressionFor(k, pursuitDistanceFor(k, w));
-  };
-  assert(faceFor([bug]) === 'focused', 'a real hunt lost its face');
-  assert(faceFor([]) === undefined, 'THE BUG: the face survives its quarry vanishing');
-  // And the gate itself, at the owner's 6.
-  assert(api.VIEW.hunterGateTiles === 6, `the gate is ${api.VIEW.hunterGateTiles}, not 6`);
-  assert(faceFor([{ ...bug, pos: { x: 11, y: 5 } }]) === 'focused', 'a quarry exactly 6 tiles off lost the face');
-  assert(faceFor([{ ...bug, pos: { x: 12, y: 5 } }]) === undefined, 'a quarry 7 tiles off kept the face');
-  // A malformed target still keeps it -- the defensive half is intact.
-  const odd = { id: 1, pos: { x: 5, y: 5 }, pursuit: { target: { target: 'element' } }, last_action: chasing };
-  assert(pres.expressionFor(odd, pursuitDistanceFor(odd, world([]))) === 'focused',
-    'a missing field now costs a hunting cat its face');
+  // The face this composed through is RETIRED (2026-08-20), so the second
+  // half of this check went with it. What is left is the distance itself,
+  // which survives on its own merits -- three separated outcomes, and the
+  // queued gaze work wants them.
+});
+
+check('nothing in the world can put the hunter\'s face on a cat', () => {
+  // RETIRED 2026-08-20. Owner: the v1 hunter eyes "read cute at low res, but
+  // as we get higher and higher res the 'fierce' hunting behaviour is not the
+  // chill cute vibe we're going for -- I'm fine with the chasing kitties
+  // behaviour being the default for everything."
+  //
+  // So this is a SUBSTITUTION: a cat chasing prey is drawn the way a cat
+  // chasing a kitty already was. Three checks that pinned the old face have
+  // gone with it, and this replaces them -- asserted on the SHAPE of what the
+  // presentation offers, so re-adding the path anywhere fails here rather
+  // than in whichever drawing check noticed second.
+  const pres = new api.Presentation();
+  assert(typeof pres.expressionFor !== 'function',
+    'Presentation.expressionFor is back; the world can drive an expression again');
+  // `viewAt` is the object render.js actually reads. Named exactly, and
+  // asserted to EXIST first: the previous version of this line guessed
+  // `viewFor`, which does not exist, so it short-circuited to true and
+  // guarded nothing. A check that names a method must prove the method is
+  // there before it proves anything about it.
+  assert(typeof pres.viewAt === 'function', 'viewAt is gone; this check no longer reads the view');
+  assert(!('expressionFor' in pres.viewAt(0, false)),
+    'the view still exposes expressionFor, so the renderer can reach an expression');
+  assert(api.VIEW.hunterGateTiles === undefined,
+    'hunterGateTiles is back, which means something is gating a face again');
+
+  // It also drops "hunting kitties do not blink" (owner, 2026-08-02),
+  // deliberately -- the point is that a hunt is drawn the way play already
+  // is, and players blink. Recorded here because it is the one part of this
+  // that reverses an earlier decision rather than merely retiring one.
+
+  // The DRAWING survives and is still dialled: the gallery card forces it,
+  // and cat.js's v1 path has its own. Retiring the world's route to it is not
+  // the same as deleting the vocabulary, and the difference is the owner's to
+  // spend.
+  assert(CatV2.FOCUS_VARIANTS && Object.keys(CatV2.FOCUS_VARIANTS).length > 0,
+    'FOCUS_VARIANTS was deleted too -- that is a separate decision, not this one');
 });
 
 check('no check left a dial moved behind it', () => {

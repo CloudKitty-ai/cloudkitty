@@ -48,7 +48,6 @@ const FEEDING_KIND = Object.freeze({ eat: 'chow', drink: 'water' });
  * this does NOT touch the rule that an unresolvable QUARRY keeps the face:
  * different field, different question, still benefit of the doubt.
  */
-const PURSUING_ACTIONS = Object.freeze(['chase', 'move', 'play']);
 
 /**
  * The element the engine would have picked for a feeding action at `pos`.
@@ -408,7 +407,6 @@ const VIEW = Object.freeze({
   // way across it -- the quarry was on screen but nowhere the eye would
   // call near. 6 is still wider than the 4-tile pounce gate, so the eyes
   // keep the lead they were given.
-  hunterGateTiles: 6,
   arriveBlendMs: 340, // the walking -> standing blend, paired with the settle
   settleMs: 400, // landing squash, concurrent with the arrive blend
   settleDip: 0.05, // peak vertical squash of the settle
@@ -1851,60 +1849,23 @@ class Presentation {
     return { kind: beat.kind, t };
   }
 
-  /**
-   * Sustained expression, a pure function of the newest state (FR-010):
-   * a cat mid-pursuit wears the hunter's eyes for as long as it hunts.
+  /* THE HUNTER'S FACE IS RETIRED (owner, 2026-08-20), and with it
+   * `expressionFor`, `PURSUING_ACTIONS` and `hunterGateTiles`, which existed
+   * for nothing else. A cat chasing prey now looks exactly like a cat chasing
+   * a kitty, which is what the presentation already did for roughhousing.
    *
-   * "As long as it hunts" means while it is hunting, which is not the same
-   * as while it has a hunt on file -- see PURSUING_ACTIONS. Three things
-   * must agree before the face goes on: a pursuit exists, the applied
-   * action is one that pursues, and the quarry is prey and close enough.
+   * The reason is worth keeping, because it is not "the drawing was wrong":
+   * the fierce face was cute at a 31px thumbnail and reads as fierce at
+   * 57-103px, and fierce is not the vibe. Retiring it also drops "hunting
+   * kitties do not blink" (owner, 2026-08-02), deliberately -- the whole
+   * point is that a hunt is drawn the way play already is, and players blink.
    *
-   * Hunting, though -- not roughhousing (owner, 2026-08-10). A cat
-   * stalking a bug is doing something predatory and should look it; a cat
-   * pouncing on another cat is playing. The pounce is the SAME pose
-   * either way, so the face is the only thing that can tell them apart --
-   * and the answer is already in the served data: what the quarry is. An
-   * element is prey; a kitty is a playmate.
-   *
-   * The expression is withheld only on positive evidence that the quarry
-   * is a kitty -- the same rule the pounce gate follows, and for the same
-   * reason. A quarry that cannot be resolved (caught or expired this very
-   * tick) keeps the hunter's face rather than losing it to a missing
-   * field, so this can never make a hunting cat look ordinary because
-   * something failed to resolve.
+   * The DRAWING survives: `eyesOverride: 'focused'` and `FOCUS_VARIANTS` are
+   * still there, still dialled, still exercised by the gallery card and by
+   * cat.js's v1 path. Nothing in the world reaches them any more. If those
+   * dials are ever to go too, that is a separate deletion and the owner's
+   * call -- 79 lines of values she judged.
    */
-  expressionFor(kitty, quarryDist = null, dials = VIEW) {
-    if (!kitty.pursuit) return undefined;
-    // ...and the cat has to be DOING it, not merely have it on file. See
-    // PURSUING_ACTIONS: the served pursuit outlives the acts that serve
-    // it, so on its own it puts the hunter's face on a cat that has sat
-    // down to groom (owner, 2026-08-16).
-    if (!PURSUING_ACTIONS.includes(kitty.last_action?.action)) return undefined;
-    // Too far to be hunting anything the viewer can see. `null` is not
-    // "far": an unresolvable quarry -- caught or expired this very tick --
-    // KEEPS the face, the same rule the pounce gate follows, so the gate
-    // only ever takes the face away on positive evidence.
-    if (quarryDist !== null && quarryDist > dials.hunterGateTiles) return undefined;
-    // The served pursuit names its quarry when it can; otherwise the
-    // applied action does.
-    // The two sources name the quarry in DIFFERENT shapes, which is what
-    // made this dead on arrival: `pursuit.target` is a TargetRef OBJECT
-    // ({target: 'kitty', id: 2}) while `last_action.target` is a plain
-    // string ('kitty'). Comparing the object against 'element' is never
-    // equal, so every pursuing cat fell through to `undefined` and
-    // 'focused' was unreachable -- the hunter's face never once appeared in
-    // the live world. It looked fine in the gallery because the card forces
-    // it with `eyesOverride: 'focused'` rather than going through here.
-    const ref = (kitty.pursuit && kitty.pursuit.target) || kitty.last_action?.target;
-    const kind = typeof ref === 'string' ? ref : ref?.target;
-    // Withheld only on POSITIVE evidence the quarry is a kitty, the same
-    // rule the pounce gate follows: a quarry that cannot be resolved --
-    // caught or expired this tick -- keeps the face rather than losing it
-    // to a missing field.
-    if (kind && kind !== 'element') return undefined;
-    return 'focused';
-  }
 
   /**
    * The long-wanted need, if any (FR-012): the longest-running served
@@ -2043,7 +2004,6 @@ class Presentation {
       // reduced motion gets static props with full state (FR-013).
       propPhaseFor: (id, periodMs) =>
         still ? 0 : ((now + id * 4241) % periodMs) / periodMs,
-      expressionFor: (kitty, quarryDist) => this.expressionFor(kitty, quarryDist),
       thoughtFor: (kitty) => this.thoughtFor(kitty),
       elementAlphaFor: (el) => (still ? 1 : this.elementAlphaFor(el, now)),
       elementPosFor: (el) =>
