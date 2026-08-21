@@ -67,3 +67,38 @@ G6 soak, and the P1 welfare watchdog going live with the world.
 ---
 
 ## Results (append below; nothing above changes post-launch)
+
+Measured (n=30 per leg, raw in results-raw/deploy/):
+
+| leg | nash (min) | worst mda | >225 | >150 | floor | per-seat hap |
+|---|---|---|---|---|---|---|
+| eval | 0.9393 (0.9373) | 27 | 0 | 0 | 0 | 95.04 / 94.96 / 94.47 / 94.66 / 90.72 |
+| stress iii | 0.9389 (0.9371) | 21 | 0 | 0 | 0 | ≈ eval |
+| r3 (family-00) | 0.9475 (0.9415) | 76 | 0 | 0 | 0 | 95.05 / 95.08 / 94.17 |
+| r5 benchmark | 0.9298 (0.9230) | 193 | 0 | 1 | 0 | report-only |
+
+## Verdicts (declared rules above)
+
+- **G2b PASS** — 0.9393 ≥ 0.9072 (+0.0321).
+- **G2c PASS** — 0.9393 ≥ 0.9340; the roster sits +0.0003 ABOVE the
+  plain reference: the E1-s1 swap costs nothing at team level.
+- **G2d PASS, every seat** — Miso +0.70 over bar, Biscuit-e004
+  +0.68, Pumpkin +0.50, **Kittybear E1-s1 94.66 vs bar 94.05
+  (+0.61; +0.01 vs the s3 twin it replaces — statistically the same
+  seat welfare, different voice)**, Clementine +0.70.
+- **G2a iii PASS** — 0 exceedances, worst streak 21 (cleaner than
+  the plain reference's 30), constitutional clean, floor 0.
+- **G2a r3 PASS** — 0 exceedances, worst 76, floor 0.
+- **family-11-r5 tail benchmark (report-only)**: 0 bar exceedances;
+  one 193-tick streak at seed 880030 — the seed that produced the
+  twinned composition's 2331-tick co-sleep catastrophe. The
+  twin-free roster takes the benchmark's worst draw from 2331 to
+  193. The benchmark is doing exactly the job it was recruited for,
+  and the F-027 mitigation is measured, not assumed.
+
+**DEPLOY BATTERY: PASS on all gates. The phase-1 roster — reference
+with E1-s1 at Kittybear — is CERTIFIED for seating.** Owed at
+seating time (the cutover PR): registry rows same-PR (spec 034),
+E1-s1 export parity (.ckpolicy vs the stripped actor measured
+here), G5 census, G6 soak, the P1 welfare watchdog live with the
+world.
