@@ -2202,7 +2202,16 @@ function catLayout(pose, phase, opts = {}) {
       L.body.rot = 0.05;
       L.head = { cx: 0.72, cy: 0.57 + 0.008 * Math.sin(phase * 3 * TAU), r: 0.21 };
       L.earsUpright = false;
-      L.eyes = 'half';
+      // CLOSED, not a half-lid (owner, 2026-08-20). A half-lid passed
+      // through in 200ms reads as a blink; HELD, it reads as a sleepy or
+      // unwell cat -- and at 57-103px it is held in front of you. The lid
+      // position was never wrong, its persistence was.
+      //
+      // This is the existing convention rather than a new one: eating,
+      // grooming and sleep-curl all close. Drinking and loaf were the two
+      // resting poses that missed it, back when a cat was ~31px and a lid
+      // and an arc were the same two pixels.
+      L.eyes = 'closed';
       L.droplet = true; // the little lap of water that says "drinking"
       L.tail = { x0: 0.15, y0: 0.66, c1x: 0.05, c1y: 0.68, c2x: 0.02, c2y: 0.6, x1: 0.03, y1: 0.55 };
       L.legs = withFarPair([
@@ -2227,7 +2236,7 @@ function catLayout(pose, phase, opts = {}) {
     case 'loaf': {
       L.body = { cx: 0.46, cy: 0.68, rx: 0.34, ry: 0.185 + 0.006 * breathe, rot: 0 };
       L.head = { cx: 0.68, cy: 0.48, r: 0.21 };
-      L.eyes = 'half'; // contentedly elsewhere
+      L.eyes = 'closed'; // contentedly elsewhere -- see `drinking` for why closed
       L.legs = []; // all paws folded away: the defining loaf fact
       // Tail wrapped along the front of the loaf.
       L.tail = { x0: 0.16, y0: 0.76, c1x: 0.3, c1y: 0.9, c2x: 0.56, c2y: 0.9, x1: 0.68, y1: 0.82 };

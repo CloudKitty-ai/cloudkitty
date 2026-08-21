@@ -54,13 +54,20 @@ choices at high one.
    deleting them — the invariant they encode still holds, it just has one
    subject now instead of two.
 
-3. **Replace the half-closed eyes in RESTING poses** (drinking, and its
-   siblings). Owner: they *"read fine during transitions — slow blink, falling
-   asleep — but don't look great as a resting pose at our new higher
-   resolution."* So the lid position is not wrong, its PERSISTENCE is: a
-   half-lid passed through in 200ms reads as a blink, held indefinitely it
-   reads as a sleepy or unwell cat. The fix is per-pose, not per-lid, and the
-   transitions must keep what they have.
+3. **~~Replace the half-closed eyes in RESTING poses~~ — SHIPPED 2026-08-20.**
+   Owner: they *"read fine during transitions — slow blink, falling asleep —
+   but don't look great as a resting pose at our new higher resolution"*, and
+   *"fully closed eyes replace the lid."*
+
+   **Two poses, and it was the existing convention rather than a new one:**
+   eating, grooming and sleep-curl already closed; `drinking` and `loaf` were
+   the two that missed it, from when a cat drew at ~31px and a lid and an arc
+   were the same two pixels. `stretch` keeps its half-lid deliberately — it is
+   a transition, already resolving to closed at the top of its push — and that
+   exemption is now pinned so it reads as a decision.
+
+   The lid position was never wrong; its PERSISTENCE was. Passed through in
+   200ms a half-lid is a blink; held at 57–103px it is a sleepy cat.
 
 4. **Design output for the settle-in-place and north/south walk animations —
    DELIVERED, and queued for tomorrow.** Both are done and owner-approved, in
