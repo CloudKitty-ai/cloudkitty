@@ -1,0 +1,6 @@
+config /private/tmp/claude-501/-Users-elizabethkelly-ai-cloudkitty/c344c5ac-df5f-439b-977c-3cfdd15fedaa/scratchpad/sweep-configs/g20-r28-nd-pile.toml | 10 seeds x 20000 ticks | mean critters on field: bug 3.0, greeble 1.0
+
+[needs_driven] (per-kitty-tick basis over 200000 world ticks)
+  bug: pursuits 8257 | chase ticks 15141 | catches 3621 | abandons 4635 | chase-ticks/catch 4.2 | catch-rate 43.9% | pounce starts 1940 | play scenes 5561 (mean len 1.7) | expiry: chase 24 scene 14
+  greeble: pursuits 2508 | chase ticks 5274 | catches 790 | abandons 1718 | chase-ticks/catch 6.7 | catch-rate 31.5% | pounce starts 663 | play scenes 1453 (mean len 1.5) | expiry: chase 4 scene 6
+  kitty-chase ticks 23423 | duets: 19228 starts, 37645 ticks (mean 2.0) | solo: 0 starts, 0 ticks (mean 0.0)
