@@ -126,3 +126,44 @@ ceiling 23.1–25.1 — tightest at g26/30). Expect the realized values
 near-linear; a super-linear response (F-016-class feedback: higher
 value → more hunting → more skill practice within the window) would
 land ABOVE these numbers and is the thing to watch.
+
+## Live state at compaction (2026-08-21/22) — THE PENDING FORK
+
+Branch 039-bugs2-tether @ b044827 carries the full 28-package
+(tether 4×4 + both ttls 600 + pounce + play_relief_bug 28), suite
+672/0. **Final-config census RUN on the exact shipped toml**:
+unskilled bugEV 10.8 / catch 43.9% / ruin 0.28%; playful-variant
+skilled 20.9 in [12.6, 25.2] / ruin 0.59% — ALL BARS PASS on the
+merge bytes. **Merge-GREEN is STAGED, NOT SENT**; Product holds the
+PR-word ask on my request while the owner deliberates her
+parity-pounce proposal. b044827 frozen till she rules.
+
+**The fork (owner's word decides):**
+- "parity": Product amendment 3 (pounce fires only on the bug's
+  rest ticks — bug_moves_this_tick = (tick+id)%2, element.rs:126,
+  same-tick keying so a rest-tick lunge provably lands; few lines,
+  no RNG, flag-off byte-identical). DESIGN CONSEQUENCE in her view:
+  greebles drop out of the pounce entirely (no rest ticks) — purity
+  gain (uncatchable chaos by construction) but a narrowing vs the
+  measured b044827; economically minor (no bar touches greebles,
+  pounce bought them ~+1.5 skilled EV). Then my sweep below.
+- "ship": send the staged GREEN on the 28-package as measured.
+- The "where" version (true next-position targeting) is PARKED by
+  both threads: hoists RNG draws across tick phases, invalidates the
+  inertness architecture — a different spec if ever.
+
+## Parity sweep — CONDITIONAL PRE-REGISTRATION (declared now, runs
+## only on the owner's "parity" ruling; no parity number exists)
+
+Package + parity-timed pounce at play_relief_bug ∈ {25, 26} ×
+{nd, pf} × pile × {g20, g26} (8 cells; 28 retained as fallback
+comparator from the existing sweep). Decision rule: smallest sticker
+clearing bar 1 on BOTH geometries with bar 2 intact; if 25 clears,
+the arc ships with ZERO reward changes (the owner's original
+constraint honored in full); if neither 25 nor 26 clears, the
+28-package ships as already measured. Expectations on the record:
+parity halves pounce opportunities but converts coin-flips to
+certain lunges (≤1 tick patience cost); net sign on unskilled EV
+plausibly positive but NOT assured — a wash or small loss vs the
+always-fire pounce is a live outcome, and greeble EV gives back
+~1.5 (skilled) by construction.
