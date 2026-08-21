@@ -21,12 +21,14 @@ BASES = {
     "g20": HERE / "exp-006-character-gen/configs/phase1-cutover.toml",
     "g26": HERE / "exp-006-character-gen/family-spread/family-11.toml",
 }
-ARMS = {  # (roam_cell or None, ttl or None)
-    "pkg": (4, 600),
-    "t300": (4, 300),
-    "tNo": (4, None),
-    "none": (None, None),
-    "c3": (3, 600),
+# Re-grid arms (pre-registered 2026-08-21, pounce amendment):
+# (roam_cell or None, ttl or None, pounce bool)
+ARMS = {
+    "both": (4, 600, True),     # the NEW package
+    "tether": (4, 600, False),  # prior package -> pounce's marginal
+    "pounce": (None, 600, True),  # does pounce need the tether
+    "none": (None, None, False),  # control = the old world
+    "c3": (3, 600, True),       # cell rule under the new package
 }
 
 
@@ -89,9 +91,12 @@ def main():
     n = 0
     for geo, base in BASES.items():
         src = base.read_text()
-        for arm, (roam, ttl) in ARMS.items():
+        for arm, (roam, ttl, pounce) in ARMS.items():
             t1 = set_elem_keys(src, "bug", ttl, roam)
             t1 = set_elem_keys(t1, "greeble", ttl, None)
+            t1 = re.sub(r"(?m)^pounce = \w+\n", "", t1)
+            if pounce:
+                t1 = t1.replace("[behavior]\n", "[behavior]\npounce = true\n", 1)
             for skill, beh in (("nd", "needs_driven"), ("pf", "playful")):
                 t2 = biscuit_behavior(t1, beh)
                 for comp in ("pile", "iso"):
@@ -105,6 +110,7 @@ def main():
                     assert bug.get("ttl") == ttl, name
                     assert c["elements"]["greeble"].get("ttl") == ttl, name
                     assert "roam_cell" not in c["elements"]["greeble"], name
+                    assert c["behavior"].get("pounce", False) == pounce, name
                     ks = c["kitty"]
                     assert len(ks) == (1 if comp == "iso" else 5), name
                     bis = next(k for k in ks if k["name"] == "Biscuit")

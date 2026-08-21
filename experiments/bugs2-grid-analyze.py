@@ -17,7 +17,8 @@ from collections import defaultdict
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-GRID = HERE / "bugs2-grid"
+GRID = HERE / (sys.argv[1] if len(sys.argv) > 1 else "bugs2-grid")
+PKG = sys.argv[2] if len(sys.argv) > 2 else "pkg"
 RELIEF = {"bug": 25.0, "greeble": 35.0}
 
 ROW = re.compile(
@@ -96,8 +97,8 @@ def main():
 
     print("\n== Verdict (pre-registered bars) ==")
     for geo in ("g20", "g26"):
-        pkg_nd = cell(f"{geo}-pkg-nd-pile", "needs_driven")
-        pkg_pf = cell(f"{geo}-pkg-pf-pile", "playful")
+        pkg_nd = cell(f"{geo}-{PKG}-nd-pile", "needs_driven")
+        pkg_pf = cell(f"{geo}-{PKG}-pf-pile", "playful")
         c3_nd = cell(f"{geo}-c3-nd-pile", "needs_driven")
         if not (pkg_nd and pkg_pf):
             continue
