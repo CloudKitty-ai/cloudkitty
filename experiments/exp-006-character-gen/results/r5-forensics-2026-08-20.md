@@ -139,6 +139,55 @@ exp-003's collapse finding (self-interaction failure) and F-010
 (roster-OOD catatonia); this is the served-composition sibling of
 both, and a register-note candidate.
 
+## Follow-up measurements (owner's tactical questions, 2026-08-20)
+
+**Is the deadlock possible on the seated (cutover) world?** Traced the
+two worst cutover-config battery events. Neither is the co-sleep loop:
+candidate×stress 880013 (mda 137) is Pumpkin choosing `drink` for 121
+of 137 ticks at the pond while its eat need waits (serial
+prioritization, self-resolving); reference×eval 870005 (mda 87) is a
+brief pacing episode. Across 2.4M cutover ticks (both compositions,
+eval + stress) the deadlock never formed. The cutover geometry (20×20,
+water 7–9 scattered, stimuli-dense) both starves the attractor's entry
+and caps its cost. This is a frequency bound from 120 runs, not an
+impossibility proof; the policy preference that sustains the loop
+exists regardless of world.
+
+**solo-s3 report-only cell** (never a gate leg; SEATINGS `solo-s3`:
+s1 / L-04-s1 / s3 / scripted / e004 — s3 seated once, neutral scripted
+fill at Kittybear):
+
+| cell | nash | worst mda | >225 | >150 | max low |
+|---|---|---|---|---|---|
+| solo-s3 × eval (cutover) | 0.9385 | 25 | 0 | 0 | 0.0000 |
+| solo-s3 × stress (family-11) | 0.9128 | 159 | 0 | 1 | 0.0057 |
+
+Readings, against the twinned compositions:
+
+- **The deadlock class vanishes with the twin pair**, and e004's
+  pacing never breached alone: family-11 stress goes from 2
+  exceedances / worst 2331 (twinned candidate) to 0 exceedances /
+  worst 159. Clementine's >bar pacing streaks in 880030 co-occurred
+  with the twins' deadlock and did not recur without it.
+- **The residual 159** (seed 880013, Pumpkin eat, ticks 6436–6595) is
+  directed travel: 113 of 159 chosen actions are a consistent
+  north-east march to food. On a 26-tile map a far-corner need spike
+  costs more than 150 ticks of locomotion; the constitutional clause
+  as frozen prices world size, not policy health. (Same seed, same
+  kitty, same need carried the cutover stress worst at 137 — 880013
+  appears to draw a hard need-phase alignment.)
+- **Kin-gap arithmetic**: Pumpkin solo reads 94.28 vs 94.78 twinned
+  (−0.50) with Clementine present, against the pre-wall kin
+  dose-response gap of −0.94 (94.87 kin / 93.93 alone; cross-surface,
+  so directional only). Company covers roughly half the kin benefit.
+  Clementine's own reading is unchanged (94.74 vs 94.99).
+- **Team cost of the cell**: 0.9385 vs 0.9478 (−0.0093), dominated by
+  the scripted fill at Kittybear (91.36 vs 94.94 at that seat). Any
+  policy fill re-raises the multiples question: e004 at Kittybear
+  twins the pacing mind with Clementine's seat, s1 at Kittybear twins
+  s1. Scripted is the only fill with no dyadic unknowns, and it was
+  the one measured.
+
 ## Regeneration
 
 Traces are deterministic and gitignored (`traces/`):
