@@ -188,14 +188,14 @@ for pin, solo, and suppressed rivals pass.
       `fitMarginTiles`; resolve T002's must-go-red pile (each red check
       replaced by its 038 successor or deleted with a pointer to the
       successor in the diff); `grep` proves no surviving references
-- [ ] T022 [P] Verify the zero-diff claim: `git diff main -- client/render.js`
+- [x] T022 [P] Verify the zero-diff claim: `git diff main -- client/render.js`
       is empty; if the pan needed a render hint after all, flag it in the PR
       description as the plan's one permitted touch
-- [ ] T023 Full-suite audit: both harnesses green; READ the final counts and
+- [x] T023 Full-suite audit: both harnesses green; READ the final counts and
       compare against T001's baseline plus additions; confirm every contract
       §5 fixture has its recorded red (the mutation, the predicted failure,
       the observed failure) in its task's commit message
-- [ ] T024 [P] Docs: one-liner under `## Unreleased` in `CHANGELOG.md`;
+- [x] T024 [P] Docs: one-liner under `## Unreleased` in `CHANGELOG.md`;
       update the camera-logic entry in `BACKLOG.md` (epsilon-snap item is
       subsumed by 038's episode engine); add a pointer to spec 038 in
       `client-measurements/camera-aim/README.md`

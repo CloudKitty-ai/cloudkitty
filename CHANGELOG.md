@@ -33,6 +33,17 @@ change.
 
 ## Unreleased
 
+- **The camera stopped fidgeting.** It used to chase the middle of the clowder
+  every frame and never quite arrive — always drifting, never still. Now it
+  picks a shot (the most kitties that fit together), holds it perfectly still,
+  and moves only when moving means something: one gentle glide when somebody
+  presses the edge, a widen when a nearby group wanders close enough to share
+  the frame, and — rarely — one deliberate pan when a bigger gathering has
+  settled somewhere else and stayed. Kitties also draw noticeably bigger,
+  because the frame now fits the group it's watching instead of sitting at its
+  widest all day. Following a kitty works exactly as before, with one clarified
+  kindness: a loner you follow is framed alone, not stretched at.
+
 - **The phone was framing a keyhole, and now frames a scene.** At its most
   zoomed-in the camera would hold as few as six tiles, which on a handset is
   about three paces of meadow with a cat filling it. It now holds seven. A cat
