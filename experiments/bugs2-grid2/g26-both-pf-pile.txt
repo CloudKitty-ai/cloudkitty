@@ -1,0 +1,11 @@
+config /private/tmp/claude-501/-Users-elizabethkelly-ai-cloudkitty/c344c5ac-df5f-439b-977c-3cfdd15fedaa/scratchpad/grid2-configs/g26-both-pf-pile.toml | 10 seeds x 20000 ticks | mean critters on field: bug 3.0, greeble 1.0
+
+[needs_driven] (per-kitty-tick basis over 200000 world ticks)
+  bug: pursuits 3433 | chase ticks 6194 | catches 1364 | abandons 2068 | chase-ticks/catch 4.5 | catch-rate 39.7% | pounce starts 754 | play scenes 2118 (mean len 1.7) | expiry: chase 6 scene 7
+  greeble: pursuits 996 | chase ticks 2242 | catches 292 | abandons 704 | chase-ticks/catch 7.7 | catch-rate 29.3% | pounce starts 244 | play scenes 536 (mean len 1.5) | expiry: chase 2 scene 0
+  kitty-chase ticks 16126 | duets: 19508 starts, 52797 ticks (mean 2.7) | solo: 0 starts, 0 ticks (mean 0.0)
+
+[playful] (per-kitty-tick basis over 200000 world ticks)
+  bug: pursuits 9196 | chase ticks 14530 | catches 7059 | abandons 2137 | chase-ticks/catch 2.1 | catch-rate 76.8% | pounce starts 811 | play scenes 7870 (mean len 5.1) | expiry: chase 26 scene 68
+  greeble: pursuits 1611 | chase ticks 4650 | catches 764 | abandons 847 | chase-ticks/catch 6.1 | catch-rate 47.4% | pounce starts 359 | play scenes 1123 (mean len 2.0) | expiry: chase 6 scene 4
+  kitty-chase ticks 26665 | duets: 8745 starts, 36444 ticks (mean 4.2) | solo: 0 starts, 0 ticks (mean 0.0)
