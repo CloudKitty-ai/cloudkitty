@@ -2236,6 +2236,81 @@ check('the lid clamp actually bites — a deeper brow changes nothing', () => {
 });
 
 
+check('a resting pose closes its eyes rather than holding a half-lid', () => {
+  // Owner, 2026-08-20: the half-lid "reads fine during transitions -- slow
+  // blink, falling asleep -- but doesn't look great as a resting pose at our
+  // new higher resolution". The lid POSITION was never wrong; its persistence
+  // was. Passed through in 200ms it is a blink; held in front of you at
+  // 57-103px it is a sleepy or unwell cat.
+  //
+  // Not a new convention: eating, grooming and sleep-curl already closed.
+  // Drinking and loaf were the two that missed it, from when a cat drew at
+  // ~31px and a lid and an arc were the same two pixels.
+  //
+  // Asserted WITHOUT knowing how an eye is drawn: draw the pose as shipped,
+  // draw it again forced to 'closed', and require the two to be identical.
+  // If the pose already closes, the override changes nothing.
+  const drawn = (pose, override) => {
+    const log = [];
+    CatV2.drawCat(guardCtx(log), {
+      pose,
+      appearance: CatV2.appearanceFor(2),
+      facing: 'right',
+      size: 120,
+      x: 0,
+      y: 0,
+      phase: 0.3,
+      ...(override ? { eyesOverride: override } : {}),
+    });
+    return JSON.stringify(log);
+  };
+
+  for (const pose of ['drinking', 'loaf', 'eating', 'grooming', 'sleep-curl']) {
+    assert(drawn(pose) === drawn(pose, 'closed'),
+      `${pose} does not already draw closed eyes -- forcing 'closed' changed the drawing`);
+  }
+
+  // The control, and it is the whole reason the loop above means anything: a
+  // pose that does NOT close must be changed by the same override. Without
+  // this the check would pass if `eyesOverride` had quietly stopped working.
+  for (const pose of ['idle', 'walking']) {
+    assert(drawn(pose) !== drawn(pose, 'closed'),
+      `${pose} draws the same with and without a forced 'closed', so eyesOverride is inert `
+      + 'and the assertions above prove nothing');
+  }
+
+  // `stretch` keeps its half-lid deliberately: it is a TRANSITION, already
+  // resolving to closed at the top of the push, and the owner's note exempts
+  // transitions. Pinned so the exemption is a decision rather than an
+  // oversight -- if it ever closes throughout, that was someone's choice.
+  // Swept, because the stretch closes at the TOP of its push and only wears
+  // the half-lid at the ends -- a single phase can land in either half, and
+  // the first version of this check picked one that was already closed.
+  const phases = Array.from({ length: 40 }, (_, i) => i / 40);
+  const lidded = phases.filter((ph) => {
+    const log = [];
+    const logClosed = [];
+    for (const [l, ov] of [[log, null], [logClosed, 'closed']]) {
+      CatV2.drawCat(guardCtx(l), {
+        pose: 'stretch',
+        appearance: CatV2.appearanceFor(2),
+        facing: 'right',
+        size: 120,
+        x: 0,
+        y: 0,
+        phase: ph,
+        ...(ov ? { eyesOverride: ov } : {}),
+      });
+    }
+    return JSON.stringify(log) !== JSON.stringify(logClosed);
+  });
+  assert(lidded.length > 0,
+    'stretch closes throughout its cycle now; it is a transition and was left half-lidded '
+    + 'on purpose, so this is either a decision nobody recorded or an accident');
+  assert(lidded.length < phases.length,
+    'stretch never reaches closed eyes at the top of its push, which it did before');
+});
+
 check('a belly never changes direction with the hour or the weather', () => {
   // Found 2026-08-20 by the owner asking to see the new belly value AT NIGHT.
   // `bellyInkOf` decided lighten-vs-shade from the DRAWN appearance, and
