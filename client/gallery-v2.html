@@ -221,6 +221,10 @@
 <script src="cat.js"></script>
 <script src="cat-v2.js"></script>
 <script src="props.js"></script>
+<!-- For the belly card's four hours: the SHIPPED grass per theme via
+     setMeadowPalette, rather than four tones typed into the lab. Same reason
+     gallery-meadow.html loads it. No props dependency. -->
+<script src="meadow.js"></script>
 <!-- For VIEW (the shipped motion values) and slowBlinkLid (the shipped
      envelope). Nothing in anim.js runs until `anim.init`, which the lab
      never calls, so loading it here costs a parse and no behaviour. -->
@@ -1472,10 +1476,11 @@
     },
     {
       title: 'Belly',
-      note: 'A pale underside on every soft cat — the only one we had was the tuxedo\'s white bib, which is a pattern on one palette, so the four cats actually on the world were flat single-colour ellipses. Ratios are kitten.me\'s, converted out of their tile units. The tuxedo is skipped on purpose: its bib already is a belly, and both together leave this one poking out behind it. THE DIFFERENT DERIVATION THIS CARD PREDICTED HAS ARRIVED: lightening an almost-white coat toward white has nothing to give, and Clementine\'s separated by 1.4 L* against 26.2 on the tuxedo — absent rather than faint. So the belly is now stated as a separation and the direction follows the room available: a coat that cannot be lightened far enough is shaded toward its own furShade instead, which is what a white cat\'s underside actually is. Judge the leftmost cat, and watch that the four beside her do not move — minSeparation 8 is chosen to leave every coat that shipped before her exactly as approved, and the readout names which rule each one is on.',
+      note: 'A pale underside on every soft cat — the only one we had was the tuxedo\'s white bib, which is a pattern on one palette, so the four cats actually on the world were flat single-colour ellipses. Ratios are kitten.me\'s, converted out of their tile units. The tuxedo is skipped on purpose: its bib already is a belly, and both together leave this one poking out behind it. THE DIFFERENT DERIVATION THIS CARD PREDICTED HAS ARRIVED: lightening an almost-white coat toward white has nothing to give, and Clementine\'s separated by 1.4 L* against 26.2 on the tuxedo — absent rather than faint. So the belly is now stated as a separation and the direction follows the room available: a coat that cannot be lightened far enough is shaded toward its own furShade instead, which is what a white cat\'s underside actually is. Judge the leftmost cat, and watch that the four beside her do not move — minSeparation 8 is chosen to leave every coat that shipped before her exactly as approved, and the readout names which rule each one is on. FOUR HOURS AT ONCE (2026-08-20, owner: "see how that new number looks at night"): each row is a theme, on that theme\'s real grass, with the cats shaded the way the world shades them. That is not decoration — it caught a bug. The direction used to be decided from the DRAWN coat, so darkening it at dusk handed the lighten its headroom back and Clementine flipped from shadow to pale patch three times a day, crossfading THROUGH her own coat colour at every boundary. The direction now comes from the unshaded palette and the paint from the drawn appearance, so she stays a shadow and still darkens with the hour. Dial against all four rows: her separation narrows toward night (6.9 day, 6.3 night) because the whole coat compresses, so night is the thin reading and the one to judge second.',
       v2Only: true,
       w: 560,
-      h: 190,
+      h: 548,
+      ownShadows: true,
       bag: BELLY_BAG,
       dials: [
         { key: 'lighten', label: 'HOW MUCH PALER THAN THE FUR (0 = invisible)', min: 0, max: 0.8, step: 0.01 },
@@ -1492,17 +1497,25 @@
         // Per coat: what it separates by NOW, and which rule got it there.
         // The flip is the thing being judged, so it is printed rather than
         // left to be inferred from the drawing.
-        const rows = [1, 2, 3, 4, 5].map((pal) => {
-          const a = CatV2.appearanceFor(pal);
-          const ink = CatV2.bellyInkOf(a);
-          const d = CatV2.lstar(ink) - CatV2.lstar(a.furBase);
-          const lit = CatV2.lightenHex(a.furBase, B.lighten);
-          const shaded = CatV2.lstar(lit) - CatV2.lstar(a.furBase) < B.minSeparation;
-          return (
-            `  ${a.name.padEnd(14)} ${a.furBase} → ${ink}  ` +
-            `${d >= 0 ? '+' : ''}${d.toFixed(1)} L*  ${shaded ? 'SHADED' : 'lightened'}`
-          );
+        //
+        // Reported at every hour, and with a DIRECTION column, because the
+        // direction changing across the day is the failure this card exists
+        // to make impossible to miss. `same` means the coat keeps one rule
+        // all day; anything else is the 2026-08-20 bug returning.
+        const hours = ['day', 'dusk', 'night', 'dawn'];
+        const rows = [5, 1, 2, 3, 4].map((pal) => {
+          const root = CatV2.appearanceFor(pal);
+          const seen = new Set();
+          const per = hours.map((t) => {
+            const a = CatV2.shadedAppearanceOf(root, t);
+            const d = CatV2.lstar(CatV2.bellyInkOf(a)) - CatV2.lstar(a.furBase);
+            seen.add(d < 0 ? 'SHADED' : 'lightened');
+            return `${d >= 0 ? '+' : ''}${d.toFixed(1)}`.padStart(6);
+          });
+          const rule = seen.size === 1 ? [...seen][0] : `*** FLIPS: ${[...seen].join('/')} ***`;
+          return `  ${root.name.padEnd(14)}${per.join('')}   ${rule}`;
         });
+        rows.unshift(`  ${'coat'.padEnd(14)}${hours.map((h) => h.padStart(6)).join('')}   rule, all day`);
         return (
           `BELLY = { x: ${B.x}, y: ${B.y}, rx: ${B.rx}, ry: ${B.ry}, ` +
           `lighten: ${B.lighten}, darken: ${B.darken}, ` +
@@ -1512,23 +1525,41 @@
         );
       },
       draw(ctx, w, h, now) {
-        const S = 104;
-        const y = h - S * 0.92;
-        // Every palette, because the point of a belly is that it works on
-        // all of them -- and the pale ones are where it struggles. Clementine
-        // (5, the white 'cloud') leads, since she is the coat this dial
-        // exists for and the one whose flip has to be judged against the
-        // four beside her that must NOT move.
-        [5, 1, 2, 3, 4].forEach((pal, i) => {
-          const x = 14 + i * 108;
-          CatV2.drawCat(ctx, {
-            pose: 'idle',
-            appearance: CatV2.appearanceFor(pal),
-            facing: 'right',
-            size: S,
-            x,
-            y,
-            phase: ((now + pal * 700) % 3400) / 3400,
+        const S = 96;
+        const hours = ['day', 'dusk', 'night', 'dawn'];
+        const rowH = h / hours.length;
+        // TWO PASSES: every band is filled before any cat is drawn. A cat's
+        // box runs a little past its ground line, so a fill-then-draw-per-row
+        // loop would let each row's grass clip the row above it.
+        hours.forEach((theme, r) => {
+          // The SHIPPED grass for this hour, not a tone typed in here.
+          setMeadowPalette(theme, null, 0);
+          ctx.fillStyle = MEADOW.grassTones[0];
+          ctx.fillRect(0, r * rowH, w, rowH);
+          ctx.fillStyle = MEADOW.ink ?? '#3b3a36';
+          ctx.font = '11px ui-monospace, monospace';
+          ctx.fillText(theme, 8, r * rowH + 15);
+        });
+        // Restored before the cats: they read their colour from the palette
+        // argument, not from MEADOW, so no other card inherits a night meadow.
+        setMeadowPalette('day', null, 0);
+        hours.forEach((theme, r) => {
+          // `y` is the box's TOP-LEFT -- paintBox does translate(x, y) then
+          // scale(size), and the ground line is CAT_GROUND (0.88) down the
+          // box. So this is the card's original `h - S * 0.92`, per row.
+          const y = r * rowH + rowH - S * 0.92;
+          [5, 1, 2, 3, 4].forEach((pal, i) => {
+            CatV2.drawCat(ctx, {
+              pose: 'idle',
+              // Shaded the way the world shades it, so the belly is judged
+              // against the coat it will actually sit on at that hour.
+              appearance: CatV2.shadedAppearanceOf(CatV2.appearanceFor(pal), theme),
+              facing: 'right',
+              size: S,
+              x: 14 + i * 108,
+              y,
+              phase: ((now + pal * 700) % 3400) / 3400,
+            });
           });
         });
       },
