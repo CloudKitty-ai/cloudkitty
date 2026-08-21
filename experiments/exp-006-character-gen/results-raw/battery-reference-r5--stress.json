@@ -1,0 +1,850 @@
+{
+ "provenance": {
+  "git_head": "8f614e2e5b40bf2314780ecb548299813f44ebb8",
+  "config_sha256": "7bc3c4c9030a57c1d59ff98c3130d24e848f848451fd31bd6a53b6c22bd009ed",
+  "binding": "unknown",
+  "binding_engine": null
+ },
+ "rows": [
+  {
+   "seating": "reference-r5",
+   "seed": 880001,
+   "ticks": 20000,
+   "nash": 0.9295035024510374,
+   "mean_happiness": [
+    94.0934,
+    94.1068,
+    93.153,
+    93.298,
+    90.346
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 40
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880002,
+   "ticks": 20000,
+   "nash": 0.9284898652709939,
+   "mean_happiness": [
+    93.7901,
+    93.8231,
+    93.1014,
+    93.4535,
+    90.2775
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880003,
+   "ticks": 20000,
+   "nash": 0.9288155613957264,
+   "mean_happiness": [
+    93.941,
+    94.0689,
+    93.0859,
+    93.4499,
+    90.045
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880004,
+   "ticks": 20000,
+   "nash": 0.9261859460046457,
+   "mean_happiness": [
+    93.6215,
+    93.8194,
+    92.5295,
+    93.1636,
+    90.2401
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.00195,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 37
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880005,
+   "ticks": 20000,
+   "nash": 0.9283480350724164,
+   "mean_happiness": [
+    94.1611,
+    94.1868,
+    92.7079,
+    93.0908,
+    90.2765
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.00095,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 30
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880006,
+   "ticks": 20000,
+   "nash": 0.9290366878199112,
+   "mean_happiness": [
+    94.1826,
+    94.1343,
+    92.9811,
+    93.112,
+    90.3067
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880007,
+   "ticks": 20000,
+   "nash": 0.9311042422496403,
+   "mean_happiness": [
+    94.3505,
+    94.2774,
+    93.1891,
+    93.5624,
+    90.3649
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880008,
+   "ticks": 20000,
+   "nash": 0.9199616785745275,
+   "mean_happiness": [
+    92.9995,
+    92.8948,
+    92.3355,
+    92.5515,
+    89.7183
+   ],
+   "low_share": [
+    0.0,
+    0.01245,
+    0.006,
+    0.00145,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 465
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880009,
+   "ticks": 20000,
+   "nash": 0.929841794388655,
+   "mean_happiness": [
+    93.866,
+    94.0808,
+    93.3063,
+    93.6374,
+    90.2091
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880010,
+   "ticks": 20000,
+   "nash": 0.927441755884054,
+   "mean_happiness": [
+    94.0512,
+    94.134,
+    92.6815,
+    92.9507,
+    90.192
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0005,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 45
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880011,
+   "ticks": 20000,
+   "nash": 0.9302988230430274,
+   "mean_happiness": [
+    93.9379,
+    94.0733,
+    93.3496,
+    93.7233,
+    90.2434
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880012,
+   "ticks": 20000,
+   "nash": 0.927944328432823,
+   "mean_happiness": [
+    93.9055,
+    93.9616,
+    92.8713,
+    93.2812,
+    90.1563
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 3
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880013,
+   "ticks": 20000,
+   "nash": 0.9241741764647986,
+   "mean_happiness": [
+    93.8374,
+    93.9049,
+    92.0794,
+    92.477,
+    90.0673
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 5
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880014,
+   "ticks": 20000,
+   "nash": 0.9294620408462911,
+   "mean_happiness": [
+    93.997,
+    93.9818,
+    93.2161,
+    93.6109,
+    90.1528
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 186
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880015,
+   "ticks": 20000,
+   "nash": 0.9214450456657185,
+   "mean_happiness": [
+    92.7073,
+    93.1185,
+    92.3284,
+    92.6844,
+    90.2158
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 35
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880016,
+   "ticks": 20000,
+   "nash": 0.9284128263189603,
+   "mean_happiness": [
+    93.7719,
+    94.0819,
+    92.9584,
+    93.3125,
+    90.2811
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880017,
+   "ticks": 20000,
+   "nash": 0.925768802379338,
+   "mean_happiness": [
+    93.4862,
+    93.7762,
+    92.5447,
+    93.2019,
+    90.1162
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 6
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880018,
+   "ticks": 20000,
+   "nash": 0.9307332684442216,
+   "mean_happiness": [
+    94.0918,
+    94.2179,
+    93.2696,
+    93.4526,
+    90.5239
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880019,
+   "ticks": 20000,
+   "nash": 0.930345017802793,
+   "mean_happiness": [
+    94.0713,
+    94.255,
+    93.2295,
+    93.5778,
+    90.2224
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880020,
+   "ticks": 20000,
+   "nash": 0.9252630762739125,
+   "mean_happiness": [
+    93.9709,
+    94.0687,
+    91.8016,
+    93.0322,
+    90.1278
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0032,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 58
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880021,
+   "ticks": 20000,
+   "nash": 0.9286940563652788,
+   "mean_happiness": [
+    94.1686,
+    94.1524,
+    92.8666,
+    93.0152,
+    90.3808
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880022,
+   "ticks": 20000,
+   "nash": 0.9295047419530825,
+   "mean_happiness": [
+    94.2038,
+    94.1772,
+    93.0247,
+    93.3181,
+    90.2661
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880023,
+   "ticks": 20000,
+   "nash": 0.9311563909580018,
+   "mean_happiness": [
+    94.1327,
+    94.1607,
+    93.339,
+    93.6613,
+    90.4945
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 48
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880024,
+   "ticks": 20000,
+   "nash": 0.9271752656035578,
+   "mean_happiness": [
+    93.85,
+    94.0141,
+    92.5919,
+    93.1936,
+    90.1533
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880025,
+   "ticks": 20000,
+   "nash": 0.9277983455233328,
+   "mean_happiness": [
+    93.5351,
+    93.9409,
+    93.1652,
+    93.4266,
+    90.0222
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880026,
+   "ticks": 20000,
+   "nash": 0.928870587139236,
+   "mean_happiness": [
+    93.8648,
+    94.0776,
+    93.0567,
+    93.3636,
+    90.2782
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 26
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880027,
+   "ticks": 20000,
+   "nash": 0.9276741509845832,
+   "mean_happiness": [
+    93.8183,
+    93.9067,
+    93.1306,
+    92.9846,
+    90.2257
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880028,
+   "ticks": 20000,
+   "nash": 0.9262559895920649,
+   "mean_happiness": [
+    93.2875,
+    93.8003,
+    92.8905,
+    93.091,
+    90.28
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880029,
+   "ticks": 20000,
+   "nash": 0.932827060500947,
+   "mean_happiness": [
+    94.3862,
+    94.4119,
+    93.6735,
+    93.7316,
+    90.3835
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "reference-r5",
+   "seed": 880030,
+   "ticks": 20000,
+   "nash": 0.9257961668288383,
+   "mean_happiness": [
+    93.516,
+    93.9133,
+    92.2852,
+    93.4558,
+    90.0988
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0024,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 50
+  }
+ ]
+}
