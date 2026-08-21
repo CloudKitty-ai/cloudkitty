@@ -83,6 +83,15 @@ can simply be admitted.
   re-evaluate mid-flight? → A: Commit. Finish the pan, then let the normal
   grammar act from the destination.
 
+### Session 2026-08-21 (code-review remediation)
+
+- Q: When the viewer taps a kitty to follow while a committed far pan is in
+  flight, should the camera finish the pan first (up to the pan's full
+  duration of visible disagreement with the already-marked card) or redirect
+  immediately? → A: Redirect immediately. Commitment protects against
+  grammar dithering, not against the viewer; the redirect is one eased
+  correction from wherever the pan had reached.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A camera calm enough to leave open (Priority: P1)
@@ -248,6 +257,10 @@ gathering elsewhere does not move the camera.
 - **A far pan crosses empty meadow.** The frame may briefly hold no kitty
   mid-flight; the pan is fast enough that this reads as a camera move, not an
   empty scene. Outside a pan's middle, a zero-kitty frame never occurs.
+- **The roster empties mid-session (a reseed between generations).** With
+  camera on and nothing to shoot, the frame eases home to the whole-world
+  view in one episode and waits; returning kitties re-enter through the
+  ordinary cold-start pick, eased (2026-08-21, code review).
 - **The destination dissolves mid-pan.** The pan commits and completes; on
   arrival the ordinary grammar takes over (widen, shed, or break-reframe
   from the destination). The camera never swerves mid-flight.
@@ -311,7 +324,10 @@ gathering elsewhere does not move the camera.
   MUST shed the fewest kitties that restores fit, keeping the larger count
   and breaking ties toward the current membership, then ease tighter. A shot
   kept wider than its need by more than a judged slack also eases tighter
-  without any membership change (the standing 'breathe in').
+  without any membership change (the standing 'breathe in'). The dwell
+  applies identically during a follow — companions shed through the same
+  clock, never instantly — and un-fit ticks spent in whole-shot overflow
+  (nothing droppable) bank no dwell (both 2026-08-21, code review).
 - **FR-011**: If the shot falls below two kitties, it breaks: the camera MUST
   re-frame per FR-003/FR-004, eased, without a cut.
 
@@ -326,7 +342,9 @@ gathering elsewhere does not move the camera.
   (036 FR-008 upheld); a faster easing profile for this one move is the only
   amendment to easing behaviour. A pan, once begun, MUST run to completion
   even if the destination group changes mid-flight; the normal grammar
-  resumes from the destination (owner, 2026-08-21). Dissolve-style
+  resumes from the destination (owner, 2026-08-21). One exception, ruled
+  the same day: a follow change mid-pan redirects the camera immediately
+  (see FR-014) — the viewer outranks the commitment. Dissolve-style
   transitions are out of scope (held in reserve).
 
 **Composition with 036**
@@ -335,7 +353,11 @@ gathering elsewhere does not move the camera.
   her group: she is unconditionally in the shot, FR-008–FR-011 apply to her
   group, and FR-012 transitions are suspended. If she is solitary, the shot
   is her alone — the camera does not widen toward other kitties to satisfy
-  FR-004 (owner, 2026-08-21). All 036 following, release, persistence, and
+  FR-004 (owner, 2026-08-21). A fresh pin acts at once: it replaces any
+  in-flight episode, a committed pan included (owner ruling 2026-08-21),
+  and previously admitted company that no longer fits alongside her group
+  is dropped with the tap; companions of an ONGOING follow shed through
+  FR-010's dwell instead. All 036 following, release, persistence, and
   card-marking requirements are unchanged.
 - **FR-015**: With camera mode off, the client MUST render the whole world
   exactly as today (036 FR-002 unchanged). The control, its keyboard access,

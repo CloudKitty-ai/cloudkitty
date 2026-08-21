@@ -146,13 +146,19 @@ wander before the camera cares."
 
 **Decision**: One episode at a time. Kinds, by precedence at decision time:
 **pan** (committed: runs to completion, no re-decision until arrival, spec
-FR-013) > **break re-frame** > **shed** > **widen** > **correction**. A new
-trigger arriving mid-episode (except mid-pan) re-latches the goal once —
-counted as a new episode for SC-003.
+FR-013) > **break re-frame** > **shed** > **widen** > **correction**. A
+fresh trigger at REST starts one episode; mid-episode (except mid-pan) a
+moved goal RE-AIMS the running episode — the goal updates, the clock keeps
+running. (Amended 2026-08-21, code review: the first cut restarted the
+clock, and a walker near the world edge who kept the hold firing pinned the
+ease at its zero-slope start every frame — the camera crawled a tenth of a
+tile while she walked out of frame.) A re-aim is not a new episode for
+SC-003. The pan's commitment has one exception: a viewer follow change
+redirects immediately (owner ruling 2026-08-21).
 
 **Rationale**: the spec makes pan the only committed move; everything else
-may be superseded by fresher geometry, but re-latching (not per-frame
-pursuit) keeps motion episodic.
+may be superseded by fresher geometry, but episodic re-aiming (not
+per-frame episode restarts, not pursuit) is what keeps every move finite.
 
 **Alternatives**: a full interrupt queue — rejected: nothing in the grammar
 generates bursts (events measured ≤1.7/min).

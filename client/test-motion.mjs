@@ -6291,15 +6291,20 @@ check('the fit, the anchor and the bake read ONE derivation', () => {
   for (let gap = 0; gap <= 19; gap += 1) {
     const w = camAt([Math.max(0, 10 - Math.floor(gap / 2)), 10],
                     [Math.min(19, 10 + Math.ceil(gap / 2)), 10]);
-    const want = cam.targetFor(w, null, 1, 1000);
-    if (want.bound) {
+    // Ported off the retired `targetFor` query (review 2026-08-21): the
+    // PLACED frame and the real goalFrameFor now carry the implication,
+    // which is stronger -- it is what the renderer actually reads.
+    const c = onCam(w);
+    const shotCats = w.kitties.filter((k) => c.shotIds.has(k.id));
+    const g = c.goalFrameFor(shotCats, c.atOf(null), 1, floorTiles, ceilingTiles);
+    if (g.overflow) {
       sawBound += 1;
-      assert(Math.abs(want.across - ceilingTiles) < 1e-9,
-        `bound at gap ${gap} but the fit sat at ${want.across}, not the ${ceilingTiles} ceiling`);
+      assert(Math.abs(c.across - ceilingTiles) < 1e-9,
+        `bound at gap ${gap} but the fit sat at ${c.across}, not the ${ceilingTiles} ceiling`);
     } else {
       sawFree += 1;
-      assert(want.across <= ceilingTiles + 1e-9 && want.across >= floorTiles - 1e-9,
-        `unbound at gap ${gap} with across ${want.across} outside [${floorTiles}, ${ceilingTiles}]`);
+      assert(c.across <= ceilingTiles + 1e-9 && c.across >= floorTiles - 1e-9,
+        `unbound at gap ${gap} with across ${c.across} outside [${floorTiles}, ${ceilingTiles}]`);
     }
   }
   // A sweep that never reached either state would pass while proving
@@ -6388,12 +6393,41 @@ check('a pair too far to fit becomes a centred overflow shot, not a chase', () =
   const cap = 20 / api.VIEW.camera.minZoomVsBase;
   assert(Math.abs(cam.across - cap) < 1e-9,
     `the fallback frames at ${cam.across}, not the ${cap.toFixed(2)}-tile widest`);
-  // And both kitties are PARTIALLY visible -- inside the frame's span in
-  // one axis at least -- rather than one framed and one abandoned.
+  // The first cut of this closing assertion checked only y -- which is
+  // tautologically inside any frame centred on the already-asserted aimY
+  // -- while BOTH kitties were in fact cropped out on x (review
+  // 2026-08-21, finding 7). Two honest claims replace it. Here: centring
+  // loses nobody PREFERENTIALLY -- the crop is exactly symmetric.
+  const leftLoss = cam.left - (world.kitties[0].pos.x + 0.5);
+  const rightLoss = (world.kitties[1].pos.x + 0.5) - (cam.left + cam.across);
+  assert(leftLoss > 0 && rightLoss > 0,
+    'this fixture must genuinely crop both kitties, or it discriminates nothing');
+  assert(Math.abs(leftLoss - rightLoss) < 1e-9,
+    `the crop is lopsided: ${leftLoss.toFixed(2)} left vs ${rightLoss.toFixed(2)} right`);
+});
+
+check('an overflow pair CLOSE enough shows both, partially framed', () => {
+  // The companion claim (FR-007a partial framing). A pair 13 tiles apart
+  // still overflows -- the margin prices the fit at 21.3 tiles against
+  // the 13.33 ceiling -- but the frame is WIDER than their span, so both
+  // must actually be on screen. An aim chasing either kitty pushes the
+  // other out: this is the discriminating fixture the y-only assert
+  // never was.
+  const world = camAt([3, 10], [16, 10]);
+  const cam = onCam(world);
+  assert(cam.shotIds !== null && cam.shotIds.size === 2, 'setup: the pair fallback should fire');
   for (const k of world.kitties) {
-    assert(k.pos.y + 0.5 > cam.top && k.pos.y + 0.5 < cam.top + cam.across,
-      `kitty ${k.id} is fully outside the overflow frame`);
+    const x = k.pos.x + 0.5;
+    const y = k.pos.y + 0.5;
+    assert(x > cam.left && x < cam.left + cam.across,
+      `kitty ${k.id} (x ${x}) is outside the frame [${cam.left.toFixed(2)}, ${(cam.left + cam.across).toFixed(2)}]`);
+    assert(y > cam.top && y < cam.top + cam.across, `kitty ${k.id} is outside the frame in y`);
   }
+  // And it IS an overflow shot: the fit asks more than the ceiling gives.
+  const at = cam.atOf(null);
+  const { floorTiles, ceilingTiles } = cam.limitsFor(world, 1000, 1);
+  const g = cam.goalFrameFor(world.kitties, at, 1, floorTiles, ceilingTiles);
+  assert(g.overflow, 'setup drifted: this pair no longer overflows the ceiling');
 });
 
 /* Two anchor-era checks stood here -- 'the anchor is the kitty inside the
@@ -6758,15 +6792,10 @@ check('a still frame is the same moment again, not a jump forward', () => {
   assert(cam.across === mid.across, `a still frame moved the width to ${cam.across}`);
 
   // And it must still be mid-journey, or the assertion above is vacuous.
-  // cssWidth MUST match what drove the camera: without it `limitsFor` reads
-  // the missing value as "not laid out yet" and `want` comes back derived
-  // from the WHOLE-WORLD limits (20 tiles) instead of 10/19. Harmless today
-  // -- both worlds are compact enough that `bound` is false either way, so
-  // the aim is the centre of mass regardless -- but the aim switches to the
-  // anchor once `bound` flips, and a looser world would make this compare
-  // against the wrong target in silence.
-  const want = cam.targetFor(far, null, 1, 1000);
-  assert(Math.abs(cam.aimX - want.aimX) > 0.5, 'the camera had already arrived, so nothing was proved');
+  // The episode's latched goal IS the destination -- read it rather than
+  // recompute it (ported off the retired `targetFor`, review 2026-08-21).
+  assert(cam.episode !== null && Math.abs(cam.aimX - cam.episode.goal.aimX) > 0.5,
+    'the camera had already arrived, so nothing was proved');
 });
 
 check('reduced motion arrives instead, because it gets no other frames', () => {
@@ -6778,10 +6807,13 @@ check('reduced motion arrives instead, because it gets no other frames', () => {
   cam.reduced = true;
   cam.update(camAt([15, 15], [16, 16]), camView(true), { aspect: 1, cssWidth: 1000 });
   cam.update(world, camView(true), { aspect: 1, cssWidth: 1000 });
-  const want = cam.targetFor(world, null, 1, 1000);
+  const shotCats = world.kitties.filter((k) => cam.shotIds.has(k.id));
+  const { floorTiles, ceilingTiles } = cam.limitsFor(world, 1000, 1);
+  const g = cam.goalFrameFor(shotCats, cam.atOf(null), 1, floorTiles, ceilingTiles);
+  assert(cam.episode === null, 'reduced motion must never carry an episode');
   // Through the deadzone -- declining to chase a fidget is not motion.
-  assert(Math.hypot(cam.aimX - want.aimX, cam.aimY - want.aimY) <= api.VIEW.camera.aimDeadzoneTiles + 1e-9,
-    `reduced motion did not arrive: ${cam.aimX},${cam.aimY} vs ${want.aimX},${want.aimY}`);
+  assert(Math.hypot(cam.aimX - g.aimX, cam.aimY - g.aimY) <= api.VIEW.camera.aimDeadzoneTiles + 1e-9,
+    `reduced motion did not arrive: ${cam.aimX},${cam.aimY} vs ${g.aimX},${g.aimY}`);
 });
 
 check('a tab returning after a minute cannot cut', () => {
@@ -7746,6 +7778,256 @@ check('aim settles faster than width, so the zoom lags the pan', () => {
     }
   }
   assert(sawLead, 'the drive never sampled mid-episode, so this witnessed nothing');
+});
+
+check('a still frame latches nothing: no episode, no decision, no drift', () => {
+  // Review 2026-08-21 (finding 5). `viewAt(now, true)` publishes SERVED
+  // positions -- its posFor is `kitty.pos`, up to a tile ahead of the
+  // drawn cats -- and the old model refused to hold on `view.still` for
+  // exactly that reason. The shot picker lost the guard: a palette blend
+  // or tab-return redraw between animated frames could latch a correction
+  // aimed a tick AHEAD of what the viewer sees, so the next animated
+  // frame moved the camera off a non-motion event. Contract section 3:
+  // still frames make NO decisions. (Reduced motion is exempt: its still
+  // frames are its ONLY frames, and for it drawn IS served.)
+  const world = {
+    width: 20,
+    height: 20,
+    tick: 0,
+    elements: [],
+    // Served positions press the frame's edge...
+    kitties: [{ id: 1, pos: { x: 2, y: 10 } }, { id: 2, pos: { x: 12, y: 10 } }],
+  };
+  // ...while the DRAWN positions still sit comfortably inside it.
+  const drawn = new Map([[1, { x: 8, y: 10 }], [2, { x: 12, y: 10 }]]);
+  const animated = (now) => ({ still: false, ambient: { now }, posFor: (k) => drawn.get(k.id) });
+  const stillView = { still: true, ambient: null, posFor: (k) => ({ x: k.pos.x, y: k.pos.y }) };
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(world, animated(0), { aspect: 1, cssWidth: 1000 });
+  assert(cam.episode === null, 'setup: the drawn pair should frame at rest');
+  const before = { x: cam.aimX, y: cam.aimY, a: cam.across };
+  // The palette-blend redraw: same tick, still view, served positions.
+  cam.update(world, stillView, { aspect: 1, cssWidth: 1000 });
+  assert(cam.episode === null, 'a still frame latched an episode from SERVED positions');
+  // And the next animated frame has nothing to ease -- the drawn cats
+  // never pressed anything.
+  cam.update(world, animated(16.67), { aspect: 1, cssWidth: 1000 });
+  assert(cam.aimX === before.x && cam.aimY === before.y && cam.across === before.a,
+    `a still frame moved the camera: ${before.x},${before.y}@${before.a} -> ${cam.aimX},${cam.aimY}@${cam.across}`);
+});
+
+check('an emptied roster eases home to the whole world, never freezes', () => {
+  // Review 2026-08-21 (finding 3). A server reseed can briefly serve a
+  // kitty-less world. The old model answered `whole` and the frame eased
+  // out; the shot picker's decide() just cleared the shot and nothing
+  // retargeted -- the viewer stared at a frozen close-up of empty grass
+  // until the kitties returned.
+  const pair = {
+    width: 20,
+    height: 20,
+    tick: 0,
+    elements: [],
+    kitties: [{ id: 1, pos: { x: 8, y: 10 } }, { id: 2, pos: { x: 12, y: 10 } }],
+  };
+  const empty = (t) => ({ width: 20, height: 20, tick: t, elements: [], kitties: [] });
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(pair, camView(false, 0), { aspect: 1, cssWidth: 1000 });
+  assert(cam.across < 20, 'setup: the pair should be framed tighter than the world');
+  let t = 0;
+  cam.update(empty(1), camView(false, (t += 16.67)), { aspect: 1, cssWidth: 1000 });
+  assert(cam.episode !== null && cam.episode.goal.across === 20,
+    `an empty roster left the camera ${cam.episode ? 'heading elsewhere' : 'frozen'} at ${cam.across} tiles`);
+  // ONE episode, not a per-frame re-latch: it must actually ARRIVE.
+  for (let i = 0; i < 80 && cam.episode; i += 1) {
+    cam.update(empty(2 + i), camView(false, (t += 16.67)), { aspect: 1, cssWidth: 1000 });
+  }
+  assert(cam.across === 20 && cam.left === 0 && cam.top === 0,
+    `the ease home never arrived: ${cam.across} tiles at ${cam.left},${cam.top}`);
+  // And the kitties coming back re-frame through the grammar, eased.
+  cam.update({ ...pair, tick: 99 }, camView(false, (t += 16.67)), { aspect: 1, cssWidth: 1000 });
+  assert(cam.shotIds !== null && cam.shotIds.size === 2, 'the returning pair was not re-shot');
+  assert(cam.episode !== null, 'the return should ease in, not cut');
+});
+
+check('an overflow spell never banks shed-dwell: the flap damper survives it', () => {
+  // Review 2026-08-21 (finding 2). A shot wider than the ceiling fails
+  // fits() every tick, so the counter climbed unboundedly while the
+  // re-pick kept the seed whole -- and the reset on the shed path never
+  // ran. After nine such ticks a single-tick un-link shed INSTANTLY: the
+  // exact join-free/shed-instantly/rejoin flap shedDwellTicks (SC-003)
+  // was added to kill, in the overflow regime the phone lives in.
+  const world = (t, cx) => ({
+    width: 20,
+    height: 20,
+    tick: t,
+    elements: [],
+    kitties: [
+      { id: 1, pos: { x: 2, y: 10 } },
+      { id: 2, pos: { x: 3, y: 10 } },
+      { id: 3, pos: { x: cx, y: 10 } },
+    ],
+  });
+  const cam = new api.Camera();
+  cam.on = true;
+  // Phone band (390px): floor 7, ceiling 7.8 -- the trio (span 6, linked
+  // at exactly the 5-tile radius) asks 9.84 tiles and OVERFLOWS whole.
+  for (let t = 0; t <= 9; t += 1) {
+    cam.update(world(t, 8), camView(false, t * 800), { aspect: 1, cssWidth: 390 });
+    assert(cam.shotIds.size === 3, `setup: overflow tick ${t} lost a kitty`);
+  }
+  // Kitty 3 un-links (6 tiles from her neighbour). The dwell must START
+  // here, not have been spent during the overflow spell.
+  const dwell = api.VIEW.camera.shedDwellTicks;
+  for (let i = 1; i < dwell; i += 1) {
+    cam.update(world(9 + i, 9), camView(false, (9 + i) * 800), { aspect: 1, cssWidth: 390 });
+    assert(cam.shotIds.size === 3,
+      `the shed fired on un-linked tick ${i}, before the ${dwell}-tick dwell`);
+  }
+  cam.update(world(9 + dwell, 9), camView(false, (9 + dwell) * 800), { aspect: 1, cssWidth: 390 });
+  assert(cam.shotIds.size === 2 && !cam.shotIds.has(3),
+    `the dwell expired but the shed never fired: {${[...cam.shotIds]}}`);
+  assert(cam.episode !== null && cam.episode.kind === 'shed',
+    'the shed should land as one eased episode');
+});
+
+check('a follow sheds companions through the SAME dwell, never instantly', () => {
+  // Review 2026-08-21 (finding 4). The follow branch dropped a companion
+  // group the tick it stopped fitting -- an undamped second shed
+  // mechanism -- so a group flapping at the fit boundary churned
+  // widen/shed/widen during a follow, exactly when the viewer watches
+  // closest. Contract section 2 step 1: a follow skips step 6 ONLY; the
+  // dwelled shed applies. (A FRESH pin is different -- it frames her now.)
+  const world = (t, dx) => ({
+    width: 20,
+    height: 20,
+    tick: t,
+    elements: [],
+    kitties: [
+      { id: 1, pos: { x: 3, y: 10 } },
+      { id: 2, pos: { x: 9 + dx, y: 10 } },
+      { id: 3, pos: { x: 10 + dx, y: 10 } },
+    ],
+  });
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(world(0, 0), camView(false, 0), { aspect: 1, cssWidth: 1000 });
+  assert(cam.shotIds.size === 3, 'setup: the trio should share the frame');
+  cam.followId = 1;
+  cam.update(world(1, 0), camView(false, 800), { aspect: 1, cssWidth: 1000 });
+  assert(cam.shotIds.size === 3, 'setup: a fitting companion group survives the pin');
+  // The companions drift two tiles: the union stops fitting (span 9 asks
+  // 14.75 tiles, ceiling 13.33) while staying HER companions in the shot.
+  const dwell = api.VIEW.camera.shedDwellTicks;
+  for (let i = 1; i < dwell; i += 1) {
+    cam.update(world(1 + i, 2), camView(false, (1 + i) * 800), { aspect: 1, cssWidth: 1000 });
+    assert(cam.shotIds.size === 3,
+      `the follow shed its companions on un-fit tick ${i}, before the ${dwell}-tick dwell`);
+  }
+  cam.update(world(1 + dwell, 2), camView(false, (1 + dwell) * 800), { aspect: 1, cssWidth: 1000 });
+  assert(cam.shotIds.size === 1 && cam.shotIds.has(1),
+    `the dwell expired but the follow kept {${[...cam.shotIds]}}`);
+});
+
+check("a follow tap OVERRIDES a committed pan: the viewer's choice wins now", () => {
+  // Owner ruling 2026-08-21 (review finding 6). FR-013's commitment
+  // protects against GRAMMAR dithering, not against the viewer: app.js
+  // marks the card followed the instant of the tap, and a camera that
+  // keeps panning away for up to panMs visibly disagrees with its own UI.
+  // A tap mid-pan redirects the ease immediately.
+  const world = (t) => ({
+    width: 20,
+    height: 20,
+    tick: t,
+    elements: [],
+    kitties: [
+      { id: 1, pos: { x: 2, y: 2 } },
+      { id: 2, pos: { x: 3, y: 2 } },
+      { id: 3, pos: { x: 17, y: 16 } },
+      { id: 4, pos: { x: 18, y: 16 } },
+      { id: 5, pos: t === 0 ? { x: 17, y: 7 } : { x: 17, y: 17 } },
+    ],
+  });
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(world(0), camView(false, 0), { aspect: 1, cssWidth: 1000 });
+  for (let t = 1; t <= 15; t += 1) {
+    cam.update(world(t), camView(false, t * 800), { aspect: 1, cssWidth: 1000 });
+  }
+  assert(cam.episode !== null && cam.episode.committed, 'setup: no committed pan in flight');
+  // Two frames into the pan, the viewer taps kitty 1 -- back where the
+  // pan came FROM.
+  let t = 15 * 800;
+  cam.update(world(15), camView(false, (t += 16.67)), { aspect: 1, cssWidth: 1000 });
+  cam.followId = 1;
+  cam.update(world(15), camView(false, (t += 16.67)), { aspect: 1, cssWidth: 1000 });
+  assert(cam.episode !== null && !cam.episode.committed,
+    'the tap left the committed pan running');
+  assert(cam.shotIds.has(1) && cam.shotIds.has(2) && !cam.shotIds.has(3),
+    `the shot is {${[...cam.shotIds]}}, not the followed kitty's group`);
+  assert(Math.abs(cam.episode.goal.aimX - 3) < 1e-6,
+    `the redirect aims at ${cam.episode.goal.aimX}, not her pair at 3`);
+});
+
+check('a walker on the fence is KEPT, not crawled after', () => {
+  // Review 2026-08-21 (finding 1). A kitty on the world's edge can sit
+  // outside every legal frame's safe zone, so the hold fires every frame;
+  // when she is WALKING, each frame's fresh goal differs by a hair, the
+  // same-goal guard never bites, and restarting the episode's clock every
+  // frame pinned the ease at its zero-slope start: the camera moved
+  // ~0.1 tiles while she walked seven -- clean out of frame. The fix
+  // re-AIMS the running episode (the goal updates, the clock keeps
+  // running), so every episode completes and the camera keeps up.
+  const drawn = new Map();
+  const view = (now) => ({ still: false, ambient: { now }, posFor: (k) => drawn.get(k.id) });
+  const worldAt = (t) => ({
+    width: 20,
+    height: 20,
+    tick: t,
+    elements: [],
+    kitties: [
+      { id: 1, pos: { x: Math.round(drawn.get(1).x), y: 0 } },
+      { id: 2, pos: { x: 5, y: 0 } },
+    ],
+  });
+  const cam = new api.Camera();
+  cam.on = true;
+  drawn.set(1, { x: 2, y: 0 });
+  drawn.set(2, { x: 5, y: 0 });
+  cam.update(worldAt(0), view(0), { aspect: 1, cssWidth: 390 });
+  const aim0 = cam.aimX;
+  // She walks the fence at 1.5 tiles/s for five seconds -- 300 frames at
+  // 60fps, staying linked to her companion the whole way.
+  let now = 0;
+  for (let i = 0; i < 300; i += 1) {
+    now += 16.67;
+    drawn.set(1, { x: 2 + 1.5 * (now / 1000), y: 0 });
+    cam.update(worldAt(Math.floor(now / 800)), view(now), { aspect: 1, cssWidth: 390 });
+  }
+  const wx = drawn.get(1).x + 0.5;
+  assert(wx > cam.left && wx < cam.left + cam.across,
+    `the walker (x ${wx.toFixed(1)}) left the frame [${cam.left.toFixed(1)}, ${(cam.left + cam.across).toFixed(1)}]`);
+  assert(Math.abs(cam.aimX - aim0) > 2,
+    `five seconds of walking moved the aim ${(cam.aimX - aim0).toFixed(2)} tiles -- the crawl is back`);
+});
+
+check('a split rival cannot inherit its dwell TWICE: one heir per chain', () => {
+  // Review 2026-08-21 (verified, below the report cap). Majority overlap
+  // (shared*2 >= max) admits EXACT HALVES, and a matched chain stayed in
+  // the pool -- so a dwelling rival that split evenly handed its WHOLE
+  // clock to both halves, and a pan could commit to a group only one tick
+  // old. A chain is consumed by its first (best) match; the other half
+  // starts fresh. White-box at evidenceFor because that is the layer the
+  // bug lives in -- the grammar above only sees the counters.
+  const cam = new api.Camera();
+  const k4 = { id: 4, pos: { x: 1, y: 1 } };
+  const k5 = { id: 5, pos: { x: 2, y: 1 } };
+  cam.chains = [{ ids: new Set([4, 5]), members: [k4, k5], nearTicks: 3, farTicks: 0 }];
+  const next = cam.evidenceFor([[k4], [k5]], 2, () => true);
+  const ticks = next.map((c) => c.nearTicks).sort((a, b) => b - a);
+  assert(ticks[0] === 4 && ticks[1] === 1,
+    `the split halves carry [${ticks}], not [4, 1] -- the parent's clock was inherited twice`);
 });
 
 check('the waterline is centred on the cat\'s body, not on her box', () => {

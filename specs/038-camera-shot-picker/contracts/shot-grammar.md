@@ -18,12 +18,20 @@ synthetic worlds; every clause below lands with a mutation-verified check.
 
 1. **Follow pin** — `followId` set: subject = her chain; skip step 6
    only — admissions (step 5) still apply, so her companions join the
-   shot; far rivals never steal a follow (spec FR-014).
+   shot; far rivals never steal a follow (spec FR-014). A FRESH pin acts
+   now: it replaces any in-flight episode, a committed pan included
+   (owner ruling 2026-08-21), and drops company that no longer fits; an
+   ONGOING follow sheds companions per step 3's dwell.
 2. **Membership follow** — shot = union of chains holding shot members.
-3. **Shed** — if that union no longer fits: keep the maximal-count fitting
-   subset (incumbency tiebreak), one `shed` episode.
+3. **Shed** — if that union no longer fits, sustained `shedDwellTicks`
+   consecutive ticks: keep the maximal-count fitting subset (incumbency
+   tiebreak), one `shed` episode. Whole-shot overflow (nothing droppable)
+   banks NO dwell (2026-08-21).
 4. **Break** — if the shot (group mode) holds <2: re-pick maximal-count
-   window (lowest-id tiebreak); closest-pair fallback when no window ≥2.
+   window (ties prefer overlap with the dying shot, then lowest id —
+   "ties keep the incumbent" applies here too; amended 2026-08-21, the
+   first cut said lowest-id while the code preferred the incumbent);
+   closest-pair fallback when no window ≥2.
 5. **Admission** — disjoint chain with `nearTicks ≥ nearDwellTicks` whose
    union with the shot fits: admit, one `widen` episode.
 6. **Pan** — disjoint chain with `count > |shot|`, not admissible, and
@@ -37,7 +45,9 @@ synthetic worlds; every clause below lands with a mutation-verified check.
 - **Every episode ends in an exact snap**: on arrival the camera's numbers
   EQUAL the latched goal — no residual easing, no epsilon drift after.
 - **Pan commits**: once begun, decision steps 2–6 do not run until arrival
-  (FR-013). All other episodes may re-latch on a fresh trigger.
+  (FR-013) — with ONE exception: a viewer follow change redirects
+  immediately (owner ruling 2026-08-21). Other episodes RE-AIM on a fresh
+  trigger: the latched goal updates, the clock never restarts (2026-08-21).
 - **Hold triggers**: fitting shot — any member's drawn position outside the
   inner `safeZoneFrac` rect starts a `correction`; overflow shot — bbox
   centre drifting > `aimDeadzoneTiles` from aim does (FR-007a). Members
@@ -54,6 +64,11 @@ synthetic worlds; every clause below lands with a mutation-verified check.
   (majority-overlap continuation, research D5).
 - Persistence thresholds are read from `nearDwellTicks`/`farDwellTicks`
   ONLY at the two comparison sites (the 032 seam).
+- A chain is consumed by its first (best) match: a dwelling rival that
+  splits hands its evidence clock to ONE heir (2026-08-21).
+- An empty roster with the camera on eases home to the whole-world view in
+  one episode; returning kitties re-enter through the cold-start pick
+  (2026-08-21).
 
 ## 5. Harness fixtures (ported from shot-survival.mjs, plus new)
 
