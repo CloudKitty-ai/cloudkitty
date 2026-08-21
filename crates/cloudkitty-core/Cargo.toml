@@ -20,6 +20,9 @@ tokio = { workspace = true, features = ["time", "rt", "macros"] }
 
 [dev-dependencies]
 proptest = "1"
+# Spec 039's golden evolution digest pins a sha256 of world state; same
+# version the rl crate already carries.
+sha2 = "0.10"
 tokio = { workspace = true, features = ["time", "rt", "rt-multi-thread", "macros", "test-util"] }
 # Core itself is format-agnostic; tests parse TOML to prove the config schema
 # round-trips the way cloudkitty.toml is written.

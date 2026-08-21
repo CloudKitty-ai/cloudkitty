@@ -65,6 +65,7 @@ fn build_config(
         max: (min + element_spread).min(hard_max).max(min.min(hard_max)),
         ttl,
         servings,
+        roam_cell: None,
     };
 
     Config {

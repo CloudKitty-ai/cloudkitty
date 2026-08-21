@@ -388,6 +388,14 @@ pub struct ElementRule {
     /// Chow only: servings per element.
     #[serde(default)]
     pub servings: Option<u32>,
+    /// Bugs only (spec 039): tether each bug to the `n`-sized world-aligned
+    /// cell it stands in — it never leaves. Absent means unbounded roaming
+    /// (pre-039 behavior, byte-identical). Validation refuses values below 2
+    /// and refuses the key on any other element type: the engine refuses
+    /// what it will not honor. `skip_serializing_if` keeps the default
+    /// config's JSON — and so `engine_defaults_sha256` — unmoved.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub roam_cell: Option<u32>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -427,12 +435,14 @@ impl Default for ElementsConfig {
                 max: 10,
                 ttl: None,
                 servings: None,
+                roam_cell: None,
             },
             chow: ElementRule {
                 min: 5,
                 max: 10,
                 ttl: None,
                 servings: Some(5),
+                roam_cell: None,
             },
             // Long, unhurried lifetimes (owner call 2026-07-23): a calmer
             // world is kinder to watch and to learn in (RL agents see fewer
@@ -443,18 +453,21 @@ impl Default for ElementsConfig {
                 max: 8,
                 ttl: Some(300),
                 servings: None,
+                roam_cell: None,
             },
             greeble: ElementRule {
                 min: 1,
                 max: 3,
                 ttl: Some(300),
                 servings: None,
+                roam_cell: None,
             },
             sunbeam: ElementRule {
                 min: 3,
                 max: 6,
                 ttl: Some(300),
                 servings: None,
+                roam_cell: None,
             },
             spread_candidates: default_spread_candidates(),
             ttl_jitter: default_ttl_jitter(),
@@ -2126,6 +2139,17 @@ mod tests {
             !obj.contains_key("plugins"),
             "plugins leaked into serialization"
         );
+    }
+
+    #[test]
+    fn roam_cell_stays_out_of_the_default_serialization() {
+        // Spec 039 research D5: `engine_defaults_sha256` hashes the default
+        // Config's serialized JSON, so an unset roam_cell must not appear as
+        // a key — otherwise adding the field moves the stamp for a value
+        // nobody set. Delete the field's `skip_serializing_if` and this test
+        // goes red; it is the assertion aimed at exactly that attribute.
+        let json = serde_json::to_string(&Config::default()).unwrap();
+        assert!(!json.contains("roam_cell"), "{json}");
     }
 
     // ---- spec 033 (T017): the vocabulary table's config law ----
