@@ -116,6 +116,15 @@ SEATINGS = {
     "candidate-L05s2": ["v4:attn-a1-s1", "ppo:ppo-L-05-s2",
                         "v4:attn-a1-s3", "v4:attn-a1-s3",
                         "mlp:e004-a1-s2"],
+    # report-only body-price cells (budget re-derivation, owner
+    # 2026-08-21): mind CLASSES at the Biscuit seat, run paired on
+    # phase1-cutover vs phase1-cutover-flatbiscuit configs
+    "candidate-clone": ["v4:attn-a1-s1", "ppo:clone-anchor/clone-anchor.pt",
+                        "v4:attn-a1-s3", "v4:attn-a1-s3",
+                        "mlp:e004-a1-s2"],
+    "candidate-attn": ["v4:attn-a1-s1", "v4:attn-a1-s1",
+                       "v4:attn-a1-s3", "v4:attn-a1-s3",
+                       "mlp:e004-a1-s2"],
 }
 BANDS = {"eval": 870_001, "stress": 880_001}
 
@@ -135,7 +144,10 @@ def load_model(spec):
     if kind == "ppo":
         import torch
         from model_v4 import EntityPolicyV4
-        ck = torch.load(HERE / "artifacts" / name / "policy-final.pt",
+        # "ppo:<dir>" -> artifacts/<dir>/policy-final.pt;
+        # "ppo:<dir>/<file>.pt" -> that file (the clone checkpoints)
+        rel = name if "/" in name else f"{name}/policy-final.pt"
+        ck = torch.load(HERE / "artifacts" / rel,
                         map_location="cpu", weights_only=True)
         m = EntityPolicyV4(**ck["hyper"])
         m.load_state_dict(ck["state_dict"])
