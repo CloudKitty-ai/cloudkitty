@@ -199,6 +199,10 @@ Two consequences:
   and above the 7 floor, which is the one band where the fit actually varies.
 
 
+**→ The grammar below became [spec 038, camera shot picker](../specs/038-camera-shot-picker/spec.md)**
+(implemented 2026-08-21; its acceptance record is
+`specs/038-camera-shot-picker/acceptance-2026-08-21.md`).
+
 ### The settled grammar, simulated — 2026-08-20 evening
 
 The design session settled the shot-picker grammar (shot = maximal-count set
