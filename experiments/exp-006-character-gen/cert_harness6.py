@@ -84,6 +84,12 @@ SEATINGS = {
     # kin dose-response solo cost; never a gate leg
     "solo-s3": ["v4:attn-a1-s1", "ppo:ppo-L-04-s1", "v4:attn-a1-s3",
                 "scripted", "mlp:e004-a1-s2"],
+    # report-only: E-arm as the Kittybear fill in the solo-s3 roster
+    # (E0-s1 stands in for the E family — E0/E1 fingerprints are
+    # statistically indistinguishable and E0 loads without the
+    # estimator strip); never a gate leg
+    "solo-s3-e0": ["v4:attn-a1-s1", "ppo:ppo-L-04-s1", "v4:attn-a1-s3",
+                   "ppo:ppo-E0-s1", "mlp:e004-a1-s2"],
 }
 BANDS = {"eval": 870_001, "stress": 880_001}
 
