@@ -188,6 +188,42 @@ Readings, against the twinned compositions:
   s1. Scripted is the only fill with no dyadic unknowns, and it was
   the one measured.
 
+## E-arm fill cell (solo-s3-e0: ppo-E0-s1 at Kittybear; report-only)
+
+Owner's follow-up question: other viable candidates from the pool.
+As Biscuit candidates the E arms are disqualified by the fingerprint
+record (play 0.34–0.44×, bug 0.00×, duets 0.04–0.05× — full
+character erasure; that is what the control arms are for). As the
+fill for the vacated s3 seat:
+
+| cell | nash | worst mda | >225 | >150 | max low |
+|---|---|---|---|---|---|
+| solo-s3-e0 × eval (cutover) | 0.9476 | 74 | 0 | 0 | 0.0026 |
+| solo-s3-e0 × stress (family-11) | 0.9207 | 435 | 1 | 2 | 0.0163 |
+
+- **Eval**: the E fill recovers the scripted fill's team cost
+  entirely — 0.9476 vs twinned 0.9478 vs scripted-fill 0.9385. The
+  E0 seat itself reads 95.22; Pumpkin solo 94.42.
+- **Stress**: the fill re-imports a tail. The 435 (seed 880017,
+  ticks 365–800) is a heterogeneous pile: solo Pumpkin choosing
+  SleepWithKitty 382/435 while ppo-L-04-s1 grooms the sleeper
+  366/435 and the E arm half-adheres. Same seed under scripted fill:
+  mda 0. F-027 point 5 records the refinement: twins make the lock
+  self-renewing, heterogeneous piles are weaker but bar-relevant,
+  and scripted seats are perturbation sources — every scripted seat
+  replaced by a policy mind removes a stabilizer.
+
+**The estimator question**: E1-s1 and E1-s2 carry the D-002 aux head
+(Linear, summary 128 → 5×6 — all five kitties' six needs; E1-s1 val
+calibration MAE diag .033 / offdiag .0375 / worst pair .041). E0
+seeds are the estimator-off controls. At the fingerprint level E1 and
+E0 are statistically indistinguishable, and the policy-artifact
+contract exports the actor only, so the head stays in the training
+checkpoint either way — it is a training/telemetry organ today, and
+the reason to prefer an E1 seed is fog-era analysis value, not served
+behavior. Harness note: seating an E1 requires the estimator-stripped
+copy (commands in fingerprints-2026-08-20.md).
+
 ## Regeneration
 
 Traces are deterministic and gitignored (`traces/`):

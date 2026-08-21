@@ -1362,6 +1362,18 @@ G2a/r5 failure (family-11, five seats, stress band).
    clone: the culture-pairing benefit (F-025) and the symmetric-lock
    tail arrive in the same seating decision.
 
+5. **Same-day refinement (E-arm fill cell)**: the attractor family is
+   not twin-exclusive. With s3 seated once and ppo-E0-s1 replacing
+   the scripted fill, a heterogeneous pile formed (solo s3 choosing
+   SleepWithKitty 382/435 while ppo-L-04-s1 groomed the sleeper
+   366/435, the E arm half-adhered) and held 435 ticks — over the
+   225 bar, self-breaking where the twin lock was self-renewing
+   (2331). The same seed under scripted fill read mda 0. Twins make
+   the lock symmetric and stable; policy company makes piles
+   available; scripted seats act as perturbation sources that break
+   them. Each scripted seat replaced by a policy mind removes a
+   stabilizer.
+
 **Scope**: greedy serving/eval mode — deterministic symmetric argmax
 sustains the lock; sampled action selection is untested. Observed
 with one artifact pair (attn-a1-s3); the e004-a1-s2 pacing seen in
@@ -1386,9 +1398,10 @@ in the seating dimension).
 
 **Would invalidate**: a twin-seated composition surviving extended
 family-11-class exposure with no lock (would localize the attractor
-to s3's groomer culture rather than twin-seating as such); the same
-lock arising in a cross-mind pair (would make it cultural
-compatibility, not self-interaction).
+to s3's groomer culture rather than twin-seating as such); a
+cross-mind pile matching the twin lock's self-renewing duration
+(point 5's piles broke an order of magnitude earlier — parity would
+collapse the twin/heterogeneous distinction the entry rests on).
 
 **Re-verify when**: any new artifact is seated in multiple; any move
 off greedy serving; the distress-gated intervention lands (it
