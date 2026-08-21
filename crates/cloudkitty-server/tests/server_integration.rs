@@ -676,9 +676,17 @@ async fn the_shipped_config_serves_a_description_for_every_kitty() {
     // registration), and nobody serves nothing.
     let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../cloudkitty.toml");
     let text = std::fs::read_to_string(&root).expect("the shipped config is readable");
-    let (config, rl) =
+    let (config, mut rl) =
         cloudkitty_rl::config::load_configs_from_str(&text).expect("the shipped config loads");
     config.validate().unwrap();
+    // Artifact paths in the shipped config are relative to the repo root (the
+    // server's working directory); a test's is the crate root, so resolve them
+    // before registration opens anything — the same resolution the
+    // generation-gap successor test in policy_kitty.rs performs.
+    let repo = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    for policy in rl.policy.values_mut() {
+        policy.artifact = repo.join(&policy.artifact).to_string_lossy().into_owned();
+    }
     let mut registry = BehaviorRegistry::with_builtins();
     let displays =
         cloudkitty_server::register_policy_behaviors(&mut registry, &config, &rl).unwrap();

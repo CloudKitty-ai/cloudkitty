@@ -33,6 +33,27 @@ change.
 
 ## Unreleased
 
+- **The phase-1 generation takes the seats, and the wall comes down.**
+  `[world-fresh]` Six days after the say-surface froze, the schema-4
+  generation certified as a composition (deploy battery 2026-08-21, all
+  gates) and the shipped config seats it: Miso and Pumpkin on the two
+  expanded attention minds (`attn-a1-s1-o4`, `attn-a1-s3-o4` — seated
+  once now; the twin pattern retired with F-027), Biscuit keeping its
+  exp-004 mind in expanded form (`e004-a1-s2-o4`), and Kittybear on
+  `e006-E1-s1`, the first natively schema-4 mind to serve — seated for
+  its dialect, the here-words and a meaningful mew, on the owner's
+  ruling that it was worth the recert. Clementine runs scripted this
+  phase; her policy mind arrives with the bugs-2.0 sequence. The three
+  sources retire to `policies/retired/` with their records, each
+  superseded by its own re-placed self (artifact lineage: same run,
+  same mind, new surface — the spec-035 attestation and the bit-exact
+  parity leg jointly prove it). Every seated artifact carries its
+  registry row in the same change, and the generation-gap test swaps
+  for its stronger successor: the shipped config now proves every
+  named artifact opens, rather than proving none does. The rollout
+  serving this roster is the `--fresh` the wall rider promised when
+  Clementine's id moved the fingerprint (#pending).
+
 - **The phone was framing a keyhole, and now frames a scene.** At its most
   zoomed-in the camera would hold as few as six tiles, which on a handset is
   about three paces of meadow with a cat filling it. It now holds seven. A cat
