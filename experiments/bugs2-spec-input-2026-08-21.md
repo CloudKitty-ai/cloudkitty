@@ -81,3 +81,29 @@ grown and certified entirely on the post-change world.
    re-baseline is: tether 4×4 + BOTH critter lifetimes 600.
    Division of proof per the 035 pattern (spec FR-010): engine
    proves confinement/inertness, the grid proves economics.
+
+## Grid re-run declaration (pounce amendment; declared BEFORE results)
+
+Pounce fired per the owner's fallback ruling; Product amends 039
+(elements-only, distance exactly 2, one plain step, blocked = lost,
+no RNG draws, config-gated `[behavior] pounce` default OFF, served
+package turns it on). The re-run grid, declared before any pounce
+cell exists:
+
+- **Arms**: both (tether-4×4 + ttl-600 + pounce = the NEW package) ·
+  tether-only (the prior package — pounce's marginal effect) ·
+  pounce-only + ttl-600 (attribution: does pounce need the tether) ·
+  none (control, pounce off by default — must keep matching the old
+  world) · c3 + pounce (cell rule re-checked under the new package).
+- Same skill rows, compositions, geometries, seeds, bands: 40 cells.
+- **Bars unchanged**: unskilled bug EV > 10 · skilled in
+  [self-duet, team-duet] · ruin ≤ ~1% at ttl 600. Cell rule
+  unchanged (largest cell clearing bar 1).
+- Pre-stated expectations, so the data can surprise honestly: pounce
+  should convert distance-2 endgame ticks into catches for BOTH
+  skill rows — unskilled catch-rate is the number to watch (39→41%
+  under tether alone was the failure signature); if unskilled EV
+  still misses 10 with pounce, the residual is pure approach/patience
+  and no chase-mechanics lever reaches it (the next levers would be
+  training-side: corpus isolation cells, shaping — already in the
+  006a design space).
