@@ -1,0 +1,290 @@
+{
+ "provenance": {
+  "git_head": "6a32db9e2043953dc3528af41e22532b34cbf04f",
+  "config_sha256": "64ca2b9a840ec0b844f9bf5906129bbdd95888f76b402835584116f1c4166bef",
+  "binding": "unknown",
+  "binding_engine": null
+ },
+ "rows": [
+  {
+   "seating": "solo-s3-e1s1-swap",
+   "seed": 870001,
+   "ticks": 20000,
+   "nash": 0.9364930654198832,
+   "mean_happiness": [
+    95.2634,
+    88.5888,
+    94.7007,
+    95.0905,
+    94.9198
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "solo-s3-e1s1-swap",
+   "seed": 870002,
+   "ticks": 20000,
+   "nash": 0.934720859554624,
+   "mean_happiness": [
+    95.0977,
+    88.3112,
+    94.8021,
+    94.7429,
+    94.7443
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "solo-s3-e1s1-swap",
+   "seed": 870003,
+   "ticks": 20000,
+   "nash": 0.9330638056195788,
+   "mean_happiness": [
+    95.0584,
+    88.036,
+    94.5145,
+    94.6487,
+    94.6285
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "solo-s3-e1s1-swap",
+   "seed": 870004,
+   "ticks": 20000,
+   "nash": 0.9355632761365831,
+   "mean_happiness": [
+    95.2942,
+    88.3512,
+    94.8388,
+    94.7653,
+    94.8556
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "solo-s3-e1s1-swap",
+   "seed": 870005,
+   "ticks": 20000,
+   "nash": 0.933839368678161,
+   "mean_happiness": [
+    95.2415,
+    87.8525,
+    94.5558,
+    94.8,
+    94.8353
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "solo-s3-e1s1-swap",
+   "seed": 870006,
+   "ticks": 20000,
+   "nash": 0.9337015211294747,
+   "mean_happiness": [
+    95.0518,
+    88.1081,
+    94.6273,
+    94.7776,
+    94.6331
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "solo-s3-e1s1-swap",
+   "seed": 870007,
+   "ticks": 20000,
+   "nash": 0.9357403027679855,
+   "mean_happiness": [
+    95.3384,
+    88.4659,
+    94.7858,
+    94.7216,
+    94.8763
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "solo-s3-e1s1-swap",
+   "seed": 870008,
+   "ticks": 20000,
+   "nash": 0.9342627850634281,
+   "mean_happiness": [
+    95.0705,
+    88.4936,
+    94.5972,
+    94.6568,
+    94.6464
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "solo-s3-e1s1-swap",
+   "seed": 870009,
+   "ticks": 20000,
+   "nash": 0.9344404740921531,
+   "mean_happiness": [
+    95.2883,
+    88.3754,
+    94.7809,
+    94.2977,
+    94.8184
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "solo-s3-e1s1-swap",
+   "seed": 870010,
+   "ticks": 20000,
+   "nash": 0.934790366049852,
+   "mean_happiness": [
+    95.3453,
+    88.1664,
+    94.7486,
+    94.5327,
+    94.941
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  }
+ ]
+}

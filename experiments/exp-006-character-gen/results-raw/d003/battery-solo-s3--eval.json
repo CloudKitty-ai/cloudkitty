@@ -1,0 +1,290 @@
+{
+ "provenance": {
+  "git_head": "6a32db9e2043953dc3528af41e22532b34cbf04f",
+  "config_sha256": "64ca2b9a840ec0b844f9bf5906129bbdd95888f76b402835584116f1c4166bef",
+  "binding": "unknown",
+  "binding_engine": null
+ },
+ "rows": [
+  {
+   "seating": "solo-s3",
+   "seed": 870001,
+   "ticks": 20000,
+   "nash": 0.9257355033039865,
+   "mean_happiness": [
+    94.8985,
+    88.0222,
+    94.3806,
+    91.2913,
+    94.6215
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "solo-s3",
+   "seed": 870002,
+   "ticks": 20000,
+   "nash": 0.9241660803506818,
+   "mean_happiness": [
+    94.9737,
+    87.4746,
+    94.2957,
+    91.184,
+    94.5443
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "solo-s3",
+   "seed": 870003,
+   "ticks": 20000,
+   "nash": 0.9223991284585471,
+   "mean_happiness": [
+    94.6507,
+    87.5496,
+    94.0152,
+    91.2475,
+    94.1021
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "solo-s3",
+   "seed": 870004,
+   "ticks": 20000,
+   "nash": 0.9241723042660182,
+   "mean_happiness": [
+    94.9495,
+    87.855,
+    94.2063,
+    90.9903,
+    94.4353
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "solo-s3",
+   "seed": 870005,
+   "ticks": 20000,
+   "nash": 0.9254113196076139,
+   "mean_happiness": [
+    94.7957,
+    88.0272,
+    94.5985,
+    91.1953,
+    94.4548
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 36
+  },
+  {
+   "seating": "solo-s3",
+   "seed": 870006,
+   "ticks": 20000,
+   "nash": 0.9239425980399345,
+   "mean_happiness": [
+    94.9265,
+    87.6118,
+    94.3258,
+    91.1591,
+    94.3198
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "solo-s3",
+   "seed": 870007,
+   "ticks": 20000,
+   "nash": 0.9245611593888833,
+   "mean_happiness": [
+    95.1085,
+    87.6867,
+    94.2108,
+    91.188,
+    94.4552
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "solo-s3",
+   "seed": 870008,
+   "ticks": 20000,
+   "nash": 0.92324939224881,
+   "mean_happiness": [
+    94.6768,
+    87.9172,
+    94.0807,
+    91.1259,
+    94.2294
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0001,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 33
+  },
+  {
+   "seating": "solo-s3",
+   "seed": 870009,
+   "ticks": 20000,
+   "nash": 0.9241211653310878,
+   "mean_happiness": [
+    94.8789,
+    87.7382,
+    93.9616,
+    91.2844,
+    94.5605
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "solo-s3",
+   "seed": 870010,
+   "ticks": 20000,
+   "nash": 0.923540548989936,
+   "mean_happiness": [
+    94.8837,
+    87.5061,
+    94.2794,
+    91.0273,
+    94.4743
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  }
+ ]
+}

@@ -1,0 +1,850 @@
+{
+ "provenance": {
+  "git_head": "6a32db9e2043953dc3528af41e22532b34cbf04f",
+  "config_sha256": "64ca2b9a840ec0b844f9bf5906129bbdd95888f76b402835584116f1c4166bef",
+  "binding": "unknown",
+  "binding_engine": null
+ },
+ "rows": [
+  {
+   "seating": "candidate",
+   "seed": 870001,
+   "ticks": 20000,
+   "nash": 0.9362681913790324,
+   "mean_happiness": [
+    95.3018,
+    88.4639,
+    95.0866,
+    94.7906,
+    94.8344
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "candidate",
+   "seed": 870002,
+   "ticks": 20000,
+   "nash": 0.934535970185178,
+   "mean_happiness": [
+    95.0322,
+    88.2237,
+    94.8077,
+    94.8662,
+    94.6671
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "candidate",
+   "seed": 870003,
+   "ticks": 20000,
+   "nash": 0.9321103702513501,
+   "mean_happiness": [
+    94.9451,
+    87.9996,
+    94.43,
+    94.5358,
+    94.5161
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "candidate",
+   "seed": 870004,
+   "ticks": 20000,
+   "nash": 0.934791082661577,
+   "mean_happiness": [
+    95.1922,
+    88.348,
+    94.7007,
+    94.7792,
+    94.7026
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 22
+  },
+  {
+   "seating": "candidate",
+   "seed": 870005,
+   "ticks": 20000,
+   "nash": 0.9350342701443962,
+   "mean_happiness": [
+    95.1744,
+    88.308,
+    94.7648,
+    94.9056,
+    94.6983
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "candidate",
+   "seed": 870006,
+   "ticks": 20000,
+   "nash": 0.9346263957774165,
+   "mean_happiness": [
+    94.9624,
+    88.3159,
+    94.8525,
+    94.7828,
+    94.7315
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "candidate",
+   "seed": 870007,
+   "ticks": 20000,
+   "nash": 0.9344337680477239,
+   "mean_happiness": [
+    95.2328,
+    87.927,
+    94.8062,
+    94.8091,
+    94.8095
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 35
+  },
+  {
+   "seating": "candidate",
+   "seed": 870008,
+   "ticks": 20000,
+   "nash": 0.9333281513198903,
+   "mean_happiness": [
+    94.9453,
+    88.0534,
+    94.6561,
+    94.8027,
+    94.5708
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "candidate",
+   "seed": 870009,
+   "ticks": 20000,
+   "nash": 0.9340716770665943,
+   "mean_happiness": [
+    95.2133,
+    88.1165,
+    94.6679,
+    94.7226,
+    94.6686
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "candidate",
+   "seed": 870010,
+   "ticks": 20000,
+   "nash": 0.9341125629565131,
+   "mean_happiness": [
+    95.3109,
+    87.9889,
+    94.4952,
+    94.7928,
+    94.837
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "candidate",
+   "seed": 870011,
+   "ticks": 20000,
+   "nash": 0.9340756711456486,
+   "mean_happiness": [
+    95.1784,
+    88.0199,
+    94.8666,
+    94.7331,
+    94.5799
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "candidate",
+   "seed": 870012,
+   "ticks": 20000,
+   "nash": 0.9347391155198631,
+   "mean_happiness": [
+    95.1116,
+    88.5832,
+    94.6873,
+    94.6678,
+    94.6226
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "candidate",
+   "seed": 870013,
+   "ticks": 20000,
+   "nash": 0.9314197635784262,
+   "mean_happiness": [
+    94.5623,
+    87.7611,
+    94.7143,
+    94.6114,
+    94.4433
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 77
+  },
+  {
+   "seating": "candidate",
+   "seed": 870014,
+   "ticks": 20000,
+   "nash": 0.9352023189845224,
+   "mean_happiness": [
+    95.0941,
+    88.3539,
+    94.7563,
+    94.8889,
+    94.8375
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "candidate",
+   "seed": 870015,
+   "ticks": 20000,
+   "nash": 0.9342457316040004,
+   "mean_happiness": [
+    95.2237,
+    88.1237,
+    94.6368,
+    94.7566,
+    94.7133
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "candidate",
+   "seed": 870016,
+   "ticks": 20000,
+   "nash": 0.9350745803681155,
+   "mean_happiness": [
+    95.1643,
+    88.3688,
+    94.8225,
+    94.8543,
+    94.6523
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "candidate",
+   "seed": 870017,
+   "ticks": 20000,
+   "nash": 0.9341668921332396,
+   "mean_happiness": [
+    95.026,
+    88.1373,
+    94.6955,
+    94.8824,
+    94.6875
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "candidate",
+   "seed": 870018,
+   "ticks": 20000,
+   "nash": 0.9322731224470084,
+   "mean_happiness": [
+    95.0697,
+    88.0901,
+    94.4661,
+    94.4272,
+    94.4407
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "candidate",
+   "seed": 870019,
+   "ticks": 20000,
+   "nash": 0.9332659800842046,
+   "mean_happiness": [
+    95.1203,
+    88.1649,
+    94.4156,
+    94.717,
+    94.5678
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "candidate",
+   "seed": 870020,
+   "ticks": 20000,
+   "nash": 0.9348196722689037,
+   "mean_happiness": [
+    95.402,
+    87.8023,
+    94.8188,
+    94.858,
+    94.9292
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 3
+  },
+  {
+   "seating": "candidate",
+   "seed": 870021,
+   "ticks": 20000,
+   "nash": 0.9347454339514554,
+   "mean_happiness": [
+    95.3023,
+    87.9772,
+    94.7099,
+    94.8864,
+    94.8518
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "candidate",
+   "seed": 870022,
+   "ticks": 20000,
+   "nash": 0.9354211773850333,
+   "mean_happiness": [
+    94.9886,
+    88.6545,
+    94.8398,
+    94.801,
+    94.7285
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "candidate",
+   "seed": 870023,
+   "ticks": 20000,
+   "nash": 0.9347189880640643,
+   "mean_happiness": [
+    95.1407,
+    88.243,
+    94.6606,
+    94.9309,
+    94.74
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "candidate",
+   "seed": 870024,
+   "ticks": 20000,
+   "nash": 0.9341704951998699,
+   "mean_happiness": [
+    95.0604,
+    88.3007,
+    94.6965,
+    94.7164,
+    94.626
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "candidate",
+   "seed": 870025,
+   "ticks": 20000,
+   "nash": 0.9344209255858895,
+   "mean_happiness": [
+    94.9174,
+    88.1733,
+    94.7144,
+    94.862,
+    94.8875
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "candidate",
+   "seed": 870026,
+   "ticks": 20000,
+   "nash": 0.93500166439091,
+   "mean_happiness": [
+    95.2016,
+    88.0755,
+    94.9316,
+    94.903,
+    94.7458
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "candidate",
+   "seed": 870027,
+   "ticks": 20000,
+   "nash": 0.9347664495890984,
+   "mean_happiness": [
+    95.0122,
+    88.2422,
+    94.7375,
+    94.9922,
+    94.7431
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "candidate",
+   "seed": 870028,
+   "ticks": 20000,
+   "nash": 0.9351813546407,
+   "mean_happiness": [
+    95.1139,
+    88.3198,
+    94.793,
+    94.9884,
+    94.7112
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "candidate",
+   "seed": 870029,
+   "ticks": 20000,
+   "nash": 0.9347868015584059,
+   "mean_happiness": [
+    94.9362,
+    88.4818,
+    94.8591,
+    94.7425,
+    94.6796
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  },
+  {
+   "seating": "candidate",
+   "seed": 870030,
+   "ticks": 20000,
+   "nash": 0.9334284630610812,
+   "mean_happiness": [
+    94.9799,
+    88.1447,
+    94.559,
+    94.8284,
+    94.5398
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  }
+ ]
+}

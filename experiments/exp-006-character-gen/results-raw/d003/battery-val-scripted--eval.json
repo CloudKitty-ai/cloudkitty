@@ -1,0 +1,38 @@
+{
+ "provenance": {
+  "git_head": "1d17af322a62193d0bce6e1a48eea853f3df6948",
+  "config_sha256": "64ca2b9a840ec0b844f9bf5906129bbdd95888f76b402835584116f1c4166bef",
+  "binding": "unknown",
+  "binding_engine": null
+ },
+ "rows": [
+  {
+   "seating": "val-scripted",
+   "seed": 870001,
+   "ticks": 20000,
+   "nash": null,
+   "mean_happiness": [
+    90.8428,
+    90.7486,
+    91.0892,
+    91.0486,
+    90.5868
+   ],
+   "low_share": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "floor_touches": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "max_distress_age": 0
+  }
+ ]
+}
