@@ -7254,6 +7254,144 @@ check('ordinary play leaves the camera at rest most of the time', () => {
     `the camera was at rest ${(100 * restFrac).toFixed(0)}% of ordinary play, under the 60% bar`);
 });
 
+/* ---- 038 US2: the stage always has kitties on it (T013-T015) ------- */
+
+check('all-scattered kitties get the closest PAIR at the widest, never one', () => {
+  // 038 FR-004: when no two groups can share even the widest frame, the
+  // fallback frames the closest pair, partially visible, at the ceiling.
+  // Five kitties pairwise beyond joint-fit range (>8.13 tiles apart).
+  const world = camAt([0, 0], [19, 0], [0, 19], [19, 19], [9.5, 9.5]);
+  const cam = onCam(world);
+  assert(cam.shotIds.size === 2, `the fallback framed ${cam.shotIds.size}, not a pair`);
+  assert(cam.shotIds.has(1) && cam.shotIds.has(5),
+    `the fallback took {${[...cam.shotIds]}}, not the closest pair {1,5}`);
+  assert(Math.abs(cam.across - 20 / api.VIEW.camera.minZoomVsBase) < 1e-9,
+    `the fallback sits at ${cam.across.toFixed(2)}, not the widest`);
+});
+
+check('a 3-kitty roster still frames two, in both regimes', () => {
+  // SC-010's tightest case: the biggest group may be a pair. Window
+  // regime: a pair plus an unreachable solo frames the pair. Fallback
+  // regime: three mutual strangers frame the closest two.
+  const paired = onCam(camAt([2, 2], [3, 2], [18, 18]));
+  assert(paired.shotIds.size === 2 && paired.shotIds.has(1) && paired.shotIds.has(2),
+    `pair+solo framed {${[...paired.shotIds]}}`);
+  const scattered = onCam(camAt([0, 0], [19, 0], [10, 19]));
+  assert(scattered.shotIds.size === 2,
+    `three strangers framed ${scattered.shotIds.size} kitties`);
+  assert(scattered.shotIds.has(1) && scattered.shotIds.has(2),
+    `three strangers framed {${[...scattered.shotIds]}}, not the closest two`);
+});
+
+check('a kitty walking into the shot joins it with NO grammar event', () => {
+  // 038 FR-008: membership follows the kitties; a joiner is not an
+  // admission, not a widen, nothing -- the hold picks up the wider frame
+  // when someone presses. She links (tick 3) BEFORE her admission dwell
+  // (5) could fire, which is exactly the boundary between the two rules.
+  const world = (t) => ({
+    width: 20,
+    height: 20,
+    tick: t,
+    elements: [],
+    kitties: [
+      { id: 1, pos: { x: 4, y: 10 } },
+      { id: 2, pos: { x: 5, y: 10 } },
+      // 14 -> 12 -> 11 -> 9.9: UNWINDOWABLE at t0 (a walker at 12 was
+      // inside window range, so the cold start framed all three and the
+      // check was vacuous -- caught by debugging its own mutation), then
+      // two admissible ticks (nearTicks 2 < dwell 5), then linked.
+      { id: 3, pos: { x: [14, 12, 11, 9.9][Math.min(t, 3)], y: 10 } },
+    ],
+  });
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(world(0), camView(false, 0), { aspect: 1, cssWidth: 1000 });
+  assert(cam.shotIds.size === 2, `setup: the walker was windowed in from the start (${cam.shotIds.size})`);
+  for (let t = 1; t <= 3; t += 1) {
+    cam.update(world(t), camView(false, t * 800), { aspect: 1, cssWidth: 1000 });
+    if (t < 3) assert(cam.shotIds.size === 2, `the walker was admitted at tick ${t}, before she linked`);
+  }
+  assert(cam.shotIds.has(3) && cam.shotIds.size === 3,
+    `the joiner is not in the shot: {${[...cam.shotIds]}}`);
+  assert(cam.episode === null || cam.episode.kind === 'correction',
+    `joining fired a '${cam.episode && cam.episode.kind}' episode, not plain membership`);
+});
+
+check('a shot that stops fitting sheds the SMALLER side and keeps the rest', () => {
+  // 038 FR-010. A trio and a pair, linked into one group; the pair walks
+  // off. While the two sides still share a frame the shot keeps BOTH
+  // (windowed, no event); past joint fit it sheds the pair -- the fewest
+  // kitties that restore fit.
+  const world = (t) => ({
+    width: 20,
+    height: 20,
+    tick: t,
+    elements: [],
+    kitties: [
+      { id: 1, pos: { x: 4, y: 10 } },
+      { id: 2, pos: { x: 5, y: 10 } },
+      { id: 3, pos: { x: 6, y: 10 } },
+      { id: 4, pos: { x: 10 + t, y: 10 } },
+      { id: 5, pos: { x: 11 + t, y: 10 } },
+    ],
+  });
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(world(0), camView(false, 0), { aspect: 1, cssWidth: 1000 });
+  assert(cam.shotIds.size === 5, `setup: one linked group of 5, got ${cam.shotIds.size}`);
+  cam.update(world(1), camView(false, 800), { aspect: 1, cssWidth: 1000 });
+  assert(cam.shotIds.size === 5,
+    'the sides split but still share a frame -- the shot must keep both');
+  cam.update(world(2), camView(false, 1600), { aspect: 1, cssWidth: 1000 });
+  assert(cam.shotIds.size === 3
+    && cam.shotIds.has(1) && cam.shotIds.has(2) && cam.shotIds.has(3),
+    `past joint fit the shot is {${[...cam.shotIds]}}, not the trio`);
+  assert(cam.episode && cam.episode.kind === 'shed',
+    `the shed is a '${cam.episode && cam.episode.kind}' episode`);
+});
+
+check('a dissolved shot re-frames through an eased break, never a cut', () => {
+  // 038 FR-011 + 036 FR-008: the shot collapses below two and the camera
+  // travels to the best remaining window -- continuously.
+  const world = (t) => ({
+    width: 20,
+    height: 20,
+    tick: t,
+    elements: [],
+    kitties: [
+      { id: 1, pos: { x: 3, y: 3 } },
+      // (5,19): unlinked AND unwindowable from everyone -- a teleport to
+      // (14,14) landed within link radius of the far pair and the shot
+      // correctly FOLLOWED her there as a 3-count shed (caught by running
+      // this); a break needs her stranded.
+      { id: 2, pos: t === 0 ? { x: 4, y: 3 } : { x: 5, y: 19 } },
+      { id: 3, pos: { x: 16, y: 16 } },
+      { id: 4, pos: { x: 17, y: 16 } },
+    ],
+  });
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(world(0), camView(false, 0), { aspect: 1, cssWidth: 1000 });
+  assert(cam.shotIds.has(1) && cam.shotIds.has(2), 'setup: the near pair should win the cold start');
+  let t = 800;
+  let prev = { x: cam.aimX, y: cam.aimY, a: cam.across };
+  let arrived = false;
+  for (let i = 0; i < 120; i += 1) {
+    t += 16.67;
+    cam.update(world(1), camView(false, t), { aspect: 1, cssWidth: 1000 });
+    const dx = Math.hypot(cam.aimX - prev.x, cam.aimY - prev.y);
+    assert(dx < 3 && Math.abs(cam.across - prev.a) < 3,
+      `the break CUT ${dx.toFixed(1)} tiles in one frame`);
+    prev = { x: cam.aimX, y: cam.aimY, a: cam.across };
+    if (cam.episode === null) { arrived = true; break; }
+  }
+  assert(arrived, 'the break never completed');
+  assert(cam.shotIds.has(3) && cam.shotIds.has(4) && cam.shotIds.size === 2,
+    `the re-pick chose {${[...cam.shotIds]}}, not the surviving pair`);
+  assert(cam.aimX === 17 && cam.aimY === 16.5,
+    `the break landed at ${cam.aimX},${cam.aimY}, not exactly the pair's centre`);
+});
+
 check('aim settles faster than width, so the zoom lags the pan', () => {
   assert(api.VIEW.camera.panRate > api.VIEW.camera.zoomRate,
     'the zoom is not slower than the pan');

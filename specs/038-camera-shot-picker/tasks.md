@@ -112,19 +112,19 @@ frames impossible outside a pan's middle.
 **Independent Test**: scatter/dissolve fixtures — no state reachable where
 the camera frames fewer than two while a pair could share the widest frame.
 
-- [ ] T013 [US2] Minimum-two + closest-pair fallback (FR-004) in
+- [x] T013 [US2] Minimum-two + closest-pair fallback (FR-004) in
       `client/anim.js`: when no window of ≥2 fits, frame the closest pair at
       the ceiling and tolerate partial visibility; checks: all-scattered
       fixture (mutation: permit a singleton window), plus a 3-kitty
       roster variant where the biggest group is a pair — SC-010's
       tightest case in the harness
-- [ ] T014 [US2] Membership follow + shed (FR-008/FR-010) in
+- [x] T014 [US2] Membership follow + shed (FR-008/FR-010) in
       `client/anim.js`: shot = union of chains holding shot members; when
       the union stops fitting, keep the maximal-count fitting subset
       (incumbency tiebreak) via one `shed` episode — this is also US3's
       tighten-after-dispersal; checks: drift-apart fixture (mutation: shed
       the larger half)
-- [ ] T015 [US2] Break rule (FR-011) in `client/anim.js`: group-mode shot
+- [x] T015 [US2] Break rule (FR-011) in `client/anim.js`: group-mode shot
       <2 → re-pick via T008 selection through one eased `break` episode,
       never a cut; checks: contract §5 break fixture (continuity of
       `left/top/across` across the re-frame; mutation: teleport on break)
