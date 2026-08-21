@@ -6466,12 +6466,15 @@ check('an equal-size rival never takes the shot from the incumbent', () => {
   cam.on = true;
   cam.update(world(0), camView(false, 0), { aspect: 1, cssWidth: 1000 });
   assert(cam.shotIds.has(1) && cam.shotIds.has(2), 'setup: the lowest-id pair should hold the shot');
-  // Far beyond every dwell: 40 ticks of an equal-size far rival.
+  // Far beyond every dwell: 40 ticks of an equal-size far rival -- and
+  // asserted EVERY tick, not at the end. Mutation found the end-only
+  // version vacuous: a camera flip-flopping on a 15-tick cycle is back on
+  // the home pair at t=40, so it passed while panning twice.
   for (let t = 1; t <= 40; t += 1) {
     cam.update(world(t), camView(false, t * 800), { aspect: 1, cssWidth: 1000 });
+    assert(cam.shotIds.has(1) && cam.shotIds.has(2) && cam.shotIds.size === 2,
+      `an EQUAL rival took the shot at tick ${t}: {${[...cam.shotIds]}}`);
   }
-  assert(cam.shotIds.has(1) && cam.shotIds.has(2) && cam.shotIds.size === 2,
-    `an EQUAL rival took the shot: {${[...cam.shotIds]}}`);
 });
 check('easing settles at the same real speed on 60Hz and 120Hz', () => {
   // A rate written per-frame eases twice as fast at 120Hz uncorrected,

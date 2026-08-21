@@ -33,37 +33,37 @@ P1), US3 finds-the-action, US4 following (both P2).
 
 ## Phase 2: Foundational (blocking all stories)
 
-- [ ] T003 Add the new dials to `VIEW.camera` in `client/anim.js` with
+- [x] T003 Add the new dials to `VIEW.camera` in `client/anim.js` with
       documented defaults per research D13 (`linkTiles` 5, `nearDwellTicks`
       5, `farDwellTicks` 15, `safeZoneFrac` 0.80, `moveMs` 700, `panMs`
       1100, `fitMarginFrac` 0.195); removals wait for T021
-- [ ] T004 Implement grouping + fit in `client/anim.js`: connected
+- [x] T004 Implement grouping + fit in `client/anim.js`: connected
       components at `linkTiles` over drawn positions, and `widthNeeded =
       max(spanX, spanY/aspect) / (1 - 2·fitMarginFrac)`; checks in
       `client/test-motion.mjs` (component transitivity on crafted positions;
       desktop margin equivalence to the old `fitMarginTiles` within 0.1
       tile; mutations: break transitivity, drop the aspect division)
-- [ ] T005 Implement chain tracking + the evidence function in
+- [x] T005 Implement chain tracking + the evidence function in
       `client/anim.js` per research D5/D10: majority-overlap continuation,
       per-chain near/far consecutive-tick counters, thresholds compared only
       at the two decision sites; checks: contract §5 chain-churn fixture (a
       rival swapping one member mid-dwell keeps its counter; mutation:
       exact-set keying goes red)
-- [ ] T006 Replace camera-mode motion in `Camera.update` in `client/anim.js`
+- [x] T006 Replace camera-mode motion in `Camera.update` in `client/anim.js`
       with the episode engine (research D7): REST/EASING, latched goal,
       cubic ease-in-out over duration, EXACT snap on arrival, still-frame
       hold, reduced-motion instant arrival, camera-off arrive-cut preserved;
       checks: contract §5 snap-to-rest (N consecutive frames bit-identical
       `left/top/across`; mutation: keep exponential pursuit), still-frame
       no-progress, reduced-motion instant
-- [ ] T007 Split decide-on-ticks from move-on-frames in `client/anim.js`
+- [x] T007 Split decide-on-ticks from move-on-frames in `client/anim.js`
       (research D2): `world.tick` edge detection in `update` — no previous
       tick COUNTS as an edge, so the very first update decides (SC-009) —
       decision steps run once per tick in contract §2 order, consuming the
       aspect/cssWidth of the frame they run in; check: dwell counters
       advance once per tick when the harness draws 8 frames per tick
       (mutation: decide per frame)
-- [ ] T008 Implement cold-start shot selection in `client/anim.js`: greedy
+- [x] T008 Implement cold-start shot selection in `client/anim.js`: greedy
       maximal-count window of groups that fits, lowest-kitty-id tiebreak,
       incumbent-keeps-ties thereafter (research D6); first decided shot
       arrives unesased via the existing `across === 0` path (SC-009); checks:
