@@ -198,3 +198,63 @@ Two consequences:
   tile group plus `2 x 2.6` margin is 7.6–9.0 tiles: below the 13.33 ceiling
   and above the 7 floor, which is the one band where the fit actually varies.
 
+
+### The settled grammar, simulated — 2026-08-20 evening
+
+The design session settled the shot-picker grammar (shot = maximal-count set
+of groups that fits; near rivals ADMITTED by widening; far rivals must be
+strictly bigger, sustained 15 ticks, and force the only true pan; ties keep
+the incumbent; count-only interest). `shot-survival.mjs sample.jsonl` runs
+that grammar over the same sample. Dwell dials in the script are stated
+assumptions: near 5 ticks, far 15 (the owner's number).
+
+**Group identity survives for minutes, not seconds** (majority-overlap
+chains of the biggest group): median **20s / 88s / 192s** at link L=4/5/6.
+The churn fear — sizing to a group would pump the zoom — is refuted at L≥5.
+
+**Event rates under the grammar** (desktop ceiling 13.33t / phone 7.6t):
+
+| | pan/min | widen/min | break/min | framed ≥2 | width median | at ceiling |
+|---|---|---|---|---|---|---|
+| desktop L=4 | 0.00 | 1.71 | 0.00 | 100% | 9.2t | 0% |
+| desktop L=5 | 0.00 | 1.29 | 0.00 | 100% | 9.2t | 1% |
+| desktop L=6 | 0.21 | 0.43 | 0.00 | 100% | 9.2t | 5% |
+| phone L=4 | 0.00 | 0.00 | 2.36 | 100% | 7.2t | 42% |
+| phone L=5 | 0.00 | 0.00 | 0.43 | 100% | 7.6t | 54% |
+| phone L=6 | 0.00 | 0.00 | 0.21 | 100% | 7.6t | 61% |
+
+Four findings:
+
+- **Fast pan is nearly dead code.** One pan fired in 4.7 minutes across all
+  six configurations. Structural, not sample luck: on desktop a 13.33-tile
+  frame on a 20-tile world makes sharing a frame geometrically easy (rivals
+  get admitted, not switched to), and on any viewport a far rival must
+  out-count the biggest group, which the shot already holds. Transitions are
+  dominated by widen (desktop) and break-recovery (phone). The eagerness
+  dial the far band needed barely matters in practice.
+- **The zoom gets its job back.** Median width 9.2t against the 13.33
+  ceiling, at-ceiling 0–5% of ticks — versus 87% pinned under the shipped
+  fit-everyone rule. Cats draw ~1.45x bigger at the median.
+- **Minimum-two holds on 100% of ticks** in every configuration, by
+  construction and in practice. Mean framed ~3.2 of 5 — the owner's stated
+  portrait target, arriving as a consequence again.
+- **`fitMarginTiles` 2.6 does not scale down to the phone.** 5.2 tiles of
+  margin inside a 7.6-tile frame is 68% of it, so the shot's fit request
+  overflows the phone frame 42–61% of ticks (the camera clamps and frames
+  the group partially). An absolute-tiles margin is the wrong shape on
+  narrow frames; a proportional margin is indicated at implementation time.
+
+**L=5 is the link radius to carry forward**: L=4 is twitchy on the phone
+(2.36 breaks/min), L=6 merges nearly the whole roster (top group 3.16 cats,
+2 identity chains in 4.7 min).
+
+**Spec-032 lookahead read**: with pans this rare, a 15-tick buffer buys
+little for switching. Its real value would be pre-framing — framing the
+group's swept bounding box over the next 15 ticks to cut in-shot
+corrections. The policy stays factored as one evidence function over a
+tick-window either way, so 032 slots in without touching the grammar.
+
+Caveats: one 4.7-minute daytime sample of one generation's clustering
+(perishable, per house rule); the sim models event rates, not camera easing;
+dwell counters key on exact member sets, so membership churn resets them —
+conservative, undercounts transitions if groups churn while staying put.
