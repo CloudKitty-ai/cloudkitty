@@ -225,6 +225,15 @@ gates the merge together with the phase-1 --fresh.
 - **T013**: the CHANGELOG PR reference is `#pending` until the PR
   exists (same flow as #280's).
 
+- **T021-T023 (third amendment) proof record**: four aimed mutations,
+  each red then undone green — unconditional schedule (golden digest
+  red, the off-state guard proven), inverted parity (cadence test
+  red), 1-2 draw (three-tile-dart test red), dropped skip attribute
+  (serialization test red). Stamp: `engine_defaults_sha256()` reads
+  `5d293c67…` identically at b044827 and with the amendment in place
+  (the `ab08eb8c…` figure elsewhere in this file is the default-JSON
+  input hash — a different identity of the same unchanged object).
+
 ## Phase 7: Fallback — the final pounce (FR-011/FR-012, fired 2026-08-21)
 
 - [x] T016 Spec amendment recorded (FR-011 pounce, FR-012 gating,
@@ -261,3 +270,29 @@ gates the merge together with the phase-1 --fresh.
       changes" constraint is revised by its own author: a value from a
       pre-registered measured sweep is what the constraint was
       protecting FOR, not against
+
+## Phase 9: The greeble schedule (FR-014/FR-015, the owner's ruling)
+
+- [x] T021 Red-first battery for the greeble schedule in
+      crates/cloudkitty-core/tests/roam_tether.rs: rest-tick freeze
+      (a flagged greeble never moves on its off-parity tick), the
+      1–3 dart (a moving tick realizes a 3-tile displacement under
+      some seed; no tick exceeds 3), schedule staggering by id,
+      flag-off behavior unchanged (the pinned golden digest is the
+      off-state guard — mutation check: applying the schedule
+      unconditionally must turn it red)
+- [x] T022 Config: `dart: bool` on ElementRule in
+      crates/cloudkitty-core/src/config/mod.rs (default false,
+      skip_serializing_if, absent from default serialization test)
+      + validation refusing non-greeble tables in
+      crates/cloudkitty-core/src/config/validate.rs
+- [x] T023 Engine: generalize `bug_moves_this_tick` to
+      `critter_moves_this_tick` in
+      crates/cloudkitty-core/src/element.rs; greeble arm in
+      crates/cloudkitty-core/src/world.rs gains the flag-gated rest
+      check (before any draw) and the 1–3 step draw on moving ticks
+- [x] T024 Served toml: `dart = true` on `[elements.greeble]` with
+      provenance comment; CHANGELOG extended; full gate + clippy;
+      push and hand the sha to Experiments for the SC-007 amended
+      census
+

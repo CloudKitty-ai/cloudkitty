@@ -88,6 +88,42 @@ prefers margin.
   the measured frontier is the opposite of naive, which is what the
   constraint was protecting.
 
+### The greeble schedule (third amendment, 2026-08-21, the owner's ruling)
+
+After the sticker measurements the owner weighed a parity-timed
+pounce (lunge only on the target's rest tick, which makes every
+pounce land). Her ruling, recorded verbatim in
+`experiments/bugs2-spec-input-2026-08-21.md` §THE RULING, resolved
+the fork the other way: the parity gate is dropped, b044827's
+ungated pounce ships as measured, and thin-air whiffs are kept
+deliberately as charm. What she adopted instead is the greeble
+schedule: greebles join the critter rest-tick schedule and pay for
+the rest with a wider dart.
+
+- **FR-014 (the greeble schedule)**: with `dart = true` on
+  `[elements.greeble]`, a greeble moves only on its schedule tick —
+  the same stateless `(tick + id) % 2` the bugs use — and on a
+  moving tick draws its step count uniformly from {1, 2, 3} instead
+  of the old {1, 2} coin. The heading-persistence draw (60% re-roll)
+  is unchanged. Blocked steps are lost exactly as today. Rest ticks
+  draw nothing.
+- **FR-015 (gating and neutrality)**: `dart` is a config flag,
+  default false, absent from the default serialization, refused on
+  non-greeble element tables. With the flag off, world evolution is
+  byte-identical to b044827 — the pinned golden digest is the guard.
+  The defaults stamp is untouched.
+- **SC-007**: Experiments' amended acceptance census, run on the
+  build carrying both the b044827 package and the greeble schedule
+  in the same binary, clears the pre-declared greeble bars — G1:
+  skilled greeble EV below team-duet on both geometries; G2: greeble
+  ruin ≤ ~1% at ttl 600 on both skill rows — and re-verifies all
+  three bug bars at sticker 28. Bug-vs-greeble ordering is
+  report-and-escalate. If G1 fails at 35, the pre-authorized sticker
+  ladder {32, 30} applies, largest clearing ("reduce greeble reward
+  a little if we need to" is her word). The playful-skill row is
+  additionally read as the Biscuit-cost criterion: chase-tick spend
+  and EV against b044827's readings.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A bug keeps to its patch (Priority: P1)

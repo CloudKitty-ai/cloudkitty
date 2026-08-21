@@ -63,9 +63,19 @@ change.
   not a dial guessed at, but the smallest rung of a pre-registered
   sweep that measured linear on the shipped mechanics, keeping the
   whole gradient intact: a bug is worth more than playing alone and
-  less than any friend. Acceptance economics ran as pre-registered
-  census grids against this branch before merge — the miss, the
-  improvement, and the sweep, all in Experiments' records (#pending).
+  less than any friend. The owner then ruled on the last open fork
+  and reshaped the greeble to match: a pounce that can miss stays —
+  cats pouncing at thin air is charm, kept on purpose — and greebles
+  join the bugs' rest-tick schedule under their own `dart` flag,
+  trading the constant scurry for freeze-dart-freeze: a rest every
+  other tick, then one to three tiles at once. Slower on
+  average, catchable by timing, priced as an opportunistic target.
+  The flag carries the same neutrality proofs as the others: absent
+  from the defaults, refused off the greeble table, and off means
+  bit-for-bit the old skitter under the same pinned digest.
+  Acceptance economics ran as pre-registered census grids against
+  this branch before merge — the miss, the improvement, and the
+  sweep, all in Experiments' records (#pending).
 
 - **The phase-1 generation takes the seats, and the wall comes down.**
   `[world-fresh]` Six days after the say-surface froze, the schema-4

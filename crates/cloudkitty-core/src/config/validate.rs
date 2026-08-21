@@ -284,6 +284,15 @@ impl Config {
                     ));
                 }
             }
+            // Same refusal discipline for the greeble schedule flag
+            // (spec 039 third amendment, FR-015).
+            if rule.dart && !matches!(kind, ElementType::Greeble) {
+                return Err(ConfigError::invalid(
+                    format!("{field} dart"),
+                    "true".to_string(),
+                    "only greebles take the dart schedule (spec 039); remove this key",
+                ));
+            }
         }
         // The spawn dials (spec 027). The jitter's floor-at-1 math is
         // total, but its draw is 32-bit: 2*jitter+1 must fit.

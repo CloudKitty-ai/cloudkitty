@@ -50,6 +50,7 @@ fn test_config() -> Config {
                 ttl: None,
                 servings: None,
                 roam_cell: None,
+                dart: false,
             },
             chow: ElementRule {
                 min: 1,
@@ -57,6 +58,7 @@ fn test_config() -> Config {
                 ttl: None,
                 servings: Some(5),
                 roam_cell: None,
+                dart: false,
             },
             bug: ElementRule {
                 min: 1,
@@ -64,6 +66,7 @@ fn test_config() -> Config {
                 ttl: Some(120),
                 servings: None,
                 roam_cell: None,
+                dart: false,
             },
             // At least one greeble, always.
             greeble: ElementRule {
@@ -72,6 +75,7 @@ fn test_config() -> Config {
                 ttl: Some(90),
                 servings: None,
                 roam_cell: None,
+                dart: false,
             },
             sunbeam: ElementRule {
                 min: 1,
@@ -79,6 +83,7 @@ fn test_config() -> Config {
                 ttl: Some(150),
                 servings: None,
                 roam_cell: None,
+                dart: false,
             },
 
             ..ElementsConfig::default()

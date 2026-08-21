@@ -200,10 +200,14 @@ roam_cell = 4
 [elements.greeble]
 # Greebles are fast, erratic, and invisible to humans -- they appear in the API
 # like any other element, but the viewer never draws them. Press `g` to cheat.
-# NEVER tethered: their job is to be the uncatchable chaos (spec 039).
+# NEVER tethered (spec 039): they roam the whole world. The dart flag (039
+# third amendment, the owner's ruling) puts them on the critter rest-tick
+# schedule with a 1-3 tile dart on moving ticks: freeze, dart, freeze.
+# Catchable by timing now, priced as an opportunistic target.
 min = 1
 max = 3
 ttl = 600
+dart = true
 
 [elements.sunbeam]
 min = 4

@@ -66,6 +66,7 @@ fn build_config(
         ttl,
         servings,
         roam_cell: None,
+        dart: false,
     };
 
     Config {

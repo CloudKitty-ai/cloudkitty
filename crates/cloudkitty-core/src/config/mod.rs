@@ -396,6 +396,14 @@ pub struct ElementRule {
     /// config's JSON — and so `engine_defaults_sha256` — unmoved.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub roam_cell: Option<u32>,
+    /// Greebles only (spec 039 third amendment): the greeble joins the
+    /// critter rest-tick schedule — moving only when `(tick + id) % 2`
+    /// says so, like a bug — and on a moving tick darts 1–3 tiles
+    /// instead of the old 1–2. False (absent) is today's every-tick
+    /// skitter, byte-identical; the pinned golden digest guards that.
+    /// Validation refuses the key on any other element type.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub dart: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -436,6 +444,7 @@ impl Default for ElementsConfig {
                 ttl: None,
                 servings: None,
                 roam_cell: None,
+                dart: false,
             },
             chow: ElementRule {
                 min: 5,
@@ -443,6 +452,7 @@ impl Default for ElementsConfig {
                 ttl: None,
                 servings: Some(5),
                 roam_cell: None,
+                dart: false,
             },
             // Long, unhurried lifetimes (owner call 2026-07-23): a calmer
             // world is kinder to watch and to learn in (RL agents see fewer
@@ -454,6 +464,7 @@ impl Default for ElementsConfig {
                 ttl: Some(300),
                 servings: None,
                 roam_cell: None,
+                dart: false,
             },
             greeble: ElementRule {
                 min: 1,
@@ -461,6 +472,7 @@ impl Default for ElementsConfig {
                 ttl: Some(300),
                 servings: None,
                 roam_cell: None,
+                dart: false,
             },
             sunbeam: ElementRule {
                 min: 3,
@@ -468,6 +480,7 @@ impl Default for ElementsConfig {
                 ttl: Some(300),
                 servings: None,
                 roam_cell: None,
+                dart: false,
             },
             spread_candidates: default_spread_candidates(),
             ttl_jitter: default_ttl_jitter(),
@@ -2202,6 +2215,30 @@ mod tests {
         // Same discipline for the pounce flag (FR-012): default-off must
         // not appear as a key. Delete its skip attribute and this reddens.
         assert!(!json.contains("pounce"), "{json}");
+        // And for the greeble schedule flag (FR-015).
+        assert!(!json.contains("dart"), "{json}");
+    }
+
+    #[test]
+    fn dart_validation_refuses_non_greeble_tables() {
+        // FR-015, same refusal discipline as roam_cell: the engine refuses
+        // what it will not honor. Bugs are already on the schedule.
+        let mut c = cfg();
+        c.elements.bug.dart = true;
+        let err = c.validate().unwrap_err().to_string();
+        assert!(err.contains("[elements.bug] dart"), "{err}");
+
+        let mut c = cfg();
+        c.elements.sunbeam.dart = true;
+        let err = c.validate().unwrap_err().to_string();
+        assert!(err.contains("[elements.sunbeam] dart"), "{err}");
+    }
+
+    #[test]
+    fn dart_validation_accepts_the_greeble_flag() {
+        let mut c = cfg();
+        c.elements.greeble.dart = true;
+        c.validate().expect("dart on the greeble table is the whole point");
     }
 
     // ---- spec 033 (T017): the vocabulary table's config law ----

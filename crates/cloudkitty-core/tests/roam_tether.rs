@@ -81,7 +81,7 @@ fn roam_tether_confines_bugs_for_life() {
 }
 
 /// SC-003, the observable form: a bug's position never changes on a tick
-/// its schedule says it rests (`bug_moves_this_tick` untouched by the
+/// its schedule says it rests (`critter_moves_this_tick` untouched by the
 /// tether), a moving tick advances it at most one tile (no redraw can
 /// manufacture a second step), and the tether does not freeze the
 /// population (bugs still actually move).
@@ -101,7 +101,7 @@ fn roam_cadence_attempts_match_schedule() {
                     // (world.rs:374), so movement observed at world.tick was
                     // computed against the schedule at world.tick - 1.
                     assert!(
-                        el.bug_moves_this_tick(world.tick - 1),
+                        el.critter_moves_this_tick(world.tick - 1),
                         "bug {} moved into tick {} which its schedule rests",
                         el.id,
                         world.tick
@@ -300,6 +300,84 @@ fn roam_same_seed_same_world() {
         "tethered evolution is not deterministic"
     );
 }
+
+// ---- Spec 039 third amendment: the greeble schedule (FR-014/FR-015) ----
+
+fn dart_config(seed: u64) -> Arc<Config> {
+    let mut config = Config::default();
+    config.world.seed = seed;
+    config.elements.greeble.dart = true;
+    config.validate().expect("dart config is valid");
+    Arc::new(config)
+}
+
+/// FR-014, the schedule half: a flagged greeble never moves on a tick its
+/// schedule rests, and a moving tick advances it at most 3 tiles (blocked
+/// steps are lost, never redrawn). Same observation shape as the bug
+/// cadence test: movement seen at world.tick was computed against the
+/// schedule at world.tick - 1.
+#[test]
+fn roam_dart_greebles_rest_on_schedule() {
+    let config = dart_config(31_337);
+    let mut last: BTreeMap<ElementId, (Position, u64)> = BTreeMap::new();
+    let mut moves = 0u64;
+    run(&config, 2_000, |world| {
+        for el in world.elements.iter() {
+            if !matches!(el.kind, ElementKind::Greeble { .. }) {
+                continue;
+            }
+            if let Some((prev, prev_tick)) = last.get(&el.id) {
+                if *prev_tick + 1 == world.tick && *prev != el.pos {
+                    assert!(
+                        el.critter_moves_this_tick(world.tick - 1),
+                        "greeble {} moved into tick {} which its schedule rests",
+                        el.id,
+                        world.tick
+                    );
+                    assert!(
+                        prev.manhattan_distance(&el.pos) <= 3,
+                        "greeble {} darted more than 3 tiles in one tick",
+                        el.id
+                    );
+                    moves += 1;
+                }
+            }
+            last.insert(el.id, (el.pos, world.tick));
+        }
+    });
+    assert!(moves > 100, "the schedule froze the greebles: {moves} moves in 2000 ticks");
+}
+
+/// FR-014, the dart half: the step draw is 1-3, so some moving tick
+/// actually realizes a full 3-tile dart. Under the old 1-or-2 coin a
+/// 3-tile tick can never happen; under a 1-3 draw, across every greeble
+/// moving tick in 2000 ticks, at least one unblocked 3-dart is
+/// effectively certain.
+#[test]
+fn roam_dart_realizes_a_three_tile_dart() {
+    let config = dart_config(60_601);
+    let mut last: BTreeMap<ElementId, (Position, u64)> = BTreeMap::new();
+    let mut best = 0u32;
+    run(&config, 2_000, |world| {
+        for el in world.elements.iter() {
+            if !matches!(el.kind, ElementKind::Greeble { .. }) {
+                continue;
+            }
+            if let Some((prev, prev_tick)) = last.get(&el.id) {
+                if *prev_tick + 1 == world.tick {
+                    best = best.max(prev.manhattan_distance(&el.pos));
+                }
+            }
+            last.insert(el.id, (el.pos, world.tick));
+        }
+    });
+    assert_eq!(best, 3, "no greeble ever realized a 3-tile dart; max seen {best}");
+}
+
+// FR-015, the off-state: with `dart` absent the greeble arm is
+// byte-identical to b044827 — that guard is the pinned golden digest in
+// evolution_golden.rs (default config, 10k ticks). Applying the schedule
+// unconditionally turns that test red; it was verified doing so.
 
 // ---- Spec 039 fallback amendment: the final pounce (FR-011/FR-012) ----
 
