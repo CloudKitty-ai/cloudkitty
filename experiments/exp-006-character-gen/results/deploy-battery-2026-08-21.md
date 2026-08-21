@@ -18,7 +18,11 @@ replacing one s3 twin at Kittybear**:
 
 This exact composition was never measured (all prior E1 cells had
 L-04-s1 at Biscuit); E1-s1 carries report-only validation only. This
-battery is its certification.
+battery is its certification. The owner's rationale for paying the
+recert (2026-08-21, verbatim): "I really like the communication of
+e1-s1 (here meows and a meaningful mew), so it's worth the recert to
+keep it" — the dialect census and mew-function findings
+(seat-swap/mew-function docs, 2026-08-20) are the seat's case.
 
 ## Instrument, world, bands
 
