@@ -13,6 +13,30 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 <!-- shipped P1 items are removed once merged; see git history -->
 
+### No harness drives the v2 cat through the RENDERER (added 2026-08-20)
+
+A structural coverage hole, found while gating the settle, and it has already
+let one feature ship inert.
+
+`render.js` branches on `v2Motion = typeof drawCatTween === 'function'`.
+**Neither harness ever takes that branch.** `test-meadow` evals every file into
+one scope, where render.js's bare `drawCat` binds to **cat.js's v1** function
+(cat.js is eval'd first and its declaration wins), so `v2Motion` is false;
+`test-motion` calls `CatV2.drawCat` directly and never goes through the
+renderer at all.
+
+So everything render.js does *around* a v2 cat is unguarded: the
+`!v2Motion` guard on `canvasSettle`, the `settle` opt it passes, the eyes and
+ears it overrides. Mutating `canvasSettle` to wrap v2 cats in the old canvas
+squash — the exact mechanism that made the ear and tail outlines vanish —
+**changes nothing in either suite.**
+
+Cost to close: the harnesses would need cat-v2's symbols to win the bare-name
+binding, which is the same globals trap recorded in 'every cat-v2 symbol the
+page reads bare is actually installed'. Not attempted here; it is a harness
+change, not a feature change, and it wants doing on its own rather than inside
+an art PR.
+
 ### The give-up droop is EARS ONLY — SHIPPED 2026-08-20
 
 Owner reported half-closed eyes on cats that were **walking**, in every
@@ -160,8 +184,24 @@ choices at high one.
    `HANDOVER.md` in it. Ask Design for it before starting, or work from
    `README.md` and `SETTLE-EDITS.md` and expect to be missing the *why*.
 
+   **THE SETTLE SHIPPED 2026-08-20**, wired from the bundle by hand: `anim.js`
+   `settleMs` 400 → 460 and the `settle`/`sy` emission, `render.js`'s canvas
+   squash narrowed to the **v1 path only**. Their `anim.js` delta carried a
+   revert of `minTiles` 7 → 6 in the same file; only the two settle hunks were
+   applied. The `SETTLE` amplitudes are the owner's lab values, confirmed
+   identical to the shipped block across all 11 keys.
+
+   **The lab card is in `gallery-v2.html`, and how it drives matters**: each
+   cat WALKS and then ARRIVES, because `drawCat` runs
+   `applyRig(applySettle(L, settle), rig)` and the head lag and tail
+   follow-through come from the RIG reacting to the stop — `applySettle` only
+   drops the head 0.04 of a box. A first version handed a static cat a settle
+   amount with no rig; the owner spotted it immediately as "more dramatic, and
+   there's no head motion", which is exactly what a deformation with nothing
+   riding it looks like.
+
    4a. **The ear and tail outlines vanish and reappear during the settle —
-   an ACCEPTANCE CRITERION of 4, not a follow-on.** Owner, 2026-08-20: *"we
+   an ACCEPTANCE CRITERION of 4, not a follow-on. GATED 2026-08-20.** Owner, 2026-08-20: *"we
    need to verify that is squashed when we implement the new settle."* So the
    settle does not land until this is checked; it is not something to notice
    afterwards.

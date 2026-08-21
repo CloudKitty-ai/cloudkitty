@@ -408,8 +408,16 @@ const VIEW = Object.freeze({
   // call near. 6 is still wider than the 4-tile pounce gate, so the eyes
   // keep the lead they were given.
   arriveBlendMs: 340, // the walking -> standing blend, paired with the settle
-  settleMs: 400, // landing squash, concurrent with the arrive blend
-  settleDip: 0.05, // peak vertical squash of the settle
+  // The landing settle. `settleMs` is the whole span; the SHAPE and the
+  // amplitudes live in cat-v2's SETTLE, because since 2026-08-19 the settle
+  // is a deformation of the CAT rather than a scale of the canvas -- see the
+  // note there. Lengthened 400 -> 460 with the rebound: the recovery is now
+  // most of the span and needs the room.
+  settleMs: 460,
+  // Peak squash for the V1 FALLBACK ONLY. v1's cat file has no `applySettle`,
+  // so on that path the renderer still runs the old whole-canvas scale, which
+  // is the right cheat at v1's tile sizes and the wrong one at camera sizes.
+  settleDip: 0.05,
   blendTickShareCap: 0.45, // a blend never outlasts this share of a tick
   // The cat "I love you", re-dialled in the v2 lab (owner, 2026-08-06):
   // the lid eases down, holds, and releases. The hold carries the gesture
@@ -1696,7 +1704,15 @@ class Presentation {
       };
     }
     if (arrive && elapsed < VIEW.settleMs) {
-      out.sy = 1 - VIEW.settleDip * Math.sin(Math.PI * easeSmooth(elapsed / VIEW.settleMs));
+      const u = elapsed / VIEW.settleMs;
+      // The shape belongs to the vocabulary that draws it. v2 deforms the cat
+      // -- head keeps its skull, legs take the compression, tail whips -- and
+      // v1 has no such function, so it keeps the whole-canvas squash. Both
+      // values are emitted and each path reads its own.
+      const curve = globalThis.CatV2 && globalThis.CatV2.settleCurve;
+      const k = curve ? curve(u) : Math.sin(Math.PI * easeSmooth(u));
+      out.settle = k;
+      out.sy = 1 - VIEW.settleDip * Math.max(0, k);
     }
     if (!out.blend && out.sy === undefined) {
       this.poseTween.delete(id);

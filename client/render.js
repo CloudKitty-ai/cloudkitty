@@ -1731,9 +1731,17 @@ class WorldRenderer {
       ctx.rect(x - this.tile, y - this.tile * 2, this.tile * 3, this.tile * (2 + cut));
       ctx.clip();
     }
-    if (tween?.sy !== undefined) {
-      // The landing settle: a soft squash about the ground line, so the
-      // feet stay planted (the dispatcher's overdraw anchors feet too).
+    // THE V1 LANDING SETTLE ONLY, as of 2026-08-20. At the camera's 57-103px
+    // a uniform scale squashes the SKULL and the cat reads as rubber -- and
+    // it scales STROKE WIDTHS with everything else, which is what made the
+    // ear and tail outlines vanish and reappear (BACKLOG 4a). v2 deforms the
+    // cat in pose space instead (`applySettle`), so the mechanism is gone
+    // there by construction rather than tuned away. v1's tile never gets big
+    // enough for either fault, so it keeps the cheat.
+    const canvasSettle = !v2Motion && tween?.sy !== undefined;
+    if (canvasSettle) {
+      // A soft squash about the ground line, so the feet stay planted (the
+      // dispatcher's overdraw anchors feet too).
       // Volume-preserving since 2026-08-10: a squash that only loses
       // height reads as the cat shrinking rather than as weight arriving.
       // Compressed about the ground line so the paws stay planted, and
@@ -1756,6 +1764,9 @@ class WorldRenderer {
       facing: paintFacing,
       size: this.tile,
       eyesOverride: eyes,
+      // The landing settle as a signed deformation amount. v2 only: v1's cat
+      // file has no `applySettle`, and it is getting the canvas squash above.
+      settle: v2Motion ? tween?.settle : undefined,
       // On the v2 path the rig owns the ears, so the hard boolean (which
       // sets them fully back in one frame) is left to v1.
       earsBack: v2Motion ? undefined : ears,
@@ -1782,7 +1793,7 @@ class WorldRenderer {
     } else {
       drawCat(ctx, { ...catOpts, pose, phase: motion.phase });
     }
-    if (tween?.sy !== undefined) ctx.restore();
+    if (canvasSettle) ctx.restore();
     if (submerged) ctx.restore();
     // Drawn after the clip is released, so the surface sits ON the cat
     // rather than being cut away with its legs.
