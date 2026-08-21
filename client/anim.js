@@ -242,6 +242,22 @@ const VIEW = Object.freeze({
     // lookahead buffer replaces the window's source, not the grammar.
     nearDwellTicks: 5,
     farDwellTicks: 15,
+    // ...and a shed waits too (un-fit must persist this many consecutive
+    // ticks). Added at acceptance measurement, 2026-08-21: the reference
+    // sim never counted sheds, and the live grammar without this flapped
+    // at the link boundary -- join free, shed instantly, rejoin -- at
+    // 3/min on desktop and 8/min on the phone, blowing SC-003. Persistence
+    // before action is the grammar's whole idea; FR-010 had simply missed
+    // its dose.
+    shedDwellTicks: 3,
+    // A shot may keep a frame this much wider than it needs before the
+    // hold eases it tighter (the 'breathe in', US3 scenario 2). Without
+    // it the width only ever changed at membership events, ran stale-wide
+    // (median 11.5 tiles against the fit's 9.2), and SC-004's size bar
+    // failed at 1.16x. 1.3 first: the measured median oversize is 1.25,
+    // so a 1.3 threshold never fired at the median and the width never
+    // moved -- the dial must sit BELOW the drift it is meant to catch.
+    tightenFrac: 1.15,
     // The inner region of the frame the shot may wander inside without the
     // camera moving AT ALL. A member pressing past it earns one eased
     // correction, then stillness again (038 FR-006/FR-007).
@@ -2173,6 +2189,9 @@ class Camera {
     /** Disjoint-group evidence chains: [{ids:Set, members, nearTicks,
      *  farTicks}]. See evidenceFor -- the spec-032 seam. */
     this.chains = [];
+    /** Consecutive ticks the shot's groups have failed to share a frame;
+     *  a shed fires only at shedDwellTicks (the flap damper). */
+    this.unfitTicks = 0;
     /**
      * The one mover of the camera. null means REST, and REST means the
      * frame is BIT-STILL -- nothing eases, nothing drifts (038 FR-006).
@@ -2511,14 +2530,26 @@ class Camera {
         const all = touching.flat();
         if (fits(all)) {
           shot = idsOf(all);
+          if (advanceEvidence) this.unfitTicks = 0;
         } else {
-          const kept = this.bestWindowFor(touching, at, aspect, ceilingTiles, shot);
-          const next = idsOf(kept);
-          // A single group wider than the frame is an OVERFLOW shot, not a
-          // shed -- bestWindowFor admits its seed whole, so `next` only
-          // differs when a whole group was actually dropped.
-          if (!setsEqual(next, shot)) kind = 'shed';
-          shot = next;
+          if (advanceEvidence) this.unfitTicks += 1;
+          if (this.unfitTicks >= d.shedDwellTicks) {
+            const kept = this.bestWindowFor(touching, at, aspect, ceilingTiles, shot);
+            const next = idsOf(kept);
+            // A single group wider than the frame is an OVERFLOW shot, not
+            // a shed -- bestWindowFor admits its seed whole, so `next` only
+            // differs when a whole group was actually dropped.
+            if (!setsEqual(next, shot)) {
+              kind = 'shed';
+              this.unfitTicks = 0;
+            }
+            shot = next;
+          } else {
+            // Un-fit but not yet for long enough: keep everyone and let
+            // the overflow centre-hold carry the frame. Most boundary
+            // flaps re-fit within a tick or two and no one ever moves.
+            shot = idsOf(all);
+          }
         }
         if (shot.size < 2) kind = 'break';
       }
@@ -2800,7 +2831,11 @@ class Camera {
         : !this.episode
           ? { aimX: this.aimX, aimY: this.aimY, across: this.across }
           : null;
-      if (probe && this.holdViolated(probe, shotCats, at, aspect, world, ceilingTiles)) {
+      const slack = probe && !this.holdViolated(probe, shotCats, at, aspect, world, ceilingTiles)
+        ? probe.across / Math.max(1e-6, this.goalFrameFor(shotCats, at, aspect, floorTiles, ceilingTiles).across)
+        : 0;
+      if (probe && (slack > this.dials.tightenFrac
+        || this.holdViolated(probe, shotCats, at, aspect, world, ceilingTiles))) {
         // Move only when moving HELPS. Near the world's edge the clamp can
         // leave a member outside ANY legal frame's safe zone -- a kitty
         // sleeping against the fence, a spread shot pushed off-centre.

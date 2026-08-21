@@ -199,7 +199,7 @@ for pin, solo, and suppressed rivals pass.
       update the camera-logic entry in `BACKLOG.md` (epsilon-snap item is
       subsumed by 038's episode engine); add a pointer to spec 038 in
       `client-measurements/camera-aim/README.md`
-- [ ] T025 Acceptance measurement per quickstart §4: capture a local
+- [x] T025 Acceptance measurement per quickstart §4: capture a local
       five-kitty session with `client-measurements/camera-aim/camera-sample.mjs`,
       replay through the harness event counters, and record rest %,
       events/min, pans/min, at-ceiling %, ≥2-framed %, median frame width

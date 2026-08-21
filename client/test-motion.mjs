@@ -7323,7 +7323,16 @@ check('a shot that stops fitting sheds the SMALLER side and keeps the rest', () 
   cam.update(world(1), camView(false, 800), { aspect: 1, cssWidth: 1000 });
   assert(cam.shotIds.size === 5,
     'the sides split but still share a frame -- the shot must keep both');
-  cam.update(world(2), camView(false, 1600), { aspect: 1, cssWidth: 1000 });
+  // Early unfit ticks: shedDwellTicks holds everyone -- most boundary
+  // flaps re-fit within a tick or two and nobody should move for them.
+  // Driven from the DIAL, so a re-dialled dwell keeps this red-capable.
+  const dwell = api.VIEW.camera.shedDwellTicks;
+  for (let t = 2; t < 1 + dwell; t += 1) {
+    cam.update(world(t), camView(false, t * 800), { aspect: 1, cssWidth: 1000 });
+    assert(cam.shotIds.size === 5,
+      `the shed fired on unfit tick ${t - 1}, before its ${dwell}-tick dwell`);
+  }
+  cam.update(world(1 + dwell), camView(false, (1 + dwell) * 800), { aspect: 1, cssWidth: 1000 });
   assert(cam.shotIds.size === 3
     && cam.shotIds.has(1) && cam.shotIds.has(2) && cam.shotIds.has(3),
     `past joint fit the shot is {${[...cam.shotIds]}}, not the trio`);
@@ -7354,12 +7363,18 @@ check('a dissolved shot re-frames through an eased break, never a cut', () => {
   cam.on = true;
   cam.update(world(0), camView(false, 0), { aspect: 1, cssWidth: 1000 });
   assert(cam.shotIds.has(1) && cam.shotIds.has(2), 'setup: the near pair should win the cold start');
+  // The strand persists through the shed dwell (2 ticks) before the break
+  // may fire; every frame on the way must still be continuous.
   let t = 800;
   let prev = { x: cam.aimX, y: cam.aimY, a: cam.across };
   let arrived = false;
+  for (let tick = 1; tick <= api.VIEW.camera.shedDwellTicks; tick += 1) {
+    t += 800;
+    cam.update(world(tick), camView(false, t), { aspect: 1, cssWidth: 1000 });
+  }
   for (let i = 0; i < 120; i += 1) {
     t += 16.67;
-    cam.update(world(1), camView(false, t), { aspect: 1, cssWidth: 1000 });
+    cam.update(world(api.VIEW.camera.shedDwellTicks + 1), camView(false, t), { aspect: 1, cssWidth: 1000 });
     const dx = Math.hypot(cam.aimX - prev.x, cam.aimY - prev.y);
     assert(dx < 3 && Math.abs(cam.across - prev.a) < 3,
       `the break CUT ${dx.toFixed(1)} tiles in one frame`);
@@ -7674,6 +7689,30 @@ check('releasing a follow re-enters the grammar eased, never a cut', () => {
     `after release the shot is {${[...cam.shotIds]}}, not the trio`);
   assert(cam.aimX === 11 && cam.aimY === 11,
     `the re-entry landed at ${cam.aimX},${cam.aimY}, not the trio's centre`);
+});
+
+check('a huddling shot breathes in: the frame eases tighter on its own', () => {
+  // US3 scenario 2 / SC-004's other half. Width used to change only at
+  // membership events, so a gathered group kept a stale-wide frame
+  // (measured: median 11.5 tiles against a 9.2 fit, kitties 1.16x instead
+  // of 1.36x). The hold now eases tighter once the frame exceeds the need
+  // by tightenFrac.
+  const spread = camAt([9, 10], [16, 10]);
+  const huddled = camAt([12, 10], [13, 10]);
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(spread, camView(false, 0), { aspect: 1, cssWidth: 1000 });
+  const wide = cam.across;
+  assert(wide > 11, `setup: the spread pair should sit wide, got ${wide.toFixed(2)}`);
+  let t = 0;
+  for (let i = 0; i < 80; i += 1) {
+    t += 16.67;
+    cam.update(huddled, camView(false, t), { aspect: 1, cssWidth: 1000 });
+  }
+  const floor = 1000 / api.VIEW.camera.floorPx;
+  assert(Math.abs(cam.across - floor) < 1e-9,
+    `after the huddle the frame sits at ${cam.across.toFixed(2)}, not the ${floor.toFixed(2)} floor`);
+  assert(cam.episode === null, 'the tighten never came to rest');
 });
 
 check('aim settles faster than width, so the zoom lags the pan', () => {

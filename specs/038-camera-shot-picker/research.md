@@ -210,6 +210,8 @@ decide step choosing the subject chain.
 | `linkTiles` | 5 | new — measured (D3) |
 | `nearDwellTicks` | 5 | new — stated assumption, lab-judged |
 | `farDwellTicks` | 15 | new — the owner's number |
+| `shedDwellTicks` | 3 | new — added at acceptance (shed flap, see acceptance-2026-08-21.md) |
+| `tightenFrac` | 1.15 | new — added at acceptance (stale-wide frames) |
 | `safeZoneFrac` | 0.80 | new — lab-judged |
 | `moveMs` | 700 | new — gentle episode duration, lab-judged |
 | `panMs` | 1100 | new — fast episode duration, lab-judged |

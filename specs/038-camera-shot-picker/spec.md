@@ -304,9 +304,14 @@ gathering elsewhere does not move the camera.
 - **FR-009**: A separate group that could share the frame with the shot MUST
   be admitted by widening — never switched to — once it has persisted briefly
   (default 5 ticks). Admission is one eased widen.
-- **FR-010**: When the shot's groups can no longer share a frame, the camera
+- **FR-010**: When the shot's groups can no longer share a frame — sustained
+  briefly (default 3 ticks; added 2026-08-21 at acceptance measurement, when
+  un-dwelled sheds flapped at the link boundary 3–8/min, a rate the
+  reference model could not see because it never counted sheds) — the camera
   MUST shed the fewest kitties that restores fit, keeping the larger count
-  and breaking ties toward the current membership, then ease tighter.
+  and breaking ties toward the current membership, then ease tighter. A shot
+  kept wider than its need by more than a judged slack also eases tighter
+  without any membership change (the standing 'breathe in').
 - **FR-011**: If the shot falls below two kitties, it breaks: the camera MUST
   re-frame per FR-003/FR-004, eased, without a cut.
 
@@ -412,8 +417,10 @@ gathering elsewhere does not move the camera.
 
 - **Dial defaults are measured, not sacred**: link radius 5 tiles, near
   persistence 5 ticks, far persistence 15 ticks (the owner's number; ticks
-  are ~0.8s), breathing room ~20% of frame width per side (the desktop
-  equivalent of today's margin, now proportional). All are lab dials to be
+  are ~0.8s), shed persistence 3 ticks and tighten slack 1.15× (both added
+  at acceptance measurement, 2026-08-21 — see acceptance-2026-08-21.md),
+  breathing room ~20% of frame width per side (the desktop equivalent of
+  today's margin, now proportional). All are lab dials to be
   judged live per house method; the grammar does not depend on their exact
   values.
 - **The measurement basis is one 4.7-minute daytime sample** of one
