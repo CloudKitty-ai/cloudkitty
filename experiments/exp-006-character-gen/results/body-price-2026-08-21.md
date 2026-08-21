@@ -66,6 +66,65 @@ venue (G3-grade), ~4.5 at 0.7× venue. The declared −3.0 was priced
 on a world where the incumbent carried no body tax; the character's
 actual market price is above it at every measured retention level.
 
+## CORRECTION AND COMPLETION (same day): there is no body tax —
+## there is a character price, and the body is an expression knob
+
+The table above was missing the one controller that defines the
+character: `playful` behavior itself (the demonstration generator).
+Measured at Biscuit on both configs (engine-native, 5 seeds × 20k;
+single-seed activity/need profiles traced):
+
+| controller | playful body | flat body |
+|---|---|---|
+| playful behavior (THE CHARACTER) | **79.72** | **79.57** |
+| scripted needs_driven | 90.64 | 90.86 |
+| e004 / attn (policy) | 94.88 / 95.67 | 94.67 / 95.52 |
+| clone (learned Biscuit) | 80.43 | 91.82 |
+
+Every native controller is body-invariant. The character pays a
+constant **~11-point lifestyle price in any body**: playful behavior
+is opportunity-gated (plays when comfortable and something chaseable
+exists), keeps play over-serviced 3× (need mean 2.5–4.6, play 21–22%
+of all ticks in BOTH bodies) and lets eat/drink/sleep sit at 25–29.
+needs_driven in the same playful body plays 4% of ticks, 65%
+partnered (full 20/tick relief), and holds every need at 6–11 — a
+closed-loop allocator services a doubled play rate almost for free.
+The playful-body reading matches the banked collection-world anchor
+(79.64) across worlds.
+
+The clone is the ONLY body-sensitive mind, and that sensitivity is
+now legible as **character expression, not body cost**: in the
+playful body it inhabits the demonstration distribution and IS
+Biscuit (80.43 ≈ 79.72, need profile matching); in the flat body the
+demo-sparse low-play states let it drift thermostat-ward (plays 7%,
+reads 91.82 — cheap because diluted). The −11.39 recorded above as
+"body tax" is the expression delta. Consequences:
+
+- **The differential-body-tax bar arithmetic above dissolves** —
+  there is no body tax to adjust for. The real object is the
+  exchange LINE from full character (79.7, dose ∞) to no character
+  (94.9, e004): the owner's price picks a point. Measured points:
+  clone 80.4 · L-04-s1 88.2 (G3-grade venue) · L-05s 88.8–89.2 ·
+  L-04-s2 90.4 (0.7× venue) · e004 94.9.
+- **The A-floor (scripted parity 90.64) is anchored to a
+  non-character controller.** Parity with the character's own native
+  expression is 79.7, which everything clears. The floor question is
+  therefore really "how much needs-thermostat must Biscuit's mind
+  contain" — a sanctuary-values question, now cleanly posed.
+- **The two-sheet world was measuring diluted character** — the old
+  G2d readings (−0.85) priced a half-expressed Biscuit; the
+  certification world evokes the full one. And the fingerprint
+  subj-hap column's 4/4 rank prediction is explained: both
+  instruments measure expression level.
+- PPO under the leash is an interpolation machine on this line:
+  welfare pulls thermostat-ward, KL pulls Biscuit-ward, dose sets
+  the mix, and the G3 venue floors pin the expensive end (solo and
+  critter play relieve at half the partnered rate, so the
+  character's signature venue costs double the time per unit
+  relief). Register-note candidate: a trait body is an expression
+  knob for imitation-learned minds, not a cost knob; character
+  price is controller-constant and body-invariant.
+
 ## What this puts in the owner's hands
 
 - Whether −3.0 survives as the character price now that the price
