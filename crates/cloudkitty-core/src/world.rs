@@ -754,17 +754,20 @@ impl World {
     }
 
     fn environment_phase(&mut self, config: &Config) {
-        self.move_critters();
+        self.move_critters(config);
         self.expire_elements();
         spawn::ensure_minimums(self, config);
         spawn::safeguard(self, config);
     }
 
     /// Bugs plod one tile every other tick; greebles skitter one or two tiles every
-    /// tick and change their minds constantly.
-    fn move_critters(&mut self) {
+    /// tick and change their minds constantly. A configured roam cell (spec 039)
+    /// tethers each bug to the world-aligned cell it stands in — for life, since
+    /// it can never leave.
+    fn move_critters(&mut self, config: &Config) {
         let tick = self.tick;
         let (width, height) = (self.width, self.height);
+        let bug_roam = config.elements.bug.roam_cell;
 
         for idx in 0..self.elements.len() {
             match self.elements[idx].kind {
@@ -776,6 +779,17 @@ impl World {
                         .rng
                         .choose(&Direction::ALL)
                         .expect("Direction::ALL is never empty");
+                    // Spec 039: the tether check rides AFTER the draw, so the
+                    // stream shape is identical with or without it, and an
+                    // outward draw costs the step exactly like a blocked one —
+                    // no redraw, no compensation (FR-003).
+                    if let Some(cell) = bug_roam {
+                        let pos = self.elements[idx].pos;
+                        match pos.step(dir, width, height) {
+                            Some(dest) if crate::grid::same_roam_cell(pos, dest, cell) => {}
+                            _ => continue,
+                        }
+                    }
                     self.try_step_element(idx, dir, width, height);
                 }
                 ElementKind::Greeble { heading } => {
