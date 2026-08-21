@@ -13,6 +13,19 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 <!-- shipped P1 items are removed once merged; see git history -->
 
+### Serving welfare watchdog: max_distress_age on the served world (added 2026-08-20; owner-approved)
+
+The engine already computes `distress_since` per (kitty, need); nothing
+watches it continuously on the served world — the G6 soak watches were
+stopped after the pass, by design. The exp-006 r5 forensics showed why a
+standing watch matters: the co-sleep deadlock (F-027) ran a 2331-tick
+distress streak while the engine's only safeguard (supply-side,
+`spawn::safeguard`) was structurally blind to it — relief existed, nobody
+went. Alarm line: the constitutional 150. This is the serving-side
+detection layer; the offline layer is the tail-benchmark roster
+(`experiments/tail-benchmarks/`). Detection only — intervention is the
+separate P2 entry below.
+
 ### No harness drives the v2 cat through the RENDERER (added 2026-08-20)
 
 A structural coverage hole, found while gating the settle, and it has already
@@ -1498,6 +1511,28 @@ Options, costed:
   natural already").
 
 ## P2 — the bigger pieces, for a proper sitting
+
+### Distress-gated intervention — the behavioral safeguard (added 2026-08-20; owner-approved for investigation)
+
+Owner, 2026-08-20: "worth investigating, let's add it to the backlog to
+dig into after we finish this generation (definitely before fog lands).
+Disabled in testing, enabled on the server."
+
+The shape: when a need's distress age crosses a line, the engine
+overrides that kitty to `needs_driven` until the need is relieved, then
+hands control back. It is the behavioral complement to Article I's
+supply-side safeguard — the engine currently guarantees relief *exists*
+past need 75 (`spawn::safeguard`), but nothing guarantees it gets
+*taken*; the F-027 co-sleep deadlock sat at need 100 for 2331 ticks with
+water standing. Certification measures the raw policy (disabled in
+testing); the served world gets the net (enabled on the server).
+
+Design questions for the sitting: the trigger line and hand-back
+condition; how the override interacts with streak-based detection (an
+enabled override truncates the observable — F-027's re-verify note);
+whether the served world logs every firing (it should — each one is a
+policy defect report). Engine change: spec-first flow when picked up.
+Origin: `experiments/exp-006-character-gen/results/r5-forensics-2026-08-20.md`.
 
 ### Eval-suite v2: a stronger counterfactual baseline (added 2026-07-25)
 Spec 017's guest-welfare differentials and per-kitty sign test measure

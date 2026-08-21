@@ -61,6 +61,7 @@ evidence; this register is the evolving knowledge layer on top of them.
 | F-024 | active | Entity attention: welfare parity, 40% fewer params, structural robustness, wider expression space |
 | F-025 | active | Same recipe, different seed: dialects and cultures, mutually intelligible, welfare-coupled |
 | F-026 | active | Under global vision the channel is welfare-redundant — the measured baseline fog must overturn |
+| F-027 | active | Twin-seating one artifact creates dyadic self-interaction attractors |
 
 ---
 
@@ -1325,3 +1326,71 @@ missed a load-bearing path).
 **Re-verify when**: the fog generation (the entire point); any
 same-generation ablation at scale that can power the
 distress-doubling whisper.
+
+---
+
+## F-027 · active · Twin-seating one artifact creates dyadic self-interaction attractors
+
+Found 2026-08-20 by trace forensics on the exp-006 phase-1 battery's
+G2a/r5 failure (family-11, five seats, stress band).
+
+1. **The mechanism is a mutual loop, not scarcity**: the attn-a1-s3
+   pair (same artifact at Pumpkin and Kittybear) settled on adjacent
+   tiles and each chose SleepWithKitty at the other for 2151/2200 and
+   2084/2200 decisions while eat and drink saturated at 100 —
+   a 2331-tick distress streak with water standing 37 tiles away and
+   chow abundant throughout. Co-sleep services sleep and cuddle, so
+   the two needs the loop feeds stay low while every other need
+   starves. Each wake tick, the policy observes an adjacent sleeping
+   twin and re-chooses co-sleep: the same mind holds both seats, so
+   both make the same wrong choice and each renews the other's
+   context.
+2. **It follows the pair, not the composition**: the reference
+   composition (no new-generation mind) failed the same world through
+   the same loop with the same twins (worst 465). Solo-seating s3
+   removed the failure class entirely: 0 bar exceedances, worst
+   streak 159, and that 159 is directed travel on the 26-tile map.
+3. **The world modulates persistence, not existence**: 2.4M
+   cutover-config ticks (20×20, water 7–9, stimulus-dense) never
+   showed the loop; family-11's quiet far corner and single pond gave
+   it room. Hence the recruited tail benchmark
+   (`tail-benchmarks/family-11-r5`).
+4. **The tail is the price of a paid-for benefit**: two s3 seats were
+   a deliberate welfare choice (the 08-14 kin dose-response, 94.87
+   kin / 93.93 alone). Solo with cuddle-forward company recovers
+   about half the kin gap (−0.50 vs −0.94, cross-surface). Kin is not
+   clone: the culture-pairing benefit (F-025) and the symmetric-lock
+   tail arrive in the same seating decision.
+
+**Scope**: greedy serving/eval mode — deterministic symmetric argmax
+sustains the lock; sampled action selection is untested. Observed
+with one artifact pair (attn-a1-s3); the e004-a1-s2 pacing seen in
+the same runs is a separate solo pathology, not dyadic. Engine note:
+the Article I safeguard is supply-side only (guarantees relief
+exists, not that it is taken), so nothing in the engine interrupts
+the loop.
+
+**Evidence**:
+[r5 forensics](exp-006-character-gen/results/r5-forensics-2026-08-20.md)
+(mechanism, choice histograms, partner fields, follow-up cells);
+[battery record](exp-006-character-gen/results/battery-2026-08-20.md);
+[tail benchmark](tail-benchmarks/README.md).
+
+**Implications**: seating multiples of one artifact requires
+tail-benchmark coverage for the dyadic class; the serving-side
+max_distress_age watchdog and the backlogged distress-gated
+intervention (disabled in testing, enabled on the server — owner,
+2026-08-20) are the operational complements; welfare readings of a
+twin-seated roster carry a tail its means don't show (F-009's point,
+in the seating dimension).
+
+**Would invalidate**: a twin-seated composition surviving extended
+family-11-class exposure with no lock (would localize the attractor
+to s3's groomer culture rather than twin-seating as such); the same
+lock arising in a cross-mind pair (would make it cultural
+compatibility, not self-interaction).
+
+**Re-verify when**: any new artifact is seated in multiple; any move
+off greedy serving; the distress-gated intervention lands (it
+truncates the observable, so streak-based detection must move
+upstream of the override).
