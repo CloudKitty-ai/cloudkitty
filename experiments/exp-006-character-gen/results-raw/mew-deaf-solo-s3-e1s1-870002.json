@@ -1,0 +1,22 @@
+{
+ "mode": "deaf",
+ "seating": "solo-s3-e1s1",
+ "seed": 870002,
+ "ticks": 20000,
+ "emitter": "kitty_4",
+ "nash": 0.9489944686345984,
+ "mean_happiness": [
+  95.5618,
+  93.8117,
+  94.935,
+  95.0065,
+  95.252
+ ],
+ "max_distress_age": 0,
+ "provenance": {
+  "git_head": "119411b0e0d31c84292bc192ed7079812f23028d",
+  "config_sha256": "e87779cd306416889981f9b3c06315142f6cd511ed1bcc6f06098adfab357294",
+  "binding": "unknown",
+  "binding_engine": null
+ }
+}
