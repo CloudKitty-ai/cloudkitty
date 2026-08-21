@@ -77,7 +77,15 @@ was dialled when a cat was ~31px and camera mode now draws her at 57–103px**,
 so decisions that were invisible economies at low resolution are legible
 choices at high one.
 
-1. **Clementine's fur dial — TOMORROW'S first item, and the only one with a
+1. **~~Clementine's fur dial~~ — SHIPPED 2026-08-20 (PR #272), and it found a
+   bug.** `darken` 0.35 → 0.24, re-judged at camera size. The bug: `bellyInkOf`
+   decided lighten-vs-shade from the THEME-SHADED coat, so darkening at dusk
+   handed the lighten its headroom back and Clementine was a shadow by day and
+   a pale patch the other three phases — crossfading THROUGH her own coat
+   colour at every boundary. Direction now comes from the unshaded palette.
+   Found because the owner asked to see the new value AT NIGHT.
+
+   The original entry, for the reasoning: **the only one with a
    deadline.** She is the designed WHITE cat via a per-cat palette override,
    and the override was never written; the hard deadline is the phase-1
    `--fresh`, because that is the generation that seats her. Owner: the belly
@@ -1390,7 +1398,22 @@ a feature if it is not asked to look solid.
 Worth remembering when the next feature is costed at a pixel width: that is
 one of at least three things setting whether it reads.
 
-### The walk contradicts itself travelling north/south (added 2026-08-08; Client thread)
+### ~~The walk contradicts itself travelling north/south~~ — SHIPPED 2026-08-20 (PR #275)
+
+**Design's rebuild landed**, five owner rounds, and it did NOT take any of the
+four options costed below — the diagnosis underneath them was wrong. The fault
+was not the gait at all: the axial chest's underside sat at 0.885 against a
+0.88 ground line, so there were about **two pixels of visible leg** at a 120px
+tile. Every note here about sweeps and planting was describing legs nobody
+could see. Once the body cleared the ground, the step could travel in DEPTH
+using the same `gaitStep` curve the side walk uses.
+
+Kept below because the CENSUS is still the durable part (717 east/west against
+394 north/south, ~10% of all frames), and because "do nothing is a legitimate
+answer" was right for two years and stopped being right when the tile got big
+enough to see the problem. The options are history now; the measurement is not.
+
+### The original entry (added 2026-08-08; Client thread)
 Our cat is a **side profile**, so it encodes a heading. The legs sweep
 fore–aft — horizontally on screen — whatever way the cat is actually
 going, and that sweep is the entire basis of the planted foot: a stance
