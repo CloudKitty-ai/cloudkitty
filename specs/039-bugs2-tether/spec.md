@@ -33,6 +33,35 @@ input document and the chase census beside it.
   stands as the owner's formality confirmation of the 600 value
   itself (the input doc's outstanding spec-review item).
 
+## Fallback amendment (2026-08-21): the final pounce
+
+**The pre-authorized condition fired.** The acceptance grid on this
+branch (experiments/bugs2-grid-2026-08-21.md) passed bars 2 and 3 —
+skilled EV in the corridor, ruin halved exactly as sized — but failed
+bar 1: unskilled bug EV 8.4/7.8 against the bar of 10, with the 3×3
+cell arm returning "neither." Attribution: the tether fixes endgames,
+but the unskilled hunter dies in the *approach* — patience expires in
+transit before a cell wall matters. The owner's ratified ruling names
+the remedy: "we can add pounce if this doesn't clear."
+
+- **FR-011 (pounce)**: when a chase's applied movement leaves an
+  **element** target at Manhattan distance exactly 2, the cat takes
+  one additional plain step toward it in the same tick. The pounce
+  leg is a lunge, not a route: a blocked or off-grid pounce step is
+  lost (no sidestep tiers, no redraw, no RNG draw). Kitty targets
+  never pounce (owner's elements-only ruling). Distance 1 after the
+  step needs no pounce; distance 3+ gets none.
+- **FR-012 (gating and neutrality)**: the pounce is a world choice —
+  a behavior-table flag, default **off**, with the same proof
+  obligations as the tether: absent/off means the engine's evolution,
+  default serialization, and defaults stamp are all byte-identical to
+  pre-pounce (the golden digest and stamp assertions extend to cover
+  it). The served package turns it on alongside the tether.
+- **SC-006**: the re-run acceptance grid clears bar 1 (unskilled bug
+  EV > 10) with bars 2 and 3 still passing, on the same pre-registered
+  arms; the none-control still matches the old world (the flag keeps
+  it clean).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A bug keeps to its patch (Priority: P1)

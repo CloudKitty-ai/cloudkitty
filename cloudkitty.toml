@@ -311,6 +311,11 @@ announce_probability = 0.0
 # steps in with the default behavior. Built-in behaviors are exempt: they run
 # in-process, so determinism never depends on how fast this machine is.
 budget_fraction_of_tick = 0.5
+# The final pounce (spec 039, the fallback the owner pre-authorized when the
+# tether alone left unskilled hunts under the bar): a chase step that leaves
+# an ELEMENT quarry exactly 2 tiles away lunges one more step in the same
+# tick. Cats are never pounced on. Omit (or false) for the pre-039 chase.
+pounce = true
 # What "real cuddle need" means to the scripted responders (spec 028): at or
 # above this, a cat answers an audible want_bath with grooming and prefers a
 # friend's side to a sunbeam for its nap. One shared gate on purpose.

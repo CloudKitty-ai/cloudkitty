@@ -50,9 +50,16 @@ change.
   defaults stamp never moves (verified byte-identical against main),
   and with the key unconfigured a seeded world reproduces the pre-039
   engine's 10,000-tick evolution bit-for-bit under a pinned digest.
-  Acceptance economics ran as a pre-registered census grid against
-  this branch before merge — Experiments' record has the arms and the
-  numbers (#pending).
+  The first acceptance grid passed the skilled corridor and the ruin
+  bar but left the unskilled hunter under the line — it dies in the
+  approach, not the endgame — so the owner's pre-authorized fallback
+  fired: **the final pounce**. A chase step that leaves an element
+  quarry exactly two tiles away lunges one more step in the same tick;
+  a lunge, not a route, so a blocked pounce is simply lost, and cats
+  are never pounced on. It rides its own default-off flag with the
+  same neutrality proofs as the tether. Acceptance economics ran as a
+  pre-registered census grid against this branch before merge — both
+  rounds, the miss and the clear, in Experiments' records (#pending).
 
 - **The phase-1 generation takes the seats, and the wall comes down.**
   `[world-fresh]` Six days after the say-surface froze, the schema-4

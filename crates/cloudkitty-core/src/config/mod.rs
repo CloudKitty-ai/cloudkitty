@@ -831,6 +831,14 @@ pub struct BehaviorConfig {
     /// How long an abandoned chase target stays excluded from re-selection.
     #[serde(default = "default_chase_exclusion_ticks")]
     pub chase_exclusion_ticks: u64,
+    /// The final pounce (spec 039 FR-011, the fallback the owner
+    /// pre-authorized): when a chase's applied step leaves an ELEMENT
+    /// target at Manhattan distance exactly 2, the cat lunges one more
+    /// plain step toward it in the same tick — blocked = lost, no routing,
+    /// no RNG, never on kitty targets. Default off; `skip_serializing_if`
+    /// keeps the defaults stamp unmoved (the 039 D5 discipline).
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub pounce: bool,
     /// A viable playmate within this distance suppresses solo play; beyond it,
     /// a kitty entertains itself.
     #[serde(default = "default_solo_play_reach")]
@@ -898,6 +906,7 @@ impl Default for BehaviorConfig {
             worth_a_detour: default_worth_a_detour(),
             chase_patience_ticks: default_chase_patience_ticks(),
             chase_exclusion_ticks: default_chase_exclusion_ticks(),
+            pounce: false,
             solo_play_reach: default_solo_play_reach(),
             sunbeam_reach: default_sunbeam_reach(),
             budget_strikes: default_budget_strikes(),
@@ -2190,6 +2199,9 @@ mod tests {
         // goes red; it is the assertion aimed at exactly that attribute.
         let json = serde_json::to_string(&Config::default()).unwrap();
         assert!(!json.contains("roam_cell"), "{json}");
+        // Same discipline for the pounce flag (FR-012): default-off must
+        // not appear as a key. Delete its skip attribute and this reddens.
+        assert!(!json.contains("pounce"), "{json}");
     }
 
     // ---- spec 033 (T017): the vocabulary table's config law ----

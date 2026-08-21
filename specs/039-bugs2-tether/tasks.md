@@ -224,3 +224,29 @@ gates the merge together with the phase-1 --fresh.
   original red.
 - **T013**: the CHANGELOG PR reference is `#pending` until the PR
   exists (same flow as #280's).
+
+## Phase 7: Fallback — the final pounce (FR-011/FR-012, fired 2026-08-21)
+
+- [x] T016 Spec amendment recorded (FR-011 pounce, FR-012 gating,
+      SC-006 re-grid) per the owner's pre-authorized fallback ruling
+      and the grid verdict in experiments/bugs2-grid-2026-08-21.md
+- [x] T017 Red-first pounce tests in
+      crates/cloudkitty-core/tests/roam_tether.rs (roam_pounce_*
+      names): (a) chase from distance 3 with pounce on → post-tick
+      distance 1 (step + pounce); (b) distance 2 start → step to 1,
+      NO second step past adjacency; (c) distance 4+ → single step
+      only; (d) kitty target at post-step distance 2 → never pounces;
+      (e) blocked pounce leg (kitty on the lunge tile) → step lost,
+      cat at distance 2; (f) pounce off → today's single-step chase.
+      OBSERVE RED, then implement in action.rs Chase arm after the
+      movement resolution; mutations: fire at distance 3 → (a)/(c)
+      catch it; pounce kitties → (d) catches it
+- [x] T018 `pounce: bool` on the behavior config table (serde default
+      false + skip-if-false), validation-free (a bool), stamp
+      neutrality re-verified (default serialization test extended to
+      assert no `pounce` key), golden digest still green flag-off;
+      cloudkitty.toml `[behavior] pounce = true` with the fallback
+      provenance comment
+- [x] T019 Full gate + push; notify Experiments for the SC-006
+      re-grid; CHANGELOG entry updated to carry the pounce in the
+      same story

@@ -8,8 +8,10 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use cloudkitty_core::element::{ElementId, ElementKind};
+use cloudkitty_core::action::{Action, TargetRef};
+use cloudkitty_core::element::{Element, ElementId, ElementKind};
 use cloudkitty_core::grid::{same_roam_cell, Position};
+use cloudkitty_core::seam::JointProposal;
 use cloudkitty_core::{BehaviorRegistry, Config, World};
 
 const CELL: u32 = 4;
@@ -296,5 +298,114 @@ fn roam_same_seed_same_world() {
         serde_json::to_string(&a).unwrap(),
         serde_json::to_string(&b).unwrap(),
         "tethered evolution is not deterministic"
+    );
+}
+
+// ---- Spec 039 fallback amendment: the final pounce (FR-011/FR-012) ----
+
+/// A surgical chase scenario: the hunter at `cat`, one bug at `bug`,
+/// everyone else parked in the far corner, and the hunter's proposal is
+/// exactly Chase(that bug). Returns the hunter's position after one tick.
+fn pounce_chase_tick(pounce: bool, cat: (u32, u32), bug: (u32, u32), blocker: Option<(u32, u32)>) -> Position {
+    let mut config = Config::default();
+    config.world.seed = 5_150;
+    config.behavior.pounce = pounce;
+    let mut spots = [cat, (18, 18), (16, 18), (18, 16), (16, 16)];
+    if let Some(b) = blocker {
+        spots[1] = b;
+    }
+    for (kitty, &(x, y)) in config.kitties.iter_mut().zip(spots.iter()) {
+        kitty.x = x;
+        kitty.y = y;
+    }
+    config.validate().expect("pounce scenario config is valid");
+    let config = Arc::new(config);
+    let mut world = World::generate(&config);
+    world.elements.clear();
+    world.elements.push(Element {
+        id: 9_999,
+        kind: ElementKind::Bug,
+        pos: Position::new(bug.0, bug.1),
+        ttl: None,
+    });
+    let hunter = world.kitties[0].id;
+    let proposals = JointProposal::from_actions([(
+        hunter,
+        Action::Chase(TargetRef::Element { id: 9_999 }),
+    )]);
+    world.tick_with_proposals(&proposals, &config);
+    world.kitties[0].pos
+}
+
+#[test]
+fn roam_pounce_closes_from_distance_three() {
+    // (a) FR-011: step (5,5)->(6,5), post-step distance 2, pounce ->(7,5).
+    assert_eq!(
+        pounce_chase_tick(true, (5, 5), (8, 5), None),
+        Position::new(7, 5)
+    );
+}
+
+#[test]
+fn roam_pounce_never_steps_past_adjacency() {
+    // (b) distance 2 start: step to adjacency, and the pounce must NOT
+    // fire at post-step distance 1.
+    assert_eq!(
+        pounce_chase_tick(true, (6, 5), (8, 5), None),
+        Position::new(7, 5)
+    );
+}
+
+#[test]
+fn roam_pounce_does_not_fire_from_distance_four() {
+    // (c) post-step distance 3: a single ordinary step, no lunge.
+    assert_eq!(
+        pounce_chase_tick(true, (4, 5), (8, 5), None),
+        Position::new(5, 5)
+    );
+}
+
+#[test]
+fn roam_pounce_never_fires_on_kitty_targets() {
+    // (d) the owner's elements-only ruling. Hunter at (5,5) chases the
+    // kitty parked at (8,5): one step only, whatever the distance.
+    let mut config = Config::default();
+    config.world.seed = 5_151;
+    config.behavior.pounce = true;
+    let spots = [(5, 5), (8, 5), (16, 18), (18, 16), (16, 16)];
+    for (kitty, &(x, y)) in config.kitties.iter_mut().zip(spots.iter()) {
+        kitty.x = x;
+        kitty.y = y;
+    }
+    config.validate().expect("kitty-chase config is valid");
+    let config = Arc::new(config);
+    let mut world = World::generate(&config);
+    let hunter = world.kitties[0].id;
+    let quarry = world.kitties[1].id;
+    let proposals = JointProposal::from_actions([(
+        hunter,
+        Action::Chase(TargetRef::Kitty { id: quarry }),
+    )]);
+    world.tick_with_proposals(&proposals, &config);
+    assert_eq!(world.kitties[0].pos, Position::new(6, 5));
+}
+
+#[test]
+fn roam_pounce_blocked_lunge_is_lost() {
+    // (e) a kitty stands on the lunge tile (7,5): the first step lands
+    // (6,5), the pounce leg is blocked and simply lost — no routing, no
+    // retreat, the cat holds at distance 2.
+    assert_eq!(
+        pounce_chase_tick(true, (5, 5), (8, 5), Some((7, 5))),
+        Position::new(6, 5)
+    );
+}
+
+#[test]
+fn roam_pounce_off_is_todays_chase() {
+    // (f) FR-012: flag off = the pre-pounce engine, single step.
+    assert_eq!(
+        pounce_chase_tick(false, (5, 5), (8, 5), None),
+        Position::new(6, 5)
     );
 }
