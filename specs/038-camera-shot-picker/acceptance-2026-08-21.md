@@ -41,6 +41,12 @@ be viewport-scoped (or the phone dwell dialled higher) is the owner's
 call at the dial pass. Raising `shedDwellTicks` further trades real
 dispersal responsiveness for the last 0.43/min.
 
+**SUPERSEDED same day — see the post-review re-measurement below: the
+miss was not structural after all.** The sheds pushing the phone over the
+bar were zero-dwell flap sheds let through by the overflow counter bug
+(review finding 2); with overflow ticks banking no dwell, the phone
+passes with margin and no ruling is needed.
+
 ## What the measurement changed (mechanism history)
 
 First replay (before fixes): re-framing 4.29/min desktop / 8.57 phone,
@@ -62,11 +68,40 @@ size 1.16×, maximal-or-tied 86%. Two causes, two fixes:
 Both mechanisms carry harness checks with verified mutations (shed-dwell
 removed → red; tighten unreachable → red).
 
+## Post-review re-measurement — 2026-08-21, commit 8cffb3f
+
+The medium code review confirmed 8 findings (+3 below its cap); all were
+remediated with red-first guards (harness 260 → 268). Same capture, same
+replay, through the fixed camera:
+
+| | Desktop (1000px) | Phone (380px) |
+|---|---|---|
+| SC-001 rest | **86%** (unchanged) | **90%** (was 87) |
+| SC-002 ≥2 framed / zero-kitty | **100% / 0** | **100% / 0** |
+| SC-003 re-framing | **3.00/min** (widen 0.86, shed 2.14) — still at the line | **2.36/min** (shed 1.93, break 0.43) — **PASS, was 3.43 MISS** |
+| SC-004 zoom | at-ceiling **3%**, size **1.36×** | at-ceiling 51%, size 1.75× (overflow regime, as modelled) |
+| SC-005 interest | **90% / 3.29** — still at the line | **100% / 3.05** |
+| SC-010 breaks | 0 | **0.43/min** |
+
+**The phone SC-003 story resolved itself**: the over-bar sheds were the
+overflow-counter bug's zero-dwell flaps (finding 2), not the phone's
+structure. With the dwell honest, the phone passes with 0.64/min of
+margin — the ruling request in the section above is withdrawn. At-ceiling
+rose 44 → 51% because the dwell now (correctly) holds overflow shots
+whole through boundary flaps; SC-004's at-ceiling bar is desktop-scoped
+and unaffected. Desktop moved on no bar.
+
+Behavioural fixes folded into these numbers: re-aim-in-flight (a fence
+walker is now kept in frame), empty-roster ease-home, still-frame hold
+guard, follow-companion dwell, follow-tap-overrides-pan (owner ruling),
+one-heir evidence chains. Full list: commit 8cffb3f and the amended
+contract.
+
 ## Open for T026 (owner's live gate)
 
 - Judge the feel at 3/4/5 kitties and on the handset (SC-010).
-- The two at-the-line bars (SC-003 3.00, SC-005 90%) have zero margin —
-  dial moves will swing them either way.
-- The phone SC-003 ruling (scope it, or dial for it).
+- The two at-the-line DESKTOP bars (SC-003 3.00, SC-005 90%) have zero
+  margin — dial moves will swing them either way. The phone now has
+  margin everywhere.
 - Dial pass per house method; consider a seed change for an independent
   generation.
