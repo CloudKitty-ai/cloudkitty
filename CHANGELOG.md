@@ -33,6 +33,27 @@ change.
 
 ## Unreleased
 
+- **A patch of the meadow has bugs now.** Bugs 2.0 (spec 039): each bug
+  lives its whole life inside the 4×4 world-aligned cell it was born
+  in, and both critter lifetimes double to 600 ticks. The point is the
+  hunt's economics, repriced without touching a single reward value:
+  a bug's location becomes a durable fact a mind can learn, and the
+  cell walls end the endgame dance where the last two tiles used to
+  leak the catch. The measured pair-payment ceiling means hunting
+  lands opportunistic and cannot land dominant — a willing friend
+  always pays more. Greebles stay free-range on purpose; the tether is
+  a bug-only key the config validator refuses anywhere else, and a
+  one-tile cell is refused outright rather than silently freezing the
+  meadow. No compatibility markers, and each absence is a proof, not a
+  hope: the world fingerprint never moves (old saves resume, their
+  bugs adopting the tether mid-life from wherever they stand), the
+  defaults stamp never moves (verified byte-identical against main),
+  and with the key unconfigured a seeded world reproduces the pre-039
+  engine's 10,000-tick evolution bit-for-bit under a pinned digest.
+  Acceptance economics ran as a pre-registered census grid against
+  this branch before merge — Experiments' record has the arms and the
+  numbers (#pending).
+
 - **The phase-1 generation takes the seats, and the wall comes down.**
   `[world-fresh]` Six days after the say-surface froze, the schema-4
   generation certified as a composition (deploy battery 2026-08-21, all
