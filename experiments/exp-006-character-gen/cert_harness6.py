@@ -78,6 +78,12 @@ SEATINGS = {
     # applied to the reference composition); never a gate leg
     "reference-r5": ["v4:attn-a1-s1", "mlp:e004-a1-s2",
                      "v4:attn-a1-s3", "v4:attn-a1-s3", "scripted"],
+    # report-only forensics follow-up (r5-forensics-2026-08-20.md):
+    # s3 seated solo (scripted fill at Kittybear) — measures the twin
+    # deadlock's removal and whether Clementine's company covers the
+    # kin dose-response solo cost; never a gate leg
+    "solo-s3": ["v4:attn-a1-s1", "ppo:ppo-L-04-s1", "v4:attn-a1-s3",
+                "scripted", "mlp:e004-a1-s2"],
 }
 BANDS = {"eval": 870_001, "stress": 880_001}
 
