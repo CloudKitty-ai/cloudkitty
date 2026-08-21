@@ -116,6 +116,16 @@ SEATINGS = {
     "candidate-L05s2": ["v4:attn-a1-s1", "ppo:ppo-L-05-s2",
                         "v4:attn-a1-s3", "v4:attn-a1-s3",
                         "mlp:e004-a1-s2"],
+    # THE DEPLOY ROSTER (owner-ruled 2026-08-21): reference with
+    # E1-s1 replacing one s3 twin at Kittybear — the phase-1 interim
+    # seating while Biscuit 2.0 waits for bugs 2.0. Gate legs on the
+    # certification world; r3 = kitty IDs 1-3 on family-00; r5 on
+    # family-11 is REPORT-ONLY (tail benchmark)
+    "deploy-ref-e1": ["v4:attn-a1-s1", "mlp:e004-a1-s2",
+                      "v4:attn-a1-s3", "ppo:ppo-E1-s1-stripped",
+                      "scripted"],
+    "deploy-r3": ["v4:attn-a1-s1", "mlp:e004-a1-s2",
+                  "v4:attn-a1-s3"],
     # report-only body-price cells (budget re-derivation, owner
     # 2026-08-21): mind CLASSES at the Biscuit seat, run paired on
     # phase1-cutover vs phase1-cutover-flatbiscuit configs
