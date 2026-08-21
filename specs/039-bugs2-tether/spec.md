@@ -62,6 +62,32 @@ the remedy: "we can add pounce if this doesn't clear."
   arms; the none-control still matches the old world (the flag keeps
   it clean).
 
+### The sticker (second amendment, 2026-08-21, the owner's own ask)
+
+Mechanics alone finished at 9.5/9.1 against the bar of 10, and the
+pre-registered analysis bound Experiments to no third mechanism. The
+owner then asked for a pre-merge sticker test: a pre-registered sweep
+of the existing `[actions] play_relief_bug` dial (engine default 25)
+over {26, 28, 30} on the shipped mechanics. The dial measured linear
+within 0.2 of prediction at all six points, and the pre-registered
+smallest-clearing rule selects **28**: unskilled 10.8/10.1 over the
+bar on both geometries, skilled 20.9/20.6 in the corridor, gradient
+ordering preserved (solo 10 < duet-each 20 < bug 28 < greeble 35 <
+team-duet 40). Caveat on the record: the 26×26 unskilled margin at 28
+is +0.1, inside seed noise; 30 is the noise-robust rung if the owner
+prefers margin.
+
+- **FR-013**: the served package carries `play_relief_bug = 28.0` in
+  `[actions]` — a served-config value on an existing engine key; no
+  engine change, no schema movement, and the defaults stamp is
+  untouched by construction (it hashes engine defaults, never served
+  values).
+- **This revises the arc's "no reward-value changes" constraint by
+  the constraint-author's own hand**: the rule existed to prevent
+  naive reward tuning; a value selected by a pre-registered sweep on
+  the measured frontier is the opposite of naive, which is what the
+  constraint was protecting.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A bug keeps to its patch (Priority: P1)

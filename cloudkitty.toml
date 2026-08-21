@@ -221,6 +221,13 @@ sleep_relief = 5.0
 sleep_relief_sunbeam = 7.0
 groom_relief = 20.0
 play_relief = 20.0
+# The bugs-2.0 sticker (spec 039, owner's pre-merge ask): bug play priced on
+# the MEASURED frontier — a pre-registered {26, 28, 30} sweep on the shipped
+# mechanics came back linear within 0.2, and the smallest value clearing the
+# unskilled bar is 28 (engine default 25). Gradient preserved: solo 10 <
+# duet-each 20 < bug 28 < greeble 35 < team-duet 40 — a bug is a find, a
+# friend is still the better deal. Sweep: experiments/bugs2-grid2-2026-08-21.md.
+play_relief_bug = 28.0
 # Resting or grooming alongside a friend (the rest duet and the groomer's
 # warmth). Cosleep is priced separately below since spec 028. Re-priced by
 # the exp-004 dial-pricing pilot (2026-08-09, owner-pinned): a minimum-length

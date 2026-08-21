@@ -57,9 +57,15 @@ change.
   quarry exactly two tiles away lunges one more step in the same tick;
   a lunge, not a route, so a blocked pounce is simply lost, and cats
   are never pounced on. It rides its own default-off flag with the
-  same neutrality proofs as the tether. Acceptance economics ran as a
-  pre-registered census grid against this branch before merge — both
-  rounds, the miss and the clear, in Experiments' records (#pending).
+  same neutrality proofs as the tether. Mechanics finished half a
+  point under the unskilled bar, and the arc's last piece is the
+  owner's own: a sticker. Bug play re-prices from 25 to 28 relief —
+  not a dial guessed at, but the smallest rung of a pre-registered
+  sweep that measured linear on the shipped mechanics, keeping the
+  whole gradient intact: a bug is worth more than playing alone and
+  less than any friend. Acceptance economics ran as pre-registered
+  census grids against this branch before merge — the miss, the
+  improvement, and the sweep, all in Experiments' records (#pending).
 
 - **The phase-1 generation takes the seats, and the wall comes down.**
   `[world-fresh]` Six days after the say-surface froze, the schema-4

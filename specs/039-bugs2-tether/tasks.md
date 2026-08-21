@@ -250,3 +250,14 @@ gates the merge together with the phase-1 --fresh.
 - [x] T019 Full gate + push; notify Experiments for the SC-006
       re-grid; CHANGELOG entry updated to carry the pounce in the
       same story
+
+## Phase 8: The sticker (FR-013, the owner's pre-merge ask)
+
+- [x] T020 Served toml gains `[actions] play_relief_bug = 28.0` (engine
+      key exists since the dial-pricing arc, default 25; pure config
+      value, stamp untouched by construction). Spec second amendment +
+      CHANGELOG updated; Experiments re-confirms the exact shipped
+      toml before the PR goes to the owner. The "no reward-value
+      changes" constraint is revised by its own author: a value from a
+      pre-registered measured sweep is what the constraint was
+      protecting FOR, not against
