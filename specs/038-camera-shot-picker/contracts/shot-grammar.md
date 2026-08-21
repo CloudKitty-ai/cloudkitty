@@ -26,7 +26,10 @@ synthetic worlds; every clause below lands with a mutation-verified check.
 3. **Shed** — if that union no longer fits, sustained `shedDwellTicks`
    consecutive ticks: keep the maximal-count fitting subset (incumbency
    tiebreak), one `shed` episode. Whole-shot overflow (nothing droppable)
-   banks NO dwell (2026-08-21).
+   banks NO dwell, and a shed that cannot RESTORE fit never fires — the
+   licence to shed is restoring fit; otherwise the overflow centre-hold
+   governs (2026-08-21, both clauses). One `shedGate` owns the clock for
+   group and follow mode alike.
 4. **Break** — if the shot (group mode) holds <2: re-pick maximal-count
    window (ties prefer overlap with the dying shot, then lowest id —
    "ties keep the incumbent" applies here too; amended 2026-08-21, the
@@ -46,8 +49,16 @@ synthetic worlds; every clause below lands with a mutation-verified check.
   EQUAL the latched goal — no residual easing, no epsilon drift after.
 - **Pan commits**: once begun, decision steps 2–6 do not run until arrival
   (FR-013) — with ONE exception: a viewer follow change redirects
-  immediately (owner ruling 2026-08-21). Other episodes RE-AIM on a fresh
-  trigger: the latched goal updates, the clock never restarts (2026-08-21).
+  immediately (owner ruling 2026-08-21). Other episodes RE-LATCH through a
+  hysteresis: a fresh goal ≥ `relatchTiles` from the latched one starts a
+  NEW episode from the current frame (position-continuous by
+  construction); sub-threshold drift lets the episode complete and step
+  again from rest (re-amended 2026-08-21, high review — a mutated
+  in-flight goal was a single-frame cut past the aim-lead pin).
+- **Decisions read the DRAWN world**: still frames make no decisions and
+  run no hold — a still view publishes served positions. Exemptions where
+  served IS drawn: reduced motion, and the never-decided first paint
+  (SC-009).
 - **Hold triggers**: fitting shot — any member's drawn position outside the
   inner `safeZoneFrac` rect starts a `correction`; overflow shot — bbox
   centre drifting > `aimDeadzoneTiles` from aim does (FR-007a). Members
@@ -61,7 +72,9 @@ synthetic worlds; every clause below lands with a mutation-verified check.
   (group mode); a follow may frame one (clarified 2026-08-21).
 - The shot is maximal-count-or-tied among windows that fit (SC-005's bar).
 - Chains carry evidence; exact-membership churn does NOT reset dwell
-  (majority-overlap continuation, research D5).
+  (STRICT-majority continuation, research D5 — amended 2026-08-21: an
+  exact half is not a continuation, so an even split restarts BOTH
+  clocks; > half survives).
 - Persistence thresholds are read from `nearDwellTicks`/`farDwellTicks`
   ONLY at the two comparison sites (the 032 seam).
 - A chain is consumed by its first (best) match: a dwelling rival that

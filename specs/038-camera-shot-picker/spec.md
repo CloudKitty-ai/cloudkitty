@@ -327,7 +327,11 @@ gathering elsewhere does not move the camera.
   without any membership change (the standing 'breathe in'). The dwell
   applies identically during a follow — companions shed through the same
   clock, never instantly — and un-fit ticks spent in whole-shot overflow
-  (nothing droppable) bank no dwell (both 2026-08-21, code review).
+  (nothing droppable) bank no dwell (both 2026-08-21, code review). The
+  licence to shed is RESTORING fit: when no shed can bring the remainder
+  under the ceiling (the followed kitty's own group past it, say), nothing
+  is shed and the overflow centre-hold (FR-007a) governs (2026-08-21,
+  high review).
 - **FR-011**: If the shot falls below two kitties, it breaks: the camera MUST
   re-frame per FR-003/FR-004, eased, without a cut.
 

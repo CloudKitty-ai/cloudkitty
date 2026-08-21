@@ -5589,7 +5589,6 @@ check('the camera off frames the whole world and nothing else', () => {
   cam.update(world, camView(), { aspect: 1, cssWidth: 1000 });
   assert(cam.across === world.width, `across is ${cam.across}, not the world's ${world.width}`);
   assert(cam.left === 0 && cam.top === 0, `origin moved to ${cam.left},${cam.top}`);
-  assert(cam.anchorId === null, 'the off camera picked an anchor it has no use for');
 
   // The identity claim, in the one number that decides it. `resizeFor`
   // computes tile = floor(budget / world.width) and cssWidth = tile *
@@ -6421,6 +6420,9 @@ check('an overflow pair CLOSE enough shows both, partially framed', () => {
     const y = k.pos.y + 0.5;
     assert(x > cam.left && x < cam.left + cam.across,
       `kitty ${k.id} (x ${x}) is outside the frame [${cam.left.toFixed(2)}, ${(cam.left + cam.across).toFixed(2)}]`);
+    // x is the DISCRIMINATING axis here (the pair is spread in x); the y
+    // line rides along for frame-shape sanity and proves nothing x
+    // doesn't -- do not count it as coverage (high review, below-cap).
     assert(y > cam.top && y < cam.top + cam.across, `kitty ${k.id} is outside the frame in y`);
   }
   // And it IS an overflow shot: the fit asks more than the ceiling gives.
@@ -6559,9 +6561,14 @@ check('but it follows the group when the group actually goes somewhere', () => {
   assert(cam.aimX > from + 8, `the camera only reached ${cam.aimX.toFixed(1)} from ${from.toFixed(1)}`);
 });
 
-check('the aim is the centre of mass, not the box the extremes describe', () => {
-  // Four kitties together and one far off: the box midpoint sits in the
-  // grass between them, the centre of mass sits with the four.
+check('the aim stays with the cluster; a far loner cannot drag it to grass', () => {
+  // Re-pointed 2026-08-21 (high review, below-cap): the title used to say
+  // "centre of mass", which was 036's mechanism. Under the 038 shot
+  // picker the same VISIBLE claim -- the frame sits with the gathering,
+  // never in the empty grass between it and a far loner -- holds because
+  // the loner is outside the SHOT entirely, and the aim is the shot's own
+  // box centre. Same assertions, two mechanisms later: the claim belongs
+  // to the viewer, not the implementation.
   const world = camAt([9, 10], [10, 10], [11, 10], [10, 11], [19, 10]);
   const cam = onCam(world);
   const boxMid = (9.5 + 19.5) / 2;
@@ -6577,7 +6584,6 @@ check('a followed kitty is the anchor, whatever the group is doing', () => {
   cam.on = true;
   cam.followId = 1; // the outlier, the anchor rule would never pick her
   cam.update(world, camView(), { aspect: 1, cssWidth: 1000 });
-  assert(cam.anchorId === 1, `anchor is ${cam.anchorId}, not the followed kitty`);
   assert(cam.aimX === 2.5 && cam.aimY === 2.5, `aim sat at ${cam.aimX},${cam.aimY}`);
 });
 
@@ -6618,8 +6624,22 @@ check('the toggle never releases a follow', () => {
   cam.update(world, camView(false, 16), { aspect: 1, cssWidth: 1000 });
   assert(cam.followId === 1, 'turning the camera off released the follow');
   cam.on = true;
-  cam.update(world, camView(false, 32), { aspect: 1, cssWidth: 1000 });
-  assert(cam.anchorId === 1, 'turning the camera back on lost the followed kitty');
+  // The old assert here read `anchorId`, a field that was literally
+  // `= followId` -- a tautology two lines after asserting followId
+  // (review 2026-08-21, finding 10). "Comes back to the same cat" is a
+  // claim about the FRAME: drive the eased return to rest and ask who it
+  // holds. The field itself is deleted -- no production reader survived
+  // the shot picker.
+  let t = 32;
+  for (let i = 0; i < 80; i += 1) {
+    cam.update(world, camView(false, (t += 16.67)), { aspect: 1, cssWidth: 1000 });
+    if (!cam.episode && i > 0) break;
+  }
+  assert(cam.followId === 1, 'turning the camera back on lost the follow');
+  assert(cam.across < 20, 'the camera came back on but never narrowed off the whole world');
+  assert(3.5 > cam.left && 3.5 < cam.left + cam.across
+    && Math.abs(cam.aimX - 3.5) < 1,
+    `the return framed ${cam.aimX},${cam.aimY}, not the followed kitty at 3.5,3.5`);
 });
 
 check('the click lifecycle is one table, and every row is here', () => {
@@ -7593,19 +7613,77 @@ check('fifty RECORDED ticks: no pan, few widens, never fewer than two', () => {
     assert(cam.shotIds && cam.shotIds.size >= 2,
       `tick ${row[0]}: only ${cam.shotIds ? cam.shotIds.size : 0} framed`);
   }
-  // Measured on this excerpt when the check was built: widens 2, sheds 2,
-  // pans 0, breaks 0, rest 91%. The dwell mutations CANNOT trip the pan
-  // band here -- the excerpt genuinely holds no strictly-bigger
-  // unwindowable rival, which corroborates the model (the far band is
-  // structurally rare) -- so the discriminating teeth on real data are
-  // the rest fraction and the event bands.
+  // Measured on this excerpt post-review-remediation (2026-08-21):
+  // widens 2, sheds 3, pans 0, breaks 0, rest 86.2%. Every band is
+  // pinned AT its measured value -- the high review found the first cut's
+  // slack admitted 10.5 events/min against SC-003's 3/min bar, so a
+  // regression tripling the re-framing rate stayed green (rule 4). One
+  // caution for future readers: five events in this 40s window is a
+  // BURST, not the rate -- the 350-tick acceptance replay owns SC-003's
+  // 3.00/min; this check's job is to go red when anything ADDS an event
+  // on real data. The dwell mutations cannot trip the pan band here --
+  // the excerpt genuinely holds no strictly-bigger unwindowable rival,
+  // corroborating the model (the far band is structurally rare).
   assert(pans === 0, `${pans} pans in 40 recorded seconds -- the model says none`);
-  assert(widens <= 2, `${widens} widens in 40s, over the model's band`);
-  assert(breaks <= 2, `${breaks} breaks in 40s -- the model saw none at L=5`);
-  assert(sheds <= 3, `${sheds} sheds in 40s -- this excerpt produces 2`);
+  assert(widens <= 2, `${widens} widens in 40s, over the measured 2`);
+  assert(breaks === 0, `${breaks} breaks in 40s -- this excerpt produces none`);
+  assert(sheds <= 3, `${sheds} sheds in 40s -- this excerpt produces 3`);
+  assert(widens + sheds + breaks + pans <= 5,
+    `${widens + sheds + breaks + pans} re-framing events in 40s -- this excerpt produces 5`);
   const rest = still / frames;
   assert(rest >= 0.6,
     `at rest ${(100 * rest).toFixed(0)}% of the recorded drive -- this excerpt rests 91% shipped`);
+});
+
+check('sixty RECORDED seconds where the flap LIVES: two events, no more', () => {
+  // Review 2026-08-21 high pass (finding 9). The fifty-tick excerpt above
+  // cannot carry SC-003's tooth: its geometry holds no link-boundary
+  // flap, so removing the shed dwell adds NOTHING there and any band is
+  // slack by construction. This window (ticks 164-238 of the acceptance
+  // capture) was CHOSEN for its teeth, by measurement: the normal drive
+  // produces 2 re-framing events (2/min, inside SC-003's 3/min), and the
+  // same drive with the dwell removed produces 6 -- so the flap class the
+  // dwell exists to kill goes red HERE, on real recorded positions, not
+  // only in synthetic fixtures.
+  const SAMPLE = [[164,10,17,12,8,12,6,4,2,12,7],[165,10,16,12,8,12,6,5,2,12,7],[166,11,16,12,8,12,6,6,2,12,7],[167,11,17,12,8,12,6,7,2,12,7],[168,10,17,12,8,12,6,6,2,12,7],[169,11,17,11,8,12,6,7,2,12,7],[170,11,16,11,7,12,6,8,2,12,7],[171,12,16,11,6,13,6,9,2,12,8],[172,12,15,11,5,13,5,9,2,12,7],[173,12,14,11,4,12,5,9,2,12,6],[174,12,13,12,4,12,5,10,2,12,7],[175,12,12,12,4,11,5,11,2,12,6],[176,12,11,12,4,11,4,11,3,12,7],[177,12,10,12,4,11,4,11,3,13,7],[178,12,9,12,4,11,4,12,3,13,7],[179,12,8,12,4,11,4,12,3,13,7],[180,13,8,12,4,11,4,12,3,13,7],[181,13,8,12,4,11,4,12,3,13,7],[182,13,8,12,4,11,4,12,3,13,7],[183,13,8,12,4,11,4,12,3,13,7],[184,13,8,12,4,11,4,12,3,13,6],[185,13,8,12,5,11,5,12,3,14,6],[186,13,8,12,5,11,4,12,4,15,6],[187,13,8,12,5,11,3,12,4,14,6],[188,13,8,12,5,11,4,12,4,13,6],[189,13,9,11,5,11,4,12,4,13,5],[190,14,9,12,5,11,5,12,4,13,5],[191,14,10,12,6,11,6,12,4,13,4],[192,14,11,12,5,11,7,12,4,13,3],[193,14,12,11,5,11,6,13,4,12,3],[194,13,12,11,4,12,6,14,4,12,3],[195,12,12,11,4,12,7,14,5,12,3],[196,12,12,11,4,13,7,14,6,11,3],[197,12,12,11,4,13,7,14,7,11,3],[198,12,12,11,4,13,7,14,6,12,3],[199,12,12,11,4,13,6,14,5,12,4],[200,12,12,11,4,13,5,15,5,12,3],[201,12,12,11,5,14,5,15,4,11,3],[202,12,13,11,6,15,5,16,4,11,2],[203,12,12,10,6,16,5,16,3,11,2],[204,12,11,11,6,16,6,17,3,11,2],[205,12,10,10,6,16,5,17,2,11,2],[206,13,10,9,6,15,5,18,2,11,2],[207,13,9,10,6,16,5,18,2,11,2],[208,12,9,10,5,15,5,18,2,11,2],[209,12,8,10,4,16,5,18,2,11,2],[210,12,7,10,5,15,5,18,2,11,2],[211,11,7,10,6,14,5,18,2,11,2],[212,10,7,10,6,13,5,18,2,11,2],[213,10,7,10,6,14,5,18,2,11,3],[214,10,7,10,6,13,5,18,2,12,3],[215,10,7,10,6,13,4,17,2,12,4],[216,10,7,10,6,13,4,17,3,12,4],[217,10,7,10,6,13,4,18,3,12,4],[218,10,7,10,6,13,4,18,2,12,4],[219,10,7,10,6,13,4,19,2,12,4],[220,10,7,10,6,13,4,19,2,12,4],[221,11,7,11,6,13,4,19,2,12,4],[222,12,7,12,6,13,4,18,2,12,3],[223,12,8,12,7,13,5,18,1,12,4],[224,13,8,12,7,13,5,17,1,12,5],[225,12,8,12,7,13,5,17,1,12,5],[226,13,8,12,7,13,5,17,1,12,5],[227,12,8,12,7,13,4,17,0,12,6],[228,12,8,12,7,12,4,16,0,13,6],[229,12,8,12,7,11,4,16,0,14,6],[230,12,8,12,7,10,4,16,1,14,5],[231,12,8,12,7,10,4,15,1,15,5],[232,12,8,12,7,10,4,15,2,15,4],[233,12,8,12,7,9,4,15,3,16,4],[234,12,9,12,7,8,4,16,3,16,4],[235,12,10,12,8,7,4,16,3,16,4],[236,12,11,12,8,7,4,16,3,16,4],[237,12,12,12,8,7,4,16,3,16,4],[238,11,12,12,8,7,4,16,3,16,4]];
+  const cam = new api.Camera();
+  cam.on = true;
+  let clock = 0;
+  let events = 0;
+  let still = 0;
+  let frames = 0;
+  let prevPose = null;
+  let lastKind = null;
+  for (const row of SAMPLE) {
+    const world = {
+      width: 20,
+      height: 20,
+      tick: row[0],
+      elements: [],
+      kitties: [1, 2, 3, 4, 5].map((id) => ({
+        id, pos: { x: row[id * 2 - 1], y: row[id * 2] },
+      })),
+    };
+    for (let f = 0; f < 8; f += 1) {
+      clock += 100;
+      cam.update(world, camView(false, clock), { aspect: 1, cssWidth: 1000 });
+      const kind = cam.episode ? cam.episode.kind : null;
+      if (kind !== lastKind && kind !== null && kind !== 'correction') events += 1;
+      lastKind = kind;
+      const pose = `${cam.left},${cam.top},${cam.across}`;
+      if (prevPose !== null) {
+        frames += 1;
+        if (pose === prevPose) still += 1;
+      }
+      prevPose = pose;
+    }
+    assert(cam.shotIds !== null && cam.shotIds.size >= 2,
+      `tick ${row[0]}: only ${cam.shotIds ? cam.shotIds.size : 0} framed`);
+  }
+  assert(events <= 2,
+    `${events} re-framing events in 60 recorded seconds -- this window produces 2 (SC-003)`);
+  const rest = still / frames;
+  assert(rest >= 0.6, `at rest ${(100 * rest).toFixed(0)}% of the window -- measured 82%`);
 });
 
 /* ---- 038 US4: following composes with the grammar (T019-T020) ------ */
@@ -7681,7 +7759,7 @@ check('a follow admits her group\'s visitors but never pans away', () => {
         `tick ${t}: the admissible pair was never admitted during the follow`);
     }
   }
-  assert(cam.followId === 1 && cam.anchorId === 1, 'the follow itself was lost');
+  assert(cam.followId === 1, 'the follow itself was lost');
 });
 
 check('releasing a follow re-enters the grammar eased, never a cut', () => {
@@ -8012,22 +8090,292 @@ check('a walker on the fence is KEPT, not crawled after', () => {
     `five seconds of walking moved the aim ${(cam.aimX - aim0).toFixed(2)} tiles -- the crawl is back`);
 });
 
-check('a split rival cannot inherit its dwell TWICE: one heir per chain', () => {
-  // Review 2026-08-21 (verified, below the report cap). Majority overlap
-  // (shared*2 >= max) admits EXACT HALVES, and a matched chain stayed in
-  // the pool -- so a dwelling rival that split evenly handed its WHOLE
-  // clock to both halves, and a pan could commit to a group only one tick
-  // old. A chain is consumed by its first (best) match; the other half
-  // starts fresh. White-box at evidenceFor because that is the layer the
-  // bug lives in -- the grammar above only sees the counters.
+check('an exact half inherits NO dwell: chain identity is strict majority', () => {
+  // Review 2026-08-21, both passes. The medium pass caught both halves of
+  // an even split inheriting the whole clock; consuming the chain fixed
+  // the double-count but left WHICH half inherits to groupsFor's
+  // iteration order (high pass, finding 8) -- a two-cat fragment could
+  // inherit a 14-tick clock while the four-cat continuation restarted.
+  // Strict majority (shared*2 > max) removes the arbitrariness at the
+  // root: an exact half is not a continuation, so NEITHER half inherits
+  // and both clocks restart honestly. White-box at evidenceFor because
+  // that is the layer the rule lives in.
   const cam = new api.Camera();
   const k4 = { id: 4, pos: { x: 1, y: 1 } };
   const k5 = { id: 5, pos: { x: 2, y: 1 } };
   cam.chains = [{ ids: new Set([4, 5]), members: [k4, k5], nearTicks: 3, farTicks: 0 }];
   const next = cam.evidenceFor([[k4], [k5]], 2, () => true);
   const ticks = next.map((c) => c.nearTicks).sort((a, b) => b - a);
-  assert(ticks[0] === 4 && ticks[1] === 1,
-    `the split halves carry [${ticks}], not [4, 1] -- the parent's clock was inherited twice`);
+  assert(ticks[0] === 1 && ticks[1] === 1,
+    `the split halves carry [${ticks}], not [1, 1] -- an exact half continued the chain`);
+  // And a MAJORITY continuation still carries its clock (D5's churn rule,
+  // unchanged): two of three members is a continuation, not a split.
+  const k6 = { id: 6, pos: { x: 3, y: 1 } };
+  cam.chains = [{ ids: new Set([4, 5, 6]), members: [k4, k5, k6], nearTicks: 7, farTicks: 0 }];
+  const cont = cam.evidenceFor([[k4, k5]], 2, () => true);
+  assert(cont[0].nearTicks === 8,
+    `a 2-of-3 continuation carries ${cont[0].nearTicks}, not the chain's 8`);
+});
+
+check('reduced motion flipped mid-episode ARRIVES, never freezes', () => {
+  // Review 2026-08-21 high pass (finding 3). applyMotionPreference only
+  // sets the flag; an episode in flight at that moment then never
+  // advances -- every reduced frame is still (dt 0), the motion block is
+  // gated on dt > 0, and the hold's mid-flight path never calls
+  // startEpisode -- so the camera froze mid-ease indefinitely while the
+  // cats walked out of frame. Flipping reduced must complete the motion
+  // the way reduced starts it: arrive now.
+  const world = (t, x) => ({
+    width: 20,
+    height: 20,
+    tick: t,
+    elements: [],
+    kitties: [{ id: 1, pos: { x, y: 10 } }, { id: 2, pos: { x: x + 3, y: 10 } }],
+  });
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(world(0, 2), camView(false, 0), { aspect: 1, cssWidth: 1000 });
+  // The pair strides far enough to earn a correction, caught mid-ease.
+  cam.update(world(1, 9), camView(false, 16.67), { aspect: 1, cssWidth: 1000 });
+  cam.update(world(1, 9), camView(false, 33.3), { aspect: 1, cssWidth: 1000 });
+  assert(cam.episode !== null, 'setup: no correction is in flight');
+  const goal = { x: cam.episode.goal.aimX, y: cam.episode.goal.aimY, a: cam.episode.goal.across };
+  cam.reduced = true;
+  cam.update(world(1, 9), camView(true), { aspect: 1, cssWidth: 1000 });
+  assert(cam.episode === null, 'reduced motion left a zombie episode in flight');
+  assert(cam.aimX === goal.x && cam.aimY === goal.y && cam.across === goal.a,
+    `reduced motion froze mid-ease at ${cam.aimX},${cam.aimY} instead of arriving at ${goal.x},${goal.y}`);
+});
+
+check('the greedy window is roster-order-proof all the way down', () => {
+  // Review 2026-08-21 high pass (finding 5). The OUTER seed tie broke on
+  // lowest id (guarded since T-era), but the INNER greedy expansion broke
+  // exact [count, distance] ties by array order -- so a server that
+  // reorders world.kitties on churn flips which wing joins the centre
+  // pair on every cold start. Integer tile layouts make exact ties
+  // realistic, not pathological.
+  const kitties = [
+    { id: 1, pos: { x: 10, y: 10 } },
+    { id: 2, pos: { x: 11, y: 10 } },
+    { id: 3, pos: { x: 3, y: 10 } },
+    { id: 4, pos: { x: 4, y: 10 } },
+    { id: 5, pos: { x: 17, y: 10 } },
+    { id: 6, pos: { x: 18, y: 10 } },
+  ];
+  const shotOf = (list) => {
+    const cam = onCam({ width: 20, height: 20, elements: [], kitties: list });
+    return [...cam.shotIds].sort((a, b) => a - b).join(',');
+  };
+  const forward = shotOf(kitties);
+  const reversed = shotOf([...kitties].reverse());
+  const rotated = shotOf([...kitties.slice(2), ...kitties.slice(0, 2)]);
+  assert(forward === reversed && forward === rotated,
+    `the shot depends on roster order: ${forward} vs ${reversed} vs ${rotated}`);
+  assert(forward === '1,2,3,4',
+    `an exact tie must break toward the lowest kitty id, got {${forward}}`);
+});
+
+check('a follow tap on a still frame decides from DRAWN cats, next frame', () => {
+  // Review 2026-08-21 high pass (finding 2). setFollow and setCameraMode
+  // both end in a still redraw, and decide() had no stillness gate -- so
+  // every tap latched its shot and goal from SERVED positions, up to a
+  // tile ahead of the cats on screen: the exact inconsistency the hold's
+  // guard was added to remove, alive on the page's two most common
+  // interactions. The decision defers one frame and reads the drawn
+  // world. (Reduced motion and the never-decided first paint are exempt:
+  // for both, served IS what the frame draws.)
+  const world = {
+    width: 20,
+    height: 20,
+    tick: 0,
+    elements: [],
+    kitties: [{ id: 1, pos: { x: 2, y: 10 } }, { id: 2, pos: { x: 3, y: 10 } }],
+  };
+  const drawn = new Map([[1, { x: 8, y: 10 }], [2, { x: 9, y: 10 }]]);
+  const animated = (now) => ({ still: false, ambient: { now }, posFor: (k) => drawn.get(k.id) });
+  const stillView = { still: true, ambient: null, posFor: (k) => ({ x: k.pos.x, y: k.pos.y }) };
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(world, animated(0), { aspect: 1, cssWidth: 1000 });
+  assert(cam.episode === null, 'setup: the drawn pair should frame at rest');
+  // The tap: app.js sets followId and calls redraw() -- a STILL frame.
+  cam.followId = 1;
+  cam.update(world, stillView, { aspect: 1, cssWidth: 1000 });
+  assert(cam.episode === null,
+    `the still tap frame latched an episode toward ${cam.episode ? cam.episode.goal.aimX : '?'} -- served positions`);
+  // The next animated frame owns the decision, and reads the drawn cats.
+  cam.update(world, animated(16.67), { aspect: 1, cssWidth: 1000 });
+  const aim = cam.episode ? cam.episode.goal.aimX : cam.aimX;
+  assert(Math.abs(aim - 9) < 1e-6,
+    `the follow decision aimed at ${aim}, not the drawn pair at 9`);
+});
+
+check('a mid-flight goal JUMP re-latches a fresh ease -- never a cut', () => {
+  // Review 2026-08-21 high pass (finding 1). The re-aim fix mutated the
+  // in-flight episode's goal with `from` and `elapsed` held, so position
+  // moved by ease(t) x (goal delta) in a SINGLE frame -- and past the
+  // aim-lead point ease(t) is pinned at 1, a literal teleport. Continuous
+  // member drift never trips it, but a membership absorption or a
+  // tab-return snap moves the goal tiles at a time. The fix: a goal that
+  // moves >= relatchTiles from the latched one starts a FRESH episode
+  // from the camera's current position -- continuous by construction,
+  // eased from rest -- while sub-threshold drift lets the latched episode
+  // complete and step again from rest (which is what keeps the fence
+  // walker tracked without per-frame clock restarts).
+  const spots = new Map([
+    [1, { x: 3, y: 10 }], [2, { x: 4, y: 10 }],
+    [3, { x: 18, y: 2 }], [4, { x: 19, y: 2 }],
+  ]);
+  const view = (now) => ({ still: false, ambient: { now }, posFor: (k) => spots.get(k.id) });
+  const world = (t) => ({
+    width: 20,
+    height: 20,
+    tick: t,
+    elements: [],
+    kitties: [1, 2, 3, 4].map((id) => ({ id, pos: { ...spots.get(id) } })),
+  });
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(world(0), view(0), { aspect: 1, cssWidth: 1000 });
+  // The pair strides: a correction latches and flies for ~36 frames,
+  // reaching t ~ 0.86 -- past the aim-lead pin.
+  spots.set(1, { x: 8.4, y: 10 });
+  spots.set(2, { x: 9.4, y: 10 });
+  let now = 0;
+  let prev = { x: cam.aimX, y: cam.aimY, a: cam.across };
+  let worst = 0;
+  const stepFrame = (t) => {
+    now += 16.67;
+    cam.update(world(t), view(now), { aspect: 1, cssWidth: 1000 });
+    const d = Math.hypot(cam.aimX - prev.x, cam.aimY - prev.y);
+    if (d > worst) worst = d;
+    prev = { x: cam.aimX, y: cam.aimY, a: cam.across };
+  };
+  for (let i = 0; i < 36; i += 1) stepFrame(1);
+  assert(cam.episode !== null, 'setup: the correction should still be in flight');
+  // A generation snap drops the far pair beside them -- one group now,
+  // absorbed by membership follow with no grammar event; the goal jumps
+  // ~2.3 tiles while the episode is nearly done.
+  spots.set(3, { x: 13, y: 10 });
+  spots.set(4, { x: 14, y: 10 });
+  for (let i = 0; i < 120; i += 1) stepFrame(2);
+  assert(worst <= 0.5,
+    `the camera moved ${worst.toFixed(2)} tiles in ONE frame -- a cut (036 FR-008)`);
+  assert(cam.episode === null, 'the re-latched ease never arrived');
+  const held = world(2).kitties.filter((k) => {
+    const p = spots.get(k.id);
+    return p.x + 0.5 > cam.left && p.x + 0.5 < cam.left + cam.across;
+  });
+  assert(held.length === 4, `only ${held.length} of the merged four are framed at rest`);
+});
+
+check('departed companions cannot bequeath their shed clock', () => {
+  // Review 2026-08-21 high pass (finding 4). The follow branch neither
+  // advanced nor cleared unfitTicks while the shot had no companion
+  // group, so a count banked against companions who then LEFT sat frozen
+  // -- and the next group to dwell in and be admitted shed on its very
+  // first un-fit tick: the zero-dwell flap, inherited across two
+  // different companion groups.
+  const world = (t, layout) => ({
+    width: 20,
+    height: 20,
+    tick: t,
+    elements: [],
+    kitties: layout.map(([id, x]) => ({ id, pos: { x, y: 10 } })),
+  });
+  const cam = new api.Camera();
+  cam.on = true;
+  // Group mode seats her with companions {2,3}; the pin keeps them.
+  cam.update(world(0, [[1, 3], [2, 9], [3, 10]]), camView(false, 0), { aspect: 1, cssWidth: 1000 });
+  cam.followId = 1;
+  cam.update(world(1, [[1, 3], [2, 9], [3, 10]]), camView(false, 800), { aspect: 1, cssWidth: 1000 });
+  assert(cam.shotIds.size === 3, 'setup: the pin should keep fitting companions');
+  // Two un-fit ticks -- two of the three-tick dwell, then they leave.
+  for (const t of [2, 3]) {
+    cam.update(world(t, [[1, 3], [2, 11], [3, 12]]), camView(false, t * 800), { aspect: 1, cssWidth: 1000 });
+    assert(cam.shotIds.size === 3, `the dwell shed early at tick ${t}`);
+  }
+  cam.update(world(4, [[1, 3]]), camView(false, 4 * 800), { aspect: 1, cssWidth: 1000 });
+  assert(cam.shotIds.size === 1, 'setup: the departed companions should leave the shot');
+  // A NEW pair dwells in (5 qualifying ticks) and is admitted...
+  for (let t = 5; t <= 9; t += 1) {
+    cam.update(world(t, [[1, 3], [4, 10], [5, 11]]), camView(false, t * 800), { aspect: 1, cssWidth: 1000 });
+  }
+  assert(cam.shotIds.size === 3, `setup: the new pair was never admitted ({${[...cam.shotIds]}})`);
+  // ...and their FIRST un-fit tick must start the dwell at one, not
+  // resume the dead companions' count at three.
+  cam.update(world(10, [[1, 3], [4, 12], [5, 13]]), camView(false, 10 * 800), { aspect: 1, cssWidth: 1000 });
+  assert(cam.shotIds.size === 3,
+    'the new companions shed with ZERO dwell -- they inherited the departed pair\'s clock');
+});
+
+check('a shed that restores nothing never fires: overflow holds the family', () => {
+  // Review 2026-08-21 high pass (finding 6). The follow shed was a
+  // hand-copy of the group shed from BEFORE the overflow restructure:
+  // when the followed kitty's own group overflows the ceiling, no shed
+  // can restore fit, yet the counter climbed and companions were evicted
+  // anyway -- narrowing nothing (the frame is pinned at the ceiling
+  // either way), just abandoning them. FR-010's licence to shed is
+  // RESTORING fit; without it, the overflow centre-hold governs
+  // (FR-007a). One shedGate now owns the clock for both branches.
+  const world = (t, layout) => ({
+    width: 20,
+    height: 20,
+    tick: t,
+    elements: [],
+    kitties: layout.map(([id, x]) => ({ id, pos: { x, y: 10 } })),
+  });
+  const cam = new api.Camera();
+  cam.on = true;
+  // Everyone fits: shot {1,2,3,4}; the pin keeps the visitor {4}.
+  const snug = [[1, 6], [2, 7], [3, 8], [4, 14]];
+  cam.update(world(0, snug), camView(false, 0), { aspect: 1, cssWidth: 1000 });
+  assert(cam.shotIds.size === 4, 'setup: the four should share the frame');
+  cam.followId = 1;
+  cam.update(world(1, snug), camView(false, 800), { aspect: 1, cssWidth: 1000 });
+  assert(cam.shotIds.size === 4, 'setup: the pin should keep the visitor');
+  // Her OWN group stretches past the ceiling (chain 2-6-11, links 4 and
+  // 5, span 9 wants 14.75 of a 13.33 ceiling) while the visitor sits
+  // un-linked at (17,10). The first cut of this fixture put kitty 2 at
+  // x=3: span 8 wants 13.11, which FITS -- and a licensed, dwelled shed
+  // of the visitor is then correct. The licence question needs her group
+  // alone past the ceiling.
+  const spread = [[1, 6], [2, 2], [3, 11], [4, 17]];
+  for (let t = 2; t <= 8; t += 1) {
+    cam.update(world(t, spread), camView(false, t * 800), { aspect: 1, cssWidth: 1000 });
+    assert(cam.shotIds.size === 4,
+      `tick ${t}: the follow evicted the visitor though shedding restores no fit`);
+  }
+});
+
+check('a ghost tap is still a follow CHANGE: one owner for the edge', () => {
+  // Review 2026-08-21 high pass (finding 7). update() computed followEdge
+  // and decide() re-derived followChanged from the same fields -- with
+  // the FR-020 dead-follow drop mutating followId in between, so a tap
+  // on a kitty who just left read as "no change" inside decide(): no
+  // shed-clock reset, none of the bookkeeping a follow change carries.
+  // The edge is now computed once, in update(), and passed in.
+  const world = (t, layout) => ({
+    width: 20,
+    height: 20,
+    tick: t,
+    elements: [],
+    kitties: layout.map(([id, x]) => ({ id, pos: { x, y: 10 } })),
+  });
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(world(0, [[1, 3], [2, 4], [3, 10], [4, 11]]), camView(false, 0), { aspect: 1, cssWidth: 1000 });
+  // Two un-fit ticks bank a dwell count of two...
+  for (const t of [1, 2]) {
+    cam.update(world(t, [[1, 3], [2, 4], [3, 12], [4, 13]]), camView(false, t * 800), { aspect: 1, cssWidth: 1000 });
+  }
+  assert(cam.unfitTicks === 2, `setup: the dwell should stand at 2, not ${cam.unfitTicks}`);
+  // ...then the viewer taps a kitty who has already left the roster.
+  cam.followId = 99;
+  cam.update(world(2, [[1, 3], [2, 4], [3, 12], [4, 13]]), camView(false, 2 * 800 + 16), { aspect: 1, cssWidth: 1000 });
+  assert(cam.followId === null, 'setup: the ghost follow should be dropped (FR-020)');
+  assert(cam.unfitTicks === 0,
+    `a follow change must reset the shed clock; it stands at ${cam.unfitTicks}`);
 });
 
 check('the waterline is centred on the cat\'s body, not on her box', () => {

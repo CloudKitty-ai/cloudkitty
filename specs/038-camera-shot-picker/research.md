@@ -148,13 +148,19 @@ wander before the camera cares."
 **pan** (committed: runs to completion, no re-decision until arrival, spec
 FR-013) > **break re-frame** > **shed** > **widen** > **correction**. A
 fresh trigger at REST starts one episode; mid-episode (except mid-pan) a
-moved goal RE-AIMS the running episode — the goal updates, the clock keeps
-running. (Amended 2026-08-21, code review: the first cut restarted the
-clock, and a walker near the world edge who kept the hold firing pinned the
-ease at its zero-slope start every frame — the camera crawled a tenth of a
-tile while she walked out of frame.) A re-aim is not a new episode for
-SC-003. The pan's commitment has one exception: a viewer follow change
-redirects immediately (owner ruling 2026-08-21).
+goal that has moved ≥ `relatchTiles` from the latched one RE-LATCHES a
+fresh episode from the camera's CURRENT position; sub-threshold drift lets
+the latched episode complete and step again from rest. (Twice amended
+2026-08-21. First cut: restarting the clock per frame pinned the ease at
+its zero-slope start — a fence walker was crawled after, not tracked.
+Second cut re-AIMED the in-flight goal with the clock intact — smooth for
+drift, but a membership absorption or generation snap moved the goal tiles
+at once and position jumped ease(t)×delta in ONE frame, a cut past the
+aim-lead pin. The hysteresis separates the two regimes: drawn drift is
+≤ ~0.03 tiles/frame and can never re-latch per frame; discontinuous moves
+exceed the band and get a fresh eased episode, continuous by
+construction.) The pan's commitment has one exception: a viewer follow
+change redirects immediately (owner ruling 2026-08-21).
 
 **Rationale**: the spec makes pan the only committed move; everything else
 may be superseded by fresher geometry, but episodic re-aiming (not
@@ -218,6 +224,7 @@ decide step choosing the subject chain.
 | `farDwellTicks` | 15 | new — the owner's number |
 | `shedDwellTicks` | 3 | new — added at acceptance (shed flap, see acceptance-2026-08-21.md) |
 | `tightenFrac` | 1.15 | new — added at acceptance (stale-wide frames) |
+| `relatchTiles` | 0.5 | new — added at high review (finding 1): mid-episode re-latch hysteresis; sits 20× above per-frame drawn drift and ⅓ of aimDeadzoneTiles |
 | `safeZoneFrac` | 0.80 | new — lab-judged |
 | `moveMs` | 700 | new — gentle episode duration, lab-judged |
 | `panMs` | 1100 | new — fast episode duration, lab-judged |
