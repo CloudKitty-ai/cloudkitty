@@ -1,5 +1,17 @@
 # exp-006a: Biscuit 2.0, the corner shot — preregistration (DRAFT,
-# freezes on the owner's word)
+# PARKED pending bugs 2.0 — owner's sequencing ruling 2026-08-21)
+
+**PARKED, not abandoned (owner, 2026-08-21)**: "Let's get our
+current batch of kitties deployed first. I had planned on knocking
+out the bug changes first so we aren't wasting more training against
+excessive bug economy headwinds." Sequencing is therefore: phase-1
+deploy → bugs 2.0 mechanics (Product's spec lane) → world
+re-baseline → corpus re-collection on the new economy → THEN this
+experiment trains, with fresh anchors and the Biscuit bar re-decided
+per §6's scope ruling. The STRUCTURE below (arms, twin-free
+composition, r5 report-only, gate shapes) stands; every NUMBER
+(anchors, floors, the +10) re-derives on the post-mechanics world
+before freeze.
 
 **Scope**: minimal follow-on to exp-006, targeted solely at producing
 a seatable Biscuit 2.0. Everything not stated here is INHERITED from
