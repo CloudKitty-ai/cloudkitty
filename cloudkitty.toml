@@ -188,14 +188,22 @@ servings = 5
 [elements.bug]
 min = 3
 max = 7
-ttl = 300
+# Bugs 2.0 (spec 039): longer, calmer lifetimes -- a patch relocates
+# roughly every eight real-world minutes instead of churning.
+ttl = 600
+# The roam tether: each bug lives its whole life inside the 4x4
+# world-aligned cell it was born in, so a patch of the meadow HAS bugs
+# and a hunt ends inside sixteen tiles. Omit for free-range bugs.
+# Semantics: specs/039-bugs2-tether/contracts/roam-config.md
+roam_cell = 4
 
 [elements.greeble]
 # Greebles are fast, erratic, and invisible to humans -- they appear in the API
 # like any other element, but the viewer never draws them. Press `g` to cheat.
+# NEVER tethered: their job is to be the uncatchable chaos (spec 039).
 min = 1
 max = 3
-ttl = 300
+ttl = 600
 
 [elements.sunbeam]
 min = 4

@@ -2142,6 +2142,46 @@ mod tests {
     }
 
     #[test]
+    fn roam_cell_validation_refuses_zero_and_one() {
+        // Spec 039 FR-005: a 1-tile cell silently immobilizes every bug —
+        // a different world than anyone asked for. Refused, value named.
+        for bad in [0u32, 1] {
+            let mut c = cfg();
+            c.elements.bug.roam_cell = Some(bad);
+            let err = c.validate().unwrap_err().to_string();
+            assert!(err.contains("[elements.bug] roam_cell"), "{err}");
+            assert!(err.contains(&bad.to_string()), "{err}");
+        }
+    }
+
+    #[test]
+    fn roam_cell_validation_refuses_non_bug_tables() {
+        // Research D3's deliberate divergence from the silent `servings`
+        // precedent: the engine refuses what it will not honor.
+        let mut c = cfg();
+        c.elements.greeble.roam_cell = Some(4);
+        let err = c.validate().unwrap_err().to_string();
+        assert!(err.contains("[elements.greeble] roam_cell"), "{err}");
+
+        let mut c = cfg();
+        c.elements.sunbeam.roam_cell = Some(4);
+        let err = c.validate().unwrap_err().to_string();
+        assert!(err.contains("[elements.sunbeam] roam_cell"), "{err}");
+    }
+
+    #[test]
+    fn roam_cell_validation_accepts_legal_values() {
+        // 2 is the floor, 4 is the served package, 64 exceeds the world
+        // (legal: the whole world becomes one cell).
+        for good in [2u32, 4, 64] {
+            let mut c = cfg();
+            c.elements.bug.roam_cell = Some(good);
+            c.validate()
+                .unwrap_or_else(|e| panic!("roam_cell {good} must load: {e}"));
+        }
+    }
+
+    #[test]
     fn roam_cell_stays_out_of_the_default_serialization() {
         // Spec 039 research D5: `engine_defaults_sha256` hashes the default
         // Config's serialized JSON, so an unset roam_cell must not appear as

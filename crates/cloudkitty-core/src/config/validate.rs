@@ -264,6 +264,26 @@ impl Config {
                     "must be at least 1 tick, or omitted for a permanent element",
                 ));
             }
+            // The roam tether (spec 039) is a bug-only mechanic; the engine
+            // refuses the key where it would not honor it, rather than
+            // letting a config line lie (deliberate divergence from the
+            // silently-ignored non-chow `servings`).
+            if let Some(cell) = rule.roam_cell {
+                if !matches!(kind, ElementType::Bug) {
+                    return Err(ConfigError::invalid(
+                        format!("{field} roam_cell"),
+                        cell.to_string(),
+                        "only bugs are tethered (spec 039); remove this key",
+                    ));
+                }
+                if cell < 2 {
+                    return Err(ConfigError::invalid(
+                        format!("{field} roam_cell"),
+                        cell.to_string(),
+                        "must be at least 2 tiles; a 1-tile cell would immobilize every bug",
+                    ));
+                }
+            }
         }
         // The spawn dials (spec 027). The jitter's floor-at-1 math is
         // total, but its draw is 32-bit: 2*jitter+1 must fit.
