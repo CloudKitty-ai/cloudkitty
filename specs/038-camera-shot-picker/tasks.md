@@ -240,3 +240,8 @@ live look before the full grammar lands. Then US2 completes P1
 (deliver both before any deploy); US3/US4 complete the grammar; polish
 deletes the old model rather than leaving it dormant. Every checkpoint
 leaves both harnesses green and the branch deployable `--client-only`.
+
+## Phase 8: Convergence
+
+- [ ] T027 Flag the two comment-only hunks (client/render.js stale easing comment, client/app.js stale targetFor reference) in the 038 PR body per plan: render.js zero-diff constraint (partial)
+- [ ] T028 Re-point or retire gallery-v2.html card 2 (the sampled-tick framing card), which under the shot picker arrives at the cold-start SHOT frame instead of demonstrating the zoom band it was built to dial, before the T026 dial pass per plan: gallery-v2.html dial card (partial)
