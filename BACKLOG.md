@@ -520,6 +520,15 @@ been the dpr-1 WQHD, which is the one display with nothing wrong with it.
 
 ### Camera logic: what it aims at, and the trip in between (added 2026-08-18; Client thread)
 
+**RESOLVED by spec 038 (camera shot picker, 2026-08-21).** The aim-chase is
+gone: the camera decides a shot per tick and moves in latched, snapping
+episodes, so the easing tail this entry diagnosed is structurally impossible
+rather than damped — the "snap the aim within an epsilon" fix named below
+grew into the whole episode engine. The empty eased frames measured here are
+closed by 038 SC-002 (the subject is always kitties, and a break re-frames
+before the count reaches zero). The measurements and the roster caveat stay
+below because they are the record 038's numbers are judged against.
+
 Owner's call, 2026-08-18: **accepted as-is for spec 037, dialled when camera
 logic is improved.** Not to be implemented alongside 037.
 
@@ -788,6 +797,26 @@ the client-boot simplification live in `specs/032-ws-backlog/spec.md` +
 `design-inputs.md`. Pickup = `/speckit-plan` from there. Related demand
 logged there too: a served travel goal (Client should wire gaze to the
 existing `pursuit` field first).
+
+### Manual pan/zoom controls for camera mode (added 2026-08-21; owner's ask at the T026 judging; Client thread)
+
+The owner, on shipping spec 038: "later on I'd like to add manual
+pan/zoom controls." Scope sketch, to be specced when picked up:
+
+- **Interacts with the shot grammar**: a manual gesture must suspend the
+  grammar (a viewer override, like the follow pin) and hand back cleanly
+  — the release path is the design's hard part, not the gesture.
+- **Standing rulings that bear on it**: pinch zoom is a FALLBACK, never
+  the default requirement (owner, 2026-08-19); zoom range is
+  instrumental and becomes a scored feature only if manual zoom lands
+  (same ruling); the 037 band should probably still clamp manual zoom's
+  extremes.
+- **Prior art in-repo**: the follow pin (FR-014) is the template for a
+  viewer override with camera-owned state; `limitsFor` already provides
+  the legal zoom band; wheel/pinch/drag listeners would be app.js's
+  first camera gestures (the cards' tap plumbing is the nearest code).
+- Spec-first when picked up (engine untouched; client-only, but it is a
+  public interaction surface — new spec, not an 038 amendment).
 
 ### Lookahead for the camera — spec 032, revisited 2026-08-20 (Client thread)
 

@@ -33,6 +33,16 @@ change.
 
 ## Unreleased
 
+- **The camera stopped fidgeting.** It used to chase the middle of the clowder
+  every frame and never quite arrive — always drifting, never still. Now it
+  picks a shot (the most kitties that fit together), holds it perfectly still,
+  and moves only when moving means something: one gentle glide when somebody
+  presses the edge, a widen when a nearby group wanders close enough to share
+  the frame, and — rarely — one deliberate pan when a bigger gathering has
+  settled somewhere else and stayed. Kitties also draw noticeably bigger,
+  because the frame now fits the group it's watching instead of sitting at its
+  widest all day. Following a kitty works exactly as before, with one clarified
+  kindness: a loner you follow is framed alone, not stretched at.
 - **A patch of the meadow has bugs now.** Bugs 2.0 (spec 039): each bug
   lives its whole life inside the 4×4 world-aligned cell it was born
   in, and both critter lifetimes double to 600 ticks. The point is the

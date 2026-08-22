@@ -28,6 +28,16 @@ at 034 and sequential numbering would have collided.
 > Each is marked, or should be read through
 > [037 spec.md](../037-camera-zoom-targets/spec.md).
 
+> **Superseded in part by spec 038** (camera shot picker, 2026-08-20). It
+> replaces the group-camera model: **FR-004** (fit every kitty), **FR-006**
+> (aim at the most central kitty) and **FR-007** (anchor hysteresis) give way
+> to a shot grammar (hold-until-broken, widen to admit near groups, rare fast
+> pan for far ones), **SC-006** (anchor change rate) is succeeded by 038
+> SC-003's re-framing bars, and **SC-005**'s accepted deviation (empty frames
+> while easing) is closed by 038 SC-002. Following, the control, persistence,
+> the invariants and camera-off behaviour all stand; see
+> [038 spec.md](../038-camera-shot-picker/spec.md).
+
 ## Overview
 
 Today the client draws the whole 20×20 world at once. Every kitty is on screen

@@ -225,17 +225,67 @@ const VIEW = Object.freeze({
     // (FR-013) and the camera pans without ever zooming. Zoom range first
     // appears at a 351px map, against 301px before. Accepted: the owner's
     // ruling of 2026-08-19 is that zoom range is instrumental, not a goal.
-    fitMarginTiles: 2.6, // clear space beyond the outermost kitty
-    panRate: 0.06, // per-frame at 60Hz, corrected for real frame rate
-    zoomRate: 0.05, // slower than the pan, so width lags the aim slightly
-    hysteresis: 2.5, // another kitty must be 2.5x more central to take the anchor
-    // How far the group may drift before the camera moves at all. Without
-    // this the aim tracks a statistic that changes every tick, so the
-    // camera is never once still -- it pans, reverses, and pans again as
-    // first one kitty then another takes the edge of the group. Measured
-    // against the live world, 2026-08-17: at 0 the camera holds for 19% of
-    // ticks, at 1.5 for 78%, and containment stays at 100% throughout,
-    // because `fitMarginTiles` was already buying the slack this spends.
+    // fitMarginTiles, panRate, zoomRate and hysteresis died with the
+    // aim-chase model (spec 038): the margin is fitMarginFrac below, the
+    // rates became episode durations, and incumbency replaced hysteresis.
+    // The shot grammar (spec 038). Groups are connected components at this
+    // link radius; measured (client-measurements/camera-aim): identity
+    // survives a median 88s at 5, the phone re-frames least, 4 is twitchy
+    // and 6 merges nearly the whole roster.
+    linkTiles: 5,
+    // Persistence, in TICKS, before the camera acts on a disjoint group:
+    // a nearby group is ADMITTED by widening after nearDwellTicks; a far,
+    // STRICTLY bigger one takes the shot with the one true pan after
+    // farDwellTicks -- the owner's number ("numbers will always win out in
+    // interest over 15+ ticks", 2026-08-20). Thresholds are compared at
+    // exactly two sites in decide(), which is the spec-032 seam: a
+    // lookahead buffer replaces the window's source, not the grammar.
+    nearDwellTicks: 10, // owner-judged at the calm pass (2026-08-21; was 5 — stop re-opening negotiations with a 4th/5th group every few seconds)
+    farDwellTicks: 15,
+    // ...and a shed waits too (un-fit must persist this many consecutive
+    // ticks). Added at acceptance measurement, 2026-08-21: the reference
+    // sim never counted sheds, and the live grammar without this flapped
+    // at the link boundary -- join free, shed instantly, rejoin -- at
+    // 3/min on desktop and 8/min on the phone, blowing SC-003. Persistence
+    // before action is the grammar's whole idea; FR-010 had simply missed
+    // its dose.
+    shedDwellTicks: 3,
+    // A shot may keep a frame this much wider than it needs before the
+    // hold eases it tighter (the 'breathe in', US3 scenario 2). Without
+    // it the width only ever changed at membership events, ran stale-wide
+    // (median 11.5 tiles against the fit's 9.2), and SC-004's size bar
+    // failed at 1.16x. 1.3 first: the measured median oversize is 1.25,
+    // so a 1.3 threshold never fired at the median and the width never
+    // moved -- the dial must sit BELOW the drift it is meant to catch.
+    tightenFrac: 1.2, // owner-judged at the calm pass (2026-08-21; was 1.15 — 1.3 doubled the calm but broke SC-004's size floor)
+    // The inner region of the frame the shot may wander inside without the
+    // camera moving AT ALL. A member pressing past it earns one eased
+    // correction, then stillness again (038 FR-006/FR-007).
+    safeZoneFrac: 0.88, // owner-judged at the calm pass (2026-08-21; was 0.80)
+    // Persistence before action, applied to the HOLD (owner, 2026-08-21
+    // calm pass): a press (or standing slack) must survive this many
+    // consecutive ticks before a correction latches from rest. A cat
+    // leaning out and back costs nothing; a real walk still gets tracked
+    // ~2.4s in. Exempt: mid-episode re-aims (motion underway stays
+    // continuous), a member leaving the FRAME, and an EMPTY frame --
+    // SC-002 outranks calm.
+    pressDwellTicks: 3,
+    // Episode durations. Every camera-mode move latches a goal, eases over
+    // one of these, snaps EXACTLY on arrival and returns to rest -- there
+    // is no per-frame pursuit left to trail off (038 FR-006, research D7).
+    moveMs: 2000, // corrections, widens, sheds, break re-frames (owner-judged live, 2026-08-21; was 700)
+    panMs: 3000, // the one committed fast move, 038 FR-013 (owner-judged live, 2026-08-21; was 1100)
+    // Breathing room around the shot, per side, as a FRACTION of the frame
+    // -- 0.195 is today's 2.6 tiles over the 13.33-tile desktop ceiling,
+    // so desktop framing is unchanged while the phone margin finally
+    // scales down (2.6 absolute tiles was 68% of its 7.6-tile frame).
+    fitMarginFrac: 0.195,
+    // How far an OVERFLOW shot's box centre may drift before the camera
+    // moves at all (038 FR-007a). Its old job -- damping the aim-chase --
+    // died with the chase; what survives is the judged distance at which
+    // "the subject wandered" starts to be true. Measured against the live
+    // world, 2026-08-17: at 0 the camera holds for 19% of ticks, at 1.5
+    // for 78%.
     aimDeadzoneTiles: 1.5,
     hitRadiusFloorPx: 22, // a kitty stays tappable at ~23px on a phone at the ceiling
     // A backgrounded tab returns with a vast dt. Uncorrected that eases to
@@ -2108,8 +2158,6 @@ class Camera {
     this.reduced = false;
     /** The kitty the viewer chose, or null. Survives `on` going false. */
     this.followId = null;
-    /** The kitty being aimed at this frame. Never a computed midpoint. */
-    this.anchorId = null;
     /** Frame width in world tiles. */
     this.across = 0;
     /** Aim point in world tiles. */
@@ -2124,19 +2172,50 @@ class Camera {
      * and a 0 sentinel silently drops the first frames of easing.
      */
     this.lastAt = null;
+
+    /* -- The shot picker (spec 038) ----------------------------------- */
+    /** The incumbent shot: a Set of kitty ids, or null before the first
+     *  decision. Membership drifts kitty by kitty; identity is what ties
+     *  and rivals are judged against. */
+    this.shotIds = null;
+    /** Whether decide() has ever run -- world.tick may legitimately be
+     *  undefined in a fixture, so "never decided" needs its own flag. */
+    this.hasDecided = false;
+    this.lastTick = undefined;
+    /** The followId the last decision was made under, so a click
+     *  re-decides on the very next frame rather than the next tick. */
+    this.decidedFollowId = null;
+    /** {cssWidth, aspect} the last decision consumed -- a resize is a
+     *  discrete retarget (one episode), never a per-frame pursuit. */
+    this.lastBounds = null;
+    /** Disjoint-group evidence chains: [{ids:Set, members, nearTicks,
+     *  farTicks}]. See evidenceFor -- the spec-032 seam. */
+    this.chains = [];
+    /** Consecutive ticks the shot's groups have failed to share a frame;
+     *  a shed fires only at shedDwellTicks (the flap damper). */
+    this.unfitTicks = 0;
+    /** Consecutive ticks the hold has been pressed; a correction latches
+     *  from rest only at pressDwellTicks (FR-007 as amended 2026-08-21). */
+    this.pressTicks = 0;
+    /**
+     * The one mover of the camera. null means REST, and REST means the
+     * frame is BIT-STILL -- nothing eases, nothing drifts (038 FR-006).
+     * {kind, from, goal, elapsed, duration, committed}.
+     */
+    this.episode = null;
   }
 
   /**
    * The two limits, in TILES, derived from the viewport (spec 037).
    *
-   * ONE derivation, deliberately: the fit clamps to this pair, the `bound`
-   * predicate compares against this ceiling, and the ground bake keys on
-   * this floor. If `bound` compared against a different ceiling than the fit
-   * clamped to, the anchor would engage at a width the camera never reaches
-   * -- invisible to the eye (contracts/zoom.md invariant 2).
+   * ONE derivation, deliberately: the fit clamps to this pair, the
+   * overflow predicate compares against this ceiling, and the ground bake
+   * keys on this floor. If they read different ceilings, the overflow
+   * centre-hold would engage at a width the camera never reaches --
+   * invisible to the eye (contracts/zoom.md invariant 2).
    *
-   * One FUNCTION, not one call: `targetFor` and `bakeTileFor` each ask, so
-   * this runs twice a frame. That is deliberate and safe because it is pure
+   * One FUNCTION, not one call: the frame's fit and `bakeTileFor` each
+   * ask, so this runs twice a frame. That is deliberate and safe: it is pure
    * in (world.width, cssWidth, dials) -- two callers cannot disagree. Do not
    * "optimise" it into cached state on the instance: a cache would have to
    * be invalidated on resize, and a stale one reintroduces exactly the
@@ -2211,145 +2290,531 @@ class Camera {
   }
 
   /**
-   * Where the camera wants to be, before easing. Split out so the wanting
-   * and the getting-there stay separately testable.
+   * Drawn positions, never served ones. The pacer eases between states, so
+   * a camera reading served positions jumps a tick ahead and eases back
+   * once per tick -- the camera leading the cats it is following. A tile
+   * coordinate addresses the tile's ORIGIN; a cat is drawn at its centre.
    */
-  targetFor(world, view, aspect = 1, cssWidth = null) {
-    const whole = {
-      across: world.width,
-      aimX: world.width / 2,
-      aimY: world.height / 2,
-      anchorId: null,
-    };
-    if (!this.on) return whole;
-    const kitties = world.kitties || [];
-    if (!kitties.length) return whole;
-
-    const d = this.dials;
-    // Positions come from the DRAWN view, never the served snapshot. The
-    // pacer eases between states, so a camera aiming at served positions
-    // jumps a tick ahead and eases back once per tick -- the camera
-    // leading the cats it is supposed to be following.
-    const at = (k) => {
+  atOf(view) {
+    return (k) => {
       const p = view && view.posFor ? view.posFor(k) : k.pos;
-      // A tile coordinate addresses the tile's ORIGIN; a cat is drawn at
-      // its centre. Half a tile is a quarter of a cat at camera scale.
       return { x: p.x + 0.5, y: p.y + 0.5 };
     };
+  }
 
+  /**
+   * Connected components at the link radius (038 FR-002): kitties within
+   * `linkTiles` of one another belong to one group, transitively.
+   */
+  groupsFor(kitties, at) {
+    const link = this.dials.linkTiles;
+    const groups = [];
+    const seen = new Set();
+    for (const k of kitties) {
+      if (seen.has(k.id)) continue;
+      const members = [k];
+      seen.add(k.id);
+      for (let i = 0; i < members.length; i += 1) {
+        const a = at(members[i]);
+        for (const o of kitties) {
+          if (seen.has(o.id)) continue;
+          const b = at(o);
+          if (Math.hypot(a.x - b.x, a.y - b.y) <= link) {
+            seen.add(o.id);
+            members.push(o);
+          }
+        }
+      }
+      groups.push(members);
+    }
+    return groups;
+  }
+
+  /** Bounding box of drawn positions, plus its centre -- the aim of every
+   *  shot, and the whole of the overflow hold (FR-007a). */
+  bboxOf(cats, at) {
     let minX = Infinity;
     let maxX = -Infinity;
     let minY = Infinity;
     let maxY = -Infinity;
-    let sumX = 0;
-    let sumY = 0;
-    for (const k of kitties) {
+    for (const k of cats) {
       const p = at(k);
       if (p.x < minX) minX = p.x;
       if (p.x > maxX) maxX = p.x;
       if (p.y < minY) minY = p.y;
       if (p.y > maxY) maxY = p.y;
-      sumX += p.x;
-      sumY += p.y;
     }
+    return {
+      minX, maxX, minY, maxY,
+      cx: (minX + maxX) / 2,
+      cy: (minY + maxY) / 2,
+    };
+  }
 
-    const spanX = maxX - minX + 2 * d.fitMarginTiles;
-    // The frame carries the canvas's aspect, so fitting the vertical costs
-    // MORE width than the vertical span itself on a wide canvas.
-    const spanY = (maxY - minY + 2 * d.fitMarginTiles) / (aspect || 1);
-    // The floor stops a huddled group zooming past comfort; the ceiling is
-    // where the camera stops fitting and lets a wanderer leave, rather than
-    // shrinking everyone to keep her. Both come from the viewport now, not
-    // from a tile count -- "nominal" was FR-003's word and 037 removed it.
+  /**
+   * The frame width, in tiles, that holds these kitties with breathing
+   * room (038 FR-005). The margin is a FRACTION of the frame per side --
+   * span = across * (1 - 2f) -- so it scales down to the phone instead of
+   * eating 68% of its frame, and the vertical costs width through the
+   * canvas aspect exactly as the old fit priced it.
+   */
+  fitWidthFor(cats, at, aspect) {
+    return this.fitWidthOf(this.bboxOf(cats, at), aspect);
+  }
+
+  /** The same fit, from a bbox the caller already swept -- goalFrameFor
+   *  and holdViolated each need the box AND the fit, and sweeping the
+   *  positions twice per caller doubled the hold's frame cost (high
+   *  review 2026-08-21, below-cap). */
+  fitWidthOf(b, aspect) {
+    const denom = Math.max(1e-6, 1 - 2 * this.dials.fitMarginFrac);
+    return Math.max(b.maxX - b.minX, (b.maxY - b.minY) / (aspect || 1)) / denom;
+  }
+
+  /** Where a shot of these kitties wants the frame: centred on their box,
+   *  sized to their fit, clamped to the 037 band. `overflow` is the fit
+   *  asking more than the ceiling -- a first-class state on the phone. */
+  goalFrameFor(cats, at, aspect, floorTiles, ceilingTiles) {
+    const b = this.bboxOf(cats, at);
+    const need = this.fitWidthOf(b, aspect);
+    return {
+      aimX: b.cx,
+      aimY: b.cy,
+      across: Math.min(Math.max(need, floorTiles), ceilingTiles),
+      overflow: need > ceilingTiles + 1e-9,
+    };
+  }
+
+  /**
+   * The maximal-count union of groups that fits the ceiling (038 FR-003).
+   * Greedy from every seed; a seed group is admitted WHOLE even when it
+   * alone overflows (the camera clamps and frames it partially -- reality,
+   * not an error). Ties prefer overlap with `pref` (incumbency), then the
+   * lexicographically-lowest sorted id set, so a cold start is
+   * deterministic under roster reorder (research D6) -- all the way down:
+   * the greedy expansion carries its own lowest-id key too.
+   */
+  bestWindowFor(groups, at, aspect, ceilingTiles, pref = null) {
+    let best = null;
+    for (let i = 0; i < groups.length; i += 1) {
+      const cats = [...groups[i]];
+      const rest = groups.filter((_, j) => j !== i);
+      let grew = true;
+      while (grew) {
+        grew = false;
+        let pick = -1;
+        let ps = null;
+        for (let j = 0; j < rest.length; j += 1) {
+          if (this.fitWidthFor([...cats, ...rest[j]], at, aspect) <= ceilingTiles + 1e-9) {
+            const here = this.bboxOf(cats, at);
+            const there = this.bboxOf(rest[j], at);
+            // THREE keys, the last one order-proof (review 2026-08-21,
+            // finding 5): an exact [count, distance] tie -- realistic on
+            // integer tile layouts -- otherwise fell to array order, and a
+            // server reordering its roster flipped the framed wing on
+            // every cold start (research D6's determinism, restated).
+            const score = [
+              rest[j].length,
+              -Math.hypot(there.cx - here.cx, there.cy - here.cy),
+              -Math.min(...rest[j].map((k) => k.id)),
+            ];
+            if (pick < 0 || score[0] > ps[0]
+              || (score[0] === ps[0] && score[1] > ps[1])
+              || (score[0] === ps[0] && score[1] === ps[1] && score[2] > ps[2])) {
+              pick = j;
+              ps = score;
+            }
+          }
+        }
+        if (pick >= 0) {
+          cats.push(...rest[pick]);
+          rest.splice(pick, 1);
+          grew = true;
+        }
+      }
+      const ov = pref ? cats.filter((k) => pref.has(k.id)).length : 0;
+      // The outer tie key is the whole SORTED id set, compared
+      // lexicographically -- not just the lowest member (review
+      // 2026-08-21, finding 5): two grown windows can share their lowest
+      // kitty ({1,2}+either wing), and a min-id key ties exactly where
+      // the seed ORDER -- the roster order -- would decide the shot.
+      const ids = cats.map((k) => k.id).sort((a, b) => a - b);
+      const lex = (a, b) => {
+        for (let i = 0; i < Math.min(a.length, b.length); i += 1) {
+          if (a[i] !== b[i]) return a[i] - b[i];
+        }
+        return a.length - b.length;
+      };
+      if (!best || cats.length > best.n
+        || (cats.length === best.n && ov > best.ov)
+        || (cats.length === best.n && ov === best.ov && lex(ids, best.ids) < 0)) {
+        best = { cats, n: cats.length, ov, ids };
+      }
+    }
+    return best ? best.cats : [];
+  }
+
+  /**
+   * ONE tick of persistence evidence -- research D5/D10, and the spec-032
+   * seam: this consumes the current tick's disjoint groups and yields
+   * consecutive-tick counters per chain. The thresholds live OUTSIDE, at
+   * decide()'s two comparison sites, so a lookahead buffer can replace
+   * the window's source without touching the grammar.
+   *
+   * Chains carry identity by STRICT-majority member overlap (> half the
+   * larger), so a rival that churns one member mid-dwell keeps its clock
+   * -- keying on exact member sets would reset a counter every join/leave
+   * and a churning rival could never reach 15.
+   *
+   * ONE HEIR PER CHAIN, and an exact half is NOT an heir (review
+   * 2026-08-21, both passes). Plain majority admitted exact halves, so an
+   * even split first handed its whole clock to BOTH halves (double
+   * inheritance), then -- once chains were consumed on match -- to
+   * whichever half groupsFor emitted first (iteration-order arbitrary).
+   * Strict majority removes the boundary case at the root: neither half
+   * of an even split is the chain's continuation, so both clocks restart.
+   */
+  evidenceFor(disjoint, shotSize, admissible) {
+    const next = [];
+    const pool = [...this.chains];
+    for (const g of disjoint) {
+      const ids = new Set(g.map((k) => k.id));
+      let match = null;
+      let mi = -1;
+      for (let i = 0; i < pool.length; i += 1) {
+        const c = pool[i];
+        let shared = 0;
+        for (const id of ids) if (c.ids.has(id)) shared += 1;
+        if (shared * 2 > Math.max(ids.size, c.ids.size)
+          && (!match || shared > match.shared)) { match = { c, shared }; mi = i; }
+      }
+      if (mi >= 0) pool.splice(mi, 1);
+      const near = admissible(g);
+      const rival = !near && g.length > shotSize;
+      next.push({
+        ids,
+        members: g,
+        nearTicks: near ? (match ? match.c.nearTicks : 0) + 1 : 0,
+        farTicks: rival ? (match ? match.c.farTicks : 0) + 1 : 0,
+      });
+    }
+    this.chains = next;
+    return next;
+  }
+
+  /**
+   * THE shed clock -- every judgement of a standing shot's un-fitness
+   * goes through here (review 2026-08-21: the counter had grown scattered
+   * write sites, and two zero-dwell bugs grew in the gaps between them).
+   * `whole` is the membership-followed shot; `kept` is what a shed would
+   * keep. The dwell banks ONLY when a shed would both CHANGE the shot and
+   * RESTORE fit -- FR-010's licence to shed is restoring fit, so
+   * whole-shot overflow (kept == whole) and a kept set that still
+   * overflows (keptFits false) are overflow conditions for the
+   * centre-hold (FR-007a), never shed evidence. Wholesale identity
+   * resets (cold start, pan, follow change, empty roster, camera off)
+   * stay at their own sites -- they replace the shot outright.
+   */
+  shedGate(whole, kept, keptFits, advanceEvidence) {
+    if (setsEqual(kept, whole) || !keptFits) {
+      if (advanceEvidence) this.unfitTicks = 0;
+      return { ids: whole, shed: false };
+    }
+    if (advanceEvidence) this.unfitTicks += 1;
+    if (this.unfitTicks >= this.dials.shedDwellTicks) {
+      this.unfitTicks = 0;
+      return { ids: kept, shed: true };
+    }
+    return { ids: whole, shed: false };
+  }
+
+  /**
+   * The decision layer, in the contract's order (shot-grammar.md section 2):
+   * follow pin -> membership follow -> shed -> break -> admission -> pan.
+   * Runs once per world TICK (dwell is a tick count by definition), plus
+   * on a follow change or a bounds change -- both discrete, neither a
+   * pursuit. Evidence advances only on true tick edges.
+   *
+   * Membership changes here latch at most ONE episode; a joiner walking
+   * into a shot group changes only the member set (FR-008) and the hold
+   * picks the wider frame up when someone presses the edge.
+   */
+  decide(world, view, aspect, cssWidth, advanceEvidence, followChanged = false) {
+    const d = this.dials;
+    const kitties = world.kitties || [];
+    const at = this.atOf(view);
     const { floorTiles, ceilingTiles } = this.limitsFor(world, cssWidth, aspect);
-    const across = Math.min(Math.max(spanX, spanY, floorTiles), ceilingTiles);
 
-    const com = { x: sumX / kitties.length, y: sumY / kitties.length };
-
-    // A followed kitty is the anchor unconditionally -- no hysteresis,
-    // no centrality, no ceiling test (FR-015). She was chosen; that is
-    // the whole of the rule.
-    //
-    // If she is not in the roster the follow is dropped here rather than
-    // remembered, which covers both a kitty leaving while the page is
-    // open and an id restored from storage that no longer names anyone
-    // (FR-020). Camera mode itself is untouched either way.
+    // A follow on a kitty who is not here is dropped rather than
+    // remembered -- one path serves a kitty leaving mid-session and a
+    // restored id that names nobody (036 FR-020).
     let followed = null;
     if (this.followId !== null) {
       followed = kitties.find((k) => k.id === this.followId) || null;
       if (!followed) this.followId = null;
     }
-    const anchorId = followed ? followed.id : this.anchorFor(kitties, at, com);
+    // `followChanged` arrives from update() -- the edge has ONE owner
+    // (review 2026-08-21, finding 7): deriving it again here, after the
+    // FR-020 ghost-drop above has mutated followId, read a tap on a
+    // departed kitty as "no change" and skipped the bookkeeping a follow
+    // change carries. The change resets the shed clock: whatever was
+    // flapping under the old subject is not evidence against the new one.
+    if (followChanged) this.unfitTicks = 0;
+    this.decidedFollowId = this.followId;
 
-    // Where to aim depends on whether the fit got what it asked for.
-    //
-    // While the fit governs, the frame is sized to hold the whole
-    // bounding box -- so it has to be CENTRED on that box, or the width
-    // that was computed to contain everyone stops containing them. Aiming
-    // at the anchor here would push a kitty out of the frame that the fit
-    // had just widened to include.
-    //
-    // Once the ceiling binds, the camera has stopped trying to fit and
-    // needs a point instead. That point is the anchor: an occupied tile,
-    // inside the largest cluster, because the box's midpoint and the
-    // centre of mass are both usually empty grass (FR-006).
-    // The SAME ceiling the fit was clamped to, from the same derivation.
-    const bound = Math.max(spanX, spanY) > ceilingTiles;
-    const anchor = kitties.find((k) => k.id === anchorId);
-    // Below the ceiling, the CENTRE OF MASS rather than the bounding box's
-    // midpoint. A box midpoint is set by whichever two kitties are
-    // currently extreme, so it lurches every time a different one takes
-    // the edge and lurches back when she turns around -- measured at 0.44
-    // tiles of target movement per tick against 0.25 for the centre of
-    // mass, which averages all five and so is moved a fifth as far by any
-    // one of them.
-    // Following changes only WHERE the camera aims (FR-014). The width is
-    // whatever the fit asked for, so the kitties around her stay in shot
-    // rather than being cropped away to centre her.
-    const p = followed ? at(followed) : bound && anchor ? at(anchor) : com;
-    return { across, aimX: p.x, aimY: p.y, anchorId, bound, following: !!followed };
+    if (!kitties.length) {
+      this.shotIds = null;
+      this.chains = [];
+      this.unfitTicks = 0;
+      return;
+    }
+
+    const groups = this.groupsFor(kitties, at);
+    const catsOf = (ids) => kitties.filter((k) => ids.has(k.id));
+    const idsOf = (cats) => new Set(cats.map((k) => k.id));
+    const fits = (cats) => this.fitWidthFor(cats, at, aspect) <= ceilingTiles + 1e-9;
+
+    // Kitties can leave the roster; a shot never holds ghosts.
+    let shot = this.shotIds
+      ? new Set([...this.shotIds].filter((id) => kitties.some((k) => k.id === id)))
+      : null;
+    let kind = null; // the strongest episode this decision earns
+
+    if (followed) {
+      // 1. Follow pin (038 FR-014): her group is the subject,
+      // unconditionally, even alone (min-two is a group-mode rule --
+      // owner, 2026-08-21). Prior admitted company is kept while it still
+      // fits alongside her group; far rivals are never evaluated.
+      const hers = groups.find((g) => g.some((k) => k.id === followed.id));
+      let cats = [...hers];
+      if (shot) {
+        const others = groups.filter((g) => g !== hers && g.some((k) => shot.has(k.id)));
+        if (followChanged) {
+          // A FRESH pin frames her NOW (owner ruling 2026-08-21): company
+          // that no longer fits is dropped with the tap, never dwelled out.
+          for (const g of others) {
+            if (fits([...cats, ...g])) cats.push(...g);
+          }
+        } else {
+          // An ONGOING follow sheds companions through the SAME gate as
+          // group mode -- contract section 2: a follow skips step 6 ONLY.
+          // One path whether companions exist, fit, or neither: with no
+          // companions kept == whole trivially and the gate resets the
+          // clock (finding 4 -- a frozen count from DEPARTED companions
+          // armed a zero-dwell shed for the next arrivals), and a kept
+          // set that cannot fit -- her own group past the ceiling --
+          // licences nothing (finding 6).
+          const union = [...cats, ...others.flat()];
+          const kept = [...cats];
+          for (const g of others) {
+            if (fits([...kept, ...g])) kept.push(...g);
+          }
+          const verdict = this.shedGate(idsOf(union), idsOf(kept), fits(kept), advanceEvidence);
+          if (verdict.shed) kind = 'shed';
+          cats = catsOf(verdict.ids);
+        }
+      }
+      const next = idsOf(cats);
+      if (kind === 'shed' && setsEqual(next, shot)) kind = null;
+      shot = next;
+      if (followChanged) {
+        // The pin itself latches ONE correction, replacing even a
+        // committed pan -- the redirect the owner chose over the deferral
+        // (ruling 2026-08-21; FR-013 protects against grammar dithering,
+        // not against the person holding the phone).
+        kind = 'correction';
+      }
+    } else {
+      if (!shot || !shot.size) {
+        // Cold start / re-engage: the best window, deterministically. With
+        // a live frame already on screen (toggling ON mid-session) the
+        // narrowing is one eased episode; with none (first paint) the
+        // arrival block below places it before anything is drawn (SC-009).
+        shot = idsOf(this.bestWindowFor(groups, at, aspect, ceilingTiles));
+        kind = this.across ? 'break' : null;
+        this.unfitTicks = 0;
+      } else {
+        // 2. Membership follow (FR-008): the shot is every group that still
+        // holds a member. 3. Shed (FR-010) when they no longer fit together.
+        const touching = groups.filter((g) => g.some((k) => shot.has(k.id)));
+        const all = touching.flat();
+        if (fits(all)) {
+          shot = idsOf(all);
+          if (advanceEvidence) this.unfitTicks = 0;
+        } else {
+          // The shed gate asks whether a shed would CHANGE anything and
+          // RESTORE fit. A single group wider than the frame is an
+          // OVERFLOW shot, not a shed -- bestWindowFor admits its seed
+          // whole, so `kept` only differs when a whole group could
+          // actually be dropped -- and overflow ticks bank NO dwell
+          // (review 2026-08-21, finding 2): the old counter saturated
+          // through an overflow spell, and a later one-tick un-link shed
+          // with zero dwell -- the exact flap shedDwellTicks exists to
+          // kill. Most boundary flaps re-fit within a tick or two and no
+          // one ever moves.
+          const kept = idsOf(this.bestWindowFor(touching, at, aspect, ceilingTiles, shot));
+          const verdict = this.shedGate(idsOf(all), kept, fits(catsOf(kept)), advanceEvidence);
+          if (verdict.shed) kind = 'shed';
+          shot = verdict.ids;
+        }
+        if (shot.size < 2) kind = 'break';
+      }
+      // 4. Break / minimum-two (FR-004/FR-011), on EVERY group-mode path --
+      // cold start included, which is where the first cut of this missed
+      // it (caught by 'the ceiling binds, and the wanderer is let go'):
+      // below two, re-pick outright; when even the best window is a
+      // singleton, the closest PAIR at the widest -- partial visibility
+      // beats a portrait.
+      if (shot.size < 2) {
+        let next = idsOf(this.bestWindowFor(groups, at, aspect, ceilingTiles, shot));
+        if (next.size < 2 && kitties.length >= 2) {
+          let pair = null;
+          let bestD = Infinity;
+          for (const a of kitties) {
+            for (const b of kitties) {
+              if (a.id < b.id) {
+                const pa = at(a);
+                const pb = at(b);
+                const dd = Math.hypot(pa.x - pb.x, pa.y - pb.y);
+                if (dd < bestD) { bestD = dd; pair = [a, b]; }
+              }
+            }
+          }
+          next = idsOf(pair);
+        }
+        shot = next;
+      }
+    }
+
+    // 5. Admission and 6. pan, on tick edges only -- dwell is a count of
+    // TICKS, and these are the grammar's only two threshold reads (the
+    // spec-032 seam; research D10).
+    if (advanceEvidence) {
+      const disjoint = groups.filter((g) => !g.some((k) => shot.has(k.id)));
+      const admissible = (g) => fits([...g, ...catsOf(shot)]);
+      const chains = this.evidenceFor(disjoint, shot.size, admissible);
+      for (const c of chains) {
+        if (c.nearTicks >= d.nearDwellTicks && admissible(c.members)) {
+          // Widen to admit -- never switch to -- a group that can share
+          // the frame (FR-009). The owner's convergence call, made
+          // geometry.
+          for (const id of c.ids) shot.add(id);
+          this.chains = this.chains.filter((o) => o !== c);
+          if (!kind) kind = 'widen';
+        } else if (!followed && c.farTicks >= d.farDwellTicks && c.members.length > shot.size) {
+          // The only true transition (FR-012/FR-013): strictly bigger,
+          // unreachable by widening, sustained. Equal never dethrones.
+          shot = new Set(c.ids);
+          kind = 'pan';
+          this.chains = [];
+          this.unfitTicks = 0;
+          break;
+        }
+      }
+    }
+
+    this.shotIds = shot;
+    if (!shot.size) return;
+
+    const goal = this.goalFrameFor(catsOf(shot), at, aspect, floorTiles, ceilingTiles);
+    // A shed or break re-centres at HELD width; the standing breathe-in
+    // owns the zoom, later and slowly (owner, 2026-08-21 live judging:
+    // membership re-frames were the "substantial moves" -- median 4.8
+    // tiles of travel WITH 3.3 tiles of zoom in one motion. Decomposed,
+    // the same event is a modest pan, a beat of rest, then a calm
+    // tighten). Widens keep their width change -- admitting IS widening
+    // -- and so does a re-frame whose CURRENT width sits outside the 037
+    // band: toggling the camera on from the whole-world view has no
+    // established framing to preserve, and holds its one-ease narrowing
+    // (036 continuity, 'toggling ON narrows in one eased episode').
+    if ((kind === 'shed' || kind === 'break')
+      && this.across && this.across <= ceilingTiles + 1e-9) {
+      goal.across = Math.max(goal.across, Math.min(this.across, ceilingTiles));
+    }
+    if (kind === 'pan') {
+      this.startEpisode('pan', goal);
+    } else if (kind) {
+      this.startEpisode(kind, goal);
+    } else if (this.lastBounds && (this.lastBounds.cssWidth !== cssWidth
+      || this.lastBounds.aspect !== aspect)
+      && Math.abs(goal.across - this.across) > 1e-6) {
+      // A resize is a discrete retarget: one eased episode to the new
+      // band, never a cut (036 FR-008) and never a pursuit. Tick edges
+      // leave the width to the hold, or the frame would breathe with the
+      // group's span every tick.
+      this.startEpisode('correction', goal);
+    }
   }
 
   /**
-   * The kitty nearest the group's centre of mass: an OCCUPIED spot, and
-   * inside the largest cluster when there is one. Neither the bounding
-   * box's midpoint nor the centre of mass itself will do, because both are
-   * usually empty grass -- which is the whole reason this is a separate
-   * choice rather than a bit of arithmetic on the fit.
+   * Has the shot pressed out of the frame's comfort? Two regimes:
    *
-   * Held by hysteresis or the camera flicks between kitties at opposite
-   * ends of the meadow. The comparison is squared, so the dial is squared
-   * with it and stays a plain multiple of real distance.
-   *
-   * 2.5 since 2026-08-18, from 1.5. Measured over 20 served minutes at 5
-   * kitties: 1.5 gives 4.50 anchor changes/min and 2.0 gives 3.40, both
-   * over 036 SC-006's bar of 3; 2.5 gives 2.70. The bar only bites where
-   * the ceiling BINDS, because that is the only time the anchor drives the
-   * aim -- 19% of the time on a large viewport and ~100% on a phone, which
-   * is why spec 037 made this urgent. See
-   * client-measurements/037-zoom/sc006-2026-08-18.md.
+   *   fitting shot -- any member outside the inner safe-zone rect
+   *     (038 FR-006/FR-007);
+   *   OVERFLOW shot (fit > ceiling, common on the phone) -- the box
+   *     CENTRE drifting past the deadzone. Members half-out of frame
+   *     trigger NOTHING: the camera never chases edge kitties
+   *     (038 FR-007a, owner 2026-08-21).
    */
-  anchorFor(kitties, at, com) {
-    const d2 = (k) => {
+  holdViolated(frame, cats, at, aspect, world, ceilingTiles) {
+    const b = this.bboxOf(cats, at);
+    if (this.fitWidthOf(b, aspect) > ceilingTiles + 1e-9) {
+      return Math.hypot(b.cx - frame.aimX, b.cy - frame.aimY)
+        > this.dials.aimDeadzoneTiles;
+    }
+    const down = frame.across * (aspect || 1);
+    const left = clampFrame(frame.aimX - frame.across / 2, world.width, frame.across);
+    const top = clampFrame(frame.aimY - down / 2, world.height, down);
+    const mx = (frame.across * (1 - this.dials.safeZoneFrac)) / 2;
+    const my = (down * (1 - this.dials.safeZoneFrac)) / 2;
+    return cats.some((k) => {
       const p = at(k);
-      return (p.x - com.x) ** 2 + (p.y - com.y) ** 2;
+      return p.x < left + mx || p.x > left + frame.across - mx
+        || p.y < top + my || p.y > top + down - my;
+    });
+  }
+
+  /**
+   * Latch a goal and ease to it. The episode is the ONLY thing that moves
+   * the camera: it eases over a fixed duration, snaps EXACTLY on arrival,
+   * and rests. Reduced motion arrives now instead (FR-016).
+   */
+  startEpisode(kind, goal) {
+    if (this.reduced || !this.across) {
+      this.across = goal.across;
+      this.aimX = goal.aimX;
+      this.aimY = goal.aimY;
+      this.episode = null;
+      return;
+    }
+    this.episode = {
+      kind,
+      from: { aimX: this.aimX, aimY: this.aimY, across: this.across },
+      goal,
+      // The velocity this move INHERITS (per-ms, zeros from rest). A
+      // re-latch mid-flight hands its momentum to the next curve, so
+      // motion between two rest states never passes through a stop while
+      // its cause persists -- the owner's "fits and starts", resolved
+      // structurally (2026-08-21).
+      v0: this.episodeVelocity(),
+      elapsed: 0,
+      duration: kind === 'pan' ? this.dials.panMs : this.dials.moveMs,
+      committed: kind === 'pan',
     };
-    let best = null;
-    let bestD = Infinity;
-    for (const k of kitties) {
-      const dist = d2(k);
-      // Ties break on id, not array order, so a reordered roster cannot
-      // make the camera choose differently from one frame to the next.
-      if (dist < bestD || (dist === bestD && best !== null && k.id < best)) {
-        bestD = dist;
-        best = k.id;
-      }
-    }
-    const held = kitties.find((k) => k.id === this.anchorId);
-    if (held && best !== this.anchorId && d2(held) < bestD * this.dials.hysteresis ** 2) {
-      return this.anchorId;
-    }
-    return best;
+  }
+
+  /** The running episode's current per-ms velocity, or zeros at rest. */
+  episodeVelocity() {
+    const ep = this.episode;
+    if (!ep) return { ax: 0, ay: 0, ac: 0 };
+    const lead = ep.duration * Camera.AIM_LEAD;
+    const tA = Math.min(1, ep.elapsed / lead);
+    const tW = Math.min(1, ep.elapsed / ep.duration);
+    return {
+      ax: hermiteVel(ep.from.aimX, ep.goal.aimX, ep.v0.ax * lead, tA) / lead,
+      ay: hermiteVel(ep.from.aimY, ep.goal.aimY, ep.v0.ay * lead, tA) / lead,
+      ac: hermiteVel(ep.from.across, ep.goal.across, ep.v0.ac * ep.duration, tW) / ep.duration,
+    };
   }
 
   /**
@@ -2371,86 +2836,267 @@ class Camera {
   }
 
   /**
-   * The aim, held inside a deadzone: the target stops being a point and
-   * becomes a circle the group is allowed to wander around inside.
-   *
-   * This is what makes the camera capable of being STILL. A meadow whose
-   * camera adjusts every single tick reads as drifting even when each
-   * adjustment is small, and small adjustments that reverse read as
-   * snapping. Inside the deadzone the camera does not move at all;
-   * outside it, it moves only as far as the deadzone's edge, so it comes
-   * to rest rather than centring and immediately being nudged again.
-   */
-  aimGoalFor(want) {
-    const dead = this.dials.aimDeadzoneTiles;
-    const dx = want.aimX - this.aimX;
-    const dy = want.aimY - this.aimY;
-    const off = Math.hypot(dx, dy);
-    if (off <= dead) return { x: this.aimX, y: this.aimY };
-    const k = (off - dead) / off;
-    return { x: this.aimX + dx * k, y: this.aimY + dy * k };
-  }
-
-  /**
-   * Advance one frame. `view.still` covers reduced motion and post-snap
-   * frames alike, and both want arrival rather than easing.
+   * Advance one frame. Decisions run on discrete edges (a new tick, a
+   * follow change, a resize, or never-yet-decided); motion is the current
+   * episode easing toward its latched goal; REST is bit-stillness.
    */
   update(world, view, opts = {}) {
     const aspect = opts.aspect || 1; // cssHeight / cssWidth
+    const cssWidth = opts.cssWidth;
     const now = view?.ambient?.now;
     const dt = this.dtFor(view);
     // A frame with no clock leaves the clock alone. See `dtFor`.
     if (typeof now === 'number') this.lastAt = now;
 
-    const want = this.targetFor(world, view, aspect, opts.cssWidth);
-    // Arrive rather than ease on the first frame, on a still frame
-    // (reduced motion and post-snap alike), and whenever the camera is
-    // off. That last one is a deliberate cut and the only one here: the
-    // off state must BE the whole-world view, not approach it, or the
-    // ground would bake at the whole-world tile while the frame was still
-    // mid-zoom and magnify to fill it.
-    if (!this.across || !this.on) {
-      // No history to ease from, or no camera to ease: arrive.
-      this.across = want.across;
-      this.aimX = want.aimX;
-      this.aimY = want.aimY;
-    } else if (this.reduced) {
-      // No easing at all for a viewer who asked for none (FR-010), but
-      // still through the deadzone -- the deadzone is not motion, it is
-      // the camera declining to care about a fidget.
-      const goal = this.aimGoalFor(want);
-      this.across = want.across;
-      this.aimX = goal.x;
-      this.aimY = goal.y;
-    } else if (view?.still) {
-      // A still frame is the SAME MOMENT drawn again -- a palette step, a
-      // toggle, a tab coming back -- not a step forward in time. Holding
-      // is the whole of the correct behaviour here.
-      //
-      // Treating it as "arrive" instead is what made the camera jerk: a
-      // palette crossfade alone fires up to BLEND_STEPS of these, and
-      // every follow, unfollow and toggle fires one, so the camera
-      // teleported to its target several times a minute and eased the
-      // rest of the time. Reported as intermittent jerking, 2026-08-17.
-    } else {
-      // Corrected for frame rate: a rate written per frame at 60Hz eases
-      // twice as fast at 120Hz. `dt` is already clamped, so a tab
-      // returning after a minute still eases rather than cutting.
-      const ease = (rate) => 1 - (1 - rate) ** (dt / 16.67);
-      const pan = ease(this.dials.panRate);
-      const zoom = ease(this.dials.zoomRate);
-      const goal = this.aimGoalFor(want);
-      this.aimX += (goal.x - this.aimX) * pan;
-      this.aimY += (goal.y - this.aimY) * pan;
-      this.across += (want.across - this.across) * zoom;
+    if (!this.on) {
+      // Off IS the whole-world view, not an approach to it -- a deliberate
+      // cut, and the only one: the ground bakes at the whole-world tile,
+      // so a frame mid-zoom would magnify it. The shot does not survive
+      // the toggle (a fresh ON re-picks); the follow does (036 FR-027).
+      this.across = world.width;
+      this.aimX = world.width / 2;
+      this.aimY = world.height / 2;
+      this.shotIds = null;
+      this.hasDecided = false;
+      this.chains = [];
+      this.unfitTicks = 0;
+      this.pressTicks = 0;
+      this.episode = null;
+      const downOff = this.across * aspect;
+      this.left = clampFrame(this.aimX - this.across / 2, world.width, this.across);
+      this.top = clampFrame(this.aimY - downOff / 2, world.height, downOff);
+      return;
     }
-    this.anchorId = want.anchorId;
+
+    // -- Decide, on edges only ------------------------------------------
+    const tickEdge = !this.hasDecided
+      || (world && world.tick !== undefined && world.tick !== this.lastTick);
+    const followEdge = this.followId !== this.decidedFollowId;
+    const boundsEdge = this.lastBounds !== null
+      && (this.lastBounds.cssWidth !== cssWidth || this.lastBounds.aspect !== aspect);
+    const mustDecide = tickEdge || followEdge || boundsEdge || !this.shotIds;
+    // A committed pan finishes before the grammar looks again (FR-013) --
+    // unless the VIEWER intervened: a follow change redirects immediately
+    // (owner ruling 2026-08-21; commitment protects against grammar
+    // dithering, not against the person holding the phone).
+    //
+    // And NEVER from a still frame (review 2026-08-21, finding 2): taps
+    // and toggles arrive via redraw(), whose view carries SERVED
+    // positions, so a decision there latches a shot and goal the drawn
+    // cats have not reached -- the hold's guard, applied to the decision
+    // layer it was protecting. Deferring one frame hands the decision to
+    // the rAF loop and the drawn world. Two exemptions, both places where
+    // served IS what the frame draws: reduced motion (still frames are
+    // its only frames) and the never-decided first paint (SC-009 -- the
+    // restored view must be in place before anything is drawn).
+    const liveDecision = !(view && view.still) || this.reduced || !this.hasDecided;
+    if (mustDecide && liveDecision
+      && (followEdge || !(this.episode && this.episode.committed))) {
+      this.decide(world, view, aspect, cssWidth, tickEdge, followEdge);
+      this.hasDecided = true;
+      this.lastTick = world ? world.tick : undefined;
+      this.lastBounds = { cssWidth, aspect };
+    }
+
+    const at = this.atOf(view);
+    const { floorTiles, ceilingTiles } = this.limitsFor(world, cssWidth, aspect);
+    const shotCats = this.shotIds && this.shotIds.size
+      ? (world.kitties || []).filter((k) => this.shotIds.has(k.id))
+      : [];
+
+    if (!this.across && shotCats.length) {
+      // First frame: the restored view is in place before the first paint
+      // (SC-009) -- arrive, never travel from a default.
+      const goal = this.goalFrameFor(shotCats, at, aspect, floorTiles, ceilingTiles);
+      this.across = goal.across;
+      this.aimX = goal.aimX;
+      this.aimY = goal.aimY;
+      this.episode = null;
+    } else if (!shotCats.length && !this.across) {
+      this.across = world.width;
+      this.aimX = world.width / 2;
+      this.aimY = world.height / 2;
+    } else if (!shotCats.length) {
+      // The roster emptied under an established frame (a reseed between
+      // generations). The old model's fit answered "the whole world" and
+      // the frame eased out; the shot picker has no shot to frame, so it
+      // must say so itself or the viewer stares at a frozen close-up of
+      // empty grass. One episode, guarded against re-latching -- and it
+      // outranks even a committed pan, whose destination no longer exists.
+      const whole = { aimX: world.width / 2, aimY: world.height / 2, across: world.width };
+      const there = Math.abs(this.across - whole.across) < 1e-6
+        && Math.abs(this.aimX - whole.aimX) < 1e-6
+        && Math.abs(this.aimY - whole.aimY) < 1e-6;
+      const heading = this.episode
+        && this.episode.goal.across === whole.across
+        && this.episode.goal.aimX === whole.aimX
+        && this.episode.goal.aimY === whole.aimY;
+      if (!there && !heading) this.startEpisode('correction', whole);
+    }
+
+    // Reduced motion flipped MID-EPISODE arrives now (review 2026-08-21,
+    // finding 3): every reduced frame is still (dt 0), so an in-flight
+    // episode would otherwise never advance again -- the camera frozen
+    // mid-ease while the cats walk out of frame. Same rule startEpisode
+    // applies at latch time, applied to the episode the flip caught.
+    if (this.reduced && this.episode) {
+      this.across = this.episode.goal.across;
+      this.aimX = this.episode.goal.aimX;
+      this.aimY = this.episode.goal.aimY;
+      this.episode = null;
+    }
+
+    // -- The hold -------------------------------------------------------
+    // At REST, a violation of the CURRENT frame starts one correction; mid
+    // NON-PAN episode, a violation of the LATCHED GOAL re-latches a
+    // velocity-carrying episode from the current state whenever the goal
+    // has actually moved (research D9, re-amended 2026-08-21 twice) --
+    // evaluated against the goal, not the moving frame. A pan is
+    // committed and looks at nothing.
+    //
+    // NEVER on a still frame: `viewAt(now, true)` publishes SERVED
+    // positions (posFor is `kitty.pos`), up to a tile ahead of the drawn
+    // cats, so a palette blend or tab-return redraw would latch a goal the
+    // viewer's cats have not reached -- camera motion off a non-motion
+    // event. Reduced motion is exempt on the same reasoning inverted: its
+    // still frames are its ONLY frames, and for it drawn IS served.
+    if (shotCats.length && (!(view && view.still) || this.reduced)) {
+      const probe = this.episode && !this.episode.committed
+        ? this.episode.goal
+        : !this.episode
+          ? { aimX: this.aimX, aimY: this.aimY, across: this.across }
+          : null;
+      if (probe) {
+        // One position sweep each for the goal and the violation -- and
+        // each of those now sweeps ONCE internally (fitWidthOf reuses the
+        // caller's bbox), so a rest frame costs two sweeps total. The
+        // first cut ran ~6 (high review 2026-08-21, below-cap).
+        const goal = this.goalFrameFor(shotCats, at, aspect, floorTiles, ceilingTiles);
+        const violated = this.holdViolated(probe, shotCats, at, aspect, world, ceilingTiles);
+        // The breathe-in fires from REST only: mid-episode, slack alone
+        // never re-latches. Without this gate the held-width shed above
+        // collapses back into pan+zoom-together ONE FRAME after it
+        // latches -- the hold would immediately re-latch the tight goal
+        // (found by measurement: the first cut of the decomposition
+        // changed nothing at all).
+        const slack = violated || this.episode ? 0 : probe.across / Math.max(1e-6, goal.across);
+        const pressed = violated || slack > this.dials.tightenFrac;
+        // The press dwell: count persistence on tick edges; from REST the
+        // trigger waits it out, mid-episode it does not.
+        // The FRAME EDGE bypasses patience: the safe zone is a polite
+        // buffer, but a member actually leaving the frame is SC-002's
+        // contract -- measured: without the bypass, a 3-tick dwell let a
+        // walking group exit entirely for 9 frames.
+        if (tickEdge) this.pressTicks = pressed ? this.pressTicks + 1 : 0;
+        const down = probe.across * (aspect || 1);
+        const pLeft = clampFrame(probe.aimX - probe.across / 2, world.width, probe.across);
+        const pTop = clampFrame(probe.aimY - down / 2, world.height, down);
+        const outOf = (k) => {
+          const pt = at(k);
+          return pt.x < pLeft || pt.x > pLeft + probe.across
+            || pt.y < pTop || pt.y > pTop + down;
+        };
+        const escaping = (violated && shotCats.some(outOf))
+          // An EMPTY frame waives all patience regardless of the trigger:
+          // SC-002 outranks calm, and an overflow pair drifting centred
+          // can carry both members out before the deadzone trips.
+          || shotCats.every(outOf);
+        const patient = escaping || this.episode !== null
+          || this.pressTicks >= (this.dials.pressDwellTicks || 0);
+        if (pressed && patient) {
+          // Move only when moving HELPS. Near the world's edge the clamp
+          // can leave a member outside ANY legal frame's safe zone -- a
+          // kitty sleeping against the fence -- and for her the fresh
+          // goal is IDENTICAL, so it must trigger nothing or the hold
+          // restarts the same episode forever. When the goal HAS moved, a
+          // re-latch is free at any cadence: the new episode inherits the
+          // old one's position AND velocity (Hermite), so a walker is one
+          // continuous tracked move -- no zero-slope crawl (the restart
+          // bug), no single-frame warp (the goal-mutation bug), and no
+          // surge-stop rhythm at episode seams (the owner's ruling,
+          // 2026-08-21) -- and a fidgeting shot still ARRIVES, because an
+          // un-violated goal never re-latches and the last episode runs
+          // out its clock and snaps.
+          const same = Math.abs(goal.aimX - probe.aimX) < 1e-6
+            && Math.abs(goal.aimY - probe.aimY) < 1e-6
+            && Math.abs(goal.across - probe.across) < 1e-6;
+          if (!same) {
+            this.startEpisode(this.episode ? this.episode.kind : 'correction', goal);
+          }
+        }
+      }
+    }
+
+    // -- The motion -----------------------------------------------------
+    if (this.episode && dt > 0) {
+      const ep = this.episode;
+      ep.elapsed += dt;
+      const t = Math.min(1, ep.elapsed / ep.duration);
+      if (t >= 1) {
+        // EXACT arrival, then rest. No easing residue, no epsilon drift --
+        // the measured cause of "too active" was pursuit that never
+        // arrives, and this is its structural remover (038 FR-006).
+        this.across = ep.goal.across;
+        this.aimX = ep.goal.aimX;
+        this.aimY = ep.goal.aimY;
+        this.episode = null;
+      } else {
+        // The aim settles slightly faster than the width (036 FR-009,
+        // kept through the episode model): it finishes its travel at
+        // AIM_LEAD of the duration. Each channel rides a Hermite that
+        // starts at the INHERITED velocity and lands at rest.
+        const lead = ep.duration * Camera.AIM_LEAD;
+        const tA = Math.min(1, ep.elapsed / lead);
+        this.aimX = hermite(ep.from.aimX, ep.goal.aimX, ep.v0.ax * lead, tA);
+        this.aimY = hermite(ep.from.aimY, ep.goal.aimY, ep.v0.ay * lead, tA);
+        // Carried momentum can OVERSHOOT the width a hair past the 037
+        // band, and the band is a hard invariant -- but a transit that
+        // legitimately STARTS outside it (toggling on from the
+        // whole-world 20 tiles) must pass through smoothly, so the clip
+        // widens to admit the start point. Aim overshoot stays unclipped:
+        // a slight swing-through reads as momentum, and clampFrame keeps
+        // the frame inside the world regardless.
+        this.across = Math.min(
+          Math.max(hermite(ep.from.across, ep.goal.across, ep.v0.ac * ep.duration, t),
+            Math.min(floorTiles, ep.from.across)),
+          Math.max(ceilingTiles, ep.from.across),
+        );
+      }
+    }
+    // A still frame (dt 0) is the same moment drawn again: the episode
+    // neither advances nor snaps, and REST frames touch nothing at all --
+    // `left`/`top` below recompute to identical values from identical
+    // inputs, which is what bit-stillness means.
 
     const down = this.across * aspect;
     this.left = clampFrame(this.aimX - this.across / 2, world.width, this.across);
     this.top = clampFrame(this.aimY - down / 2, world.height, down);
   }
 }
+
+/** The aim's head start inside an episode: it finishes at this fraction of
+ *  the duration, so the zoom lags the pan slightly (036 FR-009). */
+Camera.AIM_LEAD = 0.85;
+
+/**
+ * Cubic Hermite on [0,1] with an INITIAL tangent and a rest landing --
+ * the curve that lets an episode inherit the previous episode's momentum
+ * (owner, 2026-08-21: chained rest-to-rest S-curves read as fits and
+ * starts on a walker). m0 is the start tangent in unit time (per-ms
+ * velocity x the channel's own duration); the end tangent is always 0,
+ * so every episode still lands at rest and snaps exactly. With m0 = 0
+ * this is a plain smoothstep -- a fresh move from rest is unchanged in
+ * character.
+ */
+const hermite = (p0, p1, m0, t) => p0 * (2 * t ** 3 - 3 * t * t + 1)
+  + m0 * (t ** 3 - 2 * t * t + t) + p1 * (-2 * t ** 3 + 3 * t * t);
+
+/** Its velocity, in the same unit time (divide by the duration for per-ms). */
+const hermiteVel = (p0, p1, m0, t) => p0 * (6 * t * t - 6 * t)
+  + m0 * (3 * t * t - 4 * t + 1) + p1 * (6 * t - 6 * t * t);
+
+/** Two id-sets with the same members. */
+const setsEqual = (a, b) => a.size === b.size && [...a].every((id) => b.has(id));
 
 /**
  * The browser side: one rAF loop, stopped whenever it has no business
