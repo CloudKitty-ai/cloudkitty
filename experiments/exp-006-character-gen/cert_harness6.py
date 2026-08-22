@@ -135,6 +135,22 @@ SEATINGS = {
     "candidate-attn": ["v4:attn-a1-s1", "v4:attn-a1-s1",
                        "v4:attn-a1-s3", "v4:attn-a1-s3",
                        "mlp:e004-a1-s2"],
+    # exp-006a battery (prereg §5, twin-free roster): 006a candidate
+    # at Biscuit, Pumpkin s3 solo, E1-s1 stripped actor at Kittybear.
+    # -r3 = candidate minds at kitty IDs 1-3 on family-spread/
+    # family-00.toml; -r5 = all five by ID on the pinned
+    # tail-benchmarks/family-11.toml (report-only)
+    "c006a-L04s3": ["v4:attn-a1-s1", "ppo:ppo-L-04-s3",
+                    "v4:attn-a1-s3", "ppo:ppo-E1-s1-stripped",
+                    "mlp:e004-a1-s2"],
+    "c006a-L04s3-r3": ["v4:attn-a1-s1", "ppo:ppo-L-04-s3",
+                       "v4:attn-a1-s3"],
+    "c006a-L04s3-r5": ["v4:attn-a1-s1", "ppo:ppo-L-04-s3",
+                       "v4:attn-a1-s3", "ppo:ppo-E1-s1-stripped",
+                       "mlp:e004-a1-s2"],
+    "c006a-Fdose-s2": ["v4:attn-a1-s1", "ppo:ppo-F-dose-s2",
+                       "v4:attn-a1-s3", "ppo:ppo-E1-s1-stripped",
+                       "mlp:e004-a1-s2"],
 }
 BANDS = {"eval": 870_001, "stress": 880_001}
 
