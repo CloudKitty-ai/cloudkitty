@@ -120,10 +120,12 @@ impl Element {
         }
     }
 
-    /// Bugs plod: one tile every second tick. Deriving the schedule from
-    /// `(tick + id)` keeps it stateless and deterministic, and staggers the
-    /// population so they don't all move in lockstep.
-    pub fn bug_moves_this_tick(&self, tick: u64) -> bool {
+    /// The critter rest-tick schedule: move every second tick. Bugs always
+    /// live on it; greebles join it under `dart` (spec 039 third
+    /// amendment). Deriving the schedule from `(tick + id)` keeps it
+    /// stateless and deterministic, and staggers the population so they
+    /// don't all move in lockstep.
+    pub fn critter_moves_this_tick(&self, tick: u64) -> bool {
         (tick.wrapping_add(self.id as u64)).is_multiple_of(2)
     }
 }
@@ -204,9 +206,9 @@ mod tests {
             pos: Position::new(0, 0),
             ttl: Some(10),
         };
-        assert!(bug.bug_moves_this_tick(0));
-        assert!(!bug.bug_moves_this_tick(1));
-        assert!(bug.bug_moves_this_tick(2));
+        assert!(bug.critter_moves_this_tick(0));
+        assert!(!bug.critter_moves_this_tick(1));
+        assert!(bug.critter_moves_this_tick(2));
     }
 
     #[test]

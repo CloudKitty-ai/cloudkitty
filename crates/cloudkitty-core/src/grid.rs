@@ -63,6 +63,17 @@ impl Position {
     }
 }
 
+/// Whether two tiles lie in the same roam cell (spec 039): the world tiles
+/// into `n`-sized cells anchored at the origin, so a tile's cell is its
+/// quotient pair `(x / n, y / n)`. Worlds whose dimensions are not multiples
+/// of `n` get smaller remainder cells along the far edges, and a world
+/// smaller than `n` in a dimension is a single cell across it — all from
+/// this one division, no edge cases. `n` is validated ≥ 2 at config load;
+/// this predicate does not re-check.
+pub fn same_roam_cell(a: Position, b: Position, n: u32) -> bool {
+    (a.x / n, a.y / n) == (b.x / n, b.y / n)
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Direction {
@@ -185,5 +196,69 @@ mod tests {
             Some(Direction::North)
         );
         assert_eq!(Direction::toward(from, from), None);
+    }
+
+    /// Spec 039 FR-002: the roam partition assigns every tile exactly one
+    /// cell. "Exactly one" is arithmetic (a quotient pair is a function of
+    /// the tile), so the real content here is the cell CENSUS: the counts
+    /// and shapes that fall out of integer division match what the spec
+    /// promises for each geometry.
+    #[test]
+    fn roam_partition_covers_every_tile_exactly_once() {
+        // 20x20 / n=4: the served geometry — exactly 25 cells of 16 tiles.
+        let census = |w: u32, h: u32, n: u32| {
+            let mut cells = std::collections::BTreeMap::new();
+            for x in 0..w {
+                for y in 0..h {
+                    *cells.entry((x / n, y / n)).or_insert(0u32) += 1;
+                }
+            }
+            cells
+        };
+
+        let served = census(20, 20, 4);
+        assert_eq!(served.len(), 25);
+        assert!(served.values().all(|&c| c == 16));
+
+        // 26x26 / n=4: 4x4 interior, 4x2 + 2x4 edge strips, one 2x2 corner
+        // (spec US2 scenario 1). 49 cells, tile counts partition 26*26.
+        let ragged = census(26, 26, 4);
+        assert_eq!(ragged.len(), 49);
+        assert_eq!(ragged.values().sum::<u32>(), 26 * 26);
+        assert_eq!(ragged.values().filter(|&&c| c == 16).count(), 36);
+        assert_eq!(ragged.values().filter(|&&c| c == 8).count(), 12);
+        assert_eq!(ragged.values().filter(|&&c| c == 4).count(), 1);
+
+        // 5x5 / n=8: the whole world is one cell (spec US2 scenario 3).
+        let tiny = census(5, 5, 8);
+        assert_eq!(tiny.len(), 1);
+        assert_eq!(tiny[&(0, 0)], 25);
+    }
+
+    #[test]
+    fn roam_same_cell_matches_the_quotient_partition() {
+        // The predicate agrees with the census definition on every pair of
+        // a 26x26 world — including remainder-strip pairs and cross-boundary
+        // neighbours (x=23 and x=24 are adjacent tiles in different cells).
+        let n = 4;
+        assert!(same_roam_cell(
+            Position::new(24, 25),
+            Position::new(25, 24),
+            n
+        ));
+        assert!(!same_roam_cell(
+            Position::new(23, 0),
+            Position::new(24, 0),
+            n
+        ));
+        for &(ax, ay, bx, by) in &[(0, 0, 3, 3), (0, 0, 4, 0), (19, 19, 16, 16), (12, 3, 12, 4)] {
+            let a = Position::new(ax, ay);
+            let b = Position::new(bx, by);
+            assert_eq!(
+                same_roam_cell(a, b, n),
+                (ax / n, ay / n) == (bx / n, by / n),
+                "predicate disagrees with quotient partition at {a:?} {b:?}"
+            );
+        }
     }
 }

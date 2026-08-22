@@ -33,6 +33,50 @@ change.
 
 ## Unreleased
 
+- **A patch of the meadow has bugs now.** Bugs 2.0 (spec 039): each bug
+  lives its whole life inside the 4×4 world-aligned cell it was born
+  in, and both critter lifetimes double to 600 ticks. The point is the
+  hunt's economics, repriced in mechanics first:
+  a bug's location becomes a durable fact a mind can learn, and the
+  cell walls end the endgame dance where the last two tiles used to
+  leak the catch. The measured pair-payment ceiling means hunting
+  lands opportunistic and cannot land dominant — a willing friend
+  always pays more. Greebles stay free-range on purpose; the tether is
+  a bug-only key the config validator refuses anywhere else, and a
+  one-tile cell is refused outright rather than silently freezing the
+  meadow. No compatibility markers, and each absence is a proof, not a
+  hope: the world fingerprint never moves (old saves resume, their
+  bugs adopting the tether mid-life from wherever they stand), the
+  defaults stamp never moves (verified byte-identical against main),
+  and with the key unconfigured a seeded world reproduces the pre-039
+  engine's 10,000-tick evolution bit-for-bit under a pinned digest.
+  The first acceptance grid passed the skilled corridor and the ruin
+  bar but left the unskilled hunter under the line — it dies in the
+  approach, not the endgame — so the owner's pre-authorized fallback
+  fired: **the final pounce**. A chase step that leaves an element
+  quarry exactly two tiles away lunges one more step in the same tick;
+  a lunge, not a route, so a blocked pounce is simply lost, and cats
+  are never pounced on. It rides its own default-off flag with the
+  same neutrality proofs as the tether. Mechanics finished half a
+  point under the unskilled bar, and the arc's last piece is the
+  owner's own: a sticker. Bug play re-prices from 25 to 28 relief —
+  not a dial guessed at, but the smallest rung of a pre-registered
+  sweep that measured linear on the shipped mechanics, keeping the
+  whole gradient intact: a bug is worth more than playing alone and
+  less than any friend. The owner then ruled on the last open fork
+  and reshaped the greeble to match: a pounce that can miss stays —
+  cats pouncing at thin air is charm, kept on purpose — and greebles
+  join the bugs' rest-tick schedule under their own `dart` flag,
+  trading the constant scurry for freeze-dart-freeze: a rest every
+  other tick, then one to three tiles at once. Slower on
+  average, catchable by timing, priced as an opportunistic target.
+  The flag carries the same neutrality proofs as the others: absent
+  from the defaults, refused off the greeble table, and off means
+  bit-for-bit the old skitter under the same pinned digest.
+  Acceptance economics ran as pre-registered census grids against
+  this branch before merge — the miss, the improvement, and the
+  sweep, all in Experiments' records (#282).
+
 - **The phase-1 generation takes the seats, and the wall comes down.**
   `[world-fresh]` Six days after the say-surface froze, the schema-4
   generation certified as a composition (deploy battery 2026-08-21, all

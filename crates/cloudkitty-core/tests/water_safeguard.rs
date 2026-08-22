@@ -171,6 +171,8 @@ async fn voluntary_swimming_in_a_flooded_world_never_reaches_bath_distress() {
             max: cap,
             ttl: None,
             servings: None,
+            roam_cell: None,
+            dart: false,
         };
         config.validate().expect("flooded config is legal");
         let config = Arc::new(config);

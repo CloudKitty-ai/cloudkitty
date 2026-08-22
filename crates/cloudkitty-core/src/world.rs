@@ -754,31 +754,55 @@ impl World {
     }
 
     fn environment_phase(&mut self, config: &Config) {
-        self.move_critters();
+        self.move_critters(config);
         self.expire_elements();
         spawn::ensure_minimums(self, config);
         spawn::safeguard(self, config);
     }
 
     /// Bugs plod one tile every other tick; greebles skitter one or two tiles every
-    /// tick and change their minds constantly.
-    fn move_critters(&mut self) {
+    /// tick and change their minds constantly. A configured roam cell (spec 039)
+    /// tethers each bug to the world-aligned cell it stands in — for life, since
+    /// it can never leave. Under `dart` (039 third amendment) greebles join the
+    /// bugs' rest-tick schedule and dart 1-3 tiles on their moving ticks.
+    fn move_critters(&mut self, config: &Config) {
         let tick = self.tick;
         let (width, height) = (self.width, self.height);
+        let bug_roam = config.elements.bug.roam_cell;
 
         for idx in 0..self.elements.len() {
             match self.elements[idx].kind {
                 ElementKind::Bug => {
-                    if !self.elements[idx].bug_moves_this_tick(tick) {
+                    if !self.elements[idx].critter_moves_this_tick(tick) {
                         continue;
                     }
                     let dir = *self
                         .rng
                         .choose(&Direction::ALL)
                         .expect("Direction::ALL is never empty");
+                    // Spec 039: the tether check rides AFTER the draw, so the
+                    // stream shape is identical with or without it, and an
+                    // outward draw costs the step exactly like a blocked one —
+                    // no redraw, no compensation (FR-003).
+                    if let Some(cell) = bug_roam {
+                        let pos = self.elements[idx].pos;
+                        match pos.step(dir, width, height) {
+                            Some(dest) if crate::grid::same_roam_cell(pos, dest, cell) => {}
+                            _ => continue,
+                        }
+                    }
                     self.try_step_element(idx, dir, width, height);
                 }
                 ElementKind::Greeble { heading } => {
+                    // The dart schedule (spec 039 third amendment): a flagged
+                    // greeble rests on its off-parity tick and draws nothing —
+                    // the rest check sits before every draw so the flag-off
+                    // stream is byte-identical (FR-015, the golden digest's
+                    // guard).
+                    let dart = config.elements.greeble.dart;
+                    if dart && !self.elements[idx].critter_moves_this_tick(tick) {
+                        continue;
+                    }
                     // ~60% of the time a greeble picks a new direction, which is
                     // what makes it look erratic rather than merely fast.
                     let heading = if self.rng.gen_bool(0.6) {
@@ -792,7 +816,15 @@ impl World {
                     if let Some(el) = self.elements.get_mut(idx) {
                         el.kind = ElementKind::Greeble { heading };
                     }
-                    let steps = if self.rng.gen_bool(0.5) { 2 } else { 1 };
+                    // Moving ticks pay for the rest with a wider dart: 1-3
+                    // tiles instead of the every-tick 1-or-2 coin.
+                    let steps = if dart {
+                        self.rng.gen_range_u32(1, 4)
+                    } else if self.rng.gen_bool(0.5) {
+                        2
+                    } else {
+                        1
+                    };
                     for _ in 0..steps {
                         self.try_step_element(idx, heading, width, height);
                     }
