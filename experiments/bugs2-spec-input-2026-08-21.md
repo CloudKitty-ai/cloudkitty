@@ -276,3 +276,31 @@ What this resolves:
 Sequence: Product builds the greeble schedule on 039-bugs2-tether →
 Experiments runs the amended acceptance census → numbers to the
 owner → her merge word → re-baseline per the definition of done.
+
+## THE MERGE WORD (owner, 2026-08-21) — arc closes
+
+SC-007 ran on d06f0b4 (bugs2-sc007-2026-08-21.md): shipped world
+passes every bar; g26 stress cells miss bar 1 (9.0) and the
+unskilled ordering flips greeble-first on both geometries; both
+escalations went to her. Owner verbatim: "Approve F-028. Accept.
+Let's measure actual play numbers before we tune greeble/bug reward
+further."
+
+What this settles:
+- **F-028 registered** (experiments/FINDINGS.md) — instrument
+  provenance in census headers; reruns supersede unattributable
+  raws.
+- **The package ships as measured**: 039-bugs2-tether @ d06f0b4
+  (tether 4×4 + ttls 600 + ungated pounce + play_relief_bug 28 +
+  dart), no reward changes. The g26 bar-1 miss and the greeble-first
+  unskilled ordering are ACCEPTED with the flip recorded as design
+  arriving: freeze-dart-freeze greebles are the natural first prey;
+  bugs stay the skilled hunter's better deal; duets stay on top.
+- **Reward-tuning freeze**: no further greeble/bug sticker movement
+  until actual play numbers exist — the post-merge re-baseline and
+  the live-world census of what deployed minds actually do, not
+  scripted proxies. Sticker questions reopen only on those numbers.
+
+Merge-GREEN goes to Product on this ruling; then the SC-005
+re-baseline set, then the sequence resumes (incumbents on the
+bugs-2.0 world → corpus → exp-006a).

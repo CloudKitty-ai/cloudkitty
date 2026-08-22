@@ -1407,3 +1407,49 @@ collapse the twin/heterogeneous distinction the entry rests on).
 off greedy serving; the distress-gated intervention lands (it
 truncates the observable, so streak-based detection must move
 upstream of the override).
+
+## F-028 · active · Census raws are attributable only if the instrument records its own provenance
+
+Found 2026-08-21 when the bugs-2.0 acceptance record failed
+byte-reproduction during SC-007 (owner approved registration same
+day).
+
+1. **The event**: every chase-census raw produced on the afternoon
+   of 2026-08-21 — acceptance grid 1 (a5e1aba), re-grid 2 (7e95b8f),
+   the sticker sweep, and the b044827 final-config census — differs
+   from reruns on instruments rebuilt from committed sources at
+   their recorded commits, same configs, same tick counts.
+2. **The elimination trail** (bugs2-sc007-2026-08-21.md §Provenance):
+   engine drift excluded (intervening commits diffed, docs-only);
+   tool drift excluded (worktree census source byte-identical to
+   main @ e39079e, unchanged since 13:46); config drift excluded
+   (mtimes predate the runs; header paths match); seed choice
+   excluded (tool default 1..=10 equals the rerun list);
+   toolchain excluded (rustc installed 2026-07-18); nondeterminism
+   excluded (back-to-back reruns byte-identical); snapshot resume
+   excluded (World::generate, no persistence path). The surviving
+   hypothesis — uncommitted working-tree state in the instrument
+   worktree during the runs — is uninspectable after the fact,
+   which is the finding.
+3. **The cost was borne at the thinnest margin**: no g20 verdict
+   moved, but the sweep's g26 bar-1 pass at sticker 28 (banked
+   10.1, flagged "+0.1, inside seed noise" the same hour) reads
+   9.7 reproduced. A record that cannot be re-attributed converts
+   a noise-flagged pass into an unanswerable question.
+
+**Practice adopted**: a census raw must carry enough to re-create
+its instrument — engine commit, working-tree dirty state, tool
+source sha — in the output header, stamped by the tool itself, not
+the operator's notes. Until the header exists, results docs record
+those three facts beside every run. Reruns supersede raws that
+cannot be attributed; today's rebuilt instrument is canonical for
+the bugs-2.0 record.
+
+**Would invalidate**: a reproduction of any afternoon raw from
+committed sources (would relocate the cause from lost working-tree
+state to something still latent and shared — worse, and worth the
+hunt).
+
+**Re-verify when**: the census header lands (check the stamp against
+a deliberate dirty-tree run); any future raw fails byte-repro with
+the stamp present.
