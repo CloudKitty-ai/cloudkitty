@@ -50,7 +50,7 @@ change.
   `[watchdog]` table beside `[rl]` and `[plugins]`, so the engine's
   defaults stamp is untouched — verified byte-identical. No
   compatibility markers: server-side only, no world reset needed
-  (#pending).
+  (#283).
 - **The camera stopped fidgeting.** It used to chase the middle of the clowder
   every frame and never quite arrive — always drifting, never still. Now it
   picks a shot (the most kitties that fit together), holds it perfectly still,
