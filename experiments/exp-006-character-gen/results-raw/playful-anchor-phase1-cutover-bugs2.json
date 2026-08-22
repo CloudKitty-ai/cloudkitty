@@ -1,11 +1,8 @@
 {
  "provenance": {
-  "git_head": "6dd56662ba2c490d208e083dab917a6137b66d02",
+  "git_head": "a501a12d3cb7a03e6f1e6e8a7f296cdf66a2ff48",
   "dirty": [
-   "experiments/exp-006-character-gen/configs/phase1-cutover-bugs2.toml",
-   "experiments/exp-006-character-gen/playful_anchor.py",
-   "experiments/exp-006-character-gen/results-raw/anchor-bugs2.txt",
-   "experiments/exp-006-character-gen/results-raw/playful-anchor-phase1-cutover.json"
+   "experiments/exp-006-character-gen/results-raw/anchor-006a-battery.txt"
   ],
   "config_sha256": "952224aa7344fac9d446c47f228417244048cb3e53eeb06f572d7d71ab961f0e",
   "instrument_sha256": "18cfed14f01d0a24f228261472faf3ca232a451838f639320f01ec18f2497f98"
