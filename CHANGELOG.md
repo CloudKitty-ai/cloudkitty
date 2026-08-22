@@ -53,6 +53,13 @@ change.
   defaults stamp is untouched — verified byte-identical. No
   compatibility markers: server-side only, no world reset needed
   (#283).
+- Every kitty card grew a small follow button under the name — the
+  camera can now follow a cat across the whole meadow without leaving
+  camera mode, and the button is the "following" indicator too.
+- The footer got simpler: the developer toggles (greebles, grid lines,
+  happiness bars, buffering, kitty version, theme) tuck behind a `d`
+  key; purr hearts and the cards control stay. Every key still works
+  with the menu hidden, and active modes still announce themselves.
 - The worn-paths overlay is unavailable for now (a real heatmap is queued
   to replace it), and the `b` debug key's label now says what it does:
   "disable buffering."

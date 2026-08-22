@@ -6668,6 +6668,47 @@ check('the click lifecycle is one table, and every row is here', () => {
   // camera mode -- releasing is releasing.
   assert(/hit === null/.test(body), 'clicking away from the kitties does nothing');
 
+  // The card follow button (owner, 2026-08-21): a zoomed-in frame can
+  // only map-click cats it SHOWS, so the roster is the switch -- and the
+  // control is the state, where the 'following' text used to render.
+  // Scoped to the button's own code, so the map handler's identical
+  // rules cannot vacuously satisfy these.
+  const btnAt = app.indexOf("follow.className = 'kitty-follow'");
+  assert(btnAt >= 0, 'no follow button on the cards');
+  const btn = app.slice(btnAt, btnAt + 900);
+  assert(/event\.stopPropagation\(\)/.test(btn),
+    'a follow tap would also collapse the cards (the all-or-none card click)');
+  assert(/anim\.camera\.followId === kitty\.id[\s\S]{0,120}?setFollow\(null\)/.test(btn),
+    'the button cannot RELEASE the follow it set');
+  assert(/if \(!anim\.camera\.on\) setCameraMode\(true\)/.test(btn),
+    "the card follow skips the map's camera-off rule (FR-012)");
+  assert(/aria-pressed/.test(btn), 'the toggle carries no pressed state for a screen reader');
+  const page = readFileSync(join(here, 'index.html'), 'utf8');
+  assert(!page.includes("content: ' following'"),
+    "the old 'following' text still renders under the button");
+  assert(/\.kitty-follow/.test(page), 'the button has no styling and would render browser-default');
+
+  // The developer menu (owner, 2026-08-21): the footer keeps cards,
+  // purr hearts and the d hint; everything else hides behind d. Visual
+  // only -- every key works whichever way d is toggled -- and ACTIVE
+  // state notes stay outside the group, so an unusual mode never looks
+  // silently broken.
+  const devAt = page.indexOf('id="dev-toggles"');
+  assert(devAt >= 0, 'no developer group in the footer');
+  assert(/id="dev-toggles"[^>]*hidden/.test(page), 'the developer group must ship HIDDEN');
+  const devEnd = page.indexOf('</span>\n  </footer>', devAt);
+  const dev = page.slice(devAt, devEnd);
+  for (const inside of ['<kbd>g</kbd>', '<kbd>l</kbd>', '<kbd>h</kbd>', '<kbd>b</kbd>',
+    'vocab-toggle', 'theme-toggle']) {
+    assert(dev.includes(inside), `${inside} escaped the developer group`);
+  }
+  for (const outside of ['cards-toggle', 'purr hearts', 'debug-note', 'paced-note']) {
+    assert(!dev.includes(outside), `${outside} was swallowed by the developer group`);
+  }
+  assert(/<kbd>d<\/kbd> for developer toggles/.test(page),
+    'the menu advertises no way in');
+  assert(/key === 'd'[\s\S]{0,400}?dev-toggles/.test(app), 'the d key is not wired');
+
   const hitFn = app.slice(app.indexOf('function kittyAtPoint('));
   const hit = hitFn.slice(0, hitFn.indexOf('\n}\n'));
   assert(/hitRadiusFloorPx/.test(hit), 'the hit radius has no floor, so a phone at the ceiling cannot catch a kitty');
