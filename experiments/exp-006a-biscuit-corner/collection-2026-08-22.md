@@ -69,6 +69,24 @@ the result identically to a single-invocation run. The anchor cell
 chunks by seed offset (base + 20c, rollouts renamed with the same
 offset).
 
+## D-001 (2026-08-22, before the anchor/far-spawn cells ran): band
+## overlap in the declaration
+
+The declared spread base 991001 spans 991001–1,008,006 under the
+ci×1000 formula (18 families), which (a) spills past six digits —
+harmless, no prior band sits above 985010, noted for the record —
+and (b) OVERLAPS the declared anchor (994001) and far-spawn
+(997001) bases. Seed collisions across different configs produce
+unrelated worlds, so nothing already collected is compromised; the
+spread cell ran exactly as declared. But the bands doctrine wants
+non-overlapping spans, so before either remaining cell ran:
+**anchor demonstrations move to base 1,020,001** (span –1,020,100)
+and **far-spawn to base 1,040,001** (span –1,057,006). Nothing
+else changes. Also corrected here: the far-spawn section says
+"26×26 world" — family geometry actually cycles 20/22/24/26
+(separations 34–46 Manhattan); the design is per-family corners as
+implemented.
+
 ## Acceptance
 
 dataset_qa.py on the v6 spread cell (same bars as v5: integrity,
