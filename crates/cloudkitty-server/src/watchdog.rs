@@ -200,8 +200,7 @@ impl Watchdog {
                             });
                         }
                         Some(streak) => {
-                            if age.saturating_sub(streak.last_alarm_age)
-                                >= self.config.remind_every
+                            if age.saturating_sub(streak.last_alarm_age) >= self.config.remind_every
                             {
                                 streak.last_alarm_age = age;
                                 events.push(AlarmEvent::Reminder {
@@ -423,12 +422,8 @@ mod tests {
         // named (spec edge case).
         let (mut world, _config) = world();
         let mut watchdog = Watchdog::new(WatchdogConfig::default());
-        world.kitties[0]
-            .distress_since
-            .insert(NeedKind::Play, 100);
-        world.kitties[1]
-            .distress_since
-            .insert(NeedKind::Bath, 130);
+        world.kitties[0].distress_since.insert(NeedKind::Play, 100);
+        world.kitties[1].distress_since.insert(NeedKind::Bath, 130);
         world.tick = 250;
         let (status, events) = watchdog.observe(&world);
         // kitty0/Play at age 150 crosses; kitty1/Bath at 120 does not.
@@ -439,7 +434,11 @@ mod tests {
                 if *kitty_id == world.kitties[0].id
         ));
         assert!(status.alarm_live);
-        assert_eq!(status.entries.len(), 2, "the surface reports BOTH live ages");
+        assert_eq!(
+            status.entries.len(),
+            2,
+            "the surface reports BOTH live ages"
+        );
         world.tick = 280;
         let (status, events) = watchdog.observe(&world);
         assert_eq!(events.len(), 1, "kitty1/Bath crosses at its own 150");

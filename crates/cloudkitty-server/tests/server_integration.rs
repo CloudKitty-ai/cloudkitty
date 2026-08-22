@@ -815,13 +815,12 @@ async fn welfare_endpoint_serves_healthy_and_distressed_shapes() {
     tokio::spawn(async move {
         axum::serve(listener, app).await.unwrap();
     });
-    let distressed: serde_json::Value =
-        reqwest::get(format!("http://{addr}/welfare"))
-            .await
-            .unwrap()
-            .json()
-            .await
-            .unwrap();
+    let distressed: serde_json::Value = reqwest::get(format!("http://{addr}/welfare"))
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
     assert_eq!(distressed["alarm_live"], true);
     let entries = distressed["entries"].as_array().unwrap();
     assert!(!entries.is_empty(), "the streak is on the surface");

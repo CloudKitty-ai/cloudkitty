@@ -138,7 +138,12 @@ fn resolve_client_dir(args: &Args) -> Result<PathBuf> {
 /// served `Config` (spec 016 FR-014).
 fn load_config(
     args: &Args,
-) -> Result<(Config, RlConfig, PluginsConfig, cloudkitty_server::watchdog::WatchdogConfig)> {
+) -> Result<(
+    Config,
+    RlConfig,
+    PluginsConfig,
+    cloudkitty_server::watchdog::WatchdogConfig,
+)> {
     if !args.config_path.exists() {
         if args.config_explicit {
             anyhow::bail!("config file {} does not exist", args.config_path.display());
@@ -171,8 +176,8 @@ fn load_config(
     })?;
     // Spec 040: the [watchdog] table is server-owned, like [rl] and
     // [plugins] -- the engine never sees it.
-    let watchdog = cloudkitty_server::watchdog::WatchdogConfig::from_toml_str(&text)
-        .with_context(|| {
+    let watchdog =
+        cloudkitty_server::watchdog::WatchdogConfig::from_toml_str(&text).with_context(|| {
             format!(
                 "could not load the [watchdog] table of {}",
                 args.config_path.display()
@@ -260,7 +265,13 @@ async fn run() -> Result<()> {
         "welfare watchdog standing by"
     );
     let watchdog = cloudkitty_server::watchdog::Watchdog::new(watchdog_config);
-    let sim = sim_task::spawn(world, config.clone(), registry, Some(snapshot_path.clone()), watchdog);
+    let sim = sim_task::spawn(
+        world,
+        config.clone(),
+        registry,
+        Some(snapshot_path.clone()),
+        watchdog,
+    );
 
     let state = AppState {
         published: sim.receiver.clone(),
