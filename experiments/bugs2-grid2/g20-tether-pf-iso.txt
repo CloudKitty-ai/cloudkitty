@@ -1,0 +1,4 @@
+
+thread 'main' (26459657) panicked at src/bin/chase-census.rs:74:25:
+config validates: Invalid { field: "[[kitty]] roster", value: "1 kitties", expected: "the constitution requires at least 2 kitties (Article III: kitties cannot be alone)" }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
