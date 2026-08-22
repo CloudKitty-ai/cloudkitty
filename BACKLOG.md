@@ -817,6 +817,16 @@ pan/zoom controls." Scope sketch, to be specced when picked up:
 - Spec-first when picked up (engine untouched; client-only, but it is a
   public interaction surface — new spec, not an 038 amendment).
 
+### Phone controls get the developer-menu treatment (added 2026-08-21; owner's ask; after the desktop d-menu)
+
+The desktop footer now hides its developer toggles behind `d` (greebles,
+grid, happiness, buffering, kitty version, theme — cards/purr/d stay).
+The owner wants the PHONE controls reevaluated the same way once the
+desktop version has settled: what the touch footer shows by default, and
+how a keyboardless device reaches the developer set at all (the g/l/p
+keys are keyboard-only by design — mobile-debug-toggles ruling). Scope
+when picked up.
+
 ### Real heatmaps replace the worn paths (added 2026-08-21; owner's ask; LOW priority)
 
 The spec-008 worn-paths overlay is shipped UNAVAILABLE as of 2026-08-21
