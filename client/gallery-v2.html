@@ -792,7 +792,7 @@
   const LEAP_BAG = { liftFrac: VIEW.pounceLeap.liftFrac, tilePx: 90, speed: 0.6 };
   // The groom card's viewing aids. The POSE dials write into CatV2.GROOM
   // itself (per-dial `bag`), so the map and every other card follow live.
-  const GROOM_LAB = { tilePx: 90, speed: 0.5 };
+  const GROOM_LAB = { tilePx: 90, speed: 1 };
   const zoomLimitsFor = (cssWidth) => {
     const world = { width: ZOOM_WORLD, height: ZOOM_WORLD };
     const { floorTiles, ceilingTiles } = zoomProbe().limitsFor(world, cssWidth);
@@ -1121,7 +1121,7 @@
     },
     {
       title: 'The grooming rebuild — seated, from photo reference (GROOM-EDITS)',
-      note: 'Left is the drawing that shipped: a standing cat with a paw held up. Right is the rebuild: rump on the ground — seatCy derives the seat so the body\'s lowest point rests exactly on the ground line at any tilt and any point of the breath — chest raised, head bent DOWN to a paw lifted to meet it, tail behind. Three limbs read by design (raised paw, planted foreleg, one hind foot), matching the reference photos; at 50px the leg base merges — known, and a haunch mass someday rather than a dial today. The pose dials write into the REAL GROOM block, so a change here is a change everywhere. The tongue ships PARKED at 0 — raise its dial to preview the lick. Judge at the sizes the camera draws (roughly 50px phone, 75–113px desktop). Speed 1 is the live rhythm: one 800ms tick beat, three nods.',
+      note: 'Left is the drawing that shipped: a standing cat with a paw held up. Right is the rebuild: rump on the ground — seatCy derives the seat so the body\'s lowest point rests exactly on the ground line at any tilt and any point of the breath — chest raised, head bent DOWN to a paw lifted to meet it, tail behind. Three limbs read by design (raised paw, planted foreleg, one hind foot), matching the reference photos; at 50px the leg base merges — known, and a haunch mass someday rather than a dial today. The pose dials write into the REAL GROOM block, so a change here is a change everywhere. The tongue ships PARKED at 0 — raise its dial to preview the lick. Judge at the sizes the camera draws (roughly 50px phone, 75–113px desktop). Speed 1 is the live rhythm: one full cycle (three nods) per VIEW.groomCycleMs \u2014 the lick rides its own clock now, not the tick beat, because the beat rate read dog-like (owner, 2026-08-22).',
       v2Only: true,
       w: 940,
       h: 380,
@@ -1137,6 +1137,7 @@
         { key: 'tongue', label: 'tongue — PARKED at 0; reach toward the paw, as a share', min: 0, max: 0.9, step: 0.05, bag: CatV2.GROOM },
         { key: 'tongueW', label: 'tongueW — tongue width (head radii)', min: 0.06, max: 0.24, step: 0.01, bag: CatV2.GROOM },
         { key: 'fore', label: 'fore — the supporting foreleg (0 hides it)', min: 0, max: 1, step: 1, bag: CatV2.GROOM },
+        { key: 'groomCycleMs', label: 'groomCycleMs — the lick cycle, ms (three nods)', min: 800, max: 3200, step: 100, bag: VIEW },
         { key: 'tilePx', label: 'tilePx — judge at the sizes the camera draws', min: 40, max: 115, step: 1 },
         { key: 'speed', label: 'speed — 1 is the live rhythm; slow it to study', min: 0.2, max: 1.5, step: 0.05 },
       ],
@@ -1145,12 +1146,13 @@
         return (
           `GROOM: headX ${G.headX}, headY ${G.headY}, pawDx ${G.pawDx}, pawDy ${G.pawDy}, nod ${G.nod},\n`
           + `       pawFollow ${G.pawFollow}, tongue ${G.tongue}, tongueW ${G.tongueW}, fore ${!!G.fore}\n`
+          + `VIEW.groomCycleMs = ${VIEW.groomCycleMs}  -- the live rate; three nods per cycle\n`
           + `card view: tilePx ${GROOM_LAB.tilePx}, speed ${GROOM_LAB.speed} -- viewing aids, not shipped dials`
         );
       },
       draw(ctx, w, h, now) {
         const T = GROOM_LAB.tilePx;
-        const period = 800 / GROOM_LAB.speed;
+        const period = VIEW.groomCycleMs / GROOM_LAB.speed;
         const phase = (now % period) / period;
         const groundY = h - 64;
         ctx.strokeStyle = 'rgba(107, 90, 78, 0.25)';
