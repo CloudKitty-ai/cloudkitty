@@ -24,6 +24,8 @@ use crate::sim_task::Published;
 pub struct AppState {
     pub published: watch::Receiver<Arc<Published>>,
     pub config: Arc<Config>,
+    /// Spec 040: the watchdog's latest welfare surface, served on /welfare.
+    pub welfare: watch::Receiver<Arc<crate::watchdog::WelfareStatus>>,
 }
 
 impl AppState {
@@ -79,6 +81,15 @@ pub async fn get_kitty(
 /// kitty (Article I). Edge-triggered, oldest first.
 pub async fn get_distress(State(state): State<AppState>) -> Json<Arc<Vec<DistressEvent>>> {
     Json(state.current().distress.clone())
+}
+
+/// Spec 040 FR-003: the standing welfare watch's current surface — every
+/// live distress age, the alarm threshold, and whether an alarm is live.
+/// A healthy world answers with the healthy shape, never an error.
+pub async fn get_welfare(
+    State(state): State<AppState>,
+) -> Json<Arc<crate::watchdog::WelfareStatus>> {
+    Json(state.welfare.borrow().clone())
 }
 
 /// Finished activities with the true tick spans they ran (spec 006): the

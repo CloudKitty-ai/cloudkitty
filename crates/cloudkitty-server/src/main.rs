@@ -136,7 +136,14 @@ fn resolve_client_dir(args: &Args) -> Result<PathBuf> {
 /// diverge). A missing default file yields every set of documented
 /// defaults. Plugin definitions parse into their own struct, never the
 /// served `Config` (spec 016 FR-014).
-fn load_config(args: &Args) -> Result<(Config, RlConfig, PluginsConfig)> {
+fn load_config(
+    args: &Args,
+) -> Result<(
+    Config,
+    RlConfig,
+    PluginsConfig,
+    cloudkitty_server::watchdog::WatchdogConfig,
+)> {
     if !args.config_path.exists() {
         if args.config_explicit {
             anyhow::bail!("config file {} does not exist", args.config_path.display());
@@ -149,6 +156,7 @@ fn load_config(args: &Args) -> Result<(Config, RlConfig, PluginsConfig)> {
             Config::default(),
             RlConfig::default(),
             PluginsConfig::default(),
+            cloudkitty_server::watchdog::WatchdogConfig::default(),
         ));
     }
 
@@ -166,7 +174,16 @@ fn load_config(args: &Args) -> Result<(Config, RlConfig, PluginsConfig)> {
             args.config_path.display()
         )
     })?;
-    Ok((config, rl_config, plugins))
+    // Spec 040: the [watchdog] table is server-owned, like [rl] and
+    // [plugins] -- the engine never sees it.
+    let watchdog =
+        cloudkitty_server::watchdog::WatchdogConfig::from_toml_str(&text).with_context(|| {
+            format!(
+                "could not load the [watchdog] table of {}",
+                args.config_path.display()
+            )
+        })?;
+    Ok((config, rl_config, plugins, watchdog))
 }
 
 #[tokio::main]
@@ -194,7 +211,7 @@ async fn run() -> Result<()> {
         return Ok(());
     };
 
-    let (config, rl_config, plugins_config) = load_config(&args)?;
+    let (config, rl_config, plugins_config, watchdog_config) = load_config(&args)?;
     // The constitution is enforced here, before a single kitty exists.
     config.validate()?;
 
@@ -242,11 +259,24 @@ async fn run() -> Result<()> {
         tracing::info!("wet fur disabled ([water] bath_gain = 0): water occupancy is free");
     }
 
-    let sim = sim_task::spawn(world, config.clone(), registry, Some(snapshot_path.clone()));
+    tracing::info!(
+        threshold = watchdog_config.threshold,
+        remind_every = watchdog_config.remind_every,
+        "welfare watchdog standing by"
+    );
+    let watchdog = cloudkitty_server::watchdog::Watchdog::new(watchdog_config);
+    let sim = sim_task::spawn(
+        world,
+        config.clone(),
+        registry,
+        Some(snapshot_path.clone()),
+        watchdog,
+    );
 
     let state = AppState {
         published: sim.receiver.clone(),
         config: config.clone(),
+        welfare: sim.welfare.clone(),
     };
     let client_dir = resolve_client_dir(&args)?;
     let app = build_router(state, &client_dir);

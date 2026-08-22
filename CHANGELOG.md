@@ -33,6 +33,24 @@ change.
 
 ## Unreleased
 
+- **Someone is standing at the window now.** The serving welfare
+  watchdog (spec 040): every tick, the server reads the engine's own
+  distress records and keeps watch. Sustained distress crossing the
+  certification bound (150 ticks) writes a WELFARE ALARM to the log
+  naming the cat, the need, and the age; a streak that continues
+  re-announces itself; recovery closes the record with the streak's
+  final length; and `GET /welfare` answers "how are the cats?" in a
+  machine-readable shape at any moment. F-027 is the reason this
+  exists — a 2331-tick co-sleep distress streak ran with relief
+  nearby and nobody looking; under this watchdog its first alarm
+  would have fired at tick 150 of the streak, and that scenario is a
+  test now. Detection only, by construction: the watchdog proposes
+  nothing and draws nothing, a watched world serializes identically
+  to an unwatched one, and its configuration rides a server-owned
+  `[watchdog]` table beside `[rl]` and `[plugins]`, so the engine's
+  defaults stamp is untouched — verified byte-identical. No
+  compatibility markers: server-side only, no world reset needed
+  (#283).
 - **The camera stopped fidgeting.** It used to chase the middle of the clowder
   every frame and never quite arrive — always drifting, never still. Now it
   picks a shot (the most kitties that fit together), holds it perfectly still,

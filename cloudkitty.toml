@@ -423,3 +423,19 @@ artifact = "policies/e004-a1-s2-o4.ckpolicy"
 
 [rl.policy.e006-E1-s1]
 artifact = "policies/e006-E1-s1.ckpolicy"
+
+# The serving welfare watchdog (spec 040) — a standing, read-only watch
+# over every cat's distress ages, the layer F-027 proved was missing: a
+# 2331-tick co-sleep distress streak ran with relief nearby and nobody
+# looking. Crossing the threshold writes a WELFARE ALARM to the server
+# log (re-announced every remind_every ticks while it lasts) and the
+# current surface is always at GET /welfare. Detection only: the watchdog
+# proposes nothing, changes nothing, and a watched world is byte-identical
+# to an unwatched one. Server-owned table, like [rl] and [plugins] -- the
+# engine never sees it. Omitting the table means exactly these defaults;
+# there is no off switch to forget.
+[watchdog]
+# The alarm line, in ticks of sustained distress: the certification bound
+# (max_distress_age vs 150 in every battery since exp-004).
+threshold = 150
+remind_every = 150
