@@ -6688,6 +6688,27 @@ check('the click lifecycle is one table, and every row is here', () => {
     "the old 'following' text still renders under the button");
   assert(/\.kitty-follow/.test(page), 'the button has no styling and would render browser-default');
 
+  // The developer menu (owner, 2026-08-21): the footer keeps cards,
+  // purr hearts and the d hint; everything else hides behind d. Visual
+  // only -- every key works whichever way d is toggled -- and ACTIVE
+  // state notes stay outside the group, so an unusual mode never looks
+  // silently broken.
+  const devAt = page.indexOf('id="dev-toggles"');
+  assert(devAt >= 0, 'no developer group in the footer');
+  assert(/id="dev-toggles"[^>]*hidden/.test(page), 'the developer group must ship HIDDEN');
+  const devEnd = page.indexOf('</span>\n  </footer>', devAt);
+  const dev = page.slice(devAt, devEnd);
+  for (const inside of ['<kbd>g</kbd>', '<kbd>l</kbd>', '<kbd>h</kbd>', '<kbd>b</kbd>',
+    'vocab-toggle', 'theme-toggle']) {
+    assert(dev.includes(inside), `${inside} escaped the developer group`);
+  }
+  for (const outside of ['cards-toggle', 'purr hearts', 'debug-note', 'paced-note']) {
+    assert(!dev.includes(outside), `${outside} was swallowed by the developer group`);
+  }
+  assert(/<kbd>d<\/kbd> for developer toggles/.test(page),
+    'the menu advertises no way in');
+  assert(/key === 'd'[\s\S]{0,400}?dev-toggles/.test(app), 'the d key is not wired');
+
   const hitFn = app.slice(app.indexOf('function kittyAtPoint('));
   const hit = hitFn.slice(0, hitFn.indexOf('\n}\n'));
   assert(/hitRadiusFloorPx/.test(hit), 'the hit radius has no floor, so a phone at the ceiling cannot catch a kitty');

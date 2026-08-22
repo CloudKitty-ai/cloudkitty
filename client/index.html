@@ -824,30 +824,46 @@
      the card's existing outline do the shouting. Sized to the card's own
      small-control scale (the ? ring beside it), judged live. */
   .kitty-follow {
-    margin-left: auto;
+    grid-column: 2 / 4;
+    justify-self: center;
     font: inherit;
     font-style: italic;
-    font-size: 0.72em;
+    /* Pinned in REM, not em (owner, 2026-08-21): the name is dialled for
+       visual dominance and the pill must not ride along -- 0.68rem is the
+       size it was judged at before the name bump. The pill's padding and
+       min-width are em-of-ITSELF, so this one pin holds its whole box. */
+    font-size: 0.68rem;
     color: var(--ink-soft);
     background: none;
     border: 1px solid var(--ink-soft);
     border-radius: 999px;
     padding: 0.05em 0.55em;
     cursor: pointer;
+    /* One size for BOTH states (owner, 2026-08-21): sized to hold
+       'following', centred, so the toggle never resizes underfoot --
+       the same no-reflow principle as the followed outline. */
+    min-width: 6.2em;
+    text-align: center;
+    box-sizing: border-box;
+    /* Quiet until wanted (owner, 2026-08-21): the resting affordance
+       fades back; hover, keyboard focus and the followed state come to
+       full strength. Opacity rather than a fainter ink, so it holds on
+       both theme grounds without a new token. */
+    opacity: 0.55;
   }
   .kitty-follow:hover,
   .kitty-follow:focus-visible {
     color: var(--ink);
     border-color: var(--ink);
+    opacity: 1;
   }
   .kitty-card.followed .kitty-follow {
     font-style: normal;
     color: var(--ink);
     border-color: var(--ink);
+    opacity: 1;
   }
-  /* The ? keeps its ring; only its auto-margin hands off to the follow
-     button, which now owns the push to the right edge. */
-  .kitty-follow + .kitty-about { margin-left: 6px; }
+
 
   .kitty-card {
     background: var(--card);
@@ -898,10 +914,17 @@
 
   .kitty-card .name {
     font-weight: 700;
-    font-size: 0.95rem;
-    display: flex;
+    font-size: 1rem;
+    /* Two rows since the follow pill (owner, 2026-08-21): portrait spans
+       both, name text and the ? share the top line, the pill sits under
+       the NAME -- aligned to the text column, not the card edge. */
+    display: grid;
+    grid-template-columns: auto 1fr auto;
     align-items: center;
-    gap: 6px;
+    gap: 2px 6px;
+  }
+  .kitty-card .name canvas {
+    grid-row: 1 / 3;
   }
 
   .kitty-card .name canvas {
@@ -1394,22 +1417,33 @@
   <footer>
     <span id="status">connecting…</span> ·
     tick <span id="tick">0</span><span class="keys"> ·
-    press <kbd>g</kbd> to reveal greebles · <kbd>l</kbd> for grid lines ·
-    <kbd>h</kbd> for happiness bars ·
-    <kbd>b</kbd> to <span id="paced-hint">disable</span> buffering · <kbd>r</kbd> for purr hearts</span>
+    press <kbd>r</kbd> for purr hearts · <kbd>d</kbd> for developer toggles</span>
+    <!-- ACTIVE state notes live OUTSIDE the developer group on purpose
+         (owner, 2026-08-21): a mode that is ON announces itself whether
+         or not the toggles are showing, so an unusual state never looks
+         silently broken. The hints hide; live state does not. -->
     <span id="debug-note" hidden>· 👻 greebles visible</span>
     <span id="grid-note" hidden>· ⌗ grid lines visible</span>
     <span id="paths-note" hidden>· 🐾 worn paths visible</span>
     <span id="happy-note" hidden>· 💚 happiness bars visible</span>
     <span id="paced-note" hidden>· ⏩ buffering disabled</span>
     <span id="purr-note" hidden>· 💗 purr hearts visible — <kbd>r</kbd> to hide</span>
-    · <span class="theme-control">kitties
-      <button id="vocab-toggle" aria-label="switch kitty vocabulary">v2</button></span>
     · <span class="theme-control">cards
       <button id="cards-toggle" aria-expanded="false">expand</button></span>
+    <!-- The developer group (owner, 2026-08-21): hints and click-toggles
+         the everyday footer does not need. Every KEY in here works with
+         the group hidden -- this is a visual simplification, not a
+         permission gate. Ships hidden; d reveals; nothing persists,
+         matching the other debug keys. -->
+    <span id="dev-toggles" hidden><span class="keys"> ·
+      press <kbd>g</kbd> to reveal greebles · <kbd>l</kbd> for grid lines ·
+      <kbd>h</kbd> for happiness bars ·
+      <kbd>b</kbd> to <span id="paced-hint">disable</span> buffering</span>
+    · <span class="theme-control">kitties
+      <button id="vocab-toggle" aria-label="switch kitty vocabulary">v2</button></span>
     · <span class="theme-control">set theme
       <button id="theme-toggle" aria-label="switch to Always Day">🌤️</button>
-      <span id="theme-name">Day/Night Cycle</span></span>
+      <span id="theme-name">Day/Night Cycle</span></span></span>
     · <span class="theme-control">view source
       <a href="https://github.com/CloudKitty-ai/cloudkitty" target="_blank"
       rel="noopener" title="CloudKitty source on GitHub">GitHub</a></span>

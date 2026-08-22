@@ -1351,8 +1351,14 @@ function buildKittyCard(kitty) {
       if (!anim.camera.on) setCameraMode(true);
     }
   });
-  name.appendChild(follow);
   name.appendChild(more);
+  // Its own ROW under the NAME'S TEXT (owner, 2026-08-21): the 226px name
+  // line cannot hold a name, the pill and the ? in every state --
+  // 'following' overflowed the card on both viewports. The name block is
+  // a two-row grid with the portrait spanning both rows, so the pill
+  // aligns with the name's own left edge, not the card's (the first cut
+  // put it under the portrait).
+  name.appendChild(follow);
 
   const doing = document.createElement('div');
   doing.className = 'doing';
@@ -2017,6 +2023,11 @@ window.addEventListener('keydown', (event) => {
   } else if (key === 'h') {
     renderer.showHappiness = !renderer.showHappiness;
     happyNoteEl.hidden = !renderer.showHappiness;
+  } else if (key === 'd') {
+    // Show or hide the developer toggles (owner, 2026-08-21). Purely
+    // visual: every key in the group works either way.
+    const dev = document.getElementById('dev-toggles');
+    if (dev) dev.hidden = !dev.hidden;
   } else if (key === 'b') {
     anim.setPaced(!anim.paced);
     pacedNoteEl.hidden = anim.paced;
