@@ -95,3 +95,41 @@ drop/mismatch rates at v5 levels) and on the far-spawn cell
 (integrity + the report-only play-share table). Acceptance record
 appended here with raw pointers before any training touches the
 data.
+
+## ACCEPTANCE RECORD (2026-08-22, collection complete — PASS)
+
+All three cells collected same day on bc-collect rebuilt at merged
+main; dataset_qa.py (extended for v6 cells, argv-selected) passes
+every assert. Raw QA:
+`exp-006-character-gen/results-raw/dataset-v6-spread-v6-farspawn-qa.json`.
+
+| cell | rollouts | decisions | drop | mask-mm | msg-mask-mm |
+|---|---|---|---|---|---|
+| v6-spread (991001–1,008,006) | 108 (18×6, seeds on formula, shas match) | 3,447,792 | 0.039% | 0.199% | 0 |
+| anchor (1,020,001–100, contiguous, verified) | 100 | 3,789,268 | ~0.06% | ~0.22% | 0 |
+| v6-farspawn (1,040,001–1,057,006) | 108 | 431,412 | 0.000% | 0.136% | 0 |
+
+Rates sit at v5 levels (v5 spread: 0.050% / 0.206%). Schema uniform
+4/3/3, widths 225/34/16, playful seat present in every config.
+Anchor-cell integrity is the seed-contiguity check plus per-rollout
+run logs (the cell has one config; dataset_qa's family walk does
+not apply). One operational note: the first anchor chunk overran
+the session window and its in-flight rollout-05 was deleted as
+PARTIAL (no meta.json) and re-collected at the same seed in the
+next chunk — no gap, verified by the contiguity assert.
+
+**Far-spawn play-share report (the cell's reason to exist,
+report-only as declared)**: the isolated demonstrator hunts —
+13,066 bug catches and 2,434 greeble catches across 18 families ×
+12,000 demonstrator-ticks (per-family bug catch-rate 71.2–87.8%,
+greeble 53.8–72.0%), with duet play still present at full travel
+price (132–284 starts/family). The corpus premise holds: when
+partners are expensive, the playful character's demonstrations are
+critter hunts under the bugs-2.0 mechanics — the exact
+close-the-skill-moat data the live census showed a 5-cat world
+never produces. Census raws:
+`exp-006-character-gen/results-raw/v6-farspawn-census/`.
+
+Dataset v6 is accepted for 006a training. Next: 006a prereg
+numbers re-derivation (anchors 79.31 / 90.71 banked at SC-005)
+and the owner's freeze.

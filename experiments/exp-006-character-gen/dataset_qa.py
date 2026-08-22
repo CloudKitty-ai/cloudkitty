@@ -29,11 +29,20 @@ import numpy as np
 HERE = Path(__file__).resolve().parent
 CELLS = {
     "pinned": {"dir": "v5-pinned", "family": "family-pinned",
-               "seed_base": 940001},
+               "seed_base": 940001, "ticks": 8000},
     "spread": {"dir": "v5-spread", "family": "family-spread",
-               "seed_base": 910001},
+               "seed_base": 910001, "ticks": 8000},
+    # dataset v6 (006a re-collection on the bugs-2.0 world;
+    # declaration + D-001 in exp-006a-biscuit-corner/
+    # collection-2026-08-22.md). Select cells by argv:
+    # `dataset_qa.py v6-spread v6-farspawn`.
+    "v6-spread": {"dir": "v6-spread", "family": "family-spread-bugs2",
+                  "seed_base": 991001, "ticks": 8000},
+    "v6-farspawn": {"dir": "v6-farspawn",
+                    "family": "family-farspawn-bugs2",
+                    "seed_base": 1040001, "ticks": 2000},
 }
-N_CONFIG, N_ROLLOUT, TICKS = 18, 6, 8000
+N_CONFIG, N_ROLLOUT = 18, 6
 HAPPY_COL, DISTRESS_A, DISTRESS_B = 6, 20, 26
 NEEDS = ["eat", "drink", "play", "cuddle", "bath", "sleep"]
 MSG_HEAD = ["silent", "want_eat", "want_drink", "mew", "want_play",
@@ -81,7 +90,7 @@ def qa_cell(name, spec):
         c["decisions"] += meta["decisions"]
 
         rew = np.load(d / "reward.npy")
-        assert rew.shape == (TICKS,), d
+        assert rew.shape == (spec["ticks"],), d
         c["reward_sum"] += float(rew.sum())
         rmin = float(rew.min())
         c["reward_min"] = rmin if c["reward_min"] is None \
@@ -120,7 +129,7 @@ def qa_cell(name, spec):
             "state_width": c["state_width"],
             "decisions": c["decisions"],
             "reward_per_tick": round(
-                c["reward_sum"] / (N_ROLLOUT * TICKS), 4),
+                c["reward_sum"] / (N_ROLLOUT * spec["ticks"]), 4),
             "reward_min": round(c["reward_min"], 4),
             "happiness_mean": round(100 * c["hap_sum"] / c["hap_n"], 2),
             "seat_happiness": {
@@ -148,7 +157,9 @@ def qa_cell(name, spec):
 
 def main():
     result = {}
-    for name, spec in CELLS.items():
+    names = sys.argv[1:] or ["pinned", "spread"]
+    for name in names:
+        spec = CELLS[name]
         print(f"cell {name}: ...", flush=True)
         result[name] = qa_cell(name, spec)
         a, r = result[name]["aggregate"], result[name]["rates"]
@@ -157,7 +168,8 @@ def main():
               f"{r['mask_mismatch']:.3%}, msg-mask-mismatch 0, "
               f"msg-inexpressible {r['msg_inexpressible']:.3%}")
     (HERE / "results-raw").mkdir(exist_ok=True)
-    p = HERE / "results-raw" / "dataset-v5-qa.json"
+    tag = "-".join(names) if sys.argv[1:] else "v5"
+    p = HERE / "results-raw" / f"dataset-{tag}-qa.json"
     p.write_text(json.dumps(result, indent=1) + "\n")
     print(f"-> {p}")
 

@@ -1,0 +1,11 @@
+config family-farspawn-bugs2/family-06.toml | 6 seeds x 2000 ticks | mean critters on field: bug 3.0, greeble 1.0
+
+[needs_driven] (per-kitty-tick basis over 12000 world ticks)
+  bug: pursuits 143 | chase ticks 276 | catches 39 | abandons 104 | chase-ticks/catch 7.1 | catch-rate 27.3% | pounce starts 19 | play scenes 58 (mean len 1.7) | expiry: chase 0 scene 0
+  greeble: pursuits 47 | chase ticks 95 | catches 12 | abandons 35 | chase-ticks/catch 7.9 | catch-rate 25.5% | pounce starts 5 | play scenes 17 (mean len 1.5) | expiry: chase 0 scene 1
+  kitty-chase ticks 118 | duets: 192 starts, 712 ticks (mean 3.7) | solo: 0 starts, 0 ticks (mean 0.0)
+
+[playful] (per-kitty-tick basis over 12000 world ticks)
+  bug: pursuits 961 | chase ticks 1770 | catches 772 | abandons 186 | chase-ticks/catch 2.3 | catch-rate 80.3% | pounce starts 56 | play scenes 828 (mean len 4.8) | expiry: chase 5 scene 2
+  greeble: pursuits 159 | chase ticks 395 | catches 99 | abandons 59 | chase-ticks/catch 4.0 | catch-rate 62.3% | pounce starts 14 | play scenes 113 (mean len 2.5) | expiry: chase 0 scene 1
+  kitty-chase ticks 872 | duets: 188 starts, 725 ticks (mean 3.9) | solo: 0 starts, 0 ticks (mean 0.0)
