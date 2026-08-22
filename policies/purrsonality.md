@@ -150,9 +150,30 @@ generation — every seated mind trained under pre-bugs-2.0 economics
 (the skill moat: unskilled bug EV 7.9 < solo 10 on that world).
 Shorter window than the 08-18 baseline (9 min vs 25; solo-play
 volume scales accordingly); zero-vs-nonzero is the banked claim,
-not the rates. Raw: results-raw/live-census-20676.json. The "after"
-lands with the post-deploy live census (the reward-tuning freeze's
-lifting condition, owner 2026-08-21).
+not the rates. Raw: results-raw/live-census-20676.json.
+
+**Boundary correction (2026-08-22, Product's flag)**: the bugs-2.0
+restart landed at tick 20,978 — INSIDE the window above. The clean
+pre-039 sub-window is 20,676–20,978 (~303 ticks); ticks
+20,979–21,301 ran on new mechanics. The zero-play claim survives
+the cut a fortiori (zero over the whole window ⇒ zero over the
+sub-window); the rates cannot be split (the run predates raw-event
+retention, added to the instrument same day).
+
+**First post-deploy read (2026-08-22, ticks 22,037–22,663 — new
+mechanics, ~1,100–1,700 ticks after the boundary)**: play targets
+still **bug 0 · greeble 0** on all five seats (solo 257 · kitty 64,
+1,578 events). The scripted seat included: Clementine's play is
+kitty-partnered 27/27 — with four cats in reach, need-scheduled
+play resolves to the better-paying duet, exactly the designed
+ordering (duet-each 20 both-payer > bug 28 single). The unskilled
+bug gradient is a training-time claim about learners, and the live
+zero for frozen policies is F-019 erosion as expected — this read
+is the "actual play numbers" starting point, not a failure of the
+mechanics. Happiness healthy at every seat (policy 94.1–95.3,
+scripted 90.7 ≈ the anchor band). Raw:
+results-raw/live-census-22037.json. Longer-window census owed
+before the owner's reward-tuning freeze question is called.
 
 ---
 

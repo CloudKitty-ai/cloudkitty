@@ -78,3 +78,23 @@ Incumbent re-evaluation on `phase1-cutover-bugs2.toml`, then corpus
 re-collection (two-cat far-spawn isolation families included), then
 exp-006a numbers re-derivation and freeze. The deploy itself remains
 owner-gated with Product; the live play census follows it.
+
+## Deploy boundary + first post-deploy read (2026-08-22 addendum)
+
+The owner restarted the box herself at 00:52:37 UTC — boundary tick
+20,978/20,979, world continued, binary verified by Product against
+main. The boundary lands INSIDE the zero-play window above: the
+clean pre-039 sub-window is 20,676–20,978, and the zero-play claim
+survives a fortiori (zero over the whole ⇒ zero over the part).
+Register corrected; live_census.py now retains raw events so future
+windows can be re-cut by tick.
+
+First post-deploy census (ticks 22,037–22,663): critter play still
+zero at every seat, scripted Clementine included — her play is
+kitty-partnered 27/27, the duet outbidding the bug exactly as the
+economy orders it when partners are in reach. Happiness healthy
+everywhere (policy seats 94.1–95.3). The bugs-2.0 question for
+DEPLOYED frozen policies was never whether they start hunting
+(F-019: they don't); the live numbers the owner's reward-tuning
+freeze waits on deserve a longer window before the question is
+called. Raw: attn-cert-2026-08-14/results-raw/live-census-22037.json.

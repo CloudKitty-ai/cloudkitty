@@ -18,6 +18,7 @@ use tokio::sync::{oneshot, watch};
 use tokio::time::{interval, Duration, MissedTickBehavior};
 
 use crate::persist;
+use crate::watchdog::{AlarmEvent, Watchdog, WelfareStatus};
 
 /// Everything the HTTP layer serves, republished once per tick.
 #[derive(Debug, Clone)]
@@ -55,6 +56,9 @@ impl Published {
 pub struct SimTask {
     /// Latest published state; clone freely, one per reader.
     pub receiver: watch::Receiver<Arc<Published>>,
+    /// Latest welfare surface (spec 040): refreshed by the watchdog after
+    /// every tick, served on GET /welfare.
+    pub welfare: watch::Receiver<Arc<WelfareStatus>>,
     pub handle: tokio::task::JoinHandle<()>,
     shutdown: oneshot::Sender<()>,
 }
@@ -76,8 +80,15 @@ pub fn spawn(
     config: Arc<Config>,
     registry: BehaviorRegistry,
     snapshot_path: Option<PathBuf>,
+    mut watchdog: Watchdog,
 ) -> SimTask {
     let (tx, receiver) = watch::channel(Arc::new(Published::from_world(&world)));
+    // The first observation happens at spawn: a world loaded mid-streak
+    // re-announces it immediately (spec 040 edge case — re-announced beats
+    // forgotten), and the endpoint has a real answer before the first tick.
+    let (initial_status, initial_events) = watchdog.observe(&world);
+    log_alarms(&initial_events);
+    let (welfare_tx, welfare) = watch::channel(Arc::new(initial_status));
     let (shutdown_tx, mut shutdown_rx) = oneshot::channel();
 
     let handle = tokio::spawn(async move {
@@ -93,6 +104,12 @@ pub fn spawn(
                 _ = ticker.tick() => {
                     world.tick(&registry, &config).await;
                     let _ = tx.send(Arc::new(Published::from_world(&world)));
+                    // Spec 040: the standing welfare watch. Read-only over
+                    // &world; the log lines are a rendering of the returned
+                    // events (single source, watchdog.rs plan D2).
+                    let (status, events) = watchdog.observe(&world);
+                    log_alarms(&events);
+                    let _ = welfare_tx.send(Arc::new(status));
 
                     if world.tick.is_multiple_of(save_every) {
                         save_now(&world, snapshot_path.as_deref(), "periodic");
@@ -109,8 +126,54 @@ pub fn spawn(
 
     SimTask {
         receiver,
+        welfare,
         handle,
         shutdown: shutdown_tx,
+    }
+}
+
+/// Renders alarm events into the log: ERROR for crossings and reminders
+/// (the welfare incident classes), INFO for recoveries.
+fn log_alarms(events: &[AlarmEvent]) {
+    for event in events {
+        match event {
+            AlarmEvent::Crossing {
+                kitty_id,
+                kitty_name,
+                need,
+                age,
+            } => tracing::error!(
+                kitty = *kitty_id,
+                name = %kitty_name,
+                need = ?need,
+                age_ticks = *age,
+                "WELFARE ALARM: sustained distress crossed the line"
+            ),
+            AlarmEvent::Reminder {
+                kitty_id,
+                kitty_name,
+                need,
+                age,
+            } => tracing::error!(
+                kitty = *kitty_id,
+                name = %kitty_name,
+                need = ?need,
+                age_ticks = *age,
+                "WELFARE ALARM (still): the distress streak continues"
+            ),
+            AlarmEvent::Recovery {
+                kitty_id,
+                kitty_name,
+                need,
+                final_age,
+            } => tracing::info!(
+                kitty = *kitty_id,
+                name = %kitty_name,
+                need = ?need,
+                final_age_ticks = *final_age,
+                "welfare recovered: the distress streak ended"
+            ),
+        }
     }
 }
 
@@ -137,7 +200,13 @@ mod tests {
         let config = Arc::new(config);
         let world = World::generate(&config);
 
-        let sim = spawn(world, config, BehaviorRegistry::with_builtins(), None);
+        let sim = spawn(
+            world,
+            config,
+            BehaviorRegistry::with_builtins(),
+            None,
+            crate::watchdog::Watchdog::new(Default::default()),
+        );
         let mut rx = sim.receiver.clone();
 
         rx.changed().await.expect("a tick was published");
@@ -158,7 +227,13 @@ mod tests {
         let config = Arc::new(config);
         let world = World::generate(&config);
 
-        let sim = spawn(world, config, BehaviorRegistry::with_builtins(), None);
+        let sim = spawn(
+            world,
+            config,
+            BehaviorRegistry::with_builtins(),
+            None,
+            crate::watchdog::Watchdog::new(Default::default()),
+        );
         let mut rx = sim.receiver.clone();
         rx.changed().await.expect("a tick was published");
 
@@ -192,6 +267,7 @@ mod tests {
             config.clone(),
             BehaviorRegistry::with_builtins(),
             Some(path.clone()),
+            crate::watchdog::Watchdog::new(Default::default()),
         );
         let mut rx = sim.receiver.clone();
         rx.changed().await.unwrap();

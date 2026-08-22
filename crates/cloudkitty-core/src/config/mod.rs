@@ -83,17 +83,19 @@ pub struct Config {
     pub events: EventsConfig,
     #[serde(default)]
     pub viewer: ViewerConfig,
-    /// The `[rl]` and `[plugins]` tables are parsed from the same file
-    /// text by cloudkitty-rl and the server respectively -- everything
-    /// under them is someone else's business. They are recognised here
-    /// only so `deny_unknown_fields` can hold on everything that is
-    /// actually ours, and they never serialize: `GET /config` must not
-    /// grow keys, and `engine_defaults_sha256` hashes this struct's
-    /// serialized defaults.
+    /// The `[rl]`, `[plugins]`, and `[watchdog]` tables are parsed from
+    /// the same file text by cloudkitty-rl and the server respectively --
+    /// everything under them is someone else's business. They are
+    /// recognised here only so `deny_unknown_fields` can hold on
+    /// everything that is actually ours, and they never serialize:
+    /// `GET /config` must not grow keys, and `engine_defaults_sha256`
+    /// hashes this struct's serialized defaults.
     #[serde(default, skip_serializing)]
     pub rl: ForeignTable,
     #[serde(default, skip_serializing)]
     pub plugins: ForeignTable,
+    #[serde(default, skip_serializing)]
+    pub watchdog: ForeignTable,
 }
 
 /// A table this struct accepts and discards because another parser owns
@@ -1022,6 +1024,7 @@ impl Default for Config {
             viewer: ViewerConfig::default(),
             rl: ForeignTable,
             plugins: ForeignTable,
+            watchdog: ForeignTable,
         }
     }
 }
@@ -2160,6 +2163,10 @@ mod tests {
         assert!(
             !obj.contains_key("plugins"),
             "plugins leaked into serialization"
+        );
+        assert!(
+            !obj.contains_key("watchdog"),
+            "watchdog leaked into serialization (spec 040: server-owned, stamp must not move)"
         );
     }
 
