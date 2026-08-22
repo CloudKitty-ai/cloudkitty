@@ -1775,16 +1775,166 @@ check('the head slides along the body without reshaping it', () => {
   close(fwd.head.r, base.head.r, 'the head resized while sliding');
 });
 
+/** The rotated ellipse's true lowest point -- where a tilted body meets grass. */
+const seatLowest = (b) => b.cy + Math.hypot(b.rx * Math.sin(b.rot || 0), b.ry * Math.cos(b.rot || 0));
+
 check('reshaping holds the belly floor in every pose', () => {
   for (const pose of CatV2.POSES) {
     const base = CatV2.catLayout(pose, 0.4);
     const shaped = reshaped({ bodyH: 1.2, bodyW: 1.1 }, () => CatV2.catLayout(pose, 0.4));
+    if (pose === 'grooming') {
+      // The seated body is TILTED, so `cy + ry` -- the unrotated bottom --
+      // is no longer where it touches the grass. Its floor is the rotated
+      // ellipse's true lowest point, and `seatCy` derives cy so that point
+      // rests on CAT_GROUND whatever the proportion dials say. Stronger
+      // than invariance, so assert the stronger thing.
+      close(seatLowest(base.body), CatV2.CAT_GROUND, `${pose}: the rump left the ground`);
+      close(seatLowest(shaped.body), CatV2.CAT_GROUND, `${pose}: reshaping lifted or sank the seat`);
+      continue;
+    }
     close(
       shaped.body.cy + shaped.body.ry,
       base.body.cy + base.body.ry,
       `${pose}: the underside moved, which is a stand-height change wearing a proportion costume`,
     );
   }
+});
+
+check('the seat rests on the ground at every point of the breath', () => {
+  // `seatCy` inverts the proportion pipeline for whatever tilt and breath
+  // the pose currently has, so this holds at EVERY phase, not just one.
+  for (const phase of [0, 0.17, 0.4, 0.73]) {
+    close(
+      seatLowest(CatV2.catLayout('grooming', phase).body),
+      CatV2.CAT_GROUND,
+      `phase ${phase}: the seat came off the ground`,
+    );
+  }
+});
+
+check('GROOM.seated=false is the drawing that shipped, recorded not remembered', () => {
+  // Recorded from the origin/main build (#290, 2026-08-22) at default dials
+  // -- the real pipeline output, not hand-derived numbers. The branch exists
+  // solely so the lab's before/after column shows the cat that actually
+  // shipped; the moment it drifts it is a hybrid and the comparison lies.
+  // Both the flag and this check are deleted together once the seated pose
+  // is accepted.
+  const SHIPPED = {
+    0: { body: { cx: 0.48, cy: 0.6295, rx: 0.33, ry: 0.2205, rot: 0 },
+      head: { cx: 0.56, cy: 0.41949999999999993, r: 0.215 }, eyes: 'closed', pawUp: true,
+      legs: [{ x: 0.26, hx: 0.26, top: 0.7494999999999999, bottom: 0.88, w: 0.1, far: true },
+        { x: 0.26, hx: 0.26, top: 0.7494999999999999, bottom: 0.88, w: 0.1, far: false }],
+      tail: { x0: 0.16, y0: 0.6094999999999999, c1x: 0.03, c1y: 0.5894999999999999,
+        c2x: 0.01, c2y: 0.42949999999999994, x1: 0.06, y1: 0.32949999999999996 } },
+    0.4: { body: { cx: 0.48, cy: 0.6295, rx: 0.33, ry: 0.2205, rot: 0 },
+      head: { cx: 0.56, cy: 0.4309126781955418, r: 0.215 }, eyes: 'closed', pawUp: true,
+      legs: [{ x: 0.26, hx: 0.26, top: 0.7494999999999999, bottom: 0.88, w: 0.1, far: true },
+        { x: 0.26, hx: 0.26, top: 0.7494999999999999, bottom: 0.88, w: 0.1, far: false }],
+      tail: { x0: 0.16, y0: 0.6094999999999999, c1x: 0.03, c1y: 0.5894999999999999,
+        c2x: 0.01, c2y: 0.42949999999999994, x1: 0.06, y1: 0.32949999999999996 } },
+  };
+  // Projected onto the fields the painter reads -- `limb` is new scaffolding
+  // the old build never carried -- and rounded so float formatting cannot
+  // fail a drawing that is the same picture.
+  const pin = (o) => JSON.stringify(o, (k, v) => (typeof v === 'number' ? +v.toFixed(12) : v));
+  const project = (L) => ({
+    body: L.body, head: L.head, eyes: L.eyes, pawUp: L.pawUp,
+    legs: L.legs.map((l) => ({
+      x: l.x, hx: l.hx ?? l.x, top: l.top, bottom: l.bottom, w: l.w, far: !!l.far,
+    })),
+    tail: L.tail,
+  });
+  CatV2.GROOM.seated = false;
+  try {
+    for (const phase of [0, 0.4]) {
+      assert(
+        pin(project(CatV2.catLayout('grooming', phase))) === pin(SHIPPED[phase]),
+        `phase ${phase}: the before/after's "before" is not the cat that shipped`,
+      );
+    }
+  } finally {
+    CatV2.GROOM.seated = true;
+  }
+});
+
+check('the seated groom carries three limbs, not two mirrored pairs', () => {
+  const L = CatV2.catLayout('grooming', 0);
+  assert(L.pawUp, 'the licked paw is gone');
+  assert(L.legs.length === 3, `three limbs read by design, got ${L.legs.length}`);
+  const far = L.legs.filter((l) => l.far);
+  const near = L.legs.filter((l) => !l.far);
+  assert(far.length === 2 && near.length === 1, 'far pair is the hind + the supporting fore');
+  assert(far.some((l) => l.limb === 'fore'), 'the supporting foreleg must be FAR: it has no near twin');
+  assert(near[0].limb === 'hind', 'the one near leg is the hind foot');
+  const farHind = far.find((l) => l.limb === 'hind');
+  close(near[0].x - farHind.x, -CatV2.FAR_LEGS.grooming, 'the hind pair is offset by exactly FAR_LEGS.grooming');
+  for (const l of L.legs) close(l.bottom, CatV2.CAT_GROUND, `a ${l.limb} foot left the ground`);
+  // The spacing rule the pose states: the hind cluster and the supporting
+  // foreleg must not share ink -- centre-to-centre >= painted width.
+  const fore = far.find((l) => l.limb === 'fore');
+  assert(
+    Math.abs(fore.x - near[0].x) >= fore.w + CatV2.OUTLINE_W - 1e-9,
+    'the foreleg overlaps the hind cluster: they share ink at these dials',
+  );
+  CatV2.GROOM.fore = false;
+  try {
+    assert(CatV2.catLayout('grooming', 0).legs.length === 2, 'GROOM.fore=false must drop exactly the foreleg');
+  } finally {
+    CatV2.GROOM.fore = true;
+  }
+});
+
+check('pawHold and lick are lerped across a pose change, never switched', () => {
+  // The droplet's midpoint switch is the documented trap here (it is what
+  // phase 0 of the v3 plan was about); these two are POSITIONS, and a
+  // switch would jump the paw and pop the tongue mid-blend.
+  const A = CatV2.catLayout('grooming', 0.1);
+  assert(A.pawHold > 0 && A.lick > 0, 'phase 0.1 must be mid-lick or this check is vacuous');
+  const B = CatV2.catLayout('idle', 0);
+  const quarter = CatV2.blendLayouts(A, B, 0.25);
+  close(quarter.pawHold, A.pawHold * 0.75, 'pawHold did not lerp at t=0.25');
+  close(quarter.lick, A.lick * 0.75, 'lick did not lerp at t=0.25');
+  close(CatV2.blendLayouts(A, B, 1).pawHold, 0, 't=1 must be exactly the far pose');
+  close(CatV2.blendLayouts(B, A, 0.25).lick, A.lick * 0.25, 'the blend must be symmetric in its arguments');
+});
+
+check('the tongue is parked, and exactly one number wakes it', () => {
+  const G = CatV2.GROOM;
+  close(G.tongue, 0, 'GROOM.tongue must ship 0 -- parked (owner, 2026-08-21)');
+  const draw = () => opsOf((ctx) => CatV2.drawCat(ctx, {
+    appearance: CatV2.appearanceFor(3), facing: 'right', size: 120, x: 0, y: 0,
+    pose: 'grooming', phase: 0.1, layout: { view: 'side' },
+  }));
+  const parked = draw();
+  G.tongue = 0.5;
+  let woken;
+  try { woken = draw(); } finally { G.tongue = 0; }
+  const strokes = (s) => (s.match(/\["stroke"\]/g) || []).length;
+  assert(strokes(woken) === strokes(parked) + 1, 'waking the tongue must add exactly one stroke');
+  assert(strokes(draw()) === strokes(parked), 'restoring the park must remove it again');
+  // And the paint order is load-bearing: the tongue reaches the paw's
+  // CENTRE, so drawn first the paw's fill eats it. Source-level, since the
+  // parked tongue draws nothing to measure.
+  const pawBlock = catV2Src.match(/if \(L\.pawUp\) \{([\s\S]{0,900}?)\n  \}/);
+  assert(pawBlock, "the pawUp paint block is gone from cat-v2.js");
+  const paw = pawBlock[1].indexOf('drawRaisedPaw(ctx, L.head, a, L.pawHold || 0)');
+  const tongue = pawBlock[1].indexOf('drawGroomTongue(ctx, L.head, a, L.lick || 0, L.pawHold || 0)');
+  assert(paw >= 0, 'the raised paw is not handed the nod hold');
+  assert(tongue > paw, 'the tongue must be painted OVER the paw, not under it');
+});
+
+check('withFarPair tags limbs by identity, additively', () => {
+  // Grooming names its limbs; every pose that still goes through
+  // `withFarPair` gets index tags so a near/far pair can be recognised
+  // without inferring from the `far` flag. Additive: nothing reads them yet.
+  const L = CatV2.catLayout('stretch', 0.4);
+  const far = L.legs.filter((l) => l.far);
+  const near = L.legs.filter((l) => !l.far);
+  assert(far.length === near.length && far.length > 0, 'stretch must keep its mirrored pairs');
+  far.forEach((l, i) => {
+    assert(Number.isInteger(l.limb), `far leg ${i} lost its limb tag`);
+    assert(l.limb === near[i].limb, `far leg ${i} is not tagged as its near twin's pair`);
+  });
 });
 
 check('a grounded foot stays on the ground; the leap’s feet ride the body', () => {
