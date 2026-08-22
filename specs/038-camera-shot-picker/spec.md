@@ -301,7 +301,12 @@ gathering elsewhere does not move the camera.
 - **FR-007**: When a shot member presses the safe-zone boundary, the camera
   MUST make one eased correction that restores comfortable room and then
   return to rest. Corrections use gentle easing, frame-rate corrected
-  (036 FR-009 unchanged). Chained corrections are VELOCITY-CONTINUOUS
+  (036 FR-009 unchanged). A press must PERSIST before it is answered
+  (owner, 2026-08-21 calm pass): a member outside the safe zone earns a
+  correction only after a brief dwell (default 3 ticks), so a lean-and-
+  return costs nothing; a member leaving the frame outright, or an empty
+  frame, bypasses the dwell (SC-002 outranks calm). Chained corrections
+  are VELOCITY-CONTINUOUS
   (owner, 2026-08-21, live judging): while a correction's cause persists —
   a walking kitty re-pressing the frame — successive moves inherit their
   momentum and read as one continuous follow, never as surge-and-stop;
@@ -319,8 +324,10 @@ gathering elsewhere does not move the camera.
   in the shot, and a kitty who walks into a shot group joins the shot without
   any camera event beyond the ordinary hold/correction behaviour.
 - **FR-009**: A separate group that could share the frame with the shot MUST
-  be admitted by widening — never switched to — once it has persisted briefly
-  (default 5 ticks). Admission is one eased widen.
+  be admitted by widening — never switched to — once it has persisted
+  (default 10 ticks; raised from 5 at the owner's calm pass, 2026-08-21 —
+  admissions were the bulk of the "aggressive about the 4th/5th cat"
+  motion). Admission is one eased widen.
 - **FR-010**: When the shot's groups can no longer share a frame — sustained
   briefly (default 3 ticks; added 2026-08-21 at acceptance measurement, when
   un-dwelled sheds flapped at the link boundary 3–8/min, a rate the
@@ -403,8 +410,12 @@ gathering elsewhere does not move the camera.
   epsilon of its target, motion stops on that frame.
 - **SC-002**: At least two kitties are at least partially in frame on ≥99% of
   ticks, and a frame containing zero kitties never occurs outside the moving
-  middle of a far pan. (Succeeds 036 SC-005 and closes its accepted
-  deviation.)
+  middle of an eased re-frame (a far pan, or a break/shed transit — amended
+  2026-08-21: at the owner's 2s move durations a break's moving middle can
+  cross empty meadow for a frame, the same phenomenon the pan clause always
+  exempted; at rest an empty frame remains forbidden and the hold's
+  emptiness escape enforces it). (Succeeds 036 SC-005 and closes its
+  accepted deviation.)
 - **SC-003**: Re-framing events of every kind — widens, sheds, breaks, pans —
   total at most 3 per minute in ordinary play, and far pans alone at most 0.5
   per minute. (Succeeds 036 SC-006's ≤3/min bar; simulation measured ≤1.7
@@ -414,8 +425,12 @@ gathering elsewhere does not move the camera.
   the median drawn kitty is at least 1.2× her size under the shipped camera
   on the same display (simulation: 1.45×).
 - **SC-005**: The framed set is the largest gathering the frame could hold,
-  or tied with it, on at least 90% of ticks; mean kitties in frame in
-  ordinary 5-kitty play is at least 3.
+  or tied with it, on at least 80% of ticks; mean kitties in frame in
+  ordinary 5-kitty play is at least 3. (Bar amended 90 → 80, owner ruling
+  2026-08-21 at the calm pass: the admission dwell trades ~5% of maximal
+  ticks for measured calm — her "~3 in frame is the target, 5 reads busy"
+  ruling outranks strict numbers-win here. Measured 85% at the judged
+  dials.)
 - **SC-006**: Every 036 User Story 2 acceptance scenario (following) passes
   unchanged under the new grammar, plus: a followed kitty is never abandoned
   for a bigger gathering.

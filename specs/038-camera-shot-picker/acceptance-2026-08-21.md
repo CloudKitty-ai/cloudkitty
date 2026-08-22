@@ -137,6 +137,34 @@ moves, well above the 60% bar). The flap-window harness check re-pinned
 at its measured 53% rest (motion-heavy by construction; the full capture
 owns SC-001).
 
+## T026 calm pass — 2026-08-21, second live session
+
+The owner, on the shipped-candidate feel: "calm static periods look
+great; periods with a lot of movement look not as great," then "get the
+median calm spell up." Measured anatomy: the busy periods were
+MEMBERSHIP re-frames (sheds median 4.8t travel + 3.3t zoom in one move)
+and instant corrections. Her judged remedies, all baked:
+
+- **nearDwellTicks 5 → 10** (slower to court a 4th/5th group),
+  **safeZoneFrac 0.80 → 0.88**, **tightenFrac 1.15 → 1.2** (1.3 doubled
+  calm but broke SC-004's 1.2× size floor — rejected on measurement).
+- **Shed/break decomposition**: an in-band re-frame lands at HELD width;
+  the breathe-in owns the zoom from rest (FR-010 amendment).
+- **pressDwellTicks 3** (FR-007 amendment): a press must persist ~2.4s
+  before a correction; frame-edge and empty-frame escapes bypass it
+  (without them, measurement showed 9 zero-kitty frames).
+- **SC-005 amended 90 → 80%** (owner ruling: "~3 is the target" outranks
+  strict numbers-win; measured 85%). **SC-002's transit exemption
+  widened** to any eased re-frame's moving middle (one 100ms mid-break
+  empty frame on the phone at 2s durations — the pan clause's own
+  phenomenon at smaller scale).
+
+Final numbers, full capture: **desktop rest 78%, 74% of ticks fully
+still, median calm spell 4.8s (longest 30s), re-framing 1.93/min, size
+1.51×, maximal 85%, zero empty frames. Phone rest 79%, re-framing
+2.36/min, size 1.75×, one mid-break transit frame (exempted above).**
+Harness 279 motion / 88 meadow, every new mechanism seen red first.
+
 ## Open for T026 (owner's live gate)
 
 - Judge the feel at 3/4/5 kitties and on the handset (SC-010).

@@ -67,6 +67,9 @@ synthetic worlds; every clause below lands with a mutation-verified check.
   inner `safeZoneFrac` rect starts a `correction`; overflow shot — bbox
   centre drifting > `aimDeadzoneTiles` from aim does (FR-007a). Members
   half-out of an overflow frame trigger NOTHING (the camera never chases).
+  From REST every trigger waits out `pressDwellTicks` of persistence
+  (2026-08-21 calm pass) — except a member leaving the FRAME or an empty
+  frame, which act immediately (SC-002 outranks calm).
 - **Reduced motion**: every episode arrives instantly. **Still frames**:
   no episode progress, no decisions (same moment drawn again).
 

@@ -240,7 +240,7 @@ const VIEW = Object.freeze({
     // interest over 15+ ticks", 2026-08-20). Thresholds are compared at
     // exactly two sites in decide(), which is the spec-032 seam: a
     // lookahead buffer replaces the window's source, not the grammar.
-    nearDwellTicks: 5,
+    nearDwellTicks: 10, // owner-judged at the calm pass (2026-08-21; was 5 — stop re-opening negotiations with a 4th/5th group every few seconds)
     farDwellTicks: 15,
     // ...and a shed waits too (un-fit must persist this many consecutive
     // ticks). Added at acceptance measurement, 2026-08-21: the reference
@@ -257,11 +257,19 @@ const VIEW = Object.freeze({
     // failed at 1.16x. 1.3 first: the measured median oversize is 1.25,
     // so a 1.3 threshold never fired at the median and the width never
     // moved -- the dial must sit BELOW the drift it is meant to catch.
-    tightenFrac: 1.15,
+    tightenFrac: 1.2, // owner-judged at the calm pass (2026-08-21; was 1.15 — 1.3 doubled the calm but broke SC-004's size floor)
     // The inner region of the frame the shot may wander inside without the
     // camera moving AT ALL. A member pressing past it earns one eased
     // correction, then stillness again (038 FR-006/FR-007).
-    safeZoneFrac: 0.80,
+    safeZoneFrac: 0.88, // owner-judged at the calm pass (2026-08-21; was 0.80)
+    // Persistence before action, applied to the HOLD (owner, 2026-08-21
+    // calm pass): a press (or standing slack) must survive this many
+    // consecutive ticks before a correction latches from rest. A cat
+    // leaning out and back costs nothing; a real walk still gets tracked
+    // ~2.4s in. Exempt: mid-episode re-aims (motion underway stays
+    // continuous), a member leaving the FRAME, and an EMPTY frame --
+    // SC-002 outranks calm.
+    pressDwellTicks: 3,
     // Episode durations. Every camera-mode move latches a goal, eases over
     // one of these, snaps EXACTLY on arrival and returns to rest -- there
     // is no per-frame pursuit left to trail off (038 FR-006, research D7).
@@ -2186,6 +2194,9 @@ class Camera {
     /** Consecutive ticks the shot's groups have failed to share a frame;
      *  a shed fires only at shedDwellTicks (the flap damper). */
     this.unfitTicks = 0;
+    /** Consecutive ticks the hold has been pressed; a correction latches
+     *  from rest only at pressDwellTicks (FR-007 as amended 2026-08-21). */
+    this.pressTicks = 0;
     /**
      * The one mover of the camera. null means REST, and REST means the
      * frame is BIT-STILL -- nothing eases, nothing drifts (038 FR-006).
@@ -2849,6 +2860,7 @@ class Camera {
       this.hasDecided = false;
       this.chains = [];
       this.unfitTicks = 0;
+      this.pressTicks = 0;
       this.episode = null;
       const downOff = this.across * aspect;
       this.left = clampFrame(this.aimX - this.across / 2, world.width, this.across);
@@ -2968,7 +2980,30 @@ class Camera {
         // (found by measurement: the first cut of the decomposition
         // changed nothing at all).
         const slack = violated || this.episode ? 0 : probe.across / Math.max(1e-6, goal.across);
-        if (violated || slack > this.dials.tightenFrac) {
+        const pressed = violated || slack > this.dials.tightenFrac;
+        // The press dwell: count persistence on tick edges; from REST the
+        // trigger waits it out, mid-episode it does not.
+        // The FRAME EDGE bypasses patience: the safe zone is a polite
+        // buffer, but a member actually leaving the frame is SC-002's
+        // contract -- measured: without the bypass, a 3-tick dwell let a
+        // walking group exit entirely for 9 frames.
+        if (tickEdge) this.pressTicks = pressed ? this.pressTicks + 1 : 0;
+        const down = probe.across * (aspect || 1);
+        const pLeft = clampFrame(probe.aimX - probe.across / 2, world.width, probe.across);
+        const pTop = clampFrame(probe.aimY - down / 2, world.height, down);
+        const outOf = (k) => {
+          const pt = at(k);
+          return pt.x < pLeft || pt.x > pLeft + probe.across
+            || pt.y < pTop || pt.y > pTop + down;
+        };
+        const escaping = (violated && shotCats.some(outOf))
+          // An EMPTY frame waives all patience regardless of the trigger:
+          // SC-002 outranks calm, and an overflow pair drifting centred
+          // can carry both members out before the deadzone trips.
+          || shotCats.every(outOf);
+        const patient = escaping || this.episode !== null
+          || this.pressTicks >= (this.dials.pressDwellTicks || 0);
+        if (pressed && patient) {
           // Move only when moving HELPS. Near the world's edge the clamp
           // can leave a member outside ANY legal frame's safe zone -- a
           // kitty sleeping against the fence -- and for her the fresh

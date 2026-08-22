@@ -6640,9 +6640,12 @@ check('the toggle never releases a follow', () => {
   // holds. The field itself is deleted -- no production reader survived
   // the shot picker.
   let t = 32;
-  for (let i = 0; i < MOVE_FRAMES; i += 1) {
-    cam.update(world, camView(false, (t += 16.67)), { aspect: 1, cssWidth: 1000 });
-    if (!cam.episode && i > 0) break;
+  for (let i = 0; i < MOVE_FRAMES + api.VIEW.camera.pressDwellTicks * 48; i += 1) {
+    // Ticks must advance: the hold's press dwell counts tick edges, and a
+    // tickless fixture would starve it forever (production always ticks).
+    cam.update({ ...world, tick: Math.floor(i / 48) }, camView(false, (t += 16.67)),
+      { aspect: 1, cssWidth: 1000 });
+    if (!cam.episode && i > api.VIEW.camera.pressDwellTicks * 48) break;
   }
   assert(cam.followId === 1, 'turning the camera back on lost the follow');
   assert(cam.across < 20, 'the camera came back on but never narrowed off the whole world');
@@ -7451,7 +7454,7 @@ check('a dissolved shot re-frames through an eased break, never a cut', () => {
 
 /* ---- 038 US3: the camera finds the action (T016-T018) -------------- */
 
-check('admission widens on the FIFTH qualifying tick, not the fourth or sixth', () => {
+check('admission widens on the DWELL tick exactly, not before or after', () => {
   // 038 FR-009: a disjoint group that could share the frame is admitted --
   // by widening, never by switching -- once it has persisted nearDwellTicks.
   // The rival pair arrives in admissible range at tick 1, so its 5th
@@ -7472,11 +7475,12 @@ check('admission widens on the FIFTH qualifying tick, not the fourth or sixth', 
   cam.on = true;
   cam.update(world(0), camView(false, 0), { aspect: 1, cssWidth: 1000 });
   assert(cam.shotIds.size === 2, 'setup: the rival begins beyond window range');
-  for (let t = 1; t <= 4; t += 1) {
+  const dwell = api.VIEW.camera.nearDwellTicks;
+  for (let t = 1; t <= dwell - 1; t += 1) {
     cam.update(world(t), camView(false, t * 800), { aspect: 1, cssWidth: 1000 });
     assert(cam.shotIds.size === 2, `admitted at tick ${t}, before the dwell`);
   }
-  cam.update(world(5), camView(false, 5 * 800), { aspect: 1, cssWidth: 1000 });
+  cam.update(world(dwell), camView(false, dwell * 800), { aspect: 1, cssWidth: 1000 });
   assert(cam.shotIds.size === 4, `tick 5: the shot holds ${cam.shotIds.size}, not the admitted four`);
   assert(cam.episode && cam.episode.kind === 'widen' && !cam.episode.committed,
     `the admission is a '${cam.episode && cam.episode.kind}' episode`);
@@ -7622,23 +7626,15 @@ check('fifty RECORDED ticks: no pan, few widens, never fewer than two', () => {
     assert(cam.shotIds && cam.shotIds.size >= 2,
       `tick ${row[0]}: only ${cam.shotIds ? cam.shotIds.size : 0} framed`);
   }
-  // Measured on this excerpt post-review-remediation (2026-08-21):
-  // widens 2, sheds 3, pans 0, breaks 0, rest 86.2%. Every band is
-  // pinned AT its measured value -- the high review found the first cut's
-  // slack admitted 10.5 events/min against SC-003's 3/min bar, so a
-  // regression tripling the re-framing rate stayed green (rule 4). One
-  // caution for future readers: five events in this 40s window is a
-  // BURST, not the rate -- the 350-tick acceptance replay owns SC-003's
-  // 3.00/min; this check's job is to go red when anything ADDS an event
-  // on real data. The dwell mutations cannot trip the pan band here --
-  // the excerpt genuinely holds no strictly-bigger unwindowable rival,
-  // corroborating the model (the far band is structurally rare).
+  // Measured on this excerpt at the T026 owner-judged dials (2026-08-21,
+  // calm-spell pass): widens 0, sheds 1, pans 0, breaks 0, rest 90.7%.
+  // Every band pinned AT its measured value (rule 4 -- the high review
+  // found earlier slack admitted 3.5x SC-003's bar). This 40s window is
+  // a BURST-scale sample; the 350-tick acceptance replay owns the rate.
   assert(pans === 0, `${pans} pans in 40 recorded seconds -- the model says none`);
-  assert(widens <= 2, `${widens} widens in 40s, over the measured 2`);
+  assert(widens === 0, `${widens} widens in 40s -- the admission dwell holds here`);
   assert(breaks === 0, `${breaks} breaks in 40s -- this excerpt produces none`);
-  assert(sheds <= 3, `${sheds} sheds in 40s -- this excerpt produces 3`);
-  assert(widens + sheds + breaks + pans <= 5,
-    `${widens + sheds + breaks + pans} re-framing events in 40s -- this excerpt produces 5`);
+  assert(sheds <= 1, `${sheds} sheds in 40s -- this excerpt produces 1`);
   const rest = still / frames;
   assert(rest >= 0.6,
     `at rest ${(100 * rest).toFixed(0)}% of the recorded drive -- this excerpt rests 91% shipped`);
@@ -7692,13 +7688,11 @@ check('sixty RECORDED seconds where the flap LIVES: two events, no more', () => 
   assert(events <= 2,
     `${events} re-framing events in 60 recorded seconds -- this window produces 2 (SC-003)`);
   const rest = still / frames;
-  // 53% at the owner's 2000ms moves (2026-08-21 dial pass) -- this
-  // window over-represents motion BY CONSTRUCTION (chosen for flap
-  // density), so SC-001's 60% bar does not apply to it: the full-capture
-  // replay owns that bar and reads 66% desktop / 71% phone at these
-  // dials. The window's rest assert exists so motion cannot quietly
-  // become perpetual here; it is pinned just under its measured value.
-  assert(rest >= 0.5, `at rest ${(100 * rest).toFixed(0)}% of the window -- measured 53%`);
+  // 77.6% at the final T026 dials (the press dwell and lazier tighten
+  // recovered most of what the 2000ms moves spent here). Pinned just
+  // under measured; this window over-represents motion BY CONSTRUCTION
+  // (chosen for flap density) -- the full-capture replay owns SC-001.
+  assert(rest >= 0.75, `at rest ${(100 * rest).toFixed(0)}% of the window -- measured 78%`);
 });
 
 /* ---- 038 US4: following composes with the grammar (T019-T020) ------ */
@@ -7769,7 +7763,7 @@ check('a follow admits her group\'s visitors but never pans away', () => {
     if (t < 20) {
       assert(cam.shotIds.size === 2, `tick ${t}: the shot grew before anyone was admissible`);
     }
-    if (t >= 24) {
+    if (t >= 19 + api.VIEW.camera.nearDwellTicks) {
       assert(cam.shotIds.size === 4,
         `tick ${t}: the admissible pair was never admitted during the follow`);
     }
@@ -7830,9 +7824,11 @@ check('a huddling shot breathes in: the frame eases tighter on its own', () => {
   const wide = cam.across;
   assert(wide > 11, `setup: the spread pair should sit wide, got ${wide.toFixed(2)}`);
   let t = 0;
-  for (let i = 0; i < MOVE_FRAMES; i += 1) {
+  const frames = MOVE_FRAMES + api.VIEW.camera.pressDwellTicks * 48;
+  for (let i = 0; i < frames; i += 1) {
     t += 16.67;
-    cam.update(huddled, camView(false, t), { aspect: 1, cssWidth: 1000 });
+    // Ticks advance so the press dwell can count (production always ticks).
+    cam.update({ ...huddled, tick: 1 + Math.floor(i / 48) }, camView(false, t), { aspect: 1, cssWidth: 1000 });
   }
   const floor = 1000 / api.VIEW.camera.floorPx;
   assert(Math.abs(cam.across - floor) < 1e-9,
@@ -8313,13 +8309,14 @@ check('departed companions cannot bequeath their shed clock', () => {
   cam.update(world(4, [[1, 3]]), camView(false, 4 * 800), { aspect: 1, cssWidth: 1000 });
   assert(cam.shotIds.size === 1, 'setup: the departed companions should leave the shot');
   // A NEW pair dwells in (5 qualifying ticks) and is admitted...
-  for (let t = 5; t <= 9; t += 1) {
+  const nd = api.VIEW.camera.nearDwellTicks;
+  for (let t = 5; t <= 4 + nd; t += 1) {
     cam.update(world(t, [[1, 3], [4, 10], [5, 11]]), camView(false, t * 800), { aspect: 1, cssWidth: 1000 });
   }
   assert(cam.shotIds.size === 3, `setup: the new pair was never admitted ({${[...cam.shotIds]}})`);
   // ...and their FIRST un-fit tick must start the dwell at one, not
   // resume the dead companions' count at three.
-  cam.update(world(10, [[1, 3], [4, 12], [5, 13]]), camView(false, 10 * 800), { aspect: 1, cssWidth: 1000 });
+  cam.update(world(5 + nd, [[1, 3], [4, 12], [5, 13]]), camView(false, (5 + nd) * 800), { aspect: 1, cssWidth: 1000 });
   assert(cam.shotIds.size === 3,
     'the new companions shed with ZERO dwell -- they inherited the departed pair\'s clock');
 });
@@ -8484,8 +8481,11 @@ check('a shed is a PAN at held width; the breathe-in owns the zoom', () => {
   assert(cam.shotIds.size === 4, 'setup: the four should share the frame');
   let t = 0;
   let tick = 0;
+  let frame = 0;
   const step = (bx) => {
     t += 16.67;
+    frame += 1;
+    if (frame % 48 === 0) tick += 1; // ticks advance; the press dwell counts them
     cam.update(world(tick, bx), camView(false, t), { aspect: 1, cssWidth: 1000 });
   };
   // The far pair walks out of fit; the dwell runs; the shed fires.
@@ -8518,6 +8518,46 @@ check('a shed is a PAN at held width; the breathe-in owns the zoom', () => {
   }
   assert(cam.across < 9.5,
     `the breathe-in never brought the frame to the pair's fit (across ${cam.across.toFixed(2)})`);
+});
+
+check('a one-tick lean costs nothing; a real press pays at the dwell', () => {
+  // Owner, 2026-08-21 (calm-spell pass): the spell-enders were instant
+  // corrections for presses that did not persist. FR-007 as amended: a
+  // press must survive pressDwellTicks tick edges before a correction
+  // latches from rest -- a cat leaning out and stepping back is free.
+  // The FRAME EDGE and an EMPTY frame bypass all patience (SC-002
+  // outranks calm).
+  // Kitty 2 anchors at x=10; kitty 1 does the pressing. At rest (x=8)
+  // the frame is [5.08, 13.93] with safe zone [5.61, 13.39]; x=13.0
+  // (centre 13.5) is outside the safe zone but INSIDE the frame, so the
+  // dwell -- not the frame-edge escape -- is what this measures.
+  const world = (t, x) => ({
+    width: 20,
+    height: 20,
+    tick: t,
+    elements: [],
+    kitties: [{ id: 1, pos: { x, y: 10 } }, { id: 2, pos: { x: 10, y: 10 } }],
+  });
+  const dwell = api.VIEW.camera.pressDwellTicks;
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(world(0, 8), camView(false, 0), { aspect: 1, cssWidth: 1000 });
+  assert(cam.episode === null, 'setup: the pair should frame at rest');
+  // The LEAN: one tick pressed, then back inside. No correction, ever.
+  cam.update(world(1, 13.0), camView(false, 800), { aspect: 1, cssWidth: 1000 });
+  cam.update(world(2, 8), camView(false, 1600), { aspect: 1, cssWidth: 1000 });
+  cam.update(world(3, 8), camView(false, 2400), { aspect: 1, cssWidth: 1000 });
+  assert(cam.episode === null, 'a one-tick lean bought a correction');
+  // The PRESS: held past the dwell -- the correction fires on the dwell
+  // tick, not before it.
+  for (let t = 4; t < 4 + dwell; t += 1) {
+    cam.update(world(t, 13.0), camView(false, t * 800), { aspect: 1, cssWidth: 1000 });
+    if (t - 4 < dwell - 1) {
+      assert(cam.episode === null, `tick ${t - 3} of the press latched early`);
+    }
+  }
+  assert(cam.episode !== null && cam.episode.kind === 'correction',
+    'the sustained press never earned its correction');
 });
 
 check('the waterline is centred on the cat\'s body, not on her box', () => {

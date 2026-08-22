@@ -127,7 +127,7 @@ arrive-not-ease cut.
 
 **Decision**: While at rest, per frame: if the shot FITS the frame, a
 correction triggers when any member's drawn position exits the inner
-safe-zone (`safeZoneFrac`, default 0.80 of the frame per axis). If the shot
+safe-zone (`safeZoneFrac`, default 0.88 of the frame per axis; 0.80 until the 2026-08-21 calm pass). If the shot
 OVERFLOWS (fit > frame), the trigger is instead the shot's bounding-box
 centre drifting more than `aimDeadzoneTiles` from the frame's aim
 (spec FR-007a). The correction's latched goal re-centres on the current
@@ -220,12 +220,13 @@ decide step choosing the subject chain.
 | Dial | Default | Status |
 |---|---|---|
 | `linkTiles` | 5 | new — measured (D3) |
-| `nearDwellTicks` | 5 | new — stated assumption, lab-judged |
+| `nearDwellTicks` | 10 | owner-judged at the calm pass (2026-08-21; was 5) |
 | `farDwellTicks` | 15 | new — the owner's number |
 | `shedDwellTicks` | 3 | new — added at acceptance (shed flap, see acceptance-2026-08-21.md) |
-| `tightenFrac` | 1.15 | new — added at acceptance (stale-wide frames) |
+| `tightenFrac` | 1.2 | added at acceptance (1.15); relaxed at the calm pass (2026-08-21 — the breathe-in was the calm-spell breaker; 1.3 broke SC-004) |
 | ~~`relatchTiles`~~ | — | retired same-day (2026-08-21): the hysteresis existed only because re-latches zeroed velocity; velocity carry (D9) made it moot |
-| `safeZoneFrac` | 0.80 | new — lab-judged |
+| `pressDwellTicks` | 3 | new at the calm pass (2026-08-21): persistence before correction; frame-edge and empty-frame escapes bypass it |
+| `safeZoneFrac` | 0.88 | owner-judged at the calm pass (2026-08-21; was 0.80) |
 | `moveMs` | 2000 | owner-judged LIVE at the T026 dial pass (2026-08-21; 700 and 1000 both read too fast) |
 | `panMs` | 3000 | owner-judged live with moveMs, same session (was 1100) |
 | `fitMarginFrac` | 0.195 | new — replaces `fitMarginTiles` (D4) |
