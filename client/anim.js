@@ -675,7 +675,12 @@ const VIEW = Object.freeze({
   meadow: Object.freeze({
     ponds: true, // merged smooth-shored water (off: per-tile pools)
     glow: true, // sunbeams as radial light (off: plain warm tile)
-    paths: true, // whether the worn-paths overlay is available at all
+    // Worn paths are UNAVAILABLE for now (owner, 2026-08-21): visitors
+    // never saw them (showPaths defaults false, 008 FR-009) and the p-key
+    // debug overlay goes inert with this. The BACKLOG carries the
+    // successor: real heatmaps, low priority. One boolean turns the 008
+    // machinery back on.
+    paths: false,
     gridOverlay: true, // whether the grid debug overlay is available at all
     toneSteps: 32, // steps in the ramp blended through the grass tones
     toneCells: 3, // tiles per noise cell: how broad a grass blotch is

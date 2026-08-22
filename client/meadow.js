@@ -404,7 +404,7 @@ const MEADOW_SALTS = Object.freeze({
 const MEADOW_DEFAULTS = Object.freeze({
   ponds: true, // merged smooth-shored water (off: per-tile pools)
   glow: true, // sunbeams as radial light (off: plain warm tile)
-  paths: true, // whether the worn-paths overlay is available at all
+  paths: false, // UNAVAILABLE for now (owner, 2026-08-21) -- see VIEW.meadow.paths; heatmaps queued in BACKLOG
   gridOverlay: true, // whether the grid debug overlay is available at all
   toneSteps: 32, // steps in the ramp blended through the grass tones
   toneCells: 3, // tiles per noise cell: how broad a grass blotch is

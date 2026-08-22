@@ -8662,6 +8662,21 @@ check('a darting greeble GLIDES three tiles; a bug still snaps past two', () => 
   assert(far.x === 7, `a 4-tile greeble delta must snap, got x ${far.x}`);
 });
 
+check('worn paths are UNAVAILABLE for now, through their own master switch', () => {
+  // Owner, 2026-08-21: the worn paths go dark for the time being -- the
+  // BACKLOG carries their successor (real heatmaps, low priority). The
+  // OFF is the switch spec 008 already built: visitors never saw paths
+  // (showPaths defaults false, FR-009); `VIEW.meadow.paths` is the
+  // availability master, and false makes the p-key debug overlay inert
+  // too. Both of the meadow tunables' TWO homes must agree.
+  assert(api.VIEW.meadow.paths === false, 'worn paths must ship unavailable');
+  const meadow = readFileSync(join(here, 'meadow.js'), 'utf8');
+  assert(/^  paths: false,/m.test(meadow), "the second home (meadow.js) disagrees");
+  const render = readFileSync(join(here, 'render.js'), 'utf8');
+  assert(/showPaths && VIEW\.meadow\.paths/.test(render),
+    'the availability gate left the draw call');
+});
+
 check('the waterline is centred on the cat\'s body, not on her box', () => {
   // Owner, 2026-08-18: "a few pixels too far to the right on the
   // right-facing cat". She is not symmetric about her own box -- the body
