@@ -592,6 +592,29 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
                         }
                     }
                 }
+                // The final pounce (spec 039 FR-011, the owner's
+                // pre-authorized fallback): whatever the chase movement above
+                // resolved to, if it left an ELEMENT target at Manhattan
+                // distance exactly 2, the cat lunges one more plain step
+                // toward it. A lunge, not a route: blocked or off-grid is a
+                // lost step, no sidestep tiers, no RNG draw — so the
+                // flag-off stream is untouched and the flag-on stream adds
+                // no draws (FR-012). Kitty targets never pounce (the
+                // elements-only ruling).
+                if config.behavior.pounce && matches!(target, TargetRef::Element { .. }) {
+                    if let Some(idx) = world.kitty_index(kitty_id) {
+                        let pos = world.kitties[idx].pos;
+                        if pos.manhattan_distance(&target_pos) == 2 {
+                            if let Some(dir) = Direction::toward(pos, target_pos) {
+                                if let Some(dest) = pos.step(dir, world.width, world.height) {
+                                    if world.kitty_at(dest).is_none() {
+                                        world.kitties[idx].pos = dest;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
             set_idle(world, kitty_id);
         }
