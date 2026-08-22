@@ -1,5 +1,5 @@
 # exp-006a: Biscuit 2.0, the corner shot — preregistration (DRAFT,
-# PARKED pending bugs 2.0 — owner's sequencing ruling 2026-08-21)
+# re-derived on the bugs-2.0 world — AWAITING OWNER FREEZE)
 
 **PARKED, not abandoned (owner, 2026-08-21)**: "Let's get our
 current batch of kitties deployed first. I had planned on knocking
@@ -13,15 +13,60 @@ composition, r5 report-only, gate shapes) stands; every NUMBER
 (anchors, floors, the +10) re-derives on the post-mechanics world
 before freeze.
 
+## 0. Re-derivation (2026-08-22) — the sequencing prerequisites are
+## met; numbers below are the freeze candidates
+
+Her sequence completed: bugs-2.0 merged (#282) and deployed (tick
+20,978), world re-baselined (SC-005, bugs2-sc005-rebaseline doc),
+dataset v6 collected and accepted (collection-2026-08-22.md, incl.
+D-001). What re-derives, in place below and summarized here:
+
+- **Certification world** → `configs/phase1-cutover-bugs2.toml`
+  (sha `952224aa…`): phase1-cutover.toml (the D-003 lineage) plus
+  exactly the merged 039 package, semantic-diff-verified against
+  the served toml. Every certification/anchor leg runs here.
+- **Corpus** → dataset v6. Clone init: **clone-anchor-v6** = the
+  registered BC clone recipe verbatim, data = anchor-playful-v6
+  (100 × 8k, band 1,020,001) ∪ **v6-farspawn** (the isolation
+  supplement, ~11% of rows — declared addition: the skill moat
+  means a learner cannot discover hunting, so the demonstrations
+  must carry the isolated-hunting regime; the far-spawn acceptance
+  report shows they do, 13.1k bug + 2.4k greeble catches). Critic:
+  train_critic6 verbatim on dataset v6 spread. Each arm's leash
+  anchor remains its own init clone.
+- **Anchors (SC-005, banked)**: playful anchor **79.31** (was
+  79.72), thermostat parity **90.71** (was 90.64), fresh scripted
+  anchor 0.9077 (min 0.9063) — G2b re-derives at battery time per
+  convention; these are the current readings.
+- **The Biscuit bar — THE FREEZE DECISION (hers, reserved by the
+  §6 scope ruling)**: at +10 the bar is **89.31**, sitting 1.40
+  under the thermostat cap 90.71 (the pre-039 world offered only
+  0.92 of headroom). The +10 does not auto-carry; she re-decides
+  it with these anchors in hand.
+- **Comparator context (measured)**: incumbents are FLAT on the
+  bugs-2.0 certification world (deploy-ref-e1 eval 0.9392 vs
+  0.9393; per-seat happiness identical to a hundredth) — reference
+  composition comparators carry no world-change confound.
+- **family-11 r5** runs flag-off on the pinned toml (divergence
+  note in tail-benchmarks/README.md): its deadlock class is
+  measured unchanged; it says nothing about critter behavior —
+  consistent with its report-only role.
+- Unchanged: arms and doses (§2), duet shaping (§3), selection
+  (§4), composition (§5), gate shapes and floors (§6), PPO seed
+  claims and run indices, stop rules, G3 (the character definition
+  did not move).
+
 **Scope**: minimal follow-on to exp-006, targeted solely at producing
 a seatable Biscuit 2.0. Everything not stated here is INHERITED from
 the frozen exp-006 prereg and its D-notes (`../exp-006-character-gen/
 prereg.md`) — corpus, clone-anchor init, critic6, train_ppo6 recipe
 verbatim, fingerprint instrument and bands, G3 floors (the character
-definition is unchanged), cert_harness6, the certification world
-(`configs/phase1-cutover.toml`, sha `64ca2b9a…`, D-003), and its
-fresh scripted anchor conventions. Where this doc and exp-006
-disagree, this doc wins for 006a only.
+definition is unchanged), cert_harness6, and its fresh scripted
+anchor conventions. The certification world is §0's re-derivation:
+`configs/phase1-cutover-bugs2.toml`, sha `952224aa…` (supersedes
+phase1-cutover.toml/64ca2b9a for 006a — same D-003 lineage plus the
+merged 039 package). Where this doc and exp-006 disagree, this doc
+wins for 006a only.
 
 Owner rulings incorporated (2026-08-21, her words quoted where they
 are the decision): the G2d bar ("if we can keep biscuit and get a
@@ -110,9 +155,14 @@ same-instrument, paired seeds.
   - **Biscuit (the owner's uplift bar — 006a-LOCAL, not a standing
     formula)**: candidate ≥ the playful-behavior scripted anchor at
     the Biscuit seat, freshly derived at battery time on the
-    certification config, **+ 10.0 happiness**. Today that anchor
-    reads 79.72 → bar ≈ 89.7, deliberately just under thermostat
-    parity (90.64). Valid only with the candidate's G3 pass.
+    certification config, **+ 10.0 happiness**. On the bugs-2.0
+    world that anchor reads 79.31 (SC-005; instrument
+    playful_anchor.py, validated against the 79.72 pre-039
+    reading) → bar ≈ **89.31**, 1.40 under thermostat parity
+    (90.71). Valid only with the candidate's G3 pass. THE +10
+    ITSELF IS THE FREEZE DECISION — re-decided by the owner with
+    these anchors per the scope ruling below; this line records the
+    default she is deciding on, not a commitment.
 
     **Scope ruling (owner, 2026-08-21, verbatim)**: "+10 happiness
     makes sense NOW, but we need to see what bug 2.0 does to biscuit
