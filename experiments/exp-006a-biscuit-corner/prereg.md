@@ -207,3 +207,18 @@ report-only ruling, but the F-027 record and tail benchmark stand).
 ## Deviations
 
 (append-only after freeze)
+
+**D-002 (2026-08-22, pre-wave arithmetic check; no seed values
+change).** §2 says run indices 8–11 sit "inside exp-006's 100M–260M
+claim — no new SEED-BANDS row needed." The arithmetic says
+otherwise: base 100M + run_index × 20M puts indices 8–11 at
+260M / 280M / 300M / 320M, spanning 260,000,000–339,999,999 —
+immediately ABOVE exp-006's claimed 100M–259,999,999 (its indices
+0–7). No other claim sits above 260M, so no run collides with prior
+evidence; the error is the claim sentence, not the seeds. Fix: the
+260M–339,999,999 band is now claimed in SEED-BANDS.md under
+exp-006a, same formula and stride. Run indices, bases, run order,
+and torch/numpy seeds stand exactly as frozen. Recorded in the same
+ledger edit: the dataset v6 rows (spread 991001 / anchor 1,020,001 /
+far-spawn 1,040,001, as declared with collection D-001), which the
+collection PR omitted from the ledger.

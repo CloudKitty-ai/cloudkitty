@@ -26,5 +26,9 @@ before trusting a gap here, then add what you find.
 | 940001–958000 | exp-006 | dataset v5 cell A pinned (same structure) |
 | 970001–970100 | exp-006 | anchor demonstrations (100 rollouts) |
 | 985001–985010 | exp-006 | fingerprint probe band (post-wall instrument) |
+| 991001–1008006 | exp-006a | dataset v6 spread (991001 + ci×1000 + r; the 7-digit spill is noted in collection D-001; row added 2026-08-22, omitted at collection time) |
 | 1000000+ | training | per-run PPO/BC training seeds; each prereg declares its sub-band |
+| 1020001–1020100 | exp-006a | dataset v6 anchor demonstrations (100 rollouts; D-001 re-base) |
+| 1040001–1057006 | exp-006a | dataset v6 far-spawn cell (D-001 re-base) |
 | 100000000–259999999 | exp-006 | PPO episode seeds: base 100M + run_index×20M + segment×1k, worlds striding w×1M inside (train_ppo6.py). Sits above the 1M+ pool because the runner's per-world 1M stride makes 1M-scale sub-bands collide across arcs — exp-004/exp-005 chains already interleave there |
+| 260000000–339999999 | exp-006a | PPO episode seeds, run indices 8–11 (same formula and stride as the exp-006 row; claimed by prereg D-002 — the frozen §2 sentence had placed these inside exp-006's band in error) |
