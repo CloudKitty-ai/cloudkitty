@@ -790,6 +790,9 @@
   // The leap card's dials (spec 039). liftFrac seeds from the shipped
   // dial so the card opens on exactly what the map draws.
   const LEAP_BAG = { liftFrac: VIEW.pounceLeap.liftFrac, tilePx: 90, speed: 0.6 };
+  // The groom card's viewing aids. The POSE dials write into CatV2.GROOM
+  // itself (per-dial `bag`), so the map and every other card follow live.
+  const GROOM_LAB = { tilePx: 90, speed: 1 };
   const zoomLimitsFor = (cssWidth) => {
     const world = { width: ZOOM_WORLD, height: ZOOM_WORLD };
     const { floorTiles, ceilingTiles } = zoomProbe().limitsFor(world, cssWidth);
@@ -1114,6 +1117,84 @@
             ctx.fillText(caption, 10, lane.y0 + 2);
           }
         }
+      },
+    },
+    {
+      title: 'The grooming rebuild — seated, from photo reference (GROOM-EDITS)',
+      note: 'Left is the drawing that shipped: a standing cat with a paw held up. Right is the rebuild: rump on the ground — seatCy derives the seat so the body\'s lowest point rests exactly on the ground line at any tilt and any point of the breath — chest raised, head bent DOWN to a paw lifted to meet it, tail behind. Three limbs read by design (raised paw, planted foreleg, one hind foot), matching the reference photos; at 50px the leg base merges — known, and a haunch mass someday rather than a dial today. The pose dials write into the REAL GROOM block, so a change here is a change everywhere. The tongue ships PARKED at 0 — raise its dial to preview the lick. Judge at the sizes the camera draws (roughly 50px phone, 75–113px desktop). Speed 1 is the live rhythm: one 800ms tick beat, three nods.',
+      v2Only: true,
+      w: 940,
+      h: 380,
+      ownShadows: true,
+      bag: GROOM_LAB,
+      dials: [
+        { key: 'headX', label: 'headX — head forward / back', min: 0.45, max: 0.78, step: 0.005, bag: CatV2.GROOM },
+        { key: 'headY', label: 'headY — head height (the tuck)', min: 0.4, max: 0.66, step: 0.005, bag: CatV2.GROOM },
+        { key: 'pawDx', label: 'pawDx — licked paw out from the head (head radii)', min: 0.2, max: 1.1, step: 0.01, bag: CatV2.GROOM },
+        { key: 'pawDy', label: 'pawDy — licked paw below the head (head radii)', min: 0.5, max: 1.3, step: 0.01, bag: CatV2.GROOM },
+        { key: 'nod', label: 'nod — lick amplitude (the head\'s, not the paw\'s)', min: 0, max: 0.03, step: 0.001, bag: CatV2.GROOM },
+        { key: 'pawFollow', label: 'pawFollow — nod the paw keeps (0 held still, 1 lockstep)', min: 0, max: 1, step: 0.05, bag: CatV2.GROOM },
+        { key: 'tongue', label: 'tongue — PARKED at 0; reach toward the paw, as a share', min: 0, max: 0.9, step: 0.05, bag: CatV2.GROOM },
+        { key: 'tongueW', label: 'tongueW — tongue width (head radii)', min: 0.06, max: 0.24, step: 0.01, bag: CatV2.GROOM },
+        { key: 'fore', label: 'fore — the supporting foreleg (0 hides it)', min: 0, max: 1, step: 1, bag: CatV2.GROOM },
+        { key: 'tilePx', label: 'tilePx — judge at the sizes the camera draws', min: 40, max: 115, step: 1 },
+        { key: 'speed', label: 'speed — 1 is the live rhythm; slow it to study', min: 0.2, max: 1.5, step: 0.05 },
+      ],
+      readout() {
+        const G = CatV2.GROOM;
+        return (
+          `GROOM: headX ${G.headX}, headY ${G.headY}, pawDx ${G.pawDx}, pawDy ${G.pawDy}, nod ${G.nod},\n`
+          + `       pawFollow ${G.pawFollow}, tongue ${G.tongue}, tongueW ${G.tongueW}, fore ${!!G.fore}\n`
+          + `card view: tilePx ${GROOM_LAB.tilePx}, speed ${GROOM_LAB.speed} -- viewing aids, not shipped dials`
+        );
+      },
+      draw(ctx, w, h, now) {
+        const T = GROOM_LAB.tilePx;
+        const period = 800 / GROOM_LAB.speed;
+        const phase = (now % period) / period;
+        const groundY = h - 64;
+        ctx.strokeStyle = 'rgba(107, 90, 78, 0.25)';
+        ctx.beginPath();
+        ctx.moveTo(10, groundY + 0.5);
+        ctx.lineTo(w - 10, groundY + 0.5);
+        ctx.stroke();
+        const lanes = [
+          { label: 'shipped (GROOM.seated = false)', seated: false, cx: w * 0.27 },
+          { label: 'the seated rebuild', seated: true, cx: w * 0.73 },
+        ];
+        ctx.font = '600 12px ui-sans-serif, system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        for (const lane of lanes) {
+          ctx.save();
+          ctx.globalAlpha = 0.35;
+          ctx.fillStyle = '#4a3f35';
+          ctx.beginPath();
+          ctx.ellipse(lane.cx, groundY - 2, T * 0.34, T * 0.1, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+          // Flipped around the draw only: both lanes must come from the SAME
+          // block, or the dials would move one cat and not the other.
+          const was = CatV2.GROOM.seated;
+          CatV2.GROOM.seated = lane.seated;
+          try {
+            CatV2.drawCat(ctx, {
+              pose: 'grooming',
+              appearance: CatV2.appearanceFor(PUMPKIN),
+              facing: 'right',
+              size: T,
+              x: lane.cx - T / 2,
+              // The box sits so the pose's own ground line (CAT_GROUND) IS
+              // the card's drawn line -- the seat claim is judged true.
+              y: groundY - T * CatV2.CAT_GROUND,
+              phase,
+            });
+          } finally {
+            CatV2.GROOM.seated = was;
+          }
+          ctx.fillStyle = 'rgba(107, 90, 78, 0.8)';
+          ctx.fillText(lane.label, lane.cx, groundY + 24);
+        }
+        ctx.textAlign = 'left';
       },
     },
     {
