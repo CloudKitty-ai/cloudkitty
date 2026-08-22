@@ -449,9 +449,11 @@ const VIEW = Object.freeze({
    * body lifts on `leapArc` while the ground shadow stays on the travel
    * line, and the landing hands to the settle. */
   pounceLeap: {
-    // Peak lift as a fraction of a tile. Judged in gallery-v2's leap
-    // card; bake on the owner's paste.
-    liftFrac: 0.55,
+    // Peak lift as a fraction of a tile. Owner's paste from the
+    // gallery-v2 leap card, 2026-08-21 ("looks surprisingly good"):
+    // a quarter tile -- the arc reads at both the phone's ~50px and the
+    // desktop's ~110px without turning the lunge into a bounce.
+    liftFrac: 0.25,
   },
   // ...and how far the hunter's FACE carries. Measured on the candidate
   // roster over 4,604 cat-ticks: the median quarry was 10 tiles off and the
