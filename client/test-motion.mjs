@@ -8662,6 +8662,22 @@ check('a darting greeble GLIDES three tiles; a bug still snaps past two', () => 
   assert(far.x === 7, `a 4-tile greeble delta must snap, got x ${far.x}`);
 });
 
+check('the debug hint bar tells the truth: b flips, p is gone', () => {
+  // Owner, 2026-08-21, on reading the footer: "b to disable buffering"
+  // is wrong the moment buffering IS disabled -- pressing b then
+  // re-enables. The hint's verb now follows the state. And the p hint
+  // advertised a key the worn-paths shutdown made inert -- a hint bar
+  // that lists dead keys teaches visitors not to read it.
+  const app = readFileSync(join(here, 'app.js'), 'utf8');
+  assert(/pacedHintEl\.textContent = anim\.paced \? 'disable' : 'enable'/.test(app),
+    "the b hint's verb never flips with the state");
+  const page = readFileSync(join(here, 'index.html'), 'utf8');
+  assert(/<span id="paced-hint">disable<\/span> buffering/.test(page),
+    'the hint verb is not addressable, so the flip has nothing to write to');
+  assert(!/for worn paths/.test(page),
+    'the hint bar still advertises the inert p key');
+});
+
 check('worn paths are UNAVAILABLE for now, through their own master switch', () => {
   // Owner, 2026-08-21: the worn paths go dark for the time being -- the
   // BACKLOG carries their successor (real heatmaps, low priority). The

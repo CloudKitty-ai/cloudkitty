@@ -17,6 +17,7 @@ const gridNoteEl = document.getElementById('grid-note');
 const pathsNoteEl = document.getElementById('paths-note');
 const happyNoteEl = document.getElementById('happy-note');
 const pacedNoteEl = document.getElementById('paced-note');
+const pacedHintEl = document.getElementById('paced-hint');
 const purrNoteEl = document.getElementById('purr-note');
 
 const NEED_LABELS = {
@@ -1983,6 +1984,11 @@ window.addEventListener('keydown', (event) => {
   } else if (key === 'b') {
     anim.setPaced(!anim.paced);
     pacedNoteEl.hidden = anim.paced;
+    // The hint's verb follows the state (owner, 2026-08-21): "disable"
+    // while buffering runs, "enable" while it is off -- a hint that says
+    // "disable" when pressing b would re-enable is teaching the reader
+    // to distrust the footer.
+    pacedHintEl.textContent = anim.paced ? 'disable' : 'enable';
   } else if (key === 'r') {
     // Off by default, so this note reads the ordinary way round: it
     // appears when the hearts are showing. The key itself is in the
