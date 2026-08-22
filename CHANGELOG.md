@@ -51,6 +51,9 @@ change.
   defaults stamp is untouched — verified byte-identical. No
   compatibility markers: server-side only, no world reset needed
   (#283).
+- The worn-paths overlay is unavailable for now (a real heatmap is queued
+  to replace it), and the `b` debug key's label now says what it does:
+  "disable buffering."
 - **The camera stopped fidgeting.** It used to chase the middle of the clowder
   every frame and never quite arrive — always drifting, never still. Now it
   picks a shot (the most kitties that fit together), holds it perfectly still,

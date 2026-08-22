@@ -817,6 +817,17 @@ pan/zoom controls." Scope sketch, to be specced when picked up:
 - Spec-first when picked up (engine untouched; client-only, but it is a
   public interaction surface — new spec, not an 038 amendment).
 
+### Real heatmaps replace the worn paths (added 2026-08-21; owner's ask; LOW priority)
+
+The spec-008 worn-paths overlay is shipped UNAVAILABLE as of 2026-08-21
+(`VIEW.meadow.paths: false`, both homes; the owner: "disable worn paths
+for the time being"). Visitors never saw it (`showPaths` defaults off,
+008 FR-009) — this also inerts the p-key debug overlay. The successor
+she wants is a real heatmap: presumably occupancy-weighted colour over
+the ground rather than per-tile bare-earth patches. The 008 machinery
+(`pathHeat`, decay, `wornPaths()`) still runs underneath and is the
+obvious data source; the work is the presentation. No deadline.
+
 ### Lookahead for the camera — spec 032, revisited 2026-08-20 (Client thread)
 
 **The idea (owner):** use 032's buffer for smoother camera pan and zoom, not
