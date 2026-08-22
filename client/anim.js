@@ -307,6 +307,12 @@ const VIEW = Object.freeze({
   // (007 refinement, 2026-07-20 -- the hover-bob alone left the hops
   // jerky). Anything farther than a skitter is a different moment: snap.
   critterGlideMaxTiles: 2,
+  // Greebles alone go farther since spec 039's dart schedule: 1-3 tiles
+  // along one heading on a moving tick, so THEIR skitter boundary is 3.
+  // Bugs keep 2 -- a bug never legally moves three, so a wider bound
+  // would turn bug respawns into visible scoots (2026-08-21; the owner
+  // caught the 3-tile dart snapping).
+  greebleGlideMaxTiles: 3,
 
   // Idle life (US4).
   idleMotionPeriodMs: 5200, // one idle slot about this long
@@ -2009,10 +2015,17 @@ class Presentation {
    */
   elementPosFor(el, now) {
     const was = this.prev?.elements.find((p) => p.id === el.id);
+    // The glide bound is per KIND: a greeble's dart legally covers three
+    // tiles (spec 039), a bug's skitter never passes two -- and each
+    // kind's bound is also its teleport boundary, so a respawn beyond it
+    // still snaps.
+    const max = el.kind === 'greeble'
+      ? VIEW.greebleGlideMaxTiles
+      : VIEW.critterGlideMaxTiles;
     if (
       !was ||
-      Math.abs(el.pos.x - was.pos.x) > VIEW.critterGlideMaxTiles ||
-      Math.abs(el.pos.y - was.pos.y) > VIEW.critterGlideMaxTiles
+      Math.abs(el.pos.x - was.pos.x) > max ||
+      Math.abs(el.pos.y - was.pos.y) > max
     ) {
       return { x: el.pos.x, y: el.pos.y };
     }
