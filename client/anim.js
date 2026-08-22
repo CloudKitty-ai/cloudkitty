@@ -443,6 +443,18 @@ const VIEW = Object.freeze({
    * callers, who pass no distance at all, drawing exactly as before.
    */
   pounceGateTiles: 4,
+  /* The final pounce (spec 039): the served world may move a chasing cat
+   * TWO tiles in one tick -- the lunge, the only two-tile step the world
+   * ever serves. The map presents that served fact as its one leap: the
+   * body lifts on `leapArc` while the ground shadow stays on the travel
+   * line, and the landing hands to the settle. */
+  pounceLeap: {
+    // Peak lift as a fraction of a tile. Owner's paste from the
+    // gallery-v2 leap card, 2026-08-21 ("looks surprisingly good"):
+    // a quarter tile -- the arc reads at both the phone's ~50px and the
+    // desktop's ~110px without turning the lunge into a bounce.
+    liftFrac: 0.25,
+  },
   // ...and how far the hunter's FACE carries. Measured on the candidate
   // roster over 4,604 cat-ticks: the median quarry was 10 tiles off and the
   // most common 12, so an ungated face meant a cat wearing a hunting
@@ -935,6 +947,16 @@ function startEase(t) {
 }
 
 /**
+ * The final pounce's flight path (spec 039): a ballistic parabola over
+ * the tick -- zero at both feet, peak 1 at mid-flight. The map's one
+ * piece of vertical language, shared verbatim with gallery-v2's leap
+ * card so the arc the owner judges IS the arc that ships.
+ */
+function leapArc(p) {
+  return 4 * p * (1 - p);
+}
+
+/**
  * The delay line: served states in, paced states out.
  *
  * States arrive on a socket; frames draw at 60Hz. The renderer eases a cat
@@ -1136,16 +1158,22 @@ class Presentation {
       prev &&
       prev.kitties.map((k) => k.id).join(',') !==
         world.kitties.map((k) => k.id).join(',');
-    // Kitties step at most one tile per tick, so anything larger is not
-    // motion -- it is a different moment of the world.
+    // Kitties step at most one tile per tick -- with ONE exception since
+    // spec 039: a chasing kitty's final pounce lunges a second step in
+    // the same tick, so a chase delta of Manhattan two is MOTION (the
+    // leap). Anything larger, or two tiles outside a chase, is still not
+    // motion -- it is a different moment of the world. Without this
+    // carve-out the lunge tripped the teleport guard and the pounce
+    // SNAPPED instead of leaping (found by the leap's own unit fixture).
     const teleported =
       prev &&
       !rosterChanged &&
       world.kitties.some((k) => {
         const was = prev.kitties.find((p) => p.id === k.id);
-        return (
-          Math.abs(k.pos.x - was.pos.x) > 1 || Math.abs(k.pos.y - was.pos.y) > 1
-        );
+        const dx = Math.abs(k.pos.x - was.pos.x);
+        const dy = Math.abs(k.pos.y - was.pos.y);
+        if (k.last_action?.action === 'chase' && dx + dy === 2) return false;
+        return dx > 1 || dy > 1;
       });
     this.discontinuous =
       !prev ||
@@ -1450,6 +1478,27 @@ class Presentation {
       x: was.pos.x + (kitty.pos.x - was.pos.x) * t,
       y: was.pos.y + (kitty.pos.y - was.pos.y) * t,
     };
+  }
+
+  /**
+   * The final pounce in flight, or null. Spec 039's lunge is the ONLY
+   * two-tile step the world ever serves (ordinary locomotion is one tile
+   * per tick), so the signature is exact -- a chasing kitty whose newest
+   * pair covers Manhattan distance two -- and drawing it as a leap
+   * asserts nothing the world did not say (Article V). Rides the same
+   * progress the position blend rides, so the flight lands exactly when
+   * the slide does. Null across a discontinuity: a generation snap is a
+   * teleport, not a jump.
+   */
+  leapFor(id, now) {
+    if (!this.curr || this.discontinuous) return null;
+    const is = this.curr.kitties.find((k) => k.id === id);
+    const was = this.prev?.kitties.find((p) => p.id === id);
+    if (!is || !was) return null;
+    if (is.last_action?.action !== 'chase') return null;
+    const dist = Math.abs(is.pos.x - was.pos.x) + Math.abs(is.pos.y - was.pos.y);
+    if (dist !== 2) return null;
+    return { lift01: leapArc(this.progress(now)) };
   }
 
   /**
@@ -2040,6 +2089,9 @@ class Presentation {
           ? (typeof stillRig === 'function' ? stillRig(input) : null)
           : this.rigFor(key, input, now),
       velocityFor: (id) => (still ? { x: 0, y: 0 } : this.velocityFor(id, now)),
+      // The final pounce's flight (spec 039). Motion, not state: a still
+      // frame holds the pose ON the ground, like every other motion class.
+      leapFor: (id) => (still ? null : this.leapFor(id, now)),
       travelHFor: (id) => this.travelHFor(id),
       sideFacingFor: (id) => this.sideFacingFor(id),
       // Whether an axial drawing is allowed right now. Applies in still

@@ -786,6 +786,10 @@
   // Under spec 038 a history-less arrival IS the cold-start shot pick, so
   // what card 2 shows is the shot the camera opens on -- see its note.
   const zoomProbe = () => new Camera({ ...VIEW.camera, ...ZOOM });
+
+  // The leap card's dials (spec 039). liftFrac seeds from the shipped
+  // dial so the card opens on exactly what the map draws.
+  const LEAP_BAG = { liftFrac: VIEW.pounceLeap.liftFrac, tilePx: 90, speed: 0.6 };
   const zoomLimitsFor = (cssWidth) => {
     const world = { width: ZOOM_WORLD, height: ZOOM_WORLD };
     const { floorTiles, ceilingTiles } = zoomProbe().limitsFor(world, cssWidth);
@@ -993,6 +997,123 @@
           'instead of cropping everyone',
         ];
         lines.forEach((t, i) => ctx.fillText(t, tx, y0 + 16 + i * 18));
+      },
+    },
+    {
+      title: 'The final pounce — the chase\'s two-tile leap (spec 039)',
+      note: 'The engine can now end a chase with a LUNGE: a step that leaves a bug exactly two tiles away takes a second step in the same tick, so the cat covers two tiles in one 800ms beat. The top lane is today\'s ordinary pounce — one tile, crouched, on the ground. The bottom lane is the final pounce as the map now draws it: the body rides a ballistic arc (the REAL `leapArc`, the exact function render.js uses) while the ground shadow stays on the travel line — the separation is what reads as airborne. Judge the lift at the tile sizes the camera actually draws (roughly 50px on the phone, 75–113px on desktop — the tilePx dial covers the band). On the live map the landing hands straight to the landing settle; this card shows the flight only.',
+      v2Only: true,
+      w: 940,
+      h: 460,
+      ownShadows: true,
+      bag: LEAP_BAG,
+      dials: [
+        { key: 'liftFrac', label: 'liftFrac — peak lift, as a fraction of a tile', min: 0.1, max: 1.2, step: 0.05 },
+        { key: 'tilePx', label: 'tilePx — judge at the sizes the camera draws (50 phone, 75–113 desktop)', min: 40, max: 115, step: 1 },
+        { key: 'speed', label: 'speed — slow the loop down to study the arc', min: 0.2, max: 1, step: 0.05 },
+      ],
+      readout() {
+        return (
+          `pounceLeap: { liftFrac: ${LEAP_BAG.liftFrac} },\n`
+          + `peak lift ${(LEAP_BAG.liftFrac * LEAP_BAG.tilePx).toFixed(0)}px at tile ${LEAP_BAG.tilePx}px  `
+          + `(phone ~${(LEAP_BAG.liftFrac * 50).toFixed(0)}px, desktop floor ~${(LEAP_BAG.liftFrac * 111).toFixed(0)}px)\n`
+          + 'the arc is leapArc (ballistic, zero at both feet) -- shape is derived, only the height dials\n'
+          + `card view: tilePx ${LEAP_BAG.tilePx}, speed ${LEAP_BAG.speed} -- viewing aids, not shipped dials`
+        );
+      },
+      draw(ctx, w, h, now) {
+        const T = LEAP_BAG.tilePx;
+        const period = 5200 / LEAP_BAG.speed;
+        const t = (now % period) / period;
+        // ONE linear pose timeline, exactly as the pose is authored: the
+        // 'pouncing' phase runs 0..1 through hold (the wiggle -- computed
+        // INSIDE the pose from linear phase at a real Hz), launch (the
+        // extension), and landing absorption. The first cut drove phase
+        // with a sine for the wiggle and a constant for the flight, which
+        // scrubbed the timeline back and forth ("the cat shakes") and
+        // parked the flight mid-crouch (owner, 2026-08-21).
+        const APPROACH_END = 0.28;
+        const BEAT_END = 0.95;
+        const beatMs = (BEAT_END - APPROACH_END) * period;
+        // The pose's own segment boundaries (cat-v2 POUNCE): hold 0.3,
+        // launch 0.42. Movement and lift ride the LAUNCH segment.
+        const HOLD = 0.3;
+        const LAUNCH = 0.42;
+        const lanes = [
+          { label: "today: the one-tile pounce", tiles: 1, leap: false, y0: 40 },
+          { label: 'the final pounce: two tiles, airborne', tiles: 2, leap: true, y0: 250 },
+        ];
+        ctx.textAlign = 'left';
+        for (const lane of lanes) {
+          const groundY = lane.y0 + 150;
+          const bugTile = 7.6;
+          const landX = 60 + (bugTile - 1) * T;
+          const startX = landX - lane.tiles * T;
+          const approachX = startX - T;
+          ctx.fillStyle = 'rgba(107, 90, 78, 0.8)';
+          ctx.font = '600 12px ui-sans-serif, system-ui, sans-serif';
+          ctx.fillText(lane.label, 10, lane.y0 - 14);
+          ctx.strokeStyle = 'rgba(107, 90, 78, 0.25)';
+          ctx.beginPath();
+          ctx.moveTo(10, groundY);
+          ctx.lineTo(w - 10, groundY);
+          ctx.stroke();
+          const bugX = 60 + bugTile * T * 0.98;
+          const jitter = t > BEAT_END - 0.15 ? 0 : Math.sin(now / 130 + lane.y0) * 2;
+          ctx.fillStyle = '#4a3f35';
+          ctx.beginPath();
+          ctx.ellipse(bugX + jitter, groundY - 5, 7, 5, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = 'rgba(74, 63, 53, 0.45)';
+          ctx.beginPath();
+          ctx.ellipse(bugX + jitter - 4, groundY - 9, 4, 2.5, -0.5, 0, Math.PI * 2);
+          ctx.ellipse(bugX + jitter + 4, groundY - 9, 4, 2.5, 0.5, 0, Math.PI * 2);
+          ctx.fill();
+          let catX = approachX;
+          let pose = 'walking';
+          let poseP = (now % 1100) / 1100;
+          let lift = 0;
+          let caption = 'approach';
+          if (t >= APPROACH_END && t < BEAT_END) {
+            pose = 'pouncing';
+            poseP = (t - APPROACH_END) / (BEAT_END - APPROACH_END);
+            const flightP = Math.min(1, Math.max(0, (poseP - HOLD) / LAUNCH));
+            catX = startX + flightP * (landX - startX);
+            if (lane.leap) lift = leapArc(flightP) * LEAP_BAG.liftFrac * T;
+            caption = poseP < HOLD ? 'the wiggle'
+              : flightP < 1 ? 'the lunge' : 'landing';
+          } else if (t < APPROACH_END) {
+            catX = approachX + easeSmooth(t / APPROACH_END) * (startX - approachX);
+          } else {
+            caption = '';
+            catX = approachX;
+          }
+          ctx.save();
+          ctx.globalAlpha = 0.35;
+          ctx.fillStyle = '#4a3f35';
+          ctx.beginPath();
+          ctx.ellipse(catX + T / 2, groundY - 2, T * 0.3, T * 0.12, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+          CatV2.drawCat(ctx, {
+            pose,
+            appearance: CatV2.appearanceFor(PUMPKIN),
+            facing: 'right',
+            size: T,
+            x: catX,
+            y: groundY - T * 0.92 - lift,
+            phase: poseP,
+            // The wiggle's rate is a real-world frequency inside the pose;
+            // hand it the stretched beat's true length and the portrait's
+            // judged rock rate, or the slow-motion loop would wallow.
+            layout: { beatMs, wiggleHz: VIEW.playWiggleHz, sway: VIEW.playSway },
+          });
+          if (caption) {
+            ctx.fillStyle = 'rgba(107, 90, 78, 0.55)';
+            ctx.font = '11px ui-monospace, monospace';
+            ctx.fillText(caption, 10, lane.y0 + 2);
+          }
+        }
       },
     },
     {
