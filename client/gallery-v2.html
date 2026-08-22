@@ -792,7 +792,7 @@
   const LEAP_BAG = { liftFrac: VIEW.pounceLeap.liftFrac, tilePx: 90, speed: 0.6 };
   // The groom card's viewing aids. The POSE dials write into CatV2.GROOM
   // itself (per-dial `bag`), so the map and every other card follow live.
-  const GROOM_LAB = { tilePx: 90, speed: 1 };
+  const GROOM_LAB = { tilePx: 90, speed: 0.5 };
   const zoomLimitsFor = (cssWidth) => {
     const world = { width: ZOOM_WORLD, height: ZOOM_WORLD };
     const { floorTiles, ceilingTiles } = zoomProbe().limitsFor(world, cssWidth);
