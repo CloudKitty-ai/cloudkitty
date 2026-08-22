@@ -1023,21 +1023,24 @@
       },
       draw(ctx, w, h, now) {
         const T = LEAP_BAG.tilePx;
-        const period = 4200 / LEAP_BAG.speed;
+        const period = 5200 / LEAP_BAG.speed;
         const t = (now % period) / period;
-        // The loop: approach walk, the pre-pounce wiggle, the pounce tick,
-        // the landed hold, a beat of blank before it comes round again.
-        const PH = [
-          ['approach', 0.0, 0.3],
-          ['wiggle', 0.3, 0.5],
-          ['the pounce', 0.5, 0.72],
-          ['landed', 0.72, 0.95],
-          ['', 0.95, 1],
-        ];
-        const phase = PH.find(([, a, b]) => t >= a && t < b);
-        const pp = (t - phase[1]) / (phase[2] - phase[1]);
+        // ONE linear pose timeline, exactly as the pose is authored: the
+        // 'pouncing' phase runs 0..1 through hold (the wiggle -- computed
+        // INSIDE the pose from linear phase at a real Hz), launch (the
+        // extension), and landing absorption. The first cut drove phase
+        // with a sine for the wiggle and a constant for the flight, which
+        // scrubbed the timeline back and forth ("the cat shakes") and
+        // parked the flight mid-crouch (owner, 2026-08-21).
+        const APPROACH_END = 0.28;
+        const BEAT_END = 0.95;
+        const beatMs = (BEAT_END - APPROACH_END) * period;
+        // The pose's own segment boundaries (cat-v2 POUNCE): hold 0.3,
+        // launch 0.42. Movement and lift ride the LAUNCH segment.
+        const HOLD = 0.3;
+        const LAUNCH = 0.42;
         const lanes = [
-          { label: 'today: the one-tile pounce', tiles: 1, leap: false, y0: 40 },
+          { label: "today: the one-tile pounce", tiles: 1, leap: false, y0: 40 },
           { label: 'the final pounce: two tiles, airborne', tiles: 2, leap: true, y0: 250 },
         ];
         ctx.textAlign = 'left';
@@ -1050,14 +1053,13 @@
           ctx.fillStyle = 'rgba(107, 90, 78, 0.8)';
           ctx.font = '600 12px ui-sans-serif, system-ui, sans-serif';
           ctx.fillText(lane.label, 10, lane.y0 - 14);
-          // The ground line, and the quarry.
           ctx.strokeStyle = 'rgba(107, 90, 78, 0.25)';
           ctx.beginPath();
           ctx.moveTo(10, groundY);
           ctx.lineTo(w - 10, groundY);
           ctx.stroke();
           const bugX = 60 + bugTile * T * 0.98;
-          const jitter = phase[0] === 'landed' ? 0 : Math.sin(now / 130 + lane.y0) * 2;
+          const jitter = t > BEAT_END - 0.15 ? 0 : Math.sin(now / 130 + lane.y0) * 2;
           ctx.fillStyle = '#4a3f35';
           ctx.beginPath();
           ctx.ellipse(bugX + jitter, groundY - 5, 7, 5, 0, 0, Math.PI * 2);
@@ -1067,32 +1069,25 @@
           ctx.ellipse(bugX + jitter - 4, groundY - 9, 4, 2.5, -0.5, 0, Math.PI * 2);
           ctx.ellipse(bugX + jitter + 4, groundY - 9, 4, 2.5, 0.5, 0, Math.PI * 2);
           ctx.fill();
-          // Where the cat is in the loop, and how high.
           let catX = approachX;
           let pose = 'walking';
           let poseP = (now % 1100) / 1100;
           let lift = 0;
-          if (phase[0] === 'approach') {
-            catX = approachX + easeSmooth(pp) * (startX - approachX);
-          } else if (phase[0] === 'wiggle') {
-            catX = startX;
+          let caption = 'approach';
+          if (t >= APPROACH_END && t < BEAT_END) {
             pose = 'pouncing';
-            poseP = 0.5 + 0.5 * Math.sin((now / 1000) * VIEW.playWiggleHz * 2 * Math.PI);
-          } else if (phase[0] === 'the pounce') {
-            catX = startX + pp * (landX - startX);
-            pose = 'pouncing';
-            poseP = 0.15;
-            if (lane.leap) lift = leapArc(pp) * LEAP_BAG.liftFrac * T;
-          } else if (phase[0] === 'landed') {
-            catX = landX;
-            pose = 'pouncing';
-            poseP = 0;
+            poseP = (t - APPROACH_END) / (BEAT_END - APPROACH_END);
+            const flightP = Math.min(1, Math.max(0, (poseP - HOLD) / LAUNCH));
+            catX = startX + flightP * (landX - startX);
+            if (lane.leap) lift = leapArc(flightP) * LEAP_BAG.liftFrac * T;
+            caption = poseP < HOLD ? 'the wiggle'
+              : flightP < 1 ? 'the lunge' : 'landing';
+          } else if (t < APPROACH_END) {
+            catX = approachX + easeSmooth(t / APPROACH_END) * (startX - approachX);
           } else {
+            caption = '';
             catX = approachX;
           }
-          // The ground shadow stays ON the ground -- the separation from
-          // the lifted body is the whole airborne read, exactly as
-          // render.js draws it.
           ctx.save();
           ctx.globalAlpha = 0.35;
           ctx.fillStyle = '#4a3f35';
@@ -1108,11 +1103,15 @@
             x: catX,
             y: groundY - T * 0.92 - lift,
             phase: poseP,
+            // The wiggle's rate is a real-world frequency inside the pose;
+            // hand it the stretched beat's true length and the portrait's
+            // judged rock rate, or the slow-motion loop would wallow.
+            layout: { beatMs, wiggleHz: VIEW.playWiggleHz, sway: VIEW.playSway },
           });
-          if (phase[0]) {
+          if (caption) {
             ctx.fillStyle = 'rgba(107, 90, 78, 0.55)';
             ctx.font = '11px ui-monospace, monospace';
-            ctx.fillText(phase[0], 10, lane.y0 + 2);
+            ctx.fillText(caption, 10, lane.y0 + 2);
           }
         }
       },
