@@ -66,3 +66,9 @@ display = "Multi-Layer Perceptron"
 architecture = "Transformer"
 recipe = "BC+PPO"
 display = "Transformer"
+
+[artifact."a32c457e247e19cc894c05cb876daa79cd6a7f2425bafe74b1fcd5bbe9497558"]
+# e006a-L-04-s3.ckpolicy — exp-006a lineage PPO product (clone-anchor-v6 init/leash, dataset v6, trained on family-spread-bugs2); Biscuit 2.0.
+architecture = "Transformer"
+recipe = "BC+PPO"
+display = "Transformer"
