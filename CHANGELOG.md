@@ -36,7 +36,7 @@ change.
 - **A patch of the meadow has bugs now.** Bugs 2.0 (spec 039): each bug
   lives its whole life inside the 4×4 world-aligned cell it was born
   in, and both critter lifetimes double to 600 ticks. The point is the
-  hunt's economics, repriced without touching a single reward value:
+  hunt's economics, repriced in mechanics first:
   a bug's location becomes a durable fact a mind can learn, and the
   cell walls end the endgame dance where the last two tiles used to
   leak the catch. The measured pair-payment ceiling means hunting
@@ -75,7 +75,7 @@ change.
   bit-for-bit the old skitter under the same pinned digest.
   Acceptance economics ran as pre-registered census grids against
   this branch before merge — the miss, the improvement, and the
-  sweep, all in Experiments' records (#pending).
+  sweep, all in Experiments' records (#282).
 
 - **The phase-1 generation takes the seats, and the wall comes down.**
   `[world-fresh]` Six days after the say-surface froze, the schema-4
