@@ -1,5 +1,5 @@
-# exp-006a: Biscuit 2.0, the corner shot — preregistration (DRAFT,
-# re-derived on the bugs-2.0 world — AWAITING OWNER FREEZE)
+# exp-006a: Biscuit 2.0, the corner shot — preregistration
+# **FROZEN 2026-08-22** (owner's bar ruling; training starts)
 
 **PARKED, not abandoned (owner, 2026-08-21)**: "Let's get our
 current batch of kitties deployed first. I had planned on knocking
@@ -38,11 +38,11 @@ D-001). What re-derives, in place below and summarized here:
   79.72), thermostat parity **90.71** (was 90.64), fresh scripted
   anchor 0.9077 (min 0.9063) — G2b re-derives at battery time per
   convention; these are the current readings.
-- **The Biscuit bar — THE FREEZE DECISION (hers, reserved by the
-  §6 scope ruling)**: at +10 the bar is **89.31**, sitting 1.40
-  under the thermostat cap 90.71 (the pre-039 world offered only
-  0.92 of headroom). The +10 does not auto-carry; she re-decides
-  it with these anchors in hand.
+- **The Biscuit bar — RULED AT FREEZE (owner, 2026-08-22)**:
+  **+8 → 87.31**, chosen over the +10 default (89.31) and
+  cap-parity (90.71) with the fresh anchors in hand —
+  character-protective per her scope ruling; ~3.4 under the
+  thermostat cap.
 - **Comparator context (measured)**: incumbents are FLAT on the
   bugs-2.0 certification world (deploy-ref-e1 eval 0.9392 vs
   0.9393; per-seat happiness identical to a hundredth) — reference
@@ -153,16 +153,15 @@ same-instrument, paired seeds.
 - **G2c** candidate-roster team ≥ reference composition − 0.005.
 - **G2d** per-seat, paired, G3-coupled:
   - **Biscuit (the owner's uplift bar — 006a-LOCAL, not a standing
-    formula)**: candidate ≥ the playful-behavior scripted anchor at
-    the Biscuit seat, freshly derived at battery time on the
-    certification config, **+ 10.0 happiness**. On the bugs-2.0
-    world that anchor reads 79.31 (SC-005; instrument
-    playful_anchor.py, validated against the 79.72 pre-039
-    reading) → bar ≈ **89.31**, 1.40 under thermostat parity
-    (90.71). Valid only with the candidate's G3 pass. THE +10
-    ITSELF IS THE FREEZE DECISION — re-decided by the owner with
-    these anchors per the scope ruling below; this line records the
-    default she is deciding on, not a commitment.
+    formula; RULED AT FREEZE, owner 2026-08-22)**: candidate ≥ the
+    playful-behavior scripted anchor at the Biscuit seat, freshly
+    derived at battery time on the certification config,
+    **+ 8.0 happiness**. On the bugs-2.0 anchors (playful 79.31,
+    SC-005; instrument playful_anchor.py, validated against the
+    79.72 pre-039 reading) the bar is ≈ **87.31**, ~3.4 under
+    thermostat parity (90.71) — the owner chose +8 over the +10
+    default and cap-parity: character-protective, the gate must not
+    crowd the character. Valid only with the candidate's G3 pass.
 
     **Scope ruling (owner, 2026-08-21, verbatim)**: "+10 happiness
     makes sense NOW, but we need to see what bug 2.0 does to biscuit
