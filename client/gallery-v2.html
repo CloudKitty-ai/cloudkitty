@@ -783,6 +783,8 @@
   // be in the renderer. Card 2 below also builds a fresh one each
   // frame -- it needs a camera with no history, so `update` ARRIVES at the
   // frame instead of easing toward it from wherever the last frame left it.
+  // Under spec 038 a history-less arrival IS the cold-start shot pick, so
+  // what card 2 shows is the shot the camera opens on -- see its note.
   const zoomProbe = () => new Camera({ ...VIEW.camera, ...ZOOM });
   const zoomLimitsFor = (cssWidth) => {
     const world = { width: ZOOM_WORLD, height: ZOOM_WORLD };
@@ -890,8 +892,8 @@
       },
     },
     {
-      title: 'The minimum — what a phone actually frames (spec 037)',
-      note: 'The 340px map at TRUE size, so this box is the phone. The frame, the width and the aim all come from the shipped `Camera` — a real instance, updated with the dials above, not a replica of its arithmetic. The five kitties are a real sampled tick: the median-spread frame of a 1500-tick capture of the served world, so the framing is as hard as the meadow actually makes it. This is the card for minTiles, which research called the one deferred number with a genuine trade behind it: lower buys apparent size and zoom range, higher buys meadow. It cannot be judged from a table.',
+      title: 'The minimum — what a phone actually frames (037 band, 038 shot)',
+      note: 'The 340px map at TRUE size, so this box is the phone. The frame, the width and the aim all come from the shipped `Camera` — a real instance, updated with the dials above, not a replica of its arithmetic. Since spec 038 that frame is the COLD-START SHOT at this sampled tick: the camera picks the largest set of kitty groups that can share a frame and sizes to IT, so the box holds a chosen pair, not an attempt at everyone — the clowder\'s median 16.2-tile spread cannot fit a phone ceiling, and partial framing of the whole roster is exactly what the shot picker exists to replace. minTiles still moves the drawn width whenever it binds the floor, so this stays the card for judging it — on the shot the camera actually takes, which is what ships. (Card re-pointed 2026-08-21: before 038 it showed the fit-everyone frame, and dialling against that would judge a camera that no longer exists.)',
       v2Only: true,
       w: 940,
       h: 400,
@@ -985,10 +987,10 @@
           `ceiling  ${L.ceilingTiles.toFixed(1)} tiles`,
           `range    ${L.range.toFixed(2)}×`,
           '',
-          'the clowder spans a median',
-          '16.2 tiles, so a frame under',
-          'that cannot hold them all —',
-          'measured, not assumed',
+          'the clowder spans 16.2 tiles;',
+          'no phone frame holds it, so',
+          'the 038 camera SHOOTS a pair',
+          'instead of cropping everyone',
         ];
         lines.forEach((t, i) => ctx.fillText(t, tx, y0 + 16 + i * 18));
       },

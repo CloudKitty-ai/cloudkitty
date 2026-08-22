@@ -1082,8 +1082,8 @@ class WorldRenderer {
     // because the fix couples the camera's floor to this budget.
     //
     // The downscale is also a STEADY-STATE claim in TIME. `cssWidth`
-    // changes the instant a window is resized while `across` EASES toward
-    // its new floor at zoomRate, so widening 700px -> 1200px with the group
+    // changes the instant a window is resized while `across` travels in
+    // one eased episode (038), so widening 700px -> 1200px with the group
     // huddled leaves `this.tile` above `bakeTile` for about a second and the
     // ground blit is briefly an upscale. Soft, not broken, and it ends when
     // the ease does. Worth knowing before anyone reads "always a downscale"

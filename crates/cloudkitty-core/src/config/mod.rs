@@ -390,6 +390,22 @@ pub struct ElementRule {
     /// Chow only: servings per element.
     #[serde(default)]
     pub servings: Option<u32>,
+    /// Bugs only (spec 039): tether each bug to the `n`-sized world-aligned
+    /// cell it stands in — it never leaves. Absent means unbounded roaming
+    /// (pre-039 behavior, byte-identical). Validation refuses values below 2
+    /// and refuses the key on any other element type: the engine refuses
+    /// what it will not honor. `skip_serializing_if` keeps the default
+    /// config's JSON — and so `engine_defaults_sha256` — unmoved.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub roam_cell: Option<u32>,
+    /// Greebles only (spec 039 third amendment): the greeble joins the
+    /// critter rest-tick schedule — moving only when `(tick + id) % 2`
+    /// says so, like a bug — and on a moving tick darts 1–3 tiles
+    /// instead of the old 1–2. False (absent) is today's every-tick
+    /// skitter, byte-identical; the pinned golden digest guards that.
+    /// Validation refuses the key on any other element type.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub dart: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -429,12 +445,16 @@ impl Default for ElementsConfig {
                 max: 10,
                 ttl: None,
                 servings: None,
+                roam_cell: None,
+                dart: false,
             },
             chow: ElementRule {
                 min: 5,
                 max: 10,
                 ttl: None,
                 servings: Some(5),
+                roam_cell: None,
+                dart: false,
             },
             // Long, unhurried lifetimes (owner call 2026-07-23): a calmer
             // world is kinder to watch and to learn in (RL agents see fewer
@@ -445,18 +465,24 @@ impl Default for ElementsConfig {
                 max: 8,
                 ttl: Some(300),
                 servings: None,
+                roam_cell: None,
+                dart: false,
             },
             greeble: ElementRule {
                 min: 1,
                 max: 3,
                 ttl: Some(300),
                 servings: None,
+                roam_cell: None,
+                dart: false,
             },
             sunbeam: ElementRule {
                 min: 3,
                 max: 6,
                 ttl: Some(300),
                 servings: None,
+                roam_cell: None,
+                dart: false,
             },
             spread_candidates: default_spread_candidates(),
             ttl_jitter: default_ttl_jitter(),
@@ -820,6 +846,14 @@ pub struct BehaviorConfig {
     /// How long an abandoned chase target stays excluded from re-selection.
     #[serde(default = "default_chase_exclusion_ticks")]
     pub chase_exclusion_ticks: u64,
+    /// The final pounce (spec 039 FR-011, the fallback the owner
+    /// pre-authorized): when a chase's applied step leaves an ELEMENT
+    /// target at Manhattan distance exactly 2, the cat lunges one more
+    /// plain step toward it in the same tick — blocked = lost, no routing,
+    /// no RNG, never on kitty targets. Default off; `skip_serializing_if`
+    /// keeps the defaults stamp unmoved (the 039 D5 discipline).
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub pounce: bool,
     /// A viable playmate within this distance suppresses solo play; beyond it,
     /// a kitty entertains itself.
     #[serde(default = "default_solo_play_reach")]
@@ -887,6 +921,7 @@ impl Default for BehaviorConfig {
             worth_a_detour: default_worth_a_detour(),
             chase_patience_ticks: default_chase_patience_ticks(),
             chase_exclusion_ticks: default_chase_exclusion_ticks(),
+            pounce: false,
             solo_play_reach: default_solo_play_reach(),
             sunbeam_reach: default_sunbeam_reach(),
             budget_strikes: default_budget_strikes(),
@@ -2133,6 +2168,85 @@ mod tests {
             !obj.contains_key("watchdog"),
             "watchdog leaked into serialization (spec 040: server-owned, stamp must not move)"
         );
+    }
+
+    #[test]
+    fn roam_cell_validation_refuses_zero_and_one() {
+        // Spec 039 FR-005: a 1-tile cell silently immobilizes every bug —
+        // a different world than anyone asked for. Refused, value named.
+        for bad in [0u32, 1] {
+            let mut c = cfg();
+            c.elements.bug.roam_cell = Some(bad);
+            let err = c.validate().unwrap_err().to_string();
+            assert!(err.contains("[elements.bug] roam_cell"), "{err}");
+            assert!(err.contains(&bad.to_string()), "{err}");
+        }
+    }
+
+    #[test]
+    fn roam_cell_validation_refuses_non_bug_tables() {
+        // Research D3's deliberate divergence from the silent `servings`
+        // precedent: the engine refuses what it will not honor.
+        let mut c = cfg();
+        c.elements.greeble.roam_cell = Some(4);
+        let err = c.validate().unwrap_err().to_string();
+        assert!(err.contains("[elements.greeble] roam_cell"), "{err}");
+
+        let mut c = cfg();
+        c.elements.sunbeam.roam_cell = Some(4);
+        let err = c.validate().unwrap_err().to_string();
+        assert!(err.contains("[elements.sunbeam] roam_cell"), "{err}");
+    }
+
+    #[test]
+    fn roam_cell_validation_accepts_legal_values() {
+        // 2 is the floor, 4 is the served package, 64 exceeds the world
+        // (legal: the whole world becomes one cell).
+        for good in [2u32, 4, 64] {
+            let mut c = cfg();
+            c.elements.bug.roam_cell = Some(good);
+            c.validate()
+                .unwrap_or_else(|e| panic!("roam_cell {good} must load: {e}"));
+        }
+    }
+
+    #[test]
+    fn roam_cell_stays_out_of_the_default_serialization() {
+        // Spec 039 research D5: `engine_defaults_sha256` hashes the default
+        // Config's serialized JSON, so an unset roam_cell must not appear as
+        // a key — otherwise adding the field moves the stamp for a value
+        // nobody set. Delete the field's `skip_serializing_if` and this test
+        // goes red; it is the assertion aimed at exactly that attribute.
+        let json = serde_json::to_string(&Config::default()).unwrap();
+        assert!(!json.contains("roam_cell"), "{json}");
+        // Same discipline for the pounce flag (FR-012): default-off must
+        // not appear as a key. Delete its skip attribute and this reddens.
+        assert!(!json.contains("pounce"), "{json}");
+        // And for the greeble schedule flag (FR-015).
+        assert!(!json.contains("dart"), "{json}");
+    }
+
+    #[test]
+    fn dart_validation_refuses_non_greeble_tables() {
+        // FR-015, same refusal discipline as roam_cell: the engine refuses
+        // what it will not honor. Bugs are already on the schedule.
+        let mut c = cfg();
+        c.elements.bug.dart = true;
+        let err = c.validate().unwrap_err().to_string();
+        assert!(err.contains("[elements.bug] dart"), "{err}");
+
+        let mut c = cfg();
+        c.elements.sunbeam.dart = true;
+        let err = c.validate().unwrap_err().to_string();
+        assert!(err.contains("[elements.sunbeam] dart"), "{err}");
+    }
+
+    #[test]
+    fn dart_validation_accepts_the_greeble_flag() {
+        let mut c = cfg();
+        c.elements.greeble.dart = true;
+        c.validate()
+            .expect("dart on the greeble table is the whole point");
     }
 
     // ---- spec 033 (T017): the vocabulary table's config law ----

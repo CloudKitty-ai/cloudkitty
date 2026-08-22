@@ -562,8 +562,8 @@ function setFollow(id) {
 /**
  * Keep the page in step with a follow the CAMERA ended.
  *
- * `targetFor` drops a followed kitty who is no longer in the roster
- * (FR-020), which is the right place for it -- the same path serves a
+ * The camera's decide() drops a followed kitty who is no longer in the
+ * roster (FR-020), which is the right place for it -- one path serves a
  * kitty who leaves while the page is open and an id restored from
  * storage that no longer names anyone. But the camera cannot mark a card
  * or write to storage, so without this the mark stayed on a departed

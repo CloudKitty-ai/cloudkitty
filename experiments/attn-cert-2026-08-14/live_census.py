@@ -30,8 +30,10 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 BASE = "https://kitties.ai"
-INTERVAL_S = 60
-DURATION_MIN = 25
+# Overridable: live_census.py [duration_min] [interval_s] — the defaults
+# reproduce the 08-18 baseline's window.
+INTERVAL_S = int(sys.argv[2]) if len(sys.argv) > 2 else 60
+DURATION_MIN = int(sys.argv[1]) if len(sys.argv) > 1 else 25
 HERE = Path(__file__).resolve().parent
 
 

@@ -1,0 +1,63 @@
+{
+ "provenance": {
+  "git_head": "6dd56662ba2c490d208e083dab917a6137b66d02",
+  "dirty": [
+   "experiments/exp-006-character-gen/configs/phase1-cutover-bugs2.toml",
+   "experiments/exp-006-character-gen/playful_anchor.py"
+  ],
+  "config_sha256": "64ca2b9a840ec0b844f9bf5906129bbdd95888f76b402835584116f1c4166bef",
+  "instrument_sha256": "18cfed14f01d0a24f228261472faf3ca232a451838f639320f01ec18f2497f98"
+ },
+ "rows": [
+  {
+   "seed": 870001,
+   "mean_happiness": [
+    90.3653,
+    79.4399,
+    90.9807,
+    90.7734,
+    90.381
+   ]
+  },
+  {
+   "seed": 870002,
+   "mean_happiness": [
+    90.424,
+    79.8036,
+    90.9285,
+    90.7122,
+    90.102
+   ]
+  },
+  {
+   "seed": 870003,
+   "mean_happiness": [
+    90.1645,
+    79.61,
+    90.7693,
+    90.4219,
+    90.0426
+   ]
+  },
+  {
+   "seed": 870004,
+   "mean_happiness": [
+    90.4137,
+    79.6566,
+    90.8255,
+    90.5632,
+    90.3851
+   ]
+  },
+  {
+   "seed": 870005,
+   "mean_happiness": [
+    90.4197,
+    80.0708,
+    90.7516,
+    90.7437,
+    90.1875
+   ]
+  }
+ ]
+}

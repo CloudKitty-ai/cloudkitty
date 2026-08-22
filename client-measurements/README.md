@@ -143,3 +143,122 @@ columns read `ungated → SHIPPED` and the cost stays measurable after the fact.
 **Re-measure before moving the number.** The table above was taken against the
 pounce that popped; the pose distribution it reports is not necessarily the one
 a nicer pounce earns.
+
+## camera-aim — what the camera would do, 2026-08-20
+
+**350 ticks (4.7 min) of a LOCAL five-kitty world**, `cloudkitty.toml` as
+seated, `--fresh`. Local rather than served because the question is about the
+roster size the camera meets after the cutover; the box is still on four.
+
+Run: start the server, then `camera-sample.mjs 350 sample.jsonl`, then
+`camera-analyze.mjs sample.jsonl`.
+
+**The owner's proposal was to aim at the densest group. The measurement
+refutes it, and salvages the better half.**
+
+| aim | tiles/tick (mean) | deadzone releases | subject switches |
+|---|---|---|---|
+| centre of mass (ships) | **0.26** | **4.1/min** | — |
+| densest neighbourhood R=4 | 0.62 | 9.6/min | 5.8/min |
+| densest neighbourhood R=5 | 0.58 | 10.9/min | 3.9/min |
+| densest neighbourhood R=6 | 0.54 | 9.9/min | 5.1/min |
+
+Aiming at density is **2–3x the motion and ~2.5x the re-aims**. The cause is
+that cluster membership is DISCRETE: the centroid jumps when a cat joins or
+leaves, and those jumps swamp the smooth per-cat averaging a centre of mass
+gives for free. Subject switching also breaks 036 SC-006's bar of <= 3/min at
+two of the three radii.
+
+**But the same rule is a strong SIZING rule.** The densest neighbourhood spans
+**2.4–3.8 tiles and holds 2.7–3.1 cats**, against **13.0 tiles for all five** —
+and ~3 in frame is the owner's stated target, arriving as a consequence rather
+than as a dial.
+
+### The finding nobody was looking for: the fit never governs
+
+| the width target | tiles/tick (mean) |
+|---|---|
+| raw fit (span + `fitMarginTiles`) | 0.38 |
+| after the floor/ceiling clamp | **0.06** |
+
+**Bound at the ceiling 87% of ticks** (036 measured 76% on four kitties, so the
+fifth made it worse, as expected). The fit asks for a **median 19.2 tiles**
+against a **13.33** ceiling — so it is not choosing a framing at all, it is
+pinned wide, and `fitMarginTiles` is inert most of the time.
+
+Two consequences:
+
+- **The width is NOT the busy channel.** It is nearly static. Whatever "the
+  camera feels too active" is, it is the aim — and since the aim's target only
+  releases 4.1 times a minute while 036 measured the camera MOVING on 60% of
+  ticks, almost all of it is the **easing tail**, not the target. That
+  corroborates the 2026-08-17 note and its named fix: snap the aim to its goal
+  within an epsilon.
+- **Sizing to the neighbourhood would put the fit back in charge.** A 2.4–3.8
+  tile group plus `2 x 2.6` margin is 7.6–9.0 tiles: below the 13.33 ceiling
+  and above the 7 floor, which is the one band where the fit actually varies.
+
+
+**→ The grammar below became [spec 038, camera shot picker](../specs/038-camera-shot-picker/spec.md)**
+(implemented 2026-08-21; its acceptance record is
+`specs/038-camera-shot-picker/acceptance-2026-08-21.md`).
+
+### The settled grammar, simulated — 2026-08-20 evening
+
+The design session settled the shot-picker grammar (shot = maximal-count set
+of groups that fits; near rivals ADMITTED by widening; far rivals must be
+strictly bigger, sustained 15 ticks, and force the only true pan; ties keep
+the incumbent; count-only interest). `shot-survival.mjs sample.jsonl` runs
+that grammar over the same sample. Dwell dials in the script are stated
+assumptions: near 5 ticks, far 15 (the owner's number).
+
+**Group identity survives for minutes, not seconds** (majority-overlap
+chains of the biggest group): median **20s / 88s / 192s** at link L=4/5/6.
+The churn fear — sizing to a group would pump the zoom — is refuted at L≥5.
+
+**Event rates under the grammar** (desktop ceiling 13.33t / phone 7.6t):
+
+| | pan/min | widen/min | break/min | framed ≥2 | width median | at ceiling |
+|---|---|---|---|---|---|---|
+| desktop L=4 | 0.00 | 1.71 | 0.00 | 100% | 9.2t | 0% |
+| desktop L=5 | 0.00 | 1.29 | 0.00 | 100% | 9.2t | 1% |
+| desktop L=6 | 0.21 | 0.43 | 0.00 | 100% | 9.2t | 5% |
+| phone L=4 | 0.00 | 0.00 | 2.36 | 100% | 7.2t | 42% |
+| phone L=5 | 0.00 | 0.00 | 0.43 | 100% | 7.6t | 54% |
+| phone L=6 | 0.00 | 0.00 | 0.21 | 100% | 7.6t | 61% |
+
+Four findings:
+
+- **Fast pan is nearly dead code.** One pan fired in 4.7 minutes across all
+  six configurations. Structural, not sample luck: on desktop a 13.33-tile
+  frame on a 20-tile world makes sharing a frame geometrically easy (rivals
+  get admitted, not switched to), and on any viewport a far rival must
+  out-count the biggest group, which the shot already holds. Transitions are
+  dominated by widen (desktop) and break-recovery (phone). The eagerness
+  dial the far band needed barely matters in practice.
+- **The zoom gets its job back.** Median width 9.2t against the 13.33
+  ceiling, at-ceiling 0–5% of ticks — versus 87% pinned under the shipped
+  fit-everyone rule. Cats draw ~1.45x bigger at the median.
+- **Minimum-two holds on 100% of ticks** in every configuration, by
+  construction and in practice. Mean framed ~3.2 of 5 — the owner's stated
+  portrait target, arriving as a consequence again.
+- **`fitMarginTiles` 2.6 does not scale down to the phone.** 5.2 tiles of
+  margin inside a 7.6-tile frame is 68% of it, so the shot's fit request
+  overflows the phone frame 42–61% of ticks (the camera clamps and frames
+  the group partially). An absolute-tiles margin is the wrong shape on
+  narrow frames; a proportional margin is indicated at implementation time.
+
+**L=5 is the link radius to carry forward**: L=4 is twitchy on the phone
+(2.36 breaks/min), L=6 merges nearly the whole roster (top group 3.16 cats,
+2 identity chains in 4.7 min).
+
+**Spec-032 lookahead read**: with pans this rare, a 15-tick buffer buys
+little for switching. Its real value would be pre-framing — framing the
+group's swept bounding box over the next 15 ticks to cut in-shot
+corrections. The policy stays factored as one evidence function over a
+tick-window either way, so 032 slots in without touching the grammar.
+
+Caveats: one 4.7-minute daytime sample of one generation's clustering
+(perishable, per house rule); the sim models event rates, not camera easing;
+dwell counters key on exact member sets, so membership churn resets them —
+conservative, undercounts transitions if groups churn while staying put.

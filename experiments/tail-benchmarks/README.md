@@ -46,6 +46,21 @@ a benchmark that can drift. Record the sha256 at recruitment.
   G2a/r5. Mechanism forensics:
   `exp-006-character-gen/results/r5-forensics-2026-08-20.md`; battery
   record: `exp-006-character-gen/results/battery-2026-08-20.md`.
+- **Bugs-2.0 divergence note (2026-08-21, SC-005)**: the pinned toml
+  carries none of spec 039's keys, so on the merged engine
+  (main @ 6dd5666) every 039 mechanism is off and the benchmark's
+  trajectories are unchanged — verified empirically, not assumed:
+  seed 880001 of candidate-r5/stress reproduces its banked row
+  byte-equal (nash to full precision, mda, floors) on a
+  post-merge build. Two consequences. First, the benchmark still
+  detects exactly what it detected; calibration points carry
+  unmodified. Second, it now measures a world whose critter
+  mechanics DIFFER from the served world's — acceptable for this
+  entry because its failure class (the co-sleep dyadic lock) is
+  critter-independent, but a composition's r5 reading is no longer
+  evidence about its bug/greeble behavior. Worlds recruited from
+  bugs-2.0-era incidents should be pinned with their 039 keys
+  as-served.
 
 ## Recruiting a new entry
 
