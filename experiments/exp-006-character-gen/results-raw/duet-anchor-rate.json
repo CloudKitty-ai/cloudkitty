@@ -1,0 +1,12 @@
+{
+ "duet_starts_per_1k_seat_ticks": 40.4926,
+ "starts": 161950,
+ "seat_ticks": 3999500,
+ "rollouts": 100,
+ "per_rollout_min_max": [
+  1308,
+  2016
+ ],
+ "source": "raw/anchor-playful-v6 (band 1020001-100, collect-config-bugs2 composition)",
+ "detector": "train_ppo6.duet_starts (PLAY_COL 14, PARTNER_COL 16)"
+}

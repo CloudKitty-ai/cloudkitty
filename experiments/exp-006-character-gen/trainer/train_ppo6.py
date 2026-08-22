@@ -79,6 +79,53 @@ ARMS = {
     "L-05": (False, "clone-anchor", 0.05, 3),
 }
 
+# exp-006a wave (exp-006a-biscuit-corner/prereg.md §2, frozen
+# 2026-08-22): the same recipe with the v6 pointers — init/anchor
+# clone-anchor-v6, family-spread-bugs2, critic6-v6 — selected by
+# --wave 006a. arm -> (estimator, init clone, beta_inf, duet lambda).
+DUET_LAMBDA = 0.1  # prereg §3, frozen
+ARMS_006A = {
+    "F-dose": (False, "clone-anchor-v6", 0.045, 0.0),
+    "F-duet": (False, "clone-anchor-v6", 0.04, DUET_LAMBDA),
+    "L-04": (False, "clone-anchor-v6", 0.04, 0.0),
+}
+# Run indices are EXPLICIT for this wave (prereg D-002): the exp-006
+# arm_index formula would drop L-04-s3 into L-05-s1's 20M block.
+# Exactly these four (arm, seed) launches exist; anything else is a
+# mislaunch and dies on the lookup.
+RUN_INDEX_006A = {("F-dose", 1): 8, ("F-dose", 2): 9,
+                  ("F-duet", 1): 10, ("L-04", 3): 11}
+
+# Kitty-block columns of the padded global state (global_state.rs):
+# activity one-hot at 9..16 with Playing = index 5, then the
+# partner-present flag. Partnered play == Playing with a partner.
+PLAY_COL, PARTNER_COL = ACT_OFF + 5, 16
+
+# Scripted-anchor partnered-play start rate, per 1k seat-ticks,
+# measured with duet_starts() itself over the anchor demonstrations
+# (raw/anchor-playful-v6 state streams, 100 x 8k on the bugs-2.0
+# composition; trainer/derive_duet_anchor.py, banked in
+# results-raw/duet-anchor-rate.json). The prereg §3 grind guard is
+# REPORT-ONLY: a sustained rate above 3x this flags the arm in
+# telemetry and gates nothing.
+DUET_ANCHOR_PER_1K = 40.4926
+
+
+def partnered_play(states):
+    """(n, 197) padded states -> (n, 5) bool: seat is in
+    kitty-partnered play. Vacant blocks are zero rows, so they can
+    never read as partnered."""
+    k = states[:, :MAX_SEATS * PER_KITTY].reshape(
+        -1, MAX_SEATS, PER_KITTY)
+    return (k[:, :, PLAY_COL] > 0.5) & (k[:, :, PARTNER_COL] > 0.5)
+
+
+def duet_starts(pre, post):
+    """Per-world count of seats transitioning INTO partnered play
+    between consecutive states (prereg §3: starts only, initiator and
+    joiner alike; continuing a duet counts nothing)."""
+    return (partnered_play(post) & ~partnered_play(pre)).sum(axis=1)
+
 
 class EstimatorPolicy(EntityPolicyV4):
     """EntityPolicyV4 + the E1 aux head on the trunk summary. The
@@ -150,7 +197,8 @@ def joint_entropy_and_viol(logits, mask50):
     return sum(ents), float(np.mean(viols))
 
 
-def collect_fragment(runner, policy, critic, vstats, T, estimator):
+def collect_fragment(runner, policy, critic, vstats, T, estimator,
+                     duet_lambda=0.0):
     mean, std = vstats
     n = runner.n_worlds
     obs_dim, mask_dim = runner.dims
@@ -171,6 +219,7 @@ def collect_fragment(runner, policy, critic, vstats, T, estimator):
         buf["est"] = np.zeros((T, n, MAX_SEATS, MAX_SEATS * NEEDS_F),
                               np.float32)
     ent_sum, viol_sum, meow_n, dec_n = 0.0, 0.0, 0, 0
+    duet_n = 0
     with torch.no_grad():
         for t in range(T):
             states = runner.states()
@@ -197,6 +246,19 @@ def collect_fragment(runner, policy, critic, vstats, T, estimator):
             actions = np.zeros((n, MAX_SEATS, 2), np.int64)
             actions[valid] = np.stack([a.numpy(), msg_np], axis=1)
             rewards, truncated, final_states = runner.step(actions)
+            if duet_lambda:
+                # The F-duet shaping (prereg §3): lambda per seat
+                # transitioning INTO partnered play on this step. The
+                # post-step state for a truncated world is its
+                # final_states row (states() already shows the next
+                # episode there). Shaping enters the TRAINING reward
+                # below; runner.ep_return (the ep_return_mean
+                # telemetry) stays the env's unshaped return.
+                post = runner.states()
+                post[truncated] = final_states[truncated]
+                starts = duet_starts(states, post)
+                rewards = rewards + duet_lambda * starts
+                duet_n += int(starts.sum())
             if truncated.any():
                 fv = critic(torch.from_numpy(final_states[truncated])
                             ).squeeze(-1).numpy() * std + mean
@@ -210,7 +272,8 @@ def collect_fragment(runner, policy, critic, vstats, T, estimator):
         v_last = critic(torch.from_numpy(runner.states())
                         ).squeeze(-1).numpy() * std + mean
     meow_rate = 1000.0 * meow_n / max(1, dec_n)
-    return buf, v_last, ent_sum / T, viol_sum / T, meow_rate
+    duet_rate = 1000.0 * duet_n / max(1, dec_n)  # per 1k seat-ticks
+    return buf, v_last, ent_sum / T, viol_sum / T, meow_rate, duet_rate
 
 
 def gae(buf, v_last, gamma, lam):
@@ -343,8 +406,12 @@ def sha256(path: Path) -> str:
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--arm", required=True, choices=sorted(ARMS))
-    ap.add_argument("--seed", type=int, required=True, choices=(1, 2))
+    ap.add_argument("--wave", choices=("006", "006a"), default="006",
+                    help="006a switches to the ARMS_006A table, the "
+                         "explicit run-index map, and the v6 pointers")
+    ap.add_argument("--arm", required=True,
+                    choices=sorted(set(ARMS) | set(ARMS_006A)))
+    ap.add_argument("--seed", type=int, required=True, choices=(1, 2, 3))
     ap.add_argument("--total-ticks", type=int, default=20_000_000)
     ap.add_argument("--n-worlds", type=int, default=12)
     ap.add_argument("--fragment", type=int, default=256)
@@ -366,12 +433,9 @@ def main():
     ap.add_argument("--wall-min", type=float, default=None)
     ap.add_argument("--resume", action="store_true")
     ap.add_argument("--threads", type=int, default=None)
-    ap.add_argument("--family-dir", type=Path,
-                    default=EXP006 / "family-spread")
-    ap.add_argument("--critic", type=Path,
-                    default=EXP006 / "artifacts/critic6/critic6-0p998.pt")
-    ap.add_argument("--default-toml", type=Path,
-                    default=EXP006 / "collect-config.toml")
+    ap.add_argument("--family-dir", type=Path, default=None)
+    ap.add_argument("--critic", type=Path, default=None)
+    ap.add_argument("--default-toml", type=Path, default=None)
     ap.add_argument("--out-dir", type=Path, default=None)
     ap.add_argument("--init-override", type=Path, default=None,
                     help="smoke only; real runs take the arm's clone")
@@ -382,9 +446,34 @@ def main():
     if args.threads:
         torch.set_num_threads(args.threads)
 
-    estimator, init_name, beta_final, arm_index = ARMS[args.arm]
+    # Per-wave pointer defaults (overridable for smoke only).
+    if args.wave == "006a":
+        args.family_dir = args.family_dir or EXP006 / "family-spread-bugs2"
+        args.critic = args.critic or (
+            EXP006 / "artifacts/critic6-v6/critic6-0p998.pt")
+        args.default_toml = args.default_toml or (
+            EXP006 / "collect-config-bugs2.toml")
+    else:
+        args.family_dir = args.family_dir or EXP006 / "family-spread"
+        args.critic = args.critic or (
+            EXP006 / "artifacts/critic6/critic6-0p998.pt")
+        args.default_toml = args.default_toml or (
+            EXP006 / "collect-config.toml")
+
+    duet_lambda = 0.0
+    if args.wave == "006a":
+        assert (args.arm, args.seed) in RUN_INDEX_006A, (
+            f"({args.arm}, s{args.seed}) is not one of the four frozen "
+            f"006a launches: {sorted(RUN_INDEX_006A)}")
+        estimator, init_name, beta_final, duet_lambda = ARMS_006A[args.arm]
+        run_index = RUN_INDEX_006A[(args.arm, args.seed)]
+    else:
+        assert args.arm in ARMS and args.seed in (1, 2), (
+            f"wave 006 is the frozen exp-006 four at seeds 1-2, got "
+            f"{args.arm} s{args.seed}")
+        estimator, init_name, beta_final, arm_index = ARMS[args.arm]
+        run_index = arm_index * 2 + (args.seed - 1)
     args.kl_beta_final = beta_final  # frozen per arm, never an input
-    run_index = arm_index * 2 + (args.seed - 1)
     arm = f"ppo-{args.arm}-s{args.seed}"
     out = args.out_dir or EXP006 / f"artifacts/{arm}"
     out.mkdir(parents=True, exist_ok=True)
@@ -436,8 +525,9 @@ def main():
         stop_strikes = rk.get("stop_strikes", 0)
         vstats = rk.get("vstats", vstats)
 
-    # The claimed exp-006 training band (SEED-BANDS.md): disjoint 20M
-    # blocks per run at 100M+, worlds striding w*1M inside.
+    # The claimed training bands (SEED-BANDS.md): disjoint 20M blocks
+    # per run at 100M+, worlds striding w*1M inside. Run indices 0-7
+    # are exp-006's claim; 8-11 are exp-006a's (prereg D-002).
     seed_base = 100_000_000 + run_index * 20_000_000 + segment * 1_000
     probe_seeds = [40_001, 40_002, 40_003]  # the standing probe trio
 
@@ -459,7 +549,8 @@ def main():
                               capture_output=True, text=True).stdout.strip()
     fam_manifest = args.family_dir / "family-manifest.json"
     (out / "run-manifest.json").write_text(json.dumps({
-        "arm": arm, "estimator": estimator, "beta_final": beta_final,
+        "arm": arm, "wave": args.wave, "estimator": estimator,
+        "beta_final": beta_final, "duet_lambda": duet_lambda,
         "gamma": args.gamma, "seed": args.seed, "run_index": run_index,
         "segment": segment, "seed_base": seed_base, "git_head": git_head,
         "schemas": {
@@ -486,8 +577,9 @@ def main():
             for g in opt.param_groups:
                 g["lr"] = lr
 
-        buf, v_last, entropy, mask_viol, meow_rate = collect_fragment(
-            runner, policy, critic, vstats, args.fragment, estimator)
+        buf, v_last, entropy, mask_viol, meow_rate, duet_rate = \
+            collect_fragment(runner, policy, critic, vstats,
+                             args.fragment, estimator, duet_lambda)
         adv_tw, vtarget_tw = gae(buf, v_last, args.gamma, args.lam)
         ev = 1.0 - float(np.var(vtarget_tw - buf["value"])
                          / (np.var(vtarget_tw) + 1e-12))
@@ -589,6 +681,12 @@ def main():
             row["aux_mse"] = aux_sum / batches
             row["calib_mae"] = calib_mae
             row["calib_n"] = calib_n
+        if duet_lambda:
+            # Prereg §3 grind guard, REPORT-ONLY: flags in telemetry,
+            # gates nothing (G3's venue floors are the character gate).
+            row["duet_starts_per_1k"] = duet_rate
+            row["duet_grind_flag"] = bool(
+                duet_rate > 3.0 * DUET_ANCHOR_PER_1K)
         with log_path.open("a") as f:
             f.write(json.dumps(row) + "\n")
         if update % 10 == 0:
