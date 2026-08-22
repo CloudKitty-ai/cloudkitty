@@ -251,9 +251,7 @@ mod tests {
             Position::new(24, 0),
             n
         ));
-        for &(ax, ay, bx, by) in
-            &[(0, 0, 3, 3), (0, 0, 4, 0), (19, 19, 16, 16), (12, 3, 12, 4)]
-        {
+        for &(ax, ay, bx, by) in &[(0, 0, 3, 3), (0, 0, 4, 0), (19, 19, 16, 16), (12, 3, 12, 4)] {
             let a = Position::new(ax, ay);
             let b = Position::new(bx, by);
             assert_eq!(

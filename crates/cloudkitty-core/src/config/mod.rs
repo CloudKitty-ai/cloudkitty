@@ -2238,7 +2238,8 @@ mod tests {
     fn dart_validation_accepts_the_greeble_flag() {
         let mut c = cfg();
         c.elements.greeble.dart = true;
-        c.validate().expect("dart on the greeble table is the whole point");
+        c.validate()
+            .expect("dart on the greeble table is the whole point");
     }
 
     // ---- spec 033 (T017): the vocabulary table's config law ----

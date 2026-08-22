@@ -24,7 +24,13 @@ fn tethered_config(width: u32, height: u32, seed: u64) -> Arc<Config> {
     config.elements.bug.roam_cell = Some(CELL);
     // The default roster is placed for the default world; re-seat it inside
     // whatever geometry this test asked for.
-    let spots = [(2, 2), (width - 3, 2), (2, height - 3), (width - 3, height - 3), (width / 2, height / 2)];
+    let spots = [
+        (2, 2),
+        (width - 3, 2),
+        (2, height - 3),
+        (width - 3, height - 3),
+        (width / 2, height / 2),
+    ];
     for (kitty, &(x, y)) in config.kitties.iter_mut().zip(spots.iter()) {
         kitty.x = x;
         kitty.y = y;
@@ -33,11 +39,7 @@ fn tethered_config(width: u32, height: u32, seed: u64) -> Arc<Config> {
     Arc::new(config)
 }
 
-fn run(
-    config: &Arc<Config>,
-    ticks: u64,
-    mut observe: impl FnMut(&World),
-) -> World {
+fn run(config: &Arc<Config>, ticks: u64, mut observe: impl FnMut(&World)) -> World {
     let registry = BehaviorRegistry::with_builtins();
     let mut world = World::generate(config);
     let runtime = tokio::runtime::Builder::new_current_thread()
@@ -118,7 +120,10 @@ fn roam_cadence_attempts_match_schedule() {
             last.insert(el.id, (el.pos, world.tick));
         }
     });
-    assert!(moves > 100, "the tether froze the bugs: {moves} moves in 2000 ticks");
+    assert!(
+        moves > 100,
+        "the tether froze the bugs: {moves} moves in 2000 ticks"
+    );
 }
 
 /// FR-004: the tether binds bugs only. Greebles under a bug tether still
@@ -170,10 +175,7 @@ fn roam_ragged_world_confines_remainder_cells_too() {
                 );
             }
         });
-        remainder_births += births
-            .values()
-            .filter(|p| p.x >= 24 || p.y >= 24)
-            .count() as u32;
+        remainder_births += births.values().filter(|p| p.x >= 24 || p.y >= 24).count() as u32;
     }
     assert!(
         remainder_births >= 1,
@@ -232,7 +234,9 @@ fn roam_old_save_adopts_the_tether_at_load_position() {
     // A flag-absent world, run long enough that bugs are scattered.
     let mut untethered = Config::default();
     untethered.world.seed = 55_555;
-    untethered.validate().expect("default-shaped config is valid");
+    untethered
+        .validate()
+        .expect("default-shaped config is valid");
     let untethered = Arc::new(untethered);
     let saved = run(&untethered, 500, |_| {});
     let snapshot = serde_json::to_string(&saved).expect("world serializes");
@@ -259,7 +263,10 @@ fn roam_old_save_adopts_the_tether_at_load_position() {
         .filter(|el| matches!(el.kind, ElementKind::Bug))
         .map(|el| (el.id, (el.pos, el.ttl)))
         .collect();
-    assert!(!load_positions.is_empty(), "the saved world has bugs to adopt");
+    assert!(
+        !load_positions.is_empty(),
+        "the saved world has bugs to adopt"
+    );
 
     let tethered = Arc::new(tethered);
     let registry = BehaviorRegistry::with_builtins();
@@ -345,7 +352,10 @@ fn roam_dart_greebles_rest_on_schedule() {
             last.insert(el.id, (el.pos, world.tick));
         }
     });
-    assert!(moves > 100, "the schedule froze the greebles: {moves} moves in 2000 ticks");
+    assert!(
+        moves > 100,
+        "the schedule froze the greebles: {moves} moves in 2000 ticks"
+    );
 }
 
 /// FR-014, the dart half: the step draw is 1-3, so some moving tick
@@ -371,7 +381,10 @@ fn roam_dart_realizes_a_three_tile_dart() {
             last.insert(el.id, (el.pos, world.tick));
         }
     });
-    assert_eq!(best, 3, "no greeble ever realized a 3-tile dart; max seen {best}");
+    assert_eq!(
+        best, 3,
+        "no greeble ever realized a 3-tile dart; max seen {best}"
+    );
 }
 
 // FR-015, the off-state: with `dart` absent the greeble arm is
@@ -384,7 +397,12 @@ fn roam_dart_realizes_a_three_tile_dart() {
 /// A surgical chase scenario: the hunter at `cat`, one bug at `bug`,
 /// everyone else parked in the far corner, and the hunter's proposal is
 /// exactly Chase(that bug). Returns the hunter's position after one tick.
-fn pounce_chase_tick(pounce: bool, cat: (u32, u32), bug: (u32, u32), blocker: Option<(u32, u32)>) -> Position {
+fn pounce_chase_tick(
+    pounce: bool,
+    cat: (u32, u32),
+    bug: (u32, u32),
+    blocker: Option<(u32, u32)>,
+) -> Position {
     let mut config = Config::default();
     config.world.seed = 5_150;
     config.behavior.pounce = pounce;
@@ -407,10 +425,8 @@ fn pounce_chase_tick(pounce: bool, cat: (u32, u32), bug: (u32, u32), blocker: Op
         ttl: None,
     });
     let hunter = world.kitties[0].id;
-    let proposals = JointProposal::from_actions([(
-        hunter,
-        Action::Chase(TargetRef::Element { id: 9_999 }),
-    )]);
+    let proposals =
+        JointProposal::from_actions([(hunter, Action::Chase(TargetRef::Element { id: 9_999 }))]);
     world.tick_with_proposals(&proposals, &config);
     world.kitties[0].pos
 }
@@ -460,10 +476,8 @@ fn roam_pounce_never_fires_on_kitty_targets() {
     let mut world = World::generate(&config);
     let hunter = world.kitties[0].id;
     let quarry = world.kitties[1].id;
-    let proposals = JointProposal::from_actions([(
-        hunter,
-        Action::Chase(TargetRef::Kitty { id: quarry }),
-    )]);
+    let proposals =
+        JointProposal::from_actions([(hunter, Action::Chase(TargetRef::Kitty { id: quarry }))]);
     world.tick_with_proposals(&proposals, &config);
     assert_eq!(world.kitties[0].pos, Position::new(6, 5));
 }
