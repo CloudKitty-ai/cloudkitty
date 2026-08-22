@@ -33,6 +33,8 @@ change.
 
 ## Unreleased
 
+## v2.9 — 2026-08-21 — the phase-1 world goes live, and the hunt becomes worth having
+
 - **Someone is standing at the window now.** The serving welfare
   watchdog (spec 040): every tick, the server reads the engine's own
   distress records and keeps watch. Sustained distress crossing the
@@ -299,10 +301,12 @@ change.
   anything touches disk. Expanded minds are mute in the new vocabulary by
   construction (the mask cannot silence mask-legal words; the −1e4 floor
   does) and deaf per family: the MLP fully, the entity-attention family
-  to kind identity (it hears "a meow," never which new word — the
-  measured 1.17× residual is registered in Experiments' acceptance QA,
-  exp-006 D-001). The three phase-1 candidates are generated on demand
-  and land in `policies/` only at the seating PR. No behavior, schema,
+  to kind identity (it hears "a meow," never which new word — measured
+  per artifact on the real bytes in Experiments' acceptance QA:
+  attn-a1-s1-o4 1.33×, attn-a1-s3-o4 1.38×, e004-a1-s2-o4 0.00%, the
+  MLP structurally deaf; expansion-acceptance-2026-08-17.md). The
+  three phase-1 candidates are generated on demand and land in
+  `policies/` only at the seating PR. No behavior, schema,
   config, or stamp movement.
 
 - **And it needs the cat to be hunting.** The same face, a second fault,
