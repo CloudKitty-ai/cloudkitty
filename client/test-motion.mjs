@@ -8630,6 +8630,38 @@ check('the leap reaches the renderer: lift consumed, shadow grounded', () => {
   assert(/VIEW\.pounceLeap/.test(render), 'the lift ignores its dial');
 });
 
+check('a darting greeble GLIDES three tiles; a bug still snaps past two', () => {
+  // Spec 039 third amendment: under `dart`, greebles move 1-3 tiles
+  // along one heading on their moving ticks. The glide bound was 2 (the
+  // pre-dart 1-or-2 coin), so a legal 3-tile dart TELEPORTED on screen.
+  // Greebles get their own bound; bugs keep 2 -- a bug never legally
+  // moves three, so a 3-tile bug delta is a respawn and must still snap.
+  const world = (tick, gx, bx) => ({
+    tick,
+    width: 20,
+    height: 20,
+    kitties: [],
+    elements: [
+      { id: 7, kind: 'greeble', pos: { x: gx, y: 4 } },
+      { id: 8, kind: 'bug', pos: { x: bx, y: 9 } },
+    ],
+  });
+  const p = new api.Presentation();
+  p.pushState(world(1, 3, 3), 0, 800);
+  p.pushState(world(2, 6, 6), 800, 800); // both move THREE tiles
+  const g = p.elementPosFor({ id: 7, kind: 'greeble', pos: { x: 6, y: 4 } }, 1200);
+  assert(g.x > 3.2 && g.x < 5.8,
+    `mid-tick the darting greeble sits at x ${g.x} -- a snap, not a glide`);
+  const b = p.elementPosFor({ id: 8, kind: 'bug', pos: { x: 6, y: 9 } }, 1200);
+  assert(b.x === 6, `a 3-tile bug delta is a respawn and must snap, got x ${b.x}`);
+  // FOUR tiles is beyond any legal dart: a different moment, snapped.
+  const q = new api.Presentation();
+  q.pushState(world(1, 3, 3), 0, 800);
+  q.pushState(world(2, 7, 4), 800, 800);
+  const far = q.elementPosFor({ id: 7, kind: 'greeble', pos: { x: 7, y: 4 } }, 1200);
+  assert(far.x === 7, `a 4-tile greeble delta must snap, got x ${far.x}`);
+});
+
 check('the waterline is centred on the cat\'s body, not on her box', () => {
   // Owner, 2026-08-18: "a few pixels too far to the right on the
   // right-facing cat". She is not symmetric about her own box -- the body
