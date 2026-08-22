@@ -1,0 +1,938 @@
+{
+ "instrument": "live_census.py",
+ "base": "https://kitties.ai",
+ "interval_s": 45,
+ "polls": 12,
+ "tick_range": [
+  20676,
+  21301
+ ],
+ "unique_activity_events": 1593,
+ "activity_budget": {
+  "Clementine": {
+   "sleeping": 27,
+   "drinking": 34,
+   "resting": 34,
+   "playing": 26,
+   "eating": 31,
+   "grooming": 12
+  },
+  "Biscuit": {
+   "drinking": 92,
+   "eating": 71,
+   "playing": 101,
+   "grooming": 71,
+   "sleeping": 62,
+   "resting": 3
+  },
+  "Pumpkin": {
+   "drinking": 95,
+   "grooming": 65,
+   "eating": 83,
+   "playing": 77,
+   "sleeping": 37,
+   "resting": 2
+  },
+  "Kittybear": {
+   "grooming": 73,
+   "playing": 57,
+   "eating": 58,
+   "sleeping": 51,
+   "drinking": 63,
+   "resting": 25
+  },
+  "Miso": {
+   "sleeping": 98,
+   "eating": 83,
+   "grooming": 33,
+   "resting": 4,
+   "playing": 49,
+   "drinking": 76
+  }
+ },
+ "play_targets": {
+  "Biscuit": {
+   "solo": 100,
+   "kitty": 1
+  },
+  "Kittybear": {
+   "solo": 51,
+   "kitty": 6
+  },
+  "Pumpkin": {
+   "solo": 69,
+   "kitty": 8
+  },
+  "Miso": {
+   "solo": 46,
+   "kitty": 3
+  },
+  "Clementine": {
+   "kitty": 26
+  }
+ },
+ "grooming_graph": {
+  "Kittybear->Miso": 2,
+  "Pumpkin->Biscuit": 21,
+  "Biscuit->Pumpkin": 12,
+  "Kittybear->Clementine": 26,
+  "Pumpkin->Miso": 25,
+  "Biscuit->Miso": 14,
+  "Biscuit->Clementine": 6,
+  "Pumpkin->Clementine": 2,
+  "Clementine->Pumpkin": 1,
+  "Pumpkin->Kittybear": 4,
+  "Kittybear->Biscuit": 18,
+  "Kittybear->Pumpkin": 4,
+  "Biscuit->Kittybear": 13
+ },
+ "cosleep_pair_polls": {
+  "Miso+Biscuit": 2
+ },
+ "mean_nearest": {
+  "Miso": 1.92,
+  "Biscuit": 1.75,
+  "Pumpkin": 2.83,
+  "Kittybear": 4.25,
+  "Clementine": 4.25
+ },
+ "share_within_2": {
+  "Miso": 0.75,
+  "Biscuit": 0.83,
+  "Pumpkin": 0.67,
+  "Kittybear": 0.42,
+  "Clementine": 0.58
+ },
+ "happiness": {
+  "Miso": {
+   "mean": 95.94,
+   "min": 93.62,
+   "max": 98.11
+  },
+  "Biscuit": {
+   "mean": 94.5,
+   "min": 90.55,
+   "max": 98.39
+  },
+  "Pumpkin": {
+   "mean": 94.77,
+   "min": 93.34,
+   "max": 97.15
+  },
+  "Kittybear": {
+   "mean": 94.03,
+   "min": 89.25,
+   "max": 96.56
+  },
+  "Clementine": {
+   "mean": 91.27,
+   "min": 87.31,
+   "max": 94.31
+  }
+ },
+ "raw_polls": [
+  {
+   "tick": 20676,
+   "kitties": [
+    {
+     "id": 1,
+     "name": "Miso",
+     "pos": {
+      "x": 11,
+      "y": 2
+     },
+     "happiness": 96.25,
+     "activity": {
+      "state": "sleeping",
+      "in_sunbeam": false,
+      "with_friend": 3
+     }
+    },
+    {
+     "id": 2,
+     "name": "Biscuit",
+     "pos": {
+      "x": 12,
+      "y": 2
+     },
+     "happiness": 92.994995,
+     "activity": {
+      "state": "sleeping",
+      "in_sunbeam": false,
+      "with_friend": 1
+     }
+    },
+    {
+     "id": 3,
+     "name": "Pumpkin",
+     "pos": {
+      "x": 11,
+      "y": 3
+     },
+     "happiness": 94.0775,
+     "activity": {
+      "state": "grooming",
+      "target": 1
+     }
+    },
+    {
+     "id": 4,
+     "name": "Kittybear",
+     "pos": {
+      "x": 2,
+      "y": 17
+     },
+     "happiness": 94.415,
+     "activity": {
+      "state": "grooming"
+     }
+    },
+    {
+     "id": 5,
+     "name": "Clementine",
+     "pos": {
+      "x": 1,
+      "y": 13
+     },
+     "happiness": 89.564995,
+     "activity": {
+      "state": "idle"
+     }
+    }
+   ]
+  },
+  {
+   "tick": 20733,
+   "kitties": [
+    {
+     "id": 1,
+     "name": "Miso",
+     "pos": {
+      "x": 13,
+      "y": 2
+     },
+     "happiness": 97.715,
+     "activity": {
+      "state": "sleeping",
+      "in_sunbeam": false,
+      "with_friend": 3
+     }
+    },
+    {
+     "id": 2,
+     "name": "Biscuit",
+     "pos": {
+      "x": 11,
+      "y": 5
+     },
+     "happiness": 93.595,
+     "activity": {
+      "state": "idle"
+     }
+    },
+    {
+     "id": 3,
+     "name": "Pumpkin",
+     "pos": {
+      "x": 14,
+      "y": 2
+     },
+     "happiness": 97.15,
+     "activity": {
+      "state": "playing"
+     }
+    },
+    {
+     "id": 4,
+     "name": "Kittybear",
+     "pos": {
+      "x": 2,
+      "y": 17
+     },
+     "happiness": 90.795,
+     "activity": {
+      "state": "resting",
+      "with_friend": 5
+     }
+    },
+    {
+     "id": 5,
+     "name": "Clementine",
+     "pos": {
+      "x": 3,
+      "y": 17
+     },
+     "happiness": 94.305,
+     "activity": {
+      "state": "resting",
+      "with_friend": 4
+     }
+    }
+   ]
+  },
+  {
+   "tick": 20790,
+   "kitties": [
+    {
+     "id": 1,
+     "name": "Miso",
+     "pos": {
+      "x": 11,
+      "y": 1
+     },
+     "happiness": 97.15,
+     "activity": {
+      "state": "sleeping",
+      "in_sunbeam": false,
+      "with_friend": 2
+     }
+    },
+    {
+     "id": 2,
+     "name": "Biscuit",
+     "pos": {
+      "x": 10,
+      "y": 1
+     },
+     "happiness": 96.55,
+     "activity": {
+      "state": "playing"
+     }
+    },
+    {
+     "id": 3,
+     "name": "Pumpkin",
+     "pos": {
+      "x": 9,
+      "y": 1
+     },
+     "happiness": 95.78,
+     "activity": {
+      "state": "grooming",
+      "target": 2
+     }
+    },
+    {
+     "id": 4,
+     "name": "Kittybear",
+     "pos": {
+      "x": 2,
+      "y": 18
+     },
+     "happiness": 93.93,
+     "activity": {
+      "state": "sleeping",
+      "in_sunbeam": false
+     }
+    },
+    {
+     "id": 5,
+     "name": "Clementine",
+     "pos": {
+      "x": 15,
+      "y": 12
+     },
+     "happiness": 90.7975,
+     "activity": {
+      "state": "idle"
+     }
+    }
+   ]
+  },
+  {
+   "tick": 20846,
+   "kitties": [
+    {
+     "id": 1,
+     "name": "Miso",
+     "pos": {
+      "x": 12,
+      "y": 5
+     },
+     "happiness": 96.92,
+     "activity": {
+      "state": "eating"
+     }
+    },
+    {
+     "id": 2,
+     "name": "Biscuit",
+     "pos": {
+      "x": 11,
+      "y": 3
+     },
+     "happiness": 90.549995,
+     "activity": {
+      "state": "grooming"
+     }
+    },
+    {
+     "id": 3,
+     "name": "Pumpkin",
+     "pos": {
+      "x": 12,
+      "y": 3
+     },
+     "happiness": 96.905,
+     "activity": {
+      "state": "drinking"
+     }
+    },
+    {
+     "id": 4,
+     "name": "Kittybear",
+     "pos": {
+      "x": 6,
+      "y": 15
+     },
+     "happiness": 89.255,
+     "activity": {
+      "state": "grooming",
+      "target": 5
+     }
+    },
+    {
+     "id": 5,
+     "name": "Clementine",
+     "pos": {
+      "x": 4,
+      "y": 15
+     },
+     "happiness": 89.245,
+     "activity": {
+      "state": "idle"
+     }
+    }
+   ]
+  },
+  {
+   "tick": 20903,
+   "kitties": [
+    {
+     "id": 1,
+     "name": "Miso",
+     "pos": {
+      "x": 10,
+      "y": 3
+     },
+     "happiness": 93.625,
+     "activity": {
+      "state": "idle"
+     }
+    },
+    {
+     "id": 2,
+     "name": "Biscuit",
+     "pos": {
+      "x": 10,
+      "y": 4
+     },
+     "happiness": 94.645,
+     "activity": {
+      "state": "eating"
+     }
+    },
+    {
+     "id": 3,
+     "name": "Pumpkin",
+     "pos": {
+      "x": 2,
+      "y": 3
+     },
+     "happiness": 95.245,
+     "activity": {
+      "state": "eating"
+     }
+    },
+    {
+     "id": 4,
+     "name": "Kittybear",
+     "pos": {
+      "x": 13,
+      "y": 6
+     },
+     "happiness": 92.76,
+     "activity": {
+      "state": "idle"
+     }
+    },
+    {
+     "id": 5,
+     "name": "Clementine",
+     "pos": {
+      "x": 14,
+      "y": 5
+     },
+     "happiness": 93.555,
+     "activity": {
+      "state": "idle"
+     }
+    }
+   ]
+  },
+  {
+   "tick": 20960,
+   "kitties": [
+    {
+     "id": 1,
+     "name": "Miso",
+     "pos": {
+      "x": 9,
+      "y": 1
+     },
+     "happiness": 98.11,
+     "activity": {
+      "state": "eating"
+     }
+    },
+    {
+     "id": 2,
+     "name": "Biscuit",
+     "pos": {
+      "x": 10,
+      "y": 1
+     },
+     "happiness": 98.395,
+     "activity": {
+      "state": "playing"
+     }
+    },
+    {
+     "id": 3,
+     "name": "Pumpkin",
+     "pos": {
+      "x": 9,
+      "y": 0
+     },
+     "happiness": 95.085,
+     "activity": {
+      "state": "sleeping",
+      "in_sunbeam": false,
+      "with_friend": 1
+     }
+    },
+    {
+     "id": 4,
+     "name": "Kittybear",
+     "pos": {
+      "x": 19,
+      "y": 2
+     },
+     "happiness": 96.19,
+     "activity": {
+      "state": "drinking"
+     }
+    },
+    {
+     "id": 5,
+     "name": "Clementine",
+     "pos": {
+      "x": 18,
+      "y": 3
+     },
+     "happiness": 87.31,
+     "activity": {
+      "state": "idle"
+     }
+    }
+   ]
+  },
+  {
+   "tick": 21017,
+   "kitties": [
+    {
+     "id": 1,
+     "name": "Miso",
+     "pos": {
+      "x": 13,
+      "y": 3
+     },
+     "happiness": 95.8,
+     "activity": {
+      "state": "sleeping",
+      "in_sunbeam": false,
+      "with_friend": 2
+     }
+    },
+    {
+     "id": 2,
+     "name": "Biscuit",
+     "pos": {
+      "x": 12,
+      "y": 3
+     },
+     "happiness": 96.07,
+     "activity": {
+      "state": "idle"
+     }
+    },
+    {
+     "id": 3,
+     "name": "Pumpkin",
+     "pos": {
+      "x": 15,
+      "y": 5
+     },
+     "happiness": 93.415,
+     "activity": {
+      "state": "idle"
+     }
+    },
+    {
+     "id": 4,
+     "name": "Kittybear",
+     "pos": {
+      "x": 18,
+      "y": 3
+     },
+     "happiness": 95.49,
+     "activity": {
+      "state": "idle"
+     }
+    },
+    {
+     "id": 5,
+     "name": "Clementine",
+     "pos": {
+      "x": 14,
+      "y": 6
+     },
+     "happiness": 91.425,
+     "activity": {
+      "state": "idle"
+     }
+    }
+   ]
+  },
+  {
+   "tick": 21074,
+   "kitties": [
+    {
+     "id": 1,
+     "name": "Miso",
+     "pos": {
+      "x": 13,
+      "y": 5
+     },
+     "happiness": 95.255,
+     "activity": {
+      "state": "idle"
+     }
+    },
+    {
+     "id": 2,
+     "name": "Biscuit",
+     "pos": {
+      "x": 17,
+      "y": 3
+     },
+     "happiness": 94.78,
+     "activity": {
+      "state": "idle"
+     }
+    },
+    {
+     "id": 3,
+     "name": "Pumpkin",
+     "pos": {
+      "x": 15,
+      "y": 3
+     },
+     "happiness": 93.854996,
+     "activity": {
+      "state": "idle"
+     }
+    },
+    {
+     "id": 4,
+     "name": "Kittybear",
+     "pos": {
+      "x": 12,
+      "y": 2
+     },
+     "happiness": 94.43,
+     "activity": {
+      "state": "idle"
+     }
+    },
+    {
+     "id": 5,
+     "name": "Clementine",
+     "pos": {
+      "x": 18,
+      "y": 10
+     },
+     "happiness": 89.990005,
+     "activity": {
+      "state": "idle"
+     }
+    }
+   ]
+  },
+  {
+   "tick": 21130,
+   "kitties": [
+    {
+     "id": 1,
+     "name": "Miso",
+     "pos": {
+      "x": 11,
+      "y": 9
+     },
+     "happiness": 94.08,
+     "activity": {
+      "state": "idle"
+     }
+    },
+    {
+     "id": 2,
+     "name": "Biscuit",
+     "pos": {
+      "x": 9,
+      "y": 9
+     },
+     "happiness": 93.58,
+     "activity": {
+      "state": "idle"
+     }
+    },
+    {
+     "id": 3,
+     "name": "Pumpkin",
+     "pos": {
+      "x": 17,
+      "y": 7
+     },
+     "happiness": 93.8,
+     "activity": {
+      "state": "idle"
+     }
+    },
+    {
+     "id": 4,
+     "name": "Kittybear",
+     "pos": {
+      "x": 12,
+      "y": 14
+     },
+     "happiness": 96.56,
+     "activity": {
+      "state": "grooming"
+     }
+    },
+    {
+     "id": 5,
+     "name": "Clementine",
+     "pos": {
+      "x": 10,
+      "y": 12
+     },
+     "happiness": 92.685,
+     "activity": {
+      "state": "idle"
+     }
+    }
+   ]
+  },
+  {
+   "tick": 21187,
+   "kitties": [
+    {
+     "id": 1,
+     "name": "Miso",
+     "pos": {
+      "x": 12,
+      "y": 3
+     },
+     "happiness": 97.415,
+     "activity": {
+      "state": "idle"
+     }
+    },
+    {
+     "id": 2,
+     "name": "Biscuit",
+     "pos": {
+      "x": 11,
+      "y": 6
+     },
+     "happiness": 92.425,
+     "activity": {
+      "state": "idle"
+     }
+    },
+    {
+     "id": 3,
+     "name": "Pumpkin",
+     "pos": {
+      "x": 14,
+      "y": 4
+     },
+     "happiness": 95.174995,
+     "activity": {
+      "state": "idle"
+     }
+    },
+    {
+     "id": 4,
+     "name": "Kittybear",
+     "pos": {
+      "x": 10,
+      "y": 8
+     },
+     "happiness": 93.01,
+     "activity": {
+      "state": "idle"
+     }
+    },
+    {
+     "id": 5,
+     "name": "Clementine",
+     "pos": {
+      "x": 8,
+      "y": 13
+     },
+     "happiness": 90.57,
+     "activity": {
+      "state": "idle"
+     }
+    }
+   ]
+  },
+  {
+   "tick": 21244,
+   "kitties": [
+    {
+     "id": 1,
+     "name": "Miso",
+     "pos": {
+      "x": 12,
+      "y": 7
+     },
+     "happiness": 95.095,
+     "activity": {
+      "state": "idle"
+     }
+    },
+    {
+     "id": 2,
+     "name": "Biscuit",
+     "pos": {
+      "x": 12,
+      "y": 4
+     },
+     "happiness": 96.085,
+     "activity": {
+      "state": "grooming",
+      "target": 5
+     }
+    },
+    {
+     "id": 3,
+     "name": "Pumpkin",
+     "pos": {
+      "x": 13,
+      "y": 7
+     },
+     "happiness": 93.42,
+     "activity": {
+      "state": "idle"
+     }
+    },
+    {
+     "id": 4,
+     "name": "Kittybear",
+     "pos": {
+      "x": 15,
+      "y": 6
+     },
+     "happiness": 96.385,
+     "activity": {
+      "state": "idle"
+     }
+    },
+    {
+     "id": 5,
+     "name": "Clementine",
+     "pos": {
+      "x": 12,
+      "y": 2
+     },
+     "happiness": 94.3,
+     "activity": {
+      "state": "idle"
+     }
+    }
+   ]
+  },
+  {
+   "tick": 21301,
+   "kitties": [
+    {
+     "id": 1,
+     "name": "Miso",
+     "pos": {
+      "x": 14,
+      "y": 12
+     },
+     "happiness": 93.885,
+     "activity": {
+      "state": "idle"
+     }
+    },
+    {
+     "id": 2,
+     "name": "Biscuit",
+     "pos": {
+      "x": 9,
+      "y": 2
+     },
+     "happiness": 94.375,
+     "activity": {
+      "state": "grooming",
+      "target": 4
+     }
+    },
+    {
+     "id": 3,
+     "name": "Pumpkin",
+     "pos": {
+      "x": 18,
+      "y": 13
+     },
+     "happiness": 93.34,
+     "activity": {
+      "state": "sleeping",
+      "in_sunbeam": false
+     }
+    },
+    {
+     "id": 4,
+     "name": "Kittybear",
+     "pos": {
+      "x": 9,
+      "y": 3
+     },
+     "happiness": 95.195,
+     "activity": {
+      "state": "resting",
+      "with_friend": 5
+     }
+    },
+    {
+     "id": 5,
+     "name": "Clementine",
+     "pos": {
+      "x": 9,
+      "y": 4
+     },
+     "happiness": 91.47,
+     "activity": {
+      "state": "resting",
+      "with_friend": 4
+     }
+    }
+   ]
+  }
+ ]
+}

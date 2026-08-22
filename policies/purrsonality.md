@@ -137,7 +137,22 @@ post-seating comparison point: the 0.04-dose lineage arms measure
 bug_over_meal 0.25–0.30 and time-near-critters 0.35–0.39 in probe
 composition. Raw: results-raw/live-census-1082536.json.
 
-Refresh on any seating change.
+**Zero-play baseline RE-BANKED (2026-08-21, SC-005 — the phase-1
+roster's "before bugs-2.0" picture)**: the world above is gone
+(--fresh 2026-08-21); this is the new roster (Miso/attn-a1-s1,
+Biscuit/e004-a1-s2, Pumpkin/attn-a1-s3, Kittybear/e006-E1-s1,
+Clementine scripted) on the pre-039 engine, censused deliberately
+before the bugs-2.0 deploy so the before/after brackets only the
+mechanics change. Census ticks 20,676–21,301 (12 polls, 1,593
+events), play targets across all five seats: solo 266 · kitty 44 ·
+**bug 0 · greeble 0**. The erosion signature carries into the new
+generation — every seated mind trained under pre-bugs-2.0 economics
+(the skill moat: unskilled bug EV 7.9 < solo 10 on that world).
+Shorter window than the 08-18 baseline (9 min vs 25; solo-play
+volume scales accordingly); zero-vs-nonzero is the banked claim,
+not the rates. Raw: results-raw/live-census-20676.json. The "after"
+lands with the post-deploy live census (the reward-tuning freeze's
+lifting condition, owner 2026-08-21).
 
 ---
 

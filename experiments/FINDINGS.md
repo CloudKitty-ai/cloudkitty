@@ -1327,6 +1327,18 @@ missed a load-bearing path).
 same-generation ablation at scale that can power the
 distress-doubling whisper.
 
+**Confound note (2026-08-21, SC-005)**: the bugs-2.0 world change
+(spec 039: roam tether, critter ttl 600, pounce, greeble dart,
+play_relief_bug 28) landed between this baseline and any fog-era
+re-measurement. The redundancy reading above is a property of the
+pre-039 world; fog-generation comparisons against it span TWO
+changes (economy + vision), so a fog-era channel-fitness delta must
+be decomposed before attribution — re-run the deafening ablation on
+the post-039/pre-fog world first, and treat THAT as the fog
+generation's baseline. Play-relevant calls are the likely coupling
+(hunt/duet coordination now pays differently); the F-025 dialect
+comparisons are within-generation and unaffected.
+
 ---
 
 ## F-027 · active · Twin-seating one artifact creates dyadic self-interaction attractors
