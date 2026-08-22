@@ -55,12 +55,20 @@ def main():
             print(f"poll {i}: {e}", file=sys.stderr)
             time.sleep(INTERVAL_S)
             continue
+        try:
+            # Spec 040 (live since 2026-08-22, tick 25,164): the box's own
+            # standing distress watch. Absent on pre-040 servers — record
+            # None rather than fail the poll.
+            welfare = get("/welfare")
+        except Exception:
+            welfare = None
         tick = world.get("tick")
         start_tick = start_tick if start_tick is not None else tick
         polls.append({"tick": tick, "kitties": [
             {"id": k["id"], "name": k["name"], "pos": k["pos"],
              "happiness": k["happiness"],
-             "activity": k["activity"]} for k in kitties]})
+             "activity": k["activity"]} for k in kitties],
+            "welfare": welfare})
         evs = acts if isinstance(acts, list) else acts.get("events", [])
         for e in evs:
             key = (e["kitty_id"], e["started"],
@@ -124,6 +132,17 @@ def main():
         # 2026-08-22 restart landed inside a banked window; the
         # aggregates alone could not be split).
         "raw_events": list(events.values()),
+        # Watchdog summary across polls (None-safe pre-040): the alarm
+        # should be boring; a census that saw it fire says so loudly.
+        "welfare_watchdog": {
+            "polls_reporting": sum(1 for p in polls if p.get("welfare")),
+            "polls_with_alarm": sum(
+                1 for p in polls
+                if p.get("welfare") and p["welfare"].get("alarm_live")),
+            "max_entries": max(
+                (len(p["welfare"].get("entries", [])) for p in polls
+                 if p.get("welfare")), default=0),
+        },
         "activity_budget": {names[k]: dict(c) for k, c in budget.items()},
         "play_targets": {names[k]: dict(c) for k, c in play.items()},
         "grooming_graph": {f"{names[a]}->{names[b]}": n
