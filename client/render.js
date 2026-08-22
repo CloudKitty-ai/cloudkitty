@@ -1654,6 +1654,13 @@ class WorldRenderer {
     // drawn on grass.
     const furWet = v2Motion && view.wetFor ? view.wetFor(kitty.id, onWater) : 0;
 
+    // The final pounce's flight (spec 039): the body lifts on the arc
+    // while the ground shadow below stays on the travel line -- the
+    // separation IS the airborne read. Read defensively: a view without
+    // the method ships this inert (the axial-whip lesson).
+    const leap = v2Motion && view.leapFor ? view.leapFor(kitty.id) : null;
+    const leapLift = leap ? leap.lift01 * (VIEW.pounceLeap?.liftFrac ?? 0) * this.tile : 0;
+
     // A soft shadow so cats sit on the grass rather than float above it --
     // and, since v3, one that knows where the sun is. It leans and
     // stretches with the phase (MEADOW.shadowLean / shadowLength), which
@@ -1775,7 +1782,7 @@ class WorldRenderer {
       turn,
       layout,
       x,
-      y,
+      y: y - leapLift,
     };
     if (tween?.blend) {
       drawCatTween(ctx, {

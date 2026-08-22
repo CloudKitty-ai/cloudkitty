@@ -324,6 +324,11 @@
     swimAxial: 'both',
     cloudPeriodMs: 60000,
     ambient: { waterShimmer: true },
+    // The final pounce's lift dial (spec 039). This lab's cats are posed
+    // fixtures and never leap, but render.js reads the key, and a
+    // stand-in missing a shipped read is exactly what the parity test
+    // exists to catch.
+    pounceLeap: { liftFrac: 0.55 },
   };
 </script>
 <script src="props.js"></script>

@@ -34,7 +34,7 @@ const appNum = (name) => {
 const api = eval(
   animSrc +
     ';({ VIEW, Presentation, Pacer, easeSmooth, slowBlinkLid, idleHash, idlePeriodFor,' +
-    ' idlePickFor, idleOffsetFor, IDLE_SALTS, anim, nearestAdjacentOf, Camera, clampFrame })',
+    ' idlePickFor, idleOffsetFor, IDLE_SALTS, anim, nearestAdjacentOf, Camera, clampFrame, leapArc })',
 );
 
 /**
@@ -8558,6 +8558,76 @@ check('a one-tick lean costs nothing; a real press pays at the dwell', () => {
   }
   assert(cam.episode !== null && cam.episode.kind === 'correction',
     'the sustained press never earned its correction');
+});
+
+check('the final pounce is the map\'s one leap: chase + two tiles, arced', () => {
+  // Spec 039 FR-011: a chase step that leaves an ELEMENT quarry exactly
+  // two tiles away lunges one more step in the same tick -- the ONLY
+  // two-tile step the world ever serves, so the signature is exact and
+  // the client may present it as a leap without asserting anything the
+  // world did not say (Article V). The arc is ballistic: zero at both
+  // feet, peak at mid-flight, riding the same progress the position
+  // blend rides so the flight lands exactly when the slide does.
+  assert(api.leapArc(0) === 0 && api.leapArc(1) === 0,
+    'the arc must take off and land AT the ground');
+  assert(api.leapArc(0.5) === 1, 'the arc must peak at mid-flight');
+  const world = (tick, x, action) => ({
+    tick,
+    width: 20,
+    height: 20,
+    elements: [],
+    kitties: [{ id: 1, pos: { x, y: 10 }, last_action: { action } }],
+  });
+  const p = new api.Presentation();
+  p.pushState(world(1, 5, 'chase'), 0, 800);
+  p.pushState(world(2, 7, 'chase'), 800, 800);
+  // The lunge must read as MOTION: before the teleport guard learned the
+  // one legal two-tile step, this pair went discontinuous and the pounce
+  // SNAPPED on the live map instead of leaping.
+  assert(p.discontinuous === false, 'the lunge tripped the teleport guard');
+  const mid = p.leapFor(1, 1200);
+  assert(mid !== null && Math.abs(mid.lift01 - 1) < 1e-9,
+    `mid-flight of a two-tile chase step lifts ${mid ? mid.lift01 : 'nothing'}, not the peak`);
+  // A ONE-tile chase step is ordinary pursuit: no leap.
+  p.pushState(world(3, 8, 'chase'), 1600, 800);
+  assert(p.leapFor(1, 2000) === null, 'a one-tile chase step must not leap');
+  // Two tiles WITHOUT a chase never leaps -- the lunge is the only legal
+  // two-tile step, so anything else is not the client\'s to embellish.
+  p.pushState(world(4, 10, 'play'), 2400, 800);
+  assert(p.leapFor(1, 2800) === null, 'a non-chase delta must not leap');
+  // A THREE-tile chase delta is still a teleport -- the carve-out is
+  // exactly Manhattan two, not "chases may jump".
+  const far = new api.Presentation();
+  far.pushState(world(1, 5, 'chase'), 0, 800);
+  far.pushState(world(2, 8, 'chase'), 800, 800);
+  assert(far.discontinuous === true, 'a three-tile chase delta must stay a teleport');
+  // A generation snap is a TELEPORT, not a jump.
+  const q = new api.Presentation();
+  q.pushState(world(1, 5, 'chase'), 0, 800);
+  q.bumpGeneration(); // the tab-return shape: bump, then the next state
+  q.pushState(world(2, 7, 'chase'), 800, 800);
+  assert(q.discontinuous === true, 'setup: the post-bump pair should snap');
+  assert(q.leapFor(1, 1200) === null, 'a discontinuity must not draw as a leap');
+  // Still frames hold the pose on the ground: the leap is MOTION.
+  const r = new api.Presentation();
+  r.pushState(world(1, 5, 'chase'), 0, 800);
+  r.pushState(world(2, 7, 'chase'), 800, 800);
+  const still = r.viewAt(1200, true);
+  assert(still.leapFor && still.leapFor(1) === null, 'a still frame lifted the cat');
+  const live = r.viewAt(1200, false);
+  assert(live.leapFor && live.leapFor(1) !== null, 'the live view lost the leap');
+});
+
+check('the leap reaches the renderer: lift consumed, shadow grounded', () => {
+  // The axial-whip lesson: render.js reads the view defensively, so a
+  // dropped method ships INERT with every unit green. Assert the wiring
+  // at the source, like the rest of the ship-inert pile.
+  const render = readFileSync(join(here, 'render.js'), 'utf8');
+  assert(/view\.leapFor\s*\?\s*view\.leapFor\(kitty\.id\)/.test(render),
+    'render.js never asks the view for the leap');
+  assert(/y:\s*y\s*-\s*leapLift/.test(render),
+    'the lift never reaches the cat\'s draw anchor');
+  assert(/VIEW\.pounceLeap/.test(render), 'the lift ignores its dial');
 });
 
 check('the waterline is centred on the cat\'s body, not on her box', () => {

@@ -786,6 +786,10 @@
   // Under spec 038 a history-less arrival IS the cold-start shot pick, so
   // what card 2 shows is the shot the camera opens on -- see its note.
   const zoomProbe = () => new Camera({ ...VIEW.camera, ...ZOOM });
+
+  // The leap card's dials (spec 039). liftFrac seeds from the shipped
+  // dial so the card opens on exactly what the map draws.
+  const LEAP_BAG = { liftFrac: VIEW.pounceLeap.liftFrac, tilePx: 90, speed: 0.6 };
   const zoomLimitsFor = (cssWidth) => {
     const world = { width: ZOOM_WORLD, height: ZOOM_WORLD };
     const { floorTiles, ceilingTiles } = zoomProbe().limitsFor(world, cssWidth);
@@ -993,6 +997,124 @@
           'instead of cropping everyone',
         ];
         lines.forEach((t, i) => ctx.fillText(t, tx, y0 + 16 + i * 18));
+      },
+    },
+    {
+      title: 'The final pounce — the chase\'s two-tile leap (spec 039)',
+      note: 'The engine can now end a chase with a LUNGE: a step that leaves a bug exactly two tiles away takes a second step in the same tick, so the cat covers two tiles in one 800ms beat. The top lane is today\'s ordinary pounce — one tile, crouched, on the ground. The bottom lane is the final pounce as the map now draws it: the body rides a ballistic arc (the REAL `leapArc`, the exact function render.js uses) while the ground shadow stays on the travel line — the separation is what reads as airborne. Judge the lift at the tile sizes the camera actually draws (roughly 50px on the phone, 75–113px on desktop — the tilePx dial covers the band). On the live map the landing hands straight to the landing settle; this card shows the flight only.',
+      v2Only: true,
+      w: 940,
+      h: 460,
+      ownShadows: true,
+      bag: LEAP_BAG,
+      dials: [
+        { key: 'liftFrac', label: 'liftFrac — peak lift, as a fraction of a tile', min: 0.1, max: 1.2, step: 0.05 },
+        { key: 'tilePx', label: 'tilePx — judge at the sizes the camera draws (50 phone, 75–113 desktop)', min: 40, max: 115, step: 1 },
+        { key: 'speed', label: 'speed — slow the loop down to study the arc', min: 0.2, max: 1, step: 0.05 },
+      ],
+      readout() {
+        return (
+          `pounceLeap: { liftFrac: ${LEAP_BAG.liftFrac} },\n`
+          + `peak lift ${(LEAP_BAG.liftFrac * LEAP_BAG.tilePx).toFixed(0)}px at tile ${LEAP_BAG.tilePx}px  `
+          + `(phone ~${(LEAP_BAG.liftFrac * 50).toFixed(0)}px, desktop floor ~${(LEAP_BAG.liftFrac * 111).toFixed(0)}px)\n`
+          + 'the arc is leapArc (ballistic, zero at both feet) -- shape is derived, only the height dials\n'
+          + `card view: tilePx ${LEAP_BAG.tilePx}, speed ${LEAP_BAG.speed} -- viewing aids, not shipped dials`
+        );
+      },
+      draw(ctx, w, h, now) {
+        const T = LEAP_BAG.tilePx;
+        const period = 4200 / LEAP_BAG.speed;
+        const t = (now % period) / period;
+        // The loop: approach walk, the pre-pounce wiggle, the pounce tick,
+        // the landed hold, a beat of blank before it comes round again.
+        const PH = [
+          ['approach', 0.0, 0.3],
+          ['wiggle', 0.3, 0.5],
+          ['the pounce', 0.5, 0.72],
+          ['landed', 0.72, 0.95],
+          ['', 0.95, 1],
+        ];
+        const phase = PH.find(([, a, b]) => t >= a && t < b);
+        const pp = (t - phase[1]) / (phase[2] - phase[1]);
+        const lanes = [
+          { label: 'today: the one-tile pounce', tiles: 1, leap: false, y0: 40 },
+          { label: 'the final pounce: two tiles, airborne', tiles: 2, leap: true, y0: 250 },
+        ];
+        ctx.textAlign = 'left';
+        for (const lane of lanes) {
+          const groundY = lane.y0 + 150;
+          const bugTile = 7.6;
+          const landX = 60 + (bugTile - 1) * T;
+          const startX = landX - lane.tiles * T;
+          const approachX = startX - T;
+          ctx.fillStyle = 'rgba(107, 90, 78, 0.8)';
+          ctx.font = '600 12px ui-sans-serif, system-ui, sans-serif';
+          ctx.fillText(lane.label, 10, lane.y0 - 14);
+          // The ground line, and the quarry.
+          ctx.strokeStyle = 'rgba(107, 90, 78, 0.25)';
+          ctx.beginPath();
+          ctx.moveTo(10, groundY);
+          ctx.lineTo(w - 10, groundY);
+          ctx.stroke();
+          const bugX = 60 + bugTile * T * 0.98;
+          const jitter = phase[0] === 'landed' ? 0 : Math.sin(now / 130 + lane.y0) * 2;
+          ctx.fillStyle = '#4a3f35';
+          ctx.beginPath();
+          ctx.ellipse(bugX + jitter, groundY - 5, 7, 5, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = 'rgba(74, 63, 53, 0.45)';
+          ctx.beginPath();
+          ctx.ellipse(bugX + jitter - 4, groundY - 9, 4, 2.5, -0.5, 0, Math.PI * 2);
+          ctx.ellipse(bugX + jitter + 4, groundY - 9, 4, 2.5, 0.5, 0, Math.PI * 2);
+          ctx.fill();
+          // Where the cat is in the loop, and how high.
+          let catX = approachX;
+          let pose = 'walking';
+          let poseP = (now % 1100) / 1100;
+          let lift = 0;
+          if (phase[0] === 'approach') {
+            catX = approachX + easeSmooth(pp) * (startX - approachX);
+          } else if (phase[0] === 'wiggle') {
+            catX = startX;
+            pose = 'pouncing';
+            poseP = 0.5 + 0.5 * Math.sin((now / 1000) * VIEW.playWiggleHz * 2 * Math.PI);
+          } else if (phase[0] === 'the pounce') {
+            catX = startX + pp * (landX - startX);
+            pose = 'pouncing';
+            poseP = 0.15;
+            if (lane.leap) lift = leapArc(pp) * LEAP_BAG.liftFrac * T;
+          } else if (phase[0] === 'landed') {
+            catX = landX;
+            pose = 'pouncing';
+            poseP = 0;
+          } else {
+            catX = approachX;
+          }
+          // The ground shadow stays ON the ground -- the separation from
+          // the lifted body is the whole airborne read, exactly as
+          // render.js draws it.
+          ctx.save();
+          ctx.globalAlpha = 0.35;
+          ctx.fillStyle = '#4a3f35';
+          ctx.beginPath();
+          ctx.ellipse(catX + T / 2, groundY - 2, T * 0.3, T * 0.12, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+          CatV2.drawCat(ctx, {
+            pose,
+            appearance: CatV2.appearanceFor(PUMPKIN),
+            facing: 'right',
+            size: T,
+            x: catX,
+            y: groundY - T * 0.92 - lift,
+            phase: poseP,
+          });
+          if (phase[0]) {
+            ctx.fillStyle = 'rgba(107, 90, 78, 0.55)';
+            ctx.font = '11px ui-monospace, monospace';
+            ctx.fillText(phase[0], 10, lane.y0 + 2);
+          }
+        }
       },
     },
     {
