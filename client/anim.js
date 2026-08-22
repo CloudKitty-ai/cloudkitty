@@ -321,6 +321,18 @@ const VIEW = Object.freeze({
   // The grooming sine's full cycle -- three nods. On the tick beat (800ms)
   // the lick read dog-like; judged at half rate (owner, 2026-08-22).
   groomCycleMs: 1600,
+  // Per-kitty drawn size, owner-curated (2026-08-22): Biscuit is a playful
+  // KITTEN now, Pumpkin is snacky. Presentation only -- the logical
+  // footprint stays one tile, the feet stay on the ground line
+  // (render.js kittyBoxFor), and an id outside the map draws at 1.
+  // Seeded at the owner's +/-10%; judged in the gallery's clowder card.
+  kittySize: Object.freeze({
+    1: 1, // Miso
+    2: 0.9, // Biscuit
+    3: 1.1, // Pumpkin
+    4: 1, // Kittybear
+    5: 1, // Clementine
+  }),
 
   // What breaks up the rhythm (2026-08-06). The slots used to run a strict
   // blink -> flick -> twitch rotation, every cat on the same clock and

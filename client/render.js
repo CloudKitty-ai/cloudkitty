@@ -100,6 +100,21 @@ const GREEBLE_FACE = 'grin';
 const BUBBLE_TICKS = 3;
 
 /**
+ * The drawn box for a kitty at its curated size (VIEW.kittySize).
+ *
+ * Scaled about the FEET and centred on the tile: `dy` keeps the pose's own
+ * ground line (CAT_GROUND, 0.88 of the box) exactly where the unscaled
+ * tile put it, so a small cat stands on the same grass as a big one
+ * instead of floating at tile-centre -- and the v1 settle's ground anchor
+ * stays correct without knowing sizes exist. Presentation only: the
+ * logical footprint is still one tile.
+ */
+function kittyBoxFor(tile, scale) {
+  const size = tile * scale;
+  return { size, dx: (tile - size) / 2, dy: (tile - size) * 0.88 };
+}
+
+/**
  * The pose a served action puts a kitty in. `Rest` is mapped though the live
  * world has not served one -- the variant is in the engine's `Action` enum
  * and the sunbeam work may start surfacing it.
@@ -1682,7 +1697,8 @@ class WorldRenderer {
       // smooth: at lean 0 (noon, and the moon) the stretch stays
       // symmetrical, which is right for a light directly overhead, and
       // nothing jumps as the lean crosses zero between phases.
-      const footprint = this.tile * 0.3;
+      const kScale = VIEW.kittySize?.[kitty.id] ?? 1;
+      const footprint = this.tile * 0.3 * kScale;
       const halfWidth = footprint * length;
       const offset = lean * (halfWidth - footprint);
       ctx.save();
@@ -1695,7 +1711,7 @@ class WorldRenderer {
         cx + offset,
         cy + this.tile * 0.32,
         halfWidth,
-        this.tile * 0.12,
+        this.tile * 0.12 * kScale,
         0,
         0,
         Math.PI * 2,
@@ -1760,6 +1776,9 @@ class WorldRenderer {
       ctx.scale(1 + (1 - tween.sy) * 0.7, tween.sy);
       ctx.translate(-midX, -groundY);
     }
+    // The curated per-kitty size. Feet-anchored (see kittyBoxFor), so the
+    // settle's groundY above needs no correction.
+    const box = kittyBoxFor(this.tile, VIEW.kittySize?.[kitty.id] ?? 1);
     const catOpts = {
       // The damp coat ships OFF (VIEW.ambient.wetCoat). Guarded on the
       // symbol as well as the flag: it is a v2 vocabulary feature and the
@@ -1769,7 +1788,7 @@ class WorldRenderer {
           ? wetAppearanceOf(shadedAppearanceOf(appearanceFor(kitty.id), this.theme), furWet)
           : shadedAppearanceOf(appearanceFor(kitty.id), this.theme),
       facing: paintFacing,
-      size: this.tile,
+      size: box.size,
       eyesOverride: eyes,
       // The landing settle as a signed deformation amount. v2 only: v1's cat
       // file has no `applySettle`, and it is getting the canvas squash above.
@@ -1781,8 +1800,8 @@ class WorldRenderer {
       rig,
       turn,
       layout,
-      x,
-      y: y - leapLift,
+      x: x + box.dx,
+      y: y + box.dy - leapLift,
     };
     if (tween?.blend) {
       drawCatTween(ctx, {

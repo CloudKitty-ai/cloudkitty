@@ -793,6 +793,12 @@
   // The groom card's viewing aids. The POSE dials write into CatV2.GROOM
   // itself (per-dial `bag`), so the map and every other card follow live.
   const GROOM_LAB = { tilePx: 90, speed: 1, groomCycleMs: VIEW.groomCycleMs };
+  // The clowder card's per-cat sizes, seeded from the shipped map (VIEW is
+  // frozen; the readout prints the paste line).
+  const SIZE_LAB = {
+    miso: VIEW.kittySize[1], biscuit: VIEW.kittySize[2], pumpkin: VIEW.kittySize[3],
+    kittybear: VIEW.kittySize[4], clementine: VIEW.kittySize[5], tilePx: 90,
+  };
   const zoomLimitsFor = (cssWidth) => {
     const world = { width: ZOOM_WORLD, height: ZOOM_WORLD };
     const { floorTiles, ceilingTiles } = zoomProbe().limitsFor(world, cssWidth);
@@ -1196,6 +1202,73 @@
           ctx.fillStyle = 'rgba(107, 90, 78, 0.8)';
           ctx.fillText(lane.label, lane.cx, groundY + 24);
         }
+        ctx.textAlign = 'left';
+      },
+    },
+    {
+      title: 'The clowder at size — per-cat, owner-curated (VIEW.kittySize)',
+      note: 'Every kitty now has its own drawn size. Biscuit (a playful kitten) opens at 0.9, Pumpkin (snacky) at 1.1, everyone else at 1. Presentation only: feet stay on the shared ground line, the logical footprint stays one tile, and the card portraits stay normalized — the map is where relative size reads. All five breathe on their own idle clocks so the comparison is calm. Judge at the sizes the camera draws (roughly 50px phone, 75–113px desktop).',
+      v2Only: true,
+      w: 940,
+      h: 320,
+      ownShadows: true,
+      bag: SIZE_LAB,
+      dials: [
+        { key: 'miso', label: 'Miso', min: 0.8, max: 1.2, step: 0.01 },
+        { key: 'biscuit', label: 'Biscuit — the kitten', min: 0.8, max: 1.2, step: 0.01 },
+        { key: 'pumpkin', label: 'Pumpkin — the snacky one', min: 0.8, max: 1.2, step: 0.01 },
+        { key: 'kittybear', label: 'Kittybear', min: 0.8, max: 1.2, step: 0.01 },
+        { key: 'clementine', label: 'Clementine', min: 0.8, max: 1.2, step: 0.01 },
+        { key: 'tilePx', label: 'tilePx — judge at the sizes the camera draws', min: 40, max: 115, step: 1 },
+      ],
+      readout() {
+        return (
+          `VIEW.kittySize = { 1: ${SIZE_LAB.miso} /* Miso */, 2: ${SIZE_LAB.biscuit} /* Biscuit */, 3: ${SIZE_LAB.pumpkin} /* Pumpkin */,\n`
+          + `                   4: ${SIZE_LAB.kittybear} /* Kittybear */, 5: ${SIZE_LAB.clementine} /* Clementine */ }\n`
+          + `card view: tilePx ${SIZE_LAB.tilePx} -- a viewing aid, not a shipped dial`
+        );
+      },
+      draw(ctx, w, h, now) {
+        const T = SIZE_LAB.tilePx;
+        const groundY = h - 56;
+        ctx.strokeStyle = 'rgba(107, 90, 78, 0.25)';
+        ctx.beginPath();
+        ctx.moveTo(10, groundY + 0.5);
+        ctx.lineTo(w - 10, groundY + 0.5);
+        ctx.stroke();
+        const cats = [
+          { id: 1, key: 'miso', name: 'Miso' },
+          { id: 2, key: 'biscuit', name: 'Biscuit' },
+          { id: 3, key: 'pumpkin', name: 'Pumpkin' },
+          { id: 4, key: 'kittybear', name: 'Kittybear' },
+          { id: 5, key: 'clementine', name: 'Clementine' },
+        ];
+        ctx.textAlign = 'center';
+        cats.forEach((c, i) => {
+          const cx = (w * (i + 0.5)) / cats.length;
+          const scale = SIZE_LAB[c.key];
+          const size = T * scale;
+          ctx.save();
+          ctx.globalAlpha = 0.35;
+          ctx.fillStyle = '#4a3f35';
+          ctx.beginPath();
+          ctx.ellipse(cx, groundY - 2, size * 0.3, size * 0.09, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+          CatV2.drawCat(ctx, {
+            pose: 'idle',
+            appearance: CatV2.appearanceFor(c.id),
+            facing: 'right',
+            size,
+            x: cx - size / 2,
+            // Feet on the shared line: the same anchoring the map uses.
+            y: groundY - size * 0.88,
+            phase: ((now + c.id * 997) % 3400) / 3400,
+          });
+          ctx.fillStyle = 'rgba(107, 90, 78, 0.8)';
+          ctx.font = '600 12px ui-sans-serif, system-ui, sans-serif';
+          ctx.fillText(`${c.name} ${scale.toFixed(2)}`, cx, groundY + 22);
+        });
         ctx.textAlign = 'left';
       },
     },

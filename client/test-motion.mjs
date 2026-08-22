@@ -80,11 +80,11 @@ const SHIPPED_BLOCKS = Object.fromEntries(
 // between what the harness tests and what the page draws.
 const VIEW = api.VIEW;
 const {
-  poseFor, ACTION_POSE, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose,
+  poseFor, ACTION_POSE, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose, kittyBoxFor,
   swimAxialAllows, gazeTargetFor, MEOW_TEXT, SOUND_WORDS, pursuitDistanceFor,
 } = eval(
   renderSrc +
-    ';({ poseFor, ACTION_POSE, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose,' +
+    ';({ poseFor, ACTION_POSE, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose, kittyBoxFor,' +
     ' swimAxialAllows, gazeTargetFor, MEOW_TEXT, SOUND_WORDS, pursuitDistanceFor })',
 );
 
@@ -1932,6 +1932,34 @@ check('no lab dial writes into frozen VIEW', () => {
   // slider was inert on arrival.
   const html = readFileSync(join(here, 'gallery-v2.html'), 'utf8');
   assert(!/bag: VIEW\b/.test(html), 'a card dial binds frozen VIEW -- it will move and do nothing');
+});
+
+check('a curated kitty size scales about the feet, centred on the tile', () => {
+  // Presentation only: whatever the scale, the feet stay on the unscaled
+  // tile's ground line (CAT_GROUND of the box) and the box stays centred,
+  // so the logical footprint is still one tile.
+  for (const scale of [0.8, 0.9, 1, 1.1, 1.2]) {
+    const b = kittyBoxFor(100, scale);
+    close(b.size, 100 * scale, `scale ${scale}: box size`);
+    close(b.dy + 0.88 * b.size, 0.88 * 100, `scale ${scale}: the feet left the ground line`);
+    close(b.dx * 2 + b.size, 100, `scale ${scale}: the box left the tile centre`);
+  }
+  // The shipped map: seeded at the owner's +/-10% (2026-08-22 -- Biscuit
+  // the playful kitten, Pumpkin the snacky one); re-pin on her paste.
+  const S = api.VIEW.kittySize;
+  close(S[1], 1, 'Miso drifted');
+  close(S[2], 0.9, 'Biscuit is not the kitten');
+  close(S[3], 1.1, 'Pumpkin is not the big one');
+  close(S[4], 1, 'Kittybear drifted');
+  close(S[5], 1, 'Clementine drifted');
+  // Wired, not just defined: the dispatcher consults the map (with the
+  // out-of-roster default), draws at the box, and the shadow scales too.
+  assert(
+    /kittyBoxFor\(this\.tile, VIEW\.kittySize\?\.\[kitty\.id\] \?\? 1\)/.test(renderSrc),
+    'the dispatcher does not consult the size map (or lost the ?? 1 default)',
+  );
+  assert(/size: box\.size,/.test(renderSrc), 'catOpts does not draw at the scaled box');
+  assert(/this\.tile \* 0\.3 \* kScale/.test(renderSrc), 'the shadow footprint ignores the size');
 });
 
 check('the lick rides its own clock, not the tick beat', () => {
@@ -8852,7 +8880,7 @@ check('the leap reaches the renderer: lift consumed, shadow grounded', () => {
   const render = readFileSync(join(here, 'render.js'), 'utf8');
   assert(/view\.leapFor\s*\?\s*view\.leapFor\(kitty\.id\)/.test(render),
     'render.js never asks the view for the leap');
-  assert(/y:\s*y\s*-\s*leapLift/.test(render),
+  assert(/y:\s*y \+ box\.dy\s*-\s*leapLift/.test(render),
     'the lift never reaches the cat\'s draw anchor');
   assert(/VIEW\.pounceLeap/.test(render), 'the lift ignores its dial');
 });
