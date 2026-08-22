@@ -206,6 +206,24 @@ def aggregate(rows):
     return agg
 
 
+def budget_table(agg):
+    """Markdown activity-% table, one row per cat — the standard
+    post-placement summary. Idle includes travel (moving ticks carry
+    the Idle activity); partnered-play share is duets as a fraction
+    of that cat's play ticks."""
+    cols = ["Idle", "Sleeping", "Playing", "Grooming", "Eating",
+            "Drinking", "Resting"]
+    lines = ["| cat | " + " | ".join(c.lower() for c in cols)
+             + " | partnered play |",
+             "|---|" + "---|" * (len(cols) + 1)]
+    for name, b in agg["time_budget"].items():
+        cells = [f"{100 * b.get(c, 0.0):.1f}%" for c in cols]
+        pp = b.get("play_partnered_share")
+        cells.append(f"{100 * pp:.0f}%" if pp is not None else "—")
+        lines.append(f"| {name} | " + " | ".join(cells) + " |")
+    return "\n".join(lines)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("seating", choices=list(SEATINGS))
@@ -237,6 +255,7 @@ def main():
                         f"{seed0}x{args.seeds}.json")
     p.write_text(json.dumps(out, indent=1) + "\n")
     print(json.dumps(agg, indent=1))
+    print("\n" + budget_table(agg) + "\n")
     print(f"wrote {p}")
 
 

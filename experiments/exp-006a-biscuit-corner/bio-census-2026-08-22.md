@@ -28,6 +28,22 @@ tightest thread runs Miso–Clementine–Kittybear; Biscuit holds the
 three loosest pairs — the kitten orbits the pile rather than living
 in it, and comes in to play.
 
+## Activity breakdown (% of ticks; census standard table)
+
+| cat | idle | sleeping | playing | grooming | eating | drinking | resting | partnered play |
+|---|---|---|---|---|---|---|---|---|
+| Miso | 53.3% | 29.1% | 3.5% | 5.8% | 4.2% | 4.0% | 0.0% | 32% |
+| Biscuit | 65.4% | 8.7% | 21.7% | 1.7% | 1.1% | 1.4% | 0.1% | 23% |
+| Pumpkin | 62.7% | 11.5% | 5.3% | 10.0% | 4.7% | 5.9% | 0.0% | 29% |
+| Kittybear | 55.2% | 15.8% | 4.4% | 16.1% | 4.0% | 4.5% | 0.0% | 27% |
+| Clementine | 55.2% | 17.8% | 4.2% | 14.0% | 4.2% | 4.5% | 0.0% | 29% |
+
+Idle includes travel — moving ticks carry the Idle activity, which
+is why the most mobile cat (Biscuit) tops the column. Partnered
+play is duets as a share of that cat's own play ticks. This table
+is printed by every `bio_census.py` run (paste-ready markdown), so
+the post-placement flow produces it automatically.
+
 ## Per-cat signatures
 
 **Miso** — the sleep anchor. Sleeps 29% of ticks (most on the
