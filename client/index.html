@@ -818,13 +818,36 @@
     outline: 2px solid var(--ink-soft);
     outline-offset: 2px;
   }
-  .kitty-card.followed .name::after {
-    content: ' following';
+  /* The follow toggle (owner, 2026-08-21): the control IS the state,
+     sitting where the 'following' text used to render. Quiet italic like
+     the text it replaces; the followed state drops the italic and lets
+     the card's existing outline do the shouting. Sized to the card's own
+     small-control scale (the ? ring beside it), judged live. */
+  .kitty-follow {
+    margin-left: auto;
+    font: inherit;
     font-style: italic;
-    font-weight: 400;
+    font-size: 0.72em;
     color: var(--ink-soft);
-    font-size: 0.82em;
+    background: none;
+    border: 1px solid var(--ink-soft);
+    border-radius: 999px;
+    padding: 0.05em 0.55em;
+    cursor: pointer;
   }
+  .kitty-follow:hover,
+  .kitty-follow:focus-visible {
+    color: var(--ink);
+    border-color: var(--ink);
+  }
+  .kitty-card.followed .kitty-follow {
+    font-style: normal;
+    color: var(--ink);
+    border-color: var(--ink);
+  }
+  /* The ? keeps its ring; only its auto-margin hands off to the follow
+     button, which now owns the push to the right edge. */
+  .kitty-follow + .kitty-about { margin-left: 6px; }
 
   .kitty-card {
     background: var(--card);

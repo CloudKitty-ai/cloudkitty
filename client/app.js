@@ -546,7 +546,16 @@ function setCameraMode(on) {
  */
 function markFollowedCard(id) {
   for (const card of document.querySelectorAll('.kitty-card')) {
-    card.classList.toggle('followed', Number(card.dataset.kitty) === id);
+    const followed = Number(card.dataset.kitty) === id;
+    card.classList.toggle('followed', followed);
+    // The follow button IS the state readout, so it moves with the mark
+    // -- whoever set the follow (this button, a map click, the camera
+    // dropping a departed kitty).
+    const btn = card.querySelector('.kitty-follow');
+    if (btn) {
+      btn.textContent = followed ? 'following' : 'follow';
+      btn.setAttribute('aria-pressed', followed ? 'true' : 'false');
+    }
   }
 }
 
@@ -1316,6 +1325,33 @@ function buildKittyCard(kitty) {
     const live = latestWorld?.kitties.find((k) => k.id === kitty.id) ?? kitty;
     openTraitsDialog(live);
   });
+
+  // Follows this cat, or releases her -- its own button for the same
+  // reason the about is (a card click means "collapse them all"). The
+  // owner's ask, 2026-08-21: a zoomed-in frame can only map-click cats it
+  // SHOWS, so the roster is the switch across the whole meadow -- and the
+  // control doubles as the state, where the 'following' text used to
+  // render. Initialized from the camera, not from a default, so a card
+  // REBUILD mid-follow comes back already marked.
+  const follow = document.createElement('button');
+  follow.className = 'kitty-follow';
+  follow.type = 'button';
+  const followedNow = anim.camera.followId === kitty.id;
+  follow.textContent = followedNow ? 'following' : 'follow';
+  follow.setAttribute('aria-pressed', followedNow ? 'true' : 'false');
+  follow.setAttribute('aria-label', `follow ${kitty.name}`);
+  follow.addEventListener('click', (event) => {
+    event.stopPropagation();
+    if (anim.camera.followId === kitty.id) {
+      setFollow(null);
+    } else {
+      setFollow(kitty.id);
+      // The map's rule, kept (036 FR-012): choosing a cat while the
+      // camera is off turns it on -- a follow is a camera intention.
+      if (!anim.camera.on) setCameraMode(true);
+    }
+  });
+  name.appendChild(follow);
   name.appendChild(more);
 
   const doing = document.createElement('div');
