@@ -119,6 +119,11 @@ def main():
         "polls": len(polls),
         "tick_range": [polls[0]["tick"], polls[-1]["tick"]],
         "unique_activity_events": len(events),
+        # Deduped events verbatim: a window that straddles a deploy
+        # boundary must be re-cuttable by tick after the fact (the
+        # 2026-08-22 restart landed inside a banked window; the
+        # aggregates alone could not be split).
+        "raw_events": list(events.values()),
         "activity_budget": {names[k]: dict(c) for k, c in budget.items()},
         "play_targets": {names[k]: dict(c) for k, c in play.items()},
         "grooming_graph": {f"{names[a]}->{names[b]}": n
