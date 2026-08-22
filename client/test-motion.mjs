@@ -1923,6 +1923,31 @@ check('the tongue is parked, and exactly one number wakes it', () => {
   assert(tongue > paw, 'the tongue must be painted OVER the paw, not under it');
 });
 
+check('the lick rides its own clock, not the tick beat', () => {
+  const p = new api.Presentation();
+  const now = 12345;
+  // A fresh presentation's beat clock reads 1 (nothing has arrived), so the
+  // beat-clocked actions all say so...
+  for (const pose of ['eating', 'drinking', 'pouncing']) {
+    close(p.motionFor(9, pose, now).phase, p.progress(now), `${pose} left the tick clock`);
+  }
+  // ...and grooming does not: it rolls on groomCycleMs, seeded per cat so a
+  // clowder does not lick in unison.
+  const dials = { ...api.VIEW, groomCycleMs: 1600 };
+  close(
+    p.motionFor(9, 'grooming', now, dials).phase,
+    ((now + 9 * 997) % 1600) / 1600,
+    'grooming is not on the ambient lick clock',
+  );
+  assert(
+    p.motionFor(1, 'grooming', now, dials).phase !== p.motionFor(2, 'grooming', now, dials).phase,
+    'two cats lick in unison -- the seed is gone',
+  );
+  // The judged rate: half the beat rate (owner, 2026-08-22: at the beat
+  // rate "it looks too dog-like").
+  close(api.VIEW.groomCycleMs, 1600, 'the shipped cycle is the one the owner judged');
+});
+
 check('withFarPair tags limbs by identity, additively', () => {
   // Grooming names its limbs; every pose that still goes through
   // `withFarPair` gets index tags so a near/far pair can be recognised
