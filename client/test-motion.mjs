@@ -1923,6 +1923,17 @@ check('the tongue is parked, and exactly one number wakes it', () => {
   assert(tongue > paw, 'the tongue must be painted OVER the paw, not under it');
 });
 
+check('no lab dial writes into frozen VIEW', () => {
+  // `VIEW` is Object.freeze'd, so `bag: VIEW` on a card dial is the silent
+  // wasted-session trap: the slider moves, the readout prints, nothing
+  // changes. A card that wants to judge a VIEW value holds a lab copy
+  // seeded from it and prints the paste line (the PLAY-bag pattern). This
+  // shipped once -- the groom card's cycle dial, 2026-08-22 -- and the
+  // slider was inert on arrival.
+  const html = readFileSync(join(here, 'gallery-v2.html'), 'utf8');
+  assert(!/bag: VIEW\b/.test(html), 'a card dial binds frozen VIEW -- it will move and do nothing');
+});
+
 check('the lick rides its own clock, not the tick beat', () => {
   const p = new api.Presentation();
   const now = 12345;
