@@ -90,13 +90,12 @@ was dialled when a cat was ~31px and camera mode now draws her at 57–103px**,
 so decisions that were invisible economies at low resolution are legible
 choices at high one.
 
-1. **Clementine's fur dial — TOMORROW'S first item, and the only one with a
-   deadline.** She is the designed WHITE cat via a per-cat palette override,
-   and the override was never written; the hard deadline is the phase-1
-   `--fresh`, because that is the generation that seats her. Owner: the belly
-   "needs to be dialled just a little bit" for contrast. A white cat is the one
-   coat where the belly's lighter underside has nothing to be lighter *than*,
-   so this is a contrast problem, not a colour one.
+1. **~~Clementine's fur dial~~ — CLOSED by owner ruling, 2026-08-21
+   ("Clementine is done"), same day the `--fresh` seated her generation.**
+   The per-cat white override was never written and the owner ruled the
+   shipped coat stands; the deadline is discharged by decision, not by
+   code. Kept struck rather than deleted so nobody re-derives the
+   "designed white cat" intent from the trait sheet and reopens it.
 
 2. **~~Deprecate the hunter eyes~~ — SHIPPED 2026-08-20 as a substitution.**
    The reason is better than "it did not read", and worth keeping: *"the v1
