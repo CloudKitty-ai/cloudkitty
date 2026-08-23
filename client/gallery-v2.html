@@ -795,6 +795,11 @@
   const GROOM_LAB = { tilePx: 90, speed: 1, groomCycleMs: VIEW.groomCycleMs };
   // The clowder card's per-cat sizes, seeded from the shipped map (VIEW is
   // frozen; the readout prints the paste line).
+  // The groom-other card's viewing aids. The lean is FAKED here on purpose
+  // (the handoff's note): live it is anim.js easing the sprite toward the
+  // friend, and the read is the nose crossing another cat's outline --
+  // there is nothing to cross without a friend, so the card supplies both.
+  const GROOM_OTHER_LAB = { lean: 1, tilePx: 90, speed: 1 };
   const SIZE_LAB = {
     miso: VIEW.kittySize[1], biscuit: VIEW.kittySize[2], pumpkin: VIEW.kittySize[3],
     kittybear: VIEW.kittySize[4], clementine: VIEW.kittySize[5], tilePx: 90,
@@ -1067,6 +1072,95 @@
           y: groundY - T * CatV2.CAT_GROUND,
           phase,
         });
+        ctx.textAlign = 'left';
+      },
+    },
+    {
+      title: 'Groom other — washing a friend on the next tile (GROOM-OTHER-EDITS)',
+      note: 'The social groom, all three views at once. The engine guarantees the friend is one cardinal tile away and free to leave on any tick, so the groomer carries the whole read: silhouette flipped outward (both forepaws planted, no raised paw), a small body lean, and the sub-tile slide toward the friend -- the slide is the live client easing the sprite, faked here with the lean dial because the read is the nose crossing the friend\'s outline. North and south are the MAJORITY case (54% of targets). Judge the SOUTH pair for the occlusion question: the friend paints over the groomer\'s head -- buried-in-fur or missing? A shallower south lean is the cheapest out. The axial tail dials are coupled (tailUpY / tailClearHead / headWide / headShow): re-read the north tail after touching any head dial. Known: below ~70px the four paws merge (the one-ellipse seat\'s ceiling; a haunch mass someday). Speed 1 is the live lick clock.',
+      v2Only: true,
+      w: 940,
+      h: 430,
+      ownShadows: true,
+      bag: GROOM_OTHER_LAB,
+      dials: [
+        { key: 'lean', label: 'lean — the client\'s slide toward the friend, as a share', min: 0, max: 1, step: 0.05 },
+        { key: 'rotToward', label: 'rotToward — body lean into the reach (side view)', min: 0, max: 0.12, step: 0.005, bag: CatV2.GROOM_OTHER },
+        { key: 'headX', label: 'headX — head forward (side view; the seat lives here)', min: 0.6, max: 0.85, step: 0.005, bag: CatV2.GROOM_OTHER },
+        { key: 'nod', label: 'nod — lick amplitude', min: 0, max: 0.03, step: 0.001, bag: CatV2.GROOM_OTHER },
+        { key: 'axialHeadNear', label: 'axialHeadNear — head bigger south / smaller north', min: 0, max: 0.3, step: 0.01, bag: CatV2.GROOM_OTHER },
+        { key: 'axialHeadShow', label: 'axialHeadShow — skull share above the shoulders', min: 0.4, max: 0.8, step: 0.01, bag: CatV2.GROOM_OTHER },
+        { key: 'axialHeadWide', label: 'axialHeadWide — skull vs shoulders width', min: 0.8, max: 1.05, step: 0.01, bag: CatV2.GROOM_OTHER },
+        { key: 'axialTailUpY', label: 'axialTailUpY — how high the north tail rises', min: 0.1, max: 0.4, step: 0.01, bag: CatV2.GROOM_OTHER },
+        { key: 'axialTailClearHead', label: 'axialTailClearHead — tail tip past the skull', min: 0, max: 0.08, step: 0.005, bag: CatV2.GROOM_OTHER },
+        { key: 'tilePx', label: 'tilePx — judge at the sizes the camera draws', min: 40, max: 115, step: 1 },
+        { key: 'speed', label: 'speed — 1 is the live rhythm; slow it to study', min: 0.2, max: 1.5, step: 0.05 },
+      ],
+      readout() {
+        const G = CatV2.GROOM_OTHER;
+        return (
+          `GROOM_OTHER: rotToward ${G.rotToward}, headX ${G.headX}, nod ${G.nod},\n`
+          + `  axialHeadNear ${G.axialHeadNear}, axialHeadShow ${G.axialHeadShow}, axialHeadWide ${G.axialHeadWide},\n`
+          + `  axialTailUpY ${G.axialTailUpY}, axialTailClearHead ${G.axialTailClearHead}\n`
+          + `card view: lean ${GROOM_OTHER_LAB.lean}, tilePx ${GROOM_OTHER_LAB.tilePx}, speed ${GROOM_OTHER_LAB.speed} -- viewing aids, not shipped dials`
+        );
+      },
+      draw(ctx, w, h, now) {
+        const T = GROOM_OTHER_LAB.tilePx;
+        const period = VIEW.groomCycleMs / GROOM_OTHER_LAB.speed;
+        const phase = (now % period) / period;
+        const leanPx = GROOM_OTHER_LAB.lean * VIEW.groomLean.tiles * T;
+        const fPhase = ((now + 997) % 3400) / 3400;
+        const shadow = (cx, cy, size) => {
+          ctx.save();
+          ctx.globalAlpha = 0.35;
+          ctx.fillStyle = '#4a3f35';
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, size * 0.3, size * 0.09, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        };
+        const cat = (o) => CatV2.drawCat(ctx, {
+          appearance: CatV2.appearanceFor(o.friend ? MISO : PUMPKIN),
+          size: T,
+          phase: o.friend ? fPhase : phase,
+          pose: o.friend ? 'idle' : 'grooming-other',
+          ...o,
+        });
+        ctx.font = '600 12px ui-sans-serif, system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(107, 90, 78, 0.8)';
+
+        // --- Side lane: friend one tile east, groomer slides toward her ---
+        const groundY = h - 120;
+        ctx.strokeStyle = 'rgba(107, 90, 78, 0.25)';
+        ctx.beginPath();
+        ctx.moveTo(20, groundY + 0.5);
+        ctx.lineTo(w * 0.36, groundY + 0.5);
+        ctx.stroke();
+        const sx = w * 0.13;
+        shadow(sx + T / 2 + leanPx, groundY - 2, T);
+        shadow(sx + T * 1.5, groundY - 2, T);
+        cat({ friend: true, facing: 'left', x: sx + T, y: groundY - T * 0.88, layout: { view: 'side' } });
+        cat({ facing: 'right', x: sx + leanPx, y: groundY - T * 0.88, layout: { view: 'side' } });
+        ctx.fillText('side — the slide closes the gap', w * 0.18, groundY + 26);
+
+        // --- South pair: friend below, painted AFTER (the occlusion call) ---
+        const scx = w * 0.55;
+        const sTop = 70;
+        shadow(scx, sTop + T * 0.9 + leanPx, T);
+        shadow(scx, sTop + T * 1.9, T);
+        cat({ facing: 'south', x: scx - T / 2, y: sTop + leanPx, layout: { view: 'front' } });
+        cat({ friend: true, facing: 'south', x: scx - T / 2, y: sTop + T, layout: { view: 'front' } });
+        ctx.fillText('south — friend paints over: judge the head', scx, sTop + T * 2 + 24);
+
+        // --- North pair: friend above, groomer's head over her back ---
+        const ncx = w * 0.85;
+        shadow(ncx, sTop + T * 0.9, T);
+        shadow(ncx, sTop + T * 1.9 - leanPx, T);
+        cat({ friend: true, facing: 'north', x: ncx - T / 2, y: sTop, layout: { view: 'back' } });
+        cat({ facing: 'north', x: ncx - T / 2, y: sTop + T - leanPx, layout: { view: 'back' } });
+        ctx.fillText('north — the raised tail is the silhouette', ncx, sTop + T * 2 + 24);
         ctx.textAlign = 'left';
       },
     },
