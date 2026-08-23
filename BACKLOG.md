@@ -13,6 +13,49 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 <!-- shipped P1 items are removed once merged; see git history -->
 
+### Critter play gets one grace tick when the critter slips away (added 2026-08-23; owner-ruled, fold into the next world change)
+
+**The charm intent, owner's words**: "the kitty is still playing even if
+it got away for a moment." Today a critter play scene dies the instant the
+critter stops being adjacent, which reads as the kitty snapping out of
+play mid-pounce.
+
+**Mechanism.** `World::prune_dead_activity` (world.rs:464) ends an element
+play scene when the element is gone **or no longer adjacent**. Critters
+move on alternate ticks (`Element::critter_moves_this_tick`, `(tick + id)
+% 2`), and play's configured minimum is 2 ticks — so every critter play
+scene contains exactly one move opportunity, and when that move breaks
+adjacency the scene dies at 1 tick, under the engine's own minimum. The
+600-tick ttl is NOT the cause: the chase-census measures scene expiry at
+15 in 5,244 scenes (0.3%), while the cut rate is ~20%.
+
+**The change**: an element play scene, once begun, runs its configured
+`min` before adjacency is tested — stated as honoring the minimum rather
+than as a special-cased grace tick, so it stays correct if `min` ever
+moves.
+
+**Relief on the grace tick = `solo_play_relief` (10), RULED by the owner
+2026-08-23**, not the critter's sticker. Note this needs an explicit
+adjacency check in the relief arm: `action.rs:769` currently resolves
+relief by element **id** with no adjacency test, so a departed-but-alive
+bug would otherwise pay full `play_relief_bug`. The fiction is that the
+kitty is batting at where the bug was.
+
+**Why solo relief and not full.** The interruption penalty is already
+priced into the sticker corridor — the chase-census measures mean scene
+length directly (`ev()` uses measured `mlen`), and the shipped numbers are
+bug 1.8, greeble 1.5, duet 2.0 ticks. Full-relief grace would lift bug EV
++11% but **greeble EV +33%** (greebles dart, so they break adjacency far
+more), and greeble EV is the constrained side of the G1 bar. Solo-relief
+grace lifts both far less and preserves the bug-first ordering.
+
+**Sequencing**: world mechanics, so spec-first, and it rides the next
+world change rather than spending a re-baseline alone (anchors,
+corpus re-collection, next-generation training all follow a mechanics
+change — D-003). On merge, re-run the chase-census grid and re-check
+B1/B2/G1 against the new `mlen`s. Measurements behind this:
+`experiments/exp-006a-biscuit-corner/live-play-2026-08-23.md`.
+
 ### Serving welfare watchdog: max_distress_age on the served world (added 2026-08-20; owner-approved)
 
 The engine already computes `distress_since` per (kitty, need); nothing
