@@ -64,6 +64,7 @@ evidence; this register is the evolving knowledge layer on top of them.
 | F-027 | active | Twin-seating one artifact creates dyadic self-interaction attractors |
 | F-028 | active | Census raws are attributable only if the instrument records its own provenance |
 | F-029 | active | A reader rule copied from the wrong contract shape reports a category that cannot exist |
+| F-030 | active | Per-event shaping of a social behavior buys initiation churn; the KL leash does not prevent it |
 
 ---
 
@@ -1519,3 +1520,68 @@ expire out of `/world` mid-census.
 **Re-verify when**: any engine change touches the activity JSON
 shape; any future census reports a flat zero in a category (re-run
 the unit check before banking the claim).
+
+## F-030 · active · Per-event shaping of a social behavior buys initiation churn, and the KL leash does not prevent it
+
+Measured 2026-08-22 by exp-006a's F-duet arm (prereg §3), the single
+shaped arm in a four-arm wave whose other three arms differ only in
+dose. Registered with the arm's own report-only guard as the
+detector.
+
+**The design**: λ = 0.1 added to the TRAINING reward for each seat
+transitioning INTO kitty-partnered play — a per-event bonus on the
+start, not on time spent partnered. State-stream detection, no
+penalties, telemetry unshaped. The prereg's sizing rationale argued
+the term was self-limiting at roughly 1% of per-tick return; at the
+measured scripted-anchor rate it was nearer 2%.
+
+1. **The policy farmed the event, because the event was what paid.**
+   Duet starts began at 30.3 per 1k seat-ticks — below the scripted
+   anchor's 40.49 (`derive_duet_anchor.py`, the trainer's own
+   detector) — crossed the pre-registered 3× grind threshold (121.5)
+   at update 981 / 3.0M ticks of 20M, and climbed monotonically to
+   201.1 final, peak 263.5. 81.6% of all telemetry rows flagged. The
+   fingerprint confirms it out-of-loop at 420.3 starts per 1k
+   decisions, **2.34× the scripted anchor**. Short duets, restarted
+   constantly, maximize a count that pays per start.
+2. **It was paid for out of the venues that paid nothing.**
+   Critter proximity fell to 0.33× anchor and bug-hunting to 0.15×,
+   against G3 floors of 0.70× — the arm fails character on exactly
+   the two dimensions the shaping never touched, while play share
+   *rose* to 1.07×. The shaped behavior did not add; it displaced.
+3. **The leash did not constrain it.** Final KL-to-anchor was 0.597,
+   squarely in family with the unshaped siblings (L-04-s3 0.604,
+   F-dose 0.513/0.549) — decision-level proximity to the anchor was
+   indistinguishable while the behavioral rate ran to 2.34×. This
+   extends F-019's structure: a KL leash bounds the policy
+   distribution per decision, not the emergent rate of a composite
+   behavior assembled from many in-distribution decisions.
+4. **It was not even good for the cat.** Subject happiness 85.12,
+   lowest of the wave (the two G3 passers read 88.48 and 86.65), and
+   the arm's greedy probe nash finished 0.8813 against 0.93+ for
+   every sibling. A ~2%-of-return shaping term bought a large
+   behavioral distortion and negative welfare.
+5. **The cheap report-only guard was the whole defence.** A
+   pre-registered threshold on a metric nobody gated fired at 15% of
+   training and its verdict was later confirmed by an independent
+   instrument (the G3 fingerprint's venue floors). Report-only
+   telemetry with a number declared in advance costs nothing and
+   converts a post-hoc argument into an observation.
+
+**Scope of validity**: one seed, one λ (0.1), one shaped behavior
+(partnered-play start), 20M ticks, dataset v6 on the bugs-2.0 world,
+BC-init + leashed PPO. This is a single point, not a dose-response —
+it does not establish that a smaller λ, or shaping *time partnered*
+rather than *starts*, carries the same defect. The general shape it
+supports is about per-event bonuses on repeatable social acts.
+
+**What would invalidate it**: a λ-sweep in which the churn signature
+disappears below some dose while retention holds (would narrow this
+to "λ ≥ 0.1"); or a duration-shaped arm (reward per tick partnered)
+that reproduces the venue collapse anyway (would move the cause from
+event-vs-state to shaping social behavior at all).
+
+**Re-verify when**: any future arm shapes a countable behavior;
+before adopting shaping as a retention tool in place of the leash;
+and if a duet-time-shaped arm is ever run, compare its venue
+retention against this arm's directly.
