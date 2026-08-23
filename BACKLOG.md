@@ -26,7 +26,7 @@ detection layer; the offline layer is the tail-benchmark roster
 (`experiments/tail-benchmarks/`). Detection only — intervention is the
 separate P2 entry below.
 
-### No harness drives the v2 cat through the RENDERER (added 2026-08-20)
+### No harness drives the v2 cat through the RENDERER — MOSTLY CLOSED 2026-08-22
 
 A structural coverage hole, found while gating the settle, and it has already
 let one feature ship inert.
@@ -49,6 +49,31 @@ binding, which is the same globals trap recorded in 'every cat-v2 symbol the
 page reads bare is actually installed'. Not attempted here; it is a harness
 change, not a feature change, and it wants doing on its own rather than inside
 an art PR.
+
+**Closed 2026-08-22 for the three mechanisms named above.** `test-meadow`
+gained a SECOND scope — everything `src` loads except cat.js, which is how
+every lab already runs and what index.html's `Object.assign(window,
+CatV2)` achieves for the page — plus four checks that drive real frames
+through it: the scope is v2 and not the hybrid; the v1 canvas squash never
+reaches a v2 cat (detected by ANISOTROPY, since cat-v2 does its own
+uniform `scale(size, size)`); the settle arrives as a pose deformation
+matching the tween; and the v1 ears boolean does not reach a v2 cat. All
+four mutation-verified — including the one this entry said changed
+nothing: flipping `canvasSettle` to wrap v2 is now red.
+
+Two notes for whoever picks up the rest:
+
+- **The original scope is still the hybrid, deliberately.** The meadow
+  checks want v1 present for vocabulary comparisons; the v2 scope sits
+  beside it rather than replacing it. Putting cat.js back in front of the
+  v2 scope is a load-time SyntaxError (the install's `const drawCat`
+  collides with cat.js's declaration), so the two cannot quietly merge.
+- **Remaining slice: the EYES.** `render.js` also does
+  `if (v2Motion && motion.blinkLid !== undefined) { lid = motion.blinkLid;
+  if (eyes === 'closed') eyes = undefined; }` — the eased lid replacing the
+  snap blink. Nothing asserts that yet. The fixture is the cheap part now:
+  `v2Frame()` exists, and a frame taken mid-blink (see the slow-blink
+  schedule in test-motion) would show `lid` present and `eyes` cleared.
 
 ### The give-up droop is EARS ONLY — SHIPPED 2026-08-20
 
