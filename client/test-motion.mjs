@@ -623,11 +623,12 @@ check('the other target shapes are PARKED, and that is a decision', () => {
     'grooming a friend is parked -- see the gaze entry in BACKLOG.md');
   assert(at({ action: 'eat' }) === null, 'eating is parked');
   assert(at({ action: 'drink' }) === null, 'drinking is parked');
-  // The pose already names the activity in all three, which is the part that
-  // reads. What the gaze would have added is WHICH thing, and at this tile
-  // it cannot say it.
-  assert(poseFor({ ...me, last_action: { action: 'groom', target: 2 } }, false) === 'grooming',
-    'the pose still names the activity, which is the part that reads');
+  // The pose now says WHICH thing the positional way (GROOM-OTHER-EDITS,
+  // 2026-08-22): a targeted groom draws the social pose, whose silhouette
+  // and lean carry what the gaze channel never could at this tile. The
+  // GAZE stays parked either way -- the assertions above are the decision.
+  assert(poseFor({ ...me, last_action: { action: 'groom', target: 2 } }, false) === 'grooming-other',
+    'a targeted groom must draw the social pose');
 });
 
 check('the gaze aims where the target is DRAWN, not where it is served', () => {
@@ -710,6 +711,14 @@ check('poseFor: the LAST tick of a scene draws what the cat did, not idle', () =
   const want = {
     eat: 'eating', drink: 'drinking', groom: 'grooming', sleep: 'sleep-curl',
   };
+  // The recorded groom rows carry a target (real wire: cats groom friends
+  // more than themselves), and since GROOM-OTHER-EDITS a targeted groom
+  // draws the social pose. The recording is untouched; the expectation
+  // moved with the design.
+  const wantFor = (row) =>
+    (row.case.endsWith(':groom') && row.kitty.last_action?.target != null)
+      ? 'grooming-other'
+      : want[row.case.split(':')[1]];
   const seen = new Set();
   for (const row of rows) {
     const [when, action] = row.case.split(':');
@@ -717,9 +726,9 @@ check('poseFor: the LAST tick of a scene draws what the cat did, not idle', () =
     // Not moving and not on water, so nothing below the scene can answer:
     // whatever comes back came from the action or the scene.
     const got = poseFor(row.kitty, false, false, null);
-    assert(got === want[action],
+    assert(got === wantFor(row),
       `${row.case}: served ${JSON.stringify(row.kitty.last_action)} with ` +
-      `${JSON.stringify(row.kitty.activity)} and drew ${got}, wanted ${want[action]}`);
+      `${JSON.stringify(row.kitty.activity)} and drew ${got}, wanted ${wantFor(row)}`);
     if (when === 'end') {
       assert(row.kitty.activity.state === 'idle',
         `${row.case} is not a scene END -- the fixture no longer covers the bug`);
@@ -1889,6 +1898,64 @@ check('no lab dial writes into frozen VIEW', () => {
   // slider was inert on arrival.
   const html = readFileSync(join(here, 'gallery-v2.html'), 'utf8');
   assert(!/bag: VIEW\b/.test(html), 'a card dial binds frozen VIEW -- it will move and do nothing');
+});
+
+check('a groomer faces her friend and leans toward her, eased both ways', () => {
+  const gw = (tick, tgt, fx, fy) => ({ ...world(tick, [
+    { ...kitty(1, 5, 5), last_action: tgt ? { action: 'groom', target: 2 } : { action: 'groom' } },
+    kitty(2, fx, fy),
+  ]), width: 20, height: 20 });
+  // Facing: all four directions come off the target, no memory involved,
+  // and the east/west ones write through to the side memory ("sat back up
+  // facing the friend" is a plausible history).
+  // Two states, like every facing test: facing memory derives from served
+  // STEPS, so the pass runs from the second state on (a cold load holds the
+  // default for one beat -- the same contract walking has).
+  for (const [fx, fy, face] of [[5, 4, 'north'], [5, 6, 'south'], [6, 5, 'right'], [4, 5, 'left']]) {
+    const q = new api.Presentation();
+    q.pushState(gw(1, true, fx, fy), 1000);
+    q.pushState(gw(2, true, fx, fy), 1800);
+    assert(q.facingFor(1) === face, `target at ${fx},${fy} must face ${face}`);
+    if (face === 'right' || face === 'left') {
+      assert(q.sideFacingFor(1) === face, 'the side memory did not follow the groom');
+    }
+  }
+  // An untargeted groom is the self-groom and changes no facing.
+  const bare = new api.Presentation();
+  bare.pushState(gw(1, false, 5, 4), 1000);
+  assert(poseFor({ ...kitty(1, 5, 5), last_action: { action: 'groom' } }, false) === 'grooming',
+    'a bare groom must stay the self-groom pose');
+
+  // The lean: ramps in over easeMs to groomLean.tiles toward the friend...
+  const p2 = new api.Presentation();
+  // Two states again: a cold load is a discontinuity and the lean declines
+  // to move on one, exactly like progress() does.
+  p2.pushState(gw(1, true, 5, 4), 200);
+  p2.pushState(gw(2, true, 5, 4), 1000);
+  const G = api.VIEW.groomLean;
+  close(G.tiles, 0.22, 'first-cut lean distance -- re-pin on the owner paste');
+  close(G.easeMs, 450, 'first-cut lean ease -- re-pin on the owner paste');
+  const start = p2.leanFor(1, 1000);
+  assert(start && start.dx === 0 && start.dy === 0, 'the lean must ease in from zero, not snap');
+  const mid = p2.leanFor(1, 1000 + G.easeMs / 2);
+  assert(mid.dy < 0 && Math.abs(mid.dy) < G.tiles - 1e-6, 'mid-ramp the lean is partial, toward north');
+  close(mid.dx, 0, 'a north lean has no horizontal part');
+  const full = p2.leanFor(1, 1000 + G.easeMs);
+  close(full.dy, -G.tiles, 'fully leaned-in, a nose-length toward the friend');
+  // ...and eases OUT keeping its direction when the scene ends abruptly.
+  p2.pushState({ ...world(3, [kitty(1, 5, 5), kitty(2, 5, 3)]), width: 20, height: 20 }, 1800);
+  const out = p2.leanFor(1, 1800 + G.easeMs / 3);
+  assert(out && out.dy < 0 && Math.abs(out.dy) < G.tiles - 1e-6,
+    'the ease-out keeps aiming where the friend was');
+  assert(p2.leanFor(1, 1800 + G.easeMs * 3) === null, 'fully sat back up, the lean retires');
+  // A still frame neither leans nor advances the envelope (reduced motion,
+  // palette redraws): the binding gates it.
+  assert(p2.viewAt(5000, true).leanFor(1) === null, 'a still frame must not lean');
+
+  // Wired, not just defined: the lean reaches the cat's anchor AND the
+  // shadow -- a grounded slide moves both, unlike the leap's lift.
+  assert(/x: x \+ box\.dx \+ leanX,/.test(renderSrc), 'the lean never reaches the draw anchor');
+  assert(/cx \+ offset \+ leanX,/.test(renderSrc), 'the shadow does not slide with the lean');
 });
 
 check('camera off->on starts the zoom-in at once; the dwell is for noise', () => {
@@ -8865,7 +8932,7 @@ check('the leap reaches the renderer: lift consumed, shadow grounded', () => {
   const render = readFileSync(join(here, 'render.js'), 'utf8');
   assert(/view\.leapFor\s*\?\s*view\.leapFor\(kitty\.id\)/.test(render),
     'render.js never asks the view for the leap');
-  assert(/y:\s*y \+ box\.dy\s*-\s*leapLift/.test(render),
+  assert(/y:\s*y \+ box\.dy \+ leanY\s*-\s*leapLift/.test(render),
     'the lift never reaches the cat\'s draw anchor');
   assert(/VIEW\.pounceLeap/.test(render), 'the lift ignores its dial');
 });

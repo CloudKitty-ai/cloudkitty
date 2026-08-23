@@ -476,6 +476,18 @@ const VIEW = Object.freeze({
     // desktop's ~110px without turning the lunge into a bounce.
     liftFrac: 0.25,
   },
+  /* The groomer's sub-tile lean toward the friend she is washing (spec
+   * GROOM-OTHER-EDITS): the read is the nose crossing the friend's outline,
+   * and position is the one cue that survives every zoom. Presentation
+   * only -- logical position never moves, so camera, grouping and draw
+   * order keep keying off real tiles. First-cut values, judged in the
+   * gallery's groom-other card. */
+  groomLean: {
+    tiles: 0.22, // how far the sprite slides toward the friend, in tiles
+    easeMs: 450, // the slide in -- and OUT: endings are abrupt (the friend
+    // binds to nothing and may walk off any tick), and the eased return
+    // IS the "sitting back up" read.
+  },
   // ...and how far the hunter's FACE carries. Measured on the candidate
   // roster over 4,604 cat-ticks: the median quarry was 10 tiles off and the
   // most common 12, so an ungated face meant a cat wearing a hunting
@@ -1268,6 +1280,25 @@ class Presentation {
         if (!this.sideFacings) this.sideFacings = new Map();
         if (horizontal) this.sideFacings.set(kitty.id, next);
       }
+      // A groomer faces the friend she is washing. The engine guarantees
+      // the pair adjacent on a cardinal, so the direction is one of four
+      // and needs no memory -- the target rides last_action on every tick
+      // of the scene. Overrides walk history while the scene runs; what it
+      // leaves behind afterwards ("sat back up facing the friend") is a
+      // plausible history, so sideFacings is written through too.
+      const gRef = kitty.last_action;
+      if (gRef?.action === 'groom' && gRef.target != null) {
+        const friend = world.kitties.find((k) => k.id === gRef.target);
+        if (friend) {
+          const fdx = friend.pos.x - kitty.pos.x;
+          const fdy = friend.pos.y - kitty.pos.y;
+          const fHoriz = Math.abs(fdx) >= Math.abs(fdy);
+          const face = fHoriz ? (fdx > 0 ? 'right' : 'left') : fdy > 0 ? 'south' : 'north';
+          this.facings.set(kitty.id, face);
+          if (!this.sideFacings) this.sideFacings = new Map();
+          if (fHoriz) this.sideFacings.set(kitty.id, face);
+        }
+      }
       // A cat eats and drinks from a tile BESIDE it, so it can be served
       // mid-meal facing away from the bowl -- owner, 2026-08-16: "pond is
       // to the left, cat is drinking facing right".
@@ -1525,6 +1556,61 @@ class Presentation {
     const dist = Math.abs(is.pos.x - was.pos.x) + Math.abs(is.pos.y - was.pos.y);
     if (dist !== 2) return null;
     return { lift01: leapArc(this.progress(now)) };
+  }
+
+  /**
+   * The groomer's eased sub-tile lean toward the friend she is washing, in
+   * TILES (screen axes), or null when there is nothing to lean at.
+   *
+   * The state is a per-id envelope, advanced by the caller's clock: the
+   * amount eases toward 1 while the groom-with-target scene runs and back
+   * toward 0 the moment it ends. The direction is captured while the scene
+   * is live and KEPT through the ease-out -- the friend who ended the scene
+   * by walking away is not there to aim at any more, and re-aiming the
+   * return trip would swing the sprite through an arc.
+   *
+   * Adjacency is trusted at up to 2 manhattan: the served step that ends
+   * the scene can show the friend one tile into her walk before the engine
+   * clears the activity, and snapping the lean off for that single frame
+   * read as a flinch.
+   */
+  leanFor(id, now) {
+    if (!this.curr || this.discontinuous) return null;
+    if (!this.leans) this.leans = new Map();
+    const is = this.curr.kitties.find((k) => k.id === id);
+    const ref = is?.last_action;
+    let aim = null;
+    if (is && ref?.action === 'groom' && ref.target != null) {
+      const friend = this.curr.kitties.find((k) => k.id === ref.target);
+      if (friend) {
+        const fdx = friend.pos.x - is.pos.x;
+        const fdy = friend.pos.y - is.pos.y;
+        const m = Math.abs(fdx) + Math.abs(fdy);
+        if (m > 0 && m <= 2) aim = { dx: fdx / m, dy: fdy / m };
+      }
+    }
+    let st = this.leans.get(id);
+    if (!st) {
+      if (!aim) return null;
+      st = { amt: 0, dx: 0, dy: 0, at: now };
+      this.leans.set(id, st);
+    }
+    const dt = Math.min(250, Math.max(0, now - st.at));
+    st.at = now;
+    const step = dt / Math.max(1, VIEW.groomLean.easeMs);
+    if (aim) {
+      st.dx = aim.dx;
+      st.dy = aim.dy;
+      st.amt = Math.min(1, st.amt + step);
+    } else {
+      st.amt = Math.max(0, st.amt - step);
+      if (st.amt === 0) {
+        this.leans.delete(id);
+        return null;
+      }
+    }
+    const t = smooth01(st.amt);
+    return { dx: st.dx * t * VIEW.groomLean.tiles, dy: st.dy * t * VIEW.groomLean.tiles };
   }
 
   /**
@@ -2134,6 +2220,7 @@ class Presentation {
       // The final pounce's flight (spec 039). Motion, not state: a still
       // frame holds the pose ON the ground, like every other motion class.
       leapFor: (id) => (still ? null : this.leapFor(id, now)),
+      leanFor: (id) => (still ? null : this.leanFor(id, now)),
       travelHFor: (id) => this.travelHFor(id),
       sideFacingFor: (id) => this.sideFacingFor(id),
       // Whether an axial drawing is allowed right now. Applies in still
