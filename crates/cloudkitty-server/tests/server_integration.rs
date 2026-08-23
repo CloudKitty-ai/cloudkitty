@@ -13,6 +13,7 @@ use cloudkitty_server::api::AppState;
 use cloudkitty_server::{build_router, sim_task};
 use futures::StreamExt;
 use serde_json::Value;
+use tokio::sync::watch;
 
 /// A small, fast world guaranteed to contain a greeble.
 fn test_config() -> Config {
@@ -804,10 +805,27 @@ async fn welfare_endpoint_serves_healthy_and_distressed_shapes() {
         None,
         cloudkitty_server::watchdog::Watchdog::new(Default::default()),
     );
+    // Read the seeded surface with NO `.await` in between: the ticking
+    // task cannot have been polled yet, so this is the spawn-time
+    // observation itself. Borrowing it after awaiting anything would race
+    // the first tick — `interval`'s first tick completes immediately, and
+    // that tick observes a world one tick older whose streak may already
+    // have been relieved, which is how this test used to flake.
+    let seeded = sim.welfare.borrow().clone();
+    let published = sim.receiver.clone();
+    assert!(
+        seeded.alarm_live,
+        "spawn seeds the welfare surface from its own observation, before any tick"
+    );
+    // Stop the ticker before serving, so the surface under test stays the
+    // one spawn produced. The status is the watchdog's real output, not a
+    // hand-built fixture.
+    sim.shutdown().await;
+    let (_welfare_tx, welfare) = watch::channel(seeded);
     let state = AppState {
-        published: sim.receiver.clone(),
+        published,
         config: arc.clone(),
-        welfare: sim.welfare.clone(),
+        welfare,
     };
     let app = build_router(state, std::path::Path::new("../../client"));
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
@@ -825,5 +843,4 @@ async fn welfare_endpoint_serves_healthy_and_distressed_shapes() {
     let entries = distressed["entries"].as_array().unwrap();
     assert!(!entries.is_empty(), "the streak is on the surface");
     assert_eq!(entries[0]["age"], 400);
-    sim.shutdown().await;
 }
