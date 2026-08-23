@@ -56,6 +56,34 @@ def parse(path):
 
 
 def ev(row, relief):
+    """Effective relief per invested tick: paid ticks over chase + scene.
+
+    `mlen` is the census's MEASURED mean scene length, never the config's
+    nominal duration, and the difference is real rather than noise —
+    critter play scenes end SHORT of play's 2-tick minimum, so this
+    function already carries the early-termination penalty. Do not
+    "correct" it toward the nominal length, and do not read a short mlen
+    as an instrument fault.
+
+    Why they end short (verified 2026-08-23, engine + live world):
+    `World::prune_dead_activity` (world.rs:464) ends an element play
+    scene when the element is gone OR no longer adjacent, and pruning
+    runs before the duration minimum is enforced. Critters move on
+    alternate ticks ((tick + id) % 2), so every critter scene contains
+    exactly one move opportunity; when that move breaks adjacency the
+    scene dies at one tick. It is NOT the 600-tick ttl — measured scene
+    expiry is ~0.3% (15 in 5,244) against a ~20% cut rate.
+
+    Shipped-world means, for orientation when a future census is read:
+    bug 1.8 · greeble 1.5 (they dart, so they break adjacency more) ·
+    duet 2.0 (a partner does not hop away, and cut rate is 0%). The live
+    served world independently reproduces the bug figure: 20% of Biscuit
+    2.0's bug scenes ran one tick, and 0.8x2 + 0.2x1 = 1.8 exactly.
+
+    Owner ruled 2026-08-23 to keep the mechanic as it stands (a grace
+    tick was costed and dropped), so these are the durable numbers —
+    a future census showing bug mlen near 1.8 is the world working.
+    """
     scene_ticks = row["scenes"] * row["mlen"]
     inv = row["chase"] + scene_ticks
     return (scene_ticks * relief / inv) if inv else 0.0
