@@ -138,6 +138,52 @@ seeded-vs-invented-vs-overloaded grounded reference.** Registered
 prediction: fog is the selection pressure under which FollowMe's
 designed meaning could finally beat "I'm coming."
 
+### Fog splits into two generations (owner, 2026-08-23)
+
+Settled in design conversation; supersedes the single-generation
+framing above where they differ.
+
+**Gen 1 — fog, kept deliberately simple.** Vision radius limits WHICH
+cats and elements are observed; **kitty state stays fully readable for
+whoever is visible** (the slot keeps its needs block) and the world
+**stays 20×20**. Purpose: a ballpark welfare cap under fog, plus a
+shakedown of the new machinery (variable entity tokens, F-010's retest
+as a normal condition).
+
+Registered scope: **grounded reference only.** The two vocabulary
+families need different gradients — `here_*` words are about the WORLD
+and become informative the moment vision is limited, while `want_*`
+words are about the SPEAKER'S STATE and stay redundant for as long as
+that state is in the observation (the F-026 mechanism, now localized).
+So Gen 1 can test whether grounded reference is learned and used; it
+CANNOT test the want-word half, and a null there would falsify the
+wrong thing.
+
+Sizing note for the 20×20 call: ~25 elements over 400 tiles, so a
+radius-5 disc (~80 tiles) holds a handful and frequently no chow — the
+element-finding gradient exists without a bigger map. What a bigger map
+mainly buys is the cat-to-cat gradient, which is Gen 2's business.
+
+**Keep the one-slot memory in Gen 1** even though it is crude: fog with
+no memory means a cat three tiles from the bowl has forgotten chow
+exists, and the welfare cap would then measure fog PLUS amnesia. It
+also gives Gen 2's richer model an honest baseline to beat.
+
+**Gen 2 — the theory-of-mind generation.** Hidden (or degraded) kitty
+needs, a knowledge model well beyond one most-recent slot, and larger
+maps screened as part of its prep suite. Needs its own heavy design
+session; nothing here pre-commits it. Note for that session: entity
+attention may already be the right substrate for a variable-size belief
+set — a remembered cat or element is another token carrying a staleness
+feature and a remembered-not-seen flag — so "rearchitecture" may reduce
+to "more token types". Worth a design pass before budgeting the larger
+job.
+
+**Bookkeeping**: Gen 1's welfare cap is a 20×20 number and does not
+transfer if Gen 2 screens larger worlds — bank it as "the Gen 1 cap",
+never "the fog cap". Same class as the sticker corridor and F-023's
+threshold economics, all 20×20-composition numbers.
+
 ## Parking lot (trigger conditions, not dates)
 
 - **Recurrence**: fires only if memory-token probes show cats
