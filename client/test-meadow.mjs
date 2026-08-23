@@ -151,6 +151,15 @@ globalThis.window = { devicePixelRatio: 1 };
 
 // MEADOW is a getter, not a value: setMeadowPalette rebinds it, and a
 // snapshot taken at eval time could never see that.
+// The v2 composition: everything `src` loads EXCEPT cat.js. Built from
+// the same reads so the two can never drift apart.
+const srcNoV1 =
+  readFileSync(join(here, 'cat-v2.js'), 'utf8') + ';' +
+  readFileSync(join(here, 'meadow.js'), 'utf8') + ';' +
+  readFileSync(join(here, 'props.js'), 'utf8') + ';' +
+  readFileSync(join(here, 'anim.js'), 'utf8') + ';' +
+  readFileSync(join(here, 'render.js'), 'utf8');
+
 const EXPORTS =
   ';({ get MEADOW() { return MEADOW; }, MEADOW_DAY, MEADOW_DUSK, MEADOW_NIGHT, setMeadowPalette,' +
   ' mixPaletteColor, mixPalettes, parsePaletteColor,' +
@@ -159,6 +168,40 @@ const EXPORTS =
   ' driftField, spriteOrder, SPRITE_RANK, coverSortKey, catSortKey, coverStands,' +
   ' WorldRenderer, PURR, drawPurrGlyph, Camera, drawBowl, drawButterfly, butterflyColorwayFor })';
 const api = eval(src + EXPORTS);
+
+/**
+ * The one place a harness draws a V2 cat THROUGH the renderer (BACKLOG,
+ * 2026-08-20: "No harness drives the v2 cat through the RENDERER").
+ *
+ * `src` above loads cat.js first, so its `function drawCat` declaration
+ * wins the bare name inside that eval, while `drawCatTween` -- which
+ * cat.js does not declare -- falls through to the cat-v2 copy on the
+ * global. The renderer therefore takes all fourteen `v2Motion` branches
+ * and hands the result to a V1 cat: a hybrid that exists on no page, and
+ * one where `canvasSettle` (`!v2Motion && ...`) is dead by construction.
+ * That is why flipping that guard used to change nothing in either suite.
+ *
+ * Dropping cat.js is how every lab already runs, and what index.html
+ * achieves for the page with `Object.assign(window, CatV2)`. One stated
+ * divergence: the page then re-wraps both entry points in its `overdrawn`
+ * helper, which lives in index.html and is covered by the export-install
+ * check, not here.
+ *
+ * `V2` is CAPTURED, not resolved per call: a later check re-evals `src`
+ * to prove tileHash is eval-independent, and cat-v2's IIFE reassigns
+ * `globalThis.CatV2` every time it runs. An install that read the
+ * namespace live would silently start pointing at that third copy --
+ * which is exactly what made the first version of the spies below
+ * intercept nothing at all.
+ */
+const V2_INSTALL =
+  ';const V2 = CatV2;'
+  + ' const drawCat = (c, o) => V2.drawCat(c, o);'
+  + ' const drawCatTween = (c, o) => V2.drawCatTween(c, o);';
+const V2_EXPORTS =
+  ';({ WorldRenderer, Presentation, VIEW, CatV2: V2, drawCat, drawCatTween,' +
+  " v2Motion: typeof drawCatTween === 'function', boundDrawCat: drawCat })";
+const v2api = eval(srcNoV1 + V2_INSTALL + V2_EXPORTS);
 
 let passed = 0;
 let failed = 0;
@@ -2557,6 +2600,131 @@ check("the meadow lab's VIEW stand-in matches the VIEW that ships", () => {
     assert(labValue[1] === shipped[1],
       `the lab has ${field} ${labValue[1]}, anim.js ships ${shipped[1]}`);
   }
+});
+
+/* ---- the renderer, driven with a V2 cat (BACKLOG 2026-08-20) --------
+ * Everything render.js does AROUND a v2 cat was unguarded: the settle it
+ * passes, the squash it must NOT apply, the ears it leaves to the rig.
+ */
+
+/**
+ * One real frame with a v2 cat, returning what the seam saw. The spies go
+ * on the captured namespace the install indirects through, so this
+ * intercepts the call site rather than a copy of it.
+ */
+function v2Frame({ arrive = false, at = 1850, gaveUp = false } = {}) {
+  const ops = [];
+  const canvas = mockCanvas(640, 640, ops);
+  const renderer = new v2api.WorldRenderer(canvas);
+  renderer.tile = 32;
+  renderer.dpr = 1;
+  renderer.cssWidth = 640;
+  renderer.cssHeight = 640;
+  const p = new v2api.Presentation();
+  // `abandoned_chases` is what makes the renderer set its ears boolean: a
+  // NEW entry since the last state is the give-up droop, and it is the
+  // only producer of `ears = true` in the file.
+  const world = (tick, x, action, chases) => ({
+    tick,
+    width: 20,
+    height: 20,
+    elements: [],
+    kitties: [{
+      id: 1, name: 'Miso', pos: { x, y: 4 }, happiness: 0.8, needs: {},
+      last_action: { action },
+      ...(chases ? { abandoned_chases: chases } : {}),
+    }],
+  });
+  const GAVE_UP = [{ target: { target: 'element', id: 9 }, until: 12 }];
+  // States arrive BETWEEN frames in the live loop, and the pose tween's
+  // `from` is recorded by the renderer asking for it. Pushing every state
+  // up front and then drawing means `curr` is already the arrival when the
+  // "walking" frame draws: no walk is ever seen, no arrival is ever
+  // detected, and every assertion downstream passes vacuously.
+  const calls = [];
+  const spy = (fn) => (c, o) => { calls.push(o); return fn(c, o); };
+  const real = { draw: v2api.CatV2.drawCat, tween: v2api.CatV2.drawCatTween };
+  let view;
+  try {
+    if (arrive) {
+      p.pushState(world(1, 4, 'move'), 0);
+      p.pushState(world(2, 5, 'move'), 800);
+      renderer.draw(world(2, 5, 'move'), p.viewAt(900, false)); // the walk, seen
+      p.pushState(world(3, 5, 'idle'), 1600);
+      renderer.draw(world(3, 5, 'idle'), p.viewAt(1650, false)); // the tween is born
+    } else if (gaveUp) {
+      p.pushState(world(1, 5, 'chase'), 0);
+      p.pushState(world(2, 5, 'idle', GAVE_UP), 800);
+    } else {
+      p.pushState(world(1, 5, 'idle'), 0);
+      p.pushState(world(2, 5, 'idle'), 800);
+    }
+    v2api.CatV2.drawCat = spy(real.draw);
+    v2api.CatV2.drawCatTween = spy(real.tween);
+    view = p.viewAt(at, false);
+    renderer.draw(world(3, 5, 'idle', gaveUp ? GAVE_UP : null), view);
+  } finally {
+    v2api.CatV2.drawCat = real.draw;
+    v2api.CatV2.drawCatTween = real.tween;
+  }
+  // Read the tween off the SAME view the frame drew, so `now` matches.
+  return { calls, ops, tween: view.tweenFor(1, 'idle', 0) };
+}
+
+check('the v2 renderer scope draws a V2 cat, not the hybrid', () => {
+  // The meta-check, and the reason the rest mean anything: if a future
+  // edit puts cat.js back in front of this scope, they would go on
+  // passing while proving things about a v1 cat wearing v2 branches --
+  // the state this section exists to end. (Putting cat.js back is in fact
+  // a load-time SyntaxError, since the install's `const drawCat` would
+  // collide with cat.js's declaration; loud either way.)
+  assert(v2api.v2Motion, 'render.js would not take its v2 branches in this scope');
+  assert(v2api.boundDrawCat === v2api.drawCat && typeof v2api.drawCat === 'function',
+    'the bare drawCat render.js resolves is not the installed cat-v2 one');
+  assert(api.WorldRenderer !== v2api.WorldRenderer,
+    'the two scopes collapsed into one -- the v2 checks would be meaningless');
+  assert(v2Frame().calls.length === 1, 'one cat, one draw');
+});
+
+check('a v2 cat is never wrapped in the v1 canvas squash', () => {
+  // `canvasSettle` is `!v2Motion && tween?.sy !== undefined`. The
+  // whole-canvas squash scales STROKE widths with everything else -- the
+  // mechanism that made ear and tail outlines vanish at camera sizes --
+  // so v2, which deforms in pose space instead, must never meet it.
+  //
+  // The signal distinguishes the squash from the cat's OWN scale: cat-v2
+  // draws in unit space, so every cat calls `scale(size, size)`, uniform.
+  // The squash is deliberately NON-uniform -- `scale(1 + (1 - sy) * 0.7,
+  // sy)` -- which is why it distorted strokes.
+  const f = v2Frame({ arrive: true });
+  assert(f.tween && typeof f.tween.sy === 'number',
+    'setup: this frame must have a settle in flight, or the check is vacuous');
+  const squash = f.ops.filter(([op, sx, sy]) => op === 'scale' && Math.abs(sx - sy) > 1e-9);
+  assert(squash.length === 0,
+    `the v1 canvas squash reached a v2 cat: ${JSON.stringify(squash)}`);
+});
+
+check('the settle reaches the v2 cat as a pose deformation', () => {
+  const f = v2Frame({ arrive: true });
+  const opts = f.calls[0];
+  assert(typeof opts.settle === 'number' && opts.settle !== 0,
+    `the v2 cat was handed settle=${opts.settle} -- the deformation never arrived`);
+  assert(Math.abs(opts.settle - f.tween.settle) < 1e-12,
+    'the renderer passed a settle the tween did not produce');
+});
+
+check('the v1 ears boolean never reaches a v2 cat -- the rig owns them', () => {
+  // Driven by a real give-up droop, because that is the only thing in
+  // render.js that sets `ears`. A calm cat leaves the boolean false
+  // whether or not the guard exists, so a check written on one passes
+  // with the guard deleted -- which is the vacuum this replaced.
+  const f = v2Frame({ gaveUp: true, at: 900 });
+  const opts = f.calls[0];
+  assert(opts, 'setup: the frame drew no cat');
+  assert(opts.rig && opts.rig.earsBack > 0,
+    `setup: the droop must actually flatten the ears, got ${opts.rig?.earsBack}`);
+  assert(opts.earsBack === undefined,
+    `earsBack=${opts.earsBack} reached a v2 cat -- the rig owns them`);
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);
