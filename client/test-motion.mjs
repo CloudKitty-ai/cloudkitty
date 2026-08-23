@@ -623,11 +623,12 @@ check('the other target shapes are PARKED, and that is a decision', () => {
     'grooming a friend is parked -- see the gaze entry in BACKLOG.md');
   assert(at({ action: 'eat' }) === null, 'eating is parked');
   assert(at({ action: 'drink' }) === null, 'drinking is parked');
-  // The pose already names the activity in all three, which is the part that
-  // reads. What the gaze would have added is WHICH thing, and at this tile
-  // it cannot say it.
-  assert(poseFor({ ...me, last_action: { action: 'groom', target: 2 } }, false) === 'grooming',
-    'the pose still names the activity, which is the part that reads');
+  // The pose now says WHICH thing the positional way (GROOM-OTHER-EDITS,
+  // 2026-08-22): a targeted groom draws the social pose, whose silhouette
+  // and lean carry what the gaze channel never could at this tile. The
+  // GAZE stays parked either way -- the assertions above are the decision.
+  assert(poseFor({ ...me, last_action: { action: 'groom', target: 2 } }, false) === 'grooming-other',
+    'a targeted groom must draw the social pose');
 });
 
 check('the gaze aims where the target is DRAWN, not where it is served', () => {
@@ -710,6 +711,14 @@ check('poseFor: the LAST tick of a scene draws what the cat did, not idle', () =
   const want = {
     eat: 'eating', drink: 'drinking', groom: 'grooming', sleep: 'sleep-curl',
   };
+  // The recorded groom rows carry a target (real wire: cats groom friends
+  // more than themselves), and since GROOM-OTHER-EDITS a targeted groom
+  // draws the social pose. The recording is untouched; the expectation
+  // moved with the design.
+  const wantFor = (row) =>
+    (row.case.endsWith(':groom') && row.kitty.last_action?.target != null)
+      ? 'grooming-other'
+      : want[row.case.split(':')[1]];
   const seen = new Set();
   for (const row of rows) {
     const [when, action] = row.case.split(':');
@@ -717,9 +726,9 @@ check('poseFor: the LAST tick of a scene draws what the cat did, not idle', () =
     // Not moving and not on water, so nothing below the scene can answer:
     // whatever comes back came from the action or the scene.
     const got = poseFor(row.kitty, false, false, null);
-    assert(got === want[action],
+    assert(got === wantFor(row),
       `${row.case}: served ${JSON.stringify(row.kitty.last_action)} with ` +
-      `${JSON.stringify(row.kitty.activity)} and drew ${got}, wanted ${want[action]}`);
+      `${JSON.stringify(row.kitty.activity)} and drew ${got}, wanted ${wantFor(row)}`);
     if (when === 'end') {
       assert(row.kitty.activity.state === 'idle',
         `${row.case} is not a scene END -- the fixture no longer covers the bug`);
@@ -1782,9 +1791,9 @@ check('reshaping holds the belly floor in every pose', () => {
   for (const pose of CatV2.POSES) {
     const base = CatV2.catLayout(pose, 0.4);
     const shaped = reshaped({ bodyH: 1.2, bodyW: 1.1 }, () => CatV2.catLayout(pose, 0.4));
-    if (pose === 'grooming') {
-      // The seated body is TILTED, so `cy + ry` -- the unrotated bottom --
-      // is no longer where it touches the grass. Its floor is the rotated
+    if (pose === 'grooming' || pose === 'grooming-other') {
+      // The seated bodies are TILTED, so `cy + ry` -- the unrotated bottom --
+      // is no longer where they touch the grass. Their floor is the rotated
       // ellipse's true lowest point, and `seatCy` derives cy so that point
       // rests on CAT_GROUND whatever the proportion dials say. Stronger
       // than invariance, so assert the stronger thing.
@@ -1803,12 +1812,14 @@ check('reshaping holds the belly floor in every pose', () => {
 check('the seat rests on the ground at every point of the breath', () => {
   // `seatCy` inverts the proportion pipeline for whatever tilt and breath
   // the pose currently has, so this holds at EVERY phase, not just one.
-  for (const phase of [0, 0.17, 0.4, 0.73]) {
-    close(
-      seatLowest(CatV2.catLayout('grooming', phase).body),
-      CatV2.CAT_GROUND,
-      `phase ${phase}: the seat came off the ground`,
-    );
+  for (const pose of ['grooming', 'grooming-other']) {
+    for (const phase of [0, 0.17, 0.4, 0.73]) {
+      close(
+        seatLowest(CatV2.catLayout(pose, phase).body),
+        CatV2.CAT_GROUND,
+        `${pose} at phase ${phase}: the seat came off the ground`,
+      );
+    }
   }
 });
 
@@ -1889,6 +1900,64 @@ check('no lab dial writes into frozen VIEW', () => {
   assert(!/bag: VIEW\b/.test(html), 'a card dial binds frozen VIEW -- it will move and do nothing');
 });
 
+check('a groomer faces her friend and leans toward her, eased both ways', () => {
+  const gw = (tick, tgt, fx, fy) => ({ ...world(tick, [
+    { ...kitty(1, 5, 5), last_action: tgt ? { action: 'groom', target: 2 } : { action: 'groom' } },
+    kitty(2, fx, fy),
+  ]), width: 20, height: 20 });
+  // Facing: all four directions come off the target, no memory involved,
+  // and the east/west ones write through to the side memory ("sat back up
+  // facing the friend" is a plausible history).
+  // Two states, like every facing test: facing memory derives from served
+  // STEPS, so the pass runs from the second state on (a cold load holds the
+  // default for one beat -- the same contract walking has).
+  for (const [fx, fy, face] of [[5, 4, 'north'], [5, 6, 'south'], [6, 5, 'right'], [4, 5, 'left']]) {
+    const q = new api.Presentation();
+    q.pushState(gw(1, true, fx, fy), 1000);
+    q.pushState(gw(2, true, fx, fy), 1800);
+    assert(q.facingFor(1) === face, `target at ${fx},${fy} must face ${face}`);
+    if (face === 'right' || face === 'left') {
+      assert(q.sideFacingFor(1) === face, 'the side memory did not follow the groom');
+    }
+  }
+  // An untargeted groom is the self-groom and changes no facing.
+  const bare = new api.Presentation();
+  bare.pushState(gw(1, false, 5, 4), 1000);
+  assert(poseFor({ ...kitty(1, 5, 5), last_action: { action: 'groom' } }, false) === 'grooming',
+    'a bare groom must stay the self-groom pose');
+
+  // The lean: ramps in over easeMs to groomLean.tiles toward the friend...
+  const p2 = new api.Presentation();
+  // Two states again: a cold load is a discontinuity and the lean declines
+  // to move on one, exactly like progress() does.
+  p2.pushState(gw(1, true, 5, 4), 200);
+  p2.pushState(gw(2, true, 5, 4), 1000);
+  const G = api.VIEW.groomLean;
+  close(G.tiles, 0.22, 'first-cut lean distance -- re-pin on the owner paste');
+  close(G.easeMs, 450, 'first-cut lean ease -- re-pin on the owner paste');
+  const start = p2.leanFor(1, 1000);
+  assert(start && start.dx === 0 && start.dy === 0, 'the lean must ease in from zero, not snap');
+  const mid = p2.leanFor(1, 1000 + G.easeMs / 2);
+  assert(mid.dy < 0 && Math.abs(mid.dy) < G.tiles - 1e-6, 'mid-ramp the lean is partial, toward north');
+  close(mid.dx, 0, 'a north lean has no horizontal part');
+  const full = p2.leanFor(1, 1000 + G.easeMs);
+  close(full.dy, -G.tiles, 'fully leaned-in, a nose-length toward the friend');
+  // ...and eases OUT keeping its direction when the scene ends abruptly.
+  p2.pushState({ ...world(3, [kitty(1, 5, 5), kitty(2, 5, 3)]), width: 20, height: 20 }, 1800);
+  const out = p2.leanFor(1, 1800 + G.easeMs / 3);
+  assert(out && out.dy < 0 && Math.abs(out.dy) < G.tiles - 1e-6,
+    'the ease-out keeps aiming where the friend was');
+  assert(p2.leanFor(1, 1800 + G.easeMs * 3) === null, 'fully sat back up, the lean retires');
+  // A still frame neither leans nor advances the envelope (reduced motion,
+  // palette redraws): the binding gates it.
+  assert(p2.viewAt(5000, true).leanFor(1) === null, 'a still frame must not lean');
+
+  // Wired, not just defined: the lean reaches the cat's anchor AND the
+  // shadow -- a grounded slide moves both, unlike the leap's lift.
+  assert(/x: x \+ box\.dx \+ leanX,/.test(renderSrc), 'the lean never reaches the draw anchor');
+  assert(/cx \+ offset \+ leanX,/.test(renderSrc), 'the shadow does not slide with the lean');
+});
+
 check('camera off->on starts the zoom-in at once; the dwell is for noise', () => {
   // The toggle leaves the frame at whole-world, so the re-pick's tighten
   // arrives as a slack press -- and a press dwell counted on 800ms tick
@@ -1954,13 +2023,16 @@ check('the lick rides its own clock, not the tick beat', () => {
     close(p.motionFor(9, pose, now).phase, p.progress(now), `${pose} left the tick clock`);
   }
   // ...and grooming does not: it rolls on groomCycleMs, seeded per cat so a
-  // clowder does not lick in unison.
+  // clowder does not lick in unison. BOTH grooms: the social pose licks on
+  // the same clock, and must not fall through to the idle scan -- an idle
+  // twitch on a cat mid-action would imply an action the engine never took
+  // (FR-008, inverted).
   const dials = { ...api.VIEW, groomCycleMs: 1600 };
-  close(
-    p.motionFor(9, 'grooming', now, dials).phase,
-    ((now + 9 * 997) % 1600) / 1600,
-    'grooming is not on the ambient lick clock',
-  );
+  for (const pose of ['grooming', 'grooming-other']) {
+    const m = p.motionFor(9, pose, now, dials);
+    close(m.phase, ((now + 9 * 997) % 1600) / 1600, `${pose} is not on the ambient lick clock`);
+    assert(Object.keys(m).join(',') === 'phase', `${pose} picked up idle-scan fields: ${Object.keys(m)}`);
+  }
   assert(
     p.motionFor(1, 'grooming', now, dials).phase !== p.motionFor(2, 'grooming', now, dials).phase,
     'two cats lick in unison -- the seed is gone',
@@ -2347,6 +2419,79 @@ check('every block the lab dials is actually writable', () => {
   }
 });
 
+
+check('every lab card actually DRAWS -- the gallery survives a frame', () => {
+  // Source-level checks were never going to catch this one. The lab's cards
+  // were asserted for dials, readouts and bags, and none of that runs a
+  // single line of a `draw`. A bad splice (2026-08-22) left one card's
+  // drawing inside ANOTHER card's function, referencing a local the host did
+  // not have: `renderMotion` threw on that card and every card after it in
+  // the loop stayed blank -- and it shipped, because the suite was green.
+  //
+  // So this runs the real page: the shipped scripts plus the gallery's own
+  // inline module, against a mock DOM, for two frames. Anything a card's
+  // draw throws lands here with the card's line in the message.
+  const ctxStub = () => new Proxy({}, {
+    get: (t, k) => (k === 'canvas' ? { width: 900, height: 400 } : () => ctxStub()),
+    set: () => true,
+  });
+  const el = () => new Proxy(function () {}, {
+    get: (t, k) => {
+      if (k === 'getContext') return () => ctxStub();
+      if (k === 'value') return '1';
+      if (k === 'checked' || k === 'hidden') return false;
+      if (k === 'style') return new Proxy({}, { set: () => true, get: () => '' });
+      if (k === 'classList') return { add() {}, remove() {}, toggle() {} };
+      if (k === 'children' || k === 'childNodes') return [];
+      if (k === 'dataset') return {};
+      if (k === 'textContent' || k === 'innerHTML') return '';
+      if (['append', 'appendChild', 'prepend', 'addEventListener', 'setAttribute',
+        'removeAttribute', 'remove'].includes(k)) return () => {};
+      return el();
+    },
+    set: () => true,
+  });
+  const saved = {};
+  const stub = (k, v) => { saved[k] = globalThis[k]; globalThis[k] = v; };
+  let raf = null;
+  stub('window', globalThis);
+  stub('devicePixelRatio', 2);
+  stub('document', new Proxy({}, {
+    get: (t, k) => {
+      if (k === 'getElementById' || k === 'querySelector' || k === 'createElement') return () => el();
+      if (k === 'querySelectorAll') return () => [];
+      if (k === 'body' || k === 'documentElement') return el();
+      return () => el();
+    },
+  }));
+  stub('localStorage', { getItem: () => null, setItem() {}, removeItem() {} });
+  stub('requestAnimationFrame', (cb) => { raf = cb; return 1; });
+  stub('matchMedia', () => ({ matches: false, addEventListener() {} }));
+  stub('addEventListener', () => {});
+  try {
+    const files = ['cat.js', 'cat-v2.js', 'props.js', 'meadow.js', 'anim.js']
+      .map((f) => readFileSync(join(here, f), 'utf8')).join('\n');
+    const html = readFileSync(join(here, 'gallery-v2.html'), 'utf8');
+    const inline = html.match(/<script>([\s\S]*?)<\/script>/)[1];
+    const lead = files.split('\n').length;
+    try {
+      // eslint-disable-next-line no-eval
+      (0, eval)(`${files}\n${inline}`);
+      // The page schedules its own loop; pump it, since the first frame is
+      // where a draw runs for the first time.
+      for (let i = 0; i < 2 && raf; i += 1) { const cb = raf; raf = null; cb(100 + i * 16); }
+    } catch (e) {
+      const at = /<anonymous>:(\d+):/.exec(e.stack || '');
+      const where = at ? ` (gallery inline line ~${Number(at[1]) - lead})` : '';
+      assert(false, `a lab card threw while drawing${where}: ${e.message}`);
+    }
+  } finally {
+    for (const k of Object.keys(saved)) {
+      if (saved[k] === undefined) delete globalThis[k];
+      else globalThis[k] = saved[k];
+    }
+  }
+});
 
 check('every lab card names, in its readout, every dial it offers', () => {
   // A readout that does not name a field is quietly proposing to delete it:
@@ -8863,7 +9008,7 @@ check('the leap reaches the renderer: lift consumed, shadow grounded', () => {
   const render = readFileSync(join(here, 'render.js'), 'utf8');
   assert(/view\.leapFor\s*\?\s*view\.leapFor\(kitty\.id\)/.test(render),
     'render.js never asks the view for the leap');
-  assert(/y:\s*y \+ box\.dy\s*-\s*leapLift/.test(render),
+  assert(/y:\s*y \+ box\.dy \+ leanY\s*-\s*leapLift/.test(render),
     'the lift never reaches the cat\'s draw anchor');
   assert(/VIEW\.pounceLeap/.test(render), 'the lift ignores its dial');
 });

@@ -1640,15 +1640,15 @@ const KITTY_BIOS = {
     name: 'Kittybear',
     epithet: 'Tidy Kitty',
     body: 'Setting the record for most baths, Kittybear firmly believes caring '
-      + 'for someone looks like washing them. Lets out a small \u2018mew\u2019 '
-      + 'to let the other cats know she\u2019s headed off on her own.',
+      + 'for someone looks like washing them. Lets out a small \'mew\' '
+      + 'to let the other cats know she\'s headed off on her own.',
   },
   // Owner copy, 2026-08-22 (replaces the 2026-08-15 placeholder).
   5: {
     name: 'Clementine',
     epithet: 'Cuddly Kitty',
     body: 'Came into the world wanting to be near somebody. Non-stop napping, '
-      + 'cuddles, and baths is Clementine\u2019s idea of a perfect day! The '
+      + 'cuddles, and baths is Clementine\'s idea of a perfect day! The '
       + 'newest addition to the meadow.',
   },
 };

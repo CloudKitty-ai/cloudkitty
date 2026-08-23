@@ -162,6 +162,13 @@ const SCENE_POSE = {
  */
 function poseFor(kitty, moved, onWater = false, chaseDist = null, dials = VIEW) {
   const action = kitty.last_action?.action;
+  // Groom names its pose by TARGET: washing a friend on the adjacent tile
+  // is a different silhouette from washing yourself (GROOM-OTHER-EDITS),
+  // and the target id rides last_action on every tick of the scene, so
+  // this is memoryless like everything else here.
+  if (action === 'groom') {
+    return kitty.last_action.target != null ? 'grooming-other' : 'grooming';
+  }
   const acted = ACTION_POSE[action];
   if (acted) return acted;
   // Play is never gated: every targeted Play is adjacent by lawfulness
@@ -1674,6 +1681,11 @@ class WorldRenderer {
     // separation IS the airborne read. Read defensively: a view without
     // the method ships this inert (the axial-whip lesson).
     const leap = v2Motion && view.leapFor ? view.leapFor(kitty.id) : null;
+    // The groom lean: a grounded slide, so unlike the leap's lift it moves
+    // the shadow WITH the cat.
+    const lean = v2Motion && view.leanFor ? view.leanFor(kitty.id) : null;
+    const leanX = lean ? lean.dx * this.tile : 0;
+    const leanY = lean ? lean.dy * this.tile : 0;
     const leapLift = leap ? leap.lift01 * (VIEW.pounceLeap?.liftFrac ?? 0) * this.tile : 0;
 
     // A soft shadow so cats sit on the grass rather than float above it --
@@ -1708,8 +1720,8 @@ class WorldRenderer {
       ctx.fillStyle = MEADOW.groundShadow;
       ctx.beginPath();
       ctx.ellipse(
-        cx + offset,
-        cy + this.tile * 0.32,
+        cx + offset + leanX,
+        cy + this.tile * 0.32 + leanY,
         halfWidth,
         this.tile * 0.12 * kScale,
         0,
@@ -1800,8 +1812,8 @@ class WorldRenderer {
       rig,
       turn,
       layout,
-      x: x + box.dx,
-      y: y + box.dy - leapLift,
+      x: x + box.dx + leanX,
+      y: y + box.dy + leanY - leapLift,
     };
     if (tween?.blend) {
       drawCatTween(ctx, {
