@@ -173,3 +173,71 @@ Harness 279 motion / 88 meadow, every new mechanism seen red first.
   margin everywhere.
 - Dial pass per house method; consider a seed change for an independent
   generation.
+
+## Re-census on the LIVE world — 2026-08-22, after the Biscuit 2.0 cutover
+
+The owner asked for the stats again now that Biscuit 2.0 is seated
+("she wanders a lot more"). Two independent windows captured from the
+**served** world (`wss://kitties.ai/ws`, ticks 143174+ and 143520+) —
+350 ticks (4.7 min) and 900 ticks (12 min) — replayed through the
+deployed `Camera` at 8 frames/tick. Tooling now committed beside the
+older sampler: `client-measurements/camera-aim/live-sample.mjs` and
+`acceptance-replay.mjs` (the T026 replay plus the two calm statistics
+the dial pass reported; every pre-existing formula carried over
+unchanged).
+
+**Read the comparison with its confound in view.** The banked numbers
+came from a LOCAL `--fresh` world on the *previous* roster; this is the
+served generation on the *current* one. Roster and generation moved
+together, so this is "what the camera does on the world she is watching",
+not a clean A/B of Biscuit 2.0. The two windows agree with each other,
+so the desktop result is not a sampling artefact.
+
+| Desktop (1000px) | T026 banked | 350t | 900t |
+|---|---|---|---|
+| SC-001 rest | 78% | **54%** | **54%** — **MISS** (bar ≥ 60%) |
+| ticks fully still | 74% | 47% | 48% |
+| median calm spell | 4.8s | 1.5s | 2.3s (longest 30.8s) |
+| SC-003 re-framing | 1.93/min | 1.50 | **1.17** — PASS, better |
+| corrections | (~6.6 implied) | 7.93 | 6.33 |
+| SC-004 size | 1.51× | 1.36× | **1.51×** — PASS |
+| SC-005 maximal / mean | 85% / — | 99% / 4.69 | **96% / 4.57** — PASS |
+| SC-002 ≥2 framed | 100% / 0 | 100% / 0 | 100% / 0 |
+
+| Phone (380px) | T026 banked | 350t | 900t |
+|---|---|---|---|
+| SC-001 rest | 79% | 83% | **79%** — unchanged |
+| median calm spell | — | 5.5s | 4.7s (longest 56.7s) |
+| SC-003 re-framing | 2.36/min | 1.71 | **1.75** — PASS |
+| SC-004 size | 1.75× | 1.75× | **1.75×** |
+| SC-002 zero-kitty | 1 (exempted) | 0 | 3, **all inside one eased shed** (progress 0.05–0.15) — covered by the transit exemption |
+
+**Mechanism, and it is not thrash.** Membership churn went DOWN (1.93 →
+1.17/min); what rose is the gentle in-shot correction. The clowder is
+now tight — mean bounding span 6.5 tiles, within 8 tiles on 69% of ticks
+— so a single legal shot holds nearly everyone: mean framed 3.27 → 4.57,
+maximal-or-tied 85% → 96%. Five cats milling inside one frame press the
+safe zone almost continuously, and each press buys a 2s eased
+correction; ~6.3/min of those is the whole calm budget. The camera is
+not hunting between shots, it is drift-following a crowd it is
+successfully holding.
+
+**Per-cat, 12 min.** Biscuit is not the biggest mover by step count —
+she steps on 36% of ticks against Pumpkin's 40% — but her *mix* is
+distinct: chase 34% + play 29%, i.e. 63% of ticks in bursty pursuit,
+roaming 14x8 tiles. Pumpkin roams widest (18x17). So the owner's read is
+real, but the camera cost comes from group COHESION more than from any
+one cat's mileage.
+
+**Open for the owner** — the calm/interest trade is now live, and her own
+SC-005 ruling ("~3 is the target") sits against a measured mean of 4.57:
+
+1. `safeZoneFrac` 0.88 → ~0.92 — a wider deadzone before a press counts.
+   Most directly aimed at the corrections that cost the calm.
+2. `pressDwellTicks` 3 → 5 — more persistence before correcting; the
+   lever she already used once at T026.
+3. Structural: stop ADMITTING once the shot holds ~3 (a good-enough
+   rule), trading maximal-or-tied% for calm. This is the one that matches
+   her stated target and the one that needs a spec amendment.
+
+No dial was moved on the strength of this measurement.
