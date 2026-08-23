@@ -1812,51 +1812,6 @@ check('the seat rests on the ground at every point of the breath', () => {
   }
 });
 
-check('GROOM.seated=false is the drawing that shipped, recorded not remembered', () => {
-  // Recorded from the origin/main build (#290, 2026-08-22) at default dials
-  // -- the real pipeline output, not hand-derived numbers. The branch exists
-  // solely so the lab's before/after column shows the cat that actually
-  // shipped; the moment it drifts it is a hybrid and the comparison lies.
-  // Both the flag and this check are deleted together once the seated pose
-  // is accepted.
-  const SHIPPED = {
-    0: { body: { cx: 0.48, cy: 0.6295, rx: 0.33, ry: 0.2205, rot: 0 },
-      head: { cx: 0.56, cy: 0.41949999999999993, r: 0.215 }, eyes: 'closed', pawUp: true,
-      legs: [{ x: 0.26, hx: 0.26, top: 0.7494999999999999, bottom: 0.88, w: 0.1, far: true },
-        { x: 0.26, hx: 0.26, top: 0.7494999999999999, bottom: 0.88, w: 0.1, far: false }],
-      tail: { x0: 0.16, y0: 0.6094999999999999, c1x: 0.03, c1y: 0.5894999999999999,
-        c2x: 0.01, c2y: 0.42949999999999994, x1: 0.06, y1: 0.32949999999999996 } },
-    0.4: { body: { cx: 0.48, cy: 0.6295, rx: 0.33, ry: 0.2205, rot: 0 },
-      head: { cx: 0.56, cy: 0.4309126781955418, r: 0.215 }, eyes: 'closed', pawUp: true,
-      legs: [{ x: 0.26, hx: 0.26, top: 0.7494999999999999, bottom: 0.88, w: 0.1, far: true },
-        { x: 0.26, hx: 0.26, top: 0.7494999999999999, bottom: 0.88, w: 0.1, far: false }],
-      tail: { x0: 0.16, y0: 0.6094999999999999, c1x: 0.03, c1y: 0.5894999999999999,
-        c2x: 0.01, c2y: 0.42949999999999994, x1: 0.06, y1: 0.32949999999999996 } },
-  };
-  // Projected onto the fields the painter reads -- `limb` is new scaffolding
-  // the old build never carried -- and rounded so float formatting cannot
-  // fail a drawing that is the same picture.
-  const pin = (o) => JSON.stringify(o, (k, v) => (typeof v === 'number' ? +v.toFixed(12) : v));
-  const project = (L) => ({
-    body: L.body, head: L.head, eyes: L.eyes, pawUp: L.pawUp,
-    legs: L.legs.map((l) => ({
-      x: l.x, hx: l.hx ?? l.x, top: l.top, bottom: l.bottom, w: l.w, far: !!l.far,
-    })),
-    tail: L.tail,
-  });
-  CatV2.GROOM.seated = false;
-  try {
-    for (const phase of [0, 0.4]) {
-      assert(
-        pin(project(CatV2.catLayout('grooming', phase))) === pin(SHIPPED[phase]),
-        `phase ${phase}: the before/after's "before" is not the cat that shipped`,
-      );
-    }
-  } finally {
-    CatV2.GROOM.seated = true;
-  }
-});
-
 check('the seated groom carries three limbs, not two mirrored pairs', () => {
   const L = CatV2.catLayout('grooming', 0);
   assert(L.pawUp, 'the licked paw is gone');

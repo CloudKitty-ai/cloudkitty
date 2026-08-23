@@ -1833,12 +1833,6 @@ const FAR_LEGS = {
  * the limb is" and the offset stays the one place depth is stated.
  */
 const GROOM = {
-  // Is grooming a SEATED pose? Reference photos say yes and this is the
-  // shipped answer; the flag exists so a before/after column can draw the
-  // standing cat that actually shipped rather than a half-changed hybrid.
-  // Delete it -- and the `!GROOM.seated` branch in the pose -- once the
-  // seated drawing is accepted and there is nothing left to compare against.
-  seated: true,
   fore: true, // does the supporting foreleg draw at all?
   // The hind foot. Placed FORWARD, not under the rump, and that is the
   // reference's doing rather than a fudge: a seated cat rests its haunch on
@@ -2776,17 +2770,6 @@ function catLayout(pose, phase, opts = {}) {
       // derivation rather than by eye: a cat that grooms and then stands up
       // must be the same animal.
       const nod = GROOM.nod * Math.sin(phase * 3 * TAU); // one nod per lick
-      if (!GROOM.seated) {
-        // The drawing that shipped, kept only so a before/after can show it.
-        // See GROOM.seated.
-        L.body = { cx: 0.48, cy: 0.64, rx: 0.3, ry: 0.21, rot: 0 };
-        L.head = { cx: 0.54, cy: 0.42 + nod, r: 0.215 };
-        L.eyes = 'closed';
-        L.pawUp = true;
-        L.legs = withFarPair([{ x: 0.26, top: 0.76, bottom: CAT_GROUND, w: 0.1 }]);
-        L.tail = { x0: 0.16, y0: 0.62, c1x: 0.03, c1y: 0.6, c2x: 0.01, c2y: 0.44, x1: 0.06, y1: 0.34 };
-        break;
-      }
       // The seat itself. `cy + ry` is load-bearing in a way that is easy to
       // miss: `proportionLayout` PINS that sum -- it scales ry and then moves
       // cy to put the unrotated bottom back where the pose asked for it. So a
