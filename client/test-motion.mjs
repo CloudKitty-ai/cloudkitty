@@ -2023,13 +2023,16 @@ check('the lick rides its own clock, not the tick beat', () => {
     close(p.motionFor(9, pose, now).phase, p.progress(now), `${pose} left the tick clock`);
   }
   // ...and grooming does not: it rolls on groomCycleMs, seeded per cat so a
-  // clowder does not lick in unison.
+  // clowder does not lick in unison. BOTH grooms: the social pose licks on
+  // the same clock, and must not fall through to the idle scan -- an idle
+  // twitch on a cat mid-action would imply an action the engine never took
+  // (FR-008, inverted).
   const dials = { ...api.VIEW, groomCycleMs: 1600 };
-  close(
-    p.motionFor(9, 'grooming', now, dials).phase,
-    ((now + 9 * 997) % 1600) / 1600,
-    'grooming is not on the ambient lick clock',
-  );
+  for (const pose of ['grooming', 'grooming-other']) {
+    const m = p.motionFor(9, pose, now, dials);
+    close(m.phase, ((now + 9 * 997) % 1600) / 1600, `${pose} is not on the ambient lick clock`);
+    assert(Object.keys(m).join(',') === 'phase', `${pose} picked up idle-scan fields: ${Object.keys(m)}`);
+  }
   assert(
     p.motionFor(1, 'grooming', now, dials).phase !== p.motionFor(2, 'grooming', now, dials).phase,
     'two cats lick in unison -- the seed is gone',

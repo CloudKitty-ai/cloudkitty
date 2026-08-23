@@ -1979,7 +1979,7 @@ class Presentation {
     if (isAction) return { phase: this.progress(now) };
 
     const seed = id * 997;
-    if (pose === 'grooming') {
+    if (pose === 'grooming' || pose === 'grooming-other') {
       // The lick rides its OWN clock. On the tick beat it nodded three
       // times per 800ms and read dog-like (owner, 2026-08-22); a cat is
       // slower, and a lick has no reason to sync to world ticks. Rolls on
