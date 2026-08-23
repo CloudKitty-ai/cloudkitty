@@ -1465,3 +1465,55 @@ hunt).
 **Re-verify when**: the census header lands (check the stamp against
 a deliberate dirty-tree run); any future raw fails byte-repro with
 the stamp present.
+
+## F-029 · active · A reader rule copied from the wrong contract shape reports a category that cannot exist
+
+Found 2026-08-22, minutes after the Biscuit 2.0 deploy, when the
+owner said she could see substantial critter play and the G5 census
+reported `kitty 625 / solo 4` for that seat — no critters at all.
+The owner was right and the instrument was wrong.
+
+1. **The bug**: `live_census.py`'s play classifier branched on
+   `act.get("id")`, per the 001 http-api contract's action shape
+   `{"action":"chase","target":"element","id":12}`. But
+   `/events/activity` carries the ACTIVITY shape, where the target
+   is nested: `{"state":"playing","target":{"target":"element",
+   "id":11449}}`. `act.get("id")` is therefore always None, the
+   element branch was dead code, and `target is not None` swept
+   every element play into the `kitty` bucket. The instrument could
+   not emit a bug or greeble count under any world state — the
+   category it was built to measure was unreachable.
+2. **What it falsified**: the "zero critter play" line carried from
+   2026-08-18 through the bugs-2.0 freeze packet. Re-cutting the
+   retained raw events with the fixed rule shows element play in
+   EVERY re-cuttable census: 18 events (22037), 15 (25325), 22
+   (26221 — the freeze packet), 20 (27089), 14 (27729). The freeze
+   packet's headline "bug 0/greeble 0 ALL seats" is false, and its
+   companion claim "Clementine kitty-partnered 87/87 — duet outbids
+   bug, designed ordering" inverts: in that window scripted
+   Clementine played 14 element vs 12 kitty.
+3. **What survived**: the finding the zero was recruited to support
+   — that welfare-learners barely hunt — holds in the corrected
+   numbers (learner seats: 0–6 element events per window against
+   40–105 solo-play events), and the skill-moat EV analysis came
+   from a different instrument (the engine-native chase census) and
+   is untouched. The direction of the post-seating result is
+   unchanged and larger than first reported: Biscuit 2.0 reads 448
+   element vs 177 kitty in its first census — ~197 element plays
+   per 1k ticks against ~3 for the seat's predecessor.
+4. **The generalization**: an absent category in a summary is not
+   evidence of absence until the instrument has been shown able to
+   emit it. A zero that a tool structurally cannot exceed reads
+   exactly like a measured zero, and it survives review because
+   every downstream reader sees a plausible number. Sibling of the
+   client-side lesson: when a measurement says "impossible" and the
+   owner can see the thing, measure the other end of the function.
+
+**Guard**: the classifier now has a synthetic red/green unit check
+(element → kind, expired element, kitty, solo) that fails on the old
+rule; element ids resolve through a running id→kind map because bugs
+expire out of `/world` mid-census.
+
+**Re-verify when**: any engine change touches the activity JSON
+shape; any future census reports a flat zero in a category (re-run
+the unit check before banking the claim).

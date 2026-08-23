@@ -43,7 +43,7 @@ def get(path):
 
 
 def main():
-    polls, events = [], {}
+    polls, events, el_kind = [], {}, {}
     n_polls = max(1, (DURATION_MIN * 60) // INTERVAL_S)
     start_tick = None
     for i in range(n_polls):
@@ -69,6 +69,9 @@ def main():
              "happiness": k["happiness"],
              "activity": k["activity"]} for k in kitties],
             "welfare": welfare})
+        for el in world.get("elements", []) or []:
+            if el.get("id") is not None:
+                el_kind[el["id"]] = el.get("kind", "?")
         evs = acts if isinstance(acts, list) else acts.get("events", [])
         for e in evs:
             key = (e["kitty_id"], e["started"],
@@ -91,17 +94,25 @@ def main():
             if isinstance(tgt, int):
                 groom[(e["kitty_id"], tgt)] += 1
         elif state == "playing":
-            # Reader rule (specs/001 contracts): `id` present => `target`
-            # is the element KIND; bare target => kitty id; neither =>
-            # solo. Added 2026-08-18 (owner ask): the bug-play baseline
-            # for the post-seating Biscuit-2.0 comparison.
+            # Reader rule — the ACTIVITY shape, not the action shape.
+            # /events/activity nests the target: {"target": "element"|
+            # "kitty", "id": N}; absent target = solo play. (The flat
+            # {"action":"chase","target":"element","id":12} in the 001
+            # http-api contract is `last_action`; reading THAT rule
+            # here silently bucketed every element play as "kitty" —
+            # F-029, fixed 2026-08-22.) Element ids are resolved to
+            # kinds through the running element map, since bugs expire
+            # out of /world before the census ends.
             tgt = act.get("target")
-            if act.get("id") is not None:
-                play[e["kitty_id"]][str(tgt)] += 1
-            elif tgt is not None:
+            if isinstance(tgt, dict) and tgt.get("target") == "element":
+                kind = el_kind.get(tgt.get("id"), "element(expired)")
+                play[e["kitty_id"]][kind] += 1
+            elif isinstance(tgt, dict) and tgt.get("target") == "kitty":
                 play[e["kitty_id"]]["kitty"] += 1
-            else:
+            elif tgt is None:
                 play[e["kitty_id"]]["solo"] += 1
+            else:
+                play[e["kitty_id"]][f"unknown:{tgt}"] += 1
 
     cosleep = Counter()
     near = defaultdict(list)
