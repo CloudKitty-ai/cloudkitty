@@ -33,6 +33,20 @@ change.
 
 ## Unreleased
 
+- Grooming a friend finally looks like grooming a friend. The engine has
+  served social grooming all along — one cat washing another on the next
+  tile — and the client drew it with the self-groom pose, so the meadow's
+  whole closeness economy was invisible: a cat appeared to wash itself
+  while its need for company quietly dropped. It now has its own pose,
+  seated like the self-groom but turned outward, both forepaws down and
+  the neck reaching, with a real end-on drawing for the north and south
+  pairs (where most grooming actually happens) and a small eased lean
+  toward the friend, so the two cats touch. The lean settles back as she
+  sits up when her friend wanders off — which the friend is free to do at
+  any moment, since only the groomer is ever in the activity.
+  Presentation only: no protocol or engine change, and every cat stays
+  exactly one tile where the world thinks she is.
+
 - The grooming pose is finally a cat sitting down: rebuilt seated from the
   owner's photo reference (GROOM-EDITS) — rump resting on the grass by
   construction at any tilt or breath, chest raised, head bent to the paw,

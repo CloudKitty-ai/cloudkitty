@@ -817,6 +817,47 @@ pan/zoom controls." Scope sketch, to be specced when picked up:
 - Spec-first when picked up (engine untouched; client-only, but it is a
   public interaction surface — new spec, not an 038 amendment).
 
+### Custom north/south groom animations (added 2026-08-22; owner: design is on it)
+
+Social grooming shipped v1 with a real end-on treatment, not a fallback —
+`grooming-other` is in `AXIAL_POSES`, and the axial branch in `applyAxial`
+carries its own seated body, the near/far head-size depth cue, four legs
+and the two tail routings. That is where a custom drawing lands when
+Design delivers: replace the branch's geometry, keep `clampAxialHead`'s
+two floors (skull share above the shoulders, tail tip clear of the
+finished head) unless the new drawing makes them moot.
+
+Read the coupling note in `GROOM_OTHER` before touching any of it:
+`axialTailUpY`, `axialTailClearHead`, `axialHeadWide` and `axialHeadShow`
+interact, and three separate rounds lost the rear tail cue to exactly
+that. The lab's groom-other card draws all three views at once for this
+reason. N/S is the MAJORITY case (54% of groom targets), so it is worth
+the custom art.
+
+Also still first-cut and dialable after a live look: `VIEW.groomLean`
+(0.22 tiles, 450ms) — judged in the lab at full lean, never yet watched
+easing in and out on the served world.
+
+### Four paws at phone sizes: the seated poses need a haunch mass (added 2026-08-22; from GROOM-OTHER-EDITS; owner's call)
+
+Design measured it at the delivered defaults: the seated poses hold four
+readable paws from roughly 70px up, and below that the leg band merges
+into one mass (side hind 2.1–2.8px and a 1.0px margin at 50px, against
+lab floors of 6px to read as a leg and 3px as a paw). Four limbs have to
+fit in 0.17 of a box between where the hind pair clears the body and
+where the chest ends — the one-ellipse seat's ceiling, not an untuned
+dial. Separating them at 50px needs a haunch mass so the belly can sit
+higher, which is an addition rather than a tweak. Self-grooming hit the
+same wall. NOT resolved silently: the owner decides whether the phone
+band is worth the new geometry.
+
+### SIT.hindX leaves two illegible legs (added 2026-08-22; from GROOM-OTHER-EDITS; owner's call)
+
+Carried over from the sit pass and unresolved: at `SIT.hindX 0.5` two of
+sit's legs measure 2.5px and 3.7px at 120px. Design reports 0.53–0.54
+buys them back. The current value was judged by eye, so moving it is the
+owner's call rather than a fix.
+
 ### Phone controls get the developer-menu treatment (added 2026-08-21; owner's ask; after the desktop d-menu)
 
 The desktop footer now hides its developer toggles behind `d` (greebles,
