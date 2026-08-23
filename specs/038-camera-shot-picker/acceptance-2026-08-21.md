@@ -241,3 +241,62 @@ SC-005 ruling ("~3 is the target") sits against a measured mean of 4.57:
    her stated target and the one that needs a spec amendment.
 
 No dial was moved on the strength of this measurement.
+
+### Follow-up: what the structural option would actually take — 2026-08-22
+
+Asked what the "stop admitting at ~3" option looks like. Measured on the
+same 900-tick capture, and **the option as stated is inert on this
+world**:
+
+- **Groups are atomic to the shot.** `bestWindowFor` admits a seed group
+  WHOLE (its own comment: "even when it alone overflows") and then grows
+  by whole groups while the union still fits the ceiling. No stopping
+  rule can shoot fewer cats than one group holds.
+- **One group usually holds nearly everyone.** At the shipped
+  `linkTiles: 5`, the clowder is a SINGLE group on 61% of ticks, and a
+  group of ≥4 exists on 79%.
+- Simulated both readings — splitting oversized groups, and stopping the
+  greedy growth at `enough` while preferring the tightest window — and
+  mean framed moved 4.57 → 4.53 → 4.51 (stop-at-2). Rest and calm moved
+  by a point. It never binds.
+- Lowering `linkTiles` does not rescue it: at L=3 a ≥4 group still exists
+  on 64% of ticks, and the 2026-08-20 finding (identity survives minutes
+  at L=5) says a smaller L trades this for flickering identity — i.e.
+  more churn, which is what `shedDwellTicks` exists to suppress.
+
+So the real structural change is **letting a shot be a SUBSET of a
+group** — the grammar's unit stops being the group and becomes a cat
+set. That needs a new selection objective (which three?), its own
+membership hysteresis (today stability is free, inherited from group
+identity; a subset has none, so the flap problem returns one level down),
+a rule for the "why is she cut off?" case when an excluded cat stands
+beside an included one, and amendments to FR-003, SC-005 and the grammar
+contract.
+
+**And it would not fix the thing being complained about.** The corrections
+come from the HOLD, not from the shot's size: a three-cat shot still
+chases its three cats. The dials say so directly — same capture, desktop,
+shipped `Camera` with dials injected:
+
+| config | rest | ticks still | median calm | corr/min | re-fr/min | size | member outside | zero-kitty |
+|---|---|---|---|---|---|---|---|---|
+| shipped (0.88 / 3) | 54% | 48% | 2.3s | 6.3 | 1.17 | 1.51× | 1% | 0 |
+| **safeZoneFrac 0.92** | **81%** | **77%** | **4.4s** | 4.0 | 1.17 | 1.51× | 2% | 0 |
+| safeZoneFrac 0.95 | 82% | 79% | 4.4s | 3.8 | 1.17 | 1.51× | 2% | 0 |
+| pressDwellTicks 5 | 57% | 51% | 3.0s | 6.0 | 1.17 | 1.51× | 1% | 0 |
+| pressDwellTicks 8 | 59% | 53% | 3.0s | 5.7 | 1.17 | 1.51× | 1% | 0 |
+| 0.92 / 5 | 82% | 78% | 4.7s | 3.8 | 1.17 | 1.51× | 2% | 0 |
+| 0.95 / 8 | 83% | 79% | 6.3s | 3.6 | 1.17 | **1.36×** | 2% | 0 |
+
+`safeZoneFrac` 0.88 → 0.92 alone restores rest to 81% and the median calm
+spell to 4.4s — past the T026 baseline (78%, 4.8s) on rest, level on calm
+— with size unchanged at 1.51×, zero empty frames, and shot members
+drawn outside the frame rising only 1% → 2% of frames. **More patience
+barely helps** (pressDwell 8 buys 5 points) and that is the diagnosis:
+with five cats inside one frame the safe zone is under near-continuous
+pressure, so the press is persistent rather than transient. A wider
+deadzone answers a persistent press; a longer dwell does not. 0.95/8
+buys another 1.6s of calm but costs size (1.51× → 1.36×).
+
+Replay numbers only — the feel is the owner's call live, per T026. No
+dial moved.
