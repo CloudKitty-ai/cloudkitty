@@ -184,3 +184,36 @@ Sociality (spacing, activity budget, pairing); Robustness
 (composition sensitivity — always state the company measured in).
 Update on new measurement, supersede by strikethrough + note, never
 silently rewrite a measured claim.
+
+**⚠ CORRECTION 2026-08-23 (F-029) — the "bug 0 · greeble 0" lines
+above are an instrument artifact, not a measurement.**
+`live_census.py` classified play targets by the 001 http-api
+contract's ACTION shape while `/events/activity` carries the nested
+ACTIVITY shape, so every critter play landed in the `kitty` column
+and the tool could not emit a bug count under any world state
+(registered F-029; fixed + guarded at main e02cf93).
+
+- **First post-deploy read (ticks 22,037–22,663)** re-cut from its
+  own retained raw events: solo 257 · kitty **46** · element **18**
+  (Clementine 18 kitty / 9 element; Pumpkin 13/6; Kittybear 7/1;
+  Miso 7/0; Biscuit-e004 1/2). The published "kitty 64" equals
+  46 + 18 exactly. So "kitty-partnered 27/27" for Clementine is
+  really 18 kitty + 9 element, and the "designed ordering — duet
+  outbids bug" conclusion drawn from it does not follow.
+- **Zero-play baseline (ticks 20,676–21,301, and its 20,676–20,978
+  sub-window)**: that run predates raw-event retention, so it
+  CANNOT be re-cut. Its "bug 0 · greeble 0" is unverifiable rather
+  than disproven — and since every re-cuttable census from this
+  roster shows element play, treat it as presumed nonzero. The
+  a-fortiori sub-window argument recorded above inherits the same
+  defect: it preserved a number the instrument could not have
+  produced otherwise.
+- **What still holds**: the policy seats' near-absence of critter
+  play relative to solo play (1–6 element vs 45–96 solo here) —
+  the F-019 erosion reading is unchanged in direction.
+- **The post-cutover picture is different in kind**: the first
+  Biscuit 2.0 census (ticks 143,222–145,500, after the boundary at
+  125,349) reads **element 448 vs kitty 177** at the Biscuit seat —
+  roughly 197 element plays per 1k ticks against ~3 for the e004
+  mind that held the seat. A properly-classified census on the new
+  roster supersedes this section for live-play questions.

@@ -71,3 +71,49 @@ genuine play datum come from exp-006a's Biscuit 2.0 — first in
 training curves, then, if it certifies and seats, live. The
 sequence is unblocked: corpus re-collection next, then 006a
 re-derivation and freeze.
+
+---
+
+## CORRECTION 2026-08-23 (F-029): the zeros above are an instrument artifact
+
+The play-target table in this doc is wrong, and the "two separate
+zeros" reading built on it does not stand. `live_census.py`'s
+classifier read the ACTION shape from the 001 http-api contract
+(`{"action":"chase","target":"element","id":12}`) while
+`/events/activity` carries the ACTIVITY shape, which nests the
+target (`{"state":"playing","target":{"target":"element","id":N}}`).
+The element branch was therefore dead code and **every critter play
+was counted in the `kitty` column** — the instrument could not emit
+a bug or greeble count under any world state. Registered as F-029,
+fixed and guarded at main e02cf93.
+
+Re-cut from this census's own retained raw events, fixed rule:
+
+| seat | solo | kitty | element | (doc's "kitty" above) |
+|---|---|---|---|---|
+| Biscuit (e004) | 302 | 13 | 3 | 16 |
+| Pumpkin (attn-s3) | 193 | 34 | 16 | 50 |
+| Kittybear (E1-s1) | 162 | 16 | 1 | 17 |
+| Miso (attn-s1) | 126 | 8 | 2 | 10 |
+| Clementine (scripted) | 0 | 53 | 34 | 87 |
+
+Every original "kitty" value equals corrected kitty + element
+exactly — the mechanism is confirmed row by row, not inferred.
+Element ids cannot be resolved to kind for this window (the running
+id→kind map arrived with the fix), so these are element plays, not
+attributed bug-vs-greeble.
+
+**What this overturns**: "bug 0 · greeble 0" on all five seats is
+false — there were 56 element plays in the span. The scripted seat's
+line — "Clementine's need-scheduled play resolves kitty-partnered
+87/87 because the duet outbids the bug" — inverts: she played
+kitty 53 / element 34, so roughly 39% of her targeted play was at
+critters. The claim that a partner is nearly always in reach may
+still hold; the ordering conclusion drawn from 87/87 does not.
+
+**What survives**: the policy seats' near-absence of critter play
+(1–16 element plays against 126–302 solo plays) supports the
+generation-property reading unchanged, and the freeze recommendation
+itself was correct for a different and better reason — the live
+numbers were not measuring what the doc claimed. The engine-native
+skill-moat EV analysis is a separate instrument and is untouched.
