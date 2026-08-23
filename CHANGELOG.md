@@ -33,6 +33,12 @@ change.
 
 ## Unreleased
 
+- Biscuit 2.0 seated: `e006a-L-04-s3`, exp-006a's lineage PPO product, takes
+  Biscuit on the owner's word (battery all gates, 89.95 vs bar 87.31), and the
+  e004 incumbent it grew from moves to Clementine — five seats, five minds, the
+  first roster with no scripted cat. A seat swap on the served world: no
+  `--fresh`, the world continues. (#291)
+
 ## v2.9 — 2026-08-21 — the phase-1 world goes live, and the hunt becomes worth having
 
 - **Someone is standing at the window now.** The serving welfare

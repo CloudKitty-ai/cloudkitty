@@ -21,13 +21,13 @@ save_every_ticks = 100
 
 # The roster. At least two kitties, always (Article III: kitties cannot be alone).
 # `behavior` picks a strategy: "needs_driven", "playful", or "policy:<name>"
-# via the matching [rl.policy.<name>] block. PHASE-1 SEATED (2026-08-21):
-# the spec-033 wall closes here. Four seats run schema-4 artifacts — the
-# three surface-expanded incumbents (spec 035) plus e006-E1-s1 — and
-# Clementine runs scripted this phase (owner's interim-roster ruling;
-# Biscuit 2.0 waits on the bugs-2.0 sequence). Certified as a composition
-# in experiments/exp-006-character-gen/results/deploy-battery-2026-08-21.md;
-# the rollout serving this roster is a --fresh (standing phase-1 rule).
+# via the matching [rl.policy.<name>] block. FIVE SEATS, FIVE MINDS
+# (2026-08-22, owner's seating word): Biscuit 2.0 (e006a-L-04-s3) takes
+# Biscuit's seat and the e004 incumbent moves to Clementine — the first
+# roster with no scripted seat. Certified as this exact composition in
+# experiments/exp-006a-biscuit-corner/battery-2026-08-22.md (all gates).
+# A seat swap on the served world: the world fingerprint doesn't move, so
+# no --fresh is needed (deploy stays the owner's restart, her call).
 
 [[kitty]]
 id = 1
@@ -50,10 +50,13 @@ id = 2
 name = "Biscuit"
 x = 16
 y = 15
-# The exp-004 incumbent, carried onto the schema-4 surface (spec 035) and
-# keeping its own seat: its responder culture is why every roster since
-# candidate B has kept it. Biscuit 2.0 arrives with the bugs-2.0 sequence.
-behavior = "policy:e004-a1-s2-o4"
+# BISCUIT 2.0 (seated 2026-08-22, owner's word): e006a-L-04-s3, the
+# exp-006a lineage PPO product — BC-cloned from this seat's e004
+# incumbent, then trained on the bugs-2.0 world. Battery 89.95 vs the
+# owner's bar 87.31, G3 character fingerprint PASS (experiments/
+# exp-006a-biscuit-corner/battery-2026-08-22.md, all gates). The e004
+# incumbent it grew from moves to Clementine.
+behavior = "policy:e006a-L-04-s3"
 # The 3-dial character vector (owner-locked 2026-08-15 trait sheets;
 # certification world constructed per prereg D-003 — the served config
 # plus exactly the three sheets the wall rider deferred).
@@ -107,14 +110,15 @@ x = 10
 y = 16
 # THE FIFTH CAT (spec 033 wall rider; comms Gen-B thesis: with five cats
 # and three observation slots, someone is always unslotted -- want-meows
-# carry real signal). Scripted THIS PHASE by the owner's interim-roster
-# ruling — a policy mind frees up for her at bugs-2.0+; adding this id
-# moves the world fingerprint, so the rollout that first serves this
-# roster is a --fresh. Her look (the designed white cat) is a
-# client-side palette override. Trait vector owner-final, 3-dial: cuddlier,
-# lighter on play and bath (verified -0.07 vs trait-flat under policy
-# company -- the parity band); stage-3 mortal like Pumpkin's.
-behavior = "needs_driven"
+# carry real signal). SEATED 2026-08-22 (owner's word), keeping the
+# interim-roster ruling's promise that a policy mind frees up for her at
+# bugs-2.0+: the e004 MLP incumbent moves here from Biscuit's seat.
+# Battery 94.81 vs the scripted bar 90.10 (battery-2026-08-22.md). Her
+# look (the designed white cat) is a client-side palette override. Trait
+# vector owner-final, 3-dial: cuddlier, lighter on play and bath
+# (verified -0.07 vs trait-flat under policy company -- the parity band);
+# stage-3 mortal like Pumpkin's.
+behavior = "policy:e004-a1-s2-o4"
 [kitty.needs]
 cuddle = 0.7
 play = 0.3
@@ -398,18 +402,23 @@ distress_patience_ticks = 60
 # Artifacts live in the committed policies/ directory (owner decision
 # 2026-07-31); the README there maps each file to its sha256, its
 # certification record, and the naming convention these keys follow.
-# The phase-1 generation (seated 2026-08-21, closing the spec-033 wall).
-# Three seats are the pre-wall incumbents carried onto the schema-4
-# surface by ckpolicy-expand (spec 035): same minds, proven twice over —
-# structural attestation at expansion plus the bit-exact parity leg in
-# Experiments' acceptance (expansion-acceptance-2026-08-17.md). The
-# fourth, e006-E1-s1, is exp-006's E-arm PPO product (actor-only export;
-# forward parity vs the measured torch actor 7.8e-05 max logit delta).
-# The composition certified whole: experiments/exp-006-character-gen/
-# results/deploy-battery-2026-08-21.md (G2b +0.0321 over the fresh
-# anchor; G2d every seat ≥ 94.66 vs bar 94.05; iii/r3 clean). Greedy
-# selection throughout, matching the measured condition. Sources retired
-# to policies/retired/ with their records; shas + provenance in
+# The phase-1 generation (seated 2026-08-21, closing the spec-033 wall),
+# plus the 2026-08-22 Biscuit 2.0 seating. Three seats are the pre-wall
+# incumbents carried onto the schema-4 surface by ckpolicy-expand (spec
+# 035): same minds, proven twice over — structural attestation at
+# expansion plus the bit-exact parity leg in Experiments' acceptance
+# (expansion-acceptance-2026-08-17.md). e006-E1-s1 is exp-006's E-arm
+# PPO product (actor-only export; forward parity vs the measured torch
+# actor 7.8e-05 max logit delta). e006a-L-04-s3 is exp-006a's lineage
+# PPO product (plain-V4 export, parity 2.29e-05 over 2,000
+# certification-world obs rows); with it seated, the e004 incumbent
+# moves from Biscuit to Clementine. Certified whole, twice:
+# experiments/exp-006-character-gen/results/deploy-battery-2026-08-21.md
+# for the phase-1 seating, experiments/exp-006a-biscuit-corner/
+# battery-2026-08-22.md for this roster (all gates; Biscuit 89.95 vs bar
+# 87.31, Clementine-e004 94.81 vs scripted bar 90.10). Greedy selection
+# throughout, matching the measured condition. Sources retired to
+# policies/retired/ with their records; shas + provenance in
 # policies/README.md and policies/registry.toml (spec 034 rows in this
 # same change, per the same-PR rule).
 [rl.policy.attn-a1-s1-o4]
@@ -423,6 +432,9 @@ artifact = "policies/e004-a1-s2-o4.ckpolicy"
 
 [rl.policy.e006-E1-s1]
 artifact = "policies/e006-E1-s1.ckpolicy"
+
+[rl.policy.e006a-L-04-s3]
+artifact = "policies/e006a-L-04-s3.ckpolicy"
 
 # The serving welfare watchdog (spec 040) — a standing, read-only watch
 # over every cat's distress ages, the layer F-027 proved was missing: a
