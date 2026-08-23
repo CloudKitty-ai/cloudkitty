@@ -14,7 +14,7 @@
    assertion you add, modify, or cite as evidence: introduce the exact
    bug it should catch, at the cheapest layer that exercises it. Predict
    the failure first — green, wrong assertion, or wrong reason means
-   unverified. Undo; confirm green. Three lies survive this: string
+   unverified. Undo; confirm green. Undo means revert, commit first, or ensure there’s a copy to restore from.  Three lies survive this: string
    matches (assert on state, not wording — unless the wording is the
    contract), hand-written fixtures (record real payloads), wrong layer
    (put the check where the bug occurs).
