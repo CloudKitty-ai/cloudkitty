@@ -33,6 +33,24 @@ change.
 
 ## Unreleased
 
+- The grooming pose is finally a cat sitting down: rebuilt seated from the
+  owner's photo reference (GROOM-EDITS) — rump resting on the grass by
+  construction at any tilt or breath, chest raised, head bent to the paw,
+  tail behind, three limbs reading by design. The lick also left the tick
+  beat for its own slower clock (three nods per 1.6s; the beat rate read
+  dog-like), seeded per cat so the clowder never washes in unison.
+- Every kitty has her own drawn size now, owner-curated for the Biscuit 2.0
+  roster: Biscuit the playful kitten at 0.92, snacky Pumpkin at 1.06, the
+  rest within a whisker of 1. Presentation only — feet stay on the ground
+  line, the logical footprint stays one tile — and judged in a new clowder
+  card in the gallery.
+- New "about" copy for all five cats (owner copy, verbatim), matching the
+  new roster's story.
+- Toggling the camera off and back on while following a cat now starts the
+  zoom-in immediately instead of sitting on the wide view for a couple of
+  seconds — the viewer's own toggle waives the press dwell that keeps the
+  camera patient about noise.
+
 - Biscuit 2.0 seated: `e006a-L-04-s3`, exp-006a's lineage PPO product, takes
   Biscuit on the owner's word (battery all gates, 89.95 vs bar 87.31), and the
   e004 incumbent it grew from moves to Clementine — five seats, five minds, the
