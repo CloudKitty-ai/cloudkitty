@@ -858,7 +858,7 @@ sit's legs measure 2.5px and 3.7px at 120px. Design reports 0.53–0.54
 buys them back. The current value was judged by eye, so moving it is the
 owner's call rather than a fix.
 
-### Phone controls get the developer-menu treatment (added 2026-08-21; owner's ask; after the desktop d-menu)
+### Phone controls get the developer-menu treatment — DEFERRED 2026-08-22 (owner: "let's leave the phone as is for now")
 
 The desktop footer now hides its developer toggles behind `d` (greebles,
 grid, happiness, buffering, kitty version, theme — cards/purr/d stay).
@@ -867,6 +867,12 @@ desktop version has settled: what the touch footer shows by default, and
 how a keyboardless device reaches the developer set at all (the g/l/p
 keys are keyboard-only by design — mobile-debug-toggles ruling). Scope
 when picked up.
+
+**Owner's ruling, 2026-08-22: leave the phone as is.** Not withdrawn —
+the desktop `d` menu shipped and settled (PR #290) and the reasoning
+above still holds whenever this is picked up again. Nothing about the
+phone footer is believed wrong today; it simply is not worth a pass
+right now.
 
 ### Real heatmaps replace the worn paths (added 2026-08-21; owner's ask; LOW priority)
 
