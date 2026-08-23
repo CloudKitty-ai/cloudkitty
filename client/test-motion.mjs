@@ -1934,6 +1934,34 @@ check('no lab dial writes into frozen VIEW', () => {
   assert(!/bag: VIEW\b/.test(html), 'a card dial binds frozen VIEW -- it will move and do nothing');
 });
 
+check('camera off->on starts the zoom-in at once; the dwell is for noise', () => {
+  // The toggle leaves the frame at whole-world, so the re-pick's tighten
+  // arrives as a slack press -- and a press dwell counted on 800ms tick
+  // edges held the camera dead for ~2.4s before the ease began (owner,
+  // 2026-08-22). The viewer's own toggle waives the patience, exactly as
+  // the follow-tap redirect ruling waives pan commitment.
+  const cam = new api.Camera();
+  const w = (tick) => ({ ...world(tick, [kitty(1, 3, 3), kitty(2, 4, 3), kitty(3, 16, 16)]), width: 20, height: 20 });
+  const opts = { aspect: 1, cssWidth: 1000 };
+  const live = (now) => ({ still: false, ambient: { now } });
+  cam.on = true;
+  cam.followId = 1;
+  cam.update(w(1), live(0), opts);
+  const wide = cam.across;
+  cam.on = false;
+  cam.update(w(2), live(100), opts);
+  assert(cam.across === 20 && cam.episode === null, 'off is the whole-world cut');
+  cam.on = true;
+  cam.update(w(3), live(200), opts);
+  assert(cam.shotIds && cam.shotIds.has(1), 're-enable did not re-pick the followed shot');
+  assert(cam.episode !== null, 'the tighten did not start on the first ON frame');
+  assert(cam.episode.goal.across < 20 - 1e-6, 'the episode is not a zoom-in');
+  // Eased, not snapped: one frame in, the view has barely left wide --
+  // arrival would have landed AT the goal with the episode retired.
+  assert(cam.across > cam.episode.goal.across + 1, 'the re-enable snapped instead of easing');
+  void wide;
+});
+
 check('a curated kitty size scales about the feet, centred on the tile', () => {
   // Presentation only: whatever the scale, the feet stay on the unscaled
   // tile's ground line (CAT_GROUND of the box) and the box stays centred,

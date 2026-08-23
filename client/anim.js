@@ -2954,7 +2954,13 @@ class Camera {
       this.hasDecided = false;
       this.chains = [];
       this.unfitTicks = 0;
-      this.pressTicks = 0;
+      // Pre-satisfied, not zeroed: the press dwell debounces the GRAMMAR's
+      // transient presses, and the first press after an off->on toggle is
+      // the VIEWER's own doing -- the re-pick's tighten should start easing
+      // on the first frame, not wait out a patience meant for noise (owner,
+      // 2026-08-22: "a couple second delay before the camera zooms back
+      // in"; same principle as the follow-tap redirect ruling).
+      this.pressTicks = this.dials.pressDwellTicks || 0;
       this.episode = null;
       const downOff = this.across * aspect;
       this.left = clampFrame(this.aimX - this.across / 2, world.width, this.across);
