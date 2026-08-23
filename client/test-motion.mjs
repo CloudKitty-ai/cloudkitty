@@ -8903,6 +8903,29 @@ check('a shed is a PAN at held width; the breathe-in owns the zoom', () => {
     `the breathe-in never brought the frame to the pair's fit (across ${cam.across.toFixed(2)})`);
 });
 
+check('the shipped camera dials are the ones the owner judged', () => {
+  // Pinned like PROPORTION and POUNCE: every one of these was set live on
+  // a judging pass, and nothing else in the suite would notice a silent
+  // re-dial -- the behavioural checks derive their fixtures FROM the
+  // dials (see the press spot below), which is right for them and blind
+  // for this. Re-pin deliberately, with the date and the reason.
+  const c = api.VIEW.camera;
+  close(c.linkTiles, 5, 'group link radius drifted');
+  close(c.moveMs, 2000, 'move duration drifted (owner: "twice as slow", 2026-08-21)');
+  close(c.panMs, 3000, 'pan duration drifted');
+  close(c.nearDwellTicks, 10, 'near-rival dwell drifted (calm pass 2026-08-21)');
+  close(c.farDwellTicks, 15, 'far-rival evidence drifted');
+  close(c.tightenFrac, 1.2, 'tighten drifted (calm pass 2026-08-21)');
+  close(c.pressDwellTicks, 3, 'press dwell drifted (calm pass 2026-08-21)');
+  // 0.80 -> 0.88 at the T026 calm pass -> 0.92 on 2026-08-22, after the
+  // Biscuit 2.0 cutover put nearly all five cats in one frame and rest
+  // fell to 54% against SC-001's 60% floor. Measured on 900 live ticks:
+  // rest 81%, median calm spell 4.4s, size unchanged 1.51x, no empty
+  // frames. More dwell could not fix it -- the press is persistent, not
+  // transient -- which is why this dial and not pressDwellTicks.
+  close(c.safeZoneFrac, 0.92, 'safe zone drifted');
+});
+
 check('a one-tick lean costs nothing; a real press pays at the dwell', () => {
   // Owner, 2026-08-21 (calm-spell pass): the spell-enders were instant
   // corrections for presses that did not persist. FR-007 as amended: a
@@ -8910,10 +8933,13 @@ check('a one-tick lean costs nothing; a real press pays at the dwell', () => {
   // latches from rest -- a cat leaning out and stepping back is free.
   // The FRAME EDGE and an EMPTY frame bypass all patience (SC-002
   // outranks calm).
-  // Kitty 2 anchors at x=10; kitty 1 does the pressing. At rest (x=8)
-  // the frame is [5.08, 13.93] with safe zone [5.61, 13.39]; x=13.0
-  // (centre 13.5) is outside the safe zone but INSIDE the frame, so the
-  // dwell -- not the frame-edge escape -- is what this measures.
+  // Kitty 2 anchors at x=10; kitty 1 does the pressing, from a spot
+  // DERIVED from the dials rather than written down: halfway between the
+  // safe-zone edge and the frame edge, so the press is real but the
+  // frame-edge escape never fires and the dwell is what is measured.
+  // Hardcoding it hid a vacuum once already -- at safeZoneFrac 0.92 the
+  // old x=13.0 sits INSIDE the safe zone, so the "lean" pressed nothing
+  // and the "press" earned nothing (2026-08-22 dial pass).
   const world = (t, x) => ({
     width: 20,
     height: 20,
@@ -8926,15 +8952,20 @@ check('a one-tick lean costs nothing; a real press pays at the dwell', () => {
   cam.on = true;
   cam.update(world(0, 8), camView(false, 0), { aspect: 1, cssWidth: 1000 });
   assert(cam.episode === null, 'setup: the pair should frame at rest');
+  const margin = (cam.across * (1 - api.VIEW.camera.safeZoneFrac)) / 2;
+  const frameEdge = cam.left + cam.across;
+  const pressX = (frameEdge - margin / 2) - 0.5; // tile whose CENTRE presses
+  assert(pressX + 0.5 > frameEdge - margin && pressX + 0.5 < frameEdge,
+    'the derived press spot must be outside the safe zone but inside the frame');
   // The LEAN: one tick pressed, then back inside. No correction, ever.
-  cam.update(world(1, 13.0), camView(false, 800), { aspect: 1, cssWidth: 1000 });
+  cam.update(world(1, pressX), camView(false, 800), { aspect: 1, cssWidth: 1000 });
   cam.update(world(2, 8), camView(false, 1600), { aspect: 1, cssWidth: 1000 });
   cam.update(world(3, 8), camView(false, 2400), { aspect: 1, cssWidth: 1000 });
   assert(cam.episode === null, 'a one-tick lean bought a correction');
   // The PRESS: held past the dwell -- the correction fires on the dwell
   // tick, not before it.
   for (let t = 4; t < 4 + dwell; t += 1) {
-    cam.update(world(t, 13.0), camView(false, t * 800), { aspect: 1, cssWidth: 1000 });
+    cam.update(world(t, pressX), camView(false, t * 800), { aspect: 1, cssWidth: 1000 });
     if (t - 4 < dwell - 1) {
       assert(cam.episode === null, `tick ${t - 3} of the press latched early`);
     }
