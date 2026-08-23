@@ -1,0 +1,241 @@
+{
+ "instrument": "pose_census.py",
+ "base": "https://kitties.ai",
+ "interval_s": 0.45,
+ "pounce_gate_tiles": 4,
+ "tick_range": [
+  232264,
+  232638
+ ],
+ "ticks_seen": 373,
+ "consecutive_pairs": 371,
+ "action_mix": {
+  "Miso": {
+   "groom": 37,
+   "play": 20,
+   "sleep": 101,
+   "drink": 30,
+   "move": 107,
+   "eat": 34,
+   "chase": 42,
+   "idle": 2
+  },
+  "Biscuit": {
+   "chase": 123,
+   "play": 130,
+   "idle": 38,
+   "groom": 6,
+   "drink": 10,
+   "sleep": 43,
+   "move": 15,
+   "eat": 8
+  },
+  "Pumpkin": {
+   "play": 27,
+   "chase": 41,
+   "sleep": 60,
+   "drink": 41,
+   "groom": 44,
+   "idle": 4,
+   "move": 122,
+   "eat": 34
+  },
+  "Kittybear": {
+   "groom": 47,
+   "sleep": 60,
+   "play": 44,
+   "move": 118,
+   "chase": 49,
+   "drink": 20,
+   "eat": 26,
+   "idle": 9
+  },
+  "Clementine": {
+   "chase": 24,
+   "move": 99,
+   "play": 23,
+   "sleep": 94,
+   "drink": 46,
+   "groom": 54,
+   "eat": 28,
+   "idle": 5
+  }
+ },
+ "state_mix": {
+  "Miso": {
+   "idle": 220,
+   "playing": 10,
+   "sleeping": 84,
+   "drinking": 15,
+   "grooming": 27,
+   "eating": 17
+  },
+  "Biscuit": {
+   "idle": 250,
+   "playing": 73,
+   "grooming": 5,
+   "drinking": 5,
+   "sleeping": 36,
+   "eating": 4
+  },
+  "Pumpkin": {
+   "idle": 239,
+   "sleeping": 50,
+   "drinking": 21,
+   "grooming": 33,
+   "playing": 13,
+   "eating": 17
+  },
+  "Kittybear": {
+   "grooming": 36,
+   "idle": 242,
+   "sleeping": 50,
+   "playing": 22,
+   "drinking": 10,
+   "eating": 13
+  },
+  "Clementine": {
+   "idle": 204,
+   "playing": 12,
+   "sleeping": 78,
+   "drinking": 23,
+   "grooming": 42,
+   "eating": 14
+  }
+ },
+ "pose_mix": {
+  "Miso": {
+   "pouncing": 40,
+   "sleep-curl": 100,
+   "drinking": 30,
+   "walking": 129,
+   "grooming": 36,
+   "eating": 34,
+   "idle": 2
+  },
+  "Biscuit": {
+   "pouncing": 241,
+   "idle": 38,
+   "grooming-other": 6,
+   "drinking": 10,
+   "walking": 25,
+   "sleep-curl": 43,
+   "eating": 8
+  },
+  "Pumpkin": {
+   "pouncing": 49,
+   "sleep-curl": 60,
+   "drinking": 41,
+   "grooming-other": 40,
+   "idle": 4,
+   "walking": 139,
+   "eating": 34,
+   "grooming": 4
+  },
+  "Kittybear": {
+   "grooming": 14,
+   "sleep-curl": 60,
+   "pouncing": 76,
+   "walking": 134,
+   "grooming-other": 32,
+   "drinking": 20,
+   "eating": 26,
+   "idle": 9
+  },
+  "Clementine": {
+   "pouncing": 41,
+   "walking": 104,
+   "sleep-curl": 93,
+   "drinking": 46,
+   "grooming-other": 38,
+   "eating": 28,
+   "idle": 5,
+   "grooming": 16
+  }
+ },
+ "chase_gate_split": {
+  "Biscuit": {
+   "<=4": 111,
+   ">4": 11
+  },
+  "Pumpkin": {
+   "<=4": 23,
+   ">4": 18
+  },
+  "Clementine": {
+   "<=4": 18,
+   ">4": 5
+  },
+  "Kittybear": {
+   ">4": 17,
+   "<=4": 32
+  },
+  "Miso": {
+   "<=4": 20,
+   ">4": 22
+  }
+ },
+ "chase_targets": {
+  "Biscuit": {
+   "Clementine": 32,
+   "Pumpkin": 9,
+   "bug": 16,
+   "greeble": 25,
+   "Miso": 10,
+   "Kittybear": 31
+  },
+  "Clementine": {
+   "Miso": 14,
+   "Biscuit": 8,
+   "bug": 1,
+   "Pumpkin": 1
+  },
+  "Pumpkin": {
+   "Kittybear": 18,
+   "Biscuit": 5,
+   "Clementine": 8,
+   "Miso": 9,
+   "bug": 1
+  },
+  "Kittybear": {
+   "Clementine": 3,
+   "Biscuit": 16,
+   "Pumpkin": 18,
+   "Miso": 12
+  },
+  "Miso": {
+   "Clementine": 20,
+   "Pumpkin": 9,
+   "Kittybear": 5,
+   "greeble": 4,
+   "Biscuit": 4
+  }
+ },
+ "play_targets": {
+  "Pumpkin": {
+   "solo": 23,
+   "bug": 4
+  },
+  "Miso": {
+   "solo": 18,
+   "Biscuit": 2
+  },
+  "Biscuit": {
+   "bug": 59,
+   "Clementine": 6,
+   "greeble": 40,
+   "Kittybear": 22,
+   "element(gone)": 1,
+   "Miso": 2
+  },
+  "Clementine": {
+   "solo": 16,
+   "Biscuit": 6,
+   "bug": 1
+  },
+  "Kittybear": {
+   "solo": 22,
+   "Biscuit": 22
+  }
+ }
+}
