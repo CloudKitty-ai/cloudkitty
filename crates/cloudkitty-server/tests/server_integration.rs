@@ -795,9 +795,36 @@ async fn welfare_endpoint_serves_healthy_and_distressed_shapes() {
     let arc = Arc::new(test_config());
     let mut world = World::generate(&arc);
     world.tick = 500;
+    // All three parts, because a streak is three facts that must agree:
+    // the need is over the bar, the kitty is marked distressed, and the
+    // stamp says since when. Stamping alone would describe a world the
+    // engine cannot sustain — `World::record_distress` clears both the
+    // mark and the stamp for any need under the threshold, so a
+    // stamp-only fixture is erased by reconciliation on the first tick.
+    // Omitting `in_distress` is the subtler error: `record_distress`
+    // then takes its newly-distressed branch and overwrites the stamp
+    // with the current tick, moving the age instead of dropping it.
+    world.kitties[0]
+        .needs
+        .add(cloudkitty_core::NeedKind::Play, 100.0);
+    world.kitties[0]
+        .in_distress
+        .insert(cloudkitty_core::NeedKind::Play);
     world.kitties[0]
         .distress_since
         .insert(cloudkitty_core::NeedKind::Play, 100);
+    // A tripwire on the fixture, not a claim about the watchdog: `observe`
+    // reads `distress_since` alone, so these two lines change nothing that
+    // is measured here. They are what makes the world state one the engine
+    // could actually hand us, and this assertion is what stops a later edit
+    // from quietly dropping either half again.
+    assert!(
+        world.kitties[0].needs.get(cloudkitty_core::NeedKind::Play) >= arc.thresholds.distress
+            && world.kitties[0]
+                .in_distress
+                .contains(&cloudkitty_core::NeedKind::Play),
+        "the fixture models a streak the engine would keep, not one it would reconcile away"
+    );
     let sim = sim_task::spawn(
         world,
         arc.clone(),
@@ -809,8 +836,12 @@ async fn welfare_endpoint_serves_healthy_and_distressed_shapes() {
     // task cannot have been polled yet, so this is the spawn-time
     // observation itself. Borrowing it after awaiting anything would race
     // the first tick — `interval`'s first tick completes immediately, and
-    // that tick observes a world one tick older whose streak may already
-    // have been relieved, which is how this test used to flake.
+    // that tick observes a world one tick older, ageing the streak past
+    // the assertion below (and, before the fixture above was made
+    // sustainable, erasing it outright). That is how this test flaked.
+    // The frozen surface is what makes this deterministic; a faithful
+    // fixture does not replace it, because a real streak ages and is
+    // relievable. Do not put live ticking back.
     let seeded = sim.welfare.borrow().clone();
     let published = sim.receiver.clone();
     assert!(
