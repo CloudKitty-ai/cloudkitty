@@ -2420,6 +2420,79 @@ check('every block the lab dials is actually writable', () => {
 });
 
 
+check('every lab card actually DRAWS -- the gallery survives a frame', () => {
+  // Source-level checks were never going to catch this one. The lab's cards
+  // were asserted for dials, readouts and bags, and none of that runs a
+  // single line of a `draw`. A bad splice (2026-08-22) left one card's
+  // drawing inside ANOTHER card's function, referencing a local the host did
+  // not have: `renderMotion` threw on that card and every card after it in
+  // the loop stayed blank -- and it shipped, because the suite was green.
+  //
+  // So this runs the real page: the shipped scripts plus the gallery's own
+  // inline module, against a mock DOM, for two frames. Anything a card's
+  // draw throws lands here with the card's line in the message.
+  const ctxStub = () => new Proxy({}, {
+    get: (t, k) => (k === 'canvas' ? { width: 900, height: 400 } : () => ctxStub()),
+    set: () => true,
+  });
+  const el = () => new Proxy(function () {}, {
+    get: (t, k) => {
+      if (k === 'getContext') return () => ctxStub();
+      if (k === 'value') return '1';
+      if (k === 'checked' || k === 'hidden') return false;
+      if (k === 'style') return new Proxy({}, { set: () => true, get: () => '' });
+      if (k === 'classList') return { add() {}, remove() {}, toggle() {} };
+      if (k === 'children' || k === 'childNodes') return [];
+      if (k === 'dataset') return {};
+      if (k === 'textContent' || k === 'innerHTML') return '';
+      if (['append', 'appendChild', 'prepend', 'addEventListener', 'setAttribute',
+        'removeAttribute', 'remove'].includes(k)) return () => {};
+      return el();
+    },
+    set: () => true,
+  });
+  const saved = {};
+  const stub = (k, v) => { saved[k] = globalThis[k]; globalThis[k] = v; };
+  let raf = null;
+  stub('window', globalThis);
+  stub('devicePixelRatio', 2);
+  stub('document', new Proxy({}, {
+    get: (t, k) => {
+      if (k === 'getElementById' || k === 'querySelector' || k === 'createElement') return () => el();
+      if (k === 'querySelectorAll') return () => [];
+      if (k === 'body' || k === 'documentElement') return el();
+      return () => el();
+    },
+  }));
+  stub('localStorage', { getItem: () => null, setItem() {}, removeItem() {} });
+  stub('requestAnimationFrame', (cb) => { raf = cb; return 1; });
+  stub('matchMedia', () => ({ matches: false, addEventListener() {} }));
+  stub('addEventListener', () => {});
+  try {
+    const files = ['cat.js', 'cat-v2.js', 'props.js', 'meadow.js', 'anim.js']
+      .map((f) => readFileSync(join(here, f), 'utf8')).join('\n');
+    const html = readFileSync(join(here, 'gallery-v2.html'), 'utf8');
+    const inline = html.match(/<script>([\s\S]*?)<\/script>/)[1];
+    const lead = files.split('\n').length;
+    try {
+      // eslint-disable-next-line no-eval
+      (0, eval)(`${files}\n${inline}`);
+      // The page schedules its own loop; pump it, since the first frame is
+      // where a draw runs for the first time.
+      for (let i = 0; i < 2 && raf; i += 1) { const cb = raf; raf = null; cb(100 + i * 16); }
+    } catch (e) {
+      const at = /<anonymous>:(\d+):/.exec(e.stack || '');
+      const where = at ? ` (gallery inline line ~${Number(at[1]) - lead})` : '';
+      assert(false, `a lab card threw while drawing${where}: ${e.message}`);
+    }
+  } finally {
+    for (const k of Object.keys(saved)) {
+      if (saved[k] === undefined) delete globalThis[k];
+      else globalThis[k] = saved[k];
+    }
+  }
+});
+
 check('every lab card names, in its readout, every dial it offers', () => {
   // A readout that does not name a field is quietly proposing to delete it:
   // the owner pastes back what the card printed, and the missing key reverts
