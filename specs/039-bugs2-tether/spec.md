@@ -17,6 +17,38 @@ means a duet always pays more, so making hunts cheap cannot overshoot
 into bug-grinding. The full brainstorm-and-review record lives in the
 input document and the chase census beside it.
 
+> **⚠ Correction (2026-08-23, F-029).** The Input above is preserved as
+> written; one of its premises did not survive. "Trained minds exhibit
+> essentially zero bug play (the banked zero-play baseline)" rested on
+> `live_census.py`, whose play classifier read the action shape from
+> the 001 http-api contract while `/events/activity` carries the nested
+> activity shape. Every element play was bucketed as kitty play, so the
+> instrument could not emit a bug or greeble count under any world
+> state. Registered as F-029 in `experiments/FINDINGS.md`, fixed and
+> guarded at main `e02cf93`; the records that assert numbers were
+> corrected at `1282839`.
+>
+> What it changes for this arc:
+>
+> - **The pre-bugs-2.0 numbers are unverifiable, not disproven.** The
+>   baseline behind that sentence (census ticks 20,676–21,301) predates
+>   raw-event retention and cannot be re-cut. Every re-cuttable census
+>   from that roster shows some element play, so critter play there
+>   should be read as presumed low but nonzero, never as measured zero.
+> - **The motivation stands as an assumption, and a reasoned one.** On
+>   the corrected numbers, learner seats show 0–6 element events per
+>   window against 40–105 solo-play events: welfare-learners barely
+>   hunt. That is the claim the zero was recruited to support, and it
+>   holds without it.
+> - **The pair-payment ceiling is unaffected.** It comes from the
+>   engine-native economics grid
+>   (`experiments/bugs2-grid-2026-08-21.md`), a different instrument,
+>   which F-029 leaves untouched.
+>
+> No shipped mechanic depends on the retracted number. This arc's gates
+> were measured on the chase-census instrument (SC-007) and the
+> economics grid, not on the live-play classifier.
+
 ## Clarifications
 
 ### Session 2026-08-21
