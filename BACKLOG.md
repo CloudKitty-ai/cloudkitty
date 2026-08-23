@@ -35,11 +35,26 @@ than as a special-cased grace tick, so it stays correct if `min` ever
 moves.
 
 **Relief on the grace tick = `solo_play_relief` (10), RULED by the owner
-2026-08-23**, not the critter's sticker. Note this needs an explicit
-adjacency check in the relief arm: `action.rs:769` currently resolves
-relief by element **id** with no adjacency test, so a departed-but-alive
-bug would otherwise pay full `play_relief_bug`. The fiction is that the
-kitty is batting at where the bug was.
+2026-08-23**, not the critter's sticker. The fiction is that the kitty is
+batting at where the bug was.
+
+**This does not come for free, and the naive implementation gets it
+backwards.** Today the relief arm is never reached with a non-adjacent
+critter: within a kitty's slot the order is `prune_dead_activity` →
+`enforce_durations` → `action::apply`, and pruning runs first and
+overrides the minimum, so the scene is already over. Critters move in
+Phase 3, after the slots — so a cut scene pays one tick at the full
+sticker and then simply stops. Nothing over-pays today.
+
+Relaxing the prune is exactly what makes that arm reachable. On the grace
+tick `action::apply` will run with an element that still exists but is no
+longer adjacent, and `action.rs:769` resolves relief by element **id and
+kind with no adjacency test** — so it would pay the full
+`play_relief_bug`, not solo relief. The `_ => solo_play_relief` fallback
+there catches a VANISHED element, not a departed one. Implementing the
+ruling therefore means adding an explicit adjacency check to that arm,
+and the guard should be seen red first (a grace tick that pays 28 must
+fail a test before the fix makes it pay 10).
 
 **Why solo relief and not full.** The interruption penalty is already
 priced into the sticker corridor — the chase-census measures mean scene
