@@ -1617,42 +1617,39 @@ const KITTY_BIOS = {
   1: {
     name: 'Miso',
     epithet: 'Sleepy Kitty',
-    body: 'With Miso, nap time is all the time, and she\u2019s decided naps are '
+    body: 'With Miso, nap time is all the time, and she\'s decided naps are '
       + 'best shared: she sleeps in a pile whenever she can, and everyone wants the '
-      + 'spot beside her. When she wanders off alone, she sends a little purr across '
-      + 'the meadow: I\'m fine, back soon.',
+      + 'spot beside her.',
   },
   2: {
     name: 'Biscuit',
     epithet: 'Playful Kitty',
-    body: 'Born to chase: Biscuit would rather chase a bug than eat dinner. She\'s '
-      + 'also the meadow\'s elder, keeper of the old customs: a purr from far away '
-      + 'means all is well, and when a friend mews for bath time, she\'s the one who '
-      + 'pads over to help wash.',
+    body: 'A playful kitten who would rather chase a bug than eat dinner. Which '
+      + 'suits Pumpkin, her favorite (and hungriest) playmate just fine. Kittybear '
+      + 'and Clementine are happy to take care of her and make sure she stays '
+      + 'clean in between her adventures.',
   },
   3: {
     name: 'Pumpkin',
     epithet: 'Hungry Kitty',
     body: 'A snack is never far from her thoughts. In between visits to the food '
-      + 'bowl, her heart is enormous: she spends her days cleaning her friends\' '
-      + 'ears, purring all the while. Bonded with Kittybear.',
+      + 'bowl, her heart is enormous: she spends her days playing with Biscuit '
+      + 'and her friends, purring all the while.',
   },
   4: {
     name: 'Kittybear',
     epithet: 'Tidy Kitty',
-    body: 'Setting the record for most baths and most purrs, Kittybear shares '
-      + 'Pumpkin\'s warm idea of the world: caring for someone looks like washing '
-      + 'them. The chattiest pair around, and the kindest. Bonded with Pumpkin.',
+    body: 'Setting the record for most baths, Kittybear firmly believes caring '
+      + 'for someone looks like washing them. Lets out a small \u2018mew\u2019 '
+      + 'to let the other cats know she\u2019s headed off on her own.',
   },
-  // Placeholder until she is seated and has grown into a mind of her own.
-  // Sent by the owner directly, 2026-08-15. Experiments' relay believed this
-  // one was still being held, so if a second version arrives, hers is the
-  // one that was written later.
+  // Owner copy, 2026-08-22 (replaces the 2026-08-15 placeholder).
   5: {
     name: 'Clementine',
     epithet: 'Cuddly Kitty',
-    body: 'Came into the world wanting to be near somebody. What she\'ll make of the '
-      + 'meadow, nobody knows yet \u2014 she\'s new here.',
+    body: 'Came into the world wanting to be near somebody. Non-stop napping, '
+      + 'cuddles, and baths is Clementine\u2019s idea of a perfect day! The '
+      + 'newest addition to the meadow.',
   },
 };
 

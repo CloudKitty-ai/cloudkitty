@@ -1746,6 +1746,28 @@ function plantedReach(dials = GAIT) {
 const MAX_LIFT = 0.0925;
 
 /**
+ * The pose `cy` that lands a tilted body exactly on the ground line.
+ *
+ * Every seated pose has stated `cy` as a constant, and every one of them has
+ * shipped sunk at least once. The reason is that `cy` is not really a free
+ * number: `proportionLayout` pins `cy + ry` and then rescales, the tilt moves
+ * the true lowest point further down, and `ry` breathing moves it again. Three
+ * quantities feed one answer, so writing the answer down means re-deriving it
+ * by hand every time any of them changes -- and the hand-derived value was
+ * wrong on grooming twice.
+ *
+ * So it is computed. Inverting
+ *   lowest = (cy + ry) - bodyH*ry + sqrt((rx*bodyW*sin)^2 + (bodyH*ry*cos)^2)
+ * for lowest = CAT_GROUND gives the line below. The rump then rests on the
+ * grass at any tilt and at any point in the breath.
+ */
+function seatCy(rx, ry, rot) {
+  const rxP = rx * PROPORTION.bodyW;
+  const ryP = ry * PROPORTION.bodyH;
+  return CAT_GROUND + ryP - Math.hypot(rxP * Math.sin(rot), ryP * Math.cos(rot)) - ry;
+}
+
+/**
  * The far-side pair: the same legs a little further off, drawn FIRST and
  * in shade so they sit behind.
  *
@@ -1758,8 +1780,14 @@ const MAX_LIFT = 0.0925;
  * offset is small: this is depth, not a stance.
  */
 function withFarPair(legs, dx = GAIT.spread) {
-  const far = legs.map((l) => ({ ...l, x: l.x + dx, hx: (l.hx ?? l.x) + dx, far: true }));
-  return [...far, ...legs];
+  // `limb` tags which LIMB each leg is, so a near/far pair can be recognised
+  // by identity rather than inferred from the `far` flag. Inferring it is
+  // wrong in both directions: a near hind and a far fore have different
+  // flags and are not a pair, which is exactly the overlap that matters.
+  const far = legs.map((l, i) => ({
+    ...l, limb: l.limb ?? i, x: l.x + dx, hx: (l.hx ?? l.x) + dx, far: true,
+  }));
+  return [...far, ...legs.map((l, i) => ({ ...l, limb: l.limb ?? i }))];
 }
 
 /**
@@ -1782,6 +1810,75 @@ function withFarPair(legs, dx = GAIT.spread) {
 const FAR_LEGS = {
   pounce: -0.03,
   stretch: -0.035,
+  // Grooming (2026-08-21). Larger than the other two, and for the opposite
+  // reason: those bodies are twisted or extended, so their far legs come
+  // into view on their own and the offset only has to nudge. A grooming cat
+  // sits square, so nothing brings its far side into view except this
+  // number -- and one of the two far legs it carries has no near leg in
+  // front of it to be read against.
+  grooming: -0.04,
+};
+
+/**
+ * The grooming pose's tunables (2026-08-21).
+ *
+ * Its own block for two reasons. Grooming is the only pose in the vocabulary
+ * with an ODD number of legs to place -- one forepaw is up at the mouth, so
+ * the leg holding the front of the cat up is the FAR foreleg, and that leg
+ * has no near counterpart for `withFarPair` to mirror. And the licked paw
+ * has to be placed relative to a head that this pose moves.
+ *
+ * Mutable so a lab can drive it, like GAIT/SWIM/EYE/AXIAL. Leg `x` values
+ * are measured BEFORE `FAR_LEGS.grooming` is added, so they read as "where
+ * the limb is" and the offset stays the one place depth is stated.
+ */
+const GROOM = {
+  fore: true, // does the supporting foreleg draw at all?
+  // The hind foot. Placed FORWARD, not under the rump, and that is the
+  // reference's doing rather than a fudge: a seated cat rests its haunch on
+  // the ground and folds the hock so the foot comes out in FRONT of it. All
+  // three photos show the hind foot gathered up beside the planted foreleg,
+  // not trailing behind. It also happens to be the only place a foot can be
+  // seen at all -- a foot at the old 0.27 was inside the cat.
+  hindX: 0.56, // paw, forward under the belly
+  hindHx: 0.46, // hip, back and high in the haunch: the hock folds forward
+  hindTop: 0.68,
+  hindW: 0.07,
+  // The head, low and tucked. Dialled here rather than fixed in the pose
+  // because where it sits IS the pose: sit puts the head clear above the
+  // shoulders and reads as attention, and grooming has to hand the top of
+  // the silhouette back to the arched spine.
+  headX: 0.6,
+  headY: 0.53,
+  foreX: 0.72, // paw of the supporting leg, out at the front of the chest
+  foreHx: 0.68, // and its hip, tucked back under the shoulder
+  foreTop: 0.56, // pivot, high in the raised chest
+  foreW: 0.07, // narrow: see the spacing note in the pose
+  // Where the licked paw sits, in multiples of the head's radius, and how
+  // much of the lick it inherits.
+  //
+  // Both were wrong together (owner: "the paw and the face are all one
+  // unit"). (0.37, 0.60) is 0.154 of a box from the head's centre against a
+  // radius of 0.218 -- the paw was drawn INSIDE the head, so it read as a
+  // lump on the muzzle rather than a paw being licked. It is now just past
+  // the head's edge, down and forward, where the reference holds it.
+  //
+  // And it moved in exact lockstep with the nod, because `drawRaisedPaw`
+  // places it from `head.cy` and the nod is already in there. That is the
+  // relationship backwards: the paw is the TARGET, held reasonably still,
+  // and the head travels to it. `pawFollow` is the share of the nod the paw
+  // keeps -- 0 holds it still, 1 is the old lockstep.
+  pawDx: 0.55,
+  pawDy: 0.92,
+  pawFollow: 0,
+  nod: 0.012, // lick amplitude; the head's, not the paw's
+  // The tongue, PARKED (owner, 2026-08-21). `tongue` is the share of the
+  // head-to-paw distance it covers at full extension, not an absolute length,
+  // so it keeps reaching the paw when `pawDx`/`pawDy` move. 0 makes
+  // `drawGroomTongue` early-return, so it costs nothing while parked and
+  // needs only this number to come back.
+  tongue: 0,
+  tongueW: 0.13, // in head radii
 };
 
 /**
@@ -2296,6 +2393,10 @@ function blendLayouts(A, B, t) {
     eyes: late.eyes,
     droplet: late.droplet,
     pawUp: late.pawUp,
+    // Lerped, not switched: it is a position offset, and a blend that snapped
+    // it at the midpoint would jump the paw.
+    pawHold: n(A.pawHold || 0, B.pawHold || 0),
+    lick: n(A.lick || 0, B.lick || 0),
     // WHICH DRAWING this is. Switched at the midpoint like the other
     // un-blendable fields, though in practice both sides carry the same
     // one: render.js hands `layoutFrom` the very object it hands `layout`.
@@ -2655,14 +2756,97 @@ function catLayout(pose, phase, opts = {}) {
     }
 
     case 'grooming': {
-      // Head swung back toward the flank, one paw raised mid-lick; the
-      // head nods with each lick.
-      L.body = { cx: 0.48, cy: 0.64, rx: 0.3, ry: 0.21, rot: 0 };
-      L.head = { cx: 0.54, cy: 0.42 + 0.012 * Math.sin(phase * 3 * TAU), r: 0.215 };
+      // Rebuilt from photo reference (owner, 2026-08-21), and the reference
+      // changed the POSE rather than any number in it.
+      //
+      // This was a standing cat with a paw held up: body flat and level
+      // (rot 0), head high above the shoulders, legs hanging straight down.
+      // A cat does not groom standing up. It SITS -- rump on the ground,
+      // haunches folded forward, chest raised, spine arched so the back is
+      // the highest part of the animal -- and bends its head DOWN to a paw
+      // lifted to meet it. The old drawing was a standing cat waving.
+      //
+      // So this is now sit's body, not idle's, and deliberately by
+      // derivation rather than by eye: a cat that grooms and then stands up
+      // must be the same animal.
+      const nod = GROOM.nod * Math.sin(phase * 3 * TAU); // one nod per lick
+      // The seat itself. `cy + ry` is load-bearing in a way that is easy to
+      // miss: `proportionLayout` PINS that sum -- it scales ry and then moves
+      // cy to put the unrotated bottom back where the pose asked for it. So a
+      // pose states its own floor, and the first seated draft stated
+      // 0.665 + 0.225 = 0.890, already below the 0.88 ground line before the
+      // tilt was applied. The cat sat THROUGH the grass and every leg ended
+      // inside the silhouette.
+      //
+      // Pinning the lowest point to 0.88 fixed the sinking and did not fix
+      // the pose, because a seated cat has TWO requirements -- rump on the
+      // ground at the rear, chest raised at the front -- and one ellipse
+      // pinned at its lowest point only satisfies the first. The lever is the
+      // TILT: it is what raises the front without lifting the rump. `seatCy`
+      // derives cy from whatever the tilt and the breath currently are.
+      const groomRy = 0.225 + 0.006 * breathe;
+      L.body = { cx: 0.42, cy: seatCy(0.275, groomRy, -0.6), rx: 0.275, ry: groomRy, rot: -0.6 };
+      L.head = { cx: GROOM.headX, cy: GROOM.headY + nod, r: 0.218 };
       L.eyes = 'closed';
       L.pawUp = true;
-      L.legs = withFarPair([{ x: 0.26, top: 0.76, bottom: 0.88, w: 0.1 }]);
-      L.tail = { x0: 0.16, y0: 0.62, c1x: 0.03, c1y: 0.6, c2x: 0.01, c2y: 0.44, x1: 0.06, y1: 0.34 };
+      // How much of the nod to take back OUT of the paw's placement, since
+      // the paw is positioned from the head and the head already carries it.
+      L.pawHold = nod * (1 - GROOM.pawFollow);
+      // The tongue is out on the DOWN stroke -- the half of the nod where the
+      // head has arrived at the paw. Same sine, so the two cannot drift: a
+      // tongue extended on the way back up is a cat licking the air.
+      L.lick = Math.max(0, Math.sin(phase * 3 * TAU)) ** 0.7;
+      // Four legs -- and the only pose in the vocabulary whose four are NOT
+      // two mirrored pairs, which is why it was the hard one.
+      //
+      // One forepaw is up at the mouth (`pawUp`, placed by GROOM.pawDx/Dy).
+      // The leg that has to hold the front of the cat up is therefore the FAR
+      // foreleg, and it has no near counterpart -- `withFarPair` cannot
+      // express that, since it mirrors whatever it is given. Hence the
+      // explicit array.
+      //
+      // Far pair first: paint order IS depth order in this view, and the
+      // renderer shades a `far` leg darker.
+      //
+      // Spacing is computed on PAINTED width -- `w + OUTLINE_W`, and
+      // OUTLINE_W is 0.035, half again on top of a 0.07 leg. Adjacent legs
+      // need centre-to-centre >= w + OUTLINE_W or they share ink. The hind
+      // PAIR is meant to overlap; the hind cluster and the foreleg must not.
+      //
+      // Three limbs read here, not four, and that is the honest answer rather
+      // than a shortfall: the reference photos show a raised paw, a planted
+      // foreleg and one hind foot, with the far hind genuinely occluded by
+      // the near one.
+      L.legs = [
+        {
+          x: GROOM.hindX + FAR_LEGS.grooming, hx: GROOM.hindHx + FAR_LEGS.grooming,
+          top: GROOM.hindTop, bottom: CAT_GROUND, w: GROOM.hindW, far: true, limb: 'hind',
+        },
+        // Whether the front of the cat is visibly held up is a real design
+        // question, not just a number -- the shipped drawing had no such leg
+        // and read as a two-legged cat.
+        ...(GROOM.fore
+          ? [{
+            x: GROOM.foreX + FAR_LEGS.grooming, hx: GROOM.foreHx + FAR_LEGS.grooming,
+            top: GROOM.foreTop, bottom: CAT_GROUND, w: GROOM.foreW, far: true, limb: 'fore',
+          }]
+          : []),
+        {
+          x: GROOM.hindX, hx: GROOM.hindHx, top: GROOM.hindTop,
+          bottom: CAT_GROUND, w: GROOM.hindW, limb: 'hind',
+        },
+      ];
+      // Behind the cat. This inherited sit's tail, which sweeps FORWARD
+      // across the front of the seat -- at the same height as the paws, in
+      // the same fill and outline colours, and dipping below the ground line.
+      // Harmless in sit, which had no visible legs to protect; here it laid a
+      // solid bar straight through the leg band and the base rendered as one
+      // dark mass with no paw distinguishable.
+      //
+      // All three reference photos put the tail BEHIND a seated cat -- laid
+      // out astern along the ground, or coiled at the rump -- never across
+      // the feet.
+      L.tail = { x0: 0.24, y0: 0.79, c1x: 0.14, c1y: 0.85, c2x: 0.04, c2y: 0.855, x1: 0.03, y1: 0.8 };
       break;
     }
 
@@ -2867,7 +3051,16 @@ function paintCat(ctx, L, a, lid = 0, size = 31) {
   // ...and nearest last.
   if (rear) drawTail(ctx, L.tail, a, p);
   else paintHead();
-  if (L.pawUp) drawRaisedPaw(ctx, L.head, a);
+  if (L.pawUp) {
+    drawRaisedPaw(ctx, L.head, a, L.pawHold || 0);
+    // Tongue LAST, over the paw. Drawn underneath it the paw's own fill ate
+    // 96% of it -- `GROOM.tongue` measures to the paw's CENTRE, and the paw
+    // is a 0.055 x 0.09 ellipse, so any reach past about 0.6 lands inside
+    // it. On top is also the better read: a tongue on the paw is what
+    // licking looks like, where a tongue stopping short of it is a cat
+    // aiming.
+    drawGroomTongue(ctx, L.head, a, L.lick || 0, L.pawHold || 0);
+  }
   if (L.droplet) drawDroplet(ctx, L.head);
 }
 
@@ -4025,10 +4218,54 @@ function drawWhiskers(ctx, head, a, view, size) {
   ctx.restore();
 }
 
-function drawRaisedPaw(ctx, head, a) {
-  // The grooming paw, lifted toward the swung-back head.
+/**
+ * The lick, drawn as a tongue reaching from the muzzle to the raised paw.
+ *
+ * Aimed AT the paw rather than along a stated angle. The paw is dialable, so
+ * a hard-coded direction or length would drift out of step with it the moment
+ * `pawDx`/`pawDy` moved. `GROOM.tongue` is therefore a share of the distance,
+ * and the direction is computed.
+ *
+ * The ink is the yawn's tongue ink, not a new pink. This file's rule is one
+ * pink for the whole face -- nose, inner ears, yawn jaw and tongue all
+ * resolve through `noseInkOf` -- and a second tongue colour would be the face
+ * disagreeing with itself on the one frame both could appear.
+ */
+function drawGroomTongue(ctx, head, a, lick, hold = 0) {
+  if (!(lick > 0) || !(GROOM.tongue > 0)) return;
+  const px = head.cx + head.r * GROOM.pawDx;
+  const py = head.cy - hold + head.r * GROOM.pawDy;
+  // From under the nose, where a mouth is.
+  const bx = head.cx + head.r * NOSE.x;
+  const by = head.cy + head.r * (NOSE.y + 0.16);
+  const dx = px - bx;
+  const dy = py - by;
+  const len = Math.hypot(dx, dy) || 1;
+  const reach = len * GROOM.tongue * lick;
+  ctx.strokeStyle = lightenHex(noseInkOf(a), 0.22);
+  ctx.lineWidth = head.r * GROOM.tongueW;
+  ctx.lineCap = 'round';
   ctx.beginPath();
-  ctx.ellipse(head.cx + head.r * 1.05, head.cy + head.r * 1.15, 0.055, 0.09, -0.5, 0, TAU);
+  ctx.moveTo(bx, by);
+  ctx.lineTo(bx + (dx / len) * reach, by + (dy / len) * reach);
+  ctx.stroke();
+}
+
+function drawRaisedPaw(ctx, head, a, hold = 0) {
+  // The grooming paw, held up for the head to come down to. Offsets live on
+  // GROOM because the pose that uses this moved: they were hard-coded for a
+  // high alert head and threw the paw into empty space once the cat sat down.
+  //
+  // `hold` backs the lick nod out again. The paw is placed off `head.cy`,
+  // which is convenient -- it means the paw follows the rig, so the whole
+  // cat still moves as one -- but it also meant the paw inherited the nod
+  // exactly and the two read as a single shape.
+  ctx.beginPath();
+  ctx.ellipse(
+    head.cx + head.r * GROOM.pawDx,
+    head.cy - hold + head.r * GROOM.pawDy,
+    0.055, 0.09, -0.5, 0, TAU,
+  );
   ctx.fillStyle = a.furBase;
   ctx.fill();
   ctx.strokeStyle = a.furShade;
@@ -4071,6 +4308,8 @@ const api = {
   gaitStep,
   pounceWiggle,
   FAR_LEGS,
+  GROOM,
+  seatCy,
   AXIAL,
   AXIAL_CAMERAS,
   AXIAL_POSES,

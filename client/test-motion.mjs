@@ -80,11 +80,11 @@ const SHIPPED_BLOCKS = Object.fromEntries(
 // between what the harness tests and what the page draws.
 const VIEW = api.VIEW;
 const {
-  poseFor, ACTION_POSE, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose,
+  poseFor, ACTION_POSE, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose, kittyBoxFor,
   swimAxialAllows, gazeTargetFor, MEOW_TEXT, SOUND_WORDS, pursuitDistanceFor,
 } = eval(
   renderSrc +
-    ';({ poseFor, ACTION_POSE, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose,' +
+    ';({ poseFor, ACTION_POSE, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose, kittyBoxFor,' +
     ' swimAxialAllows, gazeTargetFor, MEOW_TEXT, SOUND_WORDS, pursuitDistanceFor })',
 );
 
@@ -1775,16 +1775,213 @@ check('the head slides along the body without reshaping it', () => {
   close(fwd.head.r, base.head.r, 'the head resized while sliding');
 });
 
+/** The rotated ellipse's true lowest point -- where a tilted body meets grass. */
+const seatLowest = (b) => b.cy + Math.hypot(b.rx * Math.sin(b.rot || 0), b.ry * Math.cos(b.rot || 0));
+
 check('reshaping holds the belly floor in every pose', () => {
   for (const pose of CatV2.POSES) {
     const base = CatV2.catLayout(pose, 0.4);
     const shaped = reshaped({ bodyH: 1.2, bodyW: 1.1 }, () => CatV2.catLayout(pose, 0.4));
+    if (pose === 'grooming') {
+      // The seated body is TILTED, so `cy + ry` -- the unrotated bottom --
+      // is no longer where it touches the grass. Its floor is the rotated
+      // ellipse's true lowest point, and `seatCy` derives cy so that point
+      // rests on CAT_GROUND whatever the proportion dials say. Stronger
+      // than invariance, so assert the stronger thing.
+      close(seatLowest(base.body), CatV2.CAT_GROUND, `${pose}: the rump left the ground`);
+      close(seatLowest(shaped.body), CatV2.CAT_GROUND, `${pose}: reshaping lifted or sank the seat`);
+      continue;
+    }
     close(
       shaped.body.cy + shaped.body.ry,
       base.body.cy + base.body.ry,
       `${pose}: the underside moved, which is a stand-height change wearing a proportion costume`,
     );
   }
+});
+
+check('the seat rests on the ground at every point of the breath', () => {
+  // `seatCy` inverts the proportion pipeline for whatever tilt and breath
+  // the pose currently has, so this holds at EVERY phase, not just one.
+  for (const phase of [0, 0.17, 0.4, 0.73]) {
+    close(
+      seatLowest(CatV2.catLayout('grooming', phase).body),
+      CatV2.CAT_GROUND,
+      `phase ${phase}: the seat came off the ground`,
+    );
+  }
+});
+
+check('the seated groom carries three limbs, not two mirrored pairs', () => {
+  const L = CatV2.catLayout('grooming', 0);
+  assert(L.pawUp, 'the licked paw is gone');
+  assert(L.legs.length === 3, `three limbs read by design, got ${L.legs.length}`);
+  const far = L.legs.filter((l) => l.far);
+  const near = L.legs.filter((l) => !l.far);
+  assert(far.length === 2 && near.length === 1, 'far pair is the hind + the supporting fore');
+  assert(far.some((l) => l.limb === 'fore'), 'the supporting foreleg must be FAR: it has no near twin');
+  assert(near[0].limb === 'hind', 'the one near leg is the hind foot');
+  const farHind = far.find((l) => l.limb === 'hind');
+  close(near[0].x - farHind.x, -CatV2.FAR_LEGS.grooming, 'the hind pair is offset by exactly FAR_LEGS.grooming');
+  for (const l of L.legs) close(l.bottom, CatV2.CAT_GROUND, `a ${l.limb} foot left the ground`);
+  // The spacing rule the pose states: the hind cluster and the supporting
+  // foreleg must not share ink -- centre-to-centre >= painted width.
+  const fore = far.find((l) => l.limb === 'fore');
+  assert(
+    Math.abs(fore.x - near[0].x) >= fore.w + CatV2.OUTLINE_W - 1e-9,
+    'the foreleg overlaps the hind cluster: they share ink at these dials',
+  );
+  CatV2.GROOM.fore = false;
+  try {
+    assert(CatV2.catLayout('grooming', 0).legs.length === 2, 'GROOM.fore=false must drop exactly the foreleg');
+  } finally {
+    CatV2.GROOM.fore = true;
+  }
+});
+
+check('pawHold and lick are lerped across a pose change, never switched', () => {
+  // The droplet's midpoint switch is the documented trap here (it is what
+  // phase 0 of the v3 plan was about); these two are POSITIONS, and a
+  // switch would jump the paw and pop the tongue mid-blend.
+  const A = CatV2.catLayout('grooming', 0.1);
+  assert(A.pawHold > 0 && A.lick > 0, 'phase 0.1 must be mid-lick or this check is vacuous');
+  const B = CatV2.catLayout('idle', 0);
+  const quarter = CatV2.blendLayouts(A, B, 0.25);
+  close(quarter.pawHold, A.pawHold * 0.75, 'pawHold did not lerp at t=0.25');
+  close(quarter.lick, A.lick * 0.75, 'lick did not lerp at t=0.25');
+  close(CatV2.blendLayouts(A, B, 1).pawHold, 0, 't=1 must be exactly the far pose');
+  close(CatV2.blendLayouts(B, A, 0.25).lick, A.lick * 0.25, 'the blend must be symmetric in its arguments');
+});
+
+check('the tongue is parked, and exactly one number wakes it', () => {
+  const G = CatV2.GROOM;
+  close(G.tongue, 0, 'GROOM.tongue must ship 0 -- parked (owner, 2026-08-21)');
+  const draw = () => opsOf((ctx) => CatV2.drawCat(ctx, {
+    appearance: CatV2.appearanceFor(3), facing: 'right', size: 120, x: 0, y: 0,
+    pose: 'grooming', phase: 0.1, layout: { view: 'side' },
+  }));
+  const parked = draw();
+  G.tongue = 0.5;
+  let woken;
+  try { woken = draw(); } finally { G.tongue = 0; }
+  const strokes = (s) => (s.match(/\["stroke"\]/g) || []).length;
+  assert(strokes(woken) === strokes(parked) + 1, 'waking the tongue must add exactly one stroke');
+  assert(strokes(draw()) === strokes(parked), 'restoring the park must remove it again');
+  // And the paint order is load-bearing: the tongue reaches the paw's
+  // CENTRE, so drawn first the paw's fill eats it. Source-level, since the
+  // parked tongue draws nothing to measure.
+  const pawBlock = catV2Src.match(/if \(L\.pawUp\) \{([\s\S]{0,900}?)\n  \}/);
+  assert(pawBlock, "the pawUp paint block is gone from cat-v2.js");
+  const paw = pawBlock[1].indexOf('drawRaisedPaw(ctx, L.head, a, L.pawHold || 0)');
+  const tongue = pawBlock[1].indexOf('drawGroomTongue(ctx, L.head, a, L.lick || 0, L.pawHold || 0)');
+  assert(paw >= 0, 'the raised paw is not handed the nod hold');
+  assert(tongue > paw, 'the tongue must be painted OVER the paw, not under it');
+});
+
+check('no lab dial writes into frozen VIEW', () => {
+  // `VIEW` is Object.freeze'd, so `bag: VIEW` on a card dial is the silent
+  // wasted-session trap: the slider moves, the readout prints, nothing
+  // changes. A card that wants to judge a VIEW value holds a lab copy
+  // seeded from it and prints the paste line (the PLAY-bag pattern). This
+  // shipped once -- the groom card's cycle dial, 2026-08-22 -- and the
+  // slider was inert on arrival.
+  const html = readFileSync(join(here, 'gallery-v2.html'), 'utf8');
+  assert(!/bag: VIEW\b/.test(html), 'a card dial binds frozen VIEW -- it will move and do nothing');
+});
+
+check('camera off->on starts the zoom-in at once; the dwell is for noise', () => {
+  // The toggle leaves the frame at whole-world, so the re-pick's tighten
+  // arrives as a slack press -- and a press dwell counted on 800ms tick
+  // edges held the camera dead for ~2.4s before the ease began (owner,
+  // 2026-08-22). The viewer's own toggle waives the patience, exactly as
+  // the follow-tap redirect ruling waives pan commitment.
+  const cam = new api.Camera();
+  const w = (tick) => ({ ...world(tick, [kitty(1, 3, 3), kitty(2, 4, 3), kitty(3, 16, 16)]), width: 20, height: 20 });
+  const opts = { aspect: 1, cssWidth: 1000 };
+  const live = (now) => ({ still: false, ambient: { now } });
+  cam.on = true;
+  cam.followId = 1;
+  cam.update(w(1), live(0), opts);
+  const wide = cam.across;
+  cam.on = false;
+  cam.update(w(2), live(100), opts);
+  assert(cam.across === 20 && cam.episode === null, 'off is the whole-world cut');
+  cam.on = true;
+  cam.update(w(3), live(200), opts);
+  assert(cam.shotIds && cam.shotIds.has(1), 're-enable did not re-pick the followed shot');
+  assert(cam.episode !== null, 'the tighten did not start on the first ON frame');
+  assert(cam.episode.goal.across < 20 - 1e-6, 'the episode is not a zoom-in');
+  // Eased, not snapped: one frame in, the view has barely left wide --
+  // arrival would have landed AT the goal with the episode retired.
+  assert(cam.across > cam.episode.goal.across + 1, 'the re-enable snapped instead of easing');
+  void wide;
+});
+
+check('a curated kitty size scales about the feet, centred on the tile', () => {
+  // Presentation only: whatever the scale, the feet stay on the unscaled
+  // tile's ground line (CAT_GROUND of the box) and the box stays centred,
+  // so the logical footprint is still one tile.
+  for (const scale of [0.8, 0.9, 1, 1.1, 1.2]) {
+    const b = kittyBoxFor(100, scale);
+    close(b.size, 100 * scale, `scale ${scale}: box size`);
+    close(b.dy + 0.88 * b.size, 0.88 * 100, `scale ${scale}: the feet left the ground line`);
+    close(b.dx * 2 + b.size, 100, `scale ${scale}: the box left the tile centre`);
+  }
+  // The shipped map: owner-pasted from the clowder card, 2026-08-22
+  // (Biscuit the playful kitten, Pumpkin the snacky one).
+  const S = api.VIEW.kittySize;
+  close(S[1], 0.99, 'Miso drifted');
+  close(S[2], 0.92, 'Biscuit is not the kitten');
+  close(S[3], 1.06, 'Pumpkin is not the big one');
+  close(S[4], 0.98, 'Kittybear drifted');
+  close(S[5], 1.01, 'Clementine drifted');
+  // Wired, not just defined: the dispatcher consults the map (with the
+  // out-of-roster default), draws at the box, and the shadow scales too.
+  assert(
+    /kittyBoxFor\(this\.tile, VIEW\.kittySize\?\.\[kitty\.id\] \?\? 1\)/.test(renderSrc),
+    'the dispatcher does not consult the size map (or lost the ?? 1 default)',
+  );
+  assert(/size: box\.size,/.test(renderSrc), 'catOpts does not draw at the scaled box');
+  assert(/this\.tile \* 0\.3 \* kScale/.test(renderSrc), 'the shadow footprint ignores the size');
+});
+
+check('the lick rides its own clock, not the tick beat', () => {
+  const p = new api.Presentation();
+  const now = 12345;
+  // A fresh presentation's beat clock reads 1 (nothing has arrived), so the
+  // beat-clocked actions all say so...
+  for (const pose of ['eating', 'drinking', 'pouncing']) {
+    close(p.motionFor(9, pose, now).phase, p.progress(now), `${pose} left the tick clock`);
+  }
+  // ...and grooming does not: it rolls on groomCycleMs, seeded per cat so a
+  // clowder does not lick in unison.
+  const dials = { ...api.VIEW, groomCycleMs: 1600 };
+  close(
+    p.motionFor(9, 'grooming', now, dials).phase,
+    ((now + 9 * 997) % 1600) / 1600,
+    'grooming is not on the ambient lick clock',
+  );
+  assert(
+    p.motionFor(1, 'grooming', now, dials).phase !== p.motionFor(2, 'grooming', now, dials).phase,
+    'two cats lick in unison -- the seed is gone',
+  );
+  // The judged rate: half the beat rate (owner, 2026-08-22: at the beat
+  // rate "it looks too dog-like").
+  close(api.VIEW.groomCycleMs, 1600, 'the shipped cycle is the one the owner judged');
+});
+
+check('withFarPair tags limbs by identity, additively', () => {
+  // Grooming names its limbs; every pose that still goes through
+  // `withFarPair` gets index tags so a near/far pair can be recognised
+  // without inferring from the `far` flag. Additive: nothing reads them yet.
+  const L = CatV2.catLayout('stretch', 0.4);
+  const far = L.legs.filter((l) => l.far);
+  const near = L.legs.filter((l) => !l.far);
+  assert(far.length === near.length && far.length > 0, 'stretch must keep its mirrored pairs');
+  far.forEach((l, i) => {
+    assert(Number.isInteger(l.limb), `far leg ${i} lost its limb tag`);
+    assert(l.limb === near[i].limb, `far leg ${i} is not tagged as its near twin's pair`);
+  });
 });
 
 check('a grounded foot stays on the ground; the leap’s feet ride the body', () => {
@@ -8666,7 +8863,7 @@ check('the leap reaches the renderer: lift consumed, shadow grounded', () => {
   const render = readFileSync(join(here, 'render.js'), 'utf8');
   assert(/view\.leapFor\s*\?\s*view\.leapFor\(kitty\.id\)/.test(render),
     'render.js never asks the view for the leap');
-  assert(/y:\s*y\s*-\s*leapLift/.test(render),
+  assert(/y:\s*y \+ box\.dy\s*-\s*leapLift/.test(render),
     'the lift never reaches the cat\'s draw anchor');
   assert(/VIEW\.pounceLeap/.test(render), 'the lift ignores its dial');
 });

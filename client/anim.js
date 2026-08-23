@@ -318,6 +318,21 @@ const VIEW = Object.freeze({
   idleMotionPeriodMs: 5200, // one idle slot about this long
   idleMotionWindowMs: 420, // an ear twitch (and v1's snap blink) lasts this
   breathePeriodMs: 3400, // the slow ambient cycle for resting poses
+  // The grooming sine's full cycle -- three nods. On the tick beat (800ms)
+  // the lick read dog-like; judged at half rate (owner, 2026-08-22).
+  groomCycleMs: 1600,
+  // Per-kitty drawn size, owner-curated (2026-08-22): Biscuit is a playful
+  // KITTEN now, Pumpkin is snacky. Presentation only -- the logical
+  // footprint stays one tile, the feet stay on the ground line
+  // (render.js kittyBoxFor), and an id outside the map draws at 1.
+  // Owner-pasted from the clowder card, 2026-08-22.
+  kittySize: Object.freeze({
+    1: 0.99, // Miso
+    2: 0.92, // Biscuit
+    3: 1.06, // Pumpkin
+    4: 0.98, // Kittybear
+    5: 1.01, // Clementine
+  }),
 
   // What breaks up the rhythm (2026-08-06). The slots used to run a strict
   // blink -> flick -> twitch rotation, every cat on the same clock and
@@ -1868,16 +1883,25 @@ class Presentation {
    */
   motionFor(id, pose, now, dials = VIEW) {
     // The walk is measured in ground covered, not in time (strideFor);
-    // every other action still rides the tick clock.
+    // eating, drinking and the pounce ride the tick clock; the lick rides
+    // its own (below).
     if (pose === 'walking') return { phase: this.strideFor(id, now) };
     const isAction =
       pose === 'pouncing' ||
       pose === 'eating' ||
-      pose === 'drinking' ||
-      pose === 'grooming';
+      pose === 'drinking';
     if (isAction) return { phase: this.progress(now) };
 
     const seed = id * 997;
+    if (pose === 'grooming') {
+      // The lick rides its OWN clock. On the tick beat it nodded three
+      // times per 800ms and read dog-like (owner, 2026-08-22); a cat is
+      // slower, and a lick has no reason to sync to world ticks. Rolls on
+      // an ambient modulo like the breath -- seeded so a clowder does not
+      // lick in unison -- and wraps seamlessly, since the pose's three
+      // nods end where they begin.
+      return { phase: ((now + seed) % dials.groomCycleMs) / dials.groomCycleMs };
+    }
     const motion = {
       phase: ((now + seed) % dials.breathePeriodMs) / dials.breathePeriodMs,
     };
@@ -2930,7 +2954,13 @@ class Camera {
       this.hasDecided = false;
       this.chains = [];
       this.unfitTicks = 0;
-      this.pressTicks = 0;
+      // Pre-satisfied, not zeroed: the press dwell debounces the GRAMMAR's
+      // transient presses, and the first press after an off->on toggle is
+      // the VIEWER's own doing -- the re-pick's tighten should start easing
+      // on the first frame, not wait out a patience meant for noise (owner,
+      // 2026-08-22: "a couple second delay before the camera zooms back
+      // in"; same principle as the follow-tap redirect ruling).
+      this.pressTicks = this.dials.pressDwellTicks || 0;
       this.episode = null;
       const downOff = this.across * aspect;
       this.left = clampFrame(this.aimX - this.across / 2, world.width, this.across);
