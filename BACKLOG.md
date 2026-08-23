@@ -1680,11 +1680,53 @@ past need 75 (`spawn::safeguard`), but nothing guarantees it gets
 water standing. Certification measures the raw policy (disabled in
 testing); the served world gets the net (enabled on the server).
 
-Design questions for the sitting: the trigger line and hand-back
-condition; how the override interacts with streak-based detection (an
-enabled override truncates the observable — F-027's re-verify note);
-whether the served world logs every firing (it should — each one is a
-policy defect report). Engine change: spec-first flow when picked up.
+**Framing correction (owner, 2026-08-23)**: the pathology was not that
+relief went untaken, it was **deadlock** — two cats locked in a mutual
+activity that neither would break. Read the shape above as an example of
+a fallback, not as the settled design.
+
+Design conversation 2026-08-23 (owner posed: rely on scripted as-is /
+upgrade the scripted logic / build a dedicated fallback model):
+
+- **Do NOT upgrade `needs_driven`'s ACTION ladder.** It is the project's
+  measurement anchor — the scripted team anchor (0.9077), thermostat
+  parity (90.71), the character price, and spec 017's eval-suite
+  baseline all rest on it being fixed. A better thermostat has to arrive
+  as a NEW named behavior, never as an edit. (Its MESSAGE channel is a
+  different matter and is separable — see the here-word density screen.)
+- **One cat is enough to break a dyad.** Past an activity's minimum a
+  different action lawfully interrupts and ends a duet **for both
+  sides**, so the intervention only needs to touch one member.
+- **A fourth option worth costing: mask, don't override.** Make
+  continuation of a partnered activity illegal while one of that cat's
+  needs is in distress. The cat keeps its own policy and character; it
+  simply cannot choose to keep cuddling while starving. Engine legality
+  rather than behavior swap.
+- **The trade-off is guarantee versus character.** `needs_driven`
+  override = guaranteed relief, character visibly interrupted. Masking =
+  character preserved, relief NOT guaranteed, and it puts the policy
+  off-distribution where F-010's catatonia lives.
+- **Recommended shape: a two-stage ladder**, matching the two-layer
+  welfare-gate philosophy. Stage 1 masks the pathological continuation
+  and lets the mind re-decide; stage 2, if the need keeps climbing,
+  overrides to `needs_driven` as the terminal guarantee. Most incidents
+  resolve at stage 1 with character intact, and the stages give
+  different defect signals — stage 1 means "needed a nudge", stage 2
+  means "broken here", which a single mechanism cannot distinguish.
+- **Vocabulary stays out of the safety path.** A safety net and a
+  teaching mechanism have opposite frequency requirements: a good
+  fallback almost never fires, which makes it a poor vocabulary vehicle,
+  and tuning it to fire often enough to teach would make routine policy
+  failure a design assumption. The fallback inherits whatever
+  `needs_driven` says anyway, so scripted vocabulary work belongs in the
+  density screen, not here.
+
+Design questions still open for the sitting: the trigger line(s) and
+hand-back condition; how the override interacts with streak-based
+detection (an enabled override truncates the observable — F-027's
+re-verify note); whether the served world logs every firing (it should —
+each one is a policy defect report). Engine change: spec-first flow when
+picked up.
 Origin: `experiments/exp-006-character-gen/results/r5-forensics-2026-08-20.md`.
 
 ### Eval-suite v2: a stronger counterfactual baseline (added 2026-07-25)
