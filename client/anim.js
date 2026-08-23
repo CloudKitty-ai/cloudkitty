@@ -325,13 +325,13 @@ const VIEW = Object.freeze({
   // KITTEN now, Pumpkin is snacky. Presentation only -- the logical
   // footprint stays one tile, the feet stay on the ground line
   // (render.js kittyBoxFor), and an id outside the map draws at 1.
-  // Seeded at the owner's +/-10%; judged in the gallery's clowder card.
+  // Owner-pasted from the clowder card, 2026-08-22.
   kittySize: Object.freeze({
-    1: 1, // Miso
-    2: 0.9, // Biscuit
-    3: 1.1, // Pumpkin
-    4: 1, // Kittybear
-    5: 1, // Clementine
+    1: 0.99, // Miso
+    2: 0.92, // Biscuit
+    3: 1.06, // Pumpkin
+    4: 0.98, // Kittybear
+    5: 1.01, // Clementine
   }),
 
   // What breaks up the rhythm (2026-08-06). The slots used to run a strict

@@ -1972,14 +1972,14 @@ check('a curated kitty size scales about the feet, centred on the tile', () => {
     close(b.dy + 0.88 * b.size, 0.88 * 100, `scale ${scale}: the feet left the ground line`);
     close(b.dx * 2 + b.size, 100, `scale ${scale}: the box left the tile centre`);
   }
-  // The shipped map: seeded at the owner's +/-10% (2026-08-22 -- Biscuit
-  // the playful kitten, Pumpkin the snacky one); re-pin on her paste.
+  // The shipped map: owner-pasted from the clowder card, 2026-08-22
+  // (Biscuit the playful kitten, Pumpkin the snacky one).
   const S = api.VIEW.kittySize;
-  close(S[1], 1, 'Miso drifted');
-  close(S[2], 0.9, 'Biscuit is not the kitten');
-  close(S[3], 1.1, 'Pumpkin is not the big one');
-  close(S[4], 1, 'Kittybear drifted');
-  close(S[5], 1, 'Clementine drifted');
+  close(S[1], 0.99, 'Miso drifted');
+  close(S[2], 0.92, 'Biscuit is not the kitten');
+  close(S[3], 1.06, 'Pumpkin is not the big one');
+  close(S[4], 0.98, 'Kittybear drifted');
+  close(S[5], 1.01, 'Clementine drifted');
   // Wired, not just defined: the dispatcher consults the map (with the
   // out-of-roster default), draws at the box, and the shadow scales too.
   assert(
