@@ -138,6 +138,12 @@ const POSES = [
   // serves -- see anim.js's idlePoseFor and wokeAt.
   'sit',
   'stretch',
+  // Added 2026-08-22. Social grooming: a cat washing a FRIEND on the
+  // adjacent tile, which the engine has served as a targeted activity all
+  // along while the client drew it with the self-groom pose -- so the
+  // closeness economy was invisible, a cat washing itself while its cuddle
+  // need dropped. The pose is the whole fix; see GROOM_OTHER.
+  'grooming-other',
 ];
 
 /**
@@ -425,7 +431,12 @@ const AXIAL_CAMERAS = {
   },
 };
 
-const AXIAL_POSES = new Set(['walking', 'idle', 'swim']);
+// Poses with a real end-on drawing. `grooming-other` HAS to be here rather
+// than falling back to the side view: 54% of groom targets sit due north or
+// south of the groomer (2026-08-14 gaze pass), so the axial case is the
+// majority case, not an edge one. A side-only design fails most ticks -- the
+// mistake that killed groom as a gaze source.
+const AXIAL_POSES = new Set(['walking', 'idle', 'swim', 'grooming-other']);
 
 /**
  * Per-view leg and step overrides (2026-08-19, owner: "south looks good,
@@ -1351,6 +1362,86 @@ function applyAxial(L, pose, phase, view, opts) {
     return L;
   }
 
+  // Social grooming, end-on -- and the MAJORITY case, not an edge one: 54% of
+  // groom targets sit due north or south of the groomer.
+  //
+  // The reach is the problem this branch exists to solve. Leaning toward a
+  // friend to the north or south is motion along the depth axis, which a flat
+  // side-on projection cannot show as travel at all -- exactly what beat the
+  // axial walk's stride until it was rotated into the ground plane. So depth
+  // is said the honest way this camera has: the head reads nearer (bigger,
+  // south) or further (smaller, north).
+  if (pose === 'grooming-other') {
+    const G = GROOM_OTHER;
+    const nod = G.nod * Math.sin(phase * 3 * TAU);
+    // One sign for both views, the way `ds` serves the axial walk.
+    const reach = back ? -1 : 1;
+    const gRy = G.axialRy + 0.006 * breathe;
+    // The rump is ON the ground, so `cy + ry` is stated directly rather than
+    // through `seatCy` -- there is no tilt end-on for `seatCy` to solve for,
+    // and `axialBottom` is the same quantity spelled the way the pose reads.
+    L.body = { cx: 0.5, cy: G.axialBottom - gRy, rx: G.axialRx, ry: gRy, rot: 0 };
+    const gR = (back ? C.headRBack : C.headRFront) * (1 + G.axialHeadNear * reach);
+    L.head = { cx: 0.5, cy: (back ? C.headYBack : C.headYFront) + nod, r: gR };
+    // The clearance floor is NOT applied here: `proportionLayout` moves this
+    // head afterwards, so a floor imposed now under-delivers by the scale
+    // factor -- it bought 9.4px where it promised 12. See `clampAxialHead`,
+    // which runs on the drawn geometry for the same reason `clampAxialLegs`
+    // does.
+    L.axialSeated = true;
+    // The lick, handed on rather than baked into `cy`. `clampAxialHead` owns
+    // this head's height absolutely, so anything added here is swallowed by
+    // the floor -- which is what killed `axialHeadDrop`, and until it was
+    // handed on it silently killed the lick too: the axial head moved 3px per
+    // loop and that was the breath leaking through, not a lick.
+    L.lickNod = nod;
+    L.eyes = 'closed';
+    // Four legs, near pair outboard AND wider, far pair inside it and
+    // thinner. Position and size have to tell the same story or the eye
+    // believes position and reads the pairs as swapped.
+    //
+    // `limb` is left/right here, not fore/hind: end-on, a depth pair is the
+    // two legs on the SAME side of the body, and it is those that may legally
+    // overlap. Tagging them fore/hind would exempt the wrong pair.
+    const gLeg = (dx, isFar) => ({
+      x: 0.5 + dx,
+      hx: 0.5 + dx * 0.7,
+      top: 0.7,
+      bottom: CAT_GROUND,
+      w: G.axialLegW * (isFar ? 1 - AXIAL.farTaper : 1),
+      far: isFar,
+      limb: dx < 0 ? 'left' : 'right',
+    });
+    L.legs = [
+      gLeg(-G.axialLegFar, true), gLeg(G.axialLegFar, true),
+      gLeg(-G.axialLegNear, false), gLeg(G.axialLegNear, false),
+    ];
+    const gTip = G.axialRx + G.axialTailOut * (back ? 1 : 0.6);
+    const gStern = G.axialBottom - 0.03;
+    if (back) {
+      // Out at the flank and up, painted BEHIND the cat (`tailBehind`). The
+      // tip's final x is set by `clampAxialHead`, which is the only place the
+      // finished head radius is known.
+      L.tailBehind = true;
+      const up = 0.5 + G.axialRx * PROPORTION.bodyW;
+      L.tail = {
+        x0: 0.5, y0: gStern,
+        c1x: 0.5 + (up - 0.5) * 1.1, c1y: gStern - 0.02,
+        c2x: up + 0.06, c2y: G.axialTailUpY + 0.2,
+        x1: up, y1: G.axialTailUpY,
+      };
+    } else {
+      L.tail = {
+        x0: 0.5, y0: gStern,
+        c1x: 0.5 + gTip * 0.45, c1y: gStern + 0.01,
+        c2x: 0.5 + gTip, c2y: G.axialTailY + 0.008,
+        x1: 0.5 + gTip, y1: G.axialTailY,
+      };
+    }
+    L.view = view;
+    return L;
+  }
+
   L.body = {
     cx: 0.5 + sway,
     cy: C.bodyY + bob,
@@ -1472,6 +1563,47 @@ function applyAxial(L, pose, phase, view, opts) {
     };
   }
   L.view = view;
+  return L;
+}
+
+/**
+ * Keeps a seated axial skull clear of its own shoulders, and the tail clear of
+ * the skull.
+ *
+ * Runs LAST, on the drawn geometry, for exactly the reason `clampAxialLegs`
+ * does: `proportionLayout` rescales the body and repositions the head after
+ * the pose is built, so a floor imposed inside the pose is a floor against a
+ * cat nobody sees.
+ *
+ * Only the seated axial poses need it. A standing axial cat's head sits well
+ * clear of its ribcage; a seated one's is dropped toward the friend it is
+ * washing, and the share, the per-view base height and the near/far shrink are
+ * three independent numbers landing on one silhouette.
+ */
+function clampAxialHead(L) {
+  if (!L.axialSeated || !L.head || !L.body) return L;
+  const wide = Math.max(L.head.r, L.body.rx * GROOM_OTHER.axialHeadWide);
+  // Wide enough to break the shoulders' outline, then high enough that a
+  // legible share of the skull stands above them. Width first: raising the
+  // radius moves the height floor with it, so the other order would leave the
+  // head correct in one dimension and wrong in the other.
+  //
+  // The floor MOVES with the lick: a floor that owns the height outright
+  // swallows every animation fed to it from the pose.
+  const lift = (L.body.cy - L.body.ry) - wide * (2 * GROOM_OTHER.axialHeadShow - 1) + (L.lickNod || 0);
+  L.head = { ...L.head, r: wide, cy: Math.min(L.head.cy, lift) };
+  // ...and the tail is placed against the FINISHED head, because the head is
+  // what hides it and the head only settles here. Widening or lifting the
+  // skull swallowed this cue three rounds running; measuring the tip from the
+  // head instead of from the flank makes that impossible rather than merely
+  // noticed.
+  if (L.tailBehind && L.tail) {
+    const clearX = 0.5 + Math.max(wide, L.body.rx) + GROOM_OTHER.axialTailClearHead;
+    const shift = clearX - L.tail.x1;
+    if (shift > 0) {
+      L.tail = { ...L.tail, c1x: L.tail.c1x + shift * 0.85, c2x: L.tail.c2x + shift, x1: clearX };
+    }
+  }
   return L;
 }
 
@@ -1746,6 +1878,93 @@ function plantedReach(dials = GAIT) {
 const MAX_LIFT = 0.0925;
 
 /**
+ * The body as `proportionLayout` will actually draw it.
+ *
+ * Anything deriving geometry inside a pose's `case` is working on the
+ * PRE-proportion body: `proportionLayout` then scales rx by `bodyW` and ry by
+ * `bodyH` and, because it pins `cy + ry`, moves the centre too. A limit
+ * computed before that under-delivers by the scale factor -- `seatLeg` clamped
+ * the forelegs 0.036 of a box tighter than the real silhouette, pulling them
+ * back into the hind cluster and leaving 40% of their slider inert.
+ *
+ * Legs pass through `proportionLayout` untouched, so a leg derived from this
+ * body is correct in the drawing; the HEAD does not, which is why its floor is
+ * a separate pass -- see `clampAxialHead`.
+ */
+function proportionedBody(b) {
+  const ry = b.ry * PROPORTION.bodyH;
+  return {
+    cx: b.cx,
+    cy: (b.cy + b.ry) - ry, // proportionLayout pins the unrotated bottom
+    rx: b.rx * PROPORTION.bodyW,
+    ry,
+    rot: b.rot || 0,
+  };
+}
+
+/**
+ * The lowest point of a body outline at a given x, honouring `rot`.
+ *
+ * Exact rather than sampled. Parametrise the rotated ellipse as
+ *   x - cx = A cos t + B sin t,   y - cy = C cos t + D sin t
+ * with A = rx cos r, B = -ry sin r, C = rx sin r, D = ry cos r. The first
+ * equation is R cos(t - phi) with R = hypot(A, B) and phi = atan2(B, A), so a
+ * given x has two solutions and the answer is whichever yields the larger y.
+ * Returns null past the silhouette's edge, which is information rather than an
+ * error: it means there is no body at that x at all.
+ */
+function bodyUnderAt(b, x) {
+  const r = b.rot || 0;
+  const A = b.rx * Math.cos(r);
+  const B = -b.ry * Math.sin(r);
+  const C = b.rx * Math.sin(r);
+  const D = b.ry * Math.cos(r);
+  const R = Math.hypot(A, B);
+  if (!R) return null;
+  const k = (x - b.cx) / R;
+  if (Math.abs(k) > 1) return null;
+  const phi = Math.atan2(B, A);
+  const d = Math.acos(rclamp(k, -1, 1));
+  const y = (t) => b.cy + C * Math.cos(t) + D * Math.sin(t);
+  return Math.max(y(phi + d), y(phi - d));
+}
+
+/**
+ * A leg whose pivot is INSIDE the body by construction.
+ *
+ * Both of this pose's attachment bugs came from stating leg geometry against
+ * numbers that were true of the UNROTATED ellipse: `foreX 0.7` was chosen
+ * against a right edge of cx + rx = 0.7225, but at rot -0.56 the rightmost
+ * point is 0.7042 and the underside at 0.70 has already climbed to 0.6185, so
+ * a stated `top` of 0.629 left the leg starting in mid-air a quarter of a pixel
+ * outside the cat. A pose cannot hold that relationship by hand -- the tilt is
+ * a dial, so the outline moves under it.
+ *
+ * So `x` is clamped into the silhouette and `top` is derived from the outline
+ * there, `inset` above it. The leg is attached at every tilt, and `top` stops
+ * being a number anyone has to keep in step.
+ */
+function seatLeg(body, x, spec) {
+  const b = proportionedBody(body);
+  const r = b.rot;
+  const reach = Math.hypot(b.rx * Math.cos(r), b.ry * Math.sin(r));
+  // Just inside the silhouette's own extreme, never on it: the outline is
+  // tangent to vertical there, so a leg exactly at the edge has no body above
+  // it to hang from.
+  const lim = reach * 0.94;
+  const cx = rclamp(x, b.cx - lim, b.cx + lim);
+  const under = bodyUnderAt(b, cx);
+  return {
+    x: cx,
+    hx: cx + (spec.rake || 0),
+    top: (under === null ? b.cy : under) - (spec.inset || 0.03),
+    bottom: CAT_GROUND,
+    w: spec.w,
+    limb: spec.limb,
+  };
+}
+
+/**
  * The pose `cy` that lands a tilted body exactly on the ground line.
  *
  * Every seated pose has stated `cy` as a constant, and every one of them has
@@ -1779,13 +1998,31 @@ function seatCy(rx, ry, rot) {
  * Narrow tracking (a cat sets its paws almost on one line) means the
  * offset is small: this is depth, not a stance.
  */
-function withFarPair(legs, dx = GAIT.spread) {
+function withFarPair(legs, dx = GAIT.spread, cx = null) {
   // `limb` tags which LIMB each leg is, so a near/far pair can be recognised
   // by identity rather than inferred from the `far` flag. Inferring it is
-  // wrong in both directions: a near hind and a far fore have different
-  // flags and are not a pair, which is exactly the overlap that matters.
+  // wrong in both directions: a near hind and a far fore have different flags
+  // and are not a pair, which is exactly the overlap that matters.
+  //
+  // `cx` signs the shift TOWARD the body's centre instead of uniformly toward
+  // the tail, and it matters wherever a pose's legs straddle cx. Idle's hind
+  // sits at 0.2 and its fore at 0.7 against a centre of 0.44, so one uniform
+  // offset pushed the hind toward the SHALLOW end of the ellipse --
+  // lengthening it 44% past its own near partner -- while pushing the fore
+  // toward the deep middle and correctly shortening it. Position and size then
+  // told opposite stories, which is the failure `AXIAL.pairMargin` guards on
+  // the axial view.
+  //
+  // Toward the centre is also the honest projection: seen from the side, the
+  // far feet of a standing cat project inward toward its midline, not astern.
+  //
+  // `pouncing` and `stretch` deliberately do NOT pass it -- both straddle their
+  // own centre and both carry the same inversion (far hind 24% and 13% longer
+  // than its near partner), but they sit outside this brief and were judged in
+  // an earlier round. `cx = null` is that opt-out, not an oversight.
+  const shift = (x) => (cx === null ? x + dx : x + Math.abs(dx) * Math.sign(cx - x));
   const far = legs.map((l, i) => ({
-    ...l, limb: l.limb ?? i, x: l.x + dx, hx: (l.hx ?? l.x) + dx, far: true,
+    ...l, limb: l.limb ?? i, x: shift(l.x), hx: shift(l.hx ?? l.x), far: true,
   }));
   return [...far, ...legs.map((l, i) => ({ ...l, limb: l.limb ?? i }))];
 }
@@ -1817,6 +2054,13 @@ const FAR_LEGS = {
   // number -- and one of the two far legs it carries has no near leg in
   // front of it to be read against.
   grooming: -0.04,
+  // Social grooming carries two mirrored PAIRS -- both forepaws are down --
+  // so unlike self-grooming it goes through `withFarPair` and needs only the
+  // one number. Trimmed to -0.025: this pose plants all four paws in a narrow
+  // band ahead of the seat, and the offset has to buy visible depth without
+  // pushing the far fore back into the near hind, which are the only
+  // cross-limb neighbours it has.
+  'grooming-other': -0.025,
 };
 
 /**
@@ -1879,6 +2123,137 @@ const GROOM = {
   // needs only this number to come back.
   tongue: 0,
   tongueW: 0.13, // in head radii
+};
+
+const GROOM_OTHER = {
+  // --- Side view (east/west) ---
+  // Stated as a DELTA from self-grooming's seated tilt, not as an absolute --
+  // and that is not bookkeeping, it is the fix for the first cut. -0.42 was
+  // written straight in, 30% shallower than the -0.6 seat, on the reasoning
+  // that a cat reaching toward a friend pitches forward. It does, but the
+  // steep tilt is what MAKES the seated read: it lifts the chest and stands
+  // the animal up. Flattening it gave a level body on a long foreleg with the
+  // head thrust out ahead -- a standing cat.
+  //
+  // So the reach comes from the NECK, and the body only leans a little. The
+  // whole-sprite lean is the client's job anyway, so tilting the body to say
+  // the same thing was saying it twice and losing the pose to do it.
+  seatRot: -0.6, // self-grooming's seat, restated here so the delta has a base
+  rotToward: 0.04, // shallower than the seat by this much -- a lean, not a pitch
+  // Restored to self-grooming's depth. Narrowing it to 0.215 was spent on a
+  // misdiagnosis: the flat read was blamed on eccentricity ("a near-circle
+  // hides rotation"), but self-grooming reads unmistakably seated at ratio
+  // 1.251 while this pose read as a crouch at 1.308. Eccentricity was never
+  // the discriminator -- HEAD PLACEMENT is. See headX.
+  ry: 0.225,
+  // The seat lives or dies here. Measured against every other pose, this one
+  // had its head 0.42 of a box forward of the body centre where sit sits at
+  // 0.265 and self-grooming at 0.20 -- 47% further forward than anything else,
+  // which puts the skull BESIDE the chest instead of above it and hands the
+  // silhouette a horizontal long axis. That is a crouching cat, whatever the
+  // tilt says.
+  //
+  // The reach does not need it: the client's sub-tile lean is 0.2 of a tile,
+  // a dozen-plus pixels, and that is the cue.
+  headX: 0.72,
+  headY: 0.4,
+  headR: 0.222,
+  hindX: 0.55,
+  hindRake: -0.1, // hip measured FROM the paw: negative leans it back
+  // `hindTop`/`foreTop` are gone: `seatLeg` derives each pivot from the body
+  // outline at that x, so a leg is attached at every tilt instead of holding a
+  // hand-kept relationship that the tilt dial breaks.
+  //
+  // 0.685 is just inside `seatLeg`'s own limit for this body (0.687 -- 94% of
+  // the rotated reach out from cx 0.42). Stating it beyond that limit does not
+  // push the paw further forward, it just makes the number a lie and the top of
+  // the slider inert. It was briefly moved to 0.67 for slider headroom, which
+  // pulled the far fore to 0.645 against the near hind at 0.550 and left 0.6px
+  // of margin -- the hind cluster and the foreleg shared ink at every size in
+  // the band. An ergonomic tweak is not worth a merge, and the spacing row has
+  // to be re-read after ANY change to these four numbers.
+  foreX: 0.685,
+  foreRake: -0.04,
+  // Spacing is on PAINTED width -- `w + OUTLINE_W`, and OUTLINE_W is 0.035,
+  // which is more than half again on top of this. Four paws have to fit
+  // between where the hind pair first clears the body (~0.52) and where the
+  // chest ends (0.687): 0.17 of a box. The hind PAIR may overlap -- that is
+  // what a depth pair does -- but the hind cluster and the fore cluster may
+  // not, and at 0.06 they shared ink.
+  legW: 0.055,
+  nod: 0.01, // the lick, smaller than self-grooming's: a longer reach, less bob
+
+  // --- Axial view (north/south) ---
+  // A seated cat seen end-on is the narrowest and tallest it ever looks --
+  // more so than the walking axial body, which is a standing ribcage.
+  axialRx: 0.155,
+  axialRy: 0.225,
+  axialBottom: 0.88, // the rump is ON the ground; CAT_GROUND, stated as geometry
+  // The reach, said the only way this projection can say depth: the head
+  // reads NEARER (south, bigger) or FURTHER (north, smaller).
+  //
+  // There was an `axialHeadDrop` here too, and it is gone rather than fixed:
+  // once `axialHeadShow` became a floor on how much skull stands above the
+  // shoulders, the floor bound at every value of the drop, so the dial moved
+  // nothing anywhere in its range. A dead control is worse than a missing one,
+  // and the comment claiming the drop was half the cue was simply false --
+  // size carries it alone.
+  axialHeadNear: 0.14, // signed by view: +south, -north
+  // The skull must stand this share of its own DIAMETER above the body's top.
+  //
+  // Was an absolute gap (0.1 of a box), and that is why the rear view kept
+  // failing: an absolute clearance means nothing to the eye, because what
+  // makes a head read as a head is how much of IT is clear of the shoulders.
+  // The seated axial body is far deeper than the walking one (ry 0.242 against
+  // 0.189), so its top sits 0.08 lower and the same 0.1 gap bought 29.7% of
+  // the head where the approved walking rear shows 61.4%. Below about half,
+  // the head's outline just continues the body's dome instead of breaking it
+  // -- a cat-shaped blob with two ear tips.
+  //
+  // As a share it holds for both views at once. The south view had been
+  // getting away with 27.9% only because its head is 1.55x the shoulders and
+  // the face carries it; that made `axialHeadNear` quietly load-bearing.
+  axialHeadShow: 0.6,
+  // ...and it sits INTO the shoulders, at just under their width.
+  //
+  // 1.2 was a wrong turn: making the rear skull wider than the shoulders did
+  // cure the crown-sliver problem, and traded it for a worse artifact -- the
+  // body paints over the head in the rear pass, so a wider head reads as an
+  // outer blob with the body's complete closed outline nested inside it. The
+  // approved axial WALK rear is the answer and it was already in the file:
+  // headR 0.196 against bodyRx 0.2035, ratio 0.963. Head narrower than the
+  // shoulders, seated down into them, and the TAIL carries the cue.
+  axialHeadWide: 0.95,
+  // Outboard enough that the paws clear the chest's own outline. A seated cat
+  // end-on has its rump on the ground, so the underside touches the grass at
+  // the centre line and there is nowhere for a leg to be there -- clearance
+  // comes entirely from how far out the pair sits.
+  axialLegNear: 0.13, // the pair closest to the camera sits outboard...
+  axialLegFar: 0.105, // ...and the far pair inside it, so position and size agree
+  axialLegW: 0.085,
+  axialTailOut: 0.12, // toward the camera: a seated tail curls to one side
+  axialTailY: 0.845,
+  // Going AWAY, the tail comes UP instead -- the axial walk's rear treatment,
+  // and for the same reason it was adopted there: the rear of a cat has almost
+  // no features, so the raised tail is the silhouette.
+  //
+  // It rises OUT AT THE FLANK, like the approved walk's, not up the centre
+  // line. The centre-line route was chosen to escape the paw band back when
+  // the rear tail painted in the nearest pass -- but it paints behind the cat
+  // now, so it is occluded where it crosses the paws exactly as walking's is,
+  // and the reason for hiding it in the middle is gone. On the centre line the
+  // head covered all but a 1.8px sliver, which read as an antenna; walking's
+  // shows 4.8 x 34.6px of curve.
+  axialTailUpY: 0.2,
+  // The tip clears the HEAD by this much, not the flank.
+  //
+  // Stated against the flank it was 0.650, inside the head's x-span of
+  // 0.331-0.669, so the head hid all but a hairline -- and the head is exactly
+  // the thing that moves whenever a head dial changes, which is how this cue
+  // was lost three times running. A tail has to clear what occludes it, so it
+  // is measured from that. See `clampAxialHead`, which places it once the
+  // final head is known.
+  axialTailClearHead: 0.025,
 };
 
 /**
@@ -2397,6 +2772,8 @@ function blendLayouts(A, B, t) {
     // it at the midpoint would jump the paw.
     pawHold: n(A.pawHold || 0, B.pawHold || 0),
     lick: n(A.lick || 0, B.lick || 0),
+    lickNod: n(A.lickNod || 0, B.lickNod || 0),
+    tailBehind: late.tailBehind,
     // WHICH DRAWING this is. Switched at the midpoint like the other
     // un-blendable fields, though in practice both sides carry the same
     // one: render.js hands `layoutFrom` the very object it hands `layout`.
@@ -2478,7 +2855,7 @@ function catLayout(pose, phase, opts = {}) {
     legs: withFarPair([
       { x: 0.2, top: 0.74, bottom: 0.88, w: 0.1 },
       { x: 0.7, top: 0.74, bottom: 0.88, w: 0.1 },
-    ]),
+    ], GAIT.spread, BODY_CX),
     eyes: 'open', // 'open' | 'closed' | 'half' | 'focused'
     droplet: false,
     pawUp: false,
@@ -2728,7 +3105,7 @@ function catLayout(pose, phase, opts = {}) {
       L.legs = withFarPair([
         { x: 0.2, top: 0.76, bottom: 0.88, w: 0.1 },
         { x: 0.66, top: 0.76, bottom: 0.88, w: 0.1 },
-      ]);
+      ], GAIT.spread, L.body.cx);
       break;
     }
 
@@ -2751,7 +3128,7 @@ function catLayout(pose, phase, opts = {}) {
       L.legs = withFarPair([
         { x: 0.2, top: 0.76, bottom: 0.88, w: 0.1 },
         { x: 0.66, top: 0.76, bottom: 0.88, w: 0.1 },
-      ]);
+      ], GAIT.spread, L.body.cx);
       break;
     }
 
@@ -2850,6 +3227,39 @@ function catLayout(pose, phase, opts = {}) {
       break;
     }
 
+    case 'grooming-other': {
+      // Washing a friend on the next tile. See the GROOM_OTHER note for what
+      // the engine guarantees and why the read is positional rather than a
+      // detail cue.
+      //
+      // Same seated base as self-grooming, deliberately by derivation: a cat
+      // that washes its friend and then washes itself must be the same
+      // animal. What differs is the direction the silhouette points. Self-
+      // grooming curls INWARD around a raised paw; this reaches OUTWARD with
+      // both forepaws planted, which is half the signal on its own.
+      const G = GROOM_OTHER;
+      const nod = G.nod * Math.sin(phase * 3 * TAU); // one lick per beat
+      const otherRy = G.ry + 0.006 * breathe;
+      // The seat, leaned a little toward the friend. `seatCy` re-solves for
+      // the tilt, so the rump stays on the ground whatever the lean is.
+      const otherRot = G.seatRot + G.rotToward;
+      L.body = { cx: 0.42, cy: seatCy(0.275, otherRy, otherRot), rx: 0.275, ry: otherRy, rot: otherRot };
+      L.head = { cx: G.headX, cy: G.headY + nod, r: G.headR };
+      L.eyes = 'closed';
+      // Two mirrored pairs, so unlike self-grooming this goes through
+      // `withFarPair` -- and passes the body centre, so the far pair shifts
+      // INBOARD rather than uniformly astern.
+      L.legs = withFarPair([
+        seatLeg(L.body, G.hindX, { rake: G.hindRake, w: G.legW, limb: 'hind', inset: 0.03 }),
+        seatLeg(L.body, G.foreX, { rake: G.foreRake, w: G.legW, limb: 'fore', inset: 0.03 }),
+      ], FAR_LEGS['grooming-other'], 0.42);
+      // The settled seated tail: behind the cat, sweeping astern along the
+      // ground. Four routings were tried for `sit` and this is the one that
+      // survived -- see the note there before moving it.
+      L.tail = { x0: 0.24, y0: 0.79, c1x: 0.14, c1y: 0.85, c2x: 0.04, c2y: 0.855, x1: 0.03, y1: 0.8 };
+      break;
+    }
+
     case 'loaf': {
       L.body = { cx: 0.46, cy: 0.68, rx: 0.34, ry: 0.185 + 0.006 * breathe, rot: 0 };
       L.head = { cx: 0.68, cy: 0.48, r: 0.21 };
@@ -2939,7 +3349,7 @@ function catLayout(pose, phase, opts = {}) {
       L.legs = withFarPair([
         { x: 0.27, hx: 0.31, top: 0.74, bottom: CAT_GROUND, w: 0.1 },
         { x: 0.66, hx: 0.63, top: 0.58, bottom: CAT_GROUND, w: 0.095 },
-      ]);
+      ], GAIT.spread, L.body.cx);
       L.tail = { x0: 0.17, y0: 0.79, c1x: 0.34, c1y: 0.93, c2x: 0.62, c2y: 0.93, x1: 0.76, y1: 0.85 };
       break;
     }
@@ -2999,7 +3409,7 @@ function catLayout(pose, phase, opts = {}) {
   // The axial stub guard measures the finished ellipse, so it has to be
   // the last thing that touches a leg. Side-view cats never reach it and
   // are byte-identical.
-  return out.view === 'side' ? out : clampAxialLegs(out);
+  return out.view === 'side' ? out : clampAxialHead(clampAxialLegs(out));
 }
 
 // ---------------------------------------------------------------------------
@@ -3037,8 +3447,17 @@ function paintCat(ctx, L, a, lid = 0, size = 31) {
   };
 
   // Furthest first.
-  if (rear) paintHead();
-  else drawTail(ctx, L.tail, a, p);
+  if (rear) {
+    // A rear tail that runs up the CENTRE LINE has to paint behind the cat.
+    // The axial walk survives the near pass because its rear tail swings out
+    // to x 0.7, largely clear of the silhouette; this pose's was moved inboard
+    // to escape the paw band, which put its whole length over the skull -- and
+    // `drawTail` strokes an outline, so what showed was a hard dark stick
+    // driven through the cat. Three quarters of its visible ink was the part
+    // drawn on top.
+    if (L.tailBehind) drawTail(ctx, L.tail, a, p);
+    paintHead();
+  } else drawTail(ctx, L.tail, a, p);
   // Legs go UNDER the body (owner's idea, 2026-08-08): a limb pivots from
   // high inside the body and only the part below the silhouette is seen,
   // so the visible paw is small while its MOTION is a long lever's. The
@@ -3049,8 +3468,9 @@ function paintCat(ctx, L, a, lid = 0, size = 31) {
   drawBody(ctx, L.body, a, p, L.view);
   drawLegs(ctx, L.legs.filter((l) => l.front), a, p);
   // ...and nearest last.
-  if (rear) drawTail(ctx, L.tail, a, p);
-  else paintHead();
+  if (rear) {
+    if (!L.tailBehind) drawTail(ctx, L.tail, a, p);
+  } else paintHead();
   if (L.pawUp) {
     drawRaisedPaw(ctx, L.head, a, L.pawHold || 0);
     // Tongue LAST, over the paw. Drawn underneath it the paw's own fill ate
@@ -4309,7 +4729,12 @@ const api = {
   pounceWiggle,
   FAR_LEGS,
   GROOM,
+  GROOM_OTHER,
   seatCy,
+  seatLeg,
+  proportionedBody,
+  bodyUnderAt,
+  clampAxialHead,
   AXIAL,
   AXIAL_CAMERAS,
   AXIAL_POSES,

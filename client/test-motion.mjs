@@ -1782,9 +1782,9 @@ check('reshaping holds the belly floor in every pose', () => {
   for (const pose of CatV2.POSES) {
     const base = CatV2.catLayout(pose, 0.4);
     const shaped = reshaped({ bodyH: 1.2, bodyW: 1.1 }, () => CatV2.catLayout(pose, 0.4));
-    if (pose === 'grooming') {
-      // The seated body is TILTED, so `cy + ry` -- the unrotated bottom --
-      // is no longer where it touches the grass. Its floor is the rotated
+    if (pose === 'grooming' || pose === 'grooming-other') {
+      // The seated bodies are TILTED, so `cy + ry` -- the unrotated bottom --
+      // is no longer where they touch the grass. Their floor is the rotated
       // ellipse's true lowest point, and `seatCy` derives cy so that point
       // rests on CAT_GROUND whatever the proportion dials say. Stronger
       // than invariance, so assert the stronger thing.
@@ -1803,12 +1803,14 @@ check('reshaping holds the belly floor in every pose', () => {
 check('the seat rests on the ground at every point of the breath', () => {
   // `seatCy` inverts the proportion pipeline for whatever tilt and breath
   // the pose currently has, so this holds at EVERY phase, not just one.
-  for (const phase of [0, 0.17, 0.4, 0.73]) {
-    close(
-      seatLowest(CatV2.catLayout('grooming', phase).body),
-      CatV2.CAT_GROUND,
-      `phase ${phase}: the seat came off the ground`,
-    );
+  for (const pose of ['grooming', 'grooming-other']) {
+    for (const phase of [0, 0.17, 0.4, 0.73]) {
+      close(
+        seatLowest(CatV2.catLayout(pose, phase).body),
+        CatV2.CAT_GROUND,
+        `${pose} at phase ${phase}: the seat came off the ground`,
+      );
+    }
   }
 });
 
