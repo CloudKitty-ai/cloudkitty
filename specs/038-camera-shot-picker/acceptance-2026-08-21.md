@@ -300,3 +300,11 @@ buys another 1.6s of calm but costs size (1.51× → 1.36×).
 
 Replay numbers only — the feel is the owner's call live, per T026. No
 dial moved.
+
+**BAKED 2026-08-22**: `safeZoneFrac` 0.88 → 0.92 on the owner's word.
+Harness 295 → 296: the press-dwell fixture's hardcoded press spot sat
+INSIDE the wider safe zone and went red (it is now derived from the
+dials, so the next re-dial cannot quietly vacate it), and the shipped
+camera dials gained the pin they never had. Both recorded windows are
+unchanged at 90.7% and 77.6% rest — they were chosen for flap density,
+so presses were never what they measured.

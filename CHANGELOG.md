@@ -33,6 +33,18 @@ change.
 
 ## Unreleased
 
+- The camera is calm again on a busy meadow. Biscuit 2.0 hunts and plays
+  across the map, and the new roster keeps closer company — so where the
+  camera used to frame about three cats it now holds nearly all five, and
+  five cats milling inside one frame kept nudging it into a correction
+  every few seconds. Widening the inner deadzone (the region a cat can
+  wander in before the camera answers) restores the long still shots:
+  measured on 12 minutes of the live world, the camera is at rest 81% of
+  the time again (was 54%), with the typical calm stretch back to about
+  4.4 seconds — and the cats are drawn no smaller for it. More patience
+  was tried first and barely moved: with a crowd in frame someone is
+  always pressing, so the answer was room, not waiting.
+
 - Grooming a friend finally looks like grooming a friend. The engine has
   served social grooming all along — one cat washing another on the next
   tile — and the client drew it with the self-groom pose, so the meadow's

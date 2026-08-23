@@ -261,7 +261,14 @@ const VIEW = Object.freeze({
     // The inner region of the frame the shot may wander inside without the
     // camera moving AT ALL. A member pressing past it earns one eased
     // correction, then stillness again (038 FR-006/FR-007).
-    safeZoneFrac: 0.88, // owner-judged at the calm pass (2026-08-21; was 0.80)
+    // Owner-judged 2026-08-22 on the live world after the Biscuit 2.0
+    // cutover: 0.88 held rest at 54%% against SC-001's 60%% floor, because a
+    // tighter clowder puts nearly all five cats in one frame and the safe
+    // zone is then under near-continuous pressure. A wider deadzone
+    // answers a PERSISTENT press; more dwell does not (pressDwellTicks 8
+    // bought 5 points, this buys 27). Restores rest 81%%, median calm
+    // spell 4.4s, size unchanged at 1.51x, zero empty frames.
+    safeZoneFrac: 0.92, // owner-judged (2026-08-22; was 0.88, was 0.80)
     // Persistence before action, applied to the HOLD (owner, 2026-08-21
     // calm pass): a press (or standing slack) must survive this many
     // consecutive ticks before a correction latches from rest. A cat
