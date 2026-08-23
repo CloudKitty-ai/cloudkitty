@@ -915,6 +915,61 @@ sit's legs measure 2.5px and 3.7px at 120px. Design reports 0.53–0.54
 buys them back. The current value was judged by eye, so moving it is the
 owner's call rather than a fix.
 
+### `L.seated` — a declared seat flag, HELD 2026-08-23 (from GROOM-OTHER-EDITS-update; owner: "hold it and bank it")
+
+Design's follow-up to the groom-other handoff proposed a third seated
+signal. Verified scope with `diff GROOM-OTHER-EDITS-update.md
+GROOM-OTHER-EDITS.md`: the 31KB update is identical to the pass shipped
+in #293 apart from one idea, in three places — `L.seated = true` in the
+side `grooming-other` pose, `seated: late.seated` in `blendLayouts`
+(switched, not lerped), and prose asking for the same line beside the
+`seatCy` call in `grooming` and `sit`.
+
+**The principle is right and the code already holds it.** A seated pose
+is a KIND of pose, not a tilt magnitude — and `cat-v2.js:1391` already
+declares exactly that as `L.axialSeated`, read by `clampAxialHead` at
+`cat-v2.js:1584`. That is the only place in the client that asks whether
+a pose is seated, and it already reads a declaration rather than
+thresholding anything.
+
+Held for three reasons, none of them about the idea:
+
+1. **Nothing reads `L.seated`.** No consumer in the update doc, none in
+   the client. Written in three poses, carried through the blend, never
+   asked about — so no check can defend it. Delete the line and the
+   suite stays green by construction. The comment above the insertion
+   point already says this about `earsUpright`: "Dropping it changes no
+   drawing, which is why the check below it cannot see it."
+2. **The threat it names does not exist.** The comment justifies the
+   declaration because a `rot` threshold "sweeps up `eating` (0.07) and
+   `drinking` (0.05)". There is no `rot` threshold in `cat-v2.js`,
+   `render.js` or `anim.js` — checked for all four comparison forms and
+   `Math.abs`. Nothing infers seatedness from tilt today.
+3. **The `sit` hunk cannot be applied as written.** `seatCy` has exactly
+   two call sites, `cat-v2.js:3165` (`grooming`) and `cat-v2.js:3246`
+   (`grooming-other`). `sit` does not call it; it states `cy: 0.665`
+   against `rot: -0.4` at `cat-v2.js:3347`.
+
+**When a consumer appears, widen — do not add.** The likeliest triggers
+are a shared shadow, or Design's N/S groom work needing the side view to
+know it is seated. The cheap shape then is to rename `axialSeated` to
+`seated` (two sites) and set it in the side poses too — one field rather
+than two names for one fact. Checked safe: `grooming` and `sit` are not
+in `AXIAL_POSES`, so they can never reach `clampAxialHead`, and widening
+the flag cannot change its behaviour.
+
+Two details worth keeping if it is ever built. `seated: late.seated` as
+a midpoint switch is correct in kind — half-seated is not a thing — and
+matches `tailBehind`/`pawUp`/`view`; it becomes load-bearing the moment
+a PAINTER reads the flag, because `blendLayouts` silently drops what it
+forgets (that is the `view` bug's whole story, documented at the
+insertion point). And `axialSeated` deliberately needs no blend carrier:
+`clampAxialHead` runs inside `catLayout` (`cat-v2.js:3412`), before any
+blend sees the layout.
+
+`design-handoffs/` is gitignored, so this entry is the durable record —
+the update doc itself lives only in the working copy.
+
 ### Phone controls get the developer-menu treatment — DEFERRED 2026-08-22 (owner: "let's leave the phone as is for now")
 
 The desktop footer now hides its developer toggles behind `d` (greebles,
