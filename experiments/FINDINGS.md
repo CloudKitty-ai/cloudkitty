@@ -62,6 +62,8 @@ evidence; this register is the evolving knowledge layer on top of them.
 | F-025 | active | Same recipe, different seed: dialects and cultures, mutually intelligible, welfare-coupled |
 | F-026 | active | Under global vision the channel is welfare-redundant — the measured baseline fog must overturn |
 | F-027 | active | Twin-seating one artifact creates dyadic self-interaction attractors |
+| F-028 | active | Census raws are attributable only if the instrument records its own provenance |
+| F-029 | active | A reader rule copied from the wrong contract shape reports a category that cannot exist |
 
 ---
 
