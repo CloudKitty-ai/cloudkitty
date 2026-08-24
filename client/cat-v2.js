@@ -2064,6 +2064,45 @@ const FAR_LEGS = {
 };
 
 /**
+ * The seated cat's hind foot (2026-08-24, from the owner's two photographs).
+ *
+ * A sitting cat does not stand on its hind legs -- it rests on the whole
+ * METATARSUS, which lies flat along the ground pointing forward, hock behind
+ * and hidden under the rump, toes ending short of the front paw. Both photos
+ * show it: a long horizontal element on the ground, not the short vertical
+ * peg every seated pose here has drawn.
+ *
+ * That peg is why the four-paws work kept running out of room. It put the
+ * hind paw in the same narrow band of x as the foreleg, competing for a gap
+ * that the seat is too small to give; and being vertical, almost all of it
+ * was inside the body, so it had 3.7 device px of itself to show. The foot
+ * lying down is a quarter of a tile long -- 25 device px at a 50px tile on a
+ * 2x phone -- and it runs along the one direction nothing else is using.
+ *
+ * The hock end is DERIVED, not stated: `seatLeg` reads the body outline at
+ * `hockX` and insets the pivot above it, so the foot meets the animal at
+ * every tilt and at every point of the breath. The toe end is the dial. The
+ * rise from toe to hock is what the outline gives it, which is a couple of
+ * degrees -- the metatarsus does angle up slightly toward the hock, so the
+ * honest attachment and the honest anatomy are the same line.
+ */
+const SIT = {
+  hockX: 0.315, // where the foot passes under the body; hidden from here back
+  // The toes stop 0.03 of a tile clear of the foreleg's painted edge -- about
+  // a paw's width of grass between them, which is what both photographs show.
+  // Closer and they share ink: the two are at the same height, both on the
+  // ground, so the round caps meet. 0.66 - 0.12 (the two painted half-widths)
+  // - 0.03 lands here.
+  toeX: 0.51,
+  footW: 0.075, // slimmer than the foreleg (0.095), as the photos have it
+  inset: 0.012, // how far the hock tucks up inside the silhouette
+  foreX: 0.66, // the straight foreleg a sitting cat is mostly recognised by
+  foreHx: 0.63,
+  foreTop: 0.58,
+  foreW: 0.095,
+};
+
+/**
  * The grooming pose's tunables (2026-08-21).
  *
  * Its own block for two reasons. Grooming is the only pose in the vocabulary
@@ -3373,9 +3412,14 @@ function catLayout(pose, phase, opts = {}) {
       const sitRy = 0.215 + 0.007 * breathe;
       L.body = { cx: 0.42, cy: seatCy(0.275, sitRy, -0.4), rx: 0.275, ry: sitRy, rot: -0.4 };
       L.head = { cx: 0.685, cy: 0.325, r: 0.226 };
+      // The hind foot lies DOWN along the ground; the foreleg still stands.
+      // See the SIT note. `seatLeg` gives the hock end its pivot on the body
+      // outline, and the toe is then carried forward along the grass, so the
+      // drawn segment is the metatarsus rather than a peg.
+      const hock = seatLeg(L.body, SIT.hockX, { w: SIT.footW, limb: 'hind', inset: SIT.inset });
       L.legs = withFarPair([
-        { x: 0.27, hx: 0.31, top: 0.74, bottom: CAT_GROUND, w: 0.1 },
-        { x: 0.66, hx: 0.63, top: 0.58, bottom: CAT_GROUND, w: 0.095 },
+        { ...hock, x: SIT.toeX },
+        { x: SIT.foreX, hx: SIT.foreHx, top: SIT.foreTop, bottom: CAT_GROUND, w: SIT.foreW },
       ], GAIT.spread, L.body.cx);
       L.tail = { x0: 0.17, y0: 0.79, c1x: 0.34, c1y: 0.93, c2x: 0.62, c2y: 0.93, x1: 0.76, y1: 0.85 };
       break;
@@ -4757,6 +4801,7 @@ const api = {
   FAR_LEGS,
   GROOM,
   GROOM_OTHER,
+  SIT,
   seatCy,
   seatLeg,
   // The shared painter. Exported for the same reason the rig and the settle

@@ -1939,6 +1939,22 @@ check('the seated leg dials: paws where the photos put them, width dialled for t
   close(CatV2.GROOM_OTHER.legW, 0.04, 'GROOM_OTHER.legW moved');
 });
 
+// A third attachment mode -- "the limb is fully inside the body, never drawn"
+// -- landed with the sit seat fix on 2026-08-24 and was REMOVED the same day,
+// once `sit`'s hind foot lay down along the ground (see the SIT note).
+//
+// It was written as a vertical drop at the hip, which is only meaningful for a
+// limb that hangs. Rewritten to sample along the drawn segment it stopped
+// being able to fail at all: a limb reaching CAT_GROUND always clears the body
+// by a hair now the seat rests exactly on the line, and any limb whose paw
+// travels past the body's own x-range counts that stretch as visible -- which
+// is true, and useless. Both forms were checked against three mutations that
+// genuinely hide a limb; both stayed green.
+//
+// What it was written to catch -- the sunk rump covering its own hind pair --
+// is caught outright by the two seat guards above. What is LEFT over is a
+// readability question ("enough of the limb to read"), and that needs a pixel
+// floor, which is the owner's eye and not a number this suite gets to pick.
 check('every drawn leg hangs off the body, not off thin air', () => {
   // Ported from Four Paws Lab, which scored a foreleg hanging off the CHIN as
   // "reads as a leg across the band, 39.8px" -- the healthiest number on the
@@ -1971,17 +1987,6 @@ check('every drawn leg hangs off the body, not off thin air', () => {
         // separately because `Math.max(u, top)` silently accepts it and then
         // measures from the outline anyway.
         assert(leg.top <= u, `${where}: pivot ${leg.top.toFixed(4)} is below the body outline ${u.toFixed(4)}`);
-        // ...and a leg that ends inside the body is HIDDEN, not
-        // negative-length. Held back when the guards first landed because it
-        // was red on `sit` alone -- the sunk rump covered its own hind pair
-        // -- and landed with the fix that made it green. Reverting `sit` to
-        // its literal `cy` puts this straight back to red, which is the
-        // check it was written for.
-        assert(
-          leg.bottom - Math.max(u, leg.top) > 0,
-          `${where}: fully inside the body, never drawn `
-            + `(hidden by ${(Math.max(u, leg.top) - leg.bottom).toFixed(4)} of a tile)`,
-        );
       }
     }
   }
