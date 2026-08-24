@@ -3344,7 +3344,17 @@ function catLayout(pose, phase, opts = {}) {
       // curled round the front paws. It reads at 31px because the
       // silhouette is unlike anything else in the vocabulary: tall and
       // narrow where idle is long and low.
-      L.body = { cx: 0.42, cy: 0.665, rx: 0.275, ry: 0.215 + 0.007 * breathe, rot: -0.4 };
+      // The rump is ON the ground, so the seat is DERIVED, not stated. The
+      // literal 0.665 this replaced was chosen against `cy + ry` = 0.880 --
+      // the underside of an UNROTATED ellipse -- but the body is turned, and
+      // the rotated outline's lowest point is further down, so the rump hung
+      // 0.0184 of a tile under the grass (about 2px at a 113px tile) and the
+      // body covered its own hind pair. `seatCy` re-solves it at whatever
+      // tilt and breath the pose currently has, which is what `grooming` and
+      // `grooming-other` already do; `sit` was the last one keeping the
+      // relationship by hand. See test-motion's SEATED set.
+      const sitRy = 0.215 + 0.007 * breathe;
+      L.body = { cx: 0.42, cy: seatCy(0.275, sitRy, -0.4), rx: 0.275, ry: sitRy, rot: -0.4 };
       L.head = { cx: 0.685, cy: 0.325, r: 0.226 };
       L.legs = withFarPair([
         { x: 0.27, hx: 0.31, top: 0.74, bottom: CAT_GROUND, w: 0.1 },
@@ -4732,6 +4742,13 @@ const api = {
   GROOM_OTHER,
   seatCy,
   seatLeg,
+  // The shared painter. Exported for the same reason the rig and the settle
+  // are: a lab that has to show a layout the pose switch cannot currently
+  // produce -- a proposed fix beside what ships -- must paint it with THIS
+  // function, or the two columns stop being the same drawing. Neither
+  // `drawCat` nor `drawCatTween` takes a layout; both build one from a pose
+  // name, so there is no other way in.
+  paintBox,
   proportionedBody,
   bodyUnderAt,
   clampAxialHead,

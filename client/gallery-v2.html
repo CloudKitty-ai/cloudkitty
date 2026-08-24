@@ -793,6 +793,77 @@
   // The groom card's viewing aids. The POSE dials write into CatV2.GROOM
   // itself (per-dial `bag`), so the map and every other card follow live.
   const GROOM_LAB = { tilePx: 90, speed: 1, groomCycleMs: VIEW.groomCycleMs };
+  // The sit-sink card's viewing aids. `guides` is a toggle rather than a
+  // number so the drop line can be taken away and the drawing judged alone.
+  const SIT_SINK_LAB = { tilePx: 110, speed: 0.5, guides: 1 };
+
+  /** The share of a leg's DRAWN run that a viewer can actually see.
+   *
+   * A leg is a stroked segment from the pivot (hx, top) to the foot (x,
+   * bottom) -- slanted, not a vertical peg -- so this samples along the
+   * segment rather than testing one x. Reading it at the hip alone said sit
+   * shows "2 of 4 legs" at every phase; the truth is 0% of the hind run for
+   * most of the breath and 2% at the top of it, and the difference decides
+   * whether the fix buys a LEG or a sliver. `bodyUnderAt` is cat-v2's own
+   * solve, so this reads the outline the painter actually fills.
+   */
+  const visibleRun = (L, leg) => {
+    const hx = leg.hx !== undefined ? leg.hx : leg.x;
+    const N = 200;
+    let below = 0;
+    for (let i = 0; i <= N; i += 1) {
+      const t = i / N;
+      const px = hx + t * (leg.x - hx);
+      const py = leg.top + t * (leg.bottom - leg.top);
+      const u = CatV2.bodyUnderAt(L.body, px);
+      if (u === null || py > u) below += 1; // off the body, or clear of it
+    }
+    return (below / (N + 1)) * Math.hypot(leg.x - hx, leg.bottom - leg.top);
+  };
+
+  /** The shortest visible run on the card, which is the hind pair's. */
+  const worstRun = (L) => Math.min(...L.legs.map((leg) => visibleRun(L, leg)));
+
+  /** `sit`'s seat as it was STATED before 2026-08-24, replayed.
+   *
+   * Not a recorded number and not a nudge to the finished layout: it runs the
+   * old rule -- a literal `cy` of 0.665 -- through the shipped
+   * `proportionedBody`, which is the same step `catLayout` runs. So the
+   * before-column is the old code path rather than an impression of it, and
+   * it cannot drift when the proportion dials move. `cy + ry` = 0.880 is the
+   * ground line only while `breathe` is 0; the old `cy` was CONSTANT and `ry`
+   * was not, which is why the drop breathes. test-motion pins the depth this
+   * replays to. */
+  const statedSeat = (phase) => {
+    const breathe = CatV2.breathCurve(Math.sin(phase * CatV2.TAU));
+    return CatV2.proportionedBody({
+      cx: 0.42, cy: 0.665, rx: 0.275, ry: 0.215 + 0.007 * breathe, rot: -0.4,
+    });
+  };
+
+  /** The rotated ellipse's true lowest point -- where a tilted body meets grass. */
+  const seatLowestOf = (b) => b.cy
+    + Math.hypot(b.rx * Math.sin(b.rot || 0), b.ry * Math.cos(b.rot || 0));
+
+  /** The worst point of sit's breath, swept -- mid-breath is where it hides. */
+  const sitWorstSink = () => {
+    let best = null;
+    for (let i = 0; i < 120; i += 1) {
+      const phase = i / 120;
+      const L = CatV2.catLayout('sit', phase);
+      L.body = statedSeat(phase);
+      const lowest = seatLowestOf(L.body);
+      if (!best || lowest > best.lowest) {
+        const fixed = CatV2.catLayout('sit', phase);
+        best = {
+          phase, lowest, delta: lowest - CatV2.CAT_GROUND,
+          runShipped: worstRun(L), runFixed: worstRun(fixed),
+        };
+      }
+    }
+    return best;
+  };
+
   // The clowder card's per-cat sizes, seeded from the shipped map (VIEW is
   // frozen; the readout prints the paste line).
   // The groom-other card's viewing aids. The lean is FAKED here on purpose
@@ -1279,6 +1350,114 @@
         cat({ friend: true, facing: 'north', x: ncx - T / 2, y: sTop, layout: { view: 'back' } });
         cat({ facing: 'north', x: ncx - T / 2, y: sTop + T - leanPx, layout: { view: 'back' } });
         ctx.fillText('north — the raised tail is the silhouette', ncx, sTop + T * 2 + 24);
+        ctx.textAlign = 'left';
+      },
+    },
+    {
+      title: 'The sit rump — the seat that was stated by hand (FIXED 2026-08-24)',
+      note: 'FIXED 2026-08-24 — the right-hand cat is what ships now. `sit` was the one TILTED pose that stated its `cy` literally instead of deriving it: 0.665 + ry 0.215 is exactly CAT_GROUND, so the number put the UNROTATED bottom on the grass, and the -0.4rad tilt then carried the real lowest point 0.0184 of a tile below it — about 2px at a 113px tile. `grooming` and `grooming-other` never had it; both run their seat through `seatCy`. The left column replays the OLD RULE through the shipped `proportionedBody` rather than remembering numbers, so it stays honest as the proportion dials move; test-motion pins the depth it replays to. Both columns are the same pose painted by the same painter against ONE ground line. Note what the fix did NOT buy: the hind legs were fully covered before and show about a pixel now, which is the SIT.hindX entry in BACKLOG, not this one. Nothing in the served world occludes any of this — the ground shadow is drawn UNDER the cat — but there is no drawn ground line out there either, so this was never a visible defect. It is the invariant every other tilted pose already held.',
+      v2Only: true,
+      w: 940,
+      h: 400,
+      ownShadows: true,
+      bag: SIT_SINK_LAB,
+      dials: [
+        { key: 'tilePx', label: 'tilePx — judge at the sizes the camera draws', min: 40, max: 160, step: 1 },
+        { key: 'speed', label: 'speed — 1 is the live rhythm; slow it to study', min: 0.1, max: 1.5, step: 0.05 },
+        { key: 'guides', label: 'guides — the ground line and the measured drop', min: 0, max: 1, step: 1 },
+      ],
+      readout() {
+        // Every figure here is measured off the layout on screen, never
+        // hand-kept: the whole point of the card is that the number and the
+        // drawing cannot disagree.
+        const T = SIT_SINK_LAB.tilePx;
+        const worst = sitWorstSink();
+        return (
+          `sit stated:  cy 0.665, ry 0.215 + 0.007*breathe, rot -0.4  --  cy + ry = ${(0.665 + 0.215).toFixed(3)} = CAT_GROUND\n`
+          + `真 lowest:   cy + hypot(rx*sin rot, ry*cos rot)  --  worst ${worst.lowest.toFixed(5)} at phase ${worst.phase.toFixed(2)}\n`
+          + `drop:        ${worst.delta.toFixed(5)} of a tile = ${(worst.delta * T).toFixed(2)}px at this ${T}px tile\n`
+          + `hind leg:    ${(worst.runShipped * T).toFixed(2)}px of its run showed before, `
+          + `${(worst.runFixed * T).toFixed(2)}px now -- a sliver either way,\n`
+          + `             which is the SIT.hindX entry in BACKLOG, not this one. This was about the GROUND LINE.\n`
+          + `sit now:     cy: seatCy(0.275, 0.215 + 0.007 * breathe, -0.4)   -- what grooming already did\n`
+          + `card view:   tilePx ${SIT_SINK_LAB.tilePx}, speed ${SIT_SINK_LAB.speed}, guides ${SIT_SINK_LAB.guides}`
+          + ` -- viewing aids, not shipped dials`
+        );
+      },
+      draw(ctx, w, h, now) {
+        const T = SIT_SINK_LAB.tilePx;
+        const period = 2600 / SIT_SINK_LAB.speed;
+        const phase = (now % period) / period;
+        const groundY = h - 92;
+
+        // One ground line across both columns: the claim is that the rump
+        // rests ON it, so both cats have to be judged against the SAME line.
+        ctx.strokeStyle = 'rgba(107, 90, 78, 0.45)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(10, groundY + 0.5);
+        ctx.lineTo(w - 10, groundY + 0.5);
+        ctx.stroke();
+
+        const columns = [
+          { cx: w * 0.28, label: 'before — cy stated by hand', fix: false },
+          { cx: w * 0.72, label: 'now — cy through seatCy', fix: true },
+        ];
+        for (const col of columns) {
+          const L = CatV2.catLayout('sit', phase);
+          if (!col.fix) L.body = statedSeat(phase);
+          const lowest = seatLowestOf(L.body);
+
+          ctx.save();
+          ctx.globalAlpha = 0.35;
+          ctx.fillStyle = '#4a3f35';
+          ctx.beginPath();
+          ctx.ellipse(col.cx, groundY - 2, T * 0.34, T * 0.1, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+
+          // The box is placed so the pose's OWN ground line is the card's
+          // drawn line. Nothing else lines the two cats up, and if the box
+          // were centred instead the sink would be invisible by construction.
+          const boxY = groundY - T * CatV2.CAT_GROUND;
+          CatV2.paintBox(ctx, L, CatV2.appearanceFor(PUMPKIN), {
+            facing: 'right', size: T, x: col.cx - T / 2, y: boxY,
+          });
+
+          if (SIT_SINK_LAB.guides) {
+            const lowestY = boxY + lowest * T;
+            const drop = (lowest - CatV2.CAT_GROUND) * T;
+            // Drawn only when it is there to draw: a hairline that is always
+            // painted reads as part of the cat.
+            if (Math.abs(drop) >= 0.05) {
+              ctx.strokeStyle = drop > 0 ? 'rgba(156, 90, 60, 0.9)' : 'rgba(120, 150, 110, 0.9)';
+              ctx.beginPath();
+              ctx.moveTo(col.cx - T * 0.5, lowestY + 0.5);
+              ctx.lineTo(col.cx + T * 0.5, lowestY + 0.5);
+              ctx.stroke();
+            }
+            ctx.fillStyle = drop > 0.05 ? '#9c5a3c' : '#5e7a52';
+            ctx.textAlign = 'center';
+            ctx.fillText(
+              drop > 0.05 ? `${drop.toFixed(2)}px below the line` : 'on the line',
+              col.cx, groundY + 34,
+            );
+          }
+          ctx.fillStyle = '#6b5a4e';
+          ctx.textAlign = 'center';
+          ctx.fillText(col.label, col.cx, groundY + 56);
+        }
+
+        // How many legs each column actually SHOWS, measured off the outline
+        // rather than counted from L.legs -- which is the whole difference.
+        const shipped = CatV2.catLayout('sit', phase);
+        shipped.body = statedSeat(phase);
+        const fixed = CatV2.catLayout('sit', phase);
+        ctx.fillStyle = '#6b5a4e';
+        ctx.textAlign = 'center';
+        const T2 = SIT_SINK_LAB.tilePx;
+        ctx.fillText(`hind leg shows ${(worstRun(shipped) * T2).toFixed(1)}px`, w * 0.28, groundY + 76);
+        ctx.fillText(`hind leg shows ${(worstRun(fixed) * T2).toFixed(1)}px`, w * 0.72, groundY + 76);
         ctx.textAlign = 'left';
       },
     },
