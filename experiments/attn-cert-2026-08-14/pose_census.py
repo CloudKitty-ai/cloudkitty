@@ -9,13 +9,16 @@ and then replicates the client's `poseFor` + `chaseDistanceFor`
 is the pose mix on screen, not a proxy for it.
 
 Why the two disagree, and why that is the point (2026-08-23): the drawn
-pose reads `last_action`, not `activity.state`, and those differ by design.
-A scene's final tick reports the action it applied with the state already
-cleared, so the `play` ACTION runs about 1.8x the `playing` STATE — and
-`chase` inside `pounceGateTiles` draws the pounce too, so the last four
-tiles of every approach are drawn as a pounce rather than a walk. A world
-whose play budget matches its certification can still look pounce-heavy,
-and only this instrument can say by how much.
+pose reads `last_action`, not `activity.state`. For play, eat and drink
+`activity.state` is a ONE-TICK resolution flag while the action spans the
+whole engagement, so the action ticks run ~2x the state ticks for all
+three — that ratio is action-run length, NOT over-drawing (eat 1.99x and
+drink 2.01x both exceed play's 1.88x; Client's measurement, 2026-08-23).
+The pounce is simply the loudest pose that rule extends. On top of it,
+`chase` inside `pounceGateTiles` draws the pounce, and chase is how a cat
+TRAVELS — so approach ticks that would draw a walk draw a pounce instead.
+A world whose play budget matches its certification can still look
+pounce-heavy, and only this instrument can say by how much.
 
 Sections printed (and banked to results-raw/pose-census-<start_tick>.json):
 
@@ -30,6 +33,7 @@ essentially every tick of a 5-minute window.
 """
 
 import json
+import re
 import sys
 import time
 import urllib.request
@@ -41,12 +45,26 @@ DURATION_S = int(sys.argv[1]) if len(sys.argv) > 1 else 300
 INTERVAL_S = float(sys.argv[2]) if len(sys.argv) > 2 else 0.45
 HERE = Path(__file__).resolve().parent
 
-# The client's dials and tables, mirrored verbatim. POUNCE_GATE is
-# VIEW.pounceGateTiles (client/anim.js); the two pose tables are
-# ACTION_POSE and SCENE_POSE (client/render.js). Mirrored rather than
-# imported because the census is Python and the client is the contract —
-# test_pose_replica.py is what keeps the copy honest.
-POUNCE_GATE = 4
+# The client's dials and tables. The two pose tables are ACTION_POSE and
+# SCENE_POSE (client/render.js), mirrored because the census is Python and
+# the client is the contract — test_pose_replica.py keeps the copy honest.
+#
+# The GATE is not mirrored, it is READ: a hardcoded 4 went stale within a
+# day of being committed (the owner shipped 3 in #303), and a census whose
+# gate disagrees with the client reports a pose mix nobody is looking at.
+# It is stamped into every raw, because the checkout is only the deployed
+# client if the deploy is current — the number that produced a banked run
+# has to be recoverable from the run.
+def pounce_gate_tiles(src=None):
+    src = src or (Path(__file__).resolve().parents[2] / "client" / "anim.js")
+    m = re.search(r"pounceGateTiles:\s*([0-9.]+)", src.read_text())
+    if not m:
+        raise SystemExit(f"pounceGateTiles not found in {src} — "
+                         "the dial moved or was renamed; fix this first")
+    return float(m.group(1))
+
+
+POUNCE_GATE = pounce_gate_tiles()
 ACTION_POSE = {
     "sleep": "sleep-curl", "rest": "loaf", "groom": "grooming",
     "eat": "eating", "drink": "drinking",

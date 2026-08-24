@@ -19,8 +19,15 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import pose_census as pc  # noqa: E402
 
-GATE = int(os.environ.get("GATE", pc.POUNCE_GATE))
+GATE = float(os.environ.get("GATE", pc.POUNCE_GATE))
 NOGATE = os.environ.get("NOGATE") == "1"
+
+# The census reads the gate out of client/anim.js rather than mirroring it
+# (a mirrored 4 went stale the day it was committed, #303 shipped 3). This
+# asserts the read still finds a plausible dial: a rename or a moved
+# constant must fail here, not silently reshape a census.
+assert 0 < pc.POUNCE_GATE < 20, f"implausible gate {pc.POUNCE_GATE}"
+print(f"gate read from client/anim.js: {pc.POUNCE_GATE}")
 
 WORLD = {
     "elements": [{"id": 9, "kind": "bug", "pos": {"x": 3, "y": 0}},

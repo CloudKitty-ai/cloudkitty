@@ -11,6 +11,11 @@ twice the play budget, for two reasons that belong to the client's pose
 rule rather than to the world, and that gap is what makes it read as
 excessive.
 
+> **Read §"What happened next" before quoting the 2x.** Client measured
+> the same ratio for eating (1.99x) and drinking (2.01x) hours later, which
+> reframes what it means. Everything below stands as measured; the windows
+> here were drawn with `pounceGateTiles` at 4, which is no longer its value.
+
 ## The instrument
 
 `attn-cert-2026-08-14/pose_census.py` — new, and the only thing we have
@@ -138,3 +143,43 @@ cd experiments/attn-cert-2026-08-14
 python3 test_pose_replica.py            # green; GATE=99 and NOGATE=1 for red
 python3 pose_census.py 300 0.45         # one ~370-tick window
 ```
+
+## What happened next (same day, and it corrects this document)
+
+**The 2x is not over-drawing.** Client measured action-ticks against
+matching state-ticks across all activity kinds on 350 live ticks (1,745
+cat-ticks): play 1.88x, **eat 1.99x, drink 2.01x**, groom 1.27x, sleep
+1.20x. For play, eat and drink `activity.state` is a **one-tick resolution
+flag** — every one of 284 state runs was exactly one tick — while
+`last_action` spans the whole engagement. So the ratio measures action-run
+length, not amplification, and eating beats play on it. Nobody thinks cats
+are drawn eating twice as much as they eat.
+
+That kills the framing in "Why the drawn pose runs ~2x the play budget"
+above, though not its arithmetic. **The real asymmetry is the pose, not the
+rule**: the same one-tick extension that gracefully finishes a meal also
+extends a *pounce*, and the pounce is the loudest pose in the vocabulary —
+crouch, launch, spec-039 lunge — where eating is a head-down cat. Action-
+first is a deliberate fix, not a bug (reading `activity.state` first drew
+cats standing idle on 17.4% of cat-ticks); reverting it brings back cats
+snapping upright at the end of every meal, nap and groom. It must not be
+"fixed".
+
+Same trap family as F-029: a category is not the thing you assume it counts
+until you check what it can emit. Here the instrument was right and the
+*interpretation* imported an assumption — that `activity.state` measures
+duration — which holds for groom and sleep and fails for play, eat and
+drink.
+
+**Owner's ruling**: the play rate is intended — "we wanted more play and we
+got more play." Revisit at the next model generation if it still looks
+excessive. The `solo_play_relief` repricing question is untouched by this.
+
+**The gate shipped at 3** (PR #303, client-only deploy, byte-verified).
+4 -> 3 moves drawn pouncing 24.0% -> 23.2% and walking 22.4% -> 23.2%.
+**2 was measured and rejected**: chase distance peaks at 1–2 tiles, so a
+gate sitting on the mode doubles mid-chase pose flips (0.33 -> 0.70 per
+scene) and strands about one lunge in six drawing a walking cat mid-arc.
+So the "4 -> 2" suggestion in §Dials above is superseded — 3 is the ruled
+value, and `pose_census.py` now READS the dial out of `client/anim.js`
+rather than mirroring it, after the mirrored 4 went stale within a day.
