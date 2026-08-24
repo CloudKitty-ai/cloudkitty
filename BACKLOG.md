@@ -986,6 +986,53 @@ above still holds whenever this is picked up again. Nothing about the
 phone footer is believed wrong today; it simply is not worth a pass
 right now.
 
+### The pounce is the loudest pose the action-first rule extends (parked 2026-08-23; owner: revisit at the next model generation)
+
+Not a bug and not queued — parked with a ruling, so it is not re-derived.
+
+The owner read the post-cutover world as pounce-heavy ("almost excessive,
+very little walking"). Measured and answered in
+`client-measurements/pose-census/recensus-2026-08-23.md`: the drawing is
+faithful, the rate is the roster, and `pounceGateTiles` went 4 -> 3 (#303)
+for a 0.8-point trim.
+
+What remains is a shape, not a rate. Reading `last_action` ahead of
+`activity.state` — the 2026-08-13 fix for cats standing idle on the last
+tick of every scene — extends every action by the tail of its engagement.
+For eating that is a head-down cat held a beat longer, which nobody
+notices. For play it is a crouch, a launch and spec 039's lunge held a
+beat longer, which everybody does. The measured ratios say the rule is
+even-handed and the POSE is not: play 1.88x, eat 1.99x, drink 2.01x.
+
+So the lever, if it is ever wanted, is a **lower-energy tail pose for a
+play engagement with the full lunge reserved for the catch** — design
+work, judged in the gallery first, never a dial. Do NOT reach for the
+pose ORDERING: reverting action-first puts cats bolt upright at the end
+of every meal, nap and groom (drink was drawn idle 49.8% of its ticks,
+eat 50.0%).
+
+**Owner's ruling 2026-08-23: "we wanted more play and we got more play …
+we'll see what happens with the next gen of models and I'll worry about
+it then if it still looks excessive."** Do not re-open before then.
+
+### A mutation runner that snapshots by construction (added 2026-08-23; tooling, LOW priority)
+
+Every red-first pass this session hand-rolled a `mutate-*.sh` that edits a
+source file, runs the suite, and restores it — and one of them restored by
+`git checkout`, which ate uncommitted harness work and cost a rebuild.
+CLAUDE.md rule 5 now carries the lesson ("Undo means revert: commit first,
+or keep a copy to restore from"), but the rule is a discipline where a tool
+would be a guarantee.
+
+Shape: take a file, a list of (find, replace) mutations and a command;
+`cp` the file aside FIRST, apply one mutation, run, record pass/fail,
+restore from the copy, repeat; refuse to start on a dirty tree for the
+target file. The value is that the restore path cannot consult git, so it
+cannot widen to files the run never touched. Small — an afternoon — and it
+retires a script that has been rewritten from scratch at least six times
+(`mutate-groom.sh`, `mutate-size.sh`, `mutate-lick.sh`, `mutate-dial.sh`,
+`mutate-v2render.sh`, …).
+
 ### Real heatmaps replace the worn paths (added 2026-08-21; owner's ask; LOW priority)
 
 The spec-008 worn-paths overlay is shipped UNAVAILABLE as of 2026-08-21
