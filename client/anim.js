@@ -469,8 +469,20 @@ const VIEW = Object.freeze({
    * tick -- keeps the pounce. The gate only ever takes it away when the
    * quarry is positively known to be far, which is also what keeps v1
    * callers, who pass no distance at all, drawing exactly as before.
+   *
+   * 4 -> 3 (owner, 2026-08-23), after the Biscuit 2.0 cutover made the
+   * world read pounce-heavy. Re-measured on 350 live ticks off the served
+   * world (1,745 cat-ticks): 3 moves drawn pouncing 24.0% -> 23.2% and
+   * walking 22.4% -> 23.2%, demoting 13 chase ticks, every one of them to
+   * walking. Deliberately NOT 2, though 2 is the bigger cut (21.8%): the
+   * chase-distance histogram peaks at 1-2 tiles, so a gate sitting ON the
+   * mode doubles mid-chase pose flips (0.33 -> 0.70 per scene) and leaves
+   * roughly one lunge in six flying spec 039's arc while drawn in a
+   * walking pose -- `leapFor` keys on the served two-tile step and never
+   * consults this dial, so the gate can only ever disagree with a leap,
+   * never suppress one. 3 buys most of the trim and neither cost.
    */
-  pounceGateTiles: 4,
+  pounceGateTiles: 3,
   /* The final pounce (spec 039): the served world may move a chasing cat
    * TWO tiles in one tick -- the lunge, the only two-tile step the world
    * ever serves. The map presents that served fact as its one leap: the
@@ -507,8 +519,8 @@ const VIEW = Object.freeze({
   // 8 -> 6 (owner, 2026-08-16), after "hunter eyes with no bug in
   // proximity". 8 is manhattan, and on a 20x20 world that is most of the
   // way across it -- the quarry was on screen but nowhere the eye would
-  // call near. 6 is still wider than the 4-tile pounce gate, so the eyes
-  // keep the lead they were given.
+  // call near. 6 is still wider than the pounce gate (4, then 3 from
+  // 2026-08-23), so the eyes keep the lead they were given.
   arriveBlendMs: 340, // the walking -> standing blend, paired with the settle
   // The landing settle. `settleMs` is the whole span; the SHAPE and the
   // amplitudes live in cat-v2's SETTLE, because since 2026-08-19 the settle
