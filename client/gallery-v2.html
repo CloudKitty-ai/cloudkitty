@@ -907,7 +907,7 @@
   const GROOM_OTHER_LAB = { lean: 1, tilePx: 90, speed: 1 };
   // The water-lean card's dials. `follows` is the PROPOSAL, defaulted OFF:
   // this card exists to show the bug, so it opens on what ships.
-  const WATER_LEAN_LAB = { follows: 0, submersion: 0.85, lean: 1, tilePx: 100 };
+  const WATER_LEAN_LAB = { follows: 0, submersion: 0.85, lean: 1, tilePx: 84 };
   const SIZE_LAB = {
     miso: VIEW.kittySize[1], biscuit: VIEW.kittySize[2], pumpkin: VIEW.kittySize[3],
     kittybear: VIEW.kittySize[4], clementine: VIEW.kittySize[5], tilePx: 90,
@@ -2932,17 +2932,17 @@
     },
     {
       title: 'Groom-other in water — the lean the waterline does not follow',
-      note: 'A BUG ON DISPLAY, not a fix: the left switch is what ships today. render.js clips the cat to the water in TILE space — `rect(x - tile, y - 2*tile, 3*tile, tile*(2 + cut))` — and draws the surface at the same `y` and `cut`, so the two always agree with each other. That is right for water, which belongs to the world and not to the cat: it is why a small kitty in the same pond is correctly submerged more of her body, and why a LEAPING cat correctly rises clear of the surface. But the groom lean is not a rise. It is a sub-tile slide TOWARD a friend, and a friend due north or south is drawn as a vertical screen offset — the cat is standing on different water, not levitating. So the surface has to travel with it, and today it does not. North and south are the failing pair and they fail in opposite directions; east/west is the control and is exactly right. 54% of groom targets sit due north or south (the 2026-08-14 gaze pass), so this is the majority of social grooming that happens in water — though with 7 water tiles in 400 it is a rare sight either way. Flip the switch to see the proposed fix: leanY added to BOTH the clip and the drawn surface, so they stay locked together.',
+      note: 'A BUG ON DISPLAY, not a fix: the switch opens on what ships. render.js clips the cat to the water in TILE space — `rect(x - tile, y - 2*tile, 3*tile, tile*(2 + cut))` — and draws the surface at the same `y` and `cut`, so the two always agree with each other. That is right for water, which belongs to the world and not the cat: it is why a smaller kitty in the same pond is correctly submerged more of her body, and why a LEAPING cat correctly rises clear. But the groom lean is not a rise. It is a sub-tile slide TOWARD a friend, and a friend due north or south is drawn as a vertical offset — the cat is standing on different water, not levitating. So the surface has to travel with it, and today it does not. The PLAIN CATS wading between the groomers are the reference: they never lean, so they are correctly submerged in both switch positions and the water sits at the same height on every one of them. Compare the groomers against those. North and south fail in opposite directions; east/west is the control and is already right. 54% of groom targets sit due north or south (2026-08-14 gaze pass), so this is most social grooming that happens in water — with 7 water tiles in 400, a rare sight either way.',
       v2Only: true,
       w: 940,
-      h: 380,
+      h: 420,
       ownShadows: true,
       bag: WATER_LEAN_LAB,
       dials: [
         { key: 'follows', label: 'follows — 0 is what ships, 1 is the proposed fix', min: 0, max: 1, step: 1 },
-        { key: 'submersion', label: 'submersion — how deep the cat is standing', min: 0, max: 1, step: 0.05 },
+        { key: 'submersion', label: 'submersion — how deep everyone is standing', min: 0, max: 1, step: 0.05 },
         { key: 'lean', label: 'lean — how far into the groom, 1 is full reach', min: 0, max: 1, step: 0.05 },
-        { key: 'tilePx', label: 'tilePx — judge at the sizes the camera draws', min: 40, max: 130, step: 1 },
+        { key: 'tilePx', label: 'tilePx — judge at the sizes the camera draws', min: 40, max: 110, step: 1 },
       ],
       readout() {
         const T = WATER_LEAN_LAB.tilePx;
@@ -2951,80 +2951,80 @@
           `VIEW.waterline ${VIEW.waterline}, VIEW.groomLean.tiles ${VIEW.groomLean.tiles}, CAT_GROUND ${CatV2.CAT_GROUND}\n`
           + `follows ${WATER_LEAN_LAB.follows} — ${WATER_LEAN_LAB.follows ? 'leanY added to the clip AND the surface' : 'SHIPPED: the surface stays in tile space'}\n`
           + `submersion ${WATER_LEAN_LAB.submersion}, lean ${WATER_LEAN_LAB.lean}, tilePx ${WATER_LEAN_LAB.tilePx}\n`
-          + `the miss: ${off.toFixed(1)}px at this tile — north floats ABOVE its water, south sinks BELOW it\n`
-          + `east/west is the control: leanY is 0 there, and it is correct today`
+          + `the miss: ${off.toFixed(1)}px at this tile — north floats ABOVE the waders, south sinks BELOW them`
         );
       },
       draw(ctx, w, h, now) {
         const T = WATER_LEAN_LAB.tilePx;
-        const period = 2600 / 1;
-        const phase = (now % period) / period;
-        // render.js's own two lines, read off the shipped dials rather than
-        // copied as numbers. `cut` is a fraction of the TILE, which is what
-        // makes it a world height rather than a share of this cat's box.
+        const phase = (now % 2600) / 2600;
+        // `cut` is a share of the cat's BOX measured from the box top, so the
+        // origin these are all built from is the TILE ORIGIN -- the ground
+        // line is 0.88 of the way down from it, not the other way round.
         const cut = CatV2.CAT_GROUND
           - WATER_LEAN_LAB.submersion * (CatV2.CAT_GROUND - VIEW.waterline);
         const amt = WATER_LEAN_LAB.lean * VIEW.groomLean.tiles;
+        const groundY = h - 78;
+        const originY = groundY - T * CatV2.CAT_GROUND;
 
-        const cols = [
-          { at: 0.18, dy: -1, view: 'back', facing: 'north', label: 'friend NORTH — leans away' },
-          { at: 0.50, dy: 0, view: 'side', facing: 'right', label: 'friend EAST — the control' },
-          { at: 0.82, dy: +1, view: 'front', facing: 'south', label: 'friend SOUTH — leans toward' },
+        // One continuous pond, the way a row of water tiles would read. The
+        // waders never lean, so their surface is the true one.
+        const bandTop = originY + T * cut;
+        ctx.save();
+        ctx.fillStyle = 'rgba(120, 158, 170, 0.42)';
+        ctx.fillRect(0, bandTop, w, h - bandTop);
+        ctx.restore();
+
+        const cast = [
+          { at: 0.10, kind: 'wade', facing: 'right' },
+          { at: 0.245, kind: 'groom', dy: -1, view: 'back', facing: 'north', label: 'NORTH' },
+          { at: 0.39, kind: 'wade', facing: 'left' },
+          { at: 0.53, kind: 'groom', dy: 0, view: 'side', facing: 'right', label: 'EAST' },
+          { at: 0.67, kind: 'wade', facing: 'right' },
+          { at: 0.815, kind: 'groom', dy: 1, view: 'front', facing: 'south', label: 'SOUTH' },
+          { at: 0.95, kind: 'wade', facing: 'left' },
         ];
-        const baseY = h - 96;
-        for (const col of cols) {
-          const x = w * col.at - T / 2;
-          const leanY = col.dy * amt * T;
-          // Where the SURFACE is drawn. Today: tile space, blind to the lean.
-          const surfaceY = baseY + (WATER_LEAN_LAB.follows ? leanY : 0) + T * cut;
-
-          ctx.save();
-          ctx.fillStyle = 'rgba(120, 158, 170, 0.45)';
-          ctx.fillRect(x - T * 0.6, surfaceY, T * 2.2, baseY + T - surfaceY);
-          ctx.restore();
-
+        for (const c of cast) {
+          const x = w * c.at - T / 2;
+          // A wader has no friend, so no lean: it is correct in both positions.
+          const leanY = c.kind === 'groom' ? (c.dy * amt * T) : 0;
+          const myOrigin = originY + (WATER_LEAN_LAB.follows ? leanY : 0);
           ctx.save();
           ctx.beginPath();
-          // The clip render.js builds, with the same blindness or without it.
-          ctx.rect(
-            x - T,
-            baseY + (WATER_LEAN_LAB.follows ? leanY : 0) - T * 2,
-            T * 3,
-            T * (2 + cut),
-          );
+          ctx.rect(x - T, myOrigin - T * 2, T * 3, T * (2 + cut));
           ctx.clip();
           CatV2.drawCat(ctx, {
-            pose: 'grooming-other',
-            appearance: CatV2.appearanceFor(PUMPKIN),
-            facing: col.facing,
+            pose: c.kind === 'groom' ? 'grooming-other' : 'idle',
+            appearance: CatV2.appearanceFor(c.kind === 'groom' ? PUMPKIN : MISO),
+            facing: c.facing,
             size: T,
             x,
-            // The cat itself always moves with the lean -- that part is not
-            // in question, it is what anim.js does.
-            y: baseY + leanY - T * CatV2.CAT_GROUND,
+            y: originY + leanY,
             phase,
-            layout: { view: col.view, travelH: col.view === 'side' ? 1 : 0 },
+            layout: c.kind === 'groom'
+              ? { view: c.view, travelH: c.view === 'side' ? 1 : 0 }
+              : { view: 'side', travelH: 1 },
           });
           ctx.restore();
-
-          // The surface line, drawn AFTER the clip is released, as render.js
-          // does -- or it would be cut away with the legs.
-          ctx.strokeStyle = 'rgba(70, 104, 118, 0.9)';
+          // The surface, drawn after the clip is released as render.js does.
+          const surfaceY = myOrigin + T * cut;
+          ctx.strokeStyle = c.kind === 'groom' && !WATER_LEAN_LAB.follows && c.dy !== 0
+            ? 'rgba(156, 90, 60, 0.95)' : 'rgba(70, 104, 118, 0.9)';
           ctx.lineWidth = 1;
           ctx.beginPath();
-          ctx.moveTo(x - T * 0.6, surfaceY + 0.5);
-          ctx.lineTo(x + T * 1.6, surfaceY + 0.5);
+          ctx.moveTo(x - T * 0.35, surfaceY + 0.5);
+          ctx.lineTo(x + T * 1.35, surfaceY + 0.5);
           ctx.stroke();
-
-          ctx.fillStyle = '#6b5a4e';
-          ctx.textAlign = 'center';
-          ctx.fillText(col.label, x + T / 2, h - 40);
-          if (col.dy !== 0 && !WATER_LEAN_LAB.follows && amt > 0) {
-            ctx.fillStyle = '#9c5a3c';
-            ctx.fillText(`${Math.abs(leanY).toFixed(1)}px out`, x + T / 2, h - 22);
-          } else if (col.dy !== 0) {
-            ctx.fillStyle = '#5e7a52';
-            ctx.fillText('locked to the cat', x + T / 2, h - 22);
+          if (c.label) {
+            ctx.fillStyle = '#6b5a4e';
+            ctx.textAlign = 'center';
+            ctx.fillText(c.label, x + T / 2, h - 34);
+            if (c.dy !== 0) {
+              ctx.fillStyle = WATER_LEAN_LAB.follows ? '#5e7a52' : '#9c5a3c';
+              ctx.fillText(
+                WATER_LEAN_LAB.follows ? 'level with the waders' : `${Math.abs(leanY).toFixed(1)}px out`,
+                x + T / 2, h - 18,
+              );
+            }
           }
         }
         ctx.textAlign = 'left';
