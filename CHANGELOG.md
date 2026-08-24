@@ -33,6 +33,25 @@ change.
 
 ## Unreleased
 
+- A seated cat's rump is back on the grass. `sit` was the one tilted pose
+  that stated its seat as a literal number instead of deriving it: `cy`
+  0.665 plus `ry` 0.215 is exactly the ground line, so the value was chosen
+  against the underside of an *unrotated* ellipse — but the body is turned
+  &minus;0.4rad, and a rotated outline's lowest point sits further down. The
+  rump hung 0.018 of a tile under the grass, about two pixels at the largest
+  tile the camera draws, and the body covered its own hind pair for most of
+  the breath. `grooming` and `grooming-other` never had it; both run their
+  seat through `seatCy`, which re-solves the relationship at whatever tilt
+  and breath the pose currently has. `sit` now does too. Nothing in the
+  served world was occluding it and nothing out there draws a ground line to
+  cross, so this was never a defect anyone could see — it is the invariant
+  every other tilted pose already held, and the reason to take it is that
+  the next dial on `sit` no longer has to keep that relationship by hand.
+  Found by a leg-attachment guard ported from Design's Four Paws Lab, which
+  now also checks that no leg hangs off thin air, that no pivot starts below
+  the body outline, and that adjacent legs which are not a depth pair do not
+  share painted ink.
+
 - The compiler is written down. Every rebuild claim this repo makes — the
   byte-identical binaries from the refactor arc, artifact parity to within
   1e-5, census raws that reproduce — assumes the same compiler built both

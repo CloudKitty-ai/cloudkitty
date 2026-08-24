@@ -1805,11 +1805,17 @@ check('the head slides along the body without reshaping it', () => {
 /** The rotated ellipse's true lowest point -- where a tilted body meets grass. */
 const seatLowest = (b) => b.cy + Math.hypot(b.rx * Math.sin(b.rot || 0), b.ry * Math.cos(b.rot || 0));
 
+/** The TILTED poses, whose floor is the rotated lowest point rather than
+ * `cy + ry`. `sit` joined on 2026-08-24: it was the last one still stating
+ * `cy` by hand, and the untilted branch below -- which is right by
+ * construction for an unrotated body -- is what let it sink unasserted. */
+const SEATED = new Set(['grooming', 'grooming-other', 'sit']);
+
 check('reshaping holds the belly floor in every pose', () => {
   for (const pose of CatV2.POSES) {
     const base = CatV2.catLayout(pose, 0.4);
     const shaped = reshaped({ bodyH: 1.2, bodyW: 1.1 }, () => CatV2.catLayout(pose, 0.4));
-    if (pose === 'grooming' || pose === 'grooming-other') {
+    if (SEATED.has(pose)) {
       // The seated bodies are TILTED, so `cy + ry` -- the unrotated bottom --
       // is no longer where they touch the grass. Their floor is the rotated
       // ellipse's true lowest point, and `seatCy` derives cy so that point
@@ -1830,7 +1836,7 @@ check('reshaping holds the belly floor in every pose', () => {
 check('the seat rests on the ground at every point of the breath', () => {
   // `seatCy` inverts the proportion pipeline for whatever tilt and breath
   // the pose currently has, so this holds at EVERY phase, not just one.
-  for (const pose of ['grooming', 'grooming-other']) {
+  for (const pose of SEATED) {
     for (const phase of [0, 0.17, 0.4, 0.73]) {
       close(
         seatLowest(CatV2.catLayout(pose, phase).body),
@@ -1871,6 +1877,43 @@ check('the seated groom carries three limbs, not two mirrored pairs', () => {
 /** Where a leg MEETS the body: the hip, which is not the foot. */
 const hipOf = (leg) => (leg.hx !== undefined ? leg.hx : leg.x);
 
+check("the sit card's before-column replays the seat sit actually had", () => {
+  // The lab's card draws `sit` as it was before 2026-08-24 beside what ships
+  // now. That column runs the OLD RULE -- a literal `cy` of 0.665 -- through
+  // the shipped `proportionedBody`, rather than remembering how deep the
+  // rump sat; this pins the depth so the card cannot quietly become a second
+  // copy of today's drawing, which is the failure the lab handoff names
+  // ("three rounds added a dial and forgot it").
+  const stated = (phase) => {
+    const breathe = CatV2.breathCurve(Math.sin(phase * CatV2.TAU));
+    return CatV2.proportionedBody({
+      cx: 0.42, cy: 0.665, rx: 0.275, ry: 0.215 + 0.007 * breathe, rot: -0.4,
+    });
+  };
+  // Worst at mid-breath, which is where it hid: `cy` was constant while `ry`
+  // breathed, so the drop breathes too and a single phase understates it.
+  let worst = -Infinity;
+  let at = 0;
+  for (let i = 0; i < 120; i += 1) {
+    const low = seatLowest(stated(i / 120));
+    if (low > worst) { worst = low; at = i / 120; }
+  }
+  close(at, 0.25, 'the deepest point of the old seat moved off mid-breath');
+  // `close` is exact to 1e-12; this wants the depth the card DISPLAYS, so it
+  // carries its own tolerance rather than pinning thirteen digits of a
+  // derived number that any proportion dial would legitimately move.
+  const drop = worst - CatV2.CAT_GROUND;
+  assert(
+    Math.abs(drop - 0.01835) < 1e-5,
+    `the replayed old seat no longer sinks what sit sank: ${drop.toFixed(6)} != 0.01835`,
+  );
+  // ...and the pose itself must NOT still do that.
+  assert(
+    seatLowest(CatV2.catLayout('sit', at).body) <= CatV2.CAT_GROUND + 1e-9,
+    'sit is sinking again -- the seat stopped being derived',
+  );
+});
+
 check('every drawn leg hangs off the body, not off thin air', () => {
   // Ported from Four Paws Lab, which scored a foreleg hanging off the CHIN as
   // "reads as a leg across the band, 39.8px" -- the healthiest number on the
@@ -1903,6 +1946,17 @@ check('every drawn leg hangs off the body, not off thin air', () => {
         // separately because `Math.max(u, top)` silently accepts it and then
         // measures from the outline anyway.
         assert(leg.top <= u, `${where}: pivot ${leg.top.toFixed(4)} is below the body outline ${u.toFixed(4)}`);
+        // ...and a leg that ends inside the body is HIDDEN, not
+        // negative-length. Held back when the guards first landed because it
+        // was red on `sit` alone -- the sunk rump covered its own hind pair
+        // -- and landed with the fix that made it green. Reverting `sit` to
+        // its literal `cy` puts this straight back to red, which is the
+        // check it was written for.
+        assert(
+          leg.bottom - Math.max(u, leg.top) > 0,
+          `${where}: fully inside the body, never drawn `
+            + `(hidden by ${(Math.max(u, leg.top) - leg.bottom).toFixed(4)} of a tile)`,
+        );
       }
     }
   }

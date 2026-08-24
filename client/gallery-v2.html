@@ -824,18 +824,21 @@
   /** The shortest visible run on the card, which is the hind pair's. */
   const worstRun = (L) => Math.min(...L.legs.map((leg) => visibleRun(L, leg)));
 
-  /** The rump, put back on the ground line.
+  /** `sit`'s seat as it was STATED before 2026-08-24, replayed.
    *
-   * Applied to the FINISHED layout, not by calling `seatCy` out here. `seatCy`
-   * pre-compensates for `proportionLayout`, which `catLayout` has ALREADY run
-   * by the time the lab sees the layout -- calling it again from the card
-   * double-corrects and floats the cat 0.39px ABOVE the line at a 110px tile,
-   * which is the same over-delivery the axial head floor was caught making.
-   * Derived from the geometry on screen, so it is exact whatever the
-   * proportion dials say. `sit` itself would take the one-line pose fix. */
-  const seatOnGround = (L) => {
-    L.body.cy -= seatLowestOf(L.body) - CatV2.CAT_GROUND;
-    return L;
+   * Not a recorded number and not a nudge to the finished layout: it runs the
+   * old rule -- a literal `cy` of 0.665 -- through the shipped
+   * `proportionedBody`, which is the same step `catLayout` runs. So the
+   * before-column is the old code path rather than an impression of it, and
+   * it cannot drift when the proportion dials move. `cy + ry` = 0.880 is the
+   * ground line only while `breathe` is 0; the old `cy` was CONSTANT and `ry`
+   * was not, which is why the drop breathes. test-motion pins the depth this
+   * replays to. */
+  const statedSeat = (phase) => {
+    const breathe = CatV2.breathCurve(Math.sin(phase * CatV2.TAU));
+    return CatV2.proportionedBody({
+      cx: 0.42, cy: 0.665, rx: 0.275, ry: 0.215 + 0.007 * breathe, rot: -0.4,
+    });
   };
 
   /** The rotated ellipse's true lowest point -- where a tilted body meets grass. */
@@ -848,9 +851,10 @@
     for (let i = 0; i < 120; i += 1) {
       const phase = i / 120;
       const L = CatV2.catLayout('sit', phase);
+      L.body = statedSeat(phase);
       const lowest = seatLowestOf(L.body);
       if (!best || lowest > best.lowest) {
-        const fixed = seatOnGround(CatV2.catLayout('sit', phase));
+        const fixed = CatV2.catLayout('sit', phase);
         best = {
           phase, lowest, delta: lowest - CatV2.CAT_GROUND,
           runShipped: worstRun(L), runFixed: worstRun(fixed),
@@ -1350,8 +1354,8 @@
       },
     },
     {
-      title: 'The sit rump — where the ground line actually is (finding, 2026-08-24)',
-      note: 'A finding, not a shipped change: nothing in cat-v2.js draws the right-hand cat yet. `sit` is the one TILTED pose that states its `cy` literally instead of deriving it through `seatCy` — 0.665 + ry 0.215 is exactly CAT_GROUND, so the number puts the UNROTATED bottom on the grass, and the -0.4rad tilt then carries the real lowest point below it. Both columns are the same layout painted by the same painter; the ONLY difference is body.cy. The card draws the ground line and sits each box so CAT_GROUND lands on it, so the rump either touches it or does not. Watch the hind legs too: they end at CAT_GROUND, so while the body hangs under that line it covers them completely \u2014 0px of hind leg for most of the breath. Putting the rump back on the line does NOT buy two readable legs, only about a pixel of one; that sliver is the SIT.hindX entry in BACKLOG. This card is about the ground line. Worst around phase 0.25 — slow the speed down and watch it breathe through.',
+      title: 'The sit rump — the seat that was stated by hand (FIXED 2026-08-24)',
+      note: 'FIXED 2026-08-24 — the right-hand cat is what ships now. `sit` was the one TILTED pose that stated its `cy` literally instead of deriving it: 0.665 + ry 0.215 is exactly CAT_GROUND, so the number put the UNROTATED bottom on the grass, and the -0.4rad tilt then carried the real lowest point 0.0184 of a tile below it — about 2px at a 113px tile. `grooming` and `grooming-other` never had it; both run their seat through `seatCy`. The left column replays the OLD RULE through the shipped `proportionedBody` rather than remembering numbers, so it stays honest as the proportion dials move; test-motion pins the depth it replays to. Both columns are the same pose painted by the same painter against ONE ground line. Note what the fix did NOT buy: the hind legs were fully covered before and show about a pixel now, which is the SIT.hindX entry in BACKLOG, not this one. Nothing in the served world occludes any of this — the ground shadow is drawn UNDER the cat — but there is no drawn ground line out there either, so this was never a visible defect. It is the invariant every other tilted pose already held.',
       v2Only: true,
       w: 940,
       h: 400,
@@ -1369,13 +1373,13 @@
         const T = SIT_SINK_LAB.tilePx;
         const worst = sitWorstSink();
         return (
-          `sit states:  cy 0.665, ry 0.215 + 0.007*breathe, rot -0.4  --  cy + ry = ${(0.665 + 0.215).toFixed(3)} = CAT_GROUND\n`
+          `sit stated:  cy 0.665, ry 0.215 + 0.007*breathe, rot -0.4  --  cy + ry = ${(0.665 + 0.215).toFixed(3)} = CAT_GROUND\n`
           + `真 lowest:   cy + hypot(rx*sin rot, ry*cos rot)  --  worst ${worst.lowest.toFixed(5)} at phase ${worst.phase.toFixed(2)}\n`
           + `drop:        ${worst.delta.toFixed(5)} of a tile = ${(worst.delta * T).toFixed(2)}px at this ${T}px tile\n`
-          + `hind leg:    ${(worst.runShipped * T).toFixed(2)}px of its run shows as shipped, `
-          + `${(worst.runFixed * T).toFixed(2)}px with the rump on the line -- a sliver either way,\n`
-          + `             which is the SIT.hindX entry in BACKLOG, not this one. The fix is about the GROUND LINE.\n`
-          + `the fix:     cy: seatCy(0.275, 0.215 + 0.007 * breathe, -0.4)   -- what grooming already does\n`
+          + `hind leg:    ${(worst.runShipped * T).toFixed(2)}px of its run showed before, `
+          + `${(worst.runFixed * T).toFixed(2)}px now -- a sliver either way,\n`
+          + `             which is the SIT.hindX entry in BACKLOG, not this one. This was about the GROUND LINE.\n`
+          + `sit now:     cy: seatCy(0.275, 0.215 + 0.007 * breathe, -0.4)   -- what grooming already did\n`
           + `card view:   tilePx ${SIT_SINK_LAB.tilePx}, speed ${SIT_SINK_LAB.speed}, guides ${SIT_SINK_LAB.guides}`
           + ` -- viewing aids, not shipped dials`
         );
@@ -1396,12 +1400,12 @@
         ctx.stroke();
 
         const columns = [
-          { cx: w * 0.28, label: 'as shipped — cy stated literally', fix: false },
-          { cx: w * 0.72, label: 'cy through seatCy — the one-line fix', fix: true },
+          { cx: w * 0.28, label: 'before — cy stated by hand', fix: false },
+          { cx: w * 0.72, label: 'now — cy through seatCy', fix: true },
         ];
         for (const col of columns) {
           const L = CatV2.catLayout('sit', phase);
-          if (col.fix) seatOnGround(L);
+          if (!col.fix) L.body = statedSeat(phase);
           const lowest = seatLowestOf(L.body);
 
           ctx.save();
@@ -1447,7 +1451,8 @@
         // How many legs each column actually SHOWS, measured off the outline
         // rather than counted from L.legs -- which is the whole difference.
         const shipped = CatV2.catLayout('sit', phase);
-        const fixed = seatOnGround(CatV2.catLayout('sit', phase));
+        shipped.body = statedSeat(phase);
+        const fixed = CatV2.catLayout('sit', phase);
         ctx.fillStyle = '#6b5a4e';
         ctx.textAlign = 'center';
         const T2 = SIT_SINK_LAB.tilePx;
