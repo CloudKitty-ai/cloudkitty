@@ -4732,6 +4732,13 @@ const api = {
   GROOM_OTHER,
   seatCy,
   seatLeg,
+  // The shared painter. Exported for the same reason the rig and the settle
+  // are: a lab that has to show a layout the pose switch cannot currently
+  // produce -- a proposed fix beside what ships -- must paint it with THIS
+  // function, or the two columns stop being the same drawing. Neither
+  // `drawCat` nor `drawCatTween` takes a layout; both build one from a pose
+  // name, so there is no other way in.
+  paintBox,
   proportionedBody,
   bodyUnderAt,
   clampAxialHead,
