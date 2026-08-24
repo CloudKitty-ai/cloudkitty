@@ -915,6 +915,45 @@ sit's legs measure 2.5px and 3.7px at 120px. Design reports 0.53–0.54
 buys them back. The current value was judged by eye, so moving it is the
 owner's call rather than a fix.
 
+### `sit` sinks its rump below the ground line (added 2026-08-24; found by the ported attachment guard; owner's call)
+
+`sit` is the one tilted pose that does NOT derive its `cy` through
+`seatCy`. It states the body literally —
+
+```js
+L.body = { cx: 0.42, cy: 0.665, rx: 0.275, ry: 0.215 + 0.007 * breathe, rot: -0.4 };
+```
+
+— and `0.665 + 0.215` is exactly `CAT_GROUND`, so the number was chosen so
+the *unrotated* bottom lands on the grass. The body is turned -0.4rad, and
+the rotated ellipse's true lowest point is `cy + hypot(rx·sin rot, ry·cos
+rot)` ≈ **0.893–0.898**, i.e. 1.3–1.8e-2 of a tile below the ground line.
+In device pixels: **1.6–2.2px at a 120px tile, 0.75–1.05px at 57px**, worst
+at phase 0.25 and above Design's own 0.5px tolerance at every phase from 0
+to 0.5. This is the fault the Four Paws Lab notes call "the single most
+repeated fault in this work" — a pose states `cy + ry`, `proportionLayout`
+pins that sum, and the tilt then pushes the real lowest point further down.
+
+`grooming` and `grooming-other` do not have it: both go through `seatCy`,
+and `test-motion.mjs` asserts their rump is on `CAT_GROUND` at four phases.
+The reason `sit` slipped through is that the same check sends every
+non-groom pose down the *untilted* branch — it compares `cy + ry` for
+invariance, which is the quantity that is right by construction here.
+
+**Second-order consequence, and the reason this surfaced now:** sit's hind
+pair sits at `bottom: CAT_GROUND` = 0.880 while the body's underside at that
+hip is 0.8804–0.898, so **both hind legs are entirely inside the body and
+are never drawn** at phases 0 through 0.5. The pose emits four legs and
+shows two. That is separate from `SIT.hindX` above (which is about two legs
+being *illegible*); these two are not visible at all.
+
+The fix is one line — run `cy` through `seatCy` the way the groom poses do —
+but it MOVES A SHIPPED SILHOUETTE the owner dialled by eye: the whole body
+rises ~2px at 120px and the hind legs appear. Not a silent fix. When it is
+taken, the third mode of the ported attachment guard (`vis <= 0`, "leg fully
+inside the body, never drawn") can land with it; it is written and currently
+red on `sit` alone, which is why only the two attachment modes shipped.
+
 ### `L.seated` — a declared seat flag, HELD 2026-08-23 (from GROOM-OTHER-EDITS-update; owner: "hold it and bank it")
 
 Design's follow-up to the groom-other handoff proposed a third seated
