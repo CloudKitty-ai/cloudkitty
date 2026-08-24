@@ -1491,10 +1491,34 @@ missing their first character while untracked `?? path` lines looked
 fine. A header that misnames what was dirty is only marginally better
 than one that cannot say.
 
-**Still open**: the pin this finding's trail wanted — a
-`rust-toolchain.toml` — does not exist (handed to Product 2026-08-23
-with the recommendation). Until it does, `rustc` in the header records
-what the instrument ran on rather than proving what it must run on.
+**THE PIN LANDED** the same day — `rust-toolchain.toml` at channel
+1.97.1 (Product, PR #305, main 9f40c47), after this Mac, the build box
+and CI's Linux were each shown to resolve the identical build hash
+`8bab26f4f`. The header now stamps `toolchain_pin` beside `rustc`, so
+what the repo REQUIRES and what a run HAD are comparable rather than
+assumed. The trail's toolchain exclusion is checkable from here on.
+
+**And the pin exposed a live instance of the thing this finding is
+about.** The lab's compiled binding was two engine commits stale and
+would have been stamped with a PATH compiler that never built it. Worse,
+the drift — spec 040's `[watchdog]` ForeignTable — meant the binding
+*rejected the repo's own root config* under `deny_unknown_fields`, and
+nothing had failed only because every exp-006 config predates 040.
+Rebuilt and verified byte-continuous (identical 2,000-tick state-trace
+digest across changed binding bytes): `exp-006-character-gen/results/
+binding-rebuild-2026-08-23.md`, instrument `binding_continuity.py`.
+The lab stamp now also carries `binding_artifacts` (sha256 of the `.so`)
+— the one fact that cannot drift from what actually ran.
+
+**Correction to Experiments' own handoff** (Product falsified it
+directly, 2026-08-23): `rustup default stable` in a CI workflow does NOT
+override a `rust-toolchain.toml`. Rustup ranks `+toolchain` >
+`RUSTUP_TOOLCHAIN` > directory override > toolchain file > default, so
+the pin was never at risk from those lines; removing them was right only
+because they downloaded a second toolchain nobody would use. The real
+silent-inert mode is a `cargo` that is not a rustup shim, which ignores
+the file without a word — guarded now by an assertion in both blocking
+CI jobs.
 
 ## F-029 · active · A reader rule copied from the wrong contract shape reports a category that cannot exist
 

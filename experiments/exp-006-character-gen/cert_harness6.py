@@ -48,7 +48,7 @@ REPO = EXPTS.parent
 sys.path.insert(0, str(EXPTS / "attn-oracle-2026-08-15"))
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(EXPTS))
-from census_provenance import stamp  # noqa: E402
+from census_provenance import binding_identity, stamp  # noqa: E402
 
 LOW_HAPPINESS = 45.0
 PER_KITTY, HAP, DIST0 = 32, 6, 20
@@ -298,7 +298,13 @@ def provenance(config_path):
         "config_sha256": cfg_sha,
         "binding": getattr(cloudkitty, "__version__", "unknown"),
         "binding_engine": getattr(cloudkitty, "ENGINE_COMMIT", None),
+        # `rustc` is the PATH compiler NOW, which need not be the one that
+        # built the extension being imported — so the compiled bytes are
+        # stamped too, and `toolchain_pin` (in the shared stamp) says what
+        # the repo requires. Three facts that can be compared instead of
+        # one that has to be trusted.
         "rustc": rustc.stdout.strip() or None,
+        "binding_artifacts": binding_identity(cloudkitty),
     })
     return out
 

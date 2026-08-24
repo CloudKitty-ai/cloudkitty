@@ -45,6 +45,40 @@ def _git(*args, repo=None):
         return None
 
 
+def toolchain_pin(repo=None):
+    """The pinned channel from rust-toolchain.toml, or None if unpinned."""
+    p = (repo or REPO) / "rust-toolchain.toml"
+    try:
+        for line in p.read_text().splitlines():
+            s = line.strip()
+            if s.startswith("channel"):
+                return s.split("=", 1)[1].strip().strip('"\'')
+    except OSError:
+        return None
+    return None
+
+
+def binding_identity(module):
+    """sha256 of the compiled artifacts behind an imported binding.
+
+    The lab stamp's `rustc -V` comes from PATH at run time, which is not
+    necessarily the compiler that built the extension being imported (a
+    binding built before a toolchain roll keeps running afterwards —
+    Product flagged this 2026-08-23). The compiled bytes are the fact that
+    cannot drift from what actually ran, so they are stamped alongside.
+    """
+    try:
+        d = Path(module.__file__).parent
+        return [{"name": p.name,
+                 "sha256": hashlib.sha256(p.read_bytes()).hexdigest(),
+                 "mtime_utc": datetime.fromtimestamp(
+                     p.stat().st_mtime, timezone.utc).isoformat(
+                         timespec="seconds")}
+                for p in sorted(d.glob("*.so"))] or None
+    except Exception:
+        return None
+
+
 def stamp(tool_file, repo=None, extra=None):
     """The instrument's own identity, at the moment it ran.
 
@@ -73,6 +107,11 @@ def stamp(tool_file, repo=None, extra=None):
         "git_dirty_count": None if porcelain is None else len(dirty_paths),
         "tool": src.name,
         "tool_sha256": hashlib.sha256(src.read_bytes()).hexdigest(),
+        # What the repo says the compiler must be (rust-toolchain.toml,
+        # landed 2026-08-23). Recorded next to the `rustc` the lab stamp
+        # takes from PATH so the two can be compared after the fact — a
+        # pin nobody checks is another operator's note.
+        "toolchain_pin": toolchain_pin(repo),
         "stamped_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }
     if extra:
