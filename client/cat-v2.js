@@ -2087,7 +2087,20 @@ const GROOM = {
   hindX: 0.56, // paw, forward under the belly
   hindHx: 0.46, // hip, back and high in the haunch: the hock folds forward
   hindTop: 0.68,
-  hindW: 0.07,
+  // 0.07 -> 0.05 (2026-08-24). Four paws merging at phone sizes was read as
+  // the one-ellipse seat's ceiling; it is not. The tightest gap is near-hind
+  // to far-fore, `foreX` cannot open it (`seatLeg` clamps x into the
+  // silhouette, so a bigger number moves the paw a fraction and stops), and
+  // backing `hindX` up opens it only by sliding the paw under the deeper part
+  // of the body -- shorter leg, and against the photo reference above.
+  //
+  // Width costs nothing scarce. Thinning does not change the leg's visible
+  // LENGTH at all (3.7 device px either way at a 50px tile on a 2x phone),
+  // and the painted width stays about twice that, so the paw still reads as a
+  // stub. The gap goes 1.5 -> 3.5 device px, which is where it meets the
+  // length: past that the read is limited by the length and more gap buys
+  // nothing.
+  hindW: 0.05,
   // The head, low and tucked. Dialled here rather than fixed in the pose
   // because where it sits IS the pose: sit puts the head clear above the
   // shoulders and reads as attention, and grooming has to hand the top of
@@ -2097,7 +2110,7 @@ const GROOM = {
   foreX: 0.72, // paw of the supporting leg, out at the front of the chest
   foreHx: 0.68, // and its hip, tucked back under the shoulder
   foreTop: 0.56, // pivot, high in the raised chest
-  foreW: 0.07, // narrow: see the spacing note in the pose
+  foreW: 0.05, // with hindW: one leg cannot be half the other's weight // narrow: see the spacing note in the pose
   // Where the licked paw sits, in multiples of the head's radius, and how
   // much of the lick it inherits.
   //
@@ -2180,7 +2193,11 @@ const GROOM_OTHER = {
   // chest ends (0.687): 0.17 of a box. The hind PAIR may overlap -- that is
   // what a depth pair does -- but the hind cluster and the fore cluster may
   // not, and at 0.06 they shared ink.
-  legW: 0.055,
+  // 0.055 -> 0.04 (2026-08-24), the same trade as GROOM.hindW and for the
+  // same reason. This pose starts better off -- two mirrored pairs rather
+  // than an odd leg -- so the gap goes 2.0 -> 3.5 device px against a leg
+  // length of 4.1.
+  legW: 0.04,
   nod: 0.01, // the lick, smaller than self-grooming's: a longer reach, less bob
 
   // --- Axial view (north/south) ---

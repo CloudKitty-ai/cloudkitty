@@ -1914,6 +1914,31 @@ check("the sit card's before-column replays the seat sit actually had", () => {
   );
 });
 
+check('the seated leg dials: paws where the photos put them, width dialled for the gap', () => {
+  // All UNPINNED until 2026-08-24, which is how they came to be judged on a
+  // measurement taken at 1x while the client draws at the device ratio.
+  //
+  // The PAW POSITIONS are pinned at what the photo reference bought (see the
+  // GROOM.hindX note: the hind foot is gathered up beside the planted
+  // foreleg, not trailing behind). They are deliberately NOT the lever for
+  // leg separation -- backing a paw up does open the gap, but it shortens the
+  // leg by sliding it under the deeper part of the body, and it walks back a
+  // decision taken from three photographs.
+  close(CatV2.GROOM.hindX, 0.56, 'GROOM.hindX moved -- the photo reference put it there');
+  close(CatV2.GROOM.hindHx, 0.46, 'GROOM.hindHx moved');
+  close(CatV2.GROOM_OTHER.hindX, 0.55, 'GROOM_OTHER.hindX moved');
+  close(CatV2.GROOM_OTHER.foreX, 0.685, 'GROOM_OTHER.foreX moved');
+
+  // WIDTH is the lever instead. It trades against nothing scarce: the leg's
+  // visible LENGTH does not change when it thins, and the painted width stays
+  // roughly twice that length, so the paw still reads as a stub rather than a
+  // hair. Dialled to where the gap meets the length -- past that the read is
+  // limited by the length and the extra gap buys nothing.
+  close(CatV2.GROOM.hindW, 0.05, 'GROOM.hindW moved');
+  close(CatV2.GROOM.foreW, 0.05, 'GROOM.foreW moved');
+  close(CatV2.GROOM_OTHER.legW, 0.04, 'GROOM_OTHER.legW moved');
+});
+
 check('every drawn leg hangs off the body, not off thin air', () => {
   // Ported from Four Paws Lab, which scored a foreleg hanging off the CHIN as
   // "reads as a leg across the band, 39.8px" -- the healthiest number on the

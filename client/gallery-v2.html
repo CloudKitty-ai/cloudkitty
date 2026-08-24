@@ -821,6 +821,40 @@
     return (below / (N + 1)) * Math.hypot(leg.x - hx, leg.bottom - leg.top);
   };
 
+  /** The four-paws read, in DEVICE pixels, as the two numbers that decide it.
+   *
+   * Device rather than CSS because the client draws at `devicePixelRatio`
+   * (render.js sizes every backing store by it) -- a gap judged at 1x
+   * understates what a phone actually paints by two or three times, which is
+   * how "the paws merge below 70px" was recorded against a 1.0px margin that
+   * is 2-3px on the device.
+   *
+   * Two numbers, not one: whichever is smaller is what breaks the read. The
+   * GAP is what separates one paw from the next; the visible LENGTH is how
+   * much leg there is to see. Widening the gap past the length buys nothing,
+   * which is where the shipped dials now sit. */
+  const pawRead = (pose, tilePx) => {
+    const dpr = window.devicePixelRatio || 1;
+    let gap = Infinity;
+    let len = Infinity;
+    for (let i = 0; i < 24; i += 1) {
+      const L = CatV2.catLayout(pose, i / 24);
+      if (!L.legs || L.legs.length < 2) continue;
+      const sorted = [...L.legs].sort((a, b) => a.x - b.x);
+      for (let j = 0; j < sorted.length - 1; j += 1) {
+        const a = sorted[j];
+        const b = sorted[j + 1];
+        if (a.limb !== undefined && a.limb === b.limb) continue; // depth pair
+        gap = Math.min(gap, (b.x - a.x) - ((a.w + CatV2.OUTLINE_W) / 2 + (b.w + CatV2.OUTLINE_W) / 2));
+      }
+      for (const leg of L.legs) len = Math.min(len, visibleRun(L, leg));
+    }
+    const g = gap * tilePx * dpr;
+    const l = len * tilePx * dpr;
+    return `gap ${g.toFixed(1)}px vs leg ${l.toFixed(1)}px `
+      + `(device px at ${tilePx}px tile, ${dpr}x) — ${Math.min(g, l).toFixed(1)}px is the read`;
+  };
+
   /** The shortest visible run on the card, which is the hind pair's. */
   const worstRun = (L) => Math.min(...L.legs.map((leg) => visibleRun(L, leg)));
 
@@ -1219,6 +1253,8 @@
         { key: 'tongue', label: 'tongue — PARKED at 0; reach toward the paw, as a share', min: 0, max: 0.9, step: 0.05, bag: CatV2.GROOM },
         { key: 'tongueW', label: 'tongueW — tongue width (head radii)', min: 0.06, max: 0.24, step: 0.01, bag: CatV2.GROOM },
         { key: 'fore', label: 'fore — the supporting foreleg (0 hides it)', min: 0, max: 1, step: 1, bag: CatV2.GROOM },
+        { key: 'hindW', label: 'hindW — leg weight; thinner buys the GAP between paws', min: 0.03, max: 0.09, step: 0.005, bag: CatV2.GROOM },
+        { key: 'foreW', label: 'foreW — keep level with hindW; one leg cannot be half the other', min: 0.03, max: 0.09, step: 0.005, bag: CatV2.GROOM },
         { key: 'groomCycleMs', label: 'groomCycleMs — the lick cycle, ms (three nods)', min: 800, max: 3200, step: 100 },
         { key: 'tilePx', label: 'tilePx — judge at the sizes the camera draws', min: 40, max: 115, step: 1 },
         { key: 'speed', label: 'speed — 1 is the live rhythm; slow it to study', min: 0.2, max: 1.5, step: 0.05 },
@@ -1227,6 +1263,7 @@
         const G = CatV2.GROOM;
         return (
           `GROOM: headX ${G.headX}, headY ${G.headY}, pawDx ${G.pawDx}, pawDy ${G.pawDy}, nod ${G.nod},\n`
+          + `       hindW ${G.hindW}, foreW ${G.foreW}  --  four paws: ${pawRead('grooming', GROOM_LAB.tilePx)}\n`
           + `       pawFollow ${G.pawFollow}, tongue ${G.tongue}, tongueW ${G.tongueW}, fore ${!!G.fore}\n`
           + `VIEW.groomCycleMs = ${GROOM_LAB.groomCycleMs}  -- the paste line; three nods per cycle\n`
           + `card view: tilePx ${GROOM_LAB.tilePx}, speed ${GROOM_LAB.speed} -- viewing aids, not shipped dials`
@@ -1273,6 +1310,7 @@
       ownShadows: true,
       bag: GROOM_OTHER_LAB,
       dials: [
+        { key: 'legW', label: 'legW — leg weight; thinner buys the GAP between paws', min: 0.025, max: 0.08, step: 0.005, bag: CatV2.GROOM_OTHER },
         { key: 'lean', label: 'lean — the client\'s slide toward the friend, as a share', min: 0, max: 1, step: 0.05 },
         { key: 'rotToward', label: 'rotToward — body lean into the reach (side view)', min: 0, max: 0.12, step: 0.005, bag: CatV2.GROOM_OTHER },
         { key: 'headX', label: 'headX — head forward (side view; the seat lives here)', min: 0.6, max: 0.85, step: 0.005, bag: CatV2.GROOM_OTHER },
@@ -1289,6 +1327,7 @@
         const G = CatV2.GROOM_OTHER;
         return (
           `GROOM_OTHER: rotToward ${G.rotToward}, headX ${G.headX}, nod ${G.nod},\n`
+          + `             legW ${G.legW}  --  four paws: ${pawRead('grooming-other', GROOM_OTHER_LAB.tilePx)}\n`
           + `  axialHeadNear ${G.axialHeadNear}, axialHeadShow ${G.axialHeadShow}, axialHeadWide ${G.axialHeadWide},\n`
           + `  axialTailUpY ${G.axialTailUpY}, axialTailClearHead ${G.axialTailClearHead}\n`
           + `card view: lean ${GROOM_OTHER_LAB.lean}, tilePx ${GROOM_OTHER_LAB.tilePx}, speed ${GROOM_OTHER_LAB.speed} -- viewing aids, not shipped dials`
