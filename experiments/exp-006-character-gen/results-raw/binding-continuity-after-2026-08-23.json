@@ -1,0 +1,28 @@
+{
+ "provenance": {
+  "git_head": "9f40c47174b3fd73c3c9e3a148e382a679a7a1a6",
+  "git_dirty": true,
+  "git_dirty_paths": [
+   "experiments/exp-006-character-gen/binding_continuity.py"
+  ],
+  "git_dirty_count": 1,
+  "tool": "binding_continuity.py",
+  "tool_sha256": "2e0cedde3a426a888ca94d49f91bc8e81e032c0ca3fc1a93abb44a3eed7fff1d",
+  "stamped_utc": "2026-08-24T03:15:29+00:00"
+ },
+ "binding": {
+  "module": "/Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv/lib/python3.14/site-packages/cloudkitty/__init__.py",
+  "artifacts": [
+   {
+    "name": "cloudkitty.abi3.so",
+    "sha256": "cfa533fa04f1ba3ebfdcfe280abc65d2bb9af2d0eca3e0a22efa94fe2d8aceff",
+    "mtime": 1787541320.5165424
+   }
+  ]
+ },
+ "config": "/Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/configs/phase1-cutover-bugs2.toml",
+ "seating": "c006a-L04s3",
+ "seed": 870001,
+ "ticks": 2000,
+ "state_trace_sha256": "57f706127a629c47235ea25a8945f8b3a2adb688c5aabda3eeacb7f57ed43214"
+}

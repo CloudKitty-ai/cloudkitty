@@ -28,7 +28,9 @@ red on demand. Both were run red before these numbers were trusted.
 
 Windows: **231,499–231,875** and **232,264–232,633**, ~370 consecutive
 ticks each, banked at `attn-cert-2026-08-14/results-raw/pose-census-*.json`.
-An earlier window at 226,990 (same logic, pre-commit) agreed with both.
+A third window at 226,990 agreed with both, but was taken with the same
+logic before the instrument was committed and its raw carries no header —
+corroboration, not evidence, and not banked (F-028).
 
 ## What is drawn
 
