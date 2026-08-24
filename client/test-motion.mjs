@@ -2678,6 +2678,37 @@ check('every lab card actually DRAWS -- the gallery survives a frame', () => {
   }
 });
 
+check("the water-lean card still depicts what render.js actually does", () => {
+  // The card "Groom-other in water" shows a BUG. It reproduces two lines of
+  // render.js -- the clip rect and the drawWaterline call -- because the
+  // gallery never loads render.js and cannot call them. A card that depicts a
+  // bug has a shelf life: the day the fix lands it becomes a lab exhibit of
+  // something that no longer happens, arguing for a change already made.
+  //
+  // So this pins the SHAPE the card copies. Both lines are built from the
+  // tile origin `y` and `this.tile`, with no lean term. When that stops being
+  // true, this check fails and whoever fixed it is told, here, that the card
+  // needs its `follows` default flipped and its note rewritten past tense.
+  const src = readFileSync(join(here, 'render.js'), 'utf8');
+  const clip = /ctx\.rect\(\s*x - this\.tile,\s*y - this\.tile \* 2,\s*this\.tile \* 3,\s*this\.tile \* \(2 \+ cut\),?\s*\)/;
+  assert(
+    clip.test(src),
+    'render.js no longer clips the cat to the water in bare tile space -- '
+      + 'if the lean fix landed, the water-lean lab card now depicts a fixed bug',
+  );
+  assert(
+    /this\.drawWaterline\(x \+ this\.tile \* bodyCx, y, cut, submersion, view\)/.test(src),
+    'render.js no longer draws the surface at the bare tile origin -- '
+      + 'the water-lean lab card needs updating with it',
+  );
+  // And the thing that makes it a bug rather than a preference: the CAT does
+  // move with the lean. If that ever stops being true there is nothing to fix.
+  assert(
+    /y: y \+ box\.dy \+ leanY - leapLift/.test(src),
+    'the drawn cat no longer carries leanY -- the water-lean card has no subject',
+  );
+});
+
 check('every lab card names, in its readout, every dial it offers', () => {
   // A readout that does not name a field is quietly proposing to delete it:
   // the owner pastes back what the card printed, and the missing key reverts
