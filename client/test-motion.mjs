@@ -2678,34 +2678,125 @@ check('every lab card actually DRAWS -- the gallery survives a frame', () => {
   }
 });
 
-check("the water-lean card still depicts what render.js actually does", () => {
-  // The card "Groom-other in water" shows a BUG. It reproduces two lines of
-  // render.js -- the clip rect and the drawWaterline call -- because the
-  // gallery never loads render.js and cannot call them. A card that depicts a
-  // bug has a shelf life: the day the fix lands it becomes a lab exhibit of
-  // something that no longer happens, arguing for a change already made.
+/** Drive the real `drawKitty` against a stub, and report where the cat's box
+ * was actually translated to. That translate is the last thing between the
+ * layout and the paint, so it is the honest place to ask "where was the cat
+ * drawn". */
+function drawnBoxY({ submersion, lean }) {
+  const translates = [];
+  const ctx = new Proxy({}, {
+    get: (t, k) => {
+      if (k === 'translate') return (x, y) => translates.push([x, y]);
+      if (k === 'canvas') return { width: 900, height: 900 };
+      if (k === 'measureText') return () => ({ width: 10 });
+      return () => ctx;
+    },
+    set: () => true,
+  });
+  const stub = {
+    ctx, tile: 100, theme: 'day', pondCache: null,
+    tileOrigin: () => ({ x: 0, y: 0 }),
+    drawWaterline() {}, drawBeat() {}, drawElement() {}, roundRect() {},
+  };
+  const kitty = {
+    id: 1, pos: { x: 1, y: 1 },
+    activity: { state: 'grooming' },
+    last_action: { action: 'groom', target: 2 },
+    needs: {},
+  };
+  const elements = submersion > 0 ? [{ kind: 'water', pos: { x: 1, y: 1 } }] : [];
+  const world = { width: 5, height: 5, tick: 10, kitties: [kitty], elements };
+  const view = new Proxy({
+    posFor: () => ({ x: 1, y: 1 }),
+    elementPosFor: (e) => e.pos,
+    elementAlphaFor: () => 1,
+    tickMs: 800, expired: [], expiredAlpha: 0,
+    ambient: { now: 1000 },
+    travelHFor: () => 1,
+    wetFor: () => 0,
+    motionFor: () => ({ phase: 0.2 }),
+    facingFor: () => 'right',
+    velocityFor: () => ({ x: 0, y: 0 }),
+    leanFor: () => lean,
+    leapFor: () => null,
+  }, {
+    // Everything else this draw asks for is absent on purpose: a stub that
+    // answers every question cannot tell you which ones were asked.
+    get: (target, k) => (k in target ? target[k] : () => null),
+  });
+  // render.js reads `MEADOW` (meadow.js), which this harness does not load --
+  // it resolves through the scope chain, so a global stands in for the length
+  // of the call. Numbers where it wants numbers, strings where it wants paint.
+  const hadMeadow = 'MEADOW' in globalThis;
+  const savedMeadow = globalThis.MEADOW;
+  globalThis.MEADOW = new Proxy({}, {
+    get: (target, k) => (String(k).startsWith('shadow') && k !== 'shadowColor' ? 0 : '#000'),
+  });
+  try {
+    WorldRenderer.prototype.drawKitty.call(stub, kitty, world, view);
+  } finally {
+    if (hadMeadow) globalThis.MEADOW = savedMeadow;
+    else delete globalThis.MEADOW;
+  }
+  // The FIRST translate is the box: `paintBox` opens with it, and everything
+  // after is inside the cat's own unit space.
+  return translates.length ? translates[0][1] : null;
+}
+
+check('a wading cat does not lean toward its friend', () => {
+  // The groom lean is a sub-tile slide TOWARD a friend, and `submersionFor`
+  // samples the SERVED position -- so a leaning cat is drawn where its own
+  // waterline is not. Both halves of the lean are wrong in water and neither
+  // is worth keeping:
   //
-  // So this pins the SHAPE the card copies. Both lines are built from the
-  // tile origin `y` and `this.tile`, with no lean term. When that stops being
-  // true, this check fails and whoever fixed it is told, here, that the card
-  // needs its `follows` default flipped and its note rewritten past tense.
+  //   vertical   the clip cuts at the wrong height -- 18.5px against the
+  //              11px of depth a wade actually has at an 84px tile
+  //   horizontal the meniscus is centred on `x + tile * bodyCx` with no
+  //              leanX, so a 0.38-tile arc sits 0.22 of a tile off-centre
+  //
+  // Owner's call, 2026-08-24: drop the lean while submerged rather than make
+  // the water follow the cat around. A wading groomer sits square.
+  const NORTH = { dx: 0, dy: -VIEW.groomLean.tiles };
+  const dryLean = drawnBoxY({ submersion: 0, lean: NORTH });
+  const dryNone = drawnBoxY({ submersion: 0, lean: null });
+  assert(dryLean !== null && dryNone !== null, 'the draw never translated a box');
+  // On dry land the lean must still MOVE the cat, or this check is vacuous.
+  assert(
+    Math.abs(dryLean - dryNone) > 1,
+    `the lean does nothing on dry land (${dryLean} vs ${dryNone}) -- nothing to suppress`,
+  );
+  const wetLean = drawnBoxY({ submersion: 1, lean: NORTH });
+  const wetNone = drawnBoxY({ submersion: 1, lean: null });
+  close(wetLean, wetNone, 'a submerged cat still leaned');
+});
+
+check("the water-lean card still depicts what render.js actually does", () => {
+  // The card "Groom-other in water" shows a bug that has since been fixed, and
+  // says so. It reproduces two lines of render.js -- the clip rect and the
+  // drawWaterline call -- because the gallery never loads render.js, so this
+  // pins the shape it copies. Both are still built from the tile origin with
+  // no lean term: that was never the thing that changed.
+  //
+  // The FIRST cut of this check pinned only those two, and missed the point.
+  // The lean was suppressed instead, the card's claim went stale, and this
+  // stayed green -- so the third assert below is the one that would have
+  // caught it, and is the reason the other two are not enough on their own.
   const src = readFileSync(join(here, 'render.js'), 'utf8');
   const clip = /ctx\.rect\(\s*x - this\.tile,\s*y - this\.tile \* 2,\s*this\.tile \* 3,\s*this\.tile \* \(2 \+ cut\),?\s*\)/;
-  assert(
-    clip.test(src),
-    'render.js no longer clips the cat to the water in bare tile space -- '
-      + 'if the lean fix landed, the water-lean lab card now depicts a fixed bug',
-  );
+  assert(clip.test(src), 'render.js no longer clips the cat to the water in bare tile space');
   assert(
     /this\.drawWaterline\(x \+ this\.tile \* bodyCx, y, cut, submersion, view\)/.test(src),
-    'render.js no longer draws the surface at the bare tile origin -- '
-      + 'the water-lean lab card needs updating with it',
+    'render.js no longer draws the surface at the bare tile origin',
   );
-  // And the thing that makes it a bug rather than a preference: the CAT does
-  // move with the lean. If that ever stops being true there is nothing to fix.
+  // The resolution itself: the lean is GATED on submersion, which is what the
+  // card now depicts. If that gate is ever removed the bug is back and the
+  // card is a museum piece again -- so it is pinned where the fix lives.
   assert(
-    /y: y \+ box\.dy \+ leanY - leapLift/.test(src),
-    'the drawn cat no longer carries leanY -- the water-lean card has no subject',
+    /const wading = submersion > 0\.01;/.test(src)
+      && /const leanX = lean && !wading \? lean\.dx \* this\.tile : 0;/.test(src)
+      && /const leanY = lean && !wading \? lean\.dy \* this\.tile : 0;/.test(src),
+    'the lean is no longer gated on submersion -- the water-lean card is out of date, '
+      + 'and a wading cat has started reaching again',
   );
 });
 
