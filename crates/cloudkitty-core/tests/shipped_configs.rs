@@ -5,7 +5,8 @@
 //! compares bytes without parsing. This sweep is what catches a shipped
 //! config that a future key migration misses (it would have caught three in
 //! the 022/023 batch). TOMLs that are not world configs (tool manifests,
-//! the eval-suite hash manifest) are excluded by name in `collect`.
+//! the eval-suite hash manifest, the compiler pin) are excluded by name in
+//! `collect`.
 
 use cloudkitty_core::Config;
 use std::path::{Path, PathBuf};
@@ -33,6 +34,11 @@ fn collect(dir: &Path, recursive: bool, out: &mut Vec<PathBuf>) {
             && name != "Cargo.toml"
             && name != "pyproject.toml"
             && name != "manifest.toml"
+            // The compiler pin. Same category as the manifests above -- a
+            // root TOML that is not a world config -- and it lands in the
+            // root sweep the moment it exists, which is how this test
+            // caught it.
+            && name != "rust-toolchain.toml"
         {
             out.push(path);
         }
