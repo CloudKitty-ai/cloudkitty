@@ -955,6 +955,24 @@ check('the belly is derived from the body, so it follows every pose', () => {
   assert(CatV2.blendLayouts(A, B, 0.5).belly === undefined, 'blendLayouts invented one');
 });
 
+check('the shipped pounce gate is the one the owner judged', () => {
+  // Pinned for the same reason as the camera dials: the behavioural check
+  // below derives its fixture FROM the dial, which is right for asserting
+  // the boundary SEMANTICS and blind to the boundary's VALUE. Nothing else
+  // in the suite would notice a silent re-dial.
+  //
+  // 4 -> 3 (owner, 2026-08-23), after the Biscuit 2.0 cutover made the
+  // world read pounce-heavy. Measured on 350 live ticks (1,745 cat-ticks,
+  // 226217-226566): the gate only ever touches CHASE, and chase supplies
+  // 41% of pouncing against play's 59%, so 4 -> 3 moves drawn pouncing
+  // 24.0% -> 23.2% and walking 22.4% -> 23.2%, demoting 13 ticks, all of
+  // them to walking. Chosen over 2 because the chase-distance histogram
+  // peaks at 1-2 tiles: a gate ON the mode doubled mid-chase pose flips
+  // (0.33 -> 0.70 per scene) and stranded one lunge in six drawing a
+  // walking cat mid-leap, while 3 leaves both untouched.
+  close(VIEW.pounceGateTiles, 3, 'the pounce gate drifted');
+});
+
 check('the pounce is gated on how far the quarry is', () => {
   const gate = VIEW.pounceGateTiles;
   const chasing = { id: 1, pos: { x: 2, y: 2 }, last_action: { action: 'chase', target: 'element', id: 9 } };

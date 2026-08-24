@@ -33,6 +33,22 @@ change.
 
 ## Unreleased
 
+- A chasing cat stops stalking from across the meadow. The client draws a
+  cat mid-pounce once its quarry is close, and "close" was four tiles — a
+  figure set back when a chase across the whole map was drawn as one
+  unbroken pounce. Biscuit 2.0 chases far more than the cat she replaced,
+  so that allowance began to show: approach steps that should read as
+  walking read as stalking. Close is now three tiles. A deliberately small
+  trim — measured on 350 ticks of the live world, drawn pouncing moves
+  24.0% to 23.2% and walking the same distance the other way — because the
+  gate only ever touches chasing, and most of the world's pouncing is
+  play, which happens right on top of its target. Two tiles was measured
+  and rejected: chase distances cluster at one and two, so a threshold
+  sitting inside that cluster made cats flicker between walk and crouch
+  mid-chase, and left roughly one final lunge in six flying its arc in a
+  walking pose. Presentation only — what the cats do is unchanged, only
+  how long the drawing calls it a pounce.
+
 - The camera is calm again on a busy meadow. Biscuit 2.0 hunts and plays
   across the map, and the new roster keeps closer company — so where the
   camera used to frame about three cats it now holds nearly all five, and
