@@ -1469,6 +1469,33 @@ hunt).
 a deliberate dirty-tree run); any future raw fails byte-repro with
 the stamp present.
 
+**THE HEADER LANDED, 2026-08-23** — `experiments/census_provenance.py`,
+wired into `live_census.py`, `pose_census.py` and (through
+`cert_harness6.provenance`) the whole exp-006 lab family;
+`playful_anchor.py` already carried its own compliant stamp. Every raw
+now carries commit, **working-tree dirty state with the modified paths
+named**, tool sha256, and — lab side — the config sha, the binding, and
+`rustc -V`, which is the fact this finding's elimination trail could
+only assert from an operator's note. Live raws additionally stamp the
+served world (config sha, roster with the behavior string per seat,
+tick), since the instrument's own commit says nothing about the box.
+
+The re-verify clause is satisfied both ways: `test_census_provenance.py`
+drives clean/dirty/unreadable in a throwaway repo (`OLD=1` replays the
+pre-patch header and goes red on four of five), and the first real raws
+were taken deliberately from a dirty tree and named all five modified
+files. **The guard earned itself on the first run**: the path parser
+sliced a fixed column offset, and stripping the porcelain output ate the
+leading space of ` M path` lines — so tracked-file paths came out
+missing their first character while untracked `?? path` lines looked
+fine. A header that misnames what was dirty is only marginally better
+than one that cannot say.
+
+**Still open**: the pin this finding's trail wanted — a
+`rust-toolchain.toml` — does not exist (handed to Product 2026-08-23
+with the recommendation). Until it does, `rustc` in the header records
+what the instrument ran on rather than proving what it must run on.
+
 ## F-029 · active · A reader rule copied from the wrong contract shape reports a category that cannot exist
 
 Found 2026-08-22, minutes after the Biscuit 2.0 deploy, when the

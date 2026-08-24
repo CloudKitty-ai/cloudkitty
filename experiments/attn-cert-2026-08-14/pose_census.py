@@ -40,6 +40,9 @@ import urllib.request
 from collections import Counter, defaultdict
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from census_provenance import served, stamp  # noqa: E402
+
 BASE = "https://kitties.ai"
 DURATION_S = int(sys.argv[1]) if len(sys.argv) > 1 else 300
 INTERVAL_S = float(sys.argv[2]) if len(sys.argv) > 2 else 0.45
@@ -210,6 +213,11 @@ def main():
 
     out = {
         "instrument": "pose_census.py",
+        # F-028's header. The gate below is part of it: this census
+        # replicates a CLIENT rule, so the dial it replicated is as
+        # load-bearing as the commit it ran from.
+        "provenance": stamp(__file__),
+        "served": served(BASE),
         "base": BASE, "interval_s": INTERVAL_S,
         "pounce_gate_tiles": POUNCE_GATE,
         "tick_range": [ticks[0], ticks[-1]],

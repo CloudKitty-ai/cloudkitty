@@ -29,6 +29,9 @@ import urllib.request
 from collections import Counter, defaultdict
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from census_provenance import served, stamp  # noqa: E402
+
 BASE = "https://kitties.ai"
 # Overridable: live_census.py [duration_min] [interval_s] — the defaults
 # reproduce the 08-18 baseline's window.
@@ -134,6 +137,11 @@ def main():
 
     out = {
         "instrument": "live_census.py",
+        # F-028's header: what ran (commit, working-tree state, tool sha)
+        # and what it sampled (the served config, roster and seats). Taken
+        # AFTER the polls so `served.tick` brackets the window's end.
+        "provenance": stamp(__file__),
+        "served": served(BASE),
         "base": BASE, "interval_s": INTERVAL_S,
         "polls": len(polls),
         "tick_range": [polls[0]["tick"], polls[-1]["tick"]],

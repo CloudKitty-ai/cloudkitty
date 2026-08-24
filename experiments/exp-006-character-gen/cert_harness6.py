@@ -47,6 +47,8 @@ EXPTS = HERE.parent
 REPO = EXPTS.parent
 sys.path.insert(0, str(EXPTS / "attn-oracle-2026-08-15"))
 sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(EXPTS))
+from census_provenance import stamp  # noqa: E402
 
 LOW_HAPPINESS = 45.0
 PER_KITTY, HAP, DIST0 = 32, 6, 20
@@ -274,14 +276,31 @@ def run_one(args):
 
 
 def provenance(config_path):
-    head = subprocess.run(["git", "-C", str(REPO), "rev-parse", "HEAD"],
-                          capture_output=True, text=True).stdout.strip()
+    """The lab family's census header (bio_census, mew_probe, forensics_r5
+    all import this one).
+
+    F-028 patch, 2026-08-23: this used to stamp the commit and the config
+    but not the WORKING-TREE state, which is precisely the fact that could
+    not be recovered when the bugs-2.0 grid failed byte-reproduction. It
+    now delegates to `census_provenance.stamp` for commit + dirty + tool
+    sha, and adds what only the lab side knows: the config, the compiled
+    binding, and the compiler that built it (F-028's elimination trail had
+    to assert the toolchain from an operator's note).
+
+    Existing keys are preserved — the raws in results-raw/ are read by
+    name, and a header that renames its own fields is a second F-028.
+    """
     import hashlib
     cfg_sha = hashlib.sha256(Path(config_path).read_bytes()).hexdigest()
     import cloudkitty
-    return {"git_head": head, "config_sha256": cfg_sha,
-            "binding": getattr(cloudkitty, "__version__", "unknown"),
-            "binding_engine": getattr(cloudkitty, "ENGINE_COMMIT", None)}
+    rustc = subprocess.run(["rustc", "-V"], capture_output=True, text=True)
+    out = stamp(__file__, repo=REPO, extra={
+        "config_sha256": cfg_sha,
+        "binding": getattr(cloudkitty, "__version__", "unknown"),
+        "binding_engine": getattr(cloudkitty, "ENGINE_COMMIT", None),
+        "rustc": rustc.stdout.strip() or None,
+    })
+    return out
 
 
 def main():
