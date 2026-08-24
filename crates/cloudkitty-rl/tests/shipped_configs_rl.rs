@@ -33,6 +33,7 @@ fn collect(dir: &Path, recursive: bool, out: &mut Vec<PathBuf>) {
             && name != "Cargo.toml"
             && name != "pyproject.toml"
             && name != "manifest.toml"
+            && name != "rust-toolchain.toml"
         {
             out.push(path);
         }

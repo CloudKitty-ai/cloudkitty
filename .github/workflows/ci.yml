@@ -21,11 +21,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install stable toolchain
+      # No `rustup toolchain install` here: rust-toolchain.toml pins the
+      # compiler, and rustup installs it -- with the components the file
+      # names -- the first time anything invokes a shim. Reinstalling
+      # `stable` alongside it only downloads a second toolchain nobody uses.
+      # This step is the gate that the pin was honoured: a `cargo` that is
+      # not a rustup shim ignores the file silently, which is the one way
+      # this could land inert.
+      - name: Verify the pinned toolchain
         run: |
-          rustup toolchain install stable --profile minimal
-          rustup component add rustfmt clippy
-          rustup default stable
+          pinned=$(sed -n 's/^channel *= *"\(.*\)"/\1/p' rust-toolchain.toml)
+          resolved=$(rustc -V)
+          echo "pinned:   $pinned"
+          echo "resolved: $resolved"
+          case "$resolved" in
+            "rustc $pinned "*) ;;
+            *) echo "::error::resolved toolchain does not match rust-toolchain.toml (want $pinned)"; exit 1 ;;
+          esac
 
       - uses: Swatinem/rust-cache@v2
 
@@ -47,10 +59,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install stable toolchain
+      # No `rustup toolchain install` here: rust-toolchain.toml pins the
+      # compiler, and rustup installs it -- with the components the file
+      # names -- the first time anything invokes a shim. Reinstalling
+      # `stable` alongside it only downloads a second toolchain nobody uses.
+      # This step is the gate that the pin was honoured: a `cargo` that is
+      # not a rustup shim ignores the file silently, which is the one way
+      # this could land inert.
+      - name: Verify the pinned toolchain
         run: |
-          rustup toolchain install stable --profile minimal
-          rustup default stable
+          pinned=$(sed -n 's/^channel *= *"\(.*\)"/\1/p' rust-toolchain.toml)
+          resolved=$(rustc -V)
+          echo "pinned:   $pinned"
+          echo "resolved: $resolved"
+          case "$resolved" in
+            "rustc $pinned "*) ;;
+            *) echo "::error::resolved toolchain does not match rust-toolchain.toml (want $pinned)"; exit 1 ;;
+          esac
 
       - uses: Swatinem/rust-cache@v2
 

@@ -25,10 +25,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install stable toolchain
-        run: |
-          rustup toolchain install stable --profile minimal
-          rustup default stable
+      # No `rustup toolchain install`: rust-toolchain.toml at the repo root
+      # pins the compiler for these crates too -- rustup walks up from the
+      # working directory, so the separate workspaces under experiments/tools
+      # resolve to the same toolchain the engine is built with. The pin is
+      # gated in ci.yml; this workflow is non-blocking by doctrine and does
+      # not add a check that could fail it.
 
       - uses: Swatinem/rust-cache@v2
         with:

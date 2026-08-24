@@ -1,0 +1,36 @@
+# The compiler is an input to every artifact this repo asks anyone to trust,
+# and until this file existed it was the only such input nothing recorded.
+# Dependencies are pinned (eight committed Cargo.lock files), there are no
+# RUSTFLAGS and no .cargo/config.toml -- so the toolchain was the last
+# unpinned variable behind byte-identical rebuilds, artifact parity, and
+# byte-repro of census raws. F-028 excluded the toolchain as the cause of a
+# non-reproducing acceptance grid on the strength of an operator's note about
+# an install date; that exclusion was probably right and was unfalsifiable.
+# This makes it checkable.
+#
+# 1.97.1 records what all three build sites were already running on
+# 2026-08-23 -- this machine, the build box (identical hash 8bab26f4f), and
+# whatever `stable` resolved to in CI that day. Pinning changed nothing about
+# what gets built; it wrote down what was true.
+#
+# rustup honours this file above `rustup default`, so it also governs the
+# maturin-built cloudkitty binding and the separate workspaces under
+# experiments/tools (rustup walks up from the working directory). That
+# matters: the parity chain runs torch actor -> Rust inference -> served
+# binary, and the binding and the server are two different builds.
+#
+# Deliberately exact rather than a floating minor. `cargo clippy -D warnings`
+# is a blocking gate, and new clippy lints are the usual way a stable bump
+# turns a green repo red for whoever happens to open the next unrelated PR.
+# The cost of exactness is that nothing warns us early when a newer stable
+# breaks us; the bump is meant to be deliberate, and it is where that break
+# gets faced. The MSRV claim in specs/016-behavior-plugins/quickstart.md is a
+# separate concern and is not what this file expresses.
+#
+# Bumping: change `channel`, run fmt/clippy/test locally, and expect the
+# build box to download the new toolchain on its next deploy (it builds
+# before it stops the service, so a failure there is safe).
+[toolchain]
+channel = "1.97.1"
+components = ["rustfmt", "clippy"]
+profile = "minimal"

@@ -33,6 +33,23 @@ change.
 
 ## Unreleased
 
+- The compiler is written down. Every rebuild claim this repo makes — the
+  byte-identical binaries from the refactor arc, artifact parity to within
+  1e-5, census raws that reproduce — assumes the same compiler built both
+  sides, and nothing in the repo said which compiler that was. CI installed
+  whatever `stable` meant on the morning it ran, and the build box and the
+  development machine each carried their own. `rust-toolchain.toml` now pins
+  1.97.1 with rustfmt and clippy, and CI fails the build if the compiler it
+  resolves is not that one. The pin reaches the Python binding and the
+  research tools under `experiments/` as well, which matters because the
+  parity chain runs through two separate builds. Nothing is compiled
+  differently today: all three build sites were already on 1.97.1, down to
+  the same build hash, so this records what was true rather than changing
+  it. No compatibility marker for that reason — the world, the observation
+  schema and the engine stamp are all untouched. What it costs is early
+  warning: a newer stable can no longer surprise us in CI, and bumping the
+  pin is where that gets faced instead.
+
 - A chasing cat stops stalking from across the meadow. The client draws a
   cat mid-pounce once its quarry is close, and "close" was four tiles — a
   figure set back when a chase across the whole map was drawn as one
