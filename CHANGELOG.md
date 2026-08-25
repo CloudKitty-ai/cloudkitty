@@ -33,6 +33,21 @@ change.
 
 ## Unreleased
 
+- A cat washing a friend stops reaching once it is standing in water. The
+  groom lean is a sub-tile slide toward the friend, and `submersionFor`
+  samples the *served* position — so a leaning cat was drawn where its own
+  waterline was not. Both halves of that were wrong. The vertical half, which
+  is how a friend due north or south is drawn, cut the cat at the wrong height
+  by 0.22 of a tile: 18.5px at an 84px tile, against the 11px of depth a wade
+  actually has, so the cat cleared its own pond entirely. The horizontal half
+  left the meniscus 0.22 of a tile off-centre — displaced water beside the
+  cat rather than around it. Neither half was worth keeping, and making the
+  water follow the cat instead was rejected: it carries a pond meniscus onto
+  the grass whenever a groomer leans out of the water, and water that travels
+  with an animal is a worse picture than an animal that sits square while it
+  washes a friend. Nothing else moved — the clip and the surface are still
+  built in tile space, which is what correctly submerges a smaller kitty more
+  of her body and correctly lets a leaping cat rise clear.
 - A cat washing a friend to the north is now drawn from behind, as it was
   always meant to be. `grooming-other` has had an end-on drawing since the
   pose was built — it was given one because 54% of groom targets sit due north

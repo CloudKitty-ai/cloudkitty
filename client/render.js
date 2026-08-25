@@ -1684,8 +1684,33 @@ class WorldRenderer {
     // The groom lean: a grounded slide, so unlike the leap's lift it moves
     // the shadow WITH the cat.
     const lean = v2Motion && view.leanFor ? view.leanFor(kitty.id) : null;
-    const leanX = lean ? lean.dx * this.tile : 0;
-    const leanY = lean ? lean.dy * this.tile : 0;
+    // A WADING CAT DOES NOT REACH (owner, 2026-08-24).
+    //
+    // The lean is a sub-tile slide toward the friend, but `submersionFor`
+    // samples the SERVED position -- so a leaning cat is drawn where its own
+    // waterline is not, and both halves of that are wrong in water:
+    //
+    //   vertical    the clip cuts at the wrong height. 0.22 of a tile is
+    //               18.5px at an 84px tile, against the 11px of depth a wade
+    //               actually has (VIEW.waterline 0.72 vs CAT_GROUND 0.88), so
+    //               the cat clears its own pond entirely. North and south fail
+    //               in opposite directions and 54% of groom targets are one or
+    //               the other.
+    //   horizontal  the meniscus is centred on `x + this.tile * bodyCx` with
+    //               no leanX, so a 0.38-tile arc ends up 0.22 of a tile
+    //               off-centre -- displaced water beside the cat, not round it.
+    //
+    // Making the water follow the cat instead was the other option and was
+    // rejected: it carries a pond meniscus onto the grass whenever a groomer
+    // leans out of the water, and water that travels with an animal is a worse
+    // picture than an animal that sits square while it washes a friend.
+    //
+    // `leanFor` is still CALLED -- it integrates its own easing off `dt`, and
+    // skipping it would leave the state stale so the lean snapped when the cat
+    // walked out of the pond.
+    const wading = submersion > 0.01;
+    const leanX = lean && !wading ? lean.dx * this.tile : 0;
+    const leanY = lean && !wading ? lean.dy * this.tile : 0;
     const leapLift = leap ? leap.lift01 * (VIEW.pounceLeap?.liftFrac ?? 0) * this.tile : 0;
 
     // A soft shadow so cats sit on the grass rather than float above it --
