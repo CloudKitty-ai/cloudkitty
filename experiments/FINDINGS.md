@@ -65,6 +65,7 @@ evidence; this register is the evolving knowledge layer on top of them.
 | F-028 | active | Census raws are attributable only if the instrument records its own provenance |
 | F-029 | active | A reader rule copied from the wrong contract shape reports a category that cannot exist |
 | F-030 | active | Per-event shaping of a social behavior buys initiation churn; the KL leash does not prevent it |
+| F-031 | active | A partnered scene runs its minimum only if the counterpart is pinned; grooming is the exception |
 
 ---
 
@@ -1636,3 +1637,68 @@ event-vs-state to shaping social behavior at all).
 before adopting shaping as a retention tool in place of the leash;
 and if a duet-time-shaped arm is ever run, compare its venue
 retention against this arm's directly.
+
+## F-031 · active · A partnered scene runs its minimum only if the counterpart is pinned; grooming is the exception
+
+Found 2026-08-24 by Product while checking the waterline proposal's
+priors, corroborated independently here. Registered on the owner's word
+the same day.
+
+**The instrument matters as much as the number.** Polled snapshots
+cannot measure scene length — the final tick of a scene clears the clock
+it stamped (`api.rs:95-97`) — and `activity.state` is a one-tick
+resolution flag for play, eat and drink besides. `GET /events/activity`
+records the true span, **inclusive: `ended - started + 1`**
+(`events.rs:30-42`). Both threads dropped the `+1` on first reading and
+saw every activity quit a tick early; the arithmetic now lives in
+`live_census.py` beside its citation.
+
+1. **Measured spans, 1000 scenes, live world**, against the config
+   windows they were drawn from:
+
+   | scene | n | mean span | config |
+   |---|---|---|---|
+   | cosleep | 79 | 6.00 | sleep 6-12 |
+   | sleep-solo | 80 | 6.01 | sleep 6-12 |
+   | groom-solo | 39 | **4.00** | bath 4-8 |
+   | groom-other | 113 | **3.37** | bath 4-8 |
+   | duet | 99 | 2.00 | play 2-5 |
+   | play-solo | 103 | 2.00 | play 2-5 |
+   | play-element | 136 | 1.74 | play 2-5 |
+
+2. **The controlled comparison is groom-solo against groom-other**:
+   one activity, one config window, differing only in whether a
+   counterpart exists who can leave. Solo lands exactly on its minimum;
+   partnered runs 0.63 ticks short. Everything else lands exactly on
+   its minimum.
+3. **The mechanism is which activities pin their partner.**
+   `prune_dead_activity` (`world.rs:476`) ends a partnered groom through
+   `is_available_friend`, and the groomed cat is never in an activity —
+   it stays free to walk away mid-scene. Duets and cuddles lock both
+   parties via `reciprocal_duet`; sleepers do not move. Grooming is the
+   only partnered activity whose counterpart is unpinned, and it is the
+   only one that dies early.
+4. **play-element's 1.74 reproduces the banked bug `mlen` of 1.8**
+   through a different endpoint than the Rust chase census that produced
+   it — an independent check on the critter-play EV work, which the
+   `bugs2-grid-analyze.ev()` docstring already warns must use measured
+   rather than nominal lengths. Same lesson, second instrument.
+
+**Why it is worth a number**: every EV that prices a partnered scene
+multiplies by its length, and nominal config bounds overstate grooming
+by 15%. It also predicts where a rule that reshapes pairing could show
+up as a *duration* effect rather than a count effect — grooming is the
+only partnered activity with slack.
+
+**Scope**: served world, current roster, one 1000-scene window per
+thread. Says nothing about scripted-only compositions, and the gap size
+is a function of how mobile the groomed cat is, so a calmer roster
+should show a smaller one.
+
+**What would invalidate it**: a groom-other mean at or above 4.00 on any
+roster (would mean the counterpart-gone rule is not what shortens it);
+or a duet mean below 2.00 (would mean `reciprocal_duet` does not pin
+what it appears to pin).
+
+**Re-verify when**: any change to the friend helpers, `prune_dead_activity`,
+or the duration config; and before pricing any partnered scene in an EV.

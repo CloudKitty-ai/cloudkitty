@@ -254,3 +254,17 @@ before any tag).**
   certification, the determinism asterisk). Moved from 3.0 by the
   owner: external minds are an ontology change, and the roadmap
   between here and there earned its own major.
+
+### Candidates for the pre-fog schema-break bundle
+
+The fog wall is the one moment the observation schema moves cheaply, so
+anything that wants a schema bump should be decided *as a bundle* before
+that wall, not one item at a time afterwards. Running list:
+
+- **The waterline pairing rule** — tabled by the owner 2026-08-24 with
+  its groundwork banked at `waterline-pairing-rule-2026-08-24.md`.
+  Revisit when this bundle is finalized. It wants one float in
+  `KITTY_SLOT` (a neighbour's in-water bit), which is free at the wall
+  and a full five-seat retrain alone. Carries a live confound with the
+  Gen 1 vocabulary arms through `here_water`, and the doc names two ways
+  to keep that clean.
