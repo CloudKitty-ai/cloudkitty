@@ -1,17 +1,16 @@
 {
  "instrument": "idle_seam.py (F-032)",
  "provenance": {
-  "git_head": "2d0050907460067be52867276cde9b1a46e0a3cd",
+  "git_head": "97d9cadbdf2e5b2fc541c3af387d996ad1ad90c2",
   "git_dirty": true,
   "git_dirty_paths": [
-   "experiments/FINDINGS.md",
-   "experiments/attn-cert-2026-08-14/idle_seam.py"
+   "experiments/attn-cert-2026-08-14/results-raw/idle-seam-354335.json"
   ],
-  "git_dirty_count": 2,
+  "git_dirty_count": 1,
   "tool": "idle_seam.py",
   "tool_sha256": "f0c34df3ebd17781db2655be205e20b0d6857a723d19b160ed2bae6aaf464bfe",
   "toolchain_pin": "1.97.1",
-  "stamped_utc": "2026-08-25T04:35:20+00:00"
+  "stamped_utc": "2026-08-25T04:37:17+00:00"
  },
  "served": {
   "base": "https://kitties.ai",
@@ -22,7 +21,7 @@
    "tick_ms": 800,
    "seed": 20260718
   },
-  "tick": 361683,
+  "tick": 361829,
   "roster": [
    {
     "id": 1,
