@@ -48,21 +48,34 @@ KINDS = ("duet", "cosleep", "cuddle", "groom")
 
 
 def partner_of(kitty):
-    """(friend id, kind) if this cat is PAIRED right now, else None.
+    """(friend id, kind) if this cat is PAIRED this tick, else None.
 
-    Paired means the activity names another kitty. Element play and solo
-    play are not pairings and a waterline rule never touches them; chase
-    and meow are not activities at all.
+    Read off `last_action`, NOT `activity.state`, for two reasons.
+
+    Semantic: the rule would live in the two friend helpers, which
+    `validate` consults on every proposed action, so an action-tick is
+    exactly one unit of relief the rule denies.
+
+    Measurement: `activity.state` is a ONE-TICK resolution flag for play
+    (measured mean run 1.00 ticks over 82 runs, against a 3.04-tick play
+    action) while it persists for sleep (5.03) and groom (2.62). Counting
+    pair-ticks off the state therefore under-weights duets ~3x and groom
+    ~1.3x against co-sleep, which is a property of the reader and not of
+    the world. The first version of this instrument did exactly that and
+    reported a 60/40 co-sleep lead that was an artifact — the same trap as
+    the drawn-pose census, one instrument later.
+
+    Paired means the action names another kitty. Element play and solo
+    play are not pairings and the rule never touches them; chase and meow
+    name no activity at all.
     """
-    a = kitty.get("activity") or {}
-    state = a.get("state")
-    if state == "playing":
-        t = a.get("target")
-        if isinstance(t, dict) and t.get("target") == "kitty":
-            return t.get("id"), "duet"
-    elif state in ("resting", "sleeping") and a.get("with_friend") is not None:
-        return a["with_friend"], "cuddle" if state == "resting" else "cosleep"
-    elif state == "grooming" and isinstance(a.get("target"), int):
+    a = kitty.get("last_action") or {}
+    action = a.get("action")
+    if action == "play" and a.get("target") == "kitty":
+        return a.get("id"), "duet"
+    if action in ("sleep", "rest") and a.get("with") is not None:
+        return a["with"], "cosleep" if action == "sleep" else "cuddle"
+    if action == "groom" and isinstance(a.get("target"), int):
         return a["target"], "groom"
     return None
 
@@ -87,6 +100,8 @@ def main():
     active = Counter()
     active_pairs = Counter()
     adjacency_pairs = Counter()
+    scenes = Counter()
+    open_pairs = {}   # (a, b, kind) -> was it cross-waterline at its start
 
     for t in ticks:
         w = seen[t]
@@ -106,10 +121,20 @@ def main():
                 if key not in counted:      # once per unordered pair per tick
                     counted.add(key)
                     active[kind] += 1
-                    if on[i] != on[j]:
+                    cross = on[i] != on[j]
+                    if cross:
                         active[f"cross_{kind}"] += 1
                         active_pairs[(kind, tuple(sorted(
                             (names[i], names[j]))))] += 1
+                    # Scene cut: a pairing not running on the previous
+                    # tick is a new one. Both cuts get reported — ticks
+                    # are relief-time denied, scenes are pairings
+                    # dissolved, and they can disagree.
+                    if key not in open_pairs:
+                        scenes[kind] += 1
+                        if cross:
+                            scenes[f"cross_{kind}"] += 1
+                    open_pairs[key] = t
             for j, o in ks.items():
                 if j <= i:
                     continue
@@ -120,6 +145,9 @@ def main():
                         c["cross_adjacent"] += 1
                         adjacency_pairs[tuple(sorted(
                             (names[i], names[j])))] += 1
+        # A pairing absent this tick is over; drop it so a later one counts
+        # as a new scene rather than a continuation.
+        open_pairs = {k: v for k, v in open_pairs.items() if v == t}
 
     out = {
         "instrument": "waterline_exposure.py",
@@ -130,8 +158,11 @@ def main():
         "on_water_share": round(c["on_water"] / max(1, c["cat_ticks"]), 4),
         "adjacent_pair_ticks": c["adjacent_pair_ticks"],
         "cross_adjacent_pair_ticks": c["cross_adjacent"],
-        "active_pairings": {k: active[k] for k in KINDS},
-        "cross_pairings": {k: active[f"cross_{k}"] for k in KINDS},
+        "unit": "action-ticks (last_action), NOT activity.state — see partner_of",
+        "active_pair_ticks": {k: active[k] for k in KINDS},
+        "cross_pair_ticks": {k: active[f"cross_{k}"] for k in KINDS},
+        "scenes": {k: scenes[k] for k in KINDS},
+        "cross_scenes": {k: scenes[f"cross_{k}"] for k in KINDS},
         "cross_pairings_by_pair": {f"{k[0]}:{'+'.join(k[1])}": v
                                    for k, v in active_pairs.items()},
         "cross_adjacency_by_pair": {"+".join(k): v
@@ -145,11 +176,13 @@ def main():
     print(f"cross-waterline adjacency: {c['cross_adjacent']} of "
           f"{c['adjacent_pair_ticks']} adjacent pair-ticks "
           f"({100 * c['cross_adjacent'] / max(1, c['adjacent_pair_ticks']):.2f}%)")
-    print("\npaired activity     pair-ticks   cross   rate")
+    print("\npaired activity   pair-ticks  cross   rate |  scenes  cross   rate")
     for k in KINDS:
         tot, cr = active[k], active[f"cross_{k}"]
+        sc, scr = scenes[k], scenes[f"cross_{k}"]
         rate = f"{100 * cr / tot:5.1f}%" if tot else "    —"
-        print(f"  {k:16} {tot:8}   {cr:5}  {rate}")
+        srate = f"{100 * scr / sc:5.1f}%" if sc else "    —"
+        print(f"  {k:14} {tot:9}  {cr:5}  {rate} | {sc:7}  {scr:5}  {srate}")
     print(f"\ncross pairings by pair: {out['cross_pairings_by_pair']}")
     print(f"cross adjacency by pair: {out['cross_adjacency_by_pair']}")
     print(f"-> {raw}")

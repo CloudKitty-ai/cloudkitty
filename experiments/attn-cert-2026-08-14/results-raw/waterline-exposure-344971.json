@@ -1,0 +1,115 @@
+{
+ "instrument": "waterline_exposure.py",
+ "provenance": {
+  "git_head": "283567e76871dca4b7fc4c1255ba7e25c1094be8",
+  "git_dirty": true,
+  "git_dirty_paths": [
+   "experiments/attn-cert-2026-08-14/waterline_exposure.py"
+  ],
+  "git_dirty_count": 1,
+  "tool": "waterline_exposure.py",
+  "tool_sha256": "d90892e9d0838937bd2a46c6f44ab3914db432297952dc65bde9c699a46ec1e9",
+  "toolchain_pin": "1.97.1",
+  "stamped_utc": "2026-08-25T00:57:31+00:00"
+ },
+ "served": {
+  "base": "https://kitties.ai",
+  "config_sha256": "673b4af38ec20153e0bc991546839af4bb21eda24a79e5376c6c5a39d84c8ff3",
+  "world": {
+   "width": 20,
+   "height": 20,
+   "tick_ms": 800,
+   "seed": 20260718
+  },
+  "tick": 345346,
+  "roster": [
+   {
+    "id": 1,
+    "name": "Miso",
+    "behavior": "policy:attn-a1-s1-o4"
+   },
+   {
+    "id": 2,
+    "name": "Biscuit",
+    "behavior": "policy:e006a-L-04-s3"
+   },
+   {
+    "id": 3,
+    "name": "Pumpkin",
+    "behavior": "policy:attn-a1-s3-o4"
+   },
+   {
+    "id": 4,
+    "name": "Kittybear",
+    "behavior": "policy:e006-E1-s1"
+   },
+   {
+    "id": 5,
+    "name": "Clementine",
+    "behavior": "policy:e004-a1-s2-o4"
+   }
+  ]
+ },
+ "tick_range": [
+  344971,
+  345345
+ ],
+ "ticks_seen": 375,
+ "cat_ticks": 1875,
+ "on_water_share": 0.0933,
+ "adjacent_pair_ticks": 733,
+ "cross_adjacent_pair_ticks": 111,
+ "unit": "action-ticks (last_action), NOT activity.state \u2014 see partner_of",
+ "active_pair_ticks": {
+  "duet": 58,
+  "cosleep": 256,
+  "cuddle": 0,
+  "groom": 168
+ },
+ "cross_pair_ticks": {
+  "duet": 4,
+  "cosleep": 22,
+  "cuddle": 0,
+  "groom": 42
+ },
+ "scenes": {
+  "duet": 18,
+  "cosleep": 48,
+  "cuddle": 0,
+  "groom": 48
+ },
+ "cross_scenes": {
+  "duet": 2,
+  "cosleep": 4,
+  "cuddle": 0,
+  "groom": 10
+ },
+ "cross_pairings_by_pair": {
+  "duet:Biscuit+Pumpkin": 2,
+  "groom:Biscuit+Pumpkin": 4,
+  "groom:Biscuit+Kittybear": 12,
+  "cosleep:Biscuit+Miso": 1,
+  "groom:Clementine+Kittybear": 17,
+  "groom:Kittybear+Pumpkin": 7,
+  "cosleep:Clementine+Kittybear": 2,
+  "cosleep:Kittybear+Miso": 1,
+  "cosleep:Miso+Pumpkin": 2,
+  "duet:Biscuit+Miso": 2,
+  "cosleep:Clementine+Miso": 3,
+  "cosleep:Kittybear+Pumpkin": 6,
+  "groom:Biscuit+Clementine": 2,
+  "cosleep:Biscuit+Clementine": 7
+ },
+ "cross_adjacency_by_pair": {
+  "Miso+Pumpkin": 2,
+  "Clementine+Pumpkin": 1,
+  "Biscuit+Pumpkin": 11,
+  "Biscuit+Kittybear": 24,
+  "Biscuit+Clementine": 12,
+  "Kittybear+Pumpkin": 21,
+  "Clementine+Kittybear": 23,
+  "Clementine+Miso": 10,
+  "Biscuit+Miso": 5,
+  "Kittybear+Miso": 2
+ }
+}
