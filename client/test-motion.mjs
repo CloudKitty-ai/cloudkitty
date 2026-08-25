@@ -2545,21 +2545,33 @@ check('a meow is not a small yawn: smaller jaw, open eyes, no tongue', () => {
   //    (A closed lid swaps ellipses for arcs wholesale -- 22/2 becomes 11/4 --
   //    so this is a loud signal, not a subtle one.)
   const savedTilt = CatV2.RIG.meowHeadTilt;
-  let flatMeow;
+  const savedSquint = CatV2.RIG.meowSquint;
+  let wide;
+  let squinting;
   try {
     CatV2.RIG.meowHeadTilt = 0;
-    flatMeow = drawCommands({ yawn: 0, meow: 1 });
+    CatV2.RIG.meowSquint = 0;
+    wide = drawCommands({ yawn: 0, meow: 1 });
+    CatV2.RIG.meowSquint = 1;
+    squinting = drawCommands({ yawn: 0, meow: 1 });
   } finally {
     CatV2.RIG.meowHeadTilt = savedTilt;
+    CatV2.RIG.meowSquint = savedSquint;
   }
   const eyeish = (log) => JSON.stringify(log.filter(([k]) => k === 'ellipse' || k === 'arc'));
   assert(
     eyeish(yawning) !== eyeish(shut),
     'a yawn must change the eyes, or this check cannot see lids at all',
   );
+  // The DIAL is what is pinned, not a particular default: the owner may bake
+  // any value, and this has to keep meaning something when she does.
   assert(
-    eyeish(flatMeow) === eyeish(shut),
-    'a meowing cat must keep the eyes it had -- it is drawing the yawn\'s squeezed lids',
+    eyeish(wide) === eyeish(shut),
+    'at meowSquint 0 a calling cat must keep the eyes it had -- it is borrowing the yawn\'s lids',
+  );
+  assert(
+    eyeish(squinting) !== eyeish(wide),
+    'meowSquint does nothing -- the eye dial is inert',
   );
 });
 

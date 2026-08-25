@@ -1025,6 +1025,12 @@ const RIG = {
   //     and at this amplitude it would be a hiss cue rather than a yawn one
   meowMouth: 0.22, // how far the mouth opens, in head radii
   meowHeadTilt: -0.018, // the chin lifts, less than a yawn's
+  // How much of the yawn's eye-squeeze a call borrows. 0 keeps the eyes
+  // wide, which is the whole reason a call does not read as a small yawn;
+  // 1 is the yawn's own lid. Between them is a cat narrowing its eyes as it
+  // calls, which real ones do -- so this is a dial rather than the boolean
+  // it started as. Ships at 0 until it is judged.
+  meowSquint: 0,
 };
 
 const rclamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
@@ -4266,10 +4272,14 @@ function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0, view = 'si
   const gape = Math.max(yawn, meow);
   const gapeMouth = yawn >= meow ? RIG.yawnMouth : RIG.meowMouth;
   // A yawn squeezes the eyes shut on its way open -- it is the eyes, not
-  // the mouth, that make a yawn read as one at 31px. A MEOW does not: a cat
-  // calling at you is looking at you, and shutting its eyes is most of what
-  // would turn the call back into a yawn.
+  // the mouth, that make a yawn read as one at 31px. A MEOW borrows as much
+  // of that as `RIG.meowSquint` asks for, and at the shipped 0 it borrows
+  // none: a cat calling at you is looking at you, and shutting its eyes is
+  // most of what would turn the call back into a yawn.
   if (yawn > 0.02) lid = Math.max(lid, smooth01(yawn * 1.1));
+  if (meow > 0.02 && RIG.meowSquint > 0) {
+    lid = Math.max(lid, smooth01(meow * RIG.meowSquint * 1.1));
+  }
   const darkFur = isDarkColor(a.furBase);
   const eyeInk = darkFur ? a.eyeColor : '#453c36';
   const focus = eyes === 'focused' ? 1 : 0;
