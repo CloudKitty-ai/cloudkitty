@@ -565,25 +565,29 @@ const VIEW = Object.freeze({
    * what was on screen -- of the yawns Biscuit started, only 3.6% ever
    * reached their close phase and the median drew 485ms of 1420ms.
    *
-   * THESE DEFAULTS ARE THE ACCIDENT, EXACTLY. Not an interpretation of it and
-   * not an improvement on it: the yawn's own opening span, the yawn's own
-   * amplitude, the yawn's squeezed eyes, the yawn's tongue, and a hold that
-   * ends at 485ms with NO close, because a pose change gave it none. A test
-   * asserts this reproduces a truncated yawn frame for frame.
+   * DIALLED IN THE LAB AND BAKED 2026-08-25, on the owner's word. The
+   * accident was the baseline it was tuned OFF -- deliberately, because an
+   * earlier cut of this block shipped a tidier call (smaller jaw, open eyes,
+   * no tongue) and moved three things away from the thing being liked before
+   * any of them had been judged.
    *
-   * That is deliberate. The first cut of this block shipped a tidier call --
-   * smaller jaw, open eyes, no tongue -- which moved three things away from
-   * the thing being liked before anyone had judged any of them. The accident
-   * is the baseline; everything else is a dial off it.
+   * What she kept: the whole FACE. `RIG.meowMouth`, `meowHeadTilt`,
+   * `meowSquint` and `meowTongue` are all still the yawn's own values, so a
+   * call and a yawn draw the same face and differ only in timing. Her read:
+   * "even the full yawn comes off as more 'relaxed meow'".
    *
-   * `meowCloseMs: 0` IS the snap. `stepRig` passes the gape through rather
-   * than integrating it, so the mouth really did cut to shut in one frame,
-   * and `meowGape` treats a zero close as exactly that rather than dividing
-   * by it.
+   * What she changed: the timing, to a budget she chose -- "the best looking
+   * animation I could fit into 800ms". The hold nearly doubles the accident's
+   * and the close is real where the accident had none, which is 800ms against
+   * the accident's 485 and the yawn's 1420.
+   *
+   * `meowGape` still treats a ZERO close as a snap rather than dividing by
+   * it. Nothing ships with one now, but the lab card's reference cat replays
+   * the accident with exactly that, and a test keeps it honest.
    */
-  meowOpenMs: 340, // the yawn's own, because that is what was seen
-  meowHoldMs: 145, // ... and 340 + 145 is the measured 485ms median
-  meowCloseMs: 0, // ... then nothing: the accident had no close at all
+  meowOpenMs: 340, // the yawn's own opening, which she kept ...
+  meowHoldMs: 260, // ... a longer dwell than the accident's 145 ...
+  meowCloseMs: 200, // ... and a real close, where the accident had none
 
   // The on-the-spot turn (2026-08-10). Short: this is a cat pivoting on
   // its front feet, not a considered about-face, and anything longer

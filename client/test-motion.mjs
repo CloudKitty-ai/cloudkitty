@@ -2503,38 +2503,49 @@ function drawCommands(rigInput) {
   return log;
 }
 
-check('the shipped meow IS the accident, frame for frame', () => {
-  // The baseline is not an interpretation of what the owner liked -- it is
-  // the thing itself. A yawn truncated at the measured 485ms median, which is
-  // what a pose change did to it. If the defaults drift off that, the card's
-  // middle cat stops being a fair starting point and every judgement made
-  // from it is made from somewhere else.
+check("the meow ships at the owner's dialled shape", () => {
+  // Dialled in the lab and baked 2026-08-25 on her word. The three spans are
+  // hers; the four RIG values are the accident's, unmoved, because she judged
+  // the FACE right and only wanted the timing longer:
+  //
+  //   "Even the full yawn comes off as more 'relaxed meow'. I was trying to
+  //    get the best looking animation I could fit into 800ms."
+  //
+  // So 800ms is a budget she chose, not a number that fell out of anything,
+  // and this pins it. All four dials were UNPINNED before today.
   const V = api.VIEW;
-  const MEDIAN = V.meowOpenMs + V.meowHoldMs;
-  close(MEDIAN, 485, 'the baseline must total the measured median');
-  close(V.meowCloseMs, 0, 'the accident had no close: a zero close IS the snap');
+  close(V.meowOpenMs, 340, 'meowOpenMs moved');
+  close(V.meowHoldMs, 260, 'meowHoldMs moved');
+  close(V.meowCloseMs, 200, 'meowCloseMs moved');
+  close(V.meowOpenMs + V.meowHoldMs + V.meowCloseMs, 800, 'the call is no longer 800ms');
+  close(CatV2.RIG.meowMouth, 0.36, 'RIG.meowMouth moved');
+  close(CatV2.RIG.meowHeadTilt, -0.03, 'RIG.meowHeadTilt moved');
+  close(CatV2.RIG.meowSquint, 1, 'RIG.meowSquint moved');
+  close(CatV2.RIG.meowTongue, 1, 'RIG.meowTongue moved');
 
-  // 1. The ENVELOPE matches a yawn cut dead at the median.
-  for (let at = 0; at < MEDIAN + 200; at += 7) {
-    const meow = api.meowGape(at, V);
-    const truncated = at < MEDIAN ? (api.yawnGape(at, V) ?? 0) : undefined;
-    if (truncated === undefined) {
-      assert(meow === undefined, `at ${at}ms the call should be over, got ${meow}`);
-    } else {
-      close(meow, truncated, `at ${at}ms the call left the yawn's curve`);
-    }
-  }
-
-  // 2. The DRAWING matches too -- same jaw, same lids, same tongue. Anything
-  //    the dials have moved off the yawn would show up here as a difference,
-  //    which is the point: at the defaults there is nothing to see.
+  // The face is still the yawn's, exactly -- that is what "the four are the
+  // accident's, unmoved" means, and it is the half of the extraction she did
+  // NOT change. Only the timing separates them now.
   const g = 0.8;
-  const asMeow = drawCommands({ yawn: 0, meow: g });
-  const asYawn = drawCommands({ yawn: g, meow: 0 });
   assert(
-    JSON.stringify(asMeow) === JSON.stringify(asYawn),
-    'at the shipped dials a call must draw exactly as the yawn it was cut from',
+    JSON.stringify(drawCommands({ yawn: 0, meow: g }))
+      === JSON.stringify(drawCommands({ yawn: g, meow: 0 })),
+    'at the shipped dials a call must still draw the yawn\'s face; only its timing differs',
   );
+});
+
+check('a zero close is a snap, not a division', () => {
+  // The accident had no close at all, and the lab card's right-hand cat is a
+  // fixed reference to it. `meowGape` has to keep expressing that even though
+  // nothing ships with it any more: dividing by a zero close would give NaN,
+  // which paints as nothing and reads as "the dial does nothing".
+  const snap = { meowOpenMs: 340, meowHoldMs: 145, meowCloseMs: 0 };
+  close(api.meowGape(484, snap), 1, 'open right up to the cut');
+  assert(api.meowGape(485, snap) === undefined, 'and then simply over');
+  for (let at = 0; at < 600; at += 3) {
+    const v = api.meowGape(at, snap);
+    assert(v === undefined || Number.isFinite(v), `NaN at ${at}ms: a zero close divided`);
+  }
 });
 
 check('every meow dial moves the drawing', () => {
