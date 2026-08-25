@@ -1015,22 +1015,24 @@ const RIG = {
   // a half-second open-and-shut mouth -- 3.6% of yawns ever reached their
   // close phase, median 485ms of 1420ms.
   //
-  // Shares the jaw with the yawn and differs in the three things that make
-  // that gape sleepy rather than vocal:
-  //   the OPENING is smaller -- a meow is not a full gape
-  //   the EYES stay open -- `drawFace` squeezes them shut for a yawn, and
-  //     that is what makes a yawn read as one at 31px; a meowing cat is
-  //     looking at you
-  //   NO TONGUE -- the tongue is what keeps a yawn from reading as a hiss,
-  //     and at this amplitude it would be a hiss cue rather than a yawn one
-  meowMouth: 0.22, // how far the mouth opens, in head radii
-  meowHeadTilt: -0.018, // the chin lifts, less than a yawn's
-  // How much of the yawn's eye-squeeze a call borrows. 0 keeps the eyes
-  // wide, which is the whole reason a call does not read as a small yawn;
-  // 1 is the yawn's own lid. Between them is a cat narrowing its eyes as it
-  // calls, which real ones do -- so this is a dial rather than the boolean
-  // it started as. Ships at 0 until it is judged.
-  meowSquint: 0,
+  // THESE DEFAULTS ARE THE ACCIDENT. Same jaw as the yawn, same squeezed
+  // eyes, same tongue -- because that is what was on screen and liked. Every
+  // one of them is a dial so it can be tuned OFF that baseline rather than
+  // toward it. An earlier cut shipped a tidier call (smaller jaw, wide eyes,
+  // no tongue) and moved three things at once without any of them being
+  // judged; this is that undone.
+  meowMouth: 0.36, // how far the jaw drops, head radii. The yawn's own.
+  meowHeadTilt: -0.03, // the chin lifts. The yawn's own.
+  // How much of the yawn's eye-squeeze a call borrows. 1 is the yawn's own
+  // lid, which is the accident; 0 keeps the eyes wide, which is what would
+  // make a call stop reading as a small yawn. Somewhere between is a cat
+  // narrowing its eyes as it calls, which real ones do.
+  meowSquint: 1,
+  // The tongue, as a SIZE against the yawn's: 1 is the yawn's own, 0 none.
+  // It is drawn past a gape of 0.45 either way. The yawn's note says the
+  // tongue is what keeps a gape from reading as a hiss -- so at a smaller
+  // jaw this is likely to matter more, not less.
+  meowTongue: 1,
 };
 
 const rclamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
@@ -4602,15 +4604,15 @@ function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0, view = 'si
     jaw();
     ctx.closePath(); // the chord back along `top`, hidden under the omega
     ctx.fill();
-    if (o > 0.45 && yawn >= meow) {
-      // The tongue. Small, but it is what keeps a gape reading as a yawn
-      // rather than as a hiss -- which is the last thing this world wants.
-      // A meow shows none: at its smaller amplitude the same ellipse is a
-      // hiss cue rather than a yawn one, and a calling cat's tongue is behind
-      // its teeth anyway.
+    // The tongue. Small, but it is what keeps a gape reading as a yawn rather
+    // than as a hiss -- which is the last thing this world wants. A call
+    // scales it by `RIG.meowTongue` rather than dropping it: the accident had
+    // the yawn's, so 1 is the baseline and 0 is a dial away from it.
+    const tongue = yawn >= meow ? 1 : RIG.meowTongue;
+    if (o > 0.45 && tongue > 0) {
       ctx.fillStyle = lightenHex(noseInk, 0.22);
       ctx.beginPath();
-      ctx.ellipse(nx, top + d * 0.72, gw * 0.46, d * 0.2, 0, 0, TAU);
+      ctx.ellipse(nx, top + d * 0.72, gw * 0.46 * tongue, d * 0.2 * tongue, 0, 0, TAU);
       ctx.fill();
     }
     ctx.beginPath();

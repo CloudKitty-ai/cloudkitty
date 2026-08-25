@@ -2503,94 +2503,101 @@ function drawCommands(rigInput) {
   return log;
 }
 
-check('a meow is not a small yawn: smaller jaw, open eyes, no tongue', () => {
-  // Extracted 2026-08-25 from the accident the owner liked. The two share the
-  // jaw in `drawFace`; the whole design is in what they do NOT share, so this
-  // asserts each difference rather than trusting the dials to speak.
-  const yawning = drawCommands({ yawn: 1, meow: 0 });
-  const meowing = drawCommands({ yawn: 0, meow: 1 });
-  const shut = drawCommands({ yawn: 0, meow: 0 });
+check('the shipped meow IS the accident, frame for frame', () => {
+  // The baseline is not an interpretation of what the owner liked -- it is
+  // the thing itself. A yawn truncated at the measured 485ms median, which is
+  // what a pose change did to it. If the defaults drift off that, the card's
+  // middle cat stops being a fair starting point and every judgement made
+  // from it is made from somewhere else.
+  const V = api.VIEW;
+  const MEDIAN = V.meowOpenMs + V.meowHoldMs;
+  close(MEDIAN, 485, 'the baseline must total the measured median');
+  close(V.meowCloseMs, 0, 'the accident had no close: a zero close IS the snap');
 
-  // 1. THE JAW IS SMALLER. A closed mouth draws no jaw at all, so the beziers
-  //    a gaping cat draws and a shut one does not ARE the jaw -- isolating it
-  //    by set difference rather than by hunting for the deepest point on the
-  //    whole cat, which is the tail.
-  const beziers = (log) => log.filter(([k]) => k === 'bezierCurveTo').map(([, a]) => a.join(','));
-  const shutSet = new Set(beziers(shut));
-  const jawDepth = (log) => {
-    const extra = beziers(log).filter((b) => !shutSet.has(b));
-    assert(extra.length > 0, 'no jaw was drawn at all');
-    return Math.max(...extra.map((b) => Math.max(...b.split(',').map(Number).filter((_, i) => i % 2))));
-  };
-  const yJaw = jawDepth(yawning);
-  const mJaw = jawDepth(meowing);
-  assert(yJaw > mJaw, `the meow jaw (${mJaw.toFixed(2)}) must be shallower than the yawn's (${yJaw.toFixed(2)})`);
-
-  // 2. NO TONGUE. Counting ellipses cannot see this -- the eyes draw them too,
-  //    and the meow draws MORE because its eyes stay open. So the tongue is
-  //    identified by its own paint: `lightenHex(noseInk, 0.22)`, both of which
-  //    are exported, so the colour is derived here rather than pasted.
-  const tongueInk = CatV2.lightenHex(CatV2.noseInkOf(CatV2.appearanceFor(3)), 0.22);
-  const paints = (log) => log.filter(([k]) => k === 'set:fillStyle').map(([, a]) => String(a[0]));
-  assert(paints(yawning).includes(tongueInk), 'the yawn must show a tongue, or this check is vacuous');
-  assert(!paints(meowing).includes(tongueInk), 'a meow must not show a tongue');
-
-  // 3. THE EYES STAY OPEN. A yawn drags the lids shut -- that is what makes
-  //    it read as a yawn -- so a yawning cat's eye drawing differs from a
-  //    resting one's. A meowing cat's must NOT: it is looking at you.
-  //    A meow lifts the chin, so comparing it against a resting face moves
-  //    the whole head and every eye with it. So the TILT is zeroed for the
-  //    length of the comparison: the mouth then adds beziers and nothing
-  //    else, and any ellipse-or-arc difference that remains IS the eyes.
-  //    (A closed lid swaps ellipses for arcs wholesale -- 22/2 becomes 11/4 --
-  //    so this is a loud signal, not a subtle one.)
-  const savedTilt = CatV2.RIG.meowHeadTilt;
-  const savedSquint = CatV2.RIG.meowSquint;
-  let wide;
-  let squinting;
-  try {
-    CatV2.RIG.meowHeadTilt = 0;
-    CatV2.RIG.meowSquint = 0;
-    wide = drawCommands({ yawn: 0, meow: 1 });
-    CatV2.RIG.meowSquint = 1;
-    squinting = drawCommands({ yawn: 0, meow: 1 });
-  } finally {
-    CatV2.RIG.meowHeadTilt = savedTilt;
-    CatV2.RIG.meowSquint = savedSquint;
+  // 1. The ENVELOPE matches a yawn cut dead at the median.
+  for (let at = 0; at < MEDIAN + 200; at += 7) {
+    const meow = api.meowGape(at, V);
+    const truncated = at < MEDIAN ? (api.yawnGape(at, V) ?? 0) : undefined;
+    if (truncated === undefined) {
+      assert(meow === undefined, `at ${at}ms the call should be over, got ${meow}`);
+    } else {
+      close(meow, truncated, `at ${at}ms the call left the yawn's curve`);
+    }
   }
-  const eyeish = (log) => JSON.stringify(log.filter(([k]) => k === 'ellipse' || k === 'arc'));
+
+  // 2. The DRAWING matches too -- same jaw, same lids, same tongue. Anything
+  //    the dials have moved off the yawn would show up here as a difference,
+  //    which is the point: at the defaults there is nothing to see.
+  const g = 0.8;
+  const asMeow = drawCommands({ yawn: 0, meow: g });
+  const asYawn = drawCommands({ yawn: g, meow: 0 });
   assert(
-    eyeish(yawning) !== eyeish(shut),
-    'a yawn must change the eyes, or this check cannot see lids at all',
-  );
-  // The DIAL is what is pinned, not a particular default: the owner may bake
-  // any value, and this has to keep meaning something when she does.
-  assert(
-    eyeish(wide) === eyeish(shut),
-    'at meowSquint 0 a calling cat must keep the eyes it had -- it is borrowing the yawn\'s lids',
-  );
-  assert(
-    eyeish(squinting) !== eyeish(wide),
-    'meowSquint does nothing -- the eye dial is inert',
+    JSON.stringify(asMeow) === JSON.stringify(asYawn),
+    'at the shipped dials a call must draw exactly as the yawn it was cut from',
   );
 });
 
-check('the meow envelope opens, barely holds, and shuts', () => {
-  // The accident had no close at all -- `stepRig` passes the gape through, so
-  // the mouth snapped. A snap is a rendering artifact; a call closes. This
-  // pins the shape, not the numbers: the owner tunes the three spans.
-  const V = api.VIEW;
-  const total = V.meowOpenMs + V.meowHoldMs + V.meowCloseMs;
-  assert(api.meowGape(-1, V) === undefined, 'nothing before it starts');
-  assert(api.meowGape(total, V) === undefined, 'nothing after it ends');
-  close(api.meowGape(0, V), 0, 'starts shut');
-  close(api.meowGape(V.meowOpenMs, V), 1, 'fully open at the end of the open span');
-  close(api.meowGape(V.meowOpenMs + V.meowHoldMs - 1, V), 1, 'still open through the hold');
-  const nearEnd = api.meowGape(total - 1, V);
-  assert(nearEnd < 0.05, `must be closing at the end, got ${nearEnd}`);
-  // The two things that separate calling from sleepy.
-  assert(V.meowOpenMs < V.yawnOpenMs, 'a call opens quicker than a yawn');
-  assert(V.meowHoldMs < V.yawnHoldMs / 2, 'a call does not dwell the way a yawn does');
+check('every meow dial moves the drawing', () => {
+  // Design's lab rule 7: a dial that moves nothing in the state that shows it
+  // is worse than no dial, because it reads as "needs turning further". All
+  // four are tuned OFF the accident, so each is checked by moving it away
+  // from its default rather than toward one.
+  const base = drawCommands({ yawn: 0, meow: 0.8 });
+  const moved = (key, value) => {
+    const saved = CatV2.RIG[key];
+    try {
+      CatV2.RIG[key] = value;
+      return drawCommands({ yawn: 0, meow: 0.8 });
+    } finally {
+      CatV2.RIG[key] = saved;
+    }
+  };
+  for (const [key, value] of [
+    ['meowMouth', 0.18],
+    ['meowHeadTilt', 0],
+    ['meowSquint', 0],
+    ['meowTongue', 0],
+  ]) {
+    assert(
+      JSON.stringify(moved(key, value)) !== JSON.stringify(base),
+      `RIG.${key} is inert -- moving it to ${value} changed nothing on screen`,
+    );
+  }
+
+  // ...and the two that carry the character are checked for WHICH WAY they
+  // move, not merely that they do.
+  const tongueInk = CatV2.lightenHex(CatV2.noseInkOf(CatV2.appearanceFor(3)), 0.22);
+  const paints = (log) => log.filter(([k]) => k === 'set:fillStyle').map(([, a]) => String(a[0]));
+  assert(paints(base).includes(tongueInk), 'the accident shows a tongue');
+  assert(!paints(moved('meowTongue', 0)).includes(tongueInk), 'meowTongue 0 must remove it');
+
+  const eyeish = (log) => JSON.stringify(log.filter(([k]) => k === 'ellipse' || k === 'arc'));
+  // The tilt AND the tongue come out for this one: the tilt moves the whole
+  // head so every eye rides with it, and the tongue is an ellipse too. With
+  // both silenced the mouth contributes only beziers, so an ellipse-or-arc
+  // difference can only be the lids. (Both confounds were caught by mutation
+  // rather than by reading -- each left this check green while something
+  // other than the eyes carried it.)
+  const flat = (squint) => {
+    const saved = {
+      tilt: CatV2.RIG.meowHeadTilt,
+      squint: CatV2.RIG.meowSquint,
+      tongue: CatV2.RIG.meowTongue,
+    };
+    try {
+      CatV2.RIG.meowHeadTilt = 0;
+      CatV2.RIG.meowTongue = 0;
+      CatV2.RIG.meowSquint = squint;
+      return drawCommands({ yawn: 0, meow: 0.8 });
+    } finally {
+      CatV2.RIG.meowHeadTilt = saved.tilt;
+      CatV2.RIG.meowSquint = saved.squint;
+      CatV2.RIG.meowTongue = saved.tongue;
+    }
+  };
+  const rest = drawCommands({ yawn: 0, meow: 0 });
+  assert(eyeish(flat(0)) === eyeish(rest), 'meowSquint 0 must leave the eyes as they were');
+  assert(eyeish(flat(1)) !== eyeish(rest), 'meowSquint 1 must squeeze them, as the yawn does');
 });
 
 check('a rig at rest draws the un-rigged cat', () => {

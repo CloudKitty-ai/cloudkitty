@@ -563,23 +563,27 @@ const VIEW = Object.freeze({
    * A yawn cut short by a pose change reads as a vocalisation, and the owner
    * named it before it was measured: "it reads very meow". Measured, that is
    * what was on screen -- of the yawns Biscuit started, only 3.6% ever
-   * reached their close phase and the median drew 485ms of 1420ms. A
-   * half-second open-and-shut mouth is a call, not a yawn.
+   * reached their close phase and the median drew 485ms of 1420ms.
    *
-   * So these three spans are the accident made deliberate, and the total is
-   * anchored on it: 485ms, the median that was actually being seen and liked.
-   * What they do NOT copy is the accident's shape -- it had no close at all,
-   * because `stepRig` passes the gape through rather than integrating it and
-   * the mouth simply snapped. A snap is a rendering artifact; a call closes.
+   * THESE DEFAULTS ARE THE ACCIDENT, EXACTLY. Not an interpretation of it and
+   * not an improvement on it: the yawn's own opening span, the yawn's own
+   * amplitude, the yawn's squeezed eyes, the yawn's tongue, and a hold that
+   * ends at 485ms with NO close, because a pose change gave it none. A test
+   * asserts this reproduces a truncated yawn frame for frame.
    *
-   * The open is faster than the yawn's and the hold much shorter: those two
-   * are what separate "calling" from "sleepy", far more than the amplitude
-   * does. Dial them together -- a slow open with a short hold reads as a cat
-   * being interrupted, which is what we already had.
+   * That is deliberate. The first cut of this block shipped a tidier call --
+   * smaller jaw, open eyes, no tongue -- which moved three things away from
+   * the thing being liked before anyone had judged any of them. The accident
+   * is the baseline; everything else is a dial off it.
+   *
+   * `meowCloseMs: 0` IS the snap. `stepRig` passes the gape through rather
+   * than integrating it, so the mouth really did cut to shut in one frame,
+   * and `meowGape` treats a zero close as exactly that rather than dividing
+   * by it.
    */
-  meowOpenMs: 190, // the jaw opens, quicker than a yawn's 340 ...
-  meowHoldMs: 130, // ... barely holds, where a yawn dwells for 620 ...
-  meowCloseMs: 165, // ... and shuts, which the accident never did
+  meowOpenMs: 340, // the yawn's own, because that is what was seen
+  meowHoldMs: 145, // ... and 340 + 145 is the measured 485ms median
+  meowCloseMs: 0, // ... then nothing: the accident had no close at all
 
   // The on-the-spot turn (2026-08-10). Short: this is a cat pivoting on
   // its front feet, not a considered about-face, and anything longer
@@ -1013,7 +1017,11 @@ function meowGape(at, dials = VIEW) {
   const close = dials.meowCloseMs;
   if (at < 0 || at >= open + hold + close) return undefined;
   if (at < open) return easeSmooth(at / open);
+  // A zero close is the accident's snap, not a division. The gape simply
+  // ends: `at` has already passed the total above, so falling through here
+  // with close 0 would divide by it.
   if (at < open + hold) return 1;
+  if (close <= 0) return undefined;
   return 1 - easeSmooth((at - open - hold) / close);
 }
 

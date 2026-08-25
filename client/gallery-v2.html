@@ -1489,7 +1489,7 @@
     },
     {
       title: 'The meow — the accident, made deliberate (2026-08-25)',
-      note: 'EXTRACTED FROM A BUG THAT WAS A FEATURE. A yawn cut short by a pose change read as a vocalisation, and the owner named it before anyone measured why. Measured: only 3.6% of Biscuit’s yawns ever reached their close phase, median 485ms drawn of 1420ms — a half-second open-and-shut mouth. That is a call, not a yawn. This card is the deliberate version, and the question it exists to answer is WHERE IT CAN GO. The overlay was built to sit on top of any pose (“an idle OVERLAY rather than a pose ... needs no engine state”), so try it on the WALK, on sit, on the groom — the pose dial cycles them. Three things separate a call from a yawn, and all three are live here: the jaw opens LESS (meowMouth 0.22 vs the yawn’s 0.36), the EYES STAY OPEN (a yawn drags the lids shut, which is what makes it read as sleepy at 31px), and the EYES are a DIAL rather than a boolean — meowSquint 0 keeps them wide, 1 borrows the yawn’s own lid, and a real cat narrows them a little as it calls, so the middle of that range is worth trying. Timing does the rest: a quick open and almost no hold. The yawn is drawn beside it at the same instant for comparison — same jaw, different animal. NOTE the north column: a cat walking away has no face, so the call is invisible from behind. That is a real constraint on where this can be slotted, not a bug in the card.',
+      note: 'EXTRACTED FROM A BUG THAT WAS A FEATURE, AND THE ACCIDENT IS THE BASELINE. The middle cat starts IDENTICAL to the right-hand one \u2014 same jaw, same squeezed eyes, same tongue, same 485ms with no close \u2014 and a test asserts it draws frame for frame as the yawn it was cut from. So every dial you move is a departure you can see against the thing you liked, rather than a walk back toward it. (An earlier cut of this shipped a tidier call \u2014 smaller jaw, wide eyes, no tongue \u2014 which moved three things at once before any of them had been judged. This is that undone.) A yawn cut short by a pose change read as a vocalisation, and the owner named it before anyone measured why. Measured: only 3.6% of Biscuit’s yawns ever reached their close phase, median 485ms drawn of 1420ms — a half-second open-and-shut mouth. That is a call, not a yawn. This card is the deliberate version, and the question it exists to answer is WHERE IT CAN GO. The overlay was built to sit on top of any pose (“an idle OVERLAY rather than a pose ... needs no engine state”), so try it on the WALK, on sit, on the groom — the pose dial cycles them. Three things separate a call from a yawn, and all three are live here: the jaw opens LESS (meowMouth 0.22 vs the yawn’s 0.36), the EYES STAY OPEN (a yawn drags the lids shut, which is what makes it read as sleepy at 31px), and the EYES are a DIAL rather than a boolean — meowSquint 0 keeps them wide, 1 borrows the yawn’s own lid, and a real cat narrows them a little as it calls, so the middle of that range is worth trying. Timing does the rest: a quick open and almost no hold. The yawn is drawn beside it at the same instant for comparison — same jaw, different animal. NOTE the north column: a cat walking away has no face, so the call is invisible from behind. That is a real constraint on where this can be slotted, not a bug in the card.',
       v2Only: true,
       w: 940,
       h: 400,
@@ -1499,10 +1499,11 @@
         { key: 'poseIx', label: 'poseIx — which pose wears the call (0 idle, 1 walk, 2 sit, 3 loaf, 4 groom-other, 5 eating)', min: 0, max: 5, step: 1 },
         { key: 'meowOpenMs', label: 'meowOpenMs — the jaw opens (yawn is 340)', min: 80, max: 420, step: 10, bag: VIEW_MEOW },
         { key: 'meowHoldMs', label: 'meowHoldMs — how long it stays open (yawn is 620)', min: 0, max: 500, step: 10, bag: VIEW_MEOW },
-        { key: 'meowCloseMs', label: 'meowCloseMs — and shuts; the accident had NO close', min: 60, max: 500, step: 10, bag: VIEW_MEOW },
+        { key: 'meowCloseMs', label: 'meowCloseMs — and shuts; 0 IS the accident\u2019s snap', min: 0, max: 500, step: 10, bag: VIEW_MEOW },
         { key: 'meowMouth', label: 'meowMouth — how far the jaw drops, head radii (yawn is 0.36)', min: 0.08, max: 0.4, step: 0.01, bag: CatV2.RIG },
         { key: 'meowHeadTilt', label: 'meowHeadTilt — the chin lifts (- is up; yawn is -0.03)', min: -0.06, max: 0.01, step: 0.002, bag: CatV2.RIG },
         { key: 'meowSquint', label: 'meowSquint — how much of the YAWN\u2019s eye-squeeze the call borrows (0 wide, 1 the yawn\u2019s own lid)', min: 0, max: 1, step: 0.05, bag: CatV2.RIG },
+        { key: 'meowTongue', label: 'meowTongue — tongue size against the yawn\u2019s (1 the accident, 0 none)', min: 0, max: 1, step: 0.05, bag: CatV2.RIG },
         { key: 'away', label: 'away — 1 turns all three to face north; a rear view has NO FACE', min: 0, max: 1, step: 1 },
         { key: 'beatMs', label: 'beatMs — lab only; how often the card replays the call', min: 900, max: 5000, step: 100 },
         { key: 'tilePx', label: 'tilePx — judge at the sizes the camera draws', min: 40, max: 130, step: 1 },
@@ -1513,7 +1514,7 @@
         return (
           `meowOpenMs ${VIEW_MEOW.meowOpenMs}, meowHoldMs ${VIEW_MEOW.meowHoldMs}, meowCloseMs ${VIEW_MEOW.meowCloseMs}`
           + `   -> ${total}ms total\n`
-          + `RIG.meowMouth ${R.meowMouth}, RIG.meowHeadTilt ${R.meowHeadTilt}, RIG.meowSquint ${R.meowSquint}\n`
+          + `RIG.meowMouth ${R.meowMouth}, RIG.meowHeadTilt ${R.meowHeadTilt}, RIG.meowSquint ${R.meowSquint}, RIG.meowTongue ${R.meowTongue}\n`
           + `the accident it came from: 340 open, ~145 held, NO close -- median 485ms drawn\n`
           + `card view: poseIx ${MEOW_LAB.poseIx} (${MEOW_POSES[MEOW_LAB.poseIx].label}), `
           + `away ${MEOW_LAB.away}, beatMs ${MEOW_LAB.beatMs}, tilePx ${MEOW_LAB.tilePx} -- viewing aids, not shipped dials`
