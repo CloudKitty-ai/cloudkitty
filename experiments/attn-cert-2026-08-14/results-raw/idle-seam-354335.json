@@ -1,0 +1,242 @@
+{
+ "instrument": "idle_seam.py (F-032)",
+ "provenance": {
+  "git_head": "2d0050907460067be52867276cde9b1a46e0a3cd",
+  "git_dirty": true,
+  "git_dirty_paths": [
+   "experiments/FINDINGS.md",
+   "experiments/attn-cert-2026-08-14/idle_seam.py"
+  ],
+  "git_dirty_count": 2,
+  "tool": "idle_seam.py",
+  "tool_sha256": "f0c34df3ebd17781db2655be205e20b0d6857a723d19b160ed2bae6aaf464bfe",
+  "toolchain_pin": "1.97.1",
+  "stamped_utc": "2026-08-25T04:35:20+00:00"
+ },
+ "served": {
+  "base": "https://kitties.ai",
+  "config_sha256": "673b4af38ec20153e0bc991546839af4bb21eda24a79e5376c6c5a39d84c8ff3",
+  "world": {
+   "width": 20,
+   "height": 20,
+   "tick_ms": 800,
+   "seed": 20260718
+  },
+  "tick": 361683,
+  "roster": [
+   {
+    "id": 1,
+    "name": "Miso",
+    "behavior": "policy:attn-a1-s1-o4"
+   },
+   {
+    "id": 2,
+    "name": "Biscuit",
+    "behavior": "policy:e006a-L-04-s3"
+   },
+   {
+    "id": 3,
+    "name": "Pumpkin",
+    "behavior": "policy:attn-a1-s3-o4"
+   },
+   {
+    "id": 4,
+    "name": "Kittybear",
+    "behavior": "policy:e006-E1-s1"
+   },
+   {
+    "id": 5,
+    "name": "Clementine",
+    "behavior": "policy:e004-a1-s2-o4"
+   }
+  ]
+ },
+ "source": "/Users/elizabethkelly/ai/cloudkitty-hyst/client-measurements/pose-census/idle-census-2026-08-24.jsonl",
+ "tick_range": [
+  354335,
+  354560
+ ],
+ "seats": {
+  "Miso": {
+   "ticks": 226,
+   "idle_ticks": 3,
+   "scene_endings": 14,
+   "idle_after_ending": 0,
+   "idle_after_ending_pct": 0.0,
+   "moved_while_idle": 0,
+   "idle_runs": {
+    "1": 3
+   },
+   "idle_preimage": {
+    "prev move": 2,
+    "prev drink": 1
+   },
+   "nearest_critter_median": {
+    "chase": 7,
+    "drink": 7.0,
+    "eat": 7.0,
+    "groom": 6.0,
+    "idle": 7,
+    "move": 7,
+    "play": 8.0,
+    "sleep": 7
+   },
+   "action_mix": {
+    "sleep": 59,
+    "move": 49,
+    "chase": 39,
+    "eat": 22,
+    "play": 22,
+    "groom": 16,
+    "drink": 16,
+    "idle": 3
+   }
+  },
+  "Biscuit": {
+   "ticks": 226,
+   "idle_ticks": 35,
+   "scene_endings": 35,
+   "idle_after_ending": 27,
+   "idle_after_ending_pct": 77.1,
+   "moved_while_idle": 0,
+   "idle_runs": {
+    "1": 25,
+    "2": 5
+   },
+   "idle_preimage": {
+    "prev target KITTY (duet)": 22,
+    "prev target element/none": 5,
+    "prev idle": 5,
+    "prev eat": 1,
+    "prev sleep": 1,
+    "prev move": 1
+   },
+   "nearest_critter_median": {
+    "chase": 7.0,
+    "drink": 6.5,
+    "eat": 7,
+    "groom": 4.0,
+    "idle": 7,
+    "move": 6,
+    "play": 8,
+    "sleep": 6.5
+   },
+   "action_mix": {
+    "chase": 78,
+    "play": 63,
+    "idle": 35,
+    "sleep": 24,
+    "drink": 8,
+    "eat": 7,
+    "move": 7,
+    "groom": 4
+   }
+  },
+  "Pumpkin": {
+   "ticks": 226,
+   "idle_ticks": 6,
+   "scene_endings": 18,
+   "idle_after_ending": 1,
+   "idle_after_ending_pct": 5.6,
+   "moved_while_idle": 0,
+   "idle_runs": {
+    "1": 6
+   },
+   "idle_preimage": {
+    "prev move": 3,
+    "prev groom": 2,
+    "prev target KITTY (duet)": 1
+   },
+   "nearest_critter_median": {
+    "chase": 8.0,
+    "drink": 6.5,
+    "eat": 6.0,
+    "groom": 5,
+    "idle": 8.0,
+    "move": 7,
+    "play": 7.0,
+    "sleep": 7.0
+   },
+   "action_mix": {
+    "move": 57,
+    "groom": 43,
+    "play": 36,
+    "drink": 30,
+    "sleep": 24,
+    "eat": 18,
+    "chase": 12,
+    "idle": 6
+   }
+  },
+  "Kittybear": {
+   "ticks": 226,
+   "idle_ticks": 3,
+   "scene_endings": 14,
+   "idle_after_ending": 0,
+   "idle_after_ending_pct": 0.0,
+   "moved_while_idle": 0,
+   "idle_runs": {
+    "1": 3
+   },
+   "idle_preimage": {
+    "prev groom": 2,
+    "prev move": 1
+   },
+   "nearest_critter_median": {
+    "chase": 8,
+    "drink": 6.5,
+    "eat": 6.0,
+    "groom": 8,
+    "idle": 9,
+    "move": 7.0,
+    "play": 7,
+    "sleep": 6.0
+   },
+   "action_mix": {
+    "move": 58,
+    "groom": 53,
+    "sleep": 36,
+    "drink": 22,
+    "eat": 20,
+    "play": 17,
+    "chase": 17,
+    "idle": 3
+   }
+  },
+  "Clementine": {
+   "ticks": 226,
+   "idle_ticks": 4,
+   "scene_endings": 12,
+   "idle_after_ending": 0,
+   "idle_after_ending_pct": 0.0,
+   "moved_while_idle": 0,
+   "idle_runs": {
+    "1": 4
+   },
+   "idle_preimage": {
+    "prev groom": 3,
+    "prev drink": 1
+   },
+   "nearest_critter_median": {
+    "chase": 5.5,
+    "drink": 8.5,
+    "eat": 5.0,
+    "groom": 8.0,
+    "idle": 7.0,
+    "move": 7.5,
+    "play": 8.0,
+    "sleep": 9.0
+   },
+   "action_mix": {
+    "move": 70,
+    "groom": 38,
+    "sleep": 36,
+    "chase": 24,
+    "eat": 22,
+    "drink": 20,
+    "play": 12,
+    "idle": 4
+   }
+  }
+ }
+}
