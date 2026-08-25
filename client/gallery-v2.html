@@ -815,7 +815,17 @@
   // idle runs: 485ms of the yawn's 1420. Not a dial -- it is a measurement,
   // and the right-hand cat is a fixed reference to it.
   const MEOW_MEDIAN_MS = 485;
-  const MEOW_LAB = { poseIx: 1, beatMs: 2200, tilePx: 103, away: 0 };
+  // facingIx 1 is SOUTH -- the cat faces the viewer and the whole face shows,
+  // which is the best case a call can have. 2 is north: `paintCat` draws no
+  // face at all on a rear view, by design, so the call is silent from behind.
+  // Only the AXIAL_POSES have an end-on drawing; anything else falls back to
+  // side-on and the card says which happened.
+  const MEOW_FACINGS = [
+    { facing: 'right', view: 'side', label: 'side-on' },
+    { facing: 'south', view: 'front', label: 'south, toward you' },
+    { facing: 'north', view: 'back', label: 'north, away' },
+  ];
+  const MEOW_LAB = { poseIx: 1, beatMs: 2200, tilePx: 103, facingIx: 1 };
   // The sit-sink card's viewing aids. `guides` is a toggle rather than a
   // number so the drop line can be taken away and the drawing judged alone.
   const SIT_SINK_LAB = { tilePx: 110, speed: 0.5, guides: 1 };
@@ -1492,7 +1502,7 @@
       note: 'EXTRACTED FROM A BUG THAT WAS A FEATURE, AND THE ACCIDENT IS THE BASELINE. The middle cat starts IDENTICAL to the right-hand one \u2014 same jaw, same squeezed eyes, same tongue, same 485ms with no close \u2014 and a test asserts it draws frame for frame as the yawn it was cut from. So every dial you move is a departure you can see against the thing you liked, rather than a walk back toward it. (An earlier cut of this shipped a tidier call \u2014 smaller jaw, wide eyes, no tongue \u2014 which moved three things at once before any of them had been judged. This is that undone.) A yawn cut short by a pose change read as a vocalisation, and the owner named it before anyone measured why. Measured: only 3.6% of Biscuit’s yawns ever reached their close phase, median 485ms drawn of 1420ms — a half-second open-and-shut mouth. That is a call, not a yawn. This card is the deliberate version, and the question it exists to answer is WHERE IT CAN GO. The overlay was built to sit on top of any pose (“an idle OVERLAY rather than a pose ... needs no engine state”), so try it on the WALK, on sit, on the groom — the pose dial cycles them. Three things separate a call from a yawn, and all three are live here: the jaw opens LESS (meowMouth 0.22 vs the yawn’s 0.36), the EYES STAY OPEN (a yawn drags the lids shut, which is what makes it read as sleepy at 31px), and the EYES are a DIAL rather than a boolean — meowSquint 0 keeps them wide, 1 borrows the yawn’s own lid, and a real cat narrows them a little as it calls, so the middle of that range is worth trying. Timing does the rest: a quick open and almost no hold. The yawn is drawn beside it at the same instant for comparison — same jaw, different animal. NOTE the north column: a cat walking away has no face, so the call is invisible from behind. That is a real constraint on where this can be slotted, not a bug in the card.',
       v2Only: true,
       w: 940,
-      h: 400,
+      h: 448,
       ownShadows: true,
       bag: MEOW_LAB,
       dials: [
@@ -1504,7 +1514,7 @@
         { key: 'meowHeadTilt', label: 'meowHeadTilt — the chin lifts (- is up; yawn is -0.03)', min: -0.06, max: 0.01, step: 0.002, bag: CatV2.RIG },
         { key: 'meowSquint', label: 'meowSquint — how much of the YAWN\u2019s eye-squeeze the call borrows (0 wide, 1 the yawn\u2019s own lid)', min: 0, max: 1, step: 0.05, bag: CatV2.RIG },
         { key: 'meowTongue', label: 'meowTongue — tongue size against the yawn\u2019s (1 the accident, 0 none)', min: 0, max: 1, step: 0.05, bag: CatV2.RIG },
-        { key: 'away', label: 'away — 1 turns all three to face north; a rear view has NO FACE', min: 0, max: 1, step: 1 },
+        { key: 'facingIx', label: 'facingIx — 0 side-on, 1 SOUTH (toward you, full face), 2 north (away, NO FACE)', min: 0, max: 2, step: 1 },
         { key: 'beatMs', label: 'beatMs — lab only; how often the card replays the call', min: 900, max: 5000, step: 100 },
         { key: 'tilePx', label: 'tilePx — judge at the sizes the camera draws', min: 40, max: 130, step: 1 },
       ],
@@ -1517,7 +1527,7 @@
           + `RIG.meowMouth ${R.meowMouth}, RIG.meowHeadTilt ${R.meowHeadTilt}, RIG.meowSquint ${R.meowSquint}, RIG.meowTongue ${R.meowTongue}\n`
           + `the accident it came from: 340 open, ~145 held, NO close -- median 485ms drawn\n`
           + `card view: poseIx ${MEOW_LAB.poseIx} (${MEOW_POSES[MEOW_LAB.poseIx].label}), `
-          + `away ${MEOW_LAB.away}, beatMs ${MEOW_LAB.beatMs}, tilePx ${MEOW_LAB.tilePx} -- viewing aids, not shipped dials`
+          + `facing ${MEOW_LAB.facingIx} (${MEOW_FACINGS[MEOW_LAB.facingIx].label}), beatMs ${MEOW_LAB.beatMs}, tilePx ${MEOW_LAB.tilePx} -- viewing aids, not shipped dials`
         );
       },
       draw(ctx, w, h, now) {
@@ -1526,7 +1536,7 @@
         const at = now % MEOW_LAB.beatMs;
         const gape = meowGape(at, VIEW_MEOW) ?? 0;
         const yawnAt = yawnGape(at, VIEW) ?? 0;
-        const groundY = h - 92;
+        const groundY = h - 124; // room below for two captions and the envelope plot
 
         ctx.strokeStyle = 'rgba(107, 90, 78, 0.22)';
         ctx.beginPath();
@@ -1553,12 +1563,14 @@
         // The facing is a DIAL rather than per-column now: a rear view has no
         // face, so the call is invisible from behind, and that constraint has
         // to stay checkable on all three at once.
-        const away = MEOW_LAB.away === 1;
+        const f = MEOW_FACINGS[MEOW_LAB.facingIx];
+        const hasAxial = CatV2.AXIAL_POSES.has(spec.pose);
+        const axialNow = f.view !== 'side' && hasAxial;
         for (const col of cols) {
           const x = w * col.at - T / 2;
-          const axial = away && CatV2.AXIAL_POSES.has(spec.pose);
+          const axial = axialNow;
           const rig = CatV2.stepRig(CatV2.createRigState(), {
-            vx: 0, vy: 0, facing: away ? 'north' : 'right', gazeX: 0, gazeY: 0,
+            vx: 0, vy: 0, facing: axialNow ? f.facing : 'right', gazeX: 0, gazeY: 0,
             earTwitch: 0, earTwitchSide: 1, earsBack: 0, breath: 0,
             yawn: col.yawn, meow: col.meow,
           }, 16);
@@ -1572,14 +1584,14 @@
           CatV2.drawCat(ctx, {
             pose: spec.pose,
             appearance: CatV2.appearanceFor(BISCUIT_ID),
-            facing: axial ? 'north' : 'right',
+            facing: axial ? f.facing : 'right',
             size: T,
             x,
             y: groundY - T * CatV2.CAT_GROUND,
             phase: spec.moving ? ((now % 1400) / 1400) : 0.3,
             rig,
             layout: {
-              view: axial ? 'back' : 'side',
+              view: axial ? f.view : 'side',
               travelH: spec.moving ? 1 : 0,
               beatMs: 800,
             },
@@ -1588,6 +1600,18 @@
           ctx.textAlign = 'center';
           ctx.fillText(col.label, x + T / 2, groundY + 30);
         }
+        // Which drawing is actually on screen, and whether a face is on it.
+        ctx.textAlign = 'center';
+        ctx.fillStyle = axialNow ? (f.view === 'back' ? '#9c5a3c' : '#5e7a52') : '#6b5a4e';
+        ctx.fillText(
+          axialNow
+            ? (f.view === 'back'
+              ? `${f.label} — a rear view draws NO FACE: the call is silent here`
+              : `${f.label} — the whole face, the best a call can get`)
+            : `${f.label}${MEOW_LAB.facingIx > 0 ? ` — ${spec.pose} has no end-on drawing, so this fell back to side-on` : ''}`,
+          w / 2, groundY + 46,
+        );
+        ctx.textAlign = 'left';
 
         // The envelope, plotted, so the SHAPE is dialable by eye and not only
         // by watching the cat: a call is a spike, a yawn is a plateau.
@@ -1597,7 +1621,7 @@
         const px = 12;
         const pw = w - 24;
         const ph = 44;
-        const py = groundY + 46;
+        const py = groundY + 64; // clear of the facing caption at +46
         const plot = (fn, dials, color, width) => {
           ctx.strokeStyle = color;
           ctx.lineWidth = width;
