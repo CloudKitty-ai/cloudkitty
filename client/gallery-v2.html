@@ -793,6 +793,25 @@
   // The groom card's viewing aids. The POSE dials write into CatV2.GROOM
   // itself (per-dial `bag`), so the map and every other card follow live.
   const GROOM_LAB = { tilePx: 90, speed: 1, groomCycleMs: VIEW.groomCycleMs };
+  // The meow card. `VIEW_MEOW` is a MUTABLE copy of the three shipped spans --
+  // VIEW is frozen, and these have to be draggable; the readout prints the
+  // paste line. The poses are the ones worth asking the question of: does a
+  // call read on a cat that is doing this?
+  const VIEW_MEOW = {
+    meowOpenMs: VIEW.meowOpenMs,
+    meowHoldMs: VIEW.meowHoldMs,
+    meowCloseMs: VIEW.meowCloseMs,
+  };
+  const MEOW_POSES = [
+    { pose: 'idle', label: 'idle', moving: false },
+    { pose: 'walking', label: 'walking east', moving: true },
+    { pose: 'sit', label: 'sit', moving: false },
+    { pose: 'loaf', label: 'loaf', moving: false },
+    { pose: 'grooming-other', label: 'groom-other', moving: false },
+    { pose: 'eating', label: 'eating', moving: false },
+  ];
+  const BISCUIT_ID = 2;
+  const MEOW_LAB = { poseIx: 1, beatMs: 2200, tilePx: 103 };
   // The sit-sink card's viewing aids. `guides` is a toggle rather than a
   // number so the drop line can be taken away and the drawing judged alone.
   const SIT_SINK_LAB = { tilePx: 110, speed: 0.5, guides: 1 };
@@ -1461,6 +1480,133 @@
         const T2 = SIT_SINK_LAB.tilePx;
         ctx.fillText(`hind leg shows ${(worstRun(shipped) * T2).toFixed(1)}px`, w * 0.28, groundY + 76);
         ctx.fillText(`hind leg shows ${(worstRun(fixed) * T2).toFixed(1)}px`, w * 0.72, groundY + 76);
+        ctx.textAlign = 'left';
+      },
+    },
+    {
+      title: 'The meow — the accident, made deliberate (2026-08-25)',
+      note: 'EXTRACTED FROM A BUG THAT WAS A FEATURE. A yawn cut short by a pose change read as a vocalisation, and the owner named it before anyone measured why. Measured: only 3.6% of Biscuit’s yawns ever reached their close phase, median 485ms drawn of 1420ms — a half-second open-and-shut mouth. That is a call, not a yawn. This card is the deliberate version, and the question it exists to answer is WHERE IT CAN GO. The overlay was built to sit on top of any pose (“an idle OVERLAY rather than a pose ... needs no engine state”), so try it on the WALK, on sit, on the groom — the pose dial cycles them. Three things separate a call from a yawn, and all three are live here: the jaw opens LESS (meowMouth 0.22 vs the yawn’s 0.36), the EYES STAY OPEN (a yawn drags the lids shut, which is what makes it read as sleepy at 31px), and there is NO TONGUE. Timing does the rest: a quick open and almost no hold. The yawn is drawn beside it at the same instant for comparison — same jaw, different animal. NOTE the north column: a cat walking away has no face, so the call is invisible from behind. That is a real constraint on where this can be slotted, not a bug in the card.',
+      v2Only: true,
+      w: 940,
+      h: 400,
+      ownShadows: true,
+      bag: MEOW_LAB,
+      dials: [
+        { key: 'poseIx', label: 'poseIx — which pose wears the call (0 idle, 1 walk, 2 sit, 3 loaf, 4 groom-other, 5 eating)', min: 0, max: 5, step: 1 },
+        { key: 'meowOpenMs', label: 'meowOpenMs — the jaw opens (yawn is 340)', min: 80, max: 420, step: 10, bag: VIEW_MEOW },
+        { key: 'meowHoldMs', label: 'meowHoldMs — how long it stays open (yawn is 620)', min: 0, max: 500, step: 10, bag: VIEW_MEOW },
+        { key: 'meowCloseMs', label: 'meowCloseMs — and shuts; the accident had NO close', min: 60, max: 500, step: 10, bag: VIEW_MEOW },
+        { key: 'meowMouth', label: 'meowMouth — how far the jaw drops, head radii (yawn is 0.36)', min: 0.08, max: 0.4, step: 0.01, bag: CatV2.RIG },
+        { key: 'meowHeadTilt', label: 'meowHeadTilt — the chin lifts (- is up; yawn is -0.03)', min: -0.06, max: 0.01, step: 0.002, bag: CatV2.RIG },
+        { key: 'beatMs', label: 'beatMs — lab only; how often the card replays the call', min: 900, max: 5000, step: 100 },
+        { key: 'tilePx', label: 'tilePx — judge at the sizes the camera draws', min: 40, max: 130, step: 1 },
+      ],
+      readout() {
+        const R = CatV2.RIG;
+        const total = VIEW_MEOW.meowOpenMs + VIEW_MEOW.meowHoldMs + VIEW_MEOW.meowCloseMs;
+        return (
+          `meowOpenMs ${VIEW_MEOW.meowOpenMs}, meowHoldMs ${VIEW_MEOW.meowHoldMs}, meowCloseMs ${VIEW_MEOW.meowCloseMs}`
+          + `   -> ${total}ms total\n`
+          + `RIG.meowMouth ${R.meowMouth}, RIG.meowHeadTilt ${R.meowHeadTilt}\n`
+          + `the accident it came from: 340 open, ~145 held, NO close -- median 485ms drawn\n`
+          + `card view: poseIx ${MEOW_LAB.poseIx} (${MEOW_POSES[MEOW_LAB.poseIx].label}), `
+          + `beatMs ${MEOW_LAB.beatMs}, tilePx ${MEOW_LAB.tilePx} -- viewing aids, not shipped dials`
+        );
+      },
+      draw(ctx, w, h, now) {
+        const T = MEOW_LAB.tilePx;
+        const spec = MEOW_POSES[MEOW_LAB.poseIx];
+        const at = now % MEOW_LAB.beatMs;
+        const gape = meowGape(at, VIEW_MEOW) ?? 0;
+        const yawnAt = yawnGape(at, VIEW) ?? 0;
+        const groundY = h - 92;
+
+        ctx.strokeStyle = 'rgba(107, 90, 78, 0.22)';
+        ctx.beginPath();
+        ctx.moveTo(10, groundY + 0.5);
+        ctx.lineTo(w - 10, groundY + 0.5);
+        ctx.stroke();
+
+        // Three columns: the call, the same instant as a YAWN for comparison,
+        // and the call from BEHIND -- which is the constraint, not a bug.
+        const cols = [
+          { at: 0.20, meow: gape, yawn: 0, facing: 'right', view: 'side', label: 'the call' },
+          { at: 0.50, meow: 0, yawn: yawnAt, facing: 'right', view: 'side', label: 'a yawn, same instant' },
+          { at: 0.80, meow: gape, yawn: 0, facing: 'north', view: 'back', label: 'the call, walking away' },
+        ];
+        for (const col of cols) {
+          const x = w * col.at - T / 2;
+          const axial = col.view !== 'side' && CatV2.AXIAL_POSES.has(spec.pose);
+          const rig = CatV2.stepRig(CatV2.createRigState(), {
+            vx: 0, vy: 0, facing: col.facing, gazeX: 0, gazeY: 0,
+            earTwitch: 0, earTwitchSide: 1, earsBack: 0, breath: 0,
+            yawn: col.yawn, meow: col.meow,
+          }, 16);
+          ctx.save();
+          ctx.globalAlpha = 0.3;
+          ctx.fillStyle = '#4a3f35';
+          ctx.beginPath();
+          ctx.ellipse(x + T / 2, groundY - 2, T * 0.34, T * 0.1, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+          CatV2.drawCat(ctx, {
+            pose: spec.pose,
+            appearance: CatV2.appearanceFor(BISCUIT_ID),
+            facing: axial ? col.facing : (col.facing === 'north' ? 'right' : col.facing),
+            size: T,
+            x,
+            y: groundY - T * CatV2.CAT_GROUND,
+            phase: spec.moving ? ((now % 1400) / 1400) : 0.3,
+            rig,
+            layout: {
+              view: axial ? col.view : 'side',
+              travelH: spec.moving ? 1 : 0,
+              beatMs: 800,
+            },
+          });
+          ctx.fillStyle = '#6b5a4e';
+          ctx.textAlign = 'center';
+          ctx.fillText(col.label, x + T / 2, groundY + 30);
+        }
+
+        // The envelope, plotted, so the SHAPE is dialable by eye and not only
+        // by watching the cat: a call is a spike, a yawn is a plateau.
+        const total = VIEW_MEOW.meowOpenMs + VIEW_MEOW.meowHoldMs + VIEW_MEOW.meowCloseMs;
+        const yTot = VIEW.yawnOpenMs + VIEW.yawnHoldMs + VIEW.yawnCloseMs;
+        const span = Math.max(total, yTot);
+        const px = 12;
+        const pw = w - 24;
+        const ph = 44;
+        const py = groundY + 46;
+        const plot = (fn, dials, color, width) => {
+          ctx.strokeStyle = color;
+          ctx.lineWidth = width;
+          ctx.beginPath();
+          for (let i = 0; i <= 240; i++) {
+            const ms = (i / 240) * span;
+            const v = fn(ms, dials) ?? 0;
+            const X = px + (ms / span) * pw;
+            const Y = py + ph - v * ph;
+            if (i === 0) ctx.moveTo(X, Y); else ctx.lineTo(X, Y);
+          }
+          ctx.stroke();
+        };
+        plot(yawnGape, VIEW, 'rgba(162, 121, 91, 0.55)', 1);
+        plot(meowGape, VIEW_MEOW, '#9c5a3c', 2);
+        // Where we are in the beat.
+        if (at <= span) {
+          ctx.strokeStyle = 'rgba(107, 90, 78, 0.5)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(px + (at / span) * pw, py);
+          ctx.lineTo(px + (at / span) * pw, py + ph);
+          ctx.stroke();
+        }
+        ctx.fillStyle = '#6b5a4e';
+        ctx.textAlign = 'left';
+        ctx.fillText(`the call (${total}ms)`, px, py - 4);
+        ctx.textAlign = 'right';
+        ctx.fillText(`the yawn it came from (${yTot}ms)`, px + pw, py - 4);
         ctx.textAlign = 'left';
       },
     },

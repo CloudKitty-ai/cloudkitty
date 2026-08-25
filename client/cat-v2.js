@@ -1008,6 +1008,23 @@ const RIG = {
   // top of whatever the cat is already doing and needs no engine state.
   yawnMouth: 0.36, // how far the mouth opens, in head radii
   yawnHeadTilt: -0.03, // and the chin lifts (units; - is up)
+
+  // --- The meow (2026-08-25). Extracted from an accident: a yawn cut short
+  // by a pose change reads as a vocalisation, and the owner liked it before
+  // anyone measured why ("it reads very meow"). Measured, the drawn event was
+  // a half-second open-and-shut mouth -- 3.6% of yawns ever reached their
+  // close phase, median 485ms of 1420ms.
+  //
+  // Shares the jaw with the yawn and differs in the three things that make
+  // that gape sleepy rather than vocal:
+  //   the OPENING is smaller -- a meow is not a full gape
+  //   the EYES stay open -- `drawFace` squeezes them shut for a yawn, and
+  //     that is what makes a yawn read as one at 31px; a meowing cat is
+  //     looking at you
+  //   NO TONGUE -- the tongue is what keeps a yawn from reading as a hiss,
+  //     and at this amplitude it would be a hiss cue rather than a yawn one
+  meowMouth: 0.22, // how far the mouth opens, in head radii
+  meowHeadTilt: -0.018, // the chin lifts, less than a yawn's
 };
 
 const rclamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
@@ -1143,6 +1160,7 @@ function stepRig(state, input, dtMs) {
     earFar: state.ears.x * -0.35 + state.gaze.x * RIG.gazeEar,
     earsBack: rclamp(state.ears.y, 0, 1),
     yawn: input.yawn || 0,
+    meow: input.meow || 0,
   };
 }
 
@@ -1169,13 +1187,15 @@ function applyRig(L, rig) {
 
   L.head.cx += rig.head.x + rig.gaze.x * L.head.r * RIG.gazeHead;
   L.head.cy +=
-    rig.head.y + rig.gaze.y * L.head.r * RIG.gazeHead + rig.yawn * RIG.yawnHeadTilt;
+    rig.head.y + rig.gaze.y * L.head.r * RIG.gazeHead
+    + rig.yawn * RIG.yawnHeadTilt + rig.meow * RIG.meowHeadTilt;
 
   if (rig.earsBack) L.earsBackAmt = Math.max(L.earsBackAmt || 0, rig.earsBack);
   L.earNear = rig.earNear;
   L.earFar = rig.earFar;
   L.gaze = rig.gaze;
   L.yawn = rig.yawn;
+  L.meow = rig.meow;
   return L;
 }
 
@@ -1220,6 +1240,7 @@ function stillRig(input) {
     earFar: gx * RIG.gazeEar,
     earsBack: 0,
     yawn: 0,
+    meow: 0,
   };
 }
 
@@ -3452,7 +3473,7 @@ function paintCat(ctx, L, a, lid = 0, size = 31) {
     // it is what makes the view read instantly: a faceless head is
     // unmistakable even at 31px.
     if (!rear) {
-      drawFace(ctx, L.head, L.eyes, a, lid, L.gaze, L.yawn || 0, L.view, size);
+      drawFace(ctx, L.head, L.eyes, a, lid, L.gaze, L.yawn || 0, L.view, size, L.meow || 0);
     }
   };
 
@@ -4237,9 +4258,17 @@ const MOUTH = {
   depth: 0.08, // vertical reach: leg drop ('v') or arc bulge ('w')
 };
 
-function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0, view = 'side', size = 31) {
+function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0, view = 'side', size = 31, meow = 0) {
+  // One jaw, two characters. The gape geometry below is shared; what differs
+  // is the amplitude, whether the eyes are dragged shut, and whether a tongue
+  // shows. A yawn and a meow never co-occur -- both are drawn from the same
+  // idle beat -- so the louder of the two owns the mouth.
+  const gape = Math.max(yawn, meow);
+  const gapeMouth = yawn >= meow ? RIG.yawnMouth : RIG.meowMouth;
   // A yawn squeezes the eyes shut on its way open -- it is the eyes, not
-  // the mouth, that make a yawn read as one at 31px.
+  // the mouth, that make a yawn read as one at 31px. A MEOW does not: a cat
+  // calling at you is looking at you, and shutting its eyes is most of what
+  // would turn the call back into a yawn.
   if (yawn > 0.02) lid = Math.max(lid, smooth01(yawn * 1.1));
   const darkFur = isDarkColor(a.furBase);
   const eyeInk = darkFur ? a.eyeColor : '#453c36';
@@ -4532,7 +4561,7 @@ function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0, view = 'si
     ? shadeHex(a.pattern.color, 0.82)
     : a.furShade;
   ctx.lineWidth = OUTLINE_W * 0.55;
-  if (yawn > 0.02) {
+  if (gape > 0.02) {
     // The jaw drops UNDER the muzzle mark; the mark itself stays exactly
     // where it is (owner, 2026-08-10).
     //
@@ -4548,10 +4577,10 @@ function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0, view = 'si
     // top edge: the mark becomes the upper lip of the open mouth for
     // free, and the closed and open faces share it rather than
     // interpolating between two different drawings.
-    const o = smooth01(yawn);
+    const o = smooth01(gape);
     const gw = head.r * MOUTH.width * (0.6 + 0.3 * o);
     const top = my + head.r * MOUTH.depth * 0.5; // just under the omega's bulges
-    const d = head.r * RIG.yawnMouth * o;
+    const d = head.r * gapeMouth * o;
     // The jaw alone, with no top edge -- the omega is the top edge.
     const jaw = () => {
       ctx.moveTo(nx - gw, top);
@@ -4563,9 +4592,12 @@ function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0, view = 'si
     jaw();
     ctx.closePath(); // the chord back along `top`, hidden under the omega
     ctx.fill();
-    if (o > 0.45) {
+    if (o > 0.45 && yawn >= meow) {
       // The tongue. Small, but it is what keeps a gape reading as a yawn
       // rather than as a hiss -- which is the last thing this world wants.
+      // A meow shows none: at its smaller amplitude the same ellipse is a
+      // hiss cue rather than a yawn one, and a calling cat's tongue is behind
+      // its teeth anyway.
       ctx.fillStyle = lightenHex(noseInk, 0.22);
       ctx.beginPath();
       ctx.ellipse(nx, top + d * 0.72, gw * 0.46, d * 0.2, 0, 0, TAU);

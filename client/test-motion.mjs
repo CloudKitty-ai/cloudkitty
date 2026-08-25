@@ -34,7 +34,7 @@ const appNum = (name) => {
 const api = eval(
   animSrc +
     ';({ VIEW, Presentation, Pacer, easeSmooth, slowBlinkLid, idleHash, idlePeriodFor,' +
-    ' idlePickFor, idleOffsetFor, IDLE_SALTS, anim, nearestAdjacentOf, Camera, clampFrame, leapArc })',
+    ' idlePickFor, idleOffsetFor, IDLE_SALTS, anim, nearestAdjacentOf, Camera, clampFrame, leapArc, meowGape, yawnGape })',
 );
 
 /**
@@ -2477,11 +2477,115 @@ const RIG_REST = {
   earTwitch: 0, earTwitchSide: 1, earsBack: 0, yawn: 0, breath: 0,
 };
 
+/** Every command a pose draws, with its numeric args, for comparing two
+ * drawings that differ in one channel. */
+function drawCommands(rigInput) {
+  const log = [];
+  const ctx = new Proxy({}, {
+    get: (t, k) => {
+      if (k === 'canvas') return { width: 200, height: 200 };
+      if (k === 'measureText') return () => ({ width: 10 });
+      return (...args) => { log.push([String(k), args]); };
+    },
+    // Paint is recorded too: the tongue is identified by its own colour
+    // rather than by counting ellipses, which the eyes also draw.
+    set: (target, k, v) => { log.push(['set:' + String(k), [v]]); return true; },
+  });
+  // The rig `drawCat` wants is stepRig's OUTPUT, not its input, so build it
+  // the way the live path does: one step from rest with the channel set.
+  const rig = CatV2.stepRig(CatV2.createRigState(), { ...RIG_REST, ...rigInput }, 16);
+  CatV2.drawCat(ctx, {
+    pose: 'idle', phase: 0.25,
+    appearance: CatV2.appearanceFor(3),
+    facing: 'right', size: 120, x: 0, y: 0,
+    rig,
+  });
+  return log;
+}
+
+check('a meow is not a small yawn: smaller jaw, open eyes, no tongue', () => {
+  // Extracted 2026-08-25 from the accident the owner liked. The two share the
+  // jaw in `drawFace`; the whole design is in what they do NOT share, so this
+  // asserts each difference rather than trusting the dials to speak.
+  const yawning = drawCommands({ yawn: 1, meow: 0 });
+  const meowing = drawCommands({ yawn: 0, meow: 1 });
+  const shut = drawCommands({ yawn: 0, meow: 0 });
+
+  // 1. THE JAW IS SMALLER. A closed mouth draws no jaw at all, so the beziers
+  //    a gaping cat draws and a shut one does not ARE the jaw -- isolating it
+  //    by set difference rather than by hunting for the deepest point on the
+  //    whole cat, which is the tail.
+  const beziers = (log) => log.filter(([k]) => k === 'bezierCurveTo').map(([, a]) => a.join(','));
+  const shutSet = new Set(beziers(shut));
+  const jawDepth = (log) => {
+    const extra = beziers(log).filter((b) => !shutSet.has(b));
+    assert(extra.length > 0, 'no jaw was drawn at all');
+    return Math.max(...extra.map((b) => Math.max(...b.split(',').map(Number).filter((_, i) => i % 2))));
+  };
+  const yJaw = jawDepth(yawning);
+  const mJaw = jawDepth(meowing);
+  assert(yJaw > mJaw, `the meow jaw (${mJaw.toFixed(2)}) must be shallower than the yawn's (${yJaw.toFixed(2)})`);
+
+  // 2. NO TONGUE. Counting ellipses cannot see this -- the eyes draw them too,
+  //    and the meow draws MORE because its eyes stay open. So the tongue is
+  //    identified by its own paint: `lightenHex(noseInk, 0.22)`, both of which
+  //    are exported, so the colour is derived here rather than pasted.
+  const tongueInk = CatV2.lightenHex(CatV2.noseInkOf(CatV2.appearanceFor(3)), 0.22);
+  const paints = (log) => log.filter(([k]) => k === 'set:fillStyle').map(([, a]) => String(a[0]));
+  assert(paints(yawning).includes(tongueInk), 'the yawn must show a tongue, or this check is vacuous');
+  assert(!paints(meowing).includes(tongueInk), 'a meow must not show a tongue');
+
+  // 3. THE EYES STAY OPEN. A yawn drags the lids shut -- that is what makes
+  //    it read as a yawn -- so a yawning cat's eye drawing differs from a
+  //    resting one's. A meowing cat's must NOT: it is looking at you.
+  //    A meow lifts the chin, so comparing it against a resting face moves
+  //    the whole head and every eye with it. So the TILT is zeroed for the
+  //    length of the comparison: the mouth then adds beziers and nothing
+  //    else, and any ellipse-or-arc difference that remains IS the eyes.
+  //    (A closed lid swaps ellipses for arcs wholesale -- 22/2 becomes 11/4 --
+  //    so this is a loud signal, not a subtle one.)
+  const savedTilt = CatV2.RIG.meowHeadTilt;
+  let flatMeow;
+  try {
+    CatV2.RIG.meowHeadTilt = 0;
+    flatMeow = drawCommands({ yawn: 0, meow: 1 });
+  } finally {
+    CatV2.RIG.meowHeadTilt = savedTilt;
+  }
+  const eyeish = (log) => JSON.stringify(log.filter(([k]) => k === 'ellipse' || k === 'arc'));
+  assert(
+    eyeish(yawning) !== eyeish(shut),
+    'a yawn must change the eyes, or this check cannot see lids at all',
+  );
+  assert(
+    eyeish(flatMeow) === eyeish(shut),
+    'a meowing cat must keep the eyes it had -- it is drawing the yawn\'s squeezed lids',
+  );
+});
+
+check('the meow envelope opens, barely holds, and shuts', () => {
+  // The accident had no close at all -- `stepRig` passes the gape through, so
+  // the mouth snapped. A snap is a rendering artifact; a call closes. This
+  // pins the shape, not the numbers: the owner tunes the three spans.
+  const V = api.VIEW;
+  const total = V.meowOpenMs + V.meowHoldMs + V.meowCloseMs;
+  assert(api.meowGape(-1, V) === undefined, 'nothing before it starts');
+  assert(api.meowGape(total, V) === undefined, 'nothing after it ends');
+  close(api.meowGape(0, V), 0, 'starts shut');
+  close(api.meowGape(V.meowOpenMs, V), 1, 'fully open at the end of the open span');
+  close(api.meowGape(V.meowOpenMs + V.meowHoldMs - 1, V), 1, 'still open through the hold');
+  const nearEnd = api.meowGape(total - 1, V);
+  assert(nearEnd < 0.05, `must be closing at the end, got ${nearEnd}`);
+  // The two things that separate calling from sleepy.
+  assert(V.meowOpenMs < V.yawnOpenMs, 'a call opens quicker than a yawn');
+  assert(V.meowHoldMs < V.yawnHoldMs / 2, 'a call does not dwell the way a yawn does');
+});
+
 check('a rig at rest draws the un-rigged cat', () => {
   // applyRig adds four channels that the un-rigged layout has no opinion
   // about; those are compared against their neutral values, and everything
   // else must be identical geometry.
-  const ADDED = ['earNear', 'earFar', 'gaze', 'yawn'];
+  const ADDED = ['earNear', 'earFar', 'gaze', 'yawn', 'meow'];
   for (const pose of CatV2.POSES) {
     for (const phase of [0, 0.25, 0.5, 0.75]) {
       const plain = CatV2.catLayout(pose, phase);

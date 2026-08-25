@@ -558,6 +558,29 @@ const VIEW = Object.freeze({
   yawnHoldMs: 620, // ... and stays down, which is the yawn ...
   yawnCloseMs: 460, // ... then eases shut
 
+  /* The meow (2026-08-25), extracted from an accident.
+   *
+   * A yawn cut short by a pose change reads as a vocalisation, and the owner
+   * named it before it was measured: "it reads very meow". Measured, that is
+   * what was on screen -- of the yawns Biscuit started, only 3.6% ever
+   * reached their close phase and the median drew 485ms of 1420ms. A
+   * half-second open-and-shut mouth is a call, not a yawn.
+   *
+   * So these three spans are the accident made deliberate, and the total is
+   * anchored on it: 485ms, the median that was actually being seen and liked.
+   * What they do NOT copy is the accident's shape -- it had no close at all,
+   * because `stepRig` passes the gape through rather than integrating it and
+   * the mouth simply snapped. A snap is a rendering artifact; a call closes.
+   *
+   * The open is faster than the yawn's and the hold much shorter: those two
+   * are what separate "calling" from "sleepy", far more than the amplitude
+   * does. Dial them together -- a slow open with a short hold reads as a cat
+   * being interrupted, which is what we already had.
+   */
+  meowOpenMs: 190, // the jaw opens, quicker than a yawn's 340 ...
+  meowHoldMs: 130, // ... barely holds, where a yawn dwells for 620 ...
+  meowCloseMs: 165, // ... and shuts, which the accident never did
+
   // The on-the-spot turn (2026-08-10). Short: this is a cat pivoting on
   // its front feet, not a considered about-face, and anything longer
   // reads as the cat sliding through a wall.
@@ -971,6 +994,23 @@ function yawnGape(at, dials = VIEW) {
   const open = dials.yawnOpenMs;
   const hold = dials.yawnHoldMs;
   const close = dials.yawnCloseMs;
+  if (at < 0 || at >= open + hold + close) return undefined;
+  if (at < open) return easeSmooth(at / open);
+  if (at < open + hold) return 1;
+  return 1 - easeSmooth((at - open - hold) / close);
+}
+
+/** The meow gape at `at` ms into a call, or undefined once it is over.
+ *
+ * Same three-span shape as `yawnGape` and deliberately so: they share the jaw
+ * in `drawFace`, and giving them different curve families would make the two
+ * hard to compare in the lab, which is where the difference is being judged.
+ * What differs is the timing and, in the drawing, the amplitude, the eyes and
+ * the tongue. */
+function meowGape(at, dials = VIEW) {
+  const open = dials.meowOpenMs;
+  const hold = dials.meowHoldMs;
+  const close = dials.meowCloseMs;
   if (at < 0 || at >= open + hold + close) return undefined;
   if (at < open) return easeSmooth(at / open);
   if (at < open + hold) return 1;
