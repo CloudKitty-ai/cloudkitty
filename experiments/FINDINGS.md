@@ -1803,3 +1803,30 @@ rate appearing on a seat whose scenes end just as often but are solo.
 `validate` legality arms, or duet duration config; and before pricing
 partnered play in any EV or reward-shaping pass — an ask that gets
 refused is not free, and current EVs price it as if it were.
+
+**Addendum 2026-08-25 — the idle run length is also a RENDERING
+parameter (Client, measured; carried here at their request).** Client
+simulated the shipped animation scheduler against the same census
+windows. The client is not drawing a yawn: of the yawns started on
+Biscuit (~7.3/hour), **3.6% are fully drawn**, 64.9% reach the hold
+phase and only 12.7% reach the close, median shown **485ms of 1420ms**.
+The yawn is 340 open / 620 hold / 460 close, `stepRig` passes it
+through rather than integrating it (`yawn: input.yawn || 0`), so the
+mouth snaps shut with no ease when the pose leaves idle. A yawn needs
+~1.77 ticks; this finding measured idle runs of 1–2 ticks (25×1, 5×2,
+none longer). The drawn result is a half-second open-and-shut mouth —
+which reads as a vocalisation, and the owner described it as "very
+meow" before any of this was measured.
+
+**Why an engine register carries a client number**: it makes the
+current reading *fragile in a direction invisible from this side*.
+Nothing in the client changes if a future policy idles in longer runs —
+the close phase simply starts playing, and the same engine beat becomes
+an actual sleepy yawn. **So "how long the seat idles" is a rendering
+decision as well as a behavioural one**, and the coupling runs through
+a threshold (~1.77 ticks) that no engine-side change would flag. Any
+work that lengthens idle runs — including the `Play { target: None }`
+solo-pounce fallback above, which would *shorten* them toward zero —
+changes what a viewer sees, not only what the seat does. Re-verify the
+rendering consequence alongside the behavioural one, and tell Client
+before shipping either.
