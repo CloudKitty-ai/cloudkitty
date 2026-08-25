@@ -2741,6 +2741,129 @@ function drawnBoxY({ submersion, lean }) {
   return translates.length ? translates[0][1] : null;
 }
 
+/** The pose `drawKitty` actually settled on, observed where the renderer hands
+ * it to `adjustPose` -- the production path, not a direct call to `poseFor`. */
+function drawnPose({ prev, curr, now }) {
+  let seen = null;
+  const ctx = new Proxy({}, {
+    get: (t, k) => (k === 'canvas' ? { width: 900, height: 900 } : () => ctx),
+    set: () => true,
+  });
+  const stub = {
+    ctx, tile: 100, theme: 'day', pondCache: null,
+    tileOrigin: () => ({ x: 0, y: 0 }),
+    drawWaterline() {}, drawBeat() {}, drawElement() {}, roundRect() {},
+  };
+  const p = new api.Presentation();
+  p.pushState(prev, now - 800);
+  p.pushState(curr, now);
+  const real = p.viewAt ? p.viewAt(now) : null;
+  const view = new Proxy({
+    posFor: (k) => p.posFor(k, now),
+    elementPosFor: (e) => e.pos,
+    elementAlphaFor: () => 1,
+    tickMs: 800, expired: [], expiredAlpha: 0, ambient: { now },
+    travelHFor: () => 1,
+    wetFor: () => 0,
+    motionFor: () => ({ phase: 0.2 }),
+    facingFor: (id) => p.facingFor(id),
+    sideFacingFor: (id) => p.sideFacingFor(id),
+    movedFor: (id) => p.movedFor(id),
+    axialFor: (id, has) => p.axialFor(id, has),
+    velocityFor: () => ({ x: 0, y: 0 }),
+    leanFor: () => null,
+    leapFor: (id) => p.leapFor(id, now),
+    adjustPose: (id, pose) => { seen = pose; return pose; },
+  }, { get: (target, k) => (k in target ? target[k] : () => null) });
+  const hadMeadow = 'MEADOW' in globalThis;
+  const savedMeadow = globalThis.MEADOW;
+  globalThis.MEADOW = new Proxy({}, {
+    get: (target, k) => (String(k).startsWith('shadow') ? 0 : '#000'),
+  });
+  try {
+    WorldRenderer.prototype.drawKitty.call(stub, curr.kitties[0], curr, view);
+  } finally {
+    if (hadMeadow) globalThis.MEADOW = savedMeadow; else delete globalThis.MEADOW;
+  }
+  return { pose: seen, leap: p.leapFor(1, now) };
+}
+
+check('a served lunge is drawn pouncing, whatever the gate says', () => {
+  // The engine serves the lunge (spec 039 FR-011) as ONE MORE plain step once
+  // the ordinary chase movement leaves an ELEMENT target at manhattan 2 -- so
+  // a two-tile step in a tick is the lunge and nothing else, and the cat ends
+  // one tile from where the quarry was.
+  //
+  // Then the quarry moves. A greeble darts 1-3 tiles on its moving ticks
+  // (039's third amendment; measured on the live world 2026-08-24, max 3), so
+  // the distance the GATE measures -- taken against the same served state the
+  // frame draws, after the dart -- reaches 4 while the cat is mid-flight.
+  // `pounceGateTiles` is 3, so the pose fell through to `walking` and the cat
+  // flew the arc with its legs running. Owner saw it: "Biscuit leapt
+  // repeatedly with legs running in the air, chasing a Greeble".
+  //
+  // `leapFor` keys on the served step and never consults the gate, so the two
+  // read different evidence on the same tick. The step is the world's own
+  // word that this IS the pounce; the distance is a heuristic standing in for
+  // the same question. The step wins.
+  const GREEBLE = 99;
+  const w = (tick, cat, greeble) => ({
+    tick, width: 20, height: 20,
+    elements: [{ id: GREEBLE, kind: 'greeble', pos: greeble }],
+    kitties: [{
+      id: 1, name: 'B', pos: cat, needs: {}, happiness: 90,
+      last_action: { action: 'chase', target: 'element', id: GREEBLE },
+    }],
+  });
+  // Swept across every dart the greeble can make, so this pins the INVARIANT
+  // -- the lift and the pose read the same evidence -- rather than the one
+  // geometry that happened to be reported. Only the last of these is outside
+  // the gate today; the rest would pass without the fix, and that is the
+  // point: they must not stop passing either.
+  let outsideTheGate = 0;
+  for (const dart of [0, 1, 2, 3]) {
+    // Cat lunges 5,5 -> 7,5 (two tiles: the ordinary step plus 039's lunge).
+    const prev = w(1, { x: 5, y: 5 }, { x: 8, y: 5 });
+    const curr = w(2, { x: 7, y: 5 }, { x: 8 + dart, y: 5 });
+    const dist = chaseDistanceFor(curr.kitties[0], curr);
+    close(dist, 1 + dart, 'the served distance is one tile plus the dart');
+    if (dist > VIEW.pounceGateTiles) outsideTheGate += 1;
+
+    const { pose, leap } = drawnPose({ prev, curr, now: 2000 });
+    assert(leap !== null, `dart ${dart}: the lunge must be in flight`);
+    assert(
+      pose === 'pouncing',
+      `dart ${dart} (served distance ${dist}): a cat flying the lunge arc was drawn ${pose}`,
+    );
+  }
+  // ...and at least one of those has to be a case the gate would demote, or
+  // the whole sweep passes on the old code and proves nothing.
+  assert(
+    outsideTheGate > 0,
+    `no dart in the sweep put the quarry outside the gate (${VIEW.pounceGateTiles}) -- vacuous`,
+  );
+});
+
+check('the gate still demotes an ordinary far chase', () => {
+  // The other half: this refines the gate, it does not disable it. One tile
+  // is ordinary locomotion, the world said nothing about a pounce, and a
+  // quarry four tiles off is exactly what `pounceGateTiles` exists to demote.
+  const GREEBLE = 99;
+  const w = (tick, cat, greeble) => ({
+    tick, width: 20, height: 20,
+    elements: [{ id: GREEBLE, kind: 'greeble', pos: greeble }],
+    kitties: [{
+      id: 1, name: 'B', pos: cat, needs: {}, happiness: 90,
+      last_action: { action: 'chase', target: 'element', id: GREEBLE },
+    }],
+  });
+  const prev = w(1, { x: 5, y: 5 }, { x: 11, y: 5 });
+  const curr = w(2, { x: 6, y: 5 }, { x: 10, y: 5 }); // one tile each
+  const { pose, leap } = drawnPose({ prev, curr, now: 2000 });
+  assert(leap === null, 'a one-tile step is not a lunge');
+  assert(pose === 'walking', `an ordinary far chase was drawn ${pose}, not walking`);
+});
+
 check('a wading cat does not lean toward its friend', () => {
   // The groom lean is a sub-tile slide TOWARD a friend, and `submersionFor`
   // samples the SERVED position -- so a leaning cat is drawn where its own
