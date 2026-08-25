@@ -48,6 +48,23 @@ change.
   washes a friend. Nothing else moved — the clip and the surface are still
   built in tile space, which is what correctly submerges a smaller kitty more
   of her body and correctly lets a leaping cat rise clear.
+- A cat washing a friend to the north is now drawn from behind, as it was
+  always meant to be. `grooming-other` has had an end-on drawing since the
+  pose was built — it was given one because 54% of groom targets sit due north
+  or south, so the axial case is the majority one rather than an edge — and
+  the groomer has always turned to face its partner. What was missing sat
+  between the two. A cat is locked side-on the moment it wears a pose with no
+  end-on drawing, and until now only a *step* released that lock, on the
+  grounds that a step is served evidence the cat really is turned the way the
+  drawing claims. Social grooming happens standing still, so a cat that had
+  just been sitting, eating, drinking or washing itself carried the lock into
+  the scene and never shed it: correctly facing north, still drawn east-west.
+  A groom target is the same evidence and more of it — the engine names the
+  partner and guarantees the pair adjacent on a cardinal — so it now releases
+  the lock too. The rule that stops a stationary cat spinning ninety degrees
+  every time its expression changes is untouched: this fires only while the
+  served action names a partner, which is the same thing that put the cat in
+  the pose.
 
 - A seated cat's rump is back on the grass. `sit` was the one tilted pose
   that stated its seat as a literal number instead of deriving it: `cy`

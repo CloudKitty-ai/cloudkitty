@@ -2075,6 +2075,34 @@ check('a groomer faces her friend and leans toward her, eased both ways', () => 
       assert(q.sideFacingFor(1) === face, 'the side memory did not follow the groom');
     }
   }
+  // ...and the axial DRAWING has to follow the facing, or the pose is drawn
+  // side-on at a friend it is correctly facing north at.
+  //
+  // `axialFor` locks a cat side-on the moment it wears a pose with no axial
+  // drawing, and only a STEP clears it -- "the served evidence that this cat
+  // is oriented the way the view claims". Social grooming happens standing
+  // still, so a cat that has just been sitting, eating, drinking or washing
+  // itself carries that lock into the scene and never sheds it. The owner saw
+  // the result: east-west groom-other poses at friends due north and south.
+  //
+  // A served groom target is the same kind of evidence a step is, and a
+  // stronger one: the engine names the partner and guarantees the pair
+  // adjacent on a cardinal, so the direction is known rather than inferred.
+  for (const [fx, fy] of [[5, 4], [5, 6]]) {
+    const q = new api.Presentation();
+    q.pushState(gw(1, true, fx, fy), 1000);
+    q.pushState(gw(2, true, fx, fy), 1800);
+    // Whatever it was doing first had no axial drawing -- this is exactly the
+    // call `drawKitty` makes while it wears one.
+    assert(q.axialFor(1, false) === false, 'a pose with no axial drawing draws side-on');
+    // Now it is grooming a friend on a cardinal, and the pose HAS one.
+    q.pushState(gw(3, true, fx, fy), 2600);
+    assert(
+      q.axialFor(1, true),
+      `still locked side-on while grooming a friend at ${fx},${fy} -- the groom draws east-west`,
+    );
+  }
+
   // An untargeted groom is the self-groom and changes no facing.
   const bare = new api.Presentation();
   bare.pushState(gw(1, false, 5, 4), 1000);
@@ -4695,11 +4723,18 @@ check('a cat that has not moved keeps its drawing, whatever it is doing', () => 
   assert(seen.every((v) => v === false), 'it should have settled side-on, where a drinking cat can be drawn');
 });
 
-check('a step re-earns the axial drawing, and only a step does', () => {
+check('a step re-earns the axial drawing, and so does a served groom target', () => {
+  // Two re-earners, not one. The lock's rule is "served evidence that this cat
+  // is oriented the way the view claims", and until 2026-08-24 a step was the
+  // only thing that counted -- which left a stationary groomer locked side-on
+  // at a friend it was correctly facing north at. A groom target is the same
+  // evidence: the engine names the partner and guarantees the pair adjacent on
+  // a cardinal. Nothing else re-earns it, and standing still with no evidence
+  // at all still does not.
   const store = new api.Presentation();
   store.pushState(stillWorld(1, { x: 5, y: 7 }), 0);
   store.pushState(stillWorld(2, { x: 5, y: 6 }), 800);
-  store.axialFor(1, false); // groomed once: side-on from here
+  store.axialFor(1, false); // wore a pose with no axial drawing: side-on from here
   store.pushState(stillWorld(3, { x: 5, y: 6 }), 1600);
   assert(!store.axialFor(1, true), 'standing still must not re-earn the axial drawing');
 
@@ -4715,6 +4750,26 @@ check('a step re-earns the axial drawing, and only a step does', () => {
     store.pushState(stillWorld(t, { x: 5, y: 10 - t }), t * 800);
     assert(store.axialFor(1, true), `a walking cat was held side-on at tick ${t}`);
   }
+
+  // The second re-earner, on a cat that never steps at all.
+  const groomer = (tick) => ({
+    tick, width: 64, height: 64, elements: [],
+    kitties: [
+      { id: 1, name: 'K', pos: { x: 5, y: 5 }, needs: {}, happiness: 90,
+        last_action: { action: 'groom', target: 2 } },
+      { id: 2, name: 'F', pos: { x: 5, y: 4 }, needs: {}, happiness: 90 },
+    ],
+  });
+  const g = new api.Presentation();
+  g.pushState(groomer(1), 0);
+  g.pushState(groomer(2), 800);
+  assert(g.facingFor(1) === 'north', 'the groomer must face its friend first');
+  g.axialFor(1, false); // something without an axial drawing: locked side-on
+  g.pushState(groomer(3), 1600);
+  assert(
+    g.axialFor(1, true),
+    'a served groom target must re-earn the axial drawing without a step',
+  );
 });
 
 check('a discontinuity forgets the lock, like every other memory', () => {

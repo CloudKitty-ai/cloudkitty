@@ -1316,6 +1316,25 @@ class Presentation {
           this.facings.set(kitty.id, face);
           if (!this.sideFacings) this.sideFacings = new Map();
           if (fHoriz) this.sideFacings.set(kitty.id, face);
+          // ...and this re-earns the axial drawing, exactly as a step does.
+          //
+          // `axialFor` locks a cat side-on the moment it wears a pose with no
+          // axial drawing, and until 2026-08-24 only a STEP cleared it. Social
+          // grooming happens standing still, so a cat that had just been
+          // sitting, eating, drinking or washing itself carried that lock into
+          // the scene and never shed it: the facing above turned it north, the
+          // lock kept the drawing side-on, and `grooming-other` -- which HAS an
+          // axial drawing, and whose axial case is the majority one at 54% of
+          // targets -- was painted east-west at a friend due north.
+          //
+          // The lock's own rule is "served evidence that this cat is oriented
+          // the way the view claims". A groom target is that, and more of it
+          // than a step: the engine names the partner and guarantees the pair
+          // adjacent on a cardinal, so the direction is known rather than
+          // inferred from a delta. The anti-whip invariant is untouched -- this
+          // fires only while `last_action` names a partner, which is the same
+          // thing that put the cat in the pose.
+          this.axialLocks.delete(kitty.id);
         }
       }
       // A cat eats and drinks from a tile BESIDE it, so it can be served
