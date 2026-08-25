@@ -1703,143 +1703,138 @@ what it appears to pin).
 **Re-verify when**: any change to the friend helpers, `prune_dead_activity`,
 or the duration config; and before pricing any partnered scene in an EV.
 
-## F-032 · active · The most social policy pays a turn tax: `Idle` in `last_action` is the legality funnel refusing an ask, and it scales with how often a cat asks
+## F-032 · superseded by F-033 · The most social policy pays a turn tax: `Idle` in `last_action` is the legality funnel refusing an ask
 
-Found 2026-08-25 by Experiments, from a client-side idle census Client
-took for an unrelated reason (the owner noticed Biscuit yawning). Cites
-[F-031](#f-031--active--a-partnered-scene-runs-its-minimum-only-if-the-counterpart-is-pinned-grooming-is-the-exception)
-for the partnered-scene mechanics it rests on.
+Claimed from served-world evidence that Biscuit's `idle` ticks were
+`action::validate` refusing a partnered-play proposal rather than the
+policy choosing to idle — flagged at registration as an inference,
+because proposals are not observable from outside the engine. The
+settling experiment it specified was run the next day and **narrowed
+it: the refusal is real, large and uniquely Biscuit's, but it is 45% of
+the seat's idle, not all of it.** The majority is a genuine idle
+proposal. Full text in [FINDINGS-ARCHIVE.md](FINDINGS-ARCHIVE.md);
+the measured split, and the part that survives, are F-033.
 
-**`last_action` is not what the policy asked for.** `World` writes the
-**enforced** action (`world.rs:338`, `last_action = Some(enforced)`,
-guarded by `last_action_records_what_actually_happened`), and
-`action::validate` — "the whole of Article IV's enforcement surface"
-(`action.rs:340`) — maps *every* illegal proposal to `Action::Idle`.
-So an `idle` on the served surface has two indistinguishable
-preimages: a policy that proposed idle, and a policy whose proposal was
-refused. Nothing outside the engine can tell them apart.
+## F-033 · active · Every seat pays a partnered-action refusal tax, in its own currency — but for Biscuit that is under half its idle; the rest it chooses
 
-1. **Biscuit (e006a-L-04-s3) reads `idle` on 35 of 226 ticks (15%);
-   every other seat reads 1–3%.** Served roster, ticks 354,335–354,560.
+Settles the inference [F-032](FINDINGS-ARCHIVE.md) registered and could
+not test. Run 2026-08-25 on the owner's word — the experiment F-032
+itself specified. Cites [F-031](#f-031--active--a-partnered-scene-runs-its-minimum-only-if-the-counterpart-is-pinned-grooming-is-the-exception)
+for the unpinned-counterpart mechanics it lands on.
 
-2. **It is not volume, it is a per-ending rate.** Idle lands on the
-   tick *after* a play or chase block ends:
+**Why the served world could not answer it.** `last_action` carries the
+ENFORCED action (`world.rs:338`), so a chosen idle and a refused ask are
+spelled identically. Three actions exist per tick — `proposed`,
+`validated`, `applied` (`seam.rs:212`) — and the served surface shows
+only the last.
 
-   | seat | play/chase endings | next tick is `idle` | idle ticks |
-   |---|---|---|---|
-   | **Biscuit** | 35 | **77%** | 35 |
-   | Pumpkin | 18 | 6% | 6 |
-   | Miso | 14 | 0% | 3 |
-   | Kittybear | 14 | 0% | 3 |
-   | Clementine | 12 | 0% | 4 |
+**Method**: all five served artifacts seated as external agents on the
+certification config (`phase1-cutover-bugs2.toml`), greedy argmax under
+the engine's own mask — the served decision rule (`behavior.rs:14`,
+"argmax over masked logits, ties to the lowest index"; no served seat
+enables sampling). Eval band 870001–870010, 10 seeds × 20,000 ticks =
+200,000 ticks per seat. Instrument
+`exp-006a-biscuit-corner/idle_rewrite_probe.py`.
 
-   Pumpkin ends 18 scenes and idles after one. The difference is not
-   that Biscuit finishes more scenes; it is what happens at the seam.
+1. **Of the ticks whose applied action is idle:**
 
-3. **The refused ask is overwhelmingly a duet.** 22 of the 35 idle
-   ticks directly follow a *kitty*-target play. Duet legality is
-   `world.is_conscriptable_friend(kitty_id, id)` (`action.rs:411`) —
-   the partner must be **free**. The partner's own scene ending is
-   sufficient to make a re-proposed duet illegal, and by F-031 duets
-   run exactly their 2-tick minimum, so the seam arrives on a clock.
+   | seat | applied idle | CHOSE idle | was REFUSED into it | idle rate |
+   |---|---|---|---|---|
+   | **Biscuit** (e006a-L-04-s3) | **21,047** | **11,668 (55%)** | **9,379 (45%)** | **10.5%** |
+   | Clementine | 4,196 | 12 | 4,184 | 2.1% |
+   | Kittybear | 3,490 | 0 | 3,490 | 1.7% |
+   | Pumpkin | 3,040 | 0 | 3,040 | 1.5% |
+   | Miso | 1,873 | 6 | 1,867 | 0.9% |
 
-4. **Idle is a genuine do-nothing here, not a continuation.** `apply`
-   intercepts an Idle proposal from a *clocked* kitty as a
-   continuation (`action.rs:430`); these ticks are post-scene, so they
-   reach the `Action::Idle => {}` arm and produce no state change.
-   Biscuit's position is unchanged across all 35.
+   Counted two independent ways — from `survived` (`validated ==
+   proposed`) and from decoding the proposal against the fixed menu —
+   which agree to the unit on every seat.
 
-5. **Ruled out by measurement, not argument.** Target starvation: the
-   distance to the nearest critter is identical during idle and chase
-   (median 7.0, mean 6.6 both), and there were exactly 4 critters on
-   the map at every tick of the window. Ambush: 11% of idle ticks have
-   a critter within 3 tiles, against chase's 8%. Engine meows: Biscuit
-   is the *quietest* seat (17.8/1k vs Pumpkin 94.7), and its only
-   non-purr messages were `want_drink`×2 and `want_eat` — nothing
-   play-related. Idle runs are 1–2 ticks, never longer (25×1, 5×2), and
-   80% are followed immediately by chase or play.
+2. **F-032 was 45% right, which means it was wrong as stated.** "Biscuit
+   isn't idling, it's being refused" does not survive: the majority of
+   its idle is a genuine idle proposal that passed validation. The
+   register's own caveat — that a chosen idle fits the same served data —
+   was the live possibility, and it was the larger half.
 
-**The claim**: a policy that proposes partnered play more often is
-refused more often, and each refusal costs it a whole turn. The tax is
-proportional to sociability, and it is invisible on the served surface
-because the refusal is spelled the same as a choice.
+3. **The refusal is real, and it is partnered play specifically.** Of
+   Biscuit's 9,379 refusals into idle, **9,187 (98%) were `play_kitty`** —
+   a duet proposal naming a partner slot. Not solo play, not critter
+   play. Duet legality is `is_conscriptable_friend`: the partner must be
+   free.
 
-**INFERENCE, explicitly flagged**: (1)–(5) are measured, but "refused"
-is an inference from the pattern, because proposals are not observable
-from outside the engine. The alternative — that the policy genuinely
-proposes idle at 77% of its own scene endings and never elsewhere — is
-consistent with the same data. **The settling experiment is cheap and
-lab-side**: drive the seat through the joint-action seam, where the
-proposal and the enforced action are both in hand, and count how often
-`validate` rewrites Play/Chase to Idle. Do that before citing this
-finding as a cause of anything.
+4. **The tax is not Biscuit's alone — it is the general shape, and each
+   seat pays it in its own currency.** Every seat's refusals are
+   dominated by partnered actions whose counterpart can leave:
 
-**The open question it opens (untested)**: Biscuit carries the roster's
-lowest happiness (90.95 live) and its certified character price is
-0.76 under thermostat parity. If 15% of its turns produce no state
-change while other seats lose 1–3%, part of that price may simply be
-the cost of asking rather than anything about character. Not measured;
-the lab replay above plus a needs-servicing count per turn would settle
-it. **If it holds, there is headroom that costs no character**:
-`Play { target: None }` is *always* legal ("pouncing at nothing is
-always legal, like grooming oneself", `action.rs:407`), so a policy
-that fell back to a solo pounce when a duet is refused would keep the
-social ask and stop paying for it.
+   | seat | top refused proposals (into idle) |
+   |---|---|
+   | Biscuit | `play_kitty` 9,187 · move 113 |
+   | Clementine | `groom_kitty` 2,402 · move 1,277 · `sleep_kitty` 418 |
+   | Kittybear | `groom_kitty` 1,958 · move 1,122 · `sleep_kitty` 286 |
+   | Pumpkin | move 1,367 · `groom_kitty` 1,246 · `sleep_kitty` 201 |
+   | Miso | move 1,091 · `sleep_kitty` 619 · eat 96 |
 
-**Scope**: one 226-tick window, served world, this five-seat roster,
-one character-trained seat. The rate is a function of how often the
-seat proposes partnered play, so it should fall on any roster whose
-cats are more often free, and it says nothing about scripted
-compositions.
+   The groomers are refused on grooming exactly as F-031 predicts —
+   grooming is the partnered activity whose counterpart is never pinned.
+   Biscuit is refused on duets because it is the only seat that proposes
+   them at volume. (`move` refusals are a different rule: walking into
+   an occupied tile.)
 
-**What would invalidate it**: a seat with a high partnered-play rate
-and a low post-ending idle rate (would break the proportionality); a
-lab replay showing `validate` rarely rewrites this seat's actions
-(would mean the idles are genuine proposals, and the turn tax is a
-training artifact rather than an enforcement one); or the same idle
-rate appearing on a seat whose scenes end just as often but are solo.
+5. **Biscuit is the only seat that ever chooses idle** — 11,668 against
+   0–12 for every other seat. The character-trained policy learned to
+   propose a do-nothing turn; the four older policies essentially never
+   do. That is a fact about the training, not the enforcement, and
+   F-032 missed it entirely.
+
+6. **The mechanism is structural, not a policy flaw.** The mask probes
+   the FROZEN start-of-tick snapshot while enforcement runs in the
+   kitty's apply slot, after earlier kitties' turns have applied —
+   `meow.rs:167`, "probing shares the RULE, not the MOMENT", which states
+   the activity mask probes `validate` the same way. A partner
+   conscriptable at start-of-tick can be gone by the apply slot. No
+   policy could avoid this by choosing better.
+
+**Instrument warnings, each of which cost a wrong answer first:**
+
+- **`survived == 0` is not a synonym for "refused"**, and reading it as
+  one overstates by ~2×. It is `validated != proposed` and reflects
+  `validate` ONLY; `enforce_durations` runs afterwards and normalizes a
+  continuing proposal to the continuation action (`world.rs:487`).
+  Biscuit's 21,121 rewrites split 9,379 into idle and 9,756 into `play`,
+  the latter being scenes already running.
+- **`survived == 1` does not mean applied == proposed**, for the same
+  reason. An earlier version of this probe learned the menu from those
+  ticks and had index 25 report as both `play` and `groom`.
+- **The activity menu is a fixed 34-entry table** (codec v2, spec 028);
+  schema 3 widened only the message head (`codec.rs:54`, "the 34-entry
+  activity menu did NOT move"). The probe pins
+  `ACTION_SCHEMA_VERSION == 3` and asserts alignment the engine
+  guarantees: `validate` has `Action::Idle => true`, so a proposed idle
+  can never be rewritten, and a misaligned table would show one.
+
+**Scope**: certification config, greedy, the five served artifacts, one
+eval band. The served world is a different config and this was not
+re-derived there; the lab's 10.5% applied-idle rate against the served
+15% is supporting, not proof. F-032's served-side
+77%-of-scene-endings statistic was NOT re-measured here.
+
+**What would invalidate it**: a seat proposing partnered actions at
+volume with few partnered refusals (would break the concentration);
+Biscuit's choice/refusal split moving materially on the served config or
+another band; or a served-side replay showing the in-engine behavior
+does not use the greedy masked argmax this assumed.
 
 **Re-verify when**: any change to `is_conscriptable_friend`, the
-`validate` legality arms, or duet duration config; and before pricing
-partnered play in any EV or reward-shaping pass — an ask that gets
-refused is not free, and current EVs price it as if it were.
+`validate` legality arms, the mask's probe moment, or duet duration
+config — and before pricing any partnered action in an EV, where the
+refusal rate is a real cost that current EVs omit for grooming as well
+as for play.
 
-**Addendum 2026-08-25 — the idle run length is also a RENDERING
-parameter (Client, measured; carried here at their request).** Client
-simulated the shipped animation scheduler against the same census
-windows. The client is not drawing a yawn: of the yawns started on
-Biscuit (~7.3/hour), **3.6% are fully drawn**, 64.9% reach the hold
-phase and only 12.7% reach the close, median shown **485ms of 1420ms**.
-The yawn is 340 open / 620 hold / 460 close, `stepRig` passes it
-through rather than integrating it (`yawn: input.yawn || 0`), so the
-mouth snaps shut with no ease when the pose leaves idle. A yawn needs
-~1.77 ticks; this finding measured idle runs of 1–2 ticks (25×1, 5×2,
-none longer). The drawn result is a half-second open-and-shut mouth —
-which reads as a vocalisation, and the owner described it as "very
-meow" before any of this was measured.
-
-**Why an engine register carries a client number**: it makes the
-current reading *fragile in a direction invisible from this side*.
-Nothing in the client changes if a future policy idles in longer runs —
-the close phase simply starts playing, and the same engine beat becomes
-an actual sleepy yawn. **So "how long the seat idles" is a rendering
-decision as well as a behavioural one**, and the coupling runs through
-a threshold (~1.77 ticks) that no engine-side change would flag. Any
-work that lengthens idle runs — including the `Play { target: None }`
-solo-pounce fallback above, which would *shorten* them toward zero —
-changes what a viewer sees, not only what the seat does.
-
-**Status of that coupling (owner, 2026-08-25): intended to be
-DISSOLVED, and this note exists so it does not outlive its truth.** The
-coupling above is a property of the *currently shipped* client, where
-the beat is driven by the idle pose. The plan is to extract the
-animation, drive it independently, and slot it somewhere of its own
-(random meows while walking is the leading candidate) — the client does
-not need strict determinism, so it has that freedom. **Once that lands,
-idle run length stops being a rendering parameter and this addendum
-stops constraining engine work**: the ~1.77-tick threshold, and the
-worry about `Play { target: None }` removing the beat, both become
-moot. Until then it holds. The owner has also framed the client as a
-side project rather than a gate on this register, so **no engine or
-training decision should wait on it** — tell Client as a courtesy, do
-not treat it as a dependency.
+**What it opens**: the Biscuit 3.0 question is two questions, not one.
+The refusal half (4.6% of ticks) is addressable — `Play { target: None }`
+is always legal, so a solo-pounce fallback keeps the ask and drops the
+tax, and the same argument extends to the groomers' `groom_kitty`
+refusals via `Groom { target: None }`. The chosen half (5.8% of ticks)
+is not a bug but a trained behaviour to understand, and it is the
+larger one. Whether either moves a seat's happiness is still
+unmeasured: that needs a needs-servicing count per turn, not this probe.

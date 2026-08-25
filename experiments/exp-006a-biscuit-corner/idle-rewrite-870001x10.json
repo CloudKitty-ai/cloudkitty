@@ -1,0 +1,297 @@
+{
+ "instrument": "idle_rewrite_probe.py (F-032 settling experiment)",
+ "provenance": {
+  "git_head": "2403d770926a0b16708578bc132d0e1d41ddeefb",
+  "git_dirty": true,
+  "git_dirty_paths": [
+   "experiments/FINDINGS-ARCHIVE.md",
+   "experiments/FINDINGS.md",
+   "experiments/exp-006a-biscuit-corner/idle-rewrite-870001x10.json",
+   "experiments/exp-006a-biscuit-corner/idle_rewrite_probe.py",
+   "experiments/exp-006a-biscuit-corner/idle-rewrite-870001.json",
+   "experiments/exp-006a-biscuit-corner/idle-rewrite-870001x1.json"
+  ],
+  "git_dirty_count": 6,
+  "tool": "idle_rewrite_probe.py",
+  "tool_sha256": "664390e86b6bcb04118ce1ba3b8cfb12e3bb2dde1fc109cb5d9188264e2810eb",
+  "toolchain_pin": "1.97.1",
+  "stamped_utc": "2026-08-25T06:49:32+00:00"
+ },
+ "config": "experiments/exp-006-character-gen/configs/phase1-cutover-bugs2.toml",
+ "seeds": [
+  870001,
+  870002,
+  870003,
+  870004,
+  870005,
+  870006,
+  870007,
+  870008,
+  870009,
+  870010
+ ],
+ "ticks_per_seed": 20000,
+ "ticks": 200000,
+ "menu": [
+  "move",
+  "move",
+  "move",
+  "move",
+  "rest",
+  "rest_kitty",
+  "rest_kitty",
+  "rest_kitty",
+  "sleep",
+  "sleep_kitty",
+  "sleep_kitty",
+  "sleep_kitty",
+  "groom_self",
+  "groom_kitty",
+  "groom_kitty",
+  "groom_kitty",
+  "eat",
+  "drink",
+  "chase_critter",
+  "chase_critter",
+  "chase_critter",
+  "chase_critter",
+  "chase_kitty",
+  "chase_kitty",
+  "chase_kitty",
+  "play_solo",
+  "play_critter",
+  "play_critter",
+  "play_critter",
+  "play_critter",
+  "play_kitty",
+  "play_kitty",
+  "play_kitty",
+  "idle"
+ ],
+ "seats": {
+  "Miso": {
+   "ticks": 200000,
+   "survived": 188197,
+   "rewrites": 11803,
+   "rewrite_rate_pct": 5.9,
+   "rewritten_from": {
+    "sleep_kitty": 5460,
+    "eat": 2944,
+    "play_kitty": 2221,
+    "move": 1104,
+    "groom_kitty": 63,
+    "rest_kitty": 11
+   },
+   "applied_idle_total": 1873,
+   "applied_idle_chosen": 6,
+   "applied_idle_refused": 1867,
+   "applied_idle_refused_from": {
+    "move": 1091,
+    "sleep_kitty": 619,
+    "eat": 96,
+    "groom_kitty": 60,
+    "rest_kitty": 1
+   },
+   "proposed_mix": {
+    "sleep_kitty": 58309,
+    "move": 53582,
+    "eat": 16929,
+    "drink": 16387,
+    "groom_self": 14795,
+    "chase_kitty": 13958,
+    "sleep": 13105,
+    "play_solo": 9495
+   },
+   "rewritten_to": {
+    "sleep": 4833,
+    "eat": 2846,
+    "play": 2247,
+    "idle": 1867,
+    "rest": 10
+   },
+   "provenance": {
+    "policy": 200000
+   }
+  },
+  "Biscuit": {
+   "ticks": 200000,
+   "survived": 178879,
+   "rewrites": 21121,
+   "rewrite_rate_pct": 10.56,
+   "rewritten_from": {
+    "play_kitty": 18951,
+    "sleep_kitty": 1263,
+    "eat": 599,
+    "rest_kitty": 160,
+    "move": 113,
+    "groom_kitty": 35
+   },
+   "applied_idle_total": 21047,
+   "applied_idle_chosen": 11668,
+   "applied_idle_refused": 9379,
+   "applied_idle_refused_from": {
+    "play_kitty": 9187,
+    "move": 113,
+    "groom_kitty": 35,
+    "rest_kitty": 25,
+    "eat": 18,
+    "sleep_kitty": 1
+   },
+   "proposed_mix": {
+    "play_critter": 59263,
+    "chase_kitty": 30503,
+    "play_kitty": 28509,
+    "chase_critter": 25001,
+    "sleep_kitty": 18168,
+    "idle": 11703,
+    "move": 9352,
+    "drink": 5439
+   },
+   "rewritten_to": {
+    "play": 9756,
+    "idle": 9379,
+    "sleep": 1269,
+    "eat": 581,
+    "rest": 136
+   },
+   "provenance": {
+    "policy": 200000
+   }
+  },
+  "Pumpkin": {
+   "ticks": 200000,
+   "survived": 188981,
+   "rewrites": 11019,
+   "rewrite_rate_pct": 5.51,
+   "rewritten_from": {
+    "play_kitty": 3267,
+    "eat": 2902,
+    "sleep_kitty": 2167,
+    "move": 1386,
+    "groom_kitty": 1257,
+    "rest_kitty": 40
+   },
+   "applied_idle_total": 3040,
+   "applied_idle_chosen": 0,
+   "applied_idle_refused": 3040,
+   "applied_idle_refused_from": {
+    "move": 1367,
+    "groom_kitty": 1246,
+    "sleep_kitty": 201,
+    "play_kitty": 159,
+    "eat": 67
+   },
+   "proposed_mix": {
+    "move": 68914,
+    "groom_kitty": 24624,
+    "drink": 23742,
+    "sleep_kitty": 22387,
+    "eat": 18779,
+    "play_solo": 14407,
+    "chase_kitty": 13199,
+    "sleep": 5676
+   },
+   "rewritten_to": {
+    "play": 3144,
+    "idle": 3040,
+    "eat": 2834,
+    "sleep": 1960,
+    "rest": 41
+   },
+   "provenance": {
+    "policy": 200000
+   }
+  },
+  "Kittybear": {
+   "ticks": 200000,
+   "survived": 189642,
+   "rewrites": 10358,
+   "rewrite_rate_pct": 5.18,
+   "rewritten_from": {
+    "eat": 2542,
+    "play_kitty": 2444,
+    "sleep_kitty": 2186,
+    "groom_kitty": 1966,
+    "move": 1185,
+    "rest_kitty": 35
+   },
+   "applied_idle_total": 3490,
+   "applied_idle_chosen": 0,
+   "applied_idle_refused": 3490,
+   "applied_idle_refused_from": {
+    "groom_kitty": 1958,
+    "move": 1122,
+    "sleep_kitty": 286,
+    "eat": 89,
+    "play_kitty": 35
+   },
+   "proposed_mix": {
+    "move": 55319,
+    "groom_kitty": 32307,
+    "sleep_kitty": 24574,
+    "drink": 18245,
+    "eat": 16254,
+    "sleep": 14064,
+    "play_solo": 12760,
+    "chase_kitty": 12681
+   },
+   "rewritten_to": {
+    "idle": 3490,
+    "eat": 2453,
+    "play": 2431,
+    "sleep": 1898,
+    "groom": 51,
+    "rest": 35
+   },
+   "provenance": {
+    "policy": 200000
+   }
+  },
+  "Clementine": {
+   "ticks": 200000,
+   "survived": 187620,
+   "rewrites": 12380,
+   "rewrite_rate_pct": 6.19,
+   "rewritten_from": {
+    "sleep_kitty": 3369,
+    "eat": 2691,
+    "play_kitty": 2457,
+    "groom_kitty": 2425,
+    "move": 1353,
+    "rest_kitty": 85
+   },
+   "applied_idle_total": 4196,
+   "applied_idle_chosen": 12,
+   "applied_idle_refused": 4184,
+   "applied_idle_refused_from": {
+    "groom_kitty": 2402,
+    "move": 1277,
+    "sleep_kitty": 418,
+    "eat": 74,
+    "play_kitty": 9,
+    "rest_kitty": 4
+   },
+   "proposed_mix": {
+    "move": 56605,
+    "sleep_kitty": 35647,
+    "groom_kitty": 30278,
+    "drink": 18361,
+    "eat": 16902,
+    "play_solo": 11952,
+    "chase_kitty": 11312,
+    "groom_self": 8146
+   },
+   "rewritten_to": {
+    "idle": 4184,
+    "sleep": 2944,
+    "eat": 2616,
+    "play": 2493,
+    "rest": 80,
+    "groom": 63
+   },
+   "provenance": {
+    "policy": 200000
+   }
+  }
+ }
+}
