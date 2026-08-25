@@ -1,0 +1,93 @@
+{
+ "instrument": "waterline_exposure.py",
+ "provenance": {
+  "git_head": "79fae3e81233eec5375988722f5d1ec2f42ba412",
+  "git_dirty": true,
+  "git_dirty_paths": [
+   "experiments/attn-cert-2026-08-14/results-raw/waterline-exposure-343736.json",
+   "experiments/attn-cert-2026-08-14/waterline_exposure.py"
+  ],
+  "git_dirty_count": 2,
+  "tool": "waterline_exposure.py",
+  "tool_sha256": "7df157bf3ac63db8a2f40ddf7b90a3e541a607cb4a5a104a7317799543cb8506",
+  "toolchain_pin": "1.97.1",
+  "stamped_utc": "2026-08-25T00:46:20+00:00"
+ },
+ "served": {
+  "base": "https://kitties.ai",
+  "config_sha256": "673b4af38ec20153e0bc991546839af4bb21eda24a79e5376c6c5a39d84c8ff3",
+  "world": {
+   "width": 20,
+   "height": 20,
+   "tick_ms": 800,
+   "seed": 20260718
+  },
+  "tick": 344508,
+  "roster": [
+   {
+    "id": 1,
+    "name": "Miso",
+    "behavior": "policy:attn-a1-s1-o4"
+   },
+   {
+    "id": 2,
+    "name": "Biscuit",
+    "behavior": "policy:e006a-L-04-s3"
+   },
+   {
+    "id": 3,
+    "name": "Pumpkin",
+    "behavior": "policy:attn-a1-s3-o4"
+   },
+   {
+    "id": 4,
+    "name": "Kittybear",
+    "behavior": "policy:e006-E1-s1"
+   },
+   {
+    "id": 5,
+    "name": "Clementine",
+    "behavior": "policy:e004-a1-s2-o4"
+   }
+  ]
+ },
+ "tick_range": [
+  344132,
+  344507
+ ],
+ "ticks_seen": 376,
+ "cat_ticks": 1880,
+ "on_water_share": 0.0484,
+ "adjacent_pair_ticks": 615,
+ "cross_adjacent_pair_ticks": 64,
+ "active_pairings": {
+  "duet": 20,
+  "cosleep": 198,
+  "cuddle": 0,
+  "groom": 122
+ },
+ "cross_pairings": {
+  "duet": 0,
+  "cosleep": 11,
+  "cuddle": 0,
+  "groom": 8
+ },
+ "cross_pairings_by_pair": {
+  "cosleep:Kittybear+Miso": 1,
+  "cosleep:Clementine+Miso": 4,
+  "groom:Clementine+Kittybear": 1,
+  "cosleep:Biscuit+Miso": 6,
+  "groom:Miso+Pumpkin": 2,
+  "groom:Clementine+Pumpkin": 5
+ },
+ "cross_adjacency_by_pair": {
+  "Clementine+Miso": 7,
+  "Clementine+Kittybear": 2,
+  "Biscuit+Miso": 23,
+  "Clementine+Pumpkin": 13,
+  "Kittybear+Pumpkin": 5,
+  "Miso+Pumpkin": 4,
+  "Biscuit+Pumpkin": 7,
+  "Biscuit+Kittybear": 3
+ }
+}
