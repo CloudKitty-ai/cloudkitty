@@ -1827,6 +1827,19 @@ decision as well as a behavioural one**, and the coupling runs through
 a threshold (~1.77 ticks) that no engine-side change would flag. Any
 work that lengthens idle runs — including the `Play { target: None }`
 solo-pounce fallback above, which would *shorten* them toward zero —
-changes what a viewer sees, not only what the seat does. Re-verify the
-rendering consequence alongside the behavioural one, and tell Client
-before shipping either.
+changes what a viewer sees, not only what the seat does.
+
+**Status of that coupling (owner, 2026-08-25): intended to be
+DISSOLVED, and this note exists so it does not outlive its truth.** The
+coupling above is a property of the *currently shipped* client, where
+the beat is driven by the idle pose. The plan is to extract the
+animation, drive it independently, and slot it somewhere of its own
+(random meows while walking is the leading candidate) — the client does
+not need strict determinism, so it has that freedom. **Once that lands,
+idle run length stops being a rendering parameter and this addendum
+stops constraining engine work**: the ~1.77-tick threshold, and the
+worry about `Play { target: None }` removing the beat, both become
+moot. Until then it holds. The owner has also framed the client as a
+side project rather than a gate on this register, so **no engine or
+training decision should wait on it** — tell Client as a courtesy, do
+not treat it as a dependency.
