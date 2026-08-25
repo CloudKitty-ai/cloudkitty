@@ -33,6 +33,24 @@ change.
 
 ## Unreleased
 
+- A cat flying the final pounce is drawn pouncing, not walking. The lunge and
+  the pose were reading different evidence about the same tick. The engine
+  serves the lunge as one extra step once an element quarry sits two tiles
+  off, and the client draws the arc off that served two-tile step — the only
+  two-tile step the world ever makes. The pose, meanwhile, came from a
+  distance gate, measured against the state the frame draws, which is *after*
+  the quarry has moved. A greeble darts up to three tiles on its moving ticks,
+  and the lunge leaves the cat one tile from where the quarry was, so a
+  maximum dart put the measured distance at four against a gate of three: the
+  cat flew the arc with its legs running. Under the greeble's older one-or-two
+  skitter the worst case was exactly three and this could not happen. The step
+  now outranks the gate, because it is not a heuristic — the gate asks whether
+  the quarry is close enough that this is probably the climax, and the step is
+  the world saying so outright. Raising the gate would have patched one tick
+  by loosening every other one, and would have broken again the next time the
+  dart grew. The gate is otherwise untouched and still demotes an ordinary far
+  chase.
+
 - A cat washing a friend stops reaching once it is standing in water. The
   groom lean is a sub-tile slide toward the friend, and `submersionFor`
   samples the *served* position — so a leaning cat was drawn where its own

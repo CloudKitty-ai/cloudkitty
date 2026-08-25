@@ -160,7 +160,7 @@ const SCENE_POSE = {
  * did. That is what makes this change additive rather than a rewrite -- the
  * only ticks that move are the ones where the action itself names a pose.
  */
-function poseFor(kitty, moved, onWater = false, chaseDist = null, dials = VIEW) {
+function poseFor(kitty, moved, onWater = false, chaseDist = null, lunged = false, dials = VIEW) {
   const action = kitty.last_action?.action;
   // Groom names its pose by TARGET: washing a friend on the adjacent tile
   // is a different silhouette from washing yourself (GROOM-OTHER-EDITS),
@@ -178,7 +178,27 @@ function poseFor(kitty, moved, onWater = false, chaseDist = null, dials = VIEW) 
   // target could not be resolved -- caught or expired this very tick, or
   // a v1 caller passing no distance -- and an unknown quarry keeps the
   // pounce, so the gate only ever takes it away on positive evidence.
-  if (action === 'chase' && (chaseDist === null || chaseDist <= dials.pounceGateTiles)) {
+  // `lunged` is the served two-tile step -- spec 039's lunge, and the only
+  // two-tile step the world ever serves (`leapFor`). It outranks the gate
+  // because it is not a heuristic: the gate asks "is the quarry close enough
+  // that this is probably the climax", and the step is the world saying it
+  // outright.
+  //
+  // They came apart on 2026-08-24. The gate measures against the same served
+  // state the frame draws, which is AFTER the quarry moved, and a greeble
+  // darts 1-3 tiles on its moving ticks (039's third amendment). The lunge
+  // leaves the cat one tile from where the quarry was, so a maximum dart puts
+  // the served distance at 4 against a gate of 3 -- and the cat flew the arc
+  // with its legs running. Under the old 1-2 skitter the worst case was
+  // exactly 3 and this was unreachable.
+  //
+  // Raising the gate would patch that one tick by loosening every other one,
+  // and would break again the next time the dart grows. This cannot: it only
+  // ever adds a pounce on a tick the world already called a lunge.
+  if (
+    action === 'chase' &&
+    (lunged || chaseDist === null || chaseDist <= dials.pounceGateTiles)
+  ) {
     return 'pouncing';
   }
   const scene = SCENE_POSE[kitty.activity?.state];
@@ -1550,9 +1570,24 @@ class WorldRenderer {
     // facing from its last horizontal movement, motion from the animation
     // layer -- and the drama layered by the documented rule: pose, then
     // action animation, then expression, then the single one-shot beat.
+    // The final pounce's flight (spec 039): the body lifts on the arc
+    // while the ground shadow below stays on the travel line -- the
+    // separation IS the airborne read. Read defensively: a view without
+    // the method ships this inert (the axial-whip lesson).
+    //
+    // Resolved HERE, ahead of the pose, because the pose needs it: a served
+    // lunge is drawn pouncing whatever the gate makes of the distance. The
+    // flight block further down uses the same value.
+    const leap = v2Motion && view.leapFor ? view.leapFor(kitty.id) : null;
     const served = view.adjustPose(
       kitty.id,
-      poseFor(kitty, view.movedFor(kitty.id), onWater, chaseDistanceFor(kitty, world)),
+      poseFor(
+        kitty,
+        view.movedFor(kitty.id),
+        onWater,
+        chaseDistanceFor(kitty, world),
+        leap !== null,
+      ),
     );
     // A cat with nothing asked of it may sit, or stretch on waking. Both
     // are things a cat does while doing NOTHING, so neither can imply an
@@ -1676,11 +1711,7 @@ class WorldRenderer {
     // drawn on grass.
     const furWet = v2Motion && view.wetFor ? view.wetFor(kitty.id, onWater) : 0;
 
-    // The final pounce's flight (spec 039): the body lifts on the arc
-    // while the ground shadow below stays on the travel line -- the
-    // separation IS the airborne read. Read defensively: a view without
-    // the method ships this inert (the axial-whip lesson).
-    const leap = v2Motion && view.leapFor ? view.leapFor(kitty.id) : null;
+
     // The groom lean: a grounded slide, so unlike the leap's lift it moves
     // the shadow WITH the cat.
     const lean = v2Motion && view.leanFor ? view.leanFor(kitty.id) : null;
