@@ -33,6 +33,13 @@ change.
 
 ## Unreleased
 
+- A loafing cat can call too, with its eyes shut. `loaf` joins the poses the
+  meow is drawn on. It is the only one of them whose eyes are already closed,
+  so the call cannot open them and is not meant to — a cat folded up and
+  mumbling was the point. Added ahead of its own need: `rest` is not currently
+  chosen by any cat, so this drew nothing at all in the last census, but the
+  cuddle economy is being repriced and loafing is about to become ordinary.
+
 - Cats move their mouths when they speak. The engine has always had a message
   channel — a cat says "I want to eat!", or mews, or chirps — and the client
   has always drawn that as a speech bubble over a closed mouth. Now the cat
