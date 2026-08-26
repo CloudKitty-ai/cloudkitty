@@ -69,7 +69,10 @@ prediction (evaluate the partner's play need before proposing) or
 need prioritization (food-over-play when food is high and play low;
 should be learnable) — have measurable headroom (~4.2 pts bound). A
 solo-pounce fallback redirects refused turns into more play, which
-this data gives no payoff for.
+this data gives no payoff for. Neither lever needs a schema change:
+kitty slots already observe the partner's six needs + happiness
+(`rl/src/observe.rs:299`) — this is training/shaping territory for
+step 6, not a step-2½ schema-break item.
 
 Scope: one 12-minute window, one time-of-day; excursion counts are
 small (1–3). Re-run before committing the Biscuit 3.0 design — the
