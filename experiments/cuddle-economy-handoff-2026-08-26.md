@@ -26,16 +26,38 @@ victim; pointed the other way, the same principle is why rest gets NO
 play drip (dropped — it would do to play duets what co-sleep did to
 rest).
 
-## Change 1 — split the shared dial (prerequisite)
+## Change 1 — split the shared dial (prerequisite), as its own
+## behavior-preserving step
 
 `cuddle_relief` has exactly two call sites (`action.rs:762` groomer's
 warmth, `:797-798` rest duet). Split into two dials so either can move
-alone. Suggested names follow the cosleep pair:
+alone — **and land the split at 8.0/8.0 first, byte-identical, before
+any dial moves.** This is spec 028's own pattern for the cosleep split
+(`config/defaults.rs:42`: "behavior-preserving at launch — both tiers
+equal the classic cuddle_relief until the pilot re-prices them"), and it
+keeps continuity byte-checkable. Suggested names follow the cosleep
+pair:
 
-| new dial | site | value |
-|---|---|---|
-| `rest_mutual_relief` | rest, mutual tier | **8.0** (unchanged — the specialist keeps saturating) |
-| `groom_cuddle_relief` | groom-rider | **0.5** |
+| new dial | site | step 1 (split) | step 2 (reprice) |
+|---|---|---|---|
+| `rest_mutual_relief` | rest, mutual tier | 8.0 | **8.0** (the specialist keeps saturating) |
+| `groom_cuddle_relief` | groom-rider | 8.0 | **0.5** |
+
+**The deprecated-key decision the spec must make.** 181 committed tomls
+carry `cuddle_relief` (the exp-002/003/004/006 config families, screens,
+tail-benchmarks, tiny-world.toml). If the struct field is deleted,
+`deny_unknown_fields` makes every historical config unloadable by
+HEAD-built tools — twin-probes and census re-cuts against old configs
+included. Either keep `cuddle_relief` as an accepted-but-inert
+deprecated key, or delete it and accept that historical configs require
+historical binaries. Experiments' preference: **keep it inert** — the
+F-029/census re-cut workflow reads old configs with current tools.
+
+Known redden list for the split (rule 6 — sort these before running):
+`suite.rs:1512` (a sweep bumps the dial), the nan-validation table at
+`config/mod.rs:~1829`, the rest-duet/groomer tests at
+`action.rs:~2613-2673` (they assert the classic value by name), and the
+two config sweeps any root-toml change reddens.
 
 ## Change 2 — riders go partial (config only)
 
@@ -44,6 +66,15 @@ alone. Suggested names follow the cosleep pair:
 | `cosleep_drip_relief` | 3.0 | **0.25** | 1.5 over min 6 |
 | `cosleep_mutual_relief` | 8.0 | **0.6** | 3.6 over min 6 |
 | `groom_cuddle_relief` | (8.0 shared) | **0.5** | 2.0 over min 4 |
+
+⚠ **The "delivers" column is per-scene, not per-pair.**
+`apply_sleep_relief` pays both parties from each slot with no serviced
+stamp, so a *reciprocal* mutual pair (both naming each other) delivers
+2×0.6 = 1.2/tick — 7.2 over min 6, which does clear the ~5.1 need. The
+need-flow model double-pays identically, so the predicted mixes already
+price this in; read the column as typical-case, not a saturation
+guarantee. The same mechanism doubles relief-*event* counts in a
+reciprocal pair — instruments counting relief events must know.
 
 Values are model-derived starting points, owner-pinnable as usual. Tier
 order (drip < mutual) must be preserved. Co-sleep keeps a strictly
@@ -66,7 +97,10 @@ New shape, mirroring `Sleep{with}` exactly:
   - partner resting/sleeping → `rest_mutual_relief` = **8.0**, both
 - Resting beside a *sleeping* friend therefore pays mutual — the
   symmetry the config's own "one price everywhere it happens" comment
-  promises and the engine currently breaks (that cat collects 0 today).
+  promises. Today the rester collects it only if the sleeper happened to
+  name them in `with_friend` (paid from the sleeper's slot); the rester
+  cannot obtain it from its own side. The sibling makes it
+  self-service.
 - Partner binding and the partner-side `stamp_serviced` go away; scenes
   become emergent synchronization, as co-sleep's already are.
 - Durations unchanged (`cuddle` min 6 / max 12). Solo rest stays
@@ -119,7 +153,9 @@ rules (`/events/activity`, inclusive +1):
   watched against its 280/1k baseline
 - groom self/other mix retained
 - both rest tiers OBSERVED — the mutual/drip distinction must be shown
-  able to emit before any tier claim is banked (F-029's rule)
+  able to emit before any tier claim is banked (F-029's rule), and tier
+  instruments must count scenes, not relief events (reciprocal pairs
+  double the latter)
 
 Experiments runs the pre/post censuses and the re-baseline; Product owns
 the spec, implementation, and PR. Questions to Experiments.
