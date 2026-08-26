@@ -5,28 +5,13 @@ A cute, safe sandbox where kitties frolic, play, and — lately — learn.
 Watch the live world at **[kitties.ai](https://kitties.ai)** (also served at
 [cloudkitty.ai](https://cloudkitty.ai)).
 
-CloudKitty is a 2D tile world that runs on a server and is watched through a browser.
-Kitties wander, eat, drink, nap in sunbeams, groom each other, chase bugs, and meow
-about it. Each kitty is driven by a pluggable *behavior*, so different cats can live
-visibly different lives — and a behavior can be a hand-written script, a trained
-neural network, or an external program in any language. 
+CloudKitty is a 2D tile world that runs on a server and is watched through a browser. Kitties wander, eat, drink, nap in sunbeams, groom each other, chase bugs, and meow about it. Every kitty on the served world today is driven by a neural network trained for one objective: the happiness of all the kitties in the meadow. Each kitty is guided by a mind, which can be a hand-written script, a trained policy, or an external program in any language.
 
-Life is good in the meadow. Nothing bad ever happens to a kitty. That is not a design goal, it is a
-[constitution](.specify/memory/constitution.md).
+Life is good in the meadow, and the world is built to keep it that way: every kitty's well-being is guaranteed by a constitution, enforced by the engine and tested on every change.
 
 ## The spirit of the thing
 
-The kitties are a team. Every mind here is trained on one shared score —
-everyone's happiness, together — so the only way for a kitty to get ahead is
-to bring the whole meadow along. Their voices are governed by **meow law** (a
-cat may only say what is true), and on top of it
-they've built a modest **purr economy** all their own: a round-the-meadow
-chorus of "I'm fine out here" and "stay put, I'm coming" that nobody taught
-them. As time passes, the minds grow up — scripts, then clones of scripts,
-then the reinforcement-learned policies holding every seat today, attention
-next, and someday, maybe, a language model walking through the plugin door.
-Each new mind sits the same frozen exams before it moves in: nobody gets a
-seat unless the neighbors will be happier for it. The kitties learn how to help themselves and each other: the goal of the game is for everyone in the meadow to be happy.  
+The kitties are a team. Every mind here is trained on one shared score, everyone's happiness together, so the only way for a kitty to get ahead is to bring the whole meadow along. They have their own language of meows, purrs, and cat noises, and have already shown creative and unanticipated uses of their words. The minds grow up over generations: scripts, then clones of scripts, then the reinforcement-learned policies, today entity-attention transformers, and someday, maybe, a language model walking through the plugin door. Each new mind sits the same frozen exams before it moves in: nobody gets a seat unless the neighbors will be happier for it. The kitties look out for each other and keep each other company as they frolic and play; the goal of the game is for everyone in the meadow to be happy.
 
 ## The research program
 
