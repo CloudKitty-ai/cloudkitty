@@ -18,6 +18,23 @@ no re-deriving: the spec-input doc (+ §10), the need-flow model
 (`experiments/cuddle-economy-model/RESULTS.md`), and FINDINGS F-033,
 F-031, F-027.
 
+## Clarifications
+
+### Session 2026-08-26
+
+- Q: Should the retired `cuddle_relief` config key remain
+  accepted-but-inert, or be deleted so configs carrying it are
+  rejected? → A: Keep it accepted-but-inert (deprecated; loading
+  succeeds, key has no effect). Owner-ratified.
+- Q: How should the drip < mutual tier-order rule be enforced — by
+  config validation at load time, or as a documented convention
+  only? → A: Convention only — documented in the dial comments, no
+  new validation (matches the cosleep pair's existing covenant).
+- Q: Should this ship as one PR with two verified steps, or as two
+  separate PRs? → A: One PR — split commit first (byte-identical
+  continuity check), then the engine sibling + reprice commits,
+  reviewed together; stale-comment fixes ride the same PR.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Rest runs like co-sleep (Priority: P1)
@@ -219,7 +236,9 @@ observe it accepted (and inert).
   values, owner-pinnable as usual: co-sleep drip 0.25, co-sleep
   mutual 0.6, groom-warmth 0.5, rest drip 0.25, rest mutual 8.0
   (unchanged — the specialist keeps saturating). Tier order
-  (drip < mutual) MUST be preserved within each activity.
+  (drip < mutual) within each activity is a documented convention
+  carried by the dial comments — no load-time validation (the cosleep
+  pair's existing covenant; owner-ratified, see Clarifications).
 - **FR-007**: Solo rest MUST stay posture-only (no relief), and all
   activity durations MUST stay unchanged (cuddle min 6 / max 12).
   No play dial moves; the play ladder comment is untouched.
@@ -283,14 +302,13 @@ re-baseline; Product owns the spec, implementation, and PR.
 
 ## Assumptions
 
-- **Deprecated-key decision**: keep `cuddle_relief` accepted-but-inert
-  (Experiments' stated preference; preserves re-cutting historical
-  censuses with current tools). The alternative — delete it and pin
-  historical configs to historical binaries — was declined by default;
-  reversible at clarify/plan if the owner rules otherwise.
-- **Delivery shape**: one PR, two verified steps — the split commits
-  first with its byte-identical check, the reprice and sibling shape
-  follow. Stale-comment fixes ride the same PR.
+- **Deprecated-key decision — settled** (owner-ratified, see
+  Clarifications): `cuddle_relief` stays accepted-but-inert,
+  preserving re-cutting historical censuses with current tools.
+- **Delivery shape — settled** (owner-ratified, see Clarifications):
+  one PR, two verified steps — the split commits first with its
+  byte-identical check, the reprice and sibling shape follow.
+  Stale-comment fixes ride the same PR.
 - **Per-scene, not per-pair**: the "delivers" arithmetic in the
   handoff table is per-scene. A reciprocal mutual pair can clear the
   need within a minimum scene (2 × mutual × min); the model prices
