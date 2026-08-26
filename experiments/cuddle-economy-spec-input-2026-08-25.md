@@ -255,3 +255,36 @@ that finding deliberately left **the happiness link unmeasured**. Worth
 a needs-servicing count per turn before Biscuit 3.0 commits to the
 solo-pounce fallback, or you may fix 4.6% of turns and find the welfare
 gap barely moves.
+
+---
+
+## 10. Addendum 2026-08-26 — the first-principles reframe and the model
+
+Brainstorm round two reframed the objective as **behavioral diversity**:
+every intended activity needs a non-empty *niche* (a region of need-space
+where it strictly wins) that the dynamics visit recurrently. Two failure
+modes: **empty niche** (rest today — its need-set is a strict subset of
+co-sleep's, so no price fixes it) and **absorbing niche** (F-027/F-030 —
+the collapse detector's job, not the economy's). Rest's deficits are
+three and orthogonal: no unique value (lever B), **no standing demand**
+(saturated riders — levers C+D), no access (conscription — lever A /
+sibling restructure).
+
+Design rules that fell out: **within each need, one saturating
+specialist; every rider partial** (a byproduct priced like the main
+product kills the main product — and pointed the other way, this is the
+play protection); separate same-need activities by *state*, not price
+(grooming's template); volume belongs to `[needs]` rise rates, not
+relief dials; solo niches are created by persistent separation, so map
+density changes move the mix before relief dials do.
+
+**The need-flow model** (`cuddle-economy-model/needflow.py`, results in
+`cuddle-economy-model/RESULTS.md`) validated against the live mix, then
+predicted: A+B ≈ no-op (0.3 rest/1k, Small package confirmed dead);
+riders-partial alone lifts rest to ~12.5/1k with play essentially
+unmoved; **the play drip adds ~0.5/1k — lever B is dropped from the
+recommendation**, which removes §6's risk surface entirely. Cost: ~1
+happiness point of standing cuddle demand; cert anchors re-derive.
+Revised recommendation: **riders-partial (C+D) is the load-bearing
+package; the sibling restructure (availability two-tier rest) rides on
+F-033's refusal-tax evidence, not the model.**
