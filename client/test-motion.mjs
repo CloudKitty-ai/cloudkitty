@@ -1923,6 +1923,40 @@ const tailAt = (tail, u) => {
   };
 };
 
+check('tailBehind is what decides paint ORDER, not whether a tail exists', () => {
+  // The lab's groom-other card offers a `tailBehind` toggle so the old buried
+  // rear tail can be replayed beside the new one. That toggle is only worth
+  // anything if the flag really moves the paint order -- Design's lab rule 7,
+  // and made inert the toggle looks like a dial that needs turning further.
+  //
+  // Checked on the ORDER rather than on the pixels: a buried tail is stroked
+  // before the body and an unburied one after it, which is the entire
+  // difference and the reason a buried base cannot be seen.
+  const order = (bury) => {
+    const log = [];
+    const ctx = new Proxy({}, {
+      get: (t2, k) => (k === 'canvas' ? { width: 300, height: 300 }
+        : k === 'measureText' ? () => ({ width: 10 })
+          : (...args) => { log.push(String(k)); }),
+      set: () => true,
+    });
+    const L = CatV2.catLayout('grooming-other', 0.3, { view: 'back' });
+    if (bury) L.tailBehind = true; else delete L.tailBehind;
+    CatV2.paintBox(ctx, L, CatV2.appearanceFor(3), {
+      facing: 'north', size: 120, x: 0, y: 0,
+    });
+    return log.indexOf('bezierCurveTo');
+  };
+  const front = order(false);
+  const buried = order(true);
+  assert(front > 0 && buried > 0, 'the rear tail must be stroked in both orders');
+  assert(
+    buried < front,
+    `a buried tail must be stroked FIRST (got ${buried}) and an unburied one later `
+      + `(got ${front}) -- tailBehind is inert`,
+  );
+});
+
 check('the rear groom tail clears the skull, which is why it may paint in front', () => {
   // `tailBehind` existed to stop "a hard dark stick driven through the cat":
   // the tail had been moved INBOARD to escape the paw band, which put its

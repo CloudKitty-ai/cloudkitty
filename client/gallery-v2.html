@@ -942,7 +942,7 @@
   // (the handoff's note): live it is anim.js easing the sprite toward the
   // friend, and the read is the nose crossing another cat's outline --
   // there is nothing to cross without a friend, so the card supplies both.
-  const GROOM_OTHER_LAB = { lean: 1, tilePx: 90, speed: 1 };
+  const GROOM_OTHER_LAB = { lean: 1, tilePx: 90, speed: 1, tailBehind: 0 };
   // The water-lean card's dials. `follows` is the PROPOSAL, defaulted OFF:
   // this card exists to show the bug, so it opens on what ships.
   const WATER_LEAN_LAB = { follows: 0, submersion: 0.85, lean: 0, tilePx: 84 };
@@ -1363,6 +1363,7 @@
         { key: 'axialTailClearHead', label: 'axialTailClearHead — tail tip past the skull', min: 0, max: 0.08, step: 0.005, bag: CatV2.GROOM_OTHER },
         { key: 'tilePx', label: 'tilePx — judge at the sizes the camera draws', min: 40, max: 115, step: 1 },
         { key: 'speed', label: 'speed — 1 is the live rhythm; slow it to study', min: 0.2, max: 1.5, step: 0.05 },
+        { key: 'tailBehind', label: 'tailBehind — lab only; 1 replays the OLD buried rear tail (north lane)', min: 0, max: 1, step: 1 },
       ],
       readout() {
         const G = CatV2.GROOM_OTHER;
@@ -1371,7 +1372,7 @@
           + `             legW ${G.legW}  --  four paws: ${pawRead('grooming-other', GROOM_OTHER_LAB.tilePx)}\n`
           + `  axialHeadNear ${G.axialHeadNear}, axialHeadShow ${G.axialHeadShow}, axialHeadWide ${G.axialHeadWide},\n`
           + `  axialTailUpY ${G.axialTailUpY}, axialTailClearHead ${G.axialTailClearHead}\n`
-          + `card view: lean ${GROOM_OTHER_LAB.lean}, tilePx ${GROOM_OTHER_LAB.tilePx}, speed ${GROOM_OTHER_LAB.speed} -- viewing aids, not shipped dials`
+          + `card view: lean ${GROOM_OTHER_LAB.lean}, tilePx ${GROOM_OTHER_LAB.tilePx}, speed ${GROOM_OTHER_LAB.speed}, tailBehind ${GROOM_OTHER_LAB.tailBehind} -- viewing aids, not shipped dials`
         );
       },
       draw(ctx, w, h, now) {
@@ -1389,13 +1390,27 @@
           ctx.fill();
           ctx.restore();
         };
-        const cat = (o) => CatV2.drawCat(ctx, {
-          appearance: CatV2.appearanceFor(o.friend ? MISO : PUMPKIN),
-          size: T,
-          phase: o.friend ? fPhase : phase,
-          pose: o.friend ? 'idle' : 'grooming-other',
-          ...o,
-        });
+        // Built and painted rather than handed to `drawCat`, so the card can
+        // replay the OLD paint order: `tailBehind` buried the rear tail, and
+        // burying it is the whole difference being judged (2026-08-25). The
+        // shipped value is 0 -- the tail paints in front, like every other
+        // rear view -- and 1 puts it back where it was.
+        const cat = (o) => {
+          const opts = {
+            appearance: CatV2.appearanceFor(o.friend ? MISO : PUMPKIN),
+            size: T,
+            phase: o.friend ? fPhase : phase,
+            pose: o.friend ? 'idle' : 'grooming-other',
+            ...o,
+          };
+          if (o.friend || !GROOM_OTHER_LAB.tailBehind) return CatV2.drawCat(ctx, opts);
+          const L = CatV2.catLayout(opts.pose, opts.phase, opts.layout);
+          L.tailBehind = true;
+          CatV2.paintBox(ctx, L, opts.appearance, {
+            facing: opts.facing, size: opts.size, x: opts.x, y: opts.y,
+          });
+          return undefined;
+        };
         ctx.font = '600 12px ui-sans-serif, system-ui, sans-serif';
         ctx.textAlign = 'center';
         ctx.fillStyle = 'rgba(107, 90, 78, 0.8)';
