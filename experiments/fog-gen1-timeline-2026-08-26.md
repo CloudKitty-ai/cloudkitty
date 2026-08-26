@@ -32,10 +32,14 @@ precedent). Owner's word to deploy; G6-style soak after.
 
 **Pre-declared**: zero live rest scenes is EXPECTED — the served roster
 is all-policy and every incumbent trained under saturated riders. Do
-not read that zero as failure (F-029's lesson). What the soak is FOR:
-the `rest_kitty` mask-semantics change may shift incumbent
-observations (F-010 respect); watch welfare + watchdog, not rest
-counts.
+not read that zero as failure (F-029's lesson). Product verified
+(2026-08-26): the legality mask does NOT feed observations — obs
+distributions are unchanged for incumbents. The residual soak risk is
+narrower: a newly-legal `rest_kitty` entry at select time exposes
+logits the incumbents never trained under a live mask bit, so a frozen
+policy could occasionally select rest on untrained weight. Watch
+welfare + watchdog, not rest counts; a few odd incumbent rest scenes
+are the expected signature of this mechanism, not a defect.
 
 ## Step 2 — pre-fog validation (lab, fast)
 
