@@ -18,10 +18,15 @@ only.
   (+ guard): NN Chebyshev median 1.0 / mean ~1.9 / p90 4–5 / contact
   share 0.66–0.67. Banked (ticks 145,857–148,134) and live (547,416–
   547,657) agree.
-- **Needs-servicing latency instrument** — build next (Experiments).
-  Serves shakeout criterion 4 AND gates Biscuit 3.0's design (does the
-  refused-play tax actually explain the welfare gap?). Run on the
-  current world before step 6 planning.
+- **Needs-servicing latency instrument — DONE.**
+  `attn-cert-2026-08-14/need_latency.py` (+ guard); baseline banked at
+  `need-latency-baseline-2026-08-26.md` (ticks 552,654–553,376). The
+  pre-declared Biscuit 3.0 question is ANSWERED on this window: the
+  welfare gap is eat/drink/sleep standing demand (+4.2 of the +4.8 pts
+  vs Miso; eat armed-latency p50 31 ticks), NOT play — Biscuit services
+  play best-in-roster. The solo-pounce fallback targets the wrong
+  need; re-run the instrument (one 12-min window so far) before the
+  step-6 design call.
 
 ## Step 1 — roll out non-fog changes
 
