@@ -23,10 +23,12 @@ only.
   `need-latency-baseline-2026-08-26.md` (ticks 552,654–553,376). The
   pre-declared Biscuit 3.0 question is ANSWERED on this window: the
   welfare gap is eat/drink/sleep standing demand (+4.2 of the +4.8 pts
-  vs Miso; eat armed-latency p50 31 ticks), NOT play — Biscuit services
-  play best-in-roster. The solo-pounce fallback targets the wrong
-  need; re-run the instrument (one 12-min window so far) before the
-  step-6 design call.
+  vs Miso; eat armed-latency p50 31 ticks), and play-while-hungry is
+  caught in the relief stamps — consistent with F-033's spare-cycles
+  theory (owner's framing). Design levers with headroom: acceptance
+  prediction + food-over-play prioritization; solo-pounce redirects
+  reclaimed turns into more play, no payoff shown. Re-run (one 12-min
+  window so far) before the step-6 design call.
 
 ## Step 1 — roll out non-fog changes
 

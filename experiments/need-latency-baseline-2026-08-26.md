@@ -42,22 +42,34 @@ Every armed excursion in the window was serviced (no censoring). The
 scripted seat's latencies (2.0, 0.9 ticks) are the floor the metric can
 show — it discriminates.
 
-## Finding: the welfare gap is NOT where the refusal tax is
+## Finding: the gap sits in food — and play-while-hungry is caught in the stamps
 
 Biscuit pays ~4.8 happiness points of standing demand over Miso, and
 **eat (+2.2), drink (+1.3) and sleep (+0.7) account for +4.2 of it;
-play's contribution is negative** (Biscuit's play price 0.60 vs Miso's
-0.73). Biscuit's play mean is 4.0 with 86 reliefs (the most play
-servicing of any seat) and zero play excursions: the F-033
-partnered-refusal tax (4.6% of ticks, 98% `play_kitty`) does **not**
-surface as play-servicing latency. Its play need never piles up; its
-food does — eat spent 12% of the window above 30 and took a median 31
-ticks to service once armed.
+play's contribution is negative** (play price 0.60 vs Miso's 0.73).
+Play never piles up (mean 4.0, 86 reliefs, zero excursions); food does
+— eat spent 12% of the window above 30, median 31 ticks to service
+once armed.
 
-**Implication for the Biscuit 3.0 gate**: a solo-pounce fallback
-(which buys refused-play relief) targets a need Biscuit already
-services best-in-roster. On this evidence the design lever is
-eat/drink servicing (foraging priority / travel), not play access.
+This is what F-033's spare-cycles theory predicts (owner's framing,
+2026-08-26): the cost of over-playing — turns burned on refused
+proposals plus play chosen over high food needs — should cash out as
+eat/drink/sleep standing demand, not play latency. The stamps confirm
+the chosen half directly: **every eat/drink armed excursion contains
+play relief stamps inside it**. The worst (32-tick eat excursion,
+ticks 553,184–553,216): Biscuit polled `playing` four consecutive
+polls at play level ~4 while eat sat above 30, stamped five play
+reliefs (553,190–553,211), and reached `eating` only at the window's
+end. The refused half is invisible to this instrument (no scene, no
+stamp) — the F-033 seam instrument owns that 4.6%, additive on top.
+
+**Implication for the Biscuit 3.0 gate**: the reclaimed-cycle payoff
+sits in food, so remedies that redirect turns there — acceptance
+prediction (evaluate the partner's play need before proposing) or
+need prioritization (food-over-play when food is high and play low;
+should be learnable) — have measurable headroom (~4.2 pts bound). A
+solo-pounce fallback redirects refused turns into more play, which
+this data gives no payoff for.
 
 Scope: one 12-minute window, one time-of-day; excursion counts are
 small (1–3). Re-run before committing the Biscuit 3.0 design — the
