@@ -1,5 +1,5 @@
 # Cuddle economy: the sibling package — handoff to Product
-## (2026-08-26, Experiments. Owner-decided: sibling. NOT YET DELIVERED.)
+## (2026-08-26, Experiments. Owner-decided: sibling. Delivered to Product; review amendments landed at f4b3708.)
 
 **Decision (owner, 2026-08-26): implement the sibling package.** Rest
 (actual cuddling) runs zero scenes live because the cuddle need is
