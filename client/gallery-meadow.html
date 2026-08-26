@@ -321,6 +321,11 @@
   var VIEW = {
     meadow: {},
     waterline: 0.72,
+    // The call's per-pose eye character (2026-08-25). This lab's cats never
+    // speak, but render.js reads the map to resolve `meowSquint` for the rig,
+    // and a stand-in missing a shipped read is exactly what the parity test
+    // exists to catch -- it caught this one the same day.
+    meowSquintByPose: { pouncing: 0 },
     swimAxial: 'both',
     cloudPeriodMs: 60000,
     ambient: { waterShimmer: true },

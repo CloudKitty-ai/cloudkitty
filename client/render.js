@@ -1596,6 +1596,12 @@ class WorldRenderer {
     const own = v2Motion && view.idlePoseFor ? view.idlePoseFor(kitty.id, served) : null;
     const pose = own ? own.pose : served;
 
+    // The served meow. Resolved HERE because `meowFor` gates on the pose --
+    // asking any earlier would ask about a pose the cat is not in -- and
+    // because the rig below needs it. Read defensively: a view without the
+    // method ships this inert, which is the axial-whip lesson.
+    const meowNow = v2Motion && view.meowFor ? view.meowFor(kitty.id, pose) : null;
+
     const motion = view.motionFor(kitty.id, pose);
     if (own && own.phase !== undefined) motion.phase = own.phase;
     const beat = view.oneShotFor(kitty.id);
@@ -1688,6 +1694,16 @@ class WorldRenderer {
             earTwitchSide: motion.earTwitchSide || 1,
             earsBack: earsHold ? 1 : 0,
             yawn: motion.yawn || 0,
+            // The served call. Read defensively -- a view without the method
+            // ships this inert, the axial-whip lesson -- and gated on the
+            // POSE inside `meowFor`, which is why the pose goes in.
+            meow: meowNow ? meowNow.gape : 0,
+            // Its character, which varies by pose: a pouncing cat keeps its
+            // eyes on the target where a strolling one may squint. The
+            // drawing cannot know the pose; this does.
+            meowSquint: VIEW.meowSquintByPose[pose] === undefined
+              ? undefined
+              : VIEW.meowSquintByPose[pose],
             breath: motion.phase || 0,
           })
         : null;
