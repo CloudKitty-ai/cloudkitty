@@ -1169,6 +1169,11 @@ function stepRig(state, input, dtMs) {
     earsBack: rclamp(state.ears.y, 0, 1),
     yawn: input.yawn || 0,
     meow: input.meow || 0,
+    // The CHARACTER of the call, not its amount. Carried on the rig rather
+    // than read off RIG in the drawing, because it varies by POSE and the
+    // drawing does not know the pose -- whatever fires the call does. Falls
+    // back to the dial when nobody says otherwise.
+    meowSquint: input.meowSquint === undefined ? RIG.meowSquint : input.meowSquint,
   };
 }
 
@@ -1204,6 +1209,7 @@ function applyRig(L, rig) {
   L.gaze = rig.gaze;
   L.yawn = rig.yawn;
   L.meow = rig.meow;
+  L.meowSquint = rig.meowSquint;
   return L;
 }
 
@@ -1249,6 +1255,7 @@ function stillRig(input) {
     earsBack: 0,
     yawn: 0,
     meow: 0,
+    meowSquint: RIG.meowSquint,
   };
 }
 
@@ -3481,7 +3488,10 @@ function paintCat(ctx, L, a, lid = 0, size = 31) {
     // it is what makes the view read instantly: a faceless head is
     // unmistakable even at 31px.
     if (!rear) {
-      drawFace(ctx, L.head, L.eyes, a, lid, L.gaze, L.yawn || 0, L.view, size, L.meow || 0);
+      drawFace(
+        ctx, L.head, L.eyes, a, lid, L.gaze, L.yawn || 0, L.view, size,
+        L.meow || 0, L.meowSquint === undefined ? RIG.meowSquint : L.meowSquint,
+      );
     }
   };
 
@@ -4266,7 +4276,7 @@ const MOUTH = {
   depth: 0.08, // vertical reach: leg drop ('v') or arc bulge ('w')
 };
 
-function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0, view = 'side', size = 31, meow = 0) {
+function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0, view = 'side', size = 31, meow = 0, meowSquint = RIG.meowSquint) {
   // One jaw, two characters. The gape geometry below is shared; what differs
   // is the amplitude, whether the eyes are dragged shut, and whether a tongue
   // shows. A yawn and a meow never co-occur -- both are drawn from the same
@@ -4279,8 +4289,8 @@ function drawFace(ctx, head, eyes, a, lid = 0, gaze = null, yawn = 0, view = 'si
   // none: a cat calling at you is looking at you, and shutting its eyes is
   // most of what would turn the call back into a yawn.
   if (yawn > 0.02) lid = Math.max(lid, smooth01(yawn * 1.1));
-  if (meow > 0.02 && RIG.meowSquint > 0) {
-    lid = Math.max(lid, smooth01(meow * RIG.meowSquint * 1.1));
+  if (meow > 0.02 && meowSquint > 0) {
+    lid = Math.max(lid, smooth01(meow * meowSquint * 1.1));
   }
   const darkFur = isDarkColor(a.furBase);
   const eyeInk = darkFur ? a.eyeColor : '#453c36';

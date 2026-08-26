@@ -589,6 +589,25 @@ const VIEW = Object.freeze({
   meowHoldMs: 260, // ... a longer dwell than the accident's 145 ...
   meowCloseMs: 200, // ... and a real close, where the accident had none
 
+  /* How much of the yawn's eye-squeeze a call borrows, BY POSE.
+   *
+   * Sparse, like FAR_LEGS: a pose named here overrides `RIG.meowSquint`, and
+   * everything unnamed takes the dial. Same reason that map is sparse -- most
+   * of the vocabulary wants the default and saying so five times invites the
+   * five to drift apart.
+   *
+   * `pouncing: 0` is the owner's call, 2026-08-25: "it works on pounce with
+   * meowsquint=0". The pose does not distinguish itself -- `pouncing` sets
+   * eyes 'open' exactly as `walking` and `idle` do -- so this is a judgement
+   * about the MOMENT rather than something derivable from the drawing. A cat
+   * mid-lunge is watching its target; shutting its eyes to call reads wrong
+   * in a way the same squeeze on a stroll does not.
+   *
+   * Which is why this is a map and not a second global: the call's character
+   * follows what the cat is doing, and the thing that fires it knows that.
+   */
+  meowSquintByPose: { pouncing: 0 },
+
   // The on-the-spot turn (2026-08-10). Short: this is a cat pivoting on
   // its front feet, not a considered about-face, and anything longer
   // reads as the cat sliding through a wall.

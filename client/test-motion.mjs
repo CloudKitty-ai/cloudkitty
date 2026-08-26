@@ -2548,6 +2548,55 @@ check('a zero close is a snap, not a division', () => {
   }
 });
 
+check('the call\'s squint follows the POSE, and pouncing keeps its eyes', () => {
+  // Owner, 2026-08-25: "it works on pounce with meowsquint=0". The pose does
+  // not distinguish itself -- `pouncing` sets eyes 'open' exactly as walking
+  // and idle do -- so this cannot be derived from the drawing and has to be
+  // said. `VIEW.meowSquintByPose` says it, sparsely, the way FAR_LEGS does.
+  const V = api.VIEW;
+  const squintFor = (pose) => (V.meowSquintByPose[pose] === undefined
+    ? CatV2.RIG.meowSquint
+    : V.meowSquintByPose[pose]);
+  close(squintFor('pouncing'), 0, 'a pouncing cat must keep its eyes on the target');
+  close(squintFor('walking'), 1, 'a strolling cat takes the dial');
+  close(squintFor('idle'), 1, 'an idle cat takes the dial');
+
+  // ...and the resolved value has to REACH the drawing, or the map is a
+  // comment. The rig carries it because the drawing does not know the pose.
+  const draw = (squint) => {
+    const rig = CatV2.stepRig(CatV2.createRigState(), { ...RIG_REST, meow: 0.9, meowSquint: squint }, 16);
+    const log = [];
+    const ctx = new Proxy({}, {
+      get: (t2, k) => (k === 'canvas' ? { width: 200, height: 200 }
+        : k === 'measureText' ? () => ({ width: 10 })
+          : (...args) => { log.push([String(k), args]); }),
+      set: () => true,
+    });
+    CatV2.drawCat(ctx, {
+      pose: 'pouncing', phase: 0.3, appearance: CatV2.appearanceFor(3),
+      facing: 'right', size: 120, x: 0, y: 0, rig,
+    });
+    return JSON.stringify(log.filter(([k]) => k === 'ellipse' || k === 'arc'));
+  };
+  assert(draw(0) !== draw(1), 'the rig\'s meowSquint never reaches the eyes');
+
+  // ...and it must win over the dial in BOTH directions. Checking only
+  // "0 differs from 1" left a mutation green: reading the global for the
+  // GATE while the parameter still scales the amount behaves identically
+  // whenever the dial is 1, which it is. The case that separates them is a
+  // dial at 0 with a pose asking for a squint.
+  const savedDial = CatV2.RIG.meowSquint;
+  try {
+    CatV2.RIG.meowSquint = 0;
+    assert(
+      draw(1) !== draw(0),
+      'with the dial at 0 a per-call squint of 1 must still squint -- the drawing is reading the global',
+    );
+  } finally {
+    CatV2.RIG.meowSquint = savedDial;
+  }
+});
+
 check('every meow dial moves the drawing', () => {
   // Design's lab rule 7: a dial that moves nothing in the state that shows it
   // is worse than no dial, because it reads as "needs turning further". All
@@ -2615,7 +2664,7 @@ check('a rig at rest draws the un-rigged cat', () => {
   // applyRig adds four channels that the un-rigged layout has no opinion
   // about; those are compared against their neutral values, and everything
   // else must be identical geometry.
-  const ADDED = ['earNear', 'earFar', 'gaze', 'yawn', 'meow'];
+  const ADDED = ['earNear', 'earFar', 'gaze', 'yawn', 'meow', 'meowSquint'];
   for (const pose of CatV2.POSES) {
     for (const phase of [0, 0.25, 0.5, 0.75]) {
       const plain = CatV2.catLayout(pose, phase);

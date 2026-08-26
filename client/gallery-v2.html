@@ -1529,7 +1529,8 @@
         return (
           `meowOpenMs ${VIEW_MEOW.meowOpenMs}, meowHoldMs ${VIEW_MEOW.meowHoldMs}, meowCloseMs ${VIEW_MEOW.meowCloseMs}`
           + `   -> ${total}ms total\n`
-          + `RIG.meowMouth ${R.meowMouth}, RIG.meowHeadTilt ${R.meowHeadTilt}, RIG.meowSquint ${R.meowSquint}, RIG.meowTongue ${R.meowTongue}\n`
+          + `RIG.meowMouth ${R.meowMouth}, RIG.meowHeadTilt ${R.meowHeadTilt}, RIG.meowSquint ${R.meowSquint} (the dial), RIG.meowTongue ${R.meowTongue}\n`
+          + `squint IN USE for ${MEOW_POSES[MEOW_LAB.poseIx].pose}: ${VIEW.meowSquintByPose[MEOW_POSES[MEOW_LAB.poseIx].pose] ?? R.meowSquint}   (VIEW.meowSquintByPose = ${JSON.stringify(VIEW.meowSquintByPose)})\n`
           + `the accident it came from: 340 open, ~145 held, NO close -- median 485ms drawn\n`
           + `card view: poseIx ${MEOW_LAB.poseIx} (${MEOW_POSES[MEOW_LAB.poseIx].label}), `
           + `facing ${MEOW_LAB.facingIx} (${MEOW_FACINGS[MEOW_LAB.facingIx].label}), beatMs ${MEOW_LAB.beatMs}, tilePx ${MEOW_LAB.tilePx} -- viewing aids, not shipped dials`
@@ -1574,10 +1575,18 @@
         for (const col of cols) {
           const x = w * col.at - T / 2;
           const axial = axialNow;
+          // The squint is resolved PER POSE, the way the live path will:
+          // `VIEW.meowSquintByPose` overrides the dial for the poses that
+          // need it (pouncing keeps its eyes on the target), and the dial is
+          // what everything else takes. Dragging RIG.meowSquint moves the
+          // unnamed poses; it does NOT override a pose that names itself,
+          // which is the behaviour being judged.
+          const posed = VIEW.meowSquintByPose[spec.pose];
+          const squint = posed === undefined ? CatV2.RIG.meowSquint : posed;
           const rig = CatV2.stepRig(CatV2.createRigState(), {
             vx: 0, vy: 0, facing: axialNow ? f.facing : 'right', gazeX: 0, gazeY: 0,
             earTwitch: 0, earTwitchSide: 1, earsBack: 0, breath: 0,
-            yawn: col.yawn, meow: col.meow,
+            yawn: col.yawn, meow: col.meow, meowSquint: squint,
           }, 16);
           ctx.save();
           ctx.globalAlpha = 0.3;
