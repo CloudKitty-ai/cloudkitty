@@ -2548,6 +2548,141 @@ check('a zero close is a snap, not a division', () => {
   }
 });
 
+/** A world with one cat, and optionally a meow it spoke on `meowTick`. */
+function meowWorld(tick, { pos = { x: 5, y: 5 }, action, meow, meowTick } = {}) {
+  return {
+    tick, width: 20, height: 20, elements: [],
+    kitties: [{ id: 1, name: 'K', pos: { ...pos }, needs: {}, happiness: 90, last_action: action }],
+    recent_meows: meow ? [{ kitty_id: 1, kind: meow, tick: meowTick ?? tick - 1, intensity: 0 }] : [],
+  };
+}
+
+check('a drawn call is a SERVED call: the client never invents one', () => {
+  // Tied to the engine's message channel and nothing else. Spec 028 took the
+  // meow off the activity menu, so this rides alongside whatever the cat did
+  // -- which is why it can play over a walk without contradicting the pose.
+  const p = new api.Presentation();
+  p.pushState(meowWorld(1), 1000);
+  p.pushState(meowWorld(2), 1800);
+  assert(p.meowFor(1, 1900, 'idle') === null, 'a silent cat must not mouth anything');
+
+  // ...and one that DID speak plays, from the frame the meow arrived.
+  const q = new api.Presentation();
+  q.pushState(meowWorld(1), 1000);
+  q.pushState(meowWorld(2, { meow: 'mew' }), 1800);
+  const at = q.meowFor(1, 1800, 'idle');
+  assert(at && at.kind === 'mew', 'a served mew must be drawn');
+  close(at.gape, 0, 'it starts shut');
+  assert(q.meowFor(1, 1800 + api.VIEW.meowOpenMs, 'idle').gape > 0.99, 'and opens');
+
+  // A PURR is not speech: it is engine-owned background drawn as a glyph, and
+  // it outnumbers real speech four to one on the live world.
+  const r = new api.Presentation();
+  r.pushState(meowWorld(1), 1000);
+  r.pushState(meowWorld(2, { meow: 'purr' }), 1800);
+  assert(r.meowFor(1, 1900, 'idle') === null, 'a purr must not open the mouth');
+});
+
+check('a call is drawn only on the poses it reads on, and is not queued', () => {
+  // The owner judged walk / idle / pounce. A meow spoken mid-groom is SKIPPED
+  // rather than held: a call drawn late is a cat mouthing at nothing.
+  const V = api.VIEW;
+  assert(V.meowPoses.includes('walking') && V.meowPoses.includes('idle')
+    && V.meowPoses.includes('pouncing'), 'the judged poses must be the gate');
+  for (const pose of ['grooming', 'sleep-curl', 'eating', 'drinking']) {
+    const p = new api.Presentation();
+    p.pushState(meowWorld(1), 1000);
+    p.pushState(meowWorld(2, { meow: 'mew' }), 1800);
+    assert(p.meowFor(1, 1900, pose) === null, `a call must not be drawn on ${pose}`);
+  }
+  // Skipping it must not SPEND the cooldown: the next call is free.
+  const p = new api.Presentation();
+  p.pushState(meowWorld(1), 1000);
+  p.pushState(meowWorld(2, { meow: 'mew' }), 1800);
+  assert(p.meowFor(1, 1900, 'grooming') === null, 'skipped on a groom');
+  assert(p.meowFor(1, 1900, 'walking') !== null, 'the same call still plays once the pose allows it');
+});
+
+check('a served call reaches the DRAWING, not just the scheduler', () => {
+  // Everything above drives `meowFor` directly, so all of it stayed green
+  // with the render wiring cut to `meow: 0` -- the animation would have
+  // shipped inert with a full set of passing scheduler tests. This drives
+  // the real `drawKitty` and looks at the paint.
+  const draw = (gape) => {
+    const log = [];
+    const ctx = new Proxy({}, {
+      get: (t2, k) => (k === 'canvas' ? { width: 900, height: 900 }
+        : k === 'measureText' ? () => ({ width: 10 })
+          : (...args) => { log.push([String(k), args]); }),
+      set: () => true,
+    });
+    const stub = {
+      ctx, tile: 100, theme: 'day', pondCache: null,
+      tileOrigin: () => ({ x: 0, y: 0 }),
+      drawWaterline() {}, drawBeat() {}, drawElement() {}, roundRect() {},
+    };
+    const kitty = { id: 1, name: 'K', pos: { x: 1, y: 1 }, needs: {}, happiness: 90 };
+    const world = { width: 5, height: 5, tick: 10, kitties: [kitty], elements: [] };
+    const view = new Proxy({
+      posFor: () => ({ x: 1, y: 1 }),
+      elementPosFor: (e) => e.pos, elementAlphaFor: () => 1,
+      tickMs: 800, expired: [], expiredAlpha: 0, ambient: { now: 1000 },
+      travelHFor: () => 1, wetFor: () => 0,
+      motionFor: () => ({ phase: 0.2 }),
+      facingFor: () => 'right', movedFor: () => false,
+      velocityFor: () => ({ x: 0, y: 0 }),
+      leanFor: () => null, leapFor: () => null,
+      adjustPose: (id, pose) => pose,
+      // `rigFor` has to do what the live one does -- step the rig from the
+      // input render.js hands it -- or the meow channel has nowhere to go and
+      // this check fails on correct code. (It did, first time.)
+      rigFor: (id, input) => CatV2.stepRig(CatV2.createRigState(), input, 16),
+      // The one thing under test.
+      meowFor: () => (gape === null ? null : { gape, kind: 'mew' }),
+    }, { get: (target, k) => (k in target ? target[k] : () => null) });
+    const had = 'MEADOW' in globalThis;
+    const saved = globalThis.MEADOW;
+    globalThis.MEADOW = new Proxy({}, {
+      get: (target, k) => (String(k).startsWith('shadow') ? 0 : '#000'),
+    });
+    try {
+      WorldRenderer.prototype.drawKitty.call(stub, kitty, world, view);
+    } finally {
+      if (had) globalThis.MEADOW = saved; else delete globalThis.MEADOW;
+    }
+    return JSON.stringify(log);
+  };
+  assert(
+    draw(0.9) !== draw(null),
+    'a served call changed nothing on screen -- render.js is not passing it to the rig',
+  );
+});
+
+check('the cooldown holds the rhythm whatever the engine says', () => {
+  // The RATE is ours even though the trigger is not. Policy verbosity is not
+  // something the client controls and the Fog generation is expected to be
+  // much chattier (owner, 2026-08-25) -- without this, wiring that reads as
+  // charm now reads as a tic then.
+  const V = api.VIEW;
+  assert(V.meowCooldownMs > 0, 'there must be a ceiling at all');
+  const p = new api.Presentation();
+  let t = 1000;
+  p.pushState(meowWorld(1), t);
+  t += 800;
+  p.pushState(meowWorld(2, { meow: 'mew' }), t);
+  assert(p.meowFor(1, t, 'walking') !== null, 'the first call plays');
+
+  // A second, spoken immediately after, is refused.
+  t += 800;
+  p.pushState(meowWorld(3, { meow: 'want_eat', meowTick: 3 }), t);
+  assert(p.meowFor(1, t, 'walking') === null, 'a call inside the cooldown must be refused');
+
+  // ...and one past it plays again.
+  t += V.meowCooldownMs;
+  p.pushState(meowWorld(4, { meow: 'want_drink', meowTick: 4 }), t);
+  assert(p.meowFor(1, t, 'walking') !== null, 'a call past the cooldown must play');
+});
+
 check('the call\'s squint follows the POSE, and pouncing keeps its eyes', () => {
   // Owner, 2026-08-25: "it works on pounce with meowsquint=0". The pose does
   // not distinguish itself -- `pouncing` sets eyes 'open' exactly as walking

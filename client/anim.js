@@ -608,6 +608,29 @@ const VIEW = Object.freeze({
    */
   meowSquintByPose: { pouncing: 0 },
 
+  /* Which poses a served meow is DRAWN on, and how often at most.
+   *
+   * The animation is tied to the engine's own meow channel -- it never
+   * invents one -- but the RATE is ours, and it has to be, because policy
+   * verbosity is not something the client controls. The Fog generation is
+   * expected to be markedly chattier than today's roster (owner, 2026-08-25),
+   * and without a ceiling the same wiring that reads as charm now would read
+   * as a tic then. Same reasoning that demoted the purr to a glyph: "a bubble
+   * for both meant 98% of bubbles said nothing".
+   *
+   * The poses are the owner's, judged in the lab: the call reads on a walk,
+   * on idle, and on a pounce (the last only with its eyes open, which is what
+   * `meowSquintByPose` is for). Everything else is skipped rather than
+   * queued -- a meow drawn late is a cat mouthing at nothing.
+   *
+   * Measured on the live world 2026-08-25: 30 speech events in 9 minutes, of
+   * which 17 land on these three poses -- about 110 an hour across five cats
+   * before the cooldown binds. A chattier generation raises the numerator and
+   * `meowCooldownMs` holds the ceiling.
+   */
+  meowPoses: ['walking', 'idle', 'pouncing'],
+  meowCooldownMs: 20000, // at most one drawn call per cat per this
+
   // The on-the-spot turn (2026-08-10). Short: this is a cat pivoting on
   // its front feet, not a considered about-face, and anything longer
   // reads as the cat sliding through a wall.
@@ -1344,6 +1367,31 @@ class Presentation {
     // same pass notes falling-asleep edges, so the curl transition plays
     // once and only once (US4 acceptance 3).
     this.movedNow.clear();
+    // Served meows, stamped with the clock they ARRIVED on.
+    //
+    // `recent_meows` is a rolling window: an entry first appears the tick
+    // AFTER it was spoken and lingers about ten, so the tick it carries is
+    // never this one and it will be seen again on the next nine polls. Keyed
+    // by (kitty, tick, kind) so a meow is stamped ONCE, on the frame it first
+    // became visible -- which is the honest moment to start drawing it, and
+    // the same trap that made a census of these read zero.
+    //
+    // Purrs are excluded here rather than at the draw: a purr is engine-owned
+    // background state drawn as a glyph, never speech, and it outnumbers
+    // speech four to one.
+    if (!this.meowSeen) this.meowSeen = new Set();
+    if (!this.meowAt) this.meowAt = new Map();
+    for (const m of world.recent_meows || []) {
+      if (m.kind === 'purr') continue;
+      const key = `${m.kitty_id}:${m.tick}:${m.kind}`;
+      if (this.meowSeen.has(key)) continue;
+      this.meowSeen.add(key);
+      this.meowAt.set(m.kitty_id, { at: now, kind: m.kind, drawn: false });
+    }
+    // The set would otherwise grow for the life of the page; the window is
+    // ten ticks, so anything this old can never come back.
+    if (this.meowSeen.size > 4000) this.meowSeen.clear();
+
     for (const kitty of world.kitties) {
       const was = prev.kitties.find((p) => p.id === kitty.id);
       const dx = kitty.pos.x - was.pos.x;
@@ -1665,6 +1713,50 @@ class Presentation {
     const dist = Math.abs(is.pos.x - was.pos.x) + Math.abs(is.pos.y - was.pos.y);
     if (dist !== 2) return null;
     return { lift01: leapArc(this.progress(now)) };
+  }
+
+  /**
+   * The gape of a served meow in flight, or null.
+   *
+   * Tied to the engine's own message channel and NOTHING ELSE: the client
+   * never invents a call. Spec 028 took the meow off the activity menu, so a
+   * meow rides alongside whatever the cat is doing rather than being its
+   * action -- which is why this can play over a walk or a pounce without
+   * contradicting the pose.
+   *
+   * Three gates, in the order they can disqualify:
+   *
+   *   1. POSE. The call is only drawn where the owner judged it reads --
+   *      `VIEW.meowPoses`. A meow spoken mid-groom is skipped, not queued: a
+   *      call drawn late is a cat mouthing at nothing.
+   *   2. AGE. It plays once, from the frame it arrived. Past the envelope it
+   *      is over; there is no catching up.
+   *   3. COOLDOWN. At most one drawn call per cat per `meowCooldownMs`,
+   *      whatever the engine's rate. The animation follows the world; the
+   *      RHYTHM is ours, and has to be -- the Fog generation is expected to
+   *      be much chattier and the same wiring would read as a tic.
+   *
+   * Returns the gape AND the kind, so a caller can tell what was said; only
+   * the gape drives the drawing today.
+   */
+  meowFor(id, now, pose) {
+    if (!this.curr || this.discontinuous) return null;
+    if (!this.meowAt) return null;
+    const m = this.meowAt.get(id);
+    if (!m) return null;
+    if (!VIEW.meowPoses.includes(pose)) return null;
+    const gape = meowGape(now - m.at, VIEW);
+    if (gape === undefined) return null;
+    // The cooldown is spent when a call is first DRAWN, not when it is heard:
+    // a meow skipped for its pose has cost nothing and the next one is free.
+    if (!m.drawn) {
+      const last = this.meowDrawnAt?.get(id);
+      if (last !== undefined && now - last < VIEW.meowCooldownMs) return null;
+      m.drawn = true;
+      if (!this.meowDrawnAt) this.meowDrawnAt = new Map();
+      this.meowDrawnAt.set(id, m.at);
+    }
+    return { gape, kind: m.kind };
   }
 
   /**
@@ -2329,6 +2421,9 @@ class Presentation {
       // The final pounce's flight (spec 039). Motion, not state: a still
       // frame holds the pose ON the ground, like every other motion class.
       leapFor: (id) => (still ? null : this.leapFor(id, now)),
+      // Stilled with everything else: a paused frame holds the call it was
+      // on rather than replaying it.
+      meowFor: (id, pose) => (still ? null : this.meowFor(id, now, pose)),
       leanFor: (id) => (still ? null : this.leanFor(id, now)),
       travelHFor: (id) => this.travelHFor(id),
       sideFacingFor: (id) => this.sideFacingFor(id),

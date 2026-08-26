@@ -33,6 +33,24 @@ change.
 
 ## Unreleased
 
+- Cats move their mouths when they speak. The engine has always had a message
+  channel — a cat says "I want to eat!", or mews, or chirps — and the client
+  has always drawn that as a speech bubble over a closed mouth. Now the cat
+  opens its mouth for it. The animation came from an accident: a yawn cut
+  short by a change of pose reads as a call rather than a yawn, and it turned
+  out to be what half a second of an interrupted yawn actually looks like. It
+  is now a deliberate overlay with its own timing, tuned against the accident
+  it came from rather than away from it, and it shares the yawn's face
+  exactly — the difference is entirely in the timing.
+  It is drawn only where it reads: walking, idle, and pouncing, the last with
+  its eyes open, because a cat mid-lunge is watching its target and a cat on a
+  stroll can plausibly squint. A call spoken during a groom or a meal is
+  skipped rather than held, since a call drawn late is a cat mouthing at
+  nothing. And there is a ceiling of one drawn call per cat per twenty
+  seconds: the trigger belongs to the world, but the rhythm has to be ours,
+  because how talkative a generation of cats turns out to be is not something
+  the client can predict.
+
 - A cat flying the final pounce is drawn pouncing, not walking. The lunge and
   the pose were reading different evidence about the same tick. The engine
   serves the lunge as one extra step once an element quarry sits two tiles
