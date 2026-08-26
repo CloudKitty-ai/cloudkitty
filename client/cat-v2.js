@@ -1455,10 +1455,28 @@ function applyAxial(L, pose, phase, view, opts) {
     const gTip = G.axialRx + G.axialTailOut * (back ? 1 : 0.6);
     const gStern = G.axialBottom - 0.03;
     if (back) {
-      // Out at the flank and up, painted BEHIND the cat (`tailBehind`). The
-      // tip's final x is set by `clampAxialHead`, which is the only place the
-      // finished head radius is known.
-      L.tailBehind = true;
+      // Out at the flank and up, painted in FRONT like every other rear view.
+      // The tip's final x is set by `clampAxialHead`, which is the only place
+      // the finished head radius is known.
+      //
+      // It was `tailBehind` until 2026-08-25, and that had a good reason which
+      // has since expired. The tail had been moved INBOARD to escape the paw
+      // band, which put its length over the skull -- and `drawTail` strokes an
+      // outline, so what showed was a hard dark stick driven through the cat,
+      // three quarters of its ink drawn on top. Burying it fixed that.
+      //
+      // The tail has since moved back out: tip 0.696, past the head's right
+      // edge at 0.689, crossing the skull not at all. So the defence costs
+      // more than it saves. Buried, 37% of its length is inside the body and
+      // its BASE is among that -- what shows is an outer arc attached to
+      // nothing, which reads as a curve drawn around a body rather than a
+      // tail rising off a rump (owner, 2026-08-25). The axial WALK bows
+      // FURTHER than this (0.038 against 0.024), paints in front, and reads
+      // fine; this now matches it.
+      //
+      // `the rear groom tail clears the skull` pins the CONDITION rather than
+      // the flag: move the tip inboard again and it fails first, saying that
+      // the skull is back under the tail and the burial is needed again.
       const up = 0.5 + G.axialRx * PROPORTION.bodyW;
       L.tail = {
         x0: 0.5, y0: gStern,

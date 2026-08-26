@@ -1914,6 +1914,53 @@ check("the sit card's before-column replays the seat sit actually had", () => {
   );
 });
 
+/** A point on a cubic tail, at `u` along it. */
+const tailAt = (tail, u) => {
+  const v = 1 - u;
+  return {
+    x: v * v * v * tail.x0 + 3 * v * v * u * tail.c1x + 3 * v * u * u * tail.c2x + u * u * u * tail.x1,
+    y: v * v * v * tail.y0 + 3 * v * v * u * tail.c1y + 3 * v * u * u * tail.c2y + u * u * u * tail.y1,
+  };
+};
+
+check('the rear groom tail clears the skull, which is why it may paint in front', () => {
+  // `tailBehind` existed to stop "a hard dark stick driven through the cat":
+  // the tail had been moved INBOARD to escape the paw band, which put its
+  // length over the skull, and `drawTail` strokes an outline so the part on
+  // top was three quarters of its visible ink.
+  //
+  // It has since moved back out -- tip 0.696, past the head's right edge --
+  // and crosses the skull not at all, so it paints in FRONT like every other
+  // rear view and like the axial WALK, whose tail bows FURTHER (0.038 against
+  // 0.024) and reads fine. Burying it was what left only an outer arc with
+  // its base hidden, which is what the owner saw.
+  //
+  // This pins the condition that permits that, not the flag: if the tail is
+  // ever moved inboard again the skull is back under it and it must go behind
+  // again -- and this fails first and says why.
+  for (const pose of ['grooming-other', 'walking']) {
+    const L = CatV2.catLayout(pose, 0.3, { view: 'back' });
+    assert(L.tail, `${pose} draws a rear tail at all`);
+    let overSkull = 0;
+    const N = 400;
+    for (let i = 0; i <= N; i += 1) {
+      const p2 = tailAt(L.tail, i / N);
+      if (Math.hypot(p2.x - L.head.cx, p2.y - L.head.cy) < L.head.r) overSkull += 1;
+    }
+    const share = overSkull / (N + 1);
+    assert(
+      share < 0.02,
+      `${pose}: ${(share * 100).toFixed(0)}% of the rear tail crosses the skull -- `
+        + 'drawn in front that is a stick through the cat, and it needs tailBehind again',
+    );
+    assert(
+      !L.tailBehind,
+      `${pose}: the rear tail is buried behind the body, so its base cannot be seen `
+        + 'and only an outer arc shows',
+    );
+  }
+});
+
 check('the seated leg dials: paws where the photos put them, width dialled for the gap', () => {
   // All UNPINNED until 2026-08-24, which is how they came to be judged on a
   // measurement taken at 1x while the client draws at the device ratio.
