@@ -186,6 +186,40 @@ threshold economics, all 20×20-composition numbers.
 
 ## Parking lot (trigger conditions, not dates)
 
+- **Behavioural-collapse detector** (owner, flagged 2026-08-25; design
+  sketched, nothing built). Monitors *action distribution*, not reward —
+  reward is a training-time quantity with no served surface, and the
+  threshold problem is where the previous soak-watch generations died.
+  Three signals, each catching a different face of F-027's dyadic lock:
+  **(a) action concentration**, max single-action share over a rolling
+  window — healthy sits at 27.7–34.5% across all five served seats
+  (200k ticks each, `idle-rewrite-870001x10.json`) against F-027's
+  97.8%/94.7%, a ~3× gap; crucially the statistic is blind to *which*
+  action, so it cannot discriminate against character, which is what
+  rules out a welfare-triggered shield. **(b) mutual-targeting
+  persistence** — a dyadic lock is A→B and B→A self-renewing, but mutual
+  targeting is *normal* (duets are reciprocal by construction), so the
+  signal is duration: F-031's healthy spans are duet 2.00 / cosleep 6.00
+  ticks against F-027's 2,000+. **(c) need divergence** — spread across
+  needs, not level, since F-027's loop serviced sleep and cuddle while
+  eat and drink saturated.
+  **Why it is worth building even though the spec-040 watchdog already
+  catches F-027** (a 2,331-tick distress streak against threshold 150 is
+  how it was found): it fires *earlier* (needs must starve first), it
+  covers welfare-invisible variants that service enough needs to stay
+  quiet, and it *names the cause* rather than reporting distress.
+  **Detect-and-report, not detect-and-override** — an auto-override to
+  `needs_driven` would trade character for welfare silently at runtime,
+  which is the same trade the owner's 006a scope ruling forbids at the
+  gate. `Provenance::FallbackTaken` already exists as the override hook
+  if that is ever revisited.
+  **Trigger**: before seating any twin-seated or otherwise
+  attractor-prone composition. **Validation is already available** —
+  `tail-benchmarks/family-11-r5` is a reproducible known-positive
+  (worst streaks 2331 twinned / 159 solo), so the detector can be driven
+  red against a recorded real failure and then shown silent across the
+  2.4M cutover-config ticks where F-027 says the loop never appears.
+
 - **Recurrence**: fires only if memory-token probes show cats
   systematically returning to wrong remembered locations (one slot
   insufficient). Not before.
@@ -254,3 +288,17 @@ before any tag).**
   certification, the determinism asterisk). Moved from 3.0 by the
   owner: external minds are an ontology change, and the roadmap
   between here and there earned its own major.
+
+### Candidates for the pre-fog schema-break bundle
+
+The fog wall is the one moment the observation schema moves cheaply, so
+anything that wants a schema bump should be decided *as a bundle* before
+that wall, not one item at a time afterwards. Running list:
+
+- **The waterline pairing rule** — tabled by the owner 2026-08-24 with
+  its groundwork banked at `waterline-pairing-rule-2026-08-24.md`.
+  Revisit when this bundle is finalized. It wants one float in
+  `KITTY_SLOT` (a neighbour's in-water bit), which is free at the wall
+  and a full five-seat retrain alone. Carries a live confound with the
+  Gen 1 vocabulary arms through `here_water`, and the doc names two ways
+  to keep that clean.

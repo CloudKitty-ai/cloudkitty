@@ -65,6 +65,7 @@ evidence; this register is the evolving knowledge layer on top of them.
 | F-028 | active | Census raws are attributable only if the instrument records its own provenance |
 | F-029 | active | A reader rule copied from the wrong contract shape reports a category that cannot exist |
 | F-030 | active | Per-event shaping of a social behavior buys initiation churn; the KL leash does not prevent it |
+| F-031 | active | A partnered scene runs its minimum only if the counterpart is pinned; grooming is the exception |
 
 ---
 
@@ -1636,3 +1637,204 @@ event-vs-state to shaping social behavior at all).
 before adopting shaping as a retention tool in place of the leash;
 and if a duet-time-shaped arm is ever run, compare its venue
 retention against this arm's directly.
+
+## F-031 · active · A partnered scene runs its minimum only if the counterpart is pinned; grooming is the exception
+
+Found 2026-08-24 by Product while checking the waterline proposal's
+priors, corroborated independently here. Registered on the owner's word
+the same day.
+
+**The instrument matters as much as the number.** Polled snapshots
+cannot measure scene length — the final tick of a scene clears the clock
+it stamped (`api.rs:95-97`) — and `activity.state` is a one-tick
+resolution flag for play, eat and drink besides. `GET /events/activity`
+records the true span, **inclusive: `ended - started + 1`**
+(`events.rs:30-42`). Both threads dropped the `+1` on first reading and
+saw every activity quit a tick early; the arithmetic now lives in
+`live_census.py` beside its citation.
+
+1. **Measured spans, 1000 scenes, live world**, against the config
+   windows they were drawn from:
+
+   | scene | n | mean span | config |
+   |---|---|---|---|
+   | cosleep | 79 | 6.00 | sleep 6-12 |
+   | sleep-solo | 80 | 6.01 | sleep 6-12 |
+   | groom-solo | 39 | **4.00** | bath 4-8 |
+   | groom-other | 113 | **3.37** | bath 4-8 |
+   | duet | 99 | 2.00 | play 2-5 |
+   | play-solo | 103 | 2.00 | play 2-5 |
+   | play-element | 136 | 1.74 | play 2-5 |
+
+2. **The controlled comparison is groom-solo against groom-other**:
+   one activity, one config window, differing only in whether a
+   counterpart exists who can leave. Solo lands exactly on its minimum;
+   partnered runs 0.63 ticks short. Everything else lands exactly on
+   its minimum.
+3. **The mechanism is which activities pin their partner.**
+   `prune_dead_activity` (`world.rs:476`) ends a partnered groom through
+   `is_available_friend`, and the groomed cat is never in an activity —
+   it stays free to walk away mid-scene. Duets and cuddles lock both
+   parties via `reciprocal_duet`; sleepers do not move. Grooming is the
+   only partnered activity whose counterpart is unpinned, and it is the
+   only one that dies early.
+4. **play-element's 1.74 reproduces the banked bug `mlen` of 1.8**
+   through a different endpoint than the Rust chase census that produced
+   it — an independent check on the critter-play EV work, which the
+   `bugs2-grid-analyze.ev()` docstring already warns must use measured
+   rather than nominal lengths. Same lesson, second instrument.
+
+**Why it is worth a number**: every EV that prices a partnered scene
+multiplies by its length, and nominal config bounds overstate grooming
+by 15%. It also predicts where a rule that reshapes pairing could show
+up as a *duration* effect rather than a count effect — grooming is the
+only partnered activity with slack.
+
+**Scope**: served world, current roster, one 1000-scene window per
+thread. Says nothing about scripted-only compositions, and the gap size
+is a function of how mobile the groomed cat is, so a calmer roster
+should show a smaller one.
+
+**What would invalidate it**: a groom-other mean at or above 4.00 on any
+roster (would mean the counterpart-gone rule is not what shortens it);
+or a duet mean below 2.00 (would mean `reciprocal_duet` does not pin
+what it appears to pin).
+
+**Re-verify when**: any change to the friend helpers, `prune_dead_activity`,
+or the duration config; and before pricing any partnered scene in an EV.
+
+## F-032 · superseded by F-033 · The most social policy pays a turn tax: `Idle` in `last_action` is the legality funnel refusing an ask
+
+Claimed from served-world evidence that Biscuit's `idle` ticks were
+`action::validate` refusing a partnered-play proposal rather than the
+policy choosing to idle — flagged at registration as an inference,
+because proposals are not observable from outside the engine. The
+settling experiment it specified was run the next day and **narrowed
+it: the refusal is real, large and uniquely Biscuit's, but it is 45% of
+the seat's idle, not all of it.** The majority is a genuine idle
+proposal. Full text in [FINDINGS-ARCHIVE.md](FINDINGS-ARCHIVE.md);
+the measured split, and the part that survives, are F-033.
+
+## F-033 · active · Every seat pays a partnered-action refusal tax, in its own currency — but for Biscuit that is under half its idle; the rest it chooses
+
+Settles the inference [F-032](FINDINGS-ARCHIVE.md) registered and could
+not test. Run 2026-08-25 on the owner's word — the experiment F-032
+itself specified. Cites [F-031](#f-031--active--a-partnered-scene-runs-its-minimum-only-if-the-counterpart-is-pinned-grooming-is-the-exception)
+for the unpinned-counterpart mechanics it lands on.
+
+**Why the served world could not answer it.** `last_action` carries the
+ENFORCED action (`world.rs:338`), so a chosen idle and a refused ask are
+spelled identically. Three actions exist per tick — `proposed`,
+`validated`, `applied` (`seam.rs:212`) — and the served surface shows
+only the last.
+
+**Method**: all five served artifacts seated as external agents on the
+certification config (`phase1-cutover-bugs2.toml`), greedy argmax under
+the engine's own mask — the served decision rule (`behavior.rs:14`,
+"argmax over masked logits, ties to the lowest index"; no served seat
+enables sampling). Eval band 870001–870010, 10 seeds × 20,000 ticks =
+200,000 ticks per seat. Instrument
+`exp-006a-biscuit-corner/idle_rewrite_probe.py`.
+
+1. **Of the ticks whose applied action is idle:**
+
+   | seat | applied idle | CHOSE idle | was REFUSED into it | idle rate |
+   |---|---|---|---|---|
+   | **Biscuit** (e006a-L-04-s3) | **21,047** | **11,668 (55%)** | **9,379 (45%)** | **10.5%** |
+   | Clementine | 4,196 | 12 | 4,184 | 2.1% |
+   | Kittybear | 3,490 | 0 | 3,490 | 1.7% |
+   | Pumpkin | 3,040 | 0 | 3,040 | 1.5% |
+   | Miso | 1,873 | 6 | 1,867 | 0.9% |
+
+   Counted two independent ways — from `survived` (`validated ==
+   proposed`) and from decoding the proposal against the fixed menu —
+   which agree to the unit on every seat.
+
+2. **F-032 was 45% right, which means it was wrong as stated.** "Biscuit
+   isn't idling, it's being refused" does not survive: the majority of
+   its idle is a genuine idle proposal that passed validation. The
+   register's own caveat — that a chosen idle fits the same served data —
+   was the live possibility, and it was the larger half.
+
+3. **The refusal is real, and it is partnered play specifically.** Of
+   Biscuit's 9,379 refusals into idle, **9,187 (98%) were `play_kitty`** —
+   a duet proposal naming a partner slot. Not solo play, not critter
+   play. Duet legality is `is_conscriptable_friend`: the partner must be
+   free.
+
+4. **The tax is not Biscuit's alone — it is the general shape, and each
+   seat pays it in its own currency.** Every seat's refusals are
+   dominated by partnered actions whose counterpart can leave:
+
+   | seat | top refused proposals (into idle) |
+   |---|---|
+   | Biscuit | `play_kitty` 9,187 · move 113 |
+   | Clementine | `groom_kitty` 2,402 · move 1,277 · `sleep_kitty` 418 |
+   | Kittybear | `groom_kitty` 1,958 · move 1,122 · `sleep_kitty` 286 |
+   | Pumpkin | move 1,367 · `groom_kitty` 1,246 · `sleep_kitty` 201 |
+   | Miso | move 1,091 · `sleep_kitty` 619 · eat 96 |
+
+   The groomers are refused on grooming exactly as F-031 predicts —
+   grooming is the partnered activity whose counterpart is never pinned.
+   Biscuit is refused on duets because it is the only seat that proposes
+   them at volume. (`move` refusals are a different rule: walking into
+   an occupied tile.)
+
+5. **Biscuit is the only seat that ever chooses idle** — 11,668 against
+   0–12 for every other seat. The character-trained policy learned to
+   propose a do-nothing turn; the four older policies essentially never
+   do. That is a fact about the training, not the enforcement, and
+   F-032 missed it entirely.
+
+6. **The mechanism is structural, not a policy flaw.** The mask probes
+   the FROZEN start-of-tick snapshot while enforcement runs in the
+   kitty's apply slot, after earlier kitties' turns have applied —
+   `meow.rs:167`, "probing shares the RULE, not the MOMENT", which states
+   the activity mask probes `validate` the same way. A partner
+   conscriptable at start-of-tick can be gone by the apply slot. No
+   policy could avoid this by choosing better.
+
+**Instrument warnings, each of which cost a wrong answer first:**
+
+- **`survived == 0` is not a synonym for "refused"**, and reading it as
+  one overstates by ~2×. It is `validated != proposed` and reflects
+  `validate` ONLY; `enforce_durations` runs afterwards and normalizes a
+  continuing proposal to the continuation action (`world.rs:487`).
+  Biscuit's 21,121 rewrites split 9,379 into idle and 9,756 into `play`,
+  the latter being scenes already running.
+- **`survived == 1` does not mean applied == proposed**, for the same
+  reason. An earlier version of this probe learned the menu from those
+  ticks and had index 25 report as both `play` and `groom`.
+- **The activity menu is a fixed 34-entry table** (codec v2, spec 028);
+  schema 3 widened only the message head (`codec.rs:54`, "the 34-entry
+  activity menu did NOT move"). The probe pins
+  `ACTION_SCHEMA_VERSION == 3` and asserts alignment the engine
+  guarantees: `validate` has `Action::Idle => true`, so a proposed idle
+  can never be rewritten, and a misaligned table would show one.
+
+**Scope**: certification config, greedy, the five served artifacts, one
+eval band. The served world is a different config and this was not
+re-derived there; the lab's 10.5% applied-idle rate against the served
+15% is supporting, not proof. F-032's served-side
+77%-of-scene-endings statistic was NOT re-measured here.
+
+**What would invalidate it**: a seat proposing partnered actions at
+volume with few partnered refusals (would break the concentration);
+Biscuit's choice/refusal split moving materially on the served config or
+another band; or a served-side replay showing the in-engine behavior
+does not use the greedy masked argmax this assumed.
+
+**Re-verify when**: any change to `is_conscriptable_friend`, the
+`validate` legality arms, the mask's probe moment, or duet duration
+config — and before pricing any partnered action in an EV, where the
+refusal rate is a real cost that current EVs omit for grooming as well
+as for play.
+
+**What it opens**: the Biscuit 3.0 question is two questions, not one.
+The refusal half (4.6% of ticks) is addressable — `Play { target: None }`
+is always legal, so a solo-pounce fallback keeps the ask and drops the
+tax, and the same argument extends to the groomers' `groom_kitty`
+refusals via `Groom { target: None }`. The chosen half (5.8% of ticks)
+is not a bug but a trained behaviour to understand, and it is the
+larger one. Whether either moves a seat's happiness is still
+unmeasured: that needs a needs-servicing count per turn, not this probe.

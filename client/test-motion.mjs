@@ -34,7 +34,7 @@ const appNum = (name) => {
 const api = eval(
   animSrc +
     ';({ VIEW, Presentation, Pacer, easeSmooth, slowBlinkLid, idleHash, idlePeriodFor,' +
-    ' idlePickFor, idleOffsetFor, IDLE_SALTS, anim, nearestAdjacentOf, Camera, clampFrame, leapArc })',
+    ' idlePickFor, idleOffsetFor, IDLE_SALTS, anim, nearestAdjacentOf, Camera, clampFrame, leapArc, meowGape, yawnGape })',
 );
 
 /**
@@ -2105,6 +2105,34 @@ check('a groomer faces her friend and leans toward her, eased both ways', () => 
       assert(q.sideFacingFor(1) === face, 'the side memory did not follow the groom');
     }
   }
+  // ...and the axial DRAWING has to follow the facing, or the pose is drawn
+  // side-on at a friend it is correctly facing north at.
+  //
+  // `axialFor` locks a cat side-on the moment it wears a pose with no axial
+  // drawing, and only a STEP clears it -- "the served evidence that this cat
+  // is oriented the way the view claims". Social grooming happens standing
+  // still, so a cat that has just been sitting, eating, drinking or washing
+  // itself carries that lock into the scene and never sheds it. The owner saw
+  // the result: east-west groom-other poses at friends due north and south.
+  //
+  // A served groom target is the same kind of evidence a step is, and a
+  // stronger one: the engine names the partner and guarantees the pair
+  // adjacent on a cardinal, so the direction is known rather than inferred.
+  for (const [fx, fy] of [[5, 4], [5, 6]]) {
+    const q = new api.Presentation();
+    q.pushState(gw(1, true, fx, fy), 1000);
+    q.pushState(gw(2, true, fx, fy), 1800);
+    // Whatever it was doing first had no axial drawing -- this is exactly the
+    // call `drawKitty` makes while it wears one.
+    assert(q.axialFor(1, false) === false, 'a pose with no axial drawing draws side-on');
+    // Now it is grooming a friend on a cardinal, and the pose HAS one.
+    q.pushState(gw(3, true, fx, fy), 2600);
+    assert(
+      q.axialFor(1, true),
+      `still locked side-on while grooming a friend at ${fx},${fy} -- the groom draws east-west`,
+    );
+  }
+
   // An untargeted groom is the self-groom and changes no facing.
   const bare = new api.Presentation();
   bare.pushState(gw(1, false, 5, 4), 1000);
@@ -2479,11 +2507,329 @@ const RIG_REST = {
   earTwitch: 0, earTwitchSide: 1, earsBack: 0, yawn: 0, breath: 0,
 };
 
+/** Every command a pose draws, with its numeric args, for comparing two
+ * drawings that differ in one channel. */
+function drawCommands(rigInput) {
+  const log = [];
+  const ctx = new Proxy({}, {
+    get: (t, k) => {
+      if (k === 'canvas') return { width: 200, height: 200 };
+      if (k === 'measureText') return () => ({ width: 10 });
+      return (...args) => { log.push([String(k), args]); };
+    },
+    // Paint is recorded too: the tongue is identified by its own colour
+    // rather than by counting ellipses, which the eyes also draw.
+    set: (target, k, v) => { log.push(['set:' + String(k), [v]]); return true; },
+  });
+  // The rig `drawCat` wants is stepRig's OUTPUT, not its input, so build it
+  // the way the live path does: one step from rest with the channel set.
+  const rig = CatV2.stepRig(CatV2.createRigState(), { ...RIG_REST, ...rigInput }, 16);
+  CatV2.drawCat(ctx, {
+    pose: 'idle', phase: 0.25,
+    appearance: CatV2.appearanceFor(3),
+    facing: 'right', size: 120, x: 0, y: 0,
+    rig,
+  });
+  return log;
+}
+
+check("the meow ships at the owner's dialled shape", () => {
+  // Dialled in the lab and baked 2026-08-25 on her word. The three spans are
+  // hers; the four RIG values are the accident's, unmoved, because she judged
+  // the FACE right and only wanted the timing longer:
+  //
+  //   "Even the full yawn comes off as more 'relaxed meow'. I was trying to
+  //    get the best looking animation I could fit into 800ms."
+  //
+  // So 800ms is a budget she chose, not a number that fell out of anything,
+  // and this pins it. All four dials were UNPINNED before today.
+  const V = api.VIEW;
+  close(V.meowOpenMs, 340, 'meowOpenMs moved');
+  close(V.meowHoldMs, 260, 'meowHoldMs moved');
+  close(V.meowCloseMs, 200, 'meowCloseMs moved');
+  close(V.meowOpenMs + V.meowHoldMs + V.meowCloseMs, 800, 'the call is no longer 800ms');
+  close(CatV2.RIG.meowMouth, 0.36, 'RIG.meowMouth moved');
+  close(CatV2.RIG.meowHeadTilt, -0.03, 'RIG.meowHeadTilt moved');
+  close(CatV2.RIG.meowSquint, 1, 'RIG.meowSquint moved');
+  close(CatV2.RIG.meowTongue, 1, 'RIG.meowTongue moved');
+
+  // The face is still the yawn's, exactly -- that is what "the four are the
+  // accident's, unmoved" means, and it is the half of the extraction she did
+  // NOT change. Only the timing separates them now.
+  const g = 0.8;
+  assert(
+    JSON.stringify(drawCommands({ yawn: 0, meow: g }))
+      === JSON.stringify(drawCommands({ yawn: g, meow: 0 })),
+    'at the shipped dials a call must still draw the yawn\'s face; only its timing differs',
+  );
+});
+
+check('a zero close is a snap, not a division', () => {
+  // The accident had no close at all, and the lab card's right-hand cat is a
+  // fixed reference to it. `meowGape` has to keep expressing that even though
+  // nothing ships with it any more: dividing by a zero close would give NaN,
+  // which paints as nothing and reads as "the dial does nothing".
+  const snap = { meowOpenMs: 340, meowHoldMs: 145, meowCloseMs: 0 };
+  close(api.meowGape(484, snap), 1, 'open right up to the cut');
+  assert(api.meowGape(485, snap) === undefined, 'and then simply over');
+  for (let at = 0; at < 600; at += 3) {
+    const v = api.meowGape(at, snap);
+    assert(v === undefined || Number.isFinite(v), `NaN at ${at}ms: a zero close divided`);
+  }
+});
+
+/** A world with one cat, and optionally a meow it spoke on `meowTick`. */
+function meowWorld(tick, { pos = { x: 5, y: 5 }, action, meow, meowTick } = {}) {
+  return {
+    tick, width: 20, height: 20, elements: [],
+    kitties: [{ id: 1, name: 'K', pos: { ...pos }, needs: {}, happiness: 90, last_action: action }],
+    recent_meows: meow ? [{ kitty_id: 1, kind: meow, tick: meowTick ?? tick - 1, intensity: 0 }] : [],
+  };
+}
+
+check('a drawn call is a SERVED call: the client never invents one', () => {
+  // Tied to the engine's message channel and nothing else. Spec 028 took the
+  // meow off the activity menu, so this rides alongside whatever the cat did
+  // -- which is why it can play over a walk without contradicting the pose.
+  const p = new api.Presentation();
+  p.pushState(meowWorld(1), 1000);
+  p.pushState(meowWorld(2), 1800);
+  assert(p.meowFor(1, 1900, 'idle') === null, 'a silent cat must not mouth anything');
+
+  // ...and one that DID speak plays, from the frame the meow arrived.
+  const q = new api.Presentation();
+  q.pushState(meowWorld(1), 1000);
+  q.pushState(meowWorld(2, { meow: 'mew' }), 1800);
+  const at = q.meowFor(1, 1800, 'idle');
+  assert(at && at.kind === 'mew', 'a served mew must be drawn');
+  close(at.gape, 0, 'it starts shut');
+  assert(q.meowFor(1, 1800 + api.VIEW.meowOpenMs, 'idle').gape > 0.99, 'and opens');
+
+  // A PURR is not speech: it is engine-owned background drawn as a glyph, and
+  // it outnumbers real speech four to one on the live world.
+  const r = new api.Presentation();
+  r.pushState(meowWorld(1), 1000);
+  r.pushState(meowWorld(2, { meow: 'purr' }), 1800);
+  assert(r.meowFor(1, 1900, 'idle') === null, 'a purr must not open the mouth');
+});
+
+check('a call is drawn only on the poses it reads on, and is not queued', () => {
+  // The owner judged walk / idle / pounce. A meow spoken mid-groom is SKIPPED
+  // rather than held: a call drawn late is a cat mouthing at nothing.
+  const V = api.VIEW;
+  assert(V.meowPoses.includes('walking') && V.meowPoses.includes('idle')
+    && V.meowPoses.includes('pouncing'), 'the judged poses must be the gate');
+  for (const pose of ['grooming', 'sleep-curl', 'eating', 'drinking']) {
+    const p = new api.Presentation();
+    p.pushState(meowWorld(1), 1000);
+    p.pushState(meowWorld(2, { meow: 'mew' }), 1800);
+    assert(p.meowFor(1, 1900, pose) === null, `a call must not be drawn on ${pose}`);
+  }
+  // Skipping it must not SPEND the cooldown: the next call is free.
+  const p = new api.Presentation();
+  p.pushState(meowWorld(1), 1000);
+  p.pushState(meowWorld(2, { meow: 'mew' }), 1800);
+  assert(p.meowFor(1, 1900, 'grooming') === null, 'skipped on a groom');
+  assert(p.meowFor(1, 1900, 'walking') !== null, 'the same call still plays once the pose allows it');
+});
+
+check('a served call reaches the DRAWING, not just the scheduler', () => {
+  // Everything above drives `meowFor` directly, so all of it stayed green
+  // with the render wiring cut to `meow: 0` -- the animation would have
+  // shipped inert with a full set of passing scheduler tests. This drives
+  // the real `drawKitty` and looks at the paint.
+  const draw = (gape) => {
+    const log = [];
+    const ctx = new Proxy({}, {
+      get: (t2, k) => (k === 'canvas' ? { width: 900, height: 900 }
+        : k === 'measureText' ? () => ({ width: 10 })
+          : (...args) => { log.push([String(k), args]); }),
+      set: () => true,
+    });
+    const stub = {
+      ctx, tile: 100, theme: 'day', pondCache: null,
+      tileOrigin: () => ({ x: 0, y: 0 }),
+      drawWaterline() {}, drawBeat() {}, drawElement() {}, roundRect() {},
+    };
+    const kitty = { id: 1, name: 'K', pos: { x: 1, y: 1 }, needs: {}, happiness: 90 };
+    const world = { width: 5, height: 5, tick: 10, kitties: [kitty], elements: [] };
+    const view = new Proxy({
+      posFor: () => ({ x: 1, y: 1 }),
+      elementPosFor: (e) => e.pos, elementAlphaFor: () => 1,
+      tickMs: 800, expired: [], expiredAlpha: 0, ambient: { now: 1000 },
+      travelHFor: () => 1, wetFor: () => 0,
+      motionFor: () => ({ phase: 0.2 }),
+      facingFor: () => 'right', movedFor: () => false,
+      velocityFor: () => ({ x: 0, y: 0 }),
+      leanFor: () => null, leapFor: () => null,
+      adjustPose: (id, pose) => pose,
+      // `rigFor` has to do what the live one does -- step the rig from the
+      // input render.js hands it -- or the meow channel has nowhere to go and
+      // this check fails on correct code. (It did, first time.)
+      rigFor: (id, input) => CatV2.stepRig(CatV2.createRigState(), input, 16),
+      // The one thing under test.
+      meowFor: () => (gape === null ? null : { gape, kind: 'mew' }),
+    }, { get: (target, k) => (k in target ? target[k] : () => null) });
+    const had = 'MEADOW' in globalThis;
+    const saved = globalThis.MEADOW;
+    globalThis.MEADOW = new Proxy({}, {
+      get: (target, k) => (String(k).startsWith('shadow') ? 0 : '#000'),
+    });
+    try {
+      WorldRenderer.prototype.drawKitty.call(stub, kitty, world, view);
+    } finally {
+      if (had) globalThis.MEADOW = saved; else delete globalThis.MEADOW;
+    }
+    return JSON.stringify(log);
+  };
+  assert(
+    draw(0.9) !== draw(null),
+    'a served call changed nothing on screen -- render.js is not passing it to the rig',
+  );
+});
+
+check('the cooldown holds the rhythm whatever the engine says', () => {
+  // The RATE is ours even though the trigger is not. Policy verbosity is not
+  // something the client controls and the Fog generation is expected to be
+  // much chattier (owner, 2026-08-25) -- without this, wiring that reads as
+  // charm now reads as a tic then.
+  const V = api.VIEW;
+  assert(V.meowCooldownMs > 0, 'there must be a ceiling at all');
+  const p = new api.Presentation();
+  let t = 1000;
+  p.pushState(meowWorld(1), t);
+  t += 800;
+  p.pushState(meowWorld(2, { meow: 'mew' }), t);
+  assert(p.meowFor(1, t, 'walking') !== null, 'the first call plays');
+
+  // A second, spoken immediately after, is refused.
+  t += 800;
+  p.pushState(meowWorld(3, { meow: 'want_eat', meowTick: 3 }), t);
+  assert(p.meowFor(1, t, 'walking') === null, 'a call inside the cooldown must be refused');
+
+  // ...and one past it plays again.
+  t += V.meowCooldownMs;
+  p.pushState(meowWorld(4, { meow: 'want_drink', meowTick: 4 }), t);
+  assert(p.meowFor(1, t, 'walking') !== null, 'a call past the cooldown must play');
+});
+
+check('the call\'s squint follows the POSE, and pouncing keeps its eyes', () => {
+  // Owner, 2026-08-25: "it works on pounce with meowsquint=0". The pose does
+  // not distinguish itself -- `pouncing` sets eyes 'open' exactly as walking
+  // and idle do -- so this cannot be derived from the drawing and has to be
+  // said. `VIEW.meowSquintByPose` says it, sparsely, the way FAR_LEGS does.
+  const V = api.VIEW;
+  const squintFor = (pose) => (V.meowSquintByPose[pose] === undefined
+    ? CatV2.RIG.meowSquint
+    : V.meowSquintByPose[pose]);
+  close(squintFor('pouncing'), 0, 'a pouncing cat must keep its eyes on the target');
+  close(squintFor('walking'), 1, 'a strolling cat takes the dial');
+  close(squintFor('idle'), 1, 'an idle cat takes the dial');
+
+  // ...and the resolved value has to REACH the drawing, or the map is a
+  // comment. The rig carries it because the drawing does not know the pose.
+  const draw = (squint) => {
+    const rig = CatV2.stepRig(CatV2.createRigState(), { ...RIG_REST, meow: 0.9, meowSquint: squint }, 16);
+    const log = [];
+    const ctx = new Proxy({}, {
+      get: (t2, k) => (k === 'canvas' ? { width: 200, height: 200 }
+        : k === 'measureText' ? () => ({ width: 10 })
+          : (...args) => { log.push([String(k), args]); }),
+      set: () => true,
+    });
+    CatV2.drawCat(ctx, {
+      pose: 'pouncing', phase: 0.3, appearance: CatV2.appearanceFor(3),
+      facing: 'right', size: 120, x: 0, y: 0, rig,
+    });
+    return JSON.stringify(log.filter(([k]) => k === 'ellipse' || k === 'arc'));
+  };
+  assert(draw(0) !== draw(1), 'the rig\'s meowSquint never reaches the eyes');
+
+  // ...and it must win over the dial in BOTH directions. Checking only
+  // "0 differs from 1" left a mutation green: reading the global for the
+  // GATE while the parameter still scales the amount behaves identically
+  // whenever the dial is 1, which it is. The case that separates them is a
+  // dial at 0 with a pose asking for a squint.
+  const savedDial = CatV2.RIG.meowSquint;
+  try {
+    CatV2.RIG.meowSquint = 0;
+    assert(
+      draw(1) !== draw(0),
+      'with the dial at 0 a per-call squint of 1 must still squint -- the drawing is reading the global',
+    );
+  } finally {
+    CatV2.RIG.meowSquint = savedDial;
+  }
+});
+
+check('every meow dial moves the drawing', () => {
+  // Design's lab rule 7: a dial that moves nothing in the state that shows it
+  // is worse than no dial, because it reads as "needs turning further". All
+  // four are tuned OFF the accident, so each is checked by moving it away
+  // from its default rather than toward one.
+  const base = drawCommands({ yawn: 0, meow: 0.8 });
+  const moved = (key, value) => {
+    const saved = CatV2.RIG[key];
+    try {
+      CatV2.RIG[key] = value;
+      return drawCommands({ yawn: 0, meow: 0.8 });
+    } finally {
+      CatV2.RIG[key] = saved;
+    }
+  };
+  for (const [key, value] of [
+    ['meowMouth', 0.18],
+    ['meowHeadTilt', 0],
+    ['meowSquint', 0],
+    ['meowTongue', 0],
+  ]) {
+    assert(
+      JSON.stringify(moved(key, value)) !== JSON.stringify(base),
+      `RIG.${key} is inert -- moving it to ${value} changed nothing on screen`,
+    );
+  }
+
+  // ...and the two that carry the character are checked for WHICH WAY they
+  // move, not merely that they do.
+  const tongueInk = CatV2.lightenHex(CatV2.noseInkOf(CatV2.appearanceFor(3)), 0.22);
+  const paints = (log) => log.filter(([k]) => k === 'set:fillStyle').map(([, a]) => String(a[0]));
+  assert(paints(base).includes(tongueInk), 'the accident shows a tongue');
+  assert(!paints(moved('meowTongue', 0)).includes(tongueInk), 'meowTongue 0 must remove it');
+
+  const eyeish = (log) => JSON.stringify(log.filter(([k]) => k === 'ellipse' || k === 'arc'));
+  // The tilt AND the tongue come out for this one: the tilt moves the whole
+  // head so every eye rides with it, and the tongue is an ellipse too. With
+  // both silenced the mouth contributes only beziers, so an ellipse-or-arc
+  // difference can only be the lids. (Both confounds were caught by mutation
+  // rather than by reading -- each left this check green while something
+  // other than the eyes carried it.)
+  const flat = (squint) => {
+    const saved = {
+      tilt: CatV2.RIG.meowHeadTilt,
+      squint: CatV2.RIG.meowSquint,
+      tongue: CatV2.RIG.meowTongue,
+    };
+    try {
+      CatV2.RIG.meowHeadTilt = 0;
+      CatV2.RIG.meowTongue = 0;
+      CatV2.RIG.meowSquint = squint;
+      return drawCommands({ yawn: 0, meow: 0.8 });
+    } finally {
+      CatV2.RIG.meowHeadTilt = saved.tilt;
+      CatV2.RIG.meowSquint = saved.squint;
+      CatV2.RIG.meowTongue = saved.tongue;
+    }
+  };
+  const rest = drawCommands({ yawn: 0, meow: 0 });
+  assert(eyeish(flat(0)) === eyeish(rest), 'meowSquint 0 must leave the eyes as they were');
+  assert(eyeish(flat(1)) !== eyeish(rest), 'meowSquint 1 must squeeze them, as the yawn does');
+});
+
 check('a rig at rest draws the un-rigged cat', () => {
   // applyRig adds four channels that the un-rigged layout has no opinion
   // about; those are compared against their neutral values, and everything
   // else must be identical geometry.
-  const ADDED = ['earNear', 'earFar', 'gaze', 'yawn'];
+  const ADDED = ['earNear', 'earFar', 'gaze', 'yawn', 'meow', 'meowSquint'];
   for (const pose of CatV2.POSES) {
     for (const phase of [0, 0.25, 0.5, 0.75]) {
       const plain = CatV2.catLayout(pose, phase);
@@ -2742,6 +3088,129 @@ function drawnBoxY({ submersion, lean }) {
   // after is inside the cat's own unit space.
   return translates.length ? translates[0][1] : null;
 }
+
+/** The pose `drawKitty` actually settled on, observed where the renderer hands
+ * it to `adjustPose` -- the production path, not a direct call to `poseFor`. */
+function drawnPose({ prev, curr, now }) {
+  let seen = null;
+  const ctx = new Proxy({}, {
+    get: (t, k) => (k === 'canvas' ? { width: 900, height: 900 } : () => ctx),
+    set: () => true,
+  });
+  const stub = {
+    ctx, tile: 100, theme: 'day', pondCache: null,
+    tileOrigin: () => ({ x: 0, y: 0 }),
+    drawWaterline() {}, drawBeat() {}, drawElement() {}, roundRect() {},
+  };
+  const p = new api.Presentation();
+  p.pushState(prev, now - 800);
+  p.pushState(curr, now);
+  const real = p.viewAt ? p.viewAt(now) : null;
+  const view = new Proxy({
+    posFor: (k) => p.posFor(k, now),
+    elementPosFor: (e) => e.pos,
+    elementAlphaFor: () => 1,
+    tickMs: 800, expired: [], expiredAlpha: 0, ambient: { now },
+    travelHFor: () => 1,
+    wetFor: () => 0,
+    motionFor: () => ({ phase: 0.2 }),
+    facingFor: (id) => p.facingFor(id),
+    sideFacingFor: (id) => p.sideFacingFor(id),
+    movedFor: (id) => p.movedFor(id),
+    axialFor: (id, has) => p.axialFor(id, has),
+    velocityFor: () => ({ x: 0, y: 0 }),
+    leanFor: () => null,
+    leapFor: (id) => p.leapFor(id, now),
+    adjustPose: (id, pose) => { seen = pose; return pose; },
+  }, { get: (target, k) => (k in target ? target[k] : () => null) });
+  const hadMeadow = 'MEADOW' in globalThis;
+  const savedMeadow = globalThis.MEADOW;
+  globalThis.MEADOW = new Proxy({}, {
+    get: (target, k) => (String(k).startsWith('shadow') ? 0 : '#000'),
+  });
+  try {
+    WorldRenderer.prototype.drawKitty.call(stub, curr.kitties[0], curr, view);
+  } finally {
+    if (hadMeadow) globalThis.MEADOW = savedMeadow; else delete globalThis.MEADOW;
+  }
+  return { pose: seen, leap: p.leapFor(1, now) };
+}
+
+check('a served lunge is drawn pouncing, whatever the gate says', () => {
+  // The engine serves the lunge (spec 039 FR-011) as ONE MORE plain step once
+  // the ordinary chase movement leaves an ELEMENT target at manhattan 2 -- so
+  // a two-tile step in a tick is the lunge and nothing else, and the cat ends
+  // one tile from where the quarry was.
+  //
+  // Then the quarry moves. A greeble darts 1-3 tiles on its moving ticks
+  // (039's third amendment; measured on the live world 2026-08-24, max 3), so
+  // the distance the GATE measures -- taken against the same served state the
+  // frame draws, after the dart -- reaches 4 while the cat is mid-flight.
+  // `pounceGateTiles` is 3, so the pose fell through to `walking` and the cat
+  // flew the arc with its legs running. Owner saw it: "Biscuit leapt
+  // repeatedly with legs running in the air, chasing a Greeble".
+  //
+  // `leapFor` keys on the served step and never consults the gate, so the two
+  // read different evidence on the same tick. The step is the world's own
+  // word that this IS the pounce; the distance is a heuristic standing in for
+  // the same question. The step wins.
+  const GREEBLE = 99;
+  const w = (tick, cat, greeble) => ({
+    tick, width: 20, height: 20,
+    elements: [{ id: GREEBLE, kind: 'greeble', pos: greeble }],
+    kitties: [{
+      id: 1, name: 'B', pos: cat, needs: {}, happiness: 90,
+      last_action: { action: 'chase', target: 'element', id: GREEBLE },
+    }],
+  });
+  // Swept across every dart the greeble can make, so this pins the INVARIANT
+  // -- the lift and the pose read the same evidence -- rather than the one
+  // geometry that happened to be reported. Only the last of these is outside
+  // the gate today; the rest would pass without the fix, and that is the
+  // point: they must not stop passing either.
+  let outsideTheGate = 0;
+  for (const dart of [0, 1, 2, 3]) {
+    // Cat lunges 5,5 -> 7,5 (two tiles: the ordinary step plus 039's lunge).
+    const prev = w(1, { x: 5, y: 5 }, { x: 8, y: 5 });
+    const curr = w(2, { x: 7, y: 5 }, { x: 8 + dart, y: 5 });
+    const dist = chaseDistanceFor(curr.kitties[0], curr);
+    close(dist, 1 + dart, 'the served distance is one tile plus the dart');
+    if (dist > VIEW.pounceGateTiles) outsideTheGate += 1;
+
+    const { pose, leap } = drawnPose({ prev, curr, now: 2000 });
+    assert(leap !== null, `dart ${dart}: the lunge must be in flight`);
+    assert(
+      pose === 'pouncing',
+      `dart ${dart} (served distance ${dist}): a cat flying the lunge arc was drawn ${pose}`,
+    );
+  }
+  // ...and at least one of those has to be a case the gate would demote, or
+  // the whole sweep passes on the old code and proves nothing.
+  assert(
+    outsideTheGate > 0,
+    `no dart in the sweep put the quarry outside the gate (${VIEW.pounceGateTiles}) -- vacuous`,
+  );
+});
+
+check('the gate still demotes an ordinary far chase', () => {
+  // The other half: this refines the gate, it does not disable it. One tile
+  // is ordinary locomotion, the world said nothing about a pounce, and a
+  // quarry four tiles off is exactly what `pounceGateTiles` exists to demote.
+  const GREEBLE = 99;
+  const w = (tick, cat, greeble) => ({
+    tick, width: 20, height: 20,
+    elements: [{ id: GREEBLE, kind: 'greeble', pos: greeble }],
+    kitties: [{
+      id: 1, name: 'B', pos: cat, needs: {}, happiness: 90,
+      last_action: { action: 'chase', target: 'element', id: GREEBLE },
+    }],
+  });
+  const prev = w(1, { x: 5, y: 5 }, { x: 11, y: 5 });
+  const curr = w(2, { x: 6, y: 5 }, { x: 10, y: 5 }); // one tile each
+  const { pose, leap } = drawnPose({ prev, curr, now: 2000 });
+  assert(leap === null, 'a one-tile step is not a lunge');
+  assert(pose === 'walking', `an ordinary far chase was drawn ${pose}, not walking`);
+});
 
 check('a wading cat does not lean toward its friend', () => {
   // The groom lean is a sub-tile slide TOWARD a friend, and `submersionFor`
@@ -4725,11 +5194,18 @@ check('a cat that has not moved keeps its drawing, whatever it is doing', () => 
   assert(seen.every((v) => v === false), 'it should have settled side-on, where a drinking cat can be drawn');
 });
 
-check('a step re-earns the axial drawing, and only a step does', () => {
+check('a step re-earns the axial drawing, and so does a served groom target', () => {
+  // Two re-earners, not one. The lock's rule is "served evidence that this cat
+  // is oriented the way the view claims", and until 2026-08-24 a step was the
+  // only thing that counted -- which left a stationary groomer locked side-on
+  // at a friend it was correctly facing north at. A groom target is the same
+  // evidence: the engine names the partner and guarantees the pair adjacent on
+  // a cardinal. Nothing else re-earns it, and standing still with no evidence
+  // at all still does not.
   const store = new api.Presentation();
   store.pushState(stillWorld(1, { x: 5, y: 7 }), 0);
   store.pushState(stillWorld(2, { x: 5, y: 6 }), 800);
-  store.axialFor(1, false); // groomed once: side-on from here
+  store.axialFor(1, false); // wore a pose with no axial drawing: side-on from here
   store.pushState(stillWorld(3, { x: 5, y: 6 }), 1600);
   assert(!store.axialFor(1, true), 'standing still must not re-earn the axial drawing');
 
@@ -4745,6 +5221,26 @@ check('a step re-earns the axial drawing, and only a step does', () => {
     store.pushState(stillWorld(t, { x: 5, y: 10 - t }), t * 800);
     assert(store.axialFor(1, true), `a walking cat was held side-on at tick ${t}`);
   }
+
+  // The second re-earner, on a cat that never steps at all.
+  const groomer = (tick) => ({
+    tick, width: 64, height: 64, elements: [],
+    kitties: [
+      { id: 1, name: 'K', pos: { x: 5, y: 5 }, needs: {}, happiness: 90,
+        last_action: { action: 'groom', target: 2 } },
+      { id: 2, name: 'F', pos: { x: 5, y: 4 }, needs: {}, happiness: 90 },
+    ],
+  });
+  const g = new api.Presentation();
+  g.pushState(groomer(1), 0);
+  g.pushState(groomer(2), 800);
+  assert(g.facingFor(1) === 'north', 'the groomer must face its friend first');
+  g.axialFor(1, false); // something without an axial drawing: locked side-on
+  g.pushState(groomer(3), 1600);
+  assert(
+    g.axialFor(1, true),
+    'a served groom target must re-earn the axial drawing without a step',
+  );
 });
 
 check('a discontinuity forgets the lock, like every other memory', () => {

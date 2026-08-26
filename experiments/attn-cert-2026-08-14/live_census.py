@@ -117,6 +117,39 @@ def main():
             else:
                 play[e["kitty_id"]][f"unknown:{tgt}"] += 1
 
+    # Scene spans, by kind. THE SPAN IS INCLUSIVE: `ended - started + 1`
+    # (events.rs:30-42). Dropping the +1 makes every scene look a tick
+    # short and every activity look like it quits before its configured
+    # minimum -- Product hit it 2026-08-24, so it is worth stating where
+    # the arithmetic lives rather than in a comment nobody reads.
+    #
+    # This endpoint is the ONLY honest source for scene length: the final
+    # tick of a scene clears the clock it stamped, so polled snapshots
+    # cannot show how long a scene ran (api.rs:95-97), and `activity.state`
+    # is a one-tick flag for play/eat/drink besides.
+    spans = defaultdict(list)
+    for e in events.values():
+        act = e["activity"]
+        state = act.get("state", "?")
+        tgt = act.get("target")
+        if state == "playing":
+            kind = ("duet" if isinstance(tgt, dict)
+                    and tgt.get("target") == "kitty"
+                    else "play-element" if isinstance(tgt, dict)
+                    else "play-solo")
+        elif state == "grooming":
+            kind = "groom-other" if isinstance(tgt, int) else "groom-solo"
+        elif state == "sleeping":
+            kind = "cosleep" if act.get("with_friend") is not None \
+                else "sleep-solo"
+        elif state == "resting":
+            kind = "cuddle" if act.get("with_friend") is not None \
+                else "rest-solo"
+        else:
+            kind = state
+        if e.get("ended") is not None:
+            spans[kind].append(e["ended"] - e["started"] + 1)
+
     cosleep = Counter()
     near = defaultdict(list)
     hap = defaultdict(list)
@@ -163,6 +196,9 @@ def main():
                  if p.get("welfare")), default=0),
         },
         "activity_budget": {names[k]: dict(c) for k, c in budget.items()},
+        "scene_spans": {k: {"n": len(v), "mean_span": round(st.mean(v), 2),
+                            "ticks": sum(v)}
+                        for k, v in sorted(spans.items())},
         "play_targets": {names[k]: dict(c) for k, c in play.items()},
         "grooming_graph": {f"{names[a]}->{names[b]}": n
                            for (a, b), n in groom.items()},
@@ -186,7 +222,8 @@ def main():
 
     print(f"census: ticks {out['tick_range'][0]}-{out['tick_range'][1]}, "
           f"{len(polls)} polls, {len(events)} unique activity events")
-    for section in ("activity_budget", "play_targets", "grooming_graph",
+    for section in ("activity_budget", "scene_spans", "play_targets",
+                    "grooming_graph",
                     "cosleep_pair_polls", "mean_nearest",
                     "share_within_2", "happiness"):
         print(f"{section}: {json.dumps(out[section])}")

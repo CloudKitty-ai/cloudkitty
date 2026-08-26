@@ -33,6 +33,45 @@ change.
 
 ## Unreleased
 
+<<<<<<< HEAD
+=======
+- Cats move their mouths when they speak. The engine has always had a message
+  channel — a cat says "I want to eat!", or mews, or chirps — and the client
+  has always drawn that as a speech bubble over a closed mouth. Now the cat
+  opens its mouth for it. The animation came from an accident: a yawn cut
+  short by a change of pose reads as a call rather than a yawn, and it turned
+  out to be what half a second of an interrupted yawn actually looks like. It
+  is now a deliberate overlay with its own timing, tuned against the accident
+  it came from rather than away from it, and it shares the yawn's face
+  exactly — the difference is entirely in the timing.
+  It is drawn only where it reads: walking, idle, and pouncing, the last with
+  its eyes open, because a cat mid-lunge is watching its target and a cat on a
+  stroll can plausibly squint. A call spoken during a groom or a meal is
+  skipped rather than held, since a call drawn late is a cat mouthing at
+  nothing. And there is a ceiling of one drawn call per cat per twenty
+  seconds: the trigger belongs to the world, but the rhythm has to be ours,
+  because how talkative a generation of cats turns out to be is not something
+  the client can predict.
+
+- A cat flying the final pounce is drawn pouncing, not walking. The lunge and
+  the pose were reading different evidence about the same tick. The engine
+  serves the lunge as one extra step once an element quarry sits two tiles
+  off, and the client draws the arc off that served two-tile step — the only
+  two-tile step the world ever makes. The pose, meanwhile, came from a
+  distance gate, measured against the state the frame draws, which is *after*
+  the quarry has moved. A greeble darts up to three tiles on its moving ticks,
+  and the lunge leaves the cat one tile from where the quarry was, so a
+  maximum dart put the measured distance at four against a gate of three: the
+  cat flew the arc with its legs running. Under the greeble's older one-or-two
+  skitter the worst case was exactly three and this could not happen. The step
+  now outranks the gate, because it is not a heuristic — the gate asks whether
+  the quarry is close enough that this is probably the climax, and the step is
+  the world saying so outright. Raising the gate would have patched one tick
+  by loosening every other one, and would have broken again the next time the
+  dart grew. The gate is otherwise untouched and still demotes an ordinary far
+  chase.
+
+>>>>>>> origin/main
 - A cat washing a friend stops reaching once it is standing in water. The
   groom lean is a sub-tile slide toward the friend, and `submersionFor`
   samples the *served* position — so a leaning cat was drawn where its own
@@ -48,6 +87,26 @@ change.
   washes a friend. Nothing else moved — the clip and the surface are still
   built in tile space, which is what correctly submerges a smaller kitty more
   of her body and correctly lets a leaping cat rise clear.
+<<<<<<< HEAD
+=======
+- A cat washing a friend to the north is now drawn from behind, as it was
+  always meant to be. `grooming-other` has had an end-on drawing since the
+  pose was built — it was given one because 54% of groom targets sit due north
+  or south, so the axial case is the majority one rather than an edge — and
+  the groomer has always turned to face its partner. What was missing sat
+  between the two. A cat is locked side-on the moment it wears a pose with no
+  end-on drawing, and until now only a *step* released that lock, on the
+  grounds that a step is served evidence the cat really is turned the way the
+  drawing claims. Social grooming happens standing still, so a cat that had
+  just been sitting, eating, drinking or washing itself carried the lock into
+  the scene and never shed it: correctly facing north, still drawn east-west.
+  A groom target is the same evidence and more of it — the engine names the
+  partner and guarantees the pair adjacent on a cardinal — so it now releases
+  the lock too. The rule that stops a stationary cat spinning ninety degrees
+  every time its expression changes is untouched: this fires only while the
+  served action names a partner, which is the same thing that put the cat in
+  the pose.
+>>>>>>> origin/main
 
 - A seated cat's rump is back on the grass. `sit` was the one tilted pose
   that stated its seat as a literal number instead of deriving it: `cy`

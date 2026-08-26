@@ -330,3 +330,146 @@ argument insufficient even under shared reward).
 
 **Re-verify when**: any reward-structure change; exp-002 candidate
 screening (check channel-use rates alongside welfare).
+
+---
+
+## F-032 · superseded by F-033 · The most social policy pays a turn tax: `Idle` in `last_action` is the legality funnel refusing an ask, and it scales with how often a cat asks
+
+Found 2026-08-25 by Experiments, from a client-side idle census Client
+took for an unrelated reason (the owner noticed Biscuit yawning). Cites
+[F-031](#f-031--active--a-partnered-scene-runs-its-minimum-only-if-the-counterpart-is-pinned-grooming-is-the-exception)
+for the partnered-scene mechanics it rests on.
+
+**`last_action` is not what the policy asked for.** `World` writes the
+**enforced** action (`world.rs:338`, `last_action = Some(enforced)`,
+guarded by `last_action_records_what_actually_happened`), and
+`action::validate` — "the whole of Article IV's enforcement surface"
+(`action.rs:340`) — maps *every* illegal proposal to `Action::Idle`.
+So an `idle` on the served surface has two indistinguishable
+preimages: a policy that proposed idle, and a policy whose proposal was
+refused. Nothing outside the engine can tell them apart.
+
+1. **Biscuit (e006a-L-04-s3) reads `idle` on 35 of 226 ticks (15%);
+   every other seat reads 1–3%.** Served roster, ticks 354,335–354,560.
+
+2. **It is not volume, it is a per-ending rate.** Idle lands on the
+   tick *after* a play or chase block ends:
+
+   | seat | play/chase endings | next tick is `idle` | idle ticks |
+   |---|---|---|---|
+   | **Biscuit** | 35 | **77%** | 35 |
+   | Pumpkin | 18 | 6% | 6 |
+   | Miso | 14 | 0% | 3 |
+   | Kittybear | 14 | 0% | 3 |
+   | Clementine | 12 | 0% | 4 |
+
+   Pumpkin ends 18 scenes and idles after one. The difference is not
+   that Biscuit finishes more scenes; it is what happens at the seam.
+
+3. **The refused ask is overwhelmingly a duet.** 22 of the 35 idle
+   ticks directly follow a *kitty*-target play. Duet legality is
+   `world.is_conscriptable_friend(kitty_id, id)` (`action.rs:411`) —
+   the partner must be **free**. The partner's own scene ending is
+   sufficient to make a re-proposed duet illegal, and by F-031 duets
+   run exactly their 2-tick minimum, so the seam arrives on a clock.
+
+4. **Idle is a genuine do-nothing here, not a continuation.** `apply`
+   intercepts an Idle proposal from a *clocked* kitty as a
+   continuation (`action.rs:430`); these ticks are post-scene, so they
+   reach the `Action::Idle => {}` arm and produce no state change.
+   Biscuit's position is unchanged across all 35.
+
+5. **Ruled out by measurement, not argument.** Target starvation: the
+   distance to the nearest critter is identical during idle and chase
+   (median 7.0, mean 6.6 both), and there were exactly 4 critters on
+   the map at every tick of the window. Ambush: 11% of idle ticks have
+   a critter within 3 tiles, against chase's 8%. Engine meows: Biscuit
+   is the *quietest* seat (17.8/1k vs Pumpkin 94.7), and its only
+   non-purr messages were `want_drink`×2 and `want_eat` — nothing
+   play-related. Idle runs are 1–2 ticks, never longer (25×1, 5×2), and
+   80% are followed immediately by chase or play.
+
+**The claim**: a policy that proposes partnered play more often is
+refused more often, and each refusal costs it a whole turn. The tax is
+proportional to sociability, and it is invisible on the served surface
+because the refusal is spelled the same as a choice.
+
+**INFERENCE, explicitly flagged**: (1)–(5) are measured, but "refused"
+is an inference from the pattern, because proposals are not observable
+from outside the engine. The alternative — that the policy genuinely
+proposes idle at 77% of its own scene endings and never elsewhere — is
+consistent with the same data. **The settling experiment is cheap and
+lab-side**: drive the seat through the joint-action seam, where the
+proposal and the enforced action are both in hand, and count how often
+`validate` rewrites Play/Chase to Idle. Do that before citing this
+finding as a cause of anything.
+
+**The open question it opens (untested)**: Biscuit carries the roster's
+lowest happiness (90.95 live) and its certified character price is
+0.76 under thermostat parity. If 15% of its turns produce no state
+change while other seats lose 1–3%, part of that price may simply be
+the cost of asking rather than anything about character. Not measured;
+the lab replay above plus a needs-servicing count per turn would settle
+it. **If it holds, there is headroom that costs no character**:
+`Play { target: None }` is *always* legal ("pouncing at nothing is
+always legal, like grooming oneself", `action.rs:407`), so a policy
+that fell back to a solo pounce when a duet is refused would keep the
+social ask and stop paying for it.
+
+**Scope**: one 226-tick window, served world, this five-seat roster,
+one character-trained seat. The rate is a function of how often the
+seat proposes partnered play, so it should fall on any roster whose
+cats are more often free, and it says nothing about scripted
+compositions.
+
+**What would invalidate it**: a seat with a high partnered-play rate
+and a low post-ending idle rate (would break the proportionality); a
+lab replay showing `validate` rarely rewrites this seat's actions
+(would mean the idles are genuine proposals, and the turn tax is a
+training artifact rather than an enforcement one); or the same idle
+rate appearing on a seat whose scenes end just as often but are solo.
+
+**Re-verify when**: any change to `is_conscriptable_friend`, the
+`validate` legality arms, or duet duration config; and before pricing
+partnered play in any EV or reward-shaping pass — an ask that gets
+refused is not free, and current EVs price it as if it were.
+
+**Addendum 2026-08-25 — the idle run length is also a RENDERING
+parameter (Client, measured; carried here at their request).** Client
+simulated the shipped animation scheduler against the same census
+windows. The client is not drawing a yawn: of the yawns started on
+Biscuit (~7.3/hour), **3.6% are fully drawn**, 64.9% reach the hold
+phase and only 12.7% reach the close, median shown **485ms of 1420ms**.
+The yawn is 340 open / 620 hold / 460 close, `stepRig` passes it
+through rather than integrating it (`yawn: input.yawn || 0`), so the
+mouth snaps shut with no ease when the pose leaves idle. A yawn needs
+~1.77 ticks; this finding measured idle runs of 1–2 ticks (25×1, 5×2,
+none longer). The drawn result is a half-second open-and-shut mouth —
+which reads as a vocalisation, and the owner described it as "very
+meow" before any of this was measured.
+
+**Why an engine register carries a client number**: it makes the
+current reading *fragile in a direction invisible from this side*.
+Nothing in the client changes if a future policy idles in longer runs —
+the close phase simply starts playing, and the same engine beat becomes
+an actual sleepy yawn. **So "how long the seat idles" is a rendering
+decision as well as a behavioural one**, and the coupling runs through
+a threshold (~1.77 ticks) that no engine-side change would flag. Any
+work that lengthens idle runs — including the `Play { target: None }`
+solo-pounce fallback above, which would *shorten* them toward zero —
+changes what a viewer sees, not only what the seat does.
+
+**Status of that coupling (owner, 2026-08-25): intended to be
+DISSOLVED, and this note exists so it does not outlive its truth.** The
+coupling above is a property of the *currently shipped* client, where
+the beat is driven by the idle pose. The plan is to extract the
+animation, drive it independently, and slot it somewhere of its own
+(random meows while walking is the leading candidate) — the client does
+not need strict determinism, so it has that freedom. **Once that lands,
+idle run length stops being a rendering parameter and this addendum
+stops constraining engine work**: the ~1.77-tick threshold, and the
+worry about `Play { target: None }` removing the beat, both become
+moot. Until then it holds. The owner has also framed the client as a
+side project rather than a gate on this register, so **no engine or
+training decision should wait on it** — tell Client as a courtesy, do
+not treat it as a dependency.
