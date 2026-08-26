@@ -19,8 +19,7 @@ CloudKitty is a research platform. The simulation, its constraints, and
 its inhabitants exist to study how machine-learned agents can be
 trained, measured, and trusted in a shared world. A world this small
 can be fully specified, and a world this watchable keeps its claims
-checkable, so the cute surface is the instrument. It is an independent
-personal research project of its author.
+checkable. It is an independent personal research project of its author.
 
 Work to date, all documented in this repository:
 
