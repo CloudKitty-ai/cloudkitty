@@ -28,6 +28,55 @@ next, and someday, maybe, a language model walking through the plugin door.
 Each new mind sits the same frozen exams before it moves in: nobody gets a
 seat unless the neighbors will be happier for it. The kitties learn how to help themselves and each other: the goal of the game is for everyone in the meadow to be happy.  
 
+## The research program
+
+CloudKitty is a research platform. The simulation, its constraints, and
+its inhabitants exist to study how machine-learned agents can be
+trained, measured, and trusted in a shared world. A world this small
+can be fully specified, and a world this watchable keeps its claims
+checkable, so the cute surface is the instrument. It is an independent
+personal research project of its author.
+
+Work to date, all documented in this repository:
+
+- **Welfare-constrained cooperative multi-agent RL.** Every trained
+  mind optimizes one team objective, Nash welfare over all agents. The
+  training stack lives in `crates/cloudkitty-rl/` and
+  `crates/cloudkitty-py/`: observation design, action codecs, a
+  legal-action mask proven against the engine as its oracle,
+  bit-reproducible rollouts.
+- **Safety-constrained environment design.** The constitution below is
+  a research subject as much as a guarantee: what a multi-agent world
+  must refuse to allow, enforced by a property suite driving tens of
+  thousands of adversarial ticks on every merge.
+- **Evaluation and certification methodology.** Gate formulas freeze
+  before training starts, so the bar cannot move to meet the candidate.
+  Exams run on frozen, held-out worlds with a per-kitty exploitation
+  test, and every deployed artifact is hash-pinned to its certification
+  record ([experiments/PIPELINE.md](experiments/PIPELINE.md),
+  [policies/README.md](policies/README.md)).
+- **Incentive design.** Activity pricing, need dynamics, and durations
+  form an economy. Behavior on the live world is measured by
+  purpose-built census instruments, and results land in a standing
+  findings register, including the negative and superseded ones
+  ([experiments/FINDINGS.md](experiments/FINDINGS.md)).
+- **Communication under a truthfulness constraint.** Meow law is a
+  grounding rule, and the signaling conventions the cats have built on
+  top of it were never scripted.
+- **Skill formation and transmission.** Some capabilities never emerge
+  from reward alone; prey pursuit is one. These are studied through
+  demonstration corpora and generation-over-generation policy lineages.
+
+Next: partial observability and what it does to grounded language;
+hidden internal state and what agents can infer about each other;
+vocabularies whose meanings the cats assign themselves; detecting
+behavioral collapse in long-running multi-agent systems; and
+language-model agents through the existing plugin door.
+
+The lab notebook is [experiments/](experiments/): preregistrations,
+manifests, and the findings register, governed separately from the
+product code.
+
 ## The constitution
 
 Six articles the code is built to obey, checked by a property suite that runs on every
