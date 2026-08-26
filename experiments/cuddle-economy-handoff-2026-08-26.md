@@ -26,8 +26,7 @@ victim; pointed the other way, the same principle is why rest gets NO
 play drip (dropped — it would do to play duets what co-sleep did to
 rest).
 
-## Change 1 — split the shared dial (prerequisite), as its own
-## behavior-preserving step
+## Change 1 — split the shared dial (prerequisite), as its own behavior-preserving step
 
 `cuddle_relief` has exactly two call sites (`action.rs:762` groomer's
 warmth, `:797-798` rest duet). Split into two dials so either can move
