@@ -1,32 +1,65 @@
 # ☁️ CloudKitty 🐾
 
-A cute, safe sandbox where kitties frolic, play, and — lately — learn.
+A peaceful meadow where kitties frolic, play, and learn.
 
 Watch the live world at **[kitties.ai](https://kitties.ai)** (also served at
 [cloudkitty.ai](https://cloudkitty.ai)).
 
-CloudKitty is a 2D tile world that runs on a server and is watched through a browser.
-Kitties wander, eat, drink, nap in sunbeams, groom each other, chase bugs, and meow
-about it. Each kitty is driven by a pluggable *behavior*, so different cats can live
-visibly different lives — and a behavior can be a hand-written script, a trained
-neural network, or an external program in any language. 
+CloudKitty is a 2D tile world that runs on a server and is watched through a browser. Kitties wander, eat, drink, nap in sunbeams, groom each other, chase bugs, and meow about it. Each kitty is guided by a mind, which can be a hand-written script, a trained policy, or an external program in any language. Currently, every kitty on the served world is driven by a unique neural network. The minds may be different, but they're all trained for one objective: the happiness of all the kitties in the meadow. 
 
-Life is good in the meadow. Nothing bad ever happens to a kitty. That is not a design goal, it is a
-[constitution](.specify/memory/constitution.md).
+Life is good in the meadow, and the world is built to keep it that way: every kitty's well-being is guaranteed by a constitution, enforced by the engine and tested on every change.
 
 ## The spirit of the thing
 
-The kitties are a team. Every mind here is trained on one shared score —
-everyone's happiness, together — so the only way for a kitty to get ahead is
-to bring the whole meadow along. Their voices are governed by **meow law** (a
-cat may only say what is true), and on top of it
-they've built a modest **purr economy** all their own: a round-the-meadow
-chorus of "I'm fine out here" and "stay put, I'm coming" that nobody taught
-them. As time passes, the minds grow up — scripts, then clones of scripts,
-then the reinforcement-learned policies holding every seat today, attention
-next, and someday, maybe, a language model walking through the plugin door.
-Each new mind sits the same frozen exams before it moves in: nobody gets a
-seat unless the neighbors will be happier for it. The kitties learn how to help themselves and each other: the goal of the game is for everyone in the meadow to be happy.  
+The kitties are a team. Every mind here is trained on one shared score, everyone's happiness together, so the only way for a kitty to get ahead is to bring the whole meadow along. They have their own language of meows, purrs, and cat noises, and have already shown creative and unanticipated uses of their words. The minds grow up over generations: scripts, then clones of scripts, then multi-layer perceptrons, today entity-attention transformers, and someday, maybe, language models. Each new mind sits the same frozen exams before it moves in: nobody gets a seat unless the neighbors will be happier for it. The kitties look out for each other and keep each other company as they frolic and play; the goal of the game is for everyone in the meadow to be happy.
+
+## The research program (the serious part)
+
+CloudKitty is a research platform. The simulation, its constraints, and
+its inhabitants exist to study how machine-learned agents can be
+trained, measured, and trusted in a shared world. A world this small
+can be fully specified, and a world this watchable keeps its claims
+checkable. It is an independent personal research project of its author.
+
+Work to date, all documented in this repository:
+
+- **Welfare-constrained cooperative multi-agent RL.** Every trained
+  mind optimizes one team objective, Nash welfare over all agents. The
+  training stack lives in `crates/cloudkitty-rl/` and
+  `crates/cloudkitty-py/`: observation design, action codecs, a
+  legal-action mask proven against the engine as its oracle,
+  bit-reproducible rollouts.
+- **Safety-constrained environment design.** The constitution below is
+  a research subject as much as a guarantee: what a multi-agent world
+  must refuse to allow, enforced by a property suite driving tens of
+  thousands of adversarial ticks on every merge.
+- **Evaluation and certification methodology.** Gate formulas freeze
+  before training starts, so the bar cannot move to meet the candidate.
+  Exams run on frozen, held-out worlds with a per-kitty exploitation
+  test, and every deployed artifact is hash-pinned to its certification
+  record ([experiments/PIPELINE.md](experiments/PIPELINE.md),
+  [policies/README.md](policies/README.md)).
+- **Incentive design.** Activity pricing, need dynamics, and durations
+  form an economy. Behavior on the live world is measured by
+  purpose-built census instruments, and results land in a standing
+  findings register, including the negative and superseded ones
+  ([experiments/FINDINGS.md](experiments/FINDINGS.md)).
+- **Communication under a truthfulness constraint.** Meow law is a
+  grounding rule, and the signaling conventions the cats have built on
+  top of it were never scripted.
+- **Skill formation and transmission.** Some capabilities never emerge
+  from reward alone; prey pursuit is one. These are studied through
+  demonstration corpora and generation-over-generation policy lineages.
+
+Next: partial observability and what it does to grounded language;
+hidden internal state and what agents can infer about each other;
+vocabularies whose meanings the cats assign themselves; detecting
+behavioral collapse in long-running multi-agent systems; and
+language-model agents through the existing plugin door.
+
+The lab notebook is [experiments/](experiments/): preregistrations,
+manifests, and the findings register, governed separately from the
+product code.
 
 ## The constitution
 

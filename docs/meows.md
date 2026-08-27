@@ -99,9 +99,14 @@ want_sleep**
   best-behaved of the family: a beam is non-consumable and its warmth
   conducts to adjacent sleepers (spec 031), so the announcer loses
   nothing by hosting.
-- **Observed**: *law fixed; meaning awaits the cats.* No policy has been
-  trained on these words yet. This cell fills when the phase-1 generation
-  speaks.
+- **Observed**: the law is fixed; the meanings are now in the cats'
+  hands. The phase-1 generation trained with all four words armed and
+  holds seats on the served world, so the words are live. Whether they
+  are spoken, and what for, is unmeasured: the registered instrument is
+  the here-word density screen
+  (`experiments/here-word-density-screen.md`, planned), because
+  aggregate message rates cannot answer it; most of what a cat says is
+  nothing.
 
 ### mew — sound-named, the free register's first word
 
@@ -112,7 +117,17 @@ want_sleep**
 - **Observed**: "I'm coming, stay put." The cats overwrote the designed
   meaning thoroughly enough that the word was renamed rather than let the
   name keep lying (spec 033; the finding is recorded in
-  `experiments/comms-generations-brainstorm-2026-08-13.md`). Whether the
+  `experiments/comms-generations-brainstorm-2026-08-13.md`). The word
+  has since moved again. The E1-s1 mind mews close (1.71 tiles from the
+  nearest kitty, against a 2.50 all-tick baseline), and the pair
+  separates over the next ten ticks (+2.30 tiles, vs +1.27 for matched
+  controls): a departure call. The inherited hearer reflex still fits:
+  hearing the mew suppresses approach, so the word announces a parting
+  and the hearers let it happen. Deafening hearers to the word leaves
+  mean welfare flat and grows the distress tail, so its value under
+  global vision is insurance rather than mean welfare
+  (`experiments/exp-006-character-gen/results/mew-function-2026-08-20.md`).
+  Whether the
   original come-along meaning revives under fog — where a moving cat
   genuinely can't be seen — is a registered prediction under this word's
   new name.
@@ -122,8 +137,9 @@ want_sleep**
 - **Law**: cooldown only.
 - **Intent**: none — the name is the sound. A second free word, because
   the cats demonstrably fill free registers with meaning.
-- **Observed**: *meaning awaits the cats.* Born at the freeze, never yet
-  spoken by a trained mind.
+- **Observed**: *meaning awaits the cats.* Armed in the phase-1
+  generation's training and live on the served world; whether any mind
+  speaks it is unmeasured.
 
 ### trill · ekekek — sound-named, reserves
 
