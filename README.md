@@ -11,7 +11,7 @@ Life is good in the meadow, and the world is built to keep it that way: every ki
 
 ## The spirit of the thing
 
-The kitties are a team. Every mind here is trained on one shared score, everyone's happiness together, so the only way for a kitty to get ahead is to bring the whole meadow along. They have their own language of meows, purrs, and cat noises, and have already shown creative and unanticipated uses of their words. The minds grow up over generations: scripts, then clones of scripts, then multi-layer perceptrons, today entity-attention transformers, and someday, maybe, language models. Each new mind sits the same frozen exams before it moves in: nobody gets a seat unless the neighbors will be happier for it. The kitties look out for each other and keep each other company as they frolic and play; the goal of the game is for everyone in the meadow to be happy.
+The kitties are a team. Every mind here is trained on one shared score, everyone's happiness together, so the only way for a kitty to get ahead is to bring the whole meadow along. They have their own language of meows, purrs, and cat noises, and have already shown creative and unanticipated uses of their words. The minds grow up over generations: scripts, then clones of scripts, then multi-layer perceptrons, today entity-attention transformers, and someday, maybe, language models. Each new mind sits the same exams before it moves in: nobody gets a seat unless the neighbors will be happier for it. The kitties look out for each other and keep each other company as they frolic and play; the goal of the game is for everyone in the meadow to be happy.
 
 ## The research program (the serious part)
 
