@@ -295,13 +295,33 @@ The fog wall is the one moment the observation schema moves cheaply, so
 anything that wants a schema bump should be decided *as a bundle* before
 that wall, not one item at a time afterwards. Running list:
 
-- **The waterline pairing rule** — tabled by the owner 2026-08-24 with
-  its groundwork banked at `waterline-pairing-rule-2026-08-24.md`.
-  Revisit when this bundle is finalized. It wants one float in
-  `KITTY_SLOT` (a neighbour's in-water bit), which is free at the wall
-  and a full five-seat retrain alone. Carries a live confound with the
-  Gen 1 vocabulary arms through `here_water`, and the doc names two ways
-  to keep that clean.
+- **The waterline: neighbour-in-water float IN; PRICE, not law** —
+  owner-redesigned 2026-08-26/27, superseding the tabled legality rule
+  (groundwork at `waterline-pairing-rule-2026-08-24.md` still holds
+  for exposure numbers, the probe design, and the F-016 analysis).
+  - **The float**: one `KITTY_SLOT` bit (neighbour in water), decided
+    IN at the wall. Load-bearing, not just informative — it is the
+    predictive input for the price below (self-in-water is already in
+    `SELF_BLOCK`).
+  - **The mechanism**: a dry cat in a partnered scene (all four kinds)
+    with an in-water partner receives the wet-fur charge as if in
+    water — own `bath_ratio`, same `bath_gain_ceiling` gate, one
+    config factor (dialable to zero). Prices over prohibitions: the
+    damp cuddle still happens at high cuddle need, which is the
+    correct economics; nothing new touches the refusal seam; the
+    groom-relief channel survives (the banked F-016 objection largely
+    dissolves — you get damp cleaning someone); the `here_water`
+    confound weakens (an invitation stays an invitation; register the
+    interaction in the arm analysis regardless).
+  - **No wet timer (owner-ruled)**: in water = wet, out = dry.
+    Persistent dampness is new kitty state with no compelling reason.
+  - Spec items: `validate_water` headroom re-check (contagion ~2×
+    worst-case exposure vs the occupancy-only budget); needflow model
+    prices it first (contagion is a one-line addition), then the
+    banked scripted-anchor probe.
+  - Owner calls remaining: activation timing (Gen 1 vs later) and the
+    factor's value. Honest note: the animation issue gets RARER, not
+    fixed — mixed pairs still occur.
 
 - **Meow-digest redesign: per-(speaker × kind) matrix** — owner-agreed
   for the bundle 2026-08-26 (Experiments walk-through). The current
