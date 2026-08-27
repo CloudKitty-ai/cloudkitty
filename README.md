@@ -1,6 +1,6 @@
 # ☁️ CloudKitty 🐾
 
-A cute, safe sandbox where kitties frolic, play, and — lately — learn.
+A peaceful meadow where kitties frolic, play, and learn.
 
 Watch the live world at **[kitties.ai](https://kitties.ai)** (also served at
 [cloudkitty.ai](https://cloudkitty.ai)).
