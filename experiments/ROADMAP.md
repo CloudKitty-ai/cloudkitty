@@ -302,3 +302,39 @@ that wall, not one item at a time afterwards. Running list:
   and a full five-seat retrain alone. Carries a live confound with the
   Gen 1 vocabulary arms through `here_water`, and the doc names two ways
   to keep that clean.
+
+- **Meow-digest redesign: per-(speaker × kind) matrix** — owner-agreed
+  for the bundle 2026-08-26 (Experiments walk-through). The current
+  digest keeps only the single freshest emitter per kind
+  (`observe.rs:390`): five `here_water` calls and one produce the same
+  observation, and a second simultaneous speaker of a kind is
+  inaudible. Three fog-era decisions all raise the digest's load —
+  global audibility, the 5-cat roster, knowledge dropping from global
+  to seen — and a fourth argument is decisive: **the minds are
+  memoryless**, so repetition is information a policy cannot
+  reconstruct; if it is not a field, it does not exist.
+
+  Shape: attach a per-speaker message block to each kitty slot, two
+  fields per head kind — **recency** (the existing `1 − age/window`
+  ramp, per speaker) and **rate** (count of that speaker's calls of
+  that kind in the window, normalized by `window / cooldown` = max
+  possible). The (recency, rate) corners separate single fresh call /
+  ongoing insistence / stopped burst / silence. Per-cell dx/dy and
+  intensity are dropped — the slot already carries the emitter's
+  position. Sizing: 15 kinds × 2 × 4 slots = 120 floats, replacing the
+  60-float global digest (obs ~225 → ~285; the step-2 MLP smoke prices
+  the flat widening; the spec-030 entity tokenizer absorbs it as
+  kitty-token features). No new engine state: both fields are
+  reductions over the `recent_meows` buffer the digest already scans.
+
+  Spec-level decisions to argue there, not here: (1) **audibility
+  grants a slot; fog masks knowledge fields, not rows** — otherwise
+  vision-gated slots silence unseen speakers, defeating the redesign's
+  purpose (precedent: activity targets already get non-nearest slots);
+  (2) the window — 10 ticks suits fresh-signal handoff but repetition
+  builds over tens of ticks; lean = one somewhat longer window
+  (20–30) for both fields, one buffer, one definition of "recent";
+  (3) whether the observer gets its own row (did-I-already-call, for
+  memoryless minds) — today self-meows are deliberately excluded.
+  `HEAD_KINDS` stays frozen at 15 (reserves trill/ekekek untouched) —
+  this moves the digest's *shape*, never the kind layout (principle 5).
