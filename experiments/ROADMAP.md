@@ -338,3 +338,21 @@ that wall, not one item at a time afterwards. Running list:
   memoryless minds) — today self-meows are deliberately excluded.
   `HEAD_KINDS` stays frozen at 15 (reserves trill/ekekek untouched) —
   this moves the digest's *shape*, never the kind layout (principle 5).
+
+- **Scene-age float** — owner-agreed 2026-08-26 (Experiments
+  walk-through). One float in `KITTY_SLOT` and one in `SELF_BLOCK`:
+  `activity_clock.elapsed(tick) / H`, clamped to 1; zero when no scene
+  runs. No engine change — the clock is already snapshot truth
+  (spec 006, `kitty.rs:226`); this is observe.rs arithmetic only.
+  Value: the acceptance-prediction input the slot lacks (partnered
+  flag says *that*, not *how long*), and — same memorylessness
+  argument as the digest — a mind mid-scene otherwise has no idea how
+  long its own scene has run (continuation is engine-side). **H = 24,
+  FROZEN, never derived from config at obs time**: the worst case is
+  a maxed sleep need at the highest per-kitty sleep rise,
+  100 / (sleep_relief 5.0 − Miso's 0.6) ≈ 23 ticks; deriving H live
+  would let every repricing silently rescale the observation
+  (step 1 IS a repricing). Kind-conditioned meaning comes free from
+  the adjacent activity one-hot. Under fog it is a knowledge field
+  (masks fields, not rows). **Rule jointly with the waterline float**:
+  both widen `KITTY_SLOT`, one retrain either way.
