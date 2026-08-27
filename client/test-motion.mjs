@@ -2587,8 +2587,18 @@ check('a call is drawn only on the poses it reads on, and is not queued', () => 
   // The owner judged walk / idle / pounce. A meow spoken mid-groom is SKIPPED
   // rather than held: a call drawn late is a cat mouthing at nothing.
   const V = api.VIEW;
-  assert(V.meowPoses.includes('walking') && V.meowPoses.includes('idle')
-    && V.meowPoses.includes('pouncing'), 'the judged poses must be the gate');
+  for (const pose of ['walking', 'idle', 'pouncing', 'loaf']) {
+    assert(V.meowPoses.includes(pose), `${pose} was judged to read, and must be in the gate`);
+  }
+
+  // `loaf` is the only gated pose whose eyes are ALREADY closed, so
+  // `meowSquint` can change nothing there -- the lid only ever goes further
+  // shut (`lid = max(lid, ...)`). Owner judged it that way and ruled "keep
+  // eyes closed", so the inertness is the intent rather than a gap. This
+  // pins it: a squint that could OPEN an eye would be a different animal and
+  // would change what she approved.
+  const shut = CatV2.catLayout('loaf', 0.3).eyes;
+  close(shut === 'closed' ? 1 : 0, 1, 'loaf must still be an eyes-closed pose');
   for (const pose of ['grooming', 'sleep-curl', 'eating', 'drinking']) {
     const p = new api.Presentation();
     p.pushState(meowWorld(1), 1000);

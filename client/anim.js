@@ -619,16 +619,30 @@ const VIEW = Object.freeze({
    * for both meant 98% of bubbles said nothing".
    *
    * The poses are the owner's, judged in the lab: the call reads on a walk,
-   * on idle, and on a pounce (the last only with its eyes open, which is what
-   * `meowSquintByPose` is for). Everything else is skipped rather than
-   * queued -- a meow drawn late is a cat mouthing at nothing.
+   * on idle, on a pounce (the last only with its eyes open, which is what
+   * `meowSquintByPose` is for), and on a loaf. Everything else is skipped
+   * rather than queued -- a meow drawn late is a cat mouthing at nothing.
+   *
+   * `loaf` is the odd one and was added 2026-08-26 ahead of its own need. It
+   * is the only gated pose whose eyes are ALREADY closed, so `meowSquint` is
+   * inert there -- the lid only ever goes further shut -- and the owner
+   * judged it that way and ruled "keep eyes closed". So a loafing cat mumbles
+   * with its eyes shut, deliberately, and a squint that could OPEN an eye
+   * would be a different animal from the one she approved.
+   *
+   * It also drew ZERO speech in the 2026-08-25 census, and that is a true
+   * zero rather than a thin sample: `rest` is not currently chosen by any
+   * seat. The owner is repricing the cuddle economy, which will change that,
+   * so this is in the gate BEFORE the behaviour that needs it. Re-census
+   * after that lands -- the cooldown caps the ceiling, but the floor moves
+   * with whatever the policies choose.
    *
    * Measured on the live world 2026-08-25: 30 speech events in 9 minutes, of
    * which 17 land on these three poses -- about 110 an hour across five cats
    * before the cooldown binds. A chattier generation raises the numerator and
    * `meowCooldownMs` holds the ceiling.
    */
-  meowPoses: ['walking', 'idle', 'pouncing'],
+  meowPoses: ['walking', 'idle', 'pouncing', 'loaf'],
   meowCooldownMs: 20000, // at most one drawn call per cat per this
 
   // The on-the-spot turn (2026-08-10). Short: this is a cat pivoting on
