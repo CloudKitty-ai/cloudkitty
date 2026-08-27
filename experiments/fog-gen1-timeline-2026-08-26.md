@@ -60,6 +60,11 @@ are the expected signature of this mechanism, not a defect.
   (ROADMAP parking lot item; the known-positive it must catch).
 - **Here-word density screen** (plan @ 8c50fda) — the fog-vocabulary
   de-risker runs HERE, on the current gen, before fog forecloses it.
+- **Biscuit 3.0 comfort sweep** (`biscuit3-design-note-2026-08-26.md`)
+  — scripted `playful_comfort` dose-response, owner-gated to run once
+  ALL pre-fog engine changes are in (step 1 + any step-2½ economy
+  members), so it prices the dial against the economy Biscuit 3.0
+  trains under.
 
 The validated step-2 mix bands become step 4's reference.
 
