@@ -385,3 +385,25 @@ that wall, not one item at a time afterwards. Running list:
     the SAME PR (reddening points: the two config sweeps + the nan
     table); `binding_continuity.py` runs at the wall — a rebuild is
     never compiler-only.
+
+- **The F-033 seam: DECLINED, on the record** — owner-ruled
+  2026-08-26. The mask keeps probing the frozen start-of-tick
+  snapshot; a refused proposal keeps costing the full turn. Reasons,
+  so the decline is a decision and not an omission: (1) the full-turn
+  cost is load-bearing — any cheaper decline converts proposals into
+  free probes and the optimal policy spams asks, destroying the
+  when-to-propose dynamic the seam creates; (2) the bundle's other
+  items (partner needs + scene age + digest matrix) turn that dynamic
+  into a fair, learnable game rather than irreducible noise; (3) a
+  turn-semantics change re-baselines every seat's dynamics for an
+  efficiency the anchor-side proposal filter
+  (`biscuit3-design-note-2026-08-26.md`) targets behaviorally.
+  Engine-side auto-fallbacks were rejected for the same spam logic
+  plus attribution honesty (the served world must show what the
+  policy chose). **Companion item, accepted, NOT wall-gated: the
+  refusal stamp** — the engine records refusals into the event stream
+  (kitty, proposed action, tick). Additive API, zero dynamics change,
+  lands whenever convenient; motivated by the seam's real cost to
+  date being epistemic (F-032's wrong answer, the three `survived`
+  traps) — the next such question should be answerable by a census,
+  not a seam probe.
