@@ -356,3 +356,32 @@ that wall, not one item at a time afterwards. Running list:
   the adjacent activity one-hot. Under fog it is a knowledge field
   (masks fields, not rows). **Rule jointly with the waterline float**:
   both widen `KITTY_SLOT`, one retrain either way.
+
+- **Config hygiene: 3.0 breaks backward compatibility with all things
+  pre-3.0** — owner-ruled 2026-08-26, **and the 3.0 cutover is a
+  `--fresh` (owner, same ruling)**. Scope:
+  - Delete deprecated economy keys rather than carry them inert:
+    `cuddle_relief` (the 2.x line keeps it accepted-but-inert after
+    the step-1 split, spec-028 pattern; 3.0 removes it), play's dead
+    `max = 5`, plus whatever a struct sweep finds. Historical tomls
+    stay valid for their PINNED commits — F-028 provenance makes
+    reproduction ride git checkout, never HEAD forward-compat.
+  - Drop the section-absence serde defaults (pre-010/011/024 shims in
+    `config/mod.rs`): a 3.0 config is complete, every section
+    explicit. With `deny_unknown_fields` (kept strict throughout)
+    the config surface becomes strict in BOTH directions — a real
+    safety property ahead of a five-seat training round (the 040
+    lesson).
+  - Delete the seven pre-X snapshot restore shims in `kitty.rs` —
+    unlocked by the `--fresh` ruling; no old save crosses the wall.
+  - OUT of scope: `ACTION_SCHEMA_VERSION`/codec (frozen through the
+    fog era, principle 5; the v3-pin quirk is documented, not
+    broken), the HTTP API (the client's contract), `HEAD_KINDS`
+    layout (frozen).
+  - The discipline that makes it safe: a migration note at the wall
+    listing every removed key and formerly-optional section; every
+    config actively loaded by HEAD tooling (cert configs, collect
+    configs, lab families, `binding_continuity` fixtures) migrates in
+    the SAME PR (reddening points: the two config sweeps + the nan
+    table); `binding_continuity.py` runs at the wall — a rebuild is
+    never compiler-only.
