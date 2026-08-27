@@ -5,7 +5,7 @@ A cute, safe sandbox where kitties frolic, play, and — lately — learn.
 Watch the live world at **[kitties.ai](https://kitties.ai)** (also served at
 [cloudkitty.ai](https://cloudkitty.ai)).
 
-CloudKitty is a 2D tile world that runs on a server and is watched through a browser. Kitties wander, eat, drink, nap in sunbeams, groom each other, chase bugs, and meow about it. Every kitty on the served world today is driven by a neural network trained for one objective: the happiness of all the kitties in the meadow. Each kitty is guided by a mind, which can be a hand-written script, a trained policy, or an external program in any language.
+CloudKitty is a 2D tile world that runs on a server and is watched through a browser. Kitties wander, eat, drink, nap in sunbeams, groom each other, chase bugs, and meow about it. Each kitty is guided by a mind, which can be a hand-written script, a trained policy, or an external program in any language. Currently, every kitty on the served world is driven by a unique neural network. The minds may be different, but they're all trained for one objective: the happiness of all the kitties in the meadow. 
 
 Life is good in the meadow, and the world is built to keep it that way: every kitty's well-being is guaranteed by a constitution, enforced by the engine and tested on every change.
 
