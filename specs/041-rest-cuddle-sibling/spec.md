@@ -319,7 +319,9 @@ re-baseline; Product owns the spec, implementation, and PR.
 - **Sequencing with the tabled waterline rule**: rest's legality
   change and the tabled waterline pairing rule touch the same
   validation funnel. The waterline decision is slotted at the fog
-  timeline's step 2½ (`experiments/fog-gen1-timeline-2026-08-26.md`);
+  timeline's step 3, the pre-fog schema-break bundle
+  (`experiments/fog-gen1-timeline-2026-08-26.md`, as renumbered on
+  main @ 280bbaa);
   this feature makes its pass over the funnel now and MUST NOT
   implement or foreclose the waterline rule — the spec's only
   obligation is that the funnel remains a single rule with no
