@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """nn_distance.py -- nearest-neighbour distance census (the shakeout
-clustering criterion, fog-gen1 timeline step 4).
+clustering criterion, fog-gen1 timeline step 5).
 
 Chebyshev is the engine's adjacency metric (a duet partner is cheb<=1);
 Euclidean reported alongside. Baselines pinned 2026-08-26 off the live

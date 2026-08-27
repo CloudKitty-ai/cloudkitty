@@ -1,7 +1,7 @@
 # Needs-servicing latency: instrument + live baseline (2026-08-26)
 
 Fog-gen1 timeline step 0, third bullet — the "world harder" vs "mind
-broken" separator for the step-4 shakeout, and the pre-declared gate on
+broken" separator for the step-5 shakeout, and the pre-declared gate on
 Biscuit 3.0's design. Instrument:
 `attn-cert-2026-08-14/need_latency.py` (+ `test_need_latency.py`, every
 assertion driven red in-run: 8 mutations, each failing at the predicted
@@ -72,14 +72,14 @@ solo-pounce fallback redirects refused turns into more play, which
 this data gives no payoff for. Neither lever needs a schema change:
 kitty slots already observe the partner's six needs + happiness
 (`rl/src/observe.rs:299`) — this is training/shaping territory for
-step 6, not a step-2½ schema-break item.
+step 7, not a step-3 schema-break item.
 
 Scope: one 12-minute window, one time-of-day; excursion counts are
 small (1–3). Re-run before committing the Biscuit 3.0 design — the
 instrument is cheap (`--live 9.5 5`). Relief *counts* are lower bounds
 (only the latest stamp per poll gap survives); latencies are exact.
 
-## Shakeout use (step 4)
+## Shakeout use (step 5)
 
 INVESTIGATE criterion 4 reads: latency percentile creep vs THIS
 baseline (armed excursions near-zero for well seats; scripted-floor

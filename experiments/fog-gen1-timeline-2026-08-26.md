@@ -28,7 +28,7 @@ only.
   theory (owner's framing). Design levers with headroom: acceptance
   prediction + food-over-play prioritization; solo-pounce redirects
   reclaimed turns into more play, no payoff shown. Re-run (one 12-min
-  window so far) before the step-6 design call.
+  window so far) before the step-7 design call.
 
 ## Step 1 — roll out non-fog changes
 
@@ -62,31 +62,31 @@ are the expected signature of this mechanism, not a defect.
   de-risker runs HERE, on the current gen, before fog forecloses it.
 - **Biscuit 3.0 comfort sweep** (`biscuit3-design-note-2026-08-26.md`)
   — scripted `playful_comfort` dose-response, owner-gated to run once
-  ALL pre-fog engine changes are in (step 1 + any step-2½ economy
+  ALL pre-fog engine changes are in (step 1 + any step-3 economy
   members), so it prices the dial against the economy Biscuit 3.0
   trains under.
 
-The validated step-2 mix bands become step 4's reference.
+The validated step-2 mix bands become step 5's reference.
 
-## Step 2½ — the pre-fog schema-break bundle (owner decisions)
+## Step 3 — the pre-fog schema-break bundle (owner decisions)
 
 A short doc listing in/out. Known members: the TABLED waterline
 pairing rule (owner 2026-08-24: "revisit when finalizing the pre-fog
 schema-break bundle" — this is that moment; `here_water` confound with
 fog vocabulary arms noted there), the KITTY_SLOT gap ("wants the
-wall"), anything else wanting a schema break. Nothing enters step 3's
+wall"), anything else wanting a schema break. Nothing enters step 4's
 spec without appearing here first.
 
-## Step 3 — implement Fog Gen 1
+## Step 4 — implement Fog Gen 1
 
 Spec-first (speckit). Scope per ROADMAP; free register never scripted;
 here_* words are about the WORLD, want_* about speaker state.
 
-## Step 4 — shakeout training round
+## Step 5 — shakeout training round
 
 Deliberately small: fewer seeds, shorter horizon. Purpose = discover
 remaining schema/engine changes, not certify. Criteria PRE-DECLARED
-below; anything not on the HALT list is step-5 data, not a stop.
+below; anything not on the HALT list is step-6 data, not a stop.
 
 ### HALT (egregious — stop, fix, possibly break schema)
 
@@ -99,7 +99,7 @@ below; anything not on the HALT list is step-5 data, not a stop.
 | H5 | frozen cluster | same-pair contact share near-total, sustained | F-027's spatial signature; `nn_distance.py` + pair census |
 | H6 | hyper-dispersion | NN cheb MEDIAN ≥ 5, sustained | baseline median 1.0 — 5× current; loose deliberately (fog legitimately disperses) |
 
-### INVESTIGATE (log, continue; input to step 5)
+### INVESTIGATE (log, continue; input to step 6)
 
 - activity mix outside step-2 bands by modest factors
 - needs-servicing latency percentile creep (the "world harder" vs
@@ -109,20 +109,21 @@ below; anything not on the HALT list is step-5 data, not a stop.
 - dispersion drift (NN median ≥3 but <5)
 - vocabulary oddities (remember: aggregate msg@1 useless, 95% Silent)
 
-Owner pins the exact H4/H6/refusal numbers at step-4 kickoff now that
+Owner pins the exact H4/H6/refusal numbers at step-5 kickoff now that
 baselines exist.
 
-## Step 5 — remediate + LOCK
+## Step 6 — remediate + LOCK
 
-Apply step-4 remediations. "Locked" means all three at once: schema
+Apply step-5 remediations. "Locked" means all three at once: schema
 version final; `binding_continuity.py` green (deny_unknown_fields —
 the 040 lesson); both config sweeps green. Cert anchors re-derived on
 the locked fog config (second and final re-baseline; the first was
 step 1's — two total, accepted knowingly).
 
-## Step 6 — certification round
+## Step 7 — certification round
 
-5 new certifiable seats incl. Biscuit 3.0. Biscuit 3.0's design gated
-on the step-0 needs-servicing latency finding before committing to the
-solo-pounce fallback. Two-layer welfare gates, G5 census, G6 soak,
+5 new certifiable seats incl. Biscuit 3.0. Biscuit 3.0's design per
+`biscuit3-design-note-2026-08-26.md` (anchor-side comfort fix +
+proposal filter; the step-2 comfort sweep is its pricing input).
+Two-layer welfare gates, G5 census, G6 soak,
 owner's word for seating/deploy — the standing machinery, unchanged.

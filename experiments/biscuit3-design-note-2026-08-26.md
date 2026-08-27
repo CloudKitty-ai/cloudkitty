@@ -57,7 +57,7 @@ teach the fix.
 
 **⏳ SEQUENCING (owner, 2026-08-26): run the sweep once ALL pre-fog
 engine changes are in** — after step 1 (cuddle sibling package) lands
-and anything else in the step-2½ bundle that touches the economy, so
+and anything else in the step-3 bundle that touches the economy, so
 the sweep prices the dial against the economy Biscuit 3.0 will
 actually train under, not the one being retired.
 
