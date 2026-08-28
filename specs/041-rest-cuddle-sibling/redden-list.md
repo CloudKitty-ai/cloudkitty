@@ -81,6 +81,42 @@ duet deaf to its own dial before the swap).
   shapes; expected green (solo / shape-only).
 - `snapshot_resume.rs` — FR-009's home for the bound-duet fixture.
 
+**OBSERVED at commit 2 (2026-08-28):** every predicted red seen, each
+for its predicted reason:
+- 7 new guards red first (busy-partner legality "left: Idle"; idle
+  partner bound "left: Resting{Some(1)}"; tier/pay guards "got 50";
+  wander guard partner kept) → green after the rewrite.
+- `a_busy_or_sleeping_partner_cannot_be_conscripted` Rest half red
+  ("a cat mid-meal is not draftable") → repointed: legal, meal
+  untouched; Play half stayed green (conscription kept).
+- `a_cuddle_is_a_duet_with_one_shared_clock` red (partner no longer
+  bound) → repointed as `a_cuddle_names_a_companion_and_owns_its_clock`.
+- `duet_partners_are_only_the_bound_kind` red → Resting moved to the
+  reference-without-binding kind.
+- Pinned-JSON event guard red on the exact bug (zero counters leaking
+  into the wire) before `skip_serializing_if` → green after.
+- Counter guards red (0 vs expected) before `count_tier_tick` wiring.
+- FR-009 resume guard: taught the spec-006 effects-due rule (first
+  resumed tick stamps without paying); rule-5 bug-introduction pass
+  (re-filter via `is_conscriptable_friend`) went red as predicted,
+  reverted.
+- `golden_evolution_flag_absent_10k_ticks` red (digest moved:
+  legality + counters) → regenerated per its own doctrine, new pin
+  `7b361b2a…`, determinism ×3 on the new pin.
+- Commit-1's three pricing tests needed re-staging (idle partner now
+  earns drip 0.0, not mutual) — the new semantics working as specified.
+- Watch pile: mask_oracle, approach_etiquette, meow_courtesy,
+  snapshot_resume existing cases, all RL schema pins — GREEN.
+- **Late red, surfaced only under the repriced dials** (T004 missed
+  it): `test_support::assert_orthogonal_scenes` still held Resting to
+  the bound-duet every-tick adjacency law
+  (`a_crowded_out_kitty_is_fed_by_retarget_and_respawn…` red at
+  commit-3 verification — a scripted rest partner lawfully stepped
+  away). Repointed in commit 2 (amended): Resting, like Sleeping,
+  carries no every-tick adjacency law; Play keeps it. Couldn't
+  trigger at drip 0.0 — no scripted rest scenes existed to wander
+  from.
+
 ## Must go RED at commit 2, flipped GREEN by commit 3 alone
 
 - The T028 riders-partial arithmetic guards (toml-driven): red against

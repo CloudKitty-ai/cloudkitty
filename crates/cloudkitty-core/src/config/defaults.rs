@@ -45,9 +45,15 @@ pub(super) fn default_cosleep_relief() -> f32 {
     15.0
 }
 
-// Spec 041: the classic shared dial split at its value (spec 028's own
-// launch pattern) -- rest's mutual tier and the groomer's warmth both
-// equal the classic cuddle_relief until the reprice moves them.
+// Spec 041: the classic shared dial split at its ENGINE-DEFAULT value
+// (spec 028's own launch pattern, exactly like default_cosleep_relief
+// above) -- rest's mutual tier and the groomer's warmth both equal the
+// classic cuddle_relief default until the reprice moves them. Note the
+// pattern's known edge, shared with the cosleep pair: a config that
+// overrode the OLD key without pinning the new ones gets these engine
+// defaults, not its override -- the served toml pins all three
+// explicitly, and historical faithful re-runs use pinned builds, never
+// HEAD (house practice).
 pub(super) fn default_cuddle_split_relief() -> f32 {
     15.0
 }

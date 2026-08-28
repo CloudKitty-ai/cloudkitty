@@ -20,6 +20,14 @@
 //! The runs are tiny (default world, 120 ticks) — this guards the
 //! *shape*, not the values; the values being deterministic is what makes
 //! byte-comparison usable as the instrument.
+//!
+//! Regenerated at spec 041's engine-sibling commit (2026-08-28): the
+//! availability legality changes what scripted kitties do, so the runs'
+//! deterministic welfare VALUES moved (shape untouched — verified by
+//! diff). Stored pre-041 reports remain readable (the shape is the
+//! contract); their numeric comparability against post-041 runs was
+//! already surrendered by the arc's design — SC-007 re-baselines before
+//! any bar, and eval-suite v2 rides the wall.
 
 use std::path::PathBuf;
 

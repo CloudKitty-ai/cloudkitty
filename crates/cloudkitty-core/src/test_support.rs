@@ -44,10 +44,12 @@ pub fn assert_orthogonal_scenes(world: &World) {
                     kitty.name, world.tick
                 );
             }
-            Activity::Resting {
-                with_friend: Some(friend),
-            }
-            | Activity::Playing {
+            // Since spec 041 a rest reference is co-sleep-like: the partner
+            // can lawfully step away, and the reference persists until the
+            // rester's next service re-filters it -- so Resting, like
+            // Sleeping, carries no every-tick adjacency law here. Social
+            // play remains the one bound duet.
+            Activity::Playing {
                 target: Some(TargetRef::Kitty { id: friend }),
             } => {
                 let partner_in_range = world

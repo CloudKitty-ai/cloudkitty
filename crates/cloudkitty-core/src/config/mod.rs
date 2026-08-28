@@ -557,8 +557,10 @@ pub struct ActionEffects {
     /// Cuddle relief per serviced tick of a partnered rest scene when the
     /// partner is itself resting or sleeping (spec 041's mutual tier -- the
     /// need's saturating specialist). Both parties receive it. Split from
-    /// the classic `cuddle_relief` at its value, behavior-preserving until
-    /// the reprice moves it. Convention: `rest_drip_relief` stays below it.
+    /// the classic `cuddle_relief` at its engine-default value (a config
+    /// that overrode the old key must pin this one explicitly -- the
+    /// served toml does; spec 028's cosleep launch pattern). Convention:
+    /// `rest_drip_relief` stays below it.
     #[serde(default = "default_cuddle_split_relief")]
     pub rest_mutual_relief: f32,
     /// Cuddle relief per serviced tick of a partnered rest scene when the
@@ -569,8 +571,8 @@ pub struct ActionEffects {
     #[serde(default = "default_rest_drip_relief")]
     pub rest_drip_relief: f32,
     /// The groomer's own cuddle relief while grooming a friend (spec 041).
-    /// Split from the classic `cuddle_relief` at its value,
-    /// behavior-preserving until the reprice moves it.
+    /// Split from the classic `cuddle_relief` at its engine-default value
+    /// (same explicit-pin note as `rest_mutual_relief`).
     #[serde(default = "default_cuddle_split_relief")]
     pub groom_cuddle_relief: f32,
     /// Play relief for pouncing at nothing. Smaller than `play_relief` so a
@@ -1853,9 +1855,13 @@ mod tests {
                 // The deprecated key keeps its entry: inert, but a nan
                 // anywhere is still a malformed config (spec 041 FR-005).
                 ("cuddle_relief", |c, v| c.actions.cuddle_relief = v),
-                ("rest_mutual_relief", |c, v| c.actions.rest_mutual_relief = v),
+                ("rest_mutual_relief", |c, v| {
+                    c.actions.rest_mutual_relief = v
+                }),
                 ("rest_drip_relief", |c, v| c.actions.rest_drip_relief = v),
-                ("groom_cuddle_relief", |c, v| c.actions.groom_cuddle_relief = v),
+                ("groom_cuddle_relief", |c, v| {
+                    c.actions.groom_cuddle_relief = v
+                }),
             ] {
                 let mut c = cfg();
                 setter(&mut c, poison);

@@ -95,3 +95,43 @@ fn every_shipped_toml_loads_through_validation() {
             .unwrap_or_else(|e| panic!("{} no longer validates: {e}", file.display()));
     }
 }
+
+/// Spec 041 US2 (the riders-partial contract) on the SERVED config: every
+/// cuddle rider delivers less than the measured mean need (5.1, the
+/// 2026-08-25 census) in one minimum-length scene from a single slot, and
+/// the drip sits below the mutual within each activity (the comment-
+/// carried convention). `rest_mutual_relief` is deliberately absent: the
+/// specialist is supposed to saturate.
+///
+/// Written at the engine-sibling commit, where it is RED against the
+/// un-repriced toml by design -- the reprice diff (a pure config change)
+/// is what turns it green, which is this guard's rule-5 red/green cycle.
+#[test]
+fn the_served_cuddle_riders_are_partial_and_tier_ordered() {
+    let text = std::fs::read_to_string(repo_root().join("cloudkitty.toml")).unwrap();
+    let config: Config = toml::from_str(&text).unwrap();
+    config.validate().expect("the served config validates");
+    let a = &config.actions;
+    const MEASURED_MEAN_CUDDLE_NEED: f32 = 5.1;
+
+    let sleep_min = a.durations.sleep.min as f32;
+    let bath_min = a.durations.bath.min as f32;
+    let cuddle_min = a.durations.cuddle.min as f32;
+    for (name, per_scene) in [
+        ("cosleep_drip_relief", a.cosleep_drip_relief * sleep_min),
+        ("cosleep_mutual_relief", a.cosleep_mutual_relief * sleep_min),
+        ("groom_cuddle_relief", a.groom_cuddle_relief * bath_min),
+        ("rest_drip_relief", a.rest_drip_relief * cuddle_min),
+    ] {
+        assert!(
+            per_scene < MEASURED_MEAN_CUDDLE_NEED,
+            "{name}: a minimum scene delivers {per_scene} from one slot -- \
+             a rider must not finish the mean need ({MEASURED_MEAN_CUDDLE_NEED})"
+        );
+    }
+    assert!(
+        a.cosleep_drip_relief < a.cosleep_mutual_relief,
+        "cosleep tier order"
+    );
+    assert!(a.rest_drip_relief < a.rest_mutual_relief, "rest tier order");
+}

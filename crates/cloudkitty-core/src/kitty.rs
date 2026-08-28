@@ -116,14 +116,12 @@ impl Activity {
         }
     }
 
-    /// The kitty bound into this activity with a shared clock (cuddle and
-    /// social play). Co-sleeping and grooming reference a friend without
-    /// binding them -- those partners keep their own clocks, or none.
+    /// The kitty bound into this activity with a shared clock -- social
+    /// play only, since spec 041 made rest co-sleep's sibling. Resting,
+    /// co-sleeping and grooming reference a friend without binding them:
+    /// those partners keep their own clocks, or none.
     pub fn duet_partner(&self) -> Option<KittyId> {
         match self {
-            Activity::Resting {
-                with_friend: Some(id),
-            } => Some(*id),
             Activity::Playing {
                 target: Some(TargetRef::Kitty { id }),
             } => Some(*id),
@@ -212,6 +210,20 @@ impl Activity {
 pub struct ActivityClock {
     pub started: u64,
     pub applied: u64,
+    /// Per-scene tier counters (spec 041 FR-011): serviced ticks of a
+    /// partnered rest or co-sleep scene whose partner was itself settled
+    /// (`mutual_ticks`) or merely present (`drip_ticks`). Reset with the
+    /// clock at scene start, copied onto the `ActivityEnd` event at scene
+    /// end, zero on every other activity. Absent in pre-041 snapshots:
+    /// a resumed scene honestly counts from its resume.
+    #[serde(default, skip_serializing_if = "tier_count_is_zero")]
+    pub mutual_ticks: u32,
+    #[serde(default, skip_serializing_if = "tier_count_is_zero")]
+    pub drip_ticks: u32,
+}
+
+fn tier_count_is_zero(n: &u32) -> bool {
+    *n == 0
 }
 
 impl ActivityClock {
@@ -219,6 +231,8 @@ impl ActivityClock {
         Self {
             started: tick,
             applied: tick,
+            mutual_ticks: 0,
+            drip_ticks: 0,
         }
     }
 
@@ -664,6 +678,8 @@ mod tests {
         k.activity_clock = Some(ActivityClock {
             started: 41,
             applied: 43,
+            mutual_ticks: 0,
+            drip_ticks: 0,
         });
         let json = serde_json::to_value(&k).unwrap();
         assert_eq!(json["activity_clock"]["started"], 41);
@@ -773,20 +789,21 @@ mod tests {
     #[test]
     fn duet_partners_are_only_the_bound_kind() {
         assert_eq!(
-            Activity::Resting {
-                with_friend: Some(2)
-            }
-            .duet_partner(),
-            Some(2)
-        );
-        assert_eq!(
             Activity::Playing {
                 target: Some(TargetRef::Kitty { id: 2 })
             }
             .duet_partner(),
             Some(2)
         );
-        // Co-sleeping and grooming reference without binding.
+        // Resting joined the reference-without-binding kind at spec 041;
+        // co-sleeping and grooming were always there.
+        assert_eq!(
+            Activity::Resting {
+                with_friend: Some(2)
+            }
+            .duet_partner(),
+            None
+        );
         assert_eq!(
             Activity::Sleeping {
                 in_sunbeam: false,
