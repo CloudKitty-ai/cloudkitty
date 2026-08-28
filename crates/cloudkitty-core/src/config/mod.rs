@@ -538,9 +538,11 @@ pub struct ActionEffects {
     /// with exactly this meaning, and renaming would move the `/config`
     /// wire key for zero behavioral gain.
     pub play_relief: f32,
-    /// Cuddle relief from resting/sleeping/grooming alongside a friend.
-    /// Since spec 028 this prices the rest duet and the groomer's warmth;
-    /// cosleep has its own pair of dials below.
+    /// DEPRECATED, inert (spec 041): the classic shared dial, split into
+    /// `rest_mutual_relief` and `groom_cuddle_relief` at its value. Parsed
+    /// and nan-validated so the 181 committed historical configs keep
+    /// loading with current tools; feeds nothing. Deleted at the 3.0
+    /// config-hygiene wall.
     pub cuddle_relief: f32,
     /// Cuddle relief per serviced cosleep tick when the adjacent partner is
     /// merely present (spec 028's passive tier). Both parties receive it.
@@ -552,6 +554,25 @@ pub struct ActionEffects {
     /// sleeping or resting (the mutual tier). Both parties receive it.
     #[serde(default = "default_cosleep_relief")]
     pub cosleep_mutual_relief: f32,
+    /// Cuddle relief per serviced tick of a partnered rest scene when the
+    /// partner is itself resting or sleeping (spec 041's mutual tier -- the
+    /// need's saturating specialist). Both parties receive it. Split from
+    /// the classic `cuddle_relief` at its value, behavior-preserving until
+    /// the reprice moves it. Convention: `rest_drip_relief` stays below it.
+    #[serde(default = "default_cuddle_split_relief")]
+    pub rest_mutual_relief: f32,
+    /// Cuddle relief per serviced tick of a partnered rest scene when the
+    /// partner is merely present (spec 041's drip tier). Both parties
+    /// receive it. Launches at 0.0: the engine-sibling change is
+    /// legality-and-binding only, and every price movement lives in the
+    /// reprice diff.
+    #[serde(default = "default_rest_drip_relief")]
+    pub rest_drip_relief: f32,
+    /// The groomer's own cuddle relief while grooming a friend (spec 041).
+    /// Split from the classic `cuddle_relief` at its value,
+    /// behavior-preserving until the reprice moves it.
+    #[serde(default = "default_cuddle_split_relief")]
+    pub groom_cuddle_relief: f32,
     /// Play relief for pouncing at nothing. Smaller than `play_relief` so a
     /// kitty with company always prefers the real thing. Also the price a
     /// vanished play target drops to (spec 025): the critter is gone, the
@@ -588,6 +609,9 @@ impl Default for ActionEffects {
             cuddle_relief: 15.0,
             cosleep_drip_relief: default_cosleep_relief(),
             cosleep_mutual_relief: default_cosleep_relief(),
+            rest_mutual_relief: default_cuddle_split_relief(),
+            rest_drip_relief: default_rest_drip_relief(),
+            groom_cuddle_relief: default_cuddle_split_relief(),
             solo_play_relief: default_solo_play_relief(),
             play_relief_bug: default_play_relief_bug(),
             play_relief_greeble: default_play_relief_greeble(),
@@ -1826,7 +1850,12 @@ mod tests {
                     c.actions.sleep_relief_sunbeam = v
                 }),
                 ("groom_relief", |c, v| c.actions.groom_relief = v),
+                // The deprecated key keeps its entry: inert, but a nan
+                // anywhere is still a malformed config (spec 041 FR-005).
                 ("cuddle_relief", |c, v| c.actions.cuddle_relief = v),
+                ("rest_mutual_relief", |c, v| c.actions.rest_mutual_relief = v),
+                ("rest_drip_relief", |c, v| c.actions.rest_drip_relief = v),
+                ("groom_cuddle_relief", |c, v| c.actions.groom_cuddle_relief = v),
             ] {
                 let mut c = cfg();
                 setter(&mut c, poison);

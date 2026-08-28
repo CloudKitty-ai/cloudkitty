@@ -236,11 +236,24 @@ play_relief = 20.0
 # duet-each 20 < bug 28 < greeble 35 < team-duet 40 — a bug is a find, a
 # friend is still the better deal. Sweep: experiments/bugs2-grid2-2026-08-21.md.
 play_relief_bug = 28.0
-# Resting or grooming alongside a friend (the rest duet and the groomer's
-# warmth). Cosleep is priced separately below since spec 028. Re-priced by
-# the exp-004 dial-pricing pilot (2026-08-09, owner-pinned): a minimum-length
-# duet now pays 40 against a mean cuddle need of 11.6, down from 75.
+# DEPRECATED, inert (spec 041): the classic shared dial, split below into
+# rest_mutual_relief and groom_cuddle_relief at its value. Kept so historical
+# configs and tools keep loading; feeds nothing. 3.0 config-hygiene: delete.
+# (Pre-split provenance: exp-004 dial-pricing pilot, 2026-08-09, owner-pinned
+# -- a minimum-length duet paid 40 against a mean cuddle need of 11.6.)
 cuddle_relief = 8.0
+# Partnered rest when the partner is itself resting or sleeping (spec 041's
+# mutual tier), per serviced tick, both parties. Split from cuddle_relief at
+# the classic value -- behavior-preserving until the reprice.
+rest_mutual_relief = 8.0
+# Partnered rest when the partner is merely present (spec 041's drip tier),
+# per serviced tick, both parties. Launches at 0.0: the engine sibling is a
+# legality change only; the reprice sets the price. Convention: stays below
+# rest_mutual_relief.
+rest_drip_relief = 0.0
+# The groomer's own warmth while grooming a friend (spec 041). Split from
+# cuddle_relief at the classic value -- behavior-preserving until the reprice.
+groom_cuddle_relief = 8.0
 # Cosleeping next to a friend (spec 028), per serviced sleep tick, both
 # parties: the passive tier when the partner is merely present -- priced so
 # a typical 3-tick contact (~9) roughly meets the mean need, not 4x it...

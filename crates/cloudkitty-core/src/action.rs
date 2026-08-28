@@ -759,7 +759,7 @@ fn apply_activity_effects(world: &mut World, kitty_id: KittyId, config: &Config)
                 // own need for closeness. Only the groomer is in an activity;
                 // the friend stays free and may wander off, ending it.
                 lower_need(world, friend, NeedKind::Bath, effects.groom_relief);
-                lower_need(world, kitty_id, NeedKind::Cuddle, effects.cuddle_relief);
+                lower_need(world, kitty_id, NeedKind::Cuddle, effects.groom_cuddle_relief);
             }
         },
 
@@ -794,8 +794,8 @@ fn apply_activity_effects(world: &mut World, kitty_id: KittyId, config: &Config)
 
         Activity::Resting { with_friend } => {
             if let Some(friend) = with_friend {
-                lower_need(world, kitty_id, NeedKind::Cuddle, effects.cuddle_relief);
-                lower_need(world, friend, NeedKind::Cuddle, effects.cuddle_relief);
+                lower_need(world, kitty_id, NeedKind::Cuddle, effects.rest_mutual_relief);
+                lower_need(world, friend, NeedKind::Cuddle, effects.rest_mutual_relief);
                 stamp_serviced(world, friend, tick);
             }
             // Solo rest is posture, not relief -- it ends by interrupt or cap.
@@ -861,8 +861,8 @@ fn apply_sleep_relief(
         // tier when the partner is itself sleeping or resting, the passive
         // drip otherwise. Both parties receive the tier rate; the sleeper's
         // Sleep relief above is untouched. The rest duet and the groomer
-        // keep the classic cuddle_relief -- moving these dials never
-        // touches them.
+        // have their own dials since spec 041 (rest_mutual_relief,
+        // groom_cuddle_relief) -- moving the cosleep pair never touches them.
         let rate = if mutual {
             config.actions.cosleep_mutual_relief
         } else {
@@ -2671,6 +2671,83 @@ mod proposal_contract_tests {
         assert!(
             (a_cuddle - 35.0).abs() < 0.01,
             "the duet is paid by cuddle_relief, got {a_cuddle}"
+        );
+    }
+
+    /// Two kitties adjacent, one carrying 50 cuddle need each, nothing else
+    /// nearby -- the spec-041 pricing stage.
+    fn cuddle_pricing_stage() -> (crate::world::World, Config) {
+        let (mut world, config) = test_world();
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(4, 4);
+        world.kitties[a].needs.add(NeedKind::Cuddle, 50.0);
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(4, 5);
+        world.kitties[b].needs.add(NeedKind::Cuddle, 50.0);
+        (world, config)
+    }
+
+    #[test]
+    fn the_deprecated_shared_dial_is_inert() {
+        // Spec 041 FR-005/US3: `cuddle_relief` parses but feeds nothing.
+        // Wrench it and neither the rest duet nor the groomer moves off the
+        // split dials' value.
+        let (mut world, mut config) = cuddle_pricing_stage();
+        config.actions.cuddle_relief = 999.0;
+        apply(&mut world, 1, Action::Rest { with: Some(2) }, &config);
+        let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+        assert!(
+            (a_cuddle - (50.0 - config.actions.rest_mutual_relief)).abs() < 0.01,
+            "the duet is paid by rest_mutual_relief, got {a_cuddle}"
+        );
+
+        let (mut world, mut config) = cuddle_pricing_stage();
+        config.actions.cuddle_relief = 999.0;
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].needs.add(NeedKind::Bath, 60.0);
+        apply(&mut world, 1, Action::Groom { target: Some(2) }, &config);
+        let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+        assert!(
+            (a_cuddle - (50.0 - config.actions.groom_cuddle_relief)).abs() < 0.01,
+            "the groomer is paid by groom_cuddle_relief, got {a_cuddle}"
+        );
+    }
+
+    #[test]
+    fn each_split_dial_moves_only_its_own_site() {
+        // Spec 041 US3 AC-3: the two call sites are provably independent --
+        // move one split dial alone and only its own site's payment moves.
+        let (mut world, mut config) = cuddle_pricing_stage();
+        config.actions.rest_mutual_relief = 4.0;
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].needs.add(NeedKind::Bath, 60.0);
+        apply(&mut world, 1, Action::Rest { with: Some(2) }, &config);
+        let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+        assert!(
+            (a_cuddle - 46.0).abs() < 0.01,
+            "the duet follows its own dial, got {a_cuddle}"
+        );
+
+        // The groomer is untouched by the rest dial's move...
+        let (mut world, mut config) = cuddle_pricing_stage();
+        config.actions.rest_mutual_relief = 4.0;
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].needs.add(NeedKind::Bath, 60.0);
+        apply(&mut world, 1, Action::Groom { target: Some(2) }, &config);
+        let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+        assert!(
+            (a_cuddle - 35.0).abs() < 0.01,
+            "the groomer ignores rest_mutual_relief, got {a_cuddle}"
+        );
+
+        // ...and the duet is untouched by the groomer's.
+        let (mut world, mut config) = cuddle_pricing_stage();
+        config.actions.groom_cuddle_relief = 4.0;
+        apply(&mut world, 1, Action::Rest { with: Some(2) }, &config);
+        let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+        assert!(
+            (a_cuddle - 35.0).abs() < 0.01,
+            "the duet ignores groom_cuddle_relief, got {a_cuddle}"
         );
     }
 

@@ -45,6 +45,19 @@ pub(super) fn default_cosleep_relief() -> f32 {
     15.0
 }
 
+// Spec 041: the classic shared dial split at its value (spec 028's own
+// launch pattern) -- rest's mutual tier and the groomer's warmth both
+// equal the classic cuddle_relief until the reprice moves them.
+pub(super) fn default_cuddle_split_relief() -> f32 {
+    15.0
+}
+
+// Spec 041: rest's drip tier launches at 0.0 so the engine-sibling
+// commit is a legality-and-binding change only; the reprice sets it.
+pub(super) fn default_rest_drip_relief() -> f32 {
+    0.0
+}
+
 // Spec 028: what "real cuddle need" means to the scripted responders
 // (groom-response and cosleep-routing share the one gate).
 pub(super) fn default_cuddle_real_threshold() -> f32 {

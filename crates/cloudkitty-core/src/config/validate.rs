@@ -693,9 +693,14 @@ impl Config {
             ("[actions] sleep_relief", a.sleep_relief),
             ("[actions] sleep_relief_sunbeam", a.sleep_relief_sunbeam),
             ("[actions] groom_relief", a.groom_relief),
+            // Deprecated-but-inert (spec 041): a nan in the retired key is
+            // still a malformed config, so it keeps its table entry.
             ("[actions] cuddle_relief", a.cuddle_relief),
             ("[actions] cosleep_drip_relief", a.cosleep_drip_relief),
             ("[actions] cosleep_mutual_relief", a.cosleep_mutual_relief),
+            ("[actions] rest_mutual_relief", a.rest_mutual_relief),
+            ("[actions] rest_drip_relief", a.rest_drip_relief),
+            ("[actions] groom_cuddle_relief", a.groom_cuddle_relief),
         ] {
             if !value.is_finite() || value < 0.0 {
                 return Err(ConfigError::invalid(
