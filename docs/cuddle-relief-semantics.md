@@ -1,32 +1,44 @@
 # Cuddle relief semantics
 
-**Status**: engine reference · **Recorded**: 2026-07-28 · verified against
-`main` at `e4a7d51`
+**Status**: engine reference · **Recorded**: 2026-07-28 · **Rewritten for
+spec 041** (2026-08-28, the rest-sibling branch) — the pre-041 rule this
+document originally recorded is kept below for the history sections.
 
-Which actions deliver `cuddle_relief`, and which of them require a free
+Which actions deliver cuddle relief, and which of them require a free
 friend. This is written down because a spec was once built on a false
 answer to that question and reached implementation before anyone checked
 (see [Spec 021, withdrawn](#spec-021-withdrawn-2026-07-27)).
 
-## The rule
+## The rule (since spec 041)
 
-Three activities grant `cuddle_relief`. Only one conscripts.
+Three activities grant cuddle relief. **None conscripts** — spec 041 made
+rest co-sleep's sibling, deleting the last conscripting cuddle route. The
+shared `cuddle_relief` dial is retired loudly (a config carrying it
+fails with a migration map; owner ruling 2026-08-28); each site/tier
+has its own dial.
 
-| Activity (from action) | Validator | `cuddle_relief` to | Binds the friend? |
+| Activity (from action) | Validator | Cuddle relief | Binds the friend? |
 |---|---|---|---|
-| `Resting { with_friend }` — `Rest { with }` | `is_conscriptable_friend` (action.rs:348) | proposer **and** friend (action.rs:642-644) | **Yes** — friend is stamped serviced and held in the activity |
-| `Sleeping { with_friend }` — `Sleep { with }` | `is_available_friend` (action.rs:352) | proposer **and** friend (action.rs:680-693) | No |
-| `Grooming { target }` — `Groom { target }` | `is_available_friend` (action.rs:357) | proposer **only** (action.rs:620) | No |
+| `Resting { with_friend }` — `Rest { with }` | `is_available_friend` | tier per serviced tick, **both** parties: `rest_mutual_relief` when the partner is itself settled, `rest_drip_relief` otherwise | No — partner keeps its own activity and clock; wandered partner drops the scene to solo posture |
+| `Sleeping { with_friend }` — `Sleep { with }` | `is_available_friend` | tier per serviced tick, **both** parties: `cosleep_mutual_relief` / `cosleep_drip_relief` | No |
+| `Grooming { target }` — `Groom { target }` | `is_available_friend` | `groom_cuddle_relief`, groomer **only** | No |
 
-`is_available_friend` is adjacency alone (world.rs:997).
-`is_conscriptable_friend` adds `activity_clock.is_none()` — adjacent *and*
-doing nothing (world.rs:1008).
+`is_available_friend` is adjacency alone. `is_conscriptable_friend`
+(adjacent *and* clock-free) now governs **social play only** — the one
+remaining bound duet.
 
-The distinction is deliberate and documented at the predicate itself: a
-kitty mid-activity cannot be conscripted out of it without breaking its own
-duration minimum, so cuddling and social play require a free partner, while
-"co-sleeping and grooming keep the plain availability rule because they
-bind nobody."
+Both tier resolutions use the single shared mutual predicate,
+`World::is_settled` (partner's activity matches `Sleeping | Resting`) —
+one definition for co-sleep pricing, warmth conduction, and rest tiers.
+Tier counters (`mutual_ticks`/`drip_ticks`) ride each scene's
+`ActivityEnd`.
+
+### The pre-041 rule, for reading the history below
+
+Before spec 041, `Rest { with }` validated on `is_conscriptable_friend`,
+bound the friend into a mirrored `Resting` with a shared clock, stamped
+it serviced, and paid both parties the shared `cuddle_relief`. That is
+the world in which spec 021 was written and withdrawn.
 
 **Social play is not a Cuddle route.** `Playing { target: Kitty }` validates
 on `is_conscriptable_friend` (action.rs:385, 524) but lowers `Play` for both
@@ -45,6 +57,10 @@ Narrowing the arm to conscriptable friends would introduce false
 **negatives** — ticks where lawful relief existed but the metric recorded
 none — and so would *loosen* `MAX_PINNED_STREAK` rather than tighten it.
 Under the tighten-only doctrine that is a regression, not a correction.
+
+Spec 041 only strengthens this: `Rest { with }` is now lawful toward a
+busy neighbor too, so *every* cuddle route validates on adjacency alone
+and the metric's premise holds with no exceptions left.
 
 ## Spec 021, withdrawn 2026-07-27
 

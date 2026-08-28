@@ -39,10 +39,12 @@ mutual from its own slot. No migration, no heal.
 | `groom_cuddle_relief` | 15.0 (classic) | 8.0 | 0.5 | groomer's warmth |
 | `cosleep_mutual_relief` | (existing) | 8.0 | 0.6 | co-sleep, mutual |
 | `cosleep_drip_relief` | (existing) | 3.0 | 0.25 | co-sleep, drip |
-| `cuddle_relief` | 15.0, **inert** | present, inert | present, inert | none (deprecated) |
+| `cuddle_relief` | none (Option) | **absent — presence is a loud error** | absent | none (retired 2026-08-28, owner ruling) |
 
-Rules: `cuddle_relief` parses and validates but feeds nothing;
-unknown-field rejection stays strict; drip < mutual within each
+Rules: `cuddle_relief` parses only so its presence can be rejected
+with the migration map (owner's noisy-failure ruling — the 181
+committed tomls were migrated, each inheriting its value into the
+split dials); unknown-field rejection stays strict; drip < mutual within each
 activity is a comment-carried convention (no validation); all six
 appear in the nan-validation table (the inert key keeps its entry —
 a nan is still a malformed config). Tier order and value provenance

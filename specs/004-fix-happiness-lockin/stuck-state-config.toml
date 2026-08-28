@@ -133,8 +133,10 @@ play_relief = 25.0
 play_relief_bug = 26.0
 play_relief_greeble = 27.0
 # Resting, sleeping or grooming alongside a friend.
-cuddle_relief = 20.0
-
+# spec 041 migration (owner's loud-retirement ruling, 2026-08-28):
+# cuddle_relief = 20.0 split faithfully into its two sites.
+rest_mutual_relief = 20.0
+groom_cuddle_relief = 20.0
 [meow]
 # (Migrated twice: cooldown_ticks -> courtesy_ticks by spec 023, then the
 # courtesy trio deleted by spec 028, which made message legality engine law.

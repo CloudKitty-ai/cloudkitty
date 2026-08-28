@@ -49,8 +49,11 @@ partnered rest/sleep ticks
 
 **Constraints**: commit 1 byte-identical world evolution (SC-001);
 menu layout, `KITTY_SLOT`, message head, `ACTION_SCHEMA_VERSION`
-frozen (FR-003); `cuddle_relief` accepted-but-inert, strict
-unknown-field rejection kept (FR-005/SC-002); tier order
+frozen (FR-003); `cuddle_relief` retired loudly — presence is a
+validation error with the migration map, all committed tomls migrated
+(FR-005/SC-002 as amended by the owner's 2026-08-28 noisy-failure
+ruling; it launched accepted-but-inert in commits 1–3, commit 4
+retired it), strict unknown-field rejection kept; tier order
 drip < mutual by comment-carried convention only; no play dial moves
 (FR-007); `engine_defaults_sha256` moves at commit 1 (new fields) —
 accepted, re-baseline is already in scope (SC-007)
@@ -114,7 +117,8 @@ crates/cloudkitty-core/src/
 │                    #   (Resting/Sleeping), shared mutual predicate,
 │                    #   test battery incl. redden-list migration
 ├── config/mod.rs    # 3 new dials + defaults + nan table entries;
-│                    #   cuddle_relief kept, marked deprecated/inert
+│                    #   cuddle_relief: Option, presence rejected loudly
+│                    #   (commit-4 amendment; was inert in commits 1-3)
 ├── config/defaults.rs  # split-at-classic comment (spec-028 pattern)
 ├── events.rs        # ActivityEnd: mutual_ticks / drip_ticks
 ├── kitty.rs         # per-scene tier counters beside activity_clock
@@ -132,8 +136,10 @@ only where their tests enumerate config fields.
 ## Commit sequence (the one-PR, three-commit contract)
 
 1. **Split** — new dials at classic values, call sites swapped,
-   `cuddle_relief` inert; golden digest proves byte-identity before
-   and after (SC-001); redden-list tests migrated in this commit.
+   `cuddle_relief` inert at this commit (commit 4 later retires it
+   loudly, per the owner's amendment); golden digest proves
+   byte-identity before and after (SC-001); redden-list tests
+   migrated in this commit.
 2. **Engine sibling** — validate/apply/effects rewrite for rest,
    shared predicate extracted, tier counters + `ActivityEnd` fields,
    `rest_drip_relief` = 0.0 everywhere; all new guards land red-first

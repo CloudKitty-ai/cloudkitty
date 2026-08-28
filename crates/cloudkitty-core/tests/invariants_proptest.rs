@@ -300,6 +300,8 @@ fn a_pre_006_shape_with_an_in_progress_activity_is_refused() {
     world.kitties[0].activity_clock = Some(ActivityClock {
         started: 9,
         applied: 9,
+        mutual_ticks: 0,
+        drip_ticks: 0,
     });
     invariants::check(&world, &config).expect("clocked, the sleeper is lawful");
 

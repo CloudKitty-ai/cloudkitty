@@ -200,6 +200,8 @@ fn build_world(spec: &WorldSpec, config: &Config) -> World {
         let clock = ActivityClock {
             started,
             applied: world.tick.saturating_sub(1).max(started),
+            mutual_ticks: 0,
+            drip_ticks: 0,
         };
         let partner_of = |offset: usize| ids[(i + offset) % ids.len()];
         let activity = match spec

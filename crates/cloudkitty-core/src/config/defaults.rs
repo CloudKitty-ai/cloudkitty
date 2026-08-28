@@ -45,6 +45,22 @@ pub(super) fn default_cosleep_relief() -> f32 {
     15.0
 }
 
+// Spec 041: the classic shared dial split at its ENGINE-DEFAULT value
+// (spec 028's launch pattern). The silent-default edge the cosleep pair
+// carries does not exist here: a config still carrying the old
+// cuddle_relief key fails validation loudly with the migration map
+// (owner's full-compatibility-break ruling, 2026-08-28), so nothing can
+// reach these defaults through an unmigrated override.
+pub(super) fn default_cuddle_split_relief() -> f32 {
+    15.0
+}
+
+// Spec 041: rest's drip tier launches at 0.0 so the engine-sibling
+// commit is a legality-and-binding change only; the reprice sets it.
+pub(super) fn default_rest_drip_relief() -> f32 {
+    0.0
+}
+
 // Spec 028: what "real cuddle need" means to the scripted responders
 // (groom-response and cosleep-routing share the one gate).
 pub(super) fn default_cuddle_real_threshold() -> f32 {

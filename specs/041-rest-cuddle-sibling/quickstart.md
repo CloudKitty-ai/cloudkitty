@@ -28,8 +28,10 @@ Deprecated-key check (SC-002):
 cargo test -p cloudkitty-core config          # inert-key + nan-table + strictness guards
 ```
 
-Expected: a config carrying `cuddle_relief` loads; an unknown key is
-still rejected; `cuddle_relief = nan` is still an error.
+Expected (as amended by the owner's 2026-08-28 loud-retirement
+ruling, commit 4): a config carrying `cuddle_relief` FAILS validation
+with an error naming the key and both split dials; an unknown key is
+still rejected; every committed toml (migrated) loads.
 
 ## Commit 2 — the sibling shape, before any price moves
 

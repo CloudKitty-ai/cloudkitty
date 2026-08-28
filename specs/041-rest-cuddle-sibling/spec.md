@@ -72,6 +72,17 @@ F-031, F-027.
   busy-partner rest scene exists but pays nothing, mirroring solo
   rest); the reprice diff sets 0.25, keeping all price movement in
   one reviewable config diff.
+- Q: Should the retired key stay accepted-but-inert, or fail loudly?
+  → A: **Noisy failure (owner ruling 2026-08-28, post-implementation
+  review — supersedes the session-1 accepted-but-inert ruling)**: this
+  arc is the opportunity for a full compatibility break in service of
+  long-term health. A config carrying `cuddle_relief` is rejected at
+  load with a migration map naming the split dials (the spec-025
+  loud-failure pattern); the 181 committed historical configs are
+  migrated mechanically in the same change (each inherits its own
+  value into the split dials), so committed history keeps loading
+  while any stray config in the wild fails loudly instead of silently
+  running a doubled economy.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -267,11 +278,15 @@ observe it accepted (and inert).
   legality-and-binding change only, with every price movement
   isolated in the reprice diff. (Spec 028's own launch pattern for
   the cosleep pair, extended to the tier that has no classic value.)
-- **FR-005**: The deprecated key MUST remain accepted-but-inert: a
-  config carrying `cuddle_relief` loads with current tools and the
-  key has no effect. Strict rejection of genuinely unknown fields is
-  unchanged. (Preserves the F-029 census re-cut workflow over the
-  181 committed historical configs.)
+- **FR-005** (amended by the owner's 2026-08-28 noisy-failure
+  ruling): The retired key MUST fail loudly: a config carrying
+  `cuddle_relief` is rejected at load with an error that names the
+  key and maps the migration (set `rest_mutual_relief` and
+  `groom_cuddle_relief` explicitly). All committed configs carrying
+  the key MUST be migrated in the same change, each inheriting its
+  own historical value into the split dials, so the shipped-config
+  sweeps stay green and per-config behavior intent is preserved.
+  Strict rejection of genuinely unknown fields is unchanged.
 - **FR-006**: The reprice MUST land as its own step (a pure config
   diff on top of the split), with these model-derived starting
   values, owner-pinnable as usual: co-sleep drip 0.25, co-sleep
@@ -331,8 +346,10 @@ re-baseline; Product owns the spec, implementation, and PR.
 - **SC-001**: The split step is byte-identical: same seed + config +
   ticks reproduces the pre-split world state exactly (instrument
   continuity, house ×3 practice).
-- **SC-002**: Every one of the 181 committed configs carrying the
-  deprecated key loads with current tools after the change.
+- **SC-002** (amended with FR-005): Every committed config loads
+  with current tools after the migration — none still carries the
+  retired key — and a config that does carry it fails validation
+  with an error naming `cuddle_relief` and the two split dials.
 - **SC-003**: On a served or soak world after the reprice, rest
   scenes are **greater than zero and sustained** — any stable
   double-digit count per 10k cat-ticks passes "non-zero and real"
@@ -355,9 +372,12 @@ re-baseline; Product owns the spec, implementation, and PR.
 
 ## Assumptions
 
-- **Deprecated-key decision — settled** (owner-ratified, see
-  Clarifications): `cuddle_relief` stays accepted-but-inert,
-  preserving re-cutting historical censuses with current tools.
+- **Deprecated-key decision — re-settled 2026-08-28** (owner ruling,
+  see Clarifications): `cuddle_relief` fails loudly with a migration
+  map; committed configs migrated in the same change. The F-029
+  re-cut workflow is preserved by the migration (the configs still
+  load), and the owner accepted the compatibility break for
+  long-term health.
 - **Delivery shape — settled** (owner-ratified, see Clarifications):
   one PR, two verified steps — the split commits first with its
   byte-identical check, the reprice and sibling shape follow.

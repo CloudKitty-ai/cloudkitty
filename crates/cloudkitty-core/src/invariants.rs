@@ -373,6 +373,8 @@ mod tests {
         world.kitties[0].activity_clock = Some(ActivityClock {
             started: 93,
             applied: 99,
+            mutual_ticks: 0,
+            drip_ticks: 0,
         });
         let err = check(&world, &config).unwrap_err();
         assert!(err.detail.contains("maximum"), "{err}");

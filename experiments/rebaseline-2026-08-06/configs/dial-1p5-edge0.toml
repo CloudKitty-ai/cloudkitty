@@ -155,7 +155,10 @@ sleep_relief_sunbeam = 8.0
 groom_relief = 20.0
 play_relief = 20.0
 # Resting, sleeping or grooming alongside a friend.
-cuddle_relief = 15.0
+# spec 041 migration (owner's loud-retirement ruling, 2026-08-28):
+# cuddle_relief = 15.0 split faithfully into its two sites.
+rest_mutual_relief = 15.0
+groom_cuddle_relief = 15.0
 # Pouncing at nothing, for a kitty with nobody to play with. Must not exceed
 # play_relief -- playing together stays the better deal.
 solo_play_relief = 10.0

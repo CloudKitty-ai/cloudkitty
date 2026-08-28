@@ -33,6 +33,29 @@ change.
 
 ## Unreleased
 
+- **`[stamp]`** Rest became co-sleep's sibling, and the cuddle economy went
+  riders-partial (spec 041, PR #320). A cat now settles beside any adjacent
+  friend — busy, sleeping, whatever — and nobody is conscripted: the old
+  rest duet's binding, and with it the only refusable cuddle route, is gone
+  from the engine rather than patched. The scene pays one of two tiers per
+  tick off the partner's live state (a merely-present friend drips, a
+  settled one pays the full mutual rate to both), resolved by the same
+  shared predicate co-sleep's pricing and warmth conduction already use.
+  Every cuddle rider was then repriced partial — co-sleep and the groomer's
+  warmth contribute to the need without finishing it — so the dedicated
+  activity is the one saturating specialist and rest is finally worth
+  choosing. Activity-end events carry per-tier serviced-tick counters
+  (additive; old payloads and snapshots load unchanged), so tier claims are
+  census-answerable instead of assumed. The shared `cuddle_relief` dial was
+  split at its classic value first, proven byte-identical, before any price
+  moved; the retired key then went out loudly (the owner's
+  full-compatibility-break ruling) — a config still carrying it fails at
+  load with a migration map, and every committed config was migrated in
+  the same change, each inheriting its own historical value into the
+  split dials. Policy seats were trained under the old economy and
+  are expected to run zero rest scenes until the wall retrain; scripted
+  seats respond immediately.
+
 - A loafing cat can call too, with its eyes shut. `loaf` joins the poses the
   meow is drawn on. It is the only one of them whose eyes are already closed,
   so the call cannot open them and is not meant to — a cat folded up and

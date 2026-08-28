@@ -66,8 +66,11 @@ separate transition ring (rejected — new surface for no gain).
 `cuddle_relief` value (engine default 15.0, `config/mod.rs:588`;
 served toml 8.0/8.0), swaps the two call sites
 (`action.rs:762`, `:797-798`), and proves byte-identical world
-evolution. `cuddle_relief` stays an accepted-but-inert deprecated
-key (owner-ratified; 181 committed configs keep loading).
+evolution. `cuddle_relief` launched accepted-but-inert here;
+**superseded 2026-08-28 (owner's noisy-failure ruling, commit 4)**:
+presence is now a loud validation error with the migration map, and
+all 181 committed configs were migrated, each inheriting its own
+value into the split dials — so they keep loading, faithfully.
 
 **Rationale**: spec 028's own launch pattern (`defaults.rs:42-43`);
 continuity is checkable before any value moves.
@@ -136,8 +139,10 @@ propagates by construction.
   already requires the re-baseline before any certification bar;
   world-evolution byte-identity (SC-001) is the continuity claim,
   not stamp identity.
-- **Out of scope, handed to the wall**: 3.0 deletion of the inert
-  key and the FR-009 bound-duet tolerance (mark both for the
+- **Out of scope, handed to the wall**: 3.0 deletion of the retired
+  key's `Option` field + rejection arm (the key becomes a plain
+  unknown field — the loud-retirement amendment already removed its
+  effect) and the FR-009 bound-duet tolerance (both marked for the
   config-hygiene sweep); eval-suite v2 + FromConfig; the census
   shared helper (ruled YES, lane assigned at bundle plan time).
 
@@ -161,5 +166,6 @@ partner legal, non-adjacent illegal), no binding/no stamp, per-tick
 tier resolution incl. mid-scene flap, both-parties payment, counter
 accumulation + the sum-≤-span invariant (drive red via a solo-tick
 shortfall), snapshot resume of a pre-change bound duet, deprecated
-key inert + unknown-key rejection still strict, drip 0.0 at the
+key retired loudly (as amended) + unknown-key rejection still
+strict, drip 0.0 at the
 engine commit paying nothing.

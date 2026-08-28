@@ -73,3 +73,63 @@ fn a_pre_028_meow_entry_reads_zero_intensity() {
     assert_eq!(meow.intensity, 0.0);
     assert_eq!(meow.kind, cloudkitty_core::MessageKind::WantPlay);
 }
+
+/// Spec 041 FR-009 / US1 AC-5: a snapshot recorded on the pre-041 engine
+/// carrying a BOUND rest duet (both partners in `Resting` naming each
+/// other, one shared clock) loads and resumes lawfully as two synchronized
+/// resters, each paying the mutual tier from its own slot -- no error
+/// state, no reshaping. The fixture was serialized by the pre-041 build
+/// (2026-08-28), not hand-written.
+///
+/// 3.0 config-hygiene wall: this tolerance (fixture + test) is marked for
+/// deletion there, alongside the inert `cuddle_relief` key -- after the
+/// wall's --fresh cutover no pre-041 world can resume.
+#[tokio::test(flavor = "current_thread")]
+async fn a_pre_041_bound_rest_duet_resumes_as_synchronized_resters() {
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures/pre-041-bound-duet.json");
+    let text = std::fs::read_to_string(path).expect("the committed fixture is readable");
+    let mut world: World = serde_json::from_str(&text).expect("a pre-041 world deserializes");
+
+    // The bound-duet shape arrived intact: mutual references, live clocks.
+    let k1 = world.kitty(1).unwrap();
+    let k2 = world.kitty(2).unwrap();
+    assert_eq!(k1.activity.partner(), Some(2), "the fixture's duet");
+    assert_eq!(k2.activity.partner(), Some(1));
+    assert!(k1.activity_clock.is_some() && k2.activity_clock.is_some());
+    let cuddle_before_1 = k1.needs.get(cloudkitty_core::NeedKind::Cuddle);
+    let cuddle_before_2 = k2.needs.get(cloudkitty_core::NeedKind::Cuddle);
+
+    // One tick under the default config: both scenes continue lawfully
+    // (the invariants assert inside the tick), and each pays the mutual
+    // tier TWICE -- once from its own slot, once as the other's partner --
+    // the synchronized-resters shape the spec promises.
+    let config = Arc::new(Config::default());
+    let registry = BehaviorRegistry::with_builtins();
+    // Two ticks: the fixture's scene was already serviced on its capture
+    // tick (spec 006's effects-due rule), so the first resumed tick stamps
+    // without paying; the second pays.
+    world.tick(&registry, &config).await;
+    world.tick(&registry, &config).await;
+
+    let k1 = world.kitty(1).unwrap();
+    let k2 = world.kitty(2).unwrap();
+    assert_eq!(
+        k1.activity.partner(),
+        Some(2),
+        "the scene continues, un-reshaped"
+    );
+    assert_eq!(k2.activity.partner(), Some(1));
+    let rate = config.actions.rest_mutual_relief;
+    for (before, kitty) in [(cuddle_before_1, k1), (cuddle_before_2, k2)] {
+        let got = kitty.needs.get(cloudkitty_core::NeedKind::Cuddle);
+        assert!(
+            got < before - (2.0 * rate - 1.0),
+            "each rester collects mutual from both slots, got {got} from {before}"
+        );
+        // Counters resumed at zero (serde default) and count from the
+        // resume: the one paying tick bumped mutual on each owner's scene.
+        assert_eq!(kitty.activity_clock.unwrap().mutual_ticks, 1);
+        assert_eq!(kitty.activity_clock.unwrap().drip_ticks, 0);
+    }
+}
