@@ -48,6 +48,31 @@ F-031, F-027.
   designated definition hook; the bundle spec references it rather
   than defining "partnered" a second time. Owner-approved.
 
+### Session 2026-08-28
+
+- Q: One retrain or two? → A: One (owner-ruled 2026-08-27): 041
+  rides the wall retrain; a dedicated pre-obs retrain is throwaway
+  work at current cycle lengths. The economy+obs attribution
+  confound is accepted — "a little more work if we see unexpected
+  results" is the fallback; scripted seats remain the clean
+  pre-wall read on the demand mechanism.
+- Q: How does the activity event stream carry a rest or co-sleep
+  scene's tier when the tier can change mid-scene? → A: Per-tier
+  serviced-tick counters on the one scene event — two additive
+  fields (mutual ticks / drip ticks) with serde defaults so
+  pre-change snapshots and existing consumers load unchanged; one
+  event per scene, span semantics untouched. Plain fields riding
+  every event at 0, skip-serialized when zero. (Experiments
+  concurred independently; segments and single-tier fields both
+  rejected — the former shreds scene counting and F-031 spans, the
+  latter is the F-029 artifact class SC-004 exists to prevent.)
+- Q: What does the new rest drip dial pay at the engine-sibling
+  commit, before the reprice moves any values? → A: 0.0 — the
+  engine commit is a legality-and-binding change only (a
+  busy-partner rest scene exists but pays nothing, mirroring solo
+  rest); the reprice diff sets 0.25, keeping all price movement in
+  one reviewable config diff.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Rest runs like co-sleep (Priority: P1)
@@ -237,8 +262,11 @@ observe it accepted (and inert).
   dials — one for the rest duet's mutual tier, one for the groomer's
   warmth — landing at the classic value (behavior-preserving), with
   the byte-identical continuity check passed, **before** any value
-  moves. A new drip-tier dial for rest is introduced alongside.
-  (Spec 028's own launch pattern for the cosleep pair.)
+  moves. A new drip-tier dial for rest is introduced alongside,
+  launching at 0.0 — the engine-sibling commit is thereby a
+  legality-and-binding change only, with every price movement
+  isolated in the reprice diff. (Spec 028's own launch pattern for
+  the cosleep pair, extended to the tier that has no classic value.)
 - **FR-005**: The deprecated key MUST remain accepted-but-inert: a
   config carrying `cuddle_relief` loads with current tools and the
   key has no effect. Strict rejection of genuinely unknown fields is
@@ -266,12 +294,17 @@ observe it accepted (and inert).
   config + tick count → same world state, before and after each of
   the two steps; the split step is additionally byte-identical.
 - **FR-011**: Partnered rest and co-sleep activity events in the
-  engine's event stream MUST carry the resolved tier (mutual/drip) —
-  an additive field, no dynamics change, same delivery class as the
-  accepted refusal stamp — so tier observations are answerable by
-  census, not by offline predicate re-runs. (F-029: the instrument
-  must be shown able to emit the category before its absence means
-  anything.)
+  engine's event stream MUST carry per-tier serviced-tick counters
+  (mutual ticks / drip ticks) as two additive fields on the one
+  scene event — defaults for pre-change snapshots and existing
+  consumers, zero-valued (and skip-serialized) on non-tiered
+  activities, no dynamics change; same delivery class as the
+  accepted refusal stamp. One event per scene: span semantics
+  (F-031) and scene counting are untouched, and a nonzero drip
+  count anywhere in a census window is the emit-proof SC-004
+  requires (F-029). Invariant: the two counters sum to at most the
+  scene's span, the shortfall being exactly the solo (posture-only)
+  serviced ticks after a partner wandered.
 
 ### Key Entities
 
