@@ -6367,6 +6367,140 @@ check("the about survives a phase change, and the owner's words survive us", () 
     }
   }
 });
+check('the about topics are one fold deeper, grouped, and script-free', () => {
+  // Five headers under About (owner, 2026-08-27), so a visitor who did not
+  // want the overview is not handed more of it: "if someone doesn't click
+  // 'about' to learn more, they probably don't want to see even more
+  // specific detail".
+  const markup = readFileSync(join(here, 'index.html'), 'utf8');
+  const at = markup.indexOf('<aside class="about-card">');
+  assert(at > 0, 'the about card is gone');
+  const card = markup.slice(at, markup.indexOf('</aside>', at));
+
+  // ORDER, not just presence. The owner's order is Kitties, Needs, Elements,
+  // Meows, AI, and an insertion put AI second without a single check
+  // noticing -- found by reading the rendered markup, which is not a method
+  // that scales. Reading order is the whole shape of a five-item menu.
+  const topics = ['Kitties', 'Needs', 'Elements', 'Meows', 'AI'];
+  const found = [...card.matchAll(/<summary>(\w+)<\/summary>/g)].map((m) => m[1]);
+  assert(
+    JSON.stringify(found) === JSON.stringify(topics),
+    `the topics are out of order:\n  got:  ${found.join(', ')}\n  want: ${topics.join(', ')}`,
+  );
+
+  // INSIDE About, not beside it -- the whole point of the owner's ruling.
+  //
+  // Counted, not compared by position: "the topics come after `<details>`"
+  // is also true when they come after `</details>`, and that first cut stayed
+  // green while the topics sat as a SIBLING of About. What makes them nested
+  // is that About is still OPEN where they start.
+  const inner = card.indexOf('class="about-topics"');
+  assert(inner > 0, 'no topics block');
+  const before = card.slice(0, inner);
+  const opened = (before.match(/<details\b/g) || []).length;
+  const closed = (before.match(/<\/details>/g) || []).length;
+  assert(
+    opened - closed === 1,
+    `the topics sit outside About (${opened} details opened, ${closed} closed before them) -- `
+      + 'they must be one fold deeper, not a second row of headers',
+  );
+
+  // Grouped, so opening one closes the others. `name` is the browser's own
+  // accordion and needs no script; where it is unsupported they simply all
+  // open, which is what plain <details> already did.
+  const named = card.match(/name="about-topic"/g) || [];
+  assert(
+    named.length === topics.length,
+    `${named.length} of ${topics.length} topics are grouped -- an ungrouped one stays open under the others`,
+  );
+
+  // NO SCRIPT anywhere in the card. The card's own note: "'What is this
+  // place' should be the last thing on the page to break, not the first."
+  assert(!/<script|onclick=|addEventListener/.test(card), 'the about card grew a script');
+
+  // Not `h2`: `.about-card details[open] h2::after` swaps more…/less… and is
+  // a DESCENDANT selector, so an h2 here would read "less…" on all five the
+  // moment About was opened, before any had been touched.
+  const topicsBlock = card.slice(inner);
+  assert(!/<h2/.test(topicsBlock), 'a topic uses <h2>, which inherits About\'s more…/less… swap');
+
+  // Same colour-literal trap as the tier above (#193): the inverting tokens
+  // swap across a phase.
+  for (const selector of ['.about-topics', '.about-topic > summary', '.about-topic p']) {
+    const start = markup.indexOf(`  ${selector} {`);
+    assert(start > 0, `no CSS rule for ${selector}`);
+    const rule = markup.slice(start, markup.indexOf('}', start) + 1);
+    for (const c of rule.match(/(?:^|[^-])(?:color|background)\s*:\s*([^;]+);/g) || []) {
+      assert(/var\(--/.test(c), `${selector} names a colour literal (${c.trim()})`);
+    }
+  }
+});
+
+check('the AI topic runs generation by generation, and stays honest about the last one', () => {
+  // The generations are numbered by SHIPPED generation, not by experiment
+  // number -- "experiments don't always lead to a new generation" (owner).
+  // Names are hers. The architecture lines are read off the seated
+  // `.ckpolicy` headers, not remembered: 225 -> 256 -> 256 -> 50 for the MLP,
+  // and d_model 64 / heads 4 / encoder_layers 2 for entity attention.
+  const markup = readFileSync(join(here, 'index.html'), 'utf8');
+  const at = markup.indexOf('<summary>AI</summary>');
+  assert(at > 0, 'the AI topic is gone');
+  const topic = markup.slice(at, markup.indexOf('</details>', at));
+
+  for (let g = 0; g <= 7; g += 1) {
+    assert(topic.includes(`Generation ${g} `), `Generation ${g} is missing`);
+  }
+  for (const name of [
+    'Scripted Kitties', 'First Neural Network', 'Dry Kitties',
+    'The Meow Generation', 'Attention Is All Mew Need',
+    'The Personality Problem', 'Biscuit and the Gang', 'The Fog Generation',
+  ]) {
+    assert(topic.includes(name), `the generation name "${name}" has drifted`);
+  }
+
+  // The fog generation has NOT happened. It is numbered beside seven that
+  // have, so the tense is what stops that reading as a claim -- and its spec
+  // line says so outright rather than inventing one.
+  const fog = topic.slice(topic.indexOf('The Fog Generation'));
+  assert(fog.includes('Coming next'), 'the fog generation must not claim a specification it does not have');
+  assert(
+    /they&rsquo;ll see only what/.test(fog),
+    'the fog generation must stay in the future tense -- it ships nothing yet',
+  );
+});
+
+check("the topic copy is the owner's, to the word", () => {
+  // Her text ships verbatim. The one edit she authorised was a typo --
+  // "one of the first emergent communication" -> "communications" -- so that
+  // correction is pinned too: nobody should quietly put it back, and nobody
+  // should quietly fix anything else.
+  const markup = readFileSync(join(here, 'index.html'), 'utf8');
+  const text = markup
+    .slice(markup.indexOf('class="about-topics"'), markup.indexOf('</aside>', markup.indexOf('class="about-topics"')))
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&rsquo;/g, "'").replace(/&ldquo;|&rdquo;/g, '"')
+    .split(/\s+/).join(' ');
+  const lines = [
+    'Kitties have six needs.',
+    'Eat: increased by eating Chow.',
+    'Bath: increased by bathing. A cat bathing another cat increases their own Cuddle, while increasing their friend\'s Bath.',
+    'The fulfillment of all six needs combines to create the kitties\' Happiness score.',
+    'Greebles: Visible to kitties but invisible to humans, Greebles are fast-moving creatures that taunt kitties.',
+    'Miso: Sleepy Kitty',
+    'Clementine: Cuddly Kitty',
+    'There are three types of language: Meow Words, Purrs, and Meow Sounds.',
+    'Meow Words and Purrs are governed by Meow Law: kitties can only speak the truth.',
+    'Finally, Meow Sounds: mew, chirp, trill, and ekekek.',
+  ];
+  for (const line of lines) {
+    assert(text.includes(line), `the topic copy has drifted:\n  missing: ${line}`);
+  }
+  assert(
+    text.includes('one of the first emergent communications we saw'),
+    'the authorised typo fix (communication -> communications) has been reverted',
+  );
+});
+
 check('the about names the kind of mind, and which one', () => {
   // Evaluated, not regexed. This function's whole job is to pick between
   // four outcomes, and a source match cannot tell which one it picks -- the
