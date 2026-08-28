@@ -1882,8 +1882,24 @@ function initAboutTopics() {
     lent.home.appendChild(lent.content);
     lent = null;
   };
+  // The bottom fade is a promise of more below, so it tracks the scroll
+  // rather than the mere fact of overflow: on a short topic it never appears,
+  // and at the end of a long one it goes.
+  const syncFade = () => {
+    const more = body.scrollHeight - body.clientHeight - body.scrollTop > 1;
+    dialog.classList.toggle('can-scroll', more);
+  };
+  body.addEventListener('scroll', syncFade);
+
   dialog.addEventListener('close', giveBack);
   closeOnBackdropClick(dialog);
+
+  // Tell the card the dialog is live. The +/- marker on each summary is the
+  // NO-SCRIPT affordance -- without this file a topic really does unfold in
+  // place -- and with the dialog wired it would promise an expansion that
+  // never happens. CSS drops it on this class alone.
+  const card = document.querySelector('.about-card');
+  if (card) card.classList.add('dialogs-wired');
 
   for (const topic of document.querySelectorAll('.about-topic')) {
     const summary = topic.querySelector('summary');
@@ -1898,6 +1914,8 @@ function initAboutTopics() {
       lent = { home: topic, content };
       body.appendChild(content);
       dialog.showModal();
+      // Measured after showModal, which is when the body first has a height.
+      syncFade();
     });
   }
 }
