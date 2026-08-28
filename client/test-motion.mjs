@@ -6447,9 +6447,22 @@ check('the AI topic runs generation by generation, and stays honest about the la
   assert(at > 0, 'the AI topic is gone');
   const topic = markup.slice(at, markup.indexOf('</details>', at));
 
+  // A COLON separates the number from the name, not an em-dash (owner,
+  // 2026-08-27, with the public-voice pass). Pinned, because a dash is the
+  // habit this section was edited to remove and it would creep back.
   for (let g = 0; g <= 7; g += 1) {
-    assert(topic.includes(`Generation ${g} `), `Generation ${g} is missing`);
+    assert(topic.includes(`Generation ${g}:`), `Generation ${g} is missing, or its label lost its colon`);
   }
+  assert(
+    !/Generation \d &mdash;/.test(topic),
+    'a generation label went back to an em-dash',
+  );
+
+  // The whole section was written to a one-interruption-per-paragraph budget
+  // and came out at zero. Not a ban -- a budget -- but at zero it is worth
+  // noticing when it changes.
+  const dashes = (topic.match(/&mdash;/g) || []).length;
+  assert(dashes === 0, `the AI section has grown ${dashes} em-dash interruption(s)`);
   for (const name of [
     'Scripted Kitties', 'First Neural Network', 'Dry Kitties',
     'The Meow Generation', 'Attention Is All Mew Need',
