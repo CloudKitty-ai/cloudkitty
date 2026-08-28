@@ -35,6 +35,19 @@ F-031, F-027.
   continuity check), then the engine sibling + reprice commits,
   reviewed together; stale-comment fixes ride the same PR.
 
+### Session 2026-08-27
+
+- Q: How is SC-004's "both tiers shown able to emit" satisfied? →
+  A: The engine emits the resolved tier on partnered rest and
+  co-sleep activity events (FR-011) — an additive event-stream
+  field, same delivery class as the accepted refusal stamp; tier
+  claims become census-answerable. Owner-approved.
+- Q: What defines "partnered scene" for the step-3 waterline
+  contagion? → A: This feature's partner surface — the engine's
+  single partner accessor plus the shared mutual predicate — is the
+  designated definition hook; the bundle spec references it rather
+  than defining "partnered" a second time. Owner-approved.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Rest runs like co-sleep (Priority: P1)
@@ -252,6 +265,13 @@ observe it accepted (and inert).
 - **FR-010**: Determinism MUST be preserved (Article V): same seed +
   config + tick count → same world state, before and after each of
   the two steps; the split step is additionally byte-identical.
+- **FR-011**: Partnered rest and co-sleep activity events in the
+  engine's event stream MUST carry the resolved tier (mutual/drip) —
+  an additive field, no dynamics change, same delivery class as the
+  accepted refusal stamp — so tier observations are answerable by
+  census, not by offline predicate re-runs. (F-029: the instrument
+  must be shown able to emit the category before its absence means
+  anything.)
 
 ### Key Entities
 
@@ -286,7 +306,7 @@ re-baseline; Product owns the spec, implementation, and PR.
   (the model's greedy ceiling is ~12 per 1k).
 - **SC-004**: Both rest tiers are **observed** before any tier claim
   is banked — the mutual/drip distinction shown able to emit
-  (F-029's rule).
+  (F-029's rule); the emitted tier field (FR-011) is the instrument.
 - **SC-005**: Co-sleep remains dominant over solo sleep (model ~6:1),
   and the play mix stays within ~2 per 1k of its baseline, with the
   hunting cat's critter rate watched against its 280/1k baseline; the
@@ -316,17 +336,20 @@ re-baseline; Product owns the spec, implementation, and PR.
   owner later wants reciprocal pairs under saturation too, mutual
   would need ≤ 0.42 — the acceptance census decides whether reality
   asks for it.
-- **Sequencing with the tabled waterline rule**: rest's legality
-  change and the tabled waterline pairing rule touch the same
-  validation funnel. The waterline decision is slotted at the fog
-  timeline's step 3, the pre-fog schema-break bundle
+- **Sequencing with the waterline (now a price, not a law)**: the
+  waterline decision — owner-redesigned 2026-08-26/27 as wet-fur
+  contagion for the dry partner in a partnered scene — is slotted at
+  the fog timeline's step 3, the pre-fog schema-break bundle
   (`experiments/fog-gen1-timeline-2026-08-26.md`, as renumbered on
-  main @ 280bbaa);
-  this feature makes its pass over the funnel now and MUST NOT
-  implement or foreclose the waterline rule — the spec's only
-  obligation is that the funnel remains a single rule with no
-  parallel definitions, so the later change is one more predicate,
-  not a second pass.
+  main @ 280bbaa). This feature makes its pass over the shared
+  surfaces now and MUST NOT implement or foreclose the contagion.
+  **Definition hook (owner-approved 2026-08-27)**: the bundle's
+  contagion rule derives its notion of "in a partnered scene with"
+  from this feature's single partner surface — the engine's one
+  partner accessor plus the shared mutual predicate (FR-002) for any
+  partner-state check — and defines neither a second time. One
+  partner definition, one partner-state predicate, across both
+  changes.
 - **Behavior change rides a retrain** for policy seats; scripted
   seats respond immediately and provide the early read. Seating and
   deploy are the owner's word, as always.
