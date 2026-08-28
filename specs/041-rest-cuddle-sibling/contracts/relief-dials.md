@@ -14,14 +14,18 @@ configs (twin-probe, census re-cuts), and the lab bindings
 | `groom_cuddle_relief` | f32 | 15.0 | per serviced tick, groomer's own cuddle relief while grooming a friend |
 | `cosleep_mutual_relief` | f32 | existing | unchanged semantics (spec 028) |
 | `cosleep_drip_relief` | f32 | existing | unchanged semantics (spec 028) |
-| `cuddle_relief` | f32 | 15.0 | **deprecated, inert** — parsed, nan-validated, feeds nothing |
+| `cuddle_relief` | Option\<f32\> | none | **retired loudly** (owner ruling 2026-08-28) — parsed only so presence rejects with the migration map |
 
 ## Guarantees
 
-1. **Back-compat**: any config valid before this feature remains
-   valid; `cuddle_relief` is accepted and ignored. Genuinely unknown
-   keys are still rejected (strictness unchanged). The 181 committed
-   historical tomls load with HEAD tools (SC-002).
+1. **Loud retirement** (amended by the owner's 2026-08-28
+   noisy-failure ruling, superseding accepted-but-inert): a config
+   carrying `cuddle_relief` is rejected at validation with an error
+   naming the key and the two split dials. All 181 committed tomls
+   were migrated in the same change (each inherits its own value into
+   `rest_mutual_relief` + `groom_cuddle_relief`), so committed history
+   still loads (SC-002 as amended). Genuinely unknown keys are still
+   rejected (strictness unchanged).
 2. **Behavior preservation at the split**: with the new dials at the
    classic value and drip at 0.0, world evolution is byte-identical
    to pre-split (SC-001). All observable change arrives with the
@@ -30,17 +34,20 @@ configs (twin-probe, census re-cuts), and the lab bindings
 3. **Convention, not validation**: `*_drip_relief <
    *_mutual_relief` within each activity is documented in the toml
    comments and nowhere enforced (owner-ratified).
-4. **Nan safety**: all six keys appear in the nan-validation table;
-   `nan` anywhere is a config error, inert key included.
+4. **Nan safety**: the five live keys appear in the nan-validation
+   table; `nan` anywhere is a config error. The retired key errors on
+   presence before any value check.
 5. **The 3.0 wall** (out of this feature's scope, recorded for the
-   config-hygiene sweep): `cuddle_relief` is deleted there, along
-   with the pre-041 bound-duet snapshot tolerance.
+   config-hygiene sweep): the retired key's `Option` field and its
+   rejection arm are deleted there (the key becomes a plain unknown
+   field), along with the pre-041 bound-duet snapshot tolerance.
 
 ## Served 2.x values
 
 Commit 1 (split): `rest_mutual_relief = 8.0`,
 `groom_cuddle_relief = 8.0`, `rest_drip_relief = 0.0`, cosleep pair
-untouched, `cuddle_relief` left in place (inert).
+untouched, `cuddle_relief` left in place (then inert; commit 4's
+loud-retirement amendment removed it).
 
 Commit 3 (reprice): `cosleep_drip_relief = 0.25`,
 `cosleep_mutual_relief = 0.6`, `groom_cuddle_relief = 0.5`,

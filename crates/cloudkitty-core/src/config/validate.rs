@@ -676,6 +676,19 @@ impl Config {
     /// problem.
     pub(super) fn validate_actions(&self) -> Result<(), ConfigError> {
         let a = &self.actions;
+        // Spec 041 FR-005 (the owner's noisy-failure ruling): the retired
+        // shared dial is a loud error carrying its migration map -- the
+        // spec-025 pattern. Accepting it silently would run a config
+        // written for the shared-dial economy against the split one.
+        if let Some(v) = a.cuddle_relief {
+            return Err(ConfigError::invalid(
+                "[actions] cuddle_relief",
+                v.to_string(),
+                "retired by spec 041's dial split: delete it and set \
+                 rest_mutual_relief and groom_cuddle_relief explicitly \
+                 (a faithful migration carries this value into both)",
+            ));
+        }
         // Every relief dial shares one finiteness/negativity rule. Spec 025
         // built the table for the four play keys; the remaining six joined
         // 2026-08-06 (the 025 review's finding 7): before that,
@@ -693,9 +706,6 @@ impl Config {
             ("[actions] sleep_relief", a.sleep_relief),
             ("[actions] sleep_relief_sunbeam", a.sleep_relief_sunbeam),
             ("[actions] groom_relief", a.groom_relief),
-            // Deprecated-but-inert (spec 041): a nan in the retired key is
-            // still a malformed config, so it keeps its table entry.
-            ("[actions] cuddle_relief", a.cuddle_relief),
             ("[actions] cosleep_drip_relief", a.cosleep_drip_relief),
             ("[actions] cosleep_mutual_relief", a.cosleep_mutual_relief),
             ("[actions] rest_mutual_relief", a.rest_mutual_relief),

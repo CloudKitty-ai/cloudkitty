@@ -133,5 +133,12 @@ fn the_served_cuddle_riders_are_partial_and_tier_ordered() {
         a.cosleep_drip_relief < a.cosleep_mutual_relief,
         "cosleep tier order"
     );
+    // US2/AC2's structural half: the served co-sleep edge over solo sleep
+    // exists only while the drip pays something -- zero is a legal config
+    // value, so the edge needs its own pin.
+    assert!(
+        a.cosleep_drip_relief > 0.0,
+        "co-sleep must keep a strictly positive edge over solo sleep"
+    );
     assert!(a.rest_drip_relief < a.rest_mutual_relief, "rest tier order");
 }

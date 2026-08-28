@@ -2652,7 +2652,7 @@ mod proposal_contract_tests {
         let (mut world, config) = test_world();
         assert_eq!(config.actions.cosleep_drip_relief, 15.0);
         assert_eq!(config.actions.cosleep_mutual_relief, 15.0);
-        assert_eq!(config.actions.cuddle_relief, 15.0);
+        assert_eq!(config.actions.rest_mutual_relief, 15.0);
         let a = world.kitty_index(1).unwrap();
         world.kitties[a].pos = Position::new(4, 4);
         world.kitties[a].needs.add(NeedKind::Sleep, 80.0);
@@ -2724,33 +2724,6 @@ mod proposal_contract_tests {
         world.kitties[b].pos = Position::new(4, 5);
         world.kitties[b].needs.add(NeedKind::Cuddle, 50.0);
         (world, config)
-    }
-
-    #[test]
-    fn the_deprecated_shared_dial_is_inert() {
-        // Spec 041 FR-005/US3: `cuddle_relief` parses but feeds nothing.
-        // Wrench it and neither the rest duet nor the groomer moves off the
-        // split dials' value.
-        let (mut world, mut config) = cuddle_pricing_stage();
-        config.actions.cuddle_relief = 999.0;
-        settle(&mut world, 2);
-        apply(&mut world, 1, Action::Rest { with: Some(2) }, &config);
-        let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
-        assert!(
-            (a_cuddle - (50.0 - config.actions.rest_mutual_relief)).abs() < 0.01,
-            "the duet is paid by rest_mutual_relief, got {a_cuddle}"
-        );
-
-        let (mut world, mut config) = cuddle_pricing_stage();
-        config.actions.cuddle_relief = 999.0;
-        let b = world.kitty_index(2).unwrap();
-        world.kitties[b].needs.add(NeedKind::Bath, 60.0);
-        apply(&mut world, 1, Action::Groom { target: Some(2) }, &config);
-        let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
-        assert!(
-            (a_cuddle - (50.0 - config.actions.groom_cuddle_relief)).abs() < 0.01,
-            "the groomer is paid by groom_cuddle_relief, got {a_cuddle}"
-        );
     }
 
     #[test]
@@ -2998,6 +2971,38 @@ mod proposal_contract_tests {
             (a_cuddle - 48.0).abs() < 0.01,
             "the solo tick pays nothing, got {a_cuddle}"
         );
+    }
+
+    #[test]
+    fn a_reciprocal_cosleep_pair_is_paid_from_both_slots() {
+        // Spec 041 US2/AC3, the per-scene (not per-pair) shape: both
+        // naming each other, both slots serviced in one tick, each cat
+        // receives the mutual rate TWICE. This is the engine's existing
+        // payment shape, priced into the model; a well-meaning "dedup"
+        // that stamps or skips the second slot is the regression this
+        // guard exists to catch. Instruments count scenes, not relief
+        // events.
+        let (mut world, mut config) = cuddle_pricing_stage();
+        config.actions.cosleep_mutual_relief = 11.0;
+        for (me, friend) in [(1, 2), (2, 1)] {
+            let idx = world.kitty_index(me).unwrap();
+            world.kitties[idx].activity = Activity::Sleeping {
+                in_sunbeam: false,
+                with_friend: Some(friend),
+            };
+            world.kitties[idx].activity_clock =
+                Some(crate::kitty::ActivityClock::start(world.tick));
+        }
+        world.tick += 1;
+        apply(&mut world, 1, Action::Sleep { with: Some(2) }, &config);
+        apply(&mut world, 2, Action::Sleep { with: Some(1) }, &config);
+        for id in [1, 2] {
+            let got = world.kitty(id).unwrap().needs.get(NeedKind::Cuddle);
+            assert!(
+                (got - (50.0 - 2.0 * 11.0)).abs() < 0.01,
+                "kitty {id} collects the mutual rate from both slots, got {got}"
+            );
+        }
     }
 
     #[test]

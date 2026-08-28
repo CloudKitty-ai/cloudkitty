@@ -159,7 +159,10 @@ groom_relief = 20.0
 play_relief = 20.0
 # Resting or grooming alongside a friend (the rest duet and the groomer's
 # warmth). Cosleep is priced separately below since spec 028.
-cuddle_relief = 8.0
+# spec 041 migration (owner's loud-retirement ruling, 2026-08-28):
+# cuddle_relief = 8.0 split faithfully into its two sites.
+rest_mutual_relief = 8.0
+groom_cuddle_relief = 8.0
 # Cosleeping next to a friend (spec 028), per serviced sleep tick, both
 # parties: the passive tier when the partner is merely present...
 cosleep_drip_relief = 15.0

@@ -151,3 +151,23 @@ for its predicted reason:
   `codec_totality.rs` (menu 34 entries, KITTY_SLOT, message head
   frozen — FR-003)
 - Snapshot: `snapshot_resume.rs` existing cases
+
+## Commit 4 (loud-retirement amendment, owner ruling 2026-08-28)
+
+Observed red-first:
+- `a_config_carrying_the_retired_cuddle_relief_fails_with_a_map` red
+  before the validation arm (key accepted), green after.
+- Both shipped-config sweeps red on the 181 unmigrated tomls with the
+  exact migration-map error, green after the mechanical migration
+  (each toml inherits its own value into both split dials).
+- `a_pre_004_toml_without_the_new_keys_parses_with_defaults` red (its
+  fixture carried the key and validates) → fixture migrated.
+- T041 positive-edge guard: red via a temporarily zeroed served drip,
+  reverted, green.
+- T042 reciprocal co-sleep guard: red via an injected dedup
+  ("got 39" = single payment, the exact predicted failure), reverted,
+  green.
+- suite.rs stamp probe repointed to `rest_mutual_relief` (T040) — the
+  Option type change forced it, as the convergence task anticipated.
+- Golden evolution digest UNCHANGED ×3 (the retired key fed nothing,
+  so rejection changes no world behavior).

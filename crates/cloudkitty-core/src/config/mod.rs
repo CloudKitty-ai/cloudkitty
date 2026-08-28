@@ -538,12 +538,14 @@ pub struct ActionEffects {
     /// with exactly this meaning, and renaming would move the `/config`
     /// wire key for zero behavioral gain.
     pub play_relief: f32,
-    /// DEPRECATED, inert (spec 041): the classic shared dial, split into
-    /// `rest_mutual_relief` and `groom_cuddle_relief` at its value. Parsed
-    /// and nan-validated so the 181 committed historical configs keep
-    /// loading with current tools; feeds nothing. Deleted at the 3.0
-    /// config-hygiene wall.
-    pub cuddle_relief: f32,
+    /// RETIRED LOUDLY (spec 041, owner's full-compatibility-break ruling
+    /// 2026-08-28): the classic shared dial, split into
+    /// `rest_mutual_relief` and `groom_cuddle_relief`. Parsed only so its
+    /// presence can be rejected with the migration map (the spec-025
+    /// pattern); every committed config was migrated in the same change.
+    /// The field itself is deleted at the 3.0 config-hygiene wall.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cuddle_relief: Option<f32>,
     /// Cuddle relief per serviced cosleep tick when the adjacent partner is
     /// merely present (spec 028's passive tier). Both parties receive it.
     /// Defaults equal to the classic `cuddle_relief` -- behavior-preserving
@@ -608,7 +610,7 @@ impl Default for ActionEffects {
             // being playful and cuddly -- the point of the retune.
             groom_relief: 20.0,
             play_relief: 20.0,
-            cuddle_relief: 15.0,
+            cuddle_relief: None,
             cosleep_drip_relief: default_cosleep_relief(),
             cosleep_mutual_relief: default_cosleep_relief(),
             rest_mutual_relief: default_cuddle_split_relief(),
@@ -1852,9 +1854,6 @@ mod tests {
                     c.actions.sleep_relief_sunbeam = v
                 }),
                 ("groom_relief", |c, v| c.actions.groom_relief = v),
-                // The deprecated key keeps its entry: inert, but a nan
-                // anywhere is still a malformed config (spec 041 FR-005).
-                ("cuddle_relief", |c, v| c.actions.cuddle_relief = v),
                 ("rest_mutual_relief", |c, v| {
                     c.actions.rest_mutual_relief = v
                 }),
@@ -1872,6 +1871,63 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn a_config_carrying_the_retired_cuddle_relief_fails_with_a_map() {
+        // Spec 041 FR-005 (owner's noisy-failure ruling, 2026-08-28): the
+        // retired key is a loud error carrying the migration map -- the
+        // spec-025 pattern. Silently accepting it would either run a
+        // doubled economy (engine defaults) or pretend the old economy
+        // still exists; the owner chose the full compatibility break.
+        let cfg_with = |extra: &str| -> Result<(), ConfigError> {
+            let c: Config = toml::from_str(&format!(
+                r#"
+                [world]
+                width = 32
+                height = 32
+                tick_ms = 800
+                seed = 1
+
+                [[kitty]]
+                id = 1
+                name = "A"
+                x = 1
+                y = 1
+                behavior = "needs_driven"
+
+                [[kitty]]
+                id = 2
+                name = "B"
+                x = 2
+                y = 2
+                behavior = "playful"
+
+                [actions]
+                eat_relief = 40.0
+                drink_relief = 40.0
+                sleep_relief = 5.0
+                sleep_relief_sunbeam = 8.0
+                groom_relief = 30.0
+                play_relief = 20.0
+                {extra}
+            "#
+            ))
+            .expect("shape parses");
+            c.validate()
+        };
+
+        let msg = cfg_with("cuddle_relief = 8.0")
+            .expect_err("the retired key must fail loudly")
+            .to_string();
+        assert!(msg.contains("cuddle_relief"), "{msg}");
+        assert!(
+            msg.contains("rest_mutual_relief") && msg.contains("groom_cuddle_relief"),
+            "the error carries the migration map: {msg}"
+        );
+
+        // Without the key, the same config is fine.
+        cfg_with("").expect("a migrated config loads");
     }
 
     #[test]
@@ -1912,7 +1968,6 @@ mod tests {
                 sleep_relief_sunbeam = 8.0
                 groom_relief = 30.0
                 play_relief = {play_relief}
-                cuddle_relief = 20.0
             "#
             ))
             .expect("legacy shape parses")
@@ -1983,7 +2038,6 @@ mod tests {
             sleep_relief_sunbeam = 8.0
             groom_relief = 30.0
             play_relief = 20.0
-            cuddle_relief = 20.0
         "#;
         let c: Config = toml::from_str(toml_src).expect("old-shape config parses");
         assert_eq!(c.behavior.urgency_weight, default_urgency_weight());

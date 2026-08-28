@@ -193,3 +193,30 @@ HALT conditions: T013 digest mismatch (commit 1 is not a no-op); any
 must-red staying green vacuously (report per rule 3 if pre-existing);
 T028 failing to flip on the config diff alone (the arithmetic guard is
 reading the wrong end).
+
+---
+
+## Phase 7: Convergence
+
+- [X] T040 Repoint the `any_default_moving_moves_the_stamp` sweep's core probe from the inert `cuddle_relief` to `rest_mutual_relief` in `crates/cloudkitty-rl/src/suite.rs:1512` per tasks T011 / research D9 (partial) — the current probe is valid but dead-ends at the 3.0 key deletion
+- [X] T041 Assert `cosleep_drip_relief > 0.0` (the structural half of co-sleep's edge over solo sleep) in `the_served_cuddle_riders_are_partial_and_tier_ordered` in `crates/cloudkitty-core/tests/shipped_configs.rs` per US2/AC2 (partial)
+- [X] T042 Add a reciprocal co-sleep guard in `crates/cloudkitty-core/src/action.rs` tests: both partners naming each other, both slots serviced in one tick, each cat receives the tier rate twice per US2/AC3 (partial) — mirror of the rest-side assertion in the FR-009 resume fixture test
+
+---
+
+## Phase 8: Loud retirement (owner ruling 2026-08-28, mid-review)
+
+Owner ruling superseding the session-1 accepted-but-inert clarify
+decision: "noisy failure — full compatibility break for long-term
+health." Spec FR-005/SC-002 amended in the same change.
+
+- [X] T043 Amend spec.md (Clarifications, FR-005, SC-002, Assumptions) per the owner's noisy-failure ruling (contradicts → resolved)
+- [X] T044 Retire `cuddle_relief` loudly: `Option<f32>` field + validation error carrying the migration map in `crates/cloudkitty-core/src/config/{mod,validate}.rs` per FR-005-as-amended (red-first: `a_config_carrying_the_retired_cuddle_relief_fails_with_a_map`)
+- [X] T045 Migrate all 181 committed tomls (each inherits its own value into `rest_mutual_relief` + `groom_cuddle_relief`); served toml drops its retired block per SC-002-as-amended (sweeps observed red on the unmigrated set, green after)
+- [X] T046 Update contracts/relief-dials.md, data-model.md, quickstart.md, CHANGELOG.md, docs/cuddle-relief-semantics.md, redden-list.md to the amended contract
+
+---
+
+## Phase 9: Convergence
+
+- [X] T047 Align plan.md (Constraints line) and research.md (D4, D8) with the amended FR-005 loud-retirement ruling — replace "accepted-but-inert" statements with the noisy-failure contract and the migrated-tomls note per plan: Constraints / research D4, D8 (contradicts)

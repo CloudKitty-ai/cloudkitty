@@ -48,8 +48,11 @@ change.
   (additive; old payloads and snapshots load unchanged), so tier claims are
   census-answerable instead of assumed. The shared `cuddle_relief` dial was
   split at its classic value first, proven byte-identical, before any price
-  moved; the retired key stays accepted-but-inert until the 3.0
-  config-hygiene wall. Policy seats were trained under the old economy and
+  moved; the retired key then went out loudly (the owner's
+  full-compatibility-break ruling) — a config still carrying it fails at
+  load with a migration map, and every committed config was migrated in
+  the same change, each inheriting its own historical value into the
+  split dials. Policy seats were trained under the old economy and
   are expected to run zero rest scenes until the wall retrain; scripted
   seats respond immediately.
 

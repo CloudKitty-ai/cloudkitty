@@ -244,11 +244,6 @@ play_relief_bug = 28.0
 # shape, priced into the model), so instruments count scenes, not relief
 # events. Measured mean cuddle need: 5.1 (median 2.8, 2026-08-25 census; the
 # 11.6 the exp-004 pilot priced against was the earlier generation's read).
-#
-# DEPRECATED, inert: the classic shared dial, split below into
-# rest_mutual_relief and groom_cuddle_relief. Kept so historical configs and
-# tools keep loading; feeds nothing. 3.0 config-hygiene: delete.
-cuddle_relief = 8.0
 # Partnered rest when the partner is itself resting or sleeping (the mutual
 # tier), per serviced tick, both parties. THE specialist: kept at the
 # classic value, saturating on purpose -- the one route that finishes the

@@ -13,8 +13,9 @@ answer to that question and reached implementation before anyone checked
 
 Three activities grant cuddle relief. **None conscripts** — spec 041 made
 rest co-sleep's sibling, deleting the last conscripting cuddle route. The
-shared `cuddle_relief` dial is deprecated-but-inert; each site/tier has
-its own dial.
+shared `cuddle_relief` dial is retired loudly (a config carrying it
+fails with a migration map; owner ruling 2026-08-28); each site/tier
+has its own dial.
 
 | Activity (from action) | Validator | Cuddle relief | Binds the friend? |
 |---|---|---|---|
