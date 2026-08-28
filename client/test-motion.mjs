@@ -6379,6 +6379,41 @@ check("the about survives a phase change, and the owner's words survive us", () 
     }
   }
 });
+check('the subjects sit two across, and the + goes when the dialog takes over', () => {
+  // Owner, 2026-08-28: five in one column was most of the card's height, and
+  // the list shape promised an unfolding the tap no longer does.
+  const markup = readFileSync(join(here, 'index.html'), 'utf8');
+  const rule = markup.slice(markup.indexOf('  .about-topics {'), markup.indexOf('}', markup.indexOf('  .about-topics {')));
+  assert(/display:\s*grid/.test(rule), '.about-topics is not a grid');
+  assert(
+    /grid-template-columns:\s*1fr 1fr/.test(rule),
+    'the subjects are not two across',
+  );
+
+  // The +/- survives for the no-script path and is removed only under the
+  // class app.js stamps. Both halves matter: drop the rule and the marker
+  // lies once the dialog is wired; drop the marker entirely and a scriptless
+  // visitor loses the only sign a topic opens at all.
+  assert(
+    /\.about-topic > summary::after \{\s*content: '\+'/.test(markup),
+    'the no-script + marker is gone, so a scriptless card gives no affordance',
+  );
+  assert(
+    /\.about-card\.dialogs-wired \.about-topic > summary::after \{ content: none; \}/.test(markup),
+    'the + survives the dialog being wired, promising an expansion that never happens',
+  );
+
+  // The dialog needs `display: flex` to make its body the scroller, and an
+  // author display beats the UA's `dialog:not([open]) { display: none }`.
+  // Ungated, the About panel sits open over the world for the whole session.
+  const display = markup.match(/#about-topic-dialog[^{]*\{[^}]*display:\s*flex/);
+  assert(display, 'the dialog body cannot scroll -- nothing makes the dialog a column');
+  assert(
+    display[0].includes('[open]'),
+    'display: flex is not gated on [open], so the dialog never hides',
+  );
+});
+
 check('a topic opens in the dialog, and its content goes home again', () => {
   // DRIVEN, not grepped. Twice today a source-level check passed while the
   // thing it described shipped inert, so this runs the real `initAboutTopics`
@@ -6413,6 +6448,17 @@ check('a topic opens in the dialog, and its content goes home again', () => {
         return node.children.map(hit).find(Boolean) || null;
       },
       getBoundingClientRect: () => ({ left: 10, right: 90, top: 10, bottom: 90 }),
+      classList: {
+        add: (c) => node.classes.add(c),
+        remove: (c) => node.classes.delete(c),
+        toggle: (c, on) => (on ? node.classes.add(c) : node.classes.delete(c)),
+      },
+      classes: new Set(),
+      // Overridden per case: the fade is only honest when there really is
+      // more below, so the test drives every position.
+      scrollHeight: 0,
+      clientHeight: 100,
+      scrollTop: 0,
       showModal() { node.open = true; },
       close() { node.open = false; (node.listeners.close || []).forEach((f) => f()); },
     };
@@ -6431,8 +6477,10 @@ check('a topic opens in the dialog, and its content goes home again', () => {
   topic.appendChild(summary);
   topic.appendChild(content);
 
+  const cardEl = mk('aside', 'about-card');
   globalThis.document = {
     getElementById: (id) => (id === 'about-topic-dialog' ? dialog : null),
+    querySelector: (sel) => (sel === '.about-card' ? cardEl : null),
     querySelectorAll: (sel) => (sel === '.about-topic' ? [topic] : []),
   };
   try {
@@ -6462,6 +6510,40 @@ check('a topic opens in the dialog, and its content goes home again', () => {
     topic.children.includes(content),
     'the content stayed in the dialog -- the card is now empty for the rest of the session',
   );
+
+  // The card is stamped, which is what removes the +/- marker. That marker is
+  // the NO-SCRIPT affordance: with the dialog wired it would promise an
+  // expansion that never happens.
+  assert(
+    cardEl.classes.has('dialogs-wired'),
+    'the about card was never stamped, so every topic still shows a + it will not honour',
+  );
+
+  // The fade is a promise of MORE BELOW, so it tracks the scroll position and
+  // not the mere fact of overflow. Three positions, because each is a
+  // different way to be wrong: a fade over a short topic, no fade on a long
+  // one, and a fade still showing at the end.
+  const body = dialog.querySelector('.about-dialog-body');
+  const openAt = (scrollHeight, scrollTop) => {
+    Object.assign(body, { scrollHeight, clientHeight: 100, scrollTop });
+    click({ preventDefault: () => {} });
+  };
+
+  openAt(40, 0);
+  assert(!dialog.classes.has('can-scroll'), 'a short topic claims it scrolls');
+  dialog.close();
+
+  openAt(900, 0);
+  assert(dialog.classes.has('can-scroll'), 'a long topic gives no sign that it scrolls');
+
+  // Scrolling to the very end retracts it, through the scroll listener rather
+  // than a re-open -- that listener is the whole reason the fade can be honest.
+  body.scrollTop = 800;
+  const onScroll = (body.listeners.scroll || [])[0];
+  assert(onScroll, 'nothing listens to the scroll, so the fade can never retract');
+  onScroll();
+  assert(!dialog.classes.has('can-scroll'), 'the fade still promises more at the end of the topic');
+  dialog.close();
 });
 
 check('the about topics are one fold deeper, grouped, and script-free', () => {
