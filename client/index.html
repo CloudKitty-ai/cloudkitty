@@ -286,7 +286,12 @@
     width: calc(100% - 32px);
     max-height: 80vh;
     box-shadow: 0 18px 48px var(--shadow);
-    position: relative;
+    /* NO `position` here. The UA gives `dialog:modal` `position: fixed`, and
+       that is what centres it in the VIEWPORT -- an author position on an id
+       selector beats it and drops the dialog back into normal flow at its
+       place in the markup, near the top of a long page, to be scrolled to.
+       `fixed` is already a containing block, so the fade below needs nothing
+       added here. */
     overflow: hidden;
   }
   /* Only when OPEN. An author `display` beats the UA's `dialog:not([open])
