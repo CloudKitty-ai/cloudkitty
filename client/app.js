@@ -1841,8 +1841,7 @@ function openTraitsDialog(kitty) {
  * keeps a keyboard-fired click, which reports (0, 0), from reading as a
  * click in the top-left corner of the screen.
  */
-function initTraitsDialog() {
-  const dialog = document.getElementById('traits');
+function closeOnBackdropClick(dialog) {
   if (!dialog) return;
   dialog.addEventListener('click', (event) => {
     if (event.target !== dialog) return;
@@ -1851,6 +1850,56 @@ function initTraitsDialog() {
       || event.clientY < r.top || event.clientY > r.bottom;
     if (outside) dialog.close();
   });
+}
+
+function initTraitsDialog() {
+  closeOnBackdropClick(document.getElementById('traits'));
+}
+
+/**
+ * The about topics open in a dialog rather than unfolding in the card.
+ *
+ * An ENHANCEMENT over the <details> that are already in the markup, not a
+ * replacement for them: with no script the summaries still toggle inline and
+ * every word stays reachable, which is the rule the about card lives by. With
+ * script, the click is intercepted and the same content is shown in a modal,
+ * so the card never grows and the kitty cards beside it never move (owner,
+ * 2026-08-28).
+ *
+ * The content is MOVED, not copied: the dialog borrows the topic's own
+ * element and puts it back on close. A copy would have to be kept in step
+ * with the markup, and the markup is where the owner's copy lives.
+ */
+function initAboutTopics() {
+  const dialog = document.getElementById('about-topic-dialog');
+  if (!dialog) return;
+  const title = dialog.querySelector('.about-dialog-title');
+  const body = dialog.querySelector('.about-dialog-body');
+  let lent = null;
+
+  const giveBack = () => {
+    if (!lent) return;
+    lent.home.appendChild(lent.content);
+    lent = null;
+  };
+  dialog.addEventListener('close', giveBack);
+  closeOnBackdropClick(dialog);
+
+  for (const topic of document.querySelectorAll('.about-topic')) {
+    const summary = topic.querySelector('summary');
+    const content = topic.querySelector('div');
+    if (!summary || !content) continue;
+    summary.addEventListener('click', (event) => {
+      // Stops the <details> toggling underneath the modal. Without it the
+      // card grows behind the dialog and is still grown when it closes.
+      event.preventDefault();
+      giveBack();
+      title.textContent = summary.textContent;
+      lent = { home: topic, content };
+      body.appendChild(content);
+      dialog.showModal();
+    });
+  }
 }
 
 /** Pick up viewer tunables from the server; keep the stand-ins if unavailable. */
@@ -2051,5 +2100,6 @@ initCameraControl();
 initCameraClicks();
 initCameraState();
 initTraitsDialog();
+initAboutTopics();
 drawHeaderKitties();
 start();

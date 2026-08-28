@@ -272,6 +272,50 @@
     box-shadow: 0 18px 48px var(--shadow);
   }
   #traits::backdrop { background: rgba(0, 0, 0, 0.28); }
+  /* The same box as #traits, plus a height cap: the AI section runs eight
+     generations and would otherwise push the dialog off a phone screen.
+     `80vh` leaves the backdrop visible top and bottom, which is what makes a
+     tap outside feel available rather than hidden. */
+  #about-topic-dialog {
+    border: none;
+    border-radius: 18px;
+    background: var(--card);
+    color: var(--ink);
+    padding: 18px 20px 16px;
+    max-width: 360px;
+    width: calc(100% - 32px);
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 18px 48px var(--shadow);
+  }
+  #about-topic-dialog::backdrop { background: rgba(0, 0, 0, 0.28); }
+  .about-dialog-title {
+    margin: 0 0 8px;
+    font-size: 1rem;
+    color: var(--ink);
+  }
+  .about-dialog-body p {
+    margin: 8px 0 0;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: var(--ink-soft);
+  }
+  .about-dialog-body ul { margin: 6px 0 0; padding: 0; list-style: none; }
+  .about-dialog-body li {
+    margin: 0 0 3px;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: var(--ink-soft);
+  }
+  .about-dialog-body .gens > li { margin: 0 0 9px; }
+  .about-dialog-body .gens b { display: block; font-weight: 600; color: var(--ink); }
+  .about-dialog-body .gens i {
+    display: block;
+    font-style: normal;
+    font-size: 0.76rem;
+    opacity: 0.75;
+    margin: 1px 0 2px;
+  }
   .traits-close {
     float: right;
     border: none;
@@ -1578,6 +1622,24 @@
        <dialog> so it costs the layout nothing, closes on Esc, and traps
        focus without a line of our own script. OFF until the trait plumbing
        lands (owner) -- `t` reveals the per-card affordance that opens it. -->
+  <!-- The about topics, in a dialog. Same reasoning as the traits dialog
+       beside it: a native <dialog> costs the layout NOTHING, so the about
+       card stays one row tall however much text a topic holds, and the kitty
+       cards next to it never move (owner, 2026-08-28: "the amount of vertical
+       scroll it creates in the adjacent kitty card looks sloppy").
+
+       One element, repopulated per topic, exactly as #traits is per cat.
+
+       The topics stay <details> in the markup and this is an ENHANCEMENT over
+       them: with no script the card still discloses inline, which is the rule
+       this card lives by -- "what is this place" is the last thing on the page
+       that should break. Only the deeper detail needs app.js. -->
+  <dialog id="about-topic-dialog">
+    <form method="dialog"><button class="traits-close" aria-label="close">&times;</button></form>
+    <h2 class="about-dialog-title"></h2>
+    <div class="about-dialog-body"></div>
+  </dialog>
+
   <dialog id="traits">
     <form method="dialog"><button class="traits-close" aria-label="close">×</button></form>
     <div class="traits-head">

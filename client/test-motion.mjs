@@ -6033,10 +6033,22 @@ check('the per-kitty about ships, and its numbers are the served ones', () => {
   // than the `target === dialog` shorthand: the target is also the dialog
   // when the click lands on its own padding, so the shorthand shuts the card
   // on a click just inside its own edge.
-  const init = app.slice(app.indexOf('function initTraitsDialog'), app.indexOf('function ', app.indexOf('function initTraitsDialog') + 10));
+  // The logic moved to `closeOnBackdropClick` on 2026-08-28, shared with the
+  // about-topic dialog: two copies of a rule this carefully reasoned would
+  // drift, and only one of them would be the one anybody read.
+  const init = app.slice(app.indexOf('function closeOnBackdropClick'), app.indexOf('function ', app.indexOf('function closeOnBackdropClick') + 10));
   assert(/getBoundingClientRect/.test(init), 'the backdrop click closes on target alone, so the padding closes it too');
   assert(/event\.target !== dialog/.test(init), 'a keyboard-fired click at (0, 0) will read as a backdrop click');
   assert(/dialog\.close\(\)/.test(init), 'nothing closes the dialog on a backdrop click');
+  // ...and both dialogs must actually use it, or one of them quietly loses
+  // the behaviour the owner asked for by name ("clicking anywhere outside of
+  // the card closes").
+  for (const id of ['traits', 'about-topic-dialog']) {
+    assert(
+      new RegExp(`closeOnBackdropClick\\(\\s*document\\.getElementById\\('${id}'\\)|closeOnBackdropClick\\(dialog\\)`).test(app),
+      `the ${id} dialog does not share the backdrop-close rule`,
+    );
+  }
   assert(/initTraitsDialog\(\);/.test(app.slice(app.lastIndexOf('initCards();'))),
     'initTraitsDialog is never called, so the backdrop does nothing');
 
@@ -6367,6 +6379,91 @@ check("the about survives a phase change, and the owner's words survive us", () 
     }
   }
 });
+check('a topic opens in the dialog, and its content goes home again', () => {
+  // DRIVEN, not grepped. Twice today a source-level check passed while the
+  // thing it described shipped inert, so this runs the real `initAboutTopics`
+  // against a stub DOM and clicks a summary.
+  //
+  // Only that function is lifted out of app.js: evaluating the whole file
+  // would run `start()`, which opens a socket.
+  const src = readFileSync(join(here, 'app.js'), 'utf8');
+  const from = src.indexOf('function closeOnBackdropClick');
+  const to = src.indexOf('\n/** Pick up viewer tunables', from);
+  assert(from > 0 && to > from, 'could not lift the dialog wiring out of app.js');
+
+  const el = (tag) => {
+    const node = {
+      tag, children: [], listeners: {}, textContent: '',
+      // The real appendChild MOVES a node: it detaches from the old parent
+      // first. A stub that only pushes leaves the content in both places, and
+      // then "the dialog gave it back" is true before it gives anything back
+      // -- which is exactly how the give-back mutation stayed green.
+      appendChild(child) {
+        if (child.parent) {
+          child.parent.children = child.parent.children.filter((c) => c !== child);
+        }
+        node.children.push(child);
+        child.parent = node;
+        return child;
+      },
+      addEventListener(kind, fn) { (node.listeners[kind] ||= []).push(fn); },
+      querySelector(sel) {
+        const want = sel.replace(/^[.#]/, '');
+        const hit = (n) => (n.tag === want || n.cls === want ? n : n.children.map(hit).find(Boolean));
+        return node.children.map(hit).find(Boolean) || null;
+      },
+      getBoundingClientRect: () => ({ left: 10, right: 90, top: 10, bottom: 90 }),
+      showModal() { node.open = true; },
+      close() { node.open = false; (node.listeners.close || []).forEach((f) => f()); },
+    };
+    return node;
+  };
+  const mk = (tag, cls) => Object.assign(el(tag), { cls });
+
+  const dialog = mk('dialog', 'about-topic-dialog');
+  dialog.appendChild(mk('h2', 'about-dialog-title'));
+  dialog.appendChild(mk('div', 'about-dialog-body'));
+  const topic = mk('details', 'about-topic');
+  const summary = mk('summary');
+  summary.textContent = 'Needs';
+  const content = mk('div');
+  content.textContent = 'six needs';
+  topic.appendChild(summary);
+  topic.appendChild(content);
+
+  globalThis.document = {
+    getElementById: (id) => (id === 'about-topic-dialog' ? dialog : null),
+    querySelectorAll: (sel) => (sel === '.about-topic' ? [topic] : []),
+  };
+  try {
+    // eslint-disable-next-line no-eval
+    (0, eval)(`${src.slice(from, to)}; initAboutTopics();`);
+  } finally {
+    delete globalThis.document;
+  }
+
+  const click = (summary.listeners.click || [])[0];
+  assert(click, 'the summary was never wired -- the topics would unfold in the card');
+
+  let prevented = false;
+  click({ preventDefault: () => { prevented = true; } });
+  assert(prevented, 'the <details> will toggle behind the modal and stay open after it closes');
+  assert(dialog.open, 'clicking a topic did not open the dialog');
+  assert(dialog.querySelector('.about-dialog-title').textContent === 'Needs', 'the dialog is untitled');
+  assert(
+    dialog.querySelector('.about-dialog-body').children.includes(content),
+    'the topic content never reached the dialog',
+  );
+
+  // ...and it must go HOME. The content is moved rather than copied, so a
+  // dialog that keeps it leaves the card permanently empty.
+  dialog.close();
+  assert(
+    topic.children.includes(content),
+    'the content stayed in the dialog -- the card is now empty for the rest of the session',
+  );
+});
+
 check('the about topics are one fold deeper, grouped, and script-free', () => {
   // Five headers under About (owner, 2026-08-27), so a visitor who did not
   // want the overview is not handed more of it: "if someone doesn't click
