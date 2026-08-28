@@ -107,6 +107,12 @@ for its predicted reason:
   earns drip 0.0, not mutual) — the new semantics working as specified.
 - Watch pile: mask_oracle, approach_etiquette, meow_courtesy,
   snapshot_resume existing cases, all RL schema pins — GREEN.
+- **Late red** (T004 missed it): `run_json_wire_shape_matches_the_golden`
+  (RL) — the sibling legality moves the deterministic run VALUES
+  (mean_happiness/team_welfare; shape verified unchanged by diff).
+  Regenerated per its own doctrine in commit 2 with the stored-reports
+  reckoning in its module doc (SC-007 re-baseline + eval-suite v2 on
+  the wall already cover comparability).
 - **Late red, surfaced only under the repriced dials** (T004 missed
   it): `test_support::assert_orthogonal_scenes` still held Resting to
   the bound-duet every-tick adjacency law

@@ -131,10 +131,10 @@ makes rest worth choosing.
 **Independent Test**: quickstart §Commit 3 — `git diff HEAD~1` touches
 only `cloudkitty.toml`; the T028 guards flip green.
 
-- [ ] T031 [US2] Reprice `cloudkitty.toml` (D6): `cosleep_drip_relief` 3.0 → 0.25, `cosleep_mutual_relief` 8.0 → 0.6, `groom_cuddle_relief` 8.0 → 0.5, `rest_drip_relief` 0.0 → 0.25; `rest_mutual_relief` stays 8.0. No play dial moves
-- [ ] T032 [US2] Fix the stale comments in the same diff (FR-008): the "mean cuddle need of 11.6" claim → measured 5.1 mean / 2.8 median; both cosleep tier comments rewritten from saturating-delivery to riders-partial; add the per-scene-not-per-pair note; carry the drip < mutual convention in the dial comments; leave the play ladder comment untouched
-- [ ] T033 [US2] Verify commit purity + the predicted flip: `git diff HEAD~1` shows only `cloudkitty.toml`; T028 guards now green (red → green across exactly this diff = their rule-5 cycle complete); `cargo test --workspace` fully green
-- [ ] T034 [US2] Commit 3: "spec 041: reprice — riders partial, rest stays the specialist (config only)"
+- [X] T031 [US2] Reprice `cloudkitty.toml` (D6): `cosleep_drip_relief` 3.0 → 0.25, `cosleep_mutual_relief` 8.0 → 0.6, `groom_cuddle_relief` 8.0 → 0.5, `rest_drip_relief` 0.0 → 0.25; `rest_mutual_relief` stays 8.0. No play dial moves
+- [X] T032 [US2] Fix the stale comments in the same diff (FR-008): the "mean cuddle need of 11.6" claim → measured 5.1 mean / 2.8 median; both cosleep tier comments rewritten from saturating-delivery to riders-partial; add the per-scene-not-per-pair note; carry the drip < mutual convention in the dial comments; leave the play ladder comment untouched
+- [X] T033 [US2] Verify commit purity + the predicted flip: `git diff HEAD~1` shows only `cloudkitty.toml`; T028 guards now green (red → green across exactly this diff = their rule-5 cycle complete); `cargo test --workspace` fully green
+- [X] T034 [US2] Commit 3: "spec 041: reprice — riders partial, rest stays the specialist (config only)"
 
 **Checkpoint**: all three stories on the branch; suite fully green for the first time since T028 — by design.
 
@@ -142,11 +142,11 @@ only `cloudkitty.toml`; the T028 guards flip green.
 
 ## Phase 6: Polish & PR
 
-- [ ] T035 Re-read `redden-list.md` against the three commit messages: confirm every must-red entry actually went red in its commit, for the predicted reason (running is not reading — rule 6)
-- [ ] T036 End-to-end: boot a local server on a scripted-seat world; confirm the first rest scenes appear and `/events/activity` rows carry the counters per contracts/activity-event-tier.md §Shape (F-029 emit-proof in miniature: see a nonzero drip and a nonzero mutual)
-- [ ] T037 [P] Add the one-liner to `## Unreleased` in the changelog (house practice; no tag)
-- [ ] T038 [P] Confirm the 3.0-wall markers are in place: the `cuddle_relief` deletion marker (T010) and a bound-duet-tolerance deletion marker beside the FR-009 resume path in `action.rs` (D8 handoff to the config-hygiene sweep)
-- [ ] T039 Open the PR (base main, one PR, three commits): body = commit contract, SC-001 digest evidence, the T028 red→green note for reviewers, constitution gates; wait on CI green. **Merge is the owner's word**
+- [X] T035 Re-read `redden-list.md` against the three commit messages: confirm every must-red entry actually went red in its commit, for the predicted reason (running is not reading — rule 6)
+- [X] T036 End-to-end: boot a local server on a scripted-seat world; confirm the first rest scenes appear and `/events/activity` rows carry the counters per contracts/activity-event-tier.md §Shape (F-029 emit-proof in miniature: see a nonzero drip and a nonzero mutual)
+- [X] T037 [P] Add the one-liner to `## Unreleased` in the changelog (house practice; no tag)
+- [X] T038 [P] Confirm the 3.0-wall markers are in place: the `cuddle_relief` deletion marker (T010) and a bound-duet-tolerance deletion marker beside the FR-009 resume path in `action.rs` (D8 handoff to the config-hygiene sweep)
+- [X] T039 Open the PR (base main, one PR, three commits): body = commit contract, SC-001 digest evidence, the T028 red→green note for reviewers, constitution gates; wait on CI green. **Merge is the owner's word**
 
 ---
 
