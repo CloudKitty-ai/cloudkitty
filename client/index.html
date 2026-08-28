@@ -281,7 +281,11 @@
     border-radius: 18px;
     background: var(--card);
     color: var(--ink);
-    padding: 18px 20px 16px;
+    /* Named, because the fade below has to sit on the SCROLLER's bottom edge
+       and the scroller ends one bottom-padding above the dialog's. One
+       number, one home. */
+    --pad-b: 16px;
+    padding: 18px 20px var(--pad-b);
     max-width: 360px;
     width: calc(100% - 32px);
     max-height: 80vh;
@@ -337,12 +341,16 @@
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 0;
-    height: 30px;
+    /* NOT the dialog's bottom edge. Sitting there spends the gradient's
+       opaque end on the dialog's own bottom padding, and only the weak,
+       near-transparent top of it ever reaches text -- which is how this
+       shipped invisible on a phone the first time. */
+    bottom: var(--pad-b);
+    height: 44px;
     opacity: 0;
     transition: opacity 160ms linear;
     pointer-events: none;
-    background: linear-gradient(to top, var(--card), transparent);
+    background: linear-gradient(to top, var(--card) 34%, transparent);
   }
   #about-topic-dialog.can-scroll::after { opacity: 1; }
   @media (prefers-reduced-motion: reduce) {
