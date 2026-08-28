@@ -6427,6 +6427,22 @@ check('the subjects sit two across, and the + goes when the dialog takes over', 
       'the dialog sets its own position, overriding the UA modal fixed -- it will open at the top of the page',
     );
   }
+
+  // The fade has to sit on the SCROLLER's bottom edge, which is one
+  // bottom-padding above the dialog's. Pinned at 0 it spends the gradient's
+  // opaque end on that padding and reaches text only with its weakest,
+  // near-transparent top -- which is how it shipped invisible on a phone.
+  // Both ends must therefore name the SAME custom property.
+  const dlg = bare.match(/#about-topic-dialog\s*\{[^}]*\}/)[0];
+  const fade = bare.match(/#about-topic-dialog::after\s*\{[^}]*\}/)[0];
+  assert(
+    /padding:[^;]*var\(--pad-b\)\s*;/.test(dlg),
+    'the dialog no longer names its bottom padding, so the fade cannot find the scroller edge',
+  );
+  assert(
+    /bottom:\s*var\(--pad-b\)\s*;/.test(fade),
+    'the fade is pinned to the dialog edge, not the scroller -- its opaque end lands on padding and never reaches the text',
+  );
 });
 
 check('a topic opens in the dialog, and its content goes home again', () => {
