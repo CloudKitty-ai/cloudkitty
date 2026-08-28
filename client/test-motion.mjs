@@ -6412,6 +6412,21 @@ check('the subjects sit two across, and the + goes when the dialog takes over', 
     display[0].includes('[open]'),
     'display: flex is not gated on [open], so the dialog never hides',
   );
+
+  // The dialog must NOT declare a position of its own. `dialog:modal` is
+  // `position: fixed` in the UA sheet, and that is the whole reason a modal
+  // appears where the reader is looking; an author position on an id
+  // selector beats it and drops the dialog into normal flow at its place in
+  // the markup -- near the top of a long page, to be scrolled to. Shipped
+  // once, live, on 2026-08-28. Comments are stripped first: the one warning
+  // about this contains the word.
+  const bare = markup.replace(/\/\*[\s\S]*?\*\//g, '');
+  for (const rule of bare.match(/#about-topic-dialog(\[open\])?\s*\{[^}]*\}/g) || []) {
+    assert(
+      !/(^|[;{\s])position\s*:/.test(rule),
+      'the dialog sets its own position, overriding the UA modal fixed -- it will open at the top of the page',
+    );
+  }
 });
 
 check('a topic opens in the dialog, and its content goes home again', () => {
