@@ -6377,10 +6377,16 @@ check('the about topics are one fold deeper, grouped, and script-free', () => {
   assert(at > 0, 'the about card is gone');
   const card = markup.slice(at, markup.indexOf('</aside>', at));
 
+  // ORDER, not just presence. The owner's order is Kitties, Needs, Elements,
+  // Meows, AI, and an insertion put AI second without a single check
+  // noticing -- found by reading the rendered markup, which is not a method
+  // that scales. Reading order is the whole shape of a five-item menu.
   const topics = ['Kitties', 'Needs', 'Elements', 'Meows', 'AI'];
-  for (const topic of topics) {
-    assert(card.includes(`<summary>${topic}</summary>`), `no ${topic} topic`);
-  }
+  const found = [...card.matchAll(/<summary>(\w+)<\/summary>/g)].map((m) => m[1]);
+  assert(
+    JSON.stringify(found) === JSON.stringify(topics),
+    `the topics are out of order:\n  got:  ${found.join(', ')}\n  want: ${topics.join(', ')}`,
+  );
 
   // INSIDE About, not beside it -- the whole point of the owner's ruling.
   //
