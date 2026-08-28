@@ -6371,13 +6371,13 @@ check('the about topics are one fold deeper, grouped, and script-free', () => {
   // Five headers under About (owner, 2026-08-27), so a visitor who did not
   // want the overview is not handed more of it: "if someone doesn't click
   // 'about' to learn more, they probably don't want to see even more
-  // specific detail". AI is not written yet; the four that are, are here.
+  // specific detail".
   const markup = readFileSync(join(here, 'index.html'), 'utf8');
   const at = markup.indexOf('<aside class="about-card">');
   assert(at > 0, 'the about card is gone');
   const card = markup.slice(at, markup.indexOf('</aside>', at));
 
-  const topics = ['Kitties', 'Needs', 'Elements', 'Meows'];
+  const topics = ['Kitties', 'Needs', 'Elements', 'Meows', 'AI'];
   for (const topic of topics) {
     assert(card.includes(`<summary>${topic}</summary>`), `no ${topic} topic`);
   }
@@ -6428,6 +6428,39 @@ check('the about topics are one fold deeper, grouped, and script-free', () => {
       assert(/var\(--/.test(c), `${selector} names a colour literal (${c.trim()})`);
     }
   }
+});
+
+check('the AI topic runs generation by generation, and stays honest about the last one', () => {
+  // The generations are numbered by SHIPPED generation, not by experiment
+  // number -- "experiments don't always lead to a new generation" (owner).
+  // Names are hers. The architecture lines are read off the seated
+  // `.ckpolicy` headers, not remembered: 225 -> 256 -> 256 -> 50 for the MLP,
+  // and d_model 64 / heads 4 / encoder_layers 2 for entity attention.
+  const markup = readFileSync(join(here, 'index.html'), 'utf8');
+  const at = markup.indexOf('<summary>AI</summary>');
+  assert(at > 0, 'the AI topic is gone');
+  const topic = markup.slice(at, markup.indexOf('</details>', at));
+
+  for (let g = 0; g <= 7; g += 1) {
+    assert(topic.includes(`Generation ${g} `), `Generation ${g} is missing`);
+  }
+  for (const name of [
+    'Scripted Kitties', 'First Neural Network', 'Dry Kitties',
+    'The Meow Generation', 'Attention Is All Mew Need',
+    'The Personality Problem', 'Biscuit and the Gang', 'The Fog Generation',
+  ]) {
+    assert(topic.includes(name), `the generation name "${name}" has drifted`);
+  }
+
+  // The fog generation has NOT happened. It is numbered beside seven that
+  // have, so the tense is what stops that reading as a claim -- and its spec
+  // line says so outright rather than inventing one.
+  const fog = topic.slice(topic.indexOf('The Fog Generation'));
+  assert(fog.includes('Coming next'), 'the fog generation must not claim a specification it does not have');
+  assert(
+    /they&rsquo;ll see only what/.test(fog),
+    'the fog generation must stay in the future tense -- it ships nothing yet',
+  );
 });
 
 check("the topic copy is the owner's, to the word", () => {

@@ -549,7 +549,23 @@
     list-style: none;
   }
   .about-topic li { margin: 0 0 3px; }
-  .about-topic > div { padding: 0 0 8px; }  .about > summary {
+  .about-topic > div { padding: 0 0 8px; }
+  /* The generation list: a name, its specification, then what changed. Three
+     lines per entry, so each part gets its own display rather than running
+     together -- the spec is the part a curious reader scans for. */
+  .about-topic .gens > li { margin: 0 0 9px; }
+  .about-topic .gens b {
+    display: block;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .about-topic .gens i {
+    display: block;
+    font-style: normal;
+    font-size: 0.76rem;
+    opacity: 0.75;
+    margin: 1px 0 2px;
+  }  .about > summary {
     display: inline;            /* stays on the subtitle's line */
     list-style: none;           /* our own marker, below */
     cursor: pointer;
@@ -1463,6 +1479,54 @@
                     <li>Kittybear: Tidy Kitty</li>
                     <li>Clementine: Cuddly Kitty</li>
                   </ul>
+              <details class="about-topic" name="about-topic">
+                <summary>AI</summary>
+                <div>
+                  <p>Every kitty is a neural network trained on one objective: the happiness of all the kitties, not just its own. That has never changed. What each generation changed is how they get there.</p>
+                  <ul class="gens">
+                    <li>
+                      <b>Generation 0 &mdash; Scripted Kitties</b>
+                      <i>Hand-written rules. No network.</i>
+                      The kitties followed rules we wrote by hand. Still the yardstick every generation since has had to beat.
+                    </li>
+                    <li>
+                      <b>Generation 1 &mdash; Kitty&rsquo;s First Neural Network</b>
+                      <i>Multi-Layer Perceptron, 256&times;256. Behaviour cloning, then multi-agent RL.</i>
+                      Kitties learned by copying the scripts, then improved together by trial and error. Copying first turned out to be necessary &mdash; from scratch, they never beat the scripts.
+                    </li>
+                    <li>
+                      <b>Generation 2 &mdash; Dry Kitties</b>
+                      <i>Multi-Layer Perceptron, 256&times;256. 182 &rarr; 183 inputs.</i>
+                      Kitties kept standing in ponds, and no reward for staying dry fixed it. One new input &mdash; &ldquo;am I in the water?&rdquo; &mdash; did it immediately. Seeing beat pricing.
+                    </li>
+                    <li>
+                      <b>Generation 3 &mdash; The Meow Generation</b>
+                      <i>Multi-Layer Perceptron, 256&times;256. 197 inputs, and a second output head for speech.</i>
+                      Meows existed but went unused. Showing kitties meowing in their training data is what brought the channel to life. After that, they authored their own meanings for it.
+                    </li>
+                    <li>
+                      <b>Generation 4 &mdash; Attention Is All Mew Need</b>
+                      <i>Entity attention: 64 dimensions, 4 heads, 2 layers.</i>
+                      The network was rebuilt to read the meadow as a set of things rather than one long list of numbers &mdash; attention, the idea behind modern language models. Same happiness, 40% fewer parameters, and more the kitties could express.
+                    </li>
+                    <li>
+                      <b>Generation 5 &mdash; The Personality Problem</b>
+                      <i>Entity attention. Cloned from a kitty, then held close to it while training.</i>
+                      Training for happiness alone flattened every kitty into the same cat. Tethering each one to its original self while it learns keeps the personality and the happiness both.
+                    </li>
+                    <li>
+                      <b>Generation 6 &mdash; Biscuit and the Gang</b>
+                      <i>Entity attention. Per-kitty needs and traits, certified before seating.</i>
+                      Each kitty gets their own personality, tuned individually and checked against a welfare bar before they&rsquo;re allowed to take a seat.
+                    </li>
+                    <li>
+                      <b>Generation 7 &mdash; The Fog Generation</b>
+                      <i>Coming next.</i>
+                      Today a kitty can see the whole meadow, which makes meowing pleasant but unnecessary &mdash; we measured that. In the next generation they&rsquo;ll see only what&rsquo;s near them, so telling each other what they&rsquo;ve found will finally matter.
+                    </li>
+                  </ul>
+                </div>
+              </details>
                 </div>
               </details>
               <details class="about-topic" name="about-topic">
