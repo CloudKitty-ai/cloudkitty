@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CloudKitty Model Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#F6F7F4; --panel:#FFFFFF; --ink:#232B26; --ink-soft:#5A655D;
+  --line:#DCE1DA; --obs:#33698C; --obs-soft:#E3ECF2; --net:#47795A; --net-soft:#E4EEE7;
+  --delta:#9A5FC4; --delta-soft:#F0E7F7; --mono-bg:#EEF1EC;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#141815; --panel:#1C221E; --ink:#E6EBE5; --ink-soft:#98A399;
+    --line:#333C35; --obs:#7FB0CE; --obs-soft:#22313C; --net:#8CBBA0; --net-soft:#233129;
+    --delta:#C9A2E8; --delta-soft:#33263F; --mono-bg:#242B26;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#141815; --panel:#1C221E; --ink:#E6EBE5; --ink-soft:#98A399;
+  --line:#333C35; --obs:#7FB0CE; --obs-soft:#22313C; --net:#8CBBA0; --net-soft:#233129;
+  --delta:#C9A2E8; --delta-soft:#33263F; --mono-bg:#242B26;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"Public Sans",system-ui,sans-serif; font-size:16px; line-height:1.55;
+}
+.wrap{max-width:740px; margin:0 auto; padding:28px 16px 64px}
+header.hero{padding:18px 2px 26px}
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--ink-soft); margin-bottom:10px;
+}
+h1{
+  font-family:"Bricolage Grotesque","Public Sans",sans-serif; font-weight:800;
+  font-size:clamp(30px,7vw,44px); line-height:1.05; margin:0 0 12px; text-wrap:balance;
+}
+.hero p{max-width:60ch; color:var(--ink-soft); margin:0}
+.legend{
+  display:flex; flex-wrap:wrap; gap:8px 14px; margin:18px 0 0;
+  font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink-soft);
+}
+.legend span{display:inline-flex; align-items:center; gap:6px}
+.sw{width:12px; height:12px; border-radius:3px; display:inline-block}
+.sw.obs{background:var(--obs)} .sw.net{background:var(--net)} .sw.delta{background:var(--delta)}
+
+.growth{
+  display:flex; align-items:flex-end; gap:6px; margin:22px 0 0; height:74px;
+}
+.growth .bar{flex:1; display:flex; flex-direction:column; justify-content:flex-end; text-align:center}
+.growth .bfill{background:var(--obs); border-radius:4px 4px 0 0; opacity:.85}
+.growth .bar.next .bfill{background:var(--delta)}
+.growth .bl{font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--ink-soft); margin-top:4px; white-space:nowrap}
+.growth .bv{font-family:"IBM Plex Mono",monospace; font-size:11px; font-weight:600; margin-bottom:2px; font-variant-numeric:tabular-nums}
+
+section.gen{
+  background:var(--panel); border:1px solid var(--line); border-radius:10px;
+  padding:20px 16px 24px; margin:26px 0;
+}
+.gen-head{display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:4px}
+h2{
+  font-family:"Bricolage Grotesque","Public Sans",sans-serif; font-weight:600;
+  font-size:24px; margin:0; text-wrap:balance;
+}
+.tag{
+  font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.08em;
+  padding:3px 8px; border-radius:999px; border:1px solid var(--line); color:var(--ink-soft);
+  white-space:nowrap;
+}
+.tag.planned{border-color:var(--delta); color:var(--delta)}
+.gen-sub{font-size:14px; color:var(--ink-soft); margin:2px 0 18px; max-width:62ch}
+
+.maplabel{
+  font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--ink-soft); margin:14px 0 8px;
+}
+.obsmap{display:flex; flex-direction:column; gap:3px}
+.seg{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  border-left:4px solid var(--obs); background:var(--obs-soft);
+  border-radius:0 6px 6px 0; padding:7px 10px; min-height:30px;
+}
+.seg .n{font-weight:600; font-size:14px}
+.seg .d{font-size:12.5px; color:var(--ink-soft); display:block; margin-top:1px}
+.seg .dim{
+  font-family:"IBM Plex Mono",monospace; font-size:13px; font-weight:600;
+  color:var(--obs); font-variant-numeric:tabular-nums; white-space:nowrap;
+}
+.seg.delta{border-left-color:var(--delta); background:var(--delta-soft)}
+.seg.delta .dim{color:var(--delta)}
+.dtag{
+  font-family:"IBM Plex Mono",monospace; font-size:10px; font-weight:600; color:var(--delta);
+  border:1px solid var(--delta); border-radius:4px; padding:0 4px; margin-right:6px;
+  position:relative; top:-1px;
+}
+.total{
+  display:flex; justify-content:flex-end; gap:8px; align-items:baseline;
+  font-family:"IBM Plex Mono",monospace; font-size:13px; margin-top:8px; color:var(--ink-soft);
+}
+.total b{font-size:17px; color:var(--ink); font-variant-numeric:tabular-nums}
+
+.flow{display:flex; flex-direction:column; align-items:center; margin:6px 0}
+.arrow{color:var(--ink-soft); font-size:18px; line-height:1; padding:6px 0}
+.trunk{
+  width:100%; max-width:420px; text-align:center; border:1.5px solid var(--net);
+  background:var(--net-soft); border-radius:8px; padding:10px 12px; margin:3px 0;
+}
+.trunk .n{font-weight:600; font-size:14px}
+.trunk .d{font-family:"IBM Plex Mono",monospace; font-size:12.5px; color:var(--ink-soft)}
+.heads{display:flex; gap:10px; width:100%; max-width:520px; margin-top:3px}
+.head{
+  flex:1; border:1.5px solid var(--net); border-radius:8px; padding:10px 10px;
+  background:var(--panel); text-align:center;
+}
+.head.delta{border-color:var(--delta)}
+.head.delta .dim{color:var(--delta)}
+.head .n{font-weight:600; font-size:13.5px}
+.head .dim{font-family:"IBM Plex Mono",monospace; font-size:15px; font-weight:600; color:var(--net)}
+.head .d{font-size:12px; color:var(--ink-soft); margin-top:3px}
+.head .d b{color:var(--ink)}
+.split{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-soft); padding:4px 0 2px; text-align:center}
+.tokens{
+  display:flex; flex-wrap:wrap; gap:5px; justify-content:center; width:100%;
+  max-width:480px; margin:3px 0;
+}
+.tok{
+  font-family:"IBM Plex Mono",monospace; font-size:11px; font-weight:500;
+  border:1px solid var(--net); color:var(--ink); background:var(--net-soft);
+  border-radius:5px; padding:2px 7px; white-space:nowrap;
+}
+.tok.delta{border-color:var(--delta); background:var(--delta-soft)}
+.heads.four{max-width:640px; flex-wrap:wrap}
+.heads.four .head{min-width:130px}
+
+.aside{
+  border:1px dashed var(--line); border-radius:8px; padding:10px 12px; margin-top:16px;
+  font-size:13.5px; color:var(--ink-soft);
+}
+.aside b{color:var(--ink); font-weight:600}
+code{
+  font-family:"IBM Plex Mono",monospace; font-size:.86em; background:var(--mono-bg);
+  padding:1px 5px; border-radius:4px;
+}
+.deltalist{margin:14px 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:8px}
+.deltalist li{border-left:3px solid var(--delta); padding:2px 0 2px 10px; font-size:14px}
+.deltalist li b{font-weight:600}
+footer{
+  margin-top:34px; padding-top:16px; border-top:1px solid var(--line);
+  font-size:13px; color:var(--ink-soft);
+}
+footer p{margin:0 0 8px; max-width:65ch}
+@media (max-width:420px){ .heads{flex-direction:column} }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <div class="eyebrow">CloudKitty · policy architecture by generation</div>
+  <h1>One mind, drawn five times</h1>
+  <p>Every kitty policy is a per-tick, feedforward read of the world: a fixed-layout
+  observation vector in, logits out. Two stories run through the five panels — the vector
+  grows ears, and partway along the mind itself changes species, from a flat MLP that
+  reads the vector as one long number to an entity-attention model that reads it as a
+  scene. Each panel marks its deltas against the one before.</p>
+  <div class="legend">
+    <span><span class="sw obs"></span>observation</span>
+    <span><span class="sw net"></span>network</span>
+    <span><span class="sw delta"></span>Δ new that generation</span>
+  </div>
+  <div class="growth" aria-label="observation width by generation">
+    <div class="bar"><div class="bv">182</div><div class="bfill" style="height:34px"></div><div class="bl">v1</div></div>
+    <div class="bar"><div class="bv">183</div><div class="bfill" style="height:35px"></div><div class="bl">v2</div></div>
+    <div class="bar"><div class="bv">197</div><div class="bfill" style="height:38px"></div><div class="bl">v3</div></div>
+    <div class="bar"><div class="bv">225</div><div class="bfill" style="height:43px"></div><div class="bl">v4</div></div>
+    <div class="bar next"><div class="bv">~290</div><div class="bfill" style="height:55px"></div><div class="bl">fog</div></div>
+  </div>
+</header>
+
+<!-- ===================== V1 ===================== -->
+<section class="gen">
+  <div class="gen-head">
+    <h2>Generation 1 — the first surface</h2>
+    <span class="tag">spec 014 · obs v1 · action v1</span>
+  </div>
+  <p class="gen-sub">The original policy surface: the encoding that made kitties trainable
+  at all. One head — meowing is just six more rows of the action menu. This is the schema
+  the first BC clones and MAPPO arms (exp-001) learned on.</p>
+
+  <div class="maplabel">Observation · 182 floats</div>
+  <div class="obsmap">
+    <div class="seg"><div><span class="n">Self block</span>
+      <span class="d">6 needs · happiness · position · activity (7-way) · partnered · in-sunbeam · scene progress · 6 distress flags · pursuit ×2 · 6 trait dials</span></div>
+      <span class="dim">33</span></div>
+    <div class="seg"><div><span class="n">Kitty slots × 3</span>
+      <span class="d">nearest friends, activity partner always seated · each: present · Δxy · dist · 6 needs · happiness · activity (7-way) · partnered · is-my-target</span></div>
+      <span class="dim">3×20</span></div>
+    <div class="seg"><div><span class="n">Element slots</span>
+      <span class="d">chow ×2 · water ×2 · sunbeam ×2 · critters ×4 — each: present · Δxy · dist · type detail</span></div>
+      <span class="dim">70</span></div>
+    <div class="seg"><div><span class="n">Meow digest</span>
+      <span class="d">6 learned kinds × (recency-weighted presence · nearest other emitter's Δxy) — a kitty's own meows are excluded</span></div>
+      <span class="dim">18</span></div>
+    <div class="seg"><div><span class="n">Episode clock</span></div><span class="dim">1</span></div>
+  </div>
+  <div class="total">Σ <b>182</b></div>
+
+  <div class="flow">
+    <div class="arrow">↓</div>
+    <div class="trunk"><span class="n">Linear 182 → 256</span> <span class="d">· ReLU</span></div>
+    <div class="trunk"><span class="n">Linear 256 → 256</span> <span class="d">· ReLU</span></div>
+    <div class="trunk"><span class="n">Linear 256 → 40</span> <span class="d">· raw logits</span></div>
+    <div class="heads">
+      <div class="head"><div class="dim">40</div><div class="n">Action head (only head)</div>
+        <div class="d">menu v1: move ×4 · rest/sleep/groom (solo + 3 friends each) · eat · drink · chase (4 critters + 3 friends) · play (solo + 4 + 3) · <b>6 meow actions</b> · idle — argmax over the legality mask</div></div>
+    </div>
+  </div>
+
+  <div class="aside"><b>Off-stage, all generations:</b> a separate privileged critic
+  exists only during training and never ships — an MLP twin (global state → 256 → 256 → 1)
+  in the early generations, an entity-attention critic since the exp-006 era.</div>
+</section>
+
+<!-- ===================== V2 ===================== -->
+<section class="gen">
+  <div class="gen-head">
+    <h2>Generation 2 — the wet paw</h2>
+    <span class="tag">spec 026 · obs v2 · action v1</span>
+  </div>
+  <p class="gen-sub">The smallest schema break on record: one float. The bath economy gave
+  water a price, so the mind got the one fact the pricing turns on — whether its own paws
+  are in it. Everything else, network included, is untouched.</p>
+
+  <div class="maplabel">Observation · 183 floats</div>
+  <div class="obsmap">
+    <div class="seg delta"><div><span class="n">Self block</span>
+      <span class="d">as v1 <span class="dtag">Δ</span>+ on-water bit (a fact about the tile, not the activity)</span></div>
+      <span class="dim">34</span></div>
+    <div class="seg"><div><span class="n">Kitty slots × 3</span><span class="d">unchanged</span></div>
+      <span class="dim">3×20</span></div>
+    <div class="seg"><div><span class="n">Element slots</span><span class="d">unchanged</span></div>
+      <span class="dim">70</span></div>
+    <div class="seg"><div><span class="n">Meow digest</span><span class="d">unchanged</span></div>
+      <span class="dim">18</span></div>
+    <div class="seg"><div><span class="n">Episode clock</span></div><span class="dim">1</span></div>
+  </div>
+  <div class="total">Σ <b>183</b></div>
+
+  <div class="flow">
+    <div class="arrow">↓</div>
+    <div class="trunk"><span class="n">Linear 183 → 256 → 256 → 40</span> <span class="d">· same shape, one input wider</span></div>
+    <div class="heads">
+      <div class="head"><div class="dim">40</div><div class="n">Action head</div>
+        <div class="d"><b>unchanged</b> — menu v1, meows still in the menu</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== V3 ===================== -->
+<section class="gen">
+  <div class="gen-head">
+    <h2>Generation 3 — speech leaves the menu</h2>
+    <span class="tag">spec 028 · obs v3 · action v2</span>
+  </div>
+  <p class="gen-sub">The big restructuring. Meowing stops costing a turn: the menu drops
+  its six meow rows and a second logit head speaks alongside every action. Grounding
+  becomes law — a want-* word is legal only when the need is genuinely armed — and the
+  digest is rebuilt around one coherent emitter per kind.</p>
+
+  <div class="maplabel">Observation · 197 floats</div>
+  <div class="obsmap">
+    <div class="seg"><div><span class="n">Self block</span><span class="d">unchanged</span></div>
+      <span class="dim">34</span></div>
+    <div class="seg"><div><span class="n">Kitty slots × 3</span><span class="d">unchanged</span></div>
+      <span class="dim">3×20</span></div>
+    <div class="seg"><div><span class="n">Element slots</span><span class="d">unchanged</span></div>
+      <span class="dim">70</span></div>
+    <div class="seg delta"><div><span class="n">Meow digest v3</span>
+      <span class="d"><span class="dtag">Δ</span>rebuilt: 8 kinds × (recency · Δxy · intensity), the single freshest <em>audible</em> emitter per kind <span class="dtag">Δ</span>vocabulary totalized: WantBath &amp; WantSleep join</span></div>
+      <span class="dim">32</span></div>
+    <div class="seg"><div><span class="n">Episode clock</span></div><span class="dim">1</span></div>
+  </div>
+  <div class="total">Σ <b>197</b></div>
+
+  <div class="flow">
+    <div class="arrow">↓</div>
+    <div class="trunk"><span class="n">Linear 197 → 256 → 256 → 43</span> <span class="d">· raw logits</span></div>
+    <div class="split"><span class="dtag">Δ</span>one final layer, now split in two ↓</div>
+    <div class="heads">
+      <div class="head delta"><div class="dim">34</div><div class="n">Activity head</div>
+        <div class="d"><span class="dtag">Δ</span>menu v2 — the six meow rows leave; otherwise the v1 menu</div></div>
+      <div class="head delta"><div class="dim">9</div><div class="n">Message head</div>
+        <div class="d"><span class="dtag">Δ</span>new: Silent + 8 kinds, spoken alongside the action, grounded by mask</div></div>
+    </div>
+  </div>
+
+  <div class="aside"><b>This is the surface the attention mind was born on.</b> The
+  entity-attention line of work opened against these 197 floats and was certified as the
+  <code>.ckpolicy</code> v3 artifact format (spec 030); the first attention seats
+  (attn-a1-s1, attn-a1-s3) went live on it, alongside MLP incumbents.</div>
+</section>
+
+<!-- ===================== V4 ===================== -->
+<section class="gen">
+  <div class="gen-head">
+    <h2>Generation 4 — the say-surface</h2>
+    <span class="tag">spec 033 · obs v4 · action v3 · serving</span>
+  </div>
+  <p class="gen-sub">Two changes land in this era. The vocabulary finalizes: here-* words
+  for grounded reference, mew and chirp, two reserved slots. And the attention mind takes
+  over the roster seat by seat — the earlier v3-certified minds carried onto this surface
+  (the "-o4" artifacts), then the Biscuit 2.0 cutover completed the first all-policy
+  roster: today four attention seats and one MLP holdover. Same vector, read as a scene
+  instead of a number.</p>
+
+  <div class="maplabel">Observation · 225 floats</div>
+  <div class="obsmap">
+    <div class="seg"><div><span class="n">Self block</span><span class="d">unchanged</span></div>
+      <span class="dim">34</span></div>
+    <div class="seg"><div><span class="n">Kitty slots × 3</span><span class="d">unchanged</span></div>
+      <span class="dim">3×20</span></div>
+    <div class="seg"><div><span class="n">Element slots</span><span class="d">unchanged</span></div>
+      <span class="dim">70</span></div>
+    <div class="seg delta"><div><span class="n">Meow digest</span>
+      <span class="d">same 4 fields per kind <span class="dtag">Δ</span>vocabulary 8 → 15: here-food/water/critter/sunbeam · mew (inherits follow-me's row) · chirp · trill &amp; ekekek reserved</span></div>
+      <span class="dim">60</span></div>
+    <div class="seg"><div><span class="n">Episode clock</span></div><span class="dim">1</span></div>
+  </div>
+  <div class="total">Σ <b>225</b></div>
+
+  <div class="flow">
+    <div class="arrow">↓</div>
+    <div class="split"><span class="dtag">Δ</span>the vector splits into 30 typed tokens, one per entity ↓</div>
+    <div class="tokens">
+      <span class="tok delta">self</span><span class="tok delta">kitty ×3</span>
+      <span class="tok delta">chow ×2</span><span class="tok delta">water ×2</span>
+      <span class="tok delta">sunbeam ×2</span><span class="tok delta">critter ×4</span>
+      <span class="tok delta">meow-kind ×15</span><span class="tok delta">clock</span>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="trunk"><span class="n">Per-type embed → d64</span> <span class="d">+ type embedding (22 rows)</span></div>
+    <div class="trunk"><span class="n">Transformer encoder × 2</span> <span class="d">· 4 heads · FFN 128 · pre-norm · absent entities masked out</span></div>
+    <div class="trunk"><span class="n">Summary = [self token ‖ mean-pool]</span> <span class="d">· LayerNorm, 128 wide</span></div>
+    <div class="split"><span class="dtag">Δ</span>four heads reassemble the same 50 logits ↓</div>
+    <div class="heads four">
+      <div class="head"><div class="dim">11</div><div class="n">Dense actions</div>
+        <div class="d">from the summary: move · solo rest/sleep/groom · eat · drink · solo play · idle</div></div>
+      <div class="head delta"><div class="dim">3×5</div><div class="n">Kitty pointers</div>
+        <div class="d"><span class="dtag">Δ</span>each friend's rest/sleep/groom/chase/play logits scored from <b>that friend's own token</b></div></div>
+      <div class="head delta"><div class="dim">4×2</div><div class="n">Critter pointers</div>
+        <div class="d"><span class="dtag">Δ</span>chase &amp; play per critter, from its token</div></div>
+      <div class="head delta"><div class="dim">16</div><div class="n">Message head</div>
+        <div class="d"><span class="dtag">Δ</span>Silent + 15 kinds, from the summary — layout now FROZEN through the fog era</div></div>
+    </div>
+  </div>
+
+  <div class="aside"><b>Why pointers matter:</b> the MLP had to learn "play-with-slot-2"
+  as its own unrelated output; the attention mind scores play-with-<em>this-cat</em> from
+  that cat's representation, so what it learns about one friend transfers to every seat a
+  friend can occupy. The activity head still reads out as the same 34-entry menu v2 —
+  the schema pin bumps to action v3 for the message-head widening alone, and the
+  <code>.ckpolicy</code> v3 artifact format (spec 030) carries the new shape. The serving
+  roster today: attn-a1-s1-o4, Biscuit&nbsp;2.0 (e006a-L-04-s3), attn-a1-s3-o4 and
+  e006-E1-s1 on this architecture; e004-a1-s2-o4 — the exp-004 two-head MLP carried onto
+  the schema-4 surface — still holds Clementine's seat.</div>
+</section>
+
+<!-- ===================== FOG GEN 1 ===================== -->
+<section class="gen">
+  <div class="gen-head">
+    <h2>Fog Gen 1 — vision shrinks, hearing sharpens</h2>
+    <span class="tag planned">planned · pre-spec · schema-break bundle</span>
+  </div>
+  <p class="gen-sub">Same mind, smaller world-view: knowledge drops from global to a
+  radius, so meows become the long-range sense. Every break rides the observation side of
+  one wall; needs stay visible; the map stays 20×20.</p>
+
+  <div class="maplabel">Observation · ~290 floats (spec decides the final count)</div>
+  <div class="obsmap">
+    <div class="seg"><div><span class="n">Self block</span>
+      <span class="d">as v4 <span class="dtag">Δ</span>+ scene-age (elapsed⁄24, ceiling frozen)</span></div>
+      <span class="dim">35</span></div>
+    <div class="seg delta"><div><span class="n">Kitty slots × 3 — widened</span>
+      <span class="d">as v4 <span class="dtag">Δ</span>+ scene-age float <span class="dtag">Δ</span>+ neighbour-in-water bit · fog masks <em>fields</em>, audibility grants the <em>row</em></span></div>
+      <span class="dim">3×22</span></div>
+    <div class="seg"><div><span class="n">Element slots</span>
+      <span class="d">unchanged — but only what the radius admits</span></div>
+      <span class="dim">70</span></div>
+    <div class="seg delta"><div><span class="n">Meow digest matrix</span>
+      <span class="d"><span class="dtag">Δ</span>per-<em>speaker</em> now: each kitty slot carries 15 kinds × (recency · short-horizon rate) — repetition becomes visible, because a memoryless mind can't count for itself</span></div>
+      <span class="dim">~120</span></div>
+    <div class="seg"><div><span class="n">Episode clock</span></div><span class="dim">1</span></div>
+  </div>
+  <div class="total">Σ <b>~290</b></div>
+
+  <div class="flow">
+    <div class="arrow">↓</div>
+    <div class="trunk"><span class="n">Entity-attention mind, carried forward</span>
+      <span class="d">· widened slots = wider tokens; how the per-speaker digest tokenizes (own rows vs riding the kitty tokens) is the spec's call</span></div>
+    <div class="split">heads deliberately frozen ↓</div>
+    <div class="heads">
+      <div class="head"><div class="dim">34</div><div class="n">Activity head</div>
+        <div class="d"><b>unchanged</b> — action schema frozen through the fog era</div></div>
+      <div class="head"><div class="dim">16</div><div class="n">Message head</div>
+        <div class="d"><b>same layout</b> — the here-* words go live as grounded reference; trill &amp; ekekek stay in reserve</div></div>
+    </div>
+  </div>
+
+  <ul class="deltalist">
+    <li><b>Vision shrinks, hearing sharpens.</b> Global → radius knowledge is the
+    generation's point; the digest matrix is what keeps the world legible through it.</li>
+    <li><b>Scene-age everywhere.</b> Partnered scenes finally show how long they've run —
+    the input a play-proposal policy needs to judge "soon free."</li>
+    <li><b>Neighbour-in-water.</b> The wet-fur price lands with the bit that lets a policy
+    predict it.</li>
+    <li><b>Both heads frozen.</b> Everything breaks on the observation side of the wall.</li>
+  </ul>
+</section>
+
+<footer>
+  <p><b>Reading the arc:</b> two stories, out of phase. The vector's history is a history
+  of hearing — 18 digest floats → 32 → 60 → a ~120-float per-speaker matrix, from
+  "someone, somewhere, wants food" to "that cat, again, twice in ten ticks." The mind's
+  history has one hinge, crossed seat by seat rather than at a stroke: flat 256×256 MLPs
+  from the first generation, the entity-attention read — tokens, two encoder layers,
+  pointer heads — arriving mid-v3 and holding four of five seats today, with one MLP
+  incumbent still serving. Both minds answer to the same legality mask.</p>
+  <p>Drawn from <code>cloudkitty-rl/src/observe.rs</code> and <code>codec.rs</code> at
+  each generation's landing commit (spec 014 · 026 · 028 · 033) and the fog Gen 1 ROADMAP
+  bundle. The fog panel reflects owner-ruled bundle decisions, not a merged spec — dims
+  marked ~ are the spec's to pin.</p>
+</footer>
+</div>
+</body>
+</html>
