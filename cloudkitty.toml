@@ -355,6 +355,25 @@ cuddle_real_threshold = 15.0
 # The pressure at which a "playful" kitty stops playing and attends to a need.
 # Lower means a better-kept cat; higher means more single-minded fun.
 playful_comfort = 55.0
+# Playful 2.0 (spec 042): the partner-value score and per-need comfort
+# weights, all launched at their identity values and ABSENT here on purpose
+# (absent = identity; the engine-defaults stamp stays unmoved). Priced by
+# Experiments' joint comfort x score x weights campaign; the owner pins
+# served values. Uncomment HERE, under [behavior], to set one:
+# w_value = 0.0         # friend-value multiplier in the play score; > 0 also
+#                       #   admits busy-but-soon-free friends to the ranking
+# w_busy = 0.0          # expected-wait penalty per tick (mid-scene partner)
+# w_serious = 0.0       # penalty per point of a partner's top NON-play need
+# t_self = 0.0          # own play-need floor for bothering any friend
+# t_partner = 0.0       # per-friend value floor (eligibility filter)
+# critter_appeal = 0.0  # standalone critter score offset (either sign)
+# [behavior.comfort_weight]   # per-need multipliers, get-serious trigger ONLY
+# eat = 1.0
+# drink = 1.0
+# sleep = 1.0
+# play = 1.0
+# cuddle = 1.0
+# bath = 1.0
 # Need selection weighs pressure against travel. Pressure above the safeguard
 # threshold counts extra (urgency_weight per point), so urgent needs dominate --
 # but relief at zero distance still beats a hopeless cross-map trek.

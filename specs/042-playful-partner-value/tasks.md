@@ -25,8 +25,8 @@ All paths relative to the worktree root `~/ai/cloudkitty-playful/`.
 
 ## Phase 1: Setup
 
-- [ ] T001 Confirm worktree `~/ai/cloudkitty-playful` on branch `042-playful-partner-value` fast-forwarded to origin/main (plan merged @ b48c264); `git fetch && git status -sb`; `cargo test --workspace` green at base
-- [ ] T002 Record the baseline `engine_defaults_sha256` value (from a run of the suite.rs stamp tests or a one-off print) and confirm `golden_evolution_flag_absent_10k_ticks` green, into `specs/042-playful-partner-value/continuity-baseline.md` — BOTH must be unchanged at the end of the feature (contract §2, quickstart §Prerequisites)
+- [X] T001 Confirm worktree `~/ai/cloudkitty-playful` on branch `042-playful-partner-value` fast-forwarded to origin/main (plan merged @ b48c264); `git fetch && git status -sb`; `cargo test --workspace` green at base
+- [X] T002 Record the baseline `engine_defaults_sha256` value (from a run of the suite.rs stamp tests or a one-off print) and confirm `golden_evolution_flag_absent_10k_ticks` green, into `specs/042-playful-partner-value/continuity-baseline.md` — BOTH must be unchanged at the end of the feature (contract §2, quickstart §Prerequisites)
 
 ---
 
@@ -34,7 +34,7 @@ All paths relative to the worktree root `~/ai/cloudkitty-playful/`.
 
 **⚠️ CRITICAL**: no story work until the list exists.
 
-- [ ] T003 Write the sorted test list to `specs/042-playful-partner-value/redden-list.md` from research D9: **must-green headline** = golden digest (pin 7b361b2a), full `selection.rs`/`playful.rs` batteries at defaults, `approach_etiquette.rs`, behavior_variation, both shipped-config sweeps, defaults-stamp tests, Article I–V property suites; **new red-first guards** = one per dial per D9's list. Name exact test fns; record the D9 coupling watch items (`solo_play_reach`/urgent interplay, `should_wait_for`, opportunism pass untouched)
+- [X] T003 Write the sorted test list to `specs/042-playful-partner-value/redden-list.md` from research D9: **must-green headline** = golden digest (pin 7b361b2a), full `selection.rs`/`playful.rs` batteries at defaults, `approach_etiquette.rs`, behavior_variation, both shipped-config sweeps, defaults-stamp tests, Article I–V property suites; **new red-first guards** = one per dial per D9's list. Name exact test fns; record the D9 coupling watch items (`solo_play_reach`/urgent interplay, `should_wait_for`, opportunism pass untouched)
 
 **Checkpoint**: baselines banked, list written.
 
@@ -49,13 +49,13 @@ everything green.
 **Independent Test**: config validation guards + stamp compare vs
 T002 + golden green; each dial loads alone in a scratch config.
 
-- [ ] T004 [US3] Red-first validation guards: extend the `[behavior]` nan/negativity test table in `crates/cloudkitty-core/src/config/mod.rs` tests with all 12 dials (`w_value`, `w_busy`, `w_serious`, `t_self`, `t_partner`, `critter_appeal` finite-only, and the six `comfort_weight.*`). Predicted red: compile error on missing fields, then poison-accepted before the validate.rs entries (rule 5 — predict each before running)
-- [ ] T005 [US3] Add the six score/gate fields to `BehaviorConfig` in `crates/cloudkitty-core/src/config/mod.rs` — f32, identity default 0.0 via serde default fns, each `skip_serializing_if` at identity (copy the `pounce` field's 039-D5 idiom + comment), doc comments naming spec 042 + the convention that pricing is the sweep's
-- [ ] T006 [US3] Add `ComfortWeights` struct (eat/drink/sleep/play/cuddle/bath f32, each default 1.0, `is_identity` helper) + `#[serde(default, skip_serializing_if = "ComfortWeights::is_identity")] comfort_weight` field on `BehaviorConfig`, same file
-- [ ] T007 [US3] Append the dial checks inside `validate_behavior` in `crates/cloudkitty-core/src/config/validate.rs` (spec-020 section order untouched): finite ≥ 0 for the three `w_*`, both `t_*`, and all six weights; finite-any-sign for `critter_appeal`; errors name `[behavior] <field>` / `[behavior.comfort_weight] <need>` — flips T004 green
-- [ ] T008 [P] [US3] Add the commented documentation block to `cloudkitty.toml` `[behavior]` section (the `[elements]` placement-dials pattern: dials listed with identity values, commented out, one-line meanings + "priced by the joint sweep") — NO live keys (contract §6)
-- [ ] T009 [US3] Verify: `cargo test --workspace` fully green; `engine_defaults_sha256` IDENTICAL to T002's baseline (contract §2 — if it moved, a skip-at-identity is missing: HALT and fix); golden digest green
-- [ ] T010 [US3] Commit 1: "spec 042 commit 1/2: the dial surface (identity defaults, stamp unmoved)" — message cites the stamp compare and the 12 red-first validation guards
+- [X] T004 [US3] Red-first validation guards: extend the `[behavior]` nan/negativity test table in `crates/cloudkitty-core/src/config/mod.rs` tests with all 12 dials (`w_value`, `w_busy`, `w_serious`, `t_self`, `t_partner`, `critter_appeal` finite-only, and the six `comfort_weight.*`). Predicted red: compile error on missing fields, then poison-accepted before the validate.rs entries (rule 5 — predict each before running)
+- [X] T005 [US3] Add the six score/gate fields to `BehaviorConfig` in `crates/cloudkitty-core/src/config/mod.rs` — f32, identity default 0.0 via serde default fns, each `skip_serializing_if` at identity (copy the `pounce` field's 039-D5 idiom + comment), doc comments naming spec 042 + the convention that pricing is the sweep's
+- [X] T006 [US3] Add `ComfortWeights` struct (eat/drink/sleep/play/cuddle/bath f32, each default 1.0, `is_identity` helper) + `#[serde(default, skip_serializing_if = "ComfortWeights::is_identity")] comfort_weight` field on `BehaviorConfig`, same file
+- [X] T007 [US3] Append the dial checks inside `validate_behavior` in `crates/cloudkitty-core/src/config/validate.rs` (spec-020 section order untouched): finite ≥ 0 for the three `w_*`, both `t_*`, and all six weights; finite-any-sign for `critter_appeal`; errors name `[behavior] <field>` / `[behavior.comfort_weight] <need>` — flips T004 green
+- [X] T008 [P] [US3] Add the commented documentation block to `cloudkitty.toml` `[behavior]` section (the `[elements]` placement-dials pattern: dials listed with identity values, commented out, one-line meanings + "priced by the joint sweep") — NO live keys (contract §6)
+- [X] T009 [US3] Verify: `cargo test --workspace` fully green; `engine_defaults_sha256` IDENTICAL to T002's baseline (contract §2 — if it moved, a skip-at-identity is missing: HALT and fix); golden digest green
+- [X] T010 [US3] Commit 1: "spec 042 commit 1/2: the dial surface (identity defaults, stamp unmoved)" — message cites the stamp compare and the 12 red-first validation guards
 
 **Checkpoint**: config surface live and provably inert; sweep configs could already set dials (they'd just feed nothing until commit 2).
 
