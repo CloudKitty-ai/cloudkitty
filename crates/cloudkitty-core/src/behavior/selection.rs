@@ -237,34 +237,120 @@ fn play_travel_distance(ctx: &DecisionContext, playmate: Option<(TargetRef, Posi
     }
 }
 
-/// The nearest playmate still worth pursuing -- critter or fellow kitty --
-/// ordered by (distance, critters-before-kitties, id) so the choice is stable.
+/// The playmate worth pursuing -- critter or fellow kitty -- by the
+/// spec-042 partner-value ranking. At the all-identity dial defaults this
+/// is bit-for-bit the classic pick: everyone scores `-distance`, and the
+/// tie order (distance, critters-before-kitties, id) decides, so critters
+/// still win distance ties.
 ///
-/// A candidate stops being viable while it sits in `abandoned_chases`, or while
-/// it is the current pursuit target that has gained no ground in
-/// `chase_patience_ticks` (a chase that is not working -- as opposed to one
-/// that is merely long).
+/// The pipeline (data-model.md §2): admission -> eligibility -> ranking.
+/// A candidate stops being admissible while it sits in `abandoned_chases`,
+/// or while it is the current pursuit target that has gained no ground in
+/// `chase_patience_ticks` -- the score never resurrects a written-off
+/// target (FR-008). Selection is a stateless re-scan every decision tick
+/// (FR-010): a candidate whose value collapsed mid-journey is simply
+/// re-ranked next tick.
 pub fn nearest_viable_playmate(ctx: &DecisionContext) -> Option<(TargetRef, Position)> {
     let me = &ctx.me;
+    let b = &ctx.config.behavior;
+    let my_play = me.needs.get(NeedKind::Play);
 
+    // Each candidate carries its score's value term, computed ONCE from
+    // the &Kitty it already is (review 2026-08-29: no by-id re-lookup, no
+    // sentinel float -- a kitty absent from the snapshot simply never
+    // becomes a candidate). Critters carry no value; their score is the
+    // standalone appeal.
     let critters = ctx.world.critters().map(|e| {
         (
             TargetRef::Element { id: e.id },
             e.pos,
             0u8, // critters win distance ties: bugs are more fun than bothering a friend
             e.id,
+            None,
         )
     });
-    let friends = ctx
-        .world
-        .others(me.id)
-        .map(|k| (TargetRef::Kitty { id: k.id }, k.pos, 1u8, k.id));
+    let friends = ctx.world.others(me.id).map(|k| {
+        (
+            TargetRef::Kitty { id: k.id },
+            k.pos,
+            1u8,
+            k.id,
+            Some(partner_value(ctx, k)),
+        )
+    });
 
     critters
         .chain(friends)
-        .filter(|(target, _, _, _)| is_viable(ctx, *target))
-        .min_by_key(|(_, pos, tag, id)| (me.pos.manhattan_distance(pos), *tag, *id))
-        .map(|(target, pos, _, _)| (target, pos))
+        .filter(|(target, _, _, _, _)| is_viable(ctx, *target))
+        // The eligibility filter (spec 042, owner-clarified): the
+        // thresholds decide who is worth bothering, so a failing friend
+        // drops out of the ranking entirely -- a nearby indifferent
+        // friend can never veto partner play by out-scoring on distance.
+        // Critters are never filtered: critter and solo play stay
+        // unconditional (the character).
+        .filter(|(_, _, _, _, value)| match value {
+            Some(v) => my_play >= b.t_self && *v >= b.t_partner,
+            None => true,
+        })
+        .max_by(|(_, p1, tag1, id1, v1), (_, p2, tag2, id2, v2)| {
+            let s1 = play_score(ctx, *v1, *p1);
+            let s2 = play_score(ctx, *v2, *p2);
+            // Higher score wins; equal scores fall back to today's exact
+            // ascending (distance, tag, id) order -- reversed here because
+            // max_by keeps the Greater side. No NaN can reach total_cmp:
+            // every dial is validated finite (FR-007) and the value term
+            // is bounded need arithmetic.
+            s1.total_cmp(&s2).then_with(|| {
+                (me.pos.manhattan_distance(p2), *tag2, *id2).cmp(&(
+                    me.pos.manhattan_distance(p1),
+                    *tag1,
+                    *id1,
+                ))
+            })
+        })
+        .map(|(target, pos, _, _, _)| (target, pos))
+}
+
+/// A friend's value as a playmate (spec 042 FR-001): its own play need,
+/// less what waiting for it would cost, less how close it is to getting
+/// serious about something that is not play (owner-clarified: wanting to
+/// play is the opposite of seriousness and never counts against a
+/// candidate).
+fn partner_value(ctx: &DecisionContext, k: &crate::kitty::Kitty) -> f32 {
+    let b = &ctx.config.behavior;
+    let play_need = k.needs.get(NeedKind::Play);
+    let top_non_play = NeedKind::ALL
+        .iter()
+        .filter(|kind| **kind != NeedKind::Play)
+        .map(|kind| k.needs.get(*kind))
+        .fold(0.0f32, f32::max);
+    play_need - b.w_busy * expected_wait(ctx, k) - b.w_serious * top_non_play
+}
+
+/// Ticks until a mid-scene kitty could be free: its scene's configured
+/// minimum less the ticks already served, never negative -- a scene past
+/// its minimum could end any tick. A free kitty waits zero.
+fn expected_wait(ctx: &DecisionContext, k: &crate::kitty::Kitty) -> f32 {
+    let Some(clock) = k.activity_clock else {
+        return 0.0;
+    };
+    let Some(bounds) = k.activity.bounds(&ctx.config.actions.durations) else {
+        return 0.0;
+    };
+    bounds.min.saturating_sub(clock.elapsed(ctx.world.tick)) as f32
+}
+
+/// The ranking score (spec 042 FR-001/FR-002): a friend's weighted value
+/// against distance; a critter (no value) at the standalone appeal
+/// constant (owner-clarified: NOT scaled by w_value -- each dial moves
+/// one thing).
+fn play_score(ctx: &DecisionContext, value: Option<f32>, pos: Position) -> f32 {
+    let b = &ctx.config.behavior;
+    let distance = ctx.me.pos.manhattan_distance(&pos) as f32;
+    match value {
+        Some(v) => b.w_value * v - distance,
+        None => b.critter_appeal - distance,
+    }
 }
 
 fn is_viable(ctx: &DecisionContext, target: TargetRef) -> bool {
@@ -275,14 +361,14 @@ fn is_viable(ctx: &DecisionContext, target: TargetRef) -> bool {
     // A kitty mid-activity cannot be conscripted into play (spec 006):
     // proposing it would only validate to Idle, and counting it viable at
     // distance 0 would suppress the solo-play backstop for as long as its
-    // scene runs. Busy friends become playmates again when their scene ends.
+    // scene runs. Since spec 042 a live value dial admits a mid-scene
+    // friend for anticipatory APPROACH (the wait is priced by w_busy, and
+    // `play_action_with` still never proposes to it while busy) -- at the
+    // identity defaults the value term is dead, there is no anticipatory
+    // signal to act on, and today's hard filter stands (research D2, the
+    // byte-identity witness).
     if let TargetRef::Kitty { id } = target {
-        let busy = ctx
-            .world
-            .kitty(id)
-            .map(|k| k.activity.is_in_progress())
-            .unwrap_or(true);
-        if busy {
+        if kitty_is_mid_scene(ctx, id) && ctx.config.behavior.w_value <= 0.0 {
             return false;
         }
     }
@@ -294,6 +380,18 @@ fn is_viable(ctx: &DecisionContext, target: TargetRef) -> bool {
         }
     }
     true
+}
+
+/// The one mid-scene gate (spec 042 review): both the admission rule in
+/// `is_viable` and the never-propose-while-busy rule in
+/// `play_action_with` read this, so the two can't drift apart. A kitty
+/// missing from the snapshot counts as busy -- the safe reading either
+/// way (not admitted at defaults; never proposed to).
+fn kitty_is_mid_scene(ctx: &DecisionContext, id: KittyId) -> bool {
+    ctx.world
+        .kitty(id)
+        .map(|k| k.activity.is_in_progress())
+        .unwrap_or(true)
 }
 
 /// Approach etiquette (spec 012): when two kitties walk at each other, each
@@ -345,6 +443,17 @@ pub fn play_action_with(ctx: &DecisionContext, playmate: Option<(TargetRef, Posi
     match playmate {
         Some((target, pos)) => {
             if me.pos.is_adjacent(&pos) {
+                // Spec 042: an adjacent pick that is mid-scene cannot be
+                // proposed to (the engine would downgrade it to Idle -- a
+                // wasted turn). Waiting is spent playing: solo for the
+                // tick, and the per-tick re-scan proposes the moment the
+                // friend is free. Never a proposal until free, never an
+                // idle stall.
+                if let TargetRef::Kitty { id } = target {
+                    if kitty_is_mid_scene(ctx, id) {
+                        return Action::play_solo();
+                    }
+                }
                 Action::play_with(target)
             } else if me.pos.manhattan_distance(&pos) > reach && urgent {
                 // Everyone worth playing with is far away and the need is real:
@@ -1042,6 +1151,423 @@ mod tests {
         assert_eq!(
             play_action(&ctx),
             Action::Chase(TargetRef::Element { id: 803 })
+        );
+    }
+}
+
+/// Spec 042 (Playful 2.0): the partner-value ranking's guard battery.
+/// Every dial's effect shown red-first against the distance-only pick;
+/// the identity pins are the byte-identity witnesses (SC-001 at unit
+/// scale). Staging idiom: `decision_context` + a cloned third kitty
+/// where a scenario needs two friends.
+#[cfg(test)]
+mod playful2_tests {
+    use super::*;
+    use crate::element::{Element, ElementKind};
+    use crate::grid::Position;
+    use crate::kitty::ActivityClock;
+    use crate::needs::NeedKind;
+    use crate::test_support::decision_context;
+
+    /// A third cat cloned from the first two -- the test world ships two.
+    fn push_friend(world: &mut crate::world::World, id: u32, pos: Position) {
+        let mut k = world.kitties[0].clone();
+        k.id = id;
+        k.name = format!("Extra{id}");
+        k.pos = pos;
+        k.needs = crate::needs::Needs::default();
+        k.activity = crate::kitty::Activity::Idle;
+        k.activity_clock = None;
+        world.kitties.push(k);
+    }
+
+    fn set_dials(
+        ctx: &mut crate::behavior::DecisionContext,
+        f: impl FnOnce(&mut crate::config::BehaviorConfig),
+    ) {
+        f(&mut std::sync::Arc::get_mut(&mut ctx.config).unwrap().behavior);
+    }
+
+    fn busy(world: &mut crate::world::World, id: u32) {
+        let idx = world.kitty_index(id).unwrap();
+        world.kitties[idx].activity = crate::kitty::Activity::Eating;
+        world.kitties[idx].activity_clock = Some(ActivityClock::start(world.tick));
+    }
+
+    /// (a) The identity pin: at all-default dials the pick is today's --
+    /// nearest first, critter beating friend on a distance tie.
+    #[test]
+    fn at_default_dials_the_pick_is_todays_nearest_with_critter_tie() {
+        let ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            let f = world.kitty_index(2).unwrap();
+            world.kitties[f].pos = Position::new(5, 9); // distance 4
+            world.push_element(Element {
+                id: 700,
+                kind: ElementKind::Bug,
+                pos: Position::new(9, 5), // distance 4: the tie
+                ttl: Some(100),
+            });
+        });
+        assert_eq!(
+            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            Some(TargetRef::Element { id: 700 }),
+            "critters win distance ties, exactly as today"
+        );
+    }
+
+    /// (b) Value outranks distance once w_value is real.
+    #[test]
+    fn a_distant_eager_friend_beats_an_adjacent_indifferent_one() {
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            let f = world.kitty_index(2).unwrap();
+            world.kitties[f].pos = Position::new(5, 6); // adjacent, no play need
+            push_friend(world, 7, Position::new(5, 11)); // distance 6
+            let g = world.kitty_index(7).unwrap();
+            world.kitties[g].needs.add(NeedKind::Play, 60.0);
+        });
+        set_dials(&mut ctx, |b| b.w_value = 5.0);
+        assert_eq!(
+            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            Some(TargetRef::Kitty { id: 7 }),
+            "worth beats distance"
+        );
+    }
+
+    /// (c) t_partner leaves an indifferent friend in peace.
+    #[test]
+    fn a_low_value_friend_below_t_partner_is_left_in_peace() {
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            let f = world.kitty_index(2).unwrap();
+            world.kitties[f].pos = Position::new(5, 6); // adjacent, need 0
+            world.push_element(Element {
+                id: 701,
+                kind: ElementKind::Bug,
+                pos: Position::new(5, 12), // distance 7
+                ttl: Some(100),
+            });
+        });
+        set_dials(&mut ctx, |b| {
+            b.w_value = 1.0;
+            b.t_partner = 20.0;
+        });
+        assert_eq!(
+            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            Some(TargetRef::Element { id: 701 }),
+            "the friend is ineligible; the game goes to the critter"
+        );
+    }
+
+    /// (d) t_self: a cat with no real play urge bothers nobody.
+    #[test]
+    fn below_t_self_no_friend_is_bothered() {
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            let f = world.kitty_index(2).unwrap();
+            world.kitties[f].pos = Position::new(5, 6);
+            let fk = world.kitty_index(2).unwrap();
+            world.kitties[fk].needs.add(NeedKind::Play, 80.0);
+            world.push_element(Element {
+                id: 702,
+                kind: ElementKind::Bug,
+                pos: Position::new(5, 13),
+                ttl: Some(100),
+            });
+        });
+        set_dials(&mut ctx, |b| {
+            b.w_value = 1.0;
+            b.t_self = 50.0; // my own play need is far below this
+        });
+        assert_eq!(
+            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            Some(TargetRef::Element { id: 702 }),
+            "no friend is eligible when my own urge is not real"
+        );
+    }
+
+    /// (e) Clarify ruling 1: eligibility is a FILTER -- a passing
+    /// lower-scoring friend wins when the best-scoring one fails the bar.
+    #[test]
+    fn a_passing_lower_scoring_friend_beats_a_failing_best_scorer() {
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            let f = world.kitty_index(2).unwrap();
+            world.kitties[f].pos = Position::new(5, 6); // adjacent
+            let fk = world.kitty_index(2).unwrap();
+            world.kitties[fk].needs.add(NeedKind::Play, 5.0); // value 5: fails bar
+            push_friend(world, 7, Position::new(5, 13)); // distance 8
+            let g = world.kitty_index(7).unwrap();
+            world.kitties[g].needs.add(NeedKind::Play, 60.0); // value 60: passes
+        });
+        set_dials(&mut ctx, |b| {
+            b.w_value = 0.1; // small: adjacency out-SCORES the eager friend
+            b.t_partner = 20.0;
+        });
+        assert_eq!(
+            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            Some(TargetRef::Kitty { id: 7 }),
+            "the bar filters candidates; it is not a veto held by the best scorer"
+        );
+    }
+
+    /// (f) The wait cost: a mid-scene friend loses to an equal free one.
+    #[test]
+    fn a_mid_scene_friend_is_outranked_by_an_equal_free_one() {
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            let f = world.kitty_index(2).unwrap();
+            world.kitties[f].pos = Position::new(5, 8); // distance 3
+            let fk = world.kitty_index(2).unwrap();
+            world.kitties[fk].needs.add(NeedKind::Play, 50.0);
+            busy(world, 2);
+            push_friend(world, 7, Position::new(8, 5)); // distance 3 too
+            let g = world.kitty_index(7).unwrap();
+            world.kitties[g].needs.add(NeedKind::Play, 50.0);
+        });
+        set_dials(&mut ctx, |b| {
+            b.w_value = 1.0;
+            b.w_busy = 30.0;
+        });
+        assert_eq!(
+            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            Some(TargetRef::Kitty { id: 7 }),
+            "waiting costs; the free friend wins"
+        );
+    }
+
+    /// (g) The admission pin (research D2): at ALL-default dials a busy
+    /// adjacent friend is invisible -- today's pick stands. At w_value > 0
+    /// a busy friend becomes rankable.
+    #[test]
+    fn busy_friends_are_admitted_only_when_the_value_dial_is_live() {
+        let stage = |world: &mut crate::world::World| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            let f = world.kitty_index(2).unwrap();
+            world.kitties[f].pos = Position::new(5, 6); // adjacent...
+            busy(world, 2); // ...but mid-scene
+            world.push_element(Element {
+                id: 703,
+                kind: ElementKind::Bug,
+                pos: Position::new(5, 10), // distance 5
+                ttl: Some(100),
+            });
+        };
+        let ctx = decision_context(stage);
+        assert_eq!(
+            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            Some(TargetRef::Element { id: 703 }),
+            "defaults: the busy friend is not a candidate (today's behavior)"
+        );
+
+        let mut ctx = decision_context(|world| {
+            stage(world);
+            world.elements.clear(); // only the busy friend remains
+            let fk = world.kitty_index(2).unwrap();
+            world.kitties[fk].needs.add(NeedKind::Play, 60.0);
+        });
+        set_dials(&mut ctx, |b| b.w_value = 1.0);
+        assert_eq!(
+            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            Some(TargetRef::Kitty { id: 2 }),
+            "a live value dial admits the soon-free friend for approach"
+        );
+    }
+
+    /// (h) Clarify ruling 2: seriousness reads NON-play pressure only.
+    #[test]
+    fn seriousness_penalizes_hunger_but_never_play_hunger() {
+        // A pressing eat need costs a candidate the game...
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            let f = world.kitty_index(2).unwrap();
+            world.kitties[f].pos = Position::new(5, 8);
+            let fk = world.kitty_index(2).unwrap();
+            world.kitties[fk].needs.add(NeedKind::Play, 50.0);
+            world.kitties[fk].needs.add(NeedKind::Eat, 80.0);
+            push_friend(world, 7, Position::new(8, 5));
+            let g = world.kitty_index(7).unwrap();
+            world.kitties[g].needs.add(NeedKind::Play, 50.0);
+        });
+        set_dials(&mut ctx, |b| {
+            b.w_value = 1.0;
+            b.w_serious = 1.0;
+        });
+        assert_eq!(
+            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            Some(TargetRef::Kitty { id: 7 }),
+            "the hungry friend is about to get serious -- leave it be"
+        );
+
+        // ...but a high PLAY pressure is the opposite of seriousness.
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            let f = world.kitty_index(2).unwrap();
+            world.kitties[f].pos = Position::new(5, 8);
+            let fk = world.kitty_index(2).unwrap();
+            world.kitties[fk].needs.add(NeedKind::Play, 80.0); // eager, not serious
+            push_friend(world, 7, Position::new(8, 5));
+            let g = world.kitty_index(7).unwrap();
+            world.kitties[g].needs.add(NeedKind::Play, 50.0);
+        });
+        set_dials(&mut ctx, |b| {
+            b.w_value = 1.0;
+            b.w_serious = 1.0;
+        });
+        assert_eq!(
+            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            Some(TargetRef::Kitty { id: 2 }),
+            "play pressure is value, never a penalty"
+        );
+    }
+
+    /// (i) Clarify ruling 3: critter appeal is a standalone axis.
+    #[test]
+    fn critter_appeal_is_standalone_and_untouched_by_w_value() {
+        let stage = |world: &mut crate::world::World| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.push_element(Element {
+                id: 704,
+                kind: ElementKind::Bug,
+                pos: Position::new(5, 8), // distance 3
+                ttl: Some(100),
+            });
+            let f = world.kitty_index(2).unwrap();
+            world.kitties[f].pos = Position::new(5, 10); // distance 5
+            let fk = world.kitty_index(2).unwrap();
+            world.kitties[fk].needs.add(NeedKind::Play, 100.0);
+        };
+        // w_value alone: the friend's score rises, the critter's does not.
+        let mut ctx = decision_context(stage);
+        set_dials(&mut ctx, |b| b.w_value = 0.1);
+        assert_eq!(
+            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            Some(TargetRef::Kitty { id: 2 }),
+            "friend 10-5=5 beats critter 0-3=-3: w_value moved only the friend"
+        );
+        // critter_appeal alone lifts the critter back over.
+        let mut ctx = decision_context(stage);
+        set_dials(&mut ctx, |b| {
+            b.w_value = 0.1;
+            b.critter_appeal = 9.0;
+        });
+        assert_eq!(
+            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            Some(TargetRef::Element { id: 704 }),
+            "critter 9-3=6 beats friend 5: appeal is its own unscaled axis"
+        );
+    }
+
+    /// (j) The busy-adjacent fallback: waiting is spent playing.
+    #[test]
+    fn an_adjacent_mid_scene_pick_resolves_to_solo_play_never_idle() {
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            let f = world.kitty_index(2).unwrap();
+            world.kitties[f].pos = Position::new(5, 6); // adjacent
+            busy(world, 2);
+        });
+        set_dials(&mut ctx, |b| b.w_value = 1.0);
+        let action = play_action_with(
+            &ctx,
+            Some((TargetRef::Kitty { id: 2 }, Position::new(5, 6))),
+        );
+        assert_eq!(
+            action,
+            Action::play_solo(),
+            "no proposal until free, and never an idle stall"
+        );
+    }
+
+    /// (k) FR-010: no target lock-in -- a collapsed value redirects the
+    /// very next decision. Green-on-arrival pin: selection is stateless
+    /// re-scan by construction; this guard keeps it that way.
+    #[test]
+    fn a_collapsed_value_redirects_the_next_decision() {
+        let stage = |need: f32| {
+            let mut ctx = decision_context(move |world| {
+                world.elements.clear();
+                let idx = world.kitty_index(1).unwrap();
+                world.kitties[idx].pos = Position::new(5, 5);
+                let f = world.kitty_index(2).unwrap();
+                world.kitties[f].pos = Position::new(5, 11); // distance 6
+                let fk = world.kitty_index(2).unwrap();
+                world.kitties[fk].needs.add(NeedKind::Play, need);
+                world.push_element(Element {
+                    id: 705,
+                    kind: ElementKind::Bug,
+                    pos: Position::new(5, 9), // distance 4
+                    ttl: Some(100),
+                });
+            });
+            set_dials(&mut ctx, |b| {
+                b.w_value = 1.0;
+                b.t_partner = 20.0;
+            });
+            nearest_viable_playmate(&ctx).map(|(t, _)| t)
+        };
+        assert_eq!(
+            stage(60.0),
+            Some(TargetRef::Kitty { id: 2 }),
+            "tick n: the eager distant friend is the pick"
+        );
+        assert_eq!(
+            stage(0.0),
+            Some(TargetRef::Element { id: 705 }),
+            "tick n+1, need serviced by someone else: the pick moves on"
+        );
+    }
+
+    /// (l) FR-008: the score never resurrects a written-off target.
+    #[test]
+    fn an_excluded_friend_is_not_ranked_however_well_it_scores() {
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            let f = world.kitty_index(2).unwrap();
+            world.kitties[f].pos = Position::new(5, 8);
+            let fk = world.kitty_index(2).unwrap();
+            world.kitties[fk].needs.add(NeedKind::Play, 100.0);
+            world.push_element(Element {
+                id: 706,
+                kind: ElementKind::Bug,
+                pos: Position::new(5, 12),
+                ttl: Some(100),
+            });
+        });
+        ctx.me.abandoned_chases.push(crate::kitty::AbandonedChase {
+            target: TargetRef::Kitty { id: 2 },
+            until: ctx.world.tick + 100,
+        });
+        set_dials(&mut ctx, |b| b.w_value = 5.0);
+        assert_eq!(
+            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            Some(TargetRef::Element { id: 706 }),
+            "exclusion outranks any score"
         );
     }
 }
