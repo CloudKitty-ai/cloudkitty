@@ -82,11 +82,25 @@ spec without appearing here first.
 Spec-first (speckit). Scope per ROADMAP; free register never scripted;
 here_* words are about the WORLD, want_* about speaker state.
 
+Also specced in this window: the **Here*-teacher** scripted behavior
+(Product; parked since 2026-08-17, doctrine in the comms brainstorm
+addendum + ROADMAP bootstrap paragraph) — law-named words only,
+grounded-predicate emission, courtesy dials per F-023. A
+demonstration-corpus contributor (teacher seat in collection
+compositions), never servable on the box; no schema break, so it
+enters here, not step 3. The here-word density screen
+(`here-word-density-screen.md`, sequencing undecided) may collapse
+this item — check before scoping.
+
 ## Step 5 — shakeout training round
 
 Deliberately small: fewer seeds, shorter horizon. Purpose = discover
 remaining schema/engine changes, not certify. Criteria PRE-DECLARED
 below; anything not on the HALT list is step-6 data, not a stop.
+
+Teacher rows enter the corpora here and in step 7; delivery is the
+ROADMAP's registered three-arm comparison — mixed-corpus vs vocabulary
+lesson (head-selective message-head finetune) vs no-seeding control.
 
 ### HALT (egregious — stop, fix, possibly break schema)
 
