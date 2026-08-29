@@ -37,15 +37,39 @@ teach the fix.
    `playful_comfort` in the demonstration config, regenerate
    demonstrations, clone + leash at β∞ 0.04 unchanged. Priced by the
    sweep below BEFORE any training compute.
-2. **Anchor-side proposal filter (vector 1, candidate)**: scripted
-   playful proposes at "the nearest playmate worth having" without
-   consulting the partner's state; a filter (skip `play_kitty` at a
-   partner who is mid-scene or has near-zero play need) is writable in
-   `selection` — the demonstrations then TEACH acceptance prediction
-   and the clone inherits it. Bigger change than a config dial; both
-   vectors ride the same fix-the-teacher mechanism. Partner needs are
-   already observed by policies (`rl/src/observe.rs:299`), so nothing
-   here needs a schema change.
+2. **Anchor-side partner-value score — "Playful 2.0" (vector 1;
+   SUPERSEDES the bare floor filter, owner 2026-08-28)**: both
+   vectors ride the same fix-the-teacher mechanism. Design:
+   - Per candidate friend:
+     `value = play_need − w_busy·expected_wait − w_serious·partner_max_pressure`;
+     `score = w_value·value − distance`. `expected_wait` ≈ scene
+     min-duration − elapsed for a mid-scene partner (readable from
+     `ActivityClock`), 0 if free. Critters enter the same ranking at
+     a flat appeal constant (no needs), preserving the critter-first
+     tie at defaults.
+   - Gate: propose/chase the best friend only when own play need ≥
+     `T_self` AND best value ≥ `T_partner`; otherwise critter/solo
+     play, which stay UNCONDITIONAL — the thresholds gate who Biscuit
+     bothers, never whether Biscuit plays (the character).
+   - Why partner activity: the hard busy-filter already exists
+     (spec 006, `selection.rs is_viable`); the score adds the two
+     signals it throws away — soon-free partners (anticipatory
+     approach; proposal still waits for free, no new refusal
+     exposure) and about-to-get-serious partners. The residual
+     refusal tax is the timing seam and stays (owner kept it).
+   - Teachability: every input is observed by the clone — partner
+     needs (`rl/src/observe.rs:299`), dx/dy/dist; scene age arrives
+     with the step-3 bundle's float, and Biscuit 3.0 trains
+     post-wall, so the term is learnable exactly when it matters.
+   - All dials (`w_value`, `w_busy`, `w_serious`, `T_self`,
+     `T_partner`, critter appeal) inert at 0.0 → byte-identical
+     launch (house pattern). Engine work, spec-first; routed to
+     Product 2026-08-28 as one spec with the comfort dial's sweep
+     plumbing; rides OUTSIDE 041 and outside the wall (config-only).
+   - Expect play to REDISTRIBUTE toward high-need partners at real
+     weights: roster-wide play access should improve, per-pair
+     contact shifts — the F-027 frozen-cluster check matters more,
+     not less.
 3. **State-conditioned leash β(s) (fallback)**: only if the anchor
    route under-delivers. Requires state-conditioned fingerprint gates
    (D-001's relocation lesson) before it can be certified honestly.
@@ -63,7 +87,10 @@ actually train under, not the one being retired.
 
 - Arms: `playful_comfort` ∈ {55 (baseline), 45, 35, 30}, scripted
   Biscuit in the lab family, other seats per the then-current cert
-  config.
+  config. **Joint with Playful 2.0 (owner 2026-08-28): once the
+  partner-value score lands (inert), the sweep also prices its dials
+  — comfort × {score off, score at candidate weights} — so one lab
+  campaign answers both levers.**
 - Pre-declared readouts:
   - eat/drink/sleep armed-latency + time-above (need_latency.py; live
     baseline: eat p50 31 ticks, scripted floor 1–4);
