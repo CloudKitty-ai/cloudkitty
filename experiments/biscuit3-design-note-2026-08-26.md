@@ -36,7 +36,14 @@ teach the fix.
 1. **Anchor-side comfort fix (vector 2, primary)**: lower
    `playful_comfort` in the demonstration config, regenerate
    demonstrations, clone + leash at β∞ 0.04 unchanged. Priced by the
-   sweep below BEFORE any training compute.
+   sweep below BEFORE any training compute. **Plus per-need comfort
+   weights (owner 2026-08-29, rolled into the Playful 2.0 spec)**:
+   the get-serious check weighs needs before comparing to comfort
+   (default 1.0 each = today, inert). Rationale: Biscuit's gap is
+   eat > drink > sleep (both banked windows), while every seat's
+   bath routinely peaks 30–40 — a GLOBAL comfort of 30–35 buys
+   food-attentiveness by also taxing play for slow low-stakes needs;
+   weights target the food band and preserve more character.
 2. **Anchor-side partner-value score — "Playful 2.0" (vector 1;
    SUPERSEDES the bare floor filter, owner 2026-08-28)**: both
    vectors ride the same fix-the-teacher mechanism. Design:
