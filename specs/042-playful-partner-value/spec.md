@@ -26,8 +26,8 @@ Evidence is banked and needs no re-deriving: the design note, F-033
 - Q: When the best-scoring friend fails the partner-value threshold
   but a lower-scoring friend would pass it, may the cat play with the
   lower-scoring friend? → A: **Eligibility filter** — the thresholds
-  define who is worth bothering: friends below `T_partner` (or all
-  friends, when own need < `T_self`) are dropped from the ranking,
+  define who is worth bothering: friends below `t_partner` (or all
+  friends, when own need < `t_self`) are dropped from the ranking,
   and the pick is the best of eligible friends plus critters. A
   passing lower-value friend can win; a nearby low-value friend never
   vetoes partner play by out-scoring on distance alone.
