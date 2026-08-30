@@ -68,6 +68,66 @@ solo niches before any relief dial does.
    has no refusal tax; the sibling's case rests on F-033's live
    measurement, not on these tables.
 
+## Post-041 re-baseline + waterline contagion pricing (2026-08-30)
+
+Spec 041 merged the sibling economy into the served config and retired
+`cuddle_relief`, so `econ_from_config` now reads the 041 dial names and
+the model's baseline IS the sibling row above: the migrated baseline
+reproduces it exactly (rest_avail 12.8, cosleep 16.7, happiness 95.4),
+and the retired pre-041 economy is kept as a scenario that reproduces
+the old baseline row (rest 0.19, cosleep 26.1, happiness 96.6). The
+guard's rest claim flipped with it: baseline rest must now be nonzero,
+and rider saturation is the red arm.
+
+This section prices the waterline contagion (ROADMAP, pre-fog
+schema-break bundle): a dry cat in a partnered scene with an in-water
+partner pays the wet-fur charge, `factor x bath_gain` (engine default
+3.5, no `[water]` table in the served config), below the ceiling (60).
+Exposure per scene-tick uses the two measured cross-waterline windows
+from `waterline-pairing-rule-2026-08-24.md`, carried separately because
+magnitude swings 3x between them: low = groom 9.0% / cosleep 6.4% /
+duet 0%, high = groom 25.0% / cosleep 8.6% / duet 6.9%; rest_avail
+borrows co-sleep's share (rest emitted no scenes pre-041, so it has no
+window). Contagion draws ride their own rng stream, so arm-vs-baseline
+differences are treatment, not stream divergence.
+
+| arm (factor x window) | groom self/other | cosleep | rest | play solo/duet | mean bath | happiness |
+|---|---|---|---|---|---|---|
+| baseline (0) | 4.3 / 15.8 | 16.7 | 12.8 | 13.2 / 27.0 | 5.23 | 95.36 |
+| 0.25 x low | 4.6 / 16.6 | 16.9 | 12.9 | 13.5 / 26.6 | 5.18 | 95.41 |
+| 0.5 x low | 5.2 / 17.0 | 16.9 | 12.8 | 13.4 / 26.6 | 5.20 | 95.40 |
+| 1.0 x low | 6.0 / 18.2 | 16.7 | 12.6 | 13.7 / 26.3 | 5.14 | 95.37 |
+| 0.25 x high | 4.8 / 17.3 | 16.6 | 12.5 | 13.5 / 26.6 | 5.18 | 95.37 |
+| 0.5 x high | 5.4 / 18.9 | 16.7 | 12.5 | 13.5 / 26.4 | 5.19 | 95.35 |
+| 1.0 x high | 7.2 / 21.2 | 16.6 | 12.0 | 13.9 / 25.8 | 5.09 | 95.33 |
+
+Readings:
+
+1. **Grooming absorbs the whole charge.** Worst case (factor 1.0, high
+   window): groom_other 15.8 -> 21.2/1k (+34%), groom_self 4.3 -> 7.2
+   (+68%). Every other niche moves by at most ~1/1k.
+2. **Welfare cost is nil at any factor tried.** Happiness spans
+   95.33-95.41 across all seven arms, within one seed's resolution.
+   Mean bath drifts slightly DOWN under the tax (5.23 -> 5.09): the
+   charge lumps bath demand onto one cat, which gets serviced sooner,
+   so the standing level falls even as inflow rises.
+3. **The play corridor and the rest niche hold**: duet 27.0 -> 25.8,
+   rest 12.8 -> 12.0, both only at the worst case.
+4. This is F-016's shape, priced as intended: grooming rises, and under
+   the contagion redesign that is the mechanism working (damp cleaning
+   someone), not a loop feeding itself. For the owner's factor call the
+   model says even 1.0 is welfare-benign at bath_gain 3.5; the visible
+   consequence is a grooming-heavier mix, scaled by exposure.
+
+Disclosed limits, beyond the model's standing gaps: the chooser is
+charge-blind (incumbents never priced it; whether the scripted ladder
+should weigh it is the banked anchor-probe's question); the wet
+member's own occupancy charge is unmodeled, as is all water occupancy
+in the baseline; `bath_ratio` is 1 under global rates, while real seats
+span 0.5-2.0x, so the per-tick charge on the box would span 1.75-7.0
+by seat. The scripted-anchor probe, not this table, prices per-seat
+tails.
+
 ## Regeneration
 
 ```

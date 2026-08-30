@@ -318,7 +318,11 @@ that wall, not one item at a time afterwards. Running list:
   - Spec items: `validate_water` headroom re-check (contagion ~2×
     worst-case exposure vs the occupancy-only budget); needflow model
     prices it first (contagion is a one-line addition), then the
-    banked scripted-anchor probe.
+    banked scripted-anchor probe. **needflow pricing DONE 2026-08-30**
+    (`cuddle-economy-model/RESULTS.md` §Post-041): welfare-benign at
+    every factor tried up to 1.0 on both measured exposure windows;
+    grooming absorbs the whole charge (worst case groom_other +34%,
+    groom_self +68%, everything else within ~1/1k).
   - Owner calls remaining: activation timing (Gen 1 vs later) and the
     factor's value. Honest note: the animation issue gets RARER, not
     fixed — mixed pairs still occur.
