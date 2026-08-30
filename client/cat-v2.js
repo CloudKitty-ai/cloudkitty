@@ -4883,6 +4883,10 @@ const api = {
   // `drawCat` nor `drawCatTween` takes a layout; both build one from a pose
   // name, so there is no other way in.
   paintBox,
+  // Same reason as paintBox: a before-column has to build its far pair with
+  // the SHIPPED rule, or the two columns stop being the same drawing and the
+  // comparison is between the lab's arithmetic and the client's.
+  withFarPair,
   proportionedBody,
   bodyUnderAt,
   clampAxialHead,

@@ -835,6 +835,41 @@
   // number so the drop line can be taken away and the drawing judged alone.
   const SIT_SINK_LAB = { tilePx: 110, speed: 0.5, guides: 1 };
 
+  /** The seated hind foot's dials, written straight into the shipped `SIT`.
+   *
+   * Into the shipped object on purpose: the pose gallery above draws `sit`
+   * too, so a toe moved here moves it everywhere a seated cat appears. A
+   * foot judged only in its own card is judged against nothing. */
+  const SIT_FOOT_LAB = { showPeg: 1 };
+  for (const k of ['toeX', 'hockX', 'footW', 'inset']) {
+    Object.defineProperty(SIT_FOOT_LAB, k, {
+      get: () => CatV2.SIT[k], set: (v) => { CatV2.SIT[k] = v; }, enumerable: true,
+    });
+  }
+
+  /** The tile sizes the CAMERA actually draws. Not a zoom: judge the foot at
+   * the size it will be seen at, or the dial is set against a magnification
+   * nobody sees. 57 and 103 are the camera's ends; 50 is a crowded phone. */
+  const SIT_FOOT_TILES = [50, 57, 103];
+
+  /** `sit`'s hind leg as it was drawn before 2026-08-24 -- a short vertical
+   * peg under the rump.
+   *
+   * The old rule WAS a pair of literals, so replaying the literals replays
+   * the rule. They are read off the pre-change `catLayout`, and the FORE leg
+   * is deliberately left as it was: it is byte-identical to today's SIT.fore*
+   * defaults, so the two columns differ in the hind foot and nothing else.
+   * The far pair comes from the shipped `withFarPair`, not from a copy of
+   * it, so the before-column is four legs by the same rule as the after. */
+  const sitPegLayout = (phase) => {
+    const L = CatV2.catLayout('sit', phase);
+    L.legs = CatV2.withFarPair([
+      { x: 0.27, hx: 0.31, top: 0.74, bottom: CatV2.CAT_GROUND, w: 0.1 },
+      { x: 0.66, hx: 0.63, top: 0.58, bottom: CatV2.CAT_GROUND, w: 0.095 },
+    ], CatV2.GAIT.spread, L.body.cx);
+    return L;
+  };
+
   /** The share of a leg's DRAWN run that a viewer can actually see.
    *
    * A leg is a stroked segment from the pivot (hx, top) to the foot (x,
@@ -3169,6 +3204,89 @@
         ctx.fillText('live tile (31px) — the row that decides', 6, h - 6);
         ctx.textAlign = 'right';
         ctx.fillText('3x, for the detail only', w - 6, h - 6);
+      },
+    },
+    {
+      title: 'Four paws — the seated hind foot lies down (DIALLING: the toe is hers to set)',
+      note: 'A sitting cat rests on the whole metatarsus: it lies flat along the ground, hock hidden under the rump, toes stopping short of the front paw. We drew a short vertical PEG. The four-paws problem was recorded as the one-ellipse seat\'s ceiling — needing a haunch mass, "an addition rather than a tweak" — and it was really the wrong limb shape. A vertical peg puts the hind paw in the same narrow band of x as the foreleg, competing for a gap the seat is too small to give, and being vertical almost all of it is INSIDE the body. Lying down, the foot runs along the one direction nothing else is using. The hock end is DERIVED, not stated: `seatLeg` reads the body outline at `hockX` and insets the pivot above it, so the foot meets the animal at every tilt and every point of the breath — only the TOE is a number anyone chose, which is why it is the dial that is still open. Everything here is at the TRUE tile sizes the camera draws, no zoom: on a phone, this is what the phone paints. Past a toe of about 0.53 the toes share ink with the foreleg at 0.66 — the two are the same height, both on the ground, so the round caps meet. The dials write into the shipped `SIT`, so the pose gallery above reshapes with them.',
+      v2Only: true,
+      w: 940,
+      h: 300,
+      ownShadows: true,
+      bag: SIT_FOOT_LAB,
+      dials: [
+        { key: 'toeX', label: 'TOE — how far forward the toes reach (they share ink past ~0.53)', min: 0.40, max: 0.58, step: 0.005 },
+        { key: 'hockX', label: 'hock — where the foot passes under the body; behind this it is hidden by the rump', min: 0.24, max: 0.42, step: 0.005 },
+        { key: 'footW', label: 'foot weight (the foreleg is 0.095; the photos have the hind a little slimmer)', min: 0.04, max: 0.12, step: 0.005 },
+        { key: 'inset', label: 'how far the hock tucks up inside the silhouette', min: 0, max: 0.04, step: 0.002 },
+      ],
+      toggles: [
+        { key: 'showPeg', label: 'draw the peg it replaces, beside it — lab only, never pasted' },
+      ],
+      readout() {
+        const lines = SIT_FOOT_TILES.map((T) => {
+          const dpr = window.devicePixelRatio || 1;
+          const peg = Math.min(...Array.from({ length: 24 }, (_, i) => worstRun(sitPegLayout(i / 24))));
+          const foot = Math.min(...Array.from({ length: 24 }, (_, i) => worstRun(CatV2.catLayout('sit', i / 24))));
+          return `  ${String(T).padStart(3)}px tile   peg ${(peg * T * dpr).toFixed(1)}px shown`
+            + `   foot ${(foot * T * dpr).toFixed(1)}px shown   (device px, ${dpr}x)`;
+        });
+        return (
+          `SIT.toeX ${CatV2.SIT.toeX}   hockX ${CatV2.SIT.hockX}`
+          + `   footW ${CatV2.SIT.footW}   inset ${CatV2.SIT.inset}\n`
+          + `shortest visible limb run, worst of 24 phases:\n`
+          + `${lines.join('\n')}\n`
+          + `sit, all four paws: ${pawRead('sit', 57)}\n`
+          + `paste onto SIT in cat-v2.js -- these are the shipped dials, not lab copies`
+        );
+      },
+      draw(ctx, w, h, now) {
+        const phase = (now % 4200) / 4200;
+        const groundY = h - 52;
+
+        // ONE ground line under every specimen. The claim is about where the
+        // foot lies on the grass, so a per-cat baseline would beg it.
+        ctx.strokeStyle = 'rgba(107, 90, 78, 0.45)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(10, groundY + 0.5);
+        ctx.lineTo(w - 10, groundY + 0.5);
+        ctx.stroke();
+
+        const cols = [];
+        for (const T of SIT_FOOT_TILES) {
+          if (SIT_FOOT_LAB.showPeg) cols.push({ T, peg: true });
+          cols.push({ T, peg: false });
+        }
+        const span = cols.reduce((s, c) => s + c.T * 1.5, 0);
+        let x = (w - span) / 2;
+        ctx.font = '11px ui-monospace, monospace';
+        ctx.textAlign = 'center';
+        const dpr = window.devicePixelRatio || 1;
+        for (const col of cols) {
+          const T = col.T;
+          const L = col.peg ? sitPegLayout(phase) : CatV2.catLayout('sit', phase);
+          const cx = x + T * 0.75;
+
+          ctx.save();
+          ctx.globalAlpha = 0.3;
+          ctx.fillStyle = '#4a3f35';
+          ctx.beginPath();
+          ctx.ellipse(cx, groundY - 2, T * 0.34, T * 0.1, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+
+          CatV2.paintBox(ctx, L, CatV2.appearanceFor(PUMPKIN), {
+            facing: 'right', size: T, x: cx - T / 2, y: groundY - T * CatV2.CAT_GROUND,
+          });
+
+          ctx.fillStyle = col.peg ? '#9c5a3c' : '#4a3f35';
+          ctx.fillText(`${T}px \u00b7 ${col.peg ? 'peg' : 'foot'}`, cx, groundY + 18);
+          ctx.fillStyle = '#6b7280';
+          ctx.fillText(`${(worstRun(L) * T * dpr).toFixed(1)}px shown`, cx, groundY + 32);
+          x += T * 1.5;
+        }
+        ctx.textAlign = 'left';
       },
     },
     {
