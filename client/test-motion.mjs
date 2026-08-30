@@ -2698,8 +2698,18 @@ check('a call is drawn only on the poses it reads on, and is not queued', () => 
   // The owner judged walk / idle / pounce. A meow spoken mid-groom is SKIPPED
   // rather than held: a call drawn late is a cat mouthing at nothing.
   const V = api.VIEW;
-  assert(V.meowPoses.includes('walking') && V.meowPoses.includes('idle')
-    && V.meowPoses.includes('pouncing'), 'the judged poses must be the gate');
+  for (const pose of ['walking', 'idle', 'pouncing', 'loaf']) {
+    assert(V.meowPoses.includes(pose), `${pose} was judged to read, and must be in the gate`);
+  }
+
+  // `loaf` is the only gated pose whose eyes are ALREADY closed, so
+  // `meowSquint` can change nothing there -- the lid only ever goes further
+  // shut (`lid = max(lid, ...)`). Owner judged it that way and ruled "keep
+  // eyes closed", so the inertness is the intent rather than a gap. This
+  // pins it: a squint that could OPEN an eye would be a different animal and
+  // would change what she approved.
+  const shut = CatV2.catLayout('loaf', 0.3).eyes;
+  close(shut === 'closed' ? 1 : 0, 1, 'loaf must still be an eyes-closed pose');
   for (const pose of ['grooming', 'sleep-curl', 'eating', 'drinking']) {
     const p = new api.Presentation();
     p.pushState(meowWorld(1), 1000);
@@ -6134,10 +6144,22 @@ check('the per-kitty about ships, and its numbers are the served ones', () => {
   // than the `target === dialog` shorthand: the target is also the dialog
   // when the click lands on its own padding, so the shorthand shuts the card
   // on a click just inside its own edge.
-  const init = app.slice(app.indexOf('function initTraitsDialog'), app.indexOf('function ', app.indexOf('function initTraitsDialog') + 10));
+  // The logic moved to `closeOnBackdropClick` on 2026-08-28, shared with the
+  // about-topic dialog: two copies of a rule this carefully reasoned would
+  // drift, and only one of them would be the one anybody read.
+  const init = app.slice(app.indexOf('function closeOnBackdropClick'), app.indexOf('function ', app.indexOf('function closeOnBackdropClick') + 10));
   assert(/getBoundingClientRect/.test(init), 'the backdrop click closes on target alone, so the padding closes it too');
   assert(/event\.target !== dialog/.test(init), 'a keyboard-fired click at (0, 0) will read as a backdrop click');
   assert(/dialog\.close\(\)/.test(init), 'nothing closes the dialog on a backdrop click');
+  // ...and both dialogs must actually use it, or one of them quietly loses
+  // the behaviour the owner asked for by name ("clicking anywhere outside of
+  // the card closes").
+  for (const id of ['traits', 'about-topic-dialog']) {
+    assert(
+      new RegExp(`closeOnBackdropClick\\(\\s*document\\.getElementById\\('${id}'\\)|closeOnBackdropClick\\(dialog\\)`).test(app),
+      `the ${id} dialog does not share the backdrop-close rule`,
+    );
+  }
   assert(/initTraitsDialog\(\);/.test(app.slice(app.lastIndexOf('initCards();'))),
     'initTraitsDialog is never called, so the backdrop does nothing');
 
@@ -6468,6 +6490,351 @@ check("the about survives a phase change, and the owner's words survive us", () 
     }
   }
 });
+check('the subjects sit two across, and the + goes when the dialog takes over', () => {
+  // Owner, 2026-08-28: five in one column was most of the card's height, and
+  // the list shape promised an unfolding the tap no longer does.
+  const markup = readFileSync(join(here, 'index.html'), 'utf8');
+  const rule = markup.slice(markup.indexOf('  .about-topics {'), markup.indexOf('}', markup.indexOf('  .about-topics {')));
+  assert(/display:\s*grid/.test(rule), '.about-topics is not a grid');
+  assert(
+    /grid-template-columns:\s*1fr 1fr/.test(rule),
+    'the subjects are not two across',
+  );
+
+  // The +/- survives for the no-script path and is removed only under the
+  // class app.js stamps. Both halves matter: drop the rule and the marker
+  // lies once the dialog is wired; drop the marker entirely and a scriptless
+  // visitor loses the only sign a topic opens at all.
+  assert(
+    /\.about-topic > summary::after \{\s*content: '\+'/.test(markup),
+    'the no-script + marker is gone, so a scriptless card gives no affordance',
+  );
+  assert(
+    /\.about-card\.dialogs-wired \.about-topic > summary::after \{ content: none; \}/.test(markup),
+    'the + survives the dialog being wired, promising an expansion that never happens',
+  );
+
+  // The dialog needs `display: flex` to make its body the scroller, and an
+  // author display beats the UA's `dialog:not([open]) { display: none }`.
+  // Ungated, the About panel sits open over the world for the whole session.
+  const display = markup.match(/#about-topic-dialog[^{]*\{[^}]*display:\s*flex/);
+  assert(display, 'the dialog body cannot scroll -- nothing makes the dialog a column');
+  assert(
+    display[0].includes('[open]'),
+    'display: flex is not gated on [open], so the dialog never hides',
+  );
+
+  // The dialog must NOT declare a position of its own. `dialog:modal` is
+  // `position: fixed` in the UA sheet, and that is the whole reason a modal
+  // appears where the reader is looking; an author position on an id
+  // selector beats it and drops the dialog into normal flow at its place in
+  // the markup -- near the top of a long page, to be scrolled to. Shipped
+  // once, live, on 2026-08-28. Comments are stripped first: the one warning
+  // about this contains the word.
+  const bare = markup.replace(/\/\*[\s\S]*?\*\//g, '');
+  for (const rule of bare.match(/#about-topic-dialog(\[open\])?\s*\{[^}]*\}/g) || []) {
+    assert(
+      !/(^|[;{\s])position\s*:/.test(rule),
+      'the dialog sets its own position, overriding the UA modal fixed -- it will open at the top of the page',
+    );
+  }
+
+  // The fade has to sit on the SCROLLER's bottom edge, which is one
+  // bottom-padding above the dialog's. Pinned at 0 it spends the gradient's
+  // opaque end on that padding and reaches text only with its weakest,
+  // near-transparent top -- which is how it shipped invisible on a phone.
+  // Both ends must therefore name the SAME custom property.
+  const dlg = bare.match(/#about-topic-dialog\s*\{[^}]*\}/)[0];
+  const fade = bare.match(/#about-topic-dialog::after\s*\{[^}]*\}/)[0];
+  assert(
+    /padding:[^;]*var\(--pad-b\)\s*;/.test(dlg),
+    'the dialog no longer names its bottom padding, so the fade cannot find the scroller edge',
+  );
+  assert(
+    /bottom:\s*var\(--pad-b\)\s*;/.test(fade),
+    'the fade is pinned to the dialog edge, not the scroller -- its opaque end lands on padding and never reaches the text',
+  );
+});
+
+check('a topic opens in the dialog, and its content goes home again', () => {
+  // DRIVEN, not grepped. Twice today a source-level check passed while the
+  // thing it described shipped inert, so this runs the real `initAboutTopics`
+  // against a stub DOM and clicks a summary.
+  //
+  // Only that function is lifted out of app.js: evaluating the whole file
+  // would run `start()`, which opens a socket.
+  const src = readFileSync(join(here, 'app.js'), 'utf8');
+  const from = src.indexOf('function closeOnBackdropClick');
+  const to = src.indexOf('\n/** Pick up viewer tunables', from);
+  assert(from > 0 && to > from, 'could not lift the dialog wiring out of app.js');
+
+  const el = (tag) => {
+    const node = {
+      tag, children: [], listeners: {}, textContent: '',
+      // The real appendChild MOVES a node: it detaches from the old parent
+      // first. A stub that only pushes leaves the content in both places, and
+      // then "the dialog gave it back" is true before it gives anything back
+      // -- which is exactly how the give-back mutation stayed green.
+      appendChild(child) {
+        if (child.parent) {
+          child.parent.children = child.parent.children.filter((c) => c !== child);
+        }
+        node.children.push(child);
+        child.parent = node;
+        return child;
+      },
+      addEventListener(kind, fn) { (node.listeners[kind] ||= []).push(fn); },
+      querySelector(sel) {
+        const want = sel.replace(/^[.#]/, '');
+        const hit = (n) => (n.tag === want || n.cls === want ? n : n.children.map(hit).find(Boolean));
+        return node.children.map(hit).find(Boolean) || null;
+      },
+      getBoundingClientRect: () => ({ left: 10, right: 90, top: 10, bottom: 90 }),
+      classList: {
+        add: (c) => node.classes.add(c),
+        remove: (c) => node.classes.delete(c),
+        toggle: (c, on) => (on ? node.classes.add(c) : node.classes.delete(c)),
+      },
+      classes: new Set(),
+      // Overridden per case: the fade is only honest when there really is
+      // more below, so the test drives every position.
+      scrollHeight: 0,
+      clientHeight: 100,
+      scrollTop: 0,
+      showModal() { node.open = true; },
+      close() { node.open = false; (node.listeners.close || []).forEach((f) => f()); },
+    };
+    return node;
+  };
+  const mk = (tag, cls) => Object.assign(el(tag), { cls });
+
+  const dialog = mk('dialog', 'about-topic-dialog');
+  dialog.appendChild(mk('h2', 'about-dialog-title'));
+  dialog.appendChild(mk('div', 'about-dialog-body'));
+  const topic = mk('details', 'about-topic');
+  const summary = mk('summary');
+  summary.textContent = 'Needs';
+  const content = mk('div');
+  content.textContent = 'six needs';
+  topic.appendChild(summary);
+  topic.appendChild(content);
+
+  const cardEl = mk('aside', 'about-card');
+  globalThis.document = {
+    getElementById: (id) => (id === 'about-topic-dialog' ? dialog : null),
+    querySelector: (sel) => (sel === '.about-card' ? cardEl : null),
+    querySelectorAll: (sel) => (sel === '.about-topic' ? [topic] : []),
+  };
+  try {
+    // eslint-disable-next-line no-eval
+    (0, eval)(`${src.slice(from, to)}; initAboutTopics();`);
+  } finally {
+    delete globalThis.document;
+  }
+
+  const click = (summary.listeners.click || [])[0];
+  assert(click, 'the summary was never wired -- the topics would unfold in the card');
+
+  let prevented = false;
+  click({ preventDefault: () => { prevented = true; } });
+  assert(prevented, 'the <details> will toggle behind the modal and stay open after it closes');
+  assert(dialog.open, 'clicking a topic did not open the dialog');
+  assert(dialog.querySelector('.about-dialog-title').textContent === 'Needs', 'the dialog is untitled');
+  assert(
+    dialog.querySelector('.about-dialog-body').children.includes(content),
+    'the topic content never reached the dialog',
+  );
+
+  // ...and it must go HOME. The content is moved rather than copied, so a
+  // dialog that keeps it leaves the card permanently empty.
+  dialog.close();
+  assert(
+    topic.children.includes(content),
+    'the content stayed in the dialog -- the card is now empty for the rest of the session',
+  );
+
+  // The card is stamped, which is what removes the +/- marker. That marker is
+  // the NO-SCRIPT affordance: with the dialog wired it would promise an
+  // expansion that never happens.
+  assert(
+    cardEl.classes.has('dialogs-wired'),
+    'the about card was never stamped, so every topic still shows a + it will not honour',
+  );
+
+  // The fade is a promise of MORE BELOW, so it tracks the scroll position and
+  // not the mere fact of overflow. Three positions, because each is a
+  // different way to be wrong: a fade over a short topic, no fade on a long
+  // one, and a fade still showing at the end.
+  const body = dialog.querySelector('.about-dialog-body');
+  const openAt = (scrollHeight, scrollTop) => {
+    Object.assign(body, { scrollHeight, clientHeight: 100, scrollTop });
+    click({ preventDefault: () => {} });
+  };
+
+  openAt(40, 0);
+  assert(!dialog.classes.has('can-scroll'), 'a short topic claims it scrolls');
+  dialog.close();
+
+  openAt(900, 0);
+  assert(dialog.classes.has('can-scroll'), 'a long topic gives no sign that it scrolls');
+
+  // Scrolling to the very end retracts it, through the scroll listener rather
+  // than a re-open -- that listener is the whole reason the fade can be honest.
+  body.scrollTop = 800;
+  const onScroll = (body.listeners.scroll || [])[0];
+  assert(onScroll, 'nothing listens to the scroll, so the fade can never retract');
+  onScroll();
+  assert(!dialog.classes.has('can-scroll'), 'the fade still promises more at the end of the topic');
+  dialog.close();
+});
+
+check('the about topics are one fold deeper, grouped, and script-free', () => {
+  // Five headers under About (owner, 2026-08-27), so a visitor who did not
+  // want the overview is not handed more of it: "if someone doesn't click
+  // 'about' to learn more, they probably don't want to see even more
+  // specific detail".
+  const markup = readFileSync(join(here, 'index.html'), 'utf8');
+  const at = markup.indexOf('<aside class="about-card">');
+  assert(at > 0, 'the about card is gone');
+  const card = markup.slice(at, markup.indexOf('</aside>', at));
+
+  // ORDER, not just presence. The owner's order is Kitties, Needs, Elements,
+  // Meows, AI, and an insertion put AI second without a single check
+  // noticing -- found by reading the rendered markup, which is not a method
+  // that scales. Reading order is the whole shape of a five-item menu.
+  const topics = ['Kitties', 'Needs', 'Elements', 'Meows', 'AI'];
+  const found = [...card.matchAll(/<summary>(\w+)<\/summary>/g)].map((m) => m[1]);
+  assert(
+    JSON.stringify(found) === JSON.stringify(topics),
+    `the topics are out of order:\n  got:  ${found.join(', ')}\n  want: ${topics.join(', ')}`,
+  );
+
+  // INSIDE About, not beside it -- the whole point of the owner's ruling.
+  //
+  // Counted, not compared by position: "the topics come after `<details>`"
+  // is also true when they come after `</details>`, and that first cut stayed
+  // green while the topics sat as a SIBLING of About. What makes them nested
+  // is that About is still OPEN where they start.
+  const inner = card.indexOf('class="about-topics"');
+  assert(inner > 0, 'no topics block');
+  const before = card.slice(0, inner);
+  const opened = (before.match(/<details\b/g) || []).length;
+  const closed = (before.match(/<\/details>/g) || []).length;
+  assert(
+    opened - closed === 1,
+    `the topics sit outside About (${opened} details opened, ${closed} closed before them) -- `
+      + 'they must be one fold deeper, not a second row of headers',
+  );
+
+  // Grouped, so opening one closes the others. `name` is the browser's own
+  // accordion and needs no script; where it is unsupported they simply all
+  // open, which is what plain <details> already did.
+  const named = card.match(/name="about-topic"/g) || [];
+  assert(
+    named.length === topics.length,
+    `${named.length} of ${topics.length} topics are grouped -- an ungrouped one stays open under the others`,
+  );
+
+  // NO SCRIPT anywhere in the card. The card's own note: "'What is this
+  // place' should be the last thing on the page to break, not the first."
+  assert(!/<script|onclick=|addEventListener/.test(card), 'the about card grew a script');
+
+  // Not `h2`: `.about-card details[open] h2::after` swaps more…/less… and is
+  // a DESCENDANT selector, so an h2 here would read "less…" on all five the
+  // moment About was opened, before any had been touched.
+  const topicsBlock = card.slice(inner);
+  assert(!/<h2/.test(topicsBlock), 'a topic uses <h2>, which inherits About\'s more…/less… swap');
+
+  // Same colour-literal trap as the tier above (#193): the inverting tokens
+  // swap across a phase.
+  for (const selector of ['.about-topics', '.about-topic > summary', '.about-topic p']) {
+    const start = markup.indexOf(`  ${selector} {`);
+    assert(start > 0, `no CSS rule for ${selector}`);
+    const rule = markup.slice(start, markup.indexOf('}', start) + 1);
+    for (const c of rule.match(/(?:^|[^-])(?:color|background)\s*:\s*([^;]+);/g) || []) {
+      assert(/var\(--/.test(c), `${selector} names a colour literal (${c.trim()})`);
+    }
+  }
+});
+
+check('the AI topic runs generation by generation, and stays honest about the last one', () => {
+  // The generations are numbered by SHIPPED generation, not by experiment
+  // number -- "experiments don't always lead to a new generation" (owner).
+  // Names are hers. The architecture lines are read off the seated
+  // `.ckpolicy` headers, not remembered: 225 -> 256 -> 256 -> 50 for the MLP,
+  // and d_model 64 / heads 4 / encoder_layers 2 for entity attention.
+  const markup = readFileSync(join(here, 'index.html'), 'utf8');
+  const at = markup.indexOf('<summary>AI</summary>');
+  assert(at > 0, 'the AI topic is gone');
+  const topic = markup.slice(at, markup.indexOf('</details>', at));
+
+  // A COLON separates the number from the name, not an em-dash (owner,
+  // 2026-08-27, with the public-voice pass). Pinned, because a dash is the
+  // habit this section was edited to remove and it would creep back.
+  for (let g = 0; g <= 7; g += 1) {
+    assert(topic.includes(`Generation ${g}:`), `Generation ${g} is missing, or its label lost its colon`);
+  }
+  assert(
+    !/Generation \d &mdash;/.test(topic),
+    'a generation label went back to an em-dash',
+  );
+
+  // The whole section was written to a one-interruption-per-paragraph budget
+  // and came out at zero. Not a ban -- a budget -- but at zero it is worth
+  // noticing when it changes.
+  const dashes = (topic.match(/&mdash;/g) || []).length;
+  assert(dashes === 0, `the AI section has grown ${dashes} em-dash interruption(s)`);
+  for (const name of [
+    'Scripted Kitties', 'First Neural Network', 'Dry Kitties',
+    'The Meow Generation', 'Attention Is All Mew Need',
+    'The Personality Problem', 'Biscuit and the Gang', 'The Fog Generation',
+  ]) {
+    assert(topic.includes(name), `the generation name "${name}" has drifted`);
+  }
+
+  // The fog generation has NOT happened. It is numbered beside seven that
+  // have, so the tense is what stops that reading as a claim -- and its spec
+  // line says so outright rather than inventing one.
+  const fog = topic.slice(topic.indexOf('The Fog Generation'));
+  assert(fog.includes('Coming next'), 'the fog generation must not claim a specification it does not have');
+  assert(
+    /they&rsquo;ll see only what/.test(fog),
+    'the fog generation must stay in the future tense -- it ships nothing yet',
+  );
+});
+
+check("the topic copy is the owner's, to the word", () => {
+  // Her text ships verbatim. The one edit she authorised was a typo --
+  // "one of the first emergent communication" -> "communications" -- so that
+  // correction is pinned too: nobody should quietly put it back, and nobody
+  // should quietly fix anything else.
+  const markup = readFileSync(join(here, 'index.html'), 'utf8');
+  const text = markup
+    .slice(markup.indexOf('class="about-topics"'), markup.indexOf('</aside>', markup.indexOf('class="about-topics"')))
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&rsquo;/g, "'").replace(/&ldquo;|&rdquo;/g, '"')
+    .split(/\s+/).join(' ');
+  const lines = [
+    'Kitties have six needs.',
+    'Eat: increased by eating Chow.',
+    'Bath: increased by bathing. A cat bathing another cat increases their own Cuddle, while increasing their friend\'s Bath.',
+    'The fulfillment of all six needs combines to create the kitties\' Happiness score.',
+    'Greebles: Visible to kitties but invisible to humans, Greebles are fast-moving creatures that taunt kitties.',
+    'Miso: Sleepy Kitty',
+    'Clementine: Cuddly Kitty',
+    'There are three types of language: Meow Words, Purrs, and Meow Sounds.',
+    'Meow Words and Purrs are governed by Meow Law: kitties can only speak the truth.',
+    'Finally, Meow Sounds: mew, chirp, trill, and ekekek.',
+  ];
+  for (const line of lines) {
+    assert(text.includes(line), `the topic copy has drifted:\n  missing: ${line}`);
+  }
+  assert(
+    text.includes('one of the first emergent communications we saw'),
+    'the authorised typo fix (communication -> communications) has been reverted',
+  );
+});
+
 check('the about names the kind of mind, and which one', () => {
   // Evaluated, not regexed. This function's whole job is to pick between
   // four outcomes, and a source match cannot tell which one it picks -- the

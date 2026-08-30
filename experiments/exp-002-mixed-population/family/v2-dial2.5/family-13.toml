@@ -1,5 +1,8 @@
 [actions]
-cuddle_relief = 15.0
+# spec 041 migration (owner's loud-retirement ruling, 2026-08-28):
+# cuddle_relief = 15.0 split faithfully into its two sites.
+rest_mutual_relief = 15.0
+groom_cuddle_relief = 15.0
 drink_relief = 35.0
 eat_relief = 35.0
 groom_relief = 20.0

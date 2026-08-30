@@ -369,12 +369,13 @@ pub fn validate(world: &World, kitty_id: KittyId, proposal: Action, config: &Con
             None => false,
         },
 
-        // Cuddling conscripts the partner into a shared activity, so the
-        // partner must be free (spec 006). Sleeping *beside* a friend binds
-        // nobody and keeps the plain availability rule.
+        // Resting and sleeping beside a friend bind nobody (spec 041 made
+        // rest co-sleep's sibling), so both keep the plain availability
+        // rule: any adjacent friend, whatever it is doing. This deletes
+        // rest's share of the partnered-refusal tax structurally.
         Action::Rest { with } => match with {
             None => true,
-            Some(friend_id) => world.is_conscriptable_friend(kitty_id, friend_id),
+            Some(friend_id) => world.is_available_friend(kitty_id, friend_id),
         },
         Action::Sleep { with } => match with {
             None => true,
@@ -456,7 +457,9 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
         }
 
         Action::Rest { with } => {
-            let partner = with.filter(|f| world.is_conscriptable_friend(kitty_id, *f));
+            // A companion, never a conscript (spec 041): mirror the sleep
+            // arm exactly. The partner keeps its own activity and clock.
+            let partner = with.filter(|f| world.is_available_friend(kitty_id, *f));
             begin_activity(
                 world,
                 kitty_id,
@@ -464,17 +467,6 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
                     with_friend: partner,
                 },
             );
-            if let Some(friend) = partner {
-                // A cuddle is a duet: the partner is bound in with the same
-                // clock, and both get the closeness.
-                begin_activity(
-                    world,
-                    friend,
-                    Activity::Resting {
-                        with_friend: Some(kitty_id),
-                    },
-                );
-            }
             apply_activity_effects(world, kitty_id, config);
         }
 
@@ -759,7 +751,12 @@ fn apply_activity_effects(world: &mut World, kitty_id: KittyId, config: &Config)
                 // own need for closeness. Only the groomer is in an activity;
                 // the friend stays free and may wander off, ending it.
                 lower_need(world, friend, NeedKind::Bath, effects.groom_relief);
-                lower_need(world, kitty_id, NeedKind::Cuddle, effects.cuddle_relief);
+                lower_need(
+                    world,
+                    kitty_id,
+                    NeedKind::Cuddle,
+                    effects.groom_cuddle_relief,
+                );
             }
         },
 
@@ -793,10 +790,30 @@ fn apply_activity_effects(world: &mut World, kitty_id: KittyId, config: &Config)
         },
 
         Activity::Resting { with_friend } => {
-            if let Some(friend) = with_friend {
-                lower_need(world, kitty_id, NeedKind::Cuddle, effects.cuddle_relief);
-                lower_need(world, friend, NeedKind::Cuddle, effects.cuddle_relief);
-                stamp_serviced(world, friend, tick);
+            // Re-check the companion every serviced tick, exactly as the
+            // sleeping arm below does: a wandered-off partner drops the
+            // scene to solo posture, clock untouched (spec 041 FR-001).
+            let partner = with_friend.filter(|f| world.is_available_friend(kitty_id, *f));
+            if let Some(idx) = world.kitty_index(kitty_id) {
+                world.kitties[idx].activity = Activity::Resting {
+                    with_friend: partner,
+                };
+            }
+            if let Some(friend) = partner {
+                // The tier is resolved fresh from the partner's live state
+                // by the shared mutual predicate (FR-002): mutual when the
+                // partner is itself settled, the drip otherwise. Both
+                // parties receive the tier rate, each scene from its own
+                // slot -- no binding, no partner-side stamp.
+                let mutual = world.is_settled(friend);
+                let rate = if mutual {
+                    effects.rest_mutual_relief
+                } else {
+                    effects.rest_drip_relief
+                };
+                lower_need(world, kitty_id, NeedKind::Cuddle, rate);
+                lower_need(world, friend, NeedKind::Cuddle, rate);
+                count_tier_tick(world, kitty_id, mutual);
             }
             // Solo rest is posture, not relief -- it ends by interrupt or cap.
         }
@@ -826,19 +843,12 @@ fn apply_sleep_relief(
     partner: Option<KittyId>,
     config: &Config,
 ) {
-    // The FR-014/15 mutual predicate -- the partner is itself settled in
-    // the pile (sleeping or resting), the contact-census definition.
-    // Evaluated ONCE, above both uses: it prices the cuddle tier below and
-    // gates warmth conduction in the sleep rate (spec 031), so the two can
-    // never disagree about whether the pile is mutual.
-    let mutual = partner.is_some_and(|friend| {
-        world.kitty(friend).is_some_and(|k| {
-            matches!(
-                k.activity,
-                crate::kitty::Activity::Sleeping { .. } | crate::kitty::Activity::Resting { .. }
-            )
-        })
-    });
+    // The FR-014/15 mutual predicate -- `World::is_settled`, the one shared
+    // definition (spec 041 FR-002). Evaluated ONCE, above both uses: it
+    // prices the cuddle tier below and gates warmth conduction in the sleep
+    // rate (spec 031), so the two can never disagree about whether the pile
+    // is mutual.
+    let mutual = partner.is_some_and(|friend| world.is_settled(friend));
     // Warmth conducts through the pile (spec 031): a mutual partner on a
     // sunbeam tile gives the sleeper sunbeam-grade sleep. Direct partner
     // only, and the rate is selected, never stacked -- any combination of
@@ -861,8 +871,8 @@ fn apply_sleep_relief(
         // tier when the partner is itself sleeping or resting, the passive
         // drip otherwise. Both parties receive the tier rate; the sleeper's
         // Sleep relief above is untouched. The rest duet and the groomer
-        // keep the classic cuddle_relief -- moving these dials never
-        // touches them.
+        // have their own dials since spec 041 (rest_mutual_relief,
+        // groom_cuddle_relief) -- moving the cosleep pair never touches them.
         let rate = if mutual {
             config.actions.cosleep_mutual_relief
         } else {
@@ -870,6 +880,7 @@ fn apply_sleep_relief(
         };
         lower_need(world, kitty_id, NeedKind::Cuddle, rate);
         lower_need(world, friend, NeedKind::Cuddle, rate);
+        count_tier_tick(world, kitty_id, mutual);
     }
 }
 
@@ -929,6 +940,23 @@ fn begin_activity(world: &mut World, kitty_id: KittyId, activity: Activity) {
     if let Some(idx) = world.kitty_index(kitty_id) {
         world.kitties[idx].activity = activity;
         world.kitties[idx].activity_clock = Some(ActivityClock::start(tick));
+    }
+}
+
+/// One serviced partnered tick of a tiered scene (rest or co-sleep):
+/// bumps the scene owner's mutual or drip counter (spec 041 FR-011),
+/// exactly one per tick, chosen by the shared predicate's verdict. Solo
+/// ticks call nothing, so the counters' shortfall against the span counts
+/// them honestly.
+fn count_tier_tick(world: &mut World, kitty_id: KittyId, mutual: bool) {
+    if let Some(idx) = world.kitty_index(kitty_id) {
+        if let Some(clock) = &mut world.kitties[idx].activity_clock {
+            if mutual {
+                clock.mutual_ticks += 1;
+            } else {
+                clock.drip_ticks += 1;
+            }
+        }
     }
 }
 
@@ -1823,7 +1851,11 @@ mod tests {
     }
 
     #[test]
-    fn a_cuddle_is_a_duet_with_one_shared_clock() {
+    fn a_cuddle_names_a_companion_and_owns_its_clock() {
+        // Repointed at spec 041 (the old guard asserted the bound duet:
+        // partner conscripted, one shared clock). Rest is co-sleep's
+        // sibling now: the rester names its companion and owns the only
+        // clock in the scene.
         let (mut world, config) = test_world();
         let a = world.kitty_index(1).unwrap();
         world.kitties[a].pos = Position::new(3, 3);
@@ -1835,13 +1867,16 @@ mod tests {
         assert_eq!(world.kitty(1).unwrap().activity.partner(), Some(2));
         assert_eq!(
             world.kitty(2).unwrap().activity.partner(),
-            Some(1),
-            "the partner is bound into the duet"
+            None,
+            "the companion is never bound into the scene"
         );
-        assert_eq!(
-            world.kitty(1).unwrap().activity_clock,
-            world.kitty(2).unwrap().activity_clock,
-            "one shared clock"
+        assert!(
+            world.kitty(1).unwrap().activity_clock.is_some(),
+            "the rester owns a clock"
+        );
+        assert!(
+            world.kitty(2).unwrap().activity_clock.is_none(),
+            "the companion has none"
         );
     }
 
@@ -2397,6 +2432,7 @@ mod tests {
 #[cfg(test)]
 mod proposal_contract_tests {
     use super::*;
+    use crate::element::{Element, ElementKind};
     use crate::grid::{Direction, Position};
     use crate::kitty::Activity;
     use crate::meow::MessageKind;
@@ -2616,7 +2652,7 @@ mod proposal_contract_tests {
         let (mut world, config) = test_world();
         assert_eq!(config.actions.cosleep_drip_relief, 15.0);
         assert_eq!(config.actions.cosleep_mutual_relief, 15.0);
-        assert_eq!(config.actions.cuddle_relief, 15.0);
+        assert_eq!(config.actions.rest_mutual_relief, 15.0);
         let a = world.kitty_index(1).unwrap();
         world.kitties[a].pos = Position::new(4, 4);
         world.kitties[a].needs.add(NeedKind::Sleep, 80.0);
@@ -2656,7 +2692,8 @@ mod proposal_contract_tests {
             "the groomer is paid by cuddle_relief, got {a_cuddle}"
         );
 
-        // The rest duet: same isolation.
+        // The mutual rest scene: same isolation (a settled partner earns
+        // the rest mutual tier, spec 041 -- not a cosleep tier).
         let (mut world, mut config) = test_world();
         config.actions.cosleep_drip_relief = 0.0;
         config.actions.cosleep_mutual_relief = 99.0;
@@ -2666,11 +2703,392 @@ mod proposal_contract_tests {
         let b = world.kitty_index(2).unwrap();
         world.kitties[b].pos = Position::new(4, 5);
         world.kitties[b].needs.add(NeedKind::Cuddle, 50.0);
+        world.kitties[b].activity = Activity::Resting { with_friend: None };
+        world.kitties[b].activity_clock = Some(crate::kitty::ActivityClock::start(world.tick));
         apply(&mut world, 1, Action::Rest { with: Some(2) }, &config);
         let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
         assert!(
             (a_cuddle - 35.0).abs() < 0.01,
-            "the duet is paid by cuddle_relief, got {a_cuddle}"
+            "the scene is paid by rest_mutual_relief, got {a_cuddle}"
+        );
+    }
+
+    /// Two kitties adjacent, one carrying 50 cuddle need each, nothing else
+    /// nearby -- the spec-041 pricing stage.
+    fn cuddle_pricing_stage() -> (crate::world::World, Config) {
+        let (mut world, config) = test_world();
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(4, 4);
+        world.kitties[a].needs.add(NeedKind::Cuddle, 50.0);
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(4, 5);
+        world.kitties[b].needs.add(NeedKind::Cuddle, 50.0);
+        (world, config)
+    }
+
+    #[test]
+    fn each_split_dial_moves_only_its_own_site() {
+        // Spec 041 US3 AC-3: the two call sites are provably independent --
+        // move one split dial alone and only its own site's payment moves.
+        let (mut world, mut config) = cuddle_pricing_stage();
+        config.actions.rest_mutual_relief = 4.0;
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].needs.add(NeedKind::Bath, 60.0);
+        settle(&mut world, 2);
+        apply(&mut world, 1, Action::Rest { with: Some(2) }, &config);
+        let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+        assert!(
+            (a_cuddle - 46.0).abs() < 0.01,
+            "the duet follows its own dial, got {a_cuddle}"
+        );
+
+        // The groomer is untouched by the rest dial's move...
+        let (mut world, mut config) = cuddle_pricing_stage();
+        config.actions.rest_mutual_relief = 4.0;
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].needs.add(NeedKind::Bath, 60.0);
+        apply(&mut world, 1, Action::Groom { target: Some(2) }, &config);
+        let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+        assert!(
+            (a_cuddle - 35.0).abs() < 0.01,
+            "the groomer ignores rest_mutual_relief, got {a_cuddle}"
+        );
+
+        // ...and the duet is untouched by the groomer's.
+        let (mut world, mut config) = cuddle_pricing_stage();
+        config.actions.groom_cuddle_relief = 4.0;
+        settle(&mut world, 2);
+        apply(&mut world, 1, Action::Rest { with: Some(2) }, &config);
+        let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+        assert!(
+            (a_cuddle - 35.0).abs() < 0.01,
+            "the duet ignores groom_cuddle_relief, got {a_cuddle}"
+        );
+    }
+
+    /// Settles a kitty into solo rest: a mutual-tier partner in the
+    /// spec-041 sense (the shared predicate reads Sleeping | Resting).
+    fn settle(world: &mut crate::world::World, id: KittyId) {
+        let idx = world.kitty_index(id).unwrap();
+        world.kitties[idx].activity = Activity::Resting { with_friend: None };
+        world.kitties[idx].activity_clock = Some(crate::kitty::ActivityClock::start(world.tick));
+    }
+
+    /// Puts kitty 2 mid-meal: a busy partner in the spec-041 sense.
+    fn make_busy_eating(world: &mut crate::world::World) {
+        world.push_element(Element {
+            id: 901,
+            kind: ElementKind::Chow { servings: 5 },
+            pos: Position::new(3, 5),
+            ttl: None,
+        });
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].activity = Activity::Eating;
+        world.kitties[b].activity_clock = Some(crate::kitty::ActivityClock::start(world.tick));
+    }
+
+    #[test]
+    fn rest_beside_a_busy_friend_is_legal_and_conscripts_nobody() {
+        // Spec 041 US1 AC-1: availability legality (FR-001). A cat mid-meal
+        // is restable-beside; it is never bound, stamped, or clock-touched.
+        let (mut world, config) = cuddle_pricing_stage();
+        make_busy_eating(&mut world);
+        let before_clock = world.kitty(2).unwrap().activity_clock;
+
+        let validated = validate(&world, 1, Action::Rest { with: Some(2) }, &config);
+        assert_eq!(
+            validated,
+            Action::Rest { with: Some(2) },
+            "rest beside a busy adjacent friend is legal"
+        );
+
+        apply(&mut world, 1, Action::Rest { with: Some(2) }, &config);
+        assert_eq!(
+            world.kitty(1).unwrap().activity,
+            Activity::Resting {
+                with_friend: Some(2)
+            },
+            "the rester keeps its named companion"
+        );
+        assert_eq!(
+            world.kitty(2).unwrap().activity,
+            Activity::Eating,
+            "the partner keeps its own activity"
+        );
+        assert_eq!(
+            world.kitty(2).unwrap().activity_clock,
+            before_clock,
+            "the partner's clock is untouched -- no binding, no stamp"
+        );
+    }
+
+    #[test]
+    fn rest_toward_a_non_adjacent_kitty_resolves_to_idle() {
+        // The kept half of the legality rule: adjacency still gates.
+        let (mut world, config) = cuddle_pricing_stage();
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(9, 9);
+        let validated = validate(&world, 1, Action::Rest { with: Some(2) }, &config);
+        assert_eq!(validated, Action::Idle, "distance still makes it illegal");
+    }
+
+    #[test]
+    fn resting_beside_an_idle_friend_binds_nobody() {
+        // Spec 041 FR-001: even a free partner is a companion, never a
+        // conscript -- exactly Sleep{with}'s shape.
+        let (mut world, config) = cuddle_pricing_stage();
+        apply(&mut world, 1, Action::Rest { with: Some(2) }, &config);
+        assert_eq!(
+            world.kitty(1).unwrap().activity,
+            Activity::Resting {
+                with_friend: Some(2)
+            }
+        );
+        assert_eq!(
+            world.kitty(2).unwrap().activity,
+            Activity::Idle,
+            "the idle partner stays idle"
+        );
+        assert!(
+            world.kitty(2).unwrap().activity_clock.is_none(),
+            "the partner gets no clock"
+        );
+    }
+
+    #[test]
+    fn rest_pays_the_tier_the_partners_state_earns() {
+        // Spec 041 FR-002 via the shared predicate: drip for a merely-
+        // present partner, mutual for a settled one -- both parties either
+        // way, resolved from the partner's live state.
+        for (settled, expected) in [(false, 2.0f32), (true, 11.0f32)] {
+            let (mut world, mut config) = cuddle_pricing_stage();
+            config.actions.rest_drip_relief = 2.0;
+            config.actions.rest_mutual_relief = 11.0;
+            if settled {
+                let b = world.kitty_index(2).unwrap();
+                world.kitties[b].activity = Activity::Sleeping {
+                    in_sunbeam: false,
+                    with_friend: None,
+                };
+                world.kitties[b].activity_clock =
+                    Some(crate::kitty::ActivityClock::start(world.tick));
+            } else {
+                make_busy_eating(&mut world);
+            }
+
+            apply(&mut world, 1, Action::Rest { with: Some(2) }, &config);
+
+            let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+            let b_cuddle = world.kitty(2).unwrap().needs.get(NeedKind::Cuddle);
+            assert!(
+                (a_cuddle - (50.0 - expected)).abs() < 0.01,
+                "settled={settled}: the rester got {a_cuddle}"
+            );
+            assert!(
+                (b_cuddle - (50.0 - expected)).abs() < 0.01,
+                "settled={settled}: the partner got {b_cuddle}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_mid_scene_settle_flips_the_tier_that_tick() {
+        // Spec 041 US1 AC-2 + the flap edge case: the tier is resolved
+        // fresh every serviced tick, no hysteresis, no memory.
+        let (mut world, mut config) = cuddle_pricing_stage();
+        config.actions.rest_drip_relief = 2.0;
+        config.actions.rest_mutual_relief = 11.0;
+        make_busy_eating(&mut world);
+
+        apply(&mut world, 1, Action::Rest { with: Some(2) }, &config);
+        let after_drip = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+        assert!(
+            (after_drip - 48.0).abs() < 0.01,
+            "tick 1 pays the drip, got {after_drip}"
+        );
+
+        // The partner settles; the very next serviced tick pays mutual.
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].activity = Activity::Resting { with_friend: None };
+        world.tick += 1;
+        apply(&mut world, 1, Action::Rest { with: Some(2) }, &config);
+        let after_mutual = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+        assert!(
+            (after_mutual - (48.0 - 11.0)).abs() < 0.01,
+            "the settle flips drip -> mutual on that tick, got {after_mutual}"
+        );
+    }
+
+    #[test]
+    fn a_rester_beside_a_sleeping_friend_collects_mutual_from_its_own_slot() {
+        // Spec 041 US1 AC-3: self-service symmetry -- the sleeper never
+        // named the rester, and the rester still collects the mutual rate
+        // from its own slot.
+        let (mut world, mut config) = cuddle_pricing_stage();
+        config.actions.rest_mutual_relief = 11.0;
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].activity = Activity::Sleeping {
+            in_sunbeam: false,
+            with_friend: None,
+        };
+        world.kitties[b].activity_clock = Some(crate::kitty::ActivityClock::start(world.tick));
+
+        apply(&mut world, 1, Action::Rest { with: Some(2) }, &config);
+        let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+        assert!(
+            (a_cuddle - 39.0).abs() < 0.01,
+            "mutual from the rester's own slot, got {a_cuddle}"
+        );
+    }
+
+    #[test]
+    fn a_wandered_rest_partner_drops_the_scene_to_solo_posture() {
+        // Spec 041 US1 AC-4: the per-tick re-filter mirrors co-sleep's
+        // companion re-check -- solo posture, no relief, clock not reset.
+        let (mut world, mut config) = cuddle_pricing_stage();
+        config.actions.rest_drip_relief = 2.0;
+        apply(&mut world, 1, Action::Rest { with: Some(2) }, &config);
+        let started = world.kitty(1).unwrap().activity_clock.unwrap().started;
+
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(9, 9);
+        world.tick += 1;
+        apply(&mut world, 1, Action::Rest { with: Some(2) }, &config);
+
+        let k1 = world.kitty(1).unwrap();
+        assert_eq!(
+            k1.activity,
+            Activity::Resting { with_friend: None },
+            "the scene survives as solo posture"
+        );
+        assert_eq!(
+            k1.activity_clock.unwrap().started,
+            started,
+            "the duration clock is not reset"
+        );
+        let a_cuddle = k1.needs.get(NeedKind::Cuddle);
+        assert!(
+            (a_cuddle - 48.0).abs() < 0.01,
+            "the solo tick pays nothing, got {a_cuddle}"
+        );
+    }
+
+    #[test]
+    fn a_reciprocal_cosleep_pair_is_paid_from_both_slots() {
+        // Spec 041 US2/AC3, the per-scene (not per-pair) shape: both
+        // naming each other, both slots serviced in one tick, each cat
+        // receives the mutual rate TWICE. This is the engine's existing
+        // payment shape, priced into the model; a well-meaning "dedup"
+        // that stamps or skips the second slot is the regression this
+        // guard exists to catch. Instruments count scenes, not relief
+        // events.
+        let (mut world, mut config) = cuddle_pricing_stage();
+        config.actions.cosleep_mutual_relief = 11.0;
+        for (me, friend) in [(1, 2), (2, 1)] {
+            let idx = world.kitty_index(me).unwrap();
+            world.kitties[idx].activity = Activity::Sleeping {
+                in_sunbeam: false,
+                with_friend: Some(friend),
+            };
+            world.kitties[idx].activity_clock =
+                Some(crate::kitty::ActivityClock::start(world.tick));
+        }
+        world.tick += 1;
+        apply(&mut world, 1, Action::Sleep { with: Some(2) }, &config);
+        apply(&mut world, 2, Action::Sleep { with: Some(1) }, &config);
+        for id in [1, 2] {
+            let got = world.kitty(id).unwrap().needs.get(NeedKind::Cuddle);
+            assert!(
+                (got - (50.0 - 2.0 * 11.0)).abs() < 0.01,
+                "kitty {id} collects the mutual rate from both slots, got {got}"
+            );
+        }
+    }
+
+    #[test]
+    fn tier_counters_accumulate_per_tier_and_sum_below_the_span() {
+        // Spec 041 FR-011: one counter bump per serviced partnered tick,
+        // mutual xor drip by the shared predicate; a solo (wandered-
+        // partner) tick bumps neither, so the sum's shortfall against the
+        // span counts exactly the solo ticks.
+        let (mut world, mut config) = cuddle_pricing_stage();
+        config.actions.rest_drip_relief = 2.0;
+        config.actions.rest_mutual_relief = 11.0;
+        make_busy_eating(&mut world);
+
+        // Tick 1: partner busy -> drip.
+        apply(&mut world, 1, Action::Rest { with: Some(2) }, &config);
+        // Tick 2: partner settled -> mutual.
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].activity = Activity::Resting { with_friend: None };
+        world.tick += 1;
+        apply(&mut world, 1, Action::Rest { with: Some(2) }, &config);
+        // Tick 3: partner wandered -> solo, neither counter.
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(9, 9);
+        world.tick += 1;
+        apply(&mut world, 1, Action::Rest { with: Some(2) }, &config);
+
+        let clock = world.kitty(1).unwrap().activity_clock.unwrap();
+        assert_eq!(clock.drip_ticks, 1, "one drip tick");
+        assert_eq!(clock.mutual_ticks, 1, "one mutual tick");
+        let serviced = clock.applied - clock.started + 1;
+        assert_eq!(serviced, 3, "three serviced ticks");
+        assert_eq!(
+            u64::from(clock.mutual_ticks + clock.drip_ticks),
+            serviced - 1,
+            "the shortfall is exactly the one solo tick"
+        );
+    }
+
+    #[test]
+    fn cosleep_scenes_count_their_tiers_too() {
+        // FR-011 covers both tiered activities; a solo nap counts nothing.
+        let (mut world, config) = cuddle_pricing_stage();
+        make_busy_eating(&mut world);
+        apply(&mut world, 1, Action::Sleep { with: Some(2) }, &config);
+        let clock = world.kitty(1).unwrap().activity_clock.unwrap();
+        assert_eq!((clock.mutual_ticks, clock.drip_ticks), (0, 1), "drip tick");
+
+        let (mut world, mut config) = cuddle_pricing_stage();
+        settle(&mut world, 2);
+        apply(&mut world, 1, Action::Sleep { with: Some(2) }, &config);
+        let clock = world.kitty(1).unwrap().activity_clock.unwrap();
+        assert_eq!(
+            (clock.mutual_ticks, clock.drip_ticks),
+            (1, 0),
+            "mutual tick"
+        );
+
+        // A solo nap is not a tiered scene.
+        config.actions.rest_drip_relief = 2.0;
+        let (mut world, _) = cuddle_pricing_stage();
+        apply(&mut world, 1, Action::Sleep { with: None }, &config);
+        let clock = world.kitty(1).unwrap().activity_clock.unwrap();
+        assert_eq!((clock.mutual_ticks, clock.drip_ticks), (0, 0));
+    }
+
+    #[test]
+    fn at_the_launch_price_a_drip_scene_exists_but_pays_nothing() {
+        // Spec 041 D5: with rest_drip_relief at its 0.0 default the
+        // engine-sibling change is legality-only -- the busy-partner scene
+        // is real, and nobody is paid.
+        let (mut world, config) = cuddle_pricing_stage();
+        assert_eq!(config.actions.rest_drip_relief, 0.0);
+        make_busy_eating(&mut world);
+
+        apply(&mut world, 1, Action::Rest { with: Some(2) }, &config);
+        assert_eq!(
+            world.kitty(1).unwrap().activity,
+            Activity::Resting {
+                with_friend: Some(2)
+            },
+            "the scene exists"
+        );
+        let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+        assert!(
+            (a_cuddle - 50.0).abs() < 0.01,
+            "and pays nothing at launch, got {a_cuddle}"
         );
     }
 

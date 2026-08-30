@@ -1,0 +1,300 @@
+{
+  "width": 32,
+  "height": 32,
+  "tick": 50,
+  "kitties": [
+    {
+      "id": 1,
+      "name": "Miso",
+      "pos": {
+        "x": 4,
+        "y": 4
+      },
+      "needs": {
+        "eat": 0.0,
+        "drink": 0.0,
+        "sleep": 0.0,
+        "play": 0.0,
+        "cuddle": 45.0,
+        "bath": 0.0
+      },
+      "happiness": 100.0,
+      "activity": {
+        "state": "resting",
+        "with_friend": 2
+      },
+      "behavior": "needs_driven",
+      "meow_cooldowns": {},
+      "in_distress": [],
+      "happiness_rose": false,
+      "last_relief": {
+        "cuddle": 50
+      },
+      "activity_clock": {
+        "started": 50,
+        "applied": 50
+      },
+      "purr_cooldown_until": 0
+    },
+    {
+      "id": 2,
+      "name": "Biscuit",
+      "pos": {
+        "x": 4,
+        "y": 5
+      },
+      "needs": {
+        "eat": 0.0,
+        "drink": 0.0,
+        "sleep": 0.0,
+        "play": 0.0,
+        "cuddle": 45.0,
+        "bath": 0.0
+      },
+      "happiness": 100.0,
+      "activity": {
+        "state": "resting",
+        "with_friend": 1
+      },
+      "behavior": "playful",
+      "meow_cooldowns": {},
+      "in_distress": [],
+      "happiness_rose": false,
+      "last_relief": {
+        "cuddle": 50
+      },
+      "activity_clock": {
+        "started": 50,
+        "applied": 50
+      },
+      "purr_cooldown_until": 0
+    },
+    {
+      "id": 3,
+      "name": "Pumpkin",
+      "pos": {
+        "x": 16,
+        "y": 8
+      },
+      "needs": {
+        "eat": 0.0,
+        "drink": 0.0,
+        "sleep": 0.0,
+        "play": 0.0,
+        "cuddle": 0.0,
+        "bath": 0.0
+      },
+      "happiness": 100.0,
+      "activity": {
+        "state": "idle"
+      },
+      "behavior": "needs_driven",
+      "meow_cooldowns": {},
+      "in_distress": [],
+      "happiness_rose": false,
+      "purr_cooldown_until": 0
+    }
+  ],
+  "elements": [
+    {
+      "id": 1,
+      "kind": "water",
+      "pos": {
+        "x": 5,
+        "y": 4
+      }
+    },
+    {
+      "id": 2,
+      "kind": "water",
+      "pos": {
+        "x": 6,
+        "y": 4
+      }
+    },
+    {
+      "id": 3,
+      "kind": "water",
+      "pos": {
+        "x": 5,
+        "y": 5
+      }
+    },
+    {
+      "id": 4,
+      "kind": "water",
+      "pos": {
+        "x": 6,
+        "y": 5
+      }
+    },
+    {
+      "id": 5,
+      "kind": "water",
+      "pos": {
+        "x": 1,
+        "y": 28
+      }
+    },
+    {
+      "id": 6,
+      "kind": "chow",
+      "servings": 5,
+      "pos": {
+        "x": 13,
+        "y": 8
+      }
+    },
+    {
+      "id": 7,
+      "kind": "chow",
+      "servings": 5,
+      "pos": {
+        "x": 13,
+        "y": 31
+      }
+    },
+    {
+      "id": 8,
+      "kind": "chow",
+      "servings": 5,
+      "pos": {
+        "x": 26,
+        "y": 28
+      }
+    },
+    {
+      "id": 9,
+      "kind": "chow",
+      "servings": 5,
+      "pos": {
+        "x": 0,
+        "y": 19
+      }
+    },
+    {
+      "id": 10,
+      "kind": "chow",
+      "servings": 5,
+      "pos": {
+        "x": 28,
+        "y": 14
+      }
+    },
+    {
+      "id": 11,
+      "kind": "bug",
+      "pos": {
+        "x": 14,
+        "y": 6
+      },
+      "ttl": 202
+    },
+    {
+      "id": 12,
+      "kind": "bug",
+      "pos": {
+        "x": 13,
+        "y": 28
+      },
+      "ttl": 257
+    },
+    {
+      "id": 13,
+      "kind": "bug",
+      "pos": {
+        "x": 3,
+        "y": 8
+      },
+      "ttl": 337
+    },
+    {
+      "id": 14,
+      "kind": "greeble",
+      "heading": "west",
+      "pos": {
+        "x": 13,
+        "y": 12
+      },
+      "ttl": 282
+    },
+    {
+      "id": 15,
+      "kind": "sunbeam",
+      "pos": {
+        "x": 7,
+        "y": 19
+      },
+      "ttl": 219
+    },
+    {
+      "id": 16,
+      "kind": "sunbeam",
+      "pos": {
+        "x": 31,
+        "y": 23
+      },
+      "ttl": 392
+    },
+    {
+      "id": 17,
+      "kind": "sunbeam",
+      "pos": {
+        "x": 28,
+        "y": 3
+      },
+      "ttl": 333
+    }
+  ],
+  "recent_meows": [],
+  "distress": {
+    "events": [],
+    "capacity": 1000
+  },
+  "activity_log": {
+    "events": [],
+    "capacity": 1000
+  },
+  "rng": {
+    "inner": {
+      "seed": [
+        184,
+        191,
+        89,
+        218,
+        100,
+        176,
+        5,
+        139,
+        93,
+        79,
+        250,
+        30,
+        90,
+        137,
+        39,
+        252,
+        147,
+        33,
+        0,
+        44,
+        113,
+        216,
+        6,
+        74,
+        208,
+        172,
+        184,
+        47,
+        102,
+        112,
+        64,
+        11
+      ],
+      "stream": 0,
+      "word_pos": 125
+    }
+  },
+  "config_fingerprint": "w32h32s20260718k1.2.3",
+  "next_element_id": 18
+}

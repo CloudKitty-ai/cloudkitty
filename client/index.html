@@ -272,6 +272,117 @@
     box-shadow: 0 18px 48px var(--shadow);
   }
   #traits::backdrop { background: rgba(0, 0, 0, 0.28); }
+  /* The same box as #traits, plus a height cap: the AI section runs eight
+     generations and would otherwise push the dialog off a phone screen.
+     `80vh` leaves the backdrop visible top and bottom, which is what makes a
+     tap outside feel available rather than hidden. */
+  #about-topic-dialog {
+    border: none;
+    border-radius: 18px;
+    background: var(--card);
+    color: var(--ink);
+    /* Named, because the fade below has to sit on the SCROLLER's bottom edge
+       and the scroller ends one bottom-padding above the dialog's. One
+       number, one home. */
+    --pad-b: 16px;
+    padding: 18px 20px var(--pad-b);
+    max-width: 360px;
+    width: calc(100% - 32px);
+    max-height: 80vh;
+    box-shadow: 0 18px 48px var(--shadow);
+    /* NO `position` here. The UA gives `dialog:modal` `position: fixed`, and
+       that is what centres it in the VIEWPORT -- an author position on an id
+       selector beats it and drops the dialog back into normal flow at its
+       place in the markup, near the top of a long page, to be scrolled to.
+       `fixed` is already a containing block, so the fade below needs nothing
+       added here. */
+    overflow: hidden;
+  }
+  /* Only when OPEN. An author `display` beats the UA's `dialog:not([open])
+     { display: none }`, so setting it unconditionally leaves the dialog on
+     screen for the whole session. */
+  #about-topic-dialog[open] { display: flex; flex-direction: column; }
+  #about-topic-dialog::backdrop { background: rgba(0, 0, 0, 0.28); }
+  /* Say that there is more below. Two mechanisms, because neither covers
+     every platform.
+
+     The SCROLLBAR, asked for by name: `scrollbar-width`/`scrollbar-color` is
+     the standard property and `::-webkit-scrollbar` covers Safari on the
+     desktop. Neither renders on iOS, where scrollbars are overlay-only and
+     appear on touch. That is the case the owner hit.
+
+     So also a FADE at the bottom edge, which works everywhere. app.js keeps
+     `.can-scroll` in step with the scroll position, so it says "more below"
+     only while there is more below -- at the end of the AI topic it goes. */
+  #traits,
+  .about-dialog-body {
+    scrollbar-width: thin;
+    scrollbar-color: var(--ink-soft) transparent;
+    scrollbar-gutter: stable;
+  }
+  #traits::-webkit-scrollbar,
+  .about-dialog-body::-webkit-scrollbar {
+    -webkit-appearance: none;
+    width: 8px;
+  }
+  #traits::-webkit-scrollbar-thumb,
+  .about-dialog-body::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background: var(--ink-soft);
+  }
+  .about-dialog-body {
+    overflow-y: auto;
+    min-height: 0;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  #about-topic-dialog::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    /* NOT the dialog's bottom edge. Sitting there spends the gradient's
+       opaque end on the dialog's own bottom padding, and only the weak,
+       near-transparent top of it ever reaches text -- which is how this
+       shipped invisible on a phone the first time. */
+    bottom: var(--pad-b);
+    height: 44px;
+    opacity: 0;
+    transition: opacity 160ms linear;
+    pointer-events: none;
+    background: linear-gradient(to top, var(--card) 34%, transparent);
+  }
+  #about-topic-dialog.can-scroll::after { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) {
+    #about-topic-dialog::after { transition: none; }
+  }
+  .about-dialog-title {
+    margin: 0 0 8px;
+    font-size: 1rem;
+    color: var(--ink);
+  }
+  .about-dialog-body p {
+    margin: 8px 0 0;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: var(--ink-soft);
+  }
+  .about-dialog-body ul { margin: 6px 0 0; padding: 0; list-style: none; }
+  .about-dialog-body li {
+    margin: 0 0 3px;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: var(--ink-soft);
+  }
+  .about-dialog-body .gens > li { margin: 0 0 9px; }
+  .about-dialog-body .gens b { display: block; font-weight: 600; color: var(--ink); }
+  .about-dialog-body .gens i {
+    display: block;
+    font-style: normal;
+    font-size: 0.76rem;
+    opacity: 0.75;
+    margin: 1px 0 2px;
+  }
   .traits-close {
     float: right;
     border: none;
@@ -491,6 +602,110 @@
     font-size: 0.82rem;
     line-height: 1.45;
     color: var(--ink-soft);
+  }
+  /* The topics, folded one level deeper than About itself (owner,
+     2026-08-27: "In about to keep the UI uncluttered. If someone doesn't
+     click 'about' to learn more, they probably don't want to see even more
+     specific detail").
+
+     Still no script: `<details name>` makes the five a GROUP, so opening one
+     closes the others -- the browser's own accordion. Where `name` is not
+     supported the group simply does not bind and all five may sit open,
+     which is what plain <details> has always done. Nothing breaks and there
+     is nothing to polyfill.
+
+     Deliberately NOT `h2`: `.about-card details[open] h2::after` swaps
+     "more…" for "less…", and it is a DESCENDANT selector, so an h2 here
+     would read "less…" on all five the moment About itself was opened --
+     before any of them had been touched. */
+  /* Two across. Five subjects in one column was most of the card's height,
+     and they no longer unfold in place, so the list shape was promising
+     something the tap does not do (owner, 2026-08-28). The fifth sits alone
+     on the second row; a `1fr 1fr` grid with five items is the honest layout
+     rather than stretching one to fill. */
+  .about-topics {
+    margin: 10px 0 0;
+    border-top: 1px solid var(--hair, rgba(128, 128, 128, 0.22));
+    padding-top: 6px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px 10px;
+  }
+  .about-card.dialogs-wired .about-topics { gap: 6px 8px; }
+  .about-topic > summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 5px 0;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: var(--ink-soft);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .about-topic > summary::-webkit-details-marker { display: none; }
+  /* The +/- is the NO-SCRIPT affordance: without app.js a topic really does
+     unfold in place, and the marker says so. With the dialog wired it would
+     be a lie -- nothing expands -- so app.js stamps `.dialogs-wired` on the
+     card and the marker goes. The markup keeps one meaning per state rather
+     than picking one and being wrong half the time. */
+  .about-topic > summary::after {
+    content: '+';
+    font-weight: 500;
+    letter-spacing: 0;
+  }
+  .about-topic[open] > summary::after { content: '−'; }
+  .about-card.dialogs-wired .about-topic > summary::after { content: none; }
+  /* With the marker gone these are five bold words, and a phone has no hover
+     to reveal otherwise. A CHIP rather than an underline: every tappable
+     thing in this client that is not an icon is already a filled rounded
+     pill -- the footer toggles, the cards toggle, the personality button on
+     a kitty card -- and there is no <a href> anywhere in this card, so an
+     underline would be introducing the NAVIGATION convention for something
+     that opens a dialog in place. It also buys the tap target: the plain row
+     stood 23px tall, which is small for a thumb. */
+  .about-card.dialogs-wired .about-topic > summary {
+    justify-content: center;
+    padding: 8px 10px;
+    border-radius: 99px;
+    background: var(--cream-deep);
+    color: var(--ink);
+  }
+  .about-topic > summary:hover { color: var(--ink); }
+  .about-topic p {
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: var(--ink-soft);
+  }
+  .about-topic li {
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: var(--ink-soft);
+  }
+  .about-topic ul {
+    margin: 6px 0 0;
+    padding: 0 0 0 2px;
+    list-style: none;
+  }
+  .about-topic li { margin: 0 0 3px; }
+  .about-topic > div { padding: 0 0 8px; }
+  /* The generation list: a name, its specification, then what changed. Three
+     lines per entry, so each part gets its own display rather than running
+     together -- the spec is the part a curious reader scans for. */
+  .about-topic .gens > li { margin: 0 0 9px; }
+  .about-topic .gens b {
+    display: block;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .about-topic .gens i {
+    display: block;
+    font-style: normal;
+    font-size: 0.76rem;
+    opacity: 0.75;
+    margin: 1px 0 2px;
   }  .about > summary {
     display: inline;            /* stays on the subtitle's line */
     list-style: none;           /* our own marker, below */
@@ -1389,6 +1604,111 @@
             for one objective: the happiness of all the kitties in the meadow.
             The kitties look out for each other, communicate with purrs and
             meows, and keep each other company as they frolic and play.</p>
+            <!-- The topics. One level deeper than About on the owner's call,
+                 so a visitor who did not want the overview is not handed five
+                 more headers. `name` groups them: opening one closes the rest,
+                 natively, with no script. -->
+            <div class="about-topics">
+              <details class="about-topic" name="about-topic">
+                <summary>Kitties</summary>
+                <div>
+                  <p>The stars of the show! Each kitty has their own neural network, and their own needs profile. This gives each kitty a unique personality and pattern of behavior! You can see their unique needs and the family of AI model (and model ID) by clicking the ? on their card, along with a description of their personality.</p>
+                  <ul>
+                    <li>Miso: Sleepy Kitty</li>
+                    <li>Biscuit: Playful Kitty</li>
+                    <li>Pumpkin: Snacky Kitty</li>
+                    <li>Kittybear: Tidy Kitty</li>
+                    <li>Clementine: Cuddly Kitty</li>
+                  </ul>
+                </div>
+              </details>
+              <details class="about-topic" name="about-topic">
+                <summary>Needs</summary>
+                <div>
+                  <p>Kitties have six needs. Their current need fulfillment can be seen on their cards by expanding them (click on the card).</p>
+                  <ul>
+                    <li>Eat: increased by eating Chow.</li>
+                    <li>Drink: increased by drinking Water.</li>
+                    <li>Sleep: increased by sleeping. Sleeping in a sunbeam is more restful, and sleeping with a friend also increases Cuddle!</li>
+                    <li>Play: increased by playing! Kitties can play with each other, and with Bugs and Greebles.</li>
+                    <li>Cuddle: increased by cuddling, sleeping together, and by bathing another cat.</li>
+                    <li>Bath: increased by bathing. A cat bathing another cat increases their own Cuddle, while increasing their friend&rsquo;s Bath.</li>
+                  </ul>
+                  <p>The fulfillment of all six needs combines to create the kitties&rsquo; Happiness score.</p>
+                </div>
+              </details>
+              <details class="about-topic" name="about-topic">
+                <summary>Elements</summary>
+                <div>
+                  <ul>
+                    <li>Chow: Kitty food scattered across the map. When a bowl is emptied, a new one appears randomly somewhere else on the map.</li>
+                    <li>Water: Ponds and lakes. Shallow enough for kitties to walk through (and sit in sometimes!).</li>
+                    <li>Sunbeams/moonbeams: Kitties&rsquo; favorite place to take a nap! Napping here is more effective.</li>
+                    <li>Bugs: Kitties love to chase and play with them (especially Biscuit!)</li>
+                    <li>Greebles: Visible to kitties but invisible to humans, Greebles are fast-moving creatures that taunt kitties.</li>
+                  </ul>
+                </div>
+              </details>
+              <details class="about-topic" name="about-topic">
+                <summary>Meows</summary>
+                <div>
+                  <p>Kitties have a full meow vocabulary! There are three types of language: Meow Words, Purrs, and Meow Sounds.</p>
+                  <p>Meow Words and Purrs are governed by Meow Law: kitties can only speak the truth.</p>
+                  <p>Purrs are a way kitties can communicate that they&rsquo;re happy. Since our advanced Kitty AI is quite good at keeping kitties happy, we watched them repurpose Purr to mean different things in addition to conveying happiness (&ldquo;I&rsquo;m fine over here, no need to help&rdquo; was one of the first emergent communications we saw). You can see a kitty&rsquo;s purr status on their card.</p>
+                  <p>Meow words come in two flavors: Want words, and Here words. Want words are available to a kitty if a need is high (&ldquo;Want Food&rdquo; or &ldquo;Want Cuddle&rdquo;). Here words let a kitty communicate to the other kitties that they&rsquo;ve found something (&ldquo;Here bug&rdquo; &ldquo;Here drink&rdquo;). These are also governed by Meow Law.</p>
+                  <p>Finally, Meow Sounds: mew, chirp, trill, and ekekek. These sounds aren&rsquo;t associated with any intrinsic meaning: the kitties can use them to craft their own language in the world.</p>
+                  <p>Kitty Lore: Meow Sounds came about when we noticed kitties repurposing a &ldquo;Follow Me&rdquo; meow to mean its opposite (&ldquo;stay there, I&rsquo;m coming&rdquo;). We decided to give them their own vocabulary they could use to choose the most important things to communicate to each other.</p>
+                </div>
+              </details>
+              <details class="about-topic" name="about-topic">
+                <summary>AI</summary>
+                <div>
+                  <p>Every kitty is a neural network trained on one objective: the happiness of all the kitties, not just its own. That has never changed. What each generation changed is how they get there.</p>
+                  <ul class="gens">
+                    <li>
+                      <b>Generation 0: Scripted Kitties</b>
+                      <i>Hand-written rules. No network.</i>
+                      The first kitties followed rules we wrote by hand. Every generation since has had to beat them.
+                    </li>
+                    <li>
+                      <b>Generation 1: Kitty&rsquo;s First Neural Network</b>
+                      <i>Multi-Layer Perceptron, 256&times;256. Behavior cloning, then multi-agent RL.</i>
+                      Kitties learned by copying the scripts, then improved together by trial and error. Copying first turned out to be necessary. Trained from scratch, they never beat the scripts.
+                    </li>
+                    <li>
+                      <b>Generation 2: Dry Kitties</b>
+                      <i>Multi-Layer Perceptron, 256&times;256. 182 &rarr; 183 inputs.</i>
+                      Kitties kept standing in ponds, and no reward for staying dry fixed it. One new input did it: &ldquo;am I in the water?&rdquo; Seeing beat pricing.
+                    </li>
+                    <li>
+                      <b>Generation 3: The Meow Generation</b>
+                      <i>Multi-Layer Perceptron, 256&times;256. 197 inputs, and a second output head for speech.</i>
+                      Meows existed but went unused. Showing kitties meowing in their training data is what brought the channel to life. After that they authored their own meanings for it.
+                    </li>
+                    <li>
+                      <b>Generation 4: Attention Is All Mew Need</b>
+                      <i>Entity attention: 64 dimensions, 4 heads, 2 layers.</i>
+                      The network was rebuilt to read the meadow as a set of things rather than one long list of numbers. That idea, attention, is the one behind modern language models. Same happiness, 40% fewer parameters, and more the kitties could express.
+                    </li>
+                    <li>
+                      <b>Generation 5: The Personality Problem</b>
+                      <i>Entity attention. Cloned from a kitty, then held close to it while training.</i>
+                      Training for happiness alone flattened every kitty into the same cat. Tethering each one to its original self while it learns keeps both the personality and the happiness.
+                    </li>
+                    <li>
+                      <b>Generation 6: Biscuit and the Gang</b>
+                      <i>Entity attention. Per-kitty needs and traits, certified before seating.</i>
+                      Each kitty gets their own personality, tuned individually and checked against a welfare bar before they may take a seat.
+                    </li>
+                    <li>
+                      <b>Generation 7: The Fog Generation</b>
+                      <i>Coming next.</i>
+                      Today a kitty can see the whole meadow, which makes meowing pleasant but unnecessary. We measured that. In the next generation they&rsquo;ll see only what&rsquo;s near them, so telling each other what they&rsquo;ve found will matter.
+                    </li>
+                  </ul>
+                </div>
+              </details>
+            </div>
           </details>
         </aside>
       </div>
@@ -1399,6 +1719,24 @@
        <dialog> so it costs the layout nothing, closes on Esc, and traps
        focus without a line of our own script. OFF until the trait plumbing
        lands (owner) -- `t` reveals the per-card affordance that opens it. -->
+  <!-- The about topics, in a dialog. Same reasoning as the traits dialog
+       beside it: a native <dialog> costs the layout NOTHING, so the about
+       card stays one row tall however much text a topic holds, and the kitty
+       cards next to it never move (owner, 2026-08-28: "the amount of vertical
+       scroll it creates in the adjacent kitty card looks sloppy").
+
+       One element, repopulated per topic, exactly as #traits is per cat.
+
+       The topics stay <details> in the markup and this is an ENHANCEMENT over
+       them: with no script the card still discloses inline, which is the rule
+       this card lives by -- "what is this place" is the last thing on the page
+       that should break. Only the deeper detail needs app.js. -->
+  <dialog id="about-topic-dialog">
+    <form method="dialog"><button class="traits-close" aria-label="close">&times;</button></form>
+    <h2 class="about-dialog-title"></h2>
+    <div class="about-dialog-body"></div>
+  </dialog>
+
   <dialog id="traits">
     <form method="dialog"><button class="traits-close" aria-label="close">×</button></form>
     <div class="traits-head">

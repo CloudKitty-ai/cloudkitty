@@ -538,10 +538,14 @@ pub struct ActionEffects {
     /// with exactly this meaning, and renaming would move the `/config`
     /// wire key for zero behavioral gain.
     pub play_relief: f32,
-    /// Cuddle relief from resting/sleeping/grooming alongside a friend.
-    /// Since spec 028 this prices the rest duet and the groomer's warmth;
-    /// cosleep has its own pair of dials below.
-    pub cuddle_relief: f32,
+    /// RETIRED LOUDLY (spec 041, owner's full-compatibility-break ruling
+    /// 2026-08-28): the classic shared dial, split into
+    /// `rest_mutual_relief` and `groom_cuddle_relief`. Parsed only so its
+    /// presence can be rejected with the migration map (the spec-025
+    /// pattern); every committed config was migrated in the same change.
+    /// The field itself is deleted at the 3.0 config-hygiene wall.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cuddle_relief: Option<f32>,
     /// Cuddle relief per serviced cosleep tick when the adjacent partner is
     /// merely present (spec 028's passive tier). Both parties receive it.
     /// Defaults equal to the classic `cuddle_relief` -- behavior-preserving
@@ -552,6 +556,27 @@ pub struct ActionEffects {
     /// sleeping or resting (the mutual tier). Both parties receive it.
     #[serde(default = "default_cosleep_relief")]
     pub cosleep_mutual_relief: f32,
+    /// Cuddle relief per serviced tick of a partnered rest scene when the
+    /// partner is itself resting or sleeping (spec 041's mutual tier -- the
+    /// need's saturating specialist). Both parties receive it. Split from
+    /// the classic `cuddle_relief` at its engine-default value (a config
+    /// that overrode the old key must pin this one explicitly -- the
+    /// served toml does; spec 028's cosleep launch pattern). Convention:
+    /// `rest_drip_relief` stays below it.
+    #[serde(default = "default_cuddle_split_relief")]
+    pub rest_mutual_relief: f32,
+    /// Cuddle relief per serviced tick of a partnered rest scene when the
+    /// partner is merely present (spec 041's drip tier). Both parties
+    /// receive it. Launches at 0.0: the engine-sibling change is
+    /// legality-and-binding only, and every price movement lives in the
+    /// reprice diff.
+    #[serde(default = "default_rest_drip_relief")]
+    pub rest_drip_relief: f32,
+    /// The groomer's own cuddle relief while grooming a friend (spec 041).
+    /// Split from the classic `cuddle_relief` at its engine-default value
+    /// (same explicit-pin note as `rest_mutual_relief`).
+    #[serde(default = "default_cuddle_split_relief")]
+    pub groom_cuddle_relief: f32,
     /// Play relief for pouncing at nothing. Smaller than `play_relief` so a
     /// kitty with company always prefers the real thing. Also the price a
     /// vanished play target drops to (spec 025): the critter is gone, the
@@ -585,9 +610,12 @@ impl Default for ActionEffects {
             // being playful and cuddly -- the point of the retune.
             groom_relief: 20.0,
             play_relief: 20.0,
-            cuddle_relief: 15.0,
+            cuddle_relief: None,
             cosleep_drip_relief: default_cosleep_relief(),
             cosleep_mutual_relief: default_cosleep_relief(),
+            rest_mutual_relief: default_cuddle_split_relief(),
+            rest_drip_relief: default_rest_drip_relief(),
+            groom_cuddle_relief: default_cuddle_split_relief(),
             solo_play_relief: default_solo_play_relief(),
             play_relief_bug: default_play_relief_bug(),
             play_relief_greeble: default_play_relief_greeble(),
@@ -854,6 +882,38 @@ pub struct BehaviorConfig {
     /// keeps the defaults stamp unmoved (the 039 D5 discipline).
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub pounce: bool,
+    /// Spec 042 (Playful 2.0): the partner-value score's dials, all at
+    /// identity 0.0 and skip-serialized there (the pounce field's 039-D5
+    /// discipline — the defaults stamp must not move for an inert launch).
+    /// Pricing belongs to Experiments' joint sweep; the owner pins served
+    /// values. `w_value` scales a friend's value in the score AND switches
+    /// busy-friend admission on when > 0 (research D2 — both effects
+    /// documented, byte-identity at defaults demands the coupling).
+    #[serde(default, skip_serializing_if = "f32_is_zero")]
+    pub w_value: f32,
+    /// Expected-wait penalty per tick for a mid-scene candidate (spec 042).
+    #[serde(default, skip_serializing_if = "f32_is_zero")]
+    pub w_busy: f32,
+    /// Penalty per point of a candidate's top NON-play pressure (spec 042
+    /// clarify: wanting to play never counts against a candidate).
+    #[serde(default, skip_serializing_if = "f32_is_zero")]
+    pub w_serious: f32,
+    /// Own play-need floor for bothering any friend (spec 042 eligibility
+    /// filter). 0 = every friend eligible on this axis.
+    #[serde(default, skip_serializing_if = "f32_is_zero")]
+    pub t_self: f32,
+    /// Per-friend value floor for eligibility (spec 042). 0 = no bar.
+    #[serde(default, skip_serializing_if = "f32_is_zero")]
+    pub t_partner: f32,
+    /// Standalone critter score offset (spec 042 clarify: NOT scaled by
+    /// w_value — each dial moves exactly one thing). Either sign is lawful.
+    #[serde(default, skip_serializing_if = "f32_is_zero")]
+    pub critter_appeal: f32,
+    /// Per-need multipliers inside the playful get-serious trigger ONLY
+    /// (spec 042): pressure × weight compared to `playful_comfort`. All 1.0
+    /// = exactly the classic unweighted check; skip-serialized at identity.
+    #[serde(default, skip_serializing_if = "ComfortWeights::is_identity")]
+    pub comfort_weight: ComfortWeights,
     /// A viable playmate within this distance suppresses solo play; beyond it,
     /// a kitty entertains itself.
     #[serde(default = "default_solo_play_reach")]
@@ -930,6 +990,65 @@ impl Default for BehaviorConfig {
             relaunch_cooldown_ticks: default_relaunch_cooldown_ticks(),
             exchange_timeout_ms: default_exchange_timeout_ms(),
             cuddle_real_threshold: default_cuddle_real_threshold(),
+            w_value: 0.0,
+            w_busy: 0.0,
+            w_serious: 0.0,
+            t_self: 0.0,
+            t_partner: 0.0,
+            critter_appeal: 0.0,
+            comfort_weight: ComfortWeights::default(),
+        }
+    }
+}
+
+fn f32_is_zero(v: &f32) -> bool {
+    *v == 0.0
+}
+
+/// Spec 042: per-need multipliers for the playful get-serious trigger.
+/// All 1.0 is the identity — exactly the classic unweighted check — and
+/// the whole table is skip-serialized there so the defaults stamp does
+/// not move. Trigger-only: nothing outside `playful`'s comfort check
+/// reads these.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields, default)]
+pub struct ComfortWeights {
+    pub eat: f32,
+    pub drink: f32,
+    pub sleep: f32,
+    pub play: f32,
+    pub cuddle: f32,
+    pub bath: f32,
+}
+
+impl Default for ComfortWeights {
+    fn default() -> Self {
+        Self {
+            eat: 1.0,
+            drink: 1.0,
+            sleep: 1.0,
+            play: 1.0,
+            cuddle: 1.0,
+            bath: 1.0,
+        }
+    }
+}
+
+impl ComfortWeights {
+    pub fn is_identity(&self) -> bool {
+        *self == Self::default()
+    }
+
+    /// The one read path (spec 042 FR-005): the weight for a need.
+    pub fn get(&self, kind: crate::needs::NeedKind) -> f32 {
+        use crate::needs::NeedKind::*;
+        match kind {
+            Eat => self.eat,
+            Drink => self.drink,
+            Sleep => self.sleep,
+            Play => self.play,
+            Cuddle => self.cuddle,
+            Bath => self.bath,
         }
     }
 }
@@ -1342,6 +1461,84 @@ mod tests {
         let msg = c.validate().unwrap_err().to_string();
         assert!(msg.contains("[behavior] urgency_weight"), "{msg}");
         assert!(msg.contains("-0.5"), "names the value: {msg}");
+    }
+
+    #[test]
+    fn the_playful2_dials_reject_negative_and_non_finite_values() {
+        // Spec 042 FR-007: no NaN may enter the score's total order, and
+        // negatives are rejected where they have no meaning. critter_appeal
+        // alone allows either sign ("less appealing than baseline" is a
+        // meaningful sweep direction) but never non-finite.
+        for poison in [f32::NAN, f32::INFINITY, -1.0] {
+            for (name, setter) in [
+                (
+                    "w_value",
+                    (|c: &mut Config, v: f32| c.behavior.w_value = v) as fn(&mut Config, f32),
+                ),
+                ("w_busy", |c, v| c.behavior.w_busy = v),
+                ("w_serious", |c, v| c.behavior.w_serious = v),
+                ("t_self", |c, v| c.behavior.t_self = v),
+                ("t_partner", |c, v| c.behavior.t_partner = v),
+                ("comfort_weight] eat", |c, v| {
+                    c.behavior.comfort_weight.eat = v
+                }),
+                ("comfort_weight] drink", |c, v| {
+                    c.behavior.comfort_weight.drink = v
+                }),
+                ("comfort_weight] sleep", |c, v| {
+                    c.behavior.comfort_weight.sleep = v
+                }),
+                ("comfort_weight] play", |c, v| {
+                    c.behavior.comfort_weight.play = v
+                }),
+                ("comfort_weight] cuddle", |c, v| {
+                    c.behavior.comfort_weight.cuddle = v
+                }),
+                ("comfort_weight] bath", |c, v| {
+                    c.behavior.comfort_weight.bath = v
+                }),
+            ] {
+                let mut c = cfg();
+                setter(&mut c, poison);
+                let msg = c
+                    .validate()
+                    .expect_err("poison must be rejected")
+                    .to_string();
+                assert!(msg.contains(name), "{poison} in {name}: {msg}");
+            }
+        }
+        // Comfort weights are strictly positive: zero would disable the
+        // get-serious trigger for that need (medium review #5).
+        let mut c = cfg();
+        c.behavior.comfort_weight.eat = 0.0;
+        let msg = c
+            .validate()
+            .expect_err("a zero weight is rejected")
+            .to_string();
+        assert!(msg.contains("comfort_weight] eat"), "{msg}");
+        // critter_appeal: non-finite rejected, negative accepted.
+        for poison in [f32::NAN, f32::INFINITY] {
+            let mut c = cfg();
+            c.behavior.critter_appeal = poison;
+            let msg = c.validate().expect_err("non-finite rejected").to_string();
+            assert!(msg.contains("critter_appeal"), "{msg}");
+        }
+        let mut c = cfg();
+        c.behavior.critter_appeal = -3.0;
+        c.validate()
+            .expect("a negative appeal is a lawful preference");
+    }
+
+    #[test]
+    fn a_misspelled_comfort_weight_key_fails_loudly() {
+        // Spec 042 / contract §5 (convergence T029): the weight table is
+        // strict -- a typo'd need key must never silently feed nothing.
+        let err = toml::from_str::<ComfortWeights>("eats = 1.5")
+            .expect_err("unknown weight keys are rejected");
+        assert!(err.to_string().contains("eats"), "{err}");
+        let ok: ComfortWeights = toml::from_str("eat = 1.5").expect("real keys parse");
+        assert_eq!(ok.eat, 1.5);
+        assert_eq!(ok.bath, 1.0, "unset needs keep the identity weight");
     }
 
     #[test]
@@ -1826,7 +2023,13 @@ mod tests {
                     c.actions.sleep_relief_sunbeam = v
                 }),
                 ("groom_relief", |c, v| c.actions.groom_relief = v),
-                ("cuddle_relief", |c, v| c.actions.cuddle_relief = v),
+                ("rest_mutual_relief", |c, v| {
+                    c.actions.rest_mutual_relief = v
+                }),
+                ("rest_drip_relief", |c, v| c.actions.rest_drip_relief = v),
+                ("groom_cuddle_relief", |c, v| {
+                    c.actions.groom_cuddle_relief = v
+                }),
             ] {
                 let mut c = cfg();
                 setter(&mut c, poison);
@@ -1837,6 +2040,63 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn a_config_carrying_the_retired_cuddle_relief_fails_with_a_map() {
+        // Spec 041 FR-005 (owner's noisy-failure ruling, 2026-08-28): the
+        // retired key is a loud error carrying the migration map -- the
+        // spec-025 pattern. Silently accepting it would either run a
+        // doubled economy (engine defaults) or pretend the old economy
+        // still exists; the owner chose the full compatibility break.
+        let cfg_with = |extra: &str| -> Result<(), ConfigError> {
+            let c: Config = toml::from_str(&format!(
+                r#"
+                [world]
+                width = 32
+                height = 32
+                tick_ms = 800
+                seed = 1
+
+                [[kitty]]
+                id = 1
+                name = "A"
+                x = 1
+                y = 1
+                behavior = "needs_driven"
+
+                [[kitty]]
+                id = 2
+                name = "B"
+                x = 2
+                y = 2
+                behavior = "playful"
+
+                [actions]
+                eat_relief = 40.0
+                drink_relief = 40.0
+                sleep_relief = 5.0
+                sleep_relief_sunbeam = 8.0
+                groom_relief = 30.0
+                play_relief = 20.0
+                {extra}
+            "#
+            ))
+            .expect("shape parses");
+            c.validate()
+        };
+
+        let msg = cfg_with("cuddle_relief = 8.0")
+            .expect_err("the retired key must fail loudly")
+            .to_string();
+        assert!(msg.contains("cuddle_relief"), "{msg}");
+        assert!(
+            msg.contains("rest_mutual_relief") && msg.contains("groom_cuddle_relief"),
+            "the error carries the migration map: {msg}"
+        );
+
+        // Without the key, the same config is fine.
+        cfg_with("").expect("a migrated config loads");
     }
 
     #[test]
@@ -1877,7 +2137,6 @@ mod tests {
                 sleep_relief_sunbeam = 8.0
                 groom_relief = 30.0
                 play_relief = {play_relief}
-                cuddle_relief = 20.0
             "#
             ))
             .expect("legacy shape parses")
@@ -1948,7 +2207,6 @@ mod tests {
             sleep_relief_sunbeam = 8.0
             groom_relief = 30.0
             play_relief = 20.0
-            cuddle_relief = 20.0
         "#;
         let c: Config = toml::from_str(toml_src).expect("old-shape config parses");
         assert_eq!(c.behavior.urgency_weight, default_urgency_weight());
@@ -2224,6 +2482,22 @@ mod tests {
         assert!(!json.contains("pounce"), "{json}");
         // And for the greeble schedule flag (FR-015).
         assert!(!json.contains("dart"), "{json}");
+        // Spec 042 (medium review #4): all twelve Playful 2.0 dials ride
+        // the same discipline -- a dropped or mistyped skip attribute on
+        // any of them moves the stamp silently and mints the re-baseline
+        // debt the inert launch exists to avoid. Delete one skip and its
+        // line here reddens.
+        for key in [
+            "w_value",
+            "w_busy",
+            "w_serious",
+            "t_self",
+            "t_partner",
+            "critter_appeal",
+            "comfort_weight",
+        ] {
+            assert!(!json.contains(key), "{key} leaked into the stamp: {json}");
+        }
     }
 
     #[test]

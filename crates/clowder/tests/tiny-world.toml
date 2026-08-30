@@ -89,7 +89,10 @@ sleep_relief = 5.0
 sleep_relief_sunbeam = 8.0
 groom_relief = 20.0
 play_relief = 20.0
-cuddle_relief = 8.0
+# spec 041 migration (owner's loud-retirement ruling, 2026-08-28):
+# cuddle_relief = 8.0 split faithfully into its two sites.
+rest_mutual_relief = 8.0
+groom_cuddle_relief = 8.0
 cosleep_drip_relief = 3.0
 cosleep_mutual_relief = 8.0
 solo_play_relief = 10.0

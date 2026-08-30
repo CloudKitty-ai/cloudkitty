@@ -33,8 +33,53 @@ change.
 
 ## Unreleased
 
-<<<<<<< HEAD
-=======
+- Playful cats now know which friend is worth the walk (spec 042, PR #325).
+  The scripted Playful behavior's play-target pick — until now purely
+  nearest-first — gained a partner-value score: how much the candidate
+  itself wants to play, less the cost of waiting out its current scene,
+  less how close it is to getting serious about something that is not
+  play, traded against distance. Two thresholds decide who the cat
+  bothers — never whether it plays; critter and solo games stay
+  unconditional, and a gated tick resolves to play, never to standing
+  around. The get-serious comfort line also weighs needs individually
+  now, so a demonstration world can make a cat food-attentive without
+  teaching it to abandon games for routine bath peaks. Every one of the
+  twelve new dials launches at its identity value and is skip-serialized
+  there: world evolution is byte-identical, the engine-defaults stamp
+  did not move, and no compatibility marker applies. Pricing belongs to
+  the joint lab campaign that gates Biscuit 3.0's demonstrations.
+
+
+- **`[stamp]`** Rest became co-sleep's sibling, and the cuddle economy went
+  riders-partial (spec 041, PR #320). A cat now settles beside any adjacent
+  friend — busy, sleeping, whatever — and nobody is conscripted: the old
+  rest duet's binding, and with it the only refusable cuddle route, is gone
+  from the engine rather than patched. The scene pays one of two tiers per
+  tick off the partner's live state (a merely-present friend drips, a
+  settled one pays the full mutual rate to both), resolved by the same
+  shared predicate co-sleep's pricing and warmth conduction already use.
+  Every cuddle rider was then repriced partial — co-sleep and the groomer's
+  warmth contribute to the need without finishing it — so the dedicated
+  activity is the one saturating specialist and rest is finally worth
+  choosing. Activity-end events carry per-tier serviced-tick counters
+  (additive; old payloads and snapshots load unchanged), so tier claims are
+  census-answerable instead of assumed. The shared `cuddle_relief` dial was
+  split at its classic value first, proven byte-identical, before any price
+  moved; the retired key then went out loudly (the owner's
+  full-compatibility-break ruling) — a config still carrying it fails at
+  load with a migration map, and every committed config was migrated in
+  the same change, each inheriting its own historical value into the
+  split dials. Policy seats were trained under the old economy and
+  are expected to run zero rest scenes until the wall retrain; scripted
+  seats respond immediately.
+
+- A loafing cat can call too, with its eyes shut. `loaf` joins the poses the
+  meow is drawn on. It is the only one of them whose eyes are already closed,
+  so the call cannot open them and is not meant to — a cat folded up and
+  mumbling was the point. Added ahead of its own need: `rest` is not currently
+  chosen by any cat, so this drew nothing at all in the last census, but the
+  cuddle economy is being repriced and loafing is about to become ordinary.
+
 - Cats move their mouths when they speak. The engine has always had a message
   channel — a cat says "I want to eat!", or mews, or chirps — and the client
   has always drawn that as a speech bubble over a closed mouth. Now the cat
@@ -71,7 +116,6 @@ change.
   dart grew. The gate is otherwise untouched and still demotes an ordinary far
   chase.
 
->>>>>>> origin/main
 - A cat washing a friend stops reaching once it is standing in water. The
   groom lean is a sub-tile slide toward the friend, and `submersionFor`
   samples the *served* position — so a leaning cat was drawn where its own
@@ -87,8 +131,6 @@ change.
   washes a friend. Nothing else moved — the clip and the surface are still
   built in tile space, which is what correctly submerges a smaller kitty more
   of her body and correctly lets a leaping cat rise clear.
-<<<<<<< HEAD
-=======
 - A cat washing a friend to the north is now drawn from behind, as it was
   always meant to be. `grooming-other` has had an end-on drawing since the
   pose was built — it was given one because 54% of groom targets sit due north
@@ -106,7 +148,6 @@ change.
   every time its expression changes is untouched: this fires only while the
   served action names a partner, which is the same thing that put the cat in
   the pose.
->>>>>>> origin/main
 
 - A seated cat's rump is back on the grass. `sit` was the one tilted pose
   that stated its seat as a literal number instead of deriving it: `cy`

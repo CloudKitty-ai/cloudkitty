@@ -364,10 +364,21 @@ impl Config {
                 "must be greater than 0 and at most 100",
             ));
         }
+        // Spec 042 (Playful 2.0): the score/gate dials and comfort weights
+        // share the house finite-and-non-negative rule -- a NaN anywhere
+        // would poison the score's total order (FR-007). critter_appeal is
+        // checked separately below: either sign is a lawful preference.
+        let b = &self.behavior;
+        let cw = &b.comfort_weight;
         for (field, value) in [
             ("[behavior] urgency_weight", self.behavior.urgency_weight),
             ("[behavior] tile_cost", self.behavior.tile_cost),
             ("[behavior] water_step_cost", self.behavior.water_step_cost),
+            ("[behavior] w_value", b.w_value),
+            ("[behavior] w_busy", b.w_busy),
+            ("[behavior] w_serious", b.w_serious),
+            ("[behavior] t_self", b.t_self),
+            ("[behavior] t_partner", b.t_partner),
         ] {
             if !value.is_finite() || value < 0.0 {
                 return Err(ConfigError::invalid(
@@ -376,6 +387,37 @@ impl Config {
                     "must be a finite number of at least 0",
                 ));
             }
+        }
+        // The comfort weights are strictly positive (medium review #5):
+        // a zero weight would switch the get-serious trigger OFF for that
+        // need entirely -- beyond what any lawful playful_comfort (which
+        // must itself be > 0) could do. Down-weighting is the tool;
+        // disabling is not on the dial.
+        for (field, value) in [
+            ("[behavior.comfort_weight] eat", cw.eat),
+            ("[behavior.comfort_weight] drink", cw.drink),
+            ("[behavior.comfort_weight] sleep", cw.sleep),
+            ("[behavior.comfort_weight] play", cw.play),
+            ("[behavior.comfort_weight] cuddle", cw.cuddle),
+            ("[behavior.comfort_weight] bath", cw.bath),
+        ] {
+            if !value.is_finite() || value <= 0.0 {
+                return Err(ConfigError::invalid(
+                    field,
+                    value.to_string(),
+                    "must be a finite number greater than 0 (1.0 is the \
+                     classic unweighted check; small weights defer a need, \
+                     zero would disable its get-serious trigger outright)",
+                ));
+            }
+        }
+        if !b.critter_appeal.is_finite() {
+            return Err(ConfigError::invalid(
+                "[behavior] critter_appeal",
+                b.critter_appeal.to_string(),
+                "must be a finite number (either sign: negative means \
+                 critters are less appealing than the baseline)",
+            ));
         }
         let detour = self.behavior.worth_a_detour;
         if !(0.0..=100.0).contains(&detour) || detour.is_nan() {
@@ -676,6 +718,19 @@ impl Config {
     /// problem.
     pub(super) fn validate_actions(&self) -> Result<(), ConfigError> {
         let a = &self.actions;
+        // Spec 041 FR-005 (the owner's noisy-failure ruling): the retired
+        // shared dial is a loud error carrying its migration map -- the
+        // spec-025 pattern. Accepting it silently would run a config
+        // written for the shared-dial economy against the split one.
+        if let Some(v) = a.cuddle_relief {
+            return Err(ConfigError::invalid(
+                "[actions] cuddle_relief",
+                v.to_string(),
+                "retired by spec 041's dial split: delete it and set \
+                 rest_mutual_relief and groom_cuddle_relief explicitly \
+                 (a faithful migration carries this value into both)",
+            ));
+        }
         // Every relief dial shares one finiteness/negativity rule. Spec 025
         // built the table for the four play keys; the remaining six joined
         // 2026-08-06 (the 025 review's finding 7): before that,
@@ -693,9 +748,11 @@ impl Config {
             ("[actions] sleep_relief", a.sleep_relief),
             ("[actions] sleep_relief_sunbeam", a.sleep_relief_sunbeam),
             ("[actions] groom_relief", a.groom_relief),
-            ("[actions] cuddle_relief", a.cuddle_relief),
             ("[actions] cosleep_drip_relief", a.cosleep_drip_relief),
             ("[actions] cosleep_mutual_relief", a.cosleep_mutual_relief),
+            ("[actions] rest_mutual_relief", a.rest_mutual_relief),
+            ("[actions] rest_drip_relief", a.rest_drip_relief),
+            ("[actions] groom_cuddle_relief", a.groom_cuddle_relief),
         ] {
             if !value.is_finite() || value < 0.0 {
                 return Err(ConfigError::invalid(

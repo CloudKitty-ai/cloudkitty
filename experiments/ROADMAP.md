@@ -295,10 +295,139 @@ The fog wall is the one moment the observation schema moves cheaply, so
 anything that wants a schema bump should be decided *as a bundle* before
 that wall, not one item at a time afterwards. Running list:
 
-- **The waterline pairing rule** — tabled by the owner 2026-08-24 with
-  its groundwork banked at `waterline-pairing-rule-2026-08-24.md`.
-  Revisit when this bundle is finalized. It wants one float in
-  `KITTY_SLOT` (a neighbour's in-water bit), which is free at the wall
-  and a full five-seat retrain alone. Carries a live confound with the
-  Gen 1 vocabulary arms through `here_water`, and the doc names two ways
-  to keep that clean.
+- **The waterline: neighbour-in-water float IN; PRICE, not law** —
+  owner-redesigned 2026-08-26/27, superseding the tabled legality rule
+  (groundwork at `waterline-pairing-rule-2026-08-24.md` still holds
+  for exposure numbers, the probe design, and the F-016 analysis).
+  - **The float**: one `KITTY_SLOT` bit (neighbour in water), decided
+    IN at the wall. Load-bearing, not just informative — it is the
+    predictive input for the price below (self-in-water is already in
+    `SELF_BLOCK`).
+  - **The mechanism**: a dry cat in a partnered scene (all four kinds)
+    with an in-water partner receives the wet-fur charge as if in
+    water — own `bath_ratio`, same `bath_gain_ceiling` gate, one
+    config factor (dialable to zero). Prices over prohibitions: the
+    damp cuddle still happens at high cuddle need, which is the
+    correct economics; nothing new touches the refusal seam; the
+    groom-relief channel survives (the banked F-016 objection largely
+    dissolves — you get damp cleaning someone); the `here_water`
+    confound weakens (an invitation stays an invitation; register the
+    interaction in the arm analysis regardless).
+  - **No wet timer (owner-ruled)**: in water = wet, out = dry.
+    Persistent dampness is new kitty state with no compelling reason.
+  - Spec items: `validate_water` headroom re-check (contagion ~2×
+    worst-case exposure vs the occupancy-only budget); needflow model
+    prices it first (contagion is a one-line addition), then the
+    banked scripted-anchor probe. **needflow pricing DONE 2026-08-30**
+    (`cuddle-economy-model/RESULTS.md` §Post-041): welfare-benign at
+    every factor tried up to 1.0 on both measured exposure windows;
+    grooming absorbs the whole charge (worst case groom_other +34%,
+    groom_self +68%, everything else within ~1/1k).
+  - Owner calls remaining: activation timing (Gen 1 vs later) and the
+    factor's value. Honest note: the animation issue gets RARER, not
+    fixed — mixed pairs still occur.
+
+- **Meow-digest redesign: per-(speaker × kind) matrix** — owner-agreed
+  for the bundle 2026-08-26 (Experiments walk-through). The current
+  digest keeps only the single freshest emitter per kind
+  (`observe.rs:390`): five `here_water` calls and one produce the same
+  observation, and a second simultaneous speaker of a kind is
+  inaudible. Three fog-era decisions all raise the digest's load —
+  global audibility, the 5-cat roster, knowledge dropping from global
+  to seen — and a fourth argument is decisive: **the minds are
+  memoryless**, so repetition is information a policy cannot
+  reconstruct; if it is not a field, it does not exist.
+
+  Shape: attach a per-speaker message block to each kitty slot, two
+  fields per head kind — **recency** (the existing `1 − age/window`
+  ramp, per speaker) and **rate** (count of that speaker's calls of
+  that kind in the window, normalized by `window / cooldown` = max
+  possible). The (recency, rate) corners separate single fresh call /
+  ongoing insistence / stopped burst / silence. Per-cell dx/dy and
+  intensity are dropped — the slot already carries the emitter's
+  position. Sizing: 15 kinds × 2 × 4 slots = 120 floats, replacing the
+  60-float global digest (obs ~225 → ~285; the step-2 MLP smoke prices
+  the flat widening; the spec-030 entity tokenizer absorbs it as
+  kitty-token features). No new engine state: both fields are
+  reductions over the `recent_meows` buffer the digest already scans.
+
+  Spec-level decisions to argue there, not here: (1) **audibility
+  grants a slot; fog masks knowledge fields, not rows** — otherwise
+  vision-gated slots silence unseen speakers, defeating the redesign's
+  purpose (precedent: activity targets already get non-nearest slots);
+  (2) the window — 10 ticks suits fresh-signal handoff but repetition
+  builds over tens of ticks; lean = one somewhat longer window
+  (20–30) for both fields, one buffer, one definition of "recent";
+  (3) whether the observer gets its own row (did-I-already-call, for
+  memoryless minds) — today self-meows are deliberately excluded.
+  `HEAD_KINDS` stays frozen at 15 (reserves trill/ekekek untouched) —
+  this moves the digest's *shape*, never the kind layout (principle 5).
+
+- **Scene-age float** — owner-agreed 2026-08-26 (Experiments
+  walk-through). One float in `KITTY_SLOT` and one in `SELF_BLOCK`:
+  `activity_clock.elapsed(tick) / H`, clamped to 1; zero when no scene
+  runs. No engine change — the clock is already snapshot truth
+  (spec 006, `kitty.rs:226`); this is observe.rs arithmetic only.
+  Value: the acceptance-prediction input the slot lacks (partnered
+  flag says *that*, not *how long*), and — same memorylessness
+  argument as the digest — a mind mid-scene otherwise has no idea how
+  long its own scene has run (continuation is engine-side). **H = 24,
+  FROZEN, never derived from config at obs time**: the worst case is
+  a maxed sleep need at the highest per-kitty sleep rise,
+  100 / (sleep_relief 5.0 − Miso's 0.6) ≈ 23 ticks; deriving H live
+  would let every repricing silently rescale the observation
+  (step 1 IS a repricing). Kind-conditioned meaning comes free from
+  the adjacent activity one-hot. Under fog it is a knowledge field
+  (masks fields, not rows). **Rule jointly with the waterline float**:
+  both widen `KITTY_SLOT`, one retrain either way.
+
+- **Config hygiene: 3.0 breaks backward compatibility with all things
+  pre-3.0** — owner-ruled 2026-08-26, **and the 3.0 cutover is a
+  `--fresh` (owner, same ruling)**. Scope:
+  - Delete deprecated economy keys rather than carry them inert:
+    `cuddle_relief` (the 2.x line keeps it accepted-but-inert after
+    the step-1 split, spec-028 pattern; 3.0 removes it), play's dead
+    `max = 5`, plus whatever a struct sweep finds. Historical tomls
+    stay valid for their PINNED commits — F-028 provenance makes
+    reproduction ride git checkout, never HEAD forward-compat.
+  - Drop the section-absence serde defaults (pre-010/011/024 shims in
+    `config/mod.rs`): a 3.0 config is complete, every section
+    explicit. With `deny_unknown_fields` (kept strict throughout)
+    the config surface becomes strict in BOTH directions — a real
+    safety property ahead of a five-seat training round (the 040
+    lesson).
+  - Delete the seven pre-X snapshot restore shims in `kitty.rs` —
+    unlocked by the `--fresh` ruling; no old save crosses the wall.
+  - OUT of scope: `ACTION_SCHEMA_VERSION`/codec (frozen through the
+    fog era, principle 5; the v3-pin quirk is documented, not
+    broken), the HTTP API (the client's contract), `HEAD_KINDS`
+    layout (frozen).
+  - The discipline that makes it safe: a migration note at the wall
+    listing every removed key and formerly-optional section; every
+    config actively loaded by HEAD tooling (cert configs, collect
+    configs, lab families, `binding_continuity` fixtures) migrates in
+    the SAME PR (reddening points: the two config sweeps + the nan
+    table); `binding_continuity.py` runs at the wall — a rebuild is
+    never compiler-only.
+
+- **The F-033 seam: DECLINED, on the record** — owner-ruled
+  2026-08-26. The mask keeps probing the frozen start-of-tick
+  snapshot; a refused proposal keeps costing the full turn. Reasons,
+  so the decline is a decision and not an omission: (1) the full-turn
+  cost is load-bearing — any cheaper decline converts proposals into
+  free probes and the optimal policy spams asks, destroying the
+  when-to-propose dynamic the seam creates; (2) the bundle's other
+  items (partner needs + scene age + digest matrix) turn that dynamic
+  into a fair, learnable game rather than irreducible noise; (3) a
+  turn-semantics change re-baselines every seat's dynamics for an
+  efficiency the anchor-side proposal filter
+  (`biscuit3-design-note-2026-08-26.md`) targets behaviorally.
+  Engine-side auto-fallbacks were rejected for the same spam logic
+  plus attribution honesty (the served world must show what the
+  policy chose). **Companion item, accepted, NOT wall-gated: the
+  refusal stamp** — the engine records refusals into the event stream
+  (kitty, proposed action, tick). Additive API, zero dynamics change,
+  lands whenever convenient; motivated by the seam's real cost to
+  date being epistemic (F-032's wrong answer, the three `survived`
+  traps) — the next such question should be answerable by a census,
+  not a seam probe.

@@ -36,6 +36,23 @@ pub struct ActivityEnd {
     pub activity: Activity,
     pub started: u64,
     pub ended: u64,
+    /// Serviced ticks the scene's partner was itself settled (spec 041
+    /// FR-011): the mutual tier's emit-proof. Zero -- and absent from the
+    /// serialized form -- on every non-tiered activity; absent fields read
+    /// as zero, so pre-041 payloads and consumers are untouched. Invariant:
+    /// `mutual_ticks + drip_ticks <= span()`, the shortfall being exactly
+    /// the scene's solo (posture-only) serviced ticks.
+    #[serde(default, skip_serializing_if = "tier_count_is_zero")]
+    pub mutual_ticks: u32,
+    /// Serviced ticks the partner was merely present -- the drip tier's
+    /// emit-proof (F-029: a tier is only claimable once shown able to
+    /// emit). Same defaults and absence rules as `mutual_ticks`.
+    #[serde(default, skip_serializing_if = "tier_count_is_zero")]
+    pub drip_ticks: u32,
+}
+
+fn tier_count_is_zero(n: &u32) -> bool {
+    *n == 0
 }
 
 impl ActivityEnd {
@@ -142,9 +159,50 @@ mod tests {
                 activity: Activity::Eating,
                 started,
                 ended: started + 1,
+                mutual_ticks: 0,
+                drip_ticks: 0,
             });
         }
         assert_eq!(defaulted.len(), 1);
+    }
+
+    #[test]
+    fn a_counterless_activity_end_serializes_exactly_as_before_041() {
+        // The pinned payload is a REAL event recorded from a default-config
+        // run on the pre-041 build (2026-08-28), not a hand-written
+        // fixture: a walk, a meal, or a solo nap must serialize today
+        // exactly as it did then -- the tier counters ride only when
+        // nonzero (spec 041 FR-011, contract activity-event-tier.md).
+        let end = ActivityEnd {
+            kitty_id: 1,
+            activity: Activity::Sleeping {
+                in_sunbeam: false,
+                with_friend: None,
+            },
+            started: 0,
+            ended: 2,
+            mutual_ticks: 0,
+            drip_ticks: 0,
+        };
+        assert_eq!(
+            serde_json::to_string(&end).unwrap(),
+            r#"{"kitty_id":1,"activity":{"state":"sleeping","in_sunbeam":false},"started":0,"ended":2}"#,
+        );
+        // And the counters round-trip when present, absent fields read 0.
+        let with: ActivityEnd = serde_json::from_str(
+            r#"{"kitty_id":3,"activity":{"state":"resting","with_friend":1},"started":10,"ended":21,"mutual_ticks":9,"drip_ticks":2}"#,
+        )
+        .unwrap();
+        assert_eq!((with.mutual_ticks, with.drip_ticks), (9, 2));
+        let without: ActivityEnd = serde_json::from_str(
+            r#"{"kitty_id":1,"activity":{"state":"eating"},"started":0,"ended":2}"#,
+        )
+        .unwrap();
+        assert_eq!(
+            (without.mutual_ticks, without.drip_ticks),
+            (0, 0),
+            "pre-041 payloads deserialize with zero counters"
+        );
     }
 
     #[test]
@@ -154,6 +212,8 @@ mod tests {
             activity: Activity::Eating,
             started: 10,
             ended: 12,
+            mutual_ticks: 0,
+            drip_ticks: 0,
         };
         assert_eq!(end.span(), 3, "ticks 10, 11 and 12 were all serviced");
     }

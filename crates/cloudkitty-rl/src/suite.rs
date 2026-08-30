@@ -1509,7 +1509,7 @@ sha256 = "{sha}"
         let baseline = engine_defaults_sha256();
 
         let mut core = Config::default();
-        core.actions.cuddle_relief += 1.0;
+        core.actions.rest_mutual_relief += 1.0;
         assert_ne!(
             defaults_stamp(&core, &crate::config::RlConfig::default()),
             baseline,

@@ -420,6 +420,8 @@ impl World {
                         activity: self.kitties[idx].activity,
                         started: clock.started,
                         ended: clock.applied,
+                        mutual_ticks: clock.mutual_ticks,
+                        drip_ticks: clock.drip_ticks,
                     };
                     self.activity_log.record(end);
                     self.pending_endings.push(end);
@@ -452,12 +454,16 @@ impl World {
         }
         let pos = kitty.pos;
         let counterpart_gone = match kitty.activity {
+            // A rest companion, like a co-sleep companion, is re-filtered
+            // every serviced tick by the effects arm (spec 041) -- a
+            // wandered partner drops the scene to solo posture there, so
+            // rest has no prune entry in either shape.
             Activity::Idle
             | Activity::Eating
             | Activity::Sleeping { .. }
             | Activity::Playing { target: None }
             | Activity::Grooming { target: None }
-            | Activity::Resting { with_friend: None } => false,
+            | Activity::Resting { .. } => false,
             // (An emptied or expired bowl is the meal's own end rule, not a
             // vanished counterpart -- see resolve_activity_ends.)
             Activity::Drinking => self.adjacent_element(pos, ElementType::Water).is_none(),
@@ -469,9 +475,6 @@ impl World {
                 .unwrap_or(true),
             Activity::Playing {
                 target: Some(TargetRef::Kitty { id }),
-            } => !self.reciprocal_duet(kitty_id, id),
-            Activity::Resting {
-                with_friend: Some(id),
             } => !self.reciprocal_duet(kitty_id, id),
             Activity::Grooming { target: Some(id) } => !self.is_available_friend(kitty_id, id),
         };
@@ -1172,6 +1175,23 @@ impl World {
         self.friend_pair(me, friend)
             .map(|(a, b)| a.pos.is_adjacent(&b.pos) && b.activity_clock.is_none())
             .unwrap_or(false)
+    }
+
+    /// The shared mutual predicate (spec 041 FR-002): the kitty is itself
+    /// settled in a pile -- sleeping or resting, the contact-census
+    /// definition. The ONE definition of "mutual": co-sleep tier pricing,
+    /// warmth conduction (spec 031), and rest tier resolution all call it,
+    /// so the three can never disagree about whether a pile is mutual. The
+    /// pre-fog waterline contagion references this function (plus
+    /// `Activity::partner()`) rather than defining "partnered" a second
+    /// time -- owner-approved definition hook, 2026-08-27.
+    pub fn is_settled(&self, id: KittyId) -> bool {
+        self.kitty(id).is_some_and(|k| {
+            matches!(
+                k.activity,
+                Activity::Sleeping { .. } | Activity::Resting { .. }
+            )
+        })
     }
 
     pub fn push_element(&mut self, element: Element) {
@@ -2884,10 +2904,21 @@ mod tests {
         let idx = world.kitty_index(1).unwrap();
         world.kitties[idx].needs.add(NeedKind::Eat, 100.0);
 
-        // Kitty 1 starts eating; kitty 2 tries to cuddle it mid-meal.
+        // Kitty 1 starts eating; kitty 2 settles beside it mid-meal.
+        // Repointed at spec 041: rest binds nobody now, so a busy cat is
+        // lawfully restable-beside -- the eater's meal is untouched.
         run_slot(&mut world, &config, 1, Action::Eat);
         let enforced = run_slot(&mut world, &config, 2, Action::Rest { with: Some(1) });
-        assert_eq!(enforced, Action::Idle, "a cat mid-meal is not draftable");
+        assert_eq!(
+            enforced,
+            Action::Rest { with: Some(1) },
+            "a cat mid-meal is restable-beside (nobody is drafted)"
+        );
+        assert_eq!(
+            world.kitty(1).unwrap().activity,
+            Activity::Eating,
+            "and its meal goes on"
+        );
         close_tick(&mut world, &config);
 
         // A sleeping cat is not yanked awake to play either.
