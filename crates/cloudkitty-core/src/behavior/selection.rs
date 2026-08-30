@@ -1541,6 +1541,42 @@ mod playful2_tests {
         );
     }
 
+    /// (l2, convergence T028) FR-008's other arm: a stalled pursuit is
+    /// not re-picked however well it scores.
+    #[test]
+    fn a_stalled_pursuit_target_is_not_repicked_however_well_it_scores() {
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            world.tick = 200;
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            let f = world.kitty_index(2).unwrap();
+            world.kitties[f].pos = Position::new(5, 9);
+            let fk = world.kitty_index(2).unwrap();
+            world.kitties[fk].needs.add(NeedKind::Play, 100.0);
+            world.push_element(Element {
+                id: 707,
+                kind: ElementKind::Bug,
+                pos: Position::new(5, 12),
+                ttl: Some(300),
+            });
+        });
+        // A pursuit of that friend that has gained no ground for far
+        // longer than the patience window (default 12).
+        ctx.me.pursuit = Some(crate::kitty::Pursuit {
+            target: TargetRef::Kitty { id: 2 },
+            started: 100,
+            closest: 4,
+            improved_at: 100,
+        });
+        set_dials(&mut ctx, |b| b.w_value = 5.0);
+        assert_eq!(
+            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            Some(TargetRef::Element { id: 707 }),
+            "a hopeless chase stays hopeless, whatever the value says"
+        );
+    }
+
     /// (l) FR-008: the score never resurrects a written-off target.
     #[test]
     fn an_excluded_friend_is_not_ranked_however_well_it_scores() {

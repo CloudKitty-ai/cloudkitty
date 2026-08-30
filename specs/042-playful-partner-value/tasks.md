@@ -151,3 +151,10 @@ claim failed — find the leak, do not regenerate); stamp moved at T009
 or T024 (a skip-at-identity is missing); any green-on-arrival
 identity pin (T011a, T012g, T020c/d) failing (the defaults path
 diverged from today).
+
+---
+
+## Phase 7: Convergence
+
+- [X] T028 Add the stalled-pursuit guard at live dials in `crates/cloudkitty-core/src/behavior/selection.rs` playful2_tests: a pursuit target that has gained no ground for a whole patience window is NOT re-picked even when its value is highest at `w_value > 0` — the score must not resurrect a hopeless chase per FR-008 / tasks T015 (partial)
+- [X] T029 Add an unknown-key rejection test for `[behavior.comfort_weight]` in `crates/cloudkitty-core/src/config/mod.rs` tests: a misspelled need key (e.g. `eats = 1.5`) fails to parse loudly per FR-007 / contract §5 (partial)

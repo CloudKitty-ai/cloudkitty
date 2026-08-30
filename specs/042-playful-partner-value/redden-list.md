@@ -74,3 +74,9 @@ Smoke (T025): scripted world with w_value 1.0 / w_busy 2.0 /
 t_partner 20 / critter_appeal 5 / eat-weight 1.5 / bath-weight 0.7 —
 validated, served, ran ~2,000 ticks at 25ms; playful seat living a
 full life (sunbeam co-sleep at sample time), all seats normal.
+
+Convergence T028/T029 (2026-08-30): both keep-guards green on arrival,
+then shown red on their exact injected bugs (stalled-pursuit arm
+short-circuited -> hopeless chase re-picked; deny_unknown_fields
+dropped -> "eats" silently accepted), reverted, green. Full suite
+399 core / 62 binaries, golden untouched.

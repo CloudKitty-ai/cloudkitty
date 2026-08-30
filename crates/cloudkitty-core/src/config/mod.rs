@@ -1521,6 +1521,18 @@ mod tests {
     }
 
     #[test]
+    fn a_misspelled_comfort_weight_key_fails_loudly() {
+        // Spec 042 / contract §5 (convergence T029): the weight table is
+        // strict -- a typo'd need key must never silently feed nothing.
+        let err = toml::from_str::<ComfortWeights>("eats = 1.5")
+            .expect_err("unknown weight keys are rejected");
+        assert!(err.to_string().contains("eats"), "{err}");
+        let ok: ComfortWeights = toml::from_str("eat = 1.5").expect("real keys parse");
+        assert_eq!(ok.eat, 1.5);
+        assert_eq!(ok.bath, 1.0, "unset needs keep the identity weight");
+    }
+
+    #[test]
     fn negative_tile_cost_is_rejected() {
         let mut c = cfg();
         c.behavior.tile_cost = f32::NAN;
