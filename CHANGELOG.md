@@ -33,6 +33,23 @@ change.
 
 ## Unreleased
 
+- Playful cats now know which friend is worth the walk (spec 042, PR #325).
+  The scripted Playful behavior's play-target pick — until now purely
+  nearest-first — gained a partner-value score: how much the candidate
+  itself wants to play, less the cost of waiting out its current scene,
+  less how close it is to getting serious about something that is not
+  play, traded against distance. Two thresholds decide who the cat
+  bothers — never whether it plays; critter and solo games stay
+  unconditional, and a gated tick resolves to play, never to standing
+  around. The get-serious comfort line also weighs needs individually
+  now, so a demonstration world can make a cat food-attentive without
+  teaching it to abandon games for routine bath peaks. Every one of the
+  twelve new dials launches at its identity value and is skip-serialized
+  there: world evolution is byte-identical, the engine-defaults stamp
+  did not move, and no compatibility marker applies. Pricing belongs to
+  the joint lab campaign that gates Biscuit 3.0's demonstrations.
+
+
 - **`[stamp]`** Rest became co-sleep's sibling, and the cuddle economy went
   riders-partial (spec 041, PR #320). A cat now settles beside any adjacent
   friend — busy, sleeping, whatever — and nobody is conscripted: the old

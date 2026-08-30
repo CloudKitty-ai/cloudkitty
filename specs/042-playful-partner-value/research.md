@@ -7,7 +7,22 @@ Sources: the design note (`experiments/biscuit3-design-note-2026-08-26.md`
 in-session verification of every cited code surface (2026-08-29, on
 this branch's base e489d4b).
 
-## D1 — Rework the body of `nearest_viable_playmate`, keep its shape
+## D1 — SUPERSEDED 2026-08-30 (review #1): a separate scored pick, playful-only
+
+The original D1 rewired `nearest_viable_playmate` in place — but that
+function is shared: `choose`'s play arm (:47), `score` (:82),
+`travel_distance` (:107), and `play_action` (:335) all consume it,
+and NeedsDriven's play scoring rides `choose`. Rewiring it leaked the
+gate and score into non-playful cats (a sweep confounder byte-identity
+testing structurally cannot catch, since the dials are inert at
+defaults). Now: the classic pick is restored dial-blind for every
+shared path, and the playful behavior's play step calls its own
+`scored_playmate` via `scored_play_action`. This also preserves the
+`play_action_with`/`play_travel_distance` mirror (review #6): busy
+targets never reach the shared paths, so the one new
+`play_action_with` branch is unreachable from them.
+
+## D1-original — Rework the body of `nearest_viable_playmate`, keep its shape
 
 **Decision**: the scored ranking replaces the internals of
 `selection::nearest_viable_playmate` (`behavior/selection.rs:247`),
@@ -23,7 +38,18 @@ truth for the same question); moving selection into `playful.rs`
 (rejected — the shared `selection` module is the house home for
 target choice, and needs_driven's play path uses the same fns).
 
-## D2 — Candidate admission: busy friends enter only when `w_value > 0`
+## D2 — Candidate admission: busy friends enter only when `w_value > 0` (now spec FR-012)
+
+**2026-08-30 amendments**: promoted to spec FR-012 (review #8 — it was
+plan-only). Known dial-space hazard, documented not coded (review #3):
+at `w_value > 0` with `w_busy = 0`, waiting is free — an adjacent
+mid-scene friend can win every re-scan and absorb the game in
+solo-play-beside for its whole scene while a free friend nearby goes
+unchased. `w_busy` is the counterweight and the sweep prices it; the
+toml/contract guidance says to raise them together. `t_partner`'s
+identity is NO BAR (review #2): the eligibility test applies only when
+the threshold is raised above zero, so negative values under live
+`w_serious`/`w_busy` stay ranking costs, never vetoes.
 
 **Decision**: free friends and critters are always candidates
 (exactly today's set); a mid-scene friend is admitted to the ranking
@@ -65,9 +91,14 @@ veto partner play by out-scoring on distance.
   `score = critter_appeal − distance` (clarify ruling 3: standalone,
   unscaled).
 - `expected_wait` = `(scene_min − elapsed).max(0)` in ticks, from the
-  partner's `ActivityClock` (`kitty.rs`, `elapsed()` :239-ish) and
+  partner's `ActivityClock` and
   `Activity::bounds(&config.actions.durations).min`; 0 for a free
-  friend.
+  friend. **A heuristic, not a promise** (review #7): `elapsed` is
+  the inclusive F-031 count (`tick − started + 1`); a boundless
+  activity (bounds `None`) waits 0; and only held-min scenes (true
+  play duets) honor the estimate exactly — prunable scenes may end
+  sooner, rest degrades to solo instead of ending. `w_busy` prices
+  the estimate; the sweep prices `w_busy`.
 - Ordering: `max` by `score` via `f32::total_cmp`, ties by the
   existing ascending `(manhattan_distance, tag 0=critter/1=friend,
   id)` — today's exact `min_by_key` order, moved behind the score. At
@@ -114,9 +145,10 @@ routine bath 30–40) makes a global comfort a blunt tool.
 ## D7 — Validation
 
 **Decision**: appended inside the existing `validate_behavior`
-(spec-020 section order untouched): the three `w_*`, both `t_*`, and
-all six comfort weights must be finite and ≥ 0; `critter_appeal`
-must be finite (either sign — "less appealing than baseline" is a
+(spec-020 section order untouched): the three `w_*` and both `t_*`
+must be finite and ≥ 0; the six comfort weights must be finite and
+**strictly positive** (2026-08-30, review #5 — zero would disable
+that need's trigger); `critter_appeal` must be finite (either sign — "less appealing than baseline" is a
 meaningful sweep direction). Errors name `[behavior] <field>` /
 `[behavior.comfort_weight] <need>`.
 

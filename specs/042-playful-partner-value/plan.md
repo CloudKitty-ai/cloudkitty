@@ -61,11 +61,14 @@ sources (validation rejects non-finite dials)
 *GATE: evaluated against constitution v1.2.0.*
 
 - **Article I (no suffering)**: PASS — needs, distress, safeguard and
-  happiness machinery untouched; the comfort weights read pressures
-  only inside one scripted behavior's play/serious trigger, and the
-  weighted check can only make a cat *more* attentive to a weighted
-  need, never bypass the engine's welfare guarantees (which never
-  depended on behavior choices).
+  happiness machinery untouched. The gate rests on one clause only
+  (2026-08-30 rewrite, review #5): the engine's welfare guarantees
+  never depended on behavior choices — relief spawning, distress
+  recording, and the happiness floor are engine-side whatever a
+  behavior does. Down-weighting CAN make a playful cat less prompt on
+  a need (that is US2/AC2's point), which is why the weights are
+  validated strictly positive: deferral is on the dial, disabling a
+  need's trigger is not.
 - **Article II (kitties cannot die)**: PASS — no surface touched.
 - **Article III (never alone)**: PASS — no roster surface touched.
 - **Article IV (engine is the law)**: PASS — behaviors still only
@@ -118,7 +121,14 @@ cloudkitty.toml             # commented documentation block only —
                             #   no keys added, served config byte-unchanged
 ```
 
-**Structure Decision**: behavior-crate feature with a config surface;
+**Structure Decision** (amended 2026-08-30, review #1): the scored
+pick is its own function (`scored_playmate`/`scored_play_action`),
+called by the playful behavior's play path alone; the shared classic
+`nearest_viable_playmate` — consumed by NeedsDriven's play scoring,
+`play_travel_distance`, and the serious path — is dial-blind, which
+also keeps the `play_action_with`/`play_travel_distance` mirror
+intact (review #6: busy targets never reach the shared paths).
+Behavior-crate feature with a config surface;
 no new modules, crates, events, or endpoints. RL, server, and client
 untouched by construction.
 

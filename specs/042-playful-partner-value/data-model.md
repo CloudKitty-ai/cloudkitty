@@ -14,7 +14,7 @@ one candidate pipeline, and twelve config dials.
 
 `distance` = Manhattan distance as f32 (exact for grid sizes).
 
-## 2. The candidate pipeline (replaces the min-by-distance pick)
+## 2. The candidate pipeline (the playful behavior's own pick — 2026-08-30: the shared classic nearest-pick survives dial-blind for every other consumer)
 
 1. **Admission**: free friends + critters always (today's exact set);
    mid-scene friends iff `w_value > 0` (plan §Complexity; research
@@ -55,9 +55,9 @@ needs (verified: the need identity was already discarded there).
 | `w_busy` | 0.0 | expected-wait penalty per tick | finite, ≥ 0 |
 | `w_serious` | 0.0 | top non-play pressure penalty | finite, ≥ 0 |
 | `t_self` | 0.0 | own play need floor for bothering any friend | finite, ≥ 0 |
-| `t_partner` | 0.0 | per-friend value floor for eligibility | finite, ≥ 0 |
+| `t_partner` | 0.0 | per-friend value floor for eligibility; **0.0 = no bar at all** (a negative value under live w_busy/w_serious is a ranking cost, never a veto) | finite, ≥ 0 |
 | `critter_appeal` | 0.0 | standalone critter score offset | finite (either sign) |
-| `comfort_weight.{eat,drink,sleep,play,cuddle,bath}` | 1.0 each | per-need multiplier inside the playful get-serious trigger only | finite, ≥ 0 |
+| `comfort_weight.{eat,drink,sleep,play,cuddle,bath}` | 1.0 each | per-need multiplier inside the playful get-serious trigger only | finite, **> 0** (zero would disable the trigger for that need) |
 
 Serialization: every field `skip_serializing_if` at its identity, so
 `Config::default()` serializes byte-identically to today and
