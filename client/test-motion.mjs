@@ -2020,6 +2020,28 @@ check('the seated leg dials: paws where the photos put them, width dialled for t
   close(CatV2.GROOM_OTHER.legW, 0.04, 'GROOM_OTHER.legW moved');
 });
 
+check('the seated hind foot sits where the owner dialled it', () => {
+  // Hand-dialled by the owner 2026-08-30 in the lab's four-paws card, at the
+  // camera's own tile sizes. Pinned because an unpinned dial is one careless
+  // bake from reverting -- the same reason `pounceGateTiles` got a pin before
+  // it was allowed to move.
+  //
+  // The TOE is the only one of the four anyone chooses freely; the hock end
+  // is derived by `seatLeg` off the body outline. So the toe carries the
+  // constraint: past ~0.53 it shares ink with the foreleg at `foreX` 0.66,
+  // both being on the ground at the same height with round caps.
+  close(CatV2.SIT.toeX, 0.51, 'SIT.toeX moved -- the toe is the owner\'s dial');
+  close(CatV2.SIT.hockX, 0.325, 'SIT.hockX moved');
+  close(CatV2.SIT.footW, 0.075, 'SIT.footW moved');
+  close(CatV2.SIT.inset, 0.01, 'SIT.inset moved');
+
+  // The constraint the toe is dialled against, asserted rather than trusted:
+  // the painted edges must not meet. Half-widths plus the outline on each.
+  const clear = (CatV2.SIT.foreX - CatV2.SIT.toeX)
+    - ((CatV2.SIT.footW + CatV2.OUTLINE_W) / 2 + (CatV2.SIT.foreW + CatV2.OUTLINE_W) / 2);
+  assert(clear > 0, `the seated toes share ink with the foreleg (${clear.toFixed(4)} of a tile)`);
+});
+
 // A third attachment mode -- "the limb is fully inside the body, never drawn"
 // -- landed with the sit seat fix on 2026-08-24 and was REMOVED the same day,
 // once `sit`'s hind foot lay down along the ground (see the SIT note).

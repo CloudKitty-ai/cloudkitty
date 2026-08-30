@@ -2141,7 +2141,7 @@ const FAR_LEGS = {
  * honest attachment and the honest anatomy are the same line.
  */
 const SIT = {
-  hockX: 0.315, // where the foot passes under the body; hidden from here back
+  hockX: 0.325, // where the foot passes under the body; hidden from here back
   // The toes stop 0.03 of a tile clear of the foreleg's painted edge -- about
   // a paw's width of grass between them, which is what both photographs show.
   // Closer and they share ink: the two are at the same height, both on the
@@ -2149,7 +2149,7 @@ const SIT = {
   // - 0.03 lands here.
   toeX: 0.51,
   footW: 0.075, // slimmer than the foreleg (0.095), as the photos have it
-  inset: 0.012, // how far the hock tucks up inside the silhouette
+  inset: 0.01, // how far the hock tucks up inside the silhouette
   foreX: 0.66, // the straight foreleg a sitting cat is mostly recognised by
   foreHx: 0.63,
   foreTop: 0.58,
