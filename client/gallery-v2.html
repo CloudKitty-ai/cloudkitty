@@ -852,6 +852,45 @@
    * nobody sees. 57 and 103 are the camera's ends; 50 is a crowded phone. */
   const SIT_FOOT_TILES = [50, 57, 103];
 
+  /** The groom ruling, still open: does the seated hind foot lie down in the
+   * GROOM poses too, the way it now does in `sit`?
+   *
+   * `tilePx` and `lieDown` are viewing controls; `footInset` is the one
+   * number the change would actually add, so it is dialled here. */
+  const GROOM_FOOT_LAB = { tilePx: 103, lieDown: 1, footInset: 0.01 };
+
+  /** The proposal, as the SMALLEST possible change: the hind foot's `top`
+   * derived off the body outline instead of stated, every x left exactly
+   * where the photo reference put it.
+   *
+   * That is the whole of what makes a foot lie along the ground -- `seatLeg`
+   * does the same thing for `sit`. It is deliberately not the bigger option
+   * (moving the hock back to sit's 0.325, which lengthens the foot but walks
+   * back a placement taken from three photographs, and which the seated-leg
+   * check pins against exactly that).
+   *
+   * NOT a no-op on `sit`, though sit already derives: sit does it inside the
+   * pose switch, BEFORE `proportionLayout` rescales, and this can only work
+   * from the finished body one step later. Sit's own shift is therefore the
+   * card's offset, which the other two are read against. */
+  const layFoot = (L, inset) => {
+    L.legs = L.legs.map((leg) => {
+      if (leg.limb !== 'hind') return leg;
+      const hx = leg.hx ?? leg.x;
+      const under = CatV2.bodyUnderAt(L.body, hx);
+      return under === null ? leg : { ...leg, top: under - inset };
+    });
+    return L;
+  };
+
+  /** A hind leg's angle off the horizontal, in degrees. 90 is a peg. */
+  const hindAngle = (L) => {
+    const hind = L.legs.filter((l) => !l.far && l.limb === 'hind')[0];
+    if (!hind) return 0;
+    const hx = hind.hx ?? hind.x;
+    return Math.abs(Math.atan2(hind.bottom - hind.top, hind.x - hx) * 180 / Math.PI);
+  };
+
   /** `sit`'s hind leg as it was drawn before 2026-08-24 -- a short vertical
    * peg under the rump.
    *
@@ -3285,6 +3324,90 @@
           ctx.fillStyle = '#6b7280';
           ctx.fillText(`${(worstRun(L) * T * dpr).toFixed(1)}px shown`, cx, groundY + 32);
           x += T * 1.5;
+        }
+        ctx.textAlign = 'left';
+      },
+    },
+    {
+      title: 'The groom hind foot — the folded hock that ships, and the foot lying down (RULING OPEN)',
+      note: 'OPEN QUESTION, 2026-08-30: `sit` now rests on the whole metatarsus. Do the GROOM poses too? They are the same animal in the same attitude, and their bodies are tilted almost identically — grooming sits at rot -0.60 against sit\'s -0.40, and the underside profiles differ by hundredths. What differs is the LEG: sit derives its hock end off that underside, so the foot comes out where the body actually is and lies along the grass; grooming STATES a top of 0.68 while its own underside at the same x is 0.864, which is what draws the steep folded hock. The right-hand cat of each pair is the smallest change that would fix it — the top derived, every x left exactly where the photo reference put it. It is deliberately NOT the bigger option of moving the hock back to sit\'s 0.325: that lengthens the foot, but it walks back a placement taken from three photographs, and the seated-leg check pins those x values against exactly that. Judge it at 103px for the shape and then drop the tile to 57 and 50, because a foot that reads at camera-top can vanish at camera-bottom. SIT is here to CALIBRATE the card, not as an untouched control: sit already derives, but it derives inside the pose switch, BEFORE `proportionLayout` rescales the layout — this card can only derive from the finished body, one step later, so it moves sit too, 65 becomes 17 for grooming while sit goes 7 to 4. That ~3 degrees is the card\'s own offset, and grooming\'s shift is twenty times it, which is what makes the comparison decisive rather than an artefact of where the card stands in the pipeline.',
+      v2Only: true,
+      w: 940,
+      h: 330,
+      ownShadows: true,
+      bag: GROOM_FOOT_LAB,
+      dials: [
+        { key: 'footInset', label: 'footInset — how far the hock tucks up inside the silhouette (the one number this would ADD)', min: 0, max: 0.04, step: 0.002 },
+        { key: 'tilePx', label: 'tile — lab only; judge at 103, then 57, then 50', min: 40, max: 120, step: 1 },
+      ],
+      toggles: [
+        { key: 'lieDown', label: 'lay the foot down (right-hand cat of each pair) — lab only' },
+      ],
+      readout() {
+        const rows = ['grooming', 'grooming-other', 'sit'].map((pose) => {
+          let ships = 0;
+          let laid = 0;
+          for (let i = 0; i < 24; i += 1) {
+            ships = Math.max(ships, hindAngle(CatV2.catLayout(pose, i / 24)));
+            laid = Math.max(laid, hindAngle(layFoot(CatV2.catLayout(pose, i / 24), GROOM_FOOT_LAB.footInset)));
+          }
+          // Sit CALIBRATES the card rather than sitting still in it: it
+          // derives pre-proportion and this card derives post-, so it moves a
+          // little too. Its shift is the offset to read the others against.
+          const tag = pose === 'sit' ? '   <- calibration: the card\'s own offset' : '';
+          return `  ${pose.padEnd(15)} ships ${ships.toFixed(0).padStart(2)}deg   laid down ${laid.toFixed(0).padStart(2)}deg${tag}`;
+        });
+        return (
+          `steepest hind foot over 24 phases, 90deg is a peg:\n`
+          + `${rows.join('\n')}\n`
+          + `footInset ${GROOM_FOOT_LAB.footInset}   (tile ${GROOM_FOOT_LAB.tilePx}px, lieDown ${GROOM_FOOT_LAB.lieDown} -- viewing aids)\n`
+          + `RULING OPEN: this card proposes nothing until she says so.`
+        );
+      },
+      draw(ctx, w, h, now) {
+        const T = GROOM_FOOT_LAB.tilePx;
+        const phase = (now % 4200) / 4200;
+        const groundY = h - 54;
+
+        ctx.strokeStyle = 'rgba(107, 90, 78, 0.45)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(10, groundY + 0.5);
+        ctx.lineTo(w - 10, groundY + 0.5);
+        ctx.stroke();
+
+        const cols = [];
+        for (const pose of ['grooming', 'grooming-other', 'sit']) {
+          cols.push({ pose, laid: false });
+          if (GROOM_FOOT_LAB.lieDown) cols.push({ pose, laid: true });
+        }
+        const span = cols.length * T * 1.4;
+        let x = (w - span) / 2;
+        ctx.font = '11px ui-monospace, monospace';
+        ctx.textAlign = 'center';
+        for (const col of cols) {
+          const L = col.laid
+            ? layFoot(CatV2.catLayout(col.pose, phase), GROOM_FOOT_LAB.footInset)
+            : CatV2.catLayout(col.pose, phase);
+          const cx = x + T * 0.7;
+
+          ctx.save();
+          ctx.globalAlpha = 0.3;
+          ctx.fillStyle = '#4a3f35';
+          ctx.beginPath();
+          ctx.ellipse(cx, groundY - 2, T * 0.34, T * 0.1, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+
+          CatV2.paintBox(ctx, L, CatV2.appearanceFor(PUMPKIN), {
+            facing: 'right', size: T, x: cx - T / 2, y: groundY - T * CatV2.CAT_GROUND,
+          });
+
+          ctx.fillStyle = col.laid ? '#4a3f35' : '#9c5a3c';
+          ctx.fillText(`${col.pose} \u00b7 ${col.laid ? 'laid down' : 'ships'}`, cx, groundY + 18);
+          ctx.fillStyle = '#6b7280';
+          ctx.fillText(`${hindAngle(L).toFixed(0)}\u00b0 off the ground`, cx, groundY + 32);
+          x += T * 1.4;
         }
         ctx.textAlign = 'left';
       },
