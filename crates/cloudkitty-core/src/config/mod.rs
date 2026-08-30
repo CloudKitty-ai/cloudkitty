@@ -1507,6 +1507,15 @@ mod tests {
                 assert!(msg.contains(name), "{poison} in {name}: {msg}");
             }
         }
+        // Comfort weights are strictly positive: zero would disable the
+        // get-serious trigger for that need (medium review #5).
+        let mut c = cfg();
+        c.behavior.comfort_weight.eat = 0.0;
+        let msg = c
+            .validate()
+            .expect_err("a zero weight is rejected")
+            .to_string();
+        assert!(msg.contains("comfort_weight] eat"), "{msg}");
         // critter_appeal: non-finite rejected, negative accepted.
         for poison in [f32::NAN, f32::INFINITY] {
             let mut c = cfg();
@@ -2473,6 +2482,22 @@ mod tests {
         assert!(!json.contains("pounce"), "{json}");
         // And for the greeble schedule flag (FR-015).
         assert!(!json.contains("dart"), "{json}");
+        // Spec 042 (medium review #4): all twelve Playful 2.0 dials ride
+        // the same discipline -- a dropped or mistyped skip attribute on
+        // any of them moves the stamp silently and mints the re-baseline
+        // debt the inert launch exists to avoid. Delete one skip and its
+        // line here reddens.
+        for key in [
+            "w_value",
+            "w_busy",
+            "w_serious",
+            "t_self",
+            "t_partner",
+            "critter_appeal",
+            "comfort_weight",
+        ] {
+            assert!(!json.contains(key), "{key} leaked into the stamp: {json}");
+        }
     }
 
     #[test]

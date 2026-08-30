@@ -53,6 +53,28 @@ Evidence is banked and needs no re-deriving: the design note, F-033
   is its appeal minus distance, untouched by `w_value`; each dial
   moves exactly one thing in the sweep.
 
+### Session 2026-08-30 (medium-review reconciliation)
+
+- The busy-friend admission rule is now a requirement, not a plan
+  aside (review #8): a mid-scene friend enters the ranking **only
+  while `w_value` is above zero** — at the identity default the value
+  term is dead, there is no anticipatory signal to act on, and the
+  classic hard busy-filter stands (the byte-identity witness).
+  `w_value` therefore carries two documented effects: it scales
+  friend valuation, and it switches busy-friend admission.
+- The score and gate are scoped to the **playful behavior's own play
+  path** (review #1): the shared classic nearest-pick that other
+  behaviors and the serious path consume ignores every dial, so the
+  sweep can never silently move a non-playful cat.
+- `t_partner` at its identity 0.0 is **no bar at all** (review #2):
+  once `w_busy`/`w_serious` are live a friend's value can go
+  negative, and an un-raised threshold must not convert those ranking
+  costs into a veto. The bar applies only when raised above zero.
+- Comfort weights are **strictly positive** (review #5): a zero
+  weight would disable the get-serious trigger for that need outright
+  — beyond what any lawful comfort line (itself > 0) could do.
+  Down-weighting defers a need; disabling is not on the dial.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A playful cat picks partners by worth, not just distance (Priority: P1)
@@ -176,7 +198,9 @@ alone in a scratch config and observe only its own effect.
    byte-identical to the pre-change build.
 2. **Given** any single dial moved in a config, **When** the config
    loads, **Then** it validates (finite, in-range values) and only
-   that dial's documented effect changes.
+   that dial's documented effect(s) change — `w_value` documents two
+   (valuation scale and busy-friend admission, FR-012); every other
+   dial documents one.
 3. **Given** a malformed value (negative where nonsensical, or a
    non-finite number) on any new dial, **When** the config loads,
    **Then** it is rejected with an error naming the field.
@@ -225,8 +249,10 @@ alone in a scratch config and observe only its own effect.
 
 ### Functional Requirements
 
-- **FR-001**: The playful behavior's play-target selection MUST rank
-  every candidate friend by a partner-value score combining, per
+- **FR-001**: The playful behavior's play-target selection — and ONLY
+  the playful behavior's; the shared nearest-pick other behaviors
+  consume MUST ignore every dial (2026-08-30 reconciliation) — MUST
+  rank every candidate friend by a partner-value score combining, per
   candidate: the candidate's own play need; a wait cost for a
   mid-scene candidate (how long until its scene could end, zero for a
   free candidate, never negative); a seriousness cost for a candidate
@@ -244,7 +270,9 @@ alone in a scratch config and observe only its own effect.
 - **FR-003**: Partner play MUST be gated by two thresholds acting as
   an **eligibility filter** (clarified 2026-08-29): a friend is
   eligible only when the cat's own play need meets the self threshold
-  AND that friend's value meets the partner threshold; ineligible
+  AND — when the partner threshold is raised above its identity zero
+  (2026-08-30: zero is no bar, never a veto on negative values) —
+  that friend's value meets it; ineligible
   friends are dropped from the ranking, and the pick is the
   best-scoring of eligible friends and critters. Critter and solo
   play MUST remain unconditional — the thresholds gate who the cat
@@ -295,6 +323,13 @@ alone in a scratch config and observe only its own effect.
   where the unweighted check would not trip, and the reverse; for the
   gates: a zero-need adjacent friend left in peace in favor of
   critter/solo play).
+
+- **FR-012** (2026-08-30 reconciliation, review #8): A mid-scene
+  friend MUST enter the candidate ranking only while `w_value` is
+  above zero (anticipatory approach exists only when the value signal
+  it serves does); at the identity default the classic hard
+  busy-filter MUST stand unchanged. Chase bookkeeping (FR-008)
+  applies to both picks.
 
 ### Key Entities
 

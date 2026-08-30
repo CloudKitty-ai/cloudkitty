@@ -80,3 +80,32 @@ then shown red on their exact injected bugs (stalled-pursuit arm
 short-circuited -> hopeless chase re-picked; deny_unknown_fields
 dropped -> "eats" silently accepted), reverted, green. Full suite
 399 core / 62 binaries, golden untouched.
+
+## Medium-review remediation (2026-08-30, 8 findings)
+
+- #1 SCOPE LEAK (the real catch): the scored pick had rewired the
+  SHARED nearest_viable_playmate — NeedsDriven's play scoring would
+  have moved at sweep dials. Guard
+  `the_shared_classic_pick_ignores_every_dial` seen RED on the leak,
+  green after the split into classic pick (dial-blind, shared) +
+  `scored_playmate`/`scored_play_action` (playful-only). Also
+  resolves #6 (travel-distance mirror) structurally.
+- #2 t_partner identity: guard
+  `an_unraised_t_partner_never_vetoes_a_negative_value_friend` green,
+  then RED on the injected old eligibility (bar applied at 0.0),
+  reverted.
+- #4 stamp guard automated: the twelve dials joined
+  `roam_cell_stays_out_of_the_default_serialization`; shown RED by
+  dropping w_busy's skip attribute ("w_busy leaked into the stamp"),
+  reverted.
+- #5 comfort weights strictly positive (+ zero-weight rejection
+  test); plan's Article I rationale rewritten onto its sound clause.
+- #3 park-beside-busy at w_busy=0: documented (contract §Sweep
+  guidance + toml), not coded — dial-space behavior the sweep prices.
+- #7 expected_wait: heuristic status + F-031 inclusive-elapsed note
+  documented in research D4 and the fn doc.
+- #8 admission rule promoted to spec FR-012; US3/AC2 wording carries
+  w_value's two documented effects.
+
+Post-remediation: 401 core tests, 62/62 binaries, golden ×3 green,
+stamp identical, clippy clean.

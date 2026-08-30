@@ -379,6 +379,21 @@ impl Config {
             ("[behavior] w_serious", b.w_serious),
             ("[behavior] t_self", b.t_self),
             ("[behavior] t_partner", b.t_partner),
+        ] {
+            if !value.is_finite() || value < 0.0 {
+                return Err(ConfigError::invalid(
+                    field,
+                    value.to_string(),
+                    "must be a finite number of at least 0",
+                ));
+            }
+        }
+        // The comfort weights are strictly positive (medium review #5):
+        // a zero weight would switch the get-serious trigger OFF for that
+        // need entirely -- beyond what any lawful playful_comfort (which
+        // must itself be > 0) could do. Down-weighting is the tool;
+        // disabling is not on the dial.
+        for (field, value) in [
             ("[behavior.comfort_weight] eat", cw.eat),
             ("[behavior.comfort_weight] drink", cw.drink),
             ("[behavior.comfort_weight] sleep", cw.sleep),
@@ -386,11 +401,13 @@ impl Config {
             ("[behavior.comfort_weight] cuddle", cw.cuddle),
             ("[behavior.comfort_weight] bath", cw.bath),
         ] {
-            if !value.is_finite() || value < 0.0 {
+            if !value.is_finite() || value <= 0.0 {
                 return Err(ConfigError::invalid(
                     field,
                     value.to_string(),
-                    "must be a finite number of at least 0",
+                    "must be a finite number greater than 0 (1.0 is the \
+                     classic unweighted check; small weights defer a need, \
+                     zero would disable its get-serious trigger outright)",
                 ));
             }
         }

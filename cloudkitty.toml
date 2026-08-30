@@ -368,6 +368,7 @@ playful_comfort = 55.0
 # t_partner = 0.0       # per-friend value floor (eligibility filter)
 # critter_appeal = 0.0  # standalone critter score offset (either sign)
 # [behavior.comfort_weight]   # per-need multipliers, get-serious trigger ONLY
+#                             #   (strictly > 0; pair w_busy with w_value)
 # eat = 1.0
 # drink = 1.0
 # sleep = 1.0

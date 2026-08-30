@@ -81,7 +81,7 @@ impl Playful {
         // rules (viability, give-up, the solo backstop) live in `selection`.
         // (The chase-announce lottery died in spec 028: the shared announce
         // rule speaks WantPlay whenever it is genuinely armed and legal.)
-        selection::play_action(ctx)
+        selection::scored_play_action(ctx)
     }
 }
 

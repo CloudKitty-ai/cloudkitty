@@ -237,20 +237,53 @@ fn play_travel_distance(ctx: &DecisionContext, playmate: Option<(TargetRef, Posi
     }
 }
 
-/// The playmate worth pursuing -- critter or fellow kitty -- by the
-/// spec-042 partner-value ranking. At the all-identity dial defaults this
-/// is bit-for-bit the classic pick: everyone scores `-distance`, and the
-/// tie order (distance, critters-before-kitties, id) decides, so critters
-/// still win distance ties.
+/// The nearest playmate still worth pursuing -- critter or fellow kitty --
+/// ordered by (distance, critters-before-kitties, id) so the choice is
+/// stable. THE CLASSIC PICK: this is what NeedsDriven's play scoring, the
+/// serious path's `choose`, and `play_travel_distance` consume, and it
+/// ignores every spec-042 dial by design (medium review #1: the score is
+/// scoped to the playful behavior's own play path -- `scored_playmate` --
+/// so the sweep's dials can never move a non-playful cat).
+///
+/// A candidate stops being viable while it sits in `abandoned_chases`, or
+/// while it is the current pursuit target that has gained no ground in
+/// `chase_patience_ticks` (a chase that is not working -- as opposed to
+/// one that is merely long).
+pub fn nearest_viable_playmate(ctx: &DecisionContext) -> Option<(TargetRef, Position)> {
+    let me = &ctx.me;
+
+    let critters = ctx.world.critters().map(|e| {
+        (
+            TargetRef::Element { id: e.id },
+            e.pos,
+            0u8, // critters win distance ties: bugs are more fun than bothering a friend
+            e.id,
+        )
+    });
+    let friends = ctx
+        .world
+        .others(me.id)
+        .map(|k| (TargetRef::Kitty { id: k.id }, k.pos, 1u8, k.id));
+
+    critters
+        .chain(friends)
+        .filter(|(target, _, _, _)| is_viable(ctx, *target))
+        .min_by_key(|(_, pos, tag, id)| (me.pos.manhattan_distance(pos), *tag, *id))
+        .map(|(target, pos, _, _)| (target, pos))
+}
+
+/// The playful behavior's playmate, by the spec-042 partner-value ranking.
+/// At the all-identity dial defaults this is bit-for-bit the classic pick:
+/// everyone scores `-distance`, and the tie order (distance,
+/// critters-before-kitties, id) decides, so critters still win distance
+/// ties.
 ///
 /// The pipeline (data-model.md §2): admission -> eligibility -> ranking.
-/// A candidate stops being admissible while it sits in `abandoned_chases`,
-/// or while it is the current pursuit target that has gained no ground in
-/// `chase_patience_ticks` -- the score never resurrects a written-off
-/// target (FR-008). Selection is a stateless re-scan every decision tick
-/// (FR-010): a candidate whose value collapsed mid-journey is simply
-/// re-ranked next tick.
-pub fn nearest_viable_playmate(ctx: &DecisionContext) -> Option<(TargetRef, Position)> {
+/// Chase bookkeeping applies unchanged -- the score never resurrects a
+/// written-off target (FR-008). Selection is a stateless re-scan every
+/// decision tick (FR-010): a candidate whose value collapsed mid-journey
+/// is simply re-ranked next tick.
+pub fn scored_playmate(ctx: &DecisionContext) -> Option<(TargetRef, Position)> {
     let me = &ctx.me;
     let b = &ctx.config.behavior;
     let my_play = me.needs.get(NeedKind::Play);
@@ -281,15 +314,29 @@ pub fn nearest_viable_playmate(ctx: &DecisionContext) -> Option<(TargetRef, Posi
 
     critters
         .chain(friends)
-        .filter(|(target, _, _, _, _)| is_viable(ctx, *target))
+        // Admission: chase bookkeeping always applies; a mid-scene friend
+        // is admitted for anticipatory approach only while the value dial
+        // is live (research D2 -- at identity defaults the value term is
+        // dead, there is no anticipatory signal to act on, and the classic
+        // hard busy-filter stands: the byte-identity witness).
+        .filter(|(target, _, _, _, _)| {
+            chase_bookkeeping_allows(ctx, *target)
+                && match target {
+                    TargetRef::Kitty { id } => !kitty_is_mid_scene(ctx, *id) || b.w_value > 0.0,
+                    TargetRef::Element { .. } => true,
+                }
+        })
         // The eligibility filter (spec 042, owner-clarified): the
         // thresholds decide who is worth bothering, so a failing friend
         // drops out of the ranking entirely -- a nearby indifferent
         // friend can never veto partner play by out-scoring on distance.
         // Critters are never filtered: critter and solo play stay
-        // unconditional (the character).
+        // unconditional (the character). t_partner at its identity 0.0 is
+        // NO BAR at all (medium review #2): value can go negative once
+        // w_busy/w_serious are live, and an un-raised threshold must not
+        // convert those ranking costs into a hard veto.
         .filter(|(_, _, _, _, value)| match value {
-            Some(v) => my_play >= b.t_self && *v >= b.t_partner,
+            Some(v) => my_play >= b.t_self && (b.t_partner <= 0.0 || *v >= b.t_partner),
             None => true,
         })
         .max_by(|(_, p1, tag1, id1, v1), (_, p2, tag2, id2, v2)| {
@@ -327,9 +374,13 @@ fn partner_value(ctx: &DecisionContext, k: &crate::kitty::Kitty) -> f32 {
     play_need - b.w_busy * expected_wait(ctx, k) - b.w_serious * top_non_play
 }
 
-/// Ticks until a mid-scene kitty could be free: its scene's configured
-/// minimum less the ticks already served, never negative -- a scene past
-/// its minimum could end any tick. A free kitty waits zero.
+/// Ticks until a mid-scene kitty could be free -- a HEURISTIC, exact only
+/// for scenes that actually hold their minimum: the configured minimum
+/// less the ticks already served (inclusive, F-031's +1 convention),
+/// never negative -- a scene past its minimum could end any tick, a
+/// prunable scene may end sooner, and a boundless activity (or a free
+/// kitty) waits zero. w_busy prices this estimate; the sweep prices
+/// w_busy.
 fn expected_wait(ctx: &DecisionContext, k: &crate::kitty::Kitty) -> f32 {
     let Some(clock) = k.activity_clock else {
         return 0.0;
@@ -354,23 +405,30 @@ fn play_score(ctx: &DecisionContext, value: Option<f32>, pos: Position) -> f32 {
 }
 
 fn is_viable(ctx: &DecisionContext, target: TargetRef) -> bool {
-    let tick = ctx.world.tick;
-    if ctx.me.is_chase_excluded(target, tick) {
+    if !chase_bookkeeping_allows(ctx, target) {
         return false;
     }
     // A kitty mid-activity cannot be conscripted into play (spec 006):
     // proposing it would only validate to Idle, and counting it viable at
     // distance 0 would suppress the solo-play backstop for as long as its
-    // scene runs. Since spec 042 a live value dial admits a mid-scene
-    // friend for anticipatory APPROACH (the wait is priced by w_busy, and
-    // `play_action_with` still never proposes to it while busy) -- at the
-    // identity defaults the value term is dead, there is no anticipatory
-    // signal to act on, and today's hard filter stands (research D2, the
-    // byte-identity witness).
+    // scene runs. Busy friends become playmates again when their scene
+    // ends. (The playful behavior's scored pick has its own, dial-gated
+    // admission rule -- see `scored_playmate`.)
     if let TargetRef::Kitty { id } = target {
-        if kitty_is_mid_scene(ctx, id) && ctx.config.behavior.w_value <= 0.0 {
+        if kitty_is_mid_scene(ctx, id) {
             return false;
         }
+    }
+    true
+}
+
+/// The chase bookkeeping every candidate set honors (FR-008): exclusion
+/// after a give-up, and a stalled current pursuit. Shared by the classic
+/// and scored picks so neither can resurrect a written-off target.
+fn chase_bookkeeping_allows(ctx: &DecisionContext, target: TargetRef) -> bool {
+    let tick = ctx.world.tick;
+    if ctx.me.is_chase_excluded(target, tick) {
+        return false;
     }
     if let Some(pursuit) = &ctx.me.pursuit {
         let patience = ctx.config.behavior.chase_patience_ticks;
@@ -431,6 +489,13 @@ pub fn wait_for_them(ctx: &DecisionContext) -> Action {
 /// backstop that makes play (like bath and sleep) satisfiable anywhere.
 pub fn play_action(ctx: &DecisionContext) -> Action {
     play_action_with(ctx, nearest_viable_playmate(ctx))
+}
+
+/// The playful behavior's play step (spec 042): [`play_action`] over the
+/// partner-value ranking instead of the classic nearest pick. Only the
+/// playful behavior calls this -- the dials never move anyone else.
+pub fn scored_play_action(ctx: &DecisionContext) -> Action {
+    play_action_with(ctx, scored_playmate(ctx))
 }
 
 /// [`play_action`] against a playmate scan the caller already ran -- how
@@ -1212,7 +1277,7 @@ mod playful2_tests {
             });
         });
         assert_eq!(
-            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            scored_playmate(&ctx).map(|(t, _)| t),
             Some(TargetRef::Element { id: 700 }),
             "critters win distance ties, exactly as today"
         );
@@ -1233,7 +1298,7 @@ mod playful2_tests {
         });
         set_dials(&mut ctx, |b| b.w_value = 5.0);
         assert_eq!(
-            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            scored_playmate(&ctx).map(|(t, _)| t),
             Some(TargetRef::Kitty { id: 7 }),
             "worth beats distance"
         );
@@ -1260,7 +1325,7 @@ mod playful2_tests {
             b.t_partner = 20.0;
         });
         assert_eq!(
-            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            scored_playmate(&ctx).map(|(t, _)| t),
             Some(TargetRef::Element { id: 701 }),
             "the friend is ineligible; the game goes to the critter"
         );
@@ -1289,7 +1354,7 @@ mod playful2_tests {
             b.t_self = 50.0; // my own play need is far below this
         });
         assert_eq!(
-            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            scored_playmate(&ctx).map(|(t, _)| t),
             Some(TargetRef::Element { id: 702 }),
             "no friend is eligible when my own urge is not real"
         );
@@ -1316,7 +1381,7 @@ mod playful2_tests {
             b.t_partner = 20.0;
         });
         assert_eq!(
-            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            scored_playmate(&ctx).map(|(t, _)| t),
             Some(TargetRef::Kitty { id: 7 }),
             "the bar filters candidates; it is not a veto held by the best scorer"
         );
@@ -1343,7 +1408,7 @@ mod playful2_tests {
             b.w_busy = 30.0;
         });
         assert_eq!(
-            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            scored_playmate(&ctx).map(|(t, _)| t),
             Some(TargetRef::Kitty { id: 7 }),
             "waiting costs; the free friend wins"
         );
@@ -1370,7 +1435,7 @@ mod playful2_tests {
         };
         let ctx = decision_context(stage);
         assert_eq!(
-            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            scored_playmate(&ctx).map(|(t, _)| t),
             Some(TargetRef::Element { id: 703 }),
             "defaults: the busy friend is not a candidate (today's behavior)"
         );
@@ -1383,7 +1448,7 @@ mod playful2_tests {
         });
         set_dials(&mut ctx, |b| b.w_value = 1.0);
         assert_eq!(
-            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            scored_playmate(&ctx).map(|(t, _)| t),
             Some(TargetRef::Kitty { id: 2 }),
             "a live value dial admits the soon-free friend for approach"
         );
@@ -1411,7 +1476,7 @@ mod playful2_tests {
             b.w_serious = 1.0;
         });
         assert_eq!(
-            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            scored_playmate(&ctx).map(|(t, _)| t),
             Some(TargetRef::Kitty { id: 7 }),
             "the hungry friend is about to get serious -- leave it be"
         );
@@ -1434,7 +1499,7 @@ mod playful2_tests {
             b.w_serious = 1.0;
         });
         assert_eq!(
-            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            scored_playmate(&ctx).map(|(t, _)| t),
             Some(TargetRef::Kitty { id: 2 }),
             "play pressure is value, never a penalty"
         );
@@ -1462,7 +1527,7 @@ mod playful2_tests {
         let mut ctx = decision_context(stage);
         set_dials(&mut ctx, |b| b.w_value = 0.1);
         assert_eq!(
-            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            scored_playmate(&ctx).map(|(t, _)| t),
             Some(TargetRef::Kitty { id: 2 }),
             "friend 10-5=5 beats critter 0-3=-3: w_value moved only the friend"
         );
@@ -1473,7 +1538,7 @@ mod playful2_tests {
             b.critter_appeal = 9.0;
         });
         assert_eq!(
-            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            scored_playmate(&ctx).map(|(t, _)| t),
             Some(TargetRef::Element { id: 704 }),
             "critter 9-3=6 beats friend 5: appeal is its own unscaled axis"
         );
@@ -1527,7 +1592,7 @@ mod playful2_tests {
                 b.w_value = 1.0;
                 b.t_partner = 20.0;
             });
-            nearest_viable_playmate(&ctx).map(|(t, _)| t)
+            scored_playmate(&ctx).map(|(t, _)| t)
         };
         assert_eq!(
             stage(60.0),
@@ -1538,6 +1603,64 @@ mod playful2_tests {
             stage(0.0),
             Some(TargetRef::Element { id: 705 }),
             "tick n+1, need serviced by someone else: the pick moves on"
+        );
+    }
+
+    /// (n, medium-review #2) t_partner's identity is NO BAR: a friend
+    /// whose value goes negative under live w_serious/w_busy is a ranking
+    /// cost, never a hard veto, until t_partner is actually raised.
+    #[test]
+    fn an_unraised_t_partner_never_vetoes_a_negative_value_friend() {
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            let f = world.kitty_index(2).unwrap();
+            world.kitties[f].pos = Position::new(5, 8);
+            let fk = world.kitty_index(2).unwrap();
+            world.kitties[fk].needs.add(NeedKind::Play, 40.0);
+            world.kitties[fk].needs.add(NeedKind::Eat, 80.0); // value 40-80 = -40
+        });
+        set_dials(&mut ctx, |b| {
+            b.w_value = 1.0;
+            b.w_serious = 1.0; // t_partner stays 0.0
+        });
+        assert_eq!(
+            scored_playmate(&ctx).map(|(t, _)| t),
+            Some(TargetRef::Kitty { id: 2 }),
+            "penalized in the ranking, not dropped from it"
+        );
+    }
+
+    /// (m, medium-review #1) Scope: the spec-042 score belongs to the
+    /// PLAYFUL behavior's play path alone. The shared classic pick --
+    /// which NeedsDriven's play scoring and the serious path consume --
+    /// must ignore every dial, or the sweep's dials silently move
+    /// non-playful cats.
+    #[test]
+    fn the_shared_classic_pick_ignores_every_dial() {
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            let f = world.kitty_index(2).unwrap();
+            world.kitties[f].pos = Position::new(5, 6); // adjacent, need 0
+            world.push_element(Element {
+                id: 708,
+                kind: ElementKind::Bug,
+                pos: Position::new(5, 12),
+                ttl: Some(100),
+            });
+        });
+        set_dials(&mut ctx, |b| {
+            b.w_value = 5.0;
+            b.t_partner = 20.0;
+            b.t_self = 50.0;
+        });
+        assert_eq!(
+            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            Some(TargetRef::Kitty { id: 2 }),
+            "the classic pick is nearest-first whatever the dials say"
         );
     }
 
@@ -1571,7 +1694,7 @@ mod playful2_tests {
         });
         set_dials(&mut ctx, |b| b.w_value = 5.0);
         assert_eq!(
-            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            scored_playmate(&ctx).map(|(t, _)| t),
             Some(TargetRef::Element { id: 707 }),
             "a hopeless chase stays hopeless, whatever the value says"
         );
@@ -1601,7 +1724,7 @@ mod playful2_tests {
         });
         set_dials(&mut ctx, |b| b.w_value = 5.0);
         assert_eq!(
-            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            scored_playmate(&ctx).map(|(t, _)| t),
             Some(TargetRef::Element { id: 706 }),
             "exclusion outranks any score"
         );
