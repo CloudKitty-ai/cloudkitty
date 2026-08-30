@@ -40,6 +40,7 @@ CONFIG = Path(__file__).resolve().parents[2] / "cloudkitty.toml"
 def econ_from_config(path=CONFIG):
     cfg = tomllib.loads(Path(path).read_text())
     a = cfg["actions"]
+    w = cfg.get("water", {})
     return dict(
         rise=dict(cfg["needs"]),
         eat=a["eat_relief"], drink=a["drink_relief"],
@@ -47,12 +48,19 @@ def econ_from_config(path=CONFIG):
         cosleep_drip=a["cosleep_drip_relief"],
         cosleep_mutual=a["cosleep_mutual_relief"],
         groom=a["groom_relief"],
-        groom_cuddle=a["cuddle_relief"],      # the shared dial's groom-rider site
-        rest_cuddle=a["cuddle_relief"],       # ...and its rest-duet site
-        rest_passive=0.0,                     # availability mode only
+        groom_cuddle=a["groom_cuddle_relief"],  # spec 041 split the shared dial
+        rest_cuddle=a["rest_mutual_relief"],
+        rest_passive=a["rest_drip_relief"],
         rest_play_drip=0.0,
         play_duet=a["play_relief"], play_solo=a["solo_play_relief"],
-        rest_mode="conscript",                # engine today: is_conscriptable_friend
+        rest_mode="availability",             # engine post-041: two-tier rest
+        # Waterline contagion (pre-fog bundle candidate, priced here before
+        # any spec). wet_gain/wet_ceiling are the engine's occupancy-charge
+        # dials; the served config has no [water] table, so engine defaults.
+        wet_gain=w.get("bath_gain", 3.5),
+        wet_ceiling=w.get("bath_gain_ceiling", 60.0),
+        contagion=0.0,                        # proposed factor; 0.0 = today
+        wet_p={},                             # kind -> P(cross-waterline | scene-tick)
         dur={k: (v["min"], v["max"]) for k, v in a["durations"].items()},
     )
 
@@ -83,6 +91,9 @@ def sim(overrides=None, ticks=30000, seed=7):
     if overrides:
         econ.update(overrides)
     rng = random.Random(seed)
+    wet_rng = random.Random(seed + 1)   # own stream: keeps the main rng
+                                        # aligned across contagion arms, so
+                                        # arm-vs-baseline diffs are treatment
     cats = [Cat(i) for i in range(NCATS)]
     q_out = 1.0 / ADJ_SPELL
     q_in = q_out * P_ADJ / (1.0 - P_ADJ)
@@ -165,6 +176,20 @@ def sim(overrides=None, ticks=30000, seed=7):
         if partner is not None:
             for k, r in pp.items():
                 partner.needs[k] = max(0.0, partner.needs[k] - r)
+        if partner is not None and econ["contagion"] > 0.0:
+            # With the measured cross-waterline probability for this kind,
+            # one member (whoever loiters near water) is wet and the DRY one
+            # pays contagion x bath_gain, ceiling-gated like the engine's
+            # occupancy charge. bath_ratio is 1 under global rates (real
+            # seats span 0.5-2.0x); the wet member's own occupancy charge is
+            # unmodeled, as is all water occupancy in the baseline. The
+            # chooser stays charge-blind: incumbents never priced it, and
+            # the scripted ladder's stance is the anchor probe's question.
+            if wet_rng.random() < econ["wet_p"].get(sc["kind"], 0.0):
+                dry = cat if wet_rng.random() < 0.5 else partner
+                if dry.needs["bath"] < econ["wet_ceiling"]:
+                    dry.needs["bath"] = min(
+                        100.0, dry.needs["bath"] + econ["contagion"] * econ["wet_gain"])
         sc["elapsed"] += 1
         mn, mx = dur_of[sc["kind"]]
         who, k = primary[sc["kind"]]
@@ -238,19 +263,28 @@ def sim(overrides=None, ticks=30000, seed=7):
                 idle_share_of_free=round(idle_ticks / max(1, free_ticks), 3))
 
 
-SCENARIOS = {
-    "baseline (served config)": {},
-    "A+B only: play drip on conscripted rest, riders saturating": {
-        "rest_play_drip": 0.25},
-    "C+D only: riders partial, rest stays conscript": {
-        "cosleep_drip": 0.25, "cosleep_mutual": 0.6, "groom_cuddle": 0.5},
-    "sibling: riders partial + rest availability two-tier": {
-        "cosleep_drip": 0.25, "cosleep_mutual": 0.6, "groom_cuddle": 0.5,
-        "rest_mode": "availability", "rest_passive": 0.25},
-    "sibling + play drip 0.25 (is the drip needed?)": {
-        "cosleep_drip": 0.25, "cosleep_mutual": 0.6, "groom_cuddle": 0.5,
-        "rest_mode": "availability", "rest_passive": 0.25, "rest_play_drip": 0.25},
+# Cross-waterline share of pair-ticks, per paired kind: the two measured
+# windows from waterline-pairing-rule-2026-08-24.md (magnitude swings 3x
+# window to window; both are carried rather than averaged). rest_avail
+# borrows co-sleep's share -- rest emitted zero scenes pre-041, so it has
+# no measured window of its own.
+EXPOSURE = {
+    "low":  {"cosleep": .064, "groom_other": .090, "play_duet": .000,
+             "rest_avail": .064},
+    "high": {"cosleep": .086, "groom_other": .250, "play_duet": .069,
+             "rest_avail": .086},
 }
+
+SCENARIOS = {
+    "baseline (served post-041 sibling config)": {},
+    "pre-041 economy (retired; continuity check vs RESULTS.md)": {
+        "cosleep_drip": 3.0, "cosleep_mutual": 8.0, "groom_cuddle": 8.0,
+        "rest_cuddle": 8.0, "rest_passive": 0.0, "rest_mode": "conscript"},
+}
+for exp in ("low", "high"):
+    for f in (0.25, 0.5, 1.0):
+        SCENARIOS[f"contagion {f} x {exp} exposure"] = {
+            "contagion": f, "wet_p": EXPOSURE[exp]}
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
