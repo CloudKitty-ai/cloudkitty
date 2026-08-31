@@ -1879,3 +1879,18 @@ parked Here*-teacher likely collapses into "the scripted behaviors
 with the knob armed" (plan §8, owner's read pending); and exp-003's
 0.2% channel sat 40× under the cliff, not 5× — its failure was never
 a near-miss.
+
+**A1b addendum (2026-08-31, owner-routed, declared before
+collection)**: a fifth arm at period 2 (realized share 7.61% — the
+cooldown compression again) lands mid-transition: emission RATE
+fluent (73.6/1k vs source 76.9) but placement half-right
+(opportunity-use .35–.56, msg@1 on here-rows .691). So the shape is a
+steep transition, not a pure step: mute ≤ 5.6%, half-fluent at 7.6%,
+fluent at 8.2% — the whole rise inside ~2.6 points of corpus share.
+A 0.57-point share difference (A1b→A1) buying +.14–.24 of use hints
+raw share may not be the only driver (period 1 is also the most
+regular context); one clone per arm, so the shape is the claim, not
+the decimals. Decision unchanged: period 1 dominates — period 2's
+corpus is barely smaller and strictly worse placed. act@1 .8009
+(flat), rewards byte-identical (gate zero holds for the fifth arm at
+all 25 paired seeds).

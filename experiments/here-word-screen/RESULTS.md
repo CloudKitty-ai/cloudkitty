@@ -18,8 +18,13 @@ spoke no want-word, the fraction the clone predicts K):
 |---|---|---|---|---|---|---|---|
 | A0 | off | 0.000 | .0000 | .0000 | .0000 | .0000 | — (0 rows) |
 | A1 | 1 | 8.176 | **.5814** | **.7516** | **.8028** | **.6806** | **.8748** |
+| A1b | 2 | 7.607 | .3453 | .5343 | .5600 | .4755 | .6906 |
 | A2 | 4 | 5.561 | .0027 | .0000 | .0000 | .0033 | .0039 |
 | A3 | 16 | 2.363 | .0000 | .0005 | .0007 | .0014 | .0043 |
+
+(A1b is the owner-routed 2026-08-31 addendum — declared before
+collection, same paired seeds, same recipe; see the declaration's
+addendum section.)
 
 Predicted emission per 1k val rows vs the scripted source (the F-022
 comparison shape):
@@ -27,14 +32,15 @@ comparison shape):
 | arm | source here/1k | clone here/1k |
 |---|---|---|
 | A1 | 82.4 (16.0/24.5/22.9/19.1) | 84.5 (15.4/25.7/24.1/19.3) — tracks per kind |
+| A1b | 76.9 | 73.6 — RATE tracks, placement degraded (use ~.5) |
 | A2 | 55.9 | 0.3 |
 | A3 | 23.5 | 0.3 |
 
 A1's clone speaks the register at source rate and in source
-proportions. A2's and A3's clones are functionally mute in it — three
-orders of magnitude under their sources — despite A2's corpus carrying
-5.6% here-words, over a full percentage point of density for each of
-the four kinds.
+proportions. A1b's speaks at rate but only half in place. A2's and
+A3's clones are functionally mute — three orders of magnitude under
+their sources — despite A2's corpus carrying 5.6% here-words, over a
+full percentage point of density for each of the four kinds.
 
 ## Predictions scored (pre-registered §7)
 
@@ -44,29 +50,39 @@ the four kinds.
 2. **Monotone realized share — CONFIRMED** (8.18 / 5.56 / 2.36% at
    periods 1/4/16; ladder compressed by per-kind cooldowns, A1:A3 ≈
    3.5× not 16×).
-3. **Threshold, not gradient — the SHAPE is confirmed, the LOCATION
-   was wrong.** Learning is a cliff: near-total on one side (.58–.80
-   use), near-zero on the other (≤.0033) with nothing in between. But
-   the cliff sits **between 5.6% and 8.2% corpus share**, not near the
-   hypothesized ~1%. The F-022 anchor points (0.2% → mute; purr-rich
-   ≈10% → fluent) never bracketed the middle; this screen did, and the
-   middle belongs to the mute side.
-4. **act@1 unchanged — CONFIRMED**: .7986 / .7991 / .8010 / .8037
-   (A0→A3). The vocabulary costs no action learning at any density.
+3. **Threshold, not gradient — half confirmed, twice revised.** The
+   LOCATION was wrong: mute persists up to 5.6% corpus share, not
+   ~1%. And with A1b the SHAPE resolves finer: not a pure step but a
+   steep transition — mute at ≤ 5.6%, half-fluent at 7.6% (use ~.5),
+   fluent at 8.2% — the entire rise packed into ~2.6 points of
+   share. The F-022 anchors (0.2% → mute; purr-rich ≈10% → fluent)
+   never bracketed the middle; this screen did.
+4. **act@1 unchanged — CONFIRMED**: .7986–.8037 across all five arms
+   (A1b .8009). The vocabulary costs no action learning at any
+   density.
 5. **Welfare null — CONFIRMED, stronger than null**: `reward.npy`
    byte-identical across arms at all 25 seeds (gate zero makes the
    charge exactly zero; F-026 report-only satisfied).
 
-## Reading
+## Reading (revised with A1b, 2026-08-31)
 
 - **A workable density exists and it is period 1.** 8.2% corpus share
   teaches all four kinds with zero action-fidelity and zero welfare
-  cost. The knob's aggressive end is the only end that works under
-  this recipe.
-- **The dial's middle is dead.** Period 4 supplies 5.6% and buys
-  nothing. Combined with the cooldown-compressed ladder (the ceiling
-  is only ~8%), the usable range of `announce_here` for corpus
-  seeding is effectively binary: 1 or off.
+  cost.
+- **The transition is steep, not a step** (A1b's revision of the
+  first write-up's "binary dial"): period 2's 7.61% yields PARTIAL
+  competence — emission rate fluent (73.6/1k vs source 76.9), but
+  placement roughly half-right (use ~.5, msg@1|here .69). Mute below
+  ~6%, half-fluent at 7.6%, fluent at 8.2%: the whole transition
+  fits inside ~2.6 points of corpus share. Striking within it: a
+  0.57-point share difference (A1b→A1) buys +.14–.24 of use — which
+  hints the driver may not be raw share alone (period 1's every-
+  legal-tick regularity is also the most predictable context), one
+  clone per arm, so read the shape, not the decimals.
+- **Period 4 and below buy nothing.** Combined with the
+  cooldown-compressed ladder (ceiling ~8%), the usable settings are
+  period 1 (fluent) and period 2 (degraded, no compensating benefit
+  — the corpus is barely smaller). Period 1 dominates.
 - **The Here\*-teacher collapse (plan §8) is now supported**: the
   existing scripted behaviors with `announce_here = 1` produce a
   corpus a V4 clone learns the register from. The parked teacher item
