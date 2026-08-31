@@ -2108,6 +2108,24 @@ const FAR_LEGS = {
   // number -- and one of the two far legs it carries has no near leg in
   // front of it to be read against.
   grooming: -0.04,
+  // Sit, 2026-08-30. It had NO entry, and `GAIT.spread` is 0, so the far pair
+  // drew exactly behind the near one and the pose the four-paws work is named
+  // after was rendering TWO legs. The owner spotted it from the drawing: the
+  // groom feet read longer than sit's, and the reason was that theirs are the
+  // union of two offset legs while sit's was one leg drawn twice.
+  //
+  // SMALLER than either groom's, and it has to be. Sit is the tightest pose
+  // in the vocabulary: its foreleg is the widest anywhere (`foreW` 0.095
+  // against the grooms' 0.05) and its toe already sits close to it, so the
+  // shipped gap is 5.1px at a 57px tile against the grooms' 6.0px. Every
+  // 0.005 of offset spends about 0.9px of it. At grooming-other's -0.025 the
+  // gap is 0.9px; at -0.03 the painted edges meet. -0.02 leaves 1.7px, the
+  // level the owner is already accepting on grooming-other.
+  //
+  // The room to go further is in `SIT.toeX` and `SIT.foreW`, both dialled in
+  // the lab's four-paws card: toe 0.50 with foreW 0.085 buys 4.3px at this
+  // offset, which is grooming's level.
+  sit: -0.02,
   // Social grooming carries two mirrored PAIRS -- both forepaws are down --
   // so unlike self-grooming it goes through `withFarPair` and needs only the
   // one number. Trimmed to -0.025: this pose plants all four paws in a narrow
@@ -3474,7 +3492,7 @@ function catLayout(pose, phase, opts = {}) {
       L.legs = withFarPair([
         { ...hock, x: SIT.toeX },
         { x: SIT.foreX, hx: SIT.foreHx, top: SIT.foreTop, bottom: CAT_GROUND, w: SIT.foreW },
-      ], GAIT.spread, L.body.cx);
+      ], FAR_LEGS.sit, L.body.cx);
       L.tail = { x0: 0.17, y0: 0.79, c1x: 0.34, c1y: 0.93, c2x: 0.62, c2y: 0.93, x1: 0.76, y1: 0.85 };
       break;
     }

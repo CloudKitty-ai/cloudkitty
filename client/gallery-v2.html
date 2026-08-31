@@ -841,11 +841,16 @@
    * too, so a toe moved here moves it everywhere a seated cat appears. A
    * foot judged only in its own card is judged against nothing. */
   const SIT_FOOT_LAB = { showPeg: 1 };
-  for (const k of ['toeX', 'hockX', 'footW', 'inset']) {
+  for (const k of ['toeX', 'hockX', 'footW', 'inset', 'foreW']) {
     Object.defineProperty(SIT_FOOT_LAB, k, {
       get: () => CatV2.SIT[k], set: (v) => { CatV2.SIT[k] = v; }, enumerable: true,
     });
   }
+  // The far-leg offset lives in FAR_LEGS, not SIT, but it is dialled here
+  // because it trades against the same gap `toeX` and `foreW` do.
+  Object.defineProperty(SIT_FOOT_LAB, 'farLegs', {
+    get: () => CatV2.FAR_LEGS.sit, set: (v) => { CatV2.FAR_LEGS.sit = v; }, enumerable: true,
+  });
 
   /** The tile sizes the CAMERA actually draws. Not a zoom: judge the foot at
    * the size it will be seen at, or the dial is set against a magnification
@@ -3328,6 +3333,8 @@
         { key: 'hockX', label: 'hock — where the foot passes under the body; behind this it is hidden by the rump', min: 0.24, max: 0.42, step: 0.005 },
         { key: 'footW', label: 'foot weight (the foreleg is 0.095; the photos have the hind a little slimmer)', min: 0.04, max: 0.12, step: 0.005 },
         { key: 'inset', label: 'how far the hock tucks up inside the silhouette', min: 0, max: 0.04, step: 0.002 },
+        { key: 'farLegs', label: 'FAR PAIR — writes FAR_LEGS.sit; how far the far legs shift toward the centre. At 0 they hide exactly behind the near pair, which is what sit did until 2026-08-30', min: -0.05, max: 0, step: 0.005 },
+        { key: 'foreW', label: 'foreleg width — the widest leg in the vocabulary, and where the room for a far offset comes from', min: 0.05, max: 0.12, step: 0.005 },
       ],
       toggles: [
         { key: 'showPeg', label: 'draw the peg it replaces, beside it — lab only, never pasted' },
@@ -3342,7 +3349,8 @@
         });
         return (
           `SIT.toeX ${CatV2.SIT.toeX}   hockX ${CatV2.SIT.hockX}`
-          + `   footW ${CatV2.SIT.footW}   inset ${CatV2.SIT.inset}\n`
+          + `   footW ${CatV2.SIT.footW}   inset ${CatV2.SIT.inset}`
+          + `   foreW ${CatV2.SIT.foreW}   FAR_LEGS.sit ${CatV2.FAR_LEGS.sit}\n`
           + `shortest visible limb run, worst of 24 phases:\n`
           + `${lines.join('\n')}\n`
           + `sit, all four paws: ${pawRead('sit', 57)}\n`

@@ -2035,6 +2035,27 @@ check('the seated hind foot sits where the owner dialled it', () => {
   close(CatV2.SIT.footW, 0.075, 'SIT.footW moved');
   close(CatV2.SIT.inset, 0.01, 'SIT.inset moved');
 
+  // Sit drew its far pair EXACTLY behind the near one until 2026-08-30:
+  // `GAIT.spread` is 0 and FAR_LEGS carried no `sit`, so the pose the
+  // four-paws work is named after was rendering two legs. Owner ruled it
+  // should have one like the grooms.
+  close(CatV2.FAR_LEGS.sit, -0.02, 'FAR_LEGS.sit moved -- sit is back to drawing two legs');
+  assert(CatV2.FAR_LEGS.sit < 0, 'the sit far pair must shift toward the body centre, not away');
+
+  // The DIAL is not the drawing. Pointing sit's `withFarPair` back at
+  // `GAIT.spread` -- which is 0 -- leaves the constant above untouched and
+  // every check green while the far pair vanishes behind the near one again.
+  // So assert the LAYOUT: the two hind legs must land at different x.
+  for (const phase of [0, 0.25, 0.5, 0.75]) {
+    const legs = CatV2.catLayout('sit', phase).legs.filter((l) => l.limb === 'hind');
+    assert(legs.length === 2, `sit drew ${legs.length} hind legs at phase ${phase}, not 2`);
+    const [a, b] = legs;
+    assert(
+      Math.abs(a.x - b.x) > 0.001,
+      `sit's far hind is drawn on top of its near one at phase ${phase} -- two legs, not four`,
+    );
+  }
+
   // The constraint the toe is dialled against, asserted rather than trusted:
   // the painted edges must not meet. Half-widths plus the outline on each.
   const clear = (CatV2.SIT.foreX - CatV2.SIT.toeX)
