@@ -369,7 +369,16 @@ that wall, not one item at a time afterwards. Running list:
   ticks, exact value pinned at spec time as a small integer multiple
   of the measured per-kind cooldowns** (one buffer, one definition of
   "recent"; long enough for repetition/regularity to register —
-  F-034's A1b hints regularity carries learnable signal); (3) **the
+  F-034's A1b hints regularity carries learnable signal).
+  **Supersession note (2026-08-31)**: this breaks the served config's
+  documented identity `recent_window_ticks` ≡ per-kind cooldown ≡ 10
+  ("one live digest entry per kind per emitter, never sooner" — the
+  old single-emitter digest's honesty coupling). The spec must
+  DECOUPLE: the cooldown stays 10 (the speech economy, incl. F-034's
+  density ladder, depends on it) and the digest window becomes its
+  own field. The coupling's end is also what makes the rate field
+  meaningful at all — under window ≡ cooldown, at most one call fits
+  the window and rate collapses into recency; (3) **the
   observer gets its own (recency, rate) block** (+30 floats in
   SELF_BLOCK: did-I-already-call is unreconstructable for a
   memoryless mind, and perceiving everyone's insistence except your
