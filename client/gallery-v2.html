@@ -868,29 +868,38 @@
   // NARROWED there on 2026-08-24, from 0.07, and width is the only lever that
   // opens the four-paws gap. So the card opens at the widths asked for and
   // prints what they cost, rather than choosing for her.
-  const GROOM_FOOT_LAB = {
-    tilePx: 103,
-    lieDown: 1,
-    // The owner's first pass, 2026-08-30, dialled in this card. She ruled the
-    // laid-down geometry better than what ships and gave these to tune from,
-    // so they are what the card opens on -- a pasted value that only lives in
-    // a chat message is a value that has to be dialled again next session.
-    footInset: 0.004,
-    hindW: 0.06,
-    foreW: 0.095,
-    // SHIFTS, not absolute positions, and they start at zero. The two poses
-    // are parameterised differently -- GROOM states an absolute hip
-    // (`hindHx` 0.46) while GROOM_OTHER states a rake measured from the paw
-    // (`hindRake` -0.1) -- so one pair of absolute dials cannot drive both
-    // without silently moving one of them. A shift keeps each pose's own
-    // photo reference as the origin and moves them together, and zero means
-    // exactly where the three photographs put it.
-    toeShift: -0.01,
-    hockShift: -0.07,
+  // The draft SHIPPED on 2026-08-30, so these dials drive the shipped poses
+  // now rather than a proposal column. `hockShift`/`toeShift` stay SHIFTS,
+  // over bases captured once at load, because the two poses sit 0.01 apart
+  // and a single absolute dial would silently close that gap. Zero is what
+  // ships. The widths and the inset are the same number in both poses, so
+  // those write straight through.
+  const GROOM_BASE = {
+    hockX: [CatV2.GROOM.hockX, CatV2.GROOM_OTHER.hockX],
+    toeX: [CatV2.GROOM.toeX, CatV2.GROOM_OTHER.toeX],
   };
+  const GROOM_FOOT_LAB = { tilePx: 103, lieDown: 1, toeShift: 0, hockShift: 0 };
+  for (const [key, base] of [['hockShift', 'hockX'], ['toeShift', 'toeX']]) {
+    let held = 0;
+    Object.defineProperty(GROOM_FOOT_LAB, key, {
+      get: () => held,
+      set: (v) => {
+        held = v;
+        CatV2.GROOM[base] = GROOM_BASE[base][0] + v;
+        CatV2.GROOM_OTHER[base] = GROOM_BASE[base][1] + v;
+      },
+      enumerable: true,
+    });
+  }
+  for (const k of ['hindW', 'foreW', 'footInset']) {
+    Object.defineProperty(GROOM_FOOT_LAB, k, {
+      get: () => CatV2.GROOM[k],
+      set: (v) => { CatV2.GROOM[k] = v; CatV2.GROOM_OTHER[k] = v; },
+      enumerable: true,
+    });
+  }
   // Sit is drawn on this card, so it is dialled on this card: the same four
-  // as its own, writing into the same shipped `SIT`. Tuning the groom foot
-  // against a sit you cannot reach is tuning against a memory.
+  // as its own, writing into the same shipped `SIT`.
   for (const [k, src] of [['sitToeX', 'toeX'], ['sitHockX', 'hockX'],
     ['sitFootW', 'footW'], ['sitInset', 'inset']]) {
     Object.defineProperty(GROOM_FOOT_LAB, k, {
@@ -898,49 +907,43 @@
     });
   }
 
-  /** The proposal, as the SMALLEST possible change: the hind foot's `top`
-   * derived off the body outline instead of stated, every x left exactly
-   * where the photo reference put it.
+
+  /** The FOLDED HOCK the groom poses drew until 2026-08-30, replayed.
    *
-   * That is the whole of what makes a foot lie along the ground -- `seatLeg`
-   * does the same thing for `sit`. It is deliberately not the bigger option
-   * (moving the hock back to sit's 0.325, which lengthens the foot but walks
-   * back a placement taken from three photographs, and which the seated-leg
-   * check pins against exactly that).
-   *
-   * NOT a no-op on `sit`, though sit already derives: sit does it inside the
-   * pose switch, BEFORE `proportionLayout` rescales, and this can only work
-   * from the finished body one step later. Sit's own shift is therefore the
-   * card's offset, which the other two are read against. */
-  const layFoot = (L, o) => {
-    L.legs = L.legs.map((leg) => {
-      if (leg.limb !== 'hind') return { ...leg, w: o.foreW ?? leg.w };
-      const hx = (leg.hx ?? leg.x) + (o.hockShift || 0);
-      const under = CatV2.bodyUnderAt(L.body, hx);
-      const top = under === null ? leg.top : under - o.footInset;
-      return { ...leg, hx, x: leg.x + (o.toeShift || 0), top, w: o.hindW ?? leg.w };
-    });
+   * The laid-down foot is what ships now, so the card's before-column has to
+   * rebuild the old one. Old widths too (0.05/0.05 and 0.04), because they
+   * went up with the same change -- a before-column that keeps the new widths
+   * would be comparing one variable while claiming to compare the pose.
+   * `hindX`/`hindHx`/`hindTop` and `hindRake` are still on the dials, kept
+   * precisely so this replays the RULE rather than remembering numbers. */
+  const foldedHock = (pose, phase) => {
+    const L = CatV2.catLayout(pose, phase);
+    if (pose === 'grooming') {
+      const G = CatV2.GROOM;
+      const far = CatV2.FAR_LEGS.grooming;
+      L.legs = [
+        {
+          x: G.hindX + far, hx: G.hindHx + far, top: G.hindTop,
+          bottom: CatV2.CAT_GROUND, w: 0.05, far: true, limb: 'hind',
+        },
+        ...L.legs.filter((l) => l.limb === 'fore').map((l) => ({ ...l, w: 0.05 })),
+        {
+          x: G.hindX, hx: G.hindHx, top: G.hindTop,
+          bottom: CatV2.CAT_GROUND, w: 0.05, limb: 'hind',
+        },
+      ];
+      return L;
+    }
+    const G = CatV2.GROOM_OTHER;
+    L.legs = CatV2.withFarPair([
+      CatV2.seatLeg(L.body, G.hindX, { rake: G.hindRake, w: 0.04, limb: 'hind', inset: 0.03 }),
+      CatV2.seatLeg(L.body, G.foreX, { rake: G.foreRake, w: 0.04, limb: 'fore', inset: 0.03 }),
+    ], CatV2.FAR_LEGS['grooming-other'], 0.42);
     return L;
   };
 
-  /** Which dials the laid-down column is drawn with.
-   *
-   * SIT GETS ITS OWN. The groom shifts and widths are a proposal about the
-   * GROOM legs; applying them to sit as well drew a sit that was neither what
-   * ships nor what its dials say, and it silently moved the moment the groom
-   * numbers were dialled -- which is exactly what happened once the owner's
-   * first pass was baked in. Sit's laid-down column is now sit's own dials,
-   * derived off the finished body: what SIT.inset actually asks for. */
-  const footOptsFor = (pose) => (pose === 'sit'
-    ? {
-      footInset: CatV2.SIT.inset,
-      hindW: CatV2.SIT.footW,
-      foreW: CatV2.SIT.foreW,
-      toeShift: 0,
-      hockShift: 0,
-    }
-    : GROOM_FOOT_LAB);
 
+  /** A hind leg's angle off the horizontal, in degrees. 90 is a peg. */
   /** The tightest gap between two legs that are NOT a depth pair, worst of 24
    * phases, in tile units. Negative means the painted edges overlap and the
    * cluster reads as one shape -- which is the whole four-paws failure. */
@@ -958,7 +961,6 @@
     return g;
   };
 
-  /** A hind leg's angle off the horizontal, in degrees. 90 is a peg. */
   const hindAngle = (L) => {
     const hind = L.legs.filter((l) => !l.far && l.limb === 'hind')[0];
     if (!hind) return 0;
@@ -3407,8 +3409,8 @@
       },
     },
     {
-      title: 'The groom hind foot — the folded hock that ships, and the foot lying down (RULING OPEN)',
-      note: 'OPEN QUESTION, 2026-08-30: `sit` now rests on the whole metatarsus. Do the GROOM poses too? They are the same animal in the same attitude, and their bodies are tilted almost identically — grooming sits at rot -0.60 against sit\'s -0.40, and the underside profiles differ by hundredths. What differs is the LEG: sit derives its hock end off that underside, so the foot comes out where the body actually is and lies along the grass; grooming STATES a top of 0.68 while its own underside at the same x is 0.864, which is what draws the steep folded hock. The right-hand cat of each pair is the smallest change that would fix it — the top derived, every x left exactly where the photo reference put it. It is deliberately NOT the bigger option of moving the hock back to sit\'s 0.325: that lengthens the foot, but it walks back a placement taken from three photographs, and the seated-leg check pins those x values against exactly that. Judge it at 103px for the shape and then drop the tile to 57 and 50, because a foot that reads at camera-top can vanish at camera-bottom. SIT is here to CALIBRATE the card, not as an untouched control: sit already derives, but it derives inside the pose switch, BEFORE `proportionLayout` rescales the layout — this card can only derive from the finished body, one step later, so it moves sit too, 65 becomes 17 for grooming while sit goes 7 to 4. That ~3 degrees is the card\'s own offset, and grooming\'s shift is twenty times it, which is what makes the comparison decisive rather than an artefact of where the card stands in the pipeline.',
+      title: 'The groom hind foot — the folded hock it drew, and the foot it lies on now (SHIPPED 2026-08-30)',
+      note: 'SHIPPED 2026-08-30 — the right-hand cat of each pair is what the world draws now, and the left replays what it drew before. `sit` now rests on the whole metatarsus, and the groom poses follow it: their hock end is derived off the body outline by `seatLeg` and the toe carried forward along the grass, instead of a top STATED at 0.68 while the body underside at the same x was 0.864 — which is what drew a 65-degree folded hock. The owner drafted the numbers in this card and shipped them to be judged in the world rather than in the lab, so the dials here now write into the SHIPPED `GROOM`/`GROOM_OTHER`: hock and toe as shifts over what shipped (the two poses sit 0.01 apart and one absolute dial would silently close that), widths and inset straight through. Zero shift is what ships. The widths went UP with the draft — grooming 0.05/0.05 to 0.06/0.095, groom-other 0.04 to the same — and width is the only lever that spends the four-paws gap, so watch the gap readout as you move them: grooming sits at 3.0px and groom-other at 1.3px, against 6.0px before. Laying the foot down cost NO gap at all; the widths are the whole trade. One honest gap between this card and the world: the shipped poses derive their hock INSIDE the pose switch, before `proportionLayout` rescales, so a dialled inset of 0.004 lands at roughly twice that and the feet draw about 4 degrees steeper than the draft did — 6 degrees rather than 2. Same footprint, same ink, slightly less flat.',
       v2Only: true,
       w: 940,
       h: 348,
@@ -3434,8 +3436,9 @@
           let ships = 0;
           let laid = 0;
           for (let i = 0; i < 24; i += 1) {
-            ships = Math.max(ships, hindAngle(CatV2.catLayout(pose, i / 24)));
-            laid = Math.max(laid, hindAngle(layFoot(CatV2.catLayout(pose, i / 24), footOptsFor(pose))));
+            const was = pose === 'sit' ? sitPegLayout(i / 24) : foldedHock(pose, i / 24);
+            ships = Math.max(ships, hindAngle(was));
+            laid = Math.max(laid, hindAngle(CatV2.catLayout(pose, i / 24)));
           }
           // Sit CALIBRATES the card rather than sitting still in it: it
           // derives pre-proportion and this card derives post-, so it moves a
@@ -3449,8 +3452,8 @@
         const dpr = window.devicePixelRatio || 1;
         const T = GROOM_FOOT_LAB.tilePx;
         const gaps = ['grooming', 'grooming-other'].map((pose) => {
-          const ships = legGap((p) => CatV2.catLayout(pose, p)) * T * dpr;
-          const laid = legGap((p) => layFoot(CatV2.catLayout(pose, p), footOptsFor(pose))) * T * dpr;
+          const ships = legGap((p) => foldedHock(pose, p)) * T * dpr;
+          const laid = legGap((p) => CatV2.catLayout(pose, p)) * T * dpr;
           const flag = laid <= 0 ? '   *** THE PAINTED EDGES MEET -- one shape, not four legs'
             : (laid < ships ? '   (tighter than it ships)' : '');
           return `  ${pose.padEnd(15)} ships ${ships.toFixed(1).padStart(5)}px   at these widths ${laid.toFixed(1).padStart(5)}px${flag}`;
@@ -3494,9 +3497,11 @@
         ctx.font = '11px ui-monospace, monospace';
         ctx.textAlign = 'center';
         for (const col of cols) {
+          // `laid` is now the SHIPPED drawing for all three; the other column
+          // replays what each drew before 2026-08-30.
           const L = col.laid
-            ? layFoot(CatV2.catLayout(col.pose, phase), footOptsFor(col.pose))
-            : CatV2.catLayout(col.pose, phase);
+            ? CatV2.catLayout(col.pose, phase)
+            : (col.pose === 'sit' ? sitPegLayout(phase) : foldedHock(col.pose, phase));
           const cx = x + T * 0.7;
 
           ctx.save();
@@ -3512,7 +3517,7 @@
           });
 
           ctx.fillStyle = col.laid ? '#4a3f35' : '#9c5a3c';
-          ctx.fillText(`${col.pose} \u00b7 ${col.laid ? 'laid down' : 'ships'}`, cx, groundY + 18);
+          ctx.fillText(`${col.pose} \u00b7 ${col.laid ? 'SHIPS NOW' : 'before'}`, cx, groundY + 18);
           ctx.fillStyle = '#6b7280';
           // "this phase", because it is the frame on screen -- the readout's
           // figure is the worst of 24 and the two legitimately differ.
@@ -3523,8 +3528,8 @@
           // picture has already convinced you.
           const dpr = window.devicePixelRatio || 1;
           const g = legGap((ph) => (col.laid
-            ? layFoot(CatV2.catLayout(col.pose, ph), footOptsFor(col.pose))
-            : CatV2.catLayout(col.pose, ph))) * T * dpr;
+            ? CatV2.catLayout(col.pose, ph)
+            : (col.pose === 'sit' ? sitPegLayout(ph) : foldedHock(col.pose, ph)))) * T * dpr;
           ctx.fillStyle = g <= 0 ? '#b4443c' : '#6b7280';
           // WITH ITS RULER. A bare "gap 5.5px" means something different on
           // every screen -- it is tile x devicePixelRatio -- and a number

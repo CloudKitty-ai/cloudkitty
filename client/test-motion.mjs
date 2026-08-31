@@ -2015,9 +2015,35 @@ check('the seated leg dials: paws where the photos put them, width dialled for t
   // roughly twice that length, so the paw still reads as a stub rather than a
   // hair. Dialled to where the gap meets the length -- past that the read is
   // limited by the length and the extra gap buys nothing.
-  close(CatV2.GROOM.hindW, 0.05, 'GROOM.hindW moved');
-  close(CatV2.GROOM.foreW, 0.05, 'GROOM.foreW moved');
-  close(CatV2.GROOM_OTHER.legW, 0.04, 'GROOM_OTHER.legW moved');
+  close(CatV2.GROOM.hindW, 0.06, 'GROOM.hindW moved');
+  close(CatV2.GROOM.foreW, 0.095, 'GROOM.foreW moved');
+  close(CatV2.GROOM_OTHER.hindW, 0.06, 'GROOM_OTHER.hindW moved');
+  close(CatV2.GROOM_OTHER.foreW, 0.095, 'GROOM_OTHER.foreW moved');
+});
+
+check('the groom hind foot lies down, at the dials she drafted', () => {
+  // Owner's draft, 2026-08-30, dialled in the lab's groom card and shipped to
+  // be judged in the world rather than in the lab. The widths went UP from
+  // 0.05/0.05 and 0.04, which spends gap -- see the note on GROOM.footInset.
+  close(CatV2.GROOM.hockX, 0.39, 'GROOM.hockX moved');
+  close(CatV2.GROOM.toeX, 0.55, 'GROOM.toeX moved');
+  close(CatV2.GROOM.footInset, 0.004, 'GROOM.footInset moved');
+  close(CatV2.GROOM_OTHER.hockX, 0.38, 'GROOM_OTHER.hockX moved');
+  close(CatV2.GROOM_OTHER.toeX, 0.54, 'GROOM_OTHER.toeX moved');
+  close(CatV2.GROOM_OTHER.footInset, 0.004, 'GROOM_OTHER.footInset moved');
+
+  // The DRAWING, not the dials: a foot that lies down is a foot at a shallow
+  // angle, and the folded hock that shipped before was 65deg and 46deg. The
+  // dials can all be right while the pose still builds its leg the old way.
+  for (const pose of ['grooming', 'grooming-other']) {
+    for (const phase of [0, 0.25, 0.5, 0.75]) {
+      const hind = CatV2.catLayout(pose, phase).legs.filter((l) => !l.far && l.limb === 'hind')[0];
+      assert(hind, `${pose} drew no near hind leg at phase ${phase}`);
+      const hx = hind.hx ?? hind.x;
+      const deg = Math.abs(Math.atan2(hind.bottom - hind.top, hind.x - hx) * 180 / Math.PI);
+      assert(deg < 12, `${pose}'s hind foot is ${deg.toFixed(0)}deg off the ground at phase ${phase} -- still a folded hock`);
+    }
+  }
 });
 
 check('the seated hind foot sits where the owner dialled it', () => {
@@ -2053,6 +2079,26 @@ check('the seated hind foot sits where the owner dialled it', () => {
     assert(
       Math.abs(a.x - b.x) > 0.001,
       `sit's far hind is drawn on top of its near one at phase ${phase} -- two legs, not four`,
+    );
+
+    // TRANSLATED, not reshaped. `withFarPair` used to sign each end toward
+    // the body centre on its own, which is the same arithmetic for a
+    // near-vertical leg but COLLAPSES one that lies down and straddles the
+    // centre: sit's far hind came out 0.410..0.490 inside a near hind of
+    // 0.390..0.510 -- offset, drawn, and adding no visible leg. Both halves
+    // matter, so both are asserted.
+    const span = (l) => Math.abs(l.x - (l.hx ?? l.x));
+    close(span(a), span(b), `sit's far hind is a different length from its near one at phase ${phase}`);
+    // And the pair must be WIDER than either leg: what a viewer reads is the
+    // union of the two, so a far leg contained inside the near one is drawn
+    // and still invisible. That was the shipped state, and `a.x !== b.x`
+    // alone did not catch it.
+    const lo = (l) => Math.min(l.x, l.hx ?? l.x);
+    const hi = (l) => Math.max(l.x, l.hx ?? l.x);
+    const union = Math.max(hi(a), hi(b)) - Math.min(lo(a), lo(b));
+    assert(
+      union > Math.max(span(a), span(b)) + 1e-6,
+      `sit's far hind adds no extent at phase ${phase} -- it sits inside the near one`,
     );
   }
 
