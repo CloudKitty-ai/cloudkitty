@@ -93,11 +93,9 @@ full percentage point of density for each of the four kinds.
 ## Disclosed limits
 
 - **Fixed training budget**: verbatim recipe = 20 epochs, patience 3.
-  A2's val loss was still improving at epoch 19–20, so "mute at 5.6%"
-  is a claim about this recipe's budget, not a learnability
-  asymptote. An epoch-extension probe on A2 would separate
-  optimization speed from asymptote — not run (would deviate from the
-  registered recipe); flagged as the natural follow-up.
+  ~~A2's val loss was still improving, so "mute at 5.6%" might be a
+  budget claim~~ — **RESOLVED by Addendum 2 below**: 60 epochs moves
+  the vocabulary numbers by noise; the location is density-shaped.
 - **Offline operationalization**: emission = masked argmax on held-out
   states, not live rollouts. Live emission (the exp-004 104.66/1k was
   the same offline shape, but certification measured live) needs the
