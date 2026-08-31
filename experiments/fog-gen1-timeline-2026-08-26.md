@@ -70,12 +70,14 @@ The validated step-2 mix bands become step 5's reference.
 
 ## Step 3 — the pre-fog schema-break bundle (owner decisions)
 
-A short doc listing in/out. Known members: the TABLED waterline
-pairing rule (owner 2026-08-24: "revisit when finalizing the pre-fog
-schema-break bundle" — this is that moment; `here_water` confound with
-fog vocabulary arms noted there), the KITTY_SLOT gap ("wants the
-wall"), anything else wanting a schema break. Nothing enters step 4's
-spec without appearing here first.
+A short doc listing in/out. Known members: the waterline (**ruled
+2026-08-30: contagion IN for Gen 1 at factor 1.0** — the mechanism
+ships pre-wall inert and flips after the 041 soak, handoff at
+`waterline-contagion-handoff-2026-08-30.md`; only the
+neighbour-in-water float waits for the wall, ruled jointly with the
+scene-age float), the KITTY_SLOT gap ("wants the wall"), anything else
+wanting a schema break. Nothing enters step 4's spec without appearing
+here first.
 
 ## Step 4 — implement Fog Gen 1
 

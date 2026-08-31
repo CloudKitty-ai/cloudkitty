@@ -323,8 +323,17 @@ that wall, not one item at a time afterwards. Running list:
     every factor tried up to 1.0 on both measured exposure windows;
     grooming absorbs the whole charge (worst case groom_other +34%,
     groom_self +68%, everything else within ~1/1k).
-  - Owner calls remaining: activation timing (Gen 1 vs later) and the
-    factor's value. Honest note: the animation issue gets RARER, not
+  - **Owner-ruled 2026-08-30: IN for Gen 1, factor 1.0** (the natural
+    semantic anchor — the dry partner pays as if in water; needflow
+    says welfare-benign there). Sequencing: the mechanism ships
+    pre-wall as engine + config dial, inert at 0.0, and the flip to
+    1.0 is its own deploy + soak AFTER the 041 soak — never riding
+    the 041 deploy (census attribution). The `KITTY_SLOT` float
+    stays wall-gated as before. Handoff:
+    `waterline-contagion-handoff-2026-08-30.md`. Still open: whether
+    the banked scripted-anchor probe runs before the flip (per-seat
+    tails, bath_ratio 0.5–2.0×) or the soak + watchdog covers it.
+    Honest note: the animation issue gets RARER, not
     fixed — mixed pairs still occur.
 
 - **Meow-digest redesign: per-(speaker × kind) matrix** — owner-agreed
