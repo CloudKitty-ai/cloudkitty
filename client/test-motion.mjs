@@ -2021,6 +2021,36 @@ check('the seated leg dials: paws where the photos put them, width dialled for t
   close(CatV2.GROOM_OTHER.foreW, 0.095, 'GROOM_OTHER.foreW moved');
 });
 
+check('a seated hock is tucked in by exactly the inset it was given', () => {
+  // `seatLeg` reads the outline off `proportionedBody`, but `proportionLayout`
+  // runs AFTER the pose switch and shifts every leg's `top` by that same `dy`.
+  // Counted twice, the tuck came out about double what was asked -- SIT.inset
+  // 0.01 drew as 0.0211, and it BREATHED, because `dy` rides `ry`. That is
+  // what put the seated foot at 11 degrees where its dials describe 5, and it
+  // is why the lab card and the world disagreed on the same numbers.
+  //
+  // Asserted on the FINISHED layout, which is the only place the claim means
+  // anything, and across the breath, because the old error was not constant.
+  const wants = {
+    sit: () => CatV2.SIT.inset,
+    grooming: () => CatV2.GROOM.footInset,
+    'grooming-other': () => CatV2.GROOM_OTHER.footInset,
+  };
+  for (const [pose, inset] of Object.entries(wants)) {
+    for (const phase of [0, 0.25, 0.5, 0.75]) {
+      const L = CatV2.catLayout(pose, phase);
+      const hind = L.legs.filter((l) => !l.far && l.limb === 'hind')[0];
+      assert(hind, `${pose} drew no near hind leg at phase ${phase}`);
+      const under = CatV2.bodyUnderAt(L.body, hind.hx ?? hind.x);
+      close(
+        under - hind.top,
+        inset(),
+        `${pose}'s hock is tucked ${(under - hind.top).toFixed(4)} inside at phase ${phase}, not the ${inset()} asked for`,
+      );
+    }
+  }
+});
+
 check('the groom hind foot lies down, at the dials she drafted', () => {
   // Owner's draft, 2026-08-30, dialled in the lab's groom card and shipped to
   // be judged in the world rather than in the lab. The widths went UP from

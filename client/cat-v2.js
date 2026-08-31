@@ -2008,10 +2008,20 @@ function seatLeg(body, x, spec) {
   const lim = reach * 0.94;
   const cx = rclamp(x, b.cx - lim, b.cx + lim);
   const under = bodyUnderAt(b, cx);
+  // Returned in RAW pose space, because `proportionLayout` runs after this
+  // and shifts every leg's `top` by the same `dy` that `proportionedBody`
+  // has already applied to the outline read above. Without this subtraction
+  // the shift lands twice and the tuck comes out about DOUBLE what was
+  // asked: `SIT.inset` 0.01 drew as 0.0211, and it breathed, because `dy`
+  // rides `ry`. That put the seated foot at 11 degrees off the ground where
+  // its dials describe 5. Same shape as `seatCy`, which pre-compensates for
+  // the same pass -- a value derived against the finished body has to be
+  // handed back in the space the caller is still working in.
+  const dy = b.cy - body.cy;
   return {
     x: cx,
     hx: cx + (spec.rake || 0),
-    top: (under === null ? b.cy : under) - (spec.inset || 0.03),
+    top: (under === null ? b.cy : under) - (spec.inset || 0.03) - dy,
     bottom: CAT_GROUND,
     w: spec.w,
     limb: spec.limb,
