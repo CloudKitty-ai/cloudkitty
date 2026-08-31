@@ -958,11 +958,7 @@ mod tests {
 
     /// A hand-built stage for driving `announce` directly: kitty 1 parked
     /// mid-meadow on a cleared board at `tick`, under `config`.
-    fn here_ctx_with(
-        config: Config,
-        tick: u64,
-        setup: impl FnOnce(&mut World),
-    ) -> DecisionContext {
+    fn here_ctx_with(config: Config, tick: u64, setup: impl FnOnce(&mut World)) -> DecisionContext {
         let config = Arc::new(config);
         let mut world = World::generate(&config);
         world.tick = tick;
