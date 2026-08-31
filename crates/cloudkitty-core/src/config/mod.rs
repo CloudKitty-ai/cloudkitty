@@ -968,6 +968,23 @@ pub struct BehaviorConfig {
     /// gate on purpose -- the responder economy is priced as a unit.
     #[serde(default = "default_cuddle_real_threshold")]
     pub cuddle_real_threshold: f32,
+    /// Spec 043: the here-word announce period. 0 (the default, absent
+    /// from serialized defaults — the 039-D5 stamp discipline) means
+    /// scripted cats never announce Here\*; N ≥ 1 means each scripted
+    /// cat considers here-speech on its phase ticks,
+    /// `(tick + kitty_id) % N == 0`. Existing speech always wins
+    /// (owner ruling 2026-08-23): WaitForMe > want-word > here-word >
+    /// Silent — the here path only fills a slot that would be Silent.
+    /// Selection among the legal here-kinds indexes `HERE_KINDS` by the
+    /// speaking-tick counter `((tick + kitty_id) / N) % n_legal` — NOT
+    /// the handoff's literal `(tick + kitty_id) % n_legal`, which
+    /// aliases against the phase gate (on speaking ticks the sum is a
+    /// multiple of N, so only multiples of gcd(N, n_legal) are ever
+    /// reached; research D3, amendment accepted by Experiments
+    /// 2026-08-30). Legality is unchanged law: every proposal still
+    /// passes `message_legal` and the engine's enforcement seam.
+    #[serde(default, skip_serializing_if = "u64_is_zero")]
+    pub announce_here: u64,
 }
 
 impl Default for BehaviorConfig {
@@ -997,12 +1014,17 @@ impl Default for BehaviorConfig {
             t_partner: 0.0,
             critter_appeal: 0.0,
             comfort_weight: ComfortWeights::default(),
+            announce_here: 0,
         }
     }
 }
 
 fn f32_is_zero(v: &f32) -> bool {
     *v == 0.0
+}
+
+fn u64_is_zero(v: &u64) -> bool {
+    *v == 0
 }
 
 /// Spec 042: per-need multipliers for the playful get-serious trigger.
@@ -2498,6 +2520,47 @@ mod tests {
         ] {
             assert!(!json.contains(key), "{key} leaked into the stamp: {json}");
         }
+        // Spec 043: the here-word announce period rides the same
+        // discipline — 0/absent is the launch state and the stamp must
+        // not move for a value nobody set.
+        assert!(
+            !json.contains("announce_here"),
+            "announce_here leaked into the stamp: {json}"
+        );
+    }
+
+    #[test]
+    fn announce_here_zero_parses_equal_to_absent() {
+        // Spec 043 US2: `announce_here = 0` and an absent key are the
+        // same world — both the off state, both the defaults stamp.
+        // The `absent` arm carries a [behavior] table WITHOUT the key —
+        // the shape every existing world config has — so a dropped
+        // `default` attribute reds here instead of hiding behind the
+        // struct-level default.
+        let absent: Config = toml::from_str(
+            "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
+             [behavior]\nbudget_fraction_of_tick = 0.5\n",
+        )
+        .unwrap();
+        let zero: Config = toml::from_str(
+            "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
+             [behavior]\nbudget_fraction_of_tick = 0.5\nannounce_here = 0\n",
+        )
+        .unwrap();
+        assert_eq!(absent, zero);
+        assert_eq!(absent.behavior.announce_here, 0);
+    }
+
+    #[test]
+    fn announce_here_round_trips_when_set() {
+        // Spec 043 FR-001: a world that sets the knob keeps it through
+        // serialize/deserialize — only the DEFAULT hides the key.
+        let mut c = Config::default();
+        c.behavior.announce_here = 4;
+        let json = serde_json::to_string(&c).unwrap();
+        assert!(json.contains("\"announce_here\":4"), "{json}");
+        let back: Config = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.behavior.announce_here, 4);
     }
 
     #[test]

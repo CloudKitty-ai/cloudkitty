@@ -33,6 +33,15 @@ change.
 
 ## Unreleased
 
+- Scripted cats can volunteer here-words (spec 043). A new `[behavior]`
+  `announce_here` period lets a scripted cat whose message slot would be
+  Silent name an adjacent thing — `here_food` / `here_water` /
+  `here_critter` / `here_sunbeam` — on its deterministic phase ticks,
+  cycling the legal kinds without RNG. Existing speech always wins and
+  legality is unchanged law; unset (the served default) is byte-identical
+  to before the knob existed, and the in-tree gate-zero test pins that
+  speech never moves action. Built for Experiments' here-word density
+  screen.
 - A seated hock is tucked in by exactly the amount it was told to be. Every
   seated pose derives where its hind leg meets the body by reading the body's
   own outline, and the outline it read was the finished one — after the

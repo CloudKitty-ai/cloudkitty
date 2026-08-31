@@ -375,6 +375,16 @@ playful_comfort = 55.0
 # play = 1.0
 # cuddle = 1.0
 # bath = 1.0
+# The here-word announce period (spec 043). Unset (or 0) = scripted cats
+# never volunteer here_* words -- the launch state, byte-identical to before
+# the knob existed. N >= 1: on its phase ticks ((tick + kitty id) divisible
+# by N) a cat whose message slot would be Silent names one ADJACENT thing --
+# here_food / here_water / here_critter / here_sunbeam -- cycling the legal
+# kinds deterministically (no RNG). Existing speech always wins: wait_for_me
+# and want-words are untouched at any setting. Legality is unchanged law
+# (adjacency, vocabulary flags, per-kind cooldown). Serving a value here is
+# Experiments' density screen, not a welfare lever.
+# announce_here = 4
 # Need selection weighs pressure against travel. Pressure above the safeguard
 # threshold counts extra (urgency_weight per point), so urgent needs dominate --
 # but relief at zero distance still beats a hopeless cross-map trek.
