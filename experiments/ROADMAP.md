@@ -365,11 +365,15 @@ that wall, not one item at a time afterwards. Running list:
   **audibility grants a slot; fog masks knowledge fields, not rows**
   — otherwise vision-gated slots silence unseen speakers, defeating
   the redesign's purpose (precedent: activity targets already get
-  non-nearest slots); (2) **one shared window for both fields, 20–30
-  ticks, exact value pinned at spec time as a small integer multiple
-  of the measured per-kind cooldowns** (one buffer, one definition of
+  non-nearest slots); (2) **one shared window for both fields, PINNED at 30 ticks = 3× the
+  per-kind cooldown (owner 2026-08-31: "longer, minimum 24"; 24
+  itself is rejected on arithmetic — a 24-tick window fits three
+  calls at cooldown 10 but normalizes rate by 2.4, breaking the 0–1
+  range; only integer multiples of the cooldown make the max exact,
+  and 20 misses the owner's floor)** (one buffer, one definition of
   "recent"; long enough for repetition/regularity to register —
-  F-034's A1b hints regularity carries learnable signal).
+  F-034's A1b hints regularity carries learnable signal; the 24
+  echo is scene-age H = 24, a different constant).
   **Supersession note (2026-08-31)**: this breaks the served config's
   documented identity `recent_window_ticks` ≡ per-kind cooldown ≡ 10
   ("one live digest entry per kind per emitter, never sooner" — the
