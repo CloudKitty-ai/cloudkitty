@@ -3403,7 +3403,7 @@
       note: 'OPEN QUESTION, 2026-08-30: `sit` now rests on the whole metatarsus. Do the GROOM poses too? They are the same animal in the same attitude, and their bodies are tilted almost identically — grooming sits at rot -0.60 against sit\'s -0.40, and the underside profiles differ by hundredths. What differs is the LEG: sit derives its hock end off that underside, so the foot comes out where the body actually is and lies along the grass; grooming STATES a top of 0.68 while its own underside at the same x is 0.864, which is what draws the steep folded hock. The right-hand cat of each pair is the smallest change that would fix it — the top derived, every x left exactly where the photo reference put it. It is deliberately NOT the bigger option of moving the hock back to sit\'s 0.325: that lengthens the foot, but it walks back a placement taken from three photographs, and the seated-leg check pins those x values against exactly that. Judge it at 103px for the shape and then drop the tile to 57 and 50, because a foot that reads at camera-top can vanish at camera-bottom. SIT is here to CALIBRATE the card, not as an untouched control: sit already derives, but it derives inside the pose switch, BEFORE `proportionLayout` rescales the layout — this card can only derive from the finished body, one step later, so it moves sit too, 65 becomes 17 for grooming while sit goes 7 to 4. That ~3 degrees is the card\'s own offset, and grooming\'s shift is twenty times it, which is what makes the comparison decisive rather than an artefact of where the card stands in the pipeline.',
       v2Only: true,
       w: 940,
-      h: 330,
+      h: 348,
       ownShadows: true,
       bag: GROOM_FOOT_LAB,
       dials: [
@@ -3506,7 +3506,9 @@
           ctx.fillStyle = col.laid ? '#4a3f35' : '#9c5a3c';
           ctx.fillText(`${col.pose} \u00b7 ${col.laid ? 'laid down' : 'ships'}`, cx, groundY + 18);
           ctx.fillStyle = '#6b7280';
-          ctx.fillText(`${hindAngle(L).toFixed(0)}\u00b0 off the ground`, cx, groundY + 32);
+          // "this phase", because it is the frame on screen -- the readout's
+          // figure is the worst of 24 and the two legitimately differ.
+          ctx.fillText(`${hindAngle(L).toFixed(0)}\u00b0 off the ground, this phase`, cx, groundY + 32);
           // The gap on the CANVAS as well as in the readout: at sit's widths
           // the groom clusters overlap, and a number that only appears in a
           // text block under the card is a number that gets judged after the
@@ -3516,8 +3518,13 @@
             ? layFoot(CatV2.catLayout(col.pose, ph), footOptsFor(col.pose))
             : CatV2.catLayout(col.pose, ph))) * T * dpr;
           ctx.fillStyle = g <= 0 ? '#b4443c' : '#6b7280';
+          // WITH ITS RULER. A bare "gap 5.5px" means something different on
+          // every screen -- it is tile x devicePixelRatio -- and a number
+          // read off this card was compared against one quoted at a phone's
+          // 57px/3x, which agreed in tile units and disagreed on screen.
           ctx.fillText(g <= 0 ? `gap ${g.toFixed(1)}px \u2014 legs MERGE` : `gap ${g.toFixed(1)}px`,
             cx, groundY + 46);
+          ctx.fillText(`@ ${T}px \u00d7 ${dpr}x, worst of 24`, cx, groundY + 60);
           x += T * 1.4;
         }
         ctx.textAlign = 'left';
