@@ -866,8 +866,12 @@
   const GROOM_FOOT_LAB = {
     tilePx: 103,
     lieDown: 1,
-    footInset: 0.01,
-    hindW: 0.075,
+    // The owner's first pass, 2026-08-30, dialled in this card. She ruled the
+    // laid-down geometry better than what ships and gave these to tune from,
+    // so they are what the card opens on -- a pasted value that only lives in
+    // a chat message is a value that has to be dialled again next session.
+    footInset: 0.004,
+    hindW: 0.06,
     foreW: 0.095,
     // SHIFTS, not absolute positions, and they start at zero. The two poses
     // are parameterised differently -- GROOM states an absolute hip
@@ -876,8 +880,8 @@
     // without silently moving one of them. A shift keeps each pose's own
     // photo reference as the origin and moves them together, and zero means
     // exactly where the three photographs put it.
-    toeShift: 0,
-    hockShift: 0,
+    toeShift: -0.01,
+    hockShift: -0.07,
   };
   // Sit is drawn on this card, so it is dialled on this card: the same four
   // as its own, writing into the same shipped `SIT`. Tuning the groom foot
@@ -3434,7 +3438,8 @@
           + `   hindW ${GROOM_FOOT_LAB.hindW}   foreW ${GROOM_FOOT_LAB.foreW}`
           + `   footInset ${GROOM_FOOT_LAB.footInset}\n`
           + `   (shipped widths: grooming 0.05/0.05, groom-other 0.04/0.05;`
-          + ` shifts are from the photo reference, 0 = shipped)\n`
+          + ` shifts are from the photo reference, 0 = shipped;`
+          + ` the card OPENS on her first pass, not on zero)\n`
           + `SIT, live on the shipped dials:  toeX ${CatV2.SIT.toeX}   hockX ${CatV2.SIT.hockX}`
           + `   footW ${CatV2.SIT.footW}   inset ${CatV2.SIT.inset}\n`
           + `tile ${GROOM_FOOT_LAB.tilePx}px, lieDown ${GROOM_FOOT_LAB.lieDown} -- viewing aids, ${dpr}x device\n`
