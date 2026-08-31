@@ -857,7 +857,15 @@
    *
    * `tilePx` and `lieDown` are viewing controls; `footInset` is the one
    * number the change would actually add, so it is dialled here. */
-  const GROOM_FOOT_LAB = { tilePx: 103, lieDown: 1, footInset: 0.01 };
+  // hindW/foreW open at SIT's own widths (0.075 / 0.095) on the owner's
+  // instruction, 2026-08-30 -- the groom legs read thinner beside a sitting
+  // cat, and they are: 0.05 / 0.05, and GROOM_OTHER's 0.04. They were
+  // NARROWED there on 2026-08-24, from 0.07, and width is the only lever that
+  // opens the four-paws gap. So the card opens at the widths asked for and
+  // prints what they cost, rather than choosing for her.
+  const GROOM_FOOT_LAB = {
+    tilePx: 103, lieDown: 1, footInset: 0.01, hindW: 0.075, foreW: 0.095,
+  };
 
   /** The proposal, as the SMALLEST possible change: the hind foot's `top`
    * derived off the body outline instead of stated, every x left exactly
@@ -873,14 +881,32 @@
    * pose switch, BEFORE `proportionLayout` rescales, and this can only work
    * from the finished body one step later. Sit's own shift is therefore the
    * card's offset, which the other two are read against. */
-  const layFoot = (L, inset) => {
+  const layFoot = (L, inset, hindW, foreW) => {
     L.legs = L.legs.map((leg) => {
-      if (leg.limb !== 'hind') return leg;
+      if (leg.limb !== 'hind') return { ...leg, w: foreW ?? leg.w };
       const hx = leg.hx ?? leg.x;
       const under = CatV2.bodyUnderAt(L.body, hx);
-      return under === null ? leg : { ...leg, top: under - inset };
+      const top = under === null ? leg.top : under - inset;
+      return { ...leg, top, w: hindW ?? leg.w };
     });
     return L;
+  };
+
+  /** The tightest gap between two legs that are NOT a depth pair, worst of 24
+   * phases, in tile units. Negative means the painted edges overlap and the
+   * cluster reads as one shape -- which is the whole four-paws failure. */
+  const legGap = (mk) => {
+    let g = Infinity;
+    for (let i = 0; i < 24; i += 1) {
+      const legs = [...mk(i / 24).legs].sort((a, b) => a.x - b.x);
+      for (let j = 0; j < legs.length - 1; j += 1) {
+        const a = legs[j];
+        const b = legs[j + 1];
+        if (a.limb !== undefined && a.limb === b.limb) continue;
+        g = Math.min(g, (b.x - a.x) - ((a.w + CatV2.OUTLINE_W) / 2 + (b.w + CatV2.OUTLINE_W) / 2));
+      }
+    }
+    return g;
   };
 
   /** A hind leg's angle off the horizontal, in degrees. 90 is a peg. */
@@ -3337,6 +3363,8 @@
       ownShadows: true,
       bag: GROOM_FOOT_LAB,
       dials: [
+        { key: 'hindW', label: 'HIND WIDTH — opens at sit\'s 0.075; grooming ships 0.05, groom-other 0.04', min: 0.03, max: 0.10, step: 0.005 },
+        { key: 'foreW', label: 'FORE WIDTH — opens at sit\'s 0.095; both grooms ship 0.05', min: 0.03, max: 0.12, step: 0.005 },
         { key: 'footInset', label: 'footInset — how far the hock tucks up inside the silhouette (the one number this would ADD)', min: 0, max: 0.04, step: 0.002 },
         { key: 'tilePx', label: 'tile — lab only; judge at 103, then 57, then 50', min: 40, max: 120, step: 1 },
       ],
@@ -3349,7 +3377,8 @@
           let laid = 0;
           for (let i = 0; i < 24; i += 1) {
             ships = Math.max(ships, hindAngle(CatV2.catLayout(pose, i / 24)));
-            laid = Math.max(laid, hindAngle(layFoot(CatV2.catLayout(pose, i / 24), GROOM_FOOT_LAB.footInset)));
+            laid = Math.max(laid, hindAngle(layFoot(CatV2.catLayout(pose, i / 24),
+              GROOM_FOOT_LAB.footInset, GROOM_FOOT_LAB.hindW, GROOM_FOOT_LAB.foreW)));
           }
           // Sit CALIBRATES the card rather than sitting still in it: it
           // derives pre-proportion and this card derives post-, so it moves a
@@ -3357,10 +3386,27 @@
           const tag = pose === 'sit' ? '   <- calibration: the card\'s own offset' : '';
           return `  ${pose.padEnd(15)} ships ${ships.toFixed(0).padStart(2)}deg   laid down ${laid.toFixed(0).padStart(2)}deg${tag}`;
         });
+        // The GAP is what width costs, and it is the reason the groom legs
+        // were narrowed to 0.05/0.04 in the first place. Printed beside the
+        // angle so the two are never judged apart.
+        const dpr = window.devicePixelRatio || 1;
+        const T = GROOM_FOOT_LAB.tilePx;
+        const gaps = ['grooming', 'grooming-other'].map((pose) => {
+          const ships = legGap((p) => CatV2.catLayout(pose, p)) * T * dpr;
+          const laid = legGap((p) => layFoot(CatV2.catLayout(pose, p),
+            GROOM_FOOT_LAB.footInset, GROOM_FOOT_LAB.hindW, GROOM_FOOT_LAB.foreW)) * T * dpr;
+          const flag = laid <= 0 ? '   *** THE PAINTED EDGES MEET -- one shape, not four legs'
+            : (laid < ships ? '   (tighter than it ships)' : '');
+          return `  ${pose.padEnd(15)} ships ${ships.toFixed(1).padStart(5)}px   at these widths ${laid.toFixed(1).padStart(5)}px${flag}`;
+        });
         return (
           `steepest hind foot over 24 phases, 90deg is a peg:\n`
           + `${rows.join('\n')}\n`
-          + `footInset ${GROOM_FOOT_LAB.footInset}   (tile ${GROOM_FOOT_LAB.tilePx}px, lieDown ${GROOM_FOOT_LAB.lieDown} -- viewing aids)\n`
+          + `tightest gap between legs that are not a depth pair, worst of 24 phases:\n`
+          + `${gaps.join('\n')}\n`
+          + `hindW ${GROOM_FOOT_LAB.hindW}   foreW ${GROOM_FOOT_LAB.foreW}   footInset ${GROOM_FOOT_LAB.footInset}`
+          + `   (shipped: grooming 0.05/0.05, groom-other 0.04/0.05)\n`
+          + `tile ${GROOM_FOOT_LAB.tilePx}px, lieDown ${GROOM_FOOT_LAB.lieDown} -- viewing aids, ${dpr}x device\n`
           + `RULING OPEN: this card proposes nothing until she says so.`
         );
       },
@@ -3387,7 +3433,8 @@
         ctx.textAlign = 'center';
         for (const col of cols) {
           const L = col.laid
-            ? layFoot(CatV2.catLayout(col.pose, phase), GROOM_FOOT_LAB.footInset)
+            ? layFoot(CatV2.catLayout(col.pose, phase), GROOM_FOOT_LAB.footInset,
+              GROOM_FOOT_LAB.hindW, GROOM_FOOT_LAB.foreW)
             : CatV2.catLayout(col.pose, phase);
           const cx = x + T * 0.7;
 
@@ -3407,6 +3454,18 @@
           ctx.fillText(`${col.pose} \u00b7 ${col.laid ? 'laid down' : 'ships'}`, cx, groundY + 18);
           ctx.fillStyle = '#6b7280';
           ctx.fillText(`${hindAngle(L).toFixed(0)}\u00b0 off the ground`, cx, groundY + 32);
+          // The gap on the CANVAS as well as in the readout: at sit's widths
+          // the groom clusters overlap, and a number that only appears in a
+          // text block under the card is a number that gets judged after the
+          // picture has already convinced you.
+          const dpr = window.devicePixelRatio || 1;
+          const g = legGap((ph) => (col.laid
+            ? layFoot(CatV2.catLayout(col.pose, ph), GROOM_FOOT_LAB.footInset,
+              GROOM_FOOT_LAB.hindW, GROOM_FOOT_LAB.foreW)
+            : CatV2.catLayout(col.pose, ph))) * T * dpr;
+          ctx.fillStyle = g <= 0 ? '#b4443c' : '#6b7280';
+          ctx.fillText(g <= 0 ? `gap ${g.toFixed(1)}px \u2014 legs MERGE` : `gap ${g.toFixed(1)}px`,
+            cx, groundY + 46);
           x += T * 1.4;
         }
         ctx.textAlign = 'left';
