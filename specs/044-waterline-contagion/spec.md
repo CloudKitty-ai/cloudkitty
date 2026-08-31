@@ -8,6 +8,12 @@
 
 **Input**: User description: "Waterline contagion (owner-ruled 2026-08-30, factor 1.0 for Gen 1; engine half only). A dry cat in a partnered scene (any of the four paired activity kinds) with an in-water partner receives the wet-fur charge as if in water, behind one new config factor inert at 0.0. No wet timer; dry member only; prices not prohibitions. The water-headroom validation budget must be re-stated with contagion in it. Acceptance per `experiments/waterline-contagion-handoff-2026-08-30.md`."
 
+## Clarifications
+
+### Session 2026-08-31
+
+- Q: When only one side of a paired scene names the partner in its own activity — a groomer grooming an idle cat — should the referenced cat (the idle groomee) also pay the contagion charge when its groomer is standing in water? → A: No — own-activity only (Option A). A cat pays only when *its own* activity names an in-water partner; a merely-referenced cat pays nothing. Social play is reciprocal by construction, so both members pay there either way; rest, co-sleep, and groom charge the naming side only. This also makes stacking impossible (one partner per activity → at most one contagion charge per cat per tick), keeping the per-tick worst case and the validation budget exactly as FR-009 states them.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Inert launch (Priority: P1)
@@ -106,7 +112,7 @@ The configuration validator's water-headroom rule — the guarantee that no amou
 
 ## Assumptions
 
-- **Scene membership is read from a cat's own activity.** The handoff prices "a dry cat in a partnered scene with an in-water partner"; this spec reads that as: the cat's *own* current activity names the partner. Asymmetric references (a groomed cat that is itself idle) do not create a scene for the referenced cat. This mirrors how the engine already attributes partner effects and keeps the rule readable from a single cat's state. Reversible at plan time if Experiments objects.
+- **Scene membership is read from a cat's own activity** — owner-confirmed 2026-08-31 (see Clarifications). Asymmetric references (a groomed cat that is itself idle) do not create a scene for the referenced cat; the charge always follows the paying cat's own choice of scene.
 - The KITTY_SLOT neighbour-in-water observation float is **out of scope** — it stays gated on the fog schema wall. This feature is the engine half only; learnability arrives with the wall.
 - The flip to factor 1.0 is **not** part of this delivery: it is a config-only change at its own deploy with its own soak, after the 041 deploy + soak completes and the here-word density screen finishes collection. This spec ships the mechanism inert.
 - Pricing evidence is taken as given from the needflow work (welfare-benign at every factor up to 1.0; grooming absorbs the charge); no new pricing study rides this spec.
