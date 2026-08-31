@@ -2209,6 +2209,14 @@ const GROOM = {
   // three photos show the hind foot gathered up beside the planted foreleg,
   // not trailing behind. It also happens to be the only place a foot can be
   // seen at all -- a foot at the old 0.27 was inside the cat.
+  // The foot LIES DOWN (owner's draft, 2026-08-30), as `sit`'s now does: the
+  // hock end is derived off the body outline by `seatLeg` and the toe carried
+  // forward along the grass, so the drawn segment is the metatarsus rather
+  // than a folded hock at 65 degrees. `hindX`/`hindHx`/`hindTop` below are
+  // the folded-hock drawing, kept because the lab's before-column replays it.
+  hockX: 0.39,
+  toeX: 0.55,
+  footInset: 0.004, // how far the hock tucks up inside the silhouette
   hindX: 0.56, // paw, forward under the belly
   hindHx: 0.46, // hip, back and high in the haunch: the hock folds forward
   hindTop: 0.68,
@@ -2225,7 +2233,7 @@ const GROOM = {
   // stub. The gap goes 1.5 -> 3.5 device px, which is where it meets the
   // length: past that the read is limited by the length and more gap buys
   // nothing.
-  hindW: 0.05,
+  hindW: 0.06,
   // The head, low and tucked. Dialled here rather than fixed in the pose
   // because where it sits IS the pose: sit puts the head clear above the
   // shoulders and reads as attention, and grooming has to hand the top of
@@ -2235,7 +2243,7 @@ const GROOM = {
   foreX: 0.72, // paw of the supporting leg, out at the front of the chest
   foreHx: 0.68, // and its hip, tucked back under the shoulder
   foreTop: 0.56, // pivot, high in the raised chest
-  foreW: 0.05, // with hindW: one leg cannot be half the other's weight // narrow: see the spacing note in the pose
+  foreW: 0.095, // raised with hindW on the owner's draft; see the spacing note in the pose
   // Where the licked paw sits, in multiples of the head's radius, and how
   // much of the lick it inherits.
   //
@@ -2322,7 +2330,16 @@ const GROOM_OTHER = {
   // same reason. This pose starts better off -- two mirrored pairs rather
   // than an odd leg -- so the gap goes 2.0 -> 3.5 device px against a leg
   // length of 4.1.
-  legW: 0.04,
+  // Split from one `legW` 0.04 and both raised: the owner's draft asks for a
+  // heavier foreleg than hind, as `sit` carries (0.095 against 0.075). This
+  // spends gap -- see `footInset`.
+  hindW: 0.06,
+  foreW: 0.095,
+  // Same lying-down foot as self-grooming. `hindX`/`hindRake` stay as the
+  // folded-hock drawing the lab replays.
+  hockX: 0.38,
+  toeX: 0.54,
+  footInset: 0.004,
   nod: 0.01, // the lick, smaller than self-grooming's: a longer reach, less bob
 
   // --- Axial view (north/south) ---
@@ -3336,10 +3353,19 @@ function catLayout(pose, phase, opts = {}) {
       // than a shortfall: the reference photos show a raised paw, a planted
       // foreleg and one hind foot, with the far hind genuinely occluded by
       // the near one.
+      // The hind foot LIES DOWN, the way `sit`'s does: `seatLeg` derives the
+      // hock end off the body outline at `hockX`, and the toe is carried
+      // forward along the grass. The far one is TRANSLATED by
+      // `FAR_LEGS.grooming` -- both ends by the same amount, so it stays the
+      // same length as the near one instead of collapsing toward the centre.
+      const groomHock = seatLeg(L.body, GROOM.hockX, {
+        w: GROOM.hindW, limb: 'hind', inset: GROOM.footInset,
+      });
       L.legs = [
         {
-          x: GROOM.hindX + FAR_LEGS.grooming, hx: GROOM.hindHx + FAR_LEGS.grooming,
-          top: GROOM.hindTop, bottom: CAT_GROUND, w: GROOM.hindW, far: true, limb: 'hind',
+          ...groomHock,
+          x: GROOM.toeX + FAR_LEGS.grooming, hx: groomHock.hx + FAR_LEGS.grooming,
+          far: true,
         },
         // Whether the front of the cat is visibly held up is a real design
         // question, not just a number -- the shipped drawing had no such leg
@@ -3350,10 +3376,7 @@ function catLayout(pose, phase, opts = {}) {
             top: GROOM.foreTop, bottom: CAT_GROUND, w: GROOM.foreW, far: true, limb: 'fore',
           }]
           : []),
-        {
-          x: GROOM.hindX, hx: GROOM.hindHx, top: GROOM.hindTop,
-          bottom: CAT_GROUND, w: GROOM.hindW, limb: 'hind',
-        },
+        { ...groomHock, x: GROOM.toeX },
       ];
       // Behind the cat. This inherited sit's tail, which sweeps FORWARD
       // across the front of the seat -- at the same height as the paws, in
@@ -3392,8 +3415,12 @@ function catLayout(pose, phase, opts = {}) {
       // `withFarPair` -- and passes the body centre, so the far pair shifts
       // INBOARD rather than uniformly astern.
       L.legs = withFarPair([
-        seatLeg(L.body, G.hindX, { rake: G.hindRake, w: G.legW, limb: 'hind', inset: 0.03 }),
-        seatLeg(L.body, G.foreX, { rake: G.foreRake, w: G.legW, limb: 'fore', inset: 0.03 }),
+        // The hind foot lies down: derived at the HOCK and carried forward to
+        // the toe. It used to derive at `hindX` -- the toe -- where the body
+        // is far higher off the ground, which is what made it a 46-degree
+        // folded hock rather than a foot.
+        { ...seatLeg(L.body, G.hockX, { w: G.hindW, limb: 'hind', inset: G.footInset }), x: G.toeX },
+        seatLeg(L.body, G.foreX, { rake: G.foreRake, w: G.foreW, limb: 'fore', inset: 0.03 }),
       ], FAR_LEGS['grooming-other'], 0.42);
       // The settled seated tail: behind the cat, sweeping astern along the
       // ground. Four routings were tried for `sit` and this is the one that
