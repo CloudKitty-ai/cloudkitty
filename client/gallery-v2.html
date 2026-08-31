@@ -864,8 +864,30 @@
   // opens the four-paws gap. So the card opens at the widths asked for and
   // prints what they cost, rather than choosing for her.
   const GROOM_FOOT_LAB = {
-    tilePx: 103, lieDown: 1, footInset: 0.01, hindW: 0.075, foreW: 0.095,
+    tilePx: 103,
+    lieDown: 1,
+    footInset: 0.01,
+    hindW: 0.075,
+    foreW: 0.095,
+    // SHIFTS, not absolute positions, and they start at zero. The two poses
+    // are parameterised differently -- GROOM states an absolute hip
+    // (`hindHx` 0.46) while GROOM_OTHER states a rake measured from the paw
+    // (`hindRake` -0.1) -- so one pair of absolute dials cannot drive both
+    // without silently moving one of them. A shift keeps each pose's own
+    // photo reference as the origin and moves them together, and zero means
+    // exactly where the three photographs put it.
+    toeShift: 0,
+    hockShift: 0,
   };
+  // Sit is drawn on this card, so it is dialled on this card: the same four
+  // as its own, writing into the same shipped `SIT`. Tuning the groom foot
+  // against a sit you cannot reach is tuning against a memory.
+  for (const [k, src] of [['sitToeX', 'toeX'], ['sitHockX', 'hockX'],
+    ['sitFootW', 'footW'], ['sitInset', 'inset']]) {
+    Object.defineProperty(GROOM_FOOT_LAB, k, {
+      get: () => CatV2.SIT[src], set: (v) => { CatV2.SIT[src] = v; }, enumerable: true,
+    });
+  }
 
   /** The proposal, as the SMALLEST possible change: the hind foot's `top`
    * derived off the body outline instead of stated, every x left exactly
@@ -881,13 +903,13 @@
    * pose switch, BEFORE `proportionLayout` rescales, and this can only work
    * from the finished body one step later. Sit's own shift is therefore the
    * card's offset, which the other two are read against. */
-  const layFoot = (L, inset, hindW, foreW) => {
+  const layFoot = (L, o) => {
     L.legs = L.legs.map((leg) => {
-      if (leg.limb !== 'hind') return { ...leg, w: foreW ?? leg.w };
-      const hx = leg.hx ?? leg.x;
+      if (leg.limb !== 'hind') return { ...leg, w: o.foreW ?? leg.w };
+      const hx = (leg.hx ?? leg.x) + (o.hockShift || 0);
       const under = CatV2.bodyUnderAt(L.body, hx);
-      const top = under === null ? leg.top : under - inset;
-      return { ...leg, top, w: hindW ?? leg.w };
+      const top = under === null ? leg.top : under - o.footInset;
+      return { ...leg, hx, x: leg.x + (o.toeShift || 0), top, w: o.hindW ?? leg.w };
     });
     return L;
   };
@@ -3363,9 +3385,15 @@
       ownShadows: true,
       bag: GROOM_FOOT_LAB,
       dials: [
+        { key: 'toeShift', label: 'GROOM toe — shift from where the photographs put it (0 = shipped)', min: -0.10, max: 0.10, step: 0.005 },
+        { key: 'hockShift', label: 'GROOM hock — shift from the shipped hip; back is negative, and it LENGTHENS the foot', min: -0.15, max: 0.10, step: 0.005 },
         { key: 'hindW', label: 'HIND WIDTH — opens at sit\'s 0.075; grooming ships 0.05, groom-other 0.04', min: 0.03, max: 0.10, step: 0.005 },
         { key: 'foreW', label: 'FORE WIDTH — opens at sit\'s 0.095; both grooms ship 0.05', min: 0.03, max: 0.12, step: 0.005 },
         { key: 'footInset', label: 'footInset — how far the hock tucks up inside the silhouette (the one number this would ADD)', min: 0, max: 0.04, step: 0.002 },
+        { key: 'sitToeX', label: 'sit toe — writes SIT.toeX, the shipped dial', min: 0.40, max: 0.58, step: 0.005 },
+        { key: 'sitHockX', label: 'sit hock — writes SIT.hockX', min: 0.24, max: 0.42, step: 0.005 },
+        { key: 'sitFootW', label: 'sit foot weight — writes SIT.footW', min: 0.04, max: 0.12, step: 0.005 },
+        { key: 'sitInset', label: 'sit inset — writes SIT.inset', min: 0, max: 0.04, step: 0.002 },
         { key: 'tilePx', label: 'tile — lab only; judge at 103, then 57, then 50', min: 40, max: 120, step: 1 },
       ],
       toggles: [
@@ -3377,8 +3405,7 @@
           let laid = 0;
           for (let i = 0; i < 24; i += 1) {
             ships = Math.max(ships, hindAngle(CatV2.catLayout(pose, i / 24)));
-            laid = Math.max(laid, hindAngle(layFoot(CatV2.catLayout(pose, i / 24),
-              GROOM_FOOT_LAB.footInset, GROOM_FOOT_LAB.hindW, GROOM_FOOT_LAB.foreW)));
+            laid = Math.max(laid, hindAngle(layFoot(CatV2.catLayout(pose, i / 24), GROOM_FOOT_LAB)));
           }
           // Sit CALIBRATES the card rather than sitting still in it: it
           // derives pre-proportion and this card derives post-, so it moves a
@@ -3393,8 +3420,7 @@
         const T = GROOM_FOOT_LAB.tilePx;
         const gaps = ['grooming', 'grooming-other'].map((pose) => {
           const ships = legGap((p) => CatV2.catLayout(pose, p)) * T * dpr;
-          const laid = legGap((p) => layFoot(CatV2.catLayout(pose, p),
-            GROOM_FOOT_LAB.footInset, GROOM_FOOT_LAB.hindW, GROOM_FOOT_LAB.foreW)) * T * dpr;
+          const laid = legGap((p) => layFoot(CatV2.catLayout(pose, p), GROOM_FOOT_LAB)) * T * dpr;
           const flag = laid <= 0 ? '   *** THE PAINTED EDGES MEET -- one shape, not four legs'
             : (laid < ships ? '   (tighter than it ships)' : '');
           return `  ${pose.padEnd(15)} ships ${ships.toFixed(1).padStart(5)}px   at these widths ${laid.toFixed(1).padStart(5)}px${flag}`;
@@ -3404,8 +3430,13 @@
           + `${rows.join('\n')}\n`
           + `tightest gap between legs that are not a depth pair, worst of 24 phases:\n`
           + `${gaps.join('\n')}\n`
-          + `hindW ${GROOM_FOOT_LAB.hindW}   foreW ${GROOM_FOOT_LAB.foreW}   footInset ${GROOM_FOOT_LAB.footInset}`
-          + `   (shipped: grooming 0.05/0.05, groom-other 0.04/0.05)\n`
+          + `GROOM proposal:  toeShift ${GROOM_FOOT_LAB.toeShift}   hockShift ${GROOM_FOOT_LAB.hockShift}`
+          + `   hindW ${GROOM_FOOT_LAB.hindW}   foreW ${GROOM_FOOT_LAB.foreW}`
+          + `   footInset ${GROOM_FOOT_LAB.footInset}\n`
+          + `   (shipped widths: grooming 0.05/0.05, groom-other 0.04/0.05;`
+          + ` shifts are from the photo reference, 0 = shipped)\n`
+          + `SIT, live on the shipped dials:  toeX ${CatV2.SIT.toeX}   hockX ${CatV2.SIT.hockX}`
+          + `   footW ${CatV2.SIT.footW}   inset ${CatV2.SIT.inset}\n`
           + `tile ${GROOM_FOOT_LAB.tilePx}px, lieDown ${GROOM_FOOT_LAB.lieDown} -- viewing aids, ${dpr}x device\n`
           + `RULING OPEN: this card proposes nothing until she says so.`
         );
@@ -3433,8 +3464,7 @@
         ctx.textAlign = 'center';
         for (const col of cols) {
           const L = col.laid
-            ? layFoot(CatV2.catLayout(col.pose, phase), GROOM_FOOT_LAB.footInset,
-              GROOM_FOOT_LAB.hindW, GROOM_FOOT_LAB.foreW)
+            ? layFoot(CatV2.catLayout(col.pose, phase), GROOM_FOOT_LAB)
             : CatV2.catLayout(col.pose, phase);
           const cx = x + T * 0.7;
 
@@ -3460,8 +3490,7 @@
           // picture has already convinced you.
           const dpr = window.devicePixelRatio || 1;
           const g = legGap((ph) => (col.laid
-            ? layFoot(CatV2.catLayout(col.pose, ph), GROOM_FOOT_LAB.footInset,
-              GROOM_FOOT_LAB.hindW, GROOM_FOOT_LAB.foreW)
+            ? layFoot(CatV2.catLayout(col.pose, ph), GROOM_FOOT_LAB)
             : CatV2.catLayout(col.pose, ph))) * T * dpr;
           ctx.fillStyle = g <= 0 ? '#b4443c' : '#6b7280';
           ctx.fillText(g <= 0 ? `gap ${g.toFixed(1)}px \u2014 legs MERGE` : `gap ${g.toFixed(1)}px`,
