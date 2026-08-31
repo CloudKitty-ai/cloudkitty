@@ -146,3 +146,29 @@ insertion, tomllib + line-diff verified), the SAME paired seeds
 five arms), 25 × 8,000, bc-collect at `2f5fb6c`, same acceptance
 bars, `qa_screen.py`/`readout_screen.py` extended with the arm
 (assertion logic unchanged — the red-first evidence stands).
+
+## ADDENDUM 2 (2026-08-31, owner-routed, declared before running):
+## training-budget extension on A1 / A1b / A2
+
+Owner's question: is the transition's location (mute ≤ 5.6%,
+half-fluent 7.6%, fluent 8.2%) a fact about density or about the
+recipe's 20-epoch budget — and should Fog Gen 1's BC stage train
+longer? Probe: re-train the three transition arms FRESH on the same
+corpora, same trainer seed 20260818, same everything except
+**epochs 60 (3×) and patience 10** — patience deliberately loosened
+because a `--resume` continuation restores a nearly-spent counter
+and patience 3 would censor exactly the plateau-then-late-learning
+dynamic under test. This is explicitly a RECIPE PROBE, not the
+verbatim recipe; artifacts land as `here-A{1,1b,2}-x60/`
+(originals untouched). A0/A3 not extended (both sides of the
+transition are settled; A3's corpus is A2's shape at lower density).
+
+**Decision rule, pre-declared**: if the extension moves A2 from mute
+to competent, or A1b from half-fluent to fluent, the training budget
+binds at moderate density → recommend a longer BC cycle for Fog
+Gen 1's clones, priced from the measured epoch cost. If the final
+here-conditioned readouts land within noise of the 20-epoch values,
+the recipe stands and density remains the binding constraint.
+Learning curves read from each run's per-epoch `history` (aggregate
+msg@1 is a valid per-arm curve proxy at fixed here-share; the
+here-conditioned readout runs on final models).
