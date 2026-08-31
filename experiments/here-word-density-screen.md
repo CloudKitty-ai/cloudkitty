@@ -55,12 +55,28 @@ already `true` for all four here-kinds on the served world — that is
 how Kittybear speaks `here_water`).
 
 **Selection among multiple legal here-words uses the stateless
-derivation, never the master RNG**: `(tick + kitty_id) % n_legal`, the
-same trick as `Element::critter_moves_this_tick`. A master-RNG draw
-inside `announce` would shift the stream, change the next `wander`
-`gen_bool(0.4)`, and diverge the action trajectory — destroying the
-one property that makes this cheap. The same trick supplies the
-density dial: speak when `(tick + kitty_id) % period == 0`.
+derivation, never the master RNG** — a master-RNG draw inside
+`announce` would shift the stream, change the next `wander`
+`gen_bool(0.4)`, and diverge the action trajectory, destroying the
+one property that makes this cheap. The density dial: speak when
+`(tick + kitty_id) % period == 0`, the `critter_moves_this_tick`
+trick.
+
+**Selection formula AMENDED 2026-08-30 (Product's finding, spec 043
+FR-006; accepted by Experiments).** The originally-planned
+`(tick + kitty_id) % n_legal` ALIASES with the density gate: on a
+speaking tick the sum is a multiple of `period`, so the index only
+reaches multiples of `gcd(period, n_legal)` — at period 4 with 2 or 4
+legal kinds (the A2 arm in ordinary adjacency) it is always 0 and only
+the first legal kind would ever be spoken, skewing the corpus kind mix
+as a function of the density dial. Adopted:
+`((tick + kitty_id) / period) % n_legal` — the speaking-tick counter —
+which cycles all residues, stays stateless/RNG-free, and reduces to
+the original at period 1 (A1 unchanged). Candidate order is stable:
+HereFood, HereWater, HereCritter, HereSunbeam (`MessageKind::ALL`
+order, verified in `meow.rs`). Analysis note: kind selection is a
+deterministic round-robin over the legal set, so per-kind corpus
+shares track legality shares, not an independent draw.
 
 Owner's rule for the precedence, settled 2026-08-23: **existing speech
 wins**; a here-word is spoken only when no want-word is. That conflict

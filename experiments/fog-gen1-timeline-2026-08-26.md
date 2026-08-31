@@ -79,6 +79,16 @@ scene-age float), the KITTY_SLOT gap ("wants the wall"), anything else
 wanting a schema break. Nothing enters step 4's spec without appearing
 here first.
 
+## Step 3.5 — tag v2.10 (owner-ruled 2026-08-30)
+
+The last stable 2.x, capping the pre-wall deploy train: 041 deploy +
+soak → refusal-stamp fast-follow → `announce_here` knob → contagion
+flip deploy + soak → **tag**. Prereq per house practice: expand
+`## Unreleased` first — joint pass at tag time (owner + Experiments),
+completeness-checked against `git log v2.9..` (toolchain pin #305,
+Biscuit 2.0 cutover, the client run #300+, 041, 042, plus whatever the
+train adds). Fog work on the far side is 3.0-numbered.
+
 ## Step 4 — implement Fog Gen 1
 
 Spec-first (speckit). Scope per ROADMAP; free register never scripted;

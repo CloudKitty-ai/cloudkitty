@@ -42,6 +42,33 @@ change.
   to before the knob existed, and the in-tree gate-zero test pins that
   speech never moves action. Built for Experiments' here-word density
   screen.
+- A sitting cat rests on its whole foot, and has four of them. Two changes
+  to `sit`, found from opposite ends. The first: a cat sits on the whole
+  metatarsus, which lies flat along the ground with the hock hidden under
+  the rump and the toes stopping short of the front paw, and we drew a short
+  vertical peg instead. The four-paws problem had been recorded as the
+  one-ellipse seat's ceiling, needing a haunch mass — "an addition rather
+  than a tweak" — and it was really the wrong limb shape. A vertical peg puts
+  the hind paw in the same narrow band of x as the foreleg, competing for a
+  gap the seat is too small to give, and being vertical almost all of it sits
+  inside the body. Lying down, the foot runs along the one direction nothing
+  else is using. The hock end is derived rather than stated: `seatLeg` reads
+  the body outline and insets the pivot above it, so the foot meets the animal
+  at every tilt and every point of the breath, and only the toe is a number
+  anyone chose. The second: `sit` had no `FAR_LEGS` entry and `GAIT.spread` is
+  zero, so its far pair drew exactly behind the near pair — the pose this work
+  is named after was rendering two legs. It was found by eye, from the lab: the
+  groom feet read longer than the seated one, and the reason turned out to be
+  that theirs are the union of two offset legs while sit's was one leg drawn
+  twice. Sit is the tightest pose in the vocabulary, with the widest foreleg
+  anywhere and a toe already close to it, so its offset is smaller than either
+  groom's and every 0.005 of it spends about a pixel of gap. The dials were set
+  by hand at the camera's own tile sizes, and they are pinned: an unpinned dial
+  is one careless bake from reverting. The guard is on the drawn layout rather
+  than the constant, because pointing the pose back at the old zero left every
+  check green while the far pair vanished again. The grooming poses have the
+  same folded-hock question and it is still open — a lab card carries the
+  comparison and proposes nothing.
 
 - Playful cats now know which friend is worth the walk (spec 042, PR #325).
   The scripted Playful behavior's play-target pick — until now purely
