@@ -504,7 +504,53 @@ pub(crate) fn announce(ctx: &DecisionContext) -> Option<MessageKind> {
             best = Some((pressure, want));
         }
     }
-    best.map(|(_, want)| want)
+    if let Some((_, want)) = best {
+        return Some(want);
+    }
+    announce_here(ctx)
+}
+
+/// The here path (spec 043): fills a slot the want loop left Silent —
+/// never sooner, so the precedence ladder (WaitForMe > want > here >
+/// Silent, owner ruling 2026-08-23) holds by construction. Knob off
+/// (`announce_here` 0) is a constant `None`: today's behavior,
+/// byte-identical. Knob on, a cat speaks only on its phase ticks,
+/// `(tick + kitty_id) % period == 0` (the `critter_moves_this_tick`
+/// idiom), choosing among the LEGAL here-kinds — `message_legal`'s own
+/// adjacency/vocabulary/cooldown ruling, unchanged law — by the
+/// speaking-tick counter `((tick + kitty_id) / period) % n_legal` over
+/// `HERE_KINDS` order. NOT the handoff's literal `(tick + kitty_id) %
+/// n_legal`: on speaking ticks the sum is a multiple of the period, so
+/// that index only reaches multiples of gcd(period, n_legal) — at
+/// period 4 with 2 or 4 legal words it is pinned to HereFood forever
+/// (research D3; amendment accepted by Experiments 2026-08-30). The
+/// counter derives from (tick, kitty_id) alone: stateless, no RNG, and
+/// a resumed run speaks identically to an unbroken one.
+fn announce_here(ctx: &DecisionContext) -> Option<MessageKind> {
+    let period = ctx.config.behavior.announce_here;
+    if period == 0 {
+        return None;
+    }
+    let counter = ctx.world.tick + ctx.me.id as u64;
+    if counter % period != 0 {
+        return None;
+    }
+    let legal: Vec<MessageKind> = MessageKind::HERE_KINDS
+        .into_iter()
+        .filter(|&kind| {
+            crate::meow::message_legal(
+                &ctx.me,
+                kind,
+                ctx.world.tick,
+                &ctx.config,
+                &ctx.world.elements,
+            )
+        })
+        .collect();
+    if legal.is_empty() {
+        return None;
+    }
+    Some(legal[((counter / period) % legal.len() as u64) as usize])
 }
 
 #[cfg(test)]
@@ -901,5 +947,147 @@ mod tests {
                 r.kitty_id
             );
         }
+    }
+
+    // ---- spec 043: the announce_here here path (T009–T013) ----
+
+    use crate::config::Config;
+    use crate::element::{Element, ElementKind};
+    use crate::grid::Position;
+    use crate::needs::NeedKind;
+
+    /// A hand-built stage for driving `announce` directly: kitty 1 parked
+    /// mid-meadow on a cleared board at `tick`, under `config`.
+    fn here_ctx_with(
+        config: Config,
+        tick: u64,
+        setup: impl FnOnce(&mut World),
+    ) -> DecisionContext {
+        let config = Arc::new(config);
+        let mut world = World::generate(&config);
+        world.tick = tick;
+        world.elements.clear();
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].pos = Position::new(8, 8);
+        setup(&mut world);
+        let me = world.kitty(1).unwrap().clone();
+        DecisionContext {
+            me,
+            world: Arc::new(world.snapshot()),
+            rng: DecisionRng::from_seed(9876),
+            config,
+        }
+    }
+
+    fn here_ctx(period: u64, tick: u64, setup: impl FnOnce(&mut World)) -> DecisionContext {
+        let mut config = test_config();
+        config.behavior.announce_here = period;
+        here_ctx_with(config, tick, setup)
+    }
+
+    fn adjacent_chow(world: &mut World) {
+        world.push_element(Element {
+            id: 950,
+            kind: ElementKind::Chow { servings: 2 },
+            pos: Position::new(8, 9),
+            ttl: None,
+        });
+    }
+
+    fn adjacent_chow_and_water(world: &mut World) {
+        adjacent_chow(world);
+        world.push_element(Element {
+            id: 951,
+            kind: ElementKind::Water,
+            pos: Position::new(7, 8),
+            ttl: None,
+        });
+    }
+
+    #[test]
+    fn a_want_word_outranks_a_here_word() {
+        // T009 / FR-004 (owner precedence ruling 2026-08-23): armed want +
+        // adjacent referent + knob on + phase tick → the want speaks; the
+        // here path fills only a slot that would otherwise be Silent.
+        let ctx = here_ctx(1, 51, |w| {
+            adjacent_chow(w);
+            let idx = w.kitty_index(1).unwrap();
+            w.kitties[idx].announce_armed.insert(NeedKind::Eat);
+            w.kitties[idx].needs.add(NeedKind::Eat, 60.0);
+        });
+        assert_eq!(announce(&ctx), Some(MessageKind::WantEat));
+    }
+
+    #[test]
+    fn the_phase_gate_holds_the_tongue_off_phase() {
+        // T010 / FR-005: knob on, referent adjacent, but
+        // (tick + kitty_id) % period != 0 → Silent. The sanity arm proves
+        // the same stage speaks ON phase — off-phase silence is the gate,
+        // not a missing here path.
+        let off = here_ctx(4, 52, adjacent_chow); // (52 + 1) % 4 == 1
+        assert_eq!(announce(&off), None);
+        let on = here_ctx(4, 51, adjacent_chow); // (51 + 1) % 4 == 0
+        assert_eq!(announce(&on), Some(MessageKind::HereFood));
+    }
+
+    #[test]
+    fn the_selection_cycles_every_legal_kind_in_here_kinds_order() {
+        // T011 / FR-006 AS AMENDED (research D3): with two legal kinds at
+        // period 4 the speaking-tick counter ((tick + id) / period) %
+        // n_legal walks BOTH kinds. Under the handoff's literal
+        // (tick + id) % n_legal this guard reds: on speaking ticks
+        // tick + id is a multiple of the period, so with gcd(4, 2) = 2 the
+        // index is pinned to 0 and only HereFood is ever spoken.
+        let mut spoken = Vec::new();
+        for tick in [3u64, 7, 11, 15] {
+            // (tick + 1) % 4 == 0: all speaking ticks for kitty 1.
+            let ctx = here_ctx(4, tick, adjacent_chow_and_water);
+            spoken.push(announce(&ctx));
+        }
+        assert_eq!(
+            spoken,
+            vec![
+                Some(MessageKind::HereWater), // counter 1
+                Some(MessageKind::HereFood),  // counter 2
+                Some(MessageKind::HereWater), // counter 3
+                Some(MessageKind::HereFood),  // counter 4
+            ],
+            "both legal kinds must be reached, in HERE_KINDS order"
+        );
+    }
+
+    #[test]
+    fn no_adjacent_referent_means_silence_even_on_phase() {
+        // T012 / FR-007: a phase tick on bare grass proposes nothing —
+        // legality is unchanged law and adjacency is its floor.
+        let ctx = here_ctx(4, 51, |_| {});
+        assert_eq!(announce(&ctx), None);
+    }
+
+    #[test]
+    fn a_cooled_kind_drops_out_and_the_index_re_derives() {
+        // T012 / FR-007 edge: HereWater's cooldown is stamped, so the
+        // legal set is [HereFood] alone and EVERY speaking tick picks it —
+        // n_legal is the live survivor count, never the family size.
+        for tick in [3u64, 7] {
+            let ctx = here_ctx(4, tick, |w| {
+                adjacent_chow_and_water(w);
+                let idx = w.kitty_index(1).unwrap();
+                w.kitties[idx].set_meow_cooldown(MessageKind::HereWater, tick + 5);
+            });
+            assert_eq!(announce(&ctx), Some(MessageKind::HereFood));
+        }
+    }
+
+    #[test]
+    fn a_disabled_vocabulary_flag_silences_the_kind() {
+        // T013 / FR-007, US1-5: the knob cannot speak a word the world's
+        // vocabulary has off — with here_food disabled and only chow
+        // adjacent, a phase tick stays Silent.
+        let mut config = test_config();
+        config.behavior.announce_here = 4;
+        config.meow.vocabulary.here_food = false;
+        let ctx = here_ctx_with(config, 51, adjacent_chow);
+        assert_eq!(announce(&ctx), None);
     }
 }

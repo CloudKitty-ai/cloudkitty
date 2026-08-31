@@ -25,6 +25,14 @@ at commit 1 (T008) and at the final proof (T021).
 | `evolution_golden` | ok — pin `7b361b2a…` unregenerated |
 | `cargo test --workspace` | ok — **728 passed, 0 failed** (725 baseline + 3 new: 2 config guards + the `HERE_KINDS` order pin) |
 
-## Final proof (T021) — filled after the here path lands
+## Final proof (T021)
 
-- _pending_
+| Witness | Result |
+|---|---|
+| stamp guard, `announce_here` in its key list | ok — green (in the workspace run below) |
+| `evolution_golden` | ok — pin `7b361b2a…` green, **unregenerated** |
+| `cargo test --workspace` | ok — **737 passed, 0 failed** (725 baseline + 12 new: 2 config guards, HERE_KINDS pin, 6 behavior guards, 3 gate-zero tests) |
+| Existing tests modified | **zero** — `git diff` against branch base shows the only deletion in tracked test-bearing files is the one replaced return line in `announce()` itself |
+
+US2 acceptance 1–3 satisfied: the launch is byte-identical, proven by
+the standing witnesses unmodified.

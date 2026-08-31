@@ -33,6 +33,16 @@ change.
 
 ## Unreleased
 
+- Scripted cats can volunteer here-words (spec 043). A new `[behavior]`
+  `announce_here` period lets a scripted cat whose message slot would be
+  Silent name an adjacent thing — `here_food` / `here_water` /
+  `here_critter` / `here_sunbeam` — on its deterministic phase ticks,
+  cycling the legal kinds without RNG. Existing speech always wins and
+  legality is unchanged law; unset (the served default) is byte-identical
+  to before the knob existed, and the in-tree gate-zero test pins that
+  speech never moves action. Built for Experiments' here-word density
+  screen.
+
 - Playful cats now know which friend is worth the walk (spec 042, PR #325).
   The scripted Playful behavior's play-target pick — until now purely
   nearest-first — gained a partner-value score: how much the candidate

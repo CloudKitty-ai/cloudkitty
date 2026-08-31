@@ -41,12 +41,47 @@ re-read (not just re-run) before the final pass.
   `[HereWater, HereFood, …]` vs right `[HereFood, HereWater, …]`);
   restored, green. (First injection attempt was a no-op — a perl regex
   that matched nothing; caught because the "red" never appeared.)
-- R3–R7: _pending_
-- R8: _pending_
-- R9: _pending_
-- R10: _pending_
-- R11: _pending_
-- R12: _pending_
+- R3 (precedence): pre-impl the guard was trivially GREEN (the want wins
+  because nothing else exists) — prediction corrected; the honest red is
+  the post-impl injection: here path moved BEFORE the want loop →
+  OBSERVED RED (left `Some(HereFood)` vs right `Some(WantEat)`);
+  restored, green.
+- R4 (phase gate): pre-impl OBSERVED RED as predicted — the on-phase
+  sanity arm expected `Some(HereFood)`, got `None` (no here path).
+- R5 (selection cycling): (a) pre-impl OBSERVED RED (no here path);
+  (b) post-impl injection of the handoff's literal `(tick+id) % n_legal`
+  → OBSERVED RED exactly as research D3 predicts: left
+  `[HereFood, HereFood, HereFood, HereFood]` vs right the
+  Water/Food/Water/Food cycle — the index pinned to the first legal
+  kind. Restored the amended `((tick+id)/period) % n_legal`, green.
+- R6 (legality/cooldown re-derive): pre-impl OBSERVED RED (the
+  cooled-kind arm expected `Some(HereFood)`, got `None`); the
+  no-adjacent-referent arm is trivially green pre-impl by design (its
+  teeth come from the R7 injection, which also spoke on bare law).
+- R7 (vocabulary): pre-impl trivially GREEN (prediction corrected, as
+  R3); post-impl injection dropped the `message_legal` filter from the
+  here path → OBSERVED RED (left `Some(HereWater)` vs right `None` —
+  an unfiltered word spoke against a disabled flag). Restored, green.
+- R8: OBSERVED RED as predicted — B given `playful_comfort` 65.0,
+  assertion 1 panicked "action projections diverge at tick 79"; restored,
+  green.
+- R9: OBSERVED RED as predicted — B's knob set to 0, assertion 2
+  panicked "no Here* emission in 2000 armed ticks — the gate is
+  vacuous"; restored, green.
+- R10: OBSERVED RED as predicted — here path moved BEFORE the want loop,
+  assertion 3 panicked "want/WaitForMe streams differ" (assertions 1 and
+  2 stayed green through it: the injection is message-channel-only, which
+  is itself evidence the instrument separates the channels); restored,
+  green.
+- R11: OBSERVED RED as predicted — phase gate made period-blind, ladder
+  panicked "periods 1/4/16 gave [445, 445, 445]" (all arms at the
+  period-1 count, exactly the prediction); restored, green ([445, 301,
+  129]).
+- R12: OBSERVED RED as predicted — process-global `static AtomicU64`
+  mixed into the selection index (announce has no RNG access, so an
+  impurity is the one compilable injection), determinism test panicked
+  "armed message streams diverged between identical runs"; restored,
+  green.
 
 ## Must-GREEN (kept pile — re-read, then run; zero modifications allowed)
 
@@ -60,6 +95,30 @@ re-read (not just re-run) before the final pass.
 | G6 | needs_driven + playful decide tests | from_legacy junction byte-unchanged |
 | G7 | full `cargo test --workspace` | zero modified existing tests |
 
-### Re-read log (filled at T015/T025)
+### Re-read log (T015/T025)
 
-- _pending_
+All must-RED rows above carry an OBSERVED red with its predicted reason
+(two predictions corrected in place: R3 and R7 were trivially green
+pre-impl and got their honest reds from post-impl injections instead).
+Kept pile re-read before the final run:
+
+- G1 stamp guard: re-read at config/mod.rs — asserts key ABSENCE in the
+  default serialization, wording-independent; green with the new key.
+- G2 `evolution_golden`: re-read — pin `7b361b2a…` constant untouched,
+  digest_after(10_000) unchanged; green unregenerated.
+- G3 `meow_courtesy` (4 tests): re-read the inventory — window spacing,
+  cooldown downgrade, ungrounded downgrade, grounded emit; none consults
+  the knob (their configs leave it 0 → here path constant None). 4/4
+  green.
+- G4 `say_surface_grounding` (2 tests): re-read — property-pins
+  `message_legal` itself across randomized worlds/flags/cooldowns; the
+  here path CALLS this law, never re-defines it. 2/2 green.
+- G5 `behavior_variation` (2 tests): re-read inventory — playful-vs-
+  sensible contrast, welfare floor; action-channel only. 2/2 green.
+- G6 needs_driven + playful decide tests: re-read locations
+  (needs_driven.rs:466, playful.rs:89) — the from_legacy junction is
+  byte-unchanged (the diff touches only `announce()`'s tail and the new
+  `announce_here` fn). 4 green.
+- G7 full workspace: 737 passed, 0 failed; the only deletion in tracked
+  sources is `announce()`'s replaced return line — zero modified
+  existing tests.
