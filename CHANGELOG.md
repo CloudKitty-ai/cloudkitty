@@ -42,6 +42,27 @@ change.
   to before the knob existed, and the in-tree gate-zero test pins that
   speech never moves action. Built for Experiments' here-word density
   screen.
+- The grooming cats rest on their feet too, and the seated cat's fourth leg
+  is finally visible. Two follow-ups to the seated foot, both found by
+  looking at the drawing rather than at the code. The far pair was being
+  *reshaped* instead of moved: `withFarPair` signed each end of a leg toward
+  the body centre independently, which is the same arithmetic for any
+  near-vertical leg — both ends take the same sign — but a foot that lies
+  down straddles the centre, so its hock and its toe travelled opposite ways
+  and the leg collapsed. Sit's far hind came out inside its near hind, drawn
+  and offset and adding no visible leg at all. It is now signed once per leg
+  and translated whole, which changes exactly one pose in the vocabulary and
+  is measured to. And both grooming poses now lie on the metatarsus the way
+  `sit` does: social grooming was already deriving its hock end from the body
+  outline, but at the toe rather than the hock, where the body sits far higher
+  off the ground — which is what drew a folded hock at forty-six degrees
+  instead of a foot. Self-grooming stated a top of 0.68 against an underside
+  of 0.864 at the same point. The dials are the owner's, drafted at the
+  camera's own tile sizes and shipped to be judged in the world rather than in
+  the lab; the widths went up with them, and width is the only lever that
+  spends the gap between one paw and the next. Laying a foot down costs none
+  of it.
+
 - A sitting cat rests on its whole foot, and has four of them. Two changes
   to `sit`, found from opposite ends. The first: a cat sits on the whole
   metatarsus, which lies flat along the ground with the hock hidden under
