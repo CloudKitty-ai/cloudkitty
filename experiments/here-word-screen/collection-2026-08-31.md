@@ -131,3 +131,18 @@ the follow-up if the cliff's location (not just existence) matters.
 Dataset accepted for training. Training started same day
 (`train_clone6.py` verbatim defaults, artifacts to
 `artifacts/here-A{0..3}/`, uncommitted).
+
+## ADDENDUM (2026-08-31, owner-routed, declared before collection):
+## arm A1b, period 2
+
+Owner's word after the Half-A result: probe INSIDE the 5.6–8.2%
+bracket with a period-2 arm rather than an A2 epoch extension —
+location under the fixed recipe is the decision-relevant number
+(the same recipe fog will use), accepting that the 20-epoch budget
+qualifier carries over. Design identical to the registered arms in
+every respect: `arm-A1b.toml` = source + `announce_here = 2` (one
+insertion, tomllib + line-diff verified), the SAME paired seeds
+1,060,001–25 (no new band — the claimed row's pairing extends to
+five arms), 25 × 8,000, bc-collect at `2f5fb6c`, same acceptance
+bars, `qa_screen.py`/`readout_screen.py` extended with the arm
+(assertion logic unchanged — the red-first evidence stands).

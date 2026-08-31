@@ -38,6 +38,7 @@ from data6 import load_rollout, stack_decisions  # noqa: E402
 from model_v4 import EntityPolicyV4  # noqa: E402
 
 ARMS = {"here-A0": ("arm-A0", 0), "here-A1": ("arm-A1", 1),
+        "here-A1b": ("arm-A1b", 2),
         "here-A2": ("arm-A2", 4), "here-A3": ("arm-A3", 16)}
 VAL = (3, 13, 23)
 HERE = {9: "here_food", 10: "here_water", 11: "here_critter", 12: "here_sunbeam"}

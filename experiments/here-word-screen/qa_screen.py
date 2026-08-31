@@ -23,7 +23,7 @@ import numpy as np
 
 # QA_ROOT override exists for the red-first harness only.
 ROOT = Path(os.environ.get("QA_ROOT", Path(__file__).parent / "results-raw"))
-ARMS = {"arm-A0": 0, "arm-A1": 1, "arm-A2": 4, "arm-A3": 16}
+ARMS = {"arm-A0": 0, "arm-A1": 1, "arm-A1b": 2, "arm-A2": 4, "arm-A3": 16}
 N_ROLLOUTS = 25
 SEED_BASE = 1060001
 TICKS = 8000
