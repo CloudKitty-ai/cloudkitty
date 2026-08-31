@@ -40,6 +40,12 @@ from model_v4 import EntityPolicyV4  # noqa: E402
 ARMS = {"here-A0": ("arm-A0", 0), "here-A1": ("arm-A1", 1),
         "here-A1b": ("arm-A1b", 2),
         "here-A2": ("arm-A2", 4), "here-A3": ("arm-A3", 16)}
+# Addendum-2 extension clones (60 epochs / patience 10) — included
+# when their artifacts exist; same arms, same val seeds.
+for _x in ("here-A1-x60", "here-A1b-x60", "here-A2-x60"):
+    _base = _x[:-4]
+    if (Path(__file__).resolve().parent / "artifacts" / _x / f"{_x}.pt").exists():
+        ARMS[_x] = ARMS[_base]
 VAL = (3, 13, 23)
 HERE = {9: "here_food", 10: "here_water", 11: "here_critter", 12: "here_sunbeam"}
 WANT = [1, 2, 4, 5, 7, 8]
