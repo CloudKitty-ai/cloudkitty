@@ -360,15 +360,21 @@ that wall, not one item at a time afterwards. Running list:
   kitty-token features). No new engine state: both fields are
   reductions over the `recent_meows` buffer the digest already scans.
 
-  Spec-level decisions to argue there, not here: (1) **audibility
-  grants a slot; fog masks knowledge fields, not rows** — otherwise
-  vision-gated slots silence unseen speakers, defeating the redesign's
-  purpose (precedent: activity targets already get non-nearest slots);
-  (2) the window — 10 ticks suits fresh-signal handoff but repetition
-  builds over tens of ticks; lean = one somewhat longer window
-  (20–30) for both fields, one buffer, one definition of "recent";
-  (3) whether the observer gets its own row (did-I-already-call, for
-  memoryless minds) — today self-meows are deliberately excluded.
+  Spec-level decisions — **all three OWNER-RULED 2026-08-31** (the
+  step-4 spec records them, it no longer argues them): (1)
+  **audibility grants a slot; fog masks knowledge fields, not rows**
+  — otherwise vision-gated slots silence unseen speakers, defeating
+  the redesign's purpose (precedent: activity targets already get
+  non-nearest slots); (2) **one shared window for both fields, 20–30
+  ticks, exact value pinned at spec time as a small integer multiple
+  of the measured per-kind cooldowns** (one buffer, one definition of
+  "recent"; long enough for repetition/regularity to register —
+  F-034's A1b hints regularity carries learnable signal); (3) **the
+  observer gets its own (recency, rate) block** (+30 floats in
+  SELF_BLOCK: did-I-already-call is unreconstructable for a
+  memoryless mind, and perceiving everyone's insistence except your
+  own is indefensible once the matrix exists). Self-meows' exclusion
+  from the OTHER-slot rows is unchanged.
   `HEAD_KINDS` stays frozen at 15 (reserves trill/ekekek untouched) —
   this moves the digest's *shape*, never the kind layout (principle 5).
 
