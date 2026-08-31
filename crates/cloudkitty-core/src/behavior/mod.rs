@@ -532,7 +532,7 @@ fn announce_here(ctx: &DecisionContext) -> Option<MessageKind> {
         return None;
     }
     let counter = ctx.world.tick + ctx.me.id as u64;
-    if counter % period != 0 {
+    if !counter.is_multiple_of(period) {
         return None;
     }
     let legal: Vec<MessageKind> = MessageKind::HERE_KINDS

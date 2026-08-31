@@ -1,10 +1,11 @@
 //! Spec 043 gate zero (FR-010, SC-002, SC-006): speech never moves action.
 //!
-//! Paired lockstep run, same seed: world A = defaults, world B = defaults
-//! + `announce_here = 1`. The instrument is the per-tick ACTION PROJECTION
-//! — (id, pos, activity, last_action) per kitty in id order — NOT the
-//! world fingerprint, which lawfully differs knob-on (meow cooldowns and
-//! `recent_meows` live in the serialized world). Three assertions:
+//! Paired lockstep run, same seed: world A = defaults, world B =
+//! defaults plus `announce_here = 1`. The instrument is the per-tick
+//! ACTION PROJECTION — (id, pos, activity, last_action) per kitty in
+//! id order — NOT the world fingerprint, which lawfully differs
+//! knob-on (meow cooldowns and `recent_meows` live in the serialized
+//! world). Three assertions:
 //!
 //! 1. action projections equal every tick (gate zero itself);
 //! 2. B's message stream contains at least one Here\* emission
