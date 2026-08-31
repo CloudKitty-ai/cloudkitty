@@ -93,6 +93,18 @@ impl MessageKind {
         MessageKind::Ekekek,
     ];
 
+    /// Spec 043: the stable ordering the `announce_here` selection
+    /// indexes into — the Here family in `ALL` order. A future fifth
+    /// here-word must be appended here (and its position is contract:
+    /// Experiments' density screen reads per-kind shares against this
+    /// order).
+    pub const HERE_KINDS: [MessageKind; 4] = [
+        MessageKind::HereFood,
+        MessageKind::HereWater,
+        MessageKind::HereCritter,
+        MessageKind::HereSunbeam,
+    ];
+
     /// The need this message asks about -- want-kinds only. Everything
     /// else (the free register, Purr, WaitForMe, the Here family) has
     /// none: they are not requests, and their intensity stamps 0.0.
@@ -276,6 +288,31 @@ pub fn freshest_audible(meows: &[Meow], kind: MessageKind, listener: KittyId) ->
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn here_kinds_pins_the_all_order() {
+        // Spec 043 FR-006: the selection index is only stable if this
+        // ordering is — pinned to the Here family's positions in ALL.
+        assert_eq!(
+            MessageKind::HERE_KINDS,
+            [
+                MessageKind::HereFood,
+                MessageKind::HereWater,
+                MessageKind::HereCritter,
+                MessageKind::HereSunbeam,
+            ]
+        );
+        let in_all: Vec<MessageKind> = MessageKind::ALL
+            .iter()
+            .copied()
+            .filter(|k| MessageKind::HERE_KINDS.contains(k))
+            .collect();
+        assert_eq!(
+            in_all,
+            MessageKind::HERE_KINDS.to_vec(),
+            "HERE_KINDS must preserve MessageKind::ALL order"
+        );
+    }
 
     #[test]
     fn freshest_audible_takes_max_tick_ties_to_the_lower_id_and_never_self() {
