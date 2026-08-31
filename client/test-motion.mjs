@@ -1914,6 +1914,171 @@ check("the sit card's before-column replays the seat sit actually had", () => {
   );
 });
 
+/** A point on a cubic tail, at `u` along it. */
+const tailAt = (tail, u) => {
+  const v = 1 - u;
+  return {
+    x: v * v * v * tail.x0 + 3 * v * v * u * tail.c1x + 3 * v * u * u * tail.c2x + u * u * u * tail.x1,
+    y: v * v * v * tail.y0 + 3 * v * v * u * tail.c1y + 3 * v * u * u * tail.c2y + u * u * u * tail.y1,
+  };
+};
+
+check('tailBehind is what decides paint ORDER, not whether a tail exists', () => {
+  // The lab's groom-other card offers a `tailBehind` toggle so the old buried
+  // rear tail can be replayed beside the new one. That toggle is only worth
+  // anything if the flag really moves the paint order -- Design's lab rule 7,
+  // and made inert the toggle looks like a dial that needs turning further.
+  //
+  // Checked on the ORDER rather than on the pixels: a buried tail is stroked
+  // before the body and an unburied one after it, which is the entire
+  // difference and the reason a buried base cannot be seen.
+  const order = (bury) => {
+    const log = [];
+    const ctx = new Proxy({}, {
+      get: (t2, k) => (k === 'canvas' ? { width: 300, height: 300 }
+        : k === 'measureText' ? () => ({ width: 10 })
+          : (...args) => { log.push(String(k)); }),
+      set: () => true,
+    });
+    const L = CatV2.catLayout('grooming-other', 0.3, { view: 'back' });
+    if (bury) L.tailBehind = true; else delete L.tailBehind;
+    CatV2.paintBox(ctx, L, CatV2.appearanceFor(3), {
+      facing: 'north', size: 120, x: 0, y: 0,
+    });
+    return log.indexOf('bezierCurveTo');
+  };
+  const front = order(false);
+  const buried = order(true);
+  assert(front > 0 && buried > 0, 'the rear tail must be stroked in both orders');
+  assert(
+    buried < front,
+    `a buried tail must be stroked FIRST (got ${buried}) and an unburied one later `
+      + `(got ${front}) -- tailBehind is inert`,
+  );
+});
+
+check('the rear groom tail clears the skull, which is why it may paint in front', () => {
+  // `tailBehind` existed to stop "a hard dark stick driven through the cat":
+  // the tail had been moved INBOARD to escape the paw band, which put its
+  // length over the skull, and `drawTail` strokes an outline so the part on
+  // top was three quarters of its visible ink.
+  //
+  // It has since moved back out -- tip 0.696, past the head's right edge --
+  // and crosses the skull not at all, so it paints in FRONT like every other
+  // rear view and like the axial WALK, whose tail bows FURTHER (0.038 against
+  // 0.024) and reads fine. Burying it was what left only an outer arc with
+  // its base hidden, which is what the owner saw.
+  //
+  // This pins the condition that permits that, not the flag: if the tail is
+  // ever moved inboard again the skull is back under it and it must go behind
+  // again -- and this fails first and says why.
+  for (const pose of ['grooming-other', 'walking']) {
+    const L = CatV2.catLayout(pose, 0.3, { view: 'back' });
+    assert(L.tail, `${pose} draws a rear tail at all`);
+    let overSkull = 0;
+    const N = 400;
+    for (let i = 0; i <= N; i += 1) {
+      const p2 = tailAt(L.tail, i / N);
+      if (Math.hypot(p2.x - L.head.cx, p2.y - L.head.cy) < L.head.r) overSkull += 1;
+    }
+    const share = overSkull / (N + 1);
+    assert(
+      share < 0.02,
+      `${pose}: ${(share * 100).toFixed(0)}% of the rear tail crosses the skull -- `
+        + 'drawn in front that is a stick through the cat, and it needs tailBehind again',
+    );
+    assert(
+      !L.tailBehind,
+      `${pose}: the rear tail is buried behind the body, so its base cannot be seen `
+        + 'and only an outer arc shows',
+    );
+  }
+});
+
+check('the seated leg dials: paws where the photos put them, width dialled for the gap', () => {
+  // All UNPINNED until 2026-08-24, which is how they came to be judged on a
+  // measurement taken at 1x while the client draws at the device ratio.
+  //
+  // The PAW POSITIONS are pinned at what the photo reference bought (see the
+  // GROOM.hindX note: the hind foot is gathered up beside the planted
+  // foreleg, not trailing behind). They are deliberately NOT the lever for
+  // leg separation -- backing a paw up does open the gap, but it shortens the
+  // leg by sliding it under the deeper part of the body, and it walks back a
+  // decision taken from three photographs.
+  close(CatV2.GROOM.hindX, 0.56, 'GROOM.hindX moved -- the photo reference put it there');
+  close(CatV2.GROOM.hindHx, 0.46, 'GROOM.hindHx moved');
+  close(CatV2.GROOM_OTHER.hindX, 0.55, 'GROOM_OTHER.hindX moved');
+  close(CatV2.GROOM_OTHER.foreX, 0.685, 'GROOM_OTHER.foreX moved');
+
+  // WIDTH is the lever instead. It trades against nothing scarce: the leg's
+  // visible LENGTH does not change when it thins, and the painted width stays
+  // roughly twice that length, so the paw still reads as a stub rather than a
+  // hair. Dialled to where the gap meets the length -- past that the read is
+  // limited by the length and the extra gap buys nothing.
+  close(CatV2.GROOM.hindW, 0.05, 'GROOM.hindW moved');
+  close(CatV2.GROOM.foreW, 0.05, 'GROOM.foreW moved');
+  close(CatV2.GROOM_OTHER.legW, 0.04, 'GROOM_OTHER.legW moved');
+});
+
+check('the seated hind foot sits where the owner dialled it', () => {
+  // Hand-dialled by the owner 2026-08-30 in the lab's four-paws card, at the
+  // camera's own tile sizes. Pinned because an unpinned dial is one careless
+  // bake from reverting -- the same reason `pounceGateTiles` got a pin before
+  // it was allowed to move.
+  //
+  // The TOE is the only one of the four anyone chooses freely; the hock end
+  // is derived by `seatLeg` off the body outline. So the toe carries the
+  // constraint: past ~0.53 it shares ink with the foreleg at `foreX` 0.66,
+  // both being on the ground at the same height with round caps.
+  close(CatV2.SIT.toeX, 0.51, 'SIT.toeX moved -- the toe is the owner\'s dial');
+  close(CatV2.SIT.hockX, 0.39, 'SIT.hockX moved');
+  close(CatV2.SIT.footW, 0.075, 'SIT.footW moved');
+  close(CatV2.SIT.inset, 0.01, 'SIT.inset moved');
+
+  // Sit drew its far pair EXACTLY behind the near one until 2026-08-30:
+  // `GAIT.spread` is 0 and FAR_LEGS carried no `sit`, so the pose the
+  // four-paws work is named after was rendering two legs. Owner ruled it
+  // should have one like the grooms.
+  close(CatV2.FAR_LEGS.sit, -0.02, 'FAR_LEGS.sit moved -- sit is back to drawing two legs');
+  assert(CatV2.FAR_LEGS.sit < 0, 'the sit far pair must shift toward the body centre, not away');
+
+  // The DIAL is not the drawing. Pointing sit's `withFarPair` back at
+  // `GAIT.spread` -- which is 0 -- leaves the constant above untouched and
+  // every check green while the far pair vanishes behind the near one again.
+  // So assert the LAYOUT: the two hind legs must land at different x.
+  for (const phase of [0, 0.25, 0.5, 0.75]) {
+    const legs = CatV2.catLayout('sit', phase).legs.filter((l) => l.limb === 'hind');
+    assert(legs.length === 2, `sit drew ${legs.length} hind legs at phase ${phase}, not 2`);
+    const [a, b] = legs;
+    assert(
+      Math.abs(a.x - b.x) > 0.001,
+      `sit's far hind is drawn on top of its near one at phase ${phase} -- two legs, not four`,
+    );
+  }
+
+  // The constraint the toe is dialled against, asserted rather than trusted:
+  // the painted edges must not meet. Half-widths plus the outline on each.
+  const clear = (CatV2.SIT.foreX - CatV2.SIT.toeX)
+    - ((CatV2.SIT.footW + CatV2.OUTLINE_W) / 2 + (CatV2.SIT.foreW + CatV2.OUTLINE_W) / 2);
+  assert(clear > 0, `the seated toes share ink with the foreleg (${clear.toFixed(4)} of a tile)`);
+});
+
+// A third attachment mode -- "the limb is fully inside the body, never drawn"
+// -- landed with the sit seat fix on 2026-08-24 and was REMOVED the same day,
+// once `sit`'s hind foot lay down along the ground (see the SIT note).
+//
+// It was written as a vertical drop at the hip, which is only meaningful for a
+// limb that hangs. Rewritten to sample along the drawn segment it stopped
+// being able to fail at all: a limb reaching CAT_GROUND always clears the body
+// by a hair now the seat rests exactly on the line, and any limb whose paw
+// travels past the body's own x-range counts that stretch as visible -- which
+// is true, and useless. Both forms were checked against three mutations that
+// genuinely hide a limb; both stayed green.
+//
+// What it was written to catch -- the sunk rump covering its own hind pair --
+// is caught outright by the two seat guards above. What is LEFT over is a
+// readability question ("enough of the limb to read"), and that needs a pixel
+// floor, which is the owner's eye and not a number this suite gets to pick.
 check('every drawn leg hangs off the body, not off thin air', () => {
   // Ported from Four Paws Lab, which scored a foreleg hanging off the CHIN as
   // "reads as a leg across the band, 39.8px" -- the healthiest number on the
@@ -1946,17 +2111,6 @@ check('every drawn leg hangs off the body, not off thin air', () => {
         // separately because `Math.max(u, top)` silently accepts it and then
         // measures from the outline anyway.
         assert(leg.top <= u, `${where}: pivot ${leg.top.toFixed(4)} is below the body outline ${u.toFixed(4)}`);
-        // ...and a leg that ends inside the body is HIDDEN, not
-        // negative-length. Held back when the guards first landed because it
-        // was red on `sit` alone -- the sunk rump covered its own hind pair
-        // -- and landed with the fix that made it green. Reverting `sit` to
-        // its literal `cy` puts this straight back to red, which is the
-        // check it was written for.
-        assert(
-          leg.bottom - Math.max(u, leg.top) > 0,
-          `${where}: fully inside the body, never drawn `
-            + `(hidden by ${(Math.max(u, leg.top) - leg.bottom).toFixed(4)} of a tile)`,
-        );
       }
     }
   }

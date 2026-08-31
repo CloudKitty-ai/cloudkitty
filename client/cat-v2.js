@@ -1455,10 +1455,28 @@ function applyAxial(L, pose, phase, view, opts) {
     const gTip = G.axialRx + G.axialTailOut * (back ? 1 : 0.6);
     const gStern = G.axialBottom - 0.03;
     if (back) {
-      // Out at the flank and up, painted BEHIND the cat (`tailBehind`). The
-      // tip's final x is set by `clampAxialHead`, which is the only place the
-      // finished head radius is known.
-      L.tailBehind = true;
+      // Out at the flank and up, painted in FRONT like every other rear view.
+      // The tip's final x is set by `clampAxialHead`, which is the only place
+      // the finished head radius is known.
+      //
+      // It was `tailBehind` until 2026-08-25, and that had a good reason which
+      // has since expired. The tail had been moved INBOARD to escape the paw
+      // band, which put its length over the skull -- and `drawTail` strokes an
+      // outline, so what showed was a hard dark stick driven through the cat,
+      // three quarters of its ink drawn on top. Burying it fixed that.
+      //
+      // The tail has since moved back out: tip 0.696, past the head's right
+      // edge at 0.689, crossing the skull not at all. So the defence costs
+      // more than it saves. Buried, 37% of its length is inside the body and
+      // its BASE is among that -- what shows is an outer arc attached to
+      // nothing, which reads as a curve drawn around a body rather than a
+      // tail rising off a rump (owner, 2026-08-25). The axial WALK bows
+      // FURTHER than this (0.038 against 0.024), paints in front, and reads
+      // fine; this now matches it.
+      //
+      // `the rear groom tail clears the skull` pins the CONDITION rather than
+      // the flag: move the tip inboard again and it fails first, saying that
+      // the skull is back under the tail and the burial is needed again.
       const up = 0.5 + G.axialRx * PROPORTION.bodyW;
       L.tail = {
         x0: 0.5, y0: gStern,
@@ -2090,6 +2108,24 @@ const FAR_LEGS = {
   // number -- and one of the two far legs it carries has no near leg in
   // front of it to be read against.
   grooming: -0.04,
+  // Sit, 2026-08-30. It had NO entry, and `GAIT.spread` is 0, so the far pair
+  // drew exactly behind the near one and the pose the four-paws work is named
+  // after was rendering TWO legs. The owner spotted it from the drawing: the
+  // groom feet read longer than sit's, and the reason was that theirs are the
+  // union of two offset legs while sit's was one leg drawn twice.
+  //
+  // SMALLER than either groom's, and it has to be. Sit is the tightest pose
+  // in the vocabulary: its foreleg is the widest anywhere (`foreW` 0.095
+  // against the grooms' 0.05) and its toe already sits close to it, so the
+  // shipped gap is 5.1px at a 57px tile against the grooms' 6.0px. Every
+  // 0.005 of offset spends about 0.9px of it. At grooming-other's -0.025 the
+  // gap is 0.9px; at -0.03 the painted edges meet. -0.02 leaves 1.7px, the
+  // level the owner is already accepting on grooming-other.
+  //
+  // The room to go further is in `SIT.toeX` and `SIT.foreW`, both dialled in
+  // the lab's four-paws card: toe 0.50 with foreW 0.085 buys 4.3px at this
+  // offset, which is grooming's level.
+  sit: -0.02,
   // Social grooming carries two mirrored PAIRS -- both forepaws are down --
   // so unlike self-grooming it goes through `withFarPair` and needs only the
   // one number. Trimmed to -0.025: this pose plants all four paws in a narrow
@@ -2097,6 +2133,45 @@ const FAR_LEGS = {
   // pushing the far fore back into the near hind, which are the only
   // cross-limb neighbours it has.
   'grooming-other': -0.025,
+};
+
+/**
+ * The seated cat's hind foot (2026-08-24, from the owner's two photographs).
+ *
+ * A sitting cat does not stand on its hind legs -- it rests on the whole
+ * METATARSUS, which lies flat along the ground pointing forward, hock behind
+ * and hidden under the rump, toes ending short of the front paw. Both photos
+ * show it: a long horizontal element on the ground, not the short vertical
+ * peg every seated pose here has drawn.
+ *
+ * That peg is why the four-paws work kept running out of room. It put the
+ * hind paw in the same narrow band of x as the foreleg, competing for a gap
+ * that the seat is too small to give; and being vertical, almost all of it
+ * was inside the body, so it had 3.7 device px of itself to show. The foot
+ * lying down is a quarter of a tile long -- 25 device px at a 50px tile on a
+ * 2x phone -- and it runs along the one direction nothing else is using.
+ *
+ * The hock end is DERIVED, not stated: `seatLeg` reads the body outline at
+ * `hockX` and insets the pivot above it, so the foot meets the animal at
+ * every tilt and at every point of the breath. The toe end is the dial. The
+ * rise from toe to hock is what the outline gives it, which is a couple of
+ * degrees -- the metatarsus does angle up slightly toward the hock, so the
+ * honest attachment and the honest anatomy are the same line.
+ */
+const SIT = {
+  hockX: 0.39, // where the foot passes under the body; hidden from here back
+  // The toes stop 0.03 of a tile clear of the foreleg's painted edge -- about
+  // a paw's width of grass between them, which is what both photographs show.
+  // Closer and they share ink: the two are at the same height, both on the
+  // ground, so the round caps meet. 0.66 - 0.12 (the two painted half-widths)
+  // - 0.03 lands here.
+  toeX: 0.51,
+  footW: 0.075, // slimmer than the foreleg (0.095), as the photos have it
+  inset: 0.01, // how far the hock tucks up inside the silhouette
+  foreX: 0.66, // the straight foreleg a sitting cat is mostly recognised by
+  foreHx: 0.63,
+  foreTop: 0.58,
+  foreW: 0.095,
 };
 
 /**
@@ -2123,7 +2198,20 @@ const GROOM = {
   hindX: 0.56, // paw, forward under the belly
   hindHx: 0.46, // hip, back and high in the haunch: the hock folds forward
   hindTop: 0.68,
-  hindW: 0.07,
+  // 0.07 -> 0.05 (2026-08-24). Four paws merging at phone sizes was read as
+  // the one-ellipse seat's ceiling; it is not. The tightest gap is near-hind
+  // to far-fore, `foreX` cannot open it (`seatLeg` clamps x into the
+  // silhouette, so a bigger number moves the paw a fraction and stops), and
+  // backing `hindX` up opens it only by sliding the paw under the deeper part
+  // of the body -- shorter leg, and against the photo reference above.
+  //
+  // Width costs nothing scarce. Thinning does not change the leg's visible
+  // LENGTH at all (3.7 device px either way at a 50px tile on a 2x phone),
+  // and the painted width stays about twice that, so the paw still reads as a
+  // stub. The gap goes 1.5 -> 3.5 device px, which is where it meets the
+  // length: past that the read is limited by the length and more gap buys
+  // nothing.
+  hindW: 0.05,
   // The head, low and tucked. Dialled here rather than fixed in the pose
   // because where it sits IS the pose: sit puts the head clear above the
   // shoulders and reads as attention, and grooming has to hand the top of
@@ -2133,7 +2221,7 @@ const GROOM = {
   foreX: 0.72, // paw of the supporting leg, out at the front of the chest
   foreHx: 0.68, // and its hip, tucked back under the shoulder
   foreTop: 0.56, // pivot, high in the raised chest
-  foreW: 0.07, // narrow: see the spacing note in the pose
+  foreW: 0.05, // with hindW: one leg cannot be half the other's weight // narrow: see the spacing note in the pose
   // Where the licked paw sits, in multiples of the head's radius, and how
   // much of the lick it inherits.
   //
@@ -2216,7 +2304,11 @@ const GROOM_OTHER = {
   // chest ends (0.687): 0.17 of a box. The hind PAIR may overlap -- that is
   // what a depth pair does -- but the hind cluster and the fore cluster may
   // not, and at 0.06 they shared ink.
-  legW: 0.055,
+  // 0.055 -> 0.04 (2026-08-24), the same trade as GROOM.hindW and for the
+  // same reason. This pose starts better off -- two mirrored pairs rather
+  // than an odd leg -- so the gap goes 2.0 -> 3.5 device px against a leg
+  // length of 4.1.
+  legW: 0.04,
   nod: 0.01, // the lick, smaller than self-grooming's: a longer reach, less bob
 
   // --- Axial view (north/south) ---
@@ -3392,10 +3484,15 @@ function catLayout(pose, phase, opts = {}) {
       const sitRy = 0.215 + 0.007 * breathe;
       L.body = { cx: 0.42, cy: seatCy(0.275, sitRy, -0.4), rx: 0.275, ry: sitRy, rot: -0.4 };
       L.head = { cx: 0.685, cy: 0.325, r: 0.226 };
+      // The hind foot lies DOWN along the ground; the foreleg still stands.
+      // See the SIT note. `seatLeg` gives the hock end its pivot on the body
+      // outline, and the toe is then carried forward along the grass, so the
+      // drawn segment is the metatarsus rather than a peg.
+      const hock = seatLeg(L.body, SIT.hockX, { w: SIT.footW, limb: 'hind', inset: SIT.inset });
       L.legs = withFarPair([
-        { x: 0.27, hx: 0.31, top: 0.74, bottom: CAT_GROUND, w: 0.1 },
-        { x: 0.66, hx: 0.63, top: 0.58, bottom: CAT_GROUND, w: 0.095 },
-      ], GAIT.spread, L.body.cx);
+        { ...hock, x: SIT.toeX },
+        { x: SIT.foreX, hx: SIT.foreHx, top: SIT.foreTop, bottom: CAT_GROUND, w: SIT.foreW },
+      ], FAR_LEGS.sit, L.body.cx);
       L.tail = { x0: 0.17, y0: 0.79, c1x: 0.34, c1y: 0.93, c2x: 0.62, c2y: 0.93, x1: 0.76, y1: 0.85 };
       break;
     }
@@ -4794,6 +4891,7 @@ const api = {
   FAR_LEGS,
   GROOM,
   GROOM_OTHER,
+  SIT,
   seatCy,
   seatLeg,
   // The shared painter. Exported for the same reason the rig and the settle
@@ -4803,6 +4901,10 @@ const api = {
   // `drawCat` nor `drawCatTween` takes a layout; both build one from a pose
   // name, so there is no other way in.
   paintBox,
+  // Same reason as paintBox: a before-column has to build its far pair with
+  // the SHIPPED rule, or the two columns stop being the same drawing and the
+  // comparison is between the lab's arithmetic and the client's.
+  withFarPair,
   proportionedBody,
   bodyUnderAt,
   clampAxialHead,
