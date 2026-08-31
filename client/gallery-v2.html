@@ -3410,7 +3410,7 @@
     },
     {
       title: 'The groom hind foot — the folded hock it drew, and the foot it lies on now (SHIPPED 2026-08-30)',
-      note: 'SHIPPED 2026-08-30 — the right-hand cat of each pair is what the world draws now, and the left replays what it drew before. `sit` now rests on the whole metatarsus, and the groom poses follow it: their hock end is derived off the body outline by `seatLeg` and the toe carried forward along the grass, instead of a top STATED at 0.68 while the body underside at the same x was 0.864 — which is what drew a 65-degree folded hock. The owner drafted the numbers in this card and shipped them to be judged in the world rather than in the lab, so the dials here now write into the SHIPPED `GROOM`/`GROOM_OTHER`: hock and toe as shifts over what shipped (the two poses sit 0.01 apart and one absolute dial would silently close that), widths and inset straight through. Zero shift is what ships. The widths went UP with the draft — grooming 0.05/0.05 to 0.06/0.095, groom-other 0.04 to the same — and width is the only lever that spends the four-paws gap, so watch the gap readout as you move them: grooming sits at 3.0px and groom-other at 1.3px, against 6.0px before. Laying the foot down cost NO gap at all; the widths are the whole trade. One honest gap between this card and the world: the shipped poses derive their hock INSIDE the pose switch, before `proportionLayout` rescales, so a dialled inset of 0.004 lands at roughly twice that and the feet draw about 4 degrees steeper than the draft did — 6 degrees rather than 2. Same footprint, same ink, slightly less flat.',
+      note: 'SHIPPED 2026-08-30 — the right-hand cat of each pair is what the world draws now, and the left replays what it drew before. `sit` now rests on the whole metatarsus, and the groom poses follow it: their hock end is derived off the body outline by `seatLeg` and the toe carried forward along the grass, instead of a top STATED at 0.68 while the body underside at the same x was 0.864 — which is what drew a 65-degree folded hock. The owner drafted the numbers in this card and shipped them to be judged in the world rather than in the lab, so the dials here now write into the SHIPPED `GROOM`/`GROOM_OTHER`: hock and toe as shifts over what shipped (the two poses sit 0.01 apart and one absolute dial would silently close that), widths and inset straight through. Zero shift is what ships. The widths went UP with the draft — grooming 0.05/0.05 to 0.06/0.095, groom-other 0.04 to the same — and width is the only lever that spends the four-paws gap, so watch the gap readout as you move them: grooming sits at 3.0px and groom-other at 1.3px, against 6.0px before. Laying the foot down cost NO gap at all; the widths are the whole trade. The card and the world agree now. They did not at first: `seatLeg` read the outline off the proportioned body while `proportionLayout` shifted every leg again afterwards, so a dialled inset landed at roughly DOUBLE and the shipped feet drew 6 degrees where this card drew 2. That is fixed at the source rather than compensated here, so an inset dialled on this card is the tuck the world draws.',
       v2Only: true,
       w: 940,
       h: 348,
@@ -3440,11 +3440,12 @@
             ships = Math.max(ships, hindAngle(was));
             laid = Math.max(laid, hindAngle(CatV2.catLayout(pose, i / 24)));
           }
-          // Sit CALIBRATES the card rather than sitting still in it: it
-          // derives pre-proportion and this card derives post-, so it moves a
-          // little too. Its shift is the offset to read the others against.
-          const tag = pose === 'sit' ? '   <- calibration: the card\'s own offset' : '';
-          return `  ${pose.padEnd(15)} ships ${ships.toFixed(0).padStart(2)}deg   laid down ${laid.toFixed(0).padStart(2)}deg${tag}`;
+          // Both columns are now the real thing: the pose as it draws today
+          // against the drawing it replaced. No calibration offset to carry --
+          // `seatLeg` was handing back a top the proportion pass then shifted
+          // a second time, and that is fixed at the source.
+          const tag = pose === 'sit' ? '   <- the peg, not a folded hock' : '';
+          return `  ${pose.padEnd(15)} before ${ships.toFixed(0).padStart(2)}deg   ships now ${laid.toFixed(0).padStart(2)}deg${tag}`;
         });
         // The GAP is what width costs, and it is the reason the groom legs
         // were narrowed to 0.05/0.04 in the first place. Printed beside the

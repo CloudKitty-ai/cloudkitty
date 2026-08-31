@@ -42,6 +42,21 @@ change.
   to before the knob existed, and the in-tree gate-zero test pins that
   speech never moves action. Built for Experiments' here-word density
   screen.
+- A seated hock is tucked in by exactly the amount it was told to be. Every
+  seated pose derives where its hind leg meets the body by reading the body's
+  own outline, and the outline it read was the finished one — after the
+  proportion pass, which is the only version that means anything. The pass
+  then ran again over the legs and shifted the result a second time, so the
+  hock sat about twice as far inside the silhouette as its dial asked, and the
+  error breathed, because the shift rides the ribcage. What it cost was the
+  flatness: a foot dialled to lie at five degrees off the ground drew at
+  eleven, and the difference between the lab and the world was exactly this
+  and nothing else. The fix is at the cause rather than compensated at each
+  call — the derived value is handed back in the space its caller is still
+  working in, which is what the seat height has always done for the same pass.
+  Three poses move, none of them by a number anyone chose: they arrive at the
+  numbers already written down.
+
 - The grooming cats rest on their feet too, and the seated cat's fourth leg
   is finally visible. Two follow-ups to the seated foot, both found by
   looking at the drawing rather than at the code. The far pair was being
