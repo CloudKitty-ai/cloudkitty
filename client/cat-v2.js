@@ -2074,10 +2074,24 @@ function withFarPair(legs, dx = GAIT.spread, cx = null) {
   // own centre and both carry the same inversion (far hind 24% and 13% longer
   // than its near partner), but they sit outside this brief and were judged in
   // an earlier round. `cx = null` is that opt-out, not an oversight.
-  const shift = (x) => (cx === null ? x + dx : x + Math.abs(dx) * Math.sign(cx - x));
-  const far = legs.map((l, i) => ({
-    ...l, limb: l.limb ?? i, x: shift(l.x), hx: shift(l.hx ?? l.x), far: true,
-  }));
+  // Signed ONCE PER LEG and applied to both ends, so the far leg is
+  // TRANSLATED rather than reshaped. Signing each end on its own is the same
+  // arithmetic for any near-vertical leg -- both ends sit the same side of
+  // `cx`, so both get the same sign -- but a foot that LIES DOWN straddles
+  // the centre, and then the hock and the toe move opposite ways and the leg
+  // collapses. Sit's far hind came out 0.410..0.490 inside a near hind of
+  // 0.390..0.510: drawn, offset, and adding no visible leg at all.
+  const signFor = (l) => {
+    if (cx === null) return dx;
+    const mid = ((l.hx ?? l.x) + l.x) / 2;
+    return Math.abs(dx) * Math.sign(cx - mid);
+  };
+  const far = legs.map((l, i) => {
+    const d = signFor(l);
+    return {
+      ...l, limb: l.limb ?? i, x: l.x + d, hx: (l.hx ?? l.x) + d, far: true,
+    };
+  });
   return [...far, ...legs.map((l, i) => ({ ...l, limb: l.limb ?? i }))];
 }
 

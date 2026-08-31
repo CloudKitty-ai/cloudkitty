@@ -2054,6 +2054,26 @@ check('the seated hind foot sits where the owner dialled it', () => {
       Math.abs(a.x - b.x) > 0.001,
       `sit's far hind is drawn on top of its near one at phase ${phase} -- two legs, not four`,
     );
+
+    // TRANSLATED, not reshaped. `withFarPair` used to sign each end toward
+    // the body centre on its own, which is the same arithmetic for a
+    // near-vertical leg but COLLAPSES one that lies down and straddles the
+    // centre: sit's far hind came out 0.410..0.490 inside a near hind of
+    // 0.390..0.510 -- offset, drawn, and adding no visible leg. Both halves
+    // matter, so both are asserted.
+    const span = (l) => Math.abs(l.x - (l.hx ?? l.x));
+    close(span(a), span(b), `sit's far hind is a different length from its near one at phase ${phase}`);
+    // And the pair must be WIDER than either leg: what a viewer reads is the
+    // union of the two, so a far leg contained inside the near one is drawn
+    // and still invisible. That was the shipped state, and `a.x !== b.x`
+    // alone did not catch it.
+    const lo = (l) => Math.min(l.x, l.hx ?? l.x);
+    const hi = (l) => Math.max(l.x, l.hx ?? l.x);
+    const union = Math.max(hi(a), hi(b)) - Math.min(lo(a), lo(b));
+    assert(
+      union > Math.max(span(a), span(b)) + 1e-6,
+      `sit's far hind adds no extent at phase ${phase} -- it sits inside the near one`,
+    );
   }
 
   // The constraint the toe is dialled against, asserted rather than trusted:
