@@ -82,3 +82,52 @@ raw pointers before training.
 Raws to `experiments/here-word-screen/results-raw/arm-A{0..3}/`
 (uncommitted, house practice); this doc carries the acceptance record
 and the numbers that survive.
+
+## ACCEPTANCE RECORD (2026-08-31, collection complete — PASS)
+
+All four arms collected same day on bc-collect rebuilt at merged main
+`2f5fb6c`; adjudicated by `qa_screen.py` (this dir). Every assertion
+in the QA script was shown red first by its exact predicted bug on
+corrupted copies (real raws untouched): action-label corruption,
+non-here message injection, here-overwrites-want, non-here mask_msg
+column flip, off-formula seed — five mutations, five predicted reds,
+all restored green.
+
+**Integrity**: seeds 1,060,001–25 on formula in every arm, config shas
+uniform per arm, schema 4/3/3, widths 225/34/16, msg-mask-mm 0
+everywhere. Per arm: 996,714 decisions, dropped 1,378 (0.138%),
+mask-mm 1,908 (0.191%) — identical across arms, as paired seeds
+require. **Deviation from the declared drop bar**: 0.138% vs the v6
+anchor's ≈0.06% (mask-mm 0.191% is at level). The drops are
+chase-dominated (`dropped_by_action`: chase ≈ 39/40 in the spot-checked
+rollout) — consistent with 042's partner-value pick moving playful
+targets, an engine change the v6 bar predates. Recorded, not excluded;
+same rate in all arms so no arm contrast is touched.
+
+**Corpus-scale gate zero (prediction 1 CONFIRMED)**:
+`label`/`kitty`/`tick` byte-identical to A0 at every one of the 25
+paired seeds in all three armed arms; every message diff is
+Silent→Here\*; non-here `mask_msg` columns byte-identical (per-kind
+cooldowns don't bleed into want legality).
+
+**Realized shares (prediction 2 CONFIRMED — monotone in the period)**:
+
+| arm | period | here% of decisions | food | water | critter | sunbeam | want% | silent% |
+|---|---|---|---|---|---|---|---|---|
+| A0 | off | 0.000 | 0 | 0 | 0 | 0 | 6.557 | 93.443 |
+| A1 | 1 | 8.176 | 15,967 | 24,263 | 22,364 | 18,896 | 6.557 | 85.267 |
+| A2 | 4 | 5.561 | 10,519 | 16,882 | 13,720 | 14,306 | 6.557 | 87.882 |
+| A3 | 16 | 2.363 | 3,744 | 7,277 | 5,405 | 7,130 | 6.557 | 91.080 |
+
+want% identical to the third decimal across arms — the precedence rule
+at corpus scale. **The ladder is compressed**: A1:A3 ≈ 3.5×, not 16× —
+per-kind cooldowns self-limit emission at period 1, so the density
+dial buys less than its nominal ratio at the aggressive end. All three
+armed corpora sit ABOVE the hypothesized ~1% cliff (sparsest = 2.36%);
+if all three clones learn, the screen brackets the cliff between 0%
+and 2.36% rather than straddling it — a period-64-class arm would be
+the follow-up if the cliff's location (not just existence) matters.
+
+Dataset accepted for training. Training started same day
+(`train_clone6.py` verbatim defaults, artifacts to
+`artifacts/here-A{0..3}/`, uncommitted).
