@@ -1838,3 +1838,44 @@ refusals via `Groom { target: None }`. The chosen half (5.8% of ticks)
 is not a bug but a trained behaviour to understand, and it is the
 larger one. Whether either moves a seat's happiness is still
 unmeasured: that needs a needs-servicing count per turn, not this probe.
+
+## F-034 · active · Here* vocabulary cloning is a cliff, and the cliff sits between 5.6% and 8.2% corpus share — not near 1%
+
+The here-word density screen's Half A
+(`here-word-screen/RESULTS.md`, run 2026-08-31 on the owner's
+2026-08-30 word; plan pre-registered @ 8c50fda with the spec-043
+FR-006 amendment). Extends [F-022] from two far-apart anchor points
+(0.2% → mute; purr-rich ≈10% → fluent) to a bracket on the boundary
+itself. Method: four paired-seed corpora on the anchor composition at
+`announce_here` off/1/4/16 (realized here-share 0 / 8.18 / 5.56 /
+2.36% of decisions), one V4 clone each under the verbatim
+`train_clone6.py` recipe, readouts conditioned on the here-kinds per
+[F-015].
+
+1. **The cliff.** Opportunity-use (kind legal, no want spoken): A1 =
+   .58–.80 by kind, msg@1 on here-rows .8748, predicted emission
+   84.5/1k tracking its source's 82.4/1k per kind. A2 and A3: ≤ .0033
+   use, ~0.3/1k — functionally mute at 5.6% and 2.4% corpus share.
+   Nothing in between: the middle of the dial belongs to the mute
+   side.
+
+2. **The vocabulary is free where it works.** act@1 .7986–.8037
+   across all four arms (no action-learning cost at any density), and
+   reward streams byte-identical across arms at all 25 paired seeds —
+   the welfare charge is exactly zero by gate-zero construction
+   ([F-026]'s report-only expectation, satisfied at equality).
+
+3. **Qualifier that keeps this honest**: "mute at 5.6%" is a claim
+   about the registered recipe's budget (20 epochs, patience 3); A2's
+   val loss was still falling at the cap. Epoch-extension on A2 is
+   the registered follow-up before treating the cliff's location as
+   an asymptote. Emission is offline masked-argmax on held-out
+   states; live-rollout confirmation wants the lab binding gate.
+
+**What it changes**: fog corpus seeding uses `announce_here = 1` as a
+collection parameter, not a swept dial (per-kind cooldowns cap the
+ceiling near 8%, so period 1 is the only workable setting); the
+parked Here*-teacher likely collapses into "the scripted behaviors
+with the knob armed" (plan §8, owner's read pending); and exp-003's
+0.2% channel sat 40× under the cliff, not 5× — its failure was never
+a near-miss.
