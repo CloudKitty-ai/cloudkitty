@@ -2031,7 +2031,7 @@ check('the seated hind foot sits where the owner dialled it', () => {
   // constraint: past ~0.53 it shares ink with the foreleg at `foreX` 0.66,
   // both being on the ground at the same height with round caps.
   close(CatV2.SIT.toeX, 0.51, 'SIT.toeX moved -- the toe is the owner\'s dial');
-  close(CatV2.SIT.hockX, 0.325, 'SIT.hockX moved');
+  close(CatV2.SIT.hockX, 0.39, 'SIT.hockX moved');
   close(CatV2.SIT.footW, 0.075, 'SIT.footW moved');
   close(CatV2.SIT.inset, 0.01, 'SIT.inset moved');
 

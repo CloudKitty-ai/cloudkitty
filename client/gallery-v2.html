@@ -918,6 +918,24 @@
     return L;
   };
 
+  /** Which dials the laid-down column is drawn with.
+   *
+   * SIT GETS ITS OWN. The groom shifts and widths are a proposal about the
+   * GROOM legs; applying them to sit as well drew a sit that was neither what
+   * ships nor what its dials say, and it silently moved the moment the groom
+   * numbers were dialled -- which is exactly what happened once the owner's
+   * first pass was baked in. Sit's laid-down column is now sit's own dials,
+   * derived off the finished body: what SIT.inset actually asks for. */
+  const footOptsFor = (pose) => (pose === 'sit'
+    ? {
+      footInset: CatV2.SIT.inset,
+      hindW: CatV2.SIT.footW,
+      foreW: CatV2.SIT.foreW,
+      toeShift: 0,
+      hockShift: 0,
+    }
+    : GROOM_FOOT_LAB);
+
   /** The tightest gap between two legs that are NOT a depth pair, worst of 24
    * phases, in tile units. Negative means the painted edges overlap and the
    * cluster reads as one shape -- which is the whole four-paws failure. */
@@ -3409,7 +3427,7 @@
           let laid = 0;
           for (let i = 0; i < 24; i += 1) {
             ships = Math.max(ships, hindAngle(CatV2.catLayout(pose, i / 24)));
-            laid = Math.max(laid, hindAngle(layFoot(CatV2.catLayout(pose, i / 24), GROOM_FOOT_LAB)));
+            laid = Math.max(laid, hindAngle(layFoot(CatV2.catLayout(pose, i / 24), footOptsFor(pose))));
           }
           // Sit CALIBRATES the card rather than sitting still in it: it
           // derives pre-proportion and this card derives post-, so it moves a
@@ -3424,7 +3442,7 @@
         const T = GROOM_FOOT_LAB.tilePx;
         const gaps = ['grooming', 'grooming-other'].map((pose) => {
           const ships = legGap((p) => CatV2.catLayout(pose, p)) * T * dpr;
-          const laid = legGap((p) => layFoot(CatV2.catLayout(pose, p), GROOM_FOOT_LAB)) * T * dpr;
+          const laid = legGap((p) => layFoot(CatV2.catLayout(pose, p), footOptsFor(pose))) * T * dpr;
           const flag = laid <= 0 ? '   *** THE PAINTED EDGES MEET -- one shape, not four legs'
             : (laid < ships ? '   (tighter than it ships)' : '');
           return `  ${pose.padEnd(15)} ships ${ships.toFixed(1).padStart(5)}px   at these widths ${laid.toFixed(1).padStart(5)}px${flag}`;
@@ -3469,7 +3487,7 @@
         ctx.textAlign = 'center';
         for (const col of cols) {
           const L = col.laid
-            ? layFoot(CatV2.catLayout(col.pose, phase), GROOM_FOOT_LAB)
+            ? layFoot(CatV2.catLayout(col.pose, phase), footOptsFor(col.pose))
             : CatV2.catLayout(col.pose, phase);
           const cx = x + T * 0.7;
 
@@ -3495,7 +3513,7 @@
           // picture has already convinced you.
           const dpr = window.devicePixelRatio || 1;
           const g = legGap((ph) => (col.laid
-            ? layFoot(CatV2.catLayout(col.pose, ph), GROOM_FOOT_LAB)
+            ? layFoot(CatV2.catLayout(col.pose, ph), footOptsFor(col.pose))
             : CatV2.catLayout(col.pose, ph))) * T * dpr;
           ctx.fillStyle = g <= 0 ? '#b4443c' : '#6b7280';
           ctx.fillText(g <= 0 ? `gap ${g.toFixed(1)}px \u2014 legs MERGE` : `gap ${g.toFixed(1)}px`,
