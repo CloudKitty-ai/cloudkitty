@@ -13,7 +13,7 @@ branching only the `contagious`-set construction in `advance_needs`:
 `bidirectional` (any dry member of a wet/dry adjacent pair pays, either
 role, one charge per tick via the existing BTreeSet). (2) `[behavior]
 contagion_aware_ladder` — a bool gating scene-total expected-exposure
-pricing (charge × duration-bounds-midpoint, ceiling-capped, per the
+pricing (charge × duration-bounds-MINIMUM (amended per Experiments review — see research D5), engine-faithful ceiling step, per the
 clarified scene-total ruling) at the scripted chooser's three seams:
 the selection score, the playmate ranking, and groom initiation.
 Byte-identical launch proven the 044 way (stamp, golden,
@@ -115,7 +115,7 @@ repo idiom, charge law in `world.rs`, chooser pricing in
 
 All unknowns resolved (D1–D9): dial homes and serde shapes, the
 engine-branch construction, the exposure formula (scene-total,
-ceiling-capped), duration source (bounds midpoint, zero new dials),
+engine-faithful ceiling step), duration source (bounds MINIMUM per research D5, zero new dials),
 the three ladder seams, boot log, validation/budget invariance,
 delivery discipline. The exposure value model (D4–D6) is flagged for
 Experiments' review per the handoff — sent at plan time; the cap and

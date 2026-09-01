@@ -224,3 +224,52 @@ assertion recorded in a redden-list; stamp + golden + explicit≡absent
 proofs; both config sweeps; same-seed determinism arms for both dials;
 no auto-merge, CI watched explicitly (the dispatch bug recurred on
 #334 — expect to nudge).
+
+## Post-implementation review amendments (Experiments-ruled 2026-09-01)
+
+A medium code review of the first implementation found the ladder had
+been built as an independent second implementation of the charge rather
+than a predictor of it. Six rulings, all folded (smoke design doc
+amended in the same pass, main cf3ee55):
+
+1. **D4 payer set, play under option_a**: play is reciprocal, so the
+   dry member of a play pair is a NAMER from either role — it pays
+   under `option_a` too (the engine already collected this; needflow
+   already priced it). The helper now admits the dry partner of a wet
+   decider for `Playing` scenes regardless of membership. Banked smoke
+   prediction: play's payer set is identical under both rules, so
+   C ≈ D on play metrics is EXPECTED — the membership contrast lives in
+   groom/cuddle/cosleep.
+2. **D6 seam 2 reachability**: `play_score` runs only in the Playful
+   behavior; the smoke's needs-driven arms never reach it. Ruled
+   option (c): accept play-channel blindness, scope arm E's
+   positive-control readout to groom/cosleep/cuddle. No new seam.
+3. **D6 gains a FOURTH seam**: the cosleep friend-pick
+   (`needs_driven::adjacent_friend` + the reachable-friend walk, the
+   spec-028 FR-020 routing) — cosleep carries the highest
+   cross-waterline share and the longest E_ticks, so a charge-blind
+   cosleep pick would blind the smoke's primary readout. Same gate,
+   same value shape: companion admitted iff exposure ≤ decider's cuddle
+   pressure + the companion's tier relief (mutual/drip by the engine's
+   own `is_settled` rule).
+4. **D4 cap shape**: engine-faithful step-with-overshoot. At or past
+   the ceiling: 0 (the pre-charge gate refuses outright). Below it:
+   `min(rate × E_ticks, headroom + ONE full charge)` — the engine's
+   documented overshoot. The original headroom-only clamp under-priced
+   exactly the near-ceiling cats.
+5. **play_score currency**: deliberate 1:1 (bath need-points against a
+   tiles-based score at identity dials), no conversion dial — the seam
+   is unreachable in every smoke arm and the gate never serves;
+   disclosed in the code doc; any future arm using the scored ranking
+   must revisit.
+6. **Groom bar dial**: reading `groom_cuddle_relief` from config is
+   correct code; the SMOKE pins the canonical 0.5 in its lab arm
+   configs (Gen 1 reseats under the temp bump's revert). A
+   dial-sensitivity test arm pins that the bar tracks the config.
+
+Structural change alongside: the per-tick charge formula now lives ONCE
+in `Config::contagion_charge`, shared by the engine's charge arm and
+the ladder (the predictor-drift class this review exposed). The D2
+BTreeMap became a `(namer, named)` pair list — a map keyed by named cat
+would keep one namer and wrongly deny when the kept one wandered while
+another adjacent namer remained; the pair scan is O(wet-namers × dry).

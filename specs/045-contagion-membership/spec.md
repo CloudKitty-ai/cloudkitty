@@ -261,10 +261,11 @@ equal to absent.
   the same `Activity`-naming source 044 uses — with the 044
   current-adjacency requirement applied to the wet/dry pair being
   priced. No new state, timer, or RNG.
-- Expected scene duration for the ladder follows the house practice of
-  measured expectation (the critter-play `mlen` precedent), with the
-  exact shape settled at plan time under Experiments' review of the
-  needflow-derived value model (`cuddle-economy-model/RESULTS.md`).
+- Expected scene duration for the ladder is the scene's configured
+  MINIMUM duration (settled at plan time under Experiments' review of
+  the needflow-derived value model, `cuddle-economy-model/RESULTS.md`;
+  research D5 — measured-expectation constants were rejected as magic
+  numbers under Article VI).
 - The ladder prices only candidates who are wet at decision time; it
   neither charges for nor discounts mid-scene waterline crossings (a
   dry partner stepping in, a wet partner stepping out). Consequence for

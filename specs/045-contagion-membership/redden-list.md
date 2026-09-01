@@ -80,3 +80,20 @@ commit 2: `6c73f894…f07687` byte-equal to baseline; `evolution_golden`
 passes unregenerated. Served TOMLs untouched. Every Phase 3/5 assertion
 above carries a recorded cycle; the three no-honest-red caveats
 (T014a, T023 seeded arm, T025a) are recorded, not hidden.
+
+## Post-review follow-up cycles (Experiments-ruled 2026-09-01)
+
+| assertion | injected bug / red channel | predicted failure | observed red | restored green |
+|---|---|---|---|---|
+| Ruling 1: reciprocal play pays under option_a from either role (+ play prices identically under both memberships) | natural red: arm written before the `reciprocal` branch | exposure 0, expected 7 | ✅ "reciprocal play: the dry partner is a namer under option_a and its charge is the scene's cost: 0" | ✅ 119/0 |
+| Ruling 4: engine-faithful step-with-overshoot cap (headroom + one charge below the ceiling; 0 at/past it; mid-range untouched) | natural red: test rewritten against the old headroom clamp | got 2, expected 5.5 | ✅ "near the ceiling the engine still collects the overshoot charge: expected 5.5, got 2" | ✅ 119/0 |
+| Ruling 3 (seam 4): sleepy cat declines a wet cosleep companion iff exposure > own cuddle + companion's tier relief; net-positive still named; gate off inert | natural red: test written before the seam | Sleep{Some(2)} at cranked factor, expected Sleep{None} | ✅ assert_eq failed: left Sleep{Some(2)}, right Sleep{None} | ✅ 120/0 |
+| Ruling 6: the groom decline bar TRACKS the configured `groom_cuddle_relief` (dial-sensitivity arm; smoke pins its own 0.5) | natural channel: same scene flips net-positive at relief 130 — a bar hardcoding the default would stay declined | decline persists under the generous dial | green first run (bar reads config, as ruled) | ✅ |
+| T023 REWORKED (rule 6: the seeded 500-tick arm was vacuous): controlled needs-driven world with a ~5-point cuddle-vs-eat gap inside one exposure; arm 1 = divergence control (gate on ≠ off at factor 2), arm 2 = gate-on factor-0 ≡ gate-off | the borrowed `max(1, factor)` idiom re-injected into the helper | arm 2 reds (a factor-0 exposure of 10.5 flips the choice) | ✅ "an armed ladder with no charge to price must change nothing" FAILED under the injection — the sensitivity the old arm lacked | ✅ restored, 15/15 |
+| Ladder mask test de-vacuitized: ONE snapshot, gate-on vs gate-off CONFIGS (masks are pure fns of (snapshot, config) — the bool is the only varying input) | red channel: the recorded fake-legality-hook injection (gate-read in validate) reds it directly | — | (carried from the recorded T025b cycle) | ✅ 7/0 mask tests |
+| Shared `Config::contagion_charge` (engine arm + ladder read ONE formula) | pure refactor — 15/15 contagion integration green unchanged proves byte-identity of the engine arm | — | — | ✅ |
+| T012 disclosure note (review below-cut): `membership_never_moves_the_budget` was never seen red — its channel is the divergence it forbids (recorded in its US1 row; restated here so the caveat list is complete: FOUR no-honest-red arms total — T012, T014a, T025a, and the retired seeded T023 arm now replaced by a sensitive one) | — | — | — | — |
+
+Boot log re-verified live after the message fix (rule text now in the
+MESSAGE, not only the field): armed option_a / armed bidirectional /
+default all correct; ladder line only when the gate is on.

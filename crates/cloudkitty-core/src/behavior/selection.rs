@@ -233,13 +233,22 @@ pub fn bath_ratio(ctx: &DecisionContext) -> f32 {
 ///
 /// Scene-total under the ACTIVE membership rule (FR-006, owner-clarified
 /// 2026-08-31): every member who would PAY the 044 charge contributes
-/// `min(factor × bath_gain × bath_ratio(payer) × E_ticks, max(0,
-/// bath_gain_ceiling − payer.bath))` — the cap mirrors the engine's
-/// pre-charge gate, so the ladder never prices exposure the charge
-/// cannot collect. Payers: under `option_a` the DECIDER, iff it is dry
-/// beside a wet partner (the namer is the decider); under
-/// `bidirectional` each dry member whose counterpart is wet, either
-/// role. `E_ticks` is the scene's configured MINIMUM duration read from
+/// `min(charge(payer) × E_ticks, cap(payer))`, with the per-tick charge
+/// read from [`crate::Config::contagion_charge`] — the ONE formula the
+/// engine's charge arm shares, so predictor and collector cannot drift.
+/// The cap is engine-faithful (Experiments ruling 2026-09-01): the
+/// engine's ceiling is an all-or-nothing PRE-charge gate that
+/// deliberately overshoots by one scaled charge, so below the ceiling
+/// the cap is `headroom + one full charge`, and at or past the ceiling
+/// the exposure is 0 — no charge can land there. Payers: under
+/// `option_a` the dry NAMER — the decider iff dry beside a wet partner,
+/// PLUS the dry partner of a wet decider proposing PLAY (play is
+/// reciprocal by construction, so the partner names back and pays under
+/// option_a too; Experiments ruling 2026-09-01 — with this, play's
+/// payer set is identical under both memberships, a banked smoke
+/// prediction). Under `bidirectional` each dry member whose counterpart
+/// is wet, either role, any kind. `E_ticks` is the scene's configured
+/// MINIMUM duration read from
 /// [`crate::kitty::Activity::bounds`], the one activity→duration
 /// authority (grooming reads `durations.bath` there — verified at
 /// implementation, research D5): the same basis as [`expected_wait`]
@@ -281,15 +290,25 @@ pub fn expected_scene_exposure(
         .map(|bounds| bounds.min)
         .unwrap_or(0) as f32;
     let bidirectional = w.contagion_membership == crate::config::ContagionMembership::Bidirectional;
+    // Play is reciprocal: the partner names back, so its dry member is a
+    // NAMER whatever the membership rule says about referenced cats.
+    let reciprocal = matches!(scene, crate::kitty::Activity::Playing { .. });
     let mut exposure = 0.0;
     let mut pay = |id: KittyId, bath_now: f32| {
-        let rate = w.contagion_factor * w.bath_gain * ctx.config.bath_ratio(id);
-        exposure += (rate * e_ticks).min((w.bath_gain_ceiling - bath_now).max(0.0));
+        if bath_now >= w.bath_gain_ceiling {
+            // The engine's pre-charge gate refuses outright — faithful 0.
+            return;
+        }
+        let charge = ctx.config.contagion_charge(id);
+        // The gate reads PRE-charge, so the last collectable tick lands a
+        // full charge past the headroom — the engine's documented
+        // overshoot, bounded by one scaled charge.
+        exposure += (charge * e_ticks).min(w.bath_gain_ceiling - bath_now + charge);
     };
     if !me_wet && partner_wet {
         pay(ctx.me.id, ctx.me.needs.get(NeedKind::Bath));
     }
-    if bidirectional && me_wet && !partner_wet {
+    if (bidirectional || reciprocal) && me_wet && !partner_wet {
         pay(other.id, other.needs.get(NeedKind::Bath));
     }
     exposure
@@ -421,7 +440,20 @@ pub fn scored_playmate(ctx: &DecisionContext) -> Option<(TargetRef, Position)> {
             k.pos,
             1u8,
             k.id,
-            Some(partner_value(ctx, k)),
+            // Value AND exposure computed ONCE per candidate, here at
+            // construction (the module's recorded 2026-08-29 rule: no
+            // re-derivation inside the comparator). Exposure is 0.0 the
+            // moment the ladder gate is off — the helper's short-circuit.
+            Some((
+                partner_value(ctx, k),
+                expected_scene_exposure(
+                    ctx,
+                    crate::kitty::Activity::Playing {
+                        target: Some(TargetRef::Kitty { id: k.id }),
+                    },
+                    k.id,
+                ),
+            )),
         )
     });
 
@@ -449,16 +481,12 @@ pub fn scored_playmate(ctx: &DecisionContext) -> Option<(TargetRef, Position)> {
         // w_busy/w_serious are live, and an un-raised threshold must not
         // convert those ranking costs into a hard veto.
         .filter(|(_, _, _, _, value)| match value {
-            Some(v) => my_play >= b.t_self && (b.t_partner <= 0.0 || *v >= b.t_partner),
+            Some((v, _)) => my_play >= b.t_self && (b.t_partner <= 0.0 || *v >= b.t_partner),
             None => true,
         })
-        .max_by(|(t1, p1, tag1, id1, v1), (t2, p2, tag2, id2, v2)| {
-            let kitty_of = |t: &TargetRef| match t {
-                TargetRef::Kitty { id } => Some(*id),
-                TargetRef::Element { .. } => None,
-            };
-            let s1 = play_score(ctx, *v1, *p1, kitty_of(t1));
-            let s2 = play_score(ctx, *v2, *p2, kitty_of(t2));
+        .max_by(|(_, p1, tag1, id1, v1), (_, p2, tag2, id2, v2)| {
+            let s1 = play_score(ctx, *v1, *p1);
+            let s2 = play_score(ctx, *v2, *p2);
             // Higher score wins; equal scores fall back to today's exact
             // ascending (distance, tag, id) order -- reversed here because
             // max_by keeps the Greater side. No NaN can reach total_cmp:
@@ -512,35 +540,24 @@ fn expected_wait(ctx: &DecisionContext, k: &crate::kitty::Kitty) -> f32 {
 /// against distance; a critter (no value) at the standalone appeal
 /// constant (owner-clarified: NOT scaled by w_value -- each dial moves
 /// one thing).
-/// `kitty` is the candidate's identity when it is a friend (spec 045):
-/// a kitty candidate's score also carries the expected exposure of the
-/// play scene it proposes, so a dry playmate outranks an otherwise-equal
-/// wet one — the seam where positional avoidance becomes learnable.
-/// Critters carry no partner and price no exposure; the helper's gate
-/// makes the term structurally zero when the ladder is off.
-fn play_score(
-    ctx: &DecisionContext,
-    value: Option<f32>,
-    pos: Position,
-    kitty: Option<KittyId>,
-) -> f32 {
+/// A friend candidate carries `(value, exposure)` (spec 045): the play
+/// scene's expected exposure — precomputed once at candidate
+/// construction — is subtracted, so a dry playmate outranks an
+/// otherwise-equal wet one: the seam where positional avoidance becomes
+/// learnable. Critters carry neither and price no exposure. Currency
+/// note (Experiments ruling 2026-09-01, deliberate): exposure is bath
+/// need-points subtracted from a base that at identity dials is
+/// −distance in TILES — 1:1, no conversion dial. Strong (one Gen 1
+/// charge ≡ 3.5–10.5 tiles of walking), disclosed rather than tuned:
+/// this ranking is unreachable in the smoke's needs-driven arms and the
+/// gate never serves; any future arm that runs the scored ranking must
+/// revisit before trusting play-channel readouts.
+fn play_score(ctx: &DecisionContext, value: Option<(f32, f32)>, pos: Position) -> f32 {
     let b = &ctx.config.behavior;
     let distance = ctx.me.pos.manhattan_distance(&pos) as f32;
-    let base = match value {
-        Some(v) => b.w_value * v - distance,
+    match value {
+        Some((v, exposure)) => b.w_value * v - distance - exposure,
         None => b.critter_appeal - distance,
-    };
-    match kitty {
-        Some(id) => {
-            base - expected_scene_exposure(
-                ctx,
-                crate::kitty::Activity::Playing {
-                    target: Some(TargetRef::Kitty { id }),
-                },
-                id,
-            )
-        }
-        None => base,
     }
 }
 
@@ -785,10 +802,34 @@ mod tests {
             "namer pays: {x}"
         );
 
-        // option_a: a wet decider's dry partner is NOT priced (the namer
-        // is the decider — data-model payer set, Experiments-reviewed).
+        // option_a: a wet decider's dry REST partner is NOT priced (rest
+        // references without naming back — the namer is the decider).
         let ctx = exposure_ctx(ContagionMembership::OptionA, true, false);
         assert_eq!(expected_scene_exposure(&ctx, rest_scene(), 2), 0.0);
+
+        // But PLAY is reciprocal by construction: the dry partner names
+        // the wet decider back, so it is a NAMER and pays under option_a
+        // too — the engine's own charge (pinned by the reciprocity
+        // integration test) and the needflow model both price it
+        // (Experiments ruling 2026-09-01, medium-review finding 1). The
+        // ladder must predict that charge from the wet decider's side.
+        let play_scene = Activity::Playing {
+            target: Some(TargetRef::Kitty { id: 2 }),
+        };
+        let ctx = exposure_ctx(ContagionMembership::OptionA, true, false);
+        let x = expected_scene_exposure(&ctx, play_scene.clone(), 2);
+        assert!(
+            (x - rate(&ctx, 2) * 2.0).abs() < 1e-4,
+            "reciprocal play: the dry partner is a namer under option_a \
+             and its charge is the scene's cost: {x}"
+        );
+        // Consequence (banked smoke prediction): play's payer set is
+        // IDENTICAL under both membership rules.
+        let bidi = exposure_ctx(ContagionMembership::Bidirectional, true, false);
+        assert!(
+            (expected_scene_exposure(&bidi, play_scene, 2) - x).abs() < 1e-4,
+            "play prices identically under both memberships"
+        );
 
         // bidirectional: the dry counterpart pays from either role.
         let ctx = exposure_ctx(ContagionMembership::Bidirectional, true, false);
@@ -814,19 +855,30 @@ mod tests {
     }
 
     #[test]
-    fn exposure_caps_at_the_payers_remaining_ceiling_headroom() {
-        // The ladder must never price exposure the engine cannot collect
-        // (the pre-charge gate's mirror): a payer near the ceiling owes
-        // at most ceiling − bath.
+    fn exposure_cap_is_engine_faithful_step_with_overshoot() {
+        // Experiments ruling 2026-09-01 (medium-review finding 6): the
+        // engine's ceiling is an all-or-nothing PRE-charge gate that
+        // deliberately overshoots — a cat at bath 59.9 is charged one
+        // FULL scaled charge, and only then does the gate close. The
+        // ladder's cap must match: below the ceiling, price
+        // min(rate × E, headroom + ONE full charge); at or past it,
+        // price 0 (faithful — no charge can land there).
         let mut ctx = exposure_ctx(ContagionMembership::OptionA, false, true);
-        ctx.me.needs.add(NeedKind::Bath, 58.0); // ceiling 60 → headroom 2
+        ctx.me.needs.add(NeedKind::Bath, 58.0); // headroom 2, charge 3.5
         let x = expected_scene_exposure(&ctx, rest_scene(), 2);
         assert!(
-            (x - 2.0).abs() < 1e-4,
-            "exposure must cap at the remaining headroom: {x}"
+            (x - 5.5).abs() < 1e-4,
+            "near the ceiling the engine still collects the overshoot \
+             charge: expected headroom 2 + one charge 3.5 = 5.5, got {x}"
         );
-        // At or past the ceiling: nothing collectable, nothing priced.
-        ctx.me.needs.add(NeedKind::Bath, 4.0);
+        // Mid-range: the horizon term wins, cap inert.
+        let mut ctx = exposure_ctx(ContagionMembership::OptionA, false, true);
+        ctx.me.needs.add(NeedKind::Bath, 10.0);
+        let x = expected_scene_exposure(&ctx, rest_scene(), 2);
+        assert!((x - 10.5).abs() < 1e-4, "mid-range prices rate × E: {x}");
+        // At or past the ceiling: the gate refuses everything — 0.
+        let mut ctx = exposure_ctx(ContagionMembership::OptionA, false, true);
+        ctx.me.needs.add(NeedKind::Bath, 62.0);
         assert_eq!(expected_scene_exposure(&ctx, rest_scene(), 2), 0.0);
     }
 

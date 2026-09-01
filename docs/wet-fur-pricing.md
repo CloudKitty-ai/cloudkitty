@@ -101,22 +101,32 @@ active membership rule (owner-clarified: egocentric pricing would make
 the smoke's C and D arms choose identically), in bath need-points, the
 score's existing currency:
 
-`Σ over payers min(factor × gain × bath_ratio(payer) × E_ticks(kind),
-max(0, ceiling − payer.bath))`
+`Σ over payers: 0 if payer.bath ≥ ceiling, else min(charge(payer) ×
+E_ticks(kind), headroom + one full charge)` — with `charge` read from
+`Config::contagion_charge`, the ONE formula the engine's charge arm
+shares, and the cap engine-faithful to the pre-charge gate's documented
+overshoot (Experiments ruling 2026-09-01; a headroom-only clamp
+under-priced exactly the near-ceiling cats)
 
 `E_ticks` is the scene's configured **minimum** duration
 (`Activity::bounds`, the one activity→duration authority; grooming
 reads `durations.bath`) — the same horizon as the chooser's
 `expected_wait` and needflow's relief model, a conservative weight that
-never manufactures avoidance. The cap mirrors the engine's pre-charge
-gate: the ladder never prices exposure the charge cannot collect.
-Three seams, all behind the gate: the partnered-relief score
+never manufactures avoidance.
+Four seams, all behind the gate: the partnered-relief score
 (`selection::scored`), per-candidate play ranking
-(`selection::play_score` — a dry playmate outranks an equal wet one),
-and the groom response (declines only when exposure exceeds the scene's
-total value: the groomee's bath pressure plus the groomer's own
-expected `groom_cuddle_relief` — a choice, never a refusal; legality is
-untouched, Article IV). Scope disclosure: only partners wet at DECISION
+(`selection::play_score` — a dry playmate outranks an equal wet one;
+reachable only from the Playful behavior, and its 1:1
+need-points-per-tile currency is a deliberate disclosed ruling), the
+groom response (declines only when exposure exceeds the scene's total
+value: the groomee's bath pressure plus the groomer's own expected
+`groom_cuddle_relief`), and the cosleep friend-pick (a companion whose
+exposure exceeds the decider's cuddle pressure plus the companion's
+tier relief is skipped — the cat still naps, just not against wet fur).
+Every decline is a choice, never a refusal; legality is untouched
+(Article IV). Payer-set note: play is reciprocal, so its dry member
+pays under BOTH membership rules — play carries no membership contrast
+by design (Experiments ruling 2026-09-01). Scope disclosure: only partners wet at DECISION
 time are priced — mid-scene waterline crossings are neither charged nor
 discounted (research.md D4's wet-now disclosure; the smoke's readout
 section carries the consequence). Off ⇒ every seam short-circuits

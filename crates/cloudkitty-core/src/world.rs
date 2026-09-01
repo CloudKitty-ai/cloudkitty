@@ -922,18 +922,29 @@ impl World {
                 // consulted. Order-free (any() over a snapshot).
                 let bidirectional = config.water.contagion_membership
                     == crate::config::ContagionMembership::Bidirectional;
+                // Wet namers pre-collected as (namer, named) pairs -- the
+                // scan is O(wet-namers x dry) instead of O(roster^2), and
+                // wet namers are few (medium review, since this arm is a
+                // candidate for a served pre-fog flip).
+                let wet_namer_pairs: Vec<(crate::kitty::KittyId, crate::kitty::KittyId)> =
+                    if bidirectional {
+                        self.kitties
+                            .iter()
+                            .filter(|w| wet_ids.contains(&w.id))
+                            .filter_map(|w| w.activity.partner().map(|named| (w.id, named)))
+                            .collect()
+                    } else {
+                        Vec::new()
+                    };
                 self.kitties
                     .iter()
                     .filter(|k| !water.contains(&k.pos))
                     .filter(|k| {
                         k.activity.partner().is_some_and(|p| {
                             wet_ids.contains(&p) && self.is_available_friend(k.id, p)
-                        }) || (bidirectional
-                            && self.kitties.iter().any(|w| {
-                                wet_ids.contains(&w.id)
-                                    && w.activity.partner() == Some(k.id)
-                                    && self.is_available_friend(w.id, k.id)
-                            }))
+                        }) || wet_namer_pairs
+                            .iter()
+                            .any(|(w, named)| *named == k.id && self.is_available_friend(*w, k.id))
                     })
                     .map(|k| k.id)
                     .collect()
@@ -971,11 +982,12 @@ impl World {
                 // the `contagious` filter never admits a wet cat at all.
                 // (Review finding 2 read the `else` alone as the guard --
                 // it is one of three, none load-bearing by itself.)
-                let ratio = config.bath_ratio(kitty.id);
-                kitty.needs.add(
-                    NeedKind::Bath,
-                    config.water.contagion_factor * config.water.bath_gain * ratio,
-                );
+                // The formula lives in `Config::contagion_charge` -- the
+                // ONE copy the 045 ladder also reads (predictor and
+                // collector must never drift).
+                kitty
+                    .needs
+                    .add(NeedKind::Bath, config.contagion_charge(kitty.id));
             }
             let previous = kitty.happiness;
             let current = happiness(

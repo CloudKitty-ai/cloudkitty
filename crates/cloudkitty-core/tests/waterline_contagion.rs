@@ -605,7 +605,7 @@ async fn a_referenced_dry_adjacent_cat_pays_under_bidirectional_only() {
             "{name}: the wet namer's rise moved with the membership rule \
              ({wet_a} vs {wet_b}) — it must not"
         );
-        if !matches!(activity_kind(name), "grooming") {
+        if name != "grooming" {
             let ambient = config.need_rate_for(DRY_CAT, NeedKind::Bath);
             assert!(
                 (dry_a - ambient).abs() < TOL,
@@ -614,12 +614,6 @@ async fn a_referenced_dry_adjacent_cat_pays_under_bidirectional_only() {
             );
         }
     }
-}
-
-/// Names are data here only so the non-groom arms can assert the absolute
-/// option_a baseline too.
-fn activity_kind(name: &str) -> &str {
-    name
 }
 
 /// Play is reciprocal by construction: both members name each other, so
@@ -914,32 +908,68 @@ async fn explicit_default_dials_are_byte_identical_to_absent() {
     );
 }
 
-/// Spec 045 SC-004/FR-005 (T023, the 043 gate-equality idiom): the
-/// ladder gate ON with `contagion_factor = 0.0` is byte-identical to the
-/// gate OFF at the same seed — the helper short-circuits before any
-/// arithmetic when the charge itself does not exist, so an armed-but-
-/// priceless ladder changes nothing. (Gate off ≡ absent is T016's
-/// explicit-default run; gate off ≡ pre-045 is structural: every seam
-/// subtracts a term that is identically 0.0.)
+/// Spec 045 SC-004/FR-005 (T023, reworked per the medium review's
+/// rule-6 finding — the earlier seeded arm was vacuous on its seed): a
+/// CONTROLLED world where the ladder provably flips a choice. A
+/// needs_driven decider sits one tile from an idle wet friend (cuddle
+/// errand, score ~39) with chow two tiles off (eat errand, score ~34):
+/// a gap of ~5 points, inside the exposure a priced cuddle scene
+/// carries. Arms:
+///   1. divergence control — gate ON at factor 2.0 diverges from gate
+///      OFF at the same factor within 3 ticks (the ladder flips cuddle
+///      → eat), proving this world CAN express the gate;
+///   2. must-pass — gate ON at factor 0.0 is byte-identical to gate
+///      OFF: no charge, no exposure, nothing to price. Because the gap
+///      is ~5 and a factor-1-shaped exposure is 10.5, any bug that
+///      prices at factor 0 (e.g. borrowing validate_water's
+///      `max(1, factor)`) flips arm 2's choice and reds it — the
+///      sensitivity the seeded 500-tick arm lacked.
 #[tokio::test(flavor = "current_thread")]
 async fn ladder_gate_on_at_factor_zero_is_byte_identical_to_gate_off() {
-    async fn run(config: &Arc<Config>, ticks: u64) -> String {
+    async fn run(factor: f32, ladder: bool) -> String {
+        let mut config = test_config();
+        config.kitties[1].behavior = "always_invalid".into(); // wet cat holds still
+        config.water.contagion_factor = factor;
+        config.behavior.contagion_aware_ladder = ladder;
+        config.validate().expect("controlled config must be legal");
+        let config = Arc::new(config);
+        let mut world = World::generate(&config);
+        world
+            .elements
+            .retain(|el| el.element_type() != ElementType::Water);
+        world.elements.push(Element {
+            id: 9_900,
+            kind: ElementKind::Water,
+            pos: WET_TILE,
+            ttl: None,
+        });
+        world.elements.push(Element {
+            id: 9_901,
+            kind: ElementKind::Chow { servings: 5 },
+            pos: Position { x: 8, y: 11 },
+            ttl: None,
+        });
+        place(&mut world, WET_CAT, WET_TILE);
+        place(&mut world, DRY_CAT, DRY_TILE);
+        set_need(&mut world, DRY_CAT, NeedKind::Cuddle, 40.0);
+        set_need(&mut world, DRY_CAT, NeedKind::Eat, 36.0);
         let registry = registry();
-        let mut world = World::generate(config);
-        for _ in 0..ticks {
-            world.tick(&registry, config).await;
+        for _ in 0..3 {
+            world.tick(&registry, &config).await;
         }
         serde_json::to_string(&world).expect("worlds serialize")
     }
-    let mut on = test_config();
-    on.behavior.contagion_aware_ladder = true; // factor stays 0.0
-    on.validate().expect("gate-on config must be legal");
-    let off = test_config();
-    let on = Arc::new(on);
-    let off = Arc::new(off);
+    // Divergence control: at a real factor the gate must matter here.
+    assert_ne!(
+        run(2.0, true).await,
+        run(2.0, false).await,
+        "this world must be able to express the gate (a priced cuddle \
+         scene flips to the eat errand) — if it cannot, arm 2 is vacuous"
+    );
+    // The must-pass: no factor, no exposure, no difference.
     assert_eq!(
-        run(&on, 500).await,
-        run(&off, 500).await,
+        run(0.0, true).await,
+        run(0.0, false).await,
         "an armed ladder with no charge to price must change nothing"
     );
 }

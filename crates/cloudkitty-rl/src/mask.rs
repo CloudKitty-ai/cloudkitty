@@ -240,10 +240,14 @@ mod tests {
     }
 
     /// Spec 045 FR-007 armed case (T025, Article IV): the charge-aware
-    /// ladder changes only PROPOSALS. A cat facing an exposed scene — a
-    /// wet friend adjacent, factor 1.0, bidirectional — holds identical
-    /// legal-action and legal-message masks with the ladder gate on and
-    /// off at the same tick.
+    /// ladder changes only PROPOSALS. The masks are computed against ONE
+    /// exposed world's snapshot under the gate-on and gate-off CONFIGS —
+    /// the sharp form of "the bool never leaks into legality"
+    /// (medium-review test hygiene: the earlier twin-worlds form was
+    /// vacuous under `always_invalid` cats, whose worlds cannot diverge
+    /// on the gate; the config is the only input that varies here, so
+    /// any legality read of the gate reds this directly — proven by the
+    /// recorded fake-hook injection).
     #[tokio::test(flavor = "current_thread")]
     async fn the_ladder_gate_never_moves_the_mask() {
         use cloudkitty_core::behavior::test_behaviors::AlwaysInvalid;
@@ -284,33 +288,26 @@ mod tests {
         }
 
         let (on, on_cfg) = exposed_world(true).await;
-        let (off, off_cfg) = exposed_world(false).await;
+        // The gate-off config: identical world inputs, only the bool
+        // differs — masks are pure functions of (snapshot, config), so
+        // one snapshot under both configs isolates the bool exactly.
+        let mut off = (*on_cfg).clone();
+        off.behavior.contagion_aware_ladder = false;
+        let off_cfg = Arc::new(off);
         let cfg = ObservationConfig::default();
         let codec = ActionCodec::v2(&cfg);
-        let s_on = on.snapshot();
-        let s_off = off.snapshot();
+        let snapshot = on.snapshot();
         for id in [1, 2] {
+            let table = TargetTable::build(&snapshot, id, &cfg);
             assert_eq!(
-                legal_action_mask(
-                    &s_on,
-                    id,
-                    &TargetTable::build(&s_on, id, &cfg),
-                    &codec,
-                    &on_cfg
-                ),
-                legal_action_mask(
-                    &s_off,
-                    id,
-                    &TargetTable::build(&s_off, id, &cfg),
-                    &codec,
-                    &off_cfg
-                ),
+                legal_action_mask(&snapshot, id, &table, &codec, &on_cfg),
+                legal_action_mask(&snapshot, id, &table, &codec, &off_cfg),
                 "kitty {id}: the ladder gate moved the legal-action mask \
                  (FR-007 armed case)"
             );
             assert_eq!(
-                legal_message_mask(&s_on, id, &on_cfg),
-                legal_message_mask(&s_off, id, &off_cfg),
+                legal_message_mask(&snapshot, id, &on_cfg),
+                legal_message_mask(&snapshot, id, &off_cfg),
                 "kitty {id}: the ladder gate moved the message mask"
             );
         }

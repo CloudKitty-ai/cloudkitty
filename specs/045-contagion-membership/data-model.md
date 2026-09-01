@@ -50,12 +50,18 @@ from existing world state.
 ```text
 exposure(ctx, kind, partner) =
   Σ_{payer ∈ payers(membership, me, partner)}
-      min( factor × bath_gain × bath_ratio(payer) × E_ticks(kind),
-           max(0, bath_gain_ceiling − payer.bath) )
+      0                                    if payer.bath ≥ ceiling
+      min( charge(payer) × E_ticks(kind),
+           (ceiling − payer.bath) + charge(payer) )   otherwise
+  where charge(payer) = Config::contagion_charge(payer)
+      (the ONE formula the engine's charge arm shares; the cap is the
+      engine's step-with-overshoot, Experiments ruling 2026-09-01)
 ```
 
 - `payers(option_a)`: `{me}` iff me dry ∧ partner wet (the namer is the
-  decider).
+  decider) — PLUS, for `Playing` scenes only, the dry partner of a wet
+  decider (play is reciprocal: the partner names back and pays under
+  option_a too; Experiments ruling 2026-09-01).
 - `payers(bidirectional)`: each dry member of the {me, partner} pair
   whose counterpart is wet (0, 1 members possible; never 2 — a pair has
   at most one dry-beside-wet member paying per counterpart... both-dry
@@ -65,11 +71,13 @@ exposure(ctx, kind, partner) =
   basis as `expected_wait` and needflow's relief horizon).
 - Units: bath need-points — subtracted directly from selection scores
   and candidate values (the score's existing currency).
-- Consumed at the three gated seams (D6): `scored()` for
-  Playmate/Friend relief, `play_score()` per candidate, the groom seam
-  (decline only when exposure > groomee's bath pressure + the
-  groomer's expected cuddle relief — scene-total cost vs scene-total
-  value).
+- Consumed at the FOUR gated seams (D6 + the 2026-09-01 amendment):
+  `scored()` for Playmate/Friend relief, `play_score()` per candidate,
+  the groom seam (decline only when exposure > groomee's bath pressure
+  + the groomer's expected cuddle relief), and the cosleep friend-pick
+  (companion admitted iff exposure ≤ decider's cuddle pressure + the
+  companion's tier relief) — scene-total cost vs scene-total value at
+  every seam.
 - Scope: prices only candidates wet at decision time — no anticipatory
   pricing of mid-scene waterline crossings (disclosed; see research.md
   D4's wet-now disclosure).

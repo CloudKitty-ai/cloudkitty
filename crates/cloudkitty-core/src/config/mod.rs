@@ -178,7 +178,7 @@ pub struct WaterConfig {
     /// Membership moves who pays, never the per-cat per-tick maximum,
     /// so the 044 budget law stands verbatim. Skipped from
     /// serialization at `option_a` (the 039-D5 stamp discipline).
-    #[serde(default, skip_serializing_if = "ContagionMembership::is_option_a")]
+    #[serde(default, skip_serializing_if = "ContagionMembership::is_default")]
     pub contagion_membership: ContagionMembership,
 }
 
@@ -196,9 +196,14 @@ pub enum ContagionMembership {
 }
 
 impl ContagionMembership {
-    /// Serde skip helper: the default variant stays out of the stamp.
-    pub fn is_option_a(&self) -> bool {
-        matches!(self, ContagionMembership::OptionA)
+    /// Serde skip helper: THE DEFAULT stays out of the stamp — written
+    /// against `Self::default()`, never a named variant, so a future
+    /// default flip (the timeline anticipates flipping membership
+    /// pre-Gen-1) moves serialization and deserialization together
+    /// instead of silently inverting round-tripping (medium review
+    /// finding 8).
+    pub fn is_default(&self) -> bool {
+        *self == Self::default()
     }
 }
 
@@ -1307,6 +1312,16 @@ impl Config {
         } else {
             1.0
         }
+    }
+
+    /// The per-tick waterline-contagion charge for `kitty_id` (spec 044:
+    /// `factor × bath_gain × bath_ratio(self)`). The ONE formula, shared
+    /// by the engine's charge arm (`world::advance_needs`) and the 045
+    /// charge-aware ladder (`behavior::selection::expected_scene_exposure`)
+    /// — the ladder is only meaningful if it predicts the engine exactly,
+    /// so neither may hold its own copy (spec 045 medium review).
+    pub fn contagion_charge(&self, kitty_id: KittyId) -> f32 {
+        self.water.contagion_factor * self.water.bath_gain * self.bath_ratio(kitty_id)
     }
 
     /// Identifies the settings a saved world must agree with to be resumable.

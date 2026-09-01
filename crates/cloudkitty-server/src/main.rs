@@ -262,6 +262,10 @@ async fn run() -> Result<()> {
         // 045: the armed line also names the membership rule, so a
         // future membership flip is as legible as the factor flip.
         if config.water.contagion_factor > 0.0 {
+            // The rule text lives in the MESSAGE, not only the field: a
+            // pipeline that drops structured fields must still read the
+            // true rule off the sentence (medium review finding 5 — the
+            // 044 wording under bidirectional stated the wrong rule).
             let membership = match config.water.contagion_membership {
                 cloudkitty_core::config::ContagionMembership::OptionA => {
                     "option_a: the dry namer pays"
@@ -272,9 +276,9 @@ async fn run() -> Result<()> {
             };
             tracing::info!(
                 contagion_factor = config.water.contagion_factor,
-                membership,
-                "waterline contagion armed: a dry cat pays for an adjacent \
-                 in-water partner its own activity names"
+                "waterline contagion armed (membership {membership}): wet \
+                 fur travels with the scene, adjacency required, dry \
+                 members only"
             );
         } else {
             tracing::info!(
