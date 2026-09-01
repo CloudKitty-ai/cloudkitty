@@ -1490,18 +1490,22 @@ function applyAxial(L, pose, phase, view, opts) {
       // of a box against the reference's 0.350. Nearly twice, and reaching
       // higher than the head.
       //
-      // ONE declared difference: the base. A seated cat's rump is ON the
-      // ground, so the tail leaves from the seated stern rather than the
-      // standing `tailBaseY` -- and that is the only thing about a sitting
-      // cat's tail that a camera should care about. Tip, curve and reach are
-      // the camera's.
+      // NO declared difference at all -- the same tail, from the same dials.
       //
-      // No sway: `tailSway` rides the walk cycle and a seated cat has no
-      // cycle. Its tip is therefore `tailOutX` exactly.
+      // A first pass moved the base down to the seated stern, reasoning that
+      // a sitting cat's rump is on the ground. That is true of the rump and
+      // false of the DRAWING: the reference hides its base INSIDE the body on
+      // purpose, which is what leaves only the upper hook showing and makes
+      // the thing read as a curl. Started at the ground the whole length
+      // shows, and a tail that shows its whole length along the flank is a
+      // stripe, not a tail. The owner saw that immediately.
+      //
+      // No sway: `tailSway` rides the walk cycle and a seated cat has none.
+      // Its tip is therefore `tailOutX` exactly, which is idle's number too.
       L.tailRaised = true;
       L.tail = {
-        x0: AXIAL.tailBaseX, y0: gStern,
-        c1x: AXIAL.tailOutX + AXIAL.tailCurve, c1y: gStern - 0.02,
+        x0: AXIAL.tailBaseX, y0: AXIAL.tailBaseY,
+        c1x: AXIAL.tailOutX + AXIAL.tailCurve, c1y: AXIAL.tailBaseY - 0.02,
         c2x: AXIAL.tailOutX + AXIAL.tailCurve, c2y: AXIAL.tailTopY + 0.16,
         x1: AXIAL.tailOutX, y1: AXIAL.tailTopY,
       };
