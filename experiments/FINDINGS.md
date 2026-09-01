@@ -1935,6 +1935,14 @@ needs-driven lab worlds at the canonical economy.
    quiet). The step-4 bidirectional call gets clean data: no
    meaningful edge-avoidance difference between the rules.
 
+**Ruling on this data (owner, 2026-09-01)**: no contagion for Gen 1
+(`contagion-shelved-2026-09-01.md`). Point 1 is the argument: a Gen 1
+learner cannot see a wet neighbour, so an armed charge trains arm B's
+world. The wet-side vector (wet cats keeping away from dry friends) is
+unpriced under BOTH membership rules — the wet member never pays
+contagion — so it is not learnable in this economy at all. F-035 is
+Gen 2 pricing input; reopen triggers are in the ruling doc.
+
 **Scope**: scripted choosers only (BC clones imitate the teacher —
 this is exactly the corpus-side question); canonical
 `groom_cuddle_relief` 0.5; the 10× arms run a disclosed nonstandard

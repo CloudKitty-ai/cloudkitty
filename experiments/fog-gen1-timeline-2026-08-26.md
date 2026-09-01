@@ -68,33 +68,36 @@ are the expected signature of this mechanism, not a defect.
   control fires (vs the addendum's drift-matched blind arm — the
   charge is a MAGNET when unseen, blind arms drift toward the edge);
   option_a vs bidirectional = 0.41 pp under the aware ladder, play
-  reciprocity prediction held. The step-4 membership call has its
-  data: no meaningful behavioral difference between the rules at
-  factor 1.0. Owner rules at step 4.
+  reciprocity prediction held. **Owner ruled on this data 2026-09-01:
+  no contagion for Gen 1** (`contagion-shelved-2026-09-01.md`) — the
+  magnet finding is the argument: Gen 1 cannot see a wet neighbour, so
+  an armed charge trains arm B's world. F-035 is Gen 2 pricing input.
 - **Biscuit 3.0 comfort sweep** (`biscuit3-design-note-2026-08-26.md`)
   — scripted `playful_comfort` dose-response, owner-gated to run once
   ALL pre-fog engine changes are in (step 1 + any step-3 economy
   members), so it prices the dial against the economy Biscuit 3.0
-  trains under.
+  trains under. With contagion shelved, the last engine-change blocker
+  is gone; runs once the owner calls the 041+bump soak.
 
 The validated step-2 mix bands become step 5's reference.
 
 ## Step 3 — the pre-fog schema-break bundle (owner decisions)
 
 A short doc listing in/out. Known members: the waterline (**ruled
-2026-08-30: contagion IN for Gen 1 at factor 1.0** — the mechanism
-ships pre-wall inert and flips after the 041 soak, handoff at
-`waterline-contagion-handoff-2026-08-30.md`; only the
-neighbour-in-water float waits for the wall, ruled jointly with the
-scene-age float), the KITTY_SLOT gap ("wants the wall"), anything else
-wanting a schema break. Nothing enters step 4's spec without appearing
-here first.
+2026-09-01: contagion OUT for Gen 1**, superseding the 2026-08-30 IN
+ruling — 044/045 stay in tree inert, no flip deploy; reasons and
+reopen triggers in `contagion-shelved-2026-09-01.md`. The
+neighbour-in-water float still waits for the wall, ruled jointly with
+the scene-age float, and is reopen trigger 1), the KITTY_SLOT gap
+("wants the wall"), anything else wanting a schema break. Nothing
+enters step 4's spec without appearing here first.
 
 ## Step 3.5 — tag v2.10 (owner-ruled 2026-08-30)
 
 The last stable 2.x, capping the pre-wall deploy train: 041 deploy +
-soak → refusal-stamp fast-follow → `announce_here` knob → contagion
-flip deploy + soak → **tag**. Prereq per house practice: expand
+soak → refusal-stamp fast-follow → `announce_here` knob → **tag**
+(contagion flip deploy + soak removed from the train by the 2026-09-01
+shelving; `announce_here` merged 2026-08-31). Prereq per house practice: expand
 `## Unreleased` first — joint pass at tag time (owner + Experiments),
 completeness-checked against `git log v2.9..` (toolchain pin #305,
 Biscuit 2.0 cutover, the client run #300+, 041, 042, plus whatever the
@@ -105,20 +108,16 @@ train adds). Fog work on the far side is 3.0-numbered.
 Spec-first (speckit). Scope per ROADMAP; free register never scripted;
 here_* words are about the WORLD, want_* about speaker state.
 
-**Bidirectional-contagion decision point (owner-directed 2026-08-31,
-rules BEFORE step-5 training so Gen 1 trains under the final rule)**:
-after the contagion flip deploys, re-run
-`attn-cert-2026-08-14/waterline_exposure.py` against the fresh
-pre-flip baseline (banked 2026-08-31: on-water 3.02%, cross-adjacency
-6.20%); the live check is a sanity pass only — **the decision data
-is IN (2026-09-01): F-035,
-`edge-avoidance-smoke-2026-09-01/RESULTS.md` — positive control
-fired, |option_a − bidirectional| = 0.41 pp at factor 1.0 under the
-charge-aware ladder**. On that data the owner may flip membership to
-bidirectional (dry member pays from either role). Pre-priced welfare-benign at both economies;
-charge-filter-only, no schema break. The genuine avoidance question (dry cats dodging wet
-friends at the water's edge) is only answerable AFTER Gen 1 trains
-under whichever rule ships — watch it at step-5 shakeout.
+**Bidirectional-contagion decision point — CLOSED 2026-09-01.** The
+data came in (F-035: positive control fired, |option_a −
+bidirectional| = 0.41 pp at factor 1.0 under the charge-aware ladder)
+and the owner ruled contagion OUT for Gen 1 on it
+(`contagion-shelved-2026-09-01.md`), so no membership call is needed.
+The post-flip `waterline_exposure.py` sanity pass is dropped; the
+pre-flip baseline (2026-08-31: on-water 3.02%, cross-adjacency 6.20%)
+stays banked as a reference. The step-5 edge-behavior watch item is
+dropped with it. Both rules remain pre-priced welfare-benign at both
+economies for Gen 2.
 
 Also specced in this window: the **Here*-teacher** scripted behavior
 (Product; parked since 2026-08-17, doctrine in the comms brainstorm
