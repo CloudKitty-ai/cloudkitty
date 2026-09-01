@@ -120,6 +120,12 @@ what the cooldown was put there to do -- the trigger is the world's and the
 rhythm is ours, and a chattier generation was the risk it was written for. It
 is working; this is just the number.
 
+**RULED, owner 2026-09-01: no cooldown change now.** "We'll evaluate how it
+actually looks post-fog and can tune any cooldowns then." The table above is
+what to expect, not a case for pre-emptive tuning -- the dial is judged on the
+screen, after a chattier generation is seated, and not before. Do not propose
+a new `meowCooldownMs` off this arithmetic.
+
 Two consequences worth carrying into the fog re-cut:
 
 - A post-fog meow census will measure the COOLDOWN more than the generation,
