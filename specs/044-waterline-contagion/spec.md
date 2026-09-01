@@ -13,6 +13,7 @@
 ### Session 2026-08-31
 
 - Q: When only one side of a paired scene names the partner in its own activity — a groomer grooming an idle cat — should the referenced cat (the idle groomee) also pay the contagion charge when its groomer is standing in water? → A: No — own-activity only (Option A). A cat pays only when *its own* activity names an in-water partner; a merely-referenced cat pays nothing. Social play is reciprocal by construction, so both members pay there either way; rest, co-sleep, and groom charge the naming side only. This also makes stacking impossible (one partner per activity → at most one contagion charge per cat per tick), keeping the per-tick worst case and the validation budget exactly as FR-009 states them.
+- Q (post-implementation review amendment, owner-ruled 2026-08-31): a cat's activity can name a partner one tick stale — a free rest companion or groomee who moves onto water after the namer's slot, before the namer's next prune. Does the stale naming still charge? → A: No — the charge additionally requires the named partner to be **currently adjacent** at needs time (the engine's one shared adjacency predicate). A scene the tick has already dissolved never draws a trailing charge. This only narrows exposure, so the FR-009 budget and per-tick worst case are untouched.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -70,7 +71,7 @@ The configuration validator's water-headroom rule — the guarantee that no amou
 
 ### Edge Cases
 
-- A partnered scene is read from a cat's **own current activity**: the dry cat pays only when its own activity names an in-water partner. A cat merely referenced by someone else's activity (e.g. the recipient of grooming who is itself idle) is not in a scene of its own and pays nothing. (See Assumptions.)
+- A partnered scene is read from a cat's **own current activity**: the dry cat pays only when its own activity names an in-water partner **who is currently adjacent** (amended by owner ruling 2026-08-31, see Clarifications). A cat merely referenced by someone else's activity (e.g. the recipient of grooming who is itself idle) is not in a scene of its own and pays nothing, and a named partner who has already wandered out of adjacency draws no trailing charge. (See Assumptions.)
 - A cat's activity names at most one partner, so at most one contagion charge can land per cat per tick; there is no stacking from multiple wet neighbours.
 - The ceiling gates on the **pre-charge** value, so a cat just under the ceiling can overshoot by at most one scaled charge — identical to the occupancy behavior the headroom budget already covers.
 - Contagion draws no randomness and fires in the same need-advance phase as occupancy: enabling it must not perturb any random stream, and disabling it must restore byte-identical behavior.
@@ -83,7 +84,7 @@ The configuration validator's water-headroom rule — the guarantee that no amou
 
 - **FR-001**: The system MUST expose one new numeric contagion factor in the water configuration section, defaulting to 0.0, with 0.0 (or absence) producing behavior and persisted artifacts byte-identical to the pre-feature engine.
 - **FR-002**: The inert default MUST stay out of the default serialization (identity-skip), preserving the standing config-stamp guarantee.
-- **FR-003**: When the factor is above 0.0, a cat whose current activity is one of the four paired kinds (resting with a friend, co-sleeping with a friend, social play with a kitty, grooming a kitty) and whose named partner currently stands on a water tile, and who is not itself on a water tile, MUST accrue a bath charge of factor × wet-fur gain × its own trait-scaled bath ratio that tick.
+- **FR-003**: When the factor is above 0.0, a cat whose current activity is one of the four paired kinds (resting with a friend, co-sleeping with a friend, social play with a kitty, grooming a kitty) and whose named partner currently stands on a water tile **and is currently adjacent to the cat** (owner ruling 2026-08-31, see Clarifications), and who is not itself on a water tile, MUST accrue a bath charge of factor × wet-fur gain × its own trait-scaled bath ratio that tick.
 - **FR-004**: The contagion charge MUST gate on the same wet-fur ceiling as the occupancy charge, evaluated on the pre-charge value.
 - **FR-005**: A cat standing on a water tile MUST pay only the occupancy charge — never the contagion charge in the same tick — so the per-tick worst case for any cat at factor ≤ 1.0 is unchanged.
 - **FR-006**: The feature MUST NOT introduce any persistent wetness state: whether a partner is "wet" is exactly whether it stands on a water tile this tick.

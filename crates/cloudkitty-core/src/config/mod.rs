@@ -146,9 +146,11 @@ pub struct WaterConfig {
     #[serde(default = "default_water_bath_gain_ceiling")]
     pub bath_gain_ceiling: f32,
     /// Waterline contagion (spec 044): a DRY cat whose own activity names
-    /// a partner standing in water accrues `contagion_factor * bath_gain *
-    /// bath_ratio(self)` per tick -- wet fur is social, and the price
-    /// travels with the scene. Own-activity rule: only the cat whose
+    /// an ADJACENT partner standing in water accrues `contagion_factor *
+    /// bath_gain * bath_ratio(self)` per tick -- wet fur is social, and
+    /// the price travels with the scene (a named partner who already
+    /// wandered out of adjacency draws no trailing charge; owner ruling
+    /// 2026-08-31). Own-activity rule: only the cat whose
     /// activity carries the partner pays (a merely-referenced cat, like an
     /// idle groomee, pays nothing); play is reciprocal by construction so
     /// both members pay there. Dry member only -- a cat on water pays
