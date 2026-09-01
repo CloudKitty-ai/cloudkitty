@@ -56,6 +56,19 @@ but not anticipatory avoidance of edge-loitering dry partners
 is NOT evidence of no edge behavior; weigh the cross-adjacency
 readout first.
 
+Channel scope (ruled 2026-09-01, from the 045 review round): the
+smoke's avoidance channels are groom, cosleep, and cuddle partner
+picks plus the groom-decline seam. The PLAY channel is deliberately
+charge-blind in every arm — the scored play seam only runs in the
+Playful behavior, which no scripted needs-driven arm uses — and this
+costs the decision nothing: play is reciprocal, so its dry member
+pays under BOTH memberships (engine test + needflow guard #6 both
+pin it), and play carries ~zero C-vs-D contrast. Corollary
+prediction: C ≈ D on play metrics is EXPECTED, not a null result. E's
+positive-control bar applies to the groom/cosleep/cuddle channels.
+Cosleep matters most: it carries 51 of the 87 cross pair-ticks in
+the live baseline below.
+
 ## Decision rule (bars pinned at prereg, shape declared now)
 
 - E must show the avoidance signature (water-adjacent share and/or
@@ -84,8 +97,20 @@ readout first.
    (scene-total exposure, needflow-derived; three adjustments filed:
    E_ticks horizon must match the relief term's, the groom-decline
    seam must value the scene scene-total, wet-now-only pricing
-   disclosed → the readout expectation above).
+   disclosed → the readout expectation above). Second review round
+   ruled 2026-09-01: play's dry member priced from either role under
+   option_a (reciprocity — FR-006 fidelity); a FOURTH gated seam on
+   the cosleep friend-pick (the dominant cross-adjacency channel);
+   ceiling cap re-shaped engine-faithful (0 at bath ≥ ceiling, else
+   min(rate × E_ticks, headroom + one full charge) — the engine's
+   pre-charge gate overshoots); play_score's exposure≡tiles 1:1 left
+   deliberate (seam unreachable in every arm, no speculative dial).
 4. Instrument --base flag (Experiments, trivial).
+5. **Lab arm configs pin `groom_cuddle_relief = 0.5`** (canonical) —
+   the groom-decline bar reads it from config, and the served value
+   is the TEMP 2.0 bump that reverts at Gen 1 reseating. The smoke
+   decides for the economy Gen 1 trains under; the prereg names the
+   pinned value.
 
 ## Sequencing
 
