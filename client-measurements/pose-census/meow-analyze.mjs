@@ -17,8 +17,12 @@ const R = eval(
 const AX = globalThis.CatV2?.AXIAL_POSES
   ?? new Set(['walking', 'idle', 'swim', 'grooming-other']);
 
-// The poses the owner judged the call reads on.
-const GOOD_POSES = new Set(['walking', 'idle']);
+// The poses the call is GATED on, read from the shipped `VIEW` rather than
+// restated. This was a literal `['walking', 'idle']` and the gate has since
+// grown `pouncing` (2026-08-25) and `loaf` (2026-08-27) -- so the analyzer
+// scored every meow on those two as a miss, which for `loaf` is precisely the
+// question the 041 re-census exists to answer.
+const GOOD_POSES = new Set(VIEW.meowPoses);
 
 const lines = readFileSync(process.argv[2] || 'meow-census.jsonl', 'utf8')
   .trim().split('\n').map((l) => JSON.parse(l));
@@ -65,7 +69,7 @@ for (const w of lines) {
     seenMeow.add(key);
     const at = drawn.get(`${m.kitty_id}:${m.tick}`);
     if (!at) { unresolved += 1; continue; } // spoken before the window opened
-    rows.push({ id: m.kitty_id, name: at.name, kind: m.kind, ...at });
+    rows.push({ id: m.kitty_id, name: at.name, kind: m.kind, tick: m.tick, ...at });
   }
 }
 
@@ -102,7 +106,35 @@ for (const id of ids) {
     + String(good).padStart(14) + `   ${(good / (minutes / 60)).toFixed(1)}`.padStart(14),
   );
 }
-console.log(`\n${ok} of ${speech.length} speech events land on walking/idle with a face `
+console.log(`\n${ok} of ${speech.length} speech events land on ${[...GOOD_POSES].join('/')} with a face `
   + `= ${(ok / Math.max(1, speech.length) * 100).toFixed(0)}%`);
 console.log(`roster rate: ${(ok / (minutes / 60)).toFixed(1)} animated meows per hour, `
   + `one every ${(60 / Math.max(0.01, ok / (minutes / 60))).toFixed(1)} minutes`);
+
+// ...but the cat only OPENS ITS MOUTH for some of those. `meowFor` holds a
+// per-cat cooldown, so a burst of eligible calls draws once and the rest are
+// dropped on the floor -- not queued. Everything above is the ceiling; this is
+// what a viewer sees, and the two diverge exactly when the world gets chatty.
+const coolTicks = VIEW.meowCooldownMs / 800;
+let drawnCount = 0;
+const perCat = {};
+for (const id of ids) {
+  const mine = speech.filter((r) => r.id === id && shows(r)).sort((a, b) => a.tick - b.tick);
+  let last = -Infinity;
+  let n = 0;
+  for (const r of mine) {
+    if (r.tick - last < coolTicks) continue;
+    last = r.tick;
+    n += 1;
+  }
+  perCat[NAMES[id] || id] = n;
+  drawnCount += n;
+}
+console.log(`\nafter the ${VIEW.meowCooldownMs / 1000}s per-cat cooldown: ${drawnCount} actually drawn `
+  + `= ${(drawnCount / (minutes / 60)).toFixed(1)} per hour, one every `
+  + `${(60 / Math.max(0.01, drawnCount / (minutes / 60))).toFixed(1)} minutes`);
+console.log('  per cat:', JSON.stringify(perCat));
+if (ok > 0) {
+  console.log(`  the cooldown drops ${ok - drawnCount} of ${ok} eligible calls `
+    + `(${((1 - drawnCount / ok) * 100).toFixed(0)}%)`);
+}
